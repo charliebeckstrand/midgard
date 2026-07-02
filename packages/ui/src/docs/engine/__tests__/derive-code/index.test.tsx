@@ -1,23 +1,28 @@
 import { Star } from 'lucide-react'
 import { createElement } from 'react'
-import { describe, expect, it, vi } from 'vitest'
-import { deriveCode } from '../../derive-code'
+import { describe, expect, it } from 'vitest'
+import { type ComponentRegistry, deriveCode } from '../../derive-code'
+import { readTag } from '../../derive-code/registry'
 import { tag } from './helpers'
 
-// Agnostic: a synthetic component-modules map stands in for a real library's,
-// so snippet-tag and external-icon resolution are exercised without scanning
-// ui. `tag()` stand-ins carry the build-time decoration directly. Real-library
-// integration (the map populated from ui, real barrel tagging) lives in ui.
-vi.mock('virtual:component-modules', () => ({
-	default: {
-		packageName: 'ui',
-		names: {
-			Stack: 'stack',
-			FileUpload: 'file-upload',
-			Star: { module: 'lucide-react', external: true },
-		},
-	},
-}))
+// Agnostic: a synthetic registry stands in for a real library's, so snippet-tag
+// and external-icon resolution are exercised without scanning ui. It pairs the
+// real `byType` tag reader (so `tag()` stand-ins resolve) with a hand-built
+// `byName` map, and is injected into `deriveCode` per call. Injection rather
+// than `vi.mock`-ing `virtual:component-modules` on purpose: that module-level
+// mock bleeds across files under the shared-worker vmThreads pool and corrupts
+// the real-registry integration test (src/__tests__/docs/component-modules).
+// Real-library integration (the map populated from ui, real barrel tagging)
+// lives in ui.
+const registry: ComponentRegistry = {
+	byType: { get: readTag },
+	byName: new Map([
+		['Stack', { name: 'Stack', module: 'stack' }],
+		['FileUpload', { name: 'FileUpload', module: 'file-upload' }],
+		['Star', { name: 'Star', module: 'lucide-react', external: true }],
+	]),
+	packageName: 'ui',
+}
 
 describe('deriveCode external components', () => {
 	it('renders an external icon prop and emits its bare-specifier import', () => {
@@ -25,7 +30,7 @@ describe('deriveCode external components', () => {
 
 		const tree = createElement(Icon, { icon: createElement(Star), size: 32 })
 
-		expect(deriveCode(tree)).toBe(
+		expect(deriveCode(tree, registry)).toBe(
 			[
 				`import { Icon } from 'ui/icon'`,
 				`import { Star } from 'lucide-react'`,
@@ -40,7 +45,7 @@ describe('deriveCode external components', () => {
 
 		const tree = createElement(Button, null, createElement(Star))
 
-		expect(deriveCode(tree)).toBe(
+		expect(deriveCode(tree, registry)).toBe(
 			[
 				`import { Button } from 'ui/button'`,
 				`import { Star } from 'lucide-react'`,
@@ -71,7 +76,7 @@ describe('deriveCode iteration vs authored siblings', () => {
 			createElement(Button, { variant: 'outline' }, 'sm'),
 		)
 
-		const result = deriveCode(tree)
+		const result = deriveCode(tree, registry)
 
 		const buttonLines = (result ?? '').split('\n').filter((line) => line.includes('<Button'))
 
@@ -89,7 +94,7 @@ describe('deriveCode iteration vs authored siblings', () => {
 			),
 		)
 
-		const result = deriveCode(tree)
+		const result = deriveCode(tree, registry)
 
 		const optionLines = (result ?? '').split('\n').filter((line) => line.includes('<ListboxOption'))
 
@@ -103,7 +108,7 @@ describe('deriveCode iteration vs authored siblings', () => {
 			createElement(ListboxOption, { key: 'c', value: 'c' }, 'Charlie'),
 		])
 
-		const result = deriveCode(tree)
+		const result = deriveCode(tree, registry)
 
 		const optionLines = (result ?? '').split('\n').filter((line) => line.includes('<ListboxOption'))
 
@@ -125,7 +130,7 @@ describe('deriveCode child ordering', () => {
 
 		const tree = createElement(Tooltip, null, 'Tooltip on ', placement)
 
-		const result = deriveCode(tree)
+		const result = deriveCode(tree, registry)
 
 		expect(result).toContain('<Tooltip>Tooltip on left</Tooltip>')
 	})
@@ -133,7 +138,7 @@ describe('deriveCode child ordering', () => {
 	it('keeps text at the top level (deriveCode called with mixed children)', () => {
 		const Button = tag<{ children?: unknown }>('Button', 'button')
 
-		const result = deriveCode(['Heading text', createElement(Button, null, 'Click')])
+		const result = deriveCode(['Heading text', createElement(Button, null, 'Click')], registry)
 
 		expect(result).toContain('Heading text')
 
@@ -149,7 +154,7 @@ describe('deriveCode child ordering', () => {
 			createElement(Button, null, 'Click'),
 		)
 
-		const result = deriveCode(tree)
+		const result = deriveCode(tree, registry)
 
 		const body = (result ?? '').split('\n\n').slice(1).join('\n')
 
@@ -173,7 +178,7 @@ describe('deriveCode prop formatting', () => {
 
 		const tree = createElement(Foo, { tags: ["it's", 'fine'] })
 
-		const result = deriveCode(tree)
+		const result = deriveCode(tree, registry)
 
 		expect(result).toContain('tags={["it\'s", "fine"]}')
 	})
@@ -200,7 +205,7 @@ describe('deriveCode + __code', () => {
 			},
 		)
 
-		const result = deriveCode(createElement(AreaDemo))
+		const result = deriveCode(createElement(AreaDemo), registry)
 
 		expect(result).not.toBeNull()
 
@@ -238,7 +243,7 @@ describe('deriveCode + __code', () => {
 			},
 		)
 
-		const result = deriveCode(createElement(FormDemo))
+		const result = deriveCode(createElement(FormDemo), registry)
 
 		expect(result).toMatch(/import \{[^}]*\buse\b[^}]*\} from 'react'/)
 
@@ -266,7 +271,7 @@ describe('deriveCode + __code', () => {
 			},
 		)
 
-		const result = deriveCode(createElement(MethodDemo))
+		const result = deriveCode(createElement(MethodDemo), registry)
 
 		expect(result).not.toBeNull()
 

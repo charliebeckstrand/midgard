@@ -16,7 +16,7 @@ import {
 	resolveType,
 } from './internals'
 import { defaultRegistry } from './registry'
-import type { Context } from './types'
+import type { ComponentRegistry, Context } from './types'
 
 export { defaultRegistry } from './registry'
 export type { ComponentInfo, ComponentRegistry, Context } from './types'
@@ -33,13 +33,20 @@ export type { ComponentInfo, ComponentRegistry, Context } from './types'
  *
  * Returns `null` when the subtree contains no recognized components; the
  * caller then provides an explicit `code` override or omits the code block.
+ *
+ * `registry` defaults to the build-time {@link defaultRegistry}; tests inject a
+ * synthetic one to exercise the agnostic engine without scanning a real library
+ * (and without module-mocking `virtual:component-modules`).
  */
-export function deriveCode(children: ReactNode): string | null {
+export function deriveCode(
+	children: ReactNode,
+	registry: ComponentRegistry = defaultRegistry,
+): string | null {
 	const context: Context = {
-		registry: defaultRegistry,
+		registry,
 		imports: new Map(),
 		externalModules: new Set(),
-		packageName: defaultRegistry.packageName,
+		packageName: registry.packageName,
 	}
 
 	const jsx = renderNodes(Children.toArray(children), context, '')
