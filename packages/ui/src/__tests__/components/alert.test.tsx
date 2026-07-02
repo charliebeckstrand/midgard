@@ -1,7 +1,7 @@
 import { useRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Alert, AlertTitle } from '../../components/alert'
-import { bySlot, fireEvent, renderUI, screen } from '../helpers'
+import { bySlot, expectAnnouncement, fireEvent, liveRegion, renderUI, screen } from '../helpers'
 
 describe('Alert', () => {
 	it('renders title and description props', () => {
@@ -120,9 +120,6 @@ describe('Alert', () => {
 	})
 
 	describe('status announcement', () => {
-		const politeRegion = () =>
-			document.body.querySelector('[data-slot="live-region"][aria-live="polite"]')
-
 		it('announces an info alert through the polite live region when it appears', async () => {
 			const { rerender } = renderUI(
 				<Alert severity="info" open={false}>
@@ -131,7 +128,7 @@ describe('Alert', () => {
 			)
 
 			// Lazily created on first announce; absent means nothing was announced.
-			expect(politeRegion()?.textContent ?? '').toBe('')
+			expect(liveRegion()?.textContent ?? '').toBe('')
 
 			rerender(
 				<Alert severity="info" open>
@@ -139,7 +136,7 @@ describe('Alert', () => {
 				</Alert>,
 			)
 
-			await vi.waitFor(() => expect(politeRegion()).toHaveTextContent('Saved'))
+			await expectAnnouncement('Saved')
 		})
 
 		it('stays silent for an alert already open on mount', async () => {
@@ -153,7 +150,7 @@ describe('Alert', () => {
 			await Promise.resolve()
 
 			// Lazily created on first announce; absent means nothing was announced.
-			expect(politeRegion()?.textContent ?? '').toBe('')
+			expect(liveRegion()?.textContent ?? '').toBe('')
 		})
 
 		it('does not route warning/error through the announcer (role="alert" already announces)', async () => {
@@ -172,7 +169,7 @@ describe('Alert', () => {
 			await Promise.resolve()
 
 			// Lazily created on first announce; absent means nothing was announced.
-			expect(politeRegion()?.textContent ?? '').toBe('')
+			expect(liveRegion()?.textContent ?? '').toBe('')
 		})
 	})
 })
