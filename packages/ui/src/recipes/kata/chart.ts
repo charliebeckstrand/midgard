@@ -18,7 +18,9 @@
  * reordering or re-shading.
  */
 import { mode } from '../../core/recipe'
-import { iro, kasane, kokkaku } from '../kiso'
+import { hannou, iro, kasane, kokkaku } from '../kiso'
+
+const { cursor, tint } = hannou
 
 const { text } = iro
 
@@ -119,6 +121,18 @@ export const k = {
 	gap: mode('stroke-white', 'dark:stroke-zinc-900'),
 	/** Legend / tooltip label ink (HTML text; marks carry the colour, text never does). */
 	label: ['text-xs', ...text.muted],
+	/** An interactive legend entry: pointer cursor, ghost hover/focus wash, quiet outline. */
+	legendItem: [
+		'flex',
+		'items-center',
+		'gap-1.5',
+		'px-1.5',
+		'py-0.5',
+		rounded.md,
+		'outline-hidden',
+		...cursor,
+		...tint,
+	],
 	/** Tooltip value ink: the strong element, values lead. */
 	value: ['text-xs', 'font-medium', 'tabular-nums', ...text.default],
 	/** The tooltip's floating surface. */

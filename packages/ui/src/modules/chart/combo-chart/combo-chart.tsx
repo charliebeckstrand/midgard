@@ -10,6 +10,7 @@ import { ChartCrosshair } from '../chart-crosshair'
 import { ChartFrame } from '../chart-frame'
 import { ChartGridLines } from '../chart-grid-lines'
 import { ChartHitArea } from '../chart-hit-area'
+import { ChartLegend } from '../chart-legend'
 import { AnimatedChartLineMarks, ChartLineMarks, type ChartLineSeries } from '../chart-line-marks'
 import type { SeriesMeta } from '../chart-series'
 import { lineGeometry } from '../line-chart/line-chart-geometry'
@@ -25,6 +26,11 @@ export type ComboChartProps<T> = AccessibleName &
 	Omit<CartesianData<T>, 'series'> & {
 		/** The series to plot, each drawn as bars or as a line; slot colours follow this order. */
 		series: ComboChartSeries<T>[]
+		/**
+		 * Mark every line point with a filled, surface-ringed dot.
+		 * @defaultValue true
+		 */
+		points?: boolean
 	}
 
 /**
@@ -61,6 +67,7 @@ export function ComboChart<T>({
 	legend,
 	tooltip = true,
 	animate = false,
+	points = true,
 	min,
 	max,
 	formatValue,
@@ -77,8 +84,10 @@ export function ComboChart<T>({
 
 	const yScale = chart.yScale
 
+	const dim = (meta: SeriesMeta) => chart.emphasis !== null && meta.index !== chart.emphasis
+
 	const pick = (type: 'bar' | 'line') =>
-		chart.metas.filter((_, index) => (series[index]?.type ?? 'bar') === type)
+		chart.visible.filter((meta) => (series[meta.index]?.type ?? 'bar') === type)
 
 	const barMetas = pick('bar')
 
@@ -103,21 +112,24 @@ export function ComboChart<T>({
 					yScale.map,
 					chart.plot.y + chart.plot.height,
 				),
-				markers: false,
+				markers: points,
+				dimmed: dim(meta),
 			}))
 		: []
 
 	const barPaints = barMetas.map((meta) => meta.paint)
 
+	const barDims = barMetas.map(dim)
+
 	const marksNode = animate ? (
 		<>
-			<AnimatedChartBarMarks marks={bars} paints={barPaints} />
+			<AnimatedChartBarMarks marks={bars} paints={barPaints} dimmed={barDims} />
 
 			<AnimatedChartLineMarks list={lines} fill={false} delay={COMBO_LINE_DELAY} />
 		</>
 	) : (
 		<>
-			<ChartBarMarks marks={bars} paints={barPaints} />
+			<ChartBarMarks marks={bars} paints={barPaints} dimmed={barDims} />
 
 			<ChartLineMarks list={lines} fill={false} />
 		</>
@@ -131,7 +143,16 @@ export function ComboChart<T>({
 			fixedWidth={chart.fixedWidth}
 			height={chart.height}
 			plot={chart.plot}
-			legend={chart.legendItems}
+			legend={
+				chart.legendItems && (
+					<ChartLegend
+						items={chart.legendItems}
+						hidden={chart.hidden}
+						onToggle={chart.toggleSeries}
+						onFocus={chart.setEmphasis}
+					/>
+				)
+			}
 			readout={chart.readout}
 			anchors={chart.anchors}
 			tooltip={tooltip}

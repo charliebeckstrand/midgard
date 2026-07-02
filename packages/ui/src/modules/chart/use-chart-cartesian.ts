@@ -22,6 +22,7 @@ import {
 } from './chart-series'
 import type { CartesianChartProps, ChartReadout, ChartSeries } from './types'
 import { useChartPlot } from './use-chart-plot'
+import { useChartSeriesToggle } from './use-chart-series-toggle'
 
 /** The cartesian props minus the accessible name, which stays with the frame. @internal */
 export type CartesianData<T> = Omit<CartesianChartProps<T>, 'aria-label' | 'aria-labelledby'>
@@ -48,7 +49,18 @@ export type CartesianChart = {
 	baseline: number
 	yTicks: ChartAxisTick[]
 	xTicks: ChartAxisTick[]
+	/** Every series, toggled or not — the legend lists them all. */
 	metas: SeriesMeta[]
+	/** The series still toggled on — scales, marks, and readout draw these. */
+	visible: SeriesMeta[]
+	/** Legend indexes toggled off. */
+	hidden: ReadonlySet<number>
+	/** Toggles a series on or off by its index. */
+	toggleSeries: (index: number) => void
+	/** The legend-emphasised series, when it is visible; other marks dim. */
+	emphasis: number | null
+	/** Moves the legend emphasis (`null` clears it). */
+	setEmphasis: (index: number | null) => void
 	readout: ChartReadout | null
 	legendItems: ChartLegendItem[] | null
 	anchors: ChartAnchor[]
@@ -88,17 +100,24 @@ export function useChartCartesian<T>(
 
 	const format = props.formatValue ?? formatChartValue
 
+	const { hidden, toggle, setFocus, emphasis } = useChartSeriesToggle()
+
 	const metas: SeriesMeta[] = series.map((entry, index) => ({
+		index,
 		label: entry.label,
 		paint: seriesPaint(entry, index),
 		swatch: config.swatch(entry, index),
 		values: seriesValues(data, entry.key),
 	}))
 
+	// Toggled-off series leave the scales and readout; slot colours stay put
+	// because each meta's paint keyed off its original index.
+	const visible = metas.filter((meta) => !hidden.has(meta.index))
+
 	// The y range needs only the frame height, so the scale (and its tick
 	// labels) can resolve the gutter before the full plot rect exists.
 	const yScale = linearScale({
-		values: metas.flatMap((meta) => meta.values.filter((value) => value !== null)),
+		values: visible.flatMap((meta) => meta.values.filter((value) => value !== null)),
 		range: [frameHeight - (axes ? X_AXIS_HEIGHT : 0), PLOT_TOP_PAD],
 		tickTarget: metrics.tickTarget,
 		zeroBaseline: config.zeroBaseline,
@@ -114,7 +133,8 @@ export function useChartCartesian<T>(
 
 	const categories = data.map((datum) => String(datum[x]))
 
-	const readout = data.length > 0 && metas.length > 0 ? chartReadout(data, x, metas, format) : null
+	const readout =
+		data.length > 0 && visible.length > 0 ? chartReadout(data, x, visible, format) : null
 
 	const legendItems =
 		(legend ?? metas.length > 1)
@@ -137,6 +157,11 @@ export function useChartCartesian<T>(
 		yTicks: yTickValues.map((tick) => ({ at: yScale?.map(tick) ?? 0, label: format(tick) })),
 		xTicks: xAxisTicks(categories, band, plot),
 		metas,
+		visible,
+		hidden,
+		toggleSeries: toggle,
+		emphasis,
+		setEmphasis: setFocus,
 		readout,
 		legendItems,
 		anchors: bandAnchors(band, data.length, plot),

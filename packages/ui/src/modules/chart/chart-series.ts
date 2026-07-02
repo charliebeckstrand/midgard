@@ -56,6 +56,8 @@ export function formatChartValue(value: number): string {
 
 /** One series with everything the frame parts need to draw it. @internal */
 export type SeriesMeta = {
+	/** The series' position in the caller's list — slot colours and toggles key off it. */
+	index: number
 	label: string
 	paint: SeriesPaint
 	/** Swatch shape, mirroring the mark. */

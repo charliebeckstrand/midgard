@@ -130,6 +130,28 @@ describe('PieChart', () => {
 
 		expect(allBySlot(container, 'chart-segment-label')).toHaveLength(3)
 	})
+
+	it('re-shares the sweep when a legend entry toggles a slice off', () => {
+		const { container } = renderUI(chart({ segmentLabels: true }))
+
+		const search = allBySlot(container, 'chart-legend-item')[0] as HTMLButtonElement
+
+		fireEvent.click(search)
+
+		expect(allBySlot(container, 'chart-slice')).toHaveLength(2)
+
+		// Direct and Referral re-share the whole: 25/40 and 15/40.
+		expect(allBySlot(container, 'chart-segment-label').map((el) => el.textContent)).toEqual([
+			'63%',
+			'38%',
+		])
+
+		expect(search.querySelector('.line-through')).not.toBeNull()
+
+		fireEvent.click(search)
+
+		expect(allBySlot(container, 'chart-slice')).toHaveLength(3)
+	})
 })
 
 describe('segmentLabelFits', () => {

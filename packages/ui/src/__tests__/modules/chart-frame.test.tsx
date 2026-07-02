@@ -9,8 +9,9 @@ import {
 } from '../../modules/chart/chart-constants'
 import { ChartFrame } from '../../modules/chart/chart-frame'
 import { bandAnchors, plotRect } from '../../modules/chart/chart-layout'
+import { ChartLegend } from '../../modules/chart/chart-legend'
 import { bandScale } from '../../modules/chart/chart-scale'
-import { bySlot, renderUI } from '../helpers'
+import { bySlot, noop, renderUI } from '../helpers'
 
 const PLOT = { x: 40, y: 8, width: 360, height: 200 }
 
@@ -22,7 +23,14 @@ function frame(width: number, extras?: Partial<Parameters<typeof ChartFrame>[0]>
 			width={width}
 			height={240}
 			plot={PLOT}
-			legend={[{ label: 'Revenue', swatchClass: 'bg-blue-600', swatch: 'rect' }]}
+			legend={
+				<ChartLegend
+					items={[{ label: 'Revenue', swatchClass: 'bg-blue-600', swatch: 'rect' }]}
+					hidden={new Set()}
+					onToggle={noop}
+					onFocus={noop}
+				/>
+			}
 			readout={{
 				categories: ['Q1', 'Q2'],
 				rows: [

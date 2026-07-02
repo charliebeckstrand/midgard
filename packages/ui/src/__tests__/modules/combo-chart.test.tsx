@@ -80,4 +80,14 @@ describe('ComboChart', () => {
 
 		expect(allBySlot(container, 'chart-line')).toHaveLength(1)
 	})
+
+	it('marks line points by default and stands down on points={false}', () => {
+		const marked = renderUI(chart())
+
+		expect(allBySlot(marked.container, 'chart-point')).toHaveLength(3)
+
+		const bare = renderUI(chart({ points: false }))
+
+		expect(allBySlot(bare.container, 'chart-point')).toHaveLength(0)
+	})
 })

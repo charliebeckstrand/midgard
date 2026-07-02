@@ -6,6 +6,7 @@ import { AnimatedChartBarMarks, ChartBarMarks } from '../chart-bar-marks'
 import { ChartFrame } from '../chart-frame'
 import { ChartGridLines } from '../chart-grid-lines'
 import { ChartHitArea } from '../chart-hit-area'
+import { ChartLegend } from '../chart-legend'
 import type { CartesianChartProps } from '../types'
 import { useChartCartesian } from '../use-chart-cartesian'
 import { barMarks } from './bar-chart-geometry'
@@ -64,19 +65,23 @@ export function BarChart<T>({
 
 	const marks = chart.yScale
 		? barMarks(
-				chart.metas.map((meta) => meta.values),
+				chart.visible.map((meta) => meta.values),
 				chart.band,
 				chart.yScale.map,
 				chart.baseline,
 			)
 		: []
 
-	const paints = chart.metas.map((meta) => meta.paint)
+	const paints = chart.visible.map((meta) => meta.paint)
+
+	const dimmed = chart.visible.map(
+		(meta) => chart.emphasis !== null && meta.index !== chart.emphasis,
+	)
 
 	const marksNode = animate ? (
-		<AnimatedChartBarMarks marks={marks} paints={paints} />
+		<AnimatedChartBarMarks marks={marks} paints={paints} dimmed={dimmed} />
 	) : (
-		<ChartBarMarks marks={marks} paints={paints} />
+		<ChartBarMarks marks={marks} paints={paints} dimmed={dimmed} />
 	)
 
 	return (
@@ -87,7 +92,16 @@ export function BarChart<T>({
 			fixedWidth={chart.fixedWidth}
 			height={chart.height}
 			plot={chart.plot}
-			legend={chart.legendItems}
+			legend={
+				chart.legendItems && (
+					<ChartLegend
+						items={chart.legendItems}
+						hidden={chart.hidden}
+						onToggle={chart.toggleSeries}
+						onFocus={chart.setEmphasis}
+					/>
+				)
+			}
 			readout={chart.readout}
 			anchors={chart.anchors}
 			tooltip={tooltip}

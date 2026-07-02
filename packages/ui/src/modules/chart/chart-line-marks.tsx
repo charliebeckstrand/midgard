@@ -22,6 +22,13 @@ export type ChartLineSeries = {
 	geometry: LineSeriesGeometry
 	/** Mark every point, not only the isolated ones. */
 	markers: boolean
+	/** Legend emphasis elsewhere — this series fades back. */
+	dimmed?: boolean
+}
+
+/** The series group's classes: the dim rides the group so motion's inline mark opacity still composes. @internal */
+function seriesClass(dimmed: boolean | undefined): string {
+	return cn('transition-opacity', dimmed && 'opacity-25')
 }
 
 /** Shared shape for the static and animated line renderers. @internal */
@@ -40,8 +47,8 @@ function markerClass(paint: SeriesPaint): string {
 
 /** The plain-SVG lines: the cheap default with no motion runtime work. @internal */
 export function ChartLineMarks({ list, fill }: ChartLineMarksProps) {
-	return list.map(({ label, paint, geometry, markers }) => (
-		<g key={label} data-slot="chart-line-series">
+	return list.map(({ label, paint, geometry, markers, dimmed }) => (
+		<g key={label} data-slot="chart-line-series" className={seriesClass(dimmed)}>
 			{fill &&
 				geometry.areas.map((area) => (
 					<path
@@ -84,8 +91,8 @@ export function ChartLineMarks({ list, fill }: ChartLineMarksProps) {
 
 /** The Framer Motion lines: each segment draws itself, washes and dots follow. @internal */
 export function AnimatedChartLineMarks({ list, fill, delay = 0 }: ChartLineMarksProps) {
-	return list.map(({ label, paint, geometry, markers }) => (
-		<g key={label} data-slot="chart-line-series">
+	return list.map(({ label, paint, geometry, markers, dimmed }) => (
+		<g key={label} data-slot="chart-line-series" className={seriesClass(dimmed)}>
 			{fill &&
 				geometry.areas.map((area) => (
 					<motion.path

@@ -17,10 +17,12 @@ import {
 	TICK_CHAR_WIDTH,
 } from '../chart-constants'
 import { ChartFrame } from '../chart-frame'
+import { ChartLegend } from '../chart-legend'
 import { formatChartValue, type SeriesPaint, seriesValues } from '../chart-series'
 import { useChartHover } from '../context'
 import type { ChartReadout, DataKey } from '../types'
 import { useChartPlot } from '../use-chart-plot'
+import { useChartSeriesToggle } from '../use-chart-series-toggle'
 import { type PieSlice, pieCentroidRadius, pieSlices, segmentLabelFits } from './pie-chart-geometry'
 
 /**
@@ -108,6 +110,8 @@ type PieSegmentLabelsProps = {
 	items: PieSegmentLabel[]
 	paints: SeriesPaint[]
 	animate: boolean
+	/** The legend-emphasised slice; other labels dim with their slices. */
+	emphasis: number | null
 }
 
 /**
@@ -117,7 +121,7 @@ type PieSegmentLabelsProps = {
  *
  * @internal
  */
-function PieSegmentLabels({ items, paints, animate }: PieSegmentLabelsProps) {
+function PieSegmentLabels({ items, paints, animate, emphasis }: PieSegmentLabelsProps) {
 	return (
 		<g data-slot="chart-segment-labels" pointerEvents="none">
 			{items.map(({ slice, text, order }) => {
@@ -130,20 +134,21 @@ function PieSegmentLabels({ items, paints, animate }: PieSegmentLabelsProps) {
 					className: cn('font-medium text-xs tabular-nums', paints[slice.index]?.onFill),
 				}
 
-				return animate ? (
-					<motion.text
-						key={slice.index}
-						{...shared}
-						initial={{ opacity: 0 }}
-						animate={{ opacity: 1 }}
-						transition={{ ...SLICE_FADE, delay: order * SLICE_STAGGER }}
-					>
-						{text}
-					</motion.text>
-				) : (
-					<text key={slice.index} {...shared}>
-						{text}
-					</text>
+				return (
+					<g key={slice.index} className={sliceGroupClass(emphasis, slice.index)}>
+						{animate ? (
+							<motion.text
+								{...shared}
+								initial={{ opacity: 0 }}
+								animate={{ opacity: 1 }}
+								transition={{ ...SLICE_FADE, delay: order * SLICE_STAGGER }}
+							>
+								{text}
+							</motion.text>
+						) : (
+							<text {...shared}>{text}</text>
+						)}
+					</g>
 				)
 			})}
 		</g>
@@ -191,6 +196,13 @@ type PieChartMarksProps = {
 	slices: PieSlice[]
 	paints: SeriesPaint[]
 	animate: boolean
+	/** The legend-emphasised slice; the others dim against it. */
+	emphasis: number | null
+}
+
+/** A slice group's dim classes — on the wrapper, so motion's inline opacity composes. @internal */
+function sliceGroupClass(emphasis: number | null, index: number): string {
+	return cn('transition-opacity', emphasis !== null && emphasis !== index && 'opacity-25')
 }
 
 /**
@@ -200,7 +212,7 @@ type PieChartMarksProps = {
  *
  * @internal
  */
-function PieChartMarks({ slices, paints, animate }: PieChartMarksProps) {
+function PieChartMarks({ slices, paints, animate, emphasis }: PieChartMarksProps) {
 	const { setIndex } = useChartHover()
 
 	return (
@@ -214,16 +226,19 @@ function PieChartMarks({ slices, paints, animate }: PieChartMarksProps) {
 					onPointerEnter: () => setIndex(slice.index),
 				}
 
-				return animate ? (
-					<motion.path
-						key={slice.index}
-						{...shared}
-						initial={{ opacity: 0 }}
-						animate={{ opacity: 1 }}
-						transition={{ ...SLICE_FADE, delay: order * SLICE_STAGGER }}
-					/>
-				) : (
-					<path key={slice.index} {...shared} />
+				return (
+					<g key={slice.index} className={sliceGroupClass(emphasis, slice.index)}>
+						{animate ? (
+							<motion.path
+								{...shared}
+								initial={{ opacity: 0 }}
+								animate={{ opacity: 1 }}
+								transition={{ ...SLICE_FADE, delay: order * SLICE_STAGGER }}
+							/>
+						) : (
+							<path {...shared} />
+						)}
+					</g>
 				)
 			})}
 		</g>
@@ -279,7 +294,12 @@ export function PieChart<T>({
 
 	const format = formatValue ?? formatChartValue
 
+	const { hidden, toggle, setFocus, emphasis } = useChartSeriesToggle()
+
 	const values = seriesValues(data, value)
+
+	// A toggled-off row leaves the sweep entirely, so the survivors re-share the whole.
+	const sliceValues = values.map((entry, index) => (hidden.has(index) ? null : entry))
 
 	const labels = data.map((datum) => String(datum[label]))
 
@@ -291,7 +311,7 @@ export function PieChart<T>({
 
 	const slices =
 		radius > 0
-			? pieSlices(values, {
+			? pieSlices(sliceValues, {
 					cx: frameWidth / 2,
 					cy: frameHeight / 2,
 					radius,
@@ -342,10 +362,15 @@ export function PieChart<T>({
 
 	const marks = (
 		<>
-			<PieChartMarks slices={slices} paints={paints} animate={animate} />
+			<PieChartMarks slices={slices} paints={paints} animate={animate} emphasis={emphasis} />
 
 			{labelItems.length > 0 && (
-				<PieSegmentLabels items={labelItems} paints={paints} animate={animate} />
+				<PieSegmentLabels
+					items={labelItems}
+					paints={paints}
+					animate={animate}
+					emphasis={emphasis}
+				/>
 			)}
 		</>
 	)
@@ -358,7 +383,11 @@ export function PieChart<T>({
 			fixedWidth={width}
 			height={frameHeight}
 			plot={{ x: 0, y: 0, width: frameWidth, height: frameHeight }}
-			legend={legendItems}
+			legend={
+				legendItems && (
+					<ChartLegend items={legendItems} hidden={hidden} onToggle={toggle} onFocus={setFocus} />
+				)
+			}
 			readout={readout}
 			anchors={anchors}
 			tooltip={tooltip}

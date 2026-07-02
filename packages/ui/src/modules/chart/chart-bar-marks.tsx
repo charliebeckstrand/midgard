@@ -12,10 +12,17 @@ export type ChartBarMarksProps = {
 	marks: (BarMark | null)[][]
 	/** Paint per series, indexed like `marks`. */
 	paints: SeriesPaint[]
+	/** Per-series dim flags — legend emphasis fades the others out. */
+	dimmed?: boolean[]
+}
+
+/** One bar's classes: series fill, hover lift, and the emphasis dim. @internal */
+function barClass(paint: SeriesPaint | undefined, dim: boolean | undefined): string {
+	return cn(paint?.fill, 'transition-opacity hover:brightness-110', dim && 'opacity-25')
 }
 
 /** The plain-SVG bars: the cheap default with no motion runtime work. @internal */
-export function ChartBarMarks({ marks, paints }: ChartBarMarksProps) {
+export function ChartBarMarks({ marks, paints, dimmed }: ChartBarMarksProps) {
 	return marks.flatMap((row, seriesIndex) =>
 		row.map(
 			(mark) =>
@@ -24,7 +31,7 @@ export function ChartBarMarks({ marks, paints }: ChartBarMarksProps) {
 						key={mark.x}
 						data-slot="chart-bar"
 						d={mark.d}
-						className={cn(paints[seriesIndex]?.fill, 'hover:brightness-110')}
+						className={barClass(paints[seriesIndex], dimmed?.[seriesIndex])}
 					/>
 				),
 		),
@@ -32,7 +39,7 @@ export function ChartBarMarks({ marks, paints }: ChartBarMarksProps) {
 }
 
 /** The Framer Motion bars, rising from the zero baseline in sequence. @internal */
-export function AnimatedChartBarMarks({ marks, paints }: ChartBarMarksProps) {
+export function AnimatedChartBarMarks({ marks, paints, dimmed }: ChartBarMarksProps) {
 	return marks.flatMap((row, seriesIndex) =>
 		row.map(
 			(mark, index) =>
@@ -41,7 +48,7 @@ export function AnimatedChartBarMarks({ marks, paints }: ChartBarMarksProps) {
 						key={mark.x}
 						data-slot="chart-bar"
 						d={mark.d}
-						className={cn(paints[seriesIndex]?.fill, 'hover:brightness-110')}
+						className={barClass(paints[seriesIndex], dimmed?.[seriesIndex])}
 						initial={{ scaleY: 0 }}
 						animate={{ scaleY: 1 }}
 						style={{ originY: mark.up ? 1 : 0 }}

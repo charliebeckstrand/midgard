@@ -6,6 +6,7 @@ import { ChartCrosshair } from '../chart-crosshair'
 import { ChartFrame } from '../chart-frame'
 import { ChartGridLines } from '../chart-grid-lines'
 import { ChartHitArea } from '../chart-hit-area'
+import { ChartLegend } from '../chart-legend'
 import { AnimatedChartLineMarks, ChartLineMarks, type ChartLineSeries } from '../chart-line-marks'
 import type { CartesianChartProps } from '../types'
 import { useChartCartesian } from '../use-chart-cartesian'
@@ -79,7 +80,7 @@ export function LineChart<T>({
 	const yScale = chart.yScale
 
 	const list: ChartLineSeries[] = yScale
-		? chart.metas.map((meta) => ({
+		? chart.visible.map((meta) => ({
 				label: meta.label,
 				paint: meta.paint,
 				geometry: lineGeometry(
@@ -89,6 +90,7 @@ export function LineChart<T>({
 					floor,
 				),
 				markers: points,
+				dimmed: chart.emphasis !== null && meta.index !== chart.emphasis,
 			}))
 		: []
 
@@ -106,7 +108,16 @@ export function LineChart<T>({
 			fixedWidth={chart.fixedWidth}
 			height={chart.height}
 			plot={chart.plot}
-			legend={chart.legendItems}
+			legend={
+				chart.legendItems && (
+					<ChartLegend
+						items={chart.legendItems}
+						hidden={chart.hidden}
+						onToggle={chart.toggleSeries}
+						onFocus={chart.setEmphasis}
+					/>
+				)
+			}
 			readout={chart.readout}
 			anchors={chart.anchors}
 			tooltip={tooltip}

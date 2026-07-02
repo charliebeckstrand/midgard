@@ -4,7 +4,6 @@ import { type ReactNode, type RefObject, useMemo, useState } from 'react'
 import { cn } from '../../core'
 import type { AccessibleName } from '../../types'
 import type { ChartAnchor, PlotRect } from './chart-layout'
-import { ChartLegend, type ChartLegendItem } from './chart-legend'
 import { ChartTable } from './chart-table'
 import { ChartTooltip } from './chart-tooltip'
 import { ChartHoverContext } from './context'
@@ -21,8 +20,8 @@ export type ChartFrameProps = AccessibleName & {
 	height: number
 	/** The plot rectangle inside the frame; the tooltip flips sides at its midpoint. */
 	plot: PlotRect
-	/** Legend entries, or `null` to omit the row (single series). */
-	legend: ChartLegendItem[] | null
+	/** The prepared legend row, or `null` to omit it (single series). */
+	legend: ReactNode
 	/** The values behind the marks, or `null` when there is nothing to read. */
 	readout: ChartReadout | null
 	/** Per-category tooltip anchors, indexed like the readout's categories. */
@@ -72,7 +71,7 @@ export function ChartFrame({
 			style={fixedWidth === undefined ? undefined : { width: fixedWidth }}
 		>
 			<ChartHoverContext value={hover}>
-				{legend && <ChartLegend items={legend} />}
+				{legend}
 
 				<div data-slot="chart-plot" role="img" {...label} className="relative" style={{ height }}>
 					{width > 0 && (

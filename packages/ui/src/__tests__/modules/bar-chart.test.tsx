@@ -95,6 +95,62 @@ describe('BarChart', () => {
 		expect(allBySlot(container, 'chart-bar')).toHaveLength(6)
 	})
 
+	it('renders the legend as centered toggle buttons', () => {
+		const { container } = renderUI(chart())
+
+		expect(bySlot(container, 'chart-legend')?.className).toContain('justify-center')
+
+		const [item] = allBySlot(container, 'chart-legend-item')
+
+		expect(item?.tagName).toBe('BUTTON')
+
+		expect(item).toHaveAttribute('aria-pressed', 'true')
+
+		expect(item?.className).toContain('cursor-pointer')
+	})
+
+	it('dims the other series while a legend entry is hovered', () => {
+		const { container } = renderUI(chart())
+
+		const costs = allBySlot(container, 'chart-legend-item')[1] as Element
+
+		fireEvent.pointerEnter(costs)
+
+		const bars = allBySlot(container, 'chart-bar')
+
+		// Revenue bars (first series) dim; costs bars stay full.
+		expect(bars[0]?.getAttribute('class')).toContain('opacity-25')
+
+		expect(bars[3]?.getAttribute('class')).not.toContain('opacity-25')
+
+		fireEvent.pointerLeave(costs)
+
+		expect(allBySlot(container, 'chart-bar')[0]?.getAttribute('class')).not.toContain('opacity-25')
+	})
+
+	it('toggles a series off and strikes its legend entry through', () => {
+		const { container } = renderUI(chart())
+
+		const costs = allBySlot(container, 'chart-legend-item')[1] as HTMLButtonElement
+
+		fireEvent.click(costs)
+
+		expect(allBySlot(container, 'chart-bar')).toHaveLength(3)
+
+		expect(costs).toHaveAttribute('aria-pressed', 'false')
+
+		expect(costs.querySelector('.line-through')).not.toBeNull()
+
+		// The tooltip readout follows the toggle.
+		fireEvent.pointerMove(bySlot(container, 'chart-hit') as Element, { clientX: 390 })
+
+		expect(bySlot(container, 'chart-tooltip')?.textContent).not.toContain('Costs')
+
+		fireEvent.click(costs)
+
+		expect(allBySlot(container, 'chart-bar')).toHaveLength(6)
+	})
+
 	it('routes formatValue through ticks, tooltip, and the data table', () => {
 		const { container } = renderUI(chart({ formatValue: (value) => `$${value}` }))
 
