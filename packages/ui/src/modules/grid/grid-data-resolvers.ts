@@ -8,6 +8,7 @@
  * `createElement` rather than JSX so this stays a non-component file.
  */
 
+import type { Table } from '@tanstack/react-table'
 import { createElement, type ReactNode } from 'react'
 import type { TableElementProps } from '../../components/table'
 import { cn } from '../../core'
@@ -15,7 +16,7 @@ import type { DensityLevel } from '../../providers/density/context'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
 import { DEFAULT_OVERSCAN, ROW_HEIGHT_BY_DENSITY } from './grid-constants'
-import type { GridVirtualize } from './grid-data-types'
+import type { GridFooter, GridFooterStats, GridVirtualize } from './grid-data-types'
 import type { GridRowClick } from './grid-row'
 import type { GridColumn } from './types'
 import type { GridNavTableProps } from './use-grid-navigation'
@@ -143,6 +144,31 @@ export function resolveAriaRowCount(
 	if (pagination && pagination.rowCount == null) return -1
 
 	return (pagination?.rowCount ?? renderedCount) + 1 + extraHeaderRows
+}
+
+/**
+ * Live {@link GridFooterStats} for the summary footer, or `null` when no `footer`
+ * is configured (so {@link GridData} renders no bar). `total` is the pre-filter
+ * source count only when it exceeds the filtered extent — a client filter is
+ * narrowing the set; under server-side filtering the core model is one page, so
+ * it collapses to the filtered count and the footer shows a bare total rather
+ * than a misleading "N of pageSize". Read live off `table` (not memoized) so the
+ * counts track client-side search/filtering. @internal
+ */
+export function resolveFooterStats<T>(args: {
+	footer: GridFooter | undefined
+	table: Table<T>
+	/** Full filtered row extent across all pages (the grid's `dataRowCount`). */
+	filteredCount: number
+	selected: number
+}): GridFooterStats | null {
+	if (!args.footer) return null
+
+	return {
+		rows: args.filteredCount,
+		total: Math.max(args.table.getCoreRowModel().rows.length, args.filteredCount),
+		selected: args.selected,
+	}
 }
 
 /** Resolved grid-semantics for the rendered window: the role/index gate, the global row offset, and the select-all label. @internal */

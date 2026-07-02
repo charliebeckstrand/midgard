@@ -748,6 +748,42 @@ const ClientPaginationExample = () => (
 	/>
 )
 
+// The opt-in `footer` summary bar renders only the settings it's given. `rowTotal`
+// counts the full filtered extent (search below narrows it to "N of M rows"),
+// `selectedTotal` shows the live selection count, and `content` receives those
+// counts to render a trailing slot — here a soft "Clear" button, shown only while
+// a row is selected.
+const FooterExample = () => {
+	const [selection, setSelection] = useState<Set<string | number>>(new Set())
+
+	const [search, setSearch] = useState('')
+
+	return (
+		<Grid
+			columns={[{ id: 'select', selectable: true }, ...searchableColumns]}
+			rows={people}
+			getKey={(row) => row.id}
+			search={{ value: search, onValueChange: setSearch }}
+			selection={{ value: selection, onValueChange: (s) => setSelection(s ?? new Set()) }}
+			footer={{
+				rowTotal: true,
+				selectedTotal: true,
+				content: ({ selected }) =>
+					selected > 0 ? (
+						<Button variant="soft" onClick={() => setSelection(new Set())}>
+							Clear
+						</Button>
+					) : null,
+			}}
+		/>
+	)
+}
+
+// `rowTotal` alone: a plain count of the rendered rows, no selection or content.
+const RowTotalExample = () => (
+	<Grid columns={columns} rows={people} getKey={(row) => row.id} footer={{ rowTotal: true }} />
+)
+
 // The demo is sectioned into tabs so the long example list reads as discrete
 // capabilities rather than one scroll. Panels unmount when inactive
 // (`fade={false}`) so the page's jump nav only ever lists the visible tab's
@@ -763,6 +799,7 @@ const tabs = [
 	'Groups',
 	'Filters',
 	'Header',
+	'Footer',
 	'Toolbar',
 	'Export',
 	'Pagination',
@@ -947,6 +984,21 @@ export function Demo() {
 								rows={[...people, ...people]}
 								getKey={(row, i) => `${row.id}-${i}`}
 							/>
+						</Example>
+					</Stack>
+				</TabContent>
+
+				<TabContent value="Footer">
+					<Stack gap="xl">
+						<Example title="Row total" code={code`<Grid footer={{ rowTotal: true }} />`}>
+							<RowTotalExample />
+						</Example>
+
+						<Example
+							title="Selection summary"
+							code={code`<Grid footer={{ rowTotal: true, selectedTotal: true, content: ({ selected }) => ... }} />`}
+						>
+							<FooterExample />
 						</Example>
 					</Stack>
 				</TabContent>
