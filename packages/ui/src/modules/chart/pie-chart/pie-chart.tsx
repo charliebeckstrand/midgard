@@ -8,13 +8,20 @@ import { ReducedMotion } from '../../../primitives/reduced-motion'
 import type { Step } from '../../../recipes'
 import { k } from '../../../recipes/kata/chart'
 import type { AccessibleName } from '../../../types'
-import { CHART_METRICS, MARK_GAP, SLICE_FADE, SLICE_STAGGER } from '../chart-constants'
+import { formatPercent } from '../../../utilities'
+import {
+	CHART_METRICS,
+	MARK_GAP,
+	SLICE_FADE,
+	SLICE_STAGGER,
+	TICK_CHAR_WIDTH,
+} from '../chart-constants'
 import { ChartFrame } from '../chart-frame'
 import { formatChartValue, type SeriesPaint, seriesValues } from '../chart-series'
 import { useChartHover } from '../context'
 import type { ChartReadout, DataKey } from '../types'
 import { useChartPlot } from '../use-chart-plot'
-import { type PieSlice, pieSlices } from './pie-chart-geometry'
+import { type PieSlice, pieCentroidRadius, pieSlices, segmentLabelFits } from './pie-chart-geometry'
 
 /**
  * Props for {@link PieChart}. Requires an accessible name (`aria-label` or
@@ -55,11 +62,128 @@ export type PieChartProps<T> = AccessibleName & {
 	 * @defaultValue false
 	 */
 	animate?: boolean
+	/**
+	 * Label slices on the marks: `true` (or `'percent'`) shows each slice's
+	 * share of the whole, `'value'` its formatted value, `'label'` its name.
+	 * A label renders only where it fits at the slice's centroid — omitted,
+	 * never clipped; the tooltip and data table always carry the full readout.
+	 * @defaultValue false
+	 */
+	segmentLabels?: boolean | 'percent' | 'value' | 'label'
 	/** Formats tooltip and table values; defaults to locale integer/fraction formatting. */
 	formatValue?: (value: number) => string
 	className?: string
 	/** Donut center content, rendered over the hole. */
 	children?: ReactNode
+}
+
+/** One placed segment label: its slice, resolved text, and stagger order. @internal */
+type PieSegmentLabel = {
+	slice: PieSlice
+	text: string
+	order: number
+}
+
+/** The text a segment label shows for `slice` under the given kind. @internal */
+function segmentText(
+	kind: 'percent' | 'value' | 'label',
+	slice: PieSlice,
+	values: (number | null)[],
+	labels: string[],
+	format: (value: number) => string,
+): string {
+	if (kind === 'percent') return formatPercent(slice.share)
+
+	if (kind === 'value') {
+		const value = values[slice.index]
+
+		return value == null ? '' : format(value)
+	}
+
+	return labels[slice.index] ?? ''
+}
+
+/** Shared shape for the static and animated segment-label renderers. @internal */
+type PieSegmentLabelsProps = {
+	items: PieSegmentLabel[]
+	paints: SeriesPaint[]
+	animate: boolean
+}
+
+/**
+ * The fit-gated labels set inside the slices. Text on a mark's own fill is
+ * the one place ink follows the series colour — each hue's `onFill` pick
+ * clears contrast in both modes.
+ *
+ * @internal
+ */
+function PieSegmentLabels({ items, paints, animate }: PieSegmentLabelsProps) {
+	return (
+		<g data-slot="chart-segment-labels" pointerEvents="none">
+			{items.map(({ slice, text, order }) => {
+				const shared = {
+					'data-slot': 'chart-segment-label',
+					x: slice.centroid.x,
+					y: slice.centroid.y,
+					textAnchor: 'middle' as const,
+					dominantBaseline: 'central' as const,
+					className: cn('font-medium text-xs tabular-nums', paints[slice.index]?.onFill),
+				}
+
+				return animate ? (
+					<motion.text
+						key={slice.index}
+						{...shared}
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						transition={{ ...SLICE_FADE, delay: order * SLICE_STAGGER }}
+					>
+						{text}
+					</motion.text>
+				) : (
+					<text key={slice.index} {...shared}>
+						{text}
+					</text>
+				)
+			})}
+		</g>
+	)
+}
+
+/** Options for {@link segmentLabelItems}. @internal */
+type SegmentLabelOptions = {
+	kind: 'percent' | 'value' | 'label' | false
+	slices: PieSlice[]
+	values: (number | null)[]
+	labels: string[]
+	format: (value: number) => string
+	radius: number
+	innerRadius: number
+}
+
+/** Resolves and fit-gates the segment labels; empty when the prop is off. @internal */
+function segmentLabelItems({
+	kind,
+	slices,
+	values,
+	labels,
+	format,
+	radius,
+	innerRadius,
+}: SegmentLabelOptions): PieSegmentLabel[] {
+	if (!kind || radius <= 0) return []
+
+	const centroidRadius = pieCentroidRadius(radius, innerRadius)
+
+	const depth = innerRadius > 0 ? radius - innerRadius : radius
+
+	return slices.flatMap((slice, order) => {
+		const text = segmentText(kind, slice, values, labels, format)
+
+		const fits = segmentLabelFits(text.length, slice.share, centroidRadius, depth, TICK_CHAR_WIDTH)
+
+		return text && fits ? [{ slice, text, order }] : []
+	})
 }
 
 /** Shared shape for the static and animated slice renderers. @internal */
@@ -139,6 +263,7 @@ export function PieChart<T>({
 	legend,
 	tooltip = true,
 	animate = false,
+	segmentLabels = false,
 	formatValue,
 	className,
 	children,
@@ -162,13 +287,15 @@ export function PieChart<T>({
 
 	const radius = Math.max(0, Math.min(frameWidth, frameHeight) / 2 - MARK_GAP * 2)
 
+	const innerRadius = donut ? radius * 0.6 : 0
+
 	const slices =
 		radius > 0
 			? pieSlices(values, {
 					cx: frameWidth / 2,
 					cy: frameHeight / 2,
 					radius,
-					innerRadius: donut ? radius * 0.6 : 0,
+					innerRadius,
 				})
 			: []
 
@@ -203,7 +330,25 @@ export function PieChart<T>({
 		return slice ? slice.centroid : { x: frameWidth / 2, y: frameHeight / 2 }
 	})
 
-	const marks = <PieChartMarks slices={slices} paints={paints} animate={animate} />
+	const labelItems = segmentLabelItems({
+		kind: segmentLabels === true ? 'percent' : segmentLabels,
+		slices,
+		values,
+		labels,
+		format,
+		radius,
+		innerRadius,
+	})
+
+	const marks = (
+		<>
+			<PieChartMarks slices={slices} paints={paints} animate={animate} />
+
+			{labelItems.length > 0 && (
+				<PieSegmentLabels items={labelItems} paints={paints} animate={animate} />
+			)}
+		</>
+	)
 
 	return (
 		<ChartFrame

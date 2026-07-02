@@ -4,12 +4,14 @@
  * so the angle math is unit-testable in isolation.
  */
 
-/** One drawable slice: its path, source index, and tooltip anchor. @internal */
+/** One drawable slice: its path, source index, share, and tooltip anchor. @internal */
 export type PieSlice = {
 	/** The datum's index in the source data — colours and readouts key off it. */
 	index: number
 	d: string
-	/** The slice's mid-angle point, where the tooltip anchors. */
+	/** The slice's part of the whole, `0..1`. */
+	share: number
+	/** The slice's mid-angle point, where the tooltip and segment label anchor. */
 	centroid: { x: number; y: number }
 }
 
@@ -33,6 +35,11 @@ function at(cx: number, cy: number, radius: number, angle: number): { x: number;
 	const radians = ((angle - 90) * Math.PI) / 180
 
 	return { x: cx + radius * Math.cos(radians), y: cy + radius * Math.sin(radians) }
+}
+
+/** Where a slice's centroid sits: mid-ring for donuts, five-eighths out for pies. @internal */
+export function pieCentroidRadius(radius: number, innerRadius: number): number {
+	return innerRadius > 0 ? (radius + innerRadius) / 2 : radius * 0.62
 }
 
 /** `A` command to `end` on `radius`, sweeping clockwise when `sweep` is 1. @internal */
@@ -105,7 +112,7 @@ export function pieSlices(
 
 	const positive = shares.filter((share) => share > 0).length
 
-	const centroidRadius = innerRadius > 0 ? (radius + innerRadius) / 2 : radius * 0.62
+	const centroidRadius = pieCentroidRadius(radius, innerRadius)
 
 	const slices: PieSlice[] = []
 
@@ -124,6 +131,7 @@ export function pieSlices(
 				positive === 1
 					? fullCircle(cx, cy, radius, innerRadius)
 					: slicePath(cx, cy, radius, innerRadius, angle, angle + sweep),
+			share: share / total,
 			centroid: at(cx, cy, centroidRadius, mid),
 		})
 
@@ -131,4 +139,30 @@ export function pieSlices(
 	})
 
 	return slices
+}
+
+/**
+ * Whether an estimated `chars`-wide label fits inside a slice at its
+ * centroid: the clearance to both radial edges must cover half the text, and
+ * the ring must be deep enough for a text line. Labels that fail are omitted
+ * — never clipped — and the tooltip and data table still carry the value.
+ *
+ * @internal
+ */
+export function segmentLabelFits(
+	chars: number,
+	share: number,
+	centroidRadius: number,
+	depth: number,
+	charWidth: number,
+): boolean {
+	if (depth < 16) return false
+
+	if (share >= 1) return true
+
+	const half = Math.min(share * 360, 180) / 2
+
+	const clearance = centroidRadius * Math.sin((half * Math.PI) / 180)
+
+	return clearance >= (chars * charWidth) / 2 + 4
 }

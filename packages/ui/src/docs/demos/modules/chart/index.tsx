@@ -159,12 +159,13 @@ export function Demo() {
 
 					<TabContent value="pie">
 						<Stack gap="xl">
-							<Example title="Pie">
+							<Example title="Pie with segment labels" code={code`<PieChart segmentLabels … />`}>
 								<PieChart
 									aria-label="Traffic by source"
 									data={sources}
 									value="visits"
 									label="source"
+									segmentLabels
 								/>
 							</Example>
 

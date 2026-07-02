@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { PieChart } from '../../modules/chart/pie-chart'
-import { pieSlices } from '../../modules/chart/pie-chart/pie-chart-geometry'
+import { pieSlices, segmentLabelFits } from '../../modules/chart/pie-chart/pie-chart-geometry'
 import { allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
 
 const DATA = [
@@ -87,6 +87,64 @@ describe('PieChart', () => {
 		const { container } = renderUI(chart({ animate: true }))
 
 		expect(allBySlot(container, 'chart-slice')).toHaveLength(3)
+	})
+
+	it('labels segments with their percent share when asked', () => {
+		const off = renderUI(chart())
+
+		expect(allBySlot(off.container, 'chart-segment-label')).toHaveLength(0)
+
+		const on = renderUI(chart({ segmentLabels: true }))
+
+		expect(allBySlot(on.container, 'chart-segment-label').map((el) => el.textContent)).toEqual([
+			'60%',
+			'25%',
+			'15%',
+		])
+	})
+
+	it('labels segments with values or names by kind', () => {
+		const values = renderUI(chart({ segmentLabels: 'value' }))
+
+		expect(allBySlot(values.container, 'chart-segment-label')[0]?.textContent).toBe('60')
+
+		const names = renderUI(chart({ segmentLabels: 'label' }))
+
+		expect(allBySlot(names.container, 'chart-segment-label')[0]?.textContent).toBe('Search')
+	})
+
+	it('omits a segment label that will not fit its slice', () => {
+		const withSliver = [...DATA, { source: 'Other', visits: 1 }]
+
+		const { container } = renderUI(chart({ data: withSliver, segmentLabels: true }))
+
+		const texts = allBySlot(container, 'chart-segment-label').map((el) => el.textContent)
+
+		expect(texts).not.toContain('1%')
+
+		expect(texts.length).toBeGreaterThan(0)
+	})
+
+	it('keeps segment labels under animate', () => {
+		const { container } = renderUI(chart({ segmentLabels: true, animate: true }))
+
+		expect(allBySlot(container, 'chart-segment-label')).toHaveLength(3)
+	})
+})
+
+describe('segmentLabelFits', () => {
+	it('admits wide slices and rejects slivers', () => {
+		// A quarter slice at centroid radius 60: clearance ≈ 42px.
+		expect(segmentLabelFits(3, 0.25, 60, 96, 7.2)).toBe(true)
+
+		// A 2% sliver: clearance ≈ 3.8px can't hold any text.
+		expect(segmentLabelFits(2, 0.02, 60, 96, 7.2)).toBe(false)
+	})
+
+	it('always admits the full circle and never a too-shallow ring', () => {
+		expect(segmentLabelFits(8, 1, 60, 96, 7.2)).toBe(true)
+
+		expect(segmentLabelFits(2, 0.5, 60, 12, 7.2)).toBe(false)
 	})
 })
 
