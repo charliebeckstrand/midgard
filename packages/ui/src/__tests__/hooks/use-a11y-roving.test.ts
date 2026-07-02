@@ -1,8 +1,20 @@
 import { renderHook } from '@testing-library/react'
 import { useRef } from 'react'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { queryItems, setVirtualActive, useA11yRoving } from '../../hooks/a11y/use-a11y-roving'
 import { makeKeyEvent } from '../helpers'
+
+// Containers are appended to document.body for real focus/roving; RTL cleanup()
+// only unmounts React roots, not these manual nodes. Track and remove them so a
+// leftover option list can't contaminate a later test's DOM queries under the
+// shuffled vmThreads worker.
+const appendedContainers: HTMLElement[] = []
+
+afterEach(() => {
+	for (const el of appendedContainers) el.remove()
+
+	appendedContainers.length = 0
+})
 
 describe('queryItems', () => {
 	it('returns empty array for null container', () => {
@@ -101,6 +113,8 @@ function makeContainer(count: number) {
 
 	document.body.appendChild(container)
 
+	appendedContainers.push(container)
+
 	return container
 }
 
@@ -120,6 +134,8 @@ function makeLabeledContainer(labels: string[]) {
 	}
 
 	document.body.appendChild(container)
+
+	appendedContainers.push(container)
 
 	return container
 }

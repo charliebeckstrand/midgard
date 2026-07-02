@@ -1,13 +1,10 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { Markdown } from '../../components/markdown'
 import { bySlot, renderUI, waitFor } from '../helpers'
 
-vi.mock('shiki', () => ({
-	codeToHtml: vi.fn(
-		async (code: string, options: { lang: string }) =>
-			`<pre class="shiki" data-lang="${options.lang}"><code>${code}</code></pre>`,
-	),
-}))
+// `shiki` is mocked globally in setup/module-mocks.ts (its markup carries
+// `data-lang` from `options.lang`); a per-file mock here would bleed across the
+// vmThreads worker under shuffle.
 
 describe('Markdown', () => {
 	it('renders parsed Markdown into a data-slot="markdown" div', () => {
