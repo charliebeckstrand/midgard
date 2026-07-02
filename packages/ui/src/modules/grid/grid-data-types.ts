@@ -163,6 +163,28 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 */
 	density?: DensityLevel
 
+	/**
+	 * Tight, all-dimensions-down preset that steps the grid below what
+	 * {@link GridDataProps.density | density} alone reaches. On its own `density`
+	 * controls padding only; `condensed` forces the compact padding step
+	 * (overriding `density` for every density-derived metric — cell padding,
+	 * resize-handle width, the virtualized row-height estimate, autosize
+	 * measurement) and additionally:
+	 *
+	 * - steps header and body cell text below the table's base to `text-sm`;
+	 * - steps the grid's own header chrome — sort arrow, pin, grip, and filter
+	 *   icons — to the compact icon size; and
+	 * - broadcasts a `compact` density cascade over the grid, so size-aware
+	 *   *client* content a consumer renders in a cell (an `Input`, a `Button`,
+	 *   the selection checkbox) and the toolbar/footer controls shrink with it.
+	 *
+	 * Static leaves a consumer renders in a cell — `Badge`, `Icon`, `Text` — read
+	 * no density and keep their own `size`; step them explicitly to match, the
+	 * same contract a `DensityProvider` honours.
+	 * @defaultValue false
+	 */
+	condensed?: boolean
+
 	/** Column definitions, in declaration order; `columnOrder`, `reorder`, and the column manager can reorder and hide a subset. */
 	columns: GridColumn<T>[]
 	rows: T[]

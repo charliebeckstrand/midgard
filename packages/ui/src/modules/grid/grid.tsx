@@ -29,7 +29,9 @@ export type GridProps<T> = GridDataProps<T>
  * controllable; selecting rows surfaces a batch-action {@link Toolbar}, a column
  * manager dialog reorders and hides columns, `reorder` adds header drag handles,
  * and `navigable` adds a keyboard cell cursor (`role="grid"` with an
- * `aria-activedescendant` active cell).
+ * `aria-activedescendant` active cell). `density` tunes cell padding, and
+ * `condensed` steps the whole grid down a notch — padding, cell font, header
+ * chrome, and a compact cascade over client cell content.
  *
  * Pass `editable` (a {@link GridEditableConfig}) to bake in per-row inline
  * editing: a row in the editable set puts all of its editable cells into edit

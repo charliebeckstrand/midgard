@@ -368,6 +368,22 @@ export const k = {
 		// keeping the nav centered.
 		controls: [flex.inline, 'items-center', 'gap-4', 'lg:order-1', 'lg:flex-1'],
 	},
+	// Condensed down-projections layered on the compact density the grid forwards
+	// to `<Table>` when `condensed` is set. Both cast from the `<table>` element
+	// onto its descendants (like the table's own density/outline projections) so
+	// cells and headers read no context and the family still renders in RSC.
+	condensed: {
+		// Step header + body cell text below the table's `text-base` base. The
+		// selector targets the cell element, so a consumer cell that sets its own
+		// size (a `<Text>`, a sized `<Badge>`) still overrides it. Tailwind scans
+		// whole literals — keep these in step with the density padding rows above.
+		font: ['[&>*>tr>td]:text-sm', '[&>*>tr>th]:text-sm'],
+		// Step the grid's own header chrome icons (sort arrow, pin, grip, filter)
+		// to the compact `size-4`. Scoped to `th` so a consumer's `<Icon>` in a
+		// body cell (`td`) keeps its explicit size — the static-leaf contract the
+		// density cascade already honours.
+		icon: '[&>*>tr>th_[data-slot=icon]]:size-4',
+	},
 	rowLoading: [css.pulse, 'opacity-60'],
 	row: {
 		// A clickable row (`onRowClick`): the pointer cursor and a keyboard focus

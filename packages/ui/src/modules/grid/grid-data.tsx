@@ -14,7 +14,8 @@ import {
 import { Table } from '../../components/table'
 import { announce, cn, dataAttr } from '../../core'
 import { useA11yAnnouncements } from '../../hooks'
-import { useDensityLevel } from '../../providers/density'
+import { Density } from '../../primitives/density'
+import { type DensityLevel, useDensityLevel } from '../../providers/density'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
 import { GridContext, GridResizingContext, type SortState } from './context'
@@ -226,6 +227,40 @@ function resolveGroupHeaderRow<T>(
 }
 
 /**
+ * Effective density under {@link GridDataProps.condensed}: the tight preset
+ * forces the compact step for every density-derived metric (cell padding,
+ * resize-handle width, virtualized row-height, autosize measurement); a plain
+ * grid keeps its resolved level. Kept out of {@link GridData} so its branch
+ * doesn't weigh on the component's complexity budget. @internal
+ */
+function resolveDensity(condensed: boolean, resolved: DensityLevel): DensityLevel {
+	return condensed ? 'compact' : resolved
+}
+
+/**
+ * Table className with the {@link GridDataProps.condensed} font and header-icon
+ * down-projections layered onto the resolved layout class, or that class
+ * untouched. Both cast from the `<table>` onto its descendants, so cells and
+ * headers read no context (see `kata/grid` `condensed`). @internal
+ */
+function condensedTableClass(condensed: boolean, base: string): string {
+	return condensed ? cn(base, k.condensed.font, k.condensed.icon) : base
+}
+
+/**
+ * Wraps the grid in a compact density cascade when
+ * {@link GridDataProps.condensed} is set, so size-aware *client* cell content
+ * and the toolbar/footer controls step down with it; a plain grid passes
+ * through, its cell content keeping the ambient density. Static leaves
+ * (`Badge`, `Icon`, `Text`) read no density either way. Kept a component so the
+ * branch lives here, off {@link GridData}'s complexity budget. @internal
+ */
+function CondensedCascade({ active, children }: { active: boolean; children: ReactNode }) {
+	// `compact` density is the `sm` step the density primitive broadcasts.
+	return active ? <Density scale="sm">{children}</Density> : children
+}
+
+/**
  * The read-only data-grid implementation behind {@link Grid}. Kept a separate
  * component so the public dispatcher calls no hooks ahead of its `editable`
  * branch (the rules of hooks forbid a conditional early return over them).
@@ -266,6 +301,7 @@ export function GridData<T>({
 	virtualize,
 	tableProps,
 	density: densityProp,
+	condensed = false,
 	bleed,
 	outline,
 	striped,
@@ -281,7 +317,12 @@ export function GridData<T>({
 	// Unlike the bare `Table` (a static/RSC leaf that reads no context), Grid is
 	// always client-rendered, so it can inherit an enclosing `DensityProvider`
 	// when the caller passes no explicit `density`.
-	const density = useDensityLevel(densityProp)
+	// `condensed` is a tight preset: it forces the compact step for every
+	// density-derived metric (cell padding, resize-handle width, virtualized
+	// row-height, autosize measurement), then layers the font/icon/cascade steps
+	// below. Resolving it here means one effective `density` flows to the engine,
+	// resolvers, and `<Table>` unchanged.
+	const density = resolveDensity(condensed, useDensityLevel(densityProp))
 
 	const {
 		enabled: virtualizeEnabled,
@@ -699,7 +740,7 @@ export function GridData<T>({
 				outline={outline}
 				striped={striped}
 				hover={rowHover}
-				className={tableClassName}
+				className={condensedTableClass(condensed, tableClassName)}
 				tableProps={resolveTableProps({
 					tableProps,
 					// The cursor's tab stop, active-cell pointer, and key/focus handlers.
@@ -777,72 +818,74 @@ export function GridData<T>({
 	)
 
 	return (
-		<GridContext value={context}>
-			<GridResizingContext value={resizing}>
-				<div
-					ref={wrapperRef}
-					data-slot="grid"
-					// Flags an in-flight column drag-resize so the grid paints the resize
-					// cursor grid-wide (see `k.wrapper`); head and cells read the matching
-					// `resizing` context flag to drop their hover wash and truncation tooltips.
-					data-resizing={dataAttr(resizing)}
-					className={cn(k.wrapper)}
-				>
-					<GridBusyStatus loading={loading} rowCount={dataRowCount} />
-
-					{renderDialog && (
-						<GridColumnManagerDialog
-							open={columnManagerOpen}
-							onOpenChange={setColumnManagerOpen}
-							label={managerLabel}
-							columns={managerItems}
-							order={columnOrder}
-							onOrderChange={setColumnOrder}
-							hidden={hiddenColumns}
-							onHiddenChange={handleHiddenChange}
-							onPinChange={pinColumn}
-							groups={group.editorGroups}
-							onGroupsChange={group.editorSetGroups}
-							onSavePreset={columnManagerConfig?.onSavePreset}
-						/>
-					)}
-
-					<GridToolbar
-						filter={globalFilter}
-						showColumnManager={showButton}
-						columnManagerLabel={managerLabel}
-						onManageColumns={() => setColumnManagerOpen(true)}
-						exportActions={exportActions}
-						batchActions={batchActions}
-						hasSelection={someSelected}
-						selection={selection}
-						setSelection={setSelection}
-					/>
-
-					<GridRegion
-						canReorder={reorderActive}
-						dndContextProps={dndContextProps}
-						itemIds={itemIds}
-						strategy={strategy}
-						activeReorderId={activeId}
-						contextMenu={resolvedContextMenu}
-						columns={visibleColumns}
-						rows={renderRows}
-						rowKeys={rowKeys}
-						sort={sort}
-						sortColumn={sortColumn}
-						clearSort={clearSort}
-						pinColumn={pinColumn}
-						autoSizeColumns={autoSizeColumns}
-						chooseColumns={chooseColumns}
-						exportActions={exportActions}
+		<CondensedCascade active={condensed}>
+			<GridContext value={context}>
+				<GridResizingContext value={resizing}>
+					<div
+						ref={wrapperRef}
+						data-slot="grid"
+						// Flags an in-flight column drag-resize so the grid paints the resize
+						// cursor grid-wide (see `k.wrapper`); head and cells read the matching
+						// `resizing` context flag to drop their hover wash and truncation tooltips.
+						data-resizing={dataAttr(resizing)}
+						className={cn(k.wrapper)}
 					>
-						{tableRegion}
-					</GridRegion>
+						<GridBusyStatus loading={loading} rowCount={dataRowCount} />
 
-					{pagination && <GridPaginationFooter pagination={pagination} />}
-				</div>
-			</GridResizingContext>
-		</GridContext>
+						{renderDialog && (
+							<GridColumnManagerDialog
+								open={columnManagerOpen}
+								onOpenChange={setColumnManagerOpen}
+								label={managerLabel}
+								columns={managerItems}
+								order={columnOrder}
+								onOrderChange={setColumnOrder}
+								hidden={hiddenColumns}
+								onHiddenChange={handleHiddenChange}
+								onPinChange={pinColumn}
+								groups={group.editorGroups}
+								onGroupsChange={group.editorSetGroups}
+								onSavePreset={columnManagerConfig?.onSavePreset}
+							/>
+						)}
+
+						<GridToolbar
+							filter={globalFilter}
+							showColumnManager={showButton}
+							columnManagerLabel={managerLabel}
+							onManageColumns={() => setColumnManagerOpen(true)}
+							exportActions={exportActions}
+							batchActions={batchActions}
+							hasSelection={someSelected}
+							selection={selection}
+							setSelection={setSelection}
+						/>
+
+						<GridRegion
+							canReorder={reorderActive}
+							dndContextProps={dndContextProps}
+							itemIds={itemIds}
+							strategy={strategy}
+							activeReorderId={activeId}
+							contextMenu={resolvedContextMenu}
+							columns={visibleColumns}
+							rows={renderRows}
+							rowKeys={rowKeys}
+							sort={sort}
+							sortColumn={sortColumn}
+							clearSort={clearSort}
+							pinColumn={pinColumn}
+							autoSizeColumns={autoSizeColumns}
+							chooseColumns={chooseColumns}
+							exportActions={exportActions}
+						>
+							{tableRegion}
+						</GridRegion>
+
+						{pagination && <GridPaginationFooter pagination={pagination} />}
+					</div>
+				</GridResizingContext>
+			</GridContext>
+		</CondensedCascade>
 	)
 }
