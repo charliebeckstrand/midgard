@@ -6,9 +6,16 @@ import {
 	closestCorners,
 	DndContext,
 	DragOverlay,
+	type DroppableContainer,
+	type KeyboardCoordinateGetter,
 	MeasuringStrategy,
+	type UniqueIdentifier,
 } from '@dnd-kit/core'
-import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
+import {
+	SortableContext,
+	sortableKeyboardCoordinates,
+	verticalListSortingStrategy,
+} from '@dnd-kit/sortable'
 import { EllipsisVertical, GripVertical, Plus, Trash2 } from 'lucide-react'
 import { type ReactNode, useMemo } from 'react'
 import { Badge } from '../../components/badge'
@@ -38,6 +45,19 @@ import {
 } from './use-grid-group-manager'
 
 /**
+ * Whether droppable `containerId` belongs to the same sortable as the active
+ * drag `activeId`: both group ids, or both zone/column ids. The partition that
+ * keeps a group drag away from column slots and vice versa — shared by
+ * {@link groupAwareCollision} (pointer) and {@link groupAwareKeyboardCoordinates}
+ * (keyboard).
+ *
+ * @internal
+ */
+function isSameDragKind(activeId: string, containerId: string): boolean {
+	return isGroupDragId(activeId) === isGroupDragId(containerId)
+}
+
+/**
  * Collision detection that keeps the two sortables apart: a group drag only
  * considers group droppables, a column drag only the zone/column droppables — so
  * a dragged group never targets a column slot and vice versa. Group reorder uses
@@ -47,13 +67,51 @@ import {
  * @internal
  */
 const groupAwareCollision: CollisionDetection = (args) => {
-	const groupDrag = isGroupDragId(String(args.active.id))
+	const activeId = String(args.active.id)
 
-	const droppableContainers = args.droppableContainers.filter(
-		(container) => isGroupDragId(String(container.id)) === groupDrag,
+	const droppableContainers = args.droppableContainers.filter((container) =>
+		isSameDragKind(activeId, String(container.id)),
 	)
 
-	return (groupDrag ? closestCenter : closestCorners)({ ...args, droppableContainers })
+	return (isGroupDragId(activeId) ? closestCenter : closestCorners)({
+		...args,
+		droppableContainers,
+	})
+}
+
+/**
+ * Keyboard coordinate getter that scopes arrow-key reordering to the active
+ * drag's own sortable — the keyboard analogue of {@link groupAwareCollision}.
+ * `sortableKeyboardCoordinates` weighs every droppable in the context, so with
+ * the group and column droppables sharing one `DndContext` a lifted group's
+ * first arrow press lands on an intervening column row or zone rather than the
+ * next group; the group-only `groupAwareCollision` then reads no change and the
+ * reorder stalls until a second press. Restricting the candidate droppables to
+ * the active drag's kind steps straight to the next group (or column) on the
+ * first press.
+ *
+ * @internal
+ */
+export const groupAwareKeyboardCoordinates: KeyboardCoordinateGetter = (event, args) => {
+	const activeId = String(args.active)
+
+	const { droppableContainers } = args.context
+
+	// Rebuild the same map class holding only same-kind droppables, so the getter
+	// (which reads `.getEnabled()` and `.get()`) sees a genuine map with its
+	// candidates already scoped — no group/column cross-targeting.
+	const Scoped = droppableContainers.constructor as new (
+		entries: Iterable<[UniqueIdentifier, DroppableContainer]>,
+	) => typeof droppableContainers
+
+	const scoped = new Scoped(
+		[...droppableContainers].filter(([id]) => isSameDragKind(activeId, String(id))),
+	)
+
+	return sortableKeyboardCoordinates(event, {
+		...args,
+		context: { ...args.context, droppableContainers: scoped },
+	})
 }
 
 /** The palette presets offered by the color Menu: standard palette then extended. @internal */
@@ -111,7 +169,7 @@ export function GridGroupManager({
 }: GridGroupManagerProps) {
 	const mgr = useGridGroupManager({ groups, onGroupsChange, columns, order, onOrderChange })
 
-	const sensors = useSortableSensors()
+	const sensors = useSortableSensors({ keyboardCoordinateGetter: groupAwareKeyboardCoordinates })
 
 	// Force the grabbing cursor across the document for the whole drag — the group
 	// reorder sorts in place with no overlay, so mid-drag the pointer is usually
