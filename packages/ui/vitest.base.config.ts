@@ -10,10 +10,14 @@ export const baseTest = {
 	css: false,
 	// Machine speed must change when a test passes, never whether it passes:
 	// CI agents are slower and noisier than dev machines, so wall-clock
-	// budgets scale up there. RTL's waitFor/findBy budget scales in step
-	// (src/__tests__/setup/index.ts) and must stay below testTimeout.
+	// budgets scale up there. asyncUtilTimeout is RTL's waitFor/findBy budget,
+	// provided here so this file owns the whole headroom policy and injected
+	// by src/__tests__/setup/index.ts; it stays well below testTimeout so a
+	// stuck wait fails as an RTL timeout carrying the callback's last error,
+	// not an opaque test timeout.
 	testTimeout: CI ? 15_000 : 5_000,
 	hookTimeout: CI ? 15_000 : 10_000,
+	provide: { asyncUtilTimeout: CI ? 4_000 : 1_000 },
 	// Date/calendar tests construct local-time dates (`new Date(y, m, d)`);
 	// pin the zone so every machine renders the same wall-clock day.
 	env: { TZ: 'UTC' },
