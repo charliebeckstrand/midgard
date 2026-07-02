@@ -238,21 +238,26 @@ function resolveDensity(condensed: boolean, resolved: DensityLevel): DensityLeve
 }
 
 /**
- * Table className with the {@link GridDataProps.condensed} font and header-icon
- * down-projections layered onto the resolved layout class, or that class
- * untouched. Both cast from the `<table>` onto its descendants, so cells and
- * headers read no context (see `kata/grid` `condensed`). @internal
+ * Table className with the {@link GridDataProps.condensed} down-projections —
+ * cell font, header/body icons, and consumer badges — layered onto the resolved
+ * layout class, or that class untouched. All cast from the `<table>` onto its
+ * descendants, so cells and headers read no context (see `kata/grid`
+ * `condensed`). @internal
  */
 function condensedTableClass(condensed: boolean, base: string): string {
-	return condensed ? cn(base, k.condensed.font, k.condensed.icon) : base
+	return condensed ? cn(base, k.condensed.font, k.condensed.icon, k.condensed.badge) : base
 }
 
 /**
- * Wraps the grid in a compact density cascade when
+ * Wraps the *table region* in a compact density cascade when
  * {@link GridDataProps.condensed} is set, so size-aware *client* cell content
- * and the toolbar/footer controls step down with it; a plain grid passes
- * through, its cell content keeping the ambient density. Static leaves
- * (`Badge`, `Icon`, `Text`) read no density either way. Kept a component so the
+ * (an inline `Input`, the selection checkbox) steps down with it; a plain grid
+ * passes through, its cell content keeping the ambient density. Scoped to the
+ * table on purpose — it sits inside the context-menu trigger, below the
+ * toolbar/footer, so a portaled overlay (context menu, dialog) the grid spawns
+ * stays on the ambient density rather than inheriting the condensed step. Static
+ * leaves (`Badge`, `Icon`, `Text`) read no density either way; the `<table>`
+ * class down-projects those (see `condensedTableClass`). Kept a component so the
  * branch lives here, off {@link GridData}'s complexity budget. @internal
  */
 function CondensedCascade({ active, children }: { active: boolean; children: ReactNode }) {
@@ -818,74 +823,72 @@ export function GridData<T>({
 	)
 
 	return (
-		<CondensedCascade active={condensed}>
-			<GridContext value={context}>
-				<GridResizingContext value={resizing}>
-					<div
-						ref={wrapperRef}
-						data-slot="grid"
-						// Flags an in-flight column drag-resize so the grid paints the resize
-						// cursor grid-wide (see `k.wrapper`); head and cells read the matching
-						// `resizing` context flag to drop their hover wash and truncation tooltips.
-						data-resizing={dataAttr(resizing)}
-						className={cn(k.wrapper)}
-					>
-						<GridBusyStatus loading={loading} rowCount={dataRowCount} />
+		<GridContext value={context}>
+			<GridResizingContext value={resizing}>
+				<div
+					ref={wrapperRef}
+					data-slot="grid"
+					// Flags an in-flight column drag-resize so the grid paints the resize
+					// cursor grid-wide (see `k.wrapper`); head and cells read the matching
+					// `resizing` context flag to drop their hover wash and truncation tooltips.
+					data-resizing={dataAttr(resizing)}
+					className={cn(k.wrapper)}
+				>
+					<GridBusyStatus loading={loading} rowCount={dataRowCount} />
 
-						{renderDialog && (
-							<GridColumnManagerDialog
-								open={columnManagerOpen}
-								onOpenChange={setColumnManagerOpen}
-								label={managerLabel}
-								columns={managerItems}
-								order={columnOrder}
-								onOrderChange={setColumnOrder}
-								hidden={hiddenColumns}
-								onHiddenChange={handleHiddenChange}
-								onPinChange={pinColumn}
-								groups={group.editorGroups}
-								onGroupsChange={group.editorSetGroups}
-								onSavePreset={columnManagerConfig?.onSavePreset}
-							/>
-						)}
-
-						<GridToolbar
-							filter={globalFilter}
-							showColumnManager={showButton}
-							columnManagerLabel={managerLabel}
-							onManageColumns={() => setColumnManagerOpen(true)}
-							exportActions={exportActions}
-							batchActions={batchActions}
-							hasSelection={someSelected}
-							selection={selection}
-							setSelection={setSelection}
+					{renderDialog && (
+						<GridColumnManagerDialog
+							open={columnManagerOpen}
+							onOpenChange={setColumnManagerOpen}
+							label={managerLabel}
+							columns={managerItems}
+							order={columnOrder}
+							onOrderChange={setColumnOrder}
+							hidden={hiddenColumns}
+							onHiddenChange={handleHiddenChange}
+							onPinChange={pinColumn}
+							groups={group.editorGroups}
+							onGroupsChange={group.editorSetGroups}
+							onSavePreset={columnManagerConfig?.onSavePreset}
 						/>
+					)}
 
-						<GridRegion
-							canReorder={reorderActive}
-							dndContextProps={dndContextProps}
-							itemIds={itemIds}
-							strategy={strategy}
-							activeReorderId={activeId}
-							contextMenu={resolvedContextMenu}
-							columns={visibleColumns}
-							rows={renderRows}
-							rowKeys={rowKeys}
-							sort={sort}
-							sortColumn={sortColumn}
-							clearSort={clearSort}
-							pinColumn={pinColumn}
-							autoSizeColumns={autoSizeColumns}
-							chooseColumns={chooseColumns}
-							exportActions={exportActions}
-						>
-							{tableRegion}
-						</GridRegion>
+					<GridToolbar
+						filter={globalFilter}
+						showColumnManager={showButton}
+						columnManagerLabel={managerLabel}
+						onManageColumns={() => setColumnManagerOpen(true)}
+						exportActions={exportActions}
+						batchActions={batchActions}
+						hasSelection={someSelected}
+						selection={selection}
+						setSelection={setSelection}
+					/>
 
-						{pagination && <GridPaginationFooter pagination={pagination} />}
-					</div>
-				</GridResizingContext>
-			</GridContext>
-		</CondensedCascade>
+					<GridRegion
+						canReorder={reorderActive}
+						dndContextProps={dndContextProps}
+						itemIds={itemIds}
+						strategy={strategy}
+						activeReorderId={activeId}
+						contextMenu={resolvedContextMenu}
+						columns={visibleColumns}
+						rows={renderRows}
+						rowKeys={rowKeys}
+						sort={sort}
+						sortColumn={sortColumn}
+						clearSort={clearSort}
+						pinColumn={pinColumn}
+						autoSizeColumns={autoSizeColumns}
+						chooseColumns={chooseColumns}
+						exportActions={exportActions}
+					>
+						<CondensedCascade active={condensed}>{tableRegion}</CondensedCascade>
+					</GridRegion>
+
+					{pagination && <GridPaginationFooter pagination={pagination} />}
+				</div>
+			</GridResizingContext>
+		</GridContext>
 	)
 }

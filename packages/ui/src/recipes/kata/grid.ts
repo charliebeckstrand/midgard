@@ -369,20 +369,28 @@ export const k = {
 		controls: [flex.inline, 'items-center', 'gap-4', 'lg:order-1', 'lg:flex-1'],
 	},
 	// Condensed down-projections layered on the compact density the grid forwards
-	// to `<Table>` when `condensed` is set. Both cast from the `<table>` element
+	// to `<Table>` when `condensed` is set. All cast from the `<table>` element
 	// onto its descendants (like the table's own density/outline projections) so
-	// cells and headers read no context and the family still renders in RSC.
+	// cells and headers read no context and the family still renders in RSC. They
+	// reach only what lives in the table's own DOM — a portaled overlay (context
+	// menu, column-manager dialog) is out of scope and keeps the ambient density,
+	// since `condensed` is a table-density preset, not a theme its overlays adopt.
 	condensed: {
 		// Step header + body cell text below the table's `text-base` base. The
 		// selector targets the cell element, so a consumer cell that sets its own
-		// size (a `<Text>`, a sized `<Badge>`) still overrides it. Tailwind scans
-		// whole literals — keep these in step with the density padding rows above.
+		// size still overrides it. Tailwind scans whole literals — keep these in
+		// step with the density padding rows above.
 		font: ['[&>*>tr>td]:text-sm', '[&>*>tr>th]:text-sm'],
-		// Step the grid's own header chrome icons (sort arrow, pin, grip, filter)
-		// to the compact `size-4`. Scoped to `th` so a consumer's `<Icon>` in a
-		// body cell (`td`) keeps its explicit size — the static-leaf contract the
-		// density cascade already honours.
-		icon: '[&>*>tr>th_[data-slot=icon]]:size-4',
+		// Step every icon in a header or body cell to the compact `size-4`: the
+		// grid's own header chrome (sort arrow, pin, grip, filter) and a consumer's
+		// `<Icon>` in a cell — standalone or inside a `<Badge>`, whose icon slot is
+		// a nested `data-slot=icon`. A static `<Icon>` reads no density, so the
+		// projection is the only lever that reaches it.
+		icon: ['[&>*>tr>th_[data-slot=icon]]:size-4', '[&>*>tr>td_[data-slot=icon]]:size-4'],
+		// Step a consumer `<Badge>` in a cell down one size. A `<Badge>` is a static
+		// leaf that ignores the density cascade, so match the cell-font step on its
+		// text (the dominant size cue; its icon slot rides the `icon` rule above).
+		badge: '[&>*>tr>td_[data-slot=badge]]:text-sm',
 	},
 	rowLoading: [css.pulse, 'opacity-60'],
 	row: {

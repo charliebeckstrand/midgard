@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
+import { Badge } from '../../components/badge'
 import { Button } from '../../components/button'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { renderUI, screen } from '../helpers'
+import { fireEvent, renderUI, screen } from '../helpers'
 
 describe('Grid condensed', () => {
 	type Row = { id: number; name: string }
@@ -25,7 +26,7 @@ describe('Grid condensed', () => {
 		expect(screen.getByRole('table')).toHaveAttribute('data-density', 'lg')
 	})
 
-	it('projects the cell-font and header-icon step-downs onto the table', () => {
+	it('projects the cell-font, icon, and badge step-downs onto the table', () => {
 		renderUI(<Grid condensed columns={columns} rows={rows} getKey={getKey} />)
 
 		const table = screen.getByRole('table')
@@ -33,6 +34,8 @@ describe('Grid condensed', () => {
 		expect(table).toHaveClass('[&>*>tr>td]:text-sm')
 		expect(table).toHaveClass('[&>*>tr>th]:text-sm')
 		expect(table).toHaveClass('[&>*>tr>th_[data-slot=icon]]:size-4')
+		expect(table).toHaveClass('[&>*>tr>td_[data-slot=icon]]:size-4')
+		expect(table).toHaveClass('[&>*>tr>td_[data-slot=badge]]:text-sm')
 	})
 
 	it('omits the projections on a plain grid', () => {
@@ -63,5 +66,34 @@ describe('Grid condensed', () => {
 		renderUI(<Grid columns={withButton} rows={rows} getKey={getKey} />)
 
 		expect(screen.getByRole('button', { name: 'Edit Alice' })).toHaveAttribute('data-size', 'md')
+	})
+
+	it('leaves a portaled context menu at the ambient density, not the condensed step', () => {
+		renderUI(
+			<Grid condensed columns={columns} rows={rows} getKey={getKey} contextMenu={{ cell: true }} />,
+		)
+
+		fireEvent.contextMenu(screen.getByText('Alice'))
+
+		// The menu portals from outside the table's condensed cascade, so its items
+		// read the ambient `md` font (`text-base`) rather than the condensed
+		// `text-sm` — text and icon step together instead of the text alone shrinking.
+		const item = screen.getByRole('menuitem', { name: 'Copy' })
+
+		expect(item).toHaveClass('text-base')
+		expect(item).not.toHaveClass('text-sm')
+	})
+
+	it('does not shrink a consumer badge outside the grid', () => {
+		// The badge step-down is a table-scoped projection, so a badge elsewhere on
+		// the page is untouched — the class lives on the grid's own `<table>`.
+		renderUI(
+			<>
+				<Badge>loose</Badge>
+				<Grid condensed columns={columns} rows={rows} getKey={getKey} />
+			</>,
+		)
+
+		expect(screen.getByText('loose')).toHaveAttribute('data-size', 'md')
 	})
 })

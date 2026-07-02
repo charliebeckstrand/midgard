@@ -172,15 +172,18 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * measurement) and additionally:
 	 *
 	 * - steps header and body cell text below the table's base to `text-sm`;
-	 * - steps the grid's own header chrome — sort arrow, pin, grip, and filter
-	 *   icons — to the compact icon size; and
-	 * - broadcasts a `compact` density cascade over the grid, so size-aware
-	 *   *client* content a consumer renders in a cell (an `Input`, a `Button`,
-	 *   the selection checkbox) and the toolbar/footer controls shrink with it.
+	 * - steps every icon in a header or body cell — the grid's own chrome (sort
+	 *   arrow, pin, grip, filter) and a consumer's `Icon` or `Badge`-slot icon —
+	 *   to the compact size, and steps a consumer `Badge`'s text down to match;
+	 *   and
+	 * - broadcasts a `compact` density cascade over the *table*, so size-aware
+	 *   *client* cell content (an inline `Input`, the selection checkbox) shrinks
+	 *   with it.
 	 *
-	 * Static leaves a consumer renders in a cell — `Badge`, `Icon`, `Text` — read
-	 * no density and keep their own `size`; step them explicitly to match, the
-	 * same contract a `DensityProvider` honours.
+	 * Scoped to the table: a portaled overlay the grid spawns — a context menu, the
+	 * column-manager dialog — stays on the ambient density rather than adopting the
+	 * condensed step, so it reads consistently whether opened from a condensed grid
+	 * or not. Wrap the grid in a `DensityProvider` to size those overlays.
 	 * @defaultValue false
 	 */
 	condensed?: boolean
