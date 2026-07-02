@@ -192,4 +192,10 @@ describe('Grid announcement builders', () => {
 
 		expect(describeResize('Name', 240.6)).toBe('Name column 241 pixels')
 	})
+
+	it('describes a committed row drag-reorder with the 1-based position', async () => {
+		const { describeRowReorder } = await import('../../modules/grid/grid-announcements')
+
+		expect(describeRowReorder('Bob', 3, 8)).toBe('Moved Bob to position 3 of 8')
+	})
 })

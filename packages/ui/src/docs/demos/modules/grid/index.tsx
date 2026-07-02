@@ -521,6 +521,23 @@ const ReorderExample = () => {
 	)
 }
 
+const RowReorderExample = () => {
+	// The consumer owns `rows`, so `rowReorder.onReorder` reports the reordered set
+	// to commit back onto state. Add a `dragHandle` column for the grip; drag a row
+	// by its handle (pointer or keyboard) to move it within the set.
+	const [items, setItems] = useState(people)
+
+	return (
+		<Grid
+			columns={[{ id: 'drag', dragHandle: true }, ...columns]}
+			rows={items}
+			getKey={(row) => row.id}
+			rowLabel={(row) => row.name}
+			rowReorder={{ onReorder: setItems }}
+		/>
+	)
+}
+
 const ResizableExample = () => (
 	<Grid resizable columns={columns} rows={people} getKey={(row) => row.id} />
 )
@@ -966,8 +983,15 @@ export function Demo() {
 
 				<TabContent value="Reorder">
 					<Stack gap="xl">
-						<Example title="Reorder">
+						<Example title="Column reorder">
 							<ReorderExample />
+						</Example>
+
+						<Example
+							title="Row reorder"
+							code={code`<Grid columns={[{ id: 'drag', dragHandle: true }, ...]} rowReorder={{ onReorder }} />`}
+						>
+							<RowReorderExample />
 						</Example>
 					</Stack>
 				</TabContent>

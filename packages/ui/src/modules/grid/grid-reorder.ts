@@ -21,6 +21,19 @@ export const restrictToHorizontalAxis: Modifier = ({ transform }) => ({
 })
 
 /**
+ * dnd-kit modifier that pins a row drag to the y-axis: zeroes the horizontal
+ * component of the transform so a row tracks the pointer vertically and never
+ * drifts left or right while being reordered. Mirrors `@dnd-kit/modifiers`'
+ * `restrictToVerticalAxis` without taking the dependency.
+ *
+ * @internal
+ */
+export const restrictToVerticalAxis: Modifier = ({ transform }) => ({
+	...transform,
+	x: 0,
+})
+
+/**
  * Clamps `transform` so `rect` stays inside `bounding` on both axes. Lifted from
  * `@dnd-kit/modifiers`' internal `restrictToBoundingRect`.
  *

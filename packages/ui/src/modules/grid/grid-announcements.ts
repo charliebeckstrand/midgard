@@ -50,6 +50,17 @@ export function describeSelection(size: number, allSelected: boolean, onPage: bo
 }
 
 /**
+ * The polite announcement for a committed row drag-reorder, narrated when a row
+ * is dropped in a new position (WCAG 4.1.3): `Moved row to position 3 of 8`. The
+ * position is 1-based; the caller supplies the row's new index and the total.
+ *
+ * @internal
+ */
+export function describeRowReorder(name: string, position: number, total: number): string {
+	return `Moved ${name} to position ${position} of ${total}`
+}
+
+/**
  * The polite announcement for a column pin change, narrated when the header menu
  * or pin button moves a column (WCAG 4.1.3): `Pinned Name to the left`, `Pinned
  * Name to the right`, or `Unpinned Name` when released.

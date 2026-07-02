@@ -14,6 +14,7 @@ export {
 	type GridFooterStats,
 	type GridHeader,
 	type GridProps,
+	type GridRowReorder,
 	type GridSelection,
 	type GridSort,
 	type GridVirtualize,

@@ -50,6 +50,7 @@ import {
 	GridReorderContext,
 	restrictToFirstScrollableAncestor,
 	restrictToHorizontalAxis,
+	restrictToVerticalAxis,
 } from './grid-reorder'
 import type { GridRowClick } from './grid-row'
 import { useGridSort } from './grid-sort-state'
@@ -67,6 +68,7 @@ import { useGridExport } from './use-grid-export'
 import { type GridGroupHeader, type GridGroupResult, useGridGroup } from './use-grid-group'
 import { GridNavContext, type GridRowActivate } from './use-grid-navigation'
 import { useGridReorder } from './use-grid-reorder'
+import { useGridRowReorder } from './use-grid-row-reorder'
 import { useGridSelectionActions, useGridSelectionState } from './use-grid-selection'
 import { type GridColumnPinning, useGridTable } from './use-grid-table'
 
@@ -82,6 +84,46 @@ const REORDER_MODIFIERS = [restrictToHorizontalAxis, restrictToFirstScrollableAn
  * with the vertical axis off so a downward drag can't scroll the body. @internal
  */
 const REORDER_AUTO_SCROLL = { threshold: { x: 0.2, y: 0 } }
+
+/** Locks a row drag to the y-axis and bounds it to the scroll container. @internal */
+const ROW_REORDER_MODIFIERS = [restrictToVerticalAxis, restrictToFirstScrollableAncestor]
+
+/**
+ * Row-drag auto-scroll: vertical only — a tall grid scrolls up/down to reach
+ * off-screen rows (bounded by the scroll-ancestor modifier) — with the
+ * horizontal axis off so a sideways nudge can't scroll the columns. @internal
+ */
+const ROW_REORDER_AUTO_SCROLL = { threshold: { x: 0, y: 0.2 } }
+
+/**
+ * Whether the grid's current state permits a manual row drag-reorder. A manual
+ * order only holds against the natural row order, so reordering stands down
+ * whenever the rendered rows diverge from the source set — an active column
+ * sort, a filtered/searched view (fewer rendered rows than source), pagination,
+ * or virtualization — and on an empty/loading grid. The rendered-length check
+ * catches client filtering, search, and client pagination in one; the pagination
+ * and virtualization flags catch the server-page and windowed cases.
+ *
+ * @internal
+ */
+function rowReorderPermitted(args: {
+	loading: boolean
+	hasData: boolean
+	paginated: boolean
+	virtualized: boolean
+	sorted: boolean
+	renderedCount: number
+	sourceCount: number
+}): boolean {
+	return (
+		!args.loading &&
+		args.hasData &&
+		!args.paginated &&
+		!args.virtualized &&
+		!args.sorted &&
+		args.renderedCount === args.sourceCount
+	)
+}
 
 /** Props for {@link GridRegion}. @internal */
 type GridRegionProps<T> = {
@@ -163,6 +205,37 @@ function GridRegion<T>({
 		>
 			{reordered}
 		</GridContextMenu>
+	)
+}
+
+/**
+ * Wraps the table region in the row drag-reorder `<DndContext>` when rows are
+ * reorderable, else renders the region untouched. The context sits outside the
+ * `<table>` (its injected a11y nodes must not be table children) and locks drags
+ * to the y-axis, bounding them to the scroll container. Split out so
+ * {@link GridData} stays within its complexity budget.
+ *
+ * @internal
+ */
+function GridRowReorderRegion({
+	active,
+	dndContextProps,
+	children,
+}: {
+	active: boolean
+	dndContextProps: ComponentProps<typeof DndContext>
+	children: ReactNode
+}) {
+	if (!active) return children
+
+	return (
+		<DndContext
+			{...dndContextProps}
+			modifiers={ROW_REORDER_MODIFIERS}
+			autoScroll={ROW_REORDER_AUTO_SCROLL}
+		>
+			{children}
+		</DndContext>
 	)
 }
 
@@ -293,6 +366,7 @@ export function GridData<T>({
 	contextMenu,
 	exportable = false,
 	reorder = false,
+	rowReorder: rowReorderConfig,
 	navigable = false,
 	editable,
 	truncate = true,
@@ -704,6 +778,26 @@ export function GridData<T>({
 		reorderColumns,
 	})
 
+	// Row drag-reorder rides @dnd-kit's vertical sortable; `rowReorderPermitted`
+	// gates it on the rendered rows matching the natural source order (see there).
+	const rowReorder = useGridRowReorder<T>({
+		rowReorder: rowReorderConfig,
+		enabled: rowReorderPermitted({
+			loading,
+			hasData,
+			paginated: paginationConfig != null,
+			virtualized: virtualizeEnabled,
+			sorted: sort.length > 0,
+			renderedCount: renderRows.length,
+			sourceCount: rows.length,
+		}),
+		rows: renderRows,
+		rowKeys,
+		rowLabel,
+	})
+
+	const rowReorderActive = rowReorder.active
+
 	const needsScrollWrapper = stickyHeader || virtualizeEnabled
 
 	// Resolve the group band row from the rendered columns and their pin sides.
@@ -746,7 +840,10 @@ export function GridData<T>({
 	// under the pointer doesn't light up mid-drag.
 	const rowHover = resolveHover(hover, onRowClick, resizing)
 
-	const reorderActive = canReorder && hasData
+	// Column and row reorder can't share one grid: they'd need one dnd context to
+	// disambiguate a header drag from a row drag. Row reorder takes precedence, so
+	// column reorder stands down while it's active (documented on `rowReorder`).
+	const reorderActive = canReorder && hasData && !rowReorderActive
 
 	// The cursor store is always provided (inert when not navigable/editable); only
 	// a cursor grid's cells subscribe, so the wrapper costs nothing otherwise.
@@ -806,6 +903,8 @@ export function GridData<T>({
 					toggleRow={toggleRow}
 					selectable={hasSelectionColumn}
 					reorderable={reorderActive}
+					rowReorderActive={rowReorderActive}
+					rowSortable={rowReorder.sortableContext}
 					truncate={truncate}
 					settleWidths={settleWidths}
 					pinning={pinning}
@@ -896,7 +995,12 @@ export function GridData<T>({
 						chooseColumns={chooseColumns}
 						exportActions={exportActions}
 					>
-						<DensityCascade level={density}>{tableRegion}</DensityCascade>
+						<GridRowReorderRegion
+							active={rowReorderActive}
+							dndContextProps={rowReorder.dndContextProps}
+						>
+							<DensityCascade level={density}>{tableRegion}</DensityCascade>
+						</GridRowReorderRegion>
 					</GridRegion>
 
 					<GridFooterBar config={footer} stats={footerStats} />

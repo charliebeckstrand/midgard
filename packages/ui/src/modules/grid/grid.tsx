@@ -10,6 +10,7 @@ export type {
 	GridFooter,
 	GridFooterStats,
 	GridHeader,
+	GridRowReorder,
 	GridSelection,
 	GridSort,
 	GridVirtualize,
