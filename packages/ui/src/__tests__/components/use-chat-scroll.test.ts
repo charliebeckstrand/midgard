@@ -1,7 +1,9 @@
 import { act, renderHook } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { useScrollWithin } from '../../hooks'
-import { useChatScroll } from '../../modules/chat'
+// The hook's module file, not the chat barrel: the barrel evaluates sibling
+// modules whose own hook imports would meet the pruned '../../hooks' mock.
+import { useChatScroll } from '../../modules/chat/use-chat-scroll'
 
 vi.mock('../../hooks', () => ({
 	useScrollWithin: vi.fn(),
