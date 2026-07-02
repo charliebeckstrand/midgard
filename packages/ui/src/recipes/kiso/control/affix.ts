@@ -13,7 +13,7 @@
  * `<Badge>` sits one notch below a same-size `<Button>` on the shared `px`
  * scale, so its stepped-down padding is 0.5 smaller and the slot pads 0.5
  * more to compensate. The boundary test at
- * `__tests__/recipes/boundary/affix-compensation-boundary.test.ts` pins
+ * `__tests__/boundary/affix-compensation-boundary.test.ts` pins
  * both against the live recipes.
  *
  * An icon-only bare `<Button>` carries no outer chrome, so its glyph
@@ -54,7 +54,7 @@
  * margins ride the `density` axis (`./density.ts`), so every control
  * input carries them; on elements that can't match `:autofill` (the
  * listbox / date-picker buttons) they are inert. The boundary test at
- * `__tests__/recipes/boundary/affix-compensation-boundary.test.ts` pins
+ * `__tests__/boundary/affix-compensation-boundary.test.ts` pins
  * the margin to `density.px` per step.
  *
  * Layer: kiso · Archetype: control · Concern: affix
