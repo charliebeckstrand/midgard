@@ -144,6 +144,55 @@ export type GridHeader = {
 }
 
 /**
+ * Live row counts handed to the {@link GridFooter} settings: the filtered
+ * extent, the source total, and the current selection size. Computed at render
+ * so they track client-side search and filtering.
+ */
+export type GridFooterStats = {
+	/**
+	 * Rows after search/filter — the full filtered extent across every page, not
+	 * just the rendered window. The server total under server-side pagination.
+	 */
+	rows: number
+	/**
+	 * Source row count before any client-side search/filter. Equal to
+	 * {@link GridFooterStats.rows} when nothing narrows the set (and under
+	 * server-side filtering, where the pre-filter total isn't known to the grid).
+	 */
+	total: number
+	/** Currently selected row count; `0` without a selection column. */
+	selected: number
+}
+
+/**
+ * Footer configuration for {@link GridDataProps.footer}: an opt-in status bar
+ * below the table, each setting rendered only when enabled. Distinct from the
+ * {@link GridPagination} footer — a paginated grid can carry both, the pagination
+ * navigation beneath this summary bar.
+ */
+export type GridFooter = {
+	/**
+	 * Show the total row count: `'47 rows'`, `'12 of 47 rows'` while a client-side
+	 * search or filter narrows the set, or `'No rows'` when empty. Counts the full
+	 * filtered extent across all pages, not just the rendered window.
+	 * @defaultValue false
+	 */
+	rowTotal?: boolean
+	/**
+	 * Show the selected-row count (`'3 selected'`) while a selection is active;
+	 * silent when nothing is selected. Needs a selection column to be meaningful.
+	 * @defaultValue false
+	 */
+	selectedTotal?: boolean
+	/**
+	 * Custom content rendered at the footer's trailing edge, receiving the live
+	 * {@link GridFooterStats}. Use for a summary line, a column aggregate, or a
+	 * footer action; return `null` to render nothing.
+	 */
+	content?: (stats: GridFooterStats) => ReactNode
+}
+
+/**
  * Props for a read-only data {@link Grid}. `T` is the row datum type;
  * `columns` and the various renderers are keyed to it.
  *
@@ -347,6 +396,16 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * @see {@link GridHeader}
 	 */
 	header?: GridHeader
+
+	/**
+	 * Footer configuration: an opt-in summary bar below the table with a row-count
+	 * total, a selected-row count, and a custom content slot — each rendered only
+	 * when enabled. Independent of {@link GridDataProps.pagination}, whose own
+	 * footer sits beneath this bar when both are set. Omit for no footer.
+	 *
+	 * @see {@link GridFooter}
+	 */
+	footer?: GridFooter
 
 	/** Caps the table height (any CSS length) behind a scroll wrapper; required by {@link GridDataProps.virtualize}. */
 	maxHeight?: string

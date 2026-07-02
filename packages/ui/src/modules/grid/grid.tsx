@@ -7,6 +7,8 @@ export type {
 	GridColumnManagerConfig,
 	GridColumnOrder,
 	GridDataProps,
+	GridFooter,
+	GridFooterStats,
 	GridHeader,
 	GridSelection,
 	GridSort,
@@ -39,7 +41,8 @@ export type GridProps<T> = GridDataProps<T>
  * {@link GridEditableConfig.onValueChange} (Escape reverts a cell).
  *
  * Renders a loading skeleton (`aria-busy` with a polite status), an `empty` slot
- * when there are no rows, a sticky header, and — under `virtualize` — windowed
+ * when there are no rows, a sticky header, an optional `footer` summary bar (row
+ * total, selected count, custom content), and — under `virtualize` — windowed
  * rows with full row/column counts.
  *
  * @remarks Client component. `virtualize` requires `maxHeight`; omitting it
