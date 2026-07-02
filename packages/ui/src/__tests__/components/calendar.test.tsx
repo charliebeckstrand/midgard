@@ -78,7 +78,7 @@ describe('Calendar', () => {
 
 		await user.click(screen.getByLabelText('Next month'))
 
-		await vi.waitFor(() => expect(politeRegion()).toHaveTextContent('July 2025'))
+		expect(politeRegion()).toHaveTextContent('July 2025')
 	})
 
 	it('changes the month when the previous / next nav buttons are clicked', async () => {

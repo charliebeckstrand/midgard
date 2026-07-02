@@ -53,7 +53,7 @@ describe('NumberInput', () => {
 			'[data-slot="live-region"][aria-live="polite"]',
 		)
 
-		await vi.waitFor(() => expect(politeRegion).toHaveTextContent('5'))
+		expect(politeRegion).toHaveTextContent('5')
 	})
 
 	it('keeps focus on the input when a stepper is pressed', async () => {

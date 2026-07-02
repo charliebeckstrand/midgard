@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { Form } from '../../components/form'
 import { SubmitButton } from '../../components/submit-button'
-import { act, bySlot, fireEvent, renderUI, screen, waitFor } from '../helpers'
+import { act, bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 describe('SubmitButton', () => {
 	it('renders as a submit-typed button', () => {
@@ -73,9 +73,7 @@ describe('SubmitButton', () => {
 			resolveSubmit?.()
 		})
 
-		await waitFor(() => {
-			expect(screen.getByRole('button')).not.toBeDisabled()
-		})
+		expect(screen.getByRole('button')).not.toBeDisabled()
 	})
 
 	it('forwards children to the inner Button', () => {
