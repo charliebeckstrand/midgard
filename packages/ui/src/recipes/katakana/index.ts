@@ -7,7 +7,7 @@
  * imports nothing from kiso, neither values nor types: it declares the token
  * shape it needs as its own contract and takes the data by argument. The
  * "no kiso import" contract is pinned by
- * `src/__tests__/recipes/boundary/katakana-purity-boundary.test.ts`.
+ * `src/__tests__/boundary/katakana-purity-boundary.test.ts`.
  *
  * Five archetypes, six bridges: `control` and `check` (the Control family:
  * text-input and check-input branches), `popover` (floating overlay),

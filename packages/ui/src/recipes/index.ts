@@ -16,15 +16,15 @@
  *
  * Components and primitives reach the recipe layer through their owning
  * kata (`from '../../recipes/kata/<name>'`). Cross-layer value imports are
- * pinned by `__tests__/components/boundary/component-recipe-boundary.test.ts`
- * and `__tests__/primitives/boundary/primitive-recipe-boundary.test.ts`.
+ * pinned by `__tests__/boundary/component-recipe-boundary.test.ts`
+ * and `__tests__/boundary/primitive-recipe-boundary.test.ts`.
  *
  * This barrel is types-only. It re-exports the recipe-substrate types
  * (`Color`, `Ma`, `Step`, `GroupOrientation`, `GroupPosition`); consumers
  * derive prop unions from them without threading types through their kata.
  * No runtime values pass through; values reach consumers through their kata
  * funnel. The types-only shape is pinned by
- * `__tests__/recipes/boundary/recipe-boundary.test.ts`.
+ * `__tests__/boundary/recipe-boundary.test.ts`.
  */
 
 export type { Color, ExtendedColor, PaletteColor } from '../core/recipe'
