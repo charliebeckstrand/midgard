@@ -32,9 +32,13 @@ describe('Grid condensed', () => {
 		const table = screen.getByRole('table')
 
 		expect(table).toHaveClass('[&>*>tr>td]:text-sm')
+
 		expect(table).toHaveClass('[&>*>tr>th]:text-sm')
+
 		expect(table).toHaveClass('[&>*>tr>th_[data-slot=icon]]:size-4')
+
 		expect(table).toHaveClass('[&>*>tr>td_[data-slot=icon]]:size-4')
+
 		expect(table).toHaveClass('[&>*>tr>td_[data-slot=badge]]:text-sm')
 	})
 
@@ -81,6 +85,7 @@ describe('Grid condensed', () => {
 		const item = screen.getByRole('menuitem', { name: 'Copy' })
 
 		expect(item).toHaveClass('text-base')
+
 		expect(item).not.toHaveClass('text-sm')
 	})
 
