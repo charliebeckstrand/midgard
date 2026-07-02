@@ -61,6 +61,7 @@ import {
 	columnLabel,
 	type GridColumn,
 	type GridContextMenu as GridContextMenuConfig,
+	type GridPagination,
 } from './types'
 import { useGridColumns } from './use-grid-columns'
 import { useGridCursor } from './use-grid-cursor'
@@ -68,6 +69,7 @@ import { useGridExport } from './use-grid-export'
 import { type GridGroupHeader, type GridGroupResult, useGridGroup } from './use-grid-group'
 import { GridNavContext, type GridRowActivate } from './use-grid-navigation'
 import { useGridReorder } from './use-grid-reorder'
+import { useGridRowGrouping } from './use-grid-row-grouping'
 import { useGridRowReorder } from './use-grid-row-reorder'
 import { useGridSelectionActions, useGridSelectionState } from './use-grid-selection'
 import { type GridColumnPinning, useGridTable } from './use-grid-table'
@@ -111,6 +113,7 @@ function rowReorderPermitted(args: {
 	hasData: boolean
 	paginated: boolean
 	virtualized: boolean
+	grouped: boolean
 	sorted: boolean
 	renderedCount: number
 	sourceCount: number
@@ -120,9 +123,37 @@ function rowReorderPermitted(args: {
 		args.hasData &&
 		!args.paginated &&
 		!args.virtualized &&
+		!args.grouped &&
 		!args.sorted &&
 		args.renderedCount === args.sourceCount
 	)
+}
+
+/** Whether `id` names a groupable column — a present data column (not selection / actions / drag-handle). @internal */
+function isGroupableColumnId<T>(columns: GridColumn<T>[], id: string | number): boolean {
+	return columns.some((col) => col.id === id && isDataColumn(col))
+}
+
+/**
+ * Zeroes the grid features that grouping renders its own body over: while
+ * grouping is active it stands the navigable cursor, virtualization, and
+ * pagination down (the grouped body is a plain, whole-set table), so those flags
+ * resolve to `false`/`undefined`; otherwise each passes through. Split out so
+ * {@link GridData} stays within its complexity budget.
+ *
+ * @internal
+ */
+function resolveGroupingGates(args: {
+	groupingActive: boolean
+	navigable: boolean
+	virtualize: boolean
+	pagination: GridPagination | undefined
+}): { navigable: boolean; virtualize: boolean; pagination: GridPagination | undefined } {
+	if (!args.groupingActive) {
+		return { navigable: args.navigable, virtualize: args.virtualize, pagination: args.pagination }
+	}
+
+	return { navigable: false, virtualize: false, pagination: undefined }
 }
 
 /** Props for {@link GridRegion}. @internal */
@@ -358,6 +389,7 @@ export function GridData<T>({
 	columnOrder: columnOrderConfig,
 	columnManager: columnManagerConfig,
 	groups: groupsConfig,
+	groupBy: groupByConfig,
 	pagination: paginationConfig,
 	resizable = true,
 	columnSizing: columnSizingConfig,
@@ -429,6 +461,34 @@ export function GridData<T>({
 		() => applyPinOverrides(resolvedColumns, pinOverrides),
 		[resolvedColumns, pinOverrides],
 	)
+
+	// Row grouping: resolve the `groupBy` binding to a groupable data column (a
+	// stray id leaves the grid ungrouped), plus the engine expansion state. Grouping
+	// renders its own body, so it stands down the cursor, pagination, and
+	// virtualization below.
+	const isGroupableColumn = useCallback(
+		(id: string | number) => isGroupableColumnId(pinnedColumns, id),
+		[pinnedColumns],
+	)
+
+	const {
+		grouping,
+		expanded: groupExpanded,
+		setExpanded: setGroupExpanded,
+		renderHeader: groupRenderHeader,
+	} = useGridRowGrouping(groupByConfig, isGroupableColumn)
+
+	const groupingActive = grouping != null
+
+	// Grouping renders its own plain, whole-set body, so the cursor,
+	// virtualization, and pagination stand down while it's active (see
+	// `resolveGroupingGates`).
+	const gated = resolveGroupingGates({
+		groupingActive,
+		navigable,
+		virtualize: virtualizeEnabled,
+		pagination: paginationConfig,
+	})
 
 	// Resolves a column's display label at call time, read by the `[]`-stable
 	// `pinColumn` and the visibility handler so they can narrate the change without
@@ -508,7 +568,9 @@ export function GridData<T>({
 	// props, the cursor store, and the row-editing-context wrapper. Inert for a
 	// static grid.
 	const cursor = useGridCursor<T>({
-		navigable,
+		// The navigable cursor indexes flat data rows; grouping interleaves group
+		// headers, so the cursor stands down while grouping is active (see `gated`).
+		navigable: gated.navigable,
 		editable,
 		columns: pinnedColumns,
 		onRowActivate,
@@ -586,6 +648,8 @@ export function GridData<T>({
 		visibleColumns,
 		renderRows,
 		rowKeys,
+		grouped,
+		groupedRows,
 		pagination,
 		resize,
 		globalFilter,
@@ -606,7 +670,12 @@ export function GridData<T>({
 		sort,
 		setSort,
 		sortManual: sortConfig?.manual ?? false,
-		pagination: paginationConfig,
+		grouping,
+		expanded: groupExpanded,
+		onExpandedChange: setGroupExpanded,
+		// Grouping renders its own body and stands pagination down (`gated.pagination`
+		// is `undefined` while grouping), so the engine doesn't page the groups.
+		pagination: gated.pagination,
 		resizable,
 		columnSizing: columnSizingConfig,
 		globalFilter: searchConfig,
@@ -787,6 +856,7 @@ export function GridData<T>({
 			hasData,
 			paginated: paginationConfig != null,
 			virtualized: virtualizeEnabled,
+			grouped,
 			sorted: sort.length > 0,
 			renderedCount: renderRows.length,
 			sourceCount: rows.length,
@@ -798,7 +868,7 @@ export function GridData<T>({
 
 	const rowReorderActive = rowReorder.active
 
-	const needsScrollWrapper = stickyHeader || virtualizeEnabled
+	const needsScrollWrapper = stickyHeader || gated.virtualize
 
 	// Resolve the group band row from the rendered columns and their pin sides.
 	// `hasGroupRow` is true only when a band actually spans columns, so an empty or
@@ -832,7 +902,7 @@ export function GridData<T>({
 		enabled: gridSemantics,
 		rowOffset: pageRowOffset,
 		selectAllLabel,
-	} = resolveGridSemantics(virtualizeEnabled, pagination, navigable)
+	} = resolveGridSemantics(gated.virtualize, pagination, gated.navigable)
 
 	// A clickable grid reads as actionable through the shared `<Table hover>`
 	// wash, layered over any explicit `hover`; the row keeps its own pointer
@@ -905,11 +975,15 @@ export function GridData<T>({
 					reorderable={reorderActive}
 					rowReorderActive={rowReorderActive}
 					rowSortable={rowReorder.sortableContext}
+					groupedRows={groupedRows}
+					groupColumnId={grouping}
+					groupRenderHeader={groupRenderHeader}
+					getKey={getKey}
 					truncate={truncate}
 					settleWidths={settleWidths}
 					pinning={pinning}
 					virtualize={
-						virtualizeEnabled
+						gated.virtualize
 							? { scrollRef, estimateSize, overscan, scrollIntoViewRef: scrollRowIntoViewRef }
 							: null
 					}

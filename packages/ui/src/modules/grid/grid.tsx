@@ -9,6 +9,8 @@ export type {
 	GridDataProps,
 	GridFooter,
 	GridFooterStats,
+	GridGroupBy,
+	GridGroupHeaderContext,
 	GridHeader,
 	GridRowReorder,
 	GridSelection,

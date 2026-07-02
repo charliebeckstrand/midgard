@@ -314,6 +314,30 @@ export const k = {
 			...draggingSurface,
 		],
 	},
+	rowGroup: {
+		// Group-header row: a tinted full-width band above each group's leaf rows,
+		// setting the group off from the data rows beneath it.
+		row: bg.tint,
+		cell: ['px-2', 'py-1.5'],
+		// Disclosure control: chevron + label on one baseline, the full cell width
+		// clickable so the whole band toggles the group. Left-aligned text.
+		toggle: [
+			flex.inline,
+			'items-center',
+			'gap-1.5',
+			'w-full',
+			'text-left',
+			text.default,
+			focus.ring,
+			cursor,
+			'select-none',
+		],
+		// Chevron points right when collapsed, rotating down (`data-[expanded]`) when
+		// the group is open; `shrink-0` holds its size beside the label.
+		chevron: ['shrink-0', 'transition-transform', 'data-[expanded]:rotate-90', text.muted],
+		// Group label ("Developer (3)"): the group's value and row count, emphasized.
+		label: [weight.medium, size.sm],
+	},
 	resize: {
 		// Fixed layout + a <colgroup> of exact widths so resizing one column
 		// changes only that column (and the table's total width) instead of

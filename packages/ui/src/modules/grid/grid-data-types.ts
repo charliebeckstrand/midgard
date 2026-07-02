@@ -45,6 +45,52 @@ export type GridSort = {
 }
 
 /**
+ * Context for a {@link GridGroupBy.renderHeader} override: the grouped column's
+ * id, the group's shared value, and the number of rows it holds.
+ */
+export type GridGroupHeaderContext = {
+	/** The column id the rows are grouped by. */
+	columnId: string | number
+	/** The value shared by every row in this group (the grouped column's cell value). */
+	value: unknown
+	/** How many rows the group holds. */
+	count: number
+}
+
+/**
+ * Controlled/uncontrolled row-grouping binding for {@link GridProps.groupBy}:
+ * the id of the single column the rows are grouped by (or `null` for no
+ * grouping). Grouping collects rows sharing that column's value under an
+ * expandable group-header row that shows the value and a row count, backed by
+ * the engine's grouped/expanded row models.
+ *
+ * @remarks Grouping renders its own body, so it takes precedence over — and
+ * stands down — {@link GridProps.pagination}, {@link GridProps.virtualize}, and
+ * the {@link GridProps.navigable} cursor while active; sorting, filtering,
+ * search, selection, resizing, and pinning still apply.
+ */
+export type GridGroupBy = {
+	/** The grouped column id, or `null` for no grouping. Pairs with {@link GridGroupBy.onValueChange}. */
+	value?: string | number | null
+	/** Initial grouped column id for the uncontrolled case. @defaultValue null */
+	defaultValue?: string | number | null
+	/** Fires with the next grouped column id (or `null` when grouping is cleared). */
+	onValueChange?: (columnId: string | number | null) => void
+	/**
+	 * Whether groups start expanded (rows visible) or collapsed (just the group
+	 * headers). Each group's header toggles it thereafter.
+	 * @defaultValue true
+	 */
+	defaultExpanded?: boolean
+	/**
+	 * Renders a group header's label, superseding the default `value (count)`.
+	 * Receives the {@link GridGroupHeaderContext}; the expand toggle and count
+	 * chrome around it stay.
+	 */
+	renderHeader?: (context: GridGroupHeaderContext) => ReactNode
+}
+
+/**
  * Row drag-reorder binding for {@link GridProps.rowReorder}. The consumer owns
  * the `rows` source, so the grid reports the reordered rows through `onReorder`
  * rather than mutating them — apply the new order to your state (or persist it)
@@ -277,6 +323,22 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * @defaultValue true
 	 */
 	sortable?: boolean
+
+	/**
+	 * Groups rows by a single column's value, drawing an expandable group-header
+	 * row (the shared value plus a row count) above each run. Pass a
+	 * {@link GridGroupBy} binding whose `value` is the grouped column id, or `null`
+	 * to leave the grid ungrouped. Backed by the engine's grouped/expanded row
+	 * models.
+	 *
+	 * Grouping renders its own body, so while active it takes precedence over — and
+	 * stands down — {@link GridDataProps.pagination}, {@link GridDataProps.virtualize},
+	 * and the {@link GridDataProps.navigable} cursor; sorting, filtering, search,
+	 * selection, resizing, and pinning still apply.
+	 *
+	 * @see {@link GridGroupBy}
+	 */
+	groupBy?: GridGroupBy
 
 	selection?: GridSelection
 	columnOrder?: GridColumnOrder
