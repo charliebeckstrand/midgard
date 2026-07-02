@@ -321,11 +321,11 @@ export const k = {
 		// now it takes a neutral tint; a forthcoming row manager will swap in a
 		// per-group palette colour.
 		rail: ['border-l-2', ...mode('border-zinc-950/5', 'dark:border-white/10')],
-		// Bare disclosure button filling the group cell: the label at the start, the
-		// chevron pushed to the end (`justify-between`). `px-0` drops the button's own
-		// horizontal inset so the label lines up with the data cells' content (the
-		// cell keeps its density padding); the whole band toggles the group.
-		toggle: ['w-full', 'items-center', 'justify-between', 'px-0', 'text-left'],
+		// Bare disclosure button filling the group cell: the label with the chevron
+		// tucked right beside it (`gap-1.5`), both at the leading edge. `px-0` drops
+		// the button's own horizontal inset so the label lines up with the data cells'
+		// content (the cell keeps its density padding); the whole band toggles the group.
+		toggle: ['w-full', 'items-center', 'justify-start', 'gap-1.5', 'px-0', 'text-left'],
 		// Chevron at the row's trailing edge: the group row renders a right chevron
 		// when collapsed and a down chevron when expanded; `shrink-0` holds its size
 		// beside the label.
