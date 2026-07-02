@@ -467,7 +467,7 @@ describe('MapShipment', () => {
 
 		await user.click(screen.getByRole('button', { name: 'Close' }))
 
-		await waitFor(() => expect(screen.queryByText('Driver')).not.toBeInTheDocument())
+		expect(screen.queryByText('Driver')).not.toBeInTheDocument()
 	})
 
 	it('renders an empty-chat alert when the chat tab has no messages', async () => {

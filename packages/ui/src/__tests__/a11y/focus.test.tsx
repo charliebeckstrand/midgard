@@ -9,7 +9,7 @@ import {
 	MenuTrigger,
 } from '../../components/menu'
 import { Popover, PopoverContent, PopoverTrigger } from '../../components/popover'
-import { renderUI, screen, userEvent, waitFor } from '../helpers'
+import { renderUI, screen, userEvent } from '../helpers'
 import { focus } from './cases'
 
 /**
@@ -67,12 +67,12 @@ describe('a11y focus: restoration (dropdown family)', () => {
 
 		await user.click(screen.getByRole('button', { name: 'Options' }))
 
-		await screen.findByRole('menu')
+		screen.getByRole('menu')
 
 		await user.keyboard('{Escape}')
 
 		// Re-query: the trigger node is recreated across the open/close cycle.
-		await waitFor(() => expect(screen.getByRole('button', { name: 'Options' })).toHaveFocus())
+		expect(screen.getByRole('button', { name: 'Options' })).toHaveFocus()
 	})
 
 	// Popover restores via `returnFocusTo: triggerRef` (useFloatingPanel), the
@@ -80,7 +80,7 @@ describe('a11y focus: restoration (dropdown family)', () => {
 	// controlled `open`, exercising the restoration wiring directly; real Escape /
 	// outside-press routes through floating-ui's `useDismiss` (real-browser-only).
 	// A non-modal disclosure must return focus to its trigger on close (WCAG 2.4.3).
-	it('popover returns focus to its trigger when it closes', async () => {
+	it('popover returns focus to its trigger when it closes', () => {
 		const ui = (open: boolean) => (
 			<Popover open={open} onOpenChange={() => {}}>
 				<PopoverTrigger>
@@ -94,10 +94,10 @@ describe('a11y focus: restoration (dropdown family)', () => {
 
 		const { rerender } = renderUI(ui(true))
 
-		await screen.findByRole('dialog')
+		screen.getByRole('dialog')
 
 		rerender(ui(false))
 
-		await waitFor(() => expect(screen.getByRole('button', { name: 'Details' })).toHaveFocus())
+		expect(screen.getByRole('button', { name: 'Details' })).toHaveFocus()
 	})
 })

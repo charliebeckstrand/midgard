@@ -8,7 +8,7 @@ import {
 	CommandPaletteLabel,
 	useCommandPaletteQuery,
 } from '../../components/command-palette'
-import { bySlot, fireEvent, renderUI, screen, userEvent, waitFor } from '../helpers'
+import { bySlot, fireEvent, renderUI, screen, userEvent } from '../helpers'
 
 const FILTER_ITEMS = ['Alpha', 'Beta', 'Gamma']
 
@@ -131,17 +131,15 @@ describe('CommandPalette active descendant', () => {
 
 		await user.type(screen.getByRole('combobox'), 'gam')
 
-		await waitFor(() => {
-			const options = screen.getAllByRole('option')
+		const options = screen.getAllByRole('option')
 
-			expect(options).toHaveLength(1)
+		expect(options).toHaveLength(1)
 
-			expect(options[0]).toHaveTextContent('Gamma')
+		expect(options[0]).toHaveTextContent('Gamma')
 
-			expect(options[0]).toHaveAttribute('aria-selected', 'true')
+		expect(options[0]).toHaveAttribute('aria-selected', 'true')
 
-			expect(screen.getByRole('combobox')).toHaveAttribute('aria-activedescendant', options[0]?.id)
-		})
+		expect(screen.getByRole('combobox')).toHaveAttribute('aria-activedescendant', options[0]?.id)
 	})
 
 	it('clears the active item when the filter matches nothing', async () => {
@@ -155,11 +153,9 @@ describe('CommandPalette active descendant', () => {
 
 		await user.type(screen.getByRole('combobox'), 'zzz')
 
-		await waitFor(() => {
-			expect(screen.queryAllByRole('option')).toHaveLength(0)
+		expect(screen.queryAllByRole('option')).toHaveLength(0)
 
-			expect(screen.getByRole('combobox')).not.toHaveAttribute('aria-activedescendant')
-		})
+		expect(screen.getByRole('combobox')).not.toHaveAttribute('aria-activedescendant')
 	})
 
 	it('exposes a persistent no-results status region as a listbox sibling', () => {

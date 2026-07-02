@@ -418,14 +418,14 @@ describe('TabContent (idiomatic)', () => {
 		expect(panel).toHaveAttribute('aria-labelledby', tab.id)
 	})
 
-	it('makes a content-only panel keyboard-reachable (tabIndex 0)', async () => {
+	it('makes a content-only panel keyboard-reachable (tabIndex 0)', () => {
 		renderContents()
 
 		const tab = screen.getByRole('tab', { name: 'A' })
 
 		const panel = document.getElementById(tab.getAttribute('aria-controls') as string)
 
-		await waitFor(() => expect(panel).toHaveAttribute('tabindex', '0'))
+		expect(panel).toHaveAttribute('tabindex', '0')
 	})
 
 	it('omits the panel tabIndex when it has its own focusable content', async () => {

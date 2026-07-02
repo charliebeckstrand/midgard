@@ -1,6 +1,7 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { renderUI, screen, userEvent, waitFor } from '../helpers'
+import { GRID_STATUS_DEBOUNCE_MS } from '../../modules/grid/grid-constants'
+import { fireEvent, renderUI, screen, userEvent, withFakeTime } from '../helpers'
 
 /**
  * Grid status messages (WCAG 4.1.3): sort, selection, and page changes narrate
@@ -36,7 +37,7 @@ describe('Grid announcements', () => {
 
 		await user.click(screen.getByRole('button', { name: 'Sort by Name' }))
 
-		await vi.waitFor(() => expect(politeRegion()).toHaveTextContent('Sorted by Name ascending'))
+		expect(politeRegion()).toHaveTextContent('Sorted by Name ascending')
 	})
 
 	it('announces the selection count when a selectable grid changes', async () => {
@@ -48,7 +49,7 @@ describe('Grid announcements', () => {
 
 		await user.click(screen.getByRole('checkbox', { name: 'Select all rows' }))
 
-		await vi.waitFor(() => expect(politeRegion()).toHaveTextContent('All rows selected'))
+		expect(politeRegion()).toHaveTextContent('All rows selected')
 	})
 
 	it('scopes the select-all announcement to the page when paginated', async () => {
@@ -71,9 +72,7 @@ describe('Grid announcements', () => {
 		// rather than overclaiming every row across all pages.
 		await user.click(screen.getByRole('checkbox', { name: 'Select all rows on this page' }))
 
-		await vi.waitFor(() =>
-			expect(politeRegion()).toHaveTextContent('All rows on this page selected'),
-		)
+		expect(politeRegion()).toHaveTextContent('All rows on this page selected')
 	})
 
 	it('stays silent on selection changes when no column is selectable', async () => {
@@ -109,7 +108,7 @@ describe('Grid announcements', () => {
 
 		await user.click(screen.getByRole('button', { name: 'Next page' }))
 
-		await vi.waitFor(() => expect(status).toHaveTextContent(/6.10 of 12/))
+		expect(status).toHaveTextContent(/6.10 of 12/)
 	})
 
 	it('announces an unpin from the pinned column button', async () => {
@@ -124,7 +123,7 @@ describe('Grid announcements', () => {
 
 		await user.click(screen.getByRole('button', { name: 'Unpin Name' }))
 
-		await vi.waitFor(() => expect(politeRegion()).toHaveTextContent('Unpinned Name'))
+		expect(politeRegion()).toHaveTextContent('Unpinned Name')
 	})
 
 	it('announces a column hide from the manager', async () => {
@@ -143,22 +142,28 @@ describe('Grid announcements', () => {
 
 		await user.click(screen.getByRole('checkbox', { name: 'Show Age' }))
 
-		await vi.waitFor(() => expect(politeRegion()).toHaveTextContent('Hid Age column'))
+		expect(politeRegion()).toHaveTextContent('Hid Age column')
 	})
 
 	it('announces a settled column resize after a keyboard nudge', async () => {
-		const user = userEvent.setup()
+		await withFakeTime(async (clock) => {
+			renderUI(<Grid resizable columns={columns} rows={rows} getKey={getKey} />)
 
-		renderUI(<Grid resizable columns={columns} rows={rows} getKey={getKey} />)
+			const separator = screen.getByRole('separator', { name: 'Resize Name' })
 
-		screen.getByRole('separator', { name: 'Resize Name' }).focus()
+			separator.focus()
 
-		await user.keyboard('{ArrowRight}')
+			// `fireEvent`, not `clock.user`: userEvent settles through RTL's asyncWrapper,
+			// whose 0ms drain timer only advances under a `jest` global — under vitest
+			// fake timers it deadlocks.
+			fireEvent.keyDown(separator, { key: 'ArrowRight' })
 
-		// Debounced: settles into one "Name column N pixels" message. The RTL `waitFor`
-		// (not `vi.waitFor`) polls under act, so the grid's busy-status debounce — which
-		// settles in the same window — is a tracked update, not an out-of-act warning.
-		await waitFor(() => expect(politeRegion()?.textContent ?? '').toMatch(/Name column \d+ pixels/))
+			// Debounced: a run of nudges settles into one "Name column N pixels" message
+			// once the settle window elapses.
+			await clock.advance(GRID_STATUS_DEBOUNCE_MS)
+
+			expect(politeRegion()?.textContent ?? '').toMatch(/Name column \d+ pixels/)
+		})
 	})
 })
 

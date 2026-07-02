@@ -30,6 +30,23 @@ if (typeof window.ResizeObserver !== 'function') {
 	window.ResizeObserver = StubResizeObserver
 }
 
+if (typeof window.IntersectionObserver !== 'function') {
+	class StubIntersectionObserver implements IntersectionObserver {
+		readonly root: Element | Document | null = null
+		readonly rootMargin: string = '0px'
+		readonly scrollMargin: string = '0px'
+		readonly thresholds: ReadonlyArray<number> = [0]
+		observe(_target: Element): void {}
+		unobserve(_target: Element): void {}
+		disconnect(): void {}
+		takeRecords(): IntersectionObserverEntry[] {
+			return []
+		}
+	}
+
+	window.IntersectionObserver = StubIntersectionObserver
+}
+
 if (typeof Element.prototype.scrollIntoView !== 'function') {
 	Element.prototype.scrollIntoView = vi.fn()
 }

@@ -102,7 +102,7 @@ describe('Combobox', () => {
 		// mousedown (not click) carries the toggle so focus never leaves the input.
 		fireEvent.mouseDown(icon)
 
-		expect(await screen.findByRole('listbox')).toBeInTheDocument()
+		expect(screen.getByRole('listbox')).toBeInTheDocument()
 
 		fireEvent.mouseDown(icon)
 
@@ -128,7 +128,7 @@ describe('Combobox', () => {
 
 		fireEvent.mouseDown(suffix)
 
-		expect(await screen.findByRole('listbox')).toBeInTheDocument()
+		expect(screen.getByRole('listbox')).toBeInTheDocument()
 
 		expect(bySlot(container, 'combobox-input')).toHaveFocus()
 
@@ -150,7 +150,7 @@ describe('Combobox', () => {
 
 		fireEvent.mouseDown(icon)
 
-		expect(await screen.findByRole('listbox', { name: 'City' })).toBeInTheDocument()
+		expect(screen.getByRole('listbox', { name: 'City' })).toBeInTheDocument()
 	})
 
 	it('names the listbox from a wrapping Field Label (no explicit aria-label)', async () => {
@@ -169,7 +169,7 @@ describe('Combobox', () => {
 
 		fireEvent.mouseDown(icon)
 
-		expect(await screen.findByRole('listbox', { name: 'City' })).toBeInTheDocument()
+		expect(screen.getByRole('listbox', { name: 'City' })).toBeInTheDocument()
 	})
 
 	it('leaves the default chevron inert and not-allowed when disabled', () => {
@@ -313,7 +313,7 @@ describe('Combobox active-descendant keyboard model', () => {
 
 		await user.click(input)
 
-		await screen.findByRole('listbox')
+		screen.getByRole('listbox')
 
 		// Nothing is highlighted until the user navigates.
 		expect(input).not.toHaveAttribute('aria-activedescendant')
@@ -349,7 +349,7 @@ describe('Combobox active-descendant keyboard model', () => {
 
 		await user.click(input)
 
-		await screen.findByRole('listbox')
+		screen.getByRole('listbox')
 
 		await user.keyboard('{ArrowDown}')
 
@@ -390,7 +390,7 @@ describe('Combobox active-descendant keyboard model', () => {
 
 		await user.click(input)
 
-		await screen.findByRole('listbox')
+		screen.getByRole('listbox')
 
 		await user.keyboard('{ArrowDown}')
 
@@ -410,7 +410,7 @@ describe('Combobox active-descendant keyboard model', () => {
 
 		await user.click(input)
 
-		await screen.findByRole('listbox')
+		screen.getByRole('listbox')
 
 		// Escape closes the menu but leaves focus on the input.
 		await user.keyboard('{Escape}')
@@ -423,7 +423,7 @@ describe('Combobox active-descendant keyboard model', () => {
 		// chevron, the only prior reopen affordance.
 		await user.keyboard('{ArrowDown}')
 
-		expect(await screen.findByRole('listbox')).toBeInTheDocument()
+		expect(screen.getByRole('listbox')).toBeInTheDocument()
 	})
 
 	it('seats the highlight on the selected option when ArrowDown reopens a single-mode menu', async () => {
@@ -435,7 +435,7 @@ describe('Combobox active-descendant keyboard model', () => {
 
 		await user.click(input)
 
-		await screen.findByRole('listbox')
+		screen.getByRole('listbox')
 
 		// Select Apricot; single-mode closeOnSelect closes the menu but keeps focus.
 		await user.click(screen.getByRole('option', { name: 'Apricot' }))
@@ -448,17 +448,15 @@ describe('Combobox active-descendant keyboard model', () => {
 		// not an empty highlight: the first Down keeps the user on their value.
 		await user.keyboard('{ArrowDown}')
 
-		await screen.findByRole('listbox')
+		screen.getByRole('listbox')
 
-		await waitFor(() => {
-			const activeId = input.getAttribute('aria-activedescendant')
+		const activeId = input.getAttribute('aria-activedescendant')
 
-			expect(activeId).toBeTruthy()
+		expect(activeId).toBeTruthy()
 
-			expect(document.getElementById(activeId as string)).toBe(
-				screen.getByRole('option', { name: 'Apricot' }),
-			)
-		})
+		expect(document.getElementById(activeId as string)).toBe(
+			screen.getByRole('option', { name: 'Apricot' }),
+		)
 
 		const selected = screen.getByRole('option', { name: 'Apricot' })
 
@@ -476,7 +474,7 @@ describe('Combobox active-descendant keyboard model', () => {
 
 		await user.click(input)
 
-		await screen.findByRole('listbox')
+		screen.getByRole('listbox')
 
 		// Select Apricot; the menu closes, focus stays, and the caret lands at the
 		// end of the displayed value.
@@ -497,7 +495,7 @@ describe('Combobox active-descendant keyboard model', () => {
 
 		fireEvent.keyDown(input, { key: 'ArrowUp' })
 
-		expect(await screen.findByRole('listbox')).toBeInTheDocument()
+		expect(screen.getByRole('listbox')).toBeInTheDocument()
 	})
 
 	it('leaves ArrowDown to the textbox while the caret sits mid-value', async () => {
@@ -509,7 +507,7 @@ describe('Combobox active-descendant keyboard model', () => {
 
 		await user.click(input)
 
-		await screen.findByRole('listbox')
+		screen.getByRole('listbox')
 
 		await user.click(screen.getByRole('option', { name: 'Apricot' }))
 
@@ -546,7 +544,7 @@ describe('Combobox active-descendant keyboard model', () => {
 
 		await user.click(input)
 
-		await screen.findByRole('listbox')
+		screen.getByRole('listbox')
 
 		await user.click(screen.getByRole('option', { name: 'Apple' }))
 
@@ -584,7 +582,7 @@ describe('Combobox active-descendant keyboard model', () => {
 
 		await user.click(input)
 
-		await screen.findByRole('listbox')
+		screen.getByRole('listbox')
 
 		await user.click(screen.getByRole('option', { name: 'Apple' }))
 
@@ -597,7 +595,7 @@ describe('Combobox active-descendant keyboard model', () => {
 
 		fireEvent.mouseDown(icon)
 
-		await screen.findByRole('listbox')
+		screen.getByRole('listbox')
 
 		await user.click(screen.getByRole('option', { name: 'Apple' }))
 
@@ -622,7 +620,7 @@ describe('Combobox active-descendant keyboard model', () => {
 
 		await user.click(screen.getByRole('combobox'))
 
-		await screen.findByRole('listbox')
+		screen.getByRole('listbox')
 
 		await user.click(screen.getByRole('option', { name: 'Apple' }))
 
@@ -662,7 +660,7 @@ describe('Combobox active-descendant keyboard model', () => {
 
 		await user.click(input)
 
-		await screen.findByRole('listbox')
+		screen.getByRole('listbox')
 
 		expect(screen.getByTestId('touched').textContent).toBe('untouched')
 
@@ -688,7 +686,7 @@ describe('Combobox listbox selection semantics', () => {
 
 		await user.click(screen.getByRole('combobox'))
 
-		return screen.findByRole('listbox')
+		return screen.getByRole('listbox')
 	}
 
 	it('marks the listbox aria-multiselectable when multiple', async () => {
