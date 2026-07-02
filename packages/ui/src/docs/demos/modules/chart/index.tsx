@@ -35,6 +35,18 @@ const sources = [
 	{ source: 'Social', visits: 940 },
 ]
 
+const budget = months.map((entry) => ({
+	month: entry.month,
+	revenue: entry.revenue * 1000,
+	costs: entry.costs * 1000,
+}))
+
+const usd = new Intl.NumberFormat(undefined, {
+	style: 'currency',
+	currency: 'USD',
+	maximumFractionDigits: 0,
+})
+
 // The mount animation plays once; a refresh button remounts the chart
 // (bumping its `key`) so the reveal replays on demand.
 function AnimatedExample({
@@ -98,6 +110,22 @@ export function Demo() {
 									data={swings}
 									x="month"
 									series={[{ key: 'delta', label: 'Swing' }]}
+								/>
+							</Example>
+
+							<Example
+								title="Formatted values"
+								code={code`<BarChart formatValue={(value) => usd.format(value)} … />`}
+							>
+								<BarChart
+									aria-label="Budget by month in dollars"
+									data={budget}
+									x="month"
+									series={[
+										{ key: 'revenue', label: 'Revenue' },
+										{ key: 'costs', label: 'Costs' },
+									]}
+									formatValue={(value) => usd.format(value)}
 								/>
 							</Example>
 

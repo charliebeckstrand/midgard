@@ -1,6 +1,7 @@
 import { createRef } from 'react'
 import { describe, expect, it } from 'vitest'
 import {
+	GUTTER_EDGE_PAD,
 	GUTTER_GAP,
 	PLOT_TOP_PAD,
 	TICK_CHAR_WIDTH,
@@ -81,10 +82,10 @@ describe('ChartFrame', () => {
 })
 
 describe('plotRect', () => {
-	it('reserves the label gutter and axis band', () => {
+	it('reserves the label gutter and axis band with edge slack', () => {
 		const plot = plotRect(400, 240, true, ['0', '1,000'])
 
-		expect(plot.x).toBe(Math.round(5 * TICK_CHAR_WIDTH) + GUTTER_GAP)
+		expect(plot.x).toBe(Math.ceil(5 * TICK_CHAR_WIDTH) + GUTTER_GAP + GUTTER_EDGE_PAD)
 
 		expect(plot.y).toBe(PLOT_TOP_PAD)
 

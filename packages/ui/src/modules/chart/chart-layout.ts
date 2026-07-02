@@ -6,6 +6,7 @@
  */
 
 import {
+	GUTTER_EDGE_PAD,
 	GUTTER_GAP,
 	GUTTER_MAX,
 	PLOT_TOP_PAD,
@@ -45,7 +46,11 @@ export function plotRect(
 ): PlotRect {
 	const chars = tickLabels.reduce((widest, label) => Math.max(widest, label.length), 0)
 
-	const gutter = axes ? Math.min(GUTTER_MAX, Math.round(chars * TICK_CHAR_WIDTH) + GUTTER_GAP) : 0
+	// Ceil plus edge slack: an estimate rounded down clips the widest label
+	// against the SVG's own overflow.
+	const gutter = axes
+		? Math.min(GUTTER_MAX, Math.ceil(chars * TICK_CHAR_WIDTH) + GUTTER_GAP + GUTTER_EDGE_PAD)
+		: 0
 
 	const axisBand = axes ? X_AXIS_HEIGHT : 0
 

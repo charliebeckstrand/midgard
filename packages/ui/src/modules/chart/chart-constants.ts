@@ -48,8 +48,11 @@ export const TICK_CHAR_WIDTH = 7.2
 /** Air between the y tick labels and the plot edge. @internal */
 export const GUTTER_GAP = 8
 
-/** Y-gutter clamp so extreme labels can't crowd out the plot. @internal */
-export const GUTTER_MAX = 64
+/** Slack between the frame edge and the widest label, absorbing estimate error. @internal */
+export const GUTTER_EDGE_PAD = 4
+
+/** Y-gutter clamp so extreme labels can't crowd out the plot; roomy enough for currency strings. @internal */
+export const GUTTER_MAX = 96
 
 /** Height reserved under the plot for the x tick labels. @internal */
 export const X_AXIS_HEIGHT = 24

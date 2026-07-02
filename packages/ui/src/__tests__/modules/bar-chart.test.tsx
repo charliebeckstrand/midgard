@@ -95,6 +95,20 @@ describe('BarChart', () => {
 		expect(allBySlot(container, 'chart-bar')).toHaveLength(6)
 	})
 
+	it('routes formatValue through ticks, tooltip, and the data table', () => {
+		const { container } = renderUI(chart({ formatValue: (value) => `$${value}` }))
+
+		const yAxis = bySlot(container, 'chart-axis-y')
+
+		expect(yAxis?.textContent).toContain('$')
+
+		fireEvent.pointerMove(bySlot(container, 'chart-hit') as Element, { clientX: 390 })
+
+		expect(bySlot(container, 'chart-tooltip')?.textContent).toContain('$65')
+
+		expect(bySlot(container, 'chart-table')?.textContent).toContain('$65')
+	})
+
 	it('renders an empty frame for empty data', () => {
 		const { container } = renderUI(chart({ data: [] }))
 
