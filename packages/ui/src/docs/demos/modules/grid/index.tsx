@@ -918,7 +918,6 @@ const tabs = [
 	'Sorting',
 	'Selection',
 	'Reorder',
-	'Row groups',
 	'Resize',
 	'Pin',
 	'Lock',
@@ -1039,24 +1038,6 @@ export function Demo() {
 					</Stack>
 				</TabContent>
 
-				<TabContent value="Row groups">
-					<Stack gap="xl">
-						<Example
-							title="Group by column"
-							code={code`<Grid groupBy={{ value: 'role', onValueChange }} />`}
-						>
-							<RowGroupExample />
-						</Example>
-
-						<Example
-							title="Collapsed groups"
-							code={code`<Grid groupBy={{ value: 'status', defaultExpanded: false }} />`}
-						>
-							<CollapsedGroupExample />
-						</Example>
-					</Stack>
-				</TabContent>
-
 				<TabContent value="Resize">
 					<Stack gap="xl">
 						<Example title="Resizable columns" code={code`<Grid resizable columns={columns} />`}>
@@ -1163,28 +1144,58 @@ export function Demo() {
 				</TabContent>
 
 				<TabContent value="Groups">
-					<Stack gap="xl">
-						<Example
-							title="Column groups"
-							code={code`<Grid groups={[{ id, title, color, columns: [...] }]} />`}
-						>
-							<GroupsExample />
-						</Example>
+					{/* A second row of tabs splits column groups (banding a run of columns)
+					    from row groups (collecting rows by a column's value). */}
+					<Tabs defaultValue="Column">
+						<TabList aria-label="Group type">
+							<Tab value="Column">Column</Tab>
+							<Tab value="Row">Row</Tab>
+						</TabList>
+						<TabContents fade={false}>
+							<TabContent value="Column">
+								<Stack gap="xl">
+									<Example
+										title="Column groups"
+										code={code`<Grid groups={[{ id, title, color, columns: [...] }]} />`}
+									>
+										<GroupsExample />
+									</Example>
 
-						<Example
-							title="Collapsible groups"
-							code={code`<Grid groups={[{ ...group, collapsible: true, defaultCollapsed }]} />`}
-						>
-							<CollapsibleGroupsExample />
-						</Example>
+									<Example
+										title="Collapsible groups"
+										code={code`<Grid groups={[{ ...group, collapsible: true, defaultCollapsed }]} />`}
+									>
+										<CollapsibleGroupsExample />
+									</Example>
 
-						<Example
-							title="Group editor"
-							code={code`<Grid groups={{ value, onValueChange }} columnManager={{ toolbarButton: true }} />`}
-						>
-							<GroupManagerExample />
-						</Example>
-					</Stack>
+									<Example
+										title="Group editor"
+										code={code`<Grid groups={{ value, onValueChange }} columnManager={{ toolbarButton: true }} />`}
+									>
+										<GroupManagerExample />
+									</Example>
+								</Stack>
+							</TabContent>
+
+							<TabContent value="Row">
+								<Stack gap="xl">
+									<Example
+										title="Group by column"
+										code={code`<Grid groupBy={{ value: 'role', onValueChange }} />`}
+									>
+										<RowGroupExample />
+									</Example>
+
+									<Example
+										title="Collapsed groups"
+										code={code`<Grid groupBy={{ value: 'status', defaultExpanded: false }} />`}
+									>
+										<CollapsedGroupExample />
+									</Example>
+								</Stack>
+							</TabContent>
+						</TabContents>
+					</Tabs>
 				</TabContent>
 
 				<TabContent value="Toolbar">

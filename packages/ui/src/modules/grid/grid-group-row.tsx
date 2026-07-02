@@ -1,8 +1,9 @@
 'use client'
 
 import type { Row } from '@tanstack/react-table'
-import { ChevronRight } from 'lucide-react'
+import { ChevronDown, ChevronRight } from 'lucide-react'
 import type { ReactNode } from 'react'
+import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { TableCell, TableRow } from '../../components/table'
 import { cn, dataAttr } from '../../core'
@@ -27,10 +28,11 @@ type GridGroupRowProps<T> = {
 }
 
 /**
- * A group-header row: a full-width `<tr>` spanning every column, carrying a
- * disclosure button that toggles the group's expansion, the group's shared value,
- * and its row count (`Developer (3)`). A {@link GridGroupBy.renderHeader} override
- * replaces the value/count label; the disclosure toggle stays.
+ * A group-header row: a full-width `<tr>` spanning every column, carrying a bare
+ * disclosure button that toggles the group's expansion — the group's shared value
+ * and row count (`Developer (3)`) at the start, a chevron at the trailing edge
+ * that rotates as the group opens. A {@link GridGroupBy.renderHeader} override
+ * replaces the value/count label; the toggle and chevron stay.
  *
  * @internal
  */
@@ -49,21 +51,21 @@ export function GridGroupRow<T>({ row, colSpan, columnId, renderHeader }: GridGr
 
 	return (
 		<TableRow data-group-row data-expanded={dataAttr(expanded)} className={cn(k.rowGroup.row)}>
-			<TableCell colSpan={colSpan} className={cn(k.rowGroup.cell)}>
-				<button
-					type="button"
+			<TableCell colSpan={colSpan}>
+				<Button
+					variant="bare"
+					block
 					onClick={row.getToggleExpandedHandler()}
 					aria-expanded={expanded}
 					aria-label={`${expanded ? 'Collapse' : 'Expand'} group ${formatGroupValue(value)}`}
 					className={cn(k.rowGroup.toggle)}
 				>
+					<span className={cn(k.rowGroup.label)}>{label}</span>
 					<Icon
-						icon={<ChevronRight />}
-						data-expanded={dataAttr(expanded)}
+						icon={expanded ? <ChevronDown /> : <ChevronRight />}
 						className={cn(k.rowGroup.chevron)}
 					/>
-					<span className={cn(k.rowGroup.label)}>{label}</span>
-				</button>
+				</Button>
 			</TableCell>
 		</TableRow>
 	)
