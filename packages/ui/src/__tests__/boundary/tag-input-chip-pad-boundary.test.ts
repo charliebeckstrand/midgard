@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
 
-import type { Ma } from '../../../recipes'
-import { k as badge } from '../../../recipes/kata/badge'
-import { k as button } from '../../../recipes/kata/button'
-import { k as tagInput } from '../../../recipes/kata/tag-input'
+import type { Ma } from '../../recipes'
+import { k as badge } from '../../recipes/kata/badge'
+import { k as button } from '../../recipes/kata/button'
+import { k as tagInput } from '../../recipes/kata/tag-input'
 
 // Tag-chip leading-pad symmetry invariant.
 //

@@ -1,7 +1,8 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { renderUI, screen, userEvent } from '../helpers'
+import { GRID_STATUS_DEBOUNCE_MS } from '../../modules/grid/grid-constants'
+import { renderUI, screen, userEvent, withFakeTime } from '../helpers'
 
 describe('Grid row click', () => {
 	type Row = { id: number; name: string }
@@ -288,15 +289,23 @@ describe('Grid busy live region', () => {
 	const getKey = (row: Row) => row.id
 
 	it('announces the settled row count to assistive tech', async () => {
-		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+		await withFakeTime(async (clock) => {
+			renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 
-		// The polite status region settles (debounced) to the result count.
-		expect(await screen.findByText('2 rows')).toHaveClass('sr-only')
+			// The polite status region settles (debounced) to the result count.
+			await clock.advance(GRID_STATUS_DEBOUNCE_MS)
+
+			expect(screen.getByText('2 rows')).toHaveClass('sr-only')
+		})
 	})
 
 	it('announces No results for an empty grid', async () => {
-		renderUI(<Grid columns={columns} rows={[]} getKey={getKey} />)
+		await withFakeTime(async (clock) => {
+			renderUI(<Grid columns={columns} rows={[]} getKey={getKey} />)
 
-		expect(await screen.findByText('No results')).toBeInTheDocument()
+			await clock.advance(GRID_STATUS_DEBOUNCE_MS)
+
+			expect(screen.getByText('No results')).toBeInTheDocument()
+		})
 	})
 })

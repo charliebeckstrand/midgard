@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
 
-import { affixStepDown } from '../../../primitives/affix/affix'
-import type { Ma, Step } from '../../../recipes'
-import { k as badge } from '../../../recipes/kata/badge'
-import { k as button } from '../../../recipes/kata/button'
-import { control } from '../../../recipes/kiso/control'
+import { affixStepDown } from '../../primitives/affix/affix'
+import type { Ma, Step } from '../../recipes'
+import { k as badge } from '../../recipes/kata/badge'
+import { k as button } from '../../recipes/kata/button'
+import { control } from '../../recipes/kiso/control'
 
 // Affix `data-slot` compensation invariant.
 //

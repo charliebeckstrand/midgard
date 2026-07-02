@@ -1,14 +1,12 @@
 import { animate } from 'motion'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Odometer } from '../../components/odometer'
-import { bySlot, renderUI } from '../helpers'
+import { bySlot, renderUI, withFakeTime } from '../helpers'
 
 describe('Odometer', () => {
 	afterEach(() => {
 		vi.restoreAllMocks()
 	})
-
-	const wait = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
 	it('renders the initial value using the default formatter', () => {
 		const { container } = renderUI(<Odometer value={1234} />)
@@ -72,16 +70,20 @@ describe('Odometer', () => {
 	})
 
 	it('cancels the running animation when unmounted', async () => {
-		const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+		await withFakeTime(async (clock) => {
+			const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
-		const { rerender, unmount } = renderUI(<Odometer value={0} duration={80} />)
+			const { rerender, unmount } = renderUI(<Odometer value={0} duration={80} />)
 
-		rerender(<Odometer value={1000} duration={80} />)
+			rerender(<Odometer value={1000} duration={80} />)
 
-		unmount()
+			unmount()
 
-		await wait(120)
+			// Drive the clock past the tween's 80ms duration; a leaked frame
+			// callback would fire here and hit the spy.
+			await clock.advance(120)
 
-		expect(errorSpy).not.toHaveBeenCalled()
+			expect(errorSpy).not.toHaveBeenCalled()
+		})
 	})
 })

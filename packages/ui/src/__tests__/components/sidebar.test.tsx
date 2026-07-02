@@ -11,7 +11,7 @@ import {
 	useSidebarMini,
 } from '../../components/sidebar'
 import { OffcanvasContext } from '../../primitives/offcanvas'
-import { bySlot, fireEvent, renderUI, screen, stubMatchMedia, userEvent, waitFor } from '../helpers'
+import { bySlot, fireEvent, renderUI, screen, stubMatchMedia, userEvent } from '../helpers'
 
 describe('Sidebar', () => {
 	it('renders with data-slot="sidebar" and a default aria-label', () => {
@@ -166,7 +166,7 @@ describe('Sidebar mini', () => {
 
 		await user.click(inner)
 
-		await waitFor(() => expect(bySlot(document.body, 'tooltip-content')).toBeInTheDocument())
+		expect(bySlot(document.body, 'tooltip-content')).toBeInTheDocument()
 
 		expect(bySlot(document.body, 'tooltip-content')).toHaveTextContent('Home')
 	})
@@ -193,7 +193,7 @@ describe('Sidebar mini', () => {
 
 		await user.click(inner)
 
-		await waitFor(() => expect(bySlot(document.body, 'tooltip-content')).toBeInTheDocument())
+		expect(bySlot(document.body, 'tooltip-content')).toBeInTheDocument()
 
 		const tooltip = bySlot(document.body, 'tooltip-content')
 

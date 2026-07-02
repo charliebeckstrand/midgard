@@ -1,6 +1,7 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
+import { srcDir } from '../helpers/walk-source'
 
 // `kata/`, `katakana/`, and `kiso/` are internal-only; see the header in
 // src/recipes/index.ts for the full contract. This test pins four boundaries:
@@ -11,7 +12,7 @@ import { describe, expect, it } from 'vitest'
 //   3. The recipes barrel surfaces types only (no value `export` statements).
 //   4. No app or sibling package imports from 'ui/recipes/*'.
 
-const uiRoot = join(__dirname, '../../../..')
+const uiRoot = join(srcDir, '..')
 
 const workspaceRoot = join(uiRoot, '../..')
 
@@ -108,6 +109,8 @@ describe('recipes internal-boundary contract', () => {
 	})
 })
 
+// Deliberately not helpers/walk-source: rule 4 scans sibling packages
+// including their test trees, which the shared walker skips.
 function walk(dir: string, visit: (file: string, content: string) => void) {
 	for (const entry of readdirSync(dir, { withFileTypes: true })) {
 		if (entry.name === 'node_modules' || entry.name === 'dist' || entry.name.startsWith('.')) {

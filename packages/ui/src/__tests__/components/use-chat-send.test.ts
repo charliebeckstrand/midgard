@@ -73,7 +73,7 @@ describe('useChatSend', () => {
 			await result.current.send('hi')
 		})
 
-		await waitFor(() => expect(onError).toHaveBeenCalled())
+		expect(onError).toHaveBeenCalled()
 
 		expect(result.current.messages).toHaveLength(1)
 
@@ -244,7 +244,7 @@ describe('useChatSend', () => {
 			firstSend = result.current.send('hi')
 		})
 
-		await waitFor(() => expect(result.current.sending).toBe(true))
+		expect(result.current.sending).toBe(true)
 
 		const userId = result.current.messages[0]?.id as string
 

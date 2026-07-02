@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
 import { TooltipContext } from '../../components/tooltip/context'
 import { notifyOverlaySignal } from '../../primitives/overlay'
-import { act, bySlot, noop, renderUI, screen, userEvent, waitFor } from '../helpers'
+import { act, bySlot, noop, renderUI, screen, userEvent } from '../helpers'
 
 function makeContext(overrides: { open?: boolean; interactive?: boolean } = {}) {
 	return {
@@ -38,7 +38,7 @@ describe('Tooltip', () => {
 
 		await user.click(trigger)
 
-		await waitFor(() => expect(screen.getByText('Tooltip text')).toBeInTheDocument())
+		expect(screen.getByText('Tooltip text')).toBeInTheDocument()
 
 		act(() => notifyOverlaySignal())
 
@@ -154,7 +154,7 @@ describe('Tooltip', () => {
 
 		expect(bySlot(container, 'tooltip-trigger')).toHaveFocus()
 
-		await waitFor(() => expect(screen.getByText('Tooltip text')).toBeInTheDocument())
+		expect(screen.getByText('Tooltip text')).toBeInTheDocument()
 	})
 
 	it('describes the focusable trigger via the panel when open', async () => {
@@ -173,7 +173,7 @@ describe('Tooltip', () => {
 
 		await user.click(trigger)
 
-		await waitFor(() => expect(bySlot(container, 'tooltip-content')).toBeInTheDocument())
+		expect(bySlot(container, 'tooltip-content')).toBeInTheDocument()
 
 		const panel = bySlot(container, 'tooltip-content') as HTMLElement
 

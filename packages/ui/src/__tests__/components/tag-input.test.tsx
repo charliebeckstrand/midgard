@@ -2,7 +2,7 @@ import { createRef, type ReactElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Form } from '../../components/form'
 import { TagInput } from '../../components/tag-input'
-import { bySlot, fireEvent, renderUI, screen, userEvent, waitFor } from '../helpers'
+import { bySlot, fireEvent, liveRegion, renderUI, screen, userEvent } from '../helpers'
 
 function getInput(container: HTMLElement) {
 	return bySlot(container, 'input') as HTMLInputElement
@@ -191,7 +191,7 @@ describe('TagInput', () => {
 
 		await user.click(getRemoveButtons(container)[0] as Element)
 
-		await waitFor(() => expect(document.activeElement).toBe(getInput(container)))
+		expect(document.activeElement).toBe(getInput(container))
 
 		expect(getInput(container)).not.toHaveAttribute('readonly')
 	})
@@ -437,9 +437,6 @@ describe('TagInput', () => {
 })
 
 describe('TagInput announcements', () => {
-	const politeRegion = () =>
-		document.body.querySelector('[data-slot="live-region"][aria-live="polite"]')
-
 	it.each<[string, () => ReactElement, string, string]>([
 		['announces an added tag', () => <TagInput />, 'react{Enter}', 'Added react'],
 		[
@@ -461,7 +458,7 @@ describe('TagInput announcements', () => {
 
 		await user.type(getInput(container), typed)
 
-		await waitFor(() => expect(politeRegion()).toHaveTextContent(announcement))
+		expect(liveRegion()).toHaveTextContent(announcement)
 	})
 
 	it('announces a removed tag', async () => {
@@ -471,7 +468,7 @@ describe('TagInput announcements', () => {
 
 		await user.click(getRemoveButtons(container)[0] as Element)
 
-		await waitFor(() => expect(politeRegion()).toHaveTextContent('Removed react'))
+		expect(liveRegion()).toHaveTextContent('Removed react')
 	})
 })
 
@@ -534,6 +531,6 @@ describe('TagInput + Form', () => {
 		// empty-array rule then fails and the error merges into invalid.
 		fireEvent.blur(input)
 
-		await waitFor(() => expect(input).toHaveAttribute('aria-invalid', 'true'))
+		expect(input).toHaveAttribute('aria-invalid', 'true')
 	})
 })

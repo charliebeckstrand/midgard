@@ -574,11 +574,9 @@ describe('Listbox readOnly', () => {
 			fireEvent.click(screen.getByRole('button', { name: 'Submit' }))
 		})
 
-		await vi.waitFor(() =>
-			expect(onSubmit).toHaveBeenCalledWith(
-				expect.objectContaining({ fruit: 'apple' }),
-				expect.anything(),
-			),
+		expect(onSubmit).toHaveBeenCalledWith(
+			expect.objectContaining({ fruit: 'apple' }),
+			expect.anything(),
 		)
 	})
 })

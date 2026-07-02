@@ -12,7 +12,6 @@ import {
 	screen,
 	stubMatchMedia,
 	userEvent,
-	waitFor,
 } from '../helpers'
 
 beforeEach(() => {
@@ -218,9 +217,7 @@ describe('PdfViewer', () => {
 
 		await user.click(toggle)
 
-		await waitFor(() =>
-			expect(screen.getByLabelText('Show thumbnails')).toHaveAttribute('aria-expanded', 'true'),
-		)
+		expect(screen.getByLabelText('Show thumbnails')).toHaveAttribute('aria-expanded', 'true')
 	})
 
 	it('exposes the aria-label on the root', () => {

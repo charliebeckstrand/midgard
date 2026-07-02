@@ -1,6 +1,6 @@
-import { readdirSync, readFileSync } from 'node:fs'
 import { basename, join, relative } from 'node:path'
 import { describe, expect, it } from 'vitest'
+import { srcDir, walkSource } from '../helpers/walk-source'
 
 // `Ma` is kiso's spacing axis: padding, margin, gap. Layout primitives
 // (Box, Flex, Grid, Split) compose it into their `variants.ts` files; that is
@@ -8,9 +8,7 @@ import { describe, expect, it } from 'vitest'
 // kata recipe's `VariantProps`. Importing `Ma` directly anywhere else
 // silently crosses the spacing → sizing boundary.
 
-const componentsDir = join(__dirname, '../../../components')
-
-const srcDir = join(__dirname, '../../..')
+const componentsDir = join(srcDir, 'components')
 
 // `Ma` reaches consumers through the `recipes` barrel (`from '…/recipes'`),
 // re-exported from `recipes/kiso/ma.ts`. Match the barrel and any deeper
@@ -22,7 +20,7 @@ describe('component Ma import boundary', () => {
 	it('only variants.ts may import the Ma type from the recipes barrel', () => {
 		const violations: string[] = []
 
-		walk(componentsDir, (file, content) => {
+		walkSource(componentsDir, (file, content) => {
 			if (!/\.(?:tsx?|mts|cts)$/.test(file)) return
 
 			if (basename(file) === 'variants.ts') return
@@ -38,25 +36,3 @@ describe('component Ma import boundary', () => {
 		).toEqual([])
 	})
 })
-
-function walk(dir: string, visit: (file: string, content: string) => void) {
-	for (const entry of readdirSync(dir, { withFileTypes: true })) {
-		if (
-			entry.name === '__tests__' ||
-			entry.name === '__benchmarks__' ||
-			entry.name === 'node_modules' ||
-			entry.name === 'dist' ||
-			entry.name.startsWith('.')
-		) {
-			continue
-		}
-
-		const path = join(dir, entry.name)
-
-		if (entry.isDirectory()) {
-			walk(path, visit)
-		} else if (entry.isFile()) {
-			visit(path, readFileSync(path, 'utf8'))
-		}
-	}
-}

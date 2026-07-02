@@ -990,7 +990,12 @@ describe('Grid', () => {
 		})
 
 		it('does not set aria-rowcount on a non-virtualized table', () => {
-			const { container } = renderUI(<Grid columns={columns} rows={manyRows} getKey={getKey} />)
+			// Grid semantics hinge on the `virtualize` prop, not row count
+			// (grid-data-resolvers.ts), so a slice keeps the many-rows contrast
+			// without rendering all 500 rows.
+			const { container } = renderUI(
+				<Grid columns={columns} rows={manyRows.slice(0, 40)} getKey={getKey} />,
+			)
 
 			expect(container.querySelector('table')).not.toHaveAttribute('aria-rowcount')
 		})
@@ -1091,7 +1096,9 @@ describe('Grid', () => {
 		})
 
 		it('keeps the native table role when not virtualized', () => {
-			const { container } = renderUI(<Grid columns={columns} rows={manyRows} getKey={getKey} />)
+			const { container } = renderUI(
+				<Grid columns={columns} rows={manyRows.slice(0, 40)} getKey={getKey} />,
+			)
 
 			const table = container.querySelector('table')
 

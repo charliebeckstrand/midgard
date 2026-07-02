@@ -1,7 +1,7 @@
 import { join, relative } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
-import { walkSource } from '../../helpers/walk-source'
+import { srcDir, walkSource } from '../helpers/walk-source'
 
 // katakana/ is the bridge layer. A bridge receives kiso token bundles by
 // argument and wires them into the recipe surface a kata exports; it must
@@ -11,9 +11,7 @@ import { walkSource } from '../../helpers/walk-source'
 // A kiso import, value or type, means a token reference is hardcoded in
 // the bridge rather than injected by the calling kata.
 
-const katakanaDir = join(__dirname, '../../../recipes/katakana')
-
-const srcDir = join(__dirname, '../../..')
+const katakanaDir = join(srcDir, 'recipes/katakana')
 
 // Captures one module specifier per match; the lazy body stops at the first
 // `from '…'`, spanning single- or multi-line, value or type imports.

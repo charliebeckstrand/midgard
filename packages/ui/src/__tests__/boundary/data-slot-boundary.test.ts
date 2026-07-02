@@ -1,6 +1,7 @@
 import { readdirSync, readFileSync } from 'node:fs'
 import { join, relative } from 'node:path'
 import { describe, expect, it } from 'vitest'
+import { srcDir } from '../helpers/walk-source'
 
 // The slot override is exposed as the native `data-slot` attribute everywhere:
 // DOM attribute, component prop, and call site. A single token is greppable
@@ -10,8 +11,8 @@ import { describe, expect, it } from 'vitest'
 // token it forbids and doesn't flag itself during the scan.
 const FORBIDDEN = ['data', 'Slot'].join('')
 
-const srcDir = join(__dirname, '../../..')
-
+// Deliberately not helpers/walk-source: this rule covers test files too, so
+// the collector must descend into __tests__.
 const SKIP_DIRS = new Set(['node_modules', 'dist', '.turbo'])
 
 function collect(dir: string, out: string[] = []): string[] {

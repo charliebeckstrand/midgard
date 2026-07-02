@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Toolbar, ToolbarGroup, ToolbarSeparator } from '../../components/toolbar'
 import { TOOLBAR_ITEM_SELECTOR } from '../../components/toolbar/toolbar-constants'
-import { bySlot, fireEvent, renderUI, screen, userEvent, waitFor } from '../helpers'
+import { bySlot, fireEvent, renderUI, screen, userEvent } from '../helpers'
 
 describe('Toolbar', () => {
 	it('renders children with role="toolbar"', () => {
@@ -133,7 +133,7 @@ describe('Toolbar', () => {
 		const c = screen.getByRole('button', { name: 'C' })
 
 		// The freshly-enabled A stays demoted; the resting stop holds on focused B.
-		await waitFor(() => expect(b.tabIndex).toBe(0))
+		expect(b.tabIndex).toBe(0)
 
 		expect(a.tabIndex).toBe(-1)
 

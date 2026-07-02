@@ -3,7 +3,9 @@ import { describe, expect, it } from 'vitest'
 import { readPublicExports } from '../../api-reference/engine/find-components'
 
 function indexFile(text: string) {
-	const project = new Project({ useInMemoryFileSystem: true })
+	// Barrel scanning reads export declarations, never lib types; skipping lib
+	// loading cuts most of the Project construction cost.
+	const project = new Project({ useInMemoryFileSystem: true, skipLoadingLibFiles: true })
 
 	return project.createSourceFile('index.ts', text, { scriptKind: ScriptKind.TS })
 }

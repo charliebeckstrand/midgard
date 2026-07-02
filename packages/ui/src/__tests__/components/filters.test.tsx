@@ -4,7 +4,15 @@ import { Checkbox } from '../../components/checkbox'
 import { Filters, FiltersClear, FiltersField, useFilters } from '../../components/filters'
 import { Input } from '../../components/input'
 import { Radio } from '../../components/radio'
-import { allBySlot, bySlot, renderUI, screen, userEvent } from '../helpers'
+import {
+	allBySlot,
+	bySlot,
+	expectAnnouncement,
+	liveRegion,
+	renderUI,
+	screen,
+	userEvent,
+} from '../helpers'
 
 describe('Filters group', () => {
 	it('exposes the bar as a named role="group"', () => {
@@ -150,9 +158,6 @@ describe('FiltersField', () => {
 
 describe('Filters announcements', () => {
 	it('announces the active count politely when filters change, skipping mount', async () => {
-		const politeRegion = () =>
-			document.body.querySelector('[data-slot="live-region"][aria-live="polite"]')
-
 		const { rerender } = renderUI(
 			<Filters aria-label="Filters" value={{ name: 'a' }} onValueChange={() => {}}>
 				<FiltersField name="name">
@@ -162,7 +167,7 @@ describe('Filters announcements', () => {
 		)
 
 		// Lazily created on first announce; absent means nothing was announced on mount.
-		expect(politeRegion()?.textContent ?? '').toBe('')
+		expect(liveRegion()?.textContent ?? '').toBe('')
 
 		rerender(
 			<Filters aria-label="Filters" value={{ name: 'a', other: 'b' }} onValueChange={() => {}}>
@@ -172,7 +177,7 @@ describe('Filters announcements', () => {
 			</Filters>,
 		)
 
-		await vi.waitFor(() => expect(politeRegion()).toHaveTextContent('2 filters active'))
+		await expectAnnouncement('2 filters active')
 	})
 })
 
