@@ -17,6 +17,7 @@ import { Listbox, ListboxLabel, ListboxOption } from '../../../components/listbo
 import { Odometer } from '../../../components/odometer'
 import { ResizableGroup, ResizableHandle, ResizablePanel } from '../../../components/resizable'
 import { Segment, SegmentControl, SegmentItem } from '../../../components/segment'
+import { Sparkline } from '../../../components/sparkline'
 import { Stat, StatLabel, StatValue } from '../../../components/stat'
 import { StatusDot } from '../../../components/status'
 import {
@@ -188,6 +189,11 @@ export const dataDisplayCases: readonly Case[] = [
 			<StatLabel>Monthly recurring revenue</StatLabel>
 			<StatValue>$12,345</StatValue>
 		</Stat>,
+	],
+	[
+		// Trend chart exposed as role="img" with a summarizing accessible name.
+		'sparkline',
+		<Sparkline key="sp" data={[3, 5, 4, 8, 7, 11]} aria-label="Revenue, up over 6 periods" />,
 	],
 	['avatar', <Avatar key="av" initials="WC" alt="Wade Cooper" />],
 	['kbd', <Kbd key="kb">K</Kbd>],

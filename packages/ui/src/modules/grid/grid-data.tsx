@@ -15,7 +15,7 @@ import { Table } from '../../components/table'
 import { announce, cn, dataAttr } from '../../core'
 import { useA11yAnnouncements } from '../../hooks'
 import { Density } from '../../primitives/density'
-import { type DensityLevel, useDensityLevel } from '../../providers/density'
+import { type DensityLevel, densityToSize, useDensityLevel } from '../../providers/density'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
 import { GridContext, GridResizingContext, type SortState } from './context'
@@ -251,20 +251,20 @@ function condensedTableClass(condensed: boolean, base: string): string {
 }
 
 /**
- * Wraps the *table region* in a compact density cascade when
- * {@link GridDataProps.condensed} is set, so size-aware *client* cell content
- * (an inline `Input`, the selection checkbox) steps down with it; a plain grid
- * passes through, its cell content keeping the ambient density. Scoped to the
- * table on purpose — it sits inside the context-menu trigger, below the
- * toolbar/footer, so a portaled overlay (context menu, dialog) the grid spawns
- * stays on the ambient density rather than inheriting the condensed step. Static
- * leaves (`Badge`, `Icon`, `Text`) read no density either way; the `<table>`
- * class down-projects those (see `condensedTableClass`). Kept a component so the
- * branch lives here, off {@link GridData}'s complexity budget. @internal
+ * Broadcasts the grid's resolved density onto the *table region* as a density
+ * cascade, so size-aware *client* cell content (a `Sparkline`, an inline `Input`,
+ * the selection checkbox) tracks the grid's `density` — and its `condensed` step,
+ * which {@link resolveDensity} folds to `compact`. Scoped to the table on purpose
+ * — it sits inside the context-menu trigger, below the toolbar/footer, so a
+ * portaled overlay (context menu, dialog) the grid spawns stays on the ambient
+ * density rather than inheriting the grid's. Static leaves (`Badge`, `Icon`,
+ * `Text`) read no density; the `<table>` class down-projects those under
+ * `condensed` (see `condensedTableClass`). A grid already at the ambient density
+ * broadcasts its own level — a no-op. Kept a component so the branch lives here,
+ * off {@link GridData}'s complexity budget. @internal
  */
-function CondensedCascade({ active, children }: { active: boolean; children: ReactNode }) {
-	// `compact` density is the `sm` step the density primitive broadcasts.
-	return active ? <Density scale="sm">{children}</Density> : children
+function DensityCascade({ level, children }: { level: DensityLevel; children: ReactNode }) {
+	return <Density scale={densityToSize[level]}>{children}</Density>
 }
 
 /**
@@ -896,7 +896,7 @@ export function GridData<T>({
 						chooseColumns={chooseColumns}
 						exportActions={exportActions}
 					>
-						<CondensedCascade active={condensed}>{tableRegion}</CondensedCascade>
+						<DensityCascade level={density}>{tableRegion}</DensityCascade>
 					</GridRegion>
 
 					<GridFooterBar config={footer} stats={footerStats} />

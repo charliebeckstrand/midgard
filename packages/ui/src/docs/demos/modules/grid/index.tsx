@@ -5,6 +5,7 @@ import { Badge } from '../../../../components/badge'
 import { Button } from '../../../../components/button'
 import { HoldButton } from '../../../../components/hold-button'
 import { Icon } from '../../../../components/icon'
+import { Sparkline } from '../../../../components/sparkline'
 import { Stack } from '../../../../components/stack'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../../components/tabs'
 import {
@@ -784,6 +785,71 @@ const RowTotalExample = () => (
 	<Grid columns={columns} rows={people} getKey={(row) => row.id} footer={{ rowTotal: true }} />
 )
 
+type Metric = {
+	id: number
+	name: string
+	total: string
+	trend: number[]
+}
+
+const metrics: Metric[] = [
+	{
+		id: 1,
+		name: 'Revenue',
+		total: '$48.2k',
+		trend: [12, 14, 13, 18, 22, 21, 27, 30, 28, 34, 39, 44],
+	},
+	{
+		id: 2,
+		name: 'Signups',
+		total: '1,204',
+		trend: [40, 38, 42, 35, 33, 30, 34, 28, 25, 27, 22, 19],
+	},
+	{ id: 3, name: 'Latency', total: '128ms', trend: [8, 9, 7, 11, 6, 12, 5, 10, 7, 9, 6, 8] },
+	{ id: 4, name: 'Errors', total: '0.4%', trend: [2, 1, 3, 1, 0, 2, 1, 4, 1, 0, 1, 0] },
+]
+
+// A sparkline is a plain cell renderer: drop the reusable `Sparkline` into a
+// column's `cell` and hand it the row's series. The Trend column adds `animate`
+// (the line draws itself and the area fades in on mount, honouring
+// reduced-motion); the By-period column uses the bar variant. Both read the same
+// per-row `trend`, and each carries a summarizing `aria-label` since the chart is
+// `role="img"`.
+const sparklineColumns: GridColumn<Metric>[] = [
+	{ id: 'name', title: 'Metric', cell: (row) => row.name },
+	{ id: 'total', title: 'Total', cell: (row) => row.total },
+	{
+		id: 'trend',
+		title: 'Trend',
+		cell: (row) => (
+			<Sparkline
+				data={row.trend}
+				color="blue"
+				fill
+				endPoint
+				animate
+				aria-label={`${row.name} trend, last 12 periods`}
+			/>
+		),
+	},
+	{
+		id: 'bars',
+		title: 'By period',
+		cell: (row) => (
+			<Sparkline
+				data={row.trend}
+				variant="bar"
+				color="green"
+				aria-label={`${row.name} by period, last 12 periods`}
+			/>
+		),
+	},
+]
+
+const SparklineExample = () => (
+	<Grid columns={sparklineColumns} rows={metrics} getKey={(row) => row.id} />
+)
+
 // The demo is sectioned into tabs so the long example list reads as discrete
 // capabilities rather than one scroll. Panels unmount when inactive
 // (`fade={false}`) so the page's jump nav only ever lists the visible tab's
@@ -802,6 +868,7 @@ const tabs = [
 	'Footer',
 	'Toolbar',
 	'Export',
+	'Sparkline',
 	'Pagination',
 	'State',
 	'Editable',
@@ -1047,6 +1114,17 @@ export function Demo() {
 					<Stack gap="xl">
 						<Example title="CSV + Excel" code={code`<Grid exportable={['csv', 'excel']} />`}>
 							<ExportExample />
+						</Example>
+					</Stack>
+				</TabContent>
+
+				<TabContent value="Sparkline">
+					<Stack gap="xl">
+						<Example
+							title="In-cell sparklines"
+							code={code`<Grid columns={[{ ...col, cell: (row) => <Sparkline data={row.trend} /> }]} />`}
+						>
+							<SparklineExample />
 						</Example>
 					</Stack>
 				</TabContent>
