@@ -1,6 +1,7 @@
 'use client'
 
 import {
+	type KeyboardCoordinateGetter,
 	KeyboardSensor,
 	PointerSensor,
 	type PointerSensorOptions,
@@ -46,6 +47,15 @@ type SortableSensorsOptions = {
 	activationDistance?: number
 	/** Include dnd-kit's keyboard sensor. Disable when the caller handles keyboard reordering itself. @defaultValue true */
 	keyboard?: boolean
+	/**
+	 * Coordinate getter driving the keyboard sensor's arrow-key reordering.
+	 * Override to scope arrow steps when a single `DndContext` hosts more than one
+	 * sortable (e.g. the group manager, whose group and column droppables share a
+	 * context); the default weighs every droppable in the context.
+	 *
+	 * @defaultValue `sortableKeyboardCoordinates`
+	 */
+	keyboardCoordinateGetter?: KeyboardCoordinateGetter
 }
 
 /**
@@ -60,13 +70,14 @@ type SortableSensorsOptions = {
 export function useSortableSensors({
 	activationDistance = 3,
 	keyboard = true,
+	keyboardCoordinateGetter = sortableKeyboardCoordinates,
 }: SortableSensorsOptions = {}) {
 	const pointer = useSensor(PrimaryPointerSensor, {
 		activationConstraint: { distance: activationDistance },
 	})
 
 	const keyboardSensor = useSensor(KeyboardSensor, {
-		coordinateGetter: sortableKeyboardCoordinates,
+		coordinateGetter: keyboardCoordinateGetter,
 	})
 
 	return useSensors(pointer, keyboard ? keyboardSensor : null)

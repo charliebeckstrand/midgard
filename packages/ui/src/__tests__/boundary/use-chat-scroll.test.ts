@@ -1,10 +1,14 @@
 import { act, renderHook } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { useScrollWithin } from '../../hooks'
-// The hook's module file, not the chat barrel: the barrel evaluates sibling
-// modules whose own hook imports would meet the pruned '../../hooks' mock.
 import { useChatScroll } from '../../modules/chat/use-chat-scroll'
 
+// This file lives in the forks boundary project because the mock below only
+// intercepts if this file evaluates the hook fresh: vmThreads shares
+// evaluated source modules across a worker's files, so under the unit
+// project a prior chat-barrel import hands this file a use-chat-scroll
+// already bound to the real hooks barrel. Forks evaluate per file, keeping
+// the mock authoritative.
 vi.mock('../../hooks', () => ({
 	useScrollWithin: vi.fn(),
 }))
