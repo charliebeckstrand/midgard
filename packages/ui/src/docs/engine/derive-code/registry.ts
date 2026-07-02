@@ -9,8 +9,14 @@ type Tagged = { __module?: string; __name?: string }
  * Read the `__module` / `__name` decoration attached by the docs Vite
  * plugin's barrel transform. Returns `undefined` for built-ins, demo-local
  * helpers, or any function without a build-time tag.
+ *
+ * @remarks Exported so agnostic-engine tests can assemble a synthetic
+ * {@link ComponentRegistry} (the real tag reader + their own `byName` map) and
+ * pass it into `deriveCode`, instead of `vi.mock`-ing `virtual:component-modules`
+ * — a module-level mock that bleeds across files under the shared-worker
+ * `vmThreads` pool and corrupts the real-registry integration test.
  */
-function readTag(type: unknown): ComponentInfo | undefined {
+export function readTag(type: unknown): ComponentInfo | undefined {
 	if (type == null) return undefined
 
 	const { __module, __name } = type as Tagged
