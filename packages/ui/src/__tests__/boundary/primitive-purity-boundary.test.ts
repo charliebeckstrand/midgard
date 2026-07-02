@@ -1,7 +1,7 @@
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
-import { collectPatternViolations } from '../helpers/walk-source'
+import { collectPatternViolations, srcDir } from '../helpers/walk-source'
 
 // Primitives are foundational React/HTML abstractions consumed by components.
 // They must not import from components or layouts. Imports from
@@ -9,9 +9,7 @@ import { collectPatternViolations } from '../helpers/walk-source'
 // permitted; kata is the curated recipe surface for both components and
 // primitives.
 
-const primitivesDir = join(__dirname, '../../primitives')
-
-const srcDir = join(__dirname, '../..')
+const primitivesDir = join(srcDir, 'primitives')
 
 const FORBIDDEN_PATTERNS = [
 	{ label: 'components/', regex: /from\s+['"][^'"]*\/components\/[^'"]+['"]/g },
@@ -22,7 +20,6 @@ describe('primitive purity boundary', () => {
 	it('primitives do not import from components or layouts', () => {
 		const violations = collectPatternViolations({
 			dir: primitivesDir,
-			srcDir,
 			patterns: FORBIDDEN_PATTERNS,
 		})
 

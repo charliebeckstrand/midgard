@@ -1,6 +1,7 @@
-import { readdirSync, readFileSync, statSync } from 'node:fs'
+import { existsSync } from 'node:fs'
 import { join, relative } from 'node:path'
 import { describe, expect, it } from 'vitest'
+import { srcDir, walkSource } from '../helpers/walk-source'
 
 // Spacing boundary.
 //
@@ -21,8 +22,8 @@ import { describe, expect, it } from 'vitest'
 // (`data-*`, `has-*`, `autofill:*`); variants must appear in source and
 // can't move behind the kasane helpers.
 
-const srcDir = join(__dirname, '../..')
-
+// Kiso roots are listed individually because not every kiso family exists in
+// every checkout; missing roots are filtered rather than walked.
 const SCAN_ROOTS = [
 	join(srcDir, 'recipes/kata'),
 	join(srcDir, 'recipes/katakana'),
@@ -31,7 +32,7 @@ const SCAN_ROOTS = [
 	join(srcDir, 'recipes/kiso/segment'),
 	join(srcDir, 'recipes/kiso/slider'),
 	join(srcDir, 'components'),
-]
+].filter((root) => existsSync(root))
 
 const RENAMED_UTILITY =
 	/\b(?:p|px|py|pt|pb|pl|pr|m|mx|my|mt|mb|ml|mr|gap|gap-x|gap-y)-(?:xs|sm|md|lg|xl)\b/
@@ -57,15 +58,15 @@ describe('spacing boundary', () => {
 		const violations: string[] = []
 
 		for (const root of SCAN_ROOTS) {
-			for (const path of walk(root)) {
+			walkSource(root, (path, source) => {
+				if (!/\.(?:tsx?|mts|cts)$/.test(path)) return
+
 				const rel = relative(srcDir, path)
 
-				if (RENAMED_UTILITY_ALLOWLIST.has(rel)) continue
-
-				const source = readFileSync(path, 'utf8')
+				if (RENAMED_UTILITY_ALLOWLIST.has(rel)) return
 
 				if (RENAMED_UTILITY.test(source)) violations.push(rel)
-			}
+			})
 		}
 
 		expect(
@@ -78,15 +79,15 @@ describe('spacing boundary', () => {
 		const violations: string[] = []
 
 		for (const root of SCAN_ROOTS) {
-			for (const path of walk(root)) {
+			walkSource(root, (path, source) => {
+				if (!/\.(?:tsx?|mts|cts)$/.test(path)) return
+
 				const rel = relative(srcDir, path)
 
-				if (RAW_CALC_ALLOWLIST.has(rel)) continue
-
-				const source = readFileSync(path, 'utf8')
+				if (RAW_CALC_ALLOWLIST.has(rel)) return
 
 				if (RAW_CALC.test(source)) violations.push(rel)
-			}
+			})
 		}
 
 		expect(
@@ -95,33 +96,3 @@ describe('spacing boundary', () => {
 		).toEqual([])
 	})
 })
-
-function* walk(dir: string): Generator<string> {
-	if (!exists(dir)) return
-
-	for (const entry of readdirSync(dir, { withFileTypes: true })) {
-		if (entry.name === '__tests__' || entry.name === '__benchmarks__') continue
-
-		if (entry.name === 'node_modules' || entry.name === 'dist') continue
-
-		if (entry.name.startsWith('.')) continue
-
-		const path = join(dir, entry.name)
-
-		if (entry.isDirectory()) {
-			yield* walk(path)
-		} else if (entry.isFile() && /\.(?:tsx?|mts|cts)$/.test(entry.name)) {
-			yield path
-		}
-	}
-}
-
-function exists(path: string): boolean {
-	try {
-		statSync(path)
-
-		return true
-	} catch {
-		return false
-	}
-}

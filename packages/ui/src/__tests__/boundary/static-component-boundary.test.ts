@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
+import { srcDir } from '../helpers/walk-source'
 
 // Static leaves are the library's server-renderable surface: no 'use client'
 // directive, no React hooks, no ambient-context reads (the boundary
@@ -74,7 +75,7 @@ const STATIC_COMPONENT_FILES = [
 	'textarea/textarea-skeleton.tsx',
 ] as const
 
-const componentsDir = join(__dirname, '../../components')
+const componentsDir = join(srcDir, 'components')
 
 // Ambient-context sources a static leaf must not import. `primitives/link`
 // and `primitives/polymorphic`'s client export read LinkContext;

@@ -1,6 +1,6 @@
-import { readdirSync, readFileSync } from 'node:fs'
 import { join, relative } from 'node:path'
 import { describe, expect, it } from 'vitest'
+import { srcDir, walkSource } from '../helpers/walk-source'
 
 // Components reach the recipe layer through their owning kata. Value imports
 // from `recipes` (the types-only barrel), `recipes/katakana/*`, or
@@ -9,11 +9,9 @@ import { describe, expect, it } from 'vitest'
 // from the barrel are fine; the barrel surfaces `Step` / `Ma` / `Color` /
 // `Ji` / `GroupOrientation` / `GroupPosition` for prop-union derivation.
 
-const componentsDir = join(__dirname, '../../components')
+const componentsDir = join(srcDir, 'components')
 
-const modulesDir = join(__dirname, '../../modules')
-
-const srcDir = join(__dirname, '../..')
+const modulesDir = join(srcDir, 'modules')
 
 const IMPORT_RE = /^(import(?:\s+type)?\s+(?:[^'"]+from\s+)?)['"]([^'"]+)['"]/gm
 
@@ -22,7 +20,7 @@ describe('component recipe-import boundary', () => {
 		const violations: string[] = []
 
 		for (const dir of [componentsDir, modulesDir])
-			walk(dir, (file, content) => {
+			walkSource(dir, (file, content) => {
 				if (!/\.(?:tsx?|mts|cts)$/.test(file)) return
 
 				const rel = relative(srcDir, file)
@@ -77,26 +75,4 @@ function isAllTypeNamed(importStmt: string): boolean {
 	if (names.length === 0) return false
 
 	return names.every((name) => name.startsWith('type '))
-}
-
-function walk(dir: string, visit: (file: string, content: string) => void) {
-	for (const entry of readdirSync(dir, { withFileTypes: true })) {
-		if (
-			entry.name === '__tests__' ||
-			entry.name === '__benchmarks__' ||
-			entry.name === 'node_modules' ||
-			entry.name === 'dist' ||
-			entry.name.startsWith('.')
-		) {
-			continue
-		}
-
-		const path = join(dir, entry.name)
-
-		if (entry.isDirectory()) {
-			walk(path, visit)
-		} else if (entry.isFile()) {
-			visit(path, readFileSync(path, 'utf8'))
-		}
-	}
 }

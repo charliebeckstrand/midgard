@@ -1,7 +1,7 @@
 import { join, relative } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
-import { walkSource } from '../helpers/walk-source'
+import { srcDir, walkSource } from '../helpers/walk-source'
 
 // Primitives access the recipe layer only through `recipes/kata/<name>`.
 // Value imports from `recipes` (the barrel), `recipes/katakana/*`, or
@@ -10,9 +10,7 @@ import { walkSource } from '../helpers/walk-source'
 // barrel are permitted; primitives derive prop unions from `Step`, `Ma`,
 // `Color`, `Ji`, `GroupOrientation`, and `GroupPosition`.
 
-const primitivesDir = join(__dirname, '../../primitives')
-
-const srcDir = join(__dirname, '../..')
+const primitivesDir = join(srcDir, 'primitives')
 
 const IMPORT_RE = /^(import(?:\s+type)?\s+(?:[^'"]+from\s+)?)['"]([^'"]+)['"]/gm
 

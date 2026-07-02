@@ -1,6 +1,7 @@
 import { readdirSync, readFileSync } from 'node:fs'
 import { basename, join, parse, relative } from 'node:path'
 import { describe, expect, it } from 'vitest'
+import { srcDir } from '../helpers/walk-source'
 
 // Enforces the file-naming convention documented in CLAUDE.md → "File naming".
 //
@@ -19,9 +20,9 @@ import { describe, expect, it } from 'vitest'
 // exports `useTagInputKeyboard`. Catches the case where a file is renamed but
 // its exported component or hook keeps the old, now-divergent name.
 
-const componentsDir = join(__dirname, '../../components')
+const componentsDir = join(srcDir, 'components')
 
-const modulesDir = join(__dirname, '../../modules')
+const modulesDir = join(srcDir, 'modules')
 
 const BARE_ALLOWED = new Set([
 	'index.ts',

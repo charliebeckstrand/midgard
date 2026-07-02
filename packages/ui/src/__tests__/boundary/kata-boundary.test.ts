@@ -1,8 +1,6 @@
-import { readdirSync, readFileSync, statSync } from 'node:fs'
-import { join, relative } from 'node:path'
+import { relative } from 'node:path'
 import { describe, expect, it } from 'vitest'
-
-const srcDir = join(__dirname, '../..')
+import { srcDir, walkSource } from '../helpers/walk-source'
 
 const RECIPE_IMPORT =
 	/import\s+\{[^}]*\bdefineRecipe\b[^}]*\}\s+from\s+['"][^'"]*\bcore\/recipe['"]/
@@ -21,22 +19,6 @@ function isSanctioned(rel: string): boolean {
 	return false
 }
 
-function* walk(dir: string): Generator<string> {
-	for (const entry of readdirSync(dir)) {
-		const path = join(dir, entry)
-
-		const stat = statSync(path)
-
-		if (stat.isDirectory()) {
-			if (entry === '__tests__' || entry === 'node_modules') continue
-
-			yield* walk(path)
-		} else if (entry.endsWith('.ts') || entry.endsWith('.tsx')) {
-			yield path
-		}
-	}
-}
-
 describe('kata boundary', () => {
 	// `defineRecipe` is sanctioned only at the kata surface (recipes/kata/*.ts),
 	// the katakana applicator layer (recipes/katakana/*.ts), and layout-local
@@ -44,17 +26,17 @@ describe('kata boundary', () => {
 	it('defineRecipe from core/recipe is imported only in sanctioned files', () => {
 		const violations: string[] = []
 
-		for (const path of walk(srcDir)) {
+		walkSource(srcDir, (path, source) => {
+			if (!/\.tsx?$/.test(path)) return
+
 			const rel = relative(srcDir, path)
 
-			const source = readFileSync(path, 'utf8')
+			if (!RECIPE_IMPORT.test(source)) return
 
-			if (!RECIPE_IMPORT.test(source)) continue
-
-			if (isSanctioned(rel)) continue
+			if (isSanctioned(rel)) return
 
 			violations.push(rel)
-		}
+		})
 
 		expect(
 			violations,

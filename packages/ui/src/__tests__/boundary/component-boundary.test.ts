@@ -1,6 +1,7 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, relative } from 'node:path'
 import { describe, expect, it } from 'vitest'
+import { srcDir, walkSource } from '../helpers/walk-source'
 
 // Two invariants keep components composing through their public surface
 // rather than reaching into each other's files:
@@ -14,11 +15,9 @@ import { describe, expect, it } from 'vitest'
 //      relative path (`'../<other>/<other>'`). The barrel, `'../<other>'`,
 //      is the public entry point; deep main-file imports bypass it.
 
-const componentsDir = join(__dirname, '../../components')
+const componentsDir = join(srcDir, 'components')
 
-const modulesDir = join(__dirname, '../../modules')
-
-const srcDir = join(__dirname, '../..')
+const modulesDir = join(srcDir, 'modules')
 
 const REEXPORT_FROM = /export\s+(?:\*|\{[^}]*\}|type\s+\{[^}]*\})\s+from\s+['"]([^'"]+)['"]/g
 
@@ -66,7 +65,7 @@ describe('component internals boundary', () => {
 		const violations: string[] = []
 
 		for (const dir of [componentsDir, modulesDir])
-			walk(dir, (file, content) => {
+			walkSource(dir, (file, content) => {
 				if (!/\.(?:tsx?|mts|cts)$/.test(file)) return
 
 				const rel = relative(srcDir, file)
@@ -91,7 +90,7 @@ describe('component internals boundary', () => {
 		const PROVIDER_JSX = /<[A-Z][A-Za-z]*Context[\s>]/
 
 		for (const dir of [componentsDir, modulesDir])
-			walk(dir, (file, content) => {
+			walkSource(dir, (file, content) => {
 				if (!file.endsWith('.tsx')) return
 
 				if (!PROVIDER_JSX.test(content)) return
@@ -114,26 +113,4 @@ function isOwnKataReexport(target: string, component: string): boolean {
 	if (!kataName) return false
 
 	return kataName === component || kataName.startsWith(`${component}-`)
-}
-
-function walk(dir: string, visit: (file: string, content: string) => void) {
-	for (const entry of readdirSync(dir, { withFileTypes: true })) {
-		if (
-			entry.name === '__tests__' ||
-			entry.name === '__benchmarks__' ||
-			entry.name === 'node_modules' ||
-			entry.name === 'dist' ||
-			entry.name.startsWith('.')
-		) {
-			continue
-		}
-
-		const path = join(dir, entry.name)
-
-		if (entry.isDirectory()) {
-			walk(path, visit)
-		} else if (entry.isFile()) {
-			visit(path, readFileSync(path, 'utf8'))
-		}
-	}
 }
