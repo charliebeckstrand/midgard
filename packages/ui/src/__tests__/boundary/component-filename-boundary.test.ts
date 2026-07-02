@@ -19,9 +19,9 @@ import { describe, expect, it } from 'vitest'
 // exports `useTagInputKeyboard`. Catches the case where a file is renamed but
 // its exported component or hook keeps the old, now-divergent name.
 
-const componentsDir = join(__dirname, '../../../components')
+const componentsDir = join(__dirname, '../../components')
 
-const modulesDir = join(__dirname, '../../../modules')
+const modulesDir = join(__dirname, '../../modules')
 
 const BARE_ALLOWED = new Set([
 	'index.ts',

@@ -21,7 +21,7 @@ import { describe, expect, it } from 'vitest'
 // (`data-*`, `has-*`, `autofill:*`); variants must appear in source and
 // can't move behind the kasane helpers.
 
-const srcDir = join(__dirname, '../../..')
+const srcDir = join(__dirname, '../..')
 
 const SCAN_ROOTS = [
 	join(srcDir, 'recipes/kata'),

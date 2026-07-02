@@ -74,7 +74,7 @@ const STATIC_COMPONENT_FILES = [
 	'textarea/textarea-skeleton.tsx',
 ] as const
 
-const componentsDir = join(__dirname, '../../../components')
+const componentsDir = join(__dirname, '../../components')
 
 // Ambient-context sources a static leaf must not import. `primitives/link`
 // and `primitives/polymorphic`'s client export read LinkContext;

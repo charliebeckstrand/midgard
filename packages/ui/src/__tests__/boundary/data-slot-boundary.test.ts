@@ -10,7 +10,7 @@ import { describe, expect, it } from 'vitest'
 // token it forbids and doesn't flag itself during the scan.
 const FORBIDDEN = ['data', 'Slot'].join('')
 
-const srcDir = join(__dirname, '../../..')
+const srcDir = join(__dirname, '../..')
 
 const SKIP_DIRS = new Set(['node_modules', 'dist', '.turbo'])
 

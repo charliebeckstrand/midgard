@@ -8,9 +8,9 @@ import { describe, expect, it } from 'vitest'
 // kata recipe's `VariantProps`. Importing `Ma` directly anywhere else
 // silently crosses the spacing → sizing boundary.
 
-const componentsDir = join(__dirname, '../../../components')
+const componentsDir = join(__dirname, '../../components')
 
-const srcDir = join(__dirname, '../../..')
+const srcDir = join(__dirname, '../..')
 
 // `Ma` reaches consumers through the `recipes` barrel (`from '…/recipes'`),
 // re-exported from `recipes/kiso/ma.ts`. Match the barrel and any deeper

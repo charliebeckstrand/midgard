@@ -7,7 +7,7 @@ import { describe, expect, it } from 'vitest'
 // `UseTagInputOptions`. Matches only `type` / `interface` declarations whose
 // name begins with `Use` + an uppercase letter (`User`, `Usage`, etc. are fine).
 
-const srcDir = join(__dirname, '../../..')
+const srcDir = join(__dirname, '../..')
 
 // Shipped-source directories. Tests, benchmarks, generated docs, and build
 // output are excluded.

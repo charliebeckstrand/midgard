@@ -65,10 +65,12 @@ export default defineConfig({
 				},
 			},
 			{
-				// Environment-boundary suites — virtualizer, canvas, PDF, and map
-				// integrations that schedule work past a test's lifetime or lean on
-				// jsdom's edges. Process-isolated forks keep their leakage from
-				// perturbing sibling files; everything else stays on the fast
+				// Boundary tests, both senses: environment-boundary suites
+				// (virtualizer, canvas, PDF, map — integrations that schedule work
+				// past a test's lifetime or lean on jsdom's edges) and the
+				// architectural boundary rules (*-boundary.test.ts, walking source
+				// via node:fs). Process-isolated forks keep the former's leakage
+				// from perturbing sibling files; everything else stays on the fast
 				// shared-worker pool above.
 				test: {
 					name: 'boundary',

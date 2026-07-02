@@ -14,11 +14,11 @@ import { describe, expect, it } from 'vitest'
 //      relative path (`'../<other>/<other>'`). The barrel, `'../<other>'`,
 //      is the public entry point; deep main-file imports bypass it.
 
-const componentsDir = join(__dirname, '../../../components')
+const componentsDir = join(__dirname, '../../components')
 
-const modulesDir = join(__dirname, '../../../modules')
+const modulesDir = join(__dirname, '../../modules')
 
-const srcDir = join(__dirname, '../../..')
+const srcDir = join(__dirname, '../..')
 
 const REEXPORT_FROM = /export\s+(?:\*|\{[^}]*\}|type\s+\{[^}]*\})\s+from\s+['"]([^'"]+)['"]/g
 

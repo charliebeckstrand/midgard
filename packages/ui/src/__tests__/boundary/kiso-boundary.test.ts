@@ -1,7 +1,7 @@
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
-import { collectPatternViolations } from '../../helpers/walk-source'
+import { collectPatternViolations } from '../helpers/walk-source'
 
 // kiso/ holds the design-system tokens: both the primitive atomic concerns
 // (iro, ji, ma, sun, sen, omote, hannou, narabi, kasane, tsunagi, ugoki,
@@ -15,9 +15,9 @@ import { collectPatternViolations } from '../../helpers/walk-source'
 // This test pins the mechanical half of the contract: kiso has no upward
 // dependencies. Per-module consumer documentation lives in recipes/kiso/README.md.
 
-const kisoDir = join(__dirname, '../../../recipes/kiso')
+const kisoDir = join(__dirname, '../../recipes/kiso')
 
-const srcDir = join(__dirname, '../../..')
+const srcDir = join(__dirname, '../..')
 
 const FORBIDDEN_PATTERNS = [
 	{ label: 'recipes/katakana/', regex: /from\s+['"][^'"]*\/recipes\/katakana\/[^'"]+['"]/g },

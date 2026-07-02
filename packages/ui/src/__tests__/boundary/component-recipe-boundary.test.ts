@@ -9,11 +9,11 @@ import { describe, expect, it } from 'vitest'
 // from the barrel are fine; the barrel surfaces `Step` / `Ma` / `Color` /
 // `Ji` / `GroupOrientation` / `GroupPosition` for prop-union derivation.
 
-const componentsDir = join(__dirname, '../../../components')
+const componentsDir = join(__dirname, '../../components')
 
-const modulesDir = join(__dirname, '../../../modules')
+const modulesDir = join(__dirname, '../../modules')
 
-const srcDir = join(__dirname, '../../..')
+const srcDir = join(__dirname, '../..')
 
 const IMPORT_RE = /^(import(?:\s+type)?\s+(?:[^'"]+from\s+)?)['"]([^'"]+)['"]/gm
 

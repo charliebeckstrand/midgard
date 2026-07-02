@@ -2,7 +2,7 @@ import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, relative } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
-const srcDir = join(__dirname, '../../..')
+const srcDir = join(__dirname, '../..')
 
 const REACT_CREATE_CONTEXT = /import\s+\{[^}]*\bcreateContext\b[^}]*\}\s+from\s+['"]react['"]/
 

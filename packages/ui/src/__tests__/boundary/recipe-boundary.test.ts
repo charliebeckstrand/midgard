@@ -11,7 +11,7 @@ import { describe, expect, it } from 'vitest'
 //   3. The recipes barrel surfaces types only (no value `export` statements).
 //   4. No app or sibling package imports from 'ui/recipes/*'.
 
-const uiRoot = join(__dirname, '../../../..')
+const uiRoot = join(__dirname, '../../..')
 
 const workspaceRoot = join(uiRoot, '../..')
 
