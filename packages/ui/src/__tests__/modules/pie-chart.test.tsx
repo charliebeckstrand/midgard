@@ -83,10 +83,15 @@ describe('PieChart', () => {
 		expect(table?.textContent).toContain('—')
 	})
 
-	it('still renders the slices under animate', () => {
+	it('still renders the slices under animate, behind the sweep mask', () => {
 		const { container } = renderUI(chart({ animate: true }))
 
 		expect(allBySlot(container, 'chart-slice')).toHaveLength(3)
+
+		// The reveal is one masking sweep stroke, not per-slice motion.
+		expect(container.querySelector('mask circle')).not.toBeNull()
+
+		expect(renderUI(chart()).container.querySelector('mask')).toBeNull()
 	})
 
 	it('labels segments with their percent share when asked', () => {
