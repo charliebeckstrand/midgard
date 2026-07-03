@@ -74,15 +74,16 @@ export function ChartFrame({
 	children,
 	...label
 }: ChartFrameProps) {
-	const [pointed, setPointed] = useState<{ index: number | null; point: ChartPoint | null }>({
-		index: null,
-		point: null,
-	})
+	const [pointed, setPointed] = useState<{
+		index: number | null
+		point: ChartPoint | null
+		onData: boolean
+	}>({ index: null, point: null, onData: false })
 
 	const hover = useMemo<ChartHover>(
 		() => ({
 			...pointed,
-			set: (index, point) => setPointed({ index, point }),
+			set: (index, point, onData = true) => setPointed({ index, point, onData }),
 		}),
 		[pointed],
 	)

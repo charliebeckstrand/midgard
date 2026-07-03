@@ -5,6 +5,7 @@ import { ChartCrosshair } from '../chart-crosshair'
 import { ChartFrame } from '../chart-frame'
 import { ChartGridLines } from '../chart-grid-lines'
 import { ChartHitArea } from '../chart-hit-area'
+import { withinSeriesAreas } from '../chart-hit-test'
 import { ChartLegend } from '../chart-legend'
 import { AnimatedChartLineMarks, ChartLineMarks, type ChartLineSeries } from '../chart-line-marks'
 import { ChartMarksLayer } from '../chart-marks-layer'
@@ -51,6 +52,7 @@ function stackedToLine(band: { line: string; area: string; points: LineSeriesGeo
 		segments: band.line ? [band.line] : [],
 		areas: band.area ? [band.area] : [],
 		points: band.points,
+		runs: band.points.length > 0 ? [band.points] : [],
 		isolated: [],
 	}
 }
@@ -193,7 +195,19 @@ export function AreaChart<T>({
 			</ChartMarksLayer>
 
 			{(tooltip || crosshair?.x || crosshair?.y) && data.length > 0 && (
-				<ChartHitArea plot={chart.plot} band={chart.band} count={data.length} />
+				<ChartHitArea
+					plot={chart.plot}
+					band={chart.band}
+					count={data.length}
+					onData={(x, y) =>
+						withinSeriesAreas(
+							list.map((series) => series.geometry.runs),
+							floor,
+							x,
+							y,
+						)
+					}
+				/>
 			)}
 		</ChartFrame>
 	)

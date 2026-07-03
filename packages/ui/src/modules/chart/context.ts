@@ -21,8 +21,10 @@ export type ChartHover = {
 	index: number | null
 	/** The pointer's exact frame coordinates while hovering, `null` at rest. */
 	point: ChartPoint | null
-	/** Moves the hover, or clears it with `null`s. */
-	set: (index: number | null, point: ChartPoint | null) => void
+	/** Whether the pointer sits on a data mark — the tooltip's gate; the crosshair ignores it. */
+	onData: boolean
+	/** Moves the hover, or clears it with `null`s; `onData` defaults to on-mark. */
+	set: (index: number | null, point: ChartPoint | null, onData?: boolean) => void
 }
 
 export const [ChartHoverContext, useChartHover] = createContext<ChartHover>('ChartHover')

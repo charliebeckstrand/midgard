@@ -6,6 +6,7 @@ import { ChartCrosshair } from '../chart-crosshair'
 import { ChartFrame } from '../chart-frame'
 import { ChartGridLines } from '../chart-grid-lines'
 import { ChartHitArea } from '../chart-hit-area'
+import { withinBarMarks } from '../chart-hit-test'
 import { ChartLegend } from '../chart-legend'
 import { ChartMarksLayer } from '../chart-marks-layer'
 import type { CartesianChartProps } from '../types'
@@ -137,7 +138,12 @@ export function BarChart<T>({
 			)}
 
 			{(tooltip || crosshair?.x || crosshair?.y) && data.length > 0 && (
-				<ChartHitArea plot={chart.plot} band={chart.band} count={data.length} />
+				<ChartHitArea
+					plot={chart.plot}
+					band={chart.band}
+					count={data.length}
+					onData={(x, y) => withinBarMarks(marks, x, y)}
+				/>
 			)}
 		</ChartFrame>
 	)

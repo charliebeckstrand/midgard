@@ -28,9 +28,11 @@ const TRACK_OFFSET = 12
  * @internal
  */
 export function ChartTooltip({ plot, readout }: ChartTooltipProps) {
-	const { index, point } = useChartHover()
+	const { index, point, onData } = useChartHover()
 
-	if (index === null || point === null) return null
+	// Off the marks the tooltip stays away — pointing at air between or above
+	// them reads nothing, even while the crosshair keeps tracking.
+	if (index === null || point === null || !onData) return null
 
 	const flippedX = point.x > plot.x + plot.width / 2
 

@@ -7,12 +7,18 @@
 import { BAR_END_RADIUS, BAR_MAX_WIDTH, MARK_GAP } from '../chart-constants'
 import type { BandScale } from '../chart-scale'
 
-/** One drawable bar: its path and the animation facts about it. @internal */
+/** One drawable bar: its path, hit rect, and the animation facts about it. @internal */
 export type BarMark = {
 	/** One-end-rounded path: a 4px arc on the data end, square at the baseline. */
 	d: string
 	/** The bar's left edge, in `viewBox` units. */
 	x: number
+	/** The bar's right edge. */
+	x1: number
+	/** The drawn span's lesser y — the data end above the baseline, or the baseline. */
+	top: number
+	/** The drawn span's greater y. */
+	bottom: number
 	/** Stable series-and-category key: geometry-free, so a resize never remounts the mark. */
 	key: string
 	/** Whether the bar grows upward from the baseline (positive value). */
@@ -93,6 +99,9 @@ export function barMarks(
 			return {
 				d: barPath(x0, x0 + width, valueY, baseline),
 				x: x0,
+				x1: x0 + width,
+				top: Math.min(valueY, baseline),
+				bottom: Math.max(valueY, baseline),
 				key: `${seriesIndex}:${index}`,
 				up: valueY < baseline,
 			}

@@ -59,7 +59,10 @@ describe('ComboChart', () => {
 	it('reads both series in one tooltip on one shared axis', () => {
 		const { container } = renderUI(chart())
 
-		fireEvent.pointerMove(bySlot(container, 'chart-hit') as Element, { clientX: 200 })
+		const hit = bySlot(container, 'chart-hit') as Element
+
+		// (185, 100) sits on Q2's revenue bar.
+		fireEvent.pointerMove(hit, { clientX: 185, clientY: 100 })
 
 		const tooltip = bySlot(container, 'chart-tooltip')
 
@@ -71,6 +74,11 @@ describe('ComboChart', () => {
 
 		// One y axis only — no second tick column.
 		expect(allBySlot(container, 'chart-axis-y')).toHaveLength(1)
+
+		// Between the groups, clear of the margin line, nothing reads.
+		fireEvent.pointerMove(hit, { clientX: 130, clientY: 100 })
+
+		expect(bySlot(container, 'chart-tooltip')).toBeNull()
 	})
 
 	it('still renders both mark kinds under animate', () => {

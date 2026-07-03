@@ -53,7 +53,8 @@ describe('LineChart', () => {
 
 		expect(bySlot(container, 'chart-crosshair-y')).toBeNull()
 
-		fireEvent.pointerMove(bySlot(container, 'chart-hit') as Element, { clientX: 10 })
+		// (62, 77) sits on W1's signups point; the crosshair tracks regardless.
+		fireEvent.pointerMove(bySlot(container, 'chart-hit') as Element, { clientX: 62, clientY: 77 })
 
 		const rule = bySlot(container, 'chart-crosshair-y')
 
@@ -68,12 +69,27 @@ describe('LineChart', () => {
 	it('leaves the crosshair opt-in — none by default', () => {
 		const { container } = renderUI(chart())
 
-		fireEvent.pointerMove(bySlot(container, 'chart-hit') as Element, { clientX: 10 })
+		fireEvent.pointerMove(bySlot(container, 'chart-hit') as Element, { clientX: 62, clientY: 77 })
 
 		expect(bySlot(container, 'chart-crosshair-y')).toBeNull()
 
-		// The tooltip still tracks the category without a crosshair.
+		// The tooltip still reads the category while the pointer rides the line.
 		expect(bySlot(container, 'chart-tooltip')?.textContent).toContain('W1')
+	})
+
+	it('keeps the tooltip off the air around the lines', () => {
+		const { container } = renderUI(chart())
+
+		const hit = bySlot(container, 'chart-hit') as Element
+
+		// Far above both lines at W1: the crosshair may track, the tooltip won't.
+		fireEvent.pointerMove(hit, { clientX: 62, clientY: 10 })
+
+		expect(bySlot(container, 'chart-tooltip')).toBeNull()
+
+		fireEvent.pointerMove(hit, { clientX: 62, clientY: 77 })
+
+		expect(bySlot(container, 'chart-tooltip')).not.toBeNull()
 	})
 
 	it('still renders the marks under animate', () => {

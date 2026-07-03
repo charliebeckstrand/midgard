@@ -115,6 +115,8 @@ export type LineSeriesGeometry = {
 	areas: string[]
 	/** Every plotted point, for the opt-in markers. */
 	points: LinePoint[]
+	/** The contiguous runs behind `segments`, for pointer hit tests — a gap splits them. */
+	runs: LinePoint[][]
 	/** Points with a gap on both sides — invisible without a marker, so they always get one. */
 	isolated: LinePoint[]
 }
@@ -179,6 +181,7 @@ export function lineGeometry(
 		segments,
 		areas,
 		points: pointRuns.flat(),
+		runs: pointRuns,
 		isolated: pointRuns.filter((run) => run.length === 1).flat(),
 	}
 }

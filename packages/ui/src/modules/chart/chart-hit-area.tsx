@@ -9,6 +9,8 @@ export type ChartHitAreaProps = {
 	plot: PlotRect
 	band: BandScale
 	count: number
+	/** The chart's mark hit test; the tooltip shows only where it holds. */
+	onData?: (x: number, y: number) => boolean
 }
 
 /**
@@ -19,8 +21,8 @@ export type ChartHitAreaProps = {
  *
  * @internal
  */
-export function ChartHitArea({ plot, band, count }: ChartHitAreaProps) {
-	const handlers = useChartPointer(band, count, plot)
+export function ChartHitArea({ plot, band, count, onData }: ChartHitAreaProps) {
+	const handlers = useChartPointer(band, count, plot, onData)
 
 	return (
 		<rect

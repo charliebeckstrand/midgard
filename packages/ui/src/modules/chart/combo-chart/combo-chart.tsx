@@ -8,6 +8,7 @@ import { ChartCrosshair } from '../chart-crosshair'
 import { ChartFrame } from '../chart-frame'
 import { ChartGridLines } from '../chart-grid-lines'
 import { ChartHitArea } from '../chart-hit-area'
+import { nearSeriesLines, withinBarMarks } from '../chart-hit-test'
 import { ChartLegend } from '../chart-legend'
 import { AnimatedChartLineMarks, ChartLineMarks, type ChartLineSeries } from '../chart-line-marks'
 import { ChartMarksLayer } from '../chart-marks-layer'
@@ -195,7 +196,19 @@ export function ComboChart<T>({
 			</ChartMarksLayer>
 
 			{(tooltip || crosshair?.x || crosshair?.y) && data.length > 0 && (
-				<ChartHitArea plot={chart.plot} band={chart.band} count={data.length} />
+				<ChartHitArea
+					plot={chart.plot}
+					band={chart.band}
+					count={data.length}
+					onData={(x, y) =>
+						withinBarMarks(bars, x, y) ||
+						nearSeriesLines(
+							lines.map((series) => series.geometry.runs),
+							x,
+							y,
+						)
+					}
+				/>
 			)}
 		</ChartFrame>
 	)

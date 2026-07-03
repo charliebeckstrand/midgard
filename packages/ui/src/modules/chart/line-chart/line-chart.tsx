@@ -5,6 +5,7 @@ import { ChartCrosshair } from '../chart-crosshair'
 import { ChartFrame } from '../chart-frame'
 import { ChartGridLines } from '../chart-grid-lines'
 import { ChartHitArea } from '../chart-hit-area'
+import { nearSeriesLines, withinSeriesAreas } from '../chart-hit-test'
 import { ChartLegend } from '../chart-legend'
 import { AnimatedChartLineMarks, ChartLineMarks, type ChartLineSeries } from '../chart-line-marks'
 import { ChartMarksLayer } from '../chart-marks-layer'
@@ -105,6 +106,8 @@ export function LineChart<T>({
 			}))
 		: []
 
+	const seriesRuns = list.map((series) => series.geometry.runs)
+
 	const animationKey = useChartAnimationKey(chart.width, animate)
 
 	const marksNode = animate ? (
@@ -158,7 +161,15 @@ export function LineChart<T>({
 			</ChartMarksLayer>
 
 			{(tooltip || crosshair?.x || crosshair?.y) && data.length > 0 && (
-				<ChartHitArea plot={chart.plot} band={chart.band} count={data.length} />
+				<ChartHitArea
+					plot={chart.plot}
+					band={chart.band}
+					count={data.length}
+					onData={(x, y) =>
+						nearSeriesLines(seriesRuns, x, y) ||
+						(fill && withinSeriesAreas(seriesRuns, floor, x, y))
+					}
+				/>
 			)}
 		</ChartFrame>
 	)

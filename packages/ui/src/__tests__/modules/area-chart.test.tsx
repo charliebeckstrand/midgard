@@ -39,7 +39,10 @@ describe('AreaChart', () => {
 	it('reads each series value in the tooltip, not the stacked total', () => {
 		const { container } = renderUI(chart({ stacked: true }))
 
-		fireEvent.pointerMove(bySlot(container, 'chart-hit') as Element, { clientX: 200 })
+		const hit = bySlot(container, 'chart-hit') as Element
+
+		// (200, 100) sits inside the stacked ribbons near Tue.
+		fireEvent.pointerMove(hit, { clientX: 200, clientY: 100 })
 
 		const tooltip = bySlot(container, 'chart-tooltip')
 
@@ -48,6 +51,11 @@ describe('AreaChart', () => {
 		expect(tooltip?.textContent).toContain('28')
 
 		expect(tooltip?.textContent).toContain('14')
+
+		// Above the stack the tooltip stays away.
+		fireEvent.pointerMove(hit, { clientX: 200, clientY: 5 })
+
+		expect(bySlot(container, 'chart-tooltip')).toBeNull()
 	})
 
 	it('marks band-edge points and smooths only when unstacked', () => {

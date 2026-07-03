@@ -50,15 +50,16 @@ describe('BarChart', () => {
 		expect(bySlot(one.container, 'chart-legend')).toBeNull()
 	})
 
-	it('lists every series in the tooltip at the pointed category', () => {
+	it('lists every series in the tooltip while the pointer is on a bar', () => {
 		const { container } = renderUI(chart())
 
 		expect(bySlot(container, 'chart-tooltip')).toBeNull()
 
 		const hit = bySlot(container, 'chart-hit') as Element
 
-		// jsdom boxes sit at 0, so clientX maps straight into plot coordinates.
-		fireEvent.pointerMove(hit, { clientX: 390 })
+		// jsdom boxes sit at 0, so client coordinates map straight into the plot;
+		// (300, 100) lands inside Q3's revenue bar.
+		fireEvent.pointerMove(hit, { clientX: 300, clientY: 100 })
 
 		const tooltip = bySlot(container, 'chart-tooltip')
 
@@ -67,6 +68,17 @@ describe('BarChart', () => {
 		expect(tooltip?.textContent).toContain('65')
 
 		expect(tooltip?.textContent).toContain('28')
+
+		// Above the bar tops, or in the gap between groups, the tooltip stays away.
+		fireEvent.pointerMove(hit, { clientX: 300, clientY: 20 })
+
+		expect(bySlot(container, 'chart-tooltip')).toBeNull()
+
+		fireEvent.pointerMove(hit, { clientX: 260, clientY: 100 })
+
+		expect(bySlot(container, 'chart-tooltip')).toBeNull()
+
+		fireEvent.pointerMove(hit, { clientX: 300, clientY: 100 })
 
 		fireEvent.pointerLeave(hit)
 
@@ -257,8 +269,12 @@ describe('BarChart', () => {
 
 		expect(costs.querySelector('.line-through')).not.toBeNull()
 
-		// The tooltip readout follows the toggle.
-		fireEvent.pointerMove(bySlot(container, 'chart-hit') as Element, { clientX: 390 })
+		// The tooltip readout follows the toggle; the lone series recenters, so
+		// (305, 100) sits on Q3's remaining revenue bar.
+		fireEvent.pointerMove(bySlot(container, 'chart-hit') as Element, {
+			clientX: 305,
+			clientY: 100,
+		})
 
 		expect(bySlot(container, 'chart-tooltip')?.textContent).not.toContain('Costs')
 
@@ -272,7 +288,7 @@ describe('BarChart', () => {
 
 		const hit = bySlot(container, 'chart-hit') as Element
 
-		fireEvent.pointerMove(hit, { clientX: 30, clientY: 40 })
+		fireEvent.pointerMove(hit, { clientX: 45, clientY: 120 })
 
 		const tooltip = bySlot(container, 'chart-tooltip') as HTMLElement
 
@@ -280,8 +296,8 @@ describe('BarChart', () => {
 
 		expect(first).not.toBe('')
 
-		// Same band, different pointer x: the tooltip follows the pointer, not the band.
-		fireEvent.pointerMove(hit, { clientX: 40, clientY: 40 })
+		// Same bar, different pointer x: the tooltip follows the pointer, not the band.
+		fireEvent.pointerMove(hit, { clientX: 50, clientY: 120 })
 
 		expect((bySlot(container, 'chart-tooltip') as HTMLElement).style.left).not.toBe(first)
 	})
@@ -293,7 +309,10 @@ describe('BarChart', () => {
 
 		expect(yAxis?.textContent).toContain('$')
 
-		fireEvent.pointerMove(bySlot(container, 'chart-hit') as Element, { clientX: 390 })
+		fireEvent.pointerMove(bySlot(container, 'chart-hit') as Element, {
+			clientX: 300,
+			clientY: 100,
+		})
 
 		expect(bySlot(container, 'chart-tooltip')?.textContent).toContain('$65')
 
