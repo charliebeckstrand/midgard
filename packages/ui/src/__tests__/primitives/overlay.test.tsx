@@ -138,17 +138,21 @@ describe('Overlay', () => {
 
 		document.body.appendChild(outside)
 
-		outside.focus()
+		// try/finally so a failing assertion can't skip the cleanup and leave the
+		// button on document.body for the next (shuffled) test's focus queries.
+		try {
+			outside.focus()
 
-		renderUI(
-			<Overlay open modal={false} onOpenChange={() => {}}>
-				<button type="button">inside</button>
-			</Overlay>,
-		)
+			renderUI(
+				<Overlay open modal={false} onOpenChange={() => {}}>
+					<button type="button">inside</button>
+				</Overlay>,
+			)
 
-		expect(document.activeElement).toBe(outside)
-
-		outside.remove()
+			expect(document.activeElement).toBe(outside)
+		} finally {
+			outside.remove()
+		}
 	})
 
 	it('does not lock body scroll when modal=false', () => {
@@ -243,21 +247,25 @@ describe('Overlay', () => {
 
 		document.body.appendChild(host)
 
-		renderUI(
-			<Overlay open container={host} onOpenChange={() => {}}>
-				<span>scoped content</span>
-			</Overlay>,
-		)
+		// try/finally so a failing assertion can't leave `host` (and a mounted
+		// overlay) on document.body for the next shuffled test.
+		try {
+			renderUI(
+				<Overlay open container={host} onOpenChange={() => {}}>
+					<span>scoped content</span>
+				</Overlay>,
+			)
 
-		const overlay = host.querySelector<HTMLElement>('[data-slot="overlay"]') as HTMLElement
+			const overlay = host.querySelector<HTMLElement>('[data-slot="overlay"]') as HTMLElement
 
-		expect(overlay).not.toBeNull()
+			expect(overlay).not.toBeNull()
 
-		expect(overlay.className).toContain('absolute')
+			expect(overlay.className).toContain('absolute')
 
-		// Scoped overlays do not apply the body scroll lock.
-		expect(document.body.style.overflow).toBe('')
-
-		document.body.removeChild(host)
+			// Scoped overlays do not apply the body scroll lock.
+			expect(document.body.style.overflow).toBe('')
+		} finally {
+			host.remove()
+		}
 	})
 })

@@ -59,3 +59,16 @@ stubWindowScrollBy()
 // jsdom has no canvas backend; getContext prints a "Not implemented" jsdomError
 // on every call. Returns null instead; components null-check the context.
 HTMLCanvasElement.prototype.getContext = (() => null) as HTMLCanvasElement['getContext']
+
+// jsdom implements neither URL.createObjectURL nor URL.revokeObjectURL; the
+// blob-download paths (CSV/HTML export, PDF viewer) call them. Stub as no-ops so
+// the properties exist and tests can wrap them with vi.spyOn (auto-restored by
+// restoreMocks) — never a raw reassignment, which would leak across the shared
+// vmThreads worker.
+if (typeof URL.createObjectURL !== 'function') {
+	URL.createObjectURL = vi.fn(() => 'blob:stub')
+}
+
+if (typeof URL.revokeObjectURL !== 'function') {
+	URL.revokeObjectURL = vi.fn()
+}
