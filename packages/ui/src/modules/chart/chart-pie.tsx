@@ -6,7 +6,13 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/chart'
 import type { AccessibleName } from '../../types'
 import { formatPercent } from '../../utilities'
-import { MARK_GAP, SLICE_FADE, SLICE_STAGGER, TICK_CHAR_WIDTH } from './chart-constants'
+import {
+	MARK_GAP,
+	SLICE_FADE,
+	SLICE_SLIDE,
+	SLICE_STAGGER,
+	TICK_CHAR_WIDTH,
+} from './chart-constants'
 import { ChartFrame } from './chart-frame'
 import { type ChartAspectRatio, resolveChartSizing } from './chart-layout'
 import { ChartLegend } from './chart-legend'
@@ -114,11 +120,41 @@ function sliceGroupClass(emphasis: number | null, index: number): string {
 	return cn('transition-opacity', emphasis !== null && emphasis !== index && 'opacity-25')
 }
 
+/**
+ * The mount reveal for one slice: it fades in while sliding out along its own
+ * bisector, and the slices stagger counter-clockwise from the top. The offset
+ * is a transform, so it composes with the wrapper's dim opacity untouched.
+ *
+ * @internal
+ */
+function sliceReveal(
+	centroid: { x: number; y: number },
+	center: { x: number; y: number },
+	order: number,
+	count: number,
+) {
+	const dx = centroid.x - center.x
+
+	const dy = centroid.y - center.y
+
+	const length = Math.hypot(dx, dy) || 1
+
+	return {
+		initial: { opacity: 0, x: (-dx / length) * SLICE_SLIDE, y: (-dy / length) * SLICE_SLIDE },
+		animate: { opacity: 1, x: 0, y: 0 },
+		transition: { ...SLICE_FADE, delay: (count - 1 - order) * SLICE_STAGGER },
+	} as const
+}
+
 /** Shared shape for the static and animated segment-label renderers. @internal */
 type PieSegmentLabelsProps = {
 	items: PieSegmentLabel[]
 	paints: SeriesPaint[]
 	animate: boolean
+	/** The pie center, so a label slides out with its slice on reveal. */
+	center: { x: number; y: number }
+	/** The total slice count, for the counter-clockwise reveal stagger. */
+	count: number
 	/** The legend-emphasised slice; other labels dim with their slices. */
 	emphasis: number | null
 }
@@ -130,7 +166,14 @@ type PieSegmentLabelsProps = {
  *
  * @internal
  */
-function PieSegmentLabels({ items, paints, animate, emphasis }: PieSegmentLabelsProps) {
+function PieSegmentLabels({
+	items,
+	paints,
+	animate,
+	center,
+	count,
+	emphasis,
+}: PieSegmentLabelsProps) {
 	return (
 		<g data-slot="chart-segment-labels" pointerEvents="none">
 			{items.map(({ slice, text, order }) => {
@@ -143,17 +186,14 @@ function PieSegmentLabels({ items, paints, animate, emphasis }: PieSegmentLabels
 					className: cn('font-medium text-xs tabular-nums', paints[slice.index]?.onFill),
 				}
 
+				// The text keeps its x/y position attributes; the wrapping group carries
+				// the reveal transform so the two never collide.
 				return (
 					<g key={slice.index} className={sliceGroupClass(emphasis, slice.index)}>
 						{animate ? (
-							<motion.text
-								{...shared}
-								initial={{ opacity: 0 }}
-								animate={{ opacity: 1 }}
-								transition={{ ...SLICE_FADE, delay: order * SLICE_STAGGER }}
-							>
-								{text}
-							</motion.text>
+							<motion.g {...sliceReveal(slice.centroid, center, order, count)}>
+								<text {...shared}>{text}</text>
+							</motion.g>
 						) : (
 							<text {...shared}>{text}</text>
 						)}
@@ -205,6 +245,8 @@ type PieChartMarksProps = {
 	slices: PieSlice[]
 	paints: SeriesPaint[]
 	animate: boolean
+	/** The pie center, from which slices slide out on reveal. */
+	center: { x: number; y: number }
 	/** The legend-emphasised slice; the others dim against it. */
 	emphasis: number | null
 }
@@ -218,7 +260,7 @@ type PieChartMarksProps = {
  *
  * @internal
  */
-function PieChartMarks({ slices, paints, animate, emphasis }: PieChartMarksProps) {
+function PieChartMarks({ slices, paints, animate, center, emphasis }: PieChartMarksProps) {
 	const { set } = useChartHover()
 
 	return (
@@ -243,9 +285,7 @@ function PieChartMarks({ slices, paints, animate, emphasis }: PieChartMarksProps
 						{animate ? (
 							<motion.path
 								{...shared}
-								initial={{ opacity: 0 }}
-								animate={{ opacity: 1 }}
-								transition={{ ...SLICE_FADE, delay: order * SLICE_STAGGER }}
+								{...sliceReveal(slice.centroid, center, order, slices.length)}
 							/>
 						) : (
 							<path {...shared} />
@@ -310,15 +350,11 @@ export function ChartPie<T>({
 
 	const innerRadius = radius * innerRatio
 
+	const center = { x: frameWidth / 2, y: frameHeight / 2 }
+
 	const slices =
 		radius > 0
-			? pieSlices(sliceValues, {
-					cx: frameWidth / 2,
-					cy: frameHeight / 2,
-					radius,
-					innerRadius,
-					pad: MARK_GAP,
-				})
+			? pieSlices(sliceValues, { cx: center.x, cy: center.y, radius, innerRadius, pad: MARK_GAP })
 			: []
 
 	const readout: ChartReadout | null =
@@ -360,13 +396,21 @@ export function ChartPie<T>({
 
 	const marks = (
 		<>
-			<PieChartMarks slices={slices} paints={paints} animate={animate} emphasis={emphasis} />
+			<PieChartMarks
+				slices={slices}
+				paints={paints}
+				animate={animate}
+				center={center}
+				emphasis={emphasis}
+			/>
 
 			{labelItems.length > 0 && (
 				<PieSegmentLabels
 					items={labelItems}
 					paints={paints}
 					animate={animate}
+					center={center}
+					count={slices.length}
 					emphasis={emphasis}
 				/>
 			)}

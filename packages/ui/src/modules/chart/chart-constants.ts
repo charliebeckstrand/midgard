@@ -78,11 +78,14 @@ export const BAR_GROW = { duration: 0.4, ease: 'easeOut' } as const
 /** Delay step between adjacent bar groups, so they rise in sequence. @internal */
 export const BAR_STAGGER = 0.05
 
-/** Per-slice fade for the pie, staggered clockwise from the top. @internal */
+/** Per-slice fade for the pie, staggered counter-clockwise from the top. @internal */
 export const SLICE_FADE = { duration: 0.3, ease: 'easeOut' } as const
 
 /** Delay step between adjacent pie slices. @internal */
 export const SLICE_STAGGER = 0.06
+
+/** How far a pie slice slides out along its bisector as it reveals, in px. @internal */
+export const SLICE_SLIDE = 16
 
 /** Quiet window after the last resize before the mount reveal replays once. @internal */
 export const RESIZE_SETTLE_MS = 200
