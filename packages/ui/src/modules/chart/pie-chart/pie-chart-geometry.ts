@@ -29,11 +29,10 @@ export type PieSlicesOptions = {
 	 */
 	innerRadius?: number
 	/**
-	 * The gap between neighbouring slices, in px at the outer radius. Each slice
-	 * recedes half of it from both edges, so the real surface behind the chart
-	 * shows through — no painted separator to mismatch a tinted card. The gap
-	 * tapers with radius, closing at a pie's center and staying open on a
-	 * donut's ring. `0` sweeps slices flush.
+	 * The constant gap between neighbouring slices, in px. Each slice's straight
+	 * edges recede half of it and stay parallel to a neighbour's, so the channel
+	 * holds an even width at every radius and shows the real surface through —
+	 * no painted separator to mismatch a tinted card. `0` sweeps slices flush.
 	 * @defaultValue 0
 	 */
 	pad?: number
@@ -90,7 +89,42 @@ function fullCircle(cx: number, cy: number, radius: number, inner: number): stri
 	return `${outer} M ${innerTop.x} ${innerTop.y} ${arc(inner, 1, 0, innerBottom)} ${arc(inner, 1, 0, innerTop)} Z`
 }
 
-/** One slice's path between two angles. @internal */
+/**
+ * A point on the radial edge at `angle`, `along` out from the center and
+ * shifted `perp` sideways along the edge's tangent. Shifting both of a slice's
+ * edges inward by half the gap keeps neighbouring edges parallel — a
+ * constant-width channel at every radius, never a wedge that pinches shut at
+ * the center. @internal
+ */
+function edgePoint(
+	cx: number,
+	cy: number,
+	angle: number,
+	along: number,
+	perp: number,
+): { x: number; y: number } {
+	const radians = ((angle - 90) * Math.PI) / 180
+
+	const cos = Math.cos(radians)
+
+	const sin = Math.sin(radians)
+
+	return { x: cx + along * cos - perp * sin, y: cy + along * sin + perp * cos }
+}
+
+/** The SVG large-arc flag for a `sweep`-degree slice once the gap narrows it at radius `r`. @internal */
+function spanLarge(sweep: number, half: number, r: number): 0 | 1 {
+	const inset = (Math.asin(Math.min(1, half / r)) * 180) / Math.PI
+
+	return sweep - 2 * inset > 180 ? 1 : 0
+}
+
+/**
+ * One slice's path between two angles, its straight edges offset inward by
+ * `half` the gap so the channel to each neighbour holds a constant width. A
+ * pie caps the near-center end with a short chord across the tiny gap circle;
+ * a donut rides its inner ring. @internal
+ */
 function slicePath(
 	cx: number,
 	cy: number,
@@ -98,20 +132,28 @@ function slicePath(
 	inner: number,
 	start: number,
 	end: number,
+	half: number,
 ): string {
-	const large: 0 | 1 = end - start > 180 ? 1 : 0
+	const outerAlong = Math.sqrt(Math.max(0, radius * radius - half * half))
 
-	const from = at(cx, cy, radius, start)
+	const outer0 = edgePoint(cx, cy, start, outerAlong, half)
 
-	const to = at(cx, cy, radius, end)
+	const outer1 = edgePoint(cx, cy, end, outerAlong, -half)
 
-	if (inner <= 0) return `M ${cx} ${cy} L ${from.x} ${from.y} ${arc(radius, large, 1, to)} Z`
+	const ring = inner > half ? inner : half
 
-	const innerTo = at(cx, cy, inner, end)
+	const innerAlong = Math.sqrt(Math.max(0, ring * ring - half * half))
 
-	const innerFrom = at(cx, cy, inner, start)
+	const inner1 = edgePoint(cx, cy, end, innerAlong, -half)
 
-	return `M ${from.x} ${from.y} ${arc(radius, large, 1, to)} L ${innerTo.x} ${innerTo.y} ${arc(inner, large, 0, innerFrom)} Z`
+	const inner0 = edgePoint(cx, cy, start, innerAlong, half)
+
+	const back =
+		inner > half
+			? arc(ring, spanLarge(end - start, half, ring), 0, inner0)
+			: `L ${inner0.x} ${inner0.y}`
+
+	return `M ${outer0.x} ${outer0.y} ${arc(radius, spanLarge(end - start, half, radius), 1, outer1)} L ${inner1.x} ${inner1.y} ${back} Z`
 }
 
 /**
@@ -136,9 +178,14 @@ export function pieSlices(
 
 	const positive = shares.filter((share) => share > 0).length
 
-	// The rim gap as an angle; halved onto each edge, never eating over a third
-	// of a sliver so thin slices survive.
-	const padDegrees = positive > 1 && radius > 0 ? (pad / radius) * (180 / Math.PI) : 0
+	// Half the gap is peeled off each edge; a lone full circle has no neighbour
+	// to part from.
+	const half = positive > 1 ? pad / 2 : 0
+
+	// The gap is measured where a slice is narrowest — a donut's inner ring, a
+	// pie's rim — so a sliver keeps a proportional channel instead of its edges
+	// crossing.
+	const guard = innerRadius > 0 ? innerRadius : radius
 
 	const slices: PieSlice[] = []
 
@@ -153,14 +200,14 @@ export function pieSlices(
 
 		const mid = angle + sweep / 2
 
-		const inset = Math.min(padDegrees / 2, sweep * 0.35)
+		const h = Math.min(half, guard * Math.sin((sweep * 0.35 * Math.PI) / 180))
 
 		slices.push({
 			index,
 			d:
 				positive === 1
 					? fullCircle(cx, cy, radius, innerRadius)
-					: slicePath(cx, cy, radius, innerRadius, angle + inset, angle + sweep - inset),
+					: slicePath(cx, cy, radius, innerRadius, angle, angle + sweep, h),
 			share: fraction,
 			centroid: at(cx, cy, pieCentroidRadius(radius, innerRadius, fraction), mid),
 		})

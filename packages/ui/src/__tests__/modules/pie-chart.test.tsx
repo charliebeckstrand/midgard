@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { PieChart } from '../../modules/chart/pie-chart'
 import {
+	type PieSlice,
 	pieCentroidRadius,
 	pieSlices,
 	segmentLabelFits,
@@ -222,7 +223,7 @@ describe('pieSlices', () => {
 		expect(pieSlices([0, null, -3], FRAME)).toHaveLength(0)
 	})
 
-	it('insets neighbours by a pad without moving their anchors', () => {
+	it('parts neighbours with a parallel-offset edge, not a pinch', () => {
 		const flush = pieSlices([50, 50], FRAME)
 
 		const padded = pieSlices([50, 50], { ...FRAME, pad: 6 })
@@ -232,7 +233,11 @@ describe('pieSlices', () => {
 		// The gap reshapes the wedge but leaves the label/tooltip centroid put.
 		expect(padded[0]?.centroid).toEqual(flush[0]?.centroid)
 
-		expect(padded[0]?.d).not.toBe(flush[0]?.d)
+		// The edge is pushed sideways off the true radius by a constant offset,
+		// so the channel holds its width instead of pinching shut at the center.
+		const startX = (slice?: PieSlice) => Number(slice?.d.match(/^M ([\d.]+)/)?.[1])
+
+		expect(startX(padded[0])).toBeGreaterThan(startX(flush[0]))
 	})
 
 	it('never pads a lone full-circle slice', () => {
