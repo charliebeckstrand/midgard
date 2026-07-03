@@ -1,16 +1,16 @@
 'use client'
 
 import { useResolvedSize } from '../../primitives/density'
+import { usePlotFrame } from '../../primitives/plot'
 import type { Step } from '../../recipes'
 import type { ChartAxisTick } from './chart-axis'
 import { CHART_METRICS, PLOT_TOP_PAD, X_AXIS_HEIGHT } from './chart-constants'
 import {
 	bandAnchors,
 	type ChartAnchor,
-	chartFillsContainer,
+	chartFrameSizing,
 	type PlotRect,
 	plotRect,
-	resolveChartSizing,
 	thinnedTicks,
 } from './chart-layout'
 import type { ChartLegendItem } from './chart-legend'
@@ -23,7 +23,6 @@ import {
 	seriesValues,
 } from './chart-series'
 import type { CartesianChartProps, ChartReadout, ChartSeries } from './types'
-import { useChartPlot } from './use-chart-plot'
 import { useChartSeriesToggle } from './use-chart-series-toggle'
 
 /** The cartesian props minus the accessible name, which stays with the frame. @internal */
@@ -45,7 +44,7 @@ export type CartesianConfig<T> = {
 
 /** Everything the cartesian frame and marks derive from the props. @internal */
 export type CartesianChart = {
-	ref: ReturnType<typeof useChartPlot>['ref']
+	ref: ReturnType<typeof usePlotFrame>['ref']
 	width: number
 	fixedWidth?: number
 	height: number
@@ -121,15 +120,9 @@ export function useChartCartesian<T>(
 	const {
 		ref,
 		width: frameWidth,
-		height: containerHeight,
-	} = useChartPlot(width, chartFillsContainer(height, aspectRatio))
-
-	const { height: frameHeight, reserveAspect } = resolveChartSizing(
-		frameWidth,
-		height,
-		aspectRatio,
-		containerHeight,
-	)
+		height: frameHeight,
+		reserveAspect,
+	} = usePlotFrame(width, chartFrameSizing(height, aspectRatio))
 
 	const format = props.formatValue ?? formatChartValue
 

@@ -3,11 +3,11 @@
 import { type ReactNode, type RefObject, useCallback, useMemo, useState } from 'react'
 import { AspectRatio } from '../../components/aspect-ratio'
 import { cn } from '../../core'
+import { usePlotFrame } from '../../primitives/plot'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { k, type MapSeriesColor } from '../../recipes/kata/map'
 import type { AccessibleName } from '../../types'
 import { useChartAnimationKey } from '../chart/use-chart-animation-key'
-import { useChartPlot } from '../chart/use-chart-plot'
 import { type MapHover, MapHoverContext, MapPlatContext, type MapPlatContextValue } from './context'
 import {
 	defaultRegionId,
@@ -19,12 +19,7 @@ import {
 } from './map-categories'
 import { geographyFeatures, projectPoint, regionPaths } from './map-geometry'
 import { MapLegend, type MapLegendItem } from './map-legend'
-import {
-	fitMapProjection,
-	mapAutoAspect,
-	mapFillsContainer,
-	resolveMapSizing,
-} from './map-projection'
+import { fitMapProjection, mapAutoAspect, mapFrameSizing } from './map-projection'
 import { MapRegions } from './map-regions'
 import { MapTable } from './map-table'
 import { MapTooltip, type MapTooltipEntry } from './map-tooltip'
@@ -160,12 +155,6 @@ function useMapShape(
 	height: number | undefined,
 	aspectRatio: MapAspectRatio,
 ): MapShape {
-	const {
-		ref,
-		width: frameWidth,
-		height: containerHeight,
-	} = useChartPlot(width, mapFillsContainer(height, aspectRatio))
-
 	const features = useMemo(
 		() => geographyFeatures(geography, geographyObject),
 		[geography, geographyObject],
@@ -173,13 +162,12 @@ function useMapShape(
 
 	const autoAspect = useMemo(() => mapAutoAspect(projection, features), [projection, features])
 
-	const { height: frameHeight, reserveAspect } = resolveMapSizing(
-		frameWidth,
-		height,
-		aspectRatio,
-		autoAspect,
-		containerHeight,
-	)
+	const {
+		ref,
+		width: frameWidth,
+		height: frameHeight,
+		reserveAspect,
+	} = usePlotFrame(width, mapFrameSizing(height, aspectRatio, autoAspect))
 
 	const fitted = useMemo(
 		() =>

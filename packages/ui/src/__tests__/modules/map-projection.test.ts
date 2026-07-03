@@ -3,9 +3,8 @@ import { describe, expect, it } from 'vitest'
 import {
 	fitMapProjection,
 	mapAutoAspect,
-	mapFillsContainer,
+	mapFrameSizing,
 	resolveMapProjection,
-	resolveMapSizing,
 } from '../../modules/map/map-projection'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 
@@ -78,68 +77,24 @@ describe('mapAutoAspect', () => {
 	})
 })
 
-describe('resolveMapSizing', () => {
+describe('mapFrameSizing', () => {
 	it('lets an explicit height win as a fixed pixel box', () => {
-		expect(resolveMapSizing(400, 250, 'auto', 3, 0)).toEqual({ height: 250, reserveAspect: null })
+		expect(mapFrameSizing(250, 'auto', 3)).toEqual({ mode: 'fixed', height: 250 })
 	})
 
-	it("reserves the geography's own ratio under 'auto'", () => {
-		expect(resolveMapSizing(300, undefined, 'auto', 3, 0)).toEqual({
-			height: 100,
-			reserveAspect: 3,
-		})
+	it("derives the geography's own ratio under 'auto'", () => {
+		expect(mapFrameSizing(undefined, 'auto', 3)).toEqual({ mode: 'aspect', ratio: 3 })
 	})
 
 	it("falls back to a wide frame when 'auto' has nothing to measure", () => {
-		const { height, reserveAspect } = resolveMapSizing(320, undefined, 'auto', null, 0)
-
-		expect(reserveAspect).toBeCloseTo(16 / 9)
-
-		expect(height).toBe(180)
+		expect(mapFrameSizing(undefined, 'auto', null)).toEqual({ mode: 'aspect', ratio: 16 / 9 })
 	})
 
 	it('parses a "w/h" ratio string', () => {
-		expect(resolveMapSizing(400, undefined, '4/3', null, 0)).toEqual({
-			height: 300,
-			reserveAspect: 4 / 3,
-		})
+		expect(mapFrameSizing(undefined, '4/3', null)).toEqual({ mode: 'aspect', ratio: 4 / 3 })
 	})
 
-	it('fills the container when free-form', () => {
-		expect(resolveMapSizing(400, undefined, false, 3, 240)).toEqual({
-			height: 240,
-			reserveAspect: null,
-		})
-	})
-
-	it('holds height at 0 until the width is measured', () => {
-		expect(resolveMapSizing(0, undefined, 'auto', 3, 0)).toEqual({ height: 0, reserveAspect: 3 })
-	})
-})
-
-describe('mapFillsContainer', () => {
-	it('is true only when free-form: no explicit height and a non-auto ratio that is off', () => {
-		expect(mapFillsContainer(undefined, false)).toBe(true)
-
-		// 'auto' always reserves a ratio (its own or the wide fallback), never the container.
-		expect(mapFillsContainer(undefined, 'auto')).toBe(false)
-
-		expect(mapFillsContainer(undefined, '4/3')).toBe(false)
-
-		expect(mapFillsContainer(undefined, 2)).toBe(false)
-
-		// An explicit height fixes the box, so the container is never read.
-		expect(mapFillsContainer(240, false)).toBe(false)
-	})
-
-	it('mirrors resolveMapSizing reading the container height', () => {
-		// The container height feeds the sizing exactly when the predicate holds.
-		expect(resolveMapSizing(400, undefined, false, 3, 240).height).toBe(240)
-
-		expect(mapFillsContainer(undefined, false)).toBe(true)
-
-		expect(resolveMapSizing(400, undefined, 'auto', 3, 240).height).not.toBe(240)
-
-		expect(mapFillsContainer(undefined, 'auto')).toBe(false)
+	it("fills the container only when free-form — 'auto' never falls through", () => {
+		expect(mapFrameSizing(undefined, false, 3)).toEqual({ mode: 'fill' })
 	})
 })

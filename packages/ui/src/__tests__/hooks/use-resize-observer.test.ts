@@ -140,53 +140,6 @@ describe('useResizeObserver', () => {
 		expect(callback).toHaveBeenCalledTimes(1)
 	})
 
-	it('observes nothing and never fires the callback while disabled', () => {
-		const callback = vi.fn()
-
-		const element = document.createElement('div')
-
-		renderHook(() => {
-			const ref = useRef<HTMLDivElement>(element)
-
-			const stable = useCallback(callback, [])
-
-			useResizeObserver(ref, stable, false)
-		})
-
-		expect(stub.instances).toHaveLength(0)
-
-		expect(callback).not.toHaveBeenCalled()
-	})
-
-	it('subscribes when enabled flips on and disconnects when it flips off', () => {
-		const callback = vi.fn()
-
-		const element = document.createElement('div')
-
-		const { rerender } = renderHook(
-			({ enabled }: { enabled: boolean }) => {
-				const ref = useRef<HTMLDivElement>(element)
-
-				const stable = useCallback(callback, [])
-
-				useResizeObserver(ref, stable, enabled)
-			},
-			{ initialProps: { enabled: false } },
-		)
-
-		expect(stub.instances).toHaveLength(0)
-
-		rerender({ enabled: true })
-
-		expect(stub.instances).toHaveLength(1)
-
-		expect(callback).toHaveBeenCalledTimes(1)
-
-		rerender({ enabled: false })
-
-		expect(stub.instances[0]?.disconnect).toHaveBeenCalledTimes(1)
-	})
-
 	it('re-subscribes when the callback identity changes', () => {
 		const element = document.createElement('div')
 

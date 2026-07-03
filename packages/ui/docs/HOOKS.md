@@ -55,7 +55,7 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 
 | Hook | Summary |
 |---|---|
-| `useResizeObserver` | Observes size changes on `ref.current`, invoking `callback` per change plus once on attach; pass `enabled: false` to observe nothing when the size is fixed by other means. |
+| `useResizeObserver` | Observes size changes on `ref.current`, invoking `callback` per change plus once on attach. |
 | `useMediaQuery` | True when `query` matches the viewport; true during SSR. |
 | `useMinWidth` | True when the viewport is at least `px` wide; true during SSR. |
 | `useIsTruncated` | True when text overflows the element, measured via an off-screen mirror span (not `scrollWidth`). |

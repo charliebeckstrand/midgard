@@ -3,12 +3,13 @@
 import { motion } from 'motion/react'
 import { type PointerEvent, type ReactNode, useId } from 'react'
 import { cn } from '../../core'
+import { usePlotFrame } from '../../primitives/plot'
 import { k } from '../../recipes/kata/chart'
 import type { AccessibleName } from '../../types'
 import { formatPercent } from '../../utilities'
 import { MARK_GAP, SLICE_FADE, SLICE_SWEEP, TICK_CHAR_WIDTH } from './chart-constants'
 import { ChartFrame } from './chart-frame'
-import { type ChartAspectRatio, chartFillsContainer, resolveChartSizing } from './chart-layout'
+import { type ChartAspectRatio, chartFrameSizing } from './chart-layout'
 import { ChartLegend, type ChartLegendItem } from './chart-legend'
 import { ChartMarksLayer } from './chart-marks-layer'
 import { formatChartValue, type SeriesPaint, seriesValues } from './chart-series'
@@ -27,7 +28,6 @@ import {
 } from './pie-chart/pie-chart-geometry'
 import type { ChartLegendPlacement, ChartReadout, DataKey } from './types'
 import { useChartAnimationKey } from './use-chart-animation-key'
-import { useChartPlot } from './use-chart-plot'
 import { useChartSeriesToggle } from './use-chart-series-toggle'
 
 /**
@@ -523,15 +523,9 @@ export function ChartPie<T>({
 	const {
 		ref,
 		width: frameWidth,
-		height: containerHeight,
-	} = useChartPlot(width, chartFillsContainer(height, aspectRatio))
-
-	const { height: frameHeight, reserveAspect } = resolveChartSizing(
-		frameWidth,
-		height,
-		aspectRatio,
-		containerHeight,
-	)
+		height: frameHeight,
+		reserveAspect,
+	} = usePlotFrame(width, chartFrameSizing(height, aspectRatio))
 
 	const format = formatValue ?? formatChartValue
 

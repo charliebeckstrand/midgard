@@ -1,6 +1,6 @@
 import { memo } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { useChartPlot } from '../../modules/chart/use-chart-plot'
+import { type FrameSizing, usePlotFrame } from '../../primitives/plot'
 import { act, mockDomGeometry, renderUI, screen } from '../helpers'
 
 type StubInstance = {
@@ -44,7 +44,7 @@ function installResizeObserverStub() {
 
 // The frame's expensive subtree: memoized on the resolved size, so it re-renders
 // only when a dimension it draws from changes — the render a resize should avoid.
-// A bail-out in `useChartPlot` may still re-run the parent once, but React never
+// A bail-out in `usePlotFrame` may still re-run the parent once, but React never
 // descends into a memo whose props are unchanged, so its render count is the
 // faithful signal for "the frame re-rendered".
 const Marks = memo(function Marks({
@@ -63,14 +63,14 @@ const Marks = memo(function Marks({
 
 function Probe({
 	width,
-	measureHeight,
+	sizing,
 	onMarks,
 }: {
 	width: number | undefined
-	measureHeight: boolean
+	sizing: FrameSizing
 	onMarks: () => void
 }) {
-	const plot = useChartPlot(width, measureHeight)
+	const plot = usePlotFrame(width, sizing)
 
 	return (
 		<div ref={plot.ref} data-testid="plot">
@@ -79,7 +79,7 @@ function Probe({
 	)
 }
 
-describe('useChartPlot', () => {
+describe('usePlotFrame', () => {
 	let stub: ReturnType<typeof installResizeObserverStub>
 
 	beforeEach(() => {
@@ -109,47 +109,49 @@ describe('useChartPlot', () => {
 		})
 	}
 
-	it('redraws on a width change but not a height-only change when the height is derived', () => {
+	it('redraws on a width change but not a height-only change under an aspect policy', () => {
 		const onMarks = vi.fn()
 
-		renderUI(<Probe width={undefined} measureHeight={false} onMarks={onMarks} />)
+		renderUI(<Probe width={undefined} sizing={{ mode: 'aspect', ratio: 2 }} onMarks={onMarks} />)
 
 		const plot = screen.getByTestId('plot')
 
-		// The width resolves and the frame redraws to fill it.
+		// The width resolves, and the height derives from it — not the container.
 		resizeTo(plot, { width: 300, height: 200 })
 
 		expect(screen.getByTestId('marks').getAttribute('data-width')).toBe('300')
 
+		expect(screen.getByTestId('marks').getAttribute('data-height')).toBe('150')
+
 		const drawsAfterWidth = onMarks.mock.calls.length
 
-		// A height-only resize changes nothing a derived-height frame draws from,
-		// so the untracked axis stays 0 and the marks never redraw.
+		// A height-only resize changes nothing the policy consumes, so the
+		// untracked axis stays unread and the marks never redraw.
 		resizeTo(plot, { width: 300, height: 500 })
 
 		expect(onMarks).toHaveBeenCalledTimes(drawsAfterWidth)
 
-		expect(screen.getByTestId('marks').getAttribute('data-width')).toBe('300')
-
-		expect(screen.getByTestId('marks').getAttribute('data-height')).toBe('0')
+		expect(screen.getByTestId('marks').getAttribute('data-height')).toBe('150')
 	})
 
-	it('constructs no observer and takes its width from the prop when the size is fixed', () => {
+	it('constructs no observer and resolves from props when the size is fully fixed', () => {
 		const onMarks = vi.fn()
 
-		renderUI(<Probe width={600} measureHeight={false} onMarks={onMarks} />)
+		renderUI(<Probe width={600} sizing={{ mode: 'aspect', ratio: 2 }} onMarks={onMarks} />)
 
 		// Nothing feeds the sizing, so the frame observes nothing at all.
 		expect(stub.instances).toHaveLength(0)
 
-		// The width comes straight from the prop, ready on the first paint.
+		// Width from the prop, height derived — both ready on the first paint.
 		expect(screen.getByTestId('marks').getAttribute('data-width')).toBe('600')
+
+		expect(screen.getByTestId('marks').getAttribute('data-height')).toBe('300')
 	})
 
-	it('redraws on a height change for a free-form frame', () => {
+	it('redraws on a height change under a fill policy', () => {
 		const onMarks = vi.fn()
 
-		renderUI(<Probe width={undefined} measureHeight onMarks={onMarks} />)
+		renderUI(<Probe width={undefined} sizing={{ mode: 'fill' }} onMarks={onMarks} />)
 
 		const plot = screen.getByTestId('plot')
 
