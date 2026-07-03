@@ -5,9 +5,10 @@ import { Icon } from '../../../components/icon'
 import { Sparkline } from '../../../components/sparkline'
 import { Stack } from '../../../components/stack'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../components/tabs'
+import type { Color } from '../../../core/recipe'
 import { capitalize, code, Example, LabeledRow, LabeledRows } from '../../engine'
 
-const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
+const colors: Color[] = ['zinc', 'red', 'amber', 'green', 'blue'] as const
 
 const sizes = ['sm', 'md', 'lg'] as const
 
@@ -16,7 +17,7 @@ const series = [4, 6, 5, 9, 8, 12, 11, 15, 14, 19, 22, 20]
 
 // The mount animation plays once; a refresh button remounts the sparkline (bumping
 // its `key`) so the reveal replays on demand. Shared by the line and bar tabs.
-function AnimatedExample({ variant }: { variant: 'line' | 'bar' }) {
+function AnimatedExample({ variant, color }: { variant: 'line' | 'bar'; color: Color }) {
 	const [runKey, setRunKey] = useState(0)
 
 	return (
@@ -40,7 +41,7 @@ function AnimatedExample({ variant }: { variant: 'line' | 'bar' }) {
 					key={runKey}
 					data={series}
 					variant="bar"
-					color="green"
+					color={color}
 					animate
 					aria-label="Animated bars"
 				/>
@@ -48,7 +49,7 @@ function AnimatedExample({ variant }: { variant: 'line' | 'bar' }) {
 				<Sparkline
 					key={runKey}
 					data={series}
-					color="green"
+					color={color}
 					fill
 					endPoint
 					animate
@@ -74,18 +75,6 @@ export function Demo() {
 								<Sparkline data={series} aria-label="Trend" />
 							</Example>
 
-							<Example title="Area fill & end-point">
-								<Sparkline
-									data={series}
-									color="blue"
-									fill
-									endPoint
-									aria-label="Trend with area fill and end-point"
-								/>
-							</Example>
-
-							<AnimatedExample variant="line" />
-
 							<Example title="Colors">
 								<LabeledRows>
 									{colors.map((color) => (
@@ -105,11 +94,31 @@ export function Demo() {
 								<LabeledRows>
 									{sizes.map((s) => (
 										<LabeledRow key={s} label={s}>
-											<Sparkline data={series} size={s} color="blue" aria-label={`${s} trend`} />
+											<Sparkline data={series} size={s} color="red" aria-label={`${s} trend`} />
 										</LabeledRow>
 									))}
 								</LabeledRows>
 							</Example>
+
+							<Example title="End-point">
+								<Sparkline
+									data={series}
+									color="amber"
+									endPoint
+									aria-label="Trend with area fill and end-point"
+								/>
+							</Example>
+
+							<Example title="Area fill">
+								<Sparkline
+									data={series}
+									color="green"
+									fill
+									aria-label="Trend with area fill and end-point"
+								/>
+							</Example>
+
+							<AnimatedExample variant="line" color="blue" />
 						</Stack>
 					</TabContent>
 
@@ -119,7 +128,20 @@ export function Demo() {
 								<Sparkline data={series} variant="bar" color="blue" aria-label="By period" />
 							</Example>
 
-							<AnimatedExample variant="bar" />
+							<Example title="Colors">
+								<LabeledRows>
+									{colors.map((color) => (
+										<LabeledRow key={color} label={capitalize(color)}>
+											<Sparkline
+												data={series}
+												variant="bar"
+												color={color}
+												aria-label={`${capitalize(color)} bars`}
+											/>
+										</LabeledRow>
+									))}
+								</LabeledRows>
+							</Example>
 
 							<Example title="Sizes">
 								<LabeledRows>
@@ -129,13 +151,15 @@ export function Demo() {
 												data={series}
 												variant="bar"
 												size={s}
-												color="amber"
+												color="red"
 												aria-label={`${s} bars`}
 											/>
 										</LabeledRow>
 									))}
 								</LabeledRows>
 							</Example>
+
+							<AnimatedExample variant="bar" color="amber" />
 						</Stack>
 					</TabContent>
 				</TabContents>

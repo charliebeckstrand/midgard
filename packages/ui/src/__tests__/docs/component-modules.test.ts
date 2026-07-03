@@ -32,9 +32,9 @@ describe('docs engine ⇄ ui component map', () => {
 	it('resolves a module name to its nested `modules/*` module', () => {
 		// Modules carry the canonical nested specifier; derived imports read
 		// `ui/modules/map`. The bare `ui/map` shorthand also resolves.
-		const info = defaultRegistry.byName.get('Map')
+		const info = defaultRegistry.byName.get('MapPlat')
 
-		expect(info?.name).toBe('Map')
+		expect(info?.name).toBe('MapPlat')
 
 		expect(info?.module).toBe('modules/map')
 	})

@@ -17,8 +17,8 @@ import { configDefaults, defineConfig } from 'vitest/config'
  * - `floating-ui` (browser/floating-ui/): the cases that need the live
  *   floating engine — modal focus containment (WCAG 2.4.3 / 2.1.2) and
  *   portal/ARIA wiring through a real `FloatingFocusManager` — with a setup
- *   variant that leaves `@floating-ui/react` real (motion/maplibre stay
- *   mocked for determinism).
+ *   variant that leaves `@floating-ui/react` real (motion stays mocked for
+ *   determinism).
  *
  * `pnpm test:browser` runs both; `--project <name>` scopes to one.
  *
@@ -45,7 +45,6 @@ export default defineConfig({
 			'@tanstack/react-virtual',
 			'card-validator',
 			'lucide-react',
-			'maplibre-gl',
 			'motion',
 			'motion/react',
 			'pdfjs-dist',

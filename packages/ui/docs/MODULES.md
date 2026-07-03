@@ -7,7 +7,7 @@ A module is larger than a component: it owns a family of sub-components and hook
 Each module is its own entry point under `ui/modules/*`. The bare `ui/<name>` shorthand resolves to the same barrel — module and component names never collide — so both specifiers work; canonical docs and snippets use the nested path:
 
 ```ts
-import { Map } from 'ui/modules/map' // or the 'ui/map' shorthand
+import { MapPlat } from 'ui/modules/map' // or the 'ui/map' shorthand
 ```
 
 ## Modules

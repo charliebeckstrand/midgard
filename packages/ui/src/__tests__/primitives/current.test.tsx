@@ -114,7 +114,7 @@ describe('CurrentContents / CurrentContent', () => {
 	it('preserves caller style under the positioning keys in fade mode', () => {
 		renderUI(
 			<CurrentContext value={{ value: 'a', onValueChange: undefined }}>
-				<CurrentContents slotPrefix="test" fade>
+				<CurrentContents slotPrefix="test" fade mount="always">
 					<CurrentContent slotPrefix="test" value="a" style={{ minHeight: 120 }}>
 						Content A
 					</CurrentContent>
@@ -282,7 +282,7 @@ describe('useCurrentPanelActive', () => {
 	it('is true on the active panel and false on a mounted inactive one', () => {
 		renderUI(
 			<CurrentContext value={{ value: 'a', onValueChange: undefined }}>
-				<CurrentContents slotPrefix="test" fade>
+				<CurrentContents slotPrefix="test" fade mount="always">
 					<CurrentContent slotPrefix="test" value="a">
 						<ActiveProbe id="a" />
 					</CurrentContent>
@@ -301,10 +301,10 @@ describe('useCurrentPanelActive', () => {
 	it('folds across nesting: an active panel inside an inactive one reads false', () => {
 		renderUI(
 			<CurrentContext value={{ value: 'outer-b', onValueChange: undefined }}>
-				<CurrentContents slotPrefix="outer" fade>
+				<CurrentContents slotPrefix="outer" fade mount="always">
 					<CurrentContent slotPrefix="outer" value="outer-a">
 						<CurrentContext value={{ value: 'inner-a', onValueChange: undefined }}>
-							<CurrentContents slotPrefix="inner" fade>
+							<CurrentContents slotPrefix="inner" fade mount="always">
 								<CurrentContent slotPrefix="inner" value="inner-a">
 									<ActiveProbe id="nested" />
 								</CurrentContent>

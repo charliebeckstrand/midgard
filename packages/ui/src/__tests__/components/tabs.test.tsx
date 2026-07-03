@@ -41,14 +41,14 @@ describe('TabList', () => {
 		expect(tab).toHaveAttribute('title', 'Overview')
 	})
 
-	it('keeps aria-controls on inactive tabs while fade panels stay mounted', () => {
+	it('keeps aria-controls on inactive tabs while held panels stay mounted', () => {
 		const { container } = renderUI(
 			<Tabs value="a" onValueChange={() => {}}>
 				<TabList aria-label="Sections">
 					<Tab value="a">A</Tab>
 					<Tab value="b">B</Tab>
 				</TabList>
-				<TabContents>
+				<TabContents mount="always">
 					<TabContent value="a">Panel A</TabContent>
 					<TabContent value="b">Panel B</TabContent>
 				</TabContents>
@@ -57,7 +57,7 @@ describe('TabList', () => {
 
 		const tabs = container.querySelectorAll('[role="tab"]')
 
-		// Default fade mode keeps inactive panels mounted, so the inactive tab's
+		// mount="always" keeps inactive panels mounted, so the inactive tab's
 		// reference resolves instead of being omitted.
 		const inactive = tabs[1] as HTMLElement
 

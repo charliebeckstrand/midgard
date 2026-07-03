@@ -82,7 +82,7 @@ export function defineDocsConfig({
 		},
 		// Tailwind runs via `@tailwindcss/vite` above; the docs site never needs
 		// the root `postcss.config.mjs` (which targets Next.js apps). Skip the
-		// search so prod builds don't fail on vendor CSS like maplibre-gl.css.
+		// search so prod builds don't fail on vendor CSS.
 		css: {
 			postcss: { plugins: [] },
 		},

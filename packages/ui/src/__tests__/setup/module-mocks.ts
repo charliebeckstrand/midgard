@@ -15,6 +15,4 @@ vi.mock('motion', async () => (await import('../mocks/motion')).default)
 
 vi.mock('motion/react', async () => (await import('../mocks/motion-react')).default)
 
-vi.mock('maplibre-gl', async () => (await import('../mocks/maplibre-gl')).default)
-
 vi.mock('shiki', async () => (await import('../mocks/shiki')).default)

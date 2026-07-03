@@ -5,8 +5,8 @@ import { k } from '../../recipes/kata/map'
 export type MapSkeletonProps = SkeletonProps
 
 /**
- * Map-shaped loading placeholder filling its container. {@link Map} renders it
- * internally while MapLibre loads; compose it directly in loading trees that
- * stand in for a map.
+ * Map-shaped loading placeholder filling its container. Compose it in
+ * loading trees that stand in for a {@link MapPlat} — a Suspense fallback
+ * while geography data fetches, for instance.
  */
 export const MapSkeleton = createSkeleton(k.skeleton, 'MapSkeleton')

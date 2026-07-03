@@ -1,135 +1,106 @@
 'use client'
 
-import { useId, useMemo, useRef, useState } from 'react'
-import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
-import { MapMarker } from './map-marker'
-import {
-	DEFAULT_ACTIVE_COLOR,
-	DEFAULT_DONE_COLOR,
-	DEFAULT_PENDING_COLOR,
-} from './map-route-constants'
-import { MapRouteTimeline } from './map-route-timeline'
-import type { SegmentStatus } from './map-route-utilities'
-import type { RouteData, RouteStop } from './types'
-import { useMapRouteLayers } from './use-map-route-layers'
+import { motion } from 'motion/react'
+import { type PointerEvent, useEffect, useId } from 'react'
+import { cn } from '../../core'
+import { k, type MapSeriesColor } from '../../recipes/kata/map'
+import { useMapHover, useMapPlat } from './context'
+import { ROUTE_DRAW, ROUTE_HIT_WIDTH, ROUTE_STROKE_WIDTH } from './map-constants'
+import { linePath } from './map-geometry'
+import type { LngLat } from './types'
 
-const ID_SANITIZE_RE = /[^a-zA-Z0-9_-]/g
-
-/** Props for {@link MapRoute}: the route `data` plus per-status colors, stop markers, and interaction control. */
+/** Props for {@link MapRoute}. */
 export type MapRouteProps = {
-	data: RouteData
-	/** Line color for each segment status. Defaults: pending=zinc-400, active=blue-600, done=green-600. */
-	colors?: Partial<Record<SegmentStatus, string>>
-	width?: number
-	/** Show a marker at each stop (default: true). */
-	showStops?: boolean
-	/** Disable the click-to-open Timeline Sheet (default: false). */
-	disableInteraction?: boolean
-	/** Fires before the default Timeline Sheet opens. Return `false` to prevent the default. */
-	onSelect?: (route: RouteData) => boolean | undefined
+	/** Legend and tooltip name; one entry per route. */
+	label: string
+	/**
+	 * Waypoints in travel order, drawn as straight segments. Optional when a
+	 * `path` is supplied — a routed leg already carries its geometry.
+	 */
+	stops?: LngLat[]
+	/**
+	 * Street-following geometry that hugs the road instead of cutting straight
+	 * between waypoints — a {@link fetchOsrmRoute} / {@link fetchValhallaRoute}
+	 * result's `path`. Wins over `stops` when both are given.
+	 */
+	path?: LngLat[]
+	/** Named mark colour override; defaults to the next slot after the region categories. */
+	color?: MapSeriesColor
+	/** A trailing readout in the legend and tooltip — `'312 mi'`, `'4 h 50 m'`. */
+	detail?: string
 }
 
 /**
- * Polyline route drawn on the enclosing {@link Map}, colored per segment status,
- * with optional stop markers. Clicking the line opens a {@link MapRouteTimeline}
- * sheet unless interaction is disabled. Must render within a `Map`.
+ * A route drawn over the geography: a round-joined polyline through its
+ * stops (or along a street-following `path`), registered in the plat's
+ * legend as its own toggleable, focusable entry. Hovering the line raises
+ * the tooltip with the route's name and detail; a wide invisible hit stroke
+ * keeps the thin line aimable.
+ *
+ * @remarks Renders only inside {@link MapPlat}. Under the plat's `animate`
+ * the route draws itself in (`pathLength` 0 → 1), the same self-drawing
+ * reveal as the chart module's lines.
  */
-export function MapRoute({
-	data,
-	colors,
-	width = 4,
-	showStops = true,
-	disableInteraction = false,
-	onSelect,
-}: MapRouteProps) {
-	const reactId = useId().replace(ID_SANITIZE_RE, '-')
+export function MapRoute({ label, stops, path, color, detail }: MapRouteProps) {
+	const id = useId()
 
-	const sourceId = `map-route-src-${reactId}`
+	const { project, register, colors, hidden, emphasis, animate } = useMapPlat()
 
-	const layerId = `map-route-layer-${reactId}`
+	const { set } = useMapHover()
 
-	const hitLayerId = `${layerId}-hit`
-
-	const [open, setOpen] = useState(false)
-
-	const resolvedColors: Record<SegmentStatus, string> = useMemo(
-		() => ({
-			pending: colors?.pending ?? DEFAULT_PENDING_COLOR,
-			active: colors?.active ?? DEFAULT_ACTIVE_COLOR,
-			done: colors?.done ?? DEFAULT_DONE_COLOR,
-		}),
-		[colors?.pending, colors?.active, colors?.done],
+	useEffect(
+		() => register({ id, label, kind: 'route', swatch: 'line', color, detail }),
+		[register, id, label, color, detail],
 	)
 
-	// Layers and event listeners are registered once; this ref carries the
-	// latest prop values into both the `onReady` callback (which may fire
-	// asynchronously, after props have already changed) and the long-lived
-	// map event handlers.
-	const latestRef = useRef({ data, resolvedColors, width, disableInteraction, onSelect })
+	const slot = colors.get(id)
 
-	latestRef.current = { data, resolvedColors, width, disableInteraction, onSelect }
+	const d = linePath(path ?? stops ?? [], project)
 
-	const handleSelectRef = useRef(() => {
-		if (latestRef.current.disableInteraction) return
+	if (slot === undefined || hidden.has(id) || d === '') return null
 
-		const result = latestRef.current.onSelect?.(latestRef.current.data)
+	const paint = k.series[slot]
 
-		if (result === false) return
+	const track = (event: PointerEvent<SVGPathElement>) => {
+		set({ kind: 'entry', id }, { x: event.clientX, y: event.clientY })
+	}
 
-		setOpen(true)
-	})
-
-	useMapRouteLayers({
-		sourceId,
-		layerId,
-		hitLayerId,
-		data,
-		resolvedColors,
-		width,
-		latestRef,
-		handleSelectRef,
-	})
+	const shared = {
+		'data-slot': 'map-route',
+		d,
+		fill: 'none',
+		strokeWidth: ROUTE_STROKE_WIDTH,
+		strokeLinecap: 'round' as const,
+		strokeLinejoin: 'round' as const,
+		className: cn(paint.stroke),
+	}
 
 	return (
-		<>
-			{showStops &&
-				data.stops.map((stop) => (
-					<MapMarker
-						key={stop.id}
-						position={stop.position}
-						onClick={disableInteraction ? undefined : () => handleSelectRef.current()}
-					>
-						<StopMarker stop={stop} colors={resolvedColors} />
-					</MapMarker>
-				))}
-			<MapRouteTimeline open={open} onOpenChange={setOpen} stops={data.stops} />
-		</>
-	)
-}
-
-function StopMarker({ stop, colors }: { stop: RouteStop; colors: Record<SegmentStatus, string> }) {
-	const base =
-		stop.status === 'done' ? colors.done : stop.status === 'active' ? colors.active : colors.pending
-
-	return (
-		<Tooltip>
-			<TooltipTrigger>
-				<button
-					type="button"
-					aria-label={stop.name}
-					className="size-4.5 rounded-full border-2 shadow hover:scale-110"
-					style={{
-						backgroundColor: base,
-						borderColor: `color-mix(in oklab, ${base} 60%, black)`,
-					}}
+		<g
+			className={cn(k.group(emphasis !== null && emphasis !== id))}
+			onPointerLeave={() => set(null, null)}
+		>
+			{animate ? (
+				<motion.path
+					{...shared}
+					initial={{ pathLength: 0 }}
+					animate={{ pathLength: 1 }}
+					transition={ROUTE_DRAW}
 				/>
-			</TooltipTrigger>
-			<TooltipContent className="max-w-xs whitespace-normal">
-				<div className="font-medium">{stop.name}</div>
-				{stop.description && (
-					<div className="text-muted-foreground mt-0.5 text-xs">{stop.description}</div>
-				)}
-			</TooltipContent>
-		</Tooltip>
+			) : (
+				<path {...shared} />
+			)}
+
+			<path
+				data-slot="map-route-hit"
+				d={d}
+				fill="none"
+				stroke="transparent"
+				strokeWidth={ROUTE_HIT_WIDTH}
+				pointerEvents="stroke"
+				onPointerEnter={track}
+				onPointerMove={track}
+			/>
+		</g>
 	)
 }

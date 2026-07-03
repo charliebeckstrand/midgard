@@ -1,0 +1,146 @@
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { fetchOsrmRoute, fetchValhallaRoute } from '../../modules/map/map-routing'
+import type { LngLat } from '../../modules/map/types'
+
+const WAYPOINTS: LngLat[] = [
+	[-118.24, 34.05],
+	[-87.63, 41.88],
+]
+
+const PAYLOAD = {
+	routes: [
+		{
+			geometry: {
+				coordinates: [
+					[-118.24, 34.05],
+					[-104.99, 39.74],
+					[-87.63, 41.88],
+				],
+			},
+			distance: 3243000,
+			duration: 106200,
+		},
+	],
+}
+
+function stubFetch(response: { ok: boolean; json?: unknown }) {
+	const mock = vi.fn().mockResolvedValue({
+		ok: response.ok,
+		json: () => Promise.resolve(response.json),
+	})
+
+	vi.stubGlobal('fetch', mock)
+
+	return mock
+}
+
+afterEach(() => {
+	vi.unstubAllGlobals()
+})
+
+describe('fetchOsrmRoute', () => {
+	it('returns the geometry with its distance and duration', async () => {
+		const mock = stubFetch({ ok: true, json: PAYLOAD })
+
+		const result = await fetchOsrmRoute(WAYPOINTS)
+
+		expect(result).toEqual({
+			path: PAYLOAD.routes[0]?.geometry.coordinates,
+			distanceMeters: 3243000,
+			durationSeconds: 106200,
+		})
+
+		const url = String(mock.mock.calls[0]?.[0])
+
+		expect(url).toContain('/route/v1/driving/-118.24,34.05;-87.63,41.88')
+
+		expect(url).toContain('geometries=geojson')
+	})
+
+	it('zeroes missing totals rather than dropping the geometry', async () => {
+		stubFetch({
+			ok: true,
+			json: { routes: [{ geometry: { coordinates: WAYPOINTS } }] },
+		})
+
+		expect(await fetchOsrmRoute(WAYPOINTS)).toEqual({
+			path: WAYPOINTS,
+			distanceMeters: 0,
+			durationSeconds: 0,
+		})
+	})
+
+	it('is null under two waypoints, without calling the network', async () => {
+		const mock = stubFetch({ ok: true, json: PAYLOAD })
+
+		expect(await fetchOsrmRoute([WAYPOINTS[0] as LngLat])).toBeNull()
+
+		expect(mock).not.toHaveBeenCalled()
+	})
+
+	it('is null on a failed response', async () => {
+		stubFetch({ ok: false })
+
+		expect(await fetchOsrmRoute(WAYPOINTS)).toBeNull()
+	})
+
+	it('is null on a payload with no geometry', async () => {
+		stubFetch({ ok: true, json: { routes: [{}] } })
+
+		expect(await fetchOsrmRoute(WAYPOINTS)).toBeNull()
+	})
+
+	it('is null when the request throws', async () => {
+		vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('offline')))
+
+		expect(await fetchOsrmRoute(WAYPOINTS)).toBeNull()
+	})
+
+	it('honours a custom base URL and profile', async () => {
+		const mock = stubFetch({ ok: true, json: PAYLOAD })
+
+		await fetchOsrmRoute(WAYPOINTS, { baseUrl: 'https://osrm.internal', profile: 'cycling' })
+
+		expect(String(mock.mock.calls[0]?.[0])).toContain('https://osrm.internal/route/v1/cycling/')
+	})
+})
+
+describe('fetchValhallaRoute', () => {
+	it('POSTs OSRM-format locations and parses the same payload shape', async () => {
+		const mock = stubFetch({ ok: true, json: PAYLOAD })
+
+		const result = await fetchValhallaRoute(WAYPOINTS)
+
+		expect(result?.distanceMeters).toBe(3243000)
+
+		const [url, init] = mock.mock.calls[0] as [string, RequestInit]
+
+		expect(url).toContain('/route?format=osrm')
+
+		expect(JSON.parse(String(init.body))).toMatchObject({
+			costing: 'auto',
+			locations: [
+				{ lat: 34.05, lon: -118.24 },
+				{ lat: 41.88, lon: -87.63 },
+			],
+		})
+	})
+
+	it('maps the walking profile to pedestrian costing', async () => {
+		const mock = stubFetch({ ok: true, json: PAYLOAD })
+
+		await fetchValhallaRoute(WAYPOINTS, { profile: 'walking' })
+
+		const [, init] = mock.mock.calls[0] as [string, RequestInit]
+
+		expect(JSON.parse(String(init.body)).costing).toBe('pedestrian')
+	})
+
+	it('is null under two waypoints and on failure', async () => {
+		stubFetch({ ok: false })
+
+		expect(await fetchValhallaRoute([])).toBeNull()
+
+		expect(await fetchValhallaRoute(WAYPOINTS)).toBeNull()
+	})
+})
