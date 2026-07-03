@@ -8,14 +8,11 @@ import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../components
 import { ToggleIconButton } from '../../../components/toggle-icon-button'
 import {
 	type ChatContent,
-	ChatLayout,
 	ChatList,
 	ChatListItem,
 	ChatMessage,
 	ChatPrompt,
 	ChatTranscript,
-	type ChatTransport,
-	useChatSend,
 } from '../../../modules/chat'
 import { Example } from '../../engine'
 
@@ -25,39 +22,6 @@ const conversations = [
 	{ id: '3', title: 'Code review', timestamp: '1d' },
 	{ id: '4', title: 'Architecture design', timestamp: '3d' },
 ]
-
-// Each conversation opens on its own transcript, so selecting a row swaps the
-// messages area.
-const initialTranscripts: Record<string, ChatContent[]> = {
-	'1': [
-		{ role: 'user', content: 'Can you help me plan the kickoff?' },
-		{ role: 'agent', content: 'Of course — who will be attending?' },
-	],
-	'2': [
-		{ role: 'user', content: 'The checkout endpoint times out under load. Any ideas?' },
-		{
-			role: 'agent',
-			content:
-				'I found the root cause: the orders table is missing an index on `customer_id`, so the join falls back to a full scan.',
-		},
-	],
-	'3': [
-		{ role: 'user', content: 'Can you review the new pagination helper?' },
-		{
-			role: 'agent',
-			content:
-				'The implementation looks solid. One note: the cursor is decoded on every call — memoize it so repeated reads stay cheap.',
-		},
-	],
-	'4': [
-		{ role: 'user', content: 'Should we split the monolith into services now?' },
-		{
-			role: 'agent',
-			content:
-				'Here are the trade-offs. Extracting the billing boundary first buys the most isolation for the least churn.',
-		},
-	],
-}
 
 const transcript: ChatContent[] = [
 	{ id: '1', role: 'user', content: 'Can you help me plan the project kickoff meeting?' },
@@ -73,28 +37,6 @@ const transcript: ChatContent[] = [
 	},
 ]
 
-// A mock transport that streams a canned reply word by word, emitting the
-// cumulative text on each tick (the snapshot shape ChatTransport expects).
-// Checks `signal` between words so the demo's stop control has something real
-// to cancel.
-const mockTransport: ChatTransport = (_content, signal) =>
-	(async function* () {
-		const reply =
-			'Thanks for sharing that. Here is a streamed reply so the transcript scrolls and the prompt toggles to its stop control while a response is in flight.'
-
-		let snapshot = ''
-
-		for (const word of reply.split(' ')) {
-			if (signal.aborted) return
-
-			snapshot = snapshot ? `${snapshot} ${word}` : word
-
-			await new Promise((resolve) => setTimeout(resolve, 50))
-
-			yield snapshot
-		}
-	})()
-
 function ConversationList() {
 	const [current, setCurrent] = useState('1')
 
@@ -109,43 +51,6 @@ function ConversationList() {
 				/>
 			))}
 		</ChatList>
-	)
-}
-
-function LayoutDemo() {
-	const [transcripts, setTranscripts] = useState(initialTranscripts)
-
-	const [currentId, setCurrentId] = useState('1')
-
-	const { messages, sending, send, stop, setMessages } = useChatSend({
-		transport: mockTransport,
-		initialMessages: initialTranscripts['1'],
-	})
-
-	// Stash the live transcript under the outgoing id, then load the target's.
-	function openConversation(id: string) {
-		if (id === currentId) return
-
-		setTranscripts((prev) => ({ ...prev, [currentId]: messages }))
-
-		setMessages(transcripts[id] ?? [])
-
-		setCurrentId(id)
-	}
-
-	return (
-		<div className="h-96">
-			<ChatLayout
-				messages={messages}
-				sending={sending}
-				onSend={send}
-				onStop={stop}
-				conversations={conversations}
-				currentConversationId={currentId}
-				onConversationSelect={openConversation}
-				aria-label="Message the assistant"
-			/>
-		</div>
 	)
 }
 
@@ -221,7 +126,6 @@ export function Demo() {
 				<Tab value="Prompt">Prompt</Tab>
 				<Tab value="Transcript">Transcript</Tab>
 				<Tab value="Conversations">Conversations</Tab>
-				<Tab value="Layout">Layout</Tab>
 			</TabList>
 			<TabContents fade={false}>
 				<TabContent value="Message">
@@ -310,12 +214,6 @@ export function Demo() {
 				<TabContent value="Conversations">
 					<Example title="Conversation list">
 						<ConversationList />
-					</Example>
-				</TabContent>
-
-				<TabContent value="Layout">
-					<Example title="Full composition">
-						<LayoutDemo />
 					</Example>
 				</TabContent>
 			</TabContents>
