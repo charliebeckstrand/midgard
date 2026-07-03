@@ -1,7 +1,14 @@
 'use client'
 
 import { type HTMLMotionProps, motion } from 'motion/react'
-import { Activity, type ComponentPropsWithoutRef, type Ref, useRef } from 'react'
+import {
+	Activity,
+	type ComponentPropsWithoutRef,
+	type Ref,
+	useCallback,
+	useRef,
+	useState,
+} from 'react'
 import { dataAttr } from '../../core'
 import { k } from '../../recipes/kata/current'
 import {
@@ -10,6 +17,7 @@ import {
 	useCurrentFade,
 	useCurrentMount,
 	useCurrentPanelActive,
+	useCurrentSettled,
 } from './current'
 
 export type CurrentContentProps = ComponentPropsWithoutRef<'div'> & {
@@ -22,12 +30,44 @@ export type CurrentContentProps = ComponentPropsWithoutRef<'div'> & {
 }
 
 /**
+ * Exit hold for a panel whose mount policy would unmount it the instant it
+ * stops being current: latches when `current` flips off while `hold` applies,
+ * keeping the outgoing panel mounted so its fade-out can play; `release` clears
+ * the latch once that animation completes. The previous-value comparison runs
+ * in render (React's adjust-state-during-render form) so the hold takes effect
+ * in the same pass that would otherwise have unmounted the panel.
+ */
+function useExitHold(current: boolean, hold: boolean): [boolean, () => void] {
+	const [previousCurrent, setPreviousCurrent] = useState(current)
+
+	const [exiting, setExiting] = useState(false)
+
+	if (previousCurrent !== current) {
+		setPreviousCurrent(current)
+
+		setExiting(!current && hold)
+	}
+
+	// The latch is only valid while its conditions are: if the container stops
+	// fading (or the mount policy changes) mid-exit, release now — no animation
+	// completion will arrive to do it.
+	if (exiting && !hold) setExiting(false)
+
+	const release = useCallback(() => setExiting(false), [])
+
+	return [exiting, release]
+}
+
+/**
  * Per-panel wrapper that renders when its `value` matches the surrounding
  * `CurrentContext`. The surrounding `CurrentContents` sets the mount policy: a
  * fading container animates opacity in place; a non-fading one holds inactive
  * panels via `<Activity mode="hidden">` (state preserved, effects paused),
  * lazily mounts them on first activation, or unmounts them, per its resolved
- * `mount`.
+ * `mount`. Under a fading container the lifecycle edges ride the cross-fade:
+ * a panel mounting after the container settles enters from transparent, and an
+ * `active`-mounted outgoing panel holds its unmount until the fade-out
+ * completes.
  */
 export function CurrentContent({
 	slotPrefix,
@@ -43,6 +83,8 @@ export function CurrentContent({
 	const fade = useCurrentFade()
 
 	const mount = useCurrentMount()
+
+	const settled = useCurrentSettled()
 
 	const inheritedActive = useCurrentPanelActive()
 
@@ -60,9 +102,16 @@ export function CurrentContent({
 
 	if (current) hasBeenCurrent.current = true
 
+	// Under a fading container, an `active`-mounted outgoing panel defers its
+	// unmount until the fade-out completes, so switching cross-fades instead of
+	// snapping the outgoing panel away.
+	const [exiting, releaseExit] = useExitHold(current, fade && mount === 'active')
+
 	// Lifecycle gate — which panels exist in the tree. `always` keeps all; `lazy`
-	// waits for first activation; `active` keeps only the current panel.
-	const present = mount === 'always' || current || (mount === 'lazy' && hasBeenCurrent.current)
+	// waits for first activation; `active` keeps only the current panel, plus
+	// the outgoing one while its fade-out plays.
+	const present =
+		mount === 'always' || current || (mount === 'lazy' && hasBeenCurrent.current) || exiting
 
 	if (!present) return null
 
@@ -97,8 +146,16 @@ export function CurrentContent({
 			data-slot={`${slotPrefix}-content`}
 			data-current={dataAttr(current)}
 			animate={current ? { opacity: 1 } : { opacity: 0 }}
-			initial={false}
+			// A panel mounting after the container settles enters from
+			// transparent; panels in the container's first render skip the
+			// entrance so nothing fades on load.
+			initial={settled?.current ? { opacity: 0 } : false}
 			transition={k.transition}
+			// Entrance completions arrive while still current and pass through;
+			// only a landed fade-out releases the exit hold.
+			onAnimationComplete={() => {
+				if (!current) releaseExit()
+			}}
 			// Caller style is preserved under the positioning keys, matching the
 			// non-fade branch; the positioning wins on collision.
 			style={
