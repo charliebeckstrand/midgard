@@ -166,9 +166,11 @@ export function AreaChart<T>({
 						hidden={chart.hidden}
 						onToggle={chart.toggleSeries}
 						onFocus={chart.setEmphasis}
+						panel={legend === 'left' || legend === 'right'}
 					/>
 				)
 			}
+			legendPlacement={typeof legend === 'string' ? legend : undefined}
 			readout={chart.readout}
 			tooltip={tooltip}
 			className={className}

@@ -8,7 +8,7 @@ import type { PlotRect } from './chart-layout'
 import { ChartTable } from './chart-table'
 import { ChartTooltip } from './chart-tooltip'
 import { type ChartHover, ChartHoverContext, type ChartPoint } from './context'
-import type { ChartReadout } from './types'
+import type { ChartLegendPlacement, ChartReadout } from './types'
 
 /** Props for {@link ChartFrame}; the accessible name spreads onto the `role="img"` plot region. @internal */
 export type ChartFrameProps = AccessibleName & {
@@ -33,11 +33,12 @@ export type ChartFrameProps = AccessibleName & {
 	/** The prepared legend row, or `null` to omit it (single series). */
 	legend: ReactNode
 	/**
-	 * Where the legend sits: the centered row above the plot, or a static panel
-	 * beside it — side by side from `lg`, always under the chart below it.
-	 * @defaultValue 'top'
+	 * Where the legend sits: a centered row under or above the plot, or a
+	 * static panel beside it — side by side from `lg`, always under the chart
+	 * below it.
+	 * @defaultValue 'bottom'
 	 */
-	legendPlacement?: 'top' | 'left' | 'right'
+	legendPlacement?: ChartLegendPlacement
 	/** The values behind the marks, or `null` when there is nothing to read. */
 	readout: ChartReadout | null
 	/** Mount the hover tooltip. */
@@ -66,7 +67,7 @@ export function ChartFrame({
 	reserveAspect,
 	plot,
 	legend,
-	legendPlacement = 'top',
+	legendPlacement = 'bottom',
 	readout,
 	tooltip,
 	className,
@@ -96,13 +97,15 @@ export function ChartFrame({
 		</svg>
 	)
 
+	const aside = legendPlacement === 'left' || legendPlacement === 'right'
+
 	const plotRegion = (
 		<div
 			ref={ref}
 			data-slot="chart-plot"
 			role="img"
 			{...label}
-			className={cn('relative', legendPlacement !== 'top' && 'min-w-0 flex-1')}
+			className={cn('relative', aside && 'min-w-0 flex-1')}
 		>
 			{/* AspectRatio reserves the box height from its own width — steady
 			    before the width is measured and across animation replays — while
@@ -123,23 +126,17 @@ export function ChartFrame({
 	return (
 		<div
 			data-slot="chart"
-			className={cn('block', fixedWidth === undefined && 'w-full', className)}
+			className={cn('flex flex-col gap-2', fixedWidth === undefined && 'w-full', className)}
 			style={fixedWidth === undefined ? undefined : { width: fixedWidth }}
 		>
 			<ChartHoverContext value={hover}>
-				{legendPlacement === 'top' ? (
-					<>
-						{legend}
-
-						{plotRegion}
-					</>
-				) : (
+				{aside ? (
 					// The panel and plot sit side by side from lg; below it they stack
 					// with the panel always under the chart, so a left panel reverses
 					// the row instead of moving in the DOM.
 					<div
 						className={cn(
-							'flex flex-col gap-4 lg:items-center',
+							'flex flex-col gap-2 lg:items-center',
 							legendPlacement === 'left' ? 'lg:flex-row-reverse' : 'lg:flex-row',
 						)}
 					>
@@ -147,6 +144,14 @@ export function ChartFrame({
 
 						{legend}
 					</div>
+				) : (
+					<>
+						{legendPlacement === 'top' && legend}
+
+						{plotRegion}
+
+						{legendPlacement === 'bottom' && legend}
+					</>
 				)}
 			</ChartHoverContext>
 

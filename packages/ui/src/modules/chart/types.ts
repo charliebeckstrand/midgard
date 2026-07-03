@@ -67,6 +67,13 @@ export type ChartReadout = {
 }
 
 /**
+ * Where a chart's legend sits around the plot: a centered row above or below
+ * it, or a column panel beside it — side by side from `lg`, under the chart
+ * below that.
+ */
+export type ChartLegendPlacement = 'top' | 'bottom' | 'left' | 'right'
+
+/**
  * The hover crosshair a cartesian chart draws — always opt-in, never on by
  * default. `x` is a horizontal rule across the value axis, `y` a vertical rule
  * down the category axis; set either or both. Without `snap` each rule tracks
@@ -123,9 +130,12 @@ export type CartesianChartProps<T> = AccessibleName & {
 	gridLines?: boolean
 	/**
 	 * Show the legend. Defaults to on for two or more series and off for one —
-	 * a single series is already named by the chart's accessible name.
+	 * a single series is already named by the chart's accessible name. A
+	 * placement moves it: a centered row under the plot (`'bottom'`, the
+	 * default) or above it (`'top'`), or a column panel beside it (`'left'` /
+	 * `'right'`), side by side from `lg` and under the chart below that.
 	 */
-	legend?: boolean
+	legend?: boolean | ChartLegendPlacement
 	/**
 	 * Show the hover tooltip listing every series at the pointed category.
 	 * @defaultValue true

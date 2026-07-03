@@ -159,6 +159,24 @@ describe('PieChart', () => {
 		)
 	})
 
+	it('sets the legend under the plot by default, above with legend="top"', () => {
+		const bottom = renderUI(chart())
+
+		const plot = bySlot(bottom.container, 'chart-plot') as Element
+
+		const legend = bySlot(bottom.container, 'chart-legend') as Element
+
+		expect(plot.compareDocumentPosition(legend) & 4).toBeTruthy()
+
+		const top = renderUI(chart({ legend: 'top' }))
+
+		expect(
+			(bySlot(top.container, 'chart-legend') as Element).compareDocumentPosition(
+				bySlot(top.container, 'chart-plot') as Element,
+			) & 4,
+		).toBeTruthy()
+	})
+
 	it('sets the legend beside the plot as a share panel with legend="right"', () => {
 		const { container } = renderUI(chart({ legend: 'right' }))
 

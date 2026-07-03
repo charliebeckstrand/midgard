@@ -73,7 +73,7 @@ export function ChartLegend({ items, hidden, onToggle, onFocus, panel = false }:
 			className={cn(
 				panel
 					? 'flex flex-col items-start gap-1'
-					: 'mb-2 flex flex-wrap items-center justify-center gap-x-2 gap-y-1',
+					: 'flex flex-wrap items-center justify-center gap-x-2 gap-y-1',
 			)}
 		>
 			{items.map((item, index) => {

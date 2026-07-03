@@ -7,4 +7,10 @@ export { ComboChart, type ComboChartProps } from './combo-chart'
 export { DonutChart, type DonutChartProps } from './donut-chart'
 export { LineChart, type LineChartProps, type LineInterpolation } from './line-chart'
 export { PieChart, type PieChartProps } from './pie-chart'
-export type { ChartSeries, ComboChartSeries, DataKey } from './types'
+export type {
+	ChartLegendPlacement,
+	ChartSeries,
+	ComboChartSeries,
+	Crosshair,
+	DataKey,
+} from './types'

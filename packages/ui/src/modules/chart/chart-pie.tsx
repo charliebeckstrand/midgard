@@ -25,7 +25,7 @@ import {
 	pieSlices,
 	segmentLabelFits,
 } from './pie-chart/pie-chart-geometry'
-import type { ChartReadout, DataKey } from './types'
+import type { ChartLegendPlacement, ChartReadout, DataKey } from './types'
 import { useChartAnimationKey } from './use-chart-animation-key'
 import { useChartPlot } from './use-chart-plot'
 import { useChartSeriesToggle } from './use-chart-series-toggle'
@@ -54,14 +54,15 @@ export type PieBaseProps<T> = AccessibleName & {
 	aspectRatio?: ChartAspectRatio
 	/**
 	 * Show the legend. Defaults to on for two or more slices — the identity
-	 * channel colour alone must never carry. `'left'` or `'right'` sets it
-	 * beside the plot as a static label panel instead of the centered row:
-	 * entries gain the slice's live share and stack as a single column, side
-	 * by side with the chart from `lg` and under it below. The panel keeps
-	 * the row legend's full interactivity — hovering dims the other slices,
-	 * clicking toggles, and the arrow keys rove.
+	 * channel colour alone must never carry. A placement moves the centered
+	 * row under the plot (`'bottom'`, the default) or above it (`'top'`);
+	 * `'left'` or `'right'` sets it beside the plot as a static label panel
+	 * instead: entries gain the slice's live share and stack as a single
+	 * column, side by side with the chart from `lg` and under it below. Every
+	 * placement keeps the legend's full interactivity — hovering dims the
+	 * other slices, clicking toggles, and the arrow keys rove.
 	 */
-	legend?: boolean | 'left' | 'right'
+	legend?: boolean | ChartLegendPlacement
 	/**
 	 * Show the hover tooltip naming the pointed slice.
 	 * @defaultValue true
@@ -565,10 +566,10 @@ export function ChartPie<T>({
 
 	const readout = pieReadout(labels, paints, String(value), values, format)
 
-	const panel = typeof legend === 'string' ? legend : null
+	const aside = legend === 'left' || legend === 'right'
 
 	const legendItems =
-		(legend ?? data.length > 1) ? pieLegendItems(labels, paints, sliceValues, panel !== null) : null
+		(legend ?? data.length > 1) ? pieLegendItems(labels, paints, sliceValues, aside) : null
 
 	const labelItems = segmentLabelItems({
 		kind: segmentLabels === true ? 'percent' : segmentLabels,
@@ -624,11 +625,11 @@ export function ChartPie<T>({
 						hidden={hidden}
 						onToggle={toggle}
 						onFocus={setFocus}
-						panel={panel !== null}
+						panel={aside}
 					/>
 				)
 			}
-			legendPlacement={panel ?? 'top'}
+			legendPlacement={typeof legend === 'string' ? legend : undefined}
 			readout={readout}
 			tooltip={tooltip}
 			className={className}
