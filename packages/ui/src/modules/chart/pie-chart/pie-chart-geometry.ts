@@ -28,6 +28,15 @@ export type PieSlicesOptions = {
 	 * @defaultValue 0
 	 */
 	innerRadius?: number
+	/**
+	 * The gap between neighbouring slices, in px at the outer radius. Each slice
+	 * recedes half of it from both edges, so the real surface behind the chart
+	 * shows through — no painted separator to mismatch a tinted card. The gap
+	 * tapers with radius, closing at a pie's center and staying open on a
+	 * donut's ring. `0` sweeps slices flush.
+	 * @defaultValue 0
+	 */
+	pad?: number
 }
 
 /** The point at `angle` degrees (0 at the top, clockwise) on a circle. @internal */
@@ -117,7 +126,7 @@ function slicePath(
  */
 export function pieSlices(
 	values: (number | null)[],
-	{ cx, cy, radius, innerRadius = 0 }: PieSlicesOptions,
+	{ cx, cy, radius, innerRadius = 0, pad = 0 }: PieSlicesOptions,
 ): PieSlice[] {
 	const shares = values.map((value) => (value !== null && value > 0 ? value : 0))
 
@@ -126,6 +135,10 @@ export function pieSlices(
 	if (total <= 0) return []
 
 	const positive = shares.filter((share) => share > 0).length
+
+	// The rim gap as an angle; halved onto each edge, never eating over a third
+	// of a sliver so thin slices survive.
+	const padDegrees = positive > 1 && radius > 0 ? (pad / radius) * (180 / Math.PI) : 0
 
 	const slices: PieSlice[] = []
 
@@ -140,12 +153,14 @@ export function pieSlices(
 
 		const mid = angle + sweep / 2
 
+		const inset = Math.min(padDegrees / 2, sweep * 0.35)
+
 		slices.push({
 			index,
 			d:
 				positive === 1
 					? fullCircle(cx, cy, radius, innerRadius)
-					: slicePath(cx, cy, radius, innerRadius, angle, angle + sweep),
+					: slicePath(cx, cy, radius, innerRadius, angle + inset, angle + sweep - inset),
 			share: fraction,
 			centroid: at(cx, cy, pieCentroidRadius(radius, innerRadius, fraction), mid),
 		})

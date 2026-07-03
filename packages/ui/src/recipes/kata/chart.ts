@@ -120,8 +120,6 @@ export const k = {
 	axis: mode('stroke-zinc-300', 'dark:stroke-zinc-700'),
 	/** SVG tick-label ink: muted, tabular for vertical alignment. */
 	tick: ['text-xs', 'tabular-nums', ...mode('fill-zinc-500', 'dark:fill-zinc-400')],
-	/** Surface-colour separator: the pie-slice gap stroke. */
-	gap: mode('stroke-white', 'dark:stroke-zinc-900'),
 	/** Point-marker ring: white in both modes, so a dot stays legible crossing any line or fill. */
 	pointRing: mode('stroke-white', 'dark:stroke-white'),
 	/** Legend / tooltip label ink (HTML text; marks carry the colour, text never does). */

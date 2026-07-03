@@ -210,13 +210,12 @@ type PieChartMarksProps = {
 }
 
 /**
- * The slice paths. Slices are their own hit targets — pointing one moves the
- * shared hover index, and the 2px surface-colour stroke keeps neighbours
- * separated at every radius.
+ * The slice paths — clean fills with no separator stroke. Slices are their own
+ * hit targets: pointing one moves the shared hover index. The gap between
+ * neighbours is geometric, cut into the arc angles by {@link pieSlices}, so the
+ * real surface behind the chart shows through it — nothing painted to mismatch
+ * a tinted or glass card.
  *
- * @remarks `paint-order: stroke` paints each slice's stroke under its own
- * fill, so the separator only shows in the gap between neighbours and never
- * bites into the solid face — the fill keeps its full radius to the arc edge.
  * @internal
  */
 function PieChartMarks({ slices, paints, animate, emphasis }: PieChartMarksProps) {
@@ -228,9 +227,7 @@ function PieChartMarks({ slices, paints, animate, emphasis }: PieChartMarksProps
 				const shared = {
 					'data-slot': 'chart-slice',
 					d: slice.d,
-					strokeWidth: MARK_GAP * 2,
-					paintOrder: 'stroke' as const,
-					className: cn(paints[slice.index]?.fill, k.gap, 'hover:brightness-110'),
+					className: cn(paints[slice.index]?.fill, 'hover:brightness-110'),
 					onPointerEnter: () => set(slice.index, slice.centroid),
 					onPointerMove: (event: PointerEvent<SVGPathElement>) => {
 						const box = event.currentTarget.ownerSVGElement?.getBoundingClientRect()
@@ -262,11 +259,11 @@ function PieChartMarks({ slices, paints, animate, emphasis }: PieChartMarksProps
 
 /**
  * The shared pie / donut engine: sweeps one dataset's positive shares into
- * slices clockwise from the top, separated by surface-colour gaps, with a
- * legend naming every slice, a per-slice hover tooltip, fit-gated segment
- * labels, and a visually-hidden data table. {@link PieChart} passes
- * `innerRatio: 0`; {@link DonutChart} passes a positive ratio and center
- * `children`.
+ * slices clockwise from the top, separated by geometric gaps that show the
+ * surface through, with a legend naming every slice, a per-slice hover
+ * tooltip, fit-gated segment labels, and a visually-hidden data table.
+ * {@link PieChart} passes `innerRatio: 0`; {@link DonutChart} passes a positive
+ * ratio and center `children`.
  *
  * @internal
  */
@@ -320,6 +317,7 @@ export function ChartPie<T>({
 					cy: frameHeight / 2,
 					radius,
 					innerRadius,
+					pad: MARK_GAP * 2,
 				})
 			: []
 

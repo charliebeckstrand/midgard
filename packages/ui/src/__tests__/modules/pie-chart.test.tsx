@@ -221,4 +221,26 @@ describe('pieSlices', () => {
 	it('returns nothing when no value is positive', () => {
 		expect(pieSlices([0, null, -3], FRAME)).toHaveLength(0)
 	})
+
+	it('insets neighbours by a pad without moving their anchors', () => {
+		const flush = pieSlices([50, 50], FRAME)
+
+		const padded = pieSlices([50, 50], { ...FRAME, pad: 6 })
+
+		expect(padded).toHaveLength(2)
+
+		// The gap reshapes the wedge but leaves the label/tooltip centroid put.
+		expect(padded[0]?.centroid).toEqual(flush[0]?.centroid)
+
+		expect(padded[0]?.d).not.toBe(flush[0]?.d)
+	})
+
+	it('never pads a lone full-circle slice', () => {
+		const [only] = pieSlices([0, 42], { ...FRAME, pad: 6 })
+
+		// Still two half arcs, no wedge line to the center.
+		expect(only?.d).not.toContain('L')
+
+		expect((only?.d.match(/A /g) ?? []).length).toBe(2)
+	})
 })
