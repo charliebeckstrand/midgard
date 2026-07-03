@@ -173,12 +173,33 @@ describe('MapPlat', () => {
 
 		expect(box?.getAttribute('class')).toContain('lg:w-48')
 
-		expect(bySlot(container, 'map-legend')?.getAttribute('class')).toContain('flex-col')
+		// The side panel collapses to a single column beside the map from lg.
+		expect(bySlot(container, 'map-legend')?.getAttribute('class')).toContain('lg:grid-cols-1')
 
 		// Row placements reserve one item-row of height instead.
 		const row = renderUI(plat({ legend: 'top' }))
 
 		expect(bySlot(row.container, 'map-legend-box')?.getAttribute('class')).toContain('min-h-4')
+	})
+
+	it('lays the under-map legend out as a centered grid with larger text below lg', () => {
+		const { container } = renderUI(plat())
+
+		const legend = bySlot(container, 'map-legend')
+
+		// Fully stacked below sm, an even two columns from sm, centered as a block.
+		expect(legend?.getAttribute('class')).toContain('grid-cols-1')
+
+		expect(legend?.getAttribute('class')).toContain('sm:grid-cols-2')
+
+		expect(legend?.getAttribute('class')).toContain('mx-auto')
+
+		// The button text enlarges below lg and returns to the compact size at lg.
+		const label = bySlot(container, 'map-legend-item')?.querySelector('span:nth-child(2)')
+
+		expect(label?.getAttribute('class')).toContain('text-lg')
+
+		expect(label?.getAttribute('class')).toContain('lg:text-xs')
 	})
 
 	it('toggles a category off: neutral fill, struck legend text, pressed off', () => {
