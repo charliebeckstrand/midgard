@@ -13,9 +13,10 @@ export type ChartCrosshairProps = {
 }
 
 /**
- * The vertical hairline tracking the hovered category on line and combo
- * charts, snapped to the band center so readers aim at a category, never at
- * a 2px line. Reads only the hover context, so it re-renders alone.
+ * The vertical dashed guide tracking the hovered category — the `y` line of a
+ * chart's `guideLine`. Snapped to the band center so readers aim at a category,
+ * never at a 2px mark, and dashed to match the horizontal `x` guide. Reads only
+ * the hover context, so it re-renders alone.
  *
  * @internal
  */
@@ -34,6 +35,7 @@ export function ChartCrosshair({ plot, xs }: ChartCrosshairProps) {
 			x2={x}
 			y2={plot.y + plot.height}
 			strokeWidth={1}
+			strokeDasharray="4 4"
 			shapeRendering="crispEdges"
 			className={cn(k.axis)}
 		/>

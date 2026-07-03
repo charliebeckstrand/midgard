@@ -59,6 +59,9 @@ describe('LineChart', () => {
 
 		expect(crosshair).not.toBeNull()
 
+		// Dashed, matching the horizontal x guide.
+		expect(crosshair?.getAttribute('stroke-dasharray')).toBe('4 4')
+
 		expect(bySlot(container, 'chart-tooltip')?.textContent).toContain('W1')
 	})
 
