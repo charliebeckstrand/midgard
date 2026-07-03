@@ -33,17 +33,33 @@ vi.mock('motion/react', async () => {
 		return clean
 	}
 
+	// One component per tag, cached: a fresh identity per `motion.<tag>` access
+	// would change the element type on every re-render, silently remounting the
+	// subtree under it and corrupting any bench that re-renders a mounted tree.
+	const components = new Map<string, unknown>()
+
 	const handler: ProxyHandler<object> = {
 		get(_, tag: string) {
-			return forwardRef((props: Record<string, unknown>, ref: unknown) =>
-				createElement(tag, { ref, ...stripMotionProps(props) }),
-			)
+			if (!components.has(tag)) {
+				components.set(
+					tag,
+					forwardRef((props: Record<string, unknown>, ref: unknown) =>
+						createElement(tag, { ref, ...stripMotionProps(props) }),
+					),
+				)
+			}
+
+			return components.get(tag)
 		},
 	}
 
 	const motion = new Proxy({}, handler)
 
 	function AnimatePresence({ children }: { children: ReactNode }) {
+		return children
+	}
+
+	function MotionConfig({ children }: { children: ReactNode }) {
 		return children
 	}
 
@@ -66,7 +82,7 @@ vi.mock('motion/react', async () => {
 		}
 	}
 
-	return { motion, AnimatePresence, LayoutGroup, useAnimate, useMotionValue }
+	return { motion, AnimatePresence, LayoutGroup, MotionConfig, useAnimate, useMotionValue }
 })
 
 // Browser shims, installed only in jsdom runs. Pure-logic benchmark files

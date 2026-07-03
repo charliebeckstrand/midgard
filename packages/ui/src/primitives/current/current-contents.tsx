@@ -12,7 +12,7 @@ import {
 	CurrentSettledContext,
 	resolveMount,
 } from './current'
-import { useCurrentContentsHeight } from './use-current-contents-height'
+import { useCurrentContentsMorph } from './use-current-contents-morph'
 
 export type CurrentContentsProps = ComponentPropsWithoutRef<'div'> & {
 	/** Slot prefix stamped as `data-slot="<slotPrefix>-contents"`; pairs with `CurrentContent` siblings. */
@@ -47,13 +47,16 @@ export type CurrentContentsProps = ComponentPropsWithoutRef<'div'> & {
 }
 
 /**
- * Outer container for the current-panel cascade. When `fade` is true, animates
- * height between the active `CurrentContent` and the surrounding box, and
- * signals its `CurrentContent` children to fade in place. When `fade` is false,
- * renders a plain wrapper. Either way it broadcasts the resolved {@link CurrentMount}
- * policy so `CurrentContent` knows whether to keep, lazily mount, or unmount
- * unmatched children; a fading container also broadcasts its post-mount latch
- * so late-mounting panels enter from transparent.
+ * Outer container for the current-panel cascade. When `fade` is true, the box
+ * rests at `height: auto` and animates height only across discrete changes —
+ * a panel switch, or content growing in place — then hands the height back to
+ * layout, so a window resize reflows the box without re-rendering anything.
+ * It also signals its `CurrentContent` children to fade in place. When `fade`
+ * is false, renders a plain wrapper. Either way it broadcasts the resolved
+ * {@link CurrentMount} policy so `CurrentContent` knows whether to keep,
+ * lazily mount, or unmount unmatched children; a fading container also
+ * broadcasts its post-mount latch so late-mounting panels enter from
+ * transparent.
  */
 export function CurrentContents({
 	slotPrefix,
@@ -65,7 +68,7 @@ export function CurrentContents({
 }: CurrentContentsProps) {
 	const containerRef = useRef<HTMLDivElement>(null)
 
-	const height = useCurrentContentsHeight(containerRef, fade)
+	const { morphTo, release } = useCurrentContentsMorph(containerRef, fade)
 
 	const resolvedMount = resolveMount(fade, mount)
 
@@ -97,12 +100,15 @@ export function CurrentContents({
 			<CurrentMountContext value={resolvedMount}>
 				<CurrentSettledContext value={settledRef}>
 					<ReducedMotion>
+						{/* At rest the height target is `auto`, so completed and cancelled
+						    morphs alike settle the box back into layout's hands. */}
 						<motion.div
 							ref={containerRef}
 							data-slot={`${slotPrefix}-contents`}
-							animate={height !== undefined ? { height } : undefined}
+							animate={{ height: morphTo ?? 'auto' }}
 							initial={false}
 							transition={k.transition}
+							onAnimationComplete={morphTo === null ? undefined : release}
 							className={cn('relative overflow-hidden', className)}
 						>
 							{children}

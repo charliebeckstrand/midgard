@@ -64,15 +64,13 @@ const Marks = memo(function Marks({
 function Probe({
 	width,
 	sizing,
-	settleMs,
 	onMarks,
 }: {
 	width: number | undefined
 	sizing: FrameSizing
-	settleMs?: number
 	onMarks: () => void
 }) {
-	const plot = usePlotFrame(width, sizing, settleMs)
+	const plot = usePlotFrame(width, sizing)
 
 	return (
 		<div ref={plot.ref} data-testid="plot">
@@ -152,47 +150,33 @@ describe('usePlotFrame', () => {
 		expect(screen.getByTestId('marks').getAttribute('data-height')).toBe('300')
 	})
 
-	it('commits the first real size immediately, then coalesces resizes into one settle', () => {
-		vi.useFakeTimers()
-
+	it('tracks resize notifications live and swallows the ones that change nothing', () => {
 		const onMarks = vi.fn()
 
-		renderUI(
-			<Probe
-				width={undefined}
-				sizing={{ mode: 'aspect', ratio: 2 }}
-				settleMs={200}
-				onMarks={onMarks}
-			/>,
-		)
+		renderUI(<Probe width={undefined} sizing={{ mode: 'aspect', ratio: 2 }} onMarks={onMarks} />)
 
 		const plot = screen.getByTestId('plot')
 
-		// The first real width lands without waiting out the settle window — a
-		// frame revealed after mount must paint at once.
 		resizeTo(plot, { width: 300, height: 0 })
 
 		expect(screen.getByTestId('marks').getAttribute('data-width')).toBe('300')
 
-		const drawsAfterFirst = onMarks.mock.calls.length
-
-		// A resize burst: nothing commits while notifications keep arriving.
+		// Each changed size commits as it arrives — no settle window, no timers —
+		// so the final notification's size is already the drawn one.
 		resizeTo(plot, { width: 320, height: 0 })
+
+		expect(screen.getByTestId('marks').getAttribute('data-width')).toBe('320')
 
 		resizeTo(plot, { width: 360, height: 0 })
 
-		expect(onMarks).toHaveBeenCalledTimes(drawsAfterFirst)
-
-		expect(screen.getByTestId('marks').getAttribute('data-width')).toBe('300')
-
-		// The quiet window elapses: one commit, at the final size.
-		act(() => {
-			vi.advanceTimersByTime(200)
-		})
-
 		expect(screen.getByTestId('marks').getAttribute('data-width')).toBe('360')
 
-		expect(onMarks).toHaveBeenCalledTimes(drawsAfterFirst + 1)
+		const drawsAfterBurst = onMarks.mock.calls.length
+
+		// An unchanged size is equality-guarded out: no re-render at all.
+		resizeTo(plot, { width: 360, height: 0 })
+
+		expect(onMarks).toHaveBeenCalledTimes(drawsAfterBurst)
 	})
 
 	it('redraws on a height change under a fill policy', () => {

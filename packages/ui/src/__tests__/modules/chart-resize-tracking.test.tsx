@@ -4,12 +4,11 @@ import { PieChart } from '../../modules/chart/pie-chart'
 import { act, bySlot, mockDomGeometry, renderUI } from '../helpers'
 
 /**
- * Charts pass `RESIZE_SETTLE_MS` to `usePlotFrame`, so a resize burst rebuilds
- * their scales and mark geometry once — after the size settles — rather than on
- * every `ResizeObserver` frame. The plot's `viewBox` carries the committed
- * frame width, so it is the faithful signal for "the frame re-rendered": it
- * holds through the burst (the SVG scaling through it meanwhile) and moves once
- * the quiet window elapses.
+ * Charts track their container live: every resize notification the frame
+ * measures commits through a transition, so the drawn geometry follows the
+ * box with no settle window and no timers — the final size lands the moment
+ * its notification does. The plot's `viewBox` carries the committed frame
+ * width, so it is the faithful signal for what the marks were built against.
  */
 
 type StubInstance = {
@@ -52,19 +51,15 @@ const DATA = [
 	{ x: 'Q3', y: 65 },
 ]
 
-describe('chart resize settle', () => {
+describe('chart resize tracking', () => {
 	let stub: ReturnType<typeof installResizeObserverStub>
 
 	beforeEach(() => {
-		vi.useFakeTimers()
-
 		stub = installResizeObserverStub()
 	})
 
 	afterEach(() => {
 		stub.restore()
-
-		vi.useRealTimers()
 	})
 
 	/** Reports a container width to the chart through its captured observer. */
@@ -90,7 +85,7 @@ describe('chart resize settle', () => {
 			?.split(' ')[2]
 	}
 
-	it('coalesces a cartesian chart resize burst into one commit', () => {
+	it('tracks a cartesian chart resize burst live, landing the final width without timers', () => {
 		const { container } = renderUI(
 			<BarChart
 				aria-label="Values by quarter"
@@ -100,28 +95,23 @@ describe('chart resize settle', () => {
 			/>,
 		)
 
-		// The first real width paints at once — a frame revealed after mount must
-		// not hold its first paint through the settle window.
+		// The first real width paints at once.
 		resizeTo(container, 300)
 
 		expect(frameWidth(container)).toBe('300')
 
-		// A resize burst: the committed frame holds while notifications arrive.
+		// Each notification commits: the geometry follows the container with no
+		// quiet window holding it at a stale size.
 		resizeTo(container, 320)
 
+		expect(frameWidth(container)).toBe('320')
+
 		resizeTo(container, 360)
-
-		expect(frameWidth(container)).toBe('300')
-
-		// The quiet window elapses: one commit, at the final size.
-		act(() => {
-			vi.advanceTimersByTime(200)
-		})
 
 		expect(frameWidth(container)).toBe('360')
 	})
 
-	it('coalesces a pie chart resize burst into one commit', () => {
+	it('tracks a pie chart resize burst live, landing the final width without timers', () => {
 		const { container } = renderUI(
 			<PieChart
 				aria-label="Share by quarter"
@@ -137,14 +127,33 @@ describe('chart resize settle', () => {
 
 		resizeTo(container, 320)
 
+		expect(frameWidth(container)).toBe('320')
+
 		resizeTo(container, 360)
+
+		expect(frameWidth(container)).toBe('360')
+	})
+
+	it('holds the committed frame through a notification that changes nothing', () => {
+		const { container } = renderUI(
+			<BarChart
+				aria-label="Values by quarter"
+				data={DATA}
+				series={[{ xKey: 'x', yKey: 'y', yName: 'Value' }]}
+				aspectRatio={2}
+			/>,
+		)
+
+		resizeTo(container, 300)
+
+		const svg = bySlot(container, 'chart-plot')?.querySelector('svg')
+
+		// Same width again: the equality guard swallows the notification, so the
+		// SVG is not even re-rendered — the element identity holds.
+		resizeTo(container, 300)
 
 		expect(frameWidth(container)).toBe('300')
 
-		act(() => {
-			vi.advanceTimersByTime(200)
-		})
-
-		expect(frameWidth(container)).toBe('360')
+		expect(bySlot(container, 'chart-plot')?.querySelector('svg')).toBe(svg)
 	})
 })

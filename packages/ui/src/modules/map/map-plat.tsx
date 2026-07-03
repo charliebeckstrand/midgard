@@ -6,7 +6,6 @@ import { type FrameReserve, usePlotFrame } from '../../hooks'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { k, type MapSeriesColor } from '../../recipes/kata/map'
 import type { AccessibleName } from '../../types'
-import { RESIZE_SETTLE_MS } from '../chart/chart-constants'
 import { ChartPlotBox } from '../chart/chart-plot-box'
 import { type MapHover, MapHoverContext, MapPlatContext, type MapPlatContextValue } from './context'
 import {
@@ -165,15 +164,15 @@ function useMapShape(
 
 	const autoAspect = useMemo(() => mapAutoAspect(projection, features), [projection, features])
 
-	// A refit reprojects every region path, so resizes commit only once they
-	// settle; between commits the SVG scales through its viewBox inside the
-	// CSS-reserved box — proportional under a ratio, so nothing distorts.
+	// A refit reprojects every region path, so resize commits ride the plot
+	// frame's transition priority: a burst coalesces to the sizes the machine
+	// can afford, and a stale refit is abandoned rather than blocking.
 	const {
 		ref,
 		width: frameWidth,
 		height: frameHeight,
 		reserve,
-	} = usePlotFrame(width, mapFrameSizing(height, aspectRatio, autoAspect), RESIZE_SETTLE_MS)
+	} = usePlotFrame(width, mapFrameSizing(height, aspectRatio, autoAspect))
 
 	const fitted = useMemo(
 		() =>
