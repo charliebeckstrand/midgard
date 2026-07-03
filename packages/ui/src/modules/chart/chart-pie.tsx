@@ -20,7 +20,13 @@ import { ChartMarksLayer } from './chart-marks-layer'
 import { formatChartValue, type SeriesPaint, seriesValues } from './chart-series'
 import { useChartHover } from './context'
 import {
+	CALLOUT_GAP,
+	CALLOUT_LEADER,
+	CALLOUT_LINE,
+	CALLOUT_NUB,
+	type PieCallout,
 	type PieSlice,
+	pieCallouts,
 	pieCentroidRadius,
 	pieSlices,
 	segmentLabelFits,
@@ -76,6 +82,15 @@ export type PieBaseProps<T> = AccessibleName & {
 	 * @defaultValue false
 	 */
 	segmentLabels?: boolean | 'percent' | 'value' | 'label'
+	/**
+	 * Label every slice from the outside with a leader line to its name and
+	 * share: `true` (or `'percent'`) trails the percent, `'value'` the formatted
+	 * value. Labels sit beside their slices and declump per side so a crowded
+	 * pie never overlaps them; the pie shrinks to make room. Unlike segment
+	 * labels these name the slice, so they read without the legend.
+	 * @defaultValue false
+	 */
+	callouts?: boolean | 'percent' | 'value'
 	/** Formats tooltip and table values; defaults to locale integer/fraction formatting. */
 	formatValue?: (value: number) => string
 	className?: string
@@ -297,6 +312,107 @@ function PieChartMarks({ slices, paints, animate, center, emphasis }: PieChartMa
 	)
 }
 
+/** A placed callout with its resolved label text. @internal */
+type CalloutLabel = PieCallout & { text: string }
+
+/** What a callout's text reads: the slice name plus its share or formatted value. @internal */
+type CalloutSpec = {
+	kind: boolean | 'percent' | 'value'
+	labels: string[]
+	values: (number | null)[]
+	format: (value: number) => string
+}
+
+/** One callout's text: the slice name trailed by its share, or its formatted value. @internal */
+function calloutLabelText(
+	{ kind, labels, values, format }: CalloutSpec,
+	index: number,
+	share: number,
+): string {
+	const entry = values[index]
+
+	const suffix = kind === 'value' ? (entry == null ? '' : format(entry)) : formatPercent(share)
+
+	return `${labels[index] ?? ''} ${suffix}`.trim()
+}
+
+/** The horizontal room the widest callout needs beside the pie; the plain gap when off. @internal */
+function calloutRoom(spec: CalloutSpec, sliceValues: (number | null)[]): number {
+	if (!spec.kind) return MARK_GAP * 2
+
+	const total = sliceValues.reduce<number>(
+		(sum, entry) => sum + (entry != null && entry > 0 ? entry : 0),
+		0,
+	)
+
+	const chars = sliceValues.reduce<number>(
+		(widest, entry, index) =>
+			entry != null && entry > 0
+				? Math.max(widest, calloutLabelText(spec, index, entry / total).length)
+				: widest,
+		0,
+	)
+
+	return CALLOUT_LEADER + CALLOUT_NUB + CALLOUT_GAP + chars * TICK_CHAR_WIDTH
+}
+
+/** Places the callouts around the pie and resolves each label's text. @internal */
+function buildCallouts(
+	spec: CalloutSpec,
+	slices: PieSlice[],
+	center: { x: number; y: number },
+	radius: number,
+	frameHeight: number,
+): CalloutLabel[] {
+	return pieCallouts(slices, {
+		cx: center.x,
+		cy: center.y,
+		radius,
+		top: CALLOUT_LINE,
+		bottom: frameHeight - CALLOUT_LINE,
+	}).map((placed) => {
+		const slice = slices.find((entry) => entry.index === placed.index)
+
+		return { ...placed, text: slice ? calloutLabelText(spec, placed.index, slice.share) : '' }
+	})
+}
+
+/**
+ * The callout labels: a muted leader from each slice out to its name and share,
+ * set beside the slice. Plain SVG text on the surface — not on a fill — so it
+ * takes the chrome ink and dims with its slice under legend emphasis.
+ *
+ * @internal
+ */
+function PieCallouts({ items, emphasis }: { items: CalloutLabel[]; emphasis: number | null }) {
+	return (
+		<g data-slot="chart-callouts" pointerEvents="none">
+			{items.map((item) => (
+				<g key={item.index} className={sliceGroupClass(emphasis, item.index)}>
+					<polyline
+						data-slot="chart-callout-leader"
+						points={item.leader}
+						fill="none"
+						strokeWidth={1}
+						className={cn(k.axis)}
+					/>
+
+					<text
+						data-slot="chart-callout-label"
+						x={item.x}
+						y={item.y}
+						textAnchor={item.anchor}
+						dominantBaseline="central"
+						className={cn('font-medium', k.tick)}
+					>
+						{item.text}
+					</text>
+				</g>
+			))}
+		</g>
+	)
+}
+
 /**
  * The shared pie / donut engine: sweeps one dataset's positive shares into
  * slices clockwise from the top, separated by geometric gaps that show the
@@ -319,6 +435,7 @@ export function ChartPie<T>({
 	tooltip = true,
 	animate = false,
 	segmentLabels = false,
+	callouts = false,
 	formatValue,
 	className,
 	children,
@@ -346,7 +463,15 @@ export function ChartPie<T>({
 
 	const paints = values.map((_, index) => k.series[k.order[index % k.order.length] ?? 'blue'])
 
-	const radius = Math.max(0, Math.min(frameWidth, frameHeight) / 2 - MARK_GAP * 2)
+	// Callouts sit outside the pie, so reserve room for the widest one and shrink
+	// the pie to fit — its label never spills past the frame's clip.
+	const text = { kind: callouts, labels, values, format } as const
+
+	const hMargin = calloutRoom(text, sliceValues)
+
+	const vMargin = callouts ? CALLOUT_LEADER + CALLOUT_LINE : MARK_GAP * 2
+
+	const radius = Math.max(0, Math.min(frameWidth / 2 - hMargin, frameHeight / 2 - vMargin))
 
 	const innerRadius = radius * innerRatio
 
@@ -356,6 +481,9 @@ export function ChartPie<T>({
 		radius > 0
 			? pieSlices(sliceValues, { cx: center.x, cy: center.y, radius, innerRadius, pad: MARK_GAP })
 			: []
+
+	const calloutItems =
+		callouts && radius > 0 ? buildCallouts(text, slices, center, radius, frameHeight) : []
 
 	const readout: ChartReadout | null =
 		data.length > 0
@@ -414,6 +542,8 @@ export function ChartPie<T>({
 					emphasis={emphasis}
 				/>
 			)}
+
+			{calloutItems.length > 0 && <PieCallouts items={calloutItems} emphasis={emphasis} />}
 		</>
 	)
 

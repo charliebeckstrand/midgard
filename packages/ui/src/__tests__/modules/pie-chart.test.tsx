@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { PieChart } from '../../modules/chart/pie-chart'
 import {
+	CALLOUT_GAP,
+	CALLOUT_LINE,
 	type PieSlice,
+	pieCallouts,
 	pieCentroidRadius,
 	pieSlices,
 	segmentLabelFits,
@@ -126,6 +129,29 @@ describe('PieChart', () => {
 		const { container } = renderUI(chart({ segmentLabels: true, animate: true }))
 
 		expect(allBySlot(container, 'chart-segment-label')).toHaveLength(3)
+	})
+
+	it('names slices from the outside with leadered callouts', () => {
+		const { container } = renderUI(chart({ callouts: true }))
+
+		const texts = allBySlot(container, 'chart-callout-label').map((el) => el.textContent)
+
+		expect(texts).toHaveLength(3)
+
+		expect(texts).toContain('Search 60%')
+
+		expect(texts).toContain('Referral 15%')
+
+		// Each callout draws a leader out to its label.
+		expect(allBySlot(container, 'chart-callout-leader')).toHaveLength(3)
+	})
+
+	it('trails the value instead of the percent for callouts=value', () => {
+		const { container } = renderUI(chart({ callouts: 'value' }))
+
+		expect(allBySlot(container, 'chart-callout-label').map((el) => el.textContent)).toContain(
+			'Search 60',
+		)
 	})
 
 	it('re-shares the sweep when a legend entry toggles a slice off', () => {
@@ -275,5 +301,45 @@ describe('pieSlices', () => {
 		expect(only?.d).not.toContain('L')
 
 		expect((only?.d.match(/A /g) ?? []).length).toBe(2)
+	})
+})
+
+describe('pieCallouts', () => {
+	const OPTS = { cx: 100, cy: 100, radius: 60, top: 10, bottom: 190 }
+
+	it('reads right-half labels from the start, left-half from the end', () => {
+		const two = pieSlices([50, 50], { cx: 100, cy: 100, radius: 60 })
+
+		const placed = new Map(pieCallouts(two, OPTS).map((callout) => [callout.index, callout]))
+
+		expect(placed.get(0)?.anchor).toBe('start')
+
+		expect(placed.get(1)?.anchor).toBe('end')
+	})
+
+	it('stacks crowded labels at least a line apart', () => {
+		const many = pieSlices([10, 9, 8, 7, 6, 5], { cx: 100, cy: 100, radius: 60 })
+
+		const ys = pieCallouts(many, OPTS)
+			.filter((callout) => callout.anchor === 'start')
+			.map((callout) => callout.y)
+			.sort((a, b) => a - b)
+
+		for (let i = 1; i < ys.length; i++) {
+			expect((ys[i] ?? 0) - (ys[i - 1] ?? 0)).toBeGreaterThanOrEqual(CALLOUT_LINE - 0.001)
+		}
+	})
+
+	it('routes a three-point leader with the label a constant gap past its nub', () => {
+		const [first] = pieCallouts(pieSlices([60, 40], { cx: 100, cy: 100, radius: 60 }), OPTS)
+
+		const points = first?.leader.split(' ') ?? []
+
+		expect(points).toHaveLength(3)
+
+		// The label sits exactly CALLOUT_GAP beyond the leader's nub, on the start side.
+		const nubX = Number(points[2]?.split(',')[0])
+
+		expect((first?.x ?? 0) - nubX).toBeCloseTo(CALLOUT_GAP, 5)
 	})
 })

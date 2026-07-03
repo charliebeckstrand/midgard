@@ -313,6 +313,18 @@ export function Demo() {
 								</Container>
 							</Example>
 
+							<Example title="Callout labels" code={code`<PieChart callouts … />`}>
+								<Container>
+									<PieChart
+										aria-label="Traffic by source"
+										data={sources}
+										value="visits"
+										label="source"
+										callouts
+									/>
+								</Container>
+							</Example>
+
 							<AnimatedExample title="Animated" source={code`<PieChart animate … />`}>
 								<Container size="sm">
 									<PieChart
