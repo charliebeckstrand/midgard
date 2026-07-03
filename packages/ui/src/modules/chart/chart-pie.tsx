@@ -30,6 +30,14 @@ import type { ChartLegendPlacement, ChartReadout, DataKey } from './types'
 import { useChartAnimationKey } from './use-chart-animation-key'
 import { useChartSeriesToggle } from './use-chart-series-toggle'
 
+/** The label switches {@link PieBaseProps.labels} accepts. */
+export type PieLabels = {
+	/** @defaultValue false */
+	segment?: boolean
+	/** @defaultValue false */
+	callouts?: boolean
+}
+
 /**
  * The props {@link PieChart} and {@link DonutChart} share: a single dataset
  * sliced by share, with the frame's legend, tooltip, sizing, labels, and
@@ -77,22 +85,15 @@ export type PieBaseProps<T> = AccessibleName & {
 	 */
 	animate?: boolean
 	/**
-	 * Label slices on the marks: `true` (or `'percent'`) shows each slice's
-	 * share of the whole, `'value'` its formatted value, `'label'` its name.
-	 * A label renders only where it fits at the slice's centroid — omitted,
-	 * never clipped; the tooltip and data table always carry the full readout.
-	 * @defaultValue false
+	 * Label switches for the plot. `segment` shows each slice's percent share
+	 * at its centroid, rendered only where it fits — never clipped; the
+	 * tooltip and data table always carry the full readout. `callouts` names
+	 * every slice from the outside with a leader line to its name and percent
+	 * share, declumping per side so a crowded pie never overlaps them and
+	 * shrinking the pie to make room — unlike segment labels these name the
+	 * slice, so they read without the legend.
 	 */
-	segmentLabels?: boolean | 'percent' | 'value' | 'label'
-	/**
-	 * Label every slice from the outside with a leader line to its name and
-	 * share: `true` (or `'percent'`) trails the percent, `'value'` the formatted
-	 * value. Labels sit beside their slices and declump per side so a crowded
-	 * pie never overlaps them; the pie shrinks to make room. Unlike segment
-	 * labels these name the slice, so they read without the legend.
-	 * @defaultValue false
-	 */
-	callouts?: boolean | 'percent' | 'value'
+	labels?: PieLabels
 	/** Formats tooltip and table values; defaults to locale integer/fraction formatting. */
 	formatValue?: (value: number) => string
 	className?: string
@@ -112,23 +113,9 @@ type PieSegmentLabel = {
 	text: string
 }
 
-/** The text a segment label shows for `slice` under the given kind. @internal */
-function segmentText(
-	kind: 'percent' | 'value' | 'label',
-	slice: PieSlice,
-	values: (number | null)[],
-	labels: string[],
-	format: (value: number) => string,
-): string {
-	if (kind === 'percent') return formatPercent(slice.share)
-
-	if (kind === 'value') {
-		const value = values[slice.index]
-
-		return value == null ? '' : format(value)
-	}
-
-	return labels[slice.index] ?? ''
+/** Defaults both label switches off. @internal */
+function resolvePieLabels(labels: PieLabels | undefined): Required<PieLabels> {
+	return { segment: labels?.segment ?? false, callouts: labels?.callouts ?? false }
 }
 
 /** A slice group's dim classes — on the wrapper, so motion's inline opacity composes. @internal */
@@ -199,37 +186,31 @@ function PieSegmentLabels({ items, paints, animate, emphasis }: PieSegmentLabels
 
 /** Options for {@link segmentLabelItems}. @internal */
 type SegmentLabelOptions = {
-	kind: 'percent' | 'value' | 'label' | false
+	show: boolean
 	slices: PieSlice[]
-	values: (number | null)[]
-	labels: string[]
-	format: (value: number) => string
 	radius: number
 	innerRadius: number
 }
 
-/** Resolves and fit-gates the segment labels; empty when the prop is off. @internal */
+/** Resolves and fit-gates the segment labels; empty when the switch is off. @internal */
 function segmentLabelItems({
-	kind,
+	show,
 	slices,
-	values,
-	labels,
-	format,
 	radius,
 	innerRadius,
 }: SegmentLabelOptions): PieSegmentLabel[] {
-	if (!kind || radius <= 0) return []
+	if (!show || radius <= 0) return []
 
 	const depth = innerRadius > 0 ? radius - innerRadius : radius
 
 	return slices.flatMap((slice) => {
-		const text = segmentText(kind, slice, values, labels, format)
+		const text = formatPercent(slice.share)
 
 		const centroidRadius = pieCentroidRadius(radius, innerRadius, slice.share)
 
 		const fits = segmentLabelFits(text.length, slice.share, centroidRadius, depth, TICK_CHAR_WIDTH)
 
-		return text && fits ? [{ slice, text }] : []
+		return fits ? [{ slice, text }] : []
 	})
 }
 
@@ -312,30 +293,19 @@ function PieChartMarks({ slices, paints, animate, center, radius, emphasis }: Pi
 /** A placed callout with its resolved label text. @internal */
 type CalloutLabel = PieCallout & { text: string }
 
-/** What a callout's text reads: the slice name plus its share or formatted value. @internal */
+/** What a callout's text reads: the slice name plus its percent share. @internal */
 type CalloutSpec = {
-	kind: boolean | 'percent' | 'value'
 	labels: string[]
-	values: (number | null)[]
-	format: (value: number) => string
 }
 
-/** One callout's text: the slice name trailed by its share, or its formatted value. @internal */
-function calloutLabelText(
-	{ kind, labels, values, format }: CalloutSpec,
-	index: number,
-	share: number,
-): string {
-	const entry = values[index]
-
-	const suffix = kind === 'value' ? (entry == null ? '' : format(entry)) : formatPercent(share)
-
-	return `${labels[index] ?? ''} ${suffix}`.trim()
+/** One callout's text: the slice name trailed by its percent share. @internal */
+function calloutLabelText({ labels }: CalloutSpec, index: number, share: number): string {
+	return `${labels[index] ?? ''} ${formatPercent(share)}`.trim()
 }
 
 /** The horizontal room the widest callout needs beside the pie; the plain gap when off. @internal */
-function calloutRoom(spec: CalloutSpec, sliceValues: (number | null)[]): number {
-	if (!spec.kind) return MARK_GAP * 2
+function calloutRoom(show: boolean, spec: CalloutSpec, sliceValues: (number | null)[]): number {
+	if (!show) return MARK_GAP * 2
 
 	const total = sliceValues.reduce<number>(
 		(sum, entry) => sum + (entry != null && entry > 0 ? entry : 0),
@@ -513,8 +483,7 @@ export function ChartPie<T>({
 	legend,
 	tooltip = true,
 	animate = false,
-	segmentLabels = false,
-	callouts = false,
+	labels,
 	formatValue,
 	className,
 	children,
@@ -527,6 +496,8 @@ export function ChartPie<T>({
 		reserveAspect,
 	} = usePlotFrame(width, chartFrameSizing(height, aspectRatio))
 
+	const { segment: showSegmentLabels, callouts: showCallouts } = resolvePieLabels(labels)
+
 	const format = formatValue ?? formatChartValue
 
 	const { hidden, toggle, setFocus, emphasis } = useChartSeriesToggle()
@@ -536,17 +507,17 @@ export function ChartPie<T>({
 	// A toggled-off row leaves the sweep entirely, so the survivors re-share the whole.
 	const sliceValues = values.map((entry, index) => (hidden.has(index) ? null : entry))
 
-	const labels = data.map((datum) => String(datum[label]))
+	const sliceLabels = data.map((datum) => String(datum[label]))
 
 	const paints = values.map((_, index) => k.series[k.order[index % k.order.length] ?? 'blue'])
 
 	// Callouts sit outside the pie, so reserve room for the widest one and shrink
 	// the pie to fit — its label never spills past the frame's clip.
-	const text = { kind: callouts, labels, values, format } as const
+	const calloutSpec: CalloutSpec = { labels: sliceLabels }
 
-	const hMargin = calloutRoom(text, sliceValues)
+	const hMargin = calloutRoom(showCallouts, calloutSpec, sliceValues)
 
-	const vMargin = callouts ? CALLOUT_LEADER + CALLOUT_LINE : MARK_GAP * 2
+	const vMargin = showCallouts ? CALLOUT_LEADER + CALLOUT_LINE : MARK_GAP * 2
 
 	const radius = Math.max(0, Math.min(frameWidth / 2 - hMargin, frameHeight / 2 - vMargin))
 
@@ -560,21 +531,20 @@ export function ChartPie<T>({
 			: []
 
 	const calloutItems =
-		callouts && radius > 0 ? buildCallouts(text, slices, center, radius, frameHeight) : []
+		showCallouts && radius > 0
+			? buildCallouts(calloutSpec, slices, center, radius, frameHeight)
+			: []
 
-	const readout = pieReadout(labels, paints, String(value), values, format)
+	const readout = pieReadout(sliceLabels, paints, String(value), values, format)
 
 	const aside = legend === 'left' || legend === 'right'
 
 	const legendItems =
-		(legend ?? data.length > 1) ? pieLegendItems(labels, paints, sliceValues, aside) : null
+		(legend ?? data.length > 1) ? pieLegendItems(sliceLabels, paints, sliceValues, aside) : null
 
 	const labelItems = segmentLabelItems({
-		kind: segmentLabels === true ? 'percent' : segmentLabels,
+		show: showSegmentLabels,
 		slices,
-		values,
-		labels,
-		format,
 		radius,
 		innerRadius,
 	})
