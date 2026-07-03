@@ -319,7 +319,7 @@ export function Demo() {
 
 							<Example
 								title="Segment labels"
-								code={code`<PieChart segmentLabels legend={false} … />`}
+								code={code`<PieChart labels={{ segment: true }} legend={false} … />`}
 							>
 								<Container size="sm">
 									<PieChart
@@ -327,20 +327,23 @@ export function Demo() {
 										data={sources}
 										value="visits"
 										label="source"
-										segmentLabels
+										labels={{ segment: true }}
 										legend={false}
 									/>
 								</Container>
 							</Example>
 
-							<Example title="Callout labels" code={code`<PieChart callouts … />`}>
+							<Example
+								title="Callout labels"
+								code={code`<PieChart labels={{ callouts: true }} … />`}
+							>
 								<Container>
 									<PieChart
 										aria-label="Traffic by source"
 										data={sources}
 										value="visits"
 										label="source"
-										callouts
+										labels={{ callouts: true }}
 										legend={false}
 									/>
 								</Container>

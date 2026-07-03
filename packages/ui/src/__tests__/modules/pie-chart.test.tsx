@@ -99,7 +99,7 @@ describe('PieChart', () => {
 
 		expect(allBySlot(off.container, 'chart-segment-label')).toHaveLength(0)
 
-		const on = renderUI(chart({ segmentLabels: true }))
+		const on = renderUI(chart({ labels: { segment: true } }))
 
 		expect(allBySlot(on.container, 'chart-segment-label').map((el) => el.textContent)).toEqual([
 			'60%',
@@ -108,20 +108,10 @@ describe('PieChart', () => {
 		])
 	})
 
-	it('labels segments with values or names by kind', () => {
-		const values = renderUI(chart({ segmentLabels: 'value' }))
-
-		expect(allBySlot(values.container, 'chart-segment-label')[0]?.textContent).toBe('60')
-
-		const names = renderUI(chart({ segmentLabels: 'label' }))
-
-		expect(allBySlot(names.container, 'chart-segment-label')[0]?.textContent).toBe('Search')
-	})
-
 	it('omits a segment label that will not fit its slice', () => {
 		const withSliver = [...DATA, { source: 'Other', visits: 1 }]
 
-		const { container } = renderUI(chart({ data: withSliver, segmentLabels: true }))
+		const { container } = renderUI(chart({ data: withSliver, labels: { segment: true } }))
 
 		const texts = allBySlot(container, 'chart-segment-label').map((el) => el.textContent)
 
@@ -131,13 +121,13 @@ describe('PieChart', () => {
 	})
 
 	it('keeps segment labels under animate', () => {
-		const { container } = renderUI(chart({ segmentLabels: true, animate: true }))
+		const { container } = renderUI(chart({ labels: { segment: true }, animate: true }))
 
 		expect(allBySlot(container, 'chart-segment-label')).toHaveLength(3)
 	})
 
 	it('names slices from the outside with leadered callouts', () => {
-		const { container } = renderUI(chart({ callouts: true }))
+		const { container } = renderUI(chart({ labels: { callouts: true } }))
 
 		const texts = allBySlot(container, 'chart-callout-label').map((el) => el.textContent)
 
@@ -149,14 +139,6 @@ describe('PieChart', () => {
 
 		// Each callout draws a leader out to its label.
 		expect(allBySlot(container, 'chart-callout-leader')).toHaveLength(3)
-	})
-
-	it('trails the value instead of the percent for callouts=value', () => {
-		const { container } = renderUI(chart({ callouts: 'value' }))
-
-		expect(allBySlot(container, 'chart-callout-label').map((el) => el.textContent)).toContain(
-			'Search 60',
-		)
 	})
 
 	it('sets the legend under the plot by default, above with legend="top"', () => {
@@ -221,7 +203,7 @@ describe('PieChart', () => {
 	})
 
 	it('re-shares the sweep when a legend entry toggles a slice off', () => {
-		const { container } = renderUI(chart({ segmentLabels: true }))
+		const { container } = renderUI(chart({ labels: { segment: true } }))
 
 		const search = allBySlot(container, 'chart-legend-item')[0] as HTMLButtonElement
 

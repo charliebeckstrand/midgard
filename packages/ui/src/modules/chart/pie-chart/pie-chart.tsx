@@ -26,7 +26,7 @@ export type PieChartProps<T> = PieBaseProps<T>
  *   data={sources}
  *   value="visits"
  *   label="source"
- *   segmentLabels
+ *   labels={{ segment: true }}
  * />
  * ```
  */
