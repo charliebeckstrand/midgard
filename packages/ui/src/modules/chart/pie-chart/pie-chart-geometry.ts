@@ -37,9 +37,24 @@ function at(cx: number, cy: number, radius: number, angle: number): { x: number;
 	return { x: cx + radius * Math.cos(radians), y: cy + radius * Math.sin(radians) }
 }
 
-/** Where a slice's centroid sits: mid-ring for donuts, five-eighths out for pies. @internal */
-export function pieCentroidRadius(radius: number, innerRadius: number): number {
-	return innerRadius > 0 ? (radius + innerRadius) / 2 : radius * 0.62
+/**
+ * The radius at which a slice's label and anchor sit, along its bisector. A
+ * donut keeps the mid-ring — the area centroid of a wide ring segment slides
+ * into the hole, off the ring. A pie takes the sector's true area centroid,
+ * `(2/3)·R·sin α / α` for half-angle `α = share·π`: a sliver tends to `2/3·R`,
+ * a half slice pulls inward, a full circle collapses to the center — so every
+ * label reads centered in its wedge, not stranded near the rim.
+ *
+ * @internal
+ */
+export function pieCentroidRadius(radius: number, innerRadius: number, share: number): number {
+	if (innerRadius > 0) return (radius + innerRadius) / 2
+
+	const half = share * Math.PI
+
+	const areaFactor = half > 0 ? Math.sin(half) / half : 1
+
+	return (2 / 3) * radius * areaFactor
 }
 
 /** `A` command to `end` on `radius`, sweeping clockwise when `sweep` is 1. @internal */
@@ -112,8 +127,6 @@ export function pieSlices(
 
 	const positive = shares.filter((share) => share > 0).length
 
-	const centroidRadius = pieCentroidRadius(radius, innerRadius)
-
 	const slices: PieSlice[] = []
 
 	let angle = 0
@@ -121,7 +134,9 @@ export function pieSlices(
 	shares.forEach((share, index) => {
 		if (share === 0) return
 
-		const sweep = (share / total) * 360
+		const fraction = share / total
+
+		const sweep = fraction * 360
 
 		const mid = angle + sweep / 2
 
@@ -131,8 +146,8 @@ export function pieSlices(
 				positive === 1
 					? fullCircle(cx, cy, radius, innerRadius)
 					: slicePath(cx, cy, radius, innerRadius, angle, angle + sweep),
-			share: share / total,
-			centroid: at(cx, cy, centroidRadius, mid),
+			share: fraction,
+			centroid: at(cx, cy, pieCentroidRadius(radius, innerRadius, fraction), mid),
 		})
 
 		angle += sweep

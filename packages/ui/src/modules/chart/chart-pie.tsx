@@ -187,12 +187,12 @@ function segmentLabelItems({
 }: SegmentLabelOptions): PieSegmentLabel[] {
 	if (!kind || radius <= 0) return []
 
-	const centroidRadius = pieCentroidRadius(radius, innerRadius)
-
 	const depth = innerRadius > 0 ? radius - innerRadius : radius
 
 	return slices.flatMap((slice, order) => {
 		const text = segmentText(kind, slice, values, labels, format)
+
+		const centroidRadius = pieCentroidRadius(radius, innerRadius, slice.share)
 
 		const fits = segmentLabelFits(text.length, slice.share, centroidRadius, depth, TICK_CHAR_WIDTH)
 

@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { PieChart } from '../../modules/chart/pie-chart'
-import { pieSlices, segmentLabelFits } from '../../modules/chart/pie-chart/pie-chart-geometry'
+import {
+	pieCentroidRadius,
+	pieSlices,
+	segmentLabelFits,
+} from '../../modules/chart/pie-chart/pie-chart-geometry'
 import { allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
 
 const DATA = [
@@ -159,6 +163,27 @@ describe('segmentLabelFits', () => {
 		expect(segmentLabelFits(8, 1, 60, 96, 7.2)).toBe(true)
 
 		expect(segmentLabelFits(2, 0.5, 60, 12, 7.2)).toBe(false)
+	})
+})
+
+describe('pieCentroidRadius', () => {
+	it('pulls a pie label inward as its slice widens', () => {
+		// A sliver sits near two-thirds out; a half slice is drawn toward center.
+		expect(pieCentroidRadius(80, 0, 0.01)).toBeCloseTo((2 / 3) * 80, 1)
+
+		expect(pieCentroidRadius(80, 0, 0.5)).toBeCloseTo(33.95, 1)
+
+		expect(pieCentroidRadius(80, 0, 0.01)).toBeGreaterThan(pieCentroidRadius(80, 0, 0.5))
+	})
+
+	it('collapses a full-circle pie label to the center', () => {
+		expect(pieCentroidRadius(80, 0, 1)).toBeCloseTo(0, 5)
+	})
+
+	it('holds a donut label on the mid-ring whatever the share', () => {
+		expect(pieCentroidRadius(80, 40, 0.1)).toBe(60)
+
+		expect(pieCentroidRadius(80, 40, 0.9)).toBe(60)
 	})
 })
 
