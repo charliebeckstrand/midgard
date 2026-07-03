@@ -1,7 +1,7 @@
 'use client'
 
+import { usePlotFrame } from '../../hooks'
 import { useResolvedSize } from '../../primitives/density'
-import { usePlotFrame } from '../../primitives/plot'
 import type { Step } from '../../recipes'
 import type { ChartAxisTick } from './chart-axis'
 import { CHART_METRICS, PLOT_TOP_PAD, X_AXIS_HEIGHT } from './chart-constants'

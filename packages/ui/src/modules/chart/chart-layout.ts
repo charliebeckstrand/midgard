@@ -5,7 +5,7 @@
  * the layout math is unit-testable in isolation.
  */
 
-import type { FrameSizing } from '../../primitives/plot'
+import type { FrameSizing } from '../../hooks'
 import {
 	GUTTER_EDGE_PAD,
 	GUTTER_GAP,

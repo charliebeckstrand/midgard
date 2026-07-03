@@ -13,7 +13,7 @@ import {
 	geoMercator,
 	geoPath,
 } from 'd3-geo'
-import type { FrameSizing } from '../../primitives/plot'
+import type { FrameSizing } from '../../hooks'
 import { DEFAULT_MAP_ASPECT } from './map-constants'
 import type { MapAspectRatio, MapFeature, MapProjection } from './types'
 

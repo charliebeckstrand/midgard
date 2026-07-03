@@ -141,6 +141,29 @@ describe('PieChart', () => {
 		expect(allBySlot(container, 'chart-callout-leader')).toHaveLength(3)
 	})
 
+	it('fits the frame height to the callouts instead of leaving the default square empty', () => {
+		// height/aspectRatio both unset: the frame fits the pie's own footprint.
+		// hMargin = 14 + 10 + 6 + 12*7.2 (widest label "Referral 15%") = 116.4;
+		// vMargin = 14 + 15 = 29; radius = 150 - 116.4 = 33.6;
+		// height = round(2*33.6 + 2*29) = 125 — well short of the 300 width.
+		const { container } = renderUI(chart({ height: undefined, labels: { callouts: true } }))
+
+		expect(container.querySelector('svg')?.getAttribute('viewBox')).toBe('0 0 300 125')
+	})
+
+	it('keeps the default frame square when callouts are off', () => {
+		const { container } = renderUI(chart({ height: undefined }))
+
+		expect(container.querySelector('svg')?.getAttribute('viewBox')).toBe('0 0 300 300')
+	})
+
+	it('lets an explicit aspectRatio win over the callout content-fit', () => {
+		const { container } = renderUI(
+			chart({ height: undefined, aspectRatio: 2, labels: { callouts: true } }),
+		)
+
+		expect(container.querySelector('svg')?.getAttribute('viewBox')).toBe('0 0 300 150')
+	})
 	it('sets the legend under the plot by default, above with legend="top"', () => {
 		const bottom = renderUI(chart())
 

@@ -41,6 +41,12 @@ export { useMediaQuery } from './use-media-query'
 export { useMinWidth } from './use-min-width'
 export { useOffcanvas } from './use-offcanvas'
 export { usePendingCaret } from './use-pending-caret'
+export {
+	type FrameSizing,
+	type ResolvedFrameSizing,
+	resolveFrameSizing,
+	usePlotFrame,
+} from './use-plot-frame'
 export { useResizeObserver } from './use-resize-observer'
 export { useScrollLock } from './use-scroll-lock'
 export { useScrollWithin } from './use-scroll-within'
