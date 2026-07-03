@@ -88,7 +88,7 @@ export function mapAutoAspect(spec: MapProjection, features: MapFeature[]): numb
 }
 
 /** Parses a {@link MapAspectRatio} to its numeric `width / height`, or `null` when free-form. @internal */
-function ratioValue(ratio: number | `${number}/${number}` | false): number | null {
+export function ratioValue(ratio: number | `${number}/${number}` | false): number | null {
 	if (ratio === false) return null
 
 	if (typeof ratio === 'number') return ratio > 0 ? ratio : null

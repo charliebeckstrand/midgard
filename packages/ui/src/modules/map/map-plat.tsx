@@ -6,8 +6,8 @@ import { type FrameReserve, usePlotFrame } from '../../hooks'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { k, type MapSeriesColor } from '../../recipes/kata/map'
 import type { AccessibleName } from '../../types'
+import { RESIZE_SETTLE_MS } from '../chart/chart-constants'
 import { ChartPlotBox } from '../chart/chart-plot-box'
-import { useChartAnimationKey } from '../chart/use-chart-animation-key'
 import { type MapHover, MapHoverContext, MapPlatContext, type MapPlatContextValue } from './context'
 import {
 	defaultRegionId,
@@ -112,7 +112,10 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 * (`'bottom'`, the default) or above it (`'top'`), or a column panel
 		 * beside it (`'left'` / `'right'`), side by side from `lg` and under the
 		 * map below that. Overlay entries register from the client, so they join
-		 * the legend after hydration.
+		 * the legend after hydration; the legend's box mounts ahead of them —
+		 * one row of height for the row placements, a fixed panel width beside
+		 * the plot — so late-landing buttons never resize the map or shift the
+		 * frame.
 		 */
 		legend?: boolean | MapLegendPlacement
 		/**
@@ -162,12 +165,15 @@ function useMapShape(
 
 	const autoAspect = useMemo(() => mapAutoAspect(projection, features), [projection, features])
 
+	// A refit reprojects every region path, so resizes commit only once they
+	// settle; between commits the SVG scales through its viewBox inside the
+	// CSS-reserved box — proportional under a ratio, so nothing distorts.
 	const {
 		ref,
 		width: frameWidth,
 		height: frameHeight,
 		reserve,
-	} = usePlotFrame(width, mapFrameSizing(height, aspectRatio, autoAspect))
+	} = usePlotFrame(width, mapFrameSizing(height, aspectRatio, autoAspect), RESIZE_SETTLE_MS)
 
 	const fitted = useMemo(
 		() =>
@@ -231,24 +237,79 @@ function useMapRegionReadout<T>(
 	return { categoryMetas, regionNames, regionCategory }
 }
 
-/** The animated wrapper: `ReducedMotion` plus a generation-keyed group; static marks render bare. @internal */
-function MapMarksLayer({
-	animate,
-	generation,
-	children,
-}: {
-	animate: boolean
-	generation: number
-	children: ReactNode
-}) {
+/**
+ * The animated wrapper: `ReducedMotion` around the marks; static marks render
+ * bare. The reveal plays when the marks mount — the beat the SVG first gains
+ * a width — and never replays: a resize-keyed remount (the chart module's
+ * generation key) would unmount the overlay children, whose cleanup
+ * unregisters their legend entries, and the legend churn that follows can
+ * feed a resize back into the plot and loop.
+ *
+ * @internal
+ */
+function MapMarksLayer({ animate, children }: { animate: boolean; children: ReactNode }) {
 	if (!animate) return <>{children}</>
 
 	return (
 		<ReducedMotion>
-			<g key={generation} data-slot="map-marks">
-				{children}
-			</g>
+			<g data-slot="map-marks">{children}</g>
 		</ReducedMotion>
+	)
+}
+
+/**
+ * Whether the legend's box mounts: explicitly asked for, or able to appear —
+ * two or more categories, a registered overlay, or overlay children whose
+ * entries will register from the client. Deciding off the children keeps the
+ * box mounted ahead of late registrations, so they never shift the frame.
+ *
+ * @internal
+ */
+function legendCanShow(
+	legend: boolean | MapLegendPlacement | undefined,
+	categoryCount: number,
+	entryCount: number,
+	children: ReactNode,
+): boolean {
+	if (legend !== undefined) return legend !== false
+
+	return categoryCount > 1 || entryCount > 0 || children != null
+}
+
+/** Props for {@link MapLegendSlot}: the reserved box and the toolbar it holds. @internal */
+type MapLegendSlotProps = {
+	/** Mount the box at all; `false` renders nothing (legend off). */
+	show: boolean
+	/** Reserve the side panel's fixed column instead of the row's height. */
+	aside: boolean
+	items: MapLegendItem[]
+	hidden: ReadonlySet<string>
+	onToggle: (id: string) => void
+	onFocus: (id: string | null) => void
+}
+
+/**
+ * The legend's reserved box: it owns the space — one row of height, or the
+ * side panel's fixed column — and the toolbar mounts inside it only once it
+ * has buttons, so the frame holds steady while overlay entries load in.
+ *
+ * @internal
+ */
+function MapLegendSlot({ show, aside, items, hidden, onToggle, onFocus }: MapLegendSlotProps) {
+	if (!show) return null
+
+	return (
+		<div data-slot="map-legend-box" className={cn(aside ? k.legendBox.panel : k.legendBox.row)}>
+			{items.length > 0 && (
+				<MapLegend
+					items={items}
+					hidden={hidden}
+					onToggle={onToggle}
+					onFocus={onFocus}
+					panel={aside}
+				/>
+			)}
+		</div>
 	)
 }
 
@@ -431,8 +492,6 @@ export function MapPlat<T = never>({
 		[entries],
 	)
 
-	const generation = useChartAnimationKey(shape.frameWidth, animate)
-
 	const [pointed, setPointed] = useState<Pick<MapHover, 'target' | 'point'>>({
 		target: null,
 		point: null,
@@ -467,7 +526,7 @@ export function MapPlat<T = never>({
 		[entries, colors],
 	)
 
-	const showLegend = legend ?? (categoryMetas.length > 1 || entries.length > 0)
+	const showLegend = legendCanShow(legend, categoryMetas.length, entries.length, children)
 
 	const legendPlacement: MapLegendPlacement = typeof legend === 'string' ? legend : 'bottom'
 
@@ -482,7 +541,7 @@ export function MapPlat<T = never>({
 			viewBox={`0 0 ${shape.frameWidth} ${shape.frameHeight}`}
 		>
 			<MapPlatContext value={plat}>
-				<MapMarksLayer animate={animate} generation={generation}>
+				<MapMarksLayer animate={animate}>
 					<MapRegions
 						paths={shape.paths}
 						regionCategory={regionCategory}
@@ -504,15 +563,14 @@ export function MapPlat<T = never>({
 		<MapFrame
 			hover={hover}
 			legendNode={
-				showLegend ? (
-					<MapLegend
-						items={legendItems(categoryMetas, entries, colors)}
-						hidden={hidden}
-						onToggle={toggle}
-						onFocus={setFocus}
-						panel={aside}
-					/>
-				) : null
+				<MapLegendSlot
+					show={showLegend}
+					aside={aside}
+					items={legendItems(categoryMetas, entries, colors)}
+					hidden={hidden}
+					onToggle={toggle}
+					onFocus={setFocus}
+				/>
 			}
 			legendPlacement={legendPlacement}
 			plotRegion={
