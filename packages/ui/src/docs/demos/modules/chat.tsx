@@ -60,7 +60,12 @@ const initialTranscripts: Record<string, ChatContent[]> = {
 }
 
 const transcript: ChatContent[] = [
-	{ id: '1', role: 'user', content: 'Can you help me plan the project kickoff meeting?' },
+	{
+		id: '1',
+		role: 'user',
+		content: 'Can you help me plan the project kickoff meeting?',
+		timestamp: '11:10 AM',
+	},
 	{
 		id: '2',
 		role: 'agent',
@@ -70,6 +75,12 @@ const transcript: ChatContent[] = [
 		id: '3',
 		role: 'user',
 		content: 'Engineering, product, and design — to align on the Q2 roadmap.',
+	},
+	{
+		id: '4',
+		role: 'agent',
+		content: 'Looking forward to it!',
+		timestamp: '11:12 AM',
 	},
 ]
 
@@ -301,9 +312,7 @@ export function Demo() {
 
 				<TabContent value="Transcript">
 					<Example title="Transcript">
-						<div className="h-80">
-							<ChatTranscript messages={transcript} />
-						</div>
+						<ChatTranscript messages={transcript} />
 					</Example>
 				</TabContent>
 

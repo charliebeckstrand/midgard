@@ -73,7 +73,7 @@ function AnimatedExample({
 			code={source}
 			actions={
 				<Button
-					variant="plain"
+					variant="bare"
 					aria-label="Replay animation"
 					onClick={() => setRunKey((n) => n + 1)}
 				>
@@ -111,10 +111,7 @@ export function Demo() {
 				<TabContents>
 					<TabContent value="bar">
 						<Stack gap="xl">
-							<Example
-								title="Grouped, with a value crosshair"
-								code={code`<BarChart crosshair={{ x: true }} … />`}
-							>
+							<Example title="Grouped" code={code`<BarChart crosshair={{ x: true }} … />`}>
 								<Container>
 									<BarChart
 										aria-label="Revenue and costs by month"
@@ -177,10 +174,7 @@ export function Demo() {
 
 					<TabContent value="line">
 						<Stack gap="xl">
-							<Example
-								title="Multi-series, with a crosshair"
-								code={code`<LineChart crosshair={{ y: true }} … />`}
-							>
+							<Example title="Multi-series" code={code`<LineChart crosshair={{ y: true }} … />`}>
 								<Container>
 									<LineChart
 										aria-label="Revenue and margin by month"
@@ -190,19 +184,18 @@ export function Demo() {
 											{ key: 'revenue', label: 'Revenue' },
 											{ key: 'margin', label: 'Margin' },
 										]}
-										crosshair={{ y: true }}
+										crosshair={{ y: true, snap: true }}
 									/>
 								</Container>
 							</Example>
 
-							<Example title="Area wash & points" code={code`<LineChart fill points … />`}>
+							<Example title="Points" code={code`<LineChart fill points … />`}>
 								<Container>
 									<LineChart
 										aria-label="Revenue by month"
 										data={months}
 										x="month"
 										series={[{ key: 'revenue', label: 'Revenue' }]}
-										fill
 										points
 									/>
 								</Container>
@@ -223,6 +216,18 @@ export function Demo() {
 										]}
 										interpolation="smooth"
 										points
+									/>
+								</Container>
+							</Example>
+
+							<Example title="Area wash" code={code`<LineChart fill points … />`}>
+								<Container>
+									<LineChart
+										aria-label="Revenue by month"
+										data={months}
+										x="month"
+										series={[{ key: 'revenue', label: 'Revenue' }]}
+										fill
 									/>
 								</Container>
 							</Example>
@@ -263,7 +268,7 @@ export function Demo() {
 							</Example>
 
 							<Example
-								title="Overlapping, smoothed"
+								title="Smooth interpolation"
 								code={code`<AreaChart interpolation="smooth" crosshair={{ y: true }} … />`}
 							>
 								<Container>
@@ -301,7 +306,7 @@ export function Demo() {
 
 					<TabContent value="pie">
 						<Stack gap="xl">
-							<Example title="Pie with segment labels" code={code`<PieChart segmentLabels … />`}>
+							<Example title="Segment labels" code={code`<PieChart segmentLabels … />`}>
 								<Container size="sm">
 									<PieChart
 										aria-label="Traffic by source"
@@ -341,7 +346,7 @@ export function Demo() {
 
 					<TabContent value="donut">
 						<Stack gap="xl">
-							<Example title="Donut with center content" code={code`<DonutChart>…</DonutChart>`}>
+							<Example title="Center content" code={code`<DonutChart>…</DonutChart>`}>
 								<Container size="sm">
 									<DonutChart
 										aria-label="Traffic by source"
@@ -374,7 +379,7 @@ export function Demo() {
 					<TabContent value="combo">
 						<Stack gap="xl">
 							<Example
-								title="Snapping crosshair, one axis"
+								title="Snapping crosshair"
 								code={code`<ComboChart crosshair={{ x: true, y: true, snap: true }} … />`}
 							>
 								<Container>

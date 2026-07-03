@@ -12,4 +12,5 @@ export type ChatContent = {
 	id?: string
 	role: 'user' | 'agent'
 	content: string
+	timestamp?: string
 }
