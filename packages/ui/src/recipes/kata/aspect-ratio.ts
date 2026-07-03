@@ -7,6 +7,7 @@ export const k = {
 		'16/9': 'aspect-[16/9]',
 		'4/3': 'aspect-[4/3]',
 		'3/2': 'aspect-[3/2]',
+		'1/1': 'aspect-[1/1]',
 		'21/9': 'aspect-[21/9]',
 	},
 } as const
