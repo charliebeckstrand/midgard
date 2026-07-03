@@ -8,7 +8,7 @@ import type { AccessibleName } from '../../types'
 import { formatPercent } from '../../utilities'
 import { MARK_GAP, SLICE_FADE, SLICE_SWEEP, TICK_CHAR_WIDTH } from './chart-constants'
 import { ChartFrame } from './chart-frame'
-import { type ChartAspectRatio, resolveChartSizing } from './chart-layout'
+import { type ChartAspectRatio, chartFillsContainer, resolveChartSizing } from './chart-layout'
 import { ChartLegend, type ChartLegendItem } from './chart-legend'
 import { ChartMarksLayer } from './chart-marks-layer'
 import { formatChartValue, type SeriesPaint, seriesValues } from './chart-series'
@@ -520,7 +520,11 @@ export function ChartPie<T>({
 	children,
 	...name
 }: ChartPieProps<T>) {
-	const { ref, width: frameWidth, height: containerHeight } = useChartPlot(width)
+	const {
+		ref,
+		width: frameWidth,
+		height: containerHeight,
+	} = useChartPlot(width, chartFillsContainer(height, aspectRatio))
 
 	const { height: frameHeight, reserveAspect } = resolveChartSizing(
 		frameWidth,

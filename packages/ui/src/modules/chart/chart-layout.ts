@@ -32,6 +32,22 @@ function ratioValue(ratio: ChartAspectRatio): number | null {
 	return w && h && h > 0 ? w / h : null
 }
 
+/**
+ * Whether the frame takes its drawing height from the container's measured
+ * height (the free-form case): no explicit `height` and no reservable ratio.
+ * The one signal that decides whether {@link resolveChartSizing} reads
+ * `containerHeight`, so measuring it is worthwhile — every other case derives
+ * or fixes the height and ignores the container.
+ *
+ * @internal
+ */
+export function chartFillsContainer(
+	height: number | undefined,
+	aspectRatio: ChartAspectRatio,
+): boolean {
+	return height === undefined && ratioValue(aspectRatio) === null
+}
+
 /** A resolved frame size: the drawing height, and the ratio to reserve it in CSS. @internal */
 export type ChartSizing = {
 	/** The frame's drawing height in px; `0` until the width is measured. */

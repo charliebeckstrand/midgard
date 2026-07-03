@@ -8,7 +8,12 @@ import {
 	X_AXIS_HEIGHT,
 } from '../../modules/chart/chart-constants'
 import { ChartFrame } from '../../modules/chart/chart-frame'
-import { bandAnchors, plotRect, resolveChartSizing } from '../../modules/chart/chart-layout'
+import {
+	bandAnchors,
+	chartFillsContainer,
+	plotRect,
+	resolveChartSizing,
+} from '../../modules/chart/chart-layout'
 import { ChartLegend } from '../../modules/chart/chart-legend'
 import { bandScale } from '../../modules/chart/chart-scale'
 import { bySlot, noop, renderUI } from '../helpers'
@@ -141,6 +146,34 @@ describe('resolveChartSizing', () => {
 			height: 0,
 			reserveAspect: 16 / 9,
 		})
+	})
+})
+
+describe('chartFillsContainer', () => {
+	it('is true only when the height is free-form: no explicit height and no ratio', () => {
+		expect(chartFillsContainer(undefined, false)).toBe(true)
+
+		// The ratio derives the height from the width, so the container is ignored.
+		expect(chartFillsContainer(undefined, '16/9')).toBe(false)
+
+		expect(chartFillsContainer(undefined, 1)).toBe(false)
+
+		// An explicit height fixes the box; a zero/negative ratio is off, but the
+		// explicit height still wins over the container.
+		expect(chartFillsContainer(240, false)).toBe(false)
+
+		expect(chartFillsContainer(240, '16/9')).toBe(false)
+	})
+
+	it('mirrors resolveChartSizing reading the container height', () => {
+		// The container height feeds the sizing exactly when the predicate holds.
+		expect(resolveChartSizing(320, undefined, false, 275).height).toBe(275)
+
+		expect(chartFillsContainer(undefined, false)).toBe(true)
+
+		expect(resolveChartSizing(320, undefined, '16/9', 275).height).not.toBe(275)
+
+		expect(chartFillsContainer(undefined, '16/9')).toBe(false)
 	})
 })
 

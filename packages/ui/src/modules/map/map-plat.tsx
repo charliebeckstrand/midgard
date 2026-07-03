@@ -19,7 +19,12 @@ import {
 } from './map-categories'
 import { geographyFeatures, projectPoint, regionPaths } from './map-geometry'
 import { MapLegend, type MapLegendItem } from './map-legend'
-import { fitMapProjection, mapAutoAspect, resolveMapSizing } from './map-projection'
+import {
+	fitMapProjection,
+	mapAutoAspect,
+	mapFillsContainer,
+	resolveMapSizing,
+} from './map-projection'
 import { MapRegions } from './map-regions'
 import { MapTable } from './map-table'
 import { MapTooltip, type MapTooltipEntry } from './map-tooltip'
@@ -155,7 +160,11 @@ function useMapShape(
 	height: number | undefined,
 	aspectRatio: MapAspectRatio,
 ): MapShape {
-	const { ref, width: frameWidth, height: containerHeight } = useChartPlot(width)
+	const {
+		ref,
+		width: frameWidth,
+		height: containerHeight,
+	} = useChartPlot(width, mapFillsContainer(height, aspectRatio))
 
 	const features = useMemo(
 		() => geographyFeatures(geography, geographyObject),

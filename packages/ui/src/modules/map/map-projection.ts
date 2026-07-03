@@ -97,6 +97,22 @@ function ratioValue(ratio: number | `${number}/${number}` | false): number | nul
 	return w && h && h > 0 ? w / h : null
 }
 
+/**
+ * Whether the map frame takes its drawing height from the container's measured
+ * height (the free-form case): no explicit `height` and no reservable ratio.
+ * `'auto'` always reserves a ratio — the geography's own or the wide fallback —
+ * so only a non-`'auto'` ratio resolving to `null` fills the container. The one
+ * signal that decides whether {@link resolveMapSizing} reads `containerHeight`.
+ *
+ * @internal
+ */
+export function mapFillsContainer(
+	height: number | undefined,
+	aspectRatio: MapAspectRatio,
+): boolean {
+	return height === undefined && aspectRatio !== 'auto' && ratioValue(aspectRatio) === null
+}
+
 /** A resolved frame size: the drawing height, and the ratio to reserve it in CSS. @internal */
 export type MapSizing = {
 	/** The frame's drawing height in px; `0` until the width is measured. */

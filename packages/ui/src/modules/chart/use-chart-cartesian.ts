@@ -7,6 +7,7 @@ import { CHART_METRICS, PLOT_TOP_PAD, X_AXIS_HEIGHT } from './chart-constants'
 import {
 	bandAnchors,
 	type ChartAnchor,
+	chartFillsContainer,
 	type PlotRect,
 	plotRect,
 	resolveChartSizing,
@@ -117,7 +118,11 @@ export function useChartCartesian<T>(
 
 	const metrics = CHART_METRICS[resolvedSize as Step] ?? CHART_METRICS.md
 
-	const { ref, width: frameWidth, height: containerHeight } = useChartPlot(width)
+	const {
+		ref,
+		width: frameWidth,
+		height: containerHeight,
+	} = useChartPlot(width, chartFillsContainer(height, aspectRatio))
 
 	const { height: frameHeight, reserveAspect } = resolveChartSizing(
 		frameWidth,

@@ -10,12 +10,20 @@ import { type RefObject, useEffect } from 'react'
  * reference (e.g. `useCallback`) and read mutable values through a ref
  * inside the callback; a fresh reference re-subscribes the observer each
  * render and re-fires its initial callback.
+ *
+ * @param enabled - Observe only while `true`. Pass `false` when the size is
+ * fixed by other means so no observer is constructed and no resize ever
+ * reaches the callback; toggling it re-subscribes. @defaultValue true
  */
-export function useResizeObserver(ref: RefObject<Element | null>, callback: () => void): void {
+export function useResizeObserver(
+	ref: RefObject<Element | null>,
+	callback: () => void,
+	enabled = true,
+): void {
 	useEffect(() => {
 		const el = ref.current
 
-		if (!el) return
+		if (!el || !enabled) return
 
 		callback()
 
@@ -24,5 +32,5 @@ export function useResizeObserver(ref: RefObject<Element | null>, callback: () =
 		observer.observe(el)
 
 		return () => observer.disconnect()
-	}, [ref, callback])
+	}, [ref, callback, enabled])
 }

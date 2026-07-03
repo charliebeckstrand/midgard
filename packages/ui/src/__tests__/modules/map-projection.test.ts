@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
 	fitMapProjection,
 	mapAutoAspect,
+	mapFillsContainer,
 	resolveMapProjection,
 	resolveMapSizing,
 } from '../../modules/map/map-projection'
@@ -113,5 +114,32 @@ describe('resolveMapSizing', () => {
 
 	it('holds height at 0 until the width is measured', () => {
 		expect(resolveMapSizing(0, undefined, 'auto', 3, 0)).toEqual({ height: 0, reserveAspect: 3 })
+	})
+})
+
+describe('mapFillsContainer', () => {
+	it('is true only when free-form: no explicit height and a non-auto ratio that is off', () => {
+		expect(mapFillsContainer(undefined, false)).toBe(true)
+
+		// 'auto' always reserves a ratio (its own or the wide fallback), never the container.
+		expect(mapFillsContainer(undefined, 'auto')).toBe(false)
+
+		expect(mapFillsContainer(undefined, '4/3')).toBe(false)
+
+		expect(mapFillsContainer(undefined, 2)).toBe(false)
+
+		// An explicit height fixes the box, so the container is never read.
+		expect(mapFillsContainer(240, false)).toBe(false)
+	})
+
+	it('mirrors resolveMapSizing reading the container height', () => {
+		// The container height feeds the sizing exactly when the predicate holds.
+		expect(resolveMapSizing(400, undefined, false, 3, 240).height).toBe(240)
+
+		expect(mapFillsContainer(undefined, false)).toBe(true)
+
+		expect(resolveMapSizing(400, undefined, 'auto', 3, 240).height).not.toBe(240)
+
+		expect(mapFillsContainer(undefined, 'auto')).toBe(false)
 	})
 })
