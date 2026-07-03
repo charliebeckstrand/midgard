@@ -18,7 +18,12 @@ import {
 } from './map-categories'
 import { geographyFeatures, projectPoint, regionPaths } from './map-geometry'
 import { MapLegend, type MapLegendItem } from './map-legend'
-import { canonicalFit, fitMapProjection, mapFrameSizing } from './map-projection'
+import {
+	canonicalFit,
+	fitMapProjection,
+	mapFrameSizing,
+	projectionFallbackAspect,
+} from './map-projection'
 import { MapRegions } from './map-regions'
 import { MapTable } from './map-table'
 import { MapTooltip, type MapTooltipEntry } from './map-tooltip'
@@ -189,12 +194,18 @@ function useMapShape(
 	// A refit reprojects every region path, so resize commits ride the plot
 	// frame's transition priority: a burst coalesces to the sizes the machine
 	// can afford, and a stale refit is abandoned rather than blocking.
+	// Before the geography loads there is no measured aspect; a fixed-subject
+	// projection (albers-usa is the US) still knows the ratio it will take, so
+	// the frame reserves it and a lazily fetched atlas swaps in without a height
+	// shift.
+	const reserveAspect = canonical?.aspect ?? projectionFallbackAspect(projection)
+
 	const {
 		ref,
 		width: frameWidth,
 		height: frameHeight,
 		reserve,
-	} = usePlotFrame(width, mapFrameSizing(height, aspectRatio, canonical?.aspect ?? null))
+	} = usePlotFrame(width, mapFrameSizing(height, aspectRatio, reserveAspect))
 
 	const measured = useMemo(
 		() =>

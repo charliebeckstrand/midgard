@@ -71,6 +71,19 @@ describe('MapPlat', () => {
 		expect(allBySlot(container, 'map-region')).toHaveLength(3)
 	})
 
+	it('reserves the US ratio for an albers-usa plat awaiting its geography', () => {
+		// Without geography the frame would fall back to 16/9 and then jump when
+		// the atlas lands; albers-usa is the US, so it holds the US ratio through
+		// the load — no height shift.
+		const { container } = renderUI(
+			<MapPlat aria-label="US" geography={null} projection="albers-usa" />,
+		)
+
+		const box = bySlot(container, 'map-plot')?.querySelector('[data-slot="aspect-ratio"]')
+
+		expect(box).toHaveStyle({ aspectRatio: '1.709' })
+	})
+
 	it('washes colour in over solid geography under animate, never fading the paths', () => {
 		const { container } = renderUI(plat({ animate: true }))
 

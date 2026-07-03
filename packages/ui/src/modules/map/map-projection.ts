@@ -14,7 +14,7 @@ import {
 	geoPath,
 } from 'd3-geo'
 import type { FrameSizing } from '../../hooks'
-import { DEFAULT_MAP_ASPECT, MAP_CANONICAL_WIDTH } from './map-constants'
+import { ALBERS_USA_ASPECT, DEFAULT_MAP_ASPECT, MAP_CANONICAL_WIDTH } from './map-constants'
 import type { MapAspectRatio, MapFeature, MapProjection } from './types'
 
 /**
@@ -118,6 +118,20 @@ export function canonicalFit(spec: MapProjection, features: MapFeature[]): MapCa
  */
 export function mapAutoAspect(spec: MapProjection, features: MapFeature[]): number | null {
 	return canonicalFit(spec, features)?.aspect ?? null
+}
+
+/**
+ * The aspect a named projection reserves before its geography loads, for a
+ * projection whose geographic subject is fixed: `albers-usa` is the United
+ * States, so its frame holds the US ratio through a lazy load and never shifts
+ * height. The world projections (`mercator`, `equal-earth`) and a passed
+ * instance frame arbitrary geography, so they have none — the caller falls back
+ * to the generic {@link DEFAULT_MAP_ASPECT}.
+ *
+ * @internal
+ */
+export function projectionFallbackAspect(spec: MapProjection): number | null {
+	return spec === 'albers-usa' ? ALBERS_USA_ASPECT : null
 }
 
 /** Parses a {@link MapAspectRatio} to its numeric `width / height`, or `null` when free-form. @internal */

@@ -54,13 +54,15 @@ export function MapRegions({
 	// The colour reveal: static maps colour at once; an animated map holds the
 	// neutral backdrop for the first beat, then flips to the category fills so
 	// the CSS colour transition washes them in over the already-painted
-	// geography. A one-shot mount flag — it never resets, so a resize never
-	// replays the wash.
+	// geography. Gated on the paths landing, not mere mount — a lazily fetched
+	// atlas mounts the region layer empty first, so keying off paths keeps the
+	// wash for the beat the regions appear. A one-way flag: it never resets, so
+	// a resize never replays the wash.
 	const [revealed, setRevealed] = useState(!animate)
 
 	useEffect(() => {
-		if (animate) setRevealed(true)
-	}, [animate])
+		if (animate && paths.length > 0) setRevealed(true)
+	}, [animate, paths.length])
 
 	const track = (index: number) => (event: PointerEvent<SVGPathElement>) => {
 		set({ kind: 'region', index }, { x: event.clientX, y: event.clientY })

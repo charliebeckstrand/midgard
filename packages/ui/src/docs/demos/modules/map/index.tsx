@@ -169,19 +169,19 @@ export function Demo() {
 
 							<Example title="Timezones across America">
 								<Container>
-									{states ? (
-										<MapPlat
-											aria-label="Timezones across America"
-											geography={states}
-											projection="albers-usa"
-											data={timezones}
-											regionKey="state"
-											categoryKey="zone"
-											categories={zoneCategories}
-											regionId={(feature) => String(feature.properties?.name)}
-											animate
-										/>
-									) : undefined}
+									{/* Optional geography again: the legend and frame hold from the
+									    first paint, then the regions colour in when the atlas lands. */}
+									<MapPlat
+										aria-label="Timezones across America"
+										geography={states}
+										projection="albers-usa"
+										data={timezones}
+										regionKey="state"
+										categoryKey="zone"
+										categories={zoneCategories}
+										regionId={(feature) => String(feature.properties?.name)}
+										animate
+									/>
 								</Container>
 							</Example>
 						</Stack>
