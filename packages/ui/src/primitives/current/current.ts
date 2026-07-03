@@ -84,14 +84,16 @@ export type CurrentMount = 'always' | 'lazy' | 'active'
 
 /**
  * Resolves the effective {@link CurrentMount} for a {@link CurrentContents}: an
- * explicit `mount` wins, otherwise it derives from `fade` so pre-`mount` call
- * sites keep their behavior — a fading container held every panel mounted
- * (`always`), an instant one mounted only the active panel (`active`).
+ * explicit `mount` wins, otherwise panels mount `active`-only — only the active
+ * panel sits in the DOM. `fade` drives the height animation independently, so a
+ * container that keeps inactive panels mounted opts in with `mount="always"`
+ * (or `"lazy"`). Kept a function, and still taking `fade`, so the mount and
+ * fade axes can re-couple in one place if that policy ever changes.
  *
  * @internal
  */
-export function resolveMount(fade: boolean, mount: CurrentMount | undefined): CurrentMount {
-	return mount ?? (fade ? 'always' : 'active')
+export function resolveMount(_fade: boolean, mount: CurrentMount | undefined): CurrentMount {
+	return mount ?? 'active'
 }
 
 /**

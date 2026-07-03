@@ -15,18 +15,19 @@ export type TabContentProps = Omit<ComponentPropsWithoutRef<typeof CurrentConten
 
 /**
  * Container that swaps `<TabContent>` panels by active value. Its `mount` policy
- * — resolved from `fade` when unset — decides whether inactive panels stay
- * mounted, mount lazily on first activation, or unmount. While every inactive
- * panel is guaranteed mounted (`mount="always"`), the container registers that
- * with the Tabs context so every tab keeps its `aria-controls`.
+ * decides whether inactive panels stay mounted, mount lazily on first
+ * activation, or unmount. Only when every inactive panel is guaranteed mounted
+ * (`mount="always"`) does the container register that with the Tabs context so
+ * every tab keeps its `aria-controls`.
  *
  * @remarks
- * `fade` (default `true`) implies `mount="always"`; `fade={false}` implies
- * `mount="active"` (unmount), preserving pre-`mount` behavior. Set `mount`
- * explicitly to decouple the axes: `mount="lazy"` defers never-visited panels,
- * and `mount="always"` with `fade={false}` holds inactive panels via
- * `<Activity mode="hidden">` — mounted with state preserved but effects paused —
- * instead of the opacity cross-fade.
+ * `mount` defaults to `"active"` — only the active panel is mounted, so
+ * switching unmounts the outgoing panel and resets its state. `fade` (default
+ * `true`) animates the container height across the swap either way. Set `mount`
+ * to hold inactive panels: `mount="lazy"` defers never-visited panels, and
+ * `mount="always"` keeps them all mounted — via the opacity cross-fade under
+ * `fade`, or `<Activity mode="hidden">` (state preserved, effects paused) when
+ * `fade={false}`.
  */
 export function TabContents({ fade = true, mount, ...props }: TabContentsProps) {
 	const tabsContext = useTabsContext()

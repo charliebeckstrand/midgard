@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { describe, expect, it } from 'vitest'
 import { MapPlat, MapPoint } from '../../modules/map'
+import { POINT_HIT_RADIUS, POINT_RADIUS } from '../../modules/map/map-constants'
 import { allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 
@@ -13,16 +14,17 @@ function plat(children: ReactNode) {
 }
 
 describe('MapPoint', () => {
-	it('draws a ringed dot at the projected position with a wide hit circle', () => {
+	it('draws a solid dot at the projected position with a wide hit circle', () => {
 		const { container } = renderUI(plat(<MapPoint label="Depot" at={[15, 5]} />))
 
 		const dot = bySlot(container, 'map-point')
 
+		// A solid fill dot in its slot colour — no ring.
 		expect(dot?.getAttribute('class')).toContain('fill-blue-600')
 
-		expect(dot?.getAttribute('class')).toContain('stroke-white')
+		expect(dot?.getAttribute('class')).not.toContain('stroke')
 
-		expect(dot?.getAttribute('r')).toBe('4')
+		expect(dot?.getAttribute('r')).toBe(String(POINT_RADIUS))
 
 		const cx = Number(dot?.getAttribute('cx'))
 
@@ -32,7 +34,7 @@ describe('MapPoint', () => {
 
 		const hit = bySlot(container, 'map-point-hit')
 
-		expect(hit?.getAttribute('r')).toBe('12')
+		expect(hit?.getAttribute('r')).toBe(String(POINT_HIT_RADIUS))
 
 		expect(hit?.getAttribute('cx')).toBe(dot?.getAttribute('cx'))
 	})

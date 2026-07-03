@@ -1,30 +1,33 @@
-import { RefreshCw } from 'lucide-react'
-import { type ReactNode, useEffect, useMemo, useState } from 'react'
-import { feature } from 'topojson-client'
+import { type ReactNode, useEffect, useState } from 'react'
 import statesUrl from 'us-atlas/states-10m.json?url'
-import countriesUrl from 'world-atlas/countries-50m.json?url'
-import { Button } from '../../../../components/button'
-import { Icon } from '../../../../components/icon'
 import { Stack } from '../../../../components/stack'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../../components/tabs'
 import {
-	type MapFeature,
-	type MapFeatureCollection,
+	fetchOsrmRoute,
+	type LngLat,
 	type MapGeography,
 	MapMarker,
 	MapPlat,
 	MapPoint,
 	MapRoute,
+	type MapRouteResult,
 	MapSkeleton,
-	type MapTopology,
 } from '../../../../modules/map'
 import { Example } from '../../../engine'
-import { lineHaul, m1, m6, timezones, warehouses, zoneCategories } from './data'
+import {
+	corridors,
+	ikeaDestinations,
+	ikeaHub,
+	laToChicago,
+	timezones,
+	warehouses,
+	zoneCategories,
+} from './data'
 
 // Atlas data stays out of the package (and the docs bundle): the demos fetch
-// the TopoJSON from us-atlas / world-atlas as static assets on first render,
-// standing a MapSkeleton in while it loads — the same shape a consumer's
-// lazy-loaded geography takes.
+// the TopoJSON from us-atlas as a static asset on first render, standing a
+// MapSkeleton in while it loads — the same shape a consumer's lazy-loaded
+// geography takes.
 function useGeography(url: string): MapGeography | null {
 	const [geography, setGeography] = useState<MapGeography | null>(null)
 
@@ -46,36 +49,78 @@ function useGeography(url: string): MapGeography | null {
 	return geography
 }
 
-/** The UK alone, filtered out of the world topology as a GeoJSON collection. */
-function useUnitedKingdom(): MapFeatureCollection | null {
-	const world = useGeography(countriesUrl)
+// Fetch the road route between two coordinates from the OSRM demo server, once
+// per pair (aborted on unmount). `null` while it loads or if routing fails, so
+// callers fall back to the straight line the overlay draws without a `path`.
+// The public demo server is rate-limited and non-commercial; a real app points
+// `fetchOsrmRoute` at a self-hosted OSRM through its `baseUrl` option.
+function useRoute(start: LngLat, end: LngLat): MapRouteResult | null {
+	const [route, setRoute] = useState<MapRouteResult | null>(null)
 
-	return useMemo(() => {
-		if (world === null || world.type !== 'Topology') return null
+	const [sx, sy] = start
 
-		return {
-			type: 'FeatureCollection',
-			features: topologyFeatures(world, 'countries').filter(
-				(entry) => entry.properties?.name === 'United Kingdom',
-			),
+	const [ex, ey] = end
+
+	useEffect(() => {
+		let active = true
+
+		const controller = new AbortController()
+
+		setRoute(null)
+
+		fetchOsrmRoute(
+			[
+				[sx, sy],
+				[ex, ey],
+			],
+			{ signal: controller.signal },
+		).then((result) => {
+			if (active && result) setRoute(result)
+		})
+
+		return () => {
+			active = false
+
+			controller.abort()
 		}
-	}, [world])
+	}, [sx, sy, ex, ey])
+
+	return route
 }
 
-/** Decodes one topology object to features, so the demo can filter before rendering. */
-function topologyFeatures(topology: MapTopology, object: string): MapFeature[] {
-	const target = topology.objects[object]
+/** Formats a routed distance in whole miles. */
+function miles(meters: number): string {
+	return `${Math.round(meters / 1609.344).toLocaleString()} mi`
+}
 
-	if (!target) return []
+// The routed overlays stay unmounted until the road route arrives — no
+// straight-line fallback flashes first. Mounting once loaded lets the marks
+// draw themselves in under the plat's `animate`.
 
-	const decoded = feature(
-		topology as unknown as Parameters<typeof feature>[0],
-		target as Parameters<typeof feature>[1],
+/** A line-only route between two points, drawn on real roads once fetched. */
+function RoutedLine({ label, start, end }: { label: string; start: LngLat; end: LngLat }) {
+	const route = useRoute(start, end)
+
+	if (route === null) return null
+
+	return <MapRoute label={label} path={route.path} detail={miles(route.distanceMeters)} />
+}
+
+/** An origin → destination marker whose connecting route follows the roads. */
+function RoutedMarker({ label, start, end }: { label: string; start: LngLat; end: LngLat }) {
+	const route = useRoute(start, end)
+
+	if (route === null) return null
+
+	return (
+		<MapMarker
+			label={label}
+			start={start}
+			end={end}
+			path={route.path}
+			detail={miles(route.distanceMeters)}
+		/>
 	)
-
-	return (decoded.type === 'FeatureCollection'
-		? decoded.features
-		: [decoded]) as unknown as MapFeature[]
 }
 
 function Loading() {
@@ -83,29 +128,6 @@ function Loading() {
 		<div className="aspect-video w-full">
 			<MapSkeleton />
 		</div>
-	)
-}
-
-// The mount animation plays once; a refresh button remounts the map
-// (bumping its `key`) so the reveal replays on demand.
-function AnimatedExample({ title, children }: { title: string; children: ReactNode }) {
-	const [runKey, setRunKey] = useState(0)
-
-	return (
-		<Example
-			title={title}
-			actions={
-				<Button
-					variant="bare"
-					aria-label="Replay animation"
-					onClick={() => setRunKey((n) => n + 1)}
-				>
-					<Icon icon={<RefreshCw />} />
-				</Button>
-			}
-		>
-			<div key={runKey}>{children}</div>
-		</Example>
 	)
 }
 
@@ -122,54 +144,54 @@ const Container = ({ children, size = 'lg' }: { children: ReactNode; size?: stri
 export function Demo() {
 	const states = useGeography(statesUrl)
 
-	const uk = useUnitedKingdom()
-
 	return (
 		<Tabs defaultValue="plat">
 			<Stack gap="lg">
 				<TabList aria-label="Map feature">
 					<Tab value="plat">Plat</Tab>
-					<Tab value="route">Route</Tab>
 					<Tab value="point">Point</Tab>
 					<Tab value="marker">Marker</Tab>
-					<Tab value="animated">Animated</Tab>
+					<Tab value="route">Route</Tab>
 				</TabList>
+
 				<TabContents>
 					<TabContent value="plat">
-						<Example title="Timezones across America">
-							<Container>
-								{states === null ? (
-									<Loading />
-								) : (
-									<MapPlat
-										aria-label="Timezones across America"
-										geography={states}
-										projection="albers-usa"
-										data={timezones}
-										regionKey="state"
-										categoryKey="zone"
-										categories={zoneCategories}
-										regionId={(feature) => String(feature.properties?.name)}
-									/>
-								)}
-							</Container>
-						</Example>
-					</TabContent>
-
-					<TabContent value="route">
-						<Example title="UK motorways">
-							{uk === null ? (
-								<Loading />
-							) : (
+						<Stack gap="xl">
+							<Example title="Default">
 								<Container>
-									<MapPlat aria-label="UK motorways" geography={uk} aspectRatio="16/9">
-										<MapRoute label="M6" stops={m6} detail="230 mi" />
-
-										<MapRoute label="M1" stops={m1} detail="193 mi" />
-									</MapPlat>
+									{states === null ? (
+										<Loading />
+									) : (
+										<MapPlat
+											aria-label="Default map plat"
+											geography={states}
+											projection="albers-usa"
+											animate
+										/>
+									)}
 								</Container>
-							)}
-						</Example>
+							</Example>
+
+							<Example title="Timezones across America">
+								<Container>
+									{states === null ? (
+										<Loading />
+									) : (
+										<MapPlat
+											aria-label="Timezones across America"
+											geography={states}
+											projection="albers-usa"
+											data={timezones}
+											regionKey="state"
+											categoryKey="zone"
+											categories={zoneCategories}
+											regionId={(feature) => String(feature.properties?.name)}
+											animate
+										/>
+									)}
+								</Container>
+							</Example>
+						</Stack>
 					</TabContent>
 
 					<TabContent value="point">
@@ -182,6 +204,7 @@ export function Demo() {
 										aria-label="Warehouse network"
 										geography={states}
 										projection="albers-usa"
+										animate
 									>
 										{warehouses.map((warehouse) => (
 											<MapPoint key={warehouse.label} {...warehouse} />
@@ -198,13 +221,16 @@ export function Demo() {
 								{states === null ? (
 									<Loading />
 								) : (
-									<MapPlat aria-label="Line haul" geography={states} projection="albers-usa">
-										<MapMarker
+									<MapPlat
+										aria-label="Line haul"
+										geography={states}
+										projection="albers-usa"
+										animate
+									>
+										<RoutedMarker
 											label="LA → Chicago"
-											start={[-118.24, 34.05]}
-											end={[-87.63, 41.88]}
-											path={lineHaul}
-											detail="2,015 mi"
+											start={laToChicago.start}
+											end={laToChicago.end}
 										/>
 									</MapPlat>
 								)}
@@ -212,29 +238,60 @@ export function Demo() {
 						</Example>
 					</TabContent>
 
-					<TabContent value="animated">
-						<AnimatedExample title="Mount reveal">
-							<Container>
-								{states === null ? (
-									<Loading />
-								) : (
-									<MapPlat
-										aria-label="Timezones across America, animated"
-										geography={states}
-										projection="albers-usa"
-										animate
-									>
-										<MapMarker
-											label="LA → Chicago"
-											start={[-118.24, 34.05]}
-											end={[-87.63, 41.88]}
-											path={lineHaul}
-											detail="2,015 mi"
-										/>
-									</MapPlat>
-								)}
-							</Container>
-						</AnimatedExample>
+					<TabContent value="route">
+						<Stack gap="xl">
+							<Example title="IKEA distribution network">
+								<Container>
+									{states === null ? (
+										<Loading />
+									) : (
+										// Each run is a MapMarker: an origin pin at the shared Kansas
+										// City hub, a destination pin, and the road route between them
+										// fetched from OSRM. Each draws itself in once its route lands.
+										// Pointing a legend entry dims the rest, clicking toggles it off.
+										<MapPlat
+											aria-label="IKEA distribution network"
+											geography={states}
+											projection="albers-usa"
+											animate
+										>
+											{ikeaDestinations.map((destination) => (
+												<RoutedMarker
+													key={destination.city}
+													label={`Kansas City → ${destination.city}`}
+													start={ikeaHub}
+													end={destination.at}
+												/>
+											))}
+										</MapPlat>
+									)}
+								</Container>
+							</Example>
+
+							<Example title="Long-haul corridors">
+								<Container>
+									{states === null ? (
+										<Loading />
+									) : (
+										<MapPlat
+											aria-label="Long-haul corridors"
+											geography={states}
+											projection="albers-usa"
+											animate
+										>
+											{corridors.map((corridor) => (
+												<RoutedLine
+													key={corridor.label}
+													label={corridor.label}
+													start={corridor.start}
+													end={corridor.end}
+												/>
+											))}
+										</MapPlat>
+									)}
+								</Container>
+							</Example>
+						</Stack>
 					</TabContent>
 				</TabContents>
 			</Stack>

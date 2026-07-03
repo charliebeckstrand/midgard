@@ -18,20 +18,21 @@ function plat(children: ReactNode) {
 }
 
 describe('MapMarker', () => {
-	it('draws a hollow start pin, a filled end pin, and the connector between them', () => {
+	it('draws solid origin and destination pins and the connector between them', () => {
 		const { container } = renderUI(plat(<MapMarker label="A → C" start={START} end={END} />))
 
 		const start = bySlot(container, 'map-marker-start')?.querySelector('circle')
 
-		expect(start?.getAttribute('class')).toContain('fill-white')
-
-		expect(start?.getAttribute('class')).toContain('stroke-blue-600')
-
 		const end = bySlot(container, 'map-marker-end')?.querySelector('circle')
+
+		// Both pins are solid fill dots in the slot colour — no ring.
+		expect(start?.getAttribute('class')).toContain('fill-blue-600')
+
+		expect(start?.getAttribute('class')).not.toContain('stroke')
 
 		expect(end?.getAttribute('class')).toContain('fill-blue-600')
 
-		expect(end?.getAttribute('class')).toContain('stroke-white')
+		expect(end?.getAttribute('class')).not.toContain('stroke')
 
 		const connector = bySlot(container, 'map-marker-path')
 

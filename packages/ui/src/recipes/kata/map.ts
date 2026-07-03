@@ -26,10 +26,6 @@ export const k = {
 	label: chart.label,
 	/** Tooltip value ink: the strong element, values lead. */
 	value: chart.value,
-	/** Surface-colour ring keeping a point marker legible over any region fill. */
-	pointRing: chart.pointRing,
-	/** A start pin's hollow centre: the surface colour, ringed by the route's stroke. */
-	pinHollow: mode('fill-white', 'dark:fill-zinc-900'),
 	/** A region with no matching datum — and a toggled-off category's fallback. */
 	regionEmpty: mode('fill-zinc-200', 'dark:fill-zinc-800'),
 	/** Region boundary seam: the surface colour, so shared borders read as gaps. */

@@ -13,11 +13,15 @@ import type { LngLat } from './types'
 export type MapRouteProps = {
 	/** Legend and tooltip name; one entry per route. */
 	label: string
-	/** Waypoints in travel order; drawn as straight segments when no `path`. */
-	stops: LngLat[]
 	/**
-	 * Street-following geometry overriding the straight segments — a
-	 * {@link fetchOsrmRoute} / {@link fetchValhallaRoute} result's `path`.
+	 * Waypoints in travel order, drawn as straight segments. Optional when a
+	 * `path` is supplied — a routed leg already carries its geometry.
+	 */
+	stops?: LngLat[]
+	/**
+	 * Street-following geometry that hugs the road instead of cutting straight
+	 * between waypoints — a {@link fetchOsrmRoute} / {@link fetchValhallaRoute}
+	 * result's `path`. Wins over `stops` when both are given.
 	 */
 	path?: LngLat[]
 	/** Named mark colour override; defaults to the next slot after the region categories. */
@@ -40,7 +44,7 @@ export type MapRouteProps = {
 export function MapRoute({ label, stops, path, color, detail }: MapRouteProps) {
 	const id = useId()
 
-	const { project, register, paints, hidden, emphasis, animate } = useMapPlat()
+	const { project, register, colors, hidden, emphasis, animate } = useMapPlat()
 
 	const { set } = useMapHover()
 
@@ -49,11 +53,13 @@ export function MapRoute({ label, stops, path, color, detail }: MapRouteProps) {
 		[register, id, label, color, detail],
 	)
 
-	const paint = paints.get(id)
+	const slot = colors.get(id)
 
-	const d = linePath(path ?? stops, project)
+	const d = linePath(path ?? stops ?? [], project)
 
-	if (paint === undefined || hidden.has(id) || d === '') return null
+	if (slot === undefined || hidden.has(id) || d === '') return null
+
+	const paint = k.series[slot]
 
 	const track = (event: PointerEvent<SVGPathElement>) => {
 		set({ kind: 'entry', id }, { x: event.clientX, y: event.clientY })

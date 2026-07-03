@@ -18,9 +18,10 @@ export type CurrentContentsProps = ComponentPropsWithoutRef<'div'> & {
 	 */
 	fade?: boolean
 	/**
-	 * How inactive panels are held. Defaults from `fade` — `always` when fading,
-	 * `active` otherwise — so an explicit value is only needed to break that
-	 * pairing.
+	 * How inactive panels are held. Defaults to `active` — only the active panel
+	 * sits in the DOM — so keeping inactive panels mounted is opt-in through
+	 * `always` or `lazy`, independent of `fade` (which only drives the height
+	 * animation).
 	 *
 	 * @remarks
 	 * With `always`/`lazy` and `fade={false}`, held-inactive panels wrap in
@@ -45,7 +46,7 @@ export type CurrentContentsProps = ComponentPropsWithoutRef<'div'> & {
 export function CurrentContents({
 	slotPrefix,
 	fade = true,
-	mount,
+	mount = 'active',
 	className,
 	children,
 	...props

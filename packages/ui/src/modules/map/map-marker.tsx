@@ -6,10 +6,10 @@ import { cn } from '../../core'
 import { k, type MapSeriesColor } from '../../recipes/kata/map'
 import { useMapHover, useMapPlat } from './context'
 import {
+	MARKER_DRAW,
+	MARKER_END_POP,
+	PIN_POP,
 	PIN_RADIUS,
-	PIN_STROKE_WIDTH,
-	POINT_POP,
-	ROUTE_DRAW,
 	ROUTE_HIT_WIDTH,
 	ROUTE_STROKE_WIDTH,
 } from './map-constants'
@@ -20,9 +20,9 @@ import type { LngLat } from './types'
 export type MapMarkerProps = {
 	/** Legend and tooltip name; one entry per marker pair. */
 	label: string
-	/** The journey's origin — the hollow pin. */
+	/** The journey's origin pin. */
 	start: LngLat
-	/** The journey's destination — the filled pin. */
+	/** The journey's destination pin. */
 	end: LngLat
 	/**
 	 * The connecting geometry — a {@link fetchOsrmRoute} /
@@ -37,21 +37,22 @@ export type MapMarkerProps = {
 }
 
 /**
- * A start and end pin with the route connecting them — the map's origin →
- * destination mark, registered in the plat's legend as one toggleable,
- * focusable entry. The start pin is hollow, the end pin filled, so the
- * journey's direction reads without labels; hovering any part raises the
- * tooltip with the marker's name and detail.
+ * An origin and a destination pin with the route connecting them — the map's
+ * origin → destination mark, registered in the plat's legend as one
+ * toggleable, focusable entry. Both pins are solid dots in the marker's slot
+ * colour; hovering any part raises the tooltip with the marker's name and
+ * detail.
  *
  * @remarks Renders only inside {@link MapPlat}. Under the plat's `animate`
- * the connector draws itself in and the pins pop once it lands. A pin whose
- * position the projection drops is omitted; the connector still draws
- * through the surviving geometry.
+ * the journey plays in travel order — the origin pin pops, the connector
+ * draws itself in from it, then the destination pin pops as the line lands —
+ * so direction reads from the reveal. A pin whose position the projection
+ * drops is omitted; the connector still draws through the surviving geometry.
  */
 export function MapMarker({ label, start, end, path, color, detail }: MapMarkerProps) {
 	const id = useId()
 
-	const { project, register, paints, hidden, emphasis, animate } = useMapPlat()
+	const { project, register, colors, hidden, emphasis, animate } = useMapPlat()
 
 	const { set } = useMapHover()
 
@@ -60,7 +61,7 @@ export function MapMarker({ label, start, end, path, color, detail }: MapMarkerP
 		[register, id, label, color, detail],
 	)
 
-	const paint = paints.get(id)
+	const slot = colors.get(id)
 
 	const d = linePath(path ?? [start, end], project)
 
@@ -68,9 +69,11 @@ export function MapMarker({ label, start, end, path, color, detail }: MapMarkerP
 
 	const to = project(end)
 
-	if (paint === undefined || hidden.has(id) || (d === '' && from === null && to === null)) {
+	if (slot === undefined || hidden.has(id) || (d === '' && from === null && to === null)) {
 		return null
 	}
+
+	const paint = k.series[slot]
 
 	const track = (event: PointerEvent<SVGElement>) => {
 		set({ kind: 'entry', id }, { x: event.clientX, y: event.clientY })
@@ -98,33 +101,21 @@ export function MapMarker({ label, start, end, path, color, detail }: MapMarkerP
 						{...connector}
 						initial={{ pathLength: 0 }}
 						animate={{ pathLength: 1 }}
-						transition={ROUTE_DRAW}
+						transition={MARKER_DRAW}
 					/>
 				) : (
 					<path {...connector} />
 				))}
 
 			{from && (
-				<MarkerPin slot="map-marker-start" at={from} animate={animate}>
-					<circle
-						cx={from.x}
-						cy={from.y}
-						r={PIN_RADIUS}
-						strokeWidth={PIN_STROKE_WIDTH}
-						className={cn(k.pinHollow, paint.stroke)}
-					/>
+				<MarkerPin slot="map-marker-start" at={from} animate={animate} transition={PIN_POP}>
+					<circle cx={from.x} cy={from.y} r={PIN_RADIUS} className={cn(paint.fill)} />
 				</MarkerPin>
 			)}
 
 			{to && (
-				<MarkerPin slot="map-marker-end" at={to} animate={animate}>
-					<circle
-						cx={to.x}
-						cy={to.y}
-						r={PIN_RADIUS}
-						strokeWidth={PIN_STROKE_WIDTH}
-						className={cn(paint.fill, k.pointRing)}
-					/>
+				<MarkerPin slot="map-marker-end" at={to} animate={animate} transition={MARKER_END_POP}>
+					<circle cx={to.x} cy={to.y} r={PIN_RADIUS} className={cn(paint.fill)} />
 				</MarkerPin>
 			)}
 
@@ -168,16 +159,18 @@ export function MapMarker({ label, start, end, path, color, detail }: MapMarkerP
 	)
 }
 
-/** One pin, popping in past the connector draw under `animate`. @internal */
+/** One pin, popping in on its own beat of the travel-order reveal. @internal */
 function MarkerPin({
 	slot,
 	at,
 	animate,
+	transition,
 	children,
 }: {
 	slot: string
 	at: MapPoint2D
 	animate: boolean
+	transition: { duration: number; delay?: number }
 	children: ReactNode
 }) {
 	if (!animate) return <g data-slot={slot}>{children}</g>
@@ -187,7 +180,7 @@ function MarkerPin({
 			data-slot={slot}
 			initial={{ opacity: 0, scale: 0 }}
 			animate={{ opacity: 1, scale: 1 }}
-			transition={POINT_POP}
+			transition={transition}
 			style={{ transformOrigin: `${at.x}px ${at.y}px` }}
 		>
 			{children}

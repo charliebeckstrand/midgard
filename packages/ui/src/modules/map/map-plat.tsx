@@ -4,7 +4,7 @@ import { type ReactNode, type RefObject, useCallback, useMemo, useState } from '
 import { AspectRatio } from '../../components/aspect-ratio'
 import { cn } from '../../core'
 import { ReducedMotion } from '../../primitives/reduced-motion'
-import { k, type MapSeriesPaint } from '../../recipes/kata/map'
+import { k, type MapSeriesColor } from '../../recipes/kata/map'
 import type { AccessibleName } from '../../types'
 import { useChartAnimationKey } from '../chart/use-chart-animation-key'
 import { useChartPlot } from '../chart/use-chart-plot'
@@ -259,7 +259,7 @@ function MapMarksLayer({
 function legendItems(
 	categories: MapCategoryMeta[],
 	entries: MapOverlayEntry[],
-	paints: ReadonlyMap<string, MapSeriesPaint>,
+	colors: ReadonlyMap<string, MapSeriesColor>,
 ): MapLegendItem[] {
 	const categoryItems = categories.map((meta, index) => ({
 		id: `category:${index}`,
@@ -271,7 +271,7 @@ function legendItems(
 	const entryItems = entries.map((entry) => ({
 		id: entry.id,
 		label: entry.label,
-		swatchClass: cn(paints.get(entry.id)?.bg),
+		swatchClass: cn(k.series[colors.get(entry.id) ?? 'blue'].bg),
 		swatch: entry.swatch,
 		detail: entry.detail,
 	}))
@@ -420,15 +420,21 @@ export function MapPlat<T = never>({
 
 	// Overlay slot colours continue the fixed order after the categories, by
 	// registration order; an explicit `color` still occupies its position.
-	const paints = useMemo(
+	const colors = useMemo<ReadonlyMap<string, MapSeriesColor>>(
 		() =>
 			new Map(
 				entries.map((entry, index) => [
 					entry.id,
-					k.series[entry.color ?? slotColor(categoryMetas.length + index)],
+					entry.color ?? slotColor(categoryMetas.length + index),
 				]),
 			),
 		[entries, categoryMetas.length],
+	)
+
+	// Registration ordinal per entry, so a staggered reveal can key off it.
+	const order = useMemo<ReadonlyMap<string, number>>(
+		() => new Map(entries.map((entry, index) => [entry.id, index])),
+		[entries],
 	)
 
 	const generation = useChartAnimationKey(shape.frameWidth, animate)
@@ -447,8 +453,8 @@ export function MapPlat<T = never>({
 	)
 
 	const plat = useMemo<MapPlatContextValue>(
-		() => ({ project: shape.project, register, paints, hidden, emphasis, animate }),
-		[shape.project, register, paints, hidden, emphasis, animate],
+		() => ({ project: shape.project, register, colors, order, hidden, emphasis, animate }),
+		[shape.project, register, colors, order, hidden, emphasis, animate],
 	)
 
 	const tooltipEntries = useMemo(
@@ -459,12 +465,12 @@ export function MapPlat<T = never>({
 					{
 						label: entry.label,
 						swatch: entry.swatch,
-						swatchClass: cn(paints.get(entry.id)?.bg),
+						swatchClass: cn(k.series[colors.get(entry.id) ?? 'blue'].bg),
 						detail: entry.detail,
 					},
 				]),
 			),
-		[entries, paints],
+		[entries, colors],
 	)
 
 	const showLegend = legend ?? (categoryMetas.length > 1 || entries.length > 0)
@@ -506,7 +512,7 @@ export function MapPlat<T = never>({
 			legendNode={
 				showLegend ? (
 					<MapLegend
-						items={legendItems(categoryMetas, entries, paints)}
+						items={legendItems(categoryMetas, entries, colors)}
 						hidden={hidden}
 						onToggle={toggle}
 						onFocus={setFocus}

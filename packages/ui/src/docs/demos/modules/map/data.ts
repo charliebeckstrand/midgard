@@ -67,36 +67,6 @@ export const zoneCategories: MapCategory[] = [
 	{ value: 'Eastern', color: 'sky' },
 ]
 
-/** The M6, Catthorpe to Carlisle — hard-coded so the docs never call a routing server. */
-export const m6: LngLat[] = [
-	[-1.18, 52.4],
-	[-1.46, 52.43],
-	[-1.86, 52.51],
-	[-1.95, 52.6],
-	[-2.1, 52.81],
-	[-2.24, 52.98],
-	[-2.43, 53.09],
-	[-2.58, 53.36],
-	[-2.63, 53.55],
-	[-2.72, 53.77],
-	[-2.79, 54.05],
-	[-2.75, 54.31],
-	[-2.76, 54.66],
-	[-2.93, 54.89],
-]
-
-/** The M1, London to Leeds. */
-export const m1: LngLat[] = [
-	[-0.13, 51.53],
-	[-0.42, 51.88],
-	[-0.76, 52.04],
-	[-0.9, 52.24],
-	[-1.13, 52.63],
-	[-1.25, 52.95],
-	[-1.32, 53.41],
-	[-1.53, 53.79],
-]
-
 /** Warehouse markers for the points example. */
 export const warehouses: { label: string; at: LngLat; detail: string }[] = [
 	{ label: 'Salt Lake City', at: [-111.89, 40.76], detail: '14 loads' },
@@ -106,9 +76,34 @@ export const warehouses: { label: string; at: LngLat; detail: string }[] = [
 	{ label: 'Atlanta', at: [-84.39, 33.75], detail: '11 loads' },
 ]
 
-/** A line haul with an intermediate waypoint for the markers example. */
-export const lineHaul: LngLat[] = [
-	[-118.24, 34.05],
-	[-104.99, 39.74],
-	[-87.63, 41.88],
+// The routed examples below carry only origin and destination coordinates.
+// The demo fetches the road route between them from the OSRM demo server at
+// render time (see `useRoute` in index.tsx), so the line follows the streets
+// and the mileage is real — the geocode → route → draw flow a consumer runs.
+
+/** Two long-haul corridors the routes example draws as line-only routes. */
+export const corridors: { label: string; start: LngLat; end: LngLat }[] = [
+	{ label: 'San Francisco → New York', start: [-122.42, 37.77], end: [-74.0, 40.71] },
+	{ label: 'Los Angeles → Jacksonville', start: [-118.24, 34.05], end: [-81.66, 30.33] },
+]
+
+/** The origin → destination pair the marker and animation examples route. */
+export const laToChicago: { start: LngLat; end: LngLat } = {
+	start: [-118.24, 34.05],
+	end: [-87.63, 41.88],
+}
+
+/** The IKEA network's shared origin — a central Kansas City distribution hub. */
+export const ikeaHub: LngLat = [-94.58, 39.1]
+
+/**
+ * A made-up IKEA distribution network: delivery destinations reached from
+ * {@link ikeaHub}. The demo routes each hub → destination run on real roads
+ * and labels it with the fetched mileage.
+ */
+export const ikeaDestinations: { city: string; at: LngLat }[] = [
+	{ city: 'Los Angeles', at: [-118.24, 34.05] },
+	{ city: 'Seattle', at: [-122.33, 47.61] },
+	{ city: 'New York', at: [-74.0, 40.71] },
+	{ city: 'Atlanta', at: [-84.39, 33.75] },
 ]
