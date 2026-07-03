@@ -55,3 +55,17 @@ export function useCurrentState(props: {
 export const [CurrentFadeContext, useCurrentFade] = createContext<boolean>('CurrentFade', {
 	default: false,
 })
+
+/**
+ * Whether the nearest enclosing {@link CurrentContent} is the active panel,
+ * folded across nesting: a panel is active only when it matches its context and
+ * every ancestor panel does too. Descendants read this to know they are on the
+ * visible view rather than a fade-mode panel kept mounted but hidden — useful
+ * for deferring work, pausing animation, or scoping registrations to the panel
+ * in view. Defaults to `true` outside any panel, so ungrouped content always
+ * counts as active.
+ */
+export const [CurrentPanelActiveContext, useCurrentPanelActive] = createContext<boolean>(
+	'CurrentPanelActive',
+	{ default: true },
+)

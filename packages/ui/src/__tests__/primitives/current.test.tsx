@@ -5,9 +5,14 @@ import {
 	CurrentContents,
 	CurrentContext,
 	useCurrent,
+	useCurrentPanelActive,
 	useCurrentState,
 } from '../../primitives/current'
 import { renderUI, screen } from '../helpers'
+
+function ActiveProbe({ id }: { id: string }) {
+	return <span data-testid={id}>{String(useCurrentPanelActive())}</span>
+}
 
 describe('useCurrent', () => {
 	it('returns undefined outside provider', () => {
@@ -126,5 +131,58 @@ describe('CurrentContents / CurrentContent', () => {
 		const hidden = screen.getByText('Content B')
 
 		expect(hidden).toHaveStyle({ minHeight: '80px', position: 'absolute' })
+	})
+})
+
+describe('useCurrentPanelActive', () => {
+	it('defaults to true outside any panel', () => {
+		const { result } = renderHook(() => useCurrentPanelActive())
+
+		expect(result.current).toBe(true)
+	})
+
+	it('is true on the active panel and false on a mounted inactive one', () => {
+		renderUI(
+			<CurrentContext value={{ value: 'a', onValueChange: undefined }}>
+				<CurrentContents slotPrefix="test" fade>
+					<CurrentContent slotPrefix="test" value="a">
+						<ActiveProbe id="a" />
+					</CurrentContent>
+					<CurrentContent slotPrefix="test" value="b">
+						<ActiveProbe id="b" />
+					</CurrentContent>
+				</CurrentContents>
+			</CurrentContext>,
+		)
+
+		expect(screen.getByTestId('a')).toHaveTextContent('true')
+
+		expect(screen.getByTestId('b')).toHaveTextContent('false')
+	})
+
+	it('folds across nesting: an active panel inside an inactive one reads false', () => {
+		renderUI(
+			<CurrentContext value={{ value: 'outer-b', onValueChange: undefined }}>
+				<CurrentContents slotPrefix="outer" fade>
+					<CurrentContent slotPrefix="outer" value="outer-a">
+						<CurrentContext value={{ value: 'inner-a', onValueChange: undefined }}>
+							<CurrentContents slotPrefix="inner" fade>
+								<CurrentContent slotPrefix="inner" value="inner-a">
+									<ActiveProbe id="nested" />
+								</CurrentContent>
+							</CurrentContents>
+						</CurrentContext>
+					</CurrentContent>
+					<CurrentContent slotPrefix="outer" value="outer-b">
+						<ActiveProbe id="outer-active" />
+					</CurrentContent>
+				</CurrentContents>
+			</CurrentContext>,
+		)
+
+		// inner-a matches its own context, but its inactive outer panel folds it to false.
+		expect(screen.getByTestId('nested')).toHaveTextContent('false')
+
+		expect(screen.getByTestId('outer-active')).toHaveTextContent('true')
 	})
 })
