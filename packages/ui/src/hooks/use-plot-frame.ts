@@ -29,29 +29,46 @@ export type FrameSizing =
 	| { mode: 'fill' }
 	| { mode: 'content'; hMargin: number; vMargin: number }
 
-/** A resolved frame box: the drawing height, and the ratio to reserve it in CSS. @internal */
+/**
+ * How a width-derived frame reserves its drawing height from its own width
+ * through CSS — the reservation that holds the box steady before the width is
+ * measured and across every animation replay. `aspect` reserves a
+ * `width / height` ratio (CSS `aspect-ratio`); `content` reserves the affine
+ * `max(min, width + offset)` a bare ratio can't express — `offset` shifts an
+ * `aspect-ratio` of 1, and `min` floors the height where the width-bound radius
+ * would otherwise go negative, so a narrow box holds that floor instead of
+ * collapsing to nothing. A `fixed` or `fill` frame reserves nothing — its
+ * height is a pixel value the box takes directly.
+ *
+ * @internal
+ */
+export type FrameReserve =
+	| { mode: 'aspect'; ratio: number }
+	| { mode: 'content'; offset: number; min: number }
+
+/** A resolved frame box: the drawing height, and how the box reserves it. @internal */
 export type ResolvedFrameSizing = {
 	/** The frame's drawing height in px; `0` until the width is measured. */
 	height: number
 	/**
-	 * The `width / height` ratio the plot box reserves through CSS
-	 * `aspect-ratio`, or `null` when the height is a fixed pixel value or
-	 * fills the container.
+	 * How the plot box reserves its height from its own width through CSS, or
+	 * `null` when the height is a fixed pixel value or fills the container.
 	 */
-	reserveAspect: number | null
+	reserve: FrameReserve | null
 }
 
 /**
  * Applies a {@link FrameSizing} policy: the drawing height, and how the plot
- * box holds it. An `aspect` policy derives the height from the measured
- * `width` and reserves that same ratio through CSS — taking the height from
- * the box's own width keeps it steady before the width is measured and across
- * every animation replay, where a pixel height off the yet-unmeasured width
- * would collapse to zero and jump. `fill` takes the container's measured
- * height; `fixed` is its own pixel value with nothing to reserve. `content`
- * also derives from the measured `width`, but its width/height relationship
- * isn't a fixed ratio, so there's nothing for CSS `aspect-ratio` to reserve —
- * like `fill`, its box is a pixel `0` until the width is measured.
+ * box holds it. `aspect` derives the height from the measured `width` and
+ * reserves that same ratio through CSS — taking the height from the box's own
+ * width keeps it steady before the width is measured and across every
+ * animation replay, where a pixel height off the yet-unmeasured width would
+ * collapse to zero and jump. `content` derives from the width too, but its
+ * `width → height` is affine (a pair of margins), not a pure ratio; it reserves
+ * an `aspect-ratio` of 1 shifted by a constant pixel `offset`, so its box holds
+ * as steady as `aspect` rather than collapsing to a pixel `0`. `fill` takes the
+ * container's measured height and `fixed` is its own pixel value — neither
+ * reserves anything.
  *
  * @internal
  */
@@ -60,21 +77,31 @@ export function resolveFrameSizing(
 	width: number,
 	containerHeight: number,
 ): ResolvedFrameSizing {
-	if (sizing.mode === 'fixed') return { height: sizing.height, reserveAspect: null }
+	if (sizing.mode === 'fixed') return { height: sizing.height, reserve: null }
 
-	if (sizing.mode === 'fill') return { height: containerHeight, reserveAspect: null }
+	if (sizing.mode === 'fill') return { height: containerHeight, reserve: null }
 
 	if (sizing.mode === 'content') {
-		if (width <= 0) return { height: 0, reserveAspect: null }
+		// height = 2·radius + 2·vMargin and radius = max(0, width/2 − hMargin), so
+		// the box is aspect-ratio 1 shifted by `offset` and floored at `min` —
+		// max(min, width + offset) — reserved from the width the same way an aspect
+		// ratio is, so it holds before the width is measured and never collapses.
+		const reserve: FrameReserve = {
+			mode: 'content',
+			offset: 2 * (sizing.vMargin - sizing.hMargin),
+			min: 2 * sizing.vMargin,
+		}
+
+		if (width <= 0) return { height: 0, reserve }
 
 		const radius = Math.max(0, width / 2 - sizing.hMargin)
 
-		return { height: Math.round(2 * radius + 2 * sizing.vMargin), reserveAspect: null }
+		return { height: Math.round(2 * radius + 2 * sizing.vMargin), reserve }
 	}
 
 	return {
 		height: width > 0 ? Math.round(width / sizing.ratio) : 0,
-		reserveAspect: sizing.ratio,
+		reserve: { mode: 'aspect', ratio: sizing.ratio },
 	}
 }
 
@@ -106,7 +133,7 @@ export function usePlotFrame(
 	ref: RefObject<HTMLDivElement | null>
 	width: number
 	height: number
-	reserveAspect: number | null
+	reserve: FrameReserve | null
 } {
 	const ref = useRef<HTMLDivElement>(null)
 
@@ -156,7 +183,7 @@ export function usePlotFrame(
 
 	const resolvedWidth = width ?? size.width
 
-	const { height, reserveAspect } = resolveFrameSizing(sizing, resolvedWidth, size.height)
+	const { height, reserve } = resolveFrameSizing(sizing, resolvedWidth, size.height)
 
-	return { ref, width: resolvedWidth, height, reserveAspect }
+	return { ref, width: resolvedWidth, height, reserve }
 }

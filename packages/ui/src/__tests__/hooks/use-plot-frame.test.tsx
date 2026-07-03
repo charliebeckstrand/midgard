@@ -174,56 +174,59 @@ describe('resolveFrameSizing', () => {
 	it('derives the height from the width and reserves the same ratio', () => {
 		expect(resolveFrameSizing({ mode: 'aspect', ratio: 16 / 9 }, 320, 0)).toEqual({
 			height: 180,
-			reserveAspect: 16 / 9,
+			reserve: { mode: 'aspect', ratio: 16 / 9 },
 		})
 
 		expect(resolveFrameSizing({ mode: 'aspect', ratio: 2 }, 400, 0)).toEqual({
 			height: 200,
-			reserveAspect: 2,
+			reserve: { mode: 'aspect', ratio: 2 },
 		})
 	})
 
 	it('holds a fixed height with nothing to reserve, ignoring the container', () => {
 		expect(resolveFrameSizing({ mode: 'fixed', height: 240 }, 320, 275)).toEqual({
 			height: 240,
-			reserveAspect: null,
+			reserve: null,
 		})
 	})
 
 	it('fills the container height and reserves nothing when free-form', () => {
 		expect(resolveFrameSizing({ mode: 'fill' }, 320, 275)).toEqual({
 			height: 275,
-			reserveAspect: null,
+			reserve: null,
 		})
 	})
 
 	it('yields no height until the width is measured, still reserving the ratio', () => {
 		expect(resolveFrameSizing({ mode: 'aspect', ratio: 16 / 9 }, 0, 0)).toEqual({
 			height: 0,
-			reserveAspect: 16 / 9,
+			reserve: { mode: 'aspect', ratio: 16 / 9 },
 		})
 	})
 
-	it('fits the height to the width-bound radius plus the vertical margin, reserving nothing', () => {
-		// radius = 400/2 - 100 = 100; height = 2*100 + 2*20.
+	it('fits the height to the width-bound radius plus the vertical margin, reserving offset and floor', () => {
+		// radius = 400/2 - 100 = 100; height = 2*100 + 2*20; offset = 2*(20 - 100); min = 2*20.
 		expect(resolveFrameSizing({ mode: 'content', hMargin: 100, vMargin: 20 }, 400, 0)).toEqual({
 			height: 240,
-			reserveAspect: null,
+			reserve: { mode: 'content', offset: -160, min: 40 },
 		})
 	})
 
 	it('floors the content radius at zero instead of going negative', () => {
-		// The margin alone exceeds the half-width, so only the vertical margin remains.
+		// The margin alone exceeds the half-width, so only the vertical margin remains,
+		// which is exactly the reserved `min` the CSS floor holds the box at.
 		expect(resolveFrameSizing({ mode: 'content', hMargin: 300, vMargin: 20 }, 400, 0)).toEqual({
 			height: 40,
-			reserveAspect: null,
+			reserve: { mode: 'content', offset: -560, min: 40 },
 		})
 	})
 
-	it('yields no height until the width is measured under content sizing', () => {
+	it('reserves the content offset and floor before the width is measured, so the box holds', () => {
+		// height stays 0 until the width lands, but the reserve is already known —
+		// the box holds its height from the first paint instead of collapsing.
 		expect(resolveFrameSizing({ mode: 'content', hMargin: 100, vMargin: 20 }, 0, 0)).toEqual({
 			height: 0,
-			reserveAspect: null,
+			reserve: { mode: 'content', offset: -160, min: 40 },
 		})
 	})
 })

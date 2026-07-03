@@ -1,6 +1,6 @@
 'use client'
 
-import { usePlotFrame } from '../../hooks'
+import { type FrameReserve, usePlotFrame } from '../../hooks'
 import { useResolvedSize } from '../../primitives/density'
 import type { Step } from '../../recipes'
 import type { ChartAxisTick } from './chart-axis'
@@ -48,8 +48,8 @@ export type CartesianChart = {
 	width: number
 	fixedWidth?: number
 	height: number
-	/** The CSS aspect ratio to reserve the plot height with, or `null` for a pixel height. */
-	reserveAspect: number | null
+	/** How the plot box reserves its height from its own width, or `null` for a pixel height. */
+	reserve: FrameReserve | null
 	plot: PlotRect
 	band: BandScale
 	/** `null` when nothing yields a value domain — render the empty frame. */
@@ -121,7 +121,7 @@ export function useChartCartesian<T>(
 		ref,
 		width: frameWidth,
 		height: frameHeight,
-		reserveAspect,
+		reserve,
 	} = usePlotFrame(width, chartFrameSizing(height, aspectRatio))
 
 	const format = props.formatValue ?? formatChartValue
@@ -195,7 +195,7 @@ export function useChartCartesian<T>(
 		width: frameWidth,
 		fixedWidth: width,
 		height: frameHeight,
-		reserveAspect,
+		reserve,
 		plot,
 		band,
 		yScale,

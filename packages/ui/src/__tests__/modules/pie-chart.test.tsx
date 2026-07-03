@@ -157,6 +157,24 @@ describe('PieChart', () => {
 		expect(container.querySelector('svg')?.getAttribute('viewBox')).toBe('0 0 300 300')
 	})
 
+	it('reserves the content-fit height from the box width so it holds before measure', () => {
+		const { container } = renderUI(chart({ height: undefined }))
+
+		// The affine content height is no CSS ratio, so there is no AspectRatio;
+		// and the box reserves its height from its own width (the padding-box path,
+		// `overflow-hidden`) rather than a fixed pixel height, so it holds from the
+		// first paint instead of collapsing to zero. The reserved length itself is
+		// a `max(min, calc(…))` jsdom drops, so its value is covered by the
+		// `resolveFrameSizing` unit tests rather than read back here.
+		expect(bySlot(container, 'aspect-ratio')).toBeNull()
+
+		const box = bySlot(container, 'chart-plot')?.firstElementChild as HTMLElement
+
+		expect(box.className).toContain('overflow-hidden')
+
+		expect(box.style.height).toBe('')
+	})
+
 	it('lets an explicit aspectRatio win over the callout content-fit', () => {
 		const { container } = renderUI(
 			chart({ height: undefined, aspectRatio: 2, labels: { callouts: true } }),

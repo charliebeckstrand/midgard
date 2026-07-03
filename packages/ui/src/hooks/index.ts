@@ -42,6 +42,7 @@ export { useMinWidth } from './use-min-width'
 export { useOffcanvas } from './use-offcanvas'
 export { usePendingCaret } from './use-pending-caret'
 export {
+	type FrameReserve,
 	type FrameSizing,
 	type ResolvedFrameSizing,
 	resolveFrameSizing,
