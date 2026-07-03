@@ -79,6 +79,16 @@ function AnimatedExample({
 	)
 }
 
+const Container = ({ children, size = 'lg' }: { children: ReactNode; size?: string }) => {
+	const sizeMap: Record<string, string> = {
+		sm: 'sm:max-w-sm',
+		md: 'md:max-w-md',
+		lg: 'lg:max-w-lg',
+	}
+
+	return <div className={size ? `${sizeMap[size]}` : undefined}>{children}</div>
+}
+
 export function Demo() {
 	return (
 		<Tabs defaultValue="bar">
@@ -94,53 +104,61 @@ export function Demo() {
 					<TabContent value="bar">
 						<Stack gap="xl">
 							<Example title="Grouped">
-								<BarChart
-									aria-label="Revenue and costs by month"
-									data={months}
-									x="month"
-									series={[
-										{ key: 'revenue', label: 'Revenue' },
-										{ key: 'costs', label: 'Costs' },
-									]}
-								/>
+								<Container>
+									<BarChart
+										aria-label="Revenue and costs by month"
+										data={months}
+										x="month"
+										series={[
+											{ key: 'revenue', label: 'Revenue' },
+											{ key: 'costs', label: 'Costs' },
+										]}
+									/>
+								</Container>
 							</Example>
 
 							<Example title="Negative values">
-								<BarChart
-									aria-label="Month-over-month swing"
-									data={swings}
-									x="month"
-									series={[{ key: 'delta', label: 'Swing' }]}
-								/>
+								<Container>
+									<BarChart
+										aria-label="Month-over-month swing"
+										data={swings}
+										x="month"
+										series={[{ key: 'delta', label: 'Swing' }]}
+									/>
+								</Container>
 							</Example>
 
 							<Example
 								title="Formatted values"
 								code={code`<BarChart formatValue={(value) => usd.format(value)} … />`}
 							>
-								<BarChart
-									aria-label="Budget by month in dollars"
-									data={budget}
-									x="month"
-									series={[
-										{ key: 'revenue', label: 'Revenue' },
-										{ key: 'costs', label: 'Costs' },
-									]}
-									formatValue={(value) => usd.format(value)}
-								/>
+								<Container>
+									<BarChart
+										aria-label="Budget by month in dollars"
+										data={budget}
+										x="month"
+										series={[
+											{ key: 'revenue', label: 'Revenue' },
+											{ key: 'costs', label: 'Costs' },
+										]}
+										formatValue={(value) => usd.format(value)}
+									/>
+								</Container>
 							</Example>
 
 							<AnimatedExample title="Animated" source={code`<BarChart animate … />`}>
-								<BarChart
-									aria-label="Revenue and costs by month, animated"
-									data={months}
-									x="month"
-									series={[
-										{ key: 'revenue', label: 'Revenue' },
-										{ key: 'costs', label: 'Costs' },
-									]}
-									animate
-								/>
+								<Container>
+									<BarChart
+										aria-label="Revenue and costs by month, animated"
+										data={months}
+										x="month"
+										series={[
+											{ key: 'revenue', label: 'Revenue' },
+											{ key: 'costs', label: 'Costs' },
+										]}
+										animate
+									/>
+								</Container>
 							</AnimatedExample>
 						</Stack>
 					</TabContent>
@@ -148,57 +166,65 @@ export function Demo() {
 					<TabContent value="line">
 						<Stack gap="xl">
 							<Example title="Multi-series">
-								<LineChart
-									aria-label="Revenue and margin by month"
-									data={months}
-									x="month"
-									series={[
-										{ key: 'revenue', label: 'Revenue' },
-										{ key: 'margin', label: 'Margin' },
-									]}
-								/>
+								<Container>
+									<LineChart
+										aria-label="Revenue and margin by month"
+										data={months}
+										x="month"
+										series={[
+											{ key: 'revenue', label: 'Revenue' },
+											{ key: 'margin', label: 'Margin' },
+										]}
+									/>
+								</Container>
 							</Example>
 
 							<Example title="Area wash & points" code={code`<LineChart fill points … />`}>
-								<LineChart
-									aria-label="Revenue by month"
-									data={months}
-									x="month"
-									series={[{ key: 'revenue', label: 'Revenue' }]}
-									fill
-									points
-								/>
+								<Container>
+									<LineChart
+										aria-label="Revenue by month"
+										data={months}
+										x="month"
+										series={[{ key: 'revenue', label: 'Revenue' }]}
+										fill
+										points
+									/>
+								</Container>
 							</Example>
 
 							<Example
 								title="Smooth interpolation"
 								code={code`<LineChart interpolation="smooth" … />`}
 							>
-								<LineChart
-									aria-label="Revenue and margin by month, smoothed"
-									data={months}
-									x="month"
-									series={[
-										{ key: 'revenue', label: 'Revenue' },
-										{ key: 'margin', label: 'Margin' },
-									]}
-									interpolation="smooth"
-									points
-								/>
+								<Container>
+									<LineChart
+										aria-label="Revenue and margin by month, smoothed"
+										data={months}
+										x="month"
+										series={[
+											{ key: 'revenue', label: 'Revenue' },
+											{ key: 'margin', label: 'Margin' },
+										]}
+										interpolation="smooth"
+										points
+									/>
+								</Container>
 							</Example>
 
 							<AnimatedExample title="Animated" source={code`<LineChart animate … />`}>
-								<LineChart
-									aria-label="Revenue and margin by month, animated"
-									data={months}
-									x="month"
-									series={[
-										{ key: 'revenue', label: 'Revenue' },
-										{ key: 'margin', label: 'Margin' },
-									]}
-									fill
-									animate
-								/>
+								<Container>
+									<LineChart
+										aria-label="Revenue and margin by month, animated"
+										data={months}
+										x="month"
+										series={[
+											{ key: 'revenue', label: 'Revenue' },
+											{ key: 'margin', label: 'Margin' },
+										]}
+										fill
+										animate
+									/>
+								</Container>
 							</AnimatedExample>
 						</Stack>
 					</TabContent>
@@ -206,46 +232,52 @@ export function Demo() {
 					<TabContent value="area">
 						<Stack gap="xl">
 							<Example title="Stacked" code={code`<AreaChart stacked … />`}>
-								<AreaChart
-									aria-label="Revenue and costs by month, stacked"
-									data={months}
-									x="month"
-									series={[
-										{ key: 'revenue', label: 'Revenue' },
-										{ key: 'costs', label: 'Costs' },
-									]}
-									stacked
-								/>
+								<Container>
+									<AreaChart
+										aria-label="Revenue and costs by month, stacked"
+										data={months}
+										x="month"
+										series={[
+											{ key: 'revenue', label: 'Revenue' },
+											{ key: 'costs', label: 'Costs' },
+										]}
+										stacked
+									/>
+								</Container>
 							</Example>
 
 							<Example
 								title="Overlapping, smoothed"
 								code={code`<AreaChart interpolation="smooth" … />`}
 							>
-								<AreaChart
-									aria-label="Revenue and margin by month"
-									data={months}
-									x="month"
-									series={[
-										{ key: 'revenue', label: 'Revenue' },
-										{ key: 'margin', label: 'Margin' },
-									]}
-									interpolation="smooth"
-								/>
+								<Container>
+									<AreaChart
+										aria-label="Revenue and margin by month"
+										data={months}
+										x="month"
+										series={[
+											{ key: 'revenue', label: 'Revenue' },
+											{ key: 'margin', label: 'Margin' },
+										]}
+										interpolation="smooth"
+									/>
+								</Container>
 							</Example>
 
 							<AnimatedExample title="Animated" source={code`<AreaChart stacked animate … />`}>
-								<AreaChart
-									aria-label="Revenue and costs by month, stacked and animated"
-									data={months}
-									x="month"
-									series={[
-										{ key: 'revenue', label: 'Revenue' },
-										{ key: 'costs', label: 'Costs' },
-									]}
-									stacked
-									animate
-								/>
+								<Container>
+									<AreaChart
+										aria-label="Revenue and costs by month, stacked and animated"
+										data={months}
+										x="month"
+										series={[
+											{ key: 'revenue', label: 'Revenue' },
+											{ key: 'costs', label: 'Costs' },
+										]}
+										stacked
+										animate
+									/>
+								</Container>
 							</AnimatedExample>
 						</Stack>
 					</TabContent>
@@ -253,39 +285,45 @@ export function Demo() {
 					<TabContent value="pie">
 						<Stack gap="xl">
 							<Example title="Pie with segment labels" code={code`<PieChart segmentLabels … />`}>
-								<PieChart
-									aria-label="Traffic by source"
-									data={sources}
-									value="visits"
-									label="source"
-									segmentLabels
-								/>
+								<Container size="sm">
+									<PieChart
+										aria-label="Traffic by source"
+										data={sources}
+										value="visits"
+										label="source"
+										segmentLabels
+									/>
+								</Container>
 							</Example>
 
 							<Example title="Donut with center content" code={code`<PieChart donut>…</PieChart>`}>
-								<PieChart
-									aria-label="Traffic by source"
-									data={sources}
-									value="visits"
-									label="source"
-									donut
-								>
-									<Stat>
-										<StatLabel>Total visits</StatLabel>
-										<StatValue>9,340</StatValue>
-									</Stat>
-								</PieChart>
+								<Container size="sm">
+									<PieChart
+										aria-label="Traffic by source"
+										data={sources}
+										value="visits"
+										label="source"
+										donut
+									>
+										<Stat>
+											<StatLabel>Total visits</StatLabel>
+											<StatValue>9,340</StatValue>
+										</Stat>
+									</PieChart>
+								</Container>
 							</Example>
 
 							<AnimatedExample title="Animated" source={code`<PieChart animate … />`}>
-								<PieChart
-									aria-label="Traffic by source, animated"
-									data={sources}
-									value="visits"
-									label="source"
-									donut
-									animate
-								/>
+								<Container size="sm">
+									<PieChart
+										aria-label="Traffic by source, animated"
+										data={sources}
+										value="visits"
+										label="source"
+										donut
+										animate
+									/>
+								</Container>
 							</AnimatedExample>
 						</Stack>
 					</TabContent>
@@ -293,28 +331,32 @@ export function Demo() {
 					<TabContent value="combo">
 						<Stack gap="xl">
 							<Example title="Bars behind a line, one axis">
-								<ComboChart
-									aria-label="Revenue bars with margin line by month"
-									data={months}
-									x="month"
-									series={[
-										{ key: 'revenue', label: 'Revenue', type: 'bar' },
-										{ key: 'margin', label: 'Margin', type: 'line' },
-									]}
-								/>
+								<Container>
+									<ComboChart
+										aria-label="Revenue bars with margin line by month"
+										data={months}
+										x="month"
+										series={[
+											{ key: 'revenue', label: 'Revenue', type: 'bar' },
+											{ key: 'margin', label: 'Margin', type: 'line' },
+										]}
+									/>
+								</Container>
 							</Example>
 
 							<AnimatedExample title="Animated" source={code`<ComboChart animate … />`}>
-								<ComboChart
-									aria-label="Revenue bars with margin line by month, animated"
-									data={months}
-									x="month"
-									series={[
-										{ key: 'revenue', label: 'Revenue', type: 'bar' },
-										{ key: 'margin', label: 'Margin', type: 'line' },
-									]}
-									animate
-								/>
+								<Container>
+									<ComboChart
+										aria-label="Revenue bars with margin line by month, animated"
+										data={months}
+										x="month"
+										series={[
+											{ key: 'revenue', label: 'Revenue', type: 'bar' },
+											{ key: 'margin', label: 'Margin', type: 'line' },
+										]}
+										animate
+									/>
+								</Container>
 							</AnimatedExample>
 						</Stack>
 					</TabContent>
