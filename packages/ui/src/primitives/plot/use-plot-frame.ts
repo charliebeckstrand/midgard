@@ -1,7 +1,7 @@
 'use client'
 
 import { type RefObject, useCallback, useEffect, useRef, useState } from 'react'
-import { type FrameSizing, resolveFrameSizing } from './plot-sizing'
+import { type FrameSizing, RESIZE_SETTLE_MS, resolveFrameSizing } from './plot-sizing'
 
 /**
  * Resolves a plot frame's drawing size from its {@link FrameSizing} policy,
@@ -14,6 +14,15 @@ import { type FrameSizing, resolveFrameSizing } from './plot-sizing'
  * on every resize for a value the policy discards. A frame whose size is
  * fully fixed by props observes nothing at all, so a resize never reaches
  * it.
+ *
+ * Live resizes re-render once per settle, not per frame: after the first
+ * real measurement, observer notifications collapse into a single re-measure
+ * once the box holds steady for {@link RESIZE_SETTLE_MS}. Mid-drag the SVG
+ * scales in CSS under its last-settled `viewBox` — uniformly under an
+ * `aspect` policy, whose CSS `aspect-ratio` box keeps the `viewBox`'s shape —
+ * then the settle re-render redraws it crisp. Only the first measurement of
+ * a real box is immediate, so an initial reveal (mount, un-hiding) never
+ * waits out the settle window.
  *
  * @param width - An explicit drawing width, or `undefined` to fill and
  * measure the container.
@@ -44,6 +53,11 @@ export function usePlotFrame(
 
 	const [size, setSize] = useState({ width: 0, height: 0 })
 
+	// True while a real (nonzero) box is stored: the next observer tick is a
+	// live resize to settle, not a reveal to show immediately. Measuring a
+	// hidden frame (0×0) flips it back, so re-reveals are immediate too.
+	const settled = useRef(false)
+
 	const measure = useCallback(() => {
 		const el = ref.current
 
@@ -55,6 +69,8 @@ export function usePlotFrame(
 			width: measureWidth ? Math.round(el.clientWidth) : 0,
 			height: measureHeight ? Math.round(el.clientHeight) : 0,
 		}
+
+		settled.current = next.width > 0 || next.height > 0
 
 		setSize((current) =>
 			current.width === next.width && current.height === next.height ? current : next,
@@ -72,11 +88,29 @@ export function usePlotFrame(
 
 		measure()
 
-		const observer = new ResizeObserver(measure)
+		let timer: ReturnType<typeof setTimeout> | undefined
+
+		const observer = new ResizeObserver(() => {
+			// A reveal measures immediately; a live resize re-arms the settle
+			// timer, collapsing the drag's frames into one trailing re-measure.
+			if (!settled.current) {
+				measure()
+
+				return
+			}
+
+			clearTimeout(timer)
+
+			timer = setTimeout(measure, RESIZE_SETTLE_MS)
+		})
 
 		observer.observe(el)
 
-		return () => observer.disconnect()
+		return () => {
+			clearTimeout(timer)
+
+			observer.disconnect()
+		}
 	}, [measure, measureWidth, measureHeight])
 
 	const resolvedWidth = width ?? size.width

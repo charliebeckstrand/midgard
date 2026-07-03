@@ -1,7 +1,7 @@
 import { memo } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { type FrameSizing, usePlotFrame } from '../../primitives/plot'
-import { act, mockDomGeometry, renderUI, screen } from '../helpers'
+import { type FrameSizing, RESIZE_SETTLE_MS, usePlotFrame } from '../../primitives/plot'
+import { act, mockDomGeometry, renderUI, screen, withFakeTime } from '../helpers'
 
 type StubInstance = {
 	observe: ReturnType<typeof vi.fn>
@@ -109,29 +109,69 @@ describe('usePlotFrame', () => {
 		})
 	}
 
-	it('redraws on a width change but not a height-only change under an aspect policy', () => {
-		const onMarks = vi.fn()
+	it('reveals immediately, then never redraws for a height-only change under an aspect policy', async () => {
+		await withFakeTime(async (clock) => {
+			const onMarks = vi.fn()
 
-		renderUI(<Probe width={undefined} sizing={{ mode: 'aspect', ratio: 2 }} onMarks={onMarks} />)
+			renderUI(<Probe width={undefined} sizing={{ mode: 'aspect', ratio: 2 }} onMarks={onMarks} />)
 
-		const plot = screen.getByTestId('plot')
+			const plot = screen.getByTestId('plot')
 
-		// The width resolves, and the height derives from it — not the container.
-		resizeTo(plot, { width: 300, height: 200 })
+			// The first real box is a reveal: no settle wait, and the height
+			// derives from the width — not the container.
+			resizeTo(plot, { width: 300, height: 200 })
 
-		expect(screen.getByTestId('marks').getAttribute('data-width')).toBe('300')
+			expect(screen.getByTestId('marks').getAttribute('data-width')).toBe('300')
 
-		expect(screen.getByTestId('marks').getAttribute('data-height')).toBe('150')
+			expect(screen.getByTestId('marks').getAttribute('data-height')).toBe('150')
 
-		const drawsAfterWidth = onMarks.mock.calls.length
+			const drawsAfterWidth = onMarks.mock.calls.length
 
-		// A height-only resize changes nothing the policy consumes, so the
-		// untracked axis stays unread and the marks never redraw.
-		resizeTo(plot, { width: 300, height: 500 })
+			// A height-only resize changes nothing the policy consumes: even
+			// after the settle window, the re-measure bails and marks stay put.
+			resizeTo(plot, { width: 300, height: 500 })
 
-		expect(onMarks).toHaveBeenCalledTimes(drawsAfterWidth)
+			await clock.advance(RESIZE_SETTLE_MS)
 
-		expect(screen.getByTestId('marks').getAttribute('data-height')).toBe('150')
+			expect(onMarks).toHaveBeenCalledTimes(drawsAfterWidth)
+
+			expect(screen.getByTestId('marks').getAttribute('data-height')).toBe('150')
+		})
+	})
+
+	it('collapses a width drag into one settle redraw', async () => {
+		await withFakeTime(async (clock) => {
+			const onMarks = vi.fn()
+
+			renderUI(<Probe width={undefined} sizing={{ mode: 'aspect', ratio: 2 }} onMarks={onMarks} />)
+
+			const plot = screen.getByTestId('plot')
+
+			resizeTo(plot, { width: 300, height: 150 })
+
+			const drawsAfterReveal = onMarks.mock.calls.length
+
+			// Three drag frames: each re-arms the settle timer without touching
+			// state, so the frame keeps its last geometry (CSS scales the SVG).
+			resizeTo(plot, { width: 350, height: 175 })
+
+			resizeTo(plot, { width: 380, height: 190 })
+
+			resizeTo(plot, { width: 400, height: 200 })
+
+			expect(onMarks).toHaveBeenCalledTimes(drawsAfterReveal)
+
+			expect(screen.getByTestId('marks').getAttribute('data-width')).toBe('300')
+
+			// The box holds steady: one re-measure, one redraw, final geometry.
+			await clock.advance(RESIZE_SETTLE_MS)
+
+			expect(onMarks).toHaveBeenCalledTimes(drawsAfterReveal + 1)
+
+			expect(screen.getByTestId('marks').getAttribute('data-width')).toBe('400')
+
+			expect(screen.getByTestId('marks').getAttribute('data-height')).toBe('200')
+		})
 	})
 
 	it('constructs no observer and resolves from props when the size is fully fixed', () => {
@@ -148,24 +188,31 @@ describe('usePlotFrame', () => {
 		expect(screen.getByTestId('marks').getAttribute('data-height')).toBe('300')
 	})
 
-	it('redraws on a height change under a fill policy', () => {
-		const onMarks = vi.fn()
+	it('redraws on a settled height change under a fill policy', async () => {
+		await withFakeTime(async (clock) => {
+			const onMarks = vi.fn()
 
-		renderUI(<Probe width={undefined} sizing={{ mode: 'fill' }} onMarks={onMarks} />)
+			renderUI(<Probe width={undefined} sizing={{ mode: 'fill' }} onMarks={onMarks} />)
 
-		const plot = screen.getByTestId('plot')
+			const plot = screen.getByTestId('plot')
 
-		resizeTo(plot, { width: 300, height: 200 })
+			resizeTo(plot, { width: 300, height: 200 })
 
-		expect(screen.getByTestId('marks').getAttribute('data-height')).toBe('200')
+			expect(screen.getByTestId('marks').getAttribute('data-height')).toBe('200')
 
-		const drawsAfterFirst = onMarks.mock.calls.length
+			const drawsAfterReveal = onMarks.mock.calls.length
 
-		// The free-form height feeds the sizing, so a height change must redraw.
-		resizeTo(plot, { width: 300, height: 260 })
+			// The free-form height feeds the sizing, so the settle re-measure
+			// must redraw to the new box.
+			resizeTo(plot, { width: 300, height: 260 })
 
-		expect(screen.getByTestId('marks').getAttribute('data-height')).toBe('260')
+			expect(screen.getByTestId('marks').getAttribute('data-height')).toBe('200')
 
-		expect(onMarks.mock.calls.length).toBeGreaterThan(drawsAfterFirst)
+			await clock.advance(RESIZE_SETTLE_MS)
+
+			expect(screen.getByTestId('marks').getAttribute('data-height')).toBe('260')
+
+			expect(onMarks.mock.calls.length).toBeGreaterThan(drawsAfterReveal)
+		})
 	})
 })

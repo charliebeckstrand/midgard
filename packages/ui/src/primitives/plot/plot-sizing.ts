@@ -8,6 +8,14 @@
  */
 
 /**
+ * Quiet window after the last resize frame before the frame re-measures (and
+ * an animated chart replays its reveal) — the system's one settle beat.
+ *
+ * @internal
+ */
+export const RESIZE_SETTLE_MS = 200
+
+/**
  * How a frame's drawing height comes to be — the single value that drives
  * measurement, observation, and height resolution, so no two places can
  * disagree about what the frame needs. `fixed` is an explicit pixel height,

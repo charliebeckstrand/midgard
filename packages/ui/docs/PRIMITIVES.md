@@ -46,7 +46,7 @@ import { TouchTarget } from 'ui/primitives/touch-target'
 
 | Primitive | Summary | Key exports |
 |---|---|---|
-| `plot` | Frame sizing shared by the plot-bearing modules (chart, map): a `FrameSizing` policy (`fixed`/`aspect`/`fill`) resolved from each module's props drives `usePlotFrame`, which measures only the axes the policy consumes — observing nothing when the size is fully fixed by props — so a resize re-renders the frame only when a dimension it draws from changes. | `usePlotFrame`, `resolveFrameSizing`, `FrameSizing` |
+| `plot` | Frame sizing shared by the plot-bearing modules (chart, map): a `FrameSizing` policy (`fixed`/`aspect`/`fill`) resolved from each module's props drives `usePlotFrame`, which measures only the axes the policy consumes — observing nothing when the size is fully fixed by props — and collapses live resizes into one settle re-render (CSS scales the SVG mid-drag), so a resize redraws the frame once, and only when a dimension it draws from changed. | `usePlotFrame`, `resolveFrameSizing`, `FrameSizing`, `RESIZE_SETTLE_MS` |
 
 ## Motion & hit area
 

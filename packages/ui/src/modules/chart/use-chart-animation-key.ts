@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { RESIZE_SETTLE_MS } from './chart-constants'
+import { RESIZE_SETTLE_MS } from '../../primitives/plot'
 
 /**
  * A generation key for a chart's animated marks: it bumps once when the
