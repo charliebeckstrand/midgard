@@ -203,4 +203,27 @@ describe('resolveFrameSizing', () => {
 			reserveAspect: 16 / 9,
 		})
 	})
+
+	it('fits the height to the width-bound radius plus the vertical margin, reserving nothing', () => {
+		// radius = 400/2 - 100 = 100; height = 2*100 + 2*20.
+		expect(resolveFrameSizing({ mode: 'content', hMargin: 100, vMargin: 20 }, 400, 0)).toEqual({
+			height: 240,
+			reserveAspect: null,
+		})
+	})
+
+	it('floors the content radius at zero instead of going negative', () => {
+		// The margin alone exceeds the half-width, so only the vertical margin remains.
+		expect(resolveFrameSizing({ mode: 'content', hMargin: 300, vMargin: 20 }, 400, 0)).toEqual({
+			height: 40,
+			reserveAspect: null,
+		})
+	})
+
+	it('yields no height until the width is measured under content sizing', () => {
+		expect(resolveFrameSizing({ mode: 'content', hMargin: 100, vMargin: 20 }, 0, 0)).toEqual({
+			height: 0,
+			reserveAspect: null,
+		})
+	})
 })

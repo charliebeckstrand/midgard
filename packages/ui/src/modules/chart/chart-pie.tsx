@@ -3,7 +3,7 @@
 import { motion } from 'motion/react'
 import { type PointerEvent, type ReactNode, useId } from 'react'
 import { cn } from '../../core'
-import { usePlotFrame } from '../../hooks'
+import { type FrameSizing, usePlotFrame } from '../../hooks'
 import { k } from '../../recipes/kata/chart'
 import type { AccessibleName } from '../../types'
 import { formatPercent } from '../../utilities'
@@ -56,8 +56,12 @@ export type PieBaseProps<T> = AccessibleName & {
 	height?: number
 	/**
 	 * Height as a ratio of the width — a `width / height` number, a `"1/1"`
-	 * string, or `false` to fill the container's height. Reads best square.
-	 * @defaultValue 1
+	 * string, or `false` to fill the container's height.
+	 * @remarks Left unset, a plain pie reads best square; with `labels.callouts`
+	 * on, the frame instead fits its height to the pie and its labels, so the
+	 * margin callouts need on the sides never sits empty above and below too.
+	 * Setting `aspectRatio` (or `height`) explicitly always wins over that fit.
+	 * @defaultValue 1 — content-fit instead when `labels.callouts` is on
 	 */
 	aspectRatio?: ChartAspectRatio
 	/**
@@ -90,8 +94,10 @@ export type PieBaseProps<T> = AccessibleName & {
 	 * tooltip and data table always carry the full readout. `callouts` names
 	 * every slice from the outside with a leader line to its name and percent
 	 * share, declumping per side so a crowded pie never overlaps them and
-	 * shrinking the pie to make room — unlike segment labels these name the
-	 * slice, so they read without the legend.
+	 * shrinking the pie to make room — see `aspectRatio`, the default frame
+	 * shrinks with it too, rather than leaving the labels' margin empty on
+	 * every side. Unlike segment labels these name the slice, so they read
+	 * without the legend.
 	 */
 	labels?: PieLabels
 	/** Formats tooltip and table values; defaults to locale integer/fraction formatting. */
@@ -323,6 +329,28 @@ function calloutRoom(show: boolean, spec: CalloutSpec, sliceValues: (number | nu
 	return CALLOUT_LEADER + CALLOUT_NUB + CALLOUT_GAP + chars * TICK_CHAR_WIDTH
 }
 
+/**
+ * The pie frame's sizing policy: an explicit `height` or `aspectRatio` always
+ * wins, resolved the same way every cartesian chart does. Left at both
+ * defaults, the frame instead fits its height to the pie's own footprint —
+ * twice the width-bound radius plus the vertical margin — so a wide callout
+ * label never leaves an empty band the aspect ratio didn't need.
+ *
+ * @internal
+ */
+function pieFrameSizing(
+	height: number | undefined,
+	aspectRatio: ChartAspectRatio | undefined,
+	hMargin: number,
+	vMargin: number,
+): FrameSizing {
+	if (height !== undefined || aspectRatio !== undefined) {
+		return chartFrameSizing(height, aspectRatio ?? 1)
+	}
+
+	return { mode: 'content', hMargin, vMargin }
+}
+
 /** Places the callouts around the pie and resolves each label's text. @internal */
 function buildCallouts(
 	spec: CalloutSpec,
@@ -479,7 +507,7 @@ export function ChartPie<T>({
 	innerRatio,
 	width,
 	height,
-	aspectRatio = 1,
+	aspectRatio,
 	legend,
 	tooltip = true,
 	animate = false,
@@ -489,35 +517,40 @@ export function ChartPie<T>({
 	children,
 	...name
 }: ChartPieProps<T>) {
-	const {
-		ref,
-		width: frameWidth,
-		height: frameHeight,
-		reserveAspect,
-	} = usePlotFrame(width, chartFrameSizing(height, aspectRatio))
-
 	const { segment: showSegmentLabels, callouts: showCallouts } = resolvePieLabels(labels)
 
 	const format = formatValue ?? formatChartValue
 
-	const { hidden, toggle, setFocus, emphasis } = useChartSeriesToggle()
-
 	const values = seriesValues(data, value)
 
-	// A toggled-off row leaves the sweep entirely, so the survivors re-share the whole.
-	const sliceValues = values.map((entry, index) => (hidden.has(index) ? null : entry))
-
 	const sliceLabels = data.map((datum) => String(datum[label]))
-
-	const paints = values.map((_, index) => k.series[k.order[index % k.order.length] ?? 'blue'])
 
 	// Callouts sit outside the pie, so reserve room for the widest one and shrink
 	// the pie to fit — its label never spills past the frame's clip.
 	const calloutSpec: CalloutSpec = { labels: sliceLabels }
 
-	const hMargin = calloutRoom(showCallouts, calloutSpec, sliceValues)
-
 	const vMargin = showCallouts ? CALLOUT_LEADER + CALLOUT_LINE : MARK_GAP * 2
+
+	// Sized from the full dataset rather than the toggled-visible one, so the
+	// frame holds still as a legend entry hides or reveals a slice — only the
+	// pie's own radius reacts to that, below.
+	const sizing = pieFrameSizing(
+		height,
+		aspectRatio,
+		calloutRoom(showCallouts, calloutSpec, values),
+		vMargin,
+	)
+
+	const { ref, width: frameWidth, height: frameHeight, reserveAspect } = usePlotFrame(width, sizing)
+
+	const { hidden, toggle, setFocus, emphasis } = useChartSeriesToggle()
+
+	// A toggled-off row leaves the sweep entirely, so the survivors re-share the whole.
+	const sliceValues = values.map((entry, index) => (hidden.has(index) ? null : entry))
+
+	const paints = values.map((_, index) => k.series[k.order[index % k.order.length] ?? 'blue'])
+
+	const hMargin = calloutRoom(showCallouts, calloutSpec, sliceValues)
 
 	const radius = Math.max(0, Math.min(frameWidth / 2 - hMargin, frameHeight / 2 - vMargin))
 

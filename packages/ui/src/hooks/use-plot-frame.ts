@@ -14,9 +14,12 @@ import { type RefObject, useCallback, useEffect, useRef, useState } from 'react'
  * How a frame's drawing height comes to be — the single value that drives
  * measurement, observation, and height resolution, so no two places can
  * disagree about what the frame needs. `fixed` is an explicit pixel height,
- * `aspect` derives the height from the drawing width, and `fill` takes the
- * container's measured height (the free-form case — the only one where the
- * container height is worth measuring at all).
+ * `aspect` derives the height from the drawing width by a constant ratio,
+ * `fill` takes the container's measured height (the free-form case — the
+ * only one where the container height is worth measuring at all), and
+ * `content` derives the height from the width and a pair of margins — for
+ * content whose natural shape isn't a fixed ratio, like a circle boxed by an
+ * asymmetric horizontal and vertical margin.
  *
  * @internal
  */
@@ -24,6 +27,7 @@ export type FrameSizing =
 	| { mode: 'fixed'; height: number }
 	| { mode: 'aspect'; ratio: number }
 	| { mode: 'fill' }
+	| { mode: 'content'; hMargin: number; vMargin: number }
 
 /** A resolved frame box: the drawing height, and the ratio to reserve it in CSS. @internal */
 export type ResolvedFrameSizing = {
@@ -44,7 +48,10 @@ export type ResolvedFrameSizing = {
  * the box's own width keeps it steady before the width is measured and across
  * every animation replay, where a pixel height off the yet-unmeasured width
  * would collapse to zero and jump. `fill` takes the container's measured
- * height; `fixed` is its own pixel value with nothing to reserve.
+ * height; `fixed` is its own pixel value with nothing to reserve. `content`
+ * also derives from the measured `width`, but its width/height relationship
+ * isn't a fixed ratio, so there's nothing for CSS `aspect-ratio` to reserve —
+ * like `fill`, its box is a pixel `0` until the width is measured.
  *
  * @internal
  */
@@ -56,6 +63,14 @@ export function resolveFrameSizing(
 	if (sizing.mode === 'fixed') return { height: sizing.height, reserveAspect: null }
 
 	if (sizing.mode === 'fill') return { height: containerHeight, reserveAspect: null }
+
+	if (sizing.mode === 'content') {
+		if (width <= 0) return { height: 0, reserveAspect: null }
+
+		const radius = Math.max(0, width / 2 - sizing.hMargin)
+
+		return { height: Math.round(2 * radius + 2 * sizing.vMargin), reserveAspect: null }
+	}
 
 	return {
 		height: width > 0 ? Math.round(width / sizing.ratio) : 0,
@@ -69,11 +84,11 @@ export function resolveFrameSizing(
  * the frame only when it must. An explicit `width` is returned as-is with no
  * measurement — the deterministic path for fixed frames, SSR output, and
  * tests — otherwise the container's width is measured and the frame fills
- * it. The container's height is measured only under a `fill` policy; `fixed`
- * and `aspect` heights ignore it, so tracking it would re-render the frame
- * on every resize for a value the policy discards. A frame whose size is
- * fully fixed by props observes nothing at all, so a resize never reaches
- * it.
+ * it. The container's height is measured only under a `fill` policy; `fixed`,
+ * `aspect`, and `content` heights ignore it, so tracking it would re-render
+ * the frame on every resize for a value the policy discards. A frame whose
+ * size is fully fixed by props observes nothing at all, so a resize never
+ * reaches it.
  *
  * @param width - An explicit drawing width, or `undefined` to fill and
  * measure the container.
@@ -95,9 +110,9 @@ export function usePlotFrame(
 } {
 	const ref = useRef<HTMLDivElement>(null)
 
-	// The policy decides what the frame consumes: the width feeds the
-	// fill/aspect sizing unless the consumer fixes it, and the container
-	// height feeds only the free-form `fill` case.
+	// The policy decides what the frame consumes: the width feeds every
+	// sizing but `fixed` unless the consumer fixes it directly, and the
+	// container height feeds only the free-form `fill` case.
 	const measureWidth = width === undefined
 
 	const measureHeight = sizing.mode === 'fill'
