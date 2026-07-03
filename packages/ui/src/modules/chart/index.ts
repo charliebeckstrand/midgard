@@ -1,4 +1,5 @@
 export type { ChartSeriesColor } from '../../recipes/kata/chart'
+export { AreaChart, type AreaChartProps } from './area-chart'
 export { BarChart, type BarChartProps } from './bar-chart'
 export type { ChartAspectRatio } from './chart-layout'
 export { ChartSkeleton, type ChartSkeletonProps } from './chart-skeleton'

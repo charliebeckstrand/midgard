@@ -5,7 +5,7 @@ import { Icon } from '../../../../components/icon'
 import { Stack } from '../../../../components/stack'
 import { Stat, StatLabel, StatValue } from '../../../../components/stat'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../../components/tabs'
-import { BarChart, ComboChart, LineChart, PieChart } from '../../../../modules/chart'
+import { AreaChart, BarChart, ComboChart, LineChart, PieChart } from '../../../../modules/chart'
 import { code, Example } from '../../../engine'
 
 type Month = { month: string; revenue: number; costs: number; margin: number }
@@ -86,6 +86,7 @@ export function Demo() {
 				<TabList aria-label="Chart kind">
 					<Tab value="bar">Bar</Tab>
 					<Tab value="line">Line</Tab>
+					<Tab value="area">Area</Tab>
 					<Tab value="pie">Pie</Tab>
 					<Tab value="combo">Combo</Tab>
 				</TabList>
@@ -196,6 +197,53 @@ export function Demo() {
 										{ key: 'margin', label: 'Margin' },
 									]}
 									fill
+									animate
+								/>
+							</AnimatedExample>
+						</Stack>
+					</TabContent>
+
+					<TabContent value="area">
+						<Stack gap="xl">
+							<Example title="Stacked" code={code`<AreaChart stacked … />`}>
+								<AreaChart
+									aria-label="Revenue and costs by month, stacked"
+									data={months}
+									x="month"
+									series={[
+										{ key: 'revenue', label: 'Revenue' },
+										{ key: 'costs', label: 'Costs' },
+									]}
+									stacked
+								/>
+							</Example>
+
+							<Example
+								title="Overlapping, smoothed"
+								code={code`<AreaChart interpolation="smooth" … />`}
+							>
+								<AreaChart
+									aria-label="Revenue and margin by month"
+									data={months}
+									x="month"
+									series={[
+										{ key: 'revenue', label: 'Revenue' },
+										{ key: 'margin', label: 'Margin' },
+									]}
+									interpolation="smooth"
+								/>
+							</Example>
+
+							<AnimatedExample title="Animated" source={code`<AreaChart stacked animate … />`}>
+								<AreaChart
+									aria-label="Revenue and costs by month, stacked and animated"
+									data={months}
+									x="month"
+									series={[
+										{ key: 'revenue', label: 'Revenue' },
+										{ key: 'costs', label: 'Costs' },
+									]}
+									stacked
 									animate
 								/>
 							</AnimatedExample>

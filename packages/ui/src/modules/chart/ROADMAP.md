@@ -10,11 +10,11 @@ Bar draws grouped zero-baseline spans as one-end-rounded paths, so negative valu
 
 The legend is the series switchboard: centered toggle buttons where pointing an entry dims the other series and clicking toggles one off — the sweep, scales, and readout re-derive while slot colours hold to the fixed order.
 
+`AreaChart` fills each series under its band-edge line — stacked into a part-to-whole ribbon set or left as independent overlapping washes — reusing the line renderer and a stacked-domain pass on the shared scale. Line and combo lines take an `interpolation` prop: `'smooth'` draws a monotone cubic that never overshoots the data.
+
 ## Backlog
 
 - **Stacked bars.** `stacked?: boolean` on `BarChart`: a domain-sum pass over the existing `(x0, x1, y0, y1)` spans, segment gaps via the pie's surface-stroke trick, rounded cap on the outermost segment only.
-
-- **Curved lines.** `curve?: 'linear' | 'monotone'` on `LineChart` — monotone cubic keeps the interpolation inside the data envelope; the segment builder is the only touch point.
 
 - **Time x-axis.** A time scale beside `bandScale` for date-keyed rows, with locale tick formatting through `@internationalized/date`.
 

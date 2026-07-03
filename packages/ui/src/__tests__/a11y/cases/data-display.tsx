@@ -37,7 +37,14 @@ import {
 	TimelineTitle,
 } from '../../../components/timeline'
 import { Tree, TreeItem } from '../../../components/tree'
-import { BarChart, type ChartSeries, ComboChart, LineChart, PieChart } from '../../../modules/chart'
+import {
+	AreaChart,
+	BarChart,
+	type ChartSeries,
+	ComboChart,
+	LineChart,
+	PieChart,
+} from '../../../modules/chart'
 import { Grid, type GridColumn } from '../../../modules/grid'
 import type { Case } from './types'
 
@@ -231,6 +238,18 @@ export const dataDisplayCases: readonly Case[] = [
 			series={chartSeries}
 			width={360}
 			points
+		/>,
+	],
+	[
+		'area chart',
+		<AreaChart
+			key="ac"
+			aria-label="Revenue and costs by quarter, stacked"
+			data={chartRows}
+			x="quarter"
+			series={chartSeries}
+			width={360}
+			stacked
 		/>,
 	],
 	[

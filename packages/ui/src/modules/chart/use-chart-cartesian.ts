@@ -34,6 +34,12 @@ export type CartesianConfig<T> = {
 	zeroBaseline: boolean
 	/** The legend / tooltip swatch mirroring each series' mark. */
 	swatch: (series: ChartSeries<T>, index: number) => 'rect' | 'line'
+	/**
+	 * Scale the value axis to the per-category sum of the visible series rather
+	 * than their individual values — the stacked-area domain.
+	 * @defaultValue false
+	 */
+	stack?: boolean
 }
 
 /** Everything the cartesian frame and marks derive from the props. @internal */
@@ -127,10 +133,16 @@ export function useChartCartesian<T>(
 	// because each meta's paint keyed off its original index.
 	const visible = metas.filter((meta) => !hidden.has(meta.index))
 
+	// Stacked charts scale to the per-category column totals; every other chart
+	// scales to the individual values.
+	const domainValues = config.stack
+		? data.map((_, index) => visible.reduce((sum, meta) => sum + (meta.values[index] ?? 0), 0))
+		: visible.flatMap((meta) => meta.values.filter((value) => value !== null))
+
 	// The y range needs only the frame height, so the scale (and its tick
 	// labels) can resolve the gutter before the full plot rect exists.
 	const yScale = linearScale({
-		values: visible.flatMap((meta) => meta.values.filter((value) => value !== null)),
+		values: domainValues,
 		range: [frameHeight - (axes ? X_AXIS_HEIGHT : 0), PLOT_TOP_PAD],
 		tickTarget: metrics.tickTarget,
 		zeroBaseline: config.zeroBaseline,
