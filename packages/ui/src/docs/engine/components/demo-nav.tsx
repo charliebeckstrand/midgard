@@ -13,6 +13,7 @@ import {
 	useMenuActions,
 } from '../../../components/menu'
 import { createContext } from '../../../core'
+import { useCurrentPanelActive } from '../../../primitives/current'
 
 // A page with no titled examples has nothing to jump to, so the nav stays
 // hidden; one example or more earns it a place in the header.
@@ -79,8 +80,9 @@ function jumpTo(id: string) {
 /**
  * Provides the example registry to one demo's subtree. {@link Example}s within
  * register their title and anchor; {@link DemoNav} reads the collected list.
- * Entries accrue in mount order, which matches document order for the demo's
- * top-to-bottom example list.
+ * Entries accrue in registration order, which matches document order for the
+ * examples on view — examples in inactive tab panels stay out of the list until
+ * their tab is shown.
  */
 export function DemoNavProvider({ children }: { children: ReactNode }) {
 	const [entries, setEntries] = useState<ExampleEntry[]>([])
@@ -106,11 +108,21 @@ export function DemoNavProvider({ children }: { children: ReactNode }) {
  * outside a provider are skipped. The registered title is captured at mount;
  * demo titles are static, so it never needs to track later changes.
  *
+ * An example inside an inactive tab panel deregisters until its tab is shown, so
+ * a tabbed demo's nav lists only the examples on the tab in view — fade-mode
+ * panels stay mounted but out of sight, and jumping to a hidden one leads
+ * nowhere.
+ *
  * @param id - The example's anchor id, the scroll target for its nav entry.
  * @param title - The example heading; registration is skipped when empty.
  */
 export function useRegisterExample(id: string, title: ReactNode) {
 	const registry = useExampleRegistry()
+
+	// True unless the example sits in a tab panel that isn't the one on view;
+	// gates registration so DemoNav tracks the active tab (see the folded
+	// `useCurrentPanelActive` state on CurrentContent).
+	const active = useCurrentPanelActive()
 
 	// Snapshot the title so the effect can register the current value without
 	// listing a (potentially per-render) ReactNode in its dependencies.
@@ -121,10 +133,10 @@ export function useRegisterExample(id: string, title: ReactNode) {
 	const hasTitle = title != null && title !== ''
 
 	useEffect(() => {
-		if (!registry || !hasTitle) return
+		if (!registry || !hasTitle || !active) return
 
 		return registry.register({ id, title: titleRef.current })
-	}, [registry, id, hasTitle])
+	}, [registry, id, hasTitle, active])
 }
 
 /**
