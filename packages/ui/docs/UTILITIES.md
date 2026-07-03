@@ -11,6 +11,7 @@
 | `digitsOnly` | Returns `value` with every non-digit character removed. |
 | `formatInteger` | Locale-formats `value` with no fraction digits (cached formatter). |
 | `formatFraction` | Locale-formats `value` with up to two fraction digits (cached formatter). |
+| `formatPercent` | Locale-formats a `0..1` share as a whole percent (cached formatter). |
 
 ## Caret & formatted input
 

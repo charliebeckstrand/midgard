@@ -27,7 +27,7 @@ function AnimatedExample({ variant }: { variant: 'line' | 'bar' }) {
 			}
 			actions={
 				<Button
-					variant="plain"
+					variant="bare"
 					aria-label="Replay animation"
 					onClick={() => setRunKey((n) => n + 1)}
 				>

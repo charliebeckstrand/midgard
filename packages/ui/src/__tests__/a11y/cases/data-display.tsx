@@ -37,10 +37,32 @@ import {
 	TimelineTitle,
 } from '../../../components/timeline'
 import { Tree, TreeItem } from '../../../components/tree'
+import {
+	AreaChart,
+	BarChart,
+	type ChartSeries,
+	ComboChart,
+	DonutChart,
+	LineChart,
+	PieChart,
+} from '../../../modules/chart'
 import { Grid, type GridColumn } from '../../../modules/grid'
 import type { Case } from './types'
 
 type Person = { id: number; name: string; email: string }
+
+type Quarter = { quarter: string; revenue: number; costs: number }
+
+const chartRows: Quarter[] = [
+	{ quarter: 'Q1', revenue: 40, costs: 24 },
+	{ quarter: 'Q2', revenue: 80, costs: 31 },
+	{ quarter: 'Q3', revenue: 65, costs: 28 },
+]
+
+const chartSeries: ChartSeries<Quarter>[] = [
+	{ key: 'revenue', label: 'Revenue' },
+	{ key: 'costs', label: 'Costs' },
+]
 
 const dataTableRows: Person[] = [
 	{ id: 1, name: 'Wade Cooper', email: 'wade@example.com' },
@@ -194,6 +216,102 @@ export const dataDisplayCases: readonly Case[] = [
 		// Trend chart exposed as role="img" with a summarizing accessible name.
 		'sparkline',
 		<Sparkline key="sp" data={[3, 5, 4, 8, 7, 11]} aria-label="Revenue, up over 6 periods" />,
+	],
+	[
+		// Charts: a role="img" plot with legend and a hidden data table beside it.
+		'bar chart',
+		<BarChart
+			key="bc"
+			aria-label="Revenue by quarter"
+			data={chartRows}
+			x="quarter"
+			series={chartSeries}
+			width={360}
+		/>,
+	],
+	[
+		'line chart',
+		<LineChart
+			key="lc"
+			aria-label="Revenue trend by quarter"
+			data={chartRows}
+			x="quarter"
+			series={chartSeries}
+			width={360}
+			points
+		/>,
+	],
+	[
+		'area chart',
+		<AreaChart
+			key="ac"
+			aria-label="Revenue and costs by quarter, stacked"
+			data={chartRows}
+			x="quarter"
+			series={chartSeries}
+			width={360}
+			stacked
+		/>,
+	],
+	[
+		'pie chart',
+		<PieChart
+			key="pc"
+			aria-label="Revenue share by quarter"
+			data={chartRows}
+			value="revenue"
+			label="quarter"
+			width={240}
+			height={160}
+		/>,
+	],
+	[
+		// The interactive side panel: a toolbar of toggle buttons with live
+		// shares, beside the role="img" plot.
+		'pie chart with side panel',
+		<PieChart
+			key="pp"
+			aria-label="Revenue share by quarter"
+			data={chartRows}
+			value="revenue"
+			label="quarter"
+			width={240}
+			height={160}
+			legend="right"
+		/>,
+	],
+	[
+		// Ring variant of the pie: same role="img" plot and hidden table, with a
+		// total named in the hole.
+		'donut chart',
+		<DonutChart
+			key="dc"
+			aria-label="Revenue share by quarter"
+			data={chartRows}
+			value="revenue"
+			label="quarter"
+			width={240}
+			height={160}
+		>
+			<Stat>
+				<StatLabel>Total</StatLabel>
+				<StatValue>$185</StatValue>
+			</Stat>
+		</DonutChart>,
+	],
+	[
+		'combo chart',
+		<ComboChart
+			key="cc"
+			aria-label="Revenue and costs by quarter"
+			data={chartRows}
+			x="quarter"
+			series={[
+				{ key: 'revenue', label: 'Revenue', type: 'bar' },
+				{ key: 'costs', label: 'Costs', type: 'line' },
+			]}
+			width={360}
+		/>,
 	],
 	['avatar', <Avatar key="av" initials="WC" alt="Wade Cooper" />],
 	['kbd', <Kbd key="kb">K</Kbd>],

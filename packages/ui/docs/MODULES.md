@@ -12,7 +12,7 @@ import { Map } from 'ui/modules/map' // or the 'ui/map' shorthand
 
 ## Modules
 
-`chat` · `grid` · `map` · `query`
+`chart` · `chat` · `grid` · `map` · `query`
 
 ---
 

@@ -39,6 +39,7 @@ export function ChatTranscript({ messages, streaming, className }: ChatTranscrip
 								key={message.id ?? index}
 								type={message.role === 'user' ? 'user' : 'assistant'}
 								streaming={streaming && message.role === 'agent' && index === messages.length - 1}
+								timestamp={message.timestamp}
 							>
 								{message.content}
 							</ChatMessage>
