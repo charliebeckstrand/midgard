@@ -128,7 +128,7 @@ export function Tab({
 					id={tabId}
 					aria-selected={current ?? false}
 					// Explicit-id panels stay mounted; `aria-controls` is always set.
-					// Auto panels unmount when inactive unless a fade-mode
+					// Auto panels unmount when inactive unless an all-mounted
 					// TabContents keeps them mounted (registered via context);
 					// then every tab references its panel.
 					aria-controls={

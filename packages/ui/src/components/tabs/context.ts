@@ -16,7 +16,7 @@ type TabsContextValue = {
 	size: TabsSize
 	/** Base id a `Tab` and its `TabContent` derive a matched id pair from, keyed by `value`. */
 	baseId: string
-	/** `true` while a `TabContents` that keeps inactive panels mounted (fade mode) is rendered; inactive tabs may then reference their panels. */
+	/** `true` while a `TabContents` holds every inactive panel mounted (`mount="always"`); inactive tabs may then reference their panels via `aria-controls`. */
 	panelsMounted: boolean
 	/** Registers a `TabContents`; returns the deregister cleanup. */
 	registerMountedPanels: () => () => void
