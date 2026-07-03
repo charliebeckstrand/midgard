@@ -4,13 +4,6 @@
  * so the angle math is unit-testable in isolation.
  */
 
-/**
- * The transition ring, as a fraction of the outer radius, where a pie's
- * constant-gap edges give way and converge to the center. Small, so the tiny
- * unavoidable taper hides at the very middle. @internal
- */
-const PIE_CORE = 0.06
-
 /** One drawable slice: its path, source index, share, and tooltip anchor. @internal */
 export type PieSlice = {
 	/** The datum's index in the source data — colours and readouts key off it. */
@@ -36,10 +29,13 @@ export type PieSlicesOptions = {
 	 */
 	innerRadius?: number
 	/**
-	 * The constant gap between neighbouring slices, in px. Each slice's straight
-	 * edges recede half of it and stay parallel to a neighbour's, so the channel
-	 * holds an even width at every radius and shows the real surface through —
-	 * no painted separator to mismatch a tinted card. `0` sweeps slices flush.
+	 * The constant gap between neighbouring slices, in px. Each slice is the
+	 * true inward offset of its wedge — its straight edges recede half the gap
+	 * and stay parallel to a neighbour's — so the channel holds exactly this
+	 * width at every radius and shows the real surface through, no painted
+	 * separator to mismatch a tinted card. On a pie the channels cross at the
+	 * middle the way knife cuts through a real pie do; a donut's ring never
+	 * reaches that crossing. `0` sweeps slices flush.
 	 * @defaultValue 0
 	 */
 	pad?: number
@@ -145,36 +141,38 @@ function donutBack(
 }
 
 /**
- * A pie slice's inner boundary. Constant perpendicular gaps can't reach a
- * single point — near the center they would subtend more angle than there is —
- * so the parallel edges run in only to a small transition ring, then converge
- * to the shared center. The taper lives in that tiny central zone; the gap
- * holds its width everywhere the eye reads it. @internal
+ * A pie slice's inner boundary — the exact inward offset of its wedge, the
+ * shape constant-width knife cuts leave. The offset edges run straight to
+ * their natural intersection: a sharp tip on the bisector, `half / sin(s/2)`
+ * from the center. A slice wider than a half-turn has no such tip; its edges
+ * are tangent to the tiny `half`-radius circle the cuts leave around the
+ * middle, so it rides that circle between the tangent points. Nothing is
+ * stepped, capped, or clamped — the cuts simply cross at the center, the way
+ * they do through a real pie. @internal
  */
-function pieBack(
-	cx: number,
-	cy: number,
-	radius: number,
-	start: number,
-	end: number,
-	half: number,
-): string {
-	const ring = Math.max(half, radius * PIE_CORE)
+function pieBack(cx: number, cy: number, start: number, end: number, half: number): string {
+	if (half <= 0) return `L ${cx} ${cy}`
 
-	const along = Math.sqrt(Math.max(0, ring * ring - half * half))
+	const sweep = end - start
 
-	const mid1 = edgePoint(cx, cy, end, along, -half)
+	if (sweep <= 180) {
+		const tip = at(cx, cy, half / Math.sin((sweep * Math.PI) / 360), start + sweep / 2)
 
-	const mid0 = edgePoint(cx, cy, start, along, half)
+		return `L ${tip.x} ${tip.y}`
+	}
 
-	return `L ${mid1.x} ${mid1.y} L ${cx} ${cy} L ${mid0.x} ${mid0.y}`
+	const tangent1 = edgePoint(cx, cy, end, 0, -half)
+
+	const tangent0 = edgePoint(cx, cy, start, 0, half)
+
+	return `L ${tangent1.x} ${tangent1.y} ${arc(half, 0, 0, tangent0)}`
 }
 
 /**
  * One slice's path between two angles, its straight edges offset inward by
  * `half` the gap so the channel to each neighbour holds a constant width. A
- * donut rides its inner ring; a pie converges to the shared center through a
- * small transition zone. @internal
+ * donut rides its inner ring; a pie runs its offset edges to their natural
+ * meeting near the center. @internal
  */
 function slicePath(
 	cx: number,
@@ -194,9 +192,7 @@ function slicePath(
 	const outer = `M ${outer0.x} ${outer0.y} ${arc(radius, spanLarge(end - start, half, radius), 1, outer1)}`
 
 	const back =
-		inner > half
-			? donutBack(cx, cy, inner, start, end, half)
-			: pieBack(cx, cy, radius, start, end, half)
+		inner > half ? donutBack(cx, cy, inner, start, end, half) : pieBack(cx, cy, start, end, half)
 
 	return `${outer} ${back} Z`
 }
@@ -227,11 +223,6 @@ export function pieSlices(
 	// to part from.
 	const half = positive > 1 ? pad / 2 : 0
 
-	// The gap is measured where a slice is narrowest — a donut's inner ring, a
-	// pie's rim — so a sliver keeps a proportional channel instead of its edges
-	// crossing.
-	const guard = innerRadius > 0 ? innerRadius : radius
-
 	const slices: PieSlice[] = []
 
 	let angle = 0
@@ -245,7 +236,15 @@ export function pieSlices(
 
 		const mid = angle + sweep / 2
 
-		const h = Math.min(half, guard * Math.sin((sweep * 0.35 * Math.PI) / 180))
+		// A sliver narrower than the cuts shrinks its own offset: a donut's is
+		// bounded by its inner ring, a pie's by keeping the offset edges' tip
+		// inside half the radius so the wedge never inverts.
+		const pinch =
+			innerRadius > 0
+				? innerRadius * Math.sin((sweep * 0.35 * Math.PI) / 180)
+				: radius * 0.5 * Math.sin((sweep * Math.PI) / 360)
+
+		const h = Math.min(half, pinch)
 
 		slices.push({
 			index,

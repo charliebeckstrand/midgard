@@ -240,6 +240,34 @@ describe('pieSlices', () => {
 		expect(startX(padded[0])).toBeGreaterThan(startX(flush[0]))
 	})
 
+	it('runs a sub-half-turn slice to its knife-cut tip on the bisector', () => {
+		// Four equal quarters, 6px gap → half 3. The offset edges of a 90° wedge
+		// meet at half / sin(45°) ≈ 4.24 from the center, on the bisector.
+		const [first] = pieSlices([1, 1, 1, 1], { ...FRAME, pad: 6 })
+
+		const tipRadius = 3 / Math.sin((45 * Math.PI) / 180)
+
+		// The first quarter (0°→90°) bisects at 45°: the tip sits up-and-right.
+		const tip = {
+			x: FRAME.cx + tipRadius * Math.cos(((45 - 90) * Math.PI) / 180),
+			y: FRAME.cy + tipRadius * Math.sin(((45 - 90) * Math.PI) / 180),
+		}
+
+		const last = first?.d.match(/L ([\d.]+) ([\d.]+) Z$/)
+
+		expect(Number(last?.[1])).toBeCloseTo(tip.x, 3)
+
+		expect(Number(last?.[2])).toBeCloseTo(tip.y, 3)
+	})
+
+	it('rides the gap circle for a slice past a half-turn', () => {
+		// A dominant slice (> 180°) has no tip; its edges are tangent to the
+		// half-radius gap circle, so its inner boundary is an arc of that circle.
+		const [big] = pieSlices([80, 20], { ...FRAME, pad: 6 })
+
+		expect(big?.d).toContain('A 3 3 ')
+	})
+
 	it('never pads a lone full-circle slice', () => {
 		const [only] = pieSlices([0, 42], { ...FRAME, pad: 6 })
 

@@ -317,7 +317,7 @@ export function ChartPie<T>({
 					cy: frameHeight / 2,
 					radius,
 					innerRadius,
-					pad: MARK_GAP * 2,
+					pad: MARK_GAP,
 				})
 			: []
 
