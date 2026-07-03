@@ -1,6 +1,6 @@
 # Primitives
 
-> **Quick-glance index of `ui/primitives/*`.** Primitives are the composable building blocks components share — floating/overlay shells, polymorphic link/element resolution, the styling-context cascades (density, affix, control, join), and accessibility/interaction helpers. Each is its own entry point; many are consumed indirectly by components rather than directly by apps. Full signatures and caveats live in each primitive's TSDoc.
+> **Quick-glance index of `ui/primitives/*`.** Primitives are the composable building blocks components share — floating/overlay shells, polymorphic link/element resolution, the styling-context cascades (density, affix, control, join), frame-sizing shared by the data-viz modules, and accessibility/interaction helpers. Each is its own entry point; many are consumed indirectly by components rather than directly by apps. Full signatures and caveats live in each primitive's TSDoc.
 
 ```ts
 import { Polymorphic } from 'ui/primitives/polymorphic'
@@ -41,6 +41,12 @@ import { TouchTarget } from 'ui/primitives/touch-target'
 | `join` | Join context: Group broadcasts each child's position/orientation so controls share end-cap radii and a 1px overlap; null outside a Group. | `JoinContext`, `useJoin` |
 | `active-indicator` | Motion shared-element marker that morphs between sibling nav/tab items via a scoped `layoutId`. | `ActiveIndicatorScope`, `useActiveIndicator`, `ActiveIndicator` |
 | `toggle` | Layout primitives for toggle/switch fields: a group container and a single control-plus-label row, driven by the shared toggle recipe. | `ToggleGroup`, `ToggleField` |
+
+## Measurement & layout
+
+| Primitive | Summary | Key exports |
+|---|---|---|
+| `plot` | Frame sizing shared by the plot-bearing modules (chart, map): a `FrameSizing` policy (`fixed`/`aspect`/`fill`) resolved from each module's props drives `usePlotFrame`, which measures only the axes the policy consumes — observing nothing when the size is fully fixed by props — so a resize re-renders the frame only when a dimension it draws from changes. | `usePlotFrame`, `resolveFrameSizing`, `FrameSizing` |
 
 ## Motion & hit area
 

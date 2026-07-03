@@ -5,6 +5,7 @@
  * the layout math is unit-testable in isolation.
  */
 
+import type { FrameSizing } from '../../primitives/plot'
 import {
 	GUTTER_EDGE_PAD,
 	GUTTER_GAP,
@@ -32,44 +33,24 @@ function ratioValue(ratio: ChartAspectRatio): number | null {
 	return w && h && h > 0 ? w / h : null
 }
 
-/** A resolved frame size: the drawing height, and the ratio to reserve it in CSS. @internal */
-export type ChartSizing = {
-	/** The frame's drawing height in px; `0` until the width is measured. */
-	height: number
-	/**
-	 * The `width / height` ratio the plot box reserves through CSS
-	 * `aspect-ratio`, or `null` when the height is a fixed pixel value (an
-	 * explicit `height`) or fills the container (`aspectRatio: false`).
-	 */
-	reserveAspect: number | null
-}
-
 /**
- * Resolves a chart frame's drawing size — both its height and how the plot box
- * holds that height. An explicit `height` always wins as a fixed pixel box,
- * with nothing to reserve. Otherwise a live `aspectRatio` derives the height
- * from the measured `width` and reserves that same ratio through CSS: taking
- * the height from the box's own width keeps it steady before the width is
- * measured and across every animation replay, where a pixel height off the
- * yet-unmeasured width would collapse to zero and jump. With `aspectRatio` off
- * the frame is free-form and fills its container's measured height. Density
- * never sets a height, so it can't conflict with the ratio.
+ * Resolves a chart frame's sizing policy from its props. An explicit `height`
+ * always wins as a fixed pixel box. Otherwise a live `aspectRatio` derives the
+ * height from the width, and with the ratio off (or unparseable) the frame is
+ * free-form and fills its container. Density never sets a height, so it can't
+ * conflict with the ratio.
  *
  * @internal
  */
-export function resolveChartSizing(
-	width: number,
+export function chartFrameSizing(
 	height: number | undefined,
 	aspectRatio: ChartAspectRatio,
-	containerHeight: number,
-): ChartSizing {
-	if (height !== undefined) return { height, reserveAspect: null }
+): FrameSizing {
+	if (height !== undefined) return { mode: 'fixed', height }
 
 	const ratio = ratioValue(aspectRatio)
 
-	if (ratio === null) return { height: containerHeight, reserveAspect: null }
-
-	return { height: width > 0 ? Math.round(width / ratio) : 0, reserveAspect: ratio }
+	return ratio === null ? { mode: 'fill' } : { mode: 'aspect', ratio }
 }
 
 /** The plot rectangle inside a chart frame, in `viewBox` user units. @internal */

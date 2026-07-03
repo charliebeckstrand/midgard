@@ -13,7 +13,7 @@ import type { ChartLegendPlacement, ChartReadout } from './types'
 /** Props for {@link ChartFrame}; the accessible name spreads onto the `role="img"` plot region. @internal */
 export type ChartFrameProps = AccessibleName & {
 	/**
-	 * Measuring ref from `useChartPlot`, attached to the plot region — the box
+	 * Measuring ref from `usePlotFrame`, attached to the plot region — the box
 	 * the drawing actually fills, so a side legend never inflates the width.
 	 */
 	ref: RefObject<HTMLDivElement | null>

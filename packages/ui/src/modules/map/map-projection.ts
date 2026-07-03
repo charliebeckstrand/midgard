@@ -13,6 +13,7 @@ import {
 	geoMercator,
 	geoPath,
 } from 'd3-geo'
+import type { FrameSizing } from '../../primitives/plot'
 import { DEFAULT_MAP_ASPECT } from './map-constants'
 import type { MapAspectRatio, MapFeature, MapProjection } from './types'
 
@@ -97,41 +98,25 @@ function ratioValue(ratio: number | `${number}/${number}` | false): number | nul
 	return w && h && h > 0 ? w / h : null
 }
 
-/** A resolved frame size: the drawing height, and the ratio to reserve it in CSS. @internal */
-export type MapSizing = {
-	/** The frame's drawing height in px; `0` until the width is measured. */
-	height: number
-	/**
-	 * The `width / height` ratio the plot box reserves through CSS
-	 * `aspect-ratio`, or `null` when the height is a fixed pixel value (an
-	 * explicit `height`) or fills the container (`aspectRatio: false`).
-	 */
-	reserveAspect: number | null
-}
-
 /**
- * Resolves the map frame's drawing size, the chart-sizing contract with an
- * `'auto'` branch: an explicit `height` always wins as a fixed pixel box;
- * `'auto'` reserves the geography's own projected ratio (from
+ * Resolves the map frame's sizing policy, the chart contract with an `'auto'`
+ * branch: an explicit `height` always wins as a fixed pixel box; `'auto'`
+ * derives from the geography's own projected ratio (from
  * {@link mapAutoAspect}, with a wide fallback when there is nothing to
- * measure); a numeric or `"w/h"` ratio reserves that; `false` leaves the
- * frame free-form to fill its container's measured height.
+ * measure), so it never falls through to `fill`; a numeric or `"w/h"` ratio
+ * reserves that; `false` leaves the frame free-form to fill its container.
  *
  * @internal
  */
-export function resolveMapSizing(
-	width: number,
+export function mapFrameSizing(
 	height: number | undefined,
 	aspectRatio: MapAspectRatio,
 	autoAspect: number | null,
-	containerHeight: number,
-): MapSizing {
-	if (height !== undefined) return { height, reserveAspect: null }
+): FrameSizing {
+	if (height !== undefined) return { mode: 'fixed', height }
 
 	const ratio =
 		aspectRatio === 'auto' ? (autoAspect ?? DEFAULT_MAP_ASPECT) : ratioValue(aspectRatio)
 
-	if (ratio === null) return { height: containerHeight, reserveAspect: null }
-
-	return { height: width > 0 ? Math.round(width / ratio) : 0, reserveAspect: ratio }
+	return ratio === null ? { mode: 'fill' } : { mode: 'aspect', ratio }
 }
