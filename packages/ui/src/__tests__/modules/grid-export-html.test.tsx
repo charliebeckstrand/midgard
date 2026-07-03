@@ -57,13 +57,11 @@ describe('rowsToExcelHtml', () => {
 
 describe('downloadExcel', () => {
 	it('wraps the document in an Excel-typed blob and clicks an object-URL anchor', async () => {
-		const createObjectURL = vi.fn().mockReturnValue('blob:mock')
+		// URL.createObjectURL/revokeObjectURL are stubbed in jsdom-stubs.ts; spy on
+		// them so restoreMocks auto-reverts (no raw reassignment to leak).
+		const createObjectURL = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock')
 
-		const revokeObjectURL = vi.fn()
-
-		URL.createObjectURL = createObjectURL
-
-		URL.revokeObjectURL = revokeObjectURL
+		const revokeObjectURL = vi.spyOn(URL, 'revokeObjectURL')
 
 		const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
 
