@@ -245,6 +245,76 @@ describe('CurrentContent mount policy', () => {
 		expect(onSetup).toHaveBeenCalledTimes(2)
 	})
 
+	it('mount="active" with fade mounts only the active panel up front', () => {
+		renderUI(<Panels mount="active" fade />)
+
+		expect(screen.getByText('Content A')).toBeInTheDocument()
+
+		expect(screen.queryByText('Content B')).not.toBeInTheDocument()
+	})
+
+	it('mount="active" with fade unmounts the outgoing panel once its fade-out completes', async () => {
+		const user = userEvent.setup()
+
+		const onCleanup = vi.fn()
+
+		renderUI(<Panels mount="active" fade initial="b" onCleanup={onCleanup} />)
+
+		expect(screen.getByTestId('b-input')).toBeInTheDocument()
+
+		await user.click(screen.getByText('go-a'))
+
+		// The motion mock completes the retargeted opacity animation on the next
+		// commit, which releases the exit hold: the outgoing panel is unmounted
+		// and its state torn down, per `active` semantics.
+		expect(screen.queryByText('Content B')).not.toBeInTheDocument()
+
+		expect(onCleanup).toHaveBeenCalledTimes(1)
+
+		expect(screen.getByText('Content A')).toBeInTheDocument()
+	})
+
+	it('mount="lazy" with fade holds a visited panel through the cross-fade', async () => {
+		const user = userEvent.setup()
+
+		renderUI(<Panels mount="lazy" fade />)
+
+		expect(screen.queryByText('Content B')).not.toBeInTheDocument()
+
+		await user.click(screen.getByText('go-b'))
+
+		expect(screen.getByText('Content B')).toBeInTheDocument()
+
+		await user.click(screen.getByText('go-a'))
+
+		// Visited panels stay mounted as fade-mode hidden panels; only `active`
+		// unmounts after its fade-out.
+		expect(screen.getByText('Content B')).toHaveStyle({ position: 'absolute' })
+	})
+
+	it('a non-fading container nested in a fading one keeps its plain rendering', () => {
+		renderUI(
+			<CurrentContext value={{ value: 'a', onValueChange: undefined }}>
+				<CurrentContents slotPrefix="outer" fade>
+					<CurrentContent slotPrefix="outer" value="a">
+						<CurrentContext value={{ value: 'x', onValueChange: undefined }}>
+							<CurrentContents slotPrefix="inner" fade={false} mount="always">
+								<CurrentContent slotPrefix="inner" value="y">
+									Inner Y
+								</CurrentContent>
+							</CurrentContents>
+						</CurrentContext>
+					</CurrentContent>
+				</CurrentContents>
+			</CurrentContext>,
+		)
+
+		// The inner container re-scopes the fade signal off, so its inactive
+		// panel is held via Activity (hidden), not the absolute-positioned
+		// cross-fade branch.
+		expect(screen.getByText('Inner Y')).not.toBeVisible()
+	})
+
 	it('mount="lazy" defers a panel until first activation, then holds it', async () => {
 		const user = userEvent.setup()
 
