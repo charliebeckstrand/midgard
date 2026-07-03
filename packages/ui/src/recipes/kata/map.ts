@@ -38,5 +38,16 @@ export const k = {
 	 * opacity composes.
 	 */
 	group: (dimmed: boolean) => ['transition-opacity', dimmed ? 'opacity-25' : ''],
+	/**
+	 * The legend's reserved box, mounted before any button registers so the
+	 * frame never shifts as entries land: the `row` placements (top / bottom,
+	 * and every placement stacked below `lg`) hold one item-row of height,
+	 * and the side `panel` holds a fixed column width from `lg` — labels wrap
+	 * inside it — so the plot's width never depends on what has registered.
+	 */
+	legendBox: {
+		row: 'min-h-4',
+		panel: ['min-h-4', 'shrink-0', 'lg:w-48'],
+	},
 	skeleton: kokkaku.map,
 } as const

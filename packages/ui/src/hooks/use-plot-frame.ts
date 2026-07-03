@@ -121,6 +121,12 @@ export function resolveFrameSizing(
  * measure the container.
  * @param sizing - The frame's sizing policy, from `chartFrameSizing` or
  * `mapFrameSizing`.
+ * @param settleMs - Quiet window applied to resize notifications after the
+ * first real measurement: a new size commits only once it has held this
+ * long, so a window drag re-renders the frame once per settle instead of
+ * once per frame (the reserve keeps the box tracking the container through
+ * CSS meanwhile). `0` — the default — commits every notification, the live
+ * tracking a chart's mark-to-geometry animation wants.
  * @returns The wrapper `ref` to attach and the resolved drawing box — an
  * unmeasured `width` stays `0`, which renders the frame shell without marks
  * for that first paint (server and client agree, so no hydration mismatch).
@@ -129,6 +135,7 @@ export function resolveFrameSizing(
 export function usePlotFrame(
 	width: number | undefined,
 	sizing: FrameSizing,
+	settleMs = 0,
 ): {
 	ref: RefObject<HTMLDivElement | null>
 	width: number
@@ -146,6 +153,10 @@ export function usePlotFrame(
 
 	const [size, setSize] = useState({ width: 0, height: 0 })
 
+	// Whether a real (nonzero) size has committed on every measured axis; the
+	// settle window applies only after it, so the first paint never waits.
+	const sized = useRef(false)
+
 	const measure = useCallback(() => {
 		const el = ref.current
 
@@ -157,6 +168,8 @@ export function usePlotFrame(
 			width: measureWidth ? Math.round(el.clientWidth) : 0,
 			height: measureHeight ? Math.round(el.clientHeight) : 0,
 		}
+
+		sized.current = (!measureWidth || next.width > 0) && (!measureHeight || next.height > 0)
 
 		setSize((current) =>
 			current.width === next.width && current.height === next.height ? current : next,
@@ -174,12 +187,31 @@ export function usePlotFrame(
 
 		measure()
 
-		const observer = new ResizeObserver(measure)
+		let timer: ReturnType<typeof setTimeout> | undefined
+
+		const observer = new ResizeObserver(() => {
+			// The first real size commits immediately — a frame revealed after
+			// mount (a hidden tab) must not hold its first paint through the
+			// settle window. Later notifications are genuine resizes.
+			if (settleMs <= 0 || !sized.current) {
+				measure()
+
+				return
+			}
+
+			clearTimeout(timer)
+
+			timer = setTimeout(measure, settleMs)
+		})
 
 		observer.observe(el)
 
-		return () => observer.disconnect()
-	}, [measure, measureWidth, measureHeight])
+		return () => {
+			observer.disconnect()
+
+			clearTimeout(timer)
+		}
+	}, [measure, measureWidth, measureHeight, settleMs])
 
 	const resolvedWidth = width ?? size.width
 

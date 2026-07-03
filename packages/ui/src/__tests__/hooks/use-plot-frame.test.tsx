@@ -64,13 +64,15 @@ const Marks = memo(function Marks({
 function Probe({
 	width,
 	sizing,
+	settleMs,
 	onMarks,
 }: {
 	width: number | undefined
 	sizing: FrameSizing
+	settleMs?: number
 	onMarks: () => void
 }) {
-	const plot = usePlotFrame(width, sizing)
+	const plot = usePlotFrame(width, sizing, settleMs)
 
 	return (
 		<div ref={plot.ref} data-testid="plot">
@@ -88,6 +90,8 @@ describe('usePlotFrame', () => {
 
 	afterEach(() => {
 		stub.restore()
+
+		vi.useRealTimers()
 	})
 
 	function firstObserver(): StubInstance {
@@ -146,6 +150,49 @@ describe('usePlotFrame', () => {
 		expect(screen.getByTestId('marks').getAttribute('data-width')).toBe('600')
 
 		expect(screen.getByTestId('marks').getAttribute('data-height')).toBe('300')
+	})
+
+	it('commits the first real size immediately, then coalesces resizes into one settle', () => {
+		vi.useFakeTimers()
+
+		const onMarks = vi.fn()
+
+		renderUI(
+			<Probe
+				width={undefined}
+				sizing={{ mode: 'aspect', ratio: 2 }}
+				settleMs={200}
+				onMarks={onMarks}
+			/>,
+		)
+
+		const plot = screen.getByTestId('plot')
+
+		// The first real width lands without waiting out the settle window — a
+		// frame revealed after mount must paint at once.
+		resizeTo(plot, { width: 300, height: 0 })
+
+		expect(screen.getByTestId('marks').getAttribute('data-width')).toBe('300')
+
+		const drawsAfterFirst = onMarks.mock.calls.length
+
+		// A resize burst: nothing commits while notifications keep arriving.
+		resizeTo(plot, { width: 320, height: 0 })
+
+		resizeTo(plot, { width: 360, height: 0 })
+
+		expect(onMarks).toHaveBeenCalledTimes(drawsAfterFirst)
+
+		expect(screen.getByTestId('marks').getAttribute('data-width')).toBe('300')
+
+		// The quiet window elapses: one commit, at the final size.
+		act(() => {
+			vi.advanceTimersByTime(200)
+		})
+
+		expect(screen.getByTestId('marks').getAttribute('data-width')).toBe('360')
+
+		expect(onMarks).toHaveBeenCalledTimes(drawsAfterFirst + 1)
 	})
 
 	it('redraws on a height change under a fill policy', () => {

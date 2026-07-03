@@ -80,7 +80,42 @@ describe('MapPlat', () => {
 
 		expect(bySlot(bare.container, 'map-legend')).toBeNull()
 
+		expect(bySlot(bare.container, 'map-legend-box')).toBeNull()
+
 		expect(bySlot(bare.container, 'map-table')).toBeNull()
+	})
+
+	it('reserves the legend box ahead of overlay registration, and not under legend={false}', () => {
+		// A child that never registers stands in for overlays whose entries land
+		// late: the box must hold the space before any button exists.
+		const pending = renderUI(
+			<MapPlat aria-label="Backdrop" geography={FIXTURE_GEOJSON} width={400}>
+				<circle r={1} />
+			</MapPlat>,
+		)
+
+		expect(bySlot(pending.container, 'map-legend-box')).toBeInTheDocument()
+
+		expect(bySlot(pending.container, 'map-legend')).toBeNull()
+
+		const off = renderUI(plat({ legend: false }))
+
+		expect(bySlot(off.container, 'map-legend-box')).toBeNull()
+	})
+
+	it('reserves a fixed-width column for the side panel placements', () => {
+		const { container } = renderUI(plat({ legend: 'left' }))
+
+		const box = bySlot(container, 'map-legend-box')
+
+		expect(box?.getAttribute('class')).toContain('lg:w-48')
+
+		expect(bySlot(container, 'map-legend')?.getAttribute('class')).toContain('flex-col')
+
+		// Row placements reserve one item-row of height instead.
+		const row = renderUI(plat({ legend: 'top' }))
+
+		expect(bySlot(row.container, 'map-legend-box')?.getAttribute('class')).toContain('min-h-4')
 	})
 
 	it('toggles a category off: neutral fill, struck legend text, pressed off', () => {

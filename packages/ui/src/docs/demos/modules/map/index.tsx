@@ -123,12 +123,10 @@ function RoutedMarker({ label, start, end }: { label: string; start: LngLat; end
 	)
 }
 
+// The skeleton reserves the map frame's aspect box itself, so the swap to the
+// loaded plat causes no layout shift.
 function Loading() {
-	return (
-		<div className="aspect-video w-full">
-			<MapSkeleton />
-		</div>
-	)
+	return <MapSkeleton />
 }
 
 const Container = ({ children, size = 'lg' }: { children: ReactNode; size?: string }) => {
