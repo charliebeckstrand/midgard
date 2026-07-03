@@ -157,13 +157,13 @@ export function Demo() {
 						<Stack gap="xl">
 							<Example title="Default">
 								<Container>
-									{states ? (
-										<MapPlat
-											aria-label="Default map plat"
-											geography={states}
-											projection="albers-usa"
-										/>
-									) : undefined}
+									{/* geography is optional: the plat reserves its frame and
+									    paints the map in when the atlas lands — no guard here. */}
+									<MapPlat
+										aria-label="Default map plat"
+										geography={states}
+										projection="albers-usa"
+									/>
 								</Container>
 							</Example>
 

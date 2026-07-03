@@ -68,9 +68,12 @@ export type MapPlatProps<T = never> = AccessibleName &
 		/**
 		 * The geometry to draw: a TopoJSON topology or a GeoJSON feature
 		 * collection. The package ships no atlas data — pass `us-atlas`,
-		 * `world-atlas`, or any equivalent source.
+		 * `world-atlas`, or any equivalent source. Optional so a lazily fetched
+		 * atlas passes straight through: `null` or omitted reserves the frame and
+		 * paints nothing, then the geography draws in the moment it arrives — no
+		 * `geography ? <MapPlat /> : null` guard at the call site.
 		 */
-		geography: MapGeography
+		geography?: MapGeography | null
 		/** Which topology object to draw; defaults to the topology's first key. */
 		geographyObject?: string
 		/**
@@ -166,7 +169,7 @@ type MapShape = {
  * @internal
  */
 function useMapShape(
-	geography: MapGeography,
+	geography: MapGeography | null | undefined,
 	geographyObject: string | undefined,
 	projection: MapProjection,
 	width: number | undefined,
@@ -174,7 +177,7 @@ function useMapShape(
 	aspectRatio: MapAspectRatio,
 ): MapShape {
 	const features = useMemo(
-		() => geographyFeatures(geography, geographyObject),
+		() => (geography == null ? [] : geographyFeatures(geography, geographyObject)),
 		[geography, geographyObject],
 	)
 

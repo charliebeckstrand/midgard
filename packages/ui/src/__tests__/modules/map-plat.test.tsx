@@ -53,6 +53,24 @@ describe('MapPlat', () => {
 		expect(allBySlot(container, 'map-region')).toHaveLength(3)
 	})
 
+	it('reserves the frame without geography and paints it once provided', () => {
+		// A lazily fetched atlas passes through as null: no guard at the call
+		// site, no crash — the plot box holds the space, then the geography
+		// draws in when it lands.
+		const { container, rerender } = renderUI(
+			<MapPlat aria-label="Backdrop" geography={null} width={400} />,
+		)
+
+		// The reserved plot box holds the space; nothing is drawn yet.
+		expect(bySlot(container, 'map-plot')).toBeInTheDocument()
+
+		expect(allBySlot(container, 'map-region')).toHaveLength(0)
+
+		rerender(<MapPlat aria-label="Backdrop" geography={FIXTURE_GEOJSON} width={400} />)
+
+		expect(allBySlot(container, 'map-region')).toHaveLength(3)
+	})
+
 	it('washes colour in over solid geography under animate, never fading the paths', () => {
 		const { container } = renderUI(plat({ animate: true }))
 
