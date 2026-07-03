@@ -12,7 +12,7 @@ import { ChartLegend } from '../chart-legend'
 import { AnimatedChartLineMarks, ChartLineMarks, type ChartLineSeries } from '../chart-line-marks'
 import { ChartMarksLayer } from '../chart-marks-layer'
 import type { SeriesMeta } from '../chart-series'
-import { lineGeometry } from '../line-chart/line-chart-geometry'
+import { type LineInterpolation, lineGeometry } from '../line-chart/line-chart-geometry'
 import type { ComboChartSeries } from '../types'
 import { useChartAnimationKey } from '../use-chart-animation-key'
 import { type CartesianData, useChartCartesian } from '../use-chart-cartesian'
@@ -31,6 +31,11 @@ export type ComboChartProps<T> = AccessibleName &
 		 * @defaultValue true
 		 */
 		points?: boolean
+		/**
+		 * Connect the line series with straight segments or a rounded monotone curve.
+		 * @defaultValue 'linear'
+		 */
+		interpolation?: LineInterpolation
 	}
 
 /**
@@ -69,6 +74,7 @@ export function ComboChart<T>({
 	tooltip = true,
 	animate = false,
 	points = true,
+	interpolation = 'linear',
 	min,
 	max,
 	formatValue,
@@ -112,6 +118,7 @@ export function ComboChart<T>({
 					meta.values.map((_, index) => chart.band.center(index)),
 					yScale.map,
 					chart.plot.y + chart.plot.height,
+					interpolation,
 				),
 				markers: points,
 				dimmed: dim(meta),

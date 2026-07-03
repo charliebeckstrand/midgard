@@ -169,6 +169,23 @@ export function Demo() {
 								/>
 							</Example>
 
+							<Example
+								title="Smooth interpolation"
+								code={code`<LineChart interpolation="smooth" … />`}
+							>
+								<LineChart
+									aria-label="Revenue and margin by month, smoothed"
+									data={months}
+									x="month"
+									series={[
+										{ key: 'revenue', label: 'Revenue' },
+										{ key: 'margin', label: 'Margin' },
+									]}
+									interpolation="smooth"
+									points
+								/>
+							</Example>
+
 							<AnimatedExample title="Animated" source={code`<LineChart animate … />`}>
 								<LineChart
 									aria-label="Revenue and margin by month, animated"

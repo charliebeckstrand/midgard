@@ -69,6 +69,12 @@ describe('LineChart', () => {
 
 		expect(allBySlot(container, 'chart-point')).toHaveLength(6)
 	})
+
+	it('curves the lines under smooth interpolation', () => {
+		const { container } = renderUI(chart({ interpolation: 'smooth' }))
+
+		expect(bySlot(container, 'chart-line')?.getAttribute('d')).toContain('C')
+	})
 })
 
 describe('lineGeometry', () => {
@@ -99,5 +105,29 @@ describe('lineGeometry', () => {
 		expect(geometry.segments).toHaveLength(0)
 
 		expect(geometry.points).toHaveLength(0)
+	})
+
+	it('draws a monotone cubic under smooth interpolation without overshooting', () => {
+		const linear = lineGeometry([10, 30, 20], [0, 10, 20], identity, 100, 'linear')
+
+		expect(linear.segments[0]).not.toContain('C')
+
+		const smooth = lineGeometry([10, 30, 20], [0, 10, 20], identity, 100, 'smooth')
+
+		// Cubic segments, and the peak's tangent flattens so the curve can't
+		// rise past y=30 (in this identity map, past the data max).
+		expect(smooth.segments[0]).toContain('C')
+
+		const ys = [...(smooth.segments[0] as string).matchAll(/[\d.]+ ([\d.]+)/g)].map((m) =>
+			Number(m[1]),
+		)
+
+		expect(Math.max(...ys)).toBeLessThanOrEqual(30)
+	})
+
+	it('stays a straight segment when a run is too short to curve', () => {
+		const smooth = lineGeometry([10, 30], [0, 10], identity, 100, 'smooth')
+
+		expect(smooth.segments[0]).toBe('M 0 10 L 10 30')
 	})
 })

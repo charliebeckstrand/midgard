@@ -11,7 +11,7 @@ import { ChartMarksLayer } from '../chart-marks-layer'
 import type { CartesianChartProps } from '../types'
 import { useChartAnimationKey } from '../use-chart-animation-key'
 import { useChartCartesian } from '../use-chart-cartesian'
-import { lineGeometry } from './line-chart-geometry'
+import { type LineInterpolation, lineGeometry } from './line-chart-geometry'
 
 /**
  * Props for {@link LineChart}. Requires an accessible name (`aria-label` or
@@ -30,6 +30,12 @@ export type LineChartProps<T> = CartesianChartProps<T> & {
 	 * @defaultValue false
 	 */
 	fill?: boolean
+	/**
+	 * Connect points with straight segments or a rounded monotone curve that
+	 * never overshoots the data.
+	 * @defaultValue 'linear'
+	 */
+	interpolation?: LineInterpolation
 }
 
 /**
@@ -66,6 +72,7 @@ export function LineChart<T>({
 	animate = false,
 	points = false,
 	fill = false,
+	interpolation = 'linear',
 	min,
 	max,
 	formatValue,
@@ -90,6 +97,7 @@ export function LineChart<T>({
 					meta.values.map((_, index) => chart.band.center(index)),
 					yScale.map,
 					floor,
+					interpolation,
 				),
 				markers: points,
 				dimmed: chart.emphasis !== null && meta.index !== chart.emphasis,
