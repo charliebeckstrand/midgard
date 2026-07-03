@@ -84,8 +84,5 @@ export const SLICE_FADE = { duration: 0.3, ease: 'easeOut' } as const
 /** Delay step between adjacent pie slices. @internal */
 export const SLICE_STAGGER = 0.06
 
-/** Combo lines hold until the bars have finished rising. @internal */
-export const COMBO_LINE_DELAY = BAR_GROW.duration
-
 /** Quiet window after the last resize before the mount reveal replays once. @internal */
 export const RESIZE_SETTLE_MS = 200
