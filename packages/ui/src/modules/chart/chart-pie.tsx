@@ -541,7 +541,7 @@ export function ChartPie<T>({
 		vMargin,
 	)
 
-	const { ref, width: frameWidth, height: frameHeight, reserveAspect } = usePlotFrame(width, sizing)
+	const { ref, width: frameWidth, height: frameHeight, reserve } = usePlotFrame(width, sizing)
 
 	const { hidden, toggle, setFocus, emphasis } = useChartSeriesToggle()
 
@@ -617,7 +617,7 @@ export function ChartPie<T>({
 			width={frameWidth}
 			fixedWidth={width}
 			height={frameHeight}
-			reserveAspect={reserveAspect}
+			reserve={reserve}
 			plot={{ x: 0, y: 0, width: frameWidth, height: frameHeight }}
 			legend={
 				legendItems && (

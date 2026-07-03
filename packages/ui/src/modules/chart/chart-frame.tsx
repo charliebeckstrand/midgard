@@ -1,10 +1,11 @@
 'use client'
 
 import { type ReactNode, type RefObject, useMemo, useState } from 'react'
-import { AspectRatio } from '../../components/aspect-ratio'
 import { cn } from '../../core'
+import type { FrameReserve } from '../../hooks'
 import type { AccessibleName } from '../../types'
 import type { PlotRect } from './chart-layout'
+import { ChartPlotBox } from './chart-plot-box'
 import { ChartTable } from './chart-table'
 import { ChartTooltip } from './chart-tooltip'
 import { type ChartHover, ChartHoverContext, type ChartPoint } from './context'
@@ -23,11 +24,11 @@ export type ChartFrameProps = AccessibleName & {
 	fixedWidth?: number
 	height: number
 	/**
-	 * The `width / height` ratio to reserve the plot box height through CSS, or
+	 * How the plot box reserves its height from its own width through CSS, or
 	 * `null` to use the pixel `height`. CSS reservation keeps the height stable
 	 * before the width is measured and across animation replays.
 	 */
-	reserveAspect: number | null
+	reserve: FrameReserve | null
 	/** The plot rectangle inside the frame; the tooltip flips sides at its midpoint. */
 	plot: PlotRect
 	/** The prepared legend row, or `null` to omit it (single series). */
@@ -64,7 +65,7 @@ export function ChartFrame({
 	width,
 	fixedWidth,
 	height,
-	reserveAspect,
+	reserve,
 	plot,
 	legend,
 	legendPlacement = 'bottom',
@@ -107,15 +108,12 @@ export function ChartFrame({
 			{...label}
 			className={cn('relative', aside && 'min-w-0 flex-1')}
 		>
-			{/* AspectRatio reserves the box height from its own width — steady
-			    before the width is measured and across animation replays — while
-			    an explicit height sets a fixed box. The tooltip sits outside so
-			    the aspect box's clip never touches it. */}
-			{reserveAspect === null ? (
-				<div style={{ height }}>{svg}</div>
-			) : (
-				<AspectRatio ratio={reserveAspect}>{svg}</AspectRatio>
-			)}
+			{/* ChartPlotBox reserves the box height from its own width — steady before
+			    the width is measured and across animation replays — or takes a fixed
+			    pixel height. The tooltip sits outside so its clip never touches it. */}
+			<ChartPlotBox reserve={reserve} height={height}>
+				{svg}
+			</ChartPlotBox>
 
 			{overlay}
 

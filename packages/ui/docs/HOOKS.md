@@ -98,7 +98,8 @@ The a11y hooks export their option and return shapes for consumers that thread t
 | Type | Summary |
 |---|---|
 | `FrameSizing` | The frame's height policy: `fixed` (pixel height), `aspect` (ratio of width), `fill` (container height), or `content` (width minus a pair of margins). |
-| `ResolvedFrameSizing` | A resolved frame box: drawing height plus the ratio to reserve through CSS `aspect-ratio`, or `null`. |
+| `FrameReserve` | How a width-derived frame reserves its height from its own width through CSS: an `aspect` ratio, or a `content` ratio shifted by a fixed pixel offset. |
+| `ResolvedFrameSizing` | A resolved frame box: the drawing height plus its `FrameReserve`, or `null` when the height is a fixed pixel value or fills the container. |
 
 ---
 

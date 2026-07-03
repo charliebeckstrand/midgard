@@ -1,12 +1,12 @@
 'use client'
 
 import { type ReactNode, type RefObject, useCallback, useMemo, useState } from 'react'
-import { AspectRatio } from '../../components/aspect-ratio'
 import { cn } from '../../core'
-import { usePlotFrame } from '../../hooks'
+import { type FrameReserve, usePlotFrame } from '../../hooks'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { k, type MapSeriesColor } from '../../recipes/kata/map'
 import type { AccessibleName } from '../../types'
+import { ChartPlotBox } from '../chart/chart-plot-box'
 import { useChartAnimationKey } from '../chart/use-chart-animation-key'
 import { type MapHover, MapHoverContext, MapPlatContext, type MapPlatContextValue } from './context'
 import {
@@ -139,7 +139,7 @@ type MapShape = {
 	ref: RefObject<HTMLDivElement | null>
 	frameWidth: number
 	frameHeight: number
-	reserveAspect: number | null
+	reserve: FrameReserve | null
 	/** Region path ds, index-aligned with the features; empty until fitted. */
 	paths: (string | null)[]
 	features: MapFeature[]
@@ -166,7 +166,7 @@ function useMapShape(
 		ref,
 		width: frameWidth,
 		height: frameHeight,
-		reserveAspect,
+		reserve,
 	} = usePlotFrame(width, mapFrameSizing(height, aspectRatio, autoAspect))
 
 	const fitted = useMemo(
@@ -187,7 +187,7 @@ function useMapShape(
 		[fitted],
 	)
 
-	return { ref, frameWidth, frameHeight, reserveAspect, paths, features, project }
+	return { ref, frameWidth, frameHeight, reserve, paths, features, project }
 }
 
 /** The resolved categorical readout behind the regions. @internal */
@@ -354,14 +354,11 @@ function MapPlotRegion({ shape, aside, tooltip, children, ...name }: MapPlotRegi
 			{...name}
 			className={cn('relative', aside && 'min-w-0 flex-1')}
 		>
-			{/* AspectRatio reserves the box height from its own width — steady
-			    before the width is measured and across animation replays — while
-			    an explicit height sets a fixed box. */}
-			{shape.reserveAspect === null ? (
-				<div style={{ height: shape.frameHeight }}>{children}</div>
-			) : (
-				<AspectRatio ratio={shape.reserveAspect}>{children}</AspectRatio>
-			)}
+			{/* PlotBox reserves the box height from its own width — steady before the
+			    width is measured and across animation replays — or takes a fixed height. */}
+			<ChartPlotBox reserve={shape.reserve} height={shape.frameHeight}>
+				{children}
+			</ChartPlotBox>
 
 			{tooltip}
 		</div>

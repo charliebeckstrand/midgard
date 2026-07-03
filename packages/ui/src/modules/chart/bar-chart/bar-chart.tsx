@@ -98,7 +98,7 @@ export function BarChart<T>({
 			width={chart.width}
 			fixedWidth={chart.fixedWidth}
 			height={chart.height}
-			reserveAspect={chart.reserveAspect}
+			reserve={chart.reserve}
 			plot={chart.plot}
 			legend={
 				chart.legendItems && (

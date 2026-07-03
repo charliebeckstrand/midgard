@@ -22,7 +22,7 @@ function frame(width: number, extras?: Partial<Parameters<typeof ChartFrame>[0]>
 			ref={createRef<HTMLDivElement>()}
 			width={width}
 			height={240}
-			reserveAspect={null}
+			reserve={null}
 			plot={PLOT}
 			legend={
 				<ChartLegend
