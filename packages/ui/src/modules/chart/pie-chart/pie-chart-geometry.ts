@@ -121,9 +121,11 @@ function spanLarge(sweep: number, half: number, r: number): 0 | 1 {
 
 /**
  * One slice's path between two angles, its straight edges offset inward by
- * `half` the gap so the channel to each neighbour holds a constant width. A
- * pie caps the near-center end with a short chord across the tiny gap circle;
- * a donut rides its inner ring. @internal
+ * `half` the gap so the channel to each neighbour holds a constant width. Both
+ * variants ride an inner circle back to the start edge: a donut its own ring, a
+ * pie the tiny gap circle so every slice leaves the same clean disc at the
+ * center. On that gap circle the tangent points sit a quarter-turn off the
+ * edges, so a pie's cap sweeps the opposite way from a donut's. @internal
  */
 function slicePath(
 	cx: number,
@@ -148,12 +150,15 @@ function slicePath(
 
 	const inner0 = edgePoint(cx, cy, start, innerAlong, half)
 
-	const back =
-		inner > half
-			? arc(ring, spanLarge(end - start, half, ring), 0, inner0)
-			: `L ${inner0.x} ${inner0.y}`
+	// A donut rides its ring backward (sweep 0); a pie's gap-circle tangents are
+	// swept a quarter-turn round, so its minor cap runs the other way.
+	const wideSlice: 0 | 1 = end - start < 180 ? 1 : 0
 
-	return `M ${outer0.x} ${outer0.y} ${arc(radius, spanLarge(end - start, half, radius), 1, outer1)} L ${inner1.x} ${inner1.y} ${back} Z`
+	const capSweep: 0 | 1 = inner > half ? 0 : wideSlice
+
+	const capLarge: 0 | 1 = inner > half ? spanLarge(end - start, half, ring) : 0
+
+	return `M ${outer0.x} ${outer0.y} ${arc(radius, spanLarge(end - start, half, radius), 1, outer1)} L ${inner1.x} ${inner1.y} ${arc(ring, capLarge, capSweep, inner0)} Z`
 }
 
 /**
