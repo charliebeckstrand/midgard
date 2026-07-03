@@ -4,7 +4,7 @@ import { type FrameReserve, usePlotFrame } from '../../hooks'
 import { useResolvedSize } from '../../primitives/density'
 import type { Step } from '../../recipes'
 import type { ChartAxisTick } from './chart-axis'
-import { CHART_METRICS, PLOT_TOP_PAD, X_AXIS_HEIGHT } from './chart-constants'
+import { CHART_METRICS, PLOT_TOP_PAD, RESIZE_SETTLE_MS, X_AXIS_HEIGHT } from './chart-constants'
 import {
 	bandAnchors,
 	type ChartAnchor,
@@ -121,12 +121,16 @@ export function useChartCartesian<T>(
 
 	const metrics = CHART_METRICS[resolvedSize as Step] ?? CHART_METRICS.md
 
+	// Rebuilding the scales, ticks, and every mark's geometry is a full
+	// re-render, so resizes commit only once they settle; between commits the
+	// SVG scales through its viewBox inside the CSS-reserved box, holding its
+	// aspect ratio so nothing distorts.
 	const {
 		ref,
 		width: frameWidth,
 		height: frameHeight,
 		reserve,
-	} = usePlotFrame(width, chartFrameSizing(height, aspectRatio))
+	} = usePlotFrame(width, chartFrameSizing(height, aspectRatio), RESIZE_SETTLE_MS)
 
 	const format = props.formatValue ?? formatChartValue
 

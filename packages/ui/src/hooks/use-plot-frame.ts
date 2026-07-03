@@ -125,8 +125,9 @@ export function resolveFrameSizing(
  * first real measurement: a new size commits only once it has held this
  * long, so a window drag re-renders the frame once per settle instead of
  * once per frame (the reserve keeps the box tracking the container through
- * CSS meanwhile). `0` — the default — commits every notification, the live
- * tracking a chart's mark-to-geometry animation wants.
+ * CSS meanwhile). The chart and map modules both pass `RESIZE_SETTLE_MS`.
+ * `0` — the default — commits every notification, for a frame that tracks
+ * its container live rather than settling.
  * @returns The wrapper `ref` to attach and the resolved drawing box — an
  * unmeasured `width` stays `0`, which renders the frame shell without marks
  * for that first paint (server and client agree, so no hydration mismatch).

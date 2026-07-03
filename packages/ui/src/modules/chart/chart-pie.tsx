@@ -6,7 +6,13 @@ import { cn } from '../../core'
 import { type FrameSizing, usePlotFrame } from '../../hooks'
 import { k } from '../../recipes/kata/chart'
 import { formatPercent } from '../../utilities'
-import { MARK_GAP, SLICE_FADE, SLICE_SWEEP, TICK_CHAR_WIDTH } from './chart-constants'
+import {
+	MARK_GAP,
+	RESIZE_SETTLE_MS,
+	SLICE_FADE,
+	SLICE_SWEEP,
+	TICK_CHAR_WIDTH,
+} from './chart-constants'
 import { ChartFrame } from './chart-frame'
 import { type ChartAspectRatio, chartFrameSizing } from './chart-layout'
 import { ChartLegend, type ChartLegendItem } from './chart-legend'
@@ -505,7 +511,15 @@ export function ChartPie<T>({
 		vMargin,
 	)
 
-	const { ref, width: frameWidth, height: frameHeight, reserve } = usePlotFrame(width, sizing)
+	// Recomputing the slices, labels, and callouts is a full re-render, so
+	// resizes commit only once they settle; the SVG scales through its viewBox
+	// inside the CSS-reserved box meanwhile.
+	const {
+		ref,
+		width: frameWidth,
+		height: frameHeight,
+		reserve,
+	} = usePlotFrame(width, sizing, RESIZE_SETTLE_MS)
 
 	const { hidden, toggle, setFocus, emphasis } = useChartSeriesToggle()
 
