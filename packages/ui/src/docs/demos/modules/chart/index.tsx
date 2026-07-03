@@ -105,12 +105,16 @@ export function Demo() {
 					<Tab value="line">Line</Tab>
 					<Tab value="area">Area</Tab>
 					<Tab value="pie">Pie</Tab>
+					<Tab value="donut">Donut</Tab>
 					<Tab value="combo">Combo</Tab>
 				</TabList>
 				<TabContents>
 					<TabContent value="bar">
 						<Stack gap="xl">
-							<Example title="Grouped">
+							<Example
+								title="Grouped, with a value guide"
+								code={code`<BarChart guideLine={{ x: true }} … />`}
+							>
 								<Container>
 									<BarChart
 										aria-label="Revenue and costs by month"
@@ -120,6 +124,7 @@ export function Demo() {
 											{ key: 'revenue', label: 'Revenue' },
 											{ key: 'costs', label: 'Costs' },
 										]}
+										guideLine={{ x: true }}
 									/>
 								</Container>
 							</Example>
@@ -172,7 +177,10 @@ export function Demo() {
 
 					<TabContent value="line">
 						<Stack gap="xl">
-							<Example title="Multi-series">
+							<Example
+								title="Multi-series, with a crosshair"
+								code={code`<LineChart guideLine={{ y: true }} … />`}
+							>
 								<Container>
 									<LineChart
 										aria-label="Revenue and margin by month"
@@ -182,6 +190,7 @@ export function Demo() {
 											{ key: 'revenue', label: 'Revenue' },
 											{ key: 'margin', label: 'Margin' },
 										]}
+										guideLine={{ y: true }}
 									/>
 								</Container>
 							</Example>
@@ -255,7 +264,7 @@ export function Demo() {
 
 							<Example
 								title="Overlapping, smoothed"
-								code={code`<AreaChart interpolation="smooth" … />`}
+								code={code`<AreaChart interpolation="smooth" guideLine={{ y: true }} … />`}
 							>
 								<Container>
 									<AreaChart
@@ -267,6 +276,7 @@ export function Demo() {
 											{ key: 'margin', label: 'Margin' },
 										]}
 										interpolation="smooth"
+										guideLine={{ y: true }}
 									/>
 								</Container>
 							</Example>
@@ -303,6 +313,22 @@ export function Demo() {
 								</Container>
 							</Example>
 
+							<AnimatedExample title="Animated" source={code`<PieChart animate … />`}>
+								<Container size="sm">
+									<PieChart
+										aria-label="Traffic by source, animated"
+										data={sources}
+										value="visits"
+										label="source"
+										animate
+									/>
+								</Container>
+							</AnimatedExample>
+						</Stack>
+					</TabContent>
+
+					<TabContent value="donut">
+						<Stack gap="xl">
 							<Example title="Donut with center content" code={code`<DonutChart>…</DonutChart>`}>
 								<Container size="sm">
 									<DonutChart
@@ -335,7 +361,10 @@ export function Demo() {
 
 					<TabContent value="combo">
 						<Stack gap="xl">
-							<Example title="Bars behind a line, one axis">
+							<Example
+								title="Bars behind a line, one axis"
+								code={code`<ComboChart guideLine={{ x: true, y: true }} … />`}
+							>
 								<Container>
 									<ComboChart
 										aria-label="Revenue bars with margin line by month"
@@ -345,6 +374,7 @@ export function Demo() {
 											{ key: 'revenue', label: 'Revenue', type: 'bar' },
 											{ key: 'margin', label: 'Margin', type: 'line' },
 										]}
+										guideLine={{ x: true, y: true }}
 									/>
 								</Container>
 							</Example>
