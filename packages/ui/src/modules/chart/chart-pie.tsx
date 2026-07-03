@@ -56,10 +56,10 @@ export type PieBaseProps<T> = AccessibleName & {
 	 * Show the legend. Defaults to on for two or more slices — the identity
 	 * channel colour alone must never carry. `'left'` or `'right'` sets it
 	 * beside the plot as a static label panel instead of the centered row:
-	 * entries gain the slice's live share, lay out in a responsive grid, and
-	 * stack with the chart below `lg`. The panel keeps the row legend's full
-	 * interactivity — hovering dims the other slices, clicking toggles, and
-	 * the arrow keys rove.
+	 * entries gain the slice's live share and stack as a single column, side
+	 * by side with the chart from `lg` and under it below. The panel keeps
+	 * the row legend's full interactivity — hovering dims the other slices,
+	 * clicking toggles, and the arrow keys rove.
 	 */
 	legend?: boolean | 'left' | 'right'
 	/**
@@ -624,7 +624,7 @@ export function ChartPie<T>({
 						hidden={hidden}
 						onToggle={toggle}
 						onFocus={setFocus}
-						grid={panel !== null}
+						panel={panel !== null}
 					/>
 				)
 			}

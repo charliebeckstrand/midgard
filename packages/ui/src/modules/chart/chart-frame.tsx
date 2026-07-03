@@ -34,7 +34,7 @@ export type ChartFrameProps = AccessibleName & {
 	legend: ReactNode
 	/**
 	 * Where the legend sits: the centered row above the plot, or a static panel
-	 * beside it — side by side from `lg`, stacked with the chart below it.
+	 * beside it — side by side from `lg`, always under the chart below it.
 	 * @defaultValue 'top'
 	 */
 	legendPlacement?: 'top' | 'left' | 'right'
@@ -133,14 +133,18 @@ export function ChartFrame({
 						{plotRegion}
 					</>
 				) : (
-					// The panel and plot sit side by side from lg and stack below it,
-					// the panel keeping its DOM side: left stacks above, right below.
-					<div className="flex flex-col gap-4 lg:flex-row lg:items-center">
-						{legendPlacement === 'left' && legend}
-
+					// The panel and plot sit side by side from lg; below it they stack
+					// with the panel always under the chart, so a left panel reverses
+					// the row instead of moving in the DOM.
+					<div
+						className={cn(
+							'flex flex-col gap-4 lg:items-center',
+							legendPlacement === 'left' ? 'lg:flex-row-reverse' : 'lg:flex-row',
+						)}
+					>
 						{plotRegion}
 
-						{legendPlacement === 'right' && legend}
+						{legend}
 					</div>
 				)}
 			</ChartHoverContext>

@@ -169,22 +169,26 @@ describe('PieChart', () => {
 			'Referral15%',
 		])
 
-		const panel = bySlot(container, 'chart-legend')
+		const panel = bySlot(container, 'chart-legend') as Element
 
-		expect(panel?.className).toContain('grid')
+		// A single column at every viewport, never a grid.
+		expect(panel.className).toContain('flex-col')
 
-		// Right panel follows the plot; a left one precedes it.
+		expect(panel.className).not.toContain('grid')
+
+		// The panel always follows the plot in the DOM — under the chart when
+		// stacked; a left panel reverses the lg row instead of moving.
 		const plot = bySlot(container, 'chart-plot') as Element
 
-		expect(plot.compareDocumentPosition(panel as Element) & 4).toBeTruthy()
+		expect(plot.compareDocumentPosition(panel) & 4).toBeTruthy()
+
+		expect(panel.parentElement?.className).toContain('lg:flex-row')
 
 		const left = renderUI(chart({ legend: 'left' }))
 
-		const leftPlot = bySlot(left.container, 'chart-plot') as Element
-
-		expect(
-			(bySlot(left.container, 'chart-legend') as Element).compareDocumentPosition(leftPlot) & 4,
-		).toBeTruthy()
+		expect(bySlot(left.container, 'chart-legend')?.parentElement?.className).toContain(
+			'lg:flex-row-reverse',
+		)
 	})
 
 	it('re-shares the panel details as slices toggle', () => {

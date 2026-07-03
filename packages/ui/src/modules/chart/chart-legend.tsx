@@ -26,10 +26,10 @@ export type ChartLegendProps = {
 	/** Emphasises an item's series (`null` clears); other marks dim while set. */
 	onFocus: (index: number | null) => void
 	/**
-	 * Lay the entries out in a responsive grid rather than a centered wrap row —
-	 * for the static side panel beside a pie or donut.
+	 * Lay the entries out as a single column rather than the centered wrap
+	 * row — the static side panel beside a pie or donut.
 	 */
-	grid?: boolean
+	panel?: boolean
 }
 
 /**
@@ -44,7 +44,7 @@ export type ChartLegendProps = {
  * emphasis. Swatches carry the colour, the text stays in ink.
  * @internal
  */
-export function ChartLegend({ items, hidden, onToggle, onFocus, grid = false }: ChartLegendProps) {
+export function ChartLegend({ items, hidden, onToggle, onFocus, panel = false }: ChartLegendProps) {
 	const ref = useRef<HTMLDivElement>(null)
 
 	const onKeyDown = useA11yRoving(ref, {
@@ -71,8 +71,8 @@ export function ChartLegend({ items, hidden, onToggle, onFocus, grid = false }: 
 			aria-orientation="horizontal"
 			onKeyDown={handleKeyDown}
 			className={cn(
-				grid
-					? 'grid grid-cols-1 gap-1 md:grid-cols-2 lg:grid-cols-3'
+				panel
+					? 'flex flex-col items-start gap-1'
 					: 'mb-2 flex flex-wrap items-center justify-center gap-x-2 gap-y-1',
 			)}
 		>
@@ -85,7 +85,7 @@ export function ChartLegend({ items, hidden, onToggle, onFocus, grid = false }: 
 						type="button"
 						data-slot="chart-legend-item"
 						aria-pressed={!off}
-						className={cn(k.legendItem, grid && 'justify-self-start')}
+						className={cn(k.legendItem)}
 						onClick={() => onToggle(index)}
 						onPointerEnter={() => onFocus(index)}
 						onPointerLeave={() => onFocus(null)}
