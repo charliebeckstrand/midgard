@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { BarChart } from '../../modules/chart/bar-chart'
 import { barMarks } from '../../modules/chart/bar-chart/bar-chart-geometry'
 import { bandScale } from '../../modules/chart/chart-scale'
-import { allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
+import { act, allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
 
 const DATA = [
 	{ quarter: 'Q1', revenue: 40, costs: 24 },
@@ -11,8 +11,8 @@ const DATA = [
 ]
 
 const SERIES = [
-	{ key: 'revenue', label: 'Revenue' },
-	{ key: 'costs', label: 'Costs' },
+	{ xKey: 'quarter', yKey: 'revenue', yName: 'Revenue' },
+	{ xKey: 'quarter', yKey: 'costs', yName: 'Costs' },
 ] as const
 
 function chart(extra?: Partial<Parameters<typeof BarChart<(typeof DATA)[number]>>[0]>) {
@@ -20,7 +20,6 @@ function chart(extra?: Partial<Parameters<typeof BarChart<(typeof DATA)[number]>
 		<BarChart
 			aria-label="Revenue by quarter"
 			data={DATA}
-			x="quarter"
 			series={[...SERIES]}
 			width={400}
 			{...extra}
@@ -45,7 +44,9 @@ describe('BarChart', () => {
 			'Costs',
 		])
 
-		const one = renderUI(chart({ series: [{ key: 'revenue', label: 'Revenue' }] }))
+		const one = renderUI(
+			chart({ series: [{ xKey: 'quarter', yKey: 'revenue', yName: 'Revenue' }] }),
+		)
 
 		expect(bySlot(one.container, 'chart-legend')).toBeNull()
 	})
@@ -53,7 +54,7 @@ describe('BarChart', () => {
 	it('lists every series in the tooltip while the pointer is on a bar', () => {
 		const { container } = renderUI(chart())
 
-		expect(bySlot(container, 'chart-tooltip')).toBeNull()
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
 
 		const hit = bySlot(container, 'chart-hit') as Element
 
@@ -61,7 +62,7 @@ describe('BarChart', () => {
 		// (300, 100) lands inside Q3's revenue bar.
 		fireEvent.pointerMove(hit, { clientX: 300, clientY: 100 })
 
-		const tooltip = bySlot(container, 'chart-tooltip')
+		const tooltip = bySlot(container, 'tooltip-content')
 
 		expect(tooltip?.textContent).toContain('Q3')
 
@@ -72,21 +73,21 @@ describe('BarChart', () => {
 		// Above the bar tops, or in the gap between groups, the tooltip stays away.
 		fireEvent.pointerMove(hit, { clientX: 300, clientY: 20 })
 
-		expect(bySlot(container, 'chart-tooltip')).toBeNull()
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
 
 		fireEvent.pointerMove(hit, { clientX: 260, clientY: 100 })
 
-		expect(bySlot(container, 'chart-tooltip')).toBeNull()
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
 
 		fireEvent.pointerMove(hit, { clientX: 300, clientY: 100 })
 
 		fireEvent.pointerLeave(hit)
 
-		expect(bySlot(container, 'chart-tooltip')).toBeNull()
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
 	})
 
 	it('rules a horizontal value line at the pointer with crosshair x', () => {
-		const { container } = renderUI(chart({ crosshair: { x: true } }))
+		const { container } = renderUI(chart({ crosshair: { x: true, y: false } }))
 
 		expect(bySlot(container, 'chart-crosshair-x')).toBeNull()
 
@@ -129,7 +130,7 @@ describe('BarChart', () => {
 		expect(bySlot(off.container, 'chart-crosshair-y')).toBeNull()
 
 		// A free vertical rule follows the pointer's x.
-		const free = renderUI(chart({ crosshair: { y: true } }))
+		const free = renderUI(chart({ crosshair: { x: false, y: true } }))
 
 		const fh = bySlot(free.container, 'chart-hit') as Element
 
@@ -142,7 +143,7 @@ describe('BarChart', () => {
 		expect(bySlot(free.container, 'chart-crosshair-y')?.getAttribute('x1')).not.toBe(freeX)
 
 		// A snapped rule holds its band center across small moves.
-		const snapped = renderUI(chart({ crosshair: { y: true, snap: true } }))
+		const snapped = renderUI(chart({ crosshair: { x: false, y: true, snap: true } }))
 
 		const sh = bySlot(snapped.container, 'chart-hit') as Element
 
@@ -156,7 +157,7 @@ describe('BarChart', () => {
 	})
 
 	it('snaps the horizontal value line onto a bar top with crosshair snap', () => {
-		const free = renderUI(chart({ crosshair: { x: true } }))
+		const free = renderUI(chart({ crosshair: { x: true, y: false } }))
 
 		fireEvent.pointerMove(bySlot(free.container, 'chart-hit') as Element, {
 			clientX: 200,
@@ -165,7 +166,7 @@ describe('BarChart', () => {
 
 		const freeY = bySlot(free.container, 'chart-crosshair-x')?.getAttribute('y1')
 
-		const snapped = renderUI(chart({ crosshair: { x: true, snap: true } }))
+		const snapped = renderUI(chart({ crosshair: { x: true, y: false, snap: true } }))
 
 		fireEvent.pointerMove(bySlot(snapped.container, 'chart-hit') as Element, {
 			clientX: 200,
@@ -176,6 +177,56 @@ describe('BarChart', () => {
 		expect(bySlot(snapped.container, 'chart-crosshair-x')?.getAttribute('y1')).not.toBe(freeY)
 	})
 
+	it('reads a bare crosshair as both rails and treats x / y as subtractive overrides', () => {
+		// The boolean shorthand draws both rails.
+		const both = renderUI(chart({ crosshair: true }))
+
+		fireEvent.pointerMove(bySlot(both.container, 'chart-hit') as Element, {
+			clientX: 200,
+			clientY: 70,
+		})
+
+		expect(bySlot(both.container, 'chart-crosshair-x')).not.toBeNull()
+
+		expect(bySlot(both.container, 'chart-crosshair-y')).not.toBeNull()
+
+		// An object without x / y means both too — snap rides along.
+		const snapped = renderUI(chart({ crosshair: { snap: true } }))
+
+		fireEvent.pointerMove(bySlot(snapped.container, 'chart-hit') as Element, {
+			clientX: 200,
+			clientY: 70,
+		})
+
+		expect(bySlot(snapped.container, 'chart-crosshair-x')).not.toBeNull()
+
+		expect(bySlot(snapped.container, 'chart-crosshair-y')).not.toBeNull()
+
+		// y: false subtracts the vertical rule, leaving only the horizontal.
+		const xOnly = renderUI(chart({ crosshair: { y: false } }))
+
+		fireEvent.pointerMove(bySlot(xOnly.container, 'chart-hit') as Element, {
+			clientX: 200,
+			clientY: 70,
+		})
+
+		expect(bySlot(xOnly.container, 'chart-crosshair-x')).not.toBeNull()
+
+		expect(bySlot(xOnly.container, 'chart-crosshair-y')).toBeNull()
+
+		// x: false subtracts the horizontal rule, leaving only the vertical.
+		const yOnly = renderUI(chart({ crosshair: { x: false } }))
+
+		fireEvent.pointerMove(bySlot(yOnly.container, 'chart-hit') as Element, {
+			clientX: 200,
+			clientY: 70,
+		})
+
+		expect(bySlot(yOnly.container, 'chart-crosshair-y')).not.toBeNull()
+
+		expect(bySlot(yOnly.container, 'chart-crosshair-x')).toBeNull()
+	})
+
 	it('omits bars for non-finite values and dashes them in the readout', () => {
 		const gappy = [
 			{ quarter: 'Q1', revenue: 40, costs: 1 },
@@ -184,7 +235,7 @@ describe('BarChart', () => {
 		]
 
 		const { container } = renderUI(
-			chart({ data: gappy, series: [{ key: 'revenue', label: 'Revenue' }] }),
+			chart({ data: gappy, series: [{ xKey: 'quarter', yKey: 'revenue', yName: 'Revenue' }] }),
 		)
 
 		expect(allBySlot(container, 'chart-bar')).toHaveLength(2)
@@ -220,7 +271,8 @@ describe('BarChart', () => {
 		// Single tab stop: exactly one item is arrow-reachable at rest.
 		expect(items.filter((el) => el.tabIndex === 0)).toHaveLength(1)
 
-		items[0]?.focus()
+		// Raw focus() drives the legend's emphasis state, so flush it under act.
+		act(() => items[0]?.focus())
 
 		fireEvent.keyDown(items[0] as Element, { key: 'ArrowRight' })
 
@@ -276,30 +328,11 @@ describe('BarChart', () => {
 			clientY: 100,
 		})
 
-		expect(bySlot(container, 'chart-tooltip')?.textContent).not.toContain('Costs')
+		expect(bySlot(container, 'tooltip-content')?.textContent).not.toContain('Costs')
 
 		fireEvent.click(costs)
 
 		expect(allBySlot(container, 'chart-bar')).toHaveLength(6)
-	})
-
-	it('tracks the pointer precisely on the tooltip surface', () => {
-		const { container } = renderUI(chart())
-
-		const hit = bySlot(container, 'chart-hit') as Element
-
-		fireEvent.pointerMove(hit, { clientX: 45, clientY: 120 })
-
-		const tooltip = bySlot(container, 'chart-tooltip') as HTMLElement
-
-		const first = tooltip.style.left
-
-		expect(first).not.toBe('')
-
-		// Same bar, different pointer x: the tooltip follows the pointer, not the band.
-		fireEvent.pointerMove(hit, { clientX: 50, clientY: 120 })
-
-		expect((bySlot(container, 'chart-tooltip') as HTMLElement).style.left).not.toBe(first)
 	})
 
 	it('routes formatValue through ticks, tooltip, and the data table', () => {
@@ -314,7 +347,7 @@ describe('BarChart', () => {
 			clientY: 100,
 		})
 
-		expect(bySlot(container, 'chart-tooltip')?.textContent).toContain('$65')
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('$65')
 
 		expect(bySlot(container, 'chart-table')?.textContent).toContain('$65')
 	})

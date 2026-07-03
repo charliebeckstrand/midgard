@@ -2,14 +2,16 @@
 
 import { ChartAxis } from '../chart-axis'
 import { AnimatedChartBarMarks, ChartBarMarks } from '../chart-bar-marks'
-import { ChartCrosshair } from '../chart-crosshair'
+import { MARK_GAP } from '../chart-constants'
+import { ChartCrosshair, resolveCrosshair } from '../chart-crosshair'
 import { ChartFrame } from '../chart-frame'
 import { ChartGridLines } from '../chart-grid-lines'
 import { ChartHitArea } from '../chart-hit-area'
 import { withinBarMarks } from '../chart-hit-test'
 import { ChartLegend } from '../chart-legend'
 import { ChartMarksLayer } from '../chart-marks-layer'
-import type { CartesianChartProps } from '../types'
+import type { CartesianChartProps } from '../chart-schema'
+import { snapTargets } from '../chart-snap'
 import { useChartAnimationKey } from '../use-chart-animation-key'
 import { useChartCartesian } from '../use-chart-cartesian'
 import { barMarks } from './bar-chart-geometry'
@@ -35,17 +37,15 @@ export type BarChartProps<T> = CartesianChartProps<T>
  * <BarChart
  *   aria-label="Revenue by quarter"
  *   data={quarters}
- *   x="quarter"
  *   series={[
- *     { key: 'revenue', label: 'Revenue' },
- *     { key: 'costs', label: 'Costs' },
+ *     { xKey: 'quarter', yKey: 'revenue', yName: 'Revenue' },
+ *     { xKey: 'quarter', yKey: 'costs', yName: 'Costs' },
  *   ]}
  * />
  * ```
  */
 export function BarChart<T>({
 	data,
-	x,
 	series,
 	size,
 	width,
@@ -64,7 +64,7 @@ export function BarChart<T>({
 	...label
 }: BarChartProps<T>) {
 	const chart = useChartCartesian(
-		{ data, x, series, size, width, height, aspectRatio, axes, legend, min, max, formatValue },
+		{ data, series, size, width, height, aspectRatio, axes, legend, min, max, formatValue },
 		{ zeroBaseline: true, swatch: () => 'rect' },
 	)
 
@@ -91,6 +91,8 @@ export function BarChart<T>({
 		<ChartBarMarks marks={marks} paints={paints} dimmed={dimmed} />
 	)
 
+	const rails = resolveCrosshair(crosshair)
+
 	return (
 		<ChartFrame
 			{...label}
@@ -99,7 +101,6 @@ export function BarChart<T>({
 			fixedWidth={chart.fixedWidth}
 			height={chart.height}
 			reserve={chart.reserve}
-			plot={chart.plot}
 			legend={
 				chart.legendItems && (
 					<ChartLegend
@@ -114,6 +115,7 @@ export function BarChart<T>({
 			legendPlacement={typeof legend === 'string' ? legend : undefined}
 			readout={chart.readout}
 			tooltip={tooltip}
+			snap={snapTargets(rails, chart.anchors, chart.snapPoints)}
 			className={className}
 		>
 			{gridLines && chart.yScale && (
@@ -130,21 +132,21 @@ export function BarChart<T>({
 				{marksNode}
 			</ChartMarksLayer>
 
-			{crosshair && (crosshair.x || crosshair.y) && (
+			{rails && (
 				<ChartCrosshair
 					plot={chart.plot}
-					crosshair={crosshair}
+					crosshair={rails}
 					bandXs={chart.anchors.map((anchor) => anchor.x)}
 					snapPoints={chart.snapPoints}
 				/>
 			)}
 
-			{(tooltip || crosshair?.x || crosshair?.y) && data.length > 0 && (
+			{(tooltip || rails !== null) && data.length > 0 && (
 				<ChartHitArea
 					plot={chart.plot}
 					band={chart.band}
 					count={data.length}
-					onData={(x, y) => withinBarMarks(marks, x, y)}
+					onData={(x, y) => withinBarMarks(marks, x, y, MARK_GAP)}
 				/>
 			)}
 		</ChartFrame>

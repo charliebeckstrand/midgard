@@ -27,8 +27,7 @@ const DONUT_INNER_RATIO = 0.6
  * <DonutChart
  *   aria-label="Traffic by source"
  *   data={sources}
- *   value="visits"
- *   label="source"
+ *   series={[{ xKey: 'source', yKey: 'visits' }]}
  * >
  *   <Stat label="Total" value="12.4K" />
  * </DonutChart>

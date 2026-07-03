@@ -1,7 +1,7 @@
 'use client'
 
 import { ChartAxis } from '../chart-axis'
-import { ChartCrosshair } from '../chart-crosshair'
+import { ChartCrosshair, resolveCrosshair } from '../chart-crosshair'
 import { ChartFrame } from '../chart-frame'
 import { ChartGridLines } from '../chart-grid-lines'
 import { ChartHitArea } from '../chart-hit-area'
@@ -9,7 +9,8 @@ import { nearSeriesLines, withinSeriesAreas } from '../chart-hit-test'
 import { ChartLegend } from '../chart-legend'
 import { AnimatedChartLineMarks, ChartLineMarks, type ChartLineSeries } from '../chart-line-marks'
 import { ChartMarksLayer } from '../chart-marks-layer'
-import type { CartesianChartProps } from '../types'
+import type { CartesianChartProps } from '../chart-schema'
+import { snapTargets } from '../chart-snap'
 import { useChartAnimationKey } from '../use-chart-animation-key'
 import { useChartCartesian } from '../use-chart-cartesian'
 import { type LineInterpolation, lineGeometry } from './line-chart-geometry'
@@ -52,15 +53,13 @@ export type LineChartProps<T> = CartesianChartProps<T> & {
  * <LineChart
  *   aria-label="Signups per week"
  *   data={weeks}
- *   x="week"
- *   series={[{ key: 'signups', label: 'Signups' }]}
+ *   series={[{ xKey: 'week', yKey: 'signups', yName: 'Signups' }]}
  *   fill
  * />
  * ```
  */
 export function LineChart<T>({
 	data,
-	x,
 	series,
 	size,
 	width,
@@ -82,7 +81,7 @@ export function LineChart<T>({
 	...label
 }: LineChartProps<T>) {
 	const chart = useChartCartesian(
-		{ data, x, series, size, width, height, aspectRatio, axes, legend, min, max, formatValue },
+		{ data, series, size, width, height, aspectRatio, axes, legend, min, max, formatValue },
 		{ zeroBaseline: false, swatch: () => 'line' },
 	)
 
@@ -116,6 +115,8 @@ export function LineChart<T>({
 		<ChartLineMarks list={list} fill={fill} />
 	)
 
+	const rails = resolveCrosshair(crosshair)
+
 	return (
 		<ChartFrame
 			{...label}
@@ -124,7 +125,6 @@ export function LineChart<T>({
 			fixedWidth={chart.fixedWidth}
 			height={chart.height}
 			reserve={chart.reserve}
-			plot={chart.plot}
 			legend={
 				chart.legendItems && (
 					<ChartLegend
@@ -139,6 +139,7 @@ export function LineChart<T>({
 			legendPlacement={typeof legend === 'string' ? legend : undefined}
 			readout={chart.readout}
 			tooltip={tooltip}
+			snap={snapTargets(rails, chart.anchors, chart.snapPoints)}
 			className={className}
 		>
 			{gridLines && chart.yScale && (
@@ -149,10 +150,10 @@ export function LineChart<T>({
 
 			{axes && data.length > 0 && <ChartAxis axis="x" plot={chart.plot} ticks={chart.xTicks} />}
 
-			{crosshair && (crosshair.x || crosshair.y) && (
+			{rails && (
 				<ChartCrosshair
 					plot={chart.plot}
-					crosshair={crosshair}
+					crosshair={rails}
 					bandXs={chart.anchors.map((anchor) => anchor.x)}
 					snapPoints={chart.snapPoints}
 				/>
@@ -162,7 +163,7 @@ export function LineChart<T>({
 				{marksNode}
 			</ChartMarksLayer>
 
-			{(tooltip || crosshair?.x || crosshair?.y) && data.length > 0 && (
+			{(tooltip || rails !== null) && data.length > 0 && (
 				<ChartHitArea
 					plot={chart.plot}
 					band={chart.band}

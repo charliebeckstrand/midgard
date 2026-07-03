@@ -159,24 +159,19 @@ export function Demo() {
 						<Stack gap="xl">
 							<Example title="Default">
 								<Container>
-									{states === null ? (
-										<Loading />
-									) : (
+									{states ? (
 										<MapPlat
 											aria-label="Default map plat"
 											geography={states}
 											projection="albers-usa"
-											animate
 										/>
-									)}
+									) : undefined}
 								</Container>
 							</Example>
 
 							<Example title="Timezones across America">
 								<Container>
-									{states === null ? (
-										<Loading />
-									) : (
+									{states ? (
 										<MapPlat
 											aria-label="Timezones across America"
 											geography={states}
@@ -188,7 +183,7 @@ export function Demo() {
 											regionId={(feature) => String(feature.properties?.name)}
 											animate
 										/>
-									)}
+									) : undefined}
 								</Container>
 							</Example>
 						</Stack>

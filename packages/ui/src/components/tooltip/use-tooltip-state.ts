@@ -71,9 +71,11 @@ export function useTooltipState({
 	})
 
 	const prevEnabledRef = useRef(enabled)
+
 	if (prevEnabledRef.current && !enabled && open) {
 		setOpen(false)
 	}
+
 	prevEnabledRef.current = enabled
 
 	const wasDisabledRef = useRef(false)

@@ -3,30 +3,47 @@
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/chart'
 import type { PlotRect } from './chart-layout'
+import type { Crosshair, ResolvedCrosshair } from './chart-schema'
+import { nearestValue } from './chart-snap'
 import { useChartHover } from './context'
-import type { Crosshair } from './types'
 
 /** Props for {@link ChartCrosshair}. @internal */
 export type ChartCrosshairProps = {
 	plot: PlotRect
-	/** Which rules to draw and whether they snap. */
-	crosshair: Crosshair
+	/** The resolved rules to draw and whether they snap. */
+	crosshair: ResolvedCrosshair
 	/** Band-center x per category — the vertical rule's snap target. */
 	bandXs: number[]
 	/** Per category, the visible series' plot y — the horizontal rule's snap targets. */
 	snapPoints: number[][]
 }
 
-/** The plot-y among `candidates` nearest to `value`, or `null` when the category has none. @internal */
-function nearestValue(candidates: number[] | undefined, value: number): number | null {
-	if (!candidates || candidates.length === 0) return null
+/**
+ * Resolve the `crosshair` prop to the concrete rules a chart draws. `true` and
+ * an object both start from both rules on; `x` and `y` subtract from that base,
+ * so an object drops a rule only where it sets one `false`. Returns `null` when
+ * nothing would draw — the prop is absent or `false`, or both rules are off —
+ * so a chart gates the overlay on one truthy check.
+ *
+ * @internal
+ */
+export function resolveCrosshair(
+	crosshair: boolean | Crosshair | undefined,
+): ResolvedCrosshair | null {
+	if (!crosshair) return null
 
-	return candidates.reduce((best, y) => (Math.abs(y - value) < Math.abs(best - value) ? y : best))
+	const rules =
+		crosshair === true
+			? { x: true, y: true, snap: false }
+			: { x: crosshair.x ?? true, y: crosshair.y ?? true, snap: crosshair.snap ?? false }
+
+	return rules.x || rules.y ? rules : null
 }
 
 /**
  * The hover crosshair: a horizontal `x` rule across the value axis and a
- * vertical `y` rule down the category axis, each opt-in. Without `snap` a rule
+ * vertical `y` rule down the category axis, drawing whichever rules the
+ * resolved crosshair leaves on. Without `snap` a rule
  * tracks the pointer exactly; with it the pair meets the nearest data point —
  * the horizontal at that point's value, the vertical at its band center. Both
  * clamp to the plot rect and dash alike. Reads only the hover context, so it

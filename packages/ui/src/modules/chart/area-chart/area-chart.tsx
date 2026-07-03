@@ -1,7 +1,7 @@
 'use client'
 
 import { ChartAxis } from '../chart-axis'
-import { ChartCrosshair } from '../chart-crosshair'
+import { ChartCrosshair, resolveCrosshair } from '../chart-crosshair'
 import { ChartFrame } from '../chart-frame'
 import { ChartGridLines } from '../chart-grid-lines'
 import { ChartHitArea } from '../chart-hit-area'
@@ -9,13 +9,14 @@ import { withinSeriesAreas } from '../chart-hit-test'
 import { ChartLegend } from '../chart-legend'
 import { AnimatedChartLineMarks, ChartLineMarks, type ChartLineSeries } from '../chart-line-marks'
 import { ChartMarksLayer } from '../chart-marks-layer'
+import type { CartesianChartProps } from '../chart-schema'
 import type { SeriesMeta } from '../chart-series'
+import { snapTargets } from '../chart-snap'
 import {
 	type LineInterpolation,
 	type LineSeriesGeometry,
 	lineGeometry,
 } from '../line-chart/line-chart-geometry'
-import type { CartesianChartProps } from '../types'
 import { useChartAnimationKey } from '../use-chart-animation-key'
 import { useChartCartesian } from '../use-chart-cartesian'
 import { stackedAreas } from './area-chart-geometry'
@@ -70,10 +71,9 @@ function stackedToLine(band: { line: string; area: string; points: LineSeriesGeo
  * <AreaChart
  *   aria-label="Traffic by channel"
  *   data={days}
- *   x="day"
  *   series={[
- *     { key: 'organic', label: 'Organic' },
- *     { key: 'paid', label: 'Paid' },
+ *     { xKey: 'day', yKey: 'organic', yName: 'Organic' },
+ *     { xKey: 'day', yKey: 'paid', yName: 'Paid' },
  *   ]}
  *   stacked
  * />
@@ -81,7 +81,6 @@ function stackedToLine(band: { line: string; area: string; points: LineSeriesGeo
  */
 export function AreaChart<T>({
 	data,
-	x,
 	series,
 	size,
 	width,
@@ -103,7 +102,7 @@ export function AreaChart<T>({
 	...label
 }: AreaChartProps<T>) {
 	const chart = useChartCartesian(
-		{ data, x, series, size, width, height, aspectRatio, axes, legend, min, max, formatValue },
+		{ data, series, size, width, height, aspectRatio, axes, legend, min, max, formatValue },
 		{ zeroBaseline: true, swatch: () => 'line', stack: stacked },
 	)
 
@@ -150,6 +149,8 @@ export function AreaChart<T>({
 		<ChartLineMarks list={list} fill={true} />
 	)
 
+	const rails = resolveCrosshair(crosshair)
+
 	return (
 		<ChartFrame
 			{...label}
@@ -158,7 +159,6 @@ export function AreaChart<T>({
 			fixedWidth={chart.fixedWidth}
 			height={chart.height}
 			reserve={chart.reserve}
-			plot={chart.plot}
 			legend={
 				chart.legendItems && (
 					<ChartLegend
@@ -173,6 +173,7 @@ export function AreaChart<T>({
 			legendPlacement={typeof legend === 'string' ? legend : undefined}
 			readout={chart.readout}
 			tooltip={tooltip}
+			snap={snapTargets(rails, chart.anchors, chart.snapPoints)}
 			className={className}
 		>
 			{gridLines && yScale && (
@@ -183,10 +184,10 @@ export function AreaChart<T>({
 
 			{axes && data.length > 0 && <ChartAxis axis="x" plot={chart.plot} ticks={chart.xTicks} />}
 
-			{crosshair && (crosshair.x || crosshair.y) && (
+			{rails && (
 				<ChartCrosshair
 					plot={chart.plot}
-					crosshair={crosshair}
+					crosshair={rails}
 					bandXs={chart.anchors.map((anchor) => anchor.x)}
 					snapPoints={chart.snapPoints}
 				/>
@@ -196,7 +197,7 @@ export function AreaChart<T>({
 				{marksNode}
 			</ChartMarksLayer>
 
-			{(tooltip || crosshair?.x || crosshair?.y) && data.length > 0 && (
+			{(tooltip || rails !== null) && data.length > 0 && (
 				<ChartHitArea
 					plot={chart.plot}
 					band={chart.band}

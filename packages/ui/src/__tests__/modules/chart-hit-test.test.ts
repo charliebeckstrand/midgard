@@ -27,6 +27,23 @@ describe('withinBarMarks', () => {
 
 		expect(withinBarMarks(marks, 20, 49)).toBe(false)
 	})
+
+	it('bridges the gap between grouped bars when given the gap slack', () => {
+		// Two series' bars 2px apart in one group: |10..30| gap |32..52|.
+		const group = [[bar(10, 30, 50, 100)], [bar(32, 52, 50, 100)]]
+
+		// x=31 falls in the 2px gap — a miss without slack, flickering the tooltip.
+		expect(withinBarMarks(group, 31, 75)).toBe(false)
+
+		// The inter-bar slack closes it, so a sweep across the group never drops.
+		expect(withinBarMarks(group, 31, 75, 2)).toBe(true)
+
+		// The slack still ends at the group: the wider space beyond stays a miss.
+		expect(withinBarMarks(group, 60, 75, 2)).toBe(false)
+
+		// And it never reaches above the bars.
+		expect(withinBarMarks(group, 31, 40, 2)).toBe(false)
+	})
 })
 
 describe('nearSeriesLines', () => {
@@ -39,10 +56,15 @@ describe('nearSeriesLines', () => {
 		],
 	]
 
-	it('hits within tolerance of a segment and misses beyond it', () => {
+	it('hits within the generous tolerance of a segment and misses beyond it', () => {
+		// Comfortably on the line.
 		expect(nearSeriesLines(runs, 50, 106)).toBe(true)
 
-		expect(nearSeriesLines(runs, 50, 112)).toBe(false)
+		// 12px off — inside the widened catch the bare tooltip leans on.
+		expect(nearSeriesLines(runs, 50, 112)).toBe(true)
+
+		// Past the tolerance.
+		expect(nearSeriesLines(runs, 50, 120)).toBe(false)
 	})
 
 	it('never bridges the gap between runs, but hits a lone point', () => {
