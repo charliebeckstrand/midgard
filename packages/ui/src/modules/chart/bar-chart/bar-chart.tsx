@@ -7,6 +7,7 @@ import { ChartGridLines } from '../chart-grid-lines'
 import { ChartHitArea } from '../chart-hit-area'
 import { ChartLegend } from '../chart-legend'
 import { ChartMarksLayer } from '../chart-marks-layer'
+import { ChartValueLine } from '../chart-value-line'
 import type { CartesianChartProps } from '../types'
 import { useChartAnimationKey } from '../use-chart-animation-key'
 import { useChartCartesian } from '../use-chart-cartesian'
@@ -124,6 +125,8 @@ export function BarChart<T>({
 			<ChartMarksLayer animate={animate} generation={animationKey}>
 				{marksNode}
 			</ChartMarksLayer>
+
+			{tooltip && chart.yScale && <ChartValueLine plot={chart.plot} />}
 
 			{tooltip && data.length > 0 && (
 				<ChartHitArea plot={chart.plot} band={chart.band} count={data.length} />

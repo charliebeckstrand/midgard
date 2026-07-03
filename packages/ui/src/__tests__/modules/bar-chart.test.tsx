@@ -73,6 +73,36 @@ describe('BarChart', () => {
 		expect(bySlot(container, 'chart-tooltip')).toBeNull()
 	})
 
+	it('rules a horizontal correlation line tracking the pointer while hovering', () => {
+		const { container } = renderUI(chart())
+
+		expect(bySlot(container, 'chart-value-line')).toBeNull()
+
+		const hit = bySlot(container, 'chart-hit') as Element
+
+		fireEvent.pointerMove(hit, { clientX: 390, clientY: 70 })
+
+		const line = bySlot(container, 'chart-value-line')
+
+		expect(line).not.toBeNull()
+
+		// A horizontal rule spanning the plot width at the pointer's height.
+		const y = line?.getAttribute('y1')
+
+		expect(line?.getAttribute('y2')).toBe(y)
+
+		expect(Number(line?.getAttribute('x2'))).toBeGreaterThan(Number(line?.getAttribute('x1')))
+
+		// It follows the pointer down the value axis.
+		fireEvent.pointerMove(hit, { clientX: 390, clientY: 120 })
+
+		expect(bySlot(container, 'chart-value-line')?.getAttribute('y1')).not.toBe(y)
+
+		fireEvent.pointerLeave(hit)
+
+		expect(bySlot(container, 'chart-value-line')).toBeNull()
+	})
+
 	it('omits bars for non-finite values and dashes them in the readout', () => {
 		const gappy = [
 			{ quarter: 'Q1', revenue: 40, costs: 1 },
