@@ -1,6 +1,6 @@
 'use client'
 
-import { type RefObject, useCallback, useEffect, useRef, useState } from 'react'
+import { type RefObject, startTransition, useCallback, useEffect, useRef, useState } from 'react'
 
 /**
  * Frame sizing and measurement for the plot-bearing modules (chart, map): a
@@ -117,17 +117,17 @@ export function resolveFrameSizing(
  * size is fully fixed by props observes nothing at all, so a resize never
  * reaches it.
  *
+ * Resize notifications commit as transitions: the frame tracks its container
+ * live — no settle window, no timers — while React coalesces a burst by
+ * abandoning renders whose size is already stale, so a window drag on a slow
+ * frame refits at the pace the machine can afford and always lands on the
+ * final size. The first measurement commits synchronously, so a frame
+ * revealed after mount paints at once.
+ *
  * @param width - An explicit drawing width, or `undefined` to fill and
  * measure the container.
  * @param sizing - The frame's sizing policy, from `chartFrameSizing` or
  * `mapFrameSizing`.
- * @param settleMs - Quiet window applied to resize notifications after the
- * first real measurement: a new size commits only once it has held this
- * long, so a window drag re-renders the frame once per settle instead of
- * once per frame (the reserve keeps the box tracking the container through
- * CSS meanwhile). The chart and map modules both pass `RESIZE_SETTLE_MS`.
- * `0` — the default — commits every notification, for a frame that tracks
- * its container live rather than settling.
  * @returns The wrapper `ref` to attach and the resolved drawing box — an
  * unmeasured `width` stays `0`, which renders the frame shell without marks
  * for that first paint (server and client agree, so no hydration mismatch).
@@ -136,7 +136,6 @@ export function resolveFrameSizing(
 export function usePlotFrame(
 	width: number | undefined,
 	sizing: FrameSizing,
-	settleMs = 0,
 ): {
 	ref: RefObject<HTMLDivElement | null>
 	width: number
@@ -154,10 +153,6 @@ export function usePlotFrame(
 
 	const [size, setSize] = useState({ width: 0, height: 0 })
 
-	// Whether a real (nonzero) size has committed on every measured axis; the
-	// settle window applies only after it, so the first paint never waits.
-	const sized = useRef(false)
-
 	const measure = useCallback(() => {
 		const el = ref.current
 
@@ -169,8 +164,6 @@ export function usePlotFrame(
 			width: measureWidth ? Math.round(el.clientWidth) : 0,
 			height: measureHeight ? Math.round(el.clientHeight) : 0,
 		}
-
-		sized.current = (!measureWidth || next.width > 0) && (!measureHeight || next.height > 0)
 
 		setSize((current) =>
 			current.width === next.width && current.height === next.height ? current : next,
@@ -188,31 +181,19 @@ export function usePlotFrame(
 
 		measure()
 
-		let timer: ReturnType<typeof setTimeout> | undefined
-
 		const observer = new ResizeObserver(() => {
-			// The first real size commits immediately — a frame revealed after
-			// mount (a hidden tab) must not hold its first paint through the
-			// settle window. Later notifications are genuine resizes.
-			if (settleMs <= 0 || !sized.current) {
-				measure()
-
-				return
-			}
-
-			clearTimeout(timer)
-
-			timer = setTimeout(measure, settleMs)
+			// Transition priority: a burst of notifications coalesces — React
+			// abandons a render for a size a newer notification has already
+			// outdated — and the geometry rebuild never blocks urgent work.
+			startTransition(measure)
 		})
 
 		observer.observe(el)
 
 		return () => {
 			observer.disconnect()
-
-			clearTimeout(timer)
 		}
-	}, [measure, measureWidth, measureHeight, settleMs])
+	}, [measure, measureWidth, measureHeight])
 
 	const resolvedWidth = width ?? size.width
 

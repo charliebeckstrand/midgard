@@ -16,7 +16,6 @@ import type { CartesianFrameProps, ChartBaseProps, ComboChartSeries } from '../c
 import type { SeriesMeta } from '../chart-series'
 import { snapTargets } from '../chart-snap'
 import { type LineInterpolation, lineGeometry } from '../line-chart/line-chart-geometry'
-import { useChartAnimationKey } from '../use-chart-animation-key'
 import { useChartCartesian } from '../use-chart-cartesian'
 
 /**
@@ -130,8 +129,6 @@ export function ComboChart<T>({
 
 	const barDims = barMetas.map(dim)
 
-	const animationKey = useChartAnimationKey(chart.width, animate)
-
 	// No line delay: the bars rise and the lines draw at once, so the x and y
 	// motions land together rather than the lines waiting on the bars.
 	const marksNode = animate ? (
@@ -194,9 +191,7 @@ export function ComboChart<T>({
 				/>
 			)}
 
-			<ChartMarksLayer animate={animate} generation={animationKey}>
-				{marksNode}
-			</ChartMarksLayer>
+			<ChartMarksLayer animate={animate}>{marksNode}</ChartMarksLayer>
 
 			{(tooltip || rails !== null) && data.length > 0 && (
 				<ChartHitArea

@@ -11,7 +11,6 @@ import { AnimatedChartLineMarks, ChartLineMarks, type ChartLineSeries } from '..
 import { ChartMarksLayer } from '../chart-marks-layer'
 import type { CartesianChartProps } from '../chart-schema'
 import { snapTargets } from '../chart-snap'
-import { useChartAnimationKey } from '../use-chart-animation-key'
 import { useChartCartesian } from '../use-chart-cartesian'
 import { type LineInterpolation, lineGeometry } from './line-chart-geometry'
 
@@ -107,8 +106,6 @@ export function LineChart<T>({
 
 	const seriesRuns = list.map((series) => series.geometry.runs)
 
-	const animationKey = useChartAnimationKey(chart.width, animate)
-
 	const marksNode = animate ? (
 		<AnimatedChartLineMarks list={list} fill={fill} />
 	) : (
@@ -159,9 +156,7 @@ export function LineChart<T>({
 				/>
 			)}
 
-			<ChartMarksLayer animate={animate} generation={animationKey}>
-				{marksNode}
-			</ChartMarksLayer>
+			<ChartMarksLayer animate={animate}>{marksNode}</ChartMarksLayer>
 
 			{(tooltip || rails !== null) && data.length > 0 && (
 				<ChartHitArea

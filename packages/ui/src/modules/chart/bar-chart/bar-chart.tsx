@@ -12,7 +12,6 @@ import { ChartLegend } from '../chart-legend'
 import { ChartMarksLayer } from '../chart-marks-layer'
 import type { CartesianChartProps } from '../chart-schema'
 import { snapTargets } from '../chart-snap'
-import { useChartAnimationKey } from '../use-chart-animation-key'
 import { useChartCartesian } from '../use-chart-cartesian'
 import { barMarks } from './bar-chart-geometry'
 
@@ -83,8 +82,6 @@ export function BarChart<T>({
 		(meta) => chart.emphasis !== null && meta.index !== chart.emphasis,
 	)
 
-	const animationKey = useChartAnimationKey(chart.width, animate)
-
 	const marksNode = animate ? (
 		<AnimatedChartBarMarks marks={marks} paints={paints} dimmed={dimmed} />
 	) : (
@@ -128,9 +125,7 @@ export function BarChart<T>({
 				<ChartAxis axis="x" plot={chart.plot} ticks={chart.xTicks} baseline={chart.baseline} />
 			)}
 
-			<ChartMarksLayer animate={animate} generation={animationKey}>
-				{marksNode}
-			</ChartMarksLayer>
+			<ChartMarksLayer animate={animate}>{marksNode}</ChartMarksLayer>
 
 			{rails && (
 				<ChartCrosshair

@@ -17,7 +17,6 @@ import {
 	type LineSeriesGeometry,
 	lineGeometry,
 } from '../line-chart/line-chart-geometry'
-import { useChartAnimationKey } from '../use-chart-animation-key'
 import { useChartCartesian } from '../use-chart-cartesian'
 import { stackedAreas } from './area-chart-geometry'
 
@@ -141,8 +140,6 @@ export function AreaChart<T>({
 			}))
 		: []
 
-	const animationKey = useChartAnimationKey(chart.width, animate)
-
 	const marksNode = animate ? (
 		<AnimatedChartLineMarks list={list} fill={true} />
 	) : (
@@ -193,9 +190,7 @@ export function AreaChart<T>({
 				/>
 			)}
 
-			<ChartMarksLayer animate={animate} generation={animationKey}>
-				{marksNode}
-			</ChartMarksLayer>
+			<ChartMarksLayer animate={animate}>{marksNode}</ChartMarksLayer>
 
 			{(tooltip || rails !== null) && data.length > 0 && (
 				<ChartHitArea

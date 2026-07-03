@@ -87,6 +87,3 @@ export const SLICE_SWEEP = { duration: 0.8, ease: 'easeInOut' } as const
 
 /** Label fade-in as the sweep passes its slice. @internal */
 export const SLICE_FADE = { duration: 0.3, ease: 'easeOut' } as const
-
-/** Quiet window after the last resize before the mount reveal replays once. @internal */
-export const RESIZE_SETTLE_MS = 200
