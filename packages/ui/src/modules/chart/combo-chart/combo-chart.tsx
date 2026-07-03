@@ -7,6 +7,7 @@ import { AnimatedChartBarMarks, ChartBarMarks } from '../chart-bar-marks'
 import { ChartCrosshair } from '../chart-crosshair'
 import { ChartFrame } from '../chart-frame'
 import { ChartGridLines } from '../chart-grid-lines'
+import { ChartGuideLine } from '../chart-guide-line'
 import { ChartHitArea } from '../chart-hit-area'
 import { ChartLegend } from '../chart-legend'
 import { AnimatedChartLineMarks, ChartLineMarks, type ChartLineSeries } from '../chart-line-marks'
@@ -72,6 +73,7 @@ export function ComboChart<T>({
 	gridLines = true,
 	legend,
 	tooltip = true,
+	guideLine,
 	animate = false,
 	points = true,
 	interpolation = 'linear',
@@ -180,7 +182,11 @@ export function ComboChart<T>({
 				<ChartAxis axis="x" plot={chart.plot} ticks={chart.xTicks} baseline={chart.baseline} />
 			)}
 
-			<ChartCrosshair plot={chart.plot} xs={chart.anchors.map((anchor) => anchor.x)} />
+			{guideLine?.y && (
+				<ChartCrosshair plot={chart.plot} xs={chart.anchors.map((anchor) => anchor.x)} />
+			)}
+
+			{guideLine?.x && yScale && <ChartGuideLine plot={chart.plot} />}
 
 			<ChartMarksLayer animate={animate} generation={animationKey}>
 				{marksNode}

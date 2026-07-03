@@ -73,16 +73,16 @@ describe('BarChart', () => {
 		expect(bySlot(container, 'chart-tooltip')).toBeNull()
 	})
 
-	it('rules a horizontal correlation line tracking the pointer while hovering', () => {
-		const { container } = renderUI(chart())
+	it('rules a horizontal guide at the pointer with guideLine x', () => {
+		const { container } = renderUI(chart({ guideLine: { x: true } }))
 
-		expect(bySlot(container, 'chart-value-line')).toBeNull()
+		expect(bySlot(container, 'chart-guide-line')).toBeNull()
 
 		const hit = bySlot(container, 'chart-hit') as Element
 
 		fireEvent.pointerMove(hit, { clientX: 390, clientY: 70 })
 
-		const line = bySlot(container, 'chart-value-line')
+		const line = bySlot(container, 'chart-guide-line')
 
 		expect(line).not.toBeNull()
 
@@ -96,11 +96,36 @@ describe('BarChart', () => {
 		// It follows the pointer down the value axis.
 		fireEvent.pointerMove(hit, { clientX: 390, clientY: 120 })
 
-		expect(bySlot(container, 'chart-value-line')?.getAttribute('y1')).not.toBe(y)
+		expect(bySlot(container, 'chart-guide-line')?.getAttribute('y1')).not.toBe(y)
 
 		fireEvent.pointerLeave(hit)
 
-		expect(bySlot(container, 'chart-value-line')).toBeNull()
+		expect(bySlot(container, 'chart-guide-line')).toBeNull()
+	})
+
+	it('draws guides only when asked, and a vertical crosshair for guideLine y', () => {
+		const off = renderUI(chart())
+
+		fireEvent.pointerMove(bySlot(off.container, 'chart-hit') as Element, {
+			clientX: 200,
+			clientY: 70,
+		})
+
+		// No guideLine, no guides — the crosshair and value rule stay opt-in.
+		expect(bySlot(off.container, 'chart-guide-line')).toBeNull()
+
+		expect(bySlot(off.container, 'chart-crosshair')).toBeNull()
+
+		const on = renderUI(chart({ guideLine: { y: true } }))
+
+		fireEvent.pointerMove(bySlot(on.container, 'chart-hit') as Element, {
+			clientX: 200,
+			clientY: 70,
+		})
+
+		expect(bySlot(on.container, 'chart-crosshair')).not.toBeNull()
+
+		expect(bySlot(on.container, 'chart-guide-line')).toBeNull()
 	})
 
 	it('omits bars for non-finite values and dashes them in the readout', () => {

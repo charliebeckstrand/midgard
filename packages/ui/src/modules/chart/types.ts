@@ -67,6 +67,19 @@ export type ChartReadout = {
 }
 
 /**
+ * The hover guide lines a cartesian chart draws — always opt-in, never on by
+ * default. `x` is a horizontal rule at the pointer's height, read against the
+ * value axis; `y` a vertical rule snapped to the pointed category. Set either,
+ * both for a crosshair, or neither.
+ */
+export type ChartGuides = {
+	/** A horizontal rule at the pointer's height, carrying a value across the plot. */
+	x?: boolean
+	/** A vertical rule snapped to the pointed category — the categorical crosshair. */
+	y?: boolean
+}
+
+/**
  * Props shared by the cartesian charts (Bar / Line / Combo): the data plus
  * the frame's axes, legend, tooltip, sizing, and animation switches.
  *
@@ -115,6 +128,11 @@ export type CartesianChartProps<T> = AccessibleName & {
 	 * @defaultValue true
 	 */
 	tooltip?: boolean
+	/**
+	 * Draw hover guide lines — a horizontal value rule (`x`), a vertical
+	 * category crosshair (`y`), or both. Opt-in: no guide is drawn unless set.
+	 */
+	guideLine?: ChartGuides
 	/**
 	 * Animate the marks in on mount with Framer Motion, honouring
 	 * `prefers-reduced-motion` through the `ReducedMotion` primitive. Off by

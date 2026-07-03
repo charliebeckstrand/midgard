@@ -5,22 +5,22 @@ import { k } from '../../recipes/kata/chart'
 import type { PlotRect } from './chart-layout'
 import { useChartHover } from './context'
 
-/** Props for {@link ChartValueLine}. @internal */
-export type ChartValueLineProps = {
+/** Props for {@link ChartGuideLine}. @internal */
+export type ChartGuideLineProps = {
 	plot: PlotRect
 }
 
 /**
- * The horizontal dashed rule tracking the pointer's height across a bar
+ * The horizontal dashed guide tracking the pointer's height across a bar
  * chart's plot, so a reader can carry a bar's top over to the value axis and
  * across to its neighbours. Shown only while a band is hovered, clamped to the
  * plot rect; reads only the hover context, so it re-renders alone — never the
- * marks. The value axis is continuous, so the rule follows the pointer rather
+ * marks. The value axis is continuous, so the guide follows the pointer rather
  * than snapping like the categorical crosshair.
  *
  * @internal
  */
-export function ChartValueLine({ plot }: ChartValueLineProps) {
+export function ChartGuideLine({ plot }: ChartGuideLineProps) {
 	const { index, point } = useChartHover()
 
 	if (index === null || point === null) return null
@@ -29,7 +29,7 @@ export function ChartValueLine({ plot }: ChartValueLineProps) {
 
 	return (
 		<line
-			data-slot="chart-value-line"
+			data-slot="chart-guide-line"
 			x1={plot.x}
 			y1={y}
 			x2={plot.x + plot.width}

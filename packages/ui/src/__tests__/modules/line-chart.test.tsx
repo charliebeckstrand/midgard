@@ -48,8 +48,8 @@ describe('LineChart', () => {
 		expect(allBySlot(dressed.container, 'chart-point')).toHaveLength(6)
 	})
 
-	it('snaps the crosshair to the hovered category', () => {
-		const { container } = renderUI(chart())
+	it('snaps the crosshair to the hovered category with guideLine y', () => {
+		const { container } = renderUI(chart({ guideLine: { y: true } }))
 
 		expect(bySlot(container, 'chart-crosshair')).toBeNull()
 
@@ -59,6 +59,17 @@ describe('LineChart', () => {
 
 		expect(crosshair).not.toBeNull()
 
+		expect(bySlot(container, 'chart-tooltip')?.textContent).toContain('W1')
+	})
+
+	it('leaves the crosshair opt-in — none by default', () => {
+		const { container } = renderUI(chart())
+
+		fireEvent.pointerMove(bySlot(container, 'chart-hit') as Element, { clientX: 10 })
+
+		expect(bySlot(container, 'chart-crosshair')).toBeNull()
+
+		// The tooltip still tracks the category without a guide line.
 		expect(bySlot(container, 'chart-tooltip')?.textContent).toContain('W1')
 	})
 
