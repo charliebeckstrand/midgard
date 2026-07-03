@@ -112,8 +112,8 @@ export function Demo() {
 					<TabContent value="bar">
 						<Stack gap="xl">
 							<Example
-								title="Grouped, with a value guide"
-								code={code`<BarChart guideLine={{ x: true }} … />`}
+								title="Grouped, with a value crosshair"
+								code={code`<BarChart crosshair={{ x: true }} … />`}
 							>
 								<Container>
 									<BarChart
@@ -124,7 +124,7 @@ export function Demo() {
 											{ key: 'revenue', label: 'Revenue' },
 											{ key: 'costs', label: 'Costs' },
 										]}
-										guideLine={{ x: true }}
+										crosshair={{ x: true }}
 									/>
 								</Container>
 							</Example>
@@ -179,7 +179,7 @@ export function Demo() {
 						<Stack gap="xl">
 							<Example
 								title="Multi-series, with a crosshair"
-								code={code`<LineChart guideLine={{ y: true }} … />`}
+								code={code`<LineChart crosshair={{ y: true }} … />`}
 							>
 								<Container>
 									<LineChart
@@ -190,7 +190,7 @@ export function Demo() {
 											{ key: 'revenue', label: 'Revenue' },
 											{ key: 'margin', label: 'Margin' },
 										]}
-										guideLine={{ y: true }}
+										crosshair={{ y: true }}
 									/>
 								</Container>
 							</Example>
@@ -264,7 +264,7 @@ export function Demo() {
 
 							<Example
 								title="Overlapping, smoothed"
-								code={code`<AreaChart interpolation="smooth" guideLine={{ y: true }} … />`}
+								code={code`<AreaChart interpolation="smooth" crosshair={{ y: true }} … />`}
 							>
 								<Container>
 									<AreaChart
@@ -276,7 +276,7 @@ export function Demo() {
 											{ key: 'margin', label: 'Margin' },
 										]}
 										interpolation="smooth"
-										guideLine={{ y: true }}
+										crosshair={{ y: true }}
 									/>
 								</Container>
 							</Example>
@@ -362,8 +362,8 @@ export function Demo() {
 					<TabContent value="combo">
 						<Stack gap="xl">
 							<Example
-								title="Bars behind a line, one axis"
-								code={code`<ComboChart guideLine={{ x: true, y: true }} … />`}
+								title="Snapping crosshair, one axis"
+								code={code`<ComboChart crosshair={{ x: true, y: true, snap: true }} … />`}
 							>
 								<Container>
 									<ComboChart
@@ -374,7 +374,7 @@ export function Demo() {
 											{ key: 'revenue', label: 'Revenue', type: 'bar' },
 											{ key: 'margin', label: 'Margin', type: 'line' },
 										]}
-										guideLine={{ x: true, y: true }}
+										crosshair={{ x: true, y: true, snap: true }}
 									/>
 								</Container>
 							</Example>

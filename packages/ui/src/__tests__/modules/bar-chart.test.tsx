@@ -73,16 +73,16 @@ describe('BarChart', () => {
 		expect(bySlot(container, 'chart-tooltip')).toBeNull()
 	})
 
-	it('rules a horizontal guide at the pointer with guideLine x', () => {
-		const { container } = renderUI(chart({ guideLine: { x: true } }))
+	it('rules a horizontal value line at the pointer with crosshair x', () => {
+		const { container } = renderUI(chart({ crosshair: { x: true } }))
 
-		expect(bySlot(container, 'chart-guide-line')).toBeNull()
+		expect(bySlot(container, 'chart-crosshair-x')).toBeNull()
 
 		const hit = bySlot(container, 'chart-hit') as Element
 
 		fireEvent.pointerMove(hit, { clientX: 390, clientY: 70 })
 
-		const line = bySlot(container, 'chart-guide-line')
+		const line = bySlot(container, 'chart-crosshair-x')
 
 		expect(line).not.toBeNull()
 
@@ -96,14 +96,14 @@ describe('BarChart', () => {
 		// It follows the pointer down the value axis.
 		fireEvent.pointerMove(hit, { clientX: 390, clientY: 120 })
 
-		expect(bySlot(container, 'chart-guide-line')?.getAttribute('y1')).not.toBe(y)
+		expect(bySlot(container, 'chart-crosshair-x')?.getAttribute('y1')).not.toBe(y)
 
 		fireEvent.pointerLeave(hit)
 
-		expect(bySlot(container, 'chart-guide-line')).toBeNull()
+		expect(bySlot(container, 'chart-crosshair-x')).toBeNull()
 	})
 
-	it('draws guides only when asked, and a vertical crosshair for guideLine y', () => {
+	it('draws the crosshair only when asked; snap locks the vertical rule to the band', () => {
 		const off = renderUI(chart())
 
 		fireEvent.pointerMove(bySlot(off.container, 'chart-hit') as Element, {
@@ -111,21 +111,57 @@ describe('BarChart', () => {
 			clientY: 70,
 		})
 
-		// No guideLine, no guides — the crosshair and value rule stay opt-in.
-		expect(bySlot(off.container, 'chart-guide-line')).toBeNull()
+		// Opt-in: neither rule without a crosshair prop.
+		expect(bySlot(off.container, 'chart-crosshair-x')).toBeNull()
 
-		expect(bySlot(off.container, 'chart-crosshair')).toBeNull()
+		expect(bySlot(off.container, 'chart-crosshair-y')).toBeNull()
 
-		const on = renderUI(chart({ guideLine: { y: true } }))
+		// A free vertical rule follows the pointer's x.
+		const free = renderUI(chart({ crosshair: { y: true } }))
 
-		fireEvent.pointerMove(bySlot(on.container, 'chart-hit') as Element, {
+		const fh = bySlot(free.container, 'chart-hit') as Element
+
+		fireEvent.pointerMove(fh, { clientX: 300, clientY: 70 })
+
+		const freeX = bySlot(free.container, 'chart-crosshair-y')?.getAttribute('x1')
+
+		fireEvent.pointerMove(fh, { clientX: 312, clientY: 70 })
+
+		expect(bySlot(free.container, 'chart-crosshair-y')?.getAttribute('x1')).not.toBe(freeX)
+
+		// A snapped rule holds its band center across small moves.
+		const snapped = renderUI(chart({ crosshair: { y: true, snap: true } }))
+
+		const sh = bySlot(snapped.container, 'chart-hit') as Element
+
+		fireEvent.pointerMove(sh, { clientX: 300, clientY: 70 })
+
+		const snapX = bySlot(snapped.container, 'chart-crosshair-y')?.getAttribute('x1')
+
+		fireEvent.pointerMove(sh, { clientX: 308, clientY: 70 })
+
+		expect(bySlot(snapped.container, 'chart-crosshair-y')?.getAttribute('x1')).toBe(snapX)
+	})
+
+	it('snaps the horizontal value line onto a bar top with crosshair snap', () => {
+		const free = renderUI(chart({ crosshair: { x: true } }))
+
+		fireEvent.pointerMove(bySlot(free.container, 'chart-hit') as Element, {
 			clientX: 200,
-			clientY: 70,
+			clientY: 55,
 		})
 
-		expect(bySlot(on.container, 'chart-crosshair')).not.toBeNull()
+		const freeY = bySlot(free.container, 'chart-crosshair-x')?.getAttribute('y1')
 
-		expect(bySlot(on.container, 'chart-guide-line')).toBeNull()
+		const snapped = renderUI(chart({ crosshair: { x: true, snap: true } }))
+
+		fireEvent.pointerMove(bySlot(snapped.container, 'chart-hit') as Element, {
+			clientX: 200,
+			clientY: 55,
+		})
+
+		// Snap pulls the rule off the pointer onto the nearest series value.
+		expect(bySlot(snapped.container, 'chart-crosshair-x')?.getAttribute('y1')).not.toBe(freeY)
 	})
 
 	it('omits bars for non-finite values and dashes them in the readout', () => {

@@ -4,7 +4,6 @@ import { ChartAxis } from '../chart-axis'
 import { ChartCrosshair } from '../chart-crosshair'
 import { ChartFrame } from '../chart-frame'
 import { ChartGridLines } from '../chart-grid-lines'
-import { ChartGuideLine } from '../chart-guide-line'
 import { ChartHitArea } from '../chart-hit-area'
 import { ChartLegend } from '../chart-legend'
 import { AnimatedChartLineMarks, ChartLineMarks, type ChartLineSeries } from '../chart-line-marks'
@@ -70,7 +69,7 @@ export function LineChart<T>({
 	gridLines = true,
 	legend,
 	tooltip = true,
-	guideLine,
+	crosshair,
 	animate = false,
 	points = false,
 	fill = false,
@@ -145,17 +144,20 @@ export function LineChart<T>({
 
 			{axes && data.length > 0 && <ChartAxis axis="x" plot={chart.plot} ticks={chart.xTicks} />}
 
-			{guideLine?.y && (
-				<ChartCrosshair plot={chart.plot} xs={chart.anchors.map((anchor) => anchor.x)} />
+			{crosshair && (crosshair.x || crosshair.y) && (
+				<ChartCrosshair
+					plot={chart.plot}
+					crosshair={crosshair}
+					bandXs={chart.anchors.map((anchor) => anchor.x)}
+					snapPoints={chart.snapPoints}
+				/>
 			)}
-
-			{guideLine?.x && chart.yScale && <ChartGuideLine plot={chart.plot} />}
 
 			<ChartMarksLayer animate={animate} generation={animationKey}>
 				{marksNode}
 			</ChartMarksLayer>
 
-			{(tooltip || guideLine?.x || guideLine?.y) && data.length > 0 && (
+			{(tooltip || crosshair?.x || crosshair?.y) && data.length > 0 && (
 				<ChartHitArea plot={chart.plot} band={chart.band} count={data.length} />
 			)}
 		</ChartFrame>

@@ -48,19 +48,19 @@ describe('LineChart', () => {
 		expect(allBySlot(dressed.container, 'chart-point')).toHaveLength(6)
 	})
 
-	it('snaps the crosshair to the hovered category with guideLine y', () => {
-		const { container } = renderUI(chart({ guideLine: { y: true } }))
+	it('draws a dashed vertical rule with crosshair y', () => {
+		const { container } = renderUI(chart({ crosshair: { y: true } }))
 
-		expect(bySlot(container, 'chart-crosshair')).toBeNull()
+		expect(bySlot(container, 'chart-crosshair-y')).toBeNull()
 
 		fireEvent.pointerMove(bySlot(container, 'chart-hit') as Element, { clientX: 10 })
 
-		const crosshair = bySlot(container, 'chart-crosshair')
+		const rule = bySlot(container, 'chart-crosshair-y')
 
-		expect(crosshair).not.toBeNull()
+		expect(rule).not.toBeNull()
 
-		// Dashed, matching the horizontal x guide.
-		expect(crosshair?.getAttribute('stroke-dasharray')).toBe('4 4')
+		// Dashed, matching the horizontal x rule.
+		expect(rule?.getAttribute('stroke-dasharray')).toBe('4 4')
 
 		expect(bySlot(container, 'chart-tooltip')?.textContent).toContain('W1')
 	})
@@ -70,9 +70,9 @@ describe('LineChart', () => {
 
 		fireEvent.pointerMove(bySlot(container, 'chart-hit') as Element, { clientX: 10 })
 
-		expect(bySlot(container, 'chart-crosshair')).toBeNull()
+		expect(bySlot(container, 'chart-crosshair-y')).toBeNull()
 
-		// The tooltip still tracks the category without a guide line.
+		// The tooltip still tracks the category without a crosshair.
 		expect(bySlot(container, 'chart-tooltip')?.textContent).toContain('W1')
 	})
 

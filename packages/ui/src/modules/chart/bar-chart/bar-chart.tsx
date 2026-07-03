@@ -5,7 +5,6 @@ import { AnimatedChartBarMarks, ChartBarMarks } from '../chart-bar-marks'
 import { ChartCrosshair } from '../chart-crosshair'
 import { ChartFrame } from '../chart-frame'
 import { ChartGridLines } from '../chart-grid-lines'
-import { ChartGuideLine } from '../chart-guide-line'
 import { ChartHitArea } from '../chart-hit-area'
 import { ChartLegend } from '../chart-legend'
 import { ChartMarksLayer } from '../chart-marks-layer'
@@ -55,7 +54,7 @@ export function BarChart<T>({
 	gridLines = true,
 	legend,
 	tooltip = true,
-	guideLine,
+	crosshair,
 	animate = false,
 	min,
 	max,
@@ -128,13 +127,16 @@ export function BarChart<T>({
 				{marksNode}
 			</ChartMarksLayer>
 
-			{guideLine?.y && (
-				<ChartCrosshair plot={chart.plot} xs={chart.anchors.map((anchor) => anchor.x)} />
+			{crosshair && (crosshair.x || crosshair.y) && (
+				<ChartCrosshair
+					plot={chart.plot}
+					crosshair={crosshair}
+					bandXs={chart.anchors.map((anchor) => anchor.x)}
+					snapPoints={chart.snapPoints}
+				/>
 			)}
 
-			{guideLine?.x && chart.yScale && <ChartGuideLine plot={chart.plot} />}
-
-			{(tooltip || guideLine?.x || guideLine?.y) && data.length > 0 && (
+			{(tooltip || crosshair?.x || crosshair?.y) && data.length > 0 && (
 				<ChartHitArea plot={chart.plot} band={chart.band} count={data.length} />
 			)}
 		</ChartFrame>

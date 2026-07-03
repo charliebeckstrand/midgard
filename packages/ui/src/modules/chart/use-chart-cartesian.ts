@@ -73,6 +73,8 @@ export type CartesianChart = {
 	readout: ChartReadout | null
 	legendItems: ChartLegendItem[] | null
 	anchors: ChartAnchor[]
+	/** Per category, the visible series' plot-y positions — a value crosshair's snap targets. */
+	snapPoints: number[][]
 }
 
 /** The thinned category labels at their band centers. @internal */
@@ -163,6 +165,19 @@ export function useChartCartesian<T>(
 
 	const band = bandScale({ count: data.length, range: [plot.x, plot.x + plot.width] })
 
+	// Each category's visible values in plot y, for the crosshair's value snap.
+	const snapPoints: number[][] = yScale
+		? data.map((_, index) =>
+				visible.reduce<number[]>((ys, meta) => {
+					const value = meta.values[index]
+
+					if (value != null && Number.isFinite(value)) ys.push(yScale.map(value))
+
+					return ys
+				}, []),
+			)
+		: []
+
 	const categories = data.map((datum) => String(datum[x]))
 
 	const readout =
@@ -198,5 +213,6 @@ export function useChartCartesian<T>(
 		readout,
 		legendItems,
 		anchors: bandAnchors(band, data.length, plot),
+		snapPoints,
 	}
 }
