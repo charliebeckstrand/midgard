@@ -1,18 +1,12 @@
 'use client'
 
 import { motion } from 'motion/react'
-import type { PointerEvent, ReactNode } from 'react'
+import { type PointerEvent, type ReactNode, useId } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/chart'
 import type { AccessibleName } from '../../types'
 import { formatPercent } from '../../utilities'
-import {
-	MARK_GAP,
-	SLICE_FADE,
-	SLICE_SLIDE,
-	SLICE_STAGGER,
-	TICK_CHAR_WIDTH,
-} from './chart-constants'
+import { MARK_GAP, SLICE_FADE, SLICE_SWEEP, TICK_CHAR_WIDTH } from './chart-constants'
 import { ChartFrame } from './chart-frame'
 import { type ChartAspectRatio, resolveChartSizing } from './chart-layout'
 import { ChartLegend } from './chart-legend'
@@ -69,7 +63,9 @@ export type PieBaseProps<T> = AccessibleName & {
 	 */
 	tooltip?: boolean
 	/**
-	 * Animate the slices in with a clockwise stagger, honouring
+	 * Animate the pie in with a clockwise sweep from the top — the chart draws
+	 * itself around its angular axis the way the line chart draws along x, and
+	 * labels fade in as the sweep uncovers their slices. Honours
 	 * `prefers-reduced-motion` through the `ReducedMotion` primitive.
 	 * @defaultValue false
 	 */
@@ -104,11 +100,10 @@ export type ChartPieProps<T> = PieBaseProps<T> & {
 	children?: ReactNode
 }
 
-/** One placed segment label: its slice, resolved text, and stagger order. @internal */
+/** One placed segment label: its slice and resolved text. @internal */
 type PieSegmentLabel = {
 	slice: PieSlice
 	text: string
-	order: number
 }
 
 /** The text a segment label shows for `slice` under the given kind. @internal */
@@ -136,29 +131,13 @@ function sliceGroupClass(emphasis: number | null, index: number): string {
 }
 
 /**
- * The mount reveal for one slice: it fades in while sliding out along its own
- * bisector, and the slices stagger counter-clockwise from the top. The offset
- * is a transform, so it composes with the wrapper's dim opacity untouched.
+ * When the sweep reveal reaches `mid` degrees: the moment a label's slice is
+ * half uncovered, so text fades in just as its slice appears under it.
  *
  * @internal
  */
-function sliceReveal(
-	centroid: { x: number; y: number },
-	center: { x: number; y: number },
-	order: number,
-	count: number,
-) {
-	const dx = centroid.x - center.x
-
-	const dy = centroid.y - center.y
-
-	const length = Math.hypot(dx, dy) || 1
-
-	return {
-		initial: { opacity: 0, x: (-dx / length) * SLICE_SLIDE, y: (-dy / length) * SLICE_SLIDE },
-		animate: { opacity: 1, x: 0, y: 0 },
-		transition: { ...SLICE_FADE, delay: (count - 1 - order) * SLICE_STAGGER },
-	} as const
+function sweepDelay(mid: number): number {
+	return (mid / 360) * SLICE_SWEEP.duration
 }
 
 /** Shared shape for the static and animated segment-label renderers. @internal */
@@ -166,10 +145,6 @@ type PieSegmentLabelsProps = {
 	items: PieSegmentLabel[]
 	paints: SeriesPaint[]
 	animate: boolean
-	/** The pie center, so a label slides out with its slice on reveal. */
-	center: { x: number; y: number }
-	/** The total slice count, for the counter-clockwise reveal stagger. */
-	count: number
 	/** The legend-emphasised slice; other labels dim with their slices. */
 	emphasis: number | null
 }
@@ -177,21 +152,15 @@ type PieSegmentLabelsProps = {
 /**
  * The fit-gated labels set inside the slices. Text on a mark's own fill is
  * the one place ink follows the series colour — each hue's `onFill` pick
- * clears contrast in both modes.
+ * clears contrast in both modes. Under `animate` a label fades in as the
+ * sweep uncovers its slice.
  *
  * @internal
  */
-function PieSegmentLabels({
-	items,
-	paints,
-	animate,
-	center,
-	count,
-	emphasis,
-}: PieSegmentLabelsProps) {
+function PieSegmentLabels({ items, paints, animate, emphasis }: PieSegmentLabelsProps) {
 	return (
 		<g data-slot="chart-segment-labels" pointerEvents="none">
-			{items.map(({ slice, text, order }) => {
+			{items.map(({ slice, text }) => {
 				const shared = {
 					'data-slot': 'chart-segment-label',
 					x: slice.centroid.x,
@@ -201,14 +170,17 @@ function PieSegmentLabels({
 					className: cn('font-medium text-xs tabular-nums', paints[slice.index]?.onFill),
 				}
 
-				// The text keeps its x/y position attributes; the wrapping group carries
-				// the reveal transform so the two never collide.
 				return (
 					<g key={slice.index} className={sliceGroupClass(emphasis, slice.index)}>
 						{animate ? (
-							<motion.g {...sliceReveal(slice.centroid, center, order, count)}>
-								<text {...shared}>{text}</text>
-							</motion.g>
+							<motion.text
+								{...shared}
+								initial={{ opacity: 0 }}
+								animate={{ opacity: 1 }}
+								transition={{ ...SLICE_FADE, delay: sweepDelay(slice.mid) }}
+							>
+								{text}
+							</motion.text>
 						) : (
 							<text {...shared}>{text}</text>
 						)}
@@ -244,14 +216,14 @@ function segmentLabelItems({
 
 	const depth = innerRadius > 0 ? radius - innerRadius : radius
 
-	return slices.flatMap((slice, order) => {
+	return slices.flatMap((slice) => {
 		const text = segmentText(kind, slice, values, labels, format)
 
 		const centroidRadius = pieCentroidRadius(radius, innerRadius, slice.share)
 
 		const fits = segmentLabelFits(text.length, slice.share, centroidRadius, depth, TICK_CHAR_WIDTH)
 
-		return text && fits ? [{ slice, text, order }] : []
+		return text && fits ? [{ slice, text }] : []
 	})
 }
 
@@ -260,8 +232,10 @@ type PieChartMarksProps = {
 	slices: PieSlice[]
 	paints: SeriesPaint[]
 	animate: boolean
-	/** The pie center, from which slices slide out on reveal. */
+	/** The pie center, which the sweep mask rotates about. */
 	center: { x: number; y: number }
+	/** The outer radius the sweep mask must cover. */
+	radius: number
 	/** The legend-emphasised slice; the others dim against it. */
 	emphasis: number | null
 }
@@ -273,41 +247,58 @@ type PieChartMarksProps = {
  * real surface behind the chart shows through it — nothing painted to mismatch
  * a tinted or glass card.
  *
+ * @remarks Under `animate` the disc wipes in clockwise from the top: a mask
+ * stroke thick enough to cover the whole disc draws itself (`pathLength`
+ * 0 → 1), the same self-drawing reveal as the line chart — the pie sweeps in
+ * along its angular axis the way a line draws along x. The slices themselves
+ * stay static, so hover and dimming behave identically mid-reveal.
  * @internal
  */
-function PieChartMarks({ slices, paints, animate, center, emphasis }: PieChartMarksProps) {
+function PieChartMarks({ slices, paints, animate, center, radius, emphasis }: PieChartMarksProps) {
 	const { set } = useChartHover()
+
+	const sweepId = useId()
 
 	return (
 		<g data-slot="chart-slices" onPointerLeave={() => set(null, null)}>
-			{slices.map((slice, order) => {
-				const shared = {
-					'data-slot': 'chart-slice',
-					d: slice.d,
-					className: cn(paints[slice.index]?.fill, 'hover:brightness-110'),
-					onPointerEnter: () => set(slice.index, slice.centroid),
-					onPointerMove: (event: PointerEvent<SVGPathElement>) => {
-						const box = event.currentTarget.ownerSVGElement?.getBoundingClientRect()
-
-						if (!box) return
-
-						set(slice.index, { x: event.clientX - box.left, y: event.clientY - box.top })
-					},
-				}
-
-				return (
-					<g key={slice.index} className={sliceGroupClass(emphasis, slice.index)}>
-						{animate ? (
-							<motion.path
-								{...shared}
-								{...sliceReveal(slice.centroid, center, order, slices.length)}
-							/>
-						) : (
-							<path {...shared} />
-						)}
+			{animate && (
+				<mask id={sweepId}>
+					{/* The circle's stroke starts at 3 o'clock; the group turns it to 12. */}
+					<g transform={`rotate(-90 ${center.x} ${center.y})`}>
+						<motion.circle
+							cx={center.x}
+							cy={center.y}
+							r={radius / 2}
+							fill="none"
+							stroke="#fff"
+							strokeWidth={radius + 4}
+							initial={{ pathLength: 0 }}
+							animate={{ pathLength: 1 }}
+							transition={SLICE_SWEEP}
+						/>
 					</g>
-				)
-			})}
+				</mask>
+			)}
+
+			<g mask={animate ? `url(#${sweepId})` : undefined}>
+				{slices.map((slice) => (
+					<g key={slice.index} className={sliceGroupClass(emphasis, slice.index)}>
+						<path
+							data-slot="chart-slice"
+							d={slice.d}
+							className={cn(paints[slice.index]?.fill, 'hover:brightness-110')}
+							onPointerEnter={() => set(slice.index, slice.centroid)}
+							onPointerMove={(event: PointerEvent<SVGPathElement>) => {
+								const box = event.currentTarget.ownerSVGElement?.getBoundingClientRect()
+
+								if (!box) return
+
+								set(slice.index, { x: event.clientX - box.left, y: event.clientY - box.top })
+							}}
+						/>
+					</g>
+				))}
+			</g>
 		</g>
 	)
 }
@@ -377,38 +368,64 @@ function buildCallouts(
 	})
 }
 
+/** Props for {@link PieCallouts}. @internal */
+type PieCalloutsProps = {
+	items: CalloutLabel[]
+	animate: boolean
+	emphasis: number | null
+}
+
 /**
  * The callout labels: a muted leader from each slice out to its name and share,
  * set beside the slice. Plain SVG text on the surface — not on a fill — so it
- * takes the chrome ink and dims with its slice under legend emphasis.
+ * takes the chrome ink and dims with its slice under legend emphasis. Under
+ * `animate` each callout fades in as the sweep uncovers its slice.
  *
  * @internal
  */
-function PieCallouts({ items, emphasis }: { items: CalloutLabel[]; emphasis: number | null }) {
+function PieCallouts({ items, animate, emphasis }: PieCalloutsProps) {
 	return (
 		<g data-slot="chart-callouts" pointerEvents="none">
-			{items.map((item) => (
-				<g key={item.index} className={sliceGroupClass(emphasis, item.index)}>
-					<polyline
-						data-slot="chart-callout-leader"
-						points={item.leader}
-						fill="none"
-						strokeWidth={1}
-						className={cn(k.axis)}
-					/>
+			{items.map((item) => {
+				const callout = (
+					<>
+						<polyline
+							data-slot="chart-callout-leader"
+							points={item.leader}
+							fill="none"
+							strokeWidth={1}
+							className={cn(k.axis)}
+						/>
 
-					<text
-						data-slot="chart-callout-label"
-						x={item.x}
-						y={item.y}
-						textAnchor={item.anchor}
-						dominantBaseline="central"
-						className={cn('font-medium', k.tick)}
-					>
-						{item.text}
-					</text>
-				</g>
-			))}
+						<text
+							data-slot="chart-callout-label"
+							x={item.x}
+							y={item.y}
+							textAnchor={item.anchor}
+							dominantBaseline="central"
+							className={cn('font-medium', k.tick)}
+						>
+							{item.text}
+						</text>
+					</>
+				)
+
+				return (
+					<g key={item.index} className={sliceGroupClass(emphasis, item.index)}>
+						{animate ? (
+							<motion.g
+								initial={{ opacity: 0 }}
+								animate={{ opacity: 1 }}
+								transition={{ ...SLICE_FADE, delay: sweepDelay(item.mid) }}
+							>
+								{callout}
+							</motion.g>
+						) : (
+							callout
+						)}
+					</g>
+				)
+			})}
 		</g>
 	)
 }
@@ -529,6 +546,7 @@ export function ChartPie<T>({
 				paints={paints}
 				animate={animate}
 				center={center}
+				radius={radius}
 				emphasis={emphasis}
 			/>
 
@@ -537,13 +555,13 @@ export function ChartPie<T>({
 					items={labelItems}
 					paints={paints}
 					animate={animate}
-					center={center}
-					count={slices.length}
 					emphasis={emphasis}
 				/>
 			)}
 
-			{calloutItems.length > 0 && <PieCallouts items={calloutItems} emphasis={emphasis} />}
+			{calloutItems.length > 0 && (
+				<PieCallouts items={calloutItems} animate={animate} emphasis={emphasis} />
+			)}
 		</>
 	)
 

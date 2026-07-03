@@ -307,6 +307,8 @@ export const CALLOUT_LINE = 15
 export type PieCallout = {
 	/** The datum's index — the label text and colour key off it. */
 	index: number
+	/** The slice's mid-angle, so a callout can sync its reveal to the sweep. */
+	mid: number
 	/** The leader polyline points, `"x,y x,y x,y"`: edge, radial elbow, nub. */
 	leader: string
 	/** The label anchor x, a constant gap past the nub. */
@@ -402,6 +404,7 @@ export function pieCallouts(
 
 			return {
 				index: entry.slice.index,
+				mid: entry.slice.mid,
 				leader: `${edge.x},${edge.y} ${entry.elbow.x},${entry.elbow.y} ${nubX},${y}`,
 				x: nubX + CALLOUT_GAP * dir,
 				y,

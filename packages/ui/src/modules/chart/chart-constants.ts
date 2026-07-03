@@ -78,14 +78,15 @@ export const BAR_GROW = { duration: 0.4, ease: 'easeOut' } as const
 /** Delay step between adjacent bar groups, so they rise in sequence. @internal */
 export const BAR_STAGGER = 0.05
 
-/** Per-slice fade for the pie, staggered counter-clockwise from the top. @internal */
+/**
+ * The pie's reveal: the disc wipes in clockwise from the top (`pathLength`
+ * 0 → 1 on a masking stroke), so the pie draws itself around its angular axis
+ * the way the line draws itself along x. @internal
+ */
+export const SLICE_SWEEP = { duration: 0.8, ease: 'easeInOut' } as const
+
+/** Label fade-in as the sweep passes its slice. @internal */
 export const SLICE_FADE = { duration: 0.3, ease: 'easeOut' } as const
-
-/** Delay step between adjacent pie slices. @internal */
-export const SLICE_STAGGER = 0.06
-
-/** How far a pie slice slides out along its bisector as it reveals, in px. @internal */
-export const SLICE_SLIDE = 16
 
 /** Quiet window after the last resize before the mount reveal replays once. @internal */
 export const RESIZE_SETTLE_MS = 200
