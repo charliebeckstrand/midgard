@@ -62,8 +62,8 @@ const chartRows: Quarter[] = [
 ]
 
 const chartSeries: ChartSeries<Quarter>[] = [
-	{ key: 'revenue', label: 'Revenue' },
-	{ key: 'costs', label: 'Costs' },
+	{ xKey: 'quarter', yKey: 'revenue', yName: 'Revenue' },
+	{ xKey: 'quarter', yKey: 'costs', yName: 'Costs' },
 ]
 
 const dataTableRows: Person[] = [
@@ -226,7 +226,6 @@ export const dataDisplayCases: readonly Case[] = [
 			key="bc"
 			aria-label="Revenue by quarter"
 			data={chartRows}
-			x="quarter"
 			series={chartSeries}
 			width={360}
 		/>,
@@ -237,7 +236,6 @@ export const dataDisplayCases: readonly Case[] = [
 			key="lc"
 			aria-label="Revenue trend by quarter"
 			data={chartRows}
-			x="quarter"
 			series={chartSeries}
 			width={360}
 			points
@@ -249,7 +247,6 @@ export const dataDisplayCases: readonly Case[] = [
 			key="ac"
 			aria-label="Revenue and costs by quarter, stacked"
 			data={chartRows}
-			x="quarter"
 			series={chartSeries}
 			width={360}
 			stacked
@@ -261,8 +258,7 @@ export const dataDisplayCases: readonly Case[] = [
 			key="pc"
 			aria-label="Revenue share by quarter"
 			data={chartRows}
-			value="revenue"
-			label="quarter"
+			series={[{ xKey: 'quarter', yKey: 'revenue' }]}
 			width={240}
 			height={160}
 		/>,
@@ -275,8 +271,7 @@ export const dataDisplayCases: readonly Case[] = [
 			key="pp"
 			aria-label="Revenue share by quarter"
 			data={chartRows}
-			value="revenue"
-			label="quarter"
+			series={[{ xKey: 'quarter', yKey: 'revenue' }]}
 			width={240}
 			height={160}
 			legend="right"
@@ -290,8 +285,7 @@ export const dataDisplayCases: readonly Case[] = [
 			key="dc"
 			aria-label="Revenue share by quarter"
 			data={chartRows}
-			value="revenue"
-			label="quarter"
+			series={[{ xKey: 'quarter', yKey: 'revenue' }]}
 			width={240}
 			height={160}
 		>
@@ -307,10 +301,9 @@ export const dataDisplayCases: readonly Case[] = [
 			key="cc"
 			aria-label="Revenue and costs by quarter"
 			data={chartRows}
-			x="quarter"
 			series={[
-				{ key: 'revenue', label: 'Revenue', type: 'bar' },
-				{ key: 'costs', label: 'Costs', type: 'line' },
+				{ type: 'bar', xKey: 'quarter', yKey: 'revenue', yName: 'Revenue' },
+				{ type: 'line', xKey: 'quarter', yKey: 'costs', yName: 'Costs' },
 			]}
 			width={360}
 		/>,

@@ -15,6 +15,7 @@ import {
 } from './chart-layout'
 import type { ChartLegendItem } from './chart-legend'
 import { type BandScale, bandScale, linearScale } from './chart-scale'
+import type { CartesianChartProps, ChartSeries } from './chart-schema'
 import {
 	chartReadout,
 	formatChartValue,
@@ -22,7 +23,7 @@ import {
 	seriesPaint,
 	seriesValues,
 } from './chart-series'
-import type { CartesianChartProps, ChartReadout, ChartSeries } from './types'
+import type { ChartReadout } from './types'
 import { useChartSeriesToggle } from './use-chart-series-toggle'
 
 /** The cartesian props minus the accessible name, which stays with the frame. @internal */
@@ -101,7 +102,6 @@ export function useChartCartesian<T>(
 ): CartesianChart {
 	const {
 		data,
-		x,
 		series,
 		size,
 		width,
@@ -112,6 +112,10 @@ export function useChartCartesian<T>(
 		min,
 		max,
 	} = props
+
+	// Rows align by index on one shared band scale, so the category field is
+	// only ever read for labels — the first series' xKey names it.
+	const xKey = series[0]?.xKey
 
 	const resolvedSize = useResolvedSize(size)
 
@@ -130,10 +134,10 @@ export function useChartCartesian<T>(
 
 	const metas: SeriesMeta[] = series.map((entry, index) => ({
 		index,
-		label: entry.label,
+		label: entry.yName ?? entry.yKey,
 		paint: seriesPaint(entry, index),
 		swatch: config.swatch(entry, index),
-		values: seriesValues(data, entry.key),
+		values: seriesValues(data, entry.yKey),
 	}))
 
 	// Toggled-off series leave the scales and readout; slot colours stay put
@@ -176,10 +180,10 @@ export function useChartCartesian<T>(
 			)
 		: []
 
-	const categories = data.map((datum) => String(datum[x]))
+	const categories = xKey ? data.map((datum) => String(datum[xKey])) : []
 
 	const readout =
-		data.length > 0 && visible.length > 0 ? chartReadout(data, x, visible, format) : null
+		xKey && data.length > 0 && visible.length > 0 ? chartReadout(data, xKey, visible, format) : null
 
 	const legendItems =
 		(legend ?? metas.length > 1)

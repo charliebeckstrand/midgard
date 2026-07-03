@@ -8,17 +8,43 @@
 import type { BarMark } from './bar-chart/bar-chart-geometry'
 import type { LinePoint } from './line-chart/line-chart-geometry'
 
-/** How near the pointer must come to a line to count as on it, in px. @internal */
-export const LINE_HIT_TOLERANCE = 8
+/**
+ * How near the pointer must come to a line to count as on it, in px — a
+ * generous catch so the tooltip is easy to summon by aim alone, without the
+ * pixel precision a 2px stroke would otherwise demand. A snapping crosshair
+ * bypasses this: it reads the nearest point anywhere in the plot.
+ *
+ * @internal
+ */
+export const LINE_HIT_TOLERANCE = 16
 
 /** Slack above an area's top edge, so its own stroke counts as inside. @internal */
 const AREA_EDGE_SLACK = 4
 
-/** Whether the pointer sits on any drawn bar. @internal */
-export function withinBarMarks(marks: (BarMark | null)[][], x: number, y: number): boolean {
+/**
+ * Whether the pointer sits on any drawn bar, each bar's span widened by `gap`
+ * on both sides. Passing the inter-bar `MARK_GAP` closes the thin gaps between
+ * a group's bars — each bar's slack reaches its neighbour's edge — so a pointer
+ * sweeping across a group never falls between them and flickers the tooltip,
+ * while the wider between-group padding stays uncovered and the readout still
+ * clears when the pointer leaves the group (or rises above the bars).
+ *
+ * @internal
+ */
+export function withinBarMarks(
+	marks: (BarMark | null)[][],
+	x: number,
+	y: number,
+	gap = 0,
+): boolean {
 	return marks.some((series) =>
 		series.some(
-			(mark) => mark !== null && x >= mark.x && x <= mark.x1 && y >= mark.top && y <= mark.bottom,
+			(mark) =>
+				mark !== null &&
+				x >= mark.x - gap &&
+				x <= mark.x1 + gap &&
+				y >= mark.top &&
+				y <= mark.bottom,
 		),
 	)
 }

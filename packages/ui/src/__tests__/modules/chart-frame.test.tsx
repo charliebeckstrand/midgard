@@ -23,7 +23,6 @@ function frame(width: number, extras?: Partial<Parameters<typeof ChartFrame>[0]>
 			width={width}
 			height={240}
 			reserve={null}
-			plot={PLOT}
 			legend={
 				<ChartLegend
 					items={[{ label: 'Revenue', swatchClass: 'bg-blue-600', swatch: 'rect' }]}

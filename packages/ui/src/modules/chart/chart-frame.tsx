@@ -4,12 +4,13 @@ import { type ReactNode, type RefObject, useMemo, useState } from 'react'
 import { cn } from '../../core'
 import type { FrameReserve } from '../../hooks'
 import type { AccessibleName } from '../../types'
-import type { PlotRect } from './chart-layout'
 import { ChartPlotBox } from './chart-plot-box'
+import type { ChartLegendPlacement } from './chart-schema'
+import type { ChartSnap } from './chart-snap'
 import { ChartTable } from './chart-table'
 import { ChartTooltip } from './chart-tooltip'
 import { type ChartHover, ChartHoverContext, type ChartPoint } from './context'
-import type { ChartLegendPlacement, ChartReadout } from './types'
+import type { ChartReadout } from './types'
 
 /** Props for {@link ChartFrame}; the accessible name spreads onto the `role="img"` plot region. @internal */
 export type ChartFrameProps = AccessibleName & {
@@ -29,8 +30,6 @@ export type ChartFrameProps = AccessibleName & {
 	 * before the width is measured and across animation replays.
 	 */
 	reserve: FrameReserve | null
-	/** The plot rectangle inside the frame; the tooltip flips sides at its midpoint. */
-	plot: PlotRect
 	/** The prepared legend row, or `null` to omit it (single series). */
 	legend: ReactNode
 	/**
@@ -44,6 +43,8 @@ export type ChartFrameProps = AccessibleName & {
 	readout: ChartReadout | null
 	/** Mount the hover tooltip. */
 	tooltip: boolean
+	/** Snap targets when the crosshair snaps, carrying the tooltip to the intersection. */
+	snap?: ChartSnap
 	className?: string
 	/** HTML layered over the SVG inside the plot region — a donut's center content. */
 	overlay?: ReactNode
@@ -66,11 +67,11 @@ export function ChartFrame({
 	fixedWidth,
 	height,
 	reserve,
-	plot,
 	legend,
 	legendPlacement = 'bottom',
 	readout,
 	tooltip,
+	snap,
 	className,
 	overlay,
 	children,
@@ -117,7 +118,9 @@ export function ChartFrame({
 
 			{overlay}
 
-			{tooltip && readout && width > 0 && <ChartTooltip plot={plot} readout={readout} />}
+			{tooltip && readout && width > 0 && (
+				<ChartTooltip plotRef={ref} readout={readout} snap={snap} />
+			)}
 		</div>
 	)
 

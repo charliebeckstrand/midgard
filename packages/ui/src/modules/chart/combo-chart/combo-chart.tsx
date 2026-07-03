@@ -1,10 +1,10 @@
 'use client'
 
-import type { AccessibleName } from '../../../types'
 import { barMarks } from '../bar-chart/bar-chart-geometry'
 import { ChartAxis } from '../chart-axis'
 import { AnimatedChartBarMarks, ChartBarMarks } from '../chart-bar-marks'
-import { ChartCrosshair } from '../chart-crosshair'
+import { MARK_GAP } from '../chart-constants'
+import { ChartCrosshair, resolveCrosshair } from '../chart-crosshair'
 import { ChartFrame } from '../chart-frame'
 import { ChartGridLines } from '../chart-grid-lines'
 import { ChartHitArea } from '../chart-hit-area'
@@ -12,19 +12,20 @@ import { nearSeriesLines, withinBarMarks } from '../chart-hit-test'
 import { ChartLegend } from '../chart-legend'
 import { AnimatedChartLineMarks, ChartLineMarks, type ChartLineSeries } from '../chart-line-marks'
 import { ChartMarksLayer } from '../chart-marks-layer'
+import type { CartesianFrameProps, ChartBaseProps, ComboChartSeries } from '../chart-schema'
 import type { SeriesMeta } from '../chart-series'
+import { snapTargets } from '../chart-snap'
 import { type LineInterpolation, lineGeometry } from '../line-chart/line-chart-geometry'
-import type { ComboChartSeries } from '../types'
 import { useChartAnimationKey } from '../use-chart-animation-key'
-import { type CartesianData, useChartCartesian } from '../use-chart-cartesian'
+import { useChartCartesian } from '../use-chart-cartesian'
 
 /**
  * Props for {@link ComboChart}. Requires an accessible name (`aria-label` or
  * `aria-labelledby`) — the plot is `role="img"`, so assistive tech needs a
  * name for it.
  */
-export type ComboChartProps<T> = AccessibleName &
-	Omit<CartesianData<T>, 'series'> & {
+export type ComboChartProps<T> = ChartBaseProps<T> &
+	CartesianFrameProps & {
 		/** The series to plot, each drawn as bars or as a line; slot colours follow this order. */
 		series: ComboChartSeries<T>[]
 		/**
@@ -53,17 +54,15 @@ export type ComboChartProps<T> = AccessibleName &
  * <ComboChart
  *   aria-label="Revenue and margin by quarter"
  *   data={quarters}
- *   x="quarter"
  *   series={[
- *     { key: 'revenue', label: 'Revenue', type: 'bar' },
- *     { key: 'margin', label: 'Margin', type: 'line' },
+ *     { type: 'bar', xKey: 'quarter', yKey: 'revenue', yName: 'Revenue' },
+ *     { type: 'line', xKey: 'quarter', yKey: 'margin', yName: 'Margin' },
  *   ]}
  * />
  * ```
  */
 export function ComboChart<T>({
 	data,
-	x,
 	series,
 	size,
 	width,
@@ -84,7 +83,7 @@ export function ComboChart<T>({
 	...label
 }: ComboChartProps<T>) {
 	const chart = useChartCartesian(
-		{ data, x, series, size, width, height, aspectRatio, axes, legend, min, max, formatValue },
+		{ data, series, size, width, height, aspectRatio, axes, legend, min, max, formatValue },
 		{
 			zeroBaseline: true,
 			swatch: (_, index) => (series[index]?.type === 'line' ? 'line' : 'rect'),
@@ -149,6 +148,8 @@ export function ComboChart<T>({
 		</>
 	)
 
+	const rails = resolveCrosshair(crosshair)
+
 	return (
 		<ChartFrame
 			{...label}
@@ -157,7 +158,6 @@ export function ComboChart<T>({
 			fixedWidth={chart.fixedWidth}
 			height={chart.height}
 			reserve={chart.reserve}
-			plot={chart.plot}
 			legend={
 				chart.legendItems && (
 					<ChartLegend
@@ -172,6 +172,7 @@ export function ComboChart<T>({
 			legendPlacement={typeof legend === 'string' ? legend : undefined}
 			readout={chart.readout}
 			tooltip={tooltip}
+			snap={snapTargets(rails, chart.anchors, chart.snapPoints)}
 			className={className}
 		>
 			{gridLines && yScale && (
@@ -184,10 +185,10 @@ export function ComboChart<T>({
 				<ChartAxis axis="x" plot={chart.plot} ticks={chart.xTicks} baseline={chart.baseline} />
 			)}
 
-			{crosshair && (crosshair.x || crosshair.y) && (
+			{rails && (
 				<ChartCrosshair
 					plot={chart.plot}
-					crosshair={crosshair}
+					crosshair={rails}
 					bandXs={chart.anchors.map((anchor) => anchor.x)}
 					snapPoints={chart.snapPoints}
 				/>
@@ -197,13 +198,13 @@ export function ComboChart<T>({
 				{marksNode}
 			</ChartMarksLayer>
 
-			{(tooltip || crosshair?.x || crosshair?.y) && data.length > 0 && (
+			{(tooltip || rails !== null) && data.length > 0 && (
 				<ChartHitArea
 					plot={chart.plot}
 					band={chart.band}
 					count={data.length}
 					onData={(x, y) =>
-						withinBarMarks(bars, x, y) ||
+						withinBarMarks(bars, x, y, MARK_GAP) ||
 						nearSeriesLines(
 							lines.map((series) => series.geometry.runs),
 							x,

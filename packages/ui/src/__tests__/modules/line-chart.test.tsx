@@ -14,10 +14,9 @@ function chart(extra?: Partial<Parameters<typeof LineChart<(typeof DATA)[number]
 		<LineChart
 			aria-label="Signups per week"
 			data={DATA}
-			x="week"
 			series={[
-				{ key: 'signups', label: 'Signups' },
-				{ key: 'churn', label: 'Churn' },
+				{ xKey: 'week', yKey: 'signups', yName: 'Signups' },
+				{ xKey: 'week', yKey: 'churn', yName: 'Churn' },
 			]}
 			width={400}
 			{...extra}
@@ -49,7 +48,7 @@ describe('LineChart', () => {
 	})
 
 	it('draws a dashed vertical rule with crosshair y', () => {
-		const { container } = renderUI(chart({ crosshair: { y: true } }))
+		const { container } = renderUI(chart({ crosshair: { x: false, y: true } }))
 
 		expect(bySlot(container, 'chart-crosshair-y')).toBeNull()
 
@@ -63,7 +62,7 @@ describe('LineChart', () => {
 		// Dashed, matching the horizontal x rule.
 		expect(rule?.getAttribute('stroke-dasharray')).toBe('4 4')
 
-		expect(bySlot(container, 'chart-tooltip')?.textContent).toContain('W1')
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('W1')
 	})
 
 	it('leaves the crosshair opt-in — none by default', () => {
@@ -74,7 +73,7 @@ describe('LineChart', () => {
 		expect(bySlot(container, 'chart-crosshair-y')).toBeNull()
 
 		// The tooltip still reads the category while the pointer rides the line.
-		expect(bySlot(container, 'chart-tooltip')?.textContent).toContain('W1')
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('W1')
 	})
 
 	it('keeps the tooltip off the air around the lines', () => {
@@ -85,11 +84,42 @@ describe('LineChart', () => {
 		// Far above both lines at W1: the crosshair may track, the tooltip won't.
 		fireEvent.pointerMove(hit, { clientX: 62, clientY: 10 })
 
-		expect(bySlot(container, 'chart-tooltip')).toBeNull()
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
 
 		fireEvent.pointerMove(hit, { clientX: 62, clientY: 77 })
 
-		expect(bySlot(container, 'chart-tooltip')).not.toBeNull()
+		expect(bySlot(container, 'tooltip-content')).not.toBeNull()
+	})
+
+	it('summons the tooltip off the lines when the crosshair snaps', () => {
+		const { container } = renderUI(chart({ crosshair: { x: true, y: true, snap: true } }))
+
+		// Far above both lines at W1 — a bare tooltip reads nothing here, but the
+		// snapping crosshair carries it to the nearest point.
+		fireEvent.pointerMove(bySlot(container, 'chart-hit') as Element, { clientX: 62, clientY: 10 })
+
+		const readout = bySlot(container, 'tooltip-content') as HTMLElement | null
+
+		expect(readout).not.toBeNull()
+
+		// Snapped, it still lists every series at the pointed category.
+		expect(readout?.textContent).toContain('W1')
+
+		expect(readout?.textContent).toContain('Signups')
+
+		expect(readout?.textContent).toContain('Churn')
+	})
+
+	it('still gates the tooltip on a mark when the crosshair does not snap', () => {
+		const { container } = renderUI(chart({ crosshair: { x: true, y: true } }))
+
+		// Off the lines the crosshair tracks, but without snap the tooltip waits
+		// for a mark hit.
+		fireEvent.pointerMove(bySlot(container, 'chart-hit') as Element, { clientX: 62, clientY: 10 })
+
+		expect(bySlot(container, 'chart-crosshair-y')).not.toBeNull()
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
 	})
 
 	it('still renders the marks under animate', () => {

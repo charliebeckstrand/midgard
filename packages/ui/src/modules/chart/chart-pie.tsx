@@ -5,13 +5,13 @@ import { type PointerEvent, type ReactNode, useId } from 'react'
 import { cn } from '../../core'
 import { type FrameSizing, usePlotFrame } from '../../hooks'
 import { k } from '../../recipes/kata/chart'
-import type { AccessibleName } from '../../types'
 import { formatPercent } from '../../utilities'
 import { MARK_GAP, SLICE_FADE, SLICE_SWEEP, TICK_CHAR_WIDTH } from './chart-constants'
 import { ChartFrame } from './chart-frame'
 import { type ChartAspectRatio, chartFrameSizing } from './chart-layout'
 import { ChartLegend, type ChartLegendItem } from './chart-legend'
 import { ChartMarksLayer } from './chart-marks-layer'
+import type { ChartBaseProps, PieChartSeries } from './chart-schema'
 import { formatChartValue, type SeriesPaint, seriesValues } from './chart-series'
 import { useChartHover } from './context'
 import {
@@ -26,7 +26,7 @@ import {
 	pieSlices,
 	segmentLabelFits,
 } from './pie-chart/pie-chart-geometry'
-import type { ChartLegendPlacement, ChartReadout, DataKey } from './types'
+import type { ChartReadout } from './types'
 import { useChartAnimationKey } from './use-chart-animation-key'
 import { useChartSeriesToggle } from './use-chart-series-toggle'
 
@@ -39,55 +39,21 @@ export type PieLabels = {
 }
 
 /**
- * The props {@link PieChart} and {@link DonutChart} share: a single dataset
- * sliced by share, with the frame's legend, tooltip, sizing, labels, and
- * animation switches. Requires an accessible name — the plot is `role="img"`.
+ * The props {@link PieChart} and {@link DonutChart} share: {@link ChartBaseProps}
+ * plus the single series they slice by share and the label switches.
+ *
+ * @remarks Left unset, `aspectRatio` reads a plain pie square and fits a
+ * callout-labelled one to its own content; see {@link ChartBaseProps.aspectRatio}.
+ * The legend defaults on for two or more slices — the identity channel colour
+ * alone must never carry.
  */
-export type PieBaseProps<T> = AccessibleName & {
-	/** The rows to slice, clockwise from the top. */
-	data: T[]
-	/** The field holding each slice's positive share; non-positive rows take no slice. */
-	value: DataKey<T>
-	/** The field naming each slice in the legend, tooltip, and table. */
-	label: DataKey<T>
-	/** Frame width in px. Omitted, the chart measures its container and fills it. */
-	width?: number
-	/** Frame height in px; wins over `aspectRatio` when set. */
-	height?: number
+export type PieBaseProps<T> = ChartBaseProps<T> & {
 	/**
-	 * Height as a ratio of the width — a `width / height` number, a `"1/1"`
-	 * string, or `false` to fill the container's height.
-	 * @remarks Left unset, a plain pie reads best square; with `labels.callouts`
-	 * on, the frame instead fits its height to the pie and its labels, so the
-	 * margin callouts need on the sides never sits empty above and below too.
-	 * Setting `aspectRatio` (or `height`) explicitly always wins over that fit.
-	 * @defaultValue 1 — content-fit instead when `labels.callouts` is on
+	 * The one series to sweep: `xKey` names each slice in the legend, tooltip,
+	 * and table; `yKey` holds its positive share — non-positive rows take no
+	 * slice.
 	 */
-	aspectRatio?: ChartAspectRatio
-	/**
-	 * Show the legend. Defaults to on for two or more slices — the identity
-	 * channel colour alone must never carry. A placement moves the centered
-	 * row under the plot (`'bottom'`, the default) or above it (`'top'`);
-	 * `'left'` or `'right'` sets it beside the plot as a static label panel
-	 * instead: entries gain the slice's live share and stack as a single
-	 * column, side by side with the chart from `lg` and under it below. Every
-	 * placement keeps the legend's full interactivity — hovering dims the
-	 * other slices, clicking toggles, and the arrow keys rove.
-	 */
-	legend?: boolean | ChartLegendPlacement
-	/**
-	 * Show the hover tooltip naming the pointed slice.
-	 * @defaultValue true
-	 */
-	tooltip?: boolean
-	/**
-	 * Animate the pie in with a clockwise sweep from the top — the chart draws
-	 * itself around its angular axis the way the line chart draws along x, and
-	 * labels fade in as the sweep uncovers their slices. Honours
-	 * `prefers-reduced-motion` through the `ReducedMotion` primitive.
-	 * @defaultValue false
-	 */
-	animate?: boolean
+	series: [PieChartSeries<T>]
 	/**
 	 * Label switches for the plot. `segment` shows each slice's percent share
 	 * at its centroid, rendered only where it fits — never clipped; the
@@ -100,9 +66,6 @@ export type PieBaseProps<T> = AccessibleName & {
 	 * without the legend.
 	 */
 	labels?: PieLabels
-	/** Formats tooltip and table values; defaults to locale integer/fraction formatting. */
-	formatValue?: (value: number) => string
-	className?: string
 }
 
 /** Props for {@link ChartPie}: the shared pie base plus the hole size and center content. @internal */
@@ -502,8 +465,7 @@ function PieCallouts({ items, animate, emphasis }: PieCalloutsProps) {
  */
 export function ChartPie<T>({
 	data,
-	value,
-	label,
+	series,
 	innerRatio,
 	width,
 	height,
@@ -521,9 +483,11 @@ export function ChartPie<T>({
 
 	const format = formatValue ?? formatChartValue
 
-	const values = seriesValues(data, value)
+	const [entry] = series
 
-	const sliceLabels = data.map((datum) => String(datum[label]))
+	const values = seriesValues(data, entry.yKey)
+
+	const sliceLabels = data.map((datum) => String(datum[entry.xKey]))
 
 	// Callouts sit outside the pie, so reserve room for the widest one and shrink
 	// the pie to fit — its label never spills past the frame's clip.
@@ -568,7 +532,7 @@ export function ChartPie<T>({
 			? buildCallouts(calloutSpec, slices, center, radius, frameHeight)
 			: []
 
-	const readout = pieReadout(sliceLabels, paints, String(value), values, format)
+	const readout = pieReadout(sliceLabels, paints, entry.yName ?? entry.yKey, values, format)
 
 	const aside = legend === 'left' || legend === 'right'
 
@@ -618,7 +582,6 @@ export function ChartPie<T>({
 			fixedWidth={width}
 			height={frameHeight}
 			reserve={reserve}
-			plot={{ x: 0, y: 0, width: frameWidth, height: frameHeight }}
 			legend={
 				legendItems && (
 					<ChartLegend

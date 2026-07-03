@@ -24,8 +24,7 @@ export type PieChartProps<T> = PieBaseProps<T>
  * <PieChart
  *   aria-label="Traffic by source"
  *   data={sources}
- *   value="visits"
- *   label="source"
+ *   series={[{ xKey: 'source', yKey: 'visits' }]}
  *   labels={{ segment: true }}
  * />
  * ```

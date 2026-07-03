@@ -22,8 +22,7 @@ function chart(extra?: Partial<Parameters<typeof PieChart<(typeof DATA)[number]>
 		<PieChart
 			aria-label="Traffic by source"
 			data={DATA}
-			value="visits"
-			label="source"
+			series={[{ xKey: 'source', yKey: 'visits' }]}
 			width={300}
 			height={200}
 			{...extra}
@@ -51,7 +50,7 @@ describe('PieChart', () => {
 
 		fireEvent.pointerEnter(first as Element)
 
-		const tooltip = bySlot(container, 'chart-tooltip')
+		const tooltip = bySlot(container, 'tooltip-content')
 
 		expect(tooltip?.textContent).toContain('Search')
 
@@ -59,7 +58,7 @@ describe('PieChart', () => {
 
 		fireEvent.pointerLeave(bySlot(container, 'chart-slices') as Element)
 
-		expect(bySlot(container, 'chart-tooltip')).toBeNull()
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
 	})
 
 	it('keeps sliceless rows honest in the data table', () => {

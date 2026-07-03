@@ -1,81 +1,147 @@
 'use client'
 
+import {
+	autoUpdate,
+	flip,
+	offset,
+	shift,
+	useClientPoint,
+	useFloating,
+	useInteractions,
+} from '@floating-ui/react'
+import { type RefObject, useMemo } from 'react'
+import { TooltipContent } from '../../components/tooltip'
+import { TooltipContext } from '../../components/tooltip/context'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/chart'
-import { k as tooltip } from '../../recipes/kata/tooltip'
-import type { PlotRect } from './chart-layout'
+import { type ChartSnap, nearestValue } from './chart-snap'
 import { useChartHover } from './context'
 import type { ChartReadout } from './types'
 
 /** Props for {@link ChartTooltip}. @internal */
 export type ChartTooltipProps = {
-	plot: PlotRect
+	/**
+	 * The plot region element. Its viewport rect maps the hover's frame
+	 * coordinates to the client point floating-ui anchors to — the SVG fills the
+	 * region one-to-one, so the rect origin plus a frame point is that point.
+	 */
+	plotRef: RefObject<HTMLDivElement | null>
 	readout: ChartReadout
+	/**
+	 * Snap targets when the crosshair snaps. Present, the tooltip rides the
+	 * snapped intersection wherever the pointer is in the plot; absent, it
+	 * tracks the pointer and shows only over a mark.
+	 */
+	snap?: ChartSnap
 }
 
-/** The pointer offset keeping the readout clear of the cursor. @internal */
+/** The gap in px floating-ui keeps between the anchor point and the readout. @internal */
 const TRACK_OFFSET = 12
 
 /**
- * The hover readout: one tooltip listing every series at the pointed
- * category, values leading their labels. It wears the Tooltip component's
- * opaque surface and tracks the pointer precisely, flipping past it at the
- * plot's midlines so it never runs out of the frame. Positioned by math
- * alone, it never needs to measure itself.
+ * The hover readout: one tooltip listing every series at the pointed category,
+ * values leading their labels. The panel is the real Tooltip component's —
+ * `TooltipContent` driven through `TooltipContext` with the chart's own
+ * floating state, anchored to the point through `useClientPoint` — so the chart
+ * readout wears exactly the Tooltip chrome, motion, and glass adoption, and
+ * `flip` / `shift` keep it inside the frame at the edges.
  *
- * @remarks A pointer enhancement, `aria-hidden` by design: the same values
- * ship in the visually-hidden table, so nothing is gated behind hover.
+ * Snapped, it rides the nearest point — the band center crossed with the value
+ * nearest the pointer, the line it sits closest to — and reads there wherever
+ * the pointer is in the plot; `placement: 'top'` centers it over that point so
+ * the snapped category is unmistakable. Off the snap it tracks the pointer and
+ * shows only over a mark.
+ *
+ * @remarks A pointer enhancement, `aria-hidden` by design: the same values ship
+ * in the visually-hidden table, so nothing is gated behind hover.
  * @internal
  */
-export function ChartTooltip({ plot, readout }: ChartTooltipProps) {
+export function ChartTooltip({ plotRef, readout, snap }: ChartTooltipProps) {
 	const { index, point, onData } = useChartHover()
 
-	// Off the marks the tooltip stays away — pointing at air between or above
-	// them reads nothing, even while the crosshair keeps tracking.
-	if (index === null || point === null || !onData) return null
+	// Snapped, the anchor is the intersection — the band center and the value
+	// nearest the pointer; otherwise it is the pointer itself.
+	const anchor =
+		index !== null && point !== null
+			? snap
+				? {
+						x: snap.bandXs[index] ?? point.x,
+						y: nearestValue(snap.snapPoints[index], point.y) ?? point.y,
+					}
+				: point
+			: null
 
-	const flippedX = point.x > plot.x + plot.width / 2
+	// A snapping crosshair carries the tooltip to the nearest point, so it reads
+	// anywhere in the plot; otherwise it waits for the pointer to sit on a mark.
+	const open = anchor !== null && (snap != null || onData)
 
-	const flippedY = point.y > plot.y + plot.height / 2
+	// Frame coordinates map to the viewport by the plot region's own rect: the
+	// SVG fills it one-to-one, so the origin plus the frame point is the client
+	// point the floating readout anchors to.
+	const rect = plotRef.current?.getBoundingClientRect()
 
-	const position = {
-		...(flippedX
-			? { right: `calc(100% - ${point.x - TRACK_OFFSET}px)` }
-			: { left: point.x + TRACK_OFFSET }),
-		...(flippedY
-			? { bottom: `calc(100% - ${point.y - TRACK_OFFSET}px)` }
-			: { top: point.y + TRACK_OFFSET }),
-	}
+	const clientX = anchor && rect ? rect.left + anchor.x : null
+
+	const clientY = anchor && rect ? rect.top + anchor.y : null
+
+	const { refs, floatingStyles, context } = useFloating({
+		open,
+		placement: 'top',
+		middleware: [offset(TRACK_OFFSET), flip(), shift({ padding: 8 })],
+		whileElementsMounted: autoUpdate,
+	})
+
+	const clientPoint = useClientPoint(context, { x: clientX, y: clientY })
+
+	const { getReferenceProps, getFloatingProps } = useInteractions([clientPoint])
+
+	const value = useMemo(
+		() => ({
+			open,
+			interactive: false,
+			enabled: true,
+			setReference: refs.setReference,
+			setFloating: refs.setFloating,
+			floatingStyles,
+			getReferenceProps,
+			getFloatingProps,
+		}),
+		[
+			open,
+			refs.setReference,
+			refs.setFloating,
+			floatingStyles,
+			getReferenceProps,
+			getFloatingProps,
+		],
+	)
 
 	return (
-		<div
-			data-slot="chart-tooltip"
-			aria-hidden="true"
-			className={cn(
-				'pointer-events-none absolute z-10',
-				tooltip.content({ size: 'sm' }),
-				tooltip.surface.default,
-			)}
-			style={position}
-		>
-			<div className={cn(k.label, 'mb-1 whitespace-nowrap')}>{readout.categories[index]}</div>
+		<TooltipContext value={value}>
+			<TooltipContent size="sm">
+				{index !== null && (
+					<div aria-hidden="true">
+						<div className={cn(k.label, 'mb-1 whitespace-nowrap')}>{readout.categories[index]}</div>
 
-			<div className="space-y-0.5">
-				{readout.rows.map((row) => (
-					<div key={row.label} className="flex items-center gap-1.5 whitespace-nowrap">
-						<span
-							className={cn(
-								row.swatch === 'rect' ? 'size-2 rounded-xs' : 'h-0.5 w-2.5 rounded-full',
-								row.swatchClasses?.[index] ?? row.swatchClass,
-							)}
-						/>
+						<div className="space-y-0.5">
+							{readout.rows.map((row) => (
+								<div key={row.label} className="flex items-center gap-1.5 whitespace-nowrap">
+									<span
+										className={cn(
+											row.swatch === 'rect' ? 'size-2 rounded-xs' : 'h-0.5 w-2.5 rounded-full',
+											row.swatchClasses?.[index] ?? row.swatchClass,
+										)}
+									/>
 
-						<span className={cn(k.value)}>{row.values[index]}</span>
+									<span className={cn(k.value)}>{row.values[index]}</span>
 
-						<span className={cn(k.label)}>{row.label}</span>
+									<span className={cn(k.label)}>{row.label}</span>
+								</div>
+							))}
+						</div>
 					</div>
-				))}
-			</div>
-		</div>
+				)}
+			</TooltipContent>
+		</TooltipContext>
 	)
 }

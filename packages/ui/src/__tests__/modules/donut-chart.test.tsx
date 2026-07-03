@@ -13,8 +13,7 @@ function chart(extra?: Partial<Parameters<typeof DonutChart<(typeof DATA)[number
 		<DonutChart
 			aria-label="Traffic by source"
 			data={DATA}
-			value="visits"
-			label="source"
+			series={[{ xKey: 'source', yKey: 'visits' }]}
 			width={300}
 			height={200}
 			{...extra}
@@ -61,7 +60,7 @@ describe('DonutChart', () => {
 
 		fireEvent.pointerEnter(first as Element)
 
-		const tooltip = bySlot(container, 'chart-tooltip')
+		const tooltip = bySlot(container, 'tooltip-content')
 
 		expect(tooltip?.textContent).toContain('Search')
 

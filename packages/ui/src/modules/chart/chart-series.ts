@@ -6,7 +6,8 @@
 import { cn } from '../../core'
 import { type ChartSeriesColor, k } from '../../recipes/kata/chart'
 import { formatFraction, formatInteger } from '../../utilities'
-import type { ChartReadout, ChartSeries, DataKey } from './types'
+import type { ChartSeries, DataKey } from './chart-schema'
+import type { ChartReadout } from './types'
 
 /** The em-dash a readout shows where a datum is non-finite. @internal */
 export const READOUT_GAP = '—'
@@ -73,12 +74,12 @@ export type SeriesMeta = {
  */
 export function chartReadout<T>(
 	data: T[],
-	x: DataKey<T>,
+	xKey: DataKey<T>,
 	metas: SeriesMeta[],
 	format: (value: number) => string,
 ): ChartReadout {
 	return {
-		categories: data.map((datum) => String(datum[x])),
+		categories: data.map((datum) => String(datum[xKey])),
 		rows: metas.map((meta) => ({
 			label: meta.label,
 			swatchClass: cn(meta.paint.bg),

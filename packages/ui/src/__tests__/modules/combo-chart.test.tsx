@@ -9,8 +9,8 @@ const DATA = [
 ]
 
 const SERIES = [
-	{ key: 'revenue', label: 'Revenue', type: 'bar' },
-	{ key: 'margin', label: 'Margin', type: 'line' },
+	{ type: 'bar', xKey: 'quarter', yKey: 'revenue', yName: 'Revenue' },
+	{ type: 'line', xKey: 'quarter', yKey: 'margin', yName: 'Margin' },
 ] as const
 
 function chart(extra?: Partial<Parameters<typeof ComboChart<(typeof DATA)[number]>>[0]>) {
@@ -18,7 +18,6 @@ function chart(extra?: Partial<Parameters<typeof ComboChart<(typeof DATA)[number
 		<ComboChart
 			aria-label="Revenue and margin by quarter"
 			data={DATA}
-			x="quarter"
 			series={[...SERIES]}
 			width={400}
 			{...extra}
@@ -64,7 +63,7 @@ describe('ComboChart', () => {
 		// (185, 100) sits on Q2's revenue bar.
 		fireEvent.pointerMove(hit, { clientX: 185, clientY: 100 })
 
-		const tooltip = bySlot(container, 'chart-tooltip')
+		const tooltip = bySlot(container, 'tooltip-content')
 
 		expect(tooltip?.textContent).toContain('Q2')
 
@@ -78,7 +77,7 @@ describe('ComboChart', () => {
 		// Between the groups, clear of the margin line, nothing reads.
 		fireEvent.pointerMove(hit, { clientX: 130, clientY: 100 })
 
-		expect(bySlot(container, 'chart-tooltip')).toBeNull()
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
 	})
 
 	it('still renders both mark kinds under animate', () => {

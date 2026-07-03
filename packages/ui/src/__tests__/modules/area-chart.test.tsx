@@ -14,10 +14,9 @@ function chart(extra?: Partial<Parameters<typeof AreaChart<(typeof DATA)[number]
 		<AreaChart
 			aria-label="Traffic by channel"
 			data={DATA}
-			x="day"
 			series={[
-				{ key: 'organic', label: 'Organic' },
-				{ key: 'paid', label: 'Paid' },
+				{ xKey: 'day', yKey: 'organic', yName: 'Organic' },
+				{ xKey: 'day', yKey: 'paid', yName: 'Paid' },
 			]}
 			width={400}
 			{...extra}
@@ -44,7 +43,7 @@ describe('AreaChart', () => {
 		// (200, 100) sits inside the stacked ribbons near Tue.
 		fireEvent.pointerMove(hit, { clientX: 200, clientY: 100 })
 
-		const tooltip = bySlot(container, 'chart-tooltip')
+		const tooltip = bySlot(container, 'tooltip-content')
 
 		expect(tooltip?.textContent).toContain('Tue')
 
@@ -55,7 +54,7 @@ describe('AreaChart', () => {
 		// Above the stack the tooltip stays away.
 		fireEvent.pointerMove(hit, { clientX: 200, clientY: 5 })
 
-		expect(bySlot(container, 'chart-tooltip')).toBeNull()
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
 	})
 
 	it('marks band-edge points and smooths only when unstacked', () => {
