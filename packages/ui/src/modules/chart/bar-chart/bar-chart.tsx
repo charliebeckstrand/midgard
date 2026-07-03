@@ -48,6 +48,7 @@ export function BarChart<T>({
 	size,
 	width,
 	height,
+	aspectRatio,
 	axes = true,
 	gridLines = true,
 	legend,
@@ -60,7 +61,7 @@ export function BarChart<T>({
 	...label
 }: BarChartProps<T>) {
 	const chart = useChartCartesian(
-		{ data, x, series, size, width, height, axes, legend, min, max, formatValue },
+		{ data, x, series, size, width, height, aspectRatio, axes, legend, min, max, formatValue },
 		{ zeroBaseline: true, swatch: () => 'rect' },
 	)
 

@@ -2,23 +2,23 @@ import type { Step } from '../../recipes'
 
 /**
  * Density-resolved frame metrics: the values that scale with the size step.
- * Mark specs that must read identically at every density (bar thickness,
- * stroke widths, gaps) live below as flat constants instead.
+ * The frame's height is not one of them — it derives from the width and the
+ * aspect ratio, so density and a fixed height never conflict. Mark specs that
+ * must read identically at every density (bar thickness, stroke widths, gaps)
+ * live below as flat constants instead.
  *
  * @internal
  */
 export type ChartMetrics = {
-	/** Default frame height in px (plot plus axis band). */
-	height: number
 	/** Tick count the value axis aims for. */
 	tickTarget: number
 }
 
 /** Per-density frame metrics, keyed by the resolved size step. @internal */
 export const CHART_METRICS: Record<Step, ChartMetrics> = {
-	sm: { height: 160, tickTarget: 3 },
-	md: { height: 240, tickTarget: 4 },
-	lg: { height: 320, tickTarget: 5 },
+	sm: { tickTarget: 3 },
+	md: { tickTarget: 4 },
+	lg: { tickTarget: 5 },
 }
 
 /** Bar thickness ceiling; the band's leftover stays air, never fill. @internal */

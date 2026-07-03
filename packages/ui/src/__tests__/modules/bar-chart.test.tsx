@@ -209,6 +209,21 @@ describe('BarChart', () => {
 		expect(bySlot(container, 'chart-table')?.textContent).toContain('$65')
 	})
 
+	it('sizes the frame height from the aspect ratio, explicit height winning', () => {
+		const ratio = renderUI(chart({ aspectRatio: '16/9' }))
+
+		// 400 wide at 16/9 → 225 tall.
+		expect(ratio.container.querySelector('svg')).toHaveAttribute('height', '225')
+
+		const square = renderUI(chart({ aspectRatio: 1 }))
+
+		expect(square.container.querySelector('svg')).toHaveAttribute('height', '400')
+
+		const fixed = renderUI(chart({ height: 260 }))
+
+		expect(fixed.container.querySelector('svg')).toHaveAttribute('height', '260')
+	})
+
 	it('renders an empty frame for empty data', () => {
 		const { container } = renderUI(chart({ data: [] }))
 

@@ -3,19 +3,12 @@
 import { motion } from 'motion/react'
 import type { PointerEvent, ReactNode } from 'react'
 import { cn } from '../../../core'
-import { useResolvedSize } from '../../../primitives/density'
-import type { Step } from '../../../recipes'
 import { k } from '../../../recipes/kata/chart'
 import type { AccessibleName } from '../../../types'
 import { formatPercent } from '../../../utilities'
-import {
-	CHART_METRICS,
-	MARK_GAP,
-	SLICE_FADE,
-	SLICE_STAGGER,
-	TICK_CHAR_WIDTH,
-} from '../chart-constants'
+import { MARK_GAP, SLICE_FADE, SLICE_STAGGER, TICK_CHAR_WIDTH } from '../chart-constants'
 import { ChartFrame } from '../chart-frame'
+import { type ChartAspectRatio, resolveChartHeight } from '../chart-layout'
 import { ChartLegend } from '../chart-legend'
 import { ChartMarksLayer } from '../chart-marks-layer'
 import { formatChartValue, type SeriesPaint, seriesValues } from '../chart-series'
@@ -43,12 +36,17 @@ export type PieChartProps<T> = AccessibleName & {
 	 * @defaultValue false
 	 */
 	donut?: boolean
-	/** Resolves against enclosing Density; sets the default frame height. */
-	size?: Step
 	/** Frame width in px. Omitted, the chart measures its container and fills it. */
 	width?: number
-	/** Frame height in px; overrides the density default. */
+	/** Frame height in px; wins over `aspectRatio` when set. */
 	height?: number
+	/**
+	 * Height as a ratio of the width — a `width / height` number, a `"1/1"`
+	 * string, or `false` to fill the container's height. A pie reads best
+	 * square.
+	 * @defaultValue 1
+	 */
+	aspectRatio?: ChartAspectRatio
 	/**
 	 * Show the legend. Defaults to on for two or more slices — the identity
 	 * channel colour alone must never carry.
@@ -284,9 +282,9 @@ export function PieChart<T>({
 	value,
 	label,
 	donut = false,
-	size,
 	width,
 	height,
+	aspectRatio = 1,
 	legend,
 	tooltip = true,
 	animate = false,
@@ -296,13 +294,9 @@ export function PieChart<T>({
 	children,
 	...name
 }: PieChartProps<T>) {
-	const resolvedSize = useResolvedSize(size)
+	const { ref, width: frameWidth, height: containerHeight } = useChartPlot(width)
 
-	const metrics = CHART_METRICS[resolvedSize as Step] ?? CHART_METRICS.md
-
-	const { ref, width: frameWidth } = useChartPlot(width)
-
-	const frameHeight = height ?? metrics.height
+	const frameHeight = resolveChartHeight(frameWidth, height, aspectRatio, containerHeight)
 
 	const format = formatValue ?? formatChartValue
 

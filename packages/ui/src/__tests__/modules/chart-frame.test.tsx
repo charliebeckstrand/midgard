@@ -8,7 +8,7 @@ import {
 	X_AXIS_HEIGHT,
 } from '../../modules/chart/chart-constants'
 import { ChartFrame } from '../../modules/chart/chart-frame'
-import { bandAnchors, plotRect } from '../../modules/chart/chart-layout'
+import { bandAnchors, plotRect, resolveChartHeight } from '../../modules/chart/chart-layout'
 import { ChartLegend } from '../../modules/chart/chart-legend'
 import { bandScale } from '../../modules/chart/chart-scale'
 import { bySlot, noop, renderUI } from '../helpers'
@@ -109,6 +109,28 @@ describe('plotRect', () => {
 		expect(plot.width).toBe(400)
 
 		expect(plot.height).toBe(240 - PLOT_TOP_PAD)
+	})
+})
+
+describe('resolveChartHeight', () => {
+	it('derives the height from the width and the aspect ratio', () => {
+		expect(resolveChartHeight(320, undefined, '16/9', 0)).toBe(180)
+
+		expect(resolveChartHeight(300, undefined, 1, 0)).toBe(300)
+
+		expect(resolveChartHeight(400, undefined, 2, 0)).toBe(200)
+	})
+
+	it('lets an explicit height win over the ratio', () => {
+		expect(resolveChartHeight(320, 240, '16/9', 0)).toBe(240)
+	})
+
+	it('fills the container height when the ratio is off', () => {
+		expect(resolveChartHeight(320, undefined, false, 275)).toBe(275)
+	})
+
+	it('yields no height until the width is measured', () => {
+		expect(resolveChartHeight(0, undefined, '16/9', 0)).toBe(0)
 	})
 })
 

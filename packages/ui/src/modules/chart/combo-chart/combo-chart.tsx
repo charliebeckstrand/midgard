@@ -62,6 +62,7 @@ export function ComboChart<T>({
 	size,
 	width,
 	height,
+	aspectRatio,
 	axes = true,
 	gridLines = true,
 	legend,
@@ -75,7 +76,7 @@ export function ComboChart<T>({
 	...label
 }: ComboChartProps<T>) {
 	const chart = useChartCartesian(
-		{ data, x, series, size, width, height, axes, legend, min, max, formatValue },
+		{ data, x, series, size, width, height, aspectRatio, axes, legend, min, max, formatValue },
 		{
 			zeroBaseline: true,
 			swatch: (_, index) => (series[index]?.type === 'line' ? 'line' : 'rect'),

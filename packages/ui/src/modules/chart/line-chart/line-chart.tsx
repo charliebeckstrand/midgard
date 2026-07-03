@@ -58,6 +58,7 @@ export function LineChart<T>({
 	size,
 	width,
 	height,
+	aspectRatio,
 	axes = true,
 	gridLines = true,
 	legend,
@@ -72,7 +73,7 @@ export function LineChart<T>({
 	...label
 }: LineChartProps<T>) {
 	const chart = useChartCartesian(
-		{ data, x, series, size, width, height, axes, legend, min, max, formatValue },
+		{ data, x, series, size, width, height, aspectRatio, axes, legend, min, max, formatValue },
 		{ zeroBaseline: false, swatch: () => 'line' },
 	)
 

@@ -15,6 +15,47 @@ import {
 } from './chart-constants'
 import type { BandScale } from './chart-scale'
 
+/**
+ * A chart's aspect ratio: a `width / height` number, a `"16/9"` string, or
+ * `false` to leave the frame free-form (its explicit or density height).
+ */
+export type ChartAspectRatio = number | `${number}/${number}` | false
+
+/** Parses a {@link ChartAspectRatio} to its numeric `width / height`, or `null` when free-form. @internal */
+function ratioValue(ratio: ChartAspectRatio): number | null {
+	if (ratio === false) return null
+
+	if (typeof ratio === 'number') return ratio > 0 ? ratio : null
+
+	const [w, h] = ratio.split('/').map(Number)
+
+	return w && h && h > 0 ? w / h : null
+}
+
+/**
+ * Resolves a chart frame's drawing height. An explicit `height` always wins
+ * (a fixed pixel height); otherwise a live `aspectRatio` derives the height
+ * from the measured `width`; with `aspectRatio` off, the chart is free-form
+ * and fills its container's measured height. Density never sets a height, so
+ * it can't conflict with the ratio.
+ *
+ * @internal
+ */
+export function resolveChartHeight(
+	width: number,
+	height: number | undefined,
+	aspectRatio: ChartAspectRatio,
+	containerHeight: number,
+): number {
+	if (height !== undefined) return height
+
+	const ratio = ratioValue(aspectRatio)
+
+	if (ratio === null) return containerHeight
+
+	return width > 0 ? Math.round(width / ratio) : 0
+}
+
 /** The plot rectangle inside a chart frame, in `viewBox` user units. @internal */
 export type PlotRect = {
 	x: number

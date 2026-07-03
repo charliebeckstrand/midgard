@@ -9,6 +9,7 @@ import {
 	type ChartAnchor,
 	type PlotRect,
 	plotRect,
+	resolveChartHeight,
 	thinnedTicks,
 } from './chart-layout'
 import type { ChartLegendItem } from './chart-legend'
@@ -88,15 +89,27 @@ export function useChartCartesian<T>(
 	props: CartesianData<T>,
 	config: CartesianConfig<T>,
 ): CartesianChart {
-	const { data, x, series, size, width, height, axes = true, legend, min, max } = props
+	const {
+		data,
+		x,
+		series,
+		size,
+		width,
+		height,
+		aspectRatio = '16/9',
+		axes = true,
+		legend,
+		min,
+		max,
+	} = props
 
 	const resolvedSize = useResolvedSize(size)
 
 	const metrics = CHART_METRICS[resolvedSize as Step] ?? CHART_METRICS.md
 
-	const { ref, width: frameWidth } = useChartPlot(width)
+	const { ref, width: frameWidth, height: containerHeight } = useChartPlot(width)
 
-	const frameHeight = height ?? metrics.height
+	const frameHeight = resolveChartHeight(frameWidth, height, aspectRatio, containerHeight)
 
 	const format = props.formatValue ?? formatChartValue
 

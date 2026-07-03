@@ -1,6 +1,7 @@
 import type { Step } from '../../recipes'
 import type { ChartSeriesColor } from '../../recipes/kata/chart'
 import type { AccessibleName } from '../../types'
+import type { ChartAspectRatio } from './chart-layout'
 
 /** A key of `T` naming the field a chart reads from each datum. */
 export type DataKey<T> = keyof T & string
@@ -85,8 +86,15 @@ export type CartesianChartProps<T> = AccessibleName & {
 	 * it; pass a width for a fixed frame (and for deterministic SSR output).
 	 */
 	width?: number
-	/** Frame height in px; overrides the density default. */
+	/** Frame height in px; wins over `aspectRatio` when set (a free-form fixed height). */
 	height?: number
+	/**
+	 * Height as a ratio of the width — a `width / height` number, a `"16/9"`
+	 * string, or `false` to fall back to the density height. Ignored when an
+	 * explicit `height` is given.
+	 * @defaultValue '16/9'
+	 */
+	aspectRatio?: ChartAspectRatio
 	/**
 	 * Draw the x and y axes.
 	 * @defaultValue true
