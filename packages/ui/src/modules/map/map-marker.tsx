@@ -10,6 +10,7 @@ import {
 	MARKER_END_POP,
 	PIN_POP,
 	PIN_RADIUS,
+	POINT_HIT_RADIUS,
 	ROUTE_HIT_WIDTH,
 	ROUTE_STROKE_WIDTH,
 } from './map-constants'
@@ -137,7 +138,7 @@ export function MapMarker({ label, start, end, path, color, detail }: MapMarkerP
 					data-slot="map-marker-start-hit"
 					cx={from.x}
 					cy={from.y}
-					r={ROUTE_HIT_WIDTH}
+					r={POINT_HIT_RADIUS}
 					fill="transparent"
 					onPointerEnter={track}
 					onPointerMove={track}
@@ -149,7 +150,7 @@ export function MapMarker({ label, start, end, path, color, detail }: MapMarkerP
 					data-slot="map-marker-end-hit"
 					cx={to.x}
 					cy={to.y}
-					r={ROUTE_HIT_WIDTH}
+					r={POINT_HIT_RADIUS}
 					fill="transparent"
 					onPointerEnter={track}
 					onPointerMove={track}

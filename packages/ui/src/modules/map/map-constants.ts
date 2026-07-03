@@ -21,14 +21,14 @@ export const REGION_PATH_DIGITS = 1
 /** Route polyline stroke width — a step over the chart line, to hold over busy region fills. @internal */
 export const ROUTE_STROKE_WIDTH = 2.5
 
-/** Invisible hit-stroke width over a route, so the thin line is aimable. @internal */
-export const ROUTE_HIT_WIDTH = 12
+/** Invisible hit-stroke width over a route — a finger-wide band so the thin line stays aimable on touch. @internal */
+export const ROUTE_HIT_WIDTH = 24
 
 /** Point-marker radius (≥ 5.5 so the dot stays legible). @internal */
 export const POINT_RADIUS = 5.5
 
-/** Invisible hit-circle radius over a point marker. @internal */
-export const POINT_HIT_RADIUS = 12
+/** Invisible hit-circle radius over a point (and a marker pin) — a ~44px finger target. @internal */
+export const POINT_HIT_RADIUS = 22
 
 /** A marker pin's radius — larger than a point, it anchors a route's ends. @internal */
 export const PIN_RADIUS = 5.5
