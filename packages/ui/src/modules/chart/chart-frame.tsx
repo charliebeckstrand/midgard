@@ -12,7 +12,10 @@ import type { ChartReadout } from './types'
 
 /** Props for {@link ChartFrame}; the accessible name spreads onto the `role="img"` plot region. @internal */
 export type ChartFrameProps = AccessibleName & {
-	/** Wrapper ref from `useChartPlot`, attached for container measurement. */
+	/**
+	 * Measuring ref from `useChartPlot`, attached to the plot region — the box
+	 * the drawing actually fills, so a side legend never inflates the width.
+	 */
 	ref: RefObject<HTMLDivElement | null>
 	/** Resolved drawing width; `0` renders the frame shell without the SVG. */
 	width: number
@@ -29,6 +32,12 @@ export type ChartFrameProps = AccessibleName & {
 	plot: PlotRect
 	/** The prepared legend row, or `null` to omit it (single series). */
 	legend: ReactNode
+	/**
+	 * Where the legend sits: the centered row above the plot, or a static panel
+	 * beside it — side by side from `lg`, stacked with the chart below it.
+	 * @defaultValue 'top'
+	 */
+	legendPlacement?: 'top' | 'left' | 'right'
 	/** The values behind the marks, or `null` when there is nothing to read. */
 	readout: ChartReadout | null
 	/** Mount the hover tooltip. */
@@ -57,6 +66,7 @@ export function ChartFrame({
 	reserveAspect,
 	plot,
 	legend,
+	legendPlacement = 'top',
 	readout,
 	tooltip,
 	className,
@@ -85,31 +95,54 @@ export function ChartFrame({
 		</svg>
 	)
 
-	return (
+	const plotRegion = (
 		<div
 			ref={ref}
+			data-slot="chart-plot"
+			role="img"
+			{...label}
+			className={cn('relative', legendPlacement !== 'top' && 'min-w-0 flex-1')}
+		>
+			{/* AspectRatio reserves the box height from its own width — steady
+			    before the width is measured and across animation replays — while
+			    an explicit height sets a fixed box. The tooltip sits outside so
+			    the aspect box's clip never touches it. */}
+			{reserveAspect === null ? (
+				<div style={{ height }}>{svg}</div>
+			) : (
+				<AspectRatio ratio={reserveAspect}>{svg}</AspectRatio>
+			)}
+
+			{overlay}
+
+			{tooltip && readout && width > 0 && <ChartTooltip plot={plot} readout={readout} />}
+		</div>
+	)
+
+	return (
+		<div
 			data-slot="chart"
 			className={cn('block', fixedWidth === undefined && 'w-full', className)}
 			style={fixedWidth === undefined ? undefined : { width: fixedWidth }}
 		>
 			<ChartHoverContext value={hover}>
-				{legend}
+				{legendPlacement === 'top' ? (
+					<>
+						{legend}
 
-				<div data-slot="chart-plot" role="img" {...label} className="relative">
-					{/* AspectRatio reserves the box height from its own width — steady
-					    before the width is measured and across animation replays — while
-					    an explicit height sets a fixed box. The tooltip sits outside so
-					    the aspect box's clip never touches it. */}
-					{reserveAspect === null ? (
-						<div style={{ height }}>{svg}</div>
-					) : (
-						<AspectRatio ratio={reserveAspect}>{svg}</AspectRatio>
-					)}
+						{plotRegion}
+					</>
+				) : (
+					// The panel and plot sit side by side from lg and stack below it,
+					// the panel keeping its DOM side: left stacks above, right below.
+					<div className="flex flex-col gap-4 lg:flex-row lg:items-center">
+						{legendPlacement === 'left' && legend}
 
-					{overlay}
+						{plotRegion}
 
-					{tooltip && readout && width > 0 && <ChartTooltip plot={plot} readout={readout} />}
-				</div>
+						{legendPlacement === 'right' && legend}
+					</div>
+				)}
 			</ChartHoverContext>
 
 			{readout && <ChartTable readout={readout} />}

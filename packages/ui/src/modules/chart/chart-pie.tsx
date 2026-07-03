@@ -9,7 +9,7 @@ import { formatPercent } from '../../utilities'
 import { MARK_GAP, SLICE_FADE, SLICE_SWEEP, TICK_CHAR_WIDTH } from './chart-constants'
 import { ChartFrame } from './chart-frame'
 import { type ChartAspectRatio, resolveChartSizing } from './chart-layout'
-import { ChartLegend } from './chart-legend'
+import { ChartLegend, type ChartLegendItem } from './chart-legend'
 import { ChartMarksLayer } from './chart-marks-layer'
 import { formatChartValue, type SeriesPaint, seriesValues } from './chart-series'
 import { useChartHover } from './context'
@@ -54,9 +54,14 @@ export type PieBaseProps<T> = AccessibleName & {
 	aspectRatio?: ChartAspectRatio
 	/**
 	 * Show the legend. Defaults to on for two or more slices — the identity
-	 * channel colour alone must never carry.
+	 * channel colour alone must never carry. `'left'` or `'right'` sets it
+	 * beside the plot as a static label panel instead of the centered row:
+	 * entries gain the slice's live share, lay out in a responsive grid, and
+	 * stack with the chart below `lg`. The panel keeps the row legend's full
+	 * interactivity — hovering dims the other slices, clicking toggles, and
+	 * the arrow keys rove.
 	 */
-	legend?: boolean
+	legend?: boolean | 'left' | 'right'
 	/**
 	 * Show the hover tooltip naming the pointed slice.
 	 * @defaultValue true
@@ -368,6 +373,62 @@ function buildCallouts(
 	})
 }
 
+/** The values behind the slices for the tooltip and table; `null` with no rows. @internal */
+function pieReadout(
+	labels: string[],
+	paints: SeriesPaint[],
+	valueLabel: string,
+	values: (number | null)[],
+	format: (value: number) => string,
+): ChartReadout | null {
+	if (labels.length === 0) return null
+
+	return {
+		categories: labels,
+		rows: [
+			{
+				label: valueLabel,
+				swatchClass: '',
+				swatchClasses: paints.map((paint) => cn(paint.bg)),
+				swatch: 'rect',
+				values: values.map((entry) => (entry === null ? '—' : format(entry))),
+			},
+		],
+	}
+}
+
+/**
+ * The legend entries, one per row of data. A side panel's entries also carry
+ * the slice's live share — re-shared over the surviving whole as slices
+ * toggle, an em-dash while a slice is off or takes no slice.
+ *
+ * @internal
+ */
+function pieLegendItems(
+	labels: string[],
+	paints: SeriesPaint[],
+	sliceValues: (number | null)[],
+	panel: boolean,
+): ChartLegendItem[] {
+	const total = sliceValues.reduce<number>(
+		(sum, entry) => sum + (entry != null && entry > 0 ? entry : 0),
+		0,
+	)
+
+	return labels.map((entry, index) => {
+		const value = sliceValues[index]
+
+		const share = value != null && value > 0 && total > 0 ? formatPercent(value / total) : '—'
+
+		return {
+			label: entry,
+			swatchClass: paints[index]?.bg.join(' ') ?? '',
+			swatch: 'rect' as const,
+			detail: panel ? share : undefined,
+		}
+	})
+}
+
 /** Props for {@link PieCallouts}. @internal */
 type PieCalloutsProps = {
 	items: CalloutLabel[]
@@ -502,30 +563,12 @@ export function ChartPie<T>({
 	const calloutItems =
 		callouts && radius > 0 ? buildCallouts(text, slices, center, radius, frameHeight) : []
 
-	const readout: ChartReadout | null =
-		data.length > 0
-			? {
-					categories: labels,
-					rows: [
-						{
-							label: String(value),
-							swatchClass: '',
-							swatchClasses: paints.map((paint) => cn(paint.bg)),
-							swatch: 'rect',
-							values: values.map((entry) => (entry === null ? '—' : format(entry))),
-						},
-					],
-				}
-			: null
+	const readout = pieReadout(labels, paints, String(value), values, format)
+
+	const panel = typeof legend === 'string' ? legend : null
 
 	const legendItems =
-		(legend ?? data.length > 1)
-			? labels.map((entry, index) => ({
-					label: entry,
-					swatchClass: paints[index]?.bg.join(' ') ?? '',
-					swatch: 'rect' as const,
-				}))
-			: null
+		(legend ?? data.length > 1) ? pieLegendItems(labels, paints, sliceValues, panel !== null) : null
 
 	const labelItems = segmentLabelItems({
 		kind: segmentLabels === true ? 'percent' : segmentLabels,
@@ -576,9 +619,16 @@ export function ChartPie<T>({
 			plot={{ x: 0, y: 0, width: frameWidth, height: frameHeight }}
 			legend={
 				legendItems && (
-					<ChartLegend items={legendItems} hidden={hidden} onToggle={toggle} onFocus={setFocus} />
+					<ChartLegend
+						items={legendItems}
+						hidden={hidden}
+						onToggle={toggle}
+						onFocus={setFocus}
+						grid={panel !== null}
+					/>
 				)
 			}
+			legendPlacement={panel ?? 'top'}
 			readout={readout}
 			tooltip={tooltip}
 			className={className}

@@ -159,6 +159,45 @@ describe('PieChart', () => {
 		)
 	})
 
+	it('sets the legend beside the plot as a share panel with legend="right"', () => {
+		const { container } = renderUI(chart({ legend: 'right' }))
+
+		// Panel entries carry each slice's live share after the name.
+		expect(allBySlot(container, 'chart-legend-item').map((el) => el.textContent)).toEqual([
+			'Search60%',
+			'Direct25%',
+			'Referral15%',
+		])
+
+		const panel = bySlot(container, 'chart-legend')
+
+		expect(panel?.className).toContain('grid')
+
+		// Right panel follows the plot; a left one precedes it.
+		const plot = bySlot(container, 'chart-plot') as Element
+
+		expect(plot.compareDocumentPosition(panel as Element) & 4).toBeTruthy()
+
+		const left = renderUI(chart({ legend: 'left' }))
+
+		const leftPlot = bySlot(left.container, 'chart-plot') as Element
+
+		expect(
+			(bySlot(left.container, 'chart-legend') as Element).compareDocumentPosition(leftPlot) & 4,
+		).toBeTruthy()
+	})
+
+	it('re-shares the panel details as slices toggle', () => {
+		const { container } = renderUI(chart({ legend: 'right' }))
+
+		fireEvent.click(allBySlot(container, 'chart-legend-item')[0] as HTMLButtonElement)
+
+		const texts = allBySlot(container, 'chart-legend-item').map((el) => el.textContent)
+
+		// Search is off — em-dash; the survivors re-share the whole: 25/40, 15/40.
+		expect(texts).toEqual(['Search—', 'Direct63%', 'Referral38%'])
+	})
+
 	it('re-shares the sweep when a legend entry toggles a slice off', () => {
 		const { container } = renderUI(chart({ segmentLabels: true }))
 

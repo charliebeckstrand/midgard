@@ -266,6 +266,21 @@ export const dataDisplayCases: readonly Case[] = [
 		/>,
 	],
 	[
+		// The interactive side panel: a toolbar of toggle buttons with live
+		// shares, beside the role="img" plot.
+		'pie chart with side panel',
+		<PieChart
+			key="pp"
+			aria-label="Revenue share by quarter"
+			data={chartRows}
+			value="revenue"
+			label="quarter"
+			width={240}
+			height={160}
+			legend="right"
+		/>,
+	],
+	[
 		// Ring variant of the pie: same role="img" plot and hidden table, with a
 		// total named in the hole.
 		'donut chart',

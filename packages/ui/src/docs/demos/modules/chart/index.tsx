@@ -318,6 +318,18 @@ export function Demo() {
 								</Container>
 							</Example>
 
+							<Example title="Side label panel" code={code`<PieChart legend="right" … />`}>
+								<Container>
+									<PieChart
+										aria-label="Traffic by source"
+										data={sources}
+										value="visits"
+										label="source"
+										legend="right"
+									/>
+								</Container>
+							</Example>
+
 							<Example title="Callout labels" code={code`<PieChart callouts … />`}>
 								<Container>
 									<PieChart
