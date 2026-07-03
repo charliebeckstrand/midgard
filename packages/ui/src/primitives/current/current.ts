@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { type RefObject, useMemo } from 'react'
 import { createContext } from '../../core'
 import { useControllable } from '../../hooks'
 
@@ -57,6 +57,20 @@ export const [CurrentFadeContext, useCurrentFade] = createContext<boolean>('Curr
 })
 
 /**
+ * Post-mount latch broadcast by a fading `CurrentContents`: a ref that flips
+ * true once the container commits its initial render. A panel mounting later —
+ * a `lazy` first visit or a fresh `active` mount — reads it to enter from
+ * transparent, while panels present in the container's first render skip the
+ * entrance so nothing fades on load. A ref rather than state so the flip
+ * re-renders nothing. `undefined` outside a fading container.
+ *
+ * @internal
+ */
+export const [CurrentSettledContext, useCurrentSettled] = createContext<
+	RefObject<boolean> | undefined
+>('CurrentSettled', { default: undefined })
+
+/**
  * Whether the nearest enclosing {@link CurrentContent} is the active panel,
  * folded across nesting: a panel is active only when it matches its context and
  * every ancestor panel does too. Descendants read this to know they are on the
@@ -78,7 +92,8 @@ export const [CurrentPanelActiveContext, useCurrentPanelActive] = createContext<
  * - `lazy` — a panel is absent until it first becomes active, then held like
  *   `always`; defers the mount cost of never-visited panels.
  * - `active` — only the active panel is mounted; switching unmounts the outgoing
- *   panel and resets its state.
+ *   panel and resets its state — under a fading container, once its fade-out
+ *   completes.
  */
 export type CurrentMount = 'always' | 'lazy' | 'active'
 

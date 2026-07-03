@@ -1,11 +1,15 @@
-import { createElement, forwardRef, type ReactNode } from 'react'
+import { createElement, forwardRef, type ReactNode, useEffect, useRef } from 'react'
 import { vi } from 'vitest'
 
 /**
  * `motion/react` mock applied globally via `setup/module-mocks.ts`.
  *
  * Replaces every animated wrapper with a plain HTML element (no animation
- * runtime required in jsdom).
+ * runtime required in jsdom). Animations are modelled as instant: when a
+ * component's `animate` target changes, `onAnimationComplete` fires on the
+ * next commit, so lifecycle gated on completion (e.g. the current primitive's
+ * deferred exit unmount) proceeds deterministically. Mount does not fire,
+ * mirroring the library under `initial={false}`.
  */
 
 const MOTION_PROPS = new Set([
@@ -58,9 +62,27 @@ const handler: ProxyHandler<object> = {
 		let component = components.get(tag)
 
 		if (!component) {
-			component = forwardRef<unknown, Record<string, unknown>>((props, ref) =>
-				createElement(tag, { ref, ...stripMotionProps(props) }),
-			)
+			component = forwardRef<unknown, Record<string, unknown>>((props, ref) => {
+				const onAnimationComplete = props.onAnimationComplete as
+					| ((definition: unknown) => void)
+					| undefined
+
+				// Serialized so target identity changes across renders don't count
+				// as animations; only a genuinely different target completes.
+				const target = JSON.stringify(props.animate)
+
+				const previousTarget = useRef(target)
+
+				useEffect(() => {
+					if (previousTarget.current === target) return
+
+					previousTarget.current = target
+
+					onAnimationComplete?.(props.animate)
+				})
+
+				return createElement(tag, { ref, ...stripMotionProps(props) })
+			})
 
 			component.displayName = `motion.${tag}`
 

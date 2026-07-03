@@ -1,11 +1,17 @@
 'use client'
 
 import { motion } from 'motion/react'
-import { type ComponentPropsWithoutRef, useRef } from 'react'
+import { type ComponentPropsWithoutRef, useEffect, useRef } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/current'
 import { ReducedMotion } from '../reduced-motion'
-import { CurrentFadeContext, type CurrentMount, CurrentMountContext, resolveMount } from './current'
+import {
+	CurrentFadeContext,
+	type CurrentMount,
+	CurrentMountContext,
+	CurrentSettledContext,
+	resolveMount,
+} from './current'
 import { useCurrentContentsMorph } from './use-current-contents-morph'
 
 export type CurrentContentsProps = ComponentPropsWithoutRef<'div'> & {
@@ -30,6 +36,11 @@ export type CurrentContentsProps = ComponentPropsWithoutRef<'div'> & {
 	 * `mount="lazy"`/`"always"` still hold panels via the opacity cross-fade
 	 * instead, since `Activity`'s `display: none` can't animate.
 	 *
+	 * Under `fade`, mount and unmount ride the cross-fade rather than defeating
+	 * it: a panel mounting after the container's initial render (a `lazy` first
+	 * visit or a fresh `active` mount) enters from transparent, and an `active`
+	 * outgoing panel stays mounted until its fade-out completes, then unmounts.
+	 *
 	 * @see {@link CurrentMount}
 	 */
 	mount?: CurrentMount
@@ -43,7 +54,9 @@ export type CurrentContentsProps = ComponentPropsWithoutRef<'div'> & {
  * It also signals its `CurrentContent` children to fade in place. When `fade`
  * is false, renders a plain wrapper. Either way it broadcasts the resolved
  * {@link CurrentMount} policy so `CurrentContent` knows whether to keep,
- * lazily mount, or unmount unmatched children.
+ * lazily mount, or unmount unmatched children; a fading container also
+ * broadcasts its post-mount latch so late-mounting panels enter from
+ * transparent.
  */
 export function CurrentContents({
 	slotPrefix,
@@ -59,34 +72,49 @@ export function CurrentContents({
 
 	const resolvedMount = resolveMount(fade, mount)
 
+	// Post-mount latch for entrance choreography: panels in this first commit
+	// read false and skip their entrance; panels mounting on a later value
+	// change read true and fade in from transparent.
+	const settledRef = useRef(false)
+
+	useEffect(() => {
+		settledRef.current = true
+	}, [])
+
 	if (!fade) {
 		return (
-			<CurrentMountContext value={resolvedMount}>
-				<div data-slot={`${slotPrefix}-contents`} className={className} {...props}>
-					{children}
-				</div>
-			</CurrentMountContext>
+			// Re-scope the fade signal off, so panels of a non-fading container
+			// nested inside a fading one render the plain branch.
+			<CurrentFadeContext value={false}>
+				<CurrentMountContext value={resolvedMount}>
+					<div data-slot={`${slotPrefix}-contents`} className={className} {...props}>
+						{children}
+					</div>
+				</CurrentMountContext>
+			</CurrentFadeContext>
 		)
 	}
 
 	return (
 		<CurrentFadeContext value>
 			<CurrentMountContext value={resolvedMount}>
-				<ReducedMotion>
-					{/* At rest the height target is `auto`, so completed and cancelled
-					    morphs alike settle the box back into layout's hands. */}
-					<motion.div
-						ref={containerRef}
-						data-slot={`${slotPrefix}-contents`}
-						animate={{ height: morphTo ?? 'auto' }}
-						initial={false}
-						transition={k.transition}
-						onAnimationComplete={morphTo === null ? undefined : release}
-						className={cn('relative overflow-hidden', className)}
-					>
-						{children}
-					</motion.div>
-				</ReducedMotion>
+				<CurrentSettledContext value={settledRef}>
+					<ReducedMotion>
+						{/* At rest the height target is `auto`, so completed and cancelled
+						    morphs alike settle the box back into layout's hands. */}
+						<motion.div
+							ref={containerRef}
+							data-slot={`${slotPrefix}-contents`}
+							animate={{ height: morphTo ?? 'auto' }}
+							initial={false}
+							transition={k.transition}
+							onAnimationComplete={morphTo === null ? undefined : release}
+							className={cn('relative overflow-hidden', className)}
+						>
+							{children}
+						</motion.div>
+					</ReducedMotion>
+				</CurrentSettledContext>
 			</CurrentMountContext>
 		</CurrentFadeContext>
 	)
