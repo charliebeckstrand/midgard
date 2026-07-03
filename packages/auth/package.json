@@ -31,6 +31,7 @@
 		"dev": "tsup --watch",
 		"check-types": "tsc --noEmit",
 		"test": "node --test",
+		"test:changed": "node --test",
 		"lint": "biome check --config-path=../.. .",
 		"lint:fix": "biome check --config-path=../.. --write .",
 		"format": "biome format --config-path=../.. --write ."

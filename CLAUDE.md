@@ -26,7 +26,7 @@
 
 3.3 For research spanning sources or subsystems, delegate to subagents — one task each.
 
-3.4 Prove it works; flag anything unverified. Verify with `biome check .`, `turbo run check-types`, and scoped Vitest (`test:related` / `test:changed`); Lefthook runs scoped checks pre-commit and the full gate pre-push; CI gates merges.
+3.4 Prove it works; flag anything unverified. Verify with `biome check .`, `turbo run check-types`, and scoped Vitest (`test:related` / `test:changed`); Lefthook runs scoped checks pre-commit and the branch-scoped gate pre-push; CI runs the full gate and gates merges.
 
 3.5 Touching a public `ui` export updates its TSDoc and the matching `packages/ui/docs/*` surface index in the same change ([CONVENTIONS.md](CONVENTIONS.md) §12).
 
@@ -39,6 +39,8 @@
 4.1 For rules and configuration, see: [commitlint.config.mjs](commitlint.config.mjs)
 
 4.2 For branching, commit, and pull-request workflow guidance, see the [`git-workflow`](.claude/skills/git-workflow/SKILL.md) skill.
+
+4.3 A wide diff can push the pre-push gate past a two-minute command timeout; run `git push` with a ten-minute timeout — never bypass hooks to beat one.
 
 ---
 

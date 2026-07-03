@@ -13,8 +13,10 @@ pre-push:
   jobs:
     - name: biome check
       run: pnpm biome check .
-    - name: affected gate
-      run: pnpm turbo run check-types test --affected
+    # test:changed scopes Vitest to the merge-base diff, so this gate's cost
+    # tracks the push, not the suite; CI runs the full gate and gates merges.
+    - name: branch gate
+      run: pnpm turbo run check-types test:changed --affected
     - name: knip
       run: pnpm turbo run knip
 
