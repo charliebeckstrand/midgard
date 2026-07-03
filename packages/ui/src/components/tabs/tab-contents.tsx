@@ -3,7 +3,7 @@
 import { type ComponentPropsWithoutRef, useEffect, useRef } from 'react'
 import { cn } from '../../core'
 import { useA11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
-import { CurrentContent, CurrentContents } from '../../primitives/current'
+import { CurrentContent, CurrentContents, resolveMount } from '../../primitives/current'
 import { k } from '../../recipes/kata/tabs'
 import { useTabsContext } from './context'
 import { useTabPanelTabIndex } from './use-tab-panel-tab-index'
@@ -14,28 +14,38 @@ export type TabContentsProps = Omit<ComponentPropsWithoutRef<typeof CurrentConte
 export type TabContentProps = Omit<ComponentPropsWithoutRef<typeof CurrentContent>, 'slotPrefix'>
 
 /**
- * Container that swaps `<TabContent>` panels by active value. In `fade` mode
- * (the default) inactive panels stay mounted and the container registers that
- * with the Tabs context so every tab keeps its `aria-controls`; otherwise
- * inactive panels unmount.
+ * Container that swaps `<TabContent>` panels by active value. Its `mount` policy
+ * — resolved from `fade` when unset — decides whether inactive panels stay
+ * mounted, mount lazily on first activation, or unmount. While every inactive
+ * panel is guaranteed mounted (`mount="always"`), the container registers that
+ * with the Tabs context so every tab keeps its `aria-controls`.
  *
  * @remarks
- * `fade` defaults to `true`; set `fade={false}` to unmount inactive panels.
+ * `fade` (default `true`) implies `mount="always"`; `fade={false}` implies
+ * `mount="active"` (unmount), preserving pre-`mount` behavior. Set `mount`
+ * explicitly to decouple the axes: `mount="lazy"` defers never-visited panels,
+ * and `mount="always"` with `fade={false}` holds inactive panels via
+ * `<Activity mode="hidden">` — mounted with state preserved but effects paused —
+ * instead of the opacity cross-fade.
  */
-export function TabContents({ fade = true, ...props }: TabContentsProps) {
+export function TabContents({ fade = true, mount, ...props }: TabContentsProps) {
 	const tabsContext = useTabsContext()
 
 	const registerMountedPanels = tabsContext?.registerMountedPanels
 
-	// Fade mode keeps inactive panels mounted; registers that with the Tabs
-	// context.
+	// `aria-controls` on an inactive tab only resolves when its panel is in the
+	// DOM, which is guaranteed only when every inactive panel is held — mount
+	// `always`. Register that with the Tabs context; `lazy`/`active` leave an
+	// inactive tab without the reference until (or unless) its panel mounts.
+	const allMounted = resolveMount(fade, mount) === 'always'
+
 	useEffect(() => {
-		if (!fade) return
+		if (!allMounted) return
 
 		return registerMountedPanels?.()
-	}, [fade, registerMountedPanels])
+	}, [allMounted, registerMountedPanels])
 
-	return <CurrentContents slotPrefix="tab" fade={fade} {...props} />
+	return <CurrentContents slotPrefix="tab" fade={fade} mount={mount} {...props} />
 }
 
 /**

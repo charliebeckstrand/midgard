@@ -1,13 +1,14 @@
 'use client'
 
 import { type HTMLMotionProps, motion } from 'motion/react'
-import type { ComponentPropsWithoutRef, Ref } from 'react'
+import { Activity, type ComponentPropsWithoutRef, type Ref, useRef } from 'react'
 import { dataAttr } from '../../core'
 import { k } from '../../recipes/kata/current'
 import {
 	CurrentPanelActiveContext,
 	useCurrent,
 	useCurrentFade,
+	useCurrentMount,
 	useCurrentPanelActive,
 } from './current'
 
@@ -22,8 +23,11 @@ export type CurrentContentProps = ComponentPropsWithoutRef<'div'> & {
 
 /**
  * Per-panel wrapper that renders when its `value` matches the surrounding
- * `CurrentContext`. Inside a fading `CurrentContents`, animates opacity in
- * place; otherwise unmatched values are unmounted.
+ * `CurrentContext`. The surrounding `CurrentContents` sets the mount policy: a
+ * fading container animates opacity in place; a non-fading one holds inactive
+ * panels via `<Activity mode="hidden">` (state preserved, effects paused),
+ * lazily mounts them on first activation, or unmounts them, per its resolved
+ * `mount`.
  */
 export function CurrentContent({
 	slotPrefix,
@@ -38,6 +42,8 @@ export function CurrentContent({
 
 	const fade = useCurrentFade()
 
+	const mount = useCurrentMount()
+
 	const inheritedActive = useCurrentPanelActive()
 
 	const current = value === undefined || context?.value === undefined || context.value === value
@@ -47,10 +53,21 @@ export function CurrentContent({
 	// one still reads as inactive.
 	const active = inheritedActive && current
 
-	if (!fade) {
-		if (!current) return null
+	// Lazy latch: a panel that has ever been current stays mounted thereafter.
+	// Monotonic, so a re-run render is idempotent; becoming current is itself a
+	// re-render, so no commit is needed to flip it.
+	const hasBeenCurrent = useRef(false)
 
-		return (
+	if (current) hasBeenCurrent.current = true
+
+	// Lifecycle gate — which panels exist in the tree. `always` keeps all; `lazy`
+	// waits for first activation; `active` keeps only the current panel.
+	const present = mount === 'always' || current || (mount === 'lazy' && hasBeenCurrent.current)
+
+	if (!present) return null
+
+	if (!fade) {
+		const panel = (
 			<div
 				ref={ref}
 				data-slot={`${slotPrefix}-content`}
@@ -61,6 +78,14 @@ export function CurrentContent({
 				<CurrentPanelActiveContext value={active}>{children}</CurrentPanelActiveContext>
 			</div>
 		)
+
+		// `active` never holds an inactive panel, so it needs no Activity wrapper.
+		if (mount === 'active') return panel
+
+		// `always`/`lazy`: hold the panel in the DOM. `Activity` preserves its
+		// state while hidden but tears down effects and defers re-rendering —
+		// the "mounted but not fully rendered" path.
+		return <Activity mode={current ? 'visible' : 'hidden'}>{panel}</Activity>
 	}
 
 	return (

@@ -449,6 +449,65 @@ describe('TabContent (idiomatic)', () => {
 	})
 })
 
+describe('TabContents mount policy', () => {
+	function renderTabs(props: { fade?: boolean; mount?: 'always' | 'lazy' | 'active' }) {
+		return renderUI(
+			<Tabs defaultValue="a">
+				<TabList aria-label="Sections">
+					<Tab value="a">A</Tab>
+					<Tab value="b">B</Tab>
+				</TabList>
+				<TabContents fade={props.fade} mount={props.mount}>
+					<TabContent value="a">Panel A</TabContent>
+					<TabContent value="b">Panel B</TabContent>
+				</TabContents>
+			</Tabs>,
+		)
+	}
+
+	it('mount="active" unmounts inactive panels and drops their tab aria-controls', () => {
+		const { container } = renderTabs({ mount: 'active' })
+
+		expect(screen.getByText('Panel A')).toBeInTheDocument()
+
+		expect(screen.queryByText('Panel B')).not.toBeInTheDocument()
+
+		const inactive = container.querySelectorAll('[role="tab"]')[1] as HTMLElement
+
+		expect(inactive).not.toHaveAttribute('aria-controls')
+	})
+
+	it('mount="always" with fade=false keeps inactive panels mounted (hidden) and their tab aria-controls', () => {
+		const { container } = renderTabs({ mount: 'always', fade: false })
+
+		// Held via <Activity mode="hidden">: in the DOM, but not visible.
+		const panelB = screen.getByText('Panel B')
+
+		expect(panelB).toBeInTheDocument()
+
+		expect(panelB).not.toBeVisible()
+
+		// panelsMounted is registered, so the inactive tab still points at its panel.
+		const inactive = container.querySelectorAll('[role="tab"]')[1] as HTMLElement
+
+		const controls = inactive.getAttribute('aria-controls')
+
+		expect(controls).toBeTruthy()
+
+		expect(document.getElementById(controls as string)).not.toBeNull()
+	})
+
+	it('mount="lazy" leaves never-visited panels unmounted, without a tab aria-controls', () => {
+		const { container } = renderTabs({ mount: 'lazy' })
+
+		expect(screen.queryByText('Panel B')).not.toBeInTheDocument()
+
+		const inactive = container.querySelectorAll('[role="tab"]')[1] as HTMLElement
+
+		expect(inactive).not.toHaveAttribute('aria-controls')
+	})
+})
+
 describe('TabList variants', () => {
 	it('renders TabList with vertical orientation from Tabs', () => {
 		const { container } = renderUI(

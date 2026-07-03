@@ -1,14 +1,16 @@
 import { renderHook } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { useEffect, useState } from 'react'
+import { describe, expect, it, vi } from 'vitest'
 import {
 	CurrentContent,
 	CurrentContents,
 	CurrentContext,
+	type CurrentMount,
 	useCurrent,
 	useCurrentPanelActive,
 	useCurrentState,
 } from '../../primitives/current'
-import { renderUI, screen } from '../helpers'
+import { renderUI, screen, userEvent } from '../helpers'
 
 function ActiveProbe({ id }: { id: string }) {
 	return <span data-testid={id}>{String(useCurrentPanelActive())}</span>
@@ -131,6 +133,142 @@ describe('CurrentContents / CurrentContent', () => {
 		const hidden = screen.getByText('Content B')
 
 		expect(hidden).toHaveStyle({ minHeight: '80px', position: 'absolute' })
+	})
+})
+
+describe('CurrentContent mount policy', () => {
+	function Probe({ onSetup, onCleanup }: { onSetup?: () => void; onCleanup?: () => void }) {
+		useEffect(() => {
+			onSetup?.()
+
+			return () => onCleanup?.()
+		}, [onSetup, onCleanup])
+
+		return <input data-testid="b-input" defaultValue="" />
+	}
+
+	function Panels({
+		mount,
+		fade = false,
+		initial = 'a',
+		onSetup,
+		onCleanup,
+	}: {
+		mount?: CurrentMount
+		fade?: boolean
+		initial?: string
+		onSetup?: () => void
+		onCleanup?: () => void
+	}) {
+		const [value, setValue] = useState<string | undefined>(initial)
+
+		return (
+			<>
+				<button type="button" onClick={() => setValue('a')}>
+					go-a
+				</button>
+				<button type="button" onClick={() => setValue('b')}>
+					go-b
+				</button>
+				<CurrentContext value={{ value, onValueChange: setValue }}>
+					<CurrentContents slotPrefix="test" fade={fade} mount={mount}>
+						<CurrentContent slotPrefix="test" value="a">
+							Content A
+						</CurrentContent>
+						<CurrentContent slotPrefix="test" value="b">
+							<Probe onSetup={onSetup} onCleanup={onCleanup} />
+							Content B
+						</CurrentContent>
+					</CurrentContents>
+				</CurrentContext>
+			</>
+		)
+	}
+
+	it('mount="active" mounts only the active panel', () => {
+		renderUI(<Panels mount="active" />)
+
+		expect(screen.getByText('Content A')).toBeInTheDocument()
+
+		expect(screen.queryByText('Content B')).not.toBeInTheDocument()
+	})
+
+	it('mount="always" with fade=false holds inactive panels mounted but hidden via Activity', () => {
+		renderUI(<Panels mount="always" initial="a" />)
+
+		expect(screen.getByText('Content A')).toBeVisible()
+
+		// Activity mode="hidden" keeps the node in the DOM but not visible.
+		const hidden = screen.getByText('Content B')
+
+		expect(hidden).toBeInTheDocument()
+
+		expect(hidden).not.toBeVisible()
+	})
+
+	it('mount="always" preserves a hidden panel’s DOM state across switches', async () => {
+		const user = userEvent.setup()
+
+		renderUI(<Panels mount="always" initial="b" />)
+
+		await user.type(screen.getByTestId('b-input'), 'kept')
+
+		await user.click(screen.getByText('go-a'))
+
+		// B is hidden now, but still mounted, so its uncontrolled value survives.
+		expect((screen.getByTestId('b-input') as HTMLInputElement).value).toBe('kept')
+	})
+
+	it('mount="always" fade=false tears down a hidden panel’s effects, then remounts them', async () => {
+		const user = userEvent.setup()
+
+		const onSetup = vi.fn()
+
+		const onCleanup = vi.fn()
+
+		renderUI(<Panels mount="always" initial="b" onSetup={onSetup} onCleanup={onCleanup} />)
+
+		expect(onSetup).toHaveBeenCalledTimes(1)
+
+		expect(onCleanup).not.toHaveBeenCalled()
+
+		await user.click(screen.getByText('go-a'))
+
+		// Hiding the panel via Activity unmounts its effects while keeping the DOM.
+		expect(onCleanup).toHaveBeenCalledTimes(1)
+
+		expect(screen.getByTestId('b-input')).toBeInTheDocument()
+
+		await user.click(screen.getByText('go-b'))
+
+		// Showing it again re-runs the effect.
+		expect(onSetup).toHaveBeenCalledTimes(2)
+	})
+
+	it('mount="lazy" defers a panel until first activation, then holds it', async () => {
+		const user = userEvent.setup()
+
+		const onSetup = vi.fn()
+
+		renderUI(<Panels mount="lazy" initial="a" onSetup={onSetup} />)
+
+		// Never-visited panel B is absent, so its effect has not run.
+		expect(screen.queryByText('Content B')).not.toBeInTheDocument()
+
+		expect(onSetup).not.toHaveBeenCalled()
+
+		await user.click(screen.getByText('go-b'))
+
+		expect(screen.getByText('Content B')).toBeVisible()
+
+		expect(onSetup).toHaveBeenCalledTimes(1)
+
+		await user.click(screen.getByText('go-a'))
+
+		// Once visited, the panel stays mounted (hidden), unlike mount="active".
+		expect(screen.getByText('Content B')).toBeInTheDocument()
+
+		expect(screen.getByText('Content B')).not.toBeVisible()
 	})
 })
 

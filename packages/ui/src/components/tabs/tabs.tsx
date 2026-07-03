@@ -53,8 +53,8 @@ export function Tabs({
 
 	const baseId = useId()
 
-	// Tracks whether a fade-mode TabContents (inactive panels stay mounted)
-	// is rendered.
+	// Tracks whether an all-mounted TabContents (`mount="always"`, every inactive
+	// panel held in the DOM) is rendered, so inactive tabs can keep aria-controls.
 	const [panelsMounted, setPanelsMounted] = useState(false)
 
 	const registerMountedPanels = useCallback(() => {

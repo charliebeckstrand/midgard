@@ -69,3 +69,38 @@ export const [CurrentPanelActiveContext, useCurrentPanelActive] = createContext<
 	'CurrentPanelActive',
 	{ default: true },
 )
+
+/**
+ * Mount policy for {@link CurrentContent} panels:
+ *
+ * - `always` — every panel is mounted up front and inactive ones are held (state
+ *   preserved, effects paused).
+ * - `lazy` — a panel is absent until it first becomes active, then held like
+ *   `always`; defers the mount cost of never-visited panels.
+ * - `active` — only the active panel is mounted; switching unmounts the outgoing
+ *   panel and resets its state.
+ */
+export type CurrentMount = 'always' | 'lazy' | 'active'
+
+/**
+ * Resolves the effective {@link CurrentMount} for a {@link CurrentContents}: an
+ * explicit `mount` wins, otherwise it derives from `fade` so pre-`mount` call
+ * sites keep their behavior — a fading container held every panel mounted
+ * (`always`), an instant one mounted only the active panel (`active`).
+ *
+ * @internal
+ */
+export function resolveMount(fade: boolean, mount: CurrentMount | undefined): CurrentMount {
+	return mount ?? (fade ? 'always' : 'active')
+}
+
+/**
+ * Mount policy broadcast from {@link CurrentContents} to its {@link CurrentContent}
+ * children. Defaults to `always` outside a container, so an ungrouped panel is
+ * never unmounted.
+ *
+ * @internal
+ */
+export const [CurrentMountContext, useCurrentMount] = createContext<CurrentMount>('CurrentMount', {
+	default: 'always',
+})

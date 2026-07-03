@@ -1,6 +1,8 @@
 export {
 	CurrentContext,
 	type CurrentContextValue,
+	type CurrentMount,
+	resolveMount,
 	useCurrent,
 	useCurrentPanelActive,
 	useCurrentState,
