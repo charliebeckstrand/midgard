@@ -3,7 +3,7 @@
 import { motion } from 'motion/react'
 import { type PointerEvent, type ReactNode, useId } from 'react'
 import { cn } from '../../core'
-import { usePlotFrame } from '../../primitives/plot'
+import { usePlotFrame } from '../../hooks'
 import { k } from '../../recipes/kata/chart'
 import type { AccessibleName } from '../../types'
 import { formatPercent } from '../../utilities'

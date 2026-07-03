@@ -56,6 +56,7 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 | Hook | Summary |
 |---|---|
 | `useResizeObserver` | Observes size changes on `ref.current`, invoking `callback` per change plus once on attach. |
+| `usePlotFrame` | Resolves a chart/map frame's drawing box from a `FrameSizing` policy — fixed, aspect-derived, or container-filling — measuring only the axes the policy consumes. |
 | `useMediaQuery` | True when `query` matches the viewport; true during SSR. |
 | `useMinWidth` | True when the viewport is at least `px` wide; true during SSR. |
 | `useIsTruncated` | True when text overflows the element, measured via an off-screen mirror span (not `scrollWidth`). |
@@ -91,6 +92,13 @@ The a11y hooks export their option and return shapes for consumers that thread t
 | `A11yDisclosure` / `A11yDisclosureOptions` | Return shape / options of `useA11yDisclosure` (trigger/panel ids and prop bags). |
 | `A11yLiveRegionProps` / `A11yLiveRegionOptions` / `A11yLiveLevel` | Live-region props, options, and urgency (`'polite' \| 'assertive'`). |
 | `A11yAnnouncementsOptions` | Options for `useA11yAnnouncements` (`assertive`, `enabled`). |
+
+`usePlotFrame` and the `resolveFrameSizing` function it resolves through export their sizing policy and resolved box shape, shared with the chart and map modules' own frame-sizing helpers:
+
+| Type | Summary |
+|---|---|
+| `FrameSizing` | The frame's height policy: `fixed` (pixel height), `aspect` (ratio of width), or `fill` (container height). |
+| `ResolvedFrameSizing` | A resolved frame box: drawing height plus the ratio to reserve through CSS `aspect-ratio`, or `null`. |
 
 ---
 

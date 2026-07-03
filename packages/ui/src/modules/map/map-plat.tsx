@@ -3,7 +3,7 @@
 import { type ReactNode, type RefObject, useCallback, useMemo, useState } from 'react'
 import { AspectRatio } from '../../components/aspect-ratio'
 import { cn } from '../../core'
-import { usePlotFrame } from '../../primitives/plot'
+import { usePlotFrame } from '../../hooks'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { k, type MapSeriesColor } from '../../recipes/kata/map'
 import type { AccessibleName } from '../../types'
