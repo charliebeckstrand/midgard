@@ -306,7 +306,21 @@ export function Demo() {
 
 					<TabContent value="pie">
 						<Stack gap="xl">
-							<Example title="Segment labels" code={code`<PieChart segmentLabels … />`}>
+							<Example title="No labels" code={code`<PieChart … />`}>
+								<Container size="sm">
+									<PieChart
+										aria-label="Traffic by source"
+										data={sources}
+										value="visits"
+										label="source"
+									/>
+								</Container>
+							</Example>
+
+							<Example
+								title="Segment labels"
+								code={code`<PieChart segmentLabels legend={false} … />`}
+							>
 								<Container size="sm">
 									<PieChart
 										aria-label="Traffic by source"
@@ -314,18 +328,7 @@ export function Demo() {
 										value="visits"
 										label="source"
 										segmentLabels
-									/>
-								</Container>
-							</Example>
-
-							<Example title="Side label panel" code={code`<PieChart legend="right" … />`}>
-								<Container>
-									<PieChart
-										aria-label="Traffic by source"
-										data={sources}
-										value="visits"
-										label="source"
-										legend="right"
+										legend={false}
 									/>
 								</Container>
 							</Example>
@@ -338,6 +341,7 @@ export function Demo() {
 										value="visits"
 										label="source"
 										callouts
+										legend={false}
 									/>
 								</Container>
 							</Example>

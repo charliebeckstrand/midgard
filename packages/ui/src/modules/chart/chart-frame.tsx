@@ -126,7 +126,7 @@ export function ChartFrame({
 	return (
 		<div
 			data-slot="chart"
-			className={cn('flex flex-col gap-2', fixedWidth === undefined && 'w-full', className)}
+			className={cn('flex flex-col gap-3', fixedWidth === undefined && 'w-full', className)}
 			style={fixedWidth === undefined ? undefined : { width: fixedWidth }}
 		>
 			<ChartHoverContext value={hover}>
