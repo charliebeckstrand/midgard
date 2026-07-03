@@ -5,12 +5,11 @@ import type { Step } from '../../recipes'
 import type { ChartAxisTick } from './chart-axis'
 import { CHART_METRICS, PLOT_TOP_PAD, X_AXIS_HEIGHT } from './chart-constants'
 import {
-	aspectReservation,
 	bandAnchors,
 	type ChartAnchor,
 	type PlotRect,
 	plotRect,
-	resolveChartHeight,
+	resolveChartSizing,
 	thinnedTicks,
 } from './chart-layout'
 import type { ChartLegendItem } from './chart-legend'
@@ -118,9 +117,12 @@ export function useChartCartesian<T>(
 
 	const { ref, width: frameWidth, height: containerHeight } = useChartPlot(width)
 
-	const frameHeight = resolveChartHeight(frameWidth, height, aspectRatio, containerHeight)
-
-	const reserveAspect = aspectReservation(height, aspectRatio)
+	const { height: frameHeight, reserveAspect } = resolveChartSizing(
+		frameWidth,
+		height,
+		aspectRatio,
+		containerHeight,
+	)
 
 	const format = props.formatValue ?? formatChartValue
 

@@ -75,14 +75,6 @@ describe('PieChart', () => {
 		expect(table?.textContent).toContain('—')
 	})
 
-	it('renders donut center content over the hole', () => {
-		const { container } = renderUI(
-			chart({ donut: true, children: <span data-slot="center">Total</span> }),
-		)
-
-		expect(bySlot(container, 'center')?.textContent).toBe('Total')
-	})
-
 	it('still renders the slices under animate', () => {
 		const { container } = renderUI(chart({ animate: true }))
 

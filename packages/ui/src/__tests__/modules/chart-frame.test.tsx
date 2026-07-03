@@ -8,7 +8,7 @@ import {
 	X_AXIS_HEIGHT,
 } from '../../modules/chart/chart-constants'
 import { ChartFrame } from '../../modules/chart/chart-frame'
-import { bandAnchors, plotRect, resolveChartHeight } from '../../modules/chart/chart-layout'
+import { bandAnchors, plotRect, resolveChartSizing } from '../../modules/chart/chart-layout'
 import { ChartLegend } from '../../modules/chart/chart-legend'
 import { bandScale } from '../../modules/chart/chart-scale'
 import { bySlot, noop, renderUI } from '../helpers'
@@ -113,25 +113,34 @@ describe('plotRect', () => {
 	})
 })
 
-describe('resolveChartHeight', () => {
-	it('derives the height from the width and the aspect ratio', () => {
-		expect(resolveChartHeight(320, undefined, '16/9', 0)).toBe(180)
+describe('resolveChartSizing', () => {
+	it('derives the height from the width and reserves the same ratio', () => {
+		expect(resolveChartSizing(320, undefined, '16/9', 0)).toEqual({
+			height: 180,
+			reserveAspect: 16 / 9,
+		})
 
-		expect(resolveChartHeight(300, undefined, 1, 0)).toBe(300)
+		expect(resolveChartSizing(300, undefined, 1, 0)).toEqual({ height: 300, reserveAspect: 1 })
 
-		expect(resolveChartHeight(400, undefined, 2, 0)).toBe(200)
+		expect(resolveChartSizing(400, undefined, 2, 0)).toEqual({ height: 200, reserveAspect: 2 })
 	})
 
-	it('lets an explicit height win over the ratio', () => {
-		expect(resolveChartHeight(320, 240, '16/9', 0)).toBe(240)
+	it('lets an explicit height win with nothing to reserve', () => {
+		expect(resolveChartSizing(320, 240, '16/9', 0)).toEqual({ height: 240, reserveAspect: null })
 	})
 
-	it('fills the container height when the ratio is off', () => {
-		expect(resolveChartHeight(320, undefined, false, 275)).toBe(275)
+	it('fills the container height and reserves nothing when the ratio is off', () => {
+		expect(resolveChartSizing(320, undefined, false, 275)).toEqual({
+			height: 275,
+			reserveAspect: null,
+		})
 	})
 
-	it('yields no height until the width is measured', () => {
-		expect(resolveChartHeight(0, undefined, '16/9', 0)).toBe(0)
+	it('yields no height until the width is measured, still reserving the ratio', () => {
+		expect(resolveChartSizing(0, undefined, '16/9', 0)).toEqual({
+			height: 0,
+			reserveAspect: 16 / 9,
+		})
 	})
 })
 

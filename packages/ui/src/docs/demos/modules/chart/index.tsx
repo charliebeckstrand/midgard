@@ -5,7 +5,14 @@ import { Icon } from '../../../../components/icon'
 import { Stack } from '../../../../components/stack'
 import { Stat, StatLabel, StatValue } from '../../../../components/stat'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../../components/tabs'
-import { AreaChart, BarChart, ComboChart, LineChart, PieChart } from '../../../../modules/chart'
+import {
+	AreaChart,
+	BarChart,
+	ComboChart,
+	DonutChart,
+	LineChart,
+	PieChart,
+} from '../../../../modules/chart'
 import { code, Example } from '../../../engine'
 
 type Month = { month: string; revenue: number; costs: number; margin: number }
@@ -296,31 +303,29 @@ export function Demo() {
 								</Container>
 							</Example>
 
-							<Example title="Donut with center content" code={code`<PieChart donut>…</PieChart>`}>
+							<Example title="Donut with center content" code={code`<DonutChart>…</DonutChart>`}>
 								<Container size="sm">
-									<PieChart
+									<DonutChart
 										aria-label="Traffic by source"
 										data={sources}
 										value="visits"
 										label="source"
-										donut
 									>
 										<Stat>
 											<StatLabel>Total visits</StatLabel>
 											<StatValue>9,340</StatValue>
 										</Stat>
-									</PieChart>
+									</DonutChart>
 								</Container>
 							</Example>
 
-							<AnimatedExample title="Animated" source={code`<PieChart animate … />`}>
+							<AnimatedExample title="Animated" source={code`<DonutChart animate … />`}>
 								<Container size="sm">
-									<PieChart
+									<DonutChart
 										aria-label="Traffic by source, animated"
 										data={sources}
 										value="visits"
 										label="source"
-										donut
 										animate
 									/>
 								</Container>

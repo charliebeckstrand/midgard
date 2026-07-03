@@ -32,49 +32,44 @@ function ratioValue(ratio: ChartAspectRatio): number | null {
 	return w && h && h > 0 ? w / h : null
 }
 
+/** A resolved frame size: the drawing height, and the ratio to reserve it in CSS. @internal */
+export type ChartSizing = {
+	/** The frame's drawing height in px; `0` until the width is measured. */
+	height: number
+	/**
+	 * The `width / height` ratio the plot box reserves through CSS
+	 * `aspect-ratio`, or `null` when the height is a fixed pixel value (an
+	 * explicit `height`) or fills the container (`aspectRatio: false`).
+	 */
+	reserveAspect: number | null
+}
+
 /**
- * Resolves a chart frame's drawing height. An explicit `height` always wins
- * (a fixed pixel height); otherwise a live `aspectRatio` derives the height
- * from the measured `width`; with `aspectRatio` off, the chart is free-form
- * and fills its container's measured height. Density never sets a height, so
- * it can't conflict with the ratio.
+ * Resolves a chart frame's drawing size — both its height and how the plot box
+ * holds that height. An explicit `height` always wins as a fixed pixel box,
+ * with nothing to reserve. Otherwise a live `aspectRatio` derives the height
+ * from the measured `width` and reserves that same ratio through CSS: taking
+ * the height from the box's own width keeps it steady before the width is
+ * measured and across every animation replay, where a pixel height off the
+ * yet-unmeasured width would collapse to zero and jump. With `aspectRatio` off
+ * the frame is free-form and fills its container's measured height. Density
+ * never sets a height, so it can't conflict with the ratio.
  *
  * @internal
  */
-export function resolveChartHeight(
+export function resolveChartSizing(
 	width: number,
 	height: number | undefined,
 	aspectRatio: ChartAspectRatio,
 	containerHeight: number,
-): number {
-	if (height !== undefined) return height
+): ChartSizing {
+	if (height !== undefined) return { height, reserveAspect: null }
 
 	const ratio = ratioValue(aspectRatio)
 
-	if (ratio === null) return containerHeight
+	if (ratio === null) return { height: containerHeight, reserveAspect: null }
 
-	return width > 0 ? Math.round(width / ratio) : 0
-}
-
-/**
- * The `width / height` ratio the plot box should reserve through CSS
- * `aspect-ratio`, or `null` when the height is a fixed pixel value (an
- * explicit `height`) or fills the container (`aspectRatio: false`).
- *
- * Reserving the height in CSS — from the box's own width — keeps it stable
- * before the width is measured and across every animation replay, where a
- * pixel height derived from the yet-unmeasured width would collapse to zero
- * and jump.
- *
- * @internal
- */
-export function aspectReservation(
-	height: number | undefined,
-	aspectRatio: ChartAspectRatio,
-): number | null {
-	if (height !== undefined) return null
-
-	return ratioValue(aspectRatio)
+	return { height: width > 0 ? Math.round(width / ratio) : 0, reserveAspect: ratio }
 }
 
 /** The plot rectangle inside a chart frame, in `viewBox` user units. @internal */

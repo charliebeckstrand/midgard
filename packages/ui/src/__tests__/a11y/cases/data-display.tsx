@@ -42,6 +42,7 @@ import {
 	BarChart,
 	type ChartSeries,
 	ComboChart,
+	DonutChart,
 	LineChart,
 	PieChart,
 } from '../../../modules/chart'
@@ -263,6 +264,25 @@ export const dataDisplayCases: readonly Case[] = [
 			width={240}
 			height={160}
 		/>,
+	],
+	[
+		// Ring variant of the pie: same role="img" plot and hidden table, with a
+		// total named in the hole.
+		'donut chart',
+		<DonutChart
+			key="dc"
+			aria-label="Revenue share by quarter"
+			data={chartRows}
+			value="revenue"
+			label="quarter"
+			width={240}
+			height={160}
+		>
+			<Stat>
+				<StatLabel>Total</StatLabel>
+				<StatValue>$185</StatValue>
+			</Stat>
+		</DonutChart>,
 	],
 	[
 		'combo chart',
