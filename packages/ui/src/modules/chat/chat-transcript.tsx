@@ -1,6 +1,7 @@
 'use client'
 
 import { cn } from '../../core'
+import { k } from '../../recipes/kata/chat-transcript'
 import { ChatMessage } from './chat-message'
 import type { ChatContent } from './types'
 import { useChatScroll } from './use-chat-scroll'
@@ -29,10 +30,7 @@ export function ChatTranscript({ messages, streaming, className }: ChatTranscrip
 	const { ref } = useChatScroll(messages)
 
 	return (
-		<div
-			data-slot="chat-transcript"
-			className={cn('flex-1 grow overflow-y-auto min-h-0', className)}
-		>
+		<div data-slot="chat-transcript" className={cn(k(), className)}>
 			{messages.length > 0 && (
 				<>
 					<div className="flex flex-col gap-6 mx-auto">

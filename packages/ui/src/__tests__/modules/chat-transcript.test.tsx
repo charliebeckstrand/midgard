@@ -31,6 +31,18 @@ describe('ChatTranscript', () => {
 		expect(bySlot(container, 'chat-transcript')).toBeInTheDocument()
 	})
 
+	it('signals keyboard focus with the design-system ring, not the browser default', () => {
+		const { container } = renderUI(<ChatTranscript messages={messages} />)
+
+		const transcript = present(bySlot(container, 'chat-transcript'), 'transcript')
+
+		// Scroll containers are keyboard-focusable; suppress the UA outline and
+		// draw the inset blue ring the rest of the library uses.
+		expect(transcript.className).toContain('outline-none')
+
+		expect(transcript.className).toContain('focus-visible:ring-blue-600')
+	})
+
 	it('pulses only the last agent bubble while streaming', () => {
 		const { container } = renderUI(<ChatTranscript messages={messages} streaming />)
 
