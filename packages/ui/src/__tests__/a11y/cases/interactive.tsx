@@ -11,8 +11,7 @@ import { Field, Label } from '../../../components/fieldset'
 import { Listbox, ListboxLabel, ListboxOption } from '../../../components/listbox'
 import { Select, SelectLabel, SelectOption } from '../../../components/select'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
-import { Map as MapView } from '../../../modules/map'
-import { screen, waitFor } from '../../helpers'
+import { screen } from '../../helpers'
 import type { InteractiveCase } from './types'
 
 const interactivePeople = ['Wade Cooper', 'Arlene McCoy', 'Devon Webb']
@@ -146,19 +145,6 @@ export const interactive: readonly InteractiveCase[] = [
 			if (trigger) await user.click(trigger as HTMLElement)
 
 			await screen.findByRole('dialog')
-		},
-	],
-	[
-		// Map (maplibre globally mocked): a labelled role="application" region;
-		// waits for the async load to settle before asserting.
-		'map',
-		<MapView key="imap" label="Delivery map" />,
-		async () => {
-			await waitFor(() => {
-				const el = document.querySelector('[data-slot="map"]')
-
-				if (!el?.hasAttribute('data-ready')) throw new Error('map not ready')
-			})
 		},
 	],
 ]

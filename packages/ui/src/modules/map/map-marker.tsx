@@ -1,191 +1,196 @@
 'use client'
 
-import type { Marker as MapLibreMarker } from 'maplibre-gl'
-import { type ReactNode, useEffect, useRef, useState } from 'react'
-import { createPortal } from 'react-dom'
-import { useMapContext } from './context'
-import { loadMapLibre } from './map-loader'
+import { motion } from 'motion/react'
+import { type PointerEvent, type ReactNode, useEffect, useId } from 'react'
+import { cn } from '../../core'
+import { k, type MapSeriesColor } from '../../recipes/kata/map'
+import { useMapHover, useMapPlat } from './context'
+import {
+	PIN_RADIUS,
+	PIN_STROKE_WIDTH,
+	POINT_POP,
+	ROUTE_DRAW,
+	ROUTE_HIT_WIDTH,
+	ROUTE_STROKE_WIDTH,
+} from './map-constants'
+import { linePath, type MapPoint2D } from './map-geometry'
 import type { LngLat } from './types'
 
-/** Props for {@link MapMarker}: the `position`, anchor alignment, and an optional click handler. */
+/** Props for {@link MapMarker}. */
 export type MapMarkerProps = {
-	position: LngLat
+	/** Legend and tooltip name; one entry per marker pair. */
+	label: string
+	/** The journey's origin — the hollow pin. */
+	start: LngLat
+	/** The journey's destination — the filled pin. */
+	end: LngLat
 	/**
-	 * Which point of the marker element pins to `position`.
-	 * @defaultValue 'center'
+	 * The connecting geometry — a {@link fetchOsrmRoute} /
+	 * {@link fetchValhallaRoute} result's `path`. A straight line when
+	 * omitted.
 	 */
-	anchor?:
-		| 'center'
-		| 'top'
-		| 'bottom'
-		| 'left'
-		| 'right'
-		| 'top-left'
-		| 'top-right'
-		| 'bottom-left'
-		| 'bottom-right'
-	onClick?: () => void
-	/**
-	 * Accessible name for an interactive marker. The default pin is decorative
-	 * (`aria-hidden`); a clickable marker with no labelled children requires
-	 * this for screen readers (WCAG 4.1.2).
-	 */
-	'aria-label'?: string
-	className?: string
-	children?: ReactNode
+	path?: LngLat[]
+	/** Named mark colour override; defaults to the next slot after the region categories. */
+	color?: MapSeriesColor
+	/** A trailing readout in the legend and tooltip — `'312 mi'`, `'4 h 50 m'`. */
+	detail?: string
 }
 
 /**
- * Pin anchored to a geographic `position` on the enclosing {@link Map}. Renders
- * a default pin or arbitrary `children` (portaled into a MapLibre marker), and
- * becomes interactive when `onClick` is set. Must render within a `Map`.
+ * A start and end pin with the route connecting them — the map's origin →
+ * destination mark, registered in the plat's legend as one toggleable,
+ * focusable entry. The start pin is hollow, the end pin filled, so the
+ * journey's direction reads without labels; hovering any part raises the
+ * tooltip with the marker's name and detail.
+ *
+ * @remarks Renders only inside {@link MapPlat}. Under the plat's `animate`
+ * the connector draws itself in and the pins pop once it lands. A pin whose
+ * position the projection drops is omitted; the connector still draws
+ * through the surviving geometry.
  */
-export function MapMarker({
-	position,
-	anchor = 'center',
-	onClick,
-	'aria-label': ariaLabel,
-	className,
-	children,
-}: MapMarkerProps) {
-	const { onReady } = useMapContext()
+export function MapMarker({ label, start, end, path, color, detail }: MapMarkerProps) {
+	const id = useId()
 
-	const interactive = onClick != null
+	const { project, register, paints, hidden, emphasis, animate } = useMapPlat()
 
-	const markerRef = useRef<MapLibreMarker | null>(null)
+	const { set } = useMapHover()
 
-	const [element, setElement] = useState<HTMLDivElement | null>(null)
+	useEffect(
+		() => register({ id, label, kind: 'marker', swatch: 'line', color, detail }),
+		[register, id, label, color, detail],
+	)
 
-	// Mount the marker once; sync position / anchor / className below.
-	const mountPropsRef = useRef({ position, anchor, className })
+	const paint = paints.get(id)
 
-	mountPropsRef.current = { position, anchor, className }
+	const d = linePath(path ?? [start, end], project)
 
-	useEffect(() => {
-		let cancelled = false
+	const from = project(start)
 
-		let cleanup: (() => void) | undefined
+	const to = project(end)
 
-		loadMapLibre().then(({ Marker }) => {
-			if (cancelled) return
+	if (paint === undefined || hidden.has(id) || (d === '' && from === null && to === null)) {
+		return null
+	}
 
-			const init = mountPropsRef.current
+	const track = (event: PointerEvent<SVGElement>) => {
+		set({ kind: 'entry', id }, { x: event.clientX, y: event.clientY })
+	}
 
-			const el = document.createElement('div')
+	const connector = d !== '' && {
+		'data-slot': 'map-marker-path',
+		d,
+		fill: 'none',
+		strokeWidth: ROUTE_STROKE_WIDTH,
+		strokeLinecap: 'round' as const,
+		strokeLinejoin: 'round' as const,
+		className: cn(paint.stroke),
+	}
 
-			el.dataset.slot = 'map-marker'
+	return (
+		<g
+			data-slot="map-marker"
+			className={cn(k.group(emphasis !== null && emphasis !== id))}
+			onPointerLeave={() => set(null, null)}
+		>
+			{connector &&
+				(animate ? (
+					<motion.path
+						{...connector}
+						initial={{ pathLength: 0 }}
+						animate={{ pathLength: 1 }}
+						transition={ROUTE_DRAW}
+					/>
+				) : (
+					<path {...connector} />
+				))}
 
-			if (init.className) el.className = init.className
+			{from && (
+				<MarkerPin slot="map-marker-start" at={from} animate={animate}>
+					<circle
+						cx={from.x}
+						cy={from.y}
+						r={PIN_RADIUS}
+						strokeWidth={PIN_STROKE_WIDTH}
+						className={cn(k.pinHollow, paint.stroke)}
+					/>
+				</MarkerPin>
+			)}
 
-			// `anchor` is read from the closure (not the ref) and stays a genuine
-			// dependency; the marker is recreated when it changes.
-			const marker = new Marker({ element: el, anchor })
+			{to && (
+				<MarkerPin slot="map-marker-end" at={to} animate={animate}>
+					<circle
+						cx={to.x}
+						cy={to.y}
+						r={PIN_RADIUS}
+						strokeWidth={PIN_STROKE_WIDTH}
+						className={cn(paint.fill, k.pointRing)}
+					/>
+				</MarkerPin>
+			)}
 
-			markerRef.current = marker
+			{d !== '' && (
+				<path
+					data-slot="map-marker-hit"
+					d={d}
+					fill="none"
+					stroke="transparent"
+					strokeWidth={ROUTE_HIT_WIDTH}
+					pointerEvents="stroke"
+					onPointerEnter={track}
+					onPointerMove={track}
+				/>
+			)}
 
-			setElement(el)
+			{from && (
+				<circle
+					data-slot="map-marker-start-hit"
+					cx={from.x}
+					cy={from.y}
+					r={ROUTE_HIT_WIDTH}
+					fill="transparent"
+					onPointerEnter={track}
+					onPointerMove={track}
+				/>
+			)}
 
-			cleanup = onReady((map) => {
-				marker.setLngLat(init.position).addTo(map)
-			})
-		})
-
-		return () => {
-			cancelled = true
-
-			cleanup?.()
-
-			markerRef.current?.remove()
-
-			markerRef.current = null
-
-			setElement(null)
-		}
-		// `anchor` has no public maplibre setter; the marker is recreated when it
-		// changes. Position and className sync in place via the effects below.
-	}, [onReady, anchor])
-
-	useEffect(() => {
-		markerRef.current?.setLngLat(position)
-	}, [position])
-
-	// Sync className in place without clobbering maplibre's own marker classes:
-	// remove the last-applied tokens, then add the current ones.
-	const appliedClassRef = useRef(className)
-
-	useEffect(() => {
-		if (!element) return
-
-		const prev = appliedClassRef.current
-
-		if (prev) element.classList.remove(...prev.split(/\s+/).filter(Boolean))
-
-		if (className) element.classList.add(...className.split(/\s+/).filter(Boolean))
-
-		appliedClassRef.current = className
-	}, [element, className])
-
-	const onClickRef = useRef(onClick)
-
-	onClickRef.current = onClick
-
-	useEffect(() => {
-		if (!element) return
-
-		const activate = () => onClickRef.current?.()
-
-		const handleClick = (event: MouseEvent) => {
-			event.stopPropagation()
-
-			activate()
-		}
-
-		element.addEventListener('click', handleClick)
-
-		if (!interactive) return () => element.removeEventListener('click', handleClick)
-
-		// Promote the element to a button with a tab stop and Enter/Space
-		// activation (WCAG 2.1.1 / 4.1.2).
-		element.setAttribute('role', 'button')
-
-		element.tabIndex = 0
-
-		const handleKeyDown = (event: KeyboardEvent) => {
-			if (event.key !== 'Enter' && event.key !== ' ') return
-
-			event.preventDefault()
-			event.stopPropagation()
-
-			activate()
-		}
-
-		element.addEventListener('keydown', handleKeyDown)
-
-		return () => {
-			element.removeEventListener('click', handleClick)
-			element.removeEventListener('keydown', handleKeyDown)
-			element.removeAttribute('role')
-			element.removeAttribute('tabindex')
-		}
-	}, [element, interactive])
-
-	useEffect(() => {
-		if (!element) return
-
-		if (interactive && ariaLabel != null) element.setAttribute('aria-label', ariaLabel)
-		else element.removeAttribute('aria-label')
-	}, [element, interactive, ariaLabel])
-
-	if (!element) return null
-
-	return createPortal(children ?? <DefaultPin />, element)
+			{to && (
+				<circle
+					data-slot="map-marker-end-hit"
+					cx={to.x}
+					cy={to.y}
+					r={ROUTE_HIT_WIDTH}
+					fill="transparent"
+					onPointerEnter={track}
+					onPointerMove={track}
+				/>
+			)}
+		</g>
+	)
 }
 
-function DefaultPin() {
+/** One pin, popping in past the connector draw under `animate`. @internal */
+function MarkerPin({
+	slot,
+	at,
+	animate,
+	children,
+}: {
+	slot: string
+	at: MapPoint2D
+	animate: boolean
+	children: ReactNode
+}) {
+	if (!animate) return <g data-slot={slot}>{children}</g>
+
 	return (
-		<div
-			aria-hidden="true"
-			className="size-4 rounded-full border-2 border-white bg-blue-600 shadow-md"
-		/>
+		<motion.g
+			data-slot={slot}
+			initial={{ opacity: 0, scale: 0 }}
+			animate={{ opacity: 1, scale: 1 }}
+			transition={POINT_POP}
+			style={{ transformOrigin: `${at.x}px ${at.y}px` }}
+		>
+			{children}
+		</motion.g>
 	)
 }

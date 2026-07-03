@@ -1,21 +1,26 @@
-export { Map, type MapCamera, type MapProps } from './map'
-export { MapGeofence, type MapGeofenceProps } from './map-geofence'
+export type { MapSeriesColor } from '../../recipes/kata/map'
 export { MapMarker, type MapMarkerProps } from './map-marker'
+export { MapPlat, type MapPlatProps } from './map-plat'
+export { MapPoint, type MapPointProps } from './map-point'
 export { MapRoute, type MapRouteProps } from './map-route'
 export {
 	type FetchOsrmRouteOptions,
 	type FetchValhallaRouteOptions,
 	fetchOsrmRoute,
 	fetchValhallaRoute,
+	type MapRouteResult,
 } from './map-routing'
-export { MapShipment, type MapShipmentProps } from './map-shipment'
 export { MapSkeleton, type MapSkeletonProps } from './map-skeleton'
-export { type MapPreset, mapPresets } from './map-styles'
 export type {
-	ChatMessage,
-	GeofenceShape,
+	DataKey,
 	LngLat,
-	RouteData,
-	RouteStop,
-	ShipmentData,
+	MapAspectRatio,
+	MapCategory,
+	MapFeature,
+	MapFeatureCollection,
+	MapGeography,
+	MapLegendPlacement,
+	MapNamedProjection,
+	MapProjection,
+	MapTopology,
 } from './types'

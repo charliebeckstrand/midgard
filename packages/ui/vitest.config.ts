@@ -41,7 +41,7 @@ export default defineConfig({
 		unstubGlobals: true,
 		// clearMocks resets call history (not implementation — mockClear, not
 		// mockReset) before each test, so the shared global mocks (motion, shiki,
-		// maplibre, …) never carry call counts across tests. unstubEnvs mirrors
+		// floating-ui, …) never carry call counts across tests. unstubEnvs mirrors
 		// unstubGlobals for vi.stubEnv. Deliberately NOT mockReset/resetModules:
 		// the former wipes the global mock implementations, the latter drops the
 		// vmThreads module cache other files depend on.

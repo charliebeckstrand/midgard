@@ -47,6 +47,8 @@ import {
 	PieChart,
 } from '../../../modules/chart'
 import { Grid, type GridColumn } from '../../../modules/grid'
+import { MapPlat, MapPoint, MapRoute } from '../../../modules/map'
+import { FIXTURE_GEOJSON, FIXTURE_ROWS } from '../../helpers/map-geography'
 import type { Case } from './types'
 
 type Person = { id: number; name: string; email: string }
@@ -312,6 +314,31 @@ export const dataDisplayCases: readonly Case[] = [
 			]}
 			width={360}
 		/>,
+	],
+	[
+		// Geography map: a role="img" plot with the merged legend toolbar and a
+		// hidden region×category table beside it; overlays add their own entries.
+		'map',
+		<MapPlat
+			key="mp"
+			aria-label="Delivery map"
+			geography={FIXTURE_GEOJSON}
+			data={FIXTURE_ROWS}
+			regionKey="state"
+			categoryKey="zone"
+			width={400}
+		>
+			<MapRoute
+				label="Line haul"
+				stops={[
+					[2, 2],
+					[28, 8],
+				]}
+				detail="312 mi"
+			/>
+
+			<MapPoint label="Depot" at={[15, 5]} />
+		</MapPlat>,
 	],
 	['avatar', <Avatar key="av" initials="WC" alt="Wade Cooper" />],
 	['kbd', <Kbd key="kb">K</Kbd>],
