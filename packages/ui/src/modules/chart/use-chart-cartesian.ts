@@ -5,6 +5,7 @@ import type { Step } from '../../recipes'
 import type { ChartAxisTick } from './chart-axis'
 import { CHART_METRICS, PLOT_TOP_PAD, X_AXIS_HEIGHT } from './chart-constants'
 import {
+	aspectReservation,
 	bandAnchors,
 	type ChartAnchor,
 	type PlotRect,
@@ -48,6 +49,8 @@ export type CartesianChart = {
 	width: number
 	fixedWidth?: number
 	height: number
+	/** The CSS aspect ratio to reserve the plot height with, or `null` for a pixel height. */
+	reserveAspect: number | null
 	plot: PlotRect
 	band: BandScale
 	/** `null` when nothing yields a value domain — render the empty frame. */
@@ -117,6 +120,8 @@ export function useChartCartesian<T>(
 
 	const frameHeight = resolveChartHeight(frameWidth, height, aspectRatio, containerHeight)
 
+	const reserveAspect = aspectReservation(height, aspectRatio)
+
 	const format = props.formatValue ?? formatChartValue
 
 	const { hidden, toggle, setFocus, emphasis } = useChartSeriesToggle()
@@ -175,6 +180,7 @@ export function useChartCartesian<T>(
 		width: frameWidth,
 		fixedWidth: width,
 		height: frameHeight,
+		reserveAspect,
 		plot,
 		band,
 		yScale,

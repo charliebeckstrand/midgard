@@ -8,7 +8,7 @@ import type { AccessibleName } from '../../../types'
 import { formatPercent } from '../../../utilities'
 import { MARK_GAP, SLICE_FADE, SLICE_STAGGER, TICK_CHAR_WIDTH } from '../chart-constants'
 import { ChartFrame } from '../chart-frame'
-import { type ChartAspectRatio, resolveChartHeight } from '../chart-layout'
+import { aspectReservation, type ChartAspectRatio, resolveChartHeight } from '../chart-layout'
 import { ChartLegend } from '../chart-legend'
 import { ChartMarksLayer } from '../chart-marks-layer'
 import { formatChartValue, type SeriesPaint, seriesValues } from '../chart-series'
@@ -298,6 +298,8 @@ export function PieChart<T>({
 
 	const frameHeight = resolveChartHeight(frameWidth, height, aspectRatio, containerHeight)
 
+	const reserveAspect = aspectReservation(height, aspectRatio)
+
 	const format = formatValue ?? formatChartValue
 
 	const { hidden, toggle, setFocus, emphasis } = useChartSeriesToggle()
@@ -384,6 +386,7 @@ export function PieChart<T>({
 			width={frameWidth}
 			fixedWidth={width}
 			height={frameHeight}
+			reserveAspect={reserveAspect}
 			plot={{ x: 0, y: 0, width: frameWidth, height: frameHeight }}
 			legend={
 				legendItems && (

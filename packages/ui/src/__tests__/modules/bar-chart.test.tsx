@@ -212,16 +212,34 @@ describe('BarChart', () => {
 	it('sizes the frame height from the aspect ratio, explicit height winning', () => {
 		const ratio = renderUI(chart({ aspectRatio: '16/9' }))
 
-		// 400 wide at 16/9 → 225 tall.
-		expect(ratio.container.querySelector('svg')).toHaveAttribute('height', '225')
+		// 400 wide at 16/9 → 225 tall, carried by the viewBox.
+		expect(ratio.container.querySelector('svg')).toHaveAttribute('viewBox', '0 0 400 225')
 
 		const square = renderUI(chart({ aspectRatio: 1 }))
 
-		expect(square.container.querySelector('svg')).toHaveAttribute('height', '400')
+		expect(square.container.querySelector('svg')).toHaveAttribute('viewBox', '0 0 400 400')
 
 		const fixed = renderUI(chart({ height: 260 }))
 
-		expect(fixed.container.querySelector('svg')).toHaveAttribute('height', '260')
+		expect(fixed.container.querySelector('svg')).toHaveAttribute('viewBox', '0 0 400 260')
+	})
+
+	it('reserves the box height with the AspectRatio primitive, a fixed height only when set', () => {
+		const ratio = renderUI(chart({ aspectRatio: '16/9' }))
+
+		// The design-system AspectRatio reserves the height from the box's own
+		// width, so it holds steady before measure and across animation replays.
+		const box = bySlot(ratio.container, 'aspect-ratio') as HTMLElement
+
+		expect(box.style.aspectRatio.replace(/\s*\/\s*1$/, '')).toBe('1.7777777777777777')
+
+		const fixed = renderUI(chart({ height: 260 }))
+
+		expect(bySlot(fixed.container, 'aspect-ratio')).toBeNull()
+
+		expect(
+			(bySlot(fixed.container, 'chart-plot')?.firstElementChild as HTMLElement).style.height,
+		).toBe('260px')
 	})
 
 	it('renders an empty frame for empty data', () => {

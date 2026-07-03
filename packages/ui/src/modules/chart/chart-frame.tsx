@@ -1,6 +1,7 @@
 'use client'
 
 import { type ReactNode, type RefObject, useMemo, useState } from 'react'
+import { AspectRatio } from '../../components/aspect-ratio'
 import { cn } from '../../core'
 import type { AccessibleName } from '../../types'
 import type { PlotRect } from './chart-layout'
@@ -18,6 +19,12 @@ export type ChartFrameProps = AccessibleName & {
 	/** Explicit width prop, fixing the wrapper instead of filling the container. */
 	fixedWidth?: number
 	height: number
+	/**
+	 * The `width / height` ratio to reserve the plot box height through CSS, or
+	 * `null` to use the pixel `height`. CSS reservation keeps the height stable
+	 * before the width is measured and across animation replays.
+	 */
+	reserveAspect: number | null
 	/** The plot rectangle inside the frame; the tooltip flips sides at its midpoint. */
 	plot: PlotRect
 	/** The prepared legend row, or `null` to omit it (single series). */
@@ -47,6 +54,7 @@ export function ChartFrame({
 	width,
 	fixedWidth,
 	height,
+	reserveAspect,
 	plot,
 	legend,
 	readout,
@@ -69,6 +77,14 @@ export function ChartFrame({
 		[pointed],
 	)
 
+	// The SVG fills its box through the viewBox rather than pixel dimensions, so
+	// the box — not the marks — owns the size.
+	const svg = width > 0 && (
+		<svg aria-hidden="true" className="block size-full" viewBox={`0 0 ${width} ${height}`}>
+			{children}
+		</svg>
+	)
+
 	return (
 		<div
 			ref={ref}
@@ -79,17 +95,15 @@ export function ChartFrame({
 			<ChartHoverContext value={hover}>
 				{legend}
 
-				<div data-slot="chart-plot" role="img" {...label} className="relative" style={{ height }}>
-					{width > 0 && (
-						<svg
-							aria-hidden="true"
-							className="block"
-							width={width}
-							height={height}
-							viewBox={`0 0 ${width} ${height}`}
-						>
-							{children}
-						</svg>
+				<div data-slot="chart-plot" role="img" {...label} className="relative">
+					{/* AspectRatio reserves the box height from its own width — steady
+					    before the width is measured and across animation replays — while
+					    an explicit height sets a fixed box. The tooltip sits outside so
+					    the aspect box's clip never touches it. */}
+					{reserveAspect === null ? (
+						<div style={{ height }}>{svg}</div>
+					) : (
+						<AspectRatio ratio={reserveAspect}>{svg}</AspectRatio>
 					)}
 
 					{overlay}
