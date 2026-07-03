@@ -8,6 +8,16 @@
 /** Region boundary stroke width; the seam takes the surface colour. @internal */
 export const REGION_STROKE_WIDTH = 1
 
+/**
+ * Decimal places kept in a region path's `d` string. Region geometry draws in
+ * frame units (canonical 1000-wide or measured px), where one decimal is
+ * sub-pixel — d3-geo's default of three serialises detail no display resolves.
+ * Trimming to one shrinks the strings (~27% on a US states atlas), so they cost
+ * less to build on the mount critical path and less for the browser to parse.
+ * @internal
+ */
+export const REGION_PATH_DIGITS = 1
+
 /** Route polyline stroke width — a step over the chart line, to hold over busy region fills. @internal */
 export const ROUTE_STROKE_WIDTH = 2.5
 
@@ -65,3 +75,14 @@ export const MARKER_END_POP = {
 
 /** Fallback frame ratio when `'auto'` has no geography to measure. @internal */
 export const DEFAULT_MAP_ASPECT = 16 / 9
+
+/**
+ * The width, in frame units, the projection fits to for the canonical
+ * (measurement-free) draw. Fitting once to a fixed frame yields both the
+ * geography's aspect ratio and a projection the neutral geography paints from
+ * on the first commit — before the container is measured — so the map appears
+ * without waiting a mount → measure → refit round trip. The measured refit
+ * later replaces it for constant-pixel marks; the two share this frame's aspect,
+ * so the swap only sharpens strokes, never reshapes the geography. @internal
+ */
+export const MAP_CANONICAL_WIDTH = 1000

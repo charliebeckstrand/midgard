@@ -18,7 +18,7 @@ import {
 } from './map-categories'
 import { geographyFeatures, projectPoint, regionPaths } from './map-geometry'
 import { MapLegend, type MapLegendItem } from './map-legend'
-import { fitMapProjection, mapAutoAspect, mapFrameSizing } from './map-projection'
+import { canonicalFit, fitMapProjection, mapFrameSizing } from './map-projection'
 import { MapRegions } from './map-regions'
 import { MapTable } from './map-table'
 import { MapTooltip, type MapTooltipEntry } from './map-tooltip'
@@ -123,11 +123,13 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 */
 		tooltip?: boolean
 		/**
-		 * Animate the map in on mount: the geography washes in region by region,
-		 * routes draw themselves, and points pop once their route lands. Honours
-		 * `prefers-reduced-motion` through the `ReducedMotion` primitive. Off by
-		 * default — a static map stays a plain-SVG tree with no motion runtime
-		 * work.
+		 * Animate the map in on mount: the neutral geography paints at once, then
+		 * category colour washes in region by region, routes draw themselves, and
+		 * points pop once their route lands — the geography itself never fades, so
+		 * the map is legible immediately and only the data animates on. Honours
+		 * `prefers-reduced-motion` through the `ReducedMotion` primitive and the
+		 * colour wash's `motion-reduce` fallback. Off by default — a static map
+		 * stays a plain-SVG tree with no motion runtime work.
 		 * @defaultValue false
 		 */
 		animate?: boolean
@@ -136,19 +138,33 @@ export type MapPlatProps<T = never> = AccessibleName &
 		children?: ReactNode
 	}
 
-/** What {@link useMapShape} resolves: the measured frame and the fitted drawing geometry. @internal */
+/** What {@link useMapShape} resolves: the reserved box, the active draw frame, and its geometry. @internal */
 type MapShape = {
 	ref: RefObject<HTMLDivElement | null>
-	frameWidth: number
-	frameHeight: number
+	/** The plot box's drawing height in px (`0` until measured); the reserve holds the space meanwhile. */
+	boxHeight: number
 	reserve: FrameReserve | null
+	/** The active viewBox width: measured px once the container is measured, the canonical frame until then. */
+	viewWidth: number
+	/** The active viewBox height, paired with {@link viewWidth}. */
+	viewHeight: number
 	/** Region path ds, index-aligned with the features; empty until fitted. */
 	paths: (string | null)[]
 	features: MapFeature[]
 	project: (position: LngLat) => ReturnType<typeof projectPoint>
 }
 
-/** Measures the frame, resolves its sizing, and fits the projection to it. @internal */
+/**
+ * Resolves the geometry the map draws, decoupled from measurement so the
+ * neutral geography paints on the first commit. A single canonical fit (fixed
+ * frame, no container read) reserves the CSS box through its aspect and paints
+ * the geography immediately; the container's measured pixels then drive a refit
+ * that reprojects to constant-pixel marks a beat after mount. Sharing the
+ * canonical fit's aspect, the refit only sharpens strokes — it never reshapes
+ * the geography, so the swap is imperceptible.
+ *
+ * @internal
+ */
 function useMapShape(
 	geography: MapGeography,
 	geographyObject: string | undefined,
@@ -162,7 +178,10 @@ function useMapShape(
 		[geography, geographyObject],
 	)
 
-	const autoAspect = useMemo(() => mapAutoAspect(projection, features), [projection, features])
+	// One measurement-free fit: its aspect reserves the box, and its projection
+	// draws the neutral geography before the container is measured. Canonical
+	// output is deterministic, so the server and the first client render agree.
+	const canonical = useMemo(() => canonicalFit(projection, features), [projection, features])
 
 	// A refit reprojects every region path, so resize commits ride the plot
 	// frame's transition priority: a burst coalesces to the sizes the machine
@@ -172,15 +191,23 @@ function useMapShape(
 		width: frameWidth,
 		height: frameHeight,
 		reserve,
-	} = usePlotFrame(width, mapFrameSizing(height, aspectRatio, autoAspect))
+	} = usePlotFrame(width, mapFrameSizing(height, aspectRatio, canonical?.aspect ?? null))
 
-	const fitted = useMemo(
+	const measured = useMemo(
 		() =>
 			frameWidth > 0 && frameHeight > 0
 				? fitMapProjection(projection, features, frameWidth, frameHeight)
 				: null,
 		[projection, features, frameWidth, frameHeight],
 	)
+
+	// Draw from the measured fit once it lands, the canonical fit until then, so
+	// the geography never waits on the container being measured.
+	const fitted = measured ?? canonical?.projection ?? null
+
+	const viewWidth = measured ? frameWidth : (canonical?.width ?? 0)
+
+	const viewHeight = measured ? frameHeight : (canonical?.height ?? 0)
 
 	const paths = useMemo(
 		() => (fitted === null ? [] : regionPaths(features, fitted)),
@@ -192,7 +219,7 @@ function useMapShape(
 		[fitted],
 	)
 
-	return { ref, frameWidth, frameHeight, reserve, paths, features, project }
+	return { ref, boxHeight: frameHeight, reserve, viewWidth, viewHeight, paths, features, project }
 }
 
 /** The resolved categorical readout behind the regions. @internal */
@@ -416,7 +443,7 @@ function MapPlotRegion({ shape, aside, tooltip, children, ...name }: MapPlotRegi
 		>
 			{/* PlotBox reserves the box height from its own width — steady before the
 			    width is measured and across animation replays — or takes a fixed height. */}
-			<ChartPlotBox reserve={shape.reserve} height={shape.frameHeight}>
+			<ChartPlotBox reserve={shape.reserve} height={shape.boxHeight}>
 				{children}
 			</ChartPlotBox>
 
@@ -532,12 +559,14 @@ export function MapPlat<T = never>({
 	const aside = legendPlacement === 'left' || legendPlacement === 'right'
 
 	// The SVG fills its box through the viewBox rather than pixel dimensions, so
-	// the box — not the marks — owns the size.
-	const svg = shape.frameWidth > 0 && shape.frameHeight > 0 && (
+	// the box — not the marks — owns the size. The view frame is the canonical
+	// one until the container is measured, then the measured pixels, so the
+	// geography paints on the first commit without waiting to be measured.
+	const svg = shape.viewWidth > 0 && shape.viewHeight > 0 && (
 		<svg
 			aria-hidden="true"
 			className="block size-full"
-			viewBox={`0 0 ${shape.frameWidth} ${shape.frameHeight}`}
+			viewBox={`0 0 ${shape.viewWidth} ${shape.viewHeight}`}
 		>
 			<MapPlatContext value={plat}>
 				<MapMarksLayer animate={animate}>

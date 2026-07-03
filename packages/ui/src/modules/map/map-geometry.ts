@@ -7,6 +7,7 @@
 
 import { type GeoPermissibleObjects, type GeoProjection, geoPath } from 'd3-geo'
 import { feature } from 'topojson-client'
+import { REGION_PATH_DIGITS } from './map-constants'
 import type { LngLat, MapFeature, MapGeography } from './types'
 
 /** A projected frame point for the overlay marks. @internal */
@@ -49,7 +50,7 @@ export function geographyFeatures(geography: MapGeography, objectName?: string):
  * @internal
  */
 export function regionPaths(features: MapFeature[], projection: GeoProjection): (string | null)[] {
-	const path = geoPath(projection)
+	const path = geoPath(projection).digits(REGION_PATH_DIGITS)
 
 	return features.map((entry) =>
 		entry.geometry === null ? null : path(entry as GeoPermissibleObjects),

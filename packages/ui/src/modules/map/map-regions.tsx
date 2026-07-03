@@ -1,7 +1,6 @@
 'use client'
 
-import { motion } from 'motion/react'
-import type { PointerEvent } from 'react'
+import { type PointerEvent, useEffect, useState } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
 import { useMapHover } from './context'
@@ -34,9 +33,12 @@ export type MapRegionsProps = {
  * their own hit targets: browser SVG hit testing is the point-in-polygon
  * test, so pointing one moves the shared hover target directly.
  *
- * @remarks Under `animate` the geography washes in: each region fades up
- * with a capped per-index stagger, so a many-region atlas never draws out
- * the reveal.
+ * @remarks Under `animate` the geography paints solid at once and only the
+ * category colour washes in: each region's fill crossfades from the neutral
+ * backdrop to its slot colour with a capped per-index stagger. It is a CSS
+ * colour transition on a plain `<path>` (not a motion fade), so the geometry
+ * itself never fades, a many-region atlas never draws out the reveal, and the
+ * region layer carries no motion runtime; `motion-reduce` drops the transition.
  * @internal
  */
 export function MapRegions({
@@ -48,6 +50,17 @@ export function MapRegions({
 	animate,
 }: MapRegionsProps) {
 	const { set } = useMapHover()
+
+	// The colour reveal: static maps colour at once; an animated map holds the
+	// neutral backdrop for the first beat, then flips to the category fills so
+	// the CSS colour transition washes them in over the already-painted
+	// geography. A one-shot mount flag — it never resets, so a resize never
+	// replays the wash.
+	const [revealed, setRevealed] = useState(!animate)
+
+	useEffect(() => {
+		if (animate) setRevealed(true)
+	}, [animate])
 
 	const track = (index: number) => (event: PointerEvent<SVGPathElement>) => {
 		set({ kind: 'region', index }, { x: event.clientX, y: event.clientY })
@@ -64,18 +77,9 @@ export function MapRegions({
 
 				const groupId = active ? `category:${category}` : null
 
-				const shared = {
-					'data-slot': 'map-region',
-					d,
-					strokeWidth: REGION_STROKE_WIDTH,
-					className: cn(
-						active ? categories[category]?.paint.fill : k.regionEmpty,
-						k.regionBorder,
-						active && k.regionHover,
-					),
-					onPointerEnter: track(index),
-					onPointerMove: track(index),
-				}
+				// Hold the neutral fill until revealed so the colour, not the
+				// geometry, is what animates on.
+				const coloured = revealed && active
 
 				return (
 					<g
@@ -83,19 +87,27 @@ export function MapRegions({
 						key={index}
 						className={cn(k.group(emphasis !== null && emphasis !== groupId))}
 					>
-						{animate ? (
-							<motion.path
-								{...shared}
-								initial={{ opacity: 0 }}
-								animate={{ opacity: 1 }}
-								transition={{
-									...REGION_FADE,
-									delay: Math.min(index * REGION_STAGGER, REGION_STAGGER_MAX),
-								}}
-							/>
-						) : (
-							<path {...shared} />
-						)}
+						<path
+							data-slot="map-region"
+							d={d}
+							strokeWidth={REGION_STROKE_WIDTH}
+							className={cn(
+								coloured ? categories[category]?.paint.fill : k.regionEmpty,
+								k.regionBorder,
+								active && k.regionHover,
+								animate && 'transition-colors ease-out motion-reduce:transition-none',
+							)}
+							style={
+								animate
+									? {
+											transitionDuration: `${REGION_FADE.duration * 1000}ms`,
+											transitionDelay: `${Math.min(index * REGION_STAGGER, REGION_STAGGER_MAX) * 1000}ms`,
+										}
+									: undefined
+							}
+							onPointerEnter={track(index)}
+							onPointerMove={track(index)}
+						/>
 					</g>
 				)
 			})}

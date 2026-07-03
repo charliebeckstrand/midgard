@@ -38,6 +38,38 @@ describe('MapPlat', () => {
 		expect(allBySlot(container, 'map-region')).toHaveLength(3)
 	})
 
+	it('paints the neutral geography before the container is measured', () => {
+		// No width and an unmeasured container (jsdom reports 0): the map must
+		// still draw the geography from the canonical fit on the first commit —
+		// the SVG appears with its region paths rather than waiting on a measure.
+		const { container } = renderUI(<MapPlat aria-label="Backdrop" geography={FIXTURE_GEOJSON} />)
+
+		const svg = container.querySelector('svg')
+
+		expect(svg).toBeInTheDocument()
+
+		expect(svg?.getAttribute('viewBox')).toMatch(/^0 0 \d/)
+
+		expect(allBySlot(container, 'map-region')).toHaveLength(3)
+	})
+
+	it('washes colour in over solid geography under animate, never fading the paths', () => {
+		const { container } = renderUI(plat({ animate: true }))
+
+		const [alpha] = allBySlot(container, 'map-region')
+
+		// A plain <path> carrying the colour transition — not a motion opacity
+		// fade — so the geometry is legible at once and only the fill animates on.
+		expect(alpha?.tagName.toLowerCase()).toBe('path')
+
+		expect(alpha?.getAttribute('class')).toContain('transition-colors')
+
+		expect(alpha?.getAttribute('style') ?? '').not.toContain('opacity')
+
+		// The category colour resolves once the reveal flag flips post-mount.
+		expect(alpha?.getAttribute('class')).toContain('fill-blue-600')
+	})
+
 	it('colours matched regions by category slot and leaves the rest neutral', () => {
 		const { container } = renderUI(plat())
 
