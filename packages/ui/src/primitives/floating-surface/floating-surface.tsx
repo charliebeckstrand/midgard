@@ -8,6 +8,11 @@ import { k } from '../../recipes/kata/popover'
 import { usePortalContainer } from '../portal'
 import { ReducedMotion } from '../reduced-motion'
 
+/**
+ * Props for {@link FloatingSurface}: the floating-ui positioning handles
+ * (`setFloating`, `floatingStyles`, `getFloatingProps`), the `open` /
+ * `onExitComplete` presence pair, and the optional `trapFocusContext`.
+ */
 export type FloatingSurfaceProps = {
 	open: boolean
 	setFloating: (node: HTMLElement | null) => void

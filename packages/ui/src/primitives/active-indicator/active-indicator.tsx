@@ -6,6 +6,11 @@ import { cn, createContext } from '../../core'
 import { k } from '../../recipes/kata/active-indicator'
 import { ReducedMotion } from '../reduced-motion'
 
+// Default indicator corner radius (px). Kept inline (not a Tailwind class) so
+// Motion's layout projection can apply inverse-scale correction to it during
+// the shared-element morph.
+const INDICATOR_RADIUS = 8
+
 /**
  * Carries the `LayoutGroup` `layoutId` an `ActiveIndicatorScope` opens, letting
  * descendant `ActiveIndicator`s share one morph scope; `undefined` outside a
@@ -71,7 +76,15 @@ export function useActiveIndicator() {
 
 /**
  * Visual marker that morphs between sibling items via Motion's shared-element
- * transition. Resolves its `layoutId` from the nearest `ActiveIndicatorScope`.
+ * transition.
+ *
+ * @param layoutId - Explicit morph-scope id; overrides the id resolved from the
+ * nearest {@link ActiveIndicatorScope}, which in turn falls back to the global
+ * `'current-indicator'`.
+ * @remarks Decorative (`pointer-events-none`): it paints behind the item and
+ * never intercepts presses. Defaults to an `8px` corner radius, set inline so
+ * Motion's layout projection can inverse-scale it mid-morph.
+ * @see {@link ActiveIndicatorScope}
  */
 export function ActiveIndicator({
 	ref,
@@ -101,10 +114,14 @@ export function ActiveIndicator({
 				data-slot="active-indicator"
 				layoutId={resolvedLayoutId}
 				layoutDependency={instanceId}
-				className={cn('absolute inset-0', 'bg-zinc-200 dark:bg-zinc-700', className)}
+				className={cn(
+					'pointer-events-none absolute inset-0',
+					'bg-zinc-200 dark:bg-zinc-700',
+					className,
+				)}
 				// Motion's layout projection applies inverse-scale correction to inline
 				// `borderRadius` during the shared-element transition.
-				style={{ borderRadius: 8, ...style }}
+				style={{ borderRadius: INDICATOR_RADIUS, ...style }}
 				transition={k.spring}
 			>
 				{children}

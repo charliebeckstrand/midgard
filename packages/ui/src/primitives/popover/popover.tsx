@@ -1,7 +1,13 @@
 'use client'
 
 import { motion } from 'motion/react'
-import { type KeyboardEventHandler, type ReactNode, useLayoutEffect, useRef } from 'react'
+import {
+	type AriaRole,
+	type KeyboardEventHandler,
+	type ReactNode,
+	useLayoutEffect,
+	useRef,
+} from 'react'
 import { cn } from '../../core'
 import { useA11yRoving, useScrollWithin } from '../../hooks'
 import { k } from '../../recipes/kata/popover'
@@ -10,7 +16,8 @@ import { ReducedMotion } from '../reduced-motion'
 /**
  * Animated listbox-style panel for floating dropdowns (Select, Combobox,
  * Menu). Wires up roving keyboard navigation, optional type-ahead, and
- * autofocus of the selected (or first) item on open.
+ * autofocus of the selected item — or the panel itself when nothing is
+ * selected — on open.
  *
  * @remarks Defaults to `role="listbox"`; override `role` for menus and the
  * like. `aria-multiselectable` is honored only on listbox roles. Pass `glass`
@@ -33,8 +40,25 @@ export function PopoverPanel({
 	id?: string
 	className?: string
 	children: ReactNode
-	role?: string
+	/**
+	 * ARIA role for the panel. Override the `listbox` default for menus and
+	 * the like.
+	 *
+	 * @defaultValue `'listbox'`
+	 */
+	role?: AriaRole
+	/**
+	 * CSS selector matching the navigable option rows.
+	 *
+	 * @defaultValue `'[role="option"]:not([data-disabled])'`
+	 */
 	itemSelector?: string
+	/**
+	 * Move focus into the panel on open: onto the selected option, or the
+	 * panel container when none is selected.
+	 *
+	 * @defaultValue true
+	 */
 	autoFocus?: boolean
 	/**
 	 * Enable WAI-ARIA type-ahead: jump to the item whose label matches typed keys.
@@ -84,7 +108,8 @@ export function PopoverPanel({
 				role={role}
 				aria-label={ariaLabel}
 				aria-labelledby={ariaLabelledby}
-				// ARIA allows `aria-multiselectable` only on `listbox` and grid-like roles.
+				// ARIA allows `aria-multiselectable` on listbox and grid roles; this
+				// panel only sets it on the listbox role.
 				aria-multiselectable={role === 'listbox' ? multiselectable : undefined}
 				tabIndex={-1}
 				{...k.panel.motion}
