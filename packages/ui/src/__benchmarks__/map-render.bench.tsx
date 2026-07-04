@@ -23,6 +23,11 @@ const countiesGeo: MapGeography = {
 	features: geographyFeatures(countiesTopo),
 }
 
+const countyRows = geographyFeatures(countiesTopo).map((feature, index) => ({
+	county: defaultRegionId(feature),
+	zone: ZONES[index % ZONES.length] as string,
+}))
+
 function statesPlat() {
 	return (
 		<MapPlat
@@ -104,5 +109,29 @@ describe('MapPlat · hover cascade (counties, 3143 regions)', () => {
 		for (let i = 0; i < 10; i++) {
 			fireEvent.pointerMove(region, { clientX: 100 + i, clientY: 100 })
 		}
+	})
+})
+
+describe('MapPlat · legend cascade (counties, 3143 regions + legend)', () => {
+	// A legend emphasis re-renders the plat: the region layer must repaint (its
+	// fills dim) but the visually-hidden table reads neither hidden nor
+	// emphasis, so its memo holds a 3143-row re-map on every enter and leave.
+	const { container } = render(
+		<MapPlat
+			aria-label="Counties"
+			geography={countiesGeo}
+			data={countyRows}
+			regionKey="county"
+			categoryKey="zone"
+			width={800}
+		/>,
+	)
+
+	const legendItem = container.querySelector('[data-slot="map-legend-item"]') as Element
+
+	bench('legend emphasis enter + leave', () => {
+		fireEvent.pointerEnter(legendItem)
+
+		fireEvent.pointerLeave(legendItem)
 	})
 })
