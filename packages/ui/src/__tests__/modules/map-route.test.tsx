@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { describe, expect, it } from 'vitest'
 import type { LngLat } from '../../modules/map'
 import { MapPlat, MapRoute } from '../../modules/map'
+import { ROUTE_HIT_WIDTH } from '../../modules/map/map-constants'
 import { allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 
@@ -31,7 +32,7 @@ describe('MapRoute', () => {
 
 		const hit = bySlot(container, 'map-route-hit')
 
-		expect(hit?.getAttribute('stroke-width')).toBe('12')
+		expect(hit?.getAttribute('stroke-width')).toBe(String(ROUTE_HIT_WIDTH))
 
 		expect(hit?.getAttribute('d')).toBe(route?.getAttribute('d'))
 	})

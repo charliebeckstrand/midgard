@@ -14,7 +14,7 @@ import {
 	geoPath,
 } from 'd3-geo'
 import type { FrameSizing } from '../../hooks'
-import { DEFAULT_MAP_ASPECT } from './map-constants'
+import { ALBERS_USA_ASPECT, DEFAULT_MAP_ASPECT, MAP_CANONICAL_WIDTH } from './map-constants'
 import type { MapAspectRatio, MapFeature, MapProjection } from './types'
 
 /**
@@ -66,25 +66,72 @@ export function fitMapProjection(
 }
 
 /**
- * The geography's own projected aspect ratio (`width / height`), for
- * `aspectRatio: 'auto'`: the features are fit to a fixed width and their
- * projected bounds measured. Pure and synchronous, so the CSS aspect box is
- * reservable before the frame's width is; `null` with nothing to measure.
+ * A projection fit to the canonical {@link MAP_CANONICAL_WIDTH}-wide frame,
+ * with the frame it fills. @internal
+ */
+export type MapCanonicalFit = {
+	/** The fitted projection, ready to draw the neutral geography. */
+	projection: GeoProjection
+	/** Frame width in projected units — the canonical width, barring degenerate geometry. */
+	width: number
+	/** Frame height in projected units, from the fitted geography's bounds. */
+	height: number
+	/** The frame's `width / height`. */
+	aspect: number
+}
+
+/**
+ * Fits the projection once to a fixed {@link MAP_CANONICAL_WIDTH}-wide frame and
+ * measures the fitted bounds. `fitWidth` aligns those bounds to the frame's
+ * top-left, so the returned `width` × `height` is a clean viewBox the geography
+ * fills. Pure and synchronous — no container measurement — so the same fit
+ * serves both the CSS aspect reservation (through {@link mapAutoAspect}) and the
+ * geography's first, measurement-free paint. `null` with nothing to fit.
  *
  * @internal
  */
-export function mapAutoAspect(spec: MapProjection, features: MapFeature[]): number | null {
+export function canonicalFit(spec: MapProjection, features: MapFeature[]): MapCanonicalFit | null {
 	if (features.length === 0) return null
 
 	const shape = collection(features)
 
-	const projection = resolveMapProjection(spec).fitWidth(1000, shape)
+	const projection = resolveMapProjection(spec).fitWidth(MAP_CANONICAL_WIDTH, shape)
 
 	const [[x0, y0], [x1, y1]] = geoPath(projection).bounds(shape)
 
-	const boundsHeight = y1 - y0
+	const width = x1 - x0
 
-	return boundsHeight > 0 ? (x1 - x0) / boundsHeight : null
+	const height = y1 - y0
+
+	if (width <= 0 || height <= 0) return null
+
+	return { projection, width, height, aspect: width / height }
+}
+
+/**
+ * The geography's own projected aspect ratio (`width / height`), for
+ * `aspectRatio: 'auto'`: the {@link canonicalFit}'s fitted bounds. Pure and
+ * synchronous, so the CSS aspect box is reservable before the frame's width is;
+ * `null` with nothing to measure.
+ *
+ * @internal
+ */
+export function mapAutoAspect(spec: MapProjection, features: MapFeature[]): number | null {
+	return canonicalFit(spec, features)?.aspect ?? null
+}
+
+/**
+ * The aspect a named projection reserves before its geography loads, for a
+ * projection whose geographic subject is fixed: `albers-usa` is the United
+ * States, so its frame holds the US ratio through a lazy load and never shifts
+ * height. The world projections (`mercator`, `equal-earth`) and a passed
+ * instance frame arbitrary geography, so they have none — the caller falls back
+ * to the generic {@link DEFAULT_MAP_ASPECT}.
+ *
+ * @internal
+ */
+export function projectionFallbackAspect(spec: MapProjection): number | null {
+	return spec === 'albers-usa' ? ALBERS_USA_ASPECT : null
 }
 
 /** Parses a {@link MapAspectRatio} to its numeric `width / height`, or `null` when free-form. @internal */

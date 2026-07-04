@@ -2,7 +2,6 @@
 
 import { motion } from 'motion/react'
 import { cn } from '../../core'
-import { k } from '../../recipes/kata/chart'
 import { rangeKeys } from '../../utilities'
 import {
 	AREA_FADE,
@@ -43,7 +42,7 @@ export type ChartLineMarksProps = {
 
 /** The marker dot's classes: series fill under a white ring, legible on any line or fill. @internal */
 function markerClass(paint: SeriesPaint): string {
-	return cn(paint.fill, k.pointRing)
+	return cn(paint.fill)
 }
 
 /** The plain-SVG lines: the cheap default with no motion runtime work. @internal */

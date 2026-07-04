@@ -49,10 +49,11 @@ describe('ComboChart', () => {
 
 		expect(items).toHaveLength(2)
 
-		// Bar series wear a rect swatch, line series a stroke-shaped one.
-		expect(items[0]?.querySelector('span')?.className).toContain('size-2.5')
+		// Bar series wear a rect swatch, line series a stroke-shaped one. The
+		// swatch is the second span — the Button's hit-target sibling leads.
+		expect(items[0]?.querySelector('span:nth-child(2)')?.className).toContain('size-2.5')
 
-		expect(items[1]?.querySelector('span')?.className).toContain('w-3')
+		expect(items[1]?.querySelector('span:nth-child(2)')?.className).toContain('w-3')
 	})
 
 	it('reads both series in one tooltip on one shared axis', () => {

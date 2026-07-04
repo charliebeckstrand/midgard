@@ -11,7 +11,6 @@ import {
 	MapPoint,
 	MapRoute,
 	type MapRouteResult,
-	MapSkeleton,
 } from '../../../../modules/map'
 import { Example } from '../../../engine'
 import {
@@ -123,12 +122,6 @@ function RoutedMarker({ label, start, end }: { label: string; start: LngLat; end
 	)
 }
 
-// The skeleton reserves the map frame's aspect box itself, so the swap to the
-// loaded plat causes no layout shift.
-function Loading() {
-	return <MapSkeleton />
-}
-
 const Container = ({ children, size = 'lg' }: { children: ReactNode; size?: string }) => {
 	const sizeMap: Record<string, string> = {
 		sm: 'sm:max-w-sm',
@@ -152,36 +145,25 @@ export function Demo() {
 					<Tab value="route">Route</Tab>
 				</TabList>
 
-				<TabContents>
+				<TabContents fade={false}>
 					<TabContent value="plat">
 						<Stack gap="xl">
-							<Example title="Default">
-								<Container>
-									{states ? (
-										<MapPlat
-											aria-label="Default map plat"
-											geography={states}
-											projection="albers-usa"
-										/>
-									) : undefined}
-								</Container>
-							</Example>
-
 							<Example title="Timezones across America">
 								<Container>
-									{states ? (
-										<MapPlat
-											aria-label="Timezones across America"
-											geography={states}
-											projection="albers-usa"
-											data={timezones}
-											regionKey="state"
-											categoryKey="zone"
-											categories={zoneCategories}
-											regionId={(feature) => String(feature.properties?.name)}
-											animate
-										/>
-									) : undefined}
+									{/* Optional geography again: the legend and frame hold from the
+									    first paint, then the regions colour in when the atlas lands. */}
+									<MapPlat
+										aria-label="Timezones across America"
+										geography={states}
+										projection="albers-usa"
+										data={timezones}
+										regionKey="state"
+										categoryKey="zone"
+										categories={zoneCategories}
+										regionId={(feature) => String(feature.properties?.name)}
+										animate
+										legend="right"
+									/>
 								</Container>
 							</Example>
 						</Stack>
@@ -190,20 +172,17 @@ export function Demo() {
 					<TabContent value="point">
 						<Example title="Warehouses">
 							<Container>
-								{states === null ? (
-									<Loading />
-								) : (
-									<MapPlat
-										aria-label="Warehouse network"
-										geography={states}
-										projection="albers-usa"
-										animate
-									>
-										{warehouses.map((warehouse) => (
-											<MapPoint key={warehouse.label} {...warehouse} />
-										))}
-									</MapPlat>
-								)}
+								<MapPlat
+									aria-label="Warehouse network"
+									geography={states}
+									projection="albers-usa"
+									animate
+									legend="right"
+								>
+									{warehouses.map((warehouse) => (
+										<MapPoint key={warehouse.city} label={warehouse.city} {...warehouse} />
+									))}
+								</MapPlat>
 							</Container>
 						</Example>
 					</TabContent>
@@ -211,22 +190,15 @@ export function Demo() {
 					<TabContent value="marker">
 						<Example title="Line haul">
 							<Container>
-								{states === null ? (
-									<Loading />
-								) : (
-									<MapPlat
-										aria-label="Line haul"
-										geography={states}
-										projection="albers-usa"
-										animate
-									>
-										<RoutedMarker
-											label="LA → Chicago"
-											start={laToChicago.start}
-											end={laToChicago.end}
-										/>
-									</MapPlat>
-								)}
+								<MapPlat
+									aria-label="Line haul"
+									geography={states}
+									projection="albers-usa"
+									animate
+									legend="right"
+								>
+									<RoutedMarker label="LA → CHI" start={laToChicago.start} end={laToChicago.end} />
+								</MapPlat>
 							</Container>
 						</Example>
 					</TabContent>
@@ -235,53 +207,43 @@ export function Demo() {
 						<Stack gap="xl">
 							<Example title="IKEA distribution network">
 								<Container>
-									{states === null ? (
-										<Loading />
-									) : (
-										// Each run is a MapMarker: an origin pin at the shared Kansas
-										// City hub, a destination pin, and the road route between them
-										// fetched from OSRM. Each draws itself in once its route lands.
-										// Pointing a legend entry dims the rest, clicking toggles it off.
-										<MapPlat
-											aria-label="IKEA distribution network"
-											geography={states}
-											projection="albers-usa"
-											animate
-										>
-											{ikeaDestinations.map((destination) => (
-												<RoutedMarker
-													key={destination.city}
-													label={`Kansas City → ${destination.city}`}
-													start={ikeaHub}
-													end={destination.at}
-												/>
-											))}
-										</MapPlat>
-									)}
+									<MapPlat
+										aria-label="IKEA distribution network"
+										geography={states}
+										projection="albers-usa"
+										animate
+										legend="right"
+									>
+										{ikeaDestinations.map((destination) => (
+											<RoutedMarker
+												key={destination.city}
+												label={`KC → ${destination.abbreviation}`}
+												start={ikeaHub}
+												end={destination.at}
+											/>
+										))}
+									</MapPlat>
 								</Container>
 							</Example>
 
 							<Example title="Long-haul corridors">
 								<Container>
-									{states === null ? (
-										<Loading />
-									) : (
-										<MapPlat
-											aria-label="Long-haul corridors"
-											geography={states}
-											projection="albers-usa"
-											animate
-										>
-											{corridors.map((corridor) => (
-												<RoutedLine
-													key={corridor.label}
-													label={corridor.label}
-													start={corridor.start}
-													end={corridor.end}
-												/>
-											))}
-										</MapPlat>
-									)}
+									<MapPlat
+										aria-label="Long-haul corridors"
+										geography={states}
+										projection="albers-usa"
+										animate
+										legend="right"
+									>
+										{corridors.map((corridor) => (
+											<RoutedLine
+												key={corridor.label}
+												label={corridor.label}
+												start={corridor.start}
+												end={corridor.end}
+											/>
+										))}
+									</MapPlat>
 								</Container>
 							</Example>
 						</Stack>

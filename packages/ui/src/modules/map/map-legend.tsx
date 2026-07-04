@@ -1,6 +1,7 @@
 'use client'
 
 import { type KeyboardEvent, useRef } from 'react'
+import { Button } from '../../components/button'
 import { cn } from '../../core'
 import { useA11yRoving } from '../../hooks/a11y'
 import { k } from '../../recipes/kata/map'
@@ -82,21 +83,25 @@ export function MapLegend({ items, hidden, onToggle, onFocus, panel = false }: M
 			aria-orientation="horizontal"
 			onKeyDown={handleKeyDown}
 			className={cn(
-				panel
-					? 'flex flex-col items-start gap-1'
-					: 'flex flex-wrap items-center justify-center gap-x-2 gap-y-1',
+				// Under the map — the row placements, and the side panel once it
+				// stacks below lg — the buttons lay out as a centered grid: fully
+				// stacked below sm, an even two columns from sm, so they line up in
+				// a block instead of wrapping ragged. The side panel returns to a
+				// single left-aligned column beside the map from lg up.
+				'mx-auto grid w-fit max-w-full grid-cols-1 justify-items-start gap-x-2 gap-y-1 sm:grid-cols-2',
+				panel && 'lg:mx-0 lg:w-full lg:grid-cols-1 lg:gap-x-1',
 			)}
 		>
 			{items.map((item) => {
 				const off = hidden.has(item.id)
 
 				return (
-					<button
+					<Button
 						key={item.id}
-						type="button"
+						size="sm"
+						variant="plain"
 						data-slot="map-legend-item"
 						aria-pressed={!off}
-						className={cn(k.legendItem)}
 						onClick={() => onToggle(item.id)}
 						onPointerEnter={() => onFocus(item.id)}
 						onPointerLeave={() => onFocus(null)}
@@ -111,11 +116,11 @@ export function MapLegend({ items, hidden, onToggle, onFocus, panel = false }: M
 						<span className={cn(k.label, off && 'line-through opacity-60')}>{item.label}</span>
 
 						{item.detail && (
-							<span className={cn(k.label, 'tabular-nums', off && 'opacity-60')}>
+							<span className={cn(k.label, 'whitespace-nowrap tabular-nums', off && 'opacity-60')}>
 								{item.detail}
 							</span>
 						)}
-					</button>
+					</Button>
 				)
 			})}
 		</div>

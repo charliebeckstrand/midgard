@@ -1,9 +1,11 @@
 import { geoMercator } from 'd3-geo'
 import { describe, expect, it } from 'vitest'
+import { ALBERS_USA_ASPECT } from '../../modules/map/map-constants'
 import {
 	fitMapProjection,
 	mapAutoAspect,
 	mapFrameSizing,
+	projectionFallbackAspect,
 	resolveMapProjection,
 } from '../../modules/map/map-projection'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
@@ -74,6 +76,18 @@ describe('mapAutoAspect', () => {
 
 	it('is null with no features to measure', () => {
 		expect(mapAutoAspect('mercator', [])).toBeNull()
+	})
+})
+
+describe('projectionFallbackAspect', () => {
+	it('reserves the US ratio for albers-usa before its geography loads', () => {
+		expect(projectionFallbackAspect('albers-usa')).toBe(ALBERS_USA_ASPECT)
+	})
+
+	it('has none for the world projections', () => {
+		expect(projectionFallbackAspect('mercator')).toBeNull()
+
+		expect(projectionFallbackAspect('equal-earth')).toBeNull()
 	})
 })
 

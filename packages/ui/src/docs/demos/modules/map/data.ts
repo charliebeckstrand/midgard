@@ -68,12 +68,12 @@ export const zoneCategories: MapCategory[] = [
 ]
 
 /** Warehouse markers for the points example. */
-export const warehouses: { label: string; at: LngLat; detail: string }[] = [
-	{ label: 'Salt Lake City', at: [-111.89, 40.76], detail: '14 loads' },
-	{ label: 'Los Angeles', at: [-118.24, 34.05], detail: '32 loads' },
-	{ label: 'Dallas', at: [-96.8, 32.78], detail: '18 loads' },
-	{ label: 'Chicago', at: [-87.63, 41.88], detail: '27 loads' },
-	{ label: 'Atlanta', at: [-84.39, 33.75], detail: '11 loads' },
+export const warehouses: { city: string; abbreviation: string; at: LngLat; detail: string }[] = [
+	{ city: 'Salt Lake City', abbreviation: 'SLC', at: [-111.89, 40.76], detail: '14 loads' },
+	{ city: 'Los Angeles', abbreviation: 'LA', at: [-118.24, 34.05], detail: '32 loads' },
+	{ city: 'Dallas', abbreviation: 'DAL', at: [-96.8, 32.78], detail: '18 loads' },
+	{ city: 'Chicago', abbreviation: 'CHI', at: [-87.63, 41.88], detail: '27 loads' },
+	{ city: 'Atlanta', abbreviation: 'ATL', at: [-84.39, 33.75], detail: '11 loads' },
 ]
 
 // The routed examples below carry only origin and destination coordinates.
@@ -101,9 +101,9 @@ export const ikeaHub: LngLat = [-94.58, 39.1]
  * {@link ikeaHub}. The demo routes each hub → destination run on real roads
  * and labels it with the fetched mileage.
  */
-export const ikeaDestinations: { city: string; at: LngLat }[] = [
-	{ city: 'Los Angeles', at: [-118.24, 34.05] },
-	{ city: 'Seattle', at: [-122.33, 47.61] },
-	{ city: 'New York', at: [-74.0, 40.71] },
-	{ city: 'Atlanta', at: [-84.39, 33.75] },
+export const ikeaDestinations: { city: string; abbreviation: string; at: LngLat }[] = [
+	{ city: 'Los Angeles', abbreviation: 'LA', at: [-118.24, 34.05] },
+	{ city: 'Seattle', abbreviation: 'SEA', at: [-122.33, 47.61] },
+	{ city: 'New York', abbreviation: 'NYC', at: [-74.0, 40.71] },
+	{ city: 'Atlanta', abbreviation: 'ATL', at: [-84.39, 33.75] },
 ]

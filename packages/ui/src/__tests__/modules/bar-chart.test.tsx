@@ -286,7 +286,7 @@ describe('BarChart', () => {
 	it('carries a keyboard focus ring on legend entries', () => {
 		const { container } = renderUI(chart())
 
-		expect(bySlot(container, 'chart-legend-item')?.className).toContain('focus-visible:outline')
+		expect(bySlot(container, 'chart-legend-item')?.className).toContain('focus-visible:ring-2')
 	})
 
 	it('dims the other series while a legend entry is hovered', () => {

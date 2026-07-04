@@ -38,6 +38,69 @@ describe('MapPlat', () => {
 		expect(allBySlot(container, 'map-region')).toHaveLength(3)
 	})
 
+	it('paints the neutral geography before the container is measured', () => {
+		// No width and an unmeasured container (jsdom reports 0): the map must
+		// still draw the geography from the canonical fit on the first commit —
+		// the SVG appears with its region paths rather than waiting on a measure.
+		const { container } = renderUI(<MapPlat aria-label="Backdrop" geography={FIXTURE_GEOJSON} />)
+
+		const svg = container.querySelector('svg')
+
+		expect(svg).toBeInTheDocument()
+
+		expect(svg?.getAttribute('viewBox')).toMatch(/^0 0 \d/)
+
+		expect(allBySlot(container, 'map-region')).toHaveLength(3)
+	})
+
+	it('reserves the frame without geography and paints it once provided', () => {
+		// A lazily fetched atlas passes through as null: no guard at the call
+		// site, no crash — the plot box holds the space, then the geography
+		// draws in when it lands.
+		const { container, rerender } = renderUI(
+			<MapPlat aria-label="Backdrop" geography={null} width={400} />,
+		)
+
+		// The reserved plot box holds the space; nothing is drawn yet.
+		expect(bySlot(container, 'map-plot')).toBeInTheDocument()
+
+		expect(allBySlot(container, 'map-region')).toHaveLength(0)
+
+		rerender(<MapPlat aria-label="Backdrop" geography={FIXTURE_GEOJSON} width={400} />)
+
+		expect(allBySlot(container, 'map-region')).toHaveLength(3)
+	})
+
+	it('reserves the US ratio for an albers-usa plat awaiting its geography', () => {
+		// Without geography the frame would fall back to 16/9 and then jump when
+		// the atlas lands; albers-usa is the US, so it holds the US ratio through
+		// the load — no height shift.
+		const { container } = renderUI(
+			<MapPlat aria-label="US" geography={null} projection="albers-usa" />,
+		)
+
+		const box = bySlot(container, 'map-plot')?.querySelector('[data-slot="aspect-ratio"]')
+
+		expect(box).toHaveStyle({ aspectRatio: '1.709' })
+	})
+
+	it('washes colour in over solid geography under animate, never fading the paths', () => {
+		const { container } = renderUI(plat({ animate: true }))
+
+		const [alpha] = allBySlot(container, 'map-region')
+
+		// A plain <path> carrying the colour transition — not a motion opacity
+		// fade — so the geometry is legible at once and only the fill animates on.
+		expect(alpha?.tagName.toLowerCase()).toBe('path')
+
+		expect(alpha?.getAttribute('class')).toContain('transition-colors')
+
+		expect(alpha?.getAttribute('style') ?? '').not.toContain('opacity')
+
+		// The category colour resolves once the reveal flag flips post-mount.
+		expect(alpha?.getAttribute('class')).toContain('fill-blue-600')
+	})
+
 	it('colours matched regions by category slot and leaves the rest neutral', () => {
 		const { container } = renderUI(plat())
 
@@ -110,12 +173,26 @@ describe('MapPlat', () => {
 
 		expect(box?.getAttribute('class')).toContain('lg:w-48')
 
-		expect(bySlot(container, 'map-legend')?.getAttribute('class')).toContain('flex-col')
+		// The side panel collapses to a single column beside the map from lg.
+		expect(bySlot(container, 'map-legend')?.getAttribute('class')).toContain('lg:grid-cols-1')
 
 		// Row placements reserve one item-row of height instead.
 		const row = renderUI(plat({ legend: 'top' }))
 
 		expect(bySlot(row.container, 'map-legend-box')?.getAttribute('class')).toContain('min-h-4')
+	})
+
+	it('lays the under-map legend out as a centered grid', () => {
+		const { container } = renderUI(plat())
+
+		const legend = bySlot(container, 'map-legend')
+
+		// Fully stacked below sm, an even two columns from sm, centered as a block.
+		expect(legend?.getAttribute('class')).toContain('grid-cols-1')
+
+		expect(legend?.getAttribute('class')).toContain('sm:grid-cols-2')
+
+		expect(legend?.getAttribute('class')).toContain('mx-auto')
 	})
 
 	it('toggles a category off: neutral fill, struck legend text, pressed off', () => {
@@ -131,7 +208,9 @@ describe('MapPlat', () => {
 
 		expect(alpha?.getAttribute('class')).toContain('fill-zinc-200')
 
-		expect(east?.querySelector('span:nth-child(2)')?.getAttribute('class')).toContain(
+		// The label is the third span — the Button's hit-target sibling and the
+		// swatch lead it.
+		expect(east?.querySelector('span:nth-child(3)')?.getAttribute('class')).toContain(
 			'line-through',
 		)
 	})
