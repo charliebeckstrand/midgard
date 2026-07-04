@@ -34,7 +34,7 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 | `useHasHover` | True when the device has a hover-capable pointer; true during SSR. |
 | `useKeyboardLifted` | Lifted-item state for keyboard reordering: Space toggles, blur drops, `refocus` survives reorder re-renders. |
 | `useKeyboardSettled` | Defers a callback until the virtual keyboard settles; fires immediately on desktop. |
-| `useRehoverOnScroll` | Replays the pointer at its last position on scroll so a chart/map tooltip re-resolves as the plot shifts. |
+| `useHoverAcrossScroll` | Hides a chart/map tooltip while scrolling and recomputes hover at the pointer once the scroll settles. |
 
 ## Accessibility
 

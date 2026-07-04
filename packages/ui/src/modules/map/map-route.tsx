@@ -97,6 +97,7 @@ export function MapRoute({ label, stops, path, color, detail }: MapRouteProps) {
 
 			<path
 				data-slot="map-route-hit"
+				data-entry-id={id}
 				d={d}
 				fill="none"
 				stroke="transparent"

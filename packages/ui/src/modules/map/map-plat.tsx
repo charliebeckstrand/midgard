@@ -2,7 +2,7 @@
 
 import { type ReactNode, type RefObject, useCallback, useMemo, useState } from 'react'
 import { cn } from '../../core'
-import { type FrameReserve, usePlotFrame, useRehoverOnScroll } from '../../hooks'
+import { type FrameReserve, useHoverAcrossScroll, usePlotFrame } from '../../hooks'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { k, type MapSeriesColor } from '../../recipes/kata/map'
 import type { AccessibleName } from '../../types'
@@ -12,6 +12,7 @@ import {
 	MapHoverSetContext,
 	type MapHoverState,
 	MapHoverStateContext,
+	type MapHoverTarget,
 	MapPlatContext,
 	type MapPlatContextValue,
 } from './context'
@@ -23,7 +24,7 @@ import {
 	resolveCategories,
 	slotColor,
 } from './map-categories'
-import { projectPoint, regionPaths } from './map-geometry'
+import { type MapPoint2D, projectPoint, regionPaths } from './map-geometry'
 import { staticMapGeometry } from './map-geometry-cache'
 import { MapLegend, type MapLegendItem } from './map-legend'
 import { fitMapProjection, mapFrameSizing, projectionFallbackAspect } from './map-projection'
@@ -388,6 +389,22 @@ function legendItems(
 	return [...categoryItems, ...entryItems]
 }
 
+/** Whether two hover targets are the same mark, so a redundant hover write can bail. @internal */
+function sameTarget(a: MapHoverTarget | null, b: MapHoverTarget | null): boolean {
+	if (a === b) return true
+
+	if (a === null || b === null || a.kind !== b.kind) return false
+
+	return a.kind === 'region'
+		? a.index === (b as { index: number }).index
+		: a.id === (b as { id: string }).id
+}
+
+/** Whether two hover points coincide, so a redundant hover write can bail. @internal */
+function samePoint(a: MapPoint2D | null, b: MapPoint2D | null): boolean {
+	return a === b || (a !== null && b !== null && a.x === b.x && a.y === b.y)
+}
+
 /**
  * Owns the pointer readout and hands it down split: the stable mover through
  * {@link MapHoverSetContext} — the marks read it, so they never repaint as the
@@ -400,22 +417,70 @@ function legendItems(
  * @internal
  */
 function MapHoverProvider({
+	enabled,
 	plotRef,
 	children,
 }: {
+	/** Whether the tooltip is on; gates the scroll listener on a stable flag. */
+	enabled: boolean
 	plotRef: RefObject<HTMLDivElement | null>
 	children: ReactNode
 }) {
 	const [state, setState] = useState<MapHoverState>({ target: null, point: null })
 
-	const set = useCallback<MapHoverSet>((target, point) => setState({ target, point }), [])
+	const set = useCallback<MapHoverSet>(
+		(target, point) =>
+			// Bail on a no-op so a scroll's repeated clears cost one render, and a
+			// page scroll far from this map costs none.
+			setState((prev) =>
+				sameTarget(prev.target, target) && samePoint(prev.point, point) ? prev : { target, point },
+			),
+		[],
+	)
 
-	const clear = useCallback(() => setState({ target: null, point: null }), [])
+	const clear = useCallback(() => set(null, null), [set])
 
-	// A scroll fires no pointer event over the regions, so replay the pointer where
-	// it rests to re-read the mark under it as the plat shifts — the readout rides
-	// the moving map and clears only once the pointer leaves the marks.
-	useRehoverOnScroll(state.target !== null, clear, plotRef)
+	// A scroll slides the marks under a stationary pointer without firing a pointer
+	// event; recompute at its last position once the scroll settles, reading the
+	// mark now under it straight off the DOM — a synthetic move never reaches the
+	// region handlers.
+	const resolveAt = useCallback(
+		(clientX: number, clientY: number) => {
+			const plot = plotRef.current
+
+			const under = plot === null ? null : document.elementFromPoint(clientX, clientY)
+
+			if (plot === null || under === null || !plot.contains(under)) {
+				set(null, null)
+
+				return
+			}
+
+			const point = { x: clientX, y: clientY }
+
+			const region = under.closest('[data-region-index]')
+
+			if (region !== null) {
+				set({ kind: 'region', index: Number(region.getAttribute('data-region-index')) }, point)
+
+				return
+			}
+
+			const entry = under.closest('[data-entry-id]')
+
+			if (entry !== null) {
+				set({ kind: 'entry', id: entry.getAttribute('data-entry-id') ?? '' }, point)
+
+				return
+			}
+
+			// Over the plat but between marks — the ocean — reads nothing.
+			set(null, null)
+		},
+		[plotRef, set],
+	)
+
+	useHoverAcrossScroll(enabled, clear, resolveAt)
 
 	return (
 		<MapHoverSetContext value={set}>
@@ -429,8 +494,10 @@ type MapFrameProps = {
 	legendNode: ReactNode
 	legendPlacement: MapLegendPlacement
 	plotRegion: ReactNode
-	/** The plot region element; the hover provider replays scrolled-over pointers within it. */
+	/** The plot region element; the hover provider re-resolves settled scroll pointers within it. */
 	plotRef: RefObject<HTMLDivElement | null>
+	/** Whether the tooltip is on; gates the hover provider's scroll listener. */
+	tooltip: boolean
 	table: ReactNode
 	width: number | undefined
 	className?: string
@@ -442,6 +509,7 @@ function MapFrame({
 	legendPlacement,
 	plotRegion,
 	plotRef,
+	tooltip,
 	table,
 	width,
 	className,
@@ -454,7 +522,7 @@ function MapFrame({
 			className={cn('flex flex-col gap-3', width === undefined && 'w-full', className)}
 			style={width === undefined ? undefined : { width }}
 		>
-			<MapHoverProvider plotRef={plotRef}>
+			<MapHoverProvider enabled={tooltip} plotRef={plotRef}>
 				{aside ? (
 					// The panel and plot sit side by side from lg; below it they stack
 					// with the panel always under the map, so a left panel reverses
@@ -670,6 +738,7 @@ export function MapPlat<T = never>({
 				</MapPlotRegion>
 			}
 			plotRef={shape.ref}
+			tooltip={tooltip}
 			table={
 				hasReadout ? (
 					<MapTable

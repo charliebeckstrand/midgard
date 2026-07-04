@@ -1,8 +1,8 @@
 'use client'
 
-import { type ReactNode, type RefObject, useCallback, useMemo, useState } from 'react'
+import { type ReactNode, type RefObject, useMemo, useState } from 'react'
 import { cn } from '../../core'
-import { type FrameReserve, useRehoverOnScroll } from '../../hooks'
+import type { FrameReserve } from '../../hooks'
 import type { AccessibleName } from '../../types'
 import { ChartPlotBox } from './chart-plot-box'
 import type { ChartLegendPlacement } from './chart-schema'
@@ -11,6 +11,11 @@ import { ChartTable } from './chart-table'
 import { ChartTooltip } from './chart-tooltip'
 import { type ChartHover, ChartHoverContext, type ChartPoint } from './context'
 import type { ChartReadout } from './types'
+
+/** Whether two hover points coincide, so a redundant hover write can bail. @internal */
+function samePoint(a: ChartPoint | null, b: ChartPoint | null): boolean {
+	return a === b || (a !== null && b !== null && a.x === b.x && a.y === b.y)
+}
 
 /** Props for {@link ChartFrame}; the accessible name spreads onto the `role="img"` plot region. @internal */
 export type ChartFrameProps = AccessibleName & {
@@ -83,20 +88,20 @@ export function ChartFrame({
 		onData: boolean
 	}>({ index: null, point: null, onData: false })
 
-	const clear = useCallback(() => setPointed({ index: null, point: null, onData: false }), [])
-
 	const hover = useMemo<ChartHover>(
 		() => ({
 			...pointed,
-			set: (index, point, onData = true) => setPointed({ index, point, onData }),
+			// Bail on a no-op so a scroll's repeated clears — one per frame — cost a
+			// single render, and page scrolls far from this chart cost none.
+			set: (index, point, onData = true) =>
+				setPointed((prev) =>
+					prev.index === index && prev.onData === onData && samePoint(prev.point, point)
+						? prev
+						: { index, point, onData },
+				),
 		}),
 		[pointed],
 	)
-
-	// A scroll fires no pointer event over the hit layer, so replay the pointer
-	// where it rests to re-read the band under it as the plot shifts — the readout
-	// rides the moving marks and clears only once the pointer leaves them.
-	useRehoverOnScroll(pointed.index !== null, clear, ref)
 
 	// The SVG fills its box through the viewBox rather than pixel dimensions, so
 	// the box — not the marks — owns the size.

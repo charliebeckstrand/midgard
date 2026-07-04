@@ -92,6 +92,7 @@ export function MapPoint({ label, at, color, detail }: MapPointProps) {
 
 			<circle
 				data-slot="map-point-hit"
+				data-entry-id={id}
 				cx={position.x}
 				cy={position.y}
 				r={POINT_HIT_RADIUS}

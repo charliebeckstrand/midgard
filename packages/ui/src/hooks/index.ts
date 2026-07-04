@@ -32,6 +32,7 @@ export { useFloatingPanel, useFloatingUI } from './use-floating-ui'
 export { useFormattedInput } from './use-formatted-input'
 export { useGrabbingCursor } from './use-grabbing-cursor'
 export { useHasHover } from './use-has-hover'
+export { useHoverAcrossScroll } from './use-hover-across-scroll'
 export { useIdScope } from './use-id-scope'
 export { useIsTruncated } from './use-is-truncated'
 export { useKeybindings } from './use-keybindings'
@@ -48,7 +49,6 @@ export {
 	resolveFrameSizing,
 	usePlotFrame,
 } from './use-plot-frame'
-export { useRehoverOnScroll } from './use-rehover-on-scroll'
 export { useResizeObserver } from './use-resize-observer'
 export { useScrollLock } from './use-scroll-lock'
 export { useScrollWithin } from './use-scroll-within'
