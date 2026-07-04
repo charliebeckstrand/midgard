@@ -1,6 +1,7 @@
 'use client'
 
 import { type KeyboardEvent, useRef } from 'react'
+import { Button } from '../../components/button'
 import { cn } from '../../core'
 import { useA11yRoving } from '../../hooks/a11y'
 import { k } from '../../recipes/kata/map'
@@ -95,12 +96,12 @@ export function MapLegend({ items, hidden, onToggle, onFocus, panel = false }: M
 				const off = hidden.has(item.id)
 
 				return (
-					<button
+					<Button
 						key={item.id}
-						type="button"
+						size="sm"
+						variant="plain"
 						data-slot="map-legend-item"
 						aria-pressed={!off}
-						className={cn(k.legendItem)}
 						onClick={() => onToggle(item.id)}
 						onPointerEnter={() => onFocus(item.id)}
 						onPointerLeave={() => onFocus(null)}
@@ -112,22 +113,14 @@ export function MapLegend({ items, hidden, onToggle, onFocus, panel = false }: M
 							className={cn(swatchShape(item.swatch), item.swatchClass, off && 'opacity-40')}
 						/>
 
-						<span className={cn(k.label, 'text-lg lg:text-xs', off && 'line-through opacity-60')}>
-							{item.label}
-						</span>
+						<span className={cn(k.label, off && 'line-through opacity-60')}>{item.label}</span>
 
 						{item.detail && (
-							<span
-								className={cn(
-									k.label,
-									'whitespace-nowrap text-lg tabular-nums lg:text-xs',
-									off && 'opacity-60',
-								)}
-							>
+							<span className={cn(k.label, 'whitespace-nowrap tabular-nums', off && 'opacity-60')}>
 								{item.detail}
 							</span>
 						)}
-					</button>
+					</Button>
 				)
 			})}
 		</div>

@@ -18,15 +18,9 @@
  * reordering or re-shading.
  */
 import { mode } from '../../core/recipe'
-import { hannou, iro, kasane, kokkaku, sen } from '../kiso'
-
-const { cursor, tint } = hannou
+import { iro, kokkaku } from '../kiso'
 
 const { text } = iro
-
-const { rounded } = kasane
-
-const { focus } = sen
 
 /**
  * Per-colour mark classes: `stroke` for lines and markers, `fill` for bars,
@@ -120,22 +114,8 @@ export const k = {
 	axis: mode('stroke-zinc-300', 'dark:stroke-zinc-700'),
 	/** SVG tick-label ink: muted, tabular for vertical alignment. */
 	tick: ['text-xs', 'tabular-nums', ...mode('fill-zinc-500', 'dark:fill-zinc-400')],
-	/** Point-marker ring: white in both modes, so a dot stays legible crossing any line or fill. */
-	pointRing: mode('stroke-white', 'dark:stroke-white'),
 	/** Legend / tooltip label ink (HTML text; marks carry the colour, text never does). */
-	label: ['text-xs', ...text.muted],
-	/** An interactive legend entry: pointer cursor, ghost hover/focus wash, keyboard focus ring. */
-	legendItem: [
-		'flex',
-		'items-center',
-		'gap-1.5',
-		'px-1.5',
-		'py-0.5',
-		rounded.md,
-		...cursor,
-		...tint,
-		...focus.ring,
-	],
+	label: ['text-sm text-left', 'leading-tight', ...text.muted],
 	/** Tooltip value ink: the strong element, values lead. */
 	value: ['text-xs', 'font-medium', 'tabular-nums', ...text.default],
 	skeleton: kokkaku.chart,

@@ -182,7 +182,7 @@ describe('MapPlat', () => {
 		expect(bySlot(row.container, 'map-legend-box')?.getAttribute('class')).toContain('min-h-4')
 	})
 
-	it('lays the under-map legend out as a centered grid with larger text below lg', () => {
+	it('lays the under-map legend out as a centered grid', () => {
 		const { container } = renderUI(plat())
 
 		const legend = bySlot(container, 'map-legend')
@@ -193,13 +193,6 @@ describe('MapPlat', () => {
 		expect(legend?.getAttribute('class')).toContain('sm:grid-cols-2')
 
 		expect(legend?.getAttribute('class')).toContain('mx-auto')
-
-		// The button text enlarges below lg and returns to the compact size at lg.
-		const label = bySlot(container, 'map-legend-item')?.querySelector('span:nth-child(2)')
-
-		expect(label?.getAttribute('class')).toContain('text-lg')
-
-		expect(label?.getAttribute('class')).toContain('lg:text-xs')
 	})
 
 	it('toggles a category off: neutral fill, struck legend text, pressed off', () => {
@@ -215,7 +208,9 @@ describe('MapPlat', () => {
 
 		expect(alpha?.getAttribute('class')).toContain('fill-zinc-200')
 
-		expect(east?.querySelector('span:nth-child(2)')?.getAttribute('class')).toContain(
+		// The label is the third span — the Button's hit-target sibling and the
+		// swatch lead it.
+		expect(east?.querySelector('span:nth-child(3)')?.getAttribute('class')).toContain(
 			'line-through',
 		)
 	})

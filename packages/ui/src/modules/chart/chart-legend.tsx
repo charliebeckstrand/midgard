@@ -1,6 +1,7 @@
 'use client'
 
 import { type KeyboardEvent, useRef } from 'react'
+import { Button } from '../../components/button'
 import { cn } from '../../core'
 import { useA11yRoving } from '../../hooks/a11y'
 import { k } from '../../recipes/kata/chart'
@@ -80,12 +81,12 @@ export function ChartLegend({ items, hidden, onToggle, onFocus, panel = false }:
 				const off = hidden.has(index)
 
 				return (
-					<button
+					<Button
 						key={item.label}
-						type="button"
+						size="sm"
+						variant="plain"
 						data-slot="chart-legend-item"
 						aria-pressed={!off}
-						className={cn(k.legendItem)}
 						onClick={() => onToggle(index)}
 						onPointerEnter={() => onFocus(index)}
 						onPointerLeave={() => onFocus(null)}
@@ -108,7 +109,7 @@ export function ChartLegend({ items, hidden, onToggle, onFocus, panel = false }:
 								{item.detail}
 							</span>
 						)}
-					</button>
+					</Button>
 				)
 			})}
 		</div>

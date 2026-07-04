@@ -20,8 +20,6 @@ export const k = {
 	/** Shared data-viz palette: same slots, same order, same validation as `kata/chart`. */
 	series: chart.series,
 	order: chart.order,
-	/** An interactive legend entry, identical to the chart legend's. */
-	legendItem: chart.legendItem,
 	/** Legend / tooltip label ink (HTML text; marks carry the colour, text never does). */
 	label: chart.label,
 	/** Tooltip value ink: the strong element, values lead. */
