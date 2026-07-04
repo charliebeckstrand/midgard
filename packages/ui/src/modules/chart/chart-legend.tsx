@@ -2,14 +2,15 @@
 
 import { type KeyboardEvent, useRef } from 'react'
 import { Button } from '../../components/button'
+import { Swatch, type SwatchProps } from '../../components/swatch'
+import { Text } from '../../components/text'
 import { cn } from '../../core'
 import { useA11yRoving } from '../../hooks/a11y'
-import { k } from '../../recipes/kata/chart'
 
 /** One legend entry: the series name keyed by its mark-mirroring swatch. @internal */
 export type ChartLegendItem = {
 	label: string
-	/** Background class carrying the series colour. */
+	/** currentColor class carrying the series colour. */
 	swatchClass: string
 	/** Swatch shape, mirroring the mark: `rect` for bars and slices, `line` for lines. */
 	swatch: 'rect' | 'line'
@@ -32,6 +33,12 @@ export type ChartLegendProps = {
 	 */
 	panel?: boolean
 }
+
+/** Maps a mark shape to its {@link Swatch} shape. */
+const SWATCH_SHAPE = { rect: 'square', line: 'line' } as const satisfies Record<
+	ChartLegendItem['swatch'],
+	NonNullable<SwatchProps['shape']>
+>
 
 /**
  * The legend — the dependable identity channel for two or more series, and
@@ -74,7 +81,7 @@ export function ChartLegend({ items, hidden, onToggle, onFocus, panel = false }:
 			className={cn(
 				panel
 					? 'flex flex-col items-start gap-1'
-					: 'flex flex-wrap items-center justify-center gap-x-2 gap-y-1',
+					: 'flex flex-wrap items-center justify-center gap-x-2',
 			)}
 		>
 			{items.map((item, index) => {
@@ -93,21 +100,30 @@ export function ChartLegend({ items, hidden, onToggle, onFocus, panel = false }:
 						onFocus={() => onFocus(index)}
 						onBlur={() => onFocus(null)}
 					>
-						<span
-							aria-hidden="true"
-							className={cn(
-								item.swatch === 'rect' ? 'size-2.5 rounded-xs' : 'h-0.5 w-3 rounded-full',
-								item.swatchClass,
-								off && 'opacity-40',
-							)}
+						<Swatch
+							shape={SWATCH_SHAPE[item.swatch]}
+							color={item.swatchClass}
+							className={cn(off && 'opacity-40')}
 						/>
 
-						<span className={cn(k.label, off && 'line-through opacity-60')}>{item.label}</span>
+						<Text
+							as="span"
+							severity="muted"
+							size="sm"
+							className={cn('text-left leading-tight', off && 'line-through opacity-60')}
+						>
+							{item.label}
+						</Text>
 
 						{item.detail && (
-							<span className={cn(k.label, 'tabular-nums', off && 'opacity-60')}>
+							<Text
+								as="span"
+								severity="muted"
+								size="sm"
+								className={cn('text-left leading-tight tabular-nums', off && 'opacity-60')}
+							>
 								{item.detail}
-							</span>
+							</Text>
 						)}
 					</Button>
 				)

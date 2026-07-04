@@ -1,6 +1,8 @@
 import { RefreshCw } from 'lucide-react'
-import { type ReactNode, useState } from 'react'
+import { type ReactNode, useEffect, useState } from 'react'
+import statesUrl from 'us-atlas/states-10m.json?url'
 import { Button } from '../../../../components/button'
+import { Container } from '../../../../components/container'
 import { Icon } from '../../../../components/icon'
 import { Stack } from '../../../../components/stack'
 import { Stat, StatLabel, StatValue } from '../../../../components/stat'
@@ -8,12 +10,15 @@ import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../../compone
 import {
 	AreaChart,
 	BarChart,
+	ChoroplethChart,
 	ComboChart,
 	DonutChart,
 	LineChart,
 	PieChart,
 } from '../../../../modules/chart'
+import type { MapGeography } from '../../../../modules/map'
 import { code, Example } from '../../../engine'
+import { heat, statePopulation } from './data'
 
 type Month = { month: string; revenue: number; costs: number; margin: number }
 
@@ -54,6 +59,30 @@ const usd = new Intl.NumberFormat(undefined, {
 	maximumFractionDigits: 0,
 })
 
+// Atlas data stays out of the package: fetch the us-atlas TopoJSON as a static
+// asset on first render, the same shape a consumer's lazily-loaded geography
+// takes. `null` until it lands — the choropleth reserves its frame meanwhile.
+function useGeography(url: string): MapGeography | null {
+	const [geography, setGeography] = useState<MapGeography | null>(null)
+
+	useEffect(() => {
+		let cancelled = false
+
+		fetch(url)
+			.then((response) => response.json())
+			.then((json: MapGeography) => {
+				if (!cancelled) setGeography(json)
+			})
+			.catch(() => {})
+
+		return () => {
+			cancelled = true
+		}
+	}, [url])
+
+	return geography
+}
+
 // The mount animation plays once; a refresh button remounts the chart
 // (bumping its `key`) so the reveal replays on demand.
 function AnimatedExample({
@@ -86,17 +115,15 @@ function AnimatedExample({
 	)
 }
 
-const Container = ({ children, size = 'lg' }: { children: ReactNode; size?: string }) => {
-	const sizeMap: Record<string, string> = {
-		sm: 'sm:max-w-sm',
-		md: 'md:max-w-md',
-		lg: 'lg:max-w-lg',
-	}
-
-	return <div className={size ? `${sizeMap[size]}` : undefined}>{children}</div>
-}
+const ChartContainer = ({ children, size }: { children: ReactNode; size?: number }) => (
+	<Container size={size ?? 720} padding="none" center={false}>
+		{children}
+	</Container>
+)
 
 export function Demo() {
+	const states = useGeography(statesUrl)
+
 	return (
 		<Tabs defaultValue="bar">
 			<Stack gap="lg">
@@ -107,12 +134,13 @@ export function Demo() {
 					<Tab value="pie">Pie</Tab>
 					<Tab value="donut">Donut</Tab>
 					<Tab value="combo">Combo</Tab>
+					<Tab value="choropleth">Choropleth</Tab>
 				</TabList>
 				<TabContents>
 					<TabContent value="bar">
 						<Stack gap="xl">
 							<Example title="Grouped" code={code`<BarChart … />`}>
-								<Container>
+								<ChartContainer>
 									<BarChart
 										aria-label="Revenue and costs by month"
 										data={months}
@@ -121,25 +149,25 @@ export function Demo() {
 											{ xKey: 'month', yKey: 'costs', yName: 'Costs' },
 										]}
 									/>
-								</Container>
+								</ChartContainer>
 							</Example>
 
 							<Example title="Negative values" code={code`<BarChart crosshair … />`}>
-								<Container>
+								<ChartContainer>
 									<BarChart
 										aria-label="Month-over-month swing"
 										data={swings}
 										series={[{ xKey: 'month', yKey: 'delta', yName: 'Swing' }]}
 										crosshair
 									/>
-								</Container>
+								</ChartContainer>
 							</Example>
 
 							<Example
 								title="Formatted values"
 								code={code`<BarChart formatValue={(value) => usd.format(value)} … />`}
 							>
-								<Container>
+								<ChartContainer>
 									<BarChart
 										aria-label="Budget by month in dollars"
 										data={budget}
@@ -149,11 +177,11 @@ export function Demo() {
 										]}
 										formatValue={(value) => usd.format(value)}
 									/>
-								</Container>
+								</ChartContainer>
 							</Example>
 
 							<AnimatedExample title="Animated" source={code`<BarChart animate … />`}>
-								<Container>
+								<ChartContainer>
 									<BarChart
 										aria-label="Revenue and costs by month, animated"
 										data={months}
@@ -163,7 +191,7 @@ export function Demo() {
 										]}
 										animate
 									/>
-								</Container>
+								</ChartContainer>
 							</AnimatedExample>
 						</Stack>
 					</TabContent>
@@ -171,17 +199,17 @@ export function Demo() {
 					<TabContent value="line">
 						<Stack gap="xl">
 							<Example title="Single-series" code={code`<LineChart … />`}>
-								<Container>
+								<ChartContainer>
 									<LineChart
 										aria-label="Revenue by month"
 										data={months}
 										series={[{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' }]}
 									/>
-								</Container>
+								</ChartContainer>
 							</Example>
 
 							<Example title="Multi-series" code={code`<LineChart crosshair={{ snap: true }} … />`}>
-								<Container>
+								<ChartContainer>
 									<LineChart
 										aria-label="Revenue and margin by month"
 										data={months}
@@ -192,25 +220,25 @@ export function Demo() {
 										]}
 										crosshair={{ snap: true }}
 									/>
-								</Container>
+								</ChartContainer>
 							</Example>
 
 							<Example title="Points" code={code`<LineChart fill points … />`}>
-								<Container>
+								<ChartContainer>
 									<LineChart
 										aria-label="Revenue by month"
 										data={months}
 										series={[{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' }]}
 										points
 									/>
-								</Container>
+								</ChartContainer>
 							</Example>
 
 							<Example
 								title="Smooth interpolation"
 								code={code`<LineChart interpolation="smooth" … />`}
 							>
-								<Container>
+								<ChartContainer>
 									<LineChart
 										aria-label="Revenue and margin by month, smoothed"
 										data={months}
@@ -220,22 +248,22 @@ export function Demo() {
 										]}
 										interpolation="smooth"
 									/>
-								</Container>
+								</ChartContainer>
 							</Example>
 
 							<Example title="Fill" code={code`<LineChart fill … />`}>
-								<Container>
+								<ChartContainer>
 									<LineChart
 										aria-label="Revenue by month"
 										data={months}
 										series={[{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' }]}
 										fill
 									/>
-								</Container>
+								</ChartContainer>
 							</Example>
 
 							<AnimatedExample title="Animated" source={code`<LineChart animate … />`}>
-								<Container>
+								<ChartContainer>
 									<LineChart
 										aria-label="Revenue and margin by month, animated"
 										data={months}
@@ -246,7 +274,7 @@ export function Demo() {
 										fill
 										animate
 									/>
-								</Container>
+								</ChartContainer>
 							</AnimatedExample>
 						</Stack>
 					</TabContent>
@@ -254,17 +282,17 @@ export function Demo() {
 					<TabContent value="area">
 						<Stack gap="xl">
 							<Example title="Single-series" code={code`<AreaChart … />`}>
-								<Container>
+								<ChartContainer>
 									<AreaChart
 										aria-label="Revenue by month"
 										data={months}
 										series={[{ xKey: 'month', yKey: 'revenue', yName: 'Revenue', color: 'orange' }]}
 									/>
-								</Container>
+								</ChartContainer>
 							</Example>
 
 							<Example title="Stacked" code={code`<AreaChart stacked … />`}>
-								<Container>
+								<ChartContainer>
 									<AreaChart
 										aria-label="Revenue and costs by month, stacked"
 										data={months}
@@ -274,14 +302,14 @@ export function Demo() {
 										]}
 										stacked
 									/>
-								</Container>
+								</ChartContainer>
 							</Example>
 
 							<Example
 								title="Smooth interpolation"
 								code={code`<AreaChart interpolation="smooth" crosshair={{ x: false, y: true }} … />`}
 							>
-								<Container>
+								<ChartContainer>
 									<AreaChart
 										aria-label="Revenue and margin by month"
 										data={months}
@@ -292,11 +320,11 @@ export function Demo() {
 										interpolation="smooth"
 										crosshair={{ x: false, y: true }}
 									/>
-								</Container>
+								</ChartContainer>
 							</Example>
 
 							<AnimatedExample title="Animated" source={code`<AreaChart stacked animate … />`}>
-								<Container>
+								<ChartContainer>
 									<AreaChart
 										aria-label="Revenue and costs by month, stacked and animated"
 										data={months}
@@ -307,7 +335,7 @@ export function Demo() {
 										stacked
 										animate
 									/>
-								</Container>
+								</ChartContainer>
 							</AnimatedExample>
 						</Stack>
 					</TabContent>
@@ -315,52 +343,52 @@ export function Demo() {
 					<TabContent value="pie">
 						<Stack gap="xl">
 							<Example title="No labels" code={code`<PieChart … />`}>
-								<Container size="sm">
+								<ChartContainer size={360}>
 									<PieChart
 										aria-label="Traffic by source"
 										data={sources}
 										series={[{ xKey: 'source', yKey: 'visits' }]}
 									/>
-								</Container>
+								</ChartContainer>
 							</Example>
 
 							<Example
 								title="Segment labels"
 								code={code`<PieChart labels={{ segment: true }} legend={false} … />`}
 							>
-								<Container size="sm">
+								<ChartContainer size={360}>
 									<PieChart
 										aria-label="Traffic by source"
 										data={sources}
 										series={[{ xKey: 'source', yKey: 'visits' }]}
 										labels={{ segment: true }}
 									/>
-								</Container>
+								</ChartContainer>
 							</Example>
 
 							<Example
 								title="Callout labels"
 								code={code`<PieChart labels={{ callouts: true }} … />`}
 							>
-								<Container>
+								<ChartContainer size={480}>
 									<PieChart
 										aria-label="Traffic by source"
 										data={sources}
 										series={[{ xKey: 'source', yKey: 'visits' }]}
 										labels={{ callouts: true }}
 									/>
-								</Container>
+								</ChartContainer>
 							</Example>
 
 							<AnimatedExample title="Animated" source={code`<PieChart animate … />`}>
-								<Container size="sm">
+								<ChartContainer size={360}>
 									<PieChart
 										aria-label="Traffic by source, animated"
 										data={sources}
 										series={[{ xKey: 'source', yKey: 'visits' }]}
 										animate
 									/>
-								</Container>
+								</ChartContainer>
 							</AnimatedExample>
 						</Stack>
 					</TabContent>
@@ -368,17 +396,17 @@ export function Demo() {
 					<TabContent value="donut">
 						<Stack gap="xl">
 							<Example title="Basic" code={code`<DonutChart>`}>
-								<Container size="sm">
+								<ChartContainer size={360}>
 									<DonutChart
 										aria-label="Traffic by source"
 										data={sources}
 										series={[{ xKey: 'source', yKey: 'visits' }]}
 									/>
-								</Container>
+								</ChartContainer>
 							</Example>
 
 							<Example title="Center content" code={code`<DonutChart>…</DonutChart>`}>
-								<Container size="sm">
+								<ChartContainer size={360}>
 									<DonutChart
 										aria-label="Traffic by source"
 										data={sources}
@@ -389,18 +417,18 @@ export function Demo() {
 											<StatValue>9,340</StatValue>
 										</Stat>
 									</DonutChart>
-								</Container>
+								</ChartContainer>
 							</Example>
 
 							<AnimatedExample title="Animated" source={code`<DonutChart animate … />`}>
-								<Container size="sm">
+								<ChartContainer size={360}>
 									<DonutChart
 										aria-label="Traffic by source, animated"
 										data={sources}
 										series={[{ xKey: 'source', yKey: 'visits' }]}
 										animate
 									/>
-								</Container>
+								</ChartContainer>
 							</AnimatedExample>
 						</Stack>
 					</TabContent>
@@ -411,7 +439,7 @@ export function Demo() {
 								title="Bar and line"
 								code={code`<ComboChart crosshair={{ snap: true }} … />`}
 							>
-								<Container>
+								<ChartContainer>
 									<ComboChart
 										aria-label="Revenue bars with margin line by month"
 										data={months}
@@ -421,11 +449,11 @@ export function Demo() {
 										]}
 										crosshair={{ snap: true }}
 									/>
-								</Container>
+								</ChartContainer>
 							</Example>
 
 							<AnimatedExample title="Animated" source={code`<ComboChart animate … />`}>
-								<Container>
+								<ChartContainer>
 									<ComboChart
 										aria-label="Revenue bars with margin line by month, animated"
 										data={months}
@@ -435,8 +463,37 @@ export function Demo() {
 										]}
 										animate
 									/>
-								</Container>
+								</ChartContainer>
 							</AnimatedExample>
+						</Stack>
+					</TabContent>
+
+					<TabContent value="choropleth">
+						<Stack gap="xl">
+							<Example
+								title="Heatmap"
+								code={code`<ChoroplethChart legend="range" series={[{ …, colorRange: heat }]} … />`}
+							>
+								<ChartContainer>
+									<ChoroplethChart
+										aria-label="Resident population by state, heatmap"
+										geography={states}
+										projection="albers-usa"
+										legend="range"
+										data={statePopulation}
+										series={[
+											{
+												idKey: 'state',
+												colorKey: 'people',
+												colorRange: heat,
+												colorName: 'Population',
+											},
+										]}
+										regionId={(feature) => String(feature.properties?.name)}
+										formatValue={(value) => `${value.toFixed(1)}M`}
+									/>
+								</ChartContainer>
+							</Example>
 						</Stack>
 					</TabContent>
 				</TabContents>

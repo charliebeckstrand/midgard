@@ -28,9 +28,11 @@ import { type MapPoint2D, projectPoint, regionPaths } from './map-geometry'
 import { staticMapGeometry } from './map-geometry-cache'
 import { MapLegend, type MapLegendItem } from './map-legend'
 import { fitMapProjection, mapFrameSizing, projectionFallbackAspect } from './map-projection'
+import { MapRangeLegend, type MapRangeLegendProps } from './map-range-legend'
 import { MapRegions } from './map-regions'
 import { MapTable } from './map-table'
 import { MapTooltip, type MapTooltipEntry } from './map-tooltip'
+import { regionValueIndexes, resolveValueBins } from './map-value-scale'
 import type {
 	DataKey,
 	LngLat,
@@ -45,28 +47,73 @@ import type { MapOverlayEntry } from './use-map-legend-registry'
 import { useMapLegendRegistry } from './use-map-legend-registry'
 import { useMapToggle } from './use-map-toggle'
 
+/** The rows and the field that matches each to a region; shared by both colour modes. @internal */
+type MapRegionRows<T> = {
+	/** The rows to colour regions by. */
+	data: T[]
+	/** The field matching a row to a region's id (see `regionId`). */
+	regionKey: DataKey<T>
+}
+
+/** The numeric-mode fields, absent (as `undefined`) on the categorical and empty branches. @internal */
+type MapNumericAbsent = {
+	valueKey?: undefined
+	colorRange?: undefined
+	bins?: undefined
+	domain?: undefined
+	valueFormat?: undefined
+	valueName?: undefined
+}
+
+/** Regions coloured by a categorical field, its slot colours resolved in a fixed order. @internal */
+type MapCategoricalData<T> = MapRegionRows<T> &
+	MapNumericAbsent & {
+		/** The field holding the row's category value. */
+		categoryKey: DataKey<T>
+		/**
+		 * Explicit category order, labels, and colours; derived from the data in
+		 * first-appearance order when omitted.
+		 */
+		categories?: MapCategory[]
+	}
+
+/** Regions shaded along a sequential ramp by a numeric field — a choropleth. @internal */
+type MapNumericData<T> = MapRegionRows<T> & {
+	/** The field holding the row's numeric value; shades regions along the colour range. */
+	valueKey: DataKey<T>
+	/** Ordered CSS colour stops the bins sample, low → high — the data-driven scale. */
+	colorRange: string[]
+	/**
+	 * Equal-interval bin count for the ramp and its legend.
+	 * @defaultValue one bin per `colorRange` stop
+	 */
+	bins?: number
+	/** Fixed `[min, max]` for the ramp; derived from the data extent when omitted. */
+	domain?: [number, number]
+	/** Formats the bin-range labels, the tooltip value, and the table cell. */
+	valueFormat?: (value: number) => string
+	/** The value's display name; the table's value-column header. */
+	valueName?: string
+	categoryKey?: undefined
+	categories?: undefined
+}
+
+/** A data-less map: it draws its geography in the neutral fill as a backdrop for overlays. @internal */
+type MapNoData = MapNumericAbsent & {
+	data?: undefined
+	regionKey?: undefined
+	categoryKey?: undefined
+	categories?: undefined
+}
+
 /**
- * The categorical region-data trio — rows, region key, category key — travels
- * together or not at all: a map without data draws its geography in the
- * neutral fill as a backdrop for overlays.
+ * The region-data the map colours by: a categorical field, a numeric field (a
+ * choropleth), or nothing. The category and value keys are mutually exclusive;
+ * each mode's fields travel together or not at all.
  *
  * @internal
  */
-type MapRegionData<T> =
-	| {
-			/** The rows to colour regions by. */
-			data: T[]
-			/** The field matching a row to a region's id (see `regionId`). */
-			regionKey: DataKey<T>
-			/** The field holding the row's category value. */
-			categoryKey: DataKey<T>
-			/**
-			 * Explicit category order, labels, and colours; derived from the data
-			 * in first-appearance order when omitted.
-			 */
-			categories?: MapCategory[]
-	  }
-	| { data?: undefined; regionKey?: undefined; categoryKey?: undefined; categories?: undefined }
+type MapRegionData<T> = MapCategoricalData<T> | MapNumericData<T> | MapNoData
 
 /**
  * Props for {@link MapPlat}. Requires an accessible name — the plot is
@@ -120,15 +167,16 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 * Show the legend. Defaults to on when there are two or more categories
 		 * or any registered overlay — the identity channel colour alone must
 		 * never carry. A placement moves the centered row under the plot
-		 * (`'bottom'`, the default) or above it (`'top'`), or a column panel
-		 * beside it (`'left'` / `'right'`), side by side from `lg` and under the
-		 * map below that. Overlay entries register from the client, so they join
-		 * the legend after hydration; the legend's box mounts ahead of them —
-		 * one row of height for the row placements, a fixed panel width beside
-		 * the plot — so late-landing buttons never resize the map or shift the
-		 * frame.
+		 * (`'bottom'`) or above it (`'top'`), or a column panel beside it
+		 * (`'left'` / `'right'`), side by side from `lg` and under the map below
+		 * that. `'range'` (numeric mode only) swaps the binned switchboard for a
+		 * continuous colour-scale bar beside the plot — the heatmap legend. The
+		 * default placement is `'bottom'` for categorical maps and `'right'` for
+		 * the numeric choropleth. Overlay entries register from the client, so
+		 * they join the legend after hydration; the legend's box mounts ahead of
+		 * them so late-landing buttons never resize the map or shift the frame.
 		 */
-		legend?: boolean | MapLegendPlacement
+		legend?: boolean | MapLegendPlacement | 'range'
 		/**
 		 * Show the hover tooltip naming the pointed region or overlay.
 		 * @defaultValue true
@@ -248,29 +296,33 @@ function useMapShape(
 	return { ref, boxHeight: frameHeight, reserve, viewWidth, viewHeight, paths, features, project }
 }
 
-/** The resolved categorical readout behind the regions. @internal */
+/** The resolved categorical or numeric readout behind the regions. @internal */
 type MapRegionReadout = {
 	categoryMetas: MapCategoryMeta[]
 	regionNames: string[]
-	/** Each region's category index, `null` where no datum matches. */
+	/** Each region's category / bin index, `null` where no datum matches. */
 	regionCategory: (number | null)[]
+	/** The numeric value extent in the numeric (choropleth) mode; `null` otherwise. Feeds the range legend. */
+	domain: [number, number] | null
 }
 
-/** Resolves the categories and matches each region to its row's. @internal */
+/** Resolves the categories or choropleth bins and matches each region to its bin. @internal */
 function useMapRegionReadout<T>(
 	features: MapFeature[],
-	{ data, regionKey, categoryKey, categories }: MapRegionData<T>,
+	{
+		data,
+		regionKey,
+		categoryKey,
+		categories,
+		valueKey,
+		colorRange,
+		bins,
+		domain,
+		valueFormat,
+	}: MapRegionData<T>,
 	regionId: ((feature: MapFeature) => string) | undefined,
 	regionLabel: ((feature: MapFeature) => string) | undefined,
 ): MapRegionReadout {
-	const categoryMetas = useMemo(
-		() =>
-			data !== undefined && categoryKey !== undefined
-				? resolveCategories(data, categoryKey, categories)
-				: [],
-		[data, categoryKey, categories],
-	)
-
 	const regionIds = useMemo(() => features.map(regionId ?? defaultRegionId), [features, regionId])
 
 	const regionNames = useMemo(
@@ -278,15 +330,70 @@ function useMapRegionReadout<T>(
 		[features, regionLabel],
 	)
 
-	const regionCategory = useMemo(
-		() =>
-			data !== undefined && regionKey !== undefined && categoryKey !== undefined
-				? regionCategoryIndexes(regionIds, data, regionKey, categoryKey, categoryMetas)
-				: regionIds.map(() => null),
-		[regionIds, data, regionKey, categoryKey, categoryMetas],
-	)
+	// One resolution: the numeric branch bins by value along a ramp, the
+	// categorical branch resolves slot colours, and a data-less map leaves every
+	// region on the neutral fill. Both branches emit the same meta + index shape,
+	// so the regions, legend, tooltip, and table read either unchanged.
+	const {
+		categoryMetas,
+		regionCategory,
+		domain: extent,
+	} = useMemo<{
+		categoryMetas: MapCategoryMeta[]
+		regionCategory: (number | null)[]
+		domain: [number, number] | null
+	}>(() => {
+		if (data === undefined || regionKey === undefined) {
+			return { categoryMetas: [], regionCategory: regionIds.map(() => null), domain: null }
+		}
 
-	return { categoryMetas, regionNames, regionCategory }
+		if (valueKey !== undefined && colorRange !== undefined) {
+			const { metas, domain: resolved } = resolveValueBins(data, valueKey, {
+				colorRange,
+				bins,
+				domain,
+				format: valueFormat ?? ((value) => String(value)),
+			})
+
+			return {
+				categoryMetas: metas,
+				regionCategory: regionValueIndexes(
+					regionIds,
+					data,
+					regionKey,
+					valueKey,
+					metas.length,
+					resolved,
+				),
+				domain: resolved,
+			}
+		}
+
+		if (categoryKey !== undefined) {
+			const metas = resolveCategories(data, categoryKey, categories)
+
+			return {
+				categoryMetas: metas,
+				regionCategory: regionCategoryIndexes(regionIds, data, regionKey, categoryKey, metas),
+				domain: null,
+			}
+		}
+
+		return { categoryMetas: [], regionCategory: regionIds.map(() => null), domain: null }
+	}, [
+		data,
+		regionKey,
+		categoryKey,
+		categories,
+		valueKey,
+		colorRange,
+		bins,
+		domain,
+		valueFormat,
+		regionIds,
+	])
+
+	return { categoryMetas, regionNames, regionCategory, domain: extent }
 }
 
 /**
@@ -318,7 +425,7 @@ function MapMarksLayer({ animate, children }: { animate: boolean; children: Reac
  * @internal
  */
 function legendCanShow(
-	legend: boolean | MapLegendPlacement | undefined,
+	legend: boolean | MapLegendPlacement | 'range' | undefined,
 	categoryCount: number,
 	entryCount: number,
 	children: ReactNode,
@@ -326,6 +433,24 @@ function legendCanShow(
 	if (legend !== undefined) return legend !== false
 
 	return categoryCount > 1 || entryCount > 0 || children != null
+}
+
+/**
+ * The legend's placement: `'range'` and the numeric (choropleth) mode read on
+ * the right by default; categorical maps keep the centered bottom row. An
+ * explicit placement always wins.
+ *
+ * @internal
+ */
+function resolveLegendPlacement(
+	legend: boolean | MapLegendPlacement | 'range' | undefined,
+	numeric: boolean,
+): MapLegendPlacement {
+	if (legend === 'range') return 'right'
+
+	if (typeof legend === 'string') return legend
+
+	return numeric ? 'right' : 'bottom'
 }
 
 /** Props for {@link MapLegendSlot}: the reserved box and the toolbar it holds. @internal */
@@ -365,23 +490,48 @@ function MapLegendSlot({ show, aside, items, hidden, onToggle, onFocus }: MapLeg
 	)
 }
 
-/** The legend entries: the region categories, then every registered overlay. @internal */
+/** Props for {@link MapLegendRegion}: the binned switchboard, or the range scale bar when `range` is set. @internal */
+type MapLegendRegionProps = MapLegendSlotProps & {
+	/** When set, paint the continuous colour-scale bar (range mode) instead of the switchboard. */
+	range: MapRangeLegendProps | null
+}
+
+/** The legend beside or under the plot: the continuous scale bar in range mode, else the binned switchboard. @internal */
+function MapLegendRegion({ range, ...slot }: MapLegendRegionProps) {
+	if (range) return <MapRangeLegend {...range} />
+
+	return <MapLegendSlot {...slot} />
+}
+
+/**
+ * The legend entries: the region categories, then every registered overlay.
+ * A numeric choropleth lists its bins largest-first (descending), matching the
+ * range bar's high-at-top scale; the bin ids stay bound to their value order.
+ *
+ * @internal
+ */
 function legendItems(
 	categories: MapCategoryMeta[],
 	entries: MapOverlayEntry[],
 	colors: ReadonlyMap<string, MapSeriesColor>,
+	descending: boolean,
 ): MapLegendItem[] {
 	const categoryItems = categories.map((meta, index) => ({
 		id: `category:${index}`,
 		label: meta.label,
-		swatchClass: cn(meta.paint.bg),
+		// A categorical slot carries a currentColor class; a numeric bin an inline value.
+		...(meta.paint.kind === 'value'
+			? { swatchColor: meta.paint.color }
+			: { swatchClass: cn(meta.paint.text) }),
 		swatch: 'rect' as const,
 	}))
+
+	if (descending) categoryItems.reverse()
 
 	const entryItems = entries.map((entry) => ({
 		id: entry.id,
 		label: entry.label,
-		swatchClass: cn(k.series[colors.get(entry.id) ?? 'blue'].bg),
+		swatchClass: cn(k.series[colors.get(entry.id) ?? 'blue'].text),
 		swatch: entry.swatch,
 		detail: entry.detail,
 	}))
@@ -519,7 +669,7 @@ function MapFrame({
 	return (
 		<div
 			data-slot="map"
-			className={cn('flex flex-col gap-3', width === undefined && 'w-full', className)}
+			className={cn('flex flex-col gap-4', width === undefined && 'w-full', className)}
 			style={width === undefined ? undefined : { width }}
 		>
 			<MapHoverProvider enabled={tooltip} plotRef={plotRef}>
@@ -529,8 +679,8 @@ function MapFrame({
 					// the row instead of moving in the DOM.
 					<div
 						className={cn(
-							'flex flex-col gap-2 lg:items-center',
-							legendPlacement === 'left' ? 'lg:flex-row-reverse' : 'lg:flex-row',
+							'flex flex-col gap-4 items-center',
+							legendPlacement === 'left' ? 'flex-row-reverse' : 'flex-row',
 						)}
 					>
 						{plotRegion}
@@ -582,6 +732,17 @@ function MapPlotRegion({ shape, aside, tooltip, children, ...name }: MapPlotRegi
 	)
 }
 
+/** The data table's value-column header: the value's name in numeric mode, else the category field. @internal */
+function valueColumnHeader(
+	categoryKey: string | undefined,
+	valueKey: string | undefined,
+	valueName: string | undefined,
+): string {
+	if (valueKey !== undefined) return valueName ?? valueKey
+
+	return categoryKey ?? 'Detail'
+}
+
 /**
  * An SVG geography map on the chart module's interaction grammar: regions
  * coloured by category from typed rows, one merged legend where pointing an
@@ -604,6 +765,12 @@ export function MapPlat<T = never>({
 	regionKey,
 	categoryKey,
 	categories,
+	valueKey,
+	colorRange,
+	bins,
+	domain,
+	valueFormat,
+	valueName,
 	regionId,
 	regionLabel,
 	width,
@@ -618,9 +785,24 @@ export function MapPlat<T = never>({
 }: MapPlatProps<T>) {
 	const shape = useMapShape(geography, geographyObject, projection, width, height, aspectRatio)
 
-	const { categoryMetas, regionNames, regionCategory } = useMapRegionReadout(
+	const {
+		categoryMetas,
+		regionNames,
+		regionCategory,
+		domain: valueExtent,
+	} = useMapRegionReadout(
 		shape.features,
-		{ data, regionKey, categoryKey, categories } as MapRegionData<T>,
+		{
+			data,
+			regionKey,
+			categoryKey,
+			categories,
+			valueKey,
+			colorRange,
+			bins,
+			domain,
+			valueFormat,
+		} as MapRegionData<T>,
 		regionId,
 		regionLabel,
 	)
@@ -661,7 +843,7 @@ export function MapPlat<T = never>({
 					{
 						label: entry.label,
 						swatch: entry.swatch,
-						swatchClass: cn(k.series[colors.get(entry.id) ?? 'blue'].bg),
+						swatchClass: cn(k.series[colors.get(entry.id) ?? 'blue'].text),
 						detail: entry.detail,
 					},
 				]),
@@ -671,9 +853,26 @@ export function MapPlat<T = never>({
 
 	const showLegend = legendCanShow(legend, categoryMetas.length, entries.length, children)
 
-	const legendPlacement: MapLegendPlacement = typeof legend === 'string' ? legend : 'bottom'
+	const numeric = valueKey !== undefined
+
+	const legendPlacement = resolveLegendPlacement(legend, numeric)
 
 	const aside = legendPlacement === 'left' || legendPlacement === 'right'
+
+	// Range mode paints the continuous scale bar instead of the switchboard —
+	// numeric only, and only once the value extent resolves.
+	const rangeLegend: MapRangeLegendProps | null =
+		legend === 'range' && numeric && colorRange !== undefined && valueExtent !== null
+			? {
+					colorRange,
+					domain: valueExtent,
+					format: valueFormat ?? ((value) => String(value)),
+					label: valueName,
+					bins: categoryMetas.length,
+					regionCategory,
+					onFocus: setFocus,
+				}
+			: null
 
 	// The SVG fills its box through the viewBox rather than pixel dimensions, so
 	// the box — not the marks — owns the size. The view frame is the canonical
@@ -707,10 +906,11 @@ export function MapPlat<T = never>({
 	return (
 		<MapFrame
 			legendNode={
-				<MapLegendSlot
+				<MapLegendRegion
+					range={rangeLegend}
 					show={showLegend}
 					aside={aside}
-					items={legendItems(categoryMetas, entries, colors)}
+					items={legendItems(categoryMetas, entries, colors, numeric)}
 					hidden={hidden}
 					onToggle={toggle}
 					onFocus={setFocus}
@@ -742,7 +942,7 @@ export function MapPlat<T = never>({
 			table={
 				hasReadout ? (
 					<MapTable
-						header={categoryKey === undefined ? 'Detail' : String(categoryKey)}
+						header={valueColumnHeader(categoryKey, valueKey, valueName)}
 						regionNames={data === undefined ? [] : regionNames}
 						regionCategory={regionCategory}
 						categories={categoryMetas}

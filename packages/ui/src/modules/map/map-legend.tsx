@@ -2,17 +2,20 @@
 
 import { type KeyboardEvent, useRef } from 'react'
 import { Button } from '../../components/button'
+import { Swatch, type SwatchProps } from '../../components/swatch'
+import { Text } from '../../components/text'
 import { cn } from '../../core'
 import { useA11yRoving } from '../../hooks/a11y'
-import { k } from '../../recipes/kata/map'
 
 /** One legend entry: a category or overlay named by its mark-mirroring swatch. @internal */
 export type MapLegendItem = {
 	/** The toggle / emphasis key: `category:<index>` or a registered overlay id. */
 	id: string
 	label: string
-	/** Background class carrying the entry's colour. */
-	swatchClass: string
+	/** currentColor class carrying the entry's colour (categorical slots and overlays). */
+	swatchClass?: string
+	/** Inline CSS colour carrying the entry's colour (numeric choropleth bins). */
+	swatchColor?: string
 	/** Swatch shape, mirroring the mark: `rect` for regions, `line` for routes and markers, `dot` for points. */
 	swatch: 'rect' | 'line' | 'dot'
 	/** A trailing readout — a route's mileage, a point's value. */
@@ -35,14 +38,11 @@ export type MapLegendProps = {
 	panel?: boolean
 }
 
-/** The swatch classes per shape, mirroring the mark each entry stands for. @internal */
-function swatchShape(swatch: MapLegendItem['swatch']): string {
-	if (swatch === 'rect') return 'size-2.5 rounded-xs'
-
-	if (swatch === 'dot') return 'size-2 rounded-full'
-
-	return 'h-0.5 w-3 rounded-full'
-}
+/** Maps a mark shape to its {@link Swatch} shape. */
+const SWATCH_SHAPE = { rect: 'square', line: 'line', dot: 'circle' } as const satisfies Record<
+	MapLegendItem['swatch'],
+	NonNullable<SwatchProps['shape']>
+>
 
 /**
  * The map's legend — one switchboard merging the region categories with every
@@ -59,9 +59,13 @@ function swatchShape(swatch: MapLegendItem['swatch']): string {
 export function MapLegend({ items, hidden, onToggle, onFocus, panel = false }: MapLegendProps) {
 	const ref = useRef<HTMLDivElement>(null)
 
+	// The side panel lays the entries in a column, so the arrows rove vertically
+	// there and horizontally under the map — the axis matches the layout.
+	const orientation = panel ? 'vertical' : 'horizontal'
+
 	const onKeyDown = useA11yRoving(ref, {
 		itemSelector: '[data-slot="map-legend-item"]',
-		orientation: 'horizontal',
+		orientation,
 		manageTabIndex: true,
 	})
 
@@ -80,16 +84,13 @@ export function MapLegend({ items, hidden, onToggle, onFocus, panel = false }: M
 			ref={ref}
 			data-slot="map-legend"
 			role="toolbar"
-			aria-orientation="horizontal"
+			aria-orientation={orientation}
 			onKeyDown={handleKeyDown}
 			className={cn(
-				// Under the map — the row placements, and the side panel once it
-				// stacks below lg — the buttons lay out as a centered grid: fully
-				// stacked below sm, an even two columns from sm, so they line up in
-				// a block instead of wrapping ragged. The side panel returns to a
-				// single left-aligned column beside the map from lg up.
-				'mx-auto grid w-fit max-w-full grid-cols-1 justify-items-start gap-x-2 gap-y-1 sm:grid-cols-2',
-				panel && 'lg:mx-0 lg:w-full lg:grid-cols-1 lg:gap-x-1',
+				// Layout the legend as a grid with gaps; the side panel modifies the
+				// spacing and width at larger breakpoints.
+				'mx-auto grid w-fit max-w-full justify-items-start gap-x-2 gap-y-1',
+				panel && 'lg:mx-0 lg:w-full lg:gap-x-1',
 			)}
 		>
 			{items.map((item) => {
@@ -108,17 +109,34 @@ export function MapLegend({ items, hidden, onToggle, onFocus, panel = false }: M
 						onFocus={() => onFocus(item.id)}
 						onBlur={() => onFocus(null)}
 					>
-						<span
-							aria-hidden="true"
-							className={cn(swatchShape(item.swatch), item.swatchClass, off && 'opacity-40')}
+						<Swatch
+							shape={SWATCH_SHAPE[item.swatch]}
+							color={item.swatchClass}
+							style={item.swatchColor ? { color: item.swatchColor } : undefined}
+							className={cn(off && 'opacity-40')}
 						/>
 
-						<span className={cn(k.label, off && 'line-through opacity-60')}>{item.label}</span>
+						<Text
+							as="span"
+							severity="muted"
+							size="sm"
+							className={cn('text-left leading-tight', off && 'line-through opacity-60')}
+						>
+							{item.label}
+						</Text>
 
 						{item.detail && (
-							<span className={cn(k.label, 'whitespace-nowrap tabular-nums', off && 'opacity-60')}>
+							<Text
+								as="span"
+								severity="muted"
+								size="sm"
+								className={cn(
+									'text-left leading-tight whitespace-nowrap tabular-nums',
+									off && 'opacity-60',
+								)}
+							>
 								{item.detail}
-							</span>
+							</Text>
 						)}
 					</Button>
 				)

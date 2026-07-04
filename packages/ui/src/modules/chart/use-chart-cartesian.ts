@@ -189,7 +189,7 @@ export function useChartCartesian<T>(
 		(legend ?? metas.length > 1)
 			? metas.map((meta) => ({
 					label: meta.label,
-					swatchClass: meta.paint.bg.join(' '),
+					swatchClass: meta.paint.text.join(' '),
 					swatch: meta.swatch,
 				}))
 			: null

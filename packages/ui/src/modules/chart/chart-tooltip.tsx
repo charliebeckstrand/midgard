@@ -10,6 +10,7 @@ import {
 	useInteractions,
 } from '@floating-ui/react'
 import { type RefObject, useMemo } from 'react'
+import { Swatch, type SwatchProps } from '../../components/swatch'
 import { TooltipContent } from '../../components/tooltip'
 import { TooltipContext } from '../../components/tooltip/context'
 import { cn } from '../../core'
@@ -37,6 +38,12 @@ export type ChartTooltipProps = {
 
 /** The gap in px floating-ui keeps between the anchor point and the readout. @internal */
 const TRACK_OFFSET = 12
+
+/** Maps a mark shape to its {@link Swatch} shape. */
+const SWATCH_SHAPE = { rect: 'square', line: 'line' } as const satisfies Record<
+	'rect' | 'line',
+	NonNullable<SwatchProps['shape']>
+>
 
 /**
  * The hover readout: one tooltip listing every series at the pointed category,
@@ -126,11 +133,10 @@ export function ChartTooltip({ plotRef, readout, snap }: ChartTooltipProps) {
 						<div className="space-y-0.5">
 							{readout.rows.map((row) => (
 								<div key={row.label} className="flex items-center gap-1.5 whitespace-nowrap">
-									<span
-										className={cn(
-											row.swatch === 'rect' ? 'size-2 rounded-xs' : 'h-0.5 w-2.5 rounded-full',
-											row.swatchClasses?.[index] ?? row.swatchClass,
-										)}
+									<Swatch
+										shape={SWATCH_SHAPE[row.swatch]}
+										size="sm"
+										color={row.swatchClasses?.[index] ?? row.swatchClass}
 									/>
 
 									<span className={cn(k.value)}>{row.values[index]}</span>

@@ -24,68 +24,69 @@ const { text } = iro
 
 /**
  * Per-colour mark classes: `stroke` for lines and markers, `fill` for bars,
- * areas, slices, and SVG text, `bg` for HTML swatches (legend keys, tooltip
- * rows), and `onFill` for label text set inside the mark's own fill — the one
- * place text sits on a series colour. `onFill` is white-first: the semibold
- * label reads white on every slot except the yellow-family fills (green,
- * amber), where white drops below a ~3.5:1 semibold floor and the label takes
- * near-black ink instead; the de-emphasis `zinc` takes ink on its light dark
- * step. The eight slot hues carry the categorical palette; `zinc` sits
- * outside the slot order as the de-emphasis colour for context series.
+ * areas, slices, and SVG text, `text` (a currentColor class) for HTML swatches
+ * (legend keys, tooltip rows — `<Swatch>` fills from it), and `onFill` for
+ * label text set inside the mark's own fill — the one place text sits on a
+ * series colour. `onFill` is white-first: the semibold label reads white on
+ * every slot except the yellow-family fills (green, amber), where white drops
+ * below a ~3.5:1 semibold floor and the label takes near-black ink instead; the
+ * de-emphasis `zinc` takes ink on its light dark step. The eight slot hues carry
+ * the categorical palette; `zinc` sits outside the slot order as the
+ * de-emphasis colour for context series.
  */
 const series = {
 	blue: {
 		stroke: mode('stroke-blue-600', 'dark:stroke-blue-500'),
 		fill: mode('fill-blue-600', 'dark:fill-blue-500'),
-		bg: mode('bg-blue-600', 'dark:bg-blue-500'),
+		text: mode('text-blue-600', 'dark:text-blue-500'),
 		onFill: mode('fill-white', 'dark:fill-white'),
 	},
 	orange: {
 		stroke: mode('stroke-orange-600', 'dark:stroke-orange-600'),
 		fill: mode('fill-orange-600', 'dark:fill-orange-600'),
-		bg: mode('bg-orange-600', 'dark:bg-orange-600'),
+		text: mode('text-orange-600', 'dark:text-orange-600'),
 		onFill: mode('fill-white', 'dark:fill-white'),
 	},
 	violet: {
 		stroke: mode('stroke-violet-600', 'dark:stroke-violet-500'),
 		fill: mode('fill-violet-600', 'dark:fill-violet-500'),
-		bg: mode('bg-violet-600', 'dark:bg-violet-500'),
+		text: mode('text-violet-600', 'dark:text-violet-500'),
 		onFill: mode('fill-white', 'dark:fill-white'),
 	},
 	green: {
 		stroke: mode('stroke-green-600', 'dark:stroke-green-600'),
 		fill: mode('fill-green-600', 'dark:fill-green-600'),
-		bg: mode('bg-green-600', 'dark:bg-green-600'),
+		text: mode('text-green-600', 'dark:text-green-600'),
 		onFill: mode('fill-zinc-950', 'dark:fill-zinc-950'),
 	},
 	red: {
 		stroke: mode('stroke-red-600', 'dark:stroke-red-500'),
 		fill: mode('fill-red-600', 'dark:fill-red-500'),
-		bg: mode('bg-red-600', 'dark:bg-red-500'),
+		text: mode('text-red-600', 'dark:text-red-500'),
 		onFill: mode('fill-white', 'dark:fill-white'),
 	},
 	sky: {
 		stroke: mode('stroke-sky-600', 'dark:stroke-sky-600'),
 		fill: mode('fill-sky-600', 'dark:fill-sky-600'),
-		bg: mode('bg-sky-600', 'dark:bg-sky-600'),
+		text: mode('text-sky-600', 'dark:text-sky-600'),
 		onFill: mode('fill-white', 'dark:fill-white'),
 	},
 	amber: {
 		stroke: mode('stroke-amber-600', 'dark:stroke-amber-600'),
 		fill: mode('fill-amber-600', 'dark:fill-amber-600'),
-		bg: mode('bg-amber-600', 'dark:bg-amber-600'),
+		text: mode('text-amber-600', 'dark:text-amber-600'),
 		onFill: mode('fill-zinc-950', 'dark:fill-zinc-950'),
 	},
 	rose: {
 		stroke: mode('stroke-rose-600', 'dark:stroke-rose-500'),
 		fill: mode('fill-rose-600', 'dark:fill-rose-500'),
-		bg: mode('bg-rose-600', 'dark:bg-rose-500'),
+		text: mode('text-rose-600', 'dark:text-rose-500'),
 		onFill: mode('fill-white', 'dark:fill-white'),
 	},
 	zinc: {
 		stroke: mode('stroke-zinc-600', 'dark:stroke-zinc-400'),
 		fill: mode('fill-zinc-600', 'dark:fill-zinc-400'),
-		bg: mode('bg-zinc-600', 'dark:bg-zinc-400'),
+		text: mode('text-zinc-600', 'dark:text-zinc-400'),
 		onFill: mode('fill-white', 'dark:fill-zinc-950'),
 	},
 }

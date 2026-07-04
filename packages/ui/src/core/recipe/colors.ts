@@ -9,7 +9,7 @@
  *
  * Adding a standard colour: append to `colors`, then add a row to every
  * per-colour map in `iro/*`. Adding an extended colour: append to
- * `extendedColors` and add its rows to `iro/spectrum.ts`.
+ * `extendedColors` and add its rows to `iro/extended-palette.ts`.
  */
 
 export const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
@@ -19,10 +19,11 @@ export type Color = (typeof colors)[number]
 
 /**
  * The extended palette: opt-in chromatic choices a kata surfaces by reading
- * `iro.spectrum`. Not part of the {@link Color standard set}; a component
- * offers these only when its kata declares the wider palette (e.g. Badge).
+ * `iro.extendedPalette`. Not part of the {@link Color standard set}; a
+ * component offers these only when its kata declares the wider palette (e.g.
+ * Badge).
  */
-export const extendedColors = ['mist', 'rose', 'violet', 'sky'] as const
+export const extendedColors = ['rose', 'violet', 'sky'] as const
 
 /** An extended palette colour. @see {@link extendedColors} */
 export type ExtendedColor = (typeof extendedColors)[number]

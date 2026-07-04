@@ -23,6 +23,12 @@ export type ContainerProps = {
 	 * @defaultValue 'md'
 	 */
 	padding?: ContainerPadding
+	/**
+	 * Whether the container should center its content horizontally.
+	 *
+	 * @defaultValue true
+	 */
+	center?: boolean
 	className?: string
 } & Omit<ComponentPropsWithoutRef<'div'>, 'className'>
 
@@ -30,6 +36,7 @@ export type ContainerProps = {
 export function Container({
 	size = 'md',
 	padding = 'md',
+	center = true,
 	className,
 	style,
 	children,
@@ -40,6 +47,7 @@ export function Container({
 	// it to `lg` up via the recipe to match the token sizes' full-bleed-below-lg
 	// behavior.
 	const numeric = typeof size === 'number'
+
 	const sizeStyle = numeric
 		? ({ '--container-size': `${size}px`, ...style } as CSSProperties)
 		: style
@@ -48,9 +56,10 @@ export function Container({
 		<div
 			data-slot="container"
 			className={cn(
-				'mx-auto w-full h-full',
-				numeric ? k.size.custom : k.size[size],
+				'w-full h-full',
 				k.padding[padding],
+				center && 'mx-auto',
+				numeric ? k.size.custom : k.size[size],
 				className,
 			)}
 			style={sizeStyle}

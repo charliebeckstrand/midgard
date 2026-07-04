@@ -22,6 +22,4 @@ The legend is the series switchboard: centered toggle buttons where pointing an 
 
 - **Texture fills.** The 45°/135° hand-drawn fill as the identity channel for forced-colors, print, and full-severity CVD — opt-in, never default.
 
-- **Angular pie sweep.** Animate slices by sweeping angle rather than the current staggered fade; needs arc interpolation, which `d`-string tweening does not give reliably.
-
 - **Selective value labels.** Endpoint and extreme direct labels with collision handling — measure first, never clip.

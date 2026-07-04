@@ -82,7 +82,7 @@ export function chartReadout<T>(
 		categories: data.map((datum) => String(datum[xKey])),
 		rows: metas.map((meta) => ({
 			label: meta.label,
-			swatchClass: cn(meta.paint.bg),
+			swatchClass: cn(meta.paint.text),
 			swatch: meta.swatch,
 			values: meta.values.map((value) => (value === null ? READOUT_GAP : format(value))),
 		})),

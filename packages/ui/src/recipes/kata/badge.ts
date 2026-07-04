@@ -1,15 +1,15 @@
 /**
  * Badge kata: the inline status/label chip. Recipe-shaped — a `variant` ×
  * `color` × `size` × `rounded` matrix over the signature kasane chrome.
- * Reads `iro.spectrum` rather than `iro.palette`, so its `color` axis carries
- * the extended hues; the rest of the surface is the shared chromatic palette
- * wired through `basePalette`.
+ * Reads `iro.extendedPalette` rather than `iro.palette`, so its `color` axis
+ * carries the extended hues; the rest of the surface is the shared chromatic
+ * palette wired through `basePalette`.
  */
 import { definePalette, defineRecipe, type VariantProps } from '../../core/recipe'
 import { basePalette } from '../katakana'
 import { iro, ji, kasane, kokkaku, narabi, shaku } from '../kiso'
 
-const { spectrum } = iro
+const { extendedPalette } = iro
 const { size, weight } = ji
 const { gap, padding, rounded } = kasane
 const { badge } = kokkaku
@@ -36,8 +36,8 @@ export const k = defineRecipe({
 	},
 	rounded,
 	// Opt into the wide palette: Badge's `color` axis carries the standard set
-	// plus the extended hues (mist / rose / violet / sky).
-	palette: definePalette({ ...basePalette(spectrum), plain: spectrum.plain.text }),
+	// plus the extended hues (rose / violet / sky).
+	palette: definePalette({ ...basePalette(extendedPalette), plain: extendedPalette.plain.text }),
 	// `rounded-full` caps swallow horizontal space, so pills read tighter than
 	// the base `px` (tuned for the default `rounded-md`) — most visibly at small
 	// sizes. Bump every pill one `px` step; the shift stays uniform because the

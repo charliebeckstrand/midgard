@@ -6,17 +6,20 @@ import { FIXTURE_GEOJSON, FIXTURE_ROWS, FIXTURE_TOPOLOGY } from '../helpers/map-
 type Row = (typeof FIXTURE_ROWS)[number]
 
 function plat(extra?: Partial<Parameters<typeof MapPlat<Row>>[0]>) {
-	return (
-		<MapPlat
-			aria-label="Zones"
-			geography={FIXTURE_GEOJSON}
-			data={FIXTURE_ROWS}
-			regionKey="state"
-			categoryKey="zone"
-			width={400}
-			{...extra}
-		/>
-	)
+	// The categorical base merged with arbitrary overrides can name both a
+	// category and a value key, which the prop union forbids; assert the mode
+	// at the spread so a test can still override any single field.
+	const props = {
+		'aria-label': 'Zones',
+		geography: FIXTURE_GEOJSON,
+		data: FIXTURE_ROWS,
+		regionKey: 'state',
+		categoryKey: 'zone',
+		width: 400,
+		...extra,
+	} as Parameters<typeof MapPlat<Row>>[0]
+
+	return <MapPlat {...props} />
 }
 
 describe('MapPlat', () => {
@@ -173,8 +176,8 @@ describe('MapPlat', () => {
 
 		expect(box?.getAttribute('class')).toContain('lg:w-48')
 
-		// The side panel collapses to a single column beside the map from lg.
-		expect(bySlot(container, 'map-legend')?.getAttribute('class')).toContain('lg:grid-cols-1')
+		// The side panel spans the reserved column beside the map from lg.
+		expect(bySlot(container, 'map-legend')?.getAttribute('class')).toContain('lg:w-full')
 
 		// Row placements reserve one item-row of height instead.
 		const row = renderUI(plat({ legend: 'top' }))
@@ -187,10 +190,8 @@ describe('MapPlat', () => {
 
 		const legend = bySlot(container, 'map-legend')
 
-		// Fully stacked below sm, an even two columns from sm, centered as a block.
-		expect(legend?.getAttribute('class')).toContain('grid-cols-1')
-
-		expect(legend?.getAttribute('class')).toContain('sm:grid-cols-2')
+		// A centered grid block under the map.
+		expect(legend?.getAttribute('class')).toContain('grid')
 
 		expect(legend?.getAttribute('class')).toContain('mx-auto')
 	})
@@ -331,5 +332,152 @@ describe('MapPlat', () => {
 		const firstRow = bySlot(container, 'map-table')?.querySelector('tbody th')
 
 		expect(firstRow?.textContent).toBe('A')
+	})
+})
+
+describe('MapPlat choropleth mode', () => {
+	const NUMERIC = [
+		{ state: 'A', value: 0 },
+		{ state: 'B', value: 50 },
+		{ state: 'C', value: 100 },
+	]
+
+	// A three-stop scale, pale → deep; bins default to one per stop.
+	const RANGE = ['#dbeafe', '#3b82f6', '#1e3a8a']
+
+	const fillOf = (el?: Element) => (el as SVGPathElement | undefined)?.style.fill
+
+	function choropleth(extra?: Partial<Parameters<typeof MapPlat<(typeof NUMERIC)[number]>>[0]>) {
+		const props = {
+			'aria-label': 'Density',
+			geography: FIXTURE_GEOJSON,
+			data: NUMERIC,
+			regionKey: 'state',
+			valueKey: 'value',
+			colorRange: RANGE,
+			valueName: 'Density',
+			width: 400,
+			...extra,
+		} as Parameters<typeof MapPlat<(typeof NUMERIC)[number]>>[0]
+
+		return <MapPlat {...props} />
+	}
+
+	it('fills regions with the colorRange colour for their bin, as an inline value', () => {
+		const { container } = renderUI(choropleth())
+
+		const [alpha, , gamma] = allBySlot(container, 'map-region')
+
+		// A=0 lands in the first (pale) bin, C=100 in the last (deep) one: distinct
+		// inline fills (the exact colour → bin mapping is unit-tested in map-value-scale).
+		expect(fillOf(alpha)).toBeTruthy()
+
+		expect(fillOf(gamma)).toBeTruthy()
+
+		expect(fillOf(alpha)).not.toBe(fillOf(gamma))
+	})
+
+	it('leaves an unmatched region on the neutral no-data fill class', () => {
+		const { container } = renderUI(
+			choropleth({
+				data: [
+					{ state: 'A', value: 0 },
+					{ state: 'C', value: 100 },
+				],
+			}),
+		)
+
+		const [, beta] = allBySlot(container, 'map-region')
+
+		expect(beta?.getAttribute('class')).toContain('fill-zinc-200')
+
+		expect(fillOf(beta)).toBe('')
+	})
+
+	it('shows one legend entry per bin, largest first, labelled by value range', () => {
+		const { container } = renderUI(choropleth())
+
+		const items = allBySlot(container, 'map-legend-item')
+
+		expect(items).toHaveLength(3)
+
+		// Descending: the top of the extent (100) leads, the bottom (0) trails.
+		expect(items[0]?.textContent).toContain('100')
+
+		expect(items.at(-1)?.textContent).toContain('0')
+	})
+
+	it('heads the data table with the value name', () => {
+		const { container } = renderUI(choropleth())
+
+		const header = bySlot(container, 'map-table')?.querySelector('thead th')
+
+		expect(header?.textContent).toBe('Density')
+	})
+
+	it('defaults the legend to the right (aside layout)', () => {
+		const { container } = renderUI(choropleth())
+
+		// The numeric mode reads its legend beside the plot: the reserved side-panel
+		// column, not the bottom row.
+		expect(bySlot(container, 'map-legend-box')?.getAttribute('class')).toContain('lg:w-48')
+	})
+
+	it('paints a continuous scale bar under legend="range" instead of the switchboard', () => {
+		const { container } = renderUI(choropleth({ legend: 'range' }))
+
+		const bar = bySlot(container, 'map-range-legend')
+
+		expect(bar).not.toBeNull()
+
+		// The gradient bar paints the colorRange stops as an inline linear-gradient.
+		expect(bySlot(container, 'map-range-track')?.getAttribute('style')).toContain('linear-gradient')
+
+		// No discrete switchboard items in range mode.
+		expect(allBySlot(container, 'map-legend-item')).toHaveLength(0)
+
+		// The extent endpoints label the bar.
+		expect(bar?.textContent).toContain('0')
+
+		expect(bar?.textContent).toContain('100')
+	})
+
+	it('emphasises the pointed bin on range-legend hover, dimming the rest', () => {
+		const { container } = renderUI(choropleth({ legend: 'range' }))
+
+		const track = bySlot(container, 'map-range-track')
+
+		expect(track).not.toBeNull()
+
+		const dimmedCount = () =>
+			allBySlot(container, 'map-region').filter((region) =>
+				region.parentElement?.getAttribute('class')?.includes('opacity-25'),
+			).length
+
+		// Nothing dims until the bar is pointed.
+		expect(dimmedCount()).toBe(0)
+
+		fireEvent.pointerMove(track as Element, { clientY: 10 })
+
+		// Regions outside the snapped bin dim — the switchboard's hover filter.
+		expect(dimmedCount()).toBeGreaterThan(0)
+
+		fireEvent.pointerLeave(track as Element)
+
+		expect(dimmedCount()).toBe(0)
+	})
+})
+
+describe('MapPlat legend orientation', () => {
+	it('roves vertically for a side panel and horizontally under the map', () => {
+		const aside = renderUI(plat({ legend: 'left' }))
+
+		expect(bySlot(aside.container, 'map-legend')?.getAttribute('aria-orientation')).toBe('vertical')
+
+		const below = renderUI(plat({ legend: 'bottom' }))
+
+		expect(bySlot(below.container, 'map-legend')?.getAttribute('aria-orientation')).toBe(
+			'horizontal',
+		)
 	})
 })

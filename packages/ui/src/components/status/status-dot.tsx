@@ -1,6 +1,11 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { k, type StatusDotVariants } from '../../recipes/kata/status'
+import {
+	pulse as pulseAnimation,
+	type StatusDotVariants,
+	statusColor,
+} from '../../recipes/kata/status'
+import { Swatch } from '../swatch'
 
 /** Props for {@link StatusDot}: recipe variants (`variant`, `status`, `size`, `pulse`) plus an optional accessible `label` and `<span>` attributes. */
 export type StatusDotProps = StatusDotVariants & {
@@ -13,13 +18,14 @@ export type StatusDotProps = StatusDotVariants & {
 	 * sr-only status label, and its dot stays silent).
 	 */
 	label?: string
-} & Omit<ComponentPropsWithoutRef<'span'>, 'className'>
+} & Omit<ComponentPropsWithoutRef<'span'>, 'className' | 'color'>
 
 /**
  * Colored status indicator dot: a `currentColor`-filled (`solid`) or
  * `currentColor`-bordered (`outline`) circle whose hue encodes `status`
- * (inactive/active/info/warning/error), optionally `pulse`-animated. A static
- * leaf with no client hooks, so it renders in React Server Components.
+ * (inactive/active/info/warning/error), optionally `pulse`-animated. A thin
+ * skin over {@link Swatch} (`shape="circle"`); a static leaf with no client
+ * hooks, so it renders in React Server Components.
  *
  * @remarks
  * `size` is explicit and defaults to `md`; hosts that render the dot (Avatar)
@@ -29,26 +35,23 @@ export type StatusDotProps = StatusDotVariants & {
  * beside visible text.
  */
 export function StatusDot({
-	variant,
-	status,
+	variant = 'solid',
+	status = 'inactive',
 	size,
 	pulse,
 	label,
 	className,
 	...props
 }: StatusDotProps) {
-	const resolvedSize = size ?? 'md'
-
-	// A bare <span> can't carry aria-label; name it only by promoting it to an
-	// image. The role and label stay paired.
-	const labelProps = label ? ({ role: 'img', 'aria-label': label } as const) : undefined
-
 	return (
-		<span
+		<Swatch
+			shape="circle"
+			variant={variant}
+			size={size}
+			color={cn(statusColor[status])}
+			label={label}
 			data-slot="status-dot"
-			data-size={resolvedSize}
-			className={cn(k({ variant, status, size: resolvedSize, pulse }), className)}
-			{...labelProps}
+			className={cn(pulse && pulseAnimation, className)}
 			{...props}
 		/>
 	)
