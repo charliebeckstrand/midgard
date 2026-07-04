@@ -5,7 +5,6 @@ import { Badge } from '../../../../components/badge'
 import { Button } from '../../../../components/button'
 import { HoldButton } from '../../../../components/hold-button'
 import { Icon } from '../../../../components/icon'
-import { Segment, SegmentControl, SegmentItem } from '../../../../components/segment'
 import { Sparkline } from '../../../../components/sparkline'
 import { Stack } from '../../../../components/stack'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../../components/tabs'
@@ -540,30 +539,13 @@ const RowReorderExample = () => {
 }
 
 const RowGroupExample = () => {
-	// `groupBy` collects rows sharing a column's value under an expandable
-	// group-header row (the value plus a count). Switch the grouped column, or pick
-	// "None" to ungroup; groups start expanded — toggle a header to collapse it.
-	// Sorting, filtering, and selection still apply within the groups.
-	const [groupBy, setGroupBy] = useState<string | number | null>('role')
-
 	return (
 		<Stack gap="md">
-			<Segment
-				value={groupBy == null ? 'none' : String(groupBy)}
-				onValueChange={(next) => setGroupBy(next == null || next === 'none' ? null : next)}
-			>
-				<SegmentControl aria-label="Group by">
-					<SegmentItem value="role">By role</SegmentItem>
-					<SegmentItem value="status">By status</SegmentItem>
-					<SegmentItem value="none">None</SegmentItem>
-				</SegmentControl>
-			</Segment>
-
 			<Grid
 				columns={sortableColumns}
 				rows={people}
 				getKey={(row) => row.id}
-				groupBy={{ value: groupBy, onValueChange: setGroupBy }}
+				groupBy={{ value: 'role', onValueChange: () => {} }}
 			/>
 		</Stack>
 	)
@@ -1204,7 +1186,7 @@ export function Demo() {
 							<TabContent value="Row">
 								<Stack gap="xl">
 									<Example
-										title="Group by column"
+										title="Row groups"
 										code={code`<Grid groupBy={{ value: 'role', onValueChange }} />`}
 									>
 										<RowGroupExample />

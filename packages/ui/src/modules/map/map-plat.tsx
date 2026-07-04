@@ -7,7 +7,14 @@ import { ReducedMotion } from '../../primitives/reduced-motion'
 import { k, type MapSeriesColor } from '../../recipes/kata/map'
 import type { AccessibleName } from '../../types'
 import { ChartPlotBox } from '../chart/chart-plot-box'
-import { type MapHover, MapHoverContext, MapPlatContext, type MapPlatContextValue } from './context'
+import {
+	type MapHoverSet,
+	MapHoverSetContext,
+	type MapHoverState,
+	MapHoverStateContext,
+	MapPlatContext,
+	type MapPlatContextValue,
+} from './context'
 import {
 	defaultRegionId,
 	defaultRegionLabel,
@@ -381,9 +388,31 @@ function legendItems(
 	return [...categoryItems, ...entryItems]
 }
 
+/**
+ * Owns the pointer readout and hands it down split: the stable mover through
+ * {@link MapHoverSetContext} — the marks read it, so they never repaint as the
+ * pointer travels — and the live {@link MapHoverState} through its own context,
+ * which only the tooltip reads. Holding the state here, below {@link MapPlat}
+ * and around the plot alone, keeps a pointer move from re-rendering the plat,
+ * the legend, or the region layer: the provider re-renders and its stable
+ * `children` bail, so the tooltip is the sole subtree that repaints.
+ *
+ * @internal
+ */
+function MapHoverProvider({ children }: { children: ReactNode }) {
+	const [state, setState] = useState<MapHoverState>({ target: null, point: null })
+
+	const set = useCallback<MapHoverSet>((target, point) => setState({ target, point }), [])
+
+	return (
+		<MapHoverSetContext value={set}>
+			<MapHoverStateContext value={state}>{children}</MapHoverStateContext>
+		</MapHoverSetContext>
+	)
+}
+
 /** Props for {@link MapFrame}: the assembled parts laid out around the plot. @internal */
 type MapFrameProps = {
-	hover: MapHover
 	legendNode: ReactNode
 	legendPlacement: MapLegendPlacement
 	plotRegion: ReactNode
@@ -394,7 +423,6 @@ type MapFrameProps = {
 
 /** The frame shell: legend and table as plain HTML around the plot, under the hover provider. @internal */
 function MapFrame({
-	hover,
 	legendNode,
 	legendPlacement,
 	plotRegion,
@@ -410,7 +438,7 @@ function MapFrame({
 			className={cn('flex flex-col gap-3', width === undefined && 'w-full', className)}
 			style={width === undefined ? undefined : { width }}
 		>
-			<MapHoverContext value={hover}>
+			<MapHoverProvider>
 				{aside ? (
 					// The panel and plot sit side by side from lg; below it they stack
 					// with the panel always under the map, so a left panel reverses
@@ -434,7 +462,7 @@ function MapFrame({
 						{legendPlacement === 'bottom' && legendNode}
 					</>
 				)}
-			</MapHoverContext>
+			</MapHoverProvider>
 
 			{table}
 		</div>
@@ -536,19 +564,6 @@ export function MapPlat<T = never>({
 		[entries],
 	)
 
-	const [pointed, setPointed] = useState<Pick<MapHover, 'target' | 'point'>>({
-		target: null,
-		point: null,
-	})
-
-	const hover = useMemo<MapHover>(
-		() => ({
-			...pointed,
-			set: (target, point) => setPointed({ target, point }),
-		}),
-		[pointed],
-	)
-
 	const plat = useMemo<MapPlatContextValue>(
 		() => ({ project: shape.project, register, colors, order, hidden, emphasis, animate }),
 		[shape.project, register, colors, order, hidden, emphasis, animate],
@@ -607,7 +622,6 @@ export function MapPlat<T = never>({
 
 	return (
 		<MapFrame
-			hover={hover}
 			legendNode={
 				<MapLegendSlot
 					show={showLegend}

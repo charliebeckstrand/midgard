@@ -3,7 +3,7 @@
 import { type PointerEvent, useEffect, useState } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
-import { useMapHover } from './context'
+import { useMapHoverSet } from './context'
 import type { MapCategoryMeta } from './map-categories'
 import {
 	REGION_FADE,
@@ -49,7 +49,7 @@ export function MapRegions({
 	emphasis,
 	animate,
 }: MapRegionsProps) {
-	const { set } = useMapHover()
+	const set = useMapHoverSet()
 
 	// The colour reveal: static maps colour at once; an animated map holds the
 	// neutral backdrop for the first beat, then flips to the category fills so

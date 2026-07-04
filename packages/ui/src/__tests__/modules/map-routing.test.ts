@@ -103,6 +103,30 @@ describe('fetchOsrmRoute', () => {
 
 		expect(String(mock.mock.calls[0]?.[0])).toContain('https://osrm.internal/route/v1/cycling/')
 	})
+
+	it('defaults overview to simplified and threads an overview override into the url', async () => {
+		const mock = stubFetch({ ok: true, json: PAYLOAD })
+
+		await fetchOsrmRoute(WAYPOINTS)
+
+		expect(String(mock.mock.calls[0]?.[0])).toContain('overview=simplified')
+
+		await fetchOsrmRoute(WAYPOINTS, { overview: 'full' })
+
+		expect(String(mock.mock.calls[1]?.[0])).toContain('overview=full')
+	})
+
+	it('hands fetch an abort signal only when a timeout is set', async () => {
+		const mock = stubFetch({ ok: true, json: PAYLOAD })
+
+		await fetchOsrmRoute(WAYPOINTS)
+
+		expect((mock.mock.calls[0]?.[1] as RequestInit | undefined)?.signal).toBeUndefined()
+
+		await fetchOsrmRoute(WAYPOINTS, { timeoutMs: 5000 })
+
+		expect((mock.mock.calls[1]?.[1] as RequestInit | undefined)?.signal).toBeInstanceOf(AbortSignal)
+	})
 })
 
 describe('fetchValhallaRoute', () => {
@@ -119,10 +143,32 @@ describe('fetchValhallaRoute', () => {
 
 		expect(JSON.parse(String(init.body))).toMatchObject({
 			costing: 'auto',
+			directions_type: 'none',
+			shape_format: 'polyline6',
 			locations: [
 				{ lat: 34.05, lon: -118.24 },
 				{ lat: 41.88, lon: -87.63 },
 			],
+		})
+	})
+
+	it('decodes a polyline6 shape string into lon/lat coordinates', async () => {
+		// A precision-6 polyline for the lat/lng points (0, 0) then (1, 2); the
+		// codec stores lat before lng, so a correct decode yields the swapped
+		// [lon, lat] pairs [0, 0] and [2, 1] — an lng/lat transposition would
+		// surface here as [1, 2].
+		stubFetch({
+			ok: true,
+			json: { routes: [{ geometry: '??_c`|@_gayB', distance: 250, duration: 30 }] },
+		})
+
+		expect(await fetchValhallaRoute(WAYPOINTS)).toEqual({
+			path: [
+				[0, 0],
+				[2, 1],
+			],
+			distanceMeters: 250,
+			durationSeconds: 30,
 		})
 	})
 

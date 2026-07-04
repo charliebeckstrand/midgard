@@ -1,10 +1,10 @@
 'use client'
 
 import { motion } from 'motion/react'
-import { type PointerEvent, useEffect, useId } from 'react'
+import { type PointerEvent, useEffect, useId, useMemo } from 'react'
 import { cn } from '../../core'
 import { k, type MapSeriesColor } from '../../recipes/kata/map'
-import { useMapHover, useMapPlat } from './context'
+import { useMapHoverSet, useMapPlat } from './context'
 import { ROUTE_DRAW, ROUTE_HIT_WIDTH, ROUTE_STROKE_WIDTH } from './map-constants'
 import { linePath } from './map-geometry'
 import type { LngLat } from './types'
@@ -46,7 +46,7 @@ export function MapRoute({ label, stops, path, color, detail }: MapRouteProps) {
 
 	const { project, register, colors, hidden, emphasis, animate } = useMapPlat()
 
-	const { set } = useMapHover()
+	const set = useMapHoverSet()
 
 	useEffect(
 		() => register({ id, label, kind: 'route', swatch: 'line', color, detail }),
@@ -55,7 +55,11 @@ export function MapRoute({ label, stops, path, color, detail }: MapRouteProps) {
 
 	const slot = colors.get(id)
 
-	const d = linePath(path ?? stops ?? [], project)
+	// Memoised so a hover-driven re-render (the plat's pointer state churns the
+	// hover context) doesn't re-project and re-stringify the whole polyline;
+	// `project` identity holds until the measured refit, and `path` / `stops`
+	// are the caller's stable refs.
+	const d = useMemo(() => linePath(path ?? stops ?? [], project), [path, stops, project])
 
 	if (slot === undefined || hidden.has(id) || d === '') return null
 

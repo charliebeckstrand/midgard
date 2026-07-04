@@ -50,6 +50,9 @@ function geographyQuery(url: string) {
  * pair. The public demo server is rate-limited and non-commercial; a real app
  * points `fetchOsrmRoute` at a self-hosted OSRM through its `baseUrl` option.
  * react-query supplies the abort signal, so a query dropped mid-flight cancels.
+ * The route comes back at `fetchOsrmRoute`'s default `overview: 'simplified'`
+ * detail — a fraction of the coordinates, sub-pixel-identical at this scale —
+ * so the drawn overlay stays cheap on a cross-country leg.
  */
 function routeQuery(start: LngLat, end: LngLat) {
 	return {

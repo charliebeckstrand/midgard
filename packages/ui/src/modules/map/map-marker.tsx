@@ -1,10 +1,10 @@
 'use client'
 
 import { motion } from 'motion/react'
-import { type PointerEvent, type ReactNode, useEffect, useId } from 'react'
+import { type PointerEvent, type ReactNode, useEffect, useId, useMemo } from 'react'
 import { cn } from '../../core'
 import { k, type MapSeriesColor } from '../../recipes/kata/map'
-import { useMapHover, useMapPlat } from './context'
+import { useMapHoverSet, useMapPlat } from './context'
 import {
 	MARKER_DRAW,
 	MARKER_END_POP,
@@ -55,7 +55,7 @@ export function MapMarker({ label, start, end, path, color, detail }: MapMarkerP
 
 	const { project, register, colors, hidden, emphasis, animate } = useMapPlat()
 
-	const { set } = useMapHover()
+	const set = useMapHoverSet()
 
 	useEffect(
 		() => register({ id, label, kind: 'marker', swatch: 'line', color, detail }),
@@ -64,7 +64,11 @@ export function MapMarker({ label, start, end, path, color, detail }: MapMarkerP
 
 	const slot = colors.get(id)
 
-	const d = linePath(path ?? [start, end], project)
+	// Memoised so a hover-driven re-render (the plat's pointer state churns the
+	// hover context) doesn't re-project and re-stringify the whole connector;
+	// `project` identity holds until the measured refit, and `path` / `start` /
+	// `end` are the caller's stable refs.
+	const d = useMemo(() => linePath(path ?? [start, end], project), [path, start, end, project])
 
 	const from = project(start)
 
