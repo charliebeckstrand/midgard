@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { rangeKeys } from '../../utilities'
 import { type MapCategoryMeta, READOUT_GAP } from './map-categories'
 import type { MapOverlayEntry } from './use-map-legend-registry'
@@ -21,9 +22,12 @@ export type MapTableProps = {
  * region. Assistive tech gets full value parity without the pointer, so the
  * tooltip stays an enhancement.
  *
+ * Memoised so it repaints only when the readout changes, not on legend
+ * emphasis or toggling — it reads neither, so a legend hover need never
+ * re-map thousands of rows on a county atlas.
  * @internal
  */
-export function MapTable({
+export const MapTable = memo(function MapTable({
 	header,
 	regionNames,
 	regionCategory,
@@ -65,4 +69,4 @@ export function MapTable({
 			</tbody>
 		</table>
 	)
-}
+})
