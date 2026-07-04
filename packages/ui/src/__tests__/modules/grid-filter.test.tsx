@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { renderUI, screen, userEvent } from '../helpers'
+import { GRID_SEARCH_DEBOUNCE_MS } from '../../modules/grid/grid-constants'
+import { renderUI, screen, withFakeTime } from '../helpers'
 
 describe('Grid search', () => {
 	type Row = { id: number; name: string; role: string }
@@ -27,78 +28,125 @@ describe('Grid search', () => {
 		expect(screen.getByRole('searchbox')).toBeInTheDocument()
 	})
 
-	it('filters rows client-side as you type', async () => {
-		const user = userEvent.setup()
+	it('filters rows client-side once the query settles', async () => {
+		await withFakeTime(async (clock) => {
+			renderUI(<Grid columns={columns} rows={rows} getKey={getKey} search={{}} />)
 
-		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} search={{}} />)
+			await clock.user.type(screen.getByRole('searchbox'), 'Alice')
 
-		await user.type(screen.getByRole('searchbox'), 'Alice')
+			await clock.advance(GRID_SEARCH_DEBOUNCE_MS)
 
-		expect(screen.getByText('Alice')).toBeInTheDocument()
+			expect(screen.getByText('Alice')).toBeInTheDocument()
 
-		expect(screen.queryByText('Bob')).not.toBeInTheDocument()
+			expect(screen.queryByText('Bob')).not.toBeInTheDocument()
+		})
 	})
 
-	it('fires onValueChange with the query', async () => {
-		const user = userEvent.setup()
+	it('debounces the filter, holding every row until the query settles', async () => {
+		await withFakeTime(async (clock) => {
+			renderUI(<Grid columns={columns} rows={rows} getKey={getKey} search={{}} />)
 
-		const onValueChange = vi.fn()
+			await clock.user.type(screen.getByRole('searchbox'), 'Alice')
 
-		renderUI(
-			<Grid columns={columns} rows={rows} getKey={getKey} search={{ value: '', onValueChange }} />,
-		)
+			// Before the debounce elapses the engine has not re-filtered yet.
+			await clock.advance(GRID_SEARCH_DEBOUNCE_MS - 1)
 
-		await user.type(screen.getByRole('searchbox'), 'B')
+			expect(screen.getByText('Bob')).toBeInTheDocument()
 
-		expect(onValueChange).toHaveBeenLastCalledWith('B')
+			await clock.advance(1)
+
+			expect(screen.queryByText('Bob')).not.toBeInTheDocument()
+		})
+	})
+
+	it('fires onValueChange with the settled query', async () => {
+		await withFakeTime(async (clock) => {
+			const onValueChange = vi.fn()
+
+			renderUI(
+				<Grid
+					columns={columns}
+					rows={rows}
+					getKey={getKey}
+					search={{ value: '', onValueChange }}
+				/>,
+			)
+
+			await clock.user.type(screen.getByRole('searchbox'), 'B')
+
+			await clock.advance(GRID_SEARCH_DEBOUNCE_MS)
+
+			expect(onValueChange).toHaveBeenLastCalledWith('B')
+		})
+	})
+
+	it('applies a cleared query immediately, recovering the hidden rows', async () => {
+		await withFakeTime(async (clock) => {
+			renderUI(<Grid columns={columns} rows={rows} getKey={getKey} search={{}} />)
+
+			await clock.user.type(screen.getByRole('searchbox'), 'Alice')
+
+			await clock.advance(GRID_SEARCH_DEBOUNCE_MS)
+
+			expect(screen.queryByText('Bob')).not.toBeInTheDocument()
+
+			await clock.user.click(screen.getByRole('button', { name: 'Clear search' }))
+
+			// Clearing bypasses the debounce, so the rows return without advancing time.
+			expect(screen.getByText('Bob')).toBeInTheDocument()
+		})
 	})
 
 	it('does not filter client-side in manual (server) mode', async () => {
-		const user = userEvent.setup()
+		await withFakeTime(async (clock) => {
+			const onValueChange = vi.fn()
 
-		const onValueChange = vi.fn()
+			renderUI(
+				<Grid
+					columns={columns}
+					rows={rows}
+					getKey={getKey}
+					search={{ manual: true, onValueChange }}
+				/>,
+			)
 
-		renderUI(
-			<Grid
-				columns={columns}
-				rows={rows}
-				getKey={getKey}
-				search={{ manual: true, onValueChange }}
-			/>,
-		)
+			await clock.user.type(screen.getByRole('searchbox'), 'Alice')
 
-		await user.type(screen.getByRole('searchbox'), 'Alice')
+			await clock.advance(GRID_SEARCH_DEBOUNCE_MS)
 
-		// The engine leaves rows untouched; the consumer would refetch from the query.
-		expect(screen.getByText('Alice')).toBeInTheDocument()
+			// The engine leaves rows untouched; the consumer would refetch from the query.
+			expect(screen.getByText('Alice')).toBeInTheDocument()
 
-		expect(screen.getByText('Bob')).toBeInTheDocument()
+			expect(screen.getByText('Bob')).toBeInTheDocument()
 
-		expect(onValueChange).toHaveBeenCalled()
+			expect(onValueChange).toHaveBeenCalled()
+		})
 	})
 
 	it('searches only columns that declare a value accessor', async () => {
-		const user = userEvent.setup()
+		await withFakeTime(async (clock) => {
+			type NoteRow = Row & { note: string }
 
-		type NoteRow = Row & { note: string }
+			const withNote: GridColumn<NoteRow>[] = [
+				{ id: 'name', title: 'Name', cell: (row) => row.name, value: (row) => row.name },
+				{ id: 'note', title: 'Note', cell: (row) => row.note },
+			]
 
-		const withNote: GridColumn<NoteRow>[] = [
-			{ id: 'name', title: 'Name', cell: (row) => row.name, value: (row) => row.name },
-			{ id: 'note', title: 'Note', cell: (row) => row.note },
-		]
+			const noteRows: NoteRow[] = [
+				{ id: 1, name: 'Alice', role: 'Developer', note: 'zzz' },
+				{ id: 2, name: 'Bob', role: 'Designer', note: 'qqq' },
+			]
 
-		const noteRows: NoteRow[] = [
-			{ id: 1, name: 'Alice', role: 'Developer', note: 'zzz' },
-			{ id: 2, name: 'Bob', role: 'Designer', note: 'qqq' },
-		]
+			renderUI(<Grid columns={withNote} rows={noteRows} getKey={(row) => row.id} search={{}} />)
 
-		renderUI(<Grid columns={withNote} rows={noteRows} getKey={(row) => row.id} search={{}} />)
+			await clock.user.type(screen.getByRole('searchbox'), 'zzz')
 
-		await user.type(screen.getByRole('searchbox'), 'zzz')
+			await clock.advance(GRID_SEARCH_DEBOUNCE_MS)
 
-		// `note` has no value accessor, so its content is not searched.
-		expect(screen.queryByText('Alice')).not.toBeInTheDocument()
+			// `note` has no value accessor, so its content is not searched.
+			expect(screen.queryByText('Alice')).not.toBeInTheDocument()
 
-		expect(screen.queryByText('Bob')).not.toBeInTheDocument()
+			expect(screen.queryByText('Bob')).not.toBeInTheDocument()
+		})
 	})
 })

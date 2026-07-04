@@ -71,3 +71,6 @@ export const NAV_PAGE_STEP = 10
 
 /** Debounce (ms) before the busy live region announces a settled row count, so a fast filter/search doesn't chatter. @internal */
 export const GRID_STATUS_DEBOUNCE_MS = 150
+
+/** Debounce (ms) the quick-search field waits after the last keystroke before driving the engine's global filter, so a fast typist settles into one O(rows × columns) filter pass. @internal */
+export const GRID_SEARCH_DEBOUNCE_MS = 200
