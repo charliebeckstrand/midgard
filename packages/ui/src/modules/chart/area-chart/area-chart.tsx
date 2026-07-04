@@ -9,7 +9,7 @@ import { withinSeriesAreas } from '../chart-hit-test'
 import { ChartLegend } from '../chart-legend'
 import { AnimatedChartLineMarks, ChartLineMarks, type ChartLineSeries } from '../chart-line-marks'
 import { ChartMarksLayer } from '../chart-marks-layer'
-import type { CartesianChartProps } from '../chart-schema'
+import type { CartesianChartProps, Crosshair } from '../chart-schema'
 import type { SeriesMeta } from '../chart-series'
 import { snapTargets } from '../chart-snap'
 import {
@@ -26,6 +26,16 @@ import { stackedAreas } from './area-chart-geometry'
  * name for it.
  */
 export type AreaChartProps<T> = CartesianChartProps<T> & {
+	/**
+	 * Draw a hover crosshair. Alone among the cartesian charts this defaults on:
+	 * a snapping vertical category rule (`{ y: true, snap: true }`) that meets the
+	 * nearest band-edge point and carries the tooltip there. Smooth interpolation
+	 * drops the snap so the rule and tooltip track the pointer along the curve
+	 * between points. Pass `true`, a {@link Crosshair} object, or `false` to
+	 * override the default.
+	 * @defaultValue a snapping y-rule, unsnapped when `interpolation` is `'smooth'`
+	 */
+	crosshair?: boolean | Crosshair
 	/**
 	 * Stack the series so each rides the running total below it and the fills
 	 * read as parts of a whole; otherwise each is its own area from the zero
@@ -64,7 +74,10 @@ function stackedToLine(band: { line: string; area: string; points: LineSeriesGeo
  * axis, gridlines, legend, crosshair tooltip, and the visually-hidden table.
  *
  * @remarks Stacked bands treat a missing value as zero to stay continuous;
- * the unstacked variant breaks its lines at gaps like {@link LineChart}.
+ * the unstacked variant breaks its lines at gaps like {@link LineChart}. The
+ * crosshair defaults on here — a snapping y-rule meeting the nearest point —
+ * dropping the snap under smooth interpolation; override it with the
+ * `crosshair` prop.
  * @example
  * ```tsx
  * <AreaChart
@@ -146,7 +159,12 @@ export function AreaChart<T>({
 		<ChartLineMarks list={list} fill={true} />
 	)
 
-	const rails = resolveCrosshair(crosshair)
+	// The area chart carries a snapping y-rule by default so the fills read
+	// against a category line; a smooth curve drops the snap to glide the rule
+	// and tooltip along the interpolation rather than jumping between points.
+	const rails = resolveCrosshair(
+		crosshair ?? { x: false, y: true, snap: interpolation !== 'smooth' },
+	)
 
 	return (
 		<ChartFrame
