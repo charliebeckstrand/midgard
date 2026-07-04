@@ -104,16 +104,16 @@ describe('fetchOsrmRoute', () => {
 		expect(String(mock.mock.calls[0]?.[0])).toContain('https://osrm.internal/route/v1/cycling/')
 	})
 
-	it('defaults overview to full and threads an overview override into the url', async () => {
+	it('defaults overview to simplified and threads an overview override into the url', async () => {
 		const mock = stubFetch({ ok: true, json: PAYLOAD })
 
 		await fetchOsrmRoute(WAYPOINTS)
 
-		expect(String(mock.mock.calls[0]?.[0])).toContain('overview=full')
+		expect(String(mock.mock.calls[0]?.[0])).toContain('overview=simplified')
 
-		await fetchOsrmRoute(WAYPOINTS, { overview: 'simplified' })
+		await fetchOsrmRoute(WAYPOINTS, { overview: 'full' })
 
-		expect(String(mock.mock.calls[1]?.[0])).toContain('overview=simplified')
+		expect(String(mock.mock.calls[1]?.[0])).toContain('overview=full')
 	})
 })
 

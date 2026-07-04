@@ -35,15 +35,15 @@ export type FetchOsrmRouteOptions = {
 	/**
 	 * Geometry detail: `'simplified'` returns a Douglas-Peucker line at display
 	 * resolution — a fraction of the coordinates, visually identical at map
-	 * scale — and `'false'` returns no geometry at all (distance and duration
-	 * only, so the overlay falls back to a straight line); `'full'` keeps every
-	 * vertex. The distance and duration totals are the same under all three.
-	 * @defaultValue 'full'
-	 * @remarks Prefer `'simplified'` for a display-only map: the drawn path is
-	 * sub-pixel-identical on the plat's frame while the payload — and the
-	 * `JSON.parse`, the overlay's projection loop, and the SVG path — shrink by
-	 * an order of magnitude on a long route. Keep `'full'` only where the
-	 * geometry is reused at a deeper zoom than the map draws at.
+	 * scale — `'full'` keeps every vertex, and `'false'` returns no geometry at
+	 * all (distance and duration only, so the overlay falls back to a straight
+	 * line). The distance and duration totals are the same under all three.
+	 * @defaultValue 'simplified'
+	 * @remarks Defaults to `'simplified'`: the drawn path is sub-pixel-identical
+	 * on the plat's frame while the payload — and the `JSON.parse`, the overlay's
+	 * projection loop, and the SVG path — shrink by an order of magnitude on a
+	 * long route. Pass `'full'` only where the geometry is reused at a deeper
+	 * zoom than the map draws at.
 	 */
 	overview?: RouteOverview
 	signal?: AbortSignal
@@ -97,7 +97,12 @@ export async function fetchOsrmRoute(
 ): Promise<MapRouteResult | null> {
 	if (waypoints.length < 2) return null
 
-	const { baseUrl = DEFAULT_OSRM_URL, profile = 'driving', overview = 'full', signal } = options
+	const {
+		baseUrl = DEFAULT_OSRM_URL,
+		profile = 'driving',
+		overview = 'simplified',
+		signal,
+	} = options
 
 	const coords = waypoints.map((p) => `${p[0]},${p[1]}`).join(';')
 
