@@ -237,8 +237,8 @@ export function Demo() {
 									>
 										{corridors.map((corridor) => (
 											<RoutedLine
-												key={corridor.label}
-												label={corridor.label}
+												key={corridor.city}
+												label={corridor.abbreviation}
 												start={corridor.start}
 												end={corridor.end}
 											/>

@@ -82,9 +82,19 @@ export const warehouses: { city: string; abbreviation: string; at: LngLat; detai
 // and the mileage is real — the geocode → route → draw flow a consumer runs.
 
 /** Two long-haul corridors the routes example draws as line-only routes. */
-export const corridors: { label: string; start: LngLat; end: LngLat }[] = [
-	{ label: 'San Francisco → New York', start: [-122.42, 37.77], end: [-74.0, 40.71] },
-	{ label: 'Los Angeles → Jacksonville', start: [-118.24, 34.05], end: [-81.66, 30.33] },
+export const corridors: { city: string; abbreviation: string; start: LngLat; end: LngLat }[] = [
+	{
+		city: 'San Francisco → New York',
+		abbreviation: 'SF→NY',
+		start: [-122.42, 37.77],
+		end: [-74.0, 40.71],
+	},
+	{
+		city: 'Los Angeles → Jacksonville',
+		abbreviation: 'LA→JAX',
+		start: [-118.24, 34.05],
+		end: [-81.66, 30.33],
+	},
 ]
 
 /** The origin → destination pair the marker and animation examples route. */
