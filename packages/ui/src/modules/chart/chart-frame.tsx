@@ -4,6 +4,7 @@ import { type ReactNode, type RefObject, useMemo, useState } from 'react'
 import { cn } from '../../core'
 import type { FrameReserve } from '../../hooks'
 import type { AccessibleName } from '../../types'
+import type { ChartOrientation } from './chart-orientation'
 import { ChartPlotBox } from './chart-plot-box'
 import type { ChartLegendPlacement } from './chart-schema'
 import type { ChartSnap } from './chart-snap'
@@ -50,6 +51,11 @@ export type ChartFrameProps = AccessibleName & {
 	tooltip: boolean
 	/** Snap targets when the crosshair snaps, carrying the tooltip to the intersection. */
 	snap?: ChartSnap
+	/**
+	 * Which way a cartesian chart faces, so the snapped tooltip anchor transposes.
+	 * @defaultValue 'vertical'
+	 */
+	orientation?: ChartOrientation
 	className?: string
 	/** HTML layered over the SVG inside the plot region — a donut's center content. */
 	overlay?: ReactNode
@@ -77,6 +83,7 @@ export function ChartFrame({
 	readout,
 	tooltip,
 	snap,
+	orientation,
 	className,
 	overlay,
 	children,
@@ -131,7 +138,7 @@ export function ChartFrame({
 			{overlay}
 
 			{tooltip && readout && width > 0 && (
-				<ChartTooltip plotRef={ref} readout={readout} snap={snap} />
+				<ChartTooltip plotRef={ref} readout={readout} snap={snap} orientation={orientation} />
 			)}
 		</div>
 	)

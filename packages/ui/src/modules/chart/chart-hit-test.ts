@@ -6,6 +6,7 @@
  */
 
 import type { BarMark } from './bar-chart/bar-chart-geometry'
+import type { ChartOrientation } from './chart-orientation'
 import type { LinePoint } from './line-chart/line-chart-geometry'
 
 /**
@@ -23,11 +24,13 @@ const AREA_EDGE_SLACK = 4
 
 /**
  * Whether the pointer sits on any drawn bar, each bar's span widened by `gap`
- * on both sides. Passing the inter-bar `MARK_GAP` closes the thin gaps between
- * a group's bars — each bar's slack reaches its neighbour's edge — so a pointer
- * sweeping across a group never falls between them and flickers the tooltip,
- * while the wider between-group padding stays uncovered and the readout still
- * clears when the pointer leaves the group (or rises above the bars).
+ * along the band axis. Passing the inter-bar `MARK_GAP` closes the thin gaps
+ * between a group's bars — each bar's slack reaches its neighbour's edge — so a
+ * pointer sweeping across a group never falls between them and flickers the
+ * tooltip, while the wider between-group padding stays uncovered and the readout
+ * still clears when the pointer leaves the group (or off the value end of the
+ * bars). The band axis is x when vertical and y when horizontal, so the slack
+ * follows the orientation.
  *
  * @internal
  */
@@ -36,16 +39,16 @@ export function withinBarMarks(
 	x: number,
 	y: number,
 	gap = 0,
+	orientation: ChartOrientation = 'vertical',
 ): boolean {
 	return marks.some((series) =>
-		series.some(
-			(mark) =>
-				mark !== null &&
-				x >= mark.x - gap &&
-				x <= mark.x1 + gap &&
-				y >= mark.top &&
-				y <= mark.bottom,
-		),
+		series.some((mark) => {
+			if (mark === null) return false
+
+			return orientation === 'vertical'
+				? x >= mark.x - gap && x <= mark.x1 + gap && y >= mark.top && y <= mark.bottom
+				: x >= mark.x && x <= mark.x1 && y >= mark.top - gap && y <= mark.bottom + gap
+		}),
 	)
 }
 

@@ -3,6 +3,7 @@
 import { type PointerEvent, type RefObject, useCallback, useRef } from 'react'
 import { useHoverAcrossScroll } from '../../hooks'
 import type { PlotRect } from './chart-layout'
+import { bandCoord, type ChartOrientation } from './chart-orientation'
 import { type BandScale, nearestBandIndex } from './chart-scale'
 import { useChartHover } from './context'
 
@@ -30,6 +31,7 @@ export function useChartPointer(
 	count: number,
 	plot: PlotRect,
 	onData?: (x: number, y: number) => boolean,
+	orientation: ChartOrientation = 'vertical',
 ): {
 	ref: RefObject<SVGRectElement | null>
 	onPointerMove: (event: PointerEvent<SVGRectElement>) => void
@@ -62,9 +64,15 @@ export function useChartPointer(
 
 			const y = clientY - box.top + plot.y
 
-			set(nearestBandIndex(x, band, count), { x, y }, onData ? onData(x, y) : true)
+			// The band runs across x when vertical, down y when horizontal, so the
+			// index reads whichever coordinate the orientation puts it on.
+			set(
+				nearestBandIndex(bandCoord(orientation, { x, y }), band, count),
+				{ x, y },
+				onData ? onData(x, y) : true,
+			)
 		},
-		[band, count, plot, onData, set],
+		[band, count, plot, onData, orientation, set],
 	)
 
 	const resolveAt = useCallback(

@@ -1,15 +1,15 @@
 'use client'
 
-import { ChartAxis } from '../chart-axis'
 import { AnimatedChartBarMarks, ChartBarMarks } from '../chart-bar-marks'
+import { ChartCartesianAxes } from '../chart-cartesian-axes'
 import { MARK_GAP } from '../chart-constants'
 import { ChartCrosshair, resolveCrosshair } from '../chart-crosshair'
 import { ChartFrame } from '../chart-frame'
-import { ChartGridLines } from '../chart-grid-lines'
 import { ChartHitArea } from '../chart-hit-area'
 import { withinBarMarks } from '../chart-hit-test'
 import { ChartLegend } from '../chart-legend'
 import { ChartMarksLayer } from '../chart-marks-layer'
+import type { ChartOrientation } from '../chart-orientation'
 import type { CartesianChartProps } from '../chart-schema'
 import { snapTargets } from '../chart-snap'
 import { useChartCartesian } from '../use-chart-cartesian'
@@ -20,7 +20,15 @@ import { barMarks } from './bar-chart-geometry'
  * `aria-labelledby`) — the plot is `role="img"`, so assistive tech needs a
  * name for it.
  */
-export type BarChartProps<T> = CartesianChartProps<T>
+export type BarChartProps<T> = CartesianChartProps<T> & {
+	/**
+	 * Which way the bars grow: `'vertical'` from a bottom baseline up the value
+	 * axis, or `'horizontal'` from a left baseline out along it — categories then
+	 * run down the side, so long labels read straight and many categories fit.
+	 * @defaultValue 'vertical'
+	 */
+	orientation?: ChartOrientation
+}
 
 /**
  * A grouped bar chart: one band per row of `data`, one zero-baseline bar per
@@ -30,7 +38,10 @@ export type BarChartProps<T> = CartesianChartProps<T>
  * visually-hidden data table for assistive tech.
  *
  * @remarks Bars cap at the spec thickness with a rounded data end and a
- * square baseline end; negative values grow downward from the zero line.
+ * square baseline end; negative values grow the other way from the zero line.
+ * `orientation="horizontal"` transposes the whole frame — value axis on the
+ * bottom, categories down the left — which suits long category labels and
+ * ranked lists.
  * @example
  * ```tsx
  * <BarChart
@@ -56,6 +67,7 @@ export function BarChart<T>({
 	tooltip = true,
 	crosshair,
 	animate = false,
+	orientation = 'vertical',
 	min,
 	max,
 	formatValue,
@@ -64,7 +76,7 @@ export function BarChart<T>({
 }: BarChartProps<T>) {
 	const chart = useChartCartesian(
 		{ data, series, size, width, height, aspectRatio, axes, legend, min, max, formatValue },
-		{ zeroBaseline: true, swatch: () => 'rect' },
+		{ zeroBaseline: true, swatch: () => 'rect', orientation },
 	)
 
 	const marks = chart.yScale
@@ -73,6 +85,7 @@ export function BarChart<T>({
 				chart.band,
 				chart.yScale.map,
 				chart.baseline,
+				chart.orientation,
 			)
 		: []
 
@@ -83,7 +96,12 @@ export function BarChart<T>({
 	)
 
 	const marksNode = animate ? (
-		<AnimatedChartBarMarks marks={marks} paints={paints} dimmed={dimmed} />
+		<AnimatedChartBarMarks
+			marks={marks}
+			paints={paints}
+			dimmed={dimmed}
+			orientation={chart.orientation}
+		/>
 	) : (
 		<ChartBarMarks marks={marks} paints={paints} dimmed={dimmed} />
 	)
@@ -112,18 +130,21 @@ export function BarChart<T>({
 			legendPlacement={typeof legend === 'string' ? legend : undefined}
 			readout={chart.readout}
 			tooltip={tooltip}
-			snap={snapTargets(rails, chart.anchors, chart.snapPoints)}
+			snap={snapTargets(rails, chart.bandPositions, chart.snapPoints)}
+			orientation={chart.orientation}
 			className={className}
 		>
-			{gridLines && chart.yScale && (
-				<ChartGridLines plot={chart.plot} ys={chart.yTicks.map((tick) => tick.at)} />
-			)}
-
-			{axes && chart.yScale && <ChartAxis axis="y" plot={chart.plot} ticks={chart.yTicks} />}
-
-			{axes && data.length > 0 && (
-				<ChartAxis axis="x" plot={chart.plot} ticks={chart.xTicks} baseline={chart.baseline} />
-			)}
+			<ChartCartesianAxes
+				orientation={chart.orientation}
+				plot={chart.plot}
+				valueTicks={chart.yTicks}
+				hasScale={chart.yScale !== null}
+				categoryTicks={chart.xTicks}
+				hasData={data.length > 0}
+				baseline={chart.baseline}
+				axes={axes}
+				gridLines={gridLines}
+			/>
 
 			<ChartMarksLayer animate={animate}>{marksNode}</ChartMarksLayer>
 
@@ -131,8 +152,9 @@ export function BarChart<T>({
 				<ChartCrosshair
 					plot={chart.plot}
 					crosshair={rails}
-					bandXs={chart.anchors.map((anchor) => anchor.x)}
-					snapPoints={chart.snapPoints}
+					bandPositions={chart.bandPositions}
+					valuePoints={chart.snapPoints}
+					orientation={chart.orientation}
 				/>
 			)}
 
@@ -141,7 +163,8 @@ export function BarChart<T>({
 					plot={chart.plot}
 					band={chart.band}
 					count={data.length}
-					onData={(x, y) => withinBarMarks(marks, x, y, MARK_GAP)}
+					onData={(x, y) => withinBarMarks(marks, x, y, MARK_GAP, chart.orientation)}
+					orientation={chart.orientation}
 				/>
 			)}
 		</ChartFrame>

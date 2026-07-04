@@ -8,12 +8,15 @@ import {
 	X_AXIS_HEIGHT,
 } from '../../modules/chart/chart-constants'
 import { ChartFrame } from '../../modules/chart/chart-frame'
-import { bandAnchors, chartFrameSizing, plotRect } from '../../modules/chart/chart-layout'
+import {
+	type CartesianLayoutInput,
+	chartFrameSizing,
+	horizontalLayout,
+	plotRect,
+	verticalLayout,
+} from '../../modules/chart/chart-layout'
 import { ChartLegend } from '../../modules/chart/chart-legend'
-import { bandScale } from '../../modules/chart/chart-scale'
 import { bySlot, noop, renderUI } from '../helpers'
-
-const PLOT = { x: 40, y: 8, width: 360, height: 200 }
 
 function frame(width: number, extras?: Partial<Parameters<typeof ChartFrame>[0]>) {
 	return (
@@ -133,15 +136,49 @@ describe('chartFrameSizing', () => {
 	})
 })
 
-describe('bandAnchors', () => {
-	it('anchors each category at its band center on the plot top', () => {
-		const band = bandScale({ count: 2, range: [PLOT.x, PLOT.x + PLOT.width] })
+describe('cartesian layout', () => {
+	const input: CartesianLayoutInput = {
+		frameWidth: 400,
+		frameHeight: 240,
+		axes: true,
+		tickTarget: 4,
+		zeroBaseline: true,
+		domainValues: [0, 40, 80],
+		categories: ['Q1', 'Q2'],
+		format: (value) => String(value),
+		count: 2,
+		visibleValues: [[40, 80]],
+	}
 
-		const anchors = bandAnchors(band, 2, PLOT)
+	it('runs value up y and the band across x when vertical', () => {
+		const layout = verticalLayout(input)
 
-		expect(anchors).toEqual([
-			{ x: band.center(0), y: PLOT.y },
-			{ x: band.center(1), y: PLOT.y },
-		])
+		// Zero sits on the plot floor; the ceiling tick sits above it.
+		expect(layout.baseline).toBeCloseTo(layout.plot.y + layout.plot.height)
+
+		expect(layout.valueTicks.at(-1)?.at).toBeLessThan(layout.baseline)
+
+		// Band centers fall inside the horizontal plot span.
+		for (const position of layout.bandPositions) {
+			expect(position).toBeGreaterThanOrEqual(layout.plot.x)
+
+			expect(position).toBeLessThanOrEqual(layout.plot.x + layout.plot.width)
+		}
+	})
+
+	it('runs value along x and the band down y when horizontal', () => {
+		const layout = horizontalLayout(input)
+
+		// Zero sits at the left edge; the ceiling tick sits to its right.
+		expect(layout.baseline).toBeCloseTo(layout.plot.x)
+
+		expect(layout.valueTicks.at(-1)?.at).toBeGreaterThan(layout.baseline)
+
+		// Band centers fall inside the vertical plot span.
+		for (const position of layout.bandPositions) {
+			expect(position).toBeGreaterThanOrEqual(layout.plot.y)
+
+			expect(position).toBeLessThanOrEqual(layout.plot.y + layout.plot.height)
+		}
 	})
 })

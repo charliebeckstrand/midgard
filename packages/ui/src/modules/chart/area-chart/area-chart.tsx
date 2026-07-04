@@ -170,11 +170,11 @@ export function AreaChart<T>({
 			legendPlacement={typeof legend === 'string' ? legend : undefined}
 			readout={chart.readout}
 			tooltip={tooltip}
-			snap={snapTargets(rails, chart.anchors, chart.snapPoints)}
+			snap={snapTargets(rails, chart.bandPositions, chart.snapPoints)}
 			className={className}
 		>
 			{gridLines && yScale && (
-				<ChartGridLines plot={chart.plot} ys={chart.yTicks.map((tick) => tick.at)} />
+				<ChartGridLines plot={chart.plot} ticks={chart.yTicks.map((tick) => tick.at)} />
 			)}
 
 			{axes && yScale && <ChartAxis axis="y" plot={chart.plot} ticks={chart.yTicks} />}
@@ -185,8 +185,8 @@ export function AreaChart<T>({
 				<ChartCrosshair
 					plot={chart.plot}
 					crosshair={rails}
-					bandXs={chart.anchors.map((anchor) => anchor.x)}
-					snapPoints={chart.snapPoints}
+					bandPositions={chart.bandPositions}
+					valuePoints={chart.snapPoints}
 				/>
 			)}
 

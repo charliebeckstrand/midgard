@@ -6,7 +6,9 @@
  */
 
 import type { FrameSizing } from '../../hooks'
+import type { ChartAxisTick } from './chart-axis'
 import {
+	BAND_LABEL_HEIGHT,
 	GUTTER_EDGE_PAD,
 	GUTTER_GAP,
 	GUTTER_MAX,
@@ -14,7 +16,8 @@ import {
 	TICK_CHAR_WIDTH,
 	X_AXIS_HEIGHT,
 } from './chart-constants'
-import type { BandScale } from './chart-scale'
+import { bandExtent, valueExtent } from './chart-orientation'
+import { type BandScale, bandScale, type LinearScale, linearScale } from './chart-scale'
 
 /**
  * A chart's aspect ratio: a `width / height` number, a `"16/9"` string, or
@@ -61,12 +64,6 @@ export type PlotRect = {
 	height: number
 }
 
-/** A tooltip anchor: the point the readout attaches to for one category. @internal */
-export type ChartAnchor = {
-	x: number
-	y: number
-}
-
 /**
  * Reserves the y gutter and x-axis band inside a `width` × `height` frame and
  * returns the remaining plot rectangle.
@@ -101,33 +98,190 @@ export function plotRect(
 }
 
 /**
- * Tooltip anchors for a band scale: each category's band center at the plot
- * top, so the readout hangs beside the crosshair or hovered group.
+ * The category indexes whose labels fit along an axis without colliding: every
+ * label when there is room, else every nth — thinned, never rotated. `slot` is
+ * one label's footprint along the axis with a breath of air, so the same math
+ * thins by row width (value on x) or by column height (categories down y).
  *
  * @internal
  */
-export function bandAnchors(band: BandScale, count: number, plot: PlotRect): ChartAnchor[] {
-	return Array.from({ length: count }, (_, index) => ({
-		x: band.center(index),
-		y: plot.y,
-	}))
-}
-
-/**
- * The category indexes whose x labels fit without colliding: every label when
- * there is room, else every nth — thinned, never rotated. The estimate reuses
- * the tabular glyph width, with a slot of air between neighbours.
- *
- * @internal
- */
-export function thinnedTicks(count: number, plotWidth: number, longestChars: number): number[] {
+export function thinned(count: number, axisLength: number, slot: number): number[] {
 	if (count <= 0) return []
 
-	const slot = longestChars * TICK_CHAR_WIDTH + GUTTER_GAP
-
-	const fit = Math.max(1, Math.floor(plotWidth / Math.max(1, slot)))
+	const fit = Math.max(1, Math.floor(axisLength / Math.max(1, slot)))
 
 	const nth = Math.ceil(count / fit)
 
 	return Array.from({ length: count }, (_, index) => index).filter((index) => index % nth === 0)
+}
+
+/**
+ * Everything the cartesian frame parts and marks read once the orientation,
+ * sizing, and scales resolve — one shape for both orientations, so a chart
+ * draws from it without knowing which way it faces. Positions are already
+ * projected onto their screen axes: value ticks and snap points along the value
+ * axis, band ticks and centers along the categorical axis.
+ *
+ * @internal
+ */
+export type CartesianLayout = {
+	plot: PlotRect
+	/** The value scale, its range already the correct screen axis; `null` for an empty domain. */
+	valueScale: LinearScale | null
+	/** The categorical band, its range already the cross axis. */
+	band: BandScale
+	/** The zero line's position along the value axis — bar baselines and the category axis line. */
+	baseline: number
+	/** Value ticks at their value-axis positions. */
+	valueTicks: ChartAxisTick[]
+	/** Category labels, thinned, at their band-axis centers. */
+	bandTicks: ChartAxisTick[]
+	/** Each category's band center — the crosshair's and tooltip's band snap. */
+	bandPositions: number[]
+	/** Per category, the visible series' value-axis positions — the value crosshair's snap targets. */
+	snapPoints: number[][]
+}
+
+/** The resolved inputs both {@link verticalLayout} and {@link horizontalLayout} read. @internal */
+export type CartesianLayoutInput = {
+	frameWidth: number
+	frameHeight: number
+	axes: boolean
+	tickTarget: number
+	zeroBaseline: boolean
+	min?: number
+	max?: number
+	/** Every candidate value feeding the domain (already stack-summed where stacked). */
+	domainValues: number[]
+	/** The category label per row — the band axis, and the gutter estimate when horizontal. */
+	categories: string[]
+	format: (value: number) => string
+	count: number
+	/** Visible series' values, series-major — the per-category snap points. */
+	visibleValues: (number | null)[][]
+}
+
+/** Value ticks placed along the value axis by the scale's own map. @internal */
+function valueTicksOf(
+	scale: LinearScale | null,
+	format: (value: number) => string,
+): ChartAxisTick[] {
+	return (scale?.ticks ?? []).map((tick) => ({ at: scale?.map(tick) ?? 0, label: format(tick) }))
+}
+
+/** Per category, the visible finite values in value-axis position — the snap targets. @internal */
+function snapPointsOf(
+	scale: LinearScale | null,
+	count: number,
+	visibleValues: (number | null)[][],
+): number[][] {
+	if (!scale) return []
+
+	return Array.from({ length: count }, (_, index) =>
+		visibleValues.reduce<number[]>((positions, series) => {
+			const value = series[index]
+
+			if (value != null && Number.isFinite(value)) positions.push(scale.map(value))
+
+			return positions
+		}, []),
+	)
+}
+
+/** Every category's band center, along the band axis. @internal */
+function bandCenters(band: BandScale, count: number): number[] {
+	return Array.from({ length: count }, (_, index) => band.center(index))
+}
+
+/** The fitting category labels at their band centers, thinned by `slot` room along the axis. @internal */
+function bandTicksOf(
+	categories: string[],
+	band: BandScale,
+	axisLength: number,
+	slot: number,
+): ChartAxisTick[] {
+	return thinned(categories.length, axisLength, slot).map((index) => ({
+		at: band.center(index),
+		label: categories[index] ?? '',
+	}))
+}
+
+/**
+ * The default layout: value on y with the scale filling the height above the
+ * x-axis band, categories across x. The scale resolves from the frame height
+ * first so its tick labels can size the left gutter before the plot rect exists.
+ *
+ * @internal
+ */
+export function verticalLayout(input: CartesianLayoutInput): CartesianLayout {
+	const { axes, categories, count, format, frameHeight, frameWidth } = input
+
+	const valueScale = linearScale({
+		values: input.domainValues,
+		range: [frameHeight - (axes ? X_AXIS_HEIGHT : 0), PLOT_TOP_PAD],
+		tickTarget: input.tickTarget,
+		zeroBaseline: input.zeroBaseline,
+		min: input.min,
+		max: input.max,
+	})
+
+	const valueTicks = valueTicksOf(valueScale, format)
+
+	const plot = plotRect(
+		frameWidth,
+		frameHeight,
+		axes,
+		valueTicks.map((tick) => tick.label),
+	)
+
+	const band = bandScale({ count, range: bandExtent('vertical', plot) })
+
+	const longest = categories.reduce((widest, label) => Math.max(widest, label.length), 0)
+
+	return {
+		plot,
+		valueScale,
+		band,
+		baseline: valueScale?.map(0) ?? plot.y + plot.height,
+		valueTicks,
+		bandTicks: bandTicksOf(categories, band, plot.width, longest * TICK_CHAR_WIDTH + GUTTER_GAP),
+		bandPositions: bandCenters(band, count),
+		snapPoints: snapPointsOf(valueScale, count, input.visibleValues),
+	}
+}
+
+/**
+ * The transposed layout: value on x with the scale filling the plot width,
+ * categories down y. The band labels — not the value ticks — line the left
+ * gutter, and they are known up front, so the plot rect resolves first and the
+ * value scale fills the width it leaves.
+ *
+ * @internal
+ */
+export function horizontalLayout(input: CartesianLayoutInput): CartesianLayout {
+	const { axes, categories, count, format, frameHeight, frameWidth } = input
+
+	const plot = plotRect(frameWidth, frameHeight, axes, categories)
+
+	const valueScale = linearScale({
+		values: input.domainValues,
+		range: valueExtent('horizontal', plot),
+		tickTarget: input.tickTarget,
+		zeroBaseline: input.zeroBaseline,
+		min: input.min,
+		max: input.max,
+	})
+
+	const band = bandScale({ count, range: bandExtent('horizontal', plot) })
+
+	return {
+		plot,
+		valueScale,
+		band,
+		baseline: valueScale?.map(0) ?? plot.x,
+		valueTicks: valueTicksOf(valueScale, format),
+		bandTicks: bandTicksOf(categories, band, plot.height, BAND_LABEL_HEIGHT),
+		bandPositions: bandCenters(band, count),
+		snapPoints: snapPointsOf(valueScale, count, input.visibleValues),
+	}
 }
