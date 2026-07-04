@@ -47,18 +47,6 @@ const sources = [
 	{ source: 'Social', visits: 940 },
 ]
 
-const budget = months.map((entry) => ({
-	month: entry.month,
-	revenue: entry.revenue * 1000,
-	costs: entry.costs * 1000,
-}))
-
-const usd = new Intl.NumberFormat(undefined, {
-	style: 'currency',
-	currency: 'USD',
-	maximumFractionDigits: 0,
-})
-
 // Atlas data stays out of the package: fetch the us-atlas TopoJSON as a static
 // asset on first render, the same shape a consumer's lazily-loaded geography
 // takes. `null` until it lands — the choropleth reserves its frame meanwhile.
@@ -170,23 +158,6 @@ export function Demo() {
 										data={swings}
 										series={[{ xKey: 'month', yKey: 'delta', yName: 'Swing' }]}
 										crosshair
-									/>
-								</ChartContainer>
-							</Example>
-
-							<Example
-								title="Formatted values"
-								code={code`<BarChart formatValue={(value) => usd.format(value)} … />`}
-							>
-								<ChartContainer>
-									<BarChart
-										aria-label="Budget by month in dollars"
-										data={budget}
-										series={[
-											{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
-											{ xKey: 'month', yKey: 'costs', yName: 'Costs' },
-										]}
-										formatValue={(value) => usd.format(value)}
 									/>
 								</ChartContainer>
 							</Example>

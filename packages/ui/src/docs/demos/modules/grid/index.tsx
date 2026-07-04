@@ -810,12 +810,6 @@ const FooterExample = () => {
 			footer={{
 				rowTotal: true,
 				selectedTotal: true,
-				content: ({ selected }) =>
-					selected > 0 ? (
-						<Button variant="soft" onClick={() => setSelection(new Set())}>
-							Clear
-						</Button>
-					) : null,
 			}}
 		/>
 	)
