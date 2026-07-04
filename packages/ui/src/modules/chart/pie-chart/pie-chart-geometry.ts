@@ -43,8 +43,17 @@ export type PieSlicesOptions = {
 	pad?: number
 }
 
-/** The point at `angle` degrees (0 at the top, clockwise) on a circle. @internal */
-function at(cx: number, cy: number, radius: number, angle: number): { x: number; y: number } {
+/**
+ * The point at `angle` degrees (0 at the top, clockwise) on a circle. The
+ * callout solver reads it to find where a sector's mid-angle radial exits the
+ * pie, the point each card's cross-axis centers on. @internal
+ */
+export function at(
+	cx: number,
+	cy: number,
+	radius: number,
+	angle: number,
+): { x: number; y: number } {
 	const radians = ((angle - 90) * Math.PI) / 180
 
 	return { x: cx + radius * Math.cos(radians), y: cy + radius * Math.sin(radians) }
@@ -289,127 +298,4 @@ export function segmentLabelFits(
 	const clearance = centroidRadius * Math.sin((half * Math.PI) / 180)
 
 	return clearance >= (chars * charWidth) / 2 + 4
-}
-
-/** A short radial leader out from the slice edge before the label. @internal */
-export const CALLOUT_LEADER = 14
-
-/** The horizontal nub the leader turns through toward its label. @internal */
-export const CALLOUT_NUB = 10
-
-/** The constant gap between a leader's end and its label text. @internal */
-export const CALLOUT_GAP = 6
-
-/** The minimum vertical spacing between stacked callout labels. @internal */
-export const CALLOUT_LINE = 15
-
-/** One placed callout: a leader out to a label set beside its slice. @internal */
-export type PieCallout = {
-	/** The datum's index — the label text and colour key off it. */
-	index: number
-	/** The slice's mid-angle, so a callout can sync its reveal to the sweep. */
-	mid: number
-	/** The leader polyline points, `"x,y x,y x,y"`: edge, radial elbow, nub. */
-	leader: string
-	/** The label anchor x, a constant gap past the nub. */
-	x: number
-	/** The label baseline y, after declumping. */
-	y: number
-	/** Right-side labels read outward from the start, left-side from the end. */
-	anchor: 'start' | 'end'
-}
-
-/** Options for {@link pieCallouts}. @internal */
-export type PieCalloutsOptions = {
-	cx: number
-	cy: number
-	radius: number
-	/** The frame's usable y band, so a declumped run stays on-screen. */
-	top: number
-	bottom: number
-}
-
-/**
- * Pushes the ys apart to at least `gap`, keeping their order, then slides the
- * whole run back inside `[top, bottom]` — the classic label declump. Returns
- * the resolved ys in the input order. @internal
- */
-function declumpLabels(ys: number[], top: number, bottom: number, gap: number): number[] {
-	const order = ys.map((y, index) => ({ y, index })).sort((a, b) => a.y - b.y)
-
-	for (let k = 1; k < order.length; k++) {
-		const prev = order[k - 1]
-
-		const here = order[k]
-
-		if (prev && here && here.y - prev.y < gap) here.y = prev.y + gap
-	}
-
-	const last = order[order.length - 1]
-
-	const overflow = last ? last.y - bottom : 0
-
-	if (overflow > 0) for (const item of order) item.y -= overflow
-
-	const first = order[0]
-
-	if (first && first.y < top) {
-		const shift = top - first.y
-
-		for (const item of order) item.y += shift
-	}
-
-	const resolved = new Array<number>(ys.length)
-
-	for (const item of order) resolved[item.index] = item.y
-
-	return resolved
-}
-
-/**
- * Places a callout beside each slice: a short radial leader out from the edge
- * along the slice's bisector, a nub, then a label a constant gap past it.
- * Slices are split left / right of the center and their labels declumped per
- * side, so a crowded pie stacks them without overlap instead of piling them on
- * one point. Pure, so the placement is unit-testable in isolation.
- *
- * @internal
- */
-export function pieCallouts(
-	slices: PieSlice[],
-	{ cx, cy, radius, top, bottom }: PieCalloutsOptions,
-): PieCallout[] {
-	const placed = slices.map((slice) => {
-		const elbow = at(cx, cy, radius + CALLOUT_LEADER, slice.mid)
-
-		return { slice, elbow, dir: elbow.x >= cx ? 1 : -1 }
-	})
-
-	return [1, -1].flatMap((dir) => {
-		const side = placed.filter((entry) => entry.dir === dir)
-
-		const ys = declumpLabels(
-			side.map((entry) => entry.elbow.y),
-			top,
-			bottom,
-			CALLOUT_LINE,
-		)
-
-		return side.map((entry, order) => {
-			const edge = at(cx, cy, radius, entry.slice.mid)
-
-			const y = ys[order] ?? entry.elbow.y
-
-			const nubX = entry.elbow.x + CALLOUT_NUB * dir
-
-			return {
-				index: entry.slice.index,
-				mid: entry.slice.mid,
-				leader: `${edge.x},${edge.y} ${entry.elbow.x},${entry.elbow.y} ${nubX},${y}`,
-				x: nubX + CALLOUT_GAP * dir,
-				y,
-				anchor: dir > 0 ? ('start' as const) : ('end' as const),
-			}
-		})
-	})
 }

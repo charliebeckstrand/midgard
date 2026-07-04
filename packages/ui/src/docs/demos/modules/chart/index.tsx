@@ -342,8 +342,8 @@ export function Demo() {
 
 					<TabContent value="pie">
 						<Stack gap="xl">
-							<Example title="No labels" code={code`<PieChart … />`}>
-								<ChartContainer size={360}>
+							<Example title="Automatic" code={code`<PieChart … />`}>
+								<ChartContainer size={480}>
 									<PieChart
 										aria-label="Traffic by source"
 										data={sources}
@@ -354,7 +354,7 @@ export function Demo() {
 
 							<Example
 								title="Segment labels"
-								code={code`<PieChart labels={{ segment: true }} legend={false} … />`}
+								code={code`<PieChart labels={{ segment: true }} … />`}
 							>
 								<ChartContainer size={360}>
 									<PieChart
@@ -380,8 +380,22 @@ export function Demo() {
 								</ChartContainer>
 							</Example>
 
-							<AnimatedExample title="Animated" source={code`<PieChart animate … />`}>
+							<Example
+								title="No labels"
+								code={code`<PieChart labels={{ segment: false, callouts: false }} … />`}
+							>
 								<ChartContainer size={360}>
+									<PieChart
+										aria-label="Traffic by source"
+										data={sources}
+										series={[{ xKey: 'source', yKey: 'visits' }]}
+										labels={{ segment: false, callouts: false }}
+									/>
+								</ChartContainer>
+							</Example>
+
+							<AnimatedExample title="Animated" source={code`<PieChart animate … />`}>
+								<ChartContainer size={480}>
 									<PieChart
 										aria-label="Traffic by source, animated"
 										data={sources}
@@ -405,12 +419,16 @@ export function Demo() {
 								</ChartContainer>
 							</Example>
 
-							<Example title="Center content" code={code`<DonutChart>…</DonutChart>`}>
+							<Example
+								title="Center content"
+								code={code`<DonutChart labels={{ callouts: false, segment: false }}>…</DonutChart>`}
+							>
 								<ChartContainer size={360}>
 									<DonutChart
 										aria-label="Traffic by source"
 										data={sources}
 										series={[{ xKey: 'source', yKey: 'visits' }]}
+										labels={{ callouts: false, segment: false }}
 									>
 										<Stat>
 											<StatLabel>Total visits</StatLabel>

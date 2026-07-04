@@ -6,7 +6,7 @@ import { cn } from '../../core'
 import { type FrameSizing, usePlotFrame } from '../../hooks'
 import { k } from '../../recipes/kata/chart'
 import { formatPercent } from '../../utilities'
-import { MARK_GAP, SLICE_FADE, SLICE_SWEEP, TICK_CHAR_WIDTH } from './chart-constants'
+import { MARK_GAP, SLICE_FADE, SLICE_SETTLE, SLICE_SWEEP, TICK_CHAR_WIDTH } from './chart-constants'
 import { ChartFrame } from './chart-frame'
 import { type ChartAspectRatio, chartFrameSizing } from './chart-layout'
 import { ChartLegend, type ChartLegendItem } from './chart-legend'
@@ -14,26 +14,28 @@ import { ChartMarksLayer } from './chart-marks-layer'
 import type { ChartBaseProps, PieChartSeries } from './chart-schema'
 import { formatChartValue, type SeriesPaint, seriesValues } from './chart-series'
 import { useChartHover } from './context'
+import { PieChartCalloutLabels } from './pie-chart/pie-chart-callout-labels'
 import {
-	CALLOUT_GAP,
-	CALLOUT_LEADER,
-	CALLOUT_LINE,
-	CALLOUT_NUB,
-	type PieCallout,
 	type PieSlice,
-	pieCallouts,
 	pieCentroidRadius,
 	pieSlices,
 	segmentLabelFits,
 } from './pie-chart/pie-chart-geometry'
+import { type PieCallouts, usePieChartCallouts } from './pie-chart/use-pie-chart-callouts'
 import type { ChartReadout } from './types'
 import { useChartSeriesToggle } from './use-chart-series-toggle'
 
 /** The label switches {@link PieBaseProps.labels} accepts. */
 export type PieLabels = {
-	/** @defaultValue false */
+	/**
+	 * Percent-share label inside each slice — AG Charts' `sectorLabel`. Rendered
+	 * only where it fits its slice, never clipped.
+	 */
 	segment?: boolean
-	/** @defaultValue false */
+	/**
+	 * Named card outside each slice — AG Charts' `calloutLabel`. Floats the
+	 * tooltip surface flush to the plot edge, centered on its sector.
+	 */
 	callouts?: boolean
 }
 
@@ -41,10 +43,10 @@ export type PieLabels = {
  * The props {@link PieChart} and {@link DonutChart} share: {@link ChartBaseProps}
  * plus the single series they slice by share and the label switches.
  *
- * @remarks Left unset, `aspectRatio` reads a plain pie square and fits a
- * callout-labelled one to its own content; see {@link ChartBaseProps.aspectRatio}.
- * The legend defaults on for two or more slices — the identity channel colour
- * alone must never carry.
+ * @remarks Left unset, the frame reads a plain square and centers the pie in
+ * it; see {@link ChartBaseProps.aspectRatio}. The legend defaults on for two or
+ * more slices — the identity channel colour alone must never carry — but off
+ * once callouts resolve on, since a card names every slice on its own.
  */
 export type PieBaseProps<T> = ChartBaseProps<T> & {
 	/**
@@ -54,15 +56,20 @@ export type PieBaseProps<T> = ChartBaseProps<T> & {
 	 */
 	series: [PieChartSeries<T>]
 	/**
-	 * Label switches for the plot. `segment` shows each slice's percent share
-	 * at its centroid, rendered only where it fits — never clipped; the
-	 * tooltip and data table always carry the full readout. `callouts` names
-	 * every slice from the outside with a leader line to its name and percent
-	 * share, declumping per side so a crowded pie never overlaps them and
-	 * shrinking the pie to make room — see `aspectRatio`, the default frame
-	 * shrinks with it too, rather than leaving the labels' margin empty on
-	 * every side. Unlike segment labels these name the slice, so they read
-	 * without the legend.
+	 * Label switches for the plot. `segment` shows each slice's percent share at
+	 * its centroid, rendered only where it fits — never clipped; the tooltip and
+	 * data table always carry the full readout. `callouts` names every slice
+	 * from the outside with a floating card wearing the tooltip surface, flush to
+	 * the plot edge and centered on its sector — no leader — declumping per side
+	 * so a crowded pie never overlaps them and shrinking the pie to make room.
+	 * Unlike segment labels these name the slice, so they read without the
+	 * legend.
+	 *
+	 * Left unset (or `{}`), the labels resolve automatically: callouts when the
+	 * measured layout fits, else segment labels. Either key supersedes — set one
+	 * `true` to force it (callouts then degrade by dropping the smallest shares
+	 * rather than switching), set one `false` to drop it from the candidates.
+	 * @defaultValue auto — labels on
 	 */
 	labels?: PieLabels
 }
@@ -81,9 +88,44 @@ type PieSegmentLabel = {
 	text: string
 }
 
-/** Defaults both label switches off. @internal */
-function resolvePieLabels(labels: PieLabels | undefined): Required<PieLabels> {
-	return { segment: labels?.segment ?? false, callouts: labels?.callouts ?? false }
+/**
+ * How the `labels` prop resolves to what may render. A key set `true` forces
+ * its layer and fixes the mode; a key set `false` drops it; both unset leaves
+ * the fit to decide (`forced` off) between the surviving candidates.
+ *
+ * @internal
+ */
+type ResolvedPieLabels = {
+	/** Callouts may render — forced, or an auto candidate. */
+	calloutCandidate: boolean
+	/** Segment labels may render — forced, or an auto candidate. */
+	segmentCandidate: boolean
+	/** A key was set `true`, so the mode is fixed rather than fit-decided. */
+	forced: boolean
+}
+
+/**
+ * Resolves the label switches. Auto engages unless a key is forced `true`: with
+ * neither forced, each key is a candidate unless set `false`, and the measured
+ * fit picks callouts or segment labels; forcing a key fixes it and turns the
+ * other off unless it too is forced. Inner keys stay `segment` / `callouts`
+ * though AG Charts names them `sectorLabel` / `calloutLabel`.
+ *
+ * @internal
+ */
+function resolvePieLabels(labels: PieLabels | undefined): ResolvedPieLabels {
+	const { segment, callouts } = labels ?? {}
+
+	const forced = segment === true || callouts === true
+
+	if (forced)
+		return { calloutCandidate: callouts === true, segmentCandidate: segment === true, forced: true }
+
+	return {
+		calloutCandidate: callouts !== false,
+		segmentCandidate: segment !== false,
+		forced: false,
+	}
 }
 
 /** A slice group's dim classes — on the wrapper, so motion's inline opacity composes. @internal */
@@ -191,6 +233,11 @@ type PieChartMarksProps = {
 	center: { x: number; y: number }
 	/** The outer radius the sweep mask must cover. */
 	radius: number
+	/**
+	 * The intro scale the slice group holds behind the sweep before contracting
+	 * to `1`: `r₀ / radius` when callouts shrank the pie, else `1` (no intro).
+	 */
+	introScale: number
 	/** The legend-emphasised slice; the others dim against it. */
 	emphasis: number | null
 }
@@ -203,22 +250,57 @@ type PieChartMarksProps = {
  * a tinted or glass card.
  *
  * @remarks Under `animate` the disc wipes in clockwise from the top: a mask
- * stroke thick enough to cover the whole disc draws itself (`pathLength`
- * 0 → 1), the same self-drawing reveal as the line chart — the pie sweeps in
- * along its angular axis the way a line draws along x. The slices themselves
- * stay static, so hover and dimming behave identically mid-reveal.
+ * stroke thick enough to cover the whole disc — at the intro scale too — draws
+ * itself (`pathLength` 0 → 1), the same self-drawing reveal as the line chart.
+ * When callouts shrank the pie, the whole slice group holds at `r₀ / radius`
+ * behind the sweep, then eases to `1` about the center as the cards arrive, so
+ * the pie reads as making room; the slices themselves stay static, so hover and
+ * dimming behave identically mid-reveal. `ReducedMotion` strips the group
+ * scale, leaving the pie at its final radius.
  * @internal
  */
-function PieChartMarks({ slices, paints, animate, center, radius, emphasis }: PieChartMarksProps) {
+function PieChartMarks({
+	slices,
+	paints,
+	animate,
+	center,
+	radius,
+	introScale,
+	emphasis,
+}: PieChartMarksProps) {
 	const { set } = useChartHover()
 
 	const sweepId = useId()
+
+	const disc = (
+		<g mask={animate ? `url(#${sweepId})` : undefined}>
+			{slices.map((slice) => (
+				<g key={slice.index} className={sliceGroupClass(emphasis, slice.index)}>
+					<path
+						data-slot="chart-slice"
+						d={slice.d}
+						className={cn(paints[slice.index]?.fill, 'hover:brightness-110')}
+						onPointerEnter={() => set(slice.index, slice.centroid)}
+						onPointerMove={(event: PointerEvent<SVGPathElement>) => {
+							const box = event.currentTarget.ownerSVGElement?.getBoundingClientRect()
+
+							if (!box) return
+
+							set(slice.index, { x: event.clientX - box.left, y: event.clientY - box.top })
+						}}
+					/>
+				</g>
+			))}
+		</g>
+	)
 
 	return (
 		<g data-slot="chart-slices" onPointerLeave={() => set(null, null)}>
 			{animate && (
 				<mask id={sweepId}>
-					{/* The circle's stroke starts at 3 o'clock; the group turns it to 12. */}
+					{/* The circle's stroke starts at 3 o'clock; the group turns it to 12.
+					    Its width covers the disc at the held intro scale, so the group's
+					    scale never outruns the mask. */}
 					<g transform={`rotate(-90 ${center.x} ${center.y})`}>
 						<motion.circle
 							cx={center.x}
@@ -226,7 +308,7 @@ function PieChartMarks({ slices, paints, animate, center, radius, emphasis }: Pi
 							r={radius / 2}
 							fill="none"
 							stroke="#fff"
-							strokeWidth={radius + 4}
+							strokeWidth={radius * (2 * introScale - 1) + 4}
 							initial={{ pathLength: 0 }}
 							animate={{ pathLength: 1 }}
 							transition={SLICE_SWEEP}
@@ -235,103 +317,41 @@ function PieChartMarks({ slices, paints, animate, center, radius, emphasis }: Pi
 				</mask>
 			)}
 
-			<g mask={animate ? `url(#${sweepId})` : undefined}>
-				{slices.map((slice) => (
-					<g key={slice.index} className={sliceGroupClass(emphasis, slice.index)}>
-						<path
-							data-slot="chart-slice"
-							d={slice.d}
-							className={cn(paints[slice.index]?.fill, 'hover:brightness-110')}
-							onPointerEnter={() => set(slice.index, slice.centroid)}
-							onPointerMove={(event: PointerEvent<SVGPathElement>) => {
-								const box = event.currentTarget.ownerSVGElement?.getBoundingClientRect()
-
-								if (!box) return
-
-								set(slice.index, { x: event.clientX - box.left, y: event.clientY - box.top })
-							}}
-						/>
-					</g>
-				))}
-			</g>
+			{animate && introScale !== 1 ? (
+				<motion.g
+					style={{ transformOrigin: 'center', transformBox: 'fill-box' }}
+					initial={{ scale: introScale }}
+					animate={{ scale: 1 }}
+					transition={SLICE_SETTLE}
+				>
+					{disc}
+				</motion.g>
+			) : (
+				disc
+			)}
 		</g>
 	)
-}
-
-/** A placed callout with its resolved label text. @internal */
-type CalloutLabel = PieCallout & { text: string }
-
-/** What a callout's text reads: the slice name plus its percent share. @internal */
-type CalloutSpec = {
-	labels: string[]
-}
-
-/** One callout's text: the slice name trailed by its percent share. @internal */
-function calloutLabelText({ labels }: CalloutSpec, index: number, share: number): string {
-	return `${labels[index] ?? ''} ${formatPercent(share)}`.trim()
-}
-
-/** The horizontal room the widest callout needs beside the pie; the plain gap when off. @internal */
-function calloutRoom(show: boolean, spec: CalloutSpec, sliceValues: (number | null)[]): number {
-	if (!show) return MARK_GAP * 2
-
-	const total = sliceValues.reduce<number>(
-		(sum, entry) => sum + (entry != null && entry > 0 ? entry : 0),
-		0,
-	)
-
-	const chars = sliceValues.reduce<number>(
-		(widest, entry, index) =>
-			entry != null && entry > 0
-				? Math.max(widest, calloutLabelText(spec, index, entry / total).length)
-				: widest,
-		0,
-	)
-
-	return CALLOUT_LEADER + CALLOUT_NUB + CALLOUT_GAP + chars * TICK_CHAR_WIDTH
 }
 
 /**
  * The pie frame's sizing policy: an explicit `height` or `aspectRatio` always
  * wins, resolved the same way every cartesian chart does. Left at both
- * defaults, the frame instead fits its height to the pie's own footprint —
- * twice the width-bound radius plus the vertical margin — so a wide callout
- * label never leaves an empty band the aspect ratio didn't need.
+ * defaults, the frame fits a plain square to its own width — the pie centers in
+ * it and shrinks within to make room for any callout cards, rather than the
+ * frame reserving a margin for labels it may not carry.
  *
  * @internal
  */
 function pieFrameSizing(
 	height: number | undefined,
 	aspectRatio: ChartAspectRatio | undefined,
-	hMargin: number,
-	vMargin: number,
+	margin: number,
 ): FrameSizing {
 	if (height !== undefined || aspectRatio !== undefined) {
 		return chartFrameSizing(height, aspectRatio ?? 1)
 	}
 
-	return { mode: 'content', hMargin, vMargin }
-}
-
-/** Places the callouts around the pie and resolves each label's text. @internal */
-function buildCallouts(
-	spec: CalloutSpec,
-	slices: PieSlice[],
-	center: { x: number; y: number },
-	radius: number,
-	frameHeight: number,
-): CalloutLabel[] {
-	return pieCallouts(slices, {
-		cx: center.x,
-		cy: center.y,
-		radius,
-		top: CALLOUT_LINE,
-		bottom: frameHeight - CALLOUT_LINE,
-	}).map((placed) => {
-		const slice = slices.find((entry) => entry.index === placed.index)
-
-		return { ...placed, text: slice ? calloutLabelText(spec, placed.index, slice.share) : '' }
-	})
+	return { mode: 'content', hMargin: margin, vMargin: margin }
 }
 
 /** The values behind the slices for the tooltip and table; `null` with no rows. @internal */
@@ -390,65 +410,115 @@ function pieLegendItems(
 	})
 }
 
-/** Props for {@link PieCallouts}. @internal */
-type PieCalloutsProps = {
-	items: CalloutLabel[]
+/** Sweeps the slices at a given radius; empty at or below zero. @internal */
+function pieSlicesAt(
+	values: (number | null)[],
+	center: { x: number; y: number },
+	radius: number,
+	innerRatio: number,
+): PieSlice[] {
+	if (radius <= 0) return []
+
+	return pieSlices(values, {
+		cx: center.x,
+		cy: center.y,
+		radius,
+		innerRadius: radius * innerRatio,
+		pad: MARK_GAP,
+	})
+}
+
+/** What the resolved labels and the callout solve settle the pie's geometry to. @internal */
+type PieLayout = {
+	/** Whether callouts render, so the frame drops the legend and the pie shrinks. */
+	showCallouts: boolean
+	/** Whether the fit-gated segment labels render. */
+	showSegmentLabels: boolean
+	/** The radius the pie draws at. */
+	radius: number
+	innerRadius: number
+	slices: PieSlice[]
+	/** The intro group scale behind the sweep: `r₀ / radius` under a shrink, else `1`. */
+	introScale: number
+}
+
+/** Options for {@link derivePieLayout}. @internal */
+type PieLayoutOptions = {
+	callouts: PieCallouts
+	calloutCandidate: boolean
+	segmentCandidate: boolean
+	forced: boolean
+	r0: number
+	innerRatio: number
 	animate: boolean
-	emphasis: number | null
+	values: (number | null)[]
+	center: { x: number; y: number }
+	baseSlices: PieSlice[]
 }
 
 /**
- * The callout labels: a muted leader from each slice out to its name and share,
- * set beside the slice. Plain SVG text on the surface — not on a fill — so it
- * takes the chrome ink and dims with its slice under legend emphasis. Under
- * `animate` each callout fades in as the sweep uncovers its slice.
+ * Reads the resolved label switches against the callout solve to fix what the
+ * pie draws: whether each label layer shows, the radius (the shrunk one under
+ * callouts, `r0` otherwise), the slices re-cut at it, and the intro scale.
  *
  * @internal
  */
-function PieCallouts({ items, animate, emphasis }: PieCalloutsProps) {
+function derivePieLayout(options: PieLayoutOptions): PieLayout {
+	const { callouts, calloutCandidate, segmentCandidate, forced } = options
+
+	const { r0, innerRatio, animate, values, center, baseSlices } = options
+
+	const showCallouts = calloutCandidate && (forced || callouts.mode === 'callout')
+
+	const showSegmentLabels = segmentCandidate && (forced || callouts.mode === 'sector')
+
+	const radius = showCallouts ? callouts.radius : r0
+
+	const slices = radius === r0 ? baseSlices : pieSlicesAt(values, center, radius, innerRatio)
+
+	const introScale = animate && showCallouts && radius > 0 ? r0 / radius : 1
+
+	return {
+		showCallouts,
+		showSegmentLabels,
+		radius,
+		innerRadius: radius * innerRatio,
+		slices,
+		introScale,
+	}
+}
+
+/** Props for {@link PieOverlay}. @internal */
+type PieOverlayProps = {
+	callouts: PieCallouts
+	animate: boolean
+	emphasis: number | null
+	/** A donut's center content, rendered over the hole; `null` on a pie. */
+	center: ReactNode
+}
+
+/**
+ * The HTML layered over the SVG inside the plot region: the callout cards and,
+ * for a donut, the center content. The cards stay mounted whenever the solve
+ * placed any — even in the resolved sector mode, where they render hidden — so
+ * their measurement holds and the fit verdict can't flap.
+ *
+ * @internal
+ */
+function PieOverlay({ callouts, animate, emphasis, center }: PieOverlayProps) {
+	if (callouts.cards.length === 0) return center
+
 	return (
-		<g data-slot="chart-callouts" pointerEvents="none">
-			{items.map((item) => {
-				const callout = (
-					<>
-						<polyline
-							data-slot="chart-callout-leader"
-							points={item.leader}
-							fill="none"
-							strokeWidth={1}
-							className={cn(k.axis)}
-						/>
+		<>
+			<PieChartCalloutLabels
+				cards={callouts.cards}
+				maxWidth={callouts.maxWidth}
+				animate={animate}
+				emphasis={emphasis}
+			/>
 
-						<text
-							data-slot="chart-callout-label"
-							x={item.x}
-							y={item.y}
-							textAnchor={item.anchor}
-							dominantBaseline="central"
-							className={cn('font-medium', k.tick)}
-						>
-							{item.text}
-						</text>
-					</>
-				)
-
-				return (
-					<g key={item.index} className={sliceGroupClass(emphasis, item.index)}>
-						{animate ? (
-							<motion.g
-								initial={{ opacity: 0 }}
-								animate={{ opacity: 1 }}
-								transition={{ ...SLICE_FADE, delay: sweepDelay(item.mid) }}
-							>
-								{callout}
-							</motion.g>
-						) : (
-							callout
-						)}
-					</g>
-				)
-			})}
-		</g>
+			{center}
+		</>
 	)
 }
 
@@ -456,9 +526,9 @@ function PieCallouts({ items, animate, emphasis }: PieCalloutsProps) {
  * The shared pie / donut engine: sweeps one dataset's positive shares into
  * slices clockwise from the top, separated by geometric gaps that show the
  * surface through, with a legend naming every slice, a per-slice hover
- * tooltip, fit-gated segment labels, and a visually-hidden data table.
- * {@link PieChart} passes `innerRatio: 0`; {@link DonutChart} passes a positive
- * ratio and center `children`.
+ * tooltip, layout-aware callout or fit-gated segment labels, and a
+ * visually-hidden data table. {@link PieChart} passes `innerRatio: 0`;
+ * {@link DonutChart} passes a positive ratio and center `children`.
  *
  * @internal
  */
@@ -478,7 +548,7 @@ export function ChartPie<T>({
 	children,
 	...name
 }: ChartPieProps<T>) {
-	const { segment: showSegmentLabels, callouts: showCallouts } = resolvePieLabels(labels)
+	const { calloutCandidate, segmentCandidate, forced } = resolvePieLabels(labels)
 
 	const format = formatValue ?? formatChartValue
 
@@ -488,21 +558,12 @@ export function ChartPie<T>({
 
 	const sliceLabels = data.map((datum) => String(datum[entry.xKey]))
 
-	// Callouts sit outside the pie, so reserve room for the widest one and shrink
-	// the pie to fit — its label never spills past the frame's clip.
-	const calloutSpec: CalloutSpec = { labels: sliceLabels }
+	// The frame is a plain square; callouts don't reserve a margin, the pie
+	// shrinks within instead. Sized from the full dataset, so it holds still as a
+	// legend entry toggles a slice — only the pie's radius reacts to that.
+	const margin = MARK_GAP * 2
 
-	const vMargin = showCallouts ? CALLOUT_LEADER + CALLOUT_LINE : MARK_GAP * 2
-
-	// Sized from the full dataset rather than the toggled-visible one, so the
-	// frame holds still as a legend entry hides or reveals a slice — only the
-	// pie's own radius reacts to that, below.
-	const sizing = pieFrameSizing(
-		height,
-		aspectRatio,
-		calloutRoom(showCallouts, calloutSpec, values),
-		vMargin,
-	)
+	const sizing = pieFrameSizing(height, aspectRatio, margin)
 
 	const { ref, width: frameWidth, height: frameHeight, reserve } = usePlotFrame(width, sizing)
 
@@ -513,37 +574,73 @@ export function ChartPie<T>({
 
 	const paints = values.map((_, index) => k.series[k.order[index % k.order.length] ?? 'blue'])
 
-	const hMargin = calloutRoom(showCallouts, calloutSpec, sliceValues)
-
-	const radius = Math.max(0, Math.min(frameWidth / 2 - hMargin, frameHeight / 2 - vMargin))
-
-	const innerRadius = radius * innerRatio
-
 	const center = { x: frameWidth / 2, y: frameHeight / 2 }
 
-	const slices =
-		radius > 0
-			? pieSlices(sliceValues, { cx: center.x, cy: center.y, radius, innerRadius, pad: MARK_GAP })
-			: []
+	// The unshrunk radius, width- and height-bound by the square. The callout
+	// solve shrinks from here; with callouts off the pie draws at it directly.
+	const r0 = Math.max(0, Math.min(frameWidth / 2 - margin, frameHeight / 2 - margin))
 
-	const calloutItems =
-		showCallouts && radius > 0
-			? buildCallouts(calloutSpec, slices, center, radius, frameHeight)
-			: []
+	// Slice angles are radius-independent, so a base pass at r0 feeds the solve
+	// its mids and shares before the shrunk radius is known.
+	const baseSlices = pieSlicesAt(sliceValues, center, r0, innerRatio)
+
+	const names = new Map(sliceLabels.map((label, index) => [index, label]))
+
+	const callouts = usePieChartCallouts({
+		enabled: calloutCandidate && frameWidth > 0 && baseSlices.length > 0,
+		forced,
+		frame: { width: frameWidth, height: frameHeight },
+		center,
+		r0,
+		slices: baseSlices.map((slice) => ({ index: slice.index, mid: slice.mid, share: slice.share })),
+		names,
+	})
+
+	const { showCallouts, showSegmentLabels, radius, innerRadius, slices, introScale } =
+		derivePieLayout({
+			callouts,
+			calloutCandidate,
+			segmentCandidate,
+			forced,
+			r0,
+			innerRatio,
+			animate,
+			values: sliceValues,
+			center,
+			baseSlices,
+		})
 
 	const readout = pieReadout(sliceLabels, paints, entry.yName ?? entry.yKey, values, format)
 
 	const aside = legend === 'left' || legend === 'right'
 
-	const legendItems =
-		(legend ?? data.length > 1) ? pieLegendItems(sliceLabels, paints, sliceValues, aside) : null
+	// The legend defaults off once callouts name every slice on their own, on
+	// otherwise for two or more slices; an explicit `legend` always wins.
+	const showLegend = legend ?? (!showCallouts && data.length > 1)
 
-	const labelItems = segmentLabelItems({
-		show: showSegmentLabels,
-		slices,
-		radius,
-		innerRadius,
-	})
+	const legendItems = showLegend ? pieLegendItems(sliceLabels, paints, sliceValues, aside) : null
+
+	const legendNode = legendItems ? (
+		<ChartLegend
+			items={legendItems}
+			hidden={hidden}
+			onToggle={toggle}
+			onFocus={setFocus}
+			panel={aside}
+		/>
+	) : null
+
+	const labelItems = segmentLabelItems({ show: showSegmentLabels, slices, radius, innerRadius })
+
+	const centerContent =
+		innerRatio > 0 && children ? (
+			<div
+				data-slot="chart-center"
+				className="pointer-events-none absolute inset-0 grid place-items-center"
+			>
+				{children}
+			</div>
+		) : null
 
 	const marks = (
 		<>
@@ -553,6 +650,7 @@ export function ChartPie<T>({
 				animate={animate}
 				center={center}
 				radius={radius}
+				introScale={introScale}
 				emphasis={emphasis}
 			/>
 
@@ -563,10 +661,6 @@ export function ChartPie<T>({
 					animate={animate}
 					emphasis={emphasis}
 				/>
-			)}
-
-			{calloutItems.length > 0 && (
-				<PieCallouts items={calloutItems} animate={animate} emphasis={emphasis} />
 			)}
 		</>
 	)
@@ -579,30 +673,18 @@ export function ChartPie<T>({
 			fixedWidth={width}
 			height={frameHeight}
 			reserve={reserve}
-			legend={
-				legendItems && (
-					<ChartLegend
-						items={legendItems}
-						hidden={hidden}
-						onToggle={toggle}
-						onFocus={setFocus}
-						panel={aside}
-					/>
-				)
-			}
+			legend={legendNode}
 			legendPlacement={typeof legend === 'string' ? legend : undefined}
 			readout={readout}
 			tooltip={tooltip}
 			className={className}
 			overlay={
-				innerRatio > 0 && children ? (
-					<div
-						data-slot="chart-center"
-						className="pointer-events-none absolute inset-0 grid place-items-center"
-					>
-						{children}
-					</div>
-				) : undefined
+				<PieOverlay
+					callouts={callouts}
+					animate={animate}
+					emphasis={emphasis}
+					center={centerContent}
+				/>
 			}
 		>
 			<ChartMarksLayer animate={animate}>{marks}</ChartMarksLayer>

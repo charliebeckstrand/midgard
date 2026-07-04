@@ -23,7 +23,8 @@ function chart(extra?: Partial<Parameters<typeof DonutChart<(typeof DATA)[number
 
 describe('DonutChart', () => {
 	it('slices, names, and reads out exactly like a pie', () => {
-		const { container } = renderUI(chart())
+		// Callouts default on and flip the legend off, so force it on to read it.
+		const { container } = renderUI(chart({ legend: true }))
 
 		expect(allBySlot(container, 'chart-slice')).toHaveLength(3)
 

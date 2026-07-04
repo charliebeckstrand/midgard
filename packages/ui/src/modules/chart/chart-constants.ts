@@ -87,3 +87,39 @@ export const SLICE_SWEEP = { duration: 0.8, ease: 'easeInOut' } as const
 
 /** Label fade-in as the sweep passes its slice. @internal */
 export const SLICE_FADE = { duration: 0.3, ease: 'easeOut' } as const
+
+// Callout cards — the leaderless Panel-surface labels the pie shrinks to make
+// room for. The pie solves its radius down against these; the cards flush to
+// the plot edge and declump per side against their measured heights.
+
+/** A callout card's width ceiling; its dynamic max-width never exceeds this. @internal */
+export const CARD_MAX_WIDTH = 176
+
+/** Clearance between the arc and a callout card's inner edge, in px. @internal */
+export const CARD_GAP = 12
+
+/** Minimum vertical spacing between stacked callout cards. @internal */
+export const LABEL_VGAP = 6
+
+/** Absolute floor the callout-shrunk radius never drops below, in px. @internal */
+export const CALLOUT_FLOOR_MIN = 56
+
+/** The callout radius floor as a share of the unshrunk radius; the larger of it and {@link CALLOUT_FLOOR_MIN} wins. @internal */
+export const CALLOUT_FLOOR_RATIO = 0.6
+
+/** The gap between the drop-to-sector and rise-to-callout radius thresholds, so a resize near the floor can't flap. @internal */
+export const CALLOUT_HYSTERESIS = 8
+
+/**
+ * The group scale settling from `r₀/r` to `1` about the center: the pie starts
+ * the intro visually full-size behind the sweep, then contracts to the solved
+ * radius as the cards arrive, reading as the pie making room. Delayed past the
+ * sweep's midpoint so it overlaps the sweep's tail as one gesture. @internal
+ */
+export const SLICE_SETTLE = { duration: 0.45, delay: 0.65, ease: 'easeOut' } as const
+
+/** When the first callout card begins fading in, after the sweep has laid the pie down. @internal */
+export const CALLOUT_FADE_DELAY = 0.7
+
+/** Delay step between adjacent callout cards in clockwise order, so they arrive in sequence. @internal */
+export const CALLOUT_STAGGER = 0.03

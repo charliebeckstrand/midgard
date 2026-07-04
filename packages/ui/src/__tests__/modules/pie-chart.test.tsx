@@ -1,10 +1,14 @@
 import { describe, expect, it } from 'vitest'
+import { LABEL_VGAP } from '../../modules/chart/chart-constants'
 import { PieChart } from '../../modules/chart/pie-chart'
 import {
-	CALLOUT_GAP,
-	CALLOUT_LINE,
+	calloutFloor,
+	calloutMaxWidth,
+	sideOf,
+	solveCallouts,
+} from '../../modules/chart/pie-chart/pie-chart-callout-layout'
+import {
 	type PieSlice,
-	pieCallouts,
 	pieCentroidRadius,
 	pieSlices,
 	segmentLabelFits,
@@ -32,7 +36,8 @@ function chart(extra?: Partial<Parameters<typeof PieChart<(typeof DATA)[number]>
 
 describe('PieChart', () => {
 	it('draws one slice per positive row and names them all in the legend', () => {
-		const { container } = renderUI(chart())
+		// Callouts default on and flip the legend off, so force it on to read it.
+		const { container } = renderUI(chart({ legend: true }))
 
 		expect(allBySlot(container, 'chart-slice')).toHaveLength(3)
 
@@ -93,8 +98,60 @@ describe('PieChart', () => {
 		expect(renderUI(chart()).container.querySelector('mask')).toBeNull()
 	})
 
+	it('defaults to auto labels — callout cards when the measured layout fits', () => {
+		const { container } = renderUI(chart())
+
+		// Unset labels resolve to callouts when they fit, which they do at this
+		// size under the jsdom zero-measurement stub.
+		expect(allBySlot(container, 'chart-callout')).toHaveLength(3)
+
+		// A card names every slice, so the legend defaults off and no segment
+		// labels double up the naming.
+		expect(bySlot(container, 'chart-legend')).toBeNull()
+
+		expect(allBySlot(container, 'chart-segment-label')).toHaveLength(0)
+	})
+
+	it('names slices from the outside with callout cards when asked', () => {
+		const { container } = renderUI(chart({ labels: { callouts: true } }))
+
+		const cards = allBySlot(container, 'chart-callout')
+
+		expect(cards).toHaveLength(3)
+
+		const texts = cards.map((el) => el.textContent ?? '')
+
+		expect(texts.some((text) => text.includes('Search') && text.includes('60%'))).toBe(true)
+
+		expect(texts.some((text) => text.includes('Referral') && text.includes('15%'))).toBe(true)
+
+		// No leader — association is spatial, so nothing is drawn out to the card.
+		expect(allBySlot(container, 'chart-callout-leader')).toHaveLength(0)
+	})
+
+	it('flips the legend default off when callouts resolve on, and an explicit legend wins', () => {
+		const auto = renderUI(chart({ labels: { callouts: true } }))
+
+		expect(bySlot(auto.container, 'chart-legend')).toBeNull()
+
+		const explicit = renderUI(chart({ labels: { callouts: true }, legend: true }))
+
+		expect(bySlot(explicit.container, 'chart-legend')).not.toBeNull()
+	})
+
+	it('drops every label layer, and restores the legend, when both switches are off', () => {
+		const { container } = renderUI(chart({ labels: { segment: false, callouts: false } }))
+
+		expect(allBySlot(container, 'chart-callout')).toHaveLength(0)
+
+		expect(allBySlot(container, 'chart-segment-label')).toHaveLength(0)
+
+		// With no callouts to carry the naming, the legend returns to its default-on.
+		expect(bySlot(container, 'chart-legend')).not.toBeNull()
+	})
+
 	it('labels segments with their percent share when asked', () => {
-		const off = renderUI(chart())
+		const off = renderUI(chart({ labels: { segment: false, callouts: false } }))
 
 		expect(allBySlot(off.container, 'chart-segment-label')).toHaveLength(0)
 
@@ -125,33 +182,16 @@ describe('PieChart', () => {
 		expect(allBySlot(container, 'chart-segment-label')).toHaveLength(3)
 	})
 
-	it('names slices from the outside with leadered callouts', () => {
-		const { container } = renderUI(chart({ labels: { callouts: true } }))
-
-		const texts = allBySlot(container, 'chart-callout-label').map((el) => el.textContent)
-
-		expect(texts).toHaveLength(3)
-
-		expect(texts).toContain('Search 60%')
-
-		expect(texts).toContain('Referral 15%')
-
-		// Each callout draws a leader out to its label.
-		expect(allBySlot(container, 'chart-callout-leader')).toHaveLength(3)
-	})
-
-	it('fits the frame height to the callouts instead of leaving the default square empty', () => {
-		// height/aspectRatio both unset: the frame fits the pie's own footprint.
-		// hMargin = 14 + 10 + 6 + 12*7.2 (widest label "Referral 15%") = 116.4;
-		// vMargin = 14 + 15 = 29; radius = 150 - 116.4 = 33.6;
-		// height = round(2*33.6 + 2*29) = 125 — well short of the 300 width.
-		const { container } = renderUI(chart({ height: undefined, labels: { callouts: true } }))
-
-		expect(container.querySelector('svg')?.getAttribute('viewBox')).toBe('0 0 300 125')
-	})
-
-	it('keeps the default frame square when callouts are off', () => {
+	it('keeps the default frame a plain square', () => {
 		const { container } = renderUI(chart({ height: undefined }))
+
+		// The frame no longer reserves a label margin; it stays a square and the
+		// pie shrinks within to seat any callouts.
+		expect(container.querySelector('svg')?.getAttribute('viewBox')).toBe('0 0 300 300')
+	})
+
+	it('keeps the frame square with callouts on, shrinking the pie within instead', () => {
+		const { container } = renderUI(chart({ height: undefined, labels: { callouts: true } }))
 
 		expect(container.querySelector('svg')?.getAttribute('viewBox')).toBe('0 0 300 300')
 	})
@@ -174,15 +214,16 @@ describe('PieChart', () => {
 		expect(box.style.height).toBe('')
 	})
 
-	it('lets an explicit aspectRatio win over the callout content-fit', () => {
+	it('lets an explicit aspectRatio win over the default square', () => {
 		const { container } = renderUI(
 			chart({ height: undefined, aspectRatio: 2, labels: { callouts: true } }),
 		)
 
 		expect(container.querySelector('svg')?.getAttribute('viewBox')).toBe('0 0 300 150')
 	})
+
 	it('sets the legend under the plot by default, above with legend="top"', () => {
-		const bottom = renderUI(chart())
+		const bottom = renderUI(chart({ legend: true }))
 
 		const plot = bySlot(bottom.container, 'chart-plot') as Element
 
@@ -392,42 +433,167 @@ describe('pieSlices', () => {
 	})
 })
 
-describe('pieCallouts', () => {
-	const OPTS = { cx: 100, cy: 100, radius: 60, top: 10, bottom: 190 }
+describe('sideOf', () => {
+	it('sends the top-and-right semicircle right, the rest left', () => {
+		expect(sideOf(45)).toBe(1)
 
-	it('reads right-half labels from the start, left-half from the end', () => {
-		const two = pieSlices([50, 50], { cx: 100, cy: 100, radius: 60 })
+		expect(sideOf(135)).toBe(1)
 
-		const placed = new Map(pieCallouts(two, OPTS).map((callout) => [callout.index, callout]))
+		expect(sideOf(225)).toBe(-1)
 
-		expect(placed.get(0)?.anchor).toBe('start')
+		expect(sideOf(315)).toBe(-1)
+	})
+})
 
-		expect(placed.get(1)?.anchor).toBe('end')
+describe('calloutFloor', () => {
+	it('takes the larger of the absolute floor and a share of r0', () => {
+		// 0.6·50 = 30 < 56, so the absolute floor wins.
+		expect(calloutFloor(50)).toBe(56)
+
+		// 0.6·200 = 120 > 56, so the proportional floor wins.
+		expect(calloutFloor(200)).toBe(120)
+	})
+})
+
+describe('calloutMaxWidth', () => {
+	it('caps the card ceiling by the room a floor-radius pie leaves', () => {
+		// floor(200) = 120; W/2 − floor − CARD_GAP = 200 − 120 − 12 = 68 < 176.
+		expect(calloutMaxWidth(400, 200)).toBeCloseTo(68, 5)
+
+		// A wide frame hits the ceiling.
+		expect(calloutMaxWidth(1200, 100)).toBe(176)
+	})
+})
+
+describe('solveCallouts', () => {
+	const SLICES = [
+		{ index: 0, mid: 45, share: 0.3 },
+		{ index: 1, mid: 135, share: 0.3 },
+		{ index: 2, mid: 225, share: 0.2 },
+		{ index: 3, mid: 315, share: 0.2 },
+	]
+
+	const sizeMap = (width: number, height: number) =>
+		new Map(SLICES.map((slice) => [slice.index, { width, height }]))
+
+	const base = (overrides: Partial<Parameters<typeof solveCallouts>[0]> = {}) => ({
+		frame: { width: 400, height: 400 },
+		center: { x: 200, y: 200 },
+		slices: SLICES,
+		sizes: sizeMap(60, 40),
+		r0: 150,
+		forced: false,
+		...overrides,
 	})
 
-	it('stacks crowded labels at least a line apart', () => {
-		const many = pieSlices([10, 9, 8, 7, 6, 5], { cx: 100, cy: 100, radius: 60 })
+	it('takes callouts and shrinks the pie to clear the gutter when it fits', () => {
+		const solution = solveCallouts(base())
 
-		const ys = pieCallouts(many, OPTS)
-			.filter((callout) => callout.anchor === 'start')
-			.map((callout) => callout.y)
-			.sort((a, b) => a - b)
+		expect(solution.mode).toBe('callout')
 
-		for (let i = 1; i < ys.length; i++) {
-			expect((ys[i] ?? 0) - (ys[i - 1] ?? 0)).toBeGreaterThanOrEqual(CALLOUT_LINE - 0.001)
-		}
+		// r = min(200 − 60 − 12, 200 − 8) = 128, above the floor of 90.
+		expect(solution.radius).toBeCloseTo(128, 5)
+
+		expect(solution.placed).toHaveLength(4)
 	})
 
-	it('routes a three-point leader with the label a constant gap past its nub', () => {
-		const [first] = pieCallouts(pieSlices([60, 40], { cx: 100, cy: 100, radius: 60 }), OPTS)
+	it('falls back to sector labels when the shrink would breach the radius floor', () => {
+		const solution = solveCallouts(base({ sizes: sizeMap(170, 40) }))
 
-		const points = first?.leader.split(' ') ?? []
+		// gutter 170 → wanted 18, under the floor of 90, so the pie stays at r0.
+		expect(solution.mode).toBe('sector')
 
-		expect(points).toHaveLength(3)
+		expect(solution.radius).toBe(150)
 
-		// The label sits exactly CALLOUT_GAP beyond the leader's nub, on the start side.
-		const nubX = Number(points[2]?.split(',')[0])
+		expect(solution.placed).toHaveLength(0)
+	})
 
-		expect((first?.x ?? 0) - nubX).toBeCloseTo(CALLOUT_GAP, 5)
+	it('splits cards to the near edge by their sector angle', () => {
+		const side = new Map(solveCallouts(base()).placed.map((card) => [card.index, card.side]))
+
+		expect(side.get(0)).toBe(1)
+
+		expect(side.get(1)).toBe(1)
+
+		expect(side.get(2)).toBe(-1)
+
+		expect(side.get(3)).toBe(-1)
+	})
+
+	it('declumps a crowded column against real heights without overlap or leapfrog', () => {
+		// Two near sectors on the right, cards too tall to sit at both ideals.
+		const slices = [
+			{ index: 0, mid: 80, share: 0.5 },
+			{ index: 1, mid: 100, share: 0.5 },
+		]
+
+		const sizes = new Map([
+			[0, { width: 60, height: 60 }],
+			[1, { width: 60, height: 60 }],
+		])
+
+		const solution = solveCallouts({
+			frame: { width: 400, height: 400 },
+			center: { x: 200, y: 200 },
+			slices,
+			sizes,
+			r0: 150,
+			forced: false,
+		})
+
+		const tops = new Map(solution.placed.map((card) => [card.index, card.top]))
+
+		const top0 = tops.get(0) ?? 0
+
+		const top1 = tops.get(1) ?? 0
+
+		// Angular order (80 before 100) is kept: card 0 sits above card 1.
+		expect(top0).toBeLessThan(top1)
+
+		// No overlap: at least a card height plus the gap apart.
+		expect(top1 - top0).toBeGreaterThanOrEqual(60 + LABEL_VGAP - 0.001)
+	})
+
+	it('drops the smallest shares first in forced mode when a column overflows', () => {
+		// Three tall cards crowd one right column in a short frame.
+		const slices = [
+			{ index: 0, mid: 60, share: 0.5 },
+			{ index: 1, mid: 90, share: 0.3 },
+			{ index: 2, mid: 120, share: 0.2 },
+		]
+
+		const sizes = new Map(slices.map((slice) => [slice.index, { width: 60, height: 90 }]))
+
+		const solution = solveCallouts({
+			frame: { width: 400, height: 200 },
+			center: { x: 200, y: 100 },
+			slices,
+			sizes,
+			r0: 90,
+			forced: true,
+		})
+
+		// Forced callouts never switch mode; the smallest share (0.2) drops first.
+		expect(solution.mode).toBe('callout')
+
+		expect(solution.dropped[0]).toBe(2)
+
+		expect(solution.placed.map((card) => card.index)).not.toContain(2)
+	})
+
+	it('holds callouts through the hysteresis band once they are showing', () => {
+		// A shrink that lands between the floor (90) and floor + hysteresis (98):
+		// fresh it reads as sector, but a chart already showing callouts keeps them.
+		const cramped = base({ sizes: sizeMap(107, 40) })
+
+		// wanted = 200 − 107 − 12 = 81 — below the floor, so this stays sector.
+		expect(solveCallouts(cramped).mode).toBe('sector')
+
+		// A wanted of 93 sits in the band: sector from cold, callout when held.
+		const edge = base({ sizes: sizeMap(95, 40) })
+
+		expect(solveCallouts(edge).mode).toBe('sector')
+
+		expect(solveCallouts({ ...edge, prevMode: 'callout' }).mode).toBe('callout')
 	})
 })

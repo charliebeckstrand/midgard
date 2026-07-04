@@ -135,7 +135,8 @@ export type ChartBaseProps<T> = AccessibleName & {
 	 * string, or `false` to fall back to the frame's own height policy. Ignored
 	 * when an explicit `height` is given.
 	 * @remarks Cartesian charts default to `'16/9'`; pie and donut default to a
-	 * square, fitting height to their own content when callout labels are on.
+	 * square, the pie centered in it and shrinking within to seat any callout
+	 * cards.
 	 */
 	aspectRatio?: ChartAspectRatio
 	/**

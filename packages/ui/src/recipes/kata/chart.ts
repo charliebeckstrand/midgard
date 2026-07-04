@@ -119,6 +119,8 @@ export const k = {
 	stroke: mode('stroke-white', 'dark:stroke-white'),
 	/** Legend / tooltip label ink (HTML text; marks carry the colour, text never does). */
 	label: ['text-sm text-left', 'leading-tight', ...text.muted],
+	/** Callout-card ink: the muted chrome tone at the card's tighter size, so a floating label reads like the tooltip that shares its surface. */
+	callout: ['text-xs', 'font-medium', ...text.muted],
 	/** Tooltip value ink: the strong element, values lead. */
 	value: ['text-xs', 'font-medium', 'tabular-nums', ...text.default],
 	skeleton: kokkaku.chart,
