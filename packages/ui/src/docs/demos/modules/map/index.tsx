@@ -1,4 +1,5 @@
-import { type ReactNode, useEffect, useState } from 'react'
+import { QueryClient, QueryClientProvider, useQuery, useQueryClient } from '@tanstack/react-query'
+import { type ReactNode, useState } from 'react'
 import statesUrl from 'us-atlas/states-10m.json?url'
 import { Stack } from '../../../../components/stack'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../../components/tabs'
@@ -24,67 +25,50 @@ import {
 } from './data'
 
 // Atlas data stays out of the package (and the docs bundle): the demos fetch
-// the TopoJSON from us-atlas as a static asset on first render, standing a
-// MapSkeleton in while it loads — the same shape a consumer's lazy-loaded
-// geography takes.
-function useGeography(url: string): MapGeography | null {
-	const [geography, setGeography] = useState<MapGeography | null>(null)
+// the TopoJSON from us-atlas as a static asset and cache it with react-query,
+// standing a MapSkeleton in while it loads — the same shape a consumer's
+// lazily-loaded geography takes.
+//
+// Fetching runs through react-query so a result outlives the tab that asked for
+// it: switching away and back reads the cache instead of refetching, and a tab
+// warms on hover before it opens (see `onPreload` below). The query definitions
+// live in these factories so the render hooks and the preload prefetch key the
+// same entry — the route a hover warms is the one the panel reads. The plat
+// itself never fetches; this is the geocode → route → draw flow a consumer runs,
+// and where they would point react-query at their own data.
 
-	useEffect(() => {
-		let cancelled = false
-
-		fetch(url)
-			.then((response) => response.json())
-			.then((json: MapGeography) => {
-				if (!cancelled) setGeography(json)
-			})
-			.catch(() => {})
-
-		return () => {
-			cancelled = true
-		}
-	}, [url])
-
-	return geography
+/** The us-atlas TopoJSON, fetched once and cached (static, so it never restales). */
+function geographyQuery(url: string) {
+	return {
+		queryKey: ['us-atlas', url] as const,
+		queryFn: () => fetch(url).then((response) => response.json() as Promise<MapGeography>),
+	}
 }
 
-// Fetch the road route between two coordinates from the OSRM demo server, once
-// per pair (aborted on unmount). `null` while it loads or if routing fails, so
-// callers fall back to the straight line the overlay draws without a `path`.
-// The public demo server is rate-limited and non-commercial; a real app points
-// `fetchOsrmRoute` at a self-hosted OSRM through its `baseUrl` option.
+/**
+ * A road route between two coordinates from the OSRM demo server, cached per
+ * pair. The public demo server is rate-limited and non-commercial; a real app
+ * points `fetchOsrmRoute` at a self-hosted OSRM through its `baseUrl` option.
+ * react-query supplies the abort signal, so a query dropped mid-flight cancels.
+ */
+function routeQuery(start: LngLat, end: LngLat) {
+	return {
+		queryKey: ['osrm-route', start, end] as const,
+		queryFn: ({ signal }: { signal: AbortSignal }) => fetchOsrmRoute([start, end], { signal }),
+	}
+}
+
+/** The atlas for the plats; `null` while it loads, so the frame holds its skeleton. */
+function useGeography(url: string): MapGeography | null {
+	return useQuery(geographyQuery(url)).data ?? null
+}
+
+/**
+ * The routed leg for an overlay; `null` while it loads or if routing fails, so
+ * callers fall back to the straight line the overlay draws without a `path`.
+ */
 function useRoute(start: LngLat, end: LngLat): MapRouteResult | null {
-	const [route, setRoute] = useState<MapRouteResult | null>(null)
-
-	const [sx, sy] = start
-
-	const [ex, ey] = end
-
-	useEffect(() => {
-		let active = true
-
-		const controller = new AbortController()
-
-		setRoute(null)
-
-		fetchOsrmRoute(
-			[
-				[sx, sy],
-				[ex, ey],
-			],
-			{ signal: controller.signal },
-		).then((result) => {
-			if (active && result) setRoute(result)
-		})
-
-		return () => {
-			active = false
-
-			controller.abort()
-		}
-	}, [sx, sy, ex, ey])
-
-	return route
+	return useQuery(routeQuery(start, end)).data ?? null
 }
 
 /** Formats a routed distance in whole miles. */
@@ -132,8 +116,16 @@ const Container = ({ children, size = 'lg' }: { children: ReactNode; size?: stri
 	return <div className={size ? `${sizeMap[size]}` : undefined}>{children}</div>
 }
 
-export function Demo() {
+function MapDemo() {
 	const states = useGeography(statesUrl)
+
+	const queryClient = useQueryClient()
+
+	// Warm a tab's routes on the first hover or focus of its trigger, before the
+	// click: the overlays then draw from cache instead of a fresh OSRM round trip.
+	const warm = (pairs: readonly { start: LngLat; end: LngLat }[]) => {
+		for (const pair of pairs) void queryClient.prefetchQuery(routeQuery(pair.start, pair.end))
+	}
 
 	return (
 		<Tabs defaultValue="plat">
@@ -141,8 +133,23 @@ export function Demo() {
 				<TabList aria-label="Map feature">
 					<Tab value="plat">Plat</Tab>
 					<Tab value="point">Point</Tab>
-					<Tab value="marker">Marker</Tab>
-					<Tab value="route">Route</Tab>
+					<Tab value="marker" onPreload={() => warm([laToChicago])}>
+						Marker
+					</Tab>
+					<Tab
+						value="route"
+						onPreload={() =>
+							warm([
+								...ikeaDestinations.map((destination) => ({
+									start: ikeaHub,
+									end: destination.at,
+								})),
+								...corridors.map((corridor) => ({ start: corridor.start, end: corridor.end })),
+							])
+						}
+					>
+						Route
+					</Tab>
 				</TabList>
 
 				<TabContents fade={false}>
@@ -251,5 +258,30 @@ export function Demo() {
 				</TabContents>
 			</Stack>
 		</Tabs>
+	)
+}
+
+export function Demo() {
+	// A client scoped to the demo and sitting above the tabs, so a route fetched
+	// in one tab survives a switch away and back. The data is static, so nothing
+	// restales, focus never refetches, and a failed OSRM call doesn't retry-storm
+	// the rate-limited demo server.
+	const [queryClient] = useState(
+		() =>
+			new QueryClient({
+				defaultOptions: {
+					queries: {
+						staleTime: Number.POSITIVE_INFINITY,
+						retry: false,
+						refetchOnWindowFocus: false,
+					},
+				},
+			}),
+	)
+
+	return (
+		<QueryClientProvider client={queryClient}>
+			<MapDemo />
+		</QueryClientProvider>
 	)
 }

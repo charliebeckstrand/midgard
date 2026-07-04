@@ -1,6 +1,12 @@
 'use client'
 
-import type { ComponentPropsWithoutRef, MouseEvent } from 'react'
+import {
+	type ComponentPropsWithoutRef,
+	type FocusEvent,
+	type MouseEvent,
+	type PointerEvent,
+	useRef,
+} from 'react'
 import { cn, dataAttr } from '../../core'
 import { useA11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
 import { ActiveIndicator, useActiveIndicator } from '../../primitives/active-indicator'
@@ -23,6 +29,16 @@ export type TabProps = {
 	 */
 	stretch?: boolean
 	disabled?: boolean
+	/**
+	 * Fires once when the user first signals intent to open an inactive tab —
+	 * the pointer enters its trigger or the trigger takes focus — with the tab's
+	 * `value`. The moment to warm what the panel will need: prefetch its data
+	 * (a `queryClient.prefetchQuery`, a route fetch) so the panel is ready by the
+	 * click. Latched to fire at most once per tab, skipped for the active tab and
+	 * a `disabled` one; runs after any `onPointerEnter` / `onFocus` a caller also
+	 * passes. The callback owns the work — the tab stays agnostic to what loads.
+	 */
+	onPreload?: (value: string | undefined) => void
 	className?: string
 } & Omit<ComponentPropsWithoutRef<'button'>, 'className' | 'id' | 'value' | 'color'>
 
@@ -69,9 +85,12 @@ export function Tab({
 	id,
 	stretch = false,
 	disabled,
+	onPreload,
 	className,
 	children,
 	onClick,
+	onPointerEnter,
+	onFocus,
 	...rest
 }: TabProps) {
 	const context = useCurrent()
@@ -114,13 +133,40 @@ export function Tab({
 		}
 	}
 
+	// Warm intent: the first hover or focus on an inactive, enabled tab fires
+	// `onPreload` once (latched), so a caller can prefetch what the panel needs
+	// before it opens. The active tab is already visited; a disabled one can't be.
+	const preloaded = useRef(false)
+
+	function preload() {
+		if (preloaded.current || current || disabled) return
+
+		preloaded.current = true
+
+		onPreload?.(value)
+	}
+
+	function handlePointerEnter(event: PointerEvent<HTMLButtonElement>) {
+		onPointerEnter?.(event)
+
+		preload()
+	}
+
+	function handleFocus(event: FocusEvent<HTMLButtonElement>) {
+		onFocus?.(event)
+
+		preload()
+	}
+
 	return (
 		<span className={k.wrapper({ stretch })} {...indicator.tapHandlers}>
 			<HeadlessProvider>
 				<Button
 					// Forwards the full button surface (aria-label, data-testid,
-					// onFocus, title, …); the tab wiring below wins over any
-					// colliding consumer prop.
+					// onBlur, title, …); the tab wiring below wins over any
+					// colliding consumer prop. A caller's onPointerEnter / onFocus
+					// are composed (run first) rather than forwarded, so the preload
+					// intent can chain onto them.
 					{...rest}
 					data-slot="tab"
 					data-current={dataAttr(current)}
@@ -143,6 +189,8 @@ export function Tab({
 						className,
 					)}
 					onClick={handleClick}
+					onPointerEnter={handlePointerEnter}
+					onFocus={handleFocus}
 				>
 					{children}
 				</Button>
