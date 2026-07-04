@@ -250,11 +250,48 @@ export function verticalLayout(input: CartesianLayoutInput): CartesianLayout {
 	}
 }
 
+/** The value-domain options shared by a probe scale and the final one. @internal */
+type ValueScaleOptions = { tickTarget: number; zeroBaseline: boolean; min?: number; max?: number }
+
+/**
+ * Insets a horizontal value axis's screen range so its end tick labels — drawn
+ * centred on the bottom axis — fit inside the frame instead of overhanging it.
+ * The right end borders the frame edge, so it always reserves the last label's
+ * half-width; the left end reserves the first label's only when the category
+ * gutter can't already absorb it. Tick values are range-independent, so a probe
+ * scale over the full span yields the labels before the final range is known;
+ * a frame too narrow to seat both keeps the span, since a clipped label beats an
+ * inverted axis.
+ *
+ * @internal
+ */
+function valueAxisRange(
+	values: number[],
+	options: ValueScaleOptions,
+	format: (value: number) => string,
+	span: [number, number],
+): [number, number] {
+	const probe = linearScale({ values, range: span, ...options })
+
+	if (!probe || probe.ticks.length === 0) return span
+
+	const half = (value: number) => (format(value).length * TICK_CHAR_WIDTH) / 2 + GUTTER_EDGE_PAD
+
+	const [from, to] = span
+
+	const insetFrom = Math.max(from, half(probe.ticks[0] as number))
+
+	const insetTo = to - half(probe.ticks[probe.ticks.length - 1] as number)
+
+	return insetFrom < insetTo ? [insetFrom, insetTo] : span
+}
+
 /**
  * The transposed layout: value on x with the scale filling the plot width,
  * categories down y. The band labels — not the value ticks — line the left
  * gutter, and they are known up front, so the plot rect resolves first and the
- * value scale fills the width it leaves.
+ * value scale fills the width it leaves, inset so the bottom axis's end labels
+ * clear the frame.
  *
  * @internal
  */
@@ -263,14 +300,20 @@ export function horizontalLayout(input: CartesianLayoutInput): CartesianLayout {
 
 	const plot = plotRect(frameWidth, frameHeight, axes, categories)
 
-	const valueScale = linearScale({
-		values: input.domainValues,
-		range: valueExtent('horizontal', plot),
+	const options: ValueScaleOptions = {
 		tickTarget: input.tickTarget,
 		zeroBaseline: input.zeroBaseline,
 		min: input.min,
 		max: input.max,
-	})
+	}
+
+	const span = valueExtent('horizontal', plot)
+
+	// The bottom value labels centre on their ticks, so without axes there is
+	// nothing to reserve for and the scale fills the whole span.
+	const range = axes ? valueAxisRange(input.domainValues, options, format, span) : span
+
+	const valueScale = linearScale({ values: input.domainValues, range, ...options })
 
 	const band = bandScale({ count, range: bandExtent('horizontal', plot) })
 

@@ -181,4 +181,30 @@ describe('cartesian layout', () => {
 			expect(position).toBeLessThanOrEqual(layout.plot.y + layout.plot.height)
 		}
 	})
+
+	it('insets the horizontal value axis so its centered end labels clear the frame', () => {
+		// Wide currency-style ticks (0 … 6,000) on a narrow frame — the last label
+		// centered on the plot's right edge is exactly what overhangs the SVG clip.
+		const layout = horizontalLayout({
+			...input,
+			frameWidth: 480,
+			domainValues: [0, 4820, 6000],
+			categories: ['Search', 'Direct'],
+			format: (value) => value.toLocaleString('en-US'),
+		})
+
+		const halfLabel = (tick: { label: string }) => (tick.label.length * TICK_CHAR_WIDTH) / 2
+
+		const first = layout.valueTicks.at(0)
+
+		const last = layout.valueTicks.at(-1)
+
+		// Both end labels stay within [0, frameWidth] rather than spilling past the edge.
+		expect((first?.at ?? 0) - halfLabel(first ?? { label: '' })).toBeGreaterThanOrEqual(0)
+
+		expect((last?.at ?? 0) + halfLabel(last ?? { label: '' })).toBeLessThanOrEqual(480)
+
+		// The inset pulls the ceiling tick off the plot's right edge.
+		expect(last?.at ?? 0).toBeLessThan(layout.plot.x + layout.plot.width)
+	})
 })

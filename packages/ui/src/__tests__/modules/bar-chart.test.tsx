@@ -445,6 +445,32 @@ describe('BarChart horizontal', () => {
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
 	})
 
+	it('keeps the bottom value labels inside the viewBox instead of clipping them', () => {
+		const { container } = renderUI(chart({ orientation: 'horizontal' }))
+
+		const svg = container.querySelector('svg') as SVGSVGElement
+
+		const width = Number((svg.getAttribute('viewBox') ?? '0 0 0 0').split(' ')[2])
+
+		const labels = Array.from(
+			(bySlot(container, 'chart-axis-x') as Element).querySelectorAll('text'),
+		)
+
+		expect(labels.length).toBeGreaterThan(0)
+
+		// Each centered value label spans its x ± half its width; both edges must
+		// fall within [0, width] or the SVG's overflow clips them.
+		for (const label of labels) {
+			const x = Number(label.getAttribute('x'))
+
+			const half = ((label.textContent?.length ?? 0) * 7.2) / 2
+
+			expect(x - half).toBeGreaterThanOrEqual(0)
+
+			expect(x + half).toBeLessThanOrEqual(width)
+		}
+	})
+
 	it('rules the value crosshair vertically down the value axis', () => {
 		const { container } = renderUI(
 			chart({ orientation: 'horizontal', crosshair: { x: true, y: false } }),
