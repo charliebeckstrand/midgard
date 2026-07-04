@@ -100,7 +100,7 @@ function tokenOf(cls: string): { token: string; alpha: number } {
 /** The page / card surfaces a foreground sits on. */
 export const SURFACE: { light: RGB; dark: RGB } = { light: WHITE, dark: linearOf('zinc-900') }
 
-/** Composite a translucent wash class (e.g. `bg-green-600/15`) over a base surface, blending in sRGB like the browser. */
+/** Composite a translucent wash class (e.g. `bg-green-500/15`) over a base surface, blending in sRGB like the browser. */
 export function tinted(washClass: string, base: RGB): RGB {
 	const { token, alpha } = tokenOf(washClass)
 

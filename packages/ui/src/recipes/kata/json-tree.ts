@@ -34,7 +34,7 @@ const row = [
 	'py-0.5',
 	size.sm,
 	rounded.lg,
-	...mode('has-focus-visible:bg-blue-100/60', 'dark:has-focus-visible:bg-blue-600/30'),
+	...mode('has-focus-visible:bg-blue-100/60', 'dark:has-focus-visible:bg-blue-500/30'),
 ]
 
 export const k = {

@@ -135,8 +135,8 @@ describe('defineRecipe', () => {
 		// still resolve the default.
 		const classes = button({ variant: 'soft' })
 
-		// The (soft × zinc) compound from button.ts emits bg-zinc-600/15.
-		expect(classes).toContain('bg-zinc-600/15')
+		// The (soft × zinc) compound from button.ts emits bg-zinc-500/15.
+		expect(classes).toContain('bg-zinc-500/15')
 	})
 
 	it('palette overlay applies when caller picks the trailing colour', () => {

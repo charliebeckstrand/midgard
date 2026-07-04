@@ -85,25 +85,25 @@ const extendedSolid = {
 
 const extendedSoft = {
 	bg: shades<ExtendedColor>({
-		mist: 'bg-mist-600/15',
-		rose: 'bg-rose-600/15',
-		violet: 'bg-violet-600/15',
-		sky: 'bg-sky-600/15',
+		mist: 'bg-mist-500/15',
+		rose: 'bg-rose-500/15',
+		violet: 'bg-violet-500/15',
+		sky: 'bg-sky-500/15',
 	}),
 	hover: shades<ExtendedColor>({
-		mist: ['not-disabled:hover:bg-mist-600/30', 'dark:not-disabled:hover:bg-mist-500/30'],
-		rose: ['not-disabled:hover:bg-rose-600/30', 'dark:not-disabled:hover:bg-rose-500/30'],
-		violet: ['not-disabled:hover:bg-violet-600/30', 'dark:not-disabled:hover:bg-violet-500/30'],
-		sky: ['not-disabled:hover:bg-sky-600/30', 'dark:not-disabled:hover:bg-sky-500/30'],
+		mist: 'not-disabled:hover:bg-mist-500/30',
+		rose: 'not-disabled:hover:bg-rose-500/30',
+		violet: 'not-disabled:hover:bg-violet-500/30',
+		sky: 'not-disabled:hover:bg-sky-500/30',
 	}),
 }
 
 /** Shared low-alpha hover wash for the plain / soft / outline variants. */
 const extendedHover = shades<ExtendedColor>({
-	mist: ['not-disabled:hover:bg-mist-600/15', 'dark:not-disabled:hover:bg-mist-500/15'],
-	rose: ['not-disabled:hover:bg-rose-600/15', 'dark:not-disabled:hover:bg-rose-500/15'],
-	violet: ['not-disabled:hover:bg-violet-600/15', 'dark:not-disabled:hover:bg-violet-500/15'],
-	sky: ['not-disabled:hover:bg-sky-600/15', 'dark:not-disabled:hover:bg-sky-500/15'],
+	mist: 'not-disabled:hover:bg-mist-500/15',
+	rose: 'not-disabled:hover:bg-rose-500/15',
+	violet: 'not-disabled:hover:bg-violet-500/15',
+	sky: 'not-disabled:hover:bg-sky-500/15',
 })
 
 const extendedOutline = {
