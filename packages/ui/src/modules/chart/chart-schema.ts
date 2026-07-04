@@ -45,12 +45,13 @@ export type ChartSeries<T> = {
 }
 
 /**
- * A combo-chart series also names the mark it draws with; bars render behind
- * lines on the one shared value axis.
+ * A combo-chart series also names the mark it draws with; on the one shared
+ * value axis the bars sit at the back, the translucent area washes ride over
+ * them, and the lines draw on top.
  */
 export type ComboChartSeries<T> = ChartSeries<T> & {
-	/** Draw this series as bars or as a line. */
-	type: 'bar' | 'line'
+	/** Draw this series as bars, as a line, or as a filled area. */
+	type: 'bar' | 'line' | 'area'
 }
 
 /**

@@ -3,13 +3,19 @@ import { ComboChart } from '../../modules/chart/combo-chart'
 import { allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
 
 const DATA = [
-	{ quarter: 'Q1', revenue: 40, margin: 12 },
-	{ quarter: 'Q2', revenue: 80, margin: 18 },
-	{ quarter: 'Q3', revenue: 65, margin: 15 },
+	{ quarter: 'Q1', revenue: 40, margin: 12, cost: 28 },
+	{ quarter: 'Q2', revenue: 80, margin: 18, cost: 30 },
+	{ quarter: 'Q3', revenue: 65, margin: 15, cost: 33 },
 ]
 
 const SERIES = [
 	{ type: 'bar', xKey: 'quarter', yKey: 'revenue', yName: 'Revenue' },
+	{ type: 'line', xKey: 'quarter', yKey: 'margin', yName: 'Margin' },
+] as const
+
+const TRIO = [
+	{ type: 'bar', xKey: 'quarter', yKey: 'revenue', yName: 'Revenue' },
+	{ type: 'area', xKey: 'quarter', yKey: 'cost', yName: 'Cost' },
 	{ type: 'line', xKey: 'quarter', yKey: 'margin', yName: 'Margin' },
 ] as const
 
@@ -97,5 +103,76 @@ describe('ComboChart', () => {
 		const bare = renderUI(chart({ points: false }))
 
 		expect(allBySlot(bare.container, 'chart-point')).toHaveLength(0)
+	})
+
+	it('draws an area series as a filled wash under its top-edge line', () => {
+		const { container } = renderUI(chart({ series: [...TRIO] }))
+
+		expect(allBySlot(container, 'chart-bar')).toHaveLength(3)
+
+		// One contiguous run of three points: a single wash under a single edge.
+		expect(allBySlot(container, 'chart-area')).toHaveLength(1)
+
+		// The area's own top edge plus the line series — two stroked paths.
+		expect(allBySlot(container, 'chart-line')).toHaveLength(2)
+	})
+
+	it('stacks bars at the back, the area wash over them, the line on top', () => {
+		const { container } = renderUI(chart({ series: [...TRIO] }))
+
+		const svg = bySlot(container, 'chart-plot')?.querySelector('svg') as SVGSVGElement
+
+		const slots = [
+			...svg.querySelectorAll(
+				'[data-slot="chart-bar"], [data-slot="chart-area"], [data-slot="chart-line"]',
+			),
+		].map((mark) => mark.getAttribute('data-slot'))
+
+		// Bars paint first at the back, the translucent wash over them, the line last.
+		expect(slots.indexOf('chart-bar')).toBeLessThan(slots.indexOf('chart-area'))
+
+		expect(slots.indexOf('chart-area')).toBeLessThan(slots.lastIndexOf('chart-line'))
+
+		expect(slots.at(-1)).toBe('chart-line')
+	})
+
+	it('gives an area series a line-shaped legend swatch', () => {
+		const { container } = renderUI(chart({ series: [...TRIO] }))
+
+		const items = allBySlot(container, 'chart-legend-item')
+
+		expect(items).toHaveLength(3)
+
+		// Bar wears a rect swatch, area and line the stroke-shaped one.
+		expect(items[0]?.querySelector('span:nth-child(2)')?.className).toContain('size-2.5')
+
+		expect(items[1]?.querySelector('span:nth-child(2)')?.className).toContain('w-3')
+
+		expect(items[2]?.querySelector('span:nth-child(2)')?.className).toContain('w-3')
+	})
+
+	it('reads an area series where the pointer sits inside its fill', () => {
+		const { container } = renderUI(
+			chart({ series: [{ type: 'area', xKey: 'quarter', yKey: 'revenue', yName: 'Revenue' }] }),
+		)
+
+		const hit = bySlot(container, 'chart-hit') as Element
+
+		// Low in the plot at Q2's band, well inside the wash and clear of any line.
+		fireEvent.pointerMove(hit, { clientX: 185, clientY: 180 })
+
+		const tooltip = bySlot(container, 'tooltip-content')
+
+		expect(tooltip?.textContent).toContain('Q2')
+
+		expect(tooltip?.textContent).toContain('80')
+	})
+
+	it('still renders the area wash under animate', () => {
+		const { container } = renderUI(chart({ series: [...TRIO], animate: true }))
+
+		expect(allBySlot(container, 'chart-area')).toHaveLength(1)
+
+		expect(allBySlot(container, 'chart-bar')).toHaveLength(3)
 	})
 })
