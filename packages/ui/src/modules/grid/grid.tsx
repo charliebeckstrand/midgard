@@ -1,5 +1,6 @@
 'use client'
 
+import { memo } from 'react'
 import { GridData } from './grid-data'
 import type { GridDataProps } from './grid-data-types'
 
@@ -52,8 +53,17 @@ export type GridProps<T> = GridDataProps<T>
  *
  * @remarks Client component. `virtualize` requires `maxHeight`; omitting it
  * throws, since virtualization needs a scroll container of known size.
+ *
+ * Memoized on its (shallow-equal) props, so a parent that re-renders while
+ * holding the grid's `columns`, `rows`, `getKey`, and config identities steady —
+ * a chat transcript re-rendering on every streamed token around a settled inline
+ * grid — skips re-rendering it. A prop whose identity churns each render defeats
+ * the memo; derive those once at the call site (memoize the parsed columns and
+ * rows) so an embedded grid rests when its data is unchanged.
  * @typeParam T - Shape of a single row.
  */
-export function Grid<T>(props: GridProps<T>) {
+function GridImpl<T>(props: GridProps<T>) {
 	return <GridData<T> {...props} />
 }
+
+export const Grid = memo(GridImpl) as typeof GridImpl

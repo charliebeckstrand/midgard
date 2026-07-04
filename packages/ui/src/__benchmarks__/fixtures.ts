@@ -5,6 +5,8 @@
  * and run-to-run variance reflects the code under test, not the data.
  */
 
+import type { GridColumn } from '../modules/grid'
+import type { ColumnSizeProfile } from '../modules/grid/grid-column-allocate'
 import type { QueryField, QueryGroup, QueryNode } from '../modules/query/query-builder/types'
 
 function rng(seed = 1) {
@@ -193,4 +195,65 @@ export function makeComboboxOptions(count: number): { value: string; label: stri
 	for (let i = 0; i < count; i++) options[i] = { value: `opt-${i}`, label: `Option ${i}` }
 
 	return options
+}
+
+/**
+ * A compact, chat-realistic column set over {@link Shipment}: four plain columns
+ * (two sortable) with no cell renderer, so each cell falls back to the row field
+ * named by the column id and truncates by default — the shape an inline chat
+ * grid actually mounts. Held to a stable identity so the inline render benches
+ * can measure a no-op re-render.
+ */
+export function makeInlineColumns(): GridColumn<Shipment>[] {
+	return [
+		{ id: 'reference', title: 'Reference' },
+		{ id: 'origin', title: 'Origin', sortable: true },
+		{ id: 'loads', title: 'Loads', sortable: true },
+		{ id: 'createdAt', title: 'Created' },
+	]
+}
+
+/**
+ * Synthetic {@link ColumnSizeProfile}s for the `allocateColumnWidths` micro-bench,
+ * standing in for the DOM measurement pass (which is jsdom-bound). Content widths
+ * vary column to column so both the largest-remainder rounding and the surplus
+ * level-up do real work; every fifth column is `width`-pinned (`min === content
+ * === max`) so the allocator's hold path is exercised too. Deterministic via the
+ * shared LCG.
+ */
+export function makeColumnSizeProfiles(count: number, seed = 1): ColumnSizeProfile[] {
+	const rand = rng(seed)
+
+	const out: ColumnSizeProfile[] = new Array(count)
+
+	for (let i = 0; i < count; i++) {
+		const content = 80 + Math.floor(rand() * 220)
+
+		const pinned = i % 5 === 4
+
+		out[i] = pinned
+			? { id: `col-${i}`, min: content, content, max: content }
+			: { id: `col-${i}`, min: 48, content, max: Number.MAX_SAFE_INTEGER }
+	}
+
+	return out
+}
+
+/**
+ * Rows whose every cell forces the export serializers down their escape branch:
+ * each field carries a comma, a double quote, a newline, and the HTML-significant
+ * `&<>` — the worst case for {@link rowsToCsv}'s RFC-4180 quoting and
+ * `rowsToHtmlTable`'s entity encoding. Deterministic and disjoint from
+ * {@link makeShipments}, which never triggers the escape path.
+ */
+export function makeEscapeHeavyRows(count: number): Record<string, string>[] {
+	const out: Record<string, string>[] = new Array(count)
+
+	for (let i = 0; i < count; i++) {
+		const noisy = `a,"b"\n<c>&${i}`
+
+		out[i] = { a: noisy, b: noisy, c: noisy, d: noisy, e: noisy, f: noisy, g: noisy, h: noisy }
+	}
+
+	return out
 }

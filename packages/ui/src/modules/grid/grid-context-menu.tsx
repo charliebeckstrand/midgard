@@ -80,7 +80,12 @@ type GridContextMenuProps<T> = {
 
 /** Writes text to the clipboard when the API is available. @internal */
 function copyText(text: string): void {
-	navigator.clipboard?.writeText(text)
+	// Swallow a rejected write (a denied permission, an unfocused document): the
+	// copy silently no-ops rather than surfacing an unhandled rejection, matching
+	// the fire-and-forget intent — there's no copy-failed affordance to drive. The
+	// optional chain short-circuits the whole expression when the API is absent, so
+	// `.catch` is never reached on a nullish clipboard.
+	navigator.clipboard?.writeText(text).catch(() => {})
 }
 
 /** Inputs shaping the default header-menu items. @internal */
