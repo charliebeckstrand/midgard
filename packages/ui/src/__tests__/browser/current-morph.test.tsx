@@ -43,15 +43,8 @@ function Probe() {
 	)
 }
 
-/**
- * `it.fails`: documents a CONFIRMED bug pending fix. Against the shipped hook
- * this assertion fails — the morph never fires, so the container snaps instead
- * of animating. Remove `.fails` once `useCurrentContentsMorph` derives its
- * `from` height from the tracked previous box rather than a post-reflow
- * `getBoundingClientRect`.
- */
 describe('current-panel height morph (real browser)', () => {
-	it.fails('fires a morph when a panel grows in place at constant width', async () => {
+	it('fires a morph when a panel grows in place at constant width', async () => {
 		const { container } = renderUI(<Probe />)
 
 		const box = container.querySelector<HTMLElement>('[data-testid="box"]')
