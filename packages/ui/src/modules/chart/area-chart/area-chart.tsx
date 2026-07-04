@@ -56,6 +56,19 @@ export type AreaChartProps<T> = CartesianChartProps<T> & {
 	interpolation?: LineInterpolation
 }
 
+/**
+ * The tooltip's value snap targets. Stacked, a column reads as one whole with
+ * no single series value to meet, so it hands over none — the tooltip then
+ * tracks the pointer's height (held inside the plot by the hit area) and floats
+ * free of the fill. Unstacked, each series is its own line, so its per-series
+ * points snap the tooltip to the nearest one.
+ *
+ * @internal
+ */
+function tooltipSnapPoints(stacked: boolean, snapPoints: number[][], count: number): number[][] {
+	return stacked ? Array.from({ length: count }, () => []) : snapPoints
+}
+
 /** Adapts one stacked band to the line-marks geometry shape (one segment, one ribbon). @internal */
 function stackedToLine(band: { line: string; area: string; points: LineSeriesGeometry['points'] }) {
 	return {
@@ -166,6 +179,8 @@ export function AreaChart<T>({
 		crosshair ?? { x: false, y: true, snap: interpolation !== 'smooth' },
 	)
 
+	const snapPoints = tooltipSnapPoints(stacked, chart.snapPoints, xs.length)
+
 	return (
 		<ChartFrame
 			{...label}
@@ -188,7 +203,7 @@ export function AreaChart<T>({
 			legendPlacement={typeof legend === 'string' ? legend : undefined}
 			readout={chart.readout}
 			tooltip={tooltip}
-			snap={snapTargets(rails, chart.bandPositions, chart.snapPoints)}
+			snap={snapTargets(rails, chart.bandPositions, snapPoints)}
 			className={className}
 		>
 			{gridLines && yScale && (
@@ -204,7 +219,7 @@ export function AreaChart<T>({
 					plot={chart.plot}
 					crosshair={rails}
 					bandPositions={chart.bandPositions}
-					valuePoints={chart.snapPoints}
+					valuePoints={snapPoints}
 				/>
 			)}
 
