@@ -7,7 +7,7 @@
  * de-emphasis treatments.
  */
 import { mode } from '../../core/recipe'
-import { kokkaku, sen } from '../kiso'
+import { iro, kokkaku, sen } from '../kiso'
 import { type ChartSeriesColor, k as chart } from './chart'
 
 /** A named map mark colour: the chart module's eight categorical slots plus `zinc`. */
@@ -35,6 +35,8 @@ export const k = {
 	group: (dimmed: boolean) => ['transition-opacity', dimmed ? 'opacity-25' : ''],
 	/** Keyboard focus ring for the range legend's scale-bar slider — the shared accent outline. */
 	focus: sen.focus.ring,
+	/** The range legend's hover arrow: foreground ink (via `currentColor`), so the bin glyph reads over the panel. */
+	arrow: iro.text.default,
 	/**
 	 * The legend's reserved box, mounted before any button registers so the
 	 * frame never shifts as entries land: the `row` placements (top / bottom,

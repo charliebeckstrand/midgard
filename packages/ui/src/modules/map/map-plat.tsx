@@ -785,6 +785,7 @@ export function MapPlat<T = never>({
 					format: valueFormat ?? ((value) => String(value)),
 					label: valueName,
 					bins: categoryMetas.length,
+					regionCategory,
 					onFocus: setFocus,
 				}
 			: null

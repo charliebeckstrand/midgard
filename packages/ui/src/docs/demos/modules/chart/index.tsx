@@ -116,7 +116,7 @@ function AnimatedExample({
 }
 
 const ChartContainer = ({ children, size }: { children: ReactNode; size?: number }) => (
-	<Container size={size ?? 640} padding="none" center={false}>
+	<Container size={size ?? 720} padding="none" center={false}>
 		{children}
 	</Container>
 )
