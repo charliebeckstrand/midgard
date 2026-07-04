@@ -25,7 +25,6 @@ export { useAriaIds } from './use-aria-ids'
 export { useComposedRef } from './use-composed-ref'
 export { type SetValue, useControllable } from './use-controllable'
 export { useDeferredToggle } from './use-deferred-toggle'
-export { useDismissOnScroll } from './use-dismiss-on-scroll'
 export { useDismissable } from './use-dismissable'
 export { useEscapeLayer } from './use-escape-layer'
 export { useFloatingDisclosure } from './use-floating-disclosure'
@@ -49,6 +48,7 @@ export {
 	resolveFrameSizing,
 	usePlotFrame,
 } from './use-plot-frame'
+export { useRehoverOnScroll } from './use-rehover-on-scroll'
 export { useResizeObserver } from './use-resize-observer'
 export { useScrollLock } from './use-scroll-lock'
 export { useScrollWithin } from './use-scroll-within'

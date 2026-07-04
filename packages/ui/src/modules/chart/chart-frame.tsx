@@ -2,7 +2,7 @@
 
 import { type ReactNode, type RefObject, useCallback, useMemo, useState } from 'react'
 import { cn } from '../../core'
-import { type FrameReserve, useDismissOnScroll } from '../../hooks'
+import { type FrameReserve, useRehoverOnScroll } from '../../hooks'
 import type { AccessibleName } from '../../types'
 import { ChartPlotBox } from './chart-plot-box'
 import type { ChartLegendPlacement } from './chart-schema'
@@ -93,9 +93,10 @@ export function ChartFrame({
 		[pointed],
 	)
 
-	// A scroll withholds the hit layer's `pointerleave`, so the readout would ride
-	// the frame off-screen until the pointer settles; dismiss it as the plot moves.
-	useDismissOnScroll(pointed.index !== null, clear)
+	// A scroll fires no pointer event over the hit layer, so replay the pointer
+	// where it rests to re-read the band under it as the plot shifts — the readout
+	// rides the moving marks and clears only once the pointer leaves them.
+	useRehoverOnScroll(pointed.index !== null, clear, ref)
 
 	// The SVG fills its box through the viewBox rather than pixel dimensions, so
 	// the box — not the marks — owns the size.

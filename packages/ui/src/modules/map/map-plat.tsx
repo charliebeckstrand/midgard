@@ -2,7 +2,7 @@
 
 import { type ReactNode, type RefObject, useCallback, useMemo, useState } from 'react'
 import { cn } from '../../core'
-import { type FrameReserve, useDismissOnScroll, usePlotFrame } from '../../hooks'
+import { type FrameReserve, usePlotFrame, useRehoverOnScroll } from '../../hooks'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { k, type MapSeriesColor } from '../../recipes/kata/map'
 import type { AccessibleName } from '../../types'
@@ -399,16 +399,23 @@ function legendItems(
  *
  * @internal
  */
-function MapHoverProvider({ children }: { children: ReactNode }) {
+function MapHoverProvider({
+	plotRef,
+	children,
+}: {
+	plotRef: RefObject<HTMLDivElement | null>
+	children: ReactNode
+}) {
 	const [state, setState] = useState<MapHoverState>({ target: null, point: null })
 
 	const set = useCallback<MapHoverSet>((target, point) => setState({ target, point }), [])
 
 	const clear = useCallback(() => setState({ target: null, point: null }), [])
 
-	// A scroll withholds a region's `pointerleave`, so the readout would ride the
-	// plat off-screen until the pointer settles; dismiss it as the map moves.
-	useDismissOnScroll(state.target !== null, clear)
+	// A scroll fires no pointer event over the regions, so replay the pointer where
+	// it rests to re-read the mark under it as the plat shifts — the readout rides
+	// the moving map and clears only once the pointer leaves the marks.
+	useRehoverOnScroll(state.target !== null, clear, plotRef)
 
 	return (
 		<MapHoverSetContext value={set}>
@@ -422,6 +429,8 @@ type MapFrameProps = {
 	legendNode: ReactNode
 	legendPlacement: MapLegendPlacement
 	plotRegion: ReactNode
+	/** The plot region element; the hover provider replays scrolled-over pointers within it. */
+	plotRef: RefObject<HTMLDivElement | null>
 	table: ReactNode
 	width: number | undefined
 	className?: string
@@ -432,6 +441,7 @@ function MapFrame({
 	legendNode,
 	legendPlacement,
 	plotRegion,
+	plotRef,
 	table,
 	width,
 	className,
@@ -444,7 +454,7 @@ function MapFrame({
 			className={cn('flex flex-col gap-3', width === undefined && 'w-full', className)}
 			style={width === undefined ? undefined : { width }}
 		>
-			<MapHoverProvider>
+			<MapHoverProvider plotRef={plotRef}>
 				{aside ? (
 					// The panel and plot sit side by side from lg; below it they stack
 					// with the panel always under the map, so a left panel reverses
@@ -659,6 +669,7 @@ export function MapPlat<T = never>({
 					{svg}
 				</MapPlotRegion>
 			}
+			plotRef={shape.ref}
 			table={
 				hasReadout ? (
 					<MapTable
