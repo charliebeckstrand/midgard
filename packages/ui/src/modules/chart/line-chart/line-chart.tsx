@@ -21,8 +21,8 @@ import { type LineInterpolation, lineGeometry } from './line-chart-geometry'
  */
 export type LineChartProps<T> = CartesianChartProps<T> & {
 	/**
-	 * Mark every plotted point with a filled, surface-ringed dot. Points
-	 * isolated between gaps always get one — they'd be invisible otherwise.
+	 * Mark every plotted point with a filled dot. Points isolated between gaps
+	 * always get one — they'd be invisible otherwise.
 	 * @defaultValue false
 	 */
 	points?: boolean

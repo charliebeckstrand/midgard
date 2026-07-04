@@ -291,6 +291,7 @@ export function Demo() {
 										]}
 										interpolation="smooth"
 										crosshair={{ x: false, y: true }}
+										points
 									/>
 								</Container>
 							</Example>

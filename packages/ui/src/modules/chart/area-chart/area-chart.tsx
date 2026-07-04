@@ -34,7 +34,7 @@ export type AreaChartProps<T> = CartesianChartProps<T> & {
 	 */
 	stacked?: boolean
 	/**
-	 * Mark every band-edge point with a filled, surface-ringed dot.
+	 * Mark every band-edge point with a filled dot.
 	 * @defaultValue false
 	 */
 	points?: boolean

@@ -2,6 +2,7 @@
 
 import { motion } from 'motion/react'
 import { cn } from '../../core'
+import { k } from '../../recipes/kata/chart'
 import { rangeKeys } from '../../utilities'
 import {
 	AREA_FADE,
@@ -36,17 +37,19 @@ export type ChartLineMarksProps = {
 	list: ChartLineSeries[]
 	/** Render the area washes under the lines. */
 	fill: boolean
+	/** Stroke the markers with a surface outline — set only where dots cross opaque marks (the combo bars); soft fills read cleaner without it. */
+	stroke?: boolean
 	/** Hold the draw until earlier marks (combo bars) have landed. */
 	delay?: number
 }
 
-/** The marker dot's classes: series fill under a white ring, legible on any line or fill. @internal */
-function markerClass(paint: SeriesPaint): string {
-	return cn(paint.fill)
+/** The marker dot's classes: series fill, gaining a white surface stroke only where a dot crosses opaque marks. @internal */
+function markerClass(paint: SeriesPaint, stroke: boolean): string {
+	return cn(paint.fill, stroke && k.stroke)
 }
 
 /** The plain-SVG lines: the cheap default with no motion runtime work. @internal */
-export function ChartLineMarks({ list, fill }: ChartLineMarksProps) {
+export function ChartLineMarks({ list, fill, stroke = false }: ChartLineMarksProps) {
 	return list.map(({ label, paint, geometry, markers, dimmed }) => {
 		const points = markers ? geometry.points : geometry.isolated
 
@@ -85,7 +88,7 @@ export function ChartLineMarks({ list, fill }: ChartLineMarksProps) {
 						cy={points[index]?.y}
 						r={MARKER_RADIUS}
 						strokeWidth={MARKER_RING_WIDTH}
-						className={markerClass(paint)}
+						className={markerClass(paint, stroke)}
 					/>
 				))}
 			</g>
@@ -94,7 +97,12 @@ export function ChartLineMarks({ list, fill }: ChartLineMarksProps) {
 }
 
 /** The Framer Motion lines: each segment draws itself, washes and dots follow. @internal */
-export function AnimatedChartLineMarks({ list, fill, delay = 0 }: ChartLineMarksProps) {
+export function AnimatedChartLineMarks({
+	list,
+	fill,
+	stroke = false,
+	delay = 0,
+}: ChartLineMarksProps) {
 	return list.map(({ label, paint, geometry, markers, dimmed }) => {
 		const points = markers ? geometry.points : geometry.isolated
 
@@ -138,7 +146,7 @@ export function AnimatedChartLineMarks({ list, fill, delay = 0 }: ChartLineMarks
 						cx={points[index]?.x}
 						cy={points[index]?.y}
 						strokeWidth={MARKER_RING_WIDTH}
-						className={markerClass(paint)}
+						className={markerClass(paint, stroke)}
 						initial={{ r: 0, opacity: 0 }}
 						animate={{ r: MARKER_RADIUS, opacity: 1 }}
 						transition={{ ...POINT_POP, delay: POINT_POP.delay + delay }}

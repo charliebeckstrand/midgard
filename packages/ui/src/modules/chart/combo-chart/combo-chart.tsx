@@ -129,19 +129,23 @@ export function ComboChart<T>({
 
 	const barDims = barMetas.map(dim)
 
+	// Stroke the line dots wherever bars sit behind them; with the bars hidden
+	// the lines stand alone and the dots need no stroke.
+	const stroke = bars.length > 0
+
 	// No line delay: the bars rise and the lines draw at once, so the x and y
 	// motions land together rather than the lines waiting on the bars.
 	const marksNode = animate ? (
 		<>
 			<AnimatedChartBarMarks marks={bars} paints={barPaints} dimmed={barDims} />
 
-			<AnimatedChartLineMarks list={lines} fill={false} />
+			<AnimatedChartLineMarks list={lines} fill={false} stroke={stroke} />
 		</>
 	) : (
 		<>
 			<ChartBarMarks marks={bars} paints={barPaints} dimmed={barDims} />
 
-			<ChartLineMarks list={lines} fill={false} />
+			<ChartLineMarks list={lines} fill={false} stroke={stroke} />
 		</>
 	)
 
