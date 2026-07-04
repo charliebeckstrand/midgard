@@ -30,7 +30,7 @@ const group = defineRecipe({
 const list = defineRecipe({
 	base: ['flex', ...border.subtleColor],
 	orientation: {
-		horizontal: ['gap-4', 'border-b'],
+		horizontal: ['border-b'],
 		vertical: ['flex-col', 'border-l'],
 	},
 	defaults: { orientation: 'horizontal' },
@@ -82,9 +82,9 @@ const tab = defineRecipe({
 		lg: size.lg,
 	},
 	compound: [
-		{ orientation: 'horizontal', size: 'sm', class: 'px-1 pb-3' },
-		{ orientation: 'horizontal', size: 'md', class: 'px-1 pb-4' },
-		{ orientation: 'horizontal', size: 'lg', class: 'px-1 pb-5' },
+		{ orientation: 'horizontal', size: 'sm', class: 'px-2 pb-3' },
+		{ orientation: 'horizontal', size: 'md', class: 'px-3 pb-4' },
+		{ orientation: 'horizontal', size: 'lg', class: 'px-4 pb-5' },
 		{ orientation: 'vertical', size: 'sm', class: 'px-3 py-1.5' },
 		{ orientation: 'vertical', size: 'md', class: 'px-4 py-2' },
 		{ orientation: 'vertical', size: 'lg', class: 'px-5 py-2.5' },
