@@ -1,6 +1,6 @@
 'use client'
 
-import { type PointerEvent, useEffect, useState } from 'react'
+import { memo, type PointerEvent, useEffect, useState } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
 import { useMapHoverSet } from './context'
@@ -73,6 +73,9 @@ function Region({
 		<g className={cn(k.group(emphasis !== null && emphasis !== groupId))}>
 			<path
 				data-slot="map-region"
+				// Read by the hover provider's scroll-settle resolve to name the
+				// region under the pointer straight off the DOM.
+				data-region-index={index}
 				d={d}
 				strokeWidth={REGION_STROKE_WIDTH}
 				className={cn(
@@ -110,9 +113,14 @@ function Region({
  * colour transition on a plain `<path>` (not a motion fade), so the geometry
  * itself never fades, a many-region atlas never draws out the reveal, and the
  * region layer carries no motion runtime; `motion-reduce` drops the transition.
+ *
+ * Memoised so it repaints only when its own geometry, category, or legend
+ * state changes: an overlay child registering its legend entry re-renders the
+ * plat, but the region layer — thousands of paths on a county atlas — holds
+ * its last render rather than re-mapping for a change it doesn't read.
  * @internal
  */
-export function MapRegions({
+export const MapRegions = memo(function MapRegions({
 	paths,
 	regionCategory,
 	categories,
@@ -160,4 +168,4 @@ export function MapRegions({
 			)}
 		</g>
 	)
-}
+})

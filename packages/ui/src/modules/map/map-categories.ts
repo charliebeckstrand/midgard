@@ -57,15 +57,7 @@ export function resolveCategories<T>(
 	categoryKey: DataKey<T>,
 	explicit?: MapCategory[],
 ): MapCategoryMeta[] {
-	const listed =
-		explicit ??
-		data.reduce<MapCategory[]>((found, datum) => {
-			const value = String(datum[categoryKey])
-
-			if (!found.some((entry) => entry.value === value)) found.push({ value })
-
-			return found
-		}, [])
+	const listed = explicit ?? deriveCategories(data, categoryKey)
 
 	return listed.map((entry, index) => {
 		const color = entry.color ?? slotColor(index)
@@ -77,6 +69,32 @@ export function resolveCategories<T>(
 			paint: { kind: 'class', fill: k.series[color].fill, text: k.series[color].text },
 		}
 	})
+}
+
+/**
+ * The categories a dataset carries, in first-appearance order, deduped in one
+ * pass: a `Set` tracks the values already seen, so deriving is linear in the
+ * rows rather than quadratic — a per-row scan of the growing list would cost
+ * O(rows × categories) on the mount critical path.
+ *
+ * @internal
+ */
+function deriveCategories<T>(data: T[], categoryKey: DataKey<T>): MapCategory[] {
+	const seen = new Set<string>()
+
+	const derived: MapCategory[] = []
+
+	for (const datum of data) {
+		const value = String(datum[categoryKey])
+
+		if (!seen.has(value)) {
+			seen.add(value)
+
+			derived.push({ value })
+		}
+	}
+
+	return derived
 }
 
 /** The default region identity: the feature `id`, else its `name` property. @internal */
@@ -106,15 +124,18 @@ export function regionCategoryIndexes<T>(
 ): (number | null)[] {
 	const byRegion = new Map(data.map((datum) => [String(datum[regionKey]), datum]))
 
+	// A value → index lookup built once, so matching a region is a Map hit
+	// rather than a scan of the categories — linear in the regions, not
+	// O(regions × categories), on the mount critical path.
+	const indexByValue = new Map(categories.map((entry, index) => [entry.value, index]))
+
 	return regionIds.map((id) => {
 		const datum = byRegion.get(id)
 
 		if (datum == null) return null
 
-		const value = String(datum[categoryKey])
+		const index = indexByValue.get(String(datum[categoryKey]))
 
-		const index = categories.findIndex((entry) => entry.value === value)
-
-		return index === -1 ? null : index
+		return index ?? null
 	})
 }

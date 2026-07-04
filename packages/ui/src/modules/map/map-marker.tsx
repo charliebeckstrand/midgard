@@ -127,6 +127,7 @@ export function MapMarker({ label, start, end, path, color, detail }: MapMarkerP
 			{d !== '' && (
 				<path
 					data-slot="map-marker-hit"
+					data-entry-id={id}
 					d={d}
 					fill="none"
 					stroke="transparent"
@@ -140,6 +141,7 @@ export function MapMarker({ label, start, end, path, color, detail }: MapMarkerP
 			{from && (
 				<circle
 					data-slot="map-marker-start-hit"
+					data-entry-id={id}
 					cx={from.x}
 					cy={from.y}
 					r={POINT_HIT_RADIUS}
@@ -152,6 +154,7 @@ export function MapMarker({ label, start, end, path, color, detail }: MapMarkerP
 			{to && (
 				<circle
 					data-slot="map-marker-end-hit"
+					data-entry-id={id}
 					cx={to.x}
 					cy={to.y}
 					r={POINT_HIT_RADIUS}
