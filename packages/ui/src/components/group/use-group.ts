@@ -1,13 +1,4 @@
-import {
-	Children,
-	cloneElement,
-	createElement,
-	Fragment,
-	isValidElement,
-	type ReactNode,
-	useMemo,
-} from 'react'
-import { JoinContext } from '../../primitives/join'
+import { Children, cloneElement, Fragment, isValidElement, type ReactNode, useMemo } from 'react'
 import type { GroupOrientation, GroupPosition } from '../../recipes'
 
 function positionAt(index: number, length: number): GroupPosition {
@@ -50,11 +41,11 @@ function flattenChildren(children: ReactNode, prefix = ''): FlatChild[] {
 
 /**
  * Stamps `data-group={start|middle|end|only}` and
- * `data-group-orientation={horizontal|vertical}` onto each child of a
- * group, and broadcasts the same position via `JoinContext`. Descendants
- * that swap their render path (e.g. a leaf control rendering `<Placeholder>`
- * in skeleton mode) read position from context without each control
- * forwarding `data-group` itself.
+ * `data-group-orientation={horizontal|vertical}` onto each child of a group.
+ * Descendants that swap their render path (e.g. a leaf control rendering
+ * `<Placeholder>` in skeleton mode) pick up the join geometry from those data
+ * attributes through the container-scoped `tsunagi` selectors, without each
+ * control forwarding `data-group` itself.
  *
  * Use this hook directly when a group component owns additional concerns
  * (keyboard navigation, focus management) and renders its own container.
@@ -79,13 +70,11 @@ export function useGroup(children: ReactNode, orientation: GroupOrientation): Re
 
 			elementIndex += 1
 
-			const cloned = cloneElement(node, {
+			return cloneElement(node, {
 				'data-group': position,
 				'data-group-orientation': orientation,
 				key,
 			} as Partial<unknown>)
-
-			return createElement(JoinContext, { key, value: { position, orientation } }, cloned)
 		})
 	}, [children, orientation])
 }
