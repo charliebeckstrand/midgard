@@ -13,7 +13,7 @@ const bar = (x: number, x1: number, top: number, bottom: number): BarMark => ({
 	top,
 	bottom,
 	key: 'k',
-	up: true,
+	positive: true,
 })
 
 describe('withinBarMarks', () => {
@@ -43,6 +43,21 @@ describe('withinBarMarks', () => {
 
 		// And it never reaches above the bars.
 		expect(withinBarMarks(group, 31, 40, 2)).toBe(false)
+	})
+
+	it('applies the gap slack down y for a horizontal chart', () => {
+		// Two horizontal bars 2px apart down the band axis: rows |50..70| and |72..92|,
+		// each spanning x 10..30. The gap between them is now vertical.
+		const group = [[bar(10, 30, 50, 70)], [bar(10, 30, 72, 92)]]
+
+		// y=71 falls in the vertical gap — a miss without slack.
+		expect(withinBarMarks(group, 20, 71, 0, 'horizontal')).toBe(false)
+
+		// The slack closes it along y, not x.
+		expect(withinBarMarks(group, 20, 71, 2, 'horizontal')).toBe(true)
+
+		// Off the value end (past x=30) stays a miss however wide the band slack.
+		expect(withinBarMarks(group, 40, 60, 2, 'horizontal')).toBe(false)
 	})
 })
 

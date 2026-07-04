@@ -1,10 +1,13 @@
 /**
- * Pure geometry for the {@link BarChart}: grouped bars as zero-baseline
- * spans rendered to one-end-rounded paths, independent of React and styling
- * so the mark math is unit-testable in isolation.
+ * Pure geometry for the {@link BarChart}: grouped bars as zero-baseline spans
+ * rendered to one-end-rounded paths, independent of React and styling so the
+ * mark math is unit-testable in isolation. One slot-splitting pass serves both
+ * orientations; only the path and the hit rect transpose, through
+ * {@link barSpan}.
  */
 
 import { BAR_END_RADIUS, BAR_MAX_WIDTH, MARK_GAP } from '../chart-constants'
+import type { ChartOrientation } from '../chart-orientation'
 import type { BandScale } from '../chart-scale'
 
 /** One drawable bar: its path, hit rect, and the animation facts about it. @internal */
@@ -21,19 +24,28 @@ export type BarMark = {
 	bottom: number
 	/** Stable series-and-category key: geometry-free, so a resize never remounts the mark. */
 	key: string
-	/** Whether the bar grows upward from the baseline (positive value). */
-	up: boolean
+	/** Whether the bar's data end sits past the baseline on the positive side — up, or to the right. */
+	positive: boolean
 }
 
 /**
- * The rounded-end bar path from `baseline` to `value` y. The radius clamps
- * to the bar's own length and half-width so short or thin bars never invert;
+ * The bar's rounded-end radius, clamped to its own length and half-thickness so
+ * a short or thin bar never inverts.
+ *
+ * @internal
+ */
+function endRadius(valuePos: number, baseline: number, thickness: number): number {
+	return Math.min(BAR_END_RADIUS, Math.abs(baseline - valuePos), thickness / 2)
+}
+
+/**
+ * The rounded-end bar path from `baseline` to `valueY`, thickness `x0`→`x1`.
  * `rect` + `rx` is off-spec here — it would round the baseline end too.
  *
  * @internal
  */
-function barPath(x0: number, x1: number, valueY: number, baseline: number): string {
-	const radius = Math.min(BAR_END_RADIUS, Math.abs(baseline - valueY), (x1 - x0) / 2)
+function verticalBarPath(x0: number, x1: number, valueY: number, baseline: number): string {
+	const radius = endRadius(valueY, baseline, x1 - x0)
 
 	if (valueY < baseline) {
 		const shoulder = valueY + radius
@@ -63,6 +75,81 @@ function barPath(x0: number, x1: number, valueY: number, baseline: number): stri
 }
 
 /**
+ * The vertical path's transpose: the span runs along x from `baseline` to
+ * `valueX`, thickness `y0`→`y1`, rounded at the `valueX` data end.
+ *
+ * @internal
+ */
+function horizontalBarPath(y0: number, y1: number, valueX: number, baseline: number): string {
+	const radius = endRadius(valueX, baseline, y1 - y0)
+
+	if (valueX > baseline) {
+		const shoulder = valueX - radius
+
+		return [
+			`M ${baseline} ${y0}`,
+			`L ${shoulder} ${y0}`,
+			`A ${radius} ${radius} 0 0 1 ${valueX} ${y0 + radius}`,
+			`L ${valueX} ${y1 - radius}`,
+			`A ${radius} ${radius} 0 0 1 ${shoulder} ${y1}`,
+			`L ${baseline} ${y1}`,
+			'Z',
+		].join(' ')
+	}
+
+	const shoulder = valueX + radius
+
+	return [
+		`M ${baseline} ${y0}`,
+		`L ${shoulder} ${y0}`,
+		`A ${radius} ${radius} 0 0 0 ${valueX} ${y0 + radius}`,
+		`L ${valueX} ${y1 - radius}`,
+		`A ${radius} ${radius} 0 0 0 ${shoulder} ${y1}`,
+		`L ${baseline} ${y1}`,
+		'Z',
+	].join(' ')
+}
+
+/**
+ * One bar from its value-axis span (`baseline`→`valuePos`) and its band-axis
+ * slot (`c0`→`c1`). Vertical draws the span up y with the slot across x;
+ * horizontal transposes both, and the hit rect follows so `withinBarMarks`
+ * reads either the same way.
+ *
+ * @internal
+ */
+function barSpan(
+	orientation: ChartOrientation,
+	valuePos: number,
+	baseline: number,
+	c0: number,
+	c1: number,
+	key: string,
+): BarMark {
+	if (orientation === 'vertical') {
+		return {
+			d: verticalBarPath(c0, c1, valuePos, baseline),
+			x: c0,
+			x1: c1,
+			top: Math.min(valuePos, baseline),
+			bottom: Math.max(valuePos, baseline),
+			key,
+			positive: valuePos < baseline,
+		}
+	}
+
+	return {
+		d: horizontalBarPath(c0, c1, valuePos, baseline),
+		x: Math.min(valuePos, baseline),
+		x1: Math.max(valuePos, baseline),
+		top: c0,
+		bottom: c1,
+		key,
+		positive: valuePos > baseline,
+	}
+}
+
+/**
  * Projects series-major values onto grouped bar marks: each category's band
  * splits into per-series bars capped at the spec thickness, separated by the
  * surface gap, and centered as a group in their band.
@@ -76,35 +163,28 @@ export function barMarks(
 	band: BandScale,
 	map: (value: number) => number,
 	baseline: number,
+	orientation: ChartOrientation = 'vertical',
 ): (BarMark | null)[][] {
 	const seriesCount = Math.max(1, values.length)
 
-	const width = Math.max(
+	const thickness = Math.max(
 		1,
 		Math.min(BAR_MAX_WIDTH, (band.width - (seriesCount - 1) * MARK_GAP) / seriesCount),
 	)
 
-	const group = seriesCount * width + (seriesCount - 1) * MARK_GAP
+	const group = seriesCount * thickness + (seriesCount - 1) * MARK_GAP
 
 	return values.map((series, seriesIndex) =>
 		series.map((value, index) => {
 			if (value === null || value === 0) return null
 
-			const x0 = band.at(index) + (band.width - group) / 2 + seriesIndex * (width + MARK_GAP)
+			const c0 = band.at(index) + (band.width - group) / 2 + seriesIndex * (thickness + MARK_GAP)
 
-			const valueY = map(value)
+			const valuePos = map(value)
 
-			if (valueY === baseline) return null
+			if (valuePos === baseline) return null
 
-			return {
-				d: barPath(x0, x0 + width, valueY, baseline),
-				x: x0,
-				x1: x0 + width,
-				top: Math.min(valueY, baseline),
-				bottom: Math.max(valueY, baseline),
-				key: `${seriesIndex}:${index}`,
-				up: valueY < baseline,
-			}
+			return barSpan(orientation, valuePos, baseline, c0, c0 + thickness, `${seriesIndex}:${index}`)
 		}),
 	)
 }

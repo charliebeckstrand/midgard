@@ -4,17 +4,17 @@ import { type FrameReserve, usePlotFrame } from '../../hooks'
 import { useResolvedSize } from '../../primitives/density'
 import type { Step } from '../../recipes'
 import type { ChartAxisTick } from './chart-axis'
-import { CHART_METRICS, PLOT_TOP_PAD, X_AXIS_HEIGHT } from './chart-constants'
+import { CHART_METRICS } from './chart-constants'
 import {
-	bandAnchors,
-	type ChartAnchor,
+	type CartesianLayout,
 	chartFrameSizing,
+	horizontalLayout,
 	type PlotRect,
-	plotRect,
-	thinnedTicks,
+	verticalLayout,
 } from './chart-layout'
 import type { ChartLegendItem } from './chart-legend'
-import { type BandScale, bandScale, linearScale } from './chart-scale'
+import type { ChartOrientation } from './chart-orientation'
+import type { BandScale, LinearScale } from './chart-scale'
 import type { CartesianChartProps, ChartSeries } from './chart-schema'
 import {
 	chartReadout,
@@ -41,6 +41,11 @@ export type CartesianConfig<T> = {
 	 * @defaultValue false
 	 */
 	stack?: boolean
+	/**
+	 * Which screen axis the value axis runs along — only {@link BarChart} varies it.
+	 * @defaultValue 'vertical'
+	 */
+	orientation?: ChartOrientation
 }
 
 /** Everything the cartesian frame and marks derive from the props. @internal */
@@ -54,10 +59,12 @@ export type CartesianChart = {
 	plot: PlotRect
 	band: BandScale
 	/** `null` when nothing yields a value domain — render the empty frame. */
-	yScale: ReturnType<typeof linearScale>
-	/** The zero line's y, for bar baselines and the x axis. */
+	yScale: LinearScale | null
+	/** The zero line's position along the value axis, for bar baselines and the category axis. */
 	baseline: number
+	/** Value ticks along the value axis (y when vertical, x when horizontal). */
 	yTicks: ChartAxisTick[]
+	/** Category labels along the band axis (x when vertical, y when horizontal). */
 	xTicks: ChartAxisTick[]
 	/** Every series, toggled or not — the legend lists them all. */
 	metas: SeriesMeta[]
@@ -73,26 +80,21 @@ export type CartesianChart = {
 	setEmphasis: (index: number | null) => void
 	readout: ChartReadout | null
 	legendItems: ChartLegendItem[] | null
-	anchors: ChartAnchor[]
-	/** Per category, the visible series' plot-y positions — a value crosshair's snap targets. */
+	/** Per category, the band-axis center — a crosshair and tooltip band snap. */
+	bandPositions: number[]
+	/** Per category, the visible series' value-axis positions — a value crosshair's snap targets. */
 	snapPoints: number[][]
-}
-
-/** The thinned category labels at their band centers. @internal */
-function xAxisTicks(categories: string[], band: BandScale, plot: PlotRect): ChartAxisTick[] {
-	const longest = categories.reduce((widest, label) => Math.max(widest, label.length), 0)
-
-	return thinnedTicks(categories.length, plot.width, longest).map((index) => ({
-		at: band.center(index),
-		label: categories[index] ?? '',
-	}))
+	/** Which way the chart faces — the frame parts read it to draw the transpose. */
+	orientation: ChartOrientation
 }
 
 /**
  * The orchestration every cartesian chart shares: density and container
- * sizing, the value and band scales, tick building with collision thinning,
- * and the legend / readout models. Charts add only their geometry and mark
- * renderers on top.
+ * sizing, the series and legend / readout models, and the value and band scales
+ * with their ticks. The oriented scale-and-layout math lives in
+ * {@link verticalLayout} / {@link horizontalLayout}; this hook picks one by the
+ * config's `orientation` and returns its normalized result. Charts add only
+ * their geometry and mark renderers on top.
  *
  * @internal
  */
@@ -112,6 +114,8 @@ export function useChartCartesian<T>(
 		min,
 		max,
 	} = props
+
+	const orientation = config.orientation ?? 'vertical'
 
 	// Rows align by index on one shared band scale, so the category field is
 	// only ever read for labels — the first series' xKey names it.
@@ -150,37 +154,24 @@ export function useChartCartesian<T>(
 		? data.map((_, index) => visible.reduce((sum, meta) => sum + (meta.values[index] ?? 0), 0))
 		: visible.flatMap((meta) => meta.values.filter((value) => value !== null))
 
-	// The y range needs only the frame height, so the scale (and its tick
-	// labels) can resolve the gutter before the full plot rect exists.
-	const yScale = linearScale({
-		values: domainValues,
-		range: [frameHeight - (axes ? X_AXIS_HEIGHT : 0), PLOT_TOP_PAD],
+	const categories = xKey ? data.map((datum) => String(datum[xKey])) : []
+
+	const layout: CartesianLayout = (
+		orientation === 'horizontal' ? horizontalLayout : verticalLayout
+	)({
+		frameWidth,
+		frameHeight,
+		axes,
 		tickTarget: metrics.tickTarget,
 		zeroBaseline: config.zeroBaseline,
 		min,
 		max,
+		domainValues,
+		categories,
+		format,
+		count: data.length,
+		visibleValues: visible.map((meta) => meta.values),
 	})
-
-	const yTickValues = yScale?.ticks ?? []
-
-	const plot = plotRect(frameWidth, frameHeight, axes, yTickValues.map(format))
-
-	const band = bandScale({ count: data.length, range: [plot.x, plot.x + plot.width] })
-
-	// Each category's visible values in plot y, for the crosshair's value snap.
-	const snapPoints: number[][] = yScale
-		? data.map((_, index) =>
-				visible.reduce<number[]>((ys, meta) => {
-					const value = meta.values[index]
-
-					if (value != null && Number.isFinite(value)) ys.push(yScale.map(value))
-
-					return ys
-				}, []),
-			)
-		: []
-
-	const categories = xKey ? data.map((datum) => String(datum[xKey])) : []
 
 	const readout =
 		xKey && data.length > 0 && visible.length > 0 ? chartReadout(data, xKey, visible, format) : null
@@ -200,12 +191,12 @@ export function useChartCartesian<T>(
 		fixedWidth: width,
 		height: frameHeight,
 		reserve,
-		plot,
-		band,
-		yScale,
-		baseline: yScale?.map(0) ?? plot.y + plot.height,
-		yTicks: yTickValues.map((tick) => ({ at: yScale?.map(tick) ?? 0, label: format(tick) })),
-		xTicks: xAxisTicks(categories, band, plot),
+		plot: layout.plot,
+		band: layout.band,
+		yScale: layout.valueScale,
+		baseline: layout.baseline,
+		yTicks: layout.valueTicks,
+		xTicks: layout.bandTicks,
 		metas,
 		visible,
 		hidden,
@@ -214,7 +205,8 @@ export function useChartCartesian<T>(
 		setEmphasis: setFocus,
 		readout,
 		legendItems,
-		anchors: bandAnchors(band, data.length, plot),
-		snapPoints,
+		bandPositions: layout.bandPositions,
+		snapPoints: layout.snapPoints,
+		orientation,
 	}
 }

@@ -4,6 +4,7 @@ import { motion } from 'motion/react'
 import { cn } from '../../core'
 import type { BarMark } from './bar-chart/bar-chart-geometry'
 import { BAR_GROW, BAR_STAGGER } from './chart-constants'
+import type { ChartOrientation } from './chart-orientation'
 import type { SeriesPaint } from './chart-series'
 
 /** Shared shape for the static and animated bar renderers. @internal */
@@ -14,11 +15,29 @@ export type ChartBarMarksProps = {
 	paints: SeriesPaint[]
 	/** Per-series dim flags — legend emphasis fades the others out. */
 	dimmed?: boolean[]
+	/**
+	 * Which way the bars grow, for the mount animation's axis and origin.
+	 * @defaultValue 'vertical'
+	 */
+	orientation?: ChartOrientation
 }
 
 /** One bar's classes: series fill, hover lift, and the emphasis dim. @internal */
 function barClass(paint: SeriesPaint | undefined, dim: boolean | undefined): string {
 	return cn(paint?.fill, 'transition-opacity hover:brightness-110', dim && 'opacity-25')
+}
+
+/**
+ * The mount grow for one bar: it scales in along the value axis from its
+ * baseline end — up y for vertical (origin the bottom of a positive bar), out x
+ * for horizontal (origin the left of a positive bar).
+ *
+ * @internal
+ */
+function barGrow(orientation: ChartOrientation, positive: boolean) {
+	return orientation === 'vertical'
+		? { initial: { scaleY: 0 }, animate: { scaleY: 1 }, style: { originY: positive ? 1 : 0 } }
+		: { initial: { scaleX: 0 }, animate: { scaleX: 1 }, style: { originX: positive ? 0 : 1 } }
 }
 
 /** The plain-SVG bars: the cheap default with no motion runtime work. @internal */
@@ -27,8 +46,8 @@ export function ChartBarMarks({ marks, paints, dimmed }: ChartBarMarksProps) {
 		row.map(
 			(mark) =>
 				mark && (
-					// `mark.key` is geometry-free: a resize shifts the bar's x but must
-					// not remount the mark, which would replay the grow animation.
+					// `mark.key` is geometry-free: a resize shifts the bar's position but
+					// must not remount the mark, which would replay the grow animation.
 					<path
 						key={mark.key}
 						data-slot="chart-bar"
@@ -40,23 +59,31 @@ export function ChartBarMarks({ marks, paints, dimmed }: ChartBarMarksProps) {
 	)
 }
 
-/** The Framer Motion bars, rising from the zero baseline in sequence. @internal */
-export function AnimatedChartBarMarks({ marks, paints, dimmed }: ChartBarMarksProps) {
+/** The Framer Motion bars, growing from the baseline along the value axis in sequence. @internal */
+export function AnimatedChartBarMarks({
+	marks,
+	paints,
+	dimmed,
+	orientation = 'vertical',
+}: ChartBarMarksProps) {
 	return marks.flatMap((row, seriesIndex) =>
-		row.map(
-			(mark, index) =>
-				mark && (
-					<motion.path
-						key={mark.key}
-						data-slot="chart-bar"
-						d={mark.d}
-						className={barClass(paints[seriesIndex], dimmed?.[seriesIndex])}
-						initial={{ scaleY: 0 }}
-						animate={{ scaleY: 1 }}
-						style={{ originY: mark.up ? 1 : 0 }}
-						transition={{ ...BAR_GROW, delay: index * BAR_STAGGER }}
-					/>
-				),
-		),
+		row.map((mark, index) => {
+			if (!mark) return null
+
+			const grow = barGrow(orientation, mark.positive)
+
+			return (
+				<motion.path
+					key={mark.key}
+					data-slot="chart-bar"
+					d={mark.d}
+					className={barClass(paints[seriesIndex], dimmed?.[seriesIndex])}
+					initial={grow.initial}
+					animate={grow.animate}
+					style={grow.style}
+					transition={{ ...BAR_GROW, delay: index * BAR_STAGGER }}
+				/>
+			)
+		}),
 	)
 }

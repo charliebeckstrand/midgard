@@ -8,12 +8,15 @@ import {
 	X_AXIS_HEIGHT,
 } from '../../modules/chart/chart-constants'
 import { ChartFrame } from '../../modules/chart/chart-frame'
-import { bandAnchors, chartFrameSizing, plotRect } from '../../modules/chart/chart-layout'
+import {
+	type CartesianLayoutInput,
+	chartFrameSizing,
+	horizontalLayout,
+	plotRect,
+	verticalLayout,
+} from '../../modules/chart/chart-layout'
 import { ChartLegend } from '../../modules/chart/chart-legend'
-import { bandScale } from '../../modules/chart/chart-scale'
 import { bySlot, noop, renderUI } from '../helpers'
-
-const PLOT = { x: 40, y: 8, width: 360, height: 200 }
 
 function frame(width: number, extras?: Partial<Parameters<typeof ChartFrame>[0]>) {
 	return (
@@ -133,15 +136,75 @@ describe('chartFrameSizing', () => {
 	})
 })
 
-describe('bandAnchors', () => {
-	it('anchors each category at its band center on the plot top', () => {
-		const band = bandScale({ count: 2, range: [PLOT.x, PLOT.x + PLOT.width] })
+describe('cartesian layout', () => {
+	const input: CartesianLayoutInput = {
+		frameWidth: 400,
+		frameHeight: 240,
+		axes: true,
+		tickTarget: 4,
+		zeroBaseline: true,
+		domainValues: [0, 40, 80],
+		categories: ['Q1', 'Q2'],
+		format: (value) => String(value),
+		count: 2,
+		visibleValues: [[40, 80]],
+	}
 
-		const anchors = bandAnchors(band, 2, PLOT)
+	it('runs value up y and the band across x when vertical', () => {
+		const layout = verticalLayout(input)
 
-		expect(anchors).toEqual([
-			{ x: band.center(0), y: PLOT.y },
-			{ x: band.center(1), y: PLOT.y },
-		])
+		// Zero sits on the plot floor; the ceiling tick sits above it.
+		expect(layout.baseline).toBeCloseTo(layout.plot.y + layout.plot.height)
+
+		expect(layout.valueTicks.at(-1)?.at).toBeLessThan(layout.baseline)
+
+		// Band centers fall inside the horizontal plot span.
+		for (const position of layout.bandPositions) {
+			expect(position).toBeGreaterThanOrEqual(layout.plot.x)
+
+			expect(position).toBeLessThanOrEqual(layout.plot.x + layout.plot.width)
+		}
+	})
+
+	it('runs value along x and the band down y when horizontal', () => {
+		const layout = horizontalLayout(input)
+
+		// Zero sits at the left edge; the ceiling tick sits to its right.
+		expect(layout.baseline).toBeCloseTo(layout.plot.x)
+
+		expect(layout.valueTicks.at(-1)?.at).toBeGreaterThan(layout.baseline)
+
+		// Band centers fall inside the vertical plot span.
+		for (const position of layout.bandPositions) {
+			expect(position).toBeGreaterThanOrEqual(layout.plot.y)
+
+			expect(position).toBeLessThanOrEqual(layout.plot.y + layout.plot.height)
+		}
+	})
+
+	it('insets the horizontal value axis so its centered end labels clear the frame', () => {
+		// Wide currency-style ticks (0 … 6,000) on a narrow frame — the last label
+		// centered on the plot's right edge is exactly what overhangs the SVG clip.
+		const layout = horizontalLayout({
+			...input,
+			frameWidth: 480,
+			domainValues: [0, 4820, 6000],
+			categories: ['Search', 'Direct'],
+			format: (value) => value.toLocaleString('en-US'),
+		})
+
+		const halfLabel = (tick: { label: string }) => (tick.label.length * TICK_CHAR_WIDTH) / 2
+
+		const first = layout.valueTicks.at(0)
+
+		const last = layout.valueTicks.at(-1)
+
+		// Both end labels stay within [0, frameWidth] rather than spilling past the edge.
+		expect((first?.at ?? 0) - halfLabel(first ?? { label: '' })).toBeGreaterThanOrEqual(0)
+
+		expect((last?.at ?? 0) + halfLabel(last ?? { label: '' })).toBeLessThanOrEqual(480)
+
+		// The inset pulls the ceiling tick off the plot's right edge.
+		expect(last?.at ?? 0).toBeLessThan(layout.plot.x + layout.plot.width)
 	})
 })

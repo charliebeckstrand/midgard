@@ -152,6 +152,17 @@ export function Demo() {
 								</ChartContainer>
 							</Example>
 
+							<Example title="Horizontal" code={code`<BarChart orientation="horizontal" … />`}>
+								<ChartContainer>
+									<BarChart
+										aria-label="Traffic by source"
+										data={sources}
+										series={[{ xKey: 'source', yKey: 'visits', yName: 'Visits' }]}
+										orientation="horizontal"
+									/>
+								</ChartContainer>
+							</Example>
+
 							<Example title="Negative values" code={code`<BarChart crosshair … />`}>
 								<ChartContainer>
 									<BarChart

@@ -396,6 +396,103 @@ describe('BarChart', () => {
 	})
 })
 
+describe('BarChart horizontal', () => {
+	it('draws the same bars with the axes transposed', () => {
+		const { container } = renderUI(chart({ orientation: 'horizontal' }))
+
+		expect(allBySlot(container, 'chart-bar')).toHaveLength(6)
+
+		// Categories move to the left (y) axis, values to the bottom (x) axis.
+		const categoryAxis = bySlot(container, 'chart-axis-y')
+
+		expect(categoryAxis?.textContent).toContain('Q1')
+
+		expect(categoryAxis?.textContent).toContain('Q3')
+
+		const valueAxis = bySlot(container, 'chart-axis-x')
+
+		expect(valueAxis?.textContent).not.toContain('Q1')
+
+		expect(valueAxis?.textContent).toContain('80')
+
+		// The category axis carries the zero baseline as a vertical rule; the value
+		// axis stays line-free, its scale drawn by the gridlines alone.
+		expect(categoryAxis?.querySelector('line')).not.toBeNull()
+
+		expect(valueAxis?.querySelector('line')).toBeNull()
+	})
+
+	it('reads the band off the pointer y and lists the series in the tooltip', () => {
+		const { container } = renderUI(chart({ orientation: 'horizontal' }))
+
+		const hit = bySlot(container, 'chart-hit') as Element
+
+		// Frame coords add the plot origin (jsdom boxes sit at 0); (93, 18) lands the
+		// pointer inside Q1's revenue bar, its band chosen by the y coordinate.
+		fireEvent.pointerMove(hit, { clientX: 93, clientY: 18 })
+
+		const tooltip = bySlot(container, 'tooltip-content')
+
+		expect(tooltip?.textContent).toContain('Q1')
+
+		expect(tooltip?.textContent).toContain('40')
+
+		expect(tooltip?.textContent).toContain('24')
+
+		// Past the value end of every bar in the row, the tooltip clears.
+		fireEvent.pointerMove(hit, { clientX: 223, clientY: 18 })
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
+	})
+
+	it('keeps the bottom value labels inside the viewBox instead of clipping them', () => {
+		const { container } = renderUI(chart({ orientation: 'horizontal' }))
+
+		const svg = container.querySelector('svg') as SVGSVGElement
+
+		const width = Number((svg.getAttribute('viewBox') ?? '0 0 0 0').split(' ')[2])
+
+		const labels = Array.from(
+			(bySlot(container, 'chart-axis-x') as Element).querySelectorAll('text'),
+		)
+
+		expect(labels.length).toBeGreaterThan(0)
+
+		// Each centered value label spans its x ± half its width; both edges must
+		// fall within [0, width] or the SVG's overflow clips them.
+		for (const label of labels) {
+			const x = Number(label.getAttribute('x'))
+
+			const half = ((label.textContent?.length ?? 0) * 7.2) / 2
+
+			expect(x - half).toBeGreaterThanOrEqual(0)
+
+			expect(x + half).toBeLessThanOrEqual(width)
+		}
+	})
+
+	it('rules the value crosshair vertically down the value axis', () => {
+		const { container } = renderUI(
+			chart({ orientation: 'horizontal', crosshair: { x: true, y: false } }),
+		)
+
+		const hit = bySlot(container, 'chart-hit') as Element
+
+		fireEvent.pointerMove(hit, { clientX: 93, clientY: 18 })
+
+		const line = bySlot(container, 'chart-crosshair-x')
+
+		expect(line).not.toBeNull()
+
+		// Transposed from vertical: the value rule now runs down y at a fixed x.
+		const x = line?.getAttribute('x1')
+
+		expect(line?.getAttribute('x2')).toBe(x)
+
+		expect(Number(line?.getAttribute('y2'))).toBeGreaterThan(Number(line?.getAttribute('y1')))
+	})
+})
+
 describe('barMarks', () => {
 	const band = bandScale({ count: 2, range: [0, 200] })
 
@@ -406,7 +503,7 @@ describe('barMarks', () => {
 
 		const up = row?.[0]
 
-		expect(up?.up).toBe(true)
+		expect(up?.positive).toBe(true)
 
 		// Starts and ends on the baseline, arcs at the value end.
 		expect(up?.d.startsWith('M ')).toBe(true)
@@ -417,9 +514,32 @@ describe('barMarks', () => {
 
 		const down = row?.[1]
 
-		expect(down?.up).toBe(false)
+		expect(down?.positive).toBe(false)
 
 		expect(down?.d).toContain('A 4 4 0 0 0')
+	})
+
+	it('transposes the span and the hit rect when horizontal', () => {
+		// map(v) = 100 - v, baseline 100: a positive value lands left of the baseline
+		// on x, so the bar grows toward smaller x. One band of width 200 → thickness
+		// runs down y.
+		const [row] = barMarks([[40]], bandScale({ count: 1, range: [0, 40] }), map, 100, 'horizontal')
+
+		const mark = row?.[0]
+
+		// The value span is horizontal (x), the thickness vertical (top/bottom = the band slot).
+		expect(mark?.x).toBe(60)
+
+		expect(mark?.x1).toBe(100)
+
+		expect(mark?.top).toBeLessThan(mark?.bottom ?? 0)
+
+		// 40 maps to x=60, right of the baseline's screen x (100), so it is not positive here.
+		expect(mark?.positive).toBe(false)
+
+		expect(mark?.d.startsWith('M ')).toBe(true)
+
+		expect(mark?.d.endsWith('Z')).toBe(true)
 	})
 
 	it('clamps the radius on short bars instead of inverting', () => {

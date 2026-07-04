@@ -1,6 +1,7 @@
 'use client'
 
 import type { PlotRect } from './chart-layout'
+import type { ChartOrientation } from './chart-orientation'
 import type { BandScale } from './chart-scale'
 import { useChartPointer } from './use-chart-pointer'
 
@@ -11,6 +12,11 @@ export type ChartHitAreaProps = {
 	count: number
 	/** The chart's mark hit test; the tooltip shows only where it holds. */
 	onData?: (x: number, y: number) => boolean
+	/**
+	 * Which axis the band runs along, so the pointer resolves the right coordinate.
+	 * @defaultValue 'vertical'
+	 */
+	orientation?: ChartOrientation
 }
 
 /**
@@ -21,8 +27,8 @@ export type ChartHitAreaProps = {
  *
  * @internal
  */
-export function ChartHitArea({ plot, band, count, onData }: ChartHitAreaProps) {
-	const { ref, ...handlers } = useChartPointer(band, count, plot, onData)
+export function ChartHitArea({ plot, band, count, onData, orientation }: ChartHitAreaProps) {
+	const { ref, ...handlers } = useChartPointer(band, count, plot, onData, orientation)
 
 	return (
 		<rect

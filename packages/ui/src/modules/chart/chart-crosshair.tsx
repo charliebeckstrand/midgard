@@ -2,7 +2,16 @@
 
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/chart'
+import { clamp } from '../../utilities'
 import type { PlotRect } from './chart-layout'
+import {
+	bandCoord,
+	bandExtent,
+	type ChartOrientation,
+	project,
+	valueCoord,
+	valueExtent,
+} from './chart-orientation'
 import type { Crosshair, ResolvedCrosshair } from './chart-schema'
 import { nearestValue } from './chart-snap'
 import { useChartHover } from './context'
@@ -12,10 +21,15 @@ export type ChartCrosshairProps = {
 	plot: PlotRect
 	/** The resolved rules to draw and whether they snap. */
 	crosshair: ResolvedCrosshair
-	/** Band-center x per category — the vertical rule's snap target. */
-	bandXs: number[]
-	/** Per category, the visible series' plot y — the horizontal rule's snap targets. */
-	snapPoints: number[][]
+	/** Band-axis center per category — the band rule's snap target. */
+	bandPositions: number[]
+	/** Per category, the visible series' value-axis positions — the value rule's snap targets. */
+	valuePoints: number[][]
+	/**
+	 * Which way the value axis runs — it swaps each rule's screen direction.
+	 * @defaultValue 'vertical'
+	 */
+	orientation?: ChartOrientation
 }
 
 /**
@@ -41,17 +55,24 @@ export function resolveCrosshair(
 }
 
 /**
- * The hover crosshair: a horizontal `x` rule across the value axis and a
- * vertical `y` rule down the category axis, drawing whichever rules the
- * resolved crosshair leaves on. Without `snap` a rule
- * tracks the pointer exactly; with it the pair meets the nearest data point —
- * the horizontal at that point's value, the vertical at its band center. Both
- * clamp to the plot rect and dash alike. Reads only the hover context, so it
- * re-renders alone — never the marks.
+ * The hover crosshair: an `x` rule across the value axis and a `y` rule down the
+ * category axis, drawing whichever rules the resolved crosshair leaves on. Each
+ * rule is projected through the orientation, so a horizontal chart transposes
+ * both — the value rule runs vertically, the category rule horizontally.
+ * Without `snap` a rule tracks the pointer exactly; with it the pair meets the
+ * nearest data point — the value rule at that point's value, the category rule
+ * at its band center. Both clamp to the plot rect and dash alike. Reads only the
+ * hover context, so it re-renders alone — never the marks.
  *
  * @internal
  */
-export function ChartCrosshair({ plot, crosshair, bandXs, snapPoints }: ChartCrosshairProps) {
+export function ChartCrosshair({
+	plot,
+	crosshair,
+	bandPositions,
+	valuePoints,
+	orientation = 'vertical',
+}: ChartCrosshairProps) {
 	const { index, point } = useChartHover()
 
 	if (index === null || point === null) return null
@@ -63,34 +84,58 @@ export function ChartCrosshair({ plot, crosshair, bandXs, snapPoints }: ChartCro
 		className: cn(k.axis),
 	}
 
-	const rawY = crosshair.snap ? nearestValue(snapPoints[index], point.y) : point.y
+	const rawValue = crosshair.snap
+		? nearestValue(valuePoints[index], valueCoord(orientation, point))
+		: valueCoord(orientation, point)
 
-	const rawX = crosshair.snap ? bandXs[index] : point.x
+	const rawBand = crosshair.snap ? bandPositions[index] : bandCoord(orientation, point)
 
-	const y = rawY === null ? null : Math.min(plot.y + plot.height, Math.max(plot.y, rawY))
+	const [valueNear, valueFar] = valueExtent(orientation, plot)
 
-	const x = rawX === undefined ? null : Math.min(plot.x + plot.width, Math.max(plot.x, rawX))
+	const [bandStart, bandEnd] = bandExtent(orientation, plot)
+
+	const value =
+		rawValue === null
+			? null
+			: clamp(rawValue, Math.min(valueNear, valueFar), Math.max(valueNear, valueFar))
+
+	const band =
+		rawBand === undefined
+			? null
+			: clamp(rawBand, Math.min(bandStart, bandEnd), Math.max(bandStart, bandEnd))
+
+	// The value rule holds its value and spans the band axis; the band rule holds
+	// its band and spans the value axis. `project` puts each pair of ends on screen.
+	const valueRule =
+		value === null
+			? null
+			: { from: project(orientation, value, bandStart), to: project(orientation, value, bandEnd) }
+
+	const bandRule =
+		band === null
+			? null
+			: { from: project(orientation, valueNear, band), to: project(orientation, valueFar, band) }
 
 	return (
 		<g data-slot="chart-crosshair">
-			{crosshair.x && y !== null && (
+			{crosshair.x && valueRule && (
 				<line
 					data-slot="chart-crosshair-x"
-					x1={plot.x}
-					y1={y}
-					x2={plot.x + plot.width}
-					y2={y}
+					x1={valueRule.from.x}
+					y1={valueRule.from.y}
+					x2={valueRule.to.x}
+					y2={valueRule.to.y}
 					{...rule}
 				/>
 			)}
 
-			{crosshair.y && x !== null && (
+			{crosshair.y && bandRule && (
 				<line
 					data-slot="chart-crosshair-y"
-					x1={x}
-					y1={plot.y}
-					x2={x}
-					y2={plot.y + plot.height}
+					x1={bandRule.from.x}
+					y1={bandRule.from.y}
+					x2={bandRule.to.x}
+					y2={bandRule.to.y}
 					{...rule}
 				/>
 			)}

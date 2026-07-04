@@ -57,6 +57,13 @@ export const GUTTER_MAX = 96
 /** Height reserved under the plot for the x tick labels. @internal */
 export const X_AXIS_HEIGHT = 24
 
+/**
+ * Vertical footprint of one `text-xs` category label stacked in a horizontal
+ * chart's left axis — its line box, for thinning band labels by column room the
+ * way {@link TICK_CHAR_WIDTH} thins them by row room. @internal
+ */
+export const BAND_LABEL_HEIGHT = 16
+
 /** Air above the plot so the top tick label and markers stay inside the frame. @internal */
 export const PLOT_TOP_PAD = 8
 

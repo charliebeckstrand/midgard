@@ -15,6 +15,7 @@ import { TooltipContent } from '../../components/tooltip'
 import { TooltipContext } from '../../components/tooltip/context'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/chart'
+import { bandCoord, type ChartOrientation, project, valueCoord } from './chart-orientation'
 import { type ChartSnap, nearestValue } from './chart-snap'
 import { useChartHover } from './context'
 import type { ChartReadout } from './types'
@@ -34,6 +35,11 @@ export type ChartTooltipProps = {
 	 * tracks the pointer and shows only over a mark.
 	 */
 	snap?: ChartSnap
+	/**
+	 * Which way the chart faces, so the snapped anchor projects onto the right axes.
+	 * @defaultValue 'vertical'
+	 */
+	orientation?: ChartOrientation
 }
 
 /** The gap in px floating-ui keeps between the anchor point and the readout. @internal */
@@ -63,18 +69,26 @@ const SWATCH_SHAPE = { rect: 'square', line: 'line' } as const satisfies Record<
  * in the visually-hidden table, so nothing is gated behind hover.
  * @internal
  */
-export function ChartTooltip({ plotRef, readout, snap }: ChartTooltipProps) {
+export function ChartTooltip({
+	plotRef,
+	readout,
+	snap,
+	orientation = 'vertical',
+}: ChartTooltipProps) {
 	const { index, point, onData } = useChartHover()
 
-	// Snapped, the anchor is the intersection — the band center and the value
-	// nearest the pointer; otherwise it is the pointer itself.
+	// Snapped, the anchor is the intersection — the band center crossed with the
+	// value nearest the pointer, projected onto the screen through the orientation;
+	// otherwise it is the pointer itself.
 	const anchor =
 		index !== null && point !== null
 			? snap
-				? {
-						x: snap.bandXs[index] ?? point.x,
-						y: nearestValue(snap.snapPoints[index], point.y) ?? point.y,
-					}
+				? project(
+						orientation,
+						nearestValue(snap.valuePoints[index], valueCoord(orientation, point)) ??
+							valueCoord(orientation, point),
+						snap.bandPositions[index] ?? bandCoord(orientation, point),
+					)
 				: point
 			: null
 

@@ -6,7 +6,7 @@
 
 The foundation is in place: pure scale and geometry cores (`chart-scale`, `chart-layout`, per-chart `*-geometry`), the shared frame (legend and visually-hidden data table as plain HTML around a `role="img"` plot), a hover context confined to the crosshair and tooltip overlays, the eight-slot series palette in `kata/chart`, and the Sparkline `animate` contract (static SVG by default, opt-in `motion/react` renderers inside `ReducedMotion`).
 
-Bar draws grouped zero-baseline spans as one-end-rounded paths, so negative values already render and stacking is an offset pass away. Line breaks at missing values and surfaces isolated points as ringed markers. Pie sweeps positive shares with surface-colour gaps, fit-gated segment labels, and a donut hole for centered children. Combo layers bars behind pointed lines on one shared value axis.
+Bar draws grouped zero-baseline spans as one-end-rounded paths, so negative values already render and stacking is an offset pass away; an `orientation` prop transposes the whole cartesian frame through `chart-orientation`'s single coordinate projection, so horizontal bars reuse the same scales, marks, hit test, and crosshair with categories down the side. Line breaks at missing values and surfaces isolated points as ringed markers. Pie sweeps positive shares with surface-colour gaps, fit-gated segment labels, and a donut hole for centered children. Combo layers bars behind pointed lines on one shared value axis.
 
 The legend is the series switchboard: centered toggle buttons where pointing an entry dims the other series and clicking toggles one off — the sweep, scales, and readout re-derive while slot colours hold to the fixed order.
 
