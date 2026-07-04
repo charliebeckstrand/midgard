@@ -16,23 +16,34 @@ import type { MapOverlayEntry } from './use-map-legend-registry'
 export type MapHoverTarget = { kind: 'region'; index: number } | { kind: 'entry'; id: string }
 
 /**
- * Hover state shared between the map's marks and the tooltip: the pointed
- * target, and the pointer's viewport coordinates the tooltip anchors to.
- * Confined to its own context so pointer movement re-renders only the
- * tooltip — never the region paths.
+ * The live hover readout the tooltip anchors to: the pointed target and the
+ * pointer's viewport coordinates. Split from the {@link MapHoverSet} mover into
+ * its own context so pointer movement — which churns this value every frame —
+ * re-renders only the tooltip that reads it. The marks read the stable mover
+ * instead, so they never repaint as the pointer travels.
  *
  * @internal
  */
-export type MapHover = {
+export type MapHoverState = {
 	/** The hovered target, or `null` when the pointer is away. */
 	target: MapHoverTarget | null
 	/** The pointer's client (viewport) coordinates while hovering, `null` at rest. */
 	point: MapPoint2D | null
-	/** Moves the hover, or clears it with `null`s. */
-	set: (target: MapHoverTarget | null, point: MapPoint2D | null) => void
 }
 
-export const [MapHoverContext, useMapHover] = createContext<MapHover>('MapHover')
+/**
+ * Moves the hover, or clears it with `null`s. A stable identity held apart from
+ * {@link MapHoverState}, so a mark reading it to report its own hover never
+ * re-renders when the pointer moves elsewhere.
+ *
+ * @internal
+ */
+export type MapHoverSet = (target: MapHoverTarget | null, point: MapPoint2D | null) => void
+
+export const [MapHoverStateContext, useMapHoverState] =
+	createContext<MapHoverState>('MapHoverState')
+
+export const [MapHoverSetContext, useMapHoverSet] = createContext<MapHoverSet>('MapHoverSet')
 
 /**
  * What {@link MapPlat} provides its overlay children: the fitted projection

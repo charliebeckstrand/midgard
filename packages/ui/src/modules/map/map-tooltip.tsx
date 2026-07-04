@@ -14,7 +14,7 @@ import { TooltipContent } from '../../components/tooltip'
 import { TooltipContext } from '../../components/tooltip/context'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
-import { type MapHoverTarget, useMapHover } from './context'
+import { type MapHoverTarget, useMapHoverState } from './context'
 import type { MapCategoryMeta } from './map-categories'
 
 /** One resolved overlay entry the tooltip can read. @internal */
@@ -103,7 +103,7 @@ function resolve(
  * @internal
  */
 export function MapTooltip(props: MapTooltipProps) {
-	const { target, point } = useMapHover()
+	const { target, point } = useMapHoverState()
 
 	const content = target === null ? null : resolve(target, props)
 

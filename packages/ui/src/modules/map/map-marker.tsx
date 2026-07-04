@@ -4,7 +4,7 @@ import { motion } from 'motion/react'
 import { type PointerEvent, type ReactNode, useEffect, useId, useMemo } from 'react'
 import { cn } from '../../core'
 import { k, type MapSeriesColor } from '../../recipes/kata/map'
-import { useMapHover, useMapPlat } from './context'
+import { useMapHoverSet, useMapPlat } from './context'
 import {
 	MARKER_DRAW,
 	MARKER_END_POP,
@@ -55,7 +55,7 @@ export function MapMarker({ label, start, end, path, color, detail }: MapMarkerP
 
 	const { project, register, colors, hidden, emphasis, animate } = useMapPlat()
 
-	const { set } = useMapHover()
+	const set = useMapHoverSet()
 
 	useEffect(
 		() => register({ id, label, kind: 'marker', swatch: 'line', color, detail }),

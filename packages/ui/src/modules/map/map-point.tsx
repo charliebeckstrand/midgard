@@ -4,7 +4,7 @@ import { motion } from 'motion/react'
 import { type PointerEvent, useEffect, useId } from 'react'
 import { cn } from '../../core'
 import { k, type MapSeriesColor } from '../../recipes/kata/map'
-import { useMapHover, useMapPlat } from './context'
+import { useMapHoverSet, useMapPlat } from './context'
 import {
 	POINT_HIT_RADIUS,
 	POINT_POP,
@@ -42,7 +42,7 @@ export function MapPoint({ label, at, color, detail }: MapPointProps) {
 
 	const { project, register, colors, order, hidden, emphasis, animate } = useMapPlat()
 
-	const { set } = useMapHover()
+	const set = useMapHoverSet()
 
 	useEffect(
 		() => register({ id, label, kind: 'point', swatch: 'dot', color, detail }),
