@@ -61,6 +61,7 @@ const STATIC_COMPONENT_FILES = [
 	'stat/stat-value.tsx',
 	'stat/stat-value-skeleton.tsx',
 	'status/status-dot.tsx',
+	'swatch/swatch.tsx',
 	'switch/switch-skeleton.tsx',
 	'table/table.tsx',
 	'table/table-body.tsx',

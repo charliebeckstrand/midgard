@@ -11,6 +11,11 @@ export type {
 	PieChartSeries,
 } from './chart-schema'
 export { ChartSkeleton, type ChartSkeletonProps } from './chart-skeleton'
+export {
+	ChoroplethChart,
+	type ChoroplethChartProps,
+	type ChoroplethChartSeries,
+} from './choropleth-chart'
 export { ComboChart, type ComboChartProps } from './combo-chart'
 export { DonutChart, type DonutChartProps } from './donut-chart'
 export { LineChart, type LineChartProps, type LineInterpolation } from './line-chart'

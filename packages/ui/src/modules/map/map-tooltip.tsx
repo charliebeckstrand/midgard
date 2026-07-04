@@ -10,6 +10,7 @@ import {
 	useInteractions,
 } from '@floating-ui/react'
 import { useMemo } from 'react'
+import { Swatch, type SwatchProps } from '../../components/swatch'
 import { TooltipContent } from '../../components/tooltip'
 import { TooltipContext } from '../../components/tooltip/context'
 import { cn } from '../../core'
@@ -21,7 +22,7 @@ import type { MapCategoryMeta } from './map-categories'
 export type MapTooltipEntry = {
 	label: string
 	swatch: 'line' | 'dot'
-	/** Background class carrying the entry's colour. */
+	/** currentColor class carrying the entry's colour. */
 	swatchClass: string
 	detail?: string
 }
@@ -42,17 +43,20 @@ export type MapTooltipProps = {
 /** What the tooltip shows for the current target: a title and an optional swatch row. @internal */
 type MapTooltipContent = {
 	title: string
-	row?: { swatch: 'rect' | 'line' | 'dot'; swatchClass: string; text: string }
+	/** The swatch reads a currentColor class (`swatchClass`) or an inline CSS colour (`swatchColor`, numeric bins). */
+	row?: {
+		swatch: 'rect' | 'line' | 'dot'
+		swatchClass?: string
+		swatchColor?: string
+		text: string
+	}
 }
 
-/** The swatch classes per shape, mirroring the pointed mark. @internal */
-function swatchShape(swatch: 'rect' | 'line' | 'dot'): string {
-	if (swatch === 'rect') return 'size-2 rounded-xs'
-
-	if (swatch === 'dot') return 'size-2 rounded-full'
-
-	return 'h-0.5 w-2.5 rounded-full'
-}
+/** Maps a mark shape to its {@link Swatch} shape. */
+const SWATCH_SHAPE = { rect: 'square', line: 'line', dot: 'circle' } as const satisfies Record<
+	'rect' | 'line' | 'dot',
+	NonNullable<SwatchProps['shape']>
+>
 
 /** Resolves the tooltip content for a hover target, or `null` to stay away. @internal */
 function resolve(
@@ -82,9 +86,15 @@ function resolve(
 
 	if (meta === undefined) return null
 
+	const { paint } = meta
+
 	return {
 		title: regionNames[target.index] ?? '',
-		row: { swatch: 'rect', swatchClass: cn(meta.paint.bg), text: meta.label },
+		row: {
+			swatch: 'rect',
+			...(paint.kind === 'value' ? { swatchColor: paint.color } : { swatchClass: cn(paint.text) }),
+			text: meta.label,
+		},
 	}
 }
 
@@ -152,7 +162,12 @@ export function MapTooltip(props: MapTooltipProps) {
 
 						{content.row && (
 							<div className="flex items-center gap-1.5 whitespace-nowrap">
-								<span className={cn(swatchShape(content.row.swatch), content.row.swatchClass)} />
+								<Swatch
+									shape={SWATCH_SHAPE[content.row.swatch]}
+									size="sm"
+									color={content.row.swatchClass}
+									style={content.row.swatchColor ? { color: content.row.swatchColor } : undefined}
+								/>
 
 								<span className={cn(k.value)}>{content.row.text}</span>
 							</div>

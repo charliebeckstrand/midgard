@@ -5,18 +5,38 @@
  * series resolution.
  */
 
-import { k, type MapSeriesColor, type MapSeriesPaint } from '../../recipes/kata/map'
+import { k, type MapSeriesColor } from '../../recipes/kata/map'
 import type { DataKey, MapCategory, MapFeature } from './types'
 
 /** The em-dash the readout shows for a region with no matching datum. @internal */
 export const READOUT_GAP = '—'
 
-/** One resolved category: its match value, display label, and slot paint. @internal */
+/**
+ * How a resolved category or bin paints its region and legend swatch. A
+ * categorical slot carries Tailwind class lists from the CVD-validated palette
+ * (`fill` for the region, `text` for the `<Swatch>` currentColor); a numeric
+ * choropleth bin carries a single CSS `color` value from the consumer's
+ * `colorRange`, applied as an inline fill / swatch colour.
+ *
+ * @internal
+ */
+export type MapReadoutPaint =
+	| { kind: 'class'; fill: string[]; text: string[] }
+	| { kind: 'value'; color: string }
+
+/**
+ * One resolved category or bin: its match value, display label, and readout
+ * paint. `color` names the source slot for a categorical entry; a numeric bin
+ * omits it (its colour is a data-driven value in `paint`). The render path
+ * reads only `paint` and `label`.
+ *
+ * @internal
+ */
 export type MapCategoryMeta = {
 	value: string
 	label: string
-	color: MapSeriesColor
-	paint: MapSeriesPaint
+	color?: MapSeriesColor
+	paint: MapReadoutPaint
 }
 
 /** The slot colour for the series at `index`, in the fixed categorical order. @internal */
@@ -54,7 +74,7 @@ export function resolveCategories<T>(
 			value: entry.value,
 			label: entry.label ?? entry.value,
 			color,
-			paint: k.series[color],
+			paint: { kind: 'class', fill: k.series[color].fill, text: k.series[color].text },
 		}
 	})
 }

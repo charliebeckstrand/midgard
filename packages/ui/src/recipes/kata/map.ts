@@ -7,14 +7,11 @@
  * de-emphasis treatments.
  */
 import { mode } from '../../core/recipe'
-import { kokkaku } from '../kiso'
+import { kokkaku, sen } from '../kiso'
 import { type ChartSeriesColor, k as chart } from './chart'
 
 /** A named map mark colour: the chart module's eight categorical slots plus `zinc`. */
 export type MapSeriesColor = ChartSeriesColor
-
-/** A slot's mark classes — `stroke`, `fill`, `bg`, `onFill` — shared with the charts. */
-export type MapSeriesPaint = (typeof chart.series)[MapSeriesColor]
 
 export const k = {
 	/** Shared data-viz palette: same slots, same order, same validation as `kata/chart`. */
@@ -36,6 +33,8 @@ export const k = {
 	 * opacity composes.
 	 */
 	group: (dimmed: boolean) => ['transition-opacity', dimmed ? 'opacity-25' : ''],
+	/** Keyboard focus ring for the range legend's scale-bar slider — the shared accent outline. */
+	focus: sen.focus.ring,
 	/**
 	 * The legend's reserved box, mounted before any button registers so the
 	 * frame never shifts as entries land: the `row` placements (top / bottom,

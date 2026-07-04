@@ -9,9 +9,9 @@ const colorVariants = ['solid', 'soft', 'outline', 'plain'] as const
 
 const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
 
-// Badge opts into the wide palette (`iro.spectrum`); these are available on
-// top of the standard set above.
-const extendedColors = ['mist', 'rose', 'violet', 'sky'] as const
+// Badge opts into the wide palette (`iro.extendedPalette`); these are available
+// on top of the standard set above.
+const extendedColors = ['rose', 'violet', 'sky'] as const
 
 const sizes = [
 	{ value: 'sm', label: 'small' },

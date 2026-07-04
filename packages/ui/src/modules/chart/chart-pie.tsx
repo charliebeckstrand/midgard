@@ -350,7 +350,7 @@ function pieReadout(
 			{
 				label: valueLabel,
 				swatchClass: '',
-				swatchClasses: paints.map((paint) => cn(paint.bg)),
+				swatchClasses: paints.map((paint) => cn(paint.text)),
 				swatch: 'rect',
 				values: values.map((entry) => (entry === null ? '—' : format(entry))),
 			},
@@ -383,7 +383,7 @@ function pieLegendItems(
 
 		return {
 			label: entry,
-			swatchClass: paints[index]?.bg.join(' ') ?? '',
+			swatchClass: paints[index]?.text.join(' ') ?? '',
 			swatch: 'rect' as const,
 			detail: panel ? share : undefined,
 		}

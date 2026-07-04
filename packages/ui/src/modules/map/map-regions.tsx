@@ -26,6 +26,77 @@ export type MapRegionsProps = {
 	animate: boolean
 }
 
+/** Props for {@link Region}: one feature's path plus the state that colours it. @internal */
+type RegionProps = {
+	d: string
+	index: number
+	category: number | null
+	categories: MapCategoryMeta[]
+	hidden: ReadonlySet<string>
+	emphasis: string | null
+	revealed: boolean
+	animate: boolean
+	onTrack: (event: PointerEvent<SVGPathElement>) => void
+}
+
+/**
+ * One region path. A categorical slot fills by Tailwind class; a numeric bin
+ * fills by an inline CSS colour from the consumer's `colorRange`. No-data — and
+ * the pre-reveal beat under `animate` — takes the neutral class. Regions outside
+ * the emphasised group dim on the wrapper.
+ *
+ * @internal
+ */
+function Region({
+	d,
+	index,
+	category,
+	categories,
+	hidden,
+	emphasis,
+	revealed,
+	animate,
+	onTrack,
+}: RegionProps) {
+	const active = category !== null && !hidden.has(`category:${category}`)
+
+	const groupId = active ? `category:${category}` : null
+
+	// Hold the neutral fill until revealed so the colour, not the geometry, animates on.
+	const coloured = revealed && active
+
+	const paint = coloured && category !== null ? (categories[category]?.paint ?? null) : null
+
+	const fillClass = paint === null ? k.regionEmpty : paint.kind === 'class' ? paint.fill : undefined
+
+	return (
+		<g className={cn(k.group(emphasis !== null && emphasis !== groupId))}>
+			<path
+				data-slot="map-region"
+				d={d}
+				strokeWidth={REGION_STROKE_WIDTH}
+				className={cn(
+					fillClass,
+					k.regionBorder,
+					active && k.regionHover,
+					animate && 'transition-colors ease-out motion-reduce:transition-none',
+				)}
+				style={{
+					...(paint?.kind === 'value' ? { fill: paint.color } : null),
+					...(animate
+						? {
+								transitionDuration: `${REGION_FADE.duration * 1000}ms`,
+								transitionDelay: `${Math.min(index * REGION_STAGGER, REGION_STAGGER_MAX) * 1000}ms`,
+							}
+						: null),
+				}}
+				onPointerEnter={onTrack}
+				onPointerMove={onTrack}
+			/>
+		</g>
+	)
+}
+
 /**
  * The region paths — every feature filled by its category's slot colour, the
  * neutral no-data fill where nothing matches (or the category is toggled
@@ -70,49 +141,23 @@ export function MapRegions({
 
 	return (
 		<g data-slot="map-regions" onPointerLeave={() => set(null, null)}>
-			{paths.map((d, index) => {
-				if (d === null) return null
-
-				const category = regionCategory[index]
-
-				const active = category != null && !hidden.has(`category:${category}`)
-
-				const groupId = active ? `category:${category}` : null
-
-				// Hold the neutral fill until revealed so the colour, not the
-				// geometry, is what animates on.
-				const coloured = revealed && active
-
-				return (
-					<g
+			{paths.map((d, index) =>
+				d === null ? null : (
+					<Region
 						// biome-ignore lint/suspicious/noArrayIndexKey: regions are index-aligned with the features and never reorder.
 						key={index}
-						className={cn(k.group(emphasis !== null && emphasis !== groupId))}
-					>
-						<path
-							data-slot="map-region"
-							d={d}
-							strokeWidth={REGION_STROKE_WIDTH}
-							className={cn(
-								coloured ? categories[category]?.paint.fill : k.regionEmpty,
-								k.regionBorder,
-								active && k.regionHover,
-								animate && 'transition-colors ease-out motion-reduce:transition-none',
-							)}
-							style={
-								animate
-									? {
-											transitionDuration: `${REGION_FADE.duration * 1000}ms`,
-											transitionDelay: `${Math.min(index * REGION_STAGGER, REGION_STAGGER_MAX) * 1000}ms`,
-										}
-									: undefined
-							}
-							onPointerEnter={track(index)}
-							onPointerMove={track(index)}
-						/>
-					</g>
-				)
-			})}
+						d={d}
+						index={index}
+						category={regionCategory[index] ?? null}
+						categories={categories}
+						hidden={hidden}
+						emphasis={emphasis}
+						revealed={revealed}
+						animate={animate}
+						onTrack={track(index)}
+					/>
+				),
+			)}
 		</g>
 	)
 }

@@ -1,7 +1,7 @@
 import { definePalette, defineRecipe, type VariantProps } from '../../core/recipe'
 import { hannou, iro, ji, kasane, kokkaku, narabi, sen, shaku, ugoki } from '../kiso'
 
-const { spectrum } = iro
+const { extendedPalette } = iro
 const { cursor, disabled } = hannou
 const { size, weight } = ji
 const { gap, padding, radius } = kasane
@@ -69,14 +69,18 @@ export const k = defineRecipe(
 			],
 		},
 		// Opt into the wide palette: Button's `color` axis carries the standard set
-		// plus the extended hues (mist / rose / violet / sky), matching Badge.
+		// plus the extended hues (rose / violet / sky), matching Badge.
 		palette: definePalette(
 			{
-				solid: [spectrum.solid.bg, spectrum.solid.text, spectrum.solid.hover],
-				soft: [spectrum.soft.bg, spectrum.soft.text, spectrum.soft.hover],
-				outline: [spectrum.outline.ring, spectrum.outline.text, spectrum.outline.hover],
-				plain: [spectrum.plain.text, spectrum.plain.hover],
-				bare: [spectrum.bare.text, spectrum.bare.hover],
+				solid: [extendedPalette.solid.bg, extendedPalette.solid.text, extendedPalette.solid.hover],
+				soft: [extendedPalette.soft.bg, extendedPalette.soft.text, extendedPalette.soft.hover],
+				outline: [
+					extendedPalette.outline.ring,
+					extendedPalette.outline.text,
+					extendedPalette.outline.hover,
+				],
+				plain: [extendedPalette.plain.text, extendedPalette.plain.hover],
+				bare: [extendedPalette.bare.text, extendedPalette.bare.hover],
 			},
 			// Synthetic colour entry: inherits parent text colour with a hover wash on non-disabled elements.
 			{ inherit: ['text-inherit', 'not-disabled:hover:bg-current/15'] },
