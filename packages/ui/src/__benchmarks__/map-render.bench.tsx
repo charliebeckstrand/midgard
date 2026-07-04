@@ -5,6 +5,7 @@ import { bench, describe } from 'vitest'
 import { type MapGeography, MapPlat, type MapTopology } from '../modules/map'
 import { defaultRegionId } from '../modules/map/map-categories'
 import { geographyFeatures } from '../modules/map/map-geometry'
+import { computeStaticMapGeometry, staticMapGeometry } from '../modules/map/map-geometry-cache'
 
 const statesTopo = states as unknown as MapTopology
 
@@ -56,6 +57,19 @@ describe('MapPlat · mount', () => {
 		)
 
 		unmount()
+	})
+})
+
+describe('static geometry · cold vs warm (states-10m)', () => {
+	// Warm the shared cache once, so the warm case measures a pure cache hit.
+	staticMapGeometry(statesTopo, undefined, 'albers-usa')
+
+	bench('cold: decode + canonical fit + paths (every mount, uncached)', () => {
+		computeStaticMapGeometry(statesTopo, undefined, 'albers-usa')
+	})
+
+	bench('warm: cache hit (a remount / second plat on the same atlas)', () => {
+		staticMapGeometry(statesTopo, undefined, 'albers-usa')
 	})
 })
 
