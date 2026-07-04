@@ -136,7 +136,7 @@ export function Demo() {
 				<Tab value="Message">Message</Tab>
 				<Tab value="Prompt">Prompt</Tab>
 				<Tab value="Transcript">Transcript</Tab>
-				<Tab value="Conversations">Conversations</Tab>
+				<Tab value="ChatList">Chat List</Tab>
 			</TabList>
 			<TabContents fade={false}>
 				<TabContent value="Message">
@@ -220,8 +220,8 @@ export function Demo() {
 					</Example>
 				</TabContent>
 
-				<TabContent value="Conversations">
-					<Example title="Conversation list">
+				<TabContent value="ChatList">
+					<Example title="Chat list">
 						<ConversationList />
 					</Example>
 				</TabContent>
