@@ -17,6 +17,7 @@ import {
 	PieChart,
 } from '../../../../modules/chart'
 import type { MapGeography } from '../../../../modules/map'
+import { useFormat } from '../../../../providers/locale'
 import { code, Example } from '../../../engine'
 import { heat, statePopulation } from './data'
 
@@ -46,6 +47,12 @@ const sources = [
 	{ source: 'Referral', visits: 1370 },
 	{ source: 'Social', visits: 940 },
 ]
+
+const budget = months.map((entry) => ({
+	month: entry.month,
+	revenue: entry.revenue * 1000,
+	costs: entry.costs * 1000,
+}))
 
 // Atlas data stays out of the package: fetch the us-atlas TopoJSON as a static
 // asset on first render, the same shape a consumer's lazily-loaded geography
@@ -112,6 +119,8 @@ const ChartContainer = ({ children, size }: { children: ReactNode; size?: number
 export function Demo() {
 	const states = useGeography(statesUrl)
 
+	const usd = useFormat({ type: 'currency', maximumFractionDigits: 0 })
+
 	return (
 		<Tabs defaultValue="bar">
 			<Stack gap="lg">
@@ -158,6 +167,23 @@ export function Demo() {
 										data={swings}
 										series={[{ xKey: 'month', yKey: 'delta', yName: 'Swing' }]}
 										crosshair
+									/>
+								</ChartContainer>
+							</Example>
+
+							<Example
+								title="Formatted values"
+								code={code`<BarChart formatValue={useFormat({ type: 'currency', maximumFractionDigits: 0 })} … />`}
+							>
+								<ChartContainer>
+									<BarChart
+										aria-label="Budget by month in dollars"
+										data={budget}
+										series={[
+											{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
+											{ xKey: 'month', yKey: 'costs', yName: 'Costs' },
+										]}
+										formatValue={usd}
 									/>
 								</ChartContainer>
 							</Example>

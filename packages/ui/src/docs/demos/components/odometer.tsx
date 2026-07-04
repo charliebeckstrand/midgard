@@ -3,6 +3,7 @@ import { Button } from '../../../components/button'
 import { Heading } from '../../../components/heading'
 import { Odometer } from '../../../components/odometer'
 import { Stack } from '../../../components/stack'
+import { useFormat } from '../../../providers/locale'
 import { code, Example } from '../../engine'
 
 function CounterExample() {
@@ -23,15 +24,13 @@ function CounterExample() {
 function CurrencyExample() {
 	const [value, setValue] = useState(48_215.67)
 
-	const format = (n: number) =>
-		new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n)
+	const format = useFormat({ type: 'currency' })
 
 	return (
 		<Example
 			title="Currency"
 			code={code`
-				const format = (n: number) =>
-					new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n)
+				const format = useFormat({ type: 'currency' })
 
 				<Odometer value={value} format={format} />
 			`}
