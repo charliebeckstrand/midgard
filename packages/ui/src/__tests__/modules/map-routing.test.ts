@@ -103,6 +103,18 @@ describe('fetchOsrmRoute', () => {
 
 		expect(String(mock.mock.calls[0]?.[0])).toContain('https://osrm.internal/route/v1/cycling/')
 	})
+
+	it('defaults overview to full and threads an overview override into the url', async () => {
+		const mock = stubFetch({ ok: true, json: PAYLOAD })
+
+		await fetchOsrmRoute(WAYPOINTS)
+
+		expect(String(mock.mock.calls[0]?.[0])).toContain('overview=full')
+
+		await fetchOsrmRoute(WAYPOINTS, { overview: 'simplified' })
+
+		expect(String(mock.mock.calls[1]?.[0])).toContain('overview=simplified')
+	})
 })
 
 describe('fetchValhallaRoute', () => {
@@ -119,6 +131,7 @@ describe('fetchValhallaRoute', () => {
 
 		expect(JSON.parse(String(init.body))).toMatchObject({
 			costing: 'auto',
+			directions_type: 'none',
 			locations: [
 				{ lat: 34.05, lon: -118.24 },
 				{ lat: 41.88, lon: -87.63 },

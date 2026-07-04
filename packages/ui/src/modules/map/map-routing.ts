@@ -20,7 +20,10 @@ export type MapRouteResult = {
 	durationSeconds: number
 }
 
-/** Options for {@link fetchOsrmRoute}: the OSRM server, travel profile, and an abort signal. */
+/** Geometry detail an OSRM route answers with; the `overview` query value. @internal */
+type RouteOverview = 'full' | 'simplified' | 'false'
+
+/** Options for {@link fetchOsrmRoute}: the OSRM server, travel profile, geometry detail, and an abort signal. */
 export type FetchOsrmRouteOptions = {
 	/**
 	 * OSRM-compatible base URL. Defaults to the OSRM public demo server,
@@ -29,6 +32,20 @@ export type FetchOsrmRouteOptions = {
 	 */
 	baseUrl?: string
 	profile?: Profile
+	/**
+	 * Geometry detail: `'simplified'` returns a Douglas-Peucker line at display
+	 * resolution — a fraction of the coordinates, visually identical at map
+	 * scale — and `'false'` returns no geometry at all (distance and duration
+	 * only, so the overlay falls back to a straight line); `'full'` keeps every
+	 * vertex. The distance and duration totals are the same under all three.
+	 * @defaultValue 'full'
+	 * @remarks Prefer `'simplified'` for a display-only map: the drawn path is
+	 * sub-pixel-identical on the plat's frame while the payload — and the
+	 * `JSON.parse`, the overlay's projection loop, and the SVG path — shrink by
+	 * an order of magnitude on a long route. Keep `'full'` only where the
+	 * geometry is reused at a deeper zoom than the map draws at.
+	 */
+	overview?: RouteOverview
 	signal?: AbortSignal
 }
 
@@ -80,11 +97,11 @@ export async function fetchOsrmRoute(
 ): Promise<MapRouteResult | null> {
 	if (waypoints.length < 2) return null
 
-	const { baseUrl = DEFAULT_OSRM_URL, profile = 'driving', signal } = options
+	const { baseUrl = DEFAULT_OSRM_URL, profile = 'driving', overview = 'full', signal } = options
 
 	const coords = waypoints.map((p) => `${p[0]},${p[1]}`).join(';')
 
-	const url = `${baseUrl}/route/v1/${profile}/${coords}?overview=full&geometries=geojson`
+	const url = `${baseUrl}/route/v1/${profile}/${coords}?overview=${overview}&geometries=geojson`
 
 	try {
 		const res = await fetch(url, { signal })
@@ -112,10 +129,14 @@ export async function fetchValhallaRoute(
 
 	const costing = profile === 'driving' ? 'auto' : profile === 'walking' ? 'pedestrian' : 'bicycle'
 
+	// `directions_type: 'none'` skips Valhalla's maneuver and narrative build and
+	// the per-step `steps` array it would emit — the map reads only the geometry,
+	// distance, and duration, all of which this leaves untouched.
 	const body = JSON.stringify({
 		locations: waypoints.map(([lon, lat]) => ({ lat, lon })),
 		costing,
 		shape_format: 'geojson',
+		directions_type: 'none',
 	})
 
 	try {
