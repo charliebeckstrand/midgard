@@ -452,13 +452,32 @@ export function Demo() {
 								</ChartContainer>
 							</Example>
 
-							<AnimatedExample title="Animated" source={code`<ComboChart animate … />`}>
+							<Example
+								title="Bar, area, and line"
+								code={code`<ComboChart series={[{ type: 'bar' … }, { type: 'area' … }, { type: 'line' … }]} … />`}
+							>
 								<ChartContainer>
 									<ComboChart
-										aria-label="Revenue bars with margin line by month, animated"
+										aria-label="Revenue bars over a cost area with a margin line by month"
 										data={months}
 										series={[
 											{ type: 'bar', xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
+											{ type: 'area', xKey: 'month', yKey: 'costs', yName: 'Costs' },
+											{ type: 'line', xKey: 'month', yKey: 'margin', yName: 'Margin' },
+										]}
+										crosshair={{ snap: true }}
+									/>
+								</ChartContainer>
+							</Example>
+
+							<AnimatedExample title="Animated" source={code`<ComboChart animate … />`}>
+								<ChartContainer>
+									<ComboChart
+										aria-label="Revenue bars over a cost area with a margin line by month, animated"
+										data={months}
+										series={[
+											{ type: 'bar', xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
+											{ type: 'area', xKey: 'month', yKey: 'costs', yName: 'Costs' },
 											{ type: 'line', xKey: 'month', yKey: 'margin', yName: 'Margin' },
 										]}
 										animate
