@@ -29,4 +29,5 @@ export const k = {
 	content: [flex.row, 'min-w-0', narabi.item],
 	label: 'truncate group-data-selected/option:font-bold',
 	description: [description, text.muted],
+	check: mode('text-green-600', 'dark:text-green-500'),
 } as const

@@ -2,7 +2,8 @@ import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/toggle'
 
-type ToggleGroupProps = {
+/** Props for {@link ToggleGroup}: `role` plus the standard `div` attributes. */
+export type ToggleGroupProps = {
 	className?: string
 	role?: string
 } & Omit<ComponentPropsWithoutRef<'div'>, 'className' | 'role'>
@@ -15,7 +16,8 @@ export function ToggleGroup({ className, role, ...props }: ToggleGroupProps) {
 	return <div data-slot="control" role={role} className={cn(k.group, className)} {...props} />
 }
 
-type ToggleFieldProps = {
+/** Props for {@link ToggleField}: the standard `div` attributes. */
+export type ToggleFieldProps = {
 	className?: string
 } & Omit<ComponentPropsWithoutRef<'div'>, 'className'>
 

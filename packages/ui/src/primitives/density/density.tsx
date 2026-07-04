@@ -70,6 +70,12 @@ export function useDensity(): DensityToken {
 	return density ?? densityPresets.md
 }
 
+/**
+ * Read the active density, distinguishing "no provider" (`null`) from the
+ * default `md`. Layout primitives (Box, Flex, Stack, Grid) whose `p` / `gap`
+ * treat `undefined` as "no style applied" need this nullable read; everyone
+ * else uses {@link useDensity}.
+ */
 export { useDensityNullable }
 
 /**
@@ -80,9 +86,10 @@ export { useDensityNullable }
  * invisible at the call site unless the resolver names it, hence
  * `useResolvedSize` over a bare `size` read.
  *
- * For `Ma`-scale leaf components (`Button`, `Icon`, `Badge`,
- * `LoadingSpinner`, `Progress*`) that can carry sub-`Step` (`'xs'`) or `'xl'`
- * sizes. Control *hosts* resolve their dual-axis token through
+ * For the `Ma`-scale client leaves that size off Density (`Button`, `Badge`,
+ * `Progress*`, `Sparkline`) and can carry sub-`Step` (`'xs'`) or `'xl'` sizes.
+ * Static leaves like `Icon` take an explicit `size` and never read the cascade.
+ * Control *hosts* resolve their dual-axis token through
  * {@link useControlSize} instead: they write a stepped-down Affix for their
  * slots but never read it for their own `Step`-floored size.
  *
@@ -117,6 +124,7 @@ export function useControlSize(explicit?: Step): DensityToken {
 	return explicit ? densityPresets[explicit] : inherited
 }
 
+/** Props for {@link Density}: either density axis (or the `scale` shorthand) plus `children`. */
 export type DensityProps = DensityInput & { children: ReactNode }
 
 /**

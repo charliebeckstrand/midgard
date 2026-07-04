@@ -26,7 +26,11 @@ const checkIconSize = {
 	lg: 'size-6',
 } satisfies Record<Step, string>
 
-type BaseOptionProps = {
+/**
+ * Props for {@link BaseOption}: selection state (`selected`, `disabled`), the
+ * `onSelect` handler, and the active-descendant / commit-on-Tab behavior flags.
+ */
+export type BaseOptionProps = {
 	className?: string
 	icon?: ReactNode
 	selected: boolean
@@ -90,14 +94,13 @@ export function BaseOption({
 	// Only mint an id for active-descendant lists; an explicit id always wins.
 	const optionId = id ?? (activeDescendant ? autoId : undefined)
 
-	const sharedClasses = cn(k.content)
-
 	const checkIcon = icon ?? (
 		<Check
 			aria-hidden="true"
 			data-slot="icon"
 			className={cn(
-				'relative hidden shrink-0 self-center text-green-600 group-data-selected/option:inline',
+				'relative hidden shrink-0 self-center group-data-selected/option:inline',
+				k.check,
 				checkIconSize[size],
 			)}
 		/>
@@ -128,7 +131,7 @@ export function BaseOption({
 			className={cn(k.base, k.size[size])}
 			{...props}
 		>
-			<span className={cn(sharedClasses, className)}>{children}</span>
+			<span className={cn(k.content, className)}>{children}</span>
 			{checkIcon}
 		</div>
 	)

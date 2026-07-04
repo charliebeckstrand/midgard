@@ -97,13 +97,25 @@ export function useCurrentContentsMorph(
 		// `data-current` and stacked.
 		const boxes = new Map<Element, PanelBox>()
 
-		// Pins the container at its own current height — mid-tween, that is the
-		// interrupted morph's live value — before this frame paints, then commits
-		// the target synchronously so the pin and the tween land together.
+		// The container's last settled height. At rest the container sits at
+		// `height: auto`, so by the time an observer fires it has already reflowed
+		// to the incoming height and its live box reads that already-advanced value
+		// (`live === to`, which would short-circuit the morph). Animate from this
+		// tracked height in that case; mid-morph the container holds an explicit
+		// tweening height (`live !== to`), so the live box is still the true visual
+		// origin and an interrupted morph continues from where it visually is.
+		let previousHeight = element.getBoundingClientRect().height
+
+		// Pins the container at its animation origin before this frame paints, then
+		// commits the target synchronously so the pin and the tween land together.
 		// Observer callbacks run after layout and before paint, so nothing in
 		// between reaches the screen.
 		const morph = (to: number) => {
-			const from = element.getBoundingClientRect().height
+			const live = element.getBoundingClientRect().height
+
+			const from = live === to ? previousHeight : live
+
+			previousHeight = to
 
 			if (from === to) return
 
@@ -121,7 +133,13 @@ export function useCurrentContentsMorph(
 			// morph to it. Anything width-coupled is the container reflowing; `auto`
 			// already tracks it, so an in-flight morph stops steering instead.
 			if (discrete && !reflow) morph(tallest(boxes))
-			else if (reflow) setMorphTo((current) => (current === null ? current : null))
+			else if (reflow) {
+				// Record the reflowed height so a following discrete morph animates
+				// from it, and stop steering any in-flight morph.
+				previousHeight = element.getBoundingClientRect().height
+
+				setMorphTo((current) => (current === null ? current : null))
+			}
 		})
 
 		// (Re)collects the observed panels. A change in the `data-current` set is

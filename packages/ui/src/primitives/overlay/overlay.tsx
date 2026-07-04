@@ -19,11 +19,21 @@ import { usePortalContainer } from '../portal'
 import { ReducedMotion } from '../reduced-motion'
 import { notifyOverlaySignal } from './overlay-signal'
 
-type OverlayProps = {
+/**
+ * Props for {@link Overlay}: the `open` / `onOpenChange` pair, the `modal` and
+ * `backdrop` behavior flags, and the optional portal `container` and
+ * `initialFocus` target.
+ */
+export type OverlayProps = {
 	open: boolean
 	onOpenChange: (open: boolean) => void
 	dismissOnBackdrop?: boolean
 	glass?: boolean
+	/**
+	 * Class for the dimming backdrop — not the root. It fully replaces the
+	 * backdrop's default classes (including `absolute inset-0`), and applies
+	 * only when a backdrop renders; with `backdrop={false}` it has no effect.
+	 */
 	className?: string
 	children: ReactNode
 	/**

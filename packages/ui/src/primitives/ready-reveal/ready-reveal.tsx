@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'motion/react'
-import type { ReactNode } from 'react'
+import { type ReactNode, useLayoutEffect, useRef } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/ready-reveal'
 import { ReducedMotion } from '../reduced-motion'
@@ -23,6 +23,9 @@ const VISIBLE = { opacity: 1, filter: 'blur(0px)' }
 
 const GRID_CELL = { gridArea: '1 / 1' } as const
 
+const FOCUSABLE =
+	'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])'
+
 /**
  * Gates content on a `ready` flag, crossfading (opacity plus blur) from
  * `placeholder` to `children` to avoid a flash of unready content. The two
@@ -32,9 +35,41 @@ const GRID_CELL = { gridArea: '1 / 1' } as const
  * @remarks
  * Wraps its layers in {@link ReducedMotion}, so the crossfade honours
  * `prefers-reduced-motion`. The inactive layer is `inert` and `aria-hidden`,
- * keeping it out of the tab order and accessibility tree.
+ * keeping it out of the tab order and accessibility tree; if it held focus when
+ * it deactivates, focus moves to the revealed layer so keyboard users aren't
+ * dropped to the document root.
  */
 export function ReadyReveal({ ready, placeholder, children, className }: ReadyRevealProps) {
+	const placeholderRef = useRef<HTMLDivElement>(null)
+
+	const contentRef = useRef<HTMLDivElement>(null)
+
+	// The last element focused within either layer, tracked via bubbled focusin.
+	// When a `ready` flip sends a focused layer `inert`, the browser drops its
+	// focus to <body>; this lets the effect hand focus to the revealed layer
+	// instead — but only when the deactivating layer actually held it, never when
+	// focus has since moved elsewhere on the page.
+	const lastFocused = useRef<HTMLElement | null>(null)
+
+	useLayoutEffect(() => {
+		const deactivating = ready ? placeholderRef.current : contentRef.current
+
+		const activating = ready ? contentRef.current : placeholderRef.current
+
+		const active = document.activeElement
+
+		const heldFocus =
+			(!!active && !!deactivating && deactivating.contains(active)) ||
+			(active === document.body &&
+				!!deactivating &&
+				!!lastFocused.current &&
+				deactivating.contains(lastFocused.current))
+
+		if (!heldFocus) return
+
+		activating?.querySelector<HTMLElement>(FOCUSABLE)?.focus()
+	}, [ready])
+
 	return (
 		<ReducedMotion>
 			<div
@@ -43,6 +78,12 @@ export function ReadyReveal({ ready, placeholder, children, className }: ReadyRe
 				style={{ gridTemplate: '1fr / 1fr' }}
 			>
 				<motion.div
+					ref={placeholderRef}
+					// Track the last focused element per layer (focusin bubbles here),
+					// so the effect can tell whether the deactivating layer held focus.
+					onFocus={(event) => {
+						lastFocused.current = event.target as HTMLElement
+					}}
 					aria-hidden={ready}
 					// `inert` keeps the hidden layer's descendants out of the Tab
 					// order and off the a11y tree.
@@ -55,6 +96,10 @@ export function ReadyReveal({ ready, placeholder, children, className }: ReadyRe
 					{placeholder}
 				</motion.div>
 				<motion.div
+					ref={contentRef}
+					onFocus={(event) => {
+						lastFocused.current = event.target as HTMLElement
+					}}
 					aria-hidden={!ready}
 					inert={!ready}
 					animate={ready ? VISIBLE : HIDDEN}
