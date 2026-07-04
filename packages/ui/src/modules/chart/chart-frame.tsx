@@ -1,8 +1,8 @@
 'use client'
 
-import { type ReactNode, type RefObject, useMemo, useState } from 'react'
+import { type ReactNode, type RefObject, useCallback, useMemo, useState } from 'react'
 import { cn } from '../../core'
-import type { FrameReserve } from '../../hooks'
+import { type FrameReserve, useDismissOnScroll } from '../../hooks'
 import type { AccessibleName } from '../../types'
 import { ChartPlotBox } from './chart-plot-box'
 import type { ChartLegendPlacement } from './chart-schema'
@@ -83,6 +83,8 @@ export function ChartFrame({
 		onData: boolean
 	}>({ index: null, point: null, onData: false })
 
+	const clear = useCallback(() => setPointed({ index: null, point: null, onData: false }), [])
+
 	const hover = useMemo<ChartHover>(
 		() => ({
 			...pointed,
@@ -90,6 +92,10 @@ export function ChartFrame({
 		}),
 		[pointed],
 	)
+
+	// A scroll withholds the hit layer's `pointerleave`, so the readout would ride
+	// the frame off-screen until the pointer settles; dismiss it as the plot moves.
+	useDismissOnScroll(pointed.index !== null, clear)
 
 	// The SVG fills its box through the viewBox rather than pixel dimensions, so
 	// the box — not the marks — owns the size.

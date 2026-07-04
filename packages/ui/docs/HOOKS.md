@@ -23,6 +23,7 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 | `useFloatingUI` | Floating panel with built-in dismiss + role prop-getters for listbox/combobox/menu/datepicker surfaces. |
 | `useFloatingDisclosure` | Disclosure wrapper over `useFloatingPanel`: controllable open state, trigger ref, focus restore, dismiss + role. |
 | `useDismissable` | Overlay dismiss behavior: Escape (via the dismiss-layer stack) plus pointer-down outside the boundary. |
+| `useDismissOnScroll` | Clears a pointer-driven readout (chart/map tooltip) on any ancestor scroll, which withholds `pointerleave`. |
 | `useEscapeLayer` | Escape-key dismissal routed through the shared dismiss-layer stack; stacked surfaces close innermost-first. |
 | `useScrollLock` | Locks body overflow while active; nested locks reference-counted, scrollbar gap compensated. |
 

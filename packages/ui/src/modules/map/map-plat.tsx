@@ -2,7 +2,7 @@
 
 import { type ReactNode, type RefObject, useCallback, useMemo, useState } from 'react'
 import { cn } from '../../core'
-import { type FrameReserve, usePlotFrame } from '../../hooks'
+import { type FrameReserve, useDismissOnScroll, usePlotFrame } from '../../hooks'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { k, type MapSeriesColor } from '../../recipes/kata/map'
 import type { AccessibleName } from '../../types'
@@ -403,6 +403,12 @@ function MapHoverProvider({ children }: { children: ReactNode }) {
 	const [state, setState] = useState<MapHoverState>({ target: null, point: null })
 
 	const set = useCallback<MapHoverSet>((target, point) => setState({ target, point }), [])
+
+	const clear = useCallback(() => setState({ target: null, point: null }), [])
+
+	// A scroll withholds a region's `pointerleave`, so the readout would ride the
+	// plat off-screen until the pointer settles; dismiss it as the map moves.
+	useDismissOnScroll(state.target !== null, clear)
 
 	return (
 		<MapHoverSetContext value={set}>
