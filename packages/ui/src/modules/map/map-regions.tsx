@@ -96,6 +96,9 @@ export const MapRegions = memo(function MapRegions({
 					>
 						<path
 							data-slot="map-region"
+							// Read by the hover provider's scroll-settle resolve to name the
+							// region under the pointer straight off the DOM.
+							data-region-index={index}
 							d={d}
 							strokeWidth={REGION_STROKE_WIDTH}
 							className={cn(

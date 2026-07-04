@@ -12,6 +12,11 @@ import { ChartTooltip } from './chart-tooltip'
 import { type ChartHover, ChartHoverContext, type ChartPoint } from './context'
 import type { ChartReadout } from './types'
 
+/** Whether two hover points coincide, so a redundant hover write can bail. @internal */
+function samePoint(a: ChartPoint | null, b: ChartPoint | null): boolean {
+	return a === b || (a !== null && b !== null && a.x === b.x && a.y === b.y)
+}
+
 /** Props for {@link ChartFrame}; the accessible name spreads onto the `role="img"` plot region. @internal */
 export type ChartFrameProps = AccessibleName & {
 	/**
@@ -86,7 +91,14 @@ export function ChartFrame({
 	const hover = useMemo<ChartHover>(
 		() => ({
 			...pointed,
-			set: (index, point, onData = true) => setPointed({ index, point, onData }),
+			// Bail on a no-op so a scroll's repeated clears — one per frame — cost a
+			// single render, and page scrolls far from this chart cost none.
+			set: (index, point, onData = true) =>
+				setPointed((prev) =>
+					prev.index === index && prev.onData === onData && samePoint(prev.point, point)
+						? prev
+						: { index, point, onData },
+				),
 		}),
 		[pointed],
 	)

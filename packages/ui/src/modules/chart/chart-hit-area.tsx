@@ -22,10 +22,11 @@ export type ChartHitAreaProps = {
  * @internal
  */
 export function ChartHitArea({ plot, band, count, onData }: ChartHitAreaProps) {
-	const handlers = useChartPointer(band, count, plot, onData)
+	const { ref, ...handlers } = useChartPointer(band, count, plot, onData)
 
 	return (
 		<rect
+			ref={ref}
 			data-slot="chart-hit"
 			x={plot.x}
 			y={plot.y}
