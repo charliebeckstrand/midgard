@@ -16,14 +16,10 @@ import {
 	resolveCategories,
 	slotColor,
 } from './map-categories'
-import { geographyFeatures, projectPoint, regionPaths } from './map-geometry'
+import { projectPoint, regionPaths } from './map-geometry'
+import { staticMapGeometry } from './map-geometry-cache'
 import { MapLegend, type MapLegendItem } from './map-legend'
-import {
-	canonicalFit,
-	fitMapProjection,
-	mapFrameSizing,
-	projectionFallbackAspect,
-} from './map-projection'
+import { fitMapProjection, mapFrameSizing, projectionFallbackAspect } from './map-projection'
 import { MapRegions } from './map-regions'
 import { MapTable } from './map-table'
 import { MapTooltip, type MapTooltipEntry } from './map-tooltip'
@@ -169,7 +165,9 @@ type MapShape = {
  * the geography immediately; the container's measured pixels then drive a refit
  * that reprojects to constant-pixel marks a beat after mount. Sharing the
  * canonical fit's aspect, the refit only sharpens strokes — it never reshapes
- * the geography, so the swap is imperceptible.
+ * the geography, so the swap is imperceptible. The canonical stage is memoised
+ * across instances by {@link staticMapGeometry}, so remounting the same atlas
+ * (a tab switch, a second plat) reuses it rather than recomputing on mount.
  *
  * @internal
  */
@@ -181,15 +179,17 @@ function useMapShape(
 	height: number | undefined,
 	aspectRatio: MapAspectRatio,
 ): MapShape {
-	const features = useMemo(
-		() => (geography == null ? [] : geographyFeatures(geography, geographyObject)),
-		[geography, geographyObject],
+	// The mount-critical geometry — decode, the measurement-free canonical fit,
+	// and its region paths — memoised across instances and mounts (see
+	// `map-geometry-cache`), so a tab switch, a second plat on the same atlas, or
+	// a route revisit paints on the first commit instead of re-paying the fit.
+	// Canonical output is deterministic, so the server and the first client
+	// render agree. The per-size measured refit below stays per-instance; it
+	// reprojects to constant-pixel marks a beat after this canonical draw.
+	const { features, canonical, canonicalPaths } = useMemo(
+		() => staticMapGeometry(geography, geographyObject, projection),
+		[geography, geographyObject, projection],
 	)
-
-	// One measurement-free fit: its aspect reserves the box, and its projection
-	// draws the neutral geography before the container is measured. Canonical
-	// output is deterministic, so the server and the first client render agree.
-	const canonical = useMemo(() => canonicalFit(projection, features), [projection, features])
 
 	// A refit reprojects every region path, so resize commits ride the plot
 	// frame's transition priority: a burst coalesces to the sizes the machine
@@ -215,6 +215,13 @@ function useMapShape(
 		[projection, features, frameWidth, frameHeight],
 	)
 
+	// The measured refit's region paths, once the container is measured; `null`
+	// until then, when the cached canonical paths carry the first paint.
+	const measuredPaths = useMemo(
+		() => (measured === null ? null : regionPaths(features, measured)),
+		[features, measured],
+	)
+
 	// Draw from the measured fit once it lands, the canonical fit until then, so
 	// the geography never waits on the container being measured.
 	const fitted = measured ?? canonical?.projection ?? null
@@ -223,10 +230,7 @@ function useMapShape(
 
 	const viewHeight = measured ? frameHeight : (canonical?.height ?? 0)
 
-	const paths = useMemo(
-		() => (fitted === null ? [] : regionPaths(features, fitted)),
-		[features, fitted],
-	)
+	const paths = measuredPaths ?? canonicalPaths
 
 	const project = useCallback(
 		(position: LngLat) => (fitted === null ? null : projectPoint(fitted, position)),

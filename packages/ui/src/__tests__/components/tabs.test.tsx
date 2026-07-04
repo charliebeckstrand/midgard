@@ -329,6 +329,94 @@ describe('Tab', () => {
 	})
 })
 
+describe('Tab onPreload', () => {
+	function twoTabs(props: { onPreload?: (value: string | undefined) => void }, extra = {}) {
+		return renderUI(
+			<Tabs value="a" onValueChange={() => {}}>
+				<TabList aria-label="Sections">
+					<Tab value="a">A</Tab>
+					<Tab value="b" onPreload={props.onPreload} {...extra}>
+						B
+					</Tab>
+				</TabList>
+			</Tabs>,
+		)
+	}
+
+	it('fires once with the value on first pointer intent for an inactive tab', () => {
+		const onPreload = vi.fn()
+
+		twoTabs({ onPreload })
+
+		const inactive = screen.getByRole('tab', { name: 'B' })
+
+		fireEvent.pointerEnter(inactive)
+
+		fireEvent.pointerEnter(inactive)
+
+		// Latched: repeated hovers warm the panel once, not on every move.
+		expect(onPreload).toHaveBeenCalledTimes(1)
+
+		expect(onPreload).toHaveBeenCalledWith('b')
+	})
+
+	it('also fires on focus intent', () => {
+		const onPreload = vi.fn()
+
+		twoTabs({ onPreload })
+
+		fireEvent.focus(screen.getByRole('tab', { name: 'B' }))
+
+		expect(onPreload).toHaveBeenCalledWith('b')
+	})
+
+	it('never fires for the active tab', () => {
+		const onPreload = vi.fn()
+
+		renderUI(
+			<Tabs value="a" onValueChange={() => {}}>
+				<TabList aria-label="Sections">
+					<Tab value="a" onPreload={onPreload}>
+						A
+					</Tab>
+				</TabList>
+			</Tabs>,
+		)
+
+		const active = screen.getByRole('tab', { name: 'A' })
+
+		fireEvent.pointerEnter(active)
+
+		fireEvent.focus(active)
+
+		expect(onPreload).not.toHaveBeenCalled()
+	})
+
+	it('never fires for a disabled tab', () => {
+		const onPreload = vi.fn()
+
+		twoTabs({ onPreload }, { disabled: true })
+
+		fireEvent.pointerEnter(screen.getByRole('tab', { name: 'B' }))
+
+		expect(onPreload).not.toHaveBeenCalled()
+	})
+
+	it('composes with a caller onPointerEnter rather than replacing it', () => {
+		const onPreload = vi.fn()
+
+		const onPointerEnter = vi.fn()
+
+		twoTabs({ onPreload }, { onPointerEnter })
+
+		fireEvent.pointerEnter(screen.getByRole('tab', { name: 'B' }))
+
+		expect(onPointerEnter).toHaveBeenCalledTimes(1)
+
+		expect(onPreload).toHaveBeenCalledTimes(1)
+	})
+})
+
 describe('TabPanel', () => {
 	it('renders with data-slot="tab-panel" and role="tabpanel"', () => {
 		const { container } = renderUI(
