@@ -629,6 +629,15 @@ export function ChartPie<T>({
 		innerRadius,
 	})
 
+	// Each drawn slice is one keyboard stop at its centroid — the same anchor the
+	// pointer hover uses; a row with no slice (non-positive or toggled off) offers
+	// none, so the arrow keys step over it.
+	const focusPoints = data.map((_, index) => {
+		const slice = slices.find((candidate) => candidate.index === index)
+
+		return slice ? [slice.centroid] : []
+	})
+
 	const marks = (
 		<>
 			<PieChartMarks
@@ -677,6 +686,7 @@ export function ChartPie<T>({
 			legendPlacement={typeof legend === 'string' ? legend : undefined}
 			readout={readout}
 			tooltip={tooltip}
+			focus={{ points: focusPoints }}
 			className={className}
 			overlay={
 				innerRatio > 0 && children ? (

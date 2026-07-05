@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest'
+import { AreaChart } from '../../modules/chart/area-chart'
+import { DonutChart } from '../../modules/chart/donut-chart'
 import { LineChart } from '../../modules/chart/line-chart'
 import { PieChart } from '../../modules/chart/pie-chart'
 import {
-	type ChartFocusTargets,
+	cartesianFocus,
 	clampCursor,
 	cursorPoint,
 	firstCursor,
@@ -13,37 +15,35 @@ import { act, bySlot, fireEvent, renderUI } from '../helpers'
 
 // Category 0 carries two coincident points (a chart whose series overlap on the
 // same value); the later categories separate them.
-const TARGETS: ChartFocusTargets = {
-	bandPositions: [10, 20, 30],
-	valuePoints: [
+const TARGETS = cartesianFocus(
+	[10, 20, 30],
+	[
 		[100, 100],
 		[80, 60],
 		[40, 40],
 	],
-}
+	'vertical',
+)
 
 // A middle category with no finite value — a gap the cursor must step over.
-const GAPPED: ChartFocusTargets = {
-	bandPositions: [10, 20, 30],
-	valuePoints: [[100], [], [40]],
-}
+const GAPPED = cartesianFocus([10, 20, 30], [[100], [], [40]], 'vertical')
 
 describe('chart keyboard cursor', () => {
 	it('reports whether any category is navigable', () => {
 		expect(hasFocusTargets(TARGETS)).toBe(true)
 
-		expect(hasFocusTargets({ bandPositions: [10, 20], valuePoints: [[], []] })).toBe(false)
+		expect(hasFocusTargets({ points: [[], []] })).toBe(false)
 	})
 
 	it('opens on the first focusable category, skipping a leading gap', () => {
 		expect(firstCursor(TARGETS)).toEqual({ category: 0, value: 0 })
 
-		expect(firstCursor({ bandPositions: [10, 20], valuePoints: [[], [50]] })).toEqual({
+		expect(firstCursor({ points: [[], [{ x: 20, y: 50 }]] })).toEqual({
 			category: 1,
 			value: 0,
 		})
 
-		expect(firstCursor({ bandPositions: [10], valuePoints: [[]] })).toBeNull()
+		expect(firstCursor({ points: [[]] })).toBeNull()
 	})
 
 	it('cycles every series value at a category — coincident points included', () => {
@@ -61,6 +61,34 @@ describe('chart keyboard cursor', () => {
 		expect(moveCursor({ category: 0, value: 0 }, 'ArrowUp', TARGETS, 'vertical')).toEqual({
 			handled: true,
 			cursor: { category: 0, value: 1 },
+		})
+	})
+
+	it('steps the value cursor in screen order, not series order', () => {
+		// Series order does not match screen order: index 0 sits at the top (y 20),
+		// index 1 at the bottom (y 80), index 2 in the middle (y 50). ArrowDown must
+		// descend the screen — top, middle, bottom — rather than walk the series list.
+		const ranked = cartesianFocus([10], [[20, 80, 50]], 'vertical')
+
+		expect(moveCursor({ category: 0, value: 0 }, 'ArrowDown', ranked, 'vertical').cursor).toEqual({
+			category: 0,
+			value: 2,
+		})
+
+		expect(moveCursor({ category: 0, value: 2 }, 'ArrowDown', ranked, 'vertical').cursor).toEqual({
+			category: 0,
+			value: 1,
+		})
+
+		// The bottom wraps back to the top, and ArrowUp climbs the same order.
+		expect(moveCursor({ category: 0, value: 1 }, 'ArrowDown', ranked, 'vertical').cursor).toEqual({
+			category: 0,
+			value: 0,
+		})
+
+		expect(moveCursor({ category: 0, value: 1 }, 'ArrowUp', ranked, 'vertical').cursor).toEqual({
+			category: 0,
+			value: 2,
 		})
 	})
 
@@ -133,12 +161,16 @@ describe('chart keyboard cursor', () => {
 		})
 	})
 
-	it('projects a cursor onto its frame point for each orientation', () => {
-		expect(cursorPoint({ category: 1, value: 0 }, TARGETS, 'vertical')).toEqual({ x: 20, y: 80 })
+	it('reads the stored anchor for a cursor, null past its range', () => {
+		expect(cursorPoint({ category: 1, value: 0 }, TARGETS)).toEqual({ x: 20, y: 80 })
 
-		expect(cursorPoint({ category: 1, value: 0 }, TARGETS, 'horizontal')).toEqual({ x: 80, y: 20 })
+		expect(cursorPoint({ category: 1, value: 5 }, TARGETS)).toBeNull()
+	})
 
-		expect(cursorPoint({ category: 1, value: 5 }, TARGETS, 'vertical')).toBeNull()
+	it('projects value points onto the frame, transposing with orientation', () => {
+		expect(cartesianFocus([10], [[40]], 'vertical').points[0]?.[0]).toEqual({ x: 10, y: 40 })
+
+		expect(cartesianFocus([10], [[40]], 'horizontal').points[0]?.[0]).toEqual({ x: 40, y: 10 })
 	})
 
 	it('snaps an out-of-range cursor back onto the targets', () => {
@@ -170,17 +202,11 @@ describe('LineChart keyboard navigation', () => {
 
 		expect(bySlot(container, 'chart-plot')).toHaveAttribute('tabindex', '0')
 
-		// A chart that does not navigate by category stays a plain role="img".
-		const pie = renderUI(
-			<PieChart
-				aria-label="Share"
-				data={DATA}
-				series={[{ xKey: 'week', yKey: 'a' }]}
-				width={400}
-			/>,
-		)
+		// With no tooltip mounted there is nothing to answer the keyboard, so the
+		// region stays a plain non-focusable role="img".
+		const quiet = renderUI(line({ tooltip: false }))
 
-		expect(bySlot(pie.container, 'chart-plot')).not.toHaveAttribute('tabindex')
+		expect(bySlot(quiet.container, 'chart-plot')).not.toHaveAttribute('tabindex')
 	})
 
 	it('holds the readout until the first arrow, then reads the first data point', () => {
@@ -272,5 +298,81 @@ describe('LineChart keyboard navigation', () => {
 		expect(tip?.textContent).toContain('W1')
 
 		expect(tip?.textContent).toContain('40')
+	})
+})
+
+describe('AreaChart keyboard navigation', () => {
+	it('makes a stacked area chart focusable and reads its stacked values', () => {
+		// Stacked columns read as one whole, so the pointer tooltip floats free; the
+		// keyboard still needs a stop per band, so a stacked chart stays navigable.
+		const stacked = [
+			{ week: 'W1', a: 40, b: 30 },
+			{ week: 'W2', a: 80, b: 20 },
+		]
+
+		const { container } = renderUI(
+			<AreaChart aria-label="Stacked" data={stacked} series={[...SERIES]} width={400} stacked />,
+		)
+
+		const plot = bySlot(container, 'chart-plot') as HTMLElement
+
+		expect(plot).toHaveAttribute('tabindex', '0')
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		const tip = bySlot(container, 'tooltip-content')
+
+		expect(tip?.textContent).toContain('W1')
+
+		expect(tip?.textContent).toContain('40')
+
+		expect(tip?.textContent).toContain('30')
+	})
+})
+
+const SLICES = [
+	{ label: 'North', value: 40 },
+	{ label: 'South', value: 30 },
+	{ label: 'East', value: 20 },
+]
+
+const SLICE_SERIES = [{ xKey: 'label', yKey: 'value', yName: 'Share' }] as const
+
+describe('PieChart and DonutChart keyboard navigation', () => {
+	it('walks a pie chart through its slices with the arrow keys', () => {
+		const { container } = renderUI(
+			<PieChart aria-label="Share" data={SLICES} series={[...SLICE_SERIES]} width={400} />,
+		)
+
+		const plot = bySlot(container, 'chart-plot') as HTMLElement
+
+		expect(plot).toHaveAttribute('tabindex', '0')
+
+		// The first arrow reads the first slice; the next steps to the following one.
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('North')
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('South')
+
+		fireEvent.keyDown(plot, { key: 'Escape' })
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
+	})
+
+	it('makes a donut chart focusable on the same slice anchors', () => {
+		const { container } = renderUI(
+			<DonutChart aria-label="Share" data={SLICES} series={[...SLICE_SERIES]} width={400} />,
+		)
+
+		const plot = bySlot(container, 'chart-plot') as HTMLElement
+
+		expect(plot).toHaveAttribute('tabindex', '0')
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('North')
 	})
 })

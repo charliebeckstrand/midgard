@@ -19,8 +19,8 @@ const DONUT_INNER_RATIO = 0.6
 /**
  * A donut chart: one dataset's positive shares swept clockwise from the top
  * into a ring, its hole hosting the `children` (a total, a stat). Otherwise
- * identical to {@link PieChart} — the same gaps, legend, tooltip, segment
- * labels, and data table.
+ * identical to {@link PieChart} — the same gaps, legend, tooltip, keyboard
+ * navigation, segment labels, and data table.
  *
  * @example
  * ```tsx

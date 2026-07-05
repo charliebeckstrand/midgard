@@ -13,6 +13,7 @@ import { ChartReferenceLines, ChartReferenceList } from '../chart-reference-line
 import type { CartesianChartProps } from '../chart-schema'
 import { snapTargets } from '../chart-snap'
 import { useChartCartesian } from '../use-chart-cartesian'
+import { cartesianFocus } from '../use-chart-keyboard'
 import { type LineInterpolation, lineGeometry } from './line-chart-geometry'
 
 /**
@@ -154,7 +155,7 @@ export function LineChart<T>({
 			readout={chart.readout}
 			tooltip={tooltip}
 			snap={snapTargets(rails, chart.bandPositions, chart.snapPoints)}
-			focus={{ bandPositions: chart.bandPositions, valuePoints: chart.snapPoints }}
+			focus={cartesianFocus(chart.bandPositions, chart.snapPoints, chart.orientation)}
 			className={className}
 			annotations={<ChartReferenceList reference={reference} format={formatValue} />}
 		>

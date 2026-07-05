@@ -77,10 +77,9 @@ export type ChartFrameProps = AccessibleName & {
 	/** Snap targets when the crosshair snaps, carrying the tooltip to the intersection. */
 	snap?: ChartSnap
 	/**
-	 * Band centers and value points that make the plot a keyboard tab stop: the
-	 * arrow keys walk them through the same hover the pointer drives. Omitted on
-	 * charts that don't navigate by category (pie / donut), leaving the region a
-	 * plain `role="img"`.
+	 * Per-category anchor points that make the plot a keyboard tab stop: the arrow
+	 * keys walk them through the same hover the pointer drives. Absent — or empty —
+	 * the region stays a plain non-focusable `role="img"`.
 	 */
 	focus?: ChartFocusTargets
 	/**

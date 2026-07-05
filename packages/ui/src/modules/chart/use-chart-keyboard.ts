@@ -1,32 +1,28 @@
 'use client'
 
 import { type FocusEvent, type KeyboardEvent, useState } from 'react'
-import type { ChartOrientation } from './chart-orientation'
-import { project, type Vec } from './chart-orientation'
+import { type ChartOrientation, project, type Vec, valueCoord } from './chart-orientation'
 import type { ChartHover } from './context'
 
 /**
- * The band centers and per-category value points a chart hands its frame for
- * keyboard navigation — the same targets the crosshair and tooltip snap to, so
- * an arrow-driven cursor lands exactly where the pointer would. `valuePoints`
- * is per category, one entry per visible series with a finite value; two series
- * sharing a value keep two coincident entries, never one, so the cursor visits
- * each of them.
+ * The per-category anchor points a chart hands its frame for keyboard
+ * navigation, already projected to frame coordinates so the cursor lands exactly
+ * where the pointer would. `points` is indexed by category — a cartesian band, a
+ * pie's slice — and each entry lists that category's navigable stops: one per
+ * visible series for a cartesian chart, a single centroid for a pie slice. Two
+ * series sharing a value keep two coincident stops, never one, so the cursor
+ * visits each of them.
  *
  * @internal
  */
 export type ChartFocusTargets = {
-	/** Each category's band-axis center. */
-	bandPositions: number[]
-	/** Per category, the visible series' value-axis positions — finite only, series order. */
-	valuePoints: number[][]
+	points: Vec[][]
 }
 
 /**
- * The keyboard focus cursor: a category crossed with one of its value points.
- * `value` indexes {@link ChartFocusTargets.valuePoints} at `category`, so
- * cycling it walks the visible series at that category — coincident points
- * included.
+ * The keyboard focus cursor: a category crossed with one of its stops. `value`
+ * indexes the stops at `category`, so stepping it walks that category's series —
+ * coincident points included.
  *
  * @internal
  */
@@ -35,19 +31,19 @@ export type ChartCursor = {
 	value: number
 }
 
-/** The number of value points at a category, `0` when it has none. @internal */
+/** The number of stops at a category, `0` when it has none. @internal */
 function pointCount(targets: ChartFocusTargets, category: number): number {
-	return targets.valuePoints[category]?.length ?? 0
+	return targets.points[category]?.length ?? 0
 }
 
-/** Whether any category carries a value point — the gate for enabling navigation. @internal */
+/** Whether any category carries a stop — the gate for enabling navigation. @internal */
 export function hasFocusTargets(targets: ChartFocusTargets): boolean {
-	return targets.valuePoints.some((points) => points.length > 0)
+	return targets.points.some((stops) => stops.length > 0)
 }
 
-/** The first (`-1`) or last (`+1`) category that carries a value point, or `-1` when none do. @internal */
+/** The first (`-1`) or last (`+1`) category that carries a stop, or `-1` when none do. @internal */
 function edgeCategory(targets: ChartFocusTargets, dir: 1 | -1): number {
-	const n = targets.bandPositions.length
+	const n = targets.points.length
 
 	if (dir < 0) {
 		for (let i = 0; i < n; i++) if (pointCount(targets, i) > 0) return i
@@ -72,7 +68,7 @@ export function firstCursor(targets: ChartFocusTargets): ChartCursor | null {
  * @internal
  */
 function stepCategory(targets: ChartFocusTargets, from: number, dir: 1 | -1): number {
-	for (let i = from + dir; i >= 0 && i < targets.bandPositions.length; i += dir) {
+	for (let i = from + dir; i >= 0 && i < targets.points.length; i += dir) {
 		if (pointCount(targets, i) > 0) return i
 	}
 
@@ -81,7 +77,7 @@ function stepCategory(targets: ChartFocusTargets, from: number, dir: 1 | -1): nu
 
 /**
  * Snaps a cursor into range against the current targets: a category with no
- * points falls to the first focusable one, and the value index clamps to that
+ * stops falls to the first focusable one, and the value index clamps to that
  * category's count. Returns `null` when nothing is focusable.
  *
  * @internal
@@ -92,7 +88,7 @@ export function clampCursor(
 ): ChartCursor | null {
 	if (!cursor) return null
 
-	const n = targets.bandPositions.length
+	const n = targets.points.length
 
 	if (n === 0) return null
 
@@ -106,18 +102,30 @@ export function clampCursor(
 }
 
 /** The frame point a cursor anchors to, or `null` when it falls off the targets. @internal */
-export function cursorPoint(
-	cursor: ChartCursor,
-	targets: ChartFocusTargets,
+export function cursorPoint(cursor: ChartCursor, targets: ChartFocusTargets): Vec | null {
+	return targets.points[cursor.category]?.[cursor.value] ?? null
+}
+
+/**
+ * Builds cartesian focus targets: each category's visible value positions
+ * projected onto the frame through the orientation, so the stored anchors match
+ * the marks. Values arrive in series order and stay that way — the cursor sorts
+ * them into screen order only when it steps.
+ *
+ * @internal
+ */
+export function cartesianFocus(
+	bandPositions: number[],
+	valuePoints: number[][],
 	orientation: ChartOrientation,
-): Vec | null {
-	const band = targets.bandPositions[cursor.category]
+): ChartFocusTargets {
+	return {
+		points: valuePoints.map((values, index) => {
+			const band = bandPositions[index]
 
-	const value = targets.valuePoints[cursor.category]?.[cursor.value]
-
-	if (band === undefined || value === undefined) return null
-
-	return project(orientation, value, band)
+			return band === undefined ? [] : values.map((value) => project(orientation, value, band))
+		}),
+	}
 }
 
 /** What a key does under an orientation: step the category, cycle the value points, jump, or clear. @internal */
@@ -167,17 +175,38 @@ export type CursorMove = {
 	cursor: ChartCursor | null
 }
 
-/** The value index one step `dir` from `value`, wrapping across the category's points. @internal */
-function cycleValue(value: number, count: number, dir: 1 | -1): number {
-	return (value + dir + count) % count
+/**
+ * The value index one step `dir` from `value`, ordered by the points' screen
+ * position along the value axis rather than the series order they arrive in, so
+ * an arrow moves the cursor the way it points — down a vertical chart, right a
+ * horizontal one — through the marks as drawn. Coincident values (series that
+ * overlap) tie-break by index, staying distinct, reachable stops; the step wraps
+ * at the ends.
+ *
+ * @internal
+ */
+function stepValue(
+	points: Vec[],
+	value: number,
+	dir: 1 | -1,
+	orientation: ChartOrientation,
+): number {
+	const order = points
+		.map((point, index) => ({ pos: valueCoord(orientation, point), index }))
+		.sort((a, b) => a.pos - b.pos || a.index - b.index)
+
+	const rank = order.findIndex((entry) => entry.index === value)
+
+	return order[(rank + dir + order.length) % order.length]?.index ?? value
 }
 
 /**
  * Resolves a keypress to the next cursor. The band axis arrows move to the
  * neighbouring category, keeping the value lane where it exists; the value axis
- * arrows cycle through the current category's value points — visiting every
- * visible series, coincident values included — so a chart whose series overlap
- * still steps through each of them. Unhandled keys pass through untouched.
+ * arrows step through the current category's value points in screen order —
+ * visiting every visible series, coincident values included — so a chart whose
+ * series overlap still steps through each of them. Unhandled keys pass through
+ * untouched.
  *
  * @internal
  */
@@ -218,7 +247,7 @@ export function moveCursor(
 				handled: true,
 				cursor: {
 					category: base.category,
-					value: cycleValue(base.value, pointCount(targets, base.category), 1),
+					value: stepValue(targets.points[base.category] ?? [], base.value, 1, orientation),
 				},
 			}
 		case 'value-':
@@ -226,7 +255,7 @@ export function moveCursor(
 				handled: true,
 				cursor: {
 					category: base.category,
-					value: cycleValue(base.value, pointCount(targets, base.category), -1),
+					value: stepValue(targets.points[base.category] ?? [], base.value, -1, orientation),
 				},
 			}
 	}
@@ -245,15 +274,16 @@ export type ChartKeyboardProps = {
  * way they answer the pointer. Focus alone only rings the region — a click
  * focuses it too, and stealing the readout from the pointer would jar — so the
  * first arrow reads the first data point; from there the band axis arrows walk
- * categories, the value axis arrows cycle the series' value points at a category
- * (visiting each series, coincident values included), Home / End jump to the
- * ends, and Escape drops focus. Leaving after navigating clears the readout; a
+ * categories, the value axis arrows step the series' value points at a category
+ * in screen order (visiting each series, coincident values included), Home / End
+ * jump to the ends, and Escape drops focus. Leaving after navigating clears the
+ * readout; a
  * pointer-only focus leaves the pointer's readout alone. Returns `null` — no tab
  * stop — when navigation is off or the chart carries no value point, leaving the
  * region the plain `role="img"` it was.
  *
- * @param targets - The band centers and value points to navigate, or `undefined` on a chart that opts out (pie / donut).
- * @param orientation - Which screen axis the value runs along, so the arrows map to the right axes.
+ * @param targets - The per-category anchor points to navigate, or `undefined` on a chart with none.
+ * @param orientation - Which screen axis the value runs along, so the arrows map to the right axes and steps sort in screen order.
  * @param enabled - Whether a readout is mounted to answer the cursor — the tooltip that makes navigation legible.
  * @param set - The hover context's setter, moved to the cursor's anchor on each step.
  * @internal
@@ -272,7 +302,7 @@ export function useChartKeyboard(
 	const show = (next: ChartCursor | null) => {
 		setCursor(next)
 
-		const point = next && targets ? cursorPoint(next, targets, orientation) : null
+		const point = next && targets ? cursorPoint(next, targets) : null
 
 		if (next && point) set(next.category, point, true)
 		else set(null, null)

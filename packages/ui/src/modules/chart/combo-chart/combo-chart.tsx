@@ -18,6 +18,7 @@ import type { SeriesMeta } from '../chart-series'
 import { snapTargets } from '../chart-snap'
 import { type LineInterpolation, lineGeometry } from '../line-chart/line-chart-geometry'
 import { useChartCartesian } from '../use-chart-cartesian'
+import { cartesianFocus } from '../use-chart-keyboard'
 
 /**
  * Props for {@link ComboChart}. Requires an accessible name (`aria-label` or
@@ -212,7 +213,7 @@ export function ComboChart<T>({
 			readout={chart.readout}
 			tooltip={tooltip}
 			snap={snapTargets(rails, chart.bandPositions, chart.snapPoints)}
-			focus={{ bandPositions: chart.bandPositions, valuePoints: chart.snapPoints }}
+			focus={cartesianFocus(chart.bandPositions, chart.snapPoints, chart.orientation)}
 			className={className}
 			annotations={<ChartReferenceList reference={reference} format={formatValue} />}
 		>
