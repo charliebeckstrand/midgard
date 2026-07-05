@@ -10,6 +10,7 @@ import { withinBarMarks } from '../chart-hit-test'
 import { ChartLegend } from '../chart-legend'
 import { ChartMarksLayer } from '../chart-marks-layer'
 import type { ChartOrientation } from '../chart-orientation'
+import { useChartTexture } from '../chart-pattern-defs'
 import { ChartReferenceLines, ChartReferenceList } from '../chart-reference-lines'
 import type { CartesianChartProps } from '../chart-schema'
 import { snapTargets } from '../chart-snap'
@@ -85,9 +86,11 @@ export function BarChart<T>({
 	animate = false,
 	orientation = 'vertical',
 	stacked = false,
+	texture = false,
 	min,
 	max,
 	reference,
+	xAxis,
 	formatValue,
 	className,
 	...label
@@ -105,6 +108,7 @@ export function BarChart<T>({
 			min,
 			max,
 			reference,
+			xAxis,
 			formatValue,
 		},
 		{ zeroBaseline: true, swatch: () => 'rect', orientation, stack: stacked },
@@ -124,15 +128,30 @@ export function BarChart<T>({
 		(meta) => chart.emphasis !== null && meta.index !== chart.emphasis,
 	)
 
+	const tex = useChartTexture(
+		texture,
+		chart.visible.map((meta) => ({ color: meta.color, paint: meta.paint })),
+	)
+
+	const fills = chart.visible.map((meta) => tex.fillFor(meta.color))
+
 	const marksNode = animate ? (
 		<AnimatedChartBarMarks
 			marks={marks}
 			paints={paints}
 			dimmed={dimmed}
+			fills={fills}
+			textureActive={tex.active}
 			orientation={chart.orientation}
 		/>
 	) : (
-		<ChartBarMarks marks={marks} paints={paints} dimmed={dimmed} />
+		<ChartBarMarks
+			marks={marks}
+			paints={paints}
+			dimmed={dimmed}
+			fills={fills}
+			textureActive={tex.active}
+		/>
 	)
 
 	const rails = resolveCrosshair(crosshair)
@@ -153,6 +172,7 @@ export function BarChart<T>({
 						onToggle={chart.toggleSeries}
 						onFocus={chart.setEmphasis}
 						panel={legend === 'left' || legend === 'right'}
+						texture={tex.active}
 					/>
 				)
 			}
@@ -165,6 +185,8 @@ export function BarChart<T>({
 			className={className}
 			annotations={<ChartReferenceList reference={reference} format={formatValue} />}
 		>
+			{tex.defs}
+
 			<ChartCartesianAxes
 				orientation={chart.orientation}
 				plot={chart.plot}
