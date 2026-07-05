@@ -14,6 +14,8 @@ The legend is the series switchboard: centered toggle buttons where pointing an 
 
 A `reference` prop annotates the four cartesian charts with fixed-value rules — targets, thresholds, averages — drawn across the band axis on the same `value → project → draw` path as the gridlines but on a raw domain value. Each value folds into the domain the way `min`/`max` pins do, so an off-data target stays on-frame, and the dashed rules draw over the marks so a mark crossing one stays legible. Each rule is a hover target floating a tooltip with its value and label, takes a named palette slot or any raw CSS colour (hex, `oklch()`), and carries visually-hidden parity beside the data table; horizontal orientation is free through the shared coordinate projection.
 
+`HeatmapChart` shades a grid of cells across two categorical band axes by a numeric value — the two-categorical member of the family, the cartesian twin of the choropleth. It pivots flat rows to a row-major matrix in first-seen axis order, reuses the shared plot frame, band scales, and axis chrome, and paints each cell from the sequential colour scale lifted into `utilities/color-scale` (`sampleRange` / `resolveColorBins` / `binIndex`), the one scale the choropleth now shares rather than forks. Cells with no matching row take the neutral no-data fill; a hover tooltip names the pointed cell over an isolated hover context, a continuous scale bar reads as the range legend, and a visually-hidden data table carries full value parity. Still open on it: motion (`animate`), keyboard cell traversal, and unifying the range legend with the choropleth's.
+
 ## Backlog
 
 - **Time x-axis.** A time scale beside `bandScale` for date-keyed rows, with locale tick formatting through `@internationalized/date`.

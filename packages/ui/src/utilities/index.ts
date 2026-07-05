@@ -1,6 +1,13 @@
 export { countMeaningful, cursorForCount } from './caret'
 export { clamp } from './clamp'
 export {
+	binIndex,
+	type ColorBin,
+	resolveColorBins,
+	sampleRange,
+	valueExtent,
+} from './color-scale'
+export {
 	type ColorInput,
 	type ContrastLevel,
 	type ContrastThreshold,
