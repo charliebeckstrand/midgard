@@ -28,6 +28,7 @@ import {
 	type GridColumn,
 	type GridEditCellContext,
 } from '../../../../modules/grid'
+import { useFormat } from '../../../../providers/locale'
 
 // Applies committed cell changes onto the row state: each change patches one
 // field on the row it keys. The grid emits these (as one batch per row) through
@@ -281,9 +282,9 @@ const statusOptions = [
 	{ label: 'Done', value: 'done' },
 ]
 
-const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' })
-
 export function EditorTypesExample() {
+	const money = useFormat({ type: 'currency' })
+
 	const [tasks, setTasks] = useState<Task[]>(initialTasks)
 
 	// Every row is editable here so each editor type shows at once. `title` infers
@@ -313,7 +314,7 @@ export function EditorTypesExample() {
 			id: 'budget',
 			title: 'Budget',
 			field: 'budget',
-			cell: (row) => money.format(row.budget),
+			cell: (row) => money(row.budget),
 			editCell: CellCurrency,
 		},
 		{
@@ -368,15 +369,9 @@ function FormCurrencyInput({ name, placeholder }: { name: string; placeholder?: 
 	)
 }
 
-const bulkColumns: GridColumn<LaneRate>[] = [
-	{ id: 'select', selectable: true },
-	{ id: 'state', title: 'State', cell: (row) => row.state, width: '80px' },
-	{ id: 'perMile', title: 'Per-mile', cell: (row) => money.format(row.perMile) },
-	{ id: 'minCharge', title: 'Min charge', cell: (row) => money.format(row.minCharge) },
-	{ id: 'fuelPct', title: 'Fuel %', cell: (row) => `${row.fuelPct}%` },
-]
-
 export function BulkEditExample() {
+	const money = useFormat({ type: 'currency' })
+
 	const [rates, setRates] = useState<LaneRate[]>(initialRates)
 
 	const [selection, setSelection] = useState<Set<string | number>>(new Set())
@@ -406,6 +401,14 @@ export function BulkEditExample() {
 
 		return row ? { perMile: row.perMile, minCharge: row.minCharge, fuelPct: row.fuelPct } : empty
 	}, [rates, selection])
+
+	const bulkColumns: GridColumn<LaneRate>[] = [
+		{ id: 'select', selectable: true },
+		{ id: 'state', title: 'State', cell: (row) => row.state, width: '80px' },
+		{ id: 'perMile', title: 'Per-mile', cell: (row) => money(row.perMile) },
+		{ id: 'minCharge', title: 'Min charge', cell: (row) => money(row.minCharge) },
+		{ id: 'fuelPct', title: 'Fuel %', cell: (row) => `${row.fuelPct}%` },
+	]
 
 	return (
 		<>

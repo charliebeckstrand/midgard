@@ -62,6 +62,8 @@ Broadcasts i18n defaults; explicit component props still win.
 |---|---|
 | `LocaleProvider` | Broadcasts i18n defaults (locale, currency, number/date formatting, time zone); explicit component props still win. |
 | `useLocale` | Reads the ambient `LocaleConfig` from the nearest `<LocaleProvider>`; returns `{}` outside one. |
+| `useFormat` | Resolves a `FormatSpec` to a memoized `(value) => string` formatter, folding in the ambient locale / currency / number-format defaults. |
+| `FormatSpec` *(type)* | What `useFormat` formats a value as: a numeric `Intl` format (`number`/`integer`/`currency`/`percent`/`compact`) or a prefixed `id` (`INV-42`). |
 
 ## `ui/providers/motion`
 

@@ -1,4 +1,5 @@
 import { PivotTable } from '../../../components/pivot-table'
+import { useFormat } from '../../../providers/locale'
 import { Example } from '../../engine'
 
 type LoadRow = {
@@ -22,10 +23,9 @@ const loads: LoadRow[] = [
 	{ lane: 'SEA → JFK', carrier: 'Crest', period: 'Feb', loads: 6, cost: 17400 },
 ]
 
-const currency = (value: number) =>
-	value.toLocaleString(undefined, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })
-
 export function Demo() {
+	const currency = useFormat({ type: 'currency', maximumFractionDigits: 0 })
+
 	return (
 		<>
 			<Example title="Loads by lane">

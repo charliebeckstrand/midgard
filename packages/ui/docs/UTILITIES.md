@@ -12,6 +12,8 @@
 | `formatInteger` | Locale-formats `value` with no fraction digits (cached formatter). |
 | `formatFraction` | Locale-formats `value` with up to two fraction digits (cached formatter). |
 | `formatPercent` | Locale-formats a `0..1` share as a whole percent (cached formatter). |
+| `resolveFormat` | Resolves a `FormatSpec` to a cached `(value) => string` formatter — number, integer, currency, percent, compact, or prefixed id. |
+| `FormatSpec` *(type)* | What to format a value as: a numeric `Intl` format (`number`/`integer`/`currency`/`percent`/`compact`) or a prefixed `id`. |
 
 ## Caret & formatted input
 
