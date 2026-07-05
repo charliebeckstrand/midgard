@@ -19,7 +19,9 @@ describe('parseInstant', () => {
 		const date = new Date(2026, 2, 15, 9, 30)
 
 		expect(parseInstant(date)).toBe(date.getTime())
+
 		expect(parseInstant(1_700_000_000_000)).toBe(1_700_000_000_000)
+
 		expect(parseInstant('2026-03-15T09:30:00Z')).toBe(Date.parse('2026-03-15T09:30:00Z'))
 	})
 
@@ -31,9 +33,13 @@ describe('parseInstant', () => {
 
 	it('returns null for unparseable or non-date values', () => {
 		expect(parseInstant('not a date')).toBeNull()
+
 		expect(parseInstant(new Date('nope'))).toBeNull()
+
 		expect(parseInstant(Number.NaN)).toBeNull()
+
 		expect(parseInstant(null)).toBeNull()
+
 		expect(parseInstant({})).toBeNull()
 	})
 })
@@ -45,6 +51,7 @@ describe('timeTicks', () => {
 		expect(
 			timeTicks({ times: [dailyTimes(1)[0] ?? 0], band: scale, tickTarget: 4, axisLength: 600 }),
 		).toBeNull()
+
 		expect(
 			timeTicks({ times: [null, null], band: scale, tickTarget: 4, axisLength: 600 }),
 		).toBeNull()
@@ -71,7 +78,9 @@ describe('timeTicks', () => {
 
 		// Each month-start falls on its own daily row, so the tick sits on that band center.
 		expect(ticks?.[0]?.at).toBeCloseTo(scale.center(0))
+
 		expect(ticks?.[1]?.at).toBeCloseTo(scale.center(31))
+
 		expect(ticks?.[2]?.at).toBeCloseTo(scale.center(59))
 	})
 
@@ -94,8 +103,11 @@ describe('timeTicks', () => {
 		const mar = ticks?.[1]?.at ?? 0
 
 		expect(feb).toBeGreaterThan(scale.center(0))
+
 		expect(feb).toBeLessThan(scale.center(1))
+
 		expect(mar).toBeGreaterThan(scale.center(1))
+
 		expect(mar).toBeLessThan(scale.center(2))
 	})
 
@@ -136,6 +148,7 @@ describe('timeCategory', () => {
 		const format = timeCategory('en-US')
 
 		expect(format('2026-01-05')).toBe('Jan 5, 2026')
+
 		expect(format(new Date(2026, 0, 5))).toBe('Jan 5, 2026')
 	})
 

@@ -32,7 +32,9 @@ describe('chart time axis', () => {
 		// The category axis thins the ISO keys; the time axis lines month boundaries,
 		// so the raw first key is gone and far fewer labels remain.
 		expect(category).toContain('2026-01-01')
+
 		expect(time).not.toContain('2026-01-01')
+
 		expect(time.length).toBeLessThan(category.length)
 	})
 
@@ -41,6 +43,7 @@ describe('chart time axis', () => {
 
 		// Medium locale date, not the raw ISO key.
 		expect(table).toContain('2026')
+
 		expect(table).not.toContain('2026-01-01')
 	})
 
