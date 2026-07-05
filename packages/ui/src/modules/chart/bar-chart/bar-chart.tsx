@@ -10,6 +10,7 @@ import { withinBarMarks } from '../chart-hit-test'
 import { ChartLegend } from '../chart-legend'
 import { ChartMarksLayer } from '../chart-marks-layer'
 import type { ChartOrientation } from '../chart-orientation'
+import { ChartReferenceLines } from '../chart-reference-lines'
 import type { CartesianChartProps } from '../chart-schema'
 import { snapTargets } from '../chart-snap'
 import { useChartCartesian } from '../use-chart-cartesian'
@@ -70,12 +71,26 @@ export function BarChart<T>({
 	orientation = 'vertical',
 	min,
 	max,
+	reference,
 	formatValue,
 	className,
 	...label
 }: BarChartProps<T>) {
 	const chart = useChartCartesian(
-		{ data, series, size, width, height, aspectRatio, axes, legend, min, max, formatValue },
+		{
+			data,
+			series,
+			size,
+			width,
+			height,
+			aspectRatio,
+			axes,
+			legend,
+			min,
+			max,
+			reference,
+			formatValue,
+		},
 		{ zeroBaseline: true, swatch: () => 'rect', orientation },
 	)
 
@@ -147,6 +162,13 @@ export function BarChart<T>({
 			/>
 
 			<ChartMarksLayer animate={animate}>{marksNode}</ChartMarksLayer>
+
+			<ChartReferenceLines
+				plot={chart.plot}
+				scale={chart.yScale}
+				reference={reference}
+				orientation={chart.orientation}
+			/>
 
 			{rails && (
 				<ChartCrosshair

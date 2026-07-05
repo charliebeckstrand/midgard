@@ -12,6 +12,8 @@ The legend is the series switchboard: centered toggle buttons where pointing an 
 
 `AreaChart` fills each series under its band-edge line — stacked into a part-to-whole ribbon set or left as independent overlapping washes — reusing the line renderer and a stacked-domain pass on the shared scale. Line and combo lines take an `interpolation` prop: `'smooth'` draws a monotone cubic that never overshoots the data.
 
+A `reference` prop annotates the four cartesian charts with fixed-value rules — targets, thresholds, averages — drawn across the band axis on the same `value → project → draw` path as the gridlines but on a raw domain value. Each value folds into the domain the way `min`/`max` pins do, so an off-data target stays on-frame, and the dashed rules draw over the marks so a mark crossing one stays legible. Horizontal orientation is free through the shared coordinate projection.
+
 ## Backlog
 
 - **Stacked bars.** `stacked?: boolean` on `BarChart`: a domain-sum pass over the existing `(x0, x1, y0, y1)` spans, segment gaps via the pie's surface-stroke trick, rounded cap on the outermost segment only.

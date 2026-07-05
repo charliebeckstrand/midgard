@@ -162,6 +162,20 @@ export function Demo() {
 								</ChartContainer>
 							</Example>
 
+							<Example
+								title="Reference lines"
+								code={code`<BarChart reference={[{ value: 55, label: 'Target', color: 'green' }]} … />`}
+							>
+								<ChartContainer>
+									<BarChart
+										aria-label="Revenue by month against a target"
+										data={months}
+										series={[{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' }]}
+										reference={[{ value: 55, label: 'Target', color: 'green' }]}
+									/>
+								</ChartContainer>
+							</Example>
+
 							<AnimatedExample title="Animated" source={code`<BarChart animate … />`}>
 								<ChartContainer>
 									<BarChart

@@ -12,6 +12,7 @@ import { nearSeriesLines, withinBarMarks, withinSeriesAreas } from '../chart-hit
 import { ChartLegend } from '../chart-legend'
 import { AnimatedChartLineMarks, ChartLineMarks, type ChartLineSeries } from '../chart-line-marks'
 import { ChartMarksLayer } from '../chart-marks-layer'
+import { ChartReferenceLines } from '../chart-reference-lines'
 import type { CartesianFrameProps, ChartBaseProps, ComboChartSeries } from '../chart-schema'
 import type { SeriesMeta } from '../chart-series'
 import { snapTargets } from '../chart-snap'
@@ -80,12 +81,26 @@ export function ComboChart<T>({
 	interpolation = 'linear',
 	min,
 	max,
+	reference,
 	formatValue,
 	className,
 	...label
 }: ComboChartProps<T>) {
 	const chart = useChartCartesian(
-		{ data, series, size, width, height, aspectRatio, axes, legend, min, max, formatValue },
+		{
+			data,
+			series,
+			size,
+			width,
+			height,
+			aspectRatio,
+			axes,
+			legend,
+			min,
+			max,
+			reference,
+			formatValue,
+		},
 		{
 			zeroBaseline: true,
 			swatch: (_, index) => (series[index]?.type === 'bar' ? 'rect' : 'line'),
@@ -217,6 +232,8 @@ export function ComboChart<T>({
 			)}
 
 			<ChartMarksLayer animate={animate}>{marksNode}</ChartMarksLayer>
+
+			<ChartReferenceLines plot={chart.plot} scale={yScale} reference={reference} />
 
 			{(tooltip || rails !== null) && data.length > 0 && (
 				<ChartHitArea

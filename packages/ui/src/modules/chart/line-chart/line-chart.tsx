@@ -9,6 +9,7 @@ import { nearSeriesLines, withinSeriesAreas } from '../chart-hit-test'
 import { ChartLegend } from '../chart-legend'
 import { AnimatedChartLineMarks, ChartLineMarks, type ChartLineSeries } from '../chart-line-marks'
 import { ChartMarksLayer } from '../chart-marks-layer'
+import { ChartReferenceLines } from '../chart-reference-lines'
 import type { CartesianChartProps } from '../chart-schema'
 import { snapTargets } from '../chart-snap'
 import { useChartCartesian } from '../use-chart-cartesian'
@@ -75,12 +76,26 @@ export function LineChart<T>({
 	interpolation = 'linear',
 	min,
 	max,
+	reference,
 	formatValue,
 	className,
 	...label
 }: LineChartProps<T>) {
 	const chart = useChartCartesian(
-		{ data, series, size, width, height, aspectRatio, axes, legend, min, max, formatValue },
+		{
+			data,
+			series,
+			size,
+			width,
+			height,
+			aspectRatio,
+			axes,
+			legend,
+			min,
+			max,
+			reference,
+			formatValue,
+		},
 		{ zeroBaseline: false, swatch: () => 'line' },
 	)
 
@@ -157,6 +172,8 @@ export function LineChart<T>({
 			)}
 
 			<ChartMarksLayer animate={animate}>{marksNode}</ChartMarksLayer>
+
+			<ChartReferenceLines plot={chart.plot} scale={chart.yScale} reference={reference} />
 
 			{(tooltip || rails !== null) && data.length > 0 && (
 				<ChartHitArea

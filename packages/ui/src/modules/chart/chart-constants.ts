@@ -67,6 +67,9 @@ export const BAND_LABEL_HEIGHT = 16
 /** Air above the plot so the top tick label and markers stay inside the frame. @internal */
 export const PLOT_TOP_PAD = 8
 
+/** Air between a reference line and its end label, off the rule and off the frame edge. @internal */
+export const REFERENCE_LABEL_GAP = 4
+
 // Motion timings mirror the Sparkline's (module-private there), so charts and
 // sparklines animating side by side read as one family.
 
