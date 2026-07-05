@@ -620,7 +620,7 @@ export function HeatmapChart<T>({
 		>
 			<HeatmapHoverProvider>
 				<HeatmapFocusProvider>
-					<div className={cn('flex flex-col gap-2', showLegend && 'lg:flex-row lg:items-center')}>
+					<div className="flex items-center gap-4">
 						<div
 							ref={ref}
 							data-slot="heatmap-plot"

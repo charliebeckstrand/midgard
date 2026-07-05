@@ -123,8 +123,8 @@ export function Demo() {
 					<Tab value="pie">Pie</Tab>
 					<Tab value="donut">Donut</Tab>
 					<Tab value="combo">Combo</Tab>
-					<Tab value="choropleth">Choropleth</Tab>
 					<Tab value="heatmap">Heatmap</Tab>
+					<Tab value="choropleth">Choropleth</Tab>
 				</TabList>
 				<TabContents>
 					<TabContent value="bar">
@@ -502,6 +502,32 @@ export function Demo() {
 						</Stack>
 					</TabContent>
 
+					<TabContent value="heatmap">
+						<Stack gap="xl">
+							<Example
+								title="Activity"
+								code={code`<HeatmapChart series={[{ xKey: 'hour', yKey: 'day', colorKey: 'commits', colorRange: greens }]} … />`}
+							>
+								<ChartContainer>
+									<HeatmapChart
+										aria-label="Commits by weekday and hour"
+										data={activity}
+										series={[
+											{
+												xKey: 'hour',
+												yKey: 'day',
+												colorKey: 'commits',
+												colorRange: greens,
+												colorName: 'Commits',
+											},
+										]}
+										formatValue={(value) => value.toFixed(0)}
+									/>
+								</ChartContainer>
+							</Example>
+						</Stack>
+					</TabContent>
+
 					<TabContent value="choropleth">
 						<Stack gap="xl">
 							<Example
@@ -525,32 +551,6 @@ export function Demo() {
 										]}
 										regionId={(feature) => String(feature.properties?.name)}
 										formatValue={(value) => `${value.toFixed(1)}M`}
-									/>
-								</ChartContainer>
-							</Example>
-						</Stack>
-					</TabContent>
-
-					<TabContent value="heatmap">
-						<Stack gap="xl">
-							<Example
-								title="Activity"
-								code={code`<HeatmapChart series={[{ xKey: 'hour', yKey: 'day', colorKey: 'commits', colorRange: greens }]} … />`}
-							>
-								<ChartContainer>
-									<HeatmapChart
-										aria-label="Commits by weekday and hour"
-										data={activity}
-										series={[
-											{
-												xKey: 'hour',
-												yKey: 'day',
-												colorKey: 'commits',
-												colorRange: greens,
-												colorName: 'Commits',
-											},
-										]}
-										formatValue={(value) => value.toFixed(0)}
 									/>
 								</ChartContainer>
 							</Example>
