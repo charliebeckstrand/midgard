@@ -5,6 +5,7 @@ export type { ChartAspectRatio } from './chart-layout'
 export type { ChartOrientation } from './chart-orientation'
 export type {
 	ChartLegendPlacement,
+	ChartReferenceLine,
 	ChartSeries,
 	ComboChartSeries,
 	Crosshair,

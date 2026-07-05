@@ -10,7 +10,13 @@ import type { ChartLegendPlacement } from './chart-schema'
 import type { ChartSnap } from './chart-snap'
 import { ChartTable } from './chart-table'
 import { ChartTooltip } from './chart-tooltip'
-import { type ChartHover, ChartHoverContext, type ChartPoint } from './context'
+import {
+	type ChartEmphasis,
+	ChartEmphasisContext,
+	type ChartHover,
+	ChartHoverContext,
+	type ChartPoint,
+} from './context'
 import type { ChartReadout } from './types'
 
 /** Whether two hover points coincide, so a redundant hover write can bail. @internal */
@@ -59,6 +65,8 @@ export type ChartFrameProps = AccessibleName & {
 	className?: string
 	/** HTML layered over the SVG inside the plot region — a donut's center content. */
 	overlay?: ReactNode
+	/** Visually-hidden HTML beside the data table — reference-line parity outside the plot. */
+	annotations?: ReactNode
 	/** The SVG content: axes, gridlines, marks, and the hit layer. */
 	children: ReactNode
 }
@@ -86,6 +94,7 @@ export function ChartFrame({
 	orientation,
 	className,
 	overlay,
+	annotations,
 	children,
 	...label
 }: ChartFrameProps) {
@@ -108,6 +117,13 @@ export function ChartFrame({
 				),
 		}),
 		[pointed],
+	)
+
+	const [referenceActive, setReferenceActive] = useState(false)
+
+	const emphasis = useMemo<ChartEmphasis>(
+		() => ({ referenceActive, setReferenceActive }),
+		[referenceActive],
 	)
 
 	// The SVG fills its box through the viewBox rather than pixel dimensions, so
@@ -149,33 +165,37 @@ export function ChartFrame({
 			className={cn('flex flex-col gap-3', fixedWidth === undefined && 'w-full', className)}
 			style={fixedWidth === undefined ? undefined : { width: fixedWidth }}
 		>
-			<ChartHoverContext value={hover}>
-				{aside ? (
-					// The panel and plot sit side by side from lg; below it they stack
-					// with the panel always under the chart, so a left panel reverses
-					// the row instead of moving in the DOM.
-					<div
-						className={cn(
-							'flex flex-col gap-2 lg:items-center',
-							legendPlacement === 'left' ? 'lg:flex-row-reverse' : 'lg:flex-row',
-						)}
-					>
-						{plotRegion}
+			<ChartEmphasisContext value={emphasis}>
+				<ChartHoverContext value={hover}>
+					{aside ? (
+						// The panel and plot sit side by side from lg; below it they stack
+						// with the panel always under the chart, so a left panel reverses
+						// the row instead of moving in the DOM.
+						<div
+							className={cn(
+								'flex flex-col gap-2 lg:items-center',
+								legendPlacement === 'left' ? 'lg:flex-row-reverse' : 'lg:flex-row',
+							)}
+						>
+							{plotRegion}
 
-						{legend}
-					</div>
-				) : (
-					<>
-						{legendPlacement === 'top' && legend}
+							{legend}
+						</div>
+					) : (
+						<>
+							{legendPlacement === 'top' && legend}
 
-						{plotRegion}
+							{plotRegion}
 
-						{legendPlacement === 'bottom' && legend}
-					</>
-				)}
-			</ChartHoverContext>
+							{legendPlacement === 'bottom' && legend}
+						</>
+					)}
+				</ChartHoverContext>
+			</ChartEmphasisContext>
 
 			{readout && <ChartTable readout={readout} />}
+
+			{annotations}
 		</div>
 	)
 }

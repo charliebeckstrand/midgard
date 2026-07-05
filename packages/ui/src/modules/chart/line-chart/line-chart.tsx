@@ -9,6 +9,7 @@ import { nearSeriesLines, withinSeriesAreas } from '../chart-hit-test'
 import { ChartLegend } from '../chart-legend'
 import { AnimatedChartLineMarks, ChartLineMarks, type ChartLineSeries } from '../chart-line-marks'
 import { ChartMarksLayer } from '../chart-marks-layer'
+import { ChartReferenceLines, ChartReferenceList } from '../chart-reference-lines'
 import type { CartesianChartProps } from '../chart-schema'
 import { snapTargets } from '../chart-snap'
 import { useChartCartesian } from '../use-chart-cartesian'
@@ -75,12 +76,26 @@ export function LineChart<T>({
 	interpolation = 'linear',
 	min,
 	max,
+	reference,
 	formatValue,
 	className,
 	...label
 }: LineChartProps<T>) {
 	const chart = useChartCartesian(
-		{ data, series, size, width, height, aspectRatio, axes, legend, min, max, formatValue },
+		{
+			data,
+			series,
+			size,
+			width,
+			height,
+			aspectRatio,
+			axes,
+			legend,
+			min,
+			max,
+			reference,
+			formatValue,
+		},
 		{ zeroBaseline: false, swatch: () => 'line' },
 	)
 
@@ -138,6 +153,7 @@ export function LineChart<T>({
 			tooltip={tooltip}
 			snap={snapTargets(rails, chart.bandPositions, chart.snapPoints)}
 			className={className}
+			annotations={<ChartReferenceList reference={reference} format={formatValue} />}
 		>
 			{gridLines && chart.yScale && (
 				<ChartGridLines plot={chart.plot} ticks={chart.yTicks.map((tick) => tick.at)} />
@@ -169,6 +185,14 @@ export function LineChart<T>({
 					}
 				/>
 			)}
+
+			{/* Last, over the hit area, so the rules win the pointer where they sit. */}
+			<ChartReferenceLines
+				plot={chart.plot}
+				scale={chart.yScale}
+				reference={reference}
+				format={formatValue}
+			/>
 		</ChartFrame>
 	)
 }

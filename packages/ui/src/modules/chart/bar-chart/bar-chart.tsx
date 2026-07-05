@@ -10,10 +10,11 @@ import { withinBarMarks } from '../chart-hit-test'
 import { ChartLegend } from '../chart-legend'
 import { ChartMarksLayer } from '../chart-marks-layer'
 import type { ChartOrientation } from '../chart-orientation'
+import { ChartReferenceLines, ChartReferenceList } from '../chart-reference-lines'
 import type { CartesianChartProps } from '../chart-schema'
 import { snapTargets } from '../chart-snap'
 import { useChartCartesian } from '../use-chart-cartesian'
-import { barMarks } from './bar-chart-geometry'
+import { barMarks, stackedBarMarks } from './bar-chart-geometry'
 
 /**
  * Props for {@link BarChart}. Requires an accessible name (`aria-label` or
@@ -28,6 +29,16 @@ export type BarChartProps<T> = CartesianChartProps<T> & {
 	 * @defaultValue 'vertical'
 	 */
 	orientation?: ChartOrientation
+	/**
+	 * Stack each category's series into one column — segments piled to their
+	 * running total, the value axis scaled to that sum — instead of grouping them
+	 * side by side. A surface gap separates the segments and only the outermost
+	 * keeps a rounded end.
+	 * @remarks Positive values only: a non-positive value takes no segment, the
+	 * same part-to-whole reading as the stacked {@link AreaChart}.
+	 * @defaultValue false
+	 */
+	stacked?: boolean
 }
 
 /**
@@ -41,7 +52,8 @@ export type BarChartProps<T> = CartesianChartProps<T> & {
  * square baseline end; negative values grow the other way from the zero line.
  * `orientation="horizontal"` transposes the whole frame — value axis on the
  * bottom, categories down the left — which suits long category labels and
- * ranked lists.
+ * ranked lists. `stacked` piles each category's series into one part-to-whole
+ * column on the summed value axis instead of grouping them side by side.
  * @example
  * ```tsx
  * <BarChart
@@ -68,26 +80,39 @@ export function BarChart<T>({
 	crosshair,
 	animate = false,
 	orientation = 'vertical',
+	stacked = false,
 	min,
 	max,
+	reference,
 	formatValue,
 	className,
 	...label
 }: BarChartProps<T>) {
 	const chart = useChartCartesian(
-		{ data, series, size, width, height, aspectRatio, axes, legend, min, max, formatValue },
-		{ zeroBaseline: true, swatch: () => 'rect', orientation },
+		{
+			data,
+			series,
+			size,
+			width,
+			height,
+			aspectRatio,
+			axes,
+			legend,
+			min,
+			max,
+			reference,
+			formatValue,
+		},
+		{ zeroBaseline: true, swatch: () => 'rect', orientation, stack: stacked },
 	)
 
-	const marks = chart.yScale
-		? barMarks(
-				chart.visible.map((meta) => meta.values),
-				chart.band,
-				chart.yScale.map,
-				chart.baseline,
-				chart.orientation,
-			)
-		: []
+	const seriesValues = chart.visible.map((meta) => meta.values)
+
+	const marks = !chart.yScale
+		? []
+		: stacked
+			? stackedBarMarks(seriesValues, chart.band, chart.yScale.map, chart.orientation)
+			: barMarks(seriesValues, chart.band, chart.yScale.map, chart.baseline, chart.orientation)
 
 	const paints = chart.visible.map((meta) => meta.paint)
 
@@ -133,6 +158,7 @@ export function BarChart<T>({
 			snap={snapTargets(rails, chart.bandPositions, chart.snapPoints)}
 			orientation={chart.orientation}
 			className={className}
+			annotations={<ChartReferenceList reference={reference} format={formatValue} />}
 		>
 			<ChartCartesianAxes
 				orientation={chart.orientation}
@@ -167,6 +193,15 @@ export function BarChart<T>({
 					orientation={chart.orientation}
 				/>
 			)}
+
+			{/* Last, over the hit area, so the rules win the pointer where they sit. */}
+			<ChartReferenceLines
+				plot={chart.plot}
+				scale={chart.yScale}
+				reference={reference}
+				orientation={chart.orientation}
+				format={formatValue}
+			/>
 		</ChartFrame>
 	)
 }

@@ -149,10 +149,15 @@ export function useChartCartesian<T>(
 	const visible = metas.filter((meta) => !hidden.has(meta.index))
 
 	// Stacked charts scale to the per-category column totals; every other chart
-	// scales to the individual values.
-	const domainValues = config.stack
-		? data.map((_, index) => visible.reduce((sum, meta) => sum + (meta.values[index] ?? 0), 0))
-		: visible.flatMap((meta) => meta.values.filter((value) => value !== null))
+	// scales to the individual values. Reference values join the domain the way
+	// min / max pins do, so an off-data target line stays inside the frame.
+	const referenceValues = props.reference?.map((line) => line.value) ?? []
+
+	const domainValues = (
+		config.stack
+			? data.map((_, index) => visible.reduce((sum, meta) => sum + (meta.values[index] ?? 0), 0))
+			: visible.flatMap((meta) => meta.values.filter((value) => value !== null))
+	).concat(referenceValues)
 
 	const categories = xKey ? data.map((datum) => String(datum[xKey])) : []
 

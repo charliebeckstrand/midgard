@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { BarChart } from '../../modules/chart/bar-chart'
-import { barMarks } from '../../modules/chart/bar-chart/bar-chart-geometry'
+import { barMarks, stackedBarMarks } from '../../modules/chart/bar-chart/bar-chart-geometry'
 import { bandScale } from '../../modules/chart/chart-scale'
 import { act, allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
 
@@ -394,6 +394,22 @@ describe('BarChart', () => {
 
 		expect(bySlot(container, 'chart-plot')).not.toBeNull()
 	})
+
+	it('scales stacked bars to the per-category sum, one segment per series', () => {
+		const grouped = renderUI(chart())
+
+		// Grouped tops out at the largest single value (80), so no tick reaches 100.
+		expect(bySlot(grouped.container, 'chart-axis-y')?.textContent).not.toContain('100')
+
+		const stacked = renderUI(chart({ stacked: true }))
+
+		// One segment per series per category still.
+		expect(allBySlot(stacked.container, 'chart-bar')).toHaveLength(6)
+
+		// The value axis now spans the summed column (Q2 = 80 + 31 = 111), so a
+		// three-figure tick appears that the grouped chart never reaches.
+		expect(bySlot(stacked.container, 'chart-axis-y')?.textContent).toContain('100')
+	})
 })
 
 describe('BarChart horizontal', () => {
@@ -556,5 +572,60 @@ describe('barMarks', () => {
 		expect(row?.[1]).toBeNull()
 
 		expect(row?.[2]).not.toBeNull()
+	})
+})
+
+describe('stackedBarMarks', () => {
+	// A single-category band; map inverts value → y so a taller value sits higher.
+	const band = bandScale({ count: 1, range: [0, 100] })
+
+	const map = (value: number) => 100 - value
+
+	it('stacks each series onto the running total in one shared column', () => {
+		const [lower, upper] = stackedBarMarks([[40], [30]], band, map)
+
+		const bottom = lower?.[0]
+
+		const top = upper?.[0]
+
+		// Both segments occupy the same band slot — one column, not a group.
+		expect(top?.x).toBe(bottom?.x)
+
+		expect(top?.x1).toBe(bottom?.x1)
+
+		// The second series rides the first: its span sits above, meeting at the
+		// cumulative boundary (map(40) = 60).
+		expect(bottom?.bottom).toBe(map(0))
+
+		expect(bottom?.top).toBe(map(40))
+
+		expect(top?.bottom).toBe(map(40))
+
+		expect(top?.top).toBe(map(70))
+	})
+
+	it('rounds only the outermost segment and squares the ones within', () => {
+		const [lower, upper] = stackedBarMarks([[40], [30]], band, map)
+
+		// The topmost segment keeps the rounded data end; inner segments are square.
+		expect(upper?.[0]?.d).toContain('A ')
+
+		expect(lower?.[0]?.d).not.toContain('A ')
+	})
+
+	it('takes no segment for a null, zero, or negative value', () => {
+		const [row] = stackedBarMarks(
+			[[null, 0, -5, 20]],
+			bandScale({ count: 4, range: [0, 400] }),
+			map,
+		)
+
+		expect(row?.[0]).toBeNull()
+
+		expect(row?.[1]).toBeNull()
+
+		expect(row?.[2]).toBeNull()
+
+		expect(row?.[3]).not.toBeNull()
 	})
 })

@@ -9,6 +9,7 @@ import { withinSeriesAreas } from '../chart-hit-test'
 import { ChartLegend } from '../chart-legend'
 import { AnimatedChartLineMarks, ChartLineMarks, type ChartLineSeries } from '../chart-line-marks'
 import { ChartMarksLayer } from '../chart-marks-layer'
+import { ChartReferenceLines, ChartReferenceList } from '../chart-reference-lines'
 import type { CartesianChartProps, Crosshair } from '../chart-schema'
 import type { SeriesMeta } from '../chart-series'
 import { snapTargets } from '../chart-snap'
@@ -122,12 +123,26 @@ export function AreaChart<T>({
 	interpolation = 'linear',
 	min,
 	max,
+	reference,
 	formatValue,
 	className,
 	...label
 }: AreaChartProps<T>) {
 	const chart = useChartCartesian(
-		{ data, series, size, width, height, aspectRatio, axes, legend, min, max, formatValue },
+		{
+			data,
+			series,
+			size,
+			width,
+			height,
+			aspectRatio,
+			axes,
+			legend,
+			min,
+			max,
+			reference,
+			formatValue,
+		},
 		{ zeroBaseline: true, swatch: () => 'line', stack: stacked },
 	)
 
@@ -205,6 +220,7 @@ export function AreaChart<T>({
 			tooltip={tooltip}
 			snap={snapTargets(rails, chart.bandPositions, snapPoints)}
 			className={className}
+			annotations={<ChartReferenceList reference={reference} format={formatValue} />}
 		>
 			{gridLines && yScale && (
 				<ChartGridLines plot={chart.plot} ticks={chart.yTicks.map((tick) => tick.at)} />
@@ -240,6 +256,14 @@ export function AreaChart<T>({
 					}
 				/>
 			)}
+
+			{/* Last, over the hit area, so the rules win the pointer where they sit. */}
+			<ChartReferenceLines
+				plot={chart.plot}
+				scale={yScale}
+				reference={reference}
+				format={formatValue}
+			/>
 		</ChartFrame>
 	)
 }

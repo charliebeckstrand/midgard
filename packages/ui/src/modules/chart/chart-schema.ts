@@ -111,6 +111,35 @@ export type Crosshair = {
 export type ResolvedCrosshair = Required<Crosshair>
 
 /**
+ * One reference line: a value-axis annotation drawn across the plot — a target,
+ * threshold, budget, or average to read the marks against. It sits at a raw
+ * domain `value`, so its position tracks the scale; the value also folds into
+ * the domain, keeping an off-data target on-frame rather than clamped to an
+ * edge.
+ */
+export type ChartReferenceLine = {
+	/** The domain value the line sits at, in the same units the series are read in. */
+	value: number
+	/** A short label drawn at the line's far end; omitted, the rule stands alone. */
+	label?: string
+	/**
+	 * The rule's colour: a named palette slot (rendered through the CVD-safe slot
+	 * classes) or any raw CSS colour string — a hex like `'#e11d48'`, an
+	 * `'oklch(…)'`, or any value CSS accepts — applied inline. Defaults to the
+	 * neutral de-emphasis slot, so a reference reads as chrome until coloured for
+	 * emphasis.
+	 * @defaultValue 'zinc'
+	 */
+	color?: ChartSeriesColor | (string & {})
+	/**
+	 * Dash the rule — the annotation convention, telling a reference apart from a
+	 * data line — or draw it solid.
+	 * @defaultValue true
+	 */
+	dashed?: boolean
+}
+
+/**
  * The props every chart shares: the data plus the frame's sizing, legend,
  * tooltip, and animation switches. Each chart type extends this with its own
  * `series` shape and mark-specific switches — intersect more props on to grow
@@ -196,6 +225,13 @@ export type CartesianFrameProps = {
 	min?: number
 	/** Value-domain ceiling; defaults to the data maximum. */
 	max?: number
+	/**
+	 * Reference lines drawn across the plot at fixed values — targets, thresholds,
+	 * or averages the marks read against. Each value folds into the domain so an
+	 * off-data line stays on-frame, and the rules draw over the marks so a mark
+	 * crossing one stays legible.
+	 */
+	reference?: ChartReferenceLine[]
 }
 
 /**

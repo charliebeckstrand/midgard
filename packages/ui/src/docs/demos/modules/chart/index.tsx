@@ -140,6 +140,20 @@ export function Demo() {
 								</ChartContainer>
 							</Example>
 
+							<Example title="Stacked" code={code`<BarChart stacked … />`}>
+								<ChartContainer>
+									<BarChart
+										aria-label="Revenue and costs by month, stacked"
+										data={months}
+										series={[
+											{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
+											{ xKey: 'month', yKey: 'costs', yName: 'Costs' },
+										]}
+										stacked
+									/>
+								</ChartContainer>
+							</Example>
+
 							<Example title="Horizontal" code={code`<BarChart orientation="horizontal" … />`}>
 								<ChartContainer>
 									<BarChart
@@ -158,6 +172,23 @@ export function Demo() {
 										data={swings}
 										series={[{ xKey: 'month', yKey: 'delta', yName: 'Swing' }]}
 										crosshair
+									/>
+								</ChartContainer>
+							</Example>
+
+							<Example
+								title="Reference lines"
+								code={code`<BarChart reference={[{ value: 55, label: 'Target', color: 'green' }, { value: 68, label: 'Ceiling', color: '#e11d48' }]} … />`}
+							>
+								<ChartContainer>
+									<BarChart
+										aria-label="Revenue by month against a target and ceiling"
+										data={months}
+										series={[{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' }]}
+										reference={[
+											{ value: 55, label: 'Target', color: 'green' },
+											{ value: 68, label: 'Ceiling', color: '#e11d48' },
+										]}
 									/>
 								</ChartContainer>
 							</Example>
