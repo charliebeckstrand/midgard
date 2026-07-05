@@ -9,6 +9,7 @@ import { bandExtent, type ChartOrientation, project, type Vec } from './chart-or
 import type { LinearScale } from './chart-scale'
 import type { ChartReferenceLine } from './chart-schema'
 import { formatChartValue } from './chart-series'
+import { useChartEmphasis } from './context'
 
 /** The neutral de-emphasis slot a reference takes until coloured. @internal */
 const DEFAULT_REFERENCE_COLOR = 'zinc' satisfies ChartSeriesColor
@@ -55,6 +56,8 @@ type ReferenceRuleProps = {
  * @internal
  */
 function ReferenceRule({ line, start, end, orientation, format }: ReferenceRuleProps) {
+	const { setReferenceActive } = useChartEmphasis()
+
 	const color = line.color ?? DEFAULT_REFERENCE_COLOR
 
 	const slot = isSeriesSlot(color)
@@ -64,7 +67,13 @@ function ReferenceRule({ line, start, end, orientation, format }: ReferenceRuleP
 	return (
 		<Tooltip placement={orientation === 'vertical' ? 'top' : 'right'} delay={0} size="sm">
 			<TooltipTrigger>
-				<g data-slot="chart-reference-line">
+				{/* Pointing the rule recedes the marks to it (composes with the
+				    tooltip's own hover handlers through the trigger). */}
+				<g
+					data-slot="chart-reference-line"
+					onPointerEnter={() => setReferenceActive(true)}
+					onPointerLeave={() => setReferenceActive(false)}
+				>
 					<line
 						{...points}
 						strokeWidth={REFERENCE_STROKE_WIDTH}

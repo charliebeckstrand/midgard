@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { BarChart } from '../../modules/chart/bar-chart'
 import type { ChartReferenceLine } from '../../modules/chart/chart-schema'
 import { LineChart } from '../../modules/chart/line-chart'
-import { allBySlot, bySlot, renderUI, userEvent, waitFor } from '../helpers'
+import { allBySlot, bySlot, fireEvent, renderUI, userEvent, waitFor } from '../helpers'
 
 const DATA = [
 	{ month: 'Jan', revenue: 40 },
@@ -162,6 +162,25 @@ describe('reference lines', () => {
 		expect(content?.textContent).toContain('55')
 
 		expect(content?.textContent).toContain('Target')
+	})
+
+	it('recedes the marks while a rule is hovered, like a legend emphasis', () => {
+		const { container } = bar([{ value: 50 }])
+
+		const marks = () => bySlot(container, 'chart-marks')?.getAttribute('class') ?? ''
+
+		expect(marks()).not.toContain('opacity-25')
+
+		const rule = bySlot(container, 'chart-reference-line') as Element
+
+		fireEvent.pointerEnter(rule)
+
+		// The marks dim to the rule while it is pointed.
+		expect(marks()).toContain('opacity-25')
+
+		fireEvent.pointerLeave(rule)
+
+		expect(marks()).not.toContain('opacity-25')
 	})
 
 	it('threads through the line chart too', () => {
