@@ -6,7 +6,7 @@
 
 The foundation is in place: pure scale and geometry cores (`chart-scale`, `chart-layout`, per-chart `*-geometry`), the shared frame (legend and visually-hidden data table as plain HTML around a `role="img"` plot), a hover context confined to the crosshair and tooltip overlays, the eight-slot series palette in `kata/chart`, and the Sparkline `animate` contract (static SVG by default, opt-in `motion/react` renderers inside `ReducedMotion`).
 
-Bar draws grouped zero-baseline spans as one-end-rounded paths, so negative values already render and stacking is an offset pass away; an `orientation` prop transposes the whole cartesian frame through `chart-orientation`'s single coordinate projection, so horizontal bars reuse the same scales, marks, hit test, and crosshair with categories down the side. Line breaks at missing values and surfaces isolated points as ringed markers. Pie sweeps positive shares with surface-colour gaps, fit-gated segment labels, and a donut hole for centered children. Combo layers bars behind pointed lines on one shared value axis.
+Bar draws grouped zero-baseline spans as one-end-rounded paths, so negative values already render; `stacked` piles each category's series into one part-to-whole column on the summed value axis, insetting the shared edges for the surface gap and rounding only the outermost segment. An `orientation` prop transposes the whole cartesian frame through `chart-orientation`'s single coordinate projection, so horizontal bars reuse the same scales, marks, hit test, and crosshair with categories down the side. Line breaks at missing values and surfaces isolated points as ringed markers. Pie sweeps positive shares with surface-colour gaps, fit-gated segment labels, and a donut hole for centered children. Combo layers bars behind pointed lines on one shared value axis.
 
 The legend is the series switchboard: centered toggle buttons where pointing an entry dims the other series and clicking toggles one off — the sweep, scales, and readout re-derive while slot colours hold to the fixed order.
 
@@ -15,8 +15,6 @@ The legend is the series switchboard: centered toggle buttons where pointing an 
 A `reference` prop annotates the four cartesian charts with fixed-value rules — targets, thresholds, averages — drawn across the band axis on the same `value → project → draw` path as the gridlines but on a raw domain value. Each value folds into the domain the way `min`/`max` pins do, so an off-data target stays on-frame, and the dashed rules draw over the marks so a mark crossing one stays legible. Each rule is a hover target floating a tooltip with its value and label, takes a named palette slot or any raw CSS colour (hex, `oklch()`), and carries visually-hidden parity beside the data table; horizontal orientation is free through the shared coordinate projection.
 
 ## Backlog
-
-- **Stacked bars.** `stacked?: boolean` on `BarChart`: a domain-sum pass over the existing `(x0, x1, y0, y1)` spans, segment gaps via the pie's surface-stroke trick, rounded cap on the outermost segment only.
 
 - **Time x-axis.** A time scale beside `bandScale` for date-keyed rows, with locale tick formatting through `@internationalized/date`.
 

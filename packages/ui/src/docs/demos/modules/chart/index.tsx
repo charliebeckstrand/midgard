@@ -140,6 +140,20 @@ export function Demo() {
 								</ChartContainer>
 							</Example>
 
+							<Example title="Stacked" code={code`<BarChart stacked … />`}>
+								<ChartContainer>
+									<BarChart
+										aria-label="Revenue and costs by month, stacked"
+										data={months}
+										series={[
+											{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
+											{ xKey: 'month', yKey: 'costs', yName: 'Costs' },
+										]}
+										stacked
+									/>
+								</ChartContainer>
+							</Example>
+
 							<Example title="Horizontal" code={code`<BarChart orientation="horizontal" … />`}>
 								<ChartContainer>
 									<BarChart

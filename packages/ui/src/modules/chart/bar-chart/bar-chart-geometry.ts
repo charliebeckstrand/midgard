@@ -150,6 +150,47 @@ function barSpan(
 }
 
 /**
+ * A both-ends-square vertical span from `baseline` to `valueY`, thickness
+ * `x0`→`x1` — an inner stacked segment, rounded at neither end.
+ *
+ * @internal
+ */
+function verticalSquarePath(x0: number, x1: number, valueY: number, baseline: number): string {
+	return `M ${x0} ${baseline} L ${x0} ${valueY} L ${x1} ${valueY} L ${x1} ${baseline} Z`
+}
+
+/** The vertical square path's transpose: the span runs along x. @internal */
+function horizontalSquarePath(y0: number, y1: number, valueX: number, baseline: number): string {
+	return `M ${baseline} ${y0} L ${valueX} ${y0} L ${valueX} ${y1} L ${baseline} ${y1} Z`
+}
+
+/**
+ * One stacked segment's path from its `baseEdge`→`dataEdge` value span and its
+ * band slot `c0`→`c1`: rounded at the data end only when it is the outermost
+ * segment, square at both ends within the stack.
+ *
+ * @internal
+ */
+function stackSegmentPath(
+	orientation: ChartOrientation,
+	c0: number,
+	c1: number,
+	dataEdge: number,
+	baseEdge: number,
+	rounded: boolean,
+): string {
+	if (orientation === 'vertical') {
+		return rounded
+			? verticalBarPath(c0, c1, dataEdge, baseEdge)
+			: verticalSquarePath(c0, c1, dataEdge, baseEdge)
+	}
+
+	return rounded
+		? horizontalBarPath(c0, c1, dataEdge, baseEdge)
+		: horizontalSquarePath(c0, c1, dataEdge, baseEdge)
+}
+
+/**
  * Projects series-major values onto grouped bar marks: each category's band
  * splits into per-series bars capped at the spec thickness, separated by the
  * surface gap, and centered as a group in their band.
@@ -185,6 +226,114 @@ export function barMarks(
 			if (valuePos === baseline) return null
 
 			return barSpan(orientation, valuePos, baseline, c0, c0 + thickness, `${seriesIndex}:${index}`)
+		}),
+	)
+}
+
+/** The topmost series drawing a positive segment in each category — the only one rounded. @internal */
+function topmostSeries(values: (number | null)[][], count: number): number[] {
+	const top = new Array<number>(count).fill(-1)
+
+	values.forEach((series, seriesIndex) => {
+		series.forEach((value, index) => {
+			if (value !== null && Number.isFinite(value) && value > 0) top[index] = seriesIndex
+		})
+	})
+
+	return top
+}
+
+/** One stacked segment's resolved placement, from {@link stackedBarMarks}. @internal */
+type StackedSegment = {
+	c0: number
+	thickness: number
+	/** Value-axis coord of the segment's baseline edge — its running-total floor. */
+	baseEdge: number
+	/** Value-axis coord of the segment's data edge — its cumulative top. */
+	dataEdge: number
+	/** Whether a segment sits below, so the shared baseline edge insets for the gap. */
+	hasBelow: boolean
+	/** Whether this is the outermost segment — its data end rounds and stays flush. */
+	rounded: boolean
+	key: string
+}
+
+/**
+ * One stacked segment: its hit span keeps the full running-total range so the
+ * column reads as one contiguous target, while its drawn path insets each
+ * shared edge by half {@link MARK_GAP} for the surface gap — the gap dropped on
+ * a segment too thin to hold it, rather than inverting.
+ *
+ * @internal
+ */
+function stackedSegment(orientation: ChartOrientation, segment: StackedSegment): BarMark {
+	const { c0, thickness, baseEdge, dataEdge, hasBelow, rounded, key } = segment
+
+	const c1 = c0 + thickness
+
+	const gap = MARK_GAP / 2
+
+	const toward = Math.sign(dataEdge - baseEdge)
+
+	const insetTotal = (hasBelow ? gap : 0) + (rounded ? 0 : gap)
+
+	const fits = Math.abs(dataEdge - baseEdge) > insetTotal + 1
+
+	const pathBase = fits && hasBelow ? baseEdge + toward * gap : baseEdge
+
+	const pathData = fits && !rounded ? dataEdge - toward * gap : dataEdge
+
+	// The hit span keeps the full edges (a contiguous column); only the path insets.
+	const mark = barSpan(orientation, dataEdge, baseEdge, c0, c1, key)
+
+	return { ...mark, d: stackSegmentPath(orientation, c0, c1, pathData, pathBase, rounded) }
+}
+
+/**
+ * Projects series-major values onto one stacked column per category: segment
+ * `s` spans `[sum(0..s-1), sum(0..s)]` on the value axis, all sharing the
+ * band's centered full-width slot. The value scale is expected to be the
+ * stacked (per-category sum) domain, so the column tops land inside the frame.
+ *
+ * @remarks Positive values only for now: a `null`, zero, or negative value
+ * takes no segment, matching the stacked {@link AreaChart}'s part-to-whole
+ * reading. Only the outermost segment keeps a rounded end; a {@link MARK_GAP}
+ * gap shows the surface between the rest.
+ * @internal
+ */
+export function stackedBarMarks(
+	values: (number | null)[][],
+	band: BandScale,
+	map: (value: number) => number,
+	orientation: ChartOrientation = 'vertical',
+): (BarMark | null)[][] {
+	const count = values[0]?.length ?? 0
+
+	const thickness = Math.max(1, Math.min(BAR_MAX_WIDTH, band.width))
+
+	const lower = new Array<number>(count).fill(0)
+
+	const outermost = topmostSeries(values, count)
+
+	return values.map((series, seriesIndex) =>
+		series.map((value, index) => {
+			if (value === null || !Number.isFinite(value) || value <= 0) return null
+
+			const lo = lower[index] ?? 0
+
+			const hi = lo + value
+
+			lower[index] = hi
+
+			return stackedSegment(orientation, {
+				c0: band.at(index) + (band.width - thickness) / 2,
+				thickness,
+				baseEdge: map(lo),
+				dataEdge: map(hi),
+				hasBelow: lo > 0,
+				rounded: seriesIndex === outermost[index],
+				key: `${seriesIndex}:${index}`,
+			})
 		}),
 	)
 }
