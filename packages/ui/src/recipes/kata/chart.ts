@@ -27,31 +27,36 @@ const { text } = iro
  * areas, slices, and SVG text, `text` (a currentColor class) for HTML swatches
  * (legend keys, tooltip rows — `<Swatch>` fills from it), and `onFill` for
  * label text set inside the mark's own fill — the one place text sits on a
- * series colour. `onFill` is white-first: the semibold label reads white on
- * every slot except the yellow-family fills (green, amber), where white drops
- * below a ~3.5:1 semibold floor and the label takes near-black ink instead; the
- * de-emphasis `zinc` takes ink on its light dark step. The eight slot hues carry
- * the categorical palette; `zinc` sits outside the slot order as the
- * de-emphasis colour for context series.
+ * series colour. `onFill` is white-first: the label reads `white` wherever
+ * white clears WCAG text AA (4.5:1) against the slice fill, and near-black
+ * `zinc-950` where it doesn't — resolved per mode, since the dark step shifts
+ * the fill. Light mode keeps white on blue / violet / red / rose (and the
+ * de-emphasis `zinc`) and inks orange / green / sky / amber; the lighter
+ * dark-mode fills drop white below the floor across the board, so every
+ * dark-mode label takes `zinc-950`. The `__tests__/recipes/chart-label-contrast`
+ * guard re-derives each pick from Tailwind's theme with the `readableInk`
+ * utility and fails on drift. The eight slot hues carry the categorical
+ * palette; `zinc` sits outside the slot order as the de-emphasis colour for
+ * context series.
  */
 const series = {
 	blue: {
 		stroke: mode('stroke-blue-600', 'dark:stroke-blue-500'),
 		fill: mode('fill-blue-600', 'dark:fill-blue-500'),
 		text: mode('text-blue-600', 'dark:text-blue-500'),
-		onFill: mode('fill-white', 'dark:fill-white'),
+		onFill: mode('fill-white', 'dark:fill-zinc-950'),
 	},
 	orange: {
 		stroke: mode('stroke-orange-600', 'dark:stroke-orange-600'),
 		fill: mode('fill-orange-600', 'dark:fill-orange-600'),
 		text: mode('text-orange-600', 'dark:text-orange-600'),
-		onFill: mode('fill-white', 'dark:fill-white'),
+		onFill: mode('fill-zinc-950', 'dark:fill-zinc-950'),
 	},
 	violet: {
 		stroke: mode('stroke-violet-600', 'dark:stroke-violet-500'),
 		fill: mode('fill-violet-600', 'dark:fill-violet-500'),
 		text: mode('text-violet-600', 'dark:text-violet-500'),
-		onFill: mode('fill-white', 'dark:fill-white'),
+		onFill: mode('fill-white', 'dark:fill-zinc-950'),
 	},
 	green: {
 		stroke: mode('stroke-green-600', 'dark:stroke-green-600'),
@@ -63,13 +68,13 @@ const series = {
 		stroke: mode('stroke-red-600', 'dark:stroke-red-500'),
 		fill: mode('fill-red-600', 'dark:fill-red-500'),
 		text: mode('text-red-600', 'dark:text-red-500'),
-		onFill: mode('fill-white', 'dark:fill-white'),
+		onFill: mode('fill-white', 'dark:fill-zinc-950'),
 	},
 	sky: {
 		stroke: mode('stroke-sky-600', 'dark:stroke-sky-600'),
 		fill: mode('fill-sky-600', 'dark:fill-sky-600'),
 		text: mode('text-sky-600', 'dark:text-sky-600'),
-		onFill: mode('fill-white', 'dark:fill-white'),
+		onFill: mode('fill-zinc-950', 'dark:fill-zinc-950'),
 	},
 	amber: {
 		stroke: mode('stroke-amber-600', 'dark:stroke-amber-600'),
@@ -81,7 +86,7 @@ const series = {
 		stroke: mode('stroke-rose-600', 'dark:stroke-rose-500'),
 		fill: mode('fill-rose-600', 'dark:fill-rose-500'),
 		text: mode('text-rose-600', 'dark:text-rose-500'),
-		onFill: mode('fill-white', 'dark:fill-white'),
+		onFill: mode('fill-white', 'dark:fill-zinc-950'),
 	},
 	zinc: {
 		stroke: mode('stroke-zinc-600', 'dark:stroke-zinc-400'),

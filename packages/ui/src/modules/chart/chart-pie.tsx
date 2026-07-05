@@ -112,9 +112,10 @@ type PieSegmentLabelsProps = {
 
 /**
  * The fit-gated labels set inside the slices. Text on a mark's own fill is
- * the one place ink follows the series colour — each hue's `onFill` pick
- * clears contrast in both modes. Under `animate` a label fades in as the
- * sweep uncovers its slice.
+ * the one place ink follows the series colour — each hue's `onFill` pick is
+ * white-first, dropping to near-black only where white can't clear WCAG text
+ * AA against that fill (see `kata/chart`). Under `animate` a label fades in as
+ * the sweep uncovers its slice.
  *
  * @internal
  */

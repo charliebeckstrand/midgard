@@ -1,5 +1,18 @@
 export { countMeaningful, cursorForCount } from './caret'
 export { clamp } from './clamp'
+export {
+	type ColorInput,
+	contrastRatio,
+	meetsContrast,
+	parseColor,
+	readableInk,
+	relativeLuminance,
+	type Srgb,
+	WCAG_AA_LARGE,
+	WCAG_AA_TEXT,
+	WCAG_AAA_TEXT,
+	WCAG_NON_TEXT,
+} from './contrast'
 export { digitsOnly } from './digits-only'
 export { isTopDismissLayer, registerDismissLayer } from './dismiss-layers'
 export { subscribeDocumentEvent } from './document-listener'

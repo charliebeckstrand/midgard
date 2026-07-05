@@ -97,6 +97,20 @@ function tokenOf(cls: string): { token: string; alpha: number } {
 	throw new Error(`no colour in class: ${cls}`)
 }
 
+/**
+ * The raw `oklch(…)` string a Tailwind colour token resolves to in the theme
+ * (e.g. `green-600`, `orange-600`). Lets a guard measure any token — including
+ * the chart-only hues (`orange`, `sky`) outside the iro palette — with the
+ * shared `contrast` utility.
+ */
+export function themeColor(token: string): string {
+	const oklch = THEME.get(token)
+
+	if (!oklch) throw new Error(`unknown colour token: ${token}`)
+
+	return oklch
+}
+
 /** The page / card surfaces a foreground sits on. */
 export const SURFACE: { light: RGB; dark: RGB } = { light: WHITE, dark: linearOf('zinc-900') }
 

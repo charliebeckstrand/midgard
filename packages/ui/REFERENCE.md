@@ -14,7 +14,7 @@
 | Providers | [`docs/PROVIDERS.md`](docs/PROVIDERS.md) | `ui/providers/*` — density, glass, headless, locale, motion, toast, and the app-root `UIProvider`. |
 | Recipes | [`docs/RECIPES.md`](docs/RECIPES.md) | The design layer — Kiso tokens → Katakana bridge → Kata, plus the recipe engine. |
 | Core | [`docs/CORE.md`](docs/CORE.md) | `ui/core` — `cn`, `createContext`, `createSlot`, `announce`, and friends. |
-| Utilities | [`docs/UTILITIES.md`](docs/UTILITIES.md) | Internal pure helpers (numeric, caret, dismiss-layers, keyboard navigation). |
+| Utilities | [`docs/UTILITIES.md`](docs/UTILITIES.md) | Internal pure helpers (numeric, colour contrast, caret, dismiss-layers, keyboard navigation). |
 
 Per-symbol behavior, props, and defaults live in each symbol's TSDoc; the docs site (`pnpm docs`) renders them alongside live demos via the shared [`docs`](../docs) engine. Keep these docs current per [`../../CONVENTIONS.md`](../../CONVENTIONS.md) §12.
 
