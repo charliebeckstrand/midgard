@@ -53,7 +53,10 @@ export type BarChartProps<T> = CartesianChartProps<T> & {
  * `orientation="horizontal"` transposes the whole frame — value axis on the
  * bottom, categories down the left — which suits long category labels and
  * ranked lists. `stacked` piles each category's series into one part-to-whole
- * column on the summed value axis instead of grouping them side by side.
+ * column on the summed value axis instead of grouping them side by side. Focus
+ * the plot to drive the crosshair and tooltip by keyboard — the band-axis
+ * arrows step categories, the value-axis arrows cycle each category's series
+ * values, transposed with the orientation.
  * @example
  * ```tsx
  * <BarChart
@@ -156,6 +159,7 @@ export function BarChart<T>({
 			readout={chart.readout}
 			tooltip={tooltip}
 			snap={snapTargets(rails, chart.bandPositions, chart.snapPoints)}
+			focus={{ bandPositions: chart.bandPositions, valuePoints: chart.snapPoints }}
 			orientation={chart.orientation}
 			className={className}
 			annotations={<ChartReferenceList reference={reference} format={formatValue} />}

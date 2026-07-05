@@ -91,7 +91,10 @@ function stackedToLine(band: { line: string; area: string; points: LineSeriesGeo
  * the unstacked variant breaks its lines at gaps like {@link LineChart}. The
  * crosshair defaults on here — a snapping y-rule meeting the nearest point —
  * dropping the snap under smooth interpolation; override it with the
- * `crosshair` prop.
+ * `crosshair` prop. Focus the plot to drive the crosshair and tooltip by
+ * keyboard — the band-axis arrows step categories, the value-axis arrows cycle
+ * each category's series values (an unstacked chart; a stacked column reads as
+ * one whole and offers no per-series point to navigate).
  * @example
  * ```tsx
  * <AreaChart
@@ -219,6 +222,7 @@ export function AreaChart<T>({
 			readout={chart.readout}
 			tooltip={tooltip}
 			snap={snapTargets(rails, chart.bandPositions, snapPoints)}
+			focus={{ bandPositions: chart.bandPositions, valuePoints: snapPoints }}
 			className={className}
 			annotations={<ChartReferenceList reference={reference} format={formatValue} />}
 		>

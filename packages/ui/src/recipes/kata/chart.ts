@@ -18,7 +18,7 @@
  * reordering or re-shading.
  */
 import { mode } from '../../core/recipe'
-import { iro, kokkaku } from '../kiso'
+import { iro, kokkaku, sen } from '../kiso'
 
 const { text } = iro
 
@@ -126,5 +126,7 @@ export const k = {
 	label: ['text-sm text-left', 'leading-tight', ...text.muted],
 	/** Tooltip value ink: the strong element, values lead. */
 	value: ['text-xs', 'tabular-nums', 'font-medium', ...text.default],
+	/** The keyboard focus ring on the plot region when arrow-key navigation is enabled. */
+	focusRing: sen.focus.ring,
 	skeleton: kokkaku.chart,
 } as const

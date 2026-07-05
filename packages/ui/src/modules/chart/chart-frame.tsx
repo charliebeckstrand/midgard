@@ -3,6 +3,7 @@
 import { type ReactNode, type RefObject, useMemo, useState } from 'react'
 import { cn } from '../../core'
 import type { FrameReserve } from '../../hooks'
+import { k } from '../../recipes/kata/chart'
 import type { AccessibleName } from '../../types'
 import type { ChartOrientation } from './chart-orientation'
 import { ChartPlotBox } from './chart-plot-box'
@@ -18,10 +19,28 @@ import {
 	type ChartPoint,
 } from './context'
 import type { ChartReadout } from './types'
+import {
+	type ChartFocusTargets,
+	type ChartKeyboardProps,
+	useChartKeyboard,
+} from './use-chart-keyboard'
 
 /** Whether two hover points coincide, so a redundant hover write can bail. @internal */
 function samePoint(a: ChartPoint | null, b: ChartPoint | null): boolean {
 	return a === b || (a !== null && b !== null && a.x === b.x && a.y === b.y)
+}
+
+/**
+ * The plot region's attributes: the keyboard tab stop and its focus ring when
+ * `keyboard` makes the region navigable, else a plain non-focusable region.
+ *
+ * @internal
+ */
+function plotRegionProps(keyboard: ChartKeyboardProps | null, aside: boolean) {
+	return {
+		...keyboard,
+		className: cn('relative rounded-sm', keyboard && k.focusRing, aside && 'min-w-0 flex-1'),
+	}
 }
 
 /** Props for {@link ChartFrame}; the accessible name spreads onto the `role="img"` plot region. @internal */
@@ -58,6 +77,13 @@ export type ChartFrameProps = AccessibleName & {
 	/** Snap targets when the crosshair snaps, carrying the tooltip to the intersection. */
 	snap?: ChartSnap
 	/**
+	 * Band centers and value points that make the plot a keyboard tab stop: the
+	 * arrow keys walk them through the same hover the pointer drives. Omitted on
+	 * charts that don't navigate by category (pie / donut), leaving the region a
+	 * plain `role="img"`.
+	 */
+	focus?: ChartFocusTargets
+	/**
 	 * Which way a cartesian chart faces, so the snapped tooltip anchor transposes.
 	 * @defaultValue 'vertical'
 	 */
@@ -91,6 +117,7 @@ export function ChartFrame({
 	readout,
 	tooltip,
 	snap,
+	focus,
 	orientation,
 	className,
 	overlay,
@@ -119,6 +146,15 @@ export function ChartFrame({
 		[pointed],
 	)
 
+	// Arrow-key navigation over the value points, driving the same hover the
+	// pointer does — a tab stop only where a readout can answer it.
+	const keyboard = useChartKeyboard(
+		focus,
+		orientation ?? 'vertical',
+		tooltip && readout !== null,
+		hover.set,
+	)
+
 	const [referenceActive, setReferenceActive] = useState(false)
 
 	const emphasis = useMemo<ChartEmphasis>(
@@ -142,7 +178,7 @@ export function ChartFrame({
 			data-slot="chart-plot"
 			role="img"
 			{...label}
-			className={cn('relative', aside && 'min-w-0 flex-1')}
+			{...plotRegionProps(keyboard, aside)}
 		>
 			{/* ChartPlotBox reserves the box height from its own width — steady before
 			    the width is measured and across animation replays — or takes a fixed

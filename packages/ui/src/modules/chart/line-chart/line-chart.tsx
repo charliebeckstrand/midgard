@@ -47,7 +47,9 @@ export type LineChartProps<T> = CartesianChartProps<T> & {
  * category, and a visually-hidden data table for assistive tech.
  *
  * @remarks The value domain follows the data; pin `min` / `max` to compare
- * charts on one scale.
+ * charts on one scale. Focus the plot to drive the crosshair and tooltip by
+ * keyboard — the band-axis arrows step categories, the value-axis arrows cycle
+ * each category's series values.
  * @example
  * ```tsx
  * <LineChart
@@ -152,6 +154,7 @@ export function LineChart<T>({
 			readout={chart.readout}
 			tooltip={tooltip}
 			snap={snapTargets(rails, chart.bandPositions, chart.snapPoints)}
+			focus={{ bandPositions: chart.bandPositions, valuePoints: chart.snapPoints }}
 			className={className}
 			annotations={<ChartReferenceList reference={reference} format={formatValue} />}
 		>
