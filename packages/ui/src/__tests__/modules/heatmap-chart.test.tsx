@@ -106,7 +106,7 @@ describe('HeatmapChart', () => {
 		expect(dimmed()).toBe(0)
 	})
 
-	it('outlines the probed class so a dark cell stays discernible against the dim', () => {
+	it('outlines the probed class with an ink chosen for contrast against each cell', () => {
 		const { container } = renderUI(
 			<HeatmapChart aria-label="Commits" data={ROWS} series={SERIES} width={400} />,
 		)
@@ -116,7 +116,8 @@ describe('HeatmapChart', () => {
 		expect(track).not.toBeNull()
 
 		// jsdom reports a zero box, which collapses the probe to NaN; stand in a real
-		// track so probing near the top resolves to the high (dark) class.
+		// track so a probe resolves to a real class. The bar runs low (bottom) to
+		// high (top): RANGE is [light, dark], so the top class is dark, the bottom light.
 		;(track as Element).getBoundingClientRect = () =>
 			({
 				top: 0,
@@ -130,19 +131,32 @@ describe('HeatmapChart', () => {
 				toJSON: () => ({}),
 			}) as DOMRect
 
-		// Near the top of the bar is the high class — the cells that read as near
-		// background, and so need the outline rather than opacity to be seen.
-		fireEvent.pointerMove(track as Element, { clientY: 8 })
+		const outlined = () =>
+			cellRects(container).filter((rect) => rect.getAttribute('stroke') !== null)
 
-		const outlined = cellRects(container).filter((rect) =>
-			rect.getAttribute('class')?.includes('stroke-'),
-		)
+		// Probe the top (dark) class — a dark cell needs a light ring to read.
+		fireEvent.pointerMove(track as Element, { clientY: 4 })
 
-		expect(outlined.length).toBeGreaterThan(0)
+		const onDark = outlined()
 
-		// The outline is the emphasis; a focused cell is never also dimmed.
-		for (const rect of outlined) {
+		expect(onDark.length).toBeGreaterThan(0)
+
+		for (const rect of onDark) {
+			// Light ink, and the outline replaces the dim — a focused cell is never dimmed.
+			expect(rect.getAttribute('stroke')).toBe('#ffffff')
+
 			expect(rect.getAttribute('class')).not.toContain('opacity-25')
+		}
+
+		// Probe the bottom (light) class — a light cell needs a dark ring instead.
+		fireEvent.pointerMove(track as Element, { clientY: 156 })
+
+		const onLight = outlined()
+
+		expect(onLight.length).toBeGreaterThan(0)
+
+		for (const rect of onLight) {
+			expect(rect.getAttribute('stroke')).toBe('#18181b')
 		}
 	})
 

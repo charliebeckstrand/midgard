@@ -15,7 +15,13 @@ import { TooltipContext } from '../../../components/tooltip/context'
 import { cn, createContext } from '../../../core'
 import { usePlotFrame } from '../../../hooks'
 import { k } from '../../../recipes/kata/chart'
-import { binIndex, type ColorBin, resolveColorBins, valueExtent } from '../../../utilities'
+import {
+	binIndex,
+	type ColorBin,
+	readableInk,
+	resolveColorBins,
+	valueExtent,
+} from '../../../utilities'
 import { RangeArrow, RangeLegend } from '../../map'
 import { ChartAxis, type ChartAxisTick } from '../chart-axis'
 import { BAND_LABEL_HEIGHT, GUTTER_GAP, TICK_CHAR_WIDTH } from '../chart-constants'
@@ -34,6 +40,14 @@ import {
 
 /** The neutral fill for a cell with no datum, one step off the surface. @internal */
 const NO_DATA_FILL = 'fill-zinc-100 dark:fill-zinc-800'
+
+/**
+ * The two inks a focused cell's outline picks between — near-white and
+ * near-black. Chosen per cell for contrast against its own fill, so a light
+ * cell rings dark and a dark cell rings light rather than a fixed colour that
+ * vanishes against half the scale. @internal
+ */
+const OUTLINE_INKS = ['#ffffff', '#18181b'] as const
 
 /** The pointed cell and the exact pointer point the tooltip tracks. @internal */
 type HeatmapHover = {
@@ -106,26 +120,30 @@ function HeatmapFocusProvider({ children }: { children: ReactNode }) {
 	return <HeatmapFocusContext value={value}>{children}</HeatmapFocusContext>
 }
 
-/** Props for {@link HeatmapCells}: the resolved cells, their fills, and their bins. @internal */
+/** Props for {@link HeatmapCells}: the resolved cells, their fills, bins, and outline inks. @internal */
 type HeatmapCellsProps = {
 	cells: ReturnType<typeof heatmapCells>
 	/** The fill per cell, index-aligned; `null` paints the no-data neutral. */
 	fills: (string | null)[]
 	/** The bin per cell, index-aligned; `null` for a no-data cell. Dims against the legend probe. */
 	cellBins: (number | null)[]
+	/** The focus-outline ink per cell, index-aligned — contrast-chosen against its own fill. */
+	outlines: (string | null)[]
 }
 
 /**
  * The cell grid: one rect per matrix cell, painted from the sequential scale or
- * the neutral no-data fill. While the legend probes a class its cells ring in
- * the surface ink and the rest dim — the heatmap's counterpart to the
- * choropleth's region emphasis. The ring is the discernible channel: opacity
- * alone leaves a dark class at the scale's high end reading as background, so
- * the focused cells carry an outline that holds against any fill.
+ * the neutral no-data fill. While the legend probes a class its cells ring and
+ * the rest dim — the heatmap's counterpart to the choropleth's region emphasis.
+ * The ring is the discernible channel opacity can't be: a dark class at the
+ * scale's high end reads as background under a dim, so the focused cells carry
+ * an outline. That ink is contrast-chosen against each cell's own fill (light
+ * cells ring dark, dark cells ring light), since a fixed colour would vanish
+ * against half the ramp.
  *
  * @internal
  */
-function HeatmapCells({ cells, fills, cellBins }: HeatmapCellsProps) {
+function HeatmapCells({ cells, fills, cellBins, outlines }: HeatmapCellsProps) {
 	const { bin: focus } = useHeatmapFocus()
 
 	return (
@@ -136,6 +154,8 @@ function HeatmapCells({ cells, fills, cellBins }: HeatmapCellsProps) {
 				const focused = focus !== null && cellBins[index] === focus
 
 				const dimmed = focus !== null && !focused
+
+				const outline = focused ? outlines[index] : null
 
 				return (
 					<rect
@@ -149,9 +169,9 @@ function HeatmapCells({ cells, fills, cellBins }: HeatmapCellsProps) {
 							'transition-opacity',
 							fill == null && NO_DATA_FILL,
 							dimmed && 'opacity-25',
-							focused && 'stroke-2 stroke-zinc-900 dark:stroke-white',
 						)}
 						{...(fill == null ? {} : { fill })}
+						{...(outline == null ? {} : { stroke: outline, strokeWidth: 2 })}
 					/>
 				)
 			})}
@@ -427,6 +447,7 @@ type HeatmapModel = {
 	cells: ReturnType<typeof heatmapCells>
 	fills: (string | null)[]
 	cellBins: (number | null)[]
+	outlines: (string | null)[]
 	bins: ColorBin[]
 	domain: [number, number] | null
 	ticks: { x: ChartAxisTick[]; y: ChartAxisTick[] }
@@ -513,6 +534,14 @@ function useHeatmap<T>(
 		[cellBins, bins],
 	)
 
+	// Focus-outline ink per cell, contrast-chosen against its own fill so the ring
+	// reads on any cell — light cells ring dark, dark cells ring light. Keyed to
+	// the fills, so it recomputes on a data or scale change, not on a probe.
+	const outlines = useMemo(
+		() => fills.map((fill) => (fill === null ? null : readableInk(fill, OUTLINE_INKS))),
+		[fills],
+	)
+
 	const format = formatValue ?? formatChartValue
 
 	return {
@@ -529,6 +558,7 @@ function useHeatmap<T>(
 		cells,
 		fills,
 		cellBins,
+		outlines,
 		bins,
 		domain,
 		ticks: heatmapTicks(matrix, xBand, yBand, plot),
@@ -587,6 +617,7 @@ export function HeatmapChart<T>({
 		cells,
 		fills,
 		cellBins,
+		outlines,
 		bins,
 		domain,
 		ticks,
@@ -606,7 +637,7 @@ export function HeatmapChart<T>({
 
 			<ChartAxis axis="x" plot={plot} ticks={ticks.x} line={false} />
 
-			<HeatmapCells cells={cells} fills={fills} cellBins={cellBins} />
+			<HeatmapCells cells={cells} fills={fills} cellBins={cellBins} outlines={outlines} />
 
 			{tooltip && rows > 0 && cols > 0 && (
 				<HeatmapHitLayer plot={plot} rows={rows} cols={cols} xBand={xBand} yBand={yBand} />
