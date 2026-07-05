@@ -27,7 +27,19 @@ export type FrameSizing =
 	| { mode: 'fixed'; height: number }
 	| { mode: 'aspect'; ratio: number }
 	| { mode: 'fill' }
-	| { mode: 'content'; hMargin: number; vMargin: number }
+	| {
+			mode: 'content'
+			hMargin: number
+			vMargin: number
+			/**
+			 * Tight radius override once the real `width` is known, replacing the
+			 * flat `width / 2 - hMargin` subtraction — a pie's asymmetric callout
+			 * fit, whose margin isn't the same constant on both sides. `hMargin`
+			 * still sizes the CSS pre-measurement reserve, an approximation this
+			 * only refines after the first real measurement.
+			 */
+			radius?: (width: number) => number
+	  }
 
 /**
  * How a width-derived frame reserves its drawing height from its own width
@@ -82,10 +94,10 @@ export function resolveFrameSizing(
 	if (sizing.mode === 'fill') return { height: containerHeight, reserve: null }
 
 	if (sizing.mode === 'content') {
-		// height = 2·radius + 2·vMargin and radius = max(0, width/2 − hMargin), so
-		// the box is aspect-ratio 1 shifted by `offset` and floored at `min` —
-		// max(min, width + offset) — reserved from the width the same way an aspect
-		// ratio is, so it holds before the width is measured and never collapses.
+		// The CSS reserve always sizes off the flat hMargin — an approximation of
+		// the true radius, refined below once a real width lands — since a
+		// per-slice margin isn't expressible as the single `width + offset` a CSS
+		// padding box can hold before that measurement.
 		const reserve: FrameReserve = {
 			mode: 'content',
 			offset: 2 * (sizing.vMargin - sizing.hMargin),
@@ -94,7 +106,12 @@ export function resolveFrameSizing(
 
 		if (width <= 0) return { height: 0, reserve }
 
-		const radius = Math.max(0, width / 2 - sizing.hMargin)
+		// height = 2·radius + 2·vMargin and radius = max(0, width/2 − hMargin) by
+		// default, so the box is aspect-ratio 1 shifted by `offset` and floored at
+		// `min` — max(min, width + offset) — reserved from the width the same way
+		// an aspect ratio is, so it holds before the width is measured and never
+		// collapses. `radius` refines that once the real width is known.
+		const radius = Math.max(0, sizing.radius ? sizing.radius(width) : width / 2 - sizing.hMargin)
 
 		return { height: Math.round(2 * radius + 2 * sizing.vMargin), reserve }
 	}
