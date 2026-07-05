@@ -74,7 +74,7 @@ export const REFERENCE_STROKE_WIDTH = 2
 export const REFERENCE_DASH = '6 4'
 
 /** Transparent stroke width making the reference rule an easy hover target. @internal */
-export const REFERENCE_HIT_WIDTH = 16
+export const REFERENCE_HIT_WIDTH = 32
 
 // Motion timings mirror the Sparkline's (module-private there), so charts and
 // sparklines animating side by side read as one family.
