@@ -12,6 +12,7 @@ import { nearSeriesLines, withinBarMarks, withinSeriesAreas } from '../chart-hit
 import { ChartLegend } from '../chart-legend'
 import { AnimatedChartLineMarks, ChartLineMarks, type ChartLineSeries } from '../chart-line-marks'
 import { ChartMarksLayer } from '../chart-marks-layer'
+import { useChartTexture } from '../chart-pattern-defs'
 import { ChartReferenceLines, ChartReferenceList } from '../chart-reference-lines'
 import type { CartesianFrameProps, ChartBaseProps, ComboChartSeries } from '../chart-schema'
 import type { SeriesMeta } from '../chart-series'
@@ -82,6 +83,8 @@ export function ComboChart<T>({
 	min,
 	max,
 	reference,
+	xAxis,
+	texture = false,
 	formatValue,
 	className,
 	...label
@@ -99,6 +102,7 @@ export function ComboChart<T>({
 			min,
 			max,
 			reference,
+			xAxis,
 			formatValue,
 		},
 		{
@@ -158,6 +162,17 @@ export function ComboChart<T>({
 
 	const barDims = barMetas.map(dim)
 
+	// One tile set over every visible slot, so the bars and area washes both
+	// resolve their fill; the line series carry no fill and stay flat.
+	const tex = useChartTexture(
+		texture,
+		chart.visible.map((meta) => ({ color: meta.color, paint: meta.paint })),
+	)
+
+	const barFills = barMetas.map((meta) => tex.fillFor(meta.color))
+
+	const areaFills = areaMetas.map((meta) => tex.fillFor(meta.color))
+
 	// Stroke the line and area dots wherever bars sit behind them; with the bars
 	// hidden the curves stand alone and the dots need no stroke.
 	const stroke = bars.length > 0
@@ -169,17 +184,41 @@ export function ComboChart<T>({
 	// lines ride on top.
 	const marksNode = animate ? (
 		<>
-			<AnimatedChartBarMarks marks={bars} paints={barPaints} dimmed={barDims} />
+			<AnimatedChartBarMarks
+				marks={bars}
+				paints={barPaints}
+				dimmed={barDims}
+				fills={barFills}
+				textureActive={tex.active}
+			/>
 
-			<AnimatedChartLineMarks list={areas} fill={true} stroke={stroke} />
+			<AnimatedChartLineMarks
+				list={areas}
+				fill={true}
+				stroke={stroke}
+				fills={areaFills}
+				textureActive={tex.active}
+			/>
 
 			<AnimatedChartLineMarks list={lines} fill={false} stroke={stroke} />
 		</>
 	) : (
 		<>
-			<ChartBarMarks marks={bars} paints={barPaints} dimmed={barDims} />
+			<ChartBarMarks
+				marks={bars}
+				paints={barPaints}
+				dimmed={barDims}
+				fills={barFills}
+				textureActive={tex.active}
+			/>
 
-			<ChartLineMarks list={areas} fill={true} stroke={stroke} />
+			<ChartLineMarks
+				list={areas}
+				fill={true}
+				stroke={stroke}
+				fills={areaFills}
+				textureActive={tex.active}
+			/>
 
 			<ChartLineMarks list={lines} fill={false} stroke={stroke} />
 		</>
@@ -203,6 +242,7 @@ export function ComboChart<T>({
 						onToggle={chart.toggleSeries}
 						onFocus={chart.setEmphasis}
 						panel={legend === 'left' || legend === 'right'}
+						texture={tex.active}
 					/>
 				)
 			}
@@ -210,9 +250,14 @@ export function ComboChart<T>({
 			readout={chart.readout}
 			tooltip={tooltip}
 			snap={snapTargets(rails, chart.bandPositions, chart.snapPoints)}
+			count={data.length}
+			bandPositions={chart.bandPositions}
+			snapPoints={chart.snapPoints}
 			className={className}
 			annotations={<ChartReferenceList reference={reference} format={formatValue} />}
 		>
+			{tex.defs}
+
 			{gridLines && yScale && (
 				<ChartGridLines plot={chart.plot} ticks={chart.yTicks.map((tick) => tick.at)} />
 			)}

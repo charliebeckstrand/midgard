@@ -3,6 +3,7 @@
 import { type ReactNode, type RefObject, useMemo, useState } from 'react'
 import { cn } from '../../core'
 import type { FrameReserve } from '../../hooks'
+import { k } from '../../recipes/kata/chart'
 import type { AccessibleName } from '../../types'
 import type { ChartOrientation } from './chart-orientation'
 import { ChartPlotBox } from './chart-plot-box'
@@ -18,6 +19,7 @@ import {
 	type ChartPoint,
 } from './context'
 import type { ChartReadout } from './types'
+import { useChartKeyboard } from './use-chart-keyboard'
 
 /** Whether two hover points coincide, so a redundant hover write can bail. @internal */
 function samePoint(a: ChartPoint | null, b: ChartPoint | null): boolean {
@@ -62,6 +64,16 @@ export type ChartFrameProps = AccessibleName & {
 	 * @defaultValue 'vertical'
 	 */
 	orientation?: ChartOrientation
+	/**
+	 * Category count for keyboard roving; the plot becomes a tab stop whose arrow
+	 * keys move a cursor across the categories. Omitted (pie / donut), the plot
+	 * takes no keyboard focus.
+	 */
+	count?: number
+	/** Each category's band-axis center — the keyboard cursor's band position. */
+	bandPositions?: number[]
+	/** Per category, the visible series' value-axis positions — the keyboard cursor's anchor. */
+	snapPoints?: number[][]
 	className?: string
 	/** HTML layered over the SVG inside the plot region — a donut's center content. */
 	overlay?: ReactNode
@@ -92,6 +104,9 @@ export function ChartFrame({
 	tooltip,
 	snap,
 	orientation,
+	count = 0,
+	bandPositions = [],
+	snapPoints = [],
 	className,
 	overlay,
 	annotations,
@@ -126,6 +141,23 @@ export function ChartFrame({
 		[referenceActive],
 	)
 
+	// A cartesian plot (count > 0) is a tab stop whose arrows rove the categories,
+	// writing the same hover the pointer does; a pie passes no count and stays inert.
+	const keyboard = count > 0
+
+	const onKeyDown = useChartKeyboard({
+		count,
+		bandPositions,
+		snapPoints,
+		orientation: orientation ?? 'vertical',
+		index: pointed.index,
+		set: hover.set,
+	})
+
+	const keyboardProps = keyboard
+		? { tabIndex: 0, onKeyDown, onBlur: () => hover.set(null, null) }
+		: undefined
+
 	// The SVG fills its box through the viewBox rather than pixel dimensions, so
 	// the box — not the marks — owns the size.
 	const svg = width > 0 && (
@@ -142,7 +174,8 @@ export function ChartFrame({
 			data-slot="chart-plot"
 			role="img"
 			{...label}
-			className={cn('relative', aside && 'min-w-0 flex-1')}
+			{...keyboardProps}
+			className={cn('relative', aside && 'min-w-0 flex-1', keyboard && ['rounded-sm', ...k.focus])}
 		>
 			{/* ChartPlotBox reserves the box height from its own width — steady before
 			    the width is measured and across animation replays — or takes a fixed

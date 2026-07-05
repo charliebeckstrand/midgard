@@ -9,6 +9,7 @@ import { nearSeriesLines, withinSeriesAreas } from '../chart-hit-test'
 import { ChartLegend } from '../chart-legend'
 import { AnimatedChartLineMarks, ChartLineMarks, type ChartLineSeries } from '../chart-line-marks'
 import { ChartMarksLayer } from '../chart-marks-layer'
+import { useChartTexture } from '../chart-pattern-defs'
 import { ChartReferenceLines, ChartReferenceList } from '../chart-reference-lines'
 import type { CartesianChartProps } from '../chart-schema'
 import { snapTargets } from '../chart-snap'
@@ -73,10 +74,12 @@ export function LineChart<T>({
 	animate = false,
 	points = false,
 	fill = false,
+	texture = false,
 	interpolation = 'linear',
 	min,
 	max,
 	reference,
+	xAxis,
 	formatValue,
 	className,
 	...label
@@ -94,6 +97,7 @@ export function LineChart<T>({
 			min,
 			max,
 			reference,
+			xAxis,
 			formatValue,
 		},
 		{ zeroBaseline: false, swatch: () => 'line' },
@@ -121,10 +125,17 @@ export function LineChart<T>({
 
 	const seriesRuns = list.map((series) => series.geometry.runs)
 
+	const tex = useChartTexture(
+		texture,
+		chart.visible.map((meta) => ({ color: meta.color, paint: meta.paint })),
+	)
+
+	const fills = chart.visible.map((meta) => tex.fillFor(meta.color))
+
 	const marksNode = animate ? (
-		<AnimatedChartLineMarks list={list} fill={fill} />
+		<AnimatedChartLineMarks list={list} fill={fill} fills={fills} textureActive={tex.active} />
 	) : (
-		<ChartLineMarks list={list} fill={fill} />
+		<ChartLineMarks list={list} fill={fill} fills={fills} textureActive={tex.active} />
 	)
 
 	const rails = resolveCrosshair(crosshair)
@@ -145,6 +156,7 @@ export function LineChart<T>({
 						onToggle={chart.toggleSeries}
 						onFocus={chart.setEmphasis}
 						panel={legend === 'left' || legend === 'right'}
+						texture={tex.active}
 					/>
 				)
 			}
@@ -152,9 +164,14 @@ export function LineChart<T>({
 			readout={chart.readout}
 			tooltip={tooltip}
 			snap={snapTargets(rails, chart.bandPositions, chart.snapPoints)}
+			count={data.length}
+			bandPositions={chart.bandPositions}
+			snapPoints={chart.snapPoints}
 			className={className}
 			annotations={<ChartReferenceList reference={reference} format={formatValue} />}
 		>
+			{tex.defs}
+
 			{gridLines && chart.yScale && (
 				<ChartGridLines plot={chart.plot} ticks={chart.yTicks.map((tick) => tick.at)} />
 			)}

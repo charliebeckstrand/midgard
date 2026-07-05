@@ -189,6 +189,18 @@ export type ChartBaseProps<T> = AccessibleName & {
 	 * @defaultValue false
 	 */
 	animate?: boolean
+	/**
+	 * Hatch each series' filled marks with a slot-keyed texture — a second
+	 * identity channel beside colour, so bars, areas, and slices stay tellable
+	 * apart in print, under severe colour-vision deficiency, or wherever colour is
+	 * unreliable. The texture also engages automatically under
+	 * `forced-colors` (Windows High Contrast) and print even when this is off,
+	 * where the colour channel is already gone; on-screen colour rendering is
+	 * never changed by that fallback. Line strokes carry no fill, so a
+	 * pure-line series is unaffected.
+	 * @defaultValue false
+	 */
+	texture?: boolean
 	/** Formats tick and tooltip values; defaults to locale integer/fraction formatting. */
 	formatValue?: (value: number) => string
 	className?: string
@@ -232,6 +244,20 @@ export type CartesianFrameProps = {
 	 * crossing one stays legible.
 	 */
 	reference?: ChartReferenceLine[]
+	/**
+	 * Type the categorical (band) axis. `'time'` reads each row's `xKey` as a
+	 * date — a `Date`, epoch milliseconds, or an ISO string (a bare `YYYY-MM-DD`
+	 * as a local day) — and lines the axis with calendar-boundary ticks (year,
+	 * quarter, month, week, day, hour) chosen against the tick target, each placed
+	 * at its true position between the evenly spaced rows and formatted for the
+	 * runtime locale through `@internationalized/date`; the tooltip and data table
+	 * read the same dates. Rows stay index-aligned, so spacing is uniform — the
+	 * ticks track time, the marks track order. Under `orientation="horizontal"`
+	 * this types the vertical band axis. Falls back to plain labels when fewer than
+	 * two rows carry a parseable, spanning date.
+	 * @defaultValue 'category'
+	 */
+	xAxis?: 'category' | 'time'
 }
 
 /**

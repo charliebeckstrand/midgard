@@ -4,13 +4,14 @@ import { motion } from 'motion/react'
 import { type PointerEvent, type ReactNode, useId } from 'react'
 import { cn } from '../../core'
 import { type FrameSizing, usePlotFrame } from '../../hooks'
-import { k } from '../../recipes/kata/chart'
+import { type ChartSeriesColor, k } from '../../recipes/kata/chart'
 import { formatPercent } from '../../utilities'
 import { MARK_GAP, SLICE_FADE, SLICE_SWEEP, TICK_CHAR_WIDTH } from './chart-constants'
 import { ChartFrame } from './chart-frame'
 import { type ChartAspectRatio, chartFrameSizing } from './chart-layout'
 import { ChartLegend, type ChartLegendItem } from './chart-legend'
 import { ChartMarksLayer } from './chart-marks-layer'
+import { textureClass, textureStyle, useChartTexture } from './chart-pattern-defs'
 import type { ChartBaseProps, PieChartSeries } from './chart-schema'
 import { formatChartValue, type SeriesPaint, seriesValues } from './chart-series'
 import { useChartHover } from './context'
@@ -197,6 +198,10 @@ type PieChartMarksProps = {
 	radius: number
 	/** The legend-emphasised slice; the others dim against it. */
 	emphasis: number | null
+	/** Per-slice texture-tile fill URLs, indexed like `paints`; omitted, slices fill flat. */
+	fills?: string[]
+	/** Whether the `texture` prop is on, so tiles paint in every mode, not only forced-colors / print. */
+	textureActive?: boolean
 }
 
 /**
@@ -217,7 +222,16 @@ type PieChartMarksProps = {
  * stay static, so hover and dimming behave identically mid-reveal.
  * @internal
  */
-function PieChartMarks({ slices, paints, animate, center, radius, emphasis }: PieChartMarksProps) {
+function PieChartMarks({
+	slices,
+	paints,
+	animate,
+	center,
+	radius,
+	emphasis,
+	fills,
+	textureActive = false,
+}: PieChartMarksProps) {
 	const { set } = useChartHover()
 
 	const sweepId = useId()
@@ -274,7 +288,12 @@ function PieChartMarks({ slices, paints, animate, center, radius, emphasis }: Pi
 							<path
 								data-slot="chart-slice"
 								d={slice.d}
-								className={cn(paints[slice.index]?.fill, 'hover:brightness-110')}
+								style={textureStyle(fills?.[slice.index])}
+								className={cn(
+									paints[slice.index]?.fill,
+									textureClass(textureActive, fills?.[slice.index]),
+									'hover:brightness-110',
+								)}
 								{...hover}
 							/>
 						</g>
@@ -451,6 +470,7 @@ function pieReadout(
 function pieLegendItems(
 	labels: string[],
 	paints: SeriesPaint[],
+	colors: ChartSeriesColor[],
 	sliceValues: (number | null)[],
 	panel: boolean,
 ): ChartLegendItem[] {
@@ -468,6 +488,7 @@ function pieLegendItems(
 			label: entry,
 			swatchClass: paints[index]?.text.join(' ') ?? '',
 			swatch: 'rect' as const,
+			color: colors[index],
 			detail: panel ? share : undefined,
 		}
 	})
@@ -555,6 +576,7 @@ export function ChartPie<T>({
 	legend,
 	tooltip = true,
 	animate = false,
+	texture = false,
 	labels,
 	formatValue,
 	className,
@@ -595,7 +617,18 @@ export function ChartPie<T>({
 	// A toggled-off row leaves the sweep entirely, so the survivors re-share the whole.
 	const sliceValues = values.map((entry, index) => (hidden.has(index) ? null : entry))
 
-	const paints = values.map((_, index) => k.series[k.order[index % k.order.length] ?? 'blue'])
+	const colors = values.map(
+		(_, index) => (k.order[index % k.order.length] ?? 'blue') as ChartSeriesColor,
+	)
+
+	const paints = colors.map((color) => k.series[color])
+
+	const tex = useChartTexture(
+		texture,
+		colors.map((color) => ({ color, paint: k.series[color] })),
+	)
+
+	const sliceFills = colors.map((color) => tex.fillFor(color))
 
 	const pieFit = resolvePieFit(showCallouts, calloutSpec, sliceValues, frameWidth)
 
@@ -620,7 +653,9 @@ export function ChartPie<T>({
 	const aside = legend === 'left' || legend === 'right'
 
 	const legendItems =
-		(legend ?? data.length > 1) ? pieLegendItems(sliceLabels, paints, sliceValues, aside) : null
+		(legend ?? data.length > 1)
+			? pieLegendItems(sliceLabels, paints, colors, sliceValues, aside)
+			: null
 
 	const labelItems = segmentLabelItems({
 		show: showSegmentLabels,
@@ -638,6 +673,8 @@ export function ChartPie<T>({
 				center={center}
 				radius={radius}
 				emphasis={emphasis}
+				fills={sliceFills}
+				textureActive={tex.active}
 			/>
 
 			{labelItems.length > 0 && (
@@ -671,6 +708,7 @@ export function ChartPie<T>({
 						onToggle={toggle}
 						onFocus={setFocus}
 						panel={aside}
+						texture={tex.active}
 					/>
 				)
 			}
@@ -689,6 +727,8 @@ export function ChartPie<T>({
 				) : undefined
 			}
 		>
+			{tex.defs}
+
 			<ChartMarksLayer animate={animate}>{marks}</ChartMarksLayer>
 		</ChartFrame>
 	)

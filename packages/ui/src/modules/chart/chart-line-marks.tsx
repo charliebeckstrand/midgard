@@ -13,6 +13,7 @@ import {
 	MARKER_RING_WIDTH,
 	POINT_POP,
 } from './chart-constants'
+import { textureClass, textureStyle } from './chart-pattern-defs'
 import type { SeriesPaint } from './chart-series'
 import type { LineSeriesGeometry } from './line-chart/line-chart-geometry'
 
@@ -39,6 +40,10 @@ export type ChartLineMarksProps = {
 	fill: boolean
 	/** Stroke the markers with a surface outline — set only where dots cross opaque marks (the combo bars); soft fills read cleaner without it. */
 	stroke?: boolean
+	/** Per-series texture-tile fill URLs, aligned with `list`; omitted, the washes fill flat. */
+	fills?: string[]
+	/** Whether the `texture` prop is on, so tiles paint in every mode, not only forced-colors / print. */
+	textureActive?: boolean
 	/** Hold the draw until earlier marks (combo bars) have landed. */
 	delay?: number
 }
@@ -49,9 +54,17 @@ function markerClass(paint: SeriesPaint, stroke: boolean): string {
 }
 
 /** The plain-SVG lines: the cheap default with no motion runtime work. @internal */
-export function ChartLineMarks({ list, fill, stroke = false }: ChartLineMarksProps) {
-	return list.map(({ label, paint, geometry, markers, dimmed }) => {
+export function ChartLineMarks({
+	list,
+	fill,
+	stroke = false,
+	fills,
+	textureActive = false,
+}: ChartLineMarksProps) {
+	return list.map(({ label, paint, geometry, markers, dimmed }, seriesIndex) => {
 		const points = markers ? geometry.points : geometry.isolated
+
+		const patternFill = fills?.[seriesIndex]
 
 		return (
 			<g key={label} data-slot="chart-line-series" className={seriesClass(dimmed)}>
@@ -63,7 +76,8 @@ export function ChartLineMarks({ list, fill, stroke = false }: ChartLineMarksPro
 							d={geometry.areas[index]}
 							stroke="none"
 							fillOpacity={AREA_FILL_OPACITY}
-							className={cn(paint.fill)}
+							style={textureStyle(patternFill)}
+							className={cn(paint.fill, textureClass(textureActive, patternFill))}
 						/>
 					))}
 
@@ -101,10 +115,14 @@ export function AnimatedChartLineMarks({
 	list,
 	fill,
 	stroke = false,
+	fills,
+	textureActive = false,
 	delay = 0,
 }: ChartLineMarksProps) {
-	return list.map(({ label, paint, geometry, markers, dimmed }) => {
+	return list.map(({ label, paint, geometry, markers, dimmed }, seriesIndex) => {
 		const points = markers ? geometry.points : geometry.isolated
+
+		const patternFill = fills?.[seriesIndex]
 
 		return (
 			<g key={label} data-slot="chart-line-series" className={seriesClass(dimmed)}>
@@ -116,7 +134,8 @@ export function AnimatedChartLineMarks({
 							d={geometry.areas[index]}
 							stroke="none"
 							fillOpacity={AREA_FILL_OPACITY}
-							className={cn(paint.fill)}
+							style={textureStyle(patternFill)}
+							className={cn(paint.fill, textureClass(textureActive, patternFill))}
 							initial={{ opacity: 0 }}
 							animate={{ opacity: 1 }}
 							transition={{ ...AREA_FADE, delay: AREA_FADE.delay + delay }}
