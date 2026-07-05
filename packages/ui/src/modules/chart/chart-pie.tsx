@@ -132,7 +132,7 @@ function PieSegmentLabels({ items, paints, animate, emphasis }: PieSegmentLabels
 					y: slice.centroid.y,
 					textAnchor: 'middle' as const,
 					dominantBaseline: 'central' as const,
-					className: cn('font-semibold text-xs tabular-nums', paints[slice.index]?.onFill),
+					className: cn('font-semibold text-sm tabular-nums', paints[slice.index]?.onFill),
 				}
 
 				return (

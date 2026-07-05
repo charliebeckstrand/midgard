@@ -2,7 +2,6 @@ import { RefreshCw } from 'lucide-react'
 import { type ReactNode, useEffect, useState } from 'react'
 import statesUrl from 'us-atlas/states-10m.json?url'
 import { Button } from '../../../../components/button'
-import { Container } from '../../../../components/container'
 import { Icon } from '../../../../components/icon'
 import { Stack } from '../../../../components/stack'
 import { Stat, StatLabel, StatValue } from '../../../../components/stat'
@@ -103,11 +102,15 @@ function AnimatedExample({
 	)
 }
 
-const ChartContainer = ({ children, size }: { children: ReactNode; size?: number }) => (
-	<Container size={size ?? 720} padding="none" center={false}>
-		{children}
-	</Container>
-)
+const ChartContainer = ({ children, size = 'lg' }: { children: ReactNode; size?: string }) => {
+	const sizeMap: Record<string, string> = {
+		sm: 'sm:max-w-sm',
+		md: 'sm:max-w-md',
+		lg: 'sm:max-w-lg',
+	}
+
+	return <div className={size ? sizeMap[size] : undefined}>{children}</div>
+}
 
 export function Demo() {
 	const states = useGeography(statesUrl)
@@ -355,21 +358,11 @@ export function Demo() {
 
 					<TabContent value="pie">
 						<Stack gap="xl">
-							<Example title="No labels" code={code`<PieChart … />`}>
-								<ChartContainer size={360}>
-									<PieChart
-										aria-label="Traffic by source"
-										data={sources}
-										series={[{ xKey: 'source', yKey: 'visits' }]}
-									/>
-								</ChartContainer>
-							</Example>
-
 							<Example
 								title="Segment labels"
 								code={code`<PieChart labels={{ segment: true }} legend={false} … />`}
 							>
-								<ChartContainer size={360}>
+								<ChartContainer size="md">
 									<PieChart
 										aria-label="Traffic by source"
 										data={sources}
@@ -383,7 +376,7 @@ export function Demo() {
 								title="Callout labels"
 								code={code`<PieChart labels={{ callouts: true }} … />`}
 							>
-								<ChartContainer size={480}>
+								<ChartContainer size="md">
 									<PieChart
 										aria-label="Traffic by source"
 										data={sources}
@@ -393,8 +386,18 @@ export function Demo() {
 								</ChartContainer>
 							</Example>
 
+							<Example title="No labels" code={code`<PieChart … />`}>
+								<ChartContainer size="md">
+									<PieChart
+										aria-label="Traffic by source"
+										data={sources}
+										series={[{ xKey: 'source', yKey: 'visits' }]}
+									/>
+								</ChartContainer>
+							</Example>
+
 							<AnimatedExample title="Animated" source={code`<PieChart animate … />`}>
-								<ChartContainer size={360}>
+								<ChartContainer size="md">
 									<PieChart
 										aria-label="Traffic by source, animated"
 										data={sources}
@@ -409,7 +412,7 @@ export function Demo() {
 					<TabContent value="donut">
 						<Stack gap="xl">
 							<Example title="Basic" code={code`<DonutChart>`}>
-								<ChartContainer size={360}>
+								<ChartContainer size="md">
 									<DonutChart
 										aria-label="Traffic by source"
 										data={sources}
@@ -419,7 +422,7 @@ export function Demo() {
 							</Example>
 
 							<Example title="Center content" code={code`<DonutChart>…</DonutChart>`}>
-								<ChartContainer size={360}>
+								<ChartContainer size="md">
 									<DonutChart
 										aria-label="Traffic by source"
 										data={sources}
@@ -434,7 +437,7 @@ export function Demo() {
 							</Example>
 
 							<AnimatedExample title="Animated" source={code`<DonutChart animate … />`}>
-								<ChartContainer size={360}>
+								<ChartContainer size="md">
 									<DonutChart
 										aria-label="Traffic by source, animated"
 										data={sources}
