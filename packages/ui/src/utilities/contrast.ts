@@ -33,6 +33,33 @@ export const WCAG_NON_TEXT = 3
 /** WCAG 1.4.6 minimum contrast for normal text (AAA). */
 export const WCAG_AAA_TEXT = 7
 
+/** WCAG 1.4.6 minimum contrast for large text (AAA). */
+export const WCAG_AAA_LARGE = 4.5
+
+/**
+ * A named WCAG conformance floor. `AA` / `AAA` are the normal-text minimums
+ * (1.4.3 / 1.4.6); the `-large` variants the large-text minimums (14pt bold or
+ * 18pt-plus); `non-text` the 3:1 floor for UI components and graphical objects
+ * (1.4.11).
+ */
+export type ContrastLevel = 'AA' | 'AA-large' | 'AAA' | 'AAA-large' | 'non-text'
+
+/** A contrast threshold: a named {@link ContrastLevel} or a raw ratio. */
+export type ContrastThreshold = number | ContrastLevel
+
+const LEVEL_FLOOR: Record<ContrastLevel, number> = {
+	AA: WCAG_AA_TEXT,
+	'AA-large': WCAG_AA_LARGE,
+	AAA: WCAG_AAA_TEXT,
+	'AAA-large': WCAG_AAA_LARGE,
+	'non-text': WCAG_NON_TEXT,
+}
+
+/** Resolve a {@link ContrastThreshold} to its ratio: a named level to its floor, a number as-is. */
+export function contrastFloor(threshold: ContrastThreshold): number {
+	return typeof threshold === 'number' ? threshold : LEVEL_FLOOR[threshold]
+}
+
 const clamp01 = (channel: number): number => Math.min(1, Math.max(0, channel))
 
 /** Gamma-encode a linear-light channel to sRGB. */
@@ -174,15 +201,15 @@ export function contrastRatio(a: ColorInput, b: ColorInput): number {
 /**
  * Whether two colours meet a contrast `threshold`.
  *
- * @param threshold - The ratio to clear.
- * @defaultValue {@link WCAG_AA_TEXT} (4.5:1)
+ * @param threshold - A named {@link ContrastLevel} or a raw ratio to clear.
+ * @defaultValue `'AA'` (4.5:1)
  */
 export function meetsContrast(
 	a: ColorInput,
 	b: ColorInput,
-	threshold: number = WCAG_AA_TEXT,
+	threshold: ContrastThreshold = 'AA',
 ): boolean {
-	return contrastRatio(a, b) >= threshold
+	return contrastRatio(a, b) >= contrastFloor(threshold)
 }
 
 /**
@@ -192,23 +219,25 @@ export function meetsContrast(
  * When none clears, the highest-contrast candidate is returned as the best
  * available fallback.
  *
- * @param threshold - The ratio an ink must clear to win outright.
- * @defaultValue {@link WCAG_AA_TEXT} (4.5:1)
+ * @param threshold - A named {@link ContrastLevel} or a raw ratio an ink must clear to win outright.
+ * @defaultValue `'AA'` (4.5:1)
  * @returns The chosen candidate, from `inks`.
  * @throws If `inks` is empty.
  */
 export function readableInk<Ink extends ColorInput>(
 	background: ColorInput,
 	inks: readonly Ink[],
-	threshold: number = WCAG_AA_TEXT,
+	threshold: ContrastThreshold = 'AA',
 ): Ink {
+	const floor = contrastFloor(threshold)
+
 	let best: Ink | undefined
 	let bestRatio = Number.NEGATIVE_INFINITY
 
 	for (const ink of inks) {
 		const ratio = contrastRatio(background, ink)
 
-		if (ratio >= threshold) return ink
+		if (ratio >= floor) return ink
 
 		if (ratio > bestRatio) {
 			best = ink

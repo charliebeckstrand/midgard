@@ -1,22 +1,22 @@
 import { describe, expect, it } from 'vitest'
 
 import { k } from '../../recipes/kata/chart'
-import { contrastRatio, readableInk, WCAG_AA_TEXT } from '../../utilities/contrast'
+import { contrastRatio, readableInk, WCAG_NON_TEXT } from '../../utilities/contrast'
 import { themeColor } from '../helpers/contrast'
 
 /**
  * Drift guard for the chart segment-label ink (`kata/chart` `series[*].onFill`).
  *
- * A segment label sits on its slice's own fill, so its ink has to clear WCAG
- * text AA (4.5:1) against that fill. The rule is white-first: `white` wherever
- * white clears the floor, near-black `zinc-950` only where it can't. This
- * asserts every hue's authored pick, in both modes, is exactly what the
- * `readableInk` utility derives from Tailwind's own theme — so a shade or
- * palette edit that leaves a label unreadable, or that reaches for dark ink
- * where white would have held, fails here.
+ * A segment label is a redundant graphical annotation over its slice's own
+ * fill, so its ink clears the non-text 3:1 floor (WCAG 1.4.11). The rule is
+ * white-first: `white` wherever white clears the floor, near-black `zinc-950`
+ * only where it can't. This asserts every hue's authored pick, in both modes,
+ * is exactly what the `readableInk` utility derives from Tailwind's own theme —
+ * so a shade or palette edit that leaves a label unreadable, or that reaches
+ * for dark ink where white would have held, fails here.
  */
 
-const FLOOR = WCAG_AA_TEXT
+const FLOOR = WCAG_NON_TEXT
 
 const WHITE = 'white'
 const DARK_INK = 'zinc-950'

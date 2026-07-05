@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
 	type ColorInput,
+	contrastFloor,
 	contrastRatio,
 	meetsContrast,
 	parseColor,
@@ -9,6 +10,7 @@ import {
 	relativeLuminance,
 	WCAG_AA_LARGE,
 	WCAG_AA_TEXT,
+	WCAG_AAA_LARGE,
 	WCAG_AAA_TEXT,
 	WCAG_NON_TEXT,
 } from '../../utilities/contrast'
@@ -89,9 +91,29 @@ describe('meetsContrast', () => {
 		expect(meetsContrast('#777777', 'white')).toBe(false) // 4.48 < 4.5
 	})
 
-	it('honours an explicit threshold', () => {
+	it('honours an explicit numeric threshold', () => {
 		expect(meetsContrast('#777777', 'white', WCAG_AA_LARGE)).toBe(true) // 4.48 >= 3
 		expect(meetsContrast('white', 'black', WCAG_AAA_TEXT)).toBe(true) // 21 >= 7
+	})
+
+	it('honours a named WCAG level', () => {
+		expect(meetsContrast('#777777', 'white', 'AA')).toBe(false) // 4.48 < 4.5
+		expect(meetsContrast('#777777', 'white', 'non-text')).toBe(true) // 4.48 >= 3
+		expect(meetsContrast('white', 'black', 'AAA')).toBe(true) // 21 >= 7
+	})
+})
+
+describe('contrastFloor', () => {
+	it('maps each named level to its WCAG ratio', () => {
+		expect(contrastFloor('AA')).toBe(WCAG_AA_TEXT)
+		expect(contrastFloor('AA-large')).toBe(WCAG_AA_LARGE)
+		expect(contrastFloor('AAA')).toBe(WCAG_AAA_TEXT)
+		expect(contrastFloor('AAA-large')).toBe(WCAG_AAA_LARGE)
+		expect(contrastFloor('non-text')).toBe(WCAG_NON_TEXT)
+	})
+
+	it('passes a raw ratio through unchanged', () => {
+		expect(contrastFloor(4.2)).toBe(4.2)
 	})
 })
 
@@ -111,9 +133,15 @@ describe('readableInk', () => {
 		expect(readableInk('#808080', ['white', 'black'], WCAG_AAA_TEXT)).toBe('black')
 	})
 
-	it('respects the threshold argument', () => {
+	it('respects a numeric threshold argument', () => {
 		// At the non-text floor (3:1) white already clears on the same grey, so it stays first.
 		expect(readableInk('#808080', ['white', 'black'], WCAG_NON_TEXT)).toBe('white')
+	})
+
+	it('accepts a named WCAG level', () => {
+		// 'non-text' (3:1) keeps white first; 'AA' (4.5:1) fails white and flips to black.
+		expect(readableInk('#808080', ['white', 'black'], 'non-text')).toBe('white')
+		expect(readableInk('#808080', ['white', 'black'], 'AA')).toBe('black')
 	})
 
 	it('throws on an empty candidate list', () => {
@@ -127,5 +155,6 @@ describe('WCAG thresholds', () => {
 		expect(WCAG_AA_LARGE).toBe(3)
 		expect(WCAG_NON_TEXT).toBe(3)
 		expect(WCAG_AAA_TEXT).toBe(7)
+		expect(WCAG_AAA_LARGE).toBe(4.5)
 	})
 })
