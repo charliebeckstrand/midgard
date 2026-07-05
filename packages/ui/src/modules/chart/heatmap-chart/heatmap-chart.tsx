@@ -248,13 +248,18 @@ function HeatmapHitLayer({ plot, rows, cols, xBand, yBand }: HeatmapHitLayerProp
 	const move = (event: PointerEvent<SVGRectElement>) => {
 		const rect = event.currentTarget.getBoundingClientRect()
 
-		// The SVG fills its box one-to-one through the viewBox, so a client offset
-		// inside the plot is already a frame coordinate.
-		const x = event.clientX - rect.left
+		if (rect.width <= 0 || rect.height <= 0) return
 
-		const y = event.clientY - rect.top
+		// The hit rect covers the plot exactly, so the pointer's fraction across it
+		// maps onto the band range: scale that fraction by the plot span and add the
+		// plot origin for a frame coordinate. A raw client delta is plot-local (the
+		// rect starts at plot.x/plot.y) and ignores the viewBox scale — both of which
+		// this reintroduces, so the resolved cell is the one under the cursor.
+		const frameX = plot.x + ((event.clientX - rect.left) / rect.width) * plot.width
 
-		set(cellAt(x, y, xBand, yBand, cols, rows), { x, y })
+		const frameY = plot.y + ((event.clientY - rect.top) / rect.height) * plot.height
+
+		set(cellAt(frameX, frameY, xBand, yBand, cols, rows), { x: event.clientX, y: event.clientY })
 	}
 
 	return (
@@ -274,7 +279,6 @@ function HeatmapHitLayer({ plot, rows, cols, xBand, yBand }: HeatmapHitLayerProp
 
 /** Props for {@link HeatmapTooltip}: the labels and values the pointed cell reads. @internal */
 type HeatmapTooltipProps = {
-	plotRef: React.RefObject<HTMLDivElement | null>
 	columns: string[]
 	rows: string[]
 	values: (number | null)[][]
@@ -291,24 +295,16 @@ type HeatmapTooltipProps = {
  *
  * @internal
  */
-function HeatmapTooltip({
-	plotRef,
-	columns,
-	rows,
-	values,
-	format,
-	fills,
-	cols,
-}: HeatmapTooltipProps) {
+function HeatmapTooltip({ columns, rows, values, format, fills, cols }: HeatmapTooltipProps) {
 	const { cell, point } = useHeatmapHover()
 
 	const open = cell !== null && point !== null
 
-	const rect = plotRef.current?.getBoundingClientRect()
+	// `point` is already the client coordinate the pointer sat at, so the tooltip
+	// anchors to the cursor directly.
+	const clientX = point?.x ?? null
 
-	const clientX = point && rect ? rect.left + point.x : null
-
-	const clientY = point && rect ? rect.top + point.y : null
+	const clientY = point?.y ?? null
 
 	const { refs, floatingStyles, context } = useFloating({
 		open,
@@ -634,7 +630,6 @@ export function HeatmapChart<T>({
 
 							{tooltip && readout && frameWidth > 0 && (
 								<HeatmapTooltip
-									plotRef={ref}
 									columns={matrix.columns}
 									rows={matrix.rows}
 									values={matrix.values}

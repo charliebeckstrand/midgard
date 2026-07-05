@@ -105,4 +105,57 @@ describe('HeatmapChart', () => {
 
 		expect(dimmed()).toBe(0)
 	})
+
+	it('resolves the cell under the pointer, not one offset by the plot gutter', () => {
+		const { container } = renderUI(
+			<HeatmapChart aria-label="Commits" data={ROWS} series={SERIES} width={400} />,
+		)
+
+		const hit = bySlot(container, 'heatmap-hit')
+
+		expect(hit).not.toBeNull()
+
+		// jsdom reports a zero box; stand in a screen rect for the plot so the
+		// fraction-across-the-rect math has something to resolve against. The rect
+		// starts at (100, 50) — a raw client delta would drop that origin and land
+		// on the wrong cell, the bug this guards.
+		const box = {
+			left: 100,
+			top: 50,
+			right: 340,
+			bottom: 210,
+			width: 240,
+			height: 160,
+			x: 100,
+			y: 50,
+			toJSON: () => ({}),
+		} as DOMRect
+
+		;(hit as Element).getBoundingClientRect = () => box
+
+		// The arrow's `top` encodes the resolved cell's bin (high value → high on the
+		// bar → small top%), so it reads back which cell the pointer resolved to.
+		const arrowTop = () => {
+			const style = bySlot(container, 'heatmap-range-arrow')?.getAttribute('style') ?? ''
+
+			return Number(style.match(/top:\s*([\d.]+)%/)?.[1] ?? Number.NaN)
+		}
+
+		// Columns are ['9', '10'], rows ['Mon', 'Tue']: Mon/10 = 9 (the max), Mon/9 = 1 (the min).
+		// Top-right cell — the max sits high on the bar.
+		fireEvent.pointerMove(hit as Element, { clientX: 330, clientY: 70 })
+
+		const high = arrowTop()
+
+		// Top-left cell — the min sits low on the bar.
+		fireEvent.pointerMove(hit as Element, { clientX: 130, clientY: 70 })
+
+		const low = arrowTop()
+
+		expect(Number.isNaN(high)).toBe(false)
+
+		expect(Number.isNaN(low)).toBe(false)
+
+		expect(high).toBeLessThan(low)
+	})
 })
