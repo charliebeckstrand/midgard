@@ -14,9 +14,15 @@ import { AnimatedChartLineMarks, ChartLineMarks, type ChartLineSeries } from '..
 import { ChartMarksLayer } from '../chart-marks-layer'
 import { useChartTexture } from '../chart-pattern-defs'
 import { ChartReferenceLines, ChartReferenceList } from '../chart-reference-lines'
-import type { CartesianFrameProps, ChartBaseProps, ComboChartSeries } from '../chart-schema'
+import type {
+	CartesianFrameProps,
+	ChartBaseProps,
+	ChartValueLabelConfig,
+	ComboChartSeries,
+} from '../chart-schema'
 import type { SeriesMeta } from '../chart-series'
 import { snapTargets } from '../chart-snap'
+import { ChartValueLabels, resolveValueLabels } from '../chart-value-labels'
 import { type LineInterpolation, lineGeometry } from '../line-chart/line-chart-geometry'
 import { useChartCartesian } from '../use-chart-cartesian'
 
@@ -40,6 +46,12 @@ export type ComboChartProps<T> = ChartBaseProps<T> &
 		 * @defaultValue 'linear'
 		 */
 		interpolation?: LineInterpolation
+		/**
+		 * Draw selective value labels — each line and area series' `endpoints` and /
+		 * or `extremes`, bars excluded — overlaps dropped by priority. Off by
+		 * default; the tooltip and data table carry the full readout.
+		 */
+		labels?: ChartValueLabelConfig
 	}
 
 /**
@@ -85,6 +97,7 @@ export function ComboChart<T>({
 	reference,
 	xAxis,
 	texture = false,
+	labels,
 	formatValue,
 	className,
 	...label
@@ -157,6 +170,15 @@ export function ComboChart<T>({
 	const lines = toSeries(lineMetas)
 
 	const areas = toSeries(areaMetas)
+
+	// Value labels ride the line and area series only — bars read against the axis.
+	const valueLabelItems = resolveValueLabels(
+		labels,
+		[...areas, ...lines],
+		[...areaMetas, ...lineMetas],
+		chart.plot,
+		formatValue,
+	)
 
 	const barPaints = barMetas.map((meta) => meta.paint)
 
@@ -278,6 +300,8 @@ export function ComboChart<T>({
 			)}
 
 			<ChartMarksLayer animate={animate}>{marksNode}</ChartMarksLayer>
+
+			<ChartValueLabels labels={valueLabelItems} animate={animate} />
 
 			{(tooltip || rails !== null) && data.length > 0 && (
 				<ChartHitArea
