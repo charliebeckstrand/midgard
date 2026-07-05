@@ -6,18 +6,20 @@ import { Icon } from '../../../../components/icon'
 import { Stack } from '../../../../components/stack'
 import { Stat, StatLabel, StatValue } from '../../../../components/stat'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../../components/tabs'
+import { cn } from '../../../../core'
 import {
 	AreaChart,
 	BarChart,
 	ChoroplethChart,
 	ComboChart,
 	DonutChart,
+	HeatmapChart,
 	LineChart,
 	PieChart,
 } from '../../../../modules/chart'
 import type { MapGeography } from '../../../../modules/map'
 import { code, Example } from '../../../engine'
-import { dailyVisits, heat, statePopulation } from './data'
+import { activity, dailyVisits, greens, heat, statePopulation } from './data'
 
 type Month = { month: string; revenue: number; costs: number; margin: number }
 
@@ -109,7 +111,7 @@ const ChartContainer = ({ children, size = 'lg' }: { children: ReactNode; size?:
 		lg: 'sm:max-w-lg',
 	}
 
-	return <div className={size ? sizeMap[size] : undefined}>{children}</div>
+	return <div className={cn('w-full', size ? sizeMap[size] : sizeMap.lg)}>{children}</div>
 }
 
 export function Demo() {
@@ -125,6 +127,7 @@ export function Demo() {
 					<Tab value="pie">Pie</Tab>
 					<Tab value="donut">Donut</Tab>
 					<Tab value="combo">Combo</Tab>
+					<Tab value="heatmap">Heatmap</Tab>
 					<Tab value="choropleth">Choropleth</Tab>
 				</TabList>
 				<TabContents>
@@ -384,11 +387,21 @@ export function Demo() {
 
 					<TabContent value="pie">
 						<Stack gap="xl">
+							<Example title="No labels" code={code`<PieChart … />`}>
+								<ChartContainer size="sm">
+									<PieChart
+										aria-label="Traffic by source"
+										data={sources}
+										series={[{ xKey: 'source', yKey: 'visits' }]}
+									/>
+								</ChartContainer>
+							</Example>
+
 							<Example
 								title="Segment labels"
 								code={code`<PieChart labels={{ segment: true }} legend={false} … />`}
 							>
-								<ChartContainer size="md">
+								<ChartContainer size="sm">
 									<PieChart
 										aria-label="Traffic by source"
 										data={sources}
@@ -402,7 +415,7 @@ export function Demo() {
 								title="Callout labels"
 								code={code`<PieChart labels={{ callouts: true }} … />`}
 							>
-								<ChartContainer size="md">
+								<ChartContainer>
 									<PieChart
 										aria-label="Traffic by source"
 										data={sources}
@@ -412,18 +425,8 @@ export function Demo() {
 								</ChartContainer>
 							</Example>
 
-							<Example title="No labels" code={code`<PieChart … />`}>
-								<ChartContainer size="md">
-									<PieChart
-										aria-label="Traffic by source"
-										data={sources}
-										series={[{ xKey: 'source', yKey: 'visits' }]}
-									/>
-								</ChartContainer>
-							</Example>
-
 							<AnimatedExample title="Animated" source={code`<PieChart animate … />`}>
-								<ChartContainer size="md">
+								<ChartContainer size="sm">
 									<PieChart
 										aria-label="Traffic by source, animated"
 										data={sources}
@@ -438,7 +441,7 @@ export function Demo() {
 					<TabContent value="donut">
 						<Stack gap="xl">
 							<Example title="Basic" code={code`<DonutChart>`}>
-								<ChartContainer size="md">
+								<ChartContainer size="sm">
 									<DonutChart
 										aria-label="Traffic by source"
 										data={sources}
@@ -448,7 +451,7 @@ export function Demo() {
 							</Example>
 
 							<Example title="Center content" code={code`<DonutChart>…</DonutChart>`}>
-								<ChartContainer size="md">
+								<ChartContainer size="sm">
 									<DonutChart
 										aria-label="Traffic by source"
 										data={sources}
@@ -463,7 +466,7 @@ export function Demo() {
 							</Example>
 
 							<AnimatedExample title="Animated" source={code`<DonutChart animate … />`}>
-								<ChartContainer size="md">
+								<ChartContainer size="sm">
 									<DonutChart
 										aria-label="Traffic by source, animated"
 										data={sources}
@@ -526,6 +529,32 @@ export function Demo() {
 									/>
 								</ChartContainer>
 							</AnimatedExample>
+						</Stack>
+					</TabContent>
+
+					<TabContent value="heatmap">
+						<Stack gap="xl">
+							<Example
+								title="Activity"
+								code={code`<HeatmapChart series={[{ xKey: 'hour', yKey: 'day', colorKey: 'commits', colorRange: greens }]} … />`}
+							>
+								<ChartContainer size="md">
+									<HeatmapChart
+										aria-label="Commits by weekday and hour"
+										data={activity}
+										series={[
+											{
+												xKey: 'hour',
+												yKey: 'day',
+												colorKey: 'commits',
+												colorRange: greens,
+												colorName: 'Commits',
+											},
+										]}
+										formatValue={(value) => value.toFixed(0)}
+									/>
+								</ChartContainer>
+							</Example>
 						</Stack>
 					</TabContent>
 

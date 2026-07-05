@@ -31,6 +31,18 @@
 | `Srgb` *(type)* | An sRGB colour as three gamma-encoded `[0, 1]` channels. |
 | `ColorInput` *(type)* | A colour to measure: a CSS colour string or an `Srgb` triple. |
 
+## Colour scale
+
+The sequential-scale primitives the data-driven colour charts share — the choropleth and the heatmap.
+
+| Export | Summary |
+|---|---|
+| `sampleRange` | The colour a fraction `t` (`0`–`1`) of the way along an ordered stop list, exact stops verbatim and between-stops mixed in sRGB. |
+| `resolveColorBins` | Quantises a `[min, max]` domain into equal-interval `ColorBin`s sampled from a colour range, the last bin pinned to the max. |
+| `binIndex` | The equal-interval bin a value falls in — top edge clamped into the last bin, flat domain to bin `0`, non-finite to `null`. |
+| `valueExtent` | The `[min, max]` of the finite values, an explicit override, or `null` when nothing spans a domain. |
+| `ColorBin` *(type)* | One bin: its `color` and the `[lo, hi]` value range it covers. |
+
 ## Caret & formatted input
 
 | Export | Summary |

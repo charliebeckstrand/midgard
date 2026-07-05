@@ -20,5 +20,10 @@ export {
 } from './choropleth-chart'
 export { ComboChart, type ComboChartProps } from './combo-chart'
 export { DonutChart, type DonutChartProps } from './donut-chart'
+export {
+	HeatmapChart,
+	type HeatmapChartProps,
+	type HeatmapChartSeries,
+} from './heatmap-chart'
 export { LineChart, type LineChartProps, type LineInterpolation } from './line-chart'
 export { PieChart, type PieChartProps } from './pie-chart'
