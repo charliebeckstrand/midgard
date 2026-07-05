@@ -1,9 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import { PieChart } from '../../modules/chart/pie-chart'
 import {
+	CALLOUT_CHAR_WIDTH,
 	CALLOUT_GAP,
+	CALLOUT_LEADER,
 	CALLOUT_LINE,
+	CALLOUT_NUB,
 	type PieSlice,
+	pieCalloutFit,
 	pieCallouts,
 	pieCentroidRadius,
 	pieSlices,
@@ -159,13 +163,13 @@ describe('PieChart', () => {
 	})
 
 	it('fits the frame height to the callouts instead of leaving the default square empty', () => {
-		// height/aspectRatio both unset: the frame fits the pie's own footprint.
-		// hMargin = 14 + 10 + 6 + 12*7.2 (widest label "Referral 15%") = 116.4;
-		// vMargin = 14 + 15 = 29; radius = 150 - 116.4 = 33.6;
-		// height = round(2*33.6 + 2*29) = 125 — well short of the 300 width.
+		// height/aspectRatio both unset: the frame fits the pie's own tight,
+		// per-slice callout fit (see the `pieCalloutFit` describe block below)
+		// rather than a flat margin sized as if every label sat at 3 o'clock;
+		// vMargin = 14 + 15 = 29, radius ≈ 62.34, height = round(2*62.34+2*29) = 183.
 		const { container } = renderUI(chart({ height: undefined, labels: { callouts: true } }))
 
-		expect(container.querySelector('svg')?.getAttribute('viewBox')).toBe('0 0 300 125')
+		expect(container.querySelector('svg')?.getAttribute('viewBox')).toBe('0 0 300 183')
 	})
 
 	it('keeps the default frame square when callouts are off', () => {
@@ -468,5 +472,65 @@ describe('pieCallouts', () => {
 		const nubX = Number(points[2]?.split(',')[0])
 
 		expect((first?.x ?? 0) - nubX).toBeCloseTo(CALLOUT_GAP, 5)
+	})
+})
+
+describe('pieCalloutFit', () => {
+	it('flushes only the outermost callout on each side against the frame, hugging the rest to their own slice', () => {
+		const values = [4820, 2210, 1370, 940]
+
+		const total = values.reduce((sum, value) => sum + value, 0)
+
+		const texts = ['Search', 'Direct', 'Referral', 'Social'].map(
+			(name, index) => `${name} ${Math.round(((values[index] ?? 0) / total) * 100)}%`,
+		)
+
+		const frameWidth = 480
+
+		const fit = pieCalloutFit({ values, texts, charWidth: CALLOUT_CHAR_WIDTH, frameWidth })
+
+		const slices = pieSlices(values, { cx: fit.cx, cy: 200, radius: fit.radius })
+
+		const callouts = pieCallouts(slices, {
+			cx: fit.cx,
+			cy: 200,
+			radius: fit.radius,
+			top: 10,
+			bottom: 390,
+		})
+
+		// Each callout's far edge: past its nub by the label's own width, outward
+		// from center on its side — 0 at the left frame edge, `frameWidth` at right.
+		const farEdges = callouts.map((callout) => {
+			const extent = (texts[callout.index]?.length ?? 0) * CALLOUT_CHAR_WIDTH
+
+			return callout.anchor === 'start' ? callout.x + extent : callout.x - extent
+		})
+
+		expect(Math.max(...farEdges)).toBeCloseTo(frameWidth, 3)
+
+		expect(Math.min(...farEdges)).toBeCloseTo(0, 3)
+
+		// Not every label reaches an edge — only the widest-reaching one per side.
+		expect(farEdges.some((edge) => edge > 5 && edge < frameWidth - 5)).toBe(true)
+	})
+
+	it('falls back to a centered, flat-margin radius with fewer than two slices', () => {
+		const frameWidth = 300
+
+		const texts = ['Everything 100%']
+
+		const fit = pieCalloutFit({ values: [42], texts, charWidth: CALLOUT_CHAR_WIDTH, frameWidth })
+
+		expect(fit.cx).toBe(frameWidth / 2)
+
+		expect(fit.radius).toBeCloseTo(
+			frameWidth / 2 -
+				CALLOUT_LEADER -
+				CALLOUT_NUB -
+				CALLOUT_GAP -
+				(texts[0]?.length ?? 0) * CALLOUT_CHAR_WIDTH,
+			5,
+		)
 	})
 })
