@@ -67,6 +67,20 @@ describe('DonutChart', () => {
 		expect(tooltip?.textContent).toContain('60')
 	})
 
+	it('backs each slice with a hit wedge so the gap keeps the tooltip', () => {
+		const { container } = renderUI(chart())
+
+		const hits = allBySlot(container, 'chart-slice-hit')
+
+		expect(hits).toHaveLength(3)
+
+		// Pointing the hit layer — as a sweep across the channel between slices
+		// would — still names the slice instead of clearing the readout.
+		fireEvent.pointerMove(hits[1] as Element, { clientX: 150, clientY: 40 })
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Direct')
+	})
+
 	it('still renders the slices under animate', () => {
 		const { container } = renderUI(chart({ animate: true }))
 

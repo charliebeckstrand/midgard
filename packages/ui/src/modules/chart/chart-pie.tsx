@@ -196,11 +196,15 @@ type PieChartMarksProps = {
 }
 
 /**
- * The slice paths — clean fills with no separator stroke. Slices are their own
- * hit targets: pointing one moves the shared hover index. The gap between
+ * The slice paths — clean fills with no separator stroke. The gap between
  * neighbours is geometric, cut into the arc angles by {@link pieSlices}, so the
  * real surface behind the chart shows through it — nothing painted to mismatch
- * a tinted or glass card.
+ * a tinted or glass card. A gapless hit wedge behind each slice takes the
+ * pointer across that channel, splitting it down the middle between the two
+ * neighbours, so sweeping the gap moves the hover index rather than dropping
+ * the tooltip — the way a grouped bar chart holds its readout across the gap
+ * between bars. The visible slice, drawn over its wedge, still wins the pointer
+ * on its own body and keeps the hover brightness.
  *
  * @remarks Under `animate` the disc wipes in clockwise from the top: a mask
  * stroke thick enough to cover the whole disc draws itself (`pathLength`
@@ -236,23 +240,42 @@ function PieChartMarks({ slices, paints, animate, center, radius, emphasis }: Pi
 			)}
 
 			<g mask={animate ? `url(#${sweepId})` : undefined}>
-				{slices.map((slice) => (
-					<g key={slice.index} className={sliceGroupClass(emphasis, slice.index)}>
-						<path
-							data-slot="chart-slice"
-							d={slice.d}
-							className={cn(paints[slice.index]?.fill, 'hover:brightness-110')}
-							onPointerEnter={() => set(slice.index, slice.centroid)}
-							onPointerMove={(event: PointerEvent<SVGPathElement>) => {
-								const box = event.currentTarget.ownerSVGElement?.getBoundingClientRect()
+				{slices.map((slice) => {
+					const hover = {
+						onPointerEnter: () => set(slice.index, slice.centroid),
+						onPointerMove: (event: PointerEvent<SVGPathElement>) => {
+							const box = event.currentTarget.ownerSVGElement?.getBoundingClientRect()
 
-								if (!box) return
+							if (!box) return
 
-								set(slice.index, { x: event.clientX - box.left, y: event.clientY - box.top })
-							}}
-						/>
-					</g>
-				))}
+							set(slice.index, { x: event.clientX - box.left, y: event.clientY - box.top })
+						},
+					}
+
+					return (
+						<g key={slice.index} className={sliceGroupClass(emphasis, slice.index)}>
+							{/* The gapless wedge sits behind the visible slice and takes the
+							    pointer only where the slice recedes — its half of each channel —
+							    so sweeping across the gap keeps the tooltip instead of dropping
+							    it onto the bare surface. The visible slice, drawn over it, wins
+							    the pointer on its own body and keeps the hover brightness. */}
+							<path
+								data-slot="chart-slice-hit"
+								d={slice.hit}
+								fill="none"
+								pointerEvents="all"
+								{...hover}
+							/>
+
+							<path
+								data-slot="chart-slice"
+								d={slice.d}
+								className={cn(paints[slice.index]?.fill, 'hover:brightness-110')}
+								{...hover}
+							/>
+						</g>
+					)
+				})}
 			</g>
 		</g>
 	)
