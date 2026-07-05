@@ -80,3 +80,56 @@ export const heat: string[] = [
 	'oklch(0.414 0.112 45.904)',
 	'oklch(0.279 0.077 45.635)',
 ]
+
+/**
+ * A 'green' activity scale in Oklch, low → high — the heatmap's counterpart to
+ * {@link heat}. The stops climb in a straight perceptual line, so the sampled
+ * bins are equal-interval and the range legend reads as one continuous ramp.
+ */
+export const greens: string[] = [
+	'oklch(0.982 0.018 155.826)',
+	'oklch(0.962 0.044 156.743)',
+	'oklch(0.925 0.084 155.995)',
+	'oklch(0.871 0.15 154.449)',
+	'oklch(0.792 0.209 151.711)',
+	'oklch(0.723 0.219 149.579)',
+	'oklch(0.627 0.194 149.214)',
+	'oklch(0.527 0.154 150.069)',
+	'oklch(0.448 0.119 151.328)',
+	'oklch(0.393 0.095 152.535)',
+	'oklch(0.266 0.065 152.934)',
+]
+
+/** One activity cell: `commits` made on `day` within an `hour` bucket. */
+export type Activity = { day: string; hour: string; commits: number }
+
+const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] as const
+
+const HOURS = ['00', '03', '06', '09', '12', '15', '18', '21'] as const
+
+// A weekday work rhythm: commits peak mid-morning and mid-afternoon on
+// weekdays, taper into the evening, and thin out overnight and on the weekend.
+const WEIGHT_BY_HOUR: Record<(typeof HOURS)[number], number> = {
+	'00': 1,
+	'03': 0,
+	'06': 2,
+	'09': 9,
+	'12': 6,
+	'15': 8,
+	'18': 4,
+	'21': 2,
+}
+
+/** Commits by weekday and three-hour bucket — a GitHub-style contribution grid. */
+export const activity: Activity[] = DAYS.flatMap((day, dayIndex) => {
+	const weekend = dayIndex >= 5 ? 0.25 : 1
+
+	return HOURS.map((hour, hourIndex) => {
+		const base = (WEIGHT_BY_HOUR[hour] ?? 0) * weekend
+
+		// A deterministic ripple keeps the grid lively without a random source.
+		const ripple = Math.round(base * (1 + 0.35 * Math.sin(dayIndex + hourIndex)))
+
+		return { day, hour, commits: Math.max(0, ripple) }
+	})
+})

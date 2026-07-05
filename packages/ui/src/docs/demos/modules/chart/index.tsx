@@ -13,12 +13,13 @@ import {
 	ChoroplethChart,
 	ComboChart,
 	DonutChart,
+	HeatmapChart,
 	LineChart,
 	PieChart,
 } from '../../../../modules/chart'
 import type { MapGeography } from '../../../../modules/map'
 import { code, Example } from '../../../engine'
-import { heat, statePopulation } from './data'
+import { activity, greens, heat, statePopulation } from './data'
 
 type Month = { month: string; revenue: number; costs: number; margin: number }
 
@@ -123,6 +124,7 @@ export function Demo() {
 					<Tab value="donut">Donut</Tab>
 					<Tab value="combo">Combo</Tab>
 					<Tab value="choropleth">Choropleth</Tab>
+					<Tab value="heatmap">Heatmap</Tab>
 				</TabList>
 				<TabContents>
 					<TabContent value="bar">
@@ -523,6 +525,32 @@ export function Demo() {
 										]}
 										regionId={(feature) => String(feature.properties?.name)}
 										formatValue={(value) => `${value.toFixed(1)}M`}
+									/>
+								</ChartContainer>
+							</Example>
+						</Stack>
+					</TabContent>
+
+					<TabContent value="heatmap">
+						<Stack gap="xl">
+							<Example
+								title="Activity"
+								code={code`<HeatmapChart series={[{ xKey: 'hour', yKey: 'day', colorKey: 'commits', colorRange: greens }]} … />`}
+							>
+								<ChartContainer>
+									<HeatmapChart
+										aria-label="Commits by weekday and hour"
+										data={activity}
+										series={[
+											{
+												xKey: 'hour',
+												yKey: 'day',
+												colorKey: 'commits',
+												colorRange: greens,
+												colorName: 'Commits',
+											},
+										]}
+										formatValue={(value) => `${value}`}
 									/>
 								</ChartContainer>
 							</Example>
