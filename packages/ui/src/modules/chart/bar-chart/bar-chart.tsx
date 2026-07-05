@@ -84,6 +84,7 @@ export function BarChart<T>({
 	min,
 	max,
 	reference,
+	xAxis,
 	formatValue,
 	className,
 	...label
@@ -101,6 +102,7 @@ export function BarChart<T>({
 			min,
 			max,
 			reference,
+			xAxis,
 			formatValue,
 		},
 		{ zeroBaseline: true, swatch: () => 'rect', orientation, stack: stacked },

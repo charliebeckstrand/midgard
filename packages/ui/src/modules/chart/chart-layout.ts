@@ -18,6 +18,7 @@ import {
 } from './chart-constants'
 import { bandExtent, valueExtent } from './chart-orientation'
 import { type BandScale, bandScale, type LinearScale, linearScale } from './chart-scale'
+import { timeTicks } from './chart-time'
 
 /**
  * A chart's aspect ratio: a `width / height` number, a `"16/9"` string, or
@@ -155,6 +156,11 @@ export type CartesianLayoutInput = {
 	domainValues: number[]
 	/** The category label per row — the band axis, and the gutter estimate when horizontal. */
 	categories: string[]
+	/**
+	 * Each row's instant as epoch ms, in row order (`null` where unparseable), when
+	 * the band axis is a time axis; `undefined` leaves it categorical.
+	 */
+	times?: (number | null)[]
 	format: (value: number) => string
 	count: number
 	/** Visible series' values, series-major — the per-category snap points. */
@@ -207,6 +213,34 @@ function bandTicksOf(
 }
 
 /**
+ * The band axis's ticks: calendar-boundary time ticks when the input carries
+ * row instants and they span an axis, else the thinned category labels. Both
+ * orientations share it — the band scale's range already faces the right screen
+ * axis, so the tick positions land correctly either way.
+ *
+ * @internal
+ */
+function bandAxisTicks(
+	input: CartesianLayoutInput,
+	band: BandScale,
+	axisLength: number,
+	slot: number,
+): ChartAxisTick[] {
+	if (input.times) {
+		const ticks = timeTicks({
+			times: input.times,
+			band,
+			tickTarget: input.tickTarget,
+			axisLength,
+		})
+
+		if (ticks) return ticks
+	}
+
+	return bandTicksOf(input.categories, band, axisLength, slot)
+}
+
+/**
  * The default layout: value on y with the scale filling the height above the
  * x-axis band, categories across x. The scale resolves from the frame height
  * first so its tick labels can size the left gutter before the plot rect exists.
@@ -244,7 +278,7 @@ export function verticalLayout(input: CartesianLayoutInput): CartesianLayout {
 		band,
 		baseline: valueScale?.map(0) ?? plot.y + plot.height,
 		valueTicks,
-		bandTicks: bandTicksOf(categories, band, plot.width, longest * TICK_CHAR_WIDTH + GUTTER_GAP),
+		bandTicks: bandAxisTicks(input, band, plot.width, longest * TICK_CHAR_WIDTH + GUTTER_GAP),
 		bandPositions: bandCenters(band, count),
 		snapPoints: snapPointsOf(valueScale, count, input.visibleValues),
 	}
@@ -323,7 +357,7 @@ export function horizontalLayout(input: CartesianLayoutInput): CartesianLayout {
 		band,
 		baseline: valueScale?.map(0) ?? plot.x,
 		valueTicks: valueTicksOf(valueScale, format),
-		bandTicks: bandTicksOf(categories, band, plot.height, BAND_LABEL_HEIGHT),
+		bandTicks: bandAxisTicks(input, band, plot.height, BAND_LABEL_HEIGHT),
 		bandPositions: bandCenters(band, count),
 		snapPoints: snapPointsOf(valueScale, count, input.visibleValues),
 	}

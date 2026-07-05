@@ -77,6 +77,7 @@ export function LineChart<T>({
 	min,
 	max,
 	reference,
+	xAxis,
 	formatValue,
 	className,
 	...label
@@ -94,6 +95,7 @@ export function LineChart<T>({
 			min,
 			max,
 			reference,
+			xAxis,
 			formatValue,
 		},
 		{ zeroBaseline: false, swatch: () => 'line' },

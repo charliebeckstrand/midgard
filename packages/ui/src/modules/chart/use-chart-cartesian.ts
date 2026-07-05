@@ -23,6 +23,7 @@ import {
 	seriesPaint,
 	seriesValues,
 } from './chart-series'
+import { parseInstant, timeCategory } from './chart-time'
 import type { ChartReadout } from './types'
 import { useChartSeriesToggle } from './use-chart-series-toggle'
 
@@ -113,6 +114,7 @@ export function useChartCartesian<T>(
 		legend,
 		min,
 		max,
+		xAxis = 'category',
 	} = props
 
 	const orientation = config.orientation ?? 'vertical'
@@ -120,6 +122,12 @@ export function useChartCartesian<T>(
 	// Rows align by index on one shared band scale, so the category field is
 	// only ever read for labels — the first series' xKey names it.
 	const xKey = series[0]?.xKey
+
+	// A time axis reads the same category field as a date: the row instants
+	// place its calendar ticks, and a date formatter labels the readout to match.
+	const timeAxis = xAxis === 'time'
+
+	const times = timeAxis && xKey ? data.map((datum) => parseInstant(datum[xKey])) : undefined
 
 	const resolvedSize = useResolvedSize(size)
 
@@ -173,13 +181,16 @@ export function useChartCartesian<T>(
 		max,
 		domainValues,
 		categories,
+		times,
 		format,
 		count: data.length,
 		visibleValues: visible.map((meta) => meta.values),
 	})
 
 	const readout =
-		xKey && data.length > 0 && visible.length > 0 ? chartReadout(data, xKey, visible, format) : null
+		xKey && data.length > 0 && visible.length > 0
+			? chartReadout(data, xKey, visible, format, timeAxis ? timeCategory() : undefined)
+			: null
 
 	const legendItems =
 		(legend ?? metas.length > 1)

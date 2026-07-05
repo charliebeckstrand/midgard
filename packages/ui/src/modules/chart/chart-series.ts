@@ -68,7 +68,9 @@ export type SeriesMeta = {
 
 /**
  * Builds the readout behind the marks: category labels crossed with each
- * series' formatted values.
+ * series' formatted values. `formatCategory` overrides the default `String`
+ * coercion of each row's category — a time axis passes a date formatter so the
+ * tooltip and table read the same dates the axis labels do.
  *
  * @internal
  */
@@ -77,9 +79,10 @@ export function chartReadout<T>(
 	xKey: DataKey<T>,
 	metas: SeriesMeta[],
 	format: (value: number) => string,
+	formatCategory: (value: unknown) => string = String,
 ): ChartReadout {
 	return {
-		categories: data.map((datum) => String(datum[xKey])),
+		categories: data.map((datum) => formatCategory(datum[xKey])),
 		rows: metas.map((meta) => ({
 			label: meta.label,
 			swatchClass: cn(meta.paint.text),

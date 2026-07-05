@@ -82,6 +82,7 @@ export function ComboChart<T>({
 	min,
 	max,
 	reference,
+	xAxis,
 	formatValue,
 	className,
 	...label
@@ -99,6 +100,7 @@ export function ComboChart<T>({
 			min,
 			max,
 			reference,
+			xAxis,
 			formatValue,
 		},
 		{

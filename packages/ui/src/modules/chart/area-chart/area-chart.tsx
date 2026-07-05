@@ -124,6 +124,7 @@ export function AreaChart<T>({
 	min,
 	max,
 	reference,
+	xAxis,
 	formatValue,
 	className,
 	...label
@@ -141,6 +142,7 @@ export function AreaChart<T>({
 			min,
 			max,
 			reference,
+			xAxis,
 			formatValue,
 		},
 		{ zeroBaseline: true, swatch: () => 'line', stack: stacked },

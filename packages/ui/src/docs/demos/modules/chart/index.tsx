@@ -18,7 +18,7 @@ import {
 } from '../../../../modules/chart'
 import type { MapGeography } from '../../../../modules/map'
 import { code, Example } from '../../../engine'
-import { heat, statePopulation } from './data'
+import { dailyVisits, heat, statePopulation } from './data'
 
 type Month = { month: string; revenue: number; costs: number; margin: number }
 
@@ -232,6 +232,17 @@ export function Demo() {
 											{ xKey: 'month', yKey: 'costs', yName: 'Costs' },
 										]}
 										crosshair={{ snap: true }}
+									/>
+								</ChartContainer>
+							</Example>
+
+							<Example title="Time axis" code={code`<LineChart xAxis="time" … />`}>
+								<ChartContainer>
+									<LineChart
+										aria-label="Visits by day"
+										data={dailyVisits}
+										series={[{ xKey: 'date', yKey: 'visits', yName: 'Visits' }]}
+										xAxis="time"
 									/>
 								</ChartContainer>
 							</Example>

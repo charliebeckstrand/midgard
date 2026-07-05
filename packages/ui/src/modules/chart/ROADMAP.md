@@ -16,9 +16,9 @@ A `reference` prop annotates the four cartesian charts with fixed-value rules �
 
 Each cartesian plot is a single keyboard tab stop: the arrow keys rove one cursor across the categories — transposed with `orientation`, wrapping at the ends, `Home`/`End` to the bounds — writing the same hover context the pointer does, so the crosshair and tooltip answer the keys and `Escape` clears the readout. A focus-visible ring marks the plot; pie and donut take no tab stop and lean on the data table for value parity.
 
-## Backlog
+`xAxis="time"` reads the category field as a date and lines the band axis with calendar-boundary ticks. `chart-time` sits beside `bandScale`: it walks nice intervals (year → quarter → month → week → day → hour, chosen against the tick target) through `@internationalized/date`'s DST- and month-length-safe arithmetic, formats each tick for the runtime locale, and places it at its true fraction between the two dated rows it falls among. The rows stay index-aligned on the band scale, so every mark, hit test, crosshair, and keyboard move is untouched — the ticks track time, the marks track order — and the tooltip and data table read the same dates; a non-date or single-row axis falls back to plain labels.
 
-- **Time x-axis.** A time scale beside `bandScale` for date-keyed rows, with locale tick formatting through `@internationalized/date`.
+## Backlog
 
 - **Texture fills.** The 45°/135° hand-drawn fill as the identity channel for forced-colors, print, and full-severity CVD — opt-in, never default.
 

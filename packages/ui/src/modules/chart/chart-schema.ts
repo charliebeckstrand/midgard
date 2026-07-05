@@ -232,6 +232,20 @@ export type CartesianFrameProps = {
 	 * crossing one stays legible.
 	 */
 	reference?: ChartReferenceLine[]
+	/**
+	 * Type the categorical (band) axis. `'time'` reads each row's `xKey` as a
+	 * date — a `Date`, epoch milliseconds, or an ISO string (a bare `YYYY-MM-DD`
+	 * as a local day) — and lines the axis with calendar-boundary ticks (year,
+	 * quarter, month, week, day, hour) chosen against the tick target, each placed
+	 * at its true position between the evenly spaced rows and formatted for the
+	 * runtime locale through `@internationalized/date`; the tooltip and data table
+	 * read the same dates. Rows stay index-aligned, so spacing is uniform — the
+	 * ticks track time, the marks track order. Under `orientation="horizontal"`
+	 * this types the vertical band axis. Falls back to plain labels when fewer than
+	 * two rows carry a parseable, spanning date.
+	 * @defaultValue 'category'
+	 */
+	xAxis?: 'category' | 'time'
 }
 
 /**
