@@ -210,6 +210,9 @@ export function ComboChart<T>({
 			readout={chart.readout}
 			tooltip={tooltip}
 			snap={snapTargets(rails, chart.bandPositions, chart.snapPoints)}
+			count={data.length}
+			bandPositions={chart.bandPositions}
+			snapPoints={chart.snapPoints}
 			className={className}
 			annotations={<ChartReferenceList reference={reference} format={formatValue} />}
 		>

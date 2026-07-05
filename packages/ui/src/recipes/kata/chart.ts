@@ -18,7 +18,7 @@
  * reordering or re-shading.
  */
 import { mode } from '../../core/recipe'
-import { iro, kokkaku } from '../kiso'
+import { iro, kokkaku, sen } from '../kiso'
 
 const { text } = iro
 
@@ -122,6 +122,8 @@ export const k = {
 	tick: ['text-xs', 'tabular-nums', ...mode('fill-zinc-500', 'dark:fill-zinc-400')],
 	/** Point-marker stroke: white in both modes, so a dot stays legible crossing the opaque marks behind it. */
 	stroke: mode('stroke-white', 'dark:stroke-white'),
+	/** Keyboard-focus ring for the plot region — the library's standard accent outline. */
+	focus: sen.focus.ring,
 	/** Legend / tooltip label ink (HTML text; marks carry the colour, text never does). */
 	label: ['text-sm text-left', 'leading-tight', ...text.muted],
 	/** Tooltip value ink: the strong element, values lead. */

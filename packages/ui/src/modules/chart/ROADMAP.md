@@ -14,11 +14,11 @@ The legend is the series switchboard: centered toggle buttons where pointing an 
 
 A `reference` prop annotates the four cartesian charts with fixed-value rules — targets, thresholds, averages — drawn across the band axis on the same `value → project → draw` path as the gridlines but on a raw domain value. Each value folds into the domain the way `min`/`max` pins do, so an off-data target stays on-frame, and the dashed rules draw over the marks so a mark crossing one stays legible. Each rule is a hover target floating a tooltip with its value and label, takes a named palette slot or any raw CSS colour (hex, `oklch()`), and carries visually-hidden parity beside the data table; horizontal orientation is free through the shared coordinate projection.
 
+Each cartesian plot is a single keyboard tab stop: the arrow keys rove one cursor across the categories — transposed with `orientation`, wrapping at the ends, `Home`/`End` to the bounds — writing the same hover context the pointer does, so the crosshair and tooltip answer the keys and `Escape` clears the readout. A focus-visible ring marks the plot; pie and donut take no tab stop and lean on the data table for value parity.
+
 ## Backlog
 
 - **Time x-axis.** A time scale beside `bandScale` for date-keyed rows, with locale tick formatting through `@internationalized/date`.
-
-- **Keyboard interaction parity.** A roving tabindex over categories driving the same hover context as the pointer, so the crosshair and tooltip answer arrow keys; today the visually-hidden table carries value parity instead.
 
 - **Texture fills.** The 45°/135° hand-drawn fill as the identity channel for forced-colors, print, and full-severity CVD — opt-in, never default.
 

@@ -219,6 +219,9 @@ export function AreaChart<T>({
 			readout={chart.readout}
 			tooltip={tooltip}
 			snap={snapTargets(rails, chart.bandPositions, snapPoints)}
+			count={data.length}
+			bandPositions={chart.bandPositions}
+			snapPoints={chart.snapPoints}
 			className={className}
 			annotations={<ChartReferenceList reference={reference} format={formatValue} />}
 		>

@@ -157,6 +157,9 @@ export function BarChart<T>({
 			tooltip={tooltip}
 			snap={snapTargets(rails, chart.bandPositions, chart.snapPoints)}
 			orientation={chart.orientation}
+			count={data.length}
+			bandPositions={chart.bandPositions}
+			snapPoints={chart.snapPoints}
 			className={className}
 			annotations={<ChartReferenceList reference={reference} format={formatValue} />}
 		>
