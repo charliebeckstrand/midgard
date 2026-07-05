@@ -1,6 +1,7 @@
 'use client'
 
 import { type CSSProperties, type ReactNode, useId } from 'react'
+import { Swatch } from '../../components/swatch'
 import { cn } from '../../core'
 import { type ChartSeriesColor, k } from '../../recipes/kata/chart'
 import type { SeriesPaint } from './chart-series'
@@ -159,6 +160,96 @@ export function useChartTexture(
 		fillFor: (color) => `url(#${idFor(color)})`,
 		active,
 	}
+}
+
+/** The legend swatch's texture-overlay viewBox — a small tile over the colour key. @internal */
+const SWATCH_BOX = 12
+
+/**
+ * A legend swatch that mirrors a textured mark: the shared colour key with, for
+ * a square (bar / slice) swatch, the slot's hatch laid over it — always when the
+ * `texture` prop is on, else only under forced colours and print, where the
+ * legend's colour key collapses to one system colour. A `line` swatch is only
+ * 2px tall — too thin to hatch — and its stroke mark carries no fill, so it
+ * stays colour-only.
+ *
+ * @internal
+ */
+export function ChartSwatch({
+	swatch,
+	swatchClass,
+	color,
+	active,
+	off,
+}: {
+	swatch: 'rect' | 'line'
+	swatchClass: string
+	color?: ChartSeriesColor
+	active: boolean
+	off: boolean
+}) {
+	const id = `chart-sw-${useId().replace(/:/g, '')}`
+
+	if (swatch !== 'rect' || !color) {
+		return (
+			<Swatch
+				shape={swatch === 'rect' ? 'square' : 'line'}
+				color={swatchClass}
+				className={cn(off && 'opacity-40')}
+			/>
+		)
+	}
+
+	const texture = textureFor(color)
+
+	// The overlay rides inside the swatch box, keeping the swatch's DOM slot; it
+	// shows on screen only when the prop is on, else waits for forced colours and
+	// print, where the legend's colour key collapses to one system colour.
+	return (
+		<Swatch
+			shape="square"
+			color={swatchClass}
+			className={cn('relative overflow-hidden', off && 'opacity-40')}
+		>
+			<svg
+				aria-hidden="true"
+				viewBox={`0 0 ${SWATCH_BOX} ${SWATCH_BOX}`}
+				className={cn(
+					'pointer-events-none absolute inset-0 size-full',
+					active ? 'block' : 'hidden forced-colors:block print:block',
+				)}
+			>
+				<defs>
+					<pattern
+						id={id}
+						patternUnits="userSpaceOnUse"
+						width={TILE}
+						height={TILE}
+						patternTransform={texture.transform}
+					>
+						<rect
+							width={TILE}
+							height={TILE}
+							className={cn(
+								k.series[color].fill,
+								'forced-color-adjust-none',
+								'forced-colors:fill-[Canvas]',
+							)}
+						/>
+
+						{hatch(texture)}
+					</pattern>
+				</defs>
+
+				<rect
+					width={SWATCH_BOX}
+					height={SWATCH_BOX}
+					fill={`url(#${id})`}
+					className="forced-color-adjust-none"
+				/>
+			</svg>
+		</Swatch>
+	)
 }
 
 /** The inline style carrying a mark's tile fill, read by {@link textureClass}. @internal */

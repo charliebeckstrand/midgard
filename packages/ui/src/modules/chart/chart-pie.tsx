@@ -411,6 +411,7 @@ function pieReadout(
 function pieLegendItems(
 	labels: string[],
 	paints: SeriesPaint[],
+	colors: ChartSeriesColor[],
 	sliceValues: (number | null)[],
 	panel: boolean,
 ): ChartLegendItem[] {
@@ -428,6 +429,7 @@ function pieLegendItems(
 			label: entry,
 			swatchClass: paints[index]?.text.join(' ') ?? '',
 			swatch: 'rect' as const,
+			color: colors[index],
 			detail: panel ? share : undefined,
 		}
 	})
@@ -591,7 +593,9 @@ export function ChartPie<T>({
 	const aside = legend === 'left' || legend === 'right'
 
 	const legendItems =
-		(legend ?? data.length > 1) ? pieLegendItems(sliceLabels, paints, sliceValues, aside) : null
+		(legend ?? data.length > 1)
+			? pieLegendItems(sliceLabels, paints, colors, sliceValues, aside)
+			: null
 
 	const labelItems = segmentLabelItems({
 		show: showSegmentLabels,
@@ -644,6 +648,7 @@ export function ChartPie<T>({
 						onToggle={toggle}
 						onFocus={setFocus}
 						panel={aside}
+						texture={tex.active}
 					/>
 				)
 			}

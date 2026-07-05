@@ -2,10 +2,11 @@
 
 import { type KeyboardEvent, useRef } from 'react'
 import { Button } from '../../components/button'
-import { Swatch, type SwatchProps } from '../../components/swatch'
 import { Text } from '../../components/text'
 import { cn } from '../../core'
 import { useA11yRoving } from '../../hooks/a11y'
+import type { ChartSeriesColor } from '../../recipes/kata/chart'
+import { ChartSwatch } from './chart-pattern-defs'
 
 /** One legend entry: the series name keyed by its mark-mirroring swatch. @internal */
 export type ChartLegendItem = {
@@ -14,6 +15,8 @@ export type ChartLegendItem = {
 	swatchClass: string
 	/** Swatch shape, mirroring the mark: `rect` for bars and slices, `line` for lines. */
 	swatch: 'rect' | 'line'
+	/** The slot colour, so a textured legend swatch mirrors the mark's tile. */
+	color?: ChartSeriesColor
 	/** A trailing readout — the side panel carries each slice's live share. */
 	detail?: string
 }
@@ -32,13 +35,9 @@ export type ChartLegendProps = {
 	 * row — the static side panel beside a pie or donut.
 	 */
 	panel?: boolean
+	/** The `texture` prop is on, so square swatches hatch in every mode, mirroring the marks. */
+	texture?: boolean
 }
-
-/** Maps a mark shape to its {@link Swatch} shape. */
-const SWATCH_SHAPE = { rect: 'square', line: 'line' } as const satisfies Record<
-	ChartLegendItem['swatch'],
-	NonNullable<SwatchProps['shape']>
->
 
 /**
  * The legend — the dependable identity channel for two or more series, and
@@ -52,7 +51,14 @@ const SWATCH_SHAPE = { rect: 'square', line: 'line' } as const satisfies Record<
  * emphasis. Swatches carry the colour, the text stays in ink.
  * @internal
  */
-export function ChartLegend({ items, hidden, onToggle, onFocus, panel = false }: ChartLegendProps) {
+export function ChartLegend({
+	items,
+	hidden,
+	onToggle,
+	onFocus,
+	panel = false,
+	texture = false,
+}: ChartLegendProps) {
 	const ref = useRef<HTMLDivElement>(null)
 
 	const onKeyDown = useA11yRoving(ref, {
@@ -100,10 +106,12 @@ export function ChartLegend({ items, hidden, onToggle, onFocus, panel = false }:
 						onFocus={() => onFocus(index)}
 						onBlur={() => onFocus(null)}
 					>
-						<Swatch
-							shape={SWATCH_SHAPE[item.swatch]}
-							color={item.swatchClass}
-							className={cn(off && 'opacity-40')}
+						<ChartSwatch
+							swatch={item.swatch}
+							swatchClass={item.swatchClass}
+							color={item.color}
+							active={texture}
+							off={off}
 						/>
 
 						<Text

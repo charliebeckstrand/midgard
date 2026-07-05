@@ -200,6 +200,7 @@ export function useChartCartesian<T>(
 					label: meta.label,
 					swatchClass: meta.paint.text.join(' '),
 					swatch: meta.swatch,
+					color: meta.color,
 				}))
 			: null
 

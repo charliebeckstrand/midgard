@@ -30,7 +30,9 @@ describe('texture fill helpers', () => {
 		const cls = textureClass(true, 'url(#tile)') || ''
 
 		expect(cls).toContain('[fill:var(--chart-fill)]!')
+
 		expect(cls).not.toContain('forced-colors:[fill:var(--chart-fill)]')
+
 		expect(cls).toContain('forced-color-adjust-none')
 	})
 
@@ -38,12 +40,15 @@ describe('texture fill helpers', () => {
 		const cls = textureClass(false, 'url(#tile)') || ''
 
 		expect(cls).toContain('forced-colors:[fill:var(--chart-fill)]!')
+
 		expect(cls).toContain('print:[fill:var(--chart-fill)]!')
 	})
 
 	it('adds nothing without a tile fill', () => {
 		expect(textureClass(true, undefined)).toBe(false)
+
 		expect(textureStyle(undefined)).toBeUndefined()
+
 		expect(textureStyle('url(#tile)')).toEqual({ '--chart-fill': 'url(#tile)' })
 	})
 })
@@ -65,6 +70,7 @@ describe('chart textures', () => {
 		const fill = barMark.style.getPropertyValue('--chart-fill')
 
 		expect(fill).toMatch(/^url\(#chart-tx-.+-blue\)$/)
+
 		expect(container.querySelector(`#${fill.slice(5, -1)}`)).not.toBeNull()
 	})
 
@@ -78,7 +84,26 @@ describe('chart textures', () => {
 
 		// The colour fill is not overridden on screen; the tile waits for forced-colors / print.
 		expect(cls).toContain('forced-colors:[fill:var(--chart-fill)]!')
+
 		expect(cls).not.toContain(' [fill:var(--chart-fill)]!')
+	})
+
+	it('mirrors the tile on the legend swatch, gated like the marks', () => {
+		// A square swatch always mounts its overlay tile (for forced-colors), shown
+		// on screen only when the prop is on.
+		const on = bar(true).container.querySelector('[data-slot="chart-legend"] svg')
+
+		expect(on?.querySelector('pattern')).not.toBeNull()
+
+		expect(on?.getAttribute('class')).not.toContain('hidden')
+
+		const off = bar(false).container.querySelector('[data-slot="chart-legend"] svg')
+
+		expect(off?.querySelector('pattern')).not.toBeNull()
+
+		expect(off?.getAttribute('class')).toContain('hidden')
+
+		expect(off?.getAttribute('class')).toContain('forced-colors:block')
 	})
 
 	it('textures the pie slices too', () => {
@@ -97,6 +122,7 @@ describe('chart textures', () => {
 		const slice = allBySlot(container, 'chart-slice')[0] as HTMLElement
 
 		expect(slice.getAttribute('class')).toContain('[fill:var(--chart-fill)]!')
+
 		expect(slice.style.getPropertyValue('--chart-fill')).toMatch(/^url\(#chart-tx-/)
 	})
 })

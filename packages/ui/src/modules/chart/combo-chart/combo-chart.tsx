@@ -242,6 +242,7 @@ export function ComboChart<T>({
 						onToggle={chart.toggleSeries}
 						onFocus={chart.setEmphasis}
 						panel={legend === 'left' || legend === 'right'}
+						texture={tex.active}
 					/>
 				)
 			}
