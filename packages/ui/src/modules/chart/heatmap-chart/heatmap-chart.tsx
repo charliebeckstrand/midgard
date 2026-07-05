@@ -117,8 +117,11 @@ type HeatmapCellsProps = {
 
 /**
  * The cell grid: one rect per matrix cell, painted from the sequential scale or
- * the neutral no-data fill. Cells outside the legend's probed bin dim, the
- * heatmap's counterpart to the choropleth's region emphasis.
+ * the neutral no-data fill. While the legend probes a class its cells ring in
+ * the surface ink and the rest dim — the heatmap's counterpart to the
+ * choropleth's region emphasis. The ring is the discernible channel: opacity
+ * alone leaves a dark class at the scale's high end reading as background, so
+ * the focused cells carry an outline that holds against any fill.
  *
  * @internal
  */
@@ -130,7 +133,9 @@ function HeatmapCells({ cells, fills, cellBins }: HeatmapCellsProps) {
 			{cells.map((cell, index) => {
 				const fill = fills[index]
 
-				const dimmed = focus !== null && cellBins[index] !== focus
+				const focused = focus !== null && cellBins[index] === focus
+
+				const dimmed = focus !== null && !focused
 
 				return (
 					<rect
@@ -144,6 +149,7 @@ function HeatmapCells({ cells, fills, cellBins }: HeatmapCellsProps) {
 							'transition-opacity',
 							fill == null && NO_DATA_FILL,
 							dimmed && 'opacity-25',
+							focused && 'stroke-2 stroke-zinc-900 dark:stroke-white',
 						)}
 						{...(fill == null ? {} : { fill })}
 					/>

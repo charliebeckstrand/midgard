@@ -106,6 +106,46 @@ describe('HeatmapChart', () => {
 		expect(dimmed()).toBe(0)
 	})
 
+	it('outlines the probed class so a dark cell stays discernible against the dim', () => {
+		const { container } = renderUI(
+			<HeatmapChart aria-label="Commits" data={ROWS} series={SERIES} width={400} />,
+		)
+
+		const track = bySlot(container, 'heatmap-range-track')
+
+		expect(track).not.toBeNull()
+
+		// jsdom reports a zero box, which collapses the probe to NaN; stand in a real
+		// track so probing near the top resolves to the high (dark) class.
+		;(track as Element).getBoundingClientRect = () =>
+			({
+				top: 0,
+				left: 0,
+				bottom: 160,
+				right: 20,
+				width: 20,
+				height: 160,
+				x: 0,
+				y: 0,
+				toJSON: () => ({}),
+			}) as DOMRect
+
+		// Near the top of the bar is the high class — the cells that read as near
+		// background, and so need the outline rather than opacity to be seen.
+		fireEvent.pointerMove(track as Element, { clientY: 8 })
+
+		const outlined = cellRects(container).filter((rect) =>
+			rect.getAttribute('class')?.includes('stroke-'),
+		)
+
+		expect(outlined.length).toBeGreaterThan(0)
+
+		// The outline is the emphasis; a focused cell is never also dimmed.
+		for (const rect of outlined) {
+			expect(rect.getAttribute('class')).not.toContain('opacity-25')
+		}
+	})
+
 	it('resolves the cell under the pointer, not one offset by the plot gutter', () => {
 		const { container } = renderUI(
 			<HeatmapChart aria-label="Commits" data={ROWS} series={SERIES} width={400} />,
