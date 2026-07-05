@@ -61,6 +61,24 @@ describe('PieChart', () => {
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
 	})
 
+	it('backs each slice with a gapless hit wedge so the gap keeps the tooltip', () => {
+		const { container } = renderUI(chart())
+
+		const hits = allBySlot(container, 'chart-slice-hit')
+
+		expect(hits).toHaveLength(3)
+
+		// Gapless: the wedge runs to the frame centre (150, 100) where the visible
+		// slice stops short, so the channel between slices still reads as a slice.
+		expect(hits[0]?.getAttribute('d')).toContain('L 150 100')
+
+		// Pointing the hit layer — as a sweep across the gap would — still names
+		// the slice instead of clearing the readout.
+		fireEvent.pointerMove(hits[1] as Element, { clientX: 150, clientY: 60 })
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Direct')
+	})
+
 	it('keeps sliceless rows honest in the data table', () => {
 		const withGap = [
 			...DATA,
@@ -372,6 +390,27 @@ describe('pieSlices', () => {
 		expect(Number(last?.[1])).toBeCloseTo(tip.x, 3)
 
 		expect(Number(last?.[2])).toBeCloseTo(tip.y, 3)
+	})
+
+	it('hands each slice a gapless hit wedge that runs edge to edge', () => {
+		const [first] = pieSlices([1, 1, 1, 1], { ...FRAME, pad: 6 })
+
+		// The visible wedge stops at its knife-cut tip short of the middle; the hit
+		// wedge has no gap, so it runs its straight edges to the exact centre —
+		// claiming the slice's half of every channel, no dead zone in the gap.
+		expect(first?.hit).toContain(`L ${FRAME.cx} ${FRAME.cy}`)
+
+		expect(first?.d).not.toContain(`L ${FRAME.cx} ${FRAME.cy}`)
+	})
+
+	it('matches the flush wedge for the hit path, gap or no gap', () => {
+		// The hit wedge is the pad-0 slice, so a padded pie's hit path is exactly
+		// what the same slice draws with no gap at all.
+		const flush = pieSlices([50, 30, 20], FRAME)
+
+		const padded = pieSlices([50, 30, 20], { ...FRAME, pad: 8 })
+
+		expect(padded.map((slice) => slice.hit)).toEqual(flush.map((slice) => slice.d))
 	})
 
 	it('rides the gap circle for a slice past a half-turn', () => {

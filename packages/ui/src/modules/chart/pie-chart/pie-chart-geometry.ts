@@ -8,7 +8,15 @@
 export type PieSlice = {
 	/** The datum's index in the source data — colours and readouts key off it. */
 	index: number
+	/** The drawn wedge, its straight edges offset inward to part from neighbours. */
 	d: string
+	/**
+	 * The gapless full-wedge path behind {@link d} — the pointer hit target. Its
+	 * edges fall on each channel's own centre line, so a slice claims exactly
+	 * half of every neighbouring gap and a pointer crossing the channel keeps the
+	 * tooltip instead of falling through to the bare surface.
+	 */
+	hit: string
 	/** The slice's part of the whole, `0..1`. */
 	share: number
 	/** The slice's mid-angle in degrees, clockwise from the top — where a callout leaves the edge. */
@@ -206,7 +214,11 @@ function slicePath(
  * @remarks Non-finite and non-positive values take no slice — a pie encodes
  * parts of a whole, and a negative part has no arc; they stay in the chart's
  * readout instead. A single positive value draws the full circle (two half
- * arcs — one 360° arc command collapses to nothing).
+ * arcs — one 360° arc command collapses to nothing). Each slice also carries a
+ * gapless {@link PieSlice.hit} wedge for pointer testing: the visible gap is a
+ * channel centred on the boundary between two slices, so a full wedge hands
+ * each neighbour exactly half of it and the tooltip never drops into the
+ * channel.
  * @internal
  */
 export function pieSlices(
@@ -248,12 +260,15 @@ export function pieSlices(
 
 		const h = Math.min(half, pinch)
 
+		// A lone full circle has no channel to part from, so its hit target is
+		// the same disc. Otherwise the gapless wedge (offset 0) runs its edges to
+		// the boundary each channel is centred on — the slice's half of it.
+		const full = positive === 1 ? fullCircle(cx, cy, radius, innerRadius) : null
+
 		slices.push({
 			index,
-			d:
-				positive === 1
-					? fullCircle(cx, cy, radius, innerRadius)
-					: slicePath(cx, cy, radius, innerRadius, angle, angle + sweep, h),
+			d: full ?? slicePath(cx, cy, radius, innerRadius, angle, angle + sweep, h),
+			hit: full ?? slicePath(cx, cy, radius, innerRadius, angle, angle + sweep, 0),
 			share: fraction,
 			mid,
 			centroid: at(cx, cy, pieCentroidRadius(radius, innerRadius, fraction), mid),
