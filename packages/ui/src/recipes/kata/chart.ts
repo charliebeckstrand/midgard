@@ -27,12 +27,17 @@ const { text } = iro
  * areas, slices, and SVG text, `text` (a currentColor class) for HTML swatches
  * (legend keys, tooltip rows — `<Swatch>` fills from it), and `onFill` for
  * label text set inside the mark's own fill — the one place text sits on a
- * series colour. `onFill` is white-first: the semibold label reads white on
- * every slot except the yellow-family fills (green, amber), where white drops
- * below a ~3.5:1 semibold floor and the label takes near-black ink instead; the
- * de-emphasis `zinc` takes ink on its light dark step. The eight slot hues carry
- * the categorical palette; `zinc` sits outside the slot order as the
- * de-emphasis colour for context series.
+ * series colour. `onFill` is white-first: the percent label is a redundant
+ * graphical annotation — the tooltip and hidden data table carry the
+ * authoritative value — so it clears the non-text 3:1 floor (WCAG 1.4.11)
+ * rather than the 4.5:1 text floor, which the luminance formula overstates on
+ * saturated mid-tone fills. Every categorical slot reads `white` in both modes;
+ * only the de-emphasis `zinc` drops to near-black `zinc-950`, on its light
+ * `zinc-400` dark step where white falls under 3:1. The
+ * `__tests__/recipes/chart-label-contrast` guard re-derives each pick from
+ * Tailwind's theme with the `readableInk` utility and fails on drift. The eight
+ * slot hues carry the categorical palette; `zinc` sits outside the slot order
+ * as the de-emphasis colour for context series.
  */
 const series = {
 	blue: {
@@ -57,7 +62,7 @@ const series = {
 		stroke: mode('stroke-green-600', 'dark:stroke-green-600'),
 		fill: mode('fill-green-600', 'dark:fill-green-600'),
 		text: mode('text-green-600', 'dark:text-green-600'),
-		onFill: mode('fill-zinc-950', 'dark:fill-zinc-950'),
+		onFill: mode('fill-white', 'dark:fill-white'),
 	},
 	red: {
 		stroke: mode('stroke-red-600', 'dark:stroke-red-500'),
@@ -75,7 +80,7 @@ const series = {
 		stroke: mode('stroke-amber-600', 'dark:stroke-amber-600'),
 		fill: mode('fill-amber-600', 'dark:fill-amber-600'),
 		text: mode('text-amber-600', 'dark:text-amber-600'),
-		onFill: mode('fill-zinc-950', 'dark:fill-zinc-950'),
+		onFill: mode('fill-white', 'dark:fill-white'),
 	},
 	rose: {
 		stroke: mode('stroke-rose-600', 'dark:stroke-rose-500'),

@@ -112,9 +112,10 @@ type PieSegmentLabelsProps = {
 
 /**
  * The fit-gated labels set inside the slices. Text on a mark's own fill is
- * the one place ink follows the series colour — each hue's `onFill` pick
- * clears contrast in both modes. Under `animate` a label fades in as the
- * sweep uncovers its slice.
+ * the one place ink follows the series colour — each hue's `onFill` pick is
+ * white-first, dropping to near-black only where white can't clear the 3:1
+ * graphical floor against that fill (see `kata/chart`). Under `animate` a label
+ * fades in as the sweep uncovers its slice.
  *
  * @internal
  */
@@ -128,7 +129,7 @@ function PieSegmentLabels({ items, paints, animate, emphasis }: PieSegmentLabels
 					y: slice.centroid.y,
 					textAnchor: 'middle' as const,
 					dominantBaseline: 'central' as const,
-					className: cn('font-medium text-xs tabular-nums', paints[slice.index]?.onFill),
+					className: cn('font-semibold text-xs tabular-nums', paints[slice.index]?.onFill),
 				}
 
 				return (

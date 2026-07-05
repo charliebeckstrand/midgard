@@ -1,6 +1,6 @@
 # Utilities
 
-> **Quick-glance index of `src/utilities/`.** Small, dependency-free pure helpers shared across the package — numeric clamping/formatting, caret bookkeeping for formatted inputs, the Escape dismiss-layer stack, a shared document-event subscriber, and roving keyboard-navigation math. **Internal:** `utilities` is not a `package.json` export; reach it by relative import within the package (`from '../../utilities'`), not as `ui/utilities`.
+> **Quick-glance index of `src/utilities/`.** Small, dependency-free pure helpers shared across the package — numeric clamping/formatting, WCAG colour-contrast maths, caret bookkeeping for formatted inputs, the Escape dismiss-layer stack, a shared document-event subscriber, and roving keyboard-navigation math. **Internal:** `utilities` is not a `package.json` export; reach it by relative import within the package (`from '../../utilities'`), not as `ui/utilities`.
 
 ## Numeric
 
@@ -14,6 +14,22 @@
 | `formatPercent` | Locale-formats a `0..1` share as a whole percent (cached formatter). |
 | `resolveFormat` | Resolves a `FormatSpec` to a cached `(value) => string` formatter — number, integer, currency, percent, compact, or prefixed id. |
 | `FormatSpec` *(type)* | What to format a value as: a numeric `Intl` format (`number`/`integer`/`currency`/`percent`/`compact`) or a prefixed `id`. |
+
+## Colour & accessibility
+
+| Export | Summary |
+|---|---|
+| `contrastRatio` | WCAG contrast ratio (`1`–`21`) between two colours. |
+| `relativeLuminance` | WCAG relative luminance of a colour, in `[0, 1]`. |
+| `meetsContrast` | Whether two colours clear a threshold — a named level (`'AA'`, `'non-text'`, …) or a raw ratio; defaults to `'AA'`. |
+| `readableInk` | The first candidate ink that clears the threshold on a background — lead with the preferred ink (e.g. white) to get it wherever it holds. |
+| `contrastFloor` | Resolves a `ContrastThreshold` (named level or raw ratio) to its numeric floor. |
+| `parseColor` | Resolves a CSS colour (`#rgb` / `#rrggbb`, `rgb(…)`, `oklch(…)`, `white` / `black`) or an `Srgb` triple to gamma-encoded `Srgb`. |
+| `WCAG_AA_TEXT` · `WCAG_AA_LARGE` · `WCAG_NON_TEXT` · `WCAG_AAA_TEXT` · `WCAG_AAA_LARGE` | Standard WCAG contrast floors: `4.5` · `3` · `3` · `7` · `4.5`. |
+| `ContrastLevel` *(type)* | A named WCAG floor: `'AA'` · `'AA-large'` · `'AAA'` · `'AAA-large'` · `'non-text'`. |
+| `ContrastThreshold` *(type)* | A `ContrastLevel` or a raw ratio, taken by `meetsContrast` / `readableInk`. |
+| `Srgb` *(type)* | An sRGB colour as three gamma-encoded `[0, 1]` channels. |
+| `ColorInput` *(type)* | A colour to measure: a CSS colour string or an `Srgb` triple. |
 
 ## Caret & formatted input
 
