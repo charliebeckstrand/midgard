@@ -59,6 +59,8 @@ export type ChartFrameProps = AccessibleName & {
 	className?: string
 	/** HTML layered over the SVG inside the plot region — a donut's center content. */
 	overlay?: ReactNode
+	/** Visually-hidden HTML beside the data table — reference-line parity outside the plot. */
+	annotations?: ReactNode
 	/** The SVG content: axes, gridlines, marks, and the hit layer. */
 	children: ReactNode
 }
@@ -86,6 +88,7 @@ export function ChartFrame({
 	orientation,
 	className,
 	overlay,
+	annotations,
 	children,
 	...label
 }: ChartFrameProps) {
@@ -176,6 +179,8 @@ export function ChartFrame({
 			</ChartHoverContext>
 
 			{readout && <ChartTable readout={readout} />}
+
+			{annotations}
 		</div>
 	)
 }

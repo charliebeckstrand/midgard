@@ -164,14 +164,17 @@ export function Demo() {
 
 							<Example
 								title="Reference lines"
-								code={code`<BarChart reference={[{ value: 55, label: 'Target', color: 'green' }]} … />`}
+								code={code`<BarChart reference={[{ value: 55, label: 'Target', color: 'green' }, { value: 68, label: 'Ceiling', color: '#e11d48' }]} … />`}
 							>
 								<ChartContainer>
 									<BarChart
-										aria-label="Revenue by month against a target"
+										aria-label="Revenue by month against a target and ceiling"
 										data={months}
 										series={[{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' }]}
-										reference={[{ value: 55, label: 'Target', color: 'green' }]}
+										reference={[
+											{ value: 55, label: 'Target', color: 'green' },
+											{ value: 68, label: 'Ceiling', color: '#e11d48' },
+										]}
 									/>
 								</ChartContainer>
 							</Example>

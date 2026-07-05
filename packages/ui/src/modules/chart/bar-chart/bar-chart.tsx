@@ -10,7 +10,7 @@ import { withinBarMarks } from '../chart-hit-test'
 import { ChartLegend } from '../chart-legend'
 import { ChartMarksLayer } from '../chart-marks-layer'
 import type { ChartOrientation } from '../chart-orientation'
-import { ChartReferenceLines } from '../chart-reference-lines'
+import { ChartReferenceLines, ChartReferenceList } from '../chart-reference-lines'
 import type { CartesianChartProps } from '../chart-schema'
 import { snapTargets } from '../chart-snap'
 import { useChartCartesian } from '../use-chart-cartesian'
@@ -148,6 +148,7 @@ export function BarChart<T>({
 			snap={snapTargets(rails, chart.bandPositions, chart.snapPoints)}
 			orientation={chart.orientation}
 			className={className}
+			annotations={<ChartReferenceList reference={reference} format={formatValue} />}
 		>
 			<ChartCartesianAxes
 				orientation={chart.orientation}
@@ -162,13 +163,6 @@ export function BarChart<T>({
 			/>
 
 			<ChartMarksLayer animate={animate}>{marksNode}</ChartMarksLayer>
-
-			<ChartReferenceLines
-				plot={chart.plot}
-				scale={chart.yScale}
-				reference={reference}
-				orientation={chart.orientation}
-			/>
 
 			{rails && (
 				<ChartCrosshair
@@ -189,6 +183,15 @@ export function BarChart<T>({
 					orientation={chart.orientation}
 				/>
 			)}
+
+			{/* Last, over the hit area, so the rules win the pointer where they sit. */}
+			<ChartReferenceLines
+				plot={chart.plot}
+				scale={chart.yScale}
+				reference={reference}
+				orientation={chart.orientation}
+				format={formatValue}
+			/>
 		</ChartFrame>
 	)
 }

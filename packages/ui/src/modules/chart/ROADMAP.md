@@ -12,7 +12,7 @@ The legend is the series switchboard: centered toggle buttons where pointing an 
 
 `AreaChart` fills each series under its band-edge line — stacked into a part-to-whole ribbon set or left as independent overlapping washes — reusing the line renderer and a stacked-domain pass on the shared scale. Line and combo lines take an `interpolation` prop: `'smooth'` draws a monotone cubic that never overshoots the data.
 
-A `reference` prop annotates the four cartesian charts with fixed-value rules — targets, thresholds, averages — drawn across the band axis on the same `value → project → draw` path as the gridlines but on a raw domain value. Each value folds into the domain the way `min`/`max` pins do, so an off-data target stays on-frame, and the dashed rules draw over the marks so a mark crossing one stays legible. Horizontal orientation is free through the shared coordinate projection.
+A `reference` prop annotates the four cartesian charts with fixed-value rules — targets, thresholds, averages — drawn across the band axis on the same `value → project → draw` path as the gridlines but on a raw domain value. Each value folds into the domain the way `min`/`max` pins do, so an off-data target stays on-frame, and the dashed rules draw over the marks so a mark crossing one stays legible. Each rule is a hover target floating a tooltip with its value and label, takes a named palette slot or any raw CSS colour (hex, `oklch()`), and carries visually-hidden parity beside the data table; horizontal orientation is free through the shared coordinate projection.
 
 ## Backlog
 

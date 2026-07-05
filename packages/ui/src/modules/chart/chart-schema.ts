@@ -123,11 +123,14 @@ export type ChartReferenceLine = {
 	/** A short label drawn at the line's far end; omitted, the rule stands alone. */
 	label?: string
 	/**
-	 * Named slot colour for the rule and its label. Defaults to the neutral
-	 * de-emphasis ink, so a reference reads as chrome until coloured for emphasis.
+	 * The rule's colour: a named palette slot (rendered through the CVD-safe slot
+	 * classes) or any raw CSS colour string — a hex like `'#e11d48'`, an
+	 * `'oklch(…)'`, or any value CSS accepts — applied inline. Defaults to the
+	 * neutral de-emphasis slot, so a reference reads as chrome until coloured for
+	 * emphasis.
 	 * @defaultValue 'zinc'
 	 */
-	color?: ChartSeriesColor
+	color?: ChartSeriesColor | (string & {})
 	/**
 	 * Dash the rule — the annotation convention, telling a reference apart from a
 	 * data line — or draw it solid.

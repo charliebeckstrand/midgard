@@ -12,7 +12,7 @@ import { nearSeriesLines, withinBarMarks, withinSeriesAreas } from '../chart-hit
 import { ChartLegend } from '../chart-legend'
 import { AnimatedChartLineMarks, ChartLineMarks, type ChartLineSeries } from '../chart-line-marks'
 import { ChartMarksLayer } from '../chart-marks-layer'
-import { ChartReferenceLines } from '../chart-reference-lines'
+import { ChartReferenceLines, ChartReferenceList } from '../chart-reference-lines'
 import type { CartesianFrameProps, ChartBaseProps, ComboChartSeries } from '../chart-schema'
 import type { SeriesMeta } from '../chart-series'
 import { snapTargets } from '../chart-snap'
@@ -211,6 +211,7 @@ export function ComboChart<T>({
 			tooltip={tooltip}
 			snap={snapTargets(rails, chart.bandPositions, chart.snapPoints)}
 			className={className}
+			annotations={<ChartReferenceList reference={reference} format={formatValue} />}
 		>
 			{gridLines && yScale && (
 				<ChartGridLines plot={chart.plot} ticks={chart.yTicks.map((tick) => tick.at)} />
@@ -233,8 +234,6 @@ export function ComboChart<T>({
 
 			<ChartMarksLayer animate={animate}>{marksNode}</ChartMarksLayer>
 
-			<ChartReferenceLines plot={chart.plot} scale={yScale} reference={reference} />
-
 			{(tooltip || rails !== null) && data.length > 0 && (
 				<ChartHitArea
 					plot={chart.plot}
@@ -256,6 +255,14 @@ export function ComboChart<T>({
 					}
 				/>
 			)}
+
+			{/* Last, over the hit area, so the rules win the pointer where they sit. */}
+			<ChartReferenceLines
+				plot={chart.plot}
+				scale={yScale}
+				reference={reference}
+				format={formatValue}
+			/>
 		</ChartFrame>
 	)
 }

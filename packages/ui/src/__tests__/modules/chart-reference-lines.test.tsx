@@ -1,9 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { BarChart } from '../../modules/chart/bar-chart'
-import { referenceLabelAnchor } from '../../modules/chart/chart-reference-lines'
 import type { ChartReferenceLine } from '../../modules/chart/chart-schema'
 import { LineChart } from '../../modules/chart/line-chart'
-import { allBySlot, bySlot, renderUI } from '../helpers'
+import { allBySlot, bySlot, renderUI, userEvent, waitFor } from '../helpers'
 
 const DATA = [
 	{ month: 'Jan', revenue: 40 },
@@ -26,8 +25,16 @@ function bar(reference?: ChartReferenceLine[], orientation?: 'vertical' | 'horiz
 	)
 }
 
-function ruleLine(container: HTMLElement): SVGLineElement | null {
+/** The visible rule is the first line in a reference group; the hover target is the second. */
+function rule(container: HTMLElement): SVGLineElement | null {
 	return bySlot(container, 'chart-reference-line')?.querySelector('line') ?? null
+}
+
+function hitTarget(container: HTMLElement): SVGLineElement | null {
+	return (
+		(bySlot(container, 'chart-reference-line')?.querySelectorAll('line')[1] as SVGLineElement) ??
+		null
+	)
 }
 
 describe('reference lines', () => {
@@ -44,34 +51,62 @@ describe('reference lines', () => {
 		expect(allBySlot(none.container, 'chart-reference-line')).toHaveLength(0)
 	})
 
-	it('labels a rule at its end and leaves an unlabelled one bare', () => {
-		const { container } = bar([{ value: 50, label: 'Target' }, { value: 20 }])
+	it('lays a wide transparent hover target over the 1px rule', () => {
+		const { container } = bar([{ value: 50 }])
 
-		const labels = allBySlot(container, 'chart-reference-label')
+		expect(rule(container)?.getAttribute('stroke-width')).toBe('1')
 
-		expect(labels).toHaveLength(1)
+		const hit = hitTarget(container)
 
-		expect(labels[0]?.textContent).toBe('Target')
+		expect(hit?.getAttribute('stroke')).toBe('transparent')
+
+		expect(Number(hit?.getAttribute('stroke-width'))).toBeGreaterThan(1)
 	})
 
 	it('dashes the rule by default and draws it solid when dashed is false', () => {
 		const dashed = bar([{ value: 50 }])
 
-		expect(ruleLine(dashed.container)?.getAttribute('stroke-dasharray')).toBe('4 3')
+		expect(rule(dashed.container)?.getAttribute('stroke-dasharray')).toBe('4 3')
 
 		const solid = bar([{ value: 50, dashed: false }])
 
-		expect(ruleLine(solid.container)?.getAttribute('stroke-dasharray')).toBeNull()
+		expect(rule(solid.container)?.getAttribute('stroke-dasharray')).toBeNull()
 	})
 
-	it('paints the rule with the named slot colour, neutral zinc by default', () => {
-		const red = bar([{ value: 50, color: 'red' }])
+	it('paints a named slot through its class and a raw colour inline', () => {
+		const slot = bar([{ value: 50, color: 'red' }])
 
-		expect(ruleLine(red.container)?.getAttribute('class')).toContain('stroke-red-600')
+		expect(rule(slot.container)?.getAttribute('class')).toContain('stroke-red-600')
 
 		const neutral = bar([{ value: 50 }])
 
-		expect(ruleLine(neutral.container)?.getAttribute('class')).toContain('stroke-zinc-600')
+		// Defaults to the neutral de-emphasis slot.
+		expect(rule(neutral.container)?.getAttribute('class')).toContain('stroke-zinc-600')
+
+		const hex = bar([{ value: 50, color: '#e11d48' }])
+
+		const hexRule = rule(hex.container)
+
+		expect(hexRule).not.toBeNull()
+
+		// A raw colour bypasses the slot classes entirely — no stroke-* class — and
+		// strokes inline instead, so the class path is never taken.
+		expect(hexRule?.getAttribute('class') ?? '').not.toContain('stroke-')
+	})
+
+	it('carries the label and value in a visually-hidden list for parity', () => {
+		const { container } = bar([{ value: 55, label: 'Target' }, { value: 30 }])
+
+		const list = bySlot(container, 'chart-reference-list')
+
+		expect(list?.className).toContain('sr-only')
+
+		expect(list?.textContent).toContain('Target')
+
+		expect(list?.textContent).toContain('55')
+
+		// The unlabelled line still lists its value.
+		expect(list?.textContent).toContain('30')
 	})
 
 	it('folds an off-data target into the domain so it stays on the frame', () => {
@@ -85,7 +120,7 @@ describe('reference lines', () => {
 
 		const height = Number((svg.getAttribute('viewBox') ?? '0 0 0 0').split(' ')[3])
 
-		const y = Number(ruleLine(container)?.getAttribute('y1'))
+		const y = Number(rule(container)?.getAttribute('y1'))
 
 		expect(y).toBeGreaterThanOrEqual(0)
 
@@ -95,12 +130,37 @@ describe('reference lines', () => {
 	it('transposes the rule to a vertical line under horizontal orientation', () => {
 		const { container } = bar([{ value: 50 }], 'horizontal')
 
-		const line = ruleLine(container)
+		const line = rule(container)
 
 		// A vertical rule down the value axis: one x, spanning y.
 		expect(line?.getAttribute('x1')).toBe(line?.getAttribute('x2'))
 
 		expect(Number(line?.getAttribute('y2'))).toBeGreaterThan(Number(line?.getAttribute('y1')))
+	})
+
+	it('floats a tooltip with the value and label when a rule is hovered', async () => {
+		// No hover-capable pointer in jsdom, so the tooltip opens on click; the
+		// design-system Tooltip drives hover on pointer devices. Either way this
+		// proves the rule's trigger is wired to its content.
+		const user = userEvent.setup()
+
+		const { container } = bar([{ value: 55, label: 'Target' }])
+
+		await user.click(bySlot(container, 'chart-reference-line') as Element)
+
+		// The swatch renders only inside the floating tooltip, so its arrival proves
+		// the rule opened one.
+		await waitFor(() =>
+			expect(document.querySelector('[data-slot="chart-reference-swatch"]')).not.toBeNull(),
+		)
+
+		const content = document
+			.querySelector('[data-slot="chart-reference-swatch"]')
+			?.closest('[data-slot="tooltip-content"]')
+
+		expect(content?.textContent).toContain('55')
+
+		expect(content?.textContent).toContain('Target')
 	})
 
 	it('threads through the line chart too', () => {
@@ -116,34 +176,6 @@ describe('reference lines', () => {
 
 		expect(allBySlot(container, 'chart-reference-line')).toHaveLength(1)
 
-		expect(bySlot(container, 'chart-reference-label')?.textContent).toBe('Goal')
-	})
-})
-
-describe('referenceLabelAnchor', () => {
-	const plot = { x: 40, y: 8, width: 300, height: 200 }
-
-	it('anchors a vertical chart label at the right end, above the rule', () => {
-		const anchor = referenceLabelAnchor('vertical', plot, 100)
-
-		expect(anchor.x).toBe(plot.x + plot.width - 4)
-
-		expect(anchor.y).toBe(100 - 4)
-
-		expect(anchor.textAnchor).toBe('end')
-
-		expect(anchor.dominantBaseline).toBe('auto')
-	})
-
-	it('anchors a horizontal chart label at the top, beside the rule', () => {
-		const anchor = referenceLabelAnchor('horizontal', plot, 150)
-
-		expect(anchor.x).toBe(150 + 4)
-
-		expect(anchor.y).toBe(plot.y + 4)
-
-		expect(anchor.textAnchor).toBe('start')
-
-		expect(anchor.dominantBaseline).toBe('hanging')
+		expect(bySlot(container, 'chart-reference-list')?.textContent).toContain('Goal')
 	})
 })
