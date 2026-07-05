@@ -61,6 +61,8 @@ export type SeriesMeta = {
 	index: number
 	label: string
 	paint: SeriesPaint
+	/** The resolved slot colour name — the texture tile keys off it, as the paint does. */
+	color: ChartSeriesColor
 	/** Swatch shape, mirroring the mark. */
 	swatch: 'rect' | 'line'
 	values: (number | null)[]

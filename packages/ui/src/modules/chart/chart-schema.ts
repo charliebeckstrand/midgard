@@ -189,6 +189,18 @@ export type ChartBaseProps<T> = AccessibleName & {
 	 * @defaultValue false
 	 */
 	animate?: boolean
+	/**
+	 * Hatch each series' filled marks with a slot-keyed texture — a second
+	 * identity channel beside colour, so bars, areas, and slices stay tellable
+	 * apart in print, under severe colour-vision deficiency, or wherever colour is
+	 * unreliable. The texture also engages automatically under
+	 * `forced-colors` (Windows High Contrast) and print even when this is off,
+	 * where the colour channel is already gone; on-screen colour rendering is
+	 * never changed by that fallback. Line strokes carry no fill, so a
+	 * pure-line series is unaffected.
+	 * @defaultValue false
+	 */
+	texture?: boolean
 	/** Formats tick and tooltip values; defaults to locale integer/fraction formatting. */
 	formatValue?: (value: number) => string
 	className?: string

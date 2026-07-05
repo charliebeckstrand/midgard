@@ -20,6 +20,7 @@ import {
 	chartReadout,
 	formatChartValue,
 	type SeriesMeta,
+	seriesColor,
 	seriesPaint,
 	seriesValues,
 } from './chart-series'
@@ -148,6 +149,7 @@ export function useChartCartesian<T>(
 		index,
 		label: entry.yName ?? entry.yKey,
 		paint: seriesPaint(entry, index),
+		color: seriesColor(entry, index),
 		swatch: config.swatch(entry, index),
 		values: seriesValues(data, entry.yKey),
 	}))

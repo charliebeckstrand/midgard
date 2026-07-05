@@ -154,6 +154,21 @@ export function Demo() {
 								</ChartContainer>
 							</Example>
 
+							<Example title="Texture" code={code`<BarChart texture … />`}>
+								<ChartContainer>
+									<BarChart
+										aria-label="Revenue, costs, and margin by month, textured"
+										data={months}
+										series={[
+											{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
+											{ xKey: 'month', yKey: 'costs', yName: 'Costs' },
+											{ xKey: 'month', yKey: 'margin', yName: 'Margin' },
+										]}
+										texture
+									/>
+								</ChartContainer>
+							</Example>
+
 							<Example title="Horizontal" code={code`<BarChart orientation="horizontal" … />`}>
 								<ChartContainer>
 									<BarChart

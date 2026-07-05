@@ -9,6 +9,7 @@ import { withinSeriesAreas } from '../chart-hit-test'
 import { ChartLegend } from '../chart-legend'
 import { AnimatedChartLineMarks, ChartLineMarks, type ChartLineSeries } from '../chart-line-marks'
 import { ChartMarksLayer } from '../chart-marks-layer'
+import { useChartTexture } from '../chart-pattern-defs'
 import { ChartReferenceLines, ChartReferenceList } from '../chart-reference-lines'
 import type { CartesianChartProps, Crosshair } from '../chart-schema'
 import type { SeriesMeta } from '../chart-series'
@@ -119,6 +120,7 @@ export function AreaChart<T>({
 	crosshair,
 	animate = false,
 	stacked = false,
+	texture = false,
 	points = false,
 	interpolation = 'linear',
 	min,
@@ -183,10 +185,17 @@ export function AreaChart<T>({
 			}))
 		: []
 
+	const tex = useChartTexture(
+		texture,
+		chart.visible.map((meta) => ({ color: meta.color, paint: meta.paint })),
+	)
+
+	const fills = chart.visible.map((meta) => tex.fillFor(meta.color))
+
 	const marksNode = animate ? (
-		<AnimatedChartLineMarks list={list} fill={true} />
+		<AnimatedChartLineMarks list={list} fill={true} fills={fills} textureActive={tex.active} />
 	) : (
-		<ChartLineMarks list={list} fill={true} />
+		<ChartLineMarks list={list} fill={true} fills={fills} textureActive={tex.active} />
 	)
 
 	// The area chart carries a snapping y-rule by default so the fills read
@@ -227,6 +236,8 @@ export function AreaChart<T>({
 			className={className}
 			annotations={<ChartReferenceList reference={reference} format={formatValue} />}
 		>
+			{tex.defs}
+
 			{gridLines && yScale && (
 				<ChartGridLines plot={chart.plot} ticks={chart.yTicks.map((tick) => tick.at)} />
 			)}
