@@ -15,12 +15,15 @@ import type { ChartBaseProps, PieChartSeries } from './chart-schema'
 import { formatChartValue, type SeriesPaint, seriesValues } from './chart-series'
 import { useChartHover } from './context'
 import {
+	CALLOUT_CHAR_WIDTH,
 	CALLOUT_GAP,
 	CALLOUT_LEADER,
 	CALLOUT_LINE,
 	CALLOUT_NUB,
 	type PieCallout,
+	type PieCalloutFit,
 	type PieSlice,
+	pieCalloutFit,
 	pieCallouts,
 	pieCentroidRadius,
 	pieSlices,
@@ -129,7 +132,7 @@ function PieSegmentLabels({ items, paints, animate, emphasis }: PieSegmentLabels
 					y: slice.centroid.y,
 					textAnchor: 'middle' as const,
 					dominantBaseline: 'central' as const,
-					className: cn('font-semibold text-xs tabular-nums', paints[slice.index]?.onFill),
+					className: cn('font-semibold text-sm tabular-nums', paints[slice.index]?.onFill),
 				}
 
 				return (
@@ -312,7 +315,59 @@ function calloutRoom(show: boolean, spec: CalloutSpec, sliceValues: (number | nu
 		0,
 	)
 
-	return CALLOUT_LEADER + CALLOUT_NUB + CALLOUT_GAP + chars * TICK_CHAR_WIDTH
+	return CALLOUT_LEADER + CALLOUT_NUB + CALLOUT_GAP + chars * CALLOUT_CHAR_WIDTH
+}
+
+/** Every row's callout text, indexed like `sliceValues` — {@link pieCalloutFit}'s per-slice widths. @internal */
+function calloutTexts(spec: CalloutSpec, sliceValues: (number | null)[]): string[] {
+	const total = sliceValues.reduce<number>(
+		(sum, entry) => sum + (entry != null && entry > 0 ? entry : 0),
+		0,
+	)
+
+	return sliceValues.map((entry, index) =>
+		entry != null && entry > 0 && total > 0 ? calloutLabelText(spec, index, entry / total) : '',
+	)
+}
+
+/** The frame-sizing radius resolver callouts refine the content-fit height with; `undefined` when they're off. @internal */
+function calloutFitRadius(
+	show: boolean,
+	spec: CalloutSpec,
+	values: (number | null)[],
+): ((width: number) => number) | undefined {
+	if (!show) return undefined
+
+	return (frameWidth) =>
+		pieCalloutFit({
+			values,
+			texts: calloutTexts(spec, values),
+			charWidth: CALLOUT_CHAR_WIDTH,
+			frameWidth,
+		}).radius
+}
+
+/**
+ * The pie's resolved radius and center: the tight, asymmetric callout fit, or
+ * — without callouts — centered at the plain gap the way every chart frame
+ * defaults to.
+ *
+ * @internal
+ */
+function resolvePieFit(
+	show: boolean,
+	spec: CalloutSpec,
+	sliceValues: (number | null)[],
+	frameWidth: number,
+): PieCalloutFit {
+	if (!show) return { radius: frameWidth / 2 - MARK_GAP * 2, cx: frameWidth / 2 }
+
+	return pieCalloutFit({
+		values: sliceValues,
+		texts: calloutTexts(spec, sliceValues),
+		charWidth: CALLOUT_CHAR_WIDTH,
+		frameWidth,
+	})
 }
 
 /**
@@ -320,7 +375,10 @@ function calloutRoom(show: boolean, spec: CalloutSpec, sliceValues: (number | nu
  * wins, resolved the same way every cartesian chart does. Left at both
  * defaults, the frame instead fits its height to the pie's own footprint —
  * twice the width-bound radius plus the vertical margin — so a wide callout
- * label never leaves an empty band the aspect ratio didn't need.
+ * label never leaves an empty band the aspect ratio didn't need. `radius`
+ * refines that footprint once a real width lands, to a callout-labelled
+ * pie's tight, asymmetric fit rather than the flat `hMargin` every chart
+ * frame otherwise falls back to.
  *
  * @internal
  */
@@ -329,12 +387,13 @@ function pieFrameSizing(
 	aspectRatio: ChartAspectRatio | undefined,
 	hMargin: number,
 	vMargin: number,
+	radius?: (width: number) => number,
 ): FrameSizing {
 	if (height !== undefined || aspectRatio !== undefined) {
 		return chartFrameSizing(height, aspectRatio ?? 1)
 	}
 
-	return { mode: 'content', hMargin, vMargin }
+	return { mode: 'content', hMargin, vMargin, radius }
 }
 
 /** Places the callouts around the pie and resolves each label's text. @internal */
@@ -526,6 +585,7 @@ export function ChartPie<T>({
 		aspectRatio,
 		calloutRoom(showCallouts, calloutSpec, values),
 		vMargin,
+		calloutFitRadius(showCallouts, calloutSpec, values),
 	)
 
 	const { ref, width: frameWidth, height: frameHeight, reserve } = usePlotFrame(width, sizing)
@@ -537,13 +597,13 @@ export function ChartPie<T>({
 
 	const paints = values.map((_, index) => k.series[k.order[index % k.order.length] ?? 'blue'])
 
-	const hMargin = calloutRoom(showCallouts, calloutSpec, sliceValues)
+	const pieFit = resolvePieFit(showCallouts, calloutSpec, sliceValues, frameWidth)
 
-	const radius = Math.max(0, Math.min(frameWidth / 2 - hMargin, frameHeight / 2 - vMargin))
+	const radius = Math.max(0, Math.min(pieFit.radius, frameHeight / 2 - vMargin))
 
 	const innerRadius = radius * innerRatio
 
-	const center = { x: frameWidth / 2, y: frameHeight / 2 }
+	const center = { x: pieFit.cx, y: frameHeight / 2 }
 
 	const slices =
 		radius > 0

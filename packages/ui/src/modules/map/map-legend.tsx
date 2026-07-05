@@ -89,7 +89,7 @@ export function MapLegend({ items, hidden, onToggle, onFocus, panel = false }: M
 			className={cn(
 				// Layout the legend as a grid with gaps; the side panel modifies the
 				// spacing and width at larger breakpoints.
-				'mx-auto grid w-fit max-w-full justify-items-start gap-x-2 gap-y-1',
+				'mx-auto grid w-fit max-w-full justify-items-start',
 				panel && 'lg:mx-0 lg:w-full lg:gap-x-1',
 			)}
 		>

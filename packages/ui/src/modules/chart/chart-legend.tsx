@@ -79,9 +79,7 @@ export function ChartLegend({ items, hidden, onToggle, onFocus, panel = false }:
 			aria-orientation="horizontal"
 			onKeyDown={handleKeyDown}
 			className={cn(
-				panel
-					? 'flex flex-col items-start gap-1'
-					: 'flex flex-wrap items-center justify-center gap-x-2',
+				panel ? 'flex flex-col items-start' : 'flex flex-wrap items-center justify-center',
 			)}
 		>
 			{items.map((item, index) => {

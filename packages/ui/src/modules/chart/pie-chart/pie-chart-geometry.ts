@@ -207,6 +207,53 @@ function slicePath(
 	return `${outer} ${back} Z`
 }
 
+/** One value's angular place in the sweep, before any radius exists. @internal */
+type SliceAngle = {
+	index: number
+	/** The slice's part of the whole, `0..1`. */
+	share: number
+	/** The slice's mid-angle in degrees, clockwise from the top. */
+	mid: number
+	start: number
+	sweep: number
+}
+
+/**
+ * Sweeps the positive values into angles, clockwise from the top — the
+ * radius-independent half of {@link pieSlices}, so a caller that only needs
+ * mid-angles (sizing a frame before a radius exists) never draws a path to
+ * get them.
+ *
+ * @remarks Non-finite and non-positive values take no slice — see
+ * {@link pieSlices}.
+ * @internal
+ */
+function sliceAngles(values: (number | null)[]): SliceAngle[] {
+	const shares = values.map((value) => (value !== null && value > 0 ? value : 0))
+
+	const total = shares.reduce((sum, share) => sum + share, 0)
+
+	if (total <= 0) return []
+
+	const angles: SliceAngle[] = []
+
+	let angle = 0
+
+	shares.forEach((share, index) => {
+		if (share === 0) return
+
+		const fraction = share / total
+
+		const sweep = fraction * 360
+
+		angles.push({ index, share: fraction, mid: angle + sweep / 2, start: angle, sweep })
+
+		angle += sweep
+	})
+
+	return angles
+}
+
 /**
  * Sweeps the positive values into slices, clockwise from the top, each
  * share's angle proportional to its part of the whole.
@@ -225,31 +272,15 @@ export function pieSlices(
 	values: (number | null)[],
 	{ cx, cy, radius, innerRadius = 0, pad = 0 }: PieSlicesOptions,
 ): PieSlice[] {
-	const shares = values.map((value) => (value !== null && value > 0 ? value : 0))
+	const angles = sliceAngles(values)
 
-	const total = shares.reduce((sum, share) => sum + share, 0)
-
-	if (total <= 0) return []
-
-	const positive = shares.filter((share) => share > 0).length
+	const positive = angles.length
 
 	// Half the gap is peeled off each edge; a lone full circle has no neighbour
 	// to part from.
 	const half = positive > 1 ? pad / 2 : 0
 
-	const slices: PieSlice[] = []
-
-	let angle = 0
-
-	shares.forEach((share, index) => {
-		if (share === 0) return
-
-		const fraction = share / total
-
-		const sweep = fraction * 360
-
-		const mid = angle + sweep / 2
-
+	return angles.map(({ index, share, mid, start, sweep }) => {
 		// A sliver narrower than the cuts shrinks its own offset: a donut's is
 		// bounded by its inner ring, a pie's by keeping the offset edges' tip
 		// inside half the radius so the wedge never inverts.
@@ -265,19 +296,15 @@ export function pieSlices(
 		// the boundary each channel is centred on — the slice's half of it.
 		const full = positive === 1 ? fullCircle(cx, cy, radius, innerRadius) : null
 
-		slices.push({
+		return {
 			index,
-			d: full ?? slicePath(cx, cy, radius, innerRadius, angle, angle + sweep, h),
-			hit: full ?? slicePath(cx, cy, radius, innerRadius, angle, angle + sweep, 0),
-			share: fraction,
+			d: full ?? slicePath(cx, cy, radius, innerRadius, start, start + sweep, h),
+			hit: full ?? slicePath(cx, cy, radius, innerRadius, start, start + sweep, 0),
+			share,
 			mid,
-			centroid: at(cx, cy, pieCentroidRadius(radius, innerRadius, fraction), mid),
-		})
-
-		angle += sweep
+			centroid: at(cx, cy, pieCentroidRadius(radius, innerRadius, share), mid),
+		}
 	})
-
-	return slices
 }
 
 /**
@@ -317,6 +344,16 @@ export const CALLOUT_GAP = 6
 
 /** The minimum vertical spacing between stacked callout labels. @internal */
 export const CALLOUT_LINE = 15
+
+/**
+ * Estimated glyph advance of a callout label's character — a slice's name
+ * beside real, proportionally-set letters, not the all-digit `tabular-nums`
+ * strings {@link TICK_CHAR_WIDTH} is calibrated for — so the room reserved
+ * for a callout doesn't overshoot the text it actually measures out to.
+ *
+ * @internal
+ */
+export const CALLOUT_CHAR_WIDTH = 6
 
 /** One placed callout: a leader out to a label set beside its slice. @internal */
 export type PieCallout = {
@@ -427,4 +464,99 @@ export function pieCallouts(
 			}
 		})
 	})
+}
+
+/** A solved pie fit: the radius every callout clears the frame at, and the center-x that clears it. @internal */
+export type PieCalloutFit = {
+	/** The largest radius whose callouts, each hugging its own slice's angle, still land inside `frameWidth`. */
+	radius: number
+	/**
+	 * The pie's center x. Shifted off `frameWidth / 2` so the outermost callout
+	 * on each side lands flush against it — the two sides' demands rarely
+	 * match, so a centered pie leaves one side short of the edge; with fewer
+	 * than two slices there is nothing to balance and this stays `frameWidth / 2`.
+	 */
+	cx: number
+}
+
+/** Options for {@link pieCalloutFit}. @internal */
+export type PieCalloutFitOptions = {
+	/** Every row's raw value, so a hidden (nulled) row takes no slice. */
+	values: (number | null)[]
+	/** Each row's callout text, indexed like `values`. */
+	texts: string[]
+	/** Estimated glyph advance for a label's width. */
+	charWidth: number
+	/** The frame's available width. */
+	frameWidth: number
+}
+
+/** How far a callout's elbow pulls off center, `1` at 3/9 o'clock and `0` at 12/6 — the sign matches {@link pieCallouts}' own `elbow.x >= cx` side test. @internal */
+function calloutPull(mid: number): number {
+	return Math.cos(((mid - 90) * Math.PI) / 180)
+}
+
+/**
+ * The largest radius and the center-x under which every callout — each
+ * hugging its own slice's angle the way {@link pieCallouts} places it — lands
+ * exactly inside `frameWidth`: the tight inverse of that placement, so the
+ * frame reserves only the room the real outermost label on each side needs
+ * instead of a flat margin sized as if every label sat at 3 o'clock.
+ *
+ * @remarks Each callout's reach from the center is affine in the radius — its
+ * slice's horizontal pull times `radius + leader`, plus its fixed nub, gap,
+ * and text — so a side's worst case is the upper envelope of a handful of
+ * lines, and the pair of envelopes crossing `frameWidth` narrows to one radius
+ * by bisection. Below two slices there is nothing to balance between two
+ * sides, so `cx` stays centered and the margin falls back to the flat case
+ * for the one label.
+ * @internal
+ */
+export function pieCalloutFit({
+	values,
+	texts,
+	charWidth,
+	frameWidth,
+}: PieCalloutFitOptions): PieCalloutFit {
+	const angles = sliceAngles(values)
+
+	const widest = texts.reduce((max, text) => Math.max(max, text.length * charWidth), 0)
+
+	if (angles.length < 2) {
+		const radius = frameWidth / 2 - CALLOUT_LEADER - CALLOUT_NUB - CALLOUT_GAP - widest
+
+		return { radius: Math.max(0, radius), cx: frameWidth / 2 }
+	}
+
+	// A side's reach at `radius`: the furthest any of its callouts extends from
+	// center, mirroring `pieCallouts`' own elbow + nub + gap + text math.
+	const reach = (dir: 1 | -1, radius: number): number =>
+		angles.reduce((max, { index, mid }) => {
+			const pull = calloutPull(mid)
+
+			if ((pull >= 0 ? 1 : -1) !== dir) return max
+
+			const text = texts[index] ?? ''
+
+			const extent =
+				Math.abs(pull) * (radius + CALLOUT_LEADER) +
+				CALLOUT_NUB +
+				CALLOUT_GAP +
+				text.length * charWidth
+
+			return Math.max(max, extent)
+		}, 0)
+
+	let lo = 0
+
+	let hi = frameWidth
+
+	for (let i = 0; i < 40; i++) {
+		const mid = (lo + hi) / 2
+
+		if (reach(1, mid) + reach(-1, mid) > frameWidth) hi = mid
+		else lo = mid
+	}
+
+	return { radius: lo, cx: reach(-1, lo) }
 }

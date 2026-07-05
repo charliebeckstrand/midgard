@@ -119,12 +119,12 @@ export const k = {
 	/** The axis baseline, a step firmer than the grid. */
 	axis: mode('stroke-zinc-300', 'dark:stroke-zinc-700'),
 	/** SVG tick-label ink: muted, tabular for vertical alignment. */
-	tick: ['text-xs', 'tabular-nums', ...mode('fill-zinc-500', 'dark:fill-zinc-400')],
+	tick: ['text-sm', 'tabular-nums', ...mode('fill-zinc-500', 'dark:fill-zinc-400')],
 	/** Point-marker stroke: white in both modes, so a dot stays legible crossing the opaque marks behind it. */
 	stroke: mode('stroke-white', 'dark:stroke-white'),
 	/** Legend / tooltip label ink (HTML text; marks carry the colour, text never does). */
 	label: ['text-sm text-left', 'leading-tight', ...text.muted],
 	/** Tooltip value ink: the strong element, values lead. */
-	value: ['text-xs', 'font-medium', 'tabular-nums', ...text.default],
+	value: ['text-xs', 'tabular-nums', 'font-medium', ...text.default],
 	skeleton: kokkaku.chart,
 } as const
