@@ -63,6 +63,29 @@ export const statePopulation: StatePopulation[] = [
 	{ state: 'Wyoming', people: 0.6 },
 ]
 
+/** One day's traffic: `date` is an ISO day key (`YYYY-MM-DD`), `visits` the metric. */
+export type DailyVisit = { date: string; visits: number }
+
+/**
+ * Roughly four months of daily visits from 2026-01-01 — a deterministic seasonal
+ * curve with a weekend dip, long enough for the time axis to line month-boundary
+ * ticks across the evenly spaced days.
+ */
+export const dailyVisits: DailyVisit[] = Array.from({ length: 118 }, (_, index) => {
+	const date = new Date(2026, 0, 1 + index)
+
+	const month = String(date.getMonth() + 1).padStart(2, '0')
+
+	const day = String(date.getDate()).padStart(2, '0')
+
+	const weekend = date.getDay() === 0 || date.getDay() === 6 ? -260 : 0
+
+	return {
+		date: `${date.getFullYear()}-${month}-${day}`,
+		visits: 1200 + index * 6 + weekend + Math.round(180 * Math.sin(index / 9)),
+	}
+})
+
 /**
  * An 'amber' heat scale in Oklch. The stops are perceptually uniform,
  * so the bins are equal-interval and the legend is continuous.

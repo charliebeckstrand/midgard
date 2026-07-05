@@ -19,7 +19,7 @@ import {
 } from '../../../../modules/chart'
 import type { MapGeography } from '../../../../modules/map'
 import { code, Example } from '../../../engine'
-import { activity, greens, heat, statePopulation } from './data'
+import { activity, dailyVisits, greens, heat, statePopulation } from './data'
 
 type Month = { month: string; revenue: number; costs: number; margin: number }
 
@@ -160,6 +160,21 @@ export function Demo() {
 								</ChartContainer>
 							</Example>
 
+							<Example title="Texture" code={code`<BarChart texture … />`}>
+								<ChartContainer>
+									<BarChart
+										aria-label="Revenue, costs, and margin by month, textured"
+										data={months}
+										series={[
+											{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
+											{ xKey: 'month', yKey: 'costs', yName: 'Costs' },
+											{ xKey: 'month', yKey: 'margin', yName: 'Margin' },
+										]}
+										texture
+									/>
+								</ChartContainer>
+							</Example>
+
 							<Example title="Horizontal" code={code`<BarChart orientation="horizontal" … />`}>
 								<ChartContainer>
 									<BarChart
@@ -238,6 +253,17 @@ export function Demo() {
 											{ xKey: 'month', yKey: 'costs', yName: 'Costs' },
 										]}
 										crosshair={{ snap: true }}
+									/>
+								</ChartContainer>
+							</Example>
+
+							<Example title="Time axis" code={code`<LineChart xAxis="time" … />`}>
+								<ChartContainer>
+									<LineChart
+										aria-label="Visits by day"
+										data={dailyVisits}
+										series={[{ xKey: 'date', yKey: 'visits', yName: 'Visits' }]}
+										xAxis="time"
 									/>
 								</ChartContainer>
 							</Example>
