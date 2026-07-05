@@ -14,6 +14,7 @@ import { ChartReferenceLines, ChartReferenceList } from '../chart-reference-line
 import type { CartesianChartProps } from '../chart-schema'
 import { snapTargets } from '../chart-snap'
 import { useChartCartesian } from '../use-chart-cartesian'
+import { cartesianFocus } from '../use-chart-keyboard'
 import { type LineInterpolation, lineGeometry } from './line-chart-geometry'
 
 /**
@@ -48,7 +49,9 @@ export type LineChartProps<T> = CartesianChartProps<T> & {
  * category, and a visually-hidden data table for assistive tech.
  *
  * @remarks The value domain follows the data; pin `min` / `max` to compare
- * charts on one scale.
+ * charts on one scale. Focus the plot to drive the crosshair and tooltip by
+ * keyboard — the band-axis arrows step categories, the value-axis arrows cycle
+ * each category's series values.
  * @example
  * ```tsx
  * <LineChart
@@ -164,9 +167,7 @@ export function LineChart<T>({
 			readout={chart.readout}
 			tooltip={tooltip}
 			snap={snapTargets(rails, chart.bandPositions, chart.snapPoints)}
-			count={data.length}
-			bandPositions={chart.bandPositions}
-			snapPoints={chart.snapPoints}
+			focus={cartesianFocus(chart.bandPositions, chart.snapPoints, chart.orientation)}
 			className={className}
 			annotations={<ChartReferenceList reference={reference} format={formatValue} />}
 		>

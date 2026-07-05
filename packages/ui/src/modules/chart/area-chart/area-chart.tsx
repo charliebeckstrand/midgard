@@ -20,7 +20,8 @@ import {
 	lineGeometry,
 } from '../line-chart/line-chart-geometry'
 import { useChartCartesian } from '../use-chart-cartesian'
-import { stackedAreas } from './area-chart-geometry'
+import { cartesianFocus } from '../use-chart-keyboard'
+import { type StackedAreaGeometry, stackedAreas } from './area-chart-geometry'
 
 /**
  * Props for {@link AreaChart}. Requires an accessible name (`aria-label` or
@@ -71,6 +72,34 @@ function tooltipSnapPoints(stacked: boolean, snapPoints: number[][], count: numb
 	return stacked ? Array.from({ length: count }, () => []) : snapPoints
 }
 
+/**
+ * The value points keyboard navigation anchors to. Unstacked, they are the
+ * per-series points the pointer snaps to. Stacked, the pointer floats free but
+ * the keyboard still needs a stop per band, so each category hands over its
+ * ribbons' cumulative top edges — the boundaries the eye already reads — top to
+ * bottom of the stack.
+ *
+ * @internal
+ */
+function focusPoints(
+	stacked: boolean,
+	snapPoints: number[][],
+	bands: StackedAreaGeometry[],
+	count: number,
+): number[][] {
+	if (!stacked) return snapPoints
+
+	return Array.from({ length: count }, (_, index) =>
+		bands.reduce<number[]>((ys, band) => {
+			const y = band.points[index]?.y
+
+			if (y != null && Number.isFinite(y)) ys.push(y)
+
+			return ys
+		}, []),
+	)
+}
+
 /** Adapts one stacked band to the line-marks geometry shape (one segment, one ribbon). @internal */
 function stackedToLine(band: { line: string; area: string; points: LineSeriesGeometry['points'] }) {
 	return {
@@ -92,7 +121,10 @@ function stackedToLine(band: { line: string; area: string; points: LineSeriesGeo
  * the unstacked variant breaks its lines at gaps like {@link LineChart}. The
  * crosshair defaults on here — a snapping y-rule meeting the nearest point —
  * dropping the snap under smooth interpolation; override it with the
- * `crosshair` prop.
+ * `crosshair` prop. Focus the plot to drive the crosshair and tooltip by
+ * keyboard — the band-axis arrows step categories, the value-axis arrows step
+ * each category's points in screen order (a stack's cumulative band edges when
+ * stacked, each series' own point otherwise).
  * @example
  * ```tsx
  * <AreaChart
@@ -207,6 +239,8 @@ export function AreaChart<T>({
 
 	const snapPoints = tooltipSnapPoints(stacked, chart.snapPoints, xs.length)
 
+	const navPoints = focusPoints(stacked, chart.snapPoints, stackedGeometry, xs.length)
+
 	return (
 		<ChartFrame
 			{...label}
@@ -231,9 +265,7 @@ export function AreaChart<T>({
 			readout={chart.readout}
 			tooltip={tooltip}
 			snap={snapTargets(rails, chart.bandPositions, snapPoints)}
-			count={data.length}
-			bandPositions={chart.bandPositions}
-			snapPoints={chart.snapPoints}
+			focus={cartesianFocus(chart.bandPositions, navPoints, chart.orientation)}
 			className={className}
 			annotations={<ChartReferenceList reference={reference} format={formatValue} />}
 		>

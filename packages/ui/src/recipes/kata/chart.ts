@@ -122,11 +122,11 @@ export const k = {
 	tick: ['text-sm', 'tabular-nums', ...mode('fill-zinc-500', 'dark:fill-zinc-400')],
 	/** Point-marker stroke: white in both modes, so a dot stays legible crossing the opaque marks behind it. */
 	stroke: mode('stroke-white', 'dark:stroke-white'),
-	/** Keyboard-focus ring for the plot region — the library's standard accent outline. */
-	focus: sen.focus.ring,
 	/** Legend / tooltip label ink (HTML text; marks carry the colour, text never does). */
 	label: ['text-sm text-left', 'leading-tight', ...text.muted],
 	/** Tooltip value ink: the strong element, values lead. */
 	value: ['text-xs', 'tabular-nums', 'font-medium', ...text.default],
+	/** The keyboard focus ring on the plot region when arrow-key navigation is enabled. */
+	focusRing: sen.focus.ring,
 	skeleton: kokkaku.chart,
 } as const

@@ -19,6 +19,7 @@ import type { SeriesMeta } from '../chart-series'
 import { snapTargets } from '../chart-snap'
 import { type LineInterpolation, lineGeometry } from '../line-chart/line-chart-geometry'
 import { useChartCartesian } from '../use-chart-cartesian'
+import { cartesianFocus } from '../use-chart-keyboard'
 
 /**
  * Props for {@link ComboChart}. Requires an accessible name (`aria-label` or
@@ -51,7 +52,9 @@ export type ComboChartProps<T> = ChartBaseProps<T> &
  * visually-hidden data table.
  *
  * @remarks Under `animate`, the bars rise, the area washes fade, and the lines
- * draw together — one synchronized reveal across the x and y motions.
+ * draw together — one synchronized reveal across the x and y motions. Focus the
+ * plot to drive the crosshair and tooltip by keyboard — the band-axis arrows
+ * step categories, the value-axis arrows cycle each category's series values.
  * @example
  * ```tsx
  * <ComboChart
@@ -250,9 +253,7 @@ export function ComboChart<T>({
 			readout={chart.readout}
 			tooltip={tooltip}
 			snap={snapTargets(rails, chart.bandPositions, chart.snapPoints)}
-			count={data.length}
-			bandPositions={chart.bandPositions}
-			snapPoints={chart.snapPoints}
+			focus={cartesianFocus(chart.bandPositions, chart.snapPoints, chart.orientation)}
 			className={className}
 			annotations={<ChartReferenceList reference={reference} format={formatValue} />}
 		>

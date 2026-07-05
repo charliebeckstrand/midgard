@@ -1,76 +1,351 @@
 'use client'
 
-import { type KeyboardEvent, useCallback } from 'react'
-import { nextIndexForKey } from '../../utilities/keyboard-navigation'
-import { type ChartOrientation, project } from './chart-orientation'
-import type { ChartPoint } from './context'
+import { type FocusEvent, type KeyboardEvent, useState } from 'react'
+import { type ChartOrientation, project, type Vec, valueCoord } from './chart-orientation'
+import type { ChartHover } from './context'
 
-/** Options for {@link useChartKeyboard}. @internal */
-export type ChartKeyboardOptions = {
-	/** Category count — the roving range; `0` disables the keys (a pie has no band axis). */
-	count: number
-	/** Each category's band-axis center. */
-	bandPositions: number[]
-	/** Per category, the visible series' value-axis positions — the tooltip's anchor. */
-	snapPoints: number[][]
-	/** The chart's orientation, so the arrows follow the band axis and the point projects right. */
-	orientation: ChartOrientation
-	/** The current hover index — the cursor moves on from here. */
-	index: number | null
-	/** Writes the shared hover, exactly as the pointer does. */
-	set: (index: number | null, point: ChartPoint | null, onData?: boolean) => void
+/**
+ * The per-category anchor points a chart hands its frame for keyboard
+ * navigation, already projected to frame coordinates so the cursor lands exactly
+ * where the pointer would. `points` is indexed by category — a cartesian band, a
+ * pie's slice — and each entry lists that category's navigable stops: one per
+ * visible series for a cartesian chart, a single centroid for a pie slice. Two
+ * series sharing a value keep two coincident stops, never one, so the cursor
+ * visits each of them.
+ *
+ * @internal
+ */
+export type ChartFocusTargets = {
+	points: Vec[][]
 }
 
 /**
- * Keyboard roving over a cartesian chart's categories: the arrow keys (plus
- * Home / End, wrapping) move a cursor along the band axis and write the same
- * hover context the pointer does — so the crosshair and tooltip answer the
- * keyboard with no change to either overlay. Escape clears the hover and drops
- * focus.
+ * The keyboard focus cursor: a category crossed with one of its stops. `value`
+ * indexes the stops at `category`, so stepping it walks that category's series —
+ * coincident points included.
  *
- * The roving axis is the transpose of the value axis: a vertical chart's
- * categories run across x, so Left / Right move them; a horizontal chart's run
- * down y, so Up / Down do. The synthesised point crosses the category's band
- * centre with its first value, so the tooltip lands on a real mark.
- *
- * @returns The plot region's `onKeyDown`; a no-op for the keys it doesn't own,
- * so it never swallows a Tab.
  * @internal
  */
-export function useChartKeyboard({
-	count,
-	bandPositions,
-	snapPoints,
-	orientation,
-	index,
-	set,
-}: ChartKeyboardOptions) {
-	return useCallback(
-		(event: KeyboardEvent<HTMLElement>) => {
-			if (event.key === 'Escape') {
-				set(null, null)
+export type ChartCursor = {
+	category: number
+	value: number
+}
 
-				event.currentTarget.blur()
+/** The number of stops at a category, `0` when it has none. @internal */
+function pointCount(targets: ChartFocusTargets, category: number): number {
+	return targets.points[category]?.length ?? 0
+}
 
-				return
+/** Whether any category carries a stop — the gate for enabling navigation. @internal */
+export function hasFocusTargets(targets: ChartFocusTargets): boolean {
+	return targets.points.some((stops) => stops.length > 0)
+}
+
+/** The first (`-1`) or last (`+1`) category that carries a stop, or `-1` when none do. @internal */
+function edgeCategory(targets: ChartFocusTargets, dir: 1 | -1): number {
+	const n = targets.points.length
+
+	if (dir < 0) {
+		for (let i = 0; i < n; i++) if (pointCount(targets, i) > 0) return i
+	} else {
+		for (let i = n - 1; i >= 0; i--) if (pointCount(targets, i) > 0) return i
+	}
+
+	return -1
+}
+
+/** The cursor on the first focusable category, or `null` when nothing is focusable. @internal */
+export function firstCursor(targets: ChartFocusTargets): ChartCursor | null {
+	const category = edgeCategory(targets, -1)
+
+	return category === -1 ? null : { category, value: 0 }
+}
+
+/**
+ * The next focusable category from `from` stepping `dir`, clamped at the ends
+ * (no wrap) and skipping empty categories so a gap never strands the cursor.
+ *
+ * @internal
+ */
+function stepCategory(targets: ChartFocusTargets, from: number, dir: 1 | -1): number {
+	for (let i = from + dir; i >= 0 && i < targets.points.length; i += dir) {
+		if (pointCount(targets, i) > 0) return i
+	}
+
+	return from
+}
+
+/**
+ * Snaps a cursor into range against the current targets: a category with no
+ * stops falls to the first focusable one, and the value index clamps to that
+ * category's count. Returns `null` when nothing is focusable.
+ *
+ * @internal
+ */
+export function clampCursor(
+	cursor: ChartCursor | null,
+	targets: ChartFocusTargets,
+): ChartCursor | null {
+	if (!cursor) return null
+
+	const n = targets.points.length
+
+	if (n === 0) return null
+
+	const bounded = Math.max(0, Math.min(cursor.category, n - 1))
+
+	const category = pointCount(targets, bounded) > 0 ? bounded : edgeCategory(targets, -1)
+
+	if (category === -1) return null
+
+	return { category, value: Math.max(0, Math.min(cursor.value, pointCount(targets, category) - 1)) }
+}
+
+/** The frame point a cursor anchors to, or `null` when it falls off the targets. @internal */
+export function cursorPoint(cursor: ChartCursor, targets: ChartFocusTargets): Vec | null {
+	return targets.points[cursor.category]?.[cursor.value] ?? null
+}
+
+/**
+ * Builds cartesian focus targets: each category's visible value positions
+ * projected onto the frame through the orientation, so the stored anchors match
+ * the marks. Values arrive in series order and stay that way — the cursor sorts
+ * them into screen order only when it steps.
+ *
+ * @internal
+ */
+export function cartesianFocus(
+	bandPositions: number[],
+	valuePoints: number[][],
+	orientation: ChartOrientation,
+): ChartFocusTargets {
+	return {
+		points: valuePoints.map((values, index) => {
+			const band = bandPositions[index]
+
+			return band === undefined ? [] : values.map((value) => project(orientation, value, band))
+		}),
+	}
+}
+
+/** What a key does under an orientation: step the category, cycle the value points, jump, or clear. @internal */
+type CursorAction = 'category+' | 'category-' | 'value+' | 'value-' | 'first' | 'last' | 'clear'
+
+/**
+ * Reads a key against the orientation. The band axis arrows step categories and
+ * the value axis arrows cycle the series' value points, so a horizontal chart —
+ * categories down the side — transposes which pair does which. Home / End jump
+ * to the ends, Escape clears; anything else is `null` and left to the browser.
+ *
+ * @internal
+ */
+function keyAction(key: string, orientation: ChartOrientation): CursorAction | null {
+	if (key === 'Escape') return 'clear'
+
+	if (key === 'Home') return 'first'
+
+	if (key === 'End') return 'last'
+
+	const vertical = orientation === 'vertical'
+
+	switch (key) {
+		case 'ArrowRight':
+			return vertical ? 'category+' : 'value+'
+		case 'ArrowLeft':
+			return vertical ? 'category-' : 'value-'
+		case 'ArrowDown':
+			return vertical ? 'value+' : 'category+'
+		case 'ArrowUp':
+			return vertical ? 'value-' : 'category-'
+		default:
+			return null
+	}
+}
+
+/** Whether a key is one of the four arrows — the keys that enter navigation at the first point. @internal */
+function isArrowKey(key: string): boolean {
+	return key === 'ArrowUp' || key === 'ArrowDown' || key === 'ArrowLeft' || key === 'ArrowRight'
+}
+
+/** The outcome of a keypress: whether it was a navigation key, and where the cursor lands. @internal */
+export type CursorMove = {
+	/** True when the key drove navigation, so the caller suppresses the browser default. */
+	handled: boolean
+	/** The next cursor, or `null` to clear the focus. */
+	cursor: ChartCursor | null
+}
+
+/**
+ * The value index one step `dir` from `value`, ordered by the points' screen
+ * position along the value axis rather than the series order they arrive in, so
+ * an arrow moves the cursor the way it points — down a vertical chart, right a
+ * horizontal one — through the marks as drawn. Coincident values (series that
+ * overlap) tie-break by index, staying distinct, reachable stops; the step wraps
+ * at the ends.
+ *
+ * @internal
+ */
+function stepValue(
+	points: Vec[],
+	value: number,
+	dir: 1 | -1,
+	orientation: ChartOrientation,
+): number {
+	const order = points
+		.map((point, index) => ({ pos: valueCoord(orientation, point), index }))
+		.sort((a, b) => a.pos - b.pos || a.index - b.index)
+
+	const rank = order.findIndex((entry) => entry.index === value)
+
+	return order[(rank + dir + order.length) % order.length]?.index ?? value
+}
+
+/**
+ * Resolves a keypress to the next cursor. The band axis arrows move to the
+ * neighbouring category, keeping the value lane where it exists; the value axis
+ * arrows step through the current category's value points in screen order —
+ * visiting every visible series, coincident values included — so a chart whose
+ * series overlap still steps through each of them. Unhandled keys pass through
+ * untouched.
+ *
+ * @internal
+ */
+export function moveCursor(
+	cursor: ChartCursor | null,
+	key: string,
+	targets: ChartFocusTargets,
+	orientation: ChartOrientation,
+): CursorMove {
+	const action = keyAction(key, orientation)
+
+	if (action === null) return { handled: false, cursor }
+
+	if (action === 'clear') return { handled: true, cursor: null }
+
+	const base = clampCursor(cursor, targets) ?? firstCursor(targets)
+
+	if (!base) return { handled: true, cursor: null }
+
+	// Carry the value lane onto the destination category, clamped to its count so
+	// a shorter category never strands the cursor past its last point.
+	const onCategory = (category: number): CursorMove => ({
+		handled: true,
+		cursor: { category, value: Math.min(base.value, pointCount(targets, category) - 1) },
+	})
+
+	switch (action) {
+		case 'category+':
+			return onCategory(stepCategory(targets, base.category, 1))
+		case 'category-':
+			return onCategory(stepCategory(targets, base.category, -1))
+		case 'first':
+			return onCategory(edgeCategory(targets, -1))
+		case 'last':
+			return onCategory(edgeCategory(targets, 1))
+		case 'value+':
+			return {
+				handled: true,
+				cursor: {
+					category: base.category,
+					value: stepValue(targets.points[base.category] ?? [], base.value, 1, orientation),
+				},
 			}
+		case 'value-':
+			return {
+				handled: true,
+				cursor: {
+					category: base.category,
+					value: stepValue(targets.points[base.category] ?? [], base.value, -1, orientation),
+				},
+			}
+	}
+}
 
-			// Categories run perpendicular to the value axis, so the roving axis is
-			// the orientation's transpose.
-			const navAxis = orientation === 'vertical' ? 'horizontal' : 'vertical'
+/** The handlers {@link useChartKeyboard} spreads onto the plot region to make it a navigable tab stop. @internal */
+export type ChartKeyboardProps = {
+	tabIndex: 0
+	onKeyDown: (event: KeyboardEvent<HTMLElement>) => void
+	onBlur: (event: FocusEvent<HTMLElement>) => void
+}
 
-			const next = nextIndexForKey(event.key, index ?? -1, count, { orientation: navAxis })
+/**
+ * Makes the plot region a single arrow-navigable tab stop that drives the
+ * shared hover context, so the crosshair and tooltip answer the keyboard the
+ * way they answer the pointer. Focus alone only rings the region — a click
+ * focuses it too, and stealing the readout from the pointer would jar — so the
+ * first arrow reads the first data point; from there the band axis arrows walk
+ * categories, the value axis arrows step the series' value points at a category
+ * in screen order (visiting each series, coincident values included), Home / End
+ * jump to the ends, and Escape drops focus. Leaving after navigating clears the
+ * readout; a
+ * pointer-only focus leaves the pointer's readout alone. Returns `null` — no tab
+ * stop — when navigation is off or the chart carries no value point, leaving the
+ * region the plain `role="img"` it was.
+ *
+ * @param targets - The per-category anchor points to navigate, or `undefined` on a chart with none.
+ * @param orientation - Which screen axis the value runs along, so the arrows map to the right axes and steps sort in screen order.
+ * @param enabled - Whether a readout is mounted to answer the cursor — the tooltip that makes navigation legible.
+ * @param set - The hover context's setter, moved to the cursor's anchor on each step.
+ * @internal
+ */
+export function useChartKeyboard(
+	targets: ChartFocusTargets | undefined,
+	orientation: ChartOrientation,
+	enabled: boolean,
+	set: ChartHover['set'],
+): ChartKeyboardProps | null {
+	const [cursor, setCursor] = useState<ChartCursor | null>(null)
 
-			if (next === null) return
+	const active = enabled && targets !== undefined && hasFocusTargets(targets)
 
-			event.preventDefault()
+	// Move the cursor and carry the hover to its anchor, or clear both.
+	const show = (next: ChartCursor | null) => {
+		setCursor(next)
 
-			// Anchor on the category's first value so the tooltip meets a real mark;
-			// an empty category falls back to the band's baseline end.
-			const value = snapPoints[next]?.[0] ?? 0
+		const point = next && targets ? cursorPoint(next, targets) : null
 
-			set(next, project(orientation, value, bandPositions[next] ?? 0), true)
-		},
-		[count, bandPositions, snapPoints, orientation, index, set],
-	)
+		if (next && point) set(next.category, point, true)
+		else set(null, null)
+	}
+
+	const onKeyDown = (event: KeyboardEvent<HTMLElement>) => {
+		if (!targets) return
+
+		const move = moveCursor(cursor, event.key, targets, orientation)
+
+		if (!move.handled) return
+
+		event.preventDefault()
+
+		// Escape clears the readout and drops focus, the same exit the legend gives.
+		if (move.cursor === null) {
+			show(null)
+
+			event.currentTarget.blur()
+
+			return
+		}
+
+		// The first arrow enters at the first point rather than stepping past it;
+		// Home / End are absolute jumps and place directly.
+		if (cursor === null && isArrowKey(event.key)) {
+			show(firstCursor(targets))
+
+			return
+		}
+
+		show(move.cursor)
+	}
+
+	// Leaving the region after navigating clears the cursor and its readout; a
+	// focus that never navigated (a click, with the pointer owning the readout)
+	// leaves that readout untouched. A blur that stays inside the region — nothing
+	// focusable does today — is not a real exit.
+	const onBlur = (event: FocusEvent<HTMLElement>) => {
+		if (event.relatedTarget && event.currentTarget.contains(event.relatedTarget)) return
+
+		if (cursor !== null) show(null)
+	}
+
+	return active ? { tabIndex: 0, onKeyDown, onBlur } : null
 }
