@@ -67,7 +67,13 @@ export const BAND_LABEL_HEIGHT = 16
 /** Air above the plot so the top tick label and markers stay inside the frame. @internal */
 export const PLOT_TOP_PAD = 8
 
-/** Transparent stroke width making a 1px reference rule an easy hover target. @internal */
+/** Reference-rule stroke width: firm enough to read cleanly over the marks it crosses. @internal */
+export const REFERENCE_STROKE_WIDTH = 2
+
+/** Reference-rule dash — coarser than a hairline, so the rule reads as a deliberate annotation. @internal */
+export const REFERENCE_DASH = '6 4'
+
+/** Transparent stroke width making the reference rule an easy hover target. @internal */
 export const REFERENCE_HIT_WIDTH = 16
 
 // Motion timings mirror the Sparkline's (module-private there), so charts and

@@ -51,22 +51,23 @@ describe('reference lines', () => {
 		expect(allBySlot(none.container, 'chart-reference-line')).toHaveLength(0)
 	})
 
-	it('lays a wide transparent hover target over the 1px rule', () => {
+	it('lays a wide transparent hover target over the rule', () => {
 		const { container } = bar([{ value: 50 }])
 
-		expect(rule(container)?.getAttribute('stroke-width')).toBe('1')
+		const ruleWidth = Number(rule(container)?.getAttribute('stroke-width'))
 
 		const hit = hitTarget(container)
 
 		expect(hit?.getAttribute('stroke')).toBe('transparent')
 
-		expect(Number(hit?.getAttribute('stroke-width'))).toBeGreaterThan(1)
+		// The hover target is far wider than the drawn rule.
+		expect(Number(hit?.getAttribute('stroke-width'))).toBeGreaterThan(ruleWidth * 2)
 	})
 
 	it('dashes the rule by default and draws it solid when dashed is false', () => {
 		const dashed = bar([{ value: 50 }])
 
-		expect(rule(dashed.container)?.getAttribute('stroke-dasharray')).toBe('4 3')
+		expect(rule(dashed.container)?.getAttribute('stroke-dasharray')).toBe('6 4')
 
 		const solid = bar([{ value: 50, dashed: false }])
 

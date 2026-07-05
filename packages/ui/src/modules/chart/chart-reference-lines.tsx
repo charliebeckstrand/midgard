@@ -3,7 +3,7 @@
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
 import { cn } from '../../core'
 import { type ChartSeriesColor, k } from '../../recipes/kata/chart'
-import { REFERENCE_HIT_WIDTH } from './chart-constants'
+import { REFERENCE_DASH, REFERENCE_HIT_WIDTH, REFERENCE_STROKE_WIDTH } from './chart-constants'
 import type { PlotRect } from './chart-layout'
 import { bandExtent, type ChartOrientation, project, type Vec } from './chart-orientation'
 import type { LinearScale } from './chart-scale'
@@ -67,8 +67,8 @@ function ReferenceRule({ line, start, end, orientation, format }: ReferenceRuleP
 				<g data-slot="chart-reference-line">
 					<line
 						{...points}
-						strokeWidth={1}
-						strokeDasharray={line.dashed === false ? undefined : '4 3'}
+						strokeWidth={REFERENCE_STROKE_WIDTH}
+						strokeDasharray={line.dashed === false ? undefined : REFERENCE_DASH}
 						className={slot ? cn(k.series[color].stroke) : undefined}
 						style={slot ? undefined : { stroke: color }}
 						pointerEvents="none"
