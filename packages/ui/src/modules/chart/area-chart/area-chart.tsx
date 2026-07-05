@@ -9,7 +9,7 @@ import { withinSeriesAreas } from '../chart-hit-test'
 import { ChartLegend } from '../chart-legend'
 import { AnimatedChartLineMarks, ChartLineMarks, type ChartLineSeries } from '../chart-line-marks'
 import { ChartMarksLayer } from '../chart-marks-layer'
-import type { CartesianChartProps } from '../chart-schema'
+import type { CartesianChartProps, Crosshair } from '../chart-schema'
 import type { SeriesMeta } from '../chart-series'
 import { snapTargets } from '../chart-snap'
 import {
@@ -26,6 +26,16 @@ import { stackedAreas } from './area-chart-geometry'
  * name for it.
  */
 export type AreaChartProps<T> = CartesianChartProps<T> & {
+	/**
+	 * Draw a hover crosshair. Alone among the cartesian charts this defaults on:
+	 * a snapping vertical category rule (`{ y: true, snap: true }`) that meets the
+	 * nearest band-edge point and carries the tooltip there. Smooth interpolation
+	 * drops the snap so the rule and tooltip track the pointer along the curve
+	 * between points. Pass `true`, a {@link Crosshair} object, or `false` to
+	 * override the default.
+	 * @defaultValue a snapping y-rule, unsnapped when `interpolation` is `'smooth'`
+	 */
+	crosshair?: boolean | Crosshair
 	/**
 	 * Stack the series so each rides the running total below it and the fills
 	 * read as parts of a whole; otherwise each is its own area from the zero
@@ -46,6 +56,19 @@ export type AreaChartProps<T> = CartesianChartProps<T> & {
 	interpolation?: LineInterpolation
 }
 
+/**
+ * The tooltip's value snap targets. Stacked, a column reads as one whole with
+ * no single series value to meet, so it hands over none — the tooltip then
+ * tracks the pointer's height (held inside the plot by the hit area) and floats
+ * free of the fill. Unstacked, each series is its own line, so its per-series
+ * points snap the tooltip to the nearest one.
+ *
+ * @internal
+ */
+function tooltipSnapPoints(stacked: boolean, snapPoints: number[][], count: number): number[][] {
+	return stacked ? Array.from({ length: count }, () => []) : snapPoints
+}
+
 /** Adapts one stacked band to the line-marks geometry shape (one segment, one ribbon). @internal */
 function stackedToLine(band: { line: string; area: string; points: LineSeriesGeometry['points'] }) {
 	return {
@@ -64,7 +87,10 @@ function stackedToLine(band: { line: string; area: string; points: LineSeriesGeo
  * axis, gridlines, legend, crosshair tooltip, and the visually-hidden table.
  *
  * @remarks Stacked bands treat a missing value as zero to stay continuous;
- * the unstacked variant breaks its lines at gaps like {@link LineChart}.
+ * the unstacked variant breaks its lines at gaps like {@link LineChart}. The
+ * crosshair defaults on here — a snapping y-rule meeting the nearest point —
+ * dropping the snap under smooth interpolation; override it with the
+ * `crosshair` prop.
  * @example
  * ```tsx
  * <AreaChart
@@ -146,7 +172,14 @@ export function AreaChart<T>({
 		<ChartLineMarks list={list} fill={true} />
 	)
 
-	const rails = resolveCrosshair(crosshair)
+	// The area chart carries a snapping y-rule by default so the fills read
+	// against a category line; a smooth curve drops the snap to glide the rule
+	// and tooltip along the interpolation rather than jumping between points.
+	const rails = resolveCrosshair(
+		crosshair ?? { x: false, y: true, snap: interpolation !== 'smooth' },
+	)
+
+	const snapPoints = tooltipSnapPoints(stacked, chart.snapPoints, xs.length)
 
 	return (
 		<ChartFrame
@@ -170,7 +203,7 @@ export function AreaChart<T>({
 			legendPlacement={typeof legend === 'string' ? legend : undefined}
 			readout={chart.readout}
 			tooltip={tooltip}
-			snap={snapTargets(rails, chart.bandPositions, chart.snapPoints)}
+			snap={snapTargets(rails, chart.bandPositions, snapPoints)}
 			className={className}
 		>
 			{gridLines && yScale && (
@@ -186,7 +219,7 @@ export function AreaChart<T>({
 					plot={chart.plot}
 					crosshair={rails}
 					bandPositions={chart.bandPositions}
-					valuePoints={chart.snapPoints}
+					valuePoints={snapPoints}
 				/>
 			)}
 

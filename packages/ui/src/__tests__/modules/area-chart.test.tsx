@@ -36,7 +36,7 @@ describe('AreaChart', () => {
 	})
 
 	it('reads each series value in the tooltip, not the stacked total', () => {
-		const { container } = renderUI(chart({ stacked: true }))
+		const { container } = renderUI(chart({ stacked: true, crosshair: false }))
 
 		const hit = bySlot(container, 'chart-hit') as Element
 
@@ -65,6 +65,54 @@ describe('AreaChart', () => {
 		const smooth = renderUI(chart({ interpolation: 'smooth' }))
 
 		expect(bySlot(smooth.container, 'chart-line')?.getAttribute('d')).toContain('C')
+	})
+
+	it('draws a snapping y-rule by default, carrying the tooltip anywhere in the plot', () => {
+		const { container } = renderUI(chart())
+
+		const hit = bySlot(container, 'chart-hit') as Element
+
+		// A point well above the marks — off any fill — still reads, because the
+		// default snap carries the tooltip to the nearest band-edge point.
+		fireEvent.pointerMove(hit, { clientX: 200, clientY: 5 })
+
+		expect(bySlot(container, 'chart-crosshair-y')).not.toBeNull()
+
+		expect(bySlot(container, 'chart-crosshair-x')).toBeNull()
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Tue')
+	})
+
+	it('lets the stacked tooltip float above the fill, tracking the pointer inside the plot', () => {
+		const { container } = renderUI(chart({ stacked: true }))
+
+		const hit = bySlot(container, 'chart-hit') as Element
+
+		// Well above the stacked ribbons — off any fill — the snapping tooltip still
+		// reads the pointed category, riding the pointer's height rather than diving
+		// into the fill for a series value.
+		fireEvent.pointerMove(hit, { clientX: 200, clientY: 5 })
+
+		const tooltip = bySlot(container, 'tooltip-content')
+
+		expect(tooltip?.textContent).toContain('Tue')
+
+		expect(tooltip?.textContent).toContain('28')
+
+		expect(tooltip?.textContent).toContain('14')
+	})
+
+	it('drops the snap under smooth interpolation, gating the tooltip to the marks', () => {
+		const { container } = renderUI(chart({ interpolation: 'smooth' }))
+
+		const hit = bySlot(container, 'chart-hit') as Element
+
+		// Off the fills the unsnapped rule leaves the tooltip closed.
+		fireEvent.pointerMove(hit, { clientX: 200, clientY: 5 })
+
+		expect(bySlot(container, 'chart-crosshair-y')).not.toBeNull()
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
 	})
 
 	it('still renders under animate', () => {
