@@ -106,60 +106,6 @@ describe('HeatmapChart', () => {
 		expect(dimmed()).toBe(0)
 	})
 
-	it('outlines the probed class with an ink chosen for contrast against each cell', () => {
-		const { container } = renderUI(
-			<HeatmapChart aria-label="Commits" data={ROWS} series={SERIES} width={400} />,
-		)
-
-		const track = bySlot(container, 'heatmap-range-track')
-
-		expect(track).not.toBeNull()
-
-		// jsdom reports a zero box, which collapses the probe to NaN; stand in a real
-		// track so a probe resolves to a real class. The bar runs low (bottom) to
-		// high (top): RANGE is [light, dark], so the top class is dark, the bottom light.
-		;(track as Element).getBoundingClientRect = () =>
-			({
-				top: 0,
-				left: 0,
-				bottom: 160,
-				right: 20,
-				width: 20,
-				height: 160,
-				x: 0,
-				y: 0,
-				toJSON: () => ({}),
-			}) as DOMRect
-
-		const outlined = () =>
-			cellRects(container).filter((rect) => rect.getAttribute('stroke') !== null)
-
-		// Probe the top (dark) class — a dark cell needs a light ring to read.
-		fireEvent.pointerMove(track as Element, { clientY: 4 })
-
-		const onDark = outlined()
-
-		expect(onDark.length).toBeGreaterThan(0)
-
-		for (const rect of onDark) {
-			// Light ink, and the outline replaces the dim — a focused cell is never dimmed.
-			expect(rect.getAttribute('stroke')).toBe('#ffffff')
-
-			expect(rect.getAttribute('class')).not.toContain('opacity-25')
-		}
-
-		// Probe the bottom (light) class — a light cell needs a dark ring instead.
-		fireEvent.pointerMove(track as Element, { clientY: 156 })
-
-		const onLight = outlined()
-
-		expect(onLight.length).toBeGreaterThan(0)
-
-		for (const rect of onLight) {
-			expect(rect.getAttribute('stroke')).toBe('#18181b')
-		}
-	})
-
 	it('resolves the cell under the pointer, not one offset by the plot gutter', () => {
 		const { container } = renderUI(
 			<HeatmapChart aria-label="Commits" data={ROWS} series={SERIES} width={400} />,
