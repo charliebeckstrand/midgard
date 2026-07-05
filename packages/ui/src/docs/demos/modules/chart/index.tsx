@@ -550,7 +550,7 @@ export function Demo() {
 												colorName: 'Commits',
 											},
 										]}
-										formatValue={(value) => `${value}`}
+										formatValue={(value) => value.toFixed(0)}
 									/>
 								</ChartContainer>
 							</Example>
