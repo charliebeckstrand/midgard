@@ -280,6 +280,24 @@ export function Demo() {
 							</Example>
 
 							<Example
+								title="Value labels"
+								code={code`<LineChart labels={{ endpoints: true, extremes: true }} … />`}
+							>
+								<ChartContainer>
+									<LineChart
+										aria-label="Revenue and margin by month, with value labels"
+										data={months}
+										series={[
+											{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
+											{ xKey: 'month', yKey: 'margin', yName: 'Margin' },
+										]}
+										points
+										labels={{ endpoints: true, extremes: true }}
+									/>
+								</ChartContainer>
+							</Example>
+
+							<Example
 								title="Smooth interpolation"
 								code={code`<LineChart interpolation="smooth" … />`}
 							>

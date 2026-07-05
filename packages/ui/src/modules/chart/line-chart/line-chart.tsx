@@ -11,8 +11,9 @@ import { AnimatedChartLineMarks, ChartLineMarks, type ChartLineSeries } from '..
 import { ChartMarksLayer } from '../chart-marks-layer'
 import { useChartTexture } from '../chart-pattern-defs'
 import { ChartReferenceLines, ChartReferenceList } from '../chart-reference-lines'
-import type { CartesianChartProps } from '../chart-schema'
+import type { CartesianChartProps, ChartValueLabelConfig } from '../chart-schema'
 import { snapTargets } from '../chart-snap'
+import { ChartValueLabels, resolveValueLabels } from '../chart-value-labels'
 import { useChartCartesian } from '../use-chart-cartesian'
 import { cartesianFocus } from '../use-chart-keyboard'
 import { type LineInterpolation, lineGeometry } from './line-chart-geometry'
@@ -40,6 +41,12 @@ export type LineChartProps<T> = CartesianChartProps<T> & {
 	 * @defaultValue 'linear'
 	 */
 	interpolation?: LineInterpolation
+	/**
+	 * Draw selective value labels — each series' `endpoints` and / or `extremes`
+	 * — placed clear of the marks with overlaps dropped by priority. Off by
+	 * default; the tooltip and data table carry the full readout.
+	 */
+	labels?: ChartValueLabelConfig
 }
 
 /**
@@ -83,6 +90,7 @@ export function LineChart<T>({
 	max,
 	reference,
 	xAxis,
+	labels,
 	formatValue,
 	className,
 	...label
@@ -134,6 +142,8 @@ export function LineChart<T>({
 	)
 
 	const fills = chart.visible.map((meta) => tex.fillFor(meta.color))
+
+	const valueLabelItems = resolveValueLabels(labels, list, chart.visible, chart.plot, formatValue)
 
 	const marksNode = animate ? (
 		<AnimatedChartLineMarks list={list} fill={fill} fills={fills} textureActive={tex.active} />
@@ -191,6 +201,8 @@ export function LineChart<T>({
 			)}
 
 			<ChartMarksLayer animate={animate}>{marksNode}</ChartMarksLayer>
+
+			<ChartValueLabels labels={valueLabelItems} animate={animate} />
 
 			{(tooltip || rails !== null) && data.length > 0 && (
 				<ChartHitArea
