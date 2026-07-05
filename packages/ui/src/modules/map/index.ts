@@ -2,6 +2,12 @@ export type { MapSeriesColor } from '../../recipes/kata/map'
 export { MapMarker, type MapMarkerProps } from './map-marker'
 export { MapPlat, type MapPlatProps } from './map-plat'
 export { MapPoint, type MapPointProps } from './map-point'
+export {
+	RangeArrow,
+	type RangeArrowProps,
+	RangeLegend,
+	type RangeLegendProps,
+} from './map-range-legend'
 export { MapRoute, type MapRouteProps } from './map-route'
 export {
 	type FetchOsrmRouteOptions,

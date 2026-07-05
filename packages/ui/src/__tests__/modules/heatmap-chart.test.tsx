@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { HeatmapChart, type HeatmapChartSeries } from '../../modules/chart'
-import { bySlot, renderUI } from '../helpers'
+import { bySlot, fireEvent, renderUI } from '../helpers'
 
 type Row = { day: string; hour: string; commits: number }
 
@@ -66,7 +66,8 @@ describe('HeatmapChart', () => {
 
 		expect(bySlot(container, 'heatmap-plot')?.getAttribute('aria-label')).toBe('Commits per day')
 
-		expect(bySlot(container, 'heatmap-legend-bar')?.getAttribute('style')).toContain(
+		// The shared range legend paints the colorRange as an inline gradient bar.
+		expect(bySlot(container, 'heatmap-range-track')?.getAttribute('style')).toContain(
 			'linear-gradient',
 		)
 	})
@@ -76,6 +77,32 @@ describe('HeatmapChart', () => {
 			<HeatmapChart aria-label="Commits" data={ROWS} series={SERIES} width={400} legend={false} />,
 		)
 
-		expect(bySlot(container, 'heatmap-legend')).toBeNull()
+		expect(bySlot(container, 'heatmap-legend-box')).toBeNull()
+	})
+
+	it('dims cells outside the probed bin on range-legend hover', () => {
+		const { container } = renderUI(
+			<HeatmapChart aria-label="Commits" data={ROWS} series={SERIES} width={400} />,
+		)
+
+		const track = bySlot(container, 'heatmap-range-track')
+
+		expect(track).not.toBeNull()
+
+		const dimmed = () =>
+			cellRects(container).filter((rect) => rect.getAttribute('class')?.includes('opacity-25'))
+				.length
+
+		// Nothing dims until the bar is probed.
+		expect(dimmed()).toBe(0)
+
+		fireEvent.pointerMove(track as Element, { clientY: 10 })
+
+		// Cells outside the probed class dim — the reciprocal of the choropleth's map filter.
+		expect(dimmed()).toBeGreaterThan(0)
+
+		fireEvent.pointerLeave(track as Element)
+
+		expect(dimmed()).toBe(0)
 	})
 })

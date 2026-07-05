@@ -10,13 +10,13 @@ import {
 	useInteractions,
 } from '@floating-ui/react'
 import { type PointerEvent, type ReactNode, useMemo, useState } from 'react'
-import { Text } from '../../../components/text'
 import { TooltipContent } from '../../../components/tooltip'
 import { TooltipContext } from '../../../components/tooltip/context'
 import { cn, createContext } from '../../../core'
 import { usePlotFrame } from '../../../hooks'
 import { k } from '../../../recipes/kata/chart'
 import { binIndex, type ColorBin, resolveColorBins, valueExtent } from '../../../utilities'
+import { RangeArrow, RangeLegend } from '../../map'
 import { ChartAxis, type ChartAxisTick } from '../chart-axis'
 import { BAND_LABEL_HEIGHT, GUTTER_GAP, TICK_CHAR_WIDTH } from '../chart-constants'
 import { chartFrameSizing, type PlotRect, plotRect, thinned } from '../chart-layout'
@@ -81,19 +81,56 @@ function HeatmapHoverProvider({ children }: { children: ReactNode }) {
 	return <HeatmapHoverContext value={value}>{children}</HeatmapHoverContext>
 }
 
-/** Props for {@link HeatmapCells}: the resolved cells and their fills. @internal */
+/** The class the range legend is probing, or `null` at rest — the cells outside it dim. @internal */
+type HeatmapFocus = {
+	/** The probed bin index, or `null` when the legend is at rest. */
+	bin: number | null
+	/** Sets the probed bin, or clears it with `null`. */
+	set: (bin: number | null) => void
+}
+
+const [HeatmapFocusContext, useHeatmapFocus] = createContext<HeatmapFocus>('HeatmapFocus')
+
+/**
+ * Owns the legend's probed bin, kept off the hover context so a pointer move
+ * over the plot never touches it: the cells subscribe here alone, so only
+ * probing the legend — not hovering the grid — repaints them to dim.
+ *
+ * @internal
+ */
+function HeatmapFocusProvider({ children }: { children: ReactNode }) {
+	const [bin, setBin] = useState<number | null>(null)
+
+	const value = useMemo<HeatmapFocus>(() => ({ bin, set: setBin }), [bin])
+
+	return <HeatmapFocusContext value={value}>{children}</HeatmapFocusContext>
+}
+
+/** Props for {@link HeatmapCells}: the resolved cells, their fills, and their bins. @internal */
 type HeatmapCellsProps = {
 	cells: ReturnType<typeof heatmapCells>
 	/** The fill per cell, index-aligned; `null` paints the no-data neutral. */
 	fills: (string | null)[]
+	/** The bin per cell, index-aligned; `null` for a no-data cell. Dims against the legend probe. */
+	cellBins: (number | null)[]
 }
 
-/** The cell grid: one rect per matrix cell, painted from the sequential scale or the neutral no-data fill. @internal */
-function HeatmapCells({ cells, fills }: HeatmapCellsProps) {
+/**
+ * The cell grid: one rect per matrix cell, painted from the sequential scale or
+ * the neutral no-data fill. Cells outside the legend's probed bin dim, the
+ * heatmap's counterpart to the choropleth's region emphasis.
+ *
+ * @internal
+ */
+function HeatmapCells({ cells, fills, cellBins }: HeatmapCellsProps) {
+	const { bin: focus } = useHeatmapFocus()
+
 	return (
 		<g data-slot="heatmap-cells">
 			{cells.map((cell, index) => {
 				const fill = fills[index]
+
+				const dimmed = focus !== null && cellBins[index] !== focus
 
 				return (
 					<rect
@@ -103,11 +140,89 @@ function HeatmapCells({ cells, fills }: HeatmapCellsProps) {
 						width={cell.width}
 						height={cell.height}
 						rx={cell.radius}
-						{...(fill === null || fill === undefined ? { className: cn(NO_DATA_FILL) } : { fill })}
+						className={cn(
+							'transition-opacity',
+							fill == null && NO_DATA_FILL,
+							dimmed && 'opacity-25',
+						)}
+						{...(fill == null ? {} : { fill })}
 					/>
 				)
 			})}
 		</g>
+	)
+}
+
+/**
+ * The legend's hover arrow: it marks the bin of the cell the pointer is on, its
+ * own {@link useHeatmapHover} consumer so a grid hover re-renders only the glyph.
+ * The choropleth's region arrow, keyed to a cell instead.
+ *
+ * @internal
+ */
+function HeatmapRangeArrow({
+	values,
+	domain,
+	bins,
+}: {
+	values: (number | null)[][]
+	domain: [number, number] | null
+	bins: number
+}) {
+	const { cell } = useHeatmapHover()
+
+	if (cell === null || domain === null || bins === 0) return null
+
+	const value = values[cell.row]?.[cell.col]
+
+	if (value == null) return null
+
+	const bin = binIndex(value, domain, bins)
+
+	if (bin === null) return null
+
+	return <RangeArrow bin={bin} bins={bins} slot="heatmap-range" />
+}
+
+/** Props for {@link HeatmapRangeLegend}: the scale the shared bar paints and the values its arrow reads. @internal */
+type HeatmapRangeLegendProps = {
+	colorRange: string[]
+	domain: [number, number]
+	format: (value: number) => string
+	label?: string
+	bins: number
+	values: (number | null)[][]
+}
+
+/**
+ * The heatmap's range legend: the shared {@link RangeLegend} scale-bar slider,
+ * wired to the grid — its arrow tracks the pointed cell's bin, and probing the
+ * bar emphasises that class's cells through the focus context, dimming the rest.
+ * The `heatmap-range` slot keeps the heatmap's part names.
+ *
+ * @internal
+ */
+function HeatmapRangeLegend({
+	colorRange,
+	domain,
+	format,
+	label,
+	bins,
+	values,
+}: HeatmapRangeLegendProps) {
+	const { set } = useHeatmapFocus()
+
+	return (
+		<RangeLegend
+			slot="heatmap-range"
+			colorRange={colorRange}
+			domain={domain}
+			format={format}
+			label={label}
+			bins={bins}
+			onProbe={set}
+			arrow={<HeatmapRangeArrow values={values} domain={domain} bins={bins} />}
+		/>
 	)
 }
 
@@ -255,58 +370,6 @@ function HeatmapTooltip({
 	)
 }
 
-/** Props for {@link HeatmapLegend}: the colour ramp and the value extent it spans. @internal */
-type HeatmapLegendProps = {
-	bins: ColorBin[]
-	domain: [number, number]
-	format: (value: number) => string
-	label?: string
-}
-
-/**
- * The heatmap's range legend: a continuous vertical colour-scale bar — the
- * ramp low at the bottom to high at the top — with the domain endpoints
- * labelled. The choropleth's `legend="range"` counterpart, self-contained here.
- *
- * @remarks Full value parity ships in the visually-hidden data table; the bar
- * is a visual key, so it is `aria-hidden`.
- * @internal
- */
-function HeatmapLegend({ bins, domain, format, label }: HeatmapLegendProps) {
-	const [min, max] = domain
-
-	const stops = bins.map((bin) => bin.color)
-
-	const gradient =
-		stops.length > 1
-			? { backgroundImage: `linear-gradient(to top, ${stops.join(', ')})` }
-			: { backgroundColor: stops[0] }
-
-	return (
-		<div data-slot="heatmap-legend" className="flex shrink-0 flex-col gap-1.5" aria-hidden="true">
-			{label && (
-				<Text as="span" size="sm" className="leading-tight">
-					{label}
-				</Text>
-			)}
-
-			<div className="flex h-40 items-stretch gap-2">
-				<div data-slot="heatmap-legend-bar" className="w-5 rounded-xs" style={gradient} />
-
-				<div className="flex flex-col justify-between">
-					<Text as="span" severity="muted" size="sm" className="tabular-nums leading-none">
-						{format(max)}
-					</Text>
-
-					<Text as="span" severity="muted" size="sm" className="tabular-nums leading-none">
-						{format(min)}
-					</Text>
-				</div>
-			</div>
-		</div>
-	)
-}
-
 /** The x (column) and y (row) band-axis tick labels, thinned to fit their axes. @internal */
 function heatmapTicks(
 	matrix: HeatmapMatrix,
@@ -361,6 +424,7 @@ type HeatmapModel = {
 	rows: number
 	cells: ReturnType<typeof heatmapCells>
 	fills: (string | null)[]
+	cellBins: (number | null)[]
 	bins: ColorBin[]
 	domain: [number, number] | null
 	ticks: { x: ChartAxisTick[]; y: ChartAxisTick[] }
@@ -428,18 +492,23 @@ function useHeatmap<T>(
 
 	const cells = useMemo(() => heatmapCells(matrix.values, xBand, yBand), [matrix, xBand, yBand])
 
-	// Fill per cell, index-aligned with `cells` (row-major): the bin colour for a
-	// finite value, `null` for the neutral no-data fill.
-	const fills = useMemo(
+	// Bin per cell, index-aligned with `cells` (row-major): the class a finite
+	// value lands in, `null` for a no-data cell. The legend dims against it.
+	const cellBins = useMemo(
 		() =>
-			cells.map((cell) => {
-				if (cell.value === null || domain === null || bins.length === 0) return null
-
-				const index = binIndex(cell.value, domain, bins.length)
-
-				return index === null ? null : (bins[index]?.color ?? null)
-			}),
+			cells.map((cell) =>
+				cell.value === null || domain === null || bins.length === 0
+					? null
+					: binIndex(cell.value, domain, bins.length),
+			),
 		[cells, domain, bins],
+	)
+
+	// Fill per cell from its bin: the bin's colour, or `null` for the neutral
+	// no-data fill.
+	const fills = useMemo(
+		() => cellBins.map((bin) => (bin === null ? null : (bins[bin]?.color ?? null))),
+		[cellBins, bins],
 	)
 
 	const format = formatValue ?? formatChartValue
@@ -457,6 +526,7 @@ function useHeatmap<T>(
 		rows,
 		cells,
 		fills,
+		cellBins,
 		bins,
 		domain,
 		ticks: heatmapTicks(matrix, xBand, yBand, plot),
@@ -514,6 +584,7 @@ export function HeatmapChart<T>({
 		rows,
 		cells,
 		fills,
+		cellBins,
 		bins,
 		domain,
 		ticks,
@@ -533,7 +604,7 @@ export function HeatmapChart<T>({
 
 			<ChartAxis axis="x" plot={plot} ticks={ticks.x} line={false} />
 
-			<HeatmapCells cells={cells} fills={fills} />
+			<HeatmapCells cells={cells} fills={fills} cellBins={cellBins} />
 
 			{tooltip && rows > 0 && cols > 0 && (
 				<HeatmapHitLayer plot={plot} rows={rows} cols={cols} xBand={xBand} yBand={yBand} />
@@ -548,35 +619,46 @@ export function HeatmapChart<T>({
 			style={width === undefined ? undefined : { width }}
 		>
 			<HeatmapHoverProvider>
-				<div className={cn('flex flex-col gap-2', showLegend && 'lg:flex-row lg:items-center')}>
-					<div
-						ref={ref}
-						data-slot="heatmap-plot"
-						role="img"
-						{...label}
-						className="relative min-w-0 flex-1"
-					>
-						<ChartPlotBox reserve={reserve} height={frameHeight}>
-							{svg}
-						</ChartPlotBox>
+				<HeatmapFocusProvider>
+					<div className={cn('flex flex-col gap-2', showLegend && 'lg:flex-row lg:items-center')}>
+						<div
+							ref={ref}
+							data-slot="heatmap-plot"
+							role="img"
+							{...label}
+							className="relative min-w-0 flex-1"
+						>
+							<ChartPlotBox reserve={reserve} height={frameHeight}>
+								{svg}
+							</ChartPlotBox>
 
-						{tooltip && readout && frameWidth > 0 && (
-							<HeatmapTooltip
-								plotRef={ref}
-								columns={matrix.columns}
-								rows={matrix.rows}
-								values={matrix.values}
-								format={format}
-								fills={fills}
-								cols={cols}
-							/>
+							{tooltip && readout && frameWidth > 0 && (
+								<HeatmapTooltip
+									plotRef={ref}
+									columns={matrix.columns}
+									rows={matrix.rows}
+									values={matrix.values}
+									format={format}
+									fills={fills}
+									cols={cols}
+								/>
+							)}
+						</div>
+
+						{showLegend && domain && (
+							<div data-slot="heatmap-legend-box" className="shrink-0">
+								<HeatmapRangeLegend
+									colorRange={primary?.colorRange ?? []}
+									domain={domain}
+									format={format}
+									label={primary?.colorName}
+									bins={bins.length}
+									values={matrix.values}
+								/>
+							</div>
 						)}
 					</div>
-
-					{showLegend && domain && (
-						<HeatmapLegend bins={bins} domain={domain} format={format} label={primary?.colorName} />
-					)}
-				</div>
+				</HeatmapFocusProvider>
 			</HeatmapHoverProvider>
 
 			{readout && <ChartTable readout={readout} />}
