@@ -209,7 +209,7 @@ export function Demo() {
 										legend
 										reference={[
 											{ value: 55, label: 'Target', color: 'green' },
-											{ value: 68, label: 'Ceiling', color: '#e11d48' },
+											{ value: 80, label: 'Ceiling', color: '#e11d48' },
 										]}
 									/>
 								</ChartContainer>
