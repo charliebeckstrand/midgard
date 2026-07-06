@@ -256,8 +256,11 @@ export function zoneMapToStores(
 	orderableIds: (string | number)[],
 	map: ZoneMap,
 ): { groups: GridColumnGroup[]; order: (string | number)[] } {
-	// The map carries stringified ids; resolve each back to its real column id.
-	const realId = (id: string): string | number => orderableIds.find((c) => String(c) === id) ?? id
+	// The map carries stringified ids; resolve each back to its real column id
+	// through a lookup built once, not a linear scan per id.
+	const byString = new Map(orderableIds.map((c) => [String(c), c] as const))
+
+	const realId = (id: string): string | number => byString.get(id) ?? id
 
 	const nextGroups = groups.map((g) => ({ ...g, columns: (map[String(g.id)] ?? []).map(realId) }))
 
