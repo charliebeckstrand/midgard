@@ -494,6 +494,8 @@ function buildCallouts(
 	radius: number,
 	frameHeight: number,
 ): CalloutLabel[] {
+	const byIndex = new Map(slices.map((slice) => [slice.index, slice] as const))
+
 	return pieCallouts(slices, {
 		cx: center.x,
 		cy: center.y,
@@ -501,7 +503,7 @@ function buildCallouts(
 		top: CALLOUT_LINE,
 		bottom: frameHeight - CALLOUT_LINE,
 	}).map((placed) => {
-		const slice = slices.find((entry) => entry.index === placed.index)
+		const slice = byIndex.get(placed.index)
 
 		return { ...placed, text: slice ? calloutLabelText(spec, placed.index, slice.share) : '' }
 	})
@@ -745,8 +747,10 @@ export function ChartPie<T>({
 	// Each drawn slice is one keyboard stop at its centroid — the same anchor the
 	// pointer hover uses; a row with no slice (non-positive or toggled off) offers
 	// none, so the arrow keys step over it.
+	const sliceByIndex = new Map(slices.map((slice) => [slice.index, slice] as const))
+
 	const focusPoints = data.map((_, index) => {
-		const slice = slices.find((candidate) => candidate.index === index)
+		const slice = sliceByIndex.get(index)
 
 		return slice ? [slice.centroid] : []
 	})

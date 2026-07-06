@@ -276,9 +276,28 @@ export function pieSlices(
 
 	const positive = angles.length
 
-	// Half the gap is peeled off each edge; a lone full circle has no neighbour
-	// to part from.
-	const half = positive > 1 ? pad / 2 : 0
+	// A lone full circle has no neighbour to part from, so it takes no gap channel
+	// and one shared hit target — skipping the per-slice pinch math entirely rather
+	// than computing an offset it would discard.
+	if (positive === 1) {
+		const { index, share, mid } = angles[0] as SliceAngle
+
+		const disc = fullCircle(cx, cy, radius, innerRadius)
+
+		return [
+			{
+				index,
+				d: disc,
+				hit: disc,
+				share,
+				mid,
+				centroid: at(cx, cy, pieCentroidRadius(radius, innerRadius, share), mid),
+			},
+		]
+	}
+
+	// Half the gap is peeled off each edge of every cut.
+	const half = pad / 2
 
 	return angles.map(({ index, share, mid, start, sweep }) => {
 		// A sliver narrower than the cuts shrinks its own offset: a donut's is
@@ -291,15 +310,12 @@ export function pieSlices(
 
 		const h = Math.min(half, pinch)
 
-		// A lone full circle has no channel to part from, so its hit target is
-		// the same disc. Otherwise the gapless wedge (offset 0) runs its edges to
-		// the boundary each channel is centred on — the slice's half of it.
-		const full = positive === 1 ? fullCircle(cx, cy, radius, innerRadius) : null
-
+		// The gapless wedge (offset 0) runs its edges to the boundary each channel
+		// is centred on — the slice's half of it.
 		return {
 			index,
-			d: full ?? slicePath(cx, cy, radius, innerRadius, start, start + sweep, h),
-			hit: full ?? slicePath(cx, cy, radius, innerRadius, start, start + sweep, 0),
+			d: slicePath(cx, cy, radius, innerRadius, start, start + sweep, h),
+			hit: slicePath(cx, cy, radius, innerRadius, start, start + sweep, 0),
 			share,
 			mid,
 			centroid: at(cx, cy, pieCentroidRadius(radius, innerRadius, share), mid),
