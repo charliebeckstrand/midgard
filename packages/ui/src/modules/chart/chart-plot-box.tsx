@@ -8,6 +8,15 @@ type ChartPlotBoxProps = {
 	reserve: FrameReserve | null
 	/** The drawing height in px, used when nothing is reserved from the width. */
 	height: number
+	/**
+	 * Fill the region's own height rather than reserving one: the plot is a
+	 * `flex-1` child whose height the figure's `aspect-ratio` (or the container)
+	 * already set, and the box takes all of it — the legend-inside-the-aspect-box
+	 * and free-form `fill` cases, where the drawing height is measured, not
+	 * reserved from the width.
+	 * @defaultValue false
+	 */
+	fill?: boolean
 	/** The SVG that fills the box; may be `false` before the width is measured. */
 	children: ReactNode
 }
@@ -32,12 +41,15 @@ function contentPadding(offset: number, min: number): string {
  * `width / height` ratio through CSS `aspect-ratio`, and a `content` reserve
  * holds the `max(min, width + offset)` — the affine height a
  * ratio can't express — through a padding box, whose percentage padding is
- * likewise a share of the box's own width. With nothing reserved (`fixed` /
- * `fill`) the box takes the pixel `height` directly.
+ * likewise a share of the box's own width. With nothing reserved (`fixed`) the
+ * box takes the pixel `height` directly; under `fill` it takes the whole height
+ * its `flex-1` region already holds.
  *
  * @internal
  */
-export function ChartPlotBox({ reserve, height, children }: ChartPlotBoxProps) {
+export function ChartPlotBox({ reserve, height, fill = false, children }: ChartPlotBoxProps) {
+	if (fill) return <div className="size-full">{children}</div>
+
 	if (reserve === null) return <div style={{ height }}>{children}</div>
 
 	if (reserve.mode === 'aspect') return <AspectRatio ratio={reserve.ratio}>{children}</AspectRatio>

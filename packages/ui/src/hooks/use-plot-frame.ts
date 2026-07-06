@@ -26,6 +26,20 @@ import { type RefObject, startTransition, useCallback, useEffect, useRef, useSta
 export type FrameSizing =
 	| { mode: 'fixed'; height: number }
 	| { mode: 'aspect'; ratio: number }
+	| {
+			/**
+			 * The ratio governs the whole figure — plot and legend together — through a
+			 * CSS `aspect-ratio` the figure wrapper carries, and the plot measures the
+			 * height that leaves so the drawing fills it. It falls back to the full
+			 * `width / ratio` until that measurement lands, so a server render, an
+			 * explicit `width`, or a test frame still resolves a deterministic height
+			 * from the width alone — the browser then refines it to the legend-adjusted
+			 * remainder. The whole-chart ratio a legend shares, the width-driven twin of
+			 * `fill`'s container-height measurement.
+			 */
+			mode: 'aspect-fill'
+			ratio: number
+	  }
 	| { mode: 'fill' }
 	| {
 			mode: 'content'
@@ -93,6 +107,17 @@ export function resolveFrameSizing(
 
 	if (sizing.mode === 'fill') return { height: containerHeight, reserve: null }
 
+	if (sizing.mode === 'aspect-fill') {
+		// The figure's CSS aspect-ratio drives the whole-chart height; the plot
+		// measures the remainder the legend leaves. Before that measurement lands
+		// (a server render, an explicit width, a test frame) fall back to the full
+		// `width / ratio`, so the frame draws from the width alone rather than
+		// collapsing — the browser refines to the measured remainder once it does.
+		const remainder = containerHeight > 0 ? containerHeight : Math.round(width / sizing.ratio)
+
+		return { height: width > 0 ? remainder : 0, reserve: null }
+	}
+
 	if (sizing.mode === 'content') {
 		// The CSS reserve always sizes off the flat hMargin — an approximation of
 		// the true radius, refined below once a real width lands — since a
@@ -128,7 +153,8 @@ export function resolveFrameSizing(
  * the frame only when it must. An explicit `width` is returned as-is with no
  * measurement — the deterministic path for fixed frames, SSR output, and
  * tests — otherwise the container's width is measured and the frame fills
- * it. The container's height is measured only under a `fill` policy; `fixed`,
+ * it. A height is measured only where the policy reads one: the container's
+ * under `fill`, the plot's own remainder under `aspect-fill`; `fixed`,
  * `aspect`, and `content` heights ignore it, so tracking it would re-render
  * the frame on every resize for a value the policy discards. A frame whose
  * size is fully fixed by props observes nothing at all, so a resize never
@@ -162,11 +188,13 @@ export function usePlotFrame(
 	const ref = useRef<HTMLDivElement>(null)
 
 	// The policy decides what the frame consumes: the width feeds every
-	// sizing but `fixed` unless the consumer fixes it directly, and the
-	// container height feeds only the free-form `fill` case.
+	// sizing but `fixed` unless the consumer fixes it directly, and a height
+	// feeds only the height-measured cases — `fill` and `aspect-fill`.
 	const measureWidth = width === undefined
 
-	const measureHeight = sizing.mode === 'fill'
+	// `fill` reads the container's height; `aspect-fill` reads the plot's own — the
+	// remainder its figure's aspect-ratio leaves once the legend takes its size.
+	const measureHeight = sizing.mode === 'fill' || sizing.mode === 'aspect-fill'
 
 	const [size, setSize] = useState({ width: 0, height: 0 })
 

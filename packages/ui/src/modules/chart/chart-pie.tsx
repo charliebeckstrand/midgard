@@ -416,6 +416,50 @@ function pieFrameSizing(
 	return { mode: 'content', hMargin, vMargin, radius }
 }
 
+/** The resolved pie frame: the plot's sizing plus the figure and legend layout. @internal */
+type PieFrame = {
+	sizing: FrameSizing
+	/** The whole-chart aspect the figure carries; `undefined` when the plot box reserves its own. */
+	frameAspect?: number
+	/** The plot grows into its region's height rather than reserving one. */
+	fill: boolean
+	/** The legend is a side panel, so it lays out beside the pie. */
+	aside: boolean
+	/** The legend shows — for two or more slices, or where the prop forces it. */
+	hasLegend: boolean
+}
+
+/**
+ * Folds the legend into the pie's aspect box: a live ratio with a legend hands
+ * the ratio to the figure wrapper and measures the pie's remaining height, so a
+ * pie and its legend fill a fixed-aspect box together. The `content` fit (the
+ * default) and a `fixed` height band the legend beside the plot as before,
+ * reserving nothing extra.
+ *
+ * @internal
+ */
+function pieFrame(
+	sizing: FrameSizing,
+	legend: ChartPieProps<unknown>['legend'],
+	dataLength: number,
+): PieFrame {
+	const hasLegend = Boolean(legend ?? dataLength > 1)
+
+	const shareAspect = sizing.mode === 'aspect' && hasLegend
+
+	const frameSizing: FrameSizing = shareAspect
+		? { mode: 'aspect-fill', ratio: sizing.ratio }
+		: sizing
+
+	return {
+		sizing: frameSizing,
+		frameAspect: shareAspect ? sizing.ratio : undefined,
+		fill: frameSizing.mode === 'fill' || frameSizing.mode === 'aspect-fill',
+		aside: legend === 'left' || legend === 'right',
+		hasLegend,
+	}
+}
+
 /** Places the callouts around the pie and resolves each label's text. @internal */
 function buildCallouts(
 	spec: CalloutSpec,
@@ -612,7 +656,17 @@ export function ChartPie<T>({
 		calloutFitRadius(showCallouts, calloutSpec, values),
 	)
 
-	const { ref, width: frameWidth, height: frameHeight, reserve } = usePlotFrame(width, sizing)
+	// A live ratio with a legend describes the whole chart: the figure carries the
+	// ratio and the pie measures the height the legend leaves.
+	const {
+		sizing: frameSizing,
+		frameAspect,
+		fill: fillFrame,
+		aside,
+		hasLegend,
+	} = pieFrame(sizing, legend, data.length)
+
+	const { ref, width: frameWidth, height: frameHeight, reserve } = usePlotFrame(width, frameSizing)
 
 	const { hidden, toggle, setFocus, emphasis } = useChartSeriesToggle()
 
@@ -649,12 +703,9 @@ export function ChartPie<T>({
 
 	const readout = pieReadout(sliceLabels, paints, entry.yName ?? entry.yKey, values, format)
 
-	const aside = legend === 'left' || legend === 'right'
-
-	const legendItems =
-		(legend ?? data.length > 1)
-			? pieLegendItems(sliceLabels, paints, colors, sliceValues, aside)
-			: null
+	const legendItems = hasLegend
+		? pieLegendItems(sliceLabels, paints, colors, sliceValues, aside)
+		: null
 
 	const labelItems = segmentLabelItems({
 		show: showSegmentLabels,
@@ -708,6 +759,8 @@ export function ChartPie<T>({
 			fixedWidth={width}
 			height={frameHeight}
 			reserve={reserve}
+			fill={fillFrame}
+			aspect={frameAspect}
 			legend={
 				legendItems && (
 					<ChartLegend

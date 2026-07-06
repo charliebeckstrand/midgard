@@ -183,7 +183,12 @@ export function ChartLegend({
 			data-slot="chart-legend"
 			{...toolbarProps}
 			className={cn(
-				panel ? 'flex flex-col items-start' : 'flex flex-wrap items-center justify-center',
+				// The side panel centers its entries down the column, so a legend
+				// stretched to the plot's full height reads level with it rather than
+				// stacked at the top; the wrap row centers its entries across instead.
+				panel
+					? 'flex flex-col items-start justify-center'
+					: 'flex flex-wrap items-center justify-center',
 			)}
 		>
 			{items.map((item) => {
