@@ -275,6 +275,57 @@ export type ChartValueLabelConfig = {
 }
 
 /**
+ * How the tooltip is summoned: `'hover'` tracks the pointer, the default;
+ * `'click'` pins the readout to a click, gives the plot a pointer cursor to read
+ * as clickable, and dismisses on a second click of the same mark.
+ */
+export type ChartTooltipTrigger = 'hover' | 'click'
+
+/**
+ * The object form of a chart's `tooltip` prop: the tooltip stays on, its
+ * `trigger` choosing how it opens. The prop also takes a bare boolean — `true`
+ * for the hover default, `false` to drop the tooltip — so the object is only
+ * needed to switch the trigger.
+ */
+export type ChartTooltipConfig = {
+	/**
+	 * Whether the readout tracks the pointer (`'hover'`) or waits for a click
+	 * (`'click'`).
+	 * @defaultValue 'hover'
+	 */
+	trigger?: ChartTooltipTrigger
+}
+
+/**
+ * A `tooltip` prop resolved to concrete switches: whether to mount the readout
+ * and which trigger drives it. The both-on base and the `true` shorthand apply
+ * here, so a chart reads one shape however the prop was written.
+ *
+ * @internal
+ */
+export type ResolvedTooltip = {
+	/** Whether the readout mounts at all. */
+	show: boolean
+	/** How it opens once shown. */
+	trigger: ChartTooltipTrigger
+}
+
+/**
+ * Resolves the `tooltip` prop's boolean-or-object union to a {@link ResolvedTooltip}.
+ * `undefined` and `true` are the shown hover default, `false` drops the readout,
+ * and the object form is always shown on its own `trigger` (hover when unset).
+ *
+ * @internal
+ */
+export function resolveTooltip(tooltip: boolean | ChartTooltipConfig | undefined): ResolvedTooltip {
+	if (tooltip === undefined || tooltip === true) return { show: true, trigger: 'hover' }
+
+	if (tooltip === false) return { show: false, trigger: 'hover' }
+
+	return { show: true, trigger: tooltip.trigger ?? 'hover' }
+}
+
+/**
  * The props every chart shares: the data plus the frame's sizing, legend,
  * tooltip, and animation switches. Each chart type extends this with its own
  * `series` shape and mark-specific switches — intersect more props on to grow
@@ -314,10 +365,14 @@ export type ChartBaseProps<T> = AccessibleName & {
 	 */
 	legend?: boolean | ChartLegendPlacement
 	/**
-	 * Show the hover tooltip naming the pointed series or slice.
+	 * The tooltip naming the pointed series or slice. `true` (the default) tracks
+	 * the pointer; `false` drops it. The object form keeps it on and sets how it
+	 * opens — `{ trigger: 'hover' }` tracks the pointer, `{ trigger: 'click' }`
+	 * pins the readout to a click and gives the plot a pointer cursor, dismissing
+	 * on a second click of the same mark.
 	 * @defaultValue true
 	 */
-	tooltip?: boolean
+	tooltip?: boolean | ChartTooltipConfig
 	/**
 	 * Animate the marks in on mount with Framer Motion — and, where present, the
 	 * reference rules rising along the value axis to their values — honouring

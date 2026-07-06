@@ -14,11 +14,12 @@ import { AnimatedChartLineMarks, ChartLineMarks, type ChartLineSeries } from '..
 import { ChartMarksLayer } from '../chart-marks-layer'
 import { useChartTexture } from '../chart-pattern-defs'
 import { ChartReferenceLines, ChartReferenceList } from '../chart-reference-lines'
-import type {
-	CartesianFrameProps,
-	ChartBaseProps,
-	ChartValueLabelConfig,
-	ComboChartSeries,
+import {
+	type CartesianFrameProps,
+	type ChartBaseProps,
+	type ChartValueLabelConfig,
+	type ComboChartSeries,
+	resolveTooltip,
 } from '../chart-schema'
 import type { SeriesMeta } from '../chart-series'
 import { snapTargets } from '../chart-snap'
@@ -98,7 +99,7 @@ export function ComboChart<T>({
 	axes = true,
 	gridLines = true,
 	legend,
-	tooltip = true,
+	tooltip,
 	crosshair,
 	animate = false,
 	points = true,
@@ -270,6 +271,8 @@ export function ComboChart<T>({
 
 	const rails = resolveCrosshair(crosshair)
 
+	const { show: showTooltip, trigger } = resolveTooltip(tooltip)
+
 	return (
 		<ChartFrame
 			{...label}
@@ -293,7 +296,7 @@ export function ComboChart<T>({
 			}
 			legendPlacement={typeof legend === 'string' ? legend : undefined}
 			readout={chart.readout}
-			tooltip={tooltip}
+			tooltip={showTooltip}
 			snap={snapTargets(rails, chart.bandPositions, chart.snapPoints)}
 			focus={cartesianFocus(
 				chart.bandPositions,
@@ -335,7 +338,7 @@ export function ComboChart<T>({
 
 			<ChartValueLabels labels={valueLabelItems} animate={animate} />
 
-			{(tooltip || rails !== null) && data.length > 0 && (
+			{(showTooltip || rails !== null) && data.length > 0 && (
 				<ChartHitArea
 					plot={chart.plot}
 					band={chart.band}
@@ -354,6 +357,8 @@ export function ComboChart<T>({
 							y,
 						)
 					}
+					trigger={trigger}
+					snaps={rails?.snap ?? false}
 				/>
 			)}
 

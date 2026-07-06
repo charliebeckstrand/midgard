@@ -15,7 +15,12 @@ import type { ChartLegendItem } from '../chart-legend'
 import { ChartLegend } from '../chart-legend'
 import { ChartMarksLayer } from '../chart-marks-layer'
 import { type LinearScale, linearScale } from '../chart-scale'
-import type { ChartBaseProps, Crosshair, ScatterChartSeries } from '../chart-schema'
+import {
+	type ChartBaseProps,
+	type Crosshair,
+	resolveTooltip,
+	type ScatterChartSeries,
+} from '../chart-schema'
 import { formatChartValue, type SeriesPaint, seriesColor, seriesPaint } from '../chart-series'
 import { snapTargets } from '../chart-snap'
 import type { ChartReadout } from '../types'
@@ -296,7 +301,7 @@ export function ScatterChart<T>({
 	axes = true,
 	gridLines = true,
 	legend,
-	tooltip = true,
+	tooltip,
 	crosshair,
 	animate = false,
 	min,
@@ -372,6 +377,8 @@ export function ScatterChart<T>({
 
 	const rails = resolveCrosshair(crosshair)
 
+	const { show: showTooltip, trigger } = resolveTooltip(tooltip)
+
 	const legendItems = scatterLegendItems(metas, legend)
 
 	const marksNode = animate ? (
@@ -401,7 +408,7 @@ export function ScatterChart<T>({
 			}
 			legendPlacement={typeof legend === 'string' ? legend : undefined}
 			readout={readout}
-			tooltip={tooltip}
+			tooltip={showTooltip}
 			snap={snapTargets(rails, bandPositions, snapColumns)}
 			focus={cartesianFocus(bandPositions, snapColumns, 'vertical')}
 			className={className}
@@ -427,11 +434,13 @@ export function ScatterChart<T>({
 
 			<ChartMarksLayer animate={animate}>{marksNode}</ChartMarksLayer>
 
-			{(tooltip || rails !== null) && bandPositions.length > 0 && (
+			{(showTooltip || rails !== null) && bandPositions.length > 0 && (
 				<ScatterChartHitArea
 					plot={plot}
 					centers={bandPositions}
 					onData={(x, y) => withinScatterMarks(allMarks, x, y, SCATTER_HIT_SLACK)}
+					trigger={trigger}
+					snaps={rails?.snap ?? false}
 				/>
 			)}
 		</ChartFrame>

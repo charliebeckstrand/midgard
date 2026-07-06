@@ -12,7 +12,7 @@ import { ChartMarksLayer } from '../chart-marks-layer'
 import type { ChartOrientation } from '../chart-orientation'
 import { useChartTexture } from '../chart-pattern-defs'
 import { ChartReferenceLines, ChartReferenceList } from '../chart-reference-lines'
-import type { CartesianChartProps } from '../chart-schema'
+import { type CartesianChartProps, resolveTooltip } from '../chart-schema'
 import { snapTargets } from '../chart-snap'
 import { barProjection, drawnSeries, useChartCartesian } from '../use-chart-cartesian'
 import { cartesianFocus } from '../use-chart-keyboard'
@@ -82,7 +82,7 @@ export function BarChart<T>({
 	axes = true,
 	gridLines = true,
 	legend,
-	tooltip = true,
+	tooltip,
 	crosshair,
 	animate = false,
 	orientation = 'vertical',
@@ -169,6 +169,8 @@ export function BarChart<T>({
 
 	const rails = resolveCrosshair(crosshair)
 
+	const { show: showTooltip, trigger } = resolveTooltip(tooltip)
+
 	return (
 		<ChartFrame
 			{...label}
@@ -192,7 +194,7 @@ export function BarChart<T>({
 			}
 			legendPlacement={typeof legend === 'string' ? legend : undefined}
 			readout={chart.readout}
-			tooltip={tooltip}
+			tooltip={showTooltip}
 			snap={snapTargets(rails, chart.bandPositions, chart.snapPoints)}
 			focus={cartesianFocus(
 				chart.bandPositions,
@@ -234,13 +236,15 @@ export function BarChart<T>({
 				/>
 			)}
 
-			{(tooltip || rails !== null) && data.length > 0 && (
+			{(showTooltip || rails !== null) && data.length > 0 && (
 				<ChartHitArea
 					plot={chart.plot}
 					band={chart.band}
 					count={data.length}
 					onData={(x, y) => withinBarMarks(marks, x, y, MARK_GAP, chart.orientation)}
 					orientation={chart.orientation}
+					trigger={trigger}
+					snaps={rails?.snap ?? false}
 				/>
 			)}
 

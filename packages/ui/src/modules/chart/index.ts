@@ -9,6 +9,8 @@ export type {
 	ChartLegendPlacement,
 	ChartReferenceLine,
 	ChartSeries,
+	ChartTooltipConfig,
+	ChartTooltipTrigger,
 	ChartValueAxis,
 	ChartValueAxisSide,
 	ComboChartSeries,

@@ -11,7 +11,11 @@ import { AnimatedChartLineMarks, ChartLineMarks, type ChartLineSeries } from '..
 import { ChartMarksLayer } from '../chart-marks-layer'
 import { useChartTexture } from '../chart-pattern-defs'
 import { ChartReferenceLines, ChartReferenceList } from '../chart-reference-lines'
-import type { CartesianChartProps, ChartValueLabelConfig } from '../chart-schema'
+import {
+	type CartesianChartProps,
+	type ChartValueLabelConfig,
+	resolveTooltip,
+} from '../chart-schema'
 import { snapTargets } from '../chart-snap'
 import { ChartValueLabels, resolveValueLabels } from '../chart-value-labels'
 import { useChartCartesian } from '../use-chart-cartesian'
@@ -80,7 +84,7 @@ export function LineChart<T>({
 	axes = true,
 	gridLines = true,
 	legend,
-	tooltip = true,
+	tooltip,
 	crosshair,
 	animate = false,
 	points = false,
@@ -173,6 +177,8 @@ export function LineChart<T>({
 
 	const rails = resolveCrosshair(crosshair)
 
+	const { show: showTooltip, trigger } = resolveTooltip(tooltip)
+
 	return (
 		<ChartFrame
 			{...label}
@@ -196,7 +202,7 @@ export function LineChart<T>({
 			}
 			legendPlacement={typeof legend === 'string' ? legend : undefined}
 			readout={chart.readout}
-			tooltip={tooltip}
+			tooltip={showTooltip}
 			snap={snapTargets(rails, chart.bandPositions, chart.snapPoints)}
 			focus={cartesianFocus(
 				chart.bandPositions,
@@ -236,7 +242,7 @@ export function LineChart<T>({
 
 			<ChartValueLabels labels={valueLabelItems} animate={animate} />
 
-			{(tooltip || rails !== null) && data.length > 0 && (
+			{(showTooltip || rails !== null) && data.length > 0 && (
 				<ChartHitArea
 					plot={chart.plot}
 					band={chart.band}
@@ -245,6 +251,8 @@ export function LineChart<T>({
 						nearSeriesLines(seriesRuns, x, y) ||
 						(fill && withinSeriesAreas(seriesRuns, floor, x, y))
 					}
+					trigger={trigger}
+					snaps={rails?.snap ?? false}
 				/>
 			)}
 

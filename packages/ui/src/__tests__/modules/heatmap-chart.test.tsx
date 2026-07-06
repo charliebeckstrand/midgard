@@ -178,4 +178,55 @@ describe('HeatmapChart', () => {
 
 		expect(high).toBeLessThan(low)
 	})
+
+	it('pins the pointed cell on click under trigger click, ignoring hover', () => {
+		const { container } = renderUI(
+			<HeatmapChart
+				aria-label="Commits"
+				data={ROWS}
+				series={SERIES}
+				width={400}
+				tooltip={{ trigger: 'click' }}
+			/>,
+		)
+
+		const hit = bySlot(container, 'heatmap-hit') as Element
+
+		// The hit layer reads as clickable.
+		expect(hit.getAttribute('class')).toContain('cursor-pointer')
+
+		// jsdom reports a zero box; stand in a screen rect so the fraction math resolves.
+		const box = {
+			left: 100,
+			top: 50,
+			right: 340,
+			bottom: 210,
+			width: 240,
+			height: 160,
+			x: 100,
+			y: 50,
+			toJSON: () => ({}),
+		} as DOMRect
+
+		;(hit as Element).getBoundingClientRect = () => box
+
+		// Movement no longer opens the readout under the click trigger.
+		fireEvent.pointerMove(hit, { clientX: 330, clientY: 70 })
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
+
+		// A click on the top-right cell (Mon/10 = 9) pins its readout.
+		fireEvent.click(hit, { clientX: 330, clientY: 70 })
+
+		const tooltip = bySlot(container, 'tooltip-content')
+
+		expect(tooltip?.textContent).toContain('Mon')
+
+		expect(tooltip?.textContent).toContain('9')
+
+		// A second click of the same cell dismisses it.
+		fireEvent.click(hit, { clientX: 330, clientY: 70 })
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
+	})
 })

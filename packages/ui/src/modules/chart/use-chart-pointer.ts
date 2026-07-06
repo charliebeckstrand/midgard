@@ -1,11 +1,20 @@
 'use client'
 
-import { type PointerEvent, type RefObject, useCallback, useRef } from 'react'
+import { type MouseEvent, type PointerEvent, type RefObject, useCallback, useRef } from 'react'
 import { useHoverAcrossScroll } from '../../hooks'
 import type { PlotRect } from './chart-layout'
 import { bandCoord, type ChartOrientation } from './chart-orientation'
 import { type BandScale, nearestBandIndex } from './chart-scale'
+import type { ChartTooltipTrigger } from './chart-schema'
 import { useChartHover } from './context'
+
+/** The handlers {@link useChartPointer} spreads onto the hit layer's rect. @internal */
+export type ChartPointerHandlers = {
+	ref: RefObject<SVGRectElement | null>
+	onPointerMove?: (event: PointerEvent<SVGRectElement>) => void
+	onPointerLeave?: () => void
+	onClick?: (event: MouseEvent<SVGRectElement>) => void
+}
 
 /**
  * Pointer handlers for a cartesian chart's transparent hit layer: movement
@@ -20,6 +29,12 @@ import { useChartHover } from './context'
  * viewport position — the crosshair and tooltip return over whatever band now
  * sits under it, with no cursor move required.
  *
+ * Under the `'click'` trigger the readout is pinned instead of tracked: a click
+ * snaps the hover to the band under it, a second click of that same band clears
+ * it, and pointer movement leaves it be — so the tooltip (and any crosshair)
+ * stay put until dismissed. The scroll rescue stands down there; floating-ui's
+ * own autoUpdate keeps the pinned readout anchored across a scroll.
+ *
  * @remarks The hit element's own bounding box anchors the coordinate math,
  * so the handlers stay correct however the frame scrolls or transforms.
  * @returns The handlers plus the `ref` to attach to the hit element, which the
@@ -32,12 +47,10 @@ export function useChartPointer(
 	plot: PlotRect,
 	onData?: (x: number, y: number) => boolean,
 	orientation: ChartOrientation = 'vertical',
-): {
-	ref: RefObject<SVGRectElement | null>
-	onPointerMove: (event: PointerEvent<SVGRectElement>) => void
-	onPointerLeave: () => void
-} {
-	const { set } = useChartHover()
+	trigger: ChartTooltipTrigger = 'hover',
+	snaps = false,
+): ChartPointerHandlers {
+	const { index: active, set } = useChartHover()
 
 	const ref = useRef<SVGRectElement>(null)
 
@@ -75,6 +88,31 @@ export function useChartPointer(
 		[band, count, plot, onData, orientation, set],
 	)
 
+	// A click pins the band under it; clicking the shown band again clears it, so
+	// the same gesture toggles the readout. No guard — a click always lands inside.
+	const toggle = useCallback(
+		(clientX: number, clientY: number) => {
+			const box = ref.current?.getBoundingClientRect()
+
+			if (box === undefined) return
+
+			const x = clientX - box.left + plot.x
+
+			const y = clientY - box.top + plot.y
+
+			const index = nearestBandIndex(bandCoord(orientation, { x, y }), band, count)
+
+			const onDataHit = onData ? onData(x, y) : true
+
+			// Toggle the shown band off; and a click that would read nothing — off the
+			// marks on a chart that doesn't snap — dismisses rather than pinning a hidden
+			// band, so the next click of a real mark still opens it.
+			if (index === active || !(snaps || onDataHit)) set(null, null)
+			else set(index, { x, y }, onDataHit)
+		},
+		[band, count, plot, onData, orientation, snaps, active, set],
+	)
+
 	const resolveAt = useCallback(
 		(clientX: number, clientY: number) => track(clientX, clientY, true),
 		[track],
@@ -82,12 +120,17 @@ export function useChartPointer(
 
 	const clear = useCallback(() => set(null, null), [set])
 
-	useHoverAcrossScroll(true, clear, resolveAt)
+	// The scroll rescue is a hover affordance; a pinned click readout stays put and
+	// lets floating-ui's autoUpdate re-anchor it, so it stands down under `'click'`.
+	useHoverAcrossScroll(trigger === 'hover', clear, resolveAt)
 
-	const onPointerMove = (event: PointerEvent<SVGRectElement>) =>
-		track(event.clientX, event.clientY, false)
+	if (trigger === 'click') {
+		return { ref, onClick: (event) => toggle(event.clientX, event.clientY) }
+	}
 
-	const onPointerLeave = () => set(null, null)
-
-	return { ref, onPointerMove, onPointerLeave }
+	return {
+		ref,
+		onPointerMove: (event) => track(event.clientX, event.clientY, false),
+		onPointerLeave: () => set(null, null),
+	}
 }
