@@ -112,6 +112,12 @@ export type CartesianChart = {
 	/** Per category, the visible series' value-axis positions — a value crosshair's snap targets. */
 	snapPoints: number[][]
 	/**
+	 * Per category, the series index behind each {@link CartesianChart.snapPoints}
+	 * stop, in the same order — the keyboard cursor maps its value lane back through
+	 * this to the series it sits on, so it can emphasise that one and recede the rest.
+	 */
+	snapSeries: number[][]
+	/**
 	 * Each reference line's value-axis position — projected through its own
 	 * axis's scale — index-aligned to the `reference` prop so a keyboard stop
 	 * maps back to the rule it draws; `null` where the value is non-finite (no
@@ -509,7 +515,11 @@ export function useChartCartesian<T>(
 		categories,
 		times,
 		count: data.length,
-		visibleValues: visible.map((meta) => ({ values: meta.values, side: meta.axis })),
+		visibleValues: visible.map((meta) => ({
+			values: meta.values,
+			side: meta.axis,
+			index: meta.index,
+		})),
 	})
 
 	const readout =
@@ -555,6 +565,7 @@ export function useChartCartesian<T>(
 		referenceItems,
 		bandPositions: layout.bandPositions,
 		snapPoints: layout.snapPoints,
+		snapSeries: layout.snapSeries,
 		referencePositions,
 		gridPositions: gridPositionsOf(props, layout),
 		axisTitles: layout.titles,

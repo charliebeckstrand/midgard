@@ -7,11 +7,12 @@ import {
 	cartesianFocus,
 	clampCursor,
 	cursorPoint,
+	cursorSeries,
 	firstCursor,
 	hasFocusTargets,
 	moveCursor,
 } from '../../modules/chart/use-chart-keyboard'
-import { act, bySlot, fireEvent, renderUI } from '../helpers'
+import { act, allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
 
 // Category 0 carries two coincident points (a chart whose series overlap on the
 // same value); the later categories separate them.
@@ -171,6 +172,40 @@ describe('chart keyboard cursor', () => {
 		expect(cartesianFocus([10], [[40]], 'vertical').points[0]?.[0]).toEqual({ x: 10, y: 40 })
 
 		expect(cartesianFocus([10], [[40]], 'horizontal').points[0]?.[0]).toEqual({ x: 40, y: 10 })
+	})
+
+	it('carries the series map onto the targets, and omits it when empty', () => {
+		const mapped = cartesianFocus([10, 20], [[100, 50], [80]], 'vertical', undefined, [[0, 1], [1]])
+
+		expect(mapped.series).toEqual([[0, 1], [1]])
+
+		// No map, or an empty one, leaves the field off — a chart whose stops name no series.
+		expect(cartesianFocus([10], [[40]], 'vertical').series).toBeUndefined()
+
+		expect(cartesianFocus([10], [[40]], 'vertical', undefined, []).series).toBeUndefined()
+	})
+
+	it('resolves the series a cursor sits on, null off any', () => {
+		// The map names the series behind each stop; a gap at the second category has
+		// already shifted its lone stop to the surviving series' index.
+		const targets = cartesianFocus([10, 20], [[100, 50], [80]], 'vertical', undefined, [
+			[0, 2],
+			[2],
+		])
+
+		expect(cursorSeries({ category: 0, value: 0 }, targets)).toBe(0)
+
+		expect(cursorSeries({ category: 0, value: 1 }, targets)).toBe(2)
+
+		expect(cursorSeries({ category: 1, value: 0 }, targets)).toBe(2)
+
+		// A cursor parked on a reference names no series, and a stop past the map — or a
+		// chart carrying none — reads null, leaving the emphasis untouched.
+		expect(cursorSeries({ category: 0, value: 0, reference: 0 }, targets)).toBeNull()
+
+		expect(cursorSeries({ category: 0, value: 9 }, targets)).toBeNull()
+
+		expect(cursorSeries({ category: 0, value: 0 }, TARGETS)).toBeNull()
 	})
 
 	it('snaps an out-of-range cursor back onto the targets', () => {
@@ -399,6 +434,81 @@ describe('LineChart keyboard navigation', () => {
 		expect(tip?.textContent).toContain('W1')
 
 		expect(tip?.textContent).toContain('40')
+	})
+
+	it('emphasises the series the cursor reads, dimming the other marks and its tooltip row', () => {
+		const { container } = renderUI(line())
+
+		const plot = bySlot(container, 'chart-plot') as HTMLElement
+
+		// The first arrow enters on the first series (A); the other series (B) recedes.
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		const marks = allBySlot(container, 'chart-line-series')
+
+		expect(marks[0]?.getAttribute('class')).not.toContain('opacity-25')
+
+		expect(marks[1]?.getAttribute('class')).toContain('opacity-25')
+
+		// The tooltip dims B's row against A's, mirroring the marks.
+		const rows = allBySlot(container, 'chart-tooltip-row')
+
+		expect(rows).toHaveLength(2)
+
+		expect(rows[0]?.getAttribute('class')).not.toContain('opacity-25')
+
+		expect(rows[1]?.getAttribute('class')).toContain('opacity-25')
+
+		// Cycling the value axis onto B carries the emphasis with the cursor.
+		fireEvent.keyDown(plot, { key: 'ArrowDown' })
+
+		const stepped = allBySlot(container, 'chart-line-series')
+
+		expect(stepped[0]?.getAttribute('class')).toContain('opacity-25')
+
+		expect(stepped[1]?.getAttribute('class')).not.toContain('opacity-25')
+
+		// Escape drops the emphasis with the readout — every series reads at full strength.
+		fireEvent.keyDown(plot, { key: 'Escape' })
+
+		for (const mark of allBySlot(container, 'chart-line-series')) {
+			expect(mark.getAttribute('class')).not.toContain('opacity-25')
+		}
+	})
+
+	it('emphasises the surviving series where a gap has shifted the stops', () => {
+		// Series A has no value at W2, so W2's only stop is B; landing there must
+		// emphasise B, proving the cursor's lane follows the series, not the slot.
+		const gapped: { week: string; a?: number; b: number }[] = [
+			{ week: 'W1', a: 10, b: 90 },
+			{ week: 'W2', b: 70 },
+		]
+
+		const { container } = renderUI(
+			<LineChart
+				aria-label="Signups"
+				data={gapped}
+				series={[
+					{ xKey: 'week', yKey: 'a', yName: 'A' },
+					{ xKey: 'week', yKey: 'b', yName: 'B' },
+				]}
+				width={400}
+			/>,
+		)
+
+		const plot = bySlot(container, 'chart-plot') as HTMLElement
+
+		// Enter at W1's series A, then step the band to W2 where only B has a stop.
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		const marks = allBySlot(container, 'chart-line-series')
+
+		// B (index 1) reads as active; A (index 0) recedes — the series map held its line.
+		expect(marks[0]?.getAttribute('class')).toContain('opacity-25')
+
+		expect(marks[1]?.getAttribute('class')).not.toContain('opacity-25')
 	})
 })
 

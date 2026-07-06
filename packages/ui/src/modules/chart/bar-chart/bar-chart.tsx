@@ -192,6 +192,7 @@ export function BarChart<T>({
 			}
 			legendPlacement={typeof legend === 'string' ? legend : undefined}
 			readout={chart.readout}
+			emphasis={chart.emphasis}
 			tooltip={tooltip}
 			snap={snapTargets(rails, chart.bandPositions, chart.snapPoints)}
 			focus={cartesianFocus(
@@ -199,7 +200,9 @@ export function BarChart<T>({
 				chart.snapPoints,
 				chart.orientation,
 				chart.referencePositions,
+				chart.snapSeries,
 			)}
+			onActiveSeries={chart.setEmphasis}
 			orientation={chart.orientation}
 			className={className}
 			annotations={<ChartReferenceList reference={reference} format={chart.formatAxisValue} />}

@@ -293,6 +293,7 @@ export function ComboChart<T>({
 			}
 			legendPlacement={typeof legend === 'string' ? legend : undefined}
 			readout={chart.readout}
+			emphasis={chart.emphasis}
 			tooltip={tooltip}
 			snap={snapTargets(rails, chart.bandPositions, chart.snapPoints)}
 			focus={cartesianFocus(
@@ -300,7 +301,9 @@ export function ComboChart<T>({
 				chart.snapPoints,
 				chart.orientation,
 				chart.referencePositions,
+				chart.snapSeries,
 			)}
+			onActiveSeries={chart.setEmphasis}
 			className={className}
 			annotations={<ChartReferenceList reference={reference} format={chart.formatAxisValue} />}
 		>
