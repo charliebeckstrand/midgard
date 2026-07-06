@@ -15,6 +15,7 @@ export {
 	type GridFooterStats,
 	type GridGroupBy,
 	type GridGroupHeaderContext,
+	type GridGroupHeaderRow,
 	type GridHeader,
 	type GridInfiniteScroll,
 	type GridProps,

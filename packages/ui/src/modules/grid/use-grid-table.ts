@@ -106,8 +106,8 @@ function applyUpdater<S>(updater: Updater<S>, base: S): S {
 	return typeof updater === 'function' ? (updater as (prev: S) => S)(base) : updater
 }
 
-/** Server (manual) pagination is implied once a total is supplied. @internal */
-function isManualPagination(config: GridPagination | undefined): boolean {
+/** Server (manual) pagination is implied once a total is supplied. Exported for the grouping gates in `GridData`. @internal */
+export function isManualPagination(config: GridPagination | undefined): boolean {
 	return config?.manual ?? (config?.rowCount != null || config?.pageCount != null)
 }
 
@@ -132,6 +132,16 @@ type UseGridTableParams<T> = {
 	expanded?: ExpandedState
 	/** Commits an engine-driven expansion change (a group header toggle) as a resolved value. */
 	onExpandedChange?: (next: ExpandedState) => void
+	/**
+	 * Marks a row as a manual-grouping group header, or `null`/absent outside
+	 * manual grouping. When set, the supplied rows are a consumer-shaped grouped
+	 * sequence: the engine's client sort and filter transforms are forced manual
+	 * (a client reorder would tear children from their headers), the core row
+	 * model is materialized for the body's cells, and the row-model views split
+	 * into the full display list ({@link UseGridTableResult.manualRows}) and the
+	 * leaf-only `renderRows`/`rowKeys` backing selection and counts.
+	 */
+	manualGroupRow?: ((row: T) => boolean) | null
 	pagination?: GridPagination
 	resizable?: boolean
 	columnSizing?: GridColumnSizing
@@ -171,6 +181,14 @@ type UseGridTableResult<T> = {
 	 * / {@link rowKeys} still carry the flat leaf set for selection and counts.
 	 */
 	groupedRows: Row<T>[] | null
+	/**
+	 * The full display list — consumer-supplied group headers interleaved with
+	 * leaves, in supplied order — under manual grouping, or `null` otherwise.
+	 * The manual grouped body renders from it; {@link renderRows} /
+	 * {@link rowKeys} carry only the leaves, so selection and the data counts
+	 * never see a header row.
+	 */
+	manualRows: Row<T>[] | null
 	/** Footer view model, or `null` when pagination is not configured. */
 	pagination: GridPaginationView | null
 	/** Column-resize controls, or `null` when `resizable` is off. */
@@ -302,17 +320,29 @@ function useGridRowModel<T>(args: {
 	rows: T[]
 	getKey: (row: T, index: number) => string | number
 	grouped: boolean
+	/** Manual-grouping group-header predicate; splits the display rows into headers and leaves. */
+	manualGroupRow: ((row: T) => boolean) | null
 	/** Whether a client transform (sort/filter/pagination/grouping) is active, so the engine model is read. */
 	materialize: boolean
-}): { groupedRows: Row<T>[] | null; renderRows: T[]; rowKeys: (string | number)[] } {
-	const { table, rows, getKey, grouped, materialize } = args
+}): {
+	groupedRows: Row<T>[] | null
+	manualRows: Row<T>[] | null
+	renderRows: T[]
+	rowKeys: (string | number)[]
+} {
+	const { table, rows, getKey, grouped, manualGroupRow, materialize } = args
 
 	const displayRows = materialize ? table.getRowModel().rows : null
 
-	const leafRows = useMemo<Row<T>[] | null>(
-		() => deriveLeafRows(displayRows, grouped),
-		[displayRows, grouped],
-	)
+	// Under manual grouping the display rows are the consumer's grouped sequence;
+	// the leaf set drops the group-header rows so selection identity and the data
+	// counts track the actual data rows.
+	const leafRows = useMemo<Row<T>[] | null>(() => {
+		if (displayRows && manualGroupRow)
+			return displayRows.filter((row) => !manualGroupRow(row.original))
+
+		return deriveLeafRows(displayRows, grouped)
+	}, [displayRows, grouped, manualGroupRow])
 
 	// The top-level group-header rows, in display order. Each carries every one of
 	// its leaves on `subRows` (regardless of expansion), so the body can keep the
@@ -321,6 +351,8 @@ function useGridRowModel<T>(args: {
 		() => (grouped && displayRows ? displayRows.filter((row) => row.getIsGrouped()) : null),
 		[grouped, displayRows],
 	)
+
+	const manualRows = manualGroupRow ? displayRows : null
 
 	const renderRows = useMemo(
 		() => (leafRows ? leafRows.map((leaf) => leaf.original) : rows),
@@ -335,7 +367,34 @@ function useGridRowModel<T>(args: {
 		[leafRows, rows, getKey],
 	)
 
-	return { groupedRows, renderRows, rowKeys }
+	return { groupedRows, manualRows, renderRows, rowKeys }
+}
+
+/**
+ * Resolves the engine's sort and filter transform modes. Manual grouping forces
+ * both manual: the supplied rows are a positional header/children sequence, and
+ * a client reorder or prune would tear children from their group headers. Kept
+ * out of {@link useGridTable} for its cognitive-complexity budget.
+ *
+ * @internal
+ */
+function resolveTransformModes(args: {
+	manualGrouped: boolean
+	sortManual: boolean
+	globalConfigured: boolean
+	hasColumnFilters: boolean
+	globalManual: boolean | undefined
+	columnManual: boolean | undefined
+}): { clientSort: boolean; filterMode: { configured: boolean; manual: boolean } } {
+	return {
+		clientSort: !args.sortManual && !args.manualGrouped,
+		filterMode: resolveFilterMode({
+			globalConfigured: args.globalConfigured,
+			hasColumnFilters: args.hasColumnFilters,
+			globalManual: args.manualGrouped || args.globalManual,
+			columnManual: args.manualGrouped || args.columnManual,
+		}),
+	}
 }
 
 /**
@@ -369,6 +428,7 @@ export function useGridTable<T>({
 	grouping = null,
 	expanded,
 	onExpandedChange,
+	manualGroupRow = null,
 	pagination: paginationConfig,
 	resizable = false,
 	columnSizing: columnSizingConfig,
@@ -455,14 +515,14 @@ export function useGridTable<T>({
 		[setColumnFiltersState],
 	)
 
-	const filterMode = resolveFilterMode({
+	const { clientSort, filterMode } = resolveTransformModes({
+		manualGrouped: manualGroupRow != null,
+		sortManual,
 		globalConfigured,
 		hasColumnFilters,
 		globalManual: globalFilterConfig?.manual,
 		columnManual: columnFiltersConfig?.manual,
 	})
-
-	const clientSort = sortManual === false
 
 	const onSortingChange = useCallback<OnChangeFn<SortingState>>(
 		(updater) => setSort?.(toSortState(applyUpdater(updater, toSortingState(sort)))),
@@ -550,12 +610,15 @@ export function useGridTable<T>({
 		grouped,
 	})
 
-	const { groupedRows, renderRows, rowKeys } = useGridRowModel({
+	const { groupedRows, manualRows, renderRows, rowKeys } = useGridRowModel({
 		table,
 		rows,
 		getKey,
 		grouped,
-		materialize: paginated || clientTransform,
+		manualGroupRow,
+		// Manual grouping materializes the (untransformed) core model too: the
+		// grouped body reads each leaf's engine cells.
+		materialize: paginated || clientTransform || manualGroupRow != null,
 	})
 
 	// Computed each render (not memoized) so the total reflects live client-side
@@ -622,6 +685,7 @@ export function useGridTable<T>({
 		rowKeys,
 		grouped,
 		groupedRows,
+		manualRows,
 		pagination,
 		resize,
 		globalFilter,

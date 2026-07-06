@@ -232,7 +232,11 @@ export type GridSemantics = { enabled: boolean; rowOffset: number; selectAllLabe
  * indices the role implies — the counts and per-cell indices follow the role, not
  * just the windowing. Under pagination the select-all checkbox toggles only the
  * current page, so its label says so rather than overclaiming "all rows". A plain,
- * non-navigable table conveys all this natively and stays a table.
+ * non-navigable table conveys all this natively and stays a table. Manual
+ * grouping withholds the semantics outright — its body interleaves group-header
+ * and leaf rows with no global index bookkeeping (the cursor and virtualization
+ * already stand down under it), so even a manually paginated grouped grid stays
+ * a native table rather than advertising indices it doesn't emit.
  *
  * @internal
  */
@@ -240,9 +244,10 @@ export function resolveGridSemantics(
 	virtualizeEnabled: boolean,
 	pagination: GridPaginationView | null,
 	navigable: boolean,
+	manualGrouped = false,
 ): GridSemantics {
 	return {
-		enabled: virtualizeEnabled || pagination != null || navigable,
+		enabled: !manualGrouped && (virtualizeEnabled || pagination != null || navigable),
 		rowOffset: pagination ? pagination.pageIndex * pagination.pageSize : 0,
 		selectAllLabel: pagination ? 'Select all rows on this page' : 'Select all rows',
 	}

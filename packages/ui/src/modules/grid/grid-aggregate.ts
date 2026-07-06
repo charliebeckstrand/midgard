@@ -12,11 +12,13 @@ import type { GridColumn } from './types'
  * The accessor an aggregation reads a column's values through: its
  * {@link GridColumn.value} (the same one sort, filter, and export read) when
  * set, else the row field named by the column id — so an aggregate always
- * agrees with the values the rest of the grid operates on.
+ * agrees with the values the rest of the grid operates on. Exported for the
+ * manual group row, which reads a backend aggregate off the group row itself
+ * through the same accessor.
  *
  * @internal
  */
-function aggAccessor<T>(column: GridColumn<T>): (row: T) => unknown {
+export function aggAccessor<T>(column: GridColumn<T>): (row: T) => unknown {
 	if (column.value) return column.value
 
 	return (row) => (row as Record<string | number, unknown>)[column.id]

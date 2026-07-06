@@ -116,36 +116,122 @@ export type GridGroupHeaderContext = {
 }
 
 /**
+ * What a manual-mode {@link GridGroupBy.groupRow} resolver returns to mark a row
+ * as a group header: the group's stable `key` (the identity the expanded set and
+ * {@link GridGroupBy.onGroupExpand} speak), the grouped column's shared `value`
+ * (the default header label), and the group's child `count` — supplied by the
+ * backend, since the grid may hold none of the children.
+ */
+export type GridGroupHeaderRow = {
+	/** Stable group identity; keys the expanded set and the lazy-load callback. */
+	key: string | number
+	/** The grouped column's value shared by the group's children; the default label. */
+	value: unknown
+	/** Child-row count from the backend, shown in the default `value (count)` label. */
+	count: number
+}
+
+/**
  * Controlled/uncontrolled row-grouping binding for {@link GridProps.groupBy}:
  * the id of the single column the rows are grouped by (or `null` for no
  * grouping). Grouping collects rows sharing that column's value under an
  * expandable group-header row that shows the value and a row count, backed by
  * the engine's grouped/expanded row models.
  *
- * @remarks Grouping renders its own body, so it takes precedence over — and
- * stands down — {@link GridProps.pagination}, {@link GridProps.virtualize}, and
- * the {@link GridProps.navigable} cursor while active; sorting, filtering,
- * search, selection, resizing, and pinning still apply.
+ * @remarks Two modes, selected by {@link GridGroupBy.manual} — the same split
+ * as the pagination/sort/filter bindings. In client mode (the default) the
+ * engine computes the groups from the in-memory `rows`. In manual (server)
+ * mode the grid computes nothing: the consumer's backend groups, and `rows` is
+ * fed back as the rendered sequence — group-header rows (marked by
+ * {@link GridGroupBy.groupRow}) each followed by their child rows. Either way
+ * grouping renders its own body, so it takes precedence over — and stands
+ * down — {@link GridProps.virtualize} and the {@link GridProps.navigable}
+ * cursor while active; sorting, filtering, search, selection, resizing, and
+ * pinning still apply. Client grouping also stands
+ * {@link GridProps.pagination} down; manual grouping composes with *manual*
+ * pagination (the backend pages the grouped sequence) and forces the sort /
+ * search / column-filter bindings to their manual mode, since a client
+ * transform would tear child rows from their group headers.
+ *
+ * @typeParam T - Shape of a single row; defaulted for the client mode, which
+ * never reads the rows through this binding.
  */
-export type GridGroupBy = {
+export type GridGroupBy<T = unknown> = {
 	/** The grouped column id, or `null` for no grouping. Pairs with {@link GridGroupBy.onValueChange}. */
 	value?: string | number | null
 	/** Initial grouped column id for the uncontrolled case. @defaultValue null */
 	defaultValue?: string | number | null
-	/** Fires with the next grouped column id (or `null` when grouping is cleared). */
+	/** Fires with the next grouped column id (or `null` when grouping is cleared) — a {@link GridGroupBy.panel} edit, or a controlled write. */
 	onValueChange?: (columnId: string | number | null) => void
 	/**
 	 * Whether groups start expanded (rows visible) or collapsed (just the group
-	 * headers). Each group's header toggles it thereafter.
+	 * headers). Each group's header toggles it thereafter. Under
+	 * {@link GridGroupBy.manual} a boolean can't enumerate the (server-known)
+	 * groups, so pass a `Set` of group keys to seed the uncontrolled expanded
+	 * state instead; a manual grid otherwise starts fully collapsed.
 	 * @defaultValue true
 	 */
-	defaultExpanded?: boolean
+	defaultExpanded?: boolean | Set<string | number>
 	/**
 	 * Renders a group header's label, superseding the default `value (count)`.
 	 * Receives the {@link GridGroupHeaderContext}; the expand toggle and count
-	 * chrome around it stay.
+	 * chrome around it stay. Serves both modes — under {@link GridGroupBy.manual}
+	 * the context reads from the row's {@link GridGroupBy.groupRow} descriptor.
 	 */
 	renderHeader?: (context: GridGroupHeaderContext) => ReactNode
+	/**
+	 * Server-side (manual) grouping: the backend groups, and the consumer
+	 * supplies `rows` as the rendered sequence — group-header rows (marked by
+	 * {@link GridGroupBy.groupRow}, carrying the backend's counts and
+	 * aggregates) interleaved with the child rows of expanded groups. The grid
+	 * associates children positionally: a leaf row belongs to the nearest group
+	 * header above it, indents under its rail, and collapses with it. Expansion
+	 * is a controllable set of group keys ({@link GridGroupBy.expanded} /
+	 * {@link GridGroupBy.onExpandedChange}); expanding fires
+	 * {@link GridGroupBy.onGroupExpand} so the consumer can lazily fetch that
+	 * group's children and feed them back in `rows`. Every row — header and
+	 * leaf alike — still needs a stable, unique {@link GridDataProps.getKey}.
+	 * Single-level, like client grouping; the aggregate total rows
+	 * ({@link GridDataProps.groupTotalRow} / {@link GridDataProps.grandTotalRow})
+	 * stand down, since the backend owns the figures.
+	 * @defaultValue false
+	 */
+	manual?: boolean
+	/**
+	 * Manual-mode row contract: marks a row as a group header by returning its
+	 * {@link GridGroupHeaderRow} descriptor, or `null` for a leaf row. Required
+	 * for {@link GridGroupBy.manual} grouping to render — without it every row
+	 * renders flat.
+	 */
+	groupRow?: (row: T) => GridGroupHeaderRow | null
+	/**
+	 * Controlled set of expanded group keys under {@link GridGroupBy.manual};
+	 * pair with {@link GridGroupBy.onExpandedChange}. Client mode keeps its own
+	 * engine expansion and ignores this.
+	 */
+	expanded?: Set<string | number>
+	/**
+	 * Fires with the next expanded key set when a manual group header toggles.
+	 * Coalesced to a concrete set, never `undefined` — matching the other grid
+	 * bindings.
+	 */
+	onExpandedChange?: (expanded: Set<string | number>) => void
+	/**
+	 * Fires with a group's key when its collapsed header expands — the manual
+	 * mode's lazy-load hook: fetch that group's children and append them to
+	 * `rows` after its header. Not fired on collapse, nor by client grouping.
+	 */
+	onGroupExpand?: (key: string | number) => void
+	/**
+	 * Renders the group panel above the table: drag a
+	 * {@link GridColumn.groupable} column in (or press the "group rows by"
+	 * affordance its header gains) to group by it, and remove the active chip
+	 * to ungroup — each emitting through {@link GridGroupBy.onValueChange}.
+	 * Works in both modes; single-level, so the panel holds one column and a
+	 * second drop replaces it.
+	 * @defaultValue false
+	 */
+	panel?: boolean
 }
 
 /**
@@ -415,24 +501,30 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * Groups rows by a single column's value, drawing an expandable group-header
 	 * row (the shared value plus a row count) above each run. Pass a
 	 * {@link GridGroupBy} binding whose `value` is the grouped column id, or `null`
-	 * to leave the grid ungrouped. Backed by the engine's grouped/expanded row
-	 * models.
+	 * to leave the grid ungrouped. Client-side by default — backed by the
+	 * engine's grouped/expanded row models — or server-side with
+	 * {@link GridGroupBy.manual}, where the backend groups and `rows` carries the
+	 * group-header rows (marked by {@link GridGroupBy.groupRow}) interleaved with
+	 * lazily fetched children.
 	 *
 	 * Grouping renders its own body, so while active it takes precedence over — and
-	 * stands down — {@link GridDataProps.pagination}, {@link GridDataProps.virtualize},
-	 * and the {@link GridDataProps.navigable} cursor; sorting, filtering, search,
-	 * selection, resizing, and pinning still apply.
+	 * stands down — {@link GridDataProps.virtualize} and the
+	 * {@link GridDataProps.navigable} cursor; sorting, filtering, search,
+	 * selection, resizing, and pinning still apply. Client grouping also stands
+	 * {@link GridDataProps.pagination} down; manual grouping composes with
+	 * manual pagination and forces sort/search/filter manual.
 	 *
 	 * @see {@link GridGroupBy}
 	 */
-	groupBy?: GridGroupBy
+	groupBy?: GridGroupBy<T>
 
 	/**
 	 * Appends a total row under each group's leaves while {@link GridDataProps.groupBy}
 	 * is active, carrying every aggregating column's figure over that group's
 	 * rows (see {@link GridColumn.aggFunc}). The row collapses with its group —
 	 * whose header reads the same figures — and renders only once a visible
-	 * column aggregates. `'bottom'` names the placement.
+	 * column aggregates. `'bottom'` names the placement. Stands down under
+	 * {@link GridGroupBy.manual} grouping, where the backend owns the figures.
 	 */
 	groupTotalRow?: 'bottom'
 
@@ -442,7 +534,8 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * client pagination, the flat leaf set under grouping, the supplied page
 	 * under server pagination (the grid holds nothing more). Works grouped or
 	 * flat, and renders only once a visible column aggregates. `'bottom'` names
-	 * the placement.
+	 * the placement. Stands down under {@link GridGroupBy.manual} grouping,
+	 * where the backend owns the figures.
 	 */
 	grandTotalRow?: 'bottom'
 

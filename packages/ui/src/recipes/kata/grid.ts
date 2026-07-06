@@ -148,6 +148,66 @@ export const k = {
 		// from the search field (and stays at the end even when it stands alone).
 		actions: 'sm:ml-auto',
 	},
+	// The group panel between the toolbar and the table (see `GridGroupByPanel`):
+	// the drop target a groupable column's header affordance drags into, carrying
+	// the active group as a removable chip. Dashed at rest — an invitation to
+	// drop — and lifted solid-accent while a drag hovers it (`data-over`).
+	groupPanel: {
+		root: [
+			flex.row,
+			'min-h-11',
+			'gap-2',
+			'px-3',
+			'py-1.5',
+			border.subtle,
+			rounded.lg,
+			'border-dashed',
+			'data-[over]:border-solid',
+			...mode('data-[over]:border-blue-600', 'dark:data-[over]:border-blue-500'),
+		],
+		// Empty-panel hint naming the gesture (drag) and the accessible path (the
+		// header affordance).
+		hint: [size.sm, text.muted],
+		// The active group's chip: the column label with the remove button beside it.
+		chip: [
+			flex.inline,
+			'items-center',
+			'gap-1',
+			'px-2',
+			'py-0.5',
+			border.subtle,
+			rounded.md,
+			bg.tint,
+			size.sm,
+			weight.medium,
+		],
+		// The chip's remove button; muted until hovered/focused, like the manager grip.
+		remove: [flex.inline, 'shrink-0', text.muted, fg.hover, focus.ring, rounded.sm],
+		// Header affordance on a groupable column: press to group, or drag into the
+		// panel. Grab cursor at rest, muted until hovered/focused.
+		handle: [
+			flex.inline,
+			'shrink-0',
+			text.muted,
+			fg.hover,
+			focus.ring,
+			'cursor-grab',
+			'select-none',
+		],
+		// The drag overlay's chip clone: an opaque, shadowed pill tracking the pointer.
+		overlay: [
+			flex.inline,
+			'items-center',
+			'px-2',
+			'py-0.5',
+			border.subtle,
+			rounded.md,
+			bg.surface,
+			size.sm,
+			weight.medium,
+			'shadow-lg',
+		],
+	},
 	batch: {
 		bar: [
 			flex.row,

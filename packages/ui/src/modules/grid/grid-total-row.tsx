@@ -22,7 +22,9 @@ import type { GridColumn } from './types'
  * the flat leaves (it precedes grouping), so one source serves the grouped,
  * paginated, and flat cases alike. Under server pagination the supplied page is
  * all the grid holds, so the total sums that page — the ceiling of what a
- * client-side aggregate can see.
+ * client-side aggregate can see. Manual grouping stands the row down entirely
+ * (`manualGrouped`): the engine's filtered model there carries the consumer's
+ * group-header rows as data, and the backend owns the figures.
  *
  * @internal
  */
@@ -32,12 +34,19 @@ export function useGridGrandTotal<T>(args: {
 	hasRows: boolean
 	loading: boolean
 	showingError: boolean
+	/** Whether manual (server-side) grouping is active, which stands the grand total down. */
+	manualGrouped?: boolean
 	table: Table<T>
 }): { active: boolean; rows: T[] } {
-	const { grandTotalRow, columns, hasRows, loading, showingError, table } = args
+	const { grandTotalRow, columns, hasRows, loading, showingError, manualGrouped, table } = args
 
 	const active =
-		grandTotalRow === 'bottom' && hasRows && !loading && !showingError && hasAggregation(columns)
+		grandTotalRow === 'bottom' &&
+		hasRows &&
+		!loading &&
+		!showingError &&
+		!manualGrouped &&
+		hasAggregation(columns)
 
 	const filtered = table.getFilteredRowModel().rows
 

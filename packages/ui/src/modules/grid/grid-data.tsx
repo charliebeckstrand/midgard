@@ -41,8 +41,19 @@ import {
 	resolveTableProps,
 	resolveVirtualization,
 } from './grid-data-resolvers'
-import type { GridDataProps, GridInfiniteScroll, GridVirtualize } from './grid-data-types'
+import type {
+	GridDataProps,
+	GridGroupHeaderRow,
+	GridInfiniteScroll,
+	GridVirtualize,
+} from './grid-data-types'
 import { GridFooter as GridFooterBar } from './grid-footer'
+import {
+	GridGroupByContext,
+	type GridGroupByContextValue,
+	GridGroupByDndRegion,
+	GridGroupByPanel,
+} from './grid-group-by-panel'
 import { GridHead } from './grid-head'
 import { useGridMenuActions } from './grid-menu-actions'
 import { GridPagination as GridPaginationFooter } from './grid-pagination'
@@ -75,7 +86,7 @@ import { useGridReorder } from './use-grid-reorder'
 import { useGridRowGrouping } from './use-grid-row-grouping'
 import { useGridRowReorder } from './use-grid-row-reorder'
 import { useGridSelectionActions, useGridSelectionState } from './use-grid-selection'
-import { type GridColumnPinning, useGridTable } from './use-grid-table'
+import { type GridColumnPinning, isManualPagination, useGridTable } from './use-grid-table'
 
 /**
  * Locks column drags to the x-axis and bounds them to the scroll container, so
@@ -138,31 +149,137 @@ function isGroupableColumnId<T>(columns: GridColumn<T>[], id: string | number): 
 }
 
 /**
- * Zeroes the grid features that a self-rendering body stands over. Grouping
- * renders its own plain, whole-set body, so it stands the navigable cursor,
- * virtualization, and pagination down. Master-detail interleaves auto-height
- * detail rows into the flat body, so it stands the cursor and virtualization
- * down (a window assumes uniform row heights) but keeps pagination — the two
- * compose. Each flag passes through when neither is active. Split out so
- * {@link GridData} stays within its complexity budget.
+ * Resolves which row-grouping mode is active from the binding slice: client
+ * grouping (the engine computes the groups), manual grouping (the consumer's
+ * rows carry them — which needs the `groupRow` contract), either (`active`),
+ * and the grouping id the engine receives — client mode only, since manual
+ * grouping keeps the engine ungrouped. Kept out of {@link GridData} for its
+ * complexity budget.
+ *
+ * @internal
+ */
+function resolveGroupingMode<T>(args: {
+	manual: boolean
+	grouping: (string | number) | null
+	groupRow: ((row: T) => GridGroupHeaderRow | null) | undefined
+}): {
+	groupingActive: boolean
+	manualGroupingActive: boolean
+	active: boolean
+	engineGrouping: (string | number) | null
+} {
+	const groupingActive = !args.manual && args.grouping != null
+
+	const manualGroupingActive = args.manual && args.grouping != null && args.groupRow != null
+
+	return {
+		groupingActive,
+		manualGroupingActive,
+		active: groupingActive || manualGroupingActive,
+		engineGrouping: groupingActive ? args.grouping : null,
+	}
+}
+
+/**
+ * The engine's manual group-header predicate — rows the binding's `groupRow`
+ * contract marks — or `null` outside manual grouping. Split out so the branch
+ * lives here, off {@link GridData}'s complexity budget.
+ *
+ * @internal
+ */
+function manualGroupPredicate<T>(
+	active: boolean,
+	groupRow: ((row: T) => GridGroupHeaderRow | null) | undefined,
+): ((row: T) => boolean) | null {
+	if (!active || !groupRow) return null
+
+	return (row) => groupRow(row) != null
+}
+
+/**
+ * Manual-grouping body wiring for {@link GridBody} — the group-header resolver,
+ * the expanded key set, and the toggle — or `null` outside manual grouping.
+ * Kept off {@link GridData}'s complexity budget.
+ *
+ * @internal
+ */
+function resolveManualGroupBody<T>(args: {
+	active: boolean
+	groupRow: ((row: T) => GridGroupHeaderRow | null) | undefined
+	expanded: ReadonlySet<string | number>
+	toggle: (key: string | number) => void
+}): {
+	groupRow: (row: T) => GridGroupHeaderRow | null
+	expanded: ReadonlySet<string | number>
+	toggle: (key: string | number) => void
+} | null {
+	if (!args.active || !args.groupRow) return null
+
+	return { groupRow: args.groupRow, expanded: args.expanded, toggle: args.toggle }
+}
+
+/**
+ * The group-panel context value the header handles and the panel read, or
+ * `null` while the `groupBy.panel` flag is off — both then render nothing.
+ * Kept off {@link GridData}'s complexity budget.
+ *
+ * @internal
+ */
+function resolveGroupByPanel(args: {
+	panel: boolean
+	grouping: (string | number) | null
+	setGrouping: (next: (string | number) | null) => void
+	hasData: boolean
+	dragDisabled: boolean
+}): GridGroupByContextValue | null {
+	if (!args.panel) return null
+
+	return {
+		grouping: args.grouping,
+		setGrouping: args.setGrouping,
+		enabled: args.hasData,
+		dragDisabled: args.dragDisabled,
+	}
+}
+
+/**
+ * Zeroes the grid features that a self-rendering body stands over. Grouping —
+ * client or manual — renders its own plain body, so it stands the navigable
+ * cursor and virtualization down; client grouping (a whole-set body) also
+ * stands pagination down, while manual grouping keeps *manual* pagination (the
+ * backend pages the grouped sequence) and drops only a client one, whose
+ * arbitrary slice boundaries would tear children from their group headers.
+ * Master-detail interleaves auto-height detail rows into the flat body, so it
+ * stands the cursor and virtualization down (a window assumes uniform row
+ * heights) but keeps pagination — the two compose. Each flag passes through
+ * when none is active. Split out so {@link GridData} stays within its
+ * complexity budget.
  *
  * @internal
  */
 function resolveGroupingGates(args: {
 	groupingActive: boolean
+	manualGroupingActive: boolean
 	expandableActive: boolean
 	navigable: boolean
 	virtualize: boolean
 	pagination: GridPagination | undefined
 }): { navigable: boolean; virtualize: boolean; pagination: GridPagination | undefined } {
-	// Either self-rendering body stands the cursor and virtualization down.
-	const ownBody = args.groupingActive || args.expandableActive
+	// Any self-rendering body stands the cursor and virtualization down.
+	const ownBody = args.groupingActive || args.manualGroupingActive || args.expandableActive
+
+	const pagination = args.manualGroupingActive
+		? isManualPagination(args.pagination)
+			? args.pagination
+			: undefined
+		: args.groupingActive
+			? undefined
+			: args.pagination
 
 	return {
 		navigable: ownBody ? false : args.navigable,
 		virtualize: ownBody ? false : args.virtualize,
-		// Only grouping (a whole-set body) stands pagination down; master-detail pages.
-		pagination: args.groupingActive ? undefined : args.pagination,
+		pagination,
 	}
 }
 
@@ -540,9 +657,10 @@ export function GridData<T>({
 	)
 
 	// Row grouping: resolve the `groupBy` binding to a groupable data column (a
-	// stray id leaves the grid ungrouped), plus the engine expansion state. Grouping
-	// renders its own body, so it stands down the cursor, pagination, and
-	// virtualization below.
+	// stray id leaves the grid ungrouped), plus the expansion state — the engine's
+	// under client grouping, the binding's key set under manual. Grouping renders
+	// its own body, so it stands down the cursor, pagination, and virtualization
+	// below.
 	const isGroupableColumn = useCallback(
 		(id: string | number) => isGroupableColumnId(pinnedColumns, id),
 		[pinnedColumns],
@@ -550,23 +668,34 @@ export function GridData<T>({
 
 	const {
 		grouping,
+		setGrouping,
+		manual: groupingManual,
+		groupRow,
 		expanded: groupExpanded,
 		setExpanded: setGroupExpanded,
+		manualExpanded,
+		toggleGroup,
 		renderHeader: groupRenderHeader,
-	} = useGridRowGrouping(groupByConfig, isGroupableColumn)
+	} = useGridRowGrouping<T>(groupByConfig, isGroupableColumn)
 
-	const groupingActive = grouping != null
+	// Client grouping computes groups on the engine; manual grouping renders the
+	// consumer-supplied header/children sequence and needs the row contract.
+	const groupingMode = resolveGroupingMode({ manual: groupingManual, grouping, groupRow })
+
+	const { groupingActive, manualGroupingActive } = groupingMode
 
 	// Master-detail: the expanded-key set, per-row toggle, and detail renderer,
 	// resolved to whether it's active (grouping takes precedence, so it stands
 	// down under grouping) and the body wiring the flat rows read.
-	const detail = resolveDetailExpansion(useGridExpansion<T>(expandableConfig), groupingActive)
+	const detail = resolveDetailExpansion(useGridExpansion<T>(expandableConfig), groupingMode.active)
 
 	// A self-rendering body (grouping or master-detail) stands the cursor and
-	// virtualization down; grouping also stands pagination down, master-detail
-	// keeps it (see `resolveGroupingGates`).
+	// virtualization down; client grouping also stands pagination down, manual
+	// grouping keeps a manual one, master-detail keeps any (see
+	// `resolveGroupingGates`).
 	const gated = resolveGroupingGates({
 		groupingActive,
+		manualGroupingActive,
 		expandableActive: detail.active,
 		navigable,
 		virtualize: virtualizeEnabled,
@@ -733,13 +862,20 @@ export function GridData<T>({
 	// Measured to auto-size resizable columns to fill the available width.
 	const wrapperRef = useRef<HTMLDivElement>(null)
 
+	// Manual grouping marks the consumer's group-header rows for the engine's
+	// row-model split; `null` otherwise (see `manualGroupPredicate`).
+	const manualGroupRow = useMemo(
+		() => manualGroupPredicate(manualGroupingActive, groupRow),
+		[manualGroupingActive, groupRow],
+	)
+
 	const {
 		table,
 		visibleColumns,
 		renderRows,
 		rowKeys,
-		grouped,
 		groupedRows,
+		manualRows,
 		pagination,
 		resize,
 		globalFilter,
@@ -760,9 +896,12 @@ export function GridData<T>({
 		sort,
 		setSort,
 		sortManual: sortConfig?.manual ?? false,
-		grouping,
+		// Client grouping only — manual grouping keeps the engine ungrouped and
+		// renders the consumer's sequence instead.
+		grouping: groupingMode.engineGrouping,
 		expanded: groupExpanded,
 		onExpandedChange: setGroupExpanded,
+		manualGroupRow,
 		// Grouping renders its own body and stands pagination down (`gated.pagination`
 		// is `undefined` while grouping), so the engine doesn't page the groups.
 		pagination: gated.pagination,
@@ -946,7 +1085,8 @@ export function GridData<T>({
 			hasData,
 			paginated: paginationConfig != null,
 			virtualized: virtualizeEnabled,
-			grouped,
+			// Either grouping mode renders its own body; both stand reordering down.
+			grouped: groupingMode.active,
 			sorted: sort.length > 0,
 			renderedCount: renderRows.length,
 			sourceCount: rows.length,
@@ -972,13 +1112,15 @@ export function GridData<T>({
 
 	// The grand-total row aggregates the full filtered set (see
 	// `useGridGrandTotal`); it adds a rendered row, so the aria count shifts
-	// with it the way the group band does.
+	// with it the way the group band does. Manual grouping stands it down —
+	// the engine's filtered model would sum the group-header rows as data.
 	const grandTotal = useGridGrandTotal({
 		grandTotalRow,
 		columns: visibleColumns,
 		hasRows,
 		loading,
 		showingError,
+		manualGrouped: manualGroupingActive,
 		table,
 	})
 
@@ -1009,11 +1151,13 @@ export function GridData<T>({
 
 	// Grid semantics (role="grid" + global indices) and the select-all label,
 	// derived together from the rendered-window mode; see `resolveGridSemantics`.
+	// The manual grouped body interleaves header and leaf rows without index
+	// bookkeeping, so it stays a native table like the client grouped body.
 	const {
 		enabled: gridSemantics,
 		rowOffset: pageRowOffset,
 		selectAllLabel,
-	} = resolveGridSemantics(gated.virtualize, pagination, gated.navigable)
+	} = resolveGridSemantics(gated.virtualize, pagination, gated.navigable, manualGroupingActive)
 
 	// A clickable grid reads as actionable through the shared `<Table hover>`
 	// wash, layered over any explicit `hover`; the row keeps its own pointer
@@ -1025,6 +1169,34 @@ export function GridData<T>({
 	// disambiguate a header drag from a row drag. Row reorder takes precedence, so
 	// column reorder stands down while it's active (documented on `rowReorder`).
 	const reorderActive = canReorder && hasData && !rowReorderActive
+
+	// Manual-grouping body wiring for `GridBody`, or `null` outside manual mode.
+	const manualGroupBody = useMemo(
+		() =>
+			resolveManualGroupBody({
+				active: manualGroupingActive,
+				groupRow,
+				expanded: manualExpanded,
+				toggle: toggleGroup,
+			}),
+		[manualGroupingActive, groupRow, manualExpanded, toggleGroup],
+	)
+
+	// The group panel's wiring, or `null` while `groupBy.panel` is off — the
+	// panel and the header handles then render nothing. The pointer drag stands
+	// down (the press-to-group path stays) while a column or row reorder owns
+	// the nested dnd context, which would swallow the handle's drag.
+	const groupByPanel = useMemo(
+		() =>
+			resolveGroupByPanel({
+				panel: groupByConfig?.panel === true,
+				grouping,
+				setGrouping,
+				hasData,
+				dragDisabled: reorderActive || rowReorderActive,
+			}),
+		[groupByConfig?.panel, grouping, setGrouping, hasData, reorderActive, rowReorderActive],
+	)
 
 	// The cursor store is always provided (inert when not navigable/editable); only
 	// a cursor grid's cells subscribe, so the wrapper costs nothing otherwise.
@@ -1087,6 +1259,8 @@ export function GridData<T>({
 					rowReorderActive={rowReorderActive}
 					rowSortable={rowReorder.sortableContext}
 					groupedRows={groupedRows}
+					manualRows={manualRows}
+					manualGroup={manualGroupBody}
 					groupColumnId={grouping}
 					groupRenderHeader={groupRenderHeader}
 					groupTotalRow={groupTotalRow}
@@ -1179,31 +1353,41 @@ export function GridData<T>({
 						setSelection={setSelection}
 					/>
 
-					<GridRegion
-						canReorder={reorderActive}
-						dndContextProps={dndContextProps}
-						itemIds={itemIds}
-						strategy={strategy}
-						activeReorderId={activeId}
-						contextMenu={resolvedContextMenu}
-						columns={visibleColumns}
-						rows={renderRows}
-						rowKeys={rowKeys}
-						sort={sort}
-						sortColumn={sortColumn}
-						clearSort={clearSort}
-						pinColumn={pinColumn}
-						autoSizeColumns={autoSizeColumns}
-						chooseColumns={chooseColumns}
-						exportActions={exportActions}
-					>
-						<GridRowReorderRegion
-							active={rowReorderActive}
-							dndContextProps={rowReorder.dndContextProps}
+					<GridGroupByContext value={groupByPanel}>
+						<GridGroupByDndRegion
+							active={groupByPanel != null}
+							columns={pinnedColumns}
+							setGrouping={setGrouping}
 						>
-							<DensityCascade level={density}>{tableRegion}</DensityCascade>
-						</GridRowReorderRegion>
-					</GridRegion>
+							<GridGroupByPanel columns={pinnedColumns} />
+
+							<GridRegion
+								canReorder={reorderActive}
+								dndContextProps={dndContextProps}
+								itemIds={itemIds}
+								strategy={strategy}
+								activeReorderId={activeId}
+								contextMenu={resolvedContextMenu}
+								columns={visibleColumns}
+								rows={renderRows}
+								rowKeys={rowKeys}
+								sort={sort}
+								sortColumn={sortColumn}
+								clearSort={clearSort}
+								pinColumn={pinColumn}
+								autoSizeColumns={autoSizeColumns}
+								chooseColumns={chooseColumns}
+								exportActions={exportActions}
+							>
+								<GridRowReorderRegion
+									active={rowReorderActive}
+									dndContextProps={rowReorder.dndContextProps}
+								>
+									<DensityCascade level={density}>{tableRegion}</DensityCascade>
+								</GridRowReorderRegion>
+							</GridRegion>
+						</GridGroupByDndRegion>
+					</GridGroupByContext>
 
 					<GridFooterBar config={footer} stats={footerStats} />
 
