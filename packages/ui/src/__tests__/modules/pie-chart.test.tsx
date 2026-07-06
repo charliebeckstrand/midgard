@@ -253,17 +253,17 @@ describe('PieChart', () => {
 		expect(panel.className).not.toContain('grid')
 
 		// The panel always follows the plot in the DOM — under the chart when
-		// stacked; a left panel reverses the lg row instead of moving.
+		// stacked; a left panel reverses the sm row instead of moving.
 		const plot = bySlot(container, 'chart-plot') as Element
 
 		expect(plot.compareDocumentPosition(panel) & 4).toBeTruthy()
 
-		expect(panel.parentElement?.className).toContain('lg:flex-row')
+		expect(panel.parentElement?.className).toContain('sm:flex-row')
 
 		const left = renderUI(chart({ legend: 'left' }))
 
 		expect(bySlot(left.container, 'chart-legend')?.parentElement?.className).toContain(
-			'lg:flex-row-reverse',
+			'sm:flex-row-reverse',
 		)
 	})
 

@@ -257,8 +257,8 @@ export function ChartLegend({
 			{...toolbarProps}
 			className={cn(
 				panel
-					? 'flex min-w-0 flex-col items-start lg:max-w-[50%]'
-					: 'flex flex-wrap items-center justify-center',
+					? 'flex min-w-0 flex-col items-start sm:max-w-[50%]'
+					: 'flex flex-wrap items-center justify-start',
 			)}
 		>
 			{pageItems.map((item) => {

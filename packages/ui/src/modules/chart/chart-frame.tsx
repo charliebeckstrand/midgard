@@ -67,8 +67,8 @@ export type ChartFrameProps = AccessibleName & {
 	/** The prepared legend row, or `null` to omit it (single series). */
 	legend: ReactNode
 	/**
-	 * Where the legend sits: a centered row under or above the plot, or a
-	 * static panel beside it — side by side from `lg`, always under the chart
+	 * Where the legend sits: a left-aligned row under or above the plot, or a
+	 * static panel beside it — side by side from `sm`, always under the chart
 	 * below it.
 	 * @defaultValue 'bottom'
 	 */
@@ -237,13 +237,13 @@ export function ChartFrame({
 			<ChartEmphasisContext value={emphasis}>
 				<ChartHoverContext value={hover}>
 					{aside ? (
-						// The panel and plot sit side by side from lg; below it they stack
+						// The panel and plot sit side by side from sm; below it they stack
 						// with the panel always under the chart, so a left panel reverses
 						// the row instead of moving in the DOM.
 						<div
 							className={cn(
-								'flex flex-col gap-2 lg:items-center',
-								legendPlacement === 'left' ? 'lg:flex-row-reverse' : 'lg:flex-row',
+								'flex flex-col gap-2 sm:items-center',
+								legendPlacement === 'left' ? 'sm:flex-row-reverse' : 'sm:flex-row',
 							)}
 						>
 							{plotRegion}

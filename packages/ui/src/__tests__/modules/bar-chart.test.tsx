@@ -249,10 +249,10 @@ describe('BarChart', () => {
 		expect(allBySlot(container, 'chart-bar')).toHaveLength(6)
 	})
 
-	it('renders the legend as centered toggle buttons', () => {
+	it('renders the legend as left-aligned toggle buttons', () => {
 		const { container } = renderUI(chart())
 
-		expect(bySlot(container, 'chart-legend')?.className).toContain('justify-center')
+		expect(bySlot(container, 'chart-legend')?.className).toContain('justify-start')
 
 		const [item] = allBySlot(container, 'chart-legend-item')
 
