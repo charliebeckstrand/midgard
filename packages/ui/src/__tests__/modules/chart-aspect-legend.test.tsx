@@ -4,12 +4,14 @@ import { PieChart } from '../../modules/chart/pie-chart'
 import { act, bySlot, mockDomGeometry, renderUI } from '../helpers'
 
 /**
- * A chart's `aspectRatio` describes the whole chart — plot and legend together —
- * so a legended chart in a fixed-aspect tile fills it without the legend
- * overflowing. The figure wrapper carries the CSS aspect-ratio, the legend takes
- * its natural size, and the plot fills what it leaves: the plot's drawing height
- * derives from that remainder, measured once the box is laid out and falling back
- * to the full ratio height before then, so the frame never collapses.
+ * A chart's `aspectRatio` folds a stacked (top / bottom) legend into the whole
+ * chart, so a legended chart in a fixed-aspect tile fills it without the band
+ * overflowing: the figure wrapper carries the CSS aspect-ratio, the band takes
+ * its natural height, and the plot fills what it leaves — its drawing height
+ * derived from that remainder, measured once the box is laid out and falling
+ * back to the full ratio height before then, so the frame never collapses. A
+ * side (left / right) legend instead keeps the ratio on the plot box and bands
+ * beside it, so the drawing holds the ratio regardless of the panel's width.
  */
 
 type StubInstance = { callback: ResizeObserverCallback }
@@ -131,22 +133,47 @@ describe('chart aspect ratio with a legend', () => {
 		expect(frameHeight(container)).toBe('180')
 	})
 
-	it('places the legend as a band or a column per placement, all under one ratio figure', () => {
+	it('folds a stacked legend into the figure ratio but bands a side legend beside the plot', () => {
 		for (const placement of ['top', 'bottom', 'left', 'right'] as const) {
 			const { container } = renderUI(legended({ aspectRatio: '16/9', legend: placement }))
 
 			const figure = bySlot(container, 'chart-figure') as HTMLElement
 
-			// Every placement shares the one whole-chart aspect box.
-			expect(figure.style.aspectRatio.replace(/\s*\/\s*1$/, '')).toBe('1.7777777777777777')
-
-			// A side legend lays plot and legend in a row from sm; top / bottom stack.
+			// A side legend lays plot and legend in a row once the container has room
+			// (`@xl`); top / bottom stack.
 			const aside = placement === 'left' || placement === 'right'
 
-			expect(figure.className.includes('sm:flex-row')).toBe(aside)
+			expect(figure.className.includes('@xl:flex-row')).toBe(aside)
+
+			if (aside) {
+				// The plot box holds the ratio itself and the figure reserves none, so the
+				// drawing keeps 16:9 with the panel beside it rather than squeezing to fit.
+				expect(figure.style.aspectRatio).toBe('')
+
+				const box = bySlot(container, 'aspect-ratio') as HTMLElement
+
+				expect(box.style.aspectRatio.replace(/\s*\/\s*1$/, '')).toBe('1.7777777777777777')
+			} else {
+				// A stacked legend folds into the figure's aspect box; the plot fills what
+				// its short band leaves rather than reserving its own ratio.
+				expect(figure.style.aspectRatio.replace(/\s*\/\s*1$/, '')).toBe('1.7777777777777777')
+
+				expect(bySlot(container, 'aspect-ratio')).toBeNull()
+			}
 
 			expect(bySlot(container, 'chart-legend')).not.toBeNull()
 		}
+	})
+
+	it('draws a side-legend plot at the ratio of its own width, not a legend-squeezed remainder', () => {
+		const { container } = renderUI(legended({ aspectRatio: '16/9', legend: 'right' }))
+
+		// The plot measures its own width — the flex-1 remainder beside the panel —
+		// and reserves 16:9 from it, so the drawing height ignores the reported height
+		// and follows the ratio: 320 wide → 180 tall, never the squeezed remainder.
+		measurePlot(container, { width: 320, height: 500 })
+
+		expect(frameHeight(container)).toBe('180')
 	})
 
 	it('fills the plot into a definite-height container under aspectRatio={false}', () => {

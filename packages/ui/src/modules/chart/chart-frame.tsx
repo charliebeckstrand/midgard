@@ -95,7 +95,8 @@ export type ChartFrameProps = AccessibleName & {
 	/**
 	 * Where the legend sits: a row under or above the plot — centered on
 	 * mobile, justified edge to edge from `sm` — or a static panel beside it,
-	 * side by side from `sm` and always under the chart below that.
+	 * side by side once the chart's own container is wide enough and always under
+	 * the chart below that width.
 	 * @defaultValue 'bottom'
 	 */
 	legendPlacement?: ChartLegendPlacement
@@ -269,8 +270,13 @@ export function ChartFrame({
 		<div
 			data-slot="chart"
 			className={cn(
-				'flex flex-col gap-3',
-				fixedWidth === undefined && 'w-full',
+				// A query container so the legend lays out against the chart's own width,
+				// not the viewport — a chart in a narrow column stacks its legend even on
+				// a wide screen. `w-full` fills the container up to a natural default cap
+				// (overridable through `className`, which twMerge lets win) so a bare chart
+				// reads well on a wide screen instead of stretching edge to edge.
+				'@container flex flex-col gap-3',
+				fixedWidth === undefined && 'w-full max-w-2xl',
 				containerFill && 'h-full',
 				className,
 			)}
@@ -301,7 +307,7 @@ type ChartFigureProps = {
 	plot: ReactNode
 	legend: ReactNode
 	legendPlacement: ChartLegendPlacement
-	/** The legend is a side panel, so the plot and legend lay out in a row from sm. */
+	/** The legend is a side panel, so the plot and legend lay out in a row once the container has room. */
 	aside: boolean
 	/** The frame fills its container height, so the figure grows to hold it. */
 	containerFill: boolean
@@ -312,10 +318,10 @@ type ChartFigureProps = {
 /**
  * The legend and plot laid out together under the whole-chart aspect-ratio: the
  * plot fills what the legend's natural size leaves, so the ratio describes the
- * chart rather than the plot alone. A side legend lays the two out in a row from
- * sm — the panel always under the chart below it, so a left panel reverses the
- * row instead of moving in the DOM — else they stack with the legend banding
- * above or below.
+ * chart rather than the plot alone. A side legend lays the two out in a row once
+ * the container has room (`@xl`) — the panel always under the chart below that,
+ * so a left panel reverses the row instead of moving in the DOM — else they stack
+ * with the legend banding above or below.
  *
  * @internal
  */
@@ -334,9 +340,12 @@ function ChartFigure({
 
 	const layout = aside
 		? cn(
+				// Stacked until the container has room for the legend panel beside a usable
+				// plot (`@xl` ≈ the panel plus a plot wider than it); below that the legend
+				// bands under the plot, which keeps its full width instead of squeezing.
 				'flex-col gap-2',
-				stretch ? 'sm:items-stretch' : 'sm:items-center',
-				legendPlacement === 'left' ? 'sm:flex-row-reverse' : 'sm:flex-row',
+				stretch ? '@xl:items-stretch' : '@xl:items-center',
+				legendPlacement === 'left' ? '@xl:flex-row-reverse' : '@xl:flex-row',
 			)
 		: 'flex-col gap-3'
 

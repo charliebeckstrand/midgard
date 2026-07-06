@@ -27,9 +27,12 @@ import { timeTicks } from './chart-time'
 
 /**
  * A chart's aspect ratio: a `width / height` number, a `"16/9"` string, or
- * `false` to leave the frame free-form (its explicit or density height). It
- * governs the whole chart — plot and legend together — so a legended chart fills
- * a fixed-aspect box without the legend spilling past it.
+ * `false` to leave the frame free-form (its explicit or density height). A
+ * stacked (top / bottom) legend folds into it, so the ratio governs the whole
+ * chart and a legended chart fills a fixed-aspect box without the band spilling
+ * past it; a side (left / right) legend instead bands beside the plot at its own
+ * width, so the ratio governs the plot alone and the drawing never squeezes to
+ * fit the panel.
  */
 export type ChartAspectRatio = number | `${number}/${number}` | false
 
@@ -53,8 +56,9 @@ function ratioValue(ratio: ChartAspectRatio): number | null {
  *
  * @remarks The plot-only sizing: the ratio governs the drawing box alone, which
  * a legend then sits beside. The chart family instead resolves through {@link
- * chartFrameLayout}, which folds the legend into the aspect box; {@link
- * HeatmapChart} keeps this one, its range legend never sharing the box.
+ * chartFrameLayout}, which folds a stacked legend into the aspect box (a side
+ * legend still bands beside the plot); {@link HeatmapChart} keeps this one, its
+ * range legend never sharing the box.
  * @internal
  */
 export function chartFrameSizing(
@@ -80,33 +84,40 @@ export type ChartFrameLayout = {
 	sizing: FrameSizing
 	/**
 	 * The `width / height` the figure wrapper reserves through CSS `aspect-ratio`
-	 * when the legend shares the aspect box, so the plot fills the space the
+	 * when a stacked legend shares the aspect box, so the plot fills the space the
 	 * legend's natural size leaves; `null` when the plot box carries the ratio
-	 * itself (no legend) or nothing reserves one.
+	 * itself — no legend, or a side legend banding beside the plot — or nothing
+	 * reserves one.
 	 */
 	outerAspect: number | null
 }
 
 /**
- * Resolves a chart frame's sizing with the legend inside the aspect box, so a
- * ratio describes the whole chart rather than the plot alone. An explicit
- * `height` is a fixed pixel box and a ratio-off frame fills its container, both
- * legend-agnostic — the legend simply bands beside the plot. A live ratio with
- * no legend keeps the plot box reserving that ratio itself (width-driven CSS, no
- * height measurement). A live ratio with a legend hands the ratio to the figure
- * wrapper and measures the plot's remaining height through `aspect-fill`: the
- * CSS aspect box still drives the height from the width, and the measurement
- * only reads back what the legend left — falling back to the full `width / ratio`
- * until it lands — so a chart in a fixed-aspect tile fills it, legend included,
- * without the container-height measurement free-form `fill` needs and without
- * collapsing before the first measurement.
+ * Resolves a chart frame's sizing, folding only a stacked legend into the aspect
+ * box so its ratio governs the whole chart while a side legend leaves the ratio
+ * to the plot alone. An explicit `height` is a fixed pixel box and a ratio-off
+ * frame fills its container, both legend-agnostic — the legend simply bands
+ * beside the plot. A live ratio keeps the plot box reserving that ratio itself
+ * (width-driven CSS, no height measurement) with no legend, and equally under a
+ * side legend, which takes its own width beside the plot so the drawing never
+ * squeezes to fit it. Only a stacked (top / bottom) legend hands the ratio to
+ * the figure wrapper and measures the plot's remaining height through
+ * `aspect-fill`: the CSS aspect box still drives the height from the width, and
+ * the measurement reads back only what the legend's short band left — falling
+ * back to the full `width / ratio` until it lands — so a chart in a fixed-aspect
+ * tile fills it, band included, without the container-height measurement
+ * free-form `fill` needs and without collapsing before the first measurement.
  *
+ * @param aside Whether the legend bands beside the plot (a left / right panel)
+ * rather than above or below it. A side legend keeps the ratio on the plot box;
+ * a stacked one folds it into the figure. Ignored without a legend.
  * @internal
  */
 export function chartFrameLayout(
 	height: number | undefined,
 	aspectRatio: ChartAspectRatio,
 	hasLegend: boolean,
+	aside: boolean,
 ): ChartFrameLayout {
 	if (height !== undefined) return { sizing: { mode: 'fixed', height }, outerAspect: null }
 
@@ -114,7 +125,10 @@ export function chartFrameLayout(
 
 	if (ratio === null) return { sizing: { mode: 'fill' }, outerAspect: null }
 
-	if (!hasLegend) return { sizing: { mode: 'aspect', ratio }, outerAspect: null }
+	// A side legend bands beside the plot at its own width, so the plot box holds
+	// the ratio itself and the drawing never squeezes to fit the panel — the same
+	// path a legend-free chart takes. Only a stacked band folds into the figure.
+	if (!hasLegend || aside) return { sizing: { mode: 'aspect', ratio }, outerAspect: null }
 
 	return { sizing: { mode: 'aspect-fill', ratio }, outerAspect: ratio }
 }
@@ -335,7 +349,14 @@ function valueTicksOf(
 	scale: LinearScale | null,
 	format: (value: number) => string,
 ): ChartAxisTick[] {
-	return (scale?.ticks ?? []).map((tick) => ({ at: scale?.map(tick) ?? 0, label: format(tick) }))
+	// Keyed by the value, not the mapped `at`: a zero-height plot maps every tick
+	// onto one coordinate, so `at` collides there while the value stays distinct
+	// (two ticks share a value only on a zero-span domain, which yields one tick).
+	return (scale?.ticks ?? []).map((tick) => ({
+		at: scale?.map(tick) ?? 0,
+		label: format(tick),
+		key: tick,
+	}))
 }
 
 /**
@@ -419,10 +440,14 @@ function bandTicksOf(
 	slot: number,
 	tilt: boolean,
 ): ChartAxisTick[] {
+	// Keyed by the category index, not the band center `at`: a zero-width band
+	// collapses every center onto one coordinate, so `at` collides while the index
+	// stays the category's stable identity across resizes and thinning changes.
 	if (tilt) {
 		return categories.map((label, index) => ({
 			at: band.center(index),
 			label,
+			key: index,
 			rotate: TICK_ROTATION_ANGLE,
 		}))
 	}
@@ -430,6 +455,7 @@ function bandTicksOf(
 	return thinned(categories.length, axisLength, slot).map((index) => ({
 		at: band.center(index),
 		label: categories[index] ?? '',
+		key: index,
 	}))
 }
 

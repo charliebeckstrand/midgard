@@ -258,8 +258,10 @@ export function timeTicks(options: TimeTicksOptions): ChartAxisTick[] | null {
 
 		if (time > last.time) break
 
+		// Keyed by the instant, not the mapped `at` — distinct per calendar boundary
+		// and stable across resizes, where `at` can collapse onto one coordinate.
 		if (time >= first.time)
-			ticks.push({ at: positionOf(time, anchors, band), label: format.format(date) })
+			ticks.push({ at: positionOf(time, anchors, band), label: format.format(date), key: time })
 
 		cursor = interval.next(cursor)
 	}

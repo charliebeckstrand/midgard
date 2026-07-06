@@ -8,6 +8,16 @@ export type ChartAxisTick = {
 	/** Position in `viewBox` units: an x for the x axis, a y for the y axis. */
 	at: number
 	label: string
+	/**
+	 * Stable React identity across resizes — the tick's own value (linear axes),
+	 * category index (bands), or instant (time), never the mapped {@link
+	 * ChartAxisTick.at}. A collapsed plot maps every tick onto one coordinate (a
+	 * zero-height value range, a zero-width band), so `at` is not unique there and
+	 * would strand a duplicate-key node that ghosts on resize-back; the identity
+	 * is. Distinct whenever there are two or more ticks — a value axis only repeats
+	 * a value on a zero-span domain, which yields at most one tick.
+	 */
+	key: string | number
 	/** Degrees the label tilts about `at`; unset draws it flat. Category ticks only. */
 	rotate?: number
 }
@@ -74,7 +84,7 @@ export function ChartAxis({ axis, plot, ticks, position, baseline, line = true }
 
 				{ticks.map((tick) => (
 					<text
-						key={tick.at}
+						key={tick.key}
 						x={right ? plot.x + plot.width + GUTTER_GAP : plot.x - GUTTER_GAP}
 						y={tick.at}
 						textAnchor={right ? 'start' : 'end'}
@@ -113,7 +123,7 @@ export function ChartAxis({ axis, plot, ticks, position, baseline, line = true }
 
 				return (
 					<text
-						key={tick.at}
+						key={tick.key}
 						x={tick.at}
 						y={y}
 						textAnchor={tick.rotate ? 'end' : 'middle'}
