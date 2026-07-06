@@ -18,6 +18,7 @@ import {
 } from '../../../../modules/grid'
 import { code, Example } from '../../../engine'
 import { BulkEditExample, EditableExample, EditorTypesExample } from './editable'
+import { ServerGroupingExample } from './server-grouping'
 
 type Person = {
 	id: number
@@ -1372,6 +1373,13 @@ export function Demo() {
 										code={code`<Grid groupBy={{ value: 'region' }} groupTotalRow="bottom" grandTotalRow="bottom" columns={[{ …, aggFunc: 'sum' }, { …, aggFunc: (rows) => weightedRatio }]} />`}
 									>
 										<AggregationExample />
+									</Example>
+
+									<Example
+										title="Server-side grouping"
+										code={code`<Grid groupBy={{ manual: true, value, onValueChange, groupRow, panel: true, expanded, onExpandedChange, onGroupExpand }} />`}
+									>
+										<ServerGroupingExample />
 									</Example>
 								</Stack>
 							</TabContent>

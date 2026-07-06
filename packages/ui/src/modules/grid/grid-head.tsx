@@ -29,6 +29,7 @@ import {
 	COLUMN_RESIZE_STEP,
 	GRID_STATUS_DEBOUNCE_MS,
 } from './grid-constants'
+import { GridGroupByHandle } from './grid-group-by-panel'
 import { GridGroupHead } from './grid-group-head'
 import { isFrozen, isLocked } from './grid-pin-overrides'
 import { pinnedClassName, pinnedOffsetStyle } from './grid-pinning'
@@ -334,7 +335,7 @@ function GridHeaderCell<T>({
 type GridColumnHeaderProps = {
 	column: Pick<
 		GridColumn<unknown>,
-		'id' | 'title' | 'sortable' | 'headerClassName' | 'filterType' | 'filterOptions'
+		'id' | 'title' | 'sortable' | 'headerClassName' | 'filterType' | 'filterOptions' | 'groupable'
 	>
 	colIndex: number | undefined
 	/** 0-based visible column index; a reorderable header writes its drag shift to the CSS variable keyed by it. */
@@ -711,6 +712,7 @@ const GridColumnHeader = memo(function GridColumnHeader({
 				) : (
 					label
 				)}
+				<GridGroupByHandle column={column} />
 				{filter && showsFilterButton(filter, column.id, interactive, filterQuery) && (
 					<GridColumnFilterButton column={column} filter={filter} query={filterQuery} />
 				)}
@@ -827,6 +829,7 @@ const GridReorderableColumnHeader = memo(function GridReorderableColumnHeader({
 					toggleSort={toggleSort}
 					interactive={interactive}
 				/>
+				<GridGroupByHandle column={column} />
 				{filter && showsFilterButton(filter, column.id, interactive, filterQuery) && (
 					<GridColumnFilterButton column={column} filter={filter} query={filterQuery} />
 				)}

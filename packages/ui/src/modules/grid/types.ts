@@ -166,6 +166,14 @@ export type GridColumn<T> = {
 	 */
 	value?: (row: T) => unknown
 	/**
+	 * Marks this data column as one the rows can be grouped by from the grid's
+	 * chrome: the {@link GridGroupBy.panel | group panel} offers it — a header
+	 * affordance that groups on click or drags into the panel. Gates the panel
+	 * only; a `groupBy` binding can still name any data column directly.
+	 * @defaultValue false
+	 */
+	groupable?: boolean
+	/**
 	 * Aggregates this column on the grouped body's group-header rows and the
 	 * {@link GridProps.groupTotalRow | group} / {@link GridProps.grandTotalRow | grand}
 	 * total rows. A built-in name reduces the column's values — its

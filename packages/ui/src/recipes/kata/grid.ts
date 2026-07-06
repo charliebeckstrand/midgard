@@ -77,6 +77,15 @@ const draggingSurface = mode('data-[dragging]:bg-white', [
 	'dark:lg:data-[dragging]:bg-zinc-900',
 ])
 
+/**
+ * The group rail's 2px neutral left border — a continuous bar down the group's
+ * leading edge. Shared by the padded group cells (which add `py-0`, managing
+ * their own padding through the reveal wrapper) and the loading placeholder
+ * rows (which keep ordinary cell padding), so the rail runs unbroken while a
+ * group's children load.
+ */
+const railBorder = ['border-l-2', ...mode('border-zinc-950/5', 'dark:border-white/10')]
+
 export const k = {
 	// `isolate` scopes the grid's internal sticky/pinned z-indices to its own
 	// stacking context: the frozen header rides `z-20` and the sticky header `z-10`,
@@ -147,6 +156,31 @@ export const k = {
 		// Column-manager cluster: pushed to the row's end from `sm` so it sits across
 		// from the search field (and stays at the end even when it stands alone).
 		actions: 'sm:ml-auto',
+	},
+	// The group panel between the toolbar and the table (see `GridGroupByPanel`):
+	// the drop target a groupable column's header affordance drags into, carrying
+	// the active group as a removable `Badge` chip (the drag ghost and the empty
+	// hint are a `Badge` and `Text`, so this surface carries only the panel shell
+	// and the drag-handle cursor). Dashed at rest — an invitation to drop — and
+	// lifted solid-accent while a drag hovers it (`data-over`).
+	groupPanel: {
+		root: [
+			flex.row,
+			'items-center',
+			'min-h-11',
+			'gap-2',
+			'px-3',
+			'py-1.5',
+			border.subtle,
+			rounded.lg,
+			'border-dashed',
+			'data-[over]:border-solid',
+			...mode('data-[over]:border-blue-600', 'dark:data-[over]:border-blue-500'),
+		],
+		// Header affordance on a groupable column: press to group, or drag into the
+		// panel. Grab cursor at rest (the `Button` carries the rest of the styling).
+		// `touch-none` keeps a touch-drag from scrolling the page instead of lifting the column.
+		handle: ['cursor-grab active:cursor-grabbing', 'touch-none select-none'],
 	},
 	batch: {
 		bar: [
@@ -322,8 +356,11 @@ export const k = {
 		// cell of every row in the group (its header and each leaf) so it reads as one
 		// continuous bar, the row-group analog of a column group's underline rule. For
 		// now it takes a neutral tint; a forthcoming row manager will swap in a
-		// per-group palette colour.
-		rail: ['border-l-2', 'py-0', ...mode('border-zinc-950/5', 'dark:border-white/10')],
+		// per-group palette colour. `rail` is the padded group cells' variant (the
+		// leaf/header cells manage their own padding); `railBorder` is the border
+		// alone, for the loading placeholder rows that keep ordinary cell padding.
+		railBorder,
+		rail: ['py-0', ...railBorder],
 		// Chevron at the row's trailing edge: the group row renders a right chevron
 		// when collapsed and a down chevron when expanded; `shrink-0` holds its size
 		// beside the label.

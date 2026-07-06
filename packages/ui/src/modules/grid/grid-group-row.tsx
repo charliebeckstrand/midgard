@@ -13,8 +13,8 @@ import type { GridGroupBy } from './grid-data-types'
 import { GridAggregateCells } from './grid-total-row'
 import type { GridColumn } from './types'
 
-/** A group value rendered for the header label: `—` for an empty value, else its string form. @internal */
-function formatGroupValue(value: unknown): string {
+/** A group value rendered for the header label: `—` for an empty value, else its string form. Shared with the manual group row. @internal */
+export function formatGroupValue(value: unknown): string {
 	return value == null || value === '' ? '—' : String(value)
 }
 

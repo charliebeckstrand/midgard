@@ -13,6 +13,7 @@ export type {
 	GridFooterStats,
 	GridGroupBy,
 	GridGroupHeaderContext,
+	GridGroupHeaderRow,
 	GridHeader,
 	GridInfiniteScroll,
 	GridRowReorder,

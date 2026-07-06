@@ -14,9 +14,15 @@ import { TableBody, TableEmpty, TableLoading } from '../../components/table'
 import type { DensityLevel } from '../../providers/density'
 import { hasAggregation } from './grid-aggregate'
 import type { ResolvedInfiniteScroll } from './grid-data-resolvers'
-import type { GridGroupBy } from './grid-data-types'
+import type { GridGroupBy, GridGroupHeaderRow } from './grid-data-types'
 import { GridGroupLeafRow } from './grid-group-leaf-row'
 import { GridGroupRow } from './grid-group-row'
+import {
+	GridManualGroupPlaceholderRows,
+	GridManualGroupRow,
+	type GridManualGroupSegment,
+	segmentManualGroupRows,
+} from './grid-manual-group-row'
 import { type GridRowsProps, renderGridRow } from './grid-row'
 import { GridTotalRow } from './grid-total-row'
 import { type GridScrollRowIntoView, GridVirtualizedBody } from './grid-virtualized-body'
@@ -45,6 +51,22 @@ type GridBodyProps<T> = GridRowsProps<T> & {
 	 * flat row map, group headers as full-width disclosure rows.
 	 */
 	groupedRows: Row<T>[] | null
+	/**
+	 * The consumer-supplied display rows (group headers interleaved with
+	 * children, in supplied order) under manual grouping; `null` otherwise.
+	 * Rendered in place of the flat row map through the positional segmentation.
+	 */
+	manualRows: Row<T>[] | null
+	/**
+	 * Manual-grouping body wiring, or `null` outside manual grouping: the
+	 * group-header resolver, the expanded key set, and the toggle that writes it
+	 * back through the binding.
+	 */
+	manualGroup: {
+		groupRow: (row: T) => GridGroupHeaderRow | null
+		expanded: ReadonlySet<string | number>
+		toggle: (key: string | number) => void
+	} | null
 	/** The grouped column id, read for each group header's value; `null` when ungrouped. */
 	groupColumnId: string | number | null
 	/** Group-header label override from the {@link GridGroupBy} binding, if any. */
@@ -136,6 +158,78 @@ function renderGroup<T>(
 }
 
 /**
+ * Renders one manual-grouping segment: its consumer-supplied group-header row
+ * ({@link GridManualGroupRow}) followed by the leaves positionally associated
+ * with it — each riding the same mounted CSS reveal as the client grouped body,
+ * so a group collapses without unmounting its (already fetched) children. A
+ * leading headerless segment renders its leaves alone, always open.
+ *
+ * @internal
+ */
+function renderManualSegment<T>(
+	segment: GridManualGroupSegment<T>,
+	index: number,
+	args: {
+		props: GridBodyProps<T>
+		columnId: string | number
+		renderHeader: GridGroupBy['renderHeader']
+		expanded: ReadonlySet<string | number>
+		toggle: (key: string | number) => void
+		getKey: (row: T, index: number) => string | number
+		density: DensityLevel
+	},
+): ReactElement {
+	const { props, columnId, renderHeader, getKey, density } = args
+
+	const open = segment.info ? args.expanded.has(segment.info.key) : true
+
+	return (
+		<Fragment key={segment.header ? segment.header.id : `leading:${index}`}>
+			{segment.header && segment.info && (
+				<GridManualGroupRow<T>
+					row={segment.header.original}
+					info={segment.info}
+					columns={props.visibleColumns}
+					columnId={columnId}
+					renderHeader={renderHeader}
+					expanded={open}
+					toggle={args.toggle}
+				/>
+			)}
+			{segment.leaves.map((leaf) => {
+				const key = getKey(leaf.original, leaf.index)
+
+				return (
+					<GridGroupLeafRow<T>
+						key={leaf.id}
+						expanded={open}
+						cells={leaf.getVisibleCells()}
+						row={leaf.original}
+						rowKey={key}
+						selected={props.selection.has(key)}
+						toggleRow={props.toggleRow}
+						selectable={props.selectable}
+						rowLabel={props.rowLabel?.(leaf.original)}
+						onRowClick={props.onRowClick}
+						truncate={props.truncate}
+						settleWidths={props.settleWidths}
+						pinning={props.pinning}
+						density={density}
+					/>
+				)
+			})}
+			{/* Expanded, but its children aren't loaded yet (the consumer's
+			    onGroupExpand fetch is in flight): fill the opened group with skeleton
+			    placeholders until they land. A group the backend reports empty
+			    (count 0) shows nothing. */}
+			{segment.info && open && segment.leaves.length === 0 && segment.info.count > 0 && (
+				<GridManualGroupPlaceholderRows columns={props.visibleColumns} count={segment.info.count} />
+			)}
+		</Fragment>
+	)
+}
+
+/**
  * Body for {@link Grid}: branches between the loading skeleton, the error slot,
  * the `empty` slot, the grouped body, the virtualized window, and the plain row
  * map, threading per-row state to each {@link GridRow}.
@@ -153,6 +247,8 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 		rowIndexOffset,
 		rowSortable,
 		groupedRows,
+		manualRows,
+		manualGroup,
 		groupColumnId,
 		groupRenderHeader,
 		getKey,
@@ -173,6 +269,28 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 					error
 				)}
 			</TableEmpty>
+		)
+	}
+
+	// Manual grouping renders the consumer-supplied sequence: group headers (with
+	// the backend's counts and aggregates) segmented positionally over the leaves
+	// that follow them. Checked before the empty gate — `rows` carries only the
+	// leaves, and a fully collapsed server-grouped grid holds headers alone.
+	if (manualRows && manualRows.length > 0 && manualGroup && groupColumnId != null) {
+		return (
+			<TableBody>
+				{segmentManualGroupRows(manualRows, manualGroup.groupRow).map((segment, index) =>
+					renderManualSegment(segment, index, {
+						props,
+						columnId: groupColumnId,
+						renderHeader: groupRenderHeader,
+						expanded: manualGroup.expanded,
+						toggle: manualGroup.toggle,
+						getKey,
+						density,
+					}),
+				)}
+			</TableBody>
 		)
 	}
 
