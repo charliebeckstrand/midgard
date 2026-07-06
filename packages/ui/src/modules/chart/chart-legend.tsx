@@ -8,6 +8,7 @@ import { cn } from '../../core'
 import { useA11yRoving } from '../../hooks/a11y'
 import type { ChartSeriesColor } from '../../recipes/kata/chart'
 import { ChartSwatch } from './chart-pattern-defs'
+import { useChartEmphasis } from './context'
 
 /** One legend entry: the series name keyed by its mark-mirroring swatch. @internal */
 export type ChartLegendItem = {
@@ -31,11 +32,12 @@ export type ChartLegendItem = {
 }
 
 /**
- * One legend entry for a reference line — a static identity chip, not a series
- * switch: the rule's label (or its value, unlabelled) keyed to a line swatch in
- * the rule's colour. Non-interactive and `aria-hidden`, since a reference has no
- * per-line toggle and {@link ChartReferenceList} already carries the
- * assistive-tech parity beside the data table.
+ * One legend entry for a reference line — an emphasis chip, not a series switch:
+ * the rule's label (or its value, unlabelled) keyed to a line swatch in the
+ * rule's colour. It carries no per-line toggle — a rule has no on/off — but
+ * pointing or keyboard-focusing it recedes the marks to the rule, the same
+ * emphasis as pointing the rule itself; {@link ChartReferenceList} still carries
+ * the value parity beside the data table.
  *
  * @internal
  */
@@ -93,9 +95,10 @@ export type ChartLegendProps = {
  * keyboard focus rather than clearing. That focus side rides `:focus-visible`,
  * the same gate as the ring, so a pointer click's lingering focus — or the
  * focus a backgrounded tab re-fires on return — dims nothing without a visible
- * ring to explain it. Reference lines follow the entries as static,
- * `aria-hidden` identity chips — a rule has no toggle, and
- * {@link ChartReferenceList} carries its parity.
+ * ring to explain it. Reference lines follow the entries as emphasis chips —
+ * a rule has no toggle, so pointing or focusing one recedes the marks to it (the
+ * whole-marks equivalent of a series entry's dim) rather than switching anything;
+ * {@link ChartReferenceList} still carries the value parity.
  * @internal
  */
 export function ChartLegend({
@@ -142,13 +145,52 @@ export function ChartLegend({
 		onFocus(position === -1 ? null : (items[position]?.index ?? null))
 	}
 
-	// Two or more entries make a switchboard; a lone one is a static chip.
-	const interactive = items.length > 1
+	// The reference chips share the marks' recede with the reference rules: a
+	// chip's hover or keyboard focus recedes the whole marks group to it, the same
+	// emphasis as pointing the rule. Present whenever the legend is inside a chart.
+	const { setReferenceActive } = useChartEmphasis()
 
-	// Scope the roving to the actual switch buttons, so a static chip keeps its
-	// queryable `chart-legend-item` slot without being seated a Tab stop.
+	// Which reference chip the pointer is over, or none. Reference emphasis is a
+	// single boolean, so — unlike the series slot — it need only track whether any
+	// chip is live, not which.
+	const referencePointed = useRef(false)
+
+	// Reference emphasis follows the same pointer-vs-focus-visible gate as
+	// `syncEmphasis`: a pointed chip recedes the marks, else a keyboard-focused one
+	// (`:focus-visible`, the ring's gate) does, so a click's ring-less focus — or a
+	// backgrounded tab's refired focus — recedes nothing without a ring to explain
+	// it. Any chip going live recedes the marks; the last one leaving restores them.
+	const syncReference = () => {
+		if (referencePointed.current) {
+			setReferenceActive(true)
+
+			return
+		}
+
+		const chips = ref.current?.querySelectorAll<HTMLButtonElement>(
+			'button[data-slot="chart-legend-reference"]',
+		)
+
+		setReferenceActive(
+			chips ? Array.from(chips).some((chip) => chip.matches(':focus-visible')) : false,
+		)
+	}
+
+	// Two or more series make a switchboard; a lone one is a static chip.
+	const seriesInteractive = items.length > 1
+
+	// The row is a toolbar — one Tab stop, arrow-key roving, Escape to drop focus —
+	// whenever it holds a focusable control: the series switches, or the reference
+	// chips, which recede the marks on hover or focus.
+	const interactive = seriesInteractive || references.length > 0
+
+	// Rove across the focusable controls — series switches and reference chips
+	// alike — so a lone series' static chip keeps its queryable `chart-legend-item`
+	// slot without being seated a Tab stop, while the reference chips join the one
+	// stop the switches share.
 	const onKeyDown = useA11yRoving(ref, {
-		itemSelector: 'button[data-slot="chart-legend-item"]',
+		itemSelector:
+			'button[data-slot="chart-legend-item"], button[data-slot="chart-legend-reference"]',
 		orientation: 'horizontal',
 		manageTabIndex: true,
 	})
@@ -215,9 +257,12 @@ export function ChartLegend({
 					</>
 				)
 
-				// A lone entry can't be switched, so it reads as a static identity
-				// chip — no button, no toggle, no emphasis — matching the reference chips.
-				if (!interactive) {
+				// A lone series can't be switched — nor emphasised, since dimming every
+				// other mark against the only one would blank the chart — so it reads as a
+				// static identity chip: no button, no toggle, no emphasis. It keeps the
+				// `chart-legend-item` slot but stays out of the roving (a span, not a
+				// button), so a reference chip beside it is the only Tab stop.
+				if (!seriesInteractive) {
 					return (
 						<span
 							key={item.label}
@@ -260,16 +305,30 @@ export function ChartLegend({
 			})}
 
 			{references.map((reference, index) => (
-				// A reference chip mirrors an entry's swatch-and-label layout without the
-				// button chrome — it names a rule, it doesn't switch a series. The slot
-				// colour rides its currentColor class; a raw colour rides an inline style;
-				// and the line swatch dashes to match the rule unless it is drawn solid.
-				<span
+				// A reference chip mirrors a switch's swatch-and-label layout but recedes
+				// the marks instead of toggling a series — a rule has no on/off — so it
+				// carries no `aria-pressed` and its pointer / focus path drives the shared
+				// reference emphasis through the same gate the switches use. The slot colour
+				// rides its currentColor class; a raw colour rides an inline style; and the
+				// line swatch dashes to match the rule unless it is drawn solid.
+				<Button
 					// biome-ignore lint/suspicious/noArrayIndexKey: chips are index-aligned with the reference prop and never reorder.
 					key={`reference:${index}`}
+					size="sm"
+					variant="plain"
 					data-slot="chart-legend-reference"
-					aria-hidden="true"
-					className="inline-flex items-center gap-1 px-2 py-1"
+					onPointerEnter={() => {
+						referencePointed.current = true
+
+						syncReference()
+					}}
+					onPointerLeave={() => {
+						referencePointed.current = false
+
+						syncReference()
+					}}
+					onFocus={syncReference}
+					onBlur={syncReference}
 				>
 					<Swatch
 						shape="line"
@@ -281,7 +340,7 @@ export function ChartLegend({
 					<Text as="span" severity="muted" size="sm" className="text-left leading-tight">
 						{reference.label}
 					</Text>
-				</span>
+				</Button>
 			))}
 		</div>
 	)

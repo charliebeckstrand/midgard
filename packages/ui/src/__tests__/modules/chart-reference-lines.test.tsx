@@ -434,7 +434,7 @@ describe('reference lines in the legend', () => {
 		expect(bySlot(container, 'chart-reference-list')?.textContent).toContain('Target')
 	})
 
-	it('is a non-interactive chip, apart from the series switchboard', () => {
+	it('recedes the marks on hover, as an emphasis chip beside the switchboard', () => {
 		const { container } = renderUI(
 			<BarChart
 				aria-label="Revenue by month"
@@ -446,15 +446,29 @@ describe('reference lines in the legend', () => {
 			/>,
 		)
 
-		// One series → one switch; the rule is a separate, aria-hidden chip that
-		// neither roves nor toggles.
+		// One series → one static switch; the rule is a separate chip that recedes
+		// the marks like a switch's emphasis but carries no toggle — a rule has no
+		// on/off — so it is a plain button with no `aria-pressed`.
 		expect(allBySlot(container, 'chart-legend-item')).toHaveLength(1)
 
 		const chip = bySlot(container, 'chart-legend-reference')
 
-		expect(chip?.tagName).toBe('SPAN')
+		expect(chip?.tagName).toBe('BUTTON')
 
-		expect(chip?.getAttribute('aria-hidden')).toBe('true')
+		expect(chip?.getAttribute('aria-pressed')).toBeNull()
+
+		const marks = () => bySlot(container, 'chart-marks')?.getAttribute('class') ?? ''
+
+		expect(marks()).not.toContain('opacity-25')
+
+		fireEvent.pointerEnter(chip as Element)
+
+		// Pointing the chip recedes the marks to the rule, the same as pointing the rule.
+		expect(marks()).toContain('opacity-25')
+
+		fireEvent.pointerLeave(chip as Element)
+
+		expect(marks()).not.toContain('opacity-25')
 	})
 
 	it('paints a slot chip through its class and a raw colour inline', () => {

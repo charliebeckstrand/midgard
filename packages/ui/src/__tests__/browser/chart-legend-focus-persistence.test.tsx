@@ -131,4 +131,70 @@ describe('chart legend focus persistence (real browser)', () => {
 		// The regression: the pointer-leave cleared the still-held focus emphasis.
 		expect(dimmed(otherSeriesBar(container))).toBe(true)
 	})
+
+	// A reference chip shares the switches' focus-visible gate but drives the
+	// whole-marks recede (referenceActive), not the per-series dim — so it reads on
+	// the marks group, which recedes as one to the rule.
+	const marksReceded = (container: HTMLElement) =>
+		(allBySlot(container, 'chart-marks')[0]?.getAttribute('class') ?? '').includes('opacity-25')
+
+	it('recedes the marks while a reference chip holds keyboard focus', async () => {
+		const { container } = renderUI(
+			<>
+				<button type="button">before</button>
+
+				<BarChart
+					aria-label="Quarterlies"
+					data={data}
+					series={[...series]}
+					width={400}
+					legend="top"
+					reference={[{ value: 20, label: 'Target' }]}
+				/>
+			</>,
+		)
+
+		const before = container.querySelector('button') as HTMLButtonElement
+		const chip = allBySlot(container, 'chart-legend-reference')[0] as HTMLButtonElement
+
+		// Tab into the legend (landing on the first switch), then rove past the two
+		// switches to the reference chip: a keyboard focus carries the ring, so the
+		// chip recedes the marks the way pointing the rule does.
+		before.focus()
+		await userEvent.tab()
+		await userEvent.keyboard('{ArrowRight}{ArrowRight}')
+
+		expect(document.activeElement).toBe(chip)
+		expect(chip.matches(':focus-visible')).toBe(true)
+
+		await waitFor(() => expect(marksReceded(container)).toBe(true))
+	})
+
+	it('does not recede the marks on a reference chip clicked into ring-less focus', async () => {
+		const { container } = renderUI(
+			<>
+				<button type="button">before</button>
+
+				<BarChart
+					aria-label="Quarterlies"
+					data={data}
+					series={[...series]}
+					width={400}
+					legend="top"
+					reference={[{ value: 20, label: 'Target' }]}
+				/>
+			</>,
+		)
+
+		const chip = allBySlot(container, 'chart-legend-reference')[0] as HTMLButtonElement
+
+		// Clicking the chip leaves it DOM-focused with no ring; a rule has no toggle,
+		// so the click itself does nothing. Leaving must settle the marks back to full.
+		await userEvent.click(chip)
+		await userEvent.unhover(chip)
+		await settle()
+
+		expect(chip.matches(':focus-visible')).toBe(false)
+		expect(marksReceded(container)).toBe(false)
+	})
 })
