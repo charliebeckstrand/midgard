@@ -309,6 +309,7 @@ export function AreaChart<T>({
 	const stackedGeometry = stackedRibbons(drawn, xs, stacked)
 
 	const list: ChartLineSeries[] = drawn.map((entry, order) => ({
+		index: entry.meta.index,
 		label: entry.meta.label,
 		paint: entry.meta.paint,
 		geometry: areaGeometry(entry, order, {

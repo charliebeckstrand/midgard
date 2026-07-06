@@ -428,6 +428,7 @@ export function ScatterChart<T>({
 
 	const list: ChartScatterSeries[] = scaled
 		? visible.map((meta) => ({
+				index: meta.index,
 				label: meta.label,
 				paint: meta.paint,
 				marks: scatterMarks(meta.points, xScale.map, yScale.map, meta.radius),

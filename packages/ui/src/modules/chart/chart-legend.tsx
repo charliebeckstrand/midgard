@@ -400,7 +400,7 @@ export function ChartLegend({
 		<>
 			{pageItems.map((item) => (
 				<ChartLegendEntry
-					key={item.label}
+					key={item.index}
 					item={item}
 					off={hidden.has(item.index)}
 					panel={panel}
