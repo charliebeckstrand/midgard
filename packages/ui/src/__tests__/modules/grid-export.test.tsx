@@ -51,6 +51,29 @@ describe('rowsToCsv', () => {
 		expect(rowsToCsv(columns, items)).toBe('"La,bel"\r\n"a,b"\r\n"quote "" here"\r\n"line\nbreak"')
 	})
 
+	it('neutralizes formula-injection leads while preserving signed numbers', () => {
+		type Item = { id: number; label: string }
+
+		const columns: GridColumn<Item>[] = [
+			{ id: 'label', title: 'Label', cell: (row) => row.label, value: (row) => row.label },
+		]
+
+		const items: Item[] = [
+			{ id: 1, label: '=HYPERLINK("http://evil")' },
+			{ id: 2, label: '@handle' },
+			{ id: 3, label: '-2+3+cmd|calc' },
+			{ id: 4, label: '-5' },
+			{ id: 5, label: '+1.5e3' },
+		]
+
+		// Formula leads (`=`, `@`, and a signed non-number) are prefixed with a
+		// quote — the `=` field also gets RFC-quoted for its comma — while the
+		// genuine negative and positive numbers pass through untouched.
+		expect(rowsToCsv(columns, items)).toBe(
+			'Label\r\n"\'=HYPERLINK(""http://evil"")"\r\n\'@handle\r\n\'-2+3+cmd|calc\r\n-5\r\n+1.5e3',
+		)
+	})
+
 	it('skips non-data columns (selection, actions) and blanks missing values', () => {
 		const columns: GridColumn<Row>[] = [
 			{ id: 'select', selectable: true },

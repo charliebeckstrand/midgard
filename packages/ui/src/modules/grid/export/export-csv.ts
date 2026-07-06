@@ -4,15 +4,44 @@ import type { GridColumn } from '../types'
 import { exportFields } from './export-accessor'
 import { downloadBlob } from './export-download'
 
+/** A leading character a spreadsheet unconditionally reads as a formula/command start. @internal */
+const FORMULA_LEAD = /^[=@\t\r]/
+
+/** A leading sign — a formula start unless the whole field is a plain number. @internal */
+const SIGNED_LEAD = /^[+-]/
+
+/** A well-formed signed decimal (optional exponent) — legitimate data, not a formula. @internal */
+const PLAIN_NUMBER = /^[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?$/
+
+/**
+ * Neutralizes spreadsheet formula injection: a field a spreadsheet would
+ * evaluate on open — one led by `=`, `@`, a tab, or a carriage return, or by
+ * `+`/`-` when the field isn't a plain number — is prefixed with a single quote
+ * so the app imports it as literal text. Signed numbers (`-5`, `+1.2e3`) pass
+ * through untouched so numeric columns still parse.
+ *
+ * @internal
+ */
+function neutralizeFormula(value: string): string {
+	if (FORMULA_LEAD.test(value)) return `'${value}`
+
+	if (SIGNED_LEAD.test(value) && !PLAIN_NUMBER.test(value)) return `'${value}`
+
+	return value
+}
+
 /**
  * Quotes a CSV field per RFC 4180: a field carrying the delimiter, a quote, or
- * a line break is wrapped in double quotes with its own quotes doubled. Plain
- * fields pass through untouched.
+ * a line break is wrapped in double quotes with its own quotes doubled. A field
+ * a spreadsheet would treat as a formula is first neutralized
+ * (see {@link neutralizeFormula}). Plain fields pass through untouched.
  *
  * @internal
  */
 function escapeCsvField(value: string): string {
-	return /[",\r\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value
+	const guarded = neutralizeFormula(value)
+
+	return /[",\r\n]/.test(guarded) ? `"${guarded.replace(/"/g, '""')}"` : guarded
 }
 
 /** Stringifies a cell value for CSV: nullish becomes empty, everything else `String()`s. @internal */
