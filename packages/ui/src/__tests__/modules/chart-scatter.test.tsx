@@ -229,6 +229,40 @@ describe('ScatterChart', () => {
 
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
 	})
+
+	it('dims the non-emphasised tooltip row when a legend entry is focused', () => {
+		const { container } = renderUI(
+			<ScatterChart
+				aria-label="Two series"
+				data={STOPS}
+				width={480}
+				series={[
+					{ xKey: 'distance', yKey: 'dwell', yName: 'Dwell' },
+					{ xKey: 'distance', yKey: 'weight', yName: 'Weight' },
+				]}
+				crosshair={{ snap: true }}
+				tooltip={{ trigger: 'click' }}
+			/>,
+		)
+
+		// Pin the readout, then emphasise the first series by pointing its legend
+		// entry (the pointer path sets emphasis directly, unlike focus, which rides
+		// `:focus-visible`).
+		fireEvent.click(bySlot(container, 'chart-hit') as Element, { clientX: 240, clientY: 80 })
+
+		const items = allBySlot(container, 'chart-legend-item') as HTMLButtonElement[]
+
+		fireEvent.pointerEnter(items[0] as Element)
+
+		const rows = allBySlot(container, 'chart-tooltip-row')
+
+		expect(rows).toHaveLength(2)
+
+		// The emphasised series' row stays lit; the other dims, mirroring the discs.
+		expect(rows[0]?.getAttribute('class') ?? '').not.toContain('opacity-25')
+
+		expect(rows[1]?.getAttribute('class') ?? '').toContain('opacity-25')
+	})
 })
 
 describe('BubbleChart', () => {

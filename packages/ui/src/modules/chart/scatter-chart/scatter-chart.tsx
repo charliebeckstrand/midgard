@@ -154,6 +154,7 @@ function scatterReadout(
 	return {
 		categories: uniqueXs.map(formatX),
 		rows: visible.map((meta) => ({
+			index: meta.index,
 			label: meta.label,
 			swatchClass: cn(meta.paint.text),
 			swatch: 'rect',
@@ -474,6 +475,7 @@ export function ScatterChart<T>({
 			}
 			legendPlacement={placement}
 			readout={readout}
+			emphasis={emphasis}
 			tooltip={showTooltip}
 			snap={snapTargets(rails, bandPositions, snapColumns)}
 			focus={cartesianFocus(bandPositions, snapColumns, 'vertical')}
