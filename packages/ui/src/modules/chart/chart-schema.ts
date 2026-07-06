@@ -96,6 +96,18 @@ export type ChartSeries<T> = {
 	 * @defaultValue 'left'
 	 */
 	axis?: ChartValueAxisSide
+	/**
+	 * Dash this series' connecting stroke instead of drawing it solid — a second
+	 * identity channel beside colour, so two lines sharing one chart tell apart
+	 * beyond hue, and stay tellable apart in print or under colour-vision
+	 * deficiency. Reuses the reference-line dash, keeping the two dash idioms one
+	 * pattern. Only the stroke changes: the series keeps its point markers, legend
+	 * chip, tooltip, crosshair snap, and keyboard behaviour, and an area series'
+	 * fill wash stays solid under its dashed edge. A bar series has no stroke to
+	 * dash, so it ignores this. Under `animate` the draw-on reveal still plays.
+	 * @defaultValue false
+	 */
+	dashed?: boolean
 }
 
 /**
@@ -111,9 +123,10 @@ export type ComboChartSeries<T> = ChartSeries<T> & {
 /**
  * The one series a pie or donut sweeps: `xKey` names each slice, `yKey` holds
  * its positive share. No colour override — slice colours follow the
- * categories, not the series — and no axis binding, since a pie has none.
+ * categories, not the series — no axis binding, since a pie has none, and no
+ * dashed stroke, since a slice is a filled wedge with no connecting line.
  */
-export type PieChartSeries<T> = Omit<ChartSeries<T>, 'color' | 'axis'>
+export type PieChartSeries<T> = Omit<ChartSeries<T>, 'color' | 'axis' | 'dashed'>
 
 /**
  * One scatter series: numeric fields on both axes, each row one point. Unlike

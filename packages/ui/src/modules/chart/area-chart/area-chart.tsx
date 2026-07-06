@@ -312,6 +312,7 @@ export function AreaChart<T>({
 		}),
 		markers: points,
 		dimmed: dimmed(entry.meta),
+		dashed: entry.meta.dashed,
 	}))
 
 	const tex = useChartTexture(
@@ -335,7 +336,13 @@ export function AreaChart<T>({
 	)
 
 	const marksNode = animate ? (
-		<AnimatedChartLineMarks list={list} fill={true} fills={fills} textureActive={tex.active} />
+		<AnimatedChartLineMarks
+			list={list}
+			fill={true}
+			fills={fills}
+			textureActive={tex.active}
+			plot={chart.plot}
+		/>
 	) : (
 		<ChartLineMarks list={list} fill={true} fills={fills} textureActive={tex.active} />
 	)

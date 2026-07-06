@@ -182,6 +182,7 @@ export function ComboChart<T>({
 			),
 			markers: points,
 			dimmed: dim(meta),
+			dashed: meta.dashed,
 		}))
 
 	const lines = toSeries(lineEntries)
@@ -244,9 +245,10 @@ export function ComboChart<T>({
 				stroke={stroke}
 				fills={areaFills}
 				textureActive={tex.active}
+				plot={chart.plot}
 			/>
 
-			<AnimatedChartLineMarks list={lines} fill={false} stroke={stroke} />
+			<AnimatedChartLineMarks list={lines} fill={false} stroke={stroke} plot={chart.plot} />
 		</>
 	) : (
 		<>

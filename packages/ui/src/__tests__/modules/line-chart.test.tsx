@@ -130,6 +130,48 @@ describe('LineChart', () => {
 		expect(allBySlot(container, 'chart-point')).toHaveLength(6)
 	})
 
+	it('dashes only the opted-in series’ stroke, reusing the reference dash', () => {
+		const { container } = renderUI(
+			chart({
+				series: [
+					{ xKey: 'week', yKey: 'signups', yName: 'Signups' },
+					{ xKey: 'week', yKey: 'churn', yName: 'Churn', dashed: true },
+				],
+			}),
+		)
+
+		const [solid, dashed] = allBySlot(container, 'chart-line')
+
+		// The dash matches the reference-line rule (chart-constants REFERENCE_DASH),
+		// so the two dash idioms read as one; the sibling series stays solid.
+		expect(solid?.getAttribute('stroke-dasharray')).toBeNull()
+
+		expect(dashed?.getAttribute('stroke-dasharray')).toBe('6 4')
+	})
+
+	it('keeps the dashed stroke and its markers under animate', () => {
+		const { container } = renderUI(
+			chart({
+				animate: true,
+				points: true,
+				series: [
+					{ xKey: 'week', yKey: 'signups', yName: 'Signups' },
+					{ xKey: 'week', yKey: 'churn', yName: 'Churn', dashed: true },
+				],
+			}),
+		)
+
+		// The dash survives the animated path — it reveals under a wipe clip rather
+		// than the pathLength draw, which would erase it — and the markers still pop.
+		const dashed = allBySlot(container, 'chart-line')[1]
+
+		expect(dashed?.getAttribute('stroke-dasharray')).toBe('6 4')
+
+		expect(dashed?.getAttribute('clip-path')).toMatch(/^url\(#chart-line-wipe-/)
+
+		expect(allBySlot(container, 'chart-point')).toHaveLength(6)
+	})
+
 	it('curves the lines under smooth interpolation', () => {
 		const { container } = renderUI(chart({ interpolation: 'smooth' }))
 

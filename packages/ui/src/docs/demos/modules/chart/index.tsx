@@ -209,12 +209,11 @@ export function Demo() {
 							<Example title="Texture" code={code`<BarChart texture … />`}>
 								<ChartContainer>
 									<BarChart
-										aria-label="Revenue, costs, and margin by month, textured"
+										aria-label="Revenue and costs by month, textured"
 										data={months}
 										series={[
 											{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
 											{ xKey: 'month', yKey: 'costs', yName: 'Costs' },
-											{ xKey: 'month', yKey: 'margin', yName: 'Margin' },
 										]}
 										texture
 									/>
@@ -340,6 +339,32 @@ export function Demo() {
 										]}
 										leftAxis={{ title: '$ / lb', format: (value) => `$${value.toFixed(2)}` }}
 										rightAxis={{ title: 'Weight', format: (value) => `${value}k lb` }}
+										crosshair={{ snap: true }}
+									/>
+								</ChartContainer>
+							</Example>
+
+							<Example
+								title="Dashed line"
+								code={code`<LineChart series={[{ … }, { …, axis: 'right', dashed: true }]} … />`}
+							>
+								<ChartContainer>
+									<LineChart
+										aria-label="Rate per pound against shipped weight by month, the weight line dashed"
+										data={freight}
+										series={[
+											{ xKey: 'month', yKey: 'rate', yName: 'Rate' },
+											{
+												xKey: 'month',
+												yKey: 'weight',
+												yName: 'Weight',
+												axis: 'right',
+												dashed: true,
+											},
+										]}
+										leftAxis={{ title: '$ / lb', format: (value) => `$${value.toFixed(2)}` }}
+										rightAxis={{ title: 'Weight', format: (value) => `${value}k lb` }}
+										points
 										crosshair={{ snap: true }}
 									/>
 								</ChartContainer>
