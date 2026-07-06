@@ -58,7 +58,8 @@ export type LineChartProps<T> = CartesianChartProps<T> & {
  * @remarks The value domain follows the data; pin `min` / `max` to compare
  * charts on one scale. Focus the plot to drive the crosshair and tooltip by
  * keyboard — the band-axis arrows step categories, the value-axis arrows cycle
- * each category's series values.
+ * each category's series values. A reference line joins that value-axis roving,
+ * receding the marks when the cursor reaches it.
  * @example
  * ```tsx
  * <LineChart
@@ -177,7 +178,12 @@ export function LineChart<T>({
 			readout={chart.readout}
 			tooltip={tooltip}
 			snap={snapTargets(rails, chart.bandPositions, chart.snapPoints)}
-			focus={cartesianFocus(chart.bandPositions, chart.snapPoints, chart.orientation)}
+			focus={cartesianFocus(
+				chart.bandPositions,
+				chart.snapPoints,
+				chart.orientation,
+				chart.referencePositions,
+			)}
 			className={className}
 			annotations={<ChartReferenceList reference={reference} format={formatValue} />}
 		>

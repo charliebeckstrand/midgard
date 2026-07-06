@@ -66,7 +66,9 @@ export type ComboChartProps<T> = ChartBaseProps<T> &
  * @remarks Under `animate`, the bars rise, the area washes fade, and the lines
  * draw together — one synchronized reveal across the x and y motions. Focus the
  * plot to drive the crosshair and tooltip by keyboard — the band-axis arrows
- * step categories, the value-axis arrows cycle each category's series values.
+ * step categories, the value-axis arrows cycle each category's series values. A
+ * reference line joins that value-axis roving, receding the marks when the
+ * cursor reaches it.
  * @example
  * ```tsx
  * <ComboChart
@@ -275,7 +277,12 @@ export function ComboChart<T>({
 			readout={chart.readout}
 			tooltip={tooltip}
 			snap={snapTargets(rails, chart.bandPositions, chart.snapPoints)}
-			focus={cartesianFocus(chart.bandPositions, chart.snapPoints, chart.orientation)}
+			focus={cartesianFocus(
+				chart.bandPositions,
+				chart.snapPoints,
+				chart.orientation,
+				chart.referencePositions,
+			)}
 			className={className}
 			annotations={<ChartReferenceList reference={reference} format={formatValue} />}
 		>

@@ -30,6 +30,13 @@ export type TooltipProps = {
 	 */
 	enabled?: boolean
 	/**
+	 * Hold the tooltip open regardless of pointer, for a trigger that can't take
+	 * hover — an SVG shape a roving keyboard cursor drives, say. Releasing it hands
+	 * control back to hover / focus / click; `enabled: false` still wins.
+	 * @defaultValue false
+	 */
+	forceOpen?: boolean
+	/**
 	 * Size step applied to the tooltip content. Forwarded via context to
 	 * `<TooltipContent>`; an explicit `size` there still wins. When unset,
 	 * content falls back to the enclosing Density size, then `'md'`.
