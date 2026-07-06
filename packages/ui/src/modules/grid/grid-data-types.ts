@@ -76,8 +76,8 @@ export type GridInfiniteScroll = {
 	threshold?: number
 	/**
 	 * Content for the trailing row shown while `loadingMore`, superseding the
-	 * default pulsing skeleton — e.g. a run of skeleton rows. Rendered in a cell
-	 * spanning every column.
+	 * default per-column skeleton cells — e.g. a run of skeleton rows. Rendered
+	 * in a single cell spanning every column.
 	 */
 	loadingIndicator?: ReactNode
 }
