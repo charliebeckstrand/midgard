@@ -145,7 +145,7 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 				// An applied filter turns the trigger into a menu: edit the query in the
 				// sheet, or clear the filter without opening it. The trigger keeps the
 				// accent (`color`), the "+"-marked icon, and the applied-state name.
-				<Menu placement="bottom-start">
+				<Menu placement="bottom-end">
 					<MenuTrigger>
 						<Button
 							variant="bare"
