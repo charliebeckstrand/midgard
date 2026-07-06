@@ -128,7 +128,7 @@ export function BarChart<T>({
 
 	// Each visible series draws through its own axis's scale and grows from its
 	// own baseline; a series whose scale never resolved takes no marks.
-	const drawn = drawnSeries(chart, stacked)
+	const drawn = drawnSeries(chart)
 
 	const seriesValues = drawn.map((entry) => entry.meta.values)
 

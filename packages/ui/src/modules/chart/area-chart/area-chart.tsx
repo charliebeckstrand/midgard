@@ -25,7 +25,12 @@ import {
 	type LineSeriesGeometry,
 	lineGeometry,
 } from '../line-chart/line-chart-geometry'
-import { type DrawnSeries, drawnSeries, useChartCartesian } from '../use-chart-cartesian'
+import {
+	bandCenters,
+	type DrawnSeries,
+	drawnSeries,
+	useChartCartesian,
+} from '../use-chart-cartesian'
 import { cartesianFocus } from '../use-chart-keyboard'
 import { type StackedAreaGeometry, stackedAreas } from './area-chart-geometry'
 
@@ -298,13 +303,13 @@ export function AreaChart<T>({
 
 	const floor = chart.plot.y + chart.plot.height
 
-	const xs = chart.metas[0]?.values.map((_, index) => chart.band.center(index)) ?? []
+	const xs = bandCenters(chart)
 
 	const dimmed = (meta: SeriesMeta) => chart.emphasis !== null && meta.index !== chart.emphasis
 
 	// A stack binds to one axis (the side its series agree on, else the left),
 	// so its ribbons read that one scale; unstacked series each read their own.
-	const drawn = drawnSeries(chart, stacked)
+	const drawn = drawnSeries(chart)
 
 	const stackedGeometry = stackedRibbons(drawn, xs, stacked)
 

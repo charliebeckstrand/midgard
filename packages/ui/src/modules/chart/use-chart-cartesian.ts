@@ -394,18 +394,27 @@ export type DrawnSeries = {
  *
  * @internal
  */
-export function drawnSeries(chart: CartesianChart, stacked = false): DrawnSeries[] {
-	const stackSide = chart.visible[0]?.axis ?? 'left'
-
+export function drawnSeries(chart: CartesianChart): DrawnSeries[] {
+	// A stacked chart already carries one shared axis on every meta — `seriesMetas`
+	// binds them all to the stack side — so each series reads its own `meta.axis`
+	// whether stacked or grouped; no separate stack branch is needed.
 	return chart.visible.flatMap((meta) => {
-		const side = stacked ? stackSide : meta.axis
+		const scale = meta.axis === 'right' ? chart.rightScale : chart.yScale
 
-		const scale = side === 'right' ? chart.rightScale : chart.yScale
-
-		const baseline = side === 'right' ? chart.rightBaseline : chart.baseline
+		const baseline = meta.axis === 'right' ? chart.rightBaseline : chart.baseline
 
 		return scale ? [{ meta, scale, baseline }] : []
 	})
+}
+
+/**
+ * Every category's band center, shared across a chart's series since they all
+ * span the same categories — one array instead of one per series.
+ *
+ * @internal
+ */
+export function bandCenters(chart: CartesianChart): number[] {
+	return chart.metas[0]?.values.map((_, index) => chart.band.center(index)) ?? []
 }
 
 /**
