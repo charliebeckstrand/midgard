@@ -433,6 +433,61 @@ describe('BarChart', () => {
 	})
 })
 
+describe('BarChart tickRotation', () => {
+	const LONG_CATEGORIES = [
+		'January Sales',
+		'February Sales',
+		'March Sales',
+		'April Sales',
+		'May Sales',
+		'June Sales',
+	]
+
+	function longChart(
+		extra?: Partial<Parameters<typeof BarChart<{ month: string; total: number }>>[0]>,
+	) {
+		return renderUI(
+			<BarChart
+				aria-label="Monthly totals"
+				data={LONG_CATEGORIES.map((month, index) => ({ month, total: (index + 1) * 10 }))}
+				series={[{ xKey: 'month', yKey: 'total', yName: 'Total' }]}
+				width={260}
+				{...extra}
+			/>,
+		)
+	}
+
+	it('thins long labels by default instead of tilting them', () => {
+		const { container } = longChart()
+
+		const ticks = [...(bySlot(container, 'chart-axis-x')?.querySelectorAll('text') ?? [])]
+
+		expect(ticks.length).toBeLessThan(LONG_CATEGORIES.length)
+
+		expect(ticks.every((tick) => tick.getAttribute('transform') === null)).toBe(true)
+	})
+
+	it('tilts every label instead of thinning once tickRotation is on', () => {
+		const { container } = longChart({ tickRotation: true })
+
+		const ticks = [...(bySlot(container, 'chart-axis-x')?.querySelectorAll('text') ?? [])]
+
+		expect(ticks).toHaveLength(LONG_CATEGORIES.length)
+
+		expect(ticks.every((tick) => tick.getAttribute('transform')?.startsWith('rotate('))).toBe(true)
+	})
+
+	it('leaves labels flat when they already fit, tickRotation notwithstanding', () => {
+		const { container } = renderUI(chart({ tickRotation: true }))
+
+		const ticks = [...(bySlot(container, 'chart-axis-x')?.querySelectorAll('text') ?? [])]
+
+		expect(ticks).toHaveLength(DATA.length)
+
+		expect(ticks.every((tick) => tick.getAttribute('transform') === null)).toBe(true)
+	})
+})
+
 describe('BarChart horizontal', () => {
 	it('draws the same bars with the axes transposed', () => {
 		const { container } = renderUI(chart({ orientation: 'horizontal' }))

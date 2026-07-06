@@ -520,6 +520,7 @@ export function useChartCartesian<T>(
 		value: leftValue,
 		rightValue,
 		categories,
+		tickRotation: props.tickRotation,
 		times,
 		count: data.length,
 		visibleValues: visible.map((meta) => ({

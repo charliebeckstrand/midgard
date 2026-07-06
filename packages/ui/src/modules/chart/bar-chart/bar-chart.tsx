@@ -94,6 +94,7 @@ export function BarChart<T>({
 	rightAxis,
 	reference,
 	xAxis,
+	tickRotation,
 	formatValue,
 	className,
 	...label
@@ -114,6 +115,7 @@ export function BarChart<T>({
 			rightAxis,
 			reference,
 			xAxis,
+			tickRotation,
 			formatValue,
 		},
 		{ zeroBaseline: true, swatch: () => 'rect', orientation, stack: stacked },

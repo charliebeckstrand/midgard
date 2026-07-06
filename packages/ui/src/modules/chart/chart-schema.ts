@@ -432,6 +432,16 @@ export type CartesianFrameProps = {
 	 * @defaultValue 'category'
 	 */
 	xAxis?: 'category' | 'time'
+	/**
+	 * Tilt category labels that would otherwise collide instead of thinning them
+	 * to every nth: past that point every label draws, angled, and none are
+	 * dropped. Off by default, so an unset chart keeps thinning.
+	 * @remarks Vertical orientation only — under `orientation="horizontal"`
+	 * category labels already run down the gutter and read straight, so this has
+	 * no effect there.
+	 * @defaultValue false
+	 */
+	tickRotation?: boolean
 }
 
 /**
