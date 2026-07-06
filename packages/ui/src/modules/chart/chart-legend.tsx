@@ -323,7 +323,7 @@ export function ChartLegend({
 				// spreading them across the plot's full width rather than bunching at one end.
 				panel
 					? 'flex min-w-0 flex-col items-start justify-center sm:max-w-[50%]'
-					: 'flex flex-wrap items-center justify-center sm:justify-between',
+					: 'flex flex-wrap items-center justify-center',
 			)}
 		>
 			{pageItems.map((item) => {
