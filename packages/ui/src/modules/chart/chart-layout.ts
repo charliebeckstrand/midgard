@@ -331,7 +331,7 @@ export type VisibleValues = {
 }
 
 /** Value ticks placed along the value axis by the scale's own map. @internal */
-function valueTicksOf(
+export function valueTicksOf(
 	scale: LinearScale | null,
 	format: (value: number) => string,
 ): ChartAxisTick[] {
@@ -648,7 +648,8 @@ export function verticalLayout(input: CartesianLayoutInput): CartesianLayout {
 }
 
 /** A probe scale's ticks paired with their formatter — the end-label inset inputs. @internal */
-type ValueAxisProbe = { ticks: number[]; format: (value: number) => string }
+/** One value axis's tick values and formatter — the inset math reads both. @internal */
+export type ValueAxisProbe = { ticks: number[]; format: (value: number) => string }
 
 /**
  * A range-free probe of one value axis: its resolved ticks and formatter, or
@@ -679,7 +680,7 @@ function probeOf(
  *
  * @internal
  */
-function valueAxisRange(probes: ValueAxisProbe[], span: [number, number]): [number, number] {
+export function valueAxisRange(probes: ValueAxisProbe[], span: [number, number]): [number, number] {
 	const half = (tick: number, format: (value: number) => string) =>
 		(format(tick).length * TICK_CHAR_WIDTH) / 2 + GUTTER_EDGE_PAD
 

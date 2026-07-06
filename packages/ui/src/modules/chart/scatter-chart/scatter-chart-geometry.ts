@@ -5,14 +5,9 @@
  * mark math is unit-testable in isolation.
  */
 
-import {
-	BUBBLE_MAX_DIAMETER,
-	BUBBLE_MIN_DIAMETER,
-	GUTTER_EDGE_PAD,
-	MARKER_RADIUS,
-	TICK_CHAR_WIDTH,
-} from '../chart-constants'
-import { type LinearScale, linearScale } from '../chart-scale'
+import { BUBBLE_MAX_DIAMETER, BUBBLE_MIN_DIAMETER, MARKER_RADIUS } from '../chart-constants'
+import { valueAxisRange } from '../chart-layout'
+import { linearScale } from '../chart-scale'
 import { READOUT_GAP } from '../chart-series'
 
 /** One parsed point: finite x and y, with the size measure where one was read. @internal */
@@ -224,20 +219,12 @@ export function withinScatterMarks(
 	)
 }
 
-/** A scale's ticks at their screen positions, labelled by `format`. @internal */
-export function axisTicksOf(
-	scale: LinearScale | null,
-	format: (value: number) => string,
-): { at: number; label: string }[] {
-	return (scale?.ticks ?? []).map((tick) => ({ at: scale?.map(tick) ?? 0, label: format(tick) }))
-}
-
 /**
  * Insets the x span so the centered end tick labels clear the frame — the
- * horizontal layout's treatment, over a single probe scale. Ticks are
- * range-independent, so the probe answers before the final range is known; a
- * frame too narrow to seat both keeps the span, since a clipped label beats an
- * inverted axis.
+ * horizontal layout's {@link valueAxisRange} treatment over a single probe built
+ * from the raw values, since scatter has no pre-resolved axis scale to hand it.
+ * Ticks are range-independent, so the probe answers before the final range is
+ * known.
  *
  * @internal
  */
@@ -249,15 +236,5 @@ export function scatterXRange(
 ): [number, number] {
 	const probe = linearScale({ values, range: span, ...options })
 
-	if (!probe || probe.ticks.length === 0) return span
-
-	const half = (value: number) => (format(value).length * TICK_CHAR_WIDTH) / 2 + GUTTER_EDGE_PAD
-
-	const [from, to] = span
-
-	const insetFrom = Math.max(from, half(probe.ticks[0] as number))
-
-	const insetTo = to - half(probe.ticks.at(-1) as number)
-
-	return insetFrom < insetTo ? [insetFrom, insetTo] : span
+	return probe ? valueAxisRange([{ ticks: probe.ticks, format }], span) : span
 }
