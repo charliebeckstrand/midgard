@@ -58,7 +58,8 @@ export type BarChartProps<T> = CartesianChartProps<T> & {
  * column on the summed value axis instead of grouping them side by side. Focus
  * the plot to drive the crosshair and tooltip by keyboard — the band-axis
  * arrows step categories, the value-axis arrows cycle each category's series
- * values, transposed with the orientation.
+ * values, transposed with the orientation. A reference line joins that
+ * value-axis roving, receding the marks when the cursor reaches it.
  * @example
  * ```tsx
  * <BarChart
@@ -180,7 +181,12 @@ export function BarChart<T>({
 			readout={chart.readout}
 			tooltip={tooltip}
 			snap={snapTargets(rails, chart.bandPositions, chart.snapPoints)}
-			focus={cartesianFocus(chart.bandPositions, chart.snapPoints, chart.orientation)}
+			focus={cartesianFocus(
+				chart.bandPositions,
+				chart.snapPoints,
+				chart.orientation,
+				chart.referencePositions,
+			)}
 			orientation={chart.orientation}
 			className={className}
 			annotations={<ChartReferenceList reference={reference} format={formatValue} />}

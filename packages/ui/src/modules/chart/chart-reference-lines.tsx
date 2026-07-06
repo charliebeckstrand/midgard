@@ -39,6 +39,8 @@ export type ChartReferenceLinesProps = {
 /** Props for {@link ReferenceRule}. @internal */
 type ReferenceRuleProps = {
 	line: ChartReferenceLine
+	/** The rule's position in the `reference` array — its identity to the keyboard emphasis. */
+	index: number
 	start: Vec
 	end: Vec
 	orientation: ChartOrientation
@@ -53,14 +55,20 @@ type ReferenceRuleProps = {
  * inline stroke. The trigger sits inside the `aria-hidden` plot, so the readout
  * is a pointer enhancement; {@link ChartReferenceList} carries the parity.
  *
+ * When the keyboard cursor parks on this rule it draws solid, standing firm
+ * against the receded marks so the chosen reference reads as chosen — the
+ * pointer's tooltip has no keyboard equal, so the rule itself answers.
+ *
  * @internal
  */
-function ReferenceRule({ line, start, end, orientation, format }: ReferenceRuleProps) {
-	const { setReferenceActive } = useChartEmphasis()
+function ReferenceRule({ line, index, start, end, orientation, format }: ReferenceRuleProps) {
+	const { setReferenceActive, activeReference } = useChartEmphasis()
 
 	const color = line.color ?? DEFAULT_REFERENCE_COLOR
 
 	const slot = isSeriesSlot(color)
+
+	const focused = activeReference === index
 
 	const points = { x1: start.x, y1: start.y, x2: end.x, y2: end.y }
 
@@ -71,13 +79,14 @@ function ReferenceRule({ line, start, end, orientation, format }: ReferenceRuleP
 				    tooltip's own hover handlers through the trigger). */}
 				<g
 					data-slot="chart-reference-line"
+					data-focused={focused || undefined}
 					onPointerEnter={() => setReferenceActive(true)}
 					onPointerLeave={() => setReferenceActive(false)}
 				>
 					<line
 						{...points}
 						strokeWidth={REFERENCE_STROKE_WIDTH}
-						strokeDasharray={line.dashed === false ? undefined : REFERENCE_DASH}
+						strokeDasharray={line.dashed === false || focused ? undefined : REFERENCE_DASH}
 						className={slot ? cn(k.series[color].stroke) : undefined}
 						style={slot ? undefined : { stroke: color }}
 						pointerEvents="none"
@@ -140,7 +149,7 @@ export function ChartReferenceLines({
 
 	return (
 		<g data-slot="chart-reference-lines">
-			{reference.map((line) => {
+			{reference.map((line, index) => {
 				if (!Number.isFinite(line.value)) return null
 
 				const at = scale.map(line.value)
@@ -149,6 +158,7 @@ export function ChartReferenceLines({
 					<ReferenceRule
 						key={`${line.value}:${line.label ?? ''}`}
 						line={line}
+						index={index}
 						start={project(orientation, at, from)}
 						end={project(orientation, at, to)}
 						orientation={orientation}

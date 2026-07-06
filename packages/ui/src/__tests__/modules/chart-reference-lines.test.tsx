@@ -199,3 +199,95 @@ describe('reference lines', () => {
 		expect(bySlot(container, 'chart-reference-list')?.textContent).toContain('Goal')
 	})
 })
+
+describe('reference line keyboard navigation', () => {
+	const marksClass = (container: HTMLElement) =>
+		bySlot(container, 'chart-marks')?.getAttribute('class') ?? ''
+
+	it('roves onto the rule, receding the marks and dropping the series readout', () => {
+		const { container } = bar([{ value: 60, label: 'Goal' }])
+
+		const plot = bySlot(container, 'chart-plot') as HTMLElement
+
+		// The first arrow enters at the first bar; the marks stay lit and the readout
+		// answers the data the way it always has.
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Jan')
+
+		expect(marksClass(container)).not.toContain('opacity-25')
+
+		// The value-axis arrow steps onto the rule: the marks recede to it and the
+		// series readout drops, so the rule reads against a quieted field.
+		fireEvent.keyDown(plot, { key: 'ArrowDown' })
+
+		expect(marksClass(container)).toContain('opacity-25')
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
+
+		// The parked rule draws solid and flags itself focused — the keyboard's answer
+		// to the tooltip the pointer would float.
+		const group = bySlot(container, 'chart-reference-line')
+
+		expect(group?.getAttribute('data-focused')).toBe('true')
+
+		expect(rule(container)?.getAttribute('stroke-dasharray')).toBeNull()
+	})
+
+	it('restores the marks and readout stepping back off the rule', () => {
+		const { container } = bar([{ value: 60 }])
+
+		const plot = bySlot(container, 'chart-plot') as HTMLElement
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		fireEvent.keyDown(plot, { key: 'ArrowDown' })
+
+		expect(marksClass(container)).toContain('opacity-25')
+
+		// One more step leaves the rule for the next series point: the marks light back
+		// up and the readout returns.
+		fireEvent.keyDown(plot, { key: 'ArrowDown' })
+
+		expect(marksClass(container)).not.toContain('opacity-25')
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Jan')
+	})
+
+	it('releases the emphasis on Escape', () => {
+		const { container } = bar([{ value: 60 }])
+
+		const plot = bySlot(container, 'chart-plot') as HTMLElement
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		fireEvent.keyDown(plot, { key: 'ArrowDown' })
+
+		expect(marksClass(container)).toContain('opacity-25')
+
+		fireEvent.keyDown(plot, { key: 'Escape' })
+
+		expect(marksClass(container)).not.toContain('opacity-25')
+
+		expect(bySlot(container, 'chart-reference-line')?.getAttribute('data-focused')).toBeNull()
+	})
+
+	it('transposes the roving with orientation — the value axis reaches the rule', () => {
+		const { container } = bar([{ value: 60 }], 'horizontal')
+
+		const plot = bySlot(container, 'chart-plot') as HTMLElement
+
+		// Down the band axis walks categories under horizontal orientation and never
+		// touches the rule.
+		fireEvent.keyDown(plot, { key: 'ArrowDown' })
+
+		fireEvent.keyDown(plot, { key: 'ArrowDown' })
+
+		expect(marksClass(container)).not.toContain('opacity-25')
+
+		// The horizontal value-axis arrow roves onto the rule and recedes the marks.
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		expect(marksClass(container)).toContain('opacity-25')
+	})
+})

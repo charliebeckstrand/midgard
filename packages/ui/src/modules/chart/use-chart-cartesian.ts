@@ -15,7 +15,7 @@ import {
 import type { ChartLegendItem } from './chart-legend'
 import type { ChartOrientation } from './chart-orientation'
 import type { BandScale, LinearScale } from './chart-scale'
-import type { CartesianChartProps, ChartSeries } from './chart-schema'
+import type { CartesianChartProps, ChartReferenceLine, ChartSeries } from './chart-schema'
 import {
 	chartReadout,
 	formatChartValue,
@@ -86,8 +86,31 @@ export type CartesianChart = {
 	bandPositions: number[]
 	/** Per category, the visible series' value-axis positions — a value crosshair's snap targets. */
 	snapPoints: number[][]
+	/**
+	 * Each reference line's value-axis position, index-aligned to the `reference`
+	 * prop so a keyboard stop maps back to the rule it draws; `null` where the
+	 * value is non-finite (no rule, no stop) or no scale resolved.
+	 */
+	referencePositions: (number | null)[]
 	/** Which way the chart faces — the frame parts read it to draw the transpose. */
 	orientation: ChartOrientation
+}
+
+/**
+ * Each reference line's value-axis position, index-aligned to the prop so a
+ * keyboard stop maps back to the rule {@link ChartReferenceLines} draws for it. A
+ * non-finite value — or a chart with no resolved scale — holds its slot with
+ * `null`, drawing no rule and offering no stop.
+ *
+ * @internal
+ */
+function referencePositionsOf(
+	reference: ChartReferenceLine[] | undefined,
+	scale: LinearScale | null,
+): (number | null)[] {
+	return (reference ?? []).map((line) =>
+		scale && Number.isFinite(line.value) ? scale.map(line.value) : null,
+	)
 }
 
 /**
@@ -194,6 +217,10 @@ export function useChartCartesian<T>(
 			? chartReadout(data, xKey, visible, format, timeAxis ? timeCategory() : undefined)
 			: null
 
+	// Reference lines map onto the value axis the way the rules do, kept aligned to
+	// the prop so the keyboard's active-rule index names the rule it draws.
+	const referencePositions = referencePositionsOf(props.reference, layout.valueScale)
+
 	const legendItems =
 		(legend ?? metas.length > 1)
 			? metas.map((meta) => ({
@@ -226,6 +253,7 @@ export function useChartCartesian<T>(
 		legendItems,
 		bandPositions: layout.bandPositions,
 		snapPoints: layout.snapPoints,
+		referencePositions,
 		orientation,
 	}
 }
