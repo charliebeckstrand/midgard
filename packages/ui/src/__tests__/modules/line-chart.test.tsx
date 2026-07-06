@@ -135,6 +135,59 @@ describe('LineChart', () => {
 
 		expect(bySlot(container, 'chart-line')?.getAttribute('d')).toContain('C')
 	})
+
+	it('orders the legend by each series’ latest value, largest first', () => {
+		const { container } = renderUI(
+			<LineChart
+				aria-label="Two metrics by month"
+				data={[
+					{ month: 'Jan', low: 10, high: 20 },
+					{ month: 'Feb', low: 12, high: 40 },
+				]}
+				series={[
+					{ xKey: 'month', yKey: 'low', yName: 'Low' },
+					{ xKey: 'month', yKey: 'high', yName: 'High' },
+				]}
+				width={400}
+			/>,
+		)
+
+		// 'High' ends at 40 over 'Low' at 12, so it leads the legend though it is
+		// the second series — the switches read in the lines' visible top-down order.
+		expect(allBySlot(container, 'chart-legend-item').map((el) => el.textContent)).toEqual([
+			'High',
+			'Low',
+		])
+	})
+
+	it('toggles the series a reordered entry names, not its display slot', () => {
+		const { container } = renderUI(
+			<LineChart
+				aria-label="Two metrics by month"
+				data={[
+					{ month: 'Jan', low: 10, high: 20 },
+					{ month: 'Feb', low: 12, high: 40 },
+				]}
+				series={[
+					{ xKey: 'month', yKey: 'low', yName: 'Low' },
+					{ xKey: 'month', yKey: 'high', yName: 'High' },
+				]}
+				width={400}
+			/>,
+		)
+
+		const [high, low] = allBySlot(container, 'chart-legend-item') as HTMLButtonElement[]
+
+		// 'High' leads the legend but is the second series; clicking it must strike
+		// 'High' — the series it names, keyed by its own index — and leave 'Low' on.
+		fireEvent.click(high as HTMLButtonElement)
+
+		expect(high).toHaveAttribute('aria-pressed', 'false')
+
+		expect(low).toHaveAttribute('aria-pressed', 'true')
+
+		expect(allBySlot(container, 'chart-line')).toHaveLength(1)
+	})
 })
 
 describe('lineGeometry', () => {

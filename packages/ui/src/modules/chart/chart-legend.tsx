@@ -11,6 +11,12 @@ import { ChartSwatch } from './chart-pattern-defs'
 
 /** One legend entry: the series name keyed by its mark-mirroring swatch. @internal */
 export type ChartLegendItem = {
+	/**
+	 * The series' own index — the toggle, emphasis, and `hidden` set key off it,
+	 * not the entry's position, so the legend can list its switches in a
+	 * different order than the series without misrouting a click or a colour.
+	 */
+	index: number
 	label: string
 	/** currentColor class carrying the series colour. */
 	swatchClass: string
@@ -127,8 +133,8 @@ export function ChartLegend({
 				panel ? 'flex flex-col items-start' : 'flex flex-wrap items-center justify-center',
 			)}
 		>
-			{items.map((item, index) => {
-				const off = hidden.has(index)
+			{items.map((item) => {
+				const off = hidden.has(item.index)
 
 				const content = (
 					<>
@@ -183,10 +189,10 @@ export function ChartLegend({
 						variant="plain"
 						data-slot="chart-legend-item"
 						aria-pressed={!off}
-						onClick={() => onToggle(index)}
-						onPointerEnter={() => onFocus(index)}
+						onClick={() => onToggle(item.index)}
+						onPointerEnter={() => onFocus(item.index)}
 						onPointerLeave={() => onFocus(null)}
-						onFocus={() => onFocus(index)}
+						onFocus={() => onFocus(item.index)}
 						onBlur={() => onFocus(null)}
 					>
 						{content}
