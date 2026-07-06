@@ -1347,6 +1347,7 @@ export function GridData<T>({
 						columnManagerLabel={managerLabel}
 						onManageColumns={() => setColumnManagerOpen(true)}
 						exportActions={exportActions}
+						columnFilters={filters}
 						batchActions={batchActions}
 						hasSelection={someSelected}
 						selection={selection}
