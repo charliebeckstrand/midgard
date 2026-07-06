@@ -235,15 +235,26 @@ export function useGridColumnAutoSize<T>({
 	useEffect(() => {
 		if (!enabled) return
 
+		let cancelled = false
+
 		// Web fonts reflow text after the first measure; re-measure once they settle.
+		// Subscribed once per enablement (reading the latest `run` through `runRef`),
+		// since `fonts.ready` settles once — re-subscribing on every `run` identity
+		// change would re-fire immediately and redundantly.
 		document.fonts?.ready
 			.then(() => {
+				if (cancelled) return
+
 				runningContentRef.current.clear()
 
-				run(true)
+				runRef.current(true)
 			})
 			.catch(() => {})
-	}, [enabled, run])
+
+		return () => {
+			cancelled = true
+		}
+	}, [enabled])
 
 	const sizeToFit = useCallback(() => {
 		manualPinnedRef.current.clear()

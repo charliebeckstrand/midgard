@@ -1,19 +1,13 @@
 'use client'
 
-import {
-	type HTMLAttributes,
-	type MouseEvent,
-	type ReactNode,
-	type RefObject,
-	useMemo,
-} from 'react'
+import { type HTMLAttributes, type ReactNode, type RefObject, useMemo } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
 import { GridEditingCell } from './grid-editing-cell'
-import { fromInteractiveContent } from './grid-row'
 import type { GridColumn } from './types'
 import type { Coord } from './use-grid-navigation'
+import { seatingCellProps } from './use-grid-navigation-columns'
 
 /**
  * Projects an editable grid's data columns into editing-aware ones: each gains
@@ -55,36 +49,20 @@ export function useGridEditingColumns<T>({
 
 			const renderCell = col.cell
 
-			const consumerProps = col.cellProps
-
 			return {
 				...col,
 				className: cn(k.nav.cell, col.className),
-				cellProps: (row: T): HTMLAttributes<HTMLTableCellElement> => {
-					const rowIdx = rowIndexMapRef.current.get(row) ?? -1
-
-					const colIdx = colIndexMapRef.current.get(col.id) ?? -1
-
-					const prev = consumerProps?.(row)
-
-					return {
-						...prev,
-						id: cellId(rowIdx, colIdx),
-						role: 'gridcell',
-						'aria-readonly': col.readOnly || undefined,
-						onMouseDown: (event: MouseEvent<HTMLTableCellElement>) => {
-							// Defer to focusable cell content (the row's editors, action
-							// buttons, links); otherwise seat the cursor here and focus the grid.
-							if (!fromInteractiveContent(event.target)) {
-								event.currentTarget.closest<HTMLElement>('[role="grid"]')?.focus()
-
-								moveTo({ row: rowIdx, col: colIdx })
-							}
-
-							prev?.onMouseDown?.(event)
-						},
-					}
-				},
+				cellProps: (row: T): HTMLAttributes<HTMLTableCellElement> =>
+					seatingCellProps({
+						col,
+						row,
+						rowIndexMapRef,
+						colIndexMapRef,
+						cellId,
+						moveTo,
+						// Editable cells expose their read-only state programmatically.
+						extra: { 'aria-readonly': col.readOnly || undefined },
+					}),
 				cell: (row: T): ReactNode => {
 					const rowIdx = rowIndexMapRef.current.get(row) ?? -1
 
