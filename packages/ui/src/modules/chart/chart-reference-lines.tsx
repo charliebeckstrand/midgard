@@ -55,9 +55,9 @@ type ReferenceRuleProps = {
  * inline stroke. The trigger sits inside the `aria-hidden` plot, so the readout
  * is a pointer enhancement; {@link ChartReferenceList} carries the parity.
  *
- * When the keyboard cursor parks on this rule it draws solid, standing firm
- * against the receded marks so the chosen reference reads as chosen — the
- * pointer's tooltip has no keyboard equal, so the rule itself answers.
+ * The keyboard reaches the rule the pointer can't hover: parking the roving
+ * cursor here forces the same tooltip open, so focusing a rule reads exactly
+ * like hovering it — the marks recede and the readout floats.
  *
  * @internal
  */
@@ -73,7 +73,12 @@ function ReferenceRule({ line, index, start, end, orientation, format }: Referen
 	const points = { x1: start.x, y1: start.y, x2: end.x, y2: end.y }
 
 	return (
-		<Tooltip placement={orientation === 'vertical' ? 'top' : 'right'} delay={0} size="sm">
+		<Tooltip
+			placement={orientation === 'vertical' ? 'top' : 'right'}
+			delay={0}
+			size="sm"
+			forceOpen={focused}
+		>
 			<TooltipTrigger>
 				{/* Pointing the rule recedes the marks to it (composes with the
 				    tooltip's own hover handlers through the trigger). */}
@@ -86,7 +91,7 @@ function ReferenceRule({ line, index, start, end, orientation, format }: Referen
 					<line
 						{...points}
 						strokeWidth={REFERENCE_STROKE_WIDTH}
-						strokeDasharray={line.dashed === false || focused ? undefined : REFERENCE_DASH}
+						strokeDasharray={line.dashed === false ? undefined : REFERENCE_DASH}
 						className={slot ? cn(k.series[color].stroke) : undefined}
 						style={slot ? undefined : { stroke: color }}
 						pointerEvents="none"
