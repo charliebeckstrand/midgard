@@ -193,7 +193,10 @@ function stackSegmentPath(
 /**
  * Projects series-major values onto grouped bar marks: each category's band
  * splits into per-series bars capped at the spec thickness, separated by the
- * surface gap, and centered as a group in their band.
+ * surface gap, and centered as a group in their band. `map` receives the
+ * series index beside the value, and `baseline` takes a per-series resolver,
+ * so a dual-axis chart projects each series through its own scale; a
+ * single-scale chart passes its scale's `map` and one number unchanged.
  *
  * @remarks A `null` value yields a `null` mark (an omitted bar, not a zero
  * one); an exact zero yields `null` too — the baseline already says zero.
@@ -202,8 +205,8 @@ function stackSegmentPath(
 export function barMarks(
 	values: (number | null)[][],
 	band: BandScale,
-	map: (value: number) => number,
-	baseline: number,
+	map: (value: number, seriesIndex: number) => number,
+	baseline: number | ((seriesIndex: number) => number),
 	orientation: ChartOrientation = 'vertical',
 ): (BarMark | null)[][] {
 	const seriesCount = Math.max(1, values.length)
@@ -215,17 +218,28 @@ export function barMarks(
 
 	const group = seriesCount * thickness + (seriesCount - 1) * MARK_GAP
 
+	const baselineOf = typeof baseline === 'number' ? () => baseline : baseline
+
 	return values.map((series, seriesIndex) =>
 		series.map((value, index) => {
 			if (value === null || value === 0) return null
 
 			const c0 = band.at(index) + (band.width - group) / 2 + seriesIndex * (thickness + MARK_GAP)
 
-			const valuePos = map(value)
+			const valuePos = map(value, seriesIndex)
 
-			if (valuePos === baseline) return null
+			const seriesBaseline = baselineOf(seriesIndex)
 
-			return barSpan(orientation, valuePos, baseline, c0, c0 + thickness, `${seriesIndex}:${index}`)
+			if (valuePos === seriesBaseline) return null
+
+			return barSpan(
+				orientation,
+				valuePos,
+				seriesBaseline,
+				c0,
+				c0 + thickness,
+				`${seriesIndex}:${index}`,
+			)
 		}),
 	)
 }

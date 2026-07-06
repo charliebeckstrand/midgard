@@ -1,7 +1,7 @@
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/chart'
 import { GUTTER_GAP } from './chart-constants'
-import type { PlotRect } from './chart-layout'
+import type { ChartAxisTitlePlacement, PlotRect } from './chart-layout'
 
 /** One rendered tick: its position along the axis and its label. @internal */
 export type ChartAxisTick = {
@@ -12,10 +12,17 @@ export type ChartAxisTick = {
 
 /** Props for {@link ChartAxis}. @internal */
 export type ChartAxisProps = {
-	/** Which side to draw: `x` the bottom axis, `y` the left axis. */
+	/** Which screen axis to draw along: `x` a horizontal band, `y` a vertical gutter. */
 	axis: 'x' | 'y'
 	plot: PlotRect
 	ticks: ChartAxisTick[]
+	/**
+	 * Which side of the plot the labels line: the y axis reads `'left'` (the
+	 * default) or `'right'` — a dual-axis chart's secondary gutter — and the x
+	 * axis `'bottom'` (the default) or `'top'`, the same secondary axis under the
+	 * horizontal transpose.
+	 */
+	position?: 'left' | 'right' | 'top' | 'bottom'
 	/**
 	 * The axis line's position along the cross axis — the zero line once negative
 	 * values pull it off the plot edge. The x axis reads it as a y (a horizontal
@@ -37,14 +44,18 @@ export type ChartAxisProps = {
  * One chart axis: the x axis draws the bottom baseline with labels under their
  * positions; the y axis right-aligns labels in the gutter and draws a line only
  * for a horizontal chart's category baseline, otherwise leaving the rule to the
- * gridlines and keeping the chrome recessive.
+ * gridlines and keeping the chrome recessive. `position` flips either to the
+ * plot's far side — labels left-aligned in the right gutter, or hung above the
+ * top edge — for a dual-axis chart's secondary scale.
  *
  * @internal
  */
-export function ChartAxis({ axis, plot, ticks, baseline, line = true }: ChartAxisProps) {
+export function ChartAxis({ axis, plot, ticks, position, baseline, line = true }: ChartAxisProps) {
 	if (axis === 'y') {
+		const right = position === 'right'
+
 		return (
-			<g data-slot="chart-axis-y">
+			<g data-slot={right ? 'chart-axis-y-right' : 'chart-axis-y'}>
 				{baseline !== undefined && (
 					<line
 						x1={baseline}
@@ -60,9 +71,9 @@ export function ChartAxis({ axis, plot, ticks, baseline, line = true }: ChartAxi
 				{ticks.map((tick) => (
 					<text
 						key={tick.at}
-						x={plot.x - GUTTER_GAP}
+						x={right ? plot.x + plot.width + GUTTER_GAP : plot.x - GUTTER_GAP}
 						y={tick.at}
-						textAnchor="end"
+						textAnchor={right ? 'start' : 'end'}
 						dominantBaseline="central"
 						className={cn(k.tick)}
 					>
@@ -73,13 +84,15 @@ export function ChartAxis({ axis, plot, ticks, baseline, line = true }: ChartAxi
 		)
 	}
 
+	const top = position === 'top'
+
 	const floor = plot.y + plot.height
 
 	const lineY = baseline ?? floor
 
 	return (
-		<g data-slot="chart-axis-x">
-			{line && (
+		<g data-slot={top ? 'chart-axis-x-top' : 'chart-axis-x'}>
+			{line && !top && (
 				<line
 					x1={plot.x}
 					y1={lineY}
@@ -95,12 +108,48 @@ export function ChartAxis({ axis, plot, ticks, baseline, line = true }: ChartAxi
 				<text
 					key={tick.at}
 					x={tick.at}
-					y={floor + GUTTER_GAP}
+					y={top ? plot.y - GUTTER_GAP : floor + GUTTER_GAP}
 					textAnchor="middle"
-					dominantBaseline="hanging"
+					dominantBaseline={top ? 'auto' : 'hanging'}
 					className={cn(k.tick)}
 				>
 					{tick.label}
+				</text>
+			))}
+		</g>
+	)
+}
+
+/** Props for {@link ChartAxisTitles}. @internal */
+export type ChartAxisTitlesProps = {
+	/** The layout's placed titles; empty draws nothing. */
+	titles: ChartAxisTitlePlacement[]
+}
+
+/**
+ * The value-axis titles, drawn in the bands the layout reserved for them: a
+ * rotated label along each titled vertical gutter, a horizontal one under (or
+ * over) each titled band axis. Pure chrome — non-interactive, and outside the
+ * readout, which names series through the legend and tooltip instead.
+ *
+ * @internal
+ */
+export function ChartAxisTitles({ titles }: ChartAxisTitlesProps) {
+	if (titles.length === 0) return null
+
+	return (
+		<g data-slot="chart-axis-titles">
+			{titles.map((title) => (
+				<text
+					key={`${title.x}:${title.y}`}
+					x={title.x}
+					y={title.y}
+					textAnchor="middle"
+					dominantBaseline="central"
+					transform={title.rotate ? `rotate(${title.rotate} ${title.x} ${title.y})` : undefined}
+					className={cn(k.axisTitle)}
+				>
+					{title.text}
 				</text>
 			))}
 		</g>

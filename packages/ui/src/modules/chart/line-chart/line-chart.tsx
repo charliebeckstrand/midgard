@@ -1,6 +1,6 @@
 'use client'
 
-import { ChartAxis } from '../chart-axis'
+import { ChartAxis, ChartAxisTitles } from '../chart-axis'
 import { ChartCrosshair, resolveCrosshair } from '../chart-crosshair'
 import { ChartFrame } from '../chart-frame'
 import { ChartGridLines } from '../chart-grid-lines'
@@ -89,6 +89,8 @@ export function LineChart<T>({
 	interpolation = 'linear',
 	min,
 	max,
+	leftAxis,
+	rightAxis,
 	reference,
 	xAxis,
 	labels,
@@ -108,6 +110,8 @@ export function LineChart<T>({
 			legend,
 			min,
 			max,
+			leftAxis,
+			rightAxis,
 			reference,
 			xAxis,
 			formatValue,
@@ -117,23 +121,27 @@ export function LineChart<T>({
 
 	const floor = chart.plot.y + chart.plot.height
 
-	const yScale = chart.yScale
+	// Each visible series draws through its own axis's scale; a series whose
+	// scale never resolved takes no marks.
+	const drawn = chart.visible.flatMap((meta) => {
+		const scale = meta.axis === 'right' ? chart.rightScale : chart.yScale
 
-	const list: ChartLineSeries[] = yScale
-		? chart.visible.map((meta) => ({
-				label: meta.label,
-				paint: meta.paint,
-				geometry: lineGeometry(
-					meta.values,
-					meta.values.map((_, index) => chart.band.center(index)),
-					yScale.map,
-					floor,
-					interpolation,
-				),
-				markers: points,
-				dimmed: chart.emphasis !== null && meta.index !== chart.emphasis,
-			}))
-		: []
+		return scale ? [{ meta, scale }] : []
+	})
+
+	const list: ChartLineSeries[] = drawn.map(({ meta, scale }) => ({
+		label: meta.label,
+		paint: meta.paint,
+		geometry: lineGeometry(
+			meta.values,
+			meta.values.map((_, index) => chart.band.center(index)),
+			scale.map,
+			floor,
+			interpolation,
+		),
+		markers: points,
+		dimmed: chart.emphasis !== null && meta.index !== chart.emphasis,
+	}))
 
 	const seriesRuns = list.map((series) => series.geometry.runs)
 
@@ -142,9 +150,20 @@ export function LineChart<T>({
 		chart.visible.map((meta) => ({ color: meta.color, paint: meta.paint })),
 	)
 
-	const fills = chart.visible.map((meta) => tex.fillFor(meta.color))
+	const fills = drawn.map(({ meta }) => tex.fillFor(meta.color))
 
-	const valueLabelItems = resolveValueLabels(labels, list, chart.visible, chart.plot, formatValue)
+	const valueLabelItems = resolveValueLabels(
+		labels,
+		list,
+		drawn.map(({ meta }) => meta),
+		chart.plot,
+		formatValue,
+		drawn.map(
+			({ meta }) =>
+				(value: number) =>
+					chart.formatAxisValue(value, meta.axis),
+		),
+	)
 
 	const marksNode = animate ? (
 		<AnimatedChartLineMarks list={list} fill={fill} fills={fills} textureActive={tex.active} />
@@ -186,17 +205,23 @@ export function LineChart<T>({
 				chart.referencePositions,
 			)}
 			className={className}
-			annotations={<ChartReferenceList reference={reference} format={formatValue} />}
+			annotations={<ChartReferenceList reference={reference} format={chart.formatAxisValue} />}
 		>
 			{tex.defs}
 
-			{gridLines && chart.yScale && (
-				<ChartGridLines plot={chart.plot} ticks={chart.yTicks.map((tick) => tick.at)} />
+			{gridLines && chart.gridPositions.length > 0 && (
+				<ChartGridLines plot={chart.plot} ticks={chart.gridPositions} />
 			)}
 
 			{axes && chart.yScale && <ChartAxis axis="y" plot={chart.plot} ticks={chart.yTicks} />}
 
+			{axes && chart.rightScale && (
+				<ChartAxis axis="y" position="right" plot={chart.plot} ticks={chart.rightTicks} />
+			)}
+
 			{axes && data.length > 0 && <ChartAxis axis="x" plot={chart.plot} ticks={chart.xTicks} />}
+
+			{axes && <ChartAxisTitles titles={chart.axisTitles} />}
 
 			{rails && (
 				<ChartCrosshair
@@ -227,8 +252,9 @@ export function LineChart<T>({
 			<ChartReferenceLines
 				plot={chart.plot}
 				scale={chart.yScale}
+				rightScale={chart.rightScale}
 				reference={reference}
-				format={formatValue}
+				format={chart.formatAxisValue}
 				animate={animate}
 			/>
 		</ChartFrame>

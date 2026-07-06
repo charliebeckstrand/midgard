@@ -10,12 +10,14 @@ import { cn } from '../../../../core'
 import {
 	AreaChart,
 	BarChart,
+	BubbleChart,
 	ChoroplethChart,
 	ComboChart,
 	DonutChart,
 	HeatmapChart,
 	LineChart,
 	PieChart,
+	ScatterChart,
 } from '../../../../modules/chart'
 import type { MapGeography } from '../../../../modules/map'
 import { code, Example } from '../../../engine'
@@ -46,6 +48,48 @@ const sources = [
 	{ source: 'Direct', visits: 2210 },
 	{ source: 'Referral', visits: 1370 },
 	{ source: 'Social', visits: 940 },
+]
+
+type OperationsWeek = { week: string; shipments: number; exceptions: number }
+
+// Two measures of different scale — volumes in the thousands, exceptions in the
+// tens — the dual-axis case.
+const operations: OperationsWeek[] = [
+	{ week: 'W1', shipments: 1240, exceptions: 18 },
+	{ week: 'W2', shipments: 1385, exceptions: 9 },
+	{ week: 'W3', shipments: 1512, exceptions: 24 },
+	{ week: 'W4', shipments: 1467, exceptions: 12 },
+	{ week: 'W5', shipments: 1690, exceptions: 31 },
+	{ week: 'W6', shipments: 1755, exceptions: 15 },
+	{ week: 'W7', shipments: 1621, exceptions: 11 },
+	{ week: 'W8', shipments: 1834, exceptions: 22 },
+]
+
+type StopRecord = { distance: number; dwell: number; handling: number; weight: number }
+
+// One row per delivery stop — a deterministic spread with a loose upward trend,
+// dwell and handling as two measures over the same distances.
+const stops: StopRecord[] = Array.from({ length: 16 }, (_, index) => {
+	const distance = 8 + index * 6 + Math.round(10 * Math.sin(index * 2.1))
+
+	return {
+		distance,
+		dwell: 14 + Math.round(distance / 4 + 9 * Math.sin(index * 1.3)),
+		handling: 8 + Math.round(distance / 6 + 7 * Math.cos(index * 1.7)),
+		weight: 2 + ((index * 5) % 17),
+	}
+})
+
+type FreightMonth = { month: string; rate: number; weight: number }
+
+// Rate per pound against shipped weight — a currency beside a quantity.
+const freight: FreightMonth[] = [
+	{ month: 'Jan', rate: 1.42, weight: 380 },
+	{ month: 'Feb', rate: 1.51, weight: 415 },
+	{ month: 'Mar', rate: 1.38, weight: 462 },
+	{ month: 'Apr', rate: 1.66, weight: 448 },
+	{ month: 'May', rate: 1.72, weight: 530 },
+	{ month: 'Jun', rate: 1.58, weight: 585 },
 ]
 
 // Atlas data stays out of the package: fetch the us-atlas TopoJSON as a static
@@ -127,6 +171,8 @@ export function Demo() {
 					<Tab value="pie">Pie</Tab>
 					<Tab value="donut">Donut</Tab>
 					<Tab value="combo">Combo</Tab>
+					<Tab value="scatter">Scatter</Tab>
+					<Tab value="bubble">Bubble</Tab>
 					<Tab value="heatmap">Heatmap</Tab>
 					<Tab value="choropleth">Choropleth</Tab>
 				</TabList>
@@ -254,6 +300,25 @@ export function Demo() {
 											{ xKey: 'month', yKey: 'margin', yName: 'Margin' },
 											{ xKey: 'month', yKey: 'costs', yName: 'Costs' },
 										]}
+										crosshair={{ snap: true }}
+									/>
+								</ChartContainer>
+							</Example>
+
+							<Example
+								title="Dual axis"
+								code={code`<LineChart leftAxis={{ format: … }} rightAxis={{ format: … }} series={[…, { …, axis: 'right' }]} … />`}
+							>
+								<ChartContainer>
+									<LineChart
+										aria-label="Rate per pound against shipped weight by month"
+										data={freight}
+										series={[
+											{ xKey: 'month', yKey: 'rate', yName: 'Rate' },
+											{ xKey: 'month', yKey: 'weight', yName: 'Weight', axis: 'right' },
+										]}
+										leftAxis={{ title: '$ / lb', format: (value) => `$${value.toFixed(2)}` }}
+										rightAxis={{ title: 'Weight', format: (value) => `${value}k lb` }}
 										crosshair={{ snap: true }}
 									/>
 								</ChartContainer>
@@ -535,6 +600,31 @@ export function Demo() {
 								</ChartContainer>
 							</Example>
 
+							<Example
+								title="Dual axis"
+								code={code`<ComboChart rightAxis={{ title: 'Exceptions' }} series={[…, { …, axis: 'right' }]} … />`}
+							>
+								<ChartContainer>
+									<ComboChart
+										aria-label="Weekly shipments with exception counts"
+										data={operations}
+										series={[
+											{ type: 'area', xKey: 'week', yKey: 'shipments', yName: 'Shipments' },
+											{
+												type: 'line',
+												xKey: 'week',
+												yKey: 'exceptions',
+												yName: 'Exceptions',
+												axis: 'right',
+											},
+										]}
+										leftAxis={{ title: 'Shipments' }}
+										rightAxis={{ title: 'Exceptions' }}
+										crosshair={{ snap: true }}
+									/>
+								</ChartContainer>
+							</Example>
+
 							<AnimatedExample title="Animated" source={code`<ComboChart animate … />`}>
 								<ChartContainer>
 									<ComboChart
@@ -545,6 +635,88 @@ export function Demo() {
 											{ type: 'area', xKey: 'month', yKey: 'costs', yName: 'Costs' },
 											{ type: 'line', xKey: 'month', yKey: 'margin', yName: 'Margin' },
 										]}
+										animate
+									/>
+								</ChartContainer>
+							</AnimatedExample>
+						</Stack>
+					</TabContent>
+
+					<TabContent value="scatter">
+						<Stack gap="xl">
+							<Example
+								title="Multi-series"
+								code={code`<ScatterChart crosshair={{ snap: true }} … />`}
+							>
+								<ChartContainer>
+									<ScatterChart
+										aria-label="Dwell and handling time against stop distance"
+										data={stops}
+										series={[
+											{ xKey: 'distance', yKey: 'dwell', yName: 'Dwell' },
+											{ xKey: 'distance', yKey: 'handling', yName: 'Handling' },
+										]}
+										formatXValue={(value) => `${value} mi`}
+										crosshair={{ snap: true }}
+									/>
+								</ChartContainer>
+							</Example>
+
+							<AnimatedExample title="Animated" source={code`<ScatterChart animate … />`}>
+								<ChartContainer>
+									<ScatterChart
+										aria-label="Dwell and handling time against stop distance, animated"
+										data={stops}
+										series={[
+											{ xKey: 'distance', yKey: 'dwell', yName: 'Dwell' },
+											{ xKey: 'distance', yKey: 'handling', yName: 'Handling' },
+										]}
+										animate
+									/>
+								</ChartContainer>
+							</AnimatedExample>
+						</Stack>
+					</TabContent>
+
+					<TabContent value="bubble">
+						<Stack gap="xl">
+							<Example
+								title="Size encoding"
+								code={code`<BubbleChart series={[{ …, sizeKey: 'weight' }]} … />`}
+							>
+								<ChartContainer>
+									<BubbleChart
+										aria-label="Dwell against distance, sized by weight"
+										data={stops}
+										series={[
+											{
+												xKey: 'distance',
+												yKey: 'dwell',
+												sizeKey: 'weight',
+												sizeName: 'Weight',
+												yName: 'Stops',
+											},
+										]}
+										formatXValue={(value) => `${value} mi`}
+									/>
+								</ChartContainer>
+							</Example>
+
+							<AnimatedExample title="Animated" source={code`<BubbleChart animate … />`}>
+								<ChartContainer>
+									<BubbleChart
+										aria-label="Dwell against distance, sized by weight, animated"
+										data={stops}
+										series={[
+											{
+												xKey: 'distance',
+												yKey: 'dwell',
+												sizeKey: 'weight',
+												sizeName: 'Weight',
+												yName: 'Stops',
+											},
+										]}
+										formatXValue={(value) => `${value} mi`}
 										animate
 									/>
 								</ChartContainer>

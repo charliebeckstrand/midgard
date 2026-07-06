@@ -1,6 +1,6 @@
 'use client'
 
-import { ChartAxis } from '../chart-axis'
+import { ChartAxis, ChartAxisTitles } from '../chart-axis'
 import { ChartCrosshair, resolveCrosshair } from '../chart-crosshair'
 import { ChartFrame } from '../chart-frame'
 import { ChartGridLines } from '../chart-grid-lines'
@@ -20,7 +20,7 @@ import {
 	type LineSeriesGeometry,
 	lineGeometry,
 } from '../line-chart/line-chart-geometry'
-import { useChartCartesian } from '../use-chart-cartesian'
+import { type DrawnSeries, drawnSeries, useChartCartesian } from '../use-chart-cartesian'
 import { cartesianFocus } from '../use-chart-keyboard'
 import { type StackedAreaGeometry, stackedAreas } from './area-chart-geometry'
 
@@ -118,6 +118,48 @@ function stackedToLine(band: { line: string; area: string; points: LineSeriesGeo
 	}
 }
 
+/** One drawn series' geometry: its stacked ribbon, or its own line through its axis's scale. @internal */
+function areaGeometry(
+	entry: DrawnSeries,
+	order: number,
+	args: {
+		stacked: boolean
+		stackedGeometry: StackedAreaGeometry[]
+		centers: number[]
+		floor: number
+		interpolation: LineInterpolation
+	},
+): LineSeriesGeometry {
+	if (args.stacked) {
+		return stackedToLine(args.stackedGeometry[order] ?? { line: '', area: '', points: [] })
+	}
+
+	return lineGeometry(
+		entry.meta.values,
+		args.centers,
+		entry.scale.map,
+		args.floor,
+		args.interpolation,
+	)
+}
+
+/** The stacked ribbons through the stack's one scale; empty unstacked or before it resolves. @internal */
+function stackedRibbons(
+	drawn: DrawnSeries[],
+	xs: number[],
+	stacked: boolean,
+): StackedAreaGeometry[] {
+	const scale = drawn[0]?.scale
+
+	return stacked && scale
+		? stackedAreas(
+				drawn.map(({ meta }) => meta.values),
+				xs,
+				scale.map,
+			)
+		: []
+}
+
 /**
  * A filled area chart on the shared cartesian frame: each series is a wash
  * under its band-edge line, stacked into a part-to-whole ribbon set or left
@@ -165,6 +207,8 @@ export function AreaChart<T>({
 	interpolation = 'linear',
 	min,
 	max,
+	leftAxis,
+	rightAxis,
 	reference,
 	xAxis,
 	labels,
@@ -184,6 +228,8 @@ export function AreaChart<T>({
 			legend,
 			min,
 			max,
+			leftAxis,
+			rightAxis,
 			reference,
 			xAxis,
 			formatValue,
@@ -191,49 +237,51 @@ export function AreaChart<T>({
 		{ zeroBaseline: true, swatch: () => 'line', stack: stacked },
 	)
 
-	const yScale = chart.yScale
-
 	const floor = chart.plot.y + chart.plot.height
 
 	const xs = chart.metas[0]?.values.map((_, index) => chart.band.center(index)) ?? []
 
 	const dimmed = (meta: SeriesMeta) => chart.emphasis !== null && meta.index !== chart.emphasis
 
-	const stackedGeometry =
-		yScale && stacked
-			? stackedAreas(
-					chart.visible.map((meta) => meta.values),
-					xs,
-					yScale.map,
-				)
-			: []
+	// A stack binds to one axis (the side its series agree on, else the left),
+	// so its ribbons read that one scale; unstacked series each read their own.
+	const drawn = drawnSeries(chart, stacked)
 
-	const list: ChartLineSeries[] = yScale
-		? chart.visible.map((meta, order) => ({
-				label: meta.label,
-				paint: meta.paint,
-				geometry: stacked
-					? stackedToLine(stackedGeometry[order] ?? { line: '', area: '', points: [] })
-					: lineGeometry(
-							meta.values,
-							meta.values.map((_, index) => chart.band.center(index)),
-							yScale.map,
-							floor,
-							interpolation,
-						),
-				markers: points,
-				dimmed: dimmed(meta),
-			}))
-		: []
+	const stackedGeometry = stackedRibbons(drawn, xs, stacked)
+
+	const list: ChartLineSeries[] = drawn.map((entry, order) => ({
+		label: entry.meta.label,
+		paint: entry.meta.paint,
+		geometry: areaGeometry(entry, order, {
+			stacked,
+			stackedGeometry,
+			centers: xs,
+			floor,
+			interpolation,
+		}),
+		markers: points,
+		dimmed: dimmed(entry.meta),
+	}))
 
 	const tex = useChartTexture(
 		texture,
 		chart.visible.map((meta) => ({ color: meta.color, paint: meta.paint })),
 	)
 
-	const fills = chart.visible.map((meta) => tex.fillFor(meta.color))
+	const fills = drawn.map(({ meta }) => tex.fillFor(meta.color))
 
-	const valueLabelItems = resolveValueLabels(labels, list, chart.visible, chart.plot, formatValue)
+	const valueLabelItems = resolveValueLabels(
+		labels,
+		list,
+		drawn.map(({ meta }) => meta),
+		chart.plot,
+		formatValue,
+		drawn.map(
+			({ meta }) =>
+				(value: number) =>
+					chart.formatAxisValue(value, meta.axis),
+		),
+	)
 
 	const marksNode = animate ? (
 		<AnimatedChartLineMarks list={list} fill={true} fills={fills} textureActive={tex.active} />
@@ -284,17 +332,23 @@ export function AreaChart<T>({
 				chart.referencePositions,
 			)}
 			className={className}
-			annotations={<ChartReferenceList reference={reference} format={formatValue} />}
+			annotations={<ChartReferenceList reference={reference} format={chart.formatAxisValue} />}
 		>
 			{tex.defs}
 
-			{gridLines && yScale && (
-				<ChartGridLines plot={chart.plot} ticks={chart.yTicks.map((tick) => tick.at)} />
+			{gridLines && chart.gridPositions.length > 0 && (
+				<ChartGridLines plot={chart.plot} ticks={chart.gridPositions} />
 			)}
 
-			{axes && yScale && <ChartAxis axis="y" plot={chart.plot} ticks={chart.yTicks} />}
+			{axes && chart.yScale && <ChartAxis axis="y" plot={chart.plot} ticks={chart.yTicks} />}
+
+			{axes && chart.rightScale && (
+				<ChartAxis axis="y" position="right" plot={chart.plot} ticks={chart.rightTicks} />
+			)}
 
 			{axes && data.length > 0 && <ChartAxis axis="x" plot={chart.plot} ticks={chart.xTicks} />}
+
+			{axes && <ChartAxisTitles titles={chart.axisTitles} />}
 
 			{rails && (
 				<ChartCrosshair
@@ -328,9 +382,10 @@ export function AreaChart<T>({
 			{/* Last, over the hit area, so the rules win the pointer where they sit. */}
 			<ChartReferenceLines
 				plot={chart.plot}
-				scale={yScale}
+				scale={chart.yScale}
+				rightScale={chart.rightScale}
 				reference={reference}
-				format={formatValue}
+				format={chart.formatAxisValue}
 				animate={animate}
 			/>
 		</ChartFrame>
