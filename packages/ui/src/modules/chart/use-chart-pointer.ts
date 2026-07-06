@@ -14,6 +14,11 @@ export type ChartPointerHandlers = {
 	onClick?: (event: MouseEvent<SVGRectElement>) => void
 }
 
+/** Maps a viewport point into frame coordinates through the hit element's live box. @internal */
+function toFrame(plot: PlotRect, box: DOMRect, clientX: number, clientY: number) {
+	return { x: clientX - box.left + plot.x, y: clientY - box.top + plot.y }
+}
+
 /**
  * Pointer handlers for a chart's transparent hit layer: movement snaps the
  * shared hover index — the category `resolveIndex` returns for the frame point,
@@ -80,9 +85,7 @@ export function useChartPointer(
 				return
 			}
 
-			const x = clientX - box.left + plot.x
-
-			const y = clientY - box.top + plot.y
+			const { x, y } = toFrame(plot, box, clientX, clientY)
 
 			set(resolveIndex(x, y), { x, y }, onData ? onData(x, y) : true)
 		},
@@ -97,9 +100,7 @@ export function useChartPointer(
 
 			if (box === undefined) return
 
-			const x = clientX - box.left + plot.x
-
-			const y = clientY - box.top + plot.y
+			const { x, y } = toFrame(plot, box, clientX, clientY)
 
 			const index = resolveIndex(x, y)
 
@@ -126,9 +127,7 @@ export function useChartPointer(
 
 			const box = node.getBoundingClientRect()
 
-			const x = clientX - box.left + plot.x
-
-			const y = clientY - box.top + plot.y
+			const { x, y } = toFrame(plot, box, clientX, clientY)
 
 			node.style.cursor = (onData?.(x, y) ?? true) ? 'pointer' : 'default'
 		},

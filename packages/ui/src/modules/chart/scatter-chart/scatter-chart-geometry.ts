@@ -5,7 +5,6 @@
  * mark math is unit-testable in isolation.
  */
 
-import type { ChartAxisTick } from '../chart-axis'
 import {
 	BUBBLE_MAX_DIAMETER,
 	BUBBLE_MIN_DIAMETER,
@@ -13,7 +12,7 @@ import {
 	MARKER_RADIUS,
 	TICK_CHAR_WIDTH,
 } from '../chart-constants'
-import { type LinearScale, linearScale } from '../chart-scale'
+import { linearScale } from '../chart-scale'
 import { READOUT_GAP } from '../chart-series'
 
 /** One parsed point: finite x and y, with the size measure where one was read. @internal */
@@ -247,20 +246,6 @@ export function withinScatterMarks(
 	return marks.some((points) =>
 		points.some((point) => Math.hypot(point.x - x, point.y - y) <= point.r + slack),
 	)
-}
-
-/** A scale's ticks at their screen positions, labelled by `format`. @internal */
-export function axisTicksOf(
-	scale: LinearScale | null,
-	format: (value: number) => string,
-): ChartAxisTick[] {
-	// Keyed by the value, not the mapped `at`, which a collapsed plot maps every
-	// tick onto; two ticks share a value only on a zero-span domain (one tick).
-	return (scale?.ticks ?? []).map((tick) => ({
-		at: scale?.map(tick) ?? 0,
-		label: format(tick),
-		key: tick,
-	}))
 }
 
 /**
