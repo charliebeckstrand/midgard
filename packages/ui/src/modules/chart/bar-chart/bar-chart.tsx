@@ -16,7 +16,12 @@ import { type CartesianChartProps, resolveTooltip } from '../chart-schema'
 import { snapTargets } from '../chart-snap'
 import { barProjection, drawnSeries, useChartCartesian } from '../use-chart-cartesian'
 import { cartesianFocus } from '../use-chart-keyboard'
-import { barMarks, stackedBarMarks } from './bar-chart-geometry'
+import {
+	barMarks,
+	stackedBarMarks,
+	stackedBarSnapPoints,
+	stackedBarSnapSeries,
+} from './bar-chart-geometry'
 
 /**
  * Props for {@link BarChart}. Requires an accessible name (`aria-label` or
@@ -137,6 +142,21 @@ export function BarChart<T>({
 			: []
 		: barMarks(seriesValues, chart.band, projection.map, projection.baseline, chart.orientation)
 
+	// Stacked segments sit at cumulative tops, not the individual from-zero values
+	// `chart.snapPoints` carries, so the crosshair snap and keyboard cursor read the
+	// drawn edges; grouped bars each grow from one baseline and match as they are.
+	const valuePoints = stacked
+		? stackedBarSnapPoints(marks, data.length, chart.orientation)
+		: chart.snapPoints
+
+	const snapSeries = stacked
+		? stackedBarSnapSeries(
+				marks,
+				drawn.map((entry) => entry.meta.index),
+				data.length,
+			)
+		: chart.snapSeries
+
 	const paints = drawn.map((entry) => entry.meta.paint)
 
 	const dimmed = drawn.map(
@@ -200,13 +220,13 @@ export function BarChart<T>({
 			readout={chart.readout}
 			emphasis={chart.emphasis}
 			tooltip={showTooltip}
-			snap={snapTargets(rails, chart.bandPositions, chart.snapPoints)}
+			snap={snapTargets(rails, chart.bandPositions, valuePoints)}
 			focus={cartesianFocus(
 				chart.bandPositions,
-				chart.snapPoints,
+				valuePoints,
 				chart.orientation,
 				chart.referencePositions,
-				chart.snapSeries,
+				snapSeries,
 			)}
 			onActiveSeries={chart.setEmphasis}
 			orientation={chart.orientation}
@@ -238,7 +258,7 @@ export function BarChart<T>({
 					plot={chart.plot}
 					crosshair={rails}
 					bandPositions={chart.bandPositions}
-					valuePoints={chart.snapPoints}
+					valuePoints={valuePoints}
 					orientation={chart.orientation}
 				/>
 			)}
