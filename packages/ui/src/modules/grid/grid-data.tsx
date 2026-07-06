@@ -1109,8 +1109,6 @@ export function GridData<T>({
 		groupingActive,
 		groupedRows,
 		grouping,
-		getKey,
-		rowLabel,
 		contextMenuActive: resolvedContextMenu != null,
 		setGroupExpanded,
 	})

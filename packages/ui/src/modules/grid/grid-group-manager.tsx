@@ -16,7 +16,7 @@ import {
 	sortableKeyboardCoordinates,
 	verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
-import { EllipsisVertical, GripVertical, Plus, Trash2 } from 'lucide-react'
+import { Ban, EllipsisVertical, GripVertical, Plus, Trash2 } from 'lucide-react'
 import { type ReactNode, useMemo } from 'react'
 import { Badge } from '../../components/badge'
 import { Button } from '../../components/button'
@@ -26,7 +26,14 @@ import { Control } from '../../components/control'
 import { Label } from '../../components/fieldset'
 import { Icon } from '../../components/icon'
 import { Input } from '../../components/input'
-import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from '../../components/menu'
+import {
+	Menu,
+	MenuContent,
+	MenuItem,
+	MenuLabel,
+	MenuSeparator,
+	MenuTrigger,
+} from '../../components/menu'
 import { cn, dataAttr } from '../../core'
 import { colors, extendedColors, type PaletteColor } from '../../core/recipe'
 import { useGrabbingCursor, useSortableSensors } from '../../hooks'
@@ -434,6 +441,14 @@ function GridGroupManagerZoneHeader({
 					</Button>
 				</MenuTrigger>
 				<MenuContent>
+					{/* Clear the color — offered only once the group has one to clear. */}
+					{group.color !== undefined && (
+						<MenuItem onAction={() => recolorGroup(group.id, undefined)}>
+							<Icon icon={<Ban />} />
+							<MenuLabel>None</MenuLabel>
+						</MenuItem>
+					)}
+					{group.color !== undefined && <MenuSeparator />}
 					{colorOptions.map((color) => (
 						<MenuItem
 							key={color}

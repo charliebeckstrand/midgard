@@ -7,19 +7,11 @@ import {
 	useGridRowManager,
 } from '../../modules/grid/use-grid-row-manager'
 
-/** Three natural-order groups, each with its leaves. */
+/** Three natural-order groups. */
 const groups: GridRowManagerGroup[] = [
-	{
-		key: 'a',
-		label: 'A',
-		count: 2,
-		leaves: [
-			{ key: 'a1', label: 'a1' },
-			{ key: 'a2', label: 'a2' },
-		],
-	},
-	{ key: 'b', label: 'B', count: 1, leaves: [{ key: 'b1', label: 'b1' }] },
-	{ key: 'c', label: 'C', count: 1, leaves: [{ key: 'c1', label: 'c1' }] },
+	{ key: 'a', label: 'A', count: 2 },
+	{ key: 'b', label: 'B', count: 1 },
+	{ key: 'c', label: 'C', count: 1 },
 ]
 
 describe('applyRowKeyOrder', () => {
@@ -101,14 +93,6 @@ describe('useGridRowManager', () => {
 		expect(result.current.presentation.groupOrder).toEqual(['c', 'a', 'b'])
 
 		expect(result.current.managerGroups.map((g) => g.key)).toEqual(['c', 'a', 'b'])
-	})
-
-	it('leaves rows in the group’s natural order — row order is not managed', () => {
-		const { result } = render([{ key: 'a', color: 'blue' }, { key: 'b' }, { key: 'c' }])
-
-		const groupA = result.current.managerGroups.find((g) => g.key === 'a')
-
-		expect(groupA?.leaves.map((l) => l.key)).toEqual(['a1', 'a2'])
 	})
 
 	it('applies color from a partial overlay but withholds group order until it is complete', () => {

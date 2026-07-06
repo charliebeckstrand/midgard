@@ -113,6 +113,31 @@ describe('Grid row manager', () => {
 		expect(committed).toEqual(expect.arrayContaining([{ key: 'Developer', color: 'red' }]))
 
 		expect(committed).toHaveLength(3)
+
+		// The group's card in the dialog outlines its whole border in the color.
+		expect(document.querySelector('[class*="outline-red-600"]')).not.toBeNull()
+	})
+
+	it('offers the color menu None only once a group is colored', async () => {
+		const user = userEvent.setup()
+
+		renderUI(<Grid columns={columns} rows={people} getKey={getKey} groupBy={{ value: 'role' }} />)
+
+		rightClickDeveloperHeader()
+
+		await user.click(screen.getByRole('menuitem', { name: 'Manage rows' }))
+
+		// Uncolored: nothing to clear, so None is withheld.
+		await user.click(screen.getByRole('button', { name: 'Color for Developer' }))
+
+		expect(screen.queryByRole('menuitem', { name: 'None' })).not.toBeInTheDocument()
+
+		await user.click(screen.getByRole('menuitem', { name: 'Red' }))
+
+		// Colored: reopening the menu now offers None.
+		await user.click(screen.getByRole('button', { name: 'Color for Developer' }))
+
+		expect(screen.getByRole('menuitem', { name: 'None' })).toBeInTheDocument()
 	})
 
 	it('tints the group header aggregation with the group color', async () => {

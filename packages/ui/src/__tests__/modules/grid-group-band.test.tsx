@@ -63,12 +63,20 @@ describe('Grid column groups', () => {
 		expect(bandRule(container)?.className).toContain('bg-blue-600')
 	})
 
-	it('draws no band underline for a colorless group', () => {
+	it('draws a neutral band underline for a colorless group', () => {
 		const { container } = renderUI(
 			<Grid columns={columns} rows={rows} getKey={getKey} groups={groups} />,
 		)
 
-		expect(bandRule(container)).toBeNull()
+		// The rule stays (a colorless group keeps a grey underline, like a row rail),
+		// just without a palette color.
+		const rule = bandRule(container)
+
+		expect(rule).not.toBeNull()
+
+		expect(rule?.className).toContain('bg-zinc-950/10')
+
+		expect(rule?.className).not.toContain('bg-blue-600')
 	})
 
 	it('keeps grouped columns contiguous despite declaration order', () => {
@@ -162,14 +170,18 @@ describe('Grid column groups', () => {
 			<Grid columns={columns} rows={rows} getKey={getKey} groups={colored} />,
 		)
 
-		expect(bandRule(container)).not.toBeNull()
+		expect(bandRule(container)?.className).toContain('bg-blue-600')
 
 		fireEvent.contextMenu(bandCell(container) as HTMLTableCellElement)
 
 		fireEvent.click(screen.getByRole('menuitem', { name: 'Clear color' }))
 
-		// The color is gone, so the band draws no colored underline.
-		expect(bandRule(container)).toBeNull()
+		// The color is gone but the underline stays — now a neutral grey.
+		const rule = bandRule(container)
+
+		expect(rule?.className).not.toContain('bg-blue-600')
+
+		expect(rule?.className).toContain('bg-zinc-950/10')
 	})
 
 	it('omits Clear color for a colorless band', () => {

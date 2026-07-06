@@ -7,9 +7,8 @@ import { Ban, GripVertical } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { Badge } from '../../components/badge'
 import { Button } from '../../components/button'
-import { Card, CardBody, CardHeader } from '../../components/card'
+import { Card, CardHeader } from '../../components/card'
 import { Icon } from '../../components/icon'
-import { List, ListItem } from '../../components/list'
 import {
 	Menu,
 	MenuContent,
@@ -21,13 +20,13 @@ import {
 import { cn, dataAttr } from '../../core'
 import { colors, extendedColors, type PaletteColor } from '../../core/recipe'
 import { useGrabbingCursor, useSortableList } from '../../hooks'
-import { k as gridK } from '../../recipes/kata/grid'
+import { k as groupK } from '../../recipes/kata/grid-group'
 import { k } from '../../recipes/kata/grid-row-manager'
-import { restrictToVerticalAxis } from './grid-reorder'
-import type { GridRowManagerGroup, GridRowManagerLeaf } from './use-grid-row-manager'
+import { restrictToParentElement, restrictToVerticalAxis } from './grid-reorder'
+import type { GridRowManagerGroup } from './use-grid-row-manager'
 
-/** Locks the group drag to the y-axis; unbounded (no scroll-ancestor clamp) so it drags freely down. @internal */
-const GROUP_DRAG_MODIFIERS = [restrictToVerticalAxis]
+/** Locks the group drag to the y-axis and bounds it to the list, so a zone can't be dragged off either end. @internal */
+const GROUP_DRAG_MODIFIERS = [restrictToVerticalAxis, restrictToParentElement]
 
 /** The palette presets offered by the color Menu: standard palette then extended. @internal */
 const DEFAULT_COLOR_OPTIONS: PaletteColor[] = [...colors, ...extendedColors]
@@ -35,11 +34,6 @@ const DEFAULT_COLOR_OPTIONS: PaletteColor[] = [...colors, ...extendedColors]
 /** Capitalizes a palette color name for display (`violet` → `Violet`). @internal */
 function colorLabel(color: PaletteColor): string {
 	return color.charAt(0).toUpperCase() + color.slice(1)
-}
-
-/** A leaf's display label: its `label` when set, else its key stringified. @internal */
-function leafLabel(leaf: GridRowManagerLeaf): string {
-	return typeof leaf.label === 'string' ? leaf.label : String(leaf.key)
 }
 
 /** A group's textual label for `aria-label`s: its `label` when a string, else its key. @internal */
@@ -92,12 +86,12 @@ export type GridRowManagerProps = {
 
 /**
  * The row manager's editor: a zone per row-group — a reorder grip, the group's
- * label + count, and a color {@link Menu} — over a read-only list of its rows.
- * Whole groups reorder as a vertical list (the grip beside each label, or its
- * keyboard lift), the drag locked to the y-axis and free to run past the end. A
- * colored group carries a solid left border in its hue. Rows within a group are
- * not reorderable — they follow the grid's order. Every edit commits through the
- * handlers, which write the {@link GridGroupBy.rowGroups} overlay.
+ * label + row count, and a color {@link Menu}. Whole groups reorder as a vertical
+ * list (the grip beside each label, or its keyboard lift), the drag locked to the
+ * y-axis and bounded to the list. A colored group outlines its whole Card in its
+ * hue. Rows within a group are not managed — they follow the grid's order. Every
+ * edit commits through the handlers, which write the {@link GridGroupBy.rowGroups}
+ * overlay.
  *
  * @remarks Client component. {@link Grid} renders this inside its own dialog,
  * reached from the group-header "Manage rows" context-menu item; use it directly
@@ -147,9 +141,9 @@ type GridRowManagerZoneProps = {
 }
 
 /**
- * One group zone: a Card (a solid left border in the group's color) whose header
- * carries the reorder grip, the group label + count, and the color Menu, over a
- * read-only {@link List} of its rows.
+ * One group zone: a Card (outlined in the group's color) whose header carries the
+ * reorder grip, the group label + count, and the color Menu (pushed to the
+ * trailing edge).
  *
  * @internal
  */
@@ -161,7 +155,7 @@ function GridRowManagerZone({ group, onRecolor, colorOptions }: GridRowManagerZo
 
 	return (
 		<div ref={setNodeRef} style={style} data-dragging={dataAttr(dragging)}>
-			<Card className={cn(group.color && gridK.rowGroup.railColor[group.color])}>
+			<Card className={cn(group.color && groupK.cardOutline[group.color])}>
 				<CardHeader>
 					<div className={cn(k.zone.header)}>
 						<button
@@ -187,26 +181,6 @@ function GridRowManagerZone({ group, onRecolor, colorOptions }: GridRowManagerZo
 						/>
 					</div>
 				</CardHeader>
-
-				<CardBody>
-					{group.leaves.length === 0 ? (
-						<span className={cn(k.zone.empty)}>No rows in this group</span>
-					) : (
-						<List
-							items={group.leaves}
-							getKey={(leaf) => String(leaf.key)}
-							sortable={false}
-							variant="plain"
-							aria-label={`Rows in ${label}`}
-						>
-							{(leaf) => (
-								<ListItem>
-									<span className={cn(k.leaf.label)}>{leaf.label ?? leafLabel(leaf)}</span>
-								</ListItem>
-							)}
-						</List>
-					)}
-				</CardBody>
 			</Card>
 		</div>
 	)
@@ -239,11 +213,14 @@ function GridRowManagerColorMenu({
 				</Button>
 			</MenuTrigger>
 			<MenuContent>
-				<MenuItem onAction={() => onRecolor(undefined)} disabled={color === undefined}>
-					<Icon icon={<Ban />} />
-					<MenuLabel>None</MenuLabel>
-				</MenuItem>
-				<MenuSeparator />
+				{/* Clear the color — offered only once the group has one to clear. */}
+				{color !== undefined && (
+					<MenuItem onAction={() => onRecolor(undefined)}>
+						<Icon icon={<Ban />} />
+						<MenuLabel>None</MenuLabel>
+					</MenuItem>
+				)}
+				{color !== undefined && <MenuSeparator />}
 				{colorOptions.map((option) => (
 					<MenuItem key={option} onAction={() => onRecolor(option)}>
 						<Badge color={option} variant="soft">

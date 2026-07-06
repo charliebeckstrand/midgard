@@ -367,4 +367,44 @@ describe('Grid column-group editor', () => {
 			'true',
 		)
 	})
+
+	it('offers the color menu None for a colored group', () => {
+		const colored: GridColumnGroup[] = [
+			{ id: 'contact', title: 'Contact', color: 'blue', columns: ['first', 'last'] },
+		]
+
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={(row) => row.id}
+				groups={colored}
+				columnManager={{ defaultOpen: true }}
+			/>,
+		)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Color for Contact' }))
+
+		expect(screen.getByRole('menuitem', { name: 'None' })).toBeInTheDocument()
+	})
+
+	it('withholds the color menu None for a colorless group', () => {
+		const plain: GridColumnGroup[] = [
+			{ id: 'contact', title: 'Contact', columns: ['first', 'last'] },
+		]
+
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={(row) => row.id}
+				groups={plain}
+				columnManager={{ defaultOpen: true }}
+			/>,
+		)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Color for Contact' }))
+
+		expect(screen.queryByRole('menuitem', { name: 'None' })).not.toBeInTheDocument()
+	})
 })

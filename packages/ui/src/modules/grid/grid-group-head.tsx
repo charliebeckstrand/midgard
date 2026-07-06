@@ -97,10 +97,17 @@ function GridGroupHeadCell({
 	// covers a pinned column (see `buildGroupSpans`), so it needs no sticky offset.
 	const pinned = span.kind === 'plain'
 
-	// A colored group draws a 2px rule under its Badge, spanning the cell's content
-	// width — inset by the header padding, so it aligns with the column titles and
-	// splits from the neighbouring group.
-	const ruleColor = span.kind === 'group' && span.group.color ? k.bandColor[span.group.color] : null
+	// A group draws a 2px rule under its Badge, spanning the cell's content width —
+	// inset by the header padding, so it aligns with the column titles and splits
+	// from the neighbouring group. Colored in the group's hue, or a neutral grey
+	// when it has none (matching a colorless row group's rail), so clearing a color
+	// leaves the underline in place rather than dropping it.
+	const ruleColor =
+		span.kind === 'group'
+			? span.group.color
+				? k.bandColor[span.group.color]
+				: k.bandNeutral
+			: null
 
 	return (
 		<TableHeader

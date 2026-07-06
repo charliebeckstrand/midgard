@@ -10,19 +10,11 @@ import { formatGroupValue } from './grid-group-row'
 import type { GridRowGroup, GridRowGroups } from './grid-row-group-types'
 import type { GridMenuItem } from './types'
 
-/** One leaf row as the row manager lists it: its key and display label. @internal */
-export type GridRowManagerLeaf = {
-	/** The leaf's row key ({@link GridDataProps.getKey}). */
-	key: string | number
-	/** The leaf's display label — the grid's `rowLabel`, else the key. */
-	label: ReactNode
-}
-
 /**
- * One group as the row manager renders it: identity, display label and count, its
- * overlay color, and its leaves in display order. Built by {@link GridData} from
- * the engine's grouped rows and resolved to display order (overlay group + leaf
- * order applied) by {@link useGridRowManager}.
+ * One group as the row manager renders it: identity, display label, row count,
+ * and its overlay color. Built by {@link GridData} from the engine's grouped rows
+ * and resolved to display order (overlay group order applied) by
+ * {@link useGridRowManager}.
  *
  * @internal
  */
@@ -31,12 +23,10 @@ export type GridRowManagerGroup = {
 	key: string | number
 	/** The group's header label — the shared value formatted. */
 	label: ReactNode
-	/** How many leaves the group holds. */
+	/** How many rows the group holds. */
 	count: number
 	/** The group's overlay color, or `undefined` when uncolored. */
 	color?: PaletteColor
-	/** The group's leaves, in display order. */
-	leaves: GridRowManagerLeaf[]
 }
 
 /**
@@ -107,8 +97,6 @@ export function applyRowKeyOrder<I>(
 export function buildRowManagerGroups<T>(
 	groupedRows: Row<T>[] | null,
 	columnId: string | number | null,
-	getKey: (row: T, index: number) => string | number,
-	rowLabel: ((row: T) => string) | undefined,
 ): GridRowManagerGroup[] {
 	if (!groupedRows || columnId == null) return []
 
@@ -117,16 +105,7 @@ export function buildRowManagerGroups<T>(
 		.map((row) => {
 			const value = row.getGroupingValue(String(columnId)) as string | number
 
-			return {
-				key: value,
-				label: formatGroupValue(value),
-				count: row.subRows.length,
-				leaves: row.subRows.map((leaf) => {
-					const key = getKey(leaf.original, leaf.index)
-
-					return { key, label: rowLabel?.(leaf.original) ?? String(key) }
-				}),
-			}
+			return { key: value, label: formatGroupValue(value), count: row.subRows.length }
 		})
 }
 
@@ -318,8 +297,6 @@ type GridRowManagerRegionOptions<T> = {
 	groupedRows: Row<T>[] | null
 	/** The grouped column id, or `null`. */
 	grouping: string | number | null
-	getKey: (row: T, index: number) => string | number
-	rowLabel: ((row: T) => string) | undefined
 	/** Whether the header context menu is live — the manager's only entry point. */
 	contextMenuActive: boolean
 	/** Commits an engine expansion change (backs Expand all / Collapse all). */
@@ -342,16 +319,14 @@ export function useGridRowManagerRegion<T>({
 	groupingActive,
 	groupedRows,
 	grouping,
-	getKey,
-	rowLabel,
 	contextMenuActive,
 	setGroupExpanded,
 }: GridRowManagerRegionOptions<T>): GridRowManagerRegionResult {
 	const enabled = groupingActive && (groupByConfig?.rowManager ?? true)
 
 	const naturalGroups = useMemo(
-		() => buildRowManagerGroups(groupedRows, grouping, getKey, rowLabel),
-		[groupedRows, grouping, getKey, rowLabel],
+		() => buildRowManagerGroups(groupedRows, grouping),
+		[groupedRows, grouping],
 	)
 
 	const manager = useGridRowManager({ config: groupByConfig?.rowGroups, naturalGroups })
