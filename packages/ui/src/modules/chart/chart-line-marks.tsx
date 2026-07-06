@@ -5,14 +5,12 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/chart'
 import { rangeKeys } from '../../utilities'
 import {
-	AREA_FADE,
 	AREA_FILL_OPACITY,
-	LINE_DRAW,
 	LINE_STROKE_WIDTH,
 	MARKER_RADIUS,
 	MARKER_RING_WIDTH,
-	POINT_POP,
 } from './chart-constants'
+import { AREA_FADE, LINE_DRAW, POINT_POP } from './chart-motion'
 import { textureClass, textureStyle } from './chart-pattern-defs'
 import type { SeriesPaint } from './chart-series'
 import type { LineSeriesGeometry } from './line-chart/line-chart-geometry'

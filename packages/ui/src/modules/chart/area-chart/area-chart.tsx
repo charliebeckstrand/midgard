@@ -131,7 +131,8 @@ function stackedToLine(band: { line: string; area: string; points: LineSeriesGeo
  * `crosshair` prop. Focus the plot to drive the crosshair and tooltip by
  * keyboard — the band-axis arrows step categories, the value-axis arrows step
  * each category's points in screen order (a stack's cumulative band edges when
- * stacked, each series' own point otherwise).
+ * stacked, each series' own point otherwise). A reference line joins that
+ * value-axis roving, receding the marks when the cursor reaches it.
  * @example
  * ```tsx
  * <AreaChart
@@ -276,7 +277,12 @@ export function AreaChart<T>({
 			readout={chart.readout}
 			tooltip={tooltip}
 			snap={snapTargets(rails, chart.bandPositions, snapPoints)}
-			focus={cartesianFocus(chart.bandPositions, navPoints, chart.orientation)}
+			focus={cartesianFocus(
+				chart.bandPositions,
+				navPoints,
+				chart.orientation,
+				chart.referencePositions,
+			)}
 			className={className}
 			annotations={<ChartReferenceList reference={reference} format={formatValue} />}
 		>
@@ -325,6 +331,7 @@ export function AreaChart<T>({
 				scale={yScale}
 				reference={reference}
 				format={formatValue}
+				animate={animate}
 			/>
 		</ChartFrame>
 	)

@@ -106,6 +106,53 @@ describe('chart textures', () => {
 		expect(off?.getAttribute('class')).toContain('forced-colors:block')
 	})
 
+	it('centres the axis-aligned lines in their legend swatches', () => {
+		// Four series map to slots blue, orange, violet, green (k.order): the two
+		// diagonals, then the vertical- and horizontal-line textures — the slots
+		// whose swatches must read as one line down / across the box's centre.
+		const { container } = renderUI(
+			<BarChart
+				aria-label="Four series by quarter"
+				data={[
+					{ quarter: 'Q1', revenue: 40, cost: 25, margin: 15, profit: 10 },
+					{ quarter: 'Q2', revenue: 80, cost: 30, margin: 50, profit: 20 },
+				]}
+				series={[
+					{ xKey: 'quarter', yKey: 'revenue' },
+					{ xKey: 'quarter', yKey: 'cost' },
+					{ xKey: 'quarter', yKey: 'margin' },
+					{ xKey: 'quarter', yKey: 'profit' },
+				]}
+				width={400}
+				texture
+			/>,
+		)
+
+		const patterns = [...container.querySelectorAll('[data-slot="chart-legend"] pattern')]
+
+		const pathOf = (p: Element) => p.querySelector('path')?.getAttribute('d')
+
+		// The tile draws each axis-aligned line down its own centre (TILE/2 = 4)...
+		const vertical = patterns.find((p) => pathOf(p) === 'M4,0 V8')
+
+		const horizontal = patterns.find((p) => pathOf(p) === 'M0,4 H8')
+
+		expect(vertical).toBeTruthy()
+
+		expect(horizontal).toBeTruthy()
+
+		// ...and the swatch shifts the narrower tile so that centre lands at the
+		// box centre (SWATCH_BOX/2 − TILE/2 = 2), not the tile's edge.
+		expect(vertical?.getAttribute('patternTransform')).toBe('translate(2 2)')
+
+		expect(horizontal?.getAttribute('patternTransform')).toBe('translate(2 2)')
+
+		// A diagonal slot keeps its rotation and takes no centring shift.
+		const diagonal = patterns.find((p) => p.getAttribute('patternTransform') === 'rotate(45)')
+
+		expect(diagonal).toBeTruthy()
+	})
+
 	it('textures the pie slices too', () => {
 		const { container } = renderUI(
 			<PieChart

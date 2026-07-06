@@ -3,7 +3,7 @@
 import { motion } from 'motion/react'
 import { cn } from '../../core'
 import type { BarMark } from './bar-chart/bar-chart-geometry'
-import { BAR_GROW, BAR_STAGGER } from './chart-constants'
+import { BAR_GROW, BAR_STAGGER, barGrow } from './chart-motion'
 import type { ChartOrientation } from './chart-orientation'
 import { textureClass, textureStyle } from './chart-pattern-defs'
 import type { SeriesPaint } from './chart-series'
@@ -40,19 +40,6 @@ function barClass(
 		dim && 'opacity-25',
 		textureClass(active, fill),
 	)
-}
-
-/**
- * The mount grow for one bar: it scales in along the value axis from its
- * baseline end — up y for vertical (origin the bottom of a positive bar), out x
- * for horizontal (origin the left of a positive bar).
- *
- * @internal
- */
-function barGrow(orientation: ChartOrientation, positive: boolean) {
-	return orientation === 'vertical'
-		? { initial: { scaleY: 0 }, animate: { scaleY: 1 }, style: { originY: positive ? 1 : 0 } }
-		: { initial: { scaleX: 0 }, animate: { scaleX: 1 }, style: { originX: positive ? 0 : 1 } }
 }
 
 /** The plain-SVG bars: the cheap default with no motion runtime work. @internal */

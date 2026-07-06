@@ -205,7 +205,8 @@ export type ChartBaseProps<T> = AccessibleName & {
 	 */
 	tooltip?: boolean
 	/**
-	 * Animate the marks in on mount with Framer Motion, honouring
+	 * Animate the marks in on mount with Framer Motion — and, where present, the
+	 * reference rules rising along the value axis to their values — honouring
 	 * `prefers-reduced-motion` through the `ReducedMotion` primitive. Off by
 	 * default — a static dashboard of charts stays a plain-SVG tree with no
 	 * motion runtime work.

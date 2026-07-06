@@ -12,7 +12,11 @@ const DATA = [
 
 const SERIES = [{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' }] as const
 
-function bar(reference?: ChartReferenceLine[], orientation?: 'vertical' | 'horizontal') {
+function bar(
+	reference?: ChartReferenceLine[],
+	orientation?: 'vertical' | 'horizontal',
+	animate?: boolean,
+) {
 	return renderUI(
 		<BarChart
 			aria-label="Revenue by month"
@@ -21,6 +25,7 @@ function bar(reference?: ChartReferenceLine[], orientation?: 'vertical' | 'horiz
 			width={400}
 			orientation={orientation}
 			reference={reference}
+			animate={animate}
 		/>,
 	)
 }
@@ -28,6 +33,15 @@ function bar(reference?: ChartReferenceLine[], orientation?: 'vertical' | 'horiz
 /** The visible rule is the first line in a reference group; the hover target is the second. */
 function rule(container: HTMLElement): SVGLineElement | null {
 	return bySlot(container, 'chart-reference-line')?.querySelector('line') ?? null
+}
+
+/**
+ * The animated rule wraps its lines in a motion group; the mock surfaces its
+ * value-axis enter offset as `data-initial-x` / `data-initial-y`. Absent under a
+ * static chart, where the lines sit directly in the rule group.
+ */
+function riseWrapper(container: HTMLElement): SVGGElement | null {
+	return bySlot(container, 'chart-reference-line')?.querySelector('g') ?? null
 }
 
 function hitTarget(container: HTMLElement): SVGLineElement | null {
@@ -197,6 +211,152 @@ describe('reference lines', () => {
 		expect(allBySlot(container, 'chart-reference-line')).toHaveLength(1)
 
 		expect(bySlot(container, 'chart-reference-list')?.textContent).toContain('Goal')
+	})
+
+	it('reveals an above-baseline rule upward when animating vertically', () => {
+		const { container } = bar([{ value: 50 }], 'vertical', true)
+
+		// Value 50 sits above the zero baseline, so the rule seats at the baseline
+		// and rises up to it — a positive enter offset.
+		expect(Number(riseWrapper(container)?.getAttribute('data-initial-y'))).toBeGreaterThan(0)
+	})
+
+	it('reveals a below-baseline rule downward, the way its bar would point', () => {
+		const { container } = bar([{ value: -20 }], 'vertical', true)
+
+		// A value below zero points its bar down, so the rule drops from the
+		// baseline to it — a negative enter offset — not up from the plot floor.
+		expect(Number(riseWrapper(container)?.getAttribute('data-initial-y'))).toBeLessThan(0)
+	})
+
+	it('reveals an above-baseline rule rightward when animating horizontally', () => {
+		const { container } = bar([{ value: 50 }], 'horizontal', true)
+
+		// Value 50 sits right of the baseline, so the rule seats at the baseline and
+		// slides right to it — a negative enter offset.
+		expect(Number(riseWrapper(container)?.getAttribute('data-initial-x'))).toBeLessThan(0)
+	})
+
+	it('reveals a below-baseline rule leftward under horizontal orientation', () => {
+		const { container } = bar([{ value: -20 }], 'horizontal', true)
+
+		// A value below zero points its bar left, so the rule slides left from the
+		// baseline — a positive enter offset.
+		expect(Number(riseWrapper(container)?.getAttribute('data-initial-x'))).toBeGreaterThan(0)
+	})
+
+	it('leaves the rule static without animate, no motion wrapper', () => {
+		const { container } = bar([{ value: 50 }])
+
+		expect(riseWrapper(container)).toBeNull()
+	})
+})
+
+describe('reference line keyboard navigation', () => {
+	const marksClass = (container: HTMLElement) =>
+		bySlot(container, 'chart-marks')?.getAttribute('class') ?? ''
+
+	// The rule's floating readout, found by its swatch — the swatch renders only
+	// inside the tooltip, so its presence proves the rule opened one. Queried off
+	// the document since the surface portals out of the plot.
+	const referenceTooltip = () =>
+		document
+			.querySelector('[data-slot="chart-reference-swatch"]')
+			?.closest('[data-slot="tooltip-content"]') ?? null
+
+	it('roves onto the rule, receding the marks and floating its tooltip', async () => {
+		const { container } = bar([{ value: 60, label: 'Goal' }])
+
+		const plot = bySlot(container, 'chart-plot') as HTMLElement
+
+		// The first arrow enters at the first bar; the marks stay lit and no rule
+		// tooltip floats yet.
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		expect(marksClass(container)).not.toContain('opacity-25')
+
+		expect(referenceTooltip()).toBeNull()
+
+		// The value-axis arrow steps onto the rule: the marks recede and the rule
+		// floats the same value-and-label readout pointing it would — focusing reads
+		// exactly like hovering.
+		fireEvent.keyDown(plot, { key: 'ArrowDown' })
+
+		expect(marksClass(container)).toContain('opacity-25')
+
+		expect(bySlot(container, 'chart-reference-line')?.getAttribute('data-focused')).toBe('true')
+
+		await waitFor(() => expect(referenceTooltip()).not.toBeNull())
+
+		expect(referenceTooltip()?.textContent).toContain('60')
+
+		expect(referenceTooltip()?.textContent).toContain('Goal')
+	})
+
+	it('restores the marks stepping back off the rule', async () => {
+		const { container } = bar([{ value: 60 }])
+
+		const plot = bySlot(container, 'chart-plot') as HTMLElement
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		fireEvent.keyDown(plot, { key: 'ArrowDown' })
+
+		await waitFor(() => expect(referenceTooltip()).not.toBeNull())
+
+		expect(marksClass(container)).toContain('opacity-25')
+
+		// One more step leaves the rule for the next series point: the marks light back
+		// up and the rule surrenders its focus, closing the tooltip with it.
+		fireEvent.keyDown(plot, { key: 'ArrowDown' })
+
+		expect(marksClass(container)).not.toContain('opacity-25')
+
+		expect(bySlot(container, 'chart-reference-line')?.getAttribute('data-focused')).toBeNull()
+	})
+
+	it('releases the emphasis on Escape', async () => {
+		const { container } = bar([{ value: 60 }])
+
+		const plot = bySlot(container, 'chart-plot') as HTMLElement
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		fireEvent.keyDown(plot, { key: 'ArrowDown' })
+
+		await waitFor(() => expect(referenceTooltip()).not.toBeNull())
+
+		expect(marksClass(container)).toContain('opacity-25')
+
+		fireEvent.keyDown(plot, { key: 'Escape' })
+
+		expect(marksClass(container)).not.toContain('opacity-25')
+
+		expect(bySlot(container, 'chart-reference-line')?.getAttribute('data-focused')).toBeNull()
+	})
+
+	it('transposes the roving with orientation — the value axis reaches the rule', async () => {
+		const { container } = bar([{ value: 60 }], 'horizontal')
+
+		const plot = bySlot(container, 'chart-plot') as HTMLElement
+
+		// Down the band axis walks categories under horizontal orientation and never
+		// touches the rule.
+		fireEvent.keyDown(plot, { key: 'ArrowDown' })
+
+		fireEvent.keyDown(plot, { key: 'ArrowDown' })
+
+		expect(marksClass(container)).not.toContain('opacity-25')
+
+		expect(referenceTooltip()).toBeNull()
+
+		// The horizontal value-axis arrow roves onto the rule: marks recede, tooltip
+		// floats.
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		expect(marksClass(container)).toContain('opacity-25')
+
+		await waitFor(() => expect(referenceTooltip()).not.toBeNull())
 	})
 })
 

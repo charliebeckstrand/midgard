@@ -13,22 +13,34 @@ import type { ChartHover } from './context'
  * series sharing a value keep two coincident stops, never one, so the cursor
  * visits each of them.
  *
+ * `references` carries the reference lines: their value-axis screen positions,
+ * band-independent because a rule spans every category. They intersperse into
+ * the value-axis roving in screen order — a stop the cursor visits alongside the
+ * series' points, receding the marks to the rule the way pointing it does — and
+ * index-align with the drawn rules so an active one can be named. A `null` slot
+ * holds a rule's place without a stop, keeping the finite rules at the indices
+ * they draw at.
+ *
  * @internal
  */
 export type ChartFocusTargets = {
 	points: Vec[][]
+	references?: (number | null)[]
 }
 
 /**
  * The keyboard focus cursor: a category crossed with one of its stops. `value`
- * indexes the stops at `category`, so stepping it walks that category's series —
- * coincident points included.
+ * indexes the series stops at `category`, so stepping it walks that category's
+ * series — coincident points included. `reference`, when set, parks the cursor
+ * on that reference line at `category`'s band instead; `value` rides along as the
+ * series lane to return to when the value axis steps back off the rule.
  *
  * @internal
  */
 export type ChartCursor = {
 	category: number
 	value: number
+	reference?: number
 }
 
 /** The number of stops at a category, `0` when it has none. @internal */
@@ -75,10 +87,16 @@ function stepCategory(targets: ChartFocusTargets, from: number, dir: 1 | -1): nu
 	return from
 }
 
+/** Whether a reference index names a live (finite) reference stop. @internal */
+function isReferenceStop(targets: ChartFocusTargets, reference: number | undefined): boolean {
+	return reference !== undefined && targets.references?.[reference] != null
+}
+
 /**
  * Snaps a cursor into range against the current targets: a category with no
  * stops falls to the first focusable one, and the value index clamps to that
- * category's count. Returns `null` when nothing is focusable.
+ * category's count. A `reference` that no longer names a live rule drops, leaving
+ * the cursor on its series lane. Returns `null` when nothing is focusable.
  *
  * @internal
  */
@@ -98,11 +116,21 @@ export function clampCursor(
 
 	if (category === -1) return null
 
-	return { category, value: Math.max(0, Math.min(cursor.value, pointCount(targets, category) - 1)) }
+	const value = Math.max(0, Math.min(cursor.value, pointCount(targets, category) - 1))
+
+	return isReferenceStop(targets, cursor.reference)
+		? { category, value, reference: cursor.reference }
+		: { category, value }
 }
 
-/** The frame point a cursor anchors to, or `null` when it falls off the targets. @internal */
+/**
+ * The frame point a cursor anchors to, or `null` when it falls off the targets.
+ * A cursor parked on a reference line has no series anchor — the rule owns the
+ * emphasis instead — so it reads `null`. @internal
+ */
 export function cursorPoint(cursor: ChartCursor, targets: ChartFocusTargets): Vec | null {
+	if (cursor.reference !== undefined) return null
+
 	return targets.points[cursor.category]?.[cursor.value] ?? null
 }
 
@@ -110,7 +138,9 @@ export function cursorPoint(cursor: ChartCursor, targets: ChartFocusTargets): Ve
  * Builds cartesian focus targets: each category's visible value positions
  * projected onto the frame through the orientation, so the stored anchors match
  * the marks. Values arrive in series order and stay that way — the cursor sorts
- * them into screen order only when it steps.
+ * them into screen order only when it steps. `references` are the reference
+ * lines' value-axis positions, kept band-independent and carried through
+ * untouched so they rove alongside the series stops at every category.
  *
  * @internal
  */
@@ -118,6 +148,7 @@ export function cartesianFocus(
 	bandPositions: number[],
 	valuePoints: number[][],
 	orientation: ChartOrientation,
+	references?: (number | null)[],
 ): ChartFocusTargets {
 	return {
 		points: valuePoints.map((values, index) => {
@@ -125,6 +156,7 @@ export function cartesianFocus(
 
 			return band === undefined ? [] : values.map((value) => project(orientation, value, band))
 		}),
+		...(references && references.length > 0 ? { references } : {}),
 	}
 }
 
@@ -176,37 +208,85 @@ export type CursorMove = {
 }
 
 /**
- * The value index one step `dir` from `value`, ordered by the points' screen
- * position along the value axis rather than the series order they arrive in, so
- * an arrow moves the cursor the way it points — down a vertical chart, right a
- * horizontal one — through the marks as drawn. Coincident values (series that
- * overlap) tie-break by index, staying distinct, reachable stops; the step wraps
- * at the ends.
+ * A value-axis stop: a category's series point (`data`) or a reference line
+ * (`ref`), each at its screen position along the value axis. `index` addresses
+ * the kind's own list — a series lane or a `references` slot. @internal
+ */
+type Stop = { kind: 'data' | 'ref'; index: number; pos: number }
+
+/**
+ * A category's value-axis stops in screen order: its series points crossed with
+ * every reference line, sorted by their value-axis position so an arrow steps
+ * through them the way it points — down a vertical chart, right a horizontal one.
+ * Coincident stops tie-break to a stable order, series before a rule sharing the
+ * value, so overlapping stops stay distinct and reachable.
  *
  * @internal
  */
-function stepValue(
-	points: Vec[],
-	value: number,
+function orderedStops(
+	targets: ChartFocusTargets,
+	category: number,
+	orientation: ChartOrientation,
+): Stop[] {
+	const data: Stop[] = (targets.points[category] ?? []).map((point, index) => ({
+		kind: 'data',
+		index,
+		pos: valueCoord(orientation, point),
+	}))
+
+	const refs: Stop[] = (targets.references ?? []).flatMap((pos, index) =>
+		pos == null ? [] : [{ kind: 'ref', index, pos }],
+	)
+
+	const tier = (stop: Stop) => (stop.kind === 'data' ? 0 : 1)
+
+	return [...data, ...refs].sort((a, b) => a.pos - b.pos || tier(a) - tier(b) || a.index - b.index)
+}
+
+/**
+ * The cursor one step `dir` along the value axis, walking the category's stops —
+ * series points and reference lines alike — in screen order rather than the
+ * order they arrive in. Landing on a reference line parks the cursor there while
+ * keeping its series lane; landing on a series point clears the parking. The step
+ * wraps at the ends.
+ *
+ * @internal
+ */
+function stepStop(
+	targets: ChartFocusTargets,
+	cursor: ChartCursor,
 	dir: 1 | -1,
 	orientation: ChartOrientation,
-): number {
-	const order = points
-		.map((point, index) => ({ pos: valueCoord(orientation, point), index }))
-		.sort((a, b) => a.pos - b.pos || a.index - b.index)
+): ChartCursor {
+	const stops = orderedStops(targets, cursor.category, orientation)
 
-	const rank = order.findIndex((entry) => entry.index === value)
+	if (stops.length === 0) return cursor
 
-	return order[(rank + dir + order.length) % order.length]?.index ?? value
+	const onReference = cursor.reference !== undefined
+
+	const rank = stops.findIndex((stop) =>
+		onReference
+			? stop.kind === 'ref' && stop.index === cursor.reference
+			: stop.kind === 'data' && stop.index === cursor.value,
+	)
+
+	const next = stops[(Math.max(rank, 0) + dir + stops.length) % stops.length]
+
+	if (!next) return cursor
+
+	return next.kind === 'ref'
+		? { category: cursor.category, value: cursor.value, reference: next.index }
+		: { category: cursor.category, value: next.index }
 }
 
 /**
  * Resolves a keypress to the next cursor. The band axis arrows move to the
- * neighbouring category, keeping the value lane where it exists; the value axis
- * arrows step through the current category's value points in screen order —
- * visiting every visible series, coincident values included — so a chart whose
- * series overlap still steps through each of them. Unhandled keys pass through
- * untouched.
+ * neighbouring category, keeping the value lane where it exists and sliding a
+ * parked reference line along to the new band; the value axis arrows step through
+ * the current category's stops in screen order — every visible series, coincident
+ * values included, and the reference lines interspersed among them — so a rule
+ * roves alongside the data and receding the marks reads as one gesture. Unhandled
+ * keys pass through untouched.
  *
  * @internal
  */
@@ -227,10 +307,15 @@ export function moveCursor(
 	if (!base) return { handled: true, cursor: null }
 
 	// Carry the value lane onto the destination category, clamped to its count so
-	// a shorter category never strands the cursor past its last point.
+	// a shorter category never strands the cursor past its last point; a parked
+	// reference line rides along, since a rule spans every band.
 	const onCategory = (category: number): CursorMove => ({
 		handled: true,
-		cursor: { category, value: Math.min(base.value, pointCount(targets, category) - 1) },
+		cursor: {
+			category,
+			value: Math.min(base.value, pointCount(targets, category) - 1),
+			...(base.reference !== undefined ? { reference: base.reference } : {}),
+		},
 	})
 
 	switch (action) {
@@ -243,21 +328,9 @@ export function moveCursor(
 		case 'last':
 			return onCategory(edgeCategory(targets, 1))
 		case 'value+':
-			return {
-				handled: true,
-				cursor: {
-					category: base.category,
-					value: stepValue(targets.points[base.category] ?? [], base.value, 1, orientation),
-				},
-			}
+			return { handled: true, cursor: stepStop(targets, base, 1, orientation) }
 		case 'value-':
-			return {
-				handled: true,
-				cursor: {
-					category: base.category,
-					value: stepValue(targets.points[base.category] ?? [], base.value, -1, orientation),
-				},
-			}
+			return { handled: true, cursor: stepStop(targets, base, -1, orientation) }
 	}
 }
 
@@ -276,8 +349,11 @@ export type ChartKeyboardProps = {
  * first arrow reads the first data point; from there the band axis arrows walk
  * categories, the value axis arrows step the series' value points at a category
  * in screen order (visiting each series, coincident values included), Home / End
- * jump to the ends, and Escape drops focus. Leaving after navigating clears the
- * readout; a
+ * jump to the ends, and Escape drops focus. Reference lines join the value-axis
+ * roving as their own stops: landing on one recedes the marks to it — the same
+ * emphasis pointing it applies — and drops the series readout, so the rule reads
+ * against a quieted field; stepping off restores it. Leaving after navigating
+ * clears the readout; a
  * pointer-only focus leaves the pointer's readout alone. Escape drops focus to
  * the body, then re-arms the region as the next Tab's destination, so tabbing
  * back in returns to the chart the reader just left rather than stepping to the
@@ -285,10 +361,11 @@ export type ChartKeyboardProps = {
  * stop — when navigation is off or the chart carries no value point, leaving the
  * region the plain `role="img"` it was.
  *
- * @param targets - The per-category anchor points to navigate, or `undefined` on a chart with none.
+ * @param targets - The per-category anchor points and reference stops to navigate, or `undefined` on a chart with none.
  * @param orientation - Which screen axis the value runs along, so the arrows map to the right axes and steps sort in screen order.
  * @param enabled - Whether a readout is mounted to answer the cursor — the tooltip that makes navigation legible.
  * @param set - The hover context's setter, moved to the cursor's anchor on each step.
+ * @param setReference - The emphasis setter, moved to the reference line the cursor parks on, or `null` off it.
  * @internal
  */
 export function useChartKeyboard(
@@ -296,6 +373,7 @@ export function useChartKeyboard(
 	orientation: ChartOrientation,
 	enabled: boolean,
 	set: ChartHover['set'],
+	setReference: (reference: number | null) => void,
 ): ChartKeyboardProps | null {
 	const [cursor, setCursor] = useState<ChartCursor | null>(null)
 
@@ -308,9 +386,29 @@ export function useChartKeyboard(
 
 	const active = enabled && targets !== undefined && hasFocusTargets(targets)
 
-	// Move the cursor and carry the hover to its anchor, or clear both.
+	// Release any reference emphasis the cursor held once navigation switches off —
+	// the rules removed, the tooltip unmounted — so a stale dim never lingers.
+	useEffect(() => {
+		if (!active) setReference(null)
+	}, [active, setReference])
+
+	// A reference line the cursor parks on owns the emphasis, not the marks: recede
+	// the field and drop the series readout so the rule reads alone. Anywhere else,
+	// carry the hover to the cursor's anchor and clear the emphasis, or clear both.
 	const show = (next: ChartCursor | null) => {
 		setCursor(next)
+
+		const reference = next?.reference
+
+		if (reference !== undefined && targets?.references?.[reference] != null) {
+			setReference(reference)
+
+			set(null, null)
+
+			return
+		}
+
+		setReference(null)
 
 		const point = next && targets ? cursorPoint(next, targets) : null
 

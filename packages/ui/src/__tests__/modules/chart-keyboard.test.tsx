@@ -181,6 +181,107 @@ describe('chart keyboard cursor', () => {
 	})
 })
 
+// One category, two series at y 20 and 80, and a reference line at y 50 sitting
+// between them — the stop the cursor must reach along the value axis.
+const REF = cartesianFocus([10], [[20, 80]], 'vertical', [50])
+
+// Two categories carrying the same reference line, so band steps can slide along it.
+const REF_SPAN = cartesianFocus(
+	[10, 20],
+	[
+		[20, 80],
+		[30, 70],
+	],
+	'vertical',
+	[50],
+)
+
+describe('chart keyboard cursor with reference lines', () => {
+	it('carries the reference positions onto the targets, and omits them without any', () => {
+		expect(REF.references).toEqual([50])
+
+		expect(cartesianFocus([10], [[20]], 'vertical').references).toBeUndefined()
+	})
+
+	it('enters at the first data point, never a reference line', () => {
+		expect(firstCursor(REF)).toEqual({ category: 0, value: 0 })
+	})
+
+	it('steps onto a reference line in screen order, parking the cursor there', () => {
+		// From the top series (y 20) the next stop down is the rule (y 50), not the
+		// bottom series (y 80): the arrow steps the way it points, rule included.
+		expect(moveCursor({ category: 0, value: 0 }, 'ArrowDown', REF, 'vertical')).toEqual({
+			handled: true,
+			cursor: { category: 0, value: 0, reference: 0 },
+		})
+
+		// Stepping past the rule lands on the bottom series, clearing the parking.
+		expect(
+			moveCursor({ category: 0, value: 0, reference: 0 }, 'ArrowDown', REF, 'vertical'),
+		).toEqual({ handled: true, cursor: { category: 0, value: 1 } })
+
+		// The reverse arrow climbs from the bottom series back onto the rule, keeping
+		// the series lane it left so a later band step still has one.
+		expect(moveCursor({ category: 0, value: 1 }, 'ArrowUp', REF, 'vertical')).toEqual({
+			handled: true,
+			cursor: { category: 0, value: 1, reference: 0 },
+		})
+	})
+
+	it('reaches a reference line that coincides with a series value', () => {
+		// The rule shares the series' value; the tie keeps both stops, series first,
+		// so the coincident rule is still a step away rather than swallowed.
+		const shared = cartesianFocus([10], [[50]], 'vertical', [50])
+
+		expect(moveCursor({ category: 0, value: 0 }, 'ArrowDown', shared, 'vertical')).toEqual({
+			handled: true,
+			cursor: { category: 0, value: 0, reference: 0 },
+		})
+	})
+
+	it('slides a parked reference along the band axis, keeping the series lane', () => {
+		expect(
+			moveCursor({ category: 0, value: 0, reference: 0 }, 'ArrowRight', REF_SPAN, 'vertical'),
+		).toEqual({ handled: true, cursor: { category: 1, value: 0, reference: 0 } })
+	})
+
+	it('transposes the reference roving onto the horizontal value axis', () => {
+		// Horizontal puts value on x, so the rule sits between the series along x and
+		// the horizontal arrows — not the vertical ones — rove onto it.
+		const horizontal = cartesianFocus([10], [[20, 80]], 'horizontal', [50])
+
+		expect(moveCursor({ category: 0, value: 0 }, 'ArrowRight', horizontal, 'horizontal')).toEqual({
+			handled: true,
+			cursor: { category: 0, value: 0, reference: 0 },
+		})
+
+		// The vertical arrow steps the band instead, never touching the rule.
+		expect(moveCursor({ category: 0, value: 0 }, 'ArrowDown', horizontal, 'horizontal')).toEqual({
+			handled: true,
+			cursor: { category: 0, value: 0 },
+		})
+	})
+
+	it('drops a reference the targets no longer carry, keeping the series lane', () => {
+		expect(clampCursor({ category: 0, value: 1, reference: 5 }, REF)).toEqual({
+			category: 0,
+			value: 1,
+		})
+
+		expect(clampCursor({ category: 0, value: 0, reference: 0 }, REF)).toEqual({
+			category: 0,
+			value: 0,
+			reference: 0,
+		})
+	})
+
+	it('reads no series anchor for a cursor parked on a reference line', () => {
+		expect(cursorPoint({ category: 0, value: 0, reference: 0 }, REF)).toBeNull()
+
+		expect(cursorPoint({ category: 0, value: 0 }, REF)).toEqual({ x: 10, y: 20 })
+	})
+})
+
 const DATA = [
 	{ week: 'W1', a: 10, b: 90 },
 	{ week: 'W2', a: 30, b: 70 },
