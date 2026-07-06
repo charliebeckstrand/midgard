@@ -12,7 +12,11 @@ const DATA = [
 
 const SERIES = [{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' }] as const
 
-function bar(reference?: ChartReferenceLine[], orientation?: 'vertical' | 'horizontal') {
+function bar(
+	reference?: ChartReferenceLine[],
+	orientation?: 'vertical' | 'horizontal',
+	animate?: boolean,
+) {
 	return renderUI(
 		<BarChart
 			aria-label="Revenue by month"
@@ -21,6 +25,7 @@ function bar(reference?: ChartReferenceLine[], orientation?: 'vertical' | 'horiz
 			width={400}
 			orientation={orientation}
 			reference={reference}
+			animate={animate}
 		/>,
 	)
 }
@@ -28,6 +33,15 @@ function bar(reference?: ChartReferenceLine[], orientation?: 'vertical' | 'horiz
 /** The visible rule is the first line in a reference group; the hover target is the second. */
 function rule(container: HTMLElement): SVGLineElement | null {
 	return bySlot(container, 'chart-reference-line')?.querySelector('line') ?? null
+}
+
+/**
+ * The animated rule wraps its lines in a motion group; the mock surfaces its
+ * value-axis enter offset as `data-initial-x` / `data-initial-y`. Absent under a
+ * static chart, where the lines sit directly in the rule group.
+ */
+function riseWrapper(container: HTMLElement): SVGGElement | null {
+	return bySlot(container, 'chart-reference-line')?.querySelector('g') ?? null
 }
 
 function hitTarget(container: HTMLElement): SVGLineElement | null {
@@ -197,5 +211,25 @@ describe('reference lines', () => {
 		expect(allBySlot(container, 'chart-reference-line')).toHaveLength(1)
 
 		expect(bySlot(container, 'chart-reference-list')?.textContent).toContain('Goal')
+	})
+
+	it('rises each rule from the bottom when the chart animates vertically', () => {
+		const { container } = bar([{ value: 50 }], 'vertical', true)
+
+		// A positive y offset seats the rule below its value, so it slides up to rest.
+		expect(Number(riseWrapper(container)?.getAttribute('data-initial-y'))).toBeGreaterThan(0)
+	})
+
+	it('slides each rule in from the left when the chart animates horizontally', () => {
+		const { container } = bar([{ value: 50 }], 'horizontal', true)
+
+		// A negative x offset seats the rule left of its value, so it slides right to rest.
+		expect(Number(riseWrapper(container)?.getAttribute('data-initial-x'))).toBeLessThan(0)
+	})
+
+	it('leaves the rule static without animate, no motion wrapper', () => {
+		const { container } = bar([{ value: 50 }])
+
+		expect(riseWrapper(container)).toBeNull()
 	})
 })

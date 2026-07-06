@@ -37,11 +37,14 @@ function stripMotionProps(props: Record<string, unknown>) {
 		if (!MOTION_PROPS.has(k)) clean[k] = v
 	}
 
-	// Surfaces the vertical enter offset as `data-initial-y`, making the
-	// position → slide-direction mapping observable (e.g. ToastAlert). Harmless
-	// elsewhere: only emitted when an `initial.y` is present, and nothing
+	// Surfaces the enter offset as `data-initial-x` / `data-initial-y`, making the
+	// position → slide-direction mapping observable (e.g. ToastAlert's vertical
+	// slide, the chart reference rules' value-axis rise). Harmless elsewhere: each
+	// is emitted only when that axis's `initial` offset is present, and nothing
 	// asserts its absence.
-	const initial = props.initial as { y?: unknown } | undefined
+	const initial = props.initial as { x?: unknown; y?: unknown } | undefined
+
+	if (initial?.x !== undefined) clean['data-initial-x'] = String(initial.x)
 
 	if (initial?.y !== undefined) clean['data-initial-y'] = String(initial.y)
 

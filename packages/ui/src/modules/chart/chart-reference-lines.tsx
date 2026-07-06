@@ -1,11 +1,20 @@
 'use client'
 
+import { motion } from 'motion/react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
 import { cn } from '../../core'
+import { ReducedMotion } from '../../primitives/reduced-motion'
 import { type ChartSeriesColor, k } from '../../recipes/kata/chart'
 import { REFERENCE_DASH, REFERENCE_HIT_WIDTH, REFERENCE_STROKE_WIDTH } from './chart-constants'
 import type { PlotRect } from './chart-layout'
-import { bandExtent, type ChartOrientation, project, type Vec } from './chart-orientation'
+import { REFERENCE_RISE, referenceRise } from './chart-motion'
+import {
+	bandExtent,
+	type ChartOrientation,
+	project,
+	type Vec,
+	valueExtent,
+} from './chart-orientation'
 import type { LinearScale } from './chart-scale'
 import type { ChartReferenceLine } from './chart-schema'
 import { formatChartValue } from './chart-series'
@@ -34,6 +43,14 @@ export type ChartReferenceLinesProps = {
 	orientation?: ChartOrientation
 	/** Formats the value shown in the hover tooltip. @defaultValue locale integer / fraction */
 	format?: (value: number) => string
+	/**
+	 * Reveal each rule on mount by sliding it in along the value axis from the
+	 * baseline to its value — up from the bottom when vertical, in from the left
+	 * when horizontal — the same beat as the marks. Honours
+	 * `prefers-reduced-motion` through {@link ReducedMotion}.
+	 * @defaultValue false
+	 */
+	animate?: boolean
 }
 
 /** Props for {@link ReferenceRule}. @internal */
@@ -43,6 +60,8 @@ type ReferenceRuleProps = {
 	end: Vec
 	orientation: ChartOrientation
 	format: (value: number) => string
+	/** The mount slide-in transform from {@link referenceRise}, or `null` when the chart is static. */
+	rise: ReturnType<typeof referenceRise> | null
 }
 
 /**
@@ -55,7 +74,7 @@ type ReferenceRuleProps = {
  *
  * @internal
  */
-function ReferenceRule({ line, start, end, orientation, format }: ReferenceRuleProps) {
+function ReferenceRule({ line, start, end, orientation, format, rise }: ReferenceRuleProps) {
 	const { setReferenceActive } = useChartEmphasis()
 
 	const color = line.color ?? DEFAULT_REFERENCE_COLOR
@@ -63,6 +82,28 @@ function ReferenceRule({ line, start, end, orientation, format }: ReferenceRuleP
 	const slot = isSeriesSlot(color)
 
 	const points = { x1: start.x, y1: start.y, x2: end.x, y2: end.y }
+
+	// The drawn rule over its wide transparent hover target; the pair reveals as
+	// one, so the hit line rises with the rule it stands in for.
+	const rules = (
+		<>
+			<line
+				{...points}
+				strokeWidth={REFERENCE_STROKE_WIDTH}
+				strokeDasharray={line.dashed === false ? undefined : REFERENCE_DASH}
+				className={slot ? cn(k.series[color].stroke) : undefined}
+				style={slot ? undefined : { stroke: color }}
+				pointerEvents="none"
+			/>
+
+			<line
+				{...points}
+				stroke="transparent"
+				strokeWidth={REFERENCE_HIT_WIDTH}
+				pointerEvents="stroke"
+			/>
+		</>
+	)
 
 	return (
 		<Tooltip placement={orientation === 'vertical' ? 'top' : 'right'} delay={0} size="sm">
@@ -74,21 +115,13 @@ function ReferenceRule({ line, start, end, orientation, format }: ReferenceRuleP
 					onPointerEnter={() => setReferenceActive(true)}
 					onPointerLeave={() => setReferenceActive(false)}
 				>
-					<line
-						{...points}
-						strokeWidth={REFERENCE_STROKE_WIDTH}
-						strokeDasharray={line.dashed === false ? undefined : REFERENCE_DASH}
-						className={slot ? cn(k.series[color].stroke) : undefined}
-						style={slot ? undefined : { stroke: color }}
-						pointerEvents="none"
-					/>
-
-					<line
-						{...points}
-						stroke="transparent"
-						strokeWidth={REFERENCE_HIT_WIDTH}
-						pointerEvents="stroke"
-					/>
+					{rise ? (
+						<motion.g {...rise} transition={REFERENCE_RISE}>
+							{rules}
+						</motion.g>
+					) : (
+						rules
+					)}
 				</g>
 			</TooltipTrigger>
 
@@ -122,7 +155,9 @@ function ReferenceRule({ line, start, end, orientation, format }: ReferenceRuleP
  * @remarks Self-gating: a chart mounts it unconditionally and it draws nothing
  * until both a scale and reference lines exist, so the gate lives here instead
  * of at every call site. Render it last, over the hit area, so the rules win
- * the pointer where they sit.
+ * the pointer where they sit. Under `animate` each rule rises along the value
+ * axis from the baseline to its value — {@link referenceRise} — inside a
+ * {@link ReducedMotion} that settles it at rest for a reduced-motion preference.
  * @internal
  */
 export function ChartReferenceLines({
@@ -131,14 +166,19 @@ export function ChartReferenceLines({
 	reference,
 	orientation = 'vertical',
 	format,
+	animate = false,
 }: ChartReferenceLinesProps) {
 	if (!scale || !reference || reference.length === 0) return null
 
 	const [from, to] = bandExtent(orientation, plot)
 
+	// The value-axis edge a rule rises from — the plot's bottom when vertical,
+	// its left when horizontal — measured once for every rule.
+	const near = valueExtent(orientation, plot)[0]
+
 	const resolvedFormat = format ?? formatChartValue
 
-	return (
+	const group = (
 		<g data-slot="chart-reference-lines">
 			{reference.map((line) => {
 				if (!Number.isFinite(line.value)) return null
@@ -153,11 +193,14 @@ export function ChartReferenceLines({
 						end={project(orientation, at, to)}
 						orientation={orientation}
 						format={resolvedFormat}
+						rise={animate ? referenceRise(orientation, near - at) : null}
 					/>
 				)
 			})}
 		</g>
 	)
+
+	return animate ? <ReducedMotion>{group}</ReducedMotion> : group
 }
 
 /** Props for {@link ChartReferenceList}. @internal */
