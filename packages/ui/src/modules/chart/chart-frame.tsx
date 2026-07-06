@@ -67,9 +67,9 @@ export type ChartFrameProps = AccessibleName & {
 	/** The prepared legend row, or `null` to omit it (single series). */
 	legend: ReactNode
 	/**
-	 * Where the legend sits: a left-aligned row under or above the plot, or a
-	 * static panel beside it — side by side from `sm`, always under the chart
-	 * below it.
+	 * Where the legend sits: a row under or above the plot — centered on
+	 * mobile, left-aligned from `sm` — or a static panel beside it, side by
+	 * side from `sm` and always under the chart below that.
 	 * @defaultValue 'bottom'
 	 */
 	legendPlacement?: ChartLegendPlacement

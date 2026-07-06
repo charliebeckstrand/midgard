@@ -258,7 +258,7 @@ export function ChartLegend({
 			className={cn(
 				panel
 					? 'flex min-w-0 flex-col items-start sm:max-w-[50%]'
-					: 'flex flex-wrap items-center justify-start',
+					: 'flex flex-wrap items-center justify-center sm:justify-start',
 			)}
 		>
 			{pageItems.map((item) => {
@@ -311,7 +311,10 @@ export function ChartLegend({
 						variant="plain"
 						data-slot="chart-legend-item"
 						block={panel}
-						className={cn(panel && 'min-w-0')}
+						// Button's own base centers its content; a panel entry stretches
+						// to `w-full` so every row can align its swatch to the same edge,
+						// not center a shorter row's content under a longer one's.
+						className={cn(panel && 'min-w-0 justify-start')}
 						aria-pressed={!off}
 						onClick={() => onToggle(item.index)}
 						onPointerEnter={() => {
