@@ -963,11 +963,11 @@ const ServerInfiniteScrollExample = () => {
 	)
 }
 
-// The opt-in `footer` summary bar renders only the settings it's given. `rowTotal`
-// counts the full filtered extent (search below narrows it to "N of M rows"),
-// `selectedTotal` shows the live selection count, and `content` receives those
-// counts to render a trailing slot — here a soft "Clear" button, shown only while
-// a row is selected.
+// The opt-in `footer` summary bar renders a single leading count that swaps by
+// precedence. `rowTotal` counts the full filtered extent (search below narrows it
+// to "N of M rows visible"); `selectedTotal` replaces it in place with the live
+// selection ("N of M rows selected") while a row is picked, its denominator
+// keeping the visible context. A custom `content` slot, if given, sits trailing.
 const FooterExample = () => {
 	const [selection, setSelection] = useState<Set<string | number>>(new Set())
 
@@ -1311,7 +1311,7 @@ export function Demo() {
 
 						<Example
 							title="Selection summary"
-							code={code`<Grid footer={{ rowTotal: true, selectedTotal: true, content: ({ selected }) => ... }} />`}
+							code={code`<Grid footer={{ rowTotal: true, selectedTotal: true }} />`}
 						>
 							<FooterExample />
 						</Example>
