@@ -724,6 +724,12 @@ export function ChartPie<T>({
 			? pieSlices(sliceValues, { cx: center.x, cy: center.y, radius, innerRadius, pad: MARK_GAP })
 			: []
 
+	// A legend entry for a non-positive (or toggled-off) row carries no slice, so
+	// an emphasis landing on it would recede every real slice with nothing lifted
+	// against them. Clamp the mark emphasis to a slice-bearing row — the keyboard
+	// cursor already steps over the rest.
+	const sliceEmphasis = slices.some((slice) => slice.index === emphasis) ? emphasis : null
+
 	const calloutItems =
 		showCallouts && radius > 0
 			? buildCallouts(calloutSpec, slices, center, radius, frameHeight)
@@ -759,7 +765,7 @@ export function ChartPie<T>({
 				animate={animate}
 				center={center}
 				radius={radius}
-				emphasis={emphasis}
+				emphasis={sliceEmphasis}
 				fills={sliceFills}
 				textureActive={tex.active}
 				trigger={trigger}
@@ -770,7 +776,7 @@ export function ChartPie<T>({
 					items={labelItems}
 					paints={paints}
 					animate={animate}
-					emphasis={emphasis}
+					emphasis={sliceEmphasis}
 				/>
 			)}
 
