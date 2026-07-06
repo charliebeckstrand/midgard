@@ -338,6 +338,10 @@ export function AreaChart<T>({
 				(value: number) =>
 					chart.formatAxisValue(value, meta.axis),
 		),
+		// Stacked ribbons carry a top-edge point per category (nulls included), not
+		// the gap-skipped points a line's geometry emits, so the labels read each
+		// category's value by index rather than zipping the gap-filtered values.
+		!stacked,
 	)
 
 	const marksNode = animate ? (

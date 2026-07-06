@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { AreaChart } from '../../modules/chart/area-chart'
 import { paintFor } from '../../modules/chart/chart-series'
 import {
 	labelPoints,
@@ -143,6 +144,27 @@ describe('labelPoints', () => {
 			{ x: 20, y: 30, value: 9 },
 		])
 	})
+
+	it('reads each category by index when points are not gap-skipped (stacked ribbon)', () => {
+		// A stacked ribbon's top edge carries one point per category — the gap
+		// included — so the value reads straight off `values[index]`, and the null
+		// category takes no label. The gap-skipping zip would have shifted 20 onto
+		// the middle point and dropped the last to 0.
+		const points = labelPoints(
+			[null, 10, 20],
+			[
+				{ x: 0, y: 100 },
+				{ x: 20, y: 80 },
+				{ x: 40, y: 60 },
+			],
+			false,
+		)
+
+		expect(points).toEqual([
+			{ x: 20, y: 80, value: 10 },
+			{ x: 40, y: 60, value: 20 },
+		])
+	})
 })
 
 describe('resolveValueLabels', () => {
@@ -226,5 +248,32 @@ describe('LineChart value labels', () => {
 
 		// ...and the reference rule now carries its own standing label.
 		expect(bySlot(container, 'chart-reference-label')?.textContent).toBe('Target')
+	})
+})
+
+describe('AreaChart stacked value labels', () => {
+	it('labels each stacked category by its own value across a gap', () => {
+		const { container } = renderUI(
+			<AreaChart
+				aria-label="Signups by week"
+				data={[
+					{ week: 'W1', a: undefined },
+					{ week: 'W2', a: 10 },
+					{ week: 'W3', a: 20 },
+				]}
+				series={[{ xKey: 'week', yKey: 'a', yName: 'A' }]}
+				stacked
+				width={400}
+				labels={{ endpoints: true }}
+			/>,
+		)
+
+		const drawn = allBySlot(container, 'chart-value-label').map((node) => node.textContent)
+
+		// The right-edge endpoint reads its own value (20), not the 0 the gap-shift
+		// bug left there; the leading gap takes no label.
+		expect(drawn).toContain('20')
+
+		expect(drawn).not.toContain('0')
 	})
 })
