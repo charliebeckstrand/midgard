@@ -80,12 +80,14 @@ export type ChartLegendProps = {
  *
  * @remarks With two or more entries the row is one Tab stop; the arrow keys
  * rove between the switches (Home / End jump to the ends) and Escape drops
- * focus, clearing the emphasis. Focus-driven emphasis rides `:focus-visible`,
+ * focus, clearing the emphasis. Pointer and keyboard share the one emphasis
+ * slot: the pointed-at entry wins, and leaving it reverts to a still-held
+ * keyboard focus rather than clearing. That focus side rides `:focus-visible`,
  * the same gate as the ring, so a pointer click's lingering focus — or the
  * focus a backgrounded tab re-fires on return — dims nothing without a visible
  * ring to explain it. Reference lines follow the entries as static,
  * `aria-hidden` identity chips — a rule has no toggle, and
- * {@link ChartReferenceList} carries its parity
+ * {@link ChartReferenceList} carries its parity.
  * @internal
  */
 export function ChartLegend({
@@ -98,6 +100,39 @@ export function ChartLegend({
 	texture = false,
 }: ChartLegendProps) {
 	const ref = useRef<HTMLDivElement>(null)
+
+	// Which series the pointer is over, or null. Emphasis draws on this and the
+	// keyboard focus together, so the two inputs share the one slot instead of
+	// clobbering it.
+	const hovered = useRef<number | null>(null)
+
+	// Emphasis follows whichever input is live: the pointed-at entry wins, else
+	// the keyboard-focused one. The keyboard side reads `:focus-visible` from the
+	// DOM rather than a tracked index, so a focus that silently stops being
+	// visible — a click landing on a focused switch, a backgrounded tab returning
+	// — resolves to nothing without needing an event to announce it. Every pointer
+	// and focus transition recomputes, so leaving a hover reverts to a still-held
+	// keyboard focus rather than clearing the emphasis out from under it.
+	const syncEmphasis = () => {
+		if (hovered.current !== null) {
+			onFocus(hovered.current)
+
+			return
+		}
+
+		const buttons = ref.current?.querySelectorAll<HTMLButtonElement>(
+			'button[data-slot="chart-legend-item"]',
+		)
+
+		const position = buttons
+			? Array.from(buttons).findIndex((button) => button.matches(':focus-visible'))
+			: -1
+
+		// Buttons render in `items` order, so a focused button's position names its
+		// entry — and the entry carries the series index the emphasis keys off,
+		// which the legend's display order need not match.
+		onFocus(position === -1 ? null : (items[position]?.index ?? null))
+	}
 
 	// Two or more entries make a switchboard; a lone one is a static chip.
 	const interactive = items.length > 1
@@ -193,17 +228,22 @@ export function ChartLegend({
 						data-slot="chart-legend-item"
 						aria-pressed={!off}
 						onClick={() => onToggle(item.index)}
-						onPointerEnter={() => onFocus(item.index)}
-						onPointerLeave={() => onFocus(null)}
-						// Emphasis tracks the *visible* focus, not raw DOM focus: a pointer
-						// click leaves the switch focused without a ring, and returning to a
-						// backgrounded tab re-fires focus on it — neither should dim the other
-						// series. Only a keyboard focus (`:focus-visible`, the same gate the
-						// ring rides) emphasises.
-						onFocus={(event) => {
-							if (event.currentTarget.matches(':focus-visible')) onFocus(item.index)
+						onPointerEnter={() => {
+							hovered.current = item.index
+
+							syncEmphasis()
 						}}
-						onBlur={() => onFocus(null)}
+						onPointerLeave={() => {
+							hovered.current = null
+
+							syncEmphasis()
+						}}
+						// Focus and blur resolve through the same path as hover: a keyboard
+						// focus (`:focus-visible`, the same gate the ring rides) emphasises,
+						// while a pointer click's ring-less focus — or the focus a backgrounded
+						// tab re-fires on return — resolves to nothing.
+						onFocus={syncEmphasis}
+						onBlur={syncEmphasis}
 					>
 						{content}
 					</Button>

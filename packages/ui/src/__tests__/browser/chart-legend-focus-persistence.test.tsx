@@ -98,4 +98,37 @@ describe('chart legend focus persistence (real browser)', () => {
 
 		await waitFor(() => expect(dimmed(otherSeriesBar(container))).toBe(true))
 	})
+
+	it('keeps the emphasis when a hover leaves a switch that still holds keyboard focus', async () => {
+		const { container } = renderUI(
+			<>
+				<button type="button">before</button>
+
+				<BarChart
+					aria-label="Quarterlies"
+					data={data}
+					series={[...series]}
+					width={400}
+					legend="top"
+				/>
+			</>,
+		)
+
+		const before = container.querySelector('button') as HTMLButtonElement
+		const revenue = allBySlot(container, 'chart-legend-item')[0] as HTMLButtonElement
+
+		// Keyboard-focus the first switch — the other series dims — then point at it
+		// and leave. Hover doesn't disturb the ring, so the focus emphasis must hold.
+		before.focus()
+		await userEvent.tab()
+		await waitFor(() => expect(dimmed(otherSeriesBar(container))).toBe(true))
+
+		await userEvent.hover(revenue)
+		await userEvent.unhover(revenue)
+		await settle()
+
+		expect(revenue.matches(':focus-visible')).toBe(true)
+		// The regression: the pointer-leave cleared the still-held focus emphasis.
+		expect(dimmed(otherSeriesBar(container))).toBe(true)
+	})
 })
