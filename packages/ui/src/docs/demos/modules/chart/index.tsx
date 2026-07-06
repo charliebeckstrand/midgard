@@ -222,8 +222,9 @@ export function Demo() {
 										data={months}
 										series={[
 											{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
-											{ xKey: 'month', yKey: 'costs', yName: 'Costs' },
+											{ xKey: 'month', yKey: 'costs', yName: 'Costs', color: 'rose' },
 										]}
+										reference={[{ value: 55, label: 'Margin', color: 'amber' }]}
 										animate
 									/>
 								</ChartContainer>
