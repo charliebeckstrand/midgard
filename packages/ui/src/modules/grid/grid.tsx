@@ -14,6 +14,7 @@ export type {
 	GridGroupBy,
 	GridGroupHeaderContext,
 	GridHeader,
+	GridInfiniteScroll,
 	GridRowReorder,
 	GridSelection,
 	GridSort,

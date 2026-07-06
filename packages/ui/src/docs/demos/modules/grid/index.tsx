@@ -881,6 +881,87 @@ const ClientPaginationExample = () => (
 	/>
 )
 
+// Local infinite scroll: the whole set is held in memory, and the grid renders a
+// growing slice of it through the virtual window. `onLoadMore` lifts the slice
+// synchronously as the scroll nears the loaded end; `hasMore` stops it once the
+// slice reaches the full set.
+const LocalInfiniteScrollExample = () => {
+	const [count, setCount] = useState(20)
+
+	const rows = useMemo(() => manyPeople.slice(0, count), [count])
+
+	return (
+		<Grid
+			columns={columns}
+			rows={rows}
+			getKey={(row) => row.id}
+			virtualize
+			maxHeight="320px"
+			infiniteScroll={{
+				onLoadMore: () => setCount((c) => Math.min(c + 20, manyPeople.length)),
+				hasMore: count < manyPeople.length,
+			}}
+		/>
+	)
+}
+
+const SERVER_TOTAL = 200
+
+// A page of the "server" set: rows [offset, offset + limit), capped at the total.
+const makeServerRows = (offset: number, limit: number): Person[] =>
+	Array.from({ length: Math.max(0, Math.min(limit, SERVER_TOTAL - offset)) }, (_, i) => {
+		const id = offset + i + 1
+
+		return {
+			id,
+			name: `Person ${id}`,
+			email: `person${id}@example.com`,
+			role: roles[id % roles.length] ?? 'Developer',
+			status: id % 3 === 0 ? 'inactive' : 'active',
+		}
+	})
+
+// Stand-in for a paged server fetch: resolve the next page after a short delay.
+const fetchServerRows = (offset: number): Promise<Person[]> =>
+	new Promise((resolve) => {
+		setTimeout(() => resolve(makeServerRows(offset, 25)), 600)
+	})
+
+// Server-side rendered infinite scroll: the first page stands in for the server-rendered
+// initial rows, and the client appends each subsequent page as the scroll nears
+// the end. `loadingMore` holds a pending flag across the async fetch — the grid
+// shows a trailing skeleton row and won't re-request until the batch lands.
+const ServerInfiniteScrollExample = () => {
+	const [rows, setRows] = useState<Person[]>(() => makeServerRows(0, 25))
+
+	const [loadingMore, setLoadingMore] = useState(false)
+
+	const loadMore = () => {
+		setLoadingMore(true)
+
+		fetchServerRows(rows.length).then((page) => {
+			setRows((prev) => [...prev, ...page])
+
+			setLoadingMore(false)
+		})
+	}
+
+	return (
+		<Grid
+			columns={columns}
+			rows={rows}
+			getKey={(row) => row.id}
+			virtualize
+			maxHeight="320px"
+			infiniteScroll={{
+				onLoadMore: loadMore,
+				hasMore: rows.length < SERVER_TOTAL,
+				loadingMore,
+			}}
+		/>
+	)
+}
+
 // The opt-in `footer` summary bar renders only the settings it's given. `rowTotal`
 // counts the full filtered extent (search below narrows it to "N of M rows"),
 // `selectedTotal` shows the live selection count, and `content` receives those
@@ -1021,6 +1102,7 @@ const tabs = [
 	'Export',
 	'Sparkline',
 	'Pagination',
+	'Virtualization',
 	'State',
 	'Editable',
 ] as const
@@ -1346,6 +1428,24 @@ export function Demo() {
 
 						<Example title="Client pagination">
 							<ClientPaginationExample />
+						</Example>
+					</Stack>
+				</TabContent>
+
+				<TabContent value="Virtualization">
+					<Stack gap="xl">
+						<Example
+							title="Local"
+							code={code`<Grid virtualize infiniteScroll={{ onLoadMore, hasMore }} />`}
+						>
+							<LocalInfiniteScrollExample />
+						</Example>
+
+						<Example
+							title="Server-side rendered"
+							code={code`<Grid virtualize infiniteScroll={{ onLoadMore, hasMore, loadingMore }} />`}
+						>
+							<ServerInfiniteScrollExample />
 						</Example>
 					</Stack>
 				</TabContent>

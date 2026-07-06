@@ -35,12 +35,13 @@ import {
 	resolveFooterStats,
 	resolveGridSemantics,
 	resolveHover,
+	resolveInfiniteScroll,
 	resolveResizeLayout,
 	resolveSortable,
 	resolveTableProps,
 	resolveVirtualization,
 } from './grid-data-resolvers'
-import type { GridDataProps } from './grid-data-types'
+import type { GridDataProps, GridInfiniteScroll, GridVirtualize } from './grid-data-types'
 import { GridFooter as GridFooterBar } from './grid-footer'
 import { GridHead } from './grid-head'
 import { useGridMenuActions } from './grid-menu-actions'
@@ -190,6 +191,38 @@ function resolveDetailExpansion<T>(
 			toggle: expansion.toggle,
 			render: expansion.render,
 		},
+	}
+}
+
+/**
+ * Validates the mutually-dependent grid props up front, throwing a pointed error
+ * for a combination the grid can't render: virtualization without a sized scroll
+ * container, or infinite scroll without the virtualized window it layers on —
+ * and alongside the paged footer it replaces. Kept off {@link GridData}'s
+ * cognitive-complexity budget. @internal
+ */
+function assertGridProps(args: {
+	virtualize: GridVirtualize | undefined
+	maxHeight: string | undefined
+	infiniteScroll: GridInfiniteScroll | undefined
+	pagination: GridPagination | undefined
+}): void {
+	if (args.virtualize && !args.maxHeight) {
+		throw new Error(
+			'<Grid virtualize> requires `maxHeight` — virtualization needs a scroll container of known size.',
+		)
+	}
+
+	if (args.infiniteScroll && !args.virtualize) {
+		throw new Error(
+			'<Grid infiniteScroll> requires `virtualize` (and thus `maxHeight`) — infinite scroll windows the loaded rows through the virtualized scroll container.',
+		)
+	}
+
+	if (args.infiniteScroll && args.pagination) {
+		throw new Error(
+			'<Grid> takes either `pagination` or `infiniteScroll`, not both — infinite scroll replaces the paged footer.',
+		)
 	}
 }
 
@@ -453,6 +486,7 @@ export function GridData<T>({
 	error,
 	footer,
 	virtualize,
+	infiniteScroll: infiniteScrollConfig,
 	tableProps,
 	density: densityProp,
 	condensed = false,
@@ -462,11 +496,14 @@ export function GridData<T>({
 	hover,
 	className,
 }: GridDataProps<T>) {
-	if (virtualize && !maxHeight) {
-		throw new Error(
-			'<Grid virtualize> requires `maxHeight` — virtualization needs a scroll container of known size.',
-		)
-	}
+	// Up-front invariants for the mutually-dependent props (virtualize/maxHeight,
+	// infiniteScroll/virtualize, infiniteScroll-vs-pagination); see `assertGridProps`.
+	assertGridProps({
+		virtualize,
+		maxHeight,
+		infiniteScroll: infiniteScrollConfig,
+		pagination: paginationConfig,
+	})
 
 	// Unlike the bare `Table` (a static/RSC leaf that reads no context), Grid is
 	// always client-rendered, so it can inherit an enclosing `DensityProvider`
@@ -535,6 +572,13 @@ export function GridData<T>({
 		virtualize: virtualizeEnabled,
 		pagination: paginationConfig,
 	})
+
+	// Infinite scroll layers on the virtualized window — so it stands down with
+	// virtualization under grouping (`gated.virtualize`). Its `threshold` defaults
+	// to the window's `overscan`, so the fetch leads the viewport by that margin.
+	const infiniteScroll = gated.virtualize
+		? resolveInfiniteScroll(infiniteScrollConfig, overscan)
+		: null
 
 	// Resolves a column's display label at call time, read by the `[]`-stable
 	// `pinColumn` and the visibility handler so they can narrate the change without
@@ -938,10 +982,15 @@ export function GridData<T>({
 		table,
 	})
 
+	// The group band and grand-total row each add a rendered header/footer row, so
+	// the count spans them; and infinite scroll with more rows to load can't state
+	// the whole extent, so the count goes ARIA-indeterminate (`-1`) rather than
+	// advertising the loaded window as the full set (see `resolveAriaRowCount`).
 	const ariaRowCount = resolveAriaRowCount(
 		pagination,
 		renderRows.length,
 		groupRowOffset + Number(grandTotal.active),
+		infiniteScroll?.hasMore ?? false,
 	)
 
 	// Full filtered row extent (the server total when paginating) for the busy
@@ -1049,7 +1098,13 @@ export function GridData<T>({
 					pinning={pinning}
 					virtualize={
 						gated.virtualize
-							? { scrollRef, estimateSize, overscan, scrollIntoViewRef: scrollRowIntoViewRef }
+							? {
+									scrollRef,
+									estimateSize,
+									overscan,
+									scrollIntoViewRef: scrollRowIntoViewRef,
+									infiniteScroll,
+								}
 							: null
 					}
 				/>
@@ -1071,6 +1126,7 @@ export function GridData<T>({
 	const tableRegion = needsScrollWrapper ? (
 		<div
 			ref={scrollRef}
+			data-slot="grid-scroll"
 			className={cn(k.sticky.wrapper)}
 			style={maxHeight ? { maxHeight } : undefined}
 		>

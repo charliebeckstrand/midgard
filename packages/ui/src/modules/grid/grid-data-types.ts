@@ -25,6 +25,64 @@ import type {
 export type GridVirtualize = boolean | { estimateSize?: number; overscan?: number }
 
 /**
+ * Infinite-scroll binding for {@link GridProps.infiniteScroll}: as the
+ * virtualized window nears the end of the loaded rows, the grid calls
+ * `onLoadMore` so the consumer can grow `rows` with the next batch. Layers on
+ * {@link GridProps.virtualize} (which supplies the windowed scroll container),
+ * and replaces the paged {@link GridProps.pagination} footer — the two are
+ * mutually exclusive.
+ *
+ * @remarks One binding, two data sources. A *local* set appends synchronously
+ * (leave `loadingMore` unset and gate on `hasMore`); a *server* set fetches the
+ * next page and appends it — hold `loadingMore` true while the request is in
+ * flight so the grid shows a trailing skeleton row and holds off re-requesting.
+ * In both, `hasMore` is the master gate: once `false`, `onLoadMore` never fires
+ * again and the indicator drops. While more rows may remain, the grid reports an
+ * indeterminate `aria-rowcount` rather than advertising the loaded count as the
+ * whole set, and its busy status announces each grown total as a batch settles.
+ *
+ * Seed the first page as `rows` — an empty `rows` shows the `empty` slot rather
+ * than auto-fetching (use {@link GridProps.loading} for the initial load); the
+ * grid grows the set from there as the scroll advances.
+ *
+ * @see {@link GridProps.infiniteScroll}
+ */
+export type GridInfiniteScroll = {
+	/**
+	 * Called when the scroll reaches within {@link GridInfiniteScroll.threshold}
+	 * rows of the loaded end and more rows remain, once per newly-loaded extent.
+	 * Append the next rows to your `rows` — a local slice, or a server fetch.
+	 */
+	onLoadMore: () => void
+	/**
+	 * Whether more rows remain beyond the loaded set. Once `false`, the grid stops
+	 * calling `onLoadMore` and drops the trailing indicator.
+	 * @defaultValue true
+	 */
+	hasMore?: boolean
+	/**
+	 * Whether a load is in flight. Suppresses re-requesting while the current
+	 * batch resolves and shows a trailing skeleton row; leave unset for a
+	 * synchronous local source, which appends without a pending state.
+	 * @defaultValue false
+	 */
+	loadingMore?: boolean
+	/**
+	 * How many rows from the end of the loaded set the scroll may come within
+	 * before `onLoadMore` fires, so the next batch is requested ahead of the
+	 * viewport reaching the last row.
+	 * @defaultValue The grid's virtualization `overscan`.
+	 */
+	threshold?: number
+	/**
+	 * Content for the trailing row shown while `loadingMore`, superseding the
+	 * default pulsing skeleton — e.g. a run of skeleton rows. Rendered in a cell
+	 * spanning every column.
+	 */
+	loadingIndicator?: ReactNode
+}
+
+/**
  * Controlled/uncontrolled sort binding for {@link GridProps.sort}: an ordered
  * list of sorted columns, highest priority first. A single sort is a one-item
  * list; the empty list is unsorted. A header Shift-click sorts by several
@@ -646,6 +704,20 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * virtualization at that scale.
 	 */
 	virtualize?: GridVirtualize
+
+	/**
+	 * Infinite-scroll binding: as the {@link GridDataProps.virtualize | virtualized}
+	 * window nears the end of the loaded rows, the grid calls `onLoadMore` so you
+	 * can append the next batch to `rows` — a local slice, or a server fetch —
+	 * showing a trailing pulsing skeleton row while `loadingMore`. Requires
+	 * `virtualize` (and thus `maxHeight`), which supplies the windowed scroll
+	 * container, and replaces the paged {@link GridDataProps.pagination} footer;
+	 * passing both throws. Stands down with virtualization under
+	 * {@link GridDataProps.groupBy | grouping}.
+	 *
+	 * @see {@link GridInfiniteScroll}
+	 */
+	infiniteScroll?: GridInfiniteScroll
 
 	/**
 	 * Props spread onto the underlying `<table>` element. Use to attach a ref,

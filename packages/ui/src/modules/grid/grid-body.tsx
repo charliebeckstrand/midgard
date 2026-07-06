@@ -13,6 +13,7 @@ import { Alert } from '../../components/alert'
 import { TableBody, TableEmpty, TableLoading } from '../../components/table'
 import type { DensityLevel } from '../../providers/density'
 import { hasAggregation } from './grid-aggregate'
+import type { ResolvedInfiniteScroll } from './grid-data-resolvers'
 import type { GridGroupBy } from './grid-data-types'
 import { GridGroupLeafRow } from './grid-group-leaf-row'
 import { GridGroupRow } from './grid-group-row'
@@ -59,6 +60,8 @@ type GridBodyProps<T> = GridRowsProps<T> & {
 		estimateSize: number
 		overscan: number
 		scrollIntoViewRef: RefObject<GridScrollRowIntoView | null>
+		/** Infinite-scroll gates, or `null` when the windowed grid isn't infinite-scrolling. */
+		infiniteScroll: ResolvedInfiniteScroll | null
 	} | null
 }
 
