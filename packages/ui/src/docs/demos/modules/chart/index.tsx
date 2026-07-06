@@ -158,19 +158,29 @@ const ChartContainer = ({ children, size = 'lg' }: { children: ReactNode; size?:
 	return <div className={cn('w-full', size ? sizeMap[size] : sizeMap.lg)}>{children}</div>
 }
 
-// A tile pinned to 16:9 — a dashed border makes its edges visible and
-// `overflow-hidden` would clip anything that spilled. A chart set to the same
-// aspectRatio fills it exactly, legend and all, so nothing spills to clip. The
-// border sits on a wrapper so the aspect box's own edges stay a clean 16:9 (a
-// border-box border would shave a pixel off the ratio).
-const AspectTile = ({ label, children }: { label: string; children: ReactNode }) => (
+// A labelled demo cell — a caption over its content, shared by the plain and
+// fixed-aspect tiles below.
+const Labeled = ({ label, children }: { label: string; children: ReactNode }) => (
 	<div className="space-y-2">
 		<div className="text-xs text-zinc-500 dark:text-zinc-400">{label}</div>
 
+		{children}
+	</div>
+)
+
+// A tile pinned to 16:9 — a dashed border makes its edges visible and
+// `overflow-hidden` would clip anything that spilled. A chart whose aspectRatio
+// folds its legend in — a stacked top / bottom band — fills it exactly, band and
+// all, so nothing spills to clip. A side legend keeps the ratio on the plot
+// instead and bands beside it, so it isn't shown boxed here. The border sits on a
+// wrapper so the aspect box's own edges stay a clean 16:9 (a border-box border
+// would shave a pixel off the ratio).
+const AspectTile = ({ label, children }: { label: string; children: ReactNode }) => (
+	<Labeled label={label}>
 		<div className="rounded-lg border border-dashed border-zinc-300 dark:border-zinc-700">
 			<div className="aspect-video w-full overflow-hidden rounded-[inherit]">{children}</div>
 		</div>
-	</div>
+	</Labeled>
 )
 
 export function Demo() {
@@ -293,11 +303,11 @@ export function Demo() {
 							</Example>
 
 							<Example
-								title="Fills a fixed-aspect tile"
-								code={code`<BarChart aspectRatio={16 / 9} legend="bottom" … /> // fills a 16:9 tile, legend included`}
+								title="Stacked legend fills a fixed-aspect tile"
+								code={code`<BarChart aspectRatio={16 / 9} legend="bottom" … /> // fills a 16:9 tile, band included`}
 							>
 								<div className="grid w-full gap-4 sm:grid-cols-2">
-									{(['bottom', 'top', 'right', 'left'] as const).map((placement) => (
+									{(['bottom', 'top'] as const).map((placement) => (
 										<AspectTile key={placement} label={`legend="${placement}"`}>
 											<BarChart
 												aria-label={`Revenue and costs by month, legend ${placement}`}
@@ -310,6 +320,28 @@ export function Demo() {
 												legend={placement}
 											/>
 										</AspectTile>
+									))}
+								</div>
+							</Example>
+
+							<Example
+								title="Side legend holds the plot ratio"
+								code={code`<BarChart aspectRatio={16 / 9} legend="right" … /> // plot stays 16:9, legend beside`}
+							>
+								<div className="grid w-full gap-4 sm:grid-cols-2">
+									{(['right', 'left'] as const).map((placement) => (
+										<Labeled key={placement} label={`legend="${placement}"`}>
+											<BarChart
+												aria-label={`Revenue and costs by month, legend ${placement}`}
+												data={months}
+												series={[
+													{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
+													{ xKey: 'month', yKey: 'costs', yName: 'Costs' },
+												]}
+												aspectRatio={16 / 9}
+												legend={placement}
+											/>
+										</Labeled>
 									))}
 								</div>
 							</Example>
@@ -626,22 +658,33 @@ export function Demo() {
 							</Example>
 
 							<Example
-								title="Fills a fixed-aspect tile"
-								code={code`<PieChart aspectRatio={16 / 9} legend="right" … /> // pie squares within the box, legend beside`}
+								title="Stacked legend fills a fixed-aspect tile"
+								code={code`<PieChart aspectRatio={16 / 9} legend="bottom" … /> // pie squares within the box, band below`}
 							>
-								<div className="grid w-full gap-4 sm:grid-cols-2">
-									{(['right', 'bottom'] as const).map((placement) => (
-										<AspectTile key={placement} label={`legend="${placement}"`}>
-											<PieChart
-												aria-label={`Traffic by source, legend ${placement}`}
-												data={sources}
-												series={[{ xKey: 'source', yKey: 'visits' }]}
-												aspectRatio={16 / 9}
-												legend={placement}
-											/>
-										</AspectTile>
-									))}
-								</div>
+								<AspectTile label='legend="bottom"'>
+									<PieChart
+										aria-label="Traffic by source, legend bottom"
+										data={sources}
+										series={[{ xKey: 'source', yKey: 'visits' }]}
+										aspectRatio={16 / 9}
+										legend="bottom"
+									/>
+								</AspectTile>
+							</Example>
+
+							<Example
+								title="Side legend holds the pie ratio"
+								code={code`<PieChart aspectRatio={16 / 9} legend="right" … /> // pie stays 16:9, legend beside`}
+							>
+								<Labeled label='legend="right"'>
+									<PieChart
+										aria-label="Traffic by source, legend right"
+										data={sources}
+										series={[{ xKey: 'source', yKey: 'visits' }]}
+										aspectRatio={16 / 9}
+										legend="right"
+									/>
+								</Labeled>
 							</Example>
 
 							<AnimatedExample title="Animated" source={code`<PieChart animate … />`}>

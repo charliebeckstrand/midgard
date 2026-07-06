@@ -456,11 +456,13 @@ type PieFrame = {
 }
 
 /**
- * Folds the legend into the pie's aspect box: a live ratio with a legend hands
- * the ratio to the figure wrapper and measures the pie's remaining height, so a
- * pie and its legend fill a fixed-aspect box together. The `content` fit (the
- * default) and a `fixed` height band the legend beside the plot as before,
- * reserving nothing extra.
+ * Folds a stacked legend into the pie's aspect box: a live ratio with a top /
+ * bottom legend hands the ratio to the figure wrapper and measures the pie's
+ * remaining height, so a pie and its legend band fill a fixed-aspect box
+ * together. A side legend instead keeps the ratio on the pie box and bands
+ * beside it at its own width, so the pie never squeezes to fit the panel. The
+ * `content` fit (the default) and a `fixed` height band the legend beside the
+ * plot as before, reserving nothing extra.
  *
  * @internal
  */
@@ -471,7 +473,11 @@ function pieFrame(
 ): PieFrame {
 	const hasLegend = Boolean(legend ?? dataLength > 1)
 
-	const shareAspect = sizing.mode === 'aspect' && hasLegend
+	const aside = legend === 'left' || legend === 'right'
+
+	// Only a stacked legend shares the pie's aspect box; a side legend leaves the
+	// ratio on the pie box and bands beside it, the same as a legend-free pie.
+	const shareAspect = sizing.mode === 'aspect' && hasLegend && !aside
 
 	const frameSizing: FrameSizing = shareAspect
 		? { mode: 'aspect-fill', ratio: sizing.ratio }
@@ -481,7 +487,7 @@ function pieFrame(
 		sizing: frameSizing,
 		frameAspect: shareAspect ? sizing.ratio : undefined,
 		fill: frameSizing.mode === 'fill' || frameSizing.mode === 'aspect-fill',
-		aside: legend === 'left' || legend === 'right',
+		aside,
 		hasLegend,
 	}
 }

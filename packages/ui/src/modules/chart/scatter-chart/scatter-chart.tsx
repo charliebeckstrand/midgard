@@ -182,9 +182,10 @@ type ScatterFrame = {
 
 /**
  * The scatter frame's sizing and legend layout resolved together: a live ratio
- * with a legend goes to the figure wrapper so the whole chart holds it (the plot
- * measuring the height the legend leaves), and the legend's placement drives the
- * panel-vs-row layout. Derived from the props alone, so it precedes any
+ * with a stacked legend goes to the figure wrapper so the whole chart holds it
+ * (the plot measuring the height the band leaves), while a side legend keeps the
+ * ratio on the plot box and bands beside it; the legend's placement also drives
+ * the panel-vs-row layout. Derived from the props alone, so it precedes any
  * measurement.
  *
  * @internal
@@ -195,17 +196,20 @@ function scatterFrame(
 	height: number | undefined,
 	aspectRatio: ChartAspectRatio,
 ): ScatterFrame {
+	const aside = legend === 'left' || legend === 'right'
+
 	const { sizing, outerAspect } = chartFrameLayout(
 		height,
 		aspectRatio,
 		Boolean(legend ?? seriesCount > 1),
+		aside,
 	)
 
 	return {
 		sizing,
 		frameAspect: outerAspect ?? undefined,
 		fill: sizing.mode === 'fill' || sizing.mode === 'aspect-fill',
-		aside: legend === 'left' || legend === 'right',
+		aside,
 		placement: typeof legend === 'string' ? legend : undefined,
 	}
 }
