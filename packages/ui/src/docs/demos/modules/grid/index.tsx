@@ -927,7 +927,7 @@ const fetchServerRows = (offset: number): Promise<Person[]> =>
 		setTimeout(() => resolve(makeServerRows(offset, 25)), 600)
 	})
 
-// Server (SSR) infinite scroll: the first page stands in for the server-rendered
+// Server-side rendered infinite scroll: the first page stands in for the server-rendered
 // initial rows, and the client appends each subsequent page as the scroll nears
 // the end. `loadingMore` holds a pending flag across the async fetch — the grid
 // shows a trailing skeleton row and won't re-request until the batch lands.
@@ -1102,7 +1102,7 @@ const tabs = [
 	'Export',
 	'Sparkline',
 	'Pagination',
-	'Infinite scroll',
+	'Virtualization',
 	'State',
 	'Editable',
 ] as const
@@ -1432,18 +1432,18 @@ export function Demo() {
 					</Stack>
 				</TabContent>
 
-				<TabContent value="Infinite scroll">
+				<TabContent value="Virtualization">
 					<Stack gap="xl">
 						<Example
 							title="Local"
-							code={code`<Grid virtualize maxHeight="320px" infiniteScroll={{ onLoadMore, hasMore }} />`}
+							code={code`<Grid virtualize infiniteScroll={{ onLoadMore, hasMore }} />`}
 						>
 							<LocalInfiniteScrollExample />
 						</Example>
 
 						<Example
-							title="Server (SSR)"
-							code={code`<Grid virtualize maxHeight="320px" infiniteScroll={{ onLoadMore, hasMore, loadingMore }} />`}
+							title="Server-side rendered"
+							code={code`<Grid virtualize infiniteScroll={{ onLoadMore, hasMore, loadingMore }} />`}
 						>
 							<ServerInfiniteScrollExample />
 						</Example>

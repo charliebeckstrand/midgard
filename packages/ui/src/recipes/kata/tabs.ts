@@ -67,6 +67,7 @@ const tab = defineRecipe({
 		focus.indicator,
 		...disabled,
 		'outline-none',
+		'whitespace-nowrap',
 		...cursor,
 		'after:absolute after:rounded-full',
 		'after:bg-transparent',
