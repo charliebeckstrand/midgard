@@ -162,7 +162,7 @@ describe('cartesian layout', () => {
 		value: { domainValues: [0, 40, 80], format: (value) => String(value) },
 		categories: ['Q1', 'Q2'],
 		count: 2,
-		visibleValues: [{ values: [40, 80], side: 'left' }],
+		visibleValues: [{ values: [40, 80], side: 'left', index: 0 }],
 	}
 
 	it('runs value up y and the band across x when vertical', () => {
@@ -195,6 +195,31 @@ describe('cartesian layout', () => {
 
 			expect(position).toBeLessThanOrEqual(layout.plot.y + layout.plot.height)
 		}
+	})
+
+	it('names the series behind each snap stop, aligned to the points through a gap', () => {
+		// Series 0 drops out at the second category, so its stop vanishes there; the
+		// positions and the series map must drop it from the very same slot, or the
+		// keyboard cursor would read the surviving series against the wrong lane.
+		const gapped: CartesianLayoutInput = {
+			...input,
+			count: 2,
+			categories: ['Q1', 'Q2'],
+			visibleValues: [
+				{ values: [40, null], side: 'left', index: 0 },
+				{ values: [60, 80], side: 'left', index: 1 },
+			],
+		}
+
+		const layout = verticalLayout(gapped)
+
+		// Q1 carries both series in order; Q2 keeps only series 1 — the same slot the
+		// position map drops, so a stop and its series index stay paired.
+		expect(layout.snapSeries).toEqual([[0, 1], [1]])
+
+		expect(layout.snapPoints[1]).toHaveLength(1)
+
+		expect(layout.snapSeries[1]).toHaveLength(layout.snapPoints[1]?.length ?? 0)
 	})
 
 	it('insets the horizontal value axis so its centered end labels clear the frame', () => {

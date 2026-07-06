@@ -184,6 +184,12 @@ export type CartesianLayout = {
 	bandPositions: number[]
 	/** Per category, the visible series' value-axis positions — the value crosshair's snap targets. */
 	snapPoints: number[][]
+	/**
+	 * Per category, the series index behind each {@link CartesianLayout.snapPoints}
+	 * stop, in the same order — so the keyboard cursor's value lane maps back to the
+	 * series it sits on. A gap drops a series from both, keeping them aligned.
+	 */
+	snapSeries: number[][]
 	/** The value-axis titles, placed inside their reserved bands; empty without titles. */
 	titles: ChartAxisTitlePlacement[]
 }
@@ -229,7 +235,21 @@ export type CartesianLayoutInput = {
 	times?: (number | null)[]
 	count: number
 	/** Visible series' values with their axis binding, series-major — the per-category snap points. */
-	visibleValues: { values: (number | null)[]; side: ChartValueAxisSide }[]
+	visibleValues: VisibleValues[]
+}
+
+/**
+ * One visible series feeding the snap targets: its per-row values, the axis it
+ * reads against, and its own series index — so the position snap points and the
+ * parallel series-index map read from one source and stay aligned.
+ *
+ * @internal
+ */
+export type VisibleValues = {
+	values: (number | null)[]
+	side: ChartValueAxisSide
+	/** The series' index in the caller's list — what the keyboard cursor maps a stop back to. */
+	index: number
 }
 
 /** Value ticks placed along the value axis by the scale's own map. @internal */
@@ -248,9 +268,9 @@ function valueTicksOf(
  * @internal
  */
 function snapPointsOf(
-	scales: Record<ChartValueAxisSide, LinearScale | null>,
+	scales: ValueScales,
 	count: number,
-	visibleValues: { values: (number | null)[]; side: ChartValueAxisSide }[],
+	visibleValues: VisibleValues[],
 ): number[][] {
 	if (!scales.left && !scales.right) return []
 
@@ -260,9 +280,44 @@ function snapPointsOf(
 
 			const value = series.values[index]
 
-			if (scale && value != null && Number.isFinite(value)) positions.push(scale.map(value))
+			if (scale && snappable(scale, value)) positions.push(scale.map(value))
 
 			return positions
+		}, []),
+	)
+}
+
+/**
+ * Whether a datum yields a snap stop: its axis resolved a scale and the value is
+ * finite. Shared by {@link snapPointsOf} and {@link snapSeriesOf} so a gap drops
+ * the same stop from the positions and the series-index map alike.
+ *
+ * @internal
+ */
+function snappable(scale: LinearScale | null, value: number | null | undefined): value is number {
+	return scale != null && value != null && Number.isFinite(value)
+}
+
+/**
+ * Per category, the series index behind each snap stop — the same stops
+ * {@link snapPointsOf} positions, in the same order, filtered by the same
+ * {@link snappable} gate, so the keyboard cursor's value lane resolves to the
+ * series it sits on even where a leading gap has shifted the stops.
+ *
+ * @internal
+ */
+function snapSeriesOf(
+	scales: ValueScales,
+	count: number,
+	visibleValues: VisibleValues[],
+): number[][] {
+	if (!scales.left && !scales.right) return []
+
+	return Array.from({ length: count }, (_, index) =>
+		visibleValues.reduce<number[]>((series, entry) => {
+			if (snappable(scales[entry.side], entry.values[index])) series.push(entry.index)
+
+			return series
 		}, []),
 	)
 }
@@ -437,6 +492,7 @@ export function verticalLayout(input: CartesianLayoutInput): CartesianLayout {
 		bandTicks: bandAxisTicks(input, band, plot.width, longest * TICK_CHAR_WIDTH + GUTTER_GAP),
 		bandPositions: bandCenters(band, count),
 		snapPoints: snapPointsOf(scales, count, input.visibleValues),
+		snapSeries: snapSeriesOf(scales, count, input.visibleValues),
 		titles: verticalTitles(input, scales, plot, frameWidth),
 	}
 }
@@ -586,6 +642,7 @@ export function horizontalLayout(input: CartesianLayoutInput): CartesianLayout {
 		bandTicks: bandAxisTicks(input, band, plot.height, BAND_LABEL_HEIGHT),
 		bandPositions: bandCenters(band, count),
 		snapPoints: snapPointsOf(scales, count, input.visibleValues),
+		snapSeries: snapSeriesOf(scales, count, input.visibleValues),
 		titles: horizontalTitles(input, scales, plot),
 	}
 }

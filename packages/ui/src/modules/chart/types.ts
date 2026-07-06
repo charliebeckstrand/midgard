@@ -11,6 +11,12 @@
  * @internal
  */
 export type ChartReadoutRow = {
+	/**
+	 * The series' index in the caller's list, so the tooltip can tell the
+	 * emphasised row from the rest; absent on readouts whose rows aren't series —
+	 * a pie's slices, a heatmap's rows — where no row is singled out.
+	 */
+	index?: number
 	label: string
 	/** Background class carrying the series colour. */
 	swatchClass: string

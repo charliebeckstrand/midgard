@@ -90,6 +90,7 @@ export function chartReadout<T>(
 	return {
 		categories: data.map((datum) => formatCategory(datum[xKey])),
 		rows: metas.map((meta) => ({
+			index: meta.index,
 			label: meta.label,
 			swatchClass: cn(meta.paint.text),
 			swatch: meta.swatch,

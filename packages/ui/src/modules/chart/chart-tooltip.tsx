@@ -40,6 +40,12 @@ export type ChartTooltipProps = {
 	 * @defaultValue 'vertical'
 	 */
 	orientation?: ChartOrientation
+	/**
+	 * The emphasised series' index, when one is — the keyboard cursor reading a
+	 * dataset, or a legend entry. Its row stays at full strength while every other
+	 * row dims, mirroring the marks; `null` (the default) reads every row equally.
+	 */
+	emphasis?: number | null
 }
 
 /** The gap in px floating-ui keeps between the anchor point and the readout. @internal */
@@ -65,6 +71,10 @@ const SWATCH_SHAPE = { rect: 'square', line: 'line' } as const satisfies Record<
  * the snapped category is unmistakable. Off the snap it tracks the pointer and
  * shows only over a mark.
  *
+ * With a series emphasised — the keyboard cursor reading one dataset — that
+ * series' row stays lit while the rest dim to a quarter opacity, the same recede
+ * the marks take, so the readout foregrounds the row the cursor is on.
+ *
  * @remarks A pointer enhancement, `aria-hidden` by design: the same values ship
  * in the visually-hidden table, so nothing is gated behind hover.
  * @internal
@@ -74,6 +84,7 @@ export function ChartTooltip({
 	readout,
 	snap,
 	orientation = 'vertical',
+	emphasis = null,
 }: ChartTooltipProps) {
 	const { index, point, onData } = useChartHover()
 
@@ -146,7 +157,15 @@ export function ChartTooltip({
 
 						<div className="space-y-0.5">
 							{readout.rows.map((row) => (
-								<div key={row.label} className="flex items-center gap-1.5 whitespace-nowrap">
+								<div
+									key={row.label}
+									data-slot="chart-tooltip-row"
+									className={cn(
+										'flex items-center gap-1.5 whitespace-nowrap transition-opacity',
+										// A cursor on one dataset dims the rest, the same recede the marks take.
+										emphasis !== null && row.index !== emphasis && 'opacity-25',
+									)}
+								>
 									<Swatch
 										shape={SWATCH_SHAPE[row.swatch]}
 										size="sm"

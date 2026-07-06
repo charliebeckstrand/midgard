@@ -30,6 +30,9 @@ function samePoint(a: ChartPoint | null, b: ChartPoint | null): boolean {
 	return a === b || (a !== null && b !== null && a.x === b.x && a.y === b.y)
 }
 
+/** The stable no-op a chart without a series-emphasis channel hands the keyboard. @internal */
+function ignoreActiveSeries(_series: number | null): void {}
+
 /**
  * The plot region's attributes: the keyboard tab stop and its focus ring when
  * `keyboard` makes the region navigable, else a plain non-focusable region.
@@ -72,6 +75,12 @@ export type ChartFrameProps = AccessibleName & {
 	legendPlacement?: ChartLegendPlacement
 	/** The values behind the marks, or `null` when there is nothing to read. */
 	readout: ChartReadout | null
+	/**
+	 * The emphasised series' index, when one is — a legend entry or the keyboard
+	 * cursor picking a series. The tooltip dims every other row against it, mirroring
+	 * the marks; `null` (the default) reads every row at full strength.
+	 */
+	emphasis?: number | null
 	/** Mount the hover tooltip. */
 	tooltip: boolean
 	/** Snap targets when the crosshair snaps, carrying the tooltip to the intersection. */
@@ -82,6 +91,13 @@ export type ChartFrameProps = AccessibleName & {
 	 * the region stays a plain non-focusable `role="img"`.
 	 */
 	focus?: ChartFocusTargets
+	/**
+	 * Emphasises the series the keyboard cursor lands on (`null` off any), so the
+	 * marks recede the rest and the tooltip dims their rows. Pass the chart's
+	 * legend-emphasis setter to share one channel with the legend; omitted, keyboard
+	 * navigation leaves the emphasis alone — a chart whose stops name no single series.
+	 */
+	onActiveSeries?: (series: number | null) => void
 	/**
 	 * Which way a cartesian chart faces, so the snapped tooltip anchor transposes.
 	 * @defaultValue 'vertical'
@@ -114,9 +130,11 @@ export function ChartFrame({
 	legend,
 	legendPlacement = 'bottom',
 	readout,
+	emphasis: seriesEmphasis = null,
 	tooltip,
 	snap,
 	focus,
+	onActiveSeries = ignoreActiveSeries,
 	orientation,
 	className,
 	overlay,
@@ -157,6 +175,7 @@ export function ChartFrame({
 		tooltip && readout !== null,
 		hover.set,
 		setActiveReference,
+		onActiveSeries,
 	)
 
 	// The marks recede when either input emphasises a reference: the pointer over a
@@ -198,7 +217,13 @@ export function ChartFrame({
 			{overlay}
 
 			{tooltip && readout && width > 0 && (
-				<ChartTooltip plotRef={ref} readout={readout} snap={snap} orientation={orientation} />
+				<ChartTooltip
+					plotRef={ref}
+					readout={readout}
+					snap={snap}
+					orientation={orientation}
+					emphasis={seriesEmphasis}
+				/>
 			)}
 		</div>
 	)

@@ -122,6 +122,38 @@ function referenceStops(
 	return labels?.references ? undefined : positions
 }
 
+/**
+ * The series index behind each keyboard stop, aligned to {@link focusPoints} so
+ * the cursor's value lane resolves to the series it reads. Unstacked, the stops
+ * are the per-series snap points, so the cartesian series map carries straight
+ * through. Stacked, each stop is a ribbon's top edge, so the drawn series behind
+ * that ribbon names it — dropped by the same finite-edge gate the points use, so
+ * the two stay in step.
+ *
+ * @internal
+ */
+function focusSeries(
+	stacked: boolean,
+	snapSeries: number[][],
+	drawn: DrawnSeries[],
+	bands: StackedAreaGeometry[],
+	count: number,
+): number[][] {
+	if (!stacked) return snapSeries
+
+	return Array.from({ length: count }, (_, index) =>
+		bands.reduce<number[]>((series, band, order) => {
+			const y = band.points[index]?.y
+
+			const meta = drawn[order]?.meta
+
+			if (meta && y != null && Number.isFinite(y)) series.push(meta.index)
+
+			return series
+		}, []),
+	)
+}
+
 /** Adapts one stacked band to the line-marks geometry shape (one segment, one ribbon). @internal */
 function stackedToLine(band: { line: string; area: string; points: LineSeriesGeometry['points'] }) {
 	return {
@@ -317,6 +349,8 @@ export function AreaChart<T>({
 
 	const navPoints = focusPoints(stacked, chart.snapPoints, stackedGeometry, xs.length)
 
+	const navSeries = focusSeries(stacked, chart.snapSeries, drawn, stackedGeometry, xs.length)
+
 	return (
 		<ChartFrame
 			{...label}
@@ -340,6 +374,7 @@ export function AreaChart<T>({
 			}
 			legendPlacement={typeof legend === 'string' ? legend : undefined}
 			readout={chart.readout}
+			emphasis={chart.emphasis}
 			tooltip={tooltip}
 			snap={snapTargets(rails, chart.bandPositions, snapPoints)}
 			focus={cartesianFocus(
@@ -347,7 +382,9 @@ export function AreaChart<T>({
 				navPoints,
 				chart.orientation,
 				referenceStops(labels, chart.referencePositions),
+				navSeries,
 			)}
+			onActiveSeries={chart.setEmphasis}
 			className={className}
 			annotations={<ChartReferenceList reference={reference} format={chart.formatAxisValue} />}
 		>

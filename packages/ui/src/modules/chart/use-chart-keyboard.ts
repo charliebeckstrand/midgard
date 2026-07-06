@@ -21,11 +21,18 @@ import type { ChartHover } from './context'
  * holds a rule's place without a stop, keeping the finite rules at the indices
  * they draw at.
  *
+ * `series` names the series behind each of `points`' stops, in the same order,
+ * so the cursor's value lane resolves to the series it sits on — the one it
+ * emphasises while the rest recede. Omitted on a chart whose stops don't map to
+ * a single series (a scatter column stacks several), which then reads no active
+ * series and leaves the emphasis alone.
+ *
  * @internal
  */
 export type ChartFocusTargets = {
 	points: Vec[][]
 	references?: (number | null)[]
+	series?: number[][]
 }
 
 /**
@@ -135,6 +142,17 @@ export function cursorPoint(cursor: ChartCursor, targets: ChartFocusTargets): Ve
 }
 
 /**
+ * The series index the cursor sits on, or `null`. A cursor parked on a reference
+ * line names no series, and a chart that maps no series to its stops — or a stop
+ * past the map — reads `null` too, leaving the emphasis untouched. @internal
+ */
+export function cursorSeries(cursor: ChartCursor, targets: ChartFocusTargets): number | null {
+	if (cursor.reference !== undefined) return null
+
+	return targets.series?.[cursor.category]?.[cursor.value] ?? null
+}
+
+/**
  * Builds cartesian focus targets: each category's visible value positions
  * projected onto the frame through the orientation, so the stored anchors match
  * the marks. Values arrive in series order and stay that way — the cursor sorts
@@ -149,6 +167,7 @@ export function cartesianFocus(
 	valuePoints: number[][],
 	orientation: ChartOrientation,
 	references?: (number | null)[],
+	series?: number[][],
 ): ChartFocusTargets {
 	return {
 		points: valuePoints.map((values, index) => {
@@ -157,6 +176,7 @@ export function cartesianFocus(
 			return band === undefined ? [] : values.map((value) => project(orientation, value, band))
 		}),
 		...(references && references.length > 0 ? { references } : {}),
+		...(series && series.length > 0 ? { series } : {}),
 	}
 }
 
@@ -352,8 +372,12 @@ export type ChartKeyboardProps = {
  * jump to the ends, and Escape drops focus. Reference lines join the value-axis
  * roving as their own stops: landing on one recedes the marks to it — the same
  * emphasis pointing it applies — and drops the series readout, so the rule reads
- * against a quieted field; stepping off restores it. Leaving after navigating
- * clears the readout; a
+ * against a quieted field; stepping off restores it. Landing on a series point
+ * emphasises that series the way hovering its legend entry does — the other
+ * series recede to a quarter opacity and the tooltip dims their rows — so the
+ * dataset the cursor reads stands alone; stepping to another series moves the
+ * emphasis with it, and leaving or reaching a rule clears it. Leaving after
+ * navigating clears the readout; a
  * pointer-only focus leaves the pointer's readout alone. Escape drops focus to
  * the body, then re-arms the region as the next Tab's destination, so tabbing
  * back in returns to the chart the reader just left rather than stepping to the
@@ -366,6 +390,7 @@ export type ChartKeyboardProps = {
  * @param enabled - Whether a readout is mounted to answer the cursor — the tooltip that makes navigation legible.
  * @param set - The hover context's setter, moved to the cursor's anchor on each step.
  * @param setReference - The emphasis setter, moved to the reference line the cursor parks on, or `null` off it.
+ * @param setActiveSeries - The series-emphasis setter, moved to the series the cursor sits on, or `null` off any (a reference, a cleared cursor, or a chart with no series map).
  * @internal
  */
 export function useChartKeyboard(
@@ -374,6 +399,7 @@ export function useChartKeyboard(
 	enabled: boolean,
 	set: ChartHover['set'],
 	setReference: (reference: number | null) => void,
+	setActiveSeries: (series: number | null) => void,
 ): ChartKeyboardProps | null {
 	const [cursor, setCursor] = useState<ChartCursor | null>(null)
 
@@ -386,15 +412,20 @@ export function useChartKeyboard(
 
 	const active = enabled && targets !== undefined && hasFocusTargets(targets)
 
-	// Release any reference emphasis the cursor held once navigation switches off —
-	// the rules removed, the tooltip unmounted — so a stale dim never lingers.
+	// Release any emphasis the cursor held once navigation switches off — the rules
+	// or series removed, the tooltip unmounted — so a stale dim never lingers.
 	useEffect(() => {
-		if (!active) setReference(null)
-	}, [active, setReference])
+		if (!active) {
+			setReference(null)
+
+			setActiveSeries(null)
+		}
+	}, [active, setReference, setActiveSeries])
 
 	// A reference line the cursor parks on owns the emphasis, not the marks: recede
-	// the field and drop the series readout so the rule reads alone. Anywhere else,
-	// carry the hover to the cursor's anchor and clear the emphasis, or clear both.
+	// the whole field and drop the series readout so the rule reads alone — no one
+	// series is active. Anywhere else, carry the hover to the cursor's anchor and
+	// emphasise the series it sits on so the rest recede, or clear both.
 	const show = (next: ChartCursor | null) => {
 		setCursor(next)
 
@@ -402,6 +433,8 @@ export function useChartKeyboard(
 
 		if (reference !== undefined && targets?.references?.[reference] != null) {
 			setReference(reference)
+
+			setActiveSeries(null)
 
 			set(null, null)
 
@@ -412,8 +445,15 @@ export function useChartKeyboard(
 
 		const point = next && targets ? cursorPoint(next, targets) : null
 
-		if (next && point) set(next.category, point, true)
-		else set(null, null)
+		if (next && targets && point) {
+			set(next.category, point, true)
+
+			setActiveSeries(cursorSeries(next, targets))
+		} else {
+			set(null, null)
+
+			setActiveSeries(null)
+		}
 	}
 
 	// Escape leaves the region the way the legend does — focus off, readout
