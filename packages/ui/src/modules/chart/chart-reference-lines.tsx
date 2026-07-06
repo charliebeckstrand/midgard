@@ -59,6 +59,14 @@ export type ChartReferenceLinesProps = {
 	 * @defaultValue false
 	 */
 	animate?: boolean
+	/**
+	 * Draw each rule's value as a standing label at its far end — the
+	 * `labels.references` mode — in place of the hover tooltip. The rules then
+	 * shed their pointer target and float no surface; the caller also drops their
+	 * keyboard stop, since the label reads the value where pointing once did.
+	 * @defaultValue false
+	 */
+	labels?: boolean
 }
 
 /** Props for {@link ReferenceRule}. @internal */
@@ -72,15 +80,150 @@ type ReferenceRuleProps = {
 	format: (value: number) => string
 	/** The mount slide-in transform from {@link referenceRise}, or `null` when the chart is static. */
 	rise: ReturnType<typeof referenceRise> | null
+	/** The plot box, for flipping a far-end label off the near edge. */
+	plot: PlotRect
+	/**
+	 * Draw a standing value label at the rule's far end in place of the hover
+	 * tooltip — the `labels.references` mode. The rule then sheds its wide hit
+	 * target and floats no surface, and the caller drops its keyboard stop.
+	 */
+	labels: boolean
+}
+
+/** Gap from a rule to its far-end label, and the label's collision height for the near-edge flip. @internal */
+const REFERENCE_LABEL_OFFSET = 8
+const REFERENCE_LABEL_HEIGHT = 13
+const REFERENCE_LABEL_HALF = REFERENCE_LABEL_HEIGHT / 2
+
+/** The standing reference label's ink: small, semibold, tabular, in the rule's colour. @internal */
+const REFERENCE_LABEL_INK = 'text-xs font-semibold tabular-nums'
+
+/** A resolved reference-label anchor: where its text sits and how it aligns. @internal */
+type ReferenceLabelAnchor = { x: number; y: number; textAnchor: 'end' | 'middle' }
+
+/**
+ * Where a rule's standing label sits: at the far end of the rule, clear of the
+ * dashes. A vertical rule labels above its far (right) end, flipping below when
+ * the value crowds the top edge; a horizontal rule labels at the top of its far
+ * end. @internal
+ */
+function referenceLabelAnchor(
+	orientation: ChartOrientation,
+	end: Vec,
+	plot: PlotRect,
+): ReferenceLabelAnchor {
+	if (orientation === 'vertical') {
+		const above = end.y - REFERENCE_LABEL_OFFSET - REFERENCE_LABEL_HEIGHT >= plot.y
+
+		return {
+			x: end.x,
+			y: above
+				? end.y - REFERENCE_LABEL_OFFSET - REFERENCE_LABEL_HALF
+				: end.y + REFERENCE_LABEL_OFFSET + REFERENCE_LABEL_HALF,
+			textAnchor: 'end',
+		}
+	}
+
+	return {
+		x: end.x,
+		y: plot.y + REFERENCE_LABEL_OFFSET + REFERENCE_LABEL_HALF,
+		textAnchor: 'middle',
+	}
+}
+
+/** The two endpoints of a rule's drawn line, in `viewBox` user units. @internal */
+type RulePoints = { x1: number; y1: number; x2: number; y2: number }
+
+/**
+ * The dashed value-axis rule itself, shared by the hover and labelled
+ * renderings: a named slot's stroke class, or a raw hex / `oklch()` colour
+ * inline. Never takes the pointer — the hover rendering lays its own transparent
+ * hit line over this. @internal
+ */
+function ReferenceRuleStroke({ line, points }: { line: ChartReferenceLine; points: RulePoints }) {
+	const color = line.color ?? DEFAULT_REFERENCE_COLOR
+
+	const slot = isSeriesSlot(color)
+
+	return (
+		<line
+			{...points}
+			strokeWidth={REFERENCE_STROKE_WIDTH}
+			strokeDasharray={line.dashed === false ? undefined : REFERENCE_DASH}
+			className={slot ? cn(k.series[color].stroke) : undefined}
+			style={slot ? undefined : { stroke: color }}
+			pointerEvents="none"
+		/>
+	)
 }
 
 /**
- * One reference rule: a dashed value-axis line under a transparent
- * {@link REFERENCE_HIT_WIDTH} hover target, wrapped in the design-system
- * {@link Tooltip} so pointing it floats a label-and-value readout. The rule
- * takes a named slot's stroke class or, for a raw hex / `oklch()` colour, an
- * inline stroke. The trigger sits inside the `aria-hidden` plot, so the readout
- * is a pointer enhancement; {@link ChartReferenceList} carries the parity.
+ * The labelled rendering: the rule under a standing value label at its far end,
+ * inked to match — a slot through its fill class, a raw colour inline — with the
+ * rule's own label as a prefix where it has one. It floats no tooltip and lays no
+ * hit target: the label reads what pointing would, so the rule drops the hover
+ * path (and the caller drops its keyboard stop). The label rides the mount rise,
+ * so rule and label reveal as one.
+ *
+ * @internal
+ */
+function LabelledReferenceRule({
+	line,
+	start,
+	end,
+	orientation,
+	format,
+	rise,
+	plot,
+}: ReferenceRuleProps) {
+	const color = line.color ?? DEFAULT_REFERENCE_COLOR
+
+	const slot = isSeriesSlot(color)
+
+	const anchor = referenceLabelAnchor(orientation, end, plot)
+
+	const valueText = format(line.value)
+
+	const body = (
+		<>
+			<ReferenceRuleStroke
+				line={line}
+				points={{ x1: start.x, y1: start.y, x2: end.x, y2: end.y }}
+			/>
+
+			<text
+				data-slot="chart-reference-label"
+				x={anchor.x}
+				y={anchor.y}
+				textAnchor={anchor.textAnchor}
+				dominantBaseline="central"
+				className={cn(REFERENCE_LABEL_INK, slot ? cn(k.series[color].fill) : undefined)}
+				style={slot ? undefined : { fill: color }}
+			>
+				{line.label ? `${line.label} ${valueText}` : valueText}
+			</text>
+		</>
+	)
+
+	return (
+		<g data-slot="chart-reference-line" pointerEvents="none">
+			{rise ? (
+				<motion.g {...rise} transition={REFERENCE_RISE}>
+					{body}
+				</motion.g>
+			) : (
+				body
+			)}
+		</g>
+	)
+}
+
+/**
+ * The hover rendering: the dashed rule under a transparent
+ * {@link REFERENCE_HIT_WIDTH} hit target, wrapped in the design-system
+ * {@link Tooltip} so pointing it floats a label-and-value readout. The trigger
+ * sits inside the `aria-hidden` plot, so the readout is a pointer enhancement;
+ * {@link ChartReferenceList} carries the parity.
  *
  * The keyboard reaches the rule the pointer can't hover: parking the roving
  * cursor here forces the same tooltip open, so focusing a rule reads exactly
@@ -88,29 +231,30 @@ type ReferenceRuleProps = {
  *
  * @internal
  */
-function ReferenceRule({ line, index, start, end, orientation, format, rise }: ReferenceRuleProps) {
+function HoverReferenceRule({
+	line,
+	index,
+	start,
+	end,
+	orientation,
+	format,
+	rise,
+}: ReferenceRuleProps) {
 	const { setReferenceActive, activeReference } = useChartEmphasis()
 
 	const color = line.color ?? DEFAULT_REFERENCE_COLOR
 
 	const slot = isSeriesSlot(color)
 
-	const focused = activeReference === index
+	const points: RulePoints = { x1: start.x, y1: start.y, x2: end.x, y2: end.y }
 
-	const points = { x1: start.x, y1: start.y, x2: end.x, y2: end.y }
+	const focused = activeReference === index
 
 	// The drawn rule over its wide transparent hover target; the pair reveals as
 	// one, so the hit line rises with the rule it stands in for.
 	const rules = (
 		<>
-			<line
-				{...points}
-				strokeWidth={REFERENCE_STROKE_WIDTH}
-				strokeDasharray={line.dashed === false ? undefined : REFERENCE_DASH}
-				className={slot ? cn(k.series[color].stroke) : undefined}
-				style={slot ? undefined : { stroke: color }}
-				pointerEvents="none"
-			/>
+			<ReferenceRuleStroke line={line} points={points} />
 
 			<line
 				{...points}
@@ -168,11 +312,24 @@ function ReferenceRule({ line, index, start, end, orientation, format, rise }: R
 }
 
 /**
+ * One reference rule, in one of two renderings: the standing {@link
+ * LabelledReferenceRule} under `labels`, else the interactive {@link
+ * HoverReferenceRule}. Both draw the same dashed rule; they differ only in
+ * whether the value reads from a fixed label or a hover-and-keyboard tooltip.
+ *
+ * @internal
+ */
+function ReferenceRule(props: ReferenceRuleProps) {
+	return props.labels ? <LabelledReferenceRule {...props} /> : <HoverReferenceRule {...props} />
+}
+
+/**
  * Reference lines at fixed values, drawn across the band axis — the same
  * value→project→draw path as {@link ChartGridLines}, but on a raw domain value
  * and over the marks instead of under them, so a target or threshold reads
- * against the data rather than hiding behind it. Each rule is a hover target
- * floating a {@link Tooltip} with its value and label.
+ * against the data rather than hiding behind it. Each rule floats its value and
+ * label from a {@link Tooltip} on hover, or — under `labels` — carries them in a
+ * standing label at its far end.
  *
  * @remarks Self-gating: a chart mounts it unconditionally and it draws nothing
  * until both a scale and reference lines exist, so the gate lives here instead
@@ -180,6 +337,8 @@ function ReferenceRule({ line, index, start, end, orientation, format, rise }: R
  * the pointer where they sit. Under `animate` each rule rises along the value
  * axis from the baseline to its value — {@link referenceRise} — inside a
  * {@link ReducedMotion} that settles it at rest for a reduced-motion preference.
+ * Under `labels` each rule carries a standing value label at its far end and
+ * drops the hover tooltip — the `labels.references` mode.
  * @internal
  */
 export function ChartReferenceLines({
@@ -190,6 +349,7 @@ export function ChartReferenceLines({
 	orientation = 'vertical',
 	format,
 	animate = false,
+	labels = false,
 }: ChartReferenceLinesProps) {
 	if ((!scale && !rightScale) || !reference || reference.length === 0) return null
 
@@ -229,6 +389,8 @@ export function ChartReferenceLines({
 						orientation={orientation}
 						format={(value) => resolvedFormat(value, axis)}
 						rise={animate ? referenceRise(orientation, baselineOf(ruleScale) - at) : null}
+						plot={plot}
+						labels={labels}
 					/>
 				)
 			})}

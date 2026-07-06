@@ -515,3 +515,102 @@ describe('reference lines in the legend', () => {
 		expect(solid?.querySelector('[data-slot="swatch"]')?.getAttribute('data-variant')).toBe('solid')
 	})
 })
+
+describe('reference value labels', () => {
+	// `labels` is a line / area prop, so the labelled rules ride the line chart;
+	// `labels.references` turns each rule's hover tooltip into a standing label.
+	function lineLabels(reference: ChartReferenceLine[]) {
+		return renderUI(
+			<LineChart
+				aria-label="Revenue by month"
+				data={DATA}
+				series={[...SERIES]}
+				width={400}
+				reference={reference}
+				labels={{ references: true }}
+			/>,
+		)
+	}
+
+	it('draws a standing label per rule and lays no hover target', () => {
+		const { container } = lineLabels([{ value: 60, label: 'Goal' }])
+
+		const labels = allBySlot(container, 'chart-reference-label')
+
+		expect(labels).toHaveLength(1)
+
+		const label = labels[0]
+
+		// The label reads the rule's value, prefixed by its own label.
+		expect(label?.textContent).toContain('Goal')
+
+		expect(label?.textContent).toContain('60')
+
+		// It sits at the rule's far (right) end, anchored inward, and clears the
+		// dashes by riding just above the rule's value position.
+		const ruleY = Number(rule(container)?.getAttribute('y1'))
+
+		expect(label?.getAttribute('text-anchor')).toBe('end')
+
+		expect(Number(label?.getAttribute('y'))).toBeLessThan(ruleY)
+
+		// No transparent hit target — the standing label replaces the hover readout,
+		// so the rule group carries only the one drawn line.
+		expect(bySlot(container, 'chart-reference-line')?.querySelectorAll('line').length).toBe(1)
+	})
+
+	it('reads the value alone for an unlabelled rule', () => {
+		const { container } = lineLabels([{ value: 50 }])
+
+		expect(bySlot(container, 'chart-reference-label')?.textContent).toBe('50')
+	})
+
+	it('inks the label to match the rule — a slot through its fill class, a raw colour inline', () => {
+		const { container } = lineLabels([
+			{ value: 50, label: 'Floor', color: 'green' },
+			{ value: 70, label: 'Ceiling', color: '#e11d48' },
+		])
+
+		const [slot, raw] = allBySlot(container, 'chart-reference-label')
+
+		expect(slot?.getAttribute('class')).toContain('fill-green-600')
+
+		// A raw colour bypasses the fill classes and paints inline instead.
+		expect(raw?.getAttribute('class') ?? '').not.toContain('fill-')
+
+		expect(raw?.style.fill).toBeTruthy()
+	})
+
+	it('keeps the visually-hidden reference parity alongside the drawn labels', () => {
+		const { container } = lineLabels([{ value: 55, label: 'Target' }])
+
+		const list = bySlot(container, 'chart-reference-list')
+
+		expect(list?.className).toContain('sr-only')
+
+		expect(list?.textContent).toContain('Target')
+
+		expect(list?.textContent).toContain('55')
+	})
+
+	it('drops the rule from the keyboard roving, so it never recedes the marks', () => {
+		const { container } = lineLabels([{ value: 60, label: 'Goal' }])
+
+		const plot = bySlot(container, 'chart-plot') as HTMLElement
+
+		const marks = () => bySlot(container, 'chart-marks')?.getAttribute('class') ?? ''
+
+		// The first arrow enters at the first point; the value-axis arrow then steps
+		// the series' points. With the rule labelled it is no longer a stop, so the
+		// marks stay lit and no rule takes focus.
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		fireEvent.keyDown(plot, { key: 'ArrowDown' })
+
+		fireEvent.keyDown(plot, { key: 'ArrowDown' })
+
+		expect(marks()).not.toContain('opacity-25')
+
+		expect(bySlot(container, 'chart-reference-line')?.getAttribute('data-focused')).toBeNull()
+	})
+})

@@ -227,7 +227,11 @@ export type ResolvedCrosshair = Required<Crosshair>
 export type ChartReferenceLine = {
 	/** The domain value the line sits at, in the same units the series are read in. */
 	value: number
-	/** A short label drawn at the line's far end; omitted, the rule stands alone. */
+	/**
+	 * A short label naming the rule — carried in its hover tooltip and legend chip,
+	 * and drawn beside the rule at its far end once a chart's `labels.references` is
+	 * on. Omitted, the rule reads by its value alone.
+	 */
 	label?: string
 	/**
 	 * The rule's colour: a named palette slot (rendered through the CVD-safe slot
@@ -255,11 +259,11 @@ export type ChartReferenceLine = {
 
 /**
  * Selective value labels for a line-bearing chart: direct labels at the points
- * worth naming, so a reader gets the numbers without the tooltip. Both default
- * off; set either (or both). Labels measure first and never clip — an edge
- * label anchors inward — and overlaps resolve by priority, extremes over
- * endpoints, dropping the loser rather than stacking it. The full readout stays
- * in the tooltip and data table.
+ * worth naming — and, with `references`, beside each reference rule — so a reader
+ * gets the numbers without the tooltip. All default off; set any. Point labels
+ * measure first and never clip — an edge label anchors inward — and overlaps
+ * resolve by priority, extremes over endpoints, dropping the loser rather than
+ * stacking it. The full readout stays in the tooltip and data table.
  */
 export type ChartValueLabelConfig = {
 	/**
@@ -272,6 +276,16 @@ export type ChartValueLabelConfig = {
 	 * @defaultValue false
 	 */
 	extremes?: boolean
+	/**
+	 * Draw each reference line's value — prefixed by its label where it has one —
+	 * beside the rule at its far end, inked to match the rule. The standing
+	 * readout replaces the rule's hover tooltip: with it on, the rules shed their
+	 * pointer target and keyboard stop, since the label already reads what the
+	 * tooltip would. The visually-hidden reference list keeps the assistive-tech
+	 * parity either way.
+	 * @defaultValue false
+	 */
+	references?: boolean
 }
 
 /**

@@ -60,8 +60,9 @@ export type AreaChartProps<T> = CartesianChartProps<T> & {
 	interpolation?: LineInterpolation
 	/**
 	 * Draw selective value labels — each series' `endpoints` and / or `extremes`
-	 * — on its band-edge line, overlaps dropped by priority. Off by default; the
-	 * tooltip and data table carry the full readout.
+	 * — on its band-edge line, overlaps dropped by priority, and, with
+	 * `references`, each reference rule's value beside it in place of its hover
+	 * tooltip. Off by default; the tooltip and data table carry the full readout.
 	 */
 	labels?: ChartValueLabelConfig
 }
@@ -105,6 +106,20 @@ function focusPoints(
 			return ys
 		}, []),
 	)
+}
+
+/**
+ * The reference lines' keyboard stops, or none when `labels.references` draws
+ * their values beside them instead: a labelled rule reads its value without the
+ * rove, so it leaves the value-axis roving the way it leaves the hover tooltip.
+ *
+ * @internal
+ */
+function referenceStops(
+	labels: ChartValueLabelConfig | undefined,
+	positions: (number | null)[],
+): (number | null)[] | undefined {
+	return labels?.references ? undefined : positions
 }
 
 /** Adapts one stacked band to the line-marks geometry shape (one segment, one ribbon). @internal */
@@ -174,7 +189,9 @@ function stackedRibbons(
  * keyboard — the band-axis arrows step categories, the value-axis arrows step
  * each category's points in screen order (a stack's cumulative band edges when
  * stacked, each series' own point otherwise). A reference line joins that
- * value-axis roving, receding the marks when the cursor reaches it.
+ * value-axis roving, receding the marks when the cursor reaches it — unless
+ * `labels.references` draws its value beside it, which stands in for the hover
+ * and drops the rove.
  * @example
  * ```tsx
  * <AreaChart
@@ -329,7 +346,7 @@ export function AreaChart<T>({
 				chart.bandPositions,
 				navPoints,
 				chart.orientation,
-				chart.referencePositions,
+				referenceStops(labels, chart.referencePositions),
 			)}
 			className={className}
 			annotations={<ChartReferenceList reference={reference} format={chart.formatAxisValue} />}
@@ -387,6 +404,7 @@ export function AreaChart<T>({
 				reference={reference}
 				format={chart.formatAxisValue}
 				animate={animate}
+				labels={labels?.references}
 			/>
 		</ChartFrame>
 	)
