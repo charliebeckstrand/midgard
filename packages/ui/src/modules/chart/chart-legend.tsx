@@ -1,7 +1,7 @@
 'use client'
 
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { type KeyboardEvent, useLayoutEffect, useRef, useState } from 'react'
+import { type KeyboardEvent, useRef, useState } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { Swatch } from '../../components/swatch'
@@ -9,6 +9,7 @@ import { Text } from '../../components/text'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
 import { cn } from '../../core'
 import { useA11yRoving } from '../../hooks/a11y'
+import { useTruncation } from '../../hooks/use-truncation'
 import type { ChartSeriesColor } from '../../recipes/kata/chart'
 import { ChartSwatch } from './chart-pattern-defs'
 import { useChartEmphasis } from './context'
@@ -17,39 +18,19 @@ import { useChartEmphasis } from './context'
 const PAGE_SIZE = 5
 
 /**
- * A legend entry's label, truncated to one line so a side panel's
- * `max-w-[50%]` can't force the row to overflow. `-webkit-line-clamp` was the
- * first pass, but its legacy box model centers a clamped line that had to wrap
- * internally before being cut — pulling a long label away from its swatch —
- * so a plain single-line `truncate` (`nowrap` + ellipsis) stands in instead;
- * it never wraps, so nothing is left to center. Surfaces the full label in a
- * hover tooltip once that overflow actually clips it.
+ * A legend entry's label, truncated to one line so a side panel's static width
+ * can't force the row to overflow. `-webkit-line-clamp` was the first pass, but
+ * its legacy box model centers a clamped line that had to wrap internally before
+ * being cut — pulling a long label away from its swatch — so a plain single-line
+ * `truncate` (`nowrap` + ellipsis) stands in instead; it never wraps, so nothing
+ * is left to center. Surfaces the full label in a hover tooltip once that
+ * overflow actually clips it, gated by the shared {@link useTruncation} overflow
+ * detector — the same measure the grid's cells use.
  *
  * @internal
  */
 function ChartLegendItemLabel({ label, off }: { label: string; off: boolean }) {
-	const ref = useRef<HTMLSpanElement>(null)
-
-	const [truncated, setTruncated] = useState(false)
-
-	// Re-measures on a label change too, not just a box resize — content can grow
-	// or shrink the overflow without the box's own size moving.
-	// biome-ignore lint/correctness/useExhaustiveDependencies: label is read via the DOM the effect owns, not referenced directly.
-	useLayoutEffect(() => {
-		const el = ref.current
-
-		if (!el) return
-
-		const measure = () => setTruncated(el.scrollWidth > el.clientWidth)
-
-		measure()
-
-		const observer = new ResizeObserver(measure)
-
-		observer.observe(el)
-
-		return () => observer.disconnect()
-	}, [label])
+	const [ref, truncated] = useTruncation<HTMLSpanElement>()
 
 	return (
 		<Tooltip enabled={truncated}>
@@ -145,9 +126,10 @@ export type ChartLegendProps = {
 	onFocus: (index: number | null) => void
 	/**
 	 * Lay the entries out as a single column rather than the centered wrap
-	 * row — the static side panel beside a pie or donut. Caps the panel at
-	 * half the chart's width and, past five switches, paginates them instead
-	 * of clipping the column.
+	 * row — the static side panel beside a pie or donut. Reserves a fixed-width
+	 * column (`sm:w-64`) so the legend never scales the plot with its content,
+	 * centers the left-aligned entry block within it, and past five switches
+	 * paginates them instead of clipping the column.
 	 */
 	panel?: boolean
 	/** The `texture` prop is on, so square swatches hatch in every mode, mirroring the marks. */
@@ -310,22 +292,12 @@ export function ChartLegend({
 		? ({ role: 'toolbar', 'aria-orientation': 'horizontal', onKeyDown: handleKeyDown } as const)
 		: {}
 
-	return (
-		<div
-			ref={ref}
-			data-slot="chart-legend"
-			{...toolbarProps}
-			className={cn(
-				// The side panel centers its entries down the column, so a legend
-				// stretched to the plot's full height reads level with it rather than
-				// stacked at the top, and caps at half the chart's width; the wrap row
-				// centers its entries on mobile and justifies them edge to edge from sm,
-				// spreading them across the plot's full width rather than bunching at one end.
-				panel
-					? 'flex min-w-0 flex-col items-start justify-center sm:max-w-[50%]'
-					: 'flex flex-wrap items-center justify-center',
-			)}
-		>
+	// The entry switches (or a lone static chip), an optional pagination row, and
+	// any reference chips. Rendered inline in the wrap row; in panel mode they nest
+	// in a shrink-to-content, left-aligned inner block so the reserved column can
+	// center that block rather than pin it to the plot.
+	const legendBody = (
+		<>
 			{pageItems.map((item) => {
 				const off = hidden.has(item.index)
 
@@ -477,6 +449,40 @@ export function ChartLegend({
 					</Text>
 				</Button>
 			))}
+		</>
+	)
+
+	return (
+		<div
+			ref={ref}
+			data-slot="chart-legend"
+			{...toolbarProps}
+			className={cn(
+				// The side panel reserves a fixed-width column (`sm:w-64`) so its content
+				// never scales the plot, and centers its entries — vertically down the
+				// column so a legend stretched to the plot's full height reads level with
+				// it, and horizontally so the left-aligned block sits centered in the
+				// reserved width rather than pinned to the plot. The wrap row centers its
+				// entries on mobile and justifies them edge to edge from sm, spreading them
+				// across the plot's full width rather than bunching at one end.
+				panel
+					? 'flex flex-col items-center justify-center sm:w-64 sm:shrink-0'
+					: 'flex flex-wrap items-center justify-center',
+			)}
+		>
+			{panel ? (
+				// The left-aligned entry block, shrink-wrapped to its content and capped at
+				// the reserved column, so the column's `items-center` centers it while each
+				// entry stretches to the block's width to share one swatch edge.
+				<div
+					data-slot="chart-legend-items"
+					className="flex w-fit min-w-0 max-w-full flex-col items-start"
+				>
+					{legendBody}
+				</div>
+			) : (
+				legendBody
+			)}
 		</div>
 	)
 }
