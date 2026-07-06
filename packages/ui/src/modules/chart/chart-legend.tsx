@@ -1,7 +1,7 @@
 'use client'
 
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { type KeyboardEvent, useLayoutEffect, useRef, useState } from 'react'
+import { type KeyboardEvent, useRef, useState } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { Swatch } from '../../components/swatch'
@@ -9,6 +9,7 @@ import { Text } from '../../components/text'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
 import { cn } from '../../core'
 import { useA11yRoving } from '../../hooks/a11y'
+import { useTruncation } from '../../hooks/use-truncation'
 import type { ChartSeriesColor } from '../../recipes/kata/chart'
 import { ChartSwatch } from './chart-pattern-defs'
 import { useChartEmphasis } from './context'
@@ -16,57 +17,133 @@ import { useChartEmphasis } from './context'
 /** Entries per page once a side panel's switches would clip vertically. @internal */
 const PAGE_SIZE = 5
 
+/** Props for {@link ChartLegendEntry}. @internal */
+type ChartLegendEntryProps = {
+	item: ChartLegendItem
+	/** The series is toggled off — strike the label and dim the swatch. */
+	off: boolean
+	/** Panel layout: the entry stretches full-width and left-justifies its content. */
+	panel: boolean
+	/** The `texture` prop is on, so the square swatch hatches in every mode. */
+	texture: boolean
+	/** Two or more series make each entry a switch; a lone one is a static chip. */
+	interactive: boolean
+	/** Toggles this entry's series on or off. */
+	onToggle: (index: number) => void
+	/** Pointer enter/leave emphasis: the series index while pointed, `null` on leave. */
+	onPointerEmphasis: (index: number | null) => void
+	/** Focus/blur emphasis, resolved through the shared `:focus-visible` gate. */
+	onFocusEmphasis: () => void
+}
+
 /**
- * A legend entry's label, truncated to one line so a side panel's
- * `max-w-[50%]` can't force the row to overflow. `-webkit-line-clamp` was the
- * first pass, but its legacy box model centers a clamped line that had to wrap
- * internally before being cut — pulling a long label away from its swatch —
- * so a plain single-line `truncate` (`nowrap` + ellipsis) stands in instead;
- * it never wraps, so nothing is left to center. Surfaces the full label in a
- * hover tooltip once that overflow actually clips it.
+ * One legend entry: a series switch (or a lone static chip) whose label truncates
+ * to one line so a side panel's static width can't force the row to overflow, with
+ * a hover/focus tooltip that reveals the full label once the column clips it.
+ * `-webkit-line-clamp` was the first pass, but its legacy box model centers a
+ * clamped line that had to wrap internally before being cut — pulling a long label
+ * away from its swatch — so a plain single-line `truncate` (`nowrap` + ellipsis)
+ * stands in instead; it never wraps, so nothing is left to center.
  *
+ * @remarks The tooltip wraps the whole control rather than the label span: a
+ * switch is a {@link Button}, whose {@link TouchTarget} hit-area overlay captures
+ * pointer events and forwards them to the button by bubbling, so a tooltip
+ * anchored to an inner span would never see the hover. Overflow is still measured
+ * on the label span through the shared {@link useTruncation} detector — the same
+ * measure the grid's cells use — and the closed (untruncated) tooltip renders no
+ * surface, so a fitting entry adds no DOM.
  * @internal
  */
-function ChartLegendItemLabel({ label, off }: { label: string; off: boolean }) {
-	const ref = useRef<HTMLSpanElement>(null)
+function ChartLegendEntry({
+	item,
+	off,
+	panel,
+	texture,
+	interactive,
+	onToggle,
+	onPointerEmphasis,
+	onFocusEmphasis,
+}: ChartLegendEntryProps) {
+	const [labelRef, truncated] = useTruncation<HTMLSpanElement>()
 
-	const [truncated, setTruncated] = useState(false)
+	const content = (
+		<>
+			<ChartSwatch
+				swatch={item.swatch}
+				swatchClass={item.swatchClass}
+				swatchColor={item.swatchColor}
+				color={item.color}
+				dashed={item.dashed}
+				active={texture}
+				off={off}
+			/>
 
-	// Re-measures on a label change too, not just a box resize — content can grow
-	// or shrink the overflow without the box's own size moving.
-	// biome-ignore lint/correctness/useExhaustiveDependencies: label is read via the DOM the effect owns, not referenced directly.
-	useLayoutEffect(() => {
-		const el = ref.current
+			<span ref={labelRef} className="block min-w-0 truncate">
+				<Text
+					as="span"
+					severity="muted"
+					size="sm"
+					className={cn('text-left leading-tight', off && 'line-through opacity-60')}
+				>
+					{item.label}
+				</Text>
+			</span>
 
-		if (!el) return
+			{item.detail && (
+				<Text
+					as="span"
+					severity="muted"
+					size="sm"
+					className={cn('text-left leading-tight tabular-nums', off && 'opacity-60')}
+				>
+					{item.detail}
+				</Text>
+			)}
+		</>
+	)
 
-		const measure = () => setTruncated(el.scrollWidth > el.clientWidth)
-
-		measure()
-
-		const observer = new ResizeObserver(measure)
-
-		observer.observe(el)
-
-		return () => observer.disconnect()
-	}, [label])
+	// A lone series can't be switched — nor emphasised, since dimming every other
+	// mark against the only one would blank the chart — so it reads as a static
+	// identity chip: no button, no toggle, no emphasis. It keeps the
+	// `chart-legend-item` slot but stays out of the roving (a span, not a button),
+	// so a reference chip beside it is the only Tab stop.
+	const control = interactive ? (
+		<Button
+			size="sm"
+			variant="plain"
+			data-slot="chart-legend-item"
+			block={panel}
+			// Button's own base centers its content; a panel entry stretches to
+			// `w-full` so every row can align its swatch to the same edge, not center
+			// a shorter row's content under a longer one's.
+			className={cn(panel && 'min-w-0 justify-start')}
+			aria-pressed={!off}
+			onClick={() => onToggle(item.index)}
+			onPointerEnter={() => onPointerEmphasis(item.index)}
+			onPointerLeave={() => onPointerEmphasis(null)}
+			// Focus and blur resolve through the same path as hover: a keyboard focus
+			// (`:focus-visible`, the same gate the ring rides) emphasises, while a
+			// pointer click's ring-less focus — or the focus a backgrounded tab re-fires
+			// on return — resolves to nothing.
+			onFocus={onFocusEmphasis}
+			onBlur={onFocusEmphasis}
+		>
+			{content}
+		</Button>
+	) : (
+		<span
+			data-slot="chart-legend-item"
+			className={cn('inline-flex items-center gap-1 px-2 py-1', panel && 'w-full min-w-0')}
+		>
+			{content}
+		</span>
+	)
 
 	return (
 		<Tooltip enabled={truncated}>
-			<TooltipTrigger>
-				<span ref={ref} className="block min-w-0 truncate">
-					<Text
-						as="span"
-						severity="muted"
-						size="sm"
-						className={cn('text-left leading-tight', off && 'line-through opacity-60')}
-					>
-						{label}
-					</Text>
-				</span>
-			</TooltipTrigger>
+			<TooltipTrigger>{control}</TooltipTrigger>
 
-			<TooltipContent>{label}</TooltipContent>
+			<TooltipContent>{item.label}</TooltipContent>
 		</Tooltip>
 	)
 }
@@ -145,9 +222,10 @@ export type ChartLegendProps = {
 	onFocus: (index: number | null) => void
 	/**
 	 * Lay the entries out as a single column rather than the centered wrap
-	 * row — the static side panel beside a pie or donut. Caps the panel at
-	 * half the chart's width and, past five switches, paginates them instead
-	 * of clipping the column.
+	 * row — the static side panel beside a pie or donut. Reserves a fixed-width
+	 * column (`sm:w-64`) so the legend never scales the plot with its content,
+	 * centers the left-aligned entry block within it, and past five switches
+	 * paginates them instead of clipping the column.
 	 */
 	panel?: boolean
 	/** The `texture` prop is on, so square swatches hatch in every mode, mirroring the marks. */
@@ -282,6 +360,10 @@ export function ChartLegend({
 	// chips, which recede the marks on hover or focus.
 	const interactive = seriesInteractive || references.length > 0
 
+	// A side panel stacks its controls in a column, so the arrows that rove them
+	// follow the layout — Up/Down down the panel, Left/Right across the wrap row.
+	const orientation = panel ? 'vertical' : 'horizontal'
+
 	// Rove across the focusable controls — series switches and reference chips
 	// alike — so a lone series' static chip keeps its queryable `chart-legend-item`
 	// slot without being seated a Tab stop, while the reference chips join the one
@@ -289,7 +371,7 @@ export function ChartLegend({
 	const onKeyDown = useA11yRoving(ref, {
 		itemSelector:
 			'button[data-slot="chart-legend-item"], button[data-slot="chart-legend-reference"]',
-		orientation: 'horizontal',
+		orientation,
 		manageTabIndex: true,
 	})
 
@@ -307,106 +389,32 @@ export function ChartLegend({
 	// present for a switchboard, absent for a lone static chip (a plain grouping
 	// div with no interaction).
 	const toolbarProps = interactive
-		? ({ role: 'toolbar', 'aria-orientation': 'horizontal', onKeyDown: handleKeyDown } as const)
+		? ({ role: 'toolbar', 'aria-orientation': orientation, onKeyDown: handleKeyDown } as const)
 		: {}
 
-	return (
-		<div
-			ref={ref}
-			data-slot="chart-legend"
-			{...toolbarProps}
-			className={cn(
-				// The side panel centers its entries down the column, so a legend
-				// stretched to the plot's full height reads level with it rather than
-				// stacked at the top, and caps at half the chart's width; the wrap row
-				// centers its entries on mobile and justifies them edge to edge from sm,
-				// spreading them across the plot's full width rather than bunching at one end.
-				panel
-					? 'flex min-w-0 flex-col items-start justify-center sm:max-w-[50%]'
-					: 'flex flex-wrap items-center justify-center',
-			)}
-		>
-			{pageItems.map((item) => {
-				const off = hidden.has(item.index)
+	// The entry switches (or a lone static chip), an optional pagination row, and
+	// any reference chips. Rendered inline in the wrap row; in panel mode they nest
+	// in a shrink-to-content, left-aligned inner block so the reserved column can
+	// center that block rather than pin it to the plot.
+	const legendBody = (
+		<>
+			{pageItems.map((item) => (
+				<ChartLegendEntry
+					key={item.label}
+					item={item}
+					off={hidden.has(item.index)}
+					panel={panel}
+					texture={texture}
+					interactive={seriesInteractive}
+					onToggle={onToggle}
+					onPointerEmphasis={(index) => {
+						hovered.current = index
 
-				const content = (
-					<>
-						<ChartSwatch
-							swatch={item.swatch}
-							swatchClass={item.swatchClass}
-							swatchColor={item.swatchColor}
-							color={item.color}
-							dashed={item.dashed}
-							active={texture}
-							off={off}
-						/>
-
-						<ChartLegendItemLabel label={item.label} off={off} />
-
-						{item.detail && (
-							<Text
-								as="span"
-								severity="muted"
-								size="sm"
-								className={cn('text-left leading-tight tabular-nums', off && 'opacity-60')}
-							>
-								{item.detail}
-							</Text>
-						)}
-					</>
-				)
-
-				// A lone series can't be switched — nor emphasised, since dimming every
-				// other mark against the only one would blank the chart — so it reads as a
-				// static identity chip: no button, no toggle, no emphasis. It keeps the
-				// `chart-legend-item` slot but stays out of the roving (a span, not a
-				// button), so a reference chip beside it is the only Tab stop.
-				if (!seriesInteractive) {
-					return (
-						<span
-							key={item.label}
-							data-slot="chart-legend-item"
-							className={cn('inline-flex items-center gap-1 px-2 py-1', panel && 'w-full min-w-0')}
-						>
-							{content}
-						</span>
-					)
-				}
-
-				return (
-					<Button
-						key={item.label}
-						size="sm"
-						variant="plain"
-						data-slot="chart-legend-item"
-						block={panel}
-						// Button's own base centers its content; a panel entry stretches
-						// to `w-full` so every row can align its swatch to the same edge,
-						// not center a shorter row's content under a longer one's.
-						className={cn(panel && 'min-w-0 justify-start')}
-						aria-pressed={!off}
-						onClick={() => onToggle(item.index)}
-						onPointerEnter={() => {
-							hovered.current = item.index
-
-							syncEmphasis()
-						}}
-						onPointerLeave={() => {
-							hovered.current = null
-
-							syncEmphasis()
-						}}
-						// Focus and blur resolve through the same path as hover: a keyboard
-						// focus (`:focus-visible`, the same gate the ring rides) emphasises,
-						// while a pointer click's ring-less focus — or the focus a backgrounded
-						// tab re-fires on return — resolves to nothing.
-						onFocus={syncEmphasis}
-						onBlur={syncEmphasis}
-					>
-						{content}
-					</Button>
-				)
-			})}
+						syncEmphasis()
+					}}
+					onFocusEmphasis={syncEmphasis}
+				/>
+			))}
 
 			{paginate && (
 				<div
@@ -477,6 +485,40 @@ export function ChartLegend({
 					</Text>
 				</Button>
 			))}
+		</>
+	)
+
+	return (
+		<div
+			ref={ref}
+			data-slot="chart-legend"
+			{...toolbarProps}
+			className={cn(
+				// The side panel reserves a fixed-width column (`sm:w-64`) so its content
+				// never scales the plot, and centers its entries — vertically down the
+				// column so a legend stretched to the plot's full height reads level with
+				// it, and horizontally so the left-aligned block sits centered in the
+				// reserved width rather than pinned to the plot. The wrap row centers its
+				// entries on mobile and justifies them edge to edge from sm, spreading them
+				// across the plot's full width rather than bunching at one end.
+				panel
+					? 'flex flex-col items-center justify-center sm:w-64 sm:shrink-0'
+					: 'flex flex-wrap items-center justify-center',
+			)}
+		>
+			{panel ? (
+				// The left-aligned entry block, shrink-wrapped to its content and capped at
+				// the reserved column, so the column's `items-center` centers it while each
+				// entry stretches to the block's width to share one swatch edge.
+				<div
+					data-slot="chart-legend-items"
+					className="flex w-fit min-w-0 max-w-full flex-col items-start"
+				>
+					{legendBody}
+				</div>
+			) : (
+				legendBody
+			)}
 		</div>
 	)
 }

@@ -13,7 +13,7 @@ import {
 	pieSlices,
 	segmentLabelFits,
 } from '../../modules/chart/pie-chart/pie-chart-geometry'
-import { allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
+import { act, allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
 
 const DATA = [
 	{ source: 'Search', visits: 60 },
@@ -292,6 +292,28 @@ describe('PieChart', () => {
 		expect(bySlot(left.container, 'chart-legend')?.parentElement?.className).toContain(
 			'sm:flex-row-reverse',
 		)
+	})
+
+	it('roves the side panel with the vertical arrow keys, matching its column layout', () => {
+		const { container } = renderUI(chart({ legend: 'right' }))
+
+		// A side panel stacks vertically, so it declares a vertical toolbar and roves
+		// on Up/Down rather than the wrap row's Left/Right.
+		expect(bySlot(container, 'chart-legend')).toHaveAttribute('aria-orientation', 'vertical')
+
+		const items = allBySlot(container, 'chart-legend-item') as HTMLButtonElement[]
+
+		// Raw focus() drives the legend's emphasis state, so flush it under act.
+		act(() => items[0]?.focus())
+
+		fireEvent.keyDown(items[0] as Element, { key: 'ArrowDown' })
+
+		expect(document.activeElement).toBe(items[1])
+
+		// The cross-axis arrow leaves the vertical toolbar where it is.
+		fireEvent.keyDown(items[1] as Element, { key: 'ArrowRight' })
+
+		expect(document.activeElement).toBe(items[1])
 	})
 
 	it('re-shares the panel details as slices toggle', () => {
