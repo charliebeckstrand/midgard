@@ -1,9 +1,10 @@
 'use client'
 
+import { useCallback } from 'react'
 import { cn } from '../../core'
 import type { PlotRect } from './chart-layout'
-import type { ChartOrientation } from './chart-orientation'
-import type { BandScale } from './chart-scale'
+import { bandCoord, type ChartOrientation } from './chart-orientation'
+import { type BandScale, nearestBandIndex } from './chart-scale'
 import type { ChartTooltipTrigger } from './chart-schema'
 import { useChartPointer } from './use-chart-pointer'
 
@@ -47,19 +48,18 @@ export function ChartHitArea({
 	band,
 	count,
 	onData,
-	orientation,
+	orientation = 'vertical',
 	trigger = 'hover',
 	snaps = false,
 }: ChartHitAreaProps) {
-	const { ref, ...handlers } = useChartPointer(
-		band,
-		count,
-		plot,
-		onData,
-		orientation,
-		trigger,
-		snaps,
+	// The band runs across x when vertical, down y when horizontal, so the index
+	// reads whichever coordinate the orientation puts the band on.
+	const resolveIndex = useCallback(
+		(x: number, y: number) => nearestBandIndex(bandCoord(orientation, { x, y }), band, count),
+		[band, count, orientation],
 	)
+
+	const { ref, ...handlers } = useChartPointer(plot, resolveIndex, onData, trigger, snaps)
 
 	return (
 		<rect
