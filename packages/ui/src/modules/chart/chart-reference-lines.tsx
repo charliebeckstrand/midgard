@@ -5,6 +5,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/toolti
 import { cn } from '../../core'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { type ChartSeriesColor, k } from '../../recipes/kata/chart'
+import { clamp } from '../../utilities'
 import { REFERENCE_DASH, REFERENCE_HIT_WIDTH, REFERENCE_STROKE_WIDTH } from './chart-constants'
 import type { PlotRect } from './chart-layout'
 import { REFERENCE_RISE, referenceRise } from './chart-motion'
@@ -45,9 +46,10 @@ export type ChartReferenceLinesProps = {
 	format?: (value: number) => string
 	/**
 	 * Reveal each rule on mount by sliding it in along the value axis from the
-	 * baseline to its value — up from the bottom when vertical, in from the left
-	 * when horizontal — the same beat as the marks. Honours
-	 * `prefers-reduced-motion` through {@link ReducedMotion}.
+	 * baseline to its value, in the direction the value points — the way the
+	 * matching bar grows, up or down (vertical) and right or left (horizontal) —
+	 * on the same beat as the marks. Honours `prefers-reduced-motion` through
+	 * {@link ReducedMotion}.
 	 * @defaultValue false
 	 */
 	animate?: boolean
@@ -172,9 +174,14 @@ export function ChartReferenceLines({
 
 	const [from, to] = bandExtent(orientation, plot)
 
-	// The value-axis edge a rule rises from — the plot's bottom when vertical,
-	// its left when horizontal — measured once for every rule.
-	const near = valueExtent(orientation, plot)[0]
+	const [near, far] = valueExtent(orientation, plot)
+
+	// The zero line each rule reveals from — the same baseline the bars grow
+	// from — clamped onto the plot when zero sits off-domain. Revealing from here
+	// points every rule the way its value does: up from zero for a value above
+	// it, down for one below, transposed to right / left when horizontal, so a
+	// rule animates like the bar that would reach it.
+	const baseline = clamp(scale.map(0), Math.min(near, far), Math.max(near, far))
 
 	const resolvedFormat = format ?? formatChartValue
 
@@ -193,7 +200,7 @@ export function ChartReferenceLines({
 						end={project(orientation, at, to)}
 						orientation={orientation}
 						format={resolvedFormat}
-						rise={animate ? referenceRise(orientation, near - at) : null}
+						rise={animate ? referenceRise(orientation, baseline - at) : null}
 					/>
 				)
 			})}

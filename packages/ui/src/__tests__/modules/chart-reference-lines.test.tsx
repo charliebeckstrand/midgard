@@ -213,18 +213,36 @@ describe('reference lines', () => {
 		expect(bySlot(container, 'chart-reference-list')?.textContent).toContain('Goal')
 	})
 
-	it('rises each rule from the bottom when the chart animates vertically', () => {
+	it('reveals an above-baseline rule upward when animating vertically', () => {
 		const { container } = bar([{ value: 50 }], 'vertical', true)
 
-		// A positive y offset seats the rule below its value, so it slides up to rest.
+		// Value 50 sits above the zero baseline, so the rule seats at the baseline
+		// and rises up to it — a positive enter offset.
 		expect(Number(riseWrapper(container)?.getAttribute('data-initial-y'))).toBeGreaterThan(0)
 	})
 
-	it('slides each rule in from the left when the chart animates horizontally', () => {
+	it('reveals a below-baseline rule downward, the way its bar would point', () => {
+		const { container } = bar([{ value: -20 }], 'vertical', true)
+
+		// A value below zero points its bar down, so the rule drops from the
+		// baseline to it — a negative enter offset — not up from the plot floor.
+		expect(Number(riseWrapper(container)?.getAttribute('data-initial-y'))).toBeLessThan(0)
+	})
+
+	it('reveals an above-baseline rule rightward when animating horizontally', () => {
 		const { container } = bar([{ value: 50 }], 'horizontal', true)
 
-		// A negative x offset seats the rule left of its value, so it slides right to rest.
+		// Value 50 sits right of the baseline, so the rule seats at the baseline and
+		// slides right to it — a negative enter offset.
 		expect(Number(riseWrapper(container)?.getAttribute('data-initial-x'))).toBeLessThan(0)
+	})
+
+	it('reveals a below-baseline rule leftward under horizontal orientation', () => {
+		const { container } = bar([{ value: -20 }], 'horizontal', true)
+
+		// A value below zero points its bar left, so the rule slides left from the
+		// baseline — a positive enter offset.
+		expect(Number(riseWrapper(container)?.getAttribute('data-initial-x'))).toBeGreaterThan(0)
 	})
 
 	it('leaves the rule static without animate, no motion wrapper', () => {

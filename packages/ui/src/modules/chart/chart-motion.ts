@@ -9,11 +9,11 @@
  *
  * The value-axis reveals key on {@link ChartOrientation} exactly as the
  * coordinate transpose in `chart-orientation` does: vertical runs the value axis
- * up y — bars grow bottom-to-top, rules rise from the bottom — and horizontal
- * runs it along x — bars grow left-to-right, rules slide in from the left. The
- * builders return plain motion targets and carry no `motion/react` import, so
- * this module stays a pure spec the renderers consume and the mapping is
- * unit-testable in isolation.
+ * up y, horizontal along x. Each reveals from the zero baseline in the direction
+ * its value points — a bar grows toward its value, a reference rule slides toward
+ * its own — so both agree on the axis and the sign. The builders return plain
+ * motion targets and carry no `motion/react` import, so this module stays a pure
+ * spec the renderers consume and the mapping is unit-testable in isolation.
  */
 
 import type { ChartOrientation } from './chart-orientation'
@@ -38,8 +38,8 @@ export const BAR_STAGGER = 0.05
 
 /**
  * Reference-rule rise: the rule slides in along the value axis from the baseline
- * to its value — the same bottom-to-top (vertical) or left-to-right (horizontal)
- * direction the bars grow — held a beat so it lands as the marks settle.
+ * to its value, in the direction its value points — the way the matching bar
+ * grows — held a beat so it lands as the marks settle.
  * @internal
  */
 export const REFERENCE_RISE = { duration: 0.5, ease: 'easeOut', delay: 0.2 } as const
@@ -80,8 +80,9 @@ export function barGrow(orientation: ChartOrientation, positive: boolean) {
 /**
  * The mount rise for one reference rule: it slides in along the value axis from
  * the baseline to its value, `offset` the signed gap from the value back to the
- * near edge — a positive y up from the bottom for vertical, a negative x in from
- * the left for horizontal — so the rule reveals in the direction the bars grow.
+ * baseline. Its sign points the reveal the way the value does — up or down for
+ * vertical, right or left for horizontal — so a rule animates like the bar that
+ * would reach it.
  *
  * @internal
  */
