@@ -359,6 +359,7 @@ function legendItemsOf(
 		swatchClass: textClass(meta.paint) ?? '',
 		swatchColor: rawColor(meta.paint),
 		swatch: meta.swatch,
+		dashed: meta.dashed,
 		color: meta.slot ?? undefined,
 	}))
 }

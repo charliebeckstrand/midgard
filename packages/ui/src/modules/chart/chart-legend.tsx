@@ -24,6 +24,13 @@ export type ChartLegendItem = {
 	swatchColor?: string
 	/** Swatch shape, mirroring the mark: `rect` for bars and slices, `line` for lines. */
 	swatch: 'rect' | 'line'
+	/**
+	 * Whether the series' `line` swatch dashes, mirroring a dashed stroke — solid
+	 * by default, unlike a reference chip, which dashes by default. Only a `line`
+	 * swatch dashes; a `rect` ignores it.
+	 * @defaultValue false
+	 */
+	dashed?: boolean
 	/** The slot colour, so a textured legend swatch mirrors the mark's tile; unset for a raw colour. */
 	color?: ChartSeriesColor
 	/** A trailing readout — the side panel carries each slice's live share. */
@@ -189,6 +196,7 @@ export function ChartLegend({
 							swatchClass={item.swatchClass}
 							swatchColor={item.swatchColor}
 							color={item.color}
+							dashed={item.dashed}
 							active={texture}
 							off={off}
 						/>
