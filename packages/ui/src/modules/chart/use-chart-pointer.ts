@@ -31,9 +31,11 @@ export type ChartPointerHandlers = {
  *
  * Under the `'click'` trigger the readout is pinned instead of tracked: a click
  * snaps the hover to the band under it, a second click of that same band clears
- * it, and pointer movement leaves it be — so the tooltip (and any crosshair)
- * stay put until dismissed. The scroll rescue stands down there; floating-ui's
- * own autoUpdate keeps the pinned readout anchored across a scroll.
+ * it, and pointer movement leaves the readout be — so the tooltip (and any
+ * crosshair) stay put until dismissed. Movement only points the cursor, marking
+ * the marks a click can read (a snapping chart reads anywhere, so its whole plot
+ * stays a pointer). The scroll rescue stands down there; floating-ui's own
+ * autoUpdate keeps the pinned readout anchored across a scroll.
  *
  * @remarks The hit element's own bounding box anchors the coordinate math,
  * so the handlers stay correct however the frame scrolls or transforms.
@@ -113,6 +115,27 @@ export function useChartPointer(
 		[band, count, plot, onData, orientation, snaps, active, set],
 	)
 
+	// Under a non-snap click trigger, point the cursor only where a click reads — on
+	// a mark, not the bare plot above or between them. Written straight to the node
+	// so tracking the marks never re-renders the plot; a snapping chart reads a click
+	// anywhere, so a static class carries its cursor instead.
+	const reflectCursor = useCallback(
+		(clientX: number, clientY: number) => {
+			const node = ref.current
+
+			if (node === null) return
+
+			const box = node.getBoundingClientRect()
+
+			const x = clientX - box.left + plot.x
+
+			const y = clientY - box.top + plot.y
+
+			node.style.cursor = (onData?.(x, y) ?? true) ? 'pointer' : 'default'
+		},
+		[plot, onData],
+	)
+
 	const resolveAt = useCallback(
 		(clientX: number, clientY: number) => track(clientX, clientY, true),
 		[track],
@@ -125,7 +148,11 @@ export function useChartPointer(
 	useHoverAcrossScroll(trigger === 'hover', clear, resolveAt)
 
 	if (trigger === 'click') {
-		return { ref, onClick: (event) => toggle(event.clientX, event.clientY) }
+		return {
+			ref,
+			onClick: (event) => toggle(event.clientX, event.clientY),
+			onPointerMove: snaps ? undefined : (event) => reflectCursor(event.clientX, event.clientY),
+		}
 	}
 
 	return {

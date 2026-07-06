@@ -21,13 +21,14 @@ export type ChartHitAreaProps = {
 	orientation?: ChartOrientation
 	/**
 	 * How the tooltip opens: tracked on `'hover'`, pinned by a click on `'click'`
-	 * — which also gives the layer a pointer cursor to read as clickable.
+	 * — which also points the cursor at the marks a click can read.
 	 * @defaultValue 'hover'
 	 */
 	trigger?: ChartTooltipTrigger
 	/**
 	 * Whether the readout snaps to the nearest point, so it reads off the marks
-	 * too. Lets a `'click'` off the marks pin the snapped band rather than dismiss.
+	 * too. Lets a `'click'` off the marks pin the snapped band rather than dismiss,
+	 * and carries the pointer cursor across the whole plot rather than the marks alone.
 	 * @defaultValue false
 	 */
 	snaps?: boolean
@@ -70,7 +71,7 @@ export function ChartHitArea({
 			height={plot.height}
 			fill="none"
 			pointerEvents="all"
-			className={cn(trigger === 'click' && 'cursor-pointer')}
+			className={cn(trigger === 'click' && snaps && 'cursor-pointer')}
 			{...handlers}
 		/>
 	)

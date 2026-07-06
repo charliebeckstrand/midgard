@@ -17,13 +17,15 @@ export type ScatterChartHitAreaProps = {
 	onData?: (x: number, y: number) => boolean
 	/**
 	 * How the tooltip opens: tracked on `'hover'`, pinned by a click on `'click'`
-	 * — which also gives the layer a pointer cursor to read as clickable.
+	 * — which also points the cursor at the points a click can read.
 	 * @defaultValue 'hover'
 	 */
 	trigger?: ChartTooltipTrigger
 	/**
 	 * Whether the readout snaps to the nearest point, so it reads off the marks
-	 * too. Lets a `'click'` off the marks pin the snapped column rather than dismiss.
+	 * too. Lets a `'click'` off the points pin the snapped column rather than
+	 * dismiss, and carries the pointer cursor across the whole plot rather than the
+	 * points alone.
 	 * @defaultValue false
 	 */
 	snaps?: boolean
@@ -104,6 +106,25 @@ export function ScatterChartHitArea({
 		[centers, plot, onData, snaps, active, set],
 	)
 
+	// Point the cursor only where a non-snap click reads — over a point, not the
+	// bare plot between them — written straight to the node so it never re-renders.
+	const reflectCursor = useCallback(
+		(clientX: number, clientY: number) => {
+			const node = ref.current
+
+			if (node === null) return
+
+			const box = node.getBoundingClientRect()
+
+			const x = clientX - box.left + plot.x
+
+			const y = clientY - box.top + plot.y
+
+			node.style.cursor = (onData?.(x, y) ?? true) ? 'pointer' : 'default'
+		},
+		[plot, onData],
+	)
+
 	const resolveAt = useCallback(
 		(clientX: number, clientY: number) => track(clientX, clientY, true),
 		[track],
@@ -120,7 +141,15 @@ export function ScatterChartHitArea({
 	// Spread the handlers rather than write them inline, matching the band charts'
 	// hit layer — the pointer enhancement rides an `aria-hidden` SVG.
 	const handlers = click
-		? { onClick: (event: MouseEvent<SVGRectElement>) => toggle(event.clientX, event.clientY) }
+		? {
+				onClick: (event: MouseEvent<SVGRectElement>) => toggle(event.clientX, event.clientY),
+				...(snaps
+					? {}
+					: {
+							onPointerMove: (event: PointerEvent<SVGRectElement>) =>
+								reflectCursor(event.clientX, event.clientY),
+						}),
+			}
 		: {
 				onPointerMove: (event: PointerEvent<SVGRectElement>) =>
 					track(event.clientX, event.clientY, false),
@@ -137,7 +166,7 @@ export function ScatterChartHitArea({
 			height={plot.height}
 			fill="none"
 			pointerEvents="all"
-			className={cn(click && 'cursor-pointer')}
+			className={cn(click && snaps && 'cursor-pointer')}
 			{...handlers}
 		/>
 	)
