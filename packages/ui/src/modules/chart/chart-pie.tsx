@@ -13,7 +13,7 @@ import { ChartLegend, type ChartLegendItem } from './chart-legend'
 import { ChartMarksLayer } from './chart-marks-layer'
 import { textureClass, textureStyle, useChartTexture } from './chart-pattern-defs'
 import type { ChartBaseProps, PieChartSeries } from './chart-schema'
-import { formatChartValue, type SeriesPaint, seriesValues } from './chart-series'
+import { formatChartValue, type SlotPaint, seriesValues } from './chart-series'
 import { useChartHover } from './context'
 import {
 	CALLOUT_CHAR_WIDTH,
@@ -108,7 +108,7 @@ function sweepDelay(mid: number): number {
 /** Shared shape for the static and animated segment-label renderers. @internal */
 type PieSegmentLabelsProps = {
 	items: PieSegmentLabel[]
-	paints: SeriesPaint[]
+	paints: SlotPaint[]
 	animate: boolean
 	/** The legend-emphasised slice; other labels dim with their slices. */
 	emphasis: number | null
@@ -190,7 +190,7 @@ function segmentLabelItems({
 /** Shared shape for the static and animated slice renderers. @internal */
 type PieChartMarksProps = {
 	slices: PieSlice[]
-	paints: SeriesPaint[]
+	paints: SlotPaint[]
 	animate: boolean
 	/** The pie center, which the sweep mask rotates about. */
 	center: { x: number; y: number }
@@ -198,8 +198,8 @@ type PieChartMarksProps = {
 	radius: number
 	/** The legend-emphasised slice; the others dim against it. */
 	emphasis: number | null
-	/** Per-slice texture-tile fill URLs, indexed like `paints`; omitted, slices fill flat. */
-	fills?: string[]
+	/** Per-slice texture-tile fill URLs, indexed like `paints`; a flat mode leaves the slot empty. */
+	fills?: (string | undefined)[]
 	/** Whether the `texture` prop is on, so tiles paint in every mode, not only forced-colors / print. */
 	textureActive?: boolean
 }
@@ -439,7 +439,7 @@ function buildCallouts(
 /** The values behind the slices for the tooltip and table; `null` with no rows. @internal */
 function pieReadout(
 	labels: string[],
-	paints: SeriesPaint[],
+	paints: SlotPaint[],
 	valueLabel: string,
 	values: (number | null)[],
 	format: (value: number) => string,
@@ -469,7 +469,7 @@ function pieReadout(
  */
 function pieLegendItems(
 	labels: string[],
-	paints: SeriesPaint[],
+	paints: SlotPaint[],
 	colors: ChartSeriesColor[],
 	sliceValues: (number | null)[],
 	panel: boolean,
@@ -623,10 +623,7 @@ export function ChartPie<T>({
 
 	const paints = colors.map((color) => k.series[color])
 
-	const tex = useChartTexture(
-		texture,
-		colors.map((color) => ({ color, paint: k.series[color] })),
-	)
+	const tex = useChartTexture(texture, colors)
 
 	const sliceFills = colors.map((color) => tex.fillFor(color))
 

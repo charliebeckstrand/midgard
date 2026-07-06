@@ -19,10 +19,12 @@ import type { CartesianChartProps, ChartSeries } from './chart-schema'
 import {
 	chartReadout,
 	formatChartValue,
+	paintSlot,
+	rawColor,
 	type SeriesMeta,
-	seriesColor,
 	seriesPaint,
 	seriesValues,
+	textClass,
 } from './chart-series'
 import { parseInstant, timeCategory } from './chart-time'
 import type { ChartReadout } from './types'
@@ -145,14 +147,18 @@ export function useChartCartesian<T>(
 
 	const { hidden, toggle, setFocus, emphasis } = useChartSeriesToggle()
 
-	const metas: SeriesMeta[] = series.map((entry, index) => ({
-		index,
-		label: entry.yName ?? entry.yKey,
-		paint: seriesPaint(entry, index),
-		color: seriesColor(entry, index),
-		swatch: config.swatch(entry, index),
-		values: seriesValues(data, entry.yKey),
-	}))
+	const metas: SeriesMeta[] = series.map((entry, index) => {
+		const paint = seriesPaint(entry, index)
+
+		return {
+			index,
+			label: entry.yName ?? entry.yKey,
+			paint,
+			slot: paintSlot(paint),
+			swatch: config.swatch(entry, index),
+			values: seriesValues(data, entry.yKey),
+		}
+	})
 
 	// Toggled-off series leave the scales and readout; slot colours stay put
 	// because each meta's paint keyed off its original index.
@@ -198,9 +204,10 @@ export function useChartCartesian<T>(
 		(legend ?? metas.length > 1)
 			? metas.map((meta) => ({
 					label: meta.label,
-					swatchClass: meta.paint.text.join(' '),
+					swatchClass: textClass(meta.paint) ?? '',
+					swatchColor: rawColor(meta.paint),
 					swatch: meta.swatch,
-					color: meta.color,
+					color: meta.slot ?? undefined,
 				}))
 			: null
 

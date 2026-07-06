@@ -14,7 +14,7 @@ import {
 	POINT_POP,
 } from './chart-constants'
 import { textureClass, textureStyle } from './chart-pattern-defs'
-import type { SeriesPaint } from './chart-series'
+import { fillClass, rawColor, type SeriesPaint, strokeClass } from './chart-series'
 import type { LineSeriesGeometry } from './line-chart/line-chart-geometry'
 
 /** One line series' render inputs. @internal */
@@ -40,8 +40,8 @@ export type ChartLineMarksProps = {
 	fill: boolean
 	/** Stroke the markers with a surface outline — set only where dots cross opaque marks (the combo bars); soft fills read cleaner without it. */
 	stroke?: boolean
-	/** Per-series texture-tile fill URLs, aligned with `list`; omitted, the washes fill flat. */
-	fills?: string[]
+	/** Per-series texture-tile fill URLs, aligned with `list`; a raw colour or flat mode leaves the slot empty. */
+	fills?: (string | undefined)[]
 	/** Whether the `texture` prop is on, so tiles paint in every mode, not only forced-colors / print. */
 	textureActive?: boolean
 	/** Hold the draw until earlier marks (combo bars) have landed. */
@@ -50,7 +50,7 @@ export type ChartLineMarksProps = {
 
 /** The marker dot's classes: series fill, gaining a white surface stroke only where a dot crosses opaque marks. @internal */
 function markerClass(paint: SeriesPaint, stroke: boolean): string {
-	return cn(paint.fill, stroke && k.stroke)
+	return cn(fillClass(paint), stroke && k.stroke)
 }
 
 /** The plain-SVG lines: the cheap default with no motion runtime work. @internal */
@@ -75,9 +75,10 @@ export function ChartLineMarks({
 							data-slot="chart-area"
 							d={geometry.areas[index]}
 							stroke="none"
+							fill={rawColor(paint)}
 							fillOpacity={AREA_FILL_OPACITY}
 							style={textureStyle(patternFill)}
-							className={cn(paint.fill, textureClass(textureActive, patternFill))}
+							className={cn(fillClass(paint), textureClass(textureActive, patternFill))}
 						/>
 					))}
 
@@ -87,10 +88,11 @@ export function ChartLineMarks({
 						data-slot="chart-line"
 						d={geometry.segments[index]}
 						fill="none"
+						stroke={rawColor(paint)}
 						strokeWidth={LINE_STROKE_WIDTH}
 						strokeLinecap="round"
 						strokeLinejoin="round"
-						className={cn(paint.stroke)}
+						className={cn(strokeClass(paint))}
 					/>
 				))}
 
@@ -101,6 +103,7 @@ export function ChartLineMarks({
 						cx={points[index]?.x}
 						cy={points[index]?.y}
 						r={MARKER_RADIUS}
+						fill={rawColor(paint)}
 						strokeWidth={MARKER_RING_WIDTH}
 						className={markerClass(paint, stroke)}
 					/>
@@ -133,9 +136,10 @@ export function AnimatedChartLineMarks({
 							data-slot="chart-area"
 							d={geometry.areas[index]}
 							stroke="none"
+							fill={rawColor(paint)}
 							fillOpacity={AREA_FILL_OPACITY}
 							style={textureStyle(patternFill)}
-							className={cn(paint.fill, textureClass(textureActive, patternFill))}
+							className={cn(fillClass(paint), textureClass(textureActive, patternFill))}
 							initial={{ opacity: 0 }}
 							animate={{ opacity: 1 }}
 							transition={{ ...AREA_FADE, delay: AREA_FADE.delay + delay }}
@@ -148,10 +152,11 @@ export function AnimatedChartLineMarks({
 						data-slot="chart-line"
 						d={geometry.segments[index]}
 						fill="none"
+						stroke={rawColor(paint)}
 						strokeWidth={LINE_STROKE_WIDTH}
 						strokeLinecap="round"
 						strokeLinejoin="round"
-						className={cn(paint.stroke)}
+						className={cn(strokeClass(paint))}
 						initial={{ pathLength: 0 }}
 						animate={{ pathLength: 1 }}
 						transition={{ ...LINE_DRAW, delay }}
@@ -164,6 +169,7 @@ export function AnimatedChartLineMarks({
 						data-slot="chart-point"
 						cx={points[index]?.x}
 						cy={points[index]?.y}
+						fill={rawColor(paint)}
 						strokeWidth={MARKER_RING_WIDTH}
 						className={markerClass(paint, stroke)}
 						initial={{ r: 0, opacity: 0 }}

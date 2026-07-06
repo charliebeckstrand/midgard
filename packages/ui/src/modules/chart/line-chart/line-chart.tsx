@@ -138,10 +138,10 @@ export function LineChart<T>({
 
 	const tex = useChartTexture(
 		texture,
-		chart.visible.map((meta) => ({ color: meta.color, paint: meta.paint })),
+		chart.visible.map((meta) => meta.slot),
 	)
 
-	const fills = chart.visible.map((meta) => tex.fillFor(meta.color))
+	const fills = chart.visible.map((meta) => tex.fillFor(meta.slot))
 
 	const valueLabelItems = resolveValueLabels(labels, list, chart.visible, chart.plot, formatValue)
 

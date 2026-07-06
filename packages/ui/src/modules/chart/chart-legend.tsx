@@ -11,11 +11,13 @@ import { ChartSwatch } from './chart-pattern-defs'
 /** One legend entry: the series name keyed by its mark-mirroring swatch. @internal */
 export type ChartLegendItem = {
 	label: string
-	/** currentColor class carrying the series colour. */
+	/** currentColor class carrying the series colour; empty for a raw colour, which inks inline. */
 	swatchClass: string
+	/** A raw series colour inked inline on the swatch's `currentColor`; unset for a palette slot. */
+	swatchColor?: string
 	/** Swatch shape, mirroring the mark: `rect` for bars and slices, `line` for lines. */
 	swatch: 'rect' | 'line'
-	/** The slot colour, so a textured legend swatch mirrors the mark's tile. */
+	/** The slot colour, so a textured legend swatch mirrors the mark's tile; unset for a raw colour. */
 	color?: ChartSeriesColor
 	/** A trailing readout — the side panel carries each slice's live share. */
 	detail?: string
@@ -107,6 +109,7 @@ export function ChartLegend({
 						<ChartSwatch
 							swatch={item.swatch}
 							swatchClass={item.swatchClass}
+							swatchColor={item.swatchColor}
 							color={item.color}
 							active={texture}
 							off={off}

@@ -8,16 +8,11 @@ import type { PlotRect } from './chart-layout'
 import { bandExtent, type ChartOrientation, project, type Vec } from './chart-orientation'
 import type { LinearScale } from './chart-scale'
 import type { ChartReferenceLine } from './chart-schema'
-import { formatChartValue } from './chart-series'
+import { formatChartValue, isSeriesSlot } from './chart-series'
 import { useChartEmphasis } from './context'
 
 /** The neutral de-emphasis slot a reference takes until coloured. @internal */
 const DEFAULT_REFERENCE_COLOR = 'zinc' satisfies ChartSeriesColor
-
-/** Whether a colour names a palette slot (class-based) rather than a raw CSS colour (inline). @internal */
-function isSeriesSlot(color: string): color is ChartSeriesColor {
-	return color in k.series
-}
 
 /** Props for {@link ChartReferenceLines}. @internal */
 export type ChartReferenceLinesProps = {

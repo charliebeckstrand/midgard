@@ -4,7 +4,7 @@ import { motion } from 'motion/react'
 import { cn } from '../../core'
 import { POINT_POP, TICK_CHAR_WIDTH } from './chart-constants'
 import type { PlotRect } from './chart-layout'
-import { formatChartValue, type SeriesPaint } from './chart-series'
+import { fillClass, formatChartValue, rawColor, type SeriesPaint } from './chart-series'
 
 /**
  * Selective value labels for the line-bearing charts: direct labels at each
@@ -46,8 +46,10 @@ export function labelPoints(
 
 /** One series' labelable points and the ink its labels take. @internal */
 export type ValueLabelSeries = {
-	/** The SVG-fill class the labels render in, matching the series' mark. */
+	/** The SVG-fill class the labels render in for a slot; empty for a raw colour, which inks inline. */
 	fill: string
+	/** A raw series colour inked inline on the label's `fill`; unset for a slot. */
+	color?: string
 	/** Every finite point, in draw order. */
 	points: ValueLabelPoint[]
 }
@@ -65,7 +67,8 @@ export function lineLabelSeries(
 	metas: { values: (number | null)[] }[],
 ): ValueLabelSeries[] {
 	return list.map((entry, index) => ({
-		fill: cn(entry.paint.fill),
+		fill: fillClass(entry.paint) ?? '',
+		color: rawColor(entry.paint),
 		points: labelPoints(metas[index]?.values ?? [], entry.geometry.points),
 	}))
 }
@@ -91,6 +94,8 @@ export type PlacedValueLabel = {
 	text: string
 	anchor: 'start' | 'middle' | 'end'
 	fill: string
+	/** A raw series colour inked inline on the label's `fill`; unset for a slot. */
+	color?: string
 }
 
 /** A candidate label before placement: its point, the side it prefers, and its rank. @internal */
@@ -101,6 +106,7 @@ type Candidate = {
 	above: boolean
 	priority: number
 	fill: string
+	color?: string
 }
 
 /** An axis-aligned box, for the overlap test. @internal */
@@ -137,6 +143,7 @@ function candidatesFor(
 				above,
 				priority,
 				fill: series.fill,
+				color: series.color,
 			})
 		}
 	}
@@ -198,7 +205,7 @@ function place(
 	const y = above || belowClips ? candidate.y - OFFSET - HALF : candidate.y + OFFSET + HALF
 
 	return {
-		label: { x: candidate.x, y, text, anchor, fill: candidate.fill },
+		label: { x: candidate.x, y, text, anchor, fill: candidate.fill, color: candidate.color },
 		box: { x0, x1, y0: y - HALF, y1: y + HALF },
 	}
 }
@@ -291,6 +298,9 @@ export function ChartValueLabels({
 					y: label.y,
 					textAnchor: label.anchor,
 					dominantBaseline: 'central' as const,
+					// A raw colour inks through the `fill` attribute; a slot omits it and
+					// inks through its class.
+					fill: label.color,
 					className: cn(LABEL_INK, label.fill),
 				}
 
