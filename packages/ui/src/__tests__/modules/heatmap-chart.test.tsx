@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { HeatmapChart, type HeatmapChartSeries } from '../../modules/chart'
+import { GUTTER_EDGE_PAD, LABEL_CHAR_WIDTH } from '../../modules/chart/chart-constants'
 import { bySlot, fireEvent, renderUI } from '../helpers'
 
 type Row = { day: string; hour: string; commits: number }
@@ -104,6 +105,25 @@ describe('HeatmapChart', () => {
 		fireEvent.pointerLeave(track as Element)
 
 		expect(dimmed()).toBe(0)
+	})
+
+	it('reserves the y gutter for proportional row labels so the widest clears the frame edge', () => {
+		const { container } = renderUI(
+			<HeatmapChart aria-label="Commits" data={ROWS} series={SERIES} width={400} />,
+		)
+
+		// The left y-axis labels are right-anchored at `plot.x - GUTTER_GAP`, so this
+		// x is the widest label's right edge; its left edge is x minus the estimated
+		// text width. Rows are 'Mon'/'Tue' (3 chars) — capital-initial day names.
+		const label = container.querySelector('[data-slot="chart-axis-y"] text')
+
+		const x = Number(label?.getAttribute('x'))
+
+		// Pinned to the proportional estimate: a regression to TICK_CHAR_WIDTH would
+		// drop x below the label's estimated width, pushing its left edge off-frame.
+		expect(x).toBe(Math.ceil(3 * LABEL_CHAR_WIDTH) + GUTTER_EDGE_PAD)
+
+		expect(x).toBeGreaterThanOrEqual(3 * LABEL_CHAR_WIDTH)
 	})
 
 	it('resolves the cell under the pointer, not one offset by the plot gutter', () => {

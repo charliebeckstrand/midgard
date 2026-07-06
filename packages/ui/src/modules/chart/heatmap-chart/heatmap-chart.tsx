@@ -18,7 +18,12 @@ import { k } from '../../../recipes/kata/chart'
 import { binIndex, type ColorBin, resolveColorBins, valueExtent } from '../../../utilities'
 import { RangeArrow, RangeLegend } from '../../map'
 import { ChartAxis, type ChartAxisTick } from '../chart-axis'
-import { BAND_LABEL_HEIGHT, GUTTER_GAP, TICK_CHAR_WIDTH } from '../chart-constants'
+import {
+	BAND_LABEL_HEIGHT,
+	GUTTER_GAP,
+	LABEL_CHAR_WIDTH,
+	TICK_CHAR_WIDTH,
+} from '../chart-constants'
 import { chartFrameSizing, type PlotRect, plotRect, thinned } from '../chart-layout'
 import { ChartPlotBox } from '../chart-plot-box'
 import { bandScale } from '../chart-scale'
@@ -480,7 +485,10 @@ function useHeatmap<T>(
 		[domain, primary],
 	)
 
-	const plot = plotRect(frameWidth, frameHeight, true, matrix.rows)
+	// The rows are proportional category labels (day names), not tabular digits,
+	// so reserve the gutter at the wider proportional estimate — otherwise a
+	// capital-initial label like "Mon"/"Wed" clips against the frame's left edge.
+	const plot = plotRect(frameWidth, frameHeight, true, matrix.rows, LABEL_CHAR_WIDTH)
 
 	const xBand = bandScale({ count: cols, range: [plot.x, plot.x + plot.width], padding: 0 })
 
