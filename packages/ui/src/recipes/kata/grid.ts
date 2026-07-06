@@ -179,7 +179,8 @@ export const k = {
 		],
 		// Header affordance on a groupable column: press to group, or drag into the
 		// panel. Grab cursor at rest (the `Button` carries the rest of the styling).
-		handle: ['cursor-grab'],
+		// `touch-none` keeps a touch-drag from scrolling the page instead of lifting the column.
+		handle: ['cursor-grab active:cursor-grabbing', 'touch-none select-none'],
 	},
 	batch: {
 		bar: [
