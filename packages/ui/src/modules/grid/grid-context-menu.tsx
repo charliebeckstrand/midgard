@@ -48,6 +48,16 @@ function exportIcon(type: GridExportAction['type']): ReactElement {
 	return type === 'print' ? <Printer /> : <Download />
 }
 
+/** Maps active export actions to menu items — the shape the column and cell menus each append. @internal */
+function exportMenuItems(exportActions: GridExportAction[]): GridMenuItem[] {
+	return exportActions.map((action) => ({
+		key: `export-${action.type}`,
+		label: action.label,
+		icon: exportIcon(action.type),
+		onSelect: action.run,
+	}))
+}
+
 /** Sets the sort to a column in a fixed direction. @internal */
 type SortColumn = (column: string | number, direction: 'asc' | 'desc') => void
 
@@ -222,14 +232,7 @@ function columnMenuDefaults<T>(args: ColumnMenuDefaultArgs<T>): GridMenuItem[] {
 		})
 	}
 
-	tools.push(
-		...exportActions.map((action) => ({
-			key: `export-${action.type}`,
-			label: action.label,
-			icon: exportIcon(action.type),
-			onSelect: action.run,
-		})),
-	)
+	tools.push(...exportMenuItems(exportActions))
 
 	if (tools.length > 0) {
 		if (items.length > 0) items.push({ key: 'tools-separator', separator: true })
@@ -253,15 +256,7 @@ function cellMenuDefaults(copy: () => void, exportActions: GridExportAction[]): 
 	const items: GridMenuItem[] = [{ key: 'copy', label: 'Copy', icon: <Copy />, onSelect: copy }]
 
 	if (exportActions.length > 0) {
-		items.push(
-			{ key: 'export-separator', separator: true },
-			...exportActions.map((action) => ({
-				key: `export-${action.type}`,
-				label: action.label,
-				icon: exportIcon(action.type),
-				onSelect: action.run,
-			})),
-		)
+		items.push({ key: 'export-separator', separator: true }, ...exportMenuItems(exportActions))
 	}
 
 	return items

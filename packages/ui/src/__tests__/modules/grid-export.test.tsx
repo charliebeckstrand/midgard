@@ -51,6 +51,29 @@ describe('rowsToCsv', () => {
 		expect(rowsToCsv(columns, items)).toBe('"La,bel"\r\n"a,b"\r\n"quote "" here"\r\n"line\nbreak"')
 	})
 
+	it('neutralizes formula-injection leads while preserving signed numbers', () => {
+		type Item = { id: number; label: string }
+
+		const columns: GridColumn<Item>[] = [
+			{ id: 'label', title: 'Label', cell: (row) => row.label, value: (row) => row.label },
+		]
+
+		const items: Item[] = [
+			{ id: 1, label: '=HYPERLINK("http://evil")' },
+			{ id: 2, label: '@handle' },
+			{ id: 3, label: '-2+3+cmd|calc' },
+			{ id: 4, label: '-5' },
+			{ id: 5, label: '+1.5e3' },
+		]
+
+		// Formula leads (`=`, `@`, and a signed non-number) are prefixed with a
+		// quote — the `=` field also gets RFC-quoted for its comma — while the
+		// genuine negative and positive numbers pass through untouched.
+		expect(rowsToCsv(columns, items)).toBe(
+			'Label\r\n"\'=HYPERLINK(""http://evil"")"\r\n\'@handle\r\n\'-2+3+cmd|calc\r\n-5\r\n+1.5e3',
+		)
+	})
+
 	it('skips non-data columns (selection, actions) and blanks missing values', () => {
 		const columns: GridColumn<Row>[] = [
 			{ id: 'select', selectable: true },
@@ -99,6 +122,12 @@ describe('downloadCsv', () => {
 		expect(await blob.text()).toBe('A,B\r\n1,2')
 
 		expect(click).toHaveBeenCalledTimes(1)
+
+		// The object URL is revoked on the next macrotask (not synchronously, which
+		// can abort the download), so flush timers before asserting.
+		expect(revokeObjectURL).not.toHaveBeenCalled()
+
+		await new Promise((resolve) => setTimeout(resolve, 0))
 
 		expect(revokeObjectURL).toHaveBeenCalledWith('blob:mock')
 
@@ -398,6 +427,34 @@ describe('Grid export', () => {
 		fireEvent.click(screen.getByRole('menuitem', { name: 'Export to pdf' }))
 
 		expect(onExport).toHaveBeenCalledTimes(1)
+	})
+
+	it('resolves every type key of a multi-type object entry, not just the first', () => {
+		const csv = vi.fn()
+
+		const pdf = vi.fn()
+
+		renderUI(
+			<Grid
+				exportable={[{ csv: { onExport: csv }, pdf: { onExport: pdf } }]}
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+			/>,
+		)
+
+		rightClickHeader('Name')
+
+		// Both keys resolve to their own action; the second is no longer dropped.
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Export to CSV' }))
+
+		expect(csv).toHaveBeenCalledTimes(1)
+
+		rightClickHeader('Name')
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Export to pdf' }))
+
+		expect(pdf).toHaveBeenCalledTimes(1)
 	})
 
 	it('drops an entry naming an unknown type with no onExport', () => {

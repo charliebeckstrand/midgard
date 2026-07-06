@@ -104,15 +104,13 @@ function renderGroup<T>(
 		renderHeader: GridGroupBy['renderHeader']
 		getKey: (row: T, index: number) => string | number
 		density: DensityLevel
+		/** Whether a per-group total row shows — a whole-body gate, resolved once by the caller. */
+		totalled: boolean
 	},
 ): ReactElement {
-	const { props, columnId, renderHeader, getKey, density } = args
+	const { props, columnId, renderHeader, getKey, density, totalled } = args
 
 	const expanded = groupRow.getIsExpanded()
-
-	// The per-group total is meaningful only once a column aggregates; it
-	// collapses with the group, whose header still reads the same figures.
-	const totalled = props.groupTotalRow === 'bottom' && hasAggregation(props.visibleColumns)
 
 	return (
 		<Fragment key={groupRow.id}>
@@ -302,6 +300,10 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 	// virtualization / pagination / grid semantics (see `GridData`), so this
 	// precedes the virtualized branch and needs no aria-row bookkeeping.
 	if (groupedRows && groupColumnId != null) {
+		// The per-group total is meaningful only once a column aggregates; the gate
+		// is body-wide, so resolve it once here rather than per group in renderGroup.
+		const totalled = props.groupTotalRow === 'bottom' && hasAggregation(visibleColumns)
+
 		return (
 			<TableBody>
 				{groupedRows.map((groupRow) =>
@@ -311,6 +313,7 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 						renderHeader: groupRenderHeader,
 						getKey,
 						density,
+						totalled,
 					}),
 				)}
 			</TableBody>

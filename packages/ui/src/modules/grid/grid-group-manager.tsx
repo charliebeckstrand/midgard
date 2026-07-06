@@ -322,9 +322,16 @@ function GridGroupManagerZoneView({
 	const { setNodeRef } = useGroupZoneDroppable(zone.id)
 
 	// Colors already taken by other groups — offered disabled, so a color maps to
-	// at most one group.
-	const usedColors = new Set(
-		groups.filter((g) => g.id !== zone.group?.id && g.color).map((g) => g.color as PaletteColor),
+	// at most one group. Memoized so a drag/hover re-render doesn't rescan every
+	// group in every zone.
+	const usedColors = useMemo(
+		() =>
+			new Set(
+				groups
+					.filter((g) => g.id !== zone.group?.id && g.color)
+					.map((g) => g.color as PaletteColor),
+			),
+		[groups, zone.group?.id],
 	)
 
 	return (

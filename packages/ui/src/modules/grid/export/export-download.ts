@@ -25,5 +25,8 @@ export function downloadBlob(filename: string, content: BlobPart[], type: string
 
 	anchor.remove()
 
-	URL.revokeObjectURL(url)
+	// The click dispatches the download asynchronously; revoking in the same tick
+	// can abort it before the browser reads the blob (Firefox/Safari, larger
+	// files), so defer the revoke to the next macrotask.
+	setTimeout(() => URL.revokeObjectURL(url), 0)
 }

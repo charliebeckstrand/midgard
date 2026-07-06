@@ -9,6 +9,9 @@ import type { GridExpandable } from './grid-data-types'
 /** Stable empty expansion default; read-only, replaced wholesale on change. @internal */
 const EMPTY_EXPANSION: Set<string | number> = new Set()
 
+/** Stable default predicate for grids that don't restrict which rows expand. @internal */
+const ALWAYS_EXPANDABLE = () => true
+
 /** Resolved master-detail state for the flat body. @internal */
 export type GridExpansionResult<T> = {
 	/** Whether an expandable binding is active — the gate for the expander chevron and detail rows. */
@@ -52,6 +55,6 @@ export function useGridExpansion<T>(config: GridExpandable<T> | undefined): Grid
 		expanded: expanded ?? EMPTY_EXPANSION,
 		toggle,
 		render: config?.render ?? null,
-		rowExpandable: config?.rowExpandable ?? (() => true),
+		rowExpandable: config?.rowExpandable ?? ALWAYS_EXPANDABLE,
 	}
 }
