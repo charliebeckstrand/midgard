@@ -178,7 +178,6 @@ function areaGeometry(
 		stacked: boolean
 		stackedGeometry: StackedAreaGeometry[]
 		centers: number[]
-		floor: number
 		interpolation: LineInterpolation
 	},
 ): LineSeriesGeometry {
@@ -186,11 +185,15 @@ function areaGeometry(
 		return stackedToLine(args.stackedGeometry[order] ?? { line: '', area: '', points: [] })
 	}
 
+	// The wash closes to the series' own zero baseline, not the plot floor: on a
+	// zero-baseline scale the two coincide for all-positive data, but a negative
+	// value (or a domain pinned below zero) lifts zero off the floor, and the fill
+	// reads to that zero the way the stacked ribbon bottoms at it.
 	return lineGeometry(
 		entry.meta.values,
 		args.centers,
 		entry.scale.map,
-		args.floor,
+		entry.baseline,
 		args.interpolation,
 	)
 }
@@ -312,7 +315,6 @@ export function AreaChart<T>({
 			stacked,
 			stackedGeometry,
 			centers: xs,
-			floor,
 			interpolation,
 		}),
 		markers: points,
