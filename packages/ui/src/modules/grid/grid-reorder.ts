@@ -84,6 +84,24 @@ export const restrictToFirstScrollableAncestor: Modifier = ({
 }
 
 /**
+ * dnd-kit modifier that keeps a drag within its parent element — the dragged
+ * node can't be pulled past either end of its container. Used by the row manager
+ * so a group zone stays inside the list rather than dragging off infinitely.
+ * Mirrors `@dnd-kit/modifiers`' `restrictToParentElement`.
+ *
+ * @internal
+ */
+export const restrictToParentElement: Modifier = ({
+	containerNodeRect,
+	draggingNodeRect,
+	transform,
+}) => {
+	if (!draggingNodeRect || !containerNodeRect) return transform
+
+	return clampToBoundingRect(transform, draggingNodeRect, containerNodeRect)
+}
+
+/**
  * The id of the column being drag-reordered, or `null` when idle. Provided by
  * the grid around the sortable region and read by each reordering body cell so
  * only the dragged column's cells carry the `data-dragging` lift. The value

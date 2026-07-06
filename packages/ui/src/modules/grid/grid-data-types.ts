@@ -6,6 +6,7 @@ import type { GridExportEntry } from './export/types'
 import type { GridEditableConfig } from './grid-editing-types'
 import type { GridColumnGroups } from './grid-group-types'
 import type { GridRowClick } from './grid-row'
+import type { GridRowGroups } from './grid-row-group-types'
 import type {
 	GridColumn,
 	GridColumnFilters,
@@ -239,6 +240,23 @@ export type GridGroupBy<T = unknown> = {
 	 * @defaultValue false
 	 */
 	panel?: boolean
+	/**
+	 * Per-group presentation overlay the row manager edits — a palette color and a
+	 * manual leaf order keyed by each group's value (see {@link GridRowGroup}). The
+	 * plain-array shorthand seeds it uncontrolled; the `{ value, onValueChange }`
+	 * form persists it. Client grouping only — under {@link GridGroupBy.manual} the
+	 * backend owns the sequence and the overlay stands down.
+	 */
+	rowGroups?: GridRowGroups
+	/**
+	 * The row manager — a "Manage rows" dialog reached from the group-header
+	 * right-click menu, where each group takes a color and reorders, and its rows
+	 * reorder within it (committed through {@link GridGroupBy.rowGroups}). On by
+	 * default whenever client grouping and the header context menu are both live;
+	 * `false` is the off switch — no "Manage rows" item, no dialog.
+	 * @defaultValue true
+	 */
+	rowManager?: boolean
 }
 
 /**

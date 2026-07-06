@@ -29,7 +29,7 @@ import {
 import { GridBody } from './grid-body'
 import { GridBusyStatus } from './grid-busy-status'
 import { GridColumnManagerDialog } from './grid-column-manager-dialog'
-import { GridContextMenu } from './grid-context-menu'
+import { GridContextMenu, useColumnGroupMenu } from './grid-context-menu'
 import {
 	resolveAriaRowCount,
 	resolveFooterStats,
@@ -65,6 +65,7 @@ import {
 	restrictToVerticalAxis,
 } from './grid-reorder'
 import type { GridRowClick, GridRowsProps } from './grid-row'
+import { GridRowManagerDialog } from './grid-row-manager-dialog'
 import { useGridSort } from './grid-sort-state'
 import { useColumnSettleWidths } from './grid-table-views'
 import { GridToolbar } from './grid-toolbar'
@@ -74,6 +75,7 @@ import {
 	columnLabel,
 	type GridColumn,
 	type GridContextMenu as GridContextMenuConfig,
+	type GridMenuItem,
 	type GridPagination,
 } from './types'
 import { useGridColumns } from './use-grid-columns'
@@ -84,6 +86,7 @@ import { type GridGroupHeader, type GridGroupResult, useGridGroup } from './use-
 import { GridNavContext, type GridRowActivate } from './use-grid-navigation'
 import { useGridReorder } from './use-grid-reorder'
 import { useGridRowGrouping } from './use-grid-row-grouping'
+import { type GridRowManagerRegionResult, useGridRowManagerRegion } from './use-grid-row-manager'
 import { useGridRowReorder } from './use-grid-row-reorder'
 import { useGridSelectionActions, useGridSelectionState } from './use-grid-selection'
 import { type GridColumnPinning, isManualPagination, useGridTable } from './use-grid-table'
@@ -365,6 +368,10 @@ type GridRegionProps<T> = {
 	chooseColumns: (() => void) | null
 	/** One action per configured export type; empty when export is off. */
 	exportActions: GridExportAction[]
+	/** Resolves the group-header menu for a right-clicked group by key, or `null` when the row manager is off. */
+	rowGroupMenu: ((key: string) => GridMenuItem[] | null) | null
+	/** Resolves the column-group band menu for a right-clicked group by id. */
+	columnGroupMenu: ((id: string) => GridMenuItem[] | null) | null
 	children: ReactNode
 }
 
@@ -393,6 +400,8 @@ function GridRegion<T>({
 	autoSizeColumns,
 	chooseColumns,
 	exportActions,
+	rowGroupMenu,
+	columnGroupMenu,
 	children,
 }: GridRegionProps<T>) {
 	const reordered = canReorder ? (
@@ -420,6 +429,8 @@ function GridRegion<T>({
 			autoSizeColumns={autoSizeColumns}
 			chooseColumns={chooseColumns}
 			exportActions={exportActions}
+			rowGroupMenu={rowGroupMenu}
+			columnGroupMenu={columnGroupMenu}
 		>
 			{reordered}
 		</GridContextMenu>
@@ -454,6 +465,28 @@ function GridRowReorderRegion({
 		>
 			{children}
 		</DndContext>
+	)
+}
+
+/**
+ * Mounts the "Manage rows" dialog when the row manager is reachable (client
+ * grouping + the header context menu), else renders nothing — keeping the
+ * reachability branch off {@link GridData}'s complexity budget.
+ *
+ * @internal
+ */
+function GridRowManagerRegionDialog({ region }: { region: GridRowManagerRegionResult }) {
+	if (!region.reachable) return null
+
+	return (
+		<GridRowManagerDialog
+			open={region.open}
+			onOpenChange={region.setOpen}
+			label="Manage rows"
+			groups={region.managerGroups}
+			onRecolor={region.recolor}
+			onReorderGroups={region.reorderGroups}
+		/>
 	)
 }
 
@@ -1067,6 +1100,28 @@ export function GridData<T>({
 		hasData,
 	})
 
+	// Row manager: the per-group color / order overlay the "Manage rows" dialog
+	// edits, reachable from the group-header context menu under client grouping.
+	// The wiring (overlay resolution, dialog open state, and the group-header menu
+	// resolver) lives in the hook to keep this component within its budget.
+	const rowManager = useGridRowManagerRegion<T>({
+		groupByConfig,
+		groupingActive,
+		groupedRows,
+		grouping,
+		contextMenuActive: resolvedContextMenu != null,
+		setGroupExpanded,
+	})
+
+	// Column-group band badge menu: Clear color (when colored) + Manage columns.
+	const columnGroupMenu = useColumnGroupMenu({
+		groups: group.groups,
+		setGroups: group.setGroups,
+		enabled: group.hasGroups,
+		chooseColumns,
+		manageLabel: managerLabel,
+	})
+
 	// Column reorder rides @dnd-kit's horizontal sortable; the dnd context wraps
 	// the whole table region (see `useGridReorder`), and the header reads
 	// `canReorder` to register each draggable cell against it.
@@ -1263,6 +1318,7 @@ export function GridData<T>({
 					manualGroup={manualGroupBody}
 					groupColumnId={grouping}
 					groupRenderHeader={groupRenderHeader}
+					rowGroupPresentation={rowManager.presentation}
 					groupTotalRow={groupTotalRow}
 					expansion={detail.body}
 					getKey={getKey}
@@ -1341,6 +1397,8 @@ export function GridData<T>({
 						/>
 					)}
 
+					<GridRowManagerRegionDialog region={rowManager} />
+
 					<GridToolbar
 						filter={globalFilter}
 						showColumnManager={showButton}
@@ -1379,6 +1437,8 @@ export function GridData<T>({
 								autoSizeColumns={autoSizeColumns}
 								chooseColumns={chooseColumns}
 								exportActions={exportActions}
+								rowGroupMenu={rowManager.rowGroupMenu}
+								columnGroupMenu={columnGroupMenu}
 							>
 								<GridRowReorderRegion
 									active={rowReorderActive}

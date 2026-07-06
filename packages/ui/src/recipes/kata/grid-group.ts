@@ -32,6 +32,13 @@ const bandColor: Record<PaletteColor, string> = {
 }
 
 /**
+ * The neutral fill for a colorless group's underline rule — the band analog of a
+ * colorless row group's grey rail, so an uncolored (or color-cleared) group keeps
+ * its underline in grey rather than dropping it. Full literals for Tailwind's scanner.
+ */
+const bandNeutral = 'bg-zinc-950/10 dark:bg-white/15'
+
+/**
  * The outline color for a group's editor Card, keyed by {@link PaletteColor} so a
  * zone reads `cardOutline[group.color]`. `!` forces it over the Card's default
  * neutral outline; full literals for Tailwind's scanner.
@@ -52,6 +59,8 @@ export const k = {
 	cardOutline,
 	// Fill for a group's underline rule in its color (see {@link bandColor}).
 	bandColor,
+	// Neutral fill for a colorless group's underline rule (see {@link bandNeutral}).
+	bandNeutral,
 	// The group row's cells align their band vertically; no bottom rule — the
 	// colored Badge alone sets the tier off from the column headers.
 	cell: ['align-middle'],

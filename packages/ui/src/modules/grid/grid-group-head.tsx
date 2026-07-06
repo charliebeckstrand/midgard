@@ -1,6 +1,6 @@
 'use client'
 
-import { ChevronDown, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Badge } from '../../components/badge'
 import { Button } from '../../components/button'
@@ -97,16 +97,27 @@ function GridGroupHeadCell({
 	// covers a pinned column (see `buildGroupSpans`), so it needs no sticky offset.
 	const pinned = span.kind === 'plain'
 
-	// A colored group draws a 2px rule under its Badge, spanning the cell's content
-	// width — inset by the header padding, so it aligns with the column titles and
-	// splits from the neighbouring group.
-	const ruleColor = span.kind === 'group' && span.group.color ? k.bandColor[span.group.color] : null
+	// A group draws a 2px rule under its Badge, spanning the cell's content width —
+	// inset by the header padding, so it aligns with the column titles and splits
+	// from the neighbouring group. Colored in the group's hue, or a neutral grey
+	// when it has none (matching a colorless row group's rail), so clearing a color
+	// leaves the underline in place rather than dropping it.
+	const ruleColor =
+		span.kind === 'group'
+			? span.group.color
+				? k.bandColor[span.group.color]
+				: k.bandNeutral
+			: null
 
 	return (
 		<TableHeader
 			scope={span.kind === 'group' ? 'colgroup' : 'col'}
 			colSpan={span.colSpan}
 			aria-colindex={colIndex}
+			// A group band carries its id so a right-click on its badge resolves to the
+			// column-group context menu (Clear color / Manage columns).
+			data-group-band={span.kind === 'group' ? '' : undefined}
+			data-group-id={span.kind === 'group' ? span.group.id : undefined}
 			className={cn(
 				k.cell,
 				stickyHeader && gridK.sticky.head,
@@ -183,7 +194,9 @@ function GridGroupBand({ group, collapsed, onToggleCollapse }: GridGroupBandProp
 				aria-label={collapsed ? `Expand ${label}` : `Collapse ${label}`}
 				onClick={() => onToggleCollapse(group.id)}
 			>
-				<Icon icon={collapsed ? <ChevronRight /> : <ChevronDown />} />
+				{/* A column group folds horizontally: a caret left while collapsed, a caret
+				    right once expanded (revealing its columns to the right). */}
+				<Icon icon={collapsed ? <ChevronLeft /> : <ChevronRight />} />
 			</Button>
 
 			{collapsed && hiddenCount > 0 && <span className={cn(k.count)}>+{hiddenCount}</span>}

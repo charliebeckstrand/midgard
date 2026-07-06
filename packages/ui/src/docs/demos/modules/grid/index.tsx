@@ -14,6 +14,7 @@ import {
 	type GridColumn,
 	type GridColumnGroup,
 	type GridPaginationState,
+	type GridRowGroup,
 	type SortState,
 } from '../../../../modules/grid'
 import { code, Example } from '../../../engine'
@@ -623,6 +624,31 @@ const AggregationExample = () => (
 		grandTotalRow="bottom"
 	/>
 )
+
+// Right-click a group header for "Manage rows": color each group, reorder the
+// groups, and reorder rows within a group. A group's color washes its header
+// aggregation and total footer (and paints its rail); the overlay is value-keyed
+// through `groupBy.rowGroups`, seeded here with two colors.
+const RowManagerExample = () => {
+	const [rowGroups, setRowGroups] = useState<GridRowGroup[]>([
+		{ key: 'West', color: 'blue' },
+		{ key: 'East', color: 'amber' },
+	])
+
+	return (
+		<Grid
+			columns={salesColumns}
+			rows={salesData}
+			getKey={(row) => row.id}
+			rowLabel={(row) => row.rep}
+			groupBy={{
+				value: 'region',
+				rowGroups: { value: rowGroups, onValueChange: setRowGroups },
+			}}
+			groupTotalRow="bottom"
+		/>
+	)
+}
 
 // An `expander` column renders the disclosure chevron; the `expandable` binding
 // carries the detail renderer — an arbitrary sub-component per row.
@@ -1287,6 +1313,14 @@ export function Demo() {
 										code={code`<Grid groupBy={{ value: 'region' }} groupTotalRow="bottom" grandTotalRow="bottom" columns={[{ …, aggFunc: 'sum' }, { …, aggFunc: (rows) => weightedRatio }]} />`}
 									>
 										<AggregationExample />
+									</Example>
+
+									<Example
+										title="Row manager"
+										code={code`<Grid groupBy={{ value: 'region', rowGroups: { value, onValueChange } }} groupTotalRow="bottom" />
+// right-click a group header → "Manage rows" to color the groups and reorder them`}
+									>
+										<RowManagerExample />
 									</Example>
 
 									<Example

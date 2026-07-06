@@ -26,6 +26,7 @@ import {
 import { type GridRowsProps, renderGridRow } from './grid-row'
 import { GridTotalRow } from './grid-total-row'
 import { type GridScrollRowIntoView, GridVirtualizedBody } from './grid-virtualized-body'
+import { applyRowKeyOrder, type GridRowGroupPresentation } from './use-grid-row-manager'
 
 /** The vertical row sortable's items and strategy, spread onto the body's `SortableContext`. @internal */
 type GridRowSortableContext = {
@@ -77,6 +78,12 @@ type GridBodyProps<T> = GridRowsProps<T> & {
 	getKey: (row: T, index: number) => string | number
 	/** Grid density, threaded to the grouped leaf rows so their reveal wrappers carry the matching cell padding. */
 	density: DensityLevel
+	/**
+	 * The row manager's overlay presentation, or `null` when the grid isn't
+	 * client-grouped: the per-group color (tinting the header aggregates, total
+	 * footer, and rail) and the manual group / leaf order the grouped body applies.
+	 */
+	rowGroupPresentation: GridRowGroupPresentation | null
 	virtualize: {
 		scrollRef: RefObject<HTMLDivElement | null>
 		estimateSize: number
@@ -106,11 +113,19 @@ function renderGroup<T>(
 		density: DensityLevel
 		/** Whether a per-group total row shows — a whole-body gate, resolved once by the caller. */
 		totalled: boolean
+		/** The row-manager overlay presentation (per-group color), or `null` when off. */
+		presentation: GridRowGroupPresentation | null
 	},
 ): ReactElement {
-	const { props, columnId, renderHeader, getKey, density, totalled } = args
+	const { props, columnId, renderHeader, getKey, density, totalled, presentation } = args
 
 	const expanded = groupRow.getIsExpanded()
+
+	// The group's row-manager color tints its header aggregates, total footer, and
+	// rail; the leaves render in the engine's natural order (row order isn't managed).
+	const groupKey = groupRow.getGroupingValue(String(columnId)) as string | number
+
+	const color = presentation?.color(groupKey)
 
 	return (
 		<Fragment key={groupRow.id}>
@@ -119,6 +134,7 @@ function renderGroup<T>(
 				columns={props.visibleColumns}
 				columnId={columnId}
 				renderHeader={renderHeader}
+				color={color}
 			/>
 			{groupRow.subRows.map((leaf) => {
 				const key = getKey(leaf.original, leaf.index)
@@ -139,6 +155,7 @@ function renderGroup<T>(
 						settleWidths={props.settleWidths}
 						pinning={props.pinning}
 						density={density}
+						color={color}
 					/>
 				)
 			})}
@@ -149,6 +166,7 @@ function renderGroup<T>(
 					variant="group"
 					expanded={expanded}
 					density={density}
+					color={color}
 				/>
 			)}
 		</Fragment>
@@ -251,6 +269,7 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 		groupRenderHeader,
 		getKey,
 		density,
+		rowGroupPresentation,
 		virtualize,
 	} = props
 
@@ -300,13 +319,21 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 	// virtualization / pagination / grid semantics (see `GridData`), so this
 	// precedes the virtualized branch and needs no aria-row bookkeeping.
 	if (groupedRows && groupColumnId != null) {
+		// Apply the manual group order (kept only until the overlay covers every
+		// group; then the engine's group order stands).
+		const ordered = applyRowKeyOrder(
+			groupedRows,
+			rowGroupPresentation?.groupOrder ?? undefined,
+			(groupRow) => groupRow.getGroupingValue(String(groupColumnId)) as string | number,
+		)
+
 		// The per-group total is meaningful only once a column aggregates; the gate
 		// is body-wide, so resolve it once here rather than per group in renderGroup.
 		const totalled = props.groupTotalRow === 'bottom' && hasAggregation(visibleColumns)
 
 		return (
 			<TableBody>
-				{groupedRows.map((groupRow) =>
+				{ordered.map((groupRow) =>
 					renderGroup(groupRow, {
 						props,
 						columnId: groupColumnId,
@@ -314,6 +341,7 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 						getKey,
 						density,
 						totalled,
+						presentation: rowGroupPresentation,
 					}),
 				)}
 			</TableBody>
