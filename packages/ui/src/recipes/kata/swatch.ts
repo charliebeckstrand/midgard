@@ -6,7 +6,8 @@
  * a caller-supplied `currentColor` class (a `text-*` utility) applied on top,
  * so the CVD-validated data-viz palette stays in `kata/chart` and never forks,
  * and any hue works: `solid` fills with it, `outline` frames with it, `soft`
- * tints with it at 15%.
+ * tints with it at 15%, and — for the `line` shape — `dashed` strokes a dashed
+ * line of it, mirroring a dashed reference rule in a legend.
  */
 import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { omote } from '../kiso'
@@ -23,11 +24,17 @@ export const k = defineRecipe({
 		line: 'rounded-full',
 	},
 	// Fill treatment over `currentColor` (the caller's `color` text-* class):
-	// filled, tinted at 15% (the house soft weight), or framed on the surface.
+	// filled, tinted at 15% (the house soft weight), framed on the surface, or —
+	// for the `line` shape — dashed to mirror a dashed reference rule.
 	variant: {
 		solid: 'bg-current',
 		soft: 'bg-current/15',
 		outline: ['border-2 border-current', ...bg.surface],
+		// A horizontal dash run in `currentColor` — the reference rule's 3:2
+		// dash:gap halved so the pattern reads across a swatch-width line. Meant
+		// for `line`; on a box it stripes.
+		dashed:
+			'bg-[repeating-linear-gradient(to_right,currentColor_0,currentColor_3px,transparent_3px,transparent_5px)]',
 	},
 	// Selection-only; box/bar dimensions live in the compounds.
 	size: { xs: '', sm: '', md: '', lg: '', xl: '' },

@@ -49,4 +49,16 @@ describe('Swatch', () => {
 
 		expect(bySlot(container, 'swatch')).toHaveClass('bg-current')
 	})
+
+	it('strokes the dashed variant as a currentColor dash run', () => {
+		const { container } = renderUI(<Swatch shape="line" variant="dashed" color="text-blue-600" />)
+
+		const el = bySlot(container, 'swatch')
+
+		expect(el).toHaveAttribute('data-variant', 'dashed')
+
+		// A repeating currentColor gradient paints the dashes, so the swatch mirrors
+		// a dashed reference rule without an SVG.
+		expect(el?.getAttribute('class')).toContain('repeating-linear-gradient')
+	})
 })
