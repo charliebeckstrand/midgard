@@ -43,6 +43,12 @@ export type ChartLegendReference = {
 	swatchClass: string
 	/** A raw CSS colour applied inline as currentColor; absent for a palette slot. */
 	color?: string
+	/**
+	 * Whether the rule is dashed, so the chip's line swatch mirrors it — dashed by
+	 * default, `false` only for a rule drawn solid.
+	 * @defaultValue true
+	 */
+	dashed?: boolean
 }
 
 /** Props for {@link ChartLegend}. @internal */
@@ -203,7 +209,8 @@ export function ChartLegend({
 			{references.map((reference, index) => (
 				// A reference chip mirrors an entry's swatch-and-label layout without the
 				// button chrome — it names a rule, it doesn't switch a series. The slot
-				// colour rides its currentColor class; a raw colour rides an inline style.
+				// colour rides its currentColor class; a raw colour rides an inline style;
+				// and the line swatch dashes to match the rule unless it is drawn solid.
 				<span
 					// biome-ignore lint/suspicious/noArrayIndexKey: chips are index-aligned with the reference prop and never reorder.
 					key={`reference:${index}`}
@@ -213,6 +220,7 @@ export function ChartLegend({
 				>
 					<Swatch
 						shape="line"
+						variant={reference.dashed === false ? 'solid' : 'dashed'}
 						color={reference.swatchClass || undefined}
 						style={reference.color ? { color: reference.color } : undefined}
 					/>

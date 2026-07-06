@@ -275,10 +275,11 @@ export function ChartReferenceList({ reference, format }: ChartReferenceListProp
 /**
  * The legend entries for the reference lines: each finite rule's label — or its
  * value, unlabelled — keyed to a line swatch in the rule's colour, a palette
- * slot through its `text` class or a raw colour inline, resolved the same way
- * the rule itself paints. The chart legend renders these as static identity
- * chips beside the series switches when it shows; {@link ChartReferenceList}
- * still carries the assistive-tech parity.
+ * slot through its `text` class or a raw colour inline, and dashed to match the
+ * rule unless it is drawn solid — all resolved the same way the rule itself
+ * paints. The chart legend renders these as static identity chips beside the
+ * series switches when it shows; {@link ChartReferenceList} still carries the
+ * assistive-tech parity.
  *
  * @internal
  */
@@ -293,8 +294,11 @@ export function referenceLegendItems(
 
 			const label = line.label ?? format(line.value, line.axis ?? 'left')
 
+			// Mirror the rule: dashed unless it is explicitly drawn solid.
+			const dashed = line.dashed !== false
+
 			return isSeriesSlot(color)
-				? { label, swatchClass: k.series[color].text.join(' ') }
-				: { label, swatchClass: '', color }
+				? { label, swatchClass: k.series[color].text.join(' '), dashed }
+				: { label, swatchClass: '', color, dashed }
 		})
 }

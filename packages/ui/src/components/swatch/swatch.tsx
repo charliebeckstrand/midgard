@@ -8,8 +8,8 @@ export type SwatchProps = SwatchVariants & {
 	 * The hue, as a `currentColor` class — a `text-*` utility, typically a
 	 * data-viz palette token (e.g. `kata/chart`'s `series[c].text`) or an
 	 * `iro.marker` shade. `solid` fills with it, `outline` frames with it,
-	 * `soft` tints with it. Omitted, the swatch inherits the ambient text
-	 * colour.
+	 * `soft` tints with it, `dashed` strokes a dashed line of it. Omitted, the
+	 * swatch inherits the ambient text colour.
 	 */
 	color?: string
 	className?: string
@@ -31,9 +31,10 @@ export type SwatchProps = SwatchVariants & {
 
 /**
  * The colour key that stands in for a mark: a `square` box, a `circle` dot, or
- * a `line` bar — `solid`-filled, `soft`-tinted, or `outline`-framed by `color`,
- * at any `size` from `xs` to `xl`. A static leaf with no client hooks, so it
- * renders in React Server Components.
+ * a `line` bar — `solid`-filled, `soft`-tinted, `outline`-framed, or `dashed`
+ * (a dashed `line`, for a dashed reference rule) by `color`, at any `size` from
+ * `xs` to `xl`. A static leaf with no client hooks, so it renders in React
+ * Server Components.
  *
  * @remarks
  * The fill rides on `currentColor` (the caller's `color` class), so the

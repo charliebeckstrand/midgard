@@ -488,4 +488,30 @@ describe('reference lines in the legend', () => {
 
 		expect(rawSwatch?.style.color).toBeTruthy()
 	})
+
+	it('dashes the chip swatch to match the rule, solid only when the rule is', () => {
+		const { container } = renderUI(
+			<BarChart
+				aria-label="Revenue by month"
+				data={DATA}
+				series={[...SERIES]}
+				width={400}
+				legend
+				reference={[
+					{ value: 55, label: 'Target' },
+					{ value: 70, label: 'Ceiling', dashed: false },
+				]}
+			/>,
+		)
+
+		const [dashed, solid] = allBySlot(container, 'chart-legend-reference')
+
+		// The dashed rule (the default) mirrors to a dashed line swatch; the solid
+		// rule drops back to a solid one.
+		expect(dashed?.querySelector('[data-slot="swatch"]')?.getAttribute('data-variant')).toBe(
+			'dashed',
+		)
+
+		expect(solid?.querySelector('[data-slot="swatch"]')?.getAttribute('data-variant')).toBe('solid')
+	})
 })
