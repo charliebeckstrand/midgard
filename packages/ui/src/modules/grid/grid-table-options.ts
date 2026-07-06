@@ -73,6 +73,10 @@ export function resolveFilterMode(args: {
 }): { configured: boolean; manual: boolean } {
 	return {
 		configured: args.globalConfigured || args.hasColumnFilters,
+		// The engine filters both surfaces through one model, so mode is table-wide:
+		// manual if either surface requests it. Manual wins because letting the
+		// client model run over server-bound filters would filter already-filtered
+		// data. `useGridTable` warns (dev) when the two surfaces' flags disagree.
 		manual: Boolean(args.globalManual) || Boolean(args.columnManual),
 	}
 }

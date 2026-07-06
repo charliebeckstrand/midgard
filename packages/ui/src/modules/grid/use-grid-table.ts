@@ -20,7 +20,7 @@ import {
 	useReactTable,
 	type VisibilityState,
 } from '@tanstack/react-table'
-import { type ReactNode, type RefObject, useCallback, useMemo, useRef } from 'react'
+import { type ReactNode, type RefObject, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useControllable } from '../../hooks'
 import type { DensityLevel } from '../../providers/density/context'
 import type { SortState } from './context'
@@ -552,6 +552,27 @@ export function useGridTable<T>({
 		globalManual: globalFilterConfig?.manual,
 		columnManual: columnFiltersConfig?.manual,
 	})
+
+	// The engine filters the global search and the column filters through one
+	// model, so filtering mode is table-wide — it can't be client for one surface
+	// and server for the other. Warn (dev) when both are configured but their
+	// `manual` flags disagree: `resolveFilterMode` runs manual for both, so the
+	// client-side surface would silently stop filtering. Effect-scoped (not in the
+	// per-render resolver) so it fires once per config change, not every render.
+	const globalManual = globalFilterConfig?.manual
+	const columnManual = columnFiltersConfig?.manual
+
+	useEffect(() => {
+		if (process.env.NODE_ENV === 'production') return
+
+		if (!globalConfigured || !hasColumnFilters) return
+
+		if (Boolean(globalManual) === Boolean(columnManual)) return
+
+		console.warn(
+			"Grid: the global search and column filters share one table-wide filtering mode, but their `manual` flags disagree. The grid runs manual (server) filtering for both, so the client-side surface won't filter locally — set both `manual` the same.",
+		)
+	}, [globalConfigured, hasColumnFilters, globalManual, columnManual])
 
 	const onSortingChange = useCallback<OnChangeFn<SortingState>>(
 		(updater) => setSort?.(toSortState(applyUpdater(updater, toSortingState(sort)))),
