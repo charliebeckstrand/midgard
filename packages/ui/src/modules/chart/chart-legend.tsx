@@ -65,15 +65,18 @@ export type ChartLegendProps = {
 /**
  * The legend — the dependable identity channel for two or more series, and
  * the chart's series switchboard: pointing (or keyboard-focusing) an entry
- * dims every other series, clicking toggles its series off. Plain HTML
- * buttons outside the `role="img"` region, so assistive tech reads and
- * operates them; swatches carry the colour, the text stays in ink.
+ * dims every other series, clicking toggles its series off. The switches are
+ * plain HTML buttons outside the `role="img"` region, so assistive tech reads
+ * and operates them; swatches carry the colour, the text stays in ink. A lone
+ * entry has nothing to switch against — toggling it would blank the chart and
+ * emphasis would dim nothing — so it drops the button and reads as a static
+ * chip; the `toolbar` role and its roving appear only for two or more.
  *
- * @remarks The row is one Tab stop; the arrow keys rove between entries
- * (Home / End jump to the ends) and Escape drops focus, clearing the
- * emphasis. Swatches carry the colour, the text stays in ink. Reference lines
- * follow the series switches as static, `aria-hidden` identity chips — a rule
- * has no toggle, and {@link ChartReferenceList} carries its parity.
+ * @remarks With two or more entries the row is one Tab stop; the arrow keys
+ * rove between the switches (Home / End jump to the ends) and Escape drops
+ * focus, clearing the emphasis. Reference lines follow the entries as static,
+ * `aria-hidden` identity chips — a rule has no toggle, and
+ * {@link ChartReferenceList} carries its parity.
  * @internal
  */
 export function ChartLegend({
@@ -87,8 +90,13 @@ export function ChartLegend({
 }: ChartLegendProps) {
 	const ref = useRef<HTMLDivElement>(null)
 
+	// Two or more entries make a switchboard; a lone one is a static chip.
+	const interactive = items.length > 1
+
+	// Scope the roving to the actual switch buttons, so a static chip keeps its
+	// queryable `chart-legend-item` slot without being seated a Tab stop.
 	const onKeyDown = useA11yRoving(ref, {
-		itemSelector: '[data-slot="chart-legend-item"]',
+		itemSelector: 'button[data-slot="chart-legend-item"]',
 		orientation: 'horizontal',
 		manageTabIndex: true,
 	})
@@ -103,13 +111,18 @@ export function ChartLegend({
 		onKeyDown(event)
 	}
 
+	// The toolbar role, its orientation, and the roving handler travel together:
+	// present for a switchboard, absent for a lone static chip (a plain grouping
+	// div with no interaction).
+	const toolbarProps = interactive
+		? ({ role: 'toolbar', 'aria-orientation': 'horizontal', onKeyDown: handleKeyDown } as const)
+		: {}
+
 	return (
 		<div
 			ref={ref}
 			data-slot="chart-legend"
-			role="toolbar"
-			aria-orientation="horizontal"
-			onKeyDown={handleKeyDown}
+			{...toolbarProps}
 			className={cn(
 				panel ? 'flex flex-col items-start' : 'flex flex-wrap items-center justify-center',
 			)}
@@ -117,19 +130,8 @@ export function ChartLegend({
 			{items.map((item, index) => {
 				const off = hidden.has(index)
 
-				return (
-					<Button
-						key={item.label}
-						size="sm"
-						variant="plain"
-						data-slot="chart-legend-item"
-						aria-pressed={!off}
-						onClick={() => onToggle(index)}
-						onPointerEnter={() => onFocus(index)}
-						onPointerLeave={() => onFocus(null)}
-						onFocus={() => onFocus(index)}
-						onBlur={() => onFocus(null)}
-					>
+				const content = (
+					<>
 						<ChartSwatch
 							swatch={item.swatch}
 							swatchClass={item.swatchClass}
@@ -157,6 +159,37 @@ export function ChartLegend({
 								{item.detail}
 							</Text>
 						)}
+					</>
+				)
+
+				// A lone entry can't be switched, so it reads as a static identity
+				// chip — no button, no toggle, no emphasis — matching the reference chips.
+				if (!interactive) {
+					return (
+						<span
+							key={item.label}
+							data-slot="chart-legend-item"
+							className="inline-flex items-center gap-1 px-2 py-1"
+						>
+							{content}
+						</span>
+					)
+				}
+
+				return (
+					<Button
+						key={item.label}
+						size="sm"
+						variant="plain"
+						data-slot="chart-legend-item"
+						aria-pressed={!off}
+						onClick={() => onToggle(index)}
+						onPointerEnter={() => onFocus(index)}
+						onPointerLeave={() => onFocus(null)}
+						onFocus={() => onFocus(index)}
+						onBlur={() => onFocus(null)}
+					>
+						{content}
 					</Button>
 				)
 			})}

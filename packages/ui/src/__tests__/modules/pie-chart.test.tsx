@@ -221,6 +221,20 @@ describe('PieChart', () => {
 		).toBeTruthy()
 	})
 
+	it('renders a lone slice legend entry as a static chip', () => {
+		// A single-slice pie with the legend forced on: the one entry is static,
+		// since toggling it would empty the pie.
+		const { container } = renderUI(
+			chart({ data: [{ source: 'Search', visits: 60 }], legend: true }),
+		)
+
+		const item = bySlot(container, 'chart-legend-item')
+
+		expect(item?.tagName).toBe('SPAN')
+
+		expect(item).not.toHaveAttribute('aria-pressed')
+	})
+
 	it('sets the legend beside the plot as a share panel with legend="right"', () => {
 		const { container } = renderUI(chart({ legend: 'right' }))
 

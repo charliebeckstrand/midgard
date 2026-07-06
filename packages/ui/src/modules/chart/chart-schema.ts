@@ -192,9 +192,11 @@ export type ChartBaseProps<T> = AccessibleName & {
 	/**
 	 * Show the legend. Defaults to on for two or more series (or slices) and off
 	 * for one — a single series is already named by the chart's accessible name.
-	 * A placement moves it: a centered row under the plot (`'bottom'`, the
-	 * default) or above it (`'top'`), or a column panel beside it (`'left'` /
-	 * `'right'`), side by side from `lg` and under the chart below that.
+	 * Forced on for a lone series (or slice), its single entry reads as a static
+	 * chip: with nothing to switch against it can't toggle or emphasise. A
+	 * placement moves it: a centered row under the plot (`'bottom'`, the default)
+	 * or above it (`'top'`), or a column panel beside it (`'left'` / `'right'`),
+	 * side by side from `lg` and under the chart below that.
 	 */
 	legend?: boolean | ChartLegendPlacement
 	/**
