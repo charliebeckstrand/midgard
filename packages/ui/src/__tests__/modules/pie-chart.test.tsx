@@ -65,6 +65,30 @@ describe('PieChart', () => {
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
 	})
 
+	it('pins a slice on click under trigger click, ignoring hover', () => {
+		const { container } = renderUI(chart({ tooltip: { trigger: 'click' } }))
+
+		const [first] = allBySlot(container, 'chart-slice')
+
+		// The slice reads as clickable.
+		expect((first as Element).getAttribute('class')).toContain('cursor-pointer')
+
+		// Hovering no longer opens the readout.
+		fireEvent.pointerEnter(first as Element)
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
+
+		// A click pins the slice's readout.
+		fireEvent.click(first as Element)
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Search')
+
+		// A second click of the same slice dismisses it.
+		fireEvent.click(first as Element)
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
+	})
+
 	it('backs each slice with a gapless hit wedge so the gap keeps the tooltip', () => {
 		const { container } = renderUI(chart())
 

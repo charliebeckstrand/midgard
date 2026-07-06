@@ -197,6 +197,38 @@ describe('ScatterChart', () => {
 
 		expect(tip?.textContent).toContain('34')
 	})
+
+	it('pins the readout to a click under trigger click, ignoring hover', () => {
+		const { container } = renderUI(
+			<ScatterChart
+				aria-label="Dwell against distance"
+				data={STOPS}
+				width={480}
+				series={[{ xKey: 'distance', yKey: 'dwell', yName: 'Dwell' }]}
+				crosshair={{ snap: true }}
+				tooltip={{ trigger: 'click' }}
+			/>,
+		)
+
+		const hit = bySlot(container, 'chart-hit') as Element
+
+		// The hit layer reads as clickable.
+		expect(hit.getAttribute('class')).toContain('cursor-pointer')
+
+		// Movement no longer summons the readout under the click trigger.
+		fireEvent.pointerMove(hit, { clientX: 240, clientY: 80 })
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
+
+		// A click pins the snapped readout, and clicking the same column clears it.
+		fireEvent.click(hit, { clientX: 240, clientY: 80 })
+
+		expect(bySlot(container, 'tooltip-content')).not.toBeNull()
+
+		fireEvent.click(hit, { clientX: 240, clientY: 80 })
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
+	})
 })
 
 describe('BubbleChart', () => {

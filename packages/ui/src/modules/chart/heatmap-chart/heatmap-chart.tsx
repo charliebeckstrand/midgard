@@ -9,7 +9,7 @@ import {
 	useFloating,
 	useInteractions,
 } from '@floating-ui/react'
-import { type PointerEvent, type ReactNode, useMemo, useState } from 'react'
+import { type MouseEvent, type PointerEvent, type ReactNode, useMemo, useState } from 'react'
 import { TooltipContent } from '../../../components/tooltip'
 import { TooltipContext } from '../../../components/tooltip/context'
 import { cn, createContext } from '../../../core'
@@ -27,6 +27,7 @@ import {
 import { chartFrameSizing, type PlotRect, plotRect, thinned } from '../chart-layout'
 import { ChartPlotBox } from '../chart-plot-box'
 import { bandScale } from '../chart-scale'
+import { type ChartTooltipTrigger, resolveTooltip } from '../chart-schema'
 import { formatChartValue, READOUT_GAP } from '../chart-series'
 import { ChartTable } from '../chart-table'
 import type { ChartReadout } from '../types'
@@ -238,22 +239,40 @@ type HeatmapHitLayerProps = {
 	cols: number
 	xBand: ReturnType<typeof bandScale>
 	yBand: ReturnType<typeof bandScale>
+	/**
+	 * How the tooltip opens: tracked on `'hover'`, pinned by a click on `'click'`
+	 * — which also gives the layer a pointer cursor and toggles the readout off on
+	 * a second click of the same cell.
+	 * @defaultValue 'hover'
+	 */
+	trigger?: ChartTooltipTrigger
 }
 
 /**
  * The transparent rectangle over the plot that feeds the hover context: the
  * pointer resolves to its `[row, col]` through the band arithmetic, so a reader
- * aims at a cell without the marks repainting.
+ * aims at a cell without the marks repainting. Under the `'click'` trigger it
+ * pins the pointed cell instead — a second click of the same cell clears it —
+ * and leaves pointer movement alone.
  *
  * @internal
  */
-function HeatmapHitLayer({ plot, rows, cols, xBand, yBand }: HeatmapHitLayerProps) {
-	const { set } = useHeatmapHover()
+function HeatmapHitLayer({
+	plot,
+	rows,
+	cols,
+	xBand,
+	yBand,
+	trigger = 'hover',
+}: HeatmapHitLayerProps) {
+	const { cell: active, set } = useHeatmapHover()
 
-	const move = (event: PointerEvent<SVGRectElement>) => {
+	// Resolve a pointer event to its `[row, col]` and the client point the tooltip
+	// tracks, or `null` before the box has a size.
+	const locate = (event: MouseEvent<SVGRectElement>) => {
 		const rect = event.currentTarget.getBoundingClientRect()
 
-		if (rect.width <= 0 || rect.height <= 0) return
+		if (rect.width <= 0 || rect.height <= 0) return null
 
 		// The hit rect covers the plot exactly, so the pointer's fraction across it
 		// maps onto the band range: scale that fraction by the plot span and add the
@@ -264,8 +283,33 @@ function HeatmapHitLayer({ plot, rows, cols, xBand, yBand }: HeatmapHitLayerProp
 
 		const frameY = plot.y + ((event.clientY - rect.top) / rect.height) * plot.height
 
-		set(cellAt(frameX, frameY, xBand, yBand, cols, rows), { x: event.clientX, y: event.clientY })
+		return {
+			cell: cellAt(frameX, frameY, xBand, yBand, cols, rows),
+			point: { x: event.clientX, y: event.clientY },
+		}
 	}
+
+	const click = trigger === 'click'
+
+	const handlers = click
+		? {
+				onClick: (event: MouseEvent<SVGRectElement>) => {
+					const hit = locate(event)
+
+					if (hit === null) return
+
+					if (sameCell(active, hit.cell)) set(null, null)
+					else set(hit.cell, hit.point)
+				},
+			}
+		: {
+				onPointerMove: (event: PointerEvent<SVGRectElement>) => {
+					const hit = locate(event)
+
+					if (hit !== null) set(hit.cell, hit.point)
+				},
+				onPointerLeave: () => set(null, null),
+			}
 
 	return (
 		<rect
@@ -276,8 +320,8 @@ function HeatmapHitLayer({ plot, rows, cols, xBand, yBand }: HeatmapHitLayerProp
 			height={plot.height}
 			fill="none"
 			pointerEvents="all"
-			onPointerMove={move}
-			onPointerLeave={() => set(null, null)}
+			className={cn(click && 'cursor-pointer')}
+			{...handlers}
 		/>
 	)
 }
@@ -568,12 +612,14 @@ export function HeatmapChart<T>({
 	height,
 	aspectRatio,
 	legend,
-	tooltip = true,
+	tooltip,
 	formatValue,
 	className,
 	...label
 }: HeatmapChartProps<T>) {
 	const primary = series[0]
+
+	const { show: showTooltip, trigger } = resolveTooltip(tooltip)
 
 	const {
 		ref,
@@ -610,8 +656,15 @@ export function HeatmapChart<T>({
 
 			<HeatmapCells cells={cells} fills={fills} cellBins={cellBins} />
 
-			{tooltip && rows > 0 && cols > 0 && (
-				<HeatmapHitLayer plot={plot} rows={rows} cols={cols} xBand={xBand} yBand={yBand} />
+			{showTooltip && rows > 0 && cols > 0 && (
+				<HeatmapHitLayer
+					plot={plot}
+					rows={rows}
+					cols={cols}
+					xBand={xBand}
+					yBand={yBand}
+					trigger={trigger}
+				/>
 			)}
 		</svg>
 	)
@@ -636,7 +689,7 @@ export function HeatmapChart<T>({
 								{svg}
 							</ChartPlotBox>
 
-							{tooltip && readout && frameWidth > 0 && (
+							{showTooltip && readout && frameWidth > 0 && (
 								<HeatmapTooltip
 									columns={matrix.columns}
 									rows={matrix.rows}

@@ -1,8 +1,10 @@
 'use client'
 
+import { cn } from '../../core'
 import type { PlotRect } from './chart-layout'
 import type { ChartOrientation } from './chart-orientation'
 import type { BandScale } from './chart-scale'
+import type { ChartTooltipTrigger } from './chart-schema'
 import { useChartPointer } from './use-chart-pointer'
 
 /** Props for {@link ChartHitArea}. @internal */
@@ -17,6 +19,19 @@ export type ChartHitAreaProps = {
 	 * @defaultValue 'vertical'
 	 */
 	orientation?: ChartOrientation
+	/**
+	 * How the tooltip opens: tracked on `'hover'`, pinned by a click on `'click'`
+	 * — which also points the cursor at the marks a click can read.
+	 * @defaultValue 'hover'
+	 */
+	trigger?: ChartTooltipTrigger
+	/**
+	 * Whether the readout snaps to the nearest point, so it reads off the marks
+	 * too. Lets a `'click'` off the marks pin the snapped band rather than dismiss,
+	 * and carries the pointer cursor across the whole plot rather than the marks alone.
+	 * @defaultValue false
+	 */
+	snaps?: boolean
 }
 
 /**
@@ -27,8 +42,24 @@ export type ChartHitAreaProps = {
  *
  * @internal
  */
-export function ChartHitArea({ plot, band, count, onData, orientation }: ChartHitAreaProps) {
-	const { ref, ...handlers } = useChartPointer(band, count, plot, onData, orientation)
+export function ChartHitArea({
+	plot,
+	band,
+	count,
+	onData,
+	orientation,
+	trigger = 'hover',
+	snaps = false,
+}: ChartHitAreaProps) {
+	const { ref, ...handlers } = useChartPointer(
+		band,
+		count,
+		plot,
+		onData,
+		orientation,
+		trigger,
+		snaps,
+	)
 
 	return (
 		<rect
@@ -40,6 +71,7 @@ export function ChartHitArea({ plot, band, count, onData, orientation }: ChartHi
 			height={plot.height}
 			fill="none"
 			pointerEvents="all"
+			className={cn(trigger === 'click' && snaps && 'cursor-pointer')}
 			{...handlers}
 		/>
 	)

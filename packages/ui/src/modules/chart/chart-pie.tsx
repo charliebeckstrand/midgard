@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'motion/react'
-import { type PointerEvent, type ReactNode, useId } from 'react'
+import { type MouseEvent, type PointerEvent, type ReactNode, useId } from 'react'
 import { cn } from '../../core'
 import { type FrameSizing, usePlotFrame } from '../../hooks'
 import { type ChartSeriesColor, k } from '../../recipes/kata/chart'
@@ -13,7 +13,12 @@ import { ChartLegend, type ChartLegendItem } from './chart-legend'
 import { ChartMarksLayer } from './chart-marks-layer'
 import { SLICE_FADE, SLICE_SWEEP } from './chart-motion'
 import { textureClass, textureStyle, useChartTexture } from './chart-pattern-defs'
-import type { ChartBaseProps, PieChartSeries } from './chart-schema'
+import {
+	type ChartBaseProps,
+	type ChartTooltipTrigger,
+	type PieChartSeries,
+	resolveTooltip,
+} from './chart-schema'
 import { formatChartValue, type SlotPaint, seriesValues } from './chart-series'
 import { useChartHover } from './context'
 import {
@@ -203,6 +208,13 @@ type PieChartMarksProps = {
 	fills?: (string | undefined)[]
 	/** Whether the `texture` prop is on, so tiles paint in every mode, not only forced-colors / print. */
 	textureActive?: boolean
+	/**
+	 * How the tooltip opens: tracked on `'hover'`, pinned by a click on `'click'`
+	 * — which gives each slice a pointer cursor and toggles the readout off on a
+	 * second click of the same slice.
+	 * @defaultValue 'hover'
+	 */
+	trigger?: ChartTooltipTrigger
 }
 
 /**
@@ -232,13 +244,16 @@ function PieChartMarks({
 	emphasis,
 	fills,
 	textureActive = false,
+	trigger = 'hover',
 }: PieChartMarksProps) {
-	const { set } = useChartHover()
+	const { index: active, set } = useChartHover()
 
 	const sweepId = useId()
 
+	const click = trigger === 'click'
+
 	return (
-		<g data-slot="chart-slices" onPointerLeave={() => set(null, null)}>
+		<g data-slot="chart-slices" onPointerLeave={click ? undefined : () => set(null, null)}>
 			{animate && (
 				<mask id={sweepId}>
 					{/* The circle's stroke starts at 3 o'clock; the group turns it to 12. */}
@@ -260,16 +275,25 @@ function PieChartMarks({
 
 			<g mask={animate ? `url(#${sweepId})` : undefined}>
 				{slices.map((slice) => {
-					const hover = {
-						onPointerEnter: () => set(slice.index, slice.centroid),
-						onPointerMove: (event: PointerEvent<SVGPathElement>) => {
-							const box = event.currentTarget.ownerSVGElement?.getBoundingClientRect()
+					// Anchor the readout at the pointer within the SVG; the click branch
+					// toggles — a second click of the shown slice clears it.
+					const at = (event: PointerEvent<SVGPathElement> | MouseEvent<SVGPathElement>) => {
+						const box = event.currentTarget.ownerSVGElement?.getBoundingClientRect()
 
-							if (!box) return
+						if (!box) return
 
-							set(slice.index, { x: event.clientX - box.left, y: event.clientY - box.top })
-						},
+						set(slice.index, { x: event.clientX - box.left, y: event.clientY - box.top })
 					}
+
+					const handlers = click
+						? {
+								onClick: (event: MouseEvent<SVGPathElement>) =>
+									active === slice.index ? set(null, null) : at(event),
+							}
+						: {
+								onPointerEnter: () => set(slice.index, slice.centroid),
+								onPointerMove: at,
+							}
 
 					return (
 						<g key={slice.index} className={sliceGroupClass(emphasis, slice.index)}>
@@ -283,7 +307,8 @@ function PieChartMarks({
 								d={slice.hit}
 								fill="none"
 								pointerEvents="all"
-								{...hover}
+								className={cn(click && 'cursor-pointer')}
+								{...handlers}
 							/>
 
 							<path
@@ -294,8 +319,9 @@ function PieChartMarks({
 									paints[slice.index]?.fill,
 									textureClass(textureActive, fills?.[slice.index]),
 									'hover:brightness-110',
+									click && 'cursor-pointer',
 								)}
-								{...hover}
+								{...handlers}
 							/>
 						</g>
 					)
@@ -620,7 +646,7 @@ export function ChartPie<T>({
 	height,
 	aspectRatio,
 	legend,
-	tooltip = true,
+	tooltip,
 	animate = false,
 	texture = false,
 	labels,
@@ -630,6 +656,8 @@ export function ChartPie<T>({
 	...name
 }: ChartPieProps<T>) {
 	const { segment: showSegmentLabels, callouts: showCallouts } = resolvePieLabels(labels)
+
+	const { show: showTooltip, trigger } = resolveTooltip(tooltip)
 
 	const format = formatValue ?? formatChartValue
 
@@ -734,6 +762,7 @@ export function ChartPie<T>({
 				emphasis={emphasis}
 				fills={sliceFills}
 				textureActive={tex.active}
+				trigger={trigger}
 			/>
 
 			{labelItems.length > 0 && (
@@ -775,7 +804,7 @@ export function ChartPie<T>({
 			}
 			legendPlacement={typeof legend === 'string' ? legend : undefined}
 			readout={readout}
-			tooltip={tooltip}
+			tooltip={showTooltip}
 			focus={{ points: focusPoints }}
 			className={className}
 			overlay={

@@ -86,6 +86,66 @@ describe('BarChart', () => {
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
 	})
 
+	it('pins the readout to a click under trigger click, ignoring hover', () => {
+		const { container } = renderUI(chart({ tooltip: { trigger: 'click' } }))
+
+		const hit = bySlot(container, 'chart-hit') as HTMLElement
+
+		// Movement never summons the readout under the click trigger; it only points
+		// the cursor at the bars — a pointer over Q3's bar, the default over the gap
+		// above it (this chart doesn't snap).
+		fireEvent.pointerMove(hit, { clientX: 300, clientY: 100 })
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
+
+		expect(hit.style.cursor).toBe('pointer')
+
+		fireEvent.pointerMove(hit, { clientX: 300, clientY: 20 })
+
+		expect(hit.style.cursor).toBe('default')
+
+		// A click on Q3's bar pins its readout.
+		fireEvent.click(hit, { clientX: 300, clientY: 100 })
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Q3')
+
+		// Clicking the same band again dismisses it.
+		fireEvent.click(hit, { clientX: 300, clientY: 100 })
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
+	})
+
+	it('carries the click cursor across the whole plot when the readout snaps', () => {
+		const { container } = renderUI(
+			chart({ tooltip: { trigger: 'click' }, crosshair: { snap: true } }),
+		)
+
+		// A snapping chart reads a click anywhere, so the whole hit layer is a pointer
+		// rather than only the bars.
+		expect(bySlot(container, 'chart-hit')?.getAttribute('class')).toContain('cursor-pointer')
+	})
+
+	it('dismisses on an off-mark click without stranding the band (no snap)', () => {
+		const { container } = renderUI(chart({ tooltip: { trigger: 'click' } }))
+
+		const hit = bySlot(container, 'chart-hit') as Element
+
+		fireEvent.click(hit, { clientX: 300, clientY: 100 })
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Q3')
+
+		// A click above the bars reads nothing on a non-snap chart, so it dismisses
+		// rather than pinning a hidden band.
+		fireEvent.click(hit, { clientX: 300, clientY: 20 })
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
+
+		// The next click on the bar still opens it — no dead click from a stray index.
+		fireEvent.click(hit, { clientX: 300, clientY: 100 })
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Q3')
+	})
+
 	it('rules a horizontal value line at the pointer with crosshair x', () => {
 		const { container } = renderUI(chart({ crosshair: { x: true, y: false } }))
 

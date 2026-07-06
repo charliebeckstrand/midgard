@@ -258,6 +258,23 @@ export function Demo() {
 							</Example>
 
 							<Example
+								title="Click to pin the tooltip"
+								code={code`<BarChart tooltip={{ trigger: 'click' }} … />`}
+							>
+								<ChartContainer>
+									<BarChart
+										aria-label="Revenue and costs by month"
+										data={months}
+										series={[
+											{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
+											{ xKey: 'month', yKey: 'costs', yName: 'Costs' },
+										]}
+										tooltip={{ trigger: 'click' }}
+									/>
+								</ChartContainer>
+							</Example>
+
+							<Example
 								title="Reference lines"
 								code={code`<BarChart legend reference={[{ value: 55, label: 'Target', color: 'green' }, { value: 68, label: 'Ceiling', color: '#e11d48' }]} … />`}
 							>

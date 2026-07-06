@@ -7,7 +7,7 @@ import type { Step } from '../../../recipes'
 import { type ChartSeriesColor, k } from '../../../recipes/kata/chart'
 import { ChartAxis } from '../chart-axis'
 import { CHART_METRICS, PLOT_TOP_PAD, SCATTER_HIT_SLACK, X_AXIS_HEIGHT } from '../chart-constants'
-import { ChartCrosshair, resolveCrosshair } from '../chart-crosshair'
+import { ChartCrosshair, crosshairSnaps, resolveCrosshair } from '../chart-crosshair'
 import { ChartFrame } from '../chart-frame'
 import { ChartGridLines } from '../chart-grid-lines'
 import { type ChartAspectRatio, chartFrameLayout, type PlotRect, plotRect } from '../chart-layout'
@@ -15,11 +15,12 @@ import type { ChartLegendItem } from '../chart-legend'
 import { ChartLegend } from '../chart-legend'
 import { ChartMarksLayer } from '../chart-marks-layer'
 import { type LinearScale, linearScale } from '../chart-scale'
-import type {
-	ChartBaseProps,
-	ChartLegendPlacement,
-	Crosshair,
-	ScatterChartSeries,
+import {
+	type ChartBaseProps,
+	type ChartLegendPlacement,
+	type Crosshair,
+	resolveTooltip,
+	type ScatterChartSeries,
 } from '../chart-schema'
 import { formatChartValue, type SlotPaint } from '../chart-series'
 import { snapTargets } from '../chart-snap'
@@ -354,7 +355,7 @@ export function ScatterChart<T>({
 	axes = true,
 	gridLines = true,
 	legend,
-	tooltip = true,
+	tooltip,
 	crosshair,
 	animate = false,
 	min,
@@ -440,6 +441,8 @@ export function ScatterChart<T>({
 
 	const rails = resolveCrosshair(crosshair)
 
+	const { show: showTooltip, trigger } = resolveTooltip(tooltip)
+
 	const legendItems = scatterLegendItems(metas, legend)
 
 	const marksNode = animate ? (
@@ -471,7 +474,7 @@ export function ScatterChart<T>({
 			}
 			legendPlacement={placement}
 			readout={readout}
-			tooltip={tooltip}
+			tooltip={showTooltip}
 			snap={snapTargets(rails, bandPositions, snapColumns)}
 			focus={cartesianFocus(bandPositions, snapColumns, 'vertical')}
 			className={className}
@@ -497,11 +500,13 @@ export function ScatterChart<T>({
 
 			<ChartMarksLayer animate={animate}>{marksNode}</ChartMarksLayer>
 
-			{(tooltip || rails !== null) && bandPositions.length > 0 && (
+			{(showTooltip || rails !== null) && bandPositions.length > 0 && (
 				<ScatterChartHitArea
 					plot={plot}
 					centers={bandPositions}
 					onData={(x, y) => withinScatterMarks(allMarks, x, y, SCATTER_HIT_SLACK)}
+					trigger={trigger}
+					snaps={crosshairSnaps(rails)}
 				/>
 			)}
 		</ChartFrame>

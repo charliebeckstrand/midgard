@@ -1,7 +1,7 @@
 'use client'
 
 import { ChartAxis, ChartAxisTitles } from '../chart-axis'
-import { ChartCrosshair, resolveCrosshair } from '../chart-crosshair'
+import { ChartCrosshair, crosshairSnaps, resolveCrosshair } from '../chart-crosshair'
 import { ChartFrame } from '../chart-frame'
 import { ChartGridLines } from '../chart-grid-lines'
 import { ChartHitArea } from '../chart-hit-area'
@@ -11,7 +11,12 @@ import { AnimatedChartLineMarks, ChartLineMarks, type ChartLineSeries } from '..
 import { ChartMarksLayer } from '../chart-marks-layer'
 import { useChartTexture } from '../chart-pattern-defs'
 import { ChartReferenceLines, ChartReferenceList } from '../chart-reference-lines'
-import type { CartesianChartProps, ChartValueLabelConfig, Crosshair } from '../chart-schema'
+import {
+	type CartesianChartProps,
+	type ChartValueLabelConfig,
+	type Crosshair,
+	resolveTooltip,
+} from '../chart-schema'
 import type { SeriesMeta } from '../chart-series'
 import { snapTargets } from '../chart-snap'
 import { ChartValueLabels, resolveValueLabels } from '../chart-value-labels'
@@ -247,7 +252,7 @@ export function AreaChart<T>({
 	axes = true,
 	gridLines = true,
 	legend,
-	tooltip = true,
+	tooltip,
 	crosshair,
 	animate = false,
 	stacked = false,
@@ -354,6 +359,8 @@ export function AreaChart<T>({
 		crosshair ?? { x: false, y: true, snap: interpolation !== 'smooth' },
 	)
 
+	const { show: showTooltip, trigger } = resolveTooltip(tooltip)
+
 	const snapPoints = tooltipSnapPoints(stacked, chart.snapPoints, xs.length)
 
 	const navPoints = focusPoints(stacked, chart.snapPoints, stackedGeometry, xs.length)
@@ -386,7 +393,7 @@ export function AreaChart<T>({
 			legendPlacement={typeof legend === 'string' ? legend : undefined}
 			readout={chart.readout}
 			emphasis={chart.emphasis}
-			tooltip={tooltip}
+			tooltip={showTooltip}
 			snap={snapTargets(rails, chart.bandPositions, snapPoints)}
 			focus={cartesianFocus(
 				chart.bandPositions,
@@ -428,7 +435,7 @@ export function AreaChart<T>({
 
 			<ChartValueLabels labels={valueLabelItems} animate={animate} />
 
-			{(tooltip || rails !== null) && data.length > 0 && (
+			{(showTooltip || rails !== null) && data.length > 0 && (
 				<ChartHitArea
 					plot={chart.plot}
 					band={chart.band}
@@ -441,6 +448,8 @@ export function AreaChart<T>({
 							y,
 						)
 					}
+					trigger={trigger}
+					snaps={crosshairSnaps(rails)}
 				/>
 			)}
 
