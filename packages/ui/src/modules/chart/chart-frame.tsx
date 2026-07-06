@@ -93,9 +93,9 @@ export type ChartFrameProps = AccessibleName & {
 	/** The prepared legend row, or `null` to omit it (single series). */
 	legend: ReactNode
 	/**
-	 * Where the legend sits: a centered row under or above the plot, or a
-	 * static panel beside it — side by side from `lg`, always under the chart
-	 * below it.
+	 * Where the legend sits: a row under or above the plot — centered on
+	 * mobile, left-aligned from `sm` — or a static panel beside it, side by
+	 * side from `sm` and always under the chart below that.
 	 * @defaultValue 'bottom'
 	 */
 	legendPlacement?: ChartLegendPlacement
@@ -301,7 +301,7 @@ type ChartFigureProps = {
 	plot: ReactNode
 	legend: ReactNode
 	legendPlacement: ChartLegendPlacement
-	/** The legend is a side panel, so the plot and legend lay out in a row from lg. */
+	/** The legend is a side panel, so the plot and legend lay out in a row from sm. */
 	aside: boolean
 	/** The frame fills its container height, so the figure grows to hold it. */
 	containerFill: boolean
@@ -313,7 +313,7 @@ type ChartFigureProps = {
  * The legend and plot laid out together under the whole-chart aspect-ratio: the
  * plot fills what the legend's natural size leaves, so the ratio describes the
  * chart rather than the plot alone. A side legend lays the two out in a row from
- * lg — the panel always under the chart below it, so a left panel reverses the
+ * sm — the panel always under the chart below it, so a left panel reverses the
  * row instead of moving in the DOM — else they stack with the legend banding
  * above or below.
  *
@@ -335,8 +335,8 @@ function ChartFigure({
 	const layout = aside
 		? cn(
 				'flex-col gap-2',
-				stretch ? 'lg:items-stretch' : 'lg:items-center',
-				legendPlacement === 'left' ? 'lg:flex-row-reverse' : 'lg:flex-row',
+				stretch ? 'sm:items-stretch' : 'sm:items-center',
+				legendPlacement === 'left' ? 'sm:flex-row-reverse' : 'sm:flex-row',
 			)
 		: 'flex-col gap-3'
 

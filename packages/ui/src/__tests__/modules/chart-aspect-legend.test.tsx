@@ -140,10 +140,10 @@ describe('chart aspect ratio with a legend', () => {
 			// Every placement shares the one whole-chart aspect box.
 			expect(figure.style.aspectRatio.replace(/\s*\/\s*1$/, '')).toBe('1.7777777777777777')
 
-			// A side legend lays plot and legend in a row from lg; top / bottom stack.
+			// A side legend lays plot and legend in a row from sm; top / bottom stack.
 			const aside = placement === 'left' || placement === 'right'
 
-			expect(figure.className.includes('lg:flex-row')).toBe(aside)
+			expect(figure.className.includes('sm:flex-row')).toBe(aside)
 
 			expect(bySlot(container, 'chart-legend')).not.toBeNull()
 		}
