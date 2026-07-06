@@ -60,10 +60,11 @@ describe('PieChart', () => {
 
 		const items = allBySlot(container, 'chart-legend-item') as HTMLButtonElement[]
 
-		// The zero row is still named in the legend but owns no slice; focusing its
-		// entry must not dim the real slices — it would recede the whole pie with
-		// nothing lifted against them.
-		act(() => items[2]?.focus())
+		// The zero row is still named in the legend but owns no slice; pointing its
+		// entry (the pointer path sets emphasis directly, unlike focus, which rides
+		// `:focus-visible`) must not dim the real slices — it would recede the whole
+		// pie with nothing lifted against them.
+		fireEvent.pointerEnter(items[2] as Element)
 
 		for (const slice of allBySlot(container, 'chart-slice')) {
 			expect(slice.parentElement?.getAttribute('class') ?? '').not.toContain('opacity-25')
