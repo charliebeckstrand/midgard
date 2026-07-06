@@ -29,20 +29,38 @@ const HALF = HEIGHT / 2
 export type ValueLabelPoint = { x: number; y: number; value: number }
 
 /**
- * Pairs a series' rendered points with the values behind them — the finite
- * values in draw order align one-to-one with the plotted points a gap skips.
- * The point position, not the raw value, sets the label anchor, so a stacked
- * ribbon labels each series at its own edge.
+ * Pairs a series' rendered points with the values behind them. Two point
+ * shapes reach this: a gap-skipping line (or unstacked area), whose `points`
+ * already drop the null categories, so the finite values align one-to-one with
+ * them in draw order; and a stacked ribbon's continuous top edge, whose
+ * `points` carry one entry per category — nulls included — so each reads its
+ * value straight off `values[index]` and a null category takes no label. The
+ * point position, not the raw value, sets the label anchor, so a stacked ribbon
+ * labels each series at its own edge.
  *
+ * @param gapSkipped Whether `points` already dropped the null categories (a
+ * line's gap-split geometry) rather than carrying one entry per category (a
+ * stacked ribbon's continuous edge).
  * @internal
  */
 export function labelPoints(
 	values: (number | null)[],
 	points: { x: number; y: number }[],
+	gapSkipped = true,
 ): ValueLabelPoint[] {
-	const finite = values.filter((value): value is number => value != null && Number.isFinite(value))
+	if (gapSkipped) {
+		const finite = values.filter(
+			(value): value is number => value != null && Number.isFinite(value),
+		)
 
-	return points.map((point, index) => ({ x: point.x, y: point.y, value: finite[index] ?? 0 }))
+		return points.map((point, index) => ({ x: point.x, y: point.y, value: finite[index] ?? 0 }))
+	}
+
+	return points.flatMap((point, index) => {
+		const value = values[index]
+
+		return value != null && Number.isFinite(value) ? [{ x: point.x, y: point.y, value }] : []
+	})
 }
 
 /** One series' labelable points and the ink its labels take. @internal */
@@ -70,11 +88,12 @@ export function lineLabelSeries(
 	list: { paint: SeriesPaint; geometry: { points: { x: number; y: number }[] } }[],
 	metas: { values: (number | null)[] }[],
 	formats?: ((value: number) => string)[],
+	gapSkipped = true,
 ): ValueLabelSeries[] {
 	return list.map((entry, index) => ({
 		fill: fillClass(entry.paint) ?? '',
 		color: rawColor(entry.paint),
-		points: labelPoints(metas[index]?.values ?? [], entry.geometry.points),
+		points: labelPoints(metas[index]?.values ?? [], entry.geometry.points, gapSkipped),
 		format: formats?.[index],
 	}))
 }
@@ -268,11 +287,12 @@ export function resolveValueLabels(
 	plot: PlotRect,
 	format: ((value: number) => string) | undefined,
 	formats?: ((value: number) => string)[],
+	gapSkipped = true,
 ): PlacedValueLabel[] {
 	if (!config?.endpoints && !config?.extremes) return []
 
 	return valueLabels({
-		series: lineLabelSeries(list, metas, formats),
+		series: lineLabelSeries(list, metas, formats, gapSkipped),
 		plot,
 		format: format ?? formatChartValue,
 		endpoints: config.endpoints ?? false,

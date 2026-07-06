@@ -351,3 +351,54 @@ export function stackedBarMarks(
 		}),
 	)
 }
+
+/**
+ * Per category, each stacked segment's cumulative top along the value axis,
+ * piled bottom to top — the boundaries the drawn segments actually sit at. The
+ * from-zero snap points a value scale maps only coincide with the marks when the
+ * bars grow from one shared baseline (grouped); a stack piles them, so the
+ * crosshair snap and keyboard cursor read these cumulative edges instead.
+ * Vertical reads the value off `top`, horizontal off `x1` — the segment's data
+ * end either way, since stacked segments are positive-only.
+ *
+ * @internal
+ */
+export function stackedBarSnapPoints(
+	marks: (BarMark | null)[][],
+	count: number,
+	orientation: ChartOrientation = 'vertical',
+): number[][] {
+	return Array.from({ length: count }, (_, category) =>
+		marks.reduce<number[]>((positions, series) => {
+			const mark = series[category]
+
+			if (mark) positions.push(orientation === 'vertical' ? mark.top : mark.x1)
+
+			return positions
+		}, []),
+	)
+}
+
+/**
+ * The series index behind each {@link stackedBarSnapPoints} stop, in the same
+ * order and dropped by the same non-null gate, so the keyboard cursor's value
+ * lane resolves to the series whose segment it lands on. `seriesIndices[order]`
+ * names the series the caller drew at stack position `order`.
+ *
+ * @internal
+ */
+export function stackedBarSnapSeries(
+	marks: (BarMark | null)[][],
+	seriesIndices: number[],
+	count: number,
+): number[][] {
+	return Array.from({ length: count }, (_, category) =>
+		marks.reduce<number[]>((series, seriesMarks, order) => {
+			const index = seriesIndices[order]
+
+			if (seriesMarks[category] && index !== undefined) series.push(index)
+
+			return series
+		}, []),
+	)
+}

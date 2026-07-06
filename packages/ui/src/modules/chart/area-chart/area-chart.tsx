@@ -178,7 +178,6 @@ function areaGeometry(
 		stacked: boolean
 		stackedGeometry: StackedAreaGeometry[]
 		centers: number[]
-		floor: number
 		interpolation: LineInterpolation
 	},
 ): LineSeriesGeometry {
@@ -186,11 +185,15 @@ function areaGeometry(
 		return stackedToLine(args.stackedGeometry[order] ?? { line: '', area: '', points: [] })
 	}
 
+	// The wash closes to the series' own zero baseline, not the plot floor: on a
+	// zero-baseline scale the two coincide for all-positive data, but a negative
+	// value (or a domain pinned below zero) lifts zero off the floor, and the fill
+	// reads to that zero the way the stacked ribbon bottoms at it.
 	return lineGeometry(
 		entry.meta.values,
 		args.centers,
 		entry.scale.map,
-		args.floor,
+		entry.baseline,
 		args.interpolation,
 	)
 }
@@ -306,13 +309,13 @@ export function AreaChart<T>({
 	const stackedGeometry = stackedRibbons(drawn, xs, stacked)
 
 	const list: ChartLineSeries[] = drawn.map((entry, order) => ({
+		index: entry.meta.index,
 		label: entry.meta.label,
 		paint: entry.meta.paint,
 		geometry: areaGeometry(entry, order, {
 			stacked,
 			stackedGeometry,
 			centers: xs,
-			floor,
 			interpolation,
 		}),
 		markers: points,
@@ -338,6 +341,10 @@ export function AreaChart<T>({
 				(value: number) =>
 					chart.formatAxisValue(value, meta.axis),
 		),
+		// Stacked ribbons carry a top-edge point per category (nulls included), not
+		// the gap-skipped points a line's geometry emits, so the labels read each
+		// category's value by index rather than zipping the gap-filtered values.
+		!stacked,
 	)
 
 	const marksNode = animate ? (

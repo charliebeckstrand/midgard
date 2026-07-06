@@ -45,6 +45,20 @@ describe('HeatmapChart', () => {
 		expect(noData?.getAttribute('class')).toContain('fill-zinc')
 	})
 
+	it('does not leak the unwired animate/texture props onto the plot element', () => {
+		const { container } = renderUI(
+			<HeatmapChart aria-label="Commits" data={ROWS} series={SERIES} width={400} animate texture />,
+		)
+
+		const plot = bySlot(container, 'heatmap-plot')
+
+		// The grid honours neither, so they must be dropped rather than spread onto
+		// the `role="img"` div as invalid DOM attributes.
+		expect(plot?.hasAttribute('animate')).toBe(false)
+
+		expect(plot?.hasAttribute('texture')).toBe(false)
+	})
+
 	it('carries full value parity in the visually-hidden table', () => {
 		const { container } = renderUI(
 			<HeatmapChart aria-label="Commits" data={ROWS} series={SERIES} width={400} />,

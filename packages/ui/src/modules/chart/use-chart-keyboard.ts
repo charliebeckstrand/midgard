@@ -412,15 +412,23 @@ export function useChartKeyboard(
 
 	const active = enabled && targets !== undefined && hasFocusTargets(targets)
 
-	// Release any emphasis the cursor held once navigation switches off — the rules
-	// or series removed, the tooltip unmounted — so a stale dim never lingers.
+	// Release what the cursor held once navigation switches off — the rules or
+	// series removed, the tooltip unmounted — so no stale dim, crosshair, or
+	// readout lingers with no way to clear it (a blur never fires). The cursor gate
+	// keeps this from clearing a hover the pointer owns.
 	useEffect(() => {
 		if (!active) {
 			setReference(null)
 
 			setActiveSeries(null)
+
+			if (cursor !== null) {
+				set(null, null)
+
+				setCursor(null)
+			}
 		}
-	}, [active, setReference, setActiveSeries])
+	}, [active, cursor, set, setReference, setActiveSeries])
 
 	// A reference line the cursor parks on owns the emphasis, not the marks: recede
 	// the whole field and drop the series readout so the rule reads alone — no one

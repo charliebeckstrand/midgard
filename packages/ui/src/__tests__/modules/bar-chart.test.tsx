@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import { BarChart } from '../../modules/chart/bar-chart'
-import { barMarks, stackedBarMarks } from '../../modules/chart/bar-chart/bar-chart-geometry'
+import {
+	barMarks,
+	stackedBarMarks,
+	stackedBarSnapPoints,
+	stackedBarSnapSeries,
+} from '../../modules/chart/bar-chart/bar-chart-geometry'
 import { bandScale } from '../../modules/chart/chart-scale'
 import { act, allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
 
@@ -792,5 +797,30 @@ describe('stackedBarMarks', () => {
 		expect(row?.[2]).toBeNull()
 
 		expect(row?.[3]).not.toBeNull()
+	})
+})
+
+describe('stackedBarSnapPoints / stackedBarSnapSeries', () => {
+	const band = bandScale({ count: 1, range: [0, 100] })
+
+	const map = (value: number) => 100 - value
+
+	it('reads each segment cumulative top, not the from-zero value positions', () => {
+		const marks = stackedBarMarks([[40], [30]], band, map)
+
+		// Bottom segment tops at its own value (map(40)); the second rides it and
+		// tops at the running total (map(70)) — not map(30), the from-zero position
+		// the shared snap points would carry.
+		expect(stackedBarSnapPoints(marks, 1)).toEqual([[map(40), map(70)]])
+	})
+
+	it('names each stop series by its stack order, dropping the same gaps', () => {
+		const marks = stackedBarMarks([[40], [0], [30]], band, map)
+
+		// The zero-valued middle series takes no segment, so it drops from both the
+		// positions and the parallel series list, keeping the two aligned.
+		expect(stackedBarSnapPoints(marks, 1)).toEqual([[map(40), map(70)]])
+
+		expect(stackedBarSnapSeries(marks, [0, 1, 2], 1)).toEqual([[0, 2]])
 	})
 })

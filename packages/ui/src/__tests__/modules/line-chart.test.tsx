@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { LineChart } from '../../modules/chart/line-chart'
 import { lineGeometry } from '../../modules/chart/line-chart/line-chart-geometry'
 import { allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
@@ -31,6 +31,36 @@ describe('LineChart', () => {
 		expect(allBySlot(container, 'chart-line')).toHaveLength(2)
 
 		expect(allBySlot(container, 'chart-legend-item')).toHaveLength(2)
+	})
+
+	it('keys the legend and data table by index, not the label', () => {
+		const errors: string[] = []
+
+		const spy = vi.spyOn(console, 'error').mockImplementation((message) => {
+			errors.push(String(message))
+		})
+
+		try {
+			const { container } = renderUI(
+				chart({
+					series: [
+						{ xKey: 'week', yKey: 'signups', yName: 'Total' },
+						{ xKey: 'week', yKey: 'churn', yName: 'Total' },
+					],
+				}),
+			)
+
+			// Both series keep their own data-table column despite sharing a name.
+			expect(
+				container.querySelectorAll('[data-slot="chart-table"] thead th[scope="col"]'),
+			).toHaveLength(2)
+		} finally {
+			spy.mockRestore()
+		}
+
+		// Keying by the shared label would trip React's duplicate-key reconciliation
+		// warning (and merge the columns on update); keying by index does not.
+		expect(errors.some((message) => /same key/i.test(message))).toBe(false)
 	})
 
 	it('keeps areas and markers opt-in', () => {

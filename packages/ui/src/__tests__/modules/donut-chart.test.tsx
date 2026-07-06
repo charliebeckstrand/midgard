@@ -47,6 +47,38 @@ describe('DonutChart', () => {
 		expect(allBySlot(container, 'chart-slice')).toHaveLength(3)
 	})
 
+	it('centers the content on the ring hole, following a callout shift', () => {
+		const plain = renderUI(chart({ children: <span>x</span> }))
+
+		const plainInner = plain.container.querySelector(
+			'[data-slot="chart-center"] > div',
+		) as HTMLElement
+
+		// No callouts: the hole sits at the plot-box center.
+		expect(plainInner.style.left).toBe('50%')
+
+		expect(plainInner.style.top).toBe('50%')
+
+		// Callouts with lopsided label widths shift the pie center off the box center;
+		// the content follows it into the hole rather than staying box-centered.
+		const shifted = renderUI(
+			chart({
+				children: <span>x</span>,
+				labels: { callouts: true },
+				data: [
+					{ source: 'An extraordinarily long slice label', visits: 55 },
+					{ source: 'B', visits: 45 },
+				],
+			}),
+		)
+
+		const shiftedInner = shifted.container.querySelector(
+			'[data-slot="chart-center"] > div',
+		) as HTMLElement
+
+		expect(shiftedInner.style.left).not.toBe('50%')
+	})
+
 	it('omits the center layer when given no children', () => {
 		const { container } = renderUI(chart())
 

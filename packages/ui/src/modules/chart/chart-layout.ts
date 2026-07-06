@@ -609,7 +609,11 @@ export function verticalLayout(input: CartesianLayoutInput): CartesianLayout {
 
 	const slot = longest * TICK_CHAR_WIDTH + GUTTER_GAP
 
-	const tilt = axes && Boolean(input.tickRotation) && willThin(count, plotWidth, slot)
+	// A time axis lines calendar ticks in place of the category labels tickRotation
+	// tilts, so tilting would reserve the taller band for nothing — gate it out
+	// whenever the band reads time.
+	const tilt =
+		axes && Boolean(input.tickRotation) && !input.times && willThin(count, plotWidth, slot)
 
 	const axisBandHeight = axes ? (tilt ? TICK_ROTATION_HEIGHT : X_AXIS_HEIGHT) : 0
 

@@ -102,6 +102,25 @@ function sliceGroupClass(emphasis: number | null, index: number): string {
 }
 
 /**
+ * The inline position that centres a donut's overlay on the ring's hole rather
+ * than the plot box: callouts shift the pie centre off `frameWidth / 2` to
+ * balance the two label columns, so the content follows `center` into the hole.
+ * Falls back to the box centre before the frame is measured.
+ *
+ * @internal
+ */
+function donutCenterStyle(
+	center: { x: number; y: number },
+	frameWidth: number,
+	frameHeight: number,
+): { left: string; top: string } {
+	return {
+		left: frameWidth > 0 ? `${(center.x / frameWidth) * 100}%` : '50%',
+		top: frameHeight > 0 ? `${(center.y / frameHeight) * 100}%` : '50%',
+	}
+}
+
+/**
  * When the sweep reveal reaches `mid` degrees: the moment a label's slice is
  * half uncovered, so text fades in just as its slice appears under it.
  *
@@ -724,6 +743,12 @@ export function ChartPie<T>({
 			? pieSlices(sliceValues, { cx: center.x, cy: center.y, radius, innerRadius, pad: MARK_GAP })
 			: []
 
+	// A legend entry for a non-positive (or toggled-off) row carries no slice, so
+	// an emphasis landing on it would recede every real slice with nothing lifted
+	// against them. Clamp the mark emphasis to a slice-bearing row — the keyboard
+	// cursor already steps over the rest.
+	const sliceEmphasis = slices.some((slice) => slice.index === emphasis) ? emphasis : null
+
 	const calloutItems =
 		showCallouts && radius > 0
 			? buildCallouts(calloutSpec, slices, center, radius, frameHeight)
@@ -759,7 +784,7 @@ export function ChartPie<T>({
 				animate={animate}
 				center={center}
 				radius={radius}
-				emphasis={emphasis}
+				emphasis={sliceEmphasis}
 				fills={sliceFills}
 				textureActive={tex.active}
 				trigger={trigger}
@@ -770,12 +795,12 @@ export function ChartPie<T>({
 					items={labelItems}
 					paints={paints}
 					animate={animate}
-					emphasis={emphasis}
+					emphasis={sliceEmphasis}
 				/>
 			)}
 
 			{calloutItems.length > 0 && (
-				<PieCallouts items={calloutItems} animate={animate} emphasis={emphasis} />
+				<PieCallouts items={calloutItems} animate={animate} emphasis={sliceEmphasis} />
 			)}
 		</>
 	)
@@ -809,11 +834,16 @@ export function ChartPie<T>({
 			className={className}
 			overlay={
 				innerRatio > 0 && children ? (
-					<div
-						data-slot="chart-center"
-						className="pointer-events-none absolute inset-0 grid place-items-center"
-					>
-						{children}
+					<div data-slot="chart-center" className="pointer-events-none absolute inset-0">
+						{/* Centre the content on the ring's hole, not the plot box: callouts
+						    shift the pie centre off `frameWidth / 2` to balance the two label
+						    columns, and the content follows it rather than drifting out of the hole. */}
+						<div
+							className="absolute -translate-x-1/2 -translate-y-1/2"
+							style={donutCenterStyle(center, frameWidth, frameHeight)}
+						>
+							{children}
+						</div>
 					</div>
 				) : undefined
 			}

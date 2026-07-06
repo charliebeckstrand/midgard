@@ -20,6 +20,8 @@ import type { LineSeriesGeometry } from './line-chart/line-chart-geometry'
 
 /** One line series' render inputs. @internal */
 export type ChartLineSeries = {
+	/** The series' own index in the caller's list — the React key, stable across toggles and unique where two series share a label. */
+	index: number
 	label: string
 	paint: SeriesPaint
 	geometry: LineSeriesGeometry
@@ -80,13 +82,13 @@ export function ChartLineMarks({
 	fills,
 	textureActive = false,
 }: ChartLineMarksProps) {
-	return list.map(({ label, paint, geometry, markers, dimmed, dashed }, seriesIndex) => {
+	return list.map(({ index, label, paint, geometry, markers, dimmed, dashed }, seriesIndex) => {
 		const points = markers ? geometry.points : geometry.isolated
 
 		const patternFill = fills?.[seriesIndex]
 
 		return (
-			<g key={label} data-slot="chart-line-series" className={seriesClass(dimmed)}>
+			<g key={index} data-slot="chart-line-series" className={seriesClass(dimmed)}>
 				{fill &&
 					rangeKeys(geometry.areas.length, `${label}-area`).map((key, index) => (
 						<path
@@ -165,7 +167,7 @@ export function AnimatedChartLineMarks({
 				</defs>
 			)}
 
-			{list.map(({ label, paint, geometry, markers, dimmed, dashed }, seriesIndex) => {
+			{list.map(({ index, label, paint, geometry, markers, dimmed, dashed }, seriesIndex) => {
 				const points = markers ? geometry.points : geometry.isolated
 
 				const patternFill = fills?.[seriesIndex]
@@ -173,7 +175,7 @@ export function AnimatedChartLineMarks({
 				const clip = dashed && wipe ? `url(#${wipeId})` : undefined
 
 				return (
-					<g key={label} data-slot="chart-line-series" className={seriesClass(dimmed)}>
+					<g key={index} data-slot="chart-line-series" className={seriesClass(dimmed)}>
 						{fill &&
 							rangeKeys(geometry.areas.length, `${label}-area`).map((key, index) => (
 								<motion.path

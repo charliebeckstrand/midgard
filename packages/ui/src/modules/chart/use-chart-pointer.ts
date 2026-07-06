@@ -56,6 +56,12 @@ export function useChartPointer(
 
 	const ref = useRef<SVGRectElement>(null)
 
+	// Whether the pointer is currently over the hit layer. The shared hover is also
+	// written by the keyboard, so the scroll rescue reads this to tell a
+	// pointer-owned readout — which it should hide and re-resolve — from a
+	// keyboard-owned one, which a scroll must leave alone.
+	const pointerInside = useRef(false)
+
 	// Resolve hover from a viewport point against the hit element's live box, so
 	// a live pointer move and a post-scroll settle share one hit path. A live move
 	// only fires within the box; a settle may land off it after the plot slid out
@@ -136,12 +142,18 @@ export function useChartPointer(
 		[plot, onData],
 	)
 
+	// The scroll rescue only re-resolves while the pointer is engaged; a
+	// keyboard-owned readout has no pointer to re-read and must survive the scroll.
 	const resolveAt = useCallback(
-		(clientX: number, clientY: number) => track(clientX, clientY, true),
+		(clientX: number, clientY: number) => {
+			if (pointerInside.current) track(clientX, clientY, true)
+		},
 		[track],
 	)
 
-	const clear = useCallback(() => set(null, null), [set])
+	const clear = useCallback(() => {
+		if (pointerInside.current) set(null, null)
+	}, [set])
 
 	// The scroll rescue is a hover affordance; a pinned click readout stays put and
 	// lets floating-ui's autoUpdate re-anchor it, so it stands down under `'click'`.
@@ -157,7 +169,15 @@ export function useChartPointer(
 
 	return {
 		ref,
-		onPointerMove: (event) => track(event.clientX, event.clientY, false),
-		onPointerLeave: () => set(null, null),
+		onPointerMove: (event) => {
+			pointerInside.current = true
+
+			track(event.clientX, event.clientY, false)
+		},
+		onPointerLeave: () => {
+			pointerInside.current = false
+
+			set(null, null)
+		},
 	}
 }

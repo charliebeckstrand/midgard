@@ -20,8 +20,8 @@ export function ChartTable({ readout }: ChartTableProps) {
 				<tr>
 					<td />
 
-					{readout.rows.map((row) => (
-						<th key={row.label} scope="col">
+					{readout.rows.map((row, index) => (
+						<th key={row.index ?? index} scope="col">
 							{row.label}
 						</th>
 					))}
@@ -33,8 +33,8 @@ export function ChartTable({ readout }: ChartTableProps) {
 					<tr key={key}>
 						<th scope="row">{readout.categories[index]}</th>
 
-						{readout.rows.map((row) => (
-							<td key={row.label}>{row.values[index]}</td>
+						{readout.rows.map((row, column) => (
+							<td key={row.index ?? column}>{row.values[index]}</td>
 						))}
 					</tr>
 				))}

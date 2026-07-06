@@ -172,6 +172,7 @@ export function ComboChart<T>({
 	// fills down to the baseline.
 	const toSeries = (entries: DrawnSeries[]): ChartLineSeries[] =>
 		entries.map(({ meta, scale }) => ({
+			index: meta.index,
 			label: meta.label,
 			paint: meta.paint,
 			geometry: lineGeometry(

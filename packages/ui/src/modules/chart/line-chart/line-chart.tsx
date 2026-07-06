@@ -138,6 +138,7 @@ export function LineChart<T>({
 	})
 
 	const list: ChartLineSeries[] = drawn.map(({ meta, scale }) => ({
+		index: meta.index,
 		label: meta.label,
 		paint: meta.paint,
 		geometry: lineGeometry(

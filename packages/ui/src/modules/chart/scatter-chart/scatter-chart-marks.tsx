@@ -11,6 +11,8 @@ import type { ScatterMark } from './scatter-chart-geometry'
 
 /** One scatter series' render inputs. @internal */
 export type ChartScatterSeries = {
+	/** The series' own index in the caller's list — the React key, unique where two series share a label. */
+	index: number
 	label: string
 	paint: SlotPaint
 	marks: ScatterMark[]
@@ -47,8 +49,8 @@ function markProps(paint: SlotPaint, sized: boolean) {
  * @internal
  */
 export function ScatterChartMarks({ list }: ScatterChartMarksProps) {
-	return list.map(({ label, paint, marks, sized, dimmed }) => (
-		<g key={label} data-slot="chart-scatter-series" className={seriesClass(dimmed)}>
+	return list.map(({ index, label, paint, marks, sized, dimmed }) => (
+		<g key={index} data-slot="chart-scatter-series" className={seriesClass(dimmed)}>
 			{rangeKeys(marks.length, label).map((key, index) => (
 				<circle
 					key={key}
@@ -70,8 +72,8 @@ export function ScatterChartMarks({ list }: ScatterChartMarksProps) {
  * @internal
  */
 export function AnimatedScatterChartMarks({ list }: ScatterChartMarksProps) {
-	return list.map(({ label, paint, marks, sized, dimmed }) => (
-		<g key={label} data-slot="chart-scatter-series" className={seriesClass(dimmed)}>
+	return list.map(({ index, label, paint, marks, sized, dimmed }) => (
+		<g key={index} data-slot="chart-scatter-series" className={seriesClass(dimmed)}>
 			{rangeKeys(marks.length, label).map((key, index) => (
 				<motion.circle
 					key={key}

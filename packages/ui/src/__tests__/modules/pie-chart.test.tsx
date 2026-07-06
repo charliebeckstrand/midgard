@@ -47,6 +47,30 @@ describe('PieChart', () => {
 		])
 	})
 
+	it('does not recede the pie when a sliceless legend entry takes emphasis', () => {
+		const { container } = renderUI(
+			chart({
+				data: [
+					{ source: 'Search', visits: 60 },
+					{ source: 'Direct', visits: 40 },
+					{ source: 'Empty', visits: 0 },
+				],
+			}),
+		)
+
+		const items = allBySlot(container, 'chart-legend-item') as HTMLButtonElement[]
+
+		// The zero row is still named in the legend but owns no slice; pointing its
+		// entry (the pointer path sets emphasis directly, unlike focus, which rides
+		// `:focus-visible`) must not dim the real slices — it would recede the whole
+		// pie with nothing lifted against them.
+		fireEvent.pointerEnter(items[2] as Element)
+
+		for (const slice of allBySlot(container, 'chart-slice')) {
+			expect(slice.parentElement?.getAttribute('class') ?? '').not.toContain('opacity-25')
+		}
+	})
+
 	it('names the pointed slice in the tooltip', () => {
 		const { container } = renderUI(chart())
 

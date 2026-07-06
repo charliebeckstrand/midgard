@@ -412,6 +412,23 @@ describe('LineChart keyboard navigation', () => {
 		expect(bySlot(container, 'chart-crosshair-x')?.getAttribute('y1')).toBe(first)
 	})
 
+	it('drops a parked crosshair when navigation switches off without a blur', () => {
+		const { container, rerender } = renderUI(line({ crosshair: { x: true, y: false } }))
+
+		const plot = bySlot(container, 'chart-plot') as HTMLElement
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		expect(bySlot(container, 'chart-crosshair-x')).not.toBeNull()
+
+		// Drop the tooltip — and with it the tab stop — while focus stays in the
+		// region, so no blur fires. The cursor's hover must clear rather than leaving
+		// a rule stranded over now-unreadable marks.
+		rerender(line({ crosshair: { x: true, y: false }, tooltip: false }))
+
+		expect(bySlot(container, 'chart-crosshair-x')).toBeNull()
+	})
+
 	it('keeps the readout on a category whose series share the same value', () => {
 		// Both series carry identical data, so their points coincide; cycling must
 		// still hold the category open rather than collapsing the two into nothing.
