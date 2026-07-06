@@ -319,10 +319,11 @@ export function ChartLegend({
 				// The side panel centers its entries down the column, so a legend
 				// stretched to the plot's full height reads level with it rather than
 				// stacked at the top, and caps at half the chart's width; the wrap row
-				// centers its entries on mobile and left-aligns them from sm.
+				// centers its entries on mobile and justifies them edge to edge from sm,
+				// spreading them across the plot's full width rather than bunching at one end.
 				panel
 					? 'flex min-w-0 flex-col items-start justify-center sm:max-w-[50%]'
-					: 'flex flex-wrap items-center justify-center sm:justify-start',
+					: 'flex flex-wrap items-center justify-center sm:justify-between',
 			)}
 		>
 			{pageItems.map((item) => {
