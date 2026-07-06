@@ -2,8 +2,9 @@
 
 import { motion } from 'motion/react'
 import { cn } from '../../core'
-import { POINT_POP, TICK_CHAR_WIDTH } from './chart-constants'
+import { TICK_CHAR_WIDTH } from './chart-constants'
 import type { PlotRect } from './chart-layout'
+import { POINT_POP } from './chart-motion'
 import { formatChartValue, type SeriesPaint } from './chart-series'
 
 /**

@@ -324,6 +324,7 @@ export function AreaChart<T>({
 				scale={yScale}
 				reference={reference}
 				format={formatValue}
+				animate={animate}
 			/>
 		</ChartFrame>
 	)

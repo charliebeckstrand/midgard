@@ -75,31 +75,3 @@ export const REFERENCE_DASH = '6 4'
 
 /** Transparent stroke width making the reference rule an easy hover target. @internal */
 export const REFERENCE_HIT_WIDTH = 32
-
-// Motion timings mirror the Sparkline's (module-private there), so charts and
-// sparklines animating side by side read as one family.
-
-/** Line-draw stroke reveal (`pathLength` 0 → 1). @internal */
-export const LINE_DRAW = { duration: 0.7, ease: 'easeInOut' } as const
-
-/** Area wash fade, trailing the line so it fills in as the stroke crosses it. @internal */
-export const AREA_FADE = { duration: 0.5, delay: 0.15 } as const
-
-/** Point-marker pop, held until the line has finished drawing. @internal */
-export const POINT_POP = { duration: 0.25, delay: LINE_DRAW.duration } as const
-
-/** Per-bar grow from the zero baseline. @internal */
-export const BAR_GROW = { duration: 0.4, ease: 'easeOut' } as const
-
-/** Delay step between adjacent bar groups, so they rise in sequence. @internal */
-export const BAR_STAGGER = 0.05
-
-/**
- * The pie's reveal: the disc wipes in clockwise from the top (`pathLength`
- * 0 → 1 on a masking stroke), so the pie draws itself around its angular axis
- * the way the line draws itself along x. @internal
- */
-export const SLICE_SWEEP = { duration: 0.8, ease: 'easeInOut' } as const
-
-/** Label fade-in as the sweep passes its slice. @internal */
-export const SLICE_FADE = { duration: 0.3, ease: 'easeOut' } as const

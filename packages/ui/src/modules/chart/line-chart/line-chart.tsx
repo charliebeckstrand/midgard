@@ -222,6 +222,7 @@ export function LineChart<T>({
 				scale={chart.yScale}
 				reference={reference}
 				format={formatValue}
+				animate={animate}
 			/>
 		</ChartFrame>
 	)
