@@ -14,6 +14,7 @@
  */
 
 import { parseColor } from './contrast'
+import { extent } from './extent'
 
 /**
  * The colour `t` (0–1) of the way along the ordered `stops`, interpolated in
@@ -76,13 +77,7 @@ export function valueExtent(
 	values: number[],
 	explicit?: [number, number],
 ): [number, number] | null {
-	if (explicit) return explicit
-
-	const finite = values.filter((value) => Number.isFinite(value))
-
-	if (finite.length === 0) return null
-
-	return [Math.min(...finite), Math.max(...finite)]
+	return explicit ?? extent(values)
 }
 
 /**

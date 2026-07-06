@@ -5,7 +5,7 @@
  * as the `viewBox` the charts render.
  */
 
-import { clamp } from '../../utilities'
+import { clamp, extent } from '../../utilities'
 
 /**
  * A linear value scale: the resolved `domain`, the `ticks` spanning it, and
@@ -77,6 +77,34 @@ function widen(low: number, high: number, zeroBaseline: boolean): [number, numbe
 }
 
 /**
+ * The data extent seeded with the zero baseline and the pinned bounds — a
+ * handful of scalars folded onto {@link extent}'s spread-free pass, so a dense
+ * series never reaches `Math.min(...values)`. `null` when nothing — no finite
+ * value, no baseline, no pin — yields a domain.
+ *
+ * @internal
+ */
+function seededExtent(
+	bounds: [number, number] | null,
+	zeroBaseline: boolean,
+	min: number | undefined,
+	max: number | undefined,
+): [number, number] | null {
+	const seeds = [
+		...(zeroBaseline ? [0] : []),
+		...(min !== undefined ? [min] : []),
+		...(max !== undefined ? [max] : []),
+	]
+
+	if (bounds === null && seeds.length === 0) return null
+
+	return [
+		Math.min(bounds?.[0] ?? Number.POSITIVE_INFINITY, ...seeds),
+		Math.max(bounds?.[1] ?? Number.NEGATIVE_INFINITY, ...seeds),
+	]
+}
+
+/**
  * Builds a linear value scale over `values`, expanding unpinned bounds to
  * clean tick steps.
  *
@@ -95,17 +123,11 @@ export function linearScale({
 	min,
 	max,
 }: LinearScaleOptions): LinearScale | null {
-	const finite = values.filter((value) => Number.isFinite(value))
+	const bounds = seededExtent(extent(values), zeroBaseline, min, max)
 
-	if (zeroBaseline) finite.push(0)
+	if (bounds === null) return null
 
-	if (min !== undefined) finite.push(min)
-
-	if (max !== undefined) finite.push(max)
-
-	if (finite.length === 0) return null
-
-	const [rawLow, rawHigh] = widen(Math.min(...finite), Math.max(...finite), zeroBaseline)
+	const [rawLow, rawHigh] = widen(bounds[0], bounds[1], zeroBaseline)
 
 	const step = niceStep((rawHigh - rawLow) / Math.max(1, tickTarget))
 

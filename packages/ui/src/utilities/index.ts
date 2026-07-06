@@ -27,6 +27,7 @@ export {
 export { digitsOnly } from './digits-only'
 export { isTopDismissLayer, registerDismissLayer } from './dismiss-layers'
 export { subscribeDocumentEvent } from './document-listener'
+export { extent } from './extent'
 export { type FormatSpec, resolveFormat } from './format'
 export { formatFraction, formatInteger, formatPercent } from './format-number'
 export { isDataColumn } from './is-data-column'

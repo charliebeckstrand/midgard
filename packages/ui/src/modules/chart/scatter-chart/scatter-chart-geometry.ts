@@ -5,6 +5,7 @@
  * mark math is unit-testable in isolation.
  */
 
+import { extent } from '../../../utilities'
 import {
 	BUBBLE_MAX_DIAMETER,
 	BUBBLE_MIN_DIAMETER,
@@ -78,9 +79,7 @@ export function uniqueXValues(seriesData: ScatterDatum[][]): number[] {
 export function sizeDomain(points: ScatterDatum[]): [number, number] | null {
 	const sizes = points.flatMap((point) => (point.size === null ? [] : [point.size]))
 
-	if (sizes.length === 0) return null
-
-	return [Math.min(...sizes), Math.max(...sizes)]
+	return extent(sizes)
 }
 
 /** The diameter range a series scales its bubbles into, from its spec or the defaults. @internal */

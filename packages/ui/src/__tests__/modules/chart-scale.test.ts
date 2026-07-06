@@ -19,6 +19,20 @@ describe('linearScale', () => {
 		expect(scale?.ticks.at(-1)).toBe(scale?.domain[1])
 	})
 
+	it('folds a dense series without overflowing the call stack', () => {
+		// Spreading into Math.min(...values) throws a RangeError past the engine's
+		// argument cap (~131k in V8); a dense feed must fold instead. Regression guard.
+		const values = Array.from({ length: 200_000 }, (_, index) => index)
+
+		expect(() => linearScale({ values, range: [100, 0], tickTarget: 4 })).not.toThrow()
+
+		const scale = linearScale({ values, range: [100, 0], tickTarget: 4 })
+
+		expect(scale?.domain[0]).toBeLessThanOrEqual(0)
+
+		expect(scale?.domain[1]).toBeGreaterThanOrEqual(199_999)
+	})
+
 	it('maps the domain onto the range with out-of-domain values clamped', () => {
 		const scale = linearScale({
 			values: [0, 100],
