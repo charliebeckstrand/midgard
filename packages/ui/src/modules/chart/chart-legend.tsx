@@ -80,9 +80,12 @@ export type ChartLegendProps = {
  *
  * @remarks With two or more entries the row is one Tab stop; the arrow keys
  * rove between the switches (Home / End jump to the ends) and Escape drops
- * focus, clearing the emphasis. Reference lines follow the entries as static,
+ * focus, clearing the emphasis. Focus-driven emphasis rides `:focus-visible`,
+ * the same gate as the ring, so a pointer click's lingering focus — or the
+ * focus a backgrounded tab re-fires on return — dims nothing without a visible
+ * ring to explain it. Reference lines follow the entries as static,
  * `aria-hidden` identity chips — a rule has no toggle, and
- * {@link ChartReferenceList} carries its parity.
+ * {@link ChartReferenceList} carries its parity
  * @internal
  */
 export function ChartLegend({
@@ -192,7 +195,14 @@ export function ChartLegend({
 						onClick={() => onToggle(item.index)}
 						onPointerEnter={() => onFocus(item.index)}
 						onPointerLeave={() => onFocus(null)}
-						onFocus={() => onFocus(item.index)}
+						// Emphasis tracks the *visible* focus, not raw DOM focus: a pointer
+						// click leaves the switch focused without a ring, and returning to a
+						// backgrounded tab re-fires focus on it — neither should dim the other
+						// series. Only a keyboard focus (`:focus-visible`, the same gate the
+						// ring rides) emphasises.
+						onFocus={(event) => {
+							if (event.currentTarget.matches(':focus-visible')) onFocus(item.index)
+						}}
 						onBlur={() => onFocus(null)}
 					>
 						{content}
