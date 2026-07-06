@@ -8,6 +8,8 @@ export type ChartAxisTick = {
 	/** Position in `viewBox` units: an x for the x axis, a y for the y axis. */
 	at: number
 	label: string
+	/** Degrees the label tilts about `at`; unset draws it flat. Category ticks only. */
+	rotate?: number
 }
 
 /** Props for {@link ChartAxis}. @internal */
@@ -46,7 +48,9 @@ export type ChartAxisProps = {
  * for a horizontal chart's category baseline, otherwise leaving the rule to the
  * gridlines and keeping the chrome recessive. `position` flips either to the
  * plot's far side — labels left-aligned in the right gutter, or hung above the
- * top edge — for a dual-axis chart's secondary scale.
+ * top edge — for a dual-axis chart's secondary scale. An x tick carrying
+ * `rotate` draws end-anchored and pivots about its own position instead of
+ * hanging centered under it.
  *
  * @internal
  */
@@ -104,18 +108,23 @@ export function ChartAxis({ axis, plot, ticks, position, baseline, line = true }
 				/>
 			)}
 
-			{ticks.map((tick) => (
-				<text
-					key={tick.at}
-					x={tick.at}
-					y={top ? plot.y - GUTTER_GAP : floor + GUTTER_GAP}
-					textAnchor="middle"
-					dominantBaseline={top ? 'auto' : 'hanging'}
-					className={cn(k.tick)}
-				>
-					{tick.label}
-				</text>
-			))}
+			{ticks.map((tick) => {
+				const y = top ? plot.y - GUTTER_GAP : floor + GUTTER_GAP
+
+				return (
+					<text
+						key={tick.at}
+						x={tick.at}
+						y={y}
+						textAnchor={tick.rotate ? 'end' : 'middle'}
+						dominantBaseline={tick.rotate ? 'middle' : top ? 'auto' : 'hanging'}
+						transform={tick.rotate ? `rotate(${tick.rotate} ${tick.at} ${y})` : undefined}
+						className={cn(k.tick)}
+					>
+						{tick.label}
+					</text>
+				)
+			})}
 		</g>
 	)
 }

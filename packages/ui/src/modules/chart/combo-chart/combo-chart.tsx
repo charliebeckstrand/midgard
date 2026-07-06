@@ -109,6 +109,7 @@ export function ComboChart<T>({
 	rightAxis,
 	reference,
 	xAxis,
+	tickRotation,
 	texture = false,
 	labels,
 	formatValue,
@@ -131,6 +132,7 @@ export function ComboChart<T>({
 			rightAxis,
 			reference,
 			xAxis,
+			tickRotation,
 			formatValue,
 		},
 		{
