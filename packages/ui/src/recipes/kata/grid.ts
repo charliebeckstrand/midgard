@@ -167,33 +167,10 @@ export const k = {
 		],
 		// Empty-panel hint naming the gesture (drag) and the accessible path (the
 		// header affordance).
-		hint: [size.sm, text.muted],
-		// The active group's chip: the column label with the remove button beside it.
-		chip: [
-			flex.inline,
-			'items-center',
-			'gap-1',
-			'px-2',
-			'py-0.5',
-			border.subtle,
-			rounded.md,
-			bg.tint,
-			size.sm,
-			weight.medium,
-		],
-		// The chip's remove button; muted until hovered/focused, like the manager grip.
-		remove: [flex.inline, 'shrink-0', text.muted, fg.hover, focus.ring, rounded.sm],
+		hint: [size.md, text.muted],
 		// Header affordance on a groupable column: press to group, or drag into the
 		// panel. Grab cursor at rest, muted until hovered/focused.
-		handle: [
-			flex.inline,
-			'shrink-0',
-			text.muted,
-			fg.hover,
-			focus.ring,
-			'cursor-grab',
-			'select-none',
-		],
+		handle: ['cursor-grab'],
 		// The drag overlay's chip clone: an opaque, shadowed pill tracking the pointer.
 		overlay: [
 			flex.inline,

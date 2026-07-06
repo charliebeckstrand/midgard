@@ -12,6 +12,8 @@ import {
 } from '@dnd-kit/core'
 import { Rows3, X } from 'lucide-react'
 import { type ReactNode, useState } from 'react'
+import { Badge } from '../../components/badge'
+import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { cn, createContext, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/grid'
@@ -82,17 +84,17 @@ export function GridGroupByHandle({
 	if (!context || !active || column.id === context.grouping) return null
 
 	return (
-		<button
-			type="button"
+		<Button
+			variant="bare"
 			ref={setNodeRef}
-			className={cn(k.groupPanel.handle)}
 			aria-label={`Group rows by ${columnLabel(column)}`}
+			className={cn(k.groupPanel.handle)}
 			{...attributes}
 			{...listeners}
 			onClick={() => context.setGrouping(column.id)}
 		>
 			<Icon icon={<Rows3 />} />
-		</button>
+		</Button>
 	)
 }
 
@@ -125,17 +127,17 @@ export function GridGroupByPanel<T>({ columns }: { columns: GridColumn<T>[] }) {
 			className={cn(k.groupPanel.root)}
 		>
 			{grouped && label != null ? (
-				<span className={cn(k.groupPanel.chip)}>
+				<Badge size="sm">
 					{label}
-					<button
-						type="button"
-						className={cn(k.groupPanel.remove)}
+					<Button
+						variant="bare"
+						size="sm"
 						aria-label={`Ungroup ${label}`}
 						onClick={() => context.setGrouping(null)}
 					>
 						<Icon icon={<X />} />
-					</button>
-				</span>
+					</Button>
+				</Badge>
 			) : (
 				<span className={cn(k.groupPanel.hint)}>Drag a column here to group its rows</span>
 			)}
