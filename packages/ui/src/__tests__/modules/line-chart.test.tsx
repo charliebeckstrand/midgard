@@ -149,6 +149,30 @@ describe('LineChart', () => {
 		expect(dashed?.getAttribute('stroke-dasharray')).toBe('6 4')
 	})
 
+	it('dashes the dashed series’ legend swatch, mirroring its stroke', () => {
+		const { container } = renderUI(
+			chart({
+				series: [
+					{ xKey: 'week', yKey: 'signups', yName: 'Signups' },
+					{ xKey: 'week', yKey: 'churn', yName: 'Churn', dashed: true },
+				],
+			}),
+		)
+
+		// Signups leads the value-ordered legend; churn, the dashed series, follows.
+		// Its line swatch dashes to match the stroke while the solid series stays
+		// solid — the same variant idiom the reference chips use.
+		const [signups, churn] = allBySlot(container, 'chart-legend-item')
+
+		expect(signups?.querySelector('[data-slot="swatch"]')?.getAttribute('data-variant')).toBe(
+			'solid',
+		)
+
+		expect(churn?.querySelector('[data-slot="swatch"]')?.getAttribute('data-variant')).toBe(
+			'dashed',
+		)
+	})
+
 	it('keeps the dashed stroke and its markers under animate', () => {
 		const { container } = renderUI(
 			chart({
