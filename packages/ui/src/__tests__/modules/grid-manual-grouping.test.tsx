@@ -1,7 +1,13 @@
 import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn, type GridGroupHeaderRow } from '../../modules/grid'
+import { MANUAL_GROUP_PLACEHOLDER_ROWS } from '../../modules/grid/grid-constants'
 import { renderUI, screen, userEvent } from '../helpers'
+
+/** The placeholder skeleton rows the grid draws under a loading manual group. */
+function placeholderRows() {
+	return document.querySelectorAll('[data-group-placeholder]')
+}
 
 /**
  * Server-side (manual) row grouping (`groupBy.manual` + the `groupRow` row
@@ -252,5 +258,103 @@ describe('Grid manual (server-side) row grouping', () => {
 
 		// The other group is untouched and still childless.
 		expect(screen.queryByText('Devon')).not.toBeInTheDocument()
+	})
+
+	it('opens a group instantly with skeleton placeholders while its children load', async () => {
+		const user = userEvent.setup()
+
+		function Harness() {
+			const [expanded, setExpanded] = useState<Set<string | number>>(new Set())
+
+			// onGroupExpand stands in for a fetch still in flight — no children arrive
+			// synchronously, so the opened group has nothing to show but placeholders.
+			return (
+				<Grid
+					columns={columns}
+					rows={[westHeader, eastHeader]}
+					getKey={getKey}
+					groupBy={{
+						manual: true,
+						value: 'region',
+						groupRow,
+						expanded,
+						onExpandedChange: setExpanded,
+						onGroupExpand: () => {},
+					}}
+				/>
+			)
+		}
+
+		renderUI(<Harness />)
+
+		// Collapsed: nothing loading.
+		expect(placeholderRows()).toHaveLength(0)
+
+		await user.click(screen.getByRole('button', { name: 'Expand group West' }))
+
+		// The group opened the same tick — its unfetched children are stood in for by
+		// skeleton placeholder rows (West's count is 3, within the cap).
+		expect(placeholderRows()).toHaveLength(Math.min(3, MANUAL_GROUP_PLACEHOLDER_ROWS))
+
+		// East stays collapsed, so it contributes none.
+		expect(screen.queryByRole('button', { name: 'Collapse group East' })).not.toBeInTheDocument()
+	})
+
+	it('caps placeholders for a large group and drops them once children arrive', () => {
+		const bigHeader: Sale = {
+			id: 'g:north',
+			region: 'North',
+			revenue: 1,
+			group: { key: 'north', count: 50 },
+		}
+
+		const { rerender } = renderUI(
+			<Grid
+				columns={columns}
+				rows={[bigHeader]}
+				getKey={getKey}
+				groupBy={{ manual: true, value: 'region', groupRow, expanded: new Set(['north']) }}
+			/>,
+		)
+
+		// A 50-child group shows only the capped run of skeletons, never one per child.
+		expect(placeholderRows()).toHaveLength(MANUAL_GROUP_PLACEHOLDER_ROWS)
+
+		// The backend delivers the children → the placeholders give way to real rows.
+		const child: Sale = { id: 'n1', region: 'North', rep: 'Ola', revenue: 10 }
+
+		rerender(
+			<Grid
+				columns={columns}
+				rows={[bigHeader, child]}
+				getKey={getKey}
+				groupBy={{ manual: true, value: 'region', groupRow, expanded: new Set(['north']) }}
+			/>,
+		)
+
+		expect(placeholderRows()).toHaveLength(0)
+
+		expect(screen.getByText('Ola')).toBeInTheDocument()
+	})
+
+	it('shows no placeholders for a collapsed group or one the backend reports empty', () => {
+		const emptyHeader: Sale = {
+			id: 'g:empty',
+			region: 'Nowhere',
+			revenue: 0,
+			group: { key: 'nowhere', count: 0 },
+		}
+
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={[westHeader, emptyHeader]}
+				getKey={getKey}
+				// West collapsed; the empty group expanded but with a zero backend count.
+				groupBy={{ manual: true, value: 'region', groupRow, expanded: new Set(['nowhere']) }}
+			/>,
+		)
+
+		expect(placeholderRows()).toHaveLength(0)
 	})
 })

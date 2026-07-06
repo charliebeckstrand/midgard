@@ -220,6 +220,13 @@ export type GridGroupBy<T = unknown> = {
 	 * Fires with a group's key when its collapsed header expands — the manual
 	 * mode's lazy-load hook: fetch that group's children and append them to
 	 * `rows` after its header. Not fired on collapse, nor by client grouping.
+	 *
+	 * @remarks The group opens the instant its header is toggled (expansion is
+	 * controlled state, not gated on the fetch). Until the children land the grid
+	 * fills the opened group with placeholder skeleton rows — a group whose
+	 * backend `count` is positive but whose children aren't present yet — so the
+	 * expand reads as immediate rather than waiting on the request. A group the
+	 * backend reports empty (`count` of 0) shows nothing.
 	 */
 	onGroupExpand?: (key: string | number) => void
 	/**

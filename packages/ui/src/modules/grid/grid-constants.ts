@@ -82,3 +82,13 @@ export const GRID_STATUS_DEBOUNCE_MS = 150
 
 /** Debounce (ms) the quick-search field waits after the last keystroke before driving the engine's global filter, so a fast typist settles into one O(rows × columns) filter pass. @internal */
 export const GRID_SEARCH_DEBOUNCE_MS = 200
+
+/**
+ * Placeholder skeleton rows shown under an expanded {@link GridGroupBy.manual}
+ * group while its children load — a group opens instantly on expand, and these
+ * fill it until the consumer's `onGroupExpand` fetch feeds the children back.
+ * Capped so a large group (server grouping exists precisely because a group can
+ * be enormous) shows a brief loading affordance rather than thousands of
+ * skeletons; a smaller group shows only as many rows as it holds. @internal
+ */
+export const MANUAL_GROUP_PLACEHOLDER_ROWS = 3

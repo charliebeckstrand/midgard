@@ -15,6 +15,7 @@ import { type ReactNode, useState } from 'react'
 import { Badge } from '../../components/badge'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
+import { Text } from '../../components/text'
 import { cn, createContext, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/grid'
 import { columnLabel, type GridColumn } from './types'
@@ -139,7 +140,7 @@ export function GridGroupByPanel<T>({ columns }: { columns: GridColumn<T>[] }) {
 					</Button>
 				</Badge>
 			) : (
-				<span className={cn(k.groupPanel.hint)}>Drag a column here to group its rows</span>
+				<Text severity="muted">Drag a column here to group its rows</Text>
 			)}
 		</div>
 	)
@@ -210,8 +211,12 @@ export function GridGroupByDndRegion<T>({
 		>
 			{children}
 			<DragOverlay>
+				{/* The lifted chip clone tracking the pointer — the same Badge the panel
+				    shows for the active group, shadowed so it reads as raised. */}
 				{activeColumn ? (
-					<span className={cn(k.groupPanel.overlay)}>{columnLabel(activeColumn)}</span>
+					<Badge size="sm" className="shadow-lg">
+						{columnLabel(activeColumn)}
+					</Badge>
 				) : null}
 			</DragOverlay>
 		</DndContext>

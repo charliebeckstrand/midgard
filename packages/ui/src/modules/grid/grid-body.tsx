@@ -18,6 +18,7 @@ import type { GridGroupBy, GridGroupHeaderRow } from './grid-data-types'
 import { GridGroupLeafRow } from './grid-group-leaf-row'
 import { GridGroupRow } from './grid-group-row'
 import {
+	GridManualGroupPlaceholderRows,
 	GridManualGroupRow,
 	type GridManualGroupSegment,
 	segmentManualGroupRows,
@@ -217,6 +218,13 @@ function renderManualSegment<T>(
 					/>
 				)
 			})}
+			{/* Expanded, but its children aren't loaded yet (the consumer's
+			    onGroupExpand fetch is in flight): fill the opened group with skeleton
+			    placeholders until they land. A group the backend reports empty
+			    (count 0) shows nothing. */}
+			{segment.info && open && segment.leaves.length === 0 && segment.info.count > 0 && (
+				<GridManualGroupPlaceholderRows columns={props.visibleColumns} count={segment.info.count} />
+			)}
 		</Fragment>
 	)
 }
