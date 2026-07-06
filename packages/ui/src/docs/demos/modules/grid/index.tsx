@@ -1092,10 +1092,10 @@ const tabs = [
 	'Selection',
 	'Reorder',
 	'Resize',
+	'Expand',
+	'Groups',
 	'Pin',
 	'Lock',
-	'Groups',
-	'Master-detail',
 	'Filters',
 	'Header',
 	'Footer',
@@ -1221,6 +1221,86 @@ export function Demo() {
 					</Stack>
 				</TabContent>
 
+				<TabContent value="Expand">
+					<Stack gap="xl">
+						<Example
+							title="Expandable rows"
+							code={code`<Grid columns={[{ id: 'expand', expander: true }, ...]} expandable={{ value, onValueChange, render }} />`}
+						>
+							<MasterDetailExample />
+						</Example>
+					</Stack>
+				</TabContent>
+
+				<TabContent value="Groups">
+					{/* A second row of tabs splits column groups (banding a run of columns)
+					    from row groups (collecting rows by a column's value). */}
+					<Tabs defaultValue="Column">
+						<TabList aria-label="Group type">
+							<Tab value="Column">Column</Tab>
+							<Tab value="Row">Row</Tab>
+						</TabList>
+						<TabContents fade={false}>
+							<TabContent value="Column">
+								<Stack gap="xl">
+									<Example
+										title="Column groups"
+										code={code`<Grid groups={[{ id, title, color, columns: [...] }]} />`}
+									>
+										<GroupsExample />
+									</Example>
+
+									<Example
+										title="Collapsible groups"
+										code={code`<Grid groups={[{ ...group, collapsible: true, defaultCollapsed }]} />`}
+									>
+										<CollapsibleGroupsExample />
+									</Example>
+
+									<Example
+										title="Group editor"
+										code={code`<Grid groups={{ value, onValueChange }} columnManager={{ toolbarButton: true }} />`}
+									>
+										<GroupManagerExample />
+									</Example>
+								</Stack>
+							</TabContent>
+
+							<TabContent value="Row">
+								<Stack gap="xl">
+									<Example
+										title="Row groups"
+										code={code`<Grid groupBy={{ value: 'role', onValueChange }} />`}
+									>
+										<RowGroupExample />
+									</Example>
+
+									<Example
+										title="Collapsed groups"
+										code={code`<Grid groupBy={{ value: 'status', defaultExpanded: false }} />`}
+									>
+										<CollapsedGroupExample />
+									</Example>
+
+									<Example
+										title="Aggregation & totals"
+										code={code`<Grid groupBy={{ value: 'region' }} groupTotalRow="bottom" grandTotalRow="bottom" columns={[{ …, aggFunc: 'sum' }, { …, aggFunc: (rows) => weightedRatio }]} />`}
+									>
+										<AggregationExample />
+									</Example>
+
+									<Example
+										title="Server-side grouping"
+										code={code`<Grid groupBy={{ manual: true, value, onValueChange, groupRow, panel: true, expanded, onExpandedChange, onGroupExpand }} />`}
+									>
+										<ServerGroupingExample />
+									</Example>
+								</Stack>
+							</TabContent>
+						</TabContents>
+					</Tabs>
+				</TabContent>
+
 				<TabContent value="Pin">
 					<Stack gap="xl">
 						<Example
@@ -1314,86 +1394,6 @@ export function Demo() {
 							code={code`<Grid footer={{ rowTotal: true, selectedTotal: true, content: ({ selected }) => ... }} />`}
 						>
 							<FooterExample />
-						</Example>
-					</Stack>
-				</TabContent>
-
-				<TabContent value="Groups">
-					{/* A second row of tabs splits column groups (banding a run of columns)
-					    from row groups (collecting rows by a column's value). */}
-					<Tabs defaultValue="Column">
-						<TabList aria-label="Group type">
-							<Tab value="Column">Column</Tab>
-							<Tab value="Row">Row</Tab>
-						</TabList>
-						<TabContents fade={false}>
-							<TabContent value="Column">
-								<Stack gap="xl">
-									<Example
-										title="Column groups"
-										code={code`<Grid groups={[{ id, title, color, columns: [...] }]} />`}
-									>
-										<GroupsExample />
-									</Example>
-
-									<Example
-										title="Collapsible groups"
-										code={code`<Grid groups={[{ ...group, collapsible: true, defaultCollapsed }]} />`}
-									>
-										<CollapsibleGroupsExample />
-									</Example>
-
-									<Example
-										title="Group editor"
-										code={code`<Grid groups={{ value, onValueChange }} columnManager={{ toolbarButton: true }} />`}
-									>
-										<GroupManagerExample />
-									</Example>
-								</Stack>
-							</TabContent>
-
-							<TabContent value="Row">
-								<Stack gap="xl">
-									<Example
-										title="Row groups"
-										code={code`<Grid groupBy={{ value: 'role', onValueChange }} />`}
-									>
-										<RowGroupExample />
-									</Example>
-
-									<Example
-										title="Collapsed groups"
-										code={code`<Grid groupBy={{ value: 'status', defaultExpanded: false }} />`}
-									>
-										<CollapsedGroupExample />
-									</Example>
-
-									<Example
-										title="Aggregation & totals"
-										code={code`<Grid groupBy={{ value: 'region' }} groupTotalRow="bottom" grandTotalRow="bottom" columns={[{ …, aggFunc: 'sum' }, { …, aggFunc: (rows) => weightedRatio }]} />`}
-									>
-										<AggregationExample />
-									</Example>
-
-									<Example
-										title="Server-side grouping"
-										code={code`<Grid groupBy={{ manual: true, value, onValueChange, groupRow, panel: true, expanded, onExpandedChange, onGroupExpand }} />`}
-									>
-										<ServerGroupingExample />
-									</Example>
-								</Stack>
-							</TabContent>
-						</TabContents>
-					</Tabs>
-				</TabContent>
-
-				<TabContent value="Master-detail">
-					<Stack gap="xl">
-						<Example
-							title="Expandable rows"
-							code={code`<Grid columns={[{ expander: true }, …]} expandable={{ value, onValueChange, render: (row) => <Detail /> }} />`}
-						>
-							<MasterDetailExample />
 						</Example>
 					</Stack>
 				</TabContent>
