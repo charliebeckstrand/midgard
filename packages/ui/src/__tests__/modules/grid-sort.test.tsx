@@ -51,6 +51,40 @@ describe('Grid client sorting', () => {
 		expect(order()).toEqual(['Charlie', 'Bob', 'Alice'])
 	})
 
+	const withBlank: Row[] = [
+		{ id: 1, name: 'Charlie' },
+		{ id: 2, name: '' },
+		{ id: 3, name: 'Alice' },
+	]
+
+	it('sinks empty values to the end when sorting ascending', () => {
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={withBlank}
+				getKey={getKey}
+				sort={{ value: [{ column: 'name', direction: 'asc' }] }}
+			/>,
+		)
+
+		expect(order()).toEqual(['Alice', 'Charlie', ''])
+	})
+
+	it('keeps empty values at the end when sorting descending', () => {
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={withBlank}
+				getKey={getKey}
+				sort={{ value: [{ column: 'name', direction: 'desc' }] }}
+			/>,
+		)
+
+		// The regression: desc negates the comparator, so a fixed empties-last sign
+		// would float the blank to the top. It must still trail the sorted names.
+		expect(order()).toEqual(['Charlie', 'Alice', ''])
+	})
+
 	it('leaves row order to the consumer in manual (server) mode', () => {
 		renderUI(
 			<Grid

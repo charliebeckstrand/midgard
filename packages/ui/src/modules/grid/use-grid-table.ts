@@ -13,6 +13,7 @@ import {
 	type PaginationState,
 	type Row,
 	type RowData,
+	type SortingFn,
 	type SortingState,
 	type Table,
 	type Updater,
@@ -29,6 +30,7 @@ import {
 	clampSizingToFloors,
 	filterOptions,
 	groupingOptions,
+	makeSmartSortingFn,
 	paginationOptions,
 	resizeOptions,
 	resolveFilterMode,
@@ -213,7 +215,10 @@ type UseGridTableResult<T> = {
  *
  * @internal
  */
-function useStableColumnDefs<T>(columns: GridColumn<T>[]): ColumnDef<T>[] {
+function useStableColumnDefs<T>(
+	columns: GridColumn<T>[],
+	smartSortingFn: SortingFn<unknown>,
+): ColumnDef<T>[] {
 	const columnsById = useMemo(
 		() => new Map(columns.map((col) => [String(col.id), col] as const)),
 		[columns],
@@ -239,12 +244,12 @@ function useStableColumnDefs<T>(columns: GridColumn<T>[]): ColumnDef<T>[] {
 				}
 
 				return {
-					...toColumnDef(col),
+					...toColumnDef(col, smartSortingFn),
 					meta: { gridColumn: col },
 					...(col.cell ? { cell: renderCell } : {}),
 				}
 			}),
-		[columns],
+		[columns, smartSortingFn],
 	)
 }
 
@@ -437,7 +442,25 @@ export function useGridTable<T>({
 	containerRef,
 	density,
 }: UseGridTableParams<T>): UseGridTableResult<T> {
-	const columnDefs = useStableColumnDefs(columns)
+	// A live map of column id -> descending, read by the smart comparator at
+	// compare time so empties sink under both directions. Held in a ref refreshed
+	// each render so a sort-direction flip doesn't rebuild the column defs.
+	const sortDescByIdRef = useRef<Record<string, boolean>>({})
+
+	sortDescByIdRef.current = useMemo(() => {
+		const map: Record<string, boolean> = {}
+
+		for (const entry of sort ?? []) map[String(entry.column)] = entry.direction === 'desc'
+
+		return map
+	}, [sort])
+
+	const smartSortingFn = useMemo(
+		() => makeSmartSortingFn((columnId) => sortDescByIdRef.current[columnId] ?? false),
+		[],
+	)
+
+	const columnDefs = useStableColumnDefs(columns, smartSortingFn)
 
 	const paginated = paginationConfig != null
 

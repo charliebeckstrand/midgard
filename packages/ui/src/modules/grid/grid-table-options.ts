@@ -155,15 +155,42 @@ function rowSortKey(row: Row<unknown>, columnId: string): SortKey {
 }
 
 /**
- * Default column sort: orders each row by the smart {@link SortKey} of its
- * accessor value — numbers, money, percentages, dates, and the like sort
+ * Builds the default column sort: it orders rows by the smart {@link SortKey} of
+ * their accessor value — numbers, money, percentages, dates, and the like sort
  * correctly out of the box rather than lexically — decorating each value once per
  * sort (see {@link rowSortKey}). Row-shape-agnostic; cast to a column's row type.
  *
+ * Direction-aware so empties sink to the end under both directions. The engine
+ * negates a comparator's result for a `desc` column, and its `sortUndefined`
+ * escape fires only for a literal `undefined`, so a fixed empties-last sign would
+ * flip to empties-first on `desc`. Reading the live direction through
+ * `isDescending`, the empty partition is pre-inverted so the engine's negation
+ * lands empties last either way; the non-empty comparison negates normally.
+ *
+ * @param isDescending - Whether `columnId` currently sorts descending, read live
+ *   at compare time so column defs needn't rebuild when the sort direction flips.
  * @internal
  */
-const smartSortingFn: SortingFn<unknown> = (rowA, rowB, columnId) =>
-	compareSortKeys(rowSortKey(rowA, columnId), rowSortKey(rowB, columnId))
+export function makeSmartSortingFn(
+	isDescending: (columnId: string) => boolean,
+): SortingFn<unknown> {
+	return (rowA, rowB, columnId) => {
+		const a = rowSortKey(rowA, columnId)
+
+		const b = rowSortKey(rowB, columnId)
+
+		const result = compareSortKeys(a, b)
+
+		// Empties order the same regardless of direction; pre-invert so the engine's
+		// desc negation lands them last either way.
+		if (a.empty || b.empty) return isDescending(columnId) ? -result : result
+
+		return result
+	}
+}
+
+/** Direction-agnostic smart sort backing direct {@link toColumnDef} callers; the Grid supplies a direction-aware one. @internal */
+const defaultSmartSortingFn = makeSmartSortingFn(() => false)
 
 /**
  * Resolves a column's engine behaviors from its declaration: the sort/filter
@@ -176,7 +203,7 @@ const smartSortingFn: SortingFn<unknown> = (rowA, rowB, columnId) =>
  *
  * @internal
  */
-function deriveColumnBehavior<T>(col: GridColumn<T>) {
+function deriveColumnBehavior<T>(col: GridColumn<T>, smartSortingFn: SortingFn<unknown>) {
 	const { value, sortFn } = col
 
 	const accessorFn = value ?? (isDataColumn(col) ? (row: T) => readField(row, col.id) : undefined)
@@ -204,15 +231,25 @@ function affordanceColumnSize<T>(col: GridColumn<T>): number | undefined {
 	return undefined
 }
 
-/** Maps a grid column to its engine `ColumnDef`: identity, the capability gates, the resolved behaviors (see {@link deriveColumnBehavior}), and sizing bounds. @internal */
-export function toColumnDef<T>(col: GridColumn<T>): ColumnDef<T> {
+/**
+ * Maps a grid column to its engine `ColumnDef`: identity, the capability gates,
+ * the resolved behaviors (see {@link deriveColumnBehavior}), and sizing bounds.
+ *
+ * @param smartSortingFn - The direction-aware default sort (see
+ *   {@link makeSmartSortingFn}); direct callers get a direction-agnostic one.
+ * @internal
+ */
+export function toColumnDef<T>(
+	col: GridColumn<T>,
+	smartSortingFn: SortingFn<unknown> = defaultSmartSortingFn,
+): ColumnDef<T> {
 	// A width-less column takes the engine's 150px default; the selection,
 	// drag-handle, and expander columns instead hold a natural affordance width so
 	// they aren't that wide. (The non-resizable auto layout already sizes them to
 	// content via `w-px`.)
 	const size = parsePxWidth(col.width) ?? affordanceColumnSize(col)
 
-	const { accessorFn, sortingFn, filterFn } = deriveColumnBehavior(col)
+	const { accessorFn, sortingFn, filterFn } = deriveColumnBehavior(col, smartSortingFn)
 
 	return {
 		id: String(col.id),
