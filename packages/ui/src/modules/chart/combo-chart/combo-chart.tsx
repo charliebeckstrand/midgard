@@ -339,6 +339,7 @@ export function ComboChart<T>({
 				scale={yScale}
 				reference={reference}
 				format={formatValue}
+				animate={animate}
 			/>
 		</ChartFrame>
 	)

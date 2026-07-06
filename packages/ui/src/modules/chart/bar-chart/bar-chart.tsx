@@ -234,6 +234,7 @@ export function BarChart<T>({
 				reference={reference}
 				orientation={chart.orientation}
 				format={formatValue}
+				animate={animate}
 			/>
 		</ChartFrame>
 	)
