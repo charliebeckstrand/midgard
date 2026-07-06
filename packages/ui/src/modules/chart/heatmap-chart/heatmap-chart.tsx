@@ -615,6 +615,10 @@ export function HeatmapChart<T>({
 	tooltip,
 	formatValue,
 	className,
+	// Destructured off so the unwired base switches never fall into `...label` and
+	// spread onto the plot element as invalid DOM attributes.
+	animate: _animate,
+	texture: _texture,
 	...label
 }: HeatmapChartProps<T>) {
 	const primary = series[0]

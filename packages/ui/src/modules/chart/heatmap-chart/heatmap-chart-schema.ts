@@ -50,6 +50,10 @@ export type HeatmapChartSeries<T> = {
  * `aria-labelledby`) — the plot is `role="img"`. Cell values also ship in the
  * visually-hidden data table (categories × rows), so the grid carries full
  * value parity without the pointer, the way every chart in the module does.
+ *
+ * @remarks The grid wires neither `animate` nor `texture` from the base props;
+ * the component destructures them off so they never reach the plot element,
+ * pending a grid that honours them.
  */
 export type HeatmapChartProps<T = never> = ChartBaseProps<T> & {
 	/** The single series to shade cells with; extra entries are ignored. */
