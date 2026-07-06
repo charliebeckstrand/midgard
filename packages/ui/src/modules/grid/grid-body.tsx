@@ -26,6 +26,7 @@ import {
 import { type GridRowsProps, renderGridRow } from './grid-row'
 import { GridTotalRow } from './grid-total-row'
 import { type GridScrollRowIntoView, GridVirtualizedBody } from './grid-virtualized-body'
+import { applyRowKeyOrder, type GridRowGroupPresentation } from './use-grid-row-manager'
 
 /** The vertical row sortable's items and strategy, spread onto the body's `SortableContext`. @internal */
 type GridRowSortableContext = {
@@ -77,6 +78,12 @@ type GridBodyProps<T> = GridRowsProps<T> & {
 	getKey: (row: T, index: number) => string | number
 	/** Grid density, threaded to the grouped leaf rows so their reveal wrappers carry the matching cell padding. */
 	density: DensityLevel
+	/**
+	 * The row manager's overlay presentation, or `null` when the grid isn't
+	 * client-grouped: the per-group color (tinting the header aggregates, total
+	 * footer, and rail) and the manual group / leaf order the grouped body applies.
+	 */
+	rowGroupPresentation: GridRowGroupPresentation | null
 	virtualize: {
 		scrollRef: RefObject<HTMLDivElement | null>
 		estimateSize: number
@@ -104,15 +111,27 @@ function renderGroup<T>(
 		renderHeader: GridGroupBy['renderHeader']
 		getKey: (row: T, index: number) => string | number
 		density: DensityLevel
+		presentation: GridRowGroupPresentation | null
 	},
 ): ReactElement {
-	const { props, columnId, renderHeader, getKey, density } = args
+	const { props, columnId, renderHeader, getKey, density, presentation } = args
 
 	const expanded = groupRow.getIsExpanded()
 
 	// The per-group total is meaningful only once a column aggregates; it
 	// collapses with the group, whose header still reads the same figures.
 	const totalled = props.groupTotalRow === 'bottom' && hasAggregation(props.visibleColumns)
+
+	// The group's row-manager overlay: its color (tinting the header aggregates,
+	// total footer, and rail) and its manual leaf order, applied over the engine's
+	// natural leaf order. Leaf ordering stands down (`leafOrder` null) under a sort.
+	const groupKey = groupRow.getGroupingValue(String(columnId)) as string | number
+
+	const color = presentation?.color(groupKey)
+
+	const leaves = applyRowKeyOrder(groupRow.subRows, presentation?.leafOrder?.(groupKey), (leaf) =>
+		getKey(leaf.original, leaf.index),
+	)
 
 	return (
 		<Fragment key={groupRow.id}>
@@ -121,8 +140,9 @@ function renderGroup<T>(
 				columns={props.visibleColumns}
 				columnId={columnId}
 				renderHeader={renderHeader}
+				color={color}
 			/>
-			{groupRow.subRows.map((leaf) => {
+			{leaves.map((leaf) => {
 				const key = getKey(leaf.original, leaf.index)
 
 				return (
@@ -141,16 +161,18 @@ function renderGroup<T>(
 						settleWidths={props.settleWidths}
 						pinning={props.pinning}
 						density={density}
+						color={color}
 					/>
 				)
 			})}
 			{totalled && (
 				<GridTotalRow<T>
 					columns={props.visibleColumns}
-					rows={groupRow.subRows.map((leaf) => leaf.original)}
+					rows={leaves.map((leaf) => leaf.original)}
 					variant="group"
 					expanded={expanded}
 					density={density}
+					color={color}
 				/>
 			)}
 		</Fragment>
@@ -253,6 +275,7 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 		groupRenderHeader,
 		getKey,
 		density,
+		rowGroupPresentation,
 		virtualize,
 	} = props
 
@@ -302,15 +325,24 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 	// virtualization / pagination / grid semantics (see `GridData`), so this
 	// precedes the virtualized branch and needs no aria-row bookkeeping.
 	if (groupedRows && groupColumnId != null) {
+		// Apply the manual group order (null under a sort, or until the overlay
+		// covers every group — then the engine's group order stands).
+		const ordered = applyRowKeyOrder(
+			groupedRows,
+			rowGroupPresentation?.groupOrder ?? undefined,
+			(groupRow) => groupRow.getGroupingValue(String(groupColumnId)) as string | number,
+		)
+
 		return (
 			<TableBody>
-				{groupedRows.map((groupRow) =>
+				{ordered.map((groupRow) =>
 					renderGroup(groupRow, {
 						props,
 						columnId: groupColumnId,
 						renderHeader: groupRenderHeader,
 						getKey,
 						density,
+						presentation: rowGroupPresentation,
 					}),
 				)}
 			</TableBody>

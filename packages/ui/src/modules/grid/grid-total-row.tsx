@@ -4,6 +4,7 @@ import type { Table } from '@tanstack/react-table'
 import { type ReactNode, useMemo } from 'react'
 import { TableBody, TableCell, TableRow } from '../../components/table'
 import { cn, dataAttr } from '../../core'
+import type { PaletteColor } from '../../core/recipe'
 import type { DensityLevel } from '../../providers/density'
 import { k } from '../../recipes/kata/grid'
 import {
@@ -121,21 +122,24 @@ type GridAggregateCellsProps<T> = {
 	rows: T[]
 	/** The first column index to render — the cells after the row's label span. */
 	from: number
+	/** The group's overlay color, tinting each aggregate cell at low opacity; `undefined` leaves them untinted. */
+	color?: PaletteColor
 }
 
 /**
  * The aggregate cells after an aggregate row's label span: one `<td>` per
  * remaining visible column, carrying the column's aggregate where it declares
- * one and staying empty otherwise, so every figure sits under its own column.
+ * one and staying empty otherwise, so every figure sits under its own column. A
+ * `color` washes each cell in the group's hue at low opacity.
  *
  * @internal
  */
-export function GridAggregateCells<T>({ columns, rows, from }: GridAggregateCellsProps<T>) {
+export function GridAggregateCells<T>({ columns, rows, from, color }: GridAggregateCellsProps<T>) {
 	return columns.slice(from).map((column) => (
 		<TableCell
 			key={column.id}
 			data-grid-col={column.id}
-			className={cn(k.aggregate.cell, column.className)}
+			className={cn(k.aggregate.cell, color && k.rowGroup.tint[color], column.className)}
 		>
 			{renderAggregate(column, rows)}
 		</TableCell>
@@ -165,6 +169,8 @@ type GridTotalRowProps<T> = {
 	density?: DensityLevel
 	/** Global `aria-rowindex` under grid semantics; omitted on a plain table. */
 	ariaRowIndex?: number
+	/** The group's overlay color, washing the group total's cells at low opacity; ignored on the grand variant. */
+	color?: PaletteColor
 }
 
 /** A group total cell's collapsible body: the same CSS-grid reveal the group's leaf cells ride. @internal */
@@ -172,6 +178,7 @@ function GroupRevealCell({
 	expanded,
 	pad,
 	rail,
+	color,
 	colSpan,
 	colId,
 	className,
@@ -180,6 +187,8 @@ function GroupRevealCell({
 	expanded: boolean
 	pad: string
 	rail?: boolean
+	/** The group's overlay color: tints the cell fill, and colors the leading rail when `rail` is set. */
+	color?: PaletteColor
 	colSpan?: number
 	colId?: string | number
 	className?: string
@@ -189,7 +198,15 @@ function GroupRevealCell({
 		<td
 			colSpan={colSpan}
 			data-grid-col={colId}
-			className={cn(rail && k.rowGroup.rail, className)}
+			className={cn(
+				// The leading cell carries the group rail — in the group's color when set
+				// (layered over the neutral tint), else neutral; a colored group also
+				// washes each cell's fill.
+				rail && k.rowGroup.rail,
+				rail && color && k.rowGroup.railColor[color],
+				color && k.rowGroup.tint[color],
+				className,
+			)}
 			style={{ padding: 0 }}
 		>
 			<div className={cn(k.rowGroup.reveal)} data-open={dataAttr(expanded)}>
@@ -218,6 +235,7 @@ export function GridTotalRow<T>({
 	label = 'Total',
 	density = 'snug',
 	ariaRowIndex,
+	color,
 }: GridTotalRowProps<T>) {
 	const span = aggregateLabelSpan(columns)
 
@@ -239,7 +257,13 @@ export function GridTotalRow<T>({
 	// of the accessibility tree too, matching the leaf rows (WCAG 1.3.1).
 	return (
 		<TableRow data-total-row="group" aria-hidden={expanded ? undefined : true} inert={!expanded}>
-			<GroupRevealCell expanded={expanded} pad={cn(pad, k.aggregate.label)} rail colSpan={span}>
+			<GroupRevealCell
+				expanded={expanded}
+				pad={cn(pad, k.aggregate.label)}
+				rail
+				color={color}
+				colSpan={span}
+			>
 				{label}
 			</GroupRevealCell>
 
@@ -248,6 +272,7 @@ export function GridTotalRow<T>({
 					key={column.id}
 					expanded={expanded}
 					pad={cn(pad, k.aggregate.cell)}
+					color={color}
 					colId={column.id}
 					className={column.className}
 				>

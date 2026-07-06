@@ -75,6 +75,12 @@ type GridContextMenuProps<T> = {
 	chooseColumns: (() => void) | null
 	/** One action per configured export type; empty when export is off. Shared by the column menu, the cell menu, and the toolbar dropdown. */
 	exportActions: GridExportAction[]
+	/**
+	 * Resolves the group-header menu items for a right-clicked group by its key
+	 * (the group's shared value), or `null` when the row manager / grouping isn't
+	 * live. Backs the "Manage rows" menu on the group-header row.
+	 */
+	rowGroupMenu: ((key: string) => GridMenuItem[] | null) | null
 	children: ReactNode
 }
 
@@ -302,6 +308,7 @@ export function GridContextMenu<T>({
 	autoSizeColumns,
 	chooseColumns,
 	exportActions,
+	rowGroupMenu,
 	children,
 }: GridContextMenuProps<T>) {
 	const [open, setOpen] = useState(false)
@@ -417,6 +424,13 @@ export function GridContextMenu<T>({
 		[resolveColumnItems, resolveCellItems],
 	)
 
+	// Group-header rows carry their own menu (Manage rows, expand/collapse, color),
+	// keyed by the group's shared value; `null` when the row manager isn't live.
+	const resolveGroupItems = useCallback(
+		(key: string): GridMenuItem[] | null => (rowGroupMenu ? rowGroupMenu(key) : null),
+		[rowGroupMenu],
+	)
+
 	// Restore focus to the grid when a keyboard-opened menu closes, so the cursor —
 	// kept seated by the grid's blur guard — picks up where it left off.
 	const handleOpenChange = useCallback((next: boolean) => {
@@ -433,6 +447,7 @@ export function GridContextMenu<T>({
 		<Menu open={open} onOpenChange={handleOpenChange}>
 			<GridContextMenuSurface
 				resolveItems={resolveItems}
+				resolveGroupItems={resolveGroupItems}
 				setItems={setItems}
 				returnFocus={returnFocus}
 			>
@@ -442,6 +457,86 @@ export function GridContextMenu<T>({
 			<MenuContent>{items.map(renderMenuItem)}</MenuContent>
 		</Menu>
 	)
+}
+
+/** Opens the menu with a point's resolved items; an empty/absent set no-ops. @internal */
+type CommitMenu = (items: GridMenuItem[] | null, anchor: HTMLElement, x: number, y: number) => void
+
+/**
+ * Handles a right-click that landed on a group-header row: resolves its menu by
+ * the group's shared value (`data-group-key`) and opens it at the pointer.
+ * Returns whether the target was a group row — checked first, since a group
+ * header's aggregate cells carry `data-grid-col` but aren't ordinary body cells,
+ * and its label cell carries none at all.
+ *
+ * @internal
+ */
+function tryGroupMenu(
+	target: HTMLElement,
+	event: MouseEvent<HTMLDivElement>,
+	resolveGroupItems: (key: string) => GridMenuItem[] | null,
+	commit: CommitMenu,
+): boolean {
+	const groupRow = target.closest<HTMLElement>('tr[data-group-row]')
+
+	if (groupRow?.dataset.groupKey === undefined) return false
+
+	commit(resolveGroupItems(groupRow.dataset.groupKey), target, event.clientX, event.clientY)
+
+	return true
+}
+
+/**
+ * Handles a right-click that landed on a header or data cell: resolves its
+ * column/cell menu and opens it at the pointer. Returns whether the target was a
+ * cell.
+ *
+ * @internal
+ */
+function tryCellMenu(
+	target: HTMLElement,
+	event: MouseEvent<HTMLDivElement>,
+	resolveItems: (target: HTMLElement) => GridMenuItem[] | null,
+	commit: CommitMenu,
+): boolean {
+	const cell = target.closest<HTMLElement>('td[data-grid-col], th[data-grid-col]')
+
+	if (!cell) return false
+
+	commit(resolveItems(cell), target, event.clientX, event.clientY)
+
+	return true
+}
+
+/**
+ * Handles a keyboard context menu (Shift+F10 / the ContextMenu key), which fires
+ * on the focused grid rather than a cell: retargets to the active cursor cell,
+ * records the grid to restore focus to on close, and opens below the cell
+ * (WCAG 2.1.1). No-ops when no cell is active.
+ *
+ * @internal
+ */
+function openKeyboardMenu(
+	target: HTMLElement,
+	resolveItems: (target: HTMLElement) => GridMenuItem[] | null,
+	commit: CommitMenu,
+	returnFocus: RefObject<HTMLElement | null>,
+): void {
+	const grid = target.closest<HTMLElement>('[role="grid"]')
+
+	const active = grid?.querySelector<HTMLElement>('[data-active]')
+
+	if (!active) return
+
+	const items = resolveItems(active)
+
+	if (!items || items.length === 0) return
+
+	returnFocus.current = grid
+
+	const rect = active.getBoundingClientRect()
+
+	commit(items, active, rect.left, rect.bottom)
 }
 
 /**
@@ -457,11 +552,13 @@ export function GridContextMenu<T>({
  */
 function GridContextMenuSurface({
 	resolveItems,
+	resolveGroupItems,
 	setItems,
 	returnFocus,
 	children,
 }: {
 	resolveItems: (target: HTMLElement) => GridMenuItem[] | null
+	resolveGroupItems: (key: string) => GridMenuItem[] | null
 	setItems: (items: GridMenuItem[]) => void
 	returnFocus: RefObject<HTMLElement | null>
 	children: ReactNode
@@ -483,45 +580,27 @@ function GridContextMenuSurface({
 
 			const target = event.target as HTMLElement
 
-			const cell = target.closest<HTMLElement>('td[data-grid-col], th[data-grid-col]')
-
-			if (cell) {
-				const items = resolveItems(cell)
-
+			// Opens the menu at a point with the resolved items, suppressing the native
+			// menu; an empty/absent set leaves the browser's own menu alone.
+			const commit = (items: GridMenuItem[] | null, anchor: HTMLElement, x: number, y: number) => {
 				if (!items || items.length === 0) return
 
 				event.preventDefault()
 
 				setItems(items)
 
-				openAt(target, event.clientX, event.clientY)
-
-				return
+				openAt(anchor, x, y)
 			}
 
-			// No cell under the event: a keyboard context menu on the focused grid.
-			// Retarget to the active cursor cell and open there.
-			const grid = target.closest<HTMLElement>('[role="grid"]')
+			// Group header, then data cell, then (no cell) the keyboard menu on the
+			// focused grid; each branch consumes the event once it matches its target.
+			if (tryGroupMenu(target, event, resolveGroupItems, commit)) return
 
-			const active = grid?.querySelector<HTMLElement>('[data-active]')
+			if (tryCellMenu(target, event, resolveItems, commit)) return
 
-			if (!active) return
-
-			const items = resolveItems(active)
-
-			if (!items || items.length === 0) return
-
-			event.preventDefault()
-
-			setItems(items)
-
-			returnFocus.current = grid
-
-			const rect = active.getBoundingClientRect()
-
-			openAt(active, rect.left, rect.bottom)
+			openKeyboardMenu(target, resolveItems, commit, returnFocus)
 		},
-		[openAt, resolveItems, setItems, returnFocus],
+		[openAt, resolveItems, resolveGroupItems, setItems, returnFocus],
 	)
 
 	return (

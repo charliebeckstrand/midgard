@@ -35,6 +35,8 @@ export type {
 	GridEditCellContext,
 } from './grid-editing-types'
 export type { GridColumnGroup, GridColumnGroups } from './grid-group-types'
+export type { GridRowGroup, GridRowGroups } from './grid-row-group-types'
+export { GridRowManager, type GridRowManagerProps } from './grid-row-manager'
 export type {
 	GridAggCellContext,
 	GridAggFunc,

@@ -6,6 +6,7 @@ import type { ReactNode } from 'react'
 import { Checkbox } from '../../components/checkbox'
 import { Icon } from '../../components/icon'
 import { cn, dataAttr } from '../../core'
+import type { PaletteColor } from '../../core/recipe'
 import type { DensityLevel } from '../../providers/density'
 import { k } from '../../recipes/kata/grid'
 import { GridCellContent } from './grid-cell-content'
@@ -42,6 +43,8 @@ type GridGroupLeafRowProps<T> = {
 	settleWidths: (number | undefined)[]
 	pinning: GridColumnPinning | null
 	density: DensityLevel
+	/** The group's overlay color, coloring each leaf's leading rail; `undefined` keeps it neutral. */
+	color?: PaletteColor
 }
 
 /** Resolves a leaf cell's inner content by column kind — checkbox, actions, inert drag grip, or the rendered value. @internal */
@@ -115,6 +118,8 @@ type GridGroupLeafCellProps<T> = {
 	pinning: GridColumnPinning | null
 	/** Whether this is the row's leftmost cell (it carries the group rail). */
 	leading: boolean
+	/** The group's overlay color, coloring the leading rail; `undefined` keeps it neutral. */
+	color?: PaletteColor
 	/** Whether the group is open, driving the cell's height reveal. */
 	expanded: boolean
 	/** Density padding class for the innermost content wrapper. */
@@ -143,6 +148,7 @@ function GridGroupLeafCell<T>({
 	settleKey,
 	pinning,
 	leading,
+	color,
 	expanded,
 	pad,
 }: GridGroupLeafCellProps<T>) {
@@ -152,9 +158,11 @@ function GridGroupLeafCell<T>({
 		<td
 			data-grid-col={col.id}
 			// The leftmost cell carries the group's rail, so it runs unbroken down the
-			// group's leaf rows and joins the header's segment above.
+			// group's leaf rows and joins the header's segment above — in the group's
+			// color when the row manager assigns one, else the neutral tint.
 			className={cn(
 				leading && k.rowGroup.rail,
+				leading && color && k.rowGroup.railColor[color],
 				chrome.td,
 				pinnedClassName(pinning, col.id),
 				col.className,
@@ -208,6 +216,7 @@ export function GridGroupLeafRow<T>({
 	settleWidths,
 	pinning,
 	density,
+	color,
 }: GridGroupLeafRowProps<T>) {
 	const pad = k.rowGroup.revealPad({ density })
 
@@ -264,6 +273,7 @@ export function GridGroupLeafRow<T>({
 						settleKey={settleWidths[colIdx]}
 						pinning={pinning}
 						leading={colIdx === 0}
+						color={color}
 						expanded={expanded}
 						pad={pad}
 					/>

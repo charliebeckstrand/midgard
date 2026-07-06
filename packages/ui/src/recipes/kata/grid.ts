@@ -5,7 +5,7 @@
  * sub-recipe is the `sort.icon`, inked or muted by whether its column is the
  * active sort.
  */
-import { defineRecipe, mode } from '../../core/recipe'
+import { defineRecipe, mode, type PaletteColor } from '../../core/recipe'
 import { hannou, iro, ji, kasane, narabi, omote, sen, ugoki } from '../kiso'
 
 const { cursor, fg } = hannou
@@ -85,6 +85,40 @@ const draggingSurface = mode('data-[dragging]:bg-white', [
  * group's children load.
  */
 const railBorder = ['border-l-2', ...mode('border-zinc-950/5', 'dark:border-white/10')]
+
+/**
+ * A colored group rail, keyed by {@link PaletteColor} so a group reads
+ * `railColor[group.color]`. Swaps the neutral {@link railBorder} tint for the
+ * group's palette hue — the `-500` shade, legible over both surfaces — when the
+ * row manager assigns one. Full literals for Tailwind's scanner.
+ */
+const railColor: Record<PaletteColor, string> = {
+	zinc: 'border-l-2 border-zinc-500',
+	red: 'border-l-2 border-red-500',
+	amber: 'border-l-2 border-amber-500',
+	green: 'border-l-2 border-green-500',
+	blue: 'border-l-2 border-blue-500',
+	rose: 'border-l-2 border-rose-500',
+	violet: 'border-l-2 border-violet-500',
+	sky: 'border-l-2 border-sky-500',
+}
+
+/**
+ * A group's aggregation / total-footer tint, keyed by {@link PaletteColor} so a
+ * cell reads `rowGroupTint[group.color]`. A low-opacity fill of the group's hue
+ * (`/10`), so the summarizing figures sit on a faint wash of the group color
+ * while staying legible over both surfaces. Full literals for Tailwind's scanner.
+ */
+const rowGroupTint: Record<PaletteColor, string> = {
+	zinc: 'bg-zinc-500/10',
+	red: 'bg-red-500/10',
+	amber: 'bg-amber-500/10',
+	green: 'bg-green-500/10',
+	blue: 'bg-blue-500/10',
+	rose: 'bg-rose-500/10',
+	violet: 'bg-violet-500/10',
+	sky: 'bg-sky-500/10',
+}
 
 export const k = {
 	// `isolate` scopes the grid's internal sticky/pinned z-indices to its own
@@ -354,13 +388,18 @@ export const k = {
 	rowGroup: {
 		// A 2px colored rail down the group's leading edge — carried by the leftmost
 		// cell of every row in the group (its header and each leaf) so it reads as one
-		// continuous bar, the row-group analog of a column group's underline rule. For
-		// now it takes a neutral tint; a forthcoming row manager will swap in a
-		// per-group palette colour. `rail` is the padded group cells' variant (the
-		// leaf/header cells manage their own padding); `railBorder` is the border
-		// alone, for the loading placeholder rows that keep ordinary cell padding.
+		// continuous bar, the row-group analog of a column group's underline rule. It
+		// takes a neutral tint by default; the row manager swaps in a per-group
+		// palette colour (`railColor[group.color]`). `rail` is the padded group cells'
+		// variant (the leaf/header cells manage their own padding); `railBorder` is the
+		// border alone, for the loading placeholder rows that keep ordinary cell padding.
 		railBorder,
 		rail: ['py-0', ...railBorder],
+		// Per-group rail color (see {@link railColor}) — the manager's palette hue,
+		// replacing the neutral `railBorder` tint on the leading cell of every group row.
+		railColor,
+		// The group's aggregation / total-footer color wash (see {@link rowGroupTint}).
+		tint: rowGroupTint,
 		// Chevron at the row's trailing edge: the group row renders a right chevron
 		// when collapsed and a down chevron when expanded; `shrink-0` holds its size
 		// beside the label.
