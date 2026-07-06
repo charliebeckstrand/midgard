@@ -12,8 +12,9 @@ import {
 	type PlotRect,
 	verticalLayout,
 } from './chart-layout'
-import type { ChartLegendItem } from './chart-legend'
+import type { ChartLegendItem, ChartLegendReference } from './chart-legend'
 import type { ChartOrientation } from './chart-orientation'
+import { referenceLegendItems } from './chart-reference-lines'
 import type { BandScale, LinearScale } from './chart-scale'
 import type { CartesianChartProps, ChartSeries } from './chart-schema'
 import {
@@ -82,6 +83,8 @@ export type CartesianChart = {
 	setEmphasis: (index: number | null) => void
 	readout: ChartReadout | null
 	legendItems: ChartLegendItem[] | null
+	/** The reference lines' legend chips, when the legend shows; empty otherwise. */
+	referenceItems: ChartLegendReference[]
 	/** Per category, the band-axis center — a crosshair and tooltip band snap. */
 	bandPositions: number[]
 	/** Per category, the visible series' value-axis positions — a value crosshair's snap targets. */
@@ -194,6 +197,8 @@ export function useChartCartesian<T>(
 			? chartReadout(data, xKey, visible, format, timeAxis ? timeCategory() : undefined)
 			: null
 
+	// The legend shows on request, or by default once a second series needs
+	// telling apart.
 	const legendItems =
 		(legend ?? metas.length > 1)
 			? metas.map((meta) => ({
@@ -203,6 +208,11 @@ export function useChartCartesian<T>(
 					color: meta.color,
 				}))
 			: null
+
+	// Reference chips resolve regardless; the frame mounts the legend — and with
+	// it these — only when `legendItems` is non-null, so they join a shown legend
+	// and never force one of their own.
+	const referenceItems = referenceLegendItems(props.reference, format)
 
 	return {
 		ref,
@@ -224,6 +234,7 @@ export function useChartCartesian<T>(
 		setEmphasis: setFocus,
 		readout,
 		legendItems,
+		referenceItems,
 		bandPositions: layout.bandPositions,
 		snapPoints: layout.snapPoints,
 		orientation,

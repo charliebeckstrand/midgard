@@ -2,6 +2,7 @@
 
 import { type KeyboardEvent, useRef } from 'react'
 import { Button } from '../../components/button'
+import { Swatch } from '../../components/swatch'
 import { Text } from '../../components/text'
 import { cn } from '../../core'
 import { useA11yRoving } from '../../hooks/a11y'
@@ -21,9 +22,31 @@ export type ChartLegendItem = {
 	detail?: string
 }
 
+/**
+ * One legend entry for a reference line — a static identity chip, not a series
+ * switch: the rule's label (or its value, unlabelled) keyed to a line swatch in
+ * the rule's colour. Non-interactive and `aria-hidden`, since a reference has no
+ * per-line toggle and {@link ChartReferenceList} already carries the
+ * assistive-tech parity beside the data table.
+ *
+ * @internal
+ */
+export type ChartLegendReference = {
+	label: string
+	/** currentColor class carrying a palette slot's colour; empty when {@link color} is set. */
+	swatchClass: string
+	/** A raw CSS colour applied inline as currentColor; absent for a palette slot. */
+	color?: string
+}
+
 /** Props for {@link ChartLegend}. @internal */
 export type ChartLegendProps = {
 	items: ChartLegendItem[]
+	/**
+	 * The reference-line entries, drawn after the series switches as static
+	 * identity chips. Empty — the default — draws none.
+	 */
+	references?: ChartLegendReference[]
 	/** Item indexes toggled off; their marks are hidden and their text struck through. */
 	hidden: ReadonlySet<number>
 	/** Toggles an item's series on or off. */
@@ -48,11 +71,14 @@ export type ChartLegendProps = {
  *
  * @remarks The row is one Tab stop; the arrow keys rove between entries
  * (Home / End jump to the ends) and Escape drops focus, clearing the
- * emphasis. Swatches carry the colour, the text stays in ink.
+ * emphasis. Swatches carry the colour, the text stays in ink. Reference lines
+ * follow the series switches as static, `aria-hidden` identity chips — a rule
+ * has no toggle, and {@link ChartReferenceList} carries its parity.
  * @internal
  */
 export function ChartLegend({
 	items,
+	references = [],
 	hidden,
 	onToggle,
 	onFocus,
@@ -134,6 +160,29 @@ export function ChartLegend({
 					</Button>
 				)
 			})}
+
+			{references.map((reference, index) => (
+				// A reference chip mirrors an entry's swatch-and-label layout without the
+				// button chrome — it names a rule, it doesn't switch a series. The slot
+				// colour rides its currentColor class; a raw colour rides an inline style.
+				<span
+					// biome-ignore lint/suspicious/noArrayIndexKey: chips are index-aligned with the reference prop and never reorder.
+					key={`reference:${index}`}
+					data-slot="chart-legend-reference"
+					aria-hidden="true"
+					className="inline-flex items-center gap-1 px-2 py-1"
+				>
+					<Swatch
+						shape="line"
+						color={reference.swatchClass || undefined}
+						style={reference.color ? { color: reference.color } : undefined}
+					/>
+
+					<Text as="span" severity="muted" size="sm" className="text-left leading-tight">
+						{reference.label}
+					</Text>
+				</span>
+			))}
 		</div>
 	)
 }

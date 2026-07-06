@@ -262,7 +262,8 @@ export type CartesianFrameProps = {
 	 * Reference lines drawn across the plot at fixed values — targets, thresholds,
 	 * or averages the marks read against. Each value folds into the domain so an
 	 * off-data line stays on-frame, and the rules draw over the marks so a mark
-	 * crossing one stays legible.
+	 * crossing one stays legible. Where the legend shows, each rule also names
+	 * itself in it as a static identity chip.
 	 */
 	reference?: ChartReferenceLine[]
 	/**

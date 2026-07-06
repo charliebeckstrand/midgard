@@ -5,6 +5,7 @@ import { cn } from '../../core'
 import { type ChartSeriesColor, k } from '../../recipes/kata/chart'
 import { REFERENCE_DASH, REFERENCE_HIT_WIDTH, REFERENCE_STROKE_WIDTH } from './chart-constants'
 import type { PlotRect } from './chart-layout'
+import type { ChartLegendReference } from './chart-legend'
 import { bandExtent, type ChartOrientation, project, type Vec } from './chart-orientation'
 import type { LinearScale } from './chart-scale'
 import type { ChartReferenceLine } from './chart-schema'
@@ -190,4 +191,31 @@ export function ChartReferenceList({ reference, format }: ChartReferenceListProp
 			))}
 		</ul>
 	)
+}
+
+/**
+ * The legend entries for the reference lines: each finite rule's label — or its
+ * value, unlabelled — keyed to a line swatch in the rule's colour, a palette
+ * slot through its `text` class or a raw colour inline, resolved the same way
+ * the rule itself paints. The chart legend renders these as static identity
+ * chips beside the series switches when it shows; {@link ChartReferenceList}
+ * still carries the assistive-tech parity.
+ *
+ * @internal
+ */
+export function referenceLegendItems(
+	reference: ChartReferenceLine[] | undefined,
+	format: (value: number) => string = formatChartValue,
+): ChartLegendReference[] {
+	return (reference ?? [])
+		.filter((line) => Number.isFinite(line.value))
+		.map((line) => {
+			const color = line.color ?? DEFAULT_REFERENCE_COLOR
+
+			const label = line.label ?? format(line.value)
+
+			return isSeriesSlot(color)
+				? { label, swatchClass: k.series[color].text.join(' ') }
+				: { label, swatchClass: '', color }
+		})
 }
