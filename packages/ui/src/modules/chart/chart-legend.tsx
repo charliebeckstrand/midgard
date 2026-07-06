@@ -17,37 +17,133 @@ import { useChartEmphasis } from './context'
 /** Entries per page once a side panel's switches would clip vertically. @internal */
 const PAGE_SIZE = 5
 
+/** Props for {@link ChartLegendEntry}. @internal */
+type ChartLegendEntryProps = {
+	item: ChartLegendItem
+	/** The series is toggled off — strike the label and dim the swatch. */
+	off: boolean
+	/** Panel layout: the entry stretches full-width and left-justifies its content. */
+	panel: boolean
+	/** The `texture` prop is on, so the square swatch hatches in every mode. */
+	texture: boolean
+	/** Two or more series make each entry a switch; a lone one is a static chip. */
+	interactive: boolean
+	/** Toggles this entry's series on or off. */
+	onToggle: (index: number) => void
+	/** Pointer enter/leave emphasis: the series index while pointed, `null` on leave. */
+	onPointerEmphasis: (index: number | null) => void
+	/** Focus/blur emphasis, resolved through the shared `:focus-visible` gate. */
+	onFocusEmphasis: () => void
+}
+
 /**
- * A legend entry's label, truncated to one line so a side panel's static width
- * can't force the row to overflow. `-webkit-line-clamp` was the first pass, but
- * its legacy box model centers a clamped line that had to wrap internally before
- * being cut — pulling a long label away from its swatch — so a plain single-line
- * `truncate` (`nowrap` + ellipsis) stands in instead; it never wraps, so nothing
- * is left to center. Surfaces the full label in a hover tooltip once that
- * overflow actually clips it, gated by the shared {@link useTruncation} overflow
- * detector — the same measure the grid's cells use.
+ * One legend entry: a series switch (or a lone static chip) whose label truncates
+ * to one line so a side panel's static width can't force the row to overflow, with
+ * a hover/focus tooltip that reveals the full label once the column clips it.
+ * `-webkit-line-clamp` was the first pass, but its legacy box model centers a
+ * clamped line that had to wrap internally before being cut — pulling a long label
+ * away from its swatch — so a plain single-line `truncate` (`nowrap` + ellipsis)
+ * stands in instead; it never wraps, so nothing is left to center.
  *
+ * @remarks The tooltip wraps the whole control rather than the label span: a
+ * switch is a {@link Button}, whose {@link TouchTarget} hit-area overlay captures
+ * pointer events and forwards them to the button by bubbling, so a tooltip
+ * anchored to an inner span would never see the hover. Overflow is still measured
+ * on the label span through the shared {@link useTruncation} detector — the same
+ * measure the grid's cells use — and the closed (untruncated) tooltip renders no
+ * surface, so a fitting entry adds no DOM.
  * @internal
  */
-function ChartLegendItemLabel({ label, off }: { label: string; off: boolean }) {
-	const [ref, truncated] = useTruncation<HTMLSpanElement>()
+function ChartLegendEntry({
+	item,
+	off,
+	panel,
+	texture,
+	interactive,
+	onToggle,
+	onPointerEmphasis,
+	onFocusEmphasis,
+}: ChartLegendEntryProps) {
+	const [labelRef, truncated] = useTruncation<HTMLSpanElement>()
+
+	const content = (
+		<>
+			<ChartSwatch
+				swatch={item.swatch}
+				swatchClass={item.swatchClass}
+				swatchColor={item.swatchColor}
+				color={item.color}
+				dashed={item.dashed}
+				active={texture}
+				off={off}
+			/>
+
+			<span ref={labelRef} className="block min-w-0 truncate">
+				<Text
+					as="span"
+					severity="muted"
+					size="sm"
+					className={cn('text-left leading-tight', off && 'line-through opacity-60')}
+				>
+					{item.label}
+				</Text>
+			</span>
+
+			{item.detail && (
+				<Text
+					as="span"
+					severity="muted"
+					size="sm"
+					className={cn('text-left leading-tight tabular-nums', off && 'opacity-60')}
+				>
+					{item.detail}
+				</Text>
+			)}
+		</>
+	)
+
+	// A lone series can't be switched — nor emphasised, since dimming every other
+	// mark against the only one would blank the chart — so it reads as a static
+	// identity chip: no button, no toggle, no emphasis. It keeps the
+	// `chart-legend-item` slot but stays out of the roving (a span, not a button),
+	// so a reference chip beside it is the only Tab stop.
+	const control = interactive ? (
+		<Button
+			size="sm"
+			variant="plain"
+			data-slot="chart-legend-item"
+			block={panel}
+			// Button's own base centers its content; a panel entry stretches to
+			// `w-full` so every row can align its swatch to the same edge, not center
+			// a shorter row's content under a longer one's.
+			className={cn(panel && 'min-w-0 justify-start')}
+			aria-pressed={!off}
+			onClick={() => onToggle(item.index)}
+			onPointerEnter={() => onPointerEmphasis(item.index)}
+			onPointerLeave={() => onPointerEmphasis(null)}
+			// Focus and blur resolve through the same path as hover: a keyboard focus
+			// (`:focus-visible`, the same gate the ring rides) emphasises, while a
+			// pointer click's ring-less focus — or the focus a backgrounded tab re-fires
+			// on return — resolves to nothing.
+			onFocus={onFocusEmphasis}
+			onBlur={onFocusEmphasis}
+		>
+			{content}
+		</Button>
+	) : (
+		<span
+			data-slot="chart-legend-item"
+			className={cn('inline-flex items-center gap-1 px-2 py-1', panel && 'w-full min-w-0')}
+		>
+			{content}
+		</span>
+	)
 
 	return (
 		<Tooltip enabled={truncated}>
-			<TooltipTrigger>
-				<span ref={ref} className="block min-w-0 truncate">
-					<Text
-						as="span"
-						severity="muted"
-						size="sm"
-						className={cn('text-left leading-tight', off && 'line-through opacity-60')}
-					>
-						{label}
-					</Text>
-				</span>
-			</TooltipTrigger>
+			<TooltipTrigger>{control}</TooltipTrigger>
 
-			<TooltipContent>{label}</TooltipContent>
+			<TooltipContent>{item.label}</TooltipContent>
 		</Tooltip>
 	)
 }
@@ -264,6 +360,10 @@ export function ChartLegend({
 	// chips, which recede the marks on hover or focus.
 	const interactive = seriesInteractive || references.length > 0
 
+	// A side panel stacks its controls in a column, so the arrows that rove them
+	// follow the layout — Up/Down down the panel, Left/Right across the wrap row.
+	const orientation = panel ? 'vertical' : 'horizontal'
+
 	// Rove across the focusable controls — series switches and reference chips
 	// alike — so a lone series' static chip keeps its queryable `chart-legend-item`
 	// slot without being seated a Tab stop, while the reference chips join the one
@@ -271,7 +371,7 @@ export function ChartLegend({
 	const onKeyDown = useA11yRoving(ref, {
 		itemSelector:
 			'button[data-slot="chart-legend-item"], button[data-slot="chart-legend-reference"]',
-		orientation: 'horizontal',
+		orientation,
 		manageTabIndex: true,
 	})
 
@@ -289,7 +389,7 @@ export function ChartLegend({
 	// present for a switchboard, absent for a lone static chip (a plain grouping
 	// div with no interaction).
 	const toolbarProps = interactive
-		? ({ role: 'toolbar', 'aria-orientation': 'horizontal', onKeyDown: handleKeyDown } as const)
+		? ({ role: 'toolbar', 'aria-orientation': orientation, onKeyDown: handleKeyDown } as const)
 		: {}
 
 	// The entry switches (or a lone static chip), an optional pagination row, and
@@ -298,87 +398,23 @@ export function ChartLegend({
 	// center that block rather than pin it to the plot.
 	const legendBody = (
 		<>
-			{pageItems.map((item) => {
-				const off = hidden.has(item.index)
+			{pageItems.map((item) => (
+				<ChartLegendEntry
+					key={item.label}
+					item={item}
+					off={hidden.has(item.index)}
+					panel={panel}
+					texture={texture}
+					interactive={seriesInteractive}
+					onToggle={onToggle}
+					onPointerEmphasis={(index) => {
+						hovered.current = index
 
-				const content = (
-					<>
-						<ChartSwatch
-							swatch={item.swatch}
-							swatchClass={item.swatchClass}
-							swatchColor={item.swatchColor}
-							color={item.color}
-							dashed={item.dashed}
-							active={texture}
-							off={off}
-						/>
-
-						<ChartLegendItemLabel label={item.label} off={off} />
-
-						{item.detail && (
-							<Text
-								as="span"
-								severity="muted"
-								size="sm"
-								className={cn('text-left leading-tight tabular-nums', off && 'opacity-60')}
-							>
-								{item.detail}
-							</Text>
-						)}
-					</>
-				)
-
-				// A lone series can't be switched — nor emphasised, since dimming every
-				// other mark against the only one would blank the chart — so it reads as a
-				// static identity chip: no button, no toggle, no emphasis. It keeps the
-				// `chart-legend-item` slot but stays out of the roving (a span, not a
-				// button), so a reference chip beside it is the only Tab stop.
-				if (!seriesInteractive) {
-					return (
-						<span
-							key={item.label}
-							data-slot="chart-legend-item"
-							className={cn('inline-flex items-center gap-1 px-2 py-1', panel && 'w-full min-w-0')}
-						>
-							{content}
-						</span>
-					)
-				}
-
-				return (
-					<Button
-						key={item.label}
-						size="sm"
-						variant="plain"
-						data-slot="chart-legend-item"
-						block={panel}
-						// Button's own base centers its content; a panel entry stretches
-						// to `w-full` so every row can align its swatch to the same edge,
-						// not center a shorter row's content under a longer one's.
-						className={cn(panel && 'min-w-0 justify-start')}
-						aria-pressed={!off}
-						onClick={() => onToggle(item.index)}
-						onPointerEnter={() => {
-							hovered.current = item.index
-
-							syncEmphasis()
-						}}
-						onPointerLeave={() => {
-							hovered.current = null
-
-							syncEmphasis()
-						}}
-						// Focus and blur resolve through the same path as hover: a keyboard
-						// focus (`:focus-visible`, the same gate the ring rides) emphasises,
-						// while a pointer click's ring-less focus — or the focus a backgrounded
-						// tab re-fires on return — resolves to nothing.
-						onFocus={syncEmphasis}
-						onBlur={syncEmphasis}
-					>
-						{content}
-					</Button>
-				)
-			})}
+						syncEmphasis()
+					}}
+					onFocusEmphasis={syncEmphasis}
+				/>
+			))}
 
 			{paginate && (
 				<div

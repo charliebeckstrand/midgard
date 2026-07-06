@@ -78,26 +78,26 @@ describe('chart legend panel (real browser)', () => {
 			/>,
 		)
 
-		// The label span is the tooltip trigger (cloned onto it), so it carries the
-		// clip and, once truncated, the `cursor-help` reveal affordance.
-		const triggers = () => allBySlot(container, 'tooltip-trigger') as HTMLElement[]
+		// The whole entry (button) is the tooltip trigger — the label span it wraps
+		// carries the clip, and the trigger gains `cursor-help` once truncated.
+		const entries = allBySlot(container, 'chart-legend-item') as HTMLElement[]
+		const clip = (entry: HTMLElement) => entry.querySelector('.truncate') as HTMLElement
 
 		await waitFor(() => {
-			const long = triggers()[0] as HTMLElement
+			const long = clip(entries[0] as HTMLElement)
 
 			expect(long.scrollWidth).toBeGreaterThan(long.clientWidth)
 		})
 
-		const found = triggers()
-		const long = found[0] as HTMLElement
-		const short = found[1] as HTMLElement
+		const long = entries[0] as HTMLElement
+		const short = entries[1] as HTMLElement
 
-		// The clipped label arms the tooltip (cursor-help rides `enabled`, gated by
+		// The clipped entry arms the tooltip (cursor-help rides `enabled`, gated by
 		// the shared truncation detector)...
 		expect(long.className).toContain('cursor-help')
 
-		// ...while the label that fits neither clips nor arms.
-		expect(short.scrollWidth).toBeLessThanOrEqual(short.clientWidth)
+		// ...while the entry that fits neither clips nor arms.
+		expect(clip(short).scrollWidth).toBeLessThanOrEqual(clip(short).clientWidth)
 
 		expect(short.className).not.toContain('cursor-help')
 	})
