@@ -212,9 +212,11 @@ export function GridGroupByDndRegion<T>({
 			{children}
 			<DragOverlay>
 				{/* The lifted chip clone tracking the pointer — the same Badge the panel
-				    shows for the active group, shadowed so it reads as raised. */}
+				    shows for the active group, shadowed so it reads as raised, and
+				    grabbing-cursored so the pointer keeps the drag affordance (a bare
+				    Badge is a <span>, which would otherwise show the text caret). */}
 				{activeColumn ? (
-					<Badge size="sm" className="shadow-lg">
+					<Badge size="sm" className="cursor-grabbing select-none shadow-lg">
 						{columnLabel(activeColumn)}
 					</Badge>
 				) : null}
