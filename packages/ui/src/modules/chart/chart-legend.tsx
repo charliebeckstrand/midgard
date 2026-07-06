@@ -1,13 +1,73 @@
 'use client'
 
-import { type KeyboardEvent, useRef } from 'react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { type KeyboardEvent, useLayoutEffect, useRef, useState } from 'react'
 import { Button } from '../../components/button'
+import { Icon } from '../../components/icon'
 import { Swatch } from '../../components/swatch'
 import { Text } from '../../components/text'
+import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
 import { cn } from '../../core'
 import { useA11yRoving } from '../../hooks/a11y'
 import type { ChartSeriesColor } from '../../recipes/kata/chart'
 import { ChartSwatch } from './chart-pattern-defs'
+
+/** Entries per page once a side panel's switches would clip vertically. @internal */
+const PAGE_SIZE = 5
+
+/**
+ * A legend entry's label, line-clamped to one line so a side panel's
+ * `max-w-[50%]` can't force the row to overflow. Detects the clamp by its
+ * clipped line spilling past the box's own height — `line-clamp` wraps rather
+ * than widens, so overflow reads on the vertical axis, not the horizontal one
+ * a plain single-line truncate would compare — and surfaces the full label in
+ * a hover tooltip once that clip fires.
+ *
+ * @internal
+ */
+function ChartLegendItemLabel({ label, off }: { label: string; off: boolean }) {
+	const ref = useRef<HTMLSpanElement>(null)
+
+	const [truncated, setTruncated] = useState(false)
+
+	// Re-measures on a label change too, not just a box resize — content can grow
+	// or shrink the clamped line's overflow without the box's own size moving.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: label is read via the DOM the effect owns, not referenced directly.
+	useLayoutEffect(() => {
+		const el = ref.current
+
+		if (!el) return
+
+		const measure = () => setTruncated(el.scrollHeight > el.clientHeight)
+
+		measure()
+
+		const observer = new ResizeObserver(measure)
+
+		observer.observe(el)
+
+		return () => observer.disconnect()
+	}, [label])
+
+	return (
+		<Tooltip enabled={truncated}>
+			<TooltipTrigger>
+				<span ref={ref} className="min-w-0 line-clamp-1">
+					<Text
+						as="span"
+						severity="muted"
+						size="sm"
+						className={cn('text-left leading-tight', off && 'line-through opacity-60')}
+					>
+						{label}
+					</Text>
+				</span>
+			</TooltipTrigger>
+
+			<TooltipContent>{label}</TooltipContent>
+		</Tooltip>
+	)
+}
 
 /** One legend entry: the series name keyed by its mark-mirroring swatch. @internal */
 export type ChartLegendItem = {
@@ -69,7 +129,9 @@ export type ChartLegendProps = {
 	onFocus: (index: number | null) => void
 	/**
 	 * Lay the entries out as a single column rather than the centered wrap
-	 * row — the static side panel beside a pie or donut.
+	 * row — the static side panel beside a pie or donut. Caps the panel at
+	 * half the chart's width and, past five switches, paginates them instead
+	 * of clipping the column.
 	 */
 	panel?: boolean
 	/** The `texture` prop is on, so square swatches hatch in every mode, mirroring the marks. */
@@ -95,7 +157,10 @@ export type ChartLegendProps = {
  * focus a backgrounded tab re-fires on return — dims nothing without a visible
  * ring to explain it. Reference lines follow the entries as static,
  * `aria-hidden` identity chips — a rule has no toggle, and
- * {@link ChartReferenceList} carries its parity.
+ * {@link ChartReferenceList} carries its parity. A panel past five switches
+ * pages instead of clipping: the visible page still renders in `items` order,
+ * so the roving and emphasis wiring key off its position there rather than
+ * the full list.
  * @internal
  */
 export function ChartLegend({
@@ -108,6 +173,20 @@ export function ChartLegend({
 	texture = false,
 }: ChartLegendProps) {
 	const ref = useRef<HTMLDivElement>(null)
+
+	const [page, setPage] = useState(0)
+
+	// Only a side panel clips vertically — the wrap row just grows. Past one
+	// page, the column trades clipping for a prev/next page instead.
+	const paginate = panel && items.length > PAGE_SIZE
+
+	const pageCount = paginate ? Math.ceil(items.length / PAGE_SIZE) : 1
+
+	const currentPage = Math.min(page, pageCount - 1)
+
+	const pageItems = paginate
+		? items.slice(currentPage * PAGE_SIZE, currentPage * PAGE_SIZE + PAGE_SIZE)
+		: items
 
 	// Which series the pointer is over, or null. Emphasis draws on this and the
 	// keyboard focus together, so the two inputs share the one slot instead of
@@ -136,10 +215,11 @@ export function ChartLegend({
 			? Array.from(buttons).findIndex((button) => button.matches(':focus-visible'))
 			: -1
 
-		// Buttons render in `items` order, so a focused button's position names its
-		// entry — and the entry carries the series index the emphasis keys off,
-		// which the legend's display order need not match.
-		onFocus(position === -1 ? null : (items[position]?.index ?? null))
+		// Buttons render in `pageItems` order — `items` itself, less any page not
+		// currently visible — so a focused button's position names its entry there;
+		// the entry carries the series index the emphasis keys off, which the
+		// legend's display order need not match.
+		onFocus(position === -1 ? null : (pageItems[position]?.index ?? null))
 	}
 
 	// Two or more entries make a switchboard; a lone one is a static chip.
@@ -176,10 +256,12 @@ export function ChartLegend({
 			data-slot="chart-legend"
 			{...toolbarProps}
 			className={cn(
-				panel ? 'flex flex-col items-start' : 'flex flex-wrap items-center justify-center',
+				panel
+					? 'flex min-w-0 flex-col items-start lg:max-w-[50%]'
+					: 'flex flex-wrap items-center justify-center',
 			)}
 		>
-			{items.map((item) => {
+			{pageItems.map((item) => {
 				const off = hidden.has(item.index)
 
 				const content = (
@@ -193,14 +275,7 @@ export function ChartLegend({
 							off={off}
 						/>
 
-						<Text
-							as="span"
-							severity="muted"
-							size="sm"
-							className={cn('text-left leading-tight', off && 'line-through opacity-60')}
-						>
-							{item.label}
-						</Text>
+						<ChartLegendItemLabel label={item.label} off={off} />
 
 						{item.detail && (
 							<Text
@@ -222,7 +297,7 @@ export function ChartLegend({
 						<span
 							key={item.label}
 							data-slot="chart-legend-item"
-							className="inline-flex items-center gap-1 px-2 py-1"
+							className={cn('inline-flex items-center gap-1 px-2 py-1', panel && 'w-full min-w-0')}
 						>
 							{content}
 						</span>
@@ -235,6 +310,8 @@ export function ChartLegend({
 						size="sm"
 						variant="plain"
 						data-slot="chart-legend-item"
+						block={panel}
+						className={cn(panel && 'min-w-0')}
 						aria-pressed={!off}
 						onClick={() => onToggle(item.index)}
 						onPointerEnter={() => {
@@ -258,6 +335,37 @@ export function ChartLegend({
 					</Button>
 				)
 			})}
+
+			{paginate && (
+				<div
+					data-slot="chart-legend-pagination"
+					className="flex w-full items-center justify-between gap-1 pt-1"
+				>
+					<Button
+						size="sm"
+						variant="plain"
+						aria-label="Previous legend entries"
+						disabled={currentPage === 0}
+						onClick={() => setPage(currentPage - 1)}
+					>
+						<Icon icon={<ChevronLeft />} />
+					</Button>
+
+					<Text as="span" severity="muted" size="sm" className="tabular-nums">
+						{currentPage + 1} / {pageCount}
+					</Text>
+
+					<Button
+						size="sm"
+						variant="plain"
+						aria-label="Next legend entries"
+						disabled={currentPage === pageCount - 1}
+						onClick={() => setPage(currentPage + 1)}
+					>
+						<Icon icon={<ChevronRight />} />
+					</Button>
+				</div>
+			)}
 
 			{references.map((reference, index) => (
 				// A reference chip mirrors an entry's swatch-and-label layout without the
