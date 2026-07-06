@@ -67,6 +67,24 @@ export const BAND_LABEL_HEIGHT = 16
 /** Air above the plot so the top tick label and markers stay inside the frame. @internal */
 export const PLOT_TOP_PAD = 8
 
+/** Band a value-axis title adds to its gutter — one `text-xs` line box plus a breath of air. @internal */
+export const AXIS_TITLE_BAND = 16
+
+/** Air between a value-axis title and the tick labels it sits beside, so the two never crowd. @internal */
+export const AXIS_TITLE_GAP = 8
+
+/** Smallest bubble diameter: never under the marker size, so the least point stays legible. @internal */
+export const BUBBLE_MIN_DIAMETER = 8
+
+/** Largest bubble diameter: roomy enough to read, small enough that bubbles rarely swallow the plot. @internal */
+export const BUBBLE_MAX_DIAMETER = 28
+
+/** Sized bubbles fill translucently so overlapping points stay severally readable. @internal */
+export const BUBBLE_FILL_OPACITY = 0.8
+
+/** Air around a scatter point that still counts as pointing at it. @internal */
+export const SCATTER_HIT_SLACK = 3
+
 /** Reference-rule stroke width: firm enough to read cleanly over the marks it crosses. @internal */
 export const REFERENCE_STROKE_WIDTH = 2
 

@@ -8,7 +8,10 @@ import { Icon } from '../../components/icon'
 import { TableCell, TableRow } from '../../components/table'
 import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/grid'
+import { aggregateLabelSpan, hasAggregation } from './grid-aggregate'
 import type { GridGroupBy } from './grid-data-types'
+import { GridAggregateCells } from './grid-total-row'
+import type { GridColumn } from './types'
 
 /** A group value rendered for the header label: `—` for an empty value, else its string form. @internal */
 function formatGroupValue(value: unknown): string {
@@ -19,8 +22,8 @@ function formatGroupValue(value: unknown): string {
 type GridGroupRowProps<T> = {
 	/** The engine's group-header row (`row.getIsGrouped()`). */
 	row: Row<T>
-	/** Columns the header spans — the full visible column count. */
-	colSpan: number
+	/** The visible columns, in render order — the label span and aggregate cells derive from them. */
+	columns: GridColumn<T>[]
 	/** The grouped column id, read for the group's shared value. */
 	columnId: string | number
 	/** Header-label override; falls back to `value (count)`. */
@@ -28,15 +31,18 @@ type GridGroupRowProps<T> = {
 }
 
 /**
- * A group-header row: a full-width `<tr>` spanning every column, carrying a bare
- * disclosure button that toggles the group's expansion — the group's shared value
- * and row count (`Developer (3)`) at the start, a chevron at the trailing edge
- * that rotates as the group opens. A {@link GridGroupBy.renderHeader} override
- * replaces the value/count label; the toggle and chevron stay.
+ * A group-header row carrying a bare disclosure button that toggles the group's
+ * expansion — the group's shared value and row count (`Developer (3)`) at the
+ * start, a chevron at the trailing edge that rotates as the group opens. A
+ * {@link GridGroupBy.renderHeader} override replaces the value/count label; the
+ * toggle and chevron stay. Without aggregation the row is one full-width cell;
+ * once any column aggregates, the label spans only the columns before the first
+ * aggregated one and each aggregated column carries the group's figure — so a
+ * collapsed group still reads its totals off its header.
  *
  * @internal
  */
-export function GridGroupRow<T>({ row, colSpan, columnId, renderHeader }: GridGroupRowProps<T>) {
+export function GridGroupRow<T>({ row, columns, columnId, renderHeader }: GridGroupRowProps<T>) {
 	const expanded = row.getIsExpanded()
 
 	// Single-level grouping: the group's immediate sub-rows are its leaf rows, so
@@ -49,9 +55,13 @@ export function GridGroupRow<T>({ row, colSpan, columnId, renderHeader }: GridGr
 		? renderHeader({ columnId, value, count })
 		: `${formatGroupValue(value)} (${count})`
 
+	const aggregated = hasAggregation(columns)
+
+	const span = aggregated ? aggregateLabelSpan(columns) : columns.length
+
 	return (
 		<TableRow data-group-row data-expanded={dataAttr(expanded)}>
-			<TableCell colSpan={colSpan} className={cn(k.rowGroup.rail)}>
+			<TableCell colSpan={span} className={cn(k.rowGroup.rail)}>
 				<Button
 					variant="bare"
 					onClick={row.getToggleExpandedHandler()}
@@ -68,6 +78,14 @@ export function GridGroupRow<T>({ row, colSpan, columnId, renderHeader }: GridGr
 					{label}
 				</Button>
 			</TableCell>
+
+			{aggregated && (
+				<GridAggregateCells
+					columns={columns}
+					rows={row.subRows.map((leaf) => leaf.original)}
+					from={span}
+				/>
+			)}
 		</TableRow>
 	)
 }

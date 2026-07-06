@@ -18,9 +18,12 @@ import {
 	valueExtent,
 } from './chart-orientation'
 import type { LinearScale } from './chart-scale'
-import type { ChartReferenceLine } from './chart-schema'
+import type { ChartReferenceLine, ChartValueAxisSide } from './chart-schema'
 import { formatChartValue } from './chart-series'
 import { useChartEmphasis } from './context'
+
+/** Formats a reference value with its own axis's formatter. @internal */
+type ReferenceFormat = (value: number, axis: ChartValueAxisSide) => string
 
 /** The neutral de-emphasis slot a reference takes until coloured. @internal */
 const DEFAULT_REFERENCE_COLOR = 'zinc' satisfies ChartSeriesColor
@@ -33,8 +36,10 @@ function isSeriesSlot(color: string): color is ChartSeriesColor {
 /** Props for {@link ChartReferenceLines}. @internal */
 export type ChartReferenceLinesProps = {
 	plot: PlotRect
-	/** The resolved value scale, or `null` before a domain resolves — nothing draws then. */
+	/** The resolved primary value scale, or `null` before a domain resolves. */
 	scale: LinearScale | null
+	/** The secondary scale, for rules bound to the right axis; a rule whose scale is `null` draws nothing. */
+	rightScale?: LinearScale | null
 	/** The reference lines to draw, or none; non-finite values are skipped. */
 	reference: ChartReferenceLine[] | undefined
 	/**
@@ -43,8 +48,8 @@ export type ChartReferenceLinesProps = {
 	 * @defaultValue 'vertical'
 	 */
 	orientation?: ChartOrientation
-	/** Formats the value shown in the hover tooltip. @defaultValue locale integer / fraction */
-	format?: (value: number) => string
+	/** Formats each rule's tooltip value with its axis's formatter. @defaultValue locale integer / fraction */
+	format?: ReferenceFormat
 	/**
 	 * Reveal each rule on mount by sliding it in along the value axis from the
 	 * baseline to its value, in the direction the value points — the way the
@@ -180,32 +185,39 @@ function ReferenceRule({ line, index, start, end, orientation, format, rise }: R
 export function ChartReferenceLines({
 	plot,
 	scale,
+	rightScale = null,
 	reference,
 	orientation = 'vertical',
 	format,
 	animate = false,
 }: ChartReferenceLinesProps) {
-	if (!scale || !reference || reference.length === 0) return null
+	if ((!scale && !rightScale) || !reference || reference.length === 0) return null
 
 	const [from, to] = bandExtent(orientation, plot)
 
 	const [near, far] = valueExtent(orientation, plot)
 
 	// The zero line each rule reveals from — the same baseline the bars grow
-	// from — clamped onto the plot when zero sits off-domain. Revealing from here
-	// points every rule the way its value does: up from zero for a value above
-	// it, down for one below, transposed to right / left when horizontal, so a
-	// rule animates like the bar that would reach it.
-	const baseline = clamp(scale.map(0), Math.min(near, far), Math.max(near, far))
+	// from, on the rule's own axis — clamped onto the plot when zero sits
+	// off-domain. Revealing from here points every rule the way its value does:
+	// up from zero for a value above it, down for one below, transposed to
+	// right / left when horizontal, so a rule animates like the bar that would
+	// reach it.
+	const baselineOf = (ruleScale: LinearScale) =>
+		clamp(ruleScale.map(0), Math.min(near, far), Math.max(near, far))
 
 	const resolvedFormat = format ?? formatChartValue
 
 	const group = (
 		<g data-slot="chart-reference-lines">
 			{reference.map((line, index) => {
-				if (!Number.isFinite(line.value)) return null
+				const axis = line.axis ?? 'left'
 
-				const at = scale.map(line.value)
+				const ruleScale = axis === 'right' ? rightScale : scale
+
+				if (!ruleScale || !Number.isFinite(line.value)) return null
+
+				const at = ruleScale.map(line.value)
 
 				return (
 					<ReferenceRule
@@ -215,8 +227,8 @@ export function ChartReferenceLines({
 						start={project(orientation, at, from)}
 						end={project(orientation, at, to)}
 						orientation={orientation}
-						format={resolvedFormat}
-						rise={animate ? referenceRise(orientation, baseline - at) : null}
+						format={(value) => resolvedFormat(value, axis)}
+						rise={animate ? referenceRise(orientation, baselineOf(ruleScale) - at) : null}
 					/>
 				)
 			})}
@@ -229,7 +241,7 @@ export function ChartReferenceLines({
 /** Props for {@link ChartReferenceList}. @internal */
 export type ChartReferenceListProps = {
 	reference: ChartReferenceLine[] | undefined
-	format?: (value: number) => string
+	format?: ReferenceFormat
 }
 
 /**
@@ -247,11 +259,13 @@ export function ChartReferenceList({ reference, format }: ChartReferenceListProp
 
 	const resolvedFormat = format ?? formatChartValue
 
+	const value = (line: ChartReferenceLine) => resolvedFormat(line.value, line.axis ?? 'left')
+
 	return (
 		<ul data-slot="chart-reference-list" className="sr-only">
 			{lines.map((line) => (
 				<li key={`${line.value}:${line.label ?? ''}`}>
-					{line.label ? `${line.label}: ${resolvedFormat(line.value)}` : resolvedFormat(line.value)}
+					{line.label ? `${line.label}: ${value(line)}` : value(line)}
 				</li>
 			))}
 		</ul>
@@ -270,14 +284,14 @@ export function ChartReferenceList({ reference, format }: ChartReferenceListProp
  */
 export function referenceLegendItems(
 	reference: ChartReferenceLine[] | undefined,
-	format: (value: number) => string = formatChartValue,
+	format: ReferenceFormat = formatChartValue,
 ): ChartLegendReference[] {
 	return (reference ?? [])
 		.filter((line) => Number.isFinite(line.value))
 		.map((line) => {
 			const color = line.color ?? DEFAULT_REFERENCE_COLOR
 
-			const label = line.label ?? format(line.value)
+			const label = line.label ?? format(line.value, line.axis ?? 'left')
 
 			return isSeriesSlot(color)
 				? { label, swatchClass: k.series[color].text.join(' ') }

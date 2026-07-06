@@ -1,16 +1,21 @@
 export type { ChartSeriesColor } from '../../recipes/kata/chart'
 export { AreaChart, type AreaChartProps } from './area-chart'
 export { BarChart, type BarChartProps } from './bar-chart'
+export { BubbleChart, type BubbleChartProps } from './bubble-chart'
 export type { ChartAspectRatio } from './chart-layout'
 export type { ChartOrientation } from './chart-orientation'
 export type {
+	BubbleChartSeries,
 	ChartLegendPlacement,
 	ChartReferenceLine,
 	ChartSeries,
+	ChartValueAxis,
+	ChartValueAxisSide,
 	ComboChartSeries,
 	Crosshair,
 	DataKey,
 	PieChartSeries,
+	ScatterChartSeries,
 } from './chart-schema'
 export { ChartSkeleton, type ChartSkeletonProps } from './chart-skeleton'
 export {
@@ -27,3 +32,4 @@ export {
 } from './heatmap-chart'
 export { LineChart, type LineChartProps, type LineInterpolation } from './line-chart'
 export { PieChart, type PieChartProps } from './pie-chart'
+export { ScatterChart, type ScatterChartProps } from './scatter-chart'

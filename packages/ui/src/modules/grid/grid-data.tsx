@@ -52,10 +52,11 @@ import {
 	restrictToHorizontalAxis,
 	restrictToVerticalAxis,
 } from './grid-reorder'
-import type { GridRowClick } from './grid-row'
+import type { GridRowClick, GridRowsProps } from './grid-row'
 import { useGridSort } from './grid-sort-state'
 import { useColumnSettleWidths } from './grid-table-views'
 import { GridToolbar } from './grid-toolbar'
+import { GridGrandTotalBody, useGridGrandTotal } from './grid-total-row'
 import type { GridScrollRowIntoView } from './grid-virtualized-body'
 import {
 	columnLabel,
@@ -65,6 +66,7 @@ import {
 } from './types'
 import { useGridColumns } from './use-grid-columns'
 import { useGridCursor } from './use-grid-cursor'
+import { type GridExpansionResult, useGridExpansion } from './use-grid-expansion'
 import { useGridExport } from './use-grid-export'
 import { type GridGroupHeader, type GridGroupResult, useGridGroup } from './use-grid-group'
 import { GridNavContext, type GridRowActivate } from './use-grid-navigation'
@@ -135,25 +137,60 @@ function isGroupableColumnId<T>(columns: GridColumn<T>[], id: string | number): 
 }
 
 /**
- * Zeroes the grid features that grouping renders its own body over: while
- * grouping is active it stands the navigable cursor, virtualization, and
- * pagination down (the grouped body is a plain, whole-set table), so those flags
- * resolve to `false`/`undefined`; otherwise each passes through. Split out so
+ * Zeroes the grid features that a self-rendering body stands over. Grouping
+ * renders its own plain, whole-set body, so it stands the navigable cursor,
+ * virtualization, and pagination down. Master-detail interleaves auto-height
+ * detail rows into the flat body, so it stands the cursor and virtualization
+ * down (a window assumes uniform row heights) but keeps pagination — the two
+ * compose. Each flag passes through when neither is active. Split out so
  * {@link GridData} stays within its complexity budget.
  *
  * @internal
  */
 function resolveGroupingGates(args: {
 	groupingActive: boolean
+	expandableActive: boolean
 	navigable: boolean
 	virtualize: boolean
 	pagination: GridPagination | undefined
 }): { navigable: boolean; virtualize: boolean; pagination: GridPagination | undefined } {
-	if (!args.groupingActive) {
-		return { navigable: args.navigable, virtualize: args.virtualize, pagination: args.pagination }
-	}
+	// Either self-rendering body stands the cursor and virtualization down.
+	const ownBody = args.groupingActive || args.expandableActive
 
-	return { navigable: false, virtualize: false, pagination: undefined }
+	return {
+		navigable: ownBody ? false : args.navigable,
+		virtualize: ownBody ? false : args.virtualize,
+		// Only grouping (a whole-set body) stands pagination down; master-detail pages.
+		pagination: args.groupingActive ? undefined : args.pagination,
+	}
+}
+
+/**
+ * Resolves the master-detail hook into what {@link GridData} threads onward:
+ * whether it's active (grouping renders its own body, so expansion stands down
+ * under it) and the body wiring the flat rows read — the expanded set, the
+ * per-row predicate, the toggle, and the detail renderer — or `null` when
+ * inactive. Kept off {@link GridData}'s complexity budget.
+ *
+ * @internal
+ */
+function resolveDetailExpansion<T>(
+	expansion: GridExpansionResult<T>,
+	groupingActive: boolean,
+): { active: boolean; body: GridRowsProps<T>['expansion'] } {
+	const active = expansion.active && !groupingActive
+
+	if (!active || !expansion.render) return { active: false, body: null }
+
+	return {
+		active: true,
+		body: {
+			expanded: expansion.expanded,
+			rowExpandable: expansion.rowExpandable,
+			toggle: expansion.toggle,
+			render: expansion.render,
+		},
+	}
 }
 
 /** Props for {@link GridRegion}. @internal */
@@ -390,6 +427,9 @@ export function GridData<T>({
 	columnManager: columnManagerConfig,
 	groups: groupsConfig,
 	groupBy: groupByConfig,
+	groupTotalRow,
+	grandTotalRow,
+	expandable: expandableConfig,
 	pagination: paginationConfig,
 	resizable = true,
 	columnSizing: columnSizingConfig,
@@ -480,11 +520,17 @@ export function GridData<T>({
 
 	const groupingActive = grouping != null
 
-	// Grouping renders its own plain, whole-set body, so the cursor,
-	// virtualization, and pagination stand down while it's active (see
-	// `resolveGroupingGates`).
+	// Master-detail: the expanded-key set, per-row toggle, and detail renderer,
+	// resolved to whether it's active (grouping takes precedence, so it stands
+	// down under grouping) and the body wiring the flat rows read.
+	const detail = resolveDetailExpansion(useGridExpansion<T>(expandableConfig), groupingActive)
+
+	// A self-rendering body (grouping or master-detail) stands the cursor and
+	// virtualization down; grouping also stands pagination down, master-detail
+	// keeps it (see `resolveGroupingGates`).
 	const gated = resolveGroupingGates({
 		groupingActive,
+		expandableActive: detail.active,
 		navigable,
 		virtualize: virtualizeEnabled,
 		pagination: paginationConfig,
@@ -880,7 +926,23 @@ export function GridData<T>({
 	// Folded into the count resolver so the indeterminate `-1` sentinel is kept.
 	const groupRowOffset = Number(hasGroupRow)
 
-	const ariaRowCount = resolveAriaRowCount(pagination, renderRows.length, groupRowOffset)
+	// The grand-total row aggregates the full filtered set (see
+	// `useGridGrandTotal`); it adds a rendered row, so the aria count shifts
+	// with it the way the group band does.
+	const grandTotal = useGridGrandTotal({
+		grandTotalRow,
+		columns: visibleColumns,
+		hasRows,
+		loading,
+		showingError,
+		table,
+	})
+
+	const ariaRowCount = resolveAriaRowCount(
+		pagination,
+		renderRows.length,
+		groupRowOffset + Number(grandTotal.active),
+	)
 
 	// Full filtered row extent (the server total when paginating) for the busy
 	// region's result announcement; the header row the aria count adds is excluded.
@@ -978,6 +1040,8 @@ export function GridData<T>({
 					groupedRows={groupedRows}
 					groupColumnId={grouping}
 					groupRenderHeader={groupRenderHeader}
+					groupTotalRow={groupTotalRow}
+					expansion={detail.body}
 					getKey={getKey}
 					density={density}
 					truncate={truncate}
@@ -988,6 +1052,13 @@ export function GridData<T>({
 							? { scrollRef, estimateSize, overscan, scrollIntoViewRef: scrollRowIntoViewRef }
 							: null
 					}
+				/>
+
+				<GridGrandTotalBody<T>
+					grandTotal={grandTotal}
+					columns={visibleColumns}
+					gridSemantics={gridSemantics}
+					ariaRowCount={ariaRowCount}
 				/>
 			</Table>
 		</GridNavContext>

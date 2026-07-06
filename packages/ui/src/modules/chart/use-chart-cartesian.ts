@@ -7,6 +7,8 @@ import type { ChartAxisTick } from './chart-axis'
 import { CHART_METRICS } from './chart-constants'
 import {
 	type CartesianLayout,
+	type ChartAxisTitlePlacement,
+	type ChartValueAxisInput,
 	chartFrameSizing,
 	horizontalLayout,
 	type PlotRect,
@@ -16,7 +18,12 @@ import type { ChartLegendItem, ChartLegendReference } from './chart-legend'
 import type { ChartOrientation } from './chart-orientation'
 import { referenceLegendItems } from './chart-reference-lines'
 import type { BandScale, LinearScale } from './chart-scale'
-import type { CartesianChartProps, ChartReferenceLine, ChartSeries } from './chart-schema'
+import type {
+	CartesianChartProps,
+	ChartReferenceLine,
+	ChartSeries,
+	ChartValueAxisSide,
+} from './chart-schema'
 import {
 	chartReadout,
 	formatChartValue,
@@ -34,7 +41,7 @@ export type CartesianData<T> = Omit<CartesianChartProps<T>, 'aria-label' | 'aria
 
 /** Per-chart configuration for {@link useChartCartesian}. @internal */
 export type CartesianConfig<T> = {
-	/** Anchor the value domain at zero — bar-bearing charts. */
+	/** Anchor the value domains at zero — bar-bearing charts. */
 	zeroBaseline: boolean
 	/** The legend / tooltip swatch mirroring each series' mark. */
 	swatch: (series: ChartSeries<T>, index: number) => 'rect' | 'line'
@@ -61,12 +68,18 @@ export type CartesianChart = {
 	reserve: FrameReserve | null
 	plot: PlotRect
 	band: BandScale
-	/** `null` when nothing yields a value domain — render the empty frame. */
+	/** The primary (left) value scale; `null` when nothing yields its domain — render the empty frame. */
 	yScale: LinearScale | null
-	/** The zero line's position along the value axis, for bar baselines and the category axis. */
+	/** The secondary (right) value scale; `null` while nothing binds to the right axis. */
+	rightScale: LinearScale | null
+	/** The primary zero line's position along the value axis, for bar baselines and the category axis. */
 	baseline: number
-	/** Value ticks along the value axis (y when vertical, x when horizontal). */
+	/** The right scale's zero position, for the marks bound to it; the primary baseline when absent. */
+	rightBaseline: number
+	/** Primary value ticks along the value axis (y when vertical, x when horizontal). */
 	yTicks: ChartAxisTick[]
+	/** Secondary value ticks along the far side; empty without a right scale. */
+	rightTicks: ChartAxisTick[]
 	/** Category labels along the band axis (x when vertical, y when horizontal). */
 	xTicks: ChartAxisTick[]
 	/** Every series, toggled or not — the legend lists them all. */
@@ -90,30 +103,282 @@ export type CartesianChart = {
 	/** Per category, the visible series' value-axis positions — a value crosshair's snap targets. */
 	snapPoints: number[][]
 	/**
-	 * Each reference line's value-axis position, index-aligned to the `reference`
-	 * prop so a keyboard stop maps back to the rule it draws; `null` where the
-	 * value is non-finite (no rule, no stop) or no scale resolved.
+	 * Each reference line's value-axis position — projected through its own
+	 * axis's scale — index-aligned to the `reference` prop so a keyboard stop
+	 * maps back to the rule it draws; `null` where the value is non-finite (no
+	 * rule, no stop) or its scale never resolved.
 	 */
 	referencePositions: (number | null)[]
+	/**
+	 * The gridline positions along the value axis, per-axis participation
+	 * already applied — the left axis's ticks by default, the right's on request
+	 * (or standing in when no left scale resolves). The chart's `gridLines`
+	 * switch still gates the layer.
+	 */
+	gridPositions: number[]
+	/** The value-axis titles the layout placed; empty without titles. */
+	axisTitles: ChartAxisTitlePlacement[]
+	/** Formats a value with its axis's formatter — the readout, labels, and reference rules share it. */
+	formatAxisValue: (value: number, axis: ChartValueAxisSide) => string
 	/** Which way the chart faces — the frame parts read it to draw the transpose. */
 	orientation: ChartOrientation
 }
 
 /**
- * Each reference line's value-axis position, index-aligned to the prop so a
- * keyboard stop maps back to the rule {@link ChartReferenceLines} draws for it. A
- * non-finite value — or a chart with no resolved scale — holds its slot with
- * `null`, drawing no rule and offering no stop.
+ * Each reference line's value-axis position, projected through its own axis's
+ * scale and index-aligned to the prop so a keyboard stop maps back to the rule
+ * {@link ChartReferenceLines} draws for it. A non-finite value — or an axis with
+ * no resolved scale — holds its slot with `null`, drawing no rule and offering
+ * no stop.
  *
  * @internal
  */
 function referencePositionsOf(
 	reference: ChartReferenceLine[] | undefined,
-	scale: LinearScale | null,
+	scales: Record<ChartValueAxisSide, LinearScale | null>,
 ): (number | null)[] {
-	return (reference ?? []).map((line) =>
-		scale && Number.isFinite(line.value) ? scale.map(line.value) : null,
-	)
+	return (reference ?? []).map((line) => {
+		const scale = scales[line.axis ?? 'left']
+
+		return scale && Number.isFinite(line.value) ? scale.map(line.value) : null
+	})
+}
+
+/** The one axis a stack binds to: the side every series agrees on, else the left. @internal */
+function stackSideOf<T>(series: ChartSeries<T>[]): ChartValueAxisSide {
+	const first = series[0]?.axis ?? 'left'
+
+	return series.every((entry) => (entry.axis ?? 'left') === first) ? first : 'left'
+}
+
+/** Every series resolved to its meta: label, paint, swatch, values, and axis binding. @internal */
+function seriesMetas<T>(
+	data: T[],
+	series: ChartSeries<T>[],
+	swatch: CartesianConfig<T>['swatch'],
+	stack: boolean,
+): SeriesMeta[] {
+	const stackSide = stackSideOf(series)
+
+	return series.map((entry, index) => ({
+		index,
+		label: entry.yName ?? entry.yKey,
+		paint: seriesPaint(entry, index),
+		color: seriesColor(entry, index),
+		swatch: swatch(entry, index),
+		values: seriesValues(data, entry.yKey),
+		// A stack reads as one part-to-whole column, so every series binds to the
+		// stack's one axis rather than splitting segments across two domains.
+		axis: stack ? stackSide : (entry.axis ?? 'left'),
+	}))
+}
+
+/**
+ * One axis's domain candidates: its visible series' values — the per-category
+ * stack sums where stacked — plus the reference values bound to it, folded in
+ * the way min / max pins are so an off-data target line stays inside the frame.
+ *
+ * @internal
+ */
+function domainValuesFor<T>(args: {
+	side: ChartValueAxisSide
+	visible: SeriesMeta[]
+	stack: boolean
+	data: T[]
+	reference: ChartReferenceLine[] | undefined
+}): number[] {
+	const { side, visible, stack, data, reference } = args
+
+	const sided = visible.filter((meta) => meta.axis === side)
+
+	// Stacked charts scale to the per-category column totals; every other chart
+	// scales to the individual values.
+	const values = stack
+		? sided.length > 0
+			? data.map((_, index) => sided.reduce((sum, meta) => sum + (meta.values[index] ?? 0), 0))
+			: []
+		: sided.flatMap((meta) => meta.values.filter((value): value is number => value !== null))
+
+	const referenceValues = (reference ?? [])
+		.filter((line) => (line.axis ?? 'left') === side)
+		.map((line) => line.value)
+
+	return values.concat(referenceValues)
+}
+
+/** The per-axis formatters and layout inputs resolved from the chart props. @internal */
+type ResolvedValueAxes = {
+	leftValue?: ChartValueAxisInput
+	rightValue?: ChartValueAxisInput
+	formatAxisValue: (value: number, axis: ChartValueAxisSide) => string
+}
+
+/**
+ * Resolves both value axes from the props: each side's domain candidates and
+ * pins — `leftAxis` winning over the top-level `min` / `max`, its `format` over
+ * `formatValue` — and one axis-keyed formatter the readout, labels, and
+ * reference rules share.
+ *
+ * @internal
+ */
+function resolveValueAxes<T>(
+	props: CartesianData<T>,
+	visible: SeriesMeta[],
+	stack: boolean,
+	data: T[],
+): ResolvedValueAxes {
+	const format = props.formatValue ?? formatChartValue
+
+	const leftFormat = props.leftAxis?.format ?? format
+
+	const rightFormat = props.rightAxis?.format ?? format
+
+	const leftDomainValues = domainValuesFor({
+		side: 'left',
+		visible,
+		stack,
+		data,
+		reference: props.reference,
+	})
+
+	const rightDomainValues = domainValuesFor({
+		side: 'right',
+		visible,
+		stack,
+		data,
+		reference: props.reference,
+	})
+
+	// The right axis exists only while something binds to it — a visible
+	// right-bound series, a right reference, or a domain pin — so a single-axis
+	// chart never reserves the gutter.
+	const hasRightAxis =
+		rightDomainValues.length > 0 ||
+		visible.some((meta) => meta.axis === 'right') ||
+		props.rightAxis?.min !== undefined ||
+		props.rightAxis?.max !== undefined
+
+	// The left axis stands down the same way once everything binds right; with
+	// no right axis it stays on as the default home, so an empty chart still
+	// frames its value axis.
+	const hasLeftAxis =
+		!hasRightAxis ||
+		leftDomainValues.length > 0 ||
+		visible.some((meta) => meta.axis === 'left') ||
+		props.leftAxis?.min !== undefined ||
+		props.leftAxis?.max !== undefined ||
+		props.min !== undefined ||
+		props.max !== undefined
+
+	return {
+		leftValue: hasLeftAxis
+			? {
+					domainValues: leftDomainValues,
+					min: props.leftAxis?.min ?? props.min,
+					max: props.leftAxis?.max ?? props.max,
+					format: leftFormat,
+					title: props.leftAxis?.title,
+				}
+			: undefined,
+		rightValue: hasRightAxis
+			? {
+					domainValues: rightDomainValues,
+					min: props.rightAxis?.min,
+					max: props.rightAxis?.max,
+					format: rightFormat,
+					title: props.rightAxis?.title,
+				}
+			: undefined,
+		formatAxisValue: (value, side) => (side === 'right' ? rightFormat(value) : leftFormat(value)),
+	}
+}
+
+/**
+ * The gridline positions along the value axis: each side contributes its ticks
+ * while its gridLines flag holds — left on by default, right standing in only
+ * when no left scale resolves — so one hairline layer serves both axes.
+ *
+ * @internal
+ */
+function gridPositionsOf<T>(props: CartesianData<T>, layout: CartesianLayout): number[] {
+	const leftGrid = (props.leftAxis?.gridLines ?? true) && layout.valueScale !== null
+
+	const rightGrid =
+		(props.rightAxis?.gridLines ?? layout.valueScale === null) && layout.rightScale !== null
+
+	// De-duplicated: two independent scales can land ticks on one position —
+	// both domains' floors map to the plot edge — and one hairline is enough.
+	return [
+		...new Set([
+			...(leftGrid ? layout.valueTicks.map((tick) => tick.at) : []),
+			...(rightGrid ? layout.rightTicks.map((tick) => tick.at) : []),
+		]),
+	]
+}
+
+/** The legend entries: on request, or by default once a second series needs telling apart. @internal */
+function legendItemsOf(
+	metas: SeriesMeta[],
+	legend: CartesianChartProps<unknown>['legend'],
+): ChartLegendItem[] | null {
+	if (!(legend ?? metas.length > 1)) return null
+
+	return metas.map((meta) => ({
+		label: meta.label,
+		swatchClass: meta.paint.text.join(' '),
+		swatch: meta.swatch,
+		color: meta.color,
+	}))
+}
+
+/** One visible series resolved to the scale and baseline it draws through. @internal */
+export type DrawnSeries = {
+	meta: SeriesMeta
+	/** The series' own axis's scale — never `null`; an unresolved series drops out instead. */
+	scale: LinearScale
+	/** The zero position on that scale, where the series' bars grow from. */
+	baseline: number
+}
+
+/**
+ * The visible series paired with the scale and baseline each draws through:
+ * a series reads its own axis's scale — the stack's one shared side when
+ * `stacked` — and one whose scale never resolved drops out, since it can take
+ * no marks. The mark geometry, fills, and value labels all derive from this
+ * one list so their indices stay aligned.
+ *
+ * @internal
+ */
+export function drawnSeries(chart: CartesianChart, stacked = false): DrawnSeries[] {
+	const stackSide = chart.visible[0]?.axis ?? 'left'
+
+	return chart.visible.flatMap((meta) => {
+		const side = stacked ? stackSide : meta.axis
+
+		const scale = side === 'right' ? chart.rightScale : chart.yScale
+
+		const baseline = side === 'right' ? chart.rightBaseline : chart.baseline
+
+		return scale ? [{ meta, scale, baseline }] : []
+	})
+}
+
+/**
+ * Per-series projection callbacks for `barMarks`, read off the drawn list so
+ * each bar series maps and grows through its own axis's scale; `fallback`
+ * answers an index past the list, which the geometry never emits marks for.
+ *
+ * @internal
+ */
+export function barProjection(drawn: DrawnSeries[], fallback: number) {
+	return {
+		map: (value: number, index: number) => {
+			const entry = drawn[index]
+
+			return entry ? entry.scale.map(value) : value
+		},
+		baseline: (index: number) => drawn[index]?.baseline ?? fallback,
+	}
 }
 
 /**
@@ -124,25 +389,17 @@ function referencePositionsOf(
  * config's `orientation` and returns its normalized result. Charts add only
  * their geometry and mark renderers on top.
  *
+ * @remarks Series binding to the right axis split the domain: each side's
+ * visible series (and the references bound to it) feed its own scale, each
+ * formatted by its own axis's formatter, and the secondary scale — with its
+ * gutter, ticks, and title — exists only while something binds to it.
  * @internal
  */
 export function useChartCartesian<T>(
 	props: CartesianData<T>,
 	config: CartesianConfig<T>,
 ): CartesianChart {
-	const {
-		data,
-		series,
-		size,
-		width,
-		height,
-		aspectRatio = '16/9',
-		axes = true,
-		legend,
-		min,
-		max,
-		xAxis = 'category',
-	} = props
+	const { data, series, size, width, height, aspectRatio = '16/9', axes = true, legend } = props
 
 	const orientation = config.orientation ?? 'vertical'
 
@@ -152,7 +409,7 @@ export function useChartCartesian<T>(
 
 	// A time axis reads the same category field as a date: the row instants
 	// place its calendar ticks, and a date formatter labels the readout to match.
-	const timeAxis = xAxis === 'time'
+	const timeAxis = props.xAxis === 'time'
 
 	const times = timeAxis && xKey ? data.map((datum) => parseInstant(datum[xKey])) : undefined
 
@@ -167,33 +424,17 @@ export function useChartCartesian<T>(
 		reserve,
 	} = usePlotFrame(width, chartFrameSizing(height, aspectRatio))
 
-	const format = props.formatValue ?? formatChartValue
-
 	const { hidden, toggle, setFocus, emphasis } = useChartSeriesToggle()
 
-	const metas: SeriesMeta[] = series.map((entry, index) => ({
-		index,
-		label: entry.yName ?? entry.yKey,
-		paint: seriesPaint(entry, index),
-		color: seriesColor(entry, index),
-		swatch: config.swatch(entry, index),
-		values: seriesValues(data, entry.yKey),
-	}))
+	const stack = config.stack ?? false
+
+	const metas = seriesMetas(data, series, config.swatch, stack)
 
 	// Toggled-off series leave the scales and readout; slot colours stay put
 	// because each meta's paint keyed off its original index.
 	const visible = metas.filter((meta) => !hidden.has(meta.index))
 
-	// Stacked charts scale to the per-category column totals; every other chart
-	// scales to the individual values. Reference values join the domain the way
-	// min / max pins do, so an off-data target line stays inside the frame.
-	const referenceValues = props.reference?.map((line) => line.value) ?? []
-
-	const domainValues = (
-		config.stack
-			? data.map((_, index) => visible.reduce((sum, meta) => sum + (meta.values[index] ?? 0), 0))
-			: visible.flatMap((meta) => meta.values.filter((value) => value !== null))
-	).concat(referenceValues)
+	const { leftValue, rightValue, formatAxisValue } = resolveValueAxes(props, visible, stack, data)
 
 	const categories = xKey ? data.map((datum) => String(datum[xKey])) : []
 
@@ -205,41 +446,30 @@ export function useChartCartesian<T>(
 		axes,
 		tickTarget: metrics.tickTarget,
 		zeroBaseline: config.zeroBaseline,
-		min,
-		max,
-		domainValues,
+		value: leftValue,
+		rightValue,
 		categories,
 		times,
-		format,
 		count: data.length,
-		visibleValues: visible.map((meta) => meta.values),
+		visibleValues: visible.map((meta) => ({ values: meta.values, side: meta.axis })),
 	})
 
 	const readout =
 		xKey && data.length > 0 && visible.length > 0
-			? chartReadout(data, xKey, visible, format, timeAxis ? timeCategory() : undefined)
+			? chartReadout(data, xKey, visible, formatAxisValue, timeAxis ? timeCategory() : undefined)
 			: null
 
-	// Reference lines map onto the value axis the way the rules do, kept aligned to
-	// the prop so the keyboard's active-rule index names the rule it draws.
-	const referencePositions = referencePositionsOf(props.reference, layout.valueScale)
-
-	// The legend shows on request, or by default once a second series needs
-	// telling apart.
-	const legendItems =
-		(legend ?? metas.length > 1)
-			? metas.map((meta) => ({
-					label: meta.label,
-					swatchClass: meta.paint.text.join(' '),
-					swatch: meta.swatch,
-					color: meta.color,
-				}))
-			: null
+	// Reference lines map onto their own axis's scale the way the rules do, kept
+	// aligned to the prop so the keyboard's active-rule index names the rule it draws.
+	const referencePositions = referencePositionsOf(props.reference, {
+		left: layout.valueScale,
+		right: layout.rightScale,
+	})
 
 	// Reference chips resolve regardless; the frame mounts the legend — and with
 	// it these — only when `legendItems` is non-null, so they join a shown legend
 	// and never force one of their own.
-	const referenceItems = referenceLegendItems(props.reference, format)
+	const referenceItems = referenceLegendItems(props.reference, formatAxisValue)
 
 	return {
 		ref,
@@ -250,8 +480,11 @@ export function useChartCartesian<T>(
 		plot: layout.plot,
 		band: layout.band,
 		yScale: layout.valueScale,
+		rightScale: layout.rightScale,
 		baseline: layout.baseline,
+		rightBaseline: layout.rightBaseline,
 		yTicks: layout.valueTicks,
+		rightTicks: layout.rightTicks,
 		xTicks: layout.bandTicks,
 		metas,
 		visible,
@@ -260,11 +493,14 @@ export function useChartCartesian<T>(
 		emphasis,
 		setEmphasis: setFocus,
 		readout,
-		legendItems,
+		legendItems: legendItemsOf(metas, legend),
 		referenceItems,
 		bandPositions: layout.bandPositions,
 		snapPoints: layout.snapPoints,
 		referencePositions,
+		gridPositions: gridPositionsOf(props, layout),
+		axisTitles: layout.titles,
+		formatAxisValue,
 		orientation,
 	}
 }

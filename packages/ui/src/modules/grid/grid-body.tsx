@@ -12,10 +12,12 @@ import {
 import { Alert } from '../../components/alert'
 import { TableBody, TableEmpty, TableLoading } from '../../components/table'
 import type { DensityLevel } from '../../providers/density'
+import { hasAggregation } from './grid-aggregate'
 import type { GridGroupBy } from './grid-data-types'
 import { GridGroupLeafRow } from './grid-group-leaf-row'
 import { GridGroupRow } from './grid-group-row'
 import { type GridRowsProps, renderGridRow } from './grid-row'
+import { GridTotalRow } from './grid-total-row'
 import { type GridScrollRowIntoView, GridVirtualizedBody } from './grid-virtualized-body'
 
 /** The vertical row sortable's items and strategy, spread onto the body's `SortableContext`. @internal */
@@ -46,6 +48,8 @@ type GridBodyProps<T> = GridRowsProps<T> & {
 	groupColumnId: string | number | null
 	/** Group-header label override from the {@link GridGroupBy} binding, if any. */
 	groupRenderHeader: GridGroupBy['renderHeader']
+	/** Append a per-group total row under each group's leaves; effective only while columns aggregate. */
+	groupTotalRow: 'bottom' | undefined
 	/** Row-key resolver, so grouped leaf rows derive their key straight from the engine row. */
 	getKey: (row: T, index: number) => string | number
 	/** Grid density, threaded to the grouped leaf rows so their reveal wrappers carry the matching cell padding. */
@@ -81,11 +85,15 @@ function renderGroup<T>(
 
 	const expanded = groupRow.getIsExpanded()
 
+	// The per-group total is meaningful only once a column aggregates; it
+	// collapses with the group, whose header still reads the same figures.
+	const totalled = props.groupTotalRow === 'bottom' && hasAggregation(props.visibleColumns)
+
 	return (
 		<Fragment key={groupRow.id}>
 			<GridGroupRow<T>
 				row={groupRow}
-				colSpan={props.visibleColumns.length}
+				columns={props.visibleColumns}
 				columnId={columnId}
 				renderHeader={renderHeader}
 			/>
@@ -111,6 +119,15 @@ function renderGroup<T>(
 					/>
 				)
 			})}
+			{totalled && (
+				<GridTotalRow<T>
+					columns={props.visibleColumns}
+					rows={groupRow.subRows.map((leaf) => leaf.original)}
+					variant="group"
+					expanded={expanded}
+					density={density}
+				/>
+			)}
 		</Fragment>
 	)
 }

@@ -120,6 +120,8 @@ export const k = {
 	axis: mode('stroke-zinc-300', 'dark:stroke-zinc-700'),
 	/** SVG tick-label ink: muted, tabular for vertical alignment. */
 	tick: ['text-sm', 'tabular-nums', ...mode('fill-zinc-500', 'dark:fill-zinc-400')],
+	/** SVG value-axis title ink: a step smaller and firmer than the ticks it names. */
+	axisTitle: ['text-xs', 'font-medium', ...mode('fill-zinc-500', 'dark:fill-zinc-400')],
 	/** Point-marker stroke: white in both modes, so a dot stays legible crossing the opaque marks behind it. */
 	stroke: mode('stroke-white', 'dark:stroke-white'),
 	/** Legend / tooltip label ink (HTML text; marks carry the colour, text never does). */

@@ -143,11 +143,10 @@ describe('cartesian layout', () => {
 		axes: true,
 		tickTarget: 4,
 		zeroBaseline: true,
-		domainValues: [0, 40, 80],
+		value: { domainValues: [0, 40, 80], format: (value) => String(value) },
 		categories: ['Q1', 'Q2'],
-		format: (value) => String(value),
 		count: 2,
-		visibleValues: [[40, 80]],
+		visibleValues: [{ values: [40, 80], side: 'left' }],
 	}
 
 	it('runs value up y and the band across x when vertical', () => {
@@ -188,9 +187,11 @@ describe('cartesian layout', () => {
 		const layout = horizontalLayout({
 			...input,
 			frameWidth: 480,
-			domainValues: [0, 4820, 6000],
+			value: {
+				domainValues: [0, 4820, 6000],
+				format: (value) => value.toLocaleString('en-US'),
+			},
 			categories: ['Search', 'Direct'],
-			format: (value) => value.toLocaleString('en-US'),
 		})
 
 		const halfLabel = (tick: { label: string }) => (tick.label.length * TICK_CHAR_WIDTH) / 2
