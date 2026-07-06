@@ -81,6 +81,31 @@ describe('grid aggregation core', () => {
 		expect(aggregateColumn(col('count'), rows)).toBe(4)
 	})
 
+	it('parses money, comma-grouped, and percent strings the way sort does', () => {
+		const rows = [{ n: '$1,234' }, { n: '45%' }, { n: '(10)' }, { n: '   ' }]
+
+		const col = (name: 'sum' | 'min' | 'max'): GridColumn<{ n: unknown }> => ({
+			id: 'n',
+			value: (row) => row.n,
+			aggFunc: name,
+		})
+
+		// $1,234 + 45 + (accounting negative) -10, whitespace-only cell dropped, not 0.
+		expect(aggregateColumn(col('sum'), rows)).toBe(1269)
+
+		expect(aggregateColumn(col('min'), rows)).toBe(-10)
+
+		expect(aggregateColumn(col('max'), rows)).toBe(1234)
+	})
+
+	it('reduces min/max over a large set without overflowing the call stack', () => {
+		const rows = Array.from({ length: 200_000 }, (_, i) => ({ n: i }))
+
+		const col: GridColumn<{ n: unknown }> = { id: 'n', value: (row) => row.n, aggFunc: 'max' }
+
+		expect(aggregateColumn(col, rows)).toBe(199_999)
+	})
+
 	it('yields null for an all-non-numeric set rather than a fabricated zero', () => {
 		const col: GridColumn<{ n: unknown }> = { id: 'n', value: (row) => row.n, aggFunc: 'sum' }
 

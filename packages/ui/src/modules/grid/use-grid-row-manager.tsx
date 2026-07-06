@@ -41,9 +41,9 @@ export type GridRowManagerGroup = {
 
 /**
  * The body-facing presentation the overlay resolves to: a color lookup (always
- * live), and the manual group / leaf orders — each `null` when ordering stands
- * down (an active column sort, or a group order that no longer covers every
- * group). {@link GridBody} reads it to tint and reorder the grouped rows.
+ * live) and the manual group order (`null` when the overlay no longer covers
+ * every group). {@link GridBody} reads it to tint and reorder the grouped rows.
+ * Rows within a group are not managed — they keep the engine's order.
  *
  * @internal
  */
@@ -52,8 +52,6 @@ export type GridRowGroupPresentation = {
 	color: (key: string | number) => PaletteColor | undefined
 	/** Group keys in manual order, or `null` to keep the engine's group order. */
 	groupOrder: (string | number)[] | null
-	/** A group's manual leaf order by key, or `undefined`; `null` disables leaf ordering wholesale. */
-	leafOrder: ((key: string | number) => (string | number)[] | undefined) | null
 }
 
 /** Unwraps the {@link GridRowGroups} binding: the array shorthand seeds `defaultValue`. @internal */
@@ -72,8 +70,8 @@ const EMPTY: GridRowGroup[] = []
 
 /**
  * Reorders keyed `items` to lead in `order`, appending any not listed in their
- * original relative order — a stable reconcile shared by the group and leaf
- * ordering. Returns `items` untouched for an empty order.
+ * original relative order — the stable reconcile behind the manual group order.
+ * Returns `items` untouched for an empty order.
  *
  * @internal
  */
@@ -138,11 +136,6 @@ type GridRowManagerOptions = {
 	config: GridRowGroups | undefined
 	/** The current groups in the engine's natural order — no overlay applied. */
 	naturalGroups: GridRowManagerGroup[]
-	/**
-	 * Whether manual ordering may apply — false stands the group and leaf orders
-	 * down (a column sort orders the rows itself), leaving only the colors.
-	 */
-	orderingPermitted: boolean
 }
 
 /**
@@ -160,11 +153,7 @@ type GridRowManagerOptions = {
  *
  * @internal
  */
-export function useGridRowManager({
-	config,
-	naturalGroups,
-	orderingPermitted,
-}: GridRowManagerOptions) {
+export function useGridRowManager({ config, naturalGroups }: GridRowManagerOptions) {
 	const binding = useMemo(() => normalizeRowGroups(config), [config])
 
 	const [overlay = EMPTY, setOverlay] = useControllable<GridRowGroup[]>({
@@ -189,62 +178,41 @@ export function useGridRowManager({
 	}, [overlay, currentKeys])
 
 	const groupOrder = useMemo(
-		() => (orderingPermitted && complete ? overlay.map((group) => group.key) : null),
-		[orderingPermitted, complete, overlay],
+		() => (complete ? overlay.map((group) => group.key) : null),
+		[complete, overlay],
 	)
 
 	const presentation = useMemo<GridRowGroupPresentation>(
 		() => ({
 			color: (key) => overlayByKey.get(String(key))?.color,
 			groupOrder,
-			leafOrder: orderingPermitted ? (key) => overlayByKey.get(String(key))?.rows : null,
 		}),
-		[overlayByKey, groupOrder, orderingPermitted],
+		[overlayByKey, groupOrder],
 	)
 
 	// The manager's rows: the natural groups reordered to the overlay's group order
-	// (when it applies), each carrying its overlay color and leaf order.
+	// (when it applies), each carrying its overlay color. Leaves keep engine order.
 	const managerGroups = useMemo<GridRowManagerGroup[]>(() => {
 		const ordered = applyRowKeyOrder(naturalGroups, groupOrder ?? undefined, (group) => group.key)
 
-		return ordered.map((group) => {
-			const entry = overlayByKey.get(String(group.key))
-
-			const leaves = orderingPermitted
-				? applyRowKeyOrder(group.leaves, entry?.rows, (leaf) => leaf.key)
-				: group.leaves
-
-			return { ...group, color: entry?.color, leaves }
-		})
-	}, [naturalGroups, groupOrder, overlayByKey, orderingPermitted])
+		return ordered.map((group) => ({ ...group, color: overlayByKey.get(String(group.key))?.color }))
+	}, [naturalGroups, groupOrder, overlayByKey])
 
 	// Every edit commits a complete snapshot — an entry per group in `groups`
-	// order, each preserving its color and leaf order unless `override` changes one.
+	// order, each preserving its color unless `override` changes it.
 	const commitFrom = useCallback(
-		(
-			groups: GridRowManagerGroup[],
-			override?: { key: string | number; color?: PaletteColor; rows?: (string | number)[] },
-		) => {
+		(groups: GridRowManagerGroup[], override?: { key: string | number; color?: PaletteColor }) => {
 			const next = groups.map((group): GridRowGroup => {
 				const target = override != null && String(override.key) === String(group.key)
 
-				const entry: GridRowGroup = { key: group.key }
+				const color = target ? override.color : group.color
 
-				const color = target && 'color' in override ? override.color : group.color
-
-				if (color) entry.color = color
-
-				const rows =
-					target && override.rows ? override.rows : overlayByKey.get(String(group.key))?.rows
-
-				if (rows) entry.rows = rows
-
-				return entry
+				return color ? { key: group.key, color } : { key: group.key }
 			})
 
 			setOverlay(next)
 		},
-		[overlayByKey, setOverlay],
+		[setOverlay],
 	)
 
 	const recolor = useCallback(
@@ -259,13 +227,7 @@ export function useGridRowManager({
 		[commitFrom, managerGroups],
 	)
 
-	const reorderLeaves = useCallback(
-		(key: string | number, leafKeys: (string | number)[]) =>
-			commitFrom(managerGroups, { key, rows: leafKeys }),
-		[commitFrom, managerGroups],
-	)
-
-	return { managerGroups, orderingPermitted, presentation, recolor, reorderGroups, reorderLeaves }
+	return { managerGroups, presentation, recolor, reorderGroups }
 }
 
 /** Inputs shaping the group-header context menu. @internal */
@@ -337,11 +299,8 @@ export type GridRowManagerRegionResult = {
 	presentation: GridRowGroupPresentation | null
 	/** Display-ordered groups the dialog renders. */
 	managerGroups: GridRowManagerGroup[]
-	/** Whether reordering may apply (false under a sort). */
-	orderingPermitted: boolean
 	recolor: (key: string | number, color: PaletteColor | undefined) => void
 	reorderGroups: (orderedKeys: (string | number)[]) => void
-	reorderLeaves: (key: string | number, leafKeys: (string | number)[]) => void
 	/** The group-header menu resolver, keyed by a group's stringified value. */
 	rowGroupMenu: (key: string) => GridMenuItem[] | null
 	/** Whether the "Manage rows" dialog is reachable (mount it when true). */
@@ -361,8 +320,6 @@ type GridRowManagerRegionOptions<T> = {
 	grouping: string | number | null
 	getKey: (row: T, index: number) => string | number
 	rowLabel: ((row: T) => string) | undefined
-	/** Active sort column count — a non-zero count stands manual ordering down. */
-	sortCount: number
 	/** Whether the header context menu is live — the manager's only entry point. */
 	contextMenuActive: boolean
 	/** Commits an engine expansion change (backs Expand all / Collapse all). */
@@ -387,7 +344,6 @@ export function useGridRowManagerRegion<T>({
 	grouping,
 	getKey,
 	rowLabel,
-	sortCount,
 	contextMenuActive,
 	setGroupExpanded,
 }: GridRowManagerRegionOptions<T>): GridRowManagerRegionResult {
@@ -398,13 +354,7 @@ export function useGridRowManagerRegion<T>({
 		[groupedRows, grouping, getKey, rowLabel],
 	)
 
-	const manager = useGridRowManager({
-		config: groupByConfig?.rowGroups,
-		naturalGroups,
-		// Manual leaf/group order only holds against the natural row order; a column
-		// sort orders the rows itself, so ordering stands down while one is active.
-		orderingPermitted: enabled && sortCount === 0,
-	})
+	const manager = useGridRowManager({ config: groupByConfig?.rowGroups, naturalGroups })
 
 	const [open, setOpen] = useState(false)
 
@@ -453,11 +403,8 @@ export function useGridRowManagerRegion<T>({
 		presentation: groupingActive ? manager.presentation : null,
 		/** Display-ordered groups the dialog renders. */
 		managerGroups: manager.managerGroups,
-		/** Whether reordering may apply (false under a sort). */
-		orderingPermitted: manager.orderingPermitted,
 		recolor: manager.recolor,
 		reorderGroups: manager.reorderGroups,
-		reorderLeaves: manager.reorderLeaves,
 		/** The group-header menu resolver, keyed by a group's stringified value. */
 		rowGroupMenu,
 		/** Whether the "Manage rows" dialog is reachable (mount it when true). */

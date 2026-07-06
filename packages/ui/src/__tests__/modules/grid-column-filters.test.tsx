@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { createGroup, createRule, type QueryField } from '../../modules/query'
 import { fireEvent, renderUI, screen } from '../helpers'
@@ -37,6 +37,44 @@ describe('Grid per-column filters', () => {
 	/** A value-less "is empty" rule: a real constraint that carries no value. */
 	const nameIsEmpty = () =>
 		createGroup('and', [{ ...createRule(nameField), operator: 'isEmpty', value: '' }])
+
+	it('warns when the search and column filters request different filtering modes', () => {
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+		// Client-side search alongside server-side column filters can't coexist —
+		// the engine filters both through one model — so the grid warns.
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				search={{}}
+				columnFilters={{ manual: true }}
+			/>,
+		)
+
+		expect(warn).toHaveBeenCalledWith(expect.stringContaining('table-wide filtering mode'))
+
+		warn.mockRestore()
+	})
+
+	it('does not warn when the two filter surfaces share a mode', () => {
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				search={{ manual: true }}
+				columnFilters={{ manual: true }}
+			/>,
+		)
+
+		expect(warn).not.toHaveBeenCalled()
+
+		warn.mockRestore()
+	})
 
 	it('renders a filter button only for filterable columns', () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)

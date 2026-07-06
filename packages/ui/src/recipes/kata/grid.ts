@@ -89,18 +89,21 @@ const railBorder = ['border-l-2', ...mode('border-zinc-950/5', 'dark:border-whit
 /**
  * A colored group rail, keyed by {@link PaletteColor} so a group reads
  * `railColor[group.color]`. Swaps the neutral {@link railBorder} tint for the
- * group's palette hue — the `-500` shade, legible over both surfaces — when the
- * row manager assigns one. Full literals for Tailwind's scanner.
+ * group's palette hue at the solid `-600` shade — matching a column group's
+ * `bandColor` underline — when the row manager assigns one. The color is
+ * left-side-specific (`border-l-<color>`), so it accents only the leading edge
+ * even on a bordered surface (the manager's group Card). Full literals for
+ * Tailwind's scanner.
  */
 const railColor: Record<PaletteColor, string> = {
-	zinc: 'border-l-2 border-zinc-500',
-	red: 'border-l-2 border-red-500',
-	amber: 'border-l-2 border-amber-500',
-	green: 'border-l-2 border-green-500',
-	blue: 'border-l-2 border-blue-500',
-	rose: 'border-l-2 border-rose-500',
-	violet: 'border-l-2 border-violet-500',
-	sky: 'border-l-2 border-sky-500',
+	zinc: 'border-l-2 border-l-zinc-600',
+	red: 'border-l-2 border-l-red-600',
+	amber: 'border-l-2 border-l-amber-600',
+	green: 'border-l-2 border-l-green-600',
+	blue: 'border-l-2 border-l-blue-600',
+	rose: 'border-l-2 border-l-rose-600',
+	violet: 'border-l-2 border-l-violet-600',
+	sky: 'border-l-2 border-l-sky-600',
 }
 
 /**
@@ -585,9 +588,9 @@ export const k = {
 		badge: '[&>*>tr>td_[data-slot=badge]]:text-sm',
 	},
 	// The opt-in summary footer (`GridFooter`) below the table: a small, muted
-	// status bar. Wraps on narrow viewports; the trailing cluster (selected count +
-	// custom content) is pushed to the far edge by `ml-auto`, across from the
-	// leading row-count total.
+	// status bar. Wraps on narrow viewports; the leading slot holds a single count
+	// (the selected total swaps in over the row total in place), and any custom
+	// content is pushed to the far edge by `ml-auto` in the trailing cluster.
 	summary: {
 		bar: ['flex', 'flex-wrap', 'items-center', 'gap-x-4', 'gap-y-1', size.md, text.muted],
 		trailing: ['flex', 'flex-wrap', 'items-center', 'gap-x-4', 'gap-y-1', 'ml-auto'],

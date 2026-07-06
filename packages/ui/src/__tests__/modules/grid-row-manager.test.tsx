@@ -128,10 +128,10 @@ describe('Grid row manager', () => {
 
 		await user.click(screen.getByRole('menuitem', { name: 'Red' }))
 
-		// The Developer header row now carries the red rail and a red aggregate wash.
+		// The Developer header row now carries the solid red rail and a red aggregate wash.
 		const headerRow = screen.getByText('Developer (2)').closest('tr')
 
-		expect(headerRow?.querySelector('[class*="border-red-500"]')).not.toBeNull()
+		expect(headerRow?.querySelector('[class*="border-l-red-600"]')).not.toBeNull()
 
 		expect(headerRow?.querySelector('[class*="bg-red-500"]')).not.toBeNull()
 	})

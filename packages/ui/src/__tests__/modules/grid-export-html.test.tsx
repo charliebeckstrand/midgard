@@ -77,6 +77,12 @@ describe('downloadExcel', () => {
 
 		expect(click).toHaveBeenCalledTimes(1)
 
+		// The object URL is revoked on the next macrotask (not synchronously, which
+		// can abort the download), so flush timers before asserting.
+		expect(revokeObjectURL).not.toHaveBeenCalled()
+
+		await new Promise((resolve) => setTimeout(resolve, 0))
+
 		expect(revokeObjectURL).toHaveBeenCalledWith('blob:mock')
 
 		click.mockRestore()

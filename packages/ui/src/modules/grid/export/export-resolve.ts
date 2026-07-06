@@ -6,38 +6,19 @@ function isBuiltinType(type: GridExportType): type is keyof typeof BUILTIN_EXPOR
 	return type in BUILTIN_EXPORTERS
 }
 
-/** The entry's export type and its `onExport` override, or `undefined` for a bare (string) entry. @internal */
-function readEntry<T>(entry: GridExportEntry<T>): {
-	type: GridExportType
-	onExport: ((context: GridExportContext<T>) => void) | undefined
-} | null {
-	if (typeof entry === 'string') return { type: entry, onExport: undefined }
-
-	const type = Object.keys(entry)[0] as GridExportType | undefined
-
-	if (type === undefined) return null
-
-	return { type, onExport: entry[type]?.onExport }
-}
-
 /**
- * Resolves one entry to its action, or `null` when it names neither a
- * built-in type nor an `onExport` — logging a dev-only warning in that case,
- * since a right-click menu or toolbar button is the wrong place to surface a
- * config mistake.
+ * Builds one action for `type`, or `null` when it names neither a built-in type
+ * nor an `onExport` — logging a dev-only warning in that case, since a
+ * right-click menu or toolbar button is the wrong place to surface a config
+ * mistake.
  *
  * @internal
  */
-function resolveAction<T>(
-	entry: GridExportEntry<T>,
+function buildAction<T>(
+	type: GridExportType,
+	onExport: ((context: GridExportContext<T>) => void) | undefined,
 	getContext: () => GridExportContext<T>,
 ): GridExportAction | null {
-	const parsed = readEntry(entry)
-
-	if (!parsed) return null
-
-	const { type, onExport } = parsed
-
 	const builtin = isBuiltinType(type) ? BUILTIN_EXPORTERS[type] : undefined
 
 	const exporter = onExport ?? builtin
@@ -53,6 +34,31 @@ function resolveAction<T>(
 	const label = isBuiltinType(type) ? BUILTIN_EXPORT_LABEL[type] : `Export to ${type}`
 
 	return { type, label, run: () => exporter(getContext()) }
+}
+
+/**
+ * Resolves one entry to its action(s): a bare string names a single built-in,
+ * while an object contributes one action per type key it carries — so an entry
+ * overriding several types at once resolves them all rather than dropping every
+ * key but the first.
+ *
+ * @internal
+ */
+function resolveEntry<T>(
+	entry: GridExportEntry<T>,
+	getContext: () => GridExportContext<T>,
+): GridExportAction[] {
+	if (typeof entry === 'string') {
+		const action = buildAction(entry, undefined, getContext)
+
+		return action ? [action] : []
+	}
+
+	return (Object.keys(entry) as GridExportType[]).flatMap((type) => {
+		const action = buildAction(type, entry[type]?.onExport, getContext)
+
+		return action ? [action] : []
+	})
 }
 
 /**
@@ -77,7 +83,5 @@ export function resolveExportActions<T>(
 
 	const entries = exportable === true ? DEFAULT_EXPORT_TYPES : exportable
 
-	return entries
-		.map((entry) => resolveAction(entry, getContext))
-		.filter((action): action is GridExportAction => action !== null)
+	return entries.flatMap((entry) => resolveEntry(entry, getContext))
 }

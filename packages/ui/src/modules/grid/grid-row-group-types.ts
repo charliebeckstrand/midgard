@@ -4,9 +4,10 @@ import type { PaletteColor } from '../../core/recipe'
  * One row group's presentation overlay for a {@link Grid} grouped by a column
  * (see {@link GridGroupBy}). Row groups stay value-derived — a group's identity
  * is the grouping column's shared `value` — so this carries only what the row
- * manager layers on top: a palette `color` and a manual leaf `rows` order. It is
- * the row-side analogue of a {@link GridColumnGroup}, minus membership (a row's
- * group follows from its data, not an assignment).
+ * manager layers on top: a palette `color` and the group's slot in the manual
+ * group order (its position in the array). It is the row-side analogue of a
+ * {@link GridColumnGroup}, minus membership (a row's group follows from its data,
+ * not an assignment) and minus row order (rows keep the engine's order).
  *
  * @remarks The `color` accepts any {@link PaletteColor} — the standard palette
  * (`zinc` / `red` / `amber` / `green` / `blue`) plus the extended set (`rose` /
@@ -17,8 +18,7 @@ import type { PaletteColor } from '../../core/recipe'
 export type GridRowGroup = {
 	/**
 	 * Stable group identity — the grouping column's shared value, stringified for
-	 * lookups. Keys the color, the leaf order, and the group's slot in the manual
-	 * group order.
+	 * lookups. Keys the color and the group's slot in the manual group order.
 	 */
 	key: string | number
 	/**
@@ -27,14 +27,6 @@ export type GridRowGroup = {
 	 * aggregates.
 	 */
 	color?: PaletteColor
-	/**
-	 * Manual leaf order within the group, by row key ({@link GridDataProps.getKey}).
-	 * Leaves listed here lead in this order; any not listed trail in their natural
-	 * order. Applied only while the rows sit in their natural order — an active
-	 * column sort orders the leaves itself and stands this down, mirroring
-	 * {@link GridProps.rowReorder}.
-	 */
-	rows?: (string | number)[]
 }
 
 /**
@@ -44,9 +36,9 @@ export type GridRowGroup = {
  * sink, so a consumer can persist the colors and ordering the manager produces.
  *
  * @remarks A partial overlay (some groups colored, others absent) is honored for
- * color and leaf order per group, but the manual *group* order applies only once
- * the overlay covers every current group — which the manager always commits — so
- * a stray or partial binding tints without reshuffling the groups.
+ * color per group, but the manual *group* order applies only once the overlay
+ * covers every current group — which the manager always commits — so a stray or
+ * partial binding tints without reshuffling the groups.
  */
 export type GridRowGroups =
 	| GridRowGroup[]

@@ -441,15 +441,20 @@ export type GridFooterStats = {
  */
 export type GridFooter = {
 	/**
-	 * Show the total row count: `'47 rows'`, `'12 of 47 rows'` while a client-side
-	 * search or filter narrows the set, or `'No rows'` when empty. Counts the full
-	 * filtered extent across all pages, not just the rendered window.
+	 * Show the total row count: `'47 rows'`, `'12 of 47 rows visible'` while a
+	 * client-side search or filter narrows the set, or `'No rows'` when empty.
+	 * Counts the full filtered extent across all pages, not just the rendered
+	 * window. An active {@link GridFooter.selectedTotal} replaces this count in
+	 * place rather than sitting beside it.
 	 * @defaultValue false
 	 */
 	rowTotal?: boolean
 	/**
-	 * Show the selected-row count (`'3 selected'`) while a selection is active;
-	 * silent when nothing is selected. Needs a selection column to be meaningful.
+	 * Show the selected-row count nested against the visible extent
+	 * (`'3 of 12 rows selected'`) while a selection is active; silent when nothing
+	 * is selected. Takes the leading slot from {@link GridFooter.rowTotal} while
+	 * active — its `of` denominator keeps the visible context the total would show.
+	 * Needs a selection column to be meaningful.
 	 * @defaultValue false
 	 */
 	selectedTotal?: boolean

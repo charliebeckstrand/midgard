@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn, type GridColumnGroup } from '../../modules/grid'
-import { fireEvent, renderUI } from '../helpers'
+import { fireEvent, renderUI, screen } from '../helpers'
 
 /**
  * The column-group band row the Grid draws above its column headers: the band
@@ -119,5 +119,68 @@ describe('Grid column groups', () => {
 		fireEvent.click(expand as HTMLButtonElement)
 
 		expect(dataColHeaders()).toEqual(['first', 'last', 'email'])
+	})
+
+	it('shows a caret-right toggle when expanded and caret-left when collapsed', () => {
+		const collapsible: GridColumnGroup[] = [
+			{ id: 'name', title: 'Name', columns: ['first', 'last'], collapsible: true },
+		]
+
+		const { container } = renderUI(
+			<Grid columns={columns} rows={rows} getKey={getKey} groups={collapsible} />,
+		)
+
+		const toggle = () => container.querySelector<HTMLButtonElement>('th[scope="colgroup"] button')
+
+		// Expanded → caret right.
+		expect(toggle()?.querySelector('.lucide-chevron-right')).not.toBeNull()
+
+		fireEvent.click(toggle() as HTMLButtonElement)
+
+		// Collapsed → caret left.
+		expect(toggle()?.querySelector('.lucide-chevron-left')).not.toBeNull()
+	})
+
+	const colored: GridColumnGroup[] = [
+		{ id: 'name', title: 'Name', color: 'blue', columns: ['first', 'last'] },
+	]
+
+	it('offers Clear color + Manage columns when right-clicking a colored band', () => {
+		const { container } = renderUI(
+			<Grid columns={columns} rows={rows} getKey={getKey} groups={colored} />,
+		)
+
+		fireEvent.contextMenu(bandCell(container) as HTMLTableCellElement)
+
+		expect(screen.getByRole('menuitem', { name: 'Clear color' })).toBeInTheDocument()
+
+		expect(screen.getByRole('menuitem', { name: 'Manage columns' })).toBeInTheDocument()
+	})
+
+	it('clears the band color when Clear color is chosen', () => {
+		const { container } = renderUI(
+			<Grid columns={columns} rows={rows} getKey={getKey} groups={colored} />,
+		)
+
+		expect(bandRule(container)).not.toBeNull()
+
+		fireEvent.contextMenu(bandCell(container) as HTMLTableCellElement)
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Clear color' }))
+
+		// The color is gone, so the band draws no colored underline.
+		expect(bandRule(container)).toBeNull()
+	})
+
+	it('omits Clear color for a colorless band', () => {
+		const { container } = renderUI(
+			<Grid columns={columns} rows={rows} getKey={getKey} groups={groups} />,
+		)
+
+		fireEvent.contextMenu(bandCell(container) as HTMLTableCellElement)
+
+		expect(screen.queryByRole('menuitem', { name: 'Clear color' })).not.toBeInTheDocument()
+
+		expect(screen.getByRole('menuitem', { name: 'Manage columns' })).toBeInTheDocument()
 	})
 })

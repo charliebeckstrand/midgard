@@ -13,10 +13,8 @@ type GridRowManagerDialogProps = {
 	onOpenChange: (open: boolean) => void
 	label: ReactNode
 	groups: GridRowManagerGroup[]
-	orderingPermitted: boolean
 	onRecolor: (key: string | number, color: PaletteColor | undefined) => void
 	onReorderGroups: (orderedKeys: (string | number)[]) => void
-	onReorderLeaves: (key: string | number, leafKeys: (string | number)[]) => void
 }
 
 /**
@@ -31,22 +29,14 @@ export function GridRowManagerDialog({
 	onOpenChange,
 	label,
 	groups,
-	orderingPermitted,
 	onRecolor,
 	onReorderGroups,
-	onReorderLeaves,
 }: GridRowManagerDialogProps) {
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogTitle>{label}</DialogTitle>
 			<DialogBody>
-				<GridRowManager
-					groups={groups}
-					orderingPermitted={orderingPermitted}
-					onRecolor={onRecolor}
-					onReorderGroups={onReorderGroups}
-					onReorderLeaves={onReorderLeaves}
-				/>
+				<GridRowManager groups={groups} onRecolor={onRecolor} onReorderGroups={onReorderGroups} />
 			</DialogBody>
 			<DialogFooter>
 				<Button variant="plain" onClick={() => onOpenChange(false)}>

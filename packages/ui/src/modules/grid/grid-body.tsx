@@ -111,27 +111,21 @@ function renderGroup<T>(
 		renderHeader: GridGroupBy['renderHeader']
 		getKey: (row: T, index: number) => string | number
 		density: DensityLevel
+		/** Whether a per-group total row shows — a whole-body gate, resolved once by the caller. */
+		totalled: boolean
+		/** The row-manager overlay presentation (per-group color), or `null` when off. */
 		presentation: GridRowGroupPresentation | null
 	},
 ): ReactElement {
-	const { props, columnId, renderHeader, getKey, density, presentation } = args
+	const { props, columnId, renderHeader, getKey, density, totalled, presentation } = args
 
 	const expanded = groupRow.getIsExpanded()
 
-	// The per-group total is meaningful only once a column aggregates; it
-	// collapses with the group, whose header still reads the same figures.
-	const totalled = props.groupTotalRow === 'bottom' && hasAggregation(props.visibleColumns)
-
-	// The group's row-manager overlay: its color (tinting the header aggregates,
-	// total footer, and rail) and its manual leaf order, applied over the engine's
-	// natural leaf order. Leaf ordering stands down (`leafOrder` null) under a sort.
+	// The group's row-manager color tints its header aggregates, total footer, and
+	// rail; the leaves render in the engine's natural order (row order isn't managed).
 	const groupKey = groupRow.getGroupingValue(String(columnId)) as string | number
 
 	const color = presentation?.color(groupKey)
-
-	const leaves = applyRowKeyOrder(groupRow.subRows, presentation?.leafOrder?.(groupKey), (leaf) =>
-		getKey(leaf.original, leaf.index),
-	)
 
 	return (
 		<Fragment key={groupRow.id}>
@@ -142,7 +136,7 @@ function renderGroup<T>(
 				renderHeader={renderHeader}
 				color={color}
 			/>
-			{leaves.map((leaf) => {
+			{groupRow.subRows.map((leaf) => {
 				const key = getKey(leaf.original, leaf.index)
 
 				return (
@@ -168,7 +162,7 @@ function renderGroup<T>(
 			{totalled && (
 				<GridTotalRow<T>
 					columns={props.visibleColumns}
-					rows={leaves.map((leaf) => leaf.original)}
+					rows={groupRow.subRows.map((leaf) => leaf.original)}
 					variant="group"
 					expanded={expanded}
 					density={density}
@@ -325,13 +319,17 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 	// virtualization / pagination / grid semantics (see `GridData`), so this
 	// precedes the virtualized branch and needs no aria-row bookkeeping.
 	if (groupedRows && groupColumnId != null) {
-		// Apply the manual group order (null under a sort, or until the overlay
-		// covers every group — then the engine's group order stands).
+		// Apply the manual group order (kept only until the overlay covers every
+		// group; then the engine's group order stands).
 		const ordered = applyRowKeyOrder(
 			groupedRows,
 			rowGroupPresentation?.groupOrder ?? undefined,
 			(groupRow) => groupRow.getGroupingValue(String(groupColumnId)) as string | number,
 		)
+
+		// The per-group total is meaningful only once a column aggregates; the gate
+		// is body-wide, so resolve it once here rather than per group in renderGroup.
+		const totalled = props.groupTotalRow === 'bottom' && hasAggregation(visibleColumns)
 
 		return (
 			<TableBody>
@@ -342,6 +340,7 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 						renderHeader: groupRenderHeader,
 						getKey,
 						density,
+						totalled,
 						presentation: rowGroupPresentation,
 					}),
 				)}

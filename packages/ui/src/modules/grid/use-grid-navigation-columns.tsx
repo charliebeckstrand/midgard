@@ -127,6 +127,50 @@ export function GridNavCell({
 }
 
 /**
+ * The cursor-seating `cellProps` shared by the navigable and editable column
+ * projections: a stable per-cell id, `role="gridcell"`, and a click-to-seat
+ * `onMouseDown` that — unless the click landed on focusable cell content (links,
+ * buttons, an editor) — moves the cursor to this cell and pulls focus onto the
+ * grid container. Merged over the consumer's own `cellProps` and any `extra`
+ * attributes the caller layers on (the editable projection adds `aria-readonly`).
+ *
+ * @internal
+ */
+export function seatingCellProps<T>(args: {
+	col: GridColumn<T>
+	row: T
+	rowIndexMapRef: RefObject<Map<T, number>>
+	colIndexMapRef: RefObject<Map<string | number, number>>
+	cellId: (row: number, col: number) => string
+	moveTo: (coord: Coord) => void
+	extra?: HTMLAttributes<HTMLTableCellElement>
+}): HTMLAttributes<HTMLTableCellElement> {
+	const { col, row, rowIndexMapRef, colIndexMapRef, cellId, moveTo, extra } = args
+
+	const rowIdx = rowIndexMapRef.current.get(row) ?? -1
+
+	const colIdx = colIndexMapRef.current.get(col.id) ?? -1
+
+	const prev = col.cellProps?.(row)
+
+	return {
+		...prev,
+		...extra,
+		id: cellId(rowIdx, colIdx),
+		role: 'gridcell',
+		onMouseDown: (event: MouseEvent<HTMLTableCellElement>) => {
+			if (!fromInteractiveContent(event.target)) {
+				event.currentTarget.closest<HTMLElement>('[role="grid"]')?.focus()
+
+				moveTo({ row: rowIdx, col: colIdx })
+			}
+
+			prev?.onMouseDown?.(event)
+		},
+	}
+}
+
+/**
  * Projects the read-only grid's data columns into navigable ones: each gains a
  * stable per-cell id (matched by the grid's `aria-activedescendant`),
  * `role="gridcell"`, a click-to-focus `onMouseDown`, and an active-cell marker
@@ -164,35 +208,11 @@ export function useGridNavigationColumns<T>({
 
 			const renderCell = col.cell
 
-			const consumerProps = col.cellProps
-
 			return {
 				...col,
 				className: cn(k.nav.cell, col.className),
-				cellProps: (row: T): HTMLAttributes<HTMLTableCellElement> => {
-					const rowIdx = rowIndexMapRef.current.get(row) ?? -1
-
-					const colIdx = colIndexMapRef.current.get(col.id) ?? -1
-
-					const prev = consumerProps?.(row)
-
-					return {
-						...prev,
-						id: cellId(rowIdx, colIdx),
-						role: 'gridcell',
-						onMouseDown: (event: MouseEvent<HTMLTableCellElement>) => {
-							// Defer to focusable cell content (links, buttons); otherwise move the
-							// cursor here and pull focus onto the grid container.
-							if (!fromInteractiveContent(event.target)) {
-								event.currentTarget.closest<HTMLElement>('[role="grid"]')?.focus()
-
-								moveTo({ row: rowIdx, col: colIdx })
-							}
-
-							prev?.onMouseDown?.(event)
-						},
-					}
-				},
+				cellProps: (row: T): HTMLAttributes<HTMLTableCellElement> =>
+					seatingCellProps({ col, row, rowIndexMapRef, colIndexMapRef, cellId, moveTo }),
 				cell: (row: T): ReactNode => {
 					const rowIdx = rowIndexMapRef.current.get(row) ?? -1
 

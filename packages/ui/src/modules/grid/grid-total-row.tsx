@@ -15,6 +15,9 @@ import {
 } from './grid-aggregate'
 import type { GridColumn } from './types'
 
+/** Stable empty row model read while the grand total is inactive, so its memo doesn't rebuild. @internal */
+const NO_ROWS: never[] = []
+
 /**
  * Resolves the grand-total row's state off the grid's: whether it renders —
  * `grandTotalRow` set, a visible aggregating column, and rows actually shown —
@@ -49,12 +52,11 @@ export function useGridGrandTotal<T>(args: {
 		!manualGrouped &&
 		hasAggregation(columns)
 
-	const filtered = table.getFilteredRowModel().rows
+	// Only materialize the filtered model when the row actually shows; an inactive
+	// grand total must not force the whole filtered set to compute each render.
+	const filtered = active ? table.getFilteredRowModel().rows : NO_ROWS
 
-	const rows = useMemo(
-		() => (active ? filtered.map((row) => row.original) : []),
-		[active, filtered],
-	)
+	const rows = useMemo(() => filtered.map((row) => row.original), [filtered])
 
 	return { active, rows }
 }

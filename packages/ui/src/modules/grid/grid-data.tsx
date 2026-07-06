@@ -29,7 +29,7 @@ import {
 import { GridBody } from './grid-body'
 import { GridBusyStatus } from './grid-busy-status'
 import { GridColumnManagerDialog } from './grid-column-manager-dialog'
-import { GridContextMenu } from './grid-context-menu'
+import { GridContextMenu, useColumnGroupMenu } from './grid-context-menu'
 import {
 	resolveAriaRowCount,
 	resolveFooterStats,
@@ -370,6 +370,8 @@ type GridRegionProps<T> = {
 	exportActions: GridExportAction[]
 	/** Resolves the group-header menu for a right-clicked group by key, or `null` when the row manager is off. */
 	rowGroupMenu: ((key: string) => GridMenuItem[] | null) | null
+	/** Resolves the column-group band menu for a right-clicked group by id. */
+	columnGroupMenu: ((id: string) => GridMenuItem[] | null) | null
 	children: ReactNode
 }
 
@@ -399,6 +401,7 @@ function GridRegion<T>({
 	chooseColumns,
 	exportActions,
 	rowGroupMenu,
+	columnGroupMenu,
 	children,
 }: GridRegionProps<T>) {
 	const reordered = canReorder ? (
@@ -427,6 +430,7 @@ function GridRegion<T>({
 			chooseColumns={chooseColumns}
 			exportActions={exportActions}
 			rowGroupMenu={rowGroupMenu}
+			columnGroupMenu={columnGroupMenu}
 		>
 			{reordered}
 		</GridContextMenu>
@@ -480,10 +484,8 @@ function GridRowManagerRegionDialog({ region }: { region: GridRowManagerRegionRe
 			onOpenChange={region.setOpen}
 			label="Manage rows"
 			groups={region.managerGroups}
-			orderingPermitted={region.orderingPermitted}
 			onRecolor={region.recolor}
 			onReorderGroups={region.reorderGroups}
-			onReorderLeaves={region.reorderLeaves}
 		/>
 	)
 }
@@ -1109,9 +1111,17 @@ export function GridData<T>({
 		grouping,
 		getKey,
 		rowLabel,
-		sortCount: sort.length,
 		contextMenuActive: resolvedContextMenu != null,
 		setGroupExpanded,
+	})
+
+	// Column-group band badge menu: Clear color (when colored) + Manage columns.
+	const columnGroupMenu = useColumnGroupMenu({
+		groups: group.groups,
+		setGroups: group.setGroups,
+		enabled: group.hasGroups,
+		chooseColumns,
+		manageLabel: managerLabel,
 	})
 
 	// Column reorder rides @dnd-kit's horizontal sortable; the dnd context wraps
@@ -1429,6 +1439,7 @@ export function GridData<T>({
 								chooseColumns={chooseColumns}
 								exportActions={exportActions}
 								rowGroupMenu={rowManager.rowGroupMenu}
+								columnGroupMenu={columnGroupMenu}
 							>
 								<GridRowReorderRegion
 									active={rowReorderActive}

@@ -54,7 +54,9 @@ function roundToTarget(
 	for (let i = 0; leftover < 0 && i < order.length; i++, leftover++) {
 		const entry = order[order.length - 1 - i]
 
-		if (entry) entry.width -= 1
+		// Never take a column below zero (this reclaim path is unreachable for the
+		// current callers, where target >= Σfloor, but stays safe if that changes).
+		if (entry && entry.width > 0) entry.width -= 1
 	}
 
 	const result: Record<string, number> = {}

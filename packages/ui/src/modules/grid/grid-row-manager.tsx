@@ -4,7 +4,7 @@ import { DndContext } from '@dnd-kit/core'
 import { SortableContext, useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { Ban, GripVertical } from 'lucide-react'
-import { type CSSProperties, type ReactNode, useCallback } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { Badge } from '../../components/badge'
 import { Button } from '../../components/button'
 import { Card, CardBody, CardHeader } from '../../components/card'
@@ -21,9 +21,13 @@ import {
 import { cn, dataAttr } from '../../core'
 import { colors, extendedColors, type PaletteColor } from '../../core/recipe'
 import { useGrabbingCursor, useSortableList } from '../../hooks'
-import { k as groupK } from '../../recipes/kata/grid-group'
+import { k as gridK } from '../../recipes/kata/grid'
 import { k } from '../../recipes/kata/grid-row-manager'
+import { restrictToVerticalAxis } from './grid-reorder'
 import type { GridRowManagerGroup, GridRowManagerLeaf } from './use-grid-row-manager'
+
+/** Locks the group drag to the y-axis; unbounded (no scroll-ancestor clamp) so it drags freely down. @internal */
+const GROUP_DRAG_MODIFIERS = [restrictToVerticalAxis]
 
 /** The palette presets offered by the color Menu: standard palette then extended. @internal */
 const DEFAULT_COLOR_OPTIONS: PaletteColor[] = [...colors, ...extendedColors]
@@ -77,17 +81,10 @@ function useZoneSortable(id: string) {
 export type GridRowManagerProps = {
 	/** The grouped rows, in display order — a group per row-group with its leaves. */
 	groups: GridRowManagerGroup[]
-	/**
-	 * Whether reordering may apply. False (a column sort orders the rows itself)
-	 * dims the grips and disables the group / leaf drags, leaving only recoloring.
-	 */
-	orderingPermitted: boolean
 	/** Sets (or clears with `undefined`) a group's color. */
 	onRecolor: (key: string | number, color: PaletteColor | undefined) => void
 	/** Commits the next group order (by key) after a group drag. */
 	onReorderGroups: (orderedKeys: (string | number)[]) => void
-	/** Commits a group's next leaf order (by key) after a leaf drag. */
-	onReorderLeaves: (key: string | number, leafKeys: (string | number)[]) => void
 	/** Palette presets for the color Menu; defaults to the full standard + extended palette. */
 	colorOptions?: PaletteColor[]
 	className?: string
@@ -95,23 +92,21 @@ export type GridRowManagerProps = {
 
 /**
  * The row manager's editor: a zone per row-group — a reorder grip, the group's
- * label + count, and a color {@link Menu} — over its leaf rows, which drag to
- * reorder within the group. Whole groups reorder as a vertical list (the grip
- * beside each label). A colored group tints its Card outline. Every edit commits
- * through the handlers, which write the {@link GridGroupBy.rowGroups} overlay.
+ * label + count, and a color {@link Menu} — over a read-only list of its rows.
+ * Whole groups reorder as a vertical list (the grip beside each label, or its
+ * keyboard lift), the drag locked to the y-axis and free to run past the end. A
+ * colored group carries a solid left border in its hue. Rows within a group are
+ * not reorderable — they follow the grid's order. Every edit commits through the
+ * handlers, which write the {@link GridGroupBy.rowGroups} overlay.
  *
  * @remarks Client component. {@link Grid} renders this inside its own dialog,
  * reached from the group-header "Manage rows" context-menu item; use it directly
- * to host the editor elsewhere. Group and leaf reordering stand down under an
- * active column sort (`orderingPermitted` false), since a manual order only holds
- * against the natural row order.
+ * to host the editor elsewhere.
  */
 export function GridRowManager({
 	groups,
-	orderingPermitted,
 	onRecolor,
 	onReorderGroups,
-	onReorderLeaves,
 	colorOptions = DEFAULT_COLOR_OPTIONS,
 	className,
 }: GridRowManagerProps) {
@@ -119,10 +114,6 @@ export function GridRowManager({
 		items: groups,
 		getKey: (group) => String(group.key),
 		onReorder: (next) => onReorderGroups(next.map((group) => group.key)),
-		disabled: !orderingPermitted,
-		// The leaf lists own the keyboard reorder within a zone; this outer list
-		// keeps its pointer sensor for the whole-group drag.
-		keyboardSensor: false,
 	})
 
 	// Force the grabbing cursor across the document for the whole group drag — it
@@ -132,15 +123,13 @@ export function GridRowManager({
 
 	return (
 		<div data-slot="grid-row-manager" className={cn(k.root, className)}>
-			<DndContext {...dndContextProps}>
+			<DndContext {...dndContextProps} modifiers={GROUP_DRAG_MODIFIERS}>
 				<SortableContext items={itemIds} strategy={strategy}>
 					{groups.map((group) => (
 						<GridRowManagerZone
 							key={group.key}
 							group={group}
-							orderingPermitted={orderingPermitted}
 							onRecolor={onRecolor}
-							onReorderLeaves={onReorderLeaves}
 							colorOptions={colorOptions}
 						/>
 					))}
@@ -153,52 +142,32 @@ export function GridRowManager({
 /** Props for {@link GridRowManagerZone}. @internal */
 type GridRowManagerZoneProps = {
 	group: GridRowManagerGroup
-	orderingPermitted: boolean
 	onRecolor: (key: string | number, color: PaletteColor | undefined) => void
-	onReorderLeaves: (key: string | number, leafKeys: (string | number)[]) => void
 	colorOptions: PaletteColor[]
 }
 
 /**
- * One group zone: a Card (outlined in the group's color) whose header carries the
- * reorder grip, the group label + count, and the color Menu, over a
- * {@link List} of its leaf rows. The leaf List runs its own nested `DndContext`,
- * so a leaf drag reorders within the group without disturbing the outer
- * group-reorder sortable.
+ * One group zone: a Card (a solid left border in the group's color) whose header
+ * carries the reorder grip, the group label + count, and the color Menu, over a
+ * read-only {@link List} of its rows.
  *
  * @internal
  */
-function GridRowManagerZone({
-	group,
-	orderingPermitted,
-	onRecolor,
-	onReorderLeaves,
-	colorOptions,
-}: GridRowManagerZoneProps) {
+function GridRowManagerZone({ group, onRecolor, colorOptions }: GridRowManagerZoneProps) {
 	const { setNodeRef, setActivatorNodeRef, attributes, listeners, style, dragging } =
 		useZoneSortable(String(group.key))
 
 	const label = groupLabelText(group)
 
-	const handleReorderLeaves = useCallback(
-		(next: GridRowManagerLeaf[]) =>
-			onReorderLeaves(
-				group.key,
-				next.map((leaf) => leaf.key),
-			),
-		[onReorderLeaves, group.key],
-	)
-
 	return (
 		<div ref={setNodeRef} style={style} data-dragging={dataAttr(dragging)}>
-			<Card className={cn(group.color && groupK.cardOutline[group.color])}>
+			<Card className={cn(group.color && gridK.rowGroup.railColor[group.color])}>
 				<CardHeader>
 					<div className={cn(k.zone.header)}>
 						<button
 							type="button"
 							ref={setActivatorNodeRef}
 							className={cn(k.zone.grip)}
-							disabled={!orderingPermitted}
 							aria-label={`Reorder group ${label}`}
 							{...attributes}
 							{...listeners}
@@ -226,10 +195,9 @@ function GridRowManagerZone({
 						<List
 							items={group.leaves}
 							getKey={(leaf) => String(leaf.key)}
-							onReorder={handleReorderLeaves}
-							disabled={!orderingPermitted}
+							sortable={false}
 							variant="plain"
-							aria-label={`Reorder rows in ${label}`}
+							aria-label={`Rows in ${label}`}
 						>
 							{(leaf) => (
 								<ListItem>

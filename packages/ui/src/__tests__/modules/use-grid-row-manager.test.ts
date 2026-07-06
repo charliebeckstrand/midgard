@@ -51,8 +51,8 @@ describe('applyRowKeyOrder', () => {
 })
 
 describe('useGridRowManager', () => {
-	const render = (config: GridRowGroup[] | undefined, orderingPermitted = true) =>
-		renderHook(() => useGridRowManager({ config, naturalGroups: groups, orderingPermitted }))
+	const render = (config: GridRowGroup[] | undefined) =>
+		renderHook(() => useGridRowManager({ config, naturalGroups: groups }))
 
 	it('is a no-op overlay by default — natural order, no colors, no manual order', () => {
 		const { result } = render(undefined)
@@ -62,19 +62,13 @@ describe('useGridRowManager', () => {
 		expect(result.current.managerGroups.every((g) => g.color === undefined)).toBe(true)
 
 		expect(result.current.presentation.groupOrder).toBeNull()
-
-		expect(result.current.presentation.leafOrder?.('a')).toBeUndefined()
 	})
 
 	it('recolor commits a complete snapshot and reflects the color', () => {
 		const onValueChange = vi.fn()
 
 		const { result } = renderHook(() =>
-			useGridRowManager({
-				config: { onValueChange },
-				naturalGroups: groups,
-				orderingPermitted: true,
-			}),
+			useGridRowManager({ config: { onValueChange }, naturalGroups: groups }),
 		)
 
 		act(() => result.current.recolor('b', 'red'))
@@ -109,16 +103,12 @@ describe('useGridRowManager', () => {
 		expect(result.current.managerGroups.map((g) => g.key)).toEqual(['c', 'a', 'b'])
 	})
 
-	it('reorderLeaves persists a group’s leaf order and reorders its rows', () => {
-		const { result } = render(undefined)
-
-		act(() => result.current.reorderLeaves('a', ['a2', 'a1']))
-
-		expect(result.current.presentation.leafOrder?.('a')).toEqual(['a2', 'a1'])
+	it('leaves rows in the group’s natural order — row order is not managed', () => {
+		const { result } = render([{ key: 'a', color: 'blue' }, { key: 'b' }, { key: 'c' }])
 
 		const groupA = result.current.managerGroups.find((g) => g.key === 'a')
 
-		expect(groupA?.leaves.map((l) => l.key)).toEqual(['a2', 'a1'])
+		expect(groupA?.leaves.map((l) => l.key)).toEqual(['a1', 'a2'])
 	})
 
 	it('applies color from a partial overlay but withholds group order until it is complete', () => {
@@ -130,24 +120,5 @@ describe('useGridRowManager', () => {
 		expect(result.current.presentation.groupOrder).toBeNull()
 
 		expect(result.current.managerGroups.map((g) => g.key)).toEqual(['a', 'b', 'c'])
-	})
-
-	it('stands ordering down under a sort — colors stay, group/leaf order do not', () => {
-		const { result } = render(
-			[{ key: 'c', color: 'green' }, { key: 'a', rows: ['a2', 'a1'] }, { key: 'b' }],
-			false,
-		)
-
-		// Color still resolves…
-		expect(result.current.presentation.color('c')).toBe('green')
-
-		// …but neither the group order nor the leaf order applies.
-		expect(result.current.presentation.groupOrder).toBeNull()
-
-		expect(result.current.presentation.leafOrder).toBeNull()
-
-		expect(result.current.managerGroups.map((g) => g.key)).toEqual(['a', 'b', 'c'])
-
-		expect(result.current.managerGroups[0]?.leaves.map((l) => l.key)).toEqual(['a1', 'a2'])
 	})
 })

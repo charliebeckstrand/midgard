@@ -6,6 +6,7 @@ import {
 	ArrowRightToLine,
 	ArrowUp,
 	ArrowUpDown,
+	Ban,
 	Columns3,
 	Copy,
 	Download,
@@ -34,6 +35,7 @@ import {
 } from '../../components/menu'
 import type { SortState } from './context'
 import type { GridExportAction } from './export/types'
+import type { GridColumnGroup } from './grid-group-types'
 import { frozenSide, isLocked, normalizeFreeze } from './grid-pin-overrides'
 import type {
 	GridCellMenuContext,
@@ -46,6 +48,16 @@ import type {
 /** Menu-item icon for an export action: a printer for `print`, a download glyph otherwise. @internal */
 function exportIcon(type: GridExportAction['type']): ReactElement {
 	return type === 'print' ? <Printer /> : <Download />
+}
+
+/** Maps active export actions to menu items — the shape the column and cell menus each append. @internal */
+function exportMenuItems(exportActions: GridExportAction[]): GridMenuItem[] {
+	return exportActions.map((action) => ({
+		key: `export-${action.type}`,
+		label: action.label,
+		icon: exportIcon(action.type),
+		onSelect: action.run,
+	}))
 }
 
 /** Sets the sort to a column in a fixed direction. @internal */
@@ -81,6 +93,12 @@ type GridContextMenuProps<T> = {
 	 * live. Backs the "Manage rows" menu on the group-header row.
 	 */
 	rowGroupMenu: ((key: string) => GridMenuItem[] | null) | null
+	/**
+	 * Resolves the column-group band menu for a right-clicked group by its id
+	 * (`data-group-id`), or `null` when grouping is off. Backs the badge menu's
+	 * Clear color / Manage columns items.
+	 */
+	columnGroupMenu: ((id: string) => GridMenuItem[] | null) | null
 	children: ReactNode
 }
 
@@ -228,14 +246,7 @@ function columnMenuDefaults<T>(args: ColumnMenuDefaultArgs<T>): GridMenuItem[] {
 		})
 	}
 
-	tools.push(
-		...exportActions.map((action) => ({
-			key: `export-${action.type}`,
-			label: action.label,
-			icon: exportIcon(action.type),
-			onSelect: action.run,
-		})),
-	)
+	tools.push(...exportMenuItems(exportActions))
 
 	if (tools.length > 0) {
 		if (items.length > 0) items.push({ key: 'tools-separator', separator: true })
@@ -259,18 +270,89 @@ function cellMenuDefaults(copy: () => void, exportActions: GridExportAction[]): 
 	const items: GridMenuItem[] = [{ key: 'copy', label: 'Copy', icon: <Copy />, onSelect: copy }]
 
 	if (exportActions.length > 0) {
-		items.push(
-			{ key: 'export-separator', separator: true },
-			...exportActions.map((action) => ({
-				key: `export-${action.type}`,
-				label: action.label,
-				icon: exportIcon(action.type),
-				onSelect: action.run,
-			})),
-		)
+		items.push({ key: 'export-separator', separator: true }, ...exportMenuItems(exportActions))
 	}
 
 	return items
+}
+
+/**
+ * The column-group band's context menu (right-clicking the group's badge): a
+ * "Clear color" item when the group carries a color, then "Manage columns" when
+ * the column manager is reachable. Empty when neither applies, so the surface
+ * leaves the native menu alone.
+ *
+ * @internal
+ */
+function buildColumnGroupMenu(args: {
+	group: GridColumnGroup
+	onClearColor: () => void
+	chooseColumns: (() => void) | null
+	manageLabel: ReactNode
+}): GridMenuItem[] {
+	const items: GridMenuItem[] = []
+
+	if (args.group.color) {
+		items.push({
+			key: 'clear-color',
+			label: 'Clear color',
+			icon: <Ban />,
+			onSelect: args.onClearColor,
+		})
+	}
+
+	if (args.chooseColumns) {
+		items.push({
+			key: 'manage-columns',
+			label: args.manageLabel,
+			icon: <Columns3 />,
+			onSelect: args.chooseColumns,
+		})
+	}
+
+	return items
+}
+
+/**
+ * Resolves the column-group band menu for a right-clicked group by its id, or
+ * `null` when grouping is off or the group offers no action. Backs the badge
+ * menu's Clear color / Manage columns items; clearing commits the recolored
+ * groups through the binding {@link useGridGroup} owns.
+ *
+ * @internal
+ */
+export function useColumnGroupMenu(args: {
+	groups: GridColumnGroup[]
+	setGroups: (groups: GridColumnGroup[]) => void
+	/** Whether column groups are configured — off leaves the band inert. */
+	enabled: boolean
+	/** Opens the column-manager dialog, or `null` when none is reachable. */
+	chooseColumns: (() => void) | null
+	/** Label for the "Manage columns" item. */
+	manageLabel: ReactNode
+}): (id: string) => GridMenuItem[] | null {
+	const { groups, setGroups, enabled, chooseColumns, manageLabel } = args
+
+	return useCallback(
+		(id: string): GridMenuItem[] | null => {
+			if (!enabled) return null
+
+			const group = groups.find((candidate) => String(candidate.id) === id)
+
+			if (!group) return null
+
+			const items = buildColumnGroupMenu({
+				group,
+				onClearColor: () =>
+					setGroups(groups.map((g) => (g.id === group.id ? { ...g, color: undefined } : g))),
+				chooseColumns,
+				manageLabel,
+			})
+
+			return items.length > 0 ? items : null
+		},
+		[groups, setGroups, enabled, chooseColumns, manageLabel],
+	)
 }
 
 /** Renders one {@link GridMenuItem} as a menu item or separator. @internal */
@@ -309,6 +391,7 @@ export function GridContextMenu<T>({
 	chooseColumns,
 	exportActions,
 	rowGroupMenu,
+	columnGroupMenu,
 	children,
 }: GridContextMenuProps<T>) {
 	const [open, setOpen] = useState(false)
@@ -431,6 +514,13 @@ export function GridContextMenu<T>({
 		[rowGroupMenu],
 	)
 
+	// Column-group band badges carry their own menu (Clear color, Manage columns),
+	// keyed by the group's id; `null` when grouping is off.
+	const resolveColumnGroupItems = useCallback(
+		(id: string): GridMenuItem[] | null => (columnGroupMenu ? columnGroupMenu(id) : null),
+		[columnGroupMenu],
+	)
+
 	// Restore focus to the grid when a keyboard-opened menu closes, so the cursor —
 	// kept seated by the grid's blur guard — picks up where it left off.
 	const handleOpenChange = useCallback((next: boolean) => {
@@ -448,6 +538,7 @@ export function GridContextMenu<T>({
 			<GridContextMenuSurface
 				resolveItems={resolveItems}
 				resolveGroupItems={resolveGroupItems}
+				resolveColumnGroupItems={resolveColumnGroupItems}
 				setItems={setItems}
 				returnFocus={returnFocus}
 			>
@@ -482,6 +573,29 @@ function tryGroupMenu(
 	if (groupRow?.dataset.groupKey === undefined) return false
 
 	commit(resolveGroupItems(groupRow.dataset.groupKey), target, event.clientX, event.clientY)
+
+	return true
+}
+
+/**
+ * Handles a right-click that landed on a column-group band cell (its badge):
+ * resolves its menu by the group's id (`data-group-id`) and opens it at the
+ * pointer. Returns whether the target was a band cell — checked before the plain
+ * cell path, since a band cell carries no `data-grid-col`.
+ *
+ * @internal
+ */
+function tryColumnGroupMenu(
+	target: HTMLElement,
+	event: MouseEvent<HTMLDivElement>,
+	resolveColumnGroupItems: (id: string) => GridMenuItem[] | null,
+	commit: CommitMenu,
+): boolean {
+	const band = target.closest<HTMLElement>('th[data-group-band]')
+
+	if (band?.dataset.groupId === undefined) return false
+
+	commit(resolveColumnGroupItems(band.dataset.groupId), target, event.clientX, event.clientY)
 
 	return true
 }
@@ -553,12 +667,14 @@ function openKeyboardMenu(
 function GridContextMenuSurface({
 	resolveItems,
 	resolveGroupItems,
+	resolveColumnGroupItems,
 	setItems,
 	returnFocus,
 	children,
 }: {
 	resolveItems: (target: HTMLElement) => GridMenuItem[] | null
 	resolveGroupItems: (key: string) => GridMenuItem[] | null
+	resolveColumnGroupItems: (id: string) => GridMenuItem[] | null
 	setItems: (items: GridMenuItem[]) => void
 	returnFocus: RefObject<HTMLElement | null>
 	children: ReactNode
@@ -592,15 +708,17 @@ function GridContextMenuSurface({
 				openAt(anchor, x, y)
 			}
 
-			// Group header, then data cell, then (no cell) the keyboard menu on the
-			// focused grid; each branch consumes the event once it matches its target.
+			// Group-header row, then column-group band, then data cell, then (no cell)
+			// the keyboard menu on the focused grid; each consumes the event on a match.
 			if (tryGroupMenu(target, event, resolveGroupItems, commit)) return
+
+			if (tryColumnGroupMenu(target, event, resolveColumnGroupItems, commit)) return
 
 			if (tryCellMenu(target, event, resolveItems, commit)) return
 
 			openKeyboardMenu(target, resolveItems, commit, returnFocus)
 		},
-		[openAt, resolveItems, resolveGroupItems, setItems, returnFocus],
+		[openAt, resolveItems, resolveGroupItems, resolveColumnGroupItems, setItems, returnFocus],
 	)
 
 	return (
