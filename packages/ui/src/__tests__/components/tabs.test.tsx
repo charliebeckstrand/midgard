@@ -109,6 +109,43 @@ describe('TabList', () => {
 		expect(viewport).toContainElement(bySlot(container, 'tab-list'))
 	})
 
+	it('sizes the horizontal list to its content so the baseline rail spans the full scroll width', () => {
+		const { container } = renderUI(
+			<Tabs defaultValue="a">
+				<TabList aria-label="Tabs">
+					<Tab value="a">Tab A</Tab>
+				</TabList>
+			</Tabs>,
+		)
+
+		// A block-level flex box fills only the viewport, clipping its border-b
+		// there; w-max + min-w-full grow it to the content width (never below full
+		// width) so the rail runs under overflowed tabs instead of stopping short.
+		const list = bySlot(container, 'tab-list')
+
+		expect(list?.className).toContain('w-max')
+
+		expect(list?.className).toContain('min-w-full')
+	})
+
+	it('omits the content-width utilities on a vertical list, whose rail already spans its height', () => {
+		const { container } = renderUI(
+			<Tabs defaultValue="a" orientation="vertical">
+				<TabList aria-label="Tabs">
+					<Tab value="a">Tab A</Tab>
+				</TabList>
+			</Tabs>,
+		)
+
+		// An auto-height column grows to its content, so border-l already runs the
+		// full length; the width utilities are horizontal-only and would be inert.
+		const list = bySlot(container, 'tab-list')
+
+		expect(list?.className).not.toContain('w-max')
+
+		expect(list?.className).not.toContain('min-w-full')
+	})
+
 	it('scrolls along the cross axis for a vertical list', () => {
 		const { container } = renderUI(
 			<Tabs defaultValue="a" orientation="vertical">
