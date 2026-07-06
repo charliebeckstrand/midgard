@@ -69,10 +69,10 @@ describe('Grid footer', () => {
 			/>,
 		)
 
-		expect(bySlot(container, 'grid-footer')?.textContent).toContain('1 of 3 rows')
+		expect(bySlot(container, 'grid-footer')?.textContent).toContain('1 of 3 rows visible')
 	})
 
-	it('shows the selected count only while a selection is active', () => {
+	it('shows the selected count, nested against the visible extent, only while active', () => {
 		const empty = renderUI(
 			<Grid columns={selectColumns} rows={rows} getKey={getKey} footer={{ selectedTotal: true }} />,
 		)
@@ -90,7 +90,36 @@ describe('Grid footer', () => {
 			/>,
 		)
 
-		expect(bySlot(selected.container, 'grid-footer')?.textContent).toContain('2 selected')
+		expect(bySlot(selected.container, 'grid-footer')?.textContent).toContain('2 of 3 rows selected')
+	})
+
+	it('replaces the row total with the selected count while a selection is active', () => {
+		const idle = renderUI(
+			<Grid
+				columns={selectColumns}
+				rows={rows}
+				getKey={getKey}
+				footer={{ rowTotal: true, selectedTotal: true }}
+			/>,
+		)
+
+		// No selection: the leading slot shows the row total.
+		expect(bySlot(idle.container, 'grid-footer')?.textContent).toContain('3 rows')
+
+		const selected = renderUI(
+			<Grid
+				columns={selectColumns}
+				rows={rows}
+				getKey={getKey}
+				selection={{ defaultValue: new Set([1]) }}
+				footer={{ rowTotal: true, selectedTotal: true }}
+			/>,
+		)
+
+		// A selection takes the slot in place — the row total is gone, not stacked.
+		const text = bySlot(selected.container, 'grid-footer')?.textContent
+		expect(text).toContain('1 of 3 rows selected')
+		expect(text).not.toContain('3 rows visible')
 	})
 
 	it('renders the custom content slot with live counts', () => {

@@ -546,9 +546,9 @@ export const k = {
 		badge: '[&>*>tr>td_[data-slot=badge]]:text-sm',
 	},
 	// The opt-in summary footer (`GridFooter`) below the table: a small, muted
-	// status bar. Wraps on narrow viewports; the trailing cluster (selected count +
-	// custom content) is pushed to the far edge by `ml-auto`, across from the
-	// leading row-count total.
+	// status bar. Wraps on narrow viewports; the leading slot holds a single count
+	// (the selected total swaps in over the row total in place), and any custom
+	// content is pushed to the far edge by `ml-auto` in the trailing cluster.
 	summary: {
 		bar: ['flex', 'flex-wrap', 'items-center', 'gap-x-4', 'gap-y-1', size.md, text.muted],
 		trailing: ['flex', 'flex-wrap', 'items-center', 'gap-x-4', 'gap-y-1', 'ml-auto'],
