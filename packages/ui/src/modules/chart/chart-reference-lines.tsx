@@ -200,7 +200,7 @@ function LabelledReferenceRule({
 				className={cn(REFERENCE_LABEL_INK, slot ? cn(k.series[color].fill) : undefined)}
 				style={slot ? undefined : { fill: color }}
 			>
-				{line.label ? `${line.label} ${valueText}` : valueText}
+				{line.label ? line.label : valueText}
 			</text>
 		</>
 	)

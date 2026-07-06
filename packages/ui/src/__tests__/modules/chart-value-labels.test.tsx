@@ -201,7 +201,7 @@ describe('LineChart value labels', () => {
 		expect(drawn).not.toContain('65')
 	})
 
-	it('labels reference rules beside their values when references is on', () => {
+	it('labels reference rules with their label when references is on', () => {
 		const { container } = renderUI(
 			<LineChart
 				aria-label="Revenue by month against a target"
@@ -225,6 +225,6 @@ describe('LineChart value labels', () => {
 		expect(points).toContain('40')
 
 		// ...and the reference rule now carries its own standing label.
-		expect(bySlot(container, 'chart-reference-label')?.textContent).toBe('Target 70')
+		expect(bySlot(container, 'chart-reference-label')?.textContent).toBe('Target')
 	})
 })

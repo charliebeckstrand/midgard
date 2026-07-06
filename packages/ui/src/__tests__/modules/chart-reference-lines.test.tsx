@@ -541,10 +541,8 @@ describe('reference value labels', () => {
 
 		const label = labels[0]
 
-		// The label reads the rule's value, prefixed by its own label.
-		expect(label?.textContent).toContain('Goal')
-
-		expect(label?.textContent).toContain('60')
+		// The label reads the rule's own label, standing in for the value.
+		expect(label?.textContent).toBe('Goal')
 
 		// It sits at the rule's far (right) end, anchored inward, and clears the
 		// dashes by riding just above the rule's value position.
