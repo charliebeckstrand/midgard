@@ -1,5 +1,6 @@
 'use client'
 
+import { useCallback } from 'react'
 import { cn } from '../../../core'
 import type { PlotRect } from '../chart-layout'
 import type { ChartTooltipTrigger } from '../chart-schema'
@@ -30,12 +31,10 @@ export type ScatterChartHitAreaProps = {
 }
 
 /**
- * The scatter counterpart of the band charts' hit layer: a transparent
- * rectangle over the plot feeding the shared hover context, the index resolved
- * to the nearest unique-x column rather than an evenly spaced band — unique x
- * values arrive at whatever spacing the data has. It shares the band layer's
- * {@link useChartPointer} path — the scroll rescue, the click-to-pin trigger,
- * and the cursor reflection all ride along — varying only the column resolver.
+ * The scatter counterpart of the band charts' hit layer: it shares the same
+ * {@link useChartPointer} hover, scroll rescue, and click-to-pin behaviour,
+ * resolving the index to the nearest unique-x column rather than an evenly
+ * spaced band — unique x values arrive at whatever spacing the data has.
  *
  * @internal
  */
@@ -46,15 +45,10 @@ export function ScatterChartHitArea({
 	trigger = 'hover',
 	snaps = false,
 }: ScatterChartHitAreaProps) {
-	// The index snaps to the nearest unique-x column; y never narrows it, so the
-	// resolver reads x alone.
-	const { ref, ...handlers } = useChartPointer(
-		(x) => nearestCenterIndex(x, centers),
-		plot,
-		onData,
-		trigger,
-		snaps,
-	)
+	// The nearest unique-x column stands in for the band charts' evenly spaced band.
+	const resolveIndex = useCallback((x: number) => nearestCenterIndex(x, centers), [centers])
+
+	const { ref, ...handlers } = useChartPointer(plot, resolveIndex, onData, trigger, snaps)
 
 	return (
 		<rect

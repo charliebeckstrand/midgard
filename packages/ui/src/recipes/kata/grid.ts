@@ -5,7 +5,7 @@
  * sub-recipe is the `sort.icon`, inked or muted by whether its column is the
  * active sort.
  */
-import { defineRecipe, mode } from '../../core/recipe'
+import { defineRecipe, mode, type PaletteColor } from '../../core/recipe'
 import { hannou, iro, ji, kasane, narabi, omote, sen, ugoki } from '../kiso'
 
 const { cursor, fg } = hannou
@@ -83,8 +83,53 @@ const draggingSurface = mode('data-[dragging]:bg-white', [
  * their own padding through the reveal wrapper) and the loading placeholder
  * rows (which keep ordinary cell padding), so the rail runs unbroken while a
  * group's children load.
+ *
+ * The neutral is a *left-side* border color (`border-l-<neutral>`), not the
+ * all-sides `border-color` — so when {@link railColor} layers a palette color on
+ * the same cell they land in one tailwind-merge group (`border-left-color`) and
+ * the color cleanly replaces the neutral, in both light and dark, without an
+ * `!important`. (An all-sides neutral would sit in a different group and survive
+ * the merge, and its `dark:` variant — one extra class under class-based dark
+ * mode — would then outrank the un-variant color and win in dark mode.)
  */
-const railBorder = ['border-l-2', ...mode('border-zinc-950/5', 'dark:border-white/10')]
+const railBorder = ['border-l-2', ...mode('border-l-zinc-950/5', 'dark:border-l-white/10')]
+
+/**
+ * A colored group rail, keyed by {@link PaletteColor} so a group reads
+ * `railColor[group.color]`. Swaps the neutral {@link railBorder} tint for the
+ * group's palette hue at the solid `-600` shade — matching a column group's
+ * `bandColor` underline — when the row manager assigns one. Left-side-specific
+ * (`border-l-<color>`) with a matching `dark:` variant, so it shares the neutral
+ * rail's tailwind-merge group *and* variants and replaces it outright (no
+ * `!important`, no dark-mode fallthrough). Full literals for Tailwind's scanner.
+ */
+const railColor: Record<PaletteColor, string> = {
+	zinc: 'border-l-2 border-l-zinc-600 dark:border-l-zinc-600',
+	red: 'border-l-2 border-l-red-600 dark:border-l-red-600',
+	amber: 'border-l-2 border-l-amber-600 dark:border-l-amber-600',
+	green: 'border-l-2 border-l-green-600 dark:border-l-green-600',
+	blue: 'border-l-2 border-l-blue-600 dark:border-l-blue-600',
+	rose: 'border-l-2 border-l-rose-600 dark:border-l-rose-600',
+	violet: 'border-l-2 border-l-violet-600 dark:border-l-violet-600',
+	sky: 'border-l-2 border-l-sky-600 dark:border-l-sky-600',
+}
+
+/**
+ * A group's aggregation / total-footer tint, keyed by {@link PaletteColor} so a
+ * cell reads `rowGroupTint[group.color]`. A low-opacity fill of the group's hue
+ * (`/10`), so the summarizing figures sit on a faint wash of the group color
+ * while staying legible over both surfaces. Full literals for Tailwind's scanner.
+ */
+const rowGroupTint: Record<PaletteColor, string> = {
+	zinc: 'bg-zinc-500/10',
+	red: 'bg-red-500/10',
+	amber: 'bg-amber-500/10',
+	green: 'bg-green-500/10',
+	blue: 'bg-blue-500/10',
+	rose: 'bg-rose-500/10',
+	violet: 'bg-violet-500/10',
+	sky: 'bg-sky-500/10',
+}
 
 export const k = {
 	// `isolate` scopes the grid's internal sticky/pinned z-indices to its own
@@ -354,13 +399,18 @@ export const k = {
 	rowGroup: {
 		// A 2px colored rail down the group's leading edge — carried by the leftmost
 		// cell of every row in the group (its header and each leaf) so it reads as one
-		// continuous bar, the row-group analog of a column group's underline rule. For
-		// now it takes a neutral tint; a forthcoming row manager will swap in a
-		// per-group palette colour. `rail` is the padded group cells' variant (the
-		// leaf/header cells manage their own padding); `railBorder` is the border
-		// alone, for the loading placeholder rows that keep ordinary cell padding.
+		// continuous bar, the row-group analog of a column group's underline rule. It
+		// takes a neutral tint by default; the row manager swaps in a per-group
+		// palette colour (`railColor[group.color]`). `rail` is the padded group cells'
+		// variant (the leaf/header cells manage their own padding); `railBorder` is the
+		// border alone, for the loading placeholder rows that keep ordinary cell padding.
 		railBorder,
 		rail: ['py-0', ...railBorder],
+		// Per-group rail color (see {@link railColor}) — the manager's palette hue,
+		// replacing the neutral `railBorder` tint on the leading cell of every group row.
+		railColor,
+		// The group's aggregation / total-footer color wash (see {@link rowGroupTint}).
+		tint: rowGroupTint,
 		// Chevron at the row's trailing edge: the group row renders a right chevron
 		// when collapsed and a down chevron when expanded; `shrink-0` holds its size
 		// beside the label.
@@ -492,9 +542,6 @@ export const k = {
 		// when active so it doesn't override that colour.
 		button: ['shrink-0'],
 		idle: [text.muted, fg.hover],
-		// Reset button in the filter sheet's footer: an auto right-margin pushes it
-		// to the left edge, across from the right-justified Cancel / Apply pair.
-		reset: 'mr-auto',
 	},
 	footer: {
 		// Footer below the table, laid out as three zones. From `lg`: one row with
@@ -546,9 +593,9 @@ export const k = {
 		badge: '[&>*>tr>td_[data-slot=badge]]:text-sm',
 	},
 	// The opt-in summary footer (`GridFooter`) below the table: a small, muted
-	// status bar. Wraps on narrow viewports; the trailing cluster (selected count +
-	// custom content) is pushed to the far edge by `ml-auto`, across from the
-	// leading row-count total.
+	// status bar. Wraps on narrow viewports; the leading slot holds a single count
+	// (the selected total swaps in over the row total in place), and any custom
+	// content is pushed to the far edge by `ml-auto` in the trailing cluster.
 	summary: {
 		bar: ['flex', 'flex-wrap', 'items-center', 'gap-x-4', 'gap-y-1', size.md, text.muted],
 		trailing: ['flex', 'flex-wrap', 'items-center', 'gap-x-4', 'gap-y-1', 'ml-auto'],

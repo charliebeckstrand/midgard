@@ -111,13 +111,12 @@ function horizontalBarPath(y0: number, y1: number, valueX: number, baseline: num
 }
 
 /**
- * The bar's span and hit fields — everything but the drawn path — from its
- * value-axis span (`baseline`→`valuePos`) and its band-axis slot (`c0`→`c1`).
- * Vertical runs the span up y with the slot across x; horizontal transposes
- * both, and the hit rect follows so `withinBarMarks` reads either the same way.
- * A stacked segment reuses these full-edge fields for its contiguous hit column
- * while insetting only its own path, so it never pays for a rounded path it then
- * discards.
+ * A bar's hit-span fields — everything but the drawn path — from its value-axis
+ * span (`baseline`→`valuePos`) and band-axis slot (`c0`→`c1`). Vertical runs the
+ * span up y with the slot across x; horizontal transposes both, so
+ * `withinBarMarks` reads either the same way. Split from {@link barSpan} so a
+ * stacked segment, which paints its own square path, skips building the rounded
+ * one it would only discard.
  *
  * @internal
  */
@@ -150,13 +149,6 @@ function barSpanFields(
 	}
 }
 
-/**
- * One bar from its value-axis span (`baseline`→`valuePos`) and its band-axis
- * slot (`c0`→`c1`), drawn with a rounded data end. Vertical draws the span up y
- * with the slot across x; horizontal transposes both.
- *
- * @internal
- */
 function barSpan(
 	orientation: ChartOrientation,
 	valuePos: number,
@@ -322,9 +314,9 @@ function stackedSegment(orientation: ChartOrientation, segment: StackedSegment):
 	const pathData = fits && !rounded ? dataEdge - toward * gap : dataEdge
 
 	// The hit span keeps the full edges (a contiguous column); only the path insets.
-	const fields = barSpanFields(orientation, dataEdge, baseEdge, c0, c1, key)
+	const mark = barSpanFields(orientation, dataEdge, baseEdge, c0, c1, key)
 
-	return { ...fields, d: stackSegmentPath(orientation, c0, c1, pathData, pathBase, rounded) }
+	return { ...mark, d: stackSegmentPath(orientation, c0, c1, pathData, pathBase, rounded) }
 }
 
 /**
@@ -373,5 +365,56 @@ export function stackedBarMarks(
 				key: `${seriesIndex}:${index}`,
 			})
 		}),
+	)
+}
+
+/**
+ * Per category, each stacked segment's cumulative top along the value axis,
+ * piled bottom to top — the boundaries the drawn segments actually sit at. The
+ * from-zero snap points a value scale maps only coincide with the marks when the
+ * bars grow from one shared baseline (grouped); a stack piles them, so the
+ * crosshair snap and keyboard cursor read these cumulative edges instead.
+ * Vertical reads the value off `top`, horizontal off `x1` — the segment's data
+ * end either way, since stacked segments are positive-only.
+ *
+ * @internal
+ */
+export function stackedBarSnapPoints(
+	marks: (BarMark | null)[][],
+	count: number,
+	orientation: ChartOrientation = 'vertical',
+): number[][] {
+	return Array.from({ length: count }, (_, category) =>
+		marks.reduce<number[]>((positions, series) => {
+			const mark = series[category]
+
+			if (mark) positions.push(orientation === 'vertical' ? mark.top : mark.x1)
+
+			return positions
+		}, []),
+	)
+}
+
+/**
+ * The series index behind each {@link stackedBarSnapPoints} stop, in the same
+ * order and dropped by the same non-null gate, so the keyboard cursor's value
+ * lane resolves to the series whose segment it lands on. `seriesIndices[order]`
+ * names the series the caller drew at stack position `order`.
+ *
+ * @internal
+ */
+export function stackedBarSnapSeries(
+	marks: (BarMark | null)[][],
+	seriesIndices: number[],
+	count: number,
+): number[][] {
+	return Array.from({ length: count }, (_, category) =>
+		marks.reduce<number[]>((series, seriesMarks, order) => {
+			const index = seriesIndices[order]
+
+			if (seriesMarks[category] && index !== undefined) series.push(index)
+
+			return series
+		}, []),
 	)
 }

@@ -5,7 +5,7 @@ import { type FrameSizing, usePlotFrame } from '../../../hooks'
 import { useResolvedSize } from '../../../primitives/density'
 import type { Step } from '../../../recipes'
 import { type ChartSeriesColor, k } from '../../../recipes/kata/chart'
-import { ChartAxis } from '../chart-axis'
+import { ChartAxis, type ChartAxisTick } from '../chart-axis'
 import { CHART_METRICS, PLOT_TOP_PAD, SCATTER_HIT_SLACK, X_AXIS_HEIGHT } from '../chart-constants'
 import { ChartCrosshair, crosshairSnaps, resolveCrosshair } from '../chart-crosshair'
 import { ChartFrame } from '../chart-frame'
@@ -159,6 +159,7 @@ function scatterReadout(
 	return {
 		categories: uniqueXs.map(formatX),
 		rows: visible.map((meta) => ({
+			index: meta.index,
 			label: meta.label,
 			swatchClass: cn(meta.paint.text),
 			swatch: 'rect',
@@ -187,9 +188,10 @@ type ScatterFrame = {
 
 /**
  * The scatter frame's sizing and legend layout resolved together: a live ratio
- * with a legend goes to the figure wrapper so the whole chart holds it (the plot
- * measuring the height the legend leaves), and the legend's placement drives the
- * panel-vs-row layout. Derived from the props alone, so it precedes any
+ * with a stacked legend goes to the figure wrapper so the whole chart holds it
+ * (the plot measuring the height the band leaves), while a side legend keeps the
+ * ratio on the plot box and bands beside it; the legend's placement also drives
+ * the panel-vs-row layout. Derived from the props alone, so it precedes any
  * measurement.
  *
  * @internal
@@ -200,17 +202,20 @@ function scatterFrame(
 	height: number | undefined,
 	aspectRatio: ChartAspectRatio,
 ): ScatterFrame {
+	const aside = legend === 'left' || legend === 'right'
+
 	const { sizing, outerAspect } = chartFrameLayout(
 		height,
 		aspectRatio,
 		Boolean(legend ?? seriesCount > 1),
+		aside,
 	)
 
 	return {
 		sizing,
 		frameAspect: outerAspect ?? undefined,
 		fill: sizing.mode === 'fill' || sizing.mode === 'aspect-fill',
-		aside: legend === 'left' || legend === 'right',
+		aside,
 		placement: typeof legend === 'string' ? legend : undefined,
 	}
 }
@@ -239,8 +244,8 @@ type ScatterScales = {
 	plot: PlotRect
 	xScale: LinearScale | null
 	yScale: LinearScale | null
-	xTicks: { at: number; label: string }[]
-	yTicks: { at: number; label: string }[]
+	xTicks: ChartAxisTick[]
+	yTicks: ChartAxisTick[]
 }
 
 /**
@@ -301,8 +306,8 @@ function ScatterChrome(props: {
 	gridLines: boolean
 	xScale: LinearScale | null
 	yScale: LinearScale | null
-	xTicks: { at: number; label: string }[]
-	yTicks: { at: number; label: string }[]
+	xTicks: ChartAxisTick[]
+	yTicks: ChartAxisTick[]
 }) {
 	const { plot, axes, gridLines, xScale, yScale, xTicks, yTicks } = props
 
@@ -432,6 +437,7 @@ export function ScatterChart<T>({
 
 	const list: ChartScatterSeries[] = scaled
 		? visible.map((meta) => ({
+				index: meta.index,
 				label: meta.label,
 				paint: meta.paint,
 				marks: scatterMarks(meta.points, xScale.map, yScale.map, meta.radius),
@@ -479,6 +485,7 @@ export function ScatterChart<T>({
 			}
 			legendPlacement={placement}
 			readout={readout}
+			emphasis={emphasis}
 			tooltip={showTooltip}
 			snap={snapTargets(rails, bandPositions, snapColumns)}
 			focus={cartesianFocus(bandPositions, snapColumns, 'vertical')}

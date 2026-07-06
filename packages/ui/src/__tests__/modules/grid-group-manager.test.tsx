@@ -291,6 +291,38 @@ describe('Grid column-group editor', () => {
 		expect(band(container)?.textContent).toContain('Identity')
 	})
 
+	it('seeds collapse from a controlled group’s defaultCollapsed on mount', () => {
+		function CollapsedHarness() {
+			const [groups, setGroups] = useState<GridColumnGroup[]>([
+				{
+					id: 'identity',
+					title: 'Identity',
+					columns: ['first', 'last'],
+					collapsible: true,
+					defaultCollapsed: true,
+				},
+			])
+
+			return (
+				<Grid
+					columns={columns}
+					rows={rows}
+					getKey={(row) => row.id}
+					groups={{ value: groups, onValueChange: setGroups }}
+				/>
+			)
+		}
+
+		renderUI(<CollapsedHarness />)
+
+		// A controlled binding carries its groups in `value`, not `defaultValue`;
+		// the collapse seed must read the effective initial groups so the band
+		// mounts collapsed (offering to expand), not expanded.
+		expect(screen.getByRole('button', { name: 'Expand Identity' })).toBeInTheDocument()
+
+		expect(screen.queryByRole('button', { name: 'Collapse Identity' })).toBeNull()
+	})
+
 	it('withholds the move menu until a group exists', () => {
 		renderUI(<Harness />)
 
@@ -334,5 +366,45 @@ describe('Grid column-group editor', () => {
 		expect(screen.getByRole('menuitem', { name: 'Red' }).getAttribute('aria-disabled')).not.toBe(
 			'true',
 		)
+	})
+
+	it('offers the color menu None for a colored group', () => {
+		const colored: GridColumnGroup[] = [
+			{ id: 'contact', title: 'Contact', color: 'blue', columns: ['first', 'last'] },
+		]
+
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={(row) => row.id}
+				groups={colored}
+				columnManager={{ defaultOpen: true }}
+			/>,
+		)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Color for Contact' }))
+
+		expect(screen.getByRole('menuitem', { name: 'None' })).toBeInTheDocument()
+	})
+
+	it('withholds the color menu None for a colorless group', () => {
+		const plain: GridColumnGroup[] = [
+			{ id: 'contact', title: 'Contact', columns: ['first', 'last'] },
+		]
+
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={(row) => row.id}
+				groups={plain}
+				columnManager={{ defaultOpen: true }}
+			/>,
+		)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Color for Contact' }))
+
+		expect(screen.queryByRole('menuitem', { name: 'None' })).not.toBeInTheDocument()
 	})
 })

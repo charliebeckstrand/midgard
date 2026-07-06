@@ -14,41 +14,44 @@ export type ChartPointerHandlers = {
 	onClick?: (event: MouseEvent<SVGRectElement>) => void
 }
 
+/** Maps a viewport point into frame coordinates through the hit element's live box. @internal */
+function toFrame(plot: PlotRect, box: DOMRect, clientX: number, clientY: number) {
+	return { x: clientX - box.left + plot.x, y: clientY - box.top + plot.y }
+}
+
 /**
- * Pointer handlers for a cartesian chart's transparent hit layer: movement
- * snaps the shared hover index to the mark under the pointer — the band or the
- * nearest scatter column `resolveIndex` maps the frame point to — and records the
- * exact frame point the tooltip tracks; leaving (or a cancelled pointer) clears
- * both. The chart's `onData` hit test rides along, gating the tooltip to the
- * marks while the index keeps the crosshair tracking everywhere.
+ * Pointer handlers for a chart's transparent hit layer: movement snaps the
+ * shared hover index — the category `resolveIndex` returns for the frame point,
+ * a band for the cartesian charts or the nearest unique-x column for a scatter —
+ * and records the exact frame point the tooltip tracks; leaving (or a cancelled
+ * pointer) clears both. The chart's `onData` hit test rides along, gating the
+ * tooltip to the marks while the index keeps the crosshair tracking everywhere.
  *
  * A scroll slides the plot under a stationary pointer without firing a pointer
  * event, so {@link useHoverAcrossScroll} hides the readout while the surface
  * moves and, once it settles, re-runs the same resolve at the pointer's last
- * viewport position — the crosshair and tooltip return over whatever mark now
+ * viewport position — the crosshair and tooltip return over whatever band now
  * sits under it, with no cursor move required.
  *
  * Under the `'click'` trigger the readout is pinned instead of tracked: a click
- * snaps the hover to the mark under it, a second click of that same index clears
+ * snaps the hover to the band under it, a second click of that same band clears
  * it, and pointer movement leaves the readout be — so the tooltip (and any
  * crosshair) stay put until dismissed. Movement only points the cursor, marking
  * the marks a click can read (a snapping chart reads anywhere, so its whole plot
  * stays a pointer). The scroll rescue stands down there; floating-ui's own
  * autoUpdate keeps the pinned readout anchored across a scroll.
  *
- * @param resolveIndex Maps a frame point to the hovered index — the band under
- * the pointer, or the nearest scatter column — or `null` when none resolves; the
- * one axis-aware step the band and scatter hit layers vary, so they share the
- * rest of this path.
  * @remarks The hit element's own bounding box anchors the coordinate math,
  * so the handlers stay correct however the frame scrolls or transforms.
+ * @param resolveIndex - Maps a frame point to the hover category index, or `null`
+ * when the point resolves to none; memoize it so the handlers stay stable.
  * @returns The handlers plus the `ref` to attach to the hit element, which the
  * scroll resolve reads to map the settled pointer back into frame coordinates.
  * @internal
  */
 export function useChartPointer(
-	resolveIndex: (x: number, y: number) => number | null,
 	plot: PlotRect,
+	resolveIndex: (x: number, y: number) => number | null,
 	onData?: (x: number, y: number) => boolean,
 	trigger: ChartTooltipTrigger = 'hover',
 	snaps = false,
@@ -57,67 +60,59 @@ export function useChartPointer(
 
 	const ref = useRef<SVGRectElement>(null)
 
-	// Map a viewport point onto the hit element's live box in frame coordinates, or
-	// `null` while it is unmounted — the one transform every handler shares, so a
-	// live pointer move and a post-scroll settle resolve through the same path.
-	const framePoint = useCallback(
-		(clientX: number, clientY: number) => {
-			const node = ref.current
+	// Whether the pointer is currently over the hit layer. The shared hover is also
+	// written by the keyboard, so the scroll rescue reads this to tell a
+	// pointer-owned readout — which it should hide and re-resolve — from a
+	// keyboard-owned one, which a scroll must leave alone.
+	const pointerInside = useRef(false)
 
-			if (node === null) return null
-
-			const box = node.getBoundingClientRect()
-
-			return { node, box, x: clientX - box.left + plot.x, y: clientY - box.top + plot.y }
-		},
-		[plot],
-	)
-
-	// A live move only fires within the box; a settle may land off it after the plot
-	// slid out from under the pointer, so `guard` clears rather than snapping to an
-	// edge mark.
+	// Resolve hover from a viewport point against the hit element's live box, so
+	// a live pointer move and a post-scroll settle share one hit path. A live move
+	// only fires within the box; a settle may land off it after the plot slid out
+	// from under the pointer, so `guard` clears rather than snapping to an edge band.
 	const track = useCallback(
 		(clientX: number, clientY: number, guard: boolean) => {
-			const at = framePoint(clientX, clientY)
+			const box = ref.current?.getBoundingClientRect()
 
-			if (at === null) return
+			if (box === undefined) return
 
 			if (
 				guard &&
-				(clientX < at.box.left ||
-					clientX > at.box.right ||
-					clientY < at.box.top ||
-					clientY > at.box.bottom)
+				(clientX < box.left || clientX > box.right || clientY < box.top || clientY > box.bottom)
 			) {
 				set(null, null)
 
 				return
 			}
 
-			set(resolveIndex(at.x, at.y), { x: at.x, y: at.y }, onData ? onData(at.x, at.y) : true)
+			const { x, y } = toFrame(plot, box, clientX, clientY)
+
+			set(resolveIndex(x, y), { x, y }, onData ? onData(x, y) : true)
 		},
-		[framePoint, resolveIndex, onData, set],
+		[plot, resolveIndex, onData, set],
 	)
 
-	// A click pins the mark under it; clicking the shown index again clears it, so
+	// A click pins the band under it; clicking the shown band again clears it, so
 	// the same gesture toggles the readout. No guard — a click always lands inside.
 	const toggle = useCallback(
 		(clientX: number, clientY: number) => {
-			const at = framePoint(clientX, clientY)
+			const box = ref.current?.getBoundingClientRect()
 
-			if (at === null) return
+			if (box === undefined) return
 
-			const index = resolveIndex(at.x, at.y)
+			const { x, y } = toFrame(plot, box, clientX, clientY)
 
-			const onDataHit = onData ? onData(at.x, at.y) : true
+			const index = resolveIndex(x, y)
 
-			// Toggle the shown index off; and a click that would read nothing — off the
-			// marks on a chart that doesn't snap — dismisses rather than pinning a hidden
-			// index, so the next click of a real mark still opens it.
+			const onDataHit = onData ? onData(x, y) : true
+
+			// Toggle the shown category off; and a click that would read nothing — off
+			// the marks on a chart that doesn't snap — dismisses rather than pinning a
+			// hidden one, so the next click of a real mark still opens it.
 			if (index === active || !(snaps || onDataHit)) set(null, null)
-			else set(index, { x: at.x, y: at.y }, onDataHit)
+			else set(index, { x, y }, onDataHit)
 		},
-		[framePoint, resolveIndex, onData, snaps, active, set],
+		[plot, resolveIndex, onData, snaps, active, set],
 	)
 
 	// Under a non-snap click trigger, point the cursor only where a click reads — on
@@ -126,21 +121,31 @@ export function useChartPointer(
 	// anywhere, so a static class carries its cursor instead.
 	const reflectCursor = useCallback(
 		(clientX: number, clientY: number) => {
-			const at = framePoint(clientX, clientY)
+			const node = ref.current
 
-			if (at === null) return
+			if (node === null) return
 
-			at.node.style.cursor = (onData?.(at.x, at.y) ?? true) ? 'pointer' : 'default'
+			const box = node.getBoundingClientRect()
+
+			const { x, y } = toFrame(plot, box, clientX, clientY)
+
+			node.style.cursor = (onData?.(x, y) ?? true) ? 'pointer' : 'default'
 		},
-		[framePoint, onData],
+		[plot, onData],
 	)
 
+	// The scroll rescue only re-resolves while the pointer is engaged; a
+	// keyboard-owned readout has no pointer to re-read and must survive the scroll.
 	const resolveAt = useCallback(
-		(clientX: number, clientY: number) => track(clientX, clientY, true),
+		(clientX: number, clientY: number) => {
+			if (pointerInside.current) track(clientX, clientY, true)
+		},
 		[track],
 	)
 
-	const clear = useCallback(() => set(null, null), [set])
+	const clear = useCallback(() => {
+		if (pointerInside.current) set(null, null)
+	}, [set])
 
 	// The scroll rescue is a hover affordance; a pinned click readout stays put and
 	// lets floating-ui's autoUpdate re-anchor it, so it stands down under `'click'`.
@@ -156,7 +161,15 @@ export function useChartPointer(
 
 	return {
 		ref,
-		onPointerMove: (event) => track(event.clientX, event.clientY, false),
-		onPointerLeave: () => set(null, null),
+		onPointerMove: (event) => {
+			pointerInside.current = true
+
+			track(event.clientX, event.clientY, false)
+		},
+		onPointerLeave: () => {
+			pointerInside.current = false
+
+			set(null, null)
+		},
 	}
 }

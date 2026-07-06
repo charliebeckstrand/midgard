@@ -92,11 +92,6 @@ export function textClass(paint: SeriesPaint): string | undefined {
 	return paint.kind === 'slot' ? cn(paint.text) : undefined
 }
 
-/** The mark group's classes: the dim rides the group so motion's inline mark opacity still composes. @internal */
-export function seriesClass(dimmed: boolean | undefined): string {
-	return cn('transition-opacity', dimmed && 'opacity-25')
-}
-
 /**
  * A raw series colour for an inline SVG `fill` / `stroke` attribute (or a swatch's
  * `currentColor`), or `undefined` for a slot — a CSS class always wins over the
@@ -112,6 +107,17 @@ export function rawColor(paint: SeriesPaint): string | undefined {
 /** The palette slot the texture tile keys off, or `null` for a raw colour, which takes no tile. @internal */
 export function paintSlot(paint: SeriesPaint): ChartSeriesColor | null {
 	return paint.kind === 'slot' ? paint.slot : null
+}
+
+/**
+ * A series mark-group's classes: the legend/keyboard dim rides the group wrapper
+ * so a mark's own inline motion opacity still composes over it. Shared by the
+ * line and scatter mark renderers.
+ *
+ * @internal
+ */
+export function seriesGroupClass(dimmed: boolean | undefined): string {
+	return cn('transition-opacity', dimmed && 'opacity-25')
 }
 
 /**

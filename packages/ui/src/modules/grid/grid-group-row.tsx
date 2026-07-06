@@ -7,6 +7,7 @@ import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { TableCell, TableRow } from '../../components/table'
 import { cn, dataAttr } from '../../core'
+import type { PaletteColor } from '../../core/recipe'
 import { k } from '../../recipes/kata/grid'
 import { aggregateLabelSpan, hasAggregation } from './grid-aggregate'
 import type { GridGroupBy } from './grid-data-types'
@@ -28,6 +29,8 @@ type GridGroupRowProps<T> = {
 	columnId: string | number
 	/** Header-label override; falls back to `value (count)`. */
 	renderHeader: GridGroupBy['renderHeader']
+	/** The group's overlay color: colors the leading rail and washes the header's aggregate cells; `undefined` leaves them neutral. */
+	color?: PaletteColor
 }
 
 /**
@@ -42,7 +45,13 @@ type GridGroupRowProps<T> = {
  *
  * @internal
  */
-export function GridGroupRow<T>({ row, columns, columnId, renderHeader }: GridGroupRowProps<T>) {
+export function GridGroupRow<T>({
+	row,
+	columns,
+	columnId,
+	renderHeader,
+	color,
+}: GridGroupRowProps<T>) {
 	const expanded = row.getIsExpanded()
 
 	// Single-level grouping: the group's immediate sub-rows are its leaf rows, so
@@ -60,8 +69,13 @@ export function GridGroupRow<T>({ row, columns, columnId, renderHeader }: GridGr
 	const span = aggregated ? aggregateLabelSpan(columns) : columns.length
 
 	return (
-		<TableRow data-group-row data-expanded={dataAttr(expanded)}>
-			<TableCell colSpan={span} className={cn(k.rowGroup.rail)}>
+		// `data-group-key` (the shared value) lets the group-header context menu
+		// resolve the right-clicked group for the row manager and its color/expand items.
+		<TableRow data-group-row data-group-key={String(value)} data-expanded={dataAttr(expanded)}>
+			<TableCell
+				colSpan={span}
+				className={cn(k.rowGroup.rail, color && k.rowGroup.railColor[color])}
+			>
 				<Button
 					variant="bare"
 					onClick={row.getToggleExpandedHandler()}
@@ -84,6 +98,7 @@ export function GridGroupRow<T>({ row, columns, columnId, renderHeader }: GridGr
 					columns={columns}
 					rows={row.subRows.map((leaf) => leaf.original)}
 					from={span}
+					color={color}
 				/>
 			)}
 		</TableRow>

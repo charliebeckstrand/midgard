@@ -6,7 +6,6 @@ import { Icon } from '../../../../components/icon'
 import { Stack } from '../../../../components/stack'
 import { Stat, StatLabel, StatValue } from '../../../../components/stat'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../../components/tabs'
-import { cn } from '../../../../core'
 import {
 	AreaChart,
 	BarChart,
@@ -148,29 +147,29 @@ function AnimatedExample({
 	)
 }
 
-const ChartContainer = ({ children, size = 'lg' }: { children: ReactNode; size?: string }) => {
-	const sizeMap: Record<string, string> = {
-		sm: 'sm:max-w-sm',
-		md: 'sm:max-w-md',
-		lg: 'sm:max-w-lg',
-	}
-
-	return <div className={cn('w-full', size ? sizeMap[size] : sizeMap.lg)}>{children}</div>
-}
-
-// A tile pinned to 16:9 — a dashed border makes its edges visible and
-// `overflow-hidden` would clip anything that spilled. A chart set to the same
-// aspectRatio fills it exactly, legend and all, so nothing spills to clip. The
-// border sits on a wrapper so the aspect box's own edges stay a clean 16:9 (a
-// border-box border would shave a pixel off the ratio).
-const AspectTile = ({ label, children }: { label: string; children: ReactNode }) => (
+// A labelled demo cell — a caption over its content, shared by the plain and
+// fixed-aspect tiles below.
+const Labeled = ({ label, children }: { label: string; children: ReactNode }) => (
 	<div className="space-y-2">
 		<div className="text-xs text-zinc-500 dark:text-zinc-400">{label}</div>
 
+		{children}
+	</div>
+)
+
+// A tile pinned to 16:9 — a dashed border makes its edges visible and
+// `overflow-hidden` would clip anything that spilled. A chart whose aspectRatio
+// folds its legend in — a stacked top / bottom band — fills it exactly, band and
+// all, so nothing spills to clip. A side legend keeps the ratio on the plot
+// instead and bands beside it, so it isn't shown boxed here. The border sits on a
+// wrapper so the aspect box's own edges stay a clean 16:9 (a border-box border
+// would shave a pixel off the ratio).
+const AspectTile = ({ label, children }: { label: string; children: ReactNode }) => (
+	<Labeled label={label}>
 		<div className="rounded-lg border border-dashed border-zinc-300 dark:border-zinc-700">
 			<div className="aspect-video w-full overflow-hidden rounded-[inherit]">{children}</div>
 		</div>
-	</div>
+	</Labeled>
 )
 
 export function Demo() {
@@ -195,111 +194,98 @@ export function Demo() {
 					<TabContent value="bar">
 						<Stack gap="xl">
 							<Example title="Grouped" code={code`<BarChart … />`}>
-								<ChartContainer>
-									<BarChart
-										aria-label="Revenue and costs by month"
-										data={months}
-										series={[
-											{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
-											{ xKey: 'month', yKey: 'costs', yName: 'Costs' },
-										]}
-									/>
-								</ChartContainer>
+								<BarChart
+									aria-label="Revenue and costs by month"
+									data={months}
+									series={[
+										{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
+										{ xKey: 'month', yKey: 'costs', yName: 'Costs' },
+									]}
+								/>
 							</Example>
 
 							<Example title="Stacked" code={code`<BarChart stacked … />`}>
-								<ChartContainer>
-									<BarChart
-										aria-label="Revenue and costs by month, stacked"
-										data={months}
-										series={[
-											{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
-											{ xKey: 'month', yKey: 'costs', yName: 'Costs' },
-										]}
-										stacked
-									/>
-								</ChartContainer>
+								<BarChart
+									aria-label="Revenue and costs by month, stacked"
+									data={months}
+									series={[
+										{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
+										{ xKey: 'month', yKey: 'costs', yName: 'Costs' },
+									]}
+									stacked
+								/>
 							</Example>
 
 							<Example title="Texture" code={code`<BarChart texture … />`}>
-								<ChartContainer>
-									<BarChart
-										aria-label="Revenue and costs by month, textured"
-										data={months}
-										series={[
-											{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
-											{ xKey: 'month', yKey: 'costs', yName: 'Costs' },
-										]}
-										texture
-									/>
-								</ChartContainer>
+								<BarChart
+									aria-label="Revenue and costs by month, textured"
+									data={months}
+									series={[
+										{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
+										{ xKey: 'month', yKey: 'costs', yName: 'Costs' },
+									]}
+									texture
+								/>
 							</Example>
 
 							<Example title="Horizontal" code={code`<BarChart orientation="horizontal" … />`}>
-								<ChartContainer>
-									<BarChart
-										aria-label="Traffic by source"
-										data={sources}
-										series={[{ xKey: 'source', yKey: 'visits', yName: 'Visits' }]}
-										orientation="horizontal"
-									/>
-								</ChartContainer>
+								<BarChart
+									aria-label="Traffic by source"
+									data={sources}
+									series={[{ xKey: 'source', yKey: 'visits', yName: 'Visits' }]}
+									orientation="horizontal"
+								/>
 							</Example>
 
 							<Example title="Negative values" code={code`<BarChart crosshair … />`}>
-								<ChartContainer>
-									<BarChart
-										aria-label="Month-over-month swing"
-										data={swings}
-										series={[{ xKey: 'month', yKey: 'delta', yName: 'Swing' }]}
-										crosshair
-									/>
-								</ChartContainer>
+								<BarChart
+									aria-label="Month-over-month swing"
+									data={swings}
+									series={[{ xKey: 'month', yKey: 'delta', yName: 'Swing' }]}
+									crosshair
+								/>
 							</Example>
 
 							<Example
 								title="Click to pin the tooltip"
 								code={code`<BarChart tooltip={{ trigger: 'click' }} … />`}
 							>
-								<ChartContainer>
-									<BarChart
-										aria-label="Revenue and costs by month"
-										data={months}
-										series={[
-											{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
-											{ xKey: 'month', yKey: 'costs', yName: 'Costs' },
-										]}
-										tooltip={{ trigger: 'click' }}
-									/>
-								</ChartContainer>
+								<BarChart
+									aria-label="Revenue and costs by month"
+									data={months}
+									series={[
+										{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
+										{ xKey: 'month', yKey: 'costs', yName: 'Costs' },
+									]}
+									tooltip={{ trigger: 'click' }}
+								/>
 							</Example>
 
 							<Example
 								title="Reference lines"
 								code={code`<BarChart legend reference={[{ value: 55, label: 'Target', color: 'green' }, { value: 68, label: 'Ceiling', color: '#e11d48' }]} … />`}
 							>
-								<ChartContainer>
-									<BarChart
-										aria-label="Revenue by month against a target and ceiling"
-										data={months}
-										series={[{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' }]}
-										legend
-										reference={[
-											{ value: 55, label: 'Target', color: 'green' },
-											{ value: 80, label: 'Ceiling', color: '#e11d48' },
-										]}
-									/>
-								</ChartContainer>
+								<BarChart
+									aria-label="Revenue by month against a target and ceiling"
+									data={months}
+									series={[{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' }]}
+									legend
+									reference={[
+										{ value: 55, label: 'Target', color: 'green' },
+										{ value: 80, label: 'Ceiling', color: '#e11d48' },
+									]}
+								/>
 							</Example>
 
 							<Example
-								title="Fills a fixed-aspect tile"
-								code={code`<BarChart aspectRatio={16 / 9} legend="bottom" … /> // fills a 16:9 tile, legend included`}
+								title="Stacked legend fills a fixed-aspect tile"
+								code={code`<BarChart aspectRatio={16 / 9} legend="bottom" … /> // fills a 16:9 tile, band included`}
 							>
 								<div className="grid w-full gap-4 sm:grid-cols-2">
-									{(['bottom', 'top', 'right', 'left'] as const).map((placement) => (
+									{(['bottom', 'top'] as const).map((placement) => (
 										<AspectTile key={placement} label={`legend="${placement}"`}>
 											<BarChart
+												className="max-w-none"
 												aria-label={`Revenue and costs by month, legend ${placement}`}
 												data={months}
 												series={[
@@ -314,19 +300,39 @@ export function Demo() {
 								</div>
 							</Example>
 
+							<Example
+								title="Side legend holds the plot ratio"
+								code={code`<BarChart aspectRatio={16 / 9} legend="right" … /> // plot stays 16:9, legend beside`}
+							>
+								<Stack gap="lg">
+									{(['right', 'left'] as const).map((placement) => (
+										<Labeled key={placement} label={`legend="${placement}"`}>
+											<BarChart
+												aria-label={`Revenue and costs by month, legend ${placement}`}
+												data={months}
+												series={[
+													{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
+													{ xKey: 'month', yKey: 'costs', yName: 'Costs' },
+												]}
+												aspectRatio={16 / 9}
+												legend={placement}
+											/>
+										</Labeled>
+									))}
+								</Stack>
+							</Example>
+
 							<AnimatedExample title="Animated" source={code`<BarChart animate … />`}>
-								<ChartContainer>
-									<BarChart
-										aria-label="Revenue and costs by month, animated"
-										data={months}
-										series={[
-											{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
-											{ xKey: 'month', yKey: 'costs', yName: 'Costs', color: 'rose' },
-										]}
-										reference={[{ value: 55, label: 'Margin', color: 'amber' }]}
-										animate
-									/>
-								</ChartContainer>
+								<BarChart
+									aria-label="Revenue and costs by month, animated"
+									data={months}
+									series={[
+										{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
+										{ xKey: 'month', yKey: 'costs', yName: 'Costs', color: 'rose' },
+									]}
+									reference={[{ value: 55, label: 'Margin', color: 'amber' }]}
+									animate
+								/>
 							</AnimatedExample>
 						</Stack>
 					</TabContent>
@@ -334,192 +340,168 @@ export function Demo() {
 					<TabContent value="line">
 						<Stack gap="xl">
 							<Example title="Single-series" code={code`<LineChart … />`}>
-								<ChartContainer>
-									<LineChart
-										aria-label="Revenue by month"
-										data={months}
-										series={[{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' }]}
-									/>
-								</ChartContainer>
+								<LineChart
+									aria-label="Revenue by month"
+									data={months}
+									series={[{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' }]}
+								/>
 							</Example>
 
 							<Example title="Multi-series" code={code`<LineChart crosshair={{ snap: true }} … />`}>
-								<ChartContainer>
-									<LineChart
-										aria-label="Revenue and margin by month"
-										data={months}
-										series={[
-											{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
-											{ xKey: 'month', yKey: 'margin', yName: 'Margin' },
-											{ xKey: 'month', yKey: 'costs', yName: 'Costs' },
-										]}
-										crosshair={{ snap: true }}
-									/>
-								</ChartContainer>
+								<LineChart
+									aria-label="Revenue and margin by month"
+									data={months}
+									series={[
+										{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
+										{ xKey: 'month', yKey: 'margin', yName: 'Margin' },
+										{ xKey: 'month', yKey: 'costs', yName: 'Costs' },
+									]}
+									crosshair={{ snap: true }}
+								/>
 							</Example>
 
 							<Example
 								title="Custom colours"
 								code={code`<LineChart series={[{ …, color: '#e11d48' }, { …, color: 'oklch(0.68 0.17 250)' }]} … />`}
 							>
-								<ChartContainer>
-									<LineChart
-										aria-label="Revenue and margin by month, in custom colours"
-										data={months}
-										series={[
-											{ xKey: 'month', yKey: 'revenue', yName: 'Revenue', color: '#e11d48' },
-											{
-												xKey: 'month',
-												yKey: 'margin',
-												yName: 'Margin',
-												color: 'oklch(0.68 0.17 250)',
-											},
-										]}
-									/>
-								</ChartContainer>
+								<LineChart
+									aria-label="Revenue and margin by month, in custom colours"
+									data={months}
+									series={[
+										{ xKey: 'month', yKey: 'revenue', yName: 'Revenue', color: '#e11d48' },
+										{
+											xKey: 'month',
+											yKey: 'margin',
+											yName: 'Margin',
+											color: 'oklch(0.68 0.17 250)',
+										},
+									]}
+								/>
 							</Example>
 
 							<Example
 								title="Dual axis"
 								code={code`<LineChart leftAxis={{ format: … }} rightAxis={{ format: … }} series={[…, { …, axis: 'right' }]} … />`}
 							>
-								<ChartContainer>
-									<LineChart
-										aria-label="Rate per pound against shipped weight by month"
-										data={freight}
-										series={[
-											{ xKey: 'month', yKey: 'rate', yName: 'Rate' },
-											{ xKey: 'month', yKey: 'weight', yName: 'Weight', axis: 'right' },
-										]}
-										leftAxis={{ title: '$ / lb', format: (value) => `$${value.toFixed(2)}` }}
-										rightAxis={{ title: 'Weight', format: (value) => `${value}k lb` }}
-										crosshair={{ snap: true }}
-									/>
-								</ChartContainer>
+								<LineChart
+									aria-label="Rate per pound against shipped weight by month"
+									data={freight}
+									series={[
+										{ xKey: 'month', yKey: 'rate', yName: 'Rate' },
+										{ xKey: 'month', yKey: 'weight', yName: 'Weight', axis: 'right' },
+									]}
+									leftAxis={{ title: '$ / lb', format: (value) => `$${value.toFixed(2)}` }}
+									rightAxis={{ title: 'Weight', format: (value) => `${value}k lb` }}
+									crosshair={{ snap: true }}
+								/>
 							</Example>
 
 							<Example
 								title="Dashed line"
 								code={code`<LineChart series={[{ … }, { …, axis: 'right', dashed: true }]} … />`}
 							>
-								<ChartContainer>
-									<LineChart
-										aria-label="Rate per pound against shipped weight by month, the weight line dashed"
-										data={freight}
-										series={[
-											{ xKey: 'month', yKey: 'rate', yName: 'Rate' },
-											{
-												xKey: 'month',
-												yKey: 'weight',
-												yName: 'Weight',
-												axis: 'right',
-												dashed: true,
-											},
-										]}
-										leftAxis={{ title: '$ / lb', format: (value) => `$${value.toFixed(2)}` }}
-										rightAxis={{ title: 'Weight', format: (value) => `${value}k lb` }}
-										points
-										crosshair={{ snap: true }}
-									/>
-								</ChartContainer>
+								<LineChart
+									aria-label="Rate per pound against shipped weight by month, the weight line dashed"
+									data={freight}
+									series={[
+										{ xKey: 'month', yKey: 'rate', yName: 'Rate' },
+										{
+											xKey: 'month',
+											yKey: 'weight',
+											yName: 'Weight',
+											axis: 'right',
+											dashed: true,
+										},
+									]}
+									leftAxis={{ title: '$ / lb', format: (value) => `$${value.toFixed(2)}` }}
+									rightAxis={{ title: 'Weight', format: (value) => `${value}k lb` }}
+									points
+									crosshair={{ snap: true }}
+								/>
 							</Example>
 
 							<Example title="Time axis" code={code`<LineChart xAxis="time" … />`}>
-								<ChartContainer>
-									<LineChart
-										aria-label="Visits by day"
-										data={dailyVisits}
-										series={[{ xKey: 'date', yKey: 'visits', yName: 'Visits' }]}
-										xAxis="time"
-									/>
-								</ChartContainer>
+								<LineChart
+									aria-label="Visits by day"
+									data={dailyVisits}
+									series={[{ xKey: 'date', yKey: 'visits', yName: 'Visits' }]}
+									xAxis="time"
+								/>
 							</Example>
 
 							<Example title="Points" code={code`<LineChart fill points … />`}>
-								<ChartContainer>
-									<LineChart
-										aria-label="Revenue by month"
-										data={months}
-										series={[{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' }]}
-										points
-									/>
-								</ChartContainer>
+								<LineChart
+									aria-label="Revenue by month"
+									data={months}
+									series={[{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' }]}
+									points
+								/>
 							</Example>
 
 							<Example
 								title="Value labels"
 								code={code`<LineChart labels={{ endpoints: true, extremes: true }} … />`}
 							>
-								<ChartContainer>
-									<LineChart
-										aria-label="Revenue and margin by month, with value labels"
-										data={months}
-										series={[
-											{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
-											{ xKey: 'month', yKey: 'margin', yName: 'Margin' },
-										]}
-										points
-										labels={{ endpoints: true, extremes: true }}
-									/>
-								</ChartContainer>
+								<LineChart
+									aria-label="Revenue and margin by month, with value labels"
+									data={months}
+									series={[
+										{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
+										{ xKey: 'month', yKey: 'margin', yName: 'Margin' },
+									]}
+									points
+									labels={{ endpoints: true, extremes: true }}
+								/>
 							</Example>
 
 							<Example
 								title="Reference labels"
 								code={code`<LineChart reference={[{ value: 60, label: 'Target', color: 'green' }]} labels={{ references: true }} … />`}
 							>
-								<ChartContainer>
-									<LineChart
-										aria-label="Revenue by month against a target, with reference labels"
-										data={months}
-										series={[{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' }]}
-										reference={[{ value: 60, label: 'Target', color: 'green' }]}
-										labels={{ references: true }}
-									/>
-								</ChartContainer>
+								<LineChart
+									aria-label="Revenue by month against a target, with reference labels"
+									data={months}
+									series={[{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' }]}
+									reference={[{ value: 60, label: 'Target', color: 'green' }]}
+									labels={{ references: true }}
+								/>
 							</Example>
 
 							<Example
 								title="Smooth interpolation"
 								code={code`<LineChart interpolation="smooth" … />`}
 							>
-								<ChartContainer>
-									<LineChart
-										aria-label="Revenue and margin by month, smoothed"
-										data={months}
-										series={[
-											{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
-											{ xKey: 'month', yKey: 'margin', yName: 'Margin' },
-										]}
-										interpolation="smooth"
-									/>
-								</ChartContainer>
+								<LineChart
+									aria-label="Revenue and margin by month, smoothed"
+									data={months}
+									series={[
+										{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
+										{ xKey: 'month', yKey: 'margin', yName: 'Margin' },
+									]}
+									interpolation="smooth"
+								/>
 							</Example>
 
 							<Example title="Fill" code={code`<LineChart fill … />`}>
-								<ChartContainer>
-									<LineChart
-										aria-label="Revenue by month"
-										data={months}
-										series={[{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' }]}
-										fill
-									/>
-								</ChartContainer>
+								<LineChart
+									aria-label="Revenue by month"
+									data={months}
+									series={[{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' }]}
+									fill
+								/>
 							</Example>
 
 							<AnimatedExample title="Animated" source={code`<LineChart animate … />`}>
-								<ChartContainer>
-									<LineChart
-										aria-label="Revenue and margin by month, animated"
-										data={months}
-										series={[
-											{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
-											{ xKey: 'month', yKey: 'margin', yName: 'Margin' },
-										]}
-										fill
-										animate
-									/>
-								</ChartContainer>
+								<LineChart
+									aria-label="Revenue and margin by month, animated"
+									data={months}
+									series={[
+										{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
+										{ xKey: 'month', yKey: 'margin', yName: 'Margin' },
+									]}
+									fill
+									animate
+								/>
 							</AnimatedExample>
 						</Stack>
 					</TabContent>
@@ -527,60 +509,52 @@ export function Demo() {
 					<TabContent value="area">
 						<Stack gap="xl">
 							<Example title="Single-series" code={code`<AreaChart … />`}>
-								<ChartContainer>
-									<AreaChart
-										aria-label="Revenue by month"
-										data={months}
-										series={[{ xKey: 'month', yKey: 'revenue', yName: 'Revenue', color: 'orange' }]}
-									/>
-								</ChartContainer>
+								<AreaChart
+									aria-label="Revenue by month"
+									data={months}
+									series={[{ xKey: 'month', yKey: 'revenue', yName: 'Revenue', color: 'orange' }]}
+								/>
 							</Example>
 
 							<Example title="Stacked" code={code`<AreaChart stacked … />`}>
-								<ChartContainer>
-									<AreaChart
-										aria-label="Revenue and costs by month, stacked"
-										data={months}
-										series={[
-											{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
-											{ xKey: 'month', yKey: 'costs', yName: 'Costs' },
-										]}
-										stacked
-									/>
-								</ChartContainer>
+								<AreaChart
+									aria-label="Revenue and costs by month, stacked"
+									data={months}
+									series={[
+										{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
+										{ xKey: 'month', yKey: 'costs', yName: 'Costs' },
+									]}
+									stacked
+								/>
 							</Example>
 
 							<Example
 								title="Smooth interpolation"
 								code={code`<AreaChart interpolation="smooth" crosshair={{ x: false, y: true }} … />`}
 							>
-								<ChartContainer>
-									<AreaChart
-										aria-label="Revenue and margin by month"
-										data={months}
-										series={[
-											{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
-											{ xKey: 'month', yKey: 'margin', yName: 'Margin' },
-										]}
-										interpolation="smooth"
-										crosshair={{ x: false, y: true }}
-									/>
-								</ChartContainer>
+								<AreaChart
+									aria-label="Revenue and margin by month"
+									data={months}
+									series={[
+										{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
+										{ xKey: 'month', yKey: 'margin', yName: 'Margin' },
+									]}
+									interpolation="smooth"
+									crosshair={{ x: false, y: true }}
+								/>
 							</Example>
 
 							<AnimatedExample title="Animated" source={code`<AreaChart stacked animate … />`}>
-								<ChartContainer>
-									<AreaChart
-										aria-label="Revenue and costs by month, stacked and animated"
-										data={months}
-										series={[
-											{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
-											{ xKey: 'month', yKey: 'costs', yName: 'Costs' },
-										]}
-										stacked
-										animate
-									/>
-								</ChartContainer>
+								<AreaChart
+									aria-label="Revenue and costs by month, stacked and animated"
+									data={months}
+									series={[
+										{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
+										{ xKey: 'month', yKey: 'costs', yName: 'Costs' },
+									]}
+									stacked
+									animate
+								/>
 							</AnimatedExample>
 						</Stack>
 					</TabContent>
@@ -588,82 +562,87 @@ export function Demo() {
 					<TabContent value="pie">
 						<Stack gap="xl">
 							<Example title="No labels" code={code`<PieChart … />`}>
-								<ChartContainer size="sm">
-									<PieChart
-										aria-label="Traffic by source"
-										data={sources}
-										series={[{ xKey: 'source', yKey: 'visits' }]}
-									/>
-								</ChartContainer>
+								<PieChart
+									className="max-w-sm"
+									aria-label="Traffic by source"
+									data={sources}
+									series={[{ xKey: 'source', yKey: 'visits' }]}
+								/>
 							</Example>
 
 							<Example
 								title="Segment labels"
 								code={code`<PieChart labels={{ segment: true }} legend={false} … />`}
 							>
-								<ChartContainer size="sm">
-									<PieChart
-										aria-label="Traffic by source"
-										data={sources}
-										series={[{ xKey: 'source', yKey: 'visits' }]}
-										labels={{ segment: true }}
-									/>
-								</ChartContainer>
+								<PieChart
+									className="max-w-sm"
+									aria-label="Traffic by source"
+									data={sources}
+									series={[{ xKey: 'source', yKey: 'visits' }]}
+									labels={{ segment: true }}
+								/>
 							</Example>
 
 							<Example
 								title="Callout labels"
 								code={code`<PieChart labels={{ callouts: true }} … />`}
 							>
-								<ChartContainer>
-									<PieChart
-										aria-label="Traffic by source"
-										data={sources}
-										series={[{ xKey: 'source', yKey: 'visits' }]}
-										labels={{ callouts: true }}
-									/>
-								</ChartContainer>
+								<PieChart
+									aria-label="Traffic by source"
+									data={sources}
+									series={[{ xKey: 'source', yKey: 'visits' }]}
+									labels={{ callouts: true }}
+								/>
 							</Example>
 
 							<Example
-								title="Fills a fixed-aspect tile"
-								code={code`<PieChart aspectRatio={16 / 9} legend="right" … /> // pie squares within the box, legend beside`}
+								title="Stacked legend fills a fixed-aspect tile"
+								code={code`<PieChart aspectRatio={16 / 9} legend="bottom" … /> // pie squares within the box, band below`}
 							>
-								<div className="grid w-full gap-4 sm:grid-cols-2">
-									{(['right', 'bottom'] as const).map((placement) => (
-										<AspectTile key={placement} label={`legend="${placement}"`}>
-											<PieChart
-												aria-label={`Traffic by source, legend ${placement}`}
-												data={sources}
-												series={[{ xKey: 'source', yKey: 'visits' }]}
-												aspectRatio={16 / 9}
-												legend={placement}
-											/>
-										</AspectTile>
-									))}
-								</div>
+								<AspectTile label='legend="bottom"'>
+									<PieChart
+										className="max-w-none"
+										aria-label="Traffic by source, legend bottom"
+										data={sources}
+										series={[{ xKey: 'source', yKey: 'visits' }]}
+										aspectRatio={16 / 9}
+										legend="bottom"
+									/>
+								</AspectTile>
+							</Example>
+
+							<Example
+								title="Side legend holds the pie ratio"
+								code={code`<PieChart aspectRatio={16 / 9} legend="right" … /> // pie stays 16:9, legend beside`}
+							>
+								<Labeled label='legend="right"'>
+									<PieChart
+										aria-label="Traffic by source, legend right"
+										data={sources}
+										series={[{ xKey: 'source', yKey: 'visits' }]}
+										aspectRatio={16 / 9}
+										legend="right"
+									/>
+								</Labeled>
 							</Example>
 
 							<AnimatedExample title="Animated" source={code`<PieChart animate … />`}>
-								<ChartContainer size="sm">
-									<PieChart
-										aria-label="Traffic by source, animated"
-										data={sources}
-										series={[{ xKey: 'source', yKey: 'visits' }]}
-										animate
-									/>
-								</ChartContainer>
+								<PieChart
+									className="max-w-sm"
+									aria-label="Traffic by source, animated"
+									data={sources}
+									series={[{ xKey: 'source', yKey: 'visits' }]}
+									animate
+								/>
 							</AnimatedExample>
 
 							<Example title="Side panel, many segments" code={code`<PieChart legend="right" … />`}>
-								<ChartContainer>
-									<PieChart
-										aria-label="Traffic by marketing channel"
-										data={channelTraffic}
-										series={[{ xKey: 'channel', yKey: 'visits' }]}
-										legend="right"
-									/>
-								</ChartContainer>
+								<PieChart
+									aria-label="Traffic by marketing channel"
+									data={channelTraffic}
+									series={[{ xKey: 'channel', yKey: 'visits' }]}
+									legend="right"
+								/>
 							</Example>
 						</Stack>
 					</TabContent>
@@ -671,39 +650,36 @@ export function Demo() {
 					<TabContent value="donut">
 						<Stack gap="xl">
 							<Example title="Basic" code={code`<DonutChart>`}>
-								<ChartContainer size="sm">
-									<DonutChart
-										aria-label="Traffic by source"
-										data={sources}
-										series={[{ xKey: 'source', yKey: 'visits' }]}
-									/>
-								</ChartContainer>
+								<DonutChart
+									className="max-w-sm"
+									aria-label="Traffic by source"
+									data={sources}
+									series={[{ xKey: 'source', yKey: 'visits' }]}
+								/>
 							</Example>
 
 							<Example title="Center content" code={code`<DonutChart>…</DonutChart>`}>
-								<ChartContainer size="sm">
-									<DonutChart
-										aria-label="Traffic by source"
-										data={sources}
-										series={[{ xKey: 'source', yKey: 'visits' }]}
-									>
-										<Stat>
-											<StatLabel>Total visits</StatLabel>
-											<StatValue>9,340</StatValue>
-										</Stat>
-									</DonutChart>
-								</ChartContainer>
+								<DonutChart
+									className="max-w-sm"
+									aria-label="Traffic by source"
+									data={sources}
+									series={[{ xKey: 'source', yKey: 'visits' }]}
+								>
+									<Stat>
+										<StatLabel>Total visits</StatLabel>
+										<StatValue>9,340</StatValue>
+									</Stat>
+								</DonutChart>
 							</Example>
 
 							<AnimatedExample title="Animated" source={code`<DonutChart animate … />`}>
-								<ChartContainer size="sm">
-									<DonutChart
-										aria-label="Traffic by source, animated"
-										data={sources}
-										series={[{ xKey: 'source', yKey: 'visits' }]}
-										animate
-									/>
-								</ChartContainer>
+								<DonutChart
+									className="max-w-sm"
+									aria-label="Traffic by source, animated"
+									data={sources}
+									series={[{ xKey: 'source', yKey: 'visits' }]}
+									animate
+								/>
 							</AnimatedExample>
 						</Stack>
 					</TabContent>
@@ -714,75 +690,67 @@ export function Demo() {
 								title="Bar and line"
 								code={code`<ComboChart crosshair={{ snap: true }} … />`}
 							>
-								<ChartContainer>
-									<ComboChart
-										aria-label="Revenue bars with margin line by month"
-										data={months}
-										series={[
-											{ type: 'bar', xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
-											{ type: 'line', xKey: 'month', yKey: 'margin', yName: 'Margin' },
-										]}
-										crosshair={{ snap: true }}
-									/>
-								</ChartContainer>
+								<ComboChart
+									aria-label="Revenue bars with margin line by month"
+									data={months}
+									series={[
+										{ type: 'bar', xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
+										{ type: 'line', xKey: 'month', yKey: 'margin', yName: 'Margin' },
+									]}
+									crosshair={{ snap: true }}
+								/>
 							</Example>
 
 							<Example
 								title="Bar, area, and line"
 								code={code`<ComboChart series={[{ type: 'bar' … }, { type: 'area' … }, { type: 'line' … }]} … />`}
 							>
-								<ChartContainer>
-									<ComboChart
-										aria-label="Revenue bars over a cost area with a margin line by month"
-										data={months}
-										series={[
-											{ type: 'bar', xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
-											{ type: 'area', xKey: 'month', yKey: 'costs', yName: 'Costs' },
-											{ type: 'line', xKey: 'month', yKey: 'margin', yName: 'Margin' },
-										]}
-										crosshair={{ snap: true }}
-									/>
-								</ChartContainer>
+								<ComboChart
+									aria-label="Revenue bars over a cost area with a margin line by month"
+									data={months}
+									series={[
+										{ type: 'bar', xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
+										{ type: 'area', xKey: 'month', yKey: 'costs', yName: 'Costs' },
+										{ type: 'line', xKey: 'month', yKey: 'margin', yName: 'Margin' },
+									]}
+									crosshair={{ snap: true }}
+								/>
 							</Example>
 
 							<Example
 								title="Dual axis"
 								code={code`<ComboChart rightAxis={{ title: 'Exceptions' }} series={[…, { …, axis: 'right' }]} … />`}
 							>
-								<ChartContainer>
-									<ComboChart
-										aria-label="Weekly shipments with exception counts"
-										data={operations}
-										series={[
-											{ type: 'area', xKey: 'week', yKey: 'shipments', yName: 'Shipments' },
-											{
-												type: 'line',
-												xKey: 'week',
-												yKey: 'exceptions',
-												yName: 'Exceptions',
-												axis: 'right',
-											},
-										]}
-										leftAxis={{ title: 'Shipments' }}
-										rightAxis={{ title: 'Exceptions' }}
-										crosshair={{ snap: true }}
-									/>
-								</ChartContainer>
+								<ComboChart
+									aria-label="Weekly shipments with exception counts"
+									data={operations}
+									series={[
+										{ type: 'area', xKey: 'week', yKey: 'shipments', yName: 'Shipments' },
+										{
+											type: 'line',
+											xKey: 'week',
+											yKey: 'exceptions',
+											yName: 'Exceptions',
+											axis: 'right',
+										},
+									]}
+									leftAxis={{ title: 'Shipments' }}
+									rightAxis={{ title: 'Exceptions' }}
+									crosshair={{ snap: true }}
+								/>
 							</Example>
 
 							<AnimatedExample title="Animated" source={code`<ComboChart animate … />`}>
-								<ChartContainer>
-									<ComboChart
-										aria-label="Revenue bars over a cost area with a margin line by month, animated"
-										data={months}
-										series={[
-											{ type: 'bar', xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
-											{ type: 'area', xKey: 'month', yKey: 'costs', yName: 'Costs' },
-											{ type: 'line', xKey: 'month', yKey: 'margin', yName: 'Margin' },
-										]}
-										animate
-									/>
-								</ChartContainer>
+								<ComboChart
+									aria-label="Revenue bars over a cost area with a margin line by month, animated"
+									data={months}
+									series={[
+										{ type: 'bar', xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
+										{ type: 'area', xKey: 'month', yKey: 'costs', yName: 'Costs' },
+										{ type: 'line', xKey: 'month', yKey: 'margin', yName: 'Margin' },
+									]}
+									animate
+								/>
 							</AnimatedExample>
 						</Stack>
 					</TabContent>
@@ -793,32 +761,28 @@ export function Demo() {
 								title="Multi-series"
 								code={code`<ScatterChart crosshair={{ snap: true }} … />`}
 							>
-								<ChartContainer>
-									<ScatterChart
-										aria-label="Dwell and handling time against stop distance"
-										data={stops}
-										series={[
-											{ xKey: 'distance', yKey: 'dwell', yName: 'Dwell' },
-											{ xKey: 'distance', yKey: 'handling', yName: 'Handling' },
-										]}
-										formatXValue={(value) => `${value} mi`}
-										crosshair={{ snap: true }}
-									/>
-								</ChartContainer>
+								<ScatterChart
+									aria-label="Dwell and handling time against stop distance"
+									data={stops}
+									series={[
+										{ xKey: 'distance', yKey: 'dwell', yName: 'Dwell' },
+										{ xKey: 'distance', yKey: 'handling', yName: 'Handling' },
+									]}
+									formatXValue={(value) => `${value} mi`}
+									crosshair={{ snap: true }}
+								/>
 							</Example>
 
 							<AnimatedExample title="Animated" source={code`<ScatterChart animate … />`}>
-								<ChartContainer>
-									<ScatterChart
-										aria-label="Dwell and handling time against stop distance, animated"
-										data={stops}
-										series={[
-											{ xKey: 'distance', yKey: 'dwell', yName: 'Dwell' },
-											{ xKey: 'distance', yKey: 'handling', yName: 'Handling' },
-										]}
-										animate
-									/>
-								</ChartContainer>
+								<ScatterChart
+									aria-label="Dwell and handling time against stop distance, animated"
+									data={stops}
+									series={[
+										{ xKey: 'distance', yKey: 'dwell', yName: 'Dwell' },
+										{ xKey: 'distance', yKey: 'handling', yName: 'Handling' },
+									]}
+									animate
+								/>
 							</AnimatedExample>
 						</Stack>
 					</TabContent>
@@ -829,42 +793,38 @@ export function Demo() {
 								title="Size encoding"
 								code={code`<BubbleChart series={[{ …, sizeKey: 'weight' }]} … />`}
 							>
-								<ChartContainer>
-									<BubbleChart
-										aria-label="Dwell against distance, sized by weight"
-										data={stops}
-										series={[
-											{
-												xKey: 'distance',
-												yKey: 'dwell',
-												sizeKey: 'weight',
-												sizeName: 'Weight',
-												yName: 'Stops',
-											},
-										]}
-										formatXValue={(value) => `${value} mi`}
-									/>
-								</ChartContainer>
+								<BubbleChart
+									aria-label="Dwell against distance, sized by weight"
+									data={stops}
+									series={[
+										{
+											xKey: 'distance',
+											yKey: 'dwell',
+											sizeKey: 'weight',
+											sizeName: 'Weight',
+											yName: 'Stops',
+										},
+									]}
+									formatXValue={(value) => `${value} mi`}
+								/>
 							</Example>
 
 							<AnimatedExample title="Animated" source={code`<BubbleChart animate … />`}>
-								<ChartContainer>
-									<BubbleChart
-										aria-label="Dwell against distance, sized by weight, animated"
-										data={stops}
-										series={[
-											{
-												xKey: 'distance',
-												yKey: 'dwell',
-												sizeKey: 'weight',
-												sizeName: 'Weight',
-												yName: 'Stops',
-											},
-										]}
-										formatXValue={(value) => `${value} mi`}
-										animate
-									/>
-								</ChartContainer>
+								<BubbleChart
+									aria-label="Dwell against distance, sized by weight, animated"
+									data={stops}
+									series={[
+										{
+											xKey: 'distance',
+											yKey: 'dwell',
+											sizeKey: 'weight',
+											sizeName: 'Weight',
+											yName: 'Stops',
+										},
+									]}
+									formatXValue={(value) => `${value} mi`}
+									animate
+								/>
 							</AnimatedExample>
 						</Stack>
 					</TabContent>
@@ -875,22 +835,21 @@ export function Demo() {
 								title="Activity"
 								code={code`<HeatmapChart series={[{ xKey: 'hour', yKey: 'day', colorKey: 'commits', colorRange: greens }]} … />`}
 							>
-								<ChartContainer size="md">
-									<HeatmapChart
-										aria-label="Commits by weekday and hour"
-										data={activity}
-										series={[
-											{
-												xKey: 'hour',
-												yKey: 'day',
-												colorKey: 'commits',
-												colorRange: greens,
-												colorName: 'Commits',
-											},
-										]}
-										formatValue={(value) => value.toFixed(0)}
-									/>
-								</ChartContainer>
+								<HeatmapChart
+									className="max-w-md"
+									aria-label="Commits by weekday and hour"
+									data={activity}
+									series={[
+										{
+											xKey: 'hour',
+											yKey: 'day',
+											colorKey: 'commits',
+											colorRange: greens,
+											colorName: 'Commits',
+										},
+									]}
+									formatValue={(value) => value.toFixed(0)}
+								/>
 							</Example>
 						</Stack>
 					</TabContent>
@@ -901,25 +860,23 @@ export function Demo() {
 								title="Heatmap"
 								code={code`<ChoroplethChart legend="range" series={[{ …, colorRange: heat }]} … />`}
 							>
-								<ChartContainer>
-									<ChoroplethChart
-										aria-label="Resident population by state, heatmap"
-										geography={states}
-										projection="albers-usa"
-										legend="range"
-										data={statePopulation}
-										series={[
-											{
-												idKey: 'state',
-												colorKey: 'people',
-												colorRange: heat,
-												colorName: 'Population',
-											},
-										]}
-										regionId={(feature) => String(feature.properties?.name)}
-										formatValue={(value) => `${value.toFixed(1)}M`}
-									/>
-								</ChartContainer>
+								<ChoroplethChart
+									aria-label="Resident population by state, heatmap"
+									geography={states}
+									projection="albers-usa"
+									legend="range"
+									data={statePopulation}
+									series={[
+										{
+											idKey: 'state',
+											colorKey: 'people',
+											colorRange: heat,
+											colorName: 'Population',
+										},
+									]}
+									regionId={(feature) => String(feature.properties?.name)}
+									formatValue={(value) => `${value.toFixed(1)}M`}
+								/>
 							</Example>
 						</Stack>
 					</TabContent>

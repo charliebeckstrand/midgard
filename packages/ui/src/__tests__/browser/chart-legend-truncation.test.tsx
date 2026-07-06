@@ -4,7 +4,7 @@ import { PieChart } from '../../modules/chart/pie-chart'
 import { allBySlot, bySlot, renderUI, waitFor } from '../helpers'
 
 /**
- * The side-panel legend reserves a fixed-width column (`sm:w-64`) so its content
+ * The side-panel legend reserves a fixed-width column (`@xl:w-64`) so its content
  * never scales the plot, centers the left-aligned entry block within that column,
  * and clips an over-long label to one line — arming a reveal tooltip through the
  * shared {@link useTruncation} overflow detector the grid's cells use. Every claim
@@ -12,9 +12,9 @@ import { allBySlot, bySlot, renderUI, waitFor } from '../helpers'
  * that jsdom, with no layout engine, can't measure, so it rides the real browser.
  */
 describe('chart legend panel (real browser)', () => {
-	// The panel column and its centering are `sm:`-gated (≥640px); widen the test
-	// iframe past that breakpoint so the side-by-side layout — not the mobile stack —
-	// is what these assertions measure.
+	// The panel column and its centering are `@xl:`-gated on the chart's own width
+	// (≈576px); the 640px chart below clears it, so the side-by-side layout — not the
+	// stack — is what these assertions measure.
 	beforeAll(() => page.viewport(960, 640))
 
 	it('reserves a fixed-width column and centers the left-aligned block', async () => {
@@ -36,7 +36,7 @@ describe('chart legend panel (real browser)', () => {
 		const panel = bySlot(container, 'chart-legend') as HTMLElement
 		const block = bySlot(container, 'chart-legend-items') as HTMLElement
 
-		// The column is the static 16rem (`sm:w-64`), not a percentage of the 640px
+		// The column is the static 16rem (`@xl:w-64`), not a percentage of the 640px
 		// chart — a half-width panel would be ~320px.
 		await waitFor(() => expect(panel.getBoundingClientRect().width).toBeGreaterThan(250))
 

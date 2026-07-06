@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { BarChart } from '../../modules/chart/bar-chart'
+import { ScatterChart } from '../../modules/chart/scatter-chart'
 import { MapPlat } from '../../modules/map'
 import { act, allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
 import { FIXTURE_GEOJSON, FIXTURE_ROWS } from '../helpers/map-geography'
@@ -71,6 +72,55 @@ describe('tooltip across a scroll', () => {
 		act(() => vi.advanceTimersByTime(150))
 
 		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Q3')
+	})
+
+	it('chart: keeps a keyboard-driven readout through a scroll with no pointer engaged', () => {
+		const { container } = renderUI(
+			<BarChart aria-label="Revenue by quarter" data={DATA} series={[...SERIES]} width={400} />,
+		)
+
+		const plot = bySlot(container, 'chart-plot') as HTMLElement
+
+		// Drive the readout by keyboard, never pointing the plot.
+		act(() => plot.focus())
+
+		act(() => fireEvent.keyDown(plot, { key: 'ArrowRight' }))
+
+		expect(bySlot(container, 'tooltip-content')).not.toBeNull()
+
+		// The scroll rescue is a pointer affordance; with no pointer over the plot it
+		// must leave the keyboard readout be rather than clearing it.
+		act(() => fireEvent.scroll(window))
+
+		expect(bySlot(container, 'tooltip-content')).not.toBeNull()
+	})
+
+	it('scatter: keeps a keyboard-driven readout through a scroll (shares the band hit layer)', () => {
+		const { container } = renderUI(
+			<ScatterChart
+				aria-label="Dwell against distance"
+				data={[
+					{ distance: 12, dwell: 34 },
+					{ distance: 20, dwell: 40 },
+				]}
+				series={[{ xKey: 'distance', yKey: 'dwell', yName: 'Dwell' }]}
+				width={480}
+			/>,
+		)
+
+		const plot = bySlot(container, 'chart-plot') as HTMLElement
+
+		act(() => plot.focus())
+
+		act(() => fireEvent.keyDown(plot, { key: 'ArrowRight' }))
+
+		expect(bySlot(container, 'tooltip-content')).not.toBeNull()
+
+		// Scatter now routes through the shared pointer hook, so its keyboard readout
+		// survives a scroll the way the band charts' does.
+		act(() => fireEvent.scroll(window))
+
+		expect(bySlot(container, 'tooltip-content')).not.toBeNull()
 	})
 
 	it('chart: stays hidden when the settled pointer rests off the plot', () => {

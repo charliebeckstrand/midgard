@@ -18,7 +18,7 @@ import {
 } from '../chart-schema'
 import { snapTargets } from '../chart-snap'
 import { ChartValueLabels, resolveValueLabels } from '../chart-value-labels'
-import { useChartCartesian } from '../use-chart-cartesian'
+import { bandCenters, useChartCartesian } from '../use-chart-cartesian'
 import { cartesianFocus } from '../use-chart-keyboard'
 import { type LineInterpolation, lineGeometry } from './line-chart-geometry'
 
@@ -129,6 +129,9 @@ export function LineChart<T>({
 
 	const floor = chart.plot.y + chart.plot.height
 
+	// One band-center array for every series — they all span the same categories.
+	const xs = bandCenters(chart)
+
 	// Each visible series draws through its own axis's scale; a series whose
 	// scale never resolved takes no marks.
 	const drawn = chart.visible.flatMap((meta) => {
@@ -138,15 +141,10 @@ export function LineChart<T>({
 	})
 
 	const list: ChartLineSeries[] = drawn.map(({ meta, scale }) => ({
+		index: meta.index,
 		label: meta.label,
 		paint: meta.paint,
-		geometry: lineGeometry(
-			meta.values,
-			meta.values.map((_, index) => chart.band.center(index)),
-			scale.map,
-			floor,
-			interpolation,
-		),
+		geometry: lineGeometry(meta.values, xs, scale.map, floor, interpolation),
 		markers: points,
 		dimmed: chart.emphasis !== null && meta.index !== chart.emphasis,
 		dashed: meta.dashed,

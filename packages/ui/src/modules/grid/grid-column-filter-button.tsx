@@ -4,6 +4,7 @@ import { ListFilter, ListFilterPlus } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
+import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from '../../components/menu'
 import { Sheet, SheetBody, SheetFooter, SheetTitle } from '../../components/sheet'
 import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/grid'
@@ -60,10 +61,11 @@ type GridColumnFilterButtonProps = {
  *
  * Edits accumulate in a local draft; nothing reaches the engine until the
  * sheet's **Apply** settles it, and dismissing (Cancel, Escape, backdrop)
- * discards the draft so the applied filter stands. **Reset** is the inverse of
- * Apply — it lifts the applied filter outright and closes — and is offered only
- * while a filter is in effect. The button reads accent from the applied query,
- * not the draft.
+ * discards the draft so the applied filter stands. While a filter is applied the
+ * header button turns into a menu — **Edit filters** reopens the sheet on the
+ * applied query, **Clear filters** lifts it outright — so a filter is cleared
+ * without stepping through the sheet. The button reads accent from the applied
+ * query, not the draft.
  *
  * @internal
  */
@@ -122,13 +124,12 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 		setOpen(false)
 	}
 
-	// Clear the applied filter outright and close — the one-press path to undo a
-	// filter, distinct from Apply's commit and Cancel's discard. Rendered below
-	// only when a filter is applied, so it's offered solely when there's one to lift.
-	function reset() {
+	// Clear the applied filter outright — the one-press path to undo a filter,
+	// distinct from Apply's commit and Cancel's discard. Offered from the header
+	// menu the button becomes while a filter is applied (the sheet is closed then,
+	// so there's no open state to settle).
+	function clear() {
 		filter.setQuery(column.id, undefined)
-
-		setOpen(false)
 	}
 
 	// Accent the button only when the applied query actually constrains rows — a
@@ -140,24 +141,51 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 
 	return (
 		<>
-			<Button
-				variant="bare"
-				// An active filter accents the button through its `color`; the resting
-				// muted tint drops so it doesn't override that colour.
-				color={active ? 'blue' : undefined}
-				// Name carries the applied state so it isn't conveyed by colour alone
-				// (WCAG 1.4.1 / 4.1.2); the open state stays on aria-expanded.
-				aria-label={active ? `Filter ${label}, active` : `Filter ${label}`}
-				aria-haspopup="dialog"
-				aria-expanded={open}
-				data-active={dataAttr(active)}
-				className={cn(k.filter.button, !active && k.filter.idle)}
-				onClick={() => handleOpenChange(true)}
-			>
-				{/* The active icon adds a "+" so the applied state reads by shape, not the
-				    accent colour alone (WCAG 1.4.1). */}
-				<Icon icon={active ? <ListFilterPlus /> : <ListFilter />} />
-			</Button>
+			{active ? (
+				// An applied filter turns the trigger into a menu: edit the query in the
+				// sheet, or clear the filter without opening it. The trigger keeps the
+				// accent (`color`), the "+"-marked icon, and the applied-state name.
+				<Menu placement="bottom-end">
+					<MenuTrigger>
+						<Button
+							variant="bare"
+							color="blue"
+							// Name carries the applied state so it isn't conveyed by colour
+							// alone (WCAG 1.4.1 / 4.1.2); the menu's open state rides
+							// aria-expanded, wired by MenuTrigger.
+							aria-label={`Filter ${label}, active`}
+							data-active={dataAttr(true)}
+							className={cn(k.filter.button)}
+						>
+							{/* The active icon adds a "+" so the applied state reads by shape,
+							    not the accent colour alone (WCAG 1.4.1). */}
+							<Icon icon={<ListFilterPlus />} />
+						</Button>
+					</MenuTrigger>
+
+					<MenuContent>
+						<MenuItem onAction={() => handleOpenChange(true)}>
+							<MenuLabel>Edit filters</MenuLabel>
+						</MenuItem>
+
+						<MenuItem onAction={clear}>
+							<MenuLabel>Clear filters</MenuLabel>
+						</MenuItem>
+					</MenuContent>
+				</Menu>
+			) : (
+				<Button
+					variant="bare"
+					aria-label={`Filter ${label}`}
+					aria-haspopup="dialog"
+					aria-expanded={open}
+					// The resting muted tint, dropped once a filter accents the button.
+					className={cn(k.filter.button, k.filter.idle)}
+					onClick={() => handleOpenChange(true)}
+				>
+					<Icon icon={<ListFilter />} />
+				</Button>
+			)}
 
 			<Sheet open={open} onOpenChange={handleOpenChange} aria-label={`Filter ${label}`}>
 				<SheetTitle>Filter {label}</SheetTitle>
@@ -174,12 +202,6 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 				</SheetBody>
 
 				<SheetFooter>
-					{active && (
-						<Button variant="soft" color="red" className={cn(k.filter.reset)} onClick={reset}>
-							Reset
-						</Button>
-					)}
-
 					<Button variant="outline" onClick={() => handleOpenChange(false)}>
 						Cancel
 					</Button>

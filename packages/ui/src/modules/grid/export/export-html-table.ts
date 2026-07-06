@@ -1,7 +1,7 @@
 'use client'
 
 import type { GridColumn } from '../types'
-import { exportFields } from './export-accessor'
+import { cellText, exportFields } from './export-accessor'
 
 /** Escapes text for safe placement inside an HTML element. @internal */
 function escapeHtml(value: string): string {
@@ -9,11 +9,6 @@ function escapeHtml(value: string): string {
 		/[&<>]/g,
 		(char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[char] as string,
 	)
-}
-
-/** Stringifies a cell value for an HTML table: nullish becomes empty, everything else `String()`s. @internal */
-function cellText(value: unknown): string {
-	return value == null ? '' : String(value)
 }
 
 /**

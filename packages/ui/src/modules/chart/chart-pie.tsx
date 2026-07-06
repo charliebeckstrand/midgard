@@ -102,6 +102,25 @@ function sliceGroupClass(emphasis: number | null, index: number): string {
 }
 
 /**
+ * The inline position that centres a donut's overlay on the ring's hole rather
+ * than the plot box: callouts shift the pie centre off `frameWidth / 2` to
+ * balance the two label columns, so the content follows `center` into the hole.
+ * Falls back to the box centre before the frame is measured.
+ *
+ * @internal
+ */
+function donutCenterStyle(
+	center: { x: number; y: number },
+	frameWidth: number,
+	frameHeight: number,
+): { left: string; top: string } {
+	return {
+		left: frameWidth > 0 ? `${(center.x / frameWidth) * 100}%` : '50%',
+		top: frameHeight > 0 ? `${(center.y / frameHeight) * 100}%` : '50%',
+	}
+}
+
+/**
  * When the sweep reveal reaches `mid` degrees: the moment a label's slice is
  * half uncovered, so text fades in just as its slice appears under it.
  *
@@ -456,11 +475,13 @@ type PieFrame = {
 }
 
 /**
- * Folds the legend into the pie's aspect box: a live ratio with a legend hands
- * the ratio to the figure wrapper and measures the pie's remaining height, so a
- * pie and its legend fill a fixed-aspect box together. The `content` fit (the
- * default) and a `fixed` height band the legend beside the plot as before,
- * reserving nothing extra.
+ * Folds a stacked legend into the pie's aspect box: a live ratio with a top /
+ * bottom legend hands the ratio to the figure wrapper and measures the pie's
+ * remaining height, so a pie and its legend band fill a fixed-aspect box
+ * together. A side legend instead keeps the ratio on the pie box and bands
+ * beside it at its own width, so the pie never squeezes to fit the panel. The
+ * `content` fit (the default) and a `fixed` height band the legend beside the
+ * plot as before, reserving nothing extra.
  *
  * @internal
  */
@@ -471,7 +492,11 @@ function pieFrame(
 ): PieFrame {
 	const hasLegend = Boolean(legend ?? dataLength > 1)
 
-	const shareAspect = sizing.mode === 'aspect' && hasLegend
+	const aside = legend === 'left' || legend === 'right'
+
+	// Only a stacked legend shares the pie's aspect box; a side legend leaves the
+	// ratio on the pie box and bands beside it, the same as a legend-free pie.
+	const shareAspect = sizing.mode === 'aspect' && hasLegend && !aside
 
 	const frameSizing: FrameSizing = shareAspect
 		? { mode: 'aspect-fill', ratio: sizing.ratio }
@@ -481,7 +506,7 @@ function pieFrame(
 		sizing: frameSizing,
 		frameAspect: shareAspect ? sizing.ratio : undefined,
 		fill: frameSizing.mode === 'fill' || frameSizing.mode === 'aspect-fill',
-		aside: legend === 'left' || legend === 'right',
+		aside,
 		hasLegend,
 	}
 }
@@ -494,7 +519,7 @@ function buildCallouts(
 	radius: number,
 	frameHeight: number,
 ): CalloutLabel[] {
-	const byIndex = new Map(slices.map((slice) => [slice.index, slice] as const))
+	const byIndex = new Map(slices.map((slice) => [slice.index, slice]))
 
 	return pieCallouts(slices, {
 		cx: center.x,
@@ -726,6 +751,12 @@ export function ChartPie<T>({
 			? pieSlices(sliceValues, { cx: center.x, cy: center.y, radius, innerRadius, pad: MARK_GAP })
 			: []
 
+	// A legend entry for a non-positive (or toggled-off) row carries no slice, so
+	// an emphasis landing on it would recede every real slice with nothing lifted
+	// against them. Clamp the mark emphasis to a slice-bearing row — the keyboard
+	// cursor already steps over the rest.
+	const sliceEmphasis = slices.some((slice) => slice.index === emphasis) ? emphasis : null
+
 	const calloutItems =
 		showCallouts && radius > 0
 			? buildCallouts(calloutSpec, slices, center, radius, frameHeight)
@@ -746,8 +777,9 @@ export function ChartPie<T>({
 
 	// Each drawn slice is one keyboard stop at its centroid — the same anchor the
 	// pointer hover uses; a row with no slice (non-positive or toggled off) offers
-	// none, so the arrow keys step over it.
-	const sliceByIndex = new Map(slices.map((slice) => [slice.index, slice] as const))
+	// none, so the arrow keys step over it. Indexed once so the per-row lookup is
+	// O(1) rather than a scan of the slices.
+	const sliceByIndex = new Map(slices.map((slice) => [slice.index, slice]))
 
 	const focusPoints = data.map((_, index) => {
 		const slice = sliceByIndex.get(index)
@@ -763,7 +795,7 @@ export function ChartPie<T>({
 				animate={animate}
 				center={center}
 				radius={radius}
-				emphasis={emphasis}
+				emphasis={sliceEmphasis}
 				fills={sliceFills}
 				textureActive={tex.active}
 				trigger={trigger}
@@ -774,12 +806,12 @@ export function ChartPie<T>({
 					items={labelItems}
 					paints={paints}
 					animate={animate}
-					emphasis={emphasis}
+					emphasis={sliceEmphasis}
 				/>
 			)}
 
 			{calloutItems.length > 0 && (
-				<PieCallouts items={calloutItems} animate={animate} emphasis={emphasis} />
+				<PieCallouts items={calloutItems} animate={animate} emphasis={sliceEmphasis} />
 			)}
 		</>
 	)
@@ -813,11 +845,16 @@ export function ChartPie<T>({
 			className={className}
 			overlay={
 				innerRatio > 0 && children ? (
-					<div
-						data-slot="chart-center"
-						className="pointer-events-none absolute inset-0 grid place-items-center"
-					>
-						{children}
+					<div data-slot="chart-center" className="pointer-events-none absolute inset-0">
+						{/* Centre the content on the ring's hole, not the plot box: callouts
+						    shift the pie centre off `frameWidth / 2` to balance the two label
+						    columns, and the content follows it rather than drifting out of the hole. */}
+						<div
+							className="absolute -translate-x-1/2 -translate-y-1/2"
+							style={donutCenterStyle(center, frameWidth, frameHeight)}
+						>
+							{children}
+						</div>
 					</div>
 				) : undefined
 			}

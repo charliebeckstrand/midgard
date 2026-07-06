@@ -5,8 +5,13 @@
  * mark math is unit-testable in isolation.
  */
 
-import { BUBBLE_MAX_DIAMETER, BUBBLE_MIN_DIAMETER, MARKER_RADIUS } from '../chart-constants'
-import { valueAxisRange } from '../chart-layout'
+import {
+	BUBBLE_MAX_DIAMETER,
+	BUBBLE_MIN_DIAMETER,
+	GUTTER_EDGE_PAD,
+	MARKER_RADIUS,
+	TICK_CHAR_WIDTH,
+} from '../chart-constants'
 import { linearScale } from '../chart-scale'
 import { READOUT_GAP } from '../chart-series'
 
@@ -153,11 +158,25 @@ export function scatterSnapColumns(
 	uniqueXs: number[],
 	mapY: (value: number) => number,
 ): number[][] {
-	return uniqueXs.map((x) =>
-		seriesData.flatMap((points) =>
-			points.filter((point) => point.x === x).map((point) => mapY(point.y)),
-		),
-	)
+	// Group each series' screen ys by x in one pass, so each column reads its stops
+	// off the map rather than re-scanning every point — O(points) over the grid
+	// instead of O(uniqueXs × points), which turns quadratic on the all-distinct x
+	// the docs advertise. Insertion order matches a per-column filter, so the stops
+	// stay in point order.
+	const byX = seriesData.map((points) => {
+		const groups = new Map<number, number[]>()
+
+		for (const point of points) {
+			const ys = groups.get(point.x)
+
+			if (ys) ys.push(mapY(point.y))
+			else groups.set(point.x, [mapY(point.y)])
+		}
+
+		return groups
+	})
+
+	return uniqueXs.map((x) => byX.flatMap((groups) => groups.get(x) ?? []))
 }
 
 /**
@@ -173,14 +192,24 @@ export function scatterReadoutValues(
 	format: (value: number) => string,
 	formatSize: ((value: number) => string) | null,
 ): string[] {
+	// Group the points by x once so each column's cells read off the map rather than
+	// re-scanning every point per unique x — the same de-quadratic pass the snap
+	// columns take, keeping point order within a column.
+	const byX = new Map<number, ScatterDatum[]>()
+
+	for (const point of points) {
+		const group = byX.get(point.x)
+
+		if (group) group.push(point)
+		else byX.set(point.x, [point])
+	}
+
 	return uniqueXs.map((x) => {
-		const cells = points
-			.filter((point) => point.x === x)
-			.map((point) =>
-				formatSize && point.size !== null
-					? `${format(point.y)} (${formatSize(point.size)})`
-					: format(point.y),
-			)
+		const cells = (byX.get(x) ?? []).map((point) =>
+			formatSize && point.size !== null
+				? `${format(point.y)} (${formatSize(point.size)})`
+				: format(point.y),
+		)
 
 		return cells.length > 0 ? cells.join(', ') : READOUT_GAP
 	})
@@ -221,10 +250,10 @@ export function withinScatterMarks(
 
 /**
  * Insets the x span so the centered end tick labels clear the frame — the
- * horizontal layout's {@link valueAxisRange} treatment over a single probe built
- * from the raw values, since scatter has no pre-resolved axis scale to hand it.
- * Ticks are range-independent, so the probe answers before the final range is
- * known.
+ * horizontal layout's treatment, over a single probe scale. Ticks are
+ * range-independent, so the probe answers before the final range is known; a
+ * frame too narrow to seat both keeps the span, since a clipped label beats an
+ * inverted axis.
  *
  * @internal
  */
@@ -236,5 +265,15 @@ export function scatterXRange(
 ): [number, number] {
 	const probe = linearScale({ values, range: span, ...options })
 
-	return probe ? valueAxisRange([{ ticks: probe.ticks, format }], span) : span
+	if (!probe || probe.ticks.length === 0) return span
+
+	const half = (value: number) => (format(value).length * TICK_CHAR_WIDTH) / 2 + GUTTER_EDGE_PAD
+
+	const [from, to] = span
+
+	const insetFrom = Math.max(from, half(probe.ticks[0] as number))
+
+	const insetTo = to - half(probe.ticks.at(-1) as number)
+
+	return insetFrom < insetTo ? [insetFrom, insetTo] : span
 }

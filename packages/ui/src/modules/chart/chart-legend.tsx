@@ -223,9 +223,10 @@ export type ChartLegendProps = {
 	/**
 	 * Lay the entries out as a single column rather than the centered wrap
 	 * row — the static side panel beside a pie or donut. Reserves a fixed-width
-	 * column (`sm:w-64`) so the legend never scales the plot with its content,
-	 * centers the left-aligned entry block within it, and past five switches
-	 * paginates them instead of clipping the column.
+	 * column (`@xl:w-64`, once the chart's container has room for it) so the legend
+	 * never scales the plot with its content, centers the left-aligned entry block
+	 * within it, and past five switches paginates them instead of clipping the
+	 * column.
 	 */
 	panel?: boolean
 	/** The `texture` prop is on, so square swatches hatch in every mode, mirroring the marks. */
@@ -400,7 +401,7 @@ export function ChartLegend({
 		<>
 			{pageItems.map((item) => (
 				<ChartLegendEntry
-					key={item.label}
+					key={item.index}
 					item={item}
 					off={hidden.has(item.index)}
 					panel={panel}
@@ -494,15 +495,16 @@ export function ChartLegend({
 			data-slot="chart-legend"
 			{...toolbarProps}
 			className={cn(
-				// The side panel reserves a fixed-width column (`sm:w-64`) so its content
-				// never scales the plot, and centers its entries — vertically down the
-				// column so a legend stretched to the plot's full height reads level with
-				// it, and horizontally so the left-aligned block sits centered in the
-				// reserved width rather than pinned to the plot. The wrap row centers its
-				// entries on mobile and justifies them edge to edge from sm, spreading them
-				// across the plot's full width rather than bunching at one end.
+				// The side panel reserves a fixed-width column (`@xl:w-64`, once the
+				// chart's container has room) so its content never scales the plot, and
+				// centers its entries — vertically down the column so a legend stretched to
+				// the plot's full height reads level with it, and horizontally so the
+				// left-aligned block sits centered in the reserved width rather than pinned
+				// to the plot. Below that width the panel stacks under the plot at full
+				// width. The wrap row centers its entries on mobile and justifies them edge
+				// to edge from sm, spreading them across the plot's full width.
 				panel
-					? 'flex flex-col items-center justify-center sm:w-64 sm:shrink-0'
+					? 'flex flex-col items-center justify-center @xl:w-64 @xl:shrink-0'
 					: 'flex flex-wrap items-center justify-center',
 			)}
 		>

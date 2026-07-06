@@ -207,7 +207,10 @@ export function useGridGroup(groups: GridColumnGroups | undefined): GridGroupRes
 	// Collapse is grid-owned view state, not persisted through the groups binding;
 	// seed it once from the initial groups' `defaultCollapsed` flags.
 	const [collapsed, setCollapsed] = useState<ReadonlySet<string | number>>(
-		() => new Set(binding.defaultValue.filter((g) => g.defaultCollapsed).map((g) => g.id)),
+		() =>
+			new Set(
+				(binding.value ?? binding.defaultValue).filter((g) => g.defaultCollapsed).map((g) => g.id),
+			),
 	)
 
 	const toggleCollapse = useCallback((id: string | number) => {

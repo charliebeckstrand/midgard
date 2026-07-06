@@ -13,13 +13,14 @@ import {
 	type PaginationState,
 	type Row,
 	type RowData,
+	type SortingFn,
 	type SortingState,
 	type Table,
 	type Updater,
 	useReactTable,
 	type VisibilityState,
 } from '@tanstack/react-table'
-import { type ReactNode, type RefObject, useCallback, useMemo, useRef } from 'react'
+import { type ReactNode, type RefObject, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useControllable } from '../../hooks'
 import type { DensityLevel } from '../../providers/density/context'
 import type { SortState } from './context'
@@ -29,6 +30,7 @@ import {
 	clampSizingToFloors,
 	filterOptions,
 	groupingOptions,
+	makeSmartSortingFn,
 	paginationOptions,
 	resizeOptions,
 	resolveFilterMode,
@@ -213,7 +215,10 @@ type UseGridTableResult<T> = {
  *
  * @internal
  */
-function useStableColumnDefs<T>(columns: GridColumn<T>[]): ColumnDef<T>[] {
+function useStableColumnDefs<T>(
+	columns: GridColumn<T>[],
+	smartSortingFn: SortingFn<unknown>,
+): ColumnDef<T>[] {
 	const columnsById = useMemo(
 		() => new Map(columns.map((col) => [String(col.id), col] as const)),
 		[columns],
@@ -225,27 +230,33 @@ function useStableColumnDefs<T>(columns: GridColumn<T>[]): ColumnDef<T>[] {
 
 	const cellRenderers = useRef(new Map<string, (info: CellContext<T, unknown>) => ReactNode>())
 
-	return useMemo<ColumnDef<T>[]>(
-		() =>
-			columns.map((col) => {
-				const id = String(col.id)
+	return useMemo<ColumnDef<T>[]>(() => {
+		const defs = columns.map((col) => {
+			const id = String(col.id)
 
-				let renderCell = cellRenderers.current.get(id)
+			let renderCell = cellRenderers.current.get(id)
 
-				if (!renderCell) {
-					renderCell = (info) => columnsByIdRef.current.get(id)?.cell?.(info.row.original) ?? null
+			if (!renderCell) {
+				renderCell = (info) => columnsByIdRef.current.get(id)?.cell?.(info.row.original) ?? null
 
-					cellRenderers.current.set(id, renderCell)
-				}
+				cellRenderers.current.set(id, renderCell)
+			}
 
-				return {
-					...toColumnDef(col),
-					meta: { gridColumn: col },
-					...(col.cell ? { cell: renderCell } : {}),
-				}
-			}),
-		[columns],
-	)
+			return {
+				...toColumnDef(col, smartSortingFn),
+				meta: { gridColumn: col },
+				...(col.cell ? { cell: renderCell } : {}),
+			}
+		})
+
+		// Drop renderers for columns no longer present, so the cache doesn't grow
+		// unbounded across the mount as the column set changes.
+		for (const id of cellRenderers.current.keys()) {
+			if (!columnsById.has(id)) cellRenderers.current.delete(id)
+		}
+
+		return defs
+	}, [columns, columnsById, smartSortingFn])
 }
 
 /**
@@ -437,7 +448,25 @@ export function useGridTable<T>({
 	containerRef,
 	density,
 }: UseGridTableParams<T>): UseGridTableResult<T> {
-	const columnDefs = useStableColumnDefs(columns)
+	// A live map of column id -> descending, read by the smart comparator at
+	// compare time so empties sink under both directions. Held in a ref refreshed
+	// each render so a sort-direction flip doesn't rebuild the column defs.
+	const sortDescByIdRef = useRef<Record<string, boolean>>({})
+
+	sortDescByIdRef.current = useMemo(() => {
+		const map: Record<string, boolean> = {}
+
+		for (const entry of sort ?? []) map[String(entry.column)] = entry.direction === 'desc'
+
+		return map
+	}, [sort])
+
+	const smartSortingFn = useMemo(
+		() => makeSmartSortingFn((columnId) => sortDescByIdRef.current[columnId] ?? false),
+		[],
+	)
+
+	const columnDefs = useStableColumnDefs(columns, smartSortingFn)
 
 	const paginated = paginationConfig != null
 
@@ -523,6 +552,27 @@ export function useGridTable<T>({
 		globalManual: globalFilterConfig?.manual,
 		columnManual: columnFiltersConfig?.manual,
 	})
+
+	// The engine filters the global search and the column filters through one
+	// model, so filtering mode is table-wide — it can't be client for one surface
+	// and server for the other. Warn (dev) when both are configured but their
+	// `manual` flags disagree: `resolveFilterMode` runs manual for both, so the
+	// client-side surface would silently stop filtering. Effect-scoped (not in the
+	// per-render resolver) so it fires once per config change, not every render.
+	const globalManual = globalFilterConfig?.manual
+	const columnManual = columnFiltersConfig?.manual
+
+	useEffect(() => {
+		if (process.env.NODE_ENV === 'production') return
+
+		if (!globalConfigured || !hasColumnFilters) return
+
+		if (Boolean(globalManual) === Boolean(columnManual)) return
+
+		console.warn(
+			"Grid: the global search and column filters share one table-wide filtering mode, but their `manual` flags disagree. The grid runs manual (server) filtering for both, so the client-side surface won't filter locally — set both `manual` the same.",
+		)
+	}, [globalConfigured, hasColumnFilters, globalManual, columnManual])
 
 	const onSortingChange = useCallback<OnChangeFn<SortingState>>(
 		(updater) => setSort?.(toSortState(applyUpdater(updater, toSortingState(sort)))),

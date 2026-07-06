@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { createGroup, createRule, type QueryField } from '../../modules/query'
 import { fireEvent, renderUI, screen } from '../helpers'
@@ -37,6 +37,44 @@ describe('Grid per-column filters', () => {
 	/** A value-less "is empty" rule: a real constraint that carries no value. */
 	const nameIsEmpty = () =>
 		createGroup('and', [{ ...createRule(nameField), operator: 'isEmpty', value: '' }])
+
+	it('warns when the search and column filters request different filtering modes', () => {
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+		// Client-side search alongside server-side column filters can't coexist —
+		// the engine filters both through one model — so the grid warns.
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				search={{}}
+				columnFilters={{ manual: true }}
+			/>,
+		)
+
+		expect(warn).toHaveBeenCalledWith(expect.stringContaining('table-wide filtering mode'))
+
+		warn.mockRestore()
+	})
+
+	it('does not warn when the two filter surfaces share a mode', () => {
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				search={{ manual: true }}
+				columnFilters={{ manual: true }}
+			/>,
+		)
+
+		expect(warn).not.toHaveBeenCalled()
+
+		warn.mockRestore()
+	})
 
 	it('renders a filter button only for filterable columns', () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
@@ -169,8 +207,11 @@ describe('Grid per-column filters', () => {
 
 		expect(screen.getByRole('button', { name: /^Filter Name/ })).toHaveAttribute('data-active')
 
-		// Reopen, empty the value, and apply: the cleared rule deactivates it again.
+		// The active button is now a menu; "Edit filters" reopens the sheet on the
+		// applied query. Empty the value and apply: the cleared rule deactivates it.
 		fireEvent.click(screen.getByRole('button', { name: /^Filter Name/ }))
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Edit filters' }))
 
 		fireEvent.change(screen.getByRole('textbox', { name: 'Name value' }), {
 			target: { value: '' },
@@ -181,13 +222,34 @@ describe('Grid per-column filters', () => {
 		expect(screen.getByRole('button', { name: /^Filter Name/ })).not.toHaveAttribute('data-active')
 	})
 
-	it('lifts an applied filter with Reset, restoring the hidden rows', () => {
+	it('turns the filter button into a menu only while a filter is applied', () => {
+		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+
+		// Inactive: the button opens the sheet directly, with no menu affordance.
+		fireEvent.click(screen.getByRole('button', { name: /^Filter Name/ }))
+
+		expect(screen.queryByRole('menuitem', { name: 'Edit filters' })).not.toBeInTheDocument()
+
+		expect(screen.getByRole('button', { name: 'Add rule' })).toBeInTheDocument()
+
+		fireEvent.change(screen.getByRole('textbox', { name: 'Name value' }), {
+			target: { value: 'Bob' },
+		})
+
+		fireEvent.click(screen.getByRole('button', { name: 'Apply' }))
+
+		// Applied: the same button now opens a menu of "Edit filters" / "Clear filters".
+		fireEvent.click(screen.getByRole('button', { name: /^Filter Name/ }))
+
+		expect(screen.getByRole('menuitem', { name: 'Edit filters' })).toBeInTheDocument()
+
+		expect(screen.getByRole('menuitem', { name: 'Clear filters' })).toBeInTheDocument()
+	})
+
+	it('lifts an applied filter from the header menu, restoring the hidden rows', () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 
 		fireEvent.click(screen.getByRole('button', { name: /^Filter Name/ }))
-
-		// Nothing applied yet — with no filter to lift, Reset isn't offered.
-		expect(screen.queryByRole('button', { name: 'Reset' })).not.toBeInTheDocument()
 
 		fireEvent.change(screen.getByRole('textbox', { name: 'Name value' }), {
 			target: { value: 'Bob' },
@@ -198,31 +260,15 @@ describe('Grid per-column filters', () => {
 		// "name contains Bob" hides Alice.
 		expect(screen.queryByText('Alice')).not.toBeInTheDocument()
 
-		// Reopen — Reset is now live — and press it.
+		// The active button opens a menu; "Clear filters" lifts the applied filter.
 		fireEvent.click(screen.getByRole('button', { name: /^Filter Name/ }))
 
-		fireEvent.click(screen.getByRole('button', { name: 'Reset' }))
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Clear filters' }))
 
 		// The filter lifts: the button deactivates and the hidden row returns.
 		expect(screen.getByRole('button', { name: /^Filter Name/ })).not.toHaveAttribute('data-active')
 
 		expect(screen.getByText('Alice')).toBeInTheDocument()
-	})
-
-	it('left-aligns the Reset button across from Cancel and Apply', () => {
-		renderUI(
-			<Grid
-				columns={columns}
-				rows={rows}
-				getKey={getKey}
-				columnFilters={{ value: [{ id: 'name', value: nameContains('Bob') }] }}
-			/>,
-		)
-
-		fireEvent.click(screen.getByRole('button', { name: /^Filter Name/ }))
-
-		// An auto right-margin pushes Reset to the opposite edge from the pair.
-		expect(screen.getByRole('button', { name: 'Reset' }).className).toContain('mr-auto')
 	})
 
 	it('discards a draft when the filter sheet is dismissed without applying', () => {
@@ -316,6 +362,59 @@ describe('Grid per-column filters', () => {
 		expect(screen.getByText('Bob')).toBeInTheDocument()
 
 		expect(screen.getByText('Alice')).toBeInTheDocument()
+	})
+
+	it('shows an amber "Clear all filters" toolbar button only while a filter constrains rows', () => {
+		const { rerender } = renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+
+		// No active filter — no toolbar clear affordance.
+		expect(screen.queryByRole('button', { name: 'Clear all filters' })).toBeNull()
+
+		// A seeded-but-blank rule constrains nothing, so the button stays hidden —
+		// the same active test the header accent reads.
+		rerender(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				columnFilters={{ value: [{ id: 'name', value: blankRule() }] }}
+			/>,
+		)
+
+		expect(screen.queryByRole('button', { name: 'Clear all filters' })).toBeNull()
+
+		// A real constraint surfaces it, in the amber soft palette.
+		rerender(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				columnFilters={{ value: [{ id: 'name', value: nameContains('Bob') }] }}
+			/>,
+		)
+
+		expect(screen.getByRole('button', { name: 'Clear all filters' }).className).toMatch(/amber/)
+	})
+
+	it('clears every active filter from the toolbar button, restoring hidden rows', () => {
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				columnFilters={{ defaultValue: [{ id: 'name', value: nameContains('Bob') }] }}
+			/>,
+		)
+
+		// The filter hides Alice.
+		expect(screen.queryByText('Alice')).not.toBeInTheDocument()
+
+		fireEvent.click(screen.getByRole('button', { name: 'Clear all filters' }))
+
+		// Every filter lifts: the hidden row returns and the button drops.
+		expect(screen.getByText('Alice')).toBeInTheDocument()
+
+		expect(screen.queryByRole('button', { name: 'Clear all filters' })).toBeNull()
 	})
 })
 

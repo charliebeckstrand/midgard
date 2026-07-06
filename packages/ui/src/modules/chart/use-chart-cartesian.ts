@@ -386,16 +386,18 @@ export type DrawnSeries = {
 }
 
 /**
- * The visible series paired with the scale and baseline each draws through: a
- * series reads its own axis's scale — already unified to the stack's one shared
- * side upstream when the chart stacks, so a stacked chart's series all resolve
- * one scale — and one whose scale never resolved drops out, since it can take no
- * marks. The mark geometry, fills, and value labels all derive from this one
- * list so their indices stay aligned.
+ * The visible series paired with the scale and baseline each draws through:
+ * a series reads its own axis's scale — the stack's one shared side when
+ * `stacked` — and one whose scale never resolved drops out, since it can take
+ * no marks. The mark geometry, fills, and value labels all derive from this
+ * one list so their indices stay aligned.
  *
  * @internal
  */
 export function drawnSeries(chart: CartesianChart): DrawnSeries[] {
+	// A stacked chart already carries one shared axis on every meta — `seriesMetas`
+	// binds them all to the stack side — so each series reads its own `meta.axis`
+	// whether stacked or grouped; no separate stack branch is needed.
 	return chart.visible.flatMap((meta) => {
 		const scale = meta.axis === 'right' ? chart.rightScale : chart.yScale
 
@@ -403,6 +405,16 @@ export function drawnSeries(chart: CartesianChart): DrawnSeries[] {
 
 		return scale ? [{ meta, scale, baseline }] : []
 	})
+}
+
+/**
+ * Every category's band center, shared across a chart's series since they all
+ * span the same categories — one array instead of one per series.
+ *
+ * @internal
+ */
+export function bandCenters(chart: CartesianChart): number[] {
+	return chart.metas[0]?.values.map((_, index) => chart.band.center(index)) ?? []
 }
 
 /**
@@ -499,13 +511,17 @@ export function useChartCartesian<T>(
 
 	const metrics = CHART_METRICS[resolvedSize as Step] ?? CHART_METRICS.md
 
-	// The legend shares the aspect box: a live ratio with a legend hands the ratio
-	// to the figure wrapper and measures the plot's remaining height, so the whole
-	// chart holds the ratio. Derived from the props alone — a legend shows for two
-	// or more series unless the prop forces it — so it needs no measurement.
+	// A stacked legend shares the aspect box: a live ratio with a top / bottom
+	// legend hands the ratio to the figure wrapper and measures the plot's
+	// remaining height, so the whole chart holds the ratio. A side legend instead
+	// bands beside the plot, which keeps the ratio on its own box. Derived from the
+	// props alone — a legend shows for two or more series unless the prop forces it
+	// — so it needs no measurement.
 	const hasLegend = Boolean(legend ?? series.length > 1)
 
-	const { sizing, outerAspect } = chartFrameLayout(height, aspectRatio, hasLegend)
+	const aside = legend === 'left' || legend === 'right'
+
+	const { sizing, outerAspect } = chartFrameLayout(height, aspectRatio, hasLegend, aside)
 
 	const { ref, width: frameWidth, height: frameHeight, reserve } = usePlotFrame(width, sizing)
 

@@ -26,6 +26,7 @@ import { snapTargets } from '../chart-snap'
 import { ChartValueLabels, resolveValueLabels } from '../chart-value-labels'
 import { type LineInterpolation, lineGeometry } from '../line-chart/line-chart-geometry'
 import {
+	bandCenters,
 	barProjection,
 	type DrawnSeries,
 	drawnSeries,
@@ -170,17 +171,14 @@ export function ComboChart<T>({
 
 	// Lines and areas share the polyline geometry; an area is a line that also
 	// fills down to the baseline.
+	const xs = bandCenters(chart)
+
 	const toSeries = (entries: DrawnSeries[]): ChartLineSeries[] =>
 		entries.map(({ meta, scale }) => ({
+			index: meta.index,
 			label: meta.label,
 			paint: meta.paint,
-			geometry: lineGeometry(
-				meta.values,
-				meta.values.map((_, index) => chart.band.center(index)),
-				scale.map,
-				floor,
-				interpolation,
-			),
+			geometry: lineGeometry(meta.values, xs, scale.map, floor, interpolation),
 			markers: points,
 			dimmed: dim(meta),
 			dashed: meta.dashed,

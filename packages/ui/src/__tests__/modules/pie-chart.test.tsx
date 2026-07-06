@@ -47,6 +47,30 @@ describe('PieChart', () => {
 		])
 	})
 
+	it('does not recede the pie when a sliceless legend entry takes emphasis', () => {
+		const { container } = renderUI(
+			chart({
+				data: [
+					{ source: 'Search', visits: 60 },
+					{ source: 'Direct', visits: 40 },
+					{ source: 'Empty', visits: 0 },
+				],
+			}),
+		)
+
+		const items = allBySlot(container, 'chart-legend-item') as HTMLButtonElement[]
+
+		// The zero row is still named in the legend but owns no slice; pointing its
+		// entry (the pointer path sets emphasis directly, unlike focus, which rides
+		// `:focus-visible`) must not dim the real slices — it would recede the whole
+		// pie with nothing lifted against them.
+		fireEvent.pointerEnter(items[2] as Element)
+
+		for (const slice of allBySlot(container, 'chart-slice')) {
+			expect(slice.parentElement?.getAttribute('class') ?? '').not.toContain('opacity-25')
+		}
+	})
+
 	it('names the pointed slice in the tooltip', () => {
 		const { container } = renderUI(chart())
 
@@ -280,17 +304,17 @@ describe('PieChart', () => {
 		expect(panel.className).not.toContain('grid')
 
 		// The panel always follows the plot in the DOM — under the chart when
-		// stacked; a left panel reverses the sm row instead of moving.
+		// stacked; a left panel reverses the container-query row instead of moving.
 		const plot = bySlot(container, 'chart-plot') as Element
 
 		expect(plot.compareDocumentPosition(panel) & 4).toBeTruthy()
 
-		expect(panel.parentElement?.className).toContain('sm:flex-row')
+		expect(panel.parentElement?.className).toContain('@xl:flex-row')
 
 		const left = renderUI(chart({ legend: 'left' }))
 
 		expect(bySlot(left.container, 'chart-legend')?.parentElement?.className).toContain(
-			'sm:flex-row-reverse',
+			'@xl:flex-row-reverse',
 		)
 	})
 

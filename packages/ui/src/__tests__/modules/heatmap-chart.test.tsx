@@ -45,6 +45,20 @@ describe('HeatmapChart', () => {
 		expect(noData?.getAttribute('class')).toContain('fill-zinc')
 	})
 
+	it('does not leak the unwired animate/texture props onto the plot element', () => {
+		const { container } = renderUI(
+			<HeatmapChart aria-label="Commits" data={ROWS} series={SERIES} width={400} animate texture />,
+		)
+
+		const plot = bySlot(container, 'heatmap-plot')
+
+		// The grid honours neither, so they must be dropped rather than spread onto
+		// the `role="img"` div as invalid DOM attributes.
+		expect(plot?.hasAttribute('animate')).toBe(false)
+
+		expect(plot?.hasAttribute('texture')).toBe(false)
+	})
+
 	it('carries full value parity in the visually-hidden table', () => {
 		const { container } = renderUI(
 			<HeatmapChart aria-label="Commits" data={ROWS} series={SERIES} width={400} />,
@@ -79,6 +93,17 @@ describe('HeatmapChart', () => {
 		)
 
 		expect(bySlot(container, 'heatmap-legend-box')).toBeNull()
+	})
+
+	it('narrows legend to a boolean — the range bar takes no placement', () => {
+		const { container } = renderUI(
+			// @ts-expect-error the range bar is fixed beside the plot: it takes a boolean, not a placement
+			<HeatmapChart aria-label="Commits" data={ROWS} series={SERIES} width={400} legend="bottom" />,
+		)
+
+		// The narrowing is the point (the @ts-expect-error above); a placement is
+		// still truthy, so at runtime the legend renders on its fixed right side.
+		expect(bySlot(container, 'heatmap-legend-box')).not.toBeNull()
 	})
 
 	it('dims cells outside the probed bin on range-legend hover', () => {

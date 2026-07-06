@@ -424,15 +424,18 @@ function heatmapTicks(
 ): { x: ChartAxisTick[]; y: ChartAxisTick[] } {
 	const widestCol = matrix.columns.reduce((widest, label) => Math.max(widest, label.length), 0)
 
+	// Keyed by the row/column index, not the band center `at`, which collapses onto
+	// one coordinate at zero width/height; the index is the cell's stable identity.
 	const x = thinned(
 		matrix.columns.length,
 		plot.width,
 		widestCol * TICK_CHAR_WIDTH + GUTTER_GAP,
-	).map((index) => ({ at: xBand.center(index), label: matrix.columns[index] ?? '' }))
+	).map((index) => ({ at: xBand.center(index), label: matrix.columns[index] ?? '', key: index }))
 
 	const y = thinned(matrix.rows.length, plot.height, BAND_LABEL_HEIGHT).map((index) => ({
 		at: yBand.center(index),
 		label: matrix.rows[index] ?? '',
+		key: index,
 	}))
 
 	return { x, y }
@@ -529,14 +532,26 @@ function useHeatmap<T>(
 		[domain, primary],
 	)
 
-	// The rows are proportional category labels (day names), not tabular digits,
-	// so reserve the gutter at the wider proportional estimate — otherwise a
-	// capital-initial label like "Mon"/"Wed" clips against the frame's left edge.
-	const plot = plotRect(frameWidth, frameHeight, true, matrix.rows, LABEL_CHAR_WIDTH)
+	// Memoized so their identity holds across a re-render with unchanged data —
+	// otherwise a fresh `xBand`/`yBand` every render defeats the `cells`/`cellBins`/
+	// `fills` memos below, which key off them. The rows are proportional category
+	// labels (day names), not tabular digits, so the gutter reserves at the wider
+	// proportional estimate — else a capital-initial label like "Mon"/"Wed" clips
+	// against the frame's left edge.
+	const plot = useMemo(
+		() => plotRect(frameWidth, frameHeight, true, matrix.rows, LABEL_CHAR_WIDTH),
+		[frameWidth, frameHeight, matrix.rows],
+	)
 
-	const xBand = bandScale({ count: cols, range: [plot.x, plot.x + plot.width], padding: 0 })
+	const xBand = useMemo(
+		() => bandScale({ count: cols, range: [plot.x, plot.x + plot.width], padding: 0 }),
+		[cols, plot],
+	)
 
-	const yBand = bandScale({ count: rows, range: [plot.y, plot.y + plot.height], padding: 0 })
+	const yBand = useMemo(
+		() => bandScale({ count: rows, range: [plot.y, plot.y + plot.height], padding: 0 }),
+		[rows, plot],
+	)
 
 	const cells = useMemo(() => heatmapCells(matrix.values, xBand, yBand), [matrix, xBand, yBand])
 
@@ -615,6 +630,10 @@ export function HeatmapChart<T>({
 	tooltip,
 	formatValue,
 	className,
+	// Destructured off so the unwired base switches never fall into `...label` and
+	// spread onto the plot element as invalid DOM attributes.
+	animate: _animate,
+	texture: _texture,
 	...label
 }: HeatmapChartProps<T>) {
 	const primary = series[0]
@@ -672,7 +691,7 @@ export function HeatmapChart<T>({
 	return (
 		<div
 			data-slot="heatmap"
-			className={cn('flex flex-col gap-3', width === undefined && 'w-full', className)}
+			className={cn('flex flex-col gap-3', width === undefined && 'w-full max-w-2xl', className)}
 			style={width === undefined ? undefined : { width }}
 		>
 			<HeatmapHoverProvider>

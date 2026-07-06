@@ -57,6 +57,34 @@ describe('AreaChart', () => {
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
 	})
 
+	it('closes the unstacked fill at the zero baseline, not the plot floor', () => {
+		// A symmetric domain around zero puts the zero line at the plot's vertical
+		// middle (~92 in a 200px frame), well above the ~176px floor. The wash must
+		// bottom at that zero line, not run all the way to the floor as it did when
+		// it closed to `plot.y + plot.height`.
+		const { container } = renderUI(
+			<AreaChart
+				aria-label="Net flow"
+				data={[
+					{ day: 'Mon', net: 10 },
+					{ day: 'Tue', net: -10 },
+				]}
+				series={[{ xKey: 'day', yKey: 'net', yName: 'Net' }]}
+				width={400}
+				height={200}
+				min={-10}
+				max={10}
+			/>,
+		)
+
+		const d = bySlot(container, 'chart-area')?.getAttribute('d') ?? ''
+
+		const baseline = Number(/([\d.]+)\s+Z$/.exec(d)?.[1])
+
+		// The zero line sits near the middle (~92); the floor is ~176.
+		expect(baseline).toBeLessThan(150)
+	})
+
 	it('marks band-edge points and smooths only when unstacked', () => {
 		const dotted = renderUI(chart({ points: true }))
 

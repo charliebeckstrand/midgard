@@ -367,6 +367,16 @@ export type GridSearch = {
 	value?: string
 	defaultValue?: string
 	onValueChange?: (value: string) => void
+	/**
+	 * Server-side (manual) filtering: the consumer refetches from the emitted
+	 * query and feeds back `rows`; the grid doesn't filter locally.
+	 *
+	 * @remarks Filtering mode is table-wide — the search and the column filters
+	 * ({@link GridColumnFilters.manual}) share one engine model, so set both the
+	 * same. If they disagree the grid runs manual for both (a dev warning fires)
+	 * and the client-side surface won't filter.
+	 * @defaultValue false
+	 */
 	manual?: boolean
 	/**
 	 * Placeholder for the search input.
@@ -391,6 +401,16 @@ export type GridColumnFilters = {
 	value?: GridColumnFilterState[]
 	defaultValue?: GridColumnFilterState[]
 	onValueChange?: (filters: GridColumnFilterState[]) => void
+	/**
+	 * Server-side (manual) filtering: the consumer refetches from the emitted
+	 * filters and feeds back `rows`; the grid doesn't filter locally.
+	 *
+	 * @remarks Filtering mode is table-wide — the column filters and the search
+	 * ({@link GridSearch.manual}) share one engine model, so set both the same. If
+	 * they disagree the grid runs manual for both (a dev warning fires) and the
+	 * client-side surface won't filter.
+	 * @defaultValue false
+	 */
 	manual?: boolean
 }
 

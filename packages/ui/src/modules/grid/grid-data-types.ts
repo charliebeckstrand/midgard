@@ -6,6 +6,7 @@ import type { GridExportEntry } from './export/types'
 import type { GridEditableConfig } from './grid-editing-types'
 import type { GridColumnGroups } from './grid-group-types'
 import type { GridRowClick } from './grid-row'
+import type { GridRowGroups } from './grid-row-group-types'
 import type {
 	GridColumn,
 	GridColumnFilters,
@@ -239,6 +240,23 @@ export type GridGroupBy<T = unknown> = {
 	 * @defaultValue false
 	 */
 	panel?: boolean
+	/**
+	 * Per-group presentation overlay the row manager edits — a palette color and a
+	 * manual leaf order keyed by each group's value (see {@link GridRowGroup}). The
+	 * plain-array shorthand seeds it uncontrolled; the `{ value, onValueChange }`
+	 * form persists it. Client grouping only — under {@link GridGroupBy.manual} the
+	 * backend owns the sequence and the overlay stands down.
+	 */
+	rowGroups?: GridRowGroups
+	/**
+	 * The row manager — a "Manage rows" dialog reached from the group-header
+	 * right-click menu, where each group takes a color and reorders, and its rows
+	 * reorder within it (committed through {@link GridGroupBy.rowGroups}). On by
+	 * default whenever client grouping and the header context menu are both live;
+	 * `false` is the off switch — no "Manage rows" item, no dialog.
+	 * @defaultValue true
+	 */
+	rowManager?: boolean
 }
 
 /**
@@ -423,15 +441,20 @@ export type GridFooterStats = {
  */
 export type GridFooter = {
 	/**
-	 * Show the total row count: `'47 rows'`, `'12 of 47 rows'` while a client-side
-	 * search or filter narrows the set, or `'No rows'` when empty. Counts the full
-	 * filtered extent across all pages, not just the rendered window.
+	 * Show the total row count: `'47 rows'`, `'12 of 47 rows visible'` while a
+	 * client-side search or filter narrows the set, or `'No rows'` when empty.
+	 * Counts the full filtered extent across all pages, not just the rendered
+	 * window. An active {@link GridFooter.selectedTotal} replaces this count in
+	 * place rather than sitting beside it.
 	 * @defaultValue false
 	 */
 	rowTotal?: boolean
 	/**
-	 * Show the selected-row count (`'3 selected'`) while a selection is active;
-	 * silent when nothing is selected. Needs a selection column to be meaningful.
+	 * Show the selected-row count nested against the visible extent
+	 * (`'3 of 12 rows selected'`) while a selection is active; silent when nothing
+	 * is selected. Takes the leading slot from {@link GridFooter.rowTotal} while
+	 * active — its `of` denominator keeps the visible context the total would show.
+	 * Needs a selection column to be meaningful.
 	 * @defaultValue false
 	 */
 	selectedTotal?: boolean
