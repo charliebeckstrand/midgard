@@ -5,18 +5,11 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/toolti
 import { cn } from '../../core'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { type ChartSeriesColor, k } from '../../recipes/kata/chart'
-import { clamp } from '../../utilities'
 import { REFERENCE_DASH, REFERENCE_HIT_WIDTH, REFERENCE_STROKE_WIDTH } from './chart-constants'
 import type { PlotRect } from './chart-layout'
 import type { ChartLegendReference } from './chart-legend'
 import { REFERENCE_RISE, referenceRise } from './chart-motion'
-import {
-	bandExtent,
-	type ChartOrientation,
-	project,
-	type Vec,
-	valueExtent,
-} from './chart-orientation'
+import { bandExtent, type ChartOrientation, project, type Vec } from './chart-orientation'
 import type { LinearScale } from './chart-scale'
 import type { ChartReferenceLine, ChartValueAxisSide } from './chart-schema'
 import { formatChartValue, isSeriesSlot } from './chart-series'
@@ -366,16 +359,14 @@ export function ChartReferenceLines({
 
 	const [from, to] = bandExtent(orientation, plot)
 
-	const [near, far] = valueExtent(orientation, plot)
-
-	// The zero line each rule reveals from — the same baseline the bars grow
-	// from, on the rule's own axis — clamped onto the plot when zero sits
-	// off-domain. Revealing from here points every rule the way its value does:
-	// up from zero for a value above it, down for one below, transposed to
-	// right / left when horizontal, so a rule animates like the bar that would
+	// The zero line each rule reveals from — the same baseline the bars grow from,
+	// on the rule's own axis. `map` already clamps its output into the scale's
+	// range (the value extent), so zero lands on the plot even off-domain
+	// without a second clamp. Revealing from here points every rule the way its
+	// value does: up from zero for a value above it, down for one below, transposed
+	// to right / left when horizontal, so a rule animates like the bar that would
 	// reach it.
-	const baselineOf = (ruleScale: LinearScale) =>
-		clamp(ruleScale.map(0), Math.min(near, far), Math.max(near, far))
+	const baselineOf = (ruleScale: LinearScale) => ruleScale.map(0)
 
 	const resolvedFormat = format ?? formatChartValue
 

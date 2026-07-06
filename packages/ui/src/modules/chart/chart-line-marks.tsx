@@ -15,7 +15,13 @@ import {
 import type { PlotRect } from './chart-layout'
 import { AREA_FADE, LINE_DRAW, POINT_POP } from './chart-motion'
 import { textureClass, textureStyle } from './chart-pattern-defs'
-import { fillClass, rawColor, type SeriesPaint, strokeClass } from './chart-series'
+import {
+	fillClass,
+	rawColor,
+	type SeriesPaint,
+	seriesGroupClass,
+	strokeClass,
+} from './chart-series'
 import type { LineSeriesGeometry } from './line-chart/line-chart-geometry'
 
 /** One line series' render inputs. @internal */
@@ -31,11 +37,6 @@ export type ChartLineSeries = {
 	dimmed?: boolean
 	/** Dash the connecting stroke — the reference-line dash — leaving fill and markers untouched. */
 	dashed?: boolean
-}
-
-/** The series group's classes: the dim rides the group so motion's inline mark opacity still composes. @internal */
-function seriesClass(dimmed: boolean | undefined): string {
-	return cn('transition-opacity', dimmed && 'opacity-25')
 }
 
 /** Shared shape for the static and animated line renderers. @internal */
@@ -88,7 +89,7 @@ export function ChartLineMarks({
 		const patternFill = fills?.[seriesIndex]
 
 		return (
-			<g key={index} data-slot="chart-line-series" className={seriesClass(dimmed)}>
+			<g key={index} data-slot="chart-line-series" className={seriesGroupClass(dimmed)}>
 				{fill &&
 					rangeKeys(geometry.areas.length, `${label}-area`).map((key, index) => (
 						<path
@@ -175,7 +176,7 @@ export function AnimatedChartLineMarks({
 				const clip = dashed && wipe ? `url(#${wipeId})` : undefined
 
 				return (
-					<g key={index} data-slot="chart-line-series" className={seriesClass(dimmed)}>
+					<g key={index} data-slot="chart-line-series" className={seriesGroupClass(dimmed)}>
 						{fill &&
 							rangeKeys(geometry.areas.length, `${label}-area`).map((key, index) => (
 								<motion.path

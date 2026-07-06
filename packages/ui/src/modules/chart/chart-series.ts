@@ -110,6 +110,17 @@ export function paintSlot(paint: SeriesPaint): ChartSeriesColor | null {
 }
 
 /**
+ * A series mark-group's classes: the legend/keyboard dim rides the group wrapper
+ * so a mark's own inline motion opacity still composes over it. Shared by the
+ * line and scatter mark renderers.
+ *
+ * @internal
+ */
+export function seriesGroupClass(dimmed: boolean | undefined): string {
+	return cn('transition-opacity', dimmed && 'opacity-25')
+}
+
+/**
  * Reads one series' values off the rows: `Number(datum[key])`, with
  * non-finite results as `null` — a gap, never a collapsed scale.
  *
