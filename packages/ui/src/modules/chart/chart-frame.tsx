@@ -163,7 +163,7 @@ export function ChartFrame({
 		[pointed],
 	)
 
-	const [pointerReference, setPointerReference] = useState(false)
+	const [pointerReference, setPointerReference] = useState<number | null>(null)
 
 	const [activeReference, setActiveReference] = useState<number | null>(null)
 
@@ -179,12 +179,15 @@ export function ChartFrame({
 	)
 
 	// The marks recede when either input emphasises a reference: the pointer over a
-	// rule, or the keyboard cursor parked on one.
+	// rule (or its legend chip), or the keyboard cursor parked on one. The pointed
+	// index wins over a still-held keyboard focus, and the sibling rules recede to
+	// whichever it resolves to.
 	const emphasis = useMemo<ChartEmphasis>(
 		() => ({
-			referenceActive: pointerReference || activeReference !== null,
+			referenceActive: pointerReference !== null || activeReference !== null,
 			setReferenceActive: setPointerReference,
 			activeReference,
+			emphasizedReference: pointerReference ?? activeReference,
 		}),
 		[pointerReference, activeReference],
 	)

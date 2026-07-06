@@ -42,6 +42,12 @@ export type ChartLegendItem = {
  * @internal
  */
 export type ChartLegendReference = {
+	/**
+	 * The rule's own index in the chart's `reference` array — the emphasis keys off
+	 * it, not the chip's position, so a non-finite rule dropped from the chips still
+	 * lines the emphasis up with the rule the plot draws under that index.
+	 */
+	index: number
 	label: string
 	/** currentColor class carrying a palette slot's colour; empty when {@link color} is set. */
 	swatchClass: string
@@ -145,24 +151,26 @@ export function ChartLegend({
 		onFocus(position === -1 ? null : (items[position]?.index ?? null))
 	}
 
-	// The reference chips share the marks' recede with the reference rules: a
-	// chip's hover or keyboard focus recedes the whole marks group to it, the same
-	// emphasis as pointing the rule. Present whenever the legend is inside a chart.
+	// The reference chips share the recede with the reference rules: a chip's hover
+	// or keyboard focus recedes the data marks and the rule's siblings to it, the
+	// same emphasis as pointing the rule. Present whenever the legend is inside a
+	// chart.
 	const { setReferenceActive } = useChartEmphasis()
 
-	// Which reference chip the pointer is over, or none. Reference emphasis is a
-	// single boolean, so — unlike the series slot — it need only track whether any
-	// chip is live, not which.
-	const referencePointed = useRef(false)
+	// Which rule the pointer's chip names, or none — the rule's own array index, so
+	// the emphasis lands on the same rule the plot draws even when a non-finite rule
+	// leaves a gap the chips skip.
+	const referencePointed = useRef<number | null>(null)
 
 	// Reference emphasis follows the same pointer-vs-focus-visible gate as
-	// `syncEmphasis`: a pointed chip recedes the marks, else a keyboard-focused one
+	// `syncEmphasis`: a pointed chip names its rule, else a keyboard-focused one
 	// (`:focus-visible`, the ring's gate) does, so a click's ring-less focus — or a
 	// backgrounded tab's refired focus — recedes nothing without a ring to explain
-	// it. Any chip going live recedes the marks; the last one leaving restores them.
+	// it. Chips render in `references` order, so a focused chip's position names its
+	// entry, which carries the rule index the emphasis keys off.
 	const syncReference = () => {
-		if (referencePointed.current) {
-			setReferenceActive(true)
+		if (referencePointed.current !== null) {
+			setReferenceActive(referencePointed.current)
 
 			return
 		}
@@ -171,9 +179,11 @@ export function ChartLegend({
 			'button[data-slot="chart-legend-reference"]',
 		)
 
-		setReferenceActive(
-			chips ? Array.from(chips).some((chip) => chip.matches(':focus-visible')) : false,
-		)
+		const position = chips
+			? Array.from(chips).findIndex((chip) => chip.matches(':focus-visible'))
+			: -1
+
+		setReferenceActive(position === -1 ? null : (references[position]?.index ?? null))
 	}
 
 	// Two or more series make a switchboard; a lone one is a static chip.
@@ -318,12 +328,12 @@ export function ChartLegend({
 					variant="plain"
 					data-slot="chart-legend-reference"
 					onPointerEnter={() => {
-						referencePointed.current = true
+						referencePointed.current = reference.index
 
 						syncReference()
 					}}
 					onPointerLeave={() => {
-						referencePointed.current = false
+						referencePointed.current = null
 
 						syncReference()
 					}}

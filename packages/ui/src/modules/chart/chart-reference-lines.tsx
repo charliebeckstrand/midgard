@@ -164,6 +164,7 @@ function ReferenceRuleStroke({ line, points }: { line: ChartReferenceLine; point
  */
 function LabelledReferenceRule({
 	line,
+	index,
 	start,
 	end,
 	orientation,
@@ -171,6 +172,8 @@ function LabelledReferenceRule({
 	rise,
 	plot,
 }: ReferenceRuleProps) {
+	const { emphasizedReference } = useChartEmphasis()
+
 	const color = line.color ?? DEFAULT_REFERENCE_COLOR
 
 	const slot = isSeriesSlot(color)
@@ -178,6 +181,10 @@ function LabelledReferenceRule({
 	const anchor = referenceLabelAnchor(orientation, end, plot)
 
 	const valueText = format(line.value)
+
+	// A standing rule has no hover target of its own, but a legend chip's emphasis
+	// still recedes the siblings of the rule it names, label and all.
+	const receded = emphasizedReference !== null && emphasizedReference !== index
 
 	const body = (
 		<>
@@ -201,7 +208,11 @@ function LabelledReferenceRule({
 	)
 
 	return (
-		<g data-slot="chart-reference-line" pointerEvents="none">
+		<g
+			data-slot="chart-reference-line"
+			pointerEvents="none"
+			className={cn('transition-opacity', receded && 'opacity-25')}
+		>
 			{rise ? (
 				<motion.g {...rise} transition={REFERENCE_RISE}>
 					{body}
@@ -235,7 +246,7 @@ function HoverReferenceRule({
 	format,
 	rise,
 }: ReferenceRuleProps) {
-	const { setReferenceActive, activeReference } = useChartEmphasis()
+	const { setReferenceActive, activeReference, emphasizedReference } = useChartEmphasis()
 
 	const color = line.color ?? DEFAULT_REFERENCE_COLOR
 
@@ -244,6 +255,10 @@ function HoverReferenceRule({
 	const points: RulePoints = { x1: start.x, y1: start.y, x2: end.x, y2: end.y }
 
 	const focused = activeReference === index
+
+	// Another rule holds the emphasis: this one recedes to it, the way the data
+	// marks do, so pointing one rule reads it clear of the rest.
+	const receded = emphasizedReference !== null && emphasizedReference !== index
 
 	// The drawn rule over its wide transparent hover target; the pair reveals as
 	// one, so the hit line rises with the rule it stands in for.
@@ -268,13 +283,14 @@ function HoverReferenceRule({
 			forceOpen={focused}
 		>
 			<TooltipTrigger>
-				{/* Pointing the rule recedes the marks to it (composes with the
-				    tooltip's own hover handlers through the trigger). */}
+				{/* Pointing the rule recedes the marks and the sibling rules to it
+				    (composes with the tooltip's own hover handlers through the trigger). */}
 				<g
 					data-slot="chart-reference-line"
 					data-focused={focused || undefined}
-					onPointerEnter={() => setReferenceActive(true)}
-					onPointerLeave={() => setReferenceActive(false)}
+					className={cn('transition-opacity', receded && 'opacity-25')}
+					onPointerEnter={() => setReferenceActive(index)}
+					onPointerLeave={() => setReferenceActive(null)}
 				>
 					{rise ? (
 						<motion.g {...rise} transition={REFERENCE_RISE}>
@@ -445,8 +461,9 @@ export function referenceLegendItems(
 	format: ReferenceFormat = formatChartValue,
 ): ChartLegendReference[] {
 	return (reference ?? [])
-		.filter((line) => Number.isFinite(line.value))
-		.map((line) => {
+		.map((line, index) => ({ line, index }))
+		.filter(({ line }) => Number.isFinite(line.value))
+		.map(({ line, index }) => {
 			const color = line.color ?? DEFAULT_REFERENCE_COLOR
 
 			const label = line.label ?? format(line.value, line.axis ?? 'left')
@@ -454,8 +471,11 @@ export function referenceLegendItems(
 			// Mirror the rule: dashed unless it is explicitly drawn solid.
 			const dashed = line.dashed !== false
 
+			// Carry the rule's own array index — the plot rules key their emphasis off
+			// it, and a non-finite rule dropped from the chips leaves a gap the plot
+			// keeps, so the chip must name the index rather than its own position.
 			return isSeriesSlot(color)
-				? { label, swatchClass: k.series[color].text.join(' '), dashed }
-				: { label, swatchClass: '', color, dashed }
+				? { index, label, swatchClass: k.series[color].text.join(' '), dashed }
+				: { index, label, swatchClass: '', color, dashed }
 		})
 }
