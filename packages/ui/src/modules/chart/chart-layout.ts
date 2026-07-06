@@ -345,7 +345,7 @@ export type VisibleValues = {
 }
 
 /** Value ticks placed along the value axis by the scale's own map. @internal */
-function valueTicksOf(
+export function valueTicksOf(
 	scale: LinearScale | null,
 	format: (value: number) => string,
 ): ChartAxisTick[] {

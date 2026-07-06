@@ -111,24 +111,25 @@ function horizontalBarPath(y0: number, y1: number, valueX: number, baseline: num
 }
 
 /**
- * One bar from its value-axis span (`baseline`→`valuePos`) and its band-axis
- * slot (`c0`→`c1`). Vertical draws the span up y with the slot across x;
- * horizontal transposes both, and the hit rect follows so `withinBarMarks`
- * reads either the same way.
+ * A bar's hit-span fields — everything but the drawn path — from its value-axis
+ * span (`baseline`→`valuePos`) and band-axis slot (`c0`→`c1`). Vertical runs the
+ * span up y with the slot across x; horizontal transposes both, so
+ * `withinBarMarks` reads either the same way. Split from {@link barSpan} so a
+ * stacked segment, which paints its own square path, skips building the rounded
+ * one it would only discard.
  *
  * @internal
  */
-function barSpan(
+function barSpanFields(
 	orientation: ChartOrientation,
 	valuePos: number,
 	baseline: number,
 	c0: number,
 	c1: number,
 	key: string,
-): BarMark {
+): Omit<BarMark, 'd'> {
 	if (orientation === 'vertical') {
 		return {
-			d: verticalBarPath(c0, c1, valuePos, baseline),
 			x: c0,
 			x1: c1,
 			top: Math.min(valuePos, baseline),
@@ -139,7 +140,6 @@ function barSpan(
 	}
 
 	return {
-		d: horizontalBarPath(c0, c1, valuePos, baseline),
 		x: Math.min(valuePos, baseline),
 		x1: Math.max(valuePos, baseline),
 		top: c0,
@@ -147,6 +147,22 @@ function barSpan(
 		key,
 		positive: valuePos > baseline,
 	}
+}
+
+function barSpan(
+	orientation: ChartOrientation,
+	valuePos: number,
+	baseline: number,
+	c0: number,
+	c1: number,
+	key: string,
+): BarMark {
+	const d =
+		orientation === 'vertical'
+			? verticalBarPath(c0, c1, valuePos, baseline)
+			: horizontalBarPath(c0, c1, valuePos, baseline)
+
+	return { ...barSpanFields(orientation, valuePos, baseline, c0, c1, key), d }
 }
 
 /**
@@ -298,7 +314,7 @@ function stackedSegment(orientation: ChartOrientation, segment: StackedSegment):
 	const pathData = fits && !rounded ? dataEdge - toward * gap : dataEdge
 
 	// The hit span keeps the full edges (a contiguous column); only the path insets.
-	const mark = barSpan(orientation, dataEdge, baseEdge, c0, c1, key)
+	const mark = barSpanFields(orientation, dataEdge, baseEdge, c0, c1, key)
 
 	return { ...mark, d: stackSegmentPath(orientation, c0, c1, pathData, pathBase, rounded) }
 }

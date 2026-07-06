@@ -10,7 +10,13 @@ import { CHART_METRICS, PLOT_TOP_PAD, SCATTER_HIT_SLACK, X_AXIS_HEIGHT } from '.
 import { ChartCrosshair, crosshairSnaps, resolveCrosshair } from '../chart-crosshair'
 import { ChartFrame } from '../chart-frame'
 import { ChartGridLines } from '../chart-grid-lines'
-import { type ChartAspectRatio, chartFrameLayout, type PlotRect, plotRect } from '../chart-layout'
+import {
+	type ChartAspectRatio,
+	chartFrameLayout,
+	type PlotRect,
+	plotRect,
+	valueTicksOf,
+} from '../chart-layout'
 import type { ChartLegendItem } from '../chart-legend'
 import { ChartLegend } from '../chart-legend'
 import { ChartMarksLayer } from '../chart-marks-layer'
@@ -28,7 +34,6 @@ import type { ChartReadout } from '../types'
 import { cartesianFocus } from '../use-chart-keyboard'
 import { useChartSeriesToggle } from '../use-chart-series-toggle'
 import {
-	axisTicksOf,
 	diameterRange,
 	type ScatterDatum,
 	scatterData,
@@ -270,7 +275,7 @@ function scatterScales(args: {
 		max: pins.max,
 	})
 
-	const yTicks = axisTicksOf(yScale, format)
+	const yTicks = valueTicksOf(yScale, format)
 
 	const plot = plotRect(
 		frameWidth,
@@ -291,7 +296,7 @@ function scatterScales(args: {
 		...xOptions,
 	})
 
-	return { plot, xScale, yScale, xTicks: axisTicksOf(xScale, formatX), yTicks }
+	return { plot, xScale, yScale, xTicks: valueTicksOf(xScale, formatX), yTicks }
 }
 
 /** The scatter frame's chrome: both axes' gridlines and tick labels. @internal */

@@ -430,6 +430,18 @@ export function useChartKeyboard(
 		}
 	}, [active, cursor, set, setReference, setActiveSeries])
 
+	// The shared hover holds the frame point the last keypress resolved to; a resize
+	// (or a data change) shifts the band positions under a parked cursor, so
+	// re-anchor it rather than leave the crosshair and tooltip on a stale point until
+	// the next key. Keyed on the resolved point alone — a pointer move leaves the
+	// cursor's anchor unchanged, so it never wrests the hover back from the pointer.
+	const anchor = cursor !== null && targets ? cursorPoint(cursor, targets) : null
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: re-anchors when the resolved point moves; cursor/set are read fresh at fire time and targets is a new array each render
+	useEffect(() => {
+		if (cursor !== null && anchor !== null) set(cursor.category, anchor, true)
+	}, [anchor?.x, anchor?.y])
+
 	// A reference line the cursor parks on owns the emphasis, not the marks: recede
 	// the whole field and drop the series readout so the rule reads alone — no one
 	// series is active. Anywhere else, carry the hover to the cursor's anchor and

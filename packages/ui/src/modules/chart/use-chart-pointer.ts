@@ -3,8 +3,6 @@
 import { type MouseEvent, type PointerEvent, type RefObject, useCallback, useRef } from 'react'
 import { useHoverAcrossScroll } from '../../hooks'
 import type { PlotRect } from './chart-layout'
-import { bandCoord, type ChartOrientation } from './chart-orientation'
-import { type BandScale, nearestBandIndex } from './chart-scale'
 import type { ChartTooltipTrigger } from './chart-schema'
 import { useChartHover } from './context'
 
@@ -16,12 +14,18 @@ export type ChartPointerHandlers = {
 	onClick?: (event: MouseEvent<SVGRectElement>) => void
 }
 
+/** Maps a viewport point into frame coordinates through the hit element's live box. @internal */
+function toFrame(plot: PlotRect, box: DOMRect, clientX: number, clientY: number) {
+	return { x: clientX - box.left + plot.x, y: clientY - box.top + plot.y }
+}
+
 /**
- * Pointer handlers for a cartesian chart's transparent hit layer: movement
- * snaps the shared hover index to the band under the pointer and records the
- * exact frame point the tooltip tracks; leaving (or a cancelled pointer)
- * clears both. The chart's `onData` hit test rides along, gating the tooltip
- * to the marks while the index keeps the crosshair tracking everywhere.
+ * Pointer handlers for a chart's transparent hit layer: movement snaps the
+ * shared hover index — the category `resolveIndex` returns for the frame point,
+ * a band for the cartesian charts or the nearest unique-x column for a scatter —
+ * and records the exact frame point the tooltip tracks; leaving (or a cancelled
+ * pointer) clears both. The chart's `onData` hit test rides along, gating the
+ * tooltip to the marks while the index keeps the crosshair tracking everywhere.
  *
  * A scroll slides the plot under a stationary pointer without firing a pointer
  * event, so {@link useHoverAcrossScroll} hides the readout while the surface
@@ -39,16 +43,16 @@ export type ChartPointerHandlers = {
  *
  * @remarks The hit element's own bounding box anchors the coordinate math,
  * so the handlers stay correct however the frame scrolls or transforms.
+ * @param resolveIndex - Maps a frame point to the hover category index, or `null`
+ * when the point resolves to none; memoize it so the handlers stay stable.
  * @returns The handlers plus the `ref` to attach to the hit element, which the
  * scroll resolve reads to map the settled pointer back into frame coordinates.
  * @internal
  */
 export function useChartPointer(
-	band: BandScale,
-	count: number,
 	plot: PlotRect,
+	resolveIndex: (x: number, y: number) => number | null,
 	onData?: (x: number, y: number) => boolean,
-	orientation: ChartOrientation = 'vertical',
 	trigger: ChartTooltipTrigger = 'hover',
 	snaps = false,
 ): ChartPointerHandlers {
@@ -81,19 +85,11 @@ export function useChartPointer(
 				return
 			}
 
-			const x = clientX - box.left + plot.x
+			const { x, y } = toFrame(plot, box, clientX, clientY)
 
-			const y = clientY - box.top + plot.y
-
-			// The band runs across x when vertical, down y when horizontal, so the
-			// index reads whichever coordinate the orientation puts it on.
-			set(
-				nearestBandIndex(bandCoord(orientation, { x, y }), band, count),
-				{ x, y },
-				onData ? onData(x, y) : true,
-			)
+			set(resolveIndex(x, y), { x, y }, onData ? onData(x, y) : true)
 		},
-		[band, count, plot, onData, orientation, set],
+		[plot, resolveIndex, onData, set],
 	)
 
 	// A click pins the band under it; clicking the shown band again clears it, so
@@ -104,21 +100,19 @@ export function useChartPointer(
 
 			if (box === undefined) return
 
-			const x = clientX - box.left + plot.x
+			const { x, y } = toFrame(plot, box, clientX, clientY)
 
-			const y = clientY - box.top + plot.y
-
-			const index = nearestBandIndex(bandCoord(orientation, { x, y }), band, count)
+			const index = resolveIndex(x, y)
 
 			const onDataHit = onData ? onData(x, y) : true
 
-			// Toggle the shown band off; and a click that would read nothing — off the
-			// marks on a chart that doesn't snap — dismisses rather than pinning a hidden
-			// band, so the next click of a real mark still opens it.
+			// Toggle the shown category off; and a click that would read nothing — off
+			// the marks on a chart that doesn't snap — dismisses rather than pinning a
+			// hidden one, so the next click of a real mark still opens it.
 			if (index === active || !(snaps || onDataHit)) set(null, null)
 			else set(index, { x, y }, onDataHit)
 		},
-		[band, count, plot, onData, orientation, snaps, active, set],
+		[plot, resolveIndex, onData, snaps, active, set],
 	)
 
 	// Under a non-snap click trigger, point the cursor only where a click reads — on
@@ -133,9 +127,7 @@ export function useChartPointer(
 
 			const box = node.getBoundingClientRect()
 
-			const x = clientX - box.left + plot.x
-
-			const y = clientY - box.top + plot.y
+			const { x, y } = toFrame(plot, box, clientX, clientY)
 
 			node.style.cursor = (onData?.(x, y) ?? true) ? 'pointer' : 'default'
 		},

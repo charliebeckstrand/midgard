@@ -429,6 +429,24 @@ describe('LineChart keyboard navigation', () => {
 		expect(bySlot(container, 'chart-crosshair-x')).toBeNull()
 	})
 
+	it('re-anchors a parked crosshair when the frame resizes', () => {
+		const { container, rerender } = renderUI(line({ crosshair: { x: false, y: true }, width: 400 }))
+
+		const plot = bySlot(container, 'chart-plot') as HTMLElement
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		const before = bySlot(container, 'chart-crosshair-y')?.getAttribute('x1')
+
+		expect(before).toBeTruthy()
+
+		// A width change moves the band positions; the parked band rule follows the
+		// cursor's new anchor rather than holding the pixel it resolved to at width 400.
+		rerender(line({ crosshair: { x: false, y: true }, width: 800 }))
+
+		expect(bySlot(container, 'chart-crosshair-y')?.getAttribute('x1')).not.toBe(before)
+	})
+
 	it('keeps the readout on a category whose series share the same value', () => {
 		// Both series carry identical data, so their points coincide; cycling must
 		// still hold the category open rather than collapsing the two into nothing.
