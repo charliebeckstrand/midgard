@@ -159,11 +159,25 @@ export function scatterSnapColumns(
 	uniqueXs: number[],
 	mapY: (value: number) => number,
 ): number[][] {
-	return uniqueXs.map((x) =>
-		seriesData.flatMap((points) =>
-			points.filter((point) => point.x === x).map((point) => mapY(point.y)),
-		),
-	)
+	// Group each series' screen ys by x in one pass, so each column reads its stops
+	// off the map rather than re-scanning every point — O(points) over the grid
+	// instead of O(uniqueXs × points), which turns quadratic on the all-distinct x
+	// the docs advertise. Insertion order matches a per-column filter, so the stops
+	// stay in point order.
+	const byX = seriesData.map((points) => {
+		const groups = new Map<number, number[]>()
+
+		for (const point of points) {
+			const ys = groups.get(point.x)
+
+			if (ys) ys.push(mapY(point.y))
+			else groups.set(point.x, [mapY(point.y)])
+		}
+
+		return groups
+	})
+
+	return uniqueXs.map((x) => byX.flatMap((groups) => groups.get(x) ?? []))
 }
 
 /**
@@ -179,14 +193,24 @@ export function scatterReadoutValues(
 	format: (value: number) => string,
 	formatSize: ((value: number) => string) | null,
 ): string[] {
+	// Group the points by x once so each column's cells read off the map rather than
+	// re-scanning every point per unique x — the same de-quadratic pass the snap
+	// columns take, keeping point order within a column.
+	const byX = new Map<number, ScatterDatum[]>()
+
+	for (const point of points) {
+		const group = byX.get(point.x)
+
+		if (group) group.push(point)
+		else byX.set(point.x, [point])
+	}
+
 	return uniqueXs.map((x) => {
-		const cells = points
-			.filter((point) => point.x === x)
-			.map((point) =>
-				formatSize && point.size !== null
-					? `${format(point.y)} (${formatSize(point.size)})`
-					: format(point.y),
-			)
+		const cells = (byX.get(x) ?? []).map((point) =>
+			formatSize && point.size !== null
+				? `${format(point.y)} (${formatSize(point.size)})`
+				: format(point.y),
+		)
 
 		return cells.length > 0 ? cells.join(', ') : READOUT_GAP
 	})
