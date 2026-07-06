@@ -345,6 +345,32 @@ export function Demo() {
 								</ChartContainer>
 							</Example>
 
+							<Example
+								title="Dashed line"
+								code={code`<LineChart series={[{ … }, { …, axis: 'right', dashed: true }]} … />`}
+							>
+								<ChartContainer>
+									<LineChart
+										aria-label="Rate per pound against shipped weight by month, the weight line dashed"
+										data={freight}
+										series={[
+											{ xKey: 'month', yKey: 'rate', yName: 'Rate' },
+											{
+												xKey: 'month',
+												yKey: 'weight',
+												yName: 'Weight',
+												axis: 'right',
+												dashed: true,
+											},
+										]}
+										leftAxis={{ title: '$ / lb', format: (value) => `$${value.toFixed(2)}` }}
+										rightAxis={{ title: 'Weight', format: (value) => `${value}k lb` }}
+										points
+										crosshair={{ snap: true }}
+									/>
+								</ChartContainer>
+							</Example>
+
 							<Example title="Time axis" code={code`<LineChart xAxis="time" … />`}>
 								<ChartContainer>
 									<LineChart

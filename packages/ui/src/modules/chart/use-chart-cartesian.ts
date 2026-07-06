@@ -190,6 +190,7 @@ function seriesMetas<T>(
 			// A stack reads as one part-to-whole column, so every series binds to the
 			// stack's one axis rather than splitting segments across two domains.
 			axis: stack ? stackSide : (entry.axis ?? 'left'),
+			dashed: entry.dashed,
 		}
 	})
 }

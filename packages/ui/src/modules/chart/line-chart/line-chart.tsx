@@ -143,6 +143,7 @@ export function LineChart<T>({
 		),
 		markers: points,
 		dimmed: chart.emphasis !== null && meta.index !== chart.emphasis,
+		dashed: meta.dashed,
 	}))
 
 	const seriesRuns = list.map((series) => series.geometry.runs)
@@ -168,7 +169,13 @@ export function LineChart<T>({
 	)
 
 	const marksNode = animate ? (
-		<AnimatedChartLineMarks list={list} fill={fill} fills={fills} textureActive={tex.active} />
+		<AnimatedChartLineMarks
+			list={list}
+			fill={fill}
+			fills={fills}
+			textureActive={tex.active}
+			plot={chart.plot}
+		/>
 	) : (
 		<ChartLineMarks list={list} fill={fill} fills={fills} textureActive={tex.active} />
 	)
