@@ -73,6 +73,27 @@ describe('tooltip across a scroll', () => {
 		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Q3')
 	})
 
+	it('chart: keeps a keyboard-driven readout through a scroll with no pointer engaged', () => {
+		const { container } = renderUI(
+			<BarChart aria-label="Revenue by quarter" data={DATA} series={[...SERIES]} width={400} />,
+		)
+
+		const plot = bySlot(container, 'chart-plot') as HTMLElement
+
+		// Drive the readout by keyboard, never pointing the plot.
+		act(() => plot.focus())
+
+		act(() => fireEvent.keyDown(plot, { key: 'ArrowRight' }))
+
+		expect(bySlot(container, 'tooltip-content')).not.toBeNull()
+
+		// The scroll rescue is a pointer affordance; with no pointer over the plot it
+		// must leave the keyboard readout be rather than clearing it.
+		act(() => fireEvent.scroll(window))
+
+		expect(bySlot(container, 'tooltip-content')).not.toBeNull()
+	})
+
 	it('chart: stays hidden when the settled pointer rests off the plot', () => {
 		const { container } = renderUI(
 			<BarChart aria-label="Revenue by quarter" data={DATA} series={[...SERIES]} width={400} />,
