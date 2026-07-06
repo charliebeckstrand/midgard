@@ -25,7 +25,9 @@ import { timeTicks } from './chart-time'
 
 /**
  * A chart's aspect ratio: a `width / height` number, a `"16/9"` string, or
- * `false` to leave the frame free-form (its explicit or density height).
+ * `false` to leave the frame free-form (its explicit or density height). It
+ * governs the whole chart — plot and legend together — so a legended chart fills
+ * a fixed-aspect box without the legend spilling past it.
  */
 export type ChartAspectRatio = number | `${number}/${number}` | false
 
@@ -47,6 +49,10 @@ function ratioValue(ratio: ChartAspectRatio): number | null {
  * free-form and fills its container. Density never sets a height, so it can't
  * conflict with the ratio.
  *
+ * @remarks The plot-only sizing: the ratio governs the drawing box alone, which
+ * a legend then sits beside. The chart family instead resolves through {@link
+ * chartFrameLayout}, which folds the legend into the aspect box; {@link
+ * HeatmapChart} keeps this one, its range legend never sharing the box.
  * @internal
  */
 export function chartFrameSizing(
@@ -58,6 +64,57 @@ export function chartFrameSizing(
 	const ratio = ratioValue(aspectRatio)
 
 	return ratio === null ? { mode: 'fill' } : { mode: 'aspect', ratio }
+}
+
+/**
+ * A chart frame's sizing once the legend is folded into the aspect box: the
+ * {@link FrameSizing} the plot measures through, and the CSS `aspect-ratio` the
+ * figure wrapper carries so the whole chart — legend and all — holds the ratio.
+ *
+ * @internal
+ */
+export type ChartFrameLayout = {
+	/** The policy {@link usePlotFrame} measures and resolves the plot box through. */
+	sizing: FrameSizing
+	/**
+	 * The `width / height` the figure wrapper reserves through CSS `aspect-ratio`
+	 * when the legend shares the aspect box, so the plot fills the space the
+	 * legend's natural size leaves; `null` when the plot box carries the ratio
+	 * itself (no legend) or nothing reserves one.
+	 */
+	outerAspect: number | null
+}
+
+/**
+ * Resolves a chart frame's sizing with the legend inside the aspect box, so a
+ * ratio describes the whole chart rather than the plot alone. An explicit
+ * `height` is a fixed pixel box and a ratio-off frame fills its container, both
+ * legend-agnostic — the legend simply bands beside the plot. A live ratio with
+ * no legend keeps the plot box reserving that ratio itself (width-driven CSS, no
+ * height measurement). A live ratio with a legend hands the ratio to the figure
+ * wrapper and measures the plot's remaining height through `aspect-fill`: the
+ * CSS aspect box still drives the height from the width, and the measurement
+ * only reads back what the legend left — falling back to the full `width / ratio`
+ * until it lands — so a chart in a fixed-aspect tile fills it, legend included,
+ * without the container-height measurement free-form `fill` needs and without
+ * collapsing before the first measurement.
+ *
+ * @internal
+ */
+export function chartFrameLayout(
+	height: number | undefined,
+	aspectRatio: ChartAspectRatio,
+	hasLegend: boolean,
+): ChartFrameLayout {
+	if (height !== undefined) return { sizing: { mode: 'fixed', height }, outerAspect: null }
+
+	const ratio = ratioValue(aspectRatio)
+
+	if (ratio === null) return { sizing: { mode: 'fill' }, outerAspect: null }
+
+	if (!hasLegend) return { sizing: { mode: 'aspect', ratio }, outerAspect: null }
+
+	return { sizing: { mode: 'aspect-fill', ratio }, outerAspect: ratio }
 }
 
 /** The plot rectangle inside a chart frame, in `viewBox` user units. @internal */

@@ -318,7 +318,11 @@ export type ChartBaseProps<T> = AccessibleName & {
 	 * Height as a ratio of the width — a `width / height` number, a `"16/9"`
 	 * string, or `false` to fall back to the frame's own height policy. Ignored
 	 * when an explicit `height` is given.
-	 * @remarks Cartesian charts default to `'16/9'`; pie and donut default to a
+	 * @remarks The ratio describes the whole chart, legend and all: a legended
+	 * chart set to `16/9` fills a 16:9 tile without the legend spilling past it,
+	 * the plot taking the space the legend's natural size leaves. It holds through
+	 * CSS from the width alone — no container-height measurement — for every legend
+	 * placement. Cartesian charts default to `'16/9'`; pie and donut default to a
 	 * square, fitting height to their own content when callout labels are on.
 	 */
 	aspectRatio?: ChartAspectRatio

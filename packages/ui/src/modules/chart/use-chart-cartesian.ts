@@ -9,7 +9,7 @@ import {
 	type CartesianLayout,
 	type ChartAxisTitlePlacement,
 	type ChartValueAxisInput,
-	chartFrameSizing,
+	chartFrameLayout,
 	horizontalLayout,
 	type PlotRect,
 	verticalLayout,
@@ -77,6 +77,18 @@ export type CartesianChart = {
 	height: number
 	/** How the plot box reserves its height from its own width, or `null` for a pixel height. */
 	reserve: FrameReserve | null
+	/**
+	 * The plot grows into the height its region holds rather than reserving one —
+	 * the height-measured frames, where a ratio is shared with the legend or the
+	 * frame fills a free-form container.
+	 */
+	fill: boolean
+	/**
+	 * The whole-chart `width / height` the figure carries as CSS `aspect-ratio`
+	 * when the legend shares the aspect box; `null` when the plot box holds the
+	 * ratio itself or none is reserved.
+	 */
+	outerAspect: number | null
 	plot: PlotRect
 	band: BandScale
 	/** The primary (left) value scale; `null` when nothing yields its domain — render the empty frame. */
@@ -488,12 +500,15 @@ export function useChartCartesian<T>(
 
 	const metrics = CHART_METRICS[resolvedSize as Step] ?? CHART_METRICS.md
 
-	const {
-		ref,
-		width: frameWidth,
-		height: frameHeight,
-		reserve,
-	} = usePlotFrame(width, chartFrameSizing(height, aspectRatio))
+	// The legend shares the aspect box: a live ratio with a legend hands the ratio
+	// to the figure wrapper and measures the plot's remaining height, so the whole
+	// chart holds the ratio. Derived from the props alone — a legend shows for two
+	// or more series unless the prop forces it — so it needs no measurement.
+	const hasLegend = Boolean(legend ?? series.length > 1)
+
+	const { sizing, outerAspect } = chartFrameLayout(height, aspectRatio, hasLegend)
+
+	const { ref, width: frameWidth, height: frameHeight, reserve } = usePlotFrame(width, sizing)
 
 	const { hidden, toggle, setFocus, emphasis } = useChartSeriesToggle()
 
@@ -552,6 +567,8 @@ export function useChartCartesian<T>(
 		fixedWidth: width,
 		height: frameHeight,
 		reserve,
+		fill: sizing.mode === 'fill' || sizing.mode === 'aspect-fill',
+		outerAspect,
 		plot: layout.plot,
 		band: layout.band,
 		yScale: layout.valueScale,
