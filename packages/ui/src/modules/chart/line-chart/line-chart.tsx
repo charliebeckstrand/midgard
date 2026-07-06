@@ -43,8 +43,9 @@ export type LineChartProps<T> = CartesianChartProps<T> & {
 	interpolation?: LineInterpolation
 	/**
 	 * Draw selective value labels — each series' `endpoints` and / or `extremes`
-	 * — placed clear of the marks with overlaps dropped by priority. Off by
-	 * default; the tooltip and data table carry the full readout.
+	 * — placed clear of the marks with overlaps dropped by priority, and, with
+	 * `references`, each reference rule's value beside it in place of its hover
+	 * tooltip. Off by default; the tooltip and data table carry the full readout.
 	 */
 	labels?: ChartValueLabelConfig
 }
@@ -59,7 +60,8 @@ export type LineChartProps<T> = CartesianChartProps<T> & {
  * charts on one scale. Focus the plot to drive the crosshair and tooltip by
  * keyboard — the band-axis arrows step categories, the value-axis arrows cycle
  * each category's series values. A reference line joins that value-axis roving,
- * receding the marks when the cursor reaches it.
+ * receding the marks when the cursor reaches it — unless `labels.references`
+ * draws its value beside it, which stands in for the hover and drops the rove.
  * @example
  * ```tsx
  * <LineChart
@@ -173,6 +175,11 @@ export function LineChart<T>({
 
 	const rails = resolveCrosshair(crosshair)
 
+	// With reference values labelled beside their rules, the rules shed the hover
+	// tooltip they stand in for — so they also leave the keyboard roving, dropping
+	// out of the value-axis stops.
+	const referenceLabels = labels?.references ?? false
+
 	return (
 		<ChartFrame
 			{...label}
@@ -202,7 +209,7 @@ export function LineChart<T>({
 				chart.bandPositions,
 				chart.snapPoints,
 				chart.orientation,
-				chart.referencePositions,
+				referenceLabels ? undefined : chart.referencePositions,
 			)}
 			className={className}
 			annotations={<ChartReferenceList reference={reference} format={chart.formatAxisValue} />}
@@ -256,6 +263,7 @@ export function LineChart<T>({
 				reference={reference}
 				format={chart.formatAxisValue}
 				animate={animate}
+				labels={referenceLabels}
 			/>
 		</ChartFrame>
 	)

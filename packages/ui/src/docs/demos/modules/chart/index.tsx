@@ -365,6 +365,21 @@ export function Demo() {
 							</Example>
 
 							<Example
+								title="Reference labels"
+								code={code`<LineChart reference={[{ value: 60, label: 'Target', color: 'green' }]} labels={{ references: true }} … />`}
+							>
+								<ChartContainer>
+									<LineChart
+										aria-label="Revenue by month against a target, with reference labels"
+										data={months}
+										series={[{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' }]}
+										reference={[{ value: 60, label: 'Target', color: 'green' }]}
+										labels={{ references: true }}
+									/>
+								</ChartContainer>
+							</Example>
+
+							<Example
 								title="Smooth interpolation"
 								code={code`<LineChart interpolation="smooth" … />`}
 							>
