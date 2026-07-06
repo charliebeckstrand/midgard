@@ -3,7 +3,7 @@
 import type { ColumnPinningState, PaginationState, Table } from '@tanstack/react-table'
 import { useRef } from 'react'
 import { isDataColumn } from '../../utilities'
-import type { QueryGroupNode } from '../query'
+import { isQueryActive, type QueryField, type QueryGroupNode } from '../query'
 import { DEFAULT_COLUMN_SIZE, DEFAULT_MIN_COLUMN_SIZE } from './grid-constants'
 import { frozenSide } from './grid-pin-overrides'
 import type { GridColumn, GridPagination } from './types'
@@ -77,6 +77,15 @@ export type GridColumnFilter = {
 	 * under server-side (manual) filtering or for a column without a value accessor.
 	 */
 	uniqueValues: (id: string | number) => string[]
+	/**
+	 * Whether any column carries a filter that actually constrains rows — the same
+	 * row-constraining test the header buttons read for their active accent (a
+	 * real value or a value-less operator, not a merely-seeded rule). Drives the
+	 * toolbar's "Clear all filters" affordance.
+	 */
+	hasActive: () => boolean
+	/** Lift every column's applied filter at once, recovering all hidden rows. */
+	clear: () => void
 }
 
 /**
@@ -327,6 +336,21 @@ export function buildColumnPinning<T>(table: Table<T>): GridColumnPinning {
 	}
 }
 
+/**
+ * The single-field {@link QueryField} the active-filter test resolves a column's
+ * operators against — only `name` (matched to each rule's field) and `type`
+ * (selecting the operator set, so a value-less operator like "is empty" reads as
+ * a real constraint) bear on {@link isQueryActive}, so the faceted `options` a
+ * `select` editor needs are skipped here.
+ *
+ * @internal
+ */
+function activeFilterField<T>(id: string, table: Table<T>): QueryField {
+	const gridColumn = table.getColumn(id)?.columnDef.meta?.gridColumn
+
+	return { name: id, label: id, type: gridColumn?.filterType ?? 'text' }
+}
+
 /** Assembles the {@link GridColumnFilter} controls over a table instance; methods read it live. @internal */
 export function buildColumnFilters<T>(table: Table<T>): GridColumnFilter {
 	return {
@@ -348,6 +372,21 @@ export function buildColumnFilters<T>(table: Table<T>): GridColumnFilter {
 
 			return [...new Set(values)].sort((a, b) => a.localeCompare(b))
 		},
+		// Test each applied column filter the same way its header button does, so
+		// the toolbar affordance appears exactly when a header accent does — a
+		// seeded-but-blank query (present in state, constraining nothing) reads
+		// inactive here just as it does there.
+		hasActive: () =>
+			table
+				.getState()
+				.columnFilters.some(
+					(entry) =>
+						isQueryGroup(entry.value) &&
+						isQueryActive(entry.value, [activeFilterField(entry.id, table)]),
+				),
+		// Replace the whole applied set with an empty one; it flows through the
+		// engine's `onColumnFiltersChange` like any other filter edit.
+		clear: () => table.setColumnFilters([]),
 	}
 }
 

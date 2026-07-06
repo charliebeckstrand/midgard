@@ -11,7 +11,7 @@ import { k } from '../../recipes/kata/grid'
 import type { GridExportAction } from './export/types'
 import type { GridSelection } from './grid-data-types'
 import { GridFilter } from './grid-filter'
-import type { GridGlobalFilterView } from './use-grid-table'
+import type { GridColumnFilter, GridGlobalFilterView } from './use-grid-table'
 
 /** Props for {@link GridToolbar}. @internal */
 type GridToolbarProps = {
@@ -31,6 +31,11 @@ type GridToolbarProps = {
 	 * tools cluster listing one menu item per action; empty hides it entirely.
 	 */
 	exportActions: GridExportAction[]
+	/**
+	 * Per-column filter controls, or `null` when no column is filterable. Backs the
+	 * "Clear all filters" button, shown only while a filter constrains rows.
+	 */
+	columnFilters: GridColumnFilter | null
 	/** Batch-action builder; its controls fill the second row while a row is selected. */
 	batchActions: GridSelection['batchActions']
 	/** Whether at least one row is selected — gates the batch-action row. */
@@ -43,11 +48,13 @@ type GridToolbarProps = {
 
 /**
  * The Grid's toolbar region: the single place its above-table controls are
- * assembled. The top row carries the quick-search field at the start and a
- * "Table tools" cluster at the end — the column-manager trigger and, when any
- * export type is active, an "Export" dropdown listing one item per action; a
- * second row hosts the batch actions while a row is selected, so the search
- * stays reachable beside them. The tools and batch actions are each their own
+ * assembled. The top row carries the quick-search field at the start — joined,
+ * while a column filter constrains rows, by an amber "Clear all filters" button
+ * that lifts them all — and a "Table tools" cluster at the end: the
+ * column-manager trigger and, when any export type is active, an "Export"
+ * dropdown listing one item per action; a second row hosts the batch actions
+ * while a row is selected, so the search stays reachable beside them. The tools
+ * and batch actions are each their own
  * labelled {@link Toolbar} — "Table tools" and "Batch actions" — while the
  * search stays a plain field, so the toolbars' roving-tabindex arrow
  * navigation never swallows the text cursor.
@@ -63,6 +70,7 @@ export function GridToolbar({
 	columnManagerLabel,
 	onManageColumns,
 	exportActions,
+	columnFilters,
 	batchActions,
 	hasSelection,
 	selection,
@@ -74,7 +82,9 @@ export function GridToolbar({
 
 	const showBatch = Boolean(batchActions) && hasSelection
 
-	const showTopRow = Boolean(filter) || showTools
+	const hasActiveFilters = columnFilters?.hasActive() ?? false
+
+	const showTopRow = Boolean(filter) || hasActiveFilters || showTools
 
 	if (!showTopRow && !showBatch) return null
 
@@ -83,6 +93,14 @@ export function GridToolbar({
 			{showTopRow && (
 				<div className={cn(k.toolbar.bar)}>
 					{filter && <GridFilter filter={filter} />}
+
+					{/* Grouped with the search on the row's start (filter-related), across
+					    from the table tools; surfaces only while a filter constrains rows. */}
+					{hasActiveFilters && (
+						<Button variant="soft" color="amber" onClick={() => columnFilters?.clear()}>
+							Clear all filters
+						</Button>
+					)}
 
 					{showTools && (
 						<Toolbar aria-label="Table tools" className={cn(k.toolbar.actions)}>
