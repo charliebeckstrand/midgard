@@ -6,6 +6,7 @@
  */
 
 import { formatFraction, formatInteger } from '../../utilities'
+import { parseNumeric } from './grid-sorting-utilities'
 import type { GridColumn } from './types'
 
 /**
@@ -30,25 +31,25 @@ export function hasAggregation<T>(columns: GridColumn<T>[]): boolean {
 }
 
 /**
- * The column's finite numeric values across `rows`; entries that don't parse
- * drop out. Empty values (`null` / `undefined` / `''`) are treated as missing
- * and skipped, not coerced — `Number(null)` is `0`, which would otherwise
- * pull a sum, average, or minimum toward zero.
+ * The column's finite numeric values across `rows`, read through the same
+ * {@link parseNumeric} that sort and filter use — so money, comma-grouped, and
+ * percent strings that sort as numbers aggregate as numbers too. Entries that
+ * don't parse — text, blank, and whitespace-only cells — drop out rather than
+ * coercing to `0` (as `Number(null)` / `Number('  ')` would), which would pull a
+ * sum, average, or minimum toward zero.
  *
  * @internal
  */
 function numericValues<T>(column: GridColumn<T>, rows: T[]): number[] {
 	const accessor = aggAccessor(column)
 
-	return rows.flatMap((row) => {
-		const raw = accessor(row)
+	return rows.reduce<number[]>((values, row) => {
+		const value = parseNumeric(accessor(row))
 
-		if (raw == null || raw === '') return []
+		if (value !== null) values.push(value)
 
-		const value = Number(raw)
-
-		return Number.isFinite(value) ? [value] : []
-	})
+		return values
+	}, [])
 }
 
 /**
@@ -78,7 +79,11 @@ export function aggregateColumn<T>(column: GridColumn<T>, rows: T[]): unknown {
 
 	if (aggFunc === 'avg') return values.reduce((sum, value) => sum + value, 0) / values.length
 
-	return aggFunc === 'min' ? Math.min(...values) : Math.max(...values)
+	// Reduce, not `Math.min(...values)` — spreading a large value set as call
+	// arguments overflows the stack on a grand total over many thousands of rows.
+	return aggFunc === 'min'
+		? values.reduce((min, value) => (value < min ? value : min))
+		: values.reduce((max, value) => (value > max ? value : max))
 }
 
 /**

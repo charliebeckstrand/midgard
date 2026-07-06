@@ -305,6 +305,11 @@ export function useGridNavigation({
 
 	const onKeyDown = useCallback(
 		(event: KeyboardEvent<HTMLTableElement>) => {
+			// Only keys landing on the `<table>` tab stop drive the cursor; a keystroke
+			// bubbling up from a focusable descendant (an inline editor, a link) belongs
+			// to that control — hijacking it freezes the caret and jumps the cursor.
+			if (event.target !== event.currentTarget) return
+
 			const rowCount = rowsRef.current.length
 
 			const colCount = colCountRef.current

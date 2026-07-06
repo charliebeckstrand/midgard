@@ -175,8 +175,13 @@ export function useGridColumnAutoSize<T>({
 			manualPinnedRef.current.add(lastResizingRef.current)
 
 			lastResizingRef.current = false
+
+			// Re-fit now that the dragged column is a manual hold, so the remaining
+			// auto-sized columns redistribute around its new width instead of waiting
+			// for an unrelated trigger (container resize, page turn).
+			run(true)
 		}
-	}, [resizingColumn])
+	}, [resizingColumn, run])
 
 	// Keep the latest `run` reachable from the ResizeObserver without listing it in
 	// the observer effect's deps: `run`'s identity shifts whenever the columns,
