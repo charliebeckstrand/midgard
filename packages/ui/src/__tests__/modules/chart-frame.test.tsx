@@ -29,7 +29,7 @@ function frame(width: number, extras?: Partial<Parameters<typeof ChartFrame>[0]>
 			reserve={null}
 			legend={
 				<ChartLegend
-					items={[{ label: 'Revenue', swatchClass: 'bg-blue-600', swatch: 'rect' }]}
+					items={[{ index: 0, label: 'Revenue', swatchClass: 'bg-blue-600', swatch: 'rect' }]}
 					hidden={new Set()}
 					onToggle={noop}
 					onFocus={noop}

@@ -159,6 +159,7 @@ function scatterLegendItems(
 	if (!(legend ?? metas.length > 1)) return null
 
 	return metas.map((meta) => ({
+		index: meta.index,
 		label: meta.label,
 		swatchClass: meta.paint.text.join(' '),
 		swatch: 'rect',

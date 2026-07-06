@@ -116,7 +116,7 @@ export function LineChart<T>({
 			xAxis,
 			formatValue,
 		},
-		{ zeroBaseline: false, swatch: () => 'line' },
+		{ zeroBaseline: false, swatch: () => 'line', legendByValue: true },
 	)
 
 	const floor = chart.plot.y + chart.plot.height

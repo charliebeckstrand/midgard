@@ -486,6 +486,7 @@ function pieLegendItems(
 		const share = value != null && value > 0 && total > 0 ? formatPercent(value / total) : '—'
 
 		return {
+			index,
 			label: entry,
 			swatchClass: paints[index]?.text.join(' ') ?? '',
 			swatch: 'rect' as const,

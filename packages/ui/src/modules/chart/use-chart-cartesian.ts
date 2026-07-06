@@ -56,6 +56,15 @@ export type CartesianConfig<T> = {
 	 * @defaultValue 'vertical'
 	 */
 	orientation?: ChartOrientation
+	/**
+	 * Order the legend switches by each series' latest value, largest first, so
+	 * they read top-to-bottom in the marks' own visible order rather than the
+	 * caller's series order — the overlapping lines a {@link LineChart} draws.
+	 * Off — the default — keeps the series order, which the drawn order of
+	 * grouped bars and stacks must match.
+	 * @defaultValue false
+	 */
+	legendByValue?: boolean
 }
 
 /** Everything the cartesian frame and marks derive from the props. @internal */
@@ -316,14 +325,23 @@ function gridPositionsOf<T>(props: CartesianData<T>, layout: CartesianLayout): n
 	]
 }
 
-/** The legend entries: on request, or by default once a second series needs telling apart. @internal */
+/**
+ * The legend entries: on request, or by default once a second series needs
+ * telling apart. Opted into `byValue`, the switches list in the marks' visible
+ * order — each series by its latest value — while every entry keeps its own
+ * index, so the reorder is display-only and a toggle still finds its series.
+ *
+ * @internal
+ */
 function legendItemsOf(
 	metas: SeriesMeta[],
 	legend: CartesianChartProps<unknown>['legend'],
+	byValue: boolean | undefined,
 ): ChartLegendItem[] | null {
 	if (!(legend ?? metas.length > 1)) return null
 
-	return metas.map((meta) => ({
+	return orderLegend(metas, byValue).map((meta) => ({
+		index: meta.index,
 		label: meta.label,
 		swatchClass: meta.paint.text.join(' '),
 		swatch: meta.swatch,
@@ -379,6 +397,46 @@ export function barProjection(drawn: DrawnSeries[], fallback: number) {
 		},
 		baseline: (index: number) => drawn[index]?.baseline ?? fallback,
 	}
+}
+
+/**
+ * A series' latest finite value — its position at the right edge, where the
+ * eye reads a line's order. A trailing gap falls back to the last real value;
+ * an all-null series has none and sinks with negative infinity.
+ *
+ * @internal
+ */
+function latestValue(values: (number | null)[]): number {
+	for (let index = values.length - 1; index >= 0; index--) {
+		const value = values[index]
+
+		if (value != null) return value
+	}
+
+	return Number.NEGATIVE_INFINITY
+}
+
+/**
+ * Orders two series by their latest value, largest first — the legend's
+ * visible top-to-bottom order when a chart opts into
+ * {@link CartesianConfig.legendByValue}. Equal or all-null series fall back to
+ * the caller's order, so the sort stays stable and never returns `NaN`.
+ *
+ * @internal
+ */
+function byLatestValue(a: SeriesMeta, b: SeriesMeta): number {
+	return latestValue(b.values) - latestValue(a.values) || a.index - b.index
+}
+
+/**
+ * The metas in legend order: sorted into the marks' visible value order when
+ * `byValue` is set, else the caller's series order untouched. The sort runs on
+ * a copy, so the list the scales and marks read keeps its series order.
+ *
+ * @internal
+ */
+function orderLegend(metas: SeriesMeta[], byValue: boolean | undefined): SeriesMeta[] {
+	return byValue ? [...metas].sort(byLatestValue) : metas
 }
 
 /**
@@ -493,7 +551,7 @@ export function useChartCartesian<T>(
 		emphasis,
 		setEmphasis: setFocus,
 		readout,
-		legendItems: legendItemsOf(metas, legend),
+		legendItems: legendItemsOf(metas, legend, config.legendByValue),
 		referenceItems,
 		bandPositions: layout.bandPositions,
 		snapPoints: layout.snapPoints,
