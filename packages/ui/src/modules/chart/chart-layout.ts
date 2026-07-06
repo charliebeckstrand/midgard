@@ -73,16 +73,21 @@ export type PlotRect = {
  * advance plus the gap and edge slack, clamped so extreme labels can't crowd
  * out the plot.
  *
- * @remarks Computed, never measured: tick labels render in tabular figures, so
- * their widest string estimates reliably from its length. Ceil plus edge
- * slack — an estimate rounded down clips the widest label against the SVG's
- * own overflow.
+ * @remarks Computed, never measured: value ticks render in tabular figures, so
+ * their widest string estimates reliably from its length at {@link
+ * TICK_CHAR_WIDTH} per glyph. Ceil plus edge slack — an estimate rounded down
+ * clips the widest label against the SVG's own overflow. A caller whose gutter
+ * holds proportional category labels instead — the heatmap's rows, not digits —
+ * passes a wider `charWidth` ({@link LABEL_CHAR_WIDTH}) so a capital-initial
+ * label still clears the frame edge.
+ * @param charWidth Per-glyph advance estimate for the labels; defaults to the
+ * tabular-digit {@link TICK_CHAR_WIDTH}.
  * @internal
  */
-function tickGutter(labels: string[]): number {
+function tickGutter(labels: string[], charWidth: number = TICK_CHAR_WIDTH): number {
 	const chars = labels.reduce((widest, label) => Math.max(widest, label.length), 0)
 
-	return Math.min(GUTTER_MAX, Math.ceil(chars * TICK_CHAR_WIDTH) + GUTTER_GAP + GUTTER_EDGE_PAD)
+	return Math.min(GUTTER_MAX, Math.ceil(chars * charWidth) + GUTTER_GAP + GUTTER_EDGE_PAD)
 }
 
 /**
@@ -91,6 +96,9 @@ function tickGutter(labels: string[]): number {
  *
  * @remarks With `axes` off both reservations collapse and the plot fills the
  * frame.
+ * @param charWidth Per-glyph advance estimate for the gutter labels; defaults to
+ * the tabular-digit {@link TICK_CHAR_WIDTH}. The heatmap passes the wider {@link
+ * LABEL_CHAR_WIDTH} for its proportional row labels.
  * @internal
  */
 export function plotRect(
@@ -98,8 +106,9 @@ export function plotRect(
 	height: number,
 	axes: boolean,
 	tickLabels: string[],
+	charWidth: number = TICK_CHAR_WIDTH,
 ): PlotRect {
-	const gutter = axes ? tickGutter(tickLabels) : 0
+	const gutter = axes ? tickGutter(tickLabels, charWidth) : 0
 
 	const axisBand = axes ? X_AXIS_HEIGHT : 0
 

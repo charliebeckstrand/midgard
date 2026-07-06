@@ -45,6 +45,16 @@ export const AREA_FILL_OPACITY = 0.16
 /** Estimated glyph advance of a `text-xs` tabular digit, for the y-gutter estimate. @internal */
 export const TICK_CHAR_WIDTH = 7.2
 
+/**
+ * Estimated glyph advance of a proportional category label's character, for the
+ * y-gutter estimate when band labels — not tabular value ticks — line it (the
+ * heatmap's rows). Wider than {@link TICK_CHAR_WIDTH}: category labels are
+ * proportionally set and often capital-initial, so a tabular-digit width
+ * under-reserves the gutter and the widest label (a leading `M` or `W`) crosses
+ * the frame's left edge and clips. @internal
+ */
+export const LABEL_CHAR_WIDTH = 9
+
 /** Air between the y tick labels and the plot edge. @internal */
 export const GUTTER_GAP = 8
 

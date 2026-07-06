@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
 	GUTTER_EDGE_PAD,
 	GUTTER_GAP,
+	LABEL_CHAR_WIDTH,
 	PLOT_TOP_PAD,
 	TICK_CHAR_WIDTH,
 	X_AXIS_HEIGHT,
@@ -112,6 +113,21 @@ describe('plotRect', () => {
 		expect(plot.width).toBe(400)
 
 		expect(plot.height).toBe(240 - PLOT_TOP_PAD)
+	})
+
+	it('widens the gutter for proportional labels passed a wider char width', () => {
+		// Digit ticks size the gutter at TICK_CHAR_WIDTH; proportional category
+		// labels (the heatmap's rows) pass the wider LABEL_CHAR_WIDTH so a
+		// capital-initial label clears the frame edge instead of clipping.
+		const digits = plotRect(400, 240, true, ['Wed'])
+
+		const labels = plotRect(400, 240, true, ['Wed'], LABEL_CHAR_WIDTH)
+
+		expect(digits.x).toBe(Math.ceil(3 * TICK_CHAR_WIDTH) + GUTTER_GAP + GUTTER_EDGE_PAD)
+
+		expect(labels.x).toBe(Math.ceil(3 * LABEL_CHAR_WIDTH) + GUTTER_GAP + GUTTER_EDGE_PAD)
+
+		expect(labels.x).toBeGreaterThan(digits.x)
 	})
 })
 
