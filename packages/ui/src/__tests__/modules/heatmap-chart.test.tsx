@@ -95,6 +95,17 @@ describe('HeatmapChart', () => {
 		expect(bySlot(container, 'heatmap-legend-box')).toBeNull()
 	})
 
+	it('narrows legend to a boolean — the range bar takes no placement', () => {
+		const { container } = renderUI(
+			// @ts-expect-error the range bar is fixed beside the plot: it takes a boolean, not a placement
+			<HeatmapChart aria-label="Commits" data={ROWS} series={SERIES} width={400} legend="bottom" />,
+		)
+
+		// The narrowing is the point (the @ts-expect-error above); a placement is
+		// still truthy, so at runtime the legend renders on its fixed right side.
+		expect(bySlot(container, 'heatmap-legend-box')).not.toBeNull()
+	})
+
 	it('dims cells outside the probed bin on range-legend hover', () => {
 		const { container } = renderUI(
 			<HeatmapChart aria-label="Commits" data={ROWS} series={SERIES} width={400} />,

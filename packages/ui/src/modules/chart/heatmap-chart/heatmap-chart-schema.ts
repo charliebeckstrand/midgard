@@ -51,13 +51,20 @@ export type HeatmapChartSeries<T> = {
  * visually-hidden data table (categories × rows), so the grid carries full
  * value parity without the pointer, the way every chart in the module does.
  *
- * @remarks The grid wires neither `animate` nor `texture` from the base props;
- * the component destructures them off so they never reach the plot element,
- * pending a grid that honours them.
+ * @remarks The grid wires neither `animate` nor `texture`; the component
+ * destructures them off so they never reach the plot element. `legend` narrows
+ * to a boolean: the range bar is fixed beside the plot — it takes no placement
+ * the way a categorical legend does — so a `ChartLegendPlacement` would
+ * type-check yet always render on the right.
  */
-export type HeatmapChartProps<T = never> = ChartBaseProps<T> & {
+export type HeatmapChartProps<T = never> = Omit<ChartBaseProps<T>, 'legend'> & {
 	/** The single series to shade cells with; extra entries are ignored. */
 	series: HeatmapChartSeries<T>[]
+	/**
+	 * Show the range legend beside the plot.
+	 * @defaultValue true
+	 */
+	legend?: boolean
 }
 
 /**
