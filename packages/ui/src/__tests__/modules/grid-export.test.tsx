@@ -123,6 +123,12 @@ describe('downloadCsv', () => {
 
 		expect(click).toHaveBeenCalledTimes(1)
 
+		// The object URL is revoked on the next macrotask (not synchronously, which
+		// can abort the download), so flush timers before asserting.
+		expect(revokeObjectURL).not.toHaveBeenCalled()
+
+		await new Promise((resolve) => setTimeout(resolve, 0))
+
 		expect(revokeObjectURL).toHaveBeenCalledWith('blob:mock')
 
 		click.mockRestore()
@@ -421,6 +427,34 @@ describe('Grid export', () => {
 		fireEvent.click(screen.getByRole('menuitem', { name: 'Export to pdf' }))
 
 		expect(onExport).toHaveBeenCalledTimes(1)
+	})
+
+	it('resolves every type key of a multi-type object entry, not just the first', () => {
+		const csv = vi.fn()
+
+		const pdf = vi.fn()
+
+		renderUI(
+			<Grid
+				exportable={[{ csv: { onExport: csv }, pdf: { onExport: pdf } }]}
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+			/>,
+		)
+
+		rightClickHeader('Name')
+
+		// Both keys resolve to their own action; the second is no longer dropped.
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Export to CSV' }))
+
+		expect(csv).toHaveBeenCalledTimes(1)
+
+		rightClickHeader('Name')
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Export to pdf' }))
+
+		expect(pdf).toHaveBeenCalledTimes(1)
 	})
 
 	it('drops an entry naming an unknown type with no onExport', () => {
