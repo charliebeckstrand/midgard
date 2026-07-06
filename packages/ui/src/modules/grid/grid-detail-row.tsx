@@ -7,6 +7,9 @@ import { Icon } from '../../components/icon'
 import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/grid'
 
+/** Zero cell padding for the detail `<td>`; hoisted so every mounted detail row shares one object. @internal */
+const NO_PADDING = { padding: 0 }
+
 /** The DOM id of a row's detail panel, so the expander's `aria-controls` names it. @internal */
 export function detailPanelId(rowKey: string | number): string {
 	return `grid-detail-${rowKey}`
@@ -41,7 +44,9 @@ export function GridExpandToggle({
 }: GridExpandToggleProps) {
 	if (!expandable) return null
 
-	const name = rowLabel ?? `row ${rowKey}`
+	// `||`, not `??`: a blank label falls back to the key rather than leaving a
+	// dangling "Expand details for ".
+	const name = rowLabel || `row ${rowKey}`
 
 	return (
 		<Button
@@ -94,7 +99,7 @@ export function GridDetailRow({ rowKey, colSpan, expanded, children }: GridDetai
 			aria-hidden={expanded ? undefined : true}
 			inert={!expanded}
 		>
-			<td colSpan={colSpan} style={{ padding: 0 }}>
+			<td colSpan={colSpan} style={NO_PADDING}>
 				<div className={cn(k.detail.reveal)} data-open={dataAttr(expanded)}>
 					<div className={cn(k.detail.revealClip)}>
 						<section id={detailPanelId(rowKey)} className={cn(k.detail.panel)}>

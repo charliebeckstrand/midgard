@@ -1,7 +1,7 @@
 'use client'
 
 import type { GridColumn } from '../types'
-import { exportFields } from './export-accessor'
+import { cellText, exportFields } from './export-accessor'
 import { downloadBlob } from './export-download'
 
 /** A leading character a spreadsheet unconditionally reads as a formula/command start. @internal */
@@ -44,11 +44,6 @@ function escapeCsvField(value: string): string {
 	return /[",\r\n]/.test(guarded) ? `"${guarded.replace(/"/g, '""')}"` : guarded
 }
 
-/** Stringifies a cell value for CSV: nullish becomes empty, everything else `String()`s. @internal */
-function csvCellText(value: unknown): string {
-	return value == null ? '' : String(value)
-}
-
 /**
  * Serializes rows to RFC 4180 CSV: a header row of the data columns' labels
  * followed by one row per datum, each cell read through the column's export
@@ -67,7 +62,7 @@ export function rowsToCsv<T>(columns: GridColumn<T>[], rows: T[]): string {
 	const header = fields.map((field) => escapeCsvField(field.label)).join(',')
 
 	const body = rows.map((row) =>
-		fields.map((field) => escapeCsvField(csvCellText(field.accessor(row)))).join(','),
+		fields.map((field) => escapeCsvField(cellText(field.accessor(row)))).join(','),
 	)
 
 	return [header, ...body].join('\r\n')

@@ -230,27 +230,33 @@ function useStableColumnDefs<T>(
 
 	const cellRenderers = useRef(new Map<string, (info: CellContext<T, unknown>) => ReactNode>())
 
-	return useMemo<ColumnDef<T>[]>(
-		() =>
-			columns.map((col) => {
-				const id = String(col.id)
+	return useMemo<ColumnDef<T>[]>(() => {
+		const defs = columns.map((col) => {
+			const id = String(col.id)
 
-				let renderCell = cellRenderers.current.get(id)
+			let renderCell = cellRenderers.current.get(id)
 
-				if (!renderCell) {
-					renderCell = (info) => columnsByIdRef.current.get(id)?.cell?.(info.row.original) ?? null
+			if (!renderCell) {
+				renderCell = (info) => columnsByIdRef.current.get(id)?.cell?.(info.row.original) ?? null
 
-					cellRenderers.current.set(id, renderCell)
-				}
+				cellRenderers.current.set(id, renderCell)
+			}
 
-				return {
-					...toColumnDef(col, smartSortingFn),
-					meta: { gridColumn: col },
-					...(col.cell ? { cell: renderCell } : {}),
-				}
-			}),
-		[columns, smartSortingFn],
-	)
+			return {
+				...toColumnDef(col, smartSortingFn),
+				meta: { gridColumn: col },
+				...(col.cell ? { cell: renderCell } : {}),
+			}
+		})
+
+		// Drop renderers for columns no longer present, so the cache doesn't grow
+		// unbounded across the mount as the column set changes.
+		for (const id of cellRenderers.current.keys()) {
+			if (!columnsById.has(id)) cellRenderers.current.delete(id)
+		}
+
+		return defs
+	}, [columns, columnsById, smartSortingFn])
 }
 
 /**

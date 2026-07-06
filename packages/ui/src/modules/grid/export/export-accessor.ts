@@ -3,6 +3,11 @@
 import { isDataColumn } from '../../../utilities'
 import { columnLabel, type GridColumn } from '../types'
 
+/** Stringifies a cell value for export: nullish becomes empty, everything else `String()`s. Shared by the CSV and HTML-table serializers. @internal */
+export function cellText(value: unknown): string {
+	return value == null ? '' : String(value)
+}
+
 /**
  * The accessor a column contributes to an export: its {@link GridColumn.value}
  * (the same value sort and filter read) when set, else the row field named by
