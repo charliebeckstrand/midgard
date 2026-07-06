@@ -68,6 +68,21 @@ export const GUTTER_MAX = 96
 export const X_AXIS_HEIGHT = 24
 
 /**
+ * Degrees a category label tilts under {@link CartesianFrameProps.tickRotation}
+ * once it would otherwise be thinned — negative so the label reads rising
+ * left to right, its near end tucked under the tick. @internal
+ */
+export const TICK_ROTATION_ANGLE = -35
+
+/**
+ * Height reserved under the plot for a tilted run of category labels, in place
+ * of {@link X_AXIS_HEIGHT} — flat like it, not sized off label content, since a
+ * label long enough to need thinning already runs well past what any one
+ * gutter estimate would cleanly bound. @internal
+ */
+export const TICK_ROTATION_HEIGHT = 56
+
+/**
  * Vertical footprint of one `text-xs` category label stacked in a horizontal
  * chart's left axis — its line box, for thinning band labels by column room the
  * way {@link TICK_CHAR_WIDTH} thins them by row room. @internal

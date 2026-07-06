@@ -55,6 +55,17 @@ export function resolveCrosshair(
 }
 
 /**
+ * Whether a resolved crosshair snaps to the nearest point — so the tooltip reads
+ * off the marks too, and a click there pins the snapped band rather than
+ * dismissing. `null` (no crosshair) never snaps.
+ *
+ * @internal
+ */
+export function crosshairSnaps(crosshair: ResolvedCrosshair | null): boolean {
+	return crosshair?.snap ?? false
+}
+
+/**
  * The hover crosshair: an `x` rule across the value axis and a `y` rule down the
  * category axis, drawing whichever rules the resolved crosshair leaves on. Each
  * rule is projected through the orientation, so a horizontal chart transposes

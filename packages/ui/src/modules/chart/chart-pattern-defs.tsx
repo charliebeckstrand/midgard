@@ -4,7 +4,7 @@ import { type CSSProperties, type ReactNode, useId } from 'react'
 import { Swatch } from '../../components/swatch'
 import { cn } from '../../core'
 import { type ChartSeriesColor, k } from '../../recipes/kata/chart'
-import type { SeriesPaint } from './chart-series'
+import type { SlotPaint } from './chart-series'
 
 /** The pattern tile edge, in `viewBox` units — the hatch repeats every `TILE`. @internal */
 const TILE = 8
@@ -80,7 +80,7 @@ function hatch(texture: Texture): ReactNode {
 }
 
 /** One tile to define: the slot's hue paint and the scoped `id` the marks reference. @internal */
-export type ChartPatternEntry = { color: ChartSeriesColor; paint: SeriesPaint; id: string }
+export type ChartPatternEntry = { color: ChartSeriesColor; paint: SlotPaint; id: string }
 
 /**
  * The `<defs>` block of texture tiles — one per distinct slot in use, a hue
@@ -126,8 +126,8 @@ export function ChartPatternDefs({ entries }: { entries: ChartPatternEntry[] }) 
 export type ChartTexture = {
 	/** The `<defs>` to mount inside the SVG — the tiles for the slots in use. */
 	defs: ReactNode
-	/** The tile fill URL for a slot — each mark set maps its own metas' colours. */
-	fillFor: (color: ChartSeriesColor) => string
+	/** The tile fill URL for a slot, or `undefined` for a raw colour, which takes no tile. */
+	fillFor: (slot: ChartSeriesColor | null) => string | undefined
 	/** The `texture` prop: tiles paint in every mode, not only forced-colors / print. */
 	active: boolean
 }
@@ -138,29 +138,32 @@ export type ChartTexture = {
  * `active`, or only where colour is gone (forced colours, print) otherwise — so
  * a chart survives High Contrast Mode without opting in. Tiles de-dupe to the
  * distinct slots, so a two-series chart defines two, not eight; pass every
- * visible series so a combo's bars and areas both resolve.
+ * visible series's slot so a combo's bars and areas both resolve. A raw-coloured
+ * series carries a `null` slot: it opts out of the categorical palette, takes no
+ * tile, and `fillFor` hands it back `undefined` so the mark fills flat.
  *
  * @internal
  */
-export function useChartTexture(
-	active: boolean,
-	series: { color: ChartSeriesColor; paint: SeriesPaint }[],
-): ChartTexture {
+export function useChartTexture(active: boolean, slots: (ChartSeriesColor | null)[]): ChartTexture {
 	// React's useId carries colons — safe as an attribute, but not inside the
 	// url() a CSS class reads — so strip them for the referenced pattern ids.
 	const base = useId().replace(/:/g, '')
 
-	const idFor = (color: ChartSeriesColor) => `chart-tx-${base}-${color}`
+	const idFor = (slot: ChartSeriesColor) => `chart-tx-${base}-${slot}`
 
-	const distinct = new Map<ChartSeriesColor, SeriesPaint>()
+	const distinct = new Set<ChartSeriesColor>()
 
-	for (const entry of series) if (!distinct.has(entry.color)) distinct.set(entry.color, entry.paint)
+	for (const slot of slots) if (slot !== null) distinct.add(slot)
 
-	const entries = [...distinct].map(([color, paint]) => ({ color, paint, id: idFor(color) }))
+	const entries = [...distinct].map((slot) => ({
+		color: slot,
+		paint: k.series[slot],
+		id: idFor(slot),
+	}))
 
 	return {
 		defs: <ChartPatternDefs entries={entries} />,
-		fillFor: (color) => `url(#${idFor(color)})`,
+		fillFor: (slot) => (slot === null ? undefined : `url(#${idFor(slot)})`),
 		active,
 	}
 }
@@ -192,23 +195,35 @@ const SWATCH_TILE_SHIFT = (SWATCH_BOX - TILE) / 2
 export function ChartSwatch({
 	swatch,
 	swatchClass,
+	swatchColor,
 	color,
+	dashed = false,
 	active,
 	off,
 }: {
 	swatch: 'rect' | 'line'
 	swatchClass: string
+	/** A raw series colour inked inline on the swatch's `currentColor`; unset for a palette slot. */
+	swatchColor?: string
 	color?: ChartSeriesColor
+	/** Dash the `line` swatch, mirroring a dashed series stroke; ignored for a `rect`. */
+	dashed?: boolean
 	active: boolean
 	off: boolean
 }) {
 	const id = `chart-sw-${useId().replace(/:/g, '')}`
 
+	// A raw colour carries no slot, so it never hatches — it inks its
+	// `currentColor` inline on a plain swatch, the same opt-out as a raw mark. A
+	// dashed line swatch mirrors the stroke here too — the line never routes
+	// through the textured path below, so this is its only paint.
 	if (swatch !== 'rect' || !color) {
 		return (
 			<Swatch
 				shape={swatch === 'rect' ? 'square' : 'line'}
+				variant={swatch === 'line' && dashed ? 'dashed' : undefined}
 				color={swatchClass}
+				style={swatchColor ? { color: swatchColor } : undefined}
 				className={cn(off && 'opacity-40')}
 			/>
 		)

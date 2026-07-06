@@ -78,10 +78,15 @@ export type ChartSeries<T> = {
 	 */
 	yName?: string
 	/**
-	 * Named mark colour override. Defaults to the categorical slot palette in
-	 * fixed order, so a series keeps its colour when siblings toggle.
+	 * Mark colour override: a named palette slot (rendered through the CVD-safe
+	 * slot classes, with its texture tile) or any raw CSS colour string — a hex
+	 * like `'#e11d48'`, an `'oklch(…)'`, or any value CSS accepts — applied inline.
+	 * A raw colour opts out of the categorical palette, so it carries no texture
+	 * tile, the same as a raw-coloured reference line. Defaults to the categorical
+	 * slot palette in fixed order, so a series keeps its colour when siblings
+	 * toggle.
 	 */
-	color?: ChartSeriesColor
+	color?: ChartSeriesColor | (string & {})
 	/**
 	 * The value axis this series reads against. `'right'` binds it to the
 	 * secondary axis — its own domain, ticks, and formatter via the chart's
@@ -91,6 +96,18 @@ export type ChartSeries<T> = {
 	 * @defaultValue 'left'
 	 */
 	axis?: ChartValueAxisSide
+	/**
+	 * Dash this series' connecting stroke instead of drawing it solid — a second
+	 * identity channel beside colour, so two lines sharing one chart tell apart
+	 * beyond hue, and stay tellable apart in print or under colour-vision
+	 * deficiency. Reuses the reference-line dash, keeping the two dash idioms one
+	 * pattern. Only the stroke changes: the series keeps its point markers, legend
+	 * chip, tooltip, crosshair snap, and keyboard behaviour, and an area series'
+	 * fill wash stays solid under its dashed edge. A bar series has no stroke to
+	 * dash, so it ignores this. Under `animate` the draw-on reveal still plays.
+	 * @defaultValue false
+	 */
+	dashed?: boolean
 }
 
 /**
@@ -106,9 +123,10 @@ export type ComboChartSeries<T> = ChartSeries<T> & {
 /**
  * The one series a pie or donut sweeps: `xKey` names each slice, `yKey` holds
  * its positive share. No colour override — slice colours follow the
- * categories, not the series — and no axis binding, since a pie has none.
+ * categories, not the series — no axis binding, since a pie has none, and no
+ * dashed stroke, since a slice is a filled wedge with no connecting line.
  */
-export type PieChartSeries<T> = Omit<ChartSeries<T>, 'color' | 'axis'>
+export type PieChartSeries<T> = Omit<ChartSeries<T>, 'color' | 'axis' | 'dashed'>
 
 /**
  * One scatter series: numeric fields on both axes, each row one point. Unlike
@@ -169,9 +187,9 @@ export type BubbleChartSeries<T> = ScatterChartSeries<T> & {
 }
 
 /**
- * Where a chart's legend sits around the plot: a centered row above or below
- * it, or a column panel beside it — side by side from `lg`, under the chart
- * below that.
+ * Where a chart's legend sits around the plot: a row above or below it —
+ * centered on mobile, left-aligned from `sm` — or a column panel beside it,
+ * side by side from `sm` and under the chart below that.
  */
 export type ChartLegendPlacement = 'top' | 'bottom' | 'left' | 'right'
 
@@ -227,7 +245,11 @@ export type ResolvedCrosshair = Required<Crosshair>
 export type ChartReferenceLine = {
 	/** The domain value the line sits at, in the same units the series are read in. */
 	value: number
-	/** A short label drawn at the line's far end; omitted, the rule stands alone. */
+	/**
+	 * A short label naming the rule — carried in its hover tooltip and legend chip,
+	 * and drawn beside the rule at its far end once a chart's `labels.references` is
+	 * on. Omitted, the rule reads by its value alone.
+	 */
 	label?: string
 	/**
 	 * The rule's colour: a named palette slot (rendered through the CVD-safe slot
@@ -255,11 +277,11 @@ export type ChartReferenceLine = {
 
 /**
  * Selective value labels for a line-bearing chart: direct labels at the points
- * worth naming, so a reader gets the numbers without the tooltip. Both default
- * off; set either (or both). Labels measure first and never clip — an edge
- * label anchors inward — and overlaps resolve by priority, extremes over
- * endpoints, dropping the loser rather than stacking it. The full readout stays
- * in the tooltip and data table.
+ * worth naming — and, with `references`, beside each reference rule — so a reader
+ * gets the numbers without the tooltip. All default off; set any. Point labels
+ * measure first and never clip — an edge label anchors inward — and overlaps
+ * resolve by priority, extremes over endpoints, dropping the loser rather than
+ * stacking it. The full readout stays in the tooltip and data table.
  */
 export type ChartValueLabelConfig = {
 	/**
@@ -272,6 +294,16 @@ export type ChartValueLabelConfig = {
 	 * @defaultValue false
 	 */
 	extremes?: boolean
+	/**
+	 * Draw each reference line's value — prefixed by its label where it has one —
+	 * beside the rule at its far end, inked to match the rule. The standing
+	 * readout replaces the rule's hover tooltip: with it on, the rules shed their
+	 * pointer target and keyboard stop, since the label already reads what the
+	 * tooltip would. The visually-hidden reference list keeps the assistive-tech
+	 * parity either way.
+	 * @defaultValue false
+	 */
+	references?: boolean
 }
 
 /**
@@ -350,7 +382,11 @@ export type ChartBaseProps<T> = AccessibleName & {
 	 * Height as a ratio of the width — a `width / height` number, a `"16/9"`
 	 * string, or `false` to fall back to the frame's own height policy. Ignored
 	 * when an explicit `height` is given.
-	 * @remarks Cartesian charts default to `'16/9'`; pie and donut default to a
+	 * @remarks The ratio describes the whole chart, legend and all: a legended
+	 * chart set to `16/9` fills a 16:9 tile without the legend spilling past it,
+	 * the plot taking the space the legend's natural size leaves. It holds through
+	 * CSS from the width alone — no container-height measurement — for every legend
+	 * placement. Cartesian charts default to `'16/9'`; pie and donut default to a
 	 * square, fitting height to their own content when callout labels are on.
 	 */
 	aspectRatio?: ChartAspectRatio
@@ -359,9 +395,10 @@ export type ChartBaseProps<T> = AccessibleName & {
 	 * for one — a single series is already named by the chart's accessible name.
 	 * Forced on for a lone series (or slice), its single entry reads as a static
 	 * chip: with nothing to switch against it can't toggle or emphasise. A
-	 * placement moves it: a centered row under the plot (`'bottom'`, the default)
-	 * or above it (`'top'`), or a column panel beside it (`'left'` / `'right'`),
-	 * side by side from `lg` and under the chart below that.
+	 * placement moves it: a row under the plot (`'bottom'`, the default) or
+	 * above it (`'top'`) — centered on mobile, left-aligned from `sm` — or a
+	 * column panel beside it (`'left'` / `'right'`), side by side from `sm`
+	 * and under the chart below that.
 	 */
 	legend?: boolean | ChartLegendPlacement
 	/**
@@ -468,6 +505,16 @@ export type CartesianFrameProps = {
 	 * @defaultValue 'category'
 	 */
 	xAxis?: 'category' | 'time'
+	/**
+	 * Tilt category labels that would otherwise collide instead of thinning them
+	 * to every nth: past that point every label draws, angled, and none are
+	 * dropped. Off by default, so an unset chart keeps thinning.
+	 * @remarks Vertical orientation only — under `orientation="horizontal"`
+	 * category labels already run down the gutter and read straight, so this has
+	 * no effect there.
+	 * @defaultValue false
+	 */
+	tickRotation?: boolean
 }
 
 /**

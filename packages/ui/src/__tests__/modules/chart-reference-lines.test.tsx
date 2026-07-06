@@ -197,6 +197,34 @@ describe('reference lines', () => {
 		expect(marks()).not.toContain('opacity-25')
 	})
 
+	it('recedes the sibling rules while one is hovered', () => {
+		const { container } = bar([
+			{ value: 50, label: 'Floor' },
+			{ value: 70, label: 'Ceiling' },
+		])
+
+		const rules = () => allBySlot(container, 'chart-reference-line')
+
+		const cls = (el: Element | undefined) => el?.getAttribute('class') ?? ''
+
+		const [floor, ceiling] = rules()
+
+		expect(cls(floor)).not.toContain('opacity-25')
+
+		expect(cls(ceiling)).not.toContain('opacity-25')
+
+		fireEvent.pointerEnter(floor as Element)
+
+		// The pointed rule stays lit; its sibling recedes to it.
+		expect(cls(rules()[0])).not.toContain('opacity-25')
+
+		expect(cls(rules()[1])).toContain('opacity-25')
+
+		fireEvent.pointerLeave(floor as Element)
+
+		expect(cls(rules()[1])).not.toContain('opacity-25')
+	})
+
 	it('threads through the line chart too', () => {
 		const { container } = renderUI(
 			<LineChart
@@ -434,7 +462,7 @@ describe('reference lines in the legend', () => {
 		expect(bySlot(container, 'chart-reference-list')?.textContent).toContain('Target')
 	})
 
-	it('is a non-interactive chip, apart from the series switchboard', () => {
+	it('recedes the marks on hover, as an emphasis chip beside the switchboard', () => {
 		const { container } = renderUI(
 			<BarChart
 				aria-label="Revenue by month"
@@ -446,15 +474,71 @@ describe('reference lines in the legend', () => {
 			/>,
 		)
 
-		// One series → one switch; the rule is a separate, aria-hidden chip that
-		// neither roves nor toggles.
+		// One series → one static switch; the rule is a separate chip that recedes
+		// the marks like a switch's emphasis but carries no toggle — a rule has no
+		// on/off — so it is a plain button with no `aria-pressed`.
 		expect(allBySlot(container, 'chart-legend-item')).toHaveLength(1)
 
 		const chip = bySlot(container, 'chart-legend-reference')
 
-		expect(chip?.tagName).toBe('SPAN')
+		expect(chip?.tagName).toBe('BUTTON')
 
-		expect(chip?.getAttribute('aria-hidden')).toBe('true')
+		expect(chip?.getAttribute('aria-pressed')).toBeNull()
+
+		const marks = () => bySlot(container, 'chart-marks')?.getAttribute('class') ?? ''
+
+		expect(marks()).not.toContain('opacity-25')
+
+		fireEvent.pointerEnter(chip as Element)
+
+		// Pointing the chip recedes the marks to the rule, the same as pointing the rule.
+		expect(marks()).toContain('opacity-25')
+
+		fireEvent.pointerLeave(chip as Element)
+
+		expect(marks()).not.toContain('opacity-25')
+	})
+
+	it('recedes the sibling rules from a chip, keyed to the rule not the chip position', () => {
+		const { container } = renderUI(
+			<BarChart
+				aria-label="Revenue by month"
+				data={DATA}
+				series={[...SERIES]}
+				width={400}
+				legend
+				// A non-finite rule drops from both the plot and the chips, so the second
+				// chip's array index (2) outruns its position (1): the emphasis must key
+				// off the index to land on the rule the plot draws.
+				reference={[
+					{ value: 50, label: 'Floor' },
+					{ value: Number.NaN, label: 'Gap' },
+					{ value: 70, label: 'Ceiling' },
+				]}
+			/>,
+		)
+
+		const chips = allBySlot(container, 'chart-legend-reference')
+
+		const rules = () => allBySlot(container, 'chart-reference-line')
+
+		const cls = (el: Element | undefined) => el?.getAttribute('class') ?? ''
+
+		// Two finite rules, two chips; the non-finite one draws and lists nothing.
+		expect(chips).toHaveLength(2)
+
+		expect(rules()).toHaveLength(2)
+
+		fireEvent.pointerEnter(chips[1] as Element)
+
+		// The Ceiling chip lights its own rule and recedes the Floor, not the reverse.
+		expect(cls(rules()[0])).toContain('opacity-25')
+
+		expect(cls(rules()[1])).not.toContain('opacity-25')
+
+		fireEvent.pointerLeave(chips[1] as Element)
+
+		expect(cls(rules()[0])).not.toContain('opacity-25')
 	})
 
 	it('paints a slot chip through its class and a raw colour inline', () => {
@@ -513,5 +597,102 @@ describe('reference lines in the legend', () => {
 		)
 
 		expect(solid?.querySelector('[data-slot="swatch"]')?.getAttribute('data-variant')).toBe('solid')
+	})
+})
+
+describe('reference value labels', () => {
+	// `labels` is a line / area prop, so the labelled rules ride the line chart;
+	// `labels.references` turns each rule's hover tooltip into a standing label.
+	function lineLabels(reference: ChartReferenceLine[]) {
+		return renderUI(
+			<LineChart
+				aria-label="Revenue by month"
+				data={DATA}
+				series={[...SERIES]}
+				width={400}
+				reference={reference}
+				labels={{ references: true }}
+			/>,
+		)
+	}
+
+	it('draws a standing label per rule and lays no hover target', () => {
+		const { container } = lineLabels([{ value: 60, label: 'Goal' }])
+
+		const labels = allBySlot(container, 'chart-reference-label')
+
+		expect(labels).toHaveLength(1)
+
+		const label = labels[0]
+
+		// The label reads the rule's own label, standing in for the value.
+		expect(label?.textContent).toBe('Goal')
+
+		// It sits at the rule's far (right) end, anchored inward, and clears the
+		// dashes by riding just above the rule's value position.
+		const ruleY = Number(rule(container)?.getAttribute('y1'))
+
+		expect(label?.getAttribute('text-anchor')).toBe('end')
+
+		expect(Number(label?.getAttribute('y'))).toBeLessThan(ruleY)
+
+		// No transparent hit target — the standing label replaces the hover readout,
+		// so the rule group carries only the one drawn line.
+		expect(bySlot(container, 'chart-reference-line')?.querySelectorAll('line').length).toBe(1)
+	})
+
+	it('reads the value alone for an unlabelled rule', () => {
+		const { container } = lineLabels([{ value: 50 }])
+
+		expect(bySlot(container, 'chart-reference-label')?.textContent).toBe('50')
+	})
+
+	it('inks the label to match the rule — a slot through its fill class, a raw colour inline', () => {
+		const { container } = lineLabels([
+			{ value: 50, label: 'Floor', color: 'green' },
+			{ value: 70, label: 'Ceiling', color: '#e11d48' },
+		])
+
+		const [slot, raw] = allBySlot(container, 'chart-reference-label')
+
+		expect(slot?.getAttribute('class')).toContain('fill-green-600')
+
+		// A raw colour bypasses the fill classes and paints inline instead.
+		expect(raw?.getAttribute('class') ?? '').not.toContain('fill-')
+
+		expect(raw?.style.fill).toBeTruthy()
+	})
+
+	it('keeps the visually-hidden reference parity alongside the drawn labels', () => {
+		const { container } = lineLabels([{ value: 55, label: 'Target' }])
+
+		const list = bySlot(container, 'chart-reference-list')
+
+		expect(list?.className).toContain('sr-only')
+
+		expect(list?.textContent).toContain('Target')
+
+		expect(list?.textContent).toContain('55')
+	})
+
+	it('drops the rule from the keyboard roving, so it never recedes the marks', () => {
+		const { container } = lineLabels([{ value: 60, label: 'Goal' }])
+
+		const plot = bySlot(container, 'chart-plot') as HTMLElement
+
+		const marks = () => bySlot(container, 'chart-marks')?.getAttribute('class') ?? ''
+
+		// The first arrow enters at the first point; the value-axis arrow then steps
+		// the series' points. With the rule labelled it is no longer a stop, so the
+		// marks stay lit and no rule takes focus.
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		fireEvent.keyDown(plot, { key: 'ArrowDown' })
+
+		fireEvent.keyDown(plot, { key: 'ArrowDown' })
+
+		expect(marks()).not.toContain('opacity-25')
+
+		expect(bySlot(container, 'chart-reference-line')?.getAttribute('data-focused')).toBeNull()
 	})
 })

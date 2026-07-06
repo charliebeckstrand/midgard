@@ -1158,6 +1158,52 @@ describe('Grid', () => {
 			expect(bySlot(container, 'grid-loading-more')).toBeInTheDocument()
 		})
 
+		it('fills the trailing skeleton row with one placeholder cell per column', () => {
+			const { container } = renderUI(
+				<Grid
+					columns={columns}
+					rows={manyRows}
+					getKey={getKey}
+					virtualize
+					maxHeight="300px"
+					infiniteScroll={{ onLoadMore: vi.fn(), loadingMore: true }}
+				/>,
+			)
+
+			const row = bySlot(container, 'grid-loading-more')
+
+			// One skeleton cell per visible column (mirroring the initial loading
+			// skeleton), rather than a single cell spanning them all.
+			expect(row?.querySelectorAll('td')).toHaveLength(columns.length)
+
+			expect(row?.querySelectorAll('[data-slot="placeholder"]')).toHaveLength(columns.length)
+		})
+
+		it('spans the trailing row with a single cell for a custom `loadingIndicator`', () => {
+			const { container } = renderUI(
+				<Grid
+					columns={columns}
+					rows={manyRows}
+					getKey={getKey}
+					virtualize
+					maxHeight="300px"
+					infiniteScroll={{
+						onLoadMore: vi.fn(),
+						loadingMore: true,
+						loadingIndicator: <span data-slot="custom-loading">Loading…</span>,
+					}}
+				/>,
+			)
+
+			const cells = bySlot(container, 'grid-loading-more')?.querySelectorAll('td')
+
+			expect(cells).toHaveLength(1)
+
+			expect(cells?.[0]).toHaveAttribute('colspan', String(columns.length))
+
+			expect(bySlot(container, 'custom-loading')).toBeInTheDocument()
+		})
+
 		it('shows no trailing indicator when no load is in flight', () => {
 			const { container } = renderUI(
 				<Grid

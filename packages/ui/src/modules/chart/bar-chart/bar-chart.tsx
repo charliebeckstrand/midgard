@@ -3,7 +3,7 @@
 import { AnimatedChartBarMarks, ChartBarMarks } from '../chart-bar-marks'
 import { ChartCartesianAxes } from '../chart-cartesian-axes'
 import { MARK_GAP } from '../chart-constants'
-import { ChartCrosshair, resolveCrosshair } from '../chart-crosshair'
+import { ChartCrosshair, crosshairSnaps, resolveCrosshair } from '../chart-crosshair'
 import { ChartFrame } from '../chart-frame'
 import { ChartHitArea } from '../chart-hit-area'
 import { withinBarMarks } from '../chart-hit-test'
@@ -94,6 +94,7 @@ export function BarChart<T>({
 	rightAxis,
 	reference,
 	xAxis,
+	tickRotation,
 	formatValue,
 	className,
 	...label
@@ -114,6 +115,7 @@ export function BarChart<T>({
 			rightAxis,
 			reference,
 			xAxis,
+			tickRotation,
 			formatValue,
 		},
 		{ zeroBaseline: true, swatch: () => 'rect', orientation, stack: stacked },
@@ -143,10 +145,10 @@ export function BarChart<T>({
 
 	const tex = useChartTexture(
 		texture,
-		chart.visible.map((meta) => ({ color: meta.color, paint: meta.paint })),
+		chart.visible.map((meta) => meta.slot),
 	)
 
-	const fills = drawn.map((entry) => tex.fillFor(entry.meta.color))
+	const fills = drawn.map((entry) => tex.fillFor(entry.meta.slot))
 
 	const marksNode = animate ? (
 		<AnimatedChartBarMarks
@@ -179,6 +181,8 @@ export function BarChart<T>({
 			fixedWidth={chart.fixedWidth}
 			height={chart.height}
 			reserve={chart.reserve}
+			fill={chart.fill}
+			aspect={chart.outerAspect ?? undefined}
 			legend={
 				chart.legendItems && (
 					<ChartLegend
@@ -194,6 +198,7 @@ export function BarChart<T>({
 			}
 			legendPlacement={typeof legend === 'string' ? legend : undefined}
 			readout={chart.readout}
+			emphasis={chart.emphasis}
 			tooltip={showTooltip}
 			snap={snapTargets(rails, chart.bandPositions, chart.snapPoints)}
 			focus={cartesianFocus(
@@ -201,7 +206,9 @@ export function BarChart<T>({
 				chart.snapPoints,
 				chart.orientation,
 				chart.referencePositions,
+				chart.snapSeries,
 			)}
+			onActiveSeries={chart.setEmphasis}
 			orientation={chart.orientation}
 			className={className}
 			annotations={<ChartReferenceList reference={reference} format={chart.formatAxisValue} />}
@@ -244,7 +251,7 @@ export function BarChart<T>({
 					onData={(x, y) => withinBarMarks(marks, x, y, MARK_GAP, chart.orientation)}
 					orientation={chart.orientation}
 					trigger={trigger}
-					snaps={rails?.snap ?? false}
+					snaps={crosshairSnaps(rails)}
 				/>
 			)}
 

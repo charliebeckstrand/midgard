@@ -1,8 +1,8 @@
 'use client'
 
 import { type RefObject, useCallback, useEffect } from 'react'
-import { Placeholder } from '../../components/placeholder'
-import { TableBody } from '../../components/table'
+import { TableBody, TableCell } from '../../components/table'
+import { TextSkeleton } from '../../components/text'
 import { useVirtualWindow } from '../../hooks'
 import type { ResolvedInfiniteScroll } from './grid-data-resolvers'
 import { type GridRowsProps, renderGridRow } from './grid-row'
@@ -97,16 +97,24 @@ export function GridVirtualizedBody<T>(props: GridVirtualizedBodyProps<T>) {
 					/>
 				</tr>
 			)}
-			{/* Trailing pending row while a batch loads: an empty pulsing skeleton (or
-			    the consumer's `loadingIndicator`) below the last rendered rows. A
+			{/* Trailing pending row while a batch loads: a per-column run of pulsing
+			    skeleton cells (or the consumer's `loadingIndicator`, spanning every
+			    column) below the last rendered rows, mirroring the initial loading
+			    skeleton so a page loads in the same silhouette it settles into. A
 			    non-data filler like the spacers, so it's `aria-hidden` — the grid's busy
 			    status announces the grown total once the batch settles. */}
 			{infiniteScroll?.loadingMore && (
 				// biome-ignore lint/a11y/noAriaHiddenOnFocusable: a non-focusable pending-state filler row that must not be exposed as a data row
 				<tr data-slot="grid-loading-more" aria-hidden="true">
-					<td colSpan={visibleColumns.length}>
-						{infiniteScroll.loadingIndicator ?? <Placeholder />}
-					</td>
+					{infiniteScroll.loadingIndicator ? (
+						<td colSpan={visibleColumns.length}>{infiniteScroll.loadingIndicator}</td>
+					) : (
+						visibleColumns.map((col) => (
+							<TableCell key={col.id}>
+								<TextSkeleton />
+							</TableCell>
+						))
+					)}
 				</tr>
 			)}
 		</TableBody>

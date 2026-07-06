@@ -4,7 +4,7 @@ import { barMarks } from '../bar-chart/bar-chart-geometry'
 import { ChartAxis, ChartAxisTitles } from '../chart-axis'
 import { AnimatedChartBarMarks, ChartBarMarks } from '../chart-bar-marks'
 import { MARK_GAP } from '../chart-constants'
-import { ChartCrosshair, resolveCrosshair } from '../chart-crosshair'
+import { ChartCrosshair, crosshairSnaps, resolveCrosshair } from '../chart-crosshair'
 import { ChartFrame } from '../chart-frame'
 import { ChartGridLines } from '../chart-grid-lines'
 import { ChartHitArea } from '../chart-hit-area'
@@ -110,6 +110,7 @@ export function ComboChart<T>({
 	rightAxis,
 	reference,
 	xAxis,
+	tickRotation,
 	texture = false,
 	labels,
 	formatValue,
@@ -132,6 +133,7 @@ export function ComboChart<T>({
 			rightAxis,
 			reference,
 			xAxis,
+			tickRotation,
 			formatValue,
 		},
 		{
@@ -181,6 +183,7 @@ export function ComboChart<T>({
 			),
 			markers: points,
 			dimmed: dim(meta),
+			dashed: meta.dashed,
 		}))
 
 	const lines = toSeries(lineEntries)
@@ -211,12 +214,12 @@ export function ComboChart<T>({
 	// resolve their fill; the line series carry no fill and stay flat.
 	const tex = useChartTexture(
 		texture,
-		chart.visible.map((meta) => ({ color: meta.color, paint: meta.paint })),
+		chart.visible.map((meta) => meta.slot),
 	)
 
-	const barFills = barEntries.map((entry) => tex.fillFor(entry.meta.color))
+	const barFills = barEntries.map((entry) => tex.fillFor(entry.meta.slot))
 
-	const areaFills = areaEntries.map((entry) => tex.fillFor(entry.meta.color))
+	const areaFills = areaEntries.map((entry) => tex.fillFor(entry.meta.slot))
 
 	// Stroke the line and area dots wherever bars sit behind them; with the bars
 	// hidden the curves stand alone and the dots need no stroke.
@@ -243,9 +246,10 @@ export function ComboChart<T>({
 				stroke={stroke}
 				fills={areaFills}
 				textureActive={tex.active}
+				plot={chart.plot}
 			/>
 
-			<AnimatedChartLineMarks list={lines} fill={false} stroke={stroke} />
+			<AnimatedChartLineMarks list={lines} fill={false} stroke={stroke} plot={chart.plot} />
 		</>
 	) : (
 		<>
@@ -281,6 +285,8 @@ export function ComboChart<T>({
 			fixedWidth={chart.fixedWidth}
 			height={chart.height}
 			reserve={chart.reserve}
+			fill={chart.fill}
+			aspect={chart.outerAspect ?? undefined}
 			legend={
 				chart.legendItems && (
 					<ChartLegend
@@ -296,6 +302,7 @@ export function ComboChart<T>({
 			}
 			legendPlacement={typeof legend === 'string' ? legend : undefined}
 			readout={chart.readout}
+			emphasis={chart.emphasis}
 			tooltip={showTooltip}
 			snap={snapTargets(rails, chart.bandPositions, chart.snapPoints)}
 			focus={cartesianFocus(
@@ -303,7 +310,9 @@ export function ComboChart<T>({
 				chart.snapPoints,
 				chart.orientation,
 				chart.referencePositions,
+				chart.snapSeries,
 			)}
+			onActiveSeries={chart.setEmphasis}
 			className={className}
 			annotations={<ChartReferenceList reference={reference} format={chart.formatAxisValue} />}
 		>
@@ -358,7 +367,7 @@ export function ComboChart<T>({
 						)
 					}
 					trigger={trigger}
-					snaps={rails?.snap ?? false}
+					snaps={crosshairSnaps(rails)}
 				/>
 			)}
 

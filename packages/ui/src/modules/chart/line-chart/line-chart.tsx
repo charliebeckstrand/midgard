@@ -1,7 +1,7 @@
 'use client'
 
 import { ChartAxis, ChartAxisTitles } from '../chart-axis'
-import { ChartCrosshair, resolveCrosshair } from '../chart-crosshair'
+import { ChartCrosshair, crosshairSnaps, resolveCrosshair } from '../chart-crosshair'
 import { ChartFrame } from '../chart-frame'
 import { ChartGridLines } from '../chart-grid-lines'
 import { ChartHitArea } from '../chart-hit-area'
@@ -47,8 +47,9 @@ export type LineChartProps<T> = CartesianChartProps<T> & {
 	interpolation?: LineInterpolation
 	/**
 	 * Draw selective value labels — each series' `endpoints` and / or `extremes`
-	 * — placed clear of the marks with overlaps dropped by priority. Off by
-	 * default; the tooltip and data table carry the full readout.
+	 * — placed clear of the marks with overlaps dropped by priority, and, with
+	 * `references`, each reference rule's value beside it in place of its hover
+	 * tooltip. Off by default; the tooltip and data table carry the full readout.
 	 */
 	labels?: ChartValueLabelConfig
 }
@@ -63,7 +64,8 @@ export type LineChartProps<T> = CartesianChartProps<T> & {
  * charts on one scale. Focus the plot to drive the crosshair and tooltip by
  * keyboard — the band-axis arrows step categories, the value-axis arrows cycle
  * each category's series values. A reference line joins that value-axis roving,
- * receding the marks when the cursor reaches it.
+ * receding the marks when the cursor reaches it — unless `labels.references`
+ * draws its value beside it, which stands in for the hover and drops the rove.
  * @example
  * ```tsx
  * <LineChart
@@ -97,6 +99,7 @@ export function LineChart<T>({
 	rightAxis,
 	reference,
 	xAxis,
+	tickRotation,
 	labels,
 	formatValue,
 	className,
@@ -118,6 +121,7 @@ export function LineChart<T>({
 			rightAxis,
 			reference,
 			xAxis,
+			tickRotation,
 			formatValue,
 		},
 		{ zeroBaseline: false, swatch: () => 'line', legendByValue: true },
@@ -145,16 +149,17 @@ export function LineChart<T>({
 		),
 		markers: points,
 		dimmed: chart.emphasis !== null && meta.index !== chart.emphasis,
+		dashed: meta.dashed,
 	}))
 
 	const seriesRuns = list.map((series) => series.geometry.runs)
 
 	const tex = useChartTexture(
 		texture,
-		chart.visible.map((meta) => ({ color: meta.color, paint: meta.paint })),
+		chart.visible.map((meta) => meta.slot),
 	)
 
-	const fills = drawn.map(({ meta }) => tex.fillFor(meta.color))
+	const fills = drawn.map(({ meta }) => tex.fillFor(meta.slot))
 
 	const valueLabelItems = resolveValueLabels(
 		labels,
@@ -170,7 +175,13 @@ export function LineChart<T>({
 	)
 
 	const marksNode = animate ? (
-		<AnimatedChartLineMarks list={list} fill={fill} fills={fills} textureActive={tex.active} />
+		<AnimatedChartLineMarks
+			list={list}
+			fill={fill}
+			fills={fills}
+			textureActive={tex.active}
+			plot={chart.plot}
+		/>
 	) : (
 		<ChartLineMarks list={list} fill={fill} fills={fills} textureActive={tex.active} />
 	)
@@ -178,6 +189,11 @@ export function LineChart<T>({
 	const rails = resolveCrosshair(crosshair)
 
 	const { show: showTooltip, trigger } = resolveTooltip(tooltip)
+
+	// With reference values labelled beside their rules, the rules shed the hover
+	// tooltip they stand in for — so they also leave the keyboard roving, dropping
+	// out of the value-axis stops.
+	const referenceLabels = labels?.references ?? false
 
 	return (
 		<ChartFrame
@@ -187,6 +203,8 @@ export function LineChart<T>({
 			fixedWidth={chart.fixedWidth}
 			height={chart.height}
 			reserve={chart.reserve}
+			fill={chart.fill}
+			aspect={chart.outerAspect ?? undefined}
 			legend={
 				chart.legendItems && (
 					<ChartLegend
@@ -202,14 +220,17 @@ export function LineChart<T>({
 			}
 			legendPlacement={typeof legend === 'string' ? legend : undefined}
 			readout={chart.readout}
+			emphasis={chart.emphasis}
 			tooltip={showTooltip}
 			snap={snapTargets(rails, chart.bandPositions, chart.snapPoints)}
 			focus={cartesianFocus(
 				chart.bandPositions,
 				chart.snapPoints,
 				chart.orientation,
-				chart.referencePositions,
+				referenceLabels ? undefined : chart.referencePositions,
+				chart.snapSeries,
 			)}
+			onActiveSeries={chart.setEmphasis}
 			className={className}
 			annotations={<ChartReferenceList reference={reference} format={chart.formatAxisValue} />}
 		>
@@ -252,7 +273,7 @@ export function LineChart<T>({
 						(fill && withinSeriesAreas(seriesRuns, floor, x, y))
 					}
 					trigger={trigger}
-					snaps={rails?.snap ?? false}
+					snaps={crosshairSnaps(rails)}
 				/>
 			)}
 
@@ -264,6 +285,7 @@ export function LineChart<T>({
 				reference={reference}
 				format={chart.formatAxisValue}
 				animate={animate}
+				labels={referenceLabels}
 			/>
 		</ChartFrame>
 	)

@@ -6,13 +6,13 @@ import { k } from '../../../recipes/kata/chart'
 import { rangeKeys } from '../../../utilities'
 import { BUBBLE_FILL_OPACITY, MARKER_RING_WIDTH } from '../chart-constants'
 import { POINT_POP } from '../chart-motion'
-import type { SeriesPaint } from '../chart-series'
+import type { SlotPaint } from '../chart-series'
 import type { ScatterMark } from './scatter-chart-geometry'
 
 /** One scatter series' render inputs. @internal */
 export type ChartScatterSeries = {
 	label: string
-	paint: SeriesPaint
+	paint: SlotPaint
 	marks: ScatterMark[]
 	/** Whether the series carries the bubble size encoding — sized discs fill translucently. */
 	sized: boolean
@@ -31,7 +31,7 @@ export type ScatterChartMarksProps = {
 }
 
 /** A disc's presentation: series fill under a surface ring, translucent once sized. @internal */
-function markProps(paint: SeriesPaint, sized: boolean) {
+function markProps(paint: SlotPaint, sized: boolean) {
 	return {
 		strokeWidth: MARKER_RING_WIDTH,
 		fillOpacity: sized ? BUBBLE_FILL_OPACITY : undefined,

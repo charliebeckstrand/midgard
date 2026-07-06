@@ -30,16 +30,28 @@ function samePoint(a: ChartPoint | null, b: ChartPoint | null): boolean {
 	return a === b || (a !== null && b !== null && a.x === b.x && a.y === b.y)
 }
 
+/** The stable no-op a chart without a series-emphasis channel hands the keyboard. @internal */
+function ignoreActiveSeries(_series: number | null): void {}
+
 /**
  * The plot region's attributes: the keyboard tab stop and its focus ring when
- * `keyboard` makes the region navigable, else a plain non-focusable region.
+ * `keyboard` makes the region navigable, else a plain non-focusable region. It
+ * takes the space its siblings leave — `flex-1` along the figure's main axis,
+ * shrinkable across it — so a side legend narrows it (`min-w-0`) and a
+ * height-driven frame grows it into the room the legend leaves (`min-h-0`).
  *
  * @internal
  */
-function plotRegionProps(keyboard: ChartKeyboardProps | null, aside: boolean) {
+function plotRegionProps(keyboard: ChartKeyboardProps | null, aside: boolean, fill: boolean) {
 	return {
 		...keyboard,
-		className: cn('relative rounded-sm', keyboard && k.focusRing, aside && 'min-w-0 flex-1'),
+		className: cn(
+			'relative rounded-sm',
+			keyboard && k.focusRing,
+			(aside || fill) && 'flex-1',
+			aside && 'min-w-0',
+			fill && 'min-h-0',
+		),
 	}
 }
 
@@ -61,17 +73,40 @@ export type ChartFrameProps = AccessibleName & {
 	 * before the width is measured and across animation replays.
 	 */
 	reserve: FrameReserve | null
+	/**
+	 * The plot takes the height its region already holds rather than reserving
+	 * one — a `flex-1` child grown into the space the legend leaves. Set for the
+	 * height-measured frames: a ratio shared with the legend (paired with {@link
+	 * ChartFrameProps.aspect}) and the free-form container-filling frame
+	 * (`aspectRatio={false}`), so a definite-height parent no longer collapses
+	 * the plot to nothing.
+	 * @defaultValue false
+	 */
+	fill?: boolean
+	/**
+	 * The `width / height` the figure wrapper carries as CSS `aspect-ratio`, so
+	 * the whole chart — plot and legend together — holds the ratio and the plot
+	 * fills what the legend's natural size leaves. Unset, no wrapper ratio: the
+	 * plot box reserves its own (no legend) or the frame is fixed / free-form.
+	 */
+	aspect?: number
 	/** The prepared legend row, or `null` to omit it (single series). */
 	legend: ReactNode
 	/**
-	 * Where the legend sits: a centered row under or above the plot, or a
-	 * static panel beside it — side by side from `lg`, always under the chart
-	 * below it.
+	 * Where the legend sits: a row under or above the plot — centered on
+	 * mobile, left-aligned from `sm` — or a static panel beside it, side by
+	 * side from `sm` and always under the chart below that.
 	 * @defaultValue 'bottom'
 	 */
 	legendPlacement?: ChartLegendPlacement
 	/** The values behind the marks, or `null` when there is nothing to read. */
 	readout: ChartReadout | null
+	/**
+	 * The emphasised series' index, when one is — a legend entry or the keyboard
+	 * cursor picking a series. The tooltip dims every other row against it, mirroring
+	 * the marks; `null` (the default) reads every row at full strength.
+	 */
+	emphasis?: number | null
 	/** Mount the hover tooltip. */
 	tooltip: boolean
 	/** Snap targets when the crosshair snaps, carrying the tooltip to the intersection. */
@@ -82,6 +117,13 @@ export type ChartFrameProps = AccessibleName & {
 	 * the region stays a plain non-focusable `role="img"`.
 	 */
 	focus?: ChartFocusTargets
+	/**
+	 * Emphasises the series the keyboard cursor lands on (`null` off any), so the
+	 * marks recede the rest and the tooltip dims their rows. Pass the chart's
+	 * legend-emphasis setter to share one channel with the legend; omitted, keyboard
+	 * navigation leaves the emphasis alone — a chart whose stops name no single series.
+	 */
+	onActiveSeries?: (series: number | null) => void
 	/**
 	 * Which way a cartesian chart faces, so the snapped tooltip anchor transposes.
 	 * @defaultValue 'vertical'
@@ -111,12 +153,16 @@ export function ChartFrame({
 	fixedWidth,
 	height,
 	reserve,
+	fill = false,
+	aspect,
 	legend,
 	legendPlacement = 'bottom',
 	readout,
+	emphasis: seriesEmphasis = null,
 	tooltip,
 	snap,
 	focus,
+	onActiveSeries = ignoreActiveSeries,
 	orientation,
 	className,
 	overlay,
@@ -145,7 +191,7 @@ export function ChartFrame({
 		[pointed],
 	)
 
-	const [pointerReference, setPointerReference] = useState(false)
+	const [pointerReference, setPointerReference] = useState<number | null>(null)
 
 	const [activeReference, setActiveReference] = useState<number | null>(null)
 
@@ -157,15 +203,19 @@ export function ChartFrame({
 		tooltip && readout !== null,
 		hover.set,
 		setActiveReference,
+		onActiveSeries,
 	)
 
 	// The marks recede when either input emphasises a reference: the pointer over a
-	// rule, or the keyboard cursor parked on one.
+	// rule (or its legend chip), or the keyboard cursor parked on one. The pointed
+	// index wins over a still-held keyboard focus, and the sibling rules recede to
+	// whichever it resolves to.
 	const emphasis = useMemo<ChartEmphasis>(
 		() => ({
-			referenceActive: pointerReference || activeReference !== null,
+			referenceActive: pointerReference !== null || activeReference !== null,
 			setReferenceActive: setPointerReference,
 			activeReference,
+			emphasizedReference: pointerReference ?? activeReference,
 		}),
 		[pointerReference, activeReference],
 	)
@@ -180,25 +230,37 @@ export function ChartFrame({
 
 	const aside = legendPlacement === 'left' || legendPlacement === 'right'
 
+	// A free-form fill frame grabs the container's height itself, since no ratio
+	// wrapper supplies it; a ratio-with-legend frame instead leans on the figure's
+	// `aspect-ratio` and needs no container height.
+	const containerFill = fill && aspect === undefined
+
 	const plotRegion = (
 		<div
 			ref={ref}
 			data-slot="chart-plot"
 			role="img"
 			{...label}
-			{...plotRegionProps(keyboard, aside)}
+			{...plotRegionProps(keyboard, aside, fill)}
 		>
 			{/* ChartPlotBox reserves the box height from its own width — steady before
-			    the width is measured and across animation replays — or takes a fixed
-			    pixel height. The tooltip sits outside so its clip never touches it. */}
-			<ChartPlotBox reserve={reserve} height={height}>
+			    the width is measured and across animation replays — takes a fixed
+			    pixel height, or (under `fill`) fills the height its region already
+			    holds. The tooltip sits outside so its clip never touches it. */}
+			<ChartPlotBox reserve={reserve} height={height} fill={fill}>
 				{svg}
 			</ChartPlotBox>
 
 			{overlay}
 
 			{tooltip && readout && width > 0 && (
-				<ChartTooltip plotRef={ref} readout={readout} snap={snap} orientation={orientation} />
+				<ChartTooltip
+					plotRef={ref}
+					readout={readout}
+					snap={snap}
+					orientation={orientation}
+					emphasis={seriesEmphasis}
+				/>
 			)}
 		</div>
 	)
@@ -206,40 +268,99 @@ export function ChartFrame({
 	return (
 		<div
 			data-slot="chart"
-			className={cn('flex flex-col gap-3', fixedWidth === undefined && 'w-full', className)}
+			className={cn(
+				'flex flex-col gap-3',
+				fixedWidth === undefined && 'w-full',
+				containerFill && 'h-full',
+				className,
+			)}
 			style={fixedWidth === undefined ? undefined : { width: fixedWidth }}
 		>
 			<ChartEmphasisContext value={emphasis}>
 				<ChartHoverContext value={hover}>
-					{aside ? (
-						// The panel and plot sit side by side from lg; below it they stack
-						// with the panel always under the chart, so a left panel reverses
-						// the row instead of moving in the DOM.
-						<div
-							className={cn(
-								'flex flex-col gap-2 lg:items-center',
-								legendPlacement === 'left' ? 'lg:flex-row-reverse' : 'lg:flex-row',
-							)}
-						>
-							{plotRegion}
-
-							{legend}
-						</div>
-					) : (
-						<>
-							{legendPlacement === 'top' && legend}
-
-							{plotRegion}
-
-							{legendPlacement === 'bottom' && legend}
-						</>
-					)}
+					<ChartFigure
+						plot={plotRegion}
+						legend={legend}
+						legendPlacement={legendPlacement}
+						aside={aside}
+						containerFill={containerFill}
+						aspect={aspect}
+					/>
 				</ChartHoverContext>
 			</ChartEmphasisContext>
 
 			{readout && <ChartTable readout={readout} />}
 
 			{annotations}
+		</div>
+	)
+}
+
+/** Props for {@link ChartFigure}. @internal */
+type ChartFigureProps = {
+	plot: ReactNode
+	legend: ReactNode
+	legendPlacement: ChartLegendPlacement
+	/** The legend is a side panel, so the plot and legend lay out in a row from sm. */
+	aside: boolean
+	/** The frame fills its container height, so the figure grows to hold it. */
+	containerFill: boolean
+	/** The whole-chart `width / height`, carried as CSS `aspect-ratio`; unset reserves none. */
+	aspect?: number
+}
+
+/**
+ * The legend and plot laid out together under the whole-chart aspect-ratio: the
+ * plot fills what the legend's natural size leaves, so the ratio describes the
+ * chart rather than the plot alone. A side legend lays the two out in a row from
+ * sm — the panel always under the chart below it, so a left panel reverses the
+ * row instead of moving in the DOM — else they stack with the legend banding
+ * above or below.
+ *
+ * @internal
+ */
+function ChartFigure({
+	plot,
+	legend,
+	legendPlacement,
+	aside,
+	containerFill,
+	aspect,
+}: ChartFigureProps) {
+	// A height-measured frame (a shared ratio or a container fill) stretches the
+	// side legend and plot to one height so the plot fills its column; a fixed
+	// frame centers them, the plot keeping its own height beside the legend.
+	const stretch = aspect !== undefined || containerFill
+
+	const layout = aside
+		? cn(
+				'flex-col gap-2',
+				stretch ? 'sm:items-stretch' : 'sm:items-center',
+				legendPlacement === 'left' ? 'sm:flex-row-reverse' : 'sm:flex-row',
+			)
+		: 'flex-col gap-3'
+
+	return (
+		<div
+			data-slot="chart-figure"
+			className={cn('flex min-h-0', layout, containerFill && 'h-full flex-1')}
+			style={aspect === undefined ? undefined : { aspectRatio: aspect }}
+		>
+			{aside ? (
+				<>
+					{plot}
+
+					{legend}
+				</>
+			) : (
+				<>
+					{legendPlacement === 'top' && legend}
+
+					{plot}
+
+					{legendPlacement === 'bottom' && legend}
+				</>
+			)}
 		</div>
 	)
 }

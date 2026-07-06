@@ -263,11 +263,14 @@ describe('PieChart', () => {
 		const { container } = renderUI(chart({ legend: 'right' }))
 
 		// Panel entries carry each slice's live share after the name.
-		expect(allBySlot(container, 'chart-legend-item').map((el) => el.textContent)).toEqual([
-			'Search60%',
-			'Direct25%',
-			'Referral15%',
-		])
+		const items = allBySlot(container, 'chart-legend-item')
+
+		expect(items.map((el) => el.textContent)).toEqual(['Search60%', 'Direct25%', 'Referral15%'])
+
+		// Each entry stretches full width so the column shares one edge, but its
+		// own content stays left-justified — a full-width button would otherwise
+		// center a shorter row's swatch under a longer one's.
+		for (const item of items) expect(item.className).toContain('justify-start')
 
 		const panel = bySlot(container, 'chart-legend') as Element
 
@@ -277,17 +280,17 @@ describe('PieChart', () => {
 		expect(panel.className).not.toContain('grid')
 
 		// The panel always follows the plot in the DOM — under the chart when
-		// stacked; a left panel reverses the lg row instead of moving.
+		// stacked; a left panel reverses the sm row instead of moving.
 		const plot = bySlot(container, 'chart-plot') as Element
 
 		expect(plot.compareDocumentPosition(panel) & 4).toBeTruthy()
 
-		expect(panel.parentElement?.className).toContain('lg:flex-row')
+		expect(panel.parentElement?.className).toContain('sm:flex-row')
 
 		const left = renderUI(chart({ legend: 'left' }))
 
 		expect(bySlot(left.container, 'chart-legend')?.parentElement?.className).toContain(
-			'lg:flex-row-reverse',
+			'sm:flex-row-reverse',
 		)
 	})
 

@@ -1,27 +1,28 @@
 'use client'
 
 import { cn } from '../../../core'
-import { usePlotFrame } from '../../../hooks'
+import { type FrameSizing, usePlotFrame } from '../../../hooks'
 import { useResolvedSize } from '../../../primitives/density'
 import type { Step } from '../../../recipes'
-import type { ChartSeriesColor } from '../../../recipes/kata/chart'
+import { type ChartSeriesColor, k } from '../../../recipes/kata/chart'
 import { ChartAxis } from '../chart-axis'
 import { CHART_METRICS, PLOT_TOP_PAD, SCATTER_HIT_SLACK, X_AXIS_HEIGHT } from '../chart-constants'
-import { ChartCrosshair, resolveCrosshair } from '../chart-crosshair'
+import { ChartCrosshair, crosshairSnaps, resolveCrosshair } from '../chart-crosshair'
 import { ChartFrame } from '../chart-frame'
 import { ChartGridLines } from '../chart-grid-lines'
-import { chartFrameSizing, type PlotRect, plotRect } from '../chart-layout'
+import { type ChartAspectRatio, chartFrameLayout, type PlotRect, plotRect } from '../chart-layout'
 import type { ChartLegendItem } from '../chart-legend'
 import { ChartLegend } from '../chart-legend'
 import { ChartMarksLayer } from '../chart-marks-layer'
 import { type LinearScale, linearScale } from '../chart-scale'
 import {
 	type ChartBaseProps,
+	type ChartLegendPlacement,
 	type Crosshair,
 	resolveTooltip,
 	type ScatterChartSeries,
 } from '../chart-schema'
-import { formatChartValue, type SeriesPaint, seriesColor, seriesPaint } from '../chart-series'
+import { formatChartValue, type SlotPaint } from '../chart-series'
 import { snapTargets } from '../chart-snap'
 import type { ChartReadout } from '../types'
 import { cartesianFocus } from '../use-chart-keyboard'
@@ -101,7 +102,7 @@ export type ScatterChartProps<T> = ChartBaseProps<T> &
 type ScatterMeta = {
 	index: number
 	label: string
-	paint: SeriesPaint
+	paint: SlotPaint
 	color: ChartSeriesColor
 	points: ScatterDatum[]
 	sized: boolean
@@ -109,7 +110,15 @@ type ScatterMeta = {
 	radius: (size: number | null) => number
 }
 
-/** Every series parsed and resolved: paint, points, and the bubble radius scaling. @internal */
+/**
+ * Every series parsed and resolved: paint, points, and the bubble radius
+ * scaling. A scatter series names only a palette slot — no raw colour, unlike
+ * the band-axis series — so its colour resolves directly to the slot in the
+ * fixed order, the way the cartesian series did before a raw colour became an
+ * option there.
+ *
+ * @internal
+ */
 function scatterMetas<T>(data: T[], series: ScatterChartSeries<T>[]): ScatterMeta[] {
 	return series.map((entry, index) => {
 		const points = scatterData(data, entry)
@@ -118,11 +127,13 @@ function scatterMetas<T>(data: T[], series: ScatterChartSeries<T>[]): ScatterMet
 
 		const diameters = diameterRange(entry.size, entry.maxSize)
 
+		const color = entry.color ?? k.order[index % k.order.length] ?? 'blue'
+
 		return {
 			index,
 			label: entry.yName ?? entry.yKey,
-			paint: seriesPaint(entry, index),
-			color: seriesColor(entry, index),
+			paint: k.series[color],
+			color,
 			points,
 			sized: domain !== null,
 			sizeName: entry.sizeKey === undefined ? null : (entry.sizeName ?? entry.sizeKey),
@@ -153,6 +164,49 @@ function scatterReadout(
 				meta.sizeName === null ? null : (size) => `${meta.sizeName}: ${formatChartValue(size)}`,
 			),
 		})),
+	}
+}
+
+/** The resolved frame flags: the plot's sizing plus the figure and legend layout. @internal */
+type ScatterFrame = {
+	sizing: FrameSizing
+	/** The whole-chart aspect the figure carries; `undefined` when the plot box reserves its own. */
+	frameAspect?: number
+	/** The plot grows into its region's height rather than reserving one. */
+	fill: boolean
+	/** The legend is a side panel, so it lays out beside the plot. */
+	aside: boolean
+	/** The legend's resolved placement, or `undefined` for the default row. */
+	placement?: ChartLegendPlacement
+}
+
+/**
+ * The scatter frame's sizing and legend layout resolved together: a live ratio
+ * with a legend goes to the figure wrapper so the whole chart holds it (the plot
+ * measuring the height the legend leaves), and the legend's placement drives the
+ * panel-vs-row layout. Derived from the props alone, so it precedes any
+ * measurement.
+ *
+ * @internal
+ */
+function scatterFrame(
+	legend: ScatterChartProps<unknown>['legend'],
+	seriesCount: number,
+	height: number | undefined,
+	aspectRatio: ChartAspectRatio,
+): ScatterFrame {
+	const { sizing, outerAspect } = chartFrameLayout(
+		height,
+		aspectRatio,
+		Boolean(legend ?? seriesCount > 1),
+	)
+
+	return {
+		sizing,
+		frameAspect: outerAspect ?? undefined,
+		fill: sizing.mode === 'fill' || sizing.mode === 'aspect-fill',
+		aside: legend === 'left' || legend === 'right',
+		placement: typeof legend === 'string' ? legend : undefined,
 	}
 }
 
@@ -317,12 +371,22 @@ export function ScatterChart<T>({
 
 	const metrics = CHART_METRICS[resolvedSize as Step] ?? CHART_METRICS.md
 
+	// The legend shares the aspect box, so a ratio describes the whole chart: with
+	// a legend a live ratio goes to the figure wrapper and the plot measures the
+	// height it leaves. Derived from the props — a legend shows for two or more
+	// series unless forced — so no measurement precedes the sizing.
+	// A live ratio with a legend describes the whole chart: the figure carries the
+	// ratio and the plot measures the height the legend leaves. Resolved from the
+	// props, so it precedes the measurement below.
 	const {
-		ref,
-		width: frameWidth,
-		height: frameHeight,
-		reserve,
-	} = usePlotFrame(width, chartFrameSizing(height, aspectRatio))
+		sizing,
+		frameAspect,
+		fill: fillFrame,
+		aside,
+		placement,
+	} = scatterFrame(legend, series.length, height, aspectRatio)
+
+	const { ref, width: frameWidth, height: frameHeight, reserve } = usePlotFrame(width, sizing)
 
 	const format = formatValue ?? formatChartValue
 
@@ -395,6 +459,8 @@ export function ScatterChart<T>({
 			fixedWidth={width}
 			height={frameHeight}
 			reserve={reserve}
+			fill={fillFrame}
+			aspect={frameAspect}
 			legend={
 				legendItems && (
 					<ChartLegend
@@ -402,11 +468,11 @@ export function ScatterChart<T>({
 						hidden={hidden}
 						onToggle={toggle}
 						onFocus={setFocus}
-						panel={legend === 'left' || legend === 'right'}
+						panel={aside}
 					/>
 				)
 			}
-			legendPlacement={typeof legend === 'string' ? legend : undefined}
+			legendPlacement={placement}
 			readout={readout}
 			tooltip={showTooltip}
 			snap={snapTargets(rails, bandPositions, snapColumns)}
@@ -440,7 +506,7 @@ export function ScatterChart<T>({
 					centers={bandPositions}
 					onData={(x, y) => withinScatterMarks(allMarks, x, y, SCATTER_HIT_SLACK)}
 					trigger={trigger}
-					snaps={rails?.snap ?? false}
+					snaps={crosshairSnaps(rails)}
 				/>
 			)}
 		</ChartFrame>

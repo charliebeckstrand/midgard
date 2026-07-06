@@ -1,6 +1,7 @@
 'use client'
 
 import { motion } from 'motion/react'
+import { useId } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/chart'
 import { rangeKeys } from '../../utilities'
@@ -9,10 +10,12 @@ import {
 	LINE_STROKE_WIDTH,
 	MARKER_RADIUS,
 	MARKER_RING_WIDTH,
+	REFERENCE_DASH,
 } from './chart-constants'
+import type { PlotRect } from './chart-layout'
 import { AREA_FADE, LINE_DRAW, POINT_POP } from './chart-motion'
 import { textureClass, textureStyle } from './chart-pattern-defs'
-import type { SeriesPaint } from './chart-series'
+import { fillClass, rawColor, type SeriesPaint, strokeClass } from './chart-series'
 import type { LineSeriesGeometry } from './line-chart/line-chart-geometry'
 
 /** One line series' render inputs. @internal */
@@ -24,6 +27,8 @@ export type ChartLineSeries = {
 	markers: boolean
 	/** Legend emphasis elsewhere — this series fades back. */
 	dimmed?: boolean
+	/** Dash the connecting stroke — the reference-line dash — leaving fill and markers untouched. */
+	dashed?: boolean
 }
 
 /** The series group's classes: the dim rides the group so motion's inline mark opacity still composes. @internal */
@@ -38,17 +43,33 @@ export type ChartLineMarksProps = {
 	fill: boolean
 	/** Stroke the markers with a surface outline — set only where dots cross opaque marks (the combo bars); soft fills read cleaner without it. */
 	stroke?: boolean
-	/** Per-series texture-tile fill URLs, aligned with `list`; omitted, the washes fill flat. */
-	fills?: string[]
+	/** Per-series texture-tile fill URLs, aligned with `list`; a raw colour or flat mode leaves the slot empty. */
+	fills?: (string | undefined)[]
 	/** Whether the `texture` prop is on, so tiles paint in every mode, not only forced-colors / print. */
 	textureActive?: boolean
 	/** Hold the draw until earlier marks (combo bars) have landed. */
 	delay?: number
+	/** The plot rect, sizing the wipe clip an animated dashed line reveals under. */
+	plot?: PlotRect
 }
 
 /** The marker dot's classes: series fill, gaining a white surface stroke only where a dot crosses opaque marks. @internal */
 function markerClass(paint: SeriesPaint, stroke: boolean): string {
-	return cn(paint.fill, stroke && k.stroke)
+	return cn(fillClass(paint), stroke && k.stroke)
+}
+
+/** A line segment's shared presentation, dashed for a dashed series. @internal */
+function segmentProps(paint: SeriesPaint, dashed: boolean | undefined) {
+	return {
+		fill: 'none',
+		stroke: rawColor(paint),
+		strokeWidth: LINE_STROKE_WIDTH,
+		strokeLinecap: 'round',
+		strokeLinejoin: 'round',
+		// The reference-line dash, so a dashed data line and a dashed rule read as one idiom.
+		strokeDasharray: dashed ? REFERENCE_DASH : undefined,
+		className: cn(strokeClass(paint)),
+	} as const
 }
 
 /** The plain-SVG lines: the cheap default with no motion runtime work. @internal */
@@ -59,7 +80,7 @@ export function ChartLineMarks({
 	fills,
 	textureActive = false,
 }: ChartLineMarksProps) {
-	return list.map(({ label, paint, geometry, markers, dimmed }, seriesIndex) => {
+	return list.map(({ label, paint, geometry, markers, dimmed, dashed }, seriesIndex) => {
 		const points = markers ? geometry.points : geometry.isolated
 
 		const patternFill = fills?.[seriesIndex]
@@ -73,9 +94,10 @@ export function ChartLineMarks({
 							data-slot="chart-area"
 							d={geometry.areas[index]}
 							stroke="none"
+							fill={rawColor(paint)}
 							fillOpacity={AREA_FILL_OPACITY}
 							style={textureStyle(patternFill)}
-							className={cn(paint.fill, textureClass(textureActive, patternFill))}
+							className={cn(fillClass(paint), textureClass(textureActive, patternFill))}
 						/>
 					))}
 
@@ -84,11 +106,7 @@ export function ChartLineMarks({
 						key={key}
 						data-slot="chart-line"
 						d={geometry.segments[index]}
-						fill="none"
-						strokeWidth={LINE_STROKE_WIDTH}
-						strokeLinecap="round"
-						strokeLinejoin="round"
-						className={cn(paint.stroke)}
+						{...segmentProps(paint, dashed)}
 					/>
 				))}
 
@@ -99,6 +117,7 @@ export function ChartLineMarks({
 						cx={points[index]?.x}
 						cy={points[index]?.y}
 						r={MARKER_RADIUS}
+						fill={rawColor(paint)}
 						strokeWidth={MARKER_RING_WIDTH}
 						className={markerClass(paint, stroke)}
 					/>
@@ -116,60 +135,103 @@ export function AnimatedChartLineMarks({
 	fills,
 	textureActive = false,
 	delay = 0,
+	plot,
 }: ChartLineMarksProps) {
-	return list.map(({ label, paint, geometry, markers, dimmed }, seriesIndex) => {
-		const points = markers ? geometry.points : geometry.isolated
+	// A dashed line can't ride the `pathLength` draw: motion reveals a stroke by
+	// driving its `strokeDasharray`, which would overwrite the dash and settle
+	// solid. So a dashed series holds its dash static and reveals under a clip
+	// that wipes across the band axis — the reference rule's transform-reveal
+	// trick, one draw-on beat with the solid lines' stroke.
+	const wipeId = `chart-line-wipe-${useId().replace(/:/g, '')}`
 
-		const patternFill = fills?.[seriesIndex]
+	const wipe = plot && list.some((series) => series.dashed)
 
-		return (
-			<g key={label} data-slot="chart-line-series" className={seriesClass(dimmed)}>
-				{fill &&
-					rangeKeys(geometry.areas.length, `${label}-area`).map((key, index) => (
-						<motion.path
-							key={key}
-							data-slot="chart-area"
-							d={geometry.areas[index]}
-							stroke="none"
-							fillOpacity={AREA_FILL_OPACITY}
-							style={textureStyle(patternFill)}
-							className={cn(paint.fill, textureClass(textureActive, patternFill))}
-							initial={{ opacity: 0 }}
-							animate={{ opacity: 1 }}
-							transition={{ ...AREA_FADE, delay: AREA_FADE.delay + delay }}
+	return (
+		<>
+			{wipe && (
+				<defs>
+					<clipPath id={wipeId} data-slot="chart-line-wipe">
+						<motion.rect
+							x={plot.x}
+							y={plot.y}
+							width={plot.width}
+							height={plot.height}
+							style={{ originX: 0 }}
+							initial={{ scaleX: 0 }}
+							animate={{ scaleX: 1 }}
+							transition={{ ...LINE_DRAW, delay }}
 						/>
-					))}
+					</clipPath>
+				</defs>
+			)}
 
-				{rangeKeys(geometry.segments.length, `${label}-seg`).map((key, index) => (
-					<motion.path
-						key={key}
-						data-slot="chart-line"
-						d={geometry.segments[index]}
-						fill="none"
-						strokeWidth={LINE_STROKE_WIDTH}
-						strokeLinecap="round"
-						strokeLinejoin="round"
-						className={cn(paint.stroke)}
-						initial={{ pathLength: 0 }}
-						animate={{ pathLength: 1 }}
-						transition={{ ...LINE_DRAW, delay }}
-					/>
-				))}
+			{list.map(({ label, paint, geometry, markers, dimmed, dashed }, seriesIndex) => {
+				const points = markers ? geometry.points : geometry.isolated
 
-				{rangeKeys(points.length, `${label}-pt`).map((key, index) => (
-					<motion.circle
-						key={key}
-						data-slot="chart-point"
-						cx={points[index]?.x}
-						cy={points[index]?.y}
-						strokeWidth={MARKER_RING_WIDTH}
-						className={markerClass(paint, stroke)}
-						initial={{ r: 0, opacity: 0 }}
-						animate={{ r: MARKER_RADIUS, opacity: 1 }}
-						transition={{ ...POINT_POP, delay: POINT_POP.delay + delay }}
-					/>
-				))}
-			</g>
-		)
-	})
+				const patternFill = fills?.[seriesIndex]
+
+				const clip = dashed && wipe ? `url(#${wipeId})` : undefined
+
+				return (
+					<g key={label} data-slot="chart-line-series" className={seriesClass(dimmed)}>
+						{fill &&
+							rangeKeys(geometry.areas.length, `${label}-area`).map((key, index) => (
+								<motion.path
+									key={key}
+									data-slot="chart-area"
+									d={geometry.areas[index]}
+									stroke="none"
+									fill={rawColor(paint)}
+									fillOpacity={AREA_FILL_OPACITY}
+									style={textureStyle(patternFill)}
+									className={cn(fillClass(paint), textureClass(textureActive, patternFill))}
+									initial={{ opacity: 0 }}
+									animate={{ opacity: 1 }}
+									transition={{ ...AREA_FADE, delay: AREA_FADE.delay + delay }}
+								/>
+							))}
+
+						{rangeKeys(geometry.segments.length, `${label}-seg`).map((key, index) =>
+							// The dash reveals under the wipe clip, holding its pattern; a solid
+							// stroke draws itself along its own length.
+							dashed ? (
+								<path
+									key={key}
+									data-slot="chart-line"
+									d={geometry.segments[index]}
+									clipPath={clip}
+									{...segmentProps(paint, true)}
+								/>
+							) : (
+								<motion.path
+									key={key}
+									data-slot="chart-line"
+									d={geometry.segments[index]}
+									{...segmentProps(paint, false)}
+									initial={{ pathLength: 0 }}
+									animate={{ pathLength: 1 }}
+									transition={{ ...LINE_DRAW, delay }}
+								/>
+							),
+						)}
+
+						{rangeKeys(points.length, `${label}-pt`).map((key, index) => (
+							<motion.circle
+								key={key}
+								data-slot="chart-point"
+								cx={points[index]?.x}
+								cy={points[index]?.y}
+								fill={rawColor(paint)}
+								strokeWidth={MARKER_RING_WIDTH}
+								className={markerClass(paint, stroke)}
+								initial={{ r: 0, opacity: 0 }}
+								animate={{ r: MARKER_RADIUS, opacity: 1 }}
+								transition={{ ...POINT_POP, delay: POINT_POP.delay + delay }}
+							/>
+						))}
+					</g>
+				)
+			})}
+		</>
+	)
 }

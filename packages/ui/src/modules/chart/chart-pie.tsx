@@ -19,7 +19,7 @@ import {
 	type PieChartSeries,
 	resolveTooltip,
 } from './chart-schema'
-import { formatChartValue, type SeriesPaint, seriesValues } from './chart-series'
+import { formatChartValue, type SlotPaint, seriesValues } from './chart-series'
 import { useChartHover } from './context'
 import {
 	CALLOUT_CHAR_WIDTH,
@@ -114,7 +114,7 @@ function sweepDelay(mid: number): number {
 /** Shared shape for the static and animated segment-label renderers. @internal */
 type PieSegmentLabelsProps = {
 	items: PieSegmentLabel[]
-	paints: SeriesPaint[]
+	paints: SlotPaint[]
 	animate: boolean
 	/** The legend-emphasised slice; other labels dim with their slices. */
 	emphasis: number | null
@@ -196,7 +196,7 @@ function segmentLabelItems({
 /** Shared shape for the static and animated slice renderers. @internal */
 type PieChartMarksProps = {
 	slices: PieSlice[]
-	paints: SeriesPaint[]
+	paints: SlotPaint[]
 	animate: boolean
 	/** The pie center, which the sweep mask rotates about. */
 	center: { x: number; y: number }
@@ -204,8 +204,8 @@ type PieChartMarksProps = {
 	radius: number
 	/** The legend-emphasised slice; the others dim against it. */
 	emphasis: number | null
-	/** Per-slice texture-tile fill URLs, indexed like `paints`; omitted, slices fill flat. */
-	fills?: string[]
+	/** Per-slice texture-tile fill URLs, indexed like `paints`; a flat mode leaves the slot empty. */
+	fills?: (string | undefined)[]
 	/** Whether the `texture` prop is on, so tiles paint in every mode, not only forced-colors / print. */
 	textureActive?: boolean
 	/**
@@ -442,6 +442,50 @@ function pieFrameSizing(
 	return { mode: 'content', hMargin, vMargin, radius }
 }
 
+/** The resolved pie frame: the plot's sizing plus the figure and legend layout. @internal */
+type PieFrame = {
+	sizing: FrameSizing
+	/** The whole-chart aspect the figure carries; `undefined` when the plot box reserves its own. */
+	frameAspect?: number
+	/** The plot grows into its region's height rather than reserving one. */
+	fill: boolean
+	/** The legend is a side panel, so it lays out beside the pie. */
+	aside: boolean
+	/** The legend shows — for two or more slices, or where the prop forces it. */
+	hasLegend: boolean
+}
+
+/**
+ * Folds the legend into the pie's aspect box: a live ratio with a legend hands
+ * the ratio to the figure wrapper and measures the pie's remaining height, so a
+ * pie and its legend fill a fixed-aspect box together. The `content` fit (the
+ * default) and a `fixed` height band the legend beside the plot as before,
+ * reserving nothing extra.
+ *
+ * @internal
+ */
+function pieFrame(
+	sizing: FrameSizing,
+	legend: ChartPieProps<unknown>['legend'],
+	dataLength: number,
+): PieFrame {
+	const hasLegend = Boolean(legend ?? dataLength > 1)
+
+	const shareAspect = sizing.mode === 'aspect' && hasLegend
+
+	const frameSizing: FrameSizing = shareAspect
+		? { mode: 'aspect-fill', ratio: sizing.ratio }
+		: sizing
+
+	return {
+		sizing: frameSizing,
+		frameAspect: shareAspect ? sizing.ratio : undefined,
+		fill: frameSizing.mode === 'fill' || frameSizing.mode === 'aspect-fill',
+		aside: legend === 'left' || legend === 'right',
+		hasLegend,
+	}
+}
+
 /** Places the callouts around the pie and resolves each label's text. @internal */
 function buildCallouts(
 	spec: CalloutSpec,
@@ -466,7 +510,7 @@ function buildCallouts(
 /** The values behind the slices for the tooltip and table; `null` with no rows. @internal */
 function pieReadout(
 	labels: string[],
-	paints: SeriesPaint[],
+	paints: SlotPaint[],
 	valueLabel: string,
 	values: (number | null)[],
 	format: (value: number) => string,
@@ -496,7 +540,7 @@ function pieReadout(
  */
 function pieLegendItems(
 	labels: string[],
-	paints: SeriesPaint[],
+	paints: SlotPaint[],
 	colors: ChartSeriesColor[],
 	sliceValues: (number | null)[],
 	panel: boolean,
@@ -640,7 +684,17 @@ export function ChartPie<T>({
 		calloutFitRadius(showCallouts, calloutSpec, values),
 	)
 
-	const { ref, width: frameWidth, height: frameHeight, reserve } = usePlotFrame(width, sizing)
+	// A live ratio with a legend describes the whole chart: the figure carries the
+	// ratio and the pie measures the height the legend leaves.
+	const {
+		sizing: frameSizing,
+		frameAspect,
+		fill: fillFrame,
+		aside,
+		hasLegend,
+	} = pieFrame(sizing, legend, data.length)
+
+	const { ref, width: frameWidth, height: frameHeight, reserve } = usePlotFrame(width, frameSizing)
 
 	const { hidden, toggle, setFocus, emphasis } = useChartSeriesToggle()
 
@@ -653,10 +707,7 @@ export function ChartPie<T>({
 
 	const paints = colors.map((color) => k.series[color])
 
-	const tex = useChartTexture(
-		texture,
-		colors.map((color) => ({ color, paint: k.series[color] })),
-	)
+	const tex = useChartTexture(texture, colors)
 
 	const sliceFills = colors.map((color) => tex.fillFor(color))
 
@@ -680,12 +731,9 @@ export function ChartPie<T>({
 
 	const readout = pieReadout(sliceLabels, paints, entry.yName ?? entry.yKey, values, format)
 
-	const aside = legend === 'left' || legend === 'right'
-
-	const legendItems =
-		(legend ?? data.length > 1)
-			? pieLegendItems(sliceLabels, paints, colors, sliceValues, aside)
-			: null
+	const legendItems = hasLegend
+		? pieLegendItems(sliceLabels, paints, colors, sliceValues, aside)
+		: null
 
 	const labelItems = segmentLabelItems({
 		show: showSegmentLabels,
@@ -740,6 +788,8 @@ export function ChartPie<T>({
 			fixedWidth={width}
 			height={frameHeight}
 			reserve={reserve}
+			fill={fillFrame}
+			aspect={frameAspect}
 			legend={
 				legendItems && (
 					<ChartLegend

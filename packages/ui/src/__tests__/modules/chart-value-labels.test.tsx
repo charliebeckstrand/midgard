@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { paintFor } from '../../modules/chart/chart-series'
 import {
 	labelPoints,
 	type PlacedValueLabel,
@@ -7,8 +8,7 @@ import {
 	valueLabels,
 } from '../../modules/chart/chart-value-labels'
 import { LineChart } from '../../modules/chart/line-chart'
-import { k } from '../../recipes/kata/chart'
-import { allBySlot, renderUI } from '../helpers'
+import { allBySlot, bySlot, renderUI } from '../helpers'
 
 const PLOT = { x: 0, y: 0, width: 200, height: 100 }
 
@@ -148,7 +148,7 @@ describe('labelPoints', () => {
 describe('resolveValueLabels', () => {
 	const list = [
 		{
-			paint: k.series.blue,
+			paint: paintFor('blue'),
 			geometry: {
 				points: [
 					{ x: 10, y: 50 },
@@ -199,5 +199,32 @@ describe('LineChart value labels', () => {
 		expect(drawn).toContain('40')
 
 		expect(drawn).not.toContain('65')
+	})
+
+	it('labels reference rules with their label when references is on', () => {
+		const { container } = renderUI(
+			<LineChart
+				aria-label="Revenue by month against a target"
+				data={[
+					{ month: 'Jan', revenue: 40 },
+					{ month: 'Feb', revenue: 90 },
+					{ month: 'Mar', revenue: 65 },
+				]}
+				series={[{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' }]}
+				width={400}
+				reference={[{ value: 70, label: 'Target' }]}
+				labels={{ extremes: true, references: true }}
+			/>,
+		)
+
+		// The point labels still draw for the extremes...
+		const points = allBySlot(container, 'chart-value-label').map((node) => node.textContent)
+
+		expect(points).toContain('90')
+
+		expect(points).toContain('40')
+
+		// ...and the reference rule now carries its own standing label.
+		expect(bySlot(container, 'chart-reference-label')?.textContent).toBe('Target')
 	})
 })

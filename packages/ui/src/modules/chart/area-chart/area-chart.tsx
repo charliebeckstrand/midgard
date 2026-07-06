@@ -1,7 +1,7 @@
 'use client'
 
 import { ChartAxis, ChartAxisTitles } from '../chart-axis'
-import { ChartCrosshair, resolveCrosshair } from '../chart-crosshair'
+import { ChartCrosshair, crosshairSnaps, resolveCrosshair } from '../chart-crosshair'
 import { ChartFrame } from '../chart-frame'
 import { ChartGridLines } from '../chart-grid-lines'
 import { ChartHitArea } from '../chart-hit-area'
@@ -65,8 +65,9 @@ export type AreaChartProps<T> = CartesianChartProps<T> & {
 	interpolation?: LineInterpolation
 	/**
 	 * Draw selective value labels — each series' `endpoints` and / or `extremes`
-	 * — on its band-edge line, overlaps dropped by priority. Off by default; the
-	 * tooltip and data table carry the full readout.
+	 * — on its band-edge line, overlaps dropped by priority, and, with
+	 * `references`, each reference rule's value beside it in place of its hover
+	 * tooltip. Off by default; the tooltip and data table carry the full readout.
 	 */
 	labels?: ChartValueLabelConfig
 }
@@ -108,6 +109,52 @@ function focusPoints(
 			if (y != null && Number.isFinite(y)) ys.push(y)
 
 			return ys
+		}, []),
+	)
+}
+
+/**
+ * The reference lines' keyboard stops, or none when `labels.references` draws
+ * their values beside them instead: a labelled rule reads its value without the
+ * rove, so it leaves the value-axis roving the way it leaves the hover tooltip.
+ *
+ * @internal
+ */
+function referenceStops(
+	labels: ChartValueLabelConfig | undefined,
+	positions: (number | null)[],
+): (number | null)[] | undefined {
+	return labels?.references ? undefined : positions
+}
+
+/**
+ * The series index behind each keyboard stop, aligned to {@link focusPoints} so
+ * the cursor's value lane resolves to the series it reads. Unstacked, the stops
+ * are the per-series snap points, so the cartesian series map carries straight
+ * through. Stacked, each stop is a ribbon's top edge, so the drawn series behind
+ * that ribbon names it — dropped by the same finite-edge gate the points use, so
+ * the two stay in step.
+ *
+ * @internal
+ */
+function focusSeries(
+	stacked: boolean,
+	snapSeries: number[][],
+	drawn: DrawnSeries[],
+	bands: StackedAreaGeometry[],
+	count: number,
+): number[][] {
+	if (!stacked) return snapSeries
+
+	return Array.from({ length: count }, (_, index) =>
+		bands.reduce<number[]>((series, band, order) => {
+			const y = band.points[index]?.y
+
+			const meta = drawn[order]?.meta
+
+			if (meta && y != null && Number.isFinite(y)) series.push(meta.index)
+
+			return series
 		}, []),
 	)
 }
@@ -179,7 +226,9 @@ function stackedRibbons(
  * keyboard — the band-axis arrows step categories, the value-axis arrows step
  * each category's points in screen order (a stack's cumulative band edges when
  * stacked, each series' own point otherwise). A reference line joins that
- * value-axis roving, receding the marks when the cursor reaches it.
+ * value-axis roving, receding the marks when the cursor reaches it — unless
+ * `labels.references` draws its value beside it, which stands in for the hover
+ * and drops the rove.
  * @example
  * ```tsx
  * <AreaChart
@@ -216,6 +265,7 @@ export function AreaChart<T>({
 	rightAxis,
 	reference,
 	xAxis,
+	tickRotation,
 	labels,
 	formatValue,
 	className,
@@ -237,6 +287,7 @@ export function AreaChart<T>({
 			rightAxis,
 			reference,
 			xAxis,
+			tickRotation,
 			formatValue,
 		},
 		{ zeroBaseline: true, swatch: () => 'line', stack: stacked },
@@ -266,14 +317,15 @@ export function AreaChart<T>({
 		}),
 		markers: points,
 		dimmed: dimmed(entry.meta),
+		dashed: entry.meta.dashed,
 	}))
 
 	const tex = useChartTexture(
 		texture,
-		chart.visible.map((meta) => ({ color: meta.color, paint: meta.paint })),
+		chart.visible.map((meta) => meta.slot),
 	)
 
-	const fills = drawn.map(({ meta }) => tex.fillFor(meta.color))
+	const fills = drawn.map(({ meta }) => tex.fillFor(meta.slot))
 
 	const valueLabelItems = resolveValueLabels(
 		labels,
@@ -289,7 +341,13 @@ export function AreaChart<T>({
 	)
 
 	const marksNode = animate ? (
-		<AnimatedChartLineMarks list={list} fill={true} fills={fills} textureActive={tex.active} />
+		<AnimatedChartLineMarks
+			list={list}
+			fill={true}
+			fills={fills}
+			textureActive={tex.active}
+			plot={chart.plot}
+		/>
 	) : (
 		<ChartLineMarks list={list} fill={true} fills={fills} textureActive={tex.active} />
 	)
@@ -307,6 +365,8 @@ export function AreaChart<T>({
 
 	const navPoints = focusPoints(stacked, chart.snapPoints, stackedGeometry, xs.length)
 
+	const navSeries = focusSeries(stacked, chart.snapSeries, drawn, stackedGeometry, xs.length)
+
 	return (
 		<ChartFrame
 			{...label}
@@ -315,6 +375,8 @@ export function AreaChart<T>({
 			fixedWidth={chart.fixedWidth}
 			height={chart.height}
 			reserve={chart.reserve}
+			fill={chart.fill}
+			aspect={chart.outerAspect ?? undefined}
 			legend={
 				chart.legendItems && (
 					<ChartLegend
@@ -330,14 +392,17 @@ export function AreaChart<T>({
 			}
 			legendPlacement={typeof legend === 'string' ? legend : undefined}
 			readout={chart.readout}
+			emphasis={chart.emphasis}
 			tooltip={showTooltip}
 			snap={snapTargets(rails, chart.bandPositions, snapPoints)}
 			focus={cartesianFocus(
 				chart.bandPositions,
 				navPoints,
 				chart.orientation,
-				chart.referencePositions,
+				referenceStops(labels, chart.referencePositions),
+				navSeries,
 			)}
+			onActiveSeries={chart.setEmphasis}
 			className={className}
 			annotations={<ChartReferenceList reference={reference} format={chart.formatAxisValue} />}
 		>
@@ -384,7 +449,7 @@ export function AreaChart<T>({
 						)
 					}
 					trigger={trigger}
-					snaps={rails?.snap ?? false}
+					snaps={crosshairSnaps(rails)}
 				/>
 			)}
 
@@ -396,6 +461,7 @@ export function AreaChart<T>({
 				reference={reference}
 				format={chart.formatAxisValue}
 				animate={animate}
+				labels={labels?.references}
 			/>
 		</ChartFrame>
 	)
