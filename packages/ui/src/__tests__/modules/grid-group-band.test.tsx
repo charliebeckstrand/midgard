@@ -153,16 +153,18 @@ describe('Grid column groups', () => {
 		{ id: 'name', title: 'Name', color: 'blue', columns: ['first', 'last'] },
 	]
 
-	it('offers Clear color + Manage columns when right-clicking a colored band', () => {
+	it('offers Manage columns then Clear color (in that order) on a colored band', () => {
 		const { container } = renderUI(
 			<Grid columns={columns} rows={rows} getKey={getKey} groups={colored} />,
 		)
 
 		fireEvent.contextMenu(bandCell(container) as HTMLTableCellElement)
 
-		expect(screen.getByRole('menuitem', { name: 'Clear color' })).toBeInTheDocument()
-
-		expect(screen.getByRole('menuitem', { name: 'Manage columns' })).toBeInTheDocument()
+		// Manage columns leads; Clear color sits at the bottom.
+		expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual([
+			'Manage columns',
+			'Clear color',
+		])
 	})
 
 	it('clears the band color when Clear color is chosen', () => {

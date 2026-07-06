@@ -277,10 +277,10 @@ function cellMenuDefaults(copy: () => void, exportActions: GridExportAction[]): 
 }
 
 /**
- * The column-group band's context menu (right-clicking the group's badge): a
- * "Clear color" item when the group carries a color, then "Manage columns" when
- * the column manager is reachable. Empty when neither applies, so the surface
- * leaves the native menu alone.
+ * The column-group band's context menu (right-clicking the group's badge):
+ * "Manage columns" when the column manager is reachable, then — under a
+ * separator — "Clear color" at the bottom when the group carries one. Empty when
+ * neither applies, so the surface leaves the native menu alone.
  *
  * @internal
  */
@@ -292,21 +292,24 @@ function buildColumnGroupMenu(args: {
 }): GridMenuItem[] {
 	const items: GridMenuItem[] = []
 
-	if (args.group.color) {
-		items.push({
-			key: 'clear-color',
-			label: 'Clear color',
-			icon: <Ban />,
-			onSelect: args.onClearColor,
-		})
-	}
-
 	if (args.chooseColumns) {
 		items.push({
 			key: 'manage-columns',
 			label: args.manageLabel,
 			icon: <Columns3 />,
 			onSelect: args.chooseColumns,
+		})
+	}
+
+	if (args.group.color) {
+		// Clear color sits at the bottom, set off by a separator from Manage columns.
+		if (items.length > 0) items.push({ key: 'color-separator', separator: true })
+
+		items.push({
+			key: 'clear-color',
+			label: 'Clear color',
+			icon: <Ban />,
+			onSelect: args.onClearColor,
 		})
 	}
 

@@ -83,27 +83,35 @@ const draggingSurface = mode('data-[dragging]:bg-white', [
  * their own padding through the reveal wrapper) and the loading placeholder
  * rows (which keep ordinary cell padding), so the rail runs unbroken while a
  * group's children load.
+ *
+ * The neutral is a *left-side* border color (`border-l-<neutral>`), not the
+ * all-sides `border-color` — so when {@link railColor} layers a palette color on
+ * the same cell they land in one tailwind-merge group (`border-left-color`) and
+ * the color cleanly replaces the neutral, in both light and dark, without an
+ * `!important`. (An all-sides neutral would sit in a different group and survive
+ * the merge, and its `dark:` variant — one extra class under class-based dark
+ * mode — would then outrank the un-variant color and win in dark mode.)
  */
-const railBorder = ['border-l-2', ...mode('border-zinc-950/5', 'dark:border-white/10')]
+const railBorder = ['border-l-2', ...mode('border-l-zinc-950/5', 'dark:border-l-white/10')]
 
 /**
  * A colored group rail, keyed by {@link PaletteColor} so a group reads
  * `railColor[group.color]`. Swaps the neutral {@link railBorder} tint for the
  * group's palette hue at the solid `-600` shade — matching a column group's
- * `bandColor` underline — when the row manager assigns one. The color is
- * left-side-specific (`border-l-<color>`), so it accents only the leading edge
- * even on a bordered surface (the manager's group Card). Full literals for
- * Tailwind's scanner.
+ * `bandColor` underline — when the row manager assigns one. Left-side-specific
+ * (`border-l-<color>`) with a matching `dark:` variant, so it shares the neutral
+ * rail's tailwind-merge group *and* variants and replaces it outright (no
+ * `!important`, no dark-mode fallthrough). Full literals for Tailwind's scanner.
  */
 const railColor: Record<PaletteColor, string> = {
-	zinc: 'border-l-2 border-l-zinc-600',
-	red: 'border-l-2 border-l-red-600',
-	amber: 'border-l-2 border-l-amber-600',
-	green: 'border-l-2 border-l-green-600',
-	blue: 'border-l-2 border-l-blue-600',
-	rose: 'border-l-2 border-l-rose-600',
-	violet: 'border-l-2 border-l-violet-600',
-	sky: 'border-l-2 border-l-sky-600',
+	zinc: 'border-l-2 border-l-zinc-600 dark:border-l-zinc-600',
+	red: 'border-l-2 border-l-red-600 dark:border-l-red-600',
+	amber: 'border-l-2 border-l-amber-600 dark:border-l-amber-600',
+	green: 'border-l-2 border-l-green-600 dark:border-l-green-600',
+	blue: 'border-l-2 border-l-blue-600 dark:border-l-blue-600',
+	rose: 'border-l-2 border-l-rose-600 dark:border-l-rose-600',
+	violet: 'border-l-2 border-l-violet-600 dark:border-l-violet-600',
+	sky: 'border-l-2 border-l-sky-600 dark:border-l-sky-600',
 }
 
 /**

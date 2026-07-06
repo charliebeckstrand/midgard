@@ -7,7 +7,7 @@ import { Ban, GripVertical } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { Badge } from '../../components/badge'
 import { Button } from '../../components/button'
-import { Card, CardHeader } from '../../components/card'
+import { Card } from '../../components/card'
 import { Icon } from '../../components/icon'
 import {
 	Menu,
@@ -155,9 +155,11 @@ function GridRowManagerZone({ group, onRecolor, colorOptions }: GridRowManagerZo
 
 	return (
 		<div ref={setNodeRef} style={style} data-dragging={dataAttr(dragging)}>
+			{/* Content sits directly in the Card so its padding is uniform on every
+			    edge — a CardHeader would add a bottom gap for a body that isn't here. */}
 			<Card className={cn(group.color && groupK.cardOutline[group.color])}>
-				<CardHeader>
-					<div className={cn(k.zone.header)}>
+				<div className={cn(k.zone.header)}>
+					<div className={cn(k.zone.main)}>
 						<button
 							type="button"
 							ref={setActivatorNodeRef}
@@ -172,15 +174,15 @@ function GridRowManagerZone({ group, onRecolor, colorOptions }: GridRowManagerZo
 						<span className={cn(k.zone.label)}>{group.label}</span>
 
 						<span className={cn(k.zone.count)}>({group.count})</span>
-
-						<GridRowManagerColorMenu
-							label={label}
-							color={group.color}
-							colorOptions={colorOptions}
-							onRecolor={(next) => onRecolor(group.key, next)}
-						/>
 					</div>
-				</CardHeader>
+
+					<GridRowManagerColorMenu
+						label={label}
+						color={group.color}
+						colorOptions={colorOptions}
+						onRecolor={(next) => onRecolor(group.key, next)}
+					/>
+				</div>
 			</Card>
 		</div>
 	)

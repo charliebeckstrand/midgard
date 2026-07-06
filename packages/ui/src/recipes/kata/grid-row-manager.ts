@@ -15,16 +15,18 @@ export const k = {
 	// Vertical stack of the group zones.
 	root: [flex.col, 'gap-3'],
 	zone: {
-		// A group zone's header row: the reorder grip, the label + count sitting
-		// together, then the color Menu pushed to the trailing edge.
-		header: [flex.row, 'items-center', 'gap-2'],
-		// The group label, kept beside the grip; truncates when long rather than
-		// pushing the count away.
+		// A group zone's row: the grip + label + count grouped at the leading edge,
+		// the color Menu pushed to the trailing edge (`justify-between`).
+		header: [flex.row, 'items-center', 'justify-between', 'gap-2'],
+		// The leading group: the reorder grip, the label, and the count, sitting
+		// together; `min-w-0` lets the label truncate rather than shove the count.
+		main: [flex.row, 'items-center', 'gap-2', 'min-w-0'],
+		// The group label, beside the grip; truncates when long.
 		label: ['min-w-0', 'truncate', 'font-medium'],
 		// The row count, sitting right beside the label.
 		count: [text.muted, 'tabular-nums', 'shrink-0'],
-		// The color Menu trigger: pushed to the trailing edge, holding its natural width.
-		color: ['ml-auto', 'shrink-0'],
+		// The color Menu trigger: holds its natural width at the trailing edge.
+		color: 'shrink-0',
 		// Group-reorder grip: a grab-cursor handle, muted at rest, tinting on hover/focus.
 		grip: [flex.inline, 'shrink-0', text.muted, fg.hover, focus.ring, 'cursor-grab', 'select-none'],
 	},
