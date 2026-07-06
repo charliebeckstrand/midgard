@@ -92,6 +92,11 @@ export function textClass(paint: SeriesPaint): string | undefined {
 	return paint.kind === 'slot' ? cn(paint.text) : undefined
 }
 
+/** The mark group's classes: the dim rides the group so motion's inline mark opacity still composes. @internal */
+export function seriesClass(dimmed: boolean | undefined): string {
+	return cn('transition-opacity', dimmed && 'opacity-25')
+}
+
 /**
  * A raw series colour for an inline SVG `fill` / `stroke` attribute (or a swatch's
  * `currentColor`), or `undefined` for a slot — a CSS class always wins over the

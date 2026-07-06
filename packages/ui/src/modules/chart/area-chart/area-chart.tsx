@@ -301,7 +301,7 @@ export function AreaChart<T>({
 
 	// A stack binds to one axis (the side its series agree on, else the left),
 	// so its ribbons read that one scale; unstacked series each read their own.
-	const drawn = drawnSeries(chart, stacked)
+	const drawn = drawnSeries(chart)
 
 	const stackedGeometry = stackedRibbons(drawn, xs, stacked)
 

@@ -111,10 +111,49 @@ function horizontalBarPath(y0: number, y1: number, valueX: number, baseline: num
 }
 
 /**
+ * The bar's span and hit fields — everything but the drawn path — from its
+ * value-axis span (`baseline`→`valuePos`) and its band-axis slot (`c0`→`c1`).
+ * Vertical runs the span up y with the slot across x; horizontal transposes
+ * both, and the hit rect follows so `withinBarMarks` reads either the same way.
+ * A stacked segment reuses these full-edge fields for its contiguous hit column
+ * while insetting only its own path, so it never pays for a rounded path it then
+ * discards.
+ *
+ * @internal
+ */
+function barSpanFields(
+	orientation: ChartOrientation,
+	valuePos: number,
+	baseline: number,
+	c0: number,
+	c1: number,
+	key: string,
+): Omit<BarMark, 'd'> {
+	if (orientation === 'vertical') {
+		return {
+			x: c0,
+			x1: c1,
+			top: Math.min(valuePos, baseline),
+			bottom: Math.max(valuePos, baseline),
+			key,
+			positive: valuePos < baseline,
+		}
+	}
+
+	return {
+		x: Math.min(valuePos, baseline),
+		x1: Math.max(valuePos, baseline),
+		top: c0,
+		bottom: c1,
+		key,
+		positive: valuePos > baseline,
+	}
+}
+
+/**
  * One bar from its value-axis span (`baseline`→`valuePos`) and its band-axis
- * slot (`c0`→`c1`). Vertical draws the span up y with the slot across x;
- * horizontal transposes both, and the hit rect follows so `withinBarMarks`
- * reads either the same way.
+ * slot (`c0`→`c1`), drawn with a rounded data end. Vertical draws the span up y
+ * with the slot across x; horizontal transposes both.
  *
  * @internal
  */
@@ -126,27 +165,12 @@ function barSpan(
 	c1: number,
 	key: string,
 ): BarMark {
-	if (orientation === 'vertical') {
-		return {
-			d: verticalBarPath(c0, c1, valuePos, baseline),
-			x: c0,
-			x1: c1,
-			top: Math.min(valuePos, baseline),
-			bottom: Math.max(valuePos, baseline),
-			key,
-			positive: valuePos < baseline,
-		}
-	}
+	const d =
+		orientation === 'vertical'
+			? verticalBarPath(c0, c1, valuePos, baseline)
+			: horizontalBarPath(c0, c1, valuePos, baseline)
 
-	return {
-		d: horizontalBarPath(c0, c1, valuePos, baseline),
-		x: Math.min(valuePos, baseline),
-		x1: Math.max(valuePos, baseline),
-		top: c0,
-		bottom: c1,
-		key,
-		positive: valuePos > baseline,
-	}
+	return { ...barSpanFields(orientation, valuePos, baseline, c0, c1, key), d }
 }
 
 /**
@@ -298,9 +322,9 @@ function stackedSegment(orientation: ChartOrientation, segment: StackedSegment):
 	const pathData = fits && !rounded ? dataEdge - toward * gap : dataEdge
 
 	// The hit span keeps the full edges (a contiguous column); only the path insets.
-	const mark = barSpan(orientation, dataEdge, baseEdge, c0, c1, key)
+	const fields = barSpanFields(orientation, dataEdge, baseEdge, c0, c1, key)
 
-	return { ...mark, d: stackSegmentPath(orientation, c0, c1, pathData, pathBase, rounded) }
+	return { ...fields, d: stackSegmentPath(orientation, c0, c1, pathData, pathBase, rounded) }
 }
 
 /**

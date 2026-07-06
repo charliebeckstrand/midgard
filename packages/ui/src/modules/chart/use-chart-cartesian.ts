@@ -386,23 +386,20 @@ export type DrawnSeries = {
 }
 
 /**
- * The visible series paired with the scale and baseline each draws through:
- * a series reads its own axis's scale — the stack's one shared side when
- * `stacked` — and one whose scale never resolved drops out, since it can take
- * no marks. The mark geometry, fills, and value labels all derive from this
- * one list so their indices stay aligned.
+ * The visible series paired with the scale and baseline each draws through: a
+ * series reads its own axis's scale — already unified to the stack's one shared
+ * side upstream when the chart stacks, so a stacked chart's series all resolve
+ * one scale — and one whose scale never resolved drops out, since it can take no
+ * marks. The mark geometry, fills, and value labels all derive from this one
+ * list so their indices stay aligned.
  *
  * @internal
  */
-export function drawnSeries(chart: CartesianChart, stacked = false): DrawnSeries[] {
-	const stackSide = chart.visible[0]?.axis ?? 'left'
-
+export function drawnSeries(chart: CartesianChart): DrawnSeries[] {
 	return chart.visible.flatMap((meta) => {
-		const side = stacked ? stackSide : meta.axis
+		const scale = meta.axis === 'right' ? chart.rightScale : chart.yScale
 
-		const scale = side === 'right' ? chart.rightScale : chart.yScale
-
-		const baseline = side === 'right' ? chart.rightBaseline : chart.baseline
+		const baseline = meta.axis === 'right' ? chart.rightBaseline : chart.baseline
 
 		return scale ? [{ meta, scale, baseline }] : []
 	})

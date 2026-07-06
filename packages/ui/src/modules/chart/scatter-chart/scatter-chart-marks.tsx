@@ -6,7 +6,7 @@ import { k } from '../../../recipes/kata/chart'
 import { rangeKeys } from '../../../utilities'
 import { BUBBLE_FILL_OPACITY, MARKER_RING_WIDTH } from '../chart-constants'
 import { POINT_POP } from '../chart-motion'
-import type { SlotPaint } from '../chart-series'
+import { type SlotPaint, seriesClass } from '../chart-series'
 import type { ScatterMark } from './scatter-chart-geometry'
 
 /** One scatter series' render inputs. @internal */
@@ -18,11 +18,6 @@ export type ChartScatterSeries = {
 	sized: boolean
 	/** Legend emphasis elsewhere — this series fades back. */
 	dimmed?: boolean
-}
-
-/** The series group's classes: the dim rides the group so motion's inline mark opacity still composes. @internal */
-function seriesClass(dimmed: boolean | undefined): string {
-	return cn('transition-opacity', dimmed && 'opacity-25')
 }
 
 /** Shared shape for the static and animated scatter renderers. @internal */
