@@ -1,9 +1,12 @@
 'use client'
 
 import { type RefObject, useCallback, useEffect } from 'react'
+import { Placeholder } from '../../components/placeholder'
 import { TableBody } from '../../components/table'
 import { useVirtualWindow } from '../../hooks'
+import type { ResolvedInfiniteScroll } from './grid-data-resolvers'
 import { type GridRowsProps, renderGridRow } from './grid-row'
+import { useGridInfiniteScroll } from './use-grid-infinite-scroll'
 
 /** Scrolls the data row at `rowIndex` (cursor index space) into the rendered window. @internal */
 export type GridScrollRowIntoView = (rowIndex: number) => void
@@ -15,6 +18,8 @@ type GridVirtualizedBodyProps<T> = GridRowsProps<T> & {
 	overscan: number
 	/** Published with a scroll-into-view fn while mounted, so the cursor can reach off-window rows. */
 	scrollIntoViewRef: RefObject<GridScrollRowIntoView | null>
+	/** Infinite-scroll gates driving end-detection and the trailing skeleton, or `null` when off. */
+	infiniteScroll: ResolvedInfiniteScroll | null
 }
 
 /**
@@ -38,6 +43,20 @@ export function GridVirtualizedBody<T>(props: GridVirtualizedBodyProps<T>) {
 		getScrollElement,
 		estimateSize,
 		overscan,
+	})
+
+	// Fire the infinite-scroll load-more as the last rendered row nears the loaded
+	// end (see `useGridInfiniteScroll`); inert when `infiniteScroll` is null. The
+	// window renders past the viewport by `overscan`, so the last item's index
+	// leads the visible bottom, giving the fetch a head start.
+	const lastItem = virtualItems[virtualItems.length - 1]
+
+	const { infiniteScroll } = props
+
+	useGridInfiniteScroll({
+		lastRenderedIndex: lastItem ? lastItem.index : -1,
+		count: rows.length,
+		infiniteScroll,
 	})
 
 	// Publish a row-scroller to the cursor while this windowed body is mounted, so a
@@ -76,6 +95,18 @@ export function GridVirtualizedBody<T>(props: GridVirtualizedBodyProps<T>) {
 						colSpan={visibleColumns.length}
 						style={{ height: bottomSpacer, padding: 0, border: 0 }}
 					/>
+				</tr>
+			)}
+			{/* Trailing pending row while a batch loads: an empty pulsing skeleton (or
+			    the consumer's `loadingIndicator`) below the last rendered rows. A
+			    non-data filler like the spacers, so it's `aria-hidden` — the grid's busy
+			    status announces the grown total once the batch settles. */}
+			{infiniteScroll?.loadingMore && (
+				// biome-ignore lint/a11y/noAriaHiddenOnFocusable: a non-focusable pending-state filler row that must not be exposed as a data row
+				<tr data-slot="grid-loading-more" aria-hidden="true">
+					<td colSpan={visibleColumns.length}>
+						{infiniteScroll.loadingIndicator ?? <Placeholder />}
+					</td>
 				</tr>
 			)}
 		</TableBody>

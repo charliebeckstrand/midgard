@@ -16,6 +16,7 @@ export {
 	type GridGroupBy,
 	type GridGroupHeaderContext,
 	type GridHeader,
+	type GridInfiniteScroll,
 	type GridProps,
 	type GridRowReorder,
 	type GridSelection,
