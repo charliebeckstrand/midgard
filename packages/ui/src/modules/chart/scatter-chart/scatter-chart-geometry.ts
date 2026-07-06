@@ -5,6 +5,7 @@
  * mark math is unit-testable in isolation.
  */
 
+import type { ChartAxisTick } from '../chart-axis'
 import {
 	BUBBLE_MAX_DIAMETER,
 	BUBBLE_MIN_DIAMETER,
@@ -228,8 +229,14 @@ export function withinScatterMarks(
 export function axisTicksOf(
 	scale: LinearScale | null,
 	format: (value: number) => string,
-): { at: number; label: string }[] {
-	return (scale?.ticks ?? []).map((tick) => ({ at: scale?.map(tick) ?? 0, label: format(tick) }))
+): ChartAxisTick[] {
+	// Keyed by the value, not the mapped `at`, which a collapsed plot maps every
+	// tick onto; two ticks share a value only on a zero-span domain (one tick).
+	return (scale?.ticks ?? []).map((tick) => ({
+		at: scale?.map(tick) ?? 0,
+		label: format(tick),
+		key: tick,
+	}))
 }
 
 /**

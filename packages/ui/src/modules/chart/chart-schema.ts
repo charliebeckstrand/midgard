@@ -189,7 +189,8 @@ export type BubbleChartSeries<T> = ScatterChartSeries<T> & {
 /**
  * Where a chart's legend sits around the plot: a row above or below it —
  * centered on mobile, justified edge to edge from `sm` — or a column panel
- * beside it, side by side from `sm` and under the chart below that.
+ * beside it, side by side once the chart's own container is wide enough for both
+ * and stacked under the plot below that width.
  */
 export type ChartLegendPlacement = 'top' | 'bottom' | 'left' | 'right'
 
@@ -400,8 +401,9 @@ export type ChartBaseProps<T> = AccessibleName & {
 	 * chip: with nothing to switch against it can't toggle or emphasise. A
 	 * placement moves it: a row under the plot (`'bottom'`, the default) or
 	 * above it (`'top'`) — centered on mobile, justified edge to edge from `sm`
-	 * — or a column panel beside it (`'left'` / `'right'`), side by side from
-	 * `sm` and under the chart below that.
+	 * — or a column panel beside it (`'left'` / `'right'`), side by side once the
+	 * chart's own container is wide enough for both and stacked under the plot
+	 * below that width.
 	 */
 	legend?: boolean | ChartLegendPlacement
 	/**

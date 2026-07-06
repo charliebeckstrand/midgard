@@ -424,15 +424,18 @@ function heatmapTicks(
 ): { x: ChartAxisTick[]; y: ChartAxisTick[] } {
 	const widestCol = matrix.columns.reduce((widest, label) => Math.max(widest, label.length), 0)
 
+	// Keyed by the row/column index, not the band center `at`, which collapses onto
+	// one coordinate at zero width/height; the index is the cell's stable identity.
 	const x = thinned(
 		matrix.columns.length,
 		plot.width,
 		widestCol * TICK_CHAR_WIDTH + GUTTER_GAP,
-	).map((index) => ({ at: xBand.center(index), label: matrix.columns[index] ?? '' }))
+	).map((index) => ({ at: xBand.center(index), label: matrix.columns[index] ?? '', key: index }))
 
 	const y = thinned(matrix.rows.length, plot.height, BAND_LABEL_HEIGHT).map((index) => ({
 		at: yBand.center(index),
 		label: matrix.rows[index] ?? '',
+		key: index,
 	}))
 
 	return { x, y }
@@ -672,7 +675,7 @@ export function HeatmapChart<T>({
 	return (
 		<div
 			data-slot="heatmap"
-			className={cn('flex flex-col gap-3', width === undefined && 'w-full', className)}
+			className={cn('flex flex-col gap-3', width === undefined && 'w-full max-w-2xl', className)}
 			style={width === undefined ? undefined : { width }}
 		>
 			<HeatmapHoverProvider>

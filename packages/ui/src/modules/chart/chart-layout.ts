@@ -349,7 +349,14 @@ function valueTicksOf(
 	scale: LinearScale | null,
 	format: (value: number) => string,
 ): ChartAxisTick[] {
-	return (scale?.ticks ?? []).map((tick) => ({ at: scale?.map(tick) ?? 0, label: format(tick) }))
+	// Keyed by the value, not the mapped `at`: a zero-height plot maps every tick
+	// onto one coordinate, so `at` collides there while the value stays distinct
+	// (two ticks share a value only on a zero-span domain, which yields one tick).
+	return (scale?.ticks ?? []).map((tick) => ({
+		at: scale?.map(tick) ?? 0,
+		label: format(tick),
+		key: tick,
+	}))
 }
 
 /**
@@ -433,10 +440,14 @@ function bandTicksOf(
 	slot: number,
 	tilt: boolean,
 ): ChartAxisTick[] {
+	// Keyed by the category index, not the band center `at`: a zero-width band
+	// collapses every center onto one coordinate, so `at` collides while the index
+	// stays the category's stable identity across resizes and thinning changes.
 	if (tilt) {
 		return categories.map((label, index) => ({
 			at: band.center(index),
 			label,
+			key: index,
 			rotate: TICK_ROTATION_ANGLE,
 		}))
 	}
@@ -444,6 +455,7 @@ function bandTicksOf(
 	return thinned(categories.length, axisLength, slot).map((index) => ({
 		at: band.center(index),
 		label: categories[index] ?? '',
+		key: index,
 	}))
 }
 

@@ -5,7 +5,7 @@ import { type FrameSizing, usePlotFrame } from '../../../hooks'
 import { useResolvedSize } from '../../../primitives/density'
 import type { Step } from '../../../recipes'
 import { type ChartSeriesColor, k } from '../../../recipes/kata/chart'
-import { ChartAxis } from '../chart-axis'
+import { ChartAxis, type ChartAxisTick } from '../chart-axis'
 import { CHART_METRICS, PLOT_TOP_PAD, SCATTER_HIT_SLACK, X_AXIS_HEIGHT } from '../chart-constants'
 import { ChartCrosshair, crosshairSnaps, resolveCrosshair } from '../chart-crosshair'
 import { ChartFrame } from '../chart-frame'
@@ -238,8 +238,8 @@ type ScatterScales = {
 	plot: PlotRect
 	xScale: LinearScale | null
 	yScale: LinearScale | null
-	xTicks: { at: number; label: string }[]
-	yTicks: { at: number; label: string }[]
+	xTicks: ChartAxisTick[]
+	yTicks: ChartAxisTick[]
 }
 
 /**
@@ -300,8 +300,8 @@ function ScatterChrome(props: {
 	gridLines: boolean
 	xScale: LinearScale | null
 	yScale: LinearScale | null
-	xTicks: { at: number; label: string }[]
-	yTicks: { at: number; label: string }[]
+	xTicks: ChartAxisTick[]
+	yTicks: ChartAxisTick[]
 }) {
 	const { plot, axes, gridLines, xScale, yScale, xTicks, yTicks } = props
 
