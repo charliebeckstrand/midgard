@@ -228,6 +228,31 @@ describe('resolveFrameSizing', () => {
 		})
 	})
 
+	it('takes the measured remainder under aspect-fill, reserving nothing', () => {
+		// The legend leaves the plot 200px inside a 320-wide 16/9 figure; the plot
+		// takes that measured remainder rather than the full 180 the ratio would give.
+		expect(resolveFrameSizing({ mode: 'aspect-fill', ratio: 16 / 9 }, 320, 200)).toEqual({
+			height: 200,
+			reserve: null,
+		})
+	})
+
+	it('falls back to the full ratio height under aspect-fill before the remainder is measured', () => {
+		// No measured height yet (server render, explicit width, test frame), so the
+		// plot draws from the width alone at the full ratio rather than collapsing —
+		// the browser refines it to the measured remainder once it lands.
+		expect(resolveFrameSizing({ mode: 'aspect-fill', ratio: 16 / 9 }, 320, 0)).toEqual({
+			height: 180,
+			reserve: null,
+		})
+
+		// With no width either, nothing to derive from — the frame shell, no marks.
+		expect(resolveFrameSizing({ mode: 'aspect-fill', ratio: 16 / 9 }, 0, 0)).toEqual({
+			height: 0,
+			reserve: null,
+		})
+	})
+
 	it('yields no height until the width is measured, still reserving the ratio', () => {
 		expect(resolveFrameSizing({ mode: 'aspect', ratio: 16 / 9 }, 0, 0)).toEqual({
 			height: 0,

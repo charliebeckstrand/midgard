@@ -260,6 +260,7 @@ export function AreaChart<T>({
 	rightAxis,
 	reference,
 	xAxis,
+	tickRotation,
 	labels,
 	formatValue,
 	className,
@@ -281,6 +282,7 @@ export function AreaChart<T>({
 			rightAxis,
 			reference,
 			xAxis,
+			tickRotation,
 			formatValue,
 		},
 		{ zeroBaseline: true, swatch: () => 'line', stack: stacked },
@@ -310,6 +312,7 @@ export function AreaChart<T>({
 		}),
 		markers: points,
 		dimmed: dimmed(entry.meta),
+		dashed: entry.meta.dashed,
 	}))
 
 	const tex = useChartTexture(
@@ -333,7 +336,13 @@ export function AreaChart<T>({
 	)
 
 	const marksNode = animate ? (
-		<AnimatedChartLineMarks list={list} fill={true} fills={fills} textureActive={tex.active} />
+		<AnimatedChartLineMarks
+			list={list}
+			fill={true}
+			fills={fills}
+			textureActive={tex.active}
+			plot={chart.plot}
+		/>
 	) : (
 		<ChartLineMarks list={list} fill={true} fills={fills} textureActive={tex.active} />
 	)
@@ -359,6 +368,8 @@ export function AreaChart<T>({
 			fixedWidth={chart.fixedWidth}
 			height={chart.height}
 			reserve={chart.reserve}
+			fill={chart.fill}
+			aspect={chart.outerAspect ?? undefined}
 			legend={
 				chart.legendItems && (
 					<ChartLegend

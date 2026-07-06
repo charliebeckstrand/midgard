@@ -32,22 +32,29 @@ export const [ChartHoverContext, useChartHover] = createContext<ChartHover>('Cha
 /**
  * Marks emphasis shared between a chart's reference layer and its marks:
  * pointing a reference rule — or roving the keyboard cursor onto it — recedes the
- * data marks to it, the same focus the legend applies to a series. Its own
- * context so a rule's hover re-renders only the marks, never the frame.
+ * data marks to it and its sibling rules with them, the same focus the legend
+ * applies to a series. Its own context so a rule's hover re-renders only the
+ * marks and rules, never the frame.
  *
  * @internal
  */
 export type ChartEmphasis = {
-	/** Whether a reference rule is emphasised — pointed or keyboard-focused — so the marks recede behind it. */
+	/** Whether a reference rule is emphasised — pointed or keyboard-focused — so the data marks recede behind it. */
 	referenceActive: boolean
-	/** Sets the pointer reference-hover emphasis; a rule turns it on while pointed. */
-	setReferenceActive: (active: boolean) => void
+	/** Sets the pointed reference's index (`null` clears); a rule or its legend chip sets it while pointed. */
+	setReferenceActive: (index: number | null) => void
 	/**
 	 * The keyboard-focused reference line's index, or `null` — the rule the arrow
 	 * cursor parks on, so it reads as chosen while the marks recede. Pointer hover
 	 * leaves it `null`; the rule floats its own tooltip instead.
 	 */
 	activeReference: number | null
+	/**
+	 * The reference the emphasis rests on — pointed or keyboard-focused — so its
+	 * sibling rules recede to it, the way the data marks do. Pointer wins over a
+	 * still-held keyboard focus; `null` when nothing is emphasised.
+	 */
+	emphasizedReference: number | null
 }
 
 export const [ChartEmphasisContext, useChartEmphasis] =

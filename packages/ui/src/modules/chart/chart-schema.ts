@@ -96,6 +96,18 @@ export type ChartSeries<T> = {
 	 * @defaultValue 'left'
 	 */
 	axis?: ChartValueAxisSide
+	/**
+	 * Dash this series' connecting stroke instead of drawing it solid — a second
+	 * identity channel beside colour, so two lines sharing one chart tell apart
+	 * beyond hue, and stay tellable apart in print or under colour-vision
+	 * deficiency. Reuses the reference-line dash, keeping the two dash idioms one
+	 * pattern. Only the stroke changes: the series keeps its point markers, legend
+	 * chip, tooltip, crosshair snap, and keyboard behaviour, and an area series'
+	 * fill wash stays solid under its dashed edge. A bar series has no stroke to
+	 * dash, so it ignores this. Under `animate` the draw-on reveal still plays.
+	 * @defaultValue false
+	 */
+	dashed?: boolean
 }
 
 /**
@@ -111,9 +123,10 @@ export type ComboChartSeries<T> = ChartSeries<T> & {
 /**
  * The one series a pie or donut sweeps: `xKey` names each slice, `yKey` holds
  * its positive share. No colour override — slice colours follow the
- * categories, not the series — and no axis binding, since a pie has none.
+ * categories, not the series — no axis binding, since a pie has none, and no
+ * dashed stroke, since a slice is a filled wedge with no connecting line.
  */
-export type PieChartSeries<T> = Omit<ChartSeries<T>, 'color' | 'axis'>
+export type PieChartSeries<T> = Omit<ChartSeries<T>, 'color' | 'axis' | 'dashed'>
 
 /**
  * One scatter series: numeric fields on both axes, each row one point. Unlike
@@ -318,7 +331,11 @@ export type ChartBaseProps<T> = AccessibleName & {
 	 * Height as a ratio of the width — a `width / height` number, a `"16/9"`
 	 * string, or `false` to fall back to the frame's own height policy. Ignored
 	 * when an explicit `height` is given.
-	 * @remarks Cartesian charts default to `'16/9'`; pie and donut default to a
+	 * @remarks The ratio describes the whole chart, legend and all: a legended
+	 * chart set to `16/9` fills a 16:9 tile without the legend spilling past it,
+	 * the plot taking the space the legend's natural size leaves. It holds through
+	 * CSS from the width alone — no container-height measurement — for every legend
+	 * placement. Cartesian charts default to `'16/9'`; pie and donut default to a
 	 * square, fitting height to their own content when callout labels are on.
 	 */
 	aspectRatio?: ChartAspectRatio
@@ -433,6 +450,16 @@ export type CartesianFrameProps = {
 	 * @defaultValue 'category'
 	 */
 	xAxis?: 'category' | 'time'
+	/**
+	 * Tilt category labels that would otherwise collide instead of thinning them
+	 * to every nth: past that point every label draws, angled, and none are
+	 * dropped. Off by default, so an unset chart keeps thinning.
+	 * @remarks Vertical orientation only — under `orientation="horizontal"`
+	 * category labels already run down the gutter and read straight, so this has
+	 * no effect there.
+	 * @defaultValue false
+	 */
+	tickRotation?: boolean
 }
 
 /**

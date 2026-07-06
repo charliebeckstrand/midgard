@@ -94,6 +94,7 @@ export function BarChart<T>({
 	rightAxis,
 	reference,
 	xAxis,
+	tickRotation,
 	formatValue,
 	className,
 	...label
@@ -114,6 +115,7 @@ export function BarChart<T>({
 			rightAxis,
 			reference,
 			xAxis,
+			tickRotation,
 			formatValue,
 		},
 		{ zeroBaseline: true, swatch: () => 'rect', orientation, stack: stacked },
@@ -177,6 +179,8 @@ export function BarChart<T>({
 			fixedWidth={chart.fixedWidth}
 			height={chart.height}
 			reserve={chart.reserve}
+			fill={chart.fill}
+			aspect={chart.outerAspect ?? undefined}
 			legend={
 				chart.legendItems && (
 					<ChartLegend

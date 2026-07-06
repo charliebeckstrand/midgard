@@ -158,6 +158,21 @@ const ChartContainer = ({ children, size = 'lg' }: { children: ReactNode; size?:
 	return <div className={cn('w-full', size ? sizeMap[size] : sizeMap.lg)}>{children}</div>
 }
 
+// A tile pinned to 16:9 — a dashed border makes its edges visible and
+// `overflow-hidden` would clip anything that spilled. A chart set to the same
+// aspectRatio fills it exactly, legend and all, so nothing spills to clip. The
+// border sits on a wrapper so the aspect box's own edges stay a clean 16:9 (a
+// border-box border would shave a pixel off the ratio).
+const AspectTile = ({ label, children }: { label: string; children: ReactNode }) => (
+	<div className="space-y-2">
+		<div className="text-xs text-zinc-500 dark:text-zinc-400">{label}</div>
+
+		<div className="rounded-lg border border-dashed border-zinc-300 dark:border-zinc-700">
+			<div className="aspect-video w-full overflow-hidden rounded-[inherit]">{children}</div>
+		</div>
+	</div>
+)
+
 export function Demo() {
 	const states = useGeography(statesUrl)
 
@@ -209,12 +224,11 @@ export function Demo() {
 							<Example title="Texture" code={code`<BarChart texture … />`}>
 								<ChartContainer>
 									<BarChart
-										aria-label="Revenue, costs, and margin by month, textured"
+										aria-label="Revenue and costs by month, textured"
 										data={months}
 										series={[
 											{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
 											{ xKey: 'month', yKey: 'costs', yName: 'Costs' },
-											{ xKey: 'month', yKey: 'margin', yName: 'Margin' },
 										]}
 										texture
 									/>
@@ -259,6 +273,28 @@ export function Demo() {
 										]}
 									/>
 								</ChartContainer>
+							</Example>
+
+							<Example
+								title="Fills a fixed-aspect tile"
+								code={code`<BarChart aspectRatio={16 / 9} legend="bottom" … /> // fills a 16:9 tile, legend included`}
+							>
+								<div className="grid w-full gap-4 sm:grid-cols-2">
+									{(['bottom', 'top', 'right', 'left'] as const).map((placement) => (
+										<AspectTile key={placement} label={`legend="${placement}"`}>
+											<BarChart
+												aria-label={`Revenue and costs by month, legend ${placement}`}
+												data={months}
+												series={[
+													{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
+													{ xKey: 'month', yKey: 'costs', yName: 'Costs' },
+												]}
+												aspectRatio={16 / 9}
+												legend={placement}
+											/>
+										</AspectTile>
+									))}
+								</div>
 							</Example>
 
 							<AnimatedExample title="Animated" source={code`<BarChart animate … />`}>
@@ -340,6 +376,32 @@ export function Demo() {
 										]}
 										leftAxis={{ title: '$ / lb', format: (value) => `$${value.toFixed(2)}` }}
 										rightAxis={{ title: 'Weight', format: (value) => `${value}k lb` }}
+										crosshair={{ snap: true }}
+									/>
+								</ChartContainer>
+							</Example>
+
+							<Example
+								title="Dashed line"
+								code={code`<LineChart series={[{ … }, { …, axis: 'right', dashed: true }]} … />`}
+							>
+								<ChartContainer>
+									<LineChart
+										aria-label="Rate per pound against shipped weight by month, the weight line dashed"
+										data={freight}
+										series={[
+											{ xKey: 'month', yKey: 'rate', yName: 'Rate' },
+											{
+												xKey: 'month',
+												yKey: 'weight',
+												yName: 'Weight',
+												axis: 'right',
+												dashed: true,
+											},
+										]}
+										leftAxis={{ title: '$ / lb', format: (value) => `$${value.toFixed(2)}` }}
+										rightAxis={{ title: 'Weight', format: (value) => `${value}k lb` }}
+										points
 										crosshair={{ snap: true }}
 									/>
 								</ChartContainer>
@@ -544,6 +606,25 @@ export function Demo() {
 										labels={{ callouts: true }}
 									/>
 								</ChartContainer>
+							</Example>
+
+							<Example
+								title="Fills a fixed-aspect tile"
+								code={code`<PieChart aspectRatio={16 / 9} legend="right" … /> // pie squares within the box, legend beside`}
+							>
+								<div className="grid w-full gap-4 sm:grid-cols-2">
+									{(['right', 'bottom'] as const).map((placement) => (
+										<AspectTile key={placement} label={`legend="${placement}"`}>
+											<PieChart
+												aria-label={`Traffic by source, legend ${placement}`}
+												data={sources}
+												series={[{ xKey: 'source', yKey: 'visits' }]}
+												aspectRatio={16 / 9}
+												legend={placement}
+											/>
+										</AspectTile>
+									))}
+								</div>
 							</Example>
 
 							<AnimatedExample title="Animated" source={code`<PieChart animate … />`}>

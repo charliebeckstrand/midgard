@@ -392,18 +392,45 @@ describe('BarChart', () => {
 		expect(fixed.container.querySelector('svg')).toHaveAttribute('viewBox', '0 0 400 260')
 	})
 
-	it('reserves the box height with the AspectRatio primitive, a fixed height only when set', () => {
-		const ratio = renderUI(chart({ aspectRatio: '16/9' }))
+	it('carries the whole-chart ratio on the figure when a legend shares the aspect box', () => {
+		// Two series show a legend, so the ratio describes the whole chart: the
+		// figure wrapper carries the CSS aspect-ratio and the plot fills what the
+		// legend leaves, rather than the plot box reserving the ratio alone.
+		const { container } = renderUI(chart({ aspectRatio: '16/9' }))
 
-		// The design-system AspectRatio reserves the height from the box's own
-		// width, so it holds steady before measure and across animation replays.
-		const box = bySlot(ratio.container, 'aspect-ratio') as HTMLElement
+		const figure = bySlot(container, 'chart-figure') as HTMLElement
+
+		expect(figure.style.aspectRatio.replace(/\s*\/\s*1$/, '')).toBe('1.7777777777777777')
+
+		// The plot box no longer reserves its own ratio — it fills the region the
+		// figure sized.
+		expect(bySlot(container, 'aspect-ratio')).toBeNull()
+	})
+
+	it('reserves the box height with the AspectRatio primitive when no legend shares the box', () => {
+		// One series shows no legend, so nothing shares the aspect box: the plot box
+		// reserves the ratio from its own width, holding steady before measure and
+		// across animation replays.
+		const { container } = renderUI(
+			chart({
+				series: [{ xKey: 'quarter', yKey: 'revenue', yName: 'Revenue' }],
+				aspectRatio: '16/9',
+			}),
+		)
+
+		const box = bySlot(container, 'aspect-ratio') as HTMLElement
 
 		expect(box.style.aspectRatio.replace(/\s*\/\s*1$/, '')).toBe('1.7777777777777777')
 
+		expect(bySlot(container, 'chart-figure')?.style.aspectRatio).toBe('')
+	})
+
+	it('takes a fixed pixel height with no ratio reserved when a height is set', () => {
 		const fixed = renderUI(chart({ height: 260 }))
 
 		expect(bySlot(fixed.container, 'aspect-ratio')).toBeNull()
+
+		expect(bySlot(fixed.container, 'chart-figure')?.style.aspectRatio).toBe('')
 
 		expect(
 			(bySlot(fixed.container, 'chart-plot')?.firstElementChild as HTMLElement).style.height,
@@ -434,6 +461,61 @@ describe('BarChart', () => {
 		// The value axis now spans the summed column (Q2 = 80 + 31 = 111), so a
 		// three-figure tick appears that the grouped chart never reaches.
 		expect(bySlot(stacked.container, 'chart-axis-y')?.textContent).toContain('100')
+	})
+})
+
+describe('BarChart tickRotation', () => {
+	const LONG_CATEGORIES = [
+		'January Sales',
+		'February Sales',
+		'March Sales',
+		'April Sales',
+		'May Sales',
+		'June Sales',
+	]
+
+	function longChart(
+		extra?: Partial<Parameters<typeof BarChart<{ month: string; total: number }>>[0]>,
+	) {
+		return renderUI(
+			<BarChart
+				aria-label="Monthly totals"
+				data={LONG_CATEGORIES.map((month, index) => ({ month, total: (index + 1) * 10 }))}
+				series={[{ xKey: 'month', yKey: 'total', yName: 'Total' }]}
+				width={260}
+				{...extra}
+			/>,
+		)
+	}
+
+	it('thins long labels by default instead of tilting them', () => {
+		const { container } = longChart()
+
+		const ticks = [...(bySlot(container, 'chart-axis-x')?.querySelectorAll('text') ?? [])]
+
+		expect(ticks.length).toBeLessThan(LONG_CATEGORIES.length)
+
+		expect(ticks.every((tick) => tick.getAttribute('transform') === null)).toBe(true)
+	})
+
+	it('tilts every label instead of thinning once tickRotation is on', () => {
+		const { container } = longChart({ tickRotation: true })
+
+		const ticks = [...(bySlot(container, 'chart-axis-x')?.querySelectorAll('text') ?? [])]
+
+		expect(ticks).toHaveLength(LONG_CATEGORIES.length)
+
+		expect(ticks.every((tick) => tick.getAttribute('transform')?.startsWith('rotate('))).toBe(true)
+	})
+
+	it('leaves labels flat when they already fit, tickRotation notwithstanding', () => {
+		const { container } = renderUI(chart({ tickRotation: true }))
+
+		const ticks = [...(bySlot(container, 'chart-axis-x')?.querySelectorAll('text') ?? [])]
+
+		expect(ticks).toHaveLength(DATA.length)
+
+		expect(ticks.every((tick) => tick.getAttribute('transform') === null)).toBe(true)
 	})
 })
 

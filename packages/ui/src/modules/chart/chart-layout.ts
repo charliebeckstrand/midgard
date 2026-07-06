@@ -16,6 +16,8 @@ import {
 	GUTTER_MAX,
 	PLOT_TOP_PAD,
 	TICK_CHAR_WIDTH,
+	TICK_ROTATION_ANGLE,
+	TICK_ROTATION_HEIGHT,
 	X_AXIS_HEIGHT,
 } from './chart-constants'
 import { bandExtent, valueExtent } from './chart-orientation'
@@ -25,7 +27,9 @@ import { timeTicks } from './chart-time'
 
 /**
  * A chart's aspect ratio: a `width / height` number, a `"16/9"` string, or
- * `false` to leave the frame free-form (its explicit or density height).
+ * `false` to leave the frame free-form (its explicit or density height). It
+ * governs the whole chart — plot and legend together — so a legended chart fills
+ * a fixed-aspect box without the legend spilling past it.
  */
 export type ChartAspectRatio = number | `${number}/${number}` | false
 
@@ -47,6 +51,10 @@ function ratioValue(ratio: ChartAspectRatio): number | null {
  * free-form and fills its container. Density never sets a height, so it can't
  * conflict with the ratio.
  *
+ * @remarks The plot-only sizing: the ratio governs the drawing box alone, which
+ * a legend then sits beside. The chart family instead resolves through {@link
+ * chartFrameLayout}, which folds the legend into the aspect box; {@link
+ * HeatmapChart} keeps this one, its range legend never sharing the box.
  * @internal
  */
 export function chartFrameSizing(
@@ -58,6 +66,57 @@ export function chartFrameSizing(
 	const ratio = ratioValue(aspectRatio)
 
 	return ratio === null ? { mode: 'fill' } : { mode: 'aspect', ratio }
+}
+
+/**
+ * A chart frame's sizing once the legend is folded into the aspect box: the
+ * {@link FrameSizing} the plot measures through, and the CSS `aspect-ratio` the
+ * figure wrapper carries so the whole chart — legend and all — holds the ratio.
+ *
+ * @internal
+ */
+export type ChartFrameLayout = {
+	/** The policy {@link usePlotFrame} measures and resolves the plot box through. */
+	sizing: FrameSizing
+	/**
+	 * The `width / height` the figure wrapper reserves through CSS `aspect-ratio`
+	 * when the legend shares the aspect box, so the plot fills the space the
+	 * legend's natural size leaves; `null` when the plot box carries the ratio
+	 * itself (no legend) or nothing reserves one.
+	 */
+	outerAspect: number | null
+}
+
+/**
+ * Resolves a chart frame's sizing with the legend inside the aspect box, so a
+ * ratio describes the whole chart rather than the plot alone. An explicit
+ * `height` is a fixed pixel box and a ratio-off frame fills its container, both
+ * legend-agnostic — the legend simply bands beside the plot. A live ratio with
+ * no legend keeps the plot box reserving that ratio itself (width-driven CSS, no
+ * height measurement). A live ratio with a legend hands the ratio to the figure
+ * wrapper and measures the plot's remaining height through `aspect-fill`: the
+ * CSS aspect box still drives the height from the width, and the measurement
+ * only reads back what the legend left — falling back to the full `width / ratio`
+ * until it lands — so a chart in a fixed-aspect tile fills it, legend included,
+ * without the container-height measurement free-form `fill` needs and without
+ * collapsing before the first measurement.
+ *
+ * @internal
+ */
+export function chartFrameLayout(
+	height: number | undefined,
+	aspectRatio: ChartAspectRatio,
+	hasLegend: boolean,
+): ChartFrameLayout {
+	if (height !== undefined) return { sizing: { mode: 'fixed', height }, outerAspect: null }
+
+	const ratio = ratioValue(aspectRatio)
+
+	if (ratio === null) return { sizing: { mode: 'fill' }, outerAspect: null }
+
+	if (!hasLegend) return { sizing: { mode: 'aspect', ratio }, outerAspect: null }
+
+	return { sizing: { mode: 'aspect-fill', ratio }, outerAspect: ratio }
 }
 
 /** The plot rectangle inside a chart frame, in `viewBox` user units. @internal */
@@ -122,9 +181,11 @@ export function plotRect(
 
 /**
  * The category indexes whose labels fit along an axis without colliding: every
- * label when there is room, else every nth — thinned, never rotated. `slot` is
- * one label's footprint along the axis with a breath of air, so the same math
- * thins by row width (value on x) or by column height (categories down y).
+ * label when there is room, else every nth — thinned by default. `slot` is one
+ * label's footprint along the axis with a breath of air, so the same math
+ * thins by row width (value on x) or by column height (categories down y). A
+ * vertical chart opted into {@link CartesianFrameProps.tickRotation} tilts
+ * instead of thinning once the same fit check fails — see {@link willThin}.
  *
  * @internal
  */
@@ -136,6 +197,17 @@ export function thinned(count: number, axisLength: number, slot: number): number
 	const nth = Math.ceil(count / fit)
 
 	return Array.from({ length: count }, (_, index) => index).filter((index) => index % nth === 0)
+}
+
+/**
+ * Whether `count` labels collide at `slot` room along a `axisLength` axis —
+ * the same fit check {@link thinned} thins by, exposed so a caller can decide
+ * to tilt instead of thin before the ticks themselves are placed.
+ *
+ * @internal
+ */
+export function willThin(count: number, axisLength: number, slot: number): boolean {
+	return count > Math.max(1, Math.floor(axisLength / Math.max(1, slot)))
 }
 
 /**
@@ -228,6 +300,12 @@ export type CartesianLayoutInput = {
 	rightValue?: ChartValueAxisInput
 	/** The category label per row — the band axis, and the gutter estimate when horizontal. */
 	categories: string[]
+	/**
+	 * Tilt overflowing category labels instead of thinning them; the vertical
+	 * layout's own concern, ignored by the horizontal one. See {@link
+	 * CartesianFrameProps.tickRotation}.
+	 */
+	tickRotation?: boolean
 	/**
 	 * Each row's instant as epoch ms, in row order (`null` where unparseable), when
 	 * the band axis is a time axis; `undefined` leaves it categorical.
@@ -327,13 +405,28 @@ function bandCenters(band: BandScale, count: number): number[] {
 	return Array.from({ length: count }, (_, index) => band.center(index))
 }
 
-/** The fitting category labels at their band centers, thinned by `slot` room along the axis. @internal */
+/**
+ * The category labels at their band centers: every one tilted at {@link
+ * TICK_ROTATION_ANGLE} when `tilt` is on, else thinned by `slot` room along
+ * the axis.
+ *
+ * @internal
+ */
 function bandTicksOf(
 	categories: string[],
 	band: BandScale,
 	axisLength: number,
 	slot: number,
+	tilt: boolean,
 ): ChartAxisTick[] {
+	if (tilt) {
+		return categories.map((label, index) => ({
+			at: band.center(index),
+			label,
+			rotate: TICK_ROTATION_ANGLE,
+		}))
+	}
+
 	return thinned(categories.length, axisLength, slot).map((index) => ({
 		at: band.center(index),
 		label: categories[index] ?? '',
@@ -342,9 +435,11 @@ function bandTicksOf(
 
 /**
  * The band axis's ticks: calendar-boundary time ticks when the input carries
- * row instants and they span an axis, else the thinned category labels. Both
- * orientations share it — the band scale's range already faces the right screen
- * axis, so the tick positions land correctly either way.
+ * row instants and they span an axis, else the category labels, tilted or
+ * thinned. Both orientations share it — the band scale's range already faces
+ * the right screen axis, so the tick positions land correctly either way;
+ * `tilt` only ever arrives set from the vertical layout, since a horizontal
+ * chart's category labels already run down the gutter and read straight.
  *
  * @internal
  */
@@ -353,6 +448,7 @@ function bandAxisTicks(
 	band: BandScale,
 	axisLength: number,
 	slot: number,
+	tilt = false,
 ): ChartAxisTick[] {
 	if (input.times) {
 		const ticks = timeTicks({
@@ -365,7 +461,7 @@ function bandAxisTicks(
 		if (ticks) return ticks
 	}
 
-	return bandTicksOf(input.categories, band, axisLength, slot)
+	return bandTicksOf(input.categories, band, axisLength, slot, tilt)
 }
 
 /** One value axis's scale over its inputs, or `null` when nothing yields a domain. @internal */
@@ -437,19 +533,27 @@ function verticalTitles(
 	return titles
 }
 
+/** One vertical layout's value scales and their formatted gutter ticks, against a resolved y-range. @internal */
+type VerticalValueAxes = {
+	valueScale: LinearScale | null
+	rightScale: LinearScale | null
+	valueTicks: ChartAxisTick[]
+	rightTicks: ChartAxisTick[]
+}
+
 /**
- * The default layout: value on y with the scales filling the height above the
- * x-axis band, categories across x. The scales resolve from the frame height
- * first so their tick labels can size the side gutters before the plot rect
- * exists; the right gutter appears only once a right scale resolves.
+ * Both value scales and their gutter tick labels for a vertical layout's
+ * `range`. Split out of {@link verticalLayout} so it can resolve twice — once
+ * against the flat x-axis band to size the gutters and probe whether the
+ * category labels fit, again against a taller band once tilting them wins the
+ * room back instead — without duplicating the scale wiring inline.
  *
  * @internal
  */
-export function verticalLayout(input: CartesianLayoutInput): CartesianLayout {
-	const { axes, categories, count, frameHeight, frameWidth } = input
-
-	const range: [number, number] = [frameHeight - (axes ? X_AXIS_HEIGHT : 0), PLOT_TOP_PAD]
-
+function verticalValueAxes(
+	input: CartesianLayoutInput,
+	range: [number, number],
+): VerticalValueAxes {
 	const valueScale = valueScaleOf(input.value, range, input.tickTarget, input.zeroBaseline)
 
 	const rightScale = valueScaleOf(input.rightValue, range, input.tickTarget, input.zeroBaseline)
@@ -459,22 +563,68 @@ export function verticalLayout(input: CartesianLayoutInput): CartesianLayout {
 	const rightTicks =
 		rightScale && input.rightValue ? valueTicksOf(rightScale, input.rightValue.format) : []
 
+	return { valueScale, rightScale, valueTicks, rightTicks }
+}
+
+/**
+ * The default layout: value on y with the scales filling the height above the
+ * x-axis band, categories across x. The scales resolve from the frame height
+ * first so their tick labels can size the side gutters before the plot rect
+ * exists; the right gutter appears only once a right scale resolves. Category
+ * labels that would collide at the flat band height either thin (the default)
+ * or, under {@link CartesianFrameProps.tickRotation}, tilt instead — which
+ * takes the band-height decision, so the value scales resolve a second time
+ * against the taller band once tilting wins.
+ *
+ * @internal
+ */
+export function verticalLayout(input: CartesianLayoutInput): CartesianLayout {
+	const { axes, categories, count, frameHeight, frameWidth } = input
+
+	const flatHeight = axes ? X_AXIS_HEIGHT : 0
+
+	const flatRange: [number, number] = [frameHeight - flatHeight, PLOT_TOP_PAD]
+
+	const flatAxes = verticalValueAxes(input, flatRange)
+
 	// Each side reserves its own gutter — tick labels plus a title band where a
 	// title is set — so the plot narrows only for the chrome actually drawn.
-	const leftGutter = valueGutter(axes && valueScale !== null, valueTicks, input.value?.title)
+	// Independent of the x-axis band height, so it need not wait on the tilt
+	// decision below.
+	const leftGutter = valueGutter(
+		axes && flatAxes.valueScale !== null,
+		flatAxes.valueTicks,
+		input.value?.title,
+	)
 
-	const rightGutter = valueGutter(axes && rightScale !== null, rightTicks, input.rightValue?.title)
+	const rightGutter = valueGutter(
+		axes && flatAxes.rightScale !== null,
+		flatAxes.rightTicks,
+		input.rightValue?.title,
+	)
+
+	const plotWidth = Math.max(0, frameWidth - leftGutter - rightGutter)
+
+	const longest = categories.reduce((widest, label) => Math.max(widest, label.length), 0)
+
+	const slot = longest * TICK_CHAR_WIDTH + GUTTER_GAP
+
+	const tilt = axes && Boolean(input.tickRotation) && willThin(count, plotWidth, slot)
+
+	const axisBandHeight = axes ? (tilt ? TICK_ROTATION_HEIGHT : X_AXIS_HEIGHT) : 0
+
+	const { valueScale, rightScale, valueTicks, rightTicks } = tilt
+		? verticalValueAxes(input, [frameHeight - axisBandHeight, PLOT_TOP_PAD])
+		: flatAxes
 
 	const plot: PlotRect = {
 		x: leftGutter,
 		y: PLOT_TOP_PAD,
-		width: Math.max(0, frameWidth - leftGutter - rightGutter),
-		height: Math.max(0, frameHeight - PLOT_TOP_PAD - (axes ? X_AXIS_HEIGHT : 0)),
+		width: plotWidth,
+		height: Math.max(0, frameHeight - PLOT_TOP_PAD - axisBandHeight),
 	}
 
 	const band = bandScale({ count, range: bandExtent('vertical', plot) })
-
-	const longest = categories.reduce((widest, label) => Math.max(widest, label.length), 0)
 
 	const scales: ValueScales = { left: valueScale, right: rightScale }
 
@@ -489,7 +639,7 @@ export function verticalLayout(input: CartesianLayoutInput): CartesianLayout {
 		rightBaseline: zeroOf(rightScale, valueScale, floor),
 		valueTicks,
 		rightTicks,
-		bandTicks: bandAxisTicks(input, band, plot.width, longest * TICK_CHAR_WIDTH + GUTTER_GAP),
+		bandTicks: bandAxisTicks(input, band, plot.width, slot, tilt),
 		bandPositions: bandCenters(band, count),
 		snapPoints: snapPointsOf(scales, count, input.visibleValues),
 		snapSeries: snapSeriesOf(scales, count, input.visibleValues),

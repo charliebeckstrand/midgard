@@ -146,6 +146,8 @@ export type SeriesMeta = {
 	values: (number | null)[]
 	/** The value axis the series reads against — its scale, formatter, and baseline. */
 	axis: ChartValueAxisSide
+	/** Draw the connecting stroke dashed rather than solid; bars have none to dash. */
+	dashed?: boolean
 }
 
 /**

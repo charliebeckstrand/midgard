@@ -95,6 +95,7 @@ export function LineChart<T>({
 	rightAxis,
 	reference,
 	xAxis,
+	tickRotation,
 	labels,
 	formatValue,
 	className,
@@ -116,6 +117,7 @@ export function LineChart<T>({
 			rightAxis,
 			reference,
 			xAxis,
+			tickRotation,
 			formatValue,
 		},
 		{ zeroBaseline: false, swatch: () => 'line', legendByValue: true },
@@ -143,6 +145,7 @@ export function LineChart<T>({
 		),
 		markers: points,
 		dimmed: chart.emphasis !== null && meta.index !== chart.emphasis,
+		dashed: meta.dashed,
 	}))
 
 	const seriesRuns = list.map((series) => series.geometry.runs)
@@ -168,7 +171,13 @@ export function LineChart<T>({
 	)
 
 	const marksNode = animate ? (
-		<AnimatedChartLineMarks list={list} fill={fill} fills={fills} textureActive={tex.active} />
+		<AnimatedChartLineMarks
+			list={list}
+			fill={fill}
+			fills={fills}
+			textureActive={tex.active}
+			plot={chart.plot}
+		/>
 	) : (
 		<ChartLineMarks list={list} fill={fill} fills={fills} textureActive={tex.active} />
 	)
@@ -188,6 +197,8 @@ export function LineChart<T>({
 			fixedWidth={chart.fixedWidth}
 			height={chart.height}
 			reserve={chart.reserve}
+			fill={chart.fill}
+			aspect={chart.outerAspect ?? undefined}
 			legend={
 				chart.legendItems && (
 					<ChartLegend

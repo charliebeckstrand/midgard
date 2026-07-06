@@ -197,6 +197,34 @@ describe('reference lines', () => {
 		expect(marks()).not.toContain('opacity-25')
 	})
 
+	it('recedes the sibling rules while one is hovered', () => {
+		const { container } = bar([
+			{ value: 50, label: 'Floor' },
+			{ value: 70, label: 'Ceiling' },
+		])
+
+		const rules = () => allBySlot(container, 'chart-reference-line')
+
+		const cls = (el: Element | undefined) => el?.getAttribute('class') ?? ''
+
+		const [floor, ceiling] = rules()
+
+		expect(cls(floor)).not.toContain('opacity-25')
+
+		expect(cls(ceiling)).not.toContain('opacity-25')
+
+		fireEvent.pointerEnter(floor as Element)
+
+		// The pointed rule stays lit; its sibling recedes to it.
+		expect(cls(rules()[0])).not.toContain('opacity-25')
+
+		expect(cls(rules()[1])).toContain('opacity-25')
+
+		fireEvent.pointerLeave(floor as Element)
+
+		expect(cls(rules()[1])).not.toContain('opacity-25')
+	})
+
 	it('threads through the line chart too', () => {
 		const { container } = renderUI(
 			<LineChart
@@ -434,7 +462,7 @@ describe('reference lines in the legend', () => {
 		expect(bySlot(container, 'chart-reference-list')?.textContent).toContain('Target')
 	})
 
-	it('is a non-interactive chip, apart from the series switchboard', () => {
+	it('recedes the marks on hover, as an emphasis chip beside the switchboard', () => {
 		const { container } = renderUI(
 			<BarChart
 				aria-label="Revenue by month"
@@ -446,15 +474,71 @@ describe('reference lines in the legend', () => {
 			/>,
 		)
 
-		// One series → one switch; the rule is a separate, aria-hidden chip that
-		// neither roves nor toggles.
+		// One series → one static switch; the rule is a separate chip that recedes
+		// the marks like a switch's emphasis but carries no toggle — a rule has no
+		// on/off — so it is a plain button with no `aria-pressed`.
 		expect(allBySlot(container, 'chart-legend-item')).toHaveLength(1)
 
 		const chip = bySlot(container, 'chart-legend-reference')
 
-		expect(chip?.tagName).toBe('SPAN')
+		expect(chip?.tagName).toBe('BUTTON')
 
-		expect(chip?.getAttribute('aria-hidden')).toBe('true')
+		expect(chip?.getAttribute('aria-pressed')).toBeNull()
+
+		const marks = () => bySlot(container, 'chart-marks')?.getAttribute('class') ?? ''
+
+		expect(marks()).not.toContain('opacity-25')
+
+		fireEvent.pointerEnter(chip as Element)
+
+		// Pointing the chip recedes the marks to the rule, the same as pointing the rule.
+		expect(marks()).toContain('opacity-25')
+
+		fireEvent.pointerLeave(chip as Element)
+
+		expect(marks()).not.toContain('opacity-25')
+	})
+
+	it('recedes the sibling rules from a chip, keyed to the rule not the chip position', () => {
+		const { container } = renderUI(
+			<BarChart
+				aria-label="Revenue by month"
+				data={DATA}
+				series={[...SERIES]}
+				width={400}
+				legend
+				// A non-finite rule drops from both the plot and the chips, so the second
+				// chip's array index (2) outruns its position (1): the emphasis must key
+				// off the index to land on the rule the plot draws.
+				reference={[
+					{ value: 50, label: 'Floor' },
+					{ value: Number.NaN, label: 'Gap' },
+					{ value: 70, label: 'Ceiling' },
+				]}
+			/>,
+		)
+
+		const chips = allBySlot(container, 'chart-legend-reference')
+
+		const rules = () => allBySlot(container, 'chart-reference-line')
+
+		const cls = (el: Element | undefined) => el?.getAttribute('class') ?? ''
+
+		// Two finite rules, two chips; the non-finite one draws and lists nothing.
+		expect(chips).toHaveLength(2)
+
+		expect(rules()).toHaveLength(2)
+
+		fireEvent.pointerEnter(chips[1] as Element)
+
+		// The Ceiling chip lights its own rule and recedes the Floor, not the reverse.
+		expect(cls(rules()[0])).toContain('opacity-25')
+
+		expect(cls(rules()[1])).not.toContain('opacity-25')
+
+		fireEvent.pointerLeave(chips[1] as Element)
+
+		expect(cls(rules()[0])).not.toContain('opacity-25')
 	})
 
 	it('paints a slot chip through its class and a raw colour inline', () => {

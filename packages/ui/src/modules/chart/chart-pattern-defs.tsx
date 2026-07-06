@@ -197,6 +197,7 @@ export function ChartSwatch({
 	swatchClass,
 	swatchColor,
 	color,
+	dashed = false,
 	active,
 	off,
 }: {
@@ -205,17 +206,22 @@ export function ChartSwatch({
 	/** A raw series colour inked inline on the swatch's `currentColor`; unset for a palette slot. */
 	swatchColor?: string
 	color?: ChartSeriesColor
+	/** Dash the `line` swatch, mirroring a dashed series stroke; ignored for a `rect`. */
+	dashed?: boolean
 	active: boolean
 	off: boolean
 }) {
 	const id = `chart-sw-${useId().replace(/:/g, '')}`
 
 	// A raw colour carries no slot, so it never hatches — it inks its
-	// `currentColor` inline on a plain swatch, the same opt-out as a raw mark.
+	// `currentColor` inline on a plain swatch, the same opt-out as a raw mark. A
+	// dashed line swatch mirrors the stroke here too — the line never routes
+	// through the textured path below, so this is its only paint.
 	if (swatch !== 'rect' || !color) {
 		return (
 			<Swatch
 				shape={swatch === 'rect' ? 'square' : 'line'}
+				variant={swatch === 'line' && dashed ? 'dashed' : undefined}
 				color={swatchClass}
 				style={swatchColor ? { color: swatchColor } : undefined}
 				className={cn(off && 'opacity-40')}
