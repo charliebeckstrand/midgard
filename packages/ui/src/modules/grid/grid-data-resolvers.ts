@@ -16,7 +16,12 @@ import type { DensityLevel } from '../../providers/density/context'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
 import { DEFAULT_OVERSCAN, ROW_HEIGHT_BY_DENSITY } from './grid-constants'
-import type { GridFooter, GridFooterStats, GridVirtualize } from './grid-data-types'
+import type {
+	GridFooter,
+	GridFooterStats,
+	GridInfiniteScroll,
+	GridVirtualize,
+} from './grid-data-types'
 import type { GridRowClick } from './grid-row'
 import type { GridColumn } from './types'
 import type { GridNavTableProps } from './use-grid-navigation'
@@ -62,6 +67,46 @@ export function resolveVirtualization(
 		enabled,
 		estimateSize: opts?.estimateSize ?? ROW_HEIGHT_BY_DENSITY[density ?? 'snug'],
 		overscan: opts?.overscan ?? DEFAULT_OVERSCAN,
+	}
+}
+
+/**
+ * Infinite-scroll config resolved against the grid's virtualization: the
+ * consumer's `onLoadMore` plus the gates with defaults applied. @internal
+ */
+export type ResolvedInfiniteScroll = {
+	onLoadMore: () => void
+	/** Whether more rows remain; gates firing and the trailing indicator. */
+	hasMore: boolean
+	/** Whether a load is in flight; suppresses re-firing and shows the indicator. */
+	loadingMore: boolean
+	/** Rows from the loaded end that trip a load. */
+	threshold: number
+	/** Trailing-row content shown while loading, or `undefined` for the default skeleton. */
+	loadingIndicator: ReactNode
+}
+
+/**
+ * Collapses the `infiniteScroll` binding into its resolved gates, or `null` when
+ * unset. `hasMore` defaults on (the consumer stops it) and `loadingMore` off;
+ * `threshold` falls back to the virtualization `overscan`, so the fetch leads
+ * the viewport by about the windowed overscan. Returns `null` for no binding —
+ * the body then wires no end-detection and renders no indicator.
+ *
+ * @internal
+ */
+export function resolveInfiniteScroll(
+	infiniteScroll: GridInfiniteScroll | undefined,
+	overscan: number,
+): ResolvedInfiniteScroll | null {
+	if (!infiniteScroll) return null
+
+	return {
+		onLoadMore: infiniteScroll.onLoadMore,
+		hasMore: infiniteScroll.hasMore ?? true,
+		loadingMore: infiniteScroll.loadingMore ?? false,
+		threshold: infiniteScroll.threshold ?? overscan,
+		loadingIndicator: infiniteScroll.loadingIndicator,
 	}
 }
 
@@ -131,17 +176,20 @@ export function resolveTableProps(args: {
 /**
  * The grid's `aria-rowcount`: the server total + 1 when paginating with a known
  * total, the rendered count + 1 when unpaginated, or ARIA's `-1` "indeterminate"
- * sentinel for a server feed paginating by `pageCount` alone (no known total),
- * rather than misreporting the current page as the whole set. `extraHeaderRows`
- * adds any header rows beyond the column header — the column-group band row — so
- * the count spans both; the indeterminate sentinel is left untouched. @internal
+ * sentinel when the whole extent is unknown — a server feed paginating by
+ * `pageCount` alone, or `indeterminate` (infinite scroll with more rows to
+ * load) — rather than misreporting the loaded window as the whole set.
+ * `extraHeaderRows` adds any header rows beyond the column header — the
+ * column-group band row — so the count spans both; the indeterminate sentinel is
+ * left untouched. @internal
  */
 export function resolveAriaRowCount(
 	pagination: GridPaginationView | null,
 	renderedCount: number,
 	extraHeaderRows = 0,
+	indeterminate = false,
 ): number {
-	if (pagination && pagination.rowCount == null) return -1
+	if (indeterminate || (pagination && pagination.rowCount == null)) return -1
 
 	return (pagination?.rowCount ?? renderedCount) + 1 + extraHeaderRows
 }

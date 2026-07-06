@@ -263,6 +263,27 @@ describe('BarChart', () => {
 		expect(item?.className).toContain('cursor-pointer')
 	})
 
+	it('renders a lone forced-on legend entry as a static chip, not a switch', () => {
+		// One series defaults the legend off; force it on. With nothing to switch
+		// against, the entry drops the button — no toggle, no Tab stop — and the
+		// container drops its switchboard role.
+		const { container } = renderUI(
+			chart({ series: [{ xKey: 'quarter', yKey: 'revenue', yName: 'Revenue' }], legend: true }),
+		)
+
+		const item = bySlot(container, 'chart-legend-item')
+
+		expect(item?.textContent).toBe('Revenue')
+
+		expect(item?.tagName).toBe('SPAN')
+
+		expect(item).not.toHaveAttribute('aria-pressed')
+
+		expect(item).not.toHaveAttribute('tabindex')
+
+		expect(bySlot(container, 'chart-legend')).not.toHaveAttribute('role')
+	})
+
 	it('roves legend focus with the arrow keys as one tab stop, clearing on Escape', async () => {
 		const { container } = renderUI(chart())
 

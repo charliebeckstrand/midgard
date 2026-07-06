@@ -45,6 +45,16 @@ export const AREA_FILL_OPACITY = 0.16
 /** Estimated glyph advance of a `text-xs` tabular digit, for the y-gutter estimate. @internal */
 export const TICK_CHAR_WIDTH = 7.2
 
+/**
+ * Estimated glyph advance of a proportional category label's character, for the
+ * y-gutter estimate when band labels — not tabular value ticks — line it (the
+ * heatmap's rows). Wider than {@link TICK_CHAR_WIDTH}: category labels are
+ * proportionally set and often capital-initial, so a tabular-digit width
+ * under-reserves the gutter and the widest label (a leading `M` or `W`) crosses
+ * the frame's left edge and clips. @internal
+ */
+export const LABEL_CHAR_WIDTH = 9
+
 /** Air between the y tick labels and the plot edge. @internal */
 export const GUTTER_GAP = 8
 
@@ -67,6 +77,24 @@ export const BAND_LABEL_HEIGHT = 16
 /** Air above the plot so the top tick label and markers stay inside the frame. @internal */
 export const PLOT_TOP_PAD = 8
 
+/** Band a value-axis title adds to its gutter — one `text-xs` line box plus a breath of air. @internal */
+export const AXIS_TITLE_BAND = 16
+
+/** Air between a value-axis title and the tick labels it sits beside, so the two never crowd. @internal */
+export const AXIS_TITLE_GAP = 8
+
+/** Smallest bubble diameter: never under the marker size, so the least point stays legible. @internal */
+export const BUBBLE_MIN_DIAMETER = 8
+
+/** Largest bubble diameter: roomy enough to read, small enough that bubbles rarely swallow the plot. @internal */
+export const BUBBLE_MAX_DIAMETER = 28
+
+/** Sized bubbles fill translucently so overlapping points stay severally readable. @internal */
+export const BUBBLE_FILL_OPACITY = 0.8
+
+/** Air around a scatter point that still counts as pointing at it. @internal */
+export const SCATTER_HIT_SLACK = 3
+
 /** Reference-rule stroke width: firm enough to read cleanly over the marks it crosses. @internal */
 export const REFERENCE_STROKE_WIDTH = 2
 
@@ -75,31 +103,3 @@ export const REFERENCE_DASH = '6 4'
 
 /** Transparent stroke width making the reference rule an easy hover target. @internal */
 export const REFERENCE_HIT_WIDTH = 32
-
-// Motion timings mirror the Sparkline's (module-private there), so charts and
-// sparklines animating side by side read as one family.
-
-/** Line-draw stroke reveal (`pathLength` 0 → 1). @internal */
-export const LINE_DRAW = { duration: 0.7, ease: 'easeInOut' } as const
-
-/** Area wash fade, trailing the line so it fills in as the stroke crosses it. @internal */
-export const AREA_FADE = { duration: 0.5, delay: 0.15 } as const
-
-/** Point-marker pop, held until the line has finished drawing. @internal */
-export const POINT_POP = { duration: 0.25, delay: LINE_DRAW.duration } as const
-
-/** Per-bar grow from the zero baseline. @internal */
-export const BAR_GROW = { duration: 0.4, ease: 'easeOut' } as const
-
-/** Delay step between adjacent bar groups, so they rise in sequence. @internal */
-export const BAR_STAGGER = 0.05
-
-/**
- * The pie's reveal: the disc wipes in clockwise from the top (`pathLength`
- * 0 → 1 on a masking stroke), so the pie draws itself around its angular axis
- * the way the line draws itself along x. @internal
- */
-export const SLICE_SWEEP = { duration: 0.8, ease: 'easeInOut' } as const
-
-/** Label fade-in as the sweep passes its slice. @internal */
-export const SLICE_FADE = { duration: 0.3, ease: 'easeOut' } as const

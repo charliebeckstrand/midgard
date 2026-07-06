@@ -145,20 +145,29 @@ export function ChartFrame({
 		[pointed],
 	)
 
-	// Arrow-key navigation over the value points, driving the same hover the
-	// pointer does — a tab stop only where a readout can answer it.
+	const [pointerReference, setPointerReference] = useState(false)
+
+	const [activeReference, setActiveReference] = useState<number | null>(null)
+
+	// Arrow-key navigation over the value points and reference lines, driving the
+	// same hover the pointer does — a tab stop only where a readout can answer it.
 	const keyboard = useChartKeyboard(
 		focus,
 		orientation ?? 'vertical',
 		tooltip && readout !== null,
 		hover.set,
+		setActiveReference,
 	)
 
-	const [referenceActive, setReferenceActive] = useState(false)
-
+	// The marks recede when either input emphasises a reference: the pointer over a
+	// rule, or the keyboard cursor parked on one.
 	const emphasis = useMemo<ChartEmphasis>(
-		() => ({ referenceActive, setReferenceActive }),
-		[referenceActive],
+		() => ({
+			referenceActive: pointerReference || activeReference !== null,
+			setReferenceActive: setPointerReference,
+			activeReference,
+		}),
+		[pointerReference, activeReference],
 	)
 
 	// The SVG fills its box through the viewBox rather than pixel dimensions, so

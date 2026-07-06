@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
 import { TooltipContext } from '../../components/tooltip/context'
 import { notifyOverlaySignal } from '../../primitives/overlay'
-import { act, bySlot, noop, renderUI, screen, userEvent } from '../helpers'
+import { act, bySlot, noop, renderUI, screen, userEvent, waitFor } from '../helpers'
 
 function makeContext(overrides: { open?: boolean; interactive?: boolean } = {}) {
 	return {
@@ -182,6 +182,43 @@ describe('Tooltip', () => {
 		expect(panel).toHaveAttribute('role', 'tooltip')
 
 		expect(trigger.getAttribute('aria-describedby')).toBe(panel.getAttribute('id'))
+	})
+
+	it('holds open while forceOpen is set, then hands back to the interactions', async () => {
+		function tip(forceOpen: boolean) {
+			return (
+				<Tooltip forceOpen={forceOpen}>
+					<TooltipTrigger>
+						<button type="button">Anchor</button>
+					</TooltipTrigger>
+					<TooltipContent>Tooltip text</TooltipContent>
+				</Tooltip>
+			)
+		}
+
+		const { rerender } = renderUI(tip(true))
+
+		// Open with no hover, focus, or click — the reveal is programmatic.
+		expect(screen.getByText('Tooltip text')).toBeInTheDocument()
+
+		// Releasing it hands control back to the idle interactions, so it closes.
+		rerender(tip(false))
+
+		await waitFor(() => expect(screen.queryByText('Tooltip text')).not.toBeInTheDocument())
+	})
+
+	it('yields forceOpen to enabled=false', () => {
+		renderUI(
+			<Tooltip forceOpen enabled={false}>
+				<TooltipTrigger>
+					<button type="button">Anchor</button>
+				</TooltipTrigger>
+				<TooltipContent>Tooltip text</TooltipContent>
+			</Tooltip>,
+		)
+
+		// A suppressed tooltip stays shut even when forced.
+		expect(screen.queryByText('Tooltip text')).not.toBeInTheDocument()
 	})
 })
 

@@ -14,7 +14,7 @@ import { useChartTexture } from '../chart-pattern-defs'
 import { ChartReferenceLines, ChartReferenceList } from '../chart-reference-lines'
 import type { CartesianChartProps } from '../chart-schema'
 import { snapTargets } from '../chart-snap'
-import { useChartCartesian } from '../use-chart-cartesian'
+import { barProjection, drawnSeries, useChartCartesian } from '../use-chart-cartesian'
 import { cartesianFocus } from '../use-chart-keyboard'
 import { barMarks, stackedBarMarks } from './bar-chart-geometry'
 
@@ -58,7 +58,8 @@ export type BarChartProps<T> = CartesianChartProps<T> & {
  * column on the summed value axis instead of grouping them side by side. Focus
  * the plot to drive the crosshair and tooltip by keyboard — the band-axis
  * arrows step categories, the value-axis arrows cycle each category's series
- * values, transposed with the orientation.
+ * values, transposed with the orientation. A reference line joins that
+ * value-axis roving, receding the marks when the cursor reaches it.
  * @example
  * ```tsx
  * <BarChart
@@ -89,6 +90,8 @@ export function BarChart<T>({
 	texture = false,
 	min,
 	max,
+	leftAxis,
+	rightAxis,
 	reference,
 	xAxis,
 	formatValue,
@@ -107,6 +110,8 @@ export function BarChart<T>({
 			legend,
 			min,
 			max,
+			leftAxis,
+			rightAxis,
 			reference,
 			xAxis,
 			formatValue,
@@ -114,18 +119,26 @@ export function BarChart<T>({
 		{ zeroBaseline: true, swatch: () => 'rect', orientation, stack: stacked },
 	)
 
-	const seriesValues = chart.visible.map((meta) => meta.values)
+	// Each visible series draws through its own axis's scale and grows from its
+	// own baseline; a series whose scale never resolved takes no marks.
+	const drawn = drawnSeries(chart, stacked)
 
-	const marks = !chart.yScale
-		? []
-		: stacked
-			? stackedBarMarks(seriesValues, chart.band, chart.yScale.map, chart.orientation)
-			: barMarks(seriesValues, chart.band, chart.yScale.map, chart.baseline, chart.orientation)
+	const seriesValues = drawn.map((entry) => entry.meta.values)
 
-	const paints = chart.visible.map((meta) => meta.paint)
+	const projection = barProjection(drawn, chart.baseline)
 
-	const dimmed = chart.visible.map(
-		(meta) => chart.emphasis !== null && meta.index !== chart.emphasis,
+	const stackScale = drawn[0]?.scale
+
+	const marks = stacked
+		? stackScale
+			? stackedBarMarks(seriesValues, chart.band, stackScale.map, chart.orientation)
+			: []
+		: barMarks(seriesValues, chart.band, projection.map, projection.baseline, chart.orientation)
+
+	const paints = drawn.map((entry) => entry.meta.paint)
+
+	const dimmed = drawn.map(
+		(entry) => chart.emphasis !== null && entry.meta.index !== chart.emphasis,
 	)
 
 	const tex = useChartTexture(
@@ -133,7 +146,7 @@ export function BarChart<T>({
 		chart.visible.map((meta) => meta.slot),
 	)
 
-	const fills = chart.visible.map((meta) => tex.fillFor(meta.slot))
+	const fills = drawn.map((entry) => tex.fillFor(entry.meta.slot))
 
 	const marksNode = animate ? (
 		<AnimatedChartBarMarks
@@ -168,6 +181,7 @@ export function BarChart<T>({
 				chart.legendItems && (
 					<ChartLegend
 						items={chart.legendItems}
+						references={chart.referenceItems}
 						hidden={chart.hidden}
 						onToggle={chart.toggleSeries}
 						onFocus={chart.setEmphasis}
@@ -180,10 +194,15 @@ export function BarChart<T>({
 			readout={chart.readout}
 			tooltip={tooltip}
 			snap={snapTargets(rails, chart.bandPositions, chart.snapPoints)}
-			focus={cartesianFocus(chart.bandPositions, chart.snapPoints, chart.orientation)}
+			focus={cartesianFocus(
+				chart.bandPositions,
+				chart.snapPoints,
+				chart.orientation,
+				chart.referencePositions,
+			)}
 			orientation={chart.orientation}
 			className={className}
-			annotations={<ChartReferenceList reference={reference} format={formatValue} />}
+			annotations={<ChartReferenceList reference={reference} format={chart.formatAxisValue} />}
 		>
 			{tex.defs}
 
@@ -192,11 +211,15 @@ export function BarChart<T>({
 				plot={chart.plot}
 				valueTicks={chart.yTicks}
 				hasScale={chart.yScale !== null}
+				rightTicks={chart.rightTicks}
+				hasRightScale={chart.rightScale !== null}
 				categoryTicks={chart.xTicks}
 				hasData={data.length > 0}
 				baseline={chart.baseline}
 				axes={axes}
 				gridLines={gridLines}
+				gridPositions={chart.gridPositions}
+				titles={chart.axisTitles}
 			/>
 
 			<ChartMarksLayer animate={animate}>{marksNode}</ChartMarksLayer>
@@ -225,9 +248,11 @@ export function BarChart<T>({
 			<ChartReferenceLines
 				plot={chart.plot}
 				scale={chart.yScale}
+				rightScale={chart.rightScale}
 				reference={reference}
 				orientation={chart.orientation}
-				format={formatValue}
+				format={chart.formatAxisValue}
+				animate={animate}
 			/>
 		</ChartFrame>
 	)

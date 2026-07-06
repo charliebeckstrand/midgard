@@ -6,11 +6,12 @@ import { cn } from '../../core'
 import { type FrameSizing, usePlotFrame } from '../../hooks'
 import { type ChartSeriesColor, k } from '../../recipes/kata/chart'
 import { formatPercent } from '../../utilities'
-import { MARK_GAP, SLICE_FADE, SLICE_SWEEP, TICK_CHAR_WIDTH } from './chart-constants'
+import { MARK_GAP, TICK_CHAR_WIDTH } from './chart-constants'
 import { ChartFrame } from './chart-frame'
 import { type ChartAspectRatio, chartFrameSizing } from './chart-layout'
 import { ChartLegend, type ChartLegendItem } from './chart-legend'
 import { ChartMarksLayer } from './chart-marks-layer'
+import { SLICE_FADE, SLICE_SWEEP } from './chart-motion'
 import { textureClass, textureStyle, useChartTexture } from './chart-pattern-defs'
 import type { ChartBaseProps, PieChartSeries } from './chart-schema'
 import { formatChartValue, type SlotPaint, seriesValues } from './chart-series'
@@ -485,6 +486,7 @@ function pieLegendItems(
 		const share = value != null && value > 0 && total > 0 ? formatPercent(value / total) : '—'
 
 		return {
+			index,
 			label: entry,
 			swatchClass: paints[index]?.text.join(' ') ?? '',
 			swatch: 'rect' as const,

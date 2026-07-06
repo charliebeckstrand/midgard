@@ -7,6 +7,7 @@ import { type Cell, flexRender, type Table } from '@tanstack/react-table'
 import { GripVertical } from 'lucide-react'
 import {
 	type CSSProperties,
+	Fragment,
 	type HTMLAttributes,
 	memo,
 	type ReactElement,
@@ -21,6 +22,7 @@ import { TableCell, TableRow } from '../../components/table'
 import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/grid'
 import { type CellTooltip, GridCellContent } from './grid-cell-content'
+import { GridDetailRow, GridExpandToggle } from './grid-detail-row'
 import { isFrozen } from './grid-pin-overrides'
 import { pinnedClassName, pinnedOffsetStyle } from './grid-pinning'
 import { columnShiftStyle, GridReorderContext } from './grid-reorder'
@@ -95,6 +97,18 @@ export type GridRowsProps<T> = {
 	gridSemantics: boolean
 	/** Global row-index base added to each rendered row's index (the page offset under pagination, else 0). */
 	rowIndexOffset: number
+	/**
+	 * Master-detail wiring, or `null` when the grid isn't expandable: the
+	 * expanded-key set, the per-row expandability predicate, the stable toggle,
+	 * and the detail renderer. {@link renderGridRow} reads it to drive each
+	 * expander cell and to append the detail panel row.
+	 */
+	expansion?: {
+		expanded: Set<string | number>
+		rowExpandable: (row: T) => boolean
+		toggle: (key: string | number) => void
+		render: (row: T) => ReactNode
+	} | null
 }
 
 /**
@@ -113,6 +127,12 @@ export function renderGridRow<T>(
 	// `rowKeys` is built parallel to `rows` (see `Grid`), so the index is always present.
 	const key = props.rowKeys[dataRowIndex] as string | number
 
+	// Master-detail state for this row: whether it may expand and whether it is
+	// open. Both flow to the row as primitives so the memoized row still holds.
+	const expandable = props.expansion?.rowExpandable(row) ?? false
+
+	const expanded = expandable && (props.expansion?.expanded.has(key) ?? false)
+
 	const rowProps = {
 		cells: props.table.getRow(String(key)).getVisibleCells(),
 		row,
@@ -130,14 +150,30 @@ export function renderGridRow<T>(
 		pinning: props.pinning,
 		dataRowIndex,
 		rowIndex,
+		expanded,
+		rowExpandable: expandable,
+		toggleExpand: props.expansion?.toggle,
 	} satisfies GridRowProps<T>
 
 	// A row-reorderable grid renders each row as a vertical dnd-kit sortable; the
 	// plain memoized row otherwise (its drag-handle cell, if any, stays inert).
-	return props.rowReorderActive ? (
+	const rowNode = props.rowReorderActive ? (
 		<GridReorderableRow<T> key={key} {...rowProps} />
 	) : (
 		<GridRow<T> key={key} {...rowProps} />
+	)
+
+	// An expandable grid follows each row with its master-detail panel row, which
+	// stays mounted and reveals open/closed from `expanded` (see `GridDetailRow`).
+	if (!props.expansion) return rowNode
+
+	return (
+		<Fragment key={key}>
+			{rowNode}
+			<GridDetailRow rowKey={key} colSpan={props.visibleColumns.length} expanded={expanded}>
+				{props.expansion.render(row)}
+			</GridDetailRow>
+		</Fragment>
 	)
 }
 
@@ -221,6 +257,20 @@ type GridRowProps<T> = {
 	 * cell (if any) then renders an inert grip. @internal
 	 */
 	sortable?: GridRowSortable
+	/**
+	 * This row's master-detail open state, read by an {@link GridColumn.expander}
+	 * cell's chevron. @defaultValue false
+	 */
+	expanded?: boolean
+	/**
+	 * Whether this row may expand — a grid with an `expandable` binding and a row
+	 * the binding accepts. An expander cell on a row this rejects stays a quiet
+	 * rail. Passed as a primitive (not an object) so the memoized row holds.
+	 * @defaultValue false
+	 */
+	rowExpandable?: boolean
+	/** Stable master-detail toggle from the expansion hook; safe through `memo`. @internal */
+	toggleExpand?: (key: string | number) => void
 }
 
 /**
@@ -262,6 +312,9 @@ function GridRowImpl<T>({
 	dataRowIndex,
 	pinning,
 	sortable,
+	expanded = false,
+	rowExpandable = false,
+	toggleExpand,
 }: GridRowProps<T>) {
 	return (
 		<TableRow
@@ -351,6 +404,27 @@ function GridRowImpl<T>({
 								onChange={() => toggleRow(rowKey)}
 								aria-label={`Select ${rowLabel ?? `row ${rowKey}`}`}
 							/>
+						</TableCell>
+					)
+				}
+
+				if (col.expander) {
+					return (
+						<TableCell
+							key={col.id}
+							aria-colindex={colIndex}
+							className={cn(k.expanderCell, pinnedClassName(pinning, col.id), col.className)}
+							style={pinnedOffsetStyle(pinning, col.id)}
+						>
+							{toggleExpand && (
+								<GridExpandToggle
+									expanded={expanded}
+									expandable={rowExpandable}
+									rowKey={rowKey}
+									rowLabel={rowLabel}
+									toggle={toggleExpand}
+								/>
+							)}
 						</TableCell>
 					)
 				}

@@ -27,10 +27,18 @@ const group = defineRecipe({
 	defaults: { orientation: 'horizontal' },
 })
 
+/**
+ * Underline list drawing the baseline rail (`border-b` / `border-l`) the tabs
+ * sit on. Horizontal sizes to `max-content` (never below `100%`) so the rail
+ * spans the full scroll width: a block-level flex box otherwise fills only the
+ * viewport, clipping the rail there and stranding overflowed tabs above bare
+ * space. Vertical needs no counterpart — an auto-height column already grows to
+ * its content, so `border-l` runs the full length of every stacked tab.
+ */
 const list = defineRecipe({
 	base: ['flex', ...border.subtleColor],
 	orientation: {
-		horizontal: ['border-b'],
+		horizontal: ['border-b', 'w-max', 'min-w-full'],
 		vertical: ['flex-col', 'border-l'],
 	},
 	defaults: { orientation: 'horizontal' },
@@ -67,6 +75,7 @@ const tab = defineRecipe({
 		focus.indicator,
 		...disabled,
 		'outline-none',
+		'whitespace-nowrap',
 		...cursor,
 		'after:absolute after:rounded-full',
 		'after:bg-transparent',

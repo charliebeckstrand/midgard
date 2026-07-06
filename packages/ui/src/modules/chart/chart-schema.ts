@@ -16,6 +16,46 @@ import type { ChartAspectRatio } from './chart-layout'
 export type DataKey<T> = keyof T & string
 
 /**
+ * Which value axis a series or reference line reads against: the primary
+ * `'left'` axis or the secondary `'right'` one. The names are identities, not
+ * geometry — under `orientation="horizontal"` the transpose puts the primary
+ * value axis on the bottom and the secondary on top, and the binding reads the
+ * same either way.
+ */
+export type ChartValueAxisSide = 'left' | 'right'
+
+/**
+ * One value axis's own configuration, for a cartesian chart's `leftAxis` /
+ * `rightAxis` props: an independent domain, tick formatter, title, and
+ * grid-line participation. Two measures of different scale — a count against a
+ * currency, a rate against a weight — each read their own axis instead of
+ * sharing one domain.
+ */
+export type ChartValueAxis = {
+	/** Domain floor; defaults to this axis's data (and zero on a bar-bearing chart). */
+	min?: number
+	/** Domain ceiling; defaults to this axis's data maximum. */
+	max?: number
+	/**
+	 * Formats this axis's ticks and its series' tooltip, label, and data-table
+	 * values — a currency for the left, a percent for the right.
+	 * @defaultValue the chart's `formatValue`
+	 */
+	format?: (value: number) => string
+	/** A short title drawn along the axis, naming the measure it scales. */
+	title?: string
+	/**
+	 * Draw this axis's ticks as the chart's gridlines. One axis should carry
+	 * them — two independent tick sets rarely align, and doubled hairlines read
+	 * as noise — so the left axis defaults on and the right defaults off,
+	 * standing in only when no left-bound series resolves a scale. The chart's
+	 * `gridLines` switch still gates the whole layer.
+	 * @defaultValue `true` for the left axis, `false` for the right
+	 */
+	gridLines?: boolean
+}
+
+/**
  * One plotted series: the fields it reads and how the legend and tooltip
  * name it.
  *
@@ -47,6 +87,15 @@ export type ChartSeries<T> = {
 	 * toggle.
 	 */
 	color?: ChartSeriesColor | (string & {})
+	/**
+	 * The value axis this series reads against. `'right'` binds it to the
+	 * secondary axis — its own domain, ticks, and formatter via the chart's
+	 * `rightAxis` prop — so a second measure plots at its natural scale beside
+	 * the first. A stacked chart reads every series on one axis: the side they
+	 * all agree on, else the left.
+	 * @defaultValue 'left'
+	 */
+	axis?: ChartValueAxisSide
 }
 
 /**
@@ -62,9 +111,67 @@ export type ComboChartSeries<T> = ChartSeries<T> & {
 /**
  * The one series a pie or donut sweeps: `xKey` names each slice, `yKey` holds
  * its positive share. No colour override — slice colours follow the
- * categories, not the series.
+ * categories, not the series — and no axis binding, since a pie has none.
  */
-export type PieChartSeries<T> = Omit<ChartSeries<T>, 'color'>
+export type PieChartSeries<T> = Omit<ChartSeries<T>, 'color' | 'axis'>
+
+/**
+ * One scatter series: numeric fields on both axes, each row one point. Unlike
+ * the band-axis charts the x field is read as a number and positioned on a
+ * linear scale, so rows need no shared category set, arrive in any order, and
+ * may repeat an x value. An optional `sizeKey` adds the bubble encoding.
+ *
+ * @remarks Both fields are read as `Number(datum[key])`; a non-finite result
+ * on either drops the point — never the scale — so agent-generated or
+ * otherwise ragged datasets degrade to the points that parse.
+ */
+export type ScatterChartSeries<T> = {
+	/** The field holding each point's numeric x position. */
+	xKey: DataKey<T>
+	/** The field holding each point's numeric y value. */
+	yKey: DataKey<T>
+	/**
+	 * Legend and tooltip name.
+	 * @defaultValue the `yKey` field name
+	 */
+	yName?: string
+	/**
+	 * Named mark colour override. Defaults to the categorical slot palette in
+	 * fixed order, so a series keeps its colour when siblings toggle.
+	 */
+	color?: ChartSeriesColor
+	/**
+	 * The field sizing each point — the bubble encoding. Sizes scale by area
+	 * (radii on a square root) between `size` and `maxSize` over this series'
+	 * own size extent; a non-finite size keeps the point at the smallest
+	 * diameter rather than dropping it.
+	 */
+	sizeKey?: DataKey<T>
+	/**
+	 * Tooltip and data-table name for the size measure.
+	 * @defaultValue the `sizeKey` field name
+	 */
+	sizeName?: string
+	/**
+	 * Smallest bubble diameter, in px.
+	 * @defaultValue 8
+	 */
+	size?: number
+	/**
+	 * Largest bubble diameter, in px.
+	 * @defaultValue 28
+	 */
+	maxSize?: number
+}
+
+/**
+ * A bubble series is a scatter series whose size encoding is required: every
+ * point carries the third measure `sizeKey` reads.
+ */
+export type BubbleChartSeries<T> = ScatterChartSeries<T> & {
+	/** The field sizing each point; the bubble chart's third measure. */
+	sizeKey: DataKey<T>
+}
 
 /**
  * Where a chart's legend sits around the plot: a centered row above or below
@@ -125,7 +232,11 @@ export type ResolvedCrosshair = Required<Crosshair>
 export type ChartReferenceLine = {
 	/** The domain value the line sits at, in the same units the series are read in. */
 	value: number
-	/** A short label drawn at the line's far end; omitted, the rule stands alone. */
+	/**
+	 * A short label naming the rule — carried in its hover tooltip and legend chip,
+	 * and drawn beside the rule at its far end once a chart's `labels.references` is
+	 * on. Omitted, the rule reads by its value alone.
+	 */
 	label?: string
 	/**
 	 * The rule's colour: a named palette slot (rendered through the CVD-safe slot
@@ -142,15 +253,22 @@ export type ChartReferenceLine = {
 	 * @defaultValue true
 	 */
 	dashed?: boolean
+	/**
+	 * The value axis the rule's `value` reads against. It folds into that
+	 * axis's domain and draws at that axis's projection, so a right-axis
+	 * threshold annotates the right-bound series rather than the left scale.
+	 * @defaultValue 'left'
+	 */
+	axis?: ChartValueAxisSide
 }
 
 /**
  * Selective value labels for a line-bearing chart: direct labels at the points
- * worth naming, so a reader gets the numbers without the tooltip. Both default
- * off; set either (or both). Labels measure first and never clip — an edge
- * label anchors inward — and overlaps resolve by priority, extremes over
- * endpoints, dropping the loser rather than stacking it. The full readout stays
- * in the tooltip and data table.
+ * worth naming — and, with `references`, beside each reference rule — so a reader
+ * gets the numbers without the tooltip. All default off; set any. Point labels
+ * measure first and never clip — an edge label anchors inward — and overlaps
+ * resolve by priority, extremes over endpoints, dropping the loser rather than
+ * stacking it. The full readout stays in the tooltip and data table.
  */
 export type ChartValueLabelConfig = {
 	/**
@@ -163,6 +281,16 @@ export type ChartValueLabelConfig = {
 	 * @defaultValue false
 	 */
 	extremes?: boolean
+	/**
+	 * Draw each reference line's value — prefixed by its label where it has one —
+	 * beside the rule at its far end, inked to match the rule. The standing
+	 * readout replaces the rule's hover tooltip: with it on, the rules shed their
+	 * pointer target and keyboard stop, since the label already reads what the
+	 * tooltip would. The visually-hidden reference list keeps the assistive-tech
+	 * parity either way.
+	 * @defaultValue false
+	 */
+	references?: boolean
 }
 
 /**
@@ -197,9 +325,11 @@ export type ChartBaseProps<T> = AccessibleName & {
 	/**
 	 * Show the legend. Defaults to on for two or more series (or slices) and off
 	 * for one — a single series is already named by the chart's accessible name.
-	 * A placement moves it: a centered row under the plot (`'bottom'`, the
-	 * default) or above it (`'top'`), or a column panel beside it (`'left'` /
-	 * `'right'`), side by side from `lg` and under the chart below that.
+	 * Forced on for a lone series (or slice), its single entry reads as a static
+	 * chip: with nothing to switch against it can't toggle or emphasise. A
+	 * placement moves it: a centered row under the plot (`'bottom'`, the default)
+	 * or above it (`'top'`), or a column panel beside it (`'left'` / `'right'`),
+	 * side by side from `lg` and under the chart below that.
 	 */
 	legend?: boolean | ChartLegendPlacement
 	/**
@@ -208,7 +338,8 @@ export type ChartBaseProps<T> = AccessibleName & {
 	 */
 	tooltip?: boolean
 	/**
-	 * Animate the marks in on mount with Framer Motion, honouring
+	 * Animate the marks in on mount with Framer Motion — and, where present, the
+	 * reference rules rising along the value axis to their values — honouring
 	 * `prefers-reduced-motion` through the `ReducedMotion` primitive. Off by
 	 * default — a static dashboard of charts stays a plain-SVG tree with no
 	 * motion runtime work.
@@ -264,10 +395,27 @@ export type CartesianFrameProps = {
 	/** Value-domain ceiling; defaults to the data maximum. */
 	max?: number
 	/**
+	 * The primary (left) value axis's own configuration — domain pins, tick
+	 * formatter, title, gridline participation. Its `min` / `max` win over the
+	 * top-level pins and its `format` over `formatValue`, so a dual-axis chart
+	 * reads both axes from one prop pair.
+	 */
+	leftAxis?: ChartValueAxis
+	/**
+	 * The secondary (right) value axis: an independent scale for the series
+	 * bound to it with `axis: 'right'`. The axis appears once a right-bound
+	 * series is visible, a reference line reads against it, or its domain is
+	 * pinned here; with none of those it stays off and the chart is the
+	 * single-axis default. Under `orientation="horizontal"` the transpose
+	 * draws it along the top.
+	 */
+	rightAxis?: ChartValueAxis
+	/**
 	 * Reference lines drawn across the plot at fixed values — targets, thresholds,
 	 * or averages the marks read against. Each value folds into the domain so an
 	 * off-data line stays on-frame, and the rules draw over the marks so a mark
-	 * crossing one stays legible.
+	 * crossing one stays legible. Where the legend shows, each rule also names
+	 * itself in it as a static identity chip.
 	 */
 	reference?: ChartReferenceLine[]
 	/**

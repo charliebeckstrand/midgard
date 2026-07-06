@@ -10,11 +10,13 @@ export {
 	Grid,
 	type GridColumnManagerConfig,
 	type GridColumnOrder,
+	type GridExpandable,
 	type GridFooter,
 	type GridFooterStats,
 	type GridGroupBy,
 	type GridGroupHeaderContext,
 	type GridHeader,
+	type GridInfiniteScroll,
 	type GridProps,
 	type GridRowReorder,
 	type GridSelection,
@@ -33,6 +35,9 @@ export type {
 } from './grid-editing-types'
 export type { GridColumnGroup, GridColumnGroups } from './grid-group-types'
 export type {
+	GridAggCellContext,
+	GridAggFunc,
+	GridAggFuncName,
 	GridCellMenu,
 	GridCellMenuContext,
 	GridColumn,

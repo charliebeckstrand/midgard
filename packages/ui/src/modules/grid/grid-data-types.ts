@@ -25,6 +25,64 @@ import type {
 export type GridVirtualize = boolean | { estimateSize?: number; overscan?: number }
 
 /**
+ * Infinite-scroll binding for {@link GridProps.infiniteScroll}: as the
+ * virtualized window nears the end of the loaded rows, the grid calls
+ * `onLoadMore` so the consumer can grow `rows` with the next batch. Layers on
+ * {@link GridProps.virtualize} (which supplies the windowed scroll container),
+ * and replaces the paged {@link GridProps.pagination} footer — the two are
+ * mutually exclusive.
+ *
+ * @remarks One binding, two data sources. A *local* set appends synchronously
+ * (leave `loadingMore` unset and gate on `hasMore`); a *server* set fetches the
+ * next page and appends it — hold `loadingMore` true while the request is in
+ * flight so the grid shows a trailing skeleton row and holds off re-requesting.
+ * In both, `hasMore` is the master gate: once `false`, `onLoadMore` never fires
+ * again and the indicator drops. While more rows may remain, the grid reports an
+ * indeterminate `aria-rowcount` rather than advertising the loaded count as the
+ * whole set, and its busy status announces each grown total as a batch settles.
+ *
+ * Seed the first page as `rows` — an empty `rows` shows the `empty` slot rather
+ * than auto-fetching (use {@link GridProps.loading} for the initial load); the
+ * grid grows the set from there as the scroll advances.
+ *
+ * @see {@link GridProps.infiniteScroll}
+ */
+export type GridInfiniteScroll = {
+	/**
+	 * Called when the scroll reaches within {@link GridInfiniteScroll.threshold}
+	 * rows of the loaded end and more rows remain, once per newly-loaded extent.
+	 * Append the next rows to your `rows` — a local slice, or a server fetch.
+	 */
+	onLoadMore: () => void
+	/**
+	 * Whether more rows remain beyond the loaded set. Once `false`, the grid stops
+	 * calling `onLoadMore` and drops the trailing indicator.
+	 * @defaultValue true
+	 */
+	hasMore?: boolean
+	/**
+	 * Whether a load is in flight. Suppresses re-requesting while the current
+	 * batch resolves and shows a trailing skeleton row; leave unset for a
+	 * synchronous local source, which appends without a pending state.
+	 * @defaultValue false
+	 */
+	loadingMore?: boolean
+	/**
+	 * How many rows from the end of the loaded set the scroll may come within
+	 * before `onLoadMore` fires, so the next batch is requested ahead of the
+	 * viewport reaching the last row.
+	 * @defaultValue The grid's virtualization `overscan`.
+	 */
+	threshold?: number
+	/**
+	 * Content for the trailing row shown while `loadingMore`, superseding the
+	 * default pulsing skeleton — e.g. a run of skeleton rows. Rendered in a cell
+	 * spanning every column.
+	 */
+	loadingIndicator?: ReactNode
+}
+
+/**
  * Controlled/uncontrolled sort binding for {@link GridProps.sort}: an ordered
  * list of sorted columns, highest priority first. A single sort is a one-item
  * list; the empty list is unsorted. A header Shift-click sorts by several
@@ -88,6 +146,35 @@ export type GridGroupBy = {
 	 * chrome around it stay.
 	 */
 	renderHeader?: (context: GridGroupHeaderContext) => ReactNode
+}
+
+/**
+ * Row expansion / master-detail binding for {@link GridProps.expandable}: a
+ * controllable set of expanded row keys plus the detail renderer. An expanded
+ * row reveals a full-width panel beneath it holding `render(row)` — an
+ * arbitrary React sub-component — over an auto-height CSS transition. Add an
+ * {@link GridColumn.expander} column for the disclosure chevron.
+ *
+ * @typeParam T - Shape of a single row.
+ */
+export type GridExpandable<T> = {
+	/** Controlled set of expanded row keys; pair with {@link GridExpandable.onValueChange}. */
+	value?: Set<string | number>
+	/** Initial expanded keys for the uncontrolled case. @defaultValue an empty set */
+	defaultValue?: Set<string | number>
+	/**
+	 * Fires with the next expanded set. Coalesced to a concrete set, never
+	 * `undefined` — matching the other grid bindings.
+	 */
+	onValueChange?: (expanded: Set<string | number>) => void
+	/** Renders the detail panel for an expanded row; the panel spans the full row width. */
+	render: (row: T) => ReactNode
+	/**
+	 * Whether a row can expand at all. A row this rejects shows no chevron and
+	 * never opens — for rows with nothing to detail.
+	 * @defaultValue every row expandable
+	 */
+	rowExpandable?: (row: T) => boolean
 }
 
 /**
@@ -340,6 +427,25 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 */
 	groupBy?: GridGroupBy
 
+	/**
+	 * Appends a total row under each group's leaves while {@link GridDataProps.groupBy}
+	 * is active, carrying every aggregating column's figure over that group's
+	 * rows (see {@link GridColumn.aggFunc}). The row collapses with its group —
+	 * whose header reads the same figures — and renders only once a visible
+	 * column aggregates. `'bottom'` names the placement.
+	 */
+	groupTotalRow?: 'bottom'
+
+	/**
+	 * Appends a grand-total row after the body, aggregating every column with an
+	 * {@link GridColumn.aggFunc} over the full filtered set — all pages under
+	 * client pagination, the flat leaf set under grouping, the supplied page
+	 * under server pagination (the grid holds nothing more). Works grouped or
+	 * flat, and renders only once a visible column aggregates. `'bottom'` names
+	 * the placement.
+	 */
+	grandTotalRow?: 'bottom'
+
 	selection?: GridSelection
 	columnOrder?: GridColumnOrder
 	columnManager?: GridColumnManagerConfig
@@ -456,6 +562,24 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * @defaultValue false
 	 */
 	reorder?: boolean
+
+	/**
+	 * Enables per-row master-detail: an expandable panel beneath each row
+	 * rendering an arbitrary React sub-component. Pass a {@link GridExpandable}
+	 * binding with the detail `render`, and add an {@link GridColumn.expander}
+	 * column for the disclosure chevron. The panel spans the full row width and
+	 * opens over an auto-height transition.
+	 *
+	 * Renders in the plain flat body, so — like grouping — it stands down
+	 * {@link GridProps.virtualize | virtualization} (detail rows break the
+	 * uniform row height a window assumes), the {@link GridProps.navigable |
+	 * cursor}, and row {@link GridProps.rowReorder | reorder} while active;
+	 * sorting, filtering, search, selection, pagination, resizing, and pinning
+	 * still apply.
+	 *
+	 * @see {@link GridExpandable}
+	 */
+	expandable?: GridExpandable<T>
 
 	/**
 	 * Enables drag-reordering of rows. Add a {@link GridColumn.dragHandle} column
@@ -580,6 +704,20 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * virtualization at that scale.
 	 */
 	virtualize?: GridVirtualize
+
+	/**
+	 * Infinite-scroll binding: as the {@link GridDataProps.virtualize | virtualized}
+	 * window nears the end of the loaded rows, the grid calls `onLoadMore` so you
+	 * can append the next batch to `rows` — a local slice, or a server fetch —
+	 * showing a trailing pulsing skeleton row while `loadingMore`. Requires
+	 * `virtualize` (and thus `maxHeight`), which supplies the windowed scroll
+	 * container, and replaces the paged {@link GridDataProps.pagination} footer;
+	 * passing both throws. Stands down with virtualization under
+	 * {@link GridDataProps.groupBy | grouping}.
+	 *
+	 * @see {@link GridInfiniteScroll}
+	 */
+	infiniteScroll?: GridInfiniteScroll
 
 	/**
 	 * Props spread onto the underlying `<table>` element. Use to attach a ref,

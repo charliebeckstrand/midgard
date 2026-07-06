@@ -1,7 +1,7 @@
 'use client'
 
 import { barMarks } from '../bar-chart/bar-chart-geometry'
-import { ChartAxis } from '../chart-axis'
+import { ChartAxis, ChartAxisTitles } from '../chart-axis'
 import { AnimatedChartBarMarks, ChartBarMarks } from '../chart-bar-marks'
 import { MARK_GAP } from '../chart-constants'
 import { ChartCrosshair, resolveCrosshair } from '../chart-crosshair'
@@ -24,7 +24,12 @@ import type { SeriesMeta } from '../chart-series'
 import { snapTargets } from '../chart-snap'
 import { ChartValueLabels, resolveValueLabels } from '../chart-value-labels'
 import { type LineInterpolation, lineGeometry } from '../line-chart/line-chart-geometry'
-import { useChartCartesian } from '../use-chart-cartesian'
+import {
+	barProjection,
+	type DrawnSeries,
+	drawnSeries,
+	useChartCartesian,
+} from '../use-chart-cartesian'
 import { cartesianFocus } from '../use-chart-keyboard'
 
 /**
@@ -56,27 +61,30 @@ export type ComboChartProps<T> = ChartBaseProps<T> &
 	}
 
 /**
- * A combined bar, line, and area chart on one shared value axis — never a
- * second one; two measures of different scale belong on two charts. Bars sit
- * at the back, the translucent area washes ride over them, and lines draw on
- * top; every series reads the zero-baseline domain, and the frame is the
- * cartesian standard: axes, gridlines, legend, crosshair tooltip, and the
- * visually-hidden data table.
+ * A combined bar, line, and area chart: one shared value axis by default, with
+ * a second on request — a series carrying `axis: 'right'` reads the secondary
+ * scale the `rightAxis` prop shapes, so a count plots beside a currency at its
+ * natural size. Bars sit at the back, the translucent area washes ride over
+ * them, and lines draw on top; every series reads a zero-baseline domain, and
+ * the frame is the cartesian standard: axes, gridlines, legend, crosshair
+ * tooltip, and the visually-hidden data table.
  *
  * @remarks Under `animate`, the bars rise, the area washes fade, and the lines
  * draw together — one synchronized reveal across the x and y motions. Focus the
  * plot to drive the crosshair and tooltip by keyboard — the band-axis arrows
- * step categories, the value-axis arrows cycle each category's series values.
+ * step categories, the value-axis arrows cycle each category's series values,
+ * both axes' points interleaved in screen order. A reference line joins that
+ * value-axis roving, receding the marks when the cursor reaches it.
  * @example
  * ```tsx
  * <ComboChart
- *   aria-label="Revenue, cost, and margin by quarter"
- *   data={quarters}
+ *   aria-label="Shipments and exception rate by week"
+ *   data={weeks}
  *   series={[
- *     { type: 'bar', xKey: 'quarter', yKey: 'revenue', yName: 'Revenue' },
- *     { type: 'area', xKey: 'quarter', yKey: 'cost', yName: 'Cost' },
- *     { type: 'line', xKey: 'quarter', yKey: 'margin', yName: 'Margin' },
+ *     { type: 'area', xKey: 'week', yKey: 'shipments', yName: 'Shipments' },
+ *     { type: 'line', xKey: 'week', yKey: 'exceptions', yName: 'Exceptions', axis: 'right' },
  *   ]}
+ *   rightAxis={{ title: 'Exceptions' }}
  * />
  * ```
  */
@@ -97,6 +105,8 @@ export function ComboChart<T>({
 	interpolation = 'linear',
 	min,
 	max,
+	leftAxis,
+	rightAxis,
 	reference,
 	xAxis,
 	texture = false,
@@ -117,6 +127,8 @@ export function ComboChart<T>({
 			legend,
 			min,
 			max,
+			leftAxis,
+			rightAxis,
 			reference,
 			xAxis,
 			formatValue,
@@ -127,65 +139,72 @@ export function ComboChart<T>({
 		},
 	)
 
-	const yScale = chart.yScale
-
 	const floor = chart.plot.y + chart.plot.height
 
 	const dim = (meta: SeriesMeta) => chart.emphasis !== null && meta.index !== chart.emphasis
 
+	// Each visible series draws through its own axis's scale; the mark kinds
+	// partition off the one drawn list so their indices stay aligned.
+	const drawn = drawnSeries(chart)
+
 	const pick = (type: ComboChartSeries<T>['type']) =>
-		chart.visible.filter((meta) => (series[meta.index]?.type ?? 'bar') === type)
+		drawn.filter((entry) => (series[entry.meta.index]?.type ?? 'bar') === type)
 
-	const barMetas = pick('bar')
+	const barEntries = pick('bar')
 
-	const lineMetas = pick('line')
+	const lineEntries = pick('line')
 
-	const areaMetas = pick('area')
+	const areaEntries = pick('area')
 
-	const bars = yScale
-		? barMarks(
-				barMetas.map((meta: SeriesMeta) => meta.values),
-				chart.band,
-				yScale.map,
-				chart.baseline,
-			)
-		: []
+	const projection = barProjection(barEntries, chart.baseline)
+
+	const bars = barMarks(
+		barEntries.map((entry) => entry.meta.values),
+		chart.band,
+		projection.map,
+		projection.baseline,
+	)
 
 	// Lines and areas share the polyline geometry; an area is a line that also
 	// fills down to the baseline.
-	const toSeries = (metas: SeriesMeta[]): ChartLineSeries[] =>
-		yScale
-			? metas.map((meta) => ({
-					label: meta.label,
-					paint: meta.paint,
-					geometry: lineGeometry(
-						meta.values,
-						meta.values.map((_, index) => chart.band.center(index)),
-						yScale.map,
-						floor,
-						interpolation,
-					),
-					markers: points,
-					dimmed: dim(meta),
-				}))
-			: []
+	const toSeries = (entries: DrawnSeries[]): ChartLineSeries[] =>
+		entries.map(({ meta, scale }) => ({
+			label: meta.label,
+			paint: meta.paint,
+			geometry: lineGeometry(
+				meta.values,
+				meta.values.map((_, index) => chart.band.center(index)),
+				scale.map,
+				floor,
+				interpolation,
+			),
+			markers: points,
+			dimmed: dim(meta),
+		}))
 
-	const lines = toSeries(lineMetas)
+	const lines = toSeries(lineEntries)
 
-	const areas = toSeries(areaMetas)
+	const areas = toSeries(areaEntries)
 
 	// Value labels ride the line and area series only — bars read against the axis.
+	const labelled = [...areaEntries, ...lineEntries]
+
 	const valueLabelItems = resolveValueLabels(
 		labels,
 		[...areas, ...lines],
-		[...areaMetas, ...lineMetas],
+		labelled.map(({ meta }) => meta),
 		chart.plot,
 		formatValue,
+		labelled.map(
+			({ meta }) =>
+				(value: number) =>
+					chart.formatAxisValue(value, meta.axis),
+		),
 	)
 
-	const barPaints = barMetas.map((meta) => meta.paint)
+	const barPaints = barEntries.map((entry) => entry.meta.paint)
 
-	const barDims = barMetas.map(dim)
+	const barDims = barEntries.map((entry) => dim(entry.meta))
 
 	// One tile set over every visible slot, so the bars and area washes both
 	// resolve their fill; the line series carry no fill and stay flat.
@@ -194,9 +213,9 @@ export function ComboChart<T>({
 		chart.visible.map((meta) => meta.slot),
 	)
 
-	const barFills = barMetas.map((meta) => tex.fillFor(meta.slot))
+	const barFills = barEntries.map((entry) => tex.fillFor(entry.meta.slot))
 
-	const areaFills = areaMetas.map((meta) => tex.fillFor(meta.slot))
+	const areaFills = areaEntries.map((entry) => tex.fillFor(entry.meta.slot))
 
 	// Stroke the line and area dots wherever bars sit behind them; with the bars
 	// hidden the curves stand alone and the dots need no stroke.
@@ -263,6 +282,7 @@ export function ComboChart<T>({
 				chart.legendItems && (
 					<ChartLegend
 						items={chart.legendItems}
+						references={chart.referenceItems}
 						hidden={chart.hidden}
 						onToggle={chart.toggleSeries}
 						onFocus={chart.setEmphasis}
@@ -275,21 +295,32 @@ export function ComboChart<T>({
 			readout={chart.readout}
 			tooltip={tooltip}
 			snap={snapTargets(rails, chart.bandPositions, chart.snapPoints)}
-			focus={cartesianFocus(chart.bandPositions, chart.snapPoints, chart.orientation)}
+			focus={cartesianFocus(
+				chart.bandPositions,
+				chart.snapPoints,
+				chart.orientation,
+				chart.referencePositions,
+			)}
 			className={className}
-			annotations={<ChartReferenceList reference={reference} format={formatValue} />}
+			annotations={<ChartReferenceList reference={reference} format={chart.formatAxisValue} />}
 		>
 			{tex.defs}
 
-			{gridLines && yScale && (
-				<ChartGridLines plot={chart.plot} ticks={chart.yTicks.map((tick) => tick.at)} />
+			{gridLines && chart.gridPositions.length > 0 && (
+				<ChartGridLines plot={chart.plot} ticks={chart.gridPositions} />
 			)}
 
-			{axes && yScale && <ChartAxis axis="y" plot={chart.plot} ticks={chart.yTicks} />}
+			{axes && chart.yScale && <ChartAxis axis="y" plot={chart.plot} ticks={chart.yTicks} />}
+
+			{axes && chart.rightScale && (
+				<ChartAxis axis="y" position="right" plot={chart.plot} ticks={chart.rightTicks} />
+			)}
 
 			{axes && data.length > 0 && (
 				<ChartAxis axis="x" plot={chart.plot} ticks={chart.xTicks} baseline={chart.baseline} />
 			)}
+
+			{axes && <ChartAxisTitles titles={chart.axisTitles} />}
 
 			{rails && (
 				<ChartCrosshair
@@ -329,9 +360,11 @@ export function ComboChart<T>({
 			{/* Last, over the hit area, so the rules win the pointer where they sit. */}
 			<ChartReferenceLines
 				plot={chart.plot}
-				scale={yScale}
+				scale={chart.yScale}
+				rightScale={chart.rightScale}
 				reference={reference}
-				format={formatValue}
+				format={chart.formatAxisValue}
+				animate={animate}
 			/>
 		</ChartFrame>
 	)

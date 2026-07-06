@@ -2,8 +2,9 @@
 
 import { motion } from 'motion/react'
 import { cn } from '../../core'
-import { POINT_POP, TICK_CHAR_WIDTH } from './chart-constants'
+import { TICK_CHAR_WIDTH } from './chart-constants'
 import type { PlotRect } from './chart-layout'
+import { POINT_POP } from './chart-motion'
 import { fillClass, formatChartValue, rawColor, type SeriesPaint } from './chart-series'
 
 /**
@@ -52,24 +53,29 @@ export type ValueLabelSeries = {
 	color?: string
 	/** Every finite point, in draw order. */
 	points: ValueLabelPoint[]
+	/** This series' own formatter — its axis's, on a dual-axis chart; the shared one when absent. */
+	format?: (value: number) => string
 }
 
 /**
  * Builds the label series from a line / area render list and its metas: each
- * series' rendered points paired with its values, inked to match its mark.
- * Keeps the charts' own bodies flat — they hand this to {@link resolveValueLabels}
- * as the deferred builder.
+ * series' rendered points paired with its values, inked to match its mark and —
+ * where `formats` is given — formatted by its own axis's formatter. Keeps the
+ * charts' own bodies flat — they hand this to {@link resolveValueLabels} as the
+ * deferred builder.
  *
  * @internal
  */
 export function lineLabelSeries(
 	list: { paint: SeriesPaint; geometry: { points: { x: number; y: number }[] } }[],
 	metas: { values: (number | null)[] }[],
+	formats?: ((value: number) => string)[],
 ): ValueLabelSeries[] {
 	return list.map((entry, index) => ({
 		fill: fillClass(entry.paint) ?? '',
 		color: rawColor(entry.paint),
 		points: labelPoints(metas[index]?.values ?? [], entry.geometry.points),
+		format: formats?.[index],
 	}))
 }
 
@@ -106,7 +112,10 @@ type Candidate = {
 	above: boolean
 	priority: number
 	fill: string
+	/** A raw series colour inked inline on the label's `fill`; unset for a slot. */
 	color?: string
+	/** The candidate's own formatter; the shared one when absent. */
+	format?: (value: number) => string
 }
 
 /** An axis-aligned box, for the overlap test. @internal */
@@ -144,6 +153,7 @@ function candidatesFor(
 				priority,
 				fill: series.fill,
 				color: series.color,
+				format: series.format,
 			})
 		}
 	}
@@ -178,7 +188,7 @@ function place(
 	plot: PlotRect,
 	format: (value: number) => string,
 ): { label: PlacedValueLabel; box: Box } {
-	const text = format(candidate.value)
+	const text = (candidate.format ?? format)(candidate.value)
 
 	const width = text.length * TICK_CHAR_WIDTH + 2 * PAD
 
@@ -257,11 +267,12 @@ export function resolveValueLabels(
 	metas: { values: (number | null)[] }[],
 	plot: PlotRect,
 	format: ((value: number) => string) | undefined,
+	formats?: ((value: number) => string)[],
 ): PlacedValueLabel[] {
 	if (!config?.endpoints && !config?.extremes) return []
 
 	return valueLabels({
-		series: lineLabelSeries(list, metas),
+		series: lineLabelSeries(list, metas, formats),
 		plot,
 		format: format ?? formatChartValue,
 		endpoints: config.endpoints ?? false,

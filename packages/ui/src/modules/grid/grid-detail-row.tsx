@@ -1,0 +1,108 @@
+'use client'
+
+import { ChevronRight } from 'lucide-react'
+import type { ReactNode } from 'react'
+import { Button } from '../../components/button'
+import { Icon } from '../../components/icon'
+import { cn, dataAttr } from '../../core'
+import { k } from '../../recipes/kata/grid'
+
+/** The DOM id of a row's detail panel, so the expander's `aria-controls` names it. @internal */
+export function detailPanelId(rowKey: string | number): string {
+	return `grid-detail-${rowKey}`
+}
+
+/** Props for {@link GridExpandToggle}. @internal */
+type GridExpandToggleProps = {
+	expanded: boolean
+	/** Whether this row can expand; a non-expandable row renders no toggle. */
+	expandable: boolean
+	rowKey: string | number
+	/** Human-readable row name for the toggle's label; falls back to the key. */
+	rowLabel?: string
+	toggle: (key: string | number) => void
+}
+
+/**
+ * The disclosure chevron in an {@link GridColumn.expander} cell: toggles the
+ * row's detail panel, carrying `aria-expanded` and `aria-controls` naming the
+ * panel so assistive tech ties the two — the master-detail analog of the group
+ * header's disclosure button. A row the binding marks non-expandable renders
+ * nothing, so the column stays a quiet rail for it.
+ *
+ * @internal
+ */
+export function GridExpandToggle({
+	expanded,
+	expandable,
+	rowKey,
+	rowLabel,
+	toggle,
+}: GridExpandToggleProps) {
+	if (!expandable) return null
+
+	const name = rowLabel ?? `row ${rowKey}`
+
+	return (
+		<Button
+			variant="bare"
+			onClick={() => toggle(rowKey)}
+			aria-expanded={expanded}
+			aria-controls={detailPanelId(rowKey)}
+			aria-label={`${expanded ? 'Collapse' : 'Expand'} details for ${name}`}
+			className="p-0"
+		>
+			{/* The rotate rides this span, not the Icon — Icon forwards no `data-*`,
+			    so the `data-[open]:rotate-90` variant needs its own carrier. */}
+			<span
+				data-slot="grid-detail-chevron"
+				data-open={dataAttr(expanded)}
+				className={cn(k.detail.chevron)}
+			>
+				<Icon icon={<ChevronRight />} />
+			</span>
+		</Button>
+	)
+}
+
+/** Props for {@link GridDetailRow}. @internal */
+type GridDetailRowProps = {
+	rowKey: string | number
+	/** Columns the panel spans — the full visible column count. */
+	colSpan: number
+	/** Whether the panel is open, driving its height reveal and AT visibility. */
+	expanded: boolean
+	/** The detail content for the row. */
+	children: ReactNode
+}
+
+/**
+ * A master-detail panel row: a full-width `<tr>` whose single cell nests the
+ * detail content in the same one-row CSS-grid reveal the group leaves ride
+ * (`1fr` ↔ `0fr`), so the panel grows and shrinks to its content height over a
+ * transition — reliable in a `<table>`, where a JS height tween on a `<td>` is
+ * not. It stays mounted whatever the expansion; a closed panel is `inert` and
+ * hidden from assistive tech, and its `id` ties back to the expander's
+ * `aria-controls`.
+ *
+ * @internal
+ */
+export function GridDetailRow({ rowKey, colSpan, expanded, children }: GridDetailRowProps) {
+	return (
+		<tr
+			data-detail-row={String(rowKey)}
+			aria-hidden={expanded ? undefined : true}
+			inert={!expanded}
+		>
+			<td colSpan={colSpan} style={{ padding: 0 }}>
+				<div className={cn(k.detail.reveal)} data-open={dataAttr(expanded)}>
+					<div className={cn(k.detail.revealClip)}>
+						<section id={detailPanelId(rowKey)} className={cn(k.detail.panel)}>
+							{children}
+						</section>
+					</div>
+				</div>
+			</td>
+		</tr>
+	)
+}

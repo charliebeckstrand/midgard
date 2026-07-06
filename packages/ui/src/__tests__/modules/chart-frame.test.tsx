@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
 	GUTTER_EDGE_PAD,
 	GUTTER_GAP,
+	LABEL_CHAR_WIDTH,
 	PLOT_TOP_PAD,
 	TICK_CHAR_WIDTH,
 	X_AXIS_HEIGHT,
@@ -28,7 +29,7 @@ function frame(width: number, extras?: Partial<Parameters<typeof ChartFrame>[0]>
 			reserve={null}
 			legend={
 				<ChartLegend
-					items={[{ label: 'Revenue', swatchClass: 'bg-blue-600', swatch: 'rect' }]}
+					items={[{ index: 0, label: 'Revenue', swatchClass: 'bg-blue-600', swatch: 'rect' }]}
 					hidden={new Set()}
 					onToggle={noop}
 					onFocus={noop}
@@ -113,6 +114,21 @@ describe('plotRect', () => {
 
 		expect(plot.height).toBe(240 - PLOT_TOP_PAD)
 	})
+
+	it('widens the gutter for proportional labels passed a wider char width', () => {
+		// Digit ticks size the gutter at TICK_CHAR_WIDTH; proportional category
+		// labels (the heatmap's rows) pass the wider LABEL_CHAR_WIDTH so a
+		// capital-initial label clears the frame edge instead of clipping.
+		const digits = plotRect(400, 240, true, ['Wed'])
+
+		const labels = plotRect(400, 240, true, ['Wed'], LABEL_CHAR_WIDTH)
+
+		expect(digits.x).toBe(Math.ceil(3 * TICK_CHAR_WIDTH) + GUTTER_GAP + GUTTER_EDGE_PAD)
+
+		expect(labels.x).toBe(Math.ceil(3 * LABEL_CHAR_WIDTH) + GUTTER_GAP + GUTTER_EDGE_PAD)
+
+		expect(labels.x).toBeGreaterThan(digits.x)
+	})
 })
 
 describe('chartFrameSizing', () => {
@@ -143,11 +159,10 @@ describe('cartesian layout', () => {
 		axes: true,
 		tickTarget: 4,
 		zeroBaseline: true,
-		domainValues: [0, 40, 80],
+		value: { domainValues: [0, 40, 80], format: (value) => String(value) },
 		categories: ['Q1', 'Q2'],
-		format: (value) => String(value),
 		count: 2,
-		visibleValues: [[40, 80]],
+		visibleValues: [{ values: [40, 80], side: 'left' }],
 	}
 
 	it('runs value up y and the band across x when vertical', () => {
@@ -188,9 +203,11 @@ describe('cartesian layout', () => {
 		const layout = horizontalLayout({
 			...input,
 			frameWidth: 480,
-			domainValues: [0, 4820, 6000],
+			value: {
+				domainValues: [0, 4820, 6000],
+				format: (value) => value.toLocaleString('en-US'),
+			},
 			categories: ['Search', 'Direct'],
-			format: (value) => value.toLocaleString('en-US'),
 		})
 
 		const halfLabel = (tick: { label: string }) => (tick.label.length * TICK_CHAR_WIDTH) / 2

@@ -1108,6 +1108,104 @@ describe('Grid', () => {
 		})
 	})
 
+	describe('infinite scroll', () => {
+		const manyRows: Row[] = Array.from({ length: 60 }, (_, i) => ({
+			name: `Person ${i}`,
+			age: i,
+		}))
+
+		it('throws when infiniteScroll is set without virtualize', () => {
+			expect(() =>
+				renderUI(
+					<Grid
+						columns={columns}
+						rows={manyRows}
+						getKey={getKey}
+						infiniteScroll={{ onLoadMore: vi.fn() }}
+					/>,
+				),
+			).toThrow(/requires `virtualize`/)
+		})
+
+		it('throws when combined with pagination', () => {
+			expect(() =>
+				renderUI(
+					<Grid
+						columns={columns}
+						rows={manyRows}
+						getKey={getKey}
+						virtualize
+						maxHeight="300px"
+						pagination={{ defaultValue: { pageIndex: 0, pageSize: 10 } }}
+						infiniteScroll={{ onLoadMore: vi.fn() }}
+					/>,
+				),
+			).toThrow(/either `pagination` or `infiniteScroll`/)
+		})
+
+		it('renders a trailing skeleton row while a batch loads', () => {
+			const { container } = renderUI(
+				<Grid
+					columns={columns}
+					rows={manyRows}
+					getKey={getKey}
+					virtualize
+					maxHeight="300px"
+					infiniteScroll={{ onLoadMore: vi.fn(), loadingMore: true }}
+				/>,
+			)
+
+			expect(bySlot(container, 'grid-loading-more')).toBeInTheDocument()
+		})
+
+		it('shows no trailing indicator when no load is in flight', () => {
+			const { container } = renderUI(
+				<Grid
+					columns={columns}
+					rows={manyRows}
+					getKey={getKey}
+					virtualize
+					maxHeight="300px"
+					infiniteScroll={{ onLoadMore: vi.fn() }}
+				/>,
+			)
+
+			expect(bySlot(container, 'grid-loading-more')).toBeNull()
+		})
+
+		it('reports an indeterminate aria-rowcount while more rows may load', () => {
+			const { container } = renderUI(
+				<Grid
+					columns={columns}
+					rows={manyRows}
+					getKey={getKey}
+					virtualize
+					maxHeight="300px"
+					infiniteScroll={{ onLoadMore: vi.fn(), hasMore: true }}
+				/>,
+			)
+
+			// The loaded window isn't the whole set, so the count is ARIA-indeterminate.
+			expect(container.querySelector('table')).toHaveAttribute('aria-rowcount', '-1')
+		})
+
+		it('reports the loaded count + 1 once no more rows remain', () => {
+			const { container } = renderUI(
+				<Grid
+					columns={columns}
+					rows={manyRows}
+					getKey={getKey}
+					virtualize
+					maxHeight="300px"
+					infiniteScroll={{ onLoadMore: vi.fn(), hasMore: false }}
+				/>,
+			)
+
+			// hasMore is false: the loaded set is the whole set — 60 rows + the header.
+			expect(container.querySelector('table')).toHaveAttribute('aria-rowcount', '61')
+		})
+	})
+
 	describe('density', () => {
 		it('defaults to snug outside any DensityProvider', () => {
 			const { container } = renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)

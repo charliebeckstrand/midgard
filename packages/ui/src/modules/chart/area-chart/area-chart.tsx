@@ -1,6 +1,6 @@
 'use client'
 
-import { ChartAxis } from '../chart-axis'
+import { ChartAxis, ChartAxisTitles } from '../chart-axis'
 import { ChartCrosshair, resolveCrosshair } from '../chart-crosshair'
 import { ChartFrame } from '../chart-frame'
 import { ChartGridLines } from '../chart-grid-lines'
@@ -20,7 +20,7 @@ import {
 	type LineSeriesGeometry,
 	lineGeometry,
 } from '../line-chart/line-chart-geometry'
-import { useChartCartesian } from '../use-chart-cartesian'
+import { type DrawnSeries, drawnSeries, useChartCartesian } from '../use-chart-cartesian'
 import { cartesianFocus } from '../use-chart-keyboard'
 import { type StackedAreaGeometry, stackedAreas } from './area-chart-geometry'
 
@@ -60,8 +60,9 @@ export type AreaChartProps<T> = CartesianChartProps<T> & {
 	interpolation?: LineInterpolation
 	/**
 	 * Draw selective value labels — each series' `endpoints` and / or `extremes`
-	 * — on its band-edge line, overlaps dropped by priority. Off by default; the
-	 * tooltip and data table carry the full readout.
+	 * — on its band-edge line, overlaps dropped by priority, and, with
+	 * `references`, each reference rule's value beside it in place of its hover
+	 * tooltip. Off by default; the tooltip and data table carry the full readout.
 	 */
 	labels?: ChartValueLabelConfig
 }
@@ -107,6 +108,20 @@ function focusPoints(
 	)
 }
 
+/**
+ * The reference lines' keyboard stops, or none when `labels.references` draws
+ * their values beside them instead: a labelled rule reads its value without the
+ * rove, so it leaves the value-axis roving the way it leaves the hover tooltip.
+ *
+ * @internal
+ */
+function referenceStops(
+	labels: ChartValueLabelConfig | undefined,
+	positions: (number | null)[],
+): (number | null)[] | undefined {
+	return labels?.references ? undefined : positions
+}
+
 /** Adapts one stacked band to the line-marks geometry shape (one segment, one ribbon). @internal */
 function stackedToLine(band: { line: string; area: string; points: LineSeriesGeometry['points'] }) {
 	return {
@@ -116,6 +131,48 @@ function stackedToLine(band: { line: string; area: string; points: LineSeriesGeo
 		runs: band.points.length > 0 ? [band.points] : [],
 		isolated: [],
 	}
+}
+
+/** One drawn series' geometry: its stacked ribbon, or its own line through its axis's scale. @internal */
+function areaGeometry(
+	entry: DrawnSeries,
+	order: number,
+	args: {
+		stacked: boolean
+		stackedGeometry: StackedAreaGeometry[]
+		centers: number[]
+		floor: number
+		interpolation: LineInterpolation
+	},
+): LineSeriesGeometry {
+	if (args.stacked) {
+		return stackedToLine(args.stackedGeometry[order] ?? { line: '', area: '', points: [] })
+	}
+
+	return lineGeometry(
+		entry.meta.values,
+		args.centers,
+		entry.scale.map,
+		args.floor,
+		args.interpolation,
+	)
+}
+
+/** The stacked ribbons through the stack's one scale; empty unstacked or before it resolves. @internal */
+function stackedRibbons(
+	drawn: DrawnSeries[],
+	xs: number[],
+	stacked: boolean,
+): StackedAreaGeometry[] {
+	const scale = drawn[0]?.scale
+
+	return stacked && scale
+		? stackedAreas(
+				drawn.map(({ meta }) => meta.values),
+				xs,
+				scale.map,
+			)
+		: []
 }
 
 /**
@@ -131,7 +188,10 @@ function stackedToLine(band: { line: string; area: string; points: LineSeriesGeo
  * `crosshair` prop. Focus the plot to drive the crosshair and tooltip by
  * keyboard — the band-axis arrows step categories, the value-axis arrows step
  * each category's points in screen order (a stack's cumulative band edges when
- * stacked, each series' own point otherwise).
+ * stacked, each series' own point otherwise). A reference line joins that
+ * value-axis roving, receding the marks when the cursor reaches it — unless
+ * `labels.references` draws its value beside it, which stands in for the hover
+ * and drops the rove.
  * @example
  * ```tsx
  * <AreaChart
@@ -164,6 +224,8 @@ export function AreaChart<T>({
 	interpolation = 'linear',
 	min,
 	max,
+	leftAxis,
+	rightAxis,
 	reference,
 	xAxis,
 	labels,
@@ -183,6 +245,8 @@ export function AreaChart<T>({
 			legend,
 			min,
 			max,
+			leftAxis,
+			rightAxis,
 			reference,
 			xAxis,
 			formatValue,
@@ -190,49 +254,51 @@ export function AreaChart<T>({
 		{ zeroBaseline: true, swatch: () => 'line', stack: stacked },
 	)
 
-	const yScale = chart.yScale
-
 	const floor = chart.plot.y + chart.plot.height
 
 	const xs = chart.metas[0]?.values.map((_, index) => chart.band.center(index)) ?? []
 
 	const dimmed = (meta: SeriesMeta) => chart.emphasis !== null && meta.index !== chart.emphasis
 
-	const stackedGeometry =
-		yScale && stacked
-			? stackedAreas(
-					chart.visible.map((meta) => meta.values),
-					xs,
-					yScale.map,
-				)
-			: []
+	// A stack binds to one axis (the side its series agree on, else the left),
+	// so its ribbons read that one scale; unstacked series each read their own.
+	const drawn = drawnSeries(chart, stacked)
 
-	const list: ChartLineSeries[] = yScale
-		? chart.visible.map((meta, order) => ({
-				label: meta.label,
-				paint: meta.paint,
-				geometry: stacked
-					? stackedToLine(stackedGeometry[order] ?? { line: '', area: '', points: [] })
-					: lineGeometry(
-							meta.values,
-							meta.values.map((_, index) => chart.band.center(index)),
-							yScale.map,
-							floor,
-							interpolation,
-						),
-				markers: points,
-				dimmed: dimmed(meta),
-			}))
-		: []
+	const stackedGeometry = stackedRibbons(drawn, xs, stacked)
+
+	const list: ChartLineSeries[] = drawn.map((entry, order) => ({
+		label: entry.meta.label,
+		paint: entry.meta.paint,
+		geometry: areaGeometry(entry, order, {
+			stacked,
+			stackedGeometry,
+			centers: xs,
+			floor,
+			interpolation,
+		}),
+		markers: points,
+		dimmed: dimmed(entry.meta),
+	}))
 
 	const tex = useChartTexture(
 		texture,
 		chart.visible.map((meta) => meta.slot),
 	)
 
-	const fills = chart.visible.map((meta) => tex.fillFor(meta.slot))
+	const fills = drawn.map(({ meta }) => tex.fillFor(meta.slot))
 
-	const valueLabelItems = resolveValueLabels(labels, list, chart.visible, chart.plot, formatValue)
+	const valueLabelItems = resolveValueLabels(
+		labels,
+		list,
+		drawn.map(({ meta }) => meta),
+		chart.plot,
+		formatValue,
+		drawn.map(
+			({ meta }) =>
+				(value: number) =>
+					chart.formatAxisValue(value, meta.axis),
+		),
+	)
 
 	const marksNode = animate ? (
 		<AnimatedChartLineMarks list={list} fill={true} fills={fills} textureActive={tex.active} />
@@ -263,6 +329,7 @@ export function AreaChart<T>({
 				chart.legendItems && (
 					<ChartLegend
 						items={chart.legendItems}
+						references={chart.referenceItems}
 						hidden={chart.hidden}
 						onToggle={chart.toggleSeries}
 						onFocus={chart.setEmphasis}
@@ -275,19 +342,30 @@ export function AreaChart<T>({
 			readout={chart.readout}
 			tooltip={tooltip}
 			snap={snapTargets(rails, chart.bandPositions, snapPoints)}
-			focus={cartesianFocus(chart.bandPositions, navPoints, chart.orientation)}
+			focus={cartesianFocus(
+				chart.bandPositions,
+				navPoints,
+				chart.orientation,
+				referenceStops(labels, chart.referencePositions),
+			)}
 			className={className}
-			annotations={<ChartReferenceList reference={reference} format={formatValue} />}
+			annotations={<ChartReferenceList reference={reference} format={chart.formatAxisValue} />}
 		>
 			{tex.defs}
 
-			{gridLines && yScale && (
-				<ChartGridLines plot={chart.plot} ticks={chart.yTicks.map((tick) => tick.at)} />
+			{gridLines && chart.gridPositions.length > 0 && (
+				<ChartGridLines plot={chart.plot} ticks={chart.gridPositions} />
 			)}
 
-			{axes && yScale && <ChartAxis axis="y" plot={chart.plot} ticks={chart.yTicks} />}
+			{axes && chart.yScale && <ChartAxis axis="y" plot={chart.plot} ticks={chart.yTicks} />}
+
+			{axes && chart.rightScale && (
+				<ChartAxis axis="y" position="right" plot={chart.plot} ticks={chart.rightTicks} />
+			)}
 
 			{axes && data.length > 0 && <ChartAxis axis="x" plot={chart.plot} ticks={chart.xTicks} />}
+
+			{axes && <ChartAxisTitles titles={chart.axisTitles} />}
 
 			{rails && (
 				<ChartCrosshair
@@ -321,9 +399,12 @@ export function AreaChart<T>({
 			{/* Last, over the hit area, so the rules win the pointer where they sit. */}
 			<ChartReferenceLines
 				plot={chart.plot}
-				scale={yScale}
+				scale={chart.yScale}
+				rightScale={chart.rightScale}
 				reference={reference}
-				format={formatValue}
+				format={chart.formatAxisValue}
+				animate={animate}
+				labels={labels?.references}
 			/>
 		</ChartFrame>
 	)

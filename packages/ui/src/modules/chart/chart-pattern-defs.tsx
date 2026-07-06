@@ -33,9 +33,12 @@ type Texture = { transform?: string; d?: string; dash?: boolean; dot?: boolean }
 const TEXTURES: readonly Texture[] = [
 	{ transform: 'rotate(45)', d: `M0,0 V${TILE}` },
 	{ transform: 'rotate(-45)', d: `M0,0 V${TILE}` },
-	{ d: `M0,0 V${TILE}` },
-	{ d: `M0,0 H${TILE}` },
-	{ d: `M0,0 V${TILE} M0,0 H${TILE}` },
+	// The axis-aligned marks ride the tile's centre line, not its edge, so a
+	// single line sits dead-centre in the legend swatch (ChartSwatch shifts the
+	// tile to suit); on a mark the phase is invisible and the hatch still tiles.
+	{ d: `M${TILE / 2},0 V${TILE}` },
+	{ d: `M0,${TILE / 2} H${TILE}` },
+	{ d: `M${TILE / 2},0 V${TILE} M0,${TILE / 2} H${TILE}` },
 	{ transform: 'rotate(45)', d: `M0,0 V${TILE} M0,0 H${TILE}` },
 	{ dot: true },
 	{ transform: 'rotate(45)', d: `M0,0 V${TILE}`, dash: true },
@@ -169,6 +172,17 @@ export function useChartTexture(active: boolean, slots: (ChartSeriesColor | null
 const SWATCH_BOX = 12
 
 /**
+ * Shifts the swatch's tile so a centred mark — the axis-aligned lines and the
+ * dot — lands at the box's centre instead of the tile's. The tile is narrower
+ * than the box, so its own centre sits off to one side; this nudges it back.
+ * Rotated tiles (the hatches) skip the shift: a diagonal has no centre line to
+ * place, and leaving it phased keeps the hatch reading as a hatch.
+ *
+ * @internal
+ */
+const SWATCH_TILE_SHIFT = (SWATCH_BOX - TILE) / 2
+
+/**
  * A legend swatch that mirrors a textured mark: the shared colour key with, for
  * a square (bar / slice) swatch, the slot's hatch laid over it — always when the
  * `texture` prop is on, else only under forced colours and print, where the
@@ -234,7 +248,9 @@ export function ChartSwatch({
 						patternUnits="userSpaceOnUse"
 						width={TILE}
 						height={TILE}
-						patternTransform={texture.transform}
+						patternTransform={
+							texture.transform ?? `translate(${SWATCH_TILE_SHIFT} ${SWATCH_TILE_SHIFT})`
+						}
 					>
 						<rect
 							width={TILE}

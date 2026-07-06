@@ -41,6 +41,26 @@ export function Demo() {
 				</Flex>
 			</Example>
 
+			<Example title="Dashed line">
+				<Flex gap="md">
+					<Flex gap="sm">
+						<Swatch shape="line" color="text-blue-600 dark:text-blue-500" />
+
+						<Text as="span" severity="muted" size="sm">
+							solid
+						</Text>
+					</Flex>
+
+					<Flex gap="sm">
+						<Swatch shape="line" variant="dashed" color="text-blue-600 dark:text-blue-500" />
+
+						<Text as="span" severity="muted" size="sm">
+							dashed
+						</Text>
+					</Flex>
+				</Flex>
+			</Example>
+
 			<Example title="Sizes">
 				<Flex gap="md">
 					{sizes.map((size) => (

@@ -18,6 +18,7 @@ type TooltipStateOptions = {
 	delay?: number
 	interactive?: boolean
 	enabled?: boolean
+	forceOpen?: boolean
 	size?: Step
 	className?: string
 }
@@ -54,13 +55,19 @@ export function useTooltipState({
 	delay = 250,
 	interactive = false,
 	enabled = true,
+	forceOpen = false,
 	size,
 	className,
 }: TooltipStateOptions) {
+	// `forceOpen` controls the disclosure open — a programmatic reveal that skips
+	// the pointer, for a tooltip whose trigger can't take hover (an SVG rule the
+	// keyboard drives). Left `undefined`, the disclosure stays uncontrolled and
+	// hover / focus / click own it; a disabled tooltip never forces.
 	const { open, setOpen, refs, floatingStyles, context, dismiss, role } = useFloatingDisclosure({
 		role: 'tooltip',
 		placement,
 		offset: 8,
+		open: enabled && forceOpen ? true : undefined,
 		gate: (next, gateRefs) => {
 			if (next && !enabled) return false
 

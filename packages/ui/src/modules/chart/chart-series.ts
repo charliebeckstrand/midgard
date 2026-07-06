@@ -6,7 +6,7 @@
 import { cn } from '../../core'
 import { type ChartSeriesColor, k } from '../../recipes/kata/chart'
 import { formatFraction, formatInteger } from '../../utilities'
-import type { ChartSeries, DataKey } from './chart-schema'
+import type { ChartSeries, ChartValueAxisSide, DataKey } from './chart-schema'
 import type { ChartReadout } from './types'
 
 /** The em-dash a readout shows where a datum is non-finite. @internal */
@@ -144,14 +144,18 @@ export type SeriesMeta = {
 	/** Swatch shape, mirroring the mark. */
 	swatch: 'rect' | 'line'
 	values: (number | null)[]
+	/** The value axis the series reads against — its scale, formatter, and baseline. */
+	axis: ChartValueAxisSide
 }
 
 /**
  * Builds the readout behind the marks: category labels crossed with each
- * series' formatted values. `formatCategory` overrides the default `String`
- * coercion of each row's category — a time axis passes a date formatter so the
- * tooltip and table read the same dates the axis labels do. The swatch takes the
- * series' slot class or, for a raw colour, an inline `currentColor`.
+ * series' formatted values, each series formatted by its own axis's formatter
+ * so a dual-axis tooltip and table read a currency beside a percent.
+ * `formatCategory` overrides the default `String` coercion of each row's
+ * category — a time axis passes a date formatter so the tooltip and table read
+ * the same dates the axis labels do. The swatch takes the series' slot class
+ * or, for a raw colour, an inline `currentColor`.
  *
  * @internal
  */
@@ -159,7 +163,7 @@ export function chartReadout<T>(
 	data: T[],
 	xKey: DataKey<T>,
 	metas: SeriesMeta[],
-	format: (value: number) => string,
+	format: (value: number, axis: ChartValueAxisSide) => string,
 	formatCategory: (value: unknown) => string = String,
 ): ChartReadout {
 	return {
@@ -169,7 +173,7 @@ export function chartReadout<T>(
 			swatchClass: textClass(meta.paint) ?? '',
 			swatchColor: rawColor(meta.paint),
 			swatch: meta.swatch,
-			values: meta.values.map((value) => (value === null ? READOUT_GAP : format(value))),
+			values: meta.values.map((value) => (value === null ? READOUT_GAP : format(value, meta.axis))),
 		})),
 	}
 }

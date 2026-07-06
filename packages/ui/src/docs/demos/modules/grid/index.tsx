@@ -8,6 +8,7 @@ import { Icon } from '../../../../components/icon'
 import { Sparkline } from '../../../../components/sparkline'
 import { Stack } from '../../../../components/stack'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../../components/tabs'
+import { Text } from '../../../../components/text'
 import {
 	Grid,
 	type GridColumn,
@@ -562,6 +563,96 @@ const CollapsedGroupExample = () => (
 	/>
 )
 
+type Sale = { id: number; region: string; rep: string; units: number; revenue: number }
+
+const salesData: Sale[] = [
+	{ id: 1, region: 'West', rep: 'Wade', units: 12, revenue: 1440 },
+	{ id: 2, region: 'West', rep: 'Tanya', units: 30, revenue: 4200 },
+	{ id: 3, region: 'East', rep: 'Devon', units: 22, revenue: 2860 },
+	{ id: 4, region: 'East', rep: 'Arlene', units: 41, revenue: 5330 },
+	{ id: 5, region: 'West', rep: 'Tom', units: 18, revenue: 2160 },
+	{ id: 6, region: 'East', rep: 'Cody', units: 9, revenue: 1170 },
+]
+
+const dollars = (value: unknown) => `$${Number(value).toLocaleString('en-US')}`
+
+// A per-column `aggFunc` aggregates on group headers and the total rows; `revenue`
+// and `units` sum, while `$/unit` is a weighted ratio — a custom function over
+// the rows themselves, since it spans two fields rather than reducing one column.
+const salesColumns: GridColumn<Sale>[] = [
+	{ id: 'region', title: 'Region', cell: (row) => row.region, value: (row) => row.region },
+	{ id: 'rep', title: 'Rep', cell: (row) => row.rep, value: (row) => row.rep },
+	{
+		id: 'units',
+		title: 'Units',
+		cell: (row) => String(row.units),
+		value: (row) => row.units,
+		aggFunc: 'sum',
+	},
+	{
+		id: 'revenue',
+		title: 'Revenue',
+		cell: (row) => dollars(row.revenue),
+		value: (row) => row.revenue,
+		aggFunc: 'sum',
+		aggCell: ({ value }) => dollars(value),
+	},
+	{
+		id: 'perUnit',
+		title: '$/unit',
+		cell: (row) => dollars((row.revenue / row.units).toFixed(2)),
+		aggFunc: (rows: Sale[]) => {
+			const revenue = rows.reduce((sum, row) => sum + row.revenue, 0)
+
+			const units = rows.reduce((sum, row) => sum + row.units, 0)
+
+			return units === 0 ? '' : (revenue / units).toFixed(2)
+		},
+		aggCell: ({ value }) => (value === '' ? '' : `$${value}`),
+	},
+]
+
+const AggregationExample = () => (
+	<Grid
+		columns={salesColumns}
+		rows={salesData}
+		getKey={(row) => row.id}
+		groupBy={{ value: 'region' }}
+		groupTotalRow="bottom"
+		grandTotalRow="bottom"
+	/>
+)
+
+// An `expander` column renders the disclosure chevron; the `expandable` binding
+// carries the detail renderer — an arbitrary sub-component per row.
+const masterDetailColumns: GridColumn<Person>[] = [{ id: 'expand', expander: true }, ...columns]
+
+const MasterDetailExample = () => {
+	const [expanded, setExpanded] = useState<Set<string | number>>(new Set([1]))
+
+	return (
+		<Grid
+			columns={masterDetailColumns}
+			rows={people}
+			getKey={(row) => row.id}
+			rowLabel={(row) => row.name}
+			expandable={{
+				value: expanded,
+				onValueChange: setExpanded,
+				render: (row) => (
+					<Stack gap="sm">
+						<Text className="font-medium">{row.name}</Text>
+						<Text size="sm" severity="muted">
+							{row.email} · {row.role} · currently {row.status}
+						</Text>
+						<Badge color={row.status === 'active' ? 'green' : 'zinc'}>{row.status}</Badge>
+					</Stack>
+				),
+			}}
+		/>
+	)
+}
+
 const ResizableExample = () => (
 	<Grid resizable columns={columns} rows={people} getKey={(row) => row.id} />
 )
@@ -790,6 +881,87 @@ const ClientPaginationExample = () => (
 	/>
 )
 
+// Local infinite scroll: the whole set is held in memory, and the grid renders a
+// growing slice of it through the virtual window. `onLoadMore` lifts the slice
+// synchronously as the scroll nears the loaded end; `hasMore` stops it once the
+// slice reaches the full set.
+const LocalInfiniteScrollExample = () => {
+	const [count, setCount] = useState(20)
+
+	const rows = useMemo(() => manyPeople.slice(0, count), [count])
+
+	return (
+		<Grid
+			columns={columns}
+			rows={rows}
+			getKey={(row) => row.id}
+			virtualize
+			maxHeight="320px"
+			infiniteScroll={{
+				onLoadMore: () => setCount((c) => Math.min(c + 20, manyPeople.length)),
+				hasMore: count < manyPeople.length,
+			}}
+		/>
+	)
+}
+
+const SERVER_TOTAL = 200
+
+// A page of the "server" set: rows [offset, offset + limit), capped at the total.
+const makeServerRows = (offset: number, limit: number): Person[] =>
+	Array.from({ length: Math.max(0, Math.min(limit, SERVER_TOTAL - offset)) }, (_, i) => {
+		const id = offset + i + 1
+
+		return {
+			id,
+			name: `Person ${id}`,
+			email: `person${id}@example.com`,
+			role: roles[id % roles.length] ?? 'Developer',
+			status: id % 3 === 0 ? 'inactive' : 'active',
+		}
+	})
+
+// Stand-in for a paged server fetch: resolve the next page after a short delay.
+const fetchServerRows = (offset: number): Promise<Person[]> =>
+	new Promise((resolve) => {
+		setTimeout(() => resolve(makeServerRows(offset, 25)), 600)
+	})
+
+// Server-side rendered infinite scroll: the first page stands in for the server-rendered
+// initial rows, and the client appends each subsequent page as the scroll nears
+// the end. `loadingMore` holds a pending flag across the async fetch — the grid
+// shows a trailing skeleton row and won't re-request until the batch lands.
+const ServerInfiniteScrollExample = () => {
+	const [rows, setRows] = useState<Person[]>(() => makeServerRows(0, 25))
+
+	const [loadingMore, setLoadingMore] = useState(false)
+
+	const loadMore = () => {
+		setLoadingMore(true)
+
+		fetchServerRows(rows.length).then((page) => {
+			setRows((prev) => [...prev, ...page])
+
+			setLoadingMore(false)
+		})
+	}
+
+	return (
+		<Grid
+			columns={columns}
+			rows={rows}
+			getKey={(row) => row.id}
+			virtualize
+			maxHeight="320px"
+			infiniteScroll={{
+				onLoadMore: loadMore,
+				hasMore: rows.length < SERVER_TOTAL,
+				loadingMore,
+			}}
+		/>
+	)
+}
+
 // The opt-in `footer` summary bar renders only the settings it's given. `rowTotal`
 // counts the full filtered extent (search below narrows it to "N of M rows"),
 // `selectedTotal` shows the live selection count, and `content` receives those
@@ -922,6 +1094,7 @@ const tabs = [
 	'Pin',
 	'Lock',
 	'Groups',
+	'Master-detail',
 	'Filters',
 	'Header',
 	'Footer',
@@ -929,6 +1102,7 @@ const tabs = [
 	'Export',
 	'Sparkline',
 	'Pagination',
+	'Virtualization',
 	'State',
 	'Editable',
 ] as const
@@ -1192,10 +1366,28 @@ export function Demo() {
 									>
 										<CollapsedGroupExample />
 									</Example>
+
+									<Example
+										title="Aggregation & totals"
+										code={code`<Grid groupBy={{ value: 'region' }} groupTotalRow="bottom" grandTotalRow="bottom" columns={[{ …, aggFunc: 'sum' }, { …, aggFunc: (rows) => weightedRatio }]} />`}
+									>
+										<AggregationExample />
+									</Example>
 								</Stack>
 							</TabContent>
 						</TabContents>
 					</Tabs>
+				</TabContent>
+
+				<TabContent value="Master-detail">
+					<Stack gap="xl">
+						<Example
+							title="Expandable rows"
+							code={code`<Grid columns={[{ expander: true }, …]} expandable={{ value, onValueChange, render: (row) => <Detail /> }} />`}
+						>
+							<MasterDetailExample />
+						</Example>
+					</Stack>
 				</TabContent>
 
 				<TabContent value="Toolbar">
@@ -1236,6 +1428,24 @@ export function Demo() {
 
 						<Example title="Client pagination">
 							<ClientPaginationExample />
+						</Example>
+					</Stack>
+				</TabContent>
+
+				<TabContent value="Virtualization">
+					<Stack gap="xl">
+						<Example
+							title="Local"
+							code={code`<Grid virtualize infiniteScroll={{ onLoadMore, hasMore }} />`}
+						>
+							<LocalInfiniteScrollExample />
+						</Example>
+
+						<Example
+							title="Server-side rendered"
+							code={code`<Grid virtualize infiniteScroll={{ onLoadMore, hasMore, loadingMore }} />`}
+						>
+							<ServerInfiniteScrollExample />
 						</Example>
 					</Stack>
 				</TabContent>
