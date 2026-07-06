@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { paintFor } from '../../modules/chart/chart-series'
 import {
 	labelPoints,
 	type PlacedValueLabel,
@@ -7,7 +8,6 @@ import {
 	valueLabels,
 } from '../../modules/chart/chart-value-labels'
 import { LineChart } from '../../modules/chart/line-chart'
-import { k } from '../../recipes/kata/chart'
 import { allBySlot, bySlot, renderUI } from '../helpers'
 
 const PLOT = { x: 0, y: 0, width: 200, height: 100 }
@@ -148,7 +148,7 @@ describe('labelPoints', () => {
 describe('resolveValueLabels', () => {
 	const list = [
 		{
-			paint: k.series.blue,
+			paint: paintFor('blue'),
 			geometry: {
 				points: [
 					{ x: 10, y: 50 },

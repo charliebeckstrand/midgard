@@ -210,12 +210,12 @@ export function ComboChart<T>({
 	// resolve their fill; the line series carry no fill and stay flat.
 	const tex = useChartTexture(
 		texture,
-		chart.visible.map((meta) => ({ color: meta.color, paint: meta.paint })),
+		chart.visible.map((meta) => meta.slot),
 	)
 
-	const barFills = barEntries.map((entry) => tex.fillFor(entry.meta.color))
+	const barFills = barEntries.map((entry) => tex.fillFor(entry.meta.slot))
 
-	const areaFills = areaEntries.map((entry) => tex.fillFor(entry.meta.color))
+	const areaFills = areaEntries.map((entry) => tex.fillFor(entry.meta.slot))
 
 	// Stroke the line and area dots wherever bars sit behind them; with the bars
 	// hidden the curves stand alone and the dots need no stroke.

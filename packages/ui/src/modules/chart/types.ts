@@ -18,8 +18,10 @@ export type ChartReadoutRow = {
 	 */
 	index?: number
 	label: string
-	/** Background class carrying the series colour. */
+	/** Class carrying the series colour on `currentColor`; empty for a raw colour, which inks inline. */
 	swatchClass: string
+	/** A raw series colour inked inline on the swatch's `currentColor`; unset for a palette slot. */
+	swatchColor?: string
 	/** Per-category swatch overrides — pie slices, where the colour follows the category. */
 	swatchClasses?: string[]
 	/** Swatch shape, mirroring the mark. */

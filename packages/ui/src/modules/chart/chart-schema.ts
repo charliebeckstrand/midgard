@@ -78,10 +78,15 @@ export type ChartSeries<T> = {
 	 */
 	yName?: string
 	/**
-	 * Named mark colour override. Defaults to the categorical slot palette in
-	 * fixed order, so a series keeps its colour when siblings toggle.
+	 * Mark colour override: a named palette slot (rendered through the CVD-safe
+	 * slot classes, with its texture tile) or any raw CSS colour string — a hex
+	 * like `'#e11d48'`, an `'oklch(…)'`, or any value CSS accepts — applied inline.
+	 * A raw colour opts out of the categorical palette, so it carries no texture
+	 * tile, the same as a raw-coloured reference line. Defaults to the categorical
+	 * slot palette in fixed order, so a series keeps its colour when siblings
+	 * toggle.
 	 */
-	color?: ChartSeriesColor
+	color?: ChartSeriesColor | (string & {})
 	/**
 	 * The value axis this series reads against. `'right'` binds it to the
 	 * secondary axis — its own domain, ticks, and formatter via the chart's

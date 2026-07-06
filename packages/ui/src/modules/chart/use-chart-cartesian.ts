@@ -27,10 +27,12 @@ import type {
 import {
 	chartReadout,
 	formatChartValue,
+	paintSlot,
+	rawColor,
 	type SeriesMeta,
-	seriesColor,
 	seriesPaint,
 	seriesValues,
+	textClass,
 } from './chart-series'
 import { parseInstant, timeCategory } from './chart-time'
 import type { ChartReadout } from './types'
@@ -175,17 +177,21 @@ function seriesMetas<T>(
 ): SeriesMeta[] {
 	const stackSide = stackSideOf(series)
 
-	return series.map((entry, index) => ({
-		index,
-		label: entry.yName ?? entry.yKey,
-		paint: seriesPaint(entry, index),
-		color: seriesColor(entry, index),
-		swatch: swatch(entry, index),
-		values: seriesValues(data, entry.yKey),
-		// A stack reads as one part-to-whole column, so every series binds to the
-		// stack's one axis rather than splitting segments across two domains.
-		axis: stack ? stackSide : (entry.axis ?? 'left'),
-	}))
+	return series.map((entry, index) => {
+		const paint = seriesPaint(entry, index)
+
+		return {
+			index,
+			label: entry.yName ?? entry.yKey,
+			paint,
+			slot: paintSlot(paint),
+			swatch: swatch(entry, index),
+			values: seriesValues(data, entry.yKey),
+			// A stack reads as one part-to-whole column, so every series binds to the
+			// stack's one axis rather than splitting segments across two domains.
+			axis: stack ? stackSide : (entry.axis ?? 'left'),
+		}
+	})
 }
 
 /**
@@ -349,9 +355,10 @@ function legendItemsOf(
 	return orderLegend(metas, byValue).map((meta) => ({
 		index: meta.index,
 		label: meta.label,
-		swatchClass: meta.paint.text.join(' '),
+		swatchClass: textClass(meta.paint) ?? '',
+		swatchColor: rawColor(meta.paint),
 		swatch: meta.swatch,
-		color: meta.color,
+		color: meta.slot ?? undefined,
 	}))
 }
 

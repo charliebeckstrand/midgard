@@ -143,10 +143,10 @@ export function BarChart<T>({
 
 	const tex = useChartTexture(
 		texture,
-		chart.visible.map((meta) => ({ color: meta.color, paint: meta.paint })),
+		chart.visible.map((meta) => meta.slot),
 	)
 
-	const fills = drawn.map((entry) => tex.fillFor(entry.meta.color))
+	const fills = drawn.map((entry) => tex.fillFor(entry.meta.slot))
 
 	const marksNode = animate ? (
 		<AnimatedChartBarMarks

@@ -4,7 +4,7 @@ import { cn } from '../../../core'
 import { usePlotFrame } from '../../../hooks'
 import { useResolvedSize } from '../../../primitives/density'
 import type { Step } from '../../../recipes'
-import type { ChartSeriesColor } from '../../../recipes/kata/chart'
+import { type ChartSeriesColor, k } from '../../../recipes/kata/chart'
 import { ChartAxis } from '../chart-axis'
 import { CHART_METRICS, PLOT_TOP_PAD, SCATTER_HIT_SLACK, X_AXIS_HEIGHT } from '../chart-constants'
 import { ChartCrosshair, resolveCrosshair } from '../chart-crosshair'
@@ -16,7 +16,7 @@ import { ChartLegend } from '../chart-legend'
 import { ChartMarksLayer } from '../chart-marks-layer'
 import { type LinearScale, linearScale } from '../chart-scale'
 import type { ChartBaseProps, Crosshair, ScatterChartSeries } from '../chart-schema'
-import { formatChartValue, type SeriesPaint, seriesColor, seriesPaint } from '../chart-series'
+import { formatChartValue, type SlotPaint } from '../chart-series'
 import { snapTargets } from '../chart-snap'
 import type { ChartReadout } from '../types'
 import { cartesianFocus } from '../use-chart-keyboard'
@@ -96,7 +96,7 @@ export type ScatterChartProps<T> = ChartBaseProps<T> &
 type ScatterMeta = {
 	index: number
 	label: string
-	paint: SeriesPaint
+	paint: SlotPaint
 	color: ChartSeriesColor
 	points: ScatterDatum[]
 	sized: boolean
@@ -104,7 +104,15 @@ type ScatterMeta = {
 	radius: (size: number | null) => number
 }
 
-/** Every series parsed and resolved: paint, points, and the bubble radius scaling. @internal */
+/**
+ * Every series parsed and resolved: paint, points, and the bubble radius
+ * scaling. A scatter series names only a palette slot — no raw colour, unlike
+ * the band-axis series — so its colour resolves directly to the slot in the
+ * fixed order, the way the cartesian series did before a raw colour became an
+ * option there.
+ *
+ * @internal
+ */
 function scatterMetas<T>(data: T[], series: ScatterChartSeries<T>[]): ScatterMeta[] {
 	return series.map((entry, index) => {
 		const points = scatterData(data, entry)
@@ -113,11 +121,13 @@ function scatterMetas<T>(data: T[], series: ScatterChartSeries<T>[]): ScatterMet
 
 		const diameters = diameterRange(entry.size, entry.maxSize)
 
+		const color = entry.color ?? k.order[index % k.order.length] ?? 'blue'
+
 		return {
 			index,
 			label: entry.yName ?? entry.yKey,
-			paint: seriesPaint(entry, index),
-			color: seriesColor(entry, index),
+			paint: k.series[color],
+			color,
 			points,
 			sized: domain !== null,
 			sizeName: entry.sizeKey === undefined ? null : (entry.sizeName ?? entry.sizeKey),

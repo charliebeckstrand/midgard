@@ -314,10 +314,10 @@ export function AreaChart<T>({
 
 	const tex = useChartTexture(
 		texture,
-		chart.visible.map((meta) => ({ color: meta.color, paint: meta.paint })),
+		chart.visible.map((meta) => meta.slot),
 	)
 
-	const fills = drawn.map(({ meta }) => tex.fillFor(meta.color))
+	const fills = drawn.map(({ meta }) => tex.fillFor(meta.slot))
 
 	const valueLabelItems = resolveValueLabels(
 		labels,

@@ -306,6 +306,27 @@ export function Demo() {
 							</Example>
 
 							<Example
+								title="Custom colours"
+								code={code`<LineChart series={[{ …, color: '#e11d48' }, { …, color: 'oklch(0.68 0.17 250)' }]} … />`}
+							>
+								<ChartContainer>
+									<LineChart
+										aria-label="Revenue and margin by month, in custom colours"
+										data={months}
+										series={[
+											{ xKey: 'month', yKey: 'revenue', yName: 'Revenue', color: '#e11d48' },
+											{
+												xKey: 'month',
+												yKey: 'margin',
+												yName: 'Margin',
+												color: 'oklch(0.68 0.17 250)',
+											},
+										]}
+									/>
+								</ChartContainer>
+							</Example>
+
+							<Example
 								title="Dual axis"
 								code={code`<LineChart leftAxis={{ format: … }} rightAxis={{ format: … }} series={[…, { …, axis: 'right' }]} … />`}
 							>

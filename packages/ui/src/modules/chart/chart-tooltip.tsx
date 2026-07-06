@@ -170,6 +170,7 @@ export function ChartTooltip({
 										shape={SWATCH_SHAPE[row.swatch]}
 										size="sm"
 										color={row.swatchClasses?.[index] ?? row.swatchClass}
+										style={row.swatchColor ? { color: row.swatchColor } : undefined}
 									/>
 
 									<span className={cn(k.value)}>{row.values[index]}</span>
