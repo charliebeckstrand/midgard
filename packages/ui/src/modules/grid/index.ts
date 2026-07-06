@@ -10,6 +10,7 @@ export {
 	Grid,
 	type GridColumnManagerConfig,
 	type GridColumnOrder,
+	type GridExpandable,
 	type GridFooter,
 	type GridFooterStats,
 	type GridGroupBy,
@@ -33,6 +34,9 @@ export type {
 } from './grid-editing-types'
 export type { GridColumnGroup, GridColumnGroups } from './grid-group-types'
 export type {
+	GridAggCellContext,
+	GridAggFunc,
+	GridAggFuncName,
 	GridCellMenu,
 	GridCellMenuContext,
 	GridColumn,

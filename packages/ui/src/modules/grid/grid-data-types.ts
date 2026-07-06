@@ -91,6 +91,35 @@ export type GridGroupBy = {
 }
 
 /**
+ * Row expansion / master-detail binding for {@link GridProps.expandable}: a
+ * controllable set of expanded row keys plus the detail renderer. An expanded
+ * row reveals a full-width panel beneath it holding `render(row)` — an
+ * arbitrary React sub-component — over an auto-height CSS transition. Add an
+ * {@link GridColumn.expander} column for the disclosure chevron.
+ *
+ * @typeParam T - Shape of a single row.
+ */
+export type GridExpandable<T> = {
+	/** Controlled set of expanded row keys; pair with {@link GridExpandable.onValueChange}. */
+	value?: Set<string | number>
+	/** Initial expanded keys for the uncontrolled case. @defaultValue an empty set */
+	defaultValue?: Set<string | number>
+	/**
+	 * Fires with the next expanded set. Coalesced to a concrete set, never
+	 * `undefined` — matching the other grid bindings.
+	 */
+	onValueChange?: (expanded: Set<string | number>) => void
+	/** Renders the detail panel for an expanded row; the panel spans the full row width. */
+	render: (row: T) => ReactNode
+	/**
+	 * Whether a row can expand at all. A row this rejects shows no chevron and
+	 * never opens — for rows with nothing to detail.
+	 * @defaultValue every row expandable
+	 */
+	rowExpandable?: (row: T) => boolean
+}
+
+/**
  * Row drag-reorder binding for {@link GridProps.rowReorder}. The consumer owns
  * the `rows` source, so the grid reports the reordered rows through `onReorder`
  * rather than mutating them — apply the new order to your state (or persist it)
@@ -340,6 +369,25 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 */
 	groupBy?: GridGroupBy
 
+	/**
+	 * Appends a total row under each group's leaves while {@link GridDataProps.groupBy}
+	 * is active, carrying every aggregating column's figure over that group's
+	 * rows (see {@link GridColumn.aggFunc}). The row collapses with its group —
+	 * whose header reads the same figures — and renders only once a visible
+	 * column aggregates. `'bottom'` names the placement.
+	 */
+	groupTotalRow?: 'bottom'
+
+	/**
+	 * Appends a grand-total row after the body, aggregating every column with an
+	 * {@link GridColumn.aggFunc} over the full filtered set — all pages under
+	 * client pagination, the flat leaf set under grouping, the supplied page
+	 * under server pagination (the grid holds nothing more). Works grouped or
+	 * flat, and renders only once a visible column aggregates. `'bottom'` names
+	 * the placement.
+	 */
+	grandTotalRow?: 'bottom'
+
 	selection?: GridSelection
 	columnOrder?: GridColumnOrder
 	columnManager?: GridColumnManagerConfig
@@ -456,6 +504,24 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * @defaultValue false
 	 */
 	reorder?: boolean
+
+	/**
+	 * Enables per-row master-detail: an expandable panel beneath each row
+	 * rendering an arbitrary React sub-component. Pass a {@link GridExpandable}
+	 * binding with the detail `render`, and add an {@link GridColumn.expander}
+	 * column for the disclosure chevron. The panel spans the full row width and
+	 * opens over an auto-height transition.
+	 *
+	 * Renders in the plain flat body, so — like grouping — it stands down
+	 * {@link GridProps.virtualize | virtualization} (detail rows break the
+	 * uniform row height a window assumes), the {@link GridProps.navigable |
+	 * cursor}, and row {@link GridProps.rowReorder | reorder} while active;
+	 * sorting, filtering, search, selection, pagination, resizing, and pinning
+	 * still apply.
+	 *
+	 * @see {@link GridExpandable}
+	 */
+	expandable?: GridExpandable<T>
 
 	/**
 	 * Enables drag-reordering of rows. Add a {@link GridColumn.dragHandle} column

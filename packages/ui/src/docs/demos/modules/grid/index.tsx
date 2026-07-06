@@ -8,6 +8,7 @@ import { Icon } from '../../../../components/icon'
 import { Sparkline } from '../../../../components/sparkline'
 import { Stack } from '../../../../components/stack'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../../components/tabs'
+import { Text } from '../../../../components/text'
 import {
 	Grid,
 	type GridColumn,
@@ -562,6 +563,96 @@ const CollapsedGroupExample = () => (
 	/>
 )
 
+type Sale = { id: number; region: string; rep: string; units: number; revenue: number }
+
+const salesData: Sale[] = [
+	{ id: 1, region: 'West', rep: 'Wade', units: 12, revenue: 1440 },
+	{ id: 2, region: 'West', rep: 'Tanya', units: 30, revenue: 4200 },
+	{ id: 3, region: 'East', rep: 'Devon', units: 22, revenue: 2860 },
+	{ id: 4, region: 'East', rep: 'Arlene', units: 41, revenue: 5330 },
+	{ id: 5, region: 'West', rep: 'Tom', units: 18, revenue: 2160 },
+	{ id: 6, region: 'East', rep: 'Cody', units: 9, revenue: 1170 },
+]
+
+const dollars = (value: unknown) => `$${Number(value).toLocaleString('en-US')}`
+
+// A per-column `aggFunc` aggregates on group headers and the total rows; `revenue`
+// and `units` sum, while `$/unit` is a weighted ratio — a custom function over
+// the rows themselves, since it spans two fields rather than reducing one column.
+const salesColumns: GridColumn<Sale>[] = [
+	{ id: 'region', title: 'Region', cell: (row) => row.region, value: (row) => row.region },
+	{ id: 'rep', title: 'Rep', cell: (row) => row.rep, value: (row) => row.rep },
+	{
+		id: 'units',
+		title: 'Units',
+		cell: (row) => String(row.units),
+		value: (row) => row.units,
+		aggFunc: 'sum',
+	},
+	{
+		id: 'revenue',
+		title: 'Revenue',
+		cell: (row) => dollars(row.revenue),
+		value: (row) => row.revenue,
+		aggFunc: 'sum',
+		aggCell: ({ value }) => dollars(value),
+	},
+	{
+		id: 'perUnit',
+		title: '$/unit',
+		cell: (row) => dollars((row.revenue / row.units).toFixed(2)),
+		aggFunc: (rows: Sale[]) => {
+			const revenue = rows.reduce((sum, row) => sum + row.revenue, 0)
+
+			const units = rows.reduce((sum, row) => sum + row.units, 0)
+
+			return units === 0 ? '' : (revenue / units).toFixed(2)
+		},
+		aggCell: ({ value }) => (value === '' ? '' : `$${value}`),
+	},
+]
+
+const AggregationExample = () => (
+	<Grid
+		columns={salesColumns}
+		rows={salesData}
+		getKey={(row) => row.id}
+		groupBy={{ value: 'region' }}
+		groupTotalRow="bottom"
+		grandTotalRow="bottom"
+	/>
+)
+
+// An `expander` column renders the disclosure chevron; the `expandable` binding
+// carries the detail renderer — an arbitrary sub-component per row.
+const masterDetailColumns: GridColumn<Person>[] = [{ id: 'expand', expander: true }, ...columns]
+
+const MasterDetailExample = () => {
+	const [expanded, setExpanded] = useState<Set<string | number>>(new Set([1]))
+
+	return (
+		<Grid
+			columns={masterDetailColumns}
+			rows={people}
+			getKey={(row) => row.id}
+			rowLabel={(row) => row.name}
+			expandable={{
+				value: expanded,
+				onValueChange: setExpanded,
+				render: (row) => (
+					<Stack gap="sm">
+						<Text className="font-medium">{row.name}</Text>
+						<Text size="sm" severity="muted">
+							{row.email} · {row.role} · currently {row.status}
+						</Text>
+						<Badge color={row.status === 'active' ? 'green' : 'zinc'}>{row.status}</Badge>
+					</Stack>
+				),
+			}}
+		/>
+	)
+}
+
 const ResizableExample = () => (
 	<Grid resizable columns={columns} rows={people} getKey={(row) => row.id} />
 )
@@ -922,6 +1013,7 @@ const tabs = [
 	'Pin',
 	'Lock',
 	'Groups',
+	'Master-detail',
 	'Filters',
 	'Header',
 	'Footer',
@@ -1192,10 +1284,28 @@ export function Demo() {
 									>
 										<CollapsedGroupExample />
 									</Example>
+
+									<Example
+										title="Aggregation & totals"
+										code={code`<Grid groupBy={{ value: 'region' }} groupTotalRow="bottom" grandTotalRow="bottom" columns={[{ …, aggFunc: 'sum' }, { …, aggFunc: (rows) => weightedRatio }]} />`}
+									>
+										<AggregationExample />
+									</Example>
 								</Stack>
 							</TabContent>
 						</TabContents>
 					</Tabs>
+				</TabContent>
+
+				<TabContent value="Master-detail">
+					<Stack gap="xl">
+						<Example
+							title="Expandable rows"
+							code={code`<Grid columns={[{ expander: true }, …]} expandable={{ value, onValueChange, render: (row) => <Detail /> }} />`}
+						>
+							<MasterDetailExample />
+						</Example>
+					</Stack>
 				</TabContent>
 
 				<TabContent value="Toolbar">

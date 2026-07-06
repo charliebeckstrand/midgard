@@ -13,6 +13,32 @@ export function columnLabel(column: { id: string | number; title?: ReactNode }):
 	return typeof column.title === 'string' ? column.title : String(column.id)
 }
 
+/** The built-in per-column aggregation names. @see {@link GridColumn.aggFunc} */
+export type GridAggFuncName = 'sum' | 'avg' | 'min' | 'max' | 'count'
+
+/**
+ * A column's aggregation: a built-in name reducing the column's numeric
+ * values, or a function over the rows themselves — an aggregate spanning
+ * several fields (a weighted ratio) needs row access, not one column's values.
+ *
+ * @typeParam T - Shape of a single row.
+ */
+export type GridAggFunc<T> = GridAggFuncName | ((rows: T[]) => unknown)
+
+/**
+ * Context for a {@link GridColumn.aggCell} renderer: the aggregated `value`
+ * and the `rows` it was computed over — a group's leaves on a group row, the
+ * whole filtered set on the grand total.
+ *
+ * @typeParam T - Shape of a single row.
+ */
+export type GridAggCellContext<T> = {
+	/** The column's aggregate over {@link GridAggCellContext.rows}. */
+	value: unknown
+	/** The rows behind the aggregate. */
+	rows: T[]
+}
+
 /**
  * One column of a {@link Grid}: its id, header `title`, optional cell
  * renderer, and per-column flags for sorting, selection, actions, and
@@ -73,6 +99,16 @@ export type GridColumn<T> = {
 	 * — and defaults to a natural grip width; set {@link GridColumn.width} to override.
 	 */
 	dragHandle?: boolean
+	/**
+	 * Marks this as the row-expander column: renders a disclosure chevron that
+	 * opens the row's master-detail panel, rather than a cell value. Effective
+	 * only while the grid is {@link GridProps.expandable | expandable} (and the
+	 * row passes {@link GridExpandable.rowExpandable}); inert otherwise. Like
+	 * {@link GridColumn.selectable} it is a non-data column — never sorted,
+	 * filtered, resized, or column-reordered — and defaults to a natural chevron
+	 * width; set {@link GridColumn.width} to override.
+	 */
+	expander?: boolean
 	/** Renders the cell content for a row; defaults to nothing when omitted. */
 	cell?: (row: T) => ReactNode
 	/**
@@ -129,6 +165,25 @@ export type GridColumn<T> = {
 	 * to be searchable.
 	 */
 	value?: (row: T) => unknown
+	/**
+	 * Aggregates this column on the grouped body's group-header rows and the
+	 * {@link GridProps.groupTotalRow | group} / {@link GridProps.grandTotalRow | grand}
+	 * total rows. A built-in name reduces the column's values — its
+	 * {@link GridColumn.value} accessor, else the row field named by the column
+	 * id, coerced to numbers with entries that don't parse skipped (`count`
+	 * counts rows; an otherwise empty set renders blank, never a fabricated
+	 * zero). A function receives the rows themselves and returns any value.
+	 * Rendered through {@link GridColumn.aggCell} when given, else locale number
+	 * formatting.
+	 */
+	aggFunc?: GridAggFunc<T>
+	/**
+	 * Renders this column's aggregated value on group-header and total rows,
+	 * superseding the default locale number formatting — pair a currency
+	 * column's `cell` with an `aggCell` reading the same formatter. Receives the
+	 * {@link GridAggCellContext}: the aggregate and the rows behind it.
+	 */
+	aggCell?: (context: GridAggCellContext<T>) => ReactNode
 	/**
 	 * Per-row props spread onto the underlying `<td>`. Use to wire ARIA, data
 	 * attributes, or handlers (e.g. `role="gridcell"` + `onMouseDown` for a

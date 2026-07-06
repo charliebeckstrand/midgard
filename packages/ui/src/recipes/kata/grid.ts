@@ -164,6 +164,7 @@ export const k = {
 	},
 	selectCell: 'w-px text-center align-middle [line-height:0]',
 	actionsCell: 'w-px whitespace-nowrap',
+	expanderCell: 'w-px text-center align-middle [line-height:0]',
 	cell: {
 		// One-line cell content that truncates to an ellipsis at the column width.
 		// `block` gives the span the cell's width so the fixed/auto column bounds it.
@@ -350,6 +351,47 @@ export const k = {
 			density: { compact: ['p-1'], snug: ['p-2'], loose: ['p-3'] },
 			defaults: { density: 'snug' },
 		}),
+	},
+	aggregate: {
+		// Aggregated figures on group-header and total rows: firmer than the data
+		// they summarize, tabular so they align down their columns.
+		cell: ['tabular-nums', 'font-medium'],
+		// The total row's leading "Total" label, matching the figures' weight.
+		label: ['font-medium'],
+	},
+	detail: {
+		// The master-detail chevron in an expander cell: rotates a quarter-turn as
+		// the panel opens (`data-open`), honouring `prefers-reduced-motion`. Inline
+		// flex so the rotate spins the icon about its own centre.
+		chevron: [
+			'inline-flex',
+			'shrink-0',
+			'transition-transform',
+			'duration-200',
+			'motion-reduce:transition-none',
+			'data-[open]:rotate-90',
+		],
+		// The detail row's `<td>` reveal wrapper: the same one-row CSS grid the
+		// group leaves ride (`1fr` ↔ `0fr` on `data-open`), so a panel grows and
+		// shrinks to its content height over a transition without JS measurement.
+		reveal: [
+			'grid',
+			'[grid-template-rows:0fr]',
+			'data-[open]:[grid-template-rows:1fr]',
+			'transition-[grid-template-rows]',
+			'duration-200',
+			'ease-in-out',
+			'motion-reduce:transition-none',
+		],
+		// The clip between the reveal track and the panel body.
+		revealClip: ['overflow-hidden', 'min-h-0'],
+		// The panel's own inset, set off from the rows with a hairline top rule and
+		// a faint recessed surface so it reads as a nested region, not another row.
+		panel: [
+			'p-3',
+			'border-t-2',
+			...mode('border-zinc-950/5 bg-zinc-50', 'dark:border-white/10 dark:bg-white/[0.02]'),
+		],
 	},
 	resize: {
 		// Fixed layout + a <colgroup> of exact widths so resizing one column
