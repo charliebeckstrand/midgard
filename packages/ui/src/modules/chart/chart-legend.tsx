@@ -16,12 +16,13 @@ import { ChartSwatch } from './chart-pattern-defs'
 const PAGE_SIZE = 5
 
 /**
- * A legend entry's label, line-clamped to one line so a side panel's
- * `max-w-[50%]` can't force the row to overflow. Detects the clamp by its
- * clipped line spilling past the box's own height — `line-clamp` wraps rather
- * than widens, so overflow reads on the vertical axis, not the horizontal one
- * a plain single-line truncate would compare — and surfaces the full label in
- * a hover tooltip once that clip fires.
+ * A legend entry's label, truncated to one line so a side panel's
+ * `max-w-[50%]` can't force the row to overflow. `-webkit-line-clamp` was the
+ * first pass, but its legacy box model centers a clamped line that had to wrap
+ * internally before being cut — pulling a long label away from its swatch —
+ * so a plain single-line `truncate` (`nowrap` + ellipsis) stands in instead;
+ * it never wraps, so nothing is left to center. Surfaces the full label in a
+ * hover tooltip once that overflow actually clips it.
  *
  * @internal
  */
@@ -31,14 +32,14 @@ function ChartLegendItemLabel({ label, off }: { label: string; off: boolean }) {
 	const [truncated, setTruncated] = useState(false)
 
 	// Re-measures on a label change too, not just a box resize — content can grow
-	// or shrink the clamped line's overflow without the box's own size moving.
+	// or shrink the overflow without the box's own size moving.
 	// biome-ignore lint/correctness/useExhaustiveDependencies: label is read via the DOM the effect owns, not referenced directly.
 	useLayoutEffect(() => {
 		const el = ref.current
 
 		if (!el) return
 
-		const measure = () => setTruncated(el.scrollHeight > el.clientHeight)
+		const measure = () => setTruncated(el.scrollWidth > el.clientWidth)
 
 		measure()
 
@@ -52,7 +53,7 @@ function ChartLegendItemLabel({ label, off }: { label: string; off: boolean }) {
 	return (
 		<Tooltip enabled={truncated}>
 			<TooltipTrigger>
-				<span ref={ref} className="min-w-0 line-clamp-1">
+				<span ref={ref} className="block min-w-0 truncate">
 					<Text
 						as="span"
 						severity="muted"
