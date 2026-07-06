@@ -192,9 +192,11 @@ export type ChartBaseProps<T> = AccessibleName & {
 	/**
 	 * Show the legend. Defaults to on for two or more series (or slices) and off
 	 * for one — a single series is already named by the chart's accessible name.
-	 * A placement moves it: a centered row under the plot (`'bottom'`, the
-	 * default) or above it (`'top'`), or a column panel beside it (`'left'` /
-	 * `'right'`), side by side from `lg` and under the chart below that.
+	 * Forced on for a lone series (or slice), its single entry reads as a static
+	 * chip: with nothing to switch against it can't toggle or emphasise. A
+	 * placement moves it: a centered row under the plot (`'bottom'`, the default)
+	 * or above it (`'top'`), or a column panel beside it (`'left'` / `'right'`),
+	 * side by side from `lg` and under the chart below that.
 	 */
 	legend?: boolean | ChartLegendPlacement
 	/**
@@ -263,7 +265,8 @@ export type CartesianFrameProps = {
 	 * Reference lines drawn across the plot at fixed values — targets, thresholds,
 	 * or averages the marks read against. Each value folds into the domain so an
 	 * off-data line stays on-frame, and the rules draw over the marks so a mark
-	 * crossing one stays legible.
+	 * crossing one stays legible. Where the legend shows, each rule also names
+	 * itself in it as a static identity chip.
 	 */
 	reference?: ChartReferenceLine[]
 	/**

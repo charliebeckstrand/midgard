@@ -359,3 +359,133 @@ describe('reference line keyboard navigation', () => {
 		await waitFor(() => expect(referenceTooltip()).not.toBeNull())
 	})
 })
+
+describe('reference lines in the legend', () => {
+	it('names each reference line in the legend when it shows', () => {
+		// One series defaults the legend off, so ask for it; the two rules then
+		// follow the one series switch as identity chips.
+		const { container } = renderUI(
+			<BarChart
+				aria-label="Revenue by month"
+				data={DATA}
+				series={[...SERIES]}
+				width={400}
+				legend
+				reference={[
+					{ value: 55, label: 'Target' },
+					{ value: 70, label: 'Ceiling' },
+				]}
+			/>,
+		)
+
+		expect(allBySlot(container, 'chart-legend-reference').map((el) => el.textContent)).toEqual([
+			'Target',
+			'Ceiling',
+		])
+	})
+
+	it('falls back to the value for an unlabelled reference', () => {
+		const { container } = renderUI(
+			<BarChart
+				aria-label="Revenue by month"
+				data={DATA}
+				series={[...SERIES]}
+				width={400}
+				legend
+				reference={[{ value: 55 }]}
+			/>,
+		)
+
+		expect(bySlot(container, 'chart-legend-reference')?.textContent).toContain('55')
+	})
+
+	it('joins the default legend of a multi-series chart', () => {
+		const { container } = renderUI(
+			<BarChart
+				aria-label="Revenue and costs by month"
+				data={[
+					{ month: 'Jan', revenue: 40, costs: 20 },
+					{ month: 'Feb', revenue: 80, costs: 31 },
+				]}
+				series={[
+					{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
+					{ xKey: 'month', yKey: 'costs', yName: 'Costs' },
+				]}
+				width={400}
+				reference={[{ value: 55, label: 'Target' }]}
+			/>,
+		)
+
+		// The legend shows by default for two series; the rule joins it beside them.
+		expect(allBySlot(container, 'chart-legend-item')).toHaveLength(2)
+
+		expect(bySlot(container, 'chart-legend-reference')?.textContent).toContain('Target')
+	})
+
+	it('stays out of the legend while it is hidden, keeping its list parity', () => {
+		// One series keeps the legend off by default; the rule stays out of the
+		// (absent) legend, and the reference list still carries it.
+		const { container } = bar([{ value: 55, label: 'Target' }])
+
+		expect(bySlot(container, 'chart-legend')).toBeNull()
+
+		expect(allBySlot(container, 'chart-legend-reference')).toHaveLength(0)
+
+		expect(bySlot(container, 'chart-reference-list')?.textContent).toContain('Target')
+	})
+
+	it('is a non-interactive chip, apart from the series switchboard', () => {
+		const { container } = renderUI(
+			<BarChart
+				aria-label="Revenue by month"
+				data={DATA}
+				series={[...SERIES]}
+				width={400}
+				legend
+				reference={[{ value: 55, label: 'Target' }]}
+			/>,
+		)
+
+		// One series → one switch; the rule is a separate, aria-hidden chip that
+		// neither roves nor toggles.
+		expect(allBySlot(container, 'chart-legend-item')).toHaveLength(1)
+
+		const chip = bySlot(container, 'chart-legend-reference')
+
+		expect(chip?.tagName).toBe('SPAN')
+
+		expect(chip?.getAttribute('aria-hidden')).toBe('true')
+	})
+
+	it('paints a slot chip through its class and a raw colour inline', () => {
+		const { container } = renderUI(
+			<BarChart
+				aria-label="Revenue by month"
+				data={DATA}
+				series={[...SERIES]}
+				width={400}
+				legend
+				reference={[
+					{ value: 55, label: 'Target', color: 'green' },
+					{ value: 70, label: 'Ceiling', color: '#e11d48' },
+				]}
+			/>,
+		)
+
+		const [slot, raw] = allBySlot(container, 'chart-legend-reference')
+
+		const slotSwatch = slot?.querySelector('[data-slot="swatch"]')
+
+		// A named slot rides its currentColor text class, with no inline colour.
+		expect(slotSwatch?.getAttribute('class')).toContain('text-green-600')
+
+		expect(slotSwatch?.getAttribute('style')).toBeNull()
+
+		const rawSwatch = raw?.querySelector('[data-slot="swatch"]') as HTMLElement
+
+		// A raw colour bypasses the slot classes and paints inline instead.
+		expect(rawSwatch?.getAttribute('class') ?? '').not.toContain('text-')
+
+		expect(rawSwatch?.style.color).toBeTruthy()
+	})
+})

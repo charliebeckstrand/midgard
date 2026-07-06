@@ -265,6 +265,7 @@ export function ComboChart<T>({
 				chart.legendItems && (
 					<ChartLegend
 						items={chart.legendItems}
+						references={chart.referenceItems}
 						hidden={chart.hidden}
 						onToggle={chart.toggleSeries}
 						onFocus={chart.setEmphasis}
