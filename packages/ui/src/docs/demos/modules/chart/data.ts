@@ -123,6 +123,25 @@ export const greens: string[] = [
 	'oklch(0.266 0.065 152.934)',
 ]
 
+/** One marketing channel's share of traffic: `channel` names it, `visits` the metric. */
+export type ChannelTraffic = { channel: string; visits: number }
+
+/**
+ * Traffic by marketing channel — eight channels, named long enough to clip in
+ * a side legend panel, so the panel's truncation tooltip and, past five
+ * entries, its pagination both have something to show.
+ */
+export const channelTraffic: ChannelTraffic[] = [
+	{ channel: 'Organic search traffic', visits: 5240 },
+	{ channel: 'Paid social advertising', visits: 3180 },
+	{ channel: 'Direct navigation visits', visits: 2760 },
+	{ channel: 'Email newsletter campaigns', visits: 1950 },
+	{ channel: 'Affiliate partner referrals', visits: 1420 },
+	{ channel: 'Influencer collaboration links', visits: 980 },
+	{ channel: 'Display banner advertising', visits: 640 },
+	{ channel: 'Marketplace cross-listings', visits: 410 },
+]
+
 /** One activity cell: `commits` made on `day` within an `hour` bucket. */
 export type Activity = { day: string; hour: string; commits: number }
 

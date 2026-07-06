@@ -21,7 +21,7 @@ import {
 } from '../../../../modules/chart'
 import type { MapGeography } from '../../../../modules/map'
 import { code, Example } from '../../../engine'
-import { activity, dailyVisits, greens, heat, statePopulation } from './data'
+import { activity, channelTraffic, dailyVisits, greens, heat, statePopulation } from './data'
 
 type Month = { month: string; revenue: number; costs: number; margin: number }
 
@@ -556,6 +556,17 @@ export function Demo() {
 									/>
 								</ChartContainer>
 							</AnimatedExample>
+
+							<Example title="Side panel, many segments" code={code`<PieChart legend="right" … />`}>
+								<ChartContainer>
+									<PieChart
+										aria-label="Traffic by marketing channel"
+										data={channelTraffic}
+										series={[{ xKey: 'channel', yKey: 'visits' }]}
+										legend="right"
+									/>
+								</ChartContainer>
+							</Example>
 						</Stack>
 					</TabContent>
 
