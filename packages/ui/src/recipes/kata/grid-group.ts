@@ -17,7 +17,7 @@ const { focus } = sen
 
 /**
  * The fill for a group's 2px underline rule, keyed by {@link PaletteColor} so a
- * band reads `bandColor[group.color]`. Full literals for Tailwind's scanner; the
+ * band reads `band.color[group.color]`. Full literals for Tailwind's scanner; the
  * `-600` shade reads over both light and dark surfaces.
  */
 const bandColor: Record<PaletteColor, string> = {
@@ -57,10 +57,6 @@ const cardOutline: Record<PaletteColor, string> = {
 export const k = {
 	// Outline color for a group's editor Card in its color (see {@link cardOutline}).
 	cardOutline,
-	// Fill for a group's underline rule in its color (see {@link bandColor}).
-	bandColor,
-	// Neutral fill for a colorless group's underline rule (see {@link bandNeutral}).
-	bandNeutral,
 	// The group row's cells align their band vertically; no bottom rule — the
 	// colored Badge alone sets the tier off from the column headers.
 	cell: ['align-middle'],
@@ -71,10 +67,16 @@ export const k = {
 	// A colored group's 2px underline rule: a rounded bar spanning the band content
 	// width, under the Badge. Only a group with a `color` draws it.
 	rule: ['h-0.5', rounded.full],
-	// A group band's row: the colored Badge, then the bare chevron toggle when
-	// collapsible, then the `+N` count. `min-w-0` lets the Badge label truncate
-	// within the band rather than overrun.
-	band: [flex.inline, 'items-center', 'gap-1', 'min-w-0'],
+	band: {
+		// A group band's row: the colored Badge, then the bare chevron toggle when
+		// collapsible, then the `+N` count. `min-w-0` lets the Badge label truncate
+		// within the band rather than overrun.
+		row: [flex.inline, 'items-center', 'gap-1', 'min-w-0'],
+		// Fill for a group's underline rule in its color (see {@link bandColor}).
+		color: bandColor,
+		// Neutral fill for a colorless group's underline rule (see {@link bandNeutral}).
+		neutral: bandNeutral,
+	},
 	// The "+N" hidden-count shown on a collapsed band, beside the expand toggle.
 	count: [text.muted, 'tabular-nums'],
 	// Column-manager group editor: the create button, group zones, and column rows.

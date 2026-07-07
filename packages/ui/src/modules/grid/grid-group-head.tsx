@@ -105,8 +105,8 @@ function GridGroupHeadCell({
 	const ruleColor =
 		span.kind === 'group'
 			? span.group.color
-				? k.bandColor[span.group.color]
-				: k.bandNeutral
+				? k.band.color[span.group.color]
+				: k.band.neutral
 			: null
 
 	return (
@@ -178,13 +178,13 @@ function GridGroupBand({ group, collapsed, onToggleCollapse }: GridGroupBandProp
 	)
 
 	// Non-collapsible: the Badge alone, flush with its column's left edge.
-	if (!group.collapsible) return <span className={cn(k.band)}>{badgeWithTooltip}</span>
+	if (!group.collapsible) return <span className={cn(k.band.row)}>{badgeWithTooltip}</span>
 
 	// Collapsible: the Badge leads (so it lines up with the column), then a bare
 	// icon Button folds the group — the chevron alone lives in the button, so it
 	// brightens on hover. The `+N` count trails the toggle when collapsed.
 	return (
-		<span className={cn(k.band)}>
+		<span className={cn(k.band.row)}>
 			{badgeWithTooltip}
 
 			<Button
