@@ -60,8 +60,8 @@ export function TimelineMarker({
 				k.marker.base,
 				orientation === 'vertical' ? k.marker.vertical : k.marker.horizontal,
 				color && k.marker.palette[color].dot,
-				k.marker.palette[lineBefore ?? 'zinc'].lineBefore,
-				k.marker.palette[lineAfter ?? 'zinc'].lineAfter,
+				k.marker.palette[lineBefore ?? 'zinc'].line.before,
+				k.marker.palette[lineAfter ?? 'zinc'].line.after,
 				children != null && 'size-auto',
 				className,
 			)}
