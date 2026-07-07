@@ -196,3 +196,65 @@ describe('pie stacked legend row cap (real browser)', () => {
 		expect(legend.getBoundingClientRect().height).toBeLessThan(rowHeight * 1.6)
 	})
 })
+
+/**
+ * Spark is the row cap's terminal case: the box is too small for any chrome, so
+ * the legend doesn't cap — it drops entirely, with the axes and the header. A
+ * two-series chart squeezed to a sparkline would otherwise wrap its legend to two
+ * rows and, inside the whole-figure aspect box, hand the plot a 0–12px sliver of
+ * dashes beneath it — the very crush the cap exists to prevent, but past where a
+ * row budget can help. Dropped, the `flex-1` plot reclaims the box and draws as
+ * pure marks. The box arithmetic is real layout, so this rides the browser.
+ */
+describe('spark drops the legend to reclaim the box (real browser)', () => {
+	beforeAll(() => page.viewport(1000, 700))
+
+	const months = [
+		{ month: 'Jan', revenue: 42, costs: 28 },
+		{ month: 'Feb', revenue: 51, costs: 30 },
+		{ month: 'Mar', revenue: 47, costs: 33 },
+		{ month: 'Apr', revenue: 63, costs: 35 },
+		{ month: 'May', revenue: 58, costs: 34 },
+		{ month: 'Jun', revenue: 71, costs: 38 },
+	]
+
+	it('renders no legend at spark and fills the aspect box with marks', async () => {
+		// A 150px spark box (under the 160px spark width), where a wider frame would
+		// show the two-series legend. The default bottom placement, so a shown legend
+		// would band under the plot and take height from the 16/9 aspect box.
+		const width = 150
+
+		const { container } = renderUI(
+			<BarChart
+				aria-label="Revenue and costs"
+				data={months}
+				series={[
+					{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
+					{ xKey: 'month', yKey: 'costs', yName: 'Costs' },
+				]}
+				width={width}
+			/>,
+		)
+
+		const plot = bySlot(container, 'chart-plot') as HTMLElement
+
+		// Settle the aspect-fill height measurement before reading the box.
+		await waitFor(() => expect(plot.getBoundingClientRect().height).toBeGreaterThan(0))
+
+		expect(bySlot(container, 'chart')).toHaveAttribute('data-tier', 'spark')
+
+		// The legend is gone — not capped, dropped: no row, no measuring ghost, no chip.
+		expect(bySlot(container, 'chart-legend')).toBeNull()
+
+		expect(allBySlot(container, 'chart-legend-ghost')).toHaveLength(0)
+
+		expect(container.querySelector('[aria-label^="Show "]')).toBeNull()
+
+		// Both series still draw — a sparkline keeps its marks, it only sheds the chrome.
+		expect(allBySlot(container, 'chart-bar').length).toBeGreaterThan(0)
+
+		// The plot reclaims the whole box rather than a sliver: its height lands near
+		// the full width / (16/9), not the handful of pixels a legend band would leave.
+		expect(plot.getBoundingClientRect().height).toBeGreaterThan((width * 9) / 16 - 8)
+	})
+})

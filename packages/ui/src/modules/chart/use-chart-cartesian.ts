@@ -100,8 +100,9 @@ export type CartesianChart = {
 	/**
 	 * How many rows a stacked legend may take before the rest fold into a `+N`
 	 * chip — the frame tier's `legendRows` budget, threaded to the legend as its
-	 * `maxRows`. `0` at spark leaves the row uncapped (its chrome is dropped
-	 * elsewhere); a side legend paginates and ignores it.
+	 * `maxRows`. `0` at spark, but moot there: the frame drops the legend with the
+	 * rest of the spark chrome, so it never mounts to read a cap. A side legend
+	 * paginates and ignores this.
 	 */
 	legendRows: 0 | 1 | 2
 	/**

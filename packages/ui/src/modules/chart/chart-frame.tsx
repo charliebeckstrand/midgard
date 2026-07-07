@@ -36,6 +36,37 @@ function samePoint(a: ChartPoint | null, b: ChartPoint | null): boolean {
 function ignoreActiveSeries(_series: number | null): void {}
 
 /**
+ * The header, spark veil, and legend a framed chart draws at its resolved tier.
+ * A framed tier bands the header above the plot inside the aspect box and keeps
+ * the legend beside or below it; spark strips both to bare marks — the header
+ * leaves the flow for a centered hover / focus veil over the plot, and the
+ * legend drops entirely so the `flex-1` plot reclaims the whole aspect box and
+ * draws as a pure sparkline, rather than wrapping under a legend band that
+ * crushes it to a sliver of dashes. The series then read on the hover tooltip,
+ * as the title does on the veil. A chart with no title or subtitle draws no
+ * header either way.
+ *
+ * @internal
+ */
+function chartChrome(
+	tier: ChartTier | undefined,
+	title: string | undefined,
+	subtitle: string | undefined,
+	legend: ReactNode,
+): { header: ReactNode; sparkVeil: ReactNode; legend: ReactNode } {
+	const spark = tier === 'spark'
+
+	const head =
+		title || subtitle ? <ChartHeader title={title} subtitle={subtitle} veil={spark} /> : null
+
+	return {
+		header: spark ? null : head,
+		sparkVeil: spark ? head : null,
+		legend: spark ? null : legend,
+	}
+}
+
+/**
  * The plot region's attributes: the keyboard tab stop and its focus ring when
  * `keyboard` makes the region navigable, else a plain non-focusable region. It
  * takes the space its siblings leave — `flex-1` along the figure's main axis,
@@ -257,16 +288,10 @@ export function ChartFrame({
 	// `aspect-ratio` and needs no container height.
 	const containerFill = fill && aspect === undefined
 
-	const hasHeader = Boolean(title || subtitle)
-
-	// The header bands above the plot inside the aspect box at every framed tier;
-	// at spark it leaves the flow for a centered veil over the marks, revealed on
-	// the chart's hover or focus, so the sparkline reads as pure marks at rest.
-	const header =
-		hasHeader && tier !== 'spark' ? <ChartHeader title={title} subtitle={subtitle} /> : null
-
-	const sparkVeil =
-		hasHeader && tier === 'spark' ? <ChartHeader title={title} subtitle={subtitle} veil /> : null
+	// A framed tier bands the header above the plot and keeps the legend; spark
+	// strips both to bare marks — the header to a centered hover / focus veil, the
+	// legend gone so the plot reclaims the whole aspect box (see chartChrome).
+	const { header, sparkVeil, legend: legendFrame } = chartChrome(tier, title, subtitle, legend)
 
 	const plotRegion = (
 		<div
@@ -325,7 +350,7 @@ export function ChartFrame({
 					<ChartFigure
 						plot={plotRegion}
 						header={header}
-						legend={legend}
+						legend={legendFrame}
 						legendPlacement={legendPlacement}
 						aside={aside}
 						containerFill={containerFill}
