@@ -108,6 +108,29 @@ export const TICK_SPACING = 44
 export const MIN_TICK_TARGET = 2
 
 /**
+ * Height, in px, of one clipped header line — a title or a subtitle. The header
+ * never wraps (each line truncates to one line), so its height is a fixed
+ * multiple of this, a two-line header adding {@link CHART_HEADER_LINE_GAP}
+ * between the pair. Read off the rendered header, so the {@link
+ * chartChromeReserve} budget matches the box the figure actually lays out.
+ * @internal
+ */
+export const CHART_HEADER_LINE_HEIGHT = 24
+
+/** Gap, in px, between the title and subtitle lines of a two-line header. @internal */
+export const CHART_HEADER_LINE_GAP = 2
+
+/** Height, in px, of one stacked legend row. @internal */
+export const CHART_LEGEND_ROW_HEIGHT = 30
+
+/**
+ * Gap, in px, between the figure's stacked flex children — the header, the plot,
+ * and a stacked legend band — one sitting between each adjacent pair.
+ * @internal
+ */
+export const CHART_FIGURE_GAP = 12
+
+/**
  * Resolves the anatomy {@link ChartPolicy} for a plot box of `width` × `height`,
  * capping the height-driven tick target at the density ceiling `tickCap`. Pure
  * and space-only: it reads the box the frame measured and never the viewport,
@@ -182,4 +205,82 @@ export function chartPolicy(width: number, height: number, tickCap: number): Cha
 		// chips the rest.
 		legendRows: width < COMPACT_WIDTH || height < TWO_ROW_LEGEND_HEIGHT ? 1 : 2,
 	}
+}
+
+/**
+ * The aspect-box chrome a chart draws around its plot, for the {@link
+ * chartChromeReserve} budget: the header lines above the plot and whether a
+ * stacked legend bands below it. Read from the chart's props — never the tier —
+ * so the budget stays a pure function of the props and can't feed the tier it
+ * helps resolve back into itself.
+ *
+ * @internal
+ */
+export type ChartChrome = {
+	/** Header lines above the plot: `0` (none), `1` (a title or subtitle alone), or `2` (both). */
+	headerLines: 0 | 1 | 2
+	/** A stacked (top / bottom) legend bands inside the aspect box below the plot. */
+	legend: boolean
+}
+
+/** The header lines a `title` and `subtitle` draw above the plot: 0, 1, or 2. @internal */
+export function headerLineCount(title?: string, subtitle?: string): 0 | 1 | 2 {
+	return ((title ? 1 : 0) + (subtitle ? 1 : 0)) as 0 | 1 | 2
+}
+
+/**
+ * The height an aspect-fill figure's chrome takes from the box its ratio sets:
+ * the header, a stacked legend, and the {@link CHART_FIGURE_GAP} gaps flanking
+ * the plot. Subtracted from the figure's `width / ratio`, it recovers the plot's
+ * own height without measuring a plot the tier's spark decision would resize. A
+ * single legend row is budgeted: a second row only appears past the compact
+ * width, where the extra height can't flip the tier. Computed, never measured —
+ * the same posture as the tick-gutter estimate — so nothing the tier decides
+ * feeds back into it.
+ *
+ * @internal
+ */
+export function chartChromeReserve({ headerLines, legend }: ChartChrome): number {
+	const header =
+		headerLines > 0
+			? headerLines * CHART_HEADER_LINE_HEIGHT + (headerLines - 1) * CHART_HEADER_LINE_GAP
+			: 0
+
+	const legendBand = legend ? CHART_LEGEND_ROW_HEIGHT : 0
+
+	// The plot always sits in the figure; the header and legend each add a flex
+	// child, so one gap joins each to the plot.
+	const gaps = ((headerLines > 0 ? 1 : 0) + (legend ? 1 : 0)) * CHART_FIGURE_GAP
+
+	return header + legendBand + gaps
+}
+
+/**
+ * The plot height the {@link chartPolicy} tier resolves against. A stacked
+ * aspect-fill figure shares its ratio box with the header and legend, so the
+ * plot's *measured* remainder shrinks while the tier keeps that chrome and jumps
+ * when spark drops it — feeding that remainder back into the tier oscillates with
+ * no fixed point. Under that mode the height is derived from the figure's own
+ * `width / ratio` less the {@link chartChromeReserve chrome reserve}, a value no
+ * tier decision perturbs, while the drawing still fills the measured remainder.
+ * Every other frame mode's measured height is already tier-independent and passes
+ * through untouched.
+ *
+ * @param measuredHeight The plot's measured drawing height, still the drawing's.
+ * @param width The measured plot (and figure) width.
+ * @param figureAspect The `width / height` the figure carries — set only for the
+ * stacked aspect-fill frame, `null` / `undefined` otherwise, which passes the
+ * measured height straight through.
+ * @param chrome The header and stacked legend the figure lays out around the plot.
+ * @internal
+ */
+export function policyPlotHeight(
+	measuredHeight: number,
+	width: number,
+	figureAspect: number | null | undefined,
+	chrome: ChartChrome,
+): number {
+	if (!figureAspect || width <= 0) return measuredHeight
+
+	return Math.max(0, width / figureAspect - chartChromeReserve(chrome))
 }

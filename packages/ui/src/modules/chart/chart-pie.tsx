@@ -20,7 +20,7 @@ import {
 	resolveTooltip,
 } from './chart-schema'
 import { formatChartValue, type SlotPaint, seriesValues } from './chart-series'
-import { chartPolicy, isSparkBox } from './chart-tier'
+import { chartPolicy, isSparkBox, policyPlotHeight } from './chart-tier'
 import { useChartHover } from './context'
 import {
 	CALLOUT_CHAR_WIDTH,
@@ -525,6 +525,8 @@ type PieFrame = {
 	aside: boolean
 	/** The legend shows — for two or more slices, or where the prop forces it. */
 	hasLegend: boolean
+	/** A stacked (top / bottom) legend bands inside the aspect box, sharing the pie's ratio. */
+	stackedLegend: boolean
 }
 
 /**
@@ -561,6 +563,9 @@ function pieFrame(
 		fill: frameSizing.mode === 'fill' || frameSizing.mode === 'aspect-fill',
 		aside,
 		hasLegend,
+		// Only a stacked band shares the aspect box the chrome reserve applies to; a
+		// side legend bands beside the pie at its own width.
+		stackedLegend: hasLegend && !aside,
 	}
 }
 
@@ -772,6 +777,7 @@ export function ChartPie<T>({
 		fill: fillFrame,
 		aside,
 		hasLegend,
+		stackedLegend,
 	} = pieFrame(sizing, legend, data.length)
 
 	const { ref, width: frameWidth, height: frameHeight, reserve } = usePlotFrame(width, frameSizing)
@@ -780,7 +786,16 @@ export function ChartPie<T>({
 	// box — the `data-tier` styling hook, and the legend's row cap so a many-slice
 	// stacked legend never overruns the frame the way it used to. It has no value
 	// ticks, so the density ceiling the tick target would clamp is moot here.
-	const policy = chartPolicy(frameWidth, frameHeight, CHART_METRICS.md.tickTarget)
+	// Under a stacked aspect-fill figure the plot's measured remainder shrinks with
+	// the legend and jumps when spark drops it, so resolve the tier against the
+	// figure's `width / ratio` less that legend rather than the remainder it would
+	// loop on. A pie carries no header, so the chrome is the legend alone.
+	const policyHeight = policyPlotHeight(frameHeight, frameWidth, frameAspect, {
+		headerLines: 0,
+		legend: stackedLegend,
+	})
+
+	const policy = chartPolicy(frameWidth, policyHeight, CHART_METRICS.md.tickTarget)
 
 	const { hidden, toggle, setFocus, emphasis } = useChartSeriesToggle()
 

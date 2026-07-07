@@ -30,7 +30,7 @@ import {
 } from '../chart-schema'
 import { formatChartValue, type SlotPaint } from '../chart-series'
 import { snapTargets } from '../chart-snap'
-import { chartPolicy } from '../chart-tier'
+import { chartPolicy, policyPlotHeight } from '../chart-tier'
 import type { ChartReadout } from '../types'
 import { cartesianFocus } from '../use-chart-keyboard'
 import { useChartSeriesToggle } from '../use-chart-series-toggle'
@@ -396,7 +396,16 @@ export function ScatterChart<T>({
 	// The scatter reads the intrinsic tier from its measured box for the
 	// `data-tier` styling hook and the legend's row cap; its own axis ticks keep
 	// the density target above, so only the tier and its legend budget are taken.
-	const policy = chartPolicy(frameWidth, frameHeight, metrics.tickTarget)
+	// Under a stacked aspect-fill figure the plot's measured remainder shrinks
+	// with the legend and jumps when spark drops it, so resolve the tier against
+	// the figure's `width / ratio` less that legend instead of the remainder it
+	// would loop on. A scatter carries no header, so the chrome is the legend alone.
+	const policyHeight = policyPlotHeight(frameHeight, frameWidth, frameAspect, {
+		headerLines: 0,
+		legend: Boolean(legend ?? series.length > 1) && !aside,
+	})
+
+	const policy = chartPolicy(frameWidth, policyHeight, metrics.tickTarget)
 
 	const format = formatValue ?? formatChartValue
 
