@@ -2,8 +2,10 @@ import { RefreshCw } from 'lucide-react'
 import { type ComponentProps, type ReactNode, useEffect, useState } from 'react'
 import statesUrl from 'us-atlas/states-10m.json?url'
 import { Button } from '../../../../components/button'
+import { Flex } from '../../../../components/flex'
 import { Icon } from '../../../../components/icon'
 import { Listbox, ListboxOption } from '../../../../components/listbox'
+import { Spacer } from '../../../../components/spacer'
 import { Stack } from '../../../../components/stack'
 import { Stat, StatLabel, StatValue } from '../../../../components/stat'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../../components/tabs'
@@ -41,14 +43,6 @@ const months: Month[] = [
 	{ month: 'Apr', revenue: 63, costs: 35, margin: 28 },
 	{ month: 'May', revenue: 58, costs: 34, margin: 24 },
 	{ month: 'Jun', revenue: 71, costs: 38, margin: 33 },
-]
-
-// One measure each for the spark-tile grid, drawn small enough to drop their
-// chrome to pure marks with the title revealed on hover.
-const sparkTiles: { title: string; yKey: 'revenue' | 'costs' | 'margin' }[] = [
-	{ title: 'Revenue', yKey: 'revenue' },
-	{ title: 'Costs', yKey: 'costs' },
-	{ title: 'Margin', yKey: 'margin' },
 ]
 
 const swings: { month: string; delta: number }[] = [
@@ -146,20 +140,21 @@ const LegendPlacementExample = ({
 		<Example
 			title="Legend placement"
 			code={code`<BarChart aspectRatio={16 / 9} legend={placement} … /> // plot stays 16:9`}
-			actions={
-				<Listbox
-					placement="bottom-end"
-					aria-label="Legend placement"
-					value={placement}
-					displayValue={(value) => value.at(0)?.toUpperCase() + value.slice(1)}
-					onValueChange={(value) => setPlacement(value as LegendPlacement)}
-				>
-					{(['right', 'left', 'top', 'bottom'] as LegendPlacement[]).map((option) => (
-						<ListboxOption key={option} value={option}>
-							{option.charAt(0).toUpperCase() + option.slice(1)}
-						</ListboxOption>
-					))}
-				</Listbox>
+			prefix={
+				<Flex>
+					<Listbox
+						aria-label="Legend placement"
+						value={placement}
+						displayValue={(value) => value.at(0)?.toUpperCase() + value.slice(1)}
+						onValueChange={(value) => setPlacement(value as LegendPlacement)}
+					>
+						{(['right', 'left', 'top', 'bottom'] as LegendPlacement[]).map((option) => (
+							<ListboxOption key={option} value={option}>
+								{option.charAt(0).toUpperCase() + option.slice(1)}
+							</ListboxOption>
+						))}
+					</Listbox>
+				</Flex>
 			}
 		>
 			{children(placement)}
@@ -184,14 +179,17 @@ function AnimatedExample({
 		<Example
 			title={title}
 			code={source}
-			actions={
-				<Button
-					variant="bare"
-					aria-label="Replay animation"
-					onClick={() => setRunKey((n) => n + 1)}
-				>
-					<Icon icon={<RefreshCw />} />
-				</Button>
+			prefix={
+				<Flex>
+					<Spacer />
+					<Button
+						variant="bare"
+						aria-label="Replay animation"
+						onClick={() => setRunKey((n) => n + 1)}
+					>
+						<Icon icon={<RefreshCw />} />
+					</Button>
+				</Flex>
 			}
 		>
 			<div key={runKey}>{children}</div>
@@ -216,7 +214,6 @@ export function Demo() {
 					<Tab value="bubble">Bubble</Tab>
 					<Tab value="heatmap">Heatmap</Tab>
 					<Tab value="choropleth">Choropleth</Tab>
-					<Tab value="tiers">Tiers</Tab>
 				</TabList>
 				<TabContents>
 					<TabContent value="bar">
@@ -275,21 +272,6 @@ export function Demo() {
 							</Example>
 
 							<Example
-								title="Click to pin the tooltip"
-								code={code`<BarChart tooltip={{ trigger: 'click' }} … />`}
-							>
-								<BarChart
-									aria-label="Revenue and costs by month"
-									data={months}
-									series={[
-										{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
-										{ xKey: 'month', yKey: 'costs', yName: 'Costs' },
-									]}
-									tooltip={{ trigger: 'click' }}
-								/>
-							</Example>
-
-							<Example
 								title="Reference lines"
 								code={code`<BarChart legend reference={[{ value: 55, label: 'Target', color: 'green' }, { value: 80, label: 'Ceiling', color: '#e11d48' }]} … />`}
 							>
@@ -332,6 +314,34 @@ export function Demo() {
 									animate
 								/>
 							</AnimatedExample>
+
+							<Example
+								title="Tooltip trigger"
+								code={code`<BarChart tooltip={{ trigger: 'click' }} … />`}
+							>
+								<BarChart
+									aria-label="Revenue and costs by month"
+									data={months}
+									series={[
+										{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
+										{ xKey: 'month', yKey: 'costs', yName: 'Costs' },
+									]}
+									tooltip={{ trigger: 'click' }}
+								/>
+							</Example>
+
+							<Example title="Title & subtitle" code={code`<BarChart title="…" subtitle="…" … />`}>
+								<BarChart
+									aria-label="Revenue and costs by month"
+									data={months}
+									series={[
+										{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
+										{ xKey: 'month', yKey: 'costs', yName: 'Costs' },
+									]}
+									title="Revenue & costs"
+									subtitle="Last six months"
+								/>
+							</Example>
 						</Stack>
 					</TabContent>
 
@@ -840,44 +850,6 @@ export function Demo() {
 									regionId={(feature) => String(feature.properties?.name)}
 									formatValue={(value) => `${value.toFixed(1)}M`}
 								/>
-							</Example>
-						</Stack>
-					</TabContent>
-
-					<TabContent value="tiers">
-						<Stack gap="xl">
-							<Example
-								title="Title and subtitle"
-								code={code`<BarChart title="Revenue & costs" subtitle="Last six months, in thousands" … />`}
-							>
-								<BarChart
-									aria-label="Revenue and costs by month"
-									title="Revenue & costs"
-									subtitle="Last six months, in thousands"
-									data={months}
-									series={[
-										{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
-										{ xKey: 'month', yKey: 'costs', yName: 'Costs' },
-									]}
-								/>
-							</Example>
-
-							<Example
-								title="Spark tiles — hover a tile for its title"
-								code={code`<LineChart title="Revenue" width={150} … />`}
-							>
-								<div className="flex flex-wrap gap-3">
-									{sparkTiles.map(({ title, yKey }) => (
-										<LineChart
-											key={yKey}
-											aria-label={`${title} by month`}
-											title={title}
-											width={150}
-											data={months}
-											series={[{ xKey: 'month', yKey }]}
-										/>
-									))}
-								</div>
 							</Example>
 						</Stack>
 					</TabContent>
