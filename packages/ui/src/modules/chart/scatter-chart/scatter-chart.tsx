@@ -30,6 +30,7 @@ import {
 } from '../chart-schema'
 import { formatChartValue, type SlotPaint } from '../chart-series'
 import { snapTargets } from '../chart-snap'
+import { chartPolicy } from '../chart-tier'
 import type { ChartReadout } from '../types'
 import { cartesianFocus } from '../use-chart-keyboard'
 import { useChartSeriesToggle } from '../use-chart-series-toggle'
@@ -392,6 +393,11 @@ export function ScatterChart<T>({
 
 	const { ref, width: frameWidth, height: frameHeight, reserve } = usePlotFrame(width, sizing)
 
+	// The scatter reads the intrinsic tier from its measured box for the
+	// `data-tier` styling hook and the legend's row cap; its own axis ticks keep
+	// the density target above, so only the tier and its legend budget are taken.
+	const policy = chartPolicy(frameWidth, frameHeight, metrics.tickTarget)
+
 	const format = formatValue ?? formatChartValue
 
 	const formatX = formatXValue ?? formatChartValue
@@ -466,6 +472,7 @@ export function ScatterChart<T>({
 			reserve={reserve}
 			fill={fillFrame}
 			aspect={frameAspect}
+			tier={policy.tier}
 			legend={
 				legendItems && (
 					<ChartLegend
@@ -474,6 +481,7 @@ export function ScatterChart<T>({
 						onToggle={toggle}
 						onFocus={setFocus}
 						panel={aside}
+						maxRows={policy.legendRows}
 					/>
 				)
 			}
