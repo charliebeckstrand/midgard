@@ -1,6 +1,7 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { BarChart } from '../../modules/chart/bar-chart'
+import { PieChart } from '../../modules/chart/pie-chart'
 import { allBySlot, bySlot, renderUI, waitFor } from '../helpers'
 
 /**
@@ -129,5 +130,69 @@ describe('chart stacked legend row cap (real browser)', () => {
 		// Toggling a folded-away series doesn't reshuffle the visible row: the cut
 		// holds, so the chip still stands for the same overflow it opened.
 		expect(overflowChip(container)?.getAttribute('aria-label')).toBe(`Show ${10 - before} more`)
+	})
+})
+
+/**
+ * The pie was the chart the complaint named: a many-slice legend under the plot
+ * used to stack row on row and push its entries past where they could be seen.
+ * Now the pie reads the same intrinsic tier as a cartesian chart, so its stacked
+ * legend caps and chips the overflow just the same.
+ */
+describe('pie stacked legend row cap (real browser)', () => {
+	beforeAll(() => page.viewport(1000, 700))
+
+	// Ten slices under a bottom legend on a narrow pie — the one-row budget the
+	// 360px box resolves can't hold them, so the cap must bite.
+	const slices = [
+		'Alpha',
+		'Bravo',
+		'Charlie',
+		'Delta',
+		'Echo',
+		'Foxtrot',
+		'Golf',
+		'Hotel',
+		'India',
+		'Juliet',
+	]
+
+	const data = slices.map((label, index) => ({ label, value: 10 + index }))
+
+	it('caps a many-slice pie legend and chips the overflow', async () => {
+		const { container } = renderUI(
+			<PieChart
+				aria-label="Ten slices"
+				data={data}
+				series={[{ xKey: 'label', yKey: 'value' }]}
+				width={360}
+				legend="bottom"
+			/>,
+		)
+
+		await waitFor(() => expect(container.querySelector('[aria-label^="Show "]')).not.toBeNull())
+
+		const chip = container.querySelector('[aria-label^="Show "]') as HTMLButtonElement
+
+		const visible = allBySlot(container, 'chart-legend-item')
+
+		const ghost = allBySlot(container, 'chart-legend-ghost')
+
+		// Every slice is measured on the ghost; only a subset shows, the rest chipped.
+		expect(ghost.length).toBe(10)
+
+		expect(visible.length).toBeGreaterThan(0)
+
+		expect(visible.length).toBeLessThan(10)
+
+		expect(Number(chip.getAttribute('aria-label')?.match(/\d+/)?.[0])).toBe(10 - visible.length)
+
+		// The capped legend holds to its one-row budget rather than stacking ten rows
+		// under the pie.
+		const legend = bySlot(container, 'chart-legend') as HTMLElement
+
+		const rowHeight = (visible[0] as HTMLElement).offsetHeight
+
+		expect(legend.getBoundingClientRect().height).toBeLessThan(rowHeight * 1.6)
 	})
 })

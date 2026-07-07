@@ -6,7 +6,7 @@ import { cn } from '../../core'
 import { type FrameSizing, usePlotFrame } from '../../hooks'
 import { type ChartSeriesColor, k } from '../../recipes/kata/chart'
 import { formatPercent } from '../../utilities'
-import { MARK_GAP, TICK_CHAR_WIDTH } from './chart-constants'
+import { CHART_METRICS, MARK_GAP, TICK_CHAR_WIDTH } from './chart-constants'
 import { ChartFrame } from './chart-frame'
 import { type ChartAspectRatio, chartFrameSizing } from './chart-layout'
 import { ChartLegend, type ChartLegendItem } from './chart-legend'
@@ -20,6 +20,7 @@ import {
 	resolveTooltip,
 } from './chart-schema'
 import { formatChartValue, type SlotPaint, seriesValues } from './chart-series'
+import { chartPolicy } from './chart-tier'
 import { useChartHover } from './context'
 import {
 	CALLOUT_CHAR_WIDTH,
@@ -723,6 +724,12 @@ export function ChartPie<T>({
 
 	const { ref, width: frameWidth, height: frameHeight, reserve } = usePlotFrame(width, frameSizing)
 
+	// The pie reads the same intrinsic tier as a cartesian chart from its measured
+	// box — the `data-tier` styling hook, and the legend's row cap so a many-slice
+	// stacked legend never overruns the frame the way it used to. It has no value
+	// ticks, so the density ceiling the tick target would clamp is moot here.
+	const policy = chartPolicy(frameWidth, frameHeight, CHART_METRICS.md.tickTarget)
+
 	const { hidden, toggle, setFocus, emphasis } = useChartSeriesToggle()
 
 	// A toggled-off row leaves the sweep entirely, so the survivors re-share the whole.
@@ -826,6 +833,7 @@ export function ChartPie<T>({
 			reserve={reserve}
 			fill={fillFrame}
 			aspect={frameAspect}
+			tier={policy.tier}
 			legend={
 				legendItems && (
 					<ChartLegend
@@ -834,6 +842,7 @@ export function ChartPie<T>({
 						onToggle={toggle}
 						onFocus={setFocus}
 						panel={aside}
+						maxRows={policy.legendRows}
 						texture={tex.active}
 					/>
 				)
