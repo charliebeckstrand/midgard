@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Example } from '../../components/example'
-import { resolveResize, resolveWidth, SNAP_STEP } from '../../components/example-resize'
+import { maxDefined, resolveResize, resolveWidth, SNAP_STEP } from '../../components/example-resize'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 // Example derives its code block from children; a bare string keeps derivation
@@ -134,6 +134,77 @@ describe('Example width', () => {
 			'aria-valuenow',
 			'400',
 		)
+	})
+})
+
+describe('maxDefined', () => {
+	it('returns whichever bound is defined', () => {
+		expect(maxDefined(undefined, undefined)).toBeUndefined()
+
+		expect(maxDefined(120, undefined)).toBe(120)
+
+		expect(maxDefined(undefined, 200)).toBe(200)
+	})
+
+	it('returns the larger of two defined bounds', () => {
+		expect(maxDefined(120, 200)).toBe(200)
+
+		expect(maxDefined(320, 200)).toBe(320)
+	})
+})
+
+describe('Example minWidth', () => {
+	it('floors the frame with a CSS min-width, without a handle', () => {
+		const { container } = renderUI(<Example minWidth={320}>demo</Example>)
+
+		const frame = bySlot(container, 'example-frame')
+
+		expect(frame?.style.minWidth).toBe('320px')
+
+		expect(bySlot(container, 'example-resize-handle')).toBeNull()
+	})
+
+	it('clamps a smaller starting width up to the floor', () => {
+		const { container } = renderUI(
+			<Example width={200} minWidth={320}>
+				demo
+			</Example>,
+		)
+
+		const frame = bySlot(container, 'example-frame')
+
+		expect(frame?.style.width).toBe('320px')
+
+		expect(frame?.style.minWidth).toBe('320px')
+	})
+
+	it('is the resize lower bound', () => {
+		const { container } = renderUI(
+			<Example minWidth={300} resize>
+				demo
+			</Example>,
+		)
+
+		expect(bySlot(container, 'example-frame')?.style.minWidth).toBe('300px')
+
+		expect(screen.getByRole('separator', { name: 'Resize example' })).toHaveAttribute(
+			'aria-valuemin',
+			'300',
+		)
+	})
+
+	it('composes with resize.min, the larger floor winning', () => {
+		renderUI(
+			<Example minWidth={350} resize={{ min: 200, max: 600 }}>
+				demo
+			</Example>,
+		)
+
+		const handle = screen.getByRole('separator', { name: 'Resize example' })
+
+		expect(handle).toHaveAttribute('aria-valuemin', '350')
+
+		expect(handle).toHaveAttribute('aria-valuemax', '600')
 	})
 })
 

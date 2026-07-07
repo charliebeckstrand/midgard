@@ -74,6 +74,15 @@ export function resolveWidth(proposed: number, { min, max, snap }: ResolvedResiz
 	return Math.max(width, 0)
 }
 
+/** The larger of two optional bounds, or whichever is defined; `undefined` when neither is. @internal */
+export function maxDefined(a: number | undefined, b: number | undefined): number | undefined {
+	if (a === undefined) return b
+
+	if (b === undefined) return a
+
+	return Math.max(a, b)
+}
+
 /** Pointer/keyboard handlers the handle binds to, from {@link useExampleResize}. */
 export type ResizeHandlers = {
 	onPointerDown: (event: ReactPointerEvent) => void

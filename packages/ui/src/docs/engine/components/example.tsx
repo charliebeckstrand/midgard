@@ -11,6 +11,7 @@ import { deriveCode } from '../derive-code'
 import { useRegisterExample } from './demo-nav'
 import {
 	ExampleResizeHandle,
+	maxDefined,
 	type ResizeProp,
 	resolveResize,
 	useExampleResize,
@@ -27,8 +28,8 @@ import {
  * slots frame the preview. A titled example registers itself with the page's
  * jump nav ({@link DemoNav}) and anchors the scroll target it jumps to.
  *
- * The optional `width` prop sets the frame's width, and `resize` makes it
- * horizontally draggable via a right-edge handle and switches its border to
+ * The optional `width` and `minWidth` props size the frame, and `resize` makes
+ * it horizontally draggable via a right-edge handle and switches its border to
  * dashed; see {@link resolveResize} for how the boolean and object forms normalize.
  */
 export function Example({
@@ -39,6 +40,7 @@ export function Example({
 	footer,
 	code,
 	width: initialWidth,
+	minWidth,
 	resize,
 	children,
 }: {
@@ -51,6 +53,12 @@ export function Example({
 	code?: string
 	/** The frame's width in pixels; the starting width when `resize` is on. Auto when omitted. */
 	width?: number
+	/**
+	 * The frame's minimum width in pixels: a CSS floor the frame never shrinks
+	 * below, and — when `resize` is on — the drag lower bound, composed with any
+	 * `resize.min` (the larger wins). Auto when omitted.
+	 */
+	minWidth?: number
 	/**
 	 * Makes the frame horizontally resizable via a right-edge handle, with a
 	 * dashed border. `true` uses auto bounds; an object sets pixel `min`/`max`
@@ -71,7 +79,19 @@ export function Example({
 
 	const resolvedResize = resolveResize(resize)
 
-	const { containerRef, width, resizing, handlers } = useExampleResize(resolvedResize, initialWidth)
+	// `minWidth` floors the resize range too, composing with any `resize.min`.
+	const boundedResize = resolvedResize && {
+		...resolvedResize,
+		min: maxDefined(resolvedResize.min, minWidth),
+	}
+
+	// Start no narrower than the floor, so the width the handle reports is honest.
+	const startWidth =
+		initialWidth !== undefined && minWidth !== undefined
+			? Math.max(initialWidth, minWidth)
+			: initialWidth
+
+	const { containerRef, width, resizing, handlers } = useExampleResize(boundedResize, startWidth)
 
 	return (
 		<Stack
@@ -97,8 +117,13 @@ export function Example({
 				ref={containerRef}
 				data-slot="example-frame"
 				// `max-width` keeps the frame within its container, so it shrinks with
-				// the window instead of overflowing when the viewport narrows.
-				style={width !== undefined ? { width, maxWidth: '100%' } : undefined}
+				// the window instead of overflowing when the viewport narrows; `minWidth`
+				// floors it.
+				style={
+					width !== undefined || minWidth !== undefined
+						? { width, minWidth, maxWidth: '100%' }
+						: undefined
+				}
 				className={cn(
 					'relative rounded-lg border border-zinc-200 dark:border-zinc-800',
 					resolvedResize && 'border-dashed',
@@ -129,9 +154,9 @@ export function Example({
 						</CollapsePanel>
 					</Collapse>
 				)}
-				{resolvedResize && (
+				{boundedResize && (
 					<ExampleResizeHandle
-						resolved={resolvedResize}
+						resolved={boundedResize}
 						width={width}
 						resizing={resizing}
 						handlers={handlers}
