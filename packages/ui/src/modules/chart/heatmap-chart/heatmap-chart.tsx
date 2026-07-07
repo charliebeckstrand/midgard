@@ -13,6 +13,7 @@ import {
 	type MouseEvent,
 	type PointerEvent,
 	type ReactNode,
+	startTransition,
 	useCallback,
 	useMemo,
 	useRef,
@@ -747,7 +748,9 @@ export function HeatmapChart<T>({
 
 		const next = Math.round(el.clientWidth)
 
-		setMeasuredWidth((prev) => (prev === next ? prev : next))
+		// Commit as a transition — the plot frame's own refit priority — so a resize
+		// burst coalesces rather than this urgent write preempting it.
+		startTransition(() => setMeasuredWidth((prev) => (prev === next ? prev : next)))
 	}, [])
 
 	useResizeObserver(containerRef, measureContainer)

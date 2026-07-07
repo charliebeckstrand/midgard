@@ -1,6 +1,14 @@
 'use client'
 
-import { type ReactNode, type RefObject, useCallback, useMemo, useRef, useState } from 'react'
+import {
+	type ReactNode,
+	type RefObject,
+	startTransition,
+	useCallback,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import { cn } from '../../core'
 import {
 	type FrameReserve,
@@ -975,7 +983,10 @@ export function MapPlat<T = never>({
 
 		const next = Math.round(el.clientWidth)
 
-		setMeasuredWidth((prev) => (prev === next ? prev : next))
+		// Commit as a transition — the same priority the plot's own refit rides — so
+		// a resize burst coalesces rather than this urgent write preempting and
+		// stranding the refit at an intermediate frame (which would fatten strokes).
+		startTransition(() => setMeasuredWidth((prev) => (prev === next ? prev : next)))
 	}, [])
 
 	useResizeObserver(containerRef, measureContainer)

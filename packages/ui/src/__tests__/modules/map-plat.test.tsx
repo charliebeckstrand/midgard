@@ -363,6 +363,17 @@ describe('MapPlat choropleth mode', () => {
 		return <MapPlat {...props} />
 	}
 
+	it('strokes region borders with a non-scaling stroke so a stale refit cannot fatten them', () => {
+		const { container } = renderUI(choropleth())
+
+		// The border rides device pixels, not viewBox units: a resize that lands the
+		// refit late (box grown past the built-against frame) must not scale the
+		// hairline up with the geometry.
+		const region = bySlot(container, 'map-region')
+
+		expect(region?.getAttribute('vector-effect')).toBe('non-scaling-stroke')
+	})
+
 	it('fills regions with the colorRange colour for their bin, as an inline value', () => {
 		const { container } = renderUI(choropleth())
 

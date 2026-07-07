@@ -79,6 +79,12 @@ function Region({
 				data-region-index={index}
 				d={d}
 				strokeWidth={REGION_STROKE_WIDTH}
+				// The border rides device pixels, not viewBox units, so it stays a
+				// hairline whatever the viewBox-to-box ratio is: a resize that lands
+				// the refit a beat late (the box grown past the frame the marks were
+				// built against) scales the geometry crisply but must not fatten the
+				// stroke with it — the constant-pixel refit sharpens, this pins.
+				vectorEffect="non-scaling-stroke"
 				className={cn(
 					fillClass,
 					k.region.border,
