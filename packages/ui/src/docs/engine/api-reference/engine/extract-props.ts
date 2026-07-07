@@ -99,7 +99,12 @@ function buildPropDef(
 	// authored alias text below.
 	const literalUnion = literalUnionType(propTypes, callable, checker)
 
-	const authored = literalUnion ?? authoredTypeText(symbol, checker)
+	// `authoredTypeText` reads one declaration's source; for a prop collected
+	// across multiple discriminated arms, that first arm's text silently drops
+	// the rest (`value` in `{ value?: Config } | { value?: string }` would render
+	// just `Config`). Restrict it to single-arm props, as `literalUnionType` does.
+	const authored =
+		literalUnion ?? (propTypes.length === 1 ? authoredTypeText(symbol, checker) : null)
 
 	const prop: PropDef = {
 		name,
@@ -189,15 +194,70 @@ export function isRequired(symbol: ts.Symbol): boolean {
 
 /** Render each arm-type, dedupe by output text, and join distinct renderings with `|`. */
 function formatPropTypes(types: ts.Type[], location: ts.Node, checker: ts.TypeChecker): string {
-	const rendered: string[] = []
+	const arms = dropMergedArmUnions(types, location, checker)
 
-	for (const t of dropMergedArmUnions(types, location, checker)) {
-		const text = formatPropType(t, checker, location)
+	// A single arm renders whole, so `formatPropType`'s union handling stays
+	// intact: the `'a' | 'b' | (string & {})` autocomplete collapse, the boolean
+	// re-merge, and alias shortening all apply.
+	if (arms.length === 1 && arms[0]) return formatPropType(arms[0], checker, location)
 
-		if (!rendered.includes(text)) rendered.push(text)
+	// Multiple discriminated arms: flatten each to its non-`undefined` leaf
+	// members so a `true`/`false` pair (or any duplicate) split across arms still
+	// dedupes and collapses, and a wholly-`undefined` arm — a discriminator like
+	// `onReorder?: undefined` — contributes nothing rather than a literal
+	// `undefined`.
+	const rendered: { text: string; fn: boolean }[] = []
+
+	for (const t of arms) {
+		for (const member of unionMembers(t)) {
+			const text = formatPropType(member, checker, location)
+
+			if (rendered.some((a) => a.text === text)) continue
+
+			rendered.push({ text, fn: isFunctionType(member) })
+		}
 	}
 
-	return rendered.join(' | ')
+	return joinArms(rendered)
+}
+
+/** A single-signature function type — the shape that needs parentheses inside a union. */
+function isFunctionType(type: ts.Type): boolean {
+	return type.getCallSignatures().length > 0 && type.getProperties().length === 0
+}
+
+/**
+ * Join rendered arms with `|`, re-collapsing a `true`/`false` pair back into
+ * `boolean` — discriminated-union arms collect the two literals separately, so
+ * the merge would otherwise read `false | true` — and wrapping function-type
+ * arms in parentheses so `(v: A) => void | (v: B) => void` doesn't parse as one
+ * function returning a union. A lone arm never needs either treatment.
+ */
+function joinArms(arms: { text: string; fn: boolean }[]): string {
+	const collapseBoolean =
+		arms.some((a) => a.text === 'true') && arms.some((a) => a.text === 'false')
+
+	const kept: { text: string; fn: boolean }[] = []
+
+	let booleanInserted = false
+
+	for (const arm of arms) {
+		if (collapseBoolean && (arm.text === 'true' || arm.text === 'false')) {
+			if (!booleanInserted) {
+				kept.push({ text: 'boolean', fn: false })
+
+				booleanInserted = true
+			}
+
+			continue
+		}
+
+		kept.push(arm)
+	}
+
+	if (kept.length <= 1) return kept[0]?.text ?? ''
+
+	return kept.map((a) => (a.fn ? `(${a.text})` : a.text)).join(' | ')
 }
 
 /**

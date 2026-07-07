@@ -65,6 +65,25 @@ describe('extractReferences', () => {
 		expect(refs?.Item).toMatch(/^\{/)
 	})
 
+	it('renders a discriminated-union alias as source text, keeping every arm', () => {
+		const { location, checker } = callableLocation({
+			'index.ts': [
+				`type Action = { type: 'add'; item: number } | { type: 'remove'; id: string }`,
+				`function Foo(props: { action: Action }) { return null }`,
+			].join('\n'),
+		})
+
+		const refs = extractReferences('Action', location, checker)
+
+		// Every arm-specific member survives; enumerating shared properties would
+		// collapse this to `{ type: 'add' | 'remove' }` and drop `item`/`id`.
+		expect(refs?.Action).toContain('item')
+
+		expect(refs?.Action).toContain('id')
+
+		expect(refs?.Action).toContain('|')
+	})
+
 	it('returns undefined when no resolvable references are present', () => {
 		const { location, checker } = callableLocation({
 			'index.ts': `function Foo(props: { size: string }) { return null }`,

@@ -275,10 +275,12 @@ describe('extractProps — discriminated unions', () => {
 		`function Foo(props: Props) { return null }`,
 	].join('\n')
 
-	it('folds an all-arm prop into a single union without restating the merge', () => {
+	it('folds an all-arm prop into a single union, collapsing the boolean pair', () => {
 		const p = prop(propsOf(SRC), 'kind')
 
-		expect(p.type).toBe('false | true | Config')
+		// `false` (Single/Range) and `true` (Period) collect as separate arms;
+		// the merge must re-fold them to `boolean` rather than `false | true`.
+		expect(p.type).toBe('boolean | Config')
 	})
 
 	it('keeps the documented arm description and the alias reference card', () => {
@@ -311,5 +313,37 @@ describe('extractProps — discriminated unions', () => {
 		// Dropping the merged union must not strip `string`: the wider arm carries
 		// a member the narrow arm doesn't, so both survive (order is TS's).
 		expect(p.type.split(' | ').sort()).toEqual(['number', 'string'])
+	})
+
+	it('parenthesizes function-type arms so the union does not read as one signature', () => {
+		const p = prop(
+			propsOf(
+				[
+					`type Single = { onChange?: (value: string) => void }`,
+					`type Multi = { onChange?: (value: string[]) => void }`,
+					`type Props = Single | Multi`,
+					`function Foo(props: Props) { return null }`,
+				].join('\n'),
+			),
+			'onChange',
+		)
+
+		expect(p.type).toBe('((value: string) => void) | ((value: string[]) => void)')
+	})
+
+	it('drops an arm that contributes only `undefined` instead of rendering it', () => {
+		const p = prop(
+			propsOf(
+				[
+					`type On = { onReorder?: (next: number[]) => void }`,
+					`type Off = { onReorder?: undefined }`,
+					`type Props = On | Off`,
+					`function Foo(props: Props) { return null }`,
+				].join('\n'),
+			),
+			'onReorder',
+		)
+
+		expect(p.type).toBe('(next: number[]) => void')
 	})
 })

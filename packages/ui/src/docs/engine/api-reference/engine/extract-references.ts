@@ -229,6 +229,11 @@ function formatApparentShape(
 	// Function types and hybrid callables fall back to source text.
 	if (declaredType.getCallSignatures().length > 0) return null
 
+	// A union-typed alias has no single object shape: `getPropertiesOfType`
+	// returns only the members common to every arm, silently dropping
+	// arm-specific props. Fall back to source text so each arm renders in full.
+	if (declaredType.isUnion()) return null
+
 	const properties: { name: string; sym: ts.Symbol }[] = []
 
 	for (const propSym of checker.getPropertiesOfType(declaredType)) {
