@@ -123,6 +123,10 @@ export function LineChart<T>({
 			xAxis,
 			tickRotation,
 			formatValue,
+			// The header travels to the frame through `label`; the hook reads it too,
+			// so its tier reserves the header band's height (see `cartesianChrome`).
+			title: label.title,
+			subtitle: label.subtitle,
 		},
 		{ zeroBaseline: false, swatch: () => 'line', legendByValue: true },
 	)
