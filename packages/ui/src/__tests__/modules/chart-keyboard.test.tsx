@@ -345,6 +345,28 @@ describe('LineChart keyboard navigation', () => {
 		expect(bySlot(quiet.container, 'chart-plot')).not.toHaveAttribute('tabindex')
 	})
 
+	it('sheds the readout tooltip and its keyboard cursor at the spark tier', () => {
+		// Forced to a sparkline, the plot reveals its title veil on hover rather than
+		// a data readout, so the tooltip stands down — and with nothing left for it to
+		// answer, the region is no longer a keyboard tab stop either. The pointer path
+		// mounts the same one tooltip, so gating its mount here covers hover too.
+		const { container } = renderUI(line({ width: 140 }))
+
+		expect(bySlot(container, 'chart')).toHaveAttribute('data-tier', 'spark')
+
+		const plot = bySlot(container, 'chart-plot') as HTMLElement
+
+		expect(plot).not.toHaveAttribute('tabindex')
+
+		// Driven from the keyboard all the same, no readout mounts — it left with the
+		// chrome, so no pointer hover could raise it either.
+		act(() => plot.focus())
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
+	})
+
 	it('holds the readout until the first arrow, then reads the first data point', () => {
 		const { container } = renderUI(line())
 
