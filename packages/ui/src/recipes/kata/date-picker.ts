@@ -86,11 +86,13 @@ export const k = {
 		root: 'grid grid-flow-col gap-2 min-w-52',
 		// Preset rows read as a left-aligned menu rather than centered chips.
 		preset: 'w-full justify-start',
-		// The custom row trails the presets in the second column: label left,
-		// chevron right.
-		custom: 'w-full justify-between',
-		// Custom mode: the back affordance above the stacked Start/End inputs.
-		customPanel: 'flex flex-col gap-3',
+		// The custom-range affordance in the second column, trailing the presets.
+		custom: {
+			// The row itself: label left, chevron right.
+			row: 'w-full justify-between',
+			// Custom mode: the back affordance above the stacked Start/End inputs.
+			panel: 'flex flex-col gap-3',
+		},
 		back: 'justify-start gap-1',
 		// The trigger chip row wraps the chips (each `shrink-0`, see the view) onto
 		// new lines rather than scrolling or shrinking them; the gap doubles as the

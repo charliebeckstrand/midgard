@@ -125,7 +125,7 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 							color={state.customActive ? 'blue' : 'zinc'}
 							aria-pressed={state.customActive}
 							data-relative-custom=""
-							className={cn(k.relative.custom)}
+							className={cn(k.relative.custom.row)}
 							onClick={state.enterCustom}
 						>
 							Custom range
@@ -133,7 +133,7 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 						</Button>
 					</div>
 				) : (
-					<div className={cn(k.relative.customPanel)}>
+					<div className={cn(k.relative.custom.panel)}>
 						<Button
 							type="button"
 							variant="bare"
