@@ -248,12 +248,19 @@ export function ChartFrame({
 
 	const [activeReference, setActiveReference] = useState<number | null>(null)
 
+	// Spark sheds its hover chrome with the rest of its anatomy: a sparkline reveals
+	// what it is through the title veil on hover, not a data readout, so the tooltip
+	// — and the keyboard cursor whose only output is that tooltip — stand down. The
+	// accessible name and the data table still carry its values. Every wider tier
+	// keeps the caller's `tooltip`.
+	const tooltipShown = tooltip && tier !== 'spark'
+
 	// Arrow-key navigation over the value points and reference lines, driving the
 	// same hover the pointer does — a tab stop only where a readout can answer it.
 	const keyboard = useChartKeyboard(
 		focus,
 		orientation ?? 'vertical',
-		tooltip && readout !== null,
+		tooltipShown && readout !== null,
 		hover.set,
 		setActiveReference,
 		onActiveSeries,
@@ -313,7 +320,7 @@ export function ChartFrame({
 
 			{sparkVeil}
 
-			{tooltip && readout && width > 0 && (
+			{tooltipShown && readout && width > 0 && (
 				<ChartTooltip
 					plotRef={ref}
 					readout={readout}
