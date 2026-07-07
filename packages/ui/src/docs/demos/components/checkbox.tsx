@@ -16,7 +16,7 @@ export function Demo() {
 			</Example>
 
 			<Example title="Group">
-				<CheckboxGroup>
+				<CheckboxGroup aria-label="Notifications">
 					<CheckboxField>
 						<Checkbox />
 						<Label>Subscribe to newsletter</Label>
@@ -32,10 +32,10 @@ export function Demo() {
 			</Example>
 
 			<Example title="Colors">
-				<CheckboxGroup>
+				<CheckboxGroup aria-label="Colors">
 					{colors.map((color) => (
 						<CheckboxField key={color}>
-							<Checkbox value={color} color={color} defaultChecked />
+							<Checkbox color={color} defaultChecked />
 							<Label>{color}</Label>
 						</CheckboxField>
 					))}
@@ -43,7 +43,7 @@ export function Demo() {
 			</Example>
 
 			<Example title="Disabled">
-				<CheckboxGroup>
+				<CheckboxGroup aria-label="Options">
 					<CheckboxField>
 						<Checkbox disabled />
 						<Label>Disabled option</Label>

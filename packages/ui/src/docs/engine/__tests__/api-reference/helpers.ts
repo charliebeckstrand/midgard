@@ -1,7 +1,16 @@
+import { createRequire } from 'node:module'
 import path from 'node:path'
 import { ts } from 'ts-morph'
 
 const PROJECT_ROOT = '/project'
+
+// The real `typescript` package's lib directory (`…/typescript/lib`). ts-morph's
+// own `ts.getDefaultLibFilePath` points at its bundled `@ts-morph/common/dist`
+// libs, which aren't emitted to disk — so lib files never load and every global
+// (`Array`, `string[]`, …) resolves to `{}`. Resolving the installed typescript
+// (a direct dependency, version-matched to ts-morph's bundled compiler) gives a
+// real on-disk lib dir the compiler host can read through its `ts.sys` fallback.
+const TS_LIB_DIR = path.dirname(createRequire(import.meta.url).resolve('typescript'))
 
 /**
  * Caches lib and other on-disk `.d.ts` SourceFiles once per worker, reused
@@ -64,7 +73,7 @@ export function createInMemoryProgram(files: Record<string, string>): {
 
 			return readDiskSourceFile(filename, languageVersion)
 		},
-		getDefaultLibFileName: (opts) => ts.getDefaultLibFilePath(opts),
+		getDefaultLibFileName: (opts) => path.join(TS_LIB_DIR, ts.getDefaultLibFileName(opts)),
 		getCurrentDirectory: () => PROJECT_ROOT,
 		getCanonicalFileName: (filename) => filename,
 		useCaseSensitiveFileNames: () => true,

@@ -35,7 +35,11 @@ type Server = ReturnType<typeof fakeServer>['server']
 type Callable = {
 	resolveId(id: string): string | undefined
 	load(id: string): string | undefined
-	handleHotUpdate(ctx: { file: string; server: Server }): { id: string }[] | undefined
+	handleHotUpdate(ctx: {
+		file: string
+		modules: { id: string }[]
+		server: Server
+	}): { id: string }[] | undefined
 }
 
 function build(specs: VirtualJsonSpec[]): Callable {
@@ -95,12 +99,18 @@ describe('virtualJsonModules', () => {
 
 		aValue = 2
 
-		const result = hooks.handleHotUpdate({ file: 'changed.a', server })
+		const result = hooks.handleHotUpdate({
+			file: 'changed.a',
+			modules: [{ id: 'changed.a' }],
+			server,
+		})
 
-		// Only A's module is returned and invalidated.
+		// Only A's cache is invalidated.
 		expect(invalidatedIds).toEqual(['\0virtual:a'])
 
-		expect(result?.map((m) => m.id)).toEqual(['\0virtual:a'])
+		// The changed file's own module is folded back in ahead of the
+		// invalidated virtual module, so Vite still updates the edited file.
+		expect(result?.map((m) => m.id)).toEqual(['changed.a', '\0virtual:a'])
 
 		// A regenerates on next load; B is still served from cache.
 		expect(hooks.load('\0virtual:a')).toBe('export default {"value":2}')
@@ -119,7 +129,9 @@ describe('virtualJsonModules', () => {
 
 		const { server, invalidatedIds } = fakeServer()
 
-		expect(hooks.handleHotUpdate({ file: 'unrelated.ts', server })).toBeUndefined()
+		expect(
+			hooks.handleHotUpdate({ file: 'unrelated.ts', modules: [{ id: 'unrelated.ts' }], server }),
+		).toBeUndefined()
 
 		expect(invalidatedIds).toEqual([])
 
@@ -152,9 +164,11 @@ describe('virtualJsonHooks (single-module wrapper)', () => {
 
 		const { server, invalidatedIds } = fakeServer()
 
-		expect(hooks.handleHotUpdate({ file: 'x.solo', server })?.map((m) => m.id)).toEqual([
-			'\0virtual:solo',
-		])
+		expect(
+			hooks
+				.handleHotUpdate({ file: 'x.solo', modules: [{ id: 'x.solo' }], server })
+				?.map((m) => m.id),
+		).toEqual(['x.solo', '\0virtual:solo'])
 
 		expect(invalidatedIds).toEqual(['\0virtual:solo'])
 

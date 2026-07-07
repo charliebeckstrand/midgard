@@ -19,10 +19,10 @@ function FormattingToolbarExample() {
 	return (
 		<Toolbar aria-label="Text formatting">
 			<ToolbarGroup aria-label="History">
-				<Button variant="plain" aria-label="Undo" aria-pressed={false}>
+				<Button variant="plain" aria-label="Undo">
 					<Icon icon={<Undo />} />
 				</Button>
-				<Button variant="plain" aria-label="Redo" aria-pressed={false}>
+				<Button variant="plain" aria-label="Redo">
 					<Icon icon={<Redo />} />
 				</Button>
 			</ToolbarGroup>

@@ -144,6 +144,97 @@ describe('formatPropType — strips `| undefined` from optional unions', () => {
 	})
 })
 
+describe('formatPropType — boolean collapse', () => {
+	it('renders an optional boolean as `boolean`, not `false | true`', () => {
+		const { type, checker, location } = typeOfPropValue({
+			'index.ts': `declare const value: boolean | undefined`,
+		})
+
+		expect(formatPropType(type, checker, location)).toBe('boolean')
+	})
+
+	it('collapses the boolean pair when other arms remain after stripping `undefined`', () => {
+		const { type, checker, location } = typeOfPropValue({
+			'index.ts': `declare const value: boolean | 'auto' | undefined`,
+		})
+
+		const out = formatPropType(type, checker, location)
+
+		expect(out).toContain('boolean')
+
+		expect(out).toContain(`'auto'`)
+
+		expect(out).not.toContain('true')
+	})
+
+	it('keeps a lone boolean literal as its literal, not `boolean`', () => {
+		const { type, checker, location } = typeOfPropValue({
+			'index.ts': `declare const value: true | 'auto' | undefined`,
+		})
+
+		const out = formatPropType(type, checker, location)
+
+		expect(out).toContain('true')
+
+		expect(out).not.toContain('boolean')
+	})
+
+	it('strips only `| undefined`, keeping `| null`', () => {
+		const { type, checker, location } = typeOfPropValue({
+			'index.ts': `declare const value: string | null | undefined`,
+		})
+
+		const out = formatPropType(type, checker, location)
+
+		expect(out).toContain('string')
+
+		expect(out).toContain('null')
+
+		expect(out).not.toContain('undefined')
+	})
+})
+
+describe('formatType — array types', () => {
+	it.each<[string, string, string]>([
+		['renders an array as `T[]`, not `Array<T>`', `declare const value: string[]`, 'string[]'],
+		[
+			'renders a readonly array as `readonly T[]`',
+			`declare const value: readonly number[]`,
+			'readonly number[]',
+		],
+		[
+			'parenthesizes a union element',
+			`declare const value: (string | number)[]`,
+			'(string | number)[]',
+		],
+		['renders nested arrays', `declare const value: number[][]`, 'number[][]'],
+		[
+			'renders `Array<T>` written longhand as `T[]`',
+			`declare const value: Array<string>`,
+			'string[]',
+		],
+	])('%s', (_name, src, expected) => {
+		const { type, checker, location } = typeOfPropValue({ 'index.ts': src })
+
+		expect(formatType(type, checker, location)).toBe(expected)
+	})
+})
+
+describe('createInMemoryProgram — standard library resolution', () => {
+	it('resolves global types (regression: lib files must load, not degrade to `{}`)', () => {
+		const { type, checker } = typeOfPropValue({
+			'index.ts': `declare const value: number[]`,
+		})
+
+		// A lib-less program can't resolve `Array`, collapsing the type to `{}`.
+		const rendered = checker.typeToString(type)
+
+		expect(rendered).toContain('number')
+
+		expect(rendered).not.toBe('{}')
+	})
+})
+
 describe('formatType — function types', () => {
 	it('formats a single-signature function with parameter and return rendering', () => {
 		const { type, checker, location } = typeOfPropValue({

@@ -152,10 +152,13 @@ function renderElementBatch(elements: ReactElement[], context: Context, indent: 
 }
 
 function hasExplicitKey(element: ReactElement): element is ReactElement & { key: string } {
-	// `Children.toArray` serializes user-provided keys with a `.$` prefix
-	// (positional siblings get `.0`, `.1`, …; nested arrays concatenate as
-	// `.0/.$x`). The check matches the `.$` marker, not a bare `$`.
-	return typeof element.key === 'string' && element.key.includes('.$')
+	// `Children.toArray` marks a user-provided key with a `$` sigil, prefixed by
+	// the separator of its position: a top-level keyed sibling reads `.$k`, while
+	// one nested inside an array reads `<pos>:$k` (e.g. `.1:$k`). Positional
+	// siblings without a key get a plain `.0` / `.1` and no `$`. Match the `$`
+	// after either separator so a `.map()` sharing its parent with a sibling
+	// still counts as keyed.
+	return typeof element.key === 'string' && /[.:]\$/.test(element.key)
 }
 
 /**

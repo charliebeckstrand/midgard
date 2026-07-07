@@ -45,9 +45,7 @@ export function Demo() {
 					<TooltipTrigger>
 						<Button variant="outline">Hover me</Button>
 					</TooltipTrigger>
-					<TooltipContent>
-						This tooltip has a delay of 1000ms before it opens and closes.
-					</TooltipContent>
+					<TooltipContent>This tooltip has a delay of 1000ms before it opens.</TooltipContent>
 				</Tooltip>
 			</Example>
 

@@ -64,7 +64,6 @@ function VerticalExample() {
 					{(task) => (
 						<ListItem>
 							<ListLabel>{task.label}</ListLabel>
-							<ListDescription>{task.description}</ListDescription>
 						</ListItem>
 					)}
 				</List>

@@ -291,7 +291,7 @@ export function Demo() {
 
 							<Example
 								title="Reference lines"
-								code={code`<BarChart legend reference={[{ value: 55, label: 'Target', color: 'green' }, { value: 68, label: 'Ceiling', color: '#e11d48' }]} … />`}
+								code={code`<BarChart legend reference={[{ value: 55, label: 'Target', color: 'green' }, { value: 80, label: 'Ceiling', color: '#e11d48' }]} … />`}
 							>
 								<BarChart
 									aria-label="Revenue by month against a target and ceiling"
@@ -427,7 +427,7 @@ export function Demo() {
 								/>
 							</Example>
 
-							<Example title="Points" code={code`<LineChart fill points … />`}>
+							<Example title="Points" code={code`<LineChart points … />`}>
 								<LineChart
 									aria-label="Revenue by month"
 									data={months}
@@ -569,7 +569,7 @@ export function Demo() {
 
 							<Example
 								title="Segment labels"
-								code={code`<PieChart labels={{ segment: true }} legend={false} … />`}
+								code={code`<PieChart labels={{ segment: true }} … />`}
 							>
 								<PieChart
 									aria-label="Traffic by source"

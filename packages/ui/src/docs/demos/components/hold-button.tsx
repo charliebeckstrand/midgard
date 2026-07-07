@@ -60,7 +60,7 @@ export function Demo() {
 					<HoldButton duration={500} onComplete={() => {}}>
 						Fast
 					</HoldButton>
-					<HoldButton duration={1500} onComplete={() => {}}>
+					<HoldButton duration={1000} onComplete={() => {}}>
 						Default
 					</HoldButton>
 					<HoldButton duration={3000} onComplete={() => {}}>

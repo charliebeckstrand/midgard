@@ -39,6 +39,31 @@ describe('DefaultValue', () => {
 		expect(value).toHaveClass(hue)
 	})
 
+	it('renders a quoted-literal union as prose, not one coloured string', () => {
+		const { container } = renderUI(<DefaultValue value="'start' | 'end'" />)
+
+		const value = bySlot(container, 'default-value')
+
+		expect(value).toHaveTextContent("'start' | 'end'")
+
+		// Not a single self-contained literal: no mono/emerald on the whole span.
+		expect(value).not.toHaveClass('font-mono')
+
+		expect(value).not.toHaveClass('text-emerald-700')
+	})
+
+	it('renders a bare {@link} default as a resolved link, not an object literal', () => {
+		const { container } = renderUI(<DefaultValue value="{@link Foo}" />)
+
+		const value = bySlot(container, 'default-value')
+
+		expect(value).toHaveTextContent('Foo')
+
+		expect(container.textContent).not.toContain('{@link')
+
+		expect(value).not.toHaveClass('text-rose-600')
+	})
+
 	it('renders a descriptive default as prose, colouring literals and resolving links', () => {
 		const { container } = renderUI(
 			<DefaultValue value="`'horizontal'` inside a {@link NavBar}, otherwise `'vertical'`" />,

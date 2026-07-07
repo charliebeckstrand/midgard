@@ -2,7 +2,6 @@
 
 import { Badge } from '../../../../components/badge'
 import { CodeBlock } from '../../../../components/code'
-import { Flex } from '../../../../components/flex'
 import { Stack } from '../../../../components/stack'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../../components/tooltip'
 import { cn } from '../../../../core'
@@ -33,34 +32,33 @@ function PropRow({ prop }: { prop: PropDef }) {
 
 	return (
 		<Stack gap="sm" className="py-4 first:pt-0 last:pb-0">
-			<Flex align="center" gap="sm" wrap>
-				<div className="flex items-center gap-2">
-					<div className="flex flex-col gap-2">
-						<span
-							className={cn(
-								'flex items-center gap-2 font-mono font-medium text-zinc-900 dark:text-white',
-								deprecated && 'line-through decoration-zinc-400',
-							)}
-						>
-							<div>
-								{prop.name}{' '}
-								{prop.required && <span className="text-red-600 dark:text-red-500">*</span>}
-								{prop.default && <DefaultValue value={prop.default} />}
-							</div>
-							{deprecated && (
-								<Tooltip>
-									<TooltipTrigger>
-										<Badge color="red" variant="soft" size="sm">
-											deprecated
-										</Badge>
-									</TooltipTrigger>
-									{typeof deprecated === 'string' && <TooltipContent>{deprecated}</TooltipContent>}
-								</Tooltip>
-							)}
-						</span>
-					</div>
-				</div>
-			</Flex>
+			<span
+				className={cn(
+					'flex flex-wrap items-center gap-2 font-mono font-medium text-zinc-900 dark:text-white',
+					deprecated && 'line-through decoration-zinc-400',
+				)}
+			>
+				<span>
+					{prop.name}
+					{prop.required && <span className="text-red-600 dark:text-red-500"> *</span>}
+					{prop.default && (
+						<>
+							{' '}
+							<DefaultValue value={prop.default} />
+						</>
+					)}
+				</span>
+				{deprecated && (
+					<Tooltip>
+						<TooltipTrigger>
+							<Badge color="red" variant="soft" size="sm">
+								deprecated
+							</Badge>
+						</TooltipTrigger>
+						{typeof deprecated === 'string' && <TooltipContent>{deprecated}</TooltipContent>}
+					</Tooltip>
+				)}
+			</span>
 			<TypeCell prop={prop} />
 			{prop.description && <DocDescription description={prop.description} />}
 			{prop.example && <CodeBlock code={prop.example} />}

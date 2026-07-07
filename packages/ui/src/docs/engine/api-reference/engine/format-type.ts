@@ -60,11 +60,48 @@ export function formatPropType(type: ts.Type, checker: ts.TypeChecker, location?
 		if (filtered.length !== type.types.length) {
 			if (filtered.length === 1 && filtered[0]) return formatType(filtered[0], checker, location)
 
-			return filtered.map((t) => formatType(t, checker, location)).join(' | ')
+			return formatUnionMembers(filtered, checker, location)
 		}
 	}
 
 	return toSingleQuotes(checker.typeToString(type, location, TYPE_FORMAT_FLAGS))
+}
+
+/**
+ * Join union members with `|`, re-collapsing the `false | true` pair back into
+ * `boolean`. TS models `boolean` as that literal pair inside a union's members,
+ * so formatting each member individually — the path optional unions take after
+ * stripping `| undefined` — would otherwise disintegrate `boolean` into `false |
+ * true`. Two boolean-literal members are always exactly `false` and `true` (a
+ * union can't repeat either), so a count of two means `boolean`; a single one is
+ * a genuine literal (`foo?: true`) and renders as written.
+ */
+function formatUnionMembers(
+	members: readonly ts.Type[],
+	checker: ts.TypeChecker,
+	location: ts.Node | undefined,
+): string {
+	const collapseBoolean = members.filter((t) => t.flags & ts.TypeFlags.BooleanLiteral).length === 2
+
+	const parts: string[] = []
+
+	let booleanEmitted = false
+
+	for (const member of members) {
+		if (collapseBoolean && member.flags & ts.TypeFlags.BooleanLiteral) {
+			if (!booleanEmitted) {
+				parts.push('boolean')
+
+				booleanEmitted = true
+			}
+
+			continue
+		}
+
+		parts.push(formatType(member, checker, location))
+	}
+
+	return parts.join(' | ')
 }
 
 /**
@@ -90,6 +127,20 @@ function namedTypeShortName(
 		if (trimmed === null) return null
 
 		return formatNameWithArgs(aliasName, trimmed, checker, location)
+	}
+
+	// Array / readonly-array types render `T[]` / `readonly T[]` rather than
+	// `Array<T>` / `ReadonlyArray<T>` — `PropDef.type` documents types as written
+	// in source. A union or function element is parenthesized so `(string |
+	// number)[]` doesn't read as `string | (number[])`.
+	if (checker.isArrayType(type)) {
+		const element = checker.getTypeArguments(type as ts.TypeReference)[0]
+
+		if (!element) return null
+
+		const readonly = type.getSymbol()?.getName() === 'ReadonlyArray' ? 'readonly ' : ''
+
+		return `${readonly}${formatArrayElement(element, checker, location)}[]`
 	}
 
 	const symbol = type.getSymbol()
@@ -173,6 +224,20 @@ function formatNameWithArgs(
 	if (args.length === 0) return name
 
 	return `${name}<${args.map((a) => formatType(a, checker, location)).join(', ')}>`
+}
+
+/** Render an array's element type, parenthesizing a union / intersection / function so `[]` binds correctly. */
+function formatArrayElement(
+	element: ts.Type,
+	checker: ts.TypeChecker,
+	location: ts.Node | undefined,
+): string {
+	const rendered = formatType(element, checker, location)
+
+	const needsParens =
+		element.isUnion() || element.isIntersection() || element.getCallSignatures().length > 0
+
+	return needsParens ? `(${rendered})` : rendered
 }
 
 /**

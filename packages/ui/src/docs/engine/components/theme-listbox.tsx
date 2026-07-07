@@ -1,7 +1,7 @@
 'use client'
 
-import { Listbox, ListboxLabel, ListboxOption } from '../../../components/listbox'
 import { type ThemeMode, themeModes } from '../hooks/use-theme'
+import { OptionsListbox } from './options-listbox'
 
 type ThemeListboxProps = {
 	value: ThemeMode
@@ -10,23 +10,6 @@ type ThemeListboxProps = {
 }
 
 /** A demo control for switching the docs colour mode (light, dark, or system). */
-export function ThemeListbox({
-	value,
-	placement = 'bottom-end',
-	onValueChange,
-}: ThemeListboxProps) {
-	return (
-		<Listbox<ThemeMode>
-			value={value}
-			displayValue={(v) => themeModes.find((m) => m.value === v)?.label ?? v}
-			placement={placement}
-			onValueChange={(v) => v && onValueChange(v)}
-		>
-			{themeModes.map((mode) => (
-				<ListboxOption key={mode.value} value={mode.value}>
-					<ListboxLabel>{mode.label}</ListboxLabel>
-				</ListboxOption>
-			))}
-		</Listbox>
-	)
+export function ThemeListbox(props: ThemeListboxProps) {
+	return <OptionsListbox options={themeModes} {...props} />
 }

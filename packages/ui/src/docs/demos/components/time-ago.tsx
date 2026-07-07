@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Flex } from '../../../components/flex'
 import { Stack } from '../../../components/stack'
 import { Text } from '../../../components/text'
@@ -9,13 +10,21 @@ const MIN = 60 * SEC
 const HOUR = 60 * MIN
 const DAY = 24 * HOUR
 
-const now = Date.now()
+// Anchor "now" at mount, not module load, so the relative labels stay accurate
+// after the tab sits open and the demo remounts on navigation.
+function useNow(): number {
+	return useState(Date.now)[0]
+}
 
 function RecentExample() {
+	const now = useNow()
+
 	return <TimeAgo date={new Date(now - 30 * SEC)} />
 }
 
 function PastExample() {
+	const now = useNow()
+
 	return (
 		<Stack gap="xs">
 			<TimeAgo date={new Date(now - 5 * MIN)} />
@@ -28,6 +37,8 @@ function PastExample() {
 }
 
 function FutureExample() {
+	const now = useNow()
+
 	return (
 		<Stack gap="xs">
 			<TimeAgo date={new Date(now + 10 * MIN)} />
@@ -38,6 +49,8 @@ function FutureExample() {
 }
 
 function CustomFormatExample() {
+	const now = useNow()
+
 	return (
 		<TimeAgo
 			date={new Date(now - 90 * SEC)}
@@ -47,10 +60,14 @@ function CustomFormatExample() {
 }
 
 function WithAbsoluteTimeExample() {
+	const now = useNow()
+
 	return <TimeAgo date={new Date(now - 5 * MIN)} absolute />
 }
 
 function CustomLocaleExample() {
+	const now = useNow()
+
 	return (
 		<Stack gap="xs">
 			<Flex gap="sm">

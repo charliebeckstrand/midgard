@@ -1,6 +1,6 @@
 'use client'
 
-import { Listbox, ListboxLabel, ListboxOption } from '../../../components/listbox'
+import { OptionsListbox } from './options-listbox'
 
 /** Display labels for the standard size scale, keyed by token. Backs {@link SizeListbox}. */
 export const sizeLabels: Record<string, string> = {
@@ -19,24 +19,8 @@ type SizeListboxProps<T extends string> = {
 }
 
 /** A demo control for picking a component's `size` from a fixed scale, labelled via {@link sizeLabels}. */
-export function SizeListbox<T extends string>({
-	sizes,
-	value,
-	placement = 'bottom-end',
-	onValueChange,
-}: SizeListboxProps<T>) {
-	return (
-		<Listbox
-			value={value}
-			displayValue={(v: string) => sizeLabels[v] ?? v}
-			placement={placement}
-			onValueChange={onValueChange as (value: T | undefined) => void}
-		>
-			{sizes.map((s) => (
-				<ListboxOption key={s} value={s}>
-					<ListboxLabel>{sizeLabels[s] ?? s}</ListboxLabel>
-				</ListboxOption>
-			))}
-		</Listbox>
-	)
+export function SizeListbox<T extends string>({ sizes, ...rest }: SizeListboxProps<T>) {
+	const options = sizes.map((value) => ({ value, label: sizeLabels[value] ?? value }))
+
+	return <OptionsListbox options={options} {...rest} />
 }

@@ -2,6 +2,11 @@ import ts from 'typescript'
 
 type Helper = { name: string; code: string }
 
+// The demo page's entry export, loaded via `import.meta.glob(…, { import: 'Demo'
+// })`. It renders as the route body, never inside an `<Example>`, so its
+// `__code` is never read — skip it rather than shipping the whole page source.
+const ENTRY_EXPORT = 'Demo'
+
 function isDefaultExport(modifiers: readonly ts.ModifierLike[] | undefined): boolean {
 	if (!modifiers) return false
 
@@ -87,8 +92,6 @@ function collectPreambles(sf: ts.SourceFile, source: string): Preamble[] {
 		}
 
 		if (ts.isVariableStatement(stmt)) {
-			if (isDefaultExport(stmt.modifiers)) continue
-
 			const code = source.slice(index, stmt.getEnd())
 
 			// JSX-returning helper statements belong to `collectHelpers`, not the
@@ -120,18 +123,12 @@ function collectPreambles(sf: ts.SourceFile, source: string): Preamble[] {
 function prependReferencedPreamble(helperCode: string, preambles: Preamble[]): string {
 	const matched: Preamble[] = []
 
-	const seen = new Set<number>()
-
 	for (const preamble of preambles) {
-		if (seen.has(preamble.index)) continue
-
 		const referenced = preamble.names.some((name) => new RegExp(`\\b${name}\\b`).test(helperCode))
 
 		if (!referenced) continue
 
 		matched.push(preamble)
-
-		seen.add(preamble.index)
 	}
 
 	if (matched.length === 0) return helperCode
@@ -143,8 +140,9 @@ function prependReferencedPreamble(helperCode: string, preambles: Preamble[]): s
 
 /**
  * Finds every PascalCase top-level function/const that returns JSX. Skips the
- * default export (the demo page itself); it renders as the route body, not
- * inside `<Example>`.
+ * entry export `Demo` (the demo page itself) — it renders as the route body,
+ * never inside `<Example>`, so attaching its source only bloats the chunk with
+ * a `__code` string nothing reads.
  *
  * Prepends each helper's source with any sibling type alias, interface, or
  * `const` declaration it references by name, producing a self-contained
@@ -165,7 +163,7 @@ export function collectHelpers(source: string): Helper[] {
 
 	for (const stmt of sf.statements) {
 		if (ts.isFunctionDeclaration(stmt) && stmt.name && /^[A-Z]/.test(stmt.name.text) && stmt.body) {
-			if (isDefaultExport(stmt.modifiers)) continue
+			if (isDefaultExport(stmt.modifiers) || stmt.name.text === ENTRY_EXPORT) continue
 
 			const code = source.slice(stmt.getStart(sf), stmt.getEnd())
 
@@ -180,7 +178,7 @@ export function collectHelpers(source: string): Helper[] {
 			for (const decl of stmt.declarationList.declarations) {
 				const name = jsxHelperName(decl, sf, source)
 
-				if (!name) continue
+				if (!name || name === ENTRY_EXPORT) continue
 
 				const code = source.slice(stmt.getStart(sf), stmt.getEnd())
 

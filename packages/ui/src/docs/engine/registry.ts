@@ -2,6 +2,7 @@ import apiData from 'virtual:api-reference'
 import demoMetas from 'virtual:demo-metas'
 import type { ComponentType } from 'react'
 import type { ComponentApi } from './api-reference'
+import { titleCase } from './components/format'
 import type { DemoMeta } from './demo-meta'
 
 /** One sidebar entry: a demo's id, display name, and category. */
@@ -89,6 +90,11 @@ export function loadDemo(id: string): Promise<ComponentType> {
 		(reason) => {
 			tracked.status = 'rejected'
 			tracked.reason = reason
+
+			// Evict the rejection so a later navigation or an error-boundary retry
+			// re-attempts the import instead of replaying the cached failure — a
+			// transient chunk-load error (offline, deploy skew) must be recoverable.
+			promiseCache.delete(id)
 		},
 	)
 
@@ -139,7 +145,7 @@ export function initRegistry(loaders: DemoLoaders): { initialPreload: Promise<un
 
 		const meta = metaById.get(id)
 
-		const name = meta?.name ?? label.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+		const name = meta?.name ?? titleCase(label)
 
 		list.push({ id, name, category })
 	}

@@ -101,6 +101,28 @@ describe('deriveCode iteration vs authored siblings', () => {
 		expect(optionLines).toHaveLength(1)
 	})
 
+	it('collapses a keyed `.map()` run nested beside another child', () => {
+		// A map result sharing its parent with a sibling is a nested array, so
+		// `Children.toArray` keys it `.<n>:$k` rather than the top-level `.$k`.
+		// The run must still collapse.
+		const items = ['a', 'b', 'c', 'd']
+
+		const tree = createElement(
+			Listbox,
+			null,
+			'Choose',
+			items.map((value) =>
+				createElement(ListboxOption, { key: value, value: 'same' }, 'Same label'),
+			),
+		)
+
+		const result = deriveCode(tree, registry)
+
+		const optionLines = (result ?? '').split('\n').filter((line) => line.includes('<ListboxOption'))
+
+		expect(optionLines).toHaveLength(1)
+	})
+
 	it('keeps distinct iterated siblings even when keyed', () => {
 		const tree = createElement(Listbox, null, [
 			createElement(ListboxOption, { key: 'a', value: 'a' }, 'Alpha'),

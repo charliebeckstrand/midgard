@@ -23,6 +23,7 @@ import { useDensity } from '../../../primitives/density'
 import { OffcanvasContext } from '../../../primitives/offcanvas'
 import { navigate } from '../hooks/use-hash'
 import { type Demo, demos, preloadDemo } from '../registry'
+import { titleCase } from './format'
 
 const SEARCH_PAGE_SIZE = 20
 
@@ -33,12 +34,6 @@ const SECTION_LABEL_PX: Record<string, string> = {
 	sm: 'px-[calc(--spacing(1.5)-1px)]',
 	md: 'px-[calc(--spacing(2)-1px)]',
 	lg: 'px-[calc(--spacing(2.5)-1px)]',
-}
-
-// The header label for a category, derived from its key: 'components' →
-// 'Components', 'pages' → 'Pages', 'data-display' → 'Data Display'.
-function categoryLabel(category: string): string {
-	return category.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
 }
 
 // Categories present in the demo set, rendered top to bottom: 'components'
@@ -124,7 +119,7 @@ function DemoItem({ demo, current }: { demo: Demo; current: boolean }) {
 	)
 }
 
-type SortDirection = 'desc' | 'asc'
+type SortDirection = 'asc' | 'desc'
 
 export function SidebarContent({ route }: { route: string }) {
 	const id = useId()
@@ -138,9 +133,10 @@ export function SidebarContent({ route }: { route: string }) {
 
 	const [searchLimit, setSearchLimit] = useState(SEARCH_PAGE_SIZE)
 
-	const [direction, setDirection] = useState<SortDirection>('desc')
+	const [direction, setDirection] = useState<SortDirection>('asc')
 
-	const sorted = direction === 'desc' ? demos : [...demos].reverse()
+	// `demos` is name-sorted ascending; 'asc' shows it as-is, 'desc' reverses.
+	const sorted = direction === 'asc' ? demos : [...demos].reverse()
 
 	// Scroll the active item into view when the mobile sidebar opens
 	useLayoutEffect(() => {
@@ -192,10 +188,10 @@ export function SidebarContent({ route }: { route: string }) {
 				</div>
 				<Button
 					variant="bare"
-					aria-label={direction === 'desc' ? 'Sort Z to A' : 'Sort A to Z'}
-					onClick={() => setDirection(direction === 'desc' ? 'asc' : 'desc')}
+					aria-label={direction === 'asc' ? 'Sort Z to A' : 'Sort A to Z'}
+					onClick={() => setDirection(direction === 'asc' ? 'desc' : 'asc')}
 				>
-					<Icon icon={direction === 'desc' ? <ArrowDownAZ /> : <ArrowUpZA />} />
+					<Icon icon={direction === 'asc' ? <ArrowDownAZ /> : <ArrowUpZA />} />
 				</Button>
 			</Flex>
 			{/* Reversing the keyed list moves every item; without this the browser's
@@ -207,7 +203,7 @@ export function SidebarContent({ route }: { route: string }) {
 
 					if (items.length === 0) return null
 
-					const label = categoryLabel(category)
+					const label = titleCase(category)
 
 					return (
 						<SidebarSection key={category}>

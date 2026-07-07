@@ -178,6 +178,22 @@ describe('collectSnippetImports', () => {
 		expect(context.imports.get('react')).toBeUndefined()
 	})
 
+	it('does not import `use` from a bare word in prose or a comment', () => {
+		const context = makeContext({ byName: new Map() })
+
+		collectSnippetImports('// use the shared ref here\nconst label = "easy to use"', context)
+
+		expect(context.imports.get('react')).toBeUndefined()
+	})
+
+	it('imports a hook called with an explicit generic argument (`useState<T>()`)', () => {
+		const context = makeContext({ byName: new Map() })
+
+		collectSnippetImports('const [v, setV] = useState<number>(0)', context)
+
+		expect(context.imports.get('react')).toEqual(new Set(['useState']))
+	})
+
 	it('dedupes repeated matches into a single import entry', () => {
 		const context = makeContext({
 			byName: new Map([['Stack', { name: 'Stack', module: 'stack' }]]),

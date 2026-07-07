@@ -20,10 +20,13 @@ type Entry = { spec: VirtualJsonSpec; resolved: string; cached: string | null }
  *
  * Each spec gets its own `\0`-prefixed resolved id and its own lazily-filled
  * cache; `load` generates on first read, and `handleHotUpdate` clears only the
- * caches whose `shouldInvalidate` matches the changed file (returning the
- * invalidated modules). Spread the returned hooks into a Plugin alongside
- * `name` and any other hooks. A single docs plugin can serve every docs virtual
- * module through one call.
+ * caches whose `shouldInvalidate` matches the changed file. Vite *replaces* the
+ * update's module list with a hook's returned array, so the return folds the
+ * changed file's own affected modules (`ctx.modules`) back in alongside the
+ * invalidated virtual modules — returning the virtual modules alone would drop
+ * the edited file's HMR update and leave the browser on stale code. Spread the
+ * returned hooks into a Plugin alongside `name` and any other hooks. A single
+ * docs plugin can serve every docs virtual module through one call.
  */
 export function virtualJsonModules(specs: VirtualJsonSpec[]): Hooks {
 	const entries: Entry[] = specs.map((spec) => ({ spec, resolved: `\0${spec.id}`, cached: null }))
@@ -47,7 +50,7 @@ export function virtualJsonModules(specs: VirtualJsonSpec[]): Hooks {
 			return `export default ${entry.cached}`
 		},
 
-		handleHotUpdate({ file, server }) {
+		handleHotUpdate({ file, modules, server }) {
 			const invalidated: ModuleNode[] = []
 
 			for (const entry of entries) {
@@ -64,7 +67,13 @@ export function virtualJsonModules(specs: VirtualJsonSpec[]): Hooks {
 				}
 			}
 
-			return invalidated.length > 0 ? invalidated : undefined
+			// Nothing to invalidate: return undefined so Vite keeps its default
+			// update (the file's own modules) untouched.
+			if (invalidated.length === 0) return undefined
+
+			// Fold the file's own affected modules back in; a returned array
+			// replaces Vite's list, so omitting them drops the edit's own update.
+			return [...modules, ...invalidated]
 		},
 	}
 }

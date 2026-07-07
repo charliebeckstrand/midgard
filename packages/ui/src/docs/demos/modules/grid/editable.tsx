@@ -285,12 +285,12 @@ const statusOptions = [
 export function EditorTypesExample() {
 	const money = useFormat({ type: 'currency' })
 
-	const [tasks, setTasks] = useState<Task[]>(initialTasks)
-
-	// Every row is editable here so each editor type shows at once. `title` infers
-	// a text editor and `done` a yes/no listbox; `status`, `due`, and `budget`
-	// override with listbox, date, and currency slots.
-	const editing = useMemo(() => new Set<string | number>(tasks.map((task) => task.id)), [tasks])
+	// Every row stays editable so each editor type shows at once: `title` infers a
+	// text editor and `done` a yes/no listbox, while `status`, `due`, and `budget`
+	// override with listbox, date, and currency slots. Because no row ever leaves
+	// the editable set, nothing commits — this example showcases the editors
+	// themselves; see EditableExample for the save/commit cycle.
+	const editing = useMemo(() => new Set<string | number>(initialTasks.map((task) => task.id)), [])
 
 	const columns: GridColumn<Task>[] = [
 		{ id: 'title', title: 'Title', field: 'title', cell: (row) => row.title, width: '200px' },
@@ -333,11 +333,12 @@ export function EditorTypesExample() {
 			</EditHelp>
 			<Grid
 				columns={columns}
-				rows={tasks}
+				rows={initialTasks}
 				getKey={(row) => row.id}
 				editable={{
 					rows: editing,
-					onValueChange: (changes) => setTasks((prev) => applyChanges(prev, changes)),
+					// Required sink; inert here because no row leaves the editable set.
+					onValueChange: () => {},
 				}}
 			/>
 		</>

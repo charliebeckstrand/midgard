@@ -19,7 +19,12 @@ export function extractDefaults(callable: ts.SignatureDeclaration): Map<string, 
 
 		if (!element.initializer) continue
 
-		const name = ts.isIdentifier(element.name) ? element.name.text : null
+		// A renamed binding (`{ size: sizeProp = 'md' }`) carries the public prop
+		// name on `propertyName`; `name` is the local binding. Key the default
+		// under the prop so it matches the extracted prop table, not the local.
+		const key = element.propertyName ?? element.name
+
+		const name = ts.isIdentifier(key) ? key.text : null
 
 		if (!name) continue
 
