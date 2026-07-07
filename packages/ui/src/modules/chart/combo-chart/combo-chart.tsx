@@ -3,13 +3,13 @@
 import { barMarks } from '../bar-chart/bar-chart-geometry'
 import { ChartAxis, ChartAxisTitles } from '../chart-axis'
 import { AnimatedChartBarMarks, ChartBarMarks } from '../chart-bar-marks'
+import { ChartCartesianLegend } from '../chart-cartesian-legend'
 import { MARK_GAP } from '../chart-constants'
 import { ChartCrosshair, crosshairSnaps, resolveCrosshair } from '../chart-crosshair'
 import { ChartFrame } from '../chart-frame'
 import { ChartGridLines } from '../chart-grid-lines'
 import { ChartHitArea } from '../chart-hit-area'
 import { nearSeriesLines, withinBarMarks, withinSeriesAreas } from '../chart-hit-test'
-import { ChartLegend } from '../chart-legend'
 import { AnimatedChartLineMarks, ChartLineMarks, type ChartLineSeries } from '../chart-line-marks'
 import { ChartMarksLayer } from '../chart-marks-layer'
 import { useChartTexture } from '../chart-pattern-defs'
@@ -286,22 +286,7 @@ export function ComboChart<T>({
 			fill={chart.fill}
 			aspect={chart.outerAspect ?? undefined}
 			tier={chart.tier}
-			legend={
-				chart.legendItems && (
-					<ChartLegend
-						items={chart.legendItems}
-						references={chart.referenceItems}
-						hidden={chart.hidden}
-						referenceHidden={chart.referenceHidden}
-						onToggle={chart.toggleSeries}
-						onToggleReference={chart.toggleReference}
-						onFocus={chart.setEmphasis}
-						panel={legend === 'left' || legend === 'right'}
-						maxRows={chart.legendRows}
-						texture={tex.active}
-					/>
-				)
-			}
+			legend={<ChartCartesianLegend chart={chart} legend={legend} texture={tex.active} />}
 			legendPlacement={typeof legend === 'string' ? legend : undefined}
 			readout={chart.readout}
 			emphasis={chart.emphasis}
