@@ -50,9 +50,9 @@ export function pinnedClassName(
 
 	const atBoundary = side === 'left' ? pinning.isLastLeft(id) : pinning.isFirstRight(id)
 
-	const sideBorder = atBoundary && (side === 'left' ? k.pinned.borderRight : k.pinned.borderLeft)
+	const sideBorder = atBoundary && (side === 'left' ? k.pinned.border.right : k.pinned.border.left)
 
-	const edge = atBoundary && (side === 'left' ? k.pinned.edgeLeft : k.pinned.edgeRight)
+	const edge = atBoundary && (side === 'left' ? k.pinned.edge.left : k.pinned.edge.right)
 
 	return cn(options.header ? k.pinned.head : k.pinned.cell, sideBorder, edge)
 }

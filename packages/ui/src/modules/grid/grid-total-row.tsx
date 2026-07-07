@@ -204,15 +204,15 @@ function GroupRevealCell({
 				// The leading cell carries the group rail — in the group's color when set
 				// (layered over the neutral tint), else neutral; a colored group also
 				// washes each cell's fill.
-				rail && k.rowGroup.rail,
-				rail && color && k.rowGroup.railColor[color],
+				rail && k.rowGroup.rail.padded,
+				rail && color && k.rowGroup.rail.color[color],
 				color && k.rowGroup.tint[color],
 				className,
 			)}
 			style={{ padding: 0 }}
 		>
-			<div className={cn(k.rowGroup.reveal)} data-open={dataAttr(expanded)}>
-				<div className={cn(k.rowGroup.revealClip)}>
+			<div className={cn(k.rowGroup.reveal.track)} data-open={dataAttr(expanded)}>
+				<div className={cn(k.rowGroup.reveal.clip)}>
 					<div className={cn(pad)}>{children}</div>
 				</div>
 			</div>
@@ -253,7 +253,7 @@ export function GridTotalRow<T>({
 		)
 	}
 
-	const pad = k.rowGroup.revealPad({ density })
+	const pad = k.rowGroup.reveal.pad({ density })
 
 	// A collapsed group's total is clipped to nothing with its leaves; take it out
 	// of the accessibility tree too, matching the leaf rows (WCAG 1.3.1).

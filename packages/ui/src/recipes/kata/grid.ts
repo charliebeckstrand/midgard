@@ -176,19 +176,23 @@ export const k = {
 		// overlay rides the sticky cell and holds — the same reason the edge cue below
 		// is a box-shadow. `inset-y-0`/`w-0.5` make a 2px full-height rule at the inner
 		// edge; `pointer-events-none` keeps it inert.
-		borderRight: [
-			"after:pointer-events-none after:absolute after:inset-y-0 after:right-0 after:w-0.5 after:content-['']",
-			'after:bg-zinc-950/10',
-			'dark:after:bg-white/10',
-		],
-		borderLeft: [
-			"after:pointer-events-none after:absolute after:inset-y-0 after:left-0 after:w-0.5 after:content-['']",
-			'after:bg-zinc-950/10',
-			'dark:after:bg-white/10',
-		],
+		border: {
+			right: [
+				"after:pointer-events-none after:absolute after:inset-y-0 after:right-0 after:w-0.5 after:content-['']",
+				'after:bg-zinc-950/10',
+				'dark:after:bg-white/10',
+			],
+			left: [
+				"after:pointer-events-none after:absolute after:inset-y-0 after:left-0 after:w-0.5 after:content-['']",
+				'after:bg-zinc-950/10',
+				'dark:after:bg-white/10',
+			],
+		},
 		// Separating shadow at a frozen group's inner edge, cast toward the scroll.
-		edgeLeft: ['shadow-[1px_0_3px_rgba(0,0,0,0.08)]', 'dark:shadow-[1px_0_3px_rgba(0,0,0,0.5)]'],
-		edgeRight: ['shadow-[-1px_0_3px_rgba(0,0,0,0.08)]', 'dark:shadow-[-1px_0_3px_rgba(0,0,0,0.5)]'],
+		edge: {
+			left: ['shadow-[1px_0_3px_rgba(0,0,0,0.08)]', 'dark:shadow-[1px_0_3px_rgba(0,0,0,0.5)]'],
+			right: ['shadow-[-1px_0_3px_rgba(0,0,0,0.08)]', 'dark:shadow-[-1px_0_3px_rgba(0,0,0,0.5)]'],
+		},
 	},
 	// The toolbar region above the table — see `GridToolbar`, the single home for
 	// the grid's above-table controls. A vertical stack of the top control row and,
@@ -241,10 +245,13 @@ export const k = {
 		],
 		count: [weight.medium, 'whitespace-nowrap', size.sm, text.muted],
 	},
-	selectCell: 'w-px text-center align-middle [line-height:0]',
-	actionsCell: 'w-px whitespace-nowrap',
-	expanderCell: 'w-px text-center align-middle [line-height:0]',
 	cell: {
+		// Utility columns sized to their content: the selection checkbox, the
+		// row-actions cluster, and the master-detail expander. `w-px` shrinks each
+		// to its content against the auto-width data columns.
+		select: 'w-px text-center align-middle [line-height:0]',
+		actions: 'w-px whitespace-nowrap',
+		expander: 'w-px text-center align-middle [line-height:0]',
 		// One-line cell content that truncates to an ellipsis at the column width.
 		// `block` gives the span the cell's width so the fixed/auto column bounds it.
 		truncate: ['block', 'truncate'],
@@ -401,43 +408,47 @@ export const k = {
 		// cell of every row in the group (its header and each leaf) so it reads as one
 		// continuous bar, the row-group analog of a column group's underline rule. It
 		// takes a neutral tint by default; the row manager swaps in a per-group
-		// palette colour (`railColor[group.color]`). `rail` is the padded group cells'
-		// variant (the leaf/header cells manage their own padding); `railBorder` is the
-		// border alone, for the loading placeholder rows that keep ordinary cell padding.
-		railBorder,
-		rail: ['py-0', ...railBorder],
-		// Per-group rail color (see {@link railColor}) — the manager's palette hue,
-		// replacing the neutral `railBorder` tint on the leading cell of every group row.
-		railColor,
+		// palette colour (`rail.color[group.color]`).
+		rail: {
+			// The padded group cells' variant (the leaf/header cells manage their own padding).
+			padded: ['py-0', ...railBorder],
+			// The border alone, for the loading placeholder rows that keep ordinary cell padding.
+			border: railBorder,
+			// Per-group rail color (see {@link railColor}) — the manager's palette hue,
+			// replacing the neutral `border` tint on the leading cell of every group row.
+			color: railColor,
+		},
 		// The group's aggregation / total-footer color wash (see {@link rowGroupTint}).
 		tint: rowGroupTint,
 		// Chevron at the row's trailing edge: the group row renders a right chevron
 		// when collapsed and a down chevron when expanded; `shrink-0` holds its size
 		// beside the label.
 		chevron: 'shrink-0',
-		// The reveal wrapper inside each leaf cell: a one-row CSS grid whose track
+		// The reveal wrapper inside each leaf cell: a one-row CSS grid whose `track`
 		// tweens `1fr` (open) ↔ `0fr` (closed) via `data-open`, the modern auto-height
-		// animation — reliable in a `<table>`, where a JS height tween on a `<td>` is
-		// not. Transitions the track over 200ms, honouring `prefers-reduced-motion`.
-		reveal: [
-			'grid',
-			'[grid-template-rows:0fr]',
-			'data-[open]:[grid-template-rows:1fr]',
-			'transition-[grid-template-rows]',
-			'duration-200',
-			'ease-in-out',
-			'motion-reduce:transition-none',
-		],
-		// The clip between the grid track and the content: `min-h-0` lets the track
-		// shrink past the content, `overflow-hidden` hides what the collapse clips.
-		revealClip: ['overflow-hidden', 'min-h-0'],
-		// Per-density cell padding on the reveal wrapper, mirroring kata/table's `density`
-		// leaf padding (compact → p-1, snug → p-2, loose → p-3) so an animated leaf cell
-		// matches an ordinary one — and collapses that padding to nothing at height 0.
-		revealPad: defineRecipe({
-			density: { compact: ['p-1'], snug: ['p-2'], loose: ['p-3'] },
-			defaults: { density: 'snug' },
-		}),
+		// animation — reliable in a `<table>`, where a JS height tween on a `<td>` is not.
+		reveal: {
+			// Transitions the track over 200ms, honouring `prefers-reduced-motion`.
+			track: [
+				'grid',
+				'[grid-template-rows:0fr]',
+				'data-[open]:[grid-template-rows:1fr]',
+				'transition-[grid-template-rows]',
+				'duration-200',
+				'ease-in-out',
+				'motion-reduce:transition-none',
+			],
+			// The clip between the grid track and the content: `min-h-0` lets the track
+			// shrink past the content, `overflow-hidden` hides what the collapse clips.
+			clip: ['overflow-hidden', 'min-h-0'],
+			// Per-density cell padding on the reveal wrapper, mirroring kata/table's `density`
+			// leaf padding (compact → p-1, snug → p-2, loose → p-3) so an animated leaf cell
+			// matches an ordinary one — and collapses that padding to nothing at height 0.
+			pad: defineRecipe({
+				density: { compact: ['p-1'], snug: ['p-2'], loose: ['p-3'] },
+				defaults: { density: 'snug' },
+			}),
+		},
 	},
 	aggregate: {
 		// Aggregated figures on group-header and total rows: firmer than the data
@@ -461,17 +472,19 @@ export const k = {
 		// The detail row's `<td>` reveal wrapper: the same one-row CSS grid the
 		// group leaves ride (`1fr` ↔ `0fr` on `data-open`), so a panel grows and
 		// shrinks to its content height over a transition without JS measurement.
-		reveal: [
-			'grid',
-			'[grid-template-rows:0fr]',
-			'data-[open]:[grid-template-rows:1fr]',
-			'transition-[grid-template-rows]',
-			'duration-200',
-			'ease-in-out',
-			'motion-reduce:transition-none',
-		],
-		// The clip between the reveal track and the panel body.
-		revealClip: ['overflow-hidden', 'min-h-0'],
+		reveal: {
+			track: [
+				'grid',
+				'[grid-template-rows:0fr]',
+				'data-[open]:[grid-template-rows:1fr]',
+				'transition-[grid-template-rows]',
+				'duration-200',
+				'ease-in-out',
+				'motion-reduce:transition-none',
+			],
+			// The clip between the reveal track and the panel body.
+			clip: ['overflow-hidden', 'min-h-0'],
+		},
 		// The panel's own inset, set off from the rows with a hairline top rule and
 		// a faint recessed surface so it reads as a nested region, not another row.
 		panel: [

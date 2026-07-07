@@ -161,16 +161,16 @@ function GridGroupLeafCell<T>({
 			// group's leaf rows and joins the header's segment above — in the group's
 			// color when the row manager assigns one, else the neutral tint.
 			className={cn(
-				leading && k.rowGroup.rail,
-				leading && color && k.rowGroup.railColor[color],
+				leading && k.rowGroup.rail.padded,
+				leading && color && k.rowGroup.rail.color[color],
 				chrome.td,
 				pinnedClassName(pinning, col.id),
 				col.className,
 			)}
 			style={{ ...NO_PADDING, ...pinnedOffsetStyle(pinning, col.id) }}
 		>
-			<div className={cn(k.rowGroup.reveal)} data-open={dataAttr(expanded)}>
-				<div className={cn(k.rowGroup.revealClip)}>
+			<div className={cn(k.rowGroup.reveal.track)} data-open={dataAttr(expanded)}>
+				<div className={cn(k.rowGroup.reveal.clip)}>
 					<div className={cn(pad, chrome.inner)}>
 						{leafCellInner({
 							col,
@@ -218,7 +218,7 @@ export function GridGroupLeafRow<T>({
 	density,
 	color,
 }: GridGroupLeafRowProps<T>) {
-	const pad = k.rowGroup.revealPad({ density })
+	const pad = k.rowGroup.reveal.pad({ density })
 
 	return (
 		<tr
