@@ -28,9 +28,9 @@ import {
  * slots frame the preview. A titled example registers itself with the page's
  * jump nav ({@link DemoNav}) and anchors the scroll target it jumps to.
  *
- * The optional `resize` prop makes the frame horizontally draggable via a
- * right-edge handle and switches its border to dashed; see {@link resolveResize}
- * for how the boolean and object forms normalize.
+ * The optional `width` prop sets the frame's width, and `resize` makes it
+ * horizontally draggable via a right-edge handle and switches its border to
+ * dashed; see {@link resolveResize} for how the boolean and object forms normalize.
  */
 export function Example({
 	title,
@@ -39,6 +39,7 @@ export function Example({
 	preview,
 	footer,
 	code,
+	width: initialWidth,
 	resize,
 	children,
 }: {
@@ -49,6 +50,8 @@ export function Example({
 	footer?: ReactNode
 	/** Explicit override. When omitted, the block derives from `children`. */
 	code?: string
+	/** The frame's width in pixels; the starting width when `resize` is on. Auto when omitted. */
+	width?: number
 	/**
 	 * Makes the frame horizontally resizable via a right-edge handle, with a
 	 * dashed border. `true` uses auto bounds; an object sets pixel `min`/`max`
@@ -69,7 +72,7 @@ export function Example({
 
 	const resolvedResize = resolveResize(resize)
 
-	const { containerRef, width, resizing, handlers } = useExampleResize(resolvedResize)
+	const { containerRef, width, resizing, handlers } = useExampleResize(resolvedResize, initialWidth)
 
 	return (
 		<Stack
@@ -92,7 +95,7 @@ export function Example({
 				data-slot="example-frame"
 				// `max-width` keeps the frame within its container, so it shrinks with
 				// the window instead of overflowing when the viewport narrows.
-				style={resolvedResize ? { width, maxWidth: '100%' } : undefined}
+				style={width !== undefined ? { width, maxWidth: '100%' } : undefined}
 				className={cn(
 					'relative rounded-lg border border-zinc-200 dark:border-zinc-800',
 					resolvedResize && 'border-dashed',

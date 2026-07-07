@@ -99,15 +99,41 @@ describe('Example resize', () => {
 		expect(handle).toHaveAttribute('aria-valuemax', '320')
 	})
 
-	it('reserves right padding for the handle and caps the frame to its container', () => {
+	it('reserves right padding so the straddling handle is not clipped at full width', () => {
 		const { container } = renderExample(true)
 
-		// Padding-right on the frame's container keeps the straddling handle from
-		// being clipped at full width.
 		expect(bySlot(container, 'example')).toHaveClass('pr-2')
+	})
+})
 
-		// `max-width` keeps the frame within its container as the viewport narrows.
-		expect(bySlot(container, 'example-frame')?.style.maxWidth).toBe('100%')
+describe('Example width', () => {
+	it('applies a fixed width, with no handle, when resize is off', () => {
+		const { container } = renderUI(<Example width={400}>demo</Example>)
+
+		const frame = bySlot(container, 'example-frame')
+
+		expect(frame?.style.width).toBe('400px')
+
+		expect(frame?.style.maxWidth).toBe('100%')
+
+		expect(bySlot(container, 'example-resize-handle')).toBeNull()
+
+		expect(frame).not.toHaveClass('border-dashed')
+	})
+
+	it('starts the resizable frame at the given width', () => {
+		const { container } = renderUI(
+			<Example width={400} resize>
+				demo
+			</Example>,
+		)
+
+		expect(bySlot(container, 'example-frame')?.style.width).toBe('400px')
+
+		expect(screen.getByRole('separator', { name: 'Resize example' })).toHaveAttribute(
+			'aria-valuenow',
+			'400',
+		)
 	})
 })
 
