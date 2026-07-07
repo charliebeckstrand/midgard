@@ -535,22 +535,30 @@ export type MapRangeLegendProps = {
 	regionCategory: (number | null)[]
 	/** Emphasises a bin's regions (`null` clears); other regions dim while set — the filter. */
 	onFocus: (id: string | null) => void
+	/**
+	 * Which way the bar runs — vertical beside the plot, horizontal above or
+	 * below it. Follows the resolved placement.
+	 * @defaultValue 'vertical'
+	 */
+	orientation?: RangeOrientation
 }
 
 /**
- * The hover arrow: a glyph on the scale bar's left edge marking the bin of the
- * region the pointer is on. Isolated as its own {@link useMapHoverState}
- * consumer so a pointer move over the map re-renders only this glyph — never
- * the gradient bar, the thumb, or the endpoint labels.
+ * The hover arrow: a glyph on the scale bar's edge marking the bin of the region
+ * the pointer is on. Isolated as its own {@link useMapHoverState} consumer so a
+ * pointer move over the map re-renders only this glyph — never the gradient bar,
+ * the thumb, or the endpoint labels. Its edge follows the bar's `orientation`.
  *
  * @internal
  */
 function RangeHoverArrow({
 	regionCategory,
 	bins,
+	orientation,
 }: {
 	regionCategory: (number | null)[]
 	bins: number
+	orientation: RangeOrientation
 }) {
 	const { target } = useMapHoverState()
 
@@ -558,14 +566,16 @@ function RangeHoverArrow({
 
 	if (bin == null) return null
 
-	return <RangeArrow bin={bin} bins={bins} slot="map-range" />
+	return <RangeArrow bin={bin} bins={bins} slot="map-range" orientation={orientation} />
 }
 
 /**
  * The choropleth's range legend: the shared {@link RangeLegend} scale-bar
  * slider, wired to the map — its hover arrow tracks the pointed region's bin,
  * and probing the bar emphasises that class's regions through `onFocus`, dimming
- * the rest. The `map-range` slot keeps the map's part names.
+ * the rest. The `map-range` slot keeps the map's part names. `orientation`
+ * follows the resolved placement — vertical beside the plot, horizontal above or
+ * below — the wrapper centring a horizontal bar in its stacked row.
  *
  * @internal
  */
@@ -577,9 +587,12 @@ export function MapRangeLegend({
 	bins,
 	regionCategory,
 	onFocus,
+	orientation = 'vertical',
 }: MapRangeLegendProps) {
+	const horizontal = orientation === 'horizontal'
+
 	return (
-		<div data-slot="map-legend-box" className="shrink-0">
+		<div data-slot="map-legend-box" className={cn(horizontal ? 'flex justify-center' : 'shrink-0')}>
 			<RangeLegend
 				slot="map-range"
 				colorRange={colorRange}
@@ -587,8 +600,11 @@ export function MapRangeLegend({
 				format={format}
 				label={label}
 				bins={bins}
+				orientation={orientation}
 				onProbe={(bin) => onFocus(bin === null ? null : `category:${bin}`)}
-				arrow={<RangeHoverArrow regionCategory={regionCategory} bins={bins} />}
+				arrow={
+					<RangeHoverArrow regionCategory={regionCategory} bins={bins} orientation={orientation} />
+				}
 			/>
 		</div>
 	)

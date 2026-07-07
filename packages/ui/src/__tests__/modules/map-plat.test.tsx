@@ -466,6 +466,42 @@ describe('MapPlat choropleth mode', () => {
 
 		expect(dimmedCount()).toBe(0)
 	})
+
+	it('stands the range bar vertical on the right by default', () => {
+		const { container } = renderUI(choropleth({ legend: 'range' }))
+
+		const track = bySlot(container, 'map-range-track')
+
+		expect(track?.getAttribute('aria-orientation')).toBe('vertical')
+
+		// Low at the bottom, high at the top — the gradient runs upward.
+		expect(track?.getAttribute('style')).toContain('linear-gradient(to top')
+	})
+
+	it('lays the range bar horizontal under the { type, placement } object form', () => {
+		const { container } = renderUI(choropleth({ legend: { type: 'range', placement: 'bottom' } }))
+
+		const track = bySlot(container, 'map-range-track')
+
+		expect(track?.getAttribute('aria-orientation')).toBe('horizontal')
+
+		// Low at the left, high at the right — the gradient runs rightward.
+		expect(track?.getAttribute('style')).toContain('linear-gradient(to right')
+	})
+
+	it('drops a side range placement to a horizontal row in a box too narrow for a rail', () => {
+		const { container } = renderUI(choropleth({ legend: 'range', width: 300 }))
+
+		expect(bySlot(container, 'map-range-track')?.getAttribute('aria-orientation')).toBe(
+			'horizontal',
+		)
+	})
+
+	it('sheds the range bar at the spark size', () => {
+		const { container } = renderUI(choropleth({ legend: 'range', width: 120 }))
+
+		expect(bySlot(container, 'map-range-legend')).toBeNull()
+	})
 })
 
 describe('MapPlat legend orientation', () => {
