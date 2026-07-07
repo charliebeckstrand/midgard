@@ -567,17 +567,14 @@ export function useChartCartesian<T>(
 
 	const metrics = CHART_METRICS[resolvedSize as Step] ?? CHART_METRICS.md
 
-	// A stacked legend shares the aspect box: a live ratio with a top / bottom
-	// legend hands the ratio to the figure wrapper and measures the plot's
-	// remaining height, so the whole chart holds the ratio. A side legend instead
-	// bands beside the plot, which keeps the ratio on its own box. Derived from the
-	// props alone — a legend shows for two or more series unless the prop forces it
-	// — so it needs no measurement.
-	const hasLegend = Boolean(legend ?? series.length > 1)
-
+	// A live ratio carries on the figure so a definite-height parent clamps the
+	// whole chart (the box-law); a side legend instead keeps the ratio on the plot
+	// box and bands beside it. Only the side / stacked distinction needs the prop —
+	// a legend shows for two or more series unless it is forced — so it takes no
+	// measurement.
 	const aside = legend === 'left' || legend === 'right'
 
-	const { sizing, outerAspect } = chartFrameLayout(height, aspectRatio, hasLegend, aside)
+	const { sizing, outerAspect } = chartFrameLayout(height, aspectRatio, aside)
 
 	const { ref, width: frameWidth, height: frameHeight, reserve } = usePlotFrame(width, sizing)
 

@@ -471,10 +471,10 @@ describe('BarChart', () => {
 		expect(bySlot(container, 'aspect-ratio')).toBeNull()
 	})
 
-	it('reserves the box height with the AspectRatio primitive when no legend shares the box', () => {
-		// One series shows no legend, so nothing shares the aspect box: the plot box
-		// reserves the ratio from its own width, holding steady before measure and
-		// across animation replays.
+	it('carries the ratio on the figure even with no legend, so a parent can clamp it', () => {
+		// One series shows no legend, but the ratio still rides the figure as a CSS
+		// preference — a definite-height parent clamps the whole chart (the box-law)
+		// rather than the plot box forcing its own height and overflowing it.
 		const { container } = renderUI(
 			chart({
 				series: [{ xKey: 'quarter', yKey: 'revenue', yName: 'Revenue' }],
@@ -482,11 +482,21 @@ describe('BarChart', () => {
 			}),
 		)
 
-		const box = bySlot(container, 'aspect-ratio') as HTMLElement
+		const figure = bySlot(container, 'chart-figure') as HTMLElement
 
-		expect(box.style.aspectRatio.replace(/\s*\/\s*1$/, '')).toBe('1.7777777777777777')
+		expect(figure.style.aspectRatio.replace(/\s*\/\s*1$/, '')).toBe('1.7777777777777777')
 
-		expect(bySlot(container, 'chart-figure')?.style.aspectRatio).toBe('')
+		// The plot box reserves no ratio of its own — it fills and measures the figure.
+		expect(bySlot(container, 'aspect-ratio')).toBeNull()
+
+		const plot = bySlot(container, 'chart-plot') as HTMLElement
+
+		expect(plot.className).toContain('flex-1')
+
+		expect((plot.firstElementChild as HTMLElement).className).toContain('size-full')
+
+		// `max-h-full` lets a shorter parent clamp the figure below the ratio's ask.
+		expect(figure.className).toContain('max-h-full')
 	})
 
 	it('takes a fixed pixel height with no ratio reserved when a height is set', () => {

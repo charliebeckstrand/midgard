@@ -86,9 +86,10 @@ export type ChartFrameProps = AccessibleName & {
 	fill?: boolean
 	/**
 	 * The `width / height` the figure wrapper carries as CSS `aspect-ratio`, so
-	 * the whole chart — plot and legend together — holds the ratio and the plot
-	 * fills what the legend's natural size leaves. Unset, no wrapper ratio: the
-	 * plot box reserves its own (no legend) or the frame is fixed / free-form.
+	 * the whole chart — plot and legend together — holds the ratio as a preference
+	 * a definite-height parent can clamp, the plot filling what the legend's
+	 * natural size leaves. Unset, no wrapper ratio: the plot box reserves its own
+	 * (a side legend banding beside it) or the frame is fixed / free-form.
 	 */
 	aspect?: number
 	/**
@@ -328,10 +329,11 @@ type ChartFigureProps = {
 /**
  * The legend and plot laid out together under the whole-chart aspect-ratio: the
  * plot fills what the legend's natural size leaves, so the ratio describes the
- * chart rather than the plot alone. A side legend lays the two out in a row once
- * the container has room (`@xl`) — the panel always under the chart below that,
- * so a left panel reverses the row instead of moving in the DOM — else they stack
- * with the legend banding above or below.
+ * chart rather than the plot alone, and it holds as a preference a definite-height
+ * parent can clamp (the box-law) rather than a height the drawing forces. A side
+ * legend lays the two out in a row once the container has room (`@xl`) — the panel
+ * always under the chart below that, so a left panel reverses the row instead of
+ * moving in the DOM — else they stack with the legend banding above or below.
  *
  * @internal
  */
@@ -362,7 +364,17 @@ function ChartFigure({
 	return (
 		<div
 			data-slot="chart-figure"
-			className={cn('flex min-h-0', layout, containerFill && 'h-full flex-1')}
+			// The ratio rides `aspect-ratio` as a preference, not a demand: `max-h-full`
+			// lets a definite-height parent clamp the figure below what the ratio would
+			// ask for, and the `flex-1` plot then measures the clamped height and draws
+			// to fit — the box is law. An auto-height parent ignores `max-h-full`, so the
+			// ratio governs as normal. `min-h-0` lets the clamp actually shrink it.
+			className={cn(
+				'flex min-h-0',
+				layout,
+				aspect !== undefined && 'max-h-full',
+				containerFill && 'h-full flex-1',
+			)}
 			style={aspect === undefined ? undefined : { aspectRatio: aspect }}
 		>
 			{aside ? (
