@@ -35,7 +35,13 @@ import {
 	seriesValues,
 	textClass,
 } from './chart-series'
-import { type ChartTier, chartPolicy } from './chart-tier'
+import {
+	type ChartChrome,
+	type ChartTier,
+	chartPolicy,
+	headerLineCount,
+	policyPlotHeight,
+} from './chart-tier'
 import { parseInstant, timeCategory } from './chart-time'
 import type { ChartReadout } from './types'
 import { useChartReferenceToggle, useChartSeriesToggle } from './use-chart-series-toggle'
@@ -452,6 +458,23 @@ function legendItemsOf(
 	}))
 }
 
+/**
+ * The chrome a cartesian chart lays out around its plot inside a stacked
+ * aspect-fill figure — the header lines, and whether a stacked legend bands below
+ * — for the tier's {@link chartChromeReserve chrome reserve}. A side legend never
+ * shares the aspect box, so it counts as no stacked band; the legend otherwise
+ * shows for two or more series unless forced, the same rule {@link legendItemsOf}
+ * reads.
+ *
+ * @internal
+ */
+function cartesianChrome<T>(props: CartesianData<T>, aside: boolean): ChartChrome {
+	return {
+		headerLines: headerLineCount(props.title, props.subtitle),
+		legend: Boolean(props.legend ?? props.series.length > 1) && !aside,
+	}
+}
+
 /** One visible series resolved to the scale and baseline it draws through. @internal */
 export type DrawnSeries = {
 	meta: SeriesMeta
@@ -601,7 +624,19 @@ export function useChartCartesian<T>(
 	// The measured plot box resolves the anatomy tier: the value gutter's compact
 	// format and the band-label density from width, the tick count from height,
 	// density still capping the ticks. Its budgets fold into the layout below.
-	const policy = chartPolicy(frameWidth, frameHeight, metrics.tickTarget)
+	// A stacked aspect-fill figure shares its ratio box with the header and legend,
+	// so measuring the plot's remainder for the tier loops — spark drops that
+	// chrome, the remainder jumps, the tier flips back. Resolve it against the
+	// figure's own `width / ratio` less the chrome instead; the drawing still fills
+	// the measured remainder.
+	const policyHeight = policyPlotHeight(
+		frameHeight,
+		frameWidth,
+		outerAspect,
+		cartesianChrome(props, aside),
+	)
+
+	const policy = chartPolicy(frameWidth, policyHeight, metrics.tickTarget)
 
 	// Spark stands the axis chrome down to a bare sparkline; every wider tier keeps
 	// the caller's `axes` intent. The value gutter, band labels, and titles all

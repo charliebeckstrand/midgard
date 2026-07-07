@@ -3,11 +3,18 @@ import {
 	AXIS_TITLE_HEIGHT,
 	AXIS_TITLE_WIDTH,
 	BAND_ROW_HEIGHT,
+	CHART_FIGURE_GAP,
+	CHART_HEADER_LINE_GAP,
+	CHART_HEADER_LINE_HEIGHT,
+	CHART_LEGEND_ROW_HEIGHT,
 	COMPACT_HEIGHT,
 	COMPACT_WIDTH,
+	chartChromeReserve,
 	chartPolicy,
 	EXPANDED_WIDTH,
+	headerLineCount,
 	MIN_TICK_TARGET,
+	policyPlotHeight,
 	SPARK_HEIGHT,
 	SPARK_WIDTH,
 	TICK_SPACING,
@@ -153,5 +160,105 @@ describe('chartPolicy legend rows', () => {
 
 	it('drops the legend rows to zero at spark', () => {
 		expect(chartPolicy(SPARK_WIDTH - 1, 500, CAP).legendRows).toBe(0)
+	})
+})
+
+describe('headerLineCount', () => {
+	it('counts the present header lines', () => {
+		expect(headerLineCount(undefined, undefined)).toBe(0)
+
+		expect(headerLineCount('Title', undefined)).toBe(1)
+
+		expect(headerLineCount(undefined, 'Subtitle')).toBe(1)
+
+		expect(headerLineCount('Title', 'Subtitle')).toBe(2)
+	})
+})
+
+describe('chartChromeReserve', () => {
+	it('reserves nothing for a bare plot', () => {
+		expect(chartChromeReserve({ headerLines: 0, legend: false })).toBe(0)
+	})
+
+	it('reserves a header line plus its gap to the plot', () => {
+		expect(chartChromeReserve({ headerLines: 1, legend: false })).toBe(
+			CHART_HEADER_LINE_HEIGHT + CHART_FIGURE_GAP,
+		)
+	})
+
+	it('reserves a two-line header with its inter-line gap', () => {
+		expect(chartChromeReserve({ headerLines: 2, legend: false })).toBe(
+			2 * CHART_HEADER_LINE_HEIGHT + CHART_HEADER_LINE_GAP + CHART_FIGURE_GAP,
+		)
+	})
+
+	it('reserves a legend row plus its gap to the plot', () => {
+		expect(chartChromeReserve({ headerLines: 0, legend: true })).toBe(
+			CHART_LEGEND_ROW_HEIGHT + CHART_FIGURE_GAP,
+		)
+	})
+
+	it('reserves a header, a legend, and one gap for each around the plot', () => {
+		// The empirical docs-page shape: title + subtitle + a stacked legend, the
+		// 104px chrome a 16/9 figure lays out around the plot.
+		expect(chartChromeReserve({ headerLines: 2, legend: true })).toBe(
+			2 * CHART_HEADER_LINE_HEIGHT +
+				CHART_HEADER_LINE_GAP +
+				CHART_LEGEND_ROW_HEIGHT +
+				2 * CHART_FIGURE_GAP,
+		)
+	})
+})
+
+describe('policyPlotHeight', () => {
+	const chrome = { headerLines: 2, legend: true } as const
+
+	it('passes the measured height through when no figure ratio is carried', () => {
+		// A fixed, fill, or side-legend frame: the measured plot height is already
+		// tier-independent, so nothing is subtracted.
+		expect(policyPlotHeight(200, 360, null, chrome)).toBe(200)
+
+		expect(policyPlotHeight(200, 360, undefined, chrome)).toBe(200)
+	})
+
+	it('derives the height from the figure ratio less the chrome under aspect-fill', () => {
+		// 360 wide at 16/9 → a 202.5px figure; the 104px chrome leaves the plot 98.5,
+		// computed rather than measured, so a spark decision can't move it.
+		const figure = 360 / (16 / 9)
+
+		expect(policyPlotHeight(999, 360, 16 / 9, chrome)).toBe(figure - chartChromeReserve(chrome))
+	})
+
+	it('never returns a negative height when the chrome outweighs the figure', () => {
+		expect(policyPlotHeight(999, 40, 16 / 9, chrome)).toBe(0)
+	})
+
+	it('passes the measured height through before the width is measured', () => {
+		expect(policyPlotHeight(0, 0, 16 / 9, chrome)).toBe(0)
+	})
+
+	it('is independent of the measured remainder the loop fed back across the spark boundary', () => {
+		// The docs-page failure: at ~200px the *measured* remainder oscillated — the
+		// compact layout kept the 104px chrome (a sub-spark plot, so the tier read
+		// spark), spark dropped it (a tall plot, so the tier read compact). The
+		// computed height must ignore that measured remainder entirely, so the two
+		// states the loop flipped between resolve one tier for the box.
+		const ratio = 16 / 9
+
+		for (let width = SPARK_WIDTH; width <= COMPACT_WIDTH; width += 4) {
+			const chromeKept = width / ratio - chartChromeReserve(chrome)
+
+			const chromeDropped = width / ratio
+
+			// Feed the two remainders the loop alternated between; the computed height
+			// is the same, so the resolved tier can't depend on which one was measured.
+			const fromKept = policyPlotHeight(chromeKept, width, ratio, chrome)
+
+			const fromDropped = policyPlotHeight(chromeDropped, width, ratio, chrome)
+
+			expect(fromKept).toBe(fromDropped)
+
+			expect(chartPolicy(width, fromKept, CAP).tier).toBe(chartPolicy(width, fromDropped, CAP).tier)
+		}
 	})
 })
