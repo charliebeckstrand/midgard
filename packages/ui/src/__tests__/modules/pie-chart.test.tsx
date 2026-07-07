@@ -269,18 +269,31 @@ describe('PieChart', () => {
 		).toBeTruthy()
 	})
 
-	it('renders a lone slice legend entry as a static chip', () => {
-		// A single-slice pie with the legend forced on: the one entry is static,
-		// since toggling it would empty the pie.
+	it('renders a lone slice legend entry as a live switch', () => {
+		// A single-slice pie with the legend forced on: the one entry is still a
+		// switch. Toggling it empties the pie by design, and the forced-on legend
+		// holds the switch that brings the slice back.
 		const { container } = renderUI(
 			chart({ data: [{ source: 'Search', visits: 60 }], legend: true }),
 		)
 
-		const item = bySlot(container, 'chart-legend-item')
+		const item = bySlot(container, 'chart-legend-item') as HTMLButtonElement
 
-		expect(item?.tagName).toBe('SPAN')
+		expect(item.tagName).toBe('BUTTON')
 
-		expect(item).not.toHaveAttribute('aria-pressed')
+		expect(item).toHaveAttribute('aria-pressed', 'true')
+
+		expect(allBySlot(container, 'chart-slice')).toHaveLength(1)
+
+		fireEvent.click(item)
+
+		expect(item).toHaveAttribute('aria-pressed', 'false')
+
+		expect(allBySlot(container, 'chart-slice')).toHaveLength(0)
+
+		fireEvent.click(item)
+
+		expect(allBySlot(container, 'chart-slice')).toHaveLength(1)
 	})
 
 	it('sets the legend beside the plot as a share panel with legend="right"', () => {
