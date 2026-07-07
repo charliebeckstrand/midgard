@@ -29,7 +29,7 @@ import { activity, dailyVisits, greens, heat, statePopulation } from './data'
 // including AnimatedExample's — without repeating the props on each. A call site
 // can still override either default by passing its own `width`/`resize`.
 function Example(props: ComponentProps<typeof ExampleFrame>) {
-	return <ExampleFrame width={720} resize {...props} />
+	return <ExampleFrame width={720} minWidth={160} resize {...props} />
 }
 
 type Month = { month: string; revenue: number; costs: number; margin: number }
