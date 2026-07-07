@@ -100,8 +100,8 @@ export function GridDetailRow({ rowKey, colSpan, expanded, children }: GridDetai
 			inert={!expanded}
 		>
 			<td colSpan={colSpan} style={NO_PADDING}>
-				<div className={cn(k.detail.reveal)} data-open={dataAttr(expanded)}>
-					<div className={cn(k.detail.revealClip)}>
+				<div className={cn(k.detail.reveal.track)} data-open={dataAttr(expanded)}>
+					<div className={cn(k.detail.reveal.clip)}>
 						<section id={detailPanelId(rowKey)} className={cn(k.detail.panel)}>
 							{children}
 						</section>

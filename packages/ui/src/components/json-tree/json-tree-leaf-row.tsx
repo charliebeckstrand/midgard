@@ -39,7 +39,7 @@ export function JsonTreeLeafRow({
 					data-slot="json-node"
 					className={cn(k.leaf)}
 				>
-					<span className={k.chevronSpacer} aria-hidden="true" />
+					<span className={k.chevron.spacer} aria-hidden="true" />
 					<span className={cn(k.content, highlighted && k.highlight)}>
 						<NodeKey keyName={keyName} />
 						<PrimitiveValue value={value} />

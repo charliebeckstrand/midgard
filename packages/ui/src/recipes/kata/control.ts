@@ -13,6 +13,8 @@ const frameRadius = {
 
 export const k = {
 	skeleton: kokkaku.control,
-	frame,
-	frameRadius,
+	frame: {
+		base: frame,
+		radius: frameRadius,
+	},
 }

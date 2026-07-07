@@ -70,7 +70,7 @@ export function TreeItem({
 	const hasChildren = children != null
 
 	return (
-		<div data-slot="tree-item" className={cn(depth === 0 && k.item)}>
+		<div data-slot="tree-item" className={cn(depth === 0 && k.item.base)}>
 			<TreeItemContent
 				label={label}
 				icon={icon}

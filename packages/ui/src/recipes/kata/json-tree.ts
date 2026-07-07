@@ -54,8 +54,10 @@ export const k = {
 		rounded.lg,
 	],
 	content: [flex.inline, 'min-w-0', 'gap-1'],
-	chevron: ['flex-none', css.transform, css.duration],
-	chevronSpacer: 'inline-block w-4 flex-none',
+	chevron: {
+		icon: ['flex-none', css.transform, css.duration],
+		spacer: 'inline-block w-4 flex-none',
+	},
 	key: color.key,
 	index: text.muted,
 	punctuation: text.muted,

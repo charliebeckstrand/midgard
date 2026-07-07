@@ -139,7 +139,7 @@ export function GridManualGroupRow<T>({
 
 	return (
 		<TableRow data-group-row data-expanded={dataAttr(expanded)}>
-			<TableCell colSpan={span} className={cn(k.rowGroup.rail)}>
+			<TableCell colSpan={span} className={cn(k.rowGroup.rail.padded)}>
 				<Button
 					variant="bare"
 					onClick={() => toggle(info.key)}
@@ -202,7 +202,7 @@ export function GridManualGroupPlaceholderRows<T>({
 			{columns.map((column, colIndex) => (
 				<TableCell
 					key={column.id}
-					className={cn(colIndex === 0 && k.rowGroup.railBorder, column.className)}
+					className={cn(colIndex === 0 && k.rowGroup.rail.border, column.className)}
 				>
 					<TextSkeleton />
 				</TableCell>

@@ -55,7 +55,7 @@ export function JsonTreeBranchHeader({
 				className={cn(k.toggle)}
 				onClick={onToggle}
 			>
-				<span className={cn(k.chevron)} aria-hidden="true">
+				<span className={cn(k.chevron.icon)} aria-hidden="true">
 					<Icon icon={<ChevronRight />} size="sm" className={cn(open && 'rotate-90')} />
 				</span>
 				<span className={cn(k.content, highlighted && k.highlight)}>

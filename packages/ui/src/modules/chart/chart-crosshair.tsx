@@ -92,7 +92,7 @@ export function ChartCrosshair({
 		strokeWidth: 1,
 		strokeDasharray: '4 4',
 		shapeRendering: 'crispEdges' as const,
-		className: cn(k.axis),
+		className: cn(k.axis.line),
 	}
 
 	const rawValue = crosshair.snap

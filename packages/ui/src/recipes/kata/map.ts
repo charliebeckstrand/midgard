@@ -21,12 +21,15 @@ export const k = {
 	label: chart.label,
 	/** Tooltip value ink: the strong element, values lead. */
 	value: chart.value,
-	/** A region with no matching datum — and a toggled-off category's fallback. */
-	regionEmpty: mode('fill-zinc-200', 'dark:fill-zinc-800'),
-	/** Region boundary seam: the surface colour, so shared borders read as gaps. */
-	regionBorder: mode('stroke-white', 'dark:stroke-zinc-900'),
-	/** Pointer emphasis on the hovered region. */
-	regionHover: 'hover:brightness-110',
+	/** The map's own region tokens beside the shared data-viz palette. */
+	region: {
+		/** A region with no matching datum — and a toggled-off category's fallback. */
+		empty: mode('fill-zinc-200', 'dark:fill-zinc-800'),
+		/** Region boundary seam: the surface colour, so shared borders read as gaps. */
+		border: mode('stroke-white', 'dark:stroke-zinc-900'),
+		/** Pointer emphasis on the hovered region. */
+		hover: 'hover:brightness-110',
+	},
 	/**
 	 * A mark group's response to legend emphasis: marks outside the focused
 	 * group dim, the focused group holds. On the wrapper, so motion's inline

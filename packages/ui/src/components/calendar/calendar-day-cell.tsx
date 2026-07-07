@@ -74,7 +74,7 @@ export const CalendarDayCell = memo(function CalendarDayCell({
 			style={gridColumnStart ? { gridColumnStart } : undefined}
 			className={cn(
 				k.day.base,
-				isActive && (selected ? k.day.activeSelected : k.day.active),
+				isActive && (selected ? k.day.active.selected : k.day.active.base),
 				className,
 			)}
 		>

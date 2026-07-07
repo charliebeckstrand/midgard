@@ -74,7 +74,7 @@ export function GridGroupRow<T>({
 		<TableRow data-group-row data-group-key={String(value)} data-expanded={dataAttr(expanded)}>
 			<TableCell
 				colSpan={span}
-				className={cn(k.rowGroup.rail, color && k.rowGroup.railColor[color])}
+				className={cn(k.rowGroup.rail.padded, color && k.rowGroup.rail.color[color])}
 			>
 				<Button
 					variant="bare"

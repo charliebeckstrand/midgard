@@ -23,7 +23,7 @@ export function ControlFrame({ className, ...props }: ControlFrameProps) {
 	return (
 		<span
 			data-slot="control-frame"
-			className={cn(k.frame, k.frameRadius[space], className)}
+			className={cn(k.frame.base, k.frame.radius[space], className)}
 			{...props}
 		/>
 	)

@@ -396,7 +396,7 @@ function GridRowImpl<T>({
 						<TableCell
 							key={col.id}
 							aria-colindex={colIndex}
-							className={cn(k.selectCell, pinnedClassName(pinning, col.id), col.className)}
+							className={cn(k.cell.select, pinnedClassName(pinning, col.id), col.className)}
 							style={pinnedOffsetStyle(pinning, col.id)}
 						>
 							<Checkbox
@@ -413,7 +413,7 @@ function GridRowImpl<T>({
 						<TableCell
 							key={col.id}
 							aria-colindex={colIndex}
-							className={cn(k.expanderCell, pinnedClassName(pinning, col.id), col.className)}
+							className={cn(k.cell.expander, pinnedClassName(pinning, col.id), col.className)}
 							style={pinnedOffsetStyle(pinning, col.id)}
 						>
 							{toggleExpand && (
@@ -434,7 +434,7 @@ function GridRowImpl<T>({
 						<TableCell
 							key={col.id}
 							aria-colindex={colIndex}
-							className={cn(k.actionsCell, pinnedClassName(pinning, col.id), col.className)}
+							className={cn(k.cell.actions, pinnedClassName(pinning, col.id), col.className)}
 							style={pinnedOffsetStyle(pinning, col.id)}
 						>
 							{col.actions(row)}

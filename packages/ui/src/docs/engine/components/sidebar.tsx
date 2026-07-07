@@ -27,7 +27,7 @@ import { type Demo, demos, preloadDemo } from '../registry'
 const SEARCH_PAGE_SIZE = 20
 
 // Section-label horizontal inset, by density size. Aligns the label text with
-// item text; mirrors the `ui` sidebar kata's `sectionLabel` stops without
+// item text; mirrors the `ui` sidebar kata's `section.label` stops without
 // reaching into ui's private recipe surface.
 const SECTION_LABEL_PX: Record<string, string> = {
 	sm: 'px-[calc(--spacing(1.5)-1px)]',

@@ -6,7 +6,7 @@ const { size, weight } = ji
 
 /**
  * Per-colour marker appearance. `dot` uses the `iro.marker` shade (600 light /
- * 500 dark), clearing non-text 3:1 on the page; `lineBefore` / `lineAfter`
+ * 500 dark), clearing non-text 3:1 on the page; `line.before` / `line.after`
  * paint the inbound / outbound rail at the same shade (zinc uses a subtle
  * structural rail). The `before:` / `after:` prefixes are verbatim class
  * literals: Tailwind's scanner requires literal strings for class discovery.
@@ -14,30 +14,40 @@ const { size, weight } = ji
 const palette = {
 	zinc: {
 		dot: marker.zinc,
-		lineBefore: 'before:bg-zinc-200 dark:before:bg-zinc-700',
-		lineAfter: 'after:bg-zinc-200 dark:after:bg-zinc-700',
+		line: {
+			before: 'before:bg-zinc-200 dark:before:bg-zinc-700',
+			after: 'after:bg-zinc-200 dark:after:bg-zinc-700',
+		},
 	},
 	red: {
 		dot: marker.red,
-		lineBefore: 'before:bg-red-600 dark:before:bg-red-500',
-		lineAfter: 'after:bg-red-600 dark:after:bg-red-500',
+		line: {
+			before: 'before:bg-red-600 dark:before:bg-red-500',
+			after: 'after:bg-red-600 dark:after:bg-red-500',
+		},
 	},
 	amber: {
 		dot: marker.amber,
-		lineBefore: 'before:bg-amber-600 dark:before:bg-amber-500',
-		lineAfter: 'after:bg-amber-600 dark:after:bg-amber-500',
+		line: {
+			before: 'before:bg-amber-600 dark:before:bg-amber-500',
+			after: 'after:bg-amber-600 dark:after:bg-amber-500',
+		},
 	},
 	green: {
 		dot: marker.green,
-		lineBefore: 'before:bg-green-600 dark:before:bg-green-500',
-		lineAfter: 'after:bg-green-600 dark:after:bg-green-500',
+		line: {
+			before: 'before:bg-green-600 dark:before:bg-green-500',
+			after: 'after:bg-green-600 dark:after:bg-green-500',
+		},
 	},
 	blue: {
 		dot: marker.blue,
-		lineBefore: 'before:bg-blue-600 dark:before:bg-blue-500',
-		lineAfter: 'after:bg-blue-600 dark:after:bg-blue-500',
+		line: {
+			before: 'before:bg-blue-600 dark:before:bg-blue-500',
+			after: 'after:bg-blue-600 dark:after:bg-blue-500',
+		},
 	},
-} satisfies Record<Color, { dot: string[]; lineBefore: string; lineAfter: string }>
+} satisfies Record<Color, { dot: string[]; line: { before: string; after: string } }>
 
 const root = defineRecipe({
 	base: ['list-none p-0 m-0'],

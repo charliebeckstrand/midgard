@@ -246,7 +246,7 @@ function GridHeaderCell<T>({
 			<TableHeader
 				aria-colindex={colIndex}
 				className={cn(
-					k.selectCell,
+					k.cell.select,
 					stickyHeader && k.sticky.head,
 					pinnedClassName(pinning, column.id, { header: true }),
 					column.headerClassName,

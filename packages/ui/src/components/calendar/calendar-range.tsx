@@ -117,8 +117,8 @@ export function CalendarRange({
 				color: isInnerRange ? ('blue' as const) : undefined,
 				className: cn(
 					isInnerRange && 'rounded-none',
-					isLeftEdge && k.day.rangeLeftEdge,
-					isRightEdge && k.day.rangeRightEdge,
+					isLeftEdge && k.day.range.leftEdge,
+					isRightEdge && k.day.range.rightEdge,
 				),
 				onMouseEnter: () => onHoverDate?.(date),
 				onMouseLeave: () => onHoverDate?.(null),

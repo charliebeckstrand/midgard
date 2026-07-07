@@ -116,8 +116,8 @@ export function TreeItemContent({
 			data-open={dataAttr(open)}
 			className={cn(
 				'group/tree-item',
-				k.itemContent({ size }),
-				current && k.itemContent.current,
+				k.item.content({ size }),
+				current && k.item.content.current,
 				className,
 			)}
 			style={{ paddingLeft }}
