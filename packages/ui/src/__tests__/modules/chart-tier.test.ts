@@ -11,6 +11,7 @@ import {
 	SPARK_HEIGHT,
 	SPARK_WIDTH,
 	TICK_SPACING,
+	TWO_ROW_LEGEND_HEIGHT,
 } from '../../modules/chart/chart-tier'
 
 // A roomy density cap, so the height-driven tick target is what varies unless a
@@ -132,5 +133,25 @@ describe('chartPolicy gridlines', () => {
 		expect(chartPolicy(SPARK_WIDTH - 1, 300, CAP).gridLines).toBe(false)
 
 		expect(chartPolicy(COMPACT_WIDTH, 300, CAP).gridLines).toBe(true)
+	})
+})
+
+describe('chartPolicy legend rows', () => {
+	it('caps a stacked band at two rows only in a wide, tall frame', () => {
+		expect(chartPolicy(COMPACT_WIDTH, TWO_ROW_LEGEND_HEIGHT, CAP).legendRows).toBe(2)
+
+		expect(chartPolicy(900, 500, CAP).legendRows).toBe(2)
+	})
+
+	it('holds one row in a narrow or short frame', () => {
+		// Narrow by width (compact) even when tall.
+		expect(chartPolicy(COMPACT_WIDTH - 1, 500, CAP).legendRows).toBe(1)
+
+		// Short by height even when wide.
+		expect(chartPolicy(900, TWO_ROW_LEGEND_HEIGHT - 1, CAP).legendRows).toBe(1)
+	})
+
+	it('drops the legend rows to zero at spark', () => {
+		expect(chartPolicy(SPARK_WIDTH - 1, 500, CAP).legendRows).toBe(0)
 	})
 })

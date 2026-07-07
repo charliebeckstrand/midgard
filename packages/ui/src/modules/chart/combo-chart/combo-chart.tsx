@@ -297,6 +297,7 @@ export function ComboChart<T>({
 						onToggleReference={chart.toggleReference}
 						onFocus={chart.setEmphasis}
 						panel={legend === 'left' || legend === 'right'}
+						maxRows={chart.legendRows}
 						texture={tex.active}
 					/>
 				)

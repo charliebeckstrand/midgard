@@ -98,6 +98,13 @@ export type CartesianChart = {
 	 */
 	tier: ChartTier
 	/**
+	 * How many rows a stacked legend may take before the rest fold into a `+N`
+	 * chip — the frame tier's `legendRows` budget, threaded to the legend as its
+	 * `maxRows`. `0` at spark leaves the row uncapped (its chrome is dropped
+	 * elsewhere); a side legend paginates and ignores it.
+	 */
+	legendRows: 0 | 1 | 2
+	/**
 	 * Whether the axis chrome draws: the caller's `axes` intent, stood down at the
 	 * spark tier so a bare sparkline shows its marks alone. The value gutter, band
 	 * labels, and titles all gate on it downstream.
@@ -677,6 +684,7 @@ export function useChartCartesian<T>(
 		fill: sizing.mode === 'fill' || sizing.mode === 'aspect-fill',
 		outerAspect,
 		tier: policy.tier,
+		legendRows: policy.legendRows,
 		axes: drawAxes,
 		plot: layout.plot,
 		band: layout.band,

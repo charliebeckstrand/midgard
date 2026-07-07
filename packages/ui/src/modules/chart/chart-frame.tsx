@@ -331,7 +331,7 @@ type ChartFigureProps = {
  * plot fills what the legend's natural size leaves, so the ratio describes the
  * chart rather than the plot alone, and it holds as a preference a definite-height
  * parent can clamp (the box-law) rather than a height the drawing forces. A side
- * legend lays the two out in a row once the container has room (`@xl`) — the panel
+ * legend lays the two out in a row once the container has room (`@sm`) — the panel
  * always under the chart below that, so a left panel reverses the row instead of
  * moving in the DOM — else they stack with the legend banding above or below.
  *
@@ -352,12 +352,14 @@ function ChartFigure({
 
 	const layout = aside
 		? cn(
-				// Stacked until the container has room for the legend panel beside a usable
-				// plot (`@xl` ≈ the panel plus a plot wider than it); below that the legend
-				// bands under the plot, which keeps its full width instead of squeezing.
+				// Stacked until the container has room for the legend rail beside the plot
+				// (`@sm`, the rail's own engage width); below that the legend bands under
+				// the plot, which keeps its full width instead of squeezing. The rail
+				// scales with the container (`min(16rem, 40cqw)`), so the plot keeps the
+				// remainder rather than being pinned beside a fixed column.
 				'flex-col gap-2',
-				stretch ? '@xl:items-stretch' : '@xl:items-center',
-				legendPlacement === 'left' ? '@xl:flex-row-reverse' : '@xl:flex-row',
+				stretch ? '@sm:items-stretch' : '@sm:items-center',
+				legendPlacement === 'left' ? '@sm:flex-row-reverse' : '@sm:flex-row',
 			)
 		: 'flex-col gap-3'
 

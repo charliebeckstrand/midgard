@@ -63,6 +63,15 @@ export type ChartPolicy = {
 	axisTitles: boolean
 	/** Whether the hairline gridlines draw. */
 	gridLines: boolean
+	/**
+	 * How many rows a stacked (top / bottom) legend band may take before the rest
+	 * collapse into a `+N` overflow chip: two where the frame is tall and wide,
+	 * one in a narrow or short frame, none at spark (the legend is gone with the
+	 * chrome). The cap bounds what the band takes from the aspect box, so the plot
+	 * can never be crushed below its floor. A side rail paginates instead and
+	 * ignores this.
+	 */
+	legendRows: 0 | 1 | 2
 }
 
 /** Width below which a chart is a bare sparkline — the marks alone. @internal */
@@ -89,6 +98,9 @@ export const AXIS_TITLE_WIDTH = 512
 /** Height the value-axis titles need before they draw. @internal */
 export const AXIS_TITLE_HEIGHT = 224
 
+/** Height a stacked legend needs before it may take a second row rather than one. @internal */
+export const TWO_ROW_LEGEND_HEIGHT = 224
+
 /** Plot height one value tick is given, so a taller plot targets more ticks (density still caps it). @internal */
 export const TICK_SPACING = 44
 
@@ -111,29 +123,50 @@ export const MIN_TICK_TARGET = 2
  * space can take ticks away but never add past the density step.
  * @internal
  */
+/** The tier a non-spark box reads, widest to narrowest. @internal */
+function tierOf(width: number, height: number): Exclude<ChartTier, 'spark'> {
+	if (width < COMPACT_WIDTH || height < COMPACT_HEIGHT) return 'compact'
+
+	return width < EXPANDED_WIDTH ? 'standard' : 'expanded'
+}
+
+/**
+ * How the band axis presents in a non-spark box: dropped in a short frame (its
+ * row costs height), only the ends in a compact-width one, else thinned. @internal
+ */
+function bandAxisOf(width: number, height: number): ChartBandAxisMode {
+	if (height < BAND_ROW_HEIGHT) return 'off'
+
+	return width < COMPACT_WIDTH ? 'ends' : 'thinned'
+}
+
 export function chartPolicy(width: number, height: number, tickCap: number): ChartPolicy {
 	const spark = width < SPARK_WIDTH || height < SPARK_HEIGHT
 
-	const tier: ChartTier = spark
-		? 'spark'
-		: width < COMPACT_WIDTH || height < COMPACT_HEIGHT
-			? 'compact'
-			: width < EXPANDED_WIDTH
-				? 'standard'
-				: 'expanded'
+	if (spark) {
+		return {
+			tier: 'spark',
+			valueAxis: 'off',
+			bandAxis: 'off',
+			tickTarget: 0,
+			compactFormat: true,
+			axisTitles: false,
+			gridLines: false,
+			legendRows: 0,
+		}
+	}
 
 	return {
-		tier,
-		valueAxis: spark ? 'off' : 'gutter',
-		// A short-but-wide banner drops the band row yet keeps its gutter; the two
-		// bind to different dimensions, so neither breakpoint could speak for both.
-		bandAxis:
-			spark || height < BAND_ROW_HEIGHT ? 'off' : width < COMPACT_WIDTH ? 'ends' : 'thinned',
-		tickTarget: spark
-			? 0
-			: Math.max(MIN_TICK_TARGET, Math.min(Math.floor(height / TICK_SPACING), tickCap)),
+		tier: tierOf(width, height),
+		valueAxis: 'gutter',
+		bandAxis: bandAxisOf(width, height),
+		tickTarget: Math.max(MIN_TICK_TARGET, Math.min(Math.floor(height / TICK_SPACING), tickCap)),
 		compactFormat: width < COMPACT_WIDTH,
-		axisTitles: !spark && width >= AXIS_TITLE_WIDTH && height >= AXIS_TITLE_HEIGHT,
-		gridLines: !spark,
+		axisTitles: width >= AXIS_TITLE_WIDTH && height >= AXIS_TITLE_HEIGHT,
+		gridLines: true,
+		// A stacked band takes two rows only where it has both the width to pack them
+		// and the height to spend on them; a narrow or short frame holds one row and
+		// chips the rest.
+		legendRows: width < COMPACT_WIDTH || height < TWO_ROW_LEGEND_HEIGHT ? 1 : 2,
 	}
 }
