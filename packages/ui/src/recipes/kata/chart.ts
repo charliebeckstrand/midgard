@@ -116,12 +116,15 @@ export const k = {
 	order,
 	/** Hairline gridlines, one step off the surface. */
 	grid: mode('stroke-zinc-200', 'dark:stroke-zinc-800'),
-	/** The axis baseline, a step firmer than the grid. */
-	axis: mode('stroke-zinc-300', 'dark:stroke-zinc-700'),
+	/** The axis baseline (`line`) and its value-axis title (`title`). */
+	axis: {
+		/** The axis baseline, a step firmer than the grid. */
+		line: mode('stroke-zinc-300', 'dark:stroke-zinc-700'),
+		/** SVG value-axis title ink: a step smaller and firmer than the ticks it names. */
+		title: ['text-xs', 'font-medium', ...mode('fill-zinc-500', 'dark:fill-zinc-400')],
+	},
 	/** SVG tick-label ink: muted, tabular for vertical alignment. */
 	tick: ['text-sm', 'tabular-nums', ...mode('fill-zinc-500', 'dark:fill-zinc-400')],
-	/** SVG value-axis title ink: a step smaller and firmer than the ticks it names. */
-	axisTitle: ['text-xs', 'font-medium', ...mode('fill-zinc-500', 'dark:fill-zinc-400')],
 	/** Point-marker stroke: white in both modes, so a dot stays legible crossing the opaque marks behind it. */
 	stroke: mode('stroke-white', 'dark:stroke-white'),
 	/** Legend / tooltip label ink (HTML text; marks carry the colour, text never does). */

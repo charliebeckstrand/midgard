@@ -78,7 +78,7 @@ export function ChartAxis({ axis, plot, ticks, position, baseline, line = true }
 						y2={plot.y + plot.height}
 						strokeWidth={1}
 						shapeRendering="crispEdges"
-						className={cn(k.axis)}
+						className={cn(k.axis.line)}
 					/>
 				)}
 
@@ -166,7 +166,7 @@ export function ChartAxisTitles({ titles }: ChartAxisTitlesProps) {
 					textAnchor="middle"
 					dominantBaseline="central"
 					transform={title.rotate ? `rotate(${title.rotate} ${title.x} ${title.y})` : undefined}
-					className={cn(k.axisTitle)}
+					className={cn(k.axis.title)}
 				>
 					{title.text}
 				</text>

@@ -619,7 +619,7 @@ function PieCallouts({ items, animate, emphasis }: PieCalloutsProps) {
 							points={item.leader}
 							fill="none"
 							strokeWidth={1}
-							className={cn(k.axis)}
+							className={cn(k.axis.line)}
 						/>
 
 						<text
