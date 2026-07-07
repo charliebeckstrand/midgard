@@ -140,8 +140,21 @@ function bandAxisOf(width: number, height: number): ChartBandAxisMode {
 	return width < COMPACT_WIDTH ? 'ends' : 'thinned'
 }
 
+/**
+ * Whether a plot box is small enough to strip to a bare sparkline — under the
+ * spark width or the spark height. The spark threshold on its own, so a module
+ * that sizes its own frame before the policy resolves (the pie, weighing whether
+ * a callout band would starve the plot to this floor) reads the same line the
+ * tier does rather than duplicating it.
+ *
+ * @internal
+ */
+export function isSparkBox(width: number, height: number): boolean {
+	return width < SPARK_WIDTH || height < SPARK_HEIGHT
+}
+
 export function chartPolicy(width: number, height: number, tickCap: number): ChartPolicy {
-	const spark = width < SPARK_WIDTH || height < SPARK_HEIGHT
+	const spark = isSparkBox(width, height)
 
 	if (spark) {
 		return {

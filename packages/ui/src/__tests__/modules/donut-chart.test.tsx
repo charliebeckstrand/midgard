@@ -60,9 +60,13 @@ describe('DonutChart', () => {
 		expect(plainInner.style.top).toBe('50%')
 
 		// Callouts with lopsided label widths shift the pie center off the box center;
-		// the content follows it into the hole rather than staying box-centered.
+		// the content follows it into the hole rather than staying box-centered. The
+		// frame is widened past the default so the long label's column has room to
+		// draw — a narrower box would starve the pie to the spark floor and drop the
+		// callouts, leaving nothing to shift the center.
 		const shifted = renderUI(
 			chart({
+				width: 480,
 				children: <span>x</span>,
 				labels: { callouts: true },
 				data: [
