@@ -194,6 +194,32 @@ describe('formatPropType — boolean collapse', () => {
 	})
 })
 
+describe('formatType — array types', () => {
+	it.each<[string, string, string]>([
+		['renders an array as `T[]`, not `Array<T>`', `declare const value: string[]`, 'string[]'],
+		[
+			'renders a readonly array as `readonly T[]`',
+			`declare const value: readonly number[]`,
+			'readonly number[]',
+		],
+		[
+			'parenthesizes a union element',
+			`declare const value: (string | number)[]`,
+			'(string | number)[]',
+		],
+		['renders nested arrays', `declare const value: number[][]`, 'number[][]'],
+		[
+			'renders `Array<T>` written longhand as `T[]`',
+			`declare const value: Array<string>`,
+			'string[]',
+		],
+	])('%s', (_name, src, expected) => {
+		const { type, checker, location } = typeOfPropValue({ 'index.ts': src })
+
+		expect(formatType(type, checker, location)).toBe(expected)
+	})
+})
+
 describe('createInMemoryProgram — standard library resolution', () => {
 	it('resolves global types (regression: lib files must load, not degrade to `{}`)', () => {
 		const { type, checker } = typeOfPropValue({

@@ -102,7 +102,17 @@ function literalText(raw: string): string {
 function classifyLiteral(raw: string): LiteralKind | null {
 	const text = literalText(raw)
 
-	if (/^'.*'$/s.test(text) || /^".*"$/s.test(text)) return 'string'
+	// A `{@link …}` reference is prose, not a literal — its braces would otherwise
+	// read as an object literal.
+	if (text.includes('{@link')) return null
+
+	// A single quoted string, allowing an escaped or embedded `|`. Anchored so a
+	// union of literals (`'start' | 'end'`) doesn't greedily match as one string.
+	if (/^'(?:[^'\\]|\\.)*'$/.test(text) || /^"(?:[^"\\]|\\.)*"$/.test(text)) return 'string'
+
+	// A `|`-joined union isn't a single self-contained value; render it as prose
+	// rather than colouring the whole span one kind.
+	if (/\s\|\s/.test(text)) return null
 
 	if (text === 'true' || text === 'false') return 'boolean'
 

@@ -69,9 +69,9 @@ function splitUnion(type: string): string[] {
 	return parts
 }
 
-/** Strip the enclosing single quotes from a string-literal fragment. */
+/** Strip a matching pair of enclosing quotes (`'`, `"`, or backtick) from a string-literal fragment. */
 function unquote(part: string): string {
-	return part.replace(/^'|'$/g, '')
+	return part.replace(/^(['"`])([\s\S]*)\1$/, '$2')
 }
 
 /**

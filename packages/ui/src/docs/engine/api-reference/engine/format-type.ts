@@ -129,6 +129,20 @@ function namedTypeShortName(
 		return formatNameWithArgs(aliasName, trimmed, checker, location)
 	}
 
+	// Array / readonly-array types render `T[]` / `readonly T[]` rather than
+	// `Array<T>` / `ReadonlyArray<T>` — `PropDef.type` documents types as written
+	// in source. A union or function element is parenthesized so `(string |
+	// number)[]` doesn't read as `string | (number[])`.
+	if (checker.isArrayType(type)) {
+		const element = checker.getTypeArguments(type as ts.TypeReference)[0]
+
+		if (!element) return null
+
+		const readonly = type.getSymbol()?.getName() === 'ReadonlyArray' ? 'readonly ' : ''
+
+		return `${readonly}${formatArrayElement(element, checker, location)}[]`
+	}
+
 	const symbol = type.getSymbol()
 
 	if (!symbol) return null
@@ -210,6 +224,20 @@ function formatNameWithArgs(
 	if (args.length === 0) return name
 
 	return `${name}<${args.map((a) => formatType(a, checker, location)).join(', ')}>`
+}
+
+/** Render an array's element type, parenthesizing a union / intersection / function so `[]` binds correctly. */
+function formatArrayElement(
+	element: ts.Type,
+	checker: ts.TypeChecker,
+	location: ts.Node | undefined,
+): string {
+	const rendered = formatType(element, checker, location)
+
+	const needsParens =
+		element.isUnion() || element.isIntersection() || element.getCallSignatures().length > 0
+
+	return needsParens ? `(${rendered})` : rendered
 }
 
 /**
