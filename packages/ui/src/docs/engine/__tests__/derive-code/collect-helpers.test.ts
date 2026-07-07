@@ -147,3 +147,29 @@ describe('collectHelpers preamble inclusion', () => {
 		expect(helper?.code).not.toContain('type Unused')
 	})
 })
+
+describe('collectHelpers entry export', () => {
+	it('skips the `Demo` page function so its source is not embedded as dead __code', () => {
+		const source = [
+			`function Swatch() {`,
+			`\treturn <Box />`,
+			`}`,
+			``,
+			`export function Demo() {`,
+			`\treturn <Example><Swatch /></Example>`,
+			`}`,
+		].join('\n')
+
+		const names = collectHelpers(source).map((h) => h.name)
+
+		expect(names).toContain('Swatch')
+
+		expect(names).not.toContain('Demo')
+	})
+
+	it('skips a `Demo` arrow-const entry export too', () => {
+		const source = [`export const Demo = () => <Example><Box /></Example>`].join('\n')
+
+		expect(collectHelpers(source)).toHaveLength(0)
+	})
+})

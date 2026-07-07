@@ -366,10 +366,12 @@ export const HOOK_MODULES: ReadonlyMap<string, string> = new Map([
 		.map((name) => [name, 'react'] as const),
 ])
 
-// Match any known hook used as a bare identifier. The `(?<!\.)` lookbehind
-// excludes method calls (`router.use(...)`); the `\b` anchors keep a short name
-// from matching inside a longer one, so alternation order is immaterial.
-const HOOK_RE = new RegExp(`(?<!\\.)\\b(${[...HOOK_MODULES.keys()].join('|')})\\b`, 'g')
+// Match any known hook at a call site. The `(?<!\.)` lookbehind excludes method
+// calls (`router.use(...)`); the `\b` anchors keep a short name from matching
+// inside a longer one; the `(?=\s*[(<])` lookahead requires a following call or
+// generic-argument list (`use(`, `useState<T>(`) so a bare word — prose like
+// "easy to use" or a `use` in a comment — never conjures a phantom import.
+const HOOK_RE = new RegExp(`(?<!\\.)\\b(${[...HOOK_MODULES.keys()].join('|')})\\b(?=\\s*[(<])`, 'g')
 
 const TAG_RE = /<([A-Z][\w]*)/g
 
