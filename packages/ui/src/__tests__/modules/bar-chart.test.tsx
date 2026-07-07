@@ -550,6 +550,28 @@ describe('BarChart', () => {
 		// three-figure tick appears that the grouped chart never reaches.
 		expect(bySlot(stacked.container, 'chart-axis-y')?.textContent).toContain('100')
 	})
+
+	it('widens the bars to fill the band under thick', () => {
+		// The first bar's left edge, off the `M x0 …` that opens its path.
+		const leftEdge = (container: HTMLElement) =>
+			Number(
+				(bySlot(container, 'chart-bar') as HTMLElement)
+					.getAttribute('d')
+					?.match(/^M\s+([\d.]+)/)?.[1],
+			)
+
+		const spec = renderUI(
+			chart({ series: [{ xKey: 'quarter', yKey: 'revenue', yName: 'Revenue' }] }),
+		)
+
+		const wide = renderUI(
+			chart({ series: [{ xKey: 'quarter', yKey: 'revenue', yName: 'Revenue' }], thick: true }),
+		)
+
+		// Thick fills the band, so the bar starts further out than the centered
+		// spec-width one — proof the flag reaches the geometry.
+		expect(leftEdge(wide.container)).toBeLessThan(leftEdge(spec.container))
+	})
 })
 
 describe('BarChart tickRotation', () => {
@@ -792,6 +814,19 @@ describe('barMarks', () => {
 
 		expect(row?.[2]).not.toBeNull()
 	})
+
+	it('caps at the spec thickness by default and fills the band under thick', () => {
+		// A band wide enough (160) that the default bar caps at the 24px spec.
+		const wide = bandScale({ count: 1, range: [0, 200] })
+
+		const [capped] = barMarks([[40]], wide, map, 100)
+
+		const [full] = barMarks([[40]], wide, map, 100, 'vertical', true)
+
+		expect((capped?.[0]?.x1 ?? 0) - (capped?.[0]?.x ?? 0)).toBe(24)
+
+		expect((full?.[0]?.x1 ?? 0) - (full?.[0]?.x ?? 0)).toBe(wide.width)
+	})
 })
 
 describe('stackedBarMarks', () => {
@@ -846,6 +881,16 @@ describe('stackedBarMarks', () => {
 		expect(row?.[2]).toBeNull()
 
 		expect(row?.[3]).not.toBeNull()
+	})
+
+	it('caps the column at the spec thickness by default and fills the band under thick', () => {
+		const [capped] = stackedBarMarks([[40]], band, map)
+
+		const [full] = stackedBarMarks([[40]], band, map, 'vertical', true)
+
+		expect((capped?.[0]?.x1 ?? 0) - (capped?.[0]?.x ?? 0)).toBe(24)
+
+		expect((full?.[0]?.x1 ?? 0) - (full?.[0]?.x ?? 0)).toBe(band.width)
 	})
 })
 

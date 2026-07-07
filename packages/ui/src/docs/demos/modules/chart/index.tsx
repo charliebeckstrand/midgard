@@ -244,6 +244,15 @@ export function Demo() {
 								/>
 							</Example>
 
+							<Example title="Thick" code={code`<BarChart thick … />`}>
+								<BarChart
+									aria-label="Traffic by source, thick bars"
+									data={sources}
+									series={[{ xKey: 'source', yKey: 'visits', yName: 'Visits' }]}
+									thick
+								/>
+							</Example>
+
 							<Example title="Texture" code={code`<BarChart texture … />`}>
 								<BarChart
 									aria-label="Revenue and costs by month, textured"
