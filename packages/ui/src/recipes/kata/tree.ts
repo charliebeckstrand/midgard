@@ -1,7 +1,7 @@
 /**
  * Tree kata: object-literal surface for the `<Tree>` treeview. Size-axed
- * sub-recipes carry the `itemContent` row and its `chevron`; the static slots
- * cover the `base` container, `item`, `affix`, `label`, and `group`. The
+ * sub-recipes carry the `item.content` row and its `chevron`; the static slots
+ * cover the `base` container, `item.base`, `affix`, `label`, and `group`. The
  * `indentStep` map sets per-depth indent in rem, and `motion` is the collapse
  * transition.
  */
@@ -60,8 +60,10 @@ export const k = {
 		'[&>[data-slot=tree-item]:first-child>[role=treeitem]]:pt-0',
 		'[&>[data-slot=tree-item]:last-child>[role=treeitem]]:pb-0',
 	],
-	item: [],
-	itemContent,
+	item: {
+		base: [],
+		content: itemContent,
+	},
 	chevron,
 	/** Prefix/suffix slot wrappers flanking the label. */
 	affix: 'flex flex-none items-center',
