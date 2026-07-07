@@ -8,7 +8,7 @@ import { Input } from '../../../components/input'
 import { JsonTree } from '../../../components/json-tree'
 import { NumberInput } from '../../../components/number-input'
 import { Select, SelectLabel, SelectOption } from '../../../components/select'
-import { Example } from '../../engine'
+import { code, Example } from '../../engine'
 
 type BasicFilters = {
 	search: string | undefined
@@ -168,12 +168,30 @@ function RenderPropsExample() {
 				<Input placeholder="Search" />
 			</FiltersField>
 			<FiltersField name="minPrice">
-				<Label>Min Price</Label>
-				<NumberInput placeholder="0" min={0} />
+				{({ value, onValueChange }) => (
+					<>
+						<Label>Min Price</Label>
+						<NumberInput
+							placeholder="0"
+							min={0}
+							value={value as number | null}
+							onValueChange={onValueChange}
+						/>
+					</>
+				)}
 			</FiltersField>
 			<FiltersField name="maxPrice">
-				<Label>Max Price</Label>
-				<NumberInput placeholder="1000" min={0} />
+				{({ value, onValueChange }) => (
+					<>
+						<Label>Max Price</Label>
+						<NumberInput
+							placeholder="1000"
+							min={0}
+							value={value as number | null}
+							onValueChange={onValueChange}
+						/>
+					</>
+				)}
 			</FiltersField>
 		</Filters>
 	)
@@ -190,7 +208,17 @@ export function Demo() {
 				<DateExample />
 			</Example>
 
-			<Example title="Render props">
+			<Example
+				title="Render props"
+				code={code`<FiltersField name="minPrice">
+  {({ value, onValueChange }) => (
+    <>
+      <Label>Min Price</Label>
+      <NumberInput value={value as number | null} onValueChange={onValueChange} />
+    </>
+  )}
+</FiltersField>`}
+			>
 				<RenderPropsExample />
 			</Example>
 		</>

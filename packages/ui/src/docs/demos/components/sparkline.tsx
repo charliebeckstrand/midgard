@@ -24,7 +24,9 @@ function AnimatedExample({ variant, color }: { variant: 'line' | 'bar'; color: C
 		<Example
 			title="Animated"
 			code={
-				variant === 'bar' ? code`<Sparkline variant="bar" animate />` : code`<Sparkline animate />`
+				variant === 'bar'
+					? code`<Sparkline variant="bar" animate />`
+					: code`<Sparkline fill endPoint animate />`
 			}
 			actions={
 				<Button

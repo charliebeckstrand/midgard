@@ -190,7 +190,12 @@ function MapDemo() {
 									legend="right"
 								>
 									{warehouses.map((warehouse) => (
-										<MapPoint key={warehouse.city} label={warehouse.city} {...warehouse} />
+										<MapPoint
+											key={warehouse.city}
+											label={warehouse.city}
+											at={warehouse.at}
+											detail={warehouse.detail}
+										/>
 									))}
 								</MapPlat>
 							</Container>
