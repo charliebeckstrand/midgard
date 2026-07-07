@@ -6,8 +6,8 @@ import { Text } from '../../../components/text'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
 import { Example } from '../../engine'
 
-function Sizer({ children, className }: { children: ReactNode; className?: string }) {
-	return <div className={`sm:max-w-sm ${className}`}>{children}</div>
+function Sizer({ children }: { children: ReactNode }) {
+	return <div className="sm:max-w-sm">{children}</div>
 }
 
 function DropSingleExample() {

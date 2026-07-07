@@ -136,7 +136,7 @@ export function Demo() {
 						href="https://photon.komoot.io/"
 						target="_blank"
 						rel="noopener noreferrer"
-						className="hover:underline underline:offset-4"
+						className="hover:underline underline-offset-4"
 					>
 						Photon geocoding API
 					</a>{' '}

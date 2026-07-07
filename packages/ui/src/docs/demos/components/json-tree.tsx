@@ -53,6 +53,7 @@ function SearchExample() {
 		<>
 			<SearchInput
 				id="json-tree-search"
+				aria-label="Search tree"
 				placeholder="Search tree"
 				autoComplete="off"
 				value={search}
@@ -74,6 +75,7 @@ function FilterExample() {
 		<>
 			<SearchInput
 				id="json-tree-filter-search"
+				aria-label="Filter tree"
 				placeholder="Filter tree"
 				autoComplete="off"
 				value={search}

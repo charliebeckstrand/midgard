@@ -15,8 +15,8 @@ const presets: { label: string; value: AspectRatioPreset }[] = [
 	{ label: '1/1', value: '1/1' },
 ]
 
-function Sizer({ children, className }: { children: ReactNode; className?: string }) {
-	return <div className={`sm:max-w-sm ${className}`}>{children}</div>
+function Sizer({ children }: { children: ReactNode }) {
+	return <div className="sm:max-w-sm">{children}</div>
 }
 
 function PresetsExample() {
