@@ -188,8 +188,9 @@ describe('chart legend focus persistence (real browser)', () => {
 
 		const chip = allBySlot(container, 'chart-legend-reference')[0] as HTMLButtonElement
 
-		// Clicking the chip leaves it DOM-focused with no ring; a rule has no toggle,
-		// so the click itself does nothing. Leaving must settle the marks back to full.
+		// Clicking the chip toggles its rule off and leaves the chip DOM-focused with
+		// no ring; leaving must settle the marks back to full rather than stranding
+		// them receded to the rule the click just pulled.
 		await userEvent.click(chip)
 		await userEvent.unhover(chip)
 		await settle()

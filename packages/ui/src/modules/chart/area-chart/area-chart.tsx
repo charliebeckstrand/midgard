@@ -395,7 +395,9 @@ export function AreaChart<T>({
 						items={chart.legendItems}
 						references={chart.referenceItems}
 						hidden={chart.hidden}
+						referenceHidden={chart.referenceHidden}
 						onToggle={chart.toggleSeries}
+						onToggleReference={chart.toggleReference}
 						onFocus={chart.setEmphasis}
 						panel={legend === 'left' || legend === 'right'}
 						texture={tex.active}
@@ -416,7 +418,13 @@ export function AreaChart<T>({
 			)}
 			onActiveSeries={chart.setEmphasis}
 			className={className}
-			annotations={<ChartReferenceList reference={reference} format={chart.formatAxisValue} />}
+			annotations={
+				<ChartReferenceList
+					reference={reference}
+					hidden={chart.referenceHidden}
+					format={chart.formatAxisValue}
+				/>
+			}
 		>
 			{tex.defs}
 
@@ -474,6 +482,7 @@ export function AreaChart<T>({
 				format={chart.formatAxisValue}
 				animate={animate}
 				labels={labels?.references}
+				hidden={chart.referenceHidden}
 			/>
 		</ChartFrame>
 	)

@@ -462,7 +462,7 @@ describe('reference lines in the legend', () => {
 		expect(bySlot(container, 'chart-reference-list')?.textContent).toContain('Target')
 	})
 
-	it('recedes the marks on hover, as an emphasis chip beside the switchboard', () => {
+	it('recedes the marks on hover, as a switch beside the switchboard', () => {
 		const { container } = renderUI(
 			<BarChart
 				aria-label="Revenue by month"
@@ -474,16 +474,16 @@ describe('reference lines in the legend', () => {
 			/>,
 		)
 
-		// One series → one static switch; the rule is a separate chip that recedes
-		// the marks like a switch's emphasis but carries no toggle — a rule has no
-		// on/off — so it is a plain button with no `aria-pressed`.
+		// One series → one switch; the rule is a separate switch that recedes the
+		// marks like a series entry's emphasis and carries its own toggle — pressed
+		// while the rule is shown.
 		expect(allBySlot(container, 'chart-legend-item')).toHaveLength(1)
 
 		const chip = bySlot(container, 'chart-legend-reference')
 
 		expect(chip?.tagName).toBe('BUTTON')
 
-		expect(chip?.getAttribute('aria-pressed')).toBeNull()
+		expect(chip?.getAttribute('aria-pressed')).toBe('true')
 
 		const marks = () => bySlot(container, 'chart-marks')?.getAttribute('class') ?? ''
 
@@ -497,6 +497,109 @@ describe('reference lines in the legend', () => {
 		fireEvent.pointerLeave(chip as Element)
 
 		expect(marks()).not.toContain('opacity-25')
+	})
+
+	it('toggles its rule off when the chip is clicked, and back on again', async () => {
+		const user = userEvent.setup()
+
+		const { container } = renderUI(
+			<BarChart
+				aria-label="Revenue by month"
+				data={DATA}
+				series={[...SERIES]}
+				width={400}
+				legend
+				reference={[{ value: 55, label: 'Target' }]}
+			/>,
+		)
+
+		const chip = () => bySlot(container, 'chart-legend-reference') as HTMLElement
+
+		// The rule draws and the chip reads pressed while it is shown.
+		expect(allBySlot(container, 'chart-reference-line')).toHaveLength(1)
+
+		expect(chip().getAttribute('aria-pressed')).toBe('true')
+
+		await user.click(chip())
+
+		// Clicking pulls the rule from the plot and un-presses the chip, striking
+		// its label the way a hidden series entry is struck.
+		expect(allBySlot(container, 'chart-reference-line')).toHaveLength(0)
+
+		expect(chip().getAttribute('aria-pressed')).toBe('false')
+
+		// The struck label is the off treatment a hidden series entry takes.
+		expect(chip().querySelector('.line-through')?.textContent).toBe('Target')
+
+		await user.click(chip())
+
+		// Clicking again brings the rule back.
+		expect(allBySlot(container, 'chart-reference-line')).toHaveLength(1)
+
+		expect(chip().getAttribute('aria-pressed')).toBe('true')
+	})
+
+	it('drops a toggled-off rule from the domain and the hidden parity', async () => {
+		const user = userEvent.setup()
+
+		// The rule at 200 folds the axis up to meet it while shown.
+		const { container } = renderUI(
+			<BarChart
+				aria-label="Revenue by month"
+				data={DATA}
+				series={[...SERIES]}
+				width={400}
+				legend
+				reference={[{ value: 200, label: 'Ceiling' }]}
+			/>,
+		)
+
+		const axis = () => bySlot(container, 'chart-axis-y')?.textContent ?? ''
+
+		const list = () => bySlot(container, 'chart-reference-list')?.textContent ?? ''
+
+		expect(axis()).toContain('200')
+
+		expect(list()).toContain('Ceiling')
+
+		await user.click(bySlot(container, 'chart-legend-reference') as Element)
+
+		// Off, the rule leaves the domain so the axis rescales to the data, and the
+		// visually-hidden parity drops it the way the data table drops a hidden series.
+		expect(axis()).not.toContain('200')
+
+		expect(list()).not.toContain('Ceiling')
+	})
+
+	it('recedes nothing while an off chip is hovered, its rule being gone', async () => {
+		const user = userEvent.setup()
+
+		const { container } = renderUI(
+			<BarChart
+				aria-label="Revenue by month"
+				data={DATA}
+				series={[
+					{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
+					{ xKey: 'month', yKey: 'revenue', yName: 'Copy' },
+				]}
+				width={400}
+				reference={[{ value: 55, label: 'Target' }]}
+			/>,
+		)
+
+		const chip = bySlot(container, 'chart-legend-reference') as HTMLElement
+
+		const marks = () => bySlot(container, 'chart-marks')?.getAttribute('class') ?? ''
+
+		await user.click(chip)
+
+		// Pointing the struck chip must not recede the marks to a rule that no
+		// longer draws.
+		fireEvent.pointerEnter(chip)
+
+		expect(marks()).not.toContain('opacity-25')
+
+		fireEvent.pointerLeave(chip)
 	})
 
 	it('recedes the sibling rules from a chip, keyed to the rule not the chip position', () => {
