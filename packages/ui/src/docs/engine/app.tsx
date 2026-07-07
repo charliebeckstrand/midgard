@@ -5,6 +5,7 @@ import { loadShiki } from '../../components/code'
 import { Heading } from '../../components/heading'
 import { SidebarLayout } from '../../layouts'
 import { DensityProvider } from '../../providers/density'
+import { DemoErrorBoundary, DemoLoadError } from './components/error-boundary'
 import { SettingsDialog } from './components/settings-dialog'
 import { SidebarContent } from './components/sidebar'
 import { DemoPage } from './demo-page'
@@ -69,14 +70,14 @@ export function App() {
 			>
 				<div ref={contentRef}>
 					{current ? (
-						<Suspense fallback={null}>
-							<DemoPage
-								key={current.id}
-								demo={current}
-								locked={locked}
-								onToggleLocked={toggleLocked}
-							/>
-						</Suspense>
+						<DemoErrorBoundary
+							key={current.id}
+							fallback={(retry) => <DemoLoadError onRetry={retry} />}
+						>
+							<Suspense fallback={null}>
+								<DemoPage demo={current} locked={locked} onToggleLocked={toggleLocked} />
+							</Suspense>
+						</DemoErrorBoundary>
 					) : (
 						<div className="p-6">
 							<Heading>Select a component</Heading>

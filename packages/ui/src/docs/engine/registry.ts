@@ -89,6 +89,11 @@ export function loadDemo(id: string): Promise<ComponentType> {
 		(reason) => {
 			tracked.status = 'rejected'
 			tracked.reason = reason
+
+			// Evict the rejection so a later navigation or an error-boundary retry
+			// re-attempts the import instead of replaying the cached failure — a
+			// transient chunk-load error (offline, deploy skew) must be recoverable.
+			promiseCache.delete(id)
 		},
 	)
 
