@@ -195,6 +195,37 @@ export type BubbleChartSeries<T> = ScatterChartSeries<T> & {
 export type ChartLegendPlacement = 'top' | 'bottom' | 'left' | 'right'
 
 /**
+ * The kind of legend a colour-scaled chart (heatmap, choropleth) draws — only
+ * the continuous `'range'` scale bar today, a placeholder for the discriminant a
+ * future binned switchboard would join.
+ */
+export type ChartRangeLegendType = 'range'
+
+/**
+ * The object form of a colour-scaled chart's `legend` prop: the legend `type`
+ * (only `'range'` today) with its `placement`, which drives the scale bar's
+ * orientation — a `'left'` / `'right'` placement stands the bar vertical beside
+ * the plot, a `'top'` / `'bottom'` one lays it horizontal above or below. The
+ * prop also takes a bare boolean (show at the default placement, or drop it) or a
+ * bare placement string, so the object is only needed to name the type and
+ * placement together.
+ */
+export type ChartRangeLegendConfig = {
+	/**
+	 * The legend variant. Only the continuous `'range'` scale bar today — a
+	 * colour-scaled chart has no categorical switchboard to swap to.
+	 * @defaultValue 'range'
+	 */
+	type?: ChartRangeLegendType
+	/**
+	 * Where the bar sits around the plot; drives its orientation. A side
+	 * placement stands it vertical, a stacked one lays it horizontal.
+	 * @defaultValue 'right'
+	 */
+	placement?: ChartLegendPlacement
+}
+
+/**
  * The object form of a cartesian chart's hover crosshair: two rules, both on
  * unless overridden. `x` is the horizontal rule across the value axis, `y` the
  * vertical rule down the category axis; each defaults on, so set one `false` to

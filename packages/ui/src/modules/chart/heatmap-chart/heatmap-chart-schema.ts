@@ -11,7 +11,12 @@
  * value-domain or crosshair switches.
  */
 
-import type { ChartBaseProps, DataKey } from '../chart-schema'
+import type {
+	ChartBaseProps,
+	ChartLegendPlacement,
+	ChartRangeLegendConfig,
+	DataKey,
+} from '../chart-schema'
 
 /**
  * The one series a heatmap shades cells with: the two fields that place a cell
@@ -52,19 +57,24 @@ export type HeatmapChartSeries<T> = {
  * value parity without the pointer, the way every chart in the module does.
  *
  * @remarks The grid wires neither `animate` nor `texture`; the component
- * destructures them off so they never reach the plot element. `legend` narrows
- * to a boolean: the range bar is fixed beside the plot — it takes no placement
- * the way a categorical legend does — so a `ChartLegendPlacement` would
- * type-check yet always render on the right.
+ * destructures them off so they never reach the plot element. `legend` drives
+ * the continuous range scale bar — the heatmap's only legend, so the object
+ * form's `type` is always `'range'` and only its `placement` matters.
  */
 export type HeatmapChartProps<T = never> = Omit<ChartBaseProps<T>, 'legend'> & {
 	/** The single series to shade cells with; extra entries are ignored. */
 	series: HeatmapChartSeries<T>[]
 	/**
-	 * Show the range legend beside the plot.
+	 * Show the range scale bar, and where it sits. `true` (the default) stands it
+	 * vertical on the right; `false` drops it. A placement moves it — a horizontal
+	 * row above (`'top'`) or below (`'bottom'`) the plot, or a vertical rail beside
+	 * it (`'left'` / `'right'`) — and the object form `{ type: 'range', placement }`
+	 * names the same placement explicitly. Following the categorical legend, the
+	 * bar sheds at the spark tier and, in a box too narrow for a side rail, drops
+	 * to a horizontal row under the plot.
 	 * @defaultValue true
 	 */
-	legend?: boolean
+	legend?: boolean | ChartLegendPlacement | ChartRangeLegendConfig
 }
 
 /**

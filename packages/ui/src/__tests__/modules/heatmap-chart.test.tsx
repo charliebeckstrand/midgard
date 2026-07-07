@@ -95,15 +95,93 @@ describe('HeatmapChart', () => {
 		expect(bySlot(container, 'heatmap-legend-box')).toBeNull()
 	})
 
-	it('narrows legend to a boolean — the range bar takes no placement', () => {
+	it('stands the scale bar vertical beside the plot by default', () => {
 		const { container } = renderUI(
-			// @ts-expect-error the range bar is fixed beside the plot: it takes a boolean, not a placement
+			<HeatmapChart aria-label="Commits" data={ROWS} series={SERIES} width={400} />,
+		)
+
+		const track = bySlot(container, 'heatmap-range-track')
+
+		expect(track?.getAttribute('aria-orientation')).toBe('vertical')
+
+		// Low at the bottom, high at the top — the gradient runs upward.
+		expect(track?.getAttribute('style')).toContain('linear-gradient(to top')
+	})
+
+	it('lays the scale bar horizontal when placed on the bottom', () => {
+		const { container } = renderUI(
 			<HeatmapChart aria-label="Commits" data={ROWS} series={SERIES} width={400} legend="bottom" />,
 		)
 
-		// The narrowing is the point (the @ts-expect-error above); a placement is
-		// still truthy, so at runtime the legend renders on its fixed right side.
-		expect(bySlot(container, 'heatmap-legend-box')).not.toBeNull()
+		const track = bySlot(container, 'heatmap-range-track')
+
+		expect(track?.getAttribute('aria-orientation')).toBe('horizontal')
+
+		// Low at the left, high at the right — the gradient runs rightward.
+		expect(track?.getAttribute('style')).toContain('linear-gradient(to right')
+	})
+
+	it('accepts the { type, placement } object form', () => {
+		const { container } = renderUI(
+			<HeatmapChart
+				aria-label="Commits"
+				data={ROWS}
+				series={SERIES}
+				width={400}
+				legend={{ type: 'range', placement: 'left' }}
+			/>,
+		)
+
+		// A left placement is a side rail — vertical, like the default right.
+		expect(bySlot(container, 'heatmap-range-track')?.getAttribute('aria-orientation')).toBe(
+			'vertical',
+		)
+	})
+
+	it('drops the scale bar at the spark tier', () => {
+		const { container } = renderUI(
+			<HeatmapChart aria-label="Commits" data={ROWS} series={SERIES} width={120} />,
+		)
+
+		// Under the spark width the chrome strips to bare marks — no legend.
+		expect(bySlot(container, 'heatmap-legend-box')).toBeNull()
+	})
+
+	it('drops a side placement to a horizontal row in a box too narrow for a rail', () => {
+		const { container } = renderUI(
+			// Right is a side rail, but the box is under the compact width, so the bar
+			// moves to a horizontal row under the plot the way a side legend stacks.
+			<HeatmapChart aria-label="Commits" data={ROWS} series={SERIES} width={300} legend="right" />,
+		)
+
+		expect(bySlot(container, 'heatmap-range-track')?.getAttribute('aria-orientation')).toBe(
+			'horizontal',
+		)
+	})
+
+	it('probes a horizontal bar along its own axis, dimming cells outside the class', () => {
+		const { container } = renderUI(
+			<HeatmapChart aria-label="Commits" data={ROWS} series={SERIES} width={400} legend="bottom" />,
+		)
+
+		const track = bySlot(container, 'heatmap-range-track')
+
+		const dimmed = () =>
+			cellRects(container).filter((rect) => rect.getAttribute('class')?.includes('opacity-25'))
+				.length
+
+		// Nothing dims until the bar is probed.
+		expect(dimmed()).toBe(0)
+
+		// A horizontal bar reads the pointer's x, not its y — the probe still lands a
+		// class and dims the cells outside it.
+		fireEvent.pointerMove(track as Element, { clientX: 10 })
+
+		expect(dimmed()).toBeGreaterThan(0)
+
+		fireEvent.pointerLeave(track as Element)
+
+		expect(dimmed()).toBe(0)
 	})
 
 	it('dims cells outside the probed bin on range-legend hover', () => {

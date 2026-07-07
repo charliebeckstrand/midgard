@@ -7,6 +7,8 @@ export type { ChartOrientation } from './chart-orientation'
 export type {
 	BubbleChartSeries,
 	ChartLegendPlacement,
+	ChartRangeLegendConfig,
+	ChartRangeLegendType,
 	ChartReferenceLine,
 	ChartSeries,
 	ChartTooltipConfig,

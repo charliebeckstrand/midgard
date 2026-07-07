@@ -9,11 +9,19 @@ import {
 	useFloating,
 	useInteractions,
 } from '@floating-ui/react'
-import { type MouseEvent, type PointerEvent, type ReactNode, useMemo, useState } from 'react'
+import {
+	type MouseEvent,
+	type PointerEvent,
+	type ReactNode,
+	useCallback,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import { TooltipContent } from '../../../components/tooltip'
 import { TooltipContext } from '../../../components/tooltip/context'
 import { cn, createContext } from '../../../core'
-import { usePlotFrame } from '../../../hooks'
+import { usePlotFrame, useResizeObserver } from '../../../hooks'
 import { k } from '../../../recipes/kata/chart'
 import { binIndex, type ColorBin, resolveColorBins, valueExtent } from '../../../utilities'
 import { RangeArrow, RangeLegend } from '../../map'
@@ -25,9 +33,15 @@ import {
 	TICK_CHAR_WIDTH,
 } from '../chart-constants'
 import { chartFrameSizing, type PlotRect, plotRect, thinned } from '../chart-layout'
+import type { ChartOrientation } from '../chart-orientation'
 import { ChartPlotBox } from '../chart-plot-box'
+import { resolveRangeLegend } from '../chart-range-legend'
 import { bandScale } from '../chart-scale'
-import { type ChartTooltipTrigger, resolveTooltip } from '../chart-schema'
+import {
+	type ChartLegendPlacement,
+	type ChartTooltipTrigger,
+	resolveTooltip,
+} from '../chart-schema'
 import { formatChartValue, READOUT_GAP } from '../chart-series'
 import { ChartTable } from '../chart-table'
 import type { ChartReadout } from '../types'
@@ -170,10 +184,13 @@ function HeatmapRangeArrow({
 	values,
 	domain,
 	bins,
+	orientation,
 }: {
 	values: (number | null)[][]
 	domain: [number, number] | null
 	bins: number
+	/** Which way the host bar runs, so the glyph pins to its matching edge. */
+	orientation: ChartOrientation
 }) {
 	const { cell } = useHeatmapHover()
 
@@ -187,7 +204,7 @@ function HeatmapRangeArrow({
 
 	if (bin === null) return null
 
-	return <RangeArrow bin={bin} bins={bins} slot="heatmap-range" />
+	return <RangeArrow bin={bin} bins={bins} slot="heatmap-range" orientation={orientation} />
 }
 
 /** Props for {@link HeatmapRangeLegend}: the scale the shared bar paints and the values its arrow reads. @internal */
@@ -198,13 +215,17 @@ type HeatmapRangeLegendProps = {
 	label?: string
 	bins: number
 	values: (number | null)[][]
+	/** Which way the bar runs — vertical beside the plot, horizontal above or below it. */
+	orientation: ChartOrientation
 }
 
 /**
  * The heatmap's range legend: the shared {@link RangeLegend} scale-bar slider,
  * wired to the grid — its arrow tracks the pointed cell's bin, and probing the
  * bar emphasises that class's cells through the focus context, dimming the rest.
- * The `heatmap-range` slot keeps the heatmap's part names.
+ * The `heatmap-range` slot keeps the heatmap's part names. `orientation` follows
+ * the bar's resolved placement — vertical beside the plot, horizontal above or
+ * below — so the arrow and slider transpose together.
  *
  * @internal
  */
@@ -215,6 +236,7 @@ function HeatmapRangeLegend({
 	label,
 	bins,
 	values,
+	orientation,
 }: HeatmapRangeLegendProps) {
 	const { set } = useHeatmapFocus()
 
@@ -226,8 +248,11 @@ function HeatmapRangeLegend({
 			format={format}
 			label={label}
 			bins={bins}
+			orientation={orientation}
 			onProbe={set}
-			arrow={<HeatmapRangeArrow values={values} domain={domain} bins={bins} />}
+			arrow={
+				<HeatmapRangeArrow values={values} domain={domain} bins={bins} orientation={orientation} />
+			}
 		/>
 	)
 }
@@ -598,6 +623,48 @@ function useHeatmap<T>(
 	}
 }
 
+/** Props for {@link HeatmapFigure}: the plot and the range bar arranged by placement. @internal */
+type HeatmapFigureProps = {
+	plot: ReactNode
+	/** The range bar, or a falsy node when the legend is off — placed around the plot. */
+	legend: ReactNode
+	/** Where the bar sits, resolved from the caller's `legend` and the chart's tier. */
+	placement: ChartLegendPlacement
+	/** The bar is a vertical side rail, so it bands beside the plot in a row. */
+	aside: boolean
+}
+
+/**
+ * The plot and the range bar arranged by placement: a side (vertical) rail bands
+ * beside the plot in a row — a left rail reversing it rather than moving in the
+ * DOM — a stacked (horizontal) bar bands above or below. Kept off
+ * {@link HeatmapChart} so its render stays a thin assembly of parts, the way the
+ * map frame keeps its own layout.
+ *
+ * @internal
+ */
+function HeatmapFigure({ plot, legend, placement, aside }: HeatmapFigureProps) {
+	if (aside) {
+		return (
+			<div className={cn('flex items-center gap-4', placement === 'left' && 'flex-row-reverse')}>
+				{plot}
+
+				{legend}
+			</div>
+		)
+	}
+
+	return (
+		<div className="flex flex-col gap-3">
+			{placement === 'top' && legend}
+
+			{plot}
+
+			{placement === 'bottom' && legend}
+		</div>
+	)
+}
+
 /**
  * A heatmap: a grid of cells across two categorical axes, each shaded by a
  * numeric value along a sequential colour scale. The two-categorical member of
@@ -664,7 +731,34 @@ export function HeatmapChart<T>({
 		format,
 	} = useHeatmap(data, primary, width, height, aspectRatio, formatValue)
 
-	const showLegend = (legend ?? true) !== false && domain !== null && bins.length > 0
+	// The bar's placement, orientation, and visibility follow the caller's
+	// `legend` prop and the chart's own tier. Measured off the container, not the
+	// plot: a side bar shrinks the plot, so keying the move to the plot's width
+	// would feed it back on itself and oscillate. A fixed `width` reads
+	// deterministically (SSR, tests); otherwise the observer tracks the container.
+	const containerRef = useRef<HTMLDivElement>(null)
+
+	const [measuredWidth, setMeasuredWidth] = useState(0)
+
+	const measureContainer = useCallback(() => {
+		const el = containerRef.current
+
+		if (!el) return
+
+		const next = Math.round(el.clientWidth)
+
+		setMeasuredWidth((prev) => (prev === next ? prev : next))
+	}, [])
+
+	useResizeObserver(containerRef, measureContainer)
+
+	const containerWidth = width ?? measuredWidth
+
+	const rangeLegend = resolveRangeLegend(legend, containerWidth, frameHeight)
+
+	const aside = rangeLegend.placement === 'left' || rangeLegend.placement === 'right'
+
+	const showLegend = rangeLegend.show && domain !== null && bins.length > 0
 
 	const svg = frameWidth > 0 && (
 		<svg
@@ -691,51 +785,60 @@ export function HeatmapChart<T>({
 		</svg>
 	)
 
+	const plotRegion = (
+		<div
+			ref={ref}
+			data-slot="heatmap-plot"
+			role="img"
+			{...label}
+			className={cn('relative min-w-0', aside && 'flex-1')}
+		>
+			<ChartPlotBox reserve={reserve} height={frameHeight}>
+				{svg}
+			</ChartPlotBox>
+
+			{showTooltip && readout && frameWidth > 0 && (
+				<HeatmapTooltip
+					columns={matrix.columns}
+					rows={matrix.rows}
+					values={matrix.values}
+					format={format}
+					fills={fills}
+					cols={cols}
+				/>
+			)}
+		</div>
+	)
+
+	const legendNode = showLegend && domain && (
+		<div data-slot="heatmap-legend-box" className={cn(aside ? 'shrink-0' : 'flex justify-center')}>
+			<HeatmapRangeLegend
+				colorRange={primary?.colorRange ?? []}
+				domain={domain}
+				format={format}
+				label={primary?.colorName}
+				bins={bins.length}
+				values={matrix.values}
+				orientation={rangeLegend.orientation}
+			/>
+		</div>
+	)
+
 	return (
 		<div
+			ref={containerRef}
 			data-slot="heatmap"
 			className={cn('flex flex-col gap-3', width === undefined && 'w-full max-w-2xl', className)}
 			style={width === undefined ? undefined : { width }}
 		>
 			<HeatmapHoverProvider>
 				<HeatmapFocusProvider>
-					<div className="flex items-center gap-4">
-						<div
-							ref={ref}
-							data-slot="heatmap-plot"
-							role="img"
-							{...label}
-							className="relative min-w-0 flex-1"
-						>
-							<ChartPlotBox reserve={reserve} height={frameHeight}>
-								{svg}
-							</ChartPlotBox>
-
-							{showTooltip && readout && frameWidth > 0 && (
-								<HeatmapTooltip
-									columns={matrix.columns}
-									rows={matrix.rows}
-									values={matrix.values}
-									format={format}
-									fills={fills}
-									cols={cols}
-								/>
-							)}
-						</div>
-
-						{showLegend && domain && (
-							<div data-slot="heatmap-legend-box" className="shrink-0">
-								<HeatmapRangeLegend
-									colorRange={primary?.colorRange ?? []}
-									domain={domain}
-									format={format}
-									label={primary?.colorName}
-									bins={bins.length}
-									values={matrix.values}
-								/>
-							</div>
-						)}
-					</div>
+					<HeatmapFigure
+						plot={plotRegion}
+						legend={legendNode}
+						placement={rangeLegend.placement}
+						aside={aside}
+					/>
 				</HeatmapFocusProvider>
 			</HeatmapHoverProvider>
 
