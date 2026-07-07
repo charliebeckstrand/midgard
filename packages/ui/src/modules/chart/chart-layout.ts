@@ -11,6 +11,7 @@ import {
 	AXIS_TITLE_BAND,
 	AXIS_TITLE_GAP,
 	BAND_LABEL_HEIGHT,
+	FLOOR_LABEL_PAD,
 	GUTTER_EDGE_PAD,
 	GUTTER_GAP,
 	GUTTER_MAX,
@@ -23,6 +24,7 @@ import {
 import { bandExtent, valueExtent } from './chart-orientation'
 import { type BandScale, bandScale, type LinearScale, linearScale } from './chart-scale'
 import type { ChartValueAxisSide } from './chart-schema'
+import type { ChartBandAxisMode } from './chart-tier'
 import { timeTicks } from './chart-time'
 
 /**
@@ -321,6 +323,15 @@ export type CartesianLayoutInput = {
 	 */
 	tickRotation?: boolean
 	/**
+	 * How the band axis presents at the frame's resolved tier: every fitting label
+	 * `'thinned'` (the default, today's behaviour), only the first and last as
+	 * `'ends'` in a compact frame, or `'off'` in a short one — which drops the band
+	 * row and returns it to the plot, the value gutter keeping a floor pad for its
+	 * zero label. Left unset it thins, so a caller passing no tier reads as before.
+	 * @defaultValue 'thinned'
+	 */
+	bandAxis?: ChartBandAxisMode
+	/**
 	 * Each row's instant as epoch ms, in row order (`null` where unparseable), when
 	 * the band axis is a time axis; `undefined` leaves it categorical.
 	 */
@@ -460,12 +471,38 @@ function bandTicksOf(
 }
 
 /**
- * The band axis's ticks: calendar-boundary time ticks when the input carries
- * row instants and they span an axis, else the category labels, tilted or
- * thinned. Both orientations share it — the band scale's range already faces
- * the right screen axis, so the tick positions land correctly either way;
+ * The first and last category labels only — the compact tier's band, where a
+ * full run of thinned labels would crowd a narrow plot. Each end anchors inward
+ * (`'start'` first, `'end'` last) from its band center, so it reads away from the
+ * frame edge and clears it without a width estimate; the vertical x-axis honours
+ * the anchor while the horizontal y-axis right-aligns its gutter labels and
+ * ignores it. A single category reads as one centered label; an empty axis none.
+ *
+ * @internal
+ */
+function endBandTicks(categories: string[], band: BandScale): ChartAxisTick[] {
+	const last = categories.length - 1
+
+	if (last < 0) return []
+
+	if (last === 0) return [{ at: band.center(0), label: categories[0] ?? '', key: 0 }]
+
+	return [
+		{ at: band.center(0), label: categories[0] ?? '', key: 0, anchor: 'start' },
+		{ at: band.center(last), label: categories[last] ?? '', key: last, anchor: 'end' },
+	]
+}
+
+/**
+ * The band axis's ticks at its resolved `mode`: none when `'off'`, only the
+ * first and last labels when `'ends'`, else calendar-boundary time ticks (when
+ * the input carries row instants that span an axis) or the category labels,
+ * tilted or thinned. Both orientations share it — the band scale's range already
+ * faces the right screen axis, so the tick positions land correctly either way;
  * `tilt` only ever arrives set from the vertical layout, since a horizontal
- * chart's category labels already run down the gutter and read straight.
+ * chart's category labels already run down the gutter and read straight. A time
+ * axis keeps its calendar ticks over `'ends'`, since its own tick target already
+ * thins them to a few in a small frame.
  *
  * @internal
  */
@@ -474,8 +511,11 @@ function bandAxisTicks(
 	band: BandScale,
 	axisLength: number,
 	slot: number,
+	mode: ChartBandAxisMode,
 	tilt = false,
 ): ChartAxisTick[] {
+	if (mode === 'off') return []
+
 	if (input.times) {
 		const ticks = timeTicks({
 			times: input.times,
@@ -486,6 +526,8 @@ function bandAxisTicks(
 
 		if (ticks) return ticks
 	}
+
+	if (mode === 'ends') return endBandTicks(input.categories, band)
 
 	return bandTicksOf(input.categories, band, axisLength, slot, tilt)
 }
@@ -607,7 +649,14 @@ function verticalValueAxes(
 export function verticalLayout(input: CartesianLayoutInput): CartesianLayout {
 	const { axes, categories, count, frameHeight, frameWidth } = input
 
-	const flatHeight = axes ? X_AXIS_HEIGHT : 0
+	const bandMode = input.bandAxis ?? 'thinned'
+
+	// The band row draws when a band is asked for; dropped, it still leaves a floor
+	// pad so the value gutter's zero label clears the frame, and nothing at all
+	// without axes.
+	const drawBand = axes && bandMode !== 'off'
+
+	const flatHeight = drawBand ? X_AXIS_HEIGHT : axes ? FLOOR_LABEL_PAD : 0
 
 	const flatRange: [number, number] = [frameHeight - flatHeight, PLOT_TOP_PAD]
 
@@ -635,13 +684,18 @@ export function verticalLayout(input: CartesianLayoutInput): CartesianLayout {
 
 	const slot = longest * TICK_CHAR_WIDTH + GUTTER_GAP
 
-	// A time axis lines calendar ticks in place of the category labels tickRotation
-	// tilts, so tilting would reserve the taller band for nothing — gate it out
-	// whenever the band reads time.
+	// Tilting only applies to a drawn, thinned band: an ends band shows just two
+	// labels, which never collide, and a dropped band has nothing to tilt. A time
+	// axis lines calendar ticks in place of the labels tickRotation tilts, so
+	// tilting would reserve the taller band for nothing — gate it out there too.
 	const tilt =
-		axes && Boolean(input.tickRotation) && !input.times && willThin(count, plotWidth, slot)
+		drawBand &&
+		bandMode === 'thinned' &&
+		Boolean(input.tickRotation) &&
+		!input.times &&
+		willThin(count, plotWidth, slot)
 
-	const axisBandHeight = axes ? (tilt ? TICK_ROTATION_HEIGHT : X_AXIS_HEIGHT) : 0
+	const axisBandHeight = tilt ? TICK_ROTATION_HEIGHT : flatHeight
 
 	const { valueScale, rightScale, valueTicks, rightTicks } = tilt
 		? verticalValueAxes(input, [frameHeight - axisBandHeight, PLOT_TOP_PAD])
@@ -669,7 +723,7 @@ export function verticalLayout(input: CartesianLayoutInput): CartesianLayout {
 		rightBaseline: zeroOf(rightScale, valueScale, floor),
 		valueTicks,
 		rightTicks,
-		bandTicks: bandAxisTicks(input, band, plot.width, slot, tilt),
+		bandTicks: bandAxisTicks(input, band, plot.width, slot, bandMode, tilt),
 		bandPositions: bandCenters(band, count),
 		snapPoints: snapPointsOf(scales, count, input.visibleValues),
 		snapSeries: snapSeriesOf(scales, count, input.visibleValues),
@@ -762,6 +816,21 @@ function horizontalTitles(
 }
 
 /**
+ * The band labels the horizontal left gutter sizes to: just the first and last
+ * in an `'ends'` band (with two or more categories), else every category, so the
+ * gutter reserves only the width the drawn labels need.
+ *
+ * @internal
+ */
+function shownBandLabels(categories: string[], mode: ChartBandAxisMode): string[] {
+	if (mode === 'ends' && categories.length > 1) {
+		return [categories[0] ?? '', categories.at(-1) ?? '']
+	}
+
+	return categories
+}
+
+/**
  * The transposed layout: value on x with the scales filling the plot width,
  * categories down y. The band labels — not the value ticks — line the left
  * gutter, and they are known up front, so the plot rect resolves first and the
@@ -775,6 +844,12 @@ function horizontalTitles(
 export function horizontalLayout(input: CartesianLayoutInput): CartesianLayout {
 	const { axes, categories, count, frameHeight, frameWidth } = input
 
+	const bandMode = input.bandAxis ?? 'thinned'
+
+	// The band labels line the left gutter here; a dropped band frees it, an ends
+	// band sizes it to just the first and last label.
+	const drawBand = axes && bandMode !== 'off'
+
 	const rightProbe = probeOf(input.rightValue, input.tickTarget, input.zeroBaseline)
 
 	const bottomBand = axes ? X_AXIS_HEIGHT + (input.value?.title ? AXIS_TITLE_BAND : 0) : 0
@@ -782,7 +857,7 @@ export function horizontalLayout(input: CartesianLayoutInput): CartesianLayout {
 	const topBand =
 		axes && rightProbe ? X_AXIS_HEIGHT + (input.rightValue?.title ? AXIS_TITLE_BAND : 0) : 0
 
-	const gutter = axes ? tickGutter(categories) : 0
+	const gutter = drawBand ? tickGutter(shownBandLabels(categories, bandMode)) : 0
 
 	const plot: PlotRect = {
 		x: gutter,
@@ -819,7 +894,7 @@ export function horizontalLayout(input: CartesianLayoutInput): CartesianLayout {
 		valueTicks: valueScale && input.value ? valueTicksOf(valueScale, input.value.format) : [],
 		rightTicks:
 			rightScale && input.rightValue ? valueTicksOf(rightScale, input.rightValue.format) : [],
-		bandTicks: bandAxisTicks(input, band, plot.height, BAND_LABEL_HEIGHT),
+		bandTicks: bandAxisTicks(input, band, plot.height, BAND_LABEL_HEIGHT, bandMode),
 		bandPositions: bandCenters(band, count),
 		snapPoints: snapPointsOf(scales, count, input.visibleValues),
 		snapSeries: snapSeriesOf(scales, count, input.visibleValues),

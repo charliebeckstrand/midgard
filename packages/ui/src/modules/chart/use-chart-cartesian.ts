@@ -27,6 +27,7 @@ import type {
 import {
 	chartReadout,
 	formatChartValue,
+	formatChartValueCompact,
 	paintSlot,
 	rawColor,
 	type SeriesMeta,
@@ -34,6 +35,7 @@ import {
 	seriesValues,
 	textClass,
 } from './chart-series'
+import { type ChartTier, chartPolicy } from './chart-tier'
 import { parseInstant, timeCategory } from './chart-time'
 import type { ChartReadout } from './types'
 import { useChartSeriesToggle } from './use-chart-series-toggle'
@@ -89,6 +91,18 @@ export type CartesianChart = {
 	 * ratio itself or none is reserved.
 	 */
 	outerAspect: number | null
+	/**
+	 * The resolved anatomy tier for the measured plot box — the `data-tier` styling
+	 * hook a dashboard tile reads, and the summary behind the axis / band / format
+	 * budgets already folded into the layout below.
+	 */
+	tier: ChartTier
+	/**
+	 * Whether the axis chrome draws: the caller's `axes` intent, stood down at the
+	 * spark tier so a bare sparkline shows its marks alone. The value gutter, band
+	 * labels, and titles all gate on it downstream.
+	 */
+	axes: boolean
 	plot: PlotRect
 	band: BandScale
 	/** The primary (left) value scale; `null` when nothing yields its domain — render the empty frame. */
@@ -247,11 +261,40 @@ type ResolvedValueAxes = {
 	formatAxisValue: (value: number, axis: ChartValueAxisSide) => string
 }
 
+/** One axis's tick and readout formatters. @internal */
+type AxisFormatters = {
+	/** The value gutter's labels — the compact default in a narrow frame. */
+	tick: (value: number) => string
+	/** The tooltip, hidden table, and reference rules — always full precision. */
+	readout: (value: number) => string
+}
+
 /**
- * Resolves both value axes from the props: each side's domain candidates and
- * pins — `leftAxis` winning over the top-level `min` / `max`, its `format` over
- * `formatValue` — and one axis-keyed formatter the readout, labels, and
- * reference rules share.
+ * One axis's tick and readout formatters: an explicit per-axis or chart
+ * `format` wins for both; absent, the tick labels take `tickDefault` (compact in
+ * a narrow frame) while the readout keeps {@link formatChartValue}'s full
+ * precision.
+ *
+ * @internal
+ */
+function axisFormatters(
+	explicit: ((value: number) => string) | undefined,
+	tickDefault: (value: number) => string,
+): AxisFormatters {
+	return { tick: explicit ?? tickDefault, readout: explicit ?? formatChartValue }
+}
+
+/**
+ * Resolves both value axes from the props and the frame's tier budget: each
+ * side's domain candidates and pins — `leftAxis` winning over the top-level
+ * `min` / `max`, its `format` over `formatValue` — its tick and readout
+ * formatters, and its title. Two formatters per side, not one: the tick labels
+ * take the compact default in a narrow frame (`compactFormat`) while the readout
+ * — tooltip, hidden table, reference rules — always reads full precision, so a
+ * gutter stays cheap without coarsening the numbers a reader opens the tooltip
+ * for; an explicit `format` / `formatValue` overrides both. Titles resolve only
+ * when the tier affords them (`axisTitles`), so a narrow frame reserves no title
+ * band.
  *
  * @internal
  */
@@ -260,12 +303,16 @@ function resolveValueAxes<T>(
 	visible: SeriesMeta[],
 	stack: boolean,
 	data: T[],
+	compactFormat: boolean,
+	axisTitles: boolean,
 ): ResolvedValueAxes {
-	const format = props.formatValue ?? formatChartValue
+	// The tick labels take the compact default in a narrow frame; the readout keeps
+	// full precision. An explicit per-axis or chart formatter wins for both.
+	const tickDefault = compactFormat ? formatChartValueCompact : formatChartValue
 
-	const leftFormat = props.leftAxis?.format ?? format
+	const left = axisFormatters(props.leftAxis?.format ?? props.formatValue, tickDefault)
 
-	const rightFormat = props.rightAxis?.format ?? format
+	const right = axisFormatters(props.rightAxis?.format ?? props.formatValue, tickDefault)
 
 	const leftDomainValues = domainValuesFor({
 		side: 'left',
@@ -310,8 +357,8 @@ function resolveValueAxes<T>(
 					domainValues: leftDomainValues,
 					min: props.leftAxis?.min ?? props.min,
 					max: props.leftAxis?.max ?? props.max,
-					format: leftFormat,
-					title: props.leftAxis?.title,
+					format: left.tick,
+					title: axisTitles ? props.leftAxis?.title : undefined,
 				}
 			: undefined,
 		rightValue: hasRightAxis
@@ -319,22 +366,31 @@ function resolveValueAxes<T>(
 					domainValues: rightDomainValues,
 					min: props.rightAxis?.min,
 					max: props.rightAxis?.max,
-					format: rightFormat,
-					title: props.rightAxis?.title,
+					format: right.tick,
+					title: axisTitles ? props.rightAxis?.title : undefined,
 				}
 			: undefined,
-		formatAxisValue: (value, side) => (side === 'right' ? rightFormat(value) : leftFormat(value)),
+		formatAxisValue: (value, side) =>
+			side === 'right' ? right.readout(value) : left.readout(value),
 	}
 }
 
 /**
  * The gridline positions along the value axis: each side contributes its ticks
  * while its gridLines flag holds — left on by default, right standing in only
- * when no left scale resolves — so one hairline layer serves both axes.
+ * when no left scale resolves — so one hairline layer serves both axes. The tier
+ * `gridLines` gate stands the whole layer down at spark, where the value ticks
+ * are already gone.
  *
  * @internal
  */
-function gridPositionsOf<T>(props: CartesianData<T>, layout: CartesianLayout): number[] {
+function gridPositionsOf<T>(
+	props: CartesianData<T>,
+	layout: CartesianLayout,
+	gridLines: boolean,
+): number[] {
+	if (!gridLines) return []
+
 	const leftGrid = (props.leftAxis?.gridLines ?? true) && layout.valueScale !== null
 
 	const rightGrid =
@@ -525,6 +581,16 @@ export function useChartCartesian<T>(
 
 	const { ref, width: frameWidth, height: frameHeight, reserve } = usePlotFrame(width, sizing)
 
+	// The measured plot box resolves the anatomy tier: the value gutter's compact
+	// format and the band-label density from width, the tick count from height,
+	// density still capping the ticks. Its budgets fold into the layout below.
+	const policy = chartPolicy(frameWidth, frameHeight, metrics.tickTarget)
+
+	// Spark stands the axis chrome down to a bare sparkline; every wider tier keeps
+	// the caller's `axes` intent. The value gutter, band labels, and titles all
+	// gate on this downstream.
+	const drawAxes = axes && policy.tier !== 'spark'
+
 	const { hidden, toggle, setFocus, emphasis } = useChartSeriesToggle()
 
 	const stack = config.stack ?? false
@@ -535,7 +601,14 @@ export function useChartCartesian<T>(
 	// because each meta's paint keyed off its original index.
 	const visible = metas.filter((meta) => !hidden.has(meta.index))
 
-	const { leftValue, rightValue, formatAxisValue } = resolveValueAxes(props, visible, stack, data)
+	const { leftValue, rightValue, formatAxisValue } = resolveValueAxes(
+		props,
+		visible,
+		stack,
+		data,
+		policy.compactFormat,
+		policy.axisTitles,
+	)
 
 	const categories = xKey ? data.map((datum) => String(datum[xKey])) : []
 
@@ -544,12 +617,13 @@ export function useChartCartesian<T>(
 	)({
 		frameWidth,
 		frameHeight,
-		axes,
-		tickTarget: metrics.tickTarget,
+		axes: drawAxes,
+		tickTarget: policy.tickTarget,
 		zeroBaseline: config.zeroBaseline,
 		value: leftValue,
 		rightValue,
 		categories,
+		bandAxis: policy.bandAxis,
 		tickRotation: props.tickRotation,
 		times,
 		count: data.length,
@@ -585,6 +659,8 @@ export function useChartCartesian<T>(
 		reserve,
 		fill: sizing.mode === 'fill' || sizing.mode === 'aspect-fill',
 		outerAspect,
+		tier: policy.tier,
+		axes: drawAxes,
 		plot: layout.plot,
 		band: layout.band,
 		yScale: layout.valueScale,
@@ -607,7 +683,7 @@ export function useChartCartesian<T>(
 		snapPoints: layout.snapPoints,
 		snapSeries: layout.snapSeries,
 		referencePositions,
-		gridPositions: gridPositionsOf(props, layout),
+		gridPositions: gridPositionsOf(props, layout, policy.gridLines),
 		axisTitles: layout.titles,
 		formatAxisValue,
 		orientation,

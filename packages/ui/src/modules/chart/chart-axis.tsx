@@ -20,6 +20,15 @@ export type ChartAxisTick = {
 	key: string | number
 	/** Degrees the label tilts about `at`; unset draws it flat. Category ticks only. */
 	rotate?: number
+	/**
+	 * Horizontal text anchor along a band (x) axis, overriding the centered
+	 * default: a band's end labels anchor `'start'` (first) and `'end'` (last) so
+	 * they read inward from their position and clear the frame edge without a
+	 * width estimate — the compact tier's first-and-last band labels. Ignored on a
+	 * value (y) axis, whose gutter labels always right- (or left-) align, and
+	 * where a `rotate` is set, which anchors its own way.
+	 */
+	anchor?: 'start' | 'middle' | 'end'
 }
 
 /** Props for {@link ChartAxis}. @internal */
@@ -126,7 +135,7 @@ export function ChartAxis({ axis, plot, ticks, position, baseline, line = true }
 						key={tick.key}
 						x={tick.at}
 						y={y}
-						textAnchor={tick.rotate ? 'end' : 'middle'}
+						textAnchor={tick.rotate ? 'end' : (tick.anchor ?? 'middle')}
 						dominantBaseline={tick.rotate ? 'middle' : top ? 'auto' : 'hanging'}
 						transform={tick.rotate ? `rotate(${tick.rotate} ${tick.at} ${y})` : undefined}
 						className={cn(k.tick)}

@@ -203,6 +203,7 @@ export function BarChart<T>({
 			reserve={chart.reserve}
 			fill={chart.fill}
 			aspect={chart.outerAspect ?? undefined}
+			tier={chart.tier}
 			legend={
 				chart.legendItems && (
 					<ChartLegend
@@ -245,7 +246,7 @@ export function BarChart<T>({
 				categoryTicks={chart.xTicks}
 				hasData={data.length > 0}
 				baseline={chart.baseline}
-				axes={axes}
+				axes={chart.axes}
 				gridLines={gridLines}
 				gridPositions={chart.gridPositions}
 				titles={chart.axisTitles}

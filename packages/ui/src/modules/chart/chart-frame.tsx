@@ -10,6 +10,7 @@ import { ChartPlotBox } from './chart-plot-box'
 import type { ChartLegendPlacement } from './chart-schema'
 import type { ChartSnap } from './chart-snap'
 import { ChartTable } from './chart-table'
+import type { ChartTier } from './chart-tier'
 import { ChartTooltip } from './chart-tooltip'
 import {
 	type ChartEmphasis,
@@ -90,6 +91,12 @@ export type ChartFrameProps = AccessibleName & {
 	 * plot box reserves its own (no legend) or the frame is fixed / free-form.
 	 */
 	aspect?: number
+	/**
+	 * The resolved anatomy tier, published on the root as `data-tier` so a
+	 * dashboard tile can co-style its own chrome with the chart's resolution.
+	 * Omitted, no attribute renders.
+	 */
+	tier?: ChartTier
 	/** The prepared legend row, or `null` to omit it (single series). */
 	legend: ReactNode
 	/**
@@ -156,6 +163,7 @@ export function ChartFrame({
 	reserve,
 	fill = false,
 	aspect,
+	tier,
 	legend,
 	legendPlacement = 'bottom',
 	readout,
@@ -269,14 +277,16 @@ export function ChartFrame({
 	return (
 		<div
 			data-slot="chart"
+			data-tier={tier}
 			className={cn(
 				// A query container so the legend lays out against the chart's own width,
 				// not the viewport — a chart in a narrow column stacks its legend even on
-				// a wide screen. `w-full` fills the container up to a natural default cap
-				// (overridable through `className`, which twMerge lets win) so a bare chart
-				// reads well on a wide screen instead of stretching edge to edge.
+				// a wide screen. `w-full` fills whatever box it is handed: the anatomy
+				// resolves from that box (the intrinsic tiers), so a chart reads at any
+				// width without a max-width cap. A `className` still overrides through
+				// twMerge for a caller that wants to bound it.
 				'@container flex flex-col gap-3',
-				fixedWidth === undefined && 'w-full max-w-2xl',
+				fixedWidth === undefined && 'w-full',
 				containerFill && 'h-full',
 				className,
 			)}

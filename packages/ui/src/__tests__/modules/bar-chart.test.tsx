@@ -6,6 +6,7 @@ import {
 	stackedBarSnapPoints,
 	stackedBarSnapSeries,
 } from '../../modules/chart/bar-chart/bar-chart-geometry'
+import { TICK_CHAR_WIDTH } from '../../modules/chart/chart-constants'
 import { bandScale } from '../../modules/chart/chart-scale'
 import { act, allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
 
@@ -545,11 +546,35 @@ describe('BarChart tickRotation', () => {
 				aria-label="Monthly totals"
 				data={LONG_CATEGORIES.map((month, index) => ({ month, total: (index + 1) * 10 }))}
 				series={[{ xKey: 'month', yKey: 'total', yName: 'Total' }]}
-				width={260}
+				// Standard width, where the band thins its labels (and tickRotation can
+				// tilt them instead); a compact frame would show only its ends.
+				width={420}
 				{...extra}
 			/>,
 		)
 	}
+
+	it('shows only the first and last label in a compact frame, whatever the rotation', () => {
+		// Below the compact width the band drops to its ends — a more aggressive
+		// reduction than thinning that tickRotation does not override, since the
+		// tier already spent the room a tilted run would need.
+		const { container } = longChart({ width: 300, tickRotation: true })
+
+		const ticks = [...(bySlot(container, 'chart-axis-x')?.querySelectorAll('text') ?? [])]
+
+		expect(ticks).toHaveLength(2)
+
+		expect(ticks[0]?.textContent).toBe('January Sales')
+
+		expect(ticks[1]?.textContent).toBe('June Sales')
+
+		// The ends read flat and anchor inward, never tilted.
+		expect(ticks.every((tick) => tick.getAttribute('transform') === null)).toBe(true)
+
+		expect(ticks[0]?.getAttribute('text-anchor')).toBe('start')
+
+		expect(ticks[1]?.getAttribute('text-anchor')).toBe('end')
+	})
 
 	it('thins long labels by default instead of tilting them', () => {
 		const { container } = longChart()
@@ -649,7 +674,7 @@ describe('BarChart horizontal', () => {
 		for (const label of labels) {
 			const x = Number(label.getAttribute('x'))
 
-			const half = ((label.textContent?.length ?? 0) * 7.2) / 2
+			const half = ((label.textContent?.length ?? 0) * TICK_CHAR_WIDTH) / 2
 
 			expect(x - half).toBeGreaterThanOrEqual(0)
 

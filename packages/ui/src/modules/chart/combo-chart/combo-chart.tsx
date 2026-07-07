@@ -285,6 +285,7 @@ export function ComboChart<T>({
 			reserve={chart.reserve}
 			fill={chart.fill}
 			aspect={chart.outerAspect ?? undefined}
+			tier={chart.tier}
 			legend={
 				chart.legendItems && (
 					<ChartLegend
@@ -320,17 +321,17 @@ export function ComboChart<T>({
 				<ChartGridLines plot={chart.plot} ticks={chart.gridPositions} />
 			)}
 
-			{axes && chart.yScale && <ChartAxis axis="y" plot={chart.plot} ticks={chart.yTicks} />}
+			{chart.axes && chart.yScale && <ChartAxis axis="y" plot={chart.plot} ticks={chart.yTicks} />}
 
-			{axes && chart.rightScale && (
+			{chart.axes && chart.rightScale && (
 				<ChartAxis axis="y" position="right" plot={chart.plot} ticks={chart.rightTicks} />
 			)}
 
-			{axes && data.length > 0 && (
+			{chart.axes && data.length > 0 && (
 				<ChartAxis axis="x" plot={chart.plot} ticks={chart.xTicks} baseline={chart.baseline} />
 			)}
 
-			{axes && <ChartAxisTitles titles={chart.axisTitles} />}
+			{chart.axes && <ChartAxisTitles titles={chart.axisTitles} />}
 
 			{rails && (
 				<ChartCrosshair
