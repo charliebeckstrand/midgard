@@ -55,6 +55,12 @@ export type ChartReferenceLinesProps = {
 	 * @defaultValue false
 	 */
 	labels?: boolean
+	/**
+	 * Reference indexes toggled off through their legend chips — their rules draw
+	 * nothing, holding their slot so a shown rule still keys its emphasis off its
+	 * own `reference` index. Empty by default.
+	 */
+	hidden?: ReadonlySet<number>
 }
 
 /** Props for {@link ReferenceRule}. @internal */
@@ -354,6 +360,7 @@ export function ChartReferenceLines({
 	format,
 	animate = false,
 	labels = false,
+	hidden,
 }: ChartReferenceLinesProps) {
 	if ((!scale && !rightScale) || !reference || reference.length === 0) return null
 
@@ -377,7 +384,9 @@ export function ChartReferenceLines({
 
 				const ruleScale = axis === 'right' ? rightScale : scale
 
-				if (!ruleScale || !Number.isFinite(line.value)) return null
+				// A rule toggled off through its chip draws nothing but keeps its slot, so
+				// a shown rule's emphasis still keys off its own `reference` index.
+				if (!ruleScale || !Number.isFinite(line.value) || hidden?.has(index)) return null
 
 				const at = ruleScale.map(line.value)
 
@@ -406,18 +415,26 @@ export function ChartReferenceLines({
 export type ChartReferenceListProps = {
 	reference: ChartReferenceLine[] | undefined
 	format?: ReferenceFormat
+	/**
+	 * Reference indexes toggled off through their legend chips — dropped from the
+	 * parity so it reads the rules the plot still draws, the way the data table
+	 * follows the visible series. Empty by default.
+	 */
+	hidden?: ReadonlySet<number>
 }
 
 /**
  * The reference lines' visually-hidden parity: each rule's label and value in
  * plain markup outside the `role="img"` region, so assistive tech reads them
  * without the pointer — the hover tooltip stays an enhancement, the same
- * contract as the data table.
+ * contract as the data table. A rule toggled off through its chip drops out, so
+ * the parity tracks what the plot draws.
  *
  * @internal
  */
-export function ChartReferenceList({ reference, format }: ChartReferenceListProps) {
-	const lines = reference?.filter((line) => Number.isFinite(line.value)) ?? []
+export function ChartReferenceList({ reference, format, hidden }: ChartReferenceListProps) {
+	const lines =
+		reference?.filter((line, index) => Number.isFinite(line.value) && !hidden?.has(index)) ?? []
 
 	if (lines.length === 0) return null
 
@@ -441,9 +458,9 @@ export function ChartReferenceList({ reference, format }: ChartReferenceListProp
  * value, unlabelled — keyed to a line swatch in the rule's colour, a palette
  * slot through its `text` class or a raw colour inline, and dashed to match the
  * rule unless it is drawn solid — all resolved the same way the rule itself
- * paints. The chart legend renders these as static identity chips beside the
- * series switches when it shows; {@link ChartReferenceList} still carries the
- * assistive-tech parity.
+ * paints. The chart legend renders these as switches beside the series switches
+ * when it shows, each toggling its rule off; {@link ChartReferenceList} still
+ * carries the assistive-tech parity.
  *
  * @internal
  */

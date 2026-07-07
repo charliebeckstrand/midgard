@@ -36,7 +36,7 @@ import {
 } from './chart-series'
 import { parseInstant, timeCategory } from './chart-time'
 import type { ChartReadout } from './types'
-import { useChartSeriesToggle } from './use-chart-series-toggle'
+import { useChartReferenceToggle, useChartSeriesToggle } from './use-chart-series-toggle'
 
 /** The cartesian props minus the accessible name, which stays with the frame. @internal */
 export type CartesianData<T> = Omit<CartesianChartProps<T>, 'aria-label' | 'aria-labelledby'>
@@ -121,6 +121,10 @@ export type CartesianChart = {
 	legendItems: ChartLegendItem[] | null
 	/** The reference lines' legend chips, when the legend shows; empty otherwise. */
 	referenceItems: ChartLegendReference[]
+	/** Reference indexes toggled off — their rules are pulled and their chips struck through. */
+	referenceHidden: ReadonlySet<number>
+	/** Toggles a reference rule on or off by its index in the `reference` array. */
+	toggleReference: (index: number) => void
 	/** Per category, the band-axis center — a crosshair and tooltip band snap. */
 	bandPositions: number[]
 	/** Per category, the visible series' value-axis positions — a value crosshair's snap targets. */
@@ -156,20 +160,21 @@ export type CartesianChart = {
 /**
  * Each reference line's value-axis position, projected through its own axis's
  * scale and index-aligned to the prop so a keyboard stop maps back to the rule
- * {@link ChartReferenceLines} draws for it. A non-finite value — or an axis with
- * no resolved scale — holds its slot with `null`, drawing no rule and offering
- * no stop.
+ * {@link ChartReferenceLines} draws for it. A non-finite value, an axis with no
+ * resolved scale, or a rule toggled off through its legend chip holds its slot
+ * with `null`, drawing no rule and offering no stop.
  *
  * @internal
  */
 function referencePositionsOf(
 	reference: ChartReferenceLine[] | undefined,
 	scales: Record<ChartValueAxisSide, LinearScale | null>,
+	hidden: ReadonlySet<number>,
 ): (number | null)[] {
-	return (reference ?? []).map((line) => {
+	return (reference ?? []).map((line, index) => {
 		const scale = scales[line.axis ?? 'left']
 
-		return scale && Number.isFinite(line.value) ? scale.map(line.value) : null
+		return scale && Number.isFinite(line.value) && !hidden.has(index) ? scale.map(line.value) : null
 	})
 }
 
@@ -211,6 +216,8 @@ function seriesMetas<T>(
  * One axis's domain candidates: its visible series' values — the per-category
  * stack sums where stacked — plus the reference values bound to it, folded in
  * the way min / max pins are so an off-data target line stays inside the frame.
+ * A reference toggled off through its chip drops out with the series switched
+ * off beside it, so the axis rescales to what is still drawn.
  *
  * @internal
  */
@@ -220,8 +227,9 @@ function domainValuesFor<T>(args: {
 	stack: boolean
 	data: T[]
 	reference: ChartReferenceLine[] | undefined
+	referenceHidden: ReadonlySet<number>
 }): number[] {
-	const { side, visible, stack, data, reference } = args
+	const { side, visible, stack, data, reference, referenceHidden } = args
 
 	const sided = visible.filter((meta) => meta.axis === side)
 
@@ -234,8 +242,9 @@ function domainValuesFor<T>(args: {
 		: sided.flatMap((meta) => meta.values.filter((value): value is number => value !== null))
 
 	const referenceValues = (reference ?? [])
-		.filter((line) => (line.axis ?? 'left') === side)
-		.map((line) => line.value)
+		.map((line, index) => ({ line, index }))
+		.filter(({ line, index }) => (line.axis ?? 'left') === side && !referenceHidden.has(index))
+		.map(({ line }) => line.value)
 
 	return values.concat(referenceValues)
 }
@@ -260,6 +269,7 @@ function resolveValueAxes<T>(
 	visible: SeriesMeta[],
 	stack: boolean,
 	data: T[],
+	referenceHidden: ReadonlySet<number>,
 ): ResolvedValueAxes {
 	const format = props.formatValue ?? formatChartValue
 
@@ -273,6 +283,7 @@ function resolveValueAxes<T>(
 		stack,
 		data,
 		reference: props.reference,
+		referenceHidden,
 	})
 
 	const rightDomainValues = domainValuesFor({
@@ -281,6 +292,7 @@ function resolveValueAxes<T>(
 		stack,
 		data,
 		reference: props.reference,
+		referenceHidden,
 	})
 
 	// The right axis exists only while something binds to it — a visible
@@ -527,6 +539,8 @@ export function useChartCartesian<T>(
 
 	const { hidden, toggle, setFocus, emphasis } = useChartSeriesToggle()
 
+	const { hidden: referenceHidden, toggle: toggleReference } = useChartReferenceToggle()
+
 	const stack = config.stack ?? false
 
 	const metas = seriesMetas(data, series, config.swatch, stack)
@@ -535,7 +549,13 @@ export function useChartCartesian<T>(
 	// because each meta's paint keyed off its original index.
 	const visible = metas.filter((meta) => !hidden.has(meta.index))
 
-	const { leftValue, rightValue, formatAxisValue } = resolveValueAxes(props, visible, stack, data)
+	const { leftValue, rightValue, formatAxisValue } = resolveValueAxes(
+		props,
+		visible,
+		stack,
+		data,
+		referenceHidden,
+	)
 
 	const categories = xKey ? data.map((datum) => String(datum[xKey])) : []
 
@@ -566,11 +586,16 @@ export function useChartCartesian<T>(
 			: null
 
 	// Reference lines map onto their own axis's scale the way the rules do, kept
-	// aligned to the prop so the keyboard's active-rule index names the rule it draws.
-	const referencePositions = referencePositionsOf(props.reference, {
-		left: layout.valueScale,
-		right: layout.rightScale,
-	})
+	// aligned to the prop so the keyboard's active-rule index names the rule it
+	// draws; a rule toggled off through its chip drops its stop with its rule.
+	const referencePositions = referencePositionsOf(
+		props.reference,
+		{
+			left: layout.valueScale,
+			right: layout.rightScale,
+		},
+		referenceHidden,
+	)
 
 	// Reference chips resolve regardless; the frame mounts the legend — and with
 	// it these — only when `legendItems` is non-null, so they join a shown legend
@@ -603,6 +628,8 @@ export function useChartCartesian<T>(
 		readout,
 		legendItems: legendItemsOf(metas, legend, config.legendByValue),
 		referenceItems,
+		referenceHidden,
+		toggleReference,
 		bandPositions: layout.bandPositions,
 		snapPoints: layout.snapPoints,
 		snapSeries: layout.snapSeries,

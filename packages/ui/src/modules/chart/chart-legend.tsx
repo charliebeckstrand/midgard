@@ -17,6 +17,9 @@ import { useChartEmphasis } from './context'
 /** Entries per page once a side panel's switches would clip vertically. @internal */
 const PAGE_SIZE = 5
 
+/** The stable empty set a legend without a reference toggle reads for its off chips. @internal */
+const EMPTY_HIDDEN: ReadonlySet<number> = new Set()
+
 /** Props for {@link ChartLegendEntry}. @internal */
 type ChartLegendEntryProps = {
 	item: ChartLegendItem
@@ -166,12 +169,13 @@ export type ChartLegendItem = {
 }
 
 /**
- * One legend entry for a reference line — an emphasis chip, not a series switch:
- * the rule's label (or its value, unlabelled) keyed to a line swatch in the
- * rule's colour. It carries no per-line toggle — a rule has no on/off — but
- * pointing or keyboard-focusing it recedes the marks to the rule, the same
- * emphasis as pointing the rule itself; {@link ChartReferenceList} still carries
- * the value parity beside the data table.
+ * One legend entry for a reference line — a switch keyed to the rule the way a
+ * series entry keys to its marks: the rule's label (or its value, unlabelled)
+ * beside a line swatch in the rule's colour. Clicking it toggles the rule off,
+ * pulling it from the plot, the domain, and the keyboard roving; pointing or
+ * keyboard-focusing a still-shown chip recedes the marks to its rule, the same
+ * emphasis as pointing the rule itself. {@link ChartReferenceList} carries the
+ * value parity beside the data table.
  *
  * @internal
  */
@@ -199,14 +203,21 @@ export type ChartLegendReference = {
 export type ChartLegendProps = {
 	items: ChartLegendItem[]
 	/**
-	 * The reference-line entries, drawn after the series switches as static
-	 * identity chips. Empty — the default — draws none.
+	 * The reference-line entries, drawn after the series switches as their own
+	 * switches. Empty — the default — draws none.
 	 */
 	references?: ChartLegendReference[]
 	/** Item indexes toggled off; their marks are hidden and their text struck through. */
 	hidden: ReadonlySet<number>
+	/**
+	 * Reference indexes toggled off — struck through the way a hidden series
+	 * entry is, and gated so an off chip's hover recedes nothing. Empty by default.
+	 */
+	referenceHidden?: ReadonlySet<number>
 	/** Toggles an item's series on or off. */
 	onToggle: (index: number) => void
+	/** Toggles a reference rule on or off by its index; omitted, the chips are static. */
+	onToggleReference?: (index: number) => void
 	/** Emphasises an item's series (`null` clears); other marks dim while set. */
 	onFocus: (index: number | null) => void
 	/**
@@ -239,9 +250,10 @@ export type ChartLegendProps = {
  * keyboard focus rather than clearing. That focus side rides `:focus-visible`,
  * the same gate as the ring, so a pointer click's lingering focus — or the
  * focus a backgrounded tab re-fires on return — dims nothing without a visible
- * ring to explain it. Reference lines follow the entries as emphasis chips —
- * a rule has no toggle, so pointing or focusing one recedes the marks to it (the
- * whole-marks equivalent of a series entry's dim) rather than switching anything;
+ * ring to explain it. Reference lines follow the entries as their own switches:
+ * clicking one toggles its rule off, and pointing or focusing a still-shown chip
+ * recedes the marks to its rule (the whole-marks equivalent of a series entry's
+ * dim); an off chip's hover recedes nothing, since its rule is gone.
  * {@link ChartReferenceList} still carries the value parity. A panel past five
  * switches pages instead of clipping: the visible page still renders in `items`
  * order, so the roving and emphasis wiring key off its position there rather than
@@ -252,7 +264,9 @@ export function ChartLegend({
 	items,
 	references = [],
 	hidden,
+	referenceHidden = EMPTY_HIDDEN,
 	onToggle,
+	onToggleReference,
 	onFocus,
 	panel = false,
 	texture = false,
@@ -323,7 +337,8 @@ export function ChartLegend({
 	// (`:focus-visible`, the ring's gate) does, so a click's ring-less focus — or a
 	// backgrounded tab's refired focus — recedes nothing without a ring to explain
 	// it. Chips render in `references` order, so a focused chip's position names its
-	// entry, which carries the rule index the emphasis keys off.
+	// entry, which carries the rule index the emphasis keys off. An off chip names a
+	// pulled rule, so it holds focus after a keyboard toggle but recedes nothing.
 	const syncReference = () => {
 		if (referencePointed.current !== null) {
 			setReferenceActive(referencePointed.current)
@@ -339,7 +354,11 @@ export function ChartLegend({
 			? Array.from(chips).findIndex((chip) => chip.matches(':focus-visible'))
 			: -1
 
-		setReferenceActive(position === -1 ? null : (references[position]?.index ?? null))
+		const focusedIndex = position === -1 ? null : (references[position]?.index ?? null)
+
+		setReferenceActive(
+			focusedIndex !== null && !referenceHidden.has(focusedIndex) ? focusedIndex : null,
+		)
 	}
 
 	// The row is a toolbar — one Tab stop, arrow-key roving, Escape to drop focus —
@@ -432,44 +451,70 @@ export function ChartLegend({
 				</div>
 			)}
 
-			{references.map((reference, index) => (
-				// A reference chip mirrors a switch's swatch-and-label layout but recedes
-				// the marks instead of toggling a series — a rule has no on/off — so it
-				// carries no `aria-pressed` and its pointer / focus path drives the shared
-				// reference emphasis through the same gate the switches use. The slot colour
-				// rides its currentColor class; a raw colour rides an inline style; and the
-				// line swatch dashes to match the rule unless it is drawn solid.
-				<Button
-					// biome-ignore lint/suspicious/noArrayIndexKey: chips are index-aligned with the reference prop and never reorder.
-					key={`reference:${index}`}
-					size="sm"
-					variant="plain"
-					data-slot="chart-legend-reference"
-					onPointerEnter={() => {
-						referencePointed.current = reference.index
+			{references.map((reference, index) => {
+				// A reference chip is a switch keyed to its rule the way a series entry is
+				// to its marks: clicking toggles the rule off, and pointing or focusing a
+				// still-shown chip recedes the marks to it through the shared reference
+				// emphasis. An off chip strikes its label and dims its swatch — the same
+				// off treatment a series entry takes — and its pointer / focus path
+				// recedes nothing, since its rule is gone. The slot colour rides its
+				// currentColor class; a raw colour rides an inline style; and the line
+				// swatch dashes to match the rule unless it is drawn solid.
+				const off = referenceHidden.has(reference.index)
 
-						syncReference()
-					}}
-					onPointerLeave={() => {
-						referencePointed.current = null
+				return (
+					<Button
+						// biome-ignore lint/suspicious/noArrayIndexKey: chips are index-aligned with the reference prop and never reorder.
+						key={`reference:${index}`}
+						size="sm"
+						variant="plain"
+						data-slot="chart-legend-reference"
+						aria-pressed={!off}
+						onClick={() => {
+							onToggleReference?.(reference.index)
 
-						syncReference()
-					}}
-					onFocus={syncReference}
-					onBlur={syncReference}
-				>
-					<Swatch
-						shape="line"
-						variant={reference.dashed === false ? 'solid' : 'dashed'}
-						color={reference.swatchClass || undefined}
-						style={reference.color ? { color: reference.color } : undefined}
-					/>
+							// Drive the recede to the toggle's resulting state directly: off pulls
+							// the rule so nothing recedes, on emphasises the chip the pointer or
+							// keyboard focus still holds. Setting it here — rather than through
+							// syncReference — sidesteps the toggle's not-yet-applied hidden set.
+							const active = off ? reference.index : null
 
-					<Text as="span" severity="muted" size="sm" className="text-left leading-tight">
-						{reference.label}
-					</Text>
-				</Button>
-			))}
+							referencePointed.current = active
+
+							setReferenceActive(active)
+						}}
+						onPointerEnter={() => {
+							referencePointed.current = off ? null : reference.index
+
+							syncReference()
+						}}
+						onPointerLeave={() => {
+							referencePointed.current = null
+
+							syncReference()
+						}}
+						onFocus={syncReference}
+						onBlur={syncReference}
+					>
+						<Swatch
+							shape="line"
+							variant={reference.dashed === false ? 'solid' : 'dashed'}
+							color={reference.swatchClass || undefined}
+							style={reference.color ? { color: reference.color } : undefined}
+							className={cn(off && 'opacity-60')}
+						/>
+
+						<Text
+							as="span"
+							severity="muted"
+							size="sm"
+							className={cn('text-left leading-tight', off && 'line-through opacity-60')}
+						>
+							{reference.label}
+						</Text>
+					</Button>
+				)
+			})}
 		</>
 	)
 
