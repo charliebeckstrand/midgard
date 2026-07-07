@@ -129,11 +129,16 @@ type DragStart = { pointerX: number; width: number; containerMax: number }
  * Arrow keys nudge by a grid step (Shift for a coarser jump) and Home/End jump
  * to a defined bound. The latest `resolved` is read through a ref, keeping the
  * handlers stable across renders.
+ *
+ * @param initialWidth - The frame's starting width in pixels; omit for auto.
  */
-export function useExampleResize(resolved: ResolvedResize | null): ExampleResize {
+export function useExampleResize(
+	resolved: ResolvedResize | null,
+	initialWidth?: number,
+): ExampleResize {
 	const containerRef = useRef<HTMLDivElement | null>(null)
 
-	const [width, setWidth] = useState<number>()
+	const [width, setWidth] = useState<number | undefined>(initialWidth)
 
 	const [resizing, setResizing] = useState(false)
 

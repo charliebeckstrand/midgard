@@ -1,5 +1,5 @@
 import { RefreshCw } from 'lucide-react'
-import { type ReactNode, useEffect, useState } from 'react'
+import { type ComponentProps, type ReactNode, useEffect, useState } from 'react'
 import statesUrl from 'us-atlas/states-10m.json?url'
 import { Button } from '../../../../components/button'
 import { Icon } from '../../../../components/icon'
@@ -19,8 +19,17 @@ import {
 	ScatterChart,
 } from '../../../../modules/chart'
 import type { MapGeography } from '../../../../modules/map'
-import { code, Example } from '../../../engine'
+import { code, Example as ExampleFrame } from '../../../engine'
 import { activity, channelTraffic, dailyVisits, greens, heat, statePopulation } from './data'
+
+// Every chart demo renders in the same fixed-width, resizable frame so its
+// responsive behaviour is visible at a glance. Wrapping the engine Example once
+// here injects those defaults into all the `<Example>` call sites below —
+// including AnimatedExample's — without repeating the props on each. A call site
+// can still override either default by passing its own `width`/`resize`.
+function Example(props: ComponentProps<typeof ExampleFrame>) {
+	return <ExampleFrame width={720} resize {...props} />
+}
 
 type Month = { month: string; revenue: number; costs: number; margin: number }
 
