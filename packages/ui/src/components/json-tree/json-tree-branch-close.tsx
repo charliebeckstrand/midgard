@@ -17,7 +17,7 @@ export function JsonTreeBranchClose({ depth, isArray }: JsonTreeBranchCloseProps
 			className={cn(k.row, k.punctuation)}
 			style={{ paddingLeft }}
 		>
-			<span className={k.chevronSpacer} aria-hidden="true" />
+			<span className={k.chevron.spacer} aria-hidden="true" />
 			{isArray ? ']' : '}'}
 		</div>
 	)
