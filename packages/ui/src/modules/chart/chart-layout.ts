@@ -11,6 +11,7 @@ import {
 	AXIS_TITLE_BAND,
 	AXIS_TITLE_GAP,
 	BAND_LABEL_HEIGHT,
+	FLOOR_LABEL_PAD,
 	GUTTER_EDGE_PAD,
 	GUTTER_GAP,
 	GUTTER_MAX,
@@ -23,16 +24,19 @@ import {
 import { bandExtent, valueExtent } from './chart-orientation'
 import { type BandScale, bandScale, type LinearScale, linearScale } from './chart-scale'
 import type { ChartValueAxisSide } from './chart-schema'
+import type { ChartBandAxisMode } from './chart-tier'
 import { timeTicks } from './chart-time'
 
 /**
  * A chart's aspect ratio: a `width / height` number, a `"16/9"` string, or
- * `false` to leave the frame free-form (its explicit or density height). A
- * stacked (top / bottom) legend folds into it, so the ratio governs the whole
- * chart and a legended chart fills a fixed-aspect box without the band spilling
- * past it; a side (left / right) legend instead bands beside the plot at its own
- * width, so the ratio governs the plot alone and the drawing never squeezes to
- * fit the panel.
+ * `false` to leave the frame free-form (its explicit or density height). The
+ * ratio is a preference, not a demand: a definite-height parent shorter than it
+ * clamps the chart, which fills the height that leaves rather than overflowing —
+ * the box is law. A stacked (top / bottom) legend folds into the aspect box, so
+ * the ratio governs the whole chart and a legended chart fills a fixed-aspect
+ * tile without the band spilling past it; a side (left / right) legend instead
+ * bands beside the plot at its own width, so the ratio governs the plot alone and
+ * the drawing never squeezes to fit the panel.
  */
 export type ChartAspectRatio = number | `${number}/${number}` | false
 
@@ -56,9 +60,9 @@ function ratioValue(ratio: ChartAspectRatio): number | null {
  *
  * @remarks The plot-only sizing: the ratio governs the drawing box alone, which
  * a legend then sits beside. The chart family instead resolves through {@link
- * chartFrameLayout}, which folds a stacked legend into the aspect box (a side
- * legend still bands beside the plot); {@link HeatmapChart} keeps this one, its
- * range legend never sharing the box.
+ * chartFrameLayout}, which carries the ratio on the figure so a definite-height
+ * parent clamps the whole chart (a side legend still bands beside the plot);
+ * {@link HeatmapChart} keeps this one, its range legend never sharing the box.
  * @internal
  */
 export function chartFrameSizing(
@@ -73,9 +77,10 @@ export function chartFrameSizing(
 }
 
 /**
- * A chart frame's sizing once the legend is folded into the aspect box: the
- * {@link FrameSizing} the plot measures through, and the CSS `aspect-ratio` the
- * figure wrapper carries so the whole chart — legend and all — holds the ratio.
+ * A chart frame's sizing under the box-law: the {@link FrameSizing} the plot
+ * measures through, and the CSS `aspect-ratio` the figure wrapper carries so the
+ * whole chart — legend and all — holds the ratio as a preference the parent can
+ * clamp.
  *
  * @internal
  */
@@ -84,39 +89,39 @@ export type ChartFrameLayout = {
 	sizing: FrameSizing
 	/**
 	 * The `width / height` the figure wrapper reserves through CSS `aspect-ratio`
-	 * when a stacked legend shares the aspect box, so the plot fills the space the
-	 * legend's natural size leaves; `null` when the plot box carries the ratio
-	 * itself — no legend, or a side legend banding beside the plot — or nothing
-	 * reserves one.
+	 * whenever a live ratio governs the whole chart — no legend or a stacked band —
+	 * so the plot fills the space the legend's natural size leaves and a
+	 * definite-height parent clamps the figure; `null` when the plot box carries
+	 * the ratio itself (a side legend banding beside it) or nothing reserves one.
 	 */
 	outerAspect: number | null
 }
 
 /**
- * Resolves a chart frame's sizing, folding only a stacked legend into the aspect
- * box so its ratio governs the whole chart while a side legend leaves the ratio
- * to the plot alone. An explicit `height` is a fixed pixel box and a ratio-off
- * frame fills its container, both legend-agnostic — the legend simply bands
- * beside the plot. A live ratio keeps the plot box reserving that ratio itself
- * (width-driven CSS, no height measurement) with no legend, and equally under a
- * side legend, which takes its own width beside the plot so the drawing never
- * squeezes to fit it. Only a stacked (top / bottom) legend hands the ratio to
- * the figure wrapper and measures the plot's remaining height through
- * `aspect-fill`: the CSS aspect box still drives the height from the width, and
- * the measurement reads back only what the legend's short band left — falling
- * back to the full `width / ratio` until it lands — so a chart in a fixed-aspect
- * tile fills it, band included, without the container-height measurement
- * free-form `fill` needs and without collapsing before the first measurement.
+ * Resolves a chart frame's sizing under the box-law: a live aspect ratio is a
+ * preference a definite-height parent can clamp, never a height the drawing
+ * forces on the box. An explicit `height` is a fixed pixel box and a ratio-off
+ * frame fills its container, both legend-agnostic. A live ratio hands the ratio
+ * to the figure wrapper as a CSS `aspect-ratio` and measures the plot's own
+ * resolved height through `aspect-fill`, so a parent shorter than the ratio's
+ * preference clamps the whole chart and the plot fills whatever height actually
+ * resolved — the drawing fits the box rather than overflowing it, a stacked
+ * legend's band folding into the same box. The measurement falls back to the
+ * full `width / ratio` until it lands, so a server render, an explicit `width`,
+ * or a test frame still resolves a deterministic height from the width alone.
+ * Only a side legend keeps the ratio on the plot box itself (`aspect`): it bands
+ * beside the plot at its own width, so the drawing holds its ratio next to the
+ * panel rather than sharing a box with it.
  *
  * @param aside Whether the legend bands beside the plot (a left / right panel)
  * rather than above or below it. A side legend keeps the ratio on the plot box;
- * a stacked one folds it into the figure. Ignored without a legend.
+ * every other live-ratio frame carries it on the figure so the parent can clamp
+ * the chart.
  * @internal
  */
 export function chartFrameLayout(
 	height: number | undefined,
 	aspectRatio: ChartAspectRatio,
-	hasLegend: boolean,
 	aside: boolean,
 ): ChartFrameLayout {
 	if (height !== undefined) return { sizing: { mode: 'fixed', height }, outerAspect: null }
@@ -126,10 +131,12 @@ export function chartFrameLayout(
 	if (ratio === null) return { sizing: { mode: 'fill' }, outerAspect: null }
 
 	// A side legend bands beside the plot at its own width, so the plot box holds
-	// the ratio itself and the drawing never squeezes to fit the panel — the same
-	// path a legend-free chart takes. Only a stacked band folds into the figure.
-	if (!hasLegend || aside) return { sizing: { mode: 'aspect', ratio }, outerAspect: null }
+	// the ratio itself and the drawing never squeezes to fit the panel.
+	if (aside) return { sizing: { mode: 'aspect', ratio }, outerAspect: null }
 
+	// No legend or a stacked band: the figure carries the ratio and the plot
+	// measures its resolved height, so a definite-height parent clamps the chart
+	// (the box is law) rather than the drawing overflowing it.
 	return { sizing: { mode: 'aspect-fill', ratio }, outerAspect: ratio }
 }
 
@@ -321,6 +328,15 @@ export type CartesianLayoutInput = {
 	 */
 	tickRotation?: boolean
 	/**
+	 * How the band axis presents at the frame's resolved tier: every fitting label
+	 * `'thinned'` (the default, today's behaviour), only the first and last as
+	 * `'ends'` in a compact frame, or `'off'` in a short one — which drops the band
+	 * row and returns it to the plot, the value gutter keeping a floor pad for its
+	 * zero label. Left unset it thins, so a caller passing no tier reads as before.
+	 * @defaultValue 'thinned'
+	 */
+	bandAxis?: ChartBandAxisMode
+	/**
 	 * Each row's instant as epoch ms, in row order (`null` where unparseable), when
 	 * the band axis is a time axis; `undefined` leaves it categorical.
 	 */
@@ -460,12 +476,38 @@ function bandTicksOf(
 }
 
 /**
- * The band axis's ticks: calendar-boundary time ticks when the input carries
- * row instants and they span an axis, else the category labels, tilted or
- * thinned. Both orientations share it — the band scale's range already faces
- * the right screen axis, so the tick positions land correctly either way;
+ * The first and last category labels only — the compact tier's band, where a
+ * full run of thinned labels would crowd a narrow plot. Each end anchors inward
+ * (`'start'` first, `'end'` last) from its band center, so it reads away from the
+ * frame edge and clears it without a width estimate; the vertical x-axis honours
+ * the anchor while the horizontal y-axis right-aligns its gutter labels and
+ * ignores it. A single category reads as one centered label; an empty axis none.
+ *
+ * @internal
+ */
+function endBandTicks(categories: string[], band: BandScale): ChartAxisTick[] {
+	const last = categories.length - 1
+
+	if (last < 0) return []
+
+	if (last === 0) return [{ at: band.center(0), label: categories[0] ?? '', key: 0 }]
+
+	return [
+		{ at: band.center(0), label: categories[0] ?? '', key: 0, anchor: 'start' },
+		{ at: band.center(last), label: categories[last] ?? '', key: last, anchor: 'end' },
+	]
+}
+
+/**
+ * The band axis's ticks at its resolved `mode`: none when `'off'`, only the
+ * first and last labels when `'ends'`, else calendar-boundary time ticks (when
+ * the input carries row instants that span an axis) or the category labels,
+ * tilted or thinned. Both orientations share it — the band scale's range already
+ * faces the right screen axis, so the tick positions land correctly either way;
  * `tilt` only ever arrives set from the vertical layout, since a horizontal
- * chart's category labels already run down the gutter and read straight.
+ * chart's category labels already run down the gutter and read straight. A time
+ * axis keeps its calendar ticks over `'ends'`, since its own tick target already
+ * thins them to a few in a small frame.
  *
  * @internal
  */
@@ -474,8 +516,11 @@ function bandAxisTicks(
 	band: BandScale,
 	axisLength: number,
 	slot: number,
+	mode: ChartBandAxisMode,
 	tilt = false,
 ): ChartAxisTick[] {
+	if (mode === 'off') return []
+
 	if (input.times) {
 		const ticks = timeTicks({
 			times: input.times,
@@ -486,6 +531,8 @@ function bandAxisTicks(
 
 		if (ticks) return ticks
 	}
+
+	if (mode === 'ends') return endBandTicks(input.categories, band)
 
 	return bandTicksOf(input.categories, band, axisLength, slot, tilt)
 }
@@ -607,7 +654,14 @@ function verticalValueAxes(
 export function verticalLayout(input: CartesianLayoutInput): CartesianLayout {
 	const { axes, categories, count, frameHeight, frameWidth } = input
 
-	const flatHeight = axes ? X_AXIS_HEIGHT : 0
+	const bandMode = input.bandAxis ?? 'thinned'
+
+	// The band row draws when a band is asked for; dropped, it still leaves a floor
+	// pad so the value gutter's zero label clears the frame, and nothing at all
+	// without axes.
+	const drawBand = axes && bandMode !== 'off'
+
+	const flatHeight = drawBand ? X_AXIS_HEIGHT : axes ? FLOOR_LABEL_PAD : 0
 
 	const flatRange: [number, number] = [frameHeight - flatHeight, PLOT_TOP_PAD]
 
@@ -635,13 +689,18 @@ export function verticalLayout(input: CartesianLayoutInput): CartesianLayout {
 
 	const slot = longest * TICK_CHAR_WIDTH + GUTTER_GAP
 
-	// A time axis lines calendar ticks in place of the category labels tickRotation
-	// tilts, so tilting would reserve the taller band for nothing — gate it out
-	// whenever the band reads time.
+	// Tilting only applies to a drawn, thinned band: an ends band shows just two
+	// labels, which never collide, and a dropped band has nothing to tilt. A time
+	// axis lines calendar ticks in place of the labels tickRotation tilts, so
+	// tilting would reserve the taller band for nothing — gate it out there too.
 	const tilt =
-		axes && Boolean(input.tickRotation) && !input.times && willThin(count, plotWidth, slot)
+		drawBand &&
+		bandMode === 'thinned' &&
+		Boolean(input.tickRotation) &&
+		!input.times &&
+		willThin(count, plotWidth, slot)
 
-	const axisBandHeight = axes ? (tilt ? TICK_ROTATION_HEIGHT : X_AXIS_HEIGHT) : 0
+	const axisBandHeight = tilt ? TICK_ROTATION_HEIGHT : flatHeight
 
 	const { valueScale, rightScale, valueTicks, rightTicks } = tilt
 		? verticalValueAxes(input, [frameHeight - axisBandHeight, PLOT_TOP_PAD])
@@ -669,7 +728,7 @@ export function verticalLayout(input: CartesianLayoutInput): CartesianLayout {
 		rightBaseline: zeroOf(rightScale, valueScale, floor),
 		valueTicks,
 		rightTicks,
-		bandTicks: bandAxisTicks(input, band, plot.width, slot, tilt),
+		bandTicks: bandAxisTicks(input, band, plot.width, slot, bandMode, tilt),
 		bandPositions: bandCenters(band, count),
 		snapPoints: snapPointsOf(scales, count, input.visibleValues),
 		snapSeries: snapSeriesOf(scales, count, input.visibleValues),
@@ -762,6 +821,21 @@ function horizontalTitles(
 }
 
 /**
+ * The band labels the horizontal left gutter sizes to: just the first and last
+ * in an `'ends'` band (with two or more categories), else every category, so the
+ * gutter reserves only the width the drawn labels need.
+ *
+ * @internal
+ */
+function shownBandLabels(categories: string[], mode: ChartBandAxisMode): string[] {
+	if (mode === 'ends' && categories.length > 1) {
+		return [categories[0] ?? '', categories.at(-1) ?? '']
+	}
+
+	return categories
+}
+
+/**
  * The transposed layout: value on x with the scales filling the plot width,
  * categories down y. The band labels — not the value ticks — line the left
  * gutter, and they are known up front, so the plot rect resolves first and the
@@ -775,6 +849,12 @@ function horizontalTitles(
 export function horizontalLayout(input: CartesianLayoutInput): CartesianLayout {
 	const { axes, categories, count, frameHeight, frameWidth } = input
 
+	const bandMode = input.bandAxis ?? 'thinned'
+
+	// The band labels line the left gutter here; a dropped band frees it, an ends
+	// band sizes it to just the first and last label.
+	const drawBand = axes && bandMode !== 'off'
+
 	const rightProbe = probeOf(input.rightValue, input.tickTarget, input.zeroBaseline)
 
 	const bottomBand = axes ? X_AXIS_HEIGHT + (input.value?.title ? AXIS_TITLE_BAND : 0) : 0
@@ -782,7 +862,7 @@ export function horizontalLayout(input: CartesianLayoutInput): CartesianLayout {
 	const topBand =
 		axes && rightProbe ? X_AXIS_HEIGHT + (input.rightValue?.title ? AXIS_TITLE_BAND : 0) : 0
 
-	const gutter = axes ? tickGutter(categories) : 0
+	const gutter = drawBand ? tickGutter(shownBandLabels(categories, bandMode)) : 0
 
 	const plot: PlotRect = {
 		x: gutter,
@@ -819,7 +899,7 @@ export function horizontalLayout(input: CartesianLayoutInput): CartesianLayout {
 		valueTicks: valueScale && input.value ? valueTicksOf(valueScale, input.value.format) : [],
 		rightTicks:
 			rightScale && input.rightValue ? valueTicksOf(rightScale, input.rightValue.format) : [],
-		bandTicks: bandAxisTicks(input, band, plot.height, BAND_LABEL_HEIGHT),
+		bandTicks: bandAxisTicks(input, band, plot.height, BAND_LABEL_HEIGHT, bandMode),
 		bandPositions: bandCenters(band, count),
 		snapPoints: snapPointsOf(scales, count, input.visibleValues),
 		snapSeries: snapSeriesOf(scales, count, input.visibleValues),

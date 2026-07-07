@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { GUTTER_GAP, TICK_CHAR_WIDTH } from '../../modules/chart/chart-constants'
 import { bandScale } from '../../modules/chart/chart-scale'
 import { parseInstant, timeCategory, timeTicks } from '../../modules/chart/chart-time'
 
@@ -137,7 +138,7 @@ describe('timeTicks', () => {
 			locale: 'en-US',
 		})
 
-		const maxFit = Math.max(1, Math.floor(240 / (7 * 7.2 + 8)))
+		const maxFit = Math.max(1, Math.floor(240 / (7 * TICK_CHAR_WIDTH + GUTTER_GAP)))
 
 		expect(ticks?.length).toBeLessThanOrEqual(maxFit)
 	})

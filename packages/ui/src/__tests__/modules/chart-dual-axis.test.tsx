@@ -21,12 +21,14 @@ function line(overrides?: {
 	leftAxis?: ChartValueAxis
 	rightAxis?: ChartValueAxis
 	rightSeries?: boolean
+	/** The frame width; wide enough for axis titles (≥ 512) only where a test needs them. */
+	width?: number
 }) {
 	return renderUI(
 		<LineChart
 			aria-label="Shipments and exception rate by week"
 			data={WEEKS}
-			width={480}
+			width={overrides?.width ?? 480}
 			series={[
 				{ xKey: 'week', yKey: 'shipments', yName: 'Shipments' },
 				...(overrides?.rightSeries === false
@@ -126,7 +128,9 @@ describe('secondary y-axis', () => {
 	})
 
 	it('draws each axis title in its reserved gutter band', () => {
+		// A frame wide and tall enough to afford titles (past the tier's title bounds).
 		const { container } = line({
+			width: 560,
 			leftAxis: { title: 'Shipments' },
 			rightAxis: { title: 'Exception rate' },
 		})
@@ -143,6 +147,18 @@ describe('secondary y-axis', () => {
 		)
 
 		expect(rotated.every((transform) => transform?.startsWith('rotate('))).toBe(true)
+	})
+
+	it('sheds the axis titles in a frame too narrow to afford them', () => {
+		// The same titled axes in a standard-but-narrow frame (480 wide, under the
+		// tier's title width): the gutter reserves no title band and none draw, the
+		// scales and their series still reading through the legend and tooltip.
+		const { container } = line({
+			leftAxis: { title: 'Shipments' },
+			rightAxis: { title: 'Exception rate' },
+		})
+
+		expect(bySlot(container, 'chart-axis-titles')).toBeNull()
 	})
 
 	it('drops the right axis when its last series toggles off, and the left when everything binds right', async () => {

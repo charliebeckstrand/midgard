@@ -5,16 +5,16 @@ import { bySlot, renderUI, waitFor } from '../helpers'
 
 /**
  * A side (left / right) legend keeps the `aspectRatio` on the plot box and bands
- * beside it, so the drawing holds its ratio regardless of the panel's width
- * rather than squeezing into the space the panel leaves. That the plot's rendered
- * box actually resolves to 16:9 beside a 16rem legend column is a computed-layout
- * claim — flex sizing and CSS `aspect-ratio` — that jsdom can't measure, so it
- * rides the real browser.
+ * beside it, so the drawing holds its ratio regardless of the rail's width
+ * rather than squeezing into the space the rail leaves. That the plot's rendered
+ * box actually resolves to 16:9 beside the scaling rail (`min(16rem, 40cqw)`) is a
+ * computed-layout claim — flex sizing and CSS `aspect-ratio` — that jsdom can't
+ * measure, so it rides the real browser.
  */
 describe('chart aspect ratio with a side legend (real browser)', () => {
-	// The side-by-side row and the panel column are `sm:`-gated (≥640px); widen the
-	// iframe past that breakpoint so the row layout — not the mobile stack — is what
-	// these assertions measure.
+	// The side-by-side row and the rail are `@sm`-gated on the chart's own width
+	// (384px); the 800px chart below clears it, so the row layout — not the stack —
+	// is what these assertions measure.
 	beforeAll(() => page.viewport(960, 700))
 
 	const months = [
@@ -27,7 +27,8 @@ describe('chart aspect ratio with a side legend (real browser)', () => {
 	it('draws the plot at 16:9 beside the legend rather than squeezing it', async () => {
 		const { container } = renderUI(
 			// A definite width for the flex row to divide between the plot and the
-			// 16rem legend column; the plot fills the remainder and reserves 16:9 of it.
+			// rail (min(16rem, 40cqw) — 16rem here, capped); the plot fills the
+			// remainder and reserves 16:9 of it.
 			<div style={{ width: 800 }}>
 				<BarChart
 					aria-label="Revenue and costs by month, legend right"
@@ -61,7 +62,7 @@ describe('chart aspect ratio with a side legend (real browser)', () => {
 		const legendRect = legend.getBoundingClientRect()
 
 		// The legend bands to the right of the plot — a real side-by-side row — and
-		// takes its own ~16rem column, so the plot spans only the remainder (well
+		// takes its own rail (~16rem here), so the plot spans only the remainder (well
 		// under the 800px chart) yet still holds its ratio.
 		expect(legendRect.left).toBeGreaterThanOrEqual(boxRect.right - 1)
 
