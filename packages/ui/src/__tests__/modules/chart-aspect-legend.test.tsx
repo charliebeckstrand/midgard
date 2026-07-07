@@ -140,10 +140,13 @@ describe('chart aspect ratio with a legend', () => {
 			const figure = bySlot(container, 'chart-figure') as HTMLElement
 
 			// A side legend lays plot and legend in a row once the container has room
-			// (`@sm`); top / bottom stack.
+			// (`@sm`), on the `chart-body` that fills the figure's ratio beneath any
+			// header; top / bottom stack with no such wrapper.
 			const aside = placement === 'left' || placement === 'right'
 
-			expect(figure.className.includes('@sm:flex-row')).toBe(aside)
+			const body = container.querySelector('[data-slot="chart-body"]')
+
+			expect(Boolean(body?.className.includes('@sm:flex-row'))).toBe(aside)
 
 			if (aside) {
 				// The plot box holds the ratio itself and the figure reserves none, so the

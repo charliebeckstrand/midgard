@@ -40,14 +40,15 @@ describe('chart side-legend container query (real browser)', () => {
 		// (576) — the rail now engages here, where it once still stacked.
 		const { container } = renderUI(<div style={{ width: 500 }}>{chart()}</div>)
 
-		const figure = bySlot(container, 'chart-figure') as HTMLElement
+		const body = bySlot(container, 'chart-body') as HTMLElement
 		const legend = bySlot(container, 'chart-legend') as HTMLElement
 		const box = bySlot(container, 'aspect-ratio') as HTMLElement
 
 		await waitFor(() => expect(box.getBoundingClientRect().width).toBeGreaterThan(0))
 
-		// Container ≥ @sm: the query fires, so the figure is a row.
-		expect(getComputedStyle(figure).flexDirection).toBe('row')
+		// Container ≥ @sm: the query fires, so the plot-and-legend body is a row
+		// (the figure stays a column, banding any header above it).
+		expect(getComputedStyle(body).flexDirection).toBe('row')
 
 		// The rail is 40cqw (~200px here), not the old fixed 256 column — it scales
 		// with the container, so it never dominates a modest chart.
@@ -68,14 +69,14 @@ describe('chart side-legend container query (real browser)', () => {
 	it('stacks the legend below and gives the plot full width in a narrow container', async () => {
 		const { container } = renderUI(<div style={{ width: 340 }}>{chart()}</div>)
 
-		const figure = bySlot(container, 'chart-figure') as HTMLElement
+		const body = bySlot(container, 'chart-body') as HTMLElement
 		const box = bySlot(container, 'aspect-ratio') as HTMLElement
 
 		await waitFor(() => expect(box.getBoundingClientRect().width).toBeGreaterThan(0))
 
-		// Container < @sm: the query does not fire, so the legend stacks (column) and
+		// Container < @sm: the query does not fire, so the body stacks (column) and
 		// the plot is NOT squeezed to the remainder beside a rail.
-		expect(getComputedStyle(figure).flexDirection).toBe('column')
+		expect(getComputedStyle(body).flexDirection).toBe('column')
 
 		// The plot takes essentially the full 340px column (minus padding), not the
 		// remainder a beside-the-rail layout would leave it — the usable-size guarantee.

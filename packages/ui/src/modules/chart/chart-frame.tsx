@@ -5,6 +5,7 @@ import { cn } from '../../core'
 import type { FrameReserve } from '../../hooks'
 import { k } from '../../recipes/kata/chart'
 import type { AccessibleName } from '../../types'
+import { ChartHeader } from './chart-header'
 import type { ChartOrientation } from './chart-orientation'
 import { ChartPlotBox } from './chart-plot-box'
 import type { ChartLegendPlacement } from './chart-schema'
@@ -98,6 +99,15 @@ export type ChartFrameProps = AccessibleName & {
 	 * Omitted, no attribute renders.
 	 */
 	tier?: ChartTier
+	/**
+	 * The chart title, drawn above the plot inside the aspect box (so the drawing
+	 * fills the height it leaves) and clipped to one line with a reveal tooltip. At
+	 * the spark tier it leaves the flow for a centered hover / focus veil over the
+	 * marks instead.
+	 */
+	title?: string
+	/** The chart subtitle, muted under the {@link ChartFrameProps.title | title}, sharing its clip and spark veil. */
+	subtitle?: string
 	/** The prepared legend row, or `null` to omit it (single series). */
 	legend: ReactNode
 	/**
@@ -165,6 +175,8 @@ export function ChartFrame({
 	fill = false,
 	aspect,
 	tier,
+	title,
+	subtitle,
 	legend,
 	legendPlacement = 'bottom',
 	readout,
@@ -245,6 +257,17 @@ export function ChartFrame({
 	// `aspect-ratio` and needs no container height.
 	const containerFill = fill && aspect === undefined
 
+	const hasHeader = Boolean(title || subtitle)
+
+	// The header bands above the plot inside the aspect box at every framed tier;
+	// at spark it leaves the flow for a centered veil over the marks, revealed on
+	// the chart's hover or focus, so the sparkline reads as pure marks at rest.
+	const header =
+		hasHeader && tier !== 'spark' ? <ChartHeader title={title} subtitle={subtitle} /> : null
+
+	const sparkVeil =
+		hasHeader && tier === 'spark' ? <ChartHeader title={title} subtitle={subtitle} veil /> : null
+
 	const plotRegion = (
 		<div
 			ref={ref}
@@ -262,6 +285,8 @@ export function ChartFrame({
 			</ChartPlotBox>
 
 			{overlay}
+
+			{sparkVeil}
 
 			{tooltip && readout && width > 0 && (
 				<ChartTooltip
@@ -286,7 +311,9 @@ export function ChartFrame({
 				// resolves from that box (the intrinsic tiers), so a chart reads at any
 				// width without a max-width cap. A `className` still overrides through
 				// twMerge for a caller that wants to bound it.
-				'@container flex flex-col gap-3',
+				// The named group scopes the spark header's hover / focus veil to the
+				// chart, so it never trips on an unnamed `group-hover` inside the marks.
+				'group/chart @container flex flex-col gap-3',
 				fixedWidth === undefined && 'w-full',
 				containerFill && 'h-full',
 				className,
@@ -297,6 +324,7 @@ export function ChartFrame({
 				<ChartHoverContext value={hover}>
 					<ChartFigure
 						plot={plotRegion}
+						header={header}
 						legend={legend}
 						legendPlacement={legendPlacement}
 						aside={aside}
@@ -316,6 +344,8 @@ export function ChartFrame({
 /** Props for {@link ChartFigure}. @internal */
 type ChartFigureProps = {
 	plot: ReactNode
+	/** The inline header banded above the plot inside the aspect box, or `null`. */
+	header: ReactNode
 	legend: ReactNode
 	legendPlacement: ChartLegendPlacement
 	/** The legend is a side panel, so the plot and legend lay out in a row once the container has room. */
@@ -339,6 +369,7 @@ type ChartFigureProps = {
  */
 function ChartFigure({
 	plot,
+	header,
 	legend,
 	legendPlacement,
 	aside,
@@ -350,18 +381,34 @@ function ChartFigure({
 	// frame centers them, the plot keeping its own height beside the legend.
 	const stretch = aspect !== undefined || containerFill
 
-	const layout = aside
-		? cn(
-				// Stacked until the container has room for the legend rail beside the plot
-				// (`@sm`, the rail's own engage width); below that the legend bands under
-				// the plot, which keeps its full width instead of squeezing. The rail
-				// scales with the container (`min(16rem, 40cqw)`), so the plot keeps the
-				// remainder rather than being pinned beside a fixed column.
-				'flex-col gap-2',
+	// The plot-and-legend arrangement, filling the height the header leaves. A side
+	// rail bands beside the plot in a row once the container has room (`@sm`, the
+	// rail's engage width) — below that it stacks under the plot at full width, and
+	// a left rail reverses the row rather than moving in the DOM. A stacked legend
+	// bands above or below directly, no wrapper. Either way the `flex-1` plot draws
+	// into the ratio's remainder, so the whole figure still holds the ratio.
+	const body = aside ? (
+		<div
+			data-slot="chart-body"
+			className={cn(
+				'flex min-h-0 flex-1 flex-col gap-2',
 				stretch ? '@sm:items-stretch' : '@sm:items-center',
 				legendPlacement === 'left' ? '@sm:flex-row-reverse' : '@sm:flex-row',
-			)
-		: 'flex-col gap-3'
+			)}
+		>
+			{plot}
+
+			{legend}
+		</div>
+	) : (
+		<>
+			{legendPlacement === 'top' && legend}
+
+			{plot}
+
+			{legendPlacement === 'bottom' && legend}
+		</>
+	)
 
 	return (
 		<div
@@ -369,31 +416,20 @@ function ChartFigure({
 			// The ratio rides `aspect-ratio` as a preference, not a demand: `max-h-full`
 			// lets a definite-height parent clamp the figure below what the ratio would
 			// ask for, and the `flex-1` plot then measures the clamped height and draws
-			// to fit — the box is law. An auto-height parent ignores `max-h-full`, so the
-			// ratio governs as normal. `min-h-0` lets the clamp actually shrink it.
+			// to fit — the box is law. The header bands above at its own height, so the
+			// plot fills what the ratio leaves under it. An auto-height parent ignores
+			// `max-h-full`, so the ratio governs as normal; `min-h-0` lets the clamp
+			// actually shrink it.
 			className={cn(
-				'flex min-h-0',
-				layout,
+				'flex min-h-0 flex-col gap-3',
 				aspect !== undefined && 'max-h-full',
 				containerFill && 'h-full flex-1',
 			)}
 			style={aspect === undefined ? undefined : { aspectRatio: aspect }}
 		>
-			{aside ? (
-				<>
-					{plot}
+			{header}
 
-					{legend}
-				</>
-			) : (
-				<>
-					{legendPlacement === 'top' && legend}
-
-					{plot}
-
-					{legendPlacement === 'bottom' && legend}
-				</>
-			)}
+			{body}
 		</div>
 	)
 }
