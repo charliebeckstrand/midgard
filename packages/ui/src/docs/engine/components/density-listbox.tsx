@@ -1,7 +1,7 @@
 'use client'
 
-import { Listbox, ListboxLabel, ListboxOption } from '../../../components/listbox'
 import { type DensityLevel, densityLevels } from '../../../providers/density'
+import { OptionsListbox } from './options-listbox'
 
 type DensityListboxProps = {
 	value: DensityLevel
@@ -10,23 +10,6 @@ type DensityListboxProps = {
 }
 
 /** A demo control for switching the active {@link DensityLevel}, labelled from the density scale. */
-export function DensityListbox({
-	value,
-	placement = 'bottom-end',
-	onValueChange,
-}: DensityListboxProps) {
-	return (
-		<Listbox<DensityLevel>
-			value={value}
-			displayValue={(v) => densityLevels.find((d) => d.value === v)?.label ?? v}
-			placement={placement}
-			onValueChange={(v) => v && onValueChange(v)}
-		>
-			{densityLevels.map((level) => (
-				<ListboxOption key={level.value} value={level.value}>
-					<ListboxLabel>{level.label}</ListboxLabel>
-				</ListboxOption>
-			))}
-		</Listbox>
-	)
+export function DensityListbox(props: DensityListboxProps) {
+	return <OptionsListbox options={densityLevels} {...props} />
 }

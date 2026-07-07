@@ -39,7 +39,9 @@ export function App() {
 	const contentRef = useRef<HTMLDivElement>(null)
 
 	useEffect(() => {
-		if (deferredRoute != null) contentRef.current?.closest('[class*="overflow-y"]')?.scrollTo(0, 0)
+		// Scroll the content pane to top on each route change; skip the empty
+		// landing route (`useHash` returns '' there, never null).
+		if (deferredRoute) contentRef.current?.closest('[class*="overflow-y"]')?.scrollTo(0, 0)
 	}, [deferredRoute])
 
 	// Warm Shiki on idle. Per-demo prefetch happens via sidebar hover/focus.
