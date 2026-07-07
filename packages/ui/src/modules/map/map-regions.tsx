@@ -67,7 +67,8 @@ function Region({
 
 	const paint = coloured && category !== null ? (categories[category]?.paint ?? null) : null
 
-	const fillClass = paint === null ? k.regionEmpty : paint.kind === 'class' ? paint.fill : undefined
+	const fillClass =
+		paint === null ? k.region.empty : paint.kind === 'class' ? paint.fill : undefined
 
 	return (
 		<g className={cn(k.group(emphasis !== null && emphasis !== groupId))}>
@@ -80,8 +81,8 @@ function Region({
 				strokeWidth={REGION_STROKE_WIDTH}
 				className={cn(
 					fillClass,
-					k.regionBorder,
-					active && k.regionHover,
+					k.region.border,
+					active && k.region.hover,
 					animate && 'transition-colors ease-out motion-reduce:transition-none',
 				)}
 				style={{
