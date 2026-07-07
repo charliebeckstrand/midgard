@@ -5,7 +5,6 @@ import { CodeBlock } from '../../../components/code'
 import { Collapse, CollapsePanel, CollapseTrigger } from '../../../components/collapse'
 import { Flex } from '../../../components/flex'
 import { Heading } from '../../../components/heading'
-import { Spacer } from '../../../components/spacer'
 import { Stack } from '../../../components/stack'
 import { cn } from '../../../core'
 import { deriveCode } from '../derive-code'
@@ -84,9 +83,13 @@ export function Example({
 			className={cn(resolvedResize && 'pr-2')}
 		>
 			{(title || actions) && (
-				<Flex gap="md">
+				<Flex
+					gap="md"
+					direction={{ initial: 'col', sm: 'row' }}
+					align={{ initial: 'start', sm: 'center' }}
+					justify={{ initial: 'start', sm: 'between' }}
+				>
 					{title && <Heading level={3}>{title}</Heading>}
-					<Spacer />
 					{actions}
 				</Flex>
 			)}
