@@ -1,12 +1,27 @@
 'use client'
 
-import { type ReactNode, type RefObject, useCallback, useMemo, useState } from 'react'
+import {
+	type ReactNode,
+	type RefObject,
+	startTransition,
+	useCallback,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import { cn } from '../../core'
-import { type FrameReserve, useHoverAcrossScroll, usePlotFrame } from '../../hooks'
+import {
+	type FrameReserve,
+	useHoverAcrossScroll,
+	usePlotFrame,
+	useResizeObserver,
+} from '../../hooks'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { k, type MapSeriesColor } from '../../recipes/kata/map'
 import type { AccessibleName } from '../../types'
 import { ChartPlotBox } from '../chart/chart-plot-box'
+import { resolveRangeLegend } from '../chart/chart-range-legend'
+import type { ChartRangeLegendConfig } from '../chart/chart-schema'
 import {
 	type MapHoverSet,
 	MapHoverSetContext,
@@ -170,13 +185,17 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 * (`'bottom'`) or above it (`'top'`), or a column panel beside it
 		 * (`'left'` / `'right'`), side by side from `lg` and under the map below
 		 * that. `'range'` (numeric mode only) swaps the binned switchboard for a
-		 * continuous colour-scale bar beside the plot — the heatmap legend. The
-		 * default placement is `'bottom'` for categorical maps and `'right'` for
-		 * the numeric choropleth. Overlay entries register from the client, so
-		 * they join the legend after hydration; the legend's box mounts ahead of
-		 * them so late-landing buttons never resize the map or shift the frame.
+		 * continuous colour-scale bar — the heatmap legend — and the object form
+		 * `{ type: 'range', placement }` places that bar explicitly. The range bar
+		 * follows its placement's orientation (vertical beside the plot, horizontal
+		 * above or below) and the chart's tier: it sheds at the spark size and, in a
+		 * box too narrow for a side rail, drops to a horizontal row under the plot.
+		 * The default placement is `'bottom'` for categorical maps and `'right'` for
+		 * the numeric choropleth. Overlay entries register from the client, so they
+		 * join the legend after hydration; the legend's box mounts ahead of them so
+		 * late-landing buttons never resize the map or shift the frame.
 		 */
-		legend?: boolean | MapLegendPlacement | 'range'
+		legend?: MapLegendInput
 		/**
 		 * Show the hover tooltip naming the pointed region or overlay.
 		 * @defaultValue true
@@ -417,6 +436,25 @@ function MapMarksLayer({ animate, children }: { animate: boolean; children: Reac
 }
 
 /**
+ * The map's `legend` prop: the switchboard's boolean / placement, the `'range'`
+ * discriminator that swaps in the continuous scale bar, or the object form
+ * `{ type: 'range', placement }` naming that bar's placement — the same shape a
+ * chart's range legend takes, so the choropleth and heatmap read alike.
+ *
+ * @internal
+ */
+type MapLegendInput = boolean | MapLegendPlacement | 'range' | ChartRangeLegendConfig
+
+/** Whether a `legend` prop asks for the continuous range bar rather than the binned switchboard. @internal */
+function isRangeLegend(legend: MapLegendInput | undefined): boolean {
+	if (legend === 'range') return true
+
+	// The only object form is the range config, so any object asks for the bar;
+	// its `type` (only `'range'`) defaults in.
+	return typeof legend === 'object' && (legend.type ?? 'range') === 'range'
+}
+
+/**
  * Whether the legend's box mounts: explicitly asked for, or able to appear —
  * two or more categories, a registered overlay, or overlay children whose
  * entries will register from the client. Deciding off the children keeps the
@@ -425,7 +463,7 @@ function MapMarksLayer({ animate, children }: { animate: boolean; children: Reac
  * @internal
  */
 function legendCanShow(
-	legend: boolean | MapLegendPlacement | 'range' | undefined,
+	legend: MapLegendInput | undefined,
 	categoryCount: number,
 	entryCount: number,
 	children: ReactNode,
@@ -436,21 +474,94 @@ function legendCanShow(
 }
 
 /**
- * The legend's placement: `'range'` and the numeric (choropleth) mode read on
- * the right by default; categorical maps keep the centered bottom row. An
- * explicit placement always wins.
+ * The switchboard legend's placement: the numeric (choropleth) mode reads on the
+ * right by default, categorical maps keep the centered bottom row, and an
+ * explicit placement always wins. The range bar resolves its own placement
+ * through {@link resolveRangeLegend}, so this only serves the switchboard.
  *
  * @internal
  */
 function resolveLegendPlacement(
-	legend: boolean | MapLegendPlacement | 'range' | undefined,
+	legend: MapLegendInput | undefined,
 	numeric: boolean,
 ): MapLegendPlacement {
-	if (legend === 'range') return 'right'
-
-	if (typeof legend === 'string') return legend
+	if (typeof legend === 'string' && legend !== 'range') return legend
 
 	return numeric ? 'right' : 'bottom'
+}
+
+/** The scale the range bar reads, kept together so {@link planMapLegend} can gate on all of it at once. @internal */
+type MapRangeScale = {
+	colorRange: string[] | undefined
+	valueExtent: [number, number] | null
+	valueFormat: ((value: number) => string) | undefined
+	valueName: string | undefined
+	regionCategory: (number | null)[]
+	onFocus: (id: string | null) => void
+}
+
+/** What the map draws for its legend: whether it shows, where it sits, and the range bar's props in range mode. @internal */
+type MapLegendPlan = {
+	show: boolean
+	placement: MapLegendPlacement
+	/** The continuous scale bar's props, or `null` for the binned switchboard. */
+	range: MapRangeLegendProps | null
+}
+
+/**
+ * Resolves the map's legend against its measured box: the binned switchboard
+ * keeps its own can-show and placement rules, while the range bar (numeric mode,
+ * `'range'` or the object form) resolves placement, orientation, and visibility
+ * through the shared {@link resolveRangeLegend} — sheds at the spark tier, drops
+ * a side placement to a horizontal row in a box too narrow for a rail — so the
+ * choropleth's bar behaves exactly as the heatmap's does. Kept pure and off
+ * {@link MapPlat} so the component stays a thin assembly.
+ *
+ * @internal
+ */
+function planMapLegend(
+	legend: MapLegendInput | undefined,
+	numeric: boolean,
+	box: { width: number; height: number },
+	switchboard: { categoryCount: number; entryCount: number; children: ReactNode },
+	scale: MapRangeScale,
+): MapLegendPlan {
+	if (!(numeric && isRangeLegend(legend))) {
+		return {
+			show: legendCanShow(
+				legend,
+				switchboard.categoryCount,
+				switchboard.entryCount,
+				switchboard.children,
+			),
+			placement: resolveLegendPlacement(legend, numeric),
+			range: null,
+		}
+	}
+
+	const resolved = resolveRangeLegend(
+		typeof legend === 'object' ? legend : undefined,
+		box.width,
+		box.height,
+	)
+
+	// The direct value checks (not a precomputed boolean) narrow `colorRange` and
+	// `valueExtent` inside the branch, so the range props type without an assertion.
+	const range: MapRangeLegendProps | null =
+		resolved.show && scale.colorRange !== undefined && scale.valueExtent !== null
+			? {
+					colorRange: scale.colorRange,
+					domain: scale.valueExtent,
+					format: scale.valueFormat ?? ((value) => String(value)),
+					label: scale.valueName,
+					bins: switchboard.categoryCount,
+					regionCategory: scale.regionCategory,
+					onFocus: scale.onFocus,
+					orientation: resolved.orientation,
+				}
+			: null
+
+	return { show: range !== null, placement: resolved.placement, range }
 }
 
 /** Props for {@link MapLegendSlot}: the reserved box and the toolbar it holds. @internal */
@@ -646,6 +757,8 @@ type MapFrameProps = {
 	plotRegion: ReactNode
 	/** The plot region element; the hover provider re-resolves settled scroll pointers within it. */
 	plotRef: RefObject<HTMLDivElement | null>
+	/** The frame's outer box; its measured width drives the range bar's tier-aware placement. */
+	containerRef: RefObject<HTMLDivElement | null>
 	/** Whether the tooltip is on; gates the hover provider's scroll listener. */
 	tooltip: boolean
 	table: ReactNode
@@ -659,6 +772,7 @@ function MapFrame({
 	legendPlacement,
 	plotRegion,
 	plotRef,
+	containerRef,
 	tooltip,
 	table,
 	width,
@@ -668,6 +782,7 @@ function MapFrame({
 
 	return (
 		<div
+			ref={containerRef}
 			data-slot="map"
 			className={cn('flex flex-col gap-4', width === undefined && 'w-full', className)}
 			style={width === undefined ? undefined : { width }}
@@ -851,28 +966,46 @@ export function MapPlat<T = never>({
 		[entries, colors],
 	)
 
-	const showLegend = legendCanShow(legend, categoryMetas.length, entries.length, children)
-
 	const numeric = valueKey !== undefined
 
-	const legendPlacement = resolveLegendPlacement(legend, numeric)
+	// The range bar's placement follows the chart's tier, so it reads the
+	// container width — not the plot's, which a side bar shrinks, feeding the move
+	// back on itself. A fixed `width` reads deterministically (SSR, tests);
+	// otherwise the observer tracks the container the frame's outer box measures.
+	const containerRef = useRef<HTMLDivElement>(null)
+
+	const [measuredWidth, setMeasuredWidth] = useState(0)
+
+	const measureContainer = useCallback(() => {
+		const el = containerRef.current
+
+		if (!el) return
+
+		const next = Math.round(el.clientWidth)
+
+		// Commit as a transition — the same priority the plot's own refit rides — so
+		// a resize burst coalesces rather than this urgent write preempting and
+		// stranding the refit at an intermediate frame (which would fatten strokes).
+		startTransition(() => setMeasuredWidth((prev) => (prev === next ? prev : next)))
+	}, [])
+
+	useResizeObserver(containerRef, measureContainer)
+
+	const containerWidth = width ?? measuredWidth
+
+	const {
+		show: showLegend,
+		placement: legendPlacement,
+		range: rangeLegend,
+	} = planMapLegend(
+		legend,
+		numeric,
+		{ width: containerWidth, height: shape.boxHeight },
+		{ categoryCount: categoryMetas.length, entryCount: entries.length, children },
+		{ colorRange, valueExtent, valueFormat, valueName, regionCategory, onFocus: setFocus },
+	)
 
 	const aside = legendPlacement === 'left' || legendPlacement === 'right'
-
-	// Range mode paints the continuous scale bar instead of the switchboard —
-	// numeric only, and only once the value extent resolves.
-	const rangeLegend: MapRangeLegendProps | null =
-		legend === 'range' && numeric && colorRange !== undefined && valueExtent !== null
-			? {
-					colorRange,
-					domain: valueExtent,
-					format: valueFormat ?? ((value) => String(value)),
-					label: valueName,
-					bins: categoryMetas.length,
-					regionCategory,
-					onFocus: setFocus,
-				}
-			: null
 
 	// The SVG fills its box through the viewBox rather than pixel dimensions, so
 	// the box — not the marks — owns the size. The view frame is the canonical
@@ -938,6 +1071,7 @@ export function MapPlat<T = never>({
 				</MapPlotRegion>
 			}
 			plotRef={shape.ref}
+			containerRef={containerRef}
 			tooltip={tooltip}
 			table={
 				hasReadout ? (
