@@ -330,25 +330,39 @@ describe('BarChart', () => {
 		expect(item?.className).toContain('cursor-pointer')
 	})
 
-	it('renders a lone forced-on legend entry as a static chip, not a switch', () => {
-		// One series defaults the legend off; force it on. With nothing to switch
-		// against, the entry drops the button — no toggle, no Tab stop — and the
-		// container drops its switchboard role.
+	it('renders a lone forced-on legend entry as a live switch', () => {
+		// One series defaults the legend off; force it on. The lone entry is still a
+		// switch — a button, the toolbar's sole Tab stop — and toggling it off empties
+		// the plot, with the forced-on legend holding the switch that brings it back.
 		const { container } = renderUI(
 			chart({ series: [{ xKey: 'quarter', yKey: 'revenue', yName: 'Revenue' }], legend: true }),
 		)
 
-		const item = bySlot(container, 'chart-legend-item')
+		const item = bySlot(container, 'chart-legend-item') as HTMLButtonElement
 
-		expect(item?.textContent).toBe('Revenue')
+		expect(item.textContent).toBe('Revenue')
 
-		expect(item?.tagName).toBe('SPAN')
+		expect(item.tagName).toBe('BUTTON')
 
-		expect(item).not.toHaveAttribute('aria-pressed')
+		expect(item).toHaveAttribute('aria-pressed', 'true')
 
-		expect(item).not.toHaveAttribute('tabindex')
+		expect(item.tabIndex).toBe(0)
 
-		expect(bySlot(container, 'chart-legend')).not.toHaveAttribute('role')
+		expect(bySlot(container, 'chart-legend')).toHaveAttribute('role', 'toolbar')
+
+		expect(allBySlot(container, 'chart-bar')).toHaveLength(3)
+
+		fireEvent.click(item)
+
+		expect(item).toHaveAttribute('aria-pressed', 'false')
+
+		expect(item.querySelector('.line-through')).not.toBeNull()
+
+		expect(allBySlot(container, 'chart-bar')).toHaveLength(0)
+
+		fireEvent.click(item)
+
+		expect(allBySlot(container, 'chart-bar')).toHaveLength(3)
 	})
 
 	it('roves legend focus with the arrow keys as one tab stop, clearing on Escape', async () => {
