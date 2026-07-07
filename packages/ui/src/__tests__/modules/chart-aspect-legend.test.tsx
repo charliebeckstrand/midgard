@@ -135,15 +135,23 @@ describe('chart aspect ratio with a legend', () => {
 
 	it('folds a stacked legend into the figure ratio but bands a side legend beside the plot', () => {
 		for (const placement of ['top', 'bottom', 'left', 'right'] as const) {
-			const { container } = renderUI(legended({ aspectRatio: '16/9', legend: placement }))
+			// An explicit non-spark width so the frame resolves to a tier that keeps its
+			// legend: an unmeasured plot reads 0 wide in jsdom, which is spark, and a
+			// spark frame drops the legend with the rest of its chrome.
+			const { container } = renderUI(
+				legended({ aspectRatio: '16/9', legend: placement, width: 480 }),
+			)
 
 			const figure = bySlot(container, 'chart-figure') as HTMLElement
 
 			// A side legend lays plot and legend in a row once the container has room
-			// (`@xl`); top / bottom stack.
+			// (`@sm`), on the `chart-body` that fills the figure's ratio beneath any
+			// header; top / bottom stack with no such wrapper.
 			const aside = placement === 'left' || placement === 'right'
 
-			expect(figure.className.includes('@xl:flex-row')).toBe(aside)
+			const body = container.querySelector('[data-slot="chart-body"]')
+
+			expect(Boolean(body?.className.includes('@sm:flex-row'))).toBe(aside)
 
 			if (aside) {
 				// The plot box holds the ratio itself and the figure reserves none, so the

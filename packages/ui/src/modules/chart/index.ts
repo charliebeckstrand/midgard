@@ -20,6 +20,7 @@ export type {
 	ScatterChartSeries,
 } from './chart-schema'
 export { ChartSkeleton, type ChartSkeletonProps } from './chart-skeleton'
+export type { ChartTier } from './chart-tier'
 export {
 	ChoroplethChart,
 	type ChoroplethChartProps,

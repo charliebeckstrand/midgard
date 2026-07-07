@@ -78,6 +78,27 @@ describe('linearScale', () => {
 		expect(scale?.ticks.every((tick) => tick >= 3 && tick <= 97)).toBe(true)
 	})
 
+	it('fits the domain tight to the data at the spark tier, drawing no ticks', () => {
+		// A spark scale carries no axis (`tickTarget` 0), so it fits the domain to the
+		// data extent rather than nice-stepping [3, 47] out to [0, 50] — the sparkline
+		// spans its box top to bottom instead of sinking into a band of air.
+		const scale = linearScale({ values: [3, 47], range: [100, 0], tickTarget: 0 })
+
+		expect(scale?.domain).toEqual([3, 47])
+
+		expect(scale?.ticks).toEqual([])
+
+		// The extremes land on the range edges, so the marks fill the full height.
+		expect(scale?.map(3)).toBe(100)
+
+		expect(scale?.map(47)).toBe(0)
+
+		// A pin still wins on its own side; the other bound stays tight.
+		const pinned = linearScale({ values: [3, 47], range: [100, 0], tickTarget: 0, min: 0 })
+
+		expect(pinned?.domain).toEqual([0, 47])
+	})
+
 	it('ignores non-finite values without collapsing the scale', () => {
 		const scale = linearScale({
 			values: [10, Number.NaN, 30, Number.POSITIVE_INFINITY],

@@ -33,6 +33,14 @@ const months: Month[] = [
 	{ month: 'Jun', revenue: 71, costs: 38, margin: 33 },
 ]
 
+// One measure each for the spark-tile grid, drawn small enough to drop their
+// chrome to pure marks with the title revealed on hover.
+const sparkTiles: { title: string; yKey: 'revenue' | 'costs' | 'margin' }[] = [
+	{ title: 'Revenue', yKey: 'revenue' },
+	{ title: 'Costs', yKey: 'costs' },
+	{ title: 'Margin', yKey: 'margin' },
+]
+
 const swings: { month: string; delta: number }[] = [
 	{ month: 'Jan', delta: 12 },
 	{ month: 'Feb', delta: -6 },
@@ -189,6 +197,7 @@ export function Demo() {
 					<Tab value="bubble">Bubble</Tab>
 					<Tab value="heatmap">Heatmap</Tab>
 					<Tab value="choropleth">Choropleth</Tab>
+					<Tab value="tiers">Tiers</Tab>
 				</TabList>
 				<TabContents>
 					<TabContent value="bar">
@@ -877,6 +886,44 @@ export function Demo() {
 									regionId={(feature) => String(feature.properties?.name)}
 									formatValue={(value) => `${value.toFixed(1)}M`}
 								/>
+							</Example>
+						</Stack>
+					</TabContent>
+
+					<TabContent value="tiers">
+						<Stack gap="xl">
+							<Example
+								title="Title and subtitle"
+								code={code`<BarChart title="Revenue & costs" subtitle="Last six months, in thousands" … />`}
+							>
+								<BarChart
+									aria-label="Revenue and costs by month"
+									title="Revenue & costs"
+									subtitle="Last six months, in thousands"
+									data={months}
+									series={[
+										{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
+										{ xKey: 'month', yKey: 'costs', yName: 'Costs' },
+									]}
+								/>
+							</Example>
+
+							<Example
+								title="Spark tiles — hover a tile for its title"
+								code={code`<LineChart title="Revenue" width={150} … />`}
+							>
+								<div className="flex flex-wrap gap-3">
+									{sparkTiles.map(({ title, yKey }) => (
+										<LineChart
+											key={yKey}
+											aria-label={`${title} by month`}
+											title={title}
+											width={150}
+											data={months}
+											series={[{ xKey: 'month', yKey }]}
+										/>
+									))}
+								</div>
 							</Example>
 						</Stack>
 					</TabContent>
