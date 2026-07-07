@@ -3,6 +3,7 @@ import { type ReactNode, useEffect, useState } from 'react'
 import statesUrl from 'us-atlas/states-10m.json?url'
 import { Button } from '../../../../components/button'
 import { Icon } from '../../../../components/icon'
+import { Listbox, ListboxOption } from '../../../../components/listbox'
 import { Stack } from '../../../../components/stack'
 import { Stat, StatLabel, StatValue } from '../../../../components/stat'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../../components/tabs'
@@ -20,7 +21,7 @@ import {
 } from '../../../../modules/chart'
 import type { MapGeography } from '../../../../modules/map'
 import { code, Example } from '../../../engine'
-import { activity, channelTraffic, dailyVisits, greens, heat, statePopulation } from './data'
+import { activity, dailyVisits, greens, heat, statePopulation } from './data'
 
 type Month = { month: string; revenue: number; costs: number; margin: number }
 
@@ -123,6 +124,40 @@ function useGeography(url: string): MapGeography | null {
 	return geography
 }
 
+type LegendPlacement = 'right' | 'left' | 'top' | 'bottom'
+
+const LegendPlacementExample = ({
+	children,
+}: {
+	children: (placement: LegendPlacement) => ReactNode
+}) => {
+	const [placement, setPlacement] = useState<LegendPlacement>('right')
+
+	return (
+		<Example
+			title="Legend placement"
+			code={code`<BarChart aspectRatio={16 / 9} legend={placement} … /> // plot stays 16:9`}
+			actions={
+				<Listbox
+					placement="bottom-end"
+					aria-label="Legend placement"
+					value={placement}
+					displayValue={(value) => value.at(0)?.toUpperCase() + value.slice(1)}
+					onValueChange={(value) => setPlacement(value as LegendPlacement)}
+				>
+					{(['right', 'left', 'top', 'bottom'] as LegendPlacement[]).map((option) => (
+						<ListboxOption key={option} value={option}>
+							{option.charAt(0).toUpperCase() + option.slice(1)}
+						</ListboxOption>
+					))}
+				</Listbox>
+			}
+		>
+			{children(placement)}
+		</Example>
+	)
+}
+
 // The mount animation plays once; a refresh button remounts the chart
 // (bumping its `key`) so the reveal replays on demand.
 function AnimatedExample({
@@ -154,31 +189,6 @@ function AnimatedExample({
 		</Example>
 	)
 }
-
-// A labelled demo cell — a caption over its content, shared by the plain and
-// fixed-aspect tiles below.
-const Labeled = ({ label, children }: { label: string; children: ReactNode }) => (
-	<div className="space-y-2">
-		<div className="text-xs text-zinc-500 dark:text-zinc-400">{label}</div>
-
-		{children}
-	</div>
-)
-
-// A tile pinned to 16:9 — a dashed border makes its edges visible and
-// `overflow-hidden` would clip anything that spilled. A chart whose aspectRatio
-// folds its legend in — a stacked top / bottom band — fills it exactly, band and
-// all, so nothing spills to clip. A side legend keeps the ratio on the plot
-// instead and bands beside it, so it isn't shown boxed here. The border sits on a
-// wrapper so the aspect box's own edges stay a clean 16:9 (a border-box border
-// would shave a pixel off the ratio).
-const AspectTile = ({ label, children }: { label: string; children: ReactNode }) => (
-	<Labeled label={label}>
-		<div className="rounded-lg border border-dashed border-zinc-300 dark:border-zinc-700">
-			<div className="aspect-video w-full overflow-hidden rounded-[inherit]">{children}</div>
-		</div>
-	</Labeled>
-)
 
 export function Demo() {
 	const states = useGeography(statesUrl)
@@ -286,50 +296,20 @@ export function Demo() {
 								/>
 							</Example>
 
-							<Example
-								title="Stacked legend fills a fixed-aspect tile"
-								code={code`<BarChart aspectRatio={16 / 9} legend="bottom" … /> // fills a 16:9 tile, band included`}
-							>
-								<div className="grid w-full gap-4 sm:grid-cols-2">
-									{(['bottom', 'top'] as const).map((placement) => (
-										<AspectTile key={placement} label={`legend="${placement}"`}>
-											<BarChart
-												className="max-w-none"
-												aria-label={`Revenue and costs by month, legend ${placement}`}
-												data={months}
-												series={[
-													{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
-													{ xKey: 'month', yKey: 'costs', yName: 'Costs' },
-												]}
-												aspectRatio={16 / 9}
-												legend={placement}
-											/>
-										</AspectTile>
-									))}
-								</div>
-							</Example>
-
-							<Example
-								title="Side legend holds the plot ratio"
-								code={code`<BarChart aspectRatio={16 / 9} legend="right" … /> // plot stays 16:9, legend beside`}
-							>
-								<Stack gap="lg">
-									{(['right', 'left'] as const).map((placement) => (
-										<Labeled key={placement} label={`legend="${placement}"`}>
-											<BarChart
-												aria-label={`Revenue and costs by month, legend ${placement}`}
-												data={months}
-												series={[
-													{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
-													{ xKey: 'month', yKey: 'costs', yName: 'Costs' },
-												]}
-												aspectRatio={16 / 9}
-												legend={placement}
-											/>
-										</Labeled>
-									))}
-								</Stack>
-							</Example>
+							<LegendPlacementExample>
+								{(placement) => (
+									<BarChart
+										aria-label={`Revenue and costs by month, legend ${placement}`}
+										data={months}
+										series={[
+											{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
+											{ xKey: 'month', yKey: 'costs', yName: 'Costs' },
+										]}
+										aspectRatio={16 / 9}
+										legend={placement}
+									/>
+								)}
+							</LegendPlacementExample>
 
 							<AnimatedExample title="Animated" source={code`<BarChart animate … />`}>
 								<BarChart
@@ -572,7 +552,6 @@ export function Demo() {
 						<Stack gap="xl">
 							<Example title="No labels" code={code`<PieChart … />`}>
 								<PieChart
-									className="max-w-sm"
 									aria-label="Traffic by source"
 									data={sources}
 									series={[{ xKey: 'source', yKey: 'visits' }]}
@@ -584,7 +563,6 @@ export function Demo() {
 								code={code`<PieChart labels={{ segment: true }} legend={false} … />`}
 							>
 								<PieChart
-									className="max-w-sm"
 									aria-label="Traffic by source"
 									data={sources}
 									series={[{ xKey: 'source', yKey: 'visits' }]}
@@ -604,55 +582,25 @@ export function Demo() {
 								/>
 							</Example>
 
-							<Example
-								title="Stacked legend fills a fixed-aspect tile"
-								code={code`<PieChart aspectRatio={16 / 9} legend="bottom" … /> // pie squares within the box, band below`}
-							>
-								<AspectTile label='legend="bottom"'>
+							<LegendPlacementExample>
+								{(placement) => (
 									<PieChart
-										className="max-w-none"
-										aria-label="Traffic by source, legend bottom"
+										aria-label={`Traffic by source, legend ${placement}`}
 										data={sources}
 										series={[{ xKey: 'source', yKey: 'visits' }]}
-										aspectRatio={16 / 9}
-										legend="bottom"
+										legend={placement}
 									/>
-								</AspectTile>
-							</Example>
-
-							<Example
-								title="Side legend holds the pie ratio"
-								code={code`<PieChart aspectRatio={16 / 9} legend="right" … /> // pie stays 16:9, legend beside`}
-							>
-								<Labeled label='legend="right"'>
-									<PieChart
-										aria-label="Traffic by source, legend right"
-										data={sources}
-										series={[{ xKey: 'source', yKey: 'visits' }]}
-										aspectRatio={16 / 9}
-										legend="right"
-									/>
-								</Labeled>
-							</Example>
+								)}
+							</LegendPlacementExample>
 
 							<AnimatedExample title="Animated" source={code`<PieChart animate … />`}>
 								<PieChart
-									className="max-w-sm"
 									aria-label="Traffic by source, animated"
 									data={sources}
 									series={[{ xKey: 'source', yKey: 'visits' }]}
 									animate
 								/>
 							</AnimatedExample>
-
-							<Example title="Side panel, many segments" code={code`<PieChart legend="right" … />`}>
-								<PieChart
-									aria-label="Traffic by marketing channel"
-									data={channelTraffic}
-									series={[{ xKey: 'channel', yKey: 'visits' }]}
-									legend="right"
-								/>
-							</Example>
 						</Stack>
 					</TabContent>
 
@@ -660,7 +608,6 @@ export function Demo() {
 						<Stack gap="xl">
 							<Example title="Basic" code={code`<DonutChart>`}>
 								<DonutChart
-									className="max-w-sm"
 									aria-label="Traffic by source"
 									data={sources}
 									series={[{ xKey: 'source', yKey: 'visits' }]}
@@ -669,7 +616,6 @@ export function Demo() {
 
 							<Example title="Center content" code={code`<DonutChart>…</DonutChart>`}>
 								<DonutChart
-									className="max-w-sm"
 									aria-label="Traffic by source"
 									data={sources}
 									series={[{ xKey: 'source', yKey: 'visits' }]}
@@ -683,7 +629,6 @@ export function Demo() {
 
 							<AnimatedExample title="Animated" source={code`<DonutChart animate … />`}>
 								<DonutChart
-									className="max-w-sm"
 									aria-label="Traffic by source, animated"
 									data={sources}
 									series={[{ xKey: 'source', yKey: 'visits' }]}
