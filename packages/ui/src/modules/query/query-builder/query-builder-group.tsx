@@ -50,9 +50,9 @@ export function QueryBuilderGroup({ group, root, className }: QueryBuilderGroupP
 			data-slot="query-group"
 			data-combinator={group.combinator}
 			aria-label={root ? undefined : 'Condition group'}
-			className={cn(k.group, !root && k.groupNested, className)}
+			className={cn(k.group.base, !root && k.group.nested, className)}
 		>
-			<div className={k.group}>
+			<div className={k.group.base}>
 				{group.children.length === 0 ? (
 					<Alert severity="warning" variant="soft" title="No rules added" block />
 				) : (
