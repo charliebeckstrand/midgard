@@ -397,9 +397,10 @@ export type ChartBaseProps<T> = AccessibleName & {
 	/**
 	 * Show the legend. Defaults to on for two or more series (or slices) and off
 	 * for one — a single series is already named by the chart's accessible name.
-	 * Forced on for a lone series (or slice), its single entry reads as a static
-	 * chip: with nothing to switch against it can't toggle or emphasise. A
-	 * placement moves it: a row under the plot (`'bottom'`, the default) or
+	 * Forced on for a lone series (or slice), its single entry is still a live
+	 * switch: toggling it off empties the chart, and the forced-on legend holds the
+	 * switch that brings it back. A placement moves it: a row under the plot
+	 * (`'bottom'`, the default) or
 	 * above it (`'top'`) — centered on mobile, justified edge to edge from `sm`
 	 * — or a column panel beside it (`'left'` / `'right'`), side by side once the
 	 * chart's own container is wide enough for both and stacked under the plot

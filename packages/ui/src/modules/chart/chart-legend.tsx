@@ -26,8 +26,6 @@ type ChartLegendEntryProps = {
 	panel: boolean
 	/** The `texture` prop is on, so the square swatch hatches in every mode. */
 	texture: boolean
-	/** Two or more series make each entry a switch; a lone one is a static chip. */
-	interactive: boolean
 	/** Toggles this entry's series on or off. */
 	onToggle: (index: number) => void
 	/** Pointer enter/leave emphasis: the series index while pointed, `null` on leave. */
@@ -37,7 +35,7 @@ type ChartLegendEntryProps = {
 }
 
 /**
- * One legend entry: a series switch (or a lone static chip) whose label truncates
+ * One legend entry: a series switch whose label truncates
  * to one line so a side panel's static width can't force the row to overflow, with
  * a hover/focus tooltip that reveals the full label once the column clips it.
  * `-webkit-line-clamp` was the first pass, but its legacy box model centers a
@@ -59,7 +57,6 @@ function ChartLegendEntry({
 	off,
 	panel,
 	texture,
-	interactive,
 	onToggle,
 	onPointerEmphasis,
 	onFocusEmphasis,
@@ -102,12 +99,11 @@ function ChartLegendEntry({
 		</>
 	)
 
-	// A lone series can't be switched — nor emphasised, since dimming every other
-	// mark against the only one would blank the chart — so it reads as a static
-	// identity chip: no button, no toggle, no emphasis. It keeps the
-	// `chart-legend-item` slot but stays out of the roving (a span, not a button),
-	// so a reference chip beside it is the only Tab stop.
-	const control = interactive ? (
+	// Every entry is a switch, a lone series included: toggling the only one off
+	// empties the chart by design — the legend, forced on for a lone series, holds
+	// the switch that brings it back. Emphasis has no sibling marks to dim then, so
+	// it reads as a harmless no-op rather than a reason to drop the button.
+	const control = (
 		<Button
 			size="sm"
 			variant="plain"
@@ -130,13 +126,6 @@ function ChartLegendEntry({
 		>
 			{content}
 		</Button>
-	) : (
-		<span
-			data-slot="chart-legend-item"
-			className={cn('inline-flex items-center gap-1 px-2 py-1', panel && 'w-full min-w-0')}
-		>
-			{content}
-		</span>
 	)
 
 	return (
@@ -234,16 +223,16 @@ export type ChartLegendProps = {
 }
 
 /**
- * The legend — the dependable identity channel for two or more series, and
- * the chart's series switchboard: pointing (or keyboard-focusing) an entry
- * dims every other series, clicking toggles its series off. The switches are
- * plain HTML buttons outside the `role="img"` region, so assistive tech reads
- * and operates them; swatches carry the colour, the text stays in ink. A lone
- * entry has nothing to switch against — toggling it would blank the chart and
- * emphasis would dim nothing — so it drops the button and reads as a static
- * chip; the `toolbar` role and its roving appear only for two or more.
+ * The legend — the dependable identity channel for the series, and the chart's
+ * series switchboard: pointing (or keyboard-focusing) an entry dims every other
+ * series, clicking toggles its series off. The switches are plain HTML buttons
+ * outside the `role="img"` region, so assistive tech reads and operates them;
+ * swatches carry the colour, the text stays in ink. Every entry switches, a lone
+ * series included — toggling the only one off empties the chart by design, with
+ * the forced-on legend holding the switch that brings it back, and emphasis a
+ * no-op with no sibling marks to dim.
  *
- * @remarks With two or more entries the row is one Tab stop; the arrow keys
+ * @remarks The row is one Tab stop; the arrow keys
  * rove between the switches (Home / End jump to the ends) and Escape drops
  * focus, clearing the emphasis. Pointer and keyboard share the one emphasis
  * slot: the pointed-at entry wins, and leaving it reverts to a still-held
@@ -353,22 +342,18 @@ export function ChartLegend({
 		setReferenceActive(position === -1 ? null : (references[position]?.index ?? null))
 	}
 
-	// Two or more series make a switchboard; a lone one is a static chip.
-	const seriesInteractive = items.length > 1
-
 	// The row is a toolbar — one Tab stop, arrow-key roving, Escape to drop focus —
-	// whenever it holds a focusable control: the series switches, or the reference
-	// chips, which recede the marks on hover or focus.
-	const interactive = seriesInteractive || references.length > 0
+	// whenever it holds a focusable control: the series switches (every entry is
+	// one, a lone series included), or the reference chips, which recede the marks
+	// on hover or focus.
+	const interactive = items.length > 0 || references.length > 0
 
 	// A side panel stacks its controls in a column, so the arrows that rove them
 	// follow the layout — Up/Down down the panel, Left/Right across the wrap row.
 	const orientation = panel ? 'vertical' : 'horizontal'
 
 	// Rove across the focusable controls — series switches and reference chips
-	// alike — so a lone series' static chip keeps its queryable `chart-legend-item`
-	// slot without being seated a Tab stop, while the reference chips join the one
-	// stop the switches share.
+	// alike — sharing the one Tab stop the toolbar exposes.
 	const onKeyDown = useA11yRoving(ref, {
 		itemSelector:
 			'button[data-slot="chart-legend-item"], button[data-slot="chart-legend-reference"]',
@@ -387,15 +372,15 @@ export function ChartLegend({
 	}
 
 	// The toolbar role, its orientation, and the roving handler travel together:
-	// present for a switchboard, absent for a lone static chip (a plain grouping
-	// div with no interaction).
+	// present whenever the row holds a focusable control, absent for an empty
+	// grouping div with no interaction.
 	const toolbarProps = interactive
 		? ({ role: 'toolbar', 'aria-orientation': orientation, onKeyDown: handleKeyDown } as const)
 		: {}
 
-	// The entry switches (or a lone static chip), an optional pagination row, and
-	// any reference chips. Rendered inline in the wrap row; in panel mode they nest
-	// in a shrink-to-content, left-aligned inner block so the reserved column can
+	// The entry switches, an optional pagination row, and any reference chips.
+	// Rendered inline in the wrap row; in panel mode they nest in a
+	// shrink-to-content, left-aligned inner block so the reserved column can
 	// center that block rather than pin it to the plot.
 	const legendBody = (
 		<>
@@ -406,7 +391,6 @@ export function ChartLegend({
 					off={hidden.has(item.index)}
 					panel={panel}
 					texture={texture}
-					interactive={seriesInteractive}
 					onToggle={onToggle}
 					onPointerEmphasis={(index) => {
 						hovered.current = index
