@@ -7,8 +7,15 @@ import { Flex } from '../../../components/flex'
 import { Heading } from '../../../components/heading'
 import { Spacer } from '../../../components/spacer'
 import { Stack } from '../../../components/stack'
+import { cn } from '../../../core'
 import { deriveCode } from '../derive-code'
 import { useRegisterExample } from './demo-nav'
+import {
+	ExampleResizeHandle,
+	type ResizeProp,
+	resolveResize,
+	useExampleResize,
+} from './example-resize'
 
 /**
  * The demo showcase frame: renders its `children` in a bordered preview with a
@@ -20,6 +27,10 @@ import { useRegisterExample } from './demo-nav'
  * omitted. The optional `title`, `actions`, `prefix`, `preview`, and `footer`
  * slots frame the preview. A titled example registers itself with the page's
  * jump nav ({@link DemoNav}) and anchors the scroll target it jumps to.
+ *
+ * The optional `resize` prop makes the frame horizontally draggable via a
+ * right-edge handle and switches its border to dashed; see {@link resolveResize}
+ * for how the boolean and object forms normalize.
  */
 export function Example({
 	title,
@@ -28,6 +39,7 @@ export function Example({
 	preview,
 	footer,
 	code,
+	resize,
 	children,
 }: {
 	title?: ReactNode
@@ -37,6 +49,12 @@ export function Example({
 	footer?: ReactNode
 	/** Explicit override. When omitted, the block derives from `children`. */
 	code?: string
+	/**
+	 * Makes the frame horizontally resizable via a right-edge handle, with a
+	 * dashed border. `true` uses auto bounds; an object sets pixel `min`/`max`
+	 * (both auto by default) and toggles `snap` (default off).
+	 */
+	resize?: ResizeProp
 	children: ReactNode
 }) {
 	const derived = useMemo(() => (code ? null : deriveCode(children)), [code, children])
@@ -49,6 +67,10 @@ export function Example({
 
 	useRegisterExample(anchorId, title)
 
+	const resolvedResize = resolveResize(resize)
+
+	const { containerRef, width, resizing, handlers } = useExampleResize(resolvedResize)
+
 	return (
 		<Stack gap="sm" id={anchorId} data-slot="example">
 			{(title || actions) && (
@@ -58,7 +80,15 @@ export function Example({
 					{actions}
 				</Flex>
 			)}
-			<div className="rounded-lg border border-zinc-200 dark:border-zinc-800">
+			<div
+				ref={containerRef}
+				data-slot="example-frame"
+				style={width !== undefined ? { width } : undefined}
+				className={cn(
+					'relative rounded-lg border border-zinc-200 dark:border-zinc-800',
+					resolvedResize && 'border-dashed',
+				)}
+			>
 				{prefix && (
 					<div className="border-b border-zinc-200 dark:border-zinc-800 p-4">{prefix}</div>
 				)}
@@ -83,6 +113,14 @@ export function Example({
 							/>
 						</CollapsePanel>
 					</Collapse>
+				)}
+				{resolvedResize && (
+					<ExampleResizeHandle
+						resolved={resolvedResize}
+						width={width}
+						resizing={resizing}
+						handlers={handlers}
+					/>
 				)}
 			</div>
 		</Stack>
