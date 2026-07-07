@@ -216,6 +216,8 @@ function stackSegmentPath(
  *
  * @remarks A `null` value yields a `null` mark (an omitted bar, not a zero
  * one); an exact zero yields `null` too — the baseline already says zero.
+ * `thick` lifts the {@link BAR_MAX_WIDTH} cap so the group fills the band split
+ * by series and gaps, the leftover air turned to fill.
  * @internal
  */
 export function barMarks(
@@ -224,13 +226,13 @@ export function barMarks(
 	map: (value: number, seriesIndex: number) => number,
 	baseline: number | ((seriesIndex: number) => number),
 	orientation: ChartOrientation = 'vertical',
+	thick = false,
 ): (BarMark | null)[][] {
 	const seriesCount = Math.max(1, values.length)
 
-	const thickness = Math.max(
-		1,
-		Math.min(BAR_MAX_WIDTH, (band.width - (seriesCount - 1) * MARK_GAP) / seriesCount),
-	)
+	const slot = (band.width - (seriesCount - 1) * MARK_GAP) / seriesCount
+
+	const thickness = Math.max(1, thick ? slot : Math.min(BAR_MAX_WIDTH, slot))
 
 	const group = seriesCount * thickness + (seriesCount - 1) * MARK_GAP
 
@@ -328,7 +330,8 @@ function stackedSegment(orientation: ChartOrientation, segment: StackedSegment):
  * @remarks Positive values only for now: a `null`, zero, or negative value
  * takes no segment, matching the stacked {@link AreaChart}'s part-to-whole
  * reading. Only the outermost segment keeps a rounded end; a {@link MARK_GAP}
- * gap shows the surface between the rest.
+ * gap shows the surface between the rest. `thick` lifts the {@link BAR_MAX_WIDTH}
+ * cap so the column fills the whole band.
  * @internal
  */
 export function stackedBarMarks(
@@ -336,10 +339,11 @@ export function stackedBarMarks(
 	band: BandScale,
 	map: (value: number) => number,
 	orientation: ChartOrientation = 'vertical',
+	thick = false,
 ): (BarMark | null)[][] {
 	const count = values[0]?.length ?? 0
 
-	const thickness = Math.max(1, Math.min(BAR_MAX_WIDTH, band.width))
+	const thickness = Math.max(1, thick ? band.width : Math.min(BAR_MAX_WIDTH, band.width))
 
 	const lower = new Array<number>(count).fill(0)
 

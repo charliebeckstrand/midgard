@@ -46,6 +46,14 @@ export type BarChartProps<T> = CartesianChartProps<T> & {
 	 * @defaultValue false
 	 */
 	stacked?: boolean
+	/**
+	 * Let the bars fill their band instead of capping at the spec thickness:
+	 * grouped bars split the band by series and the surface gaps, a stacked
+	 * column takes the whole band. Suits a sparse category axis, where the
+	 * default ceiling would otherwise strand narrow bars in wide bands.
+	 * @defaultValue false
+	 */
+	thick?: boolean
 }
 
 /**
@@ -60,7 +68,8 @@ export type BarChartProps<T> = CartesianChartProps<T> & {
  * `orientation="horizontal"` transposes the whole frame — value axis on the
  * bottom, categories down the left — which suits long category labels and
  * ranked lists. `stacked` piles each category's series into one part-to-whole
- * column on the summed value axis instead of grouping them side by side. Focus
+ * column on the summed value axis instead of grouping them side by side; `thick`
+ * lifts the thickness cap so the bars fill their band, for a sparse axis. Focus
  * the plot to drive the crosshair and tooltip by keyboard — the band-axis
  * arrows step categories, the value-axis arrows cycle each category's series
  * values, transposed with the orientation. A reference line joins that
@@ -92,6 +101,7 @@ export function BarChart<T>({
 	animate = false,
 	orientation = 'vertical',
 	stacked = false,
+	thick = false,
 	texture = false,
 	min,
 	max,
@@ -142,9 +152,16 @@ export function BarChart<T>({
 
 	const marks = stacked
 		? stackScale
-			? stackedBarMarks(seriesValues, chart.band, stackScale.map, chart.orientation)
+			? stackedBarMarks(seriesValues, chart.band, stackScale.map, chart.orientation, thick)
 			: []
-		: barMarks(seriesValues, chart.band, projection.map, projection.baseline, chart.orientation)
+		: barMarks(
+				seriesValues,
+				chart.band,
+				projection.map,
+				projection.baseline,
+				chart.orientation,
+				thick,
+			)
 
 	// Stacked segments sit at cumulative tops, not the individual from-zero values
 	// `chart.snapPoints` carries, so the crosshair snap and keyboard cursor read the
