@@ -63,7 +63,7 @@ export function CalendarHeader({
 				onClick={onPrevMonth}
 				aria-label="Previous month"
 				prefix={<Icon icon={<ChevronLeft />} />}
-				className={cn(activeIndex === 0 && k.day.active)}
+				className={cn(activeIndex === 0 && k.day.active.base)}
 			/>
 			<CalendarPicker
 				year={year}
@@ -74,14 +74,14 @@ export function CalendarHeader({
 				monthLabels={monthLabels}
 				open={pickerOpen}
 				onOpenChange={onPickerOpenChange}
-				triggerClassName={cn(activeIndex === 1 && k.day.active)}
+				triggerClassName={cn(activeIndex === 1 && k.day.active.base)}
 			/>
 			<Button
 				variant="plain"
 				onClick={onNextMonth}
 				aria-label="Next month"
 				prefix={<Icon icon={<ChevronRight />} />}
-				className={cn(activeIndex === 2 && k.day.active)}
+				className={cn(activeIndex === 2 && k.day.active.base)}
 			/>
 		</div>
 	)

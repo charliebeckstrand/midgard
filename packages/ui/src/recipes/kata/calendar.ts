@@ -80,10 +80,14 @@ export const k = {
 	weekday,
 	day: {
 		base: 'w-full ring-inset',
-		active: [...focus.virtual],
-		activeSelected: ['bg-blue-600', ...focus.virtual],
-		rangeLeftEdge: 'rounded-r-none',
-		rangeRightEdge: 'rounded-l-none',
+		active: {
+			base: [...focus.virtual],
+			selected: ['bg-blue-600', ...focus.virtual],
+		},
+		range: {
+			leftEdge: 'rounded-r-none',
+			rightEdge: 'rounded-l-none',
+		},
 	},
 	skeleton: kokkaku.calendar,
 } as const
