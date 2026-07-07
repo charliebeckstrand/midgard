@@ -72,7 +72,14 @@ export function Example({
 	const { containerRef, width, resizing, handlers } = useExampleResize(resolvedResize)
 
 	return (
-		<Stack gap="sm" id={anchorId} data-slot="example">
+		<Stack
+			gap="sm"
+			id={anchorId}
+			data-slot="example"
+			// Reserve room for the handle's outer half, which straddles the frame's
+			// right edge, so it isn't clipped at full width.
+			className={cn(resolvedResize && 'pr-2')}
+		>
 			{(title || actions) && (
 				<Flex gap="md">
 					{title && <Heading level={3}>{title}</Heading>}
@@ -83,7 +90,9 @@ export function Example({
 			<div
 				ref={containerRef}
 				data-slot="example-frame"
-				style={width !== undefined ? { width } : undefined}
+				// `max-width` keeps the frame within its container, so it shrinks with
+				// the window instead of overflowing when the viewport narrows.
+				style={resolvedResize ? { width, maxWidth: '100%' } : undefined}
 				className={cn(
 					'relative rounded-lg border border-zinc-200 dark:border-zinc-800',
 					resolvedResize && 'border-dashed',

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { Example } from '../../components/example'
 import { resolveResize, resolveWidth, SNAP_STEP } from '../../components/example-resize'
-import { bySlot, renderUI, screen } from '../helpers'
+import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 // Example derives its code block from children; a bare string keeps derivation
 // trivial and leaves the resize surface the only thing under test.
@@ -97,5 +97,92 @@ describe('Example resize', () => {
 		expect(handle).toHaveAttribute('aria-valuemin', '120')
 
 		expect(handle).toHaveAttribute('aria-valuemax', '320')
+	})
+
+	it('reserves right padding for the handle and caps the frame to its container', () => {
+		const { container } = renderExample(true)
+
+		// Padding-right on the frame's container keeps the straddling handle from
+		// being clipped at full width.
+		expect(bySlot(container, 'example')).toHaveClass('pr-2')
+
+		// `max-width` keeps the frame within its container as the viewport narrows.
+		expect(bySlot(container, 'example-frame')?.style.maxWidth).toBe('100%')
+	})
+})
+
+// jsdom ships no pointer-capture methods; stub them per element (no prototype
+// pollution) so the drag handlers, which capture the pointer, run.
+function stubPointerCapture(el: HTMLElement) {
+	let captured = false
+
+	el.setPointerCapture = () => {
+		captured = true
+	}
+
+	el.releasePointerCapture = () => {
+		captured = false
+	}
+
+	el.hasPointerCapture = () => captured
+}
+
+describe('Example resize drag', () => {
+	// `min: 0` keeps the jsdom-measured base width (0) from clamping, so the
+	// applied width is exactly the pointer delta.
+	function startDrag() {
+		const { container } = renderExample({ min: 0 })
+
+		const handle = bySlot(container, 'example-resize-handle') as HTMLElement
+
+		stubPointerCapture(handle)
+
+		const frame = bySlot(container, 'example-frame') as HTMLElement
+
+		fireEvent.pointerDown(handle, { button: 0, buttons: 1, clientX: 0, pointerId: 1 })
+
+		fireEvent.pointerMove(handle, { buttons: 1, clientX: 120, pointerId: 1 })
+
+		return { handle, frame }
+	}
+
+	it('resizes while dragging', () => {
+		const { frame } = startDrag()
+
+		expect(frame.style.width).toBe('120px')
+	})
+
+	it('stops resizing once the pointer is released', () => {
+		const { handle, frame } = startDrag()
+
+		fireEvent.pointerUp(handle, { clientX: 120, pointerId: 1 })
+
+		// A move after release must not resize — the reported bug.
+		fireEvent.pointerMove(handle, { buttons: 1, clientX: 400, pointerId: 1 })
+
+		expect(frame.style.width).toBe('120px')
+	})
+
+	it('ends the drag when a move reports no button held', () => {
+		const { handle, frame } = startDrag()
+
+		// A buttonless move means the pointerup was missed; the drag must end.
+		fireEvent.pointerMove(handle, { buttons: 0, clientX: 260, pointerId: 1 })
+
+		expect(frame.style.width).toBe('120px')
+
+		fireEvent.pointerMove(handle, { buttons: 1, clientX: 400, pointerId: 1 })
+
+		expect(frame.style.width).toBe('120px')
+	})
+
+	it('ends the drag on pointercancel', () => {
+		const { handle, frame } = startDrag()
+
+		fireEvent.pointerCancel(handle, { pointerId: 1 })
+
+		fireEvent.pointerMove(handle, { buttons: 1, clientX: 400, pointerId: 1 })
+
+		expect(frame.style.width).toBe('120px')
 	})
 })

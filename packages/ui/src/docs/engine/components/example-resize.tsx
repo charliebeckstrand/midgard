@@ -79,7 +79,30 @@ export type ResizeHandlers = {
 	onPointerDown: (event: ReactPointerEvent) => void
 	onPointerMove: (event: ReactPointerEvent) => void
 	onPointerUp: (event: ReactPointerEvent) => void
+	onPointerCancel: (event: ReactPointerEvent) => void
 	onKeyDown: (event: ReactKeyboardEvent) => void
+}
+
+/**
+ * The widest the frame may grow: its container's content box, so the width
+ * stays relative to the container even when `max` is auto. Falls back to
+ * unbounded when the container can't be measured (e.g. no layout in tests).
+ *
+ * @internal
+ */
+function availableWidth(el: HTMLElement): number {
+	const parent = el.parentElement
+
+	if (!parent) return Number.POSITIVE_INFINITY
+
+	const style = getComputedStyle(parent)
+
+	const inner =
+		parent.clientWidth -
+		parseFloat(style.paddingLeft || '0') -
+		parseFloat(style.paddingRight || '0')
+
+	return inner > 0 ? inner : Number.POSITIVE_INFINITY
 }
 
 /** What {@link useExampleResize} exposes to the frame and its handle. */
@@ -90,7 +113,7 @@ export type ExampleResize = {
 	handlers: ResizeHandlers
 }
 
-type DragStart = { pointerX: number; width: number }
+type DragStart = { pointerX: number; width: number; containerMax: number }
 
 /**
  * Drives an {@link Example} frame's manual width. Returns the container ref to
@@ -99,10 +122,13 @@ type DragStart = { pointerX: number; width: number }
  *
  * @param resolved - The resize settings, or `null` when resizing is off.
  * @remarks
- * Pointer drags use pointer capture, so a drag that leaves the handle still
- * tracks; arrow keys nudge by a grid step (Shift for a coarser jump) and
- * Home/End jump to a defined bound. The latest `resolved` is read through a ref,
- * keeping the handlers stable across renders.
+ * The width is capped at the container's content box (see {@link availableWidth})
+ * even when `max` is auto. Pointer drags use pointer capture, so a drag that
+ * leaves the handle still tracks; a move with no button down — or a
+ * `pointercancel` — ends the drag so a missed `pointerup` can't leave it stuck.
+ * Arrow keys nudge by a grid step (Shift for a coarser jump) and Home/End jump
+ * to a defined bound. The latest `resolved` is read through a ref, keeping the
+ * handlers stable across renders.
  */
 export function useExampleResize(resolved: ResolvedResize | null): ExampleResize {
 	const containerRef = useRef<HTMLDivElement | null>(null)
@@ -117,12 +143,28 @@ export function useExampleResize(resolved: ResolvedResize | null): ExampleResize
 
 	resolvedRef.current = resolved
 
-	const setResolvedWidth = useCallback((proposed: number) => {
+	const setResolvedWidth = useCallback((proposed: number, cap = Number.POSITIVE_INFINITY) => {
 		const settings = resolvedRef.current
 
 		if (!settings) return
 
-		setWidth(resolveWidth(proposed, settings))
+		// The container caps the width even when `max` is auto, so the frame stays
+		// relative to its container rather than overflowing it.
+		const max = Math.min(settings.max ?? Number.POSITIVE_INFINITY, cap)
+
+		setWidth(resolveWidth(proposed, { ...settings, max: Number.isFinite(max) ? max : undefined }))
+	}, [])
+
+	const endDrag = useCallback((event: ReactPointerEvent) => {
+		if (!startRef.current) return
+
+		startRef.current = null
+
+		setResizing(false)
+
+		if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+			event.currentTarget.releasePointerCapture(event.pointerId)
+		}
 	}, [])
 
 	const onPointerDown = useCallback((event: ReactPointerEvent) => {
@@ -132,7 +174,11 @@ export function useExampleResize(resolved: ResolvedResize | null): ExampleResize
 
 		event.preventDefault()
 
-		startRef.current = { pointerX: event.clientX, width: container.getBoundingClientRect().width }
+		startRef.current = {
+			pointerX: event.clientX,
+			width: container.getBoundingClientRect().width,
+			containerMax: availableWidth(container),
+		}
 
 		event.currentTarget.setPointerCapture(event.pointerId)
 
@@ -145,20 +191,19 @@ export function useExampleResize(resolved: ResolvedResize | null): ExampleResize
 
 			if (!start) return
 
-			setResolvedWidth(start.width + (event.clientX - start.pointerX))
+			// A move with no button down means the pointerup was missed (an OS
+			// gesture, the pointer leaving the window); end the drag so it doesn't
+			// keep resizing without a held button.
+			if (event.buttons === 0) {
+				endDrag(event)
+
+				return
+			}
+
+			setResolvedWidth(start.width + (event.clientX - start.pointerX), start.containerMax)
 		},
-		[setResolvedWidth],
+		[endDrag, setResolvedWidth],
 	)
-
-	const onPointerUp = useCallback((event: ReactPointerEvent) => {
-		if (!startRef.current) return
-
-		startRef.current = null
-
-		setResizing(false)
-
-		event.currentTarget.releasePointerCapture(event.pointerId)
-	}, [])
 
 	const onKeyDown = useCallback(
 		(event: ReactKeyboardEvent) => {
@@ -167,6 +212,8 @@ export function useExampleResize(resolved: ResolvedResize | null): ExampleResize
 			const container = containerRef.current
 
 			if (!settings || !container) return
+
+			const cap = availableWidth(container)
 
 			// Keyboard resizing starts from the current width, falling back to the
 			// measured width before the first nudge sets one.
@@ -177,19 +224,19 @@ export function useExampleResize(resolved: ResolvedResize | null): ExampleResize
 			if (event.key === 'ArrowLeft') {
 				event.preventDefault()
 
-				setResolvedWidth(base - step)
+				setResolvedWidth(base - step, cap)
 			} else if (event.key === 'ArrowRight') {
 				event.preventDefault()
 
-				setResolvedWidth(base + step)
+				setResolvedWidth(base + step, cap)
 			} else if (event.key === 'Home' && settings.min !== undefined) {
 				event.preventDefault()
 
-				setResolvedWidth(settings.min)
+				setResolvedWidth(settings.min, cap)
 			} else if (event.key === 'End' && settings.max !== undefined) {
 				event.preventDefault()
 
-				setResolvedWidth(settings.max)
+				setResolvedWidth(settings.max, cap)
 			}
 		},
 		[setResolvedWidth, width],
@@ -199,7 +246,13 @@ export function useExampleResize(resolved: ResolvedResize | null): ExampleResize
 		containerRef,
 		width,
 		resizing,
-		handlers: { onPointerDown, onPointerMove, onPointerUp, onKeyDown },
+		handlers: {
+			onPointerDown,
+			onPointerMove,
+			onPointerUp: endDrag,
+			onPointerCancel: endDrag,
+			onKeyDown,
+		},
 	}
 }
 
@@ -240,6 +293,7 @@ export function ExampleResizeHandle({
 			onPointerDown={handlers.onPointerDown}
 			onPointerMove={handlers.onPointerMove}
 			onPointerUp={handlers.onPointerUp}
+			onPointerCancel={handlers.onPointerCancel}
 			onKeyDown={handlers.onKeyDown}
 			className={cn(
 				'absolute top-1/2 right-0 z-10 flex -translate-y-1/2 translate-x-1/2 items-center justify-center gap-0.5',
