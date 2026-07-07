@@ -1,6 +1,14 @@
 'use client'
 
-import { type RefObject, startTransition, useCallback, useEffect, useRef, useState } from 'react'
+import {
+	type RefObject,
+	startTransition,
+	useCallback,
+	useEffect,
+	useLayoutEffect,
+	useRef,
+	useState,
+} from 'react'
 
 /**
  * Frame sizing and measurement for the plot-bearing modules (chart, map): a
@@ -164,8 +172,11 @@ export function resolveFrameSizing(
  * live — no settle window, no timers — while React coalesces a burst by
  * abandoning renders whose size is already stale, so a window drag on a slow
  * frame refits at the pace the machine can afford and always lands on the
- * final size. The first measurement commits synchronously, so a frame
- * revealed after mount paints at once.
+ * final size. The mount measurement instead settles in a layout effect that
+ * re-runs on each size change, so a size that resolves a tier which mounts or
+ * drops the header and legend — reflowing the plot the drawing height reads —
+ * reaches its fixed point before the first paint rather than flashing a size it
+ * is about to abandon.
  *
  * @param width - An explicit drawing width, or `undefined` to fill and
  * measure the container.
@@ -215,6 +226,26 @@ export function usePlotFrame(
 		)
 	}, [measureWidth, measureHeight])
 
+	// Settle the size before the browser paints, and re-settle on every size
+	// change: the mount measure can resolve a tier that mounts or drops the
+	// header and legend, reflowing the plot the drawing height is read from — so
+	// a single measure would paint the first size, then jump when the reflow
+	// re-measures. Re-running on `size` drives that measure → reflow → re-measure
+	// chain to a fixed point before the first paint, so the frame never flashes a
+	// size it is about to abandon. The tier resolves from a chrome-independent
+	// height (see `chartPolicy` callers), so the chain converges rather than
+	// oscillating, and the equality-guarded `setSize` stops it once it lands.
+	// A layout effect, not passive, so the settle precedes paint the way the
+	// legend's own fit measure does. `size` is a re-trigger, not read: each run
+	// measures the DOM afresh, so re-running on the last committed size walks the
+	// chain to its fixed point.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: `size` re-triggers the re-measure; the effect reads the live DOM, not the value.
+	useLayoutEffect(() => {
+		if (!(measureWidth || measureHeight)) return
+
+		measure()
+	}, [measure, measureWidth, measureHeight, size])
+
 	// Observe only while a measured axis feeds the sizing — a fully fixed
 	// frame constructs no observer, so a resize never re-renders it. The
 	// effect no-ops instead of delegating to `useResizeObserver` because the
@@ -223,8 +254,6 @@ export function usePlotFrame(
 		const el = ref.current
 
 		if (!el || !(measureWidth || measureHeight)) return
-
-		measure()
 
 		const observer = new ResizeObserver(() => {
 			// Transition priority: a burst of notifications coalesces — React
