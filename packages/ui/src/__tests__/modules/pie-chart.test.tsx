@@ -322,12 +322,12 @@ describe('PieChart', () => {
 
 		expect(plot.compareDocumentPosition(panel) & 4).toBeTruthy()
 
-		expect(panel.parentElement?.className).toContain('@xl:flex-row')
+		expect(panel.parentElement?.className).toContain('@sm:flex-row')
 
 		const left = renderUI(chart({ legend: 'left' }))
 
 		expect(bySlot(left.container, 'chart-legend')?.parentElement?.className).toContain(
-			'@xl:flex-row-reverse',
+			'@sm:flex-row-reverse',
 		)
 	})
 

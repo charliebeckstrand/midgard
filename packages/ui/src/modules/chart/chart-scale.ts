@@ -107,21 +107,28 @@ export function linearScale({
 
 	const [rawLow, rawHigh] = widen(Math.min(...finite), Math.max(...finite), zeroBaseline)
 
-	const step = niceStep((rawHigh - rawLow) / Math.max(1, tickTarget))
+	// A spark scale carries no axis to align to (`tickTarget` 0), so it fits the
+	// domain to the data extent rather than nice-stepping it — a nice-stepped
+	// sparkline sinks into a band of empty air instead of filling its box. Pins
+	// still win on their own side either way.
+	const tight = tickTarget <= 0
 
-	const low = min ?? Math.floor(rawLow / step) * step
+	const step = tight ? 0 : niceStep((rawHigh - rawLow) / Math.max(1, tickTarget))
 
-	const high = max ?? Math.ceil(rawHigh / step) * step
+	const low = min ?? (tight ? rawLow : Math.floor(rawLow / step) * step)
+
+	const high = max ?? (tight ? rawHigh : Math.ceil(rawHigh / step) * step)
 
 	const span = high - low
 
-	const firstTick = Math.ceil(low / step) * step
-
 	const ticks: number[] = []
 
-	// A tiny epsilon absorbs float drift so the ceiling tick isn't dropped.
-	for (let tick = firstTick; tick <= high + step * 1e-6; tick += step) {
-		ticks.push(Math.abs(tick) < step * 1e-6 ? 0 : tick)
+	// A tiny epsilon absorbs float drift so the ceiling tick isn't dropped; a
+	// tight spark scale draws none at all.
+	if (!tight) {
+		for (let tick = Math.ceil(low / step) * step; tick <= high + step * 1e-6; tick += step) {
+			ticks.push(Math.abs(tick) < step * 1e-6 ? 0 : tick)
+		}
 	}
 
 	const [from, to] = range

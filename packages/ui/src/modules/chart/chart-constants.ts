@@ -42,8 +42,15 @@ export const MARKER_RING_WIDTH = 2
 /** The area wash's opacity, sitting the fill under its line without muddying it. @internal */
 export const AREA_FILL_OPACITY = 0.16
 
-/** Estimated glyph advance of a `text-xs` tabular digit, for the y-gutter estimate. @internal */
-export const TICK_CHAR_WIDTH = 7.2
+/**
+ * Estimated glyph advance of a `text-sm` tick-label character, for the y-gutter
+ * estimate — the size {@link k.tick} renders at. Sized a touch above a bare
+ * tabular digit so a compact label's proportional suffix (`K` / `M`, wider than a
+ * digit) still clears the frame; {@link GUTTER_EDGE_PAD} absorbs the rest of that
+ * variance. Stays under {@link LABEL_CHAR_WIDTH}, which reserves for fully
+ * proportional category labels. @internal
+ */
+export const TICK_CHAR_WIDTH = 8.5
 
 /**
  * Estimated glyph advance of a proportional category label's character, for the
@@ -58,8 +65,12 @@ export const LABEL_CHAR_WIDTH = 9
 /** Air between the y tick labels and the plot edge. @internal */
 export const GUTTER_GAP = 8
 
-/** Slack between the frame edge and the widest label, absorbing estimate error. @internal */
-export const GUTTER_EDGE_PAD = 4
+/**
+ * Slack between the frame edge and the widest label, absorbing per-char estimate
+ * error — including a compact label's wide `K` / `M` suffix, which a single
+ * per-char advance under-counts on a short label. @internal
+ */
+export const GUTTER_EDGE_PAD = 6
 
 /** Y-gutter clamp so extreme labels can't crowd out the plot; roomy enough for currency strings. @internal */
 export const GUTTER_MAX = 96
@@ -91,6 +102,15 @@ export const BAND_LABEL_HEIGHT = 16
 
 /** Air above the plot so the top tick label and markers stay inside the frame. @internal */
 export const PLOT_TOP_PAD = 8
+
+/**
+ * Air below the plot for the floor value-tick label's lower half when the band
+ * axis is dropped (a short frame keeps its value gutter but sheds its band row) —
+ * the mirror of {@link PLOT_TOP_PAD} for the ceiling tick, so the zero label
+ * clears the frame edge instead of clipping where {@link X_AXIS_HEIGHT} would
+ * otherwise have covered it. @internal
+ */
+export const FLOOR_LABEL_PAD = 8
 
 /** Band a value-axis title adds to its gutter — one `text-xs` line box plus a breath of air. @internal */
 export const AXIS_TITLE_BAND = 16

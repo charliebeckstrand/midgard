@@ -5,11 +5,13 @@ import { cn } from '../../core'
 import type { FrameReserve } from '../../hooks'
 import { k } from '../../recipes/kata/chart'
 import type { AccessibleName } from '../../types'
+import { ChartHeader } from './chart-header'
 import type { ChartOrientation } from './chart-orientation'
 import { ChartPlotBox } from './chart-plot-box'
 import type { ChartLegendPlacement } from './chart-schema'
 import type { ChartSnap } from './chart-snap'
 import { ChartTable } from './chart-table'
+import type { ChartTier } from './chart-tier'
 import { ChartTooltip } from './chart-tooltip'
 import {
 	type ChartEmphasis,
@@ -32,6 +34,37 @@ function samePoint(a: ChartPoint | null, b: ChartPoint | null): boolean {
 
 /** The stable no-op a chart without a series-emphasis channel hands the keyboard. @internal */
 function ignoreActiveSeries(_series: number | null): void {}
+
+/**
+ * The header, spark veil, and legend a framed chart draws at its resolved tier.
+ * A framed tier bands the header above the plot inside the aspect box and keeps
+ * the legend beside or below it; spark strips both to bare marks — the header
+ * leaves the flow for a centered hover / focus veil over the plot, and the
+ * legend drops entirely so the `flex-1` plot reclaims the whole aspect box and
+ * draws as a pure sparkline, rather than wrapping under a legend band that
+ * crushes it to a sliver of dashes. The series then read on the hover tooltip,
+ * as the title does on the veil. A chart with no title or subtitle draws no
+ * header either way.
+ *
+ * @internal
+ */
+function chartChrome(
+	tier: ChartTier | undefined,
+	title: string | undefined,
+	subtitle: string | undefined,
+	legend: ReactNode,
+): { header: ReactNode; sparkVeil: ReactNode; legend: ReactNode } {
+	const spark = tier === 'spark'
+
+	const head =
+		title || subtitle ? <ChartHeader title={title} subtitle={subtitle} veil={spark} /> : null
+
+	return {
+		header: spark ? null : head,
+		sparkVeil: spark ? head : null,
+		legend: spark ? null : legend,
+	}
+}
 
 /**
  * The plot region's attributes: the keyboard tab stop and its focus ring when
@@ -85,11 +118,27 @@ export type ChartFrameProps = AccessibleName & {
 	fill?: boolean
 	/**
 	 * The `width / height` the figure wrapper carries as CSS `aspect-ratio`, so
-	 * the whole chart — plot and legend together — holds the ratio and the plot
-	 * fills what the legend's natural size leaves. Unset, no wrapper ratio: the
-	 * plot box reserves its own (no legend) or the frame is fixed / free-form.
+	 * the whole chart — plot and legend together — holds the ratio as a preference
+	 * a definite-height parent can clamp, the plot filling what the legend's
+	 * natural size leaves. Unset, no wrapper ratio: the plot box reserves its own
+	 * (a side legend banding beside it) or the frame is fixed / free-form.
 	 */
 	aspect?: number
+	/**
+	 * The resolved anatomy tier, published on the root as `data-tier` so a
+	 * dashboard tile can co-style its own chrome with the chart's resolution.
+	 * Omitted, no attribute renders.
+	 */
+	tier?: ChartTier
+	/**
+	 * The chart title, drawn above the plot inside the aspect box (so the drawing
+	 * fills the height it leaves) and clipped to one line with a reveal tooltip. At
+	 * the spark tier it leaves the flow for a centered hover / focus veil over the
+	 * marks instead.
+	 */
+	title?: string
+	/** The chart subtitle, muted under the {@link ChartFrameProps.title | title}, sharing its clip and spark veil. */
+	subtitle?: string
 	/** The prepared legend row, or `null` to omit it (single series). */
 	legend: ReactNode
 	/**
@@ -156,6 +205,9 @@ export function ChartFrame({
 	reserve,
 	fill = false,
 	aspect,
+	tier,
+	title,
+	subtitle,
 	legend,
 	legendPlacement = 'bottom',
 	readout,
@@ -196,12 +248,19 @@ export function ChartFrame({
 
 	const [activeReference, setActiveReference] = useState<number | null>(null)
 
+	// Spark sheds its hover chrome with the rest of its anatomy: a sparkline reveals
+	// what it is through the title veil on hover, not a data readout, so the tooltip
+	// — and the keyboard cursor whose only output is that tooltip — stand down. The
+	// accessible name and the data table still carry its values. Every wider tier
+	// keeps the caller's `tooltip`.
+	const tooltipShown = tooltip && tier !== 'spark'
+
 	// Arrow-key navigation over the value points and reference lines, driving the
 	// same hover the pointer does — a tab stop only where a readout can answer it.
 	const keyboard = useChartKeyboard(
 		focus,
 		orientation ?? 'vertical',
-		tooltip && readout !== null,
+		tooltipShown && readout !== null,
 		hover.set,
 		setActiveReference,
 		onActiveSeries,
@@ -236,6 +295,11 @@ export function ChartFrame({
 	// `aspect-ratio` and needs no container height.
 	const containerFill = fill && aspect === undefined
 
+	// A framed tier bands the header above the plot and keeps the legend; spark
+	// strips both to bare marks — the header to a centered hover / focus veil, the
+	// legend gone so the plot reclaims the whole aspect box (see chartChrome).
+	const { header, sparkVeil, legend: legendFrame } = chartChrome(tier, title, subtitle, legend)
+
 	const plotRegion = (
 		<div
 			ref={ref}
@@ -254,7 +318,9 @@ export function ChartFrame({
 
 			{overlay}
 
-			{tooltip && readout && width > 0 && (
+			{sparkVeil}
+
+			{tooltipShown && readout && width > 0 && (
 				<ChartTooltip
 					plotRef={ref}
 					readout={readout}
@@ -269,14 +335,18 @@ export function ChartFrame({
 	return (
 		<div
 			data-slot="chart"
+			data-tier={tier}
 			className={cn(
 				// A query container so the legend lays out against the chart's own width,
 				// not the viewport — a chart in a narrow column stacks its legend even on
-				// a wide screen. `w-full` fills the container up to a natural default cap
-				// (overridable through `className`, which twMerge lets win) so a bare chart
-				// reads well on a wide screen instead of stretching edge to edge.
-				'@container flex flex-col gap-3',
-				fixedWidth === undefined && 'w-full max-w-2xl',
+				// a wide screen. `w-full` fills whatever box it is handed: the anatomy
+				// resolves from that box (the intrinsic tiers), so a chart reads at any
+				// width without a max-width cap. A `className` still overrides through
+				// twMerge for a caller that wants to bound it.
+				// The named group scopes the spark header's hover / focus veil to the
+				// chart, so it never trips on an unnamed `group-hover` inside the marks.
+				'group/chart @container flex flex-col gap-3',
+				fixedWidth === undefined && 'w-full',
 				containerFill && 'h-full',
 				className,
 			)}
@@ -286,7 +356,8 @@ export function ChartFrame({
 				<ChartHoverContext value={hover}>
 					<ChartFigure
 						plot={plotRegion}
-						legend={legend}
+						header={header}
+						legend={legendFrame}
 						legendPlacement={legendPlacement}
 						aside={aside}
 						containerFill={containerFill}
@@ -305,6 +376,8 @@ export function ChartFrame({
 /** Props for {@link ChartFigure}. @internal */
 type ChartFigureProps = {
 	plot: ReactNode
+	/** The inline header banded above the plot inside the aspect box, or `null`. */
+	header: ReactNode
 	legend: ReactNode
 	legendPlacement: ChartLegendPlacement
 	/** The legend is a side panel, so the plot and legend lay out in a row once the container has room. */
@@ -318,15 +391,17 @@ type ChartFigureProps = {
 /**
  * The legend and plot laid out together under the whole-chart aspect-ratio: the
  * plot fills what the legend's natural size leaves, so the ratio describes the
- * chart rather than the plot alone. A side legend lays the two out in a row once
- * the container has room (`@xl`) — the panel always under the chart below that,
- * so a left panel reverses the row instead of moving in the DOM — else they stack
- * with the legend banding above or below.
+ * chart rather than the plot alone, and it holds as a preference a definite-height
+ * parent can clamp (the box-law) rather than a height the drawing forces. A side
+ * legend lays the two out in a row once the container has room (`@sm`) — the panel
+ * always under the chart below that, so a left panel reverses the row instead of
+ * moving in the DOM — else they stack with the legend banding above or below.
  *
  * @internal
  */
 function ChartFigure({
 	plot,
+	header,
 	legend,
 	legendPlacement,
 	aside,
@@ -338,38 +413,55 @@ function ChartFigure({
 	// frame centers them, the plot keeping its own height beside the legend.
 	const stretch = aspect !== undefined || containerFill
 
-	const layout = aside
-		? cn(
-				// Stacked until the container has room for the legend panel beside a usable
-				// plot (`@xl` ≈ the panel plus a plot wider than it); below that the legend
-				// bands under the plot, which keeps its full width instead of squeezing.
-				'flex-col gap-2',
-				stretch ? '@xl:items-stretch' : '@xl:items-center',
-				legendPlacement === 'left' ? '@xl:flex-row-reverse' : '@xl:flex-row',
-			)
-		: 'flex-col gap-3'
+	// The plot-and-legend arrangement, filling the height the header leaves. A side
+	// rail bands beside the plot in a row once the container has room (`@sm`, the
+	// rail's engage width) — below that it stacks under the plot at full width, and
+	// a left rail reverses the row rather than moving in the DOM. A stacked legend
+	// bands above or below directly, no wrapper. Either way the `flex-1` plot draws
+	// into the ratio's remainder, so the whole figure still holds the ratio.
+	const body = aside ? (
+		<div
+			data-slot="chart-body"
+			className={cn(
+				'flex min-h-0 flex-1 flex-col gap-2',
+				stretch ? '@sm:items-stretch' : '@sm:items-center',
+				legendPlacement === 'left' ? '@sm:flex-row-reverse' : '@sm:flex-row',
+			)}
+		>
+			{plot}
+
+			{legend}
+		</div>
+	) : (
+		<>
+			{legendPlacement === 'top' && legend}
+
+			{plot}
+
+			{legendPlacement === 'bottom' && legend}
+		</>
+	)
 
 	return (
 		<div
 			data-slot="chart-figure"
-			className={cn('flex min-h-0', layout, containerFill && 'h-full flex-1')}
+			// The ratio rides `aspect-ratio` as a preference, not a demand: `max-h-full`
+			// lets a definite-height parent clamp the figure below what the ratio would
+			// ask for, and the `flex-1` plot then measures the clamped height and draws
+			// to fit — the box is law. The header bands above at its own height, so the
+			// plot fills what the ratio leaves under it. An auto-height parent ignores
+			// `max-h-full`, so the ratio governs as normal; `min-h-0` lets the clamp
+			// actually shrink it.
+			className={cn(
+				'flex min-h-0 flex-col gap-3',
+				aspect !== undefined && 'max-h-full',
+				containerFill && 'h-full flex-1',
+			)}
 			style={aspect === undefined ? undefined : { aspectRatio: aspect }}
 		>
-			{aside ? (
-				<>
-					{plot}
+			{header}
 
-					{legend}
-				</>
-			) : (
-				<>
-					{legendPlacement === 'top' && legend}
-
-					{plot}
-
-					{legendPlacement === 'bottom' && legend}
-				</>
-			)}
+			{body}
 		</div>
 	)
 }

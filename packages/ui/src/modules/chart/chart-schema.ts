@@ -373,6 +373,21 @@ export type ChartBaseProps<T> = AccessibleName & {
 	/** The rows to plot. An empty array renders an empty frame. */
 	data: T[]
 	/**
+	 * A heading drawn above the plot — the chart's own title, distinct from the
+	 * accessible name the `role="img"` region carries for assistive tech. It sits
+	 * inside the aspect box, so the drawing fills the height it leaves, and
+	 * truncates to one line with a reveal tooltip. At the spark tier the header
+	 * leaves the flow and shows as a centered overlay on hover or focus, so a
+	 * sparkline stays pure marks until a reader asks what it is.
+	 */
+	title?: string
+	/**
+	 * A subheading under the {@link ChartBaseProps.title | title}, muted and
+	 * smaller — a unit, a period, a caveat. It truncates the same way and shares
+	 * the spark header's hover / focus veil.
+	 */
+	subtitle?: string
+	/**
 	 * Frame width in px. Omitted, the chart measures its container and fills
 	 * it; pass a width for a fixed frame (and for deterministic SSR output).
 	 */

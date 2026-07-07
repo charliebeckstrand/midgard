@@ -6,6 +6,7 @@ import {
 	stackedBarSnapPoints,
 	stackedBarSnapSeries,
 } from '../../modules/chart/bar-chart/bar-chart-geometry'
+import { TICK_CHAR_WIDTH } from '../../modules/chart/chart-constants'
 import { bandScale } from '../../modules/chart/chart-scale'
 import { act, allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
 
@@ -484,10 +485,10 @@ describe('BarChart', () => {
 		expect(bySlot(container, 'aspect-ratio')).toBeNull()
 	})
 
-	it('reserves the box height with the AspectRatio primitive when no legend shares the box', () => {
-		// One series shows no legend, so nothing shares the aspect box: the plot box
-		// reserves the ratio from its own width, holding steady before measure and
-		// across animation replays.
+	it('carries the ratio on the figure even with no legend, so a parent can clamp it', () => {
+		// One series shows no legend, but the ratio still rides the figure as a CSS
+		// preference — a definite-height parent clamps the whole chart (the box-law)
+		// rather than the plot box forcing its own height and overflowing it.
 		const { container } = renderUI(
 			chart({
 				series: [{ xKey: 'quarter', yKey: 'revenue', yName: 'Revenue' }],
@@ -495,11 +496,21 @@ describe('BarChart', () => {
 			}),
 		)
 
-		const box = bySlot(container, 'aspect-ratio') as HTMLElement
+		const figure = bySlot(container, 'chart-figure') as HTMLElement
 
-		expect(box.style.aspectRatio.replace(/\s*\/\s*1$/, '')).toBe('1.7777777777777777')
+		expect(figure.style.aspectRatio.replace(/\s*\/\s*1$/, '')).toBe('1.7777777777777777')
 
-		expect(bySlot(container, 'chart-figure')?.style.aspectRatio).toBe('')
+		// The plot box reserves no ratio of its own — it fills and measures the figure.
+		expect(bySlot(container, 'aspect-ratio')).toBeNull()
+
+		const plot = bySlot(container, 'chart-plot') as HTMLElement
+
+		expect(plot.className).toContain('flex-1')
+
+		expect((plot.firstElementChild as HTMLElement).className).toContain('size-full')
+
+		// `max-h-full` lets a shorter parent clamp the figure below the ratio's ask.
+		expect(figure.className).toContain('max-h-full')
 	})
 
 	it('takes a fixed pixel height with no ratio reserved when a height is set', () => {
@@ -559,11 +570,35 @@ describe('BarChart tickRotation', () => {
 				aria-label="Monthly totals"
 				data={LONG_CATEGORIES.map((month, index) => ({ month, total: (index + 1) * 10 }))}
 				series={[{ xKey: 'month', yKey: 'total', yName: 'Total' }]}
-				width={260}
+				// Standard width, where the band thins its labels (and tickRotation can
+				// tilt them instead); a compact frame would show only its ends.
+				width={420}
 				{...extra}
 			/>,
 		)
 	}
+
+	it('shows only the first and last label in a compact frame, whatever the rotation', () => {
+		// Below the compact width the band drops to its ends — a more aggressive
+		// reduction than thinning that tickRotation does not override, since the
+		// tier already spent the room a tilted run would need.
+		const { container } = longChart({ width: 300, tickRotation: true })
+
+		const ticks = [...(bySlot(container, 'chart-axis-x')?.querySelectorAll('text') ?? [])]
+
+		expect(ticks).toHaveLength(2)
+
+		expect(ticks[0]?.textContent).toBe('January Sales')
+
+		expect(ticks[1]?.textContent).toBe('June Sales')
+
+		// The ends read flat and anchor inward, never tilted.
+		expect(ticks.every((tick) => tick.getAttribute('transform') === null)).toBe(true)
+
+		expect(ticks[0]?.getAttribute('text-anchor')).toBe('start')
+
+		expect(ticks[1]?.getAttribute('text-anchor')).toBe('end')
+	})
 
 	it('thins long labels by default instead of tilting them', () => {
 		const { container } = longChart()
@@ -663,7 +698,7 @@ describe('BarChart horizontal', () => {
 		for (const label of labels) {
 			const x = Number(label.getAttribute('x'))
 
-			const half = ((label.textContent?.length ?? 0) * 7.2) / 2
+			const half = ((label.textContent?.length ?? 0) * TICK_CHAR_WIDTH) / 2
 
 			expect(x - half).toBeGreaterThanOrEqual(0)
 

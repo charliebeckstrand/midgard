@@ -30,6 +30,7 @@ import {
 } from '../chart-schema'
 import { formatChartValue, type SlotPaint } from '../chart-series'
 import { snapTargets } from '../chart-snap'
+import { chartPolicy } from '../chart-tier'
 import type { ChartReadout } from '../types'
 import { cartesianFocus } from '../use-chart-keyboard'
 import { useChartSeriesToggle } from '../use-chart-series-toggle'
@@ -188,28 +189,22 @@ type ScatterFrame = {
 
 /**
  * The scatter frame's sizing and legend layout resolved together: a live ratio
- * with a stacked legend goes to the figure wrapper so the whole chart holds it
- * (the plot measuring the height the band leaves), while a side legend keeps the
- * ratio on the plot box and bands beside it; the legend's placement also drives
- * the panel-vs-row layout. Derived from the props alone, so it precedes any
- * measurement.
+ * carries on the figure wrapper so a definite-height parent clamps the whole
+ * chart (the box-law, the plot measuring the height a stacked band leaves),
+ * while a side legend keeps the ratio on the plot box and bands beside it; the
+ * legend's placement also drives the panel-vs-row layout. Derived from the props
+ * alone, so it precedes any measurement.
  *
  * @internal
  */
 function scatterFrame(
 	legend: ScatterChartProps<unknown>['legend'],
-	seriesCount: number,
 	height: number | undefined,
 	aspectRatio: ChartAspectRatio,
 ): ScatterFrame {
 	const aside = legend === 'left' || legend === 'right'
 
-	const { sizing, outerAspect } = chartFrameLayout(
-		height,
-		aspectRatio,
-		Boolean(legend ?? seriesCount > 1),
-		aside,
-	)
+	const { sizing, outerAspect } = chartFrameLayout(height, aspectRatio, aside)
 
 	return {
 		sizing,
@@ -394,9 +389,14 @@ export function ScatterChart<T>({
 		fill: fillFrame,
 		aside,
 		placement,
-	} = scatterFrame(legend, series.length, height, aspectRatio)
+	} = scatterFrame(legend, height, aspectRatio)
 
 	const { ref, width: frameWidth, height: frameHeight, reserve } = usePlotFrame(width, sizing)
+
+	// The scatter reads the intrinsic tier from its measured box for the
+	// `data-tier` styling hook and the legend's row cap; its own axis ticks keep
+	// the density target above, so only the tier and its legend budget are taken.
+	const policy = chartPolicy(frameWidth, frameHeight, metrics.tickTarget)
 
 	const format = formatValue ?? formatChartValue
 
@@ -472,6 +472,7 @@ export function ScatterChart<T>({
 			reserve={reserve}
 			fill={fillFrame}
 			aspect={frameAspect}
+			tier={policy.tier}
 			legend={
 				legendItems && (
 					<ChartLegend
@@ -480,6 +481,7 @@ export function ScatterChart<T>({
 						onToggle={toggle}
 						onFocus={setFocus}
 						panel={aside}
+						maxRows={policy.legendRows}
 					/>
 				)
 			}

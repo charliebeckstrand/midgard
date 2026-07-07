@@ -631,9 +631,12 @@ export function HeatmapChart<T>({
 	formatValue,
 	className,
 	// Destructured off so the unwired base switches never fall into `...label` and
-	// spread onto the plot element as invalid DOM attributes.
+	// spread onto the plot element as invalid DOM attributes. The heatmap draws no
+	// header (a range legend, not a series frame), so `title` / `subtitle` join them.
 	animate: _animate,
 	texture: _texture,
+	title: _title,
+	subtitle: _subtitle,
 	...label
 }: HeatmapChartProps<T>) {
 	const primary = series[0]

@@ -6,7 +6,7 @@ import { cn } from '../../core'
 import { type FrameSizing, usePlotFrame } from '../../hooks'
 import { type ChartSeriesColor, k } from '../../recipes/kata/chart'
 import { formatPercent } from '../../utilities'
-import { MARK_GAP, TICK_CHAR_WIDTH } from './chart-constants'
+import { CHART_METRICS, MARK_GAP, TICK_CHAR_WIDTH } from './chart-constants'
 import { ChartFrame } from './chart-frame'
 import { type ChartAspectRatio, chartFrameSizing } from './chart-layout'
 import { ChartLegend, type ChartLegendItem } from './chart-legend'
@@ -20,6 +20,7 @@ import {
 	resolveTooltip,
 } from './chart-schema'
 import { formatChartValue, type SlotPaint, seriesValues } from './chart-series'
+import { chartPolicy, isSparkBox } from './chart-tier'
 import { useChartHover } from './context'
 import {
 	CALLOUT_CHAR_WIDTH,
@@ -72,7 +73,9 @@ export type PieBaseProps<T> = ChartBaseProps<T> & {
 	 * shrinking the pie to make room — see `aspectRatio`, the default frame
 	 * shrinks with it too, rather than leaving the labels' margin empty on
 	 * every side. Unlike segment labels these name the slice, so they read
-	 * without the legend.
+	 * without the legend. In a box too narrow for their columns — where they
+	 * would starve the pie to the spark floor — they drop and the pie draws as
+	 * bare marks, its share read from the tooltip and table instead.
 	 */
 	labels?: PieLabels
 }
@@ -395,21 +398,71 @@ function calloutTexts(spec: CalloutSpec, sliceValues: (number | null)[]): string
 	)
 }
 
+/**
+ * Whether a callout pie sized to `width` would collapse to the spark floor: the
+ * two label columns starving the pie to a sliver, the content frame shrinking
+ * with it (`2·radius + 2·vMargin` its height) until the box reads spark. There
+ * the callouts drop for a bare pie — the frame squares to receive it and the
+ * drawing sheds the labels to match; above it they fit and the tight, asymmetric
+ * callout frame holds. Read off the callout {@link pieCalloutFit fit radius} at
+ * `width`, so the sizing resolver and the drawing decide it the same way.
+ *
+ * @internal
+ */
+function calloutsSpark(fitRadius: number, vMargin: number, width: number): boolean {
+	return isSparkBox(width, 2 * fitRadius + 2 * vMargin)
+}
+
 /** The frame-sizing radius resolver callouts refine the content-fit height with; `undefined` when they're off. @internal */
 function calloutFitRadius(
 	show: boolean,
 	spec: CalloutSpec,
 	values: (number | null)[],
+	vMargin: number,
 ): ((width: number) => number) | undefined {
 	if (!show) return undefined
 
-	return (frameWidth) =>
-		pieCalloutFit({
+	return (frameWidth) => {
+		const { radius } = pieCalloutFit({
 			values,
 			texts: calloutTexts(spec, values),
 			charWidth: CALLOUT_CHAR_WIDTH,
 			frameWidth,
-		}).radius
+		})
+
+		// Below the spark floor the labels starve the pie, so size a bare square
+		// (`height = width`, the resolver value net of the `2·vMargin` the frame
+		// adds) for the dropped-callout pie to fill rather than a collapsing sliver.
+		return calloutsSpark(radius, vMargin, frameWidth) ? frameWidth / 2 - vMargin : radius
+	}
+}
+
+/**
+ * Whether the callouts draw at the measured `frameWidth`: on where they fit, off
+ * where they would starve the pie to the spark floor (see {@link calloutsSpark}),
+ * so it falls back to bare marks. Weighed on the full dataset like the frame
+ * sizing, so a toggled slice never flips the labels on or off under a steady
+ * frame.
+ *
+ * @internal
+ */
+function calloutsShown(
+	show: boolean,
+	spec: CalloutSpec,
+	values: (number | null)[],
+	vMargin: number,
+	frameWidth: number,
+): boolean {
+	if (!show) return false
+
+	const { radius } = pieCalloutFit({
+		values,
+		texts: calloutTexts(spec, values),
+		charWidth: CALLOUT_CHAR_WIDTH,
+		frameWidth,
+	})
+
+	return !calloutsSpark(radius, vMargin, frameWidth)
 }
 
 /**
@@ -708,7 +761,7 @@ export function ChartPie<T>({
 		aspectRatio,
 		calloutRoom(showCallouts, calloutSpec, values),
 		vMargin,
-		calloutFitRadius(showCallouts, calloutSpec, values),
+		calloutFitRadius(showCallouts, calloutSpec, values, vMargin),
 	)
 
 	// A live ratio with a legend describes the whole chart: the figure carries the
@@ -722,6 +775,12 @@ export function ChartPie<T>({
 	} = pieFrame(sizing, legend, data.length)
 
 	const { ref, width: frameWidth, height: frameHeight, reserve } = usePlotFrame(width, frameSizing)
+
+	// The pie reads the same intrinsic tier as a cartesian chart from its measured
+	// box — the `data-tier` styling hook, and the legend's row cap so a many-slice
+	// stacked legend never overruns the frame the way it used to. It has no value
+	// ticks, so the density ceiling the tick target would clamp is moot here.
+	const policy = chartPolicy(frameWidth, frameHeight, CHART_METRICS.md.tickTarget)
 
 	const { hidden, toggle, setFocus, emphasis } = useChartSeriesToggle()
 
@@ -738,9 +797,18 @@ export function ChartPie<T>({
 
 	const sliceFills = colors.map((color) => tex.fillFor(color))
 
-	const pieFit = resolvePieFit(showCallouts, calloutSpec, sliceValues, frameWidth)
+	// Callouts need a wide horizontal band; where that band would starve the pie to
+	// the spark floor, drop them and draw a bare pie — the sizing already squared
+	// the frame to receive it.
+	const drawCallouts = calloutsShown(showCallouts, calloutSpec, values, vMargin, frameWidth)
 
-	const radius = Math.max(0, Math.min(pieFit.radius, frameHeight / 2 - vMargin))
+	// A dropped callout returns the pie to the plain gap all round, so it fills the
+	// square rather than holding the taller callout band's margin.
+	const drawVMargin = drawCallouts ? vMargin : MARK_GAP * 2
+
+	const pieFit = resolvePieFit(drawCallouts, calloutSpec, sliceValues, frameWidth)
+
+	const radius = Math.max(0, Math.min(pieFit.radius, frameHeight / 2 - drawVMargin))
 
 	const innerRadius = radius * innerRatio
 
@@ -758,7 +826,7 @@ export function ChartPie<T>({
 	const sliceEmphasis = slices.some((slice) => slice.index === emphasis) ? emphasis : null
 
 	const calloutItems =
-		showCallouts && radius > 0
+		drawCallouts && radius > 0
 			? buildCallouts(calloutSpec, slices, center, radius, frameHeight)
 			: []
 
@@ -826,6 +894,7 @@ export function ChartPie<T>({
 			reserve={reserve}
 			fill={fillFrame}
 			aspect={frameAspect}
+			tier={policy.tier}
 			legend={
 				legendItems && (
 					<ChartLegend
@@ -834,6 +903,7 @@ export function ChartPie<T>({
 						onToggle={toggle}
 						onFocus={setFocus}
 						panel={aside}
+						maxRows={policy.legendRows}
 						texture={tex.active}
 					/>
 				)
