@@ -76,6 +76,12 @@ describe('extractDefaults — inline destructured defaults', () => {
 			'size',
 			`'md'`,
 		],
+		[
+			'keys a renamed binding under the public prop name, not the local',
+			`function Foo({ size: sizeProp = 'md' }) { return sizeProp }`,
+			'size',
+			`'md'`,
+		],
 	])('%s', (_name, src, prop, expected) => {
 		expect(extractDefaults(fromFunction(src)).get(prop)).toBe(expected)
 	})

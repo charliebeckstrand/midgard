@@ -73,6 +73,27 @@ describe('extractProjectPropNames', () => {
 			'FooProps',
 			['mode', 'valueA', 'valueB'],
 		],
+		[
+			'collects props supplied through a generic alias type argument',
+			[
+				`type WithFoo<T> = T & { foo?: string }`,
+				`type FooProps = WithFoo<{ bar: number }>`,
+				`export type _Use = FooProps`,
+			],
+			'FooProps',
+			['bar', 'foo'],
+		],
+		[
+			'drops a pass-through type argument while keeping the alias RHS props',
+			[
+				`import type { ComponentPropsWithoutRef } from 'react'`,
+				`type WithFoo<T> = T & { foo?: string }`,
+				`type FooProps = WithFoo<ComponentPropsWithoutRef<'button'>>`,
+				`export type _Use = FooProps`,
+			],
+			'FooProps',
+			['foo'],
+		],
 	])('%s', (_name, lines, alias, expected) => {
 		const names = projectNames({ 'index.ts': lines.join('\n') }, alias)
 

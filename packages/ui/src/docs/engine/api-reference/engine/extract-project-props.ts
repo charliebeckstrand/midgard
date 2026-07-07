@@ -116,6 +116,13 @@ function walk(
 		if (isSplittable(aliasTarget)) {
 			walk(aliasTarget, names, visited, checker)
 
+			// A generic alias' RHS is walked with its type parameters unbound, so
+			// props supplied through a type argument (`WithFoo<{ bar }>` where
+			// `type WithFoo<T> = T & { foo?: string }`) never surface. Walk the
+			// supplied arguments too; a pass-through argument still drops out via
+			// the pass-through guards above.
+			for (const arg of node.typeArguments ?? []) walk(arg, names, visited, checker)
+
 			return
 		}
 
