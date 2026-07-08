@@ -140,4 +140,97 @@ describe('useSortableList', () => {
 			}),
 		).not.toThrow()
 	})
+
+	it('calls onDragStart with the resolved item when a drag begins', () => {
+		const onDragStart = vi.fn()
+
+		const { result } = renderHook(() =>
+			useSortableList({ items, getKey: (i) => i.id, onDragStart }),
+		)
+
+		act(() => {
+			result.current.dndContextProps.onDragStart({ active: { id: 'b' } } as DragStartEvent)
+		})
+
+		expect(onDragStart).toHaveBeenCalledOnce()
+
+		expect(onDragStart).toHaveBeenCalledWith(items[1])
+	})
+
+	it('calls onDragEnd with the dragged item on a committed drop, after onReorder', () => {
+		const order: string[] = []
+
+		const onReorder = vi.fn(() => order.push('reorder'))
+
+		const onDragEnd = vi.fn(() => order.push('end'))
+
+		const { result } = renderHook(() =>
+			useSortableList({ items, getKey: (i) => i.id, onReorder, onDragEnd }),
+		)
+
+		act(() => {
+			result.current.dndContextProps.onDragStart({ active: { id: 'a' } } as DragStartEvent)
+		})
+
+		act(() => {
+			result.current.dndContextProps.onDragEnd({
+				active: { id: 'a' },
+				over: { id: 'c' },
+			} as DragEndEvent)
+		})
+
+		expect(onDragEnd).toHaveBeenCalledOnce()
+
+		expect(onDragEnd).toHaveBeenCalledWith(items[0])
+
+		// The commit fires before the lifecycle end, so the two bracket the move.
+		expect(order).toEqual(['reorder', 'end'])
+	})
+
+	it('calls onDragEnd on a drop-in-place even though onReorder does not fire', () => {
+		const onReorder = vi.fn()
+
+		const onDragEnd = vi.fn()
+
+		const { result } = renderHook(() =>
+			useSortableList({ items, getKey: (i) => i.id, onReorder, onDragEnd }),
+		)
+
+		act(() => {
+			result.current.dndContextProps.onDragStart({ active: { id: 'a' } } as DragStartEvent)
+		})
+
+		act(() => {
+			result.current.dndContextProps.onDragEnd({
+				active: { id: 'a' },
+				over: { id: 'a' },
+			} as DragEndEvent)
+		})
+
+		expect(onReorder).not.toHaveBeenCalled()
+
+		expect(onDragEnd).toHaveBeenCalledOnce()
+
+		expect(onDragEnd).toHaveBeenCalledWith(items[0])
+	})
+
+	it('calls onDragEnd with the dragged item on a cancel', () => {
+		const onDragEnd = vi.fn()
+
+		const { result } = renderHook(() =>
+			useSortableList({ items, getKey: (i) => i.id, onReorder: vi.fn(), onDragEnd }),
+		)
+
+		act(() => {
+			result.current.dndContextProps.onDragStart({ active: { id: 'c' } } as DragStartEvent)
+		})
+
+		act(() => {
+			result.current.dndContextProps.onDragCancel()
+		})
+
+		expect(onDragEnd).toHaveBeenCalledOnce()
+
+		expect(onDragEnd).toHaveBeenCalledWith(items[2])
+	})
 })

@@ -207,7 +207,7 @@ export type GridColumn<T> = {
 	 * The column's width. In a non-resizable grid this is its fixed CSS width. In a
 	 * resizable grid ({@link GridProps.resizable}) a `px` value seeds the column's
 	 * initial width: the column holds it — sitting out the automatic content sizing —
-	 * until the header's "Auto-size columns" releases it to content. A manual resize
+	 * until the header's "Auto-size all columns" releases it to content. A manual resize
 	 * overrides the seed (and, like any manual resize, holds every column where it
 	 * sits); a drag can't cross the {@link GridColumn.minWidth} floor, so a
 	 * single-word header stays whole. Omit it to size to content from the first
@@ -365,6 +365,20 @@ export type GridColumnSizing = {
 	value?: GridColumnSizingState
 	defaultValue?: GridColumnSizingState
 	onValueChange?: (sizing: GridColumnSizingState) => void
+	/**
+	 * Fires with the column id when a pointer/touch drag-resize begins. Pair with
+	 * {@link GridColumnSizing.onResizeEnd} to bracket the drag. A keyboard nudge
+	 * has no drag lifecycle — it commits straight through
+	 * {@link GridColumnSizing.onValueChange} — so it fires neither.
+	 */
+	onResizeStart?: (columnId: string) => void
+	/**
+	 * Fires with the column id when a pointer/touch drag-resize ends. The settled
+	 * width has already flowed through {@link GridColumnSizing.onValueChange}; this
+	 * only marks the drag's conclusion (e.g. to re-enable something held down over
+	 * it).
+	 */
+	onResizeEnd?: (columnId: string) => void
 }
 
 /**
@@ -468,6 +482,12 @@ export type GridColumnMenuContext<T> = {
 	unpin: () => void
 	/** Auto-sizes resizable columns to fill the width, or `undefined` when the grid is not resizable. */
 	autoSizeColumns: (() => void) | undefined
+	/**
+	 * Re-fits this column to its content ("Auto-size this column"), or `undefined`
+	 * when the grid is not resizable or this column carries no data (a selection /
+	 * actions column). The rest of the columns hold where they sit.
+	 */
+	autoSizeColumn: (() => void) | undefined
 	/** Opens the column-manager dialog ("Manage columns"). */
 	chooseColumns: () => void
 	/** One action per configured export type (see {@link GridProps.exportable}); empty when export is off. */
@@ -477,10 +497,11 @@ export type GridColumnMenuContext<T> = {
 /**
  * Header context-menu config: `true` (or omit) for the default items — Sort
  * ascending, Sort descending, Clear sort (when the column is sorted), Pin left /
- * Pin right / Unpin, Auto-size columns (when resizing is on), Manage columns —
- * or a builder receiving the {@link GridColumnMenuContext} and those defaults,
- * returning the final list to extend, reorder, or replace them. `false` omits
- * the header menu entirely.
+ * Pin right / Unpin, Group by … (when groupable), Auto-size this column (when
+ * resizing is on), then Auto-size all columns (when resizing is on) and Manage
+ * columns — or a builder receiving the {@link GridColumnMenuContext} and those
+ * defaults, returning the final list to extend, reorder, or replace them.
+ * `false` omits the header menu entirely.
  *
  * @typeParam T - Shape of a single row.
  */

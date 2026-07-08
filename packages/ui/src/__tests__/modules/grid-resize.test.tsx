@@ -347,4 +347,71 @@ describe('Grid resizable columns', () => {
 
 		expect(table?.className).not.toContain('[&>tbody>tr]:hover:bg-zinc-950/5')
 	})
+
+	// The drag lifecycle brackets a pointer resize: the engine flags the column on
+	// `mousedown` and clears it on the document-level `mouseup`.
+	it('fires onResizeStart on a primary-button press and onResizeEnd on release', () => {
+		const onResizeStart = vi.fn()
+
+		const onResizeEnd = vi.fn()
+
+		renderUI(
+			<Grid
+				resizable
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				columnSizing={{ onResizeStart, onResizeEnd }}
+			/>,
+		)
+
+		fireEvent.mouseDown(screen.getByRole('separator', { name: 'Resize Name' }), {
+			button: 0,
+			clientX: 200,
+		})
+
+		expect(onResizeStart).toHaveBeenCalledOnce()
+
+		expect(onResizeStart).toHaveBeenCalledWith('name')
+
+		expect(onResizeEnd).not.toHaveBeenCalled()
+
+		// The engine ends the drag on a document-level mouseup.
+		fireEvent.mouseUp(document)
+
+		expect(onResizeEnd).toHaveBeenCalledOnce()
+
+		expect(onResizeEnd).toHaveBeenCalledWith('name')
+	})
+
+	it('does not fire the resize lifecycle for a keyboard nudge', async () => {
+		const user = userEvent.setup()
+
+		const onResizeStart = vi.fn()
+
+		const onResizeEnd = vi.fn()
+
+		const onValueChange = vi.fn()
+
+		renderUI(
+			<Grid
+				resizable
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				columnSizing={{ onResizeStart, onResizeEnd, onValueChange }}
+			/>,
+		)
+
+		screen.getByRole('separator', { name: 'Resize Name' }).focus()
+
+		await user.keyboard('{ArrowRight}')
+
+		// The width commits, but a keyboard nudge has no drag lifecycle.
+		expect(onValueChange).toHaveBeenCalled()
+
+		expect(onResizeStart).not.toHaveBeenCalled()
+
+		expect(onResizeEnd).not.toHaveBeenCalled()
+	})
 })

@@ -6,7 +6,7 @@ import {
 	horizontalListSortingStrategy,
 	verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import type { Orientation } from '../types'
 import { useSortableSensors } from './use-sortable-sensors'
 
@@ -23,6 +23,14 @@ type SortableListOptions<T> = {
 	disabled?: boolean
 	/** Register dnd-kit's keyboard sensor. Disable when the caller handles keyboard reordering itself. @defaultValue true */
 	keyboardSensor?: boolean
+	/** Called when a drag begins, with the item being dragged. */
+	onDragStart?: (item: T) => void
+	/**
+	 * Called when a drag concludes — a drop (whether or not it reordered) or a
+	 * cancel — with the item that was dragged. Fires after any {@link onReorder},
+	 * so the two together bracket the interaction.
+	 */
+	onDragEnd?: (item: T) => void
 }
 
 /**
@@ -44,10 +52,16 @@ export function useSortableList<T>({
 	orientation = 'vertical',
 	disabled = false,
 	keyboardSensor = true,
+	onDragStart,
+	onDragEnd,
 }: SortableListOptions<T>) {
 	const interactive = !disabled && !!onReorder
 
 	const [activeId, setActiveId] = useState<string | null>(null)
+
+	// The item picked up at drag start, held so `onDragEnd` fires with it from
+	// both a drop and a cancel — the cancel event carries no reliable target.
+	const draggedItemRef = useRef<T | null>(null)
 
 	const sensors = useSortableSensors({ keyboard: keyboardSensor })
 
@@ -56,32 +70,57 @@ export function useSortableList<T>({
 	const strategy =
 		orientation === 'horizontal' ? horizontalListSortingStrategy : verticalListSortingStrategy
 
-	const handleDragStart = useCallback((event: DragStartEvent) => {
-		setActiveId(String(event.active.id))
-	}, [])
+	const handleDragStart = useCallback(
+		(event: DragStartEvent) => {
+			const id = String(event.active.id)
+
+			setActiveId(id)
+
+			// Resolve and cache the dragged item only when a lifecycle callback wants
+			// it, so a plain reorder-only list pays nothing.
+			if (onDragStart || onDragEnd) {
+				const item = items.find((candidate) => getKey(candidate) === id) ?? null
+
+				draggedItemRef.current = item
+
+				if (item != null) onDragStart?.(item)
+			}
+		},
+		[items, getKey, onDragStart, onDragEnd],
+	)
 
 	const handleDragEnd = useCallback(
 		(event: DragEndEvent) => {
 			setActiveId(null)
 
-			if (!onReorder) return
+			const dragged = draggedItemRef.current
+
+			draggedItemRef.current = null
 
 			const { active, over } = event
 
-			if (!over || active.id === over.id) return
+			if (onReorder && over && active.id !== over.id) {
+				const oldIdx = itemIds.indexOf(String(active.id))
 
-			const oldIdx = itemIds.indexOf(String(active.id))
+				const newIdx = itemIds.indexOf(String(over.id))
 
-			const newIdx = itemIds.indexOf(String(over.id))
+				if (oldIdx !== -1 && newIdx !== -1) onReorder(arrayMove(items, oldIdx, newIdx))
+			}
 
-			if (oldIdx === -1 || newIdx === -1) return
-
-			onReorder(arrayMove(items, oldIdx, newIdx))
+			if (dragged != null) onDragEnd?.(dragged)
 		},
-		[itemIds, items, onReorder],
+		[itemIds, items, onReorder, onDragEnd],
 	)
 
-	const handleDragCancel = useCallback(() => setActiveId(null), [])
+	const handleDragCancel = useCallback(() => {
+		setActiveId(null)
+
+		const dragged = draggedItemRef.current
+
+		draggedItemRef.current = null
+
+		if (dragged != null) onDragEnd?.(dragged)
+	}, [onDragEnd])
 
 	const dndContextProps = useMemo(
 		() => ({

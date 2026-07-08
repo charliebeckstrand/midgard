@@ -26,7 +26,7 @@ describe('isAutoSized', () => {
 	})
 
 	it('auto-sizes a width-seeded column once released', () => {
-		// "Auto-size columns" drops the id into `released`, so it rejoins the fit.
+		// "Auto-size all columns" drops the id into `released`, so it rejoins the fit.
 		expect(isAutoSized(column({ width: '200px' }), NONE, new Set(['name']))).toBe(true)
 	})
 

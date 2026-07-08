@@ -374,6 +374,17 @@ export type GridRowReorder<T> = {
 	 * @defaultValue false
 	 */
 	disabled?: boolean
+	/**
+	 * Fires with the dragged row's key when a reorder drag begins. Pair with
+	 * {@link GridRowReorder.onReorderEnd} to bracket the drag.
+	 */
+	onReorderStart?: (rowKey: string | number) => void
+	/**
+	 * Fires with the dragged row's key when a reorder drag ends — a drop (whether
+	 * or not the order changed) or a cancel. The reordered rows, when they changed,
+	 * arrive separately through {@link GridRowReorder.onReorder}.
+	 */
+	onReorderEnd?: (rowKey: string | number) => void
 }
 
 /**
@@ -386,6 +397,18 @@ export type GridColumnOrder = {
 	value?: (string | number)[]
 	defaultValue?: (string | number)[]
 	onValueChange?: (order: (string | number)[]) => void
+	/**
+	 * Fires with the dragged column's id when a header reorder drag begins (the
+	 * `reorder` handles). Pair with {@link GridColumnOrder.onReorderEnd} to bracket
+	 * the drag.
+	 */
+	onReorderStart?: (columnId: string | number) => void
+	/**
+	 * Fires with the dragged column's id when a header reorder drag ends — a drop
+	 * (whether or not the order changed) or a cancel. The new order, when it
+	 * changed, arrives separately through {@link GridColumnOrder.onValueChange}.
+	 */
+	onReorderEnd?: (columnId: string | number) => void
 }
 
 /**
@@ -706,7 +729,7 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * where it sits, so resizing one never reflows the others, and the table then
 	 * grows or shrinks freely (trailing space or a horizontal scroll) rather than
 	 * re-fitting. Widths persist through {@link GridDataProps.columnSizing}. The
-	 * header context menu's "Auto-size columns" clears every held width — manually
+	 * header context menu's "Auto-size all columns" clears every held width — manually
 	 * resized and `width`-seeded alike — and re-arms auto-fit. Set `false` to drop
 	 * the handles (columns still auto-size).
 	 * @defaultValue true
@@ -742,9 +765,10 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 
 	/**
 	 * Right-click context menus: a `column` menu on headers (Sort ascending /
-	 * descending, Auto-size columns, Manage columns, one item per active export
-	 * type) and a `cell` menu on body cells (Copy, one item per active export
-	 * type). On by default; pass `false` to disable. Each side takes the
+	 * descending, pin controls, Group by, Auto-size this column, then Auto-size
+	 * all columns, Manage columns, one item per active export type) and a `cell`
+	 * menu on body cells (Copy, one item per active export type). On by default;
+	 * pass `false` to disable. Each side takes the
 	 * defaults (`true`) or a builder that reshapes them. "Manage columns" opens
 	 * the column manager, rendering its dialog even without the toolbar button —
 	 * unless {@link GridColumnManagerConfig.enabled} is `false`, which drops it.
@@ -768,9 +792,12 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * Every type exports the same rows: the filtered and sorted set (all pages),
 	 * or just the selected rows when a {@link GridDataProps.selection} is active.
 	 * Each row reads a column's {@link GridColumn.value}, falling back to the row
-	 * field named by the column id; columns without either export an empty
-	 * field. Off by default so a grid doesn't expose a bulk export unless asked.
-	 * @defaultValue false
+	 * field named by the column id; columns without either export an empty field.
+	 *
+	 * CSV and Excel are on by default; pass `false` to disable export entirely, or
+	 * `true` to add print to the set. Print stays opt-in because it opens the
+	 * browser print dialog rather than downloading a file.
+	 * @defaultValue `['csv', 'excel']`
 	 */
 	exportable?: boolean | GridExportEntry<T>[]
 

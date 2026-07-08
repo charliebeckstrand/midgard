@@ -20,6 +20,10 @@ type GridReorderOptions<T> = {
 	visibleColumns: GridColumn<T>[]
 	/** Commits a header drag: the new order of the reorderable column ids. */
 	reorderColumns: (reorderedIds: (string | number)[]) => void
+	/** Fires with the dragged column's id when a reorder drag begins. */
+	onReorderStart?: (columnId: string | number) => void
+	/** Fires with the dragged column's id when a reorder drag ends (drop or cancel), after any commit. */
+	onReorderEnd?: (columnId: string | number) => void
 }
 
 /**
@@ -41,6 +45,8 @@ export function useGridReorder<T>({
 	reorder,
 	visibleColumns,
 	reorderColumns,
+	onReorderStart,
+	onReorderEnd,
 }: GridReorderOptions<T>) {
 	const draggableColumns = useMemo(
 		() =>
@@ -55,11 +61,20 @@ export function useGridReorder<T>({
 		[reorderColumns],
 	)
 
+	const handleDragStart = useCallback(
+		(col: GridColumn<T>) => onReorderStart?.(col.id),
+		[onReorderStart],
+	)
+
+	const handleDragEnd = useCallback((col: GridColumn<T>) => onReorderEnd?.(col.id), [onReorderEnd])
+
 	const { itemIds, strategy, dndContextProps, activeId } = useSortableList<GridColumn<T>>({
 		items: draggableColumns,
 		getKey: columnDragId,
 		onReorder: canReorder ? handleReorder : undefined,
 		orientation: 'horizontal',
+		onDragStart: onReorderStart ? handleDragStart : undefined,
+		onDragEnd: onReorderEnd ? handleDragEnd : undefined,
 	})
 
 	return { canReorder, itemIds, strategy, dndContextProps, activeId }

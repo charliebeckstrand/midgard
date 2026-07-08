@@ -29,6 +29,16 @@ export type GridColumnManagerProps = {
 	defaultOrder?: (string | number)[]
 	onOrderChange?: (order: (string | number)[]) => void
 
+	/**
+	 * Whether the scrolling columns can be dragged to reorder. When `false`, the
+	 * orderable list drops its drag handles and renders read-only — visibility
+	 * toggles and pin controls still work. {@link Grid} forwards its
+	 * {@link GridProps.reorder} flag here, so the manager only reorders columns
+	 * when the grid opts in.
+	 * @defaultValue true
+	 */
+	reorderable?: boolean
+
 	hidden?: Set<string | number>
 	defaultHidden?: Set<string | number>
 	onHiddenChange?: (hidden: Set<string | number>) => void
@@ -213,12 +223,91 @@ function GridColumnManagerFrozenGroup({
 	)
 }
 
+/** Props for {@link GridColumnManagerOrderableList}. @internal */
+type GridColumnManagerOrderableListProps = {
+	items: GridColumnManagerItem[]
+	getKey: (item: GridColumnManagerItem) => string
+	hidden: Set<string | number>
+	onToggle: (id: string | number) => void
+	onPinChange: PinChange | undefined
+	/** Whether rows can be dragged to reorder; off renders a read-only list. */
+	reorderable: boolean
+	onReorder: (items: GridColumnManagerItem[]) => void
+}
+
+/**
+ * The flat orderable-column region: a checkbox row per scrolling column,
+ * drag-sortable when `reorderable` and read-only otherwise (no drag handles).
+ * Each row toggles its column's hidden state and, with `onPinChange`, carries a
+ * trailing pin control. Columns with `hideable: false` show but can't be
+ * unchecked.
+ *
+ * @internal
+ */
+function GridColumnManagerOrderableList({
+	items,
+	getKey,
+	hidden,
+	onToggle,
+	onPinChange,
+	reorderable,
+	onReorder,
+}: GridColumnManagerOrderableListProps) {
+	const renderRow = (col: GridColumnManagerItem) => (
+		<ListItem
+			suffix={
+				onPinChange ? (
+					<GridColumnPinControl
+						item={col}
+						side={undefined}
+						onPinChange={onPinChange}
+						placement="bottom-end"
+					/>
+				) : undefined
+			}
+		>
+			<Control>
+				<CheckboxGroup>
+					<CheckboxField>
+						<Checkbox
+							checked={!hidden.has(col.id)}
+							disabled={col.hideable === false}
+							onChange={() => onToggle(col.id)}
+							aria-label={`Show ${columnLabel(col)}`}
+						/>
+						<Label>{col.title}</Label>
+					</CheckboxField>
+				</CheckboxGroup>
+			</Control>
+		</ListItem>
+	)
+
+	// A read-only list drops `sortable` so no static grip renders; the reorderable
+	// list keeps the auto-inserted handle and commits moves through `onReorder`.
+	return reorderable ? (
+		<List
+			items={items}
+			getKey={getKey}
+			onReorder={onReorder}
+			variant="plain"
+			aria-label="Reorder columns"
+		>
+			{renderRow}
+		</List>
+	) : (
+		<List items={items} getKey={getKey} sortable={false} variant="plain" aria-label="Columns">
+			{renderRow}
+		</List>
+	)
+}
+
 /**
  * Standalone column-manager editor: a checkbox field per orderable column, drag-
- * sortable in the middle, that toggles each column's hidden state and reorders
- * the rest. Frozen columns list in two fixed groups around it — left-pinned
- * prepended, right-pinned appended — each checked and disabled. With
- * `onPinChange`, every column's pin indicator becomes an interactive control:
+ * sortable in the middle when `reorderable` (read-only otherwise), that toggles
+ * each column's hidden state and reorders the rest. Frozen columns list in two
+ * fixed groups around it — left-pinned prepended, right-pinned appended — each
+ * checked and disabled. With `onPinChange`, every column's pin indicator becomes
+ * an interactive control:
  * Pin left / Pin right / Unpin on the scrolling and pinned columns, a static
  * edge arrow on {@link GridColumnManagerItem.locked} ones. Columns with
  * `hideable: false` show but cannot be unchecked. With `onSavePreset`, a footer
@@ -234,6 +323,7 @@ export function GridColumnManager({
 	order: orderProp,
 	defaultOrder,
 	onOrderChange,
+	reorderable = true,
 	hidden: hiddenProp,
 	defaultHidden,
 	onHiddenChange,
@@ -335,42 +425,15 @@ export function GridColumnManager({
 					onOrderChange={setOrder}
 				/>
 			) : (
-				<List
+				<GridColumnManagerOrderableList
 					items={orderableColumns}
 					getKey={getKey}
+					hidden={hidden}
+					onToggle={toggle}
+					onPinChange={onPinChange}
+					reorderable={reorderable}
 					onReorder={handleReorder}
-					variant="plain"
-					aria-label="Reorder columns"
-				>
-					{(col) => (
-						<ListItem
-							suffix={
-								onPinChange ? (
-									<GridColumnPinControl
-										item={col}
-										side={undefined}
-										onPinChange={onPinChange}
-										placement="bottom-end"
-									/>
-								) : undefined
-							}
-						>
-							<Control>
-								<CheckboxGroup>
-									<CheckboxField>
-										<Checkbox
-											checked={!hidden.has(col.id)}
-											disabled={col.hideable === false}
-											onChange={() => toggle(col.id)}
-											aria-label={`Show ${columnLabel(col)}`}
-										/>
-										<Label>{col.title}</Label>
-									</CheckboxField>
-								</CheckboxGroup>
-							</Control>
-						</ListItem>
-					)}
-				</List>
+				/>
 			)}
 			{rightColumns.length > 0 && (
 				<GridColumnManagerFrozenGroup

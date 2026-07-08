@@ -15,6 +15,8 @@ type GridColumnManagerDialogProps = {
 	columns: GridColumnManagerItem[]
 	order: (string | number)[]
 	onOrderChange: (order: (string | number)[]) => void
+	/** Whether the manager may reorder columns; forwards the grid's `reorder` flag. */
+	reorderable?: boolean
 	hidden: Set<string | number>
 	onHiddenChange: (hidden: Set<string | number>) => void
 	/** Pins a column to an edge, or unpins it with `false`; backs the manager's per-column pin control. */
@@ -41,6 +43,7 @@ export function GridColumnManagerDialog({
 	columns,
 	order,
 	onOrderChange,
+	reorderable,
 	hidden,
 	onHiddenChange,
 	onPinChange,
@@ -56,6 +59,7 @@ export function GridColumnManagerDialog({
 					columns={columns}
 					order={order}
 					onOrderChange={onOrderChange}
+					reorderable={reorderable}
 					hidden={hidden}
 					onHiddenChange={onHiddenChange}
 					onPinChange={onPinChange}

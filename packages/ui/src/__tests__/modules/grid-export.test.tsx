@@ -162,14 +162,27 @@ describe('Grid export', () => {
 
 	const openExportMenu = () => fireEvent.click(screen.getByRole('button', { name: 'Export' }))
 
-	it('omits every export item and the toolbar button unless exportable is set', () => {
-		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+	it('omits every export item and the toolbar button when exportable is false', () => {
+		renderUI(<Grid exportable={false} columns={columns} rows={rows} getKey={getKey} />)
 
 		expect(screen.queryByRole('button', { name: 'Export' })).toBeNull()
 
 		rightClickHeader('Name')
 
 		expect(screen.queryByRole('menuitem', { name: 'Export to CSV' })).toBeNull()
+	})
+
+	it('enables CSV and Excel (not print) by default with no exportable prop', () => {
+		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+
+		rightClickHeader('Name')
+
+		expect(screen.getByRole('menuitem', { name: 'Export to CSV' })).toBeInTheDocument()
+
+		expect(screen.getByRole('menuitem', { name: 'Export to Excel' })).toBeInTheDocument()
+
+		// Print stays opt-in — it opens the print dialog rather than downloading.
+		expect(screen.queryByRole('menuitem', { name: 'Print' })).toBeNull()
 	})
 
 	it('enables the default CSV + Excel + print set for the boolean shorthand', () => {

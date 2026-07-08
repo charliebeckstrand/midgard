@@ -279,14 +279,24 @@ describe('Grid context menus', () => {
 		expect(screen.getByRole('menuitem', { name: 'Export to CSV' })).toBeInTheDocument()
 	})
 
-	it('omits "Export to CSV" from the cell menu unless exportable', () => {
-		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+	it('omits "Export to CSV" from the cell menu when exportable is false', () => {
+		renderUI(<Grid exportable={false} columns={columns} rows={rows} getKey={getKey} />)
 
 		rightClick('cell', 'Alice')
 
 		expect(screen.getByRole('menuitem', { name: 'Copy' })).toBeInTheDocument()
 
 		expect(screen.queryByRole('menuitem', { name: 'Export to CSV' })).not.toBeInTheDocument()
+	})
+
+	it('adds CSV and Excel to the cell menu by default with no exportable prop', () => {
+		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+
+		rightClick('cell', 'Alice')
+
+		expect(screen.getByRole('menuitem', { name: 'Export to CSV' })).toBeInTheDocument()
+
+		expect(screen.getByRole('menuitem', { name: 'Export to Excel' })).toBeInTheDocument()
 	})
 
 	it('shows no menu when contextMenu is false', () => {
@@ -365,23 +375,25 @@ describe('Grid context menus', () => {
 		expect(onValueChange).toHaveBeenCalledWith([])
 	})
 
-	it('adds "Auto-size columns" to the header menu when resizable', () => {
+	it('adds "Auto-size all columns" to the header menu when resizable', () => {
 		renderUI(<Grid resizable columns={columns} rows={rows} getKey={getKey} />)
 
 		rightClick('columnheader', 'Name')
 
-		expect(screen.getByRole('menuitem', { name: 'Auto-size columns' })).toBeInTheDocument()
+		expect(screen.getByRole('menuitem', { name: 'Auto-size all columns' })).toBeInTheDocument()
 	})
 
-	it('omits "Auto-size columns" when resizable is off', () => {
+	it('omits "Auto-size all columns" when resizable is off', () => {
 		renderUI(<Grid resizable={false} columns={columns} rows={rows} getKey={getKey} />)
 
 		rightClick('columnheader', 'Name')
 
-		expect(screen.queryByRole('menuitem', { name: 'Auto-size columns' })).not.toBeInTheDocument()
+		expect(
+			screen.queryByRole('menuitem', { name: 'Auto-size all columns' }),
+		).not.toBeInTheDocument()
 	})
 
-	it('groups "Auto-size columns" with the table-wide tools below the divider', () => {
+	it('groups "Auto-size all columns" with the table-wide tools below the divider', () => {
 		renderUI(<Grid resizable columns={columns} rows={rows} getKey={getKey} />)
 
 		rightClick('columnheader', 'Name')
@@ -394,18 +406,124 @@ describe('Grid context menus', () => {
 		const dividerIndex = sequence.findIndex((node) => node.tagName === 'HR')
 
 		const autoSizeIndex = sequence.findIndex(
-			(node) => node.textContent?.trim() === 'Auto-size columns',
+			(node) => node.textContent?.trim() === 'Auto-size all columns',
 		)
 
 		const manageIndex = sequence.findIndex((node) => node.textContent?.trim() === 'Manage columns')
 
-		// Auto-size sits below the divider — a grid-wide action, not the clicked
+		// Auto-size all sits below the divider — a grid-wide action, not the clicked
 		// column's — and leads "Manage columns".
 		expect(dividerIndex).toBeGreaterThanOrEqual(0)
 
 		expect(autoSizeIndex).toBeGreaterThan(dividerIndex)
 
 		expect(manageIndex).toBe(autoSizeIndex + 1)
+	})
+
+	it('adds "Auto-size this column" above the divider when resizable', () => {
+		renderUI(<Grid resizable columns={columns} rows={rows} getKey={getKey} />)
+
+		rightClick('columnheader', 'Name')
+
+		const menu = screen.getByRole('menu')
+
+		const sequence = Array.from(menu.querySelectorAll('[role="menuitem"], hr'))
+
+		const dividerIndex = sequence.findIndex((node) => node.tagName === 'HR')
+
+		const thisColumnIndex = sequence.findIndex(
+			(node) => node.textContent?.trim() === 'Auto-size this column',
+		)
+
+		// A per-column action, so it sits with the clicked column's own actions,
+		// above the divider that sets off the grid-wide tools.
+		expect(thisColumnIndex).toBeGreaterThanOrEqual(0)
+
+		expect(thisColumnIndex).toBeLessThan(dividerIndex)
+	})
+
+	it('places "Auto-size this column" directly under "Group by {column}"', () => {
+		renderUI(
+			<Grid
+				resizable
+				columns={groupableColumns}
+				rows={rows}
+				getKey={getKey}
+				groupBy={{ value: null, onValueChange: vi.fn(), groupButton: true }}
+			/>,
+		)
+
+		rightClick('columnheader', 'Name')
+
+		const sequence = Array.from(screen.getByRole('menu').querySelectorAll('[role="menuitem"]'))
+
+		const groupIndex = sequence.findIndex((node) => node.textContent?.trim() === 'Group by Name')
+
+		const thisColumnIndex = sequence.findIndex(
+			(node) => node.textContent?.trim() === 'Auto-size this column',
+		)
+
+		expect(groupIndex).toBeGreaterThanOrEqual(0)
+
+		expect(thisColumnIndex).toBe(groupIndex + 1)
+	})
+
+	it('omits "Auto-size this column" when resizable is off', () => {
+		renderUI(<Grid resizable={false} columns={columns} rows={rows} getKey={getKey} />)
+
+		rightClick('columnheader', 'Name')
+
+		expect(
+			screen.queryByRole('menuitem', { name: 'Auto-size this column' }),
+		).not.toBeInTheDocument()
+	})
+
+	it('hands a builder a bound "Auto-size this column" for a resizable data column', () => {
+		const seen: Array<(() => void) | undefined> = []
+
+		renderUI(
+			<Grid
+				resizable
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				contextMenu={{
+					column: (context, defaults) => {
+						seen.push(context.autoSizeColumn)
+
+						return defaults
+					},
+				}}
+			/>,
+		)
+
+		rightClick('columnheader', 'Name')
+
+		expect(seen.at(-1)).toBeTypeOf('function')
+	})
+
+	it('leaves the builder context "Auto-size this column" undefined when resizable is off', () => {
+		const seen: Array<(() => void) | undefined> = []
+
+		renderUI(
+			<Grid
+				resizable={false}
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				contextMenu={{
+					column: (context, defaults) => {
+						seen.push(context.autoSizeColumn)
+
+						return defaults
+					},
+				}}
+			/>,
+		)
+
+		rightClick('columnheader', 'Name')
+
+		expect(seen.at(-1)).toBeUndefined()
 	})
 
 	const headerCell = (container: HTMLElement, id: string) =>
