@@ -107,14 +107,20 @@ type OsrmPayload = {
 }
 
 /**
- * Decodes one zig-zag varint from `encoded` at `start`: the value and the index
- * just past it. The polyline codec packs each coordinate delta this way — 5-bit
- * chunks, low chunk first, high bit set while more follow, the final value
- * zig-zag-encoded so small negatives stay short.
+ * Decodes one zig-zag varint from `encoded` at `start`: the value, the index
+ * just past it, and whether it terminated within bounds. The polyline codec
+ * packs each coordinate delta this way — 5-bit chunks, low chunk first, high bit
+ * set while more follow, the final value zig-zag-encoded so small negatives stay
+ * short. `ok` is `false` when the chunks run off the end of a truncated string,
+ * so the caller can drop the partial coordinate rather than read `charCodeAt`'s
+ * `NaN` as a zero chunk.
  *
  * @internal
  */
-function decodeVarint(encoded: string, start: number): { value: number; next: number } {
+function decodeVarint(
+	encoded: string,
+	start: number,
+): { value: number; next: number; ok: boolean } {
 	let index = start
 
 	let result = 0
@@ -124,6 +130,8 @@ function decodeVarint(encoded: string, start: number): { value: number; next: nu
 	let byte: number
 
 	do {
+		if (index >= encoded.length) return { value: 0, next: index, ok: false }
+
 		byte = encoded.charCodeAt(index++) - 63
 
 		result |= (byte & 0x1f) << shift
@@ -131,7 +139,7 @@ function decodeVarint(encoded: string, start: number): { value: number; next: nu
 		shift += 5
 	} while (byte >= 0x20)
 
-	return { value: result & 1 ? ~(result >> 1) : result >> 1, next: index }
+	return { value: result & 1 ? ~(result >> 1) : result >> 1, next: index, ok: true }
 }
 
 /**
@@ -154,9 +162,13 @@ function decodePolyline(encoded: string, factor = 1e6): LngLat[] {
 	while (index < encoded.length) {
 		const dLat = decodeVarint(encoded, index)
 
-		lat += dLat.value
-
 		const dLng = decodeVarint(encoded, dLat.next)
+
+		// A truncated payload leaves the final pair incomplete; drop it rather than
+		// push a coordinate built from a zeroed delta.
+		if (!dLat.ok || !dLng.ok) break
+
+		lat += dLat.value
 
 		lng += dLng.value
 

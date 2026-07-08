@@ -201,7 +201,10 @@ export function ratioValue(ratio: number | `${number}/${number}` | false): numbe
 
 	const [w, h] = ratio.split('/').map(Number)
 
-	return w && h && h > 0 ? w / h : null
+	// Both terms must be present and positive: the type admits a signed
+	// `${number}`, so `"-4/3"` would otherwise yield a negative ratio — an invalid
+	// CSS `aspect-ratio` — where the numeric branch rejects the same value.
+	return w !== undefined && h !== undefined && w > 0 && h > 0 ? w / h : null
 }
 
 /**

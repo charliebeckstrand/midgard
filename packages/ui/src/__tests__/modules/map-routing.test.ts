@@ -184,6 +184,22 @@ describe('fetchValhallaRoute', () => {
 		})
 	})
 
+	it('drops a truncated trailing point instead of emitting a garbage coordinate', async () => {
+		// The full shape decodes to [[0,0],[2,1]]; dropping the last char truncates
+		// the second point's varint, so the partial pair is dropped rather than
+		// pushed as a coordinate built from a zeroed delta.
+		stubFetch({
+			ok: true,
+			json: { routes: [{ geometry: '??_c`|@_gay', distance: 250, duration: 30 }] },
+		})
+
+		expect(await fetchValhallaRoute(WAYPOINTS)).toEqual({
+			path: [[0, 0]],
+			distanceMeters: 250,
+			durationSeconds: 30,
+		})
+	})
+
 	it('maps the walking profile to pedestrian costing', async () => {
 		const mock = stubFetch({ ok: true, json: PAYLOAD })
 

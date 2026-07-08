@@ -259,4 +259,10 @@ describe('mapFrameSizing', () => {
 	it("fills the container only when free-form — 'auto' never falls through", () => {
 		expect(mapFrameSizing(undefined, false, 3)).toEqual({ mode: 'fill' })
 	})
+
+	it('rejects a negative "w/h" ratio, filling rather than reserving a negative box', () => {
+		// The `${number}/${number}` type admits a signed numerator, so a negative
+		// ratio must fall through to fill, not produce an invalid CSS aspect-ratio.
+		expect(mapFrameSizing(undefined, '-4/3', null)).toEqual({ mode: 'fill' })
+	})
 })
