@@ -49,8 +49,8 @@ export type ChartContextMenuProps = {
 	children: ReactNode
 }
 
-/** Sizes the fullscreen chart to the largest box of its ratio that fits the dialog, centered. @internal */
-const FULLSCREEN_CHART_CLASS = 'max-h-full w-full max-w-[calc(100cqh*16/9)]'
+/** Fills the auto-height dialog's width at the chart's ratio, capped so it never runs taller than the viewport. @internal */
+const FULLSCREEN_CHART_CLASS = 'w-full max-h-[calc(100dvh-9rem)]'
 
 /**
  * The chart family's right-click menu and fullscreen view. Wraps a chart in a
@@ -154,11 +154,14 @@ export function ChartContextMenu({
 			<Dialog
 				open={open}
 				onOpenChange={setOpen}
-				size="full"
 				aria-label={title ?? 'Chart'}
-				className="flex h-[calc(100dvh-2rem)] flex-col"
+				// Auto-height: the panel hugs the chart, which fills the panel width at
+				// its 16/9 ratio. Capping the width by the viewport height keeps that
+				// ratio from ever running taller than the screen, so on desktop the
+				// panel centers and on mobile the sheet sizes to the chart's own height.
+				className="sm:max-w-[calc((100dvh-9rem)*16/9)]"
 			>
-				<div data-slot="chart-fullscreen-bar" className="flex justify-end">
+				<div data-slot="chart-fullscreen-bar" className="mb-2 flex justify-end">
 					<DialogClose>
 						<Button variant="bare" aria-label="Close fullscreen">
 							<X />
@@ -166,10 +169,7 @@ export function ChartContextMenu({
 					</DialogClose>
 				</div>
 
-				<div
-					data-slot="chart-fullscreen"
-					className="flex min-h-0 flex-1 items-center justify-center [container-type:size]"
-				>
+				<div data-slot="chart-fullscreen">
 					{open && isValidElement(fullscreen) && (
 						<ChartFullscreenContext value={true}>
 							{cloneElement(fullscreen as ReactElement<Record<string, unknown>>, {
