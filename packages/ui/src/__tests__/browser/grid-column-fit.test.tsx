@@ -158,6 +158,24 @@ describe('grid column auto-sizing (real browser)', () => {
 		expect(header('fixed').getBoundingClientRect().width).toBeCloseTo(250, 0)
 	})
 
+	it('holds a pinned column at its content width, flowing the surplus to the scrolling column', async () => {
+		const { header } = render(600, [
+			{ id: 'pin', title: 'Pin', cell: (row) => row.tiny, pinned: 'left' },
+			{ id: 'flex', title: 'Flex', cell: (row) => row.tiny },
+		])
+
+		// Two undemanding columns with room to spare would ordinarily level to one
+		// shared width; pinning holds `pin` at its content, so `flex` takes the surplus.
+		await waitFor(() => expect(header('flex').getBoundingClientRect().width).toBeGreaterThan(300))
+
+		const pin = header('pin').getBoundingClientRect().width
+
+		const flex = header('flex').getBoundingClientRect().width
+
+		// The frozen rail stays narrow while the scrolling column runs far past an even split.
+		expect(flex - pin).toBeGreaterThan(200)
+	})
+
 	it('fills the container without a phantom scrollbar under outline borders', async () => {
 		const { container } = renderUI(
 			<div style={{ width: '600px' }}>

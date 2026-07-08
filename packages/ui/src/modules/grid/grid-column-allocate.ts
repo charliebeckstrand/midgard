@@ -5,6 +5,10 @@
  * `Number.MAX_SAFE_INTEGER` when unbounded). A `width`-pinned column arrives with
  * `min === content === max`, so the allocator holds it exactly.
  *
+ * A `frozen` column — one pinned or locked to an edge — is held at its content
+ * width and passed over by the surplus level-up: a frozen rail stays only as wide
+ * as it needs to be while the scrolling columns absorb the spare width.
+ *
  * @internal
  */
 export type ColumnSizeProfile = {
@@ -12,6 +16,12 @@ export type ColumnSizeProfile = {
 	min: number
 	content: number
 	max: number
+	/**
+	 * Whether the column is frozen to an edge (pinned or locked). A frozen column
+	 * holds at its content width, so the surplus never stretches it. Absent for a
+	 * scrolling column.
+	 */
+	frozen?: boolean
 }
 
 /** Clamps `value` to `[lo, hi]`; `hi` wins when the bounds cross. @internal */
@@ -126,7 +136,10 @@ function levelUp(
  * shrinking below it and truncating. When there is room to spare, the surplus
  * lifts the narrowest columns toward an equal width (see {@link levelUp}), so a
  * column whose data would truncate gains the room while columns that don't need
- * it settle at the shared level. Returns integer widths keyed by column id,
+ * it settle at the shared level. A `frozen` column (pinned or locked) sits out
+ * that lift — its ceiling is capped at its content width, so it holds only as
+ * wide as it needs to be and the surplus flows to the scrolling columns instead
+ * of stretching the frozen rail. Returns integer widths keyed by column id,
  * summing to exactly the space consumed; an empty profile list yields `{}`.
  *
  * Pure: non-data columns (selection / actions), `width`-pinned columns, and
@@ -141,11 +154,13 @@ export function allocateColumnWidths(
 ): Record<string, number> {
 	if (profiles.length === 0) return {}
 
-	const cols = profiles.map((p) => ({
-		id: p.id,
-		desired: clamp(p.content, p.min, p.max),
-		max: p.max,
-	}))
+	const cols = profiles.map((p) => {
+		const desired = clamp(p.content, p.min, p.max)
+
+		// A frozen column holds at its content: capping its ceiling at `desired` keeps
+		// the level-up from lifting it, so the surplus flows to the scrolling columns.
+		return { id: p.id, desired, max: p.frozen ? desired : p.max }
+	})
 
 	const totalDesired = cols.reduce((sum, c) => sum + c.desired, 0)
 
