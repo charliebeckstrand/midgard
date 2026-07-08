@@ -12,6 +12,7 @@ import {
 import { Button } from '../../components/button'
 import { ContextMenu, type ContextMenuItem } from '../../components/context-menu'
 import { Dialog, DialogClose } from '../../components/dialog'
+import { Icon } from '../../components/icon'
 import {
 	type ChartImageType,
 	chartFileName,
@@ -164,7 +165,7 @@ export function ChartContextMenu({
 				<div data-slot="chart-fullscreen-bar" className="mb-2 flex justify-end">
 					<DialogClose>
 						<Button variant="bare" aria-label="Close fullscreen">
-							<X />
+							<Icon icon={<X />} />
 						</Button>
 					</DialogClose>
 				</div>
