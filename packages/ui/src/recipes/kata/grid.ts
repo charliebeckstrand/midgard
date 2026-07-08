@@ -144,8 +144,20 @@ export const k = {
 	// which paints the resize cursor grid-wide; head and cells read the matching
 	// `resizing` context flag to drop their hover wash and truncation tooltips.
 	wrapper: ['relative', 'isolate', flex.col, 'gap-2', 'data-[resizing]:cursor-col-resize'],
+	// `maxHeight="fill"`: the grid takes its parent's box instead of a fixed cap —
+	// the wrapper stretches to the parent's height and the scroll region flexes to
+	// the remainder under the toolbar/footer (`min-h-0` lets each shrink below its
+	// content, which a flex child otherwise refuses), so the windowed scroll
+	// container binds inside any CSS-sized parent.
+	fill: {
+		wrapper: 'h-full min-h-0',
+		scroll: 'min-h-0 flex-1',
+	},
 	sticky: {
-		wrapper: 'overflow-auto [&>[data-slot=table]]:!overflow-visible',
+		// `scrollbar-gutter: stable` reserves the scrollbar's track up front, so the
+		// bar appearing on the first overflow (an infinite-scroll viewport-fill, a
+		// grown row set) doesn't shrink the content width and reflow every column.
+		wrapper: 'overflow-auto [scrollbar-gutter:stable] [&>[data-slot=table]]:!overflow-visible',
 		// Sticky header bar: an opaque fill so body rows tuck under it on a vertical
 		// scroll. Tracks the content host (see `hostSurface`) so it matches the page
 		// background on mobile and the card surface on desktop — a plain `bg.surface`

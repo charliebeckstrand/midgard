@@ -7,6 +7,7 @@ import {
 	type ReactNode,
 	type RefObject,
 	useCallback,
+	useEffect,
 	useLayoutEffect,
 	useMemo,
 	useRef,
@@ -335,10 +336,10 @@ function resolveDetailExpansion<T>(
 
 /**
  * Validates the mutually-dependent grid props up front, throwing a pointed error
- * for a combination the grid can't render: virtualization without a sized scroll
- * container, or infinite scroll without the virtualized window it layers on —
- * and alongside the paged footer it replaces. Kept off {@link GridData}'s
- * cognitive-complexity budget. @internal
+ * for a combination the grid can't render: virtualization (or the infinite
+ * scroll that implies it) without a sized scroll container, infinite scroll
+ * against an explicitly refused window, or alongside the paged footer it
+ * replaces. Kept off {@link GridData}'s cognitive-complexity budget. @internal
  */
 function assertGridProps(args: {
 	virtualize: GridVirtualize | undefined
@@ -346,15 +347,15 @@ function assertGridProps(args: {
 	infiniteScroll: GridInfiniteScroll | undefined
 	pagination: GridPagination | undefined
 }): void {
-	if (args.virtualize && !args.maxHeight) {
+	if ((args.virtualize || args.infiniteScroll) && !args.maxHeight) {
 		throw new Error(
-			'<Grid virtualize> requires `maxHeight` — virtualization needs a scroll container of known size.',
+			'<Grid virtualize / infiniteScroll> requires `maxHeight` — the windowed rows need a scroll container of known size: a fixed CSS length, or `"fill"` inside a CSS-sized parent.',
 		)
 	}
 
-	if (args.infiniteScroll && !args.virtualize) {
+	if (args.infiniteScroll && args.virtualize === false) {
 		throw new Error(
-			'<Grid infiniteScroll> requires `virtualize` (and thus `maxHeight`) — infinite scroll windows the loaded rows through the virtualized scroll container.',
+			'<Grid infiniteScroll> windows the loaded rows through the virtualized scroll container — it implies `virtualize`, which must not be explicitly `false`.',
 		)
 	}
 
@@ -363,6 +364,41 @@ function assertGridProps(args: {
 			'<Grid> takes either `pagination` or `infiniteScroll`, not both — infinite scroll replaces the paged footer.',
 		)
 	}
+}
+
+/**
+ * The `virtualize` setting with the `infiniteScroll` implication applied:
+ * infinite scroll layers on the virtualized window, so setting it implies
+ * `virtualize` rather than requiring three coupled props. An explicit
+ * `virtualize` (object or `true`) still tunes the window; the contradictory
+ * `virtualize={false}` + `infiniteScroll` throws in {@link assertGridProps}.
+ * Kept off {@link GridData}'s complexity budget. @internal
+ */
+function implyVirtualize(
+	virtualize: GridVirtualize | undefined,
+	infiniteScroll: GridInfiniteScroll | undefined,
+): GridVirtualize | undefined {
+	return virtualize ?? (infiniteScroll ? true : undefined)
+}
+
+/**
+ * Dev-only guard against a `maxHeight` that can never bind: the grid's wrapper
+ * is auto-height, so a *percentage* resolves to no constraint — the scroll
+ * container silently unbinds, virtualization degrades to rendering every row,
+ * and infinite scroll loses its window. Warns once per value; the `'fill'`
+ * keyword is the supported way to take a CSS-sized parent's box. Kept a hook so
+ * the branch stays off {@link GridData}'s complexity budget. @internal
+ */
+function useMaxHeightGuard(maxHeight: string | undefined): void {
+	useEffect(() => {
+		if (process.env.NODE_ENV === 'production') return
+
+		if (!maxHeight?.trim().endsWith('%')) return
+
+		console.warn(
+			`<Grid maxHeight="${maxHeight}">: a percentage can't bind — the grid's wrapper is auto-height, so the scroll container gets no bounded height and virtualization degrades to rendering every row. Use a fixed CSS length, or \`maxHeight="fill"\` inside a CSS-sized parent.`,
+		)
+	}, [maxHeight])
 }
 
 /** Props for {@link GridRegion}. @internal */
@@ -686,6 +722,49 @@ function DensityCascade({ level, children }: { level: DensityLevel; children: Re
 	return <Density scale={densityToSize[level]}>{children}</Density>
 }
 
+/** Props for {@link GridScrollRegion}. @internal */
+type GridScrollRegionProps = {
+	/** Whether the table needs the scroll wrapper (sticky header or virtualization). */
+	active: boolean
+	scrollRef: RefObject<HTMLDivElement | null>
+	maxHeight: string | undefined
+	children: ReactNode
+}
+
+/**
+ * The sticky/virtualized scroll container around the table, or the table
+ * untouched when no scroll wrapper is needed. `maxHeight="fill"` sizes by
+ * flexing into the parent's box (see `k.fill`) rather than an inline cap; any
+ * other value caps the wrapper directly. Split out of {@link GridData} so the
+ * branching stays off its complexity budget. @internal
+ */
+function GridScrollRegion({ active, scrollRef, maxHeight, children }: GridScrollRegionProps) {
+	if (!active) return children
+
+	const fillHeight = maxHeight === 'fill'
+
+	return (
+		<div
+			ref={scrollRef}
+			data-slot="grid-scroll"
+			className={cn(k.sticky.wrapper, fillHeight && k.fill.scroll)}
+			style={maxHeight && !fillHeight ? { maxHeight } : undefined}
+		>
+			{children}
+		</div>
+	)
+}
+
+/**
+ * Wrapper class for the grid's outer `data-slot="grid"` element: the base
+ * chrome, plus — under `maxHeight="fill"` — the stretch that hands the
+ * consumer's box to the flexing scroll region (see `k.fill`). Kept off
+ * {@link GridData}'s complexity budget. @internal
+ */
+function gridWrapperClass(fill: boolean): string {
+	return fill ? cn(k.wrapper, k.fill.wrapper) : cn(k.wrapper)
+}
+
 /**
  * The read-only data-grid implementation behind {@link Grid}. Kept a separate
  * component so the public dispatcher calls no hooks ahead of its `editable`
@@ -754,6 +833,9 @@ export function GridData<T>({
 		pagination: paginationConfig,
 	})
 
+	// A percentage `maxHeight` never binds; fail loud in dev (see `useMaxHeightGuard`).
+	useMaxHeightGuard(maxHeight)
+
 	// Unlike the bare `Table` (a static/RSC leaf that reads no context), Grid is
 	// always client-rendered, so it can inherit an enclosing `DensityProvider`
 	// when the caller passes no explicit `density`.
@@ -768,7 +850,7 @@ export function GridData<T>({
 		enabled: virtualizeEnabled,
 		estimateSize,
 		overscan,
-	} = resolveVirtualization(virtualize, density)
+	} = resolveVirtualization(implyVirtualize(virtualize, infiniteScrollConfig), density)
 
 	// Sticky header pins the header row while the body scrolls (forcing a scroll
 	// wrapper); resolved from the `header` config's `position`.
@@ -847,9 +929,10 @@ export function GridData<T>({
 
 	// Infinite scroll layers on the virtualized window — so it stands down with
 	// virtualization under grouping (`gated.virtualize`). Its `threshold` defaults
-	// to the window's `overscan`, so the fetch leads the viewport by that margin.
+	// to the window's `overscan`, so the fetch leads the viewport by that margin;
+	// the source `rows` length derives `hasMore` when a `totalRows` is supplied.
 	const infiniteScroll = gated.virtualize
-		? resolveInfiniteScroll(infiniteScrollConfig, overscan)
+		? resolveInfiniteScroll(infiniteScrollConfig, overscan, rows.length)
 		: null
 
 	// Resolves a column's display label at call time, read by the `[]`-stable
@@ -1342,13 +1425,14 @@ export function GridData<T>({
 
 	// The group band and grand-total row each add a rendered header/footer row, so
 	// the count spans them; and infinite scroll with more rows to load can't state
-	// the whole extent, so the count goes ARIA-indeterminate (`-1`) rather than
-	// advertising the loaded window as the full set (see `resolveAriaRowCount`).
+	// the whole extent — unless the binding's `totalRows` states it — so the count
+	// goes ARIA-indeterminate (`-1`) rather than advertising the loaded window as
+	// the full set (see `resolveAriaRowCount`).
 	const ariaRowCount = resolveAriaRowCount(
 		pagination,
 		renderRows.length,
 		groupRowOffset + Number(grandTotal.active),
-		infiniteScroll?.hasMore ?? false,
+		infiniteScroll,
 	)
 
 	// Full filtered row extent (the server total when paginating) for the busy
@@ -1357,12 +1441,14 @@ export function GridData<T>({
 
 	// Live counts for the optional summary footer, read live off `table` so they
 	// track client-side search/filtering (see `resolveFooterStats`); `null` when no
-	// `footer` is configured, so no bar renders.
+	// `footer` is configured, so no bar renders. An infinite-scroll `totalRows`
+	// reports the real (server) set rather than the loaded extent.
 	const footerStats = resolveFooterStats({
 		footer,
 		table,
 		filteredCount: dataRowCount,
 		selected: selection.size,
+		infiniteScroll,
 	})
 
 	// Grid semantics (role="grid" + global indices) and the select-all label,
@@ -1538,17 +1624,10 @@ export function GridData<T>({
 	// table when editable; a read-only grid returns it untouched.
 	const cursorContent = cursor.wrap(tableContent)
 
-	const tableRegion = needsScrollWrapper ? (
-		<div
-			ref={scrollRef}
-			data-slot="grid-scroll"
-			className={cn(k.sticky.wrapper)}
-			style={maxHeight ? { maxHeight } : undefined}
-		>
+	const tableRegion = (
+		<GridScrollRegion active={needsScrollWrapper} scrollRef={scrollRef} maxHeight={maxHeight}>
 			{cursorContent}
-		</div>
-	) : (
-		cursorContent
+		</GridScrollRegion>
 	)
 
 	return (
@@ -1561,7 +1640,7 @@ export function GridData<T>({
 					// cursor grid-wide (see `k.wrapper`); head and cells read the matching
 					// `resizing` context flag to drop their hover wash and truncation tooltips.
 					data-resizing={dataAttr(resizing)}
-					className={cn(k.wrapper)}
+					className={gridWrapperClass(maxHeight === 'fill')}
 				>
 					<GridBusyStatus loading={loading} rowCount={dataRowCount} />
 

@@ -28,25 +28,40 @@ export type GridVirtualize = boolean | { estimateSize?: number; overscan?: numbe
 /**
  * Infinite-scroll binding for {@link GridProps.infiniteScroll}: as the
  * virtualized window nears the end of the loaded rows, the grid calls
- * `onLoadMore` so the consumer can grow `rows` with the next batch. Layers on
- * {@link GridProps.virtualize} (which supplies the windowed scroll container),
- * and replaces the paged {@link GridProps.pagination} footer — the two are
- * mutually exclusive.
+ * `onLoadMore` so the consumer can grow `rows` with the next batch. Implies
+ * {@link GridProps.virtualize} (which supplies the windowed scroll container —
+ * so `maxHeight` is still required), and replaces the paged
+ * {@link GridProps.pagination} footer — the two are mutually exclusive.
  *
  * @remarks One binding, two data sources. A *local* set appends synchronously
  * (leave `loadingMore` unset and gate on `hasMore`); a *server* set fetches the
  * next page and appends it — hold `loadingMore` true while the request is in
  * flight so the grid holds off re-requesting (and, with `showLoadingIndicator`,
  * shows a trailing skeleton row). In both, `hasMore` is the master gate: once
- * `false`, `onLoadMore` never fires again and the indicator drops. While more
- * rows may remain, the grid reports an indeterminate `aria-rowcount` rather than
- * advertising the loaded count as the whole set, and its busy status announces
- * each grown total as a batch settles.
+ * `false`, `onLoadMore` never fires again and the indicator drops. Supply
+ * {@link GridInfiniteScroll.totalRows} when the backend reports its total and
+ * `hasMore` derives itself; the grid then also reports a determinate
+ * `aria-rowcount` and a real footer `rowTotal` instead of the loaded extent,
+ * and its busy status announces each grown total as a batch settles.
  *
  * The trailing row below the loaded rows resolves the terminal states in
  * precedence order: an `error` (a failed load) shows a `Text severity="error"`
  * message; an in-flight batch shows the opt-in loading indicator; the reached
  * end (`hasMore` false) shows the muted `endMessage`.
+ *
+ * Firing upholds one invariant: *`onLoadMore` never fires more than once per
+ * user scroll interaction, except for a bounded initial viewport-fill.* A
+ * post-fill fetch needs the scroll container to actually overflow and a scroll
+ * event since the last fire — so an append that lands still within `threshold`
+ * of the new end waits for the next scroll rather than chain-fetching, and a
+ * *failed* fetch (the count never grew) re-arms on the next scroll instead of
+ * dead-locking. While the loaded rows don't yet fill the viewport the grid
+ * auto-fetches to fill it, bounded by the viewport's geometry; a container
+ * with no bounded height (a `maxHeight` that never bound — see
+ * {@link GridProps.maxHeight}) stops fetching and fails loud in dev rather
+ * than chain-fetching the whole backend. Replacing the row set with a shorter
+ * one (a sort/filter/search swap) scrolls back to the top and resets the
+ * firing state.
  *
  * Seed the first page as `rows` — an empty `rows` shows the `empty` slot rather
  * than auto-fetching (use {@link GridProps.loading} for the initial load); the
@@ -57,16 +72,24 @@ export type GridVirtualize = boolean | { estimateSize?: number; overscan?: numbe
 export type GridInfiniteScroll = {
 	/**
 	 * Called when the scroll reaches within {@link GridInfiniteScroll.threshold}
-	 * rows of the loaded end and more rows remain, once per newly-loaded extent.
+	 * rows of the loaded end and more rows remain — at most once per scroll
+	 * interaction (plus the bounded viewport-fill; see the binding remarks).
 	 * Append the next rows to your `rows` — a local slice, or a server fetch.
 	 */
 	onLoadMore: () => void
 	/**
 	 * Whether more rows remain beyond the loaded set. Once `false`, the grid stops
 	 * calling `onLoadMore` and drops the trailing indicator.
-	 * @defaultValue true
+	 * @defaultValue `rows.length < totalRows` when {@link GridInfiniteScroll.totalRows} is set, else true
 	 */
 	hasMore?: boolean
+	/**
+	 * Total rows in the full (server) set, when the backend reports it. Derives
+	 * `hasMore` (unless explicitly set), makes `aria-rowcount` determinate
+	 * instead of the indeterminate `-1`, and reports the real set through the
+	 * {@link GridFooter.rowTotal | footer} rather than the loaded extent.
+	 */
+	totalRows?: number
 	/**
 	 * Whether a load is in flight. Suppresses re-requesting while the current
 	 * batch resolves; leave unset for a synchronous local source, which appends
@@ -902,7 +925,16 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 */
 	footer?: GridFooter
 
-	/** Caps the table height (any CSS length) behind a scroll wrapper; required by {@link GridDataProps.virtualize}. */
+	/**
+	 * Caps the table height behind a scroll wrapper; required by
+	 * {@link GridDataProps.virtualize}. A fixed CSS length (`'320px'`,
+	 * `'50vh'`), or `'fill'` to take the consumer's box: the grid stretches to
+	 * its parent's height and the scroll region flexes to the remainder under
+	 * the toolbar, so the grid sizes correctly inside any CSS-sized parent.
+	 * A *percentage* can't bind — the grid's own wrapper is auto-height, so
+	 * `'100%'` resolves to no constraint, virtualization silently degrades to
+	 * rendering every row, and the grid warns in dev; use `'fill'` instead.
+	 */
 	maxHeight?: string
 
 	/**
@@ -952,13 +984,16 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * can append the next batch to `rows` — a local slice, or a server fetch. Opt
 	 * into a trailing skeleton row while `loadingMore` with `showLoadingIndicator`,
 	 * close the list with `endMessage`, surface a failed load with `error`, and
-	 * hold the columns steady against appends with `stableColumnWidths`. Requires
-	 * `virtualize` (and thus `maxHeight`), which supplies the windowed scroll
-	 * container, and replaces the paged {@link GridDataProps.pagination} footer;
-	 * passing both throws. Stands down with virtualization under
-	 * {@link GridDataProps.groupBy | grouping}.
+	 * hold the columns steady against appends with `stableColumnWidths`. Implies
+	 * `virtualize` (an explicit `virtualize` object still tunes the window;
+	 * `virtualize={false}` throws) but still needs `maxHeight`, which sizes the
+	 * windowed scroll container, and replaces the paged
+	 * {@link GridDataProps.pagination} footer; passing both throws. Stands down
+	 * with virtualization under {@link GridDataProps.groupBy | grouping}.
 	 *
-	 * @see {@link GridInfiniteScroll}
+	 * @see {@link GridInfiniteScroll} for the binding — including the firing
+	 * invariant (once per scroll interaction, bounded viewport-fill) and
+	 * `totalRows`.
 	 */
 	infiniteScroll?: GridInfiniteScroll
 
