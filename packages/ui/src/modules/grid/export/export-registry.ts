@@ -6,6 +6,17 @@ import type { GridExportContext, GridExportType } from './types'
 /** The default `exportable` set for the boolean shorthand (`exportable={true}`). @internal */
 export const DEFAULT_EXPORT_TYPES: GridExportType[] = ['csv', 'excel', 'print']
 
+/**
+ * The `exportable` set applied when the prop is omitted: CSV and Excel download,
+ * on by default. Print stays opt-in — reach it with `exportable={true}` (the
+ * full {@link DEFAULT_EXPORT_TYPES} set) or an explicit entry array. A stable
+ * module-level constant so the omitted-prop default keeps a fixed identity
+ * across renders.
+ *
+ * @internal
+ */
+export const DEFAULT_EXPORTABLE: GridExportType[] = ['csv', 'excel']
+
 /** Menu/toolbar label for each built-in export type. @internal */
 export const BUILTIN_EXPORT_LABEL: Record<'csv' | 'excel' | 'print', string> = {
 	csv: 'Export to CSV',

@@ -175,7 +175,7 @@ type MeasureOptions<T> = {
 	container: HTMLElement
 	/** Columns the user drag-resized; held at their current engine width, not auto-sized. */
 	manualPinned: ReadonlySet<string>
-	/** Columns whose `width` seed the user released via "Auto-size columns"; they auto-size again instead of holding `width`. */
+	/** Columns whose `width` seed the user released via "Auto-size all columns"; they auto-size again instead of holding `width`. */
 	released: ReadonlySet<string>
 	/**
 	 * Per-column running-max content width (border-box), carried across passes so a
@@ -253,7 +253,7 @@ function columnProfile<T>(
  * Whether a column is auto-sized — a data column the allocator distributes width
  * across, rather than one holding a fixed width. A drag-resized column (in
  * `manualPinned`) holds its width; a `width`-seeded column holds its initial
- * width too, until the user releases it via "Auto-size columns" (its id lands in
+ * width too, until the user releases it via "Auto-size all columns" (its id lands in
  * `released`), after which it rejoins the fit like a width-less column.
  *
  * @internal

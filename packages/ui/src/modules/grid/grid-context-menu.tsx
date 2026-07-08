@@ -11,6 +11,7 @@ import {
 	Copy,
 	Download,
 	Group,
+	MoveHorizontal,
 	PinOff,
 	Printer,
 	StretchHorizontal,
@@ -28,6 +29,7 @@ import {
 } from 'react'
 import { ContextMenuList } from '../../components/context-menu'
 import { Menu, MenuContent, useMenuActions } from '../../components/menu'
+import { isDataColumn } from '../../utilities'
 import type { SortState } from './context'
 import type { GridExportAction } from './export/types'
 import type { GridColumnGroup } from './grid-group-types'
@@ -99,6 +101,8 @@ type GridContextMenuProps<T> = {
 	groupBy: GridGroupByMenu | null
 	/** Auto-sizes resizable columns to fill the width, or `null` when the grid is not resizable. */
 	autoSizeColumns: (() => void) | null
+	/** Re-fits a single column to its content ("Auto-size this column"), or `null` when the grid is not resizable. */
+	autoSizeColumn: ((column: string | number) => void) | null
 	/** Opens the column-manager dialog ("Manage columns"), or `null` when none is reachable. */
 	chooseColumns: (() => void) | null
 	/** One action per configured export type; empty when export is off. Shared by the column menu, the cell menu, and the toolbar dropdown. */
@@ -139,6 +143,8 @@ type ColumnMenuDefaultArgs<T> = {
 	/** The group-by toggle, or `null` when the group button is off. */
 	groupBy: GridGroupByMenu | null
 	autoSizeColumns: (() => void) | null
+	/** Re-fits a single column to its content, or `null` when the grid is not resizable. */
+	autoSizeColumn: ((column: string | number) => void) | null
 	chooseColumns: (() => void) | null
 	exportActions: GridExportAction[]
 }
@@ -224,11 +230,12 @@ function pinMenuItems<T>(column: GridColumn<T>, pinColumn: PinColumn): GridMenuI
 /**
  * Default header-menu items: sort controls (when the column sorts) with a
  * "Clear sort" once it is the sorted column, the column's pin controls (Pin
- * left / Pin right / Unpin), and the group-by toggle (when the column is
- * groupable and the group button is on), then the table-wide tools under a
- * separator — "Auto-size columns" (when resizing is on), "Manage columns" (when
- * a manager is reachable), and one item per active export type (when export is
- * on).
+ * left / Pin right / Unpin), the group-by toggle (when the column is groupable
+ * and the group button is on), and "Auto-size this column" (when resizing is on
+ * and the column carries data) closing out the column's own actions, then the
+ * table-wide tools under a separator — "Auto-size all columns" (when resizing is
+ * on), "Manage columns" (when a manager is reachable), and one item per active
+ * export type (when export is on).
  *
  * @internal
  */
@@ -241,6 +248,7 @@ function columnMenuDefaults<T>(args: ColumnMenuDefaultArgs<T>): GridMenuItem[] {
 		pinColumn,
 		groupBy,
 		autoSizeColumns,
+		autoSizeColumn,
 		chooseColumns,
 		exportActions,
 	} = args
@@ -276,19 +284,32 @@ function columnMenuDefaults<T>(args: ColumnMenuDefaultArgs<T>): GridMenuItem[] {
 	// Pin controls sit with the column's own actions, above the table-wide tools.
 	items.push(...pinMenuItems(column, pinColumn))
 
-	// Grouping follows the pin controls, closing out the column's own actions.
+	// Grouping follows the pin controls.
 	items.push(...groupMenuItems(column, groupBy))
 
+	// "Auto-size this column" closes out the column's own actions: a per-column
+	// fit sitting alongside sort, pin, and group, distinct from the grid-wide
+	// "Auto-size all columns" below the separator. Only a resizable data column
+	// offers it — a selection or actions column has no content to fit.
+	if (autoSizeColumn && isDataColumn(column)) {
+		items.push({
+			key: 'auto-size-column',
+			label: 'Auto-size this column',
+			icon: <MoveHorizontal />,
+			onSelect: () => autoSizeColumn(column.id),
+		})
+	}
+
 	// Table-wide tools sit under a separator, set off from the clicked column's
-	// own sort and pin actions. "Auto-size columns" leads them: it re-fits every
-	// column, not just the one clicked, so it belongs with the grid-wide tools
-	// rather than the column's actions above.
+	// own actions. "Auto-size all columns" leads them: it re-fits every column,
+	// not just the one clicked, so it belongs with the grid-wide tools rather
+	// than the column's actions above.
 	const tools: GridMenuItem[] = []
 
 	if (autoSizeColumns) {
 		tools.push({
 			key: 'auto-size',
-			label: 'Auto-size columns',
+			label: 'Auto-size all columns',
 			icon: <StretchHorizontal />,
 			onSelect: autoSizeColumns,
 		})
@@ -437,6 +458,7 @@ export function GridContextMenu<T>({
 	pinColumn,
 	groupBy,
 	autoSizeColumns,
+	autoSizeColumn,
 	chooseColumns,
 	exportActions,
 	rowGroupMenu,
@@ -479,6 +501,7 @@ export function GridContextMenu<T>({
 				pinColumn,
 				groupBy,
 				autoSizeColumns,
+				autoSizeColumn,
 				chooseColumns,
 				exportActions,
 			})
@@ -499,6 +522,8 @@ export function GridContextMenu<T>({
 				pinRight: () => pinColumn(column.id, 'right'),
 				unpin: () => pinColumn(column.id, false),
 				autoSizeColumns: autoSizeColumns ?? undefined,
+				autoSizeColumn:
+					autoSizeColumn && isDataColumn(column) ? () => autoSizeColumn(column.id) : undefined,
 				chooseColumns: () => chooseColumns?.(),
 				exportActions,
 			}
@@ -514,6 +539,7 @@ export function GridContextMenu<T>({
 			pinColumn,
 			groupBy,
 			autoSizeColumns,
+			autoSizeColumn,
 			chooseColumns,
 			exportActions,
 		],

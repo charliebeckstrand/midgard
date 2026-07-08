@@ -689,7 +689,7 @@ export function useGridTable<T>({
 			: null
 
 	// Auto-size resizable columns to fill the container, unless widths are
-	// controlled; `sizeToFit` also backs the header "Auto-size columns" action.
+	// controlled; `sizeToFit` also backs the header "Auto-size all columns" action.
 	const { sizeToFit, resetColumn, holdManualWidths } = useGridColumnAutoSize<T>({
 		resizable,
 		controlled: columnSizingConfig?.value != null,

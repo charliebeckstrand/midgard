@@ -85,8 +85,11 @@ export function useGridMenuActions<T>({
 		setColumnManagerOpen: setOpen,
 		sortColumn,
 		clearSort,
-		// Header "Auto-size columns" — only when resizing is on.
+		// Header "Auto-size all columns" — only when resizing is on.
 		autoSizeColumns: resize?.sizeToFit ?? null,
+		// Header "Auto-size this column" — re-fits one column to its content; only
+		// when resizing is on.
+		autoSizeColumn: resize?.reset ?? null,
 		chooseColumns,
 	}
 }

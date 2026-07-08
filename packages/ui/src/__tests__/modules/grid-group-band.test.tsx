@@ -113,7 +113,10 @@ describe('Grid column groups', () => {
 
 		expect(dataColHeaders()).toEqual(['first', 'last', 'email'])
 
-		const toggle = container.querySelector<HTMLButtonElement>('button[aria-expanded="true"]')
+		// Scope to the header — the group-band collapse toggle lives there, apart
+		// from the toolbar's (default-on) Export dropdown, which also carries
+		// `aria-expanded`.
+		const toggle = container.querySelector<HTMLButtonElement>('thead button[aria-expanded="true"]')
 
 		expect(toggle).not.toBeNull()
 
@@ -122,7 +125,7 @@ describe('Grid column groups', () => {
 		// Collapsed: the second member hides, the anchor stays.
 		expect(dataColHeaders()).toEqual(['first', 'email'])
 
-		const expand = container.querySelector<HTMLButtonElement>('button[aria-expanded="false"]')
+		const expand = container.querySelector<HTMLButtonElement>('thead button[aria-expanded="false"]')
 
 		fireEvent.click(expand as HTMLButtonElement)
 

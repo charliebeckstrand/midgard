@@ -62,7 +62,7 @@ const EMPTY_MEASUREMENT: ColumnMeasurement = { profiles: [], fixed: 0, floors: n
  * held where it sits (see {@link holdManualWidths}), so a resize stays confined to
  * the one column and never reflows the others, and the table then grows or shrinks
  * freely (trailing space or a horizontal scroll) rather than re-fitting. Auto-fit
- * re-arms only through `sizeToFit` (the "Auto-size columns" action), which clears
+ * re-arms only through `sizeToFit` (the "Auto-size all columns" action), which clears
  * every hold and re-fits; `resetColumn` re-fits a single column to its content
  * while the rest stay held.
  *
@@ -89,7 +89,7 @@ export function useGridColumnAutoSize<T>({
 	// rest; `sizeToFit` clears the set to re-arm auto-fit.
 	const manualPinnedRef = useRef<Set<string>>(new Set())
 
-	// `width`-seeded columns the user released via "Auto-size columns"; they rejoin
+	// `width`-seeded columns the user released via "Auto-size all columns"; they rejoin
 	// the fit instead of holding their initial `width`. Persists a deliberate
 	// release — a drag-hold instead lives in `manualPinnedRef`.
 	const widthReleasedRef = useRef<Set<string>>(new Set())
@@ -301,7 +301,7 @@ export function useGridColumnAutoSize<T>({
 	const sizeToFit = useCallback(() => {
 		manualPinnedRef.current.clear()
 
-		// `width` is the initial size; "Auto-size columns" supersedes it, so release
+		// `width` is the initial size; "Auto-size all columns" supersedes it, so release
 		// every `width`-seeded hold to redistribute those columns to their content too.
 		for (const col of columns) {
 			if (parsePxWidth(col.width) != null) widthReleasedRef.current.add(String(col.id))
