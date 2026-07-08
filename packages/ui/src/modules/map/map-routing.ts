@@ -12,7 +12,11 @@ type Profile = 'driving' | 'walking' | 'cycling'
  * readout.
  */
 export type MapRouteResult = {
-	/** The route geometry, ready to pass as an overlay's `path`. */
+	/**
+	 * The route geometry, ready to pass as an overlay's `path`; empty when the
+	 * route carries totals but no geometry (an `overview: 'false'` request), where
+	 * the overlay draws a straight line from its stops instead.
+	 */
 	path: LngLat[]
 	/** Total travel distance in meters. */
 	distanceMeters: number
@@ -178,13 +182,21 @@ function geometryPath(
 	return typeof geometry === 'string' ? decodePolyline(geometry) : geometry?.coordinates
 }
 
-/** The first route's geometry and totals, or `null` when the payload has none. @internal */
+/** The first route's geometry and totals, or `null` when the payload has no leg. @internal */
 function routeResult(json: OsrmPayload): MapRouteResult | null {
 	const route = json.routes?.[0]
 
-	const path = geometryPath(route?.geometry)
+	if (!route) return null
 
-	if (!route || !path) return null
+	const path = geometryPath(route.geometry) ?? []
+
+	// `overview: 'false'` answers with the totals and no geometry — the cheap
+	// distance/duration-only request the option documents — so keep them and hand
+	// back an empty path the overlay draws a straight line for. A route with
+	// neither geometry nor a total is an empty leg, so it reads as a miss.
+	if (path.length === 0 && route.distance === undefined && route.duration === undefined) {
+		return null
+	}
 
 	return {
 		path,

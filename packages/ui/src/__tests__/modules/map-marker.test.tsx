@@ -58,6 +58,18 @@ describe('MapMarker', () => {
 		)
 	})
 
+	it('draws the straight connector when the routed path is empty', () => {
+		// A totals-only routed leg (an `overview: 'false'` result) carries an empty
+		// path; the connector must still draw start→end, matching the omitted case.
+		const empty = renderUI(plat(<MapMarker label="A → C" start={START} end={END} path={[]} />))
+
+		const straight = renderUI(plat(<MapMarker label="A → C" start={START} end={END} />))
+
+		expect(bySlot(empty.container, 'map-marker-path')?.getAttribute('d')).toBe(
+			bySlot(straight.container, 'map-marker-path')?.getAttribute('d'),
+		)
+	})
+
 	it('registers one legend entry for the pair and answers hover on any part', () => {
 		const { container } = renderUI(
 			plat(<MapMarker label="A → C" start={START} end={END} detail="2,015 mi" />),

@@ -61,6 +61,18 @@ describe('MapRoute', () => {
 		)
 	})
 
+	it('falls back to the straight stops when the routed path is empty', () => {
+		// A totals-only routed leg (an `overview: 'false'` result) carries an empty
+		// path; the line must still draw from the stops, not vanish.
+		const empty = renderUI(plat(<MapRoute label="M6" stops={STOPS} path={[]} />))
+
+		const straight = renderUI(plat(<MapRoute label="M6" stops={STOPS} />))
+
+		expect(bySlot(empty.container, 'map-route')?.getAttribute('d')).toBe(
+			bySlot(straight.container, 'map-route')?.getAttribute('d'),
+		)
+	})
+
 	it('takes an explicit colour over its slot', () => {
 		const { container } = renderUI(plat(<MapRoute label="M6" stops={STOPS} color="rose" />))
 
