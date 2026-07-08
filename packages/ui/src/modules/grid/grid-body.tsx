@@ -13,6 +13,7 @@ import { Alert } from '../../components/alert'
 import { TableBody, TableEmpty, TableLoading } from '../../components/table'
 import type { DensityLevel } from '../../providers/density'
 import { hasAggregation } from './grid-aggregate'
+import { GRID_LOADING_ROWS } from './grid-constants'
 import type { ResolvedInfiniteScroll } from './grid-data-resolvers'
 import type { GridGroupBy, GridGroupHeaderRow } from './grid-data-types'
 import { GridGroupLeafRow } from './grid-group-leaf-row'
@@ -295,7 +296,7 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 		virtualize,
 	} = props
 
-	if (loading) return <TableLoading columns={visibleColumns.length} />
+	if (loading) return <TableLoading columns={visibleColumns.length} rows={GRID_LOADING_ROWS} />
 
 	// An error state pre-empts the empty slot: a failed fetch has no rows, but the
 	// cause isn't "no items". `true` renders a default error alert.

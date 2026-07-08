@@ -92,3 +92,10 @@ export const GRID_SEARCH_DEBOUNCE_MS = 200
  * (backend `count` of 0) shows none. @internal
  */
 export const MANUAL_GROUP_PLACEHOLDER_ROWS = 1
+
+/**
+ * Placeholder skeleton rows the grid's whole-body loading state draws (one
+ * `TextSkeleton` per column). A single bar reads as "loading" without
+ * pretending to a row count the data hasn't set yet. @internal
+ */
+export const GRID_LOADING_ROWS = 1
