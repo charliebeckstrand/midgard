@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { ChartFullscreenContext } from '../../modules/chart/context'
 import { PieChart } from '../../modules/chart/pie-chart'
 import {
 	CALLOUT_CHAR_WIDTH,
@@ -247,6 +248,32 @@ describe('PieChart', () => {
 	it('lets an explicit aspectRatio win over the callout content-fit', () => {
 		const { container } = renderUI(
 			chart({ height: undefined, aspectRatio: 2, labels: { callouts: true } }),
+		)
+
+		expect(container.querySelector('svg')?.getAttribute('viewBox')).toBe('0 0 300 150')
+	})
+
+	it('restricts the default pie to 16/9 inside the fullscreen dialog', () => {
+		// On the page the default pie fits its own square footprint, which in the
+		// fullscreen dialog overruns the 16/9 panel and renders clipped; the
+		// re-mounted copy reads the fullscreen flag and takes the panel's ratio —
+		// 300 / (16/9) ≈ 169 — so it holds the panel's height instead.
+		const page = renderUI(chart({ height: undefined }))
+
+		expect(page.container.querySelector('svg')?.getAttribute('viewBox')).toBe('0 0 300 300')
+
+		const { container } = renderUI(
+			<ChartFullscreenContext value={true}>{chart({ height: undefined })}</ChartFullscreenContext>,
+		)
+
+		expect(container.querySelector('svg')?.getAttribute('viewBox')).toBe('0 0 300 169')
+	})
+
+	it('lets an explicit aspectRatio win over the fullscreen default', () => {
+		const { container } = renderUI(
+			<ChartFullscreenContext value={true}>
+				{chart({ height: undefined, aspectRatio: 2 })}
+			</ChartFullscreenContext>,
 		)
 
 		expect(container.querySelector('svg')?.getAttribute('viewBox')).toBe('0 0 300 150')
