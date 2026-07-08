@@ -68,11 +68,15 @@ const dollars = (value: unknown) => `$${Number(value).toLocaleString('en-US')}`
 
 const orderColumns: GridColumn<Order>[] = [
 	// `groupable` puts the column in play for the group-by button: its header
-	// gains a button that groups on press and ungroups on a second press.
+	// gains a button that groups on press and ungroups on a second press. Made
+	// `sortable` too, so sorting the grouped column reorders the country groups —
+	// the grid moves whole group blocks client-side, leaving each group's children
+	// (and the backend's within-group order) in place.
 	{
 		id: 'country',
 		title: 'Country',
 		groupable: true,
+		sortable: true,
 		cell: (row) => row.country,
 		value: (row) => row.country,
 	},

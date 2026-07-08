@@ -168,6 +168,47 @@ describe('Grid manual (server-side) row grouping', () => {
 		expect(screen.queryByText('Total')).not.toBeInTheDocument()
 	})
 
+	it('sorts the groups by the grouped column, reordering whole group blocks', async () => {
+		const user = userEvent.setup()
+
+		// The grouped column made sortable — its header gains the sort toggle.
+		const sortableColumns = columns.map((col) =>
+			col.id === 'region' ? { ...col, sortable: true } : col,
+		)
+
+		renderUI(
+			<Grid
+				columns={sortableColumns}
+				rows={[westHeader, ...westChildren, eastHeader, ...eastChildren]}
+				getKey={getKey}
+				groupBy={{ manual: true, value: 'region', groupRow, expanded: new Set(['west', 'east']) }}
+			/>,
+		)
+
+		// True when `b` follows `a` in document order — so `a` leads `b`.
+		const leads = (a: string, b: string) =>
+			Boolean(
+				screen.getByText(a).compareDocumentPosition(screen.getByText(b)) &
+					Node.DOCUMENT_POSITION_FOLLOWING,
+			)
+
+		// Backend order: the West block leads the East block.
+		expect(leads('West (3)', 'East (2)')).toBe(true)
+
+		// Ascending sort on Region reorders the blocks by value — East (E) leads West (W)…
+		await user.click(screen.getByRole('button', { name: 'Sort by Region' }))
+
+		expect(leads('East (2)', 'West (3)')).toBe(true)
+
+		// …and each group's children move with it: West's leaf stays under West's header.
+		expect(leads('West (3)', 'Wade')).toBe(true)
+
+		// A second click flips to descending, restoring the West block ahead of East.
+		await user.click(screen.getByRole('button', { name: 'Sort by Region' }))
+
+		expect(leads('West (3)', 'East (2)')).toBe(true)
+	})
+
 	it('treats expansion as controlled state, reporting toggles without mutating it', async () => {
 		const user = userEvent.setup()
 

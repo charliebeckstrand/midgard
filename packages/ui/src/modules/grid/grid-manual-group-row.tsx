@@ -13,6 +13,7 @@ import { aggAccessor, aggregateLabelSpan, formatAggregate, hasAggregation } from
 import { MANUAL_GROUP_PLACEHOLDER_ROWS } from './grid-constants'
 import type { GridGroupBy, GridGroupHeaderRow } from './grid-data-types'
 import { formatGroupValue } from './grid-group-row'
+import { compareSmart } from './grid-sorting-utilities'
 import type { GridColumn } from './types'
 
 /**
@@ -70,6 +71,34 @@ export function segmentManualGroupRows<T>(
 	}
 
 	return segments
+}
+
+/**
+ * Orders manual group {@link GridManualGroupSegment}s for a sort on the grouped
+ * column: the header segments sort by their group `value` through
+ * {@link compareSmart} (negated for descending), while a leading headerless run
+ * — leaves before any header — stays at the front. The leaves within each
+ * segment keep their supplied (backend) order — only the group blocks move, so
+ * children never leave their header. Returns the segments untouched when no
+ * group sort is active. Pure, so the group-sort contract is unit-testable.
+ *
+ * @internal
+ */
+export function orderManualGroupSegments<T>(
+	segments: GridManualGroupSegment<T>[],
+	direction: 'asc' | 'desc' | null,
+): GridManualGroupSegment<T>[] {
+	if (!direction) return segments
+
+	const factor = direction === 'asc' ? 1 : -1
+
+	const headerless = segments.filter((segment) => segment.header === null)
+
+	const headed = segments
+		.filter((segment) => segment.header !== null)
+		.sort((a, b) => factor * compareSmart(a.info?.value, b.info?.value))
+
+	return [...headerless, ...headed]
 }
 
 /**

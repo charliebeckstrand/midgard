@@ -225,6 +225,24 @@ function resolveManualGroupBody<T>(args: {
 }
 
 /**
+ * The grouped column's active sort direction under manual grouping, or `null`
+ * when the grid isn't manually grouped or its grouped column isn't sorted — what
+ * {@link GridBody} reorders the manual group blocks by. Kept off
+ * {@link GridData}'s complexity budget.
+ *
+ * @internal
+ */
+function manualGroupSortDirection(args: {
+	active: boolean
+	sort: SortState[]
+	grouping: (string | number) | null
+}): 'asc' | 'desc' | null {
+	if (!args.active) return null
+
+	return args.sort.find((entry) => entry.column === args.grouping)?.direction ?? null
+}
+
+/**
  * The group-by context value the header buttons read, or `null` while the
  * `groupBy.groupButton` flag is off — the buttons then render nothing. Kept off
  * {@link GridData}'s complexity budget.
@@ -1373,6 +1391,15 @@ export function GridData<T>({
 		[manualGroupingActive, groupRow, manualExpanded, toggleGroup],
 	)
 
+	// Sorting the grouped column reorders the group blocks client-side (the engine
+	// keeps the rows manual so children stay under their headers); the direction,
+	// or `null` when the grouped column isn't sorted, drives that reorder in the body.
+	const manualGroupSort = manualGroupSortDirection({
+		active: manualGroupingActive,
+		sort,
+		grouping,
+	})
+
 	// The group-by wiring, or `null` while `groupBy.groupButton` is off — the
 	// header buttons then render nothing.
 	const groupByContext = useMemo(
@@ -1460,6 +1487,7 @@ export function GridData<T>({
 					manualRows={manualRows}
 					manualGroup={manualGroupBody}
 					groupColumnId={grouping}
+					manualGroupSort={manualGroupSort}
 					groupRenderHeader={groupRenderHeader}
 					rowGroupPresentation={rowManager.presentation}
 					groupTotalRow={groupTotalRow}

@@ -194,7 +194,10 @@ export type GridGroupBy<T = unknown> = {
 	 * leaf alike — still needs a stable, unique {@link GridDataProps.getKey}.
 	 * Single-level, like client grouping; the aggregate total rows
 	 * ({@link GridDataProps.groupTotalRow} / {@link GridDataProps.grandTotalRow})
-	 * stand down, since the backend owns the figures.
+	 * stand down, since the backend owns the figures. Sorting the grouped column
+	 * reorders the group blocks client-side (by group value, each header's
+	 * children moving with it); sorting any other column stays manual, emitted
+	 * through the `sort` binding for the backend to honour.
 	 * @defaultValue false
 	 */
 	manual?: boolean
