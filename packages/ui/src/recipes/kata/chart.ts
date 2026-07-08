@@ -133,5 +133,15 @@ export const k = {
 	value: ['text-xs', 'tabular-nums', 'font-medium', ...text.default],
 	/** The keyboard focus ring on the plot region when arrow-key navigation is enabled. */
 	focusRing: sen.focus.ring,
+	/**
+	 * The drawing SVG's pointer posture at the resolved tier: at spark the whole
+	 * drawing goes inert — a sparkline is read-only, so no mark hover styling,
+	 * cursor, or hit target may engage. The descendant rule is the load-bearing
+	 * half: the hit layers re-enable themselves through `pointerEvents="all"` /
+	 * `"stroke"` presentation attributes, which win over an inherited
+	 * `pointer-events: none` but lose to any author CSS rule. Wider tiers add
+	 * nothing.
+	 */
+	drawing: (spark: boolean) => (spark ? ['pointer-events-none', '**:pointer-events-none'] : []),
 	skeleton: kokkaku.chart,
 } as const

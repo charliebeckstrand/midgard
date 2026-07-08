@@ -1,12 +1,13 @@
 'use client'
 
 import {
+	type RefCallback,
 	type RefObject,
 	startTransition,
 	useCallback,
 	useEffect,
 	useLayoutEffect,
-	useRef,
+	useMemo,
 	useState,
 } from 'react'
 
@@ -156,6 +157,16 @@ export function resolveFrameSizing(
 }
 
 /**
+ * The measuring handle {@link usePlotFrame} returns: a callback ref, so
+ * attachment itself re-targets the hook's ResizeObserver whenever React swaps
+ * the plot node, intersected with the object-ref view whose `.current` readers
+ * of the live node — tooltip hit-testing, hover geometry — keep dereferencing.
+ *
+ * @internal
+ */
+export type PlotFrameRef = RefCallback<HTMLDivElement> & RefObject<HTMLDivElement | null>
+
+/**
  * Resolves a plot frame's drawing size from its {@link FrameSizing} policy,
  * measuring only the dimensions the policy consumes so a resize re-renders
  * the frame only when it must. An explicit `width` is returned as-is with no
@@ -182,21 +193,46 @@ export function resolveFrameSizing(
  * measure the container.
  * @param sizing - The frame's sizing policy, from `chartFrameSizing` or
  * `mapFrameSizing`.
- * @returns The wrapper `ref` to attach and the resolved drawing box — an
- * unmeasured `width` stays `0`, which renders the frame shell without marks
- * for that first paint (server and client agree, so no hydration mismatch).
+ * @returns The wrapper `ref` to attach — a callback ref that re-targets the
+ * observer if React swaps the node, still readable through `.current` — and
+ * the resolved drawing box; an unmeasured `width` stays `0`, which renders the
+ * frame shell without marks for that first paint (server and client agree, so
+ * no hydration mismatch).
  * @internal
  */
 export function usePlotFrame(
 	width: number | undefined,
 	sizing: FrameSizing,
 ): {
-	ref: RefObject<HTMLDivElement | null>
+	ref: PlotFrameRef
 	width: number
 	height: number
 	reserve: FrameReserve | null
 } {
-	const ref = useRef<HTMLDivElement>(null)
+	// The observed node is state, not a bare ref: measurement and observation
+	// must follow the node React attaches, and a layout re-arrangement can
+	// recreate the plot element positionally without ever unmounting this hook.
+	// An object ref read by policy-keyed effects would keep the observer on the
+	// detached node through such a swap — the frame frozen at its last committed
+	// size while its CSS box resizes on.
+	const [node, setNode] = useState<HTMLDivElement | null>(null)
+
+	// The attachment handle: a stable callback ref, so React reports every
+	// attach and detach into `node`, carrying the object-ref `.current` view
+	// consumers read outside the render cycle (tooltip hit-testing, hover
+	// geometry).
+	const ref = useMemo<PlotFrameRef>(() => {
+		const handle = Object.assign(
+			(next: HTMLDivElement | null) => {
+				handle.current = next
+
+				setNode(next)
+			},
+			{ current: null as HTMLDivElement | null },
+		)
+
+		return handle
+	}, [])
 
 	// The policy decides what the frame consumes: the width feeds every
 	// sizing but `fixed` unless the consumer fixes it directly, and a height
@@ -209,22 +245,21 @@ export function usePlotFrame(
 
 	const [size, setSize] = useState({ width: 0, height: 0 })
 
-	const measure = useCallback(() => {
-		const el = ref.current
+	const measure = useCallback(
+		(el: HTMLDivElement) => {
+			// Integer px, equality-guarded, so observer notifications can't churn
+			// state. An axis the policy ignores stays 0 and never re-renders it.
+			const next = {
+				width: measureWidth ? Math.round(el.clientWidth) : 0,
+				height: measureHeight ? Math.round(el.clientHeight) : 0,
+			}
 
-		if (!el) return
-
-		// Integer px, equality-guarded, so observer notifications can't churn
-		// state. An axis the policy ignores stays 0 and never re-renders it.
-		const next = {
-			width: measureWidth ? Math.round(el.clientWidth) : 0,
-			height: measureHeight ? Math.round(el.clientHeight) : 0,
-		}
-
-		setSize((current) =>
-			current.width === next.width && current.height === next.height ? current : next,
-		)
-	}, [measureWidth, measureHeight])
+			setSize((current) =>
+				current.width === next.width && current.height === next.height ? current : next,
+			)
+		},
+		[measureWidth, measureHeight],
+	)
 
 	// Settle the size before the browser paints, and re-settle on every size
 	// change: the mount measure can resolve a tier that mounts or drops the
@@ -236,38 +271,39 @@ export function usePlotFrame(
 	// height (see `chartPolicy` callers), so the chain converges rather than
 	// oscillating, and the equality-guarded `setSize` stops it once it lands.
 	// A layout effect, not passive, so the settle precedes paint the way the
-	// legend's own fit measure does. `size` is a re-trigger, not read: each run
-	// measures the DOM afresh, so re-running on the last committed size walks the
-	// chain to its fixed point.
+	// legend's own fit measure does — and `node` lands here as state pre-paint
+	// too, so a mount or swap measures before the browser shows it. `size` is a
+	// re-trigger, not read: each run measures the DOM afresh, so re-running on
+	// the last committed size walks the chain to its fixed point.
 	// biome-ignore lint/correctness/useExhaustiveDependencies: `size` re-triggers the re-measure; the effect reads the live DOM, not the value.
 	useLayoutEffect(() => {
-		if (!(measureWidth || measureHeight)) return
+		if (!node || !(measureWidth || measureHeight)) return
 
-		measure()
-	}, [measure, measureWidth, measureHeight, size])
+		measure(node)
+	}, [node, measure, measureWidth, measureHeight, size])
 
 	// Observe only while a measured axis feeds the sizing — a fully fixed
-	// frame constructs no observer, so a resize never re-renders it. The
-	// effect no-ops instead of delegating to `useResizeObserver` because the
-	// conditionality is this hook's policy, not the shared hook's contract.
+	// frame constructs no observer, so a resize never re-renders it. Keyed on
+	// `node`, so a swapped plot element re-targets the observer: the detached
+	// node is let go and the live one watched. The effect no-ops instead of
+	// delegating to `useResizeObserver` because the conditionality is this
+	// hook's policy, not the shared hook's contract.
 	useEffect(() => {
-		const el = ref.current
-
-		if (!el || !(measureWidth || measureHeight)) return
+		if (!node || !(measureWidth || measureHeight)) return
 
 		const observer = new ResizeObserver(() => {
 			// Transition priority: a burst of notifications coalesces — React
 			// abandons a render for a size a newer notification has already
 			// outdated — and the geometry rebuild never blocks urgent work.
-			startTransition(measure)
+			startTransition(() => measure(node))
 		})
 
-		observer.observe(el)
+		observer.observe(node)
 
 		return () => {
 			observer.disconnect()
 		}
-	}, [measure, measureWidth, measureHeight])
+	}, [node, measure, measureWidth, measureHeight])
 
 	const resolvedWidth = width ?? size.width
 

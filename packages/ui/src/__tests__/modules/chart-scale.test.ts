@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { bandScale, linearScale, nearestBandIndex } from '../../modules/chart/chart-scale'
+import {
+	bandScale,
+	headroomFits,
+	linearScale,
+	nearestBandIndex,
+} from '../../modules/chart/chart-scale'
 
 describe('linearScale', () => {
 	it('derives the domain from the finite values and lands ticks on clean steps', () => {
@@ -61,6 +66,108 @@ describe('linearScale', () => {
 		expect(negative?.domain[1]).toBeGreaterThanOrEqual(60)
 
 		expect(negative?.ticks).toContain(0)
+	})
+
+	it('reserves label headroom past an unpinned extreme, solving for the grown span', () => {
+		// Pin the floor so only the ceiling widens. The peak (97) otherwise sits
+		// 3px below the nice ceiling of 100 — too little for a ~21px label. The
+		// widened ceiling must leave a full 21px once the larger span is accounted
+		// for; a naive px→value pass would fall short.
+		const base = linearScale({ values: [3, 97], range: [100, 0], tickTarget: 4, min: 0 })
+
+		expect(base?.domain[1]).toBe(100)
+
+		const roomy = linearScale({
+			values: [3, 97],
+			range: [100, 0],
+			tickTarget: 4,
+			min: 0,
+			headroom: 21,
+		})
+
+		const [low, high] = roomy?.domain ?? [0, 0]
+
+		// The pinned floor holds; the ceiling widened so the peak clears it by ~21px.
+		expect(low).toBe(0)
+
+		const clearancePx = (high - 97) / ((high - low) / 100)
+
+		expect(clearancePx).toBeGreaterThanOrEqual(20.5)
+
+		expect(clearancePx).toBeLessThan(22)
+	})
+
+	it('shares one span so both extremes clear their edges when both widen', () => {
+		// Neither pinned: the peak needs room above, the trough below. Both clear
+		// their edge by ~10px, and the data still spans the middle.
+		const scale = linearScale({ values: [20, 80], range: [100, 0], tickTarget: 4, headroom: 10 })
+
+		const [low, high] = scale?.domain ?? [0, 0]
+
+		const perPx = (high - low) / 100
+
+		expect((high - 80) / perPx).toBeGreaterThanOrEqual(9.5)
+
+		expect((20 - low) / perPx).toBeGreaterThanOrEqual(9.5)
+	})
+
+	it('keeps the reserved gap past the label flip threshold at every affordable height', () => {
+		// The label placement flips a label to its point's other side when the
+		// point sits within 21px (offset + height) of the plot edge. The reserved
+		// headroom must clear that threshold with slack at EVERY size a label can
+		// render at — a reservation that only met it would leave the extreme's
+		// label exactly on the flip boundary, and a live resize would dance it
+		// across, frame by frame, landing it on the line each time. Sweep the
+		// plot heights a resize passes through: past the affordability cutoff the
+		// gap holds strictly past the threshold; under it nothing is reserved and
+		// the same headroomFits verdict sheds the labels instead.
+		const values = [12, -6, 9, -14, 18, 7]
+
+		for (let rangePx = 40; rangePx <= 400; rangePx += 1) {
+			const scale = linearScale({ values, range: [rangePx, 0], tickTarget: 4, headroom: 25 })
+
+			if (!scale) throw new Error('scale must resolve')
+
+			if (!headroomFits(25, rangePx)) {
+				// Unaffordable: the domain stays at its plain nice bounds.
+				const base = linearScale({ values, range: [rangePx, 0], tickTarget: 4 })
+
+				expect(scale.domain).toEqual(base?.domain)
+
+				continue
+			}
+
+			const perPx = (scale.domain[1] - scale.domain[0]) / rangePx
+
+			expect((scale.domain[1] - 18) / perPx).toBeGreaterThan(21)
+
+			expect((-14 - scale.domain[0]) / perPx).toBeGreaterThan(21)
+		}
+	})
+
+	it('caps the reservation share so the data keeps at least half the plot', () => {
+		// At an affordable height the two reserved bands may take at most a
+		// quarter of the range each; the widened domain therefore holds the data
+		// to no less than half the plot, so small charts never render a squashed
+		// near-flat line under generous empty bands.
+		const scale = linearScale({ values: [20, 80], range: [100, 0], tickTarget: 4, headroom: 25 })
+
+		const [low, high] = scale?.domain ?? [0, 0]
+
+		expect((80 - 20) / (high - low)).toBeGreaterThanOrEqual(0.5)
+	})
+
+	it('never widens a pinned bound for headroom', () => {
+		const scale = linearScale({
+			values: [3, 97],
+			range: [100, 0],
+			tickTarget: 4,
+			max: 97,
+			headroom: 21,
+		})
+
+		// The pin holds exactly despite the headroom ask; the unpinned floor is free.
+		expect(scale?.domain[1]).toBe(97)
 	})
 
 	it('keeps a pinned bound exact instead of rounding it to a tick', () => {

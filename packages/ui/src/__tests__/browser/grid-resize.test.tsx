@@ -241,3 +241,100 @@ describe('grid resize handle with reorder active (real browser)', () => {
 		)
 	})
 })
+
+/**
+ * A resize is confined to the dragged column. The auto-sizer fills the frame with
+ * width-less columns on mount, but once the user takes width control the layout
+ * holds: resizing one column must not reflow the others (the space it frees or
+ * takes is the table's, not its neighbours'). Real geometry, so the browser.
+ */
+describe('grid column resize holds the other columns (real browser)', () => {
+	type Row = { id: number; a: string; b: string; c: string }
+
+	const columns: GridColumn<Row>[] = [
+		{ id: 'a', title: 'A', cell: (row) => row.a },
+		{ id: 'b', title: 'B', cell: (row) => row.b },
+		{ id: 'c', title: 'C', cell: (row) => row.c },
+	]
+
+	const makeRows = (count: number): Row[] =>
+		Array.from({ length: count }, (_, i) => ({ id: i + 1, a: 'a', b: 'b', c: 'c' }))
+
+	const header = (root: HTMLElement, id: string) =>
+		root.querySelector<HTMLElement>(`th[data-grid-col="${id}"]`) as HTMLElement
+
+	function setup() {
+		const view = (
+			<div style={{ width: '600px' }}>
+				<Grid resizable columns={columns} rows={makeRows(4)} getKey={(row) => row.id} />
+			</div>
+		)
+
+		const { container, rerender } = renderUI(view)
+
+		const handle = container.querySelector<HTMLElement>('[role="separator"][aria-label="Resize A"]')
+
+		if (!handle) throw new Error('resize handle not found')
+
+		return { container, handle, rerender }
+	}
+
+	it('widens only the dragged column, leaving its neighbours where they are', async () => {
+		const { container, handle, rerender } = setup()
+
+		// The three width-less columns fill the 600px frame before any manual resize.
+		await waitFor(() =>
+			expect(header(container, 'a').getBoundingClientRect().width).toBeGreaterThan(150),
+		)
+
+		const startA = header(container, 'a').getBoundingClientRect().width
+
+		const startB = header(container, 'b').getBoundingClientRect().width
+
+		const startC = header(container, 'c').getBoundingClientRect().width
+
+		const rect = handle.getBoundingClientRect()
+
+		const startX = rect.left + rect.width / 2
+
+		const y = rect.top + rect.height / 2
+
+		fireEvent.mouseDown(handle, { clientX: startX, clientY: y })
+
+		fireEvent.mouseMove(document, { clientX: startX + 80, clientY: y })
+
+		fireEvent.mouseUp(document, { clientX: startX + 80, clientY: y })
+
+		// The dragged column widened…
+		await waitFor(() =>
+			expect(header(container, 'a').getBoundingClientRect().width).toBeGreaterThan(startA + 40),
+		)
+
+		// …and the others held — no redistribution into the space the drag consumed.
+		expect(
+			Math.abs(header(container, 'b').getBoundingClientRect().width - startB),
+		).toBeLessThanOrEqual(1)
+
+		expect(
+			Math.abs(header(container, 'c').getBoundingClientRect().width - startC),
+		).toBeLessThanOrEqual(1)
+
+		// The hold survives a later auto-fit trigger: a rows change re-runs the
+		// autosizer, which must not re-fit a grid the user has taken control of.
+		rerender(
+			<div style={{ width: '600px' }}>
+				<Grid resizable columns={columns} rows={makeRows(8)} getKey={(row) => row.id} />
+			</div>,
+		)
+
+		await waitFor(() => expect(container.querySelectorAll('tbody tr').length).toBeGreaterThan(4))
+
+		expect(
+			Math.abs(header(container, 'b').getBoundingClientRect().width - startB),
+		).toBeLessThanOrEqual(1)
+
+		expect(
+			Math.abs(header(container, 'c').getBoundingClientRect().width - startC),
+		).toBeLessThanOrEqual(1)
+	})
+})

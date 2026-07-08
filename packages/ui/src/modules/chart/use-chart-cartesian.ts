@@ -75,6 +75,23 @@ export type CartesianConfig<T> = {
 	 * @defaultValue false
 	 */
 	legendByValue?: boolean
+	/**
+	 * How far, in px, the chart's widest mark paints past its data coordinate —
+	 * see {@link CartesianLayoutInput.markInset}. The layouts reserve it on every
+	 * plot edge whenever the axis chrome is off (spark, or an explicit
+	 * `axes={false}`), so a mark at a data extreme clears the frame instead of
+	 * clipping at it. Bars end at their coordinate, so {@link BarChart} omits it.
+	 * @defaultValue 0
+	 */
+	markInset?: number
+	/**
+	 * Pixels of clear room to reserve past a data extreme on the value axis — see
+	 * {@link CartesianLayoutInput.valueHeadroom}. The line-bearing charts set it
+	 * when they draw single-series extreme value labels, so the label sits clear
+	 * of its edge instead of flipping onto the line.
+	 * @defaultValue 0
+	 */
+	valueHeadroom?: number
 }
 
 /** Everything the cartesian frame and marks derive from the props. @internal */
@@ -163,6 +180,13 @@ export type CartesianChart = {
 	 * this to the series it sits on, so it can emphasise that one and recede the rest.
 	 */
 	snapSeries: number[][]
+	/**
+	 * Whether the {@link CartesianConfig.valueHeadroom} asked for was affordable
+	 * in the resolved layout — see {@link CartesianLayout.valueLabelRoom}. A
+	 * chart that reserved room for its point value labels draws them only while
+	 * this holds; `true` when no headroom was asked.
+	 */
+	valueLabelRoom: boolean
 	/**
 	 * Each reference line's value-axis position — projected through its own
 	 * axis's scale — index-aligned to the `reference` prop so a keyboard stop
@@ -682,6 +706,8 @@ export function useChartCartesian<T>(
 		tickRotation: props.tickRotation,
 		times,
 		count: data.length,
+		markInset: config.markInset,
+		valueHeadroom: config.valueHeadroom,
 		visibleValues: visible.map((meta) => ({
 			values: meta.values,
 			side: meta.axis,
@@ -745,6 +771,7 @@ export function useChartCartesian<T>(
 		bandPositions: layout.bandPositions,
 		snapPoints: layout.snapPoints,
 		snapSeries: layout.snapSeries,
+		valueLabelRoom: layout.valueLabelRoom,
 		referencePositions,
 		gridPositions: gridPositionsOf(props, layout, policy.gridLines),
 		axisTitles: layout.titles,

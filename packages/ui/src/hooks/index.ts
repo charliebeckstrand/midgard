@@ -45,6 +45,7 @@ export { usePendingCaret } from './use-pending-caret'
 export {
 	type FrameReserve,
 	type FrameSizing,
+	type PlotFrameRef,
 	type ResolvedFrameSizing,
 	resolveFrameSizing,
 	usePlotFrame,

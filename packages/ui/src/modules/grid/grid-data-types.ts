@@ -605,12 +605,14 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * header gains a resize handle on its trailing edge, carrying an always-visible
 	 * grip — a short centred bar that tints on hover and turns accent on keyboard
 	 * focus or active drag. Columns auto-size to their content by default (a `px`
-	 * {@link GridColumn.width} seeds one's initial width instead); a drag-resize
-	 * holds that column at its width while the rest keep auto-sizing, and widths
-	 * persist through {@link GridDataProps.columnSizing}. The header context menu's
-	 * "Auto-size columns" re-fits and clears every held width — drag-resized and
-	 * `width`-seeded alike. Set `false` to drop the handles (columns still
-	 * auto-size).
+	 * {@link GridColumn.width} seeds one's initial width instead). The first manual
+	 * resize — a drag or a keyboard nudge — takes width control: every column holds
+	 * where it sits, so resizing one never reflows the others, and the table then
+	 * grows or shrinks freely (trailing space or a horizontal scroll) rather than
+	 * re-fitting. Widths persist through {@link GridDataProps.columnSizing}. The
+	 * header context menu's "Auto-size columns" clears every held width — manually
+	 * resized and `width`-seeded alike — and re-arms auto-fit. Set `false` to drop
+	 * the handles (columns still auto-size).
 	 * @defaultValue true
 	 */
 	resizable?: boolean

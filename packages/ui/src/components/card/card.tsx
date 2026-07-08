@@ -45,20 +45,7 @@ export function Card({
 			bg={bg}
 			outline={outline}
 			radius={k.radius[step]}
-			className={cn(
-				'overflow-hidden -outline-offset-1',
-				/**
-				 * Zeroes the header's gap whenever a CardBody is its next sibling — a header
-				 * with no next sibling, or a non-body one (e.g. a footer with no body between
-				 * them), keeps the `slots` gap above. The extra `[data-slot=card-header]`
-				 * attribute check makes this compound projection strictly more specific than
-				 * the plain `slots` row it overrides, so it always wins outright, at every
-				 * step, regardless of class order.
-				 */
-				'*:data-[slot=card-header]:has-[+[data-slot=card-body]]:pb-0',
-				k.slots[step],
-				className,
-			)}
+			className={cn('overflow-hidden -outline-offset-1', k.slots[step], className)}
 			{...props}
 		>
 			{size ? <Density scale={size}>{children}</Density> : children}

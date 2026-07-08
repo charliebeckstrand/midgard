@@ -7,6 +7,7 @@ import { ChartFrame } from '../chart-frame'
 import { ChartGridLines } from '../chart-grid-lines'
 import { ChartHitArea } from '../chart-hit-area'
 import { nearSeriesLines, withinSeriesAreas } from '../chart-hit-test'
+import { lineMarkReach } from '../chart-layout'
 import { AnimatedChartLineMarks, ChartLineMarks, type ChartLineSeries } from '../chart-line-marks'
 import { ChartMarksLayer } from '../chart-marks-layer'
 import { useChartTexture } from '../chart-pattern-defs'
@@ -17,7 +18,7 @@ import {
 	resolveTooltip,
 } from '../chart-schema'
 import { snapTargets } from '../chart-snap'
-import { ChartValueLabels, resolveValueLabels } from '../chart-value-labels'
+import { ChartValueLabels, resolveValueLabels, valueLabelHeadroom } from '../chart-value-labels'
 import { bandCenters, useChartCartesian } from '../use-chart-cartesian'
 import { cartesianFocus } from '../use-chart-keyboard'
 import { type LineInterpolation, lineGeometry } from './line-chart-geometry'
@@ -128,9 +129,20 @@ export function LineChart<T>({
 			title: label.title,
 			subtitle: label.subtitle,
 		},
-		{ zeroBaseline: false, swatch: () => 'line', legendByValue: true },
+		{
+			zeroBaseline: false,
+			swatch: () => 'line',
+			legendByValue: true,
+			markInset: lineMarkReach(points),
+			// Reserve the room the point labels need past the data extremes, so a
+			// label at an edge sits clear of the line rather than flip onto it.
+			valueHeadroom: valueLabelHeadroom(labels, series.length),
+		},
 	)
 
+	// Spark needs no gate here: the frame renders the drawing pointer-inert, and
+	// the crosshair, hit layer, value labels, and reference hovers stand
+	// themselves down through ChartTierContext.
 	const floor = chart.plot.y + chart.plot.height
 
 	// One band-center array for every series — they all span the same categories.
@@ -163,18 +175,23 @@ export function LineChart<T>({
 
 	const fills = drawn.map(({ meta }) => tex.fillFor(meta.slot))
 
-	const valueLabelItems = resolveValueLabels(
-		labels,
-		list,
-		drawn.map(({ meta }) => meta),
-		chart.plot,
-		formatValue,
-		drawn.map(
-			({ meta }) =>
-				(value: number) =>
-					chart.formatAxisValue(value, meta.axis),
-		),
-	)
+	// A plot too short to afford the reserved label room sheds the point labels
+	// whole — the layout decides by the same test the scale reserved by, so a
+	// label never renders against an unreserved edge.
+	const valueLabelItems = chart.valueLabelRoom
+		? resolveValueLabels(
+				labels,
+				list,
+				drawn.map(({ meta }) => meta),
+				chart.plot,
+				formatValue,
+				drawn.map(
+					({ meta }) =>
+						(value: number) =>
+							chart.formatAxisValue(value, meta.axis),
+				),
+			)
+		: []
 
 	const marksNode = animate ? (
 		<AnimatedChartLineMarks

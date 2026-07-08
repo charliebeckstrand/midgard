@@ -459,13 +459,12 @@ export function Demo() {
 								title="Value labels"
 								code={code`<LineChart labels={{ endpoints: true, extremes: true }} … />`}
 							>
+								{/* Point labels are single-series only: a lone line has room to name
+								    its endpoints and extremes without crowding a neighbour. */}
 								<LineChart
-									aria-label="Revenue and margin by month, with value labels"
-									data={months}
-									series={[
-										{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
-										{ xKey: 'month', yKey: 'margin', yName: 'Margin' },
-									]}
+									aria-label="Monthly change, with value labels at its endpoints and extremes"
+									data={swings}
+									series={[{ xKey: 'month', yKey: 'delta', yName: 'Change' }]}
 									points
 									labels={{ endpoints: true, extremes: true }}
 								/>
@@ -818,7 +817,6 @@ export function Demo() {
 								code={code`<HeatmapChart series={[{ xKey: 'hour', yKey: 'day', colorKey: 'commits', colorRange: greens }]} … />`}
 							>
 								<HeatmapChart
-									className="max-w-md"
 									aria-label="Commits by weekday and hour"
 									data={activity}
 									series={[

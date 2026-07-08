@@ -13,7 +13,7 @@ import { bandExtent, type ChartOrientation, project, type Vec } from './chart-or
 import type { LinearScale } from './chart-scale'
 import type { ChartReferenceLine, ChartValueAxisSide } from './chart-schema'
 import { formatChartValue, isSeriesSlot } from './chart-series'
-import { useChartEmphasis } from './context'
+import { useChartEmphasis, useChartTier } from './context'
 
 /** Formats a reference value with its own axis's formatter. @internal */
 type ReferenceFormat = (value: number, axis: ChartValueAxisSide) => string
@@ -322,14 +322,47 @@ function HoverReferenceRule({
 }
 
 /**
- * One reference rule, in one of two renderings: the standing {@link
+ * The spark rendering: the dashed rule alone, pointer-inert — no hit target,
+ * no tooltip, no standing label, no emphasis. A sparkline is read-only bare
+ * marks, so a rule keeps only its ink; it still rides the mount rise, since
+ * spark strips interactivity, not the drawing.
+ *
+ * @internal
+ */
+function SparkReferenceRule({ line, start, end, rise }: ReferenceRuleProps) {
+	const body = (
+		<ReferenceRuleStroke line={line} points={{ x1: start.x, y1: start.y, x2: end.x, y2: end.y }} />
+	)
+
+	return (
+		<g data-slot="chart-reference-line" pointerEvents="none">
+			{rise ? (
+				<motion.g {...rise} transition={REFERENCE_RISE}>
+					{body}
+				</motion.g>
+			) : (
+				body
+			)}
+		</g>
+	)
+}
+
+/**
+ * One reference rule, in one of three renderings: the bare {@link
+ * SparkReferenceRule} at the spark tier (read through {@link ChartTierContext},
+ * so the frame decides and no chart gates it), the standing {@link
  * LabelledReferenceRule} under `labels`, else the interactive {@link
- * HoverReferenceRule}. Both draw the same dashed rule; they differ only in
- * whether the value reads from a fixed label or a hover-and-keyboard tooltip.
+ * HoverReferenceRule}. All draw the same dashed rule; they differ only in
+ * whether the value reads from nothing, a fixed label, or a hover-and-keyboard
+ * tooltip.
  *
  * @internal
  */
 function ReferenceRule(props: ReferenceRuleProps) {
+	const spark = useChartTier() === 'spark'
+
+	if (spark) return <SparkReferenceRule {...props} />
+
 	return props.labels ? <LabelledReferenceRule {...props} /> : <HoverReferenceRule {...props} />
 }
 
@@ -348,7 +381,10 @@ function ReferenceRule(props: ReferenceRuleProps) {
  * axis from the baseline to its value — {@link referenceRise} — inside a
  * {@link ReducedMotion} that settles it at rest for a reduced-motion preference.
  * Under `labels` each rule carries a standing value label at its far end and
- * drops the hover tooltip — the `labels.references` mode.
+ * drops the hover tooltip — the `labels.references` mode. At the spark tier —
+ * read through {@link ChartTierContext}, over either mode — each rule sheds its
+ * hit target, tooltip, and label to the bare dashed stroke: a sparkline is
+ * read-only, so the rules keep their ink and give up the pointer.
  * @internal
  */
 export function ChartReferenceLines({

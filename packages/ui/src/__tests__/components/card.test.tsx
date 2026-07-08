@@ -86,24 +86,6 @@ describe('Card size system', () => {
 		expect(bySlot(container, 'card-header')?.className ?? '').not.toMatch(/\bpb-\d/)
 	})
 
-	it.each<Step>([
-		'sm',
-		'md',
-		'lg',
-	])('collapses the header gap to zero ahead of a body, at size %s', (step) => {
-		const { container } = renderUI(
-			<Card size={step}>
-				<CardHeader>header</CardHeader>
-				<CardBody>body</CardBody>
-			</Card>,
-		)
-
-		// Unconditional on size: the same compound rule shows up at every step.
-		expect(bySlot(container, 'card')?.className).toContain(
-			'*:data-[slot=card-header]:has-[+[data-slot=card-body]]:pb-0',
-		)
-	})
-
 	it('keeps the header gap when a body does not directly follow it', () => {
 		const { container } = renderUI(
 			<Card>

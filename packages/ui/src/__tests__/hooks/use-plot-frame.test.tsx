@@ -179,6 +179,59 @@ describe('usePlotFrame', () => {
 		expect(onMarks).toHaveBeenCalledTimes(drawsAfterBurst)
 	})
 
+	it('re-targets the observer when React swaps the plot node without unmounting the hook', () => {
+		const onMarks = vi.fn()
+
+		// Swapping the wrapper's element type discards its subtree — React
+		// recreates the plot div positionally while the hook's component stays
+		// mounted, the shape a re-arranging layout branch produces with unkeyed
+		// children. The frozen-frame defect: an observer attached by a
+		// policy-keyed effect would keep watching the detached node.
+		function SwapProbe({ swap }: { swap: boolean }) {
+			const plot = usePlotFrame(undefined, { mode: 'aspect', ratio: 2 })
+
+			const region = (
+				<div ref={plot.ref} data-testid="plot">
+					<Marks width={plot.width} height={plot.height} onRender={onMarks} />
+				</div>
+			)
+
+			return swap ? <section>{region}</section> : <main>{region}</main>
+		}
+
+		const { rerender } = renderUI(<SwapProbe swap={false} />)
+
+		const first = screen.getByTestId('plot')
+
+		resizeTo(first, { width: 300, height: 0 })
+
+		expect(screen.getByTestId('marks').getAttribute('data-width')).toBe('300')
+
+		rerender(<SwapProbe swap />)
+
+		const second = screen.getByTestId('plot')
+
+		expect(second).not.toBe(first)
+
+		// The observer let go of the detached node and watches the live one.
+		expect(firstObserver().disconnect).toHaveBeenCalled()
+
+		const live = stub.instances.at(-1)
+
+		if (!live || live === firstObserver()) throw new Error('no observer re-targeted the new node')
+
+		expect(live.observe).toHaveBeenCalledWith(second)
+
+		// And its notifications still commit: the frame tracks the new node.
+		mockDomGeometry(second, { clientWidth: 340, clientHeight: 0 })
+
+		act(() => {
+			live.callback([], live as unknown as ResizeObserver)
+		})
+
+		expect(screen.getByTestId('marks').getAttribute('data-width')).toBe('340')
+	})
+
 	it('redraws on a height change under a fill policy', () => {
 		const onMarks = vi.fn()
 

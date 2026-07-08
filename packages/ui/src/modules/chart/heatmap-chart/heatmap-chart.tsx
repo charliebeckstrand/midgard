@@ -10,6 +10,7 @@ import {
 	useInteractions,
 } from '@floating-ui/react'
 import {
+	Fragment,
 	type MouseEvent,
 	type PointerEvent,
 	type ReactNode,
@@ -45,6 +46,7 @@ import {
 } from '../chart-schema'
 import { formatChartValue, READOUT_GAP } from '../chart-series'
 import { ChartTable } from '../chart-table'
+import { isSparkBox } from '../chart-tier'
 import type { ChartReadout } from '../types'
 import { cellAt, heatmapCells } from './heatmap-chart-geometry'
 import {
@@ -490,6 +492,8 @@ type HeatmapModel = {
 	frameWidth: number
 	frameHeight: number
 	reserve: ReturnType<typeof usePlotFrame>['reserve']
+	/** The measured box is small enough to strip to bare cells — no labels, no readout. */
+	spark: boolean
 	plot: PlotRect
 	xBand: ReturnType<typeof bandScale>
 	yBand: ReturnType<typeof bandScale>
@@ -544,6 +548,11 @@ function useHeatmap<T>(
 		reserve,
 	} = usePlotFrame(width, chartFrameSizing(height, ratio))
 
+	// Spark strips the heatmap to its bare cells: no row/column labels, no gutter
+	// for them, and no hover readout — a sparkline is non-interactive. The cells,
+	// the accessible name, and the data table still carry the grid's values.
+	const spark = isSparkBox(frameWidth, frameHeight)
+
 	const domain = useMemo(
 		() =>
 			valueExtent(
@@ -565,8 +574,8 @@ function useHeatmap<T>(
 	// proportional estimate — else a capital-initial label like "Mon"/"Wed" clips
 	// against the frame's left edge.
 	const plot = useMemo(
-		() => plotRect(frameWidth, frameHeight, true, matrix.rows, LABEL_CHAR_WIDTH),
-		[frameWidth, frameHeight, matrix.rows],
+		() => plotRect(frameWidth, frameHeight, !spark, matrix.rows, LABEL_CHAR_WIDTH),
+		[frameWidth, frameHeight, matrix.rows, spark],
 	)
 
 	const xBand = useMemo(
@@ -607,6 +616,7 @@ function useHeatmap<T>(
 		frameWidth,
 		frameHeight,
 		reserve,
+		spark,
 		plot,
 		xBand,
 		yBand,
@@ -642,26 +652,30 @@ type HeatmapFigureProps = {
  * {@link HeatmapChart} so its render stays a thin assembly of parts, the way the
  * map frame keeps its own layout.
  *
+ * One figure div, keyed children: the placement is measured-width-driven (the
+ * rail drops to a bottom band across the compact boundary), so a flip re-arranges
+ * this tree at runtime. The keys make React *move* the plot node through a flip
+ * rather than recreate it positionally — the plot frame's ResizeObserver is bound
+ * to that node, and a recreated node would strand the observer on the detached
+ * one, freezing the drawing at its last committed size while the box resizes on.
+ *
  * @internal
  */
 function HeatmapFigure({ plot, legend, placement, aside }: HeatmapFigureProps) {
-	if (aside) {
-		return (
-			<div className={cn('flex items-center gap-4', placement === 'left' && 'flex-row-reverse')}>
-				{plot}
-
-				{legend}
-			</div>
-		)
-	}
-
 	return (
-		<div className="flex flex-col gap-3">
-			{placement === 'top' && legend}
+		<div
+			className={cn(
+				aside
+					? // A left rail reverses the row, so the DOM order holds plot-first.
+						cn('flex items-center gap-4', placement === 'left' && 'flex-row-reverse')
+					: 'flex flex-col gap-3',
+			)}
+		>
+			{placement === 'top' && <Fragment key="legend">{legend}</Fragment>}
 
-			{plot}
+			<Fragment key="plot">{plot}</Fragment>
 
-			{placement === 'bottom' && legend}
+			{placement !== 'top' && <Fragment key="legend">{legend}</Fragment>}
 		</div>
 	)
 }
@@ -709,13 +723,12 @@ export function HeatmapChart<T>({
 }: HeatmapChartProps<T>) {
 	const primary = series[0]
 
-	const { show: showTooltip, trigger } = resolveTooltip(tooltip)
-
 	const {
 		ref,
 		frameWidth,
 		frameHeight,
 		reserve,
+		spark,
 		plot,
 		xBand,
 		yBand,
@@ -731,6 +744,12 @@ export function HeatmapChart<T>({
 		readout,
 		format,
 	} = useHeatmap(data, primary, width, height, aspectRatio, formatValue)
+
+	// Spark is a bare, non-interactive sparkline, so the hover readout stands down
+	// with the labels; every wider tier keeps the caller's `tooltip`.
+	const { show, trigger } = resolveTooltip(tooltip)
+
+	const showTooltip = show && !spark
 
 	// The bar's placement, orientation, and visibility follow the caller's
 	// `legend` prop and the chart's own tier. Measured off the container, not the
@@ -763,15 +782,25 @@ export function HeatmapChart<T>({
 
 	const showLegend = rangeLegend.show && domain !== null && bins.length > 0
 
+	// Pinned to its committed pixel size and anchored top-left, `viewBox` matching
+	// so user units map 1:1 — not `size-full`, which scales the drawing against a
+	// stale viewBox through a resize burst (see ChartFrame). The fraction-based hit
+	// locate above reads the rendered rect, so it stays correct either way.
 	const svg = frameWidth > 0 && (
 		<svg
 			aria-hidden="true"
-			className="block size-full"
+			className="absolute left-0 top-0 block"
+			width={frameWidth}
+			height={frameHeight}
 			viewBox={`0 0 ${frameWidth} ${frameHeight}`}
 		>
-			<ChartAxis axis="y" plot={plot} ticks={ticks.y} />
+			{!spark && (
+				<>
+					<ChartAxis axis="y" plot={plot} ticks={ticks.y} />
 
-			<ChartAxis axis="x" plot={plot} ticks={ticks.x} line={false} />
+					<ChartAxis axis="x" plot={plot} ticks={ticks.x} line={false} />
+				</>
+			)}
 
 			<HeatmapCells cells={cells} fills={fills} cellBins={cellBins} />
 

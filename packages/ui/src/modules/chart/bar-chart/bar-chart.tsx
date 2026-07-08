@@ -210,6 +210,8 @@ export function BarChart<T>({
 		/>
 	)
 
+	// Spark needs no gate here: the frame renders the drawing pointer-inert and the
+	// crosshair and hit layer stand themselves down through ChartTierContext.
 	const rails = resolveCrosshair(crosshair)
 
 	const { show: showTooltip, trigger } = resolveTooltip(tooltip)

@@ -10,6 +10,7 @@ import { ChartFrame } from '../chart-frame'
 import { ChartGridLines } from '../chart-grid-lines'
 import { ChartHitArea } from '../chart-hit-area'
 import { nearSeriesLines, withinBarMarks, withinSeriesAreas } from '../chart-hit-test'
+import { lineMarkReach } from '../chart-layout'
 import { AnimatedChartLineMarks, ChartLineMarks, type ChartLineSeries } from '../chart-line-marks'
 import { ChartMarksLayer } from '../chart-marks-layer'
 import { useChartTexture } from '../chart-pattern-defs'
@@ -144,9 +145,15 @@ export function ComboChart<T>({
 		{
 			zeroBaseline: true,
 			swatch: (_, index) => (series[index]?.type === 'bar' ? 'rect' : 'line'),
+			// Only the line and area series paint past their coordinate — bars end at
+			// theirs — so the inset stands only where such a series exists to need it.
+			markInset: series.some((entry) => entry.type !== 'bar') ? lineMarkReach(points) : 0,
 		},
 	)
 
+	// Spark needs no gate here: the frame renders the drawing pointer-inert, and
+	// the crosshair, hit layer, value labels, and reference hovers stand
+	// themselves down through ChartTierContext.
 	const floor = chart.plot.y + chart.plot.height
 
 	const dim = (meta: SeriesMeta) => chart.emphasis !== null && meta.index !== chart.emphasis
