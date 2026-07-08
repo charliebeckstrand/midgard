@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider, useQuery, useQueryClient } from '@tanstack/react-query'
-import { type ReactNode, useState } from 'react'
+import { type ComponentProps, useState } from 'react'
 import statesUrl from 'us-atlas/states-10m.json?url'
 import { Stack } from '../../../../components/stack'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../../components/tabs'
@@ -13,7 +13,7 @@ import {
 	MapRoute,
 	type MapRouteResult,
 } from '../../../../modules/map'
-import { Example } from '../../../engine'
+import { Example as ExampleFrame } from '../../../engine'
 import {
 	corridors,
 	ikeaDestinations,
@@ -23,6 +23,15 @@ import {
 	warehouses,
 	zoneCategories,
 } from './data'
+
+// Every map demo renders in the same fixed-width, resizable frame so its
+// responsive behaviour is visible at a glance. Wrapping the engine Example once
+// here injects those defaults into all the `<Example>` call sites below —
+// including AnimatedExample's — without repeating the props on each. A call site
+// can still override either default by passing its own `width`/`resize`.
+function Example(props: ComponentProps<typeof ExampleFrame>) {
+	return <ExampleFrame width={720} minWidth={160} resize {...props} />
+}
 
 // Atlas data stays out of the package (and the docs bundle): the demos fetch
 // the TopoJSON from us-atlas as a static asset and cache it with react-query,
@@ -109,16 +118,6 @@ function RoutedMarker({ label, start, end }: { label: string; start: LngLat; end
 	)
 }
 
-const Container = ({ children, size = 'lg' }: { children: ReactNode; size?: string }) => {
-	const sizeMap: Record<string, string> = {
-		sm: 'sm:max-w-sm',
-		md: 'md:max-w-md',
-		lg: 'lg:max-w-4xl',
-	}
-
-	return <div className={size ? `${sizeMap[size]}` : undefined}>{children}</div>
-}
-
 function MapDemo() {
 	const states = useGeography(statesUrl)
 
@@ -159,107 +158,95 @@ function MapDemo() {
 					<TabContent value="plat">
 						<Stack gap="xl">
 							<Example title="Timezones across America">
-								<Container>
-									{/* Optional geography again: the legend and frame hold from the
-									    first paint, then the regions colour in when the atlas lands. */}
-									<MapPlat
-										aria-label="Timezones across America"
-										geography={states}
-										projection="albers-usa"
-										data={timezones}
-										regionKey="state"
-										categoryKey="zone"
-										categories={zoneCategories}
-										regionId={(feature) => String(feature.properties?.name)}
-										animate
-										legend="right"
-									/>
-								</Container>
+								<MapPlat
+									aria-label="Timezones across America"
+									geography={states}
+									projection="albers-usa"
+									data={timezones}
+									regionKey="state"
+									categoryKey="zone"
+									categories={zoneCategories}
+									regionId={(feature) => String(feature.properties?.name)}
+									animate
+									legend="right"
+								/>
 							</Example>
 						</Stack>
 					</TabContent>
 
 					<TabContent value="point">
 						<Example title="Warehouses">
-							<Container>
-								<MapPlat
-									aria-label="Warehouse network"
-									geography={states}
-									projection="albers-usa"
-									animate
-									legend="right"
-								>
-									{warehouses.map((warehouse) => (
-										<MapPoint
-											key={warehouse.city}
-											label={warehouse.city}
-											at={warehouse.at}
-											detail={warehouse.detail}
-										/>
-									))}
-								</MapPlat>
-							</Container>
+							<MapPlat
+								aria-label="Warehouse network"
+								geography={states}
+								projection="albers-usa"
+								animate
+								legend="right"
+							>
+								{warehouses.map((warehouse) => (
+									<MapPoint
+										key={warehouse.city}
+										label={warehouse.city}
+										at={warehouse.at}
+										detail={warehouse.detail}
+									/>
+								))}
+							</MapPlat>
 						</Example>
 					</TabContent>
 
 					<TabContent value="marker">
 						<Example title="Line haul">
-							<Container>
-								<MapPlat
-									aria-label="Line haul"
-									geography={states}
-									projection="albers-usa"
-									animate
-									legend="right"
-								>
-									<RoutedMarker label="LA → CHI" start={laToChicago.start} end={laToChicago.end} />
-								</MapPlat>
-							</Container>
+							<MapPlat
+								aria-label="Line haul"
+								geography={states}
+								projection="albers-usa"
+								animate
+								legend="right"
+							>
+								<RoutedMarker label="LA → CHI" start={laToChicago.start} end={laToChicago.end} />
+							</MapPlat>
 						</Example>
 					</TabContent>
 
 					<TabContent value="route">
 						<Stack gap="xl">
 							<Example title="IKEA distribution network">
-								<Container>
-									<MapPlat
-										aria-label="IKEA distribution network"
-										geography={states}
-										projection="albers-usa"
-										animate
-										legend="right"
-									>
-										{ikeaDestinations.map((destination) => (
-											<RoutedMarker
-												key={destination.city}
-												label={`KC → ${destination.abbreviation}`}
-												start={ikeaHub}
-												end={destination.at}
-											/>
-										))}
-									</MapPlat>
-								</Container>
+								<MapPlat
+									aria-label="IKEA distribution network"
+									geography={states}
+									projection="albers-usa"
+									animate
+									legend="right"
+								>
+									{ikeaDestinations.map((destination) => (
+										<RoutedMarker
+											key={destination.city}
+											label={`KC → ${destination.abbreviation}`}
+											start={ikeaHub}
+											end={destination.at}
+										/>
+									))}
+								</MapPlat>
 							</Example>
 
 							<Example title="Long-haul corridors">
-								<Container>
-									<MapPlat
-										aria-label="Long-haul corridors"
-										geography={states}
-										projection="albers-usa"
-										animate
-										legend="right"
-									>
-										{corridors.map((corridor) => (
-											<RoutedLine
-												key={corridor.city}
-												label={corridor.abbreviation}
-												start={corridor.start}
-												end={corridor.end}
-											/>
-										))}
-									</MapPlat>
-								</Container>
+								<MapPlat
+									aria-label="Long-haul corridors"
+									geography={states}
+									projection="albers-usa"
+									animate
+									legend="right"
+								>
+									{corridors.map((corridor) => (
+										<RoutedLine
+											key={corridor.city}
+											label={corridor.abbreviation}
+											start={corridor.start}
+											end={corridor.end}
+										/>
+									))}
+								</MapPlat>
 							</Example>
 						</Stack>
 					</TabContent>

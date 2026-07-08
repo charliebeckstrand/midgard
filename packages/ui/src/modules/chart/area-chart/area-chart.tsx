@@ -7,6 +7,7 @@ import { ChartFrame } from '../chart-frame'
 import { ChartGridLines } from '../chart-grid-lines'
 import { ChartHitArea } from '../chart-hit-area'
 import { withinSeriesAreas } from '../chart-hit-test'
+import { lineMarkReach } from '../chart-layout'
 import { AnimatedChartLineMarks, ChartLineMarks, type ChartLineSeries } from '../chart-line-marks'
 import { ChartMarksLayer } from '../chart-marks-layer'
 import { useChartTexture } from '../chart-pattern-defs'
@@ -304,9 +305,12 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 			title: label.title,
 			subtitle: label.subtitle,
 		},
-		{ zeroBaseline: true, swatch: () => 'line', stack: stacked },
+		{ zeroBaseline: true, swatch: () => 'line', stack: stacked, markInset: lineMarkReach(points) },
 	)
 
+	// Spark needs no gate here: the frame renders the drawing pointer-inert, and
+	// the crosshair, hit layer, value labels, and reference hovers stand
+	// themselves down through ChartTierContext.
 	const floor = chart.plot.y + chart.plot.height
 
 	const xs = bandCenters(chart)

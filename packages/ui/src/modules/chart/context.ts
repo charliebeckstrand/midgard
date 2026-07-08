@@ -1,6 +1,7 @@
 'use client'
 
 import { createContext } from '../../core'
+import type { ChartTier } from './chart-tier'
 
 /** The pointer's position in the frame's coordinate space. @internal */
 export type ChartPoint = {
@@ -73,3 +74,18 @@ export const [ChartFullscreenContext, useChartFullscreen] = createContext<boolea
 	'ChartFullscreen',
 	{ default: false },
 )
+
+/**
+ * The frame's resolved {@link ChartTier}, published so the interactive layers
+ * stand themselves down at spark — the hit areas and crosshair unmount, the
+ * value labels drop, and the reference rules shed their hover rendering —
+ * instead of every chart gating each of them at its call site. One half of the
+ * frame's spark posture; the other is the pointer veto `k.drawing` lays over
+ * the drawing itself. Defaults to `'standard'`, so a layer rendered outside a
+ * frame keeps its interactive behaviour.
+ *
+ * @internal
+ */
+export const [ChartTierContext, useChartTier] = createContext<ChartTier>('ChartTier', {
+	default: 'standard',
+})

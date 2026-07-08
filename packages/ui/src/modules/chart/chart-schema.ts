@@ -325,19 +325,25 @@ export type ChartReferenceLine = {
 /**
  * Selective value labels for a line-bearing chart: direct labels at the points
  * worth naming — and, with `references`, beside each reference rule — so a reader
- * gets the numbers without the tooltip. All default off; set any. Point labels
- * measure first and never clip — an edge label anchors inward — and overlaps
- * resolve by priority, extremes over endpoints, dropping the loser rather than
- * stacking it. The full readout stays in the tooltip and data table.
+ * gets the numbers without the tooltip. All default off; set any. The full
+ * readout stays in the tooltip and data table.
+ *
+ * `endpoints` and `extremes` apply only to a single-series chart: with more
+ * than one series the numbers would crowd between the lines with nowhere
+ * reliable to sit, so they stand down and the tooltip carries the readout.
+ * When they draw, the chart reserves value-axis room past the data extremes so
+ * a label at an edge sits clear of the line instead of flipping onto it; a
+ * plot too short to afford that room sheds the point labels whole rather than
+ * render them crowded. `references` is unaffected by either rule.
  */
 export type ChartValueLabelConfig = {
 	/**
-	 * Label each series' first and last point.
+	 * Label the first and last point — single-series charts only.
 	 * @defaultValue false
 	 */
 	endpoints?: boolean
 	/**
-	 * Label each series' minimum and maximum point.
+	 * Label the minimum and maximum point — single-series charts only.
 	 * @defaultValue false
 	 */
 	extremes?: boolean

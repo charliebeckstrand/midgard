@@ -6,6 +6,7 @@ import type { PlotRect } from './chart-layout'
 import { bandCoord, type ChartOrientation } from './chart-orientation'
 import { type BandScale, nearestBandIndex } from './chart-scale'
 import type { ChartTooltipTrigger } from './chart-schema'
+import { useChartTier } from './context'
 import { useChartPointer } from './use-chart-pointer'
 
 /** Props for {@link ChartHitArea}. @internal */
@@ -41,9 +42,22 @@ export type ChartHitAreaProps = {
  * a 2px mark. Rendered inside the frame, after the marks, so it wins the
  * pointer without occluding anything.
  *
+ * Self-gating at spark through {@link ChartTierContext}: a sparkline is
+ * read-only, so no hit rect — nor the pointer plumbing behind it — mounts,
+ * and the crosshair and tooltip that ride its hover can never draw. A chart
+ * mounts it whenever a tooltip or crosshair wants the pointer and leaves the
+ * tier to the frame.
+ *
  * @internal
  */
-export function ChartHitArea({
+export function ChartHitArea(props: ChartHitAreaProps) {
+	const spark = useChartTier() === 'spark'
+
+	return spark ? null : <ChartHitRect {...props} />
+}
+
+/** The live hit rect behind {@link ChartHitArea}, mounted only off spark. @internal */
+function ChartHitRect({
 	plot,
 	band,
 	count,

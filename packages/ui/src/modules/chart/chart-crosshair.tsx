@@ -14,7 +14,7 @@ import {
 } from './chart-orientation'
 import type { Crosshair, ResolvedCrosshair } from './chart-schema'
 import { nearestValue } from './chart-snap'
-import { useChartHover } from './context'
+import { useChartHover, useChartTier } from './context'
 
 /** Props for {@link ChartCrosshair}. @internal */
 export type ChartCrosshairProps = {
@@ -75,6 +75,11 @@ export function crosshairSnaps(crosshair: ResolvedCrosshair | null): boolean {
  * at its band center. Both clamp to the plot rect and dash alike. Reads only the
  * hover context, so it re-renders alone — never the marks.
  *
+ * Self-gating at spark through {@link ChartTierContext}: a sparkline is
+ * read-only, so no rule draws even off a hover held from before a resize
+ * crossed the spark boundary — a chart mounts it wherever its `crosshair`
+ * resolves and leaves the tier to the frame.
+ *
  * @internal
  */
 export function ChartCrosshair({
@@ -84,9 +89,11 @@ export function ChartCrosshair({
 	valuePoints,
 	orientation = 'vertical',
 }: ChartCrosshairProps) {
+	const spark = useChartTier() === 'spark'
+
 	const { index, point } = useChartHover()
 
-	if (index === null || point === null) return null
+	if (spark || index === null || point === null) return null
 
 	const rule = {
 		strokeWidth: 1,

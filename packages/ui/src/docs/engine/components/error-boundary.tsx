@@ -44,11 +44,8 @@ export class DemoErrorBoundary extends Component<Props, State> {
 export function DemoLoadError({ onRetry }: { onRetry: () => void }) {
 	return (
 		<Stack gap="md" className="p-6">
-			<Heading>Couldn’t load this demo</Heading>
-			<Text severity="muted">
-				The demo’s code failed to load — often a stale build after a deploy. Retry, or reload the
-				page.
-			</Text>
+			<Heading>Couldn't load this demo</Heading>
+			<Text severity="muted">Try again or reload the page.</Text>
 			<div>
 				<Button variant="outline" onClick={onRetry}>
 					Try again

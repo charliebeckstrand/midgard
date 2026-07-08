@@ -95,8 +95,11 @@ describe('valueLabels', () => {
 		expect(labels[0]?.text).toBe('100')
 	})
 
-	it('anchors inward at the edges and flips off a clipped side', () => {
-		const [right] = valueLabels({
+	it('hides a label that would slide sideways to fit, keeping the vertical flip', () => {
+		// A label stays centred on its point: near a side edge its box would cross
+		// the plot, and it hides rather than sliding onto the neighbouring marks —
+		// the small-frame crowding this pins out.
+		const right = valueLabels({
 			series: [series([[198, 50, 12345]])],
 			plot: PLOT,
 			format: String,
@@ -104,9 +107,9 @@ describe('valueLabels', () => {
 			extremes: false,
 		})
 
-		expect(right?.anchor).toBe('end')
+		expect(right).toHaveLength(0)
 
-		const [left] = valueLabels({
+		const left = valueLabels({
 			series: [series([[2, 50, 12345]])],
 			plot: PLOT,
 			format: String,
@@ -114,9 +117,21 @@ describe('valueLabels', () => {
 			extremes: false,
 		})
 
-		expect(left?.anchor).toBe('start')
+		expect(left).toHaveLength(0)
 
-		// A max sits above its point, but a point at the top flips its label below.
+		// A fitting label anchors on its point's centre — never slid inward.
+		const [fits] = valueLabels({
+			series: [series([[100, 50, 12345]])],
+			plot: PLOT,
+			format: String,
+			endpoints: true,
+			extremes: false,
+		})
+
+		expect(fits?.anchor).toBe('middle')
+
+		// A max sits above its point, but a point at the top still flips its label
+		// below — vertically the label never leaves its own mark, so the flip stays.
 		const [top] = valueLabels({
 			series: [series([[100, 2, 9]])],
 			plot: PLOT,
@@ -195,6 +210,33 @@ describe('resolveValueLabels', () => {
 
 		expect(labels[0]?.fill).toContain('fill-blue-600')
 	})
+
+	it('stands the point labels down when the chart has more than one series', () => {
+		// Point labels are single-series only — two series would crowd their
+		// numbers between the lines, so the config is honoured only for a lone
+		// series and the tooltip carries the readout otherwise.
+		const twoSeries = [
+			...list,
+			{
+				paint: paintFor('orange'),
+				geometry: {
+					points: [
+						{ x: 10, y: 80 },
+						{ x: 100, y: 60 },
+					],
+				},
+			},
+		]
+
+		const twoMetas = [...metas, { values: [3, 7] }]
+
+		expect(
+			resolveValueLabels({ endpoints: true, extremes: true }, twoSeries, twoMetas, PLOT, String),
+		).toEqual([])
+
+		// The lone series still labels.
+		expect(resolveValueLabels({ endpoints: true }, list, metas, PLOT, String)).toHaveLength(2)
+	})
 })
 
 describe('LineChart value labels', () => {
@@ -221,6 +263,72 @@ describe('LineChart value labels', () => {
 		expect(drawn).toContain('40')
 
 		expect(drawn).not.toContain('65')
+	})
+
+	it('keeps the extreme labels on their natural sides through the reserved headroom', () => {
+		// Both raw extremes land exactly on nice tick steps, so without the
+		// reserved headroom each would touch its plot edge and flip onto the
+		// line. The reservation clears the flip threshold with slack — the peak's
+		// label stays above the peak and the trough's below the trough, and a
+		// resize never dances them across the boundary.
+		const { container } = renderUI(
+			<LineChart
+				aria-label="Revenue by month"
+				data={[
+					{ month: 'Jan', revenue: 40 },
+					{ month: 'Feb', revenue: 90 },
+					{ month: 'Mar', revenue: 65 },
+				]}
+				series={[{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' }]}
+				width={400}
+				points
+				labels={{ extremes: true }}
+			/>,
+		)
+
+		const labels = allBySlot(container, 'chart-value-label')
+
+		const y = (text: string) =>
+			Number(labels.find((node) => node.textContent === text)?.getAttribute('y'))
+
+		const points = allBySlot(container, 'chart-point').map((node) =>
+			Number(node.getAttribute('cy')),
+		)
+
+		const [troughY, peakY] = [points[0] as number, points[1] as number]
+
+		expect(y('90')).toBeLessThan(peakY)
+
+		expect(y('40')).toBeGreaterThan(troughY)
+	})
+
+	it('keeps a first-point label at the domain ceiling above its point', () => {
+		// Endpoints reserve headroom too: the first value is also the data max
+		// and lands exactly on the nice tick ceiling — without the reservation
+		// its label would clip the plot top and flip below, onto the descending
+		// line.
+		const { container } = renderUI(
+			<LineChart
+				aria-label="Revenue by month"
+				data={[
+					{ month: 'Jan', revenue: 90 },
+					{ month: 'Feb', revenue: 40 },
+					{ month: 'Mar', revenue: 60 },
+				]}
+				series={[{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' }]}
+				width={400}
+				points
+				labels={{ endpoints: true }}
+			/>,
+		)
+
+		const first = allBySlot(container, 'chart-value-label').find(
+			(node) => node.textContent === '90',
+		)
+
+		const firstPoint = allBySlot(container, 'chart-point')[0]
+
+		expect(Number(first?.getAttribute('y'))).toBeLessThan(Number(firstPoint?.getAttribute('cy')))
 	})
 
 	it('labels reference rules with their label when references is on', () => {

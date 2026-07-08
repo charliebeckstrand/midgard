@@ -3,6 +3,7 @@
 import type { Table } from '@tanstack/react-table'
 import { type RefObject, useCallback, useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import type { DensityLevel } from '../../providers/density/context'
+import { isDataColumn } from '../../utilities'
 import { allocateColumnWidths } from './grid-column-allocate'
 import { type ColumnMeasurement, measureColumnIntrinsics } from './grid-column-measure'
 import { parsePxWidth } from './grid-table-options'
@@ -45,10 +46,17 @@ const EMPTY_MEASUREMENT: ColumnMeasurement = { profiles: [], fixed: 0, floors: n
  * Runs synchronously before paint (so the first frame carries real widths, not
  * the engine's default), again on container resize (`ResizeObserver`), when the
  * columns / density / rendered rows change, and once web fonts settle. It stands
- * down when the consumer controls `columnSizing` or the grid is not resizable,
- * and holds a column the user drag-resizes — or one seeded with an explicit
- * `width` — at that width while the rest keep fitting; `sizeToFit` clears those
- * holds (drag and `width`) and re-fits (the "Auto-size columns" action).
+ * down when the consumer controls `columnSizing` or the grid is not resizable.
+ *
+ * A `width`-seeded column holds its explicit width, sitting out the fit while the
+ * rest fill around it. The first time the user manually resizes a column — a drag
+ * or a keyboard nudge — the grid hands width control to the user: every column is
+ * held where it sits (see {@link holdManualWidths}), so a resize stays confined to
+ * the one column and never reflows the others, and the table then grows or shrinks
+ * freely (trailing space or a horizontal scroll) rather than re-fitting. Auto-fit
+ * re-arms only through `sizeToFit` (the "Auto-size columns" action), which clears
+ * every hold and re-fits; `resetColumn` re-fits a single column to its content
+ * while the rest stay held.
  *
  * @internal
  */
@@ -63,10 +71,13 @@ export function useGridColumnAutoSize<T>({
 }: GridColumnAutoSizeOptions<T>): {
 	sizeToFit: () => void
 	resetColumn: (id: string | number) => void
+	holdManualWidths: () => void
 } {
 	const enabled = resizable && !controlled
 
-	// Columns the user has drag-resized; held at their width while the rest auto-fit.
+	// Columns held out of the fit at their current width. A manual resize (drag or
+	// keyboard) adds every column here at once, so resizing one never reflows the
+	// rest; `sizeToFit` clears the set to re-arm auto-fit.
 	const manualPinnedRef = useRef<Set<string>>(new Set())
 
 	// `width`-seeded columns the user released via "Auto-size columns"; they rejoin
@@ -162,8 +173,20 @@ export function useGridColumnAutoSize<T>({
 		[enabled, table, columns, containerRef, structSig, columnFloors],
 	)
 
-	// Promote a drag-resized column to a manual hold once its drag ends, so the
-	// autosizer leaves it alone while the rest keep fitting.
+	// Hand width control to the user: hold every visible data column at its current
+	// width so the manual resize that triggered this stays confined to its own
+	// column and the rest don't reflow. With every column held the next `run`
+	// allocates nothing, so the layout keeps whatever widths it has — the table
+	// grows or shrinks freely — until `sizeToFit` clears the holds and re-fits.
+	const holdManualWidths = useCallback(() => {
+		for (const col of columns) {
+			if (isDataColumn(col)) manualPinnedRef.current.add(String(col.id))
+		}
+	}, [columns])
+
+	// Take manual control once a drag ends, so a drag-resize behaves like a keyboard
+	// nudge (see `nudge`, which calls `holdManualWidths` directly): the layout holds
+	// where the user left it rather than re-fitting.
 	const resizingColumn = table.getState().columnSizingInfo.isResizingColumn
 
 	const lastResizingRef = useRef<string | false>(false)
@@ -172,16 +195,11 @@ export function useGridColumnAutoSize<T>({
 		if (typeof resizingColumn === 'string') {
 			lastResizingRef.current = resizingColumn
 		} else if (lastResizingRef.current) {
-			manualPinnedRef.current.add(lastResizingRef.current)
-
 			lastResizingRef.current = false
 
-			// Re-fit now that the dragged column is a manual hold, so the remaining
-			// auto-sized columns redistribute around its new width instead of waiting
-			// for an unrelated trigger (container resize, page turn).
-			run(true)
+			holdManualWidths()
 		}
-	}, [resizingColumn, run])
+	}, [resizingColumn, holdManualWidths])
 
 	// Keep the latest `run` reachable from the ResizeObserver without listing it in
 	// the observer effect's deps: `run`'s identity shifts whenever the columns,
@@ -270,23 +288,56 @@ export function useGridColumnAutoSize<T>({
 		run(true)
 	}, [run, columns])
 
-	// Reset one column to its default: drop any drag-hold and `width` release so the
-	// next pass re-fits it from content (or re-seats a `width`-seeded column at its
-	// `width`), clearing its running max so the re-measure isn't floored by the old.
+	// Reset one column to its content width, leaving the rest held where they are —
+	// a reset re-fits the single column, not the grid. Measures with the column
+	// treated as auto-sized (so its intrinsic width resolves even while the others
+	// are held), then holds it at that width; clearing its running max first so the
+	// re-measure isn't floored by a stale wider row, and its `width` release so a
+	// `width`-seeded column re-measures from content rather than snapping back.
 	const resetColumn = useCallback(
 		(id: string | number) => {
-			const key = String(id)
+			const container = containerRef?.current
 
-			manualPinnedRef.current.delete(key)
+			const width = container?.clientWidth ?? 0
+
+			if (!enabled || !container || !width) return
+
+			const key = String(id)
 
 			widthReleasedRef.current.delete(key)
 
 			runningContentRef.current.delete(key)
 
-			run(true)
+			// Exclude just this column from the hold set for the measure, so it lands in
+			// the profiles and its content width is read; the rest stay held.
+			const held = new Set(manualPinnedRef.current)
+
+			held.delete(key)
+
+			const { profiles, floors } = measureColumnIntrinsics({
+				table,
+				columns,
+				container,
+				manualPinned: held,
+				released: widthReleasedRef.current,
+				runningContent: runningContentRef.current,
+			})
+
+			for (const [colId, floor] of floors) columnFloors.set(colId, floor)
+
+			const profile = profiles.find((p) => p.id === key)
+
+			if (!profile) return
+
+			const next = Math.min(Math.max(profile.content, profile.min), profile.max)
+
+			// Hold it at its content width alongside the others.
+			manualPinnedRef.current.add(key)
+
+			table.setColumnSizing((prev) => (prev[key] === next ? prev : { ...prev, [key]: next }))
 		},
-		[run],
+		[enabled, table, columns, containerRef, columnFloors],
 	)
 
-	return { sizeToFit, resetColumn }
+	return { sizeToFit, resetColumn, holdManualWidths }
 }

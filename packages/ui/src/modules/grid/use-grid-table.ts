@@ -687,7 +687,7 @@ export function useGridTable<T>({
 
 	// Auto-size resizable columns to fill the container, unless widths are
 	// controlled; `sizeToFit` also backs the header "Auto-size columns" action.
-	const { sizeToFit, resetColumn } = useGridColumnAutoSize<T>({
+	const { sizeToFit, resetColumn, holdManualWidths } = useGridColumnAutoSize<T>({
 		resizable,
 		controlled: columnSizingConfig?.value != null,
 		table,
@@ -698,13 +698,25 @@ export function useGridTable<T>({
 		columnFloors: columnFloorsRef.current,
 	})
 
-	const resize = useMemo<GridColumnResize | null>(
-		() =>
-			resizable
-				? { ...buildColumnResize(table, columnFloorsRef.current), sizeToFit, reset: resetColumn }
-				: null,
-		[resizable, table, sizeToFit, resetColumn],
-	)
+	const resize = useMemo<GridColumnResize | null>(() => {
+		if (!resizable) return null
+
+		const base = buildColumnResize(table, columnFloorsRef.current)
+
+		return {
+			...base,
+			// A keyboard nudge takes manual control just like a drag: hold every column
+			// so the nudge stays confined to its own column and survives the autosizer's
+			// later triggers (container resize, page turn) instead of being re-fit away.
+			nudge: (id, delta) => {
+				base.nudge(id, delta)
+
+				holdManualWidths()
+			},
+			sizeToFit,
+			reset: resetColumn,
+		}
+	}, [resizable, table, sizeToFit, resetColumn, holdManualWidths])
 
 	const globalFilter = useMemo<GridGlobalFilterView | null>(
 		() =>

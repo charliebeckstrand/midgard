@@ -45,24 +45,42 @@ function contentPadding(offset: number, min: number): string {
  * box takes the pixel `height` directly; under `fill` it takes the whole height
  * its `flex-1` region already holds.
  *
+ * Every mode is a `relative overflow-hidden` box the SVG anchors to at its
+ * committed pixel size (see {@link ChartFrame}), never one it stretches to fill:
+ * a resize moves the box's CSS size at once while the SVG holds its last commit,
+ * so the box clips a shrinking edge or reveals a growing sliver rather than
+ * scaling the whole drawing — axis labels included — against a stale `viewBox`
+ * until the next commit lands. The SVG is out of flow, so it never feeds its own
+ * size back into the box the reserve is meant to own.
+ *
  * @internal
  */
 export function ChartPlotBox({ reserve, height, fill = false, children }: ChartPlotBoxProps) {
-	if (fill) return <div className="size-full">{children}</div>
+	if (fill) return <div className="relative size-full overflow-hidden">{children}</div>
 
-	if (reserve === null) return <div style={{ height }}>{children}</div>
+	if (reserve === null)
+		return (
+			<div className="relative overflow-hidden" style={{ height }}>
+				{children}
+			</div>
+		)
 
-	if (reserve.mode === 'aspect') return <AspectRatio ratio={reserve.ratio}>{children}</AspectRatio>
+	if (reserve.mode === 'aspect')
+		return (
+			<AspectRatio className="relative" ratio={reserve.ratio}>
+				{children}
+			</AspectRatio>
+		)
 
 	// `aspect-ratio` can't add a pixel offset, so reserve `width + offset` with the
 	// classic padding box: the empty box's own height stays the percentage padding,
-	// and the absolutely-placed child fills the height it opens.
+	// and the anchored SVG fills the height it opens.
 	return (
 		<div
 			className="relative overflow-hidden"
 			style={{ paddingBottom: contentPadding(reserve.offset, reserve.min) }}
 		>
-			<div className="absolute inset-0">{children}</div>
+			{children}
 		</div>
 	)
 }

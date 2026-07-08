@@ -6,7 +6,14 @@ import { useResolvedSize } from '../../../primitives/density'
 import type { Step } from '../../../recipes'
 import { type ChartSeriesColor, k } from '../../../recipes/kata/chart'
 import { ChartAxis, type ChartAxisTick } from '../chart-axis'
-import { CHART_METRICS, PLOT_TOP_PAD, SCATTER_HIT_SLACK, X_AXIS_HEIGHT } from '../chart-constants'
+import {
+	CHART_METRICS,
+	MARKER_RADIUS,
+	MARKER_RING_WIDTH,
+	PLOT_TOP_PAD,
+	SCATTER_HIT_SLACK,
+	X_AXIS_HEIGHT,
+} from '../chart-constants'
 import { ChartCrosshair, crosshairSnaps, resolveCrosshair } from '../chart-crosshair'
 import { ChartFrame } from '../chart-frame'
 import { ChartGridLines } from '../chart-grid-lines'
@@ -24,19 +31,23 @@ import { type LinearScale, linearScale } from '../chart-scale'
 import {
 	type ChartBaseProps,
 	type ChartLegendPlacement,
+	type ChartTooltipTrigger,
 	type Crosshair,
+	type ResolvedCrosshair,
 	resolveTooltip,
 	type ScatterChartSeries,
 } from '../chart-schema'
 import { formatChartValue, type SlotPaint } from '../chart-series'
 import { snapTargets } from '../chart-snap'
 import { chartPolicy, policyPlotHeight } from '../chart-tier'
+import { useChartTier } from '../context'
 import type { ChartReadout } from '../types'
 import { cartesianFocus } from '../use-chart-keyboard'
 import { useChartSeriesToggle } from '../use-chart-series-toggle'
 import {
 	diameterRange,
 	type ScatterDatum,
+	type ScatterMark,
 	scatterData,
 	scatterMarks,
 	scatterReadoutValues,
@@ -250,22 +261,54 @@ type ScatterScales = {
  *
  * @internal
  */
+/**
+ * The inset a spark plot needs on every edge so its largest disc clears the frame
+ * rather than clipping: the widest disc radius across the visible points, plus the
+ * half of the surface ring that strokes outside that radius, so the painted edge —
+ * not just the fill — clears. Falls back to the plain {@link MARKER_RADIUS} when
+ * there is nothing to measure.
+ * @internal
+ */
+function sparkMarkInset(visible: ScatterMeta[]): number {
+	const widest = visible.reduce(
+		(outer, meta) =>
+			meta.points.reduce((inner, point) => Math.max(inner, meta.radius(point.size)), outer),
+		MARKER_RADIUS,
+	)
+
+	return widest + MARKER_RING_WIDTH / 2
+}
+
 function scatterScales(args: {
 	visible: ScatterMeta[]
 	frameWidth: number
 	frameHeight: number
 	axes: boolean
+	/** Spark draws bare marks, so the gutter is reclaimed and the domain fits tight. */
+	spark: boolean
 	tickTarget: number
 	pins: ScatterPins
 	format: (value: number) => string
 	formatX: (value: number) => string
 }): ScatterScales {
-	const { visible, frameWidth, frameHeight, axes, tickTarget, pins, format, formatX } = args
+	const { visible, frameWidth, frameHeight, axes, spark, tickTarget, pins, format, formatX } = args
+
+	const drawAxes = axes && !spark
+
+	// A spark scatter fits its domain tight — like a spark line, filling the box
+	// rather than sinking into the empty air a nice-stepped scale leaves — and
+	// insets every edge by the widest disc's radius so the marks read centered and
+	// clear the frame instead of clipping at it. A framed plot keeps the axis
+	// reservations: the ceiling tick's top pad and the x-axis band down the value
+	// axis, the gutter and end-label inset across.
+	const scaleTicks = spark ? 0 : tickTarget
+
+	const inset = spark ? sparkMarkInset(visible) : 0
 
 	const yScale = linearScale({
 		values: visible.flatMap((meta) => meta.points.map((point) => point.y)),
-		range: [frameHeight - (axes ? X_AXIS_HEIGHT : 0), PLOT_TOP_PAD],
-		tickTarget,
+		range: [frameHeight - (drawAxes ? X_AXIS_HEIGHT : inset), spark ? inset : PLOT_TOP_PAD],
+		tickTarget: scaleTicks,
 		min: pins.min,
 		max: pins.max,
 	})
@@ -275,28 +318,35 @@ function scatterScales(args: {
 	const plot = plotRect(
 		frameWidth,
 		frameHeight,
-		axes,
+		drawAxes,
 		yTicks.map((tick) => tick.label),
 	)
 
 	const xValues = visible.flatMap((meta) => meta.points.map((point) => point.x))
 
-	const xOptions = { tickTarget, min: pins.xMin, max: pins.xMax }
+	const xOptions = { tickTarget: scaleTicks, min: pins.xMin, max: pins.xMax }
 
-	const span: [number, number] = [plot.x, plot.x + plot.width]
+	const span: [number, number] = spark ? [inset, frameWidth - inset] : [plot.x, plot.x + plot.width]
 
 	const xScale = linearScale({
 		values: xValues,
-		range: axes ? scatterXRange(xValues, xOptions, formatX, span) : span,
+		range: drawAxes ? scatterXRange(xValues, xOptions, formatX, span) : span,
 		...xOptions,
 	})
 
 	return { plot, xScale, yScale, xTicks: valueTicksOf(xScale, formatX), yTicks }
 }
 
-/** The scatter frame's chrome: both axes' gridlines and tick labels. @internal */
+/**
+ * The scatter frame's chrome: both axes' gridlines and tick labels. Draws
+ * nothing at the spark tier — a sparkline is bare marks, so the labels and
+ * gridlines that would clutter it stand down with the rest of the chrome.
+ * @internal
+ */
 function ScatterChrome(props: {
 	plot: PlotRect
+	/** Spark strips the chrome entirely — the component renders nothing. */
+	spark: boolean
 	axes: boolean
 	gridLines: boolean
 	xScale: LinearScale | null
@@ -304,7 +354,9 @@ function ScatterChrome(props: {
 	xTicks: ChartAxisTick[]
 	yTicks: ChartAxisTick[]
 }) {
-	const { plot, axes, gridLines, xScale, yScale, xTicks, yTicks } = props
+	const { plot, spark, axes, gridLines, xScale, yScale, xTicks, yTicks } = props
+
+	if (spark) return null
 
 	return (
 		<>
@@ -322,6 +374,45 @@ function ScatterChrome(props: {
 
 			{axes && xScale && <ChartAxis axis="x" plot={plot} ticks={xTicks} />}
 		</>
+	)
+}
+
+/**
+ * The scatter's pointer hit layer, mounted only where the chart is interactive:
+ * over the columns when a tooltip or crosshair asks for the pointer, and never
+ * at the spark tier — read through {@link ChartTierContext}, so the frame
+ * decides — where a sparkline is non-interactive: its marks take no hover or
+ * click, and the crosshair and tooltip that ride this hover stand down with it
+ * (the keyboard is already off at spark). Off the render so its gates stay out
+ * of the frame's body, the way {@link ScatterChrome} keeps the chrome's.
+ * @internal
+ */
+function ScatterHitLayer(props: {
+	plot: PlotRect
+	/** The tooltip is live, so the pointer feeds a readout. */
+	tooltip: boolean
+	/** The resolved crosshair, or `null`; a live one wants the pointer even with no tooltip. */
+	crosshair: ResolvedCrosshair | null
+	/** The unique x columns' screen positions — nothing to snap to when empty. */
+	centers: number[]
+	/** Every visible series' marks, for the point hit test that gates the readout. */
+	marks: ScatterMark[][]
+	trigger: ChartTooltipTrigger
+}) {
+	const { plot, tooltip, crosshair, centers, marks, trigger } = props
+
+	const spark = useChartTier() === 'spark'
+
+	if (spark || centers.length === 0 || !(tooltip || crosshair !== null)) return null
+
+	return (
+		<ScatterChartHitArea
+			plot={plot}
+			centers={centers}
+			onData={(x, y) => withinScatterMarks(marks, x, y, SCATTER_HIT_SLACK)}
+			trigger={trigger}
+			snaps={crosshairSnaps(crosshair)}
+		/>
 	)
 }
 
@@ -409,6 +500,13 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 
 	const policy = chartPolicy(frameWidth, policyHeight, metrics.tickTarget)
 
+	// Spark stands the chart's chrome down to bare marks: ScatterChrome and
+	// scatterScales read this to shed their axis labels, gridlines, and the gutter
+	// — geometry the frame can't own. The interactivity gates need no copy of it:
+	// ScatterHitLayer and the crosshair stand themselves down through
+	// ChartTierContext, and the frame renders the drawing pointer-inert.
+	const spark = policy.tier === 'spark'
+
 	const format = formatValue ?? formatChartValue
 
 	const formatX = formatXValue ?? formatChartValue
@@ -424,6 +522,7 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 		frameWidth,
 		frameHeight,
 		axes,
+		spark,
 		tickTarget: metrics.tickTarget,
 		pins: { min, max, xMin, xMax },
 		format,
@@ -507,6 +606,7 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 		>
 			<ScatterChrome
 				plot={plot}
+				spark={spark}
 				axes={axes}
 				gridLines={gridLines}
 				xScale={xScale}
@@ -526,15 +626,14 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 
 			<ChartMarksLayer animate={animate}>{marksNode}</ChartMarksLayer>
 
-			{(showTooltip || rails !== null) && bandPositions.length > 0 && (
-				<ScatterChartHitArea
-					plot={plot}
-					centers={bandPositions}
-					onData={(x, y) => withinScatterMarks(allMarks, x, y, SCATTER_HIT_SLACK)}
-					trigger={trigger}
-					snaps={crosshairSnaps(rails)}
-				/>
-			)}
+			<ScatterHitLayer
+				plot={plot}
+				tooltip={showTooltip}
+				crosshair={rails}
+				centers={bandPositions}
+				marks={allMarks}
+				trigger={trigger}
+			/>
 		</ChartFrame>
 	)
 }

@@ -20,6 +20,7 @@ import {
 	type ChartHover,
 	ChartHoverContext,
 	type ChartPoint,
+	ChartTierContext,
 	useChartFullscreen,
 } from './context'
 import type { ChartReadout } from './types'
@@ -129,7 +130,12 @@ export type ChartFrameProps = AccessibleName & {
 	/**
 	 * The resolved anatomy tier, published on the root as `data-tier` so a
 	 * dashboard tile can co-style its own chrome with the chart's resolution.
-	 * Omitted, no attribute renders.
+	 * The frame also owns the tier's spark posture: at `'spark'` it stands the
+	 * tooltip and keyboard down, veils the header, renders the drawing
+	 * pointer-inert, and republishes the tier through `ChartTierContext` so the
+	 * interactive layers inside stand themselves down — a sparkline is read-only
+	 * without any per-chart gating. Omitted, no attribute renders and the frame
+	 * treats the chart as framed (`'standard'`).
 	 */
 	tier?: ChartTier
 	/**
@@ -272,12 +278,20 @@ export function ChartFrame({
 
 	const [activeReference, setActiveReference] = useState<number | null>(null)
 
+	// The frame owns the spark posture end to end: it stands the tooltip and
+	// keyboard down here, veils the header and drops the legend (chartChrome), lays
+	// the `k.drawing` pointer veto over the SVG so nothing inside can take a hover,
+	// click, or cursor, and publishes the tier through ChartTierContext so the
+	// interactive layers — hit areas, crosshair, value labels, reference hovers —
+	// stand themselves down. A chart never gates any of that per call site.
+	const spark = tier === 'spark'
+
 	// Spark sheds its hover chrome with the rest of its anatomy: a sparkline reveals
 	// what it is through the title veil on hover, not a data readout, so the tooltip
 	// — and the keyboard cursor whose only output is that tooltip — stand down. The
 	// accessible name and the data table still carry its values. Every wider tier
 	// keeps the caller's `tooltip`.
-	const tooltipShown = tooltip && tier !== 'spark'
+	const tooltipShown = tooltip && !spark
 
 	// Arrow-key navigation over the value points and reference lines, driving the
 	// same hover the pointer does — a tab stop only where a readout can answer it.
@@ -304,10 +318,24 @@ export function ChartFrame({
 		[pointerReference, activeReference],
 	)
 
-	// The SVG fills its box through the viewBox rather than pixel dimensions, so
-	// the box — not the marks — owns the size.
+	// The SVG renders at its committed pixel size and anchors to the box's
+	// top-left, its `viewBox` matching so user units map 1:1 to pixels — never
+	// `size-full`, which would scale the drawing to whatever CSS size the box
+	// currently holds. A resize moves the box at once but the geometry only on the
+	// next commit, so a size-full SVG scales — axis labels and all — against a
+	// stale viewBox every frame of a drag until it lands; pinned, the drawing holds
+	// steady and the box (overflow-hidden) clips or reveals a one-frame edge sliver
+	// instead. Absolute, so it stays out of flow and the box owns its own size.
+	// At spark `k.drawing` renders the whole drawing pointer-inert — the veto half
+	// of the spark posture, killing mark hover styling and any hit target inside.
 	const svg = width > 0 && (
-		<svg aria-hidden="true" className="block size-full" viewBox={`0 0 ${width} ${height}`}>
+		<svg
+			aria-hidden="true"
+			className={cn('absolute left-0 top-0 block', k.drawing(spark))}
+			width={width}
+			height={height}
+			viewBox={`0 0 ${width} ${height}`}
+		>
 			{children}
 		</svg>
 	)
@@ -377,19 +405,21 @@ export function ChartFrame({
 			)}
 			style={fixedWidth === undefined ? undefined : { width: fixedWidth }}
 		>
-			<ChartEmphasisContext value={emphasis}>
-				<ChartHoverContext value={hover}>
-					<ChartFigure
-						plot={plotRegion}
-						header={header}
-						legend={legendFrame}
-						legendPlacement={legendPlacement}
-						aside={aside}
-						containerFill={containerFill}
-						aspect={aspect}
-					/>
-				</ChartHoverContext>
-			</ChartEmphasisContext>
+			<ChartTierContext value={tier ?? 'standard'}>
+				<ChartEmphasisContext value={emphasis}>
+					<ChartHoverContext value={hover}>
+						<ChartFigure
+							plot={plotRegion}
+							header={header}
+							legend={legendFrame}
+							legendPlacement={legendPlacement}
+							aside={aside}
+							containerFill={containerFill}
+							aspect={aspect}
+						/>
+					</ChartHoverContext>
+				</ChartEmphasisContext>
+			</ChartTierContext>
 
 			{readout && <ChartTable readout={readout} />}
 

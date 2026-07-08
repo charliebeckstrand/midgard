@@ -6,16 +6,21 @@ import { TICK_CHAR_WIDTH } from './chart-constants'
 import type { PlotRect } from './chart-layout'
 import { POINT_POP } from './chart-motion'
 import { fillClass, formatChartValue, rawColor, type SeriesPaint } from './chart-series'
+import { useChartTier } from './context'
 
 /**
- * Selective value labels for the line-bearing charts: direct labels at each
- * series' endpoints (first / last point) and extremes (min / max), so a reader
- * gets the numbers without the tooltip. Placement measures every label first
- * and never clips the frame — an edge label anchors inward, a label that would
- * overshoot the top or bottom flips to the other side of its point. Overlaps
- * resolve by priority: extremes outrank endpoints, and a label whose box meets
- * one already placed is dropped rather than stacked, keeping the few that show
- * pinned to their marks. The placement is pure and unit-testable; the
+ * Selective value labels for a line-bearing chart's single series: direct
+ * labels at its endpoints (first / last point) and extremes (min / max), so a
+ * reader gets the numbers without the tooltip. The chart layer only feeds this
+ * a lone series — a multi-series plot would crowd its labels between lines with
+ * no reliable place to put them, so those charts fall back to the tooltip (see
+ * {@link resolveValueLabels}). Placement measures every label first and keeps
+ * each centred on its own point: one that would overshoot the top or bottom
+ * flips to the point's other side — still pinned to its mark — but one that
+ * would have to slide sideways to fit the plot hides instead, since a slid
+ * label lands on the neighbouring marks. Overlaps resolve by priority: extremes
+ * outrank endpoints, and a label whose box meets one already placed is dropped
+ * rather than stacked. The placement is pure and unit-testable; the
  * `ChartValueLabels` component at the foot only draws the result.
  */
 
@@ -24,6 +29,37 @@ const OFFSET = 8
 const HEIGHT = 13
 const PAD = 3
 const HALF = HEIGHT / 2
+
+/**
+ * The value-axis room a chart reserves past its data extremes for the labels:
+ * the label's footprint (its offset from the point plus its height — exactly
+ * the threshold {@link place} flips a clipping label at) plus slack, so the
+ * reserved gap sits safely past that threshold rather than exactly on it. A
+ * reservation that only met the threshold would leave every extreme's label on
+ * the flip boundary, and a resize would dance it across — above, below, above —
+ * landing it on the line each time it flips. @internal
+ */
+export const VALUE_LABEL_HEADROOM = OFFSET + HEIGHT + 4
+
+/**
+ * The headroom a chart passes for its point value labels: the
+ * {@link VALUE_LABEL_HEADROOM} footprint when a single-series chart switches
+ * `endpoints` or `extremes` on — endpoints can sit at the data extremes too, so
+ * both switches reserve — and nothing otherwise, matching the single-series
+ * gate in {@link resolveValueLabels}. The layout answers whether the ask was
+ * affordable through `valueLabelRoom`; a chart draws the labels only while it
+ * holds.
+ *
+ * @internal
+ */
+export function valueLabelHeadroom(
+	config: ValueLabelConfig | undefined,
+	seriesCount: number,
+): number {
+	const wants = Boolean(config?.endpoints || config?.extremes)
+
+	return wants && seriesCount === 1 ? VALUE_LABEL_HEADROOM : 0
+}
 
 /** One plotted point a label can annotate: its position and the value it carries. @internal */
 export type ValueLabelPoint = { x: number; y: number; value: number }
@@ -201,30 +237,28 @@ function candidatesFor(
 	return [...byIndex.values()]
 }
 
-/** Resolves a candidate to its placed label and collision box, clamped inside the plot. @internal */
+/**
+ * Resolves a candidate to its placed label and collision box, or `null` where
+ * it no longer fits. The label stays centred on its own point: clipping the top
+ * or bottom flips it to the point's other side — vertically it never leaves its
+ * mark — but a box that would cross the plot's sides hides rather than sliding
+ * inward, since a slid label lands on the neighbouring marks, which is where a
+ * small frame forces it.
+ *
+ * @internal
+ */
 function place(
 	candidate: Candidate,
 	plot: PlotRect,
 	format: (value: number) => string,
-): { label: PlacedValueLabel; box: Box } {
+): { label: PlacedValueLabel; box: Box } | null {
 	const text = (candidate.format ?? format)(candidate.value)
 
 	const width = text.length * TICK_CHAR_WIDTH + 2 * PAD
 
-	// Anchor inward near an edge so the box never overhangs the frame.
-	const anchor =
-		candidate.x - width / 2 < plot.x
-			? 'start'
-			: candidate.x + width / 2 > plot.x + plot.width
-				? 'end'
-				: 'middle'
+	const [x0, x1] = [candidate.x - width / 2, candidate.x + width / 2]
 
-	const [x0, x1] =
-		anchor === 'start'
-			? [candidate.x, candidate.x + width]
-			: anchor === 'end'
-				? [candidate.x - width, candidate.x]
-				: [candidate.x - width / 2, candidate.x + width / 2]
+	if (x0 < plot.x || x1 > plot.x + plot.width) return null
 
 	// Prefer the candidate's side; flip to the other if it would clip top or bottom.
 	const above = candidate.y - OFFSET - HEIGHT < plot.y ? false : candidate.above
@@ -234,7 +268,14 @@ function place(
 	const y = above || belowClips ? candidate.y - OFFSET - HALF : candidate.y + OFFSET + HALF
 
 	return {
-		label: { x: candidate.x, y, text, anchor, fill: candidate.fill, color: candidate.color },
+		label: {
+			x: candidate.x,
+			y,
+			text,
+			anchor: 'middle',
+			fill: candidate.fill,
+			color: candidate.color,
+		},
 		box: { x0, x1, y0: y - HALF, y1: y + HALF },
 	}
 }
@@ -246,7 +287,8 @@ function overlaps(a: Box, b: Box): boolean {
 
 /**
  * Places the selective value labels across every series, highest rank first,
- * dropping any whose box meets one already placed.
+ * dropping any that no longer fits its natural spot and any whose box meets one
+ * already placed.
  *
  * @internal
  */
@@ -260,13 +302,15 @@ export function valueLabels(options: ValueLabelsOptions): PlacedValueLabel[] {
 	const labels: PlacedValueLabel[] = []
 
 	for (const candidate of candidates) {
-		const { label, box } = place(candidate, options.plot, options.format)
+		const placement = place(candidate, options.plot, options.format)
 
-		if (placed.some((other) => overlaps(other, box))) continue
+		if (!placement) continue
 
-		placed.push(box)
+		if (placed.some((other) => overlaps(other, placement.box))) continue
 
-		labels.push(label)
+		placed.push(placement.box)
+
+		labels.push(placement.label)
 	}
 
 	return labels
@@ -277,6 +321,11 @@ export function valueLabels(options: ValueLabelsOptions): PlacedValueLabel[] {
  * render list: an empty (or absent) config draws none, so a chart calls this
  * with one flat statement and keeps its own branching under budget. The series
  * are built only when a label is actually asked for.
+ *
+ * Point labels are a single-series feature: with more than one labelable series
+ * (`list`), the numbers would crowd between the lines with no reliable place to
+ * sit, so the labels stand down and the tooltip carries the readout. Reference
+ * labels are unaffected — they route through the reference rules, not here.
  *
  * @internal
  */
@@ -289,7 +338,7 @@ export function resolveValueLabels(
 	formats?: ((value: number) => string)[],
 	gapSkipped = true,
 ): PlacedValueLabel[] {
-	if (!config?.endpoints && !config?.extremes) return []
+	if ((!config?.endpoints && !config?.extremes) || list.length !== 1) return []
 
 	return valueLabels({
 		series: lineLabelSeries(list, metas, formats, gapSkipped),
@@ -309,6 +358,11 @@ const LABEL_INK = 'text-xs font-semibold tabular-nums'
  * labels never take the pointer. Under `animate` each fades in once its line has
  * drawn, the same beat as the point markers.
  *
+ * Self-gating at spark through {@link ChartTierContext}: a sparkline is bare
+ * marks, so the endpoint and extreme labels stand down with the rest of the
+ * chrome — a chart passes its placed labels through and leaves the tier to the
+ * frame.
+ *
  * @internal
  */
 export function ChartValueLabels({
@@ -318,7 +372,9 @@ export function ChartValueLabels({
 	labels: PlacedValueLabel[]
 	animate: boolean
 }) {
-	if (labels.length === 0) return null
+	const spark = useChartTier() === 'spark'
+
+	if (spark || labels.length === 0) return null
 
 	return (
 		<g data-slot="chart-value-labels" pointerEvents="none">

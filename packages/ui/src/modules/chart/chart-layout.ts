@@ -15,6 +15,9 @@ import {
 	GUTTER_EDGE_PAD,
 	GUTTER_GAP,
 	GUTTER_MAX,
+	LINE_STROKE_WIDTH,
+	MARKER_RADIUS,
+	MARKER_RING_WIDTH,
 	PLOT_TOP_PAD,
 	TICK_CHAR_WIDTH,
 	TICK_ROTATION_ANGLE,
@@ -22,7 +25,13 @@ import {
 	X_AXIS_HEIGHT,
 } from './chart-constants'
 import { bandExtent, valueExtent } from './chart-orientation'
-import { type BandScale, bandScale, type LinearScale, linearScale } from './chart-scale'
+import {
+	type BandScale,
+	bandScale,
+	headroomFits,
+	type LinearScale,
+	linearScale,
+} from './chart-scale'
 import type { ChartValueAxisSide } from './chart-schema'
 import type { ChartBandAxisMode } from './chart-tier'
 import { timeTicks } from './chart-time'
@@ -285,6 +294,18 @@ export type CartesianLayout = {
 	snapSeries: number[][]
 	/** The value-axis titles, placed inside their reserved bands; empty without titles. */
 	titles: ChartAxisTitlePlacement[]
+	/**
+	 * Whether the {@link CartesianLayoutInput.valueHeadroom} asked for was
+	 * affordable. `false` sheds every point value label AND withholds the
+	 * scale's reservation: a plot too short to afford the room would otherwise
+	 * place labels back on the flip boundary the reservation exists to clear,
+	 * or pad the domain for labels that never draw. The vertical verdict reads
+	 * the range floor under the tallest band chrome the chart can wear (see
+	 * {@link verticalLabelRoom}), so it moves one way as the frame shrinks
+	 * instead of flashing labels back on when a smaller tier drops the band
+	 * row. `true` when nothing was asked.
+	 */
+	valueLabelRoom: boolean
 }
 
 /** One value axis's resolved layout inputs: domain candidates, pins, formatter, and title. @internal */
@@ -344,6 +365,69 @@ export type CartesianLayoutInput = {
 	count: number
 	/** Visible series' values with their axis binding, series-major — the per-category snap points. */
 	visibleValues: VisibleValues[]
+	/**
+	 * How far, in px, the chart's widest mark paints past its data coordinate — a
+	 * point marker's ring edge, a line stroke's half-width. With the axis chrome
+	 * off (spark, or an explicit axes-less frame) both layouts reserve it on every
+	 * plot edge, so an extreme's mark clears the frame the gutters and bands would
+	 * otherwise absorb it into. `0` (bars, cells — marks that end at their
+	 * coordinate) reserves nothing.
+	 * @defaultValue 0
+	 */
+	markInset?: number
+	/**
+	 * Pixels of clear room to reserve between a data extreme and its unpinned
+	 * value-axis edge, so an extreme's value label sits above the peak or below
+	 * the trough rather than flipping onto the line. Set by the line-bearing
+	 * charts when they draw single-series extreme labels; `0` (the default, and
+	 * every multi-series or label-less chart) reserves nothing.
+	 * @defaultValue 0
+	 */
+	valueHeadroom?: number
+}
+
+/**
+ * How far a line-drawn series' marks paint past their data coordinate: the dot
+ * marker's ring edge under `points`, else the path stroke's half-width. The
+ * {@link CartesianLayoutInput.markInset} the line, area, and combo charts pass,
+ * shared so the reach tracks the mark constants from one place.
+ *
+ * @internal
+ */
+export function lineMarkReach(points: boolean): number {
+	return points ? MARKER_RADIUS + MARKER_RING_WIDTH / 2 : LINE_STROKE_WIDTH / 2
+}
+
+/**
+ * The mark reach each plot edge reserves: the input's {@link
+ * CartesianLayoutInput.markInset}, and only without the axis chrome — the
+ * gutters and bands of a framed chart absorb the overhang themselves.
+ *
+ * @internal
+ */
+function markPadOf(input: CartesianLayoutInput): number {
+	return input.axes ? 0 : (input.markInset ?? 0)
+}
+
+/**
+ * Insets both ends of a screen range — ascending or descending — holding the
+ * span where it is too narrow to seat both insets, since a clipped mark beats an
+ * inverted scale.
+ *
+ * @internal
+ */
+function markInsetRange(range: [number, number], inset: number): [number, number] {
+	if (inset <= 0) return range
+
+	const [from, to] = range
+
+	const direction = Math.sign(to - from)
+
+	const insetFrom = from + direction * inset
+
+	const insetTo = to - direction * inset
+
+	return Math.sign(insetTo - insetFrom) === direction ? [insetFrom, insetTo] : range
 }
 
 /**
@@ -543,6 +627,7 @@ function valueScaleOf(
 	range: [number, number],
 	tickTarget: number,
 	zeroBaseline: boolean,
+	headroom = 0,
 ): LinearScale | null {
 	if (!axis) return null
 
@@ -553,6 +638,7 @@ function valueScaleOf(
 		zeroBaseline,
 		min: axis.min,
 		max: axis.max,
+		headroom,
 	})
 }
 
@@ -577,6 +663,43 @@ function valueGutter(on: boolean, ticks: ChartAxisTick[], title: string | undefi
 /** The zero position of `scale`, else of `other`, else the plot-edge fallback. @internal */
 function zeroOf(scale: LinearScale | null, other: LinearScale | null, edge: number): number {
 	return scale?.map(0) ?? other?.map(0) ?? edge
+}
+
+/**
+ * Whether the asked value-label headroom is affordable over `rangePx` — `true`
+ * when none was asked. The same {@link headroomFits} test {@link linearScale}
+ * reserves by.
+ *
+ * @internal
+ */
+function labelRoomOf(headroom: number | undefined, rangePx: number): boolean {
+	return !headroom || headroomFits(headroom, rangePx)
+}
+
+/**
+ * The vertical layout's value-label room verdict. Gates on the range FLOOR —
+ * the plot under the tallest band chrome this chart can wear — never the
+ * tier-resolved band: the actual range grows back when the band row drops at
+ * a smaller tier, and a verdict read from it flashes the labels back on
+ * mid-shrink (hidden, shown, hidden again). Computed from the props alone,
+ * the same posture as the tier's chrome reserve, so the verdict moves one way
+ * as the frame shrinks; and the floor never exceeds the resolved range, so a
+ * granted verdict is always backed by the scale's reservation.
+ *
+ * @internal
+ */
+function verticalLabelRoom(input: CartesianLayoutInput, flatRange: [number, number]): boolean {
+	if (!input.valueHeadroom) return true
+
+	const worstBand = input.tickRotation && !input.times ? TICK_ROTATION_HEIGHT : X_AXIS_HEIGHT
+
+	// Without axes there is no band chrome to vary; the mark-inset range is
+	// already monotone in the frame.
+	const floor = input.axes
+		? input.frameHeight - PLOT_TOP_PAD - worstBand
+		: Math.abs(flatRange[0] - flatRange[1])
+
+	return headroomFits(input.valueHeadroom, floor)
 }
 
 /** The vertical layout's rotated gutter titles, one per titled axis with a resolved scale. @internal */
@@ -627,9 +750,21 @@ function verticalValueAxes(
 	input: CartesianLayoutInput,
 	range: [number, number],
 ): VerticalValueAxes {
-	const valueScale = valueScaleOf(input.value, range, input.tickTarget, input.zeroBaseline)
+	const valueScale = valueScaleOf(
+		input.value,
+		range,
+		input.tickTarget,
+		input.zeroBaseline,
+		input.valueHeadroom,
+	)
 
-	const rightScale = valueScaleOf(input.rightValue, range, input.tickTarget, input.zeroBaseline)
+	const rightScale = valueScaleOf(
+		input.rightValue,
+		range,
+		input.tickTarget,
+		input.zeroBaseline,
+		input.valueHeadroom,
+	)
 
 	const valueTicks = valueScale && input.value ? valueTicksOf(valueScale, input.value.format) : []
 
@@ -663,9 +798,23 @@ export function verticalLayout(input: CartesianLayoutInput): CartesianLayout {
 
 	const flatHeight = drawBand ? X_AXIS_HEIGHT : axes ? FLOOR_LABEL_PAD : 0
 
-	const flatRange: [number, number] = [frameHeight - flatHeight, PLOT_TOP_PAD]
+	// Without the axis chrome the marks border the frame directly, so each edge
+	// reserves the widest mark's painted reach instead — the floor takes it whole
+	// where the band row would have been; the top pad already seats a marker, so
+	// it only ever widens.
+	const markPad = markPadOf(input)
 
-	const flatAxes = verticalValueAxes(input, flatRange)
+	const flatRange: [number, number] = axes
+		? [frameHeight - flatHeight, PLOT_TOP_PAD]
+		: [frameHeight - markPad, Math.max(PLOT_TOP_PAD, markPad)]
+
+	const valueLabelRoom = verticalLabelRoom(input, flatRange)
+
+	// A withheld verdict reserves nothing — the scale would otherwise pad the
+	// domain for labels that will not draw.
+	const scaleInput = valueLabelRoom ? input : { ...input, valueHeadroom: 0 }
+
+	const flatAxes = verticalValueAxes(scaleInput, flatRange)
 
 	// Each side reserves its own gutter — tick labels plus a title band where a
 	// title is set — so the plot narrows only for the chrome actually drawn.
@@ -703,7 +852,7 @@ export function verticalLayout(input: CartesianLayoutInput): CartesianLayout {
 	const axisBandHeight = tilt ? TICK_ROTATION_HEIGHT : flatHeight
 
 	const { valueScale, rightScale, valueTicks, rightTicks } = tilt
-		? verticalValueAxes(input, [frameHeight - axisBandHeight, PLOT_TOP_PAD])
+		? verticalValueAxes(scaleInput, [frameHeight - axisBandHeight, PLOT_TOP_PAD])
 		: flatAxes
 
 	const plot: PlotRect = {
@@ -713,7 +862,9 @@ export function verticalLayout(input: CartesianLayoutInput): CartesianLayout {
 		height: Math.max(0, frameHeight - PLOT_TOP_PAD - axisBandHeight),
 	}
 
-	const band = bandScale({ count, range: bandExtent('vertical', plot) })
+	// The band inset mirrors the value one: an endpoint mark at the first or last
+	// band center clears the frame's sides, however thin the slots run.
+	const band = bandScale({ count, range: markInsetRange(bandExtent('vertical', plot), markPad) })
 
 	const scales: ValueScales = { left: valueScale, right: rightScale }
 
@@ -733,6 +884,7 @@ export function verticalLayout(input: CartesianLayoutInput): CartesianLayout {
 		snapPoints: snapPointsOf(scales, count, input.visibleValues),
 		snapSeries: snapSeriesOf(scales, count, input.visibleValues),
 		titles: verticalTitles(input, scales, plot, frameWidth),
+		valueLabelRoom,
 	}
 }
 
@@ -877,15 +1029,35 @@ export function horizontalLayout(input: CartesianLayoutInput): CartesianLayout {
 
 	const probes = [leftProbe, rightProbe].filter((probe): probe is ValueAxisProbe => probe !== null)
 
-	// The value labels centre on their ticks, so without axes there is nothing
-	// to reserve for and the scales fill the whole span.
-	const range = axes ? valueAxisRange(probes, span) : span
+	// Without the axis chrome the marks border the frame directly, so both layouts
+	// reserve the widest mark's painted reach on every plot edge — here the value
+	// axis runs across and the band down, the transpose of the vertical layout's.
+	const markPad = markPadOf(input)
 
-	const valueScale = valueScaleOf(input.value, range, input.tickTarget, input.zeroBaseline)
+	// The value labels centre on their ticks, so without axes there is nothing to
+	// reserve for and the scales fill the whole span, less the marks' own reach.
+	const range = axes ? valueAxisRange(probes, span) : markInsetRange(span, markPad)
 
-	const rightScale = valueScaleOf(input.rightValue, range, input.tickTarget, input.zeroBaseline)
+	const valueScale = valueScaleOf(
+		input.value,
+		range,
+		input.tickTarget,
+		input.zeroBaseline,
+		input.valueHeadroom,
+	)
 
-	const band = bandScale({ count, range: bandExtent('horizontal', plot) })
+	const rightScale = valueScaleOf(
+		input.rightValue,
+		range,
+		input.tickTarget,
+		input.zeroBaseline,
+		input.valueHeadroom,
+	)
+
+	const band = bandScale({
+		count,
+		range: markInsetRange(bandExtent('horizontal', plot), markPad),
+	})
 
 	const scales: ValueScales = { left: valueScale, right: rightScale }
 
@@ -904,5 +1076,6 @@ export function horizontalLayout(input: CartesianLayoutInput): CartesianLayout {
 		snapPoints: snapPointsOf(scales, count, input.visibleValues),
 		snapSeries: snapSeriesOf(scales, count, input.visibleValues),
 		titles: horizontalTitles(input, scales, plot),
+		valueLabelRoom: labelRoomOf(input.valueHeadroom, Math.abs(range[1] - range[0])),
 	}
 }
