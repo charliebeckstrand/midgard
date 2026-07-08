@@ -63,6 +63,57 @@ describe('GridColumnManager', () => {
 		expect(onOrderChange).toHaveBeenCalledWith(['name', 'role', 'email'])
 	})
 
+	it('renders drag handles for the orderable columns by default', () => {
+		const { container } = renderUI(<GridColumnManager columns={columns} />)
+
+		// The two scrolling columns (email, role) carry drag grips; the pinned
+		// column lists in its own non-sortable group without one.
+		expect(allBySlot(container, 'list-handle').length).toBeGreaterThan(0)
+	})
+
+	it('renders no drag handles when reorderable is false', () => {
+		const { container } = renderUI(<GridColumnManager columns={columns} reorderable={false} />)
+
+		expect(allBySlot(container, 'list-handle')).toHaveLength(0)
+	})
+
+	it('does not reorder via the keyboard when reorderable is false', () => {
+		const onOrderChange = vi.fn()
+
+		const { container } = renderUI(
+			<GridColumnManager columns={columns} reorderable={false} onOrderChange={onOrderChange} />,
+		)
+
+		const email = allBySlot(container, 'list-item')[1] as HTMLElement
+
+		email.focus()
+
+		fireEvent.keyDown(email, { key: ' ' })
+
+		fireEvent.keyDown(email, { key: 'ArrowDown' })
+
+		expect(onOrderChange).not.toHaveBeenCalled()
+	})
+
+	it('still toggles visibility when reorderable is false', async () => {
+		const onHiddenChange = vi.fn()
+
+		renderUI(
+			<GridColumnManager
+				columns={columns}
+				reorderable={false}
+				defaultHidden={new Set()}
+				onHiddenChange={onHiddenChange}
+			/>,
+		)
+
+		const user = userEvent.setup()
+
+		await user.click(screen.getByRole('checkbox', { name: 'Show Email' }))
+
+		expect(onHiddenChange).toHaveBeenCalledWith(new Set(['email']))
+	})
+
 	it('preserves ids outside the manager set (select/actions) in place on reorder', () => {
 		const onOrderChange = vi.fn()
 
