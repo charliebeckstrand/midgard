@@ -13,14 +13,7 @@ overrides:
   undici: '>=7.28.0 <8'
 
 minimumReleaseAgeExclude:
-  - hlidskjalf@0.3.1
-  - hlidskjalf@0.3.2
-  - hlidskjalf@0.3.3
-  - hlidskjalf@0.3.4
-  - hlidskjalf@0.3.5
-  - hlidskjalf@0.3.6
-  - hlidskjalf@0.3.7
-  - hlidskjalf@0.4.0
+  - hlidskjalf@0.3.1 || 0.3.2 || 0.3.3 || 0.3.4 || 0.3.5 || 0.3.6 || 0.3.7 || 0.4.0 || 0.4.4
   - '@turbo/darwin-64@2.9.18'
   - '@turbo/darwin-arm64@2.9.18'
   - '@turbo/linux-64@2.9.18'
