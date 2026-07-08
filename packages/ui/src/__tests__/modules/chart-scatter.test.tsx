@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { BubbleChart } from '../../modules/chart/bubble-chart'
 import { ScatterChart } from '../../modules/chart/scatter-chart'
 import {
+	anchorEndTicks,
 	diameterRange,
 	nearestCenterIndex,
 	sizeRadius,
@@ -63,6 +64,35 @@ describe('scatter geometry', () => {
 		expect(sizeRadius(7, [7, 7], diameters)).toBeCloseTo(9)
 
 		expect(sizeRadius(null, [1, 100], diameters)).toBeCloseTo(4)
+	})
+
+	it('anchors the edge ticks inward and leaves interior ones centered', () => {
+		const anchored = anchorEndTicks(
+			[
+				{ at: 40, label: '0', key: 0 },
+				{ at: 120, label: '50', key: 50 },
+				{ at: 200, label: '100', key: 100 },
+			],
+			40,
+			200,
+		)
+
+		expect(anchored.map((tick) => tick.anchor)).toEqual(['start', undefined, 'end'])
+	})
+
+	it('leaves a tick sitting interior to a pinned edge centered', () => {
+		// A pinned floor sits at range 40, so the first tick at 60 is interior — only
+		// the tick that lands on an edge reads inward.
+		const anchored = anchorEndTicks(
+			[
+				{ at: 60, label: '-40', key: -40 },
+				{ at: 200, label: '100', key: 100 },
+			],
+			40,
+			200,
+		)
+
+		expect(anchored.map((tick) => tick.anchor)).toEqual([undefined, 'end'])
 	})
 })
 
@@ -171,6 +201,32 @@ describe('ScatterChart', () => {
 		)
 
 		expect(allBySlot(container, 'chart-scatter-series')).toHaveLength(1)
+	})
+
+	it('anchors the first and last x-axis labels inward so the corner labels stay clear', () => {
+		const { container } = renderUI(
+			<ScatterChart
+				aria-label="Dwell against distance"
+				data={STOPS}
+				width={480}
+				series={[{ xKey: 'distance', yKey: 'dwell', yName: 'Dwell' }]}
+				formatXValue={(value) => `${value} mi`}
+			/>,
+		)
+
+		const labels = [...(bySlot(container, 'chart-axis-x') as Element).querySelectorAll('text')]
+
+		expect(labels.length).toBeGreaterThan(2)
+
+		// The floor tick reads rightward off the value gutter, the ceiling tick
+		// leftward off the frame edge, the interior ticks centered under their marks.
+		expect(labels[0]).toHaveAttribute('text-anchor', 'start')
+
+		expect(labels.at(-1)).toHaveAttribute('text-anchor', 'end')
+
+		for (const label of labels.slice(1, -1)) {
+			expect(label).toHaveAttribute('text-anchor', 'middle')
+		}
 	})
 
 	it('walks the unique x columns from the keyboard, formatted per axis', () => {

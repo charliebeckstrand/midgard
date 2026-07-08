@@ -45,6 +45,7 @@ import type { ChartReadout } from '../types'
 import { cartesianFocus } from '../use-chart-keyboard'
 import { useChartSeriesToggle } from '../use-chart-series-toggle'
 import {
+	anchorEndTicks,
 	diameterRange,
 	type ScatterDatum,
 	type ScatterMark,
@@ -256,8 +257,9 @@ type ScatterScales = {
 
 /**
  * Both scales resolved: y from the frame height first, so its tick labels can
- * size the left gutter, then x filling the plot width the labels leave, inset
- * so its centered end labels clear the frame.
+ * size the left gutter, then x filling the plot width the labels leave, inset so
+ * its extreme discs and end labels clear the frame — the end ticks then anchored
+ * inward so those labels don't crowd the corner they sit in.
  *
  * @internal
  */
@@ -328,13 +330,23 @@ function scatterScales(args: {
 
 	const span: [number, number] = spark ? [inset, frameWidth - inset] : [plot.x, plot.x + plot.width]
 
-	const xScale = linearScale({
-		values: xValues,
-		range: drawAxes ? scatterXRange(xValues, xOptions, formatX, span) : span,
-		...xOptions,
-	})
+	// The framed x range insets so the extreme discs and end labels clear the frame;
+	// the end ticks then read inward off that range so their labels don't crowd the
+	// y floor label at the origin or butt the frame at the far end. Spark draws no
+	// axis, so its ticks stay bare and centered over the tight-fit span.
+	const xRange = drawAxes ? scatterXRange(xValues, xOptions, formatX, span) : span
 
-	return { plot, xScale, yScale, xTicks: valueTicksOf(xScale, formatX), yTicks }
+	const xScale = linearScale({ values: xValues, range: xRange, ...xOptions })
+
+	const xTicks = valueTicksOf(xScale, formatX)
+
+	return {
+		plot,
+		xScale,
+		yScale,
+		xTicks: drawAxes ? anchorEndTicks(xTicks, xRange[0], xRange[1]) : xTicks,
+		yTicks,
+	}
 }
 
 /**
