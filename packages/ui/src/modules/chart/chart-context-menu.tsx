@@ -7,6 +7,7 @@ import {
 	type ReactElement,
 	type ReactNode,
 	type RefObject,
+	useRef,
 	useState,
 } from 'react'
 import { Button } from '../../components/button'
@@ -76,6 +77,13 @@ export function ChartContextMenu({
 	children,
 }: ChartContextMenuProps) {
 	const [open, setOpen] = useState(false)
+
+	// The re-mounted chart exposes a `tabIndex=0` plot region as the dialog's
+	// first tabbable child, and its keyboard handler `preventDefault`s Escape to
+	// drop focus rather than close — which would swallow the dialog's own Escape
+	// dismissal. Seat initial focus on Close instead, so the dialog opens with a
+	// neutral tab stop focused and Escape shuts it.
+	const closeRef = useRef<HTMLButtonElement>(null)
 
 	if (contextMenu === false) return <>{children}</>
 
@@ -154,6 +162,7 @@ export function ChartContextMenu({
 			<Dialog
 				open={open}
 				onOpenChange={setOpen}
+				initialFocus={closeRef}
 				aria-label={title ?? 'Chart'}
 				// Auto-height: the panel hugs the chart, which fills the panel width at
 				// its 16/9 ratio. Capping the width by the viewport height keeps that
@@ -174,7 +183,9 @@ export function ChartContextMenu({
 				</div>
 
 				<DialogFooter>
-					<Button onClick={() => setOpen(false)}>Close</Button>
+					<Button ref={closeRef} onClick={() => setOpen(false)}>
+						Close
+					</Button>
 				</DialogFooter>
 			</Dialog>
 		</>
