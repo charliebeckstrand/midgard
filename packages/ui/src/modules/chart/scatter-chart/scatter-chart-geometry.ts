@@ -5,6 +5,7 @@
  * mark math is unit-testable in isolation.
  */
 
+import type { ChartAxisTick } from '../chart-axis'
 import {
 	BUBBLE_MAX_DIAMETER,
 	BUBBLE_MIN_DIAMETER,
@@ -249,12 +250,18 @@ export function withinScatterMarks(
 }
 
 /**
- * Insets the x span so the centered end tick labels clear the frame — the
- * horizontal layout's treatment, over a single probe scale. Ticks are
+ * Insets the x span so the extreme discs and the end tick labels clear the frame
+ * — the horizontal layout's treatment, over a single probe scale. Ticks are
  * range-independent, so the probe answers before the final range is known; a
  * frame too narrow to seat both keeps the span, since a clipped label beats an
  * inverted axis.
  *
+ * @remarks The inset is sized to the end labels' half-width, which also seats the
+ * extreme discs off the frame edge (a value-axis disc paints a smaller reach than
+ * its label spans). The labels themselves then read inward through {@link
+ * anchorEndTicks}, so this reservation is really the marks' — reclaiming it for a
+ * tighter fit would mean insetting by the widest disc's reach instead, and pulling
+ * the same reservation off the y range's top and floor.
  * @internal
  */
 export function scatterXRange(
@@ -276,4 +283,31 @@ export function scatterXRange(
 	const insetTo = to - half(probe.ticks.at(-1) as number)
 
 	return insetFrom < insetTo ? [insetFrom, insetTo] : span
+}
+
+/** How far a tick's mapped position may sit from a range end and still count as sitting on it. @internal */
+const EDGE_EPSILON = 0.5
+
+/**
+ * Anchors a value axis's end tick labels inward: `'start'` on the tick sitting at
+ * the range start, `'end'` on the one at its end, the interior ticks left centered
+ * under their positions. The scatter x axis's floor tick abuts the value gutter
+ * and its ceiling tick nears the frame's right edge; centered there, they crowd
+ * the y-axis floor label at one corner and butt the frame at the other. Reading
+ * the ends inward clears both without a width estimate — the treatment {@link
+ * endBandTicks} gives the compact band axis, and which the x axis already honours
+ * through {@link ChartAxisTick.anchor}. A tick sitting interior to the range — a
+ * pinned domain whose edge carries no tick of its own — keeps the centered
+ * default, since only an edge label crowds.
+ *
+ * @internal
+ */
+export function anchorEndTicks(ticks: ChartAxisTick[], from: number, to: number): ChartAxisTick[] {
+	return ticks.map((tick): ChartAxisTick => {
+		if (Math.abs(tick.at - from) <= EDGE_EPSILON) return { ...tick, anchor: 'start' }
+
+		if (Math.abs(tick.at - to) <= EDGE_EPSILON) return { ...tick, anchor: 'end' }
+
+		return tick
+	})
 }
