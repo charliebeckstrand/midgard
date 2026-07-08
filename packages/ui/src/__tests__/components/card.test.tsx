@@ -3,7 +3,6 @@ import { describe, expect, it } from 'vitest'
 import { Button, ButtonSkeleton } from '../../components/button'
 import { Card, CardBody, CardFooter, CardHeader, CardTitle } from '../../components/card'
 import { DensityProvider } from '../../providers/density'
-import type { Step } from '../../recipes'
 import { bySlot, renderUI } from '../helpers'
 
 describe('Card', () => {
