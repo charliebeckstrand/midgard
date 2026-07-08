@@ -1341,12 +1341,12 @@ export function Demo() {
 
 				<TabContent value="Reorder">
 					<Stack gap="xl">
-						<Example title="Column reorder">
+						<Example title="Column reorder: with handle">
 							<ReorderExample />
 						</Example>
 
 						<Example
-							title="Column reorder without a grip"
+							title="Column reorder: without handle"
 							code={code`<Grid reorder={{ handle: false }} columns={columns} />`}
 						>
 							<ReorderHandlelessExample />
