@@ -1,15 +1,80 @@
 'use client'
 
-import { type RefObject, useCallback, useEffect } from 'react'
+import { type ReactElement, type RefObject, useCallback, useEffect } from 'react'
 import { TableBody, TableCell } from '../../components/table'
-import { TextSkeleton } from '../../components/text'
+import { Text, TextSkeleton } from '../../components/text'
 import { useVirtualWindow } from '../../hooks'
 import type { ResolvedInfiniteScroll } from './grid-data-resolvers'
 import { type GridRowsProps, renderGridRow } from './grid-row'
+import type { GridColumn } from './types'
 import { useGridInfiniteScroll } from './use-grid-infinite-scroll'
 
 /** Scrolls the data row at `rowIndex` (cursor index space) into the rendered window. @internal */
 export type GridScrollRowIntoView = (rowIndex: number) => void
+
+/**
+ * The single trailing row below the loaded rows for the infinite-scroll terminal
+ * states, resolved in precedence order: a failed load (`error`) shows a
+ * `Text severity="error"` message; an in-flight batch shows the opt-in loading
+ * indicator (the custom `loadingIndicator`, else a per-column skeleton run
+ * mirroring the initial loading skeleton); the reached end (`hasMore` false)
+ * shows the muted `endMessage`. `null` for the common mid-scroll case, where none
+ * applies. The loading row stays `aria-hidden` filler — the busy status announces
+ * the grown total — while the message rows carry real text and stay in the tree.
+ *
+ * @internal
+ */
+function GridInfiniteScrollTrailer<T>({
+	infiniteScroll,
+	columns,
+}: {
+	infiniteScroll: ResolvedInfiniteScroll
+	columns: GridColumn<T>[]
+}): ReactElement | null {
+	const { error, loadingMore, showLoadingIndicator, hasMore, endMessage, loadingIndicator } =
+		infiniteScroll
+
+	const colSpan = columns.length
+
+	if (error != null && error !== false) {
+		return (
+			<tr data-slot="grid-load-error">
+				<TableCell colSpan={colSpan}>
+					<Text severity="error">{error}</Text>
+				</TableCell>
+			</tr>
+		)
+	}
+
+	if (loadingMore && showLoadingIndicator) {
+		return (
+			// biome-ignore lint/a11y/noAriaHiddenOnFocusable: a non-focusable pending-state filler row that must not be exposed as a data row
+			<tr data-slot="grid-loading-more" aria-hidden="true">
+				{loadingIndicator ? (
+					<td colSpan={colSpan}>{loadingIndicator}</td>
+				) : (
+					columns.map((col) => (
+						<TableCell key={col.id}>
+							<TextSkeleton />
+						</TableCell>
+					))
+				)}
+			</tr>
+		)
+	}
+
+	if (!hasMore && endMessage != null && endMessage !== false) {
+		return (
+			<tr data-slot="grid-load-end">
+				<TableCell colSpan={colSpan}>
+					<Text severity="muted">{endMessage}</Text>
+				</TableCell>
+			</tr>
+		)
+	}
+
+	return null
+}
 
 /** Props for {@link GridVirtualizedBody}. @internal */
 type GridVirtualizedBodyProps<T> = GridRowsProps<T> & {
@@ -18,7 +83,7 @@ type GridVirtualizedBodyProps<T> = GridRowsProps<T> & {
 	overscan: number
 	/** Published with a scroll-into-view fn while mounted, so the cursor can reach off-window rows. */
 	scrollIntoViewRef: RefObject<GridScrollRowIntoView | null>
-	/** Infinite-scroll gates driving end-detection and the trailing skeleton, or `null` when off. */
+	/** Infinite-scroll gates driving end-detection and the trailing loading/end/error row, or `null` when off. */
 	infiniteScroll: ResolvedInfiniteScroll | null
 }
 
@@ -100,25 +165,11 @@ export function GridVirtualizedBody<T>(props: GridVirtualizedBodyProps<T>) {
 					/>
 				</tr>
 			)}
-			{/* Trailing pending row while a batch loads: a per-column run of pulsing
-			    skeleton cells (or the consumer's `loadingIndicator`, spanning every
-			    column) below the last rendered rows, mirroring the initial loading
-			    skeleton so a page loads in the same silhouette it settles into. A
-			    non-data filler like the spacers, so it's `aria-hidden` — the grid's busy
-			    status announces the grown total once the batch settles. */}
-			{infiniteScroll?.loadingMore && (
-				// biome-ignore lint/a11y/noAriaHiddenOnFocusable: a non-focusable pending-state filler row that must not be exposed as a data row
-				<tr data-slot="grid-loading-more" aria-hidden="true">
-					{infiniteScroll.loadingIndicator ? (
-						<td colSpan={visibleColumns.length}>{infiniteScroll.loadingIndicator}</td>
-					) : (
-						visibleColumns.map((col) => (
-							<TableCell key={col.id}>
-								<TextSkeleton />
-							</TableCell>
-						))
-					)}
-				</tr>
+			{/* Trailing row below the last rendered rows for the infinite-scroll
+			    terminal states — a failed load, an in-flight batch (opt-in), or the
+			    reached end — resolved in precedence order (see the trailer). */}
+			{infiniteScroll && (
+				<GridInfiniteScrollTrailer<T> infiniteScroll={infiniteScroll} columns={visibleColumns} />
 			)}
 		</TableBody>
 	)

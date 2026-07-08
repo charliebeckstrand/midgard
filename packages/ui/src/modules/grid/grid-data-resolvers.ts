@@ -78,14 +78,22 @@ export type ResolvedInfiniteScroll = {
 	onLoadMore: () => void
 	/** Whether more rows remain; gates firing and the trailing indicator. */
 	hasMore: boolean
-	/** Whether a load is in flight; suppresses re-firing and shows the indicator. */
+	/** Whether a load is in flight; suppresses re-firing and (with `showLoadingIndicator`) shows the indicator. */
 	loadingMore: boolean
 	/** Rows from the loaded end that trip a load. */
 	threshold: number
 	/** Server-known total row count, or `null` when the full extent is unknown. */
 	totalRows: number | null
+	/** Whether the trailing loading indicator shows while `loadingMore`. */
+	showLoadingIndicator: boolean
 	/** Trailing-row content shown while loading, or `undefined` for the default skeleton. */
 	loadingIndicator: ReactNode
+	/** Muted end-of-list message shown once `hasMore` is false, or `undefined` for none. */
+	endMessage: ReactNode
+	/** Error message shown on a failed load-more, or `undefined` for none; takes precedence over the other trailing states. */
+	error: ReactNode
+	/** Whether appended batches hold the auto-fit column widths steady. */
+	stableColumnWidths: boolean
 }
 
 /**
@@ -93,8 +101,10 @@ export type ResolvedInfiniteScroll = {
  * unset. `hasMore` defaults to comparing the loaded count against a supplied
  * `totalRows` — else on outright (the consumer stops it) — and `loadingMore`
  * defaults off; `threshold` falls back to the virtualization `overscan`, so the
- * fetch leads the viewport by about the windowed overscan. Returns `null` for no
- * binding — the body then wires no end-detection and renders no indicator.
+ * fetch leads the viewport by about the windowed overscan. The loading indicator
+ * is opt-in (`showLoadingIndicator`, off by default), and `stableColumnWidths`
+ * defaults off. Returns `null` for no binding — the body then wires no
+ * end-detection and renders no trailing row.
  *
  * @internal
  */
@@ -114,7 +124,11 @@ export function resolveInfiniteScroll(
 		loadingMore: infiniteScroll.loadingMore ?? false,
 		threshold: infiniteScroll.threshold ?? overscan,
 		totalRows,
+		showLoadingIndicator: infiniteScroll.showLoadingIndicator ?? false,
 		loadingIndicator: infiniteScroll.loadingIndicator,
+		endMessage: infiniteScroll.endMessage,
+		error: infiniteScroll.error,
+		stableColumnWidths: infiniteScroll.stableColumnWidths ?? false,
 	}
 }
 

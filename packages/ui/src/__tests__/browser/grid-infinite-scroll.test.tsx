@@ -357,3 +357,105 @@ describe('grid infinite scroll (real browser)', () => {
 		await waitFor(() => expect(onLoadMore).toHaveBeenCalled())
 	})
 })
+
+/**
+ * `stableColumnWidths` freezes the auto-fit column widths against appended
+ * batches: a wide row scrolling in past the initial fit truncates to the frozen
+ * width instead of reflowing the columns. Only observable over the real
+ * virtualizer + layout (jsdom neither windows rows nor measures widths).
+ */
+describe('grid infinite scroll — stable column widths (real browser)', () => {
+	type WideRow = { id: number; label: string }
+
+	const wideColumns: GridColumn<WideRow>[] = [
+		{ id: 'label', title: 'Label', cell: (row) => row.label },
+		{ id: 'id', title: 'ID', cell: (row) => row.id },
+	]
+
+	// The first 50 rows are short; every row past them carries a very long label, so
+	// the batch that appends them would widen the label column unless it's frozen.
+	const wideRows: WideRow[] = Array.from({ length: 200 }, (_, i) => ({
+		id: i + 1,
+		label: i < 50 ? `Row ${i + 1}` : `Row ${i + 1} ${'wide '.repeat(30)}`,
+	}))
+
+	const getKey = (row: WideRow) => row.id
+
+	function WideInfiniteGrid({ stable }: { stable: boolean }) {
+		const [count, setCount] = useState(50)
+
+		const rows = useMemo(() => wideRows.slice(0, count), [count])
+
+		return (
+			<div style={{ width: '360px' }}>
+				<Grid
+					columns={wideColumns}
+					rows={rows}
+					getKey={getKey}
+					virtualize={{ estimateSize: 36 }}
+					maxHeight="180px"
+					infiniteScroll={{
+						onLoadMore: () => setCount((c) => Math.min(c + 50, wideRows.length)),
+						hasMore: count < wideRows.length,
+						stableColumnWidths: stable,
+					}}
+				/>
+			</div>
+		)
+	}
+
+	// The label column's frozen width, read off the fixed-layout `<colgroup>`.
+	const labelWidth = (container: HTMLElement) =>
+		(container.querySelector('colgroup col') as HTMLElement | null)?.style.width ?? ''
+
+	/** Scroll to the wide tail, appending batches until the last (wide) row renders. */
+	async function loadWideTail(container: HTMLElement) {
+		const scroll = container.querySelector('[data-slot="grid-scroll"]') as HTMLElement
+
+		await waitFor(
+			() => {
+				scroll.scrollTop = scroll.scrollHeight
+
+				fireEvent.scroll(scroll)
+
+				expect(screen.queryByText(/Row 200/)).not.toBeNull()
+			},
+			{ timeout: 5000 },
+		)
+	}
+
+	it('holds the column widths steady as wider batches append', async () => {
+		const { container } = renderUI(<WideInfiniteGrid stable />)
+
+		await waitFor(() => expect(screen.queryByText('Row 1')).not.toBeNull())
+
+		// Let the web-font settle re-fit land before snapshotting the initial width.
+		await document.fonts.ready
+
+		const initial = labelWidth(container)
+
+		expect(initial).not.toBe('')
+
+		await loadWideTail(container)
+
+		// The wide tail loaded, but the frozen fit never re-measured it — the label
+		// column holds its initial width to the pixel.
+		expect(labelWidth(container)).toBe(initial)
+	})
+
+	it('widens the columns for wider batches without the freeze', async () => {
+		const { container } = renderUI(<WideInfiniteGrid stable={false} />)
+
+		await waitFor(() => expect(screen.queryByText('Row 1')).not.toBeNull())
+
+		await document.fonts.ready
+
+		const initial = Number.parseFloat(labelWidth(container))
+
+		await loadWideTail(container)
+
+		// Without the freeze the appended wide rows re-fit the label column wider than
+		// its initial short-content fit — the shift `stableColumnWidths` suppresses.
+		await waitFor(() => expect(Number.parseFloat(labelWidth(container))).toBeGreaterThan(initial))
+	})
+})

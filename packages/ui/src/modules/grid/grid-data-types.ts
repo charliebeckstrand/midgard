@@ -36,13 +36,18 @@ export type GridVirtualize = boolean | { estimateSize?: number; overscan?: numbe
  * @remarks One binding, two data sources. A *local* set appends synchronously
  * (leave `loadingMore` unset and gate on `hasMore`); a *server* set fetches the
  * next page and appends it — hold `loadingMore` true while the request is in
- * flight so the grid shows a trailing skeleton row and holds off re-requesting.
- * In both, `hasMore` is the master gate: once `false`, `onLoadMore` never fires
- * again and the indicator drops. Supply {@link GridInfiniteScroll.totalRows}
- * when the backend reports its total and `hasMore` derives itself; the grid
- * then also reports a determinate `aria-rowcount` and a real footer `rowTotal`
- * instead of the loaded extent, and its busy status announces each grown total
- * as a batch settles.
+ * flight so the grid holds off re-requesting (and, with `showLoadingIndicator`,
+ * shows a trailing skeleton row). In both, `hasMore` is the master gate: once
+ * `false`, `onLoadMore` never fires again and the indicator drops. Supply
+ * {@link GridInfiniteScroll.totalRows} when the backend reports its total and
+ * `hasMore` derives itself; the grid then also reports a determinate
+ * `aria-rowcount` and a real footer `rowTotal` instead of the loaded extent,
+ * and its busy status announces each grown total as a batch settles.
+ *
+ * The trailing row below the loaded rows resolves the terminal states in
+ * precedence order: an `error` (a failed load) shows a `Text severity="error"`
+ * message; an in-flight batch shows the opt-in loading indicator; the reached
+ * end (`hasMore` false) shows the muted `endMessage`.
  *
  * Firing upholds one invariant: *`onLoadMore` never fires more than once per
  * user scroll interaction, except for a bounded initial viewport-fill.* A
@@ -87,8 +92,9 @@ export type GridInfiniteScroll = {
 	totalRows?: number
 	/**
 	 * Whether a load is in flight. Suppresses re-requesting while the current
-	 * batch resolves and shows a trailing skeleton row; leave unset for a
-	 * synchronous local source, which appends without a pending state.
+	 * batch resolves; leave unset for a synchronous local source, which appends
+	 * without a pending state. Drives the trailing loading indicator only when
+	 * `showLoadingIndicator` opts in.
 	 * @defaultValue false
 	 */
 	loadingMore?: boolean
@@ -100,11 +106,41 @@ export type GridInfiniteScroll = {
 	 */
 	threshold?: number
 	/**
-	 * Content for the trailing row shown while `loadingMore`, superseding the
-	 * default per-column skeleton cells — e.g. a run of skeleton rows. Rendered
-	 * in a single cell spanning every column.
+	 * Whether to show the trailing loading indicator while `loadingMore` — the
+	 * per-column skeleton cells, or the custom `loadingIndicator`. Off by default,
+	 * so a batch loads silently unless the grid opts the indicator in.
+	 * @defaultValue false
+	 */
+	showLoadingIndicator?: boolean
+	/**
+	 * Content for the trailing indicator shown while `loadingMore` (and
+	 * `showLoadingIndicator`), superseding the default per-column skeleton cells —
+	 * e.g. a run of skeleton rows. Rendered in a single cell spanning every column.
 	 */
 	loadingIndicator?: ReactNode
+	/**
+	 * Message shown in a muted `Text` on the trailing row once the end is reached
+	 * (`hasMore` false) — a scroll-triggered load that came back empty. Unset shows
+	 * nothing at the end. Superseded by `error`, and by the loading indicator while
+	 * a batch is in flight.
+	 */
+	endMessage?: ReactNode
+	/**
+	 * Message shown in a `Text severity="error"` on the trailing row when a
+	 * load-more fetch fails, leaving the already-loaded rows in place. Takes
+	 * precedence over the loading indicator and `endMessage`; unset shows no error
+	 * row. Clear it (and re-arm `hasMore`) when a retry succeeds.
+	 */
+	error?: ReactNode
+	/**
+	 * Freeze the auto-fit column widths at their initial measurement so an appended
+	 * batch never reflows the columns (later content wider than a column truncates
+	 * instead of widening it); a structural change — columns, density, or a
+	 * container resize — still re-fits. Builds on the default column auto-fit, so it
+	 * has no effect when `resizable` is off or `columnSizing` is controlled.
+	 * @defaultValue false
+	 */
+	stableColumnWidths?: boolean
 }
 
 /**
@@ -945,8 +981,10 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	/**
 	 * Infinite-scroll binding: as the {@link GridDataProps.virtualize | virtualized}
 	 * window nears the end of the loaded rows, the grid calls `onLoadMore` so you
-	 * can append the next batch to `rows` — a local slice, or a server fetch —
-	 * showing a trailing pulsing skeleton row while `loadingMore`. Implies
+	 * can append the next batch to `rows` — a local slice, or a server fetch. Opt
+	 * into a trailing skeleton row while `loadingMore` with `showLoadingIndicator`,
+	 * close the list with `endMessage`, surface a failed load with `error`, and
+	 * hold the columns steady against appends with `stableColumnWidths`. Implies
 	 * `virtualize` (an explicit `virtualize` object still tunes the window;
 	 * `virtualize={false}` throws) but still needs `maxHeight`, which sizes the
 	 * windowed scroll container, and replaces the paged

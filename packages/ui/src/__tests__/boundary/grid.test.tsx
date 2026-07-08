@@ -1187,7 +1187,22 @@ describe('Grid', () => {
 			).toThrow(/either `pagination` or `infiniteScroll`/)
 		})
 
-		it('renders a trailing skeleton row while a batch loads', () => {
+		it('renders a trailing skeleton row while a batch loads when the indicator is opted in', () => {
+			const { container } = renderUI(
+				<Grid
+					columns={columns}
+					rows={manyRows}
+					getKey={getKey}
+					virtualize
+					maxHeight="300px"
+					infiniteScroll={{ onLoadMore: vi.fn(), loadingMore: true, showLoadingIndicator: true }}
+				/>,
+			)
+
+			expect(bySlot(container, 'grid-loading-more')).toBeInTheDocument()
+		})
+
+		it('keeps the loading indicator off by default while a batch loads', () => {
 			const { container } = renderUI(
 				<Grid
 					columns={columns}
@@ -1199,7 +1214,8 @@ describe('Grid', () => {
 				/>,
 			)
 
-			expect(bySlot(container, 'grid-loading-more')).toBeInTheDocument()
+			// The indicator is opt-in (`showLoadingIndicator`); a batch loads silently.
+			expect(bySlot(container, 'grid-loading-more')).toBeNull()
 		})
 
 		it('fills the trailing skeleton row with one placeholder cell per column', () => {
@@ -1210,7 +1226,7 @@ describe('Grid', () => {
 					getKey={getKey}
 					virtualize
 					maxHeight="300px"
-					infiniteScroll={{ onLoadMore: vi.fn(), loadingMore: true }}
+					infiniteScroll={{ onLoadMore: vi.fn(), loadingMore: true, showLoadingIndicator: true }}
 				/>,
 			)
 
@@ -1234,6 +1250,7 @@ describe('Grid', () => {
 					infiniteScroll={{
 						onLoadMore: vi.fn(),
 						loadingMore: true,
+						showLoadingIndicator: true,
 						loadingIndicator: <span data-slot="custom-loading">Loading…</span>,
 					}}
 				/>,
@@ -1256,11 +1273,81 @@ describe('Grid', () => {
 					getKey={getKey}
 					virtualize
 					maxHeight="300px"
-					infiniteScroll={{ onLoadMore: vi.fn() }}
+					infiniteScroll={{ onLoadMore: vi.fn(), showLoadingIndicator: true }}
 				/>,
 			)
 
 			expect(bySlot(container, 'grid-loading-more')).toBeNull()
+		})
+
+		it('shows a muted end message once no more rows remain', () => {
+			const { container } = renderUI(
+				<Grid
+					columns={columns}
+					rows={manyRows}
+					getKey={getKey}
+					virtualize
+					maxHeight="300px"
+					infiniteScroll={{ onLoadMore: vi.fn(), hasMore: false, endMessage: 'No more results' }}
+				/>,
+			)
+
+			const end = bySlot(container, 'grid-load-end')
+
+			expect(end).toBeInTheDocument()
+
+			expect(end).toHaveTextContent('No more results')
+
+			// A muted Text, spanning every column.
+			expect(end?.querySelector('[data-slot="text"]')).toBeInTheDocument()
+
+			expect(end?.querySelector('td')).toHaveAttribute('colspan', String(columns.length))
+		})
+
+		it('holds the end message back while rows may still load', () => {
+			const { container } = renderUI(
+				<Grid
+					columns={columns}
+					rows={manyRows}
+					getKey={getKey}
+					virtualize
+					maxHeight="300px"
+					infiniteScroll={{ onLoadMore: vi.fn(), hasMore: true, endMessage: 'No more results' }}
+				/>,
+			)
+
+			expect(bySlot(container, 'grid-load-end')).toBeNull()
+		})
+
+		it('shows an error message on a failed load, superseding the other trailing states', () => {
+			const { container } = renderUI(
+				<Grid
+					columns={columns}
+					rows={manyRows}
+					getKey={getKey}
+					virtualize
+					maxHeight="300px"
+					infiniteScroll={{
+						onLoadMore: vi.fn(),
+						loadingMore: true,
+						showLoadingIndicator: true,
+						hasMore: false,
+						endMessage: 'No more results',
+						error: 'Could not load more',
+					}}
+				/>,
+			)
+
+			const errorRow = bySlot(container, 'grid-load-error')
+
+			expect(errorRow).toBeInTheDocument()
+
+			expect(errorRow).toHaveTextContent('Could not load more')
+
+			// Error pre-empts the loading indicator and the end message.
+			expect(bySlot(container, 'grid-loading-more')).toBeNull()
+
+			expect(bySlot(container, 'grid-load-end')).toBeNull()
 		})
 
 		it('reports an indeterminate aria-rowcount while more rows may load', () => {
