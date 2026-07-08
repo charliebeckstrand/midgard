@@ -1,6 +1,6 @@
 'use client'
 
-import { Clipboard, Download, Image as ImageIcon, Maximize2, X } from 'lucide-react'
+import { Clipboard, Download, Image as ImageIcon, Maximize2 } from 'lucide-react'
 import {
 	cloneElement,
 	isValidElement,
@@ -11,8 +11,7 @@ import {
 } from 'react'
 import { Button } from '../../components/button'
 import { ContextMenu, type ContextMenuItem } from '../../components/context-menu'
-import { Dialog, DialogClose } from '../../components/dialog'
-import { Icon } from '../../components/icon'
+import { Dialog, DialogFooter } from '../../components/dialog'
 import {
 	type ChartImageType,
 	chartFileName,
@@ -162,14 +161,6 @@ export function ChartContextMenu({
 				// panel centers and on mobile the sheet sizes to the chart's own height.
 				className="sm:max-w-[calc((100dvh-9rem)*16/9)]"
 			>
-				<div data-slot="chart-fullscreen-bar" className="mb-2 flex justify-end">
-					<DialogClose>
-						<Button variant="bare" aria-label="Close fullscreen">
-							<Icon icon={<X />} />
-						</Button>
-					</DialogClose>
-				</div>
-
 				<div data-slot="chart-fullscreen">
 					{open && isValidElement(fullscreen) && (
 						<ChartFullscreenContext value={true}>
@@ -181,6 +172,10 @@ export function ChartContextMenu({
 						</ChartFullscreenContext>
 					)}
 				</div>
+
+				<DialogFooter>
+					<Button onClick={() => setOpen(false)}>Close</Button>
+				</DialogFooter>
 			</Dialog>
 		</>
 	)
