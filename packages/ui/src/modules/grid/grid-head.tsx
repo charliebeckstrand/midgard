@@ -66,6 +66,13 @@ type GridHeadProps<T> = {
 	 */
 	reorderable?: boolean
 	/**
+	 * The reorder drag affordance: `true` prefixes each reorderable header with a
+	 * grip button; `false` makes the whole header the drag handle. No effect
+	 * unless `reorderable`.
+	 * @defaultValue true
+	 */
+	reorderHandle?: boolean
+	/**
 	 * Column-resize controls when the grid is `resizable`: data columns take
 	 * their width from the engine and gain a resize separator. `null` otherwise.
 	 */
@@ -98,6 +105,7 @@ export function GridHead<T>({
 	selectAllLabel = 'Select all rows',
 	gridSemantics,
 	reorderable = false,
+	reorderHandle = true,
 	resize,
 	filters,
 	pinning,
@@ -130,6 +138,7 @@ export function GridHead<T>({
 						interactive={interactive}
 						selectAllLabel={selectAllLabel}
 						reorderable={reorderable}
+						reorderHandle={reorderHandle}
 						resize={resize ?? null}
 						filters={filters ?? null}
 						pinning={pinning ?? null}
@@ -153,6 +162,8 @@ type GridHeaderCellProps<T> = {
 	/** Accessible name for the select-all checkbox. */
 	selectAllLabel: string
 	reorderable: boolean
+	/** Grip (`true`) vs. whole-header (`false`) drag affordance for a reorderable header. */
+	reorderHandle: boolean
 	resize: GridColumnResize | null
 	filters: GridColumnFilter | null
 	pinning: GridColumnPinning | null
@@ -234,6 +245,7 @@ function GridHeaderCell<T>({
 	interactive,
 	selectAllLabel,
 	reorderable,
+	reorderHandle,
 	resize,
 	filters,
 	pinning,
@@ -325,7 +337,7 @@ function GridHeaderCell<T>({
 	// `canReorder && hasData`), so the cell drops the drag activator with no data.
 	// Frozen columns (pinned or locked) are never reorderable.
 	if (reorderable && isDataColumn(column) && !isFrozen(column)) {
-		return <GridReorderableColumnHeader {...shared} />
+		return <GridReorderableColumnHeader {...shared} handle={reorderHandle} />
 	}
 
 	return <GridColumnHeader {...shared} />
@@ -610,6 +622,12 @@ function GridColumnResizeHandle({ id, label, resize, resizing }: GridColumnResiz
 
 				onPointer?.(event)
 			}}
+			// The engine drives the resize off mouse/touch (above); dnd-kit's pointer
+			// sensor rides `pointerdown`. When the whole header is a reorder drag
+			// handle it listens for `pointerdown` on the enclosing `<th>`, so keep a
+			// press on this separator from bubbling up and starting a column drag
+			// alongside the resize.
+			onPointerDown={(event) => event.stopPropagation()}
 			onClick={(event) => event.stopPropagation()}
 			onKeyDown={handleKeyDown}
 		>
@@ -729,11 +747,19 @@ const GridColumnHeader = memo(function GridColumnHeader({
 	)
 })
 
+/** Props for {@link GridReorderableColumnHeader}: the shared header props plus the drag affordance. @internal */
+type GridReorderableColumnHeaderProps = GridColumnHeaderProps & {
+	/** `true` prefixes the header with a grip handle; `false` makes the whole header the drag handle. */
+	handle: boolean
+}
+
 /**
  * Reorderable column header cell: registers the `<th>` as a horizontal sortable
- * item and prefixes the title (and any sort control) with a grip drag handle
- * that carries the pointer/keyboard activator; adds a resize separator when the
- * grid is resizable.
+ * item and adds a resize separator when the grid is resizable. With `handle`,
+ * prefixes the title (and any sort control) with a grip drag handle carrying the
+ * pointer/keyboard activator; without it, the whole header cell carries the
+ * activator and a grab cursor, and no grip renders — its sort control keeps the
+ * pointer cursor as a more specific child.
  *
  * @internal
  */
@@ -753,7 +779,8 @@ const GridReorderableColumnHeader = memo(function GridReorderableColumnHeader({
 	gridCol,
 	filter,
 	filterQuery,
-}: GridColumnHeaderProps) {
+	handle,
+}: GridReorderableColumnHeaderProps) {
 	const {
 		setNodeRef,
 		setActivatorNodeRef,
@@ -771,22 +798,34 @@ const GridReorderableColumnHeader = memo(function GridReorderableColumnHeader({
 	// Resolve the table from the header node as it mounts.
 	const tableRef = useRef<HTMLTableElement | null>(null)
 
-	const setTableNodeRef = useCallback(
+	const setHeaderNodeRef = useCallback(
 		(node: HTMLTableCellElement | null) => {
 			setNodeRef(node)
 
+			// A handle-less header is its own drag activator: the whole cell carries
+			// the pointer/keyboard sensor. A gripped header sets the activator on its
+			// button instead (below), so the cell isn't registered as one.
+			if (!handle) setActivatorNodeRef(node)
+
 			if (node) tableRef.current = node.closest('table')
 		},
-		[setNodeRef],
+		[setNodeRef, setActivatorNodeRef, handle],
 	)
 
 	useColumnReorderShift(tableRef, columnIndex, transform?.x ?? 0, isDragging, isSorting)
 
 	const canResize = (resize?.canResize(column.id) ?? false) && interactive
 
+	// dnd-kit's activator attributes set `role="button"`, which on the `<th>` would
+	// override its columnheader role and drop `aria-sort`. Strip the role (keeping
+	// the focus/aria hints and the sortable roledescription) for the handle-less
+	// header, where the cell itself carries these; a gripped header spreads the
+	// full set onto its button, where `role="button"` is correct.
+	const { role: _role, ...cellActivatorAttributes } = attributes
+
 	return (
 		<TableHeader
-			ref={setTableNodeRef}
+			ref={setHeaderNodeRef}
 			aria-colindex={colIndex}
 			aria-sort={ariaSortValue(column.sortable && interactive, sorted, direction)}
 			data-dragging={dataAttr(isDragging)}
@@ -795,6 +834,8 @@ const GridReorderableColumnHeader = memo(function GridReorderableColumnHeader({
 			className={cn(
 				stickyHeader ? k.sticky.head : k.reorder.shift,
 				k.reorder.cell,
+				// Handle-less: the whole cell is the grab target (grabbing while lifted).
+				!handle && k.reorder.grab,
 				// Anchor the absolute resize handle on a non-sticky header (a sticky
 				// header already positions itself; this header's shift transform also
 				// forms a containing block, so `relative` just keeps the anchor explicit).
@@ -806,21 +847,26 @@ const GridReorderableColumnHeader = memo(function GridReorderableColumnHeader({
 			// one style recalc keeps the header and its column's cells exactly in
 			// phase through the transition, instead of two mechanisms drifting apart.
 			style={{ ...columnShiftStyle(columnIndex), ...(width != null ? { width } : null) }}
+			// The handle-less cell carries the drag activator; the gripped cell leaves
+			// it to the button below.
+			{...(handle ? undefined : { ...cellActivatorAttributes, ...listeners })}
 		>
 			{/* `data-grid-header` marks the header's flex row for the autosizer (see the
 			    non-reorderable header above). */}
 			<span data-grid-header className={cn(k.reorder.layout)}>
-				<button
-					type="button"
-					ref={setActivatorNodeRef}
-					data-dragging={dataAttr(isDragging)}
-					className={cn(k.reorder.handle)}
-					aria-label={`Reorder ${columnLabel(column)}`}
-					{...attributes}
-					{...listeners}
-				>
-					<Icon icon={<GripVertical />} />
-				</button>
+				{handle && (
+					<button
+						type="button"
+						ref={setActivatorNodeRef}
+						data-dragging={dataAttr(isDragging)}
+						className={cn(k.reorder.handle)}
+						aria-label={`Reorder ${columnLabel(column)}`}
+						{...attributes}
+						{...listeners}
+					>
+						<Icon icon={<GripVertical />} />
+					</button>
+				)}
 				<ColumnHeaderLabel
 					column={column}
 					sorted={sorted}

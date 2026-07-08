@@ -336,6 +336,14 @@ export const k = {
 		// Promotes a non-sticky reorder cell to `relative` while dragging so its
 		// lift z-index takes effect.
 		shift: 'data-[dragging]:relative',
+		// Whole-header drag handle (`reorder.handle: false`): the header cell itself
+		// carries the grab cursor — grabbing while lifted (`data-[dragging]`, the same
+		// live-drag flag the grip uses, not `:active`, so a context-menu press doesn't
+		// strand it) — and suppresses text selection and touch-scroll so a press
+		// anywhere on the header lifts the column. A sortable column's sort control
+		// keeps `cursor-pointer`: set on the control itself, it out-resolves this
+		// inherited grab cursor on that child.
+		grab: ['cursor-grab', 'touch-none', 'select-none', 'data-[dragging]:cursor-grabbing'],
 		// Keeps the grip, title, and any sort control on one baseline. A block-level
 		// flex (not inline) fills the header width so the title between the grip and
 		// the filter button can shrink to an ellipsis instead of overrunning the cell.
