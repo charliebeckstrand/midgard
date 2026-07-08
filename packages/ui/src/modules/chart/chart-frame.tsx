@@ -1,10 +1,12 @@
 'use client'
 
-import { type ReactNode, type RefObject, useMemo, useState } from 'react'
+import { type ReactNode, type RefObject, useMemo, useRef, useState } from 'react'
+import type { ContextMenuConfig } from '../../components/context-menu'
 import { cn } from '../../core'
 import type { FrameReserve } from '../../hooks'
 import { k } from '../../recipes/kata/chart'
 import type { AccessibleName } from '../../types'
+import { ChartContextMenu } from './chart-context-menu'
 import { ChartHeader } from './chart-header'
 import type { ChartOrientation } from './chart-orientation'
 import { ChartPlotBox } from './chart-plot-box'
@@ -184,6 +186,12 @@ export type ChartFrameProps = AccessibleName & {
 	overlay?: ReactNode
 	/** Visually-hidden HTML beside the data table — reference-line parity outside the plot. */
 	annotations?: ReactNode
+	/**
+	 * The right-click context menu config, forwarded from the chart's prop. `false`
+	 * suppresses the menu; omitted, the default actions show alone.
+	 * @see {@link ChartContextMenu}
+	 */
+	contextMenu?: ContextMenuConfig | false
 	/** The SVG content: axes, gridlines, marks, and the hit layer. */
 	children: ReactNode
 }
@@ -220,9 +228,14 @@ export function ChartFrame({
 	className,
 	overlay,
 	annotations,
+	contextMenu,
 	children,
 	...label
 }: ChartFrameProps) {
+	// The chart root, read by the context menu for its `<svg>` (image export) and
+	// cloned for the fullscreen view.
+	const rootRef = useRef<HTMLDivElement>(null)
+
 	const [pointed, setPointed] = useState<{
 		index: number | null
 		point: ChartPoint | null
@@ -333,43 +346,46 @@ export function ChartFrame({
 	)
 
 	return (
-		<div
-			data-slot="chart"
-			data-tier={tier}
-			className={cn(
-				// A query container so the legend lays out against the chart's own width,
-				// not the viewport — a chart in a narrow column stacks its legend even on
-				// a wide screen. `w-full` fills whatever box it is handed: the anatomy
-				// resolves from that box (the intrinsic tiers), so a chart reads at any
-				// width without a max-width cap. A `className` still overrides through
-				// twMerge for a caller that wants to bound it.
-				// The named group scopes the spark header's hover / focus veil to the
-				// chart, so it never trips on an unnamed `group-hover` inside the marks.
-				'group/chart @container flex flex-col gap-3',
-				fixedWidth === undefined && 'w-full',
-				containerFill && 'h-full',
-				className,
-			)}
-			style={fixedWidth === undefined ? undefined : { width: fixedWidth }}
-		>
-			<ChartEmphasisContext value={emphasis}>
-				<ChartHoverContext value={hover}>
-					<ChartFigure
-						plot={plotRegion}
-						header={header}
-						legend={legendFrame}
-						legendPlacement={legendPlacement}
-						aside={aside}
-						containerFill={containerFill}
-						aspect={aspect}
-					/>
-				</ChartHoverContext>
-			</ChartEmphasisContext>
+		<ChartContextMenu contextMenu={contextMenu} rootRef={rootRef} readout={readout} title={title}>
+			<div
+				ref={rootRef}
+				data-slot="chart"
+				data-tier={tier}
+				className={cn(
+					// A query container so the legend lays out against the chart's own width,
+					// not the viewport — a chart in a narrow column stacks its legend even on
+					// a wide screen. `w-full` fills whatever box it is handed: the anatomy
+					// resolves from that box (the intrinsic tiers), so a chart reads at any
+					// width without a max-width cap. A `className` still overrides through
+					// twMerge for a caller that wants to bound it.
+					// The named group scopes the spark header's hover / focus veil to the
+					// chart, so it never trips on an unnamed `group-hover` inside the marks.
+					'group/chart @container flex flex-col gap-3',
+					fixedWidth === undefined && 'w-full',
+					containerFill && 'h-full',
+					className,
+				)}
+				style={fixedWidth === undefined ? undefined : { width: fixedWidth }}
+			>
+				<ChartEmphasisContext value={emphasis}>
+					<ChartHoverContext value={hover}>
+						<ChartFigure
+							plot={plotRegion}
+							header={header}
+							legend={legendFrame}
+							legendPlacement={legendPlacement}
+							aside={aside}
+							containerFill={containerFill}
+							aspect={aspect}
+						/>
+					</ChartHoverContext>
+				</ChartEmphasisContext>
 
-			{readout && <ChartTable readout={readout} />}
+				{readout && <ChartTable readout={readout} />}
 
-			{annotations}
-		</div>
+				{annotations}
+			</div>
+		</ChartContextMenu>
 	)
 }
 

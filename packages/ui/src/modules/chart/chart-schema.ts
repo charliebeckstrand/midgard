@@ -7,6 +7,7 @@
  * `types.ts`.
  */
 
+import type { ContextMenuConfig } from '../../components/context-menu'
 import type { Step } from '../../recipes'
 import type { ChartSeriesColor } from '../../recipes/kata/chart'
 import type { AccessibleName } from '../../types'
@@ -485,6 +486,17 @@ export type ChartBaseProps<T> = AccessibleName & {
 	texture?: boolean
 	/** Formats tick and tooltip values; defaults to locale integer/fraction formatting. */
 	formatValue?: (value: number) => string
+	/**
+	 * The right-click context menu. By default a chart offers Fullscreen, image
+	 * downloads (PNG / JPG), Copy image, and — where a data readout exists —
+	 * Download CSV / Copy data. Pass a config to add custom `items` (each a
+	 * `{ label, icon, onSelect }`), place them `'before'` or `'after'` the defaults,
+	 * or drop the defaults with `defaultItems: false`; a separator divides the two
+	 * groups when both show. `false` disables the menu, leaving the browser's
+	 * native one.
+	 * @see {@link ContextMenuConfig}
+	 */
+	contextMenu?: ContextMenuConfig | false
 	className?: string
 }
 

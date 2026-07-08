@@ -1,4 +1,5 @@
-import type { HTMLAttributes, ReactElement, ReactNode } from 'react'
+import type { HTMLAttributes, ReactNode } from 'react'
+import type { ContextMenuEntry } from '../../components/context-menu'
 import type { GridExportAction } from './export/types'
 import type { GridEditCell } from './grid-editing-types'
 
@@ -415,22 +416,13 @@ export type GridColumnFilters = {
 }
 
 /**
- * One entry in a Grid context menu: an actionable item, or a separator. The
- * defaults the grid supplies — and anything a {@link GridColumnMenu} /
- * {@link GridCellMenu} builder returns — render as menu items in order.
+ * One entry in a Grid context menu: an actionable {@link ContextMenuItem} (a
+ * `{ label, icon, onSelect }`) or a {@link ContextMenuSeparator}. The defaults
+ * the grid supplies — and anything a {@link GridColumnMenu} / {@link GridCellMenu}
+ * builder returns — render in order through the shared context-menu renderer,
+ * the same schema a chart's menu uses.
  */
-export type GridMenuItem =
-	| {
-			/** Stable identity for the item. */
-			key: string
-			label: ReactNode
-			/** Leading icon element (e.g. a lucide icon); rendered through `Icon`. */
-			icon?: ReactElement
-			/** Runs when the item is chosen; the menu closes afterward. */
-			onSelect: () => void
-			disabled?: boolean
-	  }
-	| { key: string; separator: true }
+export type GridMenuItem = ContextMenuEntry
 
 /**
  * Context for a {@link GridContextMenu.column} builder: the right-clicked column

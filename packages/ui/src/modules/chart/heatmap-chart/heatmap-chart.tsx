@@ -33,6 +33,7 @@ import {
 	LABEL_CHAR_WIDTH,
 	TICK_CHAR_WIDTH,
 } from '../chart-constants'
+import { ChartContextMenu } from '../chart-context-menu'
 import { chartFrameSizing, type PlotRect, plotRect, thinned } from '../chart-layout'
 import type { ChartOrientation } from '../chart-orientation'
 import { ChartPlotBox } from '../chart-plot-box'
@@ -700,11 +701,13 @@ export function HeatmapChart<T>({
 	className,
 	// Destructured off so the unwired base switches never fall into `...label` and
 	// spread onto the plot element as invalid DOM attributes. The heatmap draws no
-	// header (a range legend, not a series frame), so `title` / `subtitle` join them.
+	// header (a range legend, not a series frame), so `subtitle` joins them; `title`
+	// is kept off the DOM too but still names the context menu's fullscreen view.
 	animate: _animate,
 	texture: _texture,
-	title: _title,
+	title,
 	subtitle: _subtitle,
+	contextMenu,
 	...label
 }: HeatmapChartProps<T>) {
 	const primary = series[0]
@@ -828,24 +831,31 @@ export function HeatmapChart<T>({
 	)
 
 	return (
-		<div
-			ref={containerRef}
-			data-slot="heatmap"
-			className={cn('flex flex-col gap-3', width === undefined && 'w-full max-w-2xl', className)}
-			style={width === undefined ? undefined : { width }}
+		<ChartContextMenu
+			contextMenu={contextMenu}
+			rootRef={containerRef}
+			readout={readout}
+			title={title}
 		>
-			<HeatmapHoverProvider>
-				<HeatmapFocusProvider>
-					<HeatmapFigure
-						plot={plotRegion}
-						legend={legendNode}
-						placement={rangeLegend.placement}
-						aside={aside}
-					/>
-				</HeatmapFocusProvider>
-			</HeatmapHoverProvider>
+			<div
+				ref={containerRef}
+				data-slot="heatmap"
+				className={cn('flex flex-col gap-3', width === undefined && 'w-full max-w-2xl', className)}
+				style={width === undefined ? undefined : { width }}
+			>
+				<HeatmapHoverProvider>
+					<HeatmapFocusProvider>
+						<HeatmapFigure
+							plot={plotRegion}
+							legend={legendNode}
+							placement={rangeLegend.placement}
+							aside={aside}
+						/>
+					</HeatmapFocusProvider>
+				</HeatmapHoverProvider>
 
-			{readout && <ChartTable readout={readout} />}
-		</div>
+				{readout && <ChartTable readout={readout} />}
+			</div>
+		</ChartContextMenu>
 	)
 }
