@@ -279,3 +279,33 @@ describe('Grid multi-column sort', () => {
 		expect(screen.getByRole('button', { name: 'Sort by Name' }).textContent).not.toMatch(/\d/)
 	})
 })
+
+describe('Grid sort header: reorder-drag hover hold', () => {
+	type Row = { id: number; a: string; b: string }
+
+	const columns: GridColumn<Row>[] = [
+		{ id: 'a', title: 'A', cell: (row) => row.a, sortable: true },
+		{ id: 'b', title: 'B', cell: (row) => row.b, sortable: true },
+	]
+
+	const rows: Row[] = [
+		{ id: 1, a: 'a1', b: 'b1' },
+		{ id: 2, a: 'a2', b: 'b2' },
+	]
+
+	// While a column drag lifts and mutes its header, the sortable title must not
+	// brighten under the dragging pointer. The hold is a `[data-dragging]`-ancestor
+	// override of `fg.hover` on the sort control; assert it rides the sort button
+	// (computed `:hover` colour is unreliable in tests — mirror `list.test.tsx`).
+	it('holds the sortable title muted on hover under a dragging ancestor', () => {
+		renderUI(<Grid columns={columns} rows={rows} getKey={(row) => row.id} reorder />)
+
+		const sortButton = screen.getByRole('button', { name: 'Sort by A' })
+
+		expect(sortButton.className).toContain('[[data-dragging]_&]:hover:not-disabled:text-zinc-500')
+
+		expect(sortButton.className).toContain(
+			'dark:[[data-dragging]_&]:hover:not-disabled:text-zinc-400',
+		)
+	})
+})
