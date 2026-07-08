@@ -25,16 +25,43 @@ export type GridEditInputProps = {
 	errorId?: string
 	/** Marks the editor `aria-required` (the programmatic cue; enforcement stays with `validate`). */
 	required?: boolean
+	/** Saves the row's edit session (Enter) when the grid owns it (`trigger: 'doubleClick'`); absent under a consumer-owned session. */
+	commitRow?: () => void
+	/**
+	 * Present when the grid owns the row's edit session: Escape then belongs to
+	 * the grid table's key surface, which abandons the whole row, so the editor's
+	 * per-cell revert stands down and the key bubbles. Absent under a
+	 * consumer-owned session, where Escape reverts this cell.
+	 */
+	cancelRow?: () => void
 }
 
-/** Escape reverts the cell; staging is live, so there is no commit key. @internal */
-const cancelOnEscape = (cancel: () => void) => (event: KeyboardEvent<HTMLElement>) => {
-	if (event.key === 'Escape') {
-		event.preventDefault()
+/**
+ * Enter saves the row when the grid owns the session (`trigger:
+ * 'doubleClick'`); Escape reverts the cell under a consumer-owned session. A
+ * grid-owned session's Escape abandons the whole row instead, handled once on
+ * the grid `<table>`'s key surface (see `useGridEditing`'s `sessionEscape`) so
+ * every editor — these inferred inputs, the listbox, an `editCell` slot —
+ * inherits it; the key bubbles past the editor here. Staging is live, so there
+ * is no per-cell commit key. @internal
+ */
+const editorKeys =
+	({
+		cancel,
+		commitRow,
+		cancelRow,
+	}: Pick<GridEditInputProps, 'cancel' | 'commitRow' | 'cancelRow'>) =>
+	(event: KeyboardEvent<HTMLElement>) => {
+		if (event.key === 'Escape' && !cancelRow) {
+			event.preventDefault()
 
-		cancel()
+			cancel()
+		} else if (event.key === 'Enter' && commitRow) {
+			event.preventDefault()
+
+			commitRow()
+		}
 	}
-}
 
 /** Text editor for string cells, backed by the `Input` component. @internal */
 function GridTextEditInput({
@@ -45,6 +72,8 @@ function GridTextEditInput({
 	error,
 	errorId,
 	required,
+	commitRow,
+	cancelRow,
 }: GridEditInputProps) {
 	const value = typeof draft === 'string' ? draft : draft == null ? '' : String(draft)
 
@@ -58,7 +87,7 @@ function GridTextEditInput({
 			className={k.edit.input}
 			value={value}
 			onChange={(event) => onValueUpdate(event.target.value)}
-			onKeyDown={cancelOnEscape(cancel)}
+			onKeyDown={editorKeys({ cancel, commitRow, cancelRow })}
 		/>
 	)
 }
@@ -72,6 +101,8 @@ function GridNumberEditInput({
 	error,
 	errorId,
 	required,
+	commitRow,
+	cancelRow,
 }: GridEditInputProps) {
 	return (
 		<NumberInput
@@ -83,7 +114,7 @@ function GridNumberEditInput({
 			className={k.edit.input}
 			value={typeof draft === 'number' ? draft : null}
 			onValueChange={(next) => onValueUpdate(next ?? undefined)}
-			onKeyDown={cancelOnEscape(cancel)}
+			onKeyDown={editorKeys({ cancel, commitRow, cancelRow })}
 		/>
 	)
 }
@@ -93,7 +124,13 @@ const BOOLEAN_OPTIONS = [
 	{ value: 'false', label: 'No' },
 ]
 
-/** Boolean editor for true/false cells, a yes/no `Listbox`. @internal */
+/**
+ * Boolean editor for true/false cells, a yes/no `Listbox`. The commit key stays
+ * off it — Enter belongs to the listbox's own open/select interaction — so a
+ * grid-owned session saves from a sibling text/number editor or the consumer's
+ * save affordance. Escape still abandons the session through the grid table's
+ * key surface (deferring to the open panel), like every editor. @internal
+ */
 function GridBooleanEditInput({ draft, onValueUpdate, ariaLabel, required }: GridEditInputProps) {
 	return (
 		<Listbox<string>

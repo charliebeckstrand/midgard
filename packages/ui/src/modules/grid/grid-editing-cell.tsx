@@ -20,9 +20,9 @@ type GridEditingCellProps<T> = {
 	render: ((row: T) => ReactNode) | undefined
 }
 
-/** Props for the mounted editor: the cell plus the row-editing staging callbacks. @internal */
+/** Props for the mounted editor: the cell plus the row-editing staging and session callbacks. @internal */
 type GridCellEditorProps<T> = Omit<GridEditingCellProps<T>, 'render'> &
-	Pick<GridRowEditing, 'stageDraft' | 'unstageDraft'>
+	Pick<GridRowEditing, 'stageDraft' | 'unstageDraft' | 'commitRowEdit' | 'cancelRowEdit'>
 
 /**
  * A cell's in-place editor while its row is in edit mode. Owns its live display
@@ -42,6 +42,8 @@ function GridCellEditor<T>({
 	column,
 	stageDraft,
 	unstageDraft,
+	commitRowEdit,
+	cancelRowEdit,
 }: GridCellEditorProps<T>) {
 	const seed = column.field != null ? row[column.field] : undefined
 
@@ -58,6 +60,12 @@ function GridCellEditor<T>({
 
 		unstageDraft(rowKey, column.id)
 	}
+
+	// Grid-owned session exits (`trigger: 'doubleClick'`), bound to this row;
+	// `undefined` under a consumer-owned session, standing the session keys down.
+	const commitRow = commitRowEdit ? () => commitRowEdit(rowKey) : undefined
+
+	const cancelRow = cancelRowEdit ? () => cancelRowEdit(rowKey) : undefined
 
 	const ariaLabel =
 		typeof column.title === 'string'
@@ -89,8 +97,11 @@ function GridCellEditor<T>({
 			onValueUpdate: update,
 			// A slot can stage a final value in one call (e.g. a select's pick); the
 			// row's save flushes the staged values, so there is no per-cell close.
+			// Under a grid-owned session the slot's commit also saves the row.
 			commit: (next) => {
 				if (next !== undefined) update(next)
+
+				commitRow?.()
 			},
 			cancel,
 			ariaLabel,
@@ -106,6 +117,8 @@ function GridCellEditor<T>({
 			error={error}
 			errorId={errorId}
 			required={column.required}
+			commitRow={commitRow}
+			cancelRow={cancelRow}
 		/>
 	)
 
@@ -139,7 +152,8 @@ export function GridEditingCell<T>({
 	column,
 	render,
 }: GridEditingCellProps<T>) {
-	const { editableRows, stageDraft, unstageDraft } = useGridRowEditing()
+	const { editableRows, stageDraft, unstageDraft, commitRowEdit, cancelRowEdit } =
+		useGridRowEditing()
 
 	if (editableRows.has(rowKey) && isColumnEditable(column)) {
 		return (
@@ -151,6 +165,8 @@ export function GridEditingCell<T>({
 				column={column}
 				stageDraft={stageDraft}
 				unstageDraft={unstageDraft}
+				commitRowEdit={commitRowEdit}
+				cancelRowEdit={cancelRowEdit}
 			/>
 		)
 	}
