@@ -1,7 +1,7 @@
 import { createElement, type FunctionComponent } from 'react'
-import { GlassProvider } from 'ui/providers/glass'
 import { describe, expect, it } from 'vitest'
 import { deriveCode } from '../../docs/engine/derive-code'
+import { GlassProvider } from '../../providers/glass'
 
 // Integration: a real ui provider barrel tags through the docs vite pipeline
 // (vitest.config.ts runs the docs plugin over ui's source), so the walker

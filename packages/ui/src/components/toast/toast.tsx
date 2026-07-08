@@ -1,6 +1,7 @@
 'use client'
 
 import { AnimatePresence } from 'motion/react'
+import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { cn } from '../../core'
 import { usePortalContainer } from '../../primitives/portal'
@@ -30,6 +31,10 @@ export type ToastProps = {
  * `alert`, everything else queues as `status` and is mirrored through a
  * persistent announcer on mount (WCAG 4.1.3). Auto-dismiss pauses while the
  * pointer or focus is inside a toast (WCAG 2.2.1).
+ *
+ * Renders nothing on the server and during hydration; the portal mounts in an
+ * effect afterwards, keeping the first client render identical to the SSR
+ * output.
  */
 export function Toast({ position = 'bottom-right' }: ToastProps) {
 	const { toasts, dismiss, pause, resume, reset, handleExitComplete } = useToastViewport()
@@ -38,7 +43,16 @@ export function Toast({ position = 'bottom-right' }: ToastProps) {
 
 	const isBottom = position.startsWith('bottom')
 
-	if (typeof document === 'undefined') return null
+	// Gate on post-mount state rather than `typeof document`: an SSR/client
+	// branch makes the first client render diverge from the server HTML and
+	// trips React's hydration mismatch.
+	const [hydrated, setHydrated] = useState(false)
+
+	useEffect(() => {
+		setHydrated(true)
+	}, [])
+
+	if (!hydrated) return null
 
 	return createPortal(
 		<ReducedMotion>
