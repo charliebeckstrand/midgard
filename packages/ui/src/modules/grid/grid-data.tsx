@@ -20,6 +20,7 @@ import { type DensityLevel, densityToSize, useDensityLevel } from '../../provide
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
 import { GridContext, GridResizingContext, type SortState } from './context'
+import { DEFAULT_EXPORTABLE } from './export/export-registry'
 import type { GridExportAction } from './export/types'
 import {
 	describeColumnVisibility,
@@ -422,6 +423,8 @@ type GridRegionProps<T> = {
 	/** The group-by wiring, or `null` when the group button is off; backs the header menu's "Group by …" item. */
 	groupBy: GridGroupByContextValue | null
 	autoSizeColumns: (() => void) | null
+	/** Re-fits a single column to its content; backs the header menu's "Auto-size this column" item. */
+	autoSizeColumn: ((column: string | number) => void) | null
 	chooseColumns: (() => void) | null
 	/** One action per configured export type; empty when export is off. */
 	exportActions: GridExportAction[]
@@ -456,6 +459,7 @@ function GridRegion<T>({
 	pinColumn,
 	groupBy,
 	autoSizeColumns,
+	autoSizeColumn,
 	chooseColumns,
 	exportActions,
 	rowGroupMenu,
@@ -486,6 +490,7 @@ function GridRegion<T>({
 			pinColumn={pinColumn}
 			groupBy={groupBy}
 			autoSizeColumns={autoSizeColumns}
+			autoSizeColumn={autoSizeColumn}
 			chooseColumns={chooseColumns}
 			exportActions={exportActions}
 			rowGroupMenu={rowGroupMenu}
@@ -794,7 +799,7 @@ export function GridData<T>({
 	search: searchConfig,
 	columnFilters: columnFiltersConfig,
 	contextMenu,
-	exportable = false,
+	exportable = DEFAULT_EXPORTABLE,
 	reorder = false,
 	rowReorder: rowReorderConfig,
 	navigable = false,
@@ -1335,6 +1340,7 @@ export function GridData<T>({
 		sortColumn,
 		clearSort,
 		autoSizeColumns,
+		autoSizeColumn,
 		chooseColumns,
 	} = useGridMenuActions<T>({
 		contextMenu,
@@ -1693,6 +1699,7 @@ export function GridData<T>({
 							pinColumn={pinColumn}
 							groupBy={groupByContext}
 							autoSizeColumns={autoSizeColumns}
+							autoSizeColumn={autoSizeColumn}
 							chooseColumns={chooseColumns}
 							exportActions={exportActions}
 							rowGroupMenu={rowManager.rowGroupMenu}
