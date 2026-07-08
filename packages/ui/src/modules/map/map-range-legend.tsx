@@ -11,6 +11,7 @@ import { Text } from '../../components/text'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
 import { useMapHoverState } from './context'
+import { categoryLegendId } from './map-categories'
 
 /**
  * A bin's distance down the bar as a percentage: the highest bin near the top
@@ -601,7 +602,7 @@ export function MapRangeLegend({
 				label={label}
 				bins={bins}
 				orientation={orientation}
-				onProbe={(bin) => onFocus(bin === null ? null : `category:${bin}`)}
+				onProbe={(bin) => onFocus(bin === null ? null : categoryLegendId(String(bin)))}
 				arrow={
 					<RangeHoverArrow regionCategory={regionCategory} bins={bins} orientation={orientation} />
 				}

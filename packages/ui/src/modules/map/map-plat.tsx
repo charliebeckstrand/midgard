@@ -32,6 +32,7 @@ import {
 	type MapPlatContextValue,
 } from './context'
 import {
+	categoryLegendId,
 	defaultRegionId,
 	defaultRegionLabel,
 	type MapCategoryMeta,
@@ -624,8 +625,8 @@ function legendItems(
 	colors: ReadonlyMap<string, MapSeriesColor>,
 	descending: boolean,
 ): MapLegendItem[] {
-	const categoryItems = categories.map((meta, index) => ({
-		id: `category:${index}`,
+	const categoryItems = categories.map((meta) => ({
+		id: categoryLegendId(meta.value),
 		label: meta.label,
 		// A categorical slot carries a currentColor class; a numeric bin an inline value.
 		...(meta.paint.kind === 'value'

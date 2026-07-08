@@ -216,6 +216,48 @@ describe('MapPlat', () => {
 		)
 	})
 
+	it('keeps a toggled-off category tied to its value when the data reorders', () => {
+		const labelOf = (el: Element) => el.querySelector('span:nth-child(3)')?.textContent ?? ''
+
+		const pressedByLabel = (root: HTMLElement) =>
+			Object.fromEntries(
+				allBySlot(root, 'map-legend-item').map((el) => [
+					labelOf(el),
+					el.getAttribute('aria-pressed'),
+				]),
+			)
+
+		// First-appearance order: East, then West.
+		const { container, rerender } = renderUI(
+			plat({
+				data: [
+					{ state: 'A', zone: 'East' },
+					{ state: 'B', zone: 'West' },
+				],
+			}),
+		)
+
+		const west = allBySlot(container, 'map-legend-item').find((el) => labelOf(el) === 'West')
+
+		fireEvent.click(west as HTMLButtonElement)
+
+		expect(pressedByLabel(container)).toEqual({ East: 'true', West: 'false' })
+
+		// A data update flips first-appearance order to West, then East. An
+		// index-keyed toggle would now strike East — the token `category:1` moved to
+		// it; the value key keeps West hidden.
+		rerender(
+			plat({
+				data: [
+					{ state: 'B', zone: 'West' },
+					{ state: 'A', zone: 'East' },
+				],
+			}),
+		)
+
+		expect(pressedByLabel(container)).toEqual({ West: 'false', East: 'true' })
+	})
+
 	it('dims everything outside the focused legend group', () => {
 		const { container } = renderUI(plat())
 

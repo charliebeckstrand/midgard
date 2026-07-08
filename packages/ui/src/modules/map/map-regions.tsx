@@ -4,7 +4,7 @@ import { memo, type PointerEvent, useEffect, useState } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
 import { useMapHoverSet } from './context'
-import type { MapCategoryMeta } from './map-categories'
+import { categoryLegendId, type MapCategoryMeta } from './map-categories'
 import {
 	REGION_FADE,
 	REGION_STAGGER,
@@ -39,6 +39,52 @@ type RegionProps = {
 	onTrack: (event: PointerEvent<SVGPathElement>) => void
 }
 
+/** A region's resolved colour state: emphasis membership and the fill to paint. @internal */
+type RegionFill = {
+	/** The category is matched and not toggled off. */
+	active: boolean
+	/** The emphasis group the region belongs to, `null` when inactive. */
+	groupId: string | null
+	/** The Tailwind fill class — the neutral no-data class, a categorical slot, or none for a value fill. */
+	fillClass: string | string[] | undefined
+	/** The inline CSS fill for a numeric bin, `undefined` for a class fill. */
+	fillColor: string | undefined
+}
+
+/**
+ * Resolves a region's colour state from its category. The toggle / emphasis key
+ * is the category's stable value ({@link categoryLegendId}), not its index, so a
+ * reorder or removal can't re-point a hidden or emphasised entry at a different
+ * category. The neutral fill covers no-data, a toggled-off category, and the
+ * pre-reveal beat, so the colour — not the geometry — animates on.
+ *
+ * @internal
+ */
+function regionFill(
+	category: number | null,
+	categories: MapCategoryMeta[],
+	hidden: ReadonlySet<string>,
+	revealed: boolean,
+): RegionFill {
+	const meta = category === null ? null : (categories[category] ?? null)
+
+	const id = meta === null ? null : categoryLegendId(meta.value)
+
+	const active = id !== null && !hidden.has(id)
+
+	const paint = active && revealed && meta !== null ? meta.paint : null
+
+	const fillClass =
+		paint === null ? k.region.empty : paint.kind === 'class' ? paint.fill : undefined
+
+	return {
+		active,
+		groupId: active ? id : null,
+		fillClass,
+		fillColor: paint?.kind === 'value' ? paint.color : undefined,
+	}
+}
+
 /**
  * One region path. A categorical slot fills by Tailwind class; a numeric bin
  * fills by an inline CSS colour from the consumer's `colorRange`. No-data — and
@@ -58,17 +104,12 @@ function Region({
 	animate,
 	onTrack,
 }: RegionProps) {
-	const active = category !== null && !hidden.has(`category:${category}`)
-
-	const groupId = active ? `category:${category}` : null
-
-	// Hold the neutral fill until revealed so the colour, not the geometry, animates on.
-	const coloured = revealed && active
-
-	const paint = coloured && category !== null ? (categories[category]?.paint ?? null) : null
-
-	const fillClass =
-		paint === null ? k.region.empty : paint.kind === 'class' ? paint.fill : undefined
+	const { active, groupId, fillClass, fillColor } = regionFill(
+		category,
+		categories,
+		hidden,
+		revealed,
+	)
 
 	return (
 		<g className={cn(k.group(emphasis !== null && emphasis !== groupId))}>
@@ -92,7 +133,7 @@ function Region({
 					animate && 'transition-colors ease-out motion-reduce:transition-none',
 				)}
 				style={{
-					...(paint?.kind === 'value' ? { fill: paint.color } : null),
+					...(fillColor !== undefined ? { fill: fillColor } : null),
 					...(animate
 						? {
 								transitionDuration: `${REGION_FADE.duration * 1000}ms`,
