@@ -257,6 +257,11 @@ export const k = {
 		truncate: ['block', 'truncate'],
 		// Truncation tooltip surface: cap the width and let long text wrap inside.
 		tooltip: ['max-w-xs', 'whitespace-normal', 'break-words'],
+		// A roving-focusable data cell (`onCellClick`/`onCellDoubleClick`): the
+		// pointer cursor and a keyboard focus ring. `inset` like `k.nav.cell` and
+		// `k.row.clickable`, so the horizontal scroll wrapper can't shave it at the
+		// row's leading/trailing edge.
+		rovable: ['cursor-pointer', focus.inset],
 	},
 	head: {
 		// One-line header title that truncates to an ellipsis when it outgrows the
@@ -616,11 +621,14 @@ export const k = {
 	},
 	row: {
 		// A clickable row (`onRowClick`): the pointer cursor and a keyboard focus
-		// ring (the row is a tab stop). Its hover wash is the shared `<Table hover>`
+		// ring (the row is a roving tab stop). The ring is `inset` — clip-safe, like
+		// `k.nav.cell` and the reorder grip — since the grid's horizontal scroll
+		// wrapper (`overflow-x-auto`) shaves the outset `ring`'s offset stroke at the
+		// row's leading/trailing edge. Its hover wash is the shared `<Table hover>`
 		// variant `GridData` enables for a row click. Interactive cell content
 		// (buttons, the select checkbox) handles its own clicks; the row guard skips
 		// those.
-		clickable: ['cursor-pointer', focus.ring],
+		clickable: ['cursor-pointer', focus.inset],
 		loading: [css.pulse, 'opacity-50'],
 	},
 	nav: {

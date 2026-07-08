@@ -129,6 +129,8 @@ export function resolveTableProps(args: {
 	tableProps: TableElementProps | undefined
 	/** Cursor props (tab stop, `aria-activedescendant`, key/focus handlers) under `navigable`. */
 	navTableProps: GridNavTableProps | undefined
+	/** Roving props (the table ref and the arrow-key handler) under row/cell roving; exclusive with `navTableProps`. */
+	rovingTableProps: Pick<TableElementProps, 'ref' | 'onKeyDown'> | undefined
 	loading: boolean
 	gridSemantics: boolean
 	navigable: boolean
@@ -147,6 +149,9 @@ export function resolveTableProps(args: {
 	return {
 		...args.tableProps,
 		...args.navTableProps,
+		// Roving attaches the table ref and the arrow-key handler; it stands down
+		// under the navigable cursor, so this never coexists with `navTableProps`.
+		...args.rovingTableProps,
 		// The navigable table drops its own focus outline (the active-cell ring is the
 		// indicator); merge it onto any caller className so it reaches the `<table>`.
 		...(args.navigable ? { className: cn(args.tableProps?.className, k.nav.table) } : {}),

@@ -154,6 +154,9 @@ function renderGroup<T>(
 						onCellClick={props.onCellClick}
 						onRowDoubleClick={props.onRowDoubleClick}
 						onCellDoubleClick={props.onCellDoubleClick}
+						rowRoving={props.rowRoving}
+						cellRoving={props.cellRoving}
+						cellActivate={props.cellActivate}
 						truncate={props.truncate}
 						settleWidths={props.settleWidths}
 						pinning={props.pinning}
@@ -233,6 +236,9 @@ function renderManualSegment<T>(
 						onCellClick={props.onCellClick}
 						onRowDoubleClick={props.onRowDoubleClick}
 						onCellDoubleClick={props.onCellDoubleClick}
+						rowRoving={props.rowRoving}
+						cellRoving={props.cellRoving}
+						cellActivate={props.cellActivate}
 						truncate={props.truncate}
 						settleWidths={props.settleWidths}
 						pinning={props.pinning}

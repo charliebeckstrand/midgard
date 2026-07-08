@@ -474,9 +474,9 @@ const RowClickExample = () => {
 	const [picked, setPicked] = useState<Person | null>(null)
 
 	// A click on interactive cell content (here the row-action buttons) is ignored,
-	// so the row click and per-row controls coexist. The row is also focusable and
-	// activates on Enter / Space. The tree below the grid inspects the clicked
-	// row's datum.
+	// so the row click and per-row controls coexist. The rows are a roving-tabindex
+	// group — Tab into the grid, then Up/Down between rows — and each activates on
+	// Enter / Space. The tree below the grid inspects the clicked row's datum.
 	return (
 		<Stack gap="md">
 			<Grid
@@ -508,8 +508,9 @@ const CellClickExample = () => {
 	const [picked, setPicked] = useState<PickedCell | null>(null)
 
 	// The cell context carries the column id and the cell's value alongside the
-	// owning row; clicks on non-data cells are ignored. `navigable` gives the
-	// keyboard the same event — the cursor's Enter activates the active cell.
+	// owning row; clicks on non-data cells are ignored. A cell handler makes the
+	// data cells a roving-tabindex group — Tab into the grid, then arrow between
+	// cells (Up/Down/Left/Right) and press Enter — the keyboard peer of the click.
 	return (
 		<Stack gap="md">
 			<Grid
@@ -1296,7 +1297,7 @@ export function Demo() {
 
 						<Example
 							title="Cell click"
-							code={code`<Grid navigable onCellClick={({ row, rowKey, columnId, value }) => ...} />`}
+							code={code`<Grid onCellClick={({ row, rowKey, columnId, value }) => ...} />`}
 						>
 							<CellClickExample />
 						</Example>

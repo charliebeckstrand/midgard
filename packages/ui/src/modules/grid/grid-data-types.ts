@@ -755,9 +755,15 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * Invoked when a row is clicked, with the row datum and the originating
 	 * event. A click that lands on interactive cell content — a button, link,
 	 * input, or the selection checkbox — is ignored, so per-row controls keep
-	 * working. A row with a handler is keyboard-focusable and activates on
-	 * Enter / Space; place primary actions in an interactive cell rather than
-	 * relying on the row click alone for the clearest screen-reader semantics.
+	 * working. Place primary actions in an interactive cell rather than relying
+	 * on the row click alone for the clearest screen-reader semantics.
+	 *
+	 * @remarks A row handler makes the rows a roving-tabindex group: the grid is
+	 * one Tab stop, Up/Down move focus between rows, and Enter / Space activates
+	 * the focused row. A {@link GridDataProps.onCellClick | cell handler} takes
+	 * precedence (the cells rove instead); the navigable cursor and the
+	 * virtualized body stand row roving down — the latter keeping a per-row Tab
+	 * stop instead.
 	 */
 	onRowClick?: GridRowClick<T>
 
@@ -769,8 +775,14 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * {@link GridDataProps.onRowClick} on the same click. The
 	 * interactive-content guard of `onRowClick` applies, and a click on a
 	 * non-data cell (selection, actions, drag handle, expander) is ignored.
-	 * Pointer-driven on its own; pair with {@link GridDataProps.navigable},
-	 * whose cursor activates the active cell on Enter, for keyboard parity.
+	 *
+	 * @remarks A cell handler makes the data cells a roving-tabindex group: the
+	 * grid is one Tab stop, the arrow keys move focus between cells
+	 * (Up/Down/Left/Right), and Enter / Space activates the focused cell — the
+	 * keyboard peer of the pointer click. Stands down under
+	 * {@link GridDataProps.navigable}, whose cursor owns the keyboard (its Enter
+	 * fires this too), and under {@link GridDataProps.virtualize}, whose rows
+	 * unmount on scroll.
 	 */
 	onCellClick?: GridCellClick<T>
 

@@ -65,7 +65,13 @@ import {
 	restrictToHorizontalAxis,
 	restrictToVerticalAxis,
 } from './grid-reorder'
-import { cellValue, type GridCellClick, type GridRowClick, type GridRowsProps } from './grid-row'
+import {
+	cellValue,
+	type GridCellClick,
+	type GridCellRovingActivate,
+	type GridRowClick,
+	type GridRowsProps,
+} from './grid-row'
 import { GridRowManagerDialog } from './grid-row-manager-dialog'
 import { useGridSort } from './grid-sort-state'
 import { useColumnSettleWidths } from './grid-table-views'
@@ -86,6 +92,7 @@ import { useGridExport } from './use-grid-export'
 import { type GridGroupHeader, type GridGroupResult, useGridGroup } from './use-grid-group'
 import { type GridCellActivate, GridNavContext, type GridRowActivate } from './use-grid-navigation'
 import { useGridReorder } from './use-grid-reorder'
+import { useGridRoving } from './use-grid-roving'
 import { useGridRowGrouping } from './use-grid-row-grouping'
 import { type GridRowManagerRegionResult, useGridRowManagerRegion } from './use-grid-row-manager'
 import { useGridRowReorder } from './use-grid-row-reorder'
@@ -560,6 +567,27 @@ function bridgeCellActivate<T>(
 }
 
 /**
+ * Builds the cell-roving activation: a focused cell's Enter/Space fires the cell
+ * click then the row click, the order (and pair) a pointer click on the cell
+ * fires them in. `undefined` when the grid has neither handler. Kept off
+ * {@link GridData}'s complexity budget. @internal
+ */
+function buildRovingCellActivate<T>(
+	handleCellClick: GridCellClick<T> | undefined,
+	handleRowClick: GridRowClick<T> | undefined,
+): GridCellRovingActivate<T> | undefined {
+	if (!handleCellClick && !handleRowClick) return undefined
+
+	return (context, event) => {
+		handleCellClick?.(context, event)
+
+		// The activation fires from the cell's `<td>`, so the event's element type
+		// is widened to the row-click's `<tr>` signature — as the cursor bridge does.
+		handleRowClick?.(context.row, event as unknown as Parameters<GridRowClick<T>>[1])
+	}
+}
+
+/**
  * Resolves the column-group band row for the rendered columns: the
  * {@link GridGroupHeader} spans (from the visible column ids and their pin
  * sides) and whether any band actually spans columns. Kept out of
@@ -838,6 +866,10 @@ export function GridData<T>({
 	// measures it for the viewport-relative PageUp/Down step.
 	const scrollRef = useRef<HTMLDivElement>(null)
 
+	// The grid `<table>`, the roving container for row/cell keyboard navigation
+	// (see `useGridRoving`), attached below through `resolveTableProps`.
+	const tableRef = useRef<HTMLTableElement>(null)
+
 	// Stable click handlers so the memoized rows don't churn when the consumer
 	// passes inline callbacks; the cursor also activates its cell/row on Enter.
 	const handleRowClick = useStableHandler(onRowClick)
@@ -850,6 +882,14 @@ export function GridData<T>({
 
 	// Bridge the row-click into the cursor's Enter/Space activation (see `bridgeRowActivate`).
 	const onRowActivate = useMemo(() => bridgeRowActivate(handleRowClick), [handleRowClick])
+
+	// Cell-roving activation: a focused cell's Enter/Space fires the cell click
+	// then the row click, the same order (and pair) a pointer click fires. Stable
+	// so the memoized cells hold; only invoked while cell roving is active.
+	const cellActivate = useMemo(
+		() => buildRovingCellActivate(handleCellClick, handleRowClick),
+		[handleCellClick, handleRowClick],
+	)
 
 	// Bridge the cell-click the same way: the cursor hands over its display
 	// indices, resolved to the cell context through the live refs at activation.
@@ -998,6 +1038,22 @@ export function GridData<T>({
 	// order and visibility — so the cell ids, `aria-activedescendant`, and
 	// click-to-focus track the displayed grid even as it sorts, filters, or paginates.
 	const dataColumns = useMemo(() => visibleColumns.filter(isDataColumn), [visibleColumns])
+
+	// Roving-tabindex keyboard navigation over the clickable rows (row mode) or
+	// data cells (cell mode), for a grid that carries click handlers but not the
+	// navigable cursor. Stands down under the cursor (which owns the keyboard) and
+	// under virtualization (whose rows unmount on scroll). The virtualized body
+	// keeps its legacy per-row static Tab stop instead (`rowStaticStop`).
+	const roving = useGridRoving({
+		navigable: cursor.cursorEnabled,
+		virtualized: gated.virtualize,
+		onRowClick: onRowClick != null,
+		onRowDoubleClick: onRowDoubleClick != null,
+		onCellClick: onCellClick != null,
+		onCellDoubleClick: onCellDoubleClick != null,
+		tableRef,
+		dataColCount: dataColumns.length,
+	})
 
 	const rowIndexMap = useMemo(
 		() => new Map(renderRows.map((row, i) => [row, i] as const)),
@@ -1320,6 +1376,9 @@ export function GridData<T>({
 					tableProps,
 					// The cursor's tab stop, active-cell pointer, and key/focus handlers.
 					navTableProps: cursor.navTableProps,
+					// Row/cell roving: the table ref and the arrow-key handler (exclusive
+					// with the cursor, which stands roving down).
+					rovingTableProps: roving.tableProps,
 					loading,
 					gridSemantics,
 					navigable: cursor.cursorEnabled,
@@ -1358,6 +1417,10 @@ export function GridData<T>({
 					onCellClick={handleCellClick}
 					onRowDoubleClick={handleRowDoubleClick}
 					onCellDoubleClick={handleCellDoubleClick}
+					rowRoving={roving.rovingRows}
+					rowStaticStop={roving.rowStaticStop}
+					cellRoving={roving.rovingCells}
+					cellActivate={cellActivate}
 					empty={empty}
 					error={error}
 					gridSemantics={gridSemantics}
