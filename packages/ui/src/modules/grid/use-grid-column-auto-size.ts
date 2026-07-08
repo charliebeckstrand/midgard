@@ -28,6 +28,14 @@ type GridColumnAutoSizeOptions<T> = {
 	 * the caller; entries merge, so a column held out of a pass keeps its last floor.
 	 */
 	columnFloors: Map<string, number>
+	/**
+	 * Freeze the fit against row-data changes (infinite scroll's stable widths): an
+	 * appended batch — a rows-only change — no longer re-measures and reflows the
+	 * columns; a structural change (columns, density) and a container resize still
+	 * re-fit. The initial fit is unaffected.
+	 * @defaultValue false
+	 */
+	freezeOnRowChange?: boolean
 }
 
 /** Empty measurement; the resolved value before the first DOM read. @internal */
@@ -68,6 +76,7 @@ export function useGridColumnAutoSize<T>({
 	containerRef,
 	density,
 	columnFloors,
+	freezeOnRowChange = false,
 }: GridColumnAutoSizeOptions<T>): {
 	sizeToFit: () => void
 	resetColumn: (id: string | number) => void
@@ -217,6 +226,10 @@ export function useGridColumnAutoSize<T>({
 	// synchronous fit, so the first pass here is skipped.
 	const initialFitRef = useRef(false)
 
+	// The struct signature at the last fit, so a rows-only change is told apart from
+	// a structural one when the widths are frozen (see `freezeOnRowChange`).
+	const fitStructSigRef = useRef(structSig)
+
 	useLayoutEffect(() => {
 		if (!enabled) return
 
@@ -226,11 +239,22 @@ export function useGridColumnAutoSize<T>({
 		if (!initialFitRef.current) {
 			initialFitRef.current = true
 
+			fitStructSigRef.current = structSig
+
 			return
 		}
 
+		const structChanged = fitStructSigRef.current !== structSig
+
+		fitStructSigRef.current = structSig
+
+		// Frozen widths (infinite scroll's stable columns) hold against an appended
+		// batch: a rows-only re-fire re-measures nothing and the columns keep their
+		// initial fit. A structural change — columns or density — still re-fits.
+		if (freezeOnRowChange && !structChanged) return
+
 		run(true)
-	}, [enabled, run, rowsSig])
+	}, [enabled, run, rowsSig, structSig, freezeOnRowChange])
 
 	// Own the ResizeObserver in its own effect, keyed only on enablement and the
 	// container, so a width-only container resize is the one thing that recreates it

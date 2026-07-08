@@ -69,7 +69,7 @@ describe('resolveInfiniteScroll', () => {
 		expect(resolveInfiniteScroll(undefined, 10)).toBeNull()
 	})
 
-	it('defaults hasMore on, loadingMore off, and threshold to the overscan', () => {
+	it('defaults hasMore on; loadingMore, the indicator, and stable widths off; threshold to the overscan', () => {
 		const onLoadMore = vi.fn()
 
 		const resolved = resolveInfiniteScroll({ onLoadMore }, 12)
@@ -79,15 +79,29 @@ describe('resolveInfiniteScroll', () => {
 			hasMore: true,
 			loadingMore: false,
 			threshold: 12,
+			showLoadingIndicator: false,
 			loadingIndicator: undefined,
+			endMessage: undefined,
+			error: undefined,
+			stableColumnWidths: false,
 		})
 	})
 
-	it('carries explicit gates and indicator through, overriding the defaults', () => {
+	it('carries explicit gates, messages, and flags through, overriding the defaults', () => {
 		const onLoadMore = vi.fn()
 
 		const resolved = resolveInfiniteScroll(
-			{ onLoadMore, hasMore: false, loadingMore: true, threshold: 3, loadingIndicator: 'more' },
+			{
+				onLoadMore,
+				hasMore: false,
+				loadingMore: true,
+				threshold: 3,
+				showLoadingIndicator: true,
+				loadingIndicator: 'more',
+				endMessage: 'No more results',
+				error: 'Failed to load',
+				stableColumnWidths: true,
+			},
 			10,
 		)
 
@@ -96,7 +110,11 @@ describe('resolveInfiniteScroll', () => {
 			hasMore: false,
 			loadingMore: true,
 			threshold: 3,
+			showLoadingIndicator: true,
 			loadingIndicator: 'more',
+			endMessage: 'No more results',
+			error: 'Failed to load',
+			stableColumnWidths: true,
 		})
 	})
 })
