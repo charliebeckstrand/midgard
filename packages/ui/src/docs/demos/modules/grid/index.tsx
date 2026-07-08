@@ -1576,7 +1576,7 @@ export function Demo() {
 						<TabContents fade={false}>
 							<TabContent value="Client">
 								<Stack gap="xl">
-									<Example title="Client virtualization" code={code`<Grid virtualize />`}>
+									<Example title="Client infinite scroll" code={code`<Grid virtualize />`}>
 										<ClientInfiniteScrollExample />
 									</Example>
 								</Stack>
@@ -1585,7 +1585,7 @@ export function Demo() {
 							<TabContent value="Server">
 								<Stack gap="xl">
 									<Example
-										title="Server virtualization"
+										title="Server infinite scroll"
 										code={code`<Grid virtualize infiniteScroll={{ onLoadMore, hasMore, loadingMore }} />`}
 									>
 										<ServerInfiniteScrollExample />
@@ -1594,21 +1594,6 @@ export function Demo() {
 							</TabContent>
 						</TabContents>
 					</Tabs>
-					{/* <Stack gap="xl">
-						<Example
-							title="Client infinite scroll"
-							code={code`<Grid virtualize infiniteScroll={{ onLoadMore, hasMore }} />`}
-						>
-							<ClientInfiniteScrollExample />
-						</Example>
-
-						<Example
-							title="Server-side infinite scroll"
-							code={code`<Grid virtualize infiniteScroll={{ onLoadMore, hasMore, loadingMore }} />`}
-						>
-							<ServerInfiniteScrollExample />
-						</Example>
-					</Stack> */}
 				</TabContent>
 
 				<TabContent value="State">
