@@ -11,6 +11,7 @@ import { Text } from '../../components/text'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
 import { useMapHoverState } from './context'
+import { categoryLegendId } from './map-categories'
 
 /**
  * A bin's distance down the bar as a percentage: the highest bin near the top
@@ -294,7 +295,7 @@ type RangeTrackProps = {
 	/** The host's hover glyph pinned into the track. */
 	arrow?: ReactNode
 	onPointerMove: (event: PointerEvent<HTMLDivElement>) => void
-	onPointerLeave: () => void
+	onPointerLeave: (event: PointerEvent<HTMLDivElement>) => void
 	onFocus: () => void
 	onBlur: () => void
 	onKeyDown: (event: KeyboardEvent<HTMLDivElement>) => void
@@ -500,7 +501,12 @@ export function RangeLegend({
 					valueText={probe === null ? undefined : binLabel(binOf(probe))}
 					arrow={arrow}
 					onPointerMove={track}
-					onPointerLeave={clear}
+					onPointerLeave={(event) => {
+						// A keyboard user owns the probe while the track holds focus; a
+						// pointer passing off the bar must not wipe their marker, emphasis,
+						// and aria-valuenow. A real blur still clears it (onBlur).
+						if (event.currentTarget !== document.activeElement) clear()
+					}}
 					onFocus={() => readValue(probe ?? min)}
 					onBlur={clear}
 					onKeyDown={onKeyDown}
@@ -601,7 +607,7 @@ export function MapRangeLegend({
 				label={label}
 				bins={bins}
 				orientation={orientation}
-				onProbe={(bin) => onFocus(bin === null ? null : `category:${bin}`)}
+				onProbe={(bin) => onFocus(bin === null ? null : categoryLegendId(String(bin)))}
 				arrow={
 					<RangeHoverArrow regionCategory={regionCategory} bins={bins} orientation={orientation} />
 				}

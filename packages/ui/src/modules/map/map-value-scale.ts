@@ -15,6 +15,25 @@ import type { DataKey } from './types'
 
 export { sampleRange } from '../../utilities'
 
+/**
+ * Coerces a row's raw value to a number for binning, mapping the blanks a data
+ * source uses for "no value" — `null`, `undefined`, and empty or whitespace-only
+ * strings — to `NaN` rather than the `0` a bare {@link Number} yields for them. A
+ * `0` would survive the finite filters as a real value: it drags the derived
+ * domain's floor down and paints the row in the lowest bin, when the contract is
+ * the neutral no-data fill. A finite number passes through; a numeric string
+ * parses; anything else is non-finite and reads as no-data.
+ *
+ * @internal
+ */
+function toBinnableNumber(value: unknown): number {
+	if (typeof value === 'number') return value
+
+	if (typeof value === 'string' && value.trim() !== '') return Number(value)
+
+	return Number.NaN
+}
+
 /** Options a choropleth resolves its bins with. @internal */
 export type ValueScaleOptions = {
 	/** The ordered CSS colour stops the bins sample, low → high. */
@@ -42,7 +61,7 @@ export function resolveValueBins<T>(
 	{ colorRange, bins, domain, format }: ValueScaleOptions,
 ): { metas: MapCategoryMeta[]; domain: [number, number] | null } {
 	const resolved = valueExtent(
-		data.map((datum) => Number(datum[valueKey])),
+		data.map((datum) => toBinnableNumber(datum[valueKey])),
 		domain,
 	)
 
@@ -82,6 +101,6 @@ export function regionValueIndexes<T>(
 
 		if (datum == null) return null
 
-		return binIndex(Number(datum[valueKey]), domain, bins)
+		return binIndex(toBinnableNumber(datum[valueKey]), domain, bins)
 	})
 }

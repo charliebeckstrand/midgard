@@ -6,6 +6,7 @@ import {
 	fitMapProjection,
 	mapAutoAspect,
 	mapFrameSizing,
+	measuredMapFit,
 	projectionFallbackAspect,
 	resolveMapProjection,
 	scaleCanonicalFit,
@@ -156,6 +157,61 @@ describe('scaleCanonicalFit', () => {
 	})
 })
 
+describe('measuredMapFit', () => {
+	it('derives a named-projection fit matching a direct fitSize', () => {
+		const canonical = canonicalFit('mercator', FEATURES)
+
+		if (canonical === null) throw new Error('nothing to fit')
+
+		const fit = measuredMapFit('mercator', FEATURES, canonical, 300, 100)
+
+		if (fit === null) throw new Error('expected a fit')
+
+		const direct = fitMapProjection('mercator', FEATURES, 300, 100)
+
+		expect(Math.abs(fit.scale() / direct.scale() - 1)).toBeLessThan(0.01)
+	})
+
+	it('is null when there is nothing to frame', () => {
+		// Empty geography leaves the canonical fit null; a lone-point atlas whose
+		// bounds collapse does too. Either way there is no measured fit to derive,
+		// so overlays never project through an unfitted default.
+		expect(measuredMapFit('mercator', [], null, 300, 100)).toBeNull()
+	})
+
+	it('is null before the frame is measured', () => {
+		const canonical = canonicalFit('mercator', FEATURES)
+
+		if (canonical === null) throw new Error('nothing to fit')
+
+		expect(measuredMapFit('mercator', FEATURES, canonical, 0, 100)).toBeNull()
+
+		expect(measuredMapFit('mercator', FEATURES, canonical, 300, 0)).toBeNull()
+	})
+
+	it('refits a passed instance to each frame, so a resize reprojects', () => {
+		const instance = geoMercator()
+
+		const canonical = canonicalFit(instance, FEATURES)
+
+		if (canonical === null) throw new Error('nothing to fit')
+
+		const small = measuredMapFit(instance, FEATURES, canonical, 150, 50)
+
+		if (small === null) throw new Error('expected a fit')
+
+		const smallScale = small.scale()
+
+		const large = measuredMapFit(instance, FEATURES, canonical, 600, 200)
+
+		if (large === null) throw new Error('expected a fit')
+
+		// The 4×-wider frame fits the same geography at ~4× the scale — the instance
+		// is refit in place rather than frozen at the first frame's fit.
+		expect(large.scale() / smallScale).toBeCloseTo(4, 0)
+	})
+})
+
 describe('mapAutoAspect', () => {
 	it('measures the projected width / height ratio', () => {
 		const aspect = mapAutoAspect('mercator', FEATURES)
@@ -202,5 +258,11 @@ describe('mapFrameSizing', () => {
 
 	it("fills the container only when free-form — 'auto' never falls through", () => {
 		expect(mapFrameSizing(undefined, false, 3)).toEqual({ mode: 'fill' })
+	})
+
+	it('rejects a negative "w/h" ratio, filling rather than reserving a negative box', () => {
+		// The `${number}/${number}` type admits a signed numerator, so a negative
+		// ratio must fall through to fill, not produce an invalid CSS aspect-ratio.
+		expect(mapFrameSizing(undefined, '-4/3', null)).toEqual({ mode: 'fill' })
 	})
 })

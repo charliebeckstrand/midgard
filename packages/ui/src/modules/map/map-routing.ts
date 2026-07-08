@@ -12,7 +12,11 @@ type Profile = 'driving' | 'walking' | 'cycling'
  * readout.
  */
 export type MapRouteResult = {
-	/** The route geometry, ready to pass as an overlay's `path`. */
+	/**
+	 * The route geometry, ready to pass as an overlay's `path`; empty when the
+	 * route carries totals but no geometry (an `overview: 'false'` request), where
+	 * the overlay draws a straight line from its stops instead.
+	 */
 	path: LngLat[]
 	/** Total travel distance in meters. */
 	distanceMeters: number
@@ -103,14 +107,20 @@ type OsrmPayload = {
 }
 
 /**
- * Decodes one zig-zag varint from `encoded` at `start`: the value and the index
- * just past it. The polyline codec packs each coordinate delta this way — 5-bit
- * chunks, low chunk first, high bit set while more follow, the final value
- * zig-zag-encoded so small negatives stay short.
+ * Decodes one zig-zag varint from `encoded` at `start`: the value, the index
+ * just past it, and whether it terminated within bounds. The polyline codec
+ * packs each coordinate delta this way — 5-bit chunks, low chunk first, high bit
+ * set while more follow, the final value zig-zag-encoded so small negatives stay
+ * short. `ok` is `false` when the chunks run off the end of a truncated string,
+ * so the caller can drop the partial coordinate rather than read `charCodeAt`'s
+ * `NaN` as a zero chunk.
  *
  * @internal
  */
-function decodeVarint(encoded: string, start: number): { value: number; next: number } {
+function decodeVarint(
+	encoded: string,
+	start: number,
+): { value: number; next: number; ok: boolean } {
 	let index = start
 
 	let result = 0
@@ -120,6 +130,8 @@ function decodeVarint(encoded: string, start: number): { value: number; next: nu
 	let byte: number
 
 	do {
+		if (index >= encoded.length) return { value: 0, next: index, ok: false }
+
 		byte = encoded.charCodeAt(index++) - 63
 
 		result |= (byte & 0x1f) << shift
@@ -127,7 +139,7 @@ function decodeVarint(encoded: string, start: number): { value: number; next: nu
 		shift += 5
 	} while (byte >= 0x20)
 
-	return { value: result & 1 ? ~(result >> 1) : result >> 1, next: index }
+	return { value: result & 1 ? ~(result >> 1) : result >> 1, next: index, ok: true }
 }
 
 /**
@@ -150,9 +162,13 @@ function decodePolyline(encoded: string, factor = 1e6): LngLat[] {
 	while (index < encoded.length) {
 		const dLat = decodeVarint(encoded, index)
 
-		lat += dLat.value
-
 		const dLng = decodeVarint(encoded, dLat.next)
+
+		// A truncated payload leaves the final pair incomplete; drop it rather than
+		// push a coordinate built from a zeroed delta.
+		if (!dLat.ok || !dLng.ok) break
+
+		lat += dLat.value
 
 		lng += dLng.value
 
@@ -178,13 +194,21 @@ function geometryPath(
 	return typeof geometry === 'string' ? decodePolyline(geometry) : geometry?.coordinates
 }
 
-/** The first route's geometry and totals, or `null` when the payload has none. @internal */
+/** The first route's geometry and totals, or `null` when the payload has no leg. @internal */
 function routeResult(json: OsrmPayload): MapRouteResult | null {
 	const route = json.routes?.[0]
 
-	const path = geometryPath(route?.geometry)
+	if (!route) return null
 
-	if (!route || !path) return null
+	const path = geometryPath(route.geometry) ?? []
+
+	// `overview: 'false'` answers with the totals and no geometry — the cheap
+	// distance/duration-only request the option documents — so keep them and hand
+	// back an empty path the overlay draws a straight line for. A route with
+	// neither geometry nor a total is an empty leg, so it reads as a miss.
+	if (path.length === 0 && route.distance === undefined && route.duration === undefined) {
+		return null
+	}
 
 	return {
 		path,

@@ -32,6 +32,7 @@ import {
 	type MapPlatContextValue,
 } from './context'
 import {
+	categoryLegendId,
 	defaultRegionId,
 	defaultRegionLabel,
 	type MapCategoryMeta,
@@ -42,12 +43,7 @@ import {
 import { type MapPoint2D, projectPoint, regionPaths } from './map-geometry'
 import { staticMapGeometry } from './map-geometry-cache'
 import { MapLegend, type MapLegendItem } from './map-legend'
-import {
-	fitMapProjection,
-	mapFrameSizing,
-	projectionFallbackAspect,
-	scaleCanonicalFit,
-} from './map-projection'
+import { mapFrameSizing, measuredMapFit, projectionFallbackAspect } from './map-projection'
 import { MapRangeLegend, type MapRangeLegendProps } from './map-range-legend'
 import { MapRegions } from './map-regions'
 import { MapTable } from './map-table'
@@ -228,6 +224,8 @@ type MapShape = {
 	/** The plot box's drawing height in px (`0` until measured); the reserve holds the space meanwhile. */
 	boxHeight: number
 	reserve: FrameReserve | null
+	/** Free-form (`aspectRatio={false}`) sizing: the plot fills the height its region already holds. */
+	fill: boolean
 	/** The active viewBox width: measured px once the container is measured, the canonical frame until then. */
 	viewWidth: number
 	/** The active viewBox height, paired with {@link viewWidth}. */
@@ -280,48 +278,48 @@ function useMapShape(
 	// shift.
 	const reserveAspect = canonical?.aspect ?? projectionFallbackAspect(projection)
 
-	const {
+	const sizing = mapFrameSizing(height, aspectRatio, reserveAspect)
+
+	const { ref, width: frameWidth, height: frameHeight, reserve } = usePlotFrame(width, sizing)
+
+	// The measured refit, its region paths, and the projector, resolved as one
+	// unit so a resize reprojects all three together. A passed d3 instance is fit
+	// in place and keeps its reference, so keying the paths or the projector on
+	// that reference alone would freeze them at the first fit — the region layer
+	// and the overlays would disagree with the resized viewBox. Deriving them
+	// inside one memo over the live frame dimensions reprojects on every resize,
+	// and hands the context a fresh `project` identity so overlay marks recompute.
+	// With nothing to frame the measured fit is `null`, so the map holds the
+	// canonical draw (or the neutral frame) rather than projecting through an
+	// unfitted default.
+	const view = useMemo(() => {
+		const measured = measuredMapFit(projection, features, canonical, frameWidth, frameHeight)
+
+		// Draw from the measured fit once it lands, the canonical fit until then, so
+		// the geography never waits on the container being measured.
+		const fitted = measured ?? canonical?.projection ?? null
+
+		return {
+			viewWidth: measured ? frameWidth : (canonical?.width ?? 0),
+			viewHeight: measured ? frameHeight : (canonical?.height ?? 0),
+			paths: measured ? regionPaths(features, measured) : canonicalPaths,
+			project: (position: LngLat) => (fitted === null ? null : projectPoint(fitted, position)),
+		}
+	}, [projection, features, canonical, canonicalPaths, frameWidth, frameHeight])
+
+	const { viewWidth, viewHeight, paths, project } = view
+
+	return {
 		ref,
-		width: frameWidth,
-		height: frameHeight,
+		boxHeight: frameHeight,
 		reserve,
-	} = usePlotFrame(width, mapFrameSizing(height, aspectRatio, reserveAspect))
-
-	const measured = useMemo(() => {
-		if (!(frameWidth > 0 && frameHeight > 0)) return null
-
-		// A named projection derives the measured fit from the cached canonical one
-		// by arithmetic alone (see `scaleCanonicalFit`) — no per-resize bounds pass
-		// over every coordinate. A passed d3 instance is stateful and uncached, so
-		// it still fits directly.
-		return typeof projection === 'string' && canonical !== null
-			? scaleCanonicalFit(projection, canonical, frameWidth, frameHeight)
-			: fitMapProjection(projection, features, frameWidth, frameHeight)
-	}, [projection, features, canonical, frameWidth, frameHeight])
-
-	// The measured refit's region paths, once the container is measured; `null`
-	// until then, when the cached canonical paths carry the first paint.
-	const measuredPaths = useMemo(
-		() => (measured === null ? null : regionPaths(features, measured)),
-		[features, measured],
-	)
-
-	// Draw from the measured fit once it lands, the canonical fit until then, so
-	// the geography never waits on the container being measured.
-	const fitted = measured ?? canonical?.projection ?? null
-
-	const viewWidth = measured ? frameWidth : (canonical?.width ?? 0)
-
-	const viewHeight = measured ? frameHeight : (canonical?.height ?? 0)
-
-	const paths = measuredPaths ?? canonicalPaths
-
-	const project = useCallback(
-		(position: LngLat) => (fitted === null ? null : projectPoint(fitted, position)),
-		[fitted],
-	)
-
-	return { ref, boxHeight: frameHeight, reserve, viewWidth, viewHeight, paths, features, project }
+		fill: sizing.mode === 'fill',
+		viewWidth,
+		viewHeight,
+		paths,
+		features,
+		project,
+	}
 }
 
 /** The resolved categorical or numeric readout behind the regions. @internal */
@@ -636,8 +634,8 @@ function legendItems(
 	colors: ReadonlyMap<string, MapSeriesColor>,
 	descending: boolean,
 ): MapLegendItem[] {
-	const categoryItems = categories.map((meta, index) => ({
-		id: `category:${index}`,
+	const categoryItems = categories.map((meta) => ({
+		id: categoryLegendId(meta.value),
 		label: meta.label,
 		// A categorical slot carries a currentColor class; a numeric bin an inline value.
 		...(meta.paint.kind === 'value'
@@ -772,6 +770,8 @@ type MapFrameProps = {
 	tooltip: boolean
 	table: ReactNode
 	width: number | undefined
+	/** Free-form (`aspectRatio={false}`) sizing: the frame fills its container's height. */
+	fill: boolean
 	className?: string
 }
 
@@ -785,6 +785,7 @@ function MapFrame({
 	tooltip,
 	table,
 	width,
+	fill,
 	className,
 }: MapFrameProps) {
 	const aside = legendPlacement === 'left' || legendPlacement === 'right'
@@ -793,7 +794,15 @@ function MapFrame({
 		<div
 			ref={containerRef}
 			data-slot="map"
-			className={cn('flex flex-col gap-4', width === undefined && 'w-full', className)}
+			// A free-form fill frame grabs its container's height (`h-full`) so the
+			// plot region has a real height to grow into; every other mode reserves
+			// height from the plot's own width and needs none.
+			className={cn(
+				'flex flex-col gap-4',
+				width === undefined && 'w-full',
+				fill && 'h-full',
+				className,
+			)}
 			style={width === undefined ? undefined : { width }}
 		>
 			<MapHoverProvider enabled={tooltip} plotRef={plotRef}>
@@ -843,11 +852,21 @@ function MapPlotRegion({ shape, aside, tooltip, children, ...name }: MapPlotRegi
 			data-slot="map-plot"
 			role="img"
 			{...name}
-			className={cn('relative', aside && 'min-w-0 flex-1')}
+			// A side legend takes the width remainder (`min-w-0 flex-1`); a free-form
+			// `fill` map instead grows into the height its region already holds — a
+			// `flex-1 min-h-0` child of the `h-full` frame — so the box measures a real
+			// height rather than the zero its own reserve would feed back.
+			className={cn(
+				'relative',
+				aside && 'min-w-0',
+				(aside || shape.fill) && 'flex-1',
+				shape.fill && 'min-h-0',
+			)}
 		>
 			{/* PlotBox reserves the box height from its own width — steady before the
-			    width is measured and across animation replays — or takes a fixed height. */}
-			<ChartPlotBox reserve={shape.reserve} height={shape.boxHeight}>
+			    width is measured and across animation replays — takes a fixed height, or
+			    (under `fill`) fills the height its region already holds. */}
+			<ChartPlotBox reserve={shape.reserve} height={shape.boxHeight} fill={shape.fill}>
 				{children}
 			</ChartPlotBox>
 
@@ -931,7 +950,7 @@ export function MapPlat<T = never>({
 		regionLabel,
 	)
 
-	const { hidden, toggle, setFocus, emphasis } = useMapToggle()
+	const { hidden, toggle, setFocus, emphasis: activeFocus } = useMapToggle()
 
 	const { entries, register } = useMapLegendRegistry()
 
@@ -953,6 +972,22 @@ export function MapPlat<T = never>({
 		() => new Map(entries.map((entry, index) => [entry.id, index])),
 		[entries],
 	)
+
+	// The focused id can outlive its entry: an overlay unmounting under the
+	// pointer fires no leave or blur, so `useMapToggle` keeps the dead id. Gate
+	// emphasis on the live legend ids — the categories plus the registered
+	// overlays — so a stale focus can't dim the whole map against a group that no
+	// mark belongs to.
+	const legendIds = useMemo(
+		() =>
+			new Set<string>([
+				...categoryMetas.map((meta) => categoryLegendId(meta.value)),
+				...entries.map((entry) => entry.id),
+			]),
+		[categoryMetas, entries],
+	)
+
+	const emphasis = activeFocus !== null && legendIds.has(activeFocus) ? activeFocus : null
 
 	const plat = useMemo<MapPlatContextValue>(
 		() => ({ project: shape.project, register, colors, order, hidden, emphasis, animate }),
@@ -1094,6 +1129,7 @@ export function MapPlat<T = never>({
 				) : null
 			}
 			width={width}
+			fill={shape.fill}
 			className={className}
 		/>
 	)

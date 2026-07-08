@@ -16,7 +16,7 @@ import { TooltipContext } from '../../components/tooltip/context'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
 import { type MapHoverTarget, useMapHoverState } from './context'
-import type { MapCategoryMeta } from './map-categories'
+import { categoryLegendId, type MapCategoryMeta } from './map-categories'
 
 /** One resolved overlay entry the tooltip can read. @internal */
 export type MapTooltipEntry = {
@@ -80,11 +80,11 @@ function resolve(
 
 	const category = regionCategory[target.index]
 
-	if (category == null || hidden.has(`category:${category}`)) return null
+	if (category == null) return null
 
 	const meta = categories[category]
 
-	if (meta === undefined) return null
+	if (meta === undefined || hidden.has(categoryLegendId(meta.value))) return null
 
 	const { paint } = meta
 

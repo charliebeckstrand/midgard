@@ -84,10 +84,22 @@ describe('fetchOsrmRoute', () => {
 		expect(await fetchOsrmRoute(WAYPOINTS)).toBeNull()
 	})
 
-	it('is null on a payload with no geometry', async () => {
+	it('is null on an empty leg carrying neither geometry nor totals', async () => {
 		stubFetch({ ok: true, json: { routes: [{}] } })
 
 		expect(await fetchOsrmRoute(WAYPOINTS)).toBeNull()
+	})
+
+	it('keeps the totals of a false-overview leg that carries no geometry', async () => {
+		// `overview: 'false'` answers with distance and duration and no line; the
+		// totals must survive as an empty-path result, not be dropped to null.
+		stubFetch({ ok: true, json: { routes: [{ distance: 3243000, duration: 106200 }] } })
+
+		expect(await fetchOsrmRoute(WAYPOINTS, { overview: 'false' })).toEqual({
+			path: [],
+			distanceMeters: 3243000,
+			durationSeconds: 106200,
+		})
 	})
 
 	it('is null when the request throws', async () => {
@@ -167,6 +179,22 @@ describe('fetchValhallaRoute', () => {
 				[0, 0],
 				[2, 1],
 			],
+			distanceMeters: 250,
+			durationSeconds: 30,
+		})
+	})
+
+	it('drops a truncated trailing point instead of emitting a garbage coordinate', async () => {
+		// The full shape decodes to [[0,0],[2,1]]; dropping the last char truncates
+		// the second point's varint, so the partial pair is dropped rather than
+		// pushed as a coordinate built from a zeroed delta.
+		stubFetch({
+			ok: true,
+			json: { routes: [{ geometry: '??_c`|@_gay', distance: 250, duration: 30 }] },
+		})
+
+		expect(await fetchValhallaRoute(WAYPOINTS)).toEqual({
+			path: [[0, 0]],
 			distanceMeters: 250,
 			durationSeconds: 30,
 		})

@@ -61,6 +61,18 @@ describe('MapRoute', () => {
 		)
 	})
 
+	it('falls back to the straight stops when the routed path is empty', () => {
+		// A totals-only routed leg (an `overview: 'false'` result) carries an empty
+		// path; the line must still draw from the stops, not vanish.
+		const empty = renderUI(plat(<MapRoute label="M6" stops={STOPS} path={[]} />))
+
+		const straight = renderUI(plat(<MapRoute label="M6" stops={STOPS} />))
+
+		expect(bySlot(empty.container, 'map-route')?.getAttribute('d')).toBe(
+			bySlot(straight.container, 'map-route')?.getAttribute('d'),
+		)
+	})
+
 	it('takes an explicit colour over its slot', () => {
 		const { container } = renderUI(plat(<MapRoute label="M6" stops={STOPS} color="rose" />))
 
@@ -116,5 +128,28 @@ describe('MapRoute', () => {
 		expect(groups[0]).not.toContain('opacity-25')
 
 		expect(groups[1]).toContain('opacity-25')
+	})
+
+	it('clears emphasis when a focused route unmounts, so the map does not stay dimmed', () => {
+		const view = (show: boolean) => plat(show ? <MapRoute label="M6" stops={STOPS} /> : null)
+
+		const { container, rerender } = renderUI(view(true))
+
+		const anyDimmed = () =>
+			allBySlot(container, 'map-region').some((el) =>
+				(el.parentElement?.getAttribute('class') ?? '').includes('opacity-25'),
+			)
+
+		fireEvent.pointerEnter(bySlot(container, 'map-legend-item') as HTMLButtonElement)
+
+		// The route is emphasised, so the regions dim against it.
+		expect(anyDimmed()).toBe(true)
+
+		// Unmount the route while its legend button is still focused: no leave or
+		// blur fires, so the focus id lingers. Emphasis must clear against the live
+		// legend ids rather than dimming the whole map against a group that is gone.
+		rerender(view(false))
+
+		expect(anyDimmed()).toBe(false)
 	})
 })

@@ -21,7 +21,8 @@ export type MapRouteProps = {
 	/**
 	 * Street-following geometry that hugs the road instead of cutting straight
 	 * between waypoints — a {@link fetchOsrmRoute} / {@link fetchValhallaRoute}
-	 * result's `path`. Wins over `stops` when both are given.
+	 * result's `path`. Wins over `stops` when both are given and it has geometry;
+	 * an empty `path` (a totals-only routed leg) falls back to `stops`.
 	 */
 	path?: LngLat[]
 	/** Named mark colour override; defaults to the next slot after the region categories. */
@@ -60,8 +61,13 @@ export function MapRoute({ label, stops, path, color, detail }: MapRouteProps) {
 	// Memoised so a hover-driven re-render (the plat's pointer state churns the
 	// hover context) doesn't re-project and re-stringify the whole polyline;
 	// `project` identity holds until the measured refit, and `path` / `stops`
-	// are the caller's stable refs.
-	const d = useMemo(() => linePath(path ?? stops ?? [], project), [path, stops, project])
+	// are the caller's stable refs. A routed `path` with geometry wins; an empty
+	// one — a `false`-overview leg carries totals but no line — falls back to the
+	// straight stops.
+	const d = useMemo(
+		() => linePath(path && path.length > 0 ? path : (stops ?? []), project),
+		[path, stops, project],
+	)
 
 	if (slot === undefined || hidden.has(id) || d === '') return null
 

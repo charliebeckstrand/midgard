@@ -28,8 +28,8 @@ export type MapMarkerProps = {
 	end: LngLat
 	/**
 	 * The connecting geometry — a {@link fetchOsrmRoute} /
-	 * {@link fetchValhallaRoute} result's `path`. A straight line when
-	 * omitted.
+	 * {@link fetchValhallaRoute} result's `path`. A straight line when omitted or
+	 * empty (a totals-only routed leg).
 	 */
 	path?: LngLat[]
 	/** Named mark colour override; defaults to the next slot after the region categories. */
@@ -70,8 +70,13 @@ export function MapMarker({ label, start, end, path, color, detail }: MapMarkerP
 	// Memoised so a hover-driven re-render (the plat's pointer state churns the
 	// hover context) doesn't re-project and re-stringify the whole connector;
 	// `project` identity holds until the measured refit, and `path` / `start` /
-	// `end` are the caller's stable refs.
-	const d = useMemo(() => linePath(path ?? [start, end], project), [path, start, end, project])
+	// `end` are the caller's stable refs. A routed `path` with geometry wins; an
+	// empty one — a `false`-overview leg carries totals but no line — falls back
+	// to the straight start→end connector.
+	const d = useMemo(
+		() => linePath(path && path.length > 0 ? path : [start, end], project),
+		[path, start, end, project],
+	)
 
 	const from = project(start)
 

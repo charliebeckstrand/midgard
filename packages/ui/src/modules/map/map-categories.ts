@@ -39,6 +39,20 @@ export type MapCategoryMeta = {
 	paint: MapReadoutPaint
 }
 
+/**
+ * The legend toggle / emphasis key for a resolved category or bin: its stable
+ * `value`, not its position. Keying on the value ties a toggled-off entry to the
+ * same category when the resolved order shifts — a data update reordering the
+ * first-appearance derivation, or a category dropping out — rather than the
+ * positional token re-pointing at whatever now sits at that index. A numeric
+ * bin's `value` is its index, so its key is unchanged.
+ *
+ * @internal
+ */
+export function categoryLegendId(value: string): string {
+	return `category:${value}`
+}
+
 /** The slot colour for the series at `index`, in the fixed categorical order. @internal */
 export function slotColor(index: number): MapSeriesColor {
 	return k.order[index % k.order.length] ?? 'blue'

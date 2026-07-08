@@ -9,7 +9,7 @@ import { useA11yRoving } from '../../hooks/a11y'
 
 /** One legend entry: a category or overlay named by its mark-mirroring swatch. @internal */
 export type MapLegendItem = {
-	/** The toggle / emphasis key: `category:<index>` or a registered overlay id. */
+	/** The toggle / emphasis key: `category:<value>` or a registered overlay id. */
 	id: string
 	label: string
 	/** currentColor class carrying the entry's colour (categorical slots and overlays). */
