@@ -183,7 +183,10 @@ export type PlotFrameRef = RefCallback<HTMLDivElement> & RefObject<HTMLDivElemen
  * live — no settle window, no timers — while React coalesces a burst by
  * abandoning renders whose size is already stale, so a window drag on a slow
  * frame refits at the pace the machine can afford and always lands on the
- * final size. The mount measurement instead settles in a layout effect that
+ * final size. A measurement of a node a commit has already detached (a layout
+ * branch re-arranged around the plot mid-notification) is skipped rather than
+ * committed as zero, so the frame holds its last real size until the live
+ * node reports one. The mount measurement instead settles in a layout effect that
  * re-runs on each size change, so a size that resolves a tier which mounts or
  * drops the header and legend — reflowing the plot the drawing height reads —
  * reaches its fixed point before the first paint rather than flashing a size it
@@ -247,6 +250,12 @@ export function usePlotFrame(
 
 	const measure = useCallback(
 		(el: HTMLDivElement) => {
+			// A node the commit just detached (a layout branch re-arranged around
+			// the plot) measures 0 × 0 — garbage that would flip every size-driven
+			// policy downstream (spark shedding, legend placement) and can feed a
+			// remount loop. Skip it; the replacement node measures on attach.
+			if (!el.isConnected) return
+
 			// Integer px, equality-guarded, so observer notifications can't churn
 			// state. An axis the policy ignores stays 0 and never re-renders it.
 			const next = {

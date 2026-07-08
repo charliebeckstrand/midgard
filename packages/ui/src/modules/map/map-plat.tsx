@@ -42,7 +42,12 @@ import {
 import { type MapPoint2D, projectPoint, regionPaths } from './map-geometry'
 import { staticMapGeometry } from './map-geometry-cache'
 import { MapLegend, type MapLegendItem } from './map-legend'
-import { fitMapProjection, mapFrameSizing, projectionFallbackAspect } from './map-projection'
+import {
+	fitMapProjection,
+	mapFrameSizing,
+	projectionFallbackAspect,
+	scaleCanonicalFit,
+} from './map-projection'
 import { MapRangeLegend, type MapRangeLegendProps } from './map-range-legend'
 import { MapRegions } from './map-regions'
 import { MapTable } from './map-table'
@@ -282,13 +287,17 @@ function useMapShape(
 		reserve,
 	} = usePlotFrame(width, mapFrameSizing(height, aspectRatio, reserveAspect))
 
-	const measured = useMemo(
-		() =>
-			frameWidth > 0 && frameHeight > 0
-				? fitMapProjection(projection, features, frameWidth, frameHeight)
-				: null,
-		[projection, features, frameWidth, frameHeight],
-	)
+	const measured = useMemo(() => {
+		if (!(frameWidth > 0 && frameHeight > 0)) return null
+
+		// A named projection derives the measured fit from the cached canonical one
+		// by arithmetic alone (see `scaleCanonicalFit`) — no per-resize bounds pass
+		// over every coordinate. A passed d3 instance is stateful and uncached, so
+		// it still fits directly.
+		return typeof projection === 'string' && canonical !== null
+			? scaleCanonicalFit(projection, canonical, frameWidth, frameHeight)
+			: fitMapProjection(projection, features, frameWidth, frameHeight)
+	}, [projection, features, canonical, frameWidth, frameHeight])
 
 	// The measured refit's region paths, once the container is measured; `null`
 	// until then, when the cached canonical paths carry the first paint.

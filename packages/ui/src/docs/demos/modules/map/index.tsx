@@ -30,7 +30,7 @@ import {
 // including AnimatedExample's — without repeating the props on each. A call site
 // can still override either default by passing its own `width`/`resize`.
 function Example(props: ComponentProps<typeof ExampleFrame>) {
-	return <ExampleFrame width={720} minWidth={160} resize {...props} />
+	return <ExampleFrame width={720} minWidth={480} resize {...props} />
 }
 
 // Atlas data stays out of the package (and the docs bundle): the demos fetch

@@ -87,10 +87,10 @@ export function MapLegend({ items, hidden, onToggle, onFocus, panel = false }: M
 			aria-orientation={orientation}
 			onKeyDown={handleKeyDown}
 			className={cn(
-				// Layout the legend as a grid with gaps; the side panel modifies the
+				// Layout the legend as a grid; the side panel modifies the
 				// spacing and width at larger breakpoints.
 				'mx-auto grid w-fit max-w-full justify-items-start',
-				panel && 'lg:mx-0 lg:w-full lg:gap-x-1',
+				panel && 'lg:mx-0 lg:w-full',
 			)}
 		>
 			{items.map((item) => {
