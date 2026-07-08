@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { HeatmapChart, type HeatmapChartSeries } from '../../modules/chart'
 import { GUTTER_EDGE_PAD, LABEL_CHAR_WIDTH } from '../../modules/chart/chart-constants'
-import { bySlot, fireEvent, renderUI } from '../helpers'
+import { act, bySlot, fireEvent, renderUI } from '../helpers'
 
 type Row = { day: string; hour: string; commits: number }
 
@@ -206,6 +206,36 @@ describe('HeatmapChart', () => {
 		expect(dimmed()).toBeGreaterThan(0)
 
 		fireEvent.pointerLeave(track as Element)
+
+		expect(dimmed()).toBe(0)
+	})
+
+	it('keeps a keyboard-owned probe when the pointer leaves a focused range track', () => {
+		const { container } = renderUI(
+			<HeatmapChart aria-label="Commits" data={ROWS} series={SERIES} width={400} />,
+		)
+
+		const track = bySlot(container, 'heatmap-range-track') as HTMLElement
+
+		const dimmed = () =>
+			cellRects(container).filter((rect) => rect.getAttribute('class')?.includes('opacity-25'))
+				.length
+
+		// Focus the track (keyboard ownership), then probe a class so cells dim.
+		act(() => track.focus())
+
+		fireEvent.pointerMove(track, { clientY: 10 })
+
+		expect(dimmed()).toBeGreaterThan(0)
+
+		// A pointer passing off the bar while it holds focus must not wipe the probe
+		// out from under the keyboard — the dimming and probe survive.
+		fireEvent.pointerLeave(track)
+
+		expect(dimmed()).toBeGreaterThan(0)
+
+		// A real blur still clears it.
+		fireEvent.blur(track)
 
 		expect(dimmed()).toBe(0)
 	})
