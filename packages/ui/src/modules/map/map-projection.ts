@@ -15,7 +15,7 @@ import {
 } from 'd3-geo'
 import type { FrameSizing } from '../../hooks'
 import { ALBERS_USA_ASPECT, DEFAULT_MAP_ASPECT, MAP_CANONICAL_WIDTH } from './map-constants'
-import type { MapAspectRatio, MapFeature, MapProjection } from './types'
+import type { MapAspectRatio, MapFeature, MapNamedProjection, MapProjection } from './types'
 
 /**
  * The feature-collection wrapper d3-geo fits and measures against. The cast
@@ -106,6 +106,40 @@ export function canonicalFit(spec: MapProjection, features: MapFeature[]): MapCa
 	if (width <= 0 || height <= 0) return null
 
 	return { projection, width, height, aspect: width / height }
+}
+
+/**
+ * The measured-frame fit derived from a {@link canonicalFit} by arithmetic
+ * alone. The named projections' output is linear in `scale` and `translate`
+ * (the composite `albers-usa` derives its inset offsets and clips from them
+ * proportionally), so scaling the canonical parameters by the frame factor and
+ * centring the remainder frames the geography the way `fitSize` would — without
+ * the bounds pass that re-projects every coordinate, the bulk of a refit's cost
+ * on every resize. It lands within `fitSize`'s adaptive-resampling margin
+ * (sub-percent: `fitSize` measures bounds at its probe scale, the canonical fit
+ * at drawing scale), and under the canonical aspect it is a pure zoom of the
+ * canonical paint, so a refit never reshapes the geography. Only the named
+ * projections qualify: a passed d3 instance is stateful, so its canonical fit
+ * is never cached to derive from.
+ *
+ * @internal
+ */
+export function scaleCanonicalFit(
+	spec: MapNamedProjection,
+	canonical: MapCanonicalFit,
+	width: number,
+	height: number,
+): GeoProjection {
+	const factor = Math.min(width / canonical.width, height / canonical.height)
+
+	const [tx, ty] = canonical.projection.translate()
+
+	return resolveMapProjection(spec)
+		.scale(canonical.projection.scale() * factor)
+		.translate([
+			tx * factor + (width - canonical.width * factor) / 2,
+			ty * factor + (height - canonical.height * factor) / 2,
+		])
 }
 
 /**

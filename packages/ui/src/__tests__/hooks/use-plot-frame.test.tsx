@@ -232,6 +232,37 @@ describe('usePlotFrame', () => {
 		expect(screen.getByTestId('marks').getAttribute('data-width')).toBe('340')
 	})
 
+	it('ignores a measurement from a detached node instead of committing its zero size', () => {
+		const onMarks = vi.fn()
+
+		renderUI(<Probe width={undefined} sizing={{ mode: 'aspect', ratio: 2 }} onMarks={onMarks} />)
+
+		const plot = screen.getByTestId('plot')
+
+		resizeTo(plot, { width: 300, height: 0 })
+
+		expect(screen.getByTestId('marks').getAttribute('data-width')).toBe('300')
+
+		// A commit that re-arranges the layout around the plot detaches its node
+		// before the swap's ref updates land; a notification (or the settle
+		// effect) racing that window measures the detached node at 0 × 0 —
+		// garbage that would flip every size-driven policy downstream. Simulate
+		// the race by reporting the node detached, jsdom-style: a defined
+		// property, so React's own unmount cleanup still finds the node in place.
+		Object.defineProperty(plot, 'isConnected', { value: false, configurable: true })
+
+		mockDomGeometry(plot, { clientWidth: 0, clientHeight: 0 })
+
+		act(() => {
+			const observer = firstObserver()
+
+			observer.callback([], observer as unknown as ResizeObserver)
+		})
+
+		// The garbage measurement is skipped: the frame holds its last real size.
+		expect(screen.getByTestId('marks').getAttribute('data-width')).toBe('300')
+	})
+
 	it('redraws on a height change under a fill policy', () => {
 		const onMarks = vi.fn()
 

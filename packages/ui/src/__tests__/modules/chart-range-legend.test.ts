@@ -93,4 +93,32 @@ describe('resolveRangeLegend', () => {
 			orientation: 'vertical',
 		})
 	})
+
+	it('resolves the same placement on both sides of the spark boundary', () => {
+		// In a narrow box, the shed bar and the shown bar must agree on placement:
+		// a placement that flipped with `show` would rebuild the frame around the
+		// plot, and the remount's transient measurements can feed back into this
+		// resolution and oscillate it (the choropleth's resize crash).
+		const shown = resolveRangeLegend('right', COMPACT_WIDTH - 2, TALL)
+
+		const shed = resolveRangeLegend('right', COMPACT_WIDTH - 2, SPARK_HEIGHT - 1)
+
+		expect(shown.show).toBe(true)
+
+		expect(shed.show).toBe(false)
+
+		expect(shed.placement).toBe(shown.placement)
+
+		expect(shed.orientation).toBe(shown.orientation)
+	})
+
+	it('keeps the requested placement while the box is unmeasured', () => {
+		// Width 0 means "not yet measured", not "too narrow": the request stands,
+		// so the frame's structure holds steady from first paint to measurement.
+		expect(resolveRangeLegend('right', 0, 0)).toMatchObject({
+			show: false,
+			placement: 'right',
+			orientation: 'vertical',
+		})
+	})
 })

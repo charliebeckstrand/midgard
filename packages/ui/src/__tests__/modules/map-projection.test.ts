@@ -1,16 +1,39 @@
-import { geoMercator } from 'd3-geo'
+import { geoMercator, geoPath } from 'd3-geo'
 import { describe, expect, it } from 'vitest'
 import { ALBERS_USA_ASPECT } from '../../modules/map/map-constants'
 import {
+	canonicalFit,
 	fitMapProjection,
 	mapAutoAspect,
 	mapFrameSizing,
 	projectionFallbackAspect,
 	resolveMapProjection,
+	scaleCanonicalFit,
 } from '../../modules/map/map-projection'
+import type { MapFeature } from '../../modules/map/types'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 
 const FEATURES = FIXTURE_GEOJSON.features
+
+// A triangle inside the lower 48, so the US composite projection has geometry
+// it can actually frame (the world fixture sits outside its insets).
+const US_FEATURES = [
+	{
+		type: 'Feature',
+		properties: { name: 'Tri-state' },
+		geometry: {
+			type: 'Polygon',
+			coordinates: [
+				[
+					[-120, 34],
+					[-95, 44],
+					[-80, 34],
+					[-120, 34],
+				],
+			],
+		},
+	},
+] as unknown as MapFeature[]
 
 describe('resolveMapProjection', () => {
 	it('resolves each built-in name to a fresh projection', () => {
@@ -61,6 +84,75 @@ describe('fitMapProjection', () => {
 		const projection = fitMapProjection('mercator', [], 300, 100)
 
 		expect(typeof projection).toBe('function')
+	})
+})
+
+describe('scaleCanonicalFit', () => {
+	// Frames wider and narrower than the geography's own shape, so both
+	// letterboxing axes are exercised.
+	const frames = [
+		[300, 100],
+		[240, 240],
+		[120, 500],
+	] as const
+
+	it.each([
+		['mercator', FEATURES],
+		['equal-earth', FEATURES],
+		['albers-usa', US_FEATURES],
+	] as const)('frames the geography like a direct fitSize under %s', (spec, features) => {
+		const canonical = canonicalFit(spec, features)
+
+		if (canonical === null) throw new Error('nothing to fit')
+
+		const shape = { type: 'FeatureCollection', features } as const
+
+		for (const [width, height] of frames) {
+			const derived = scaleCanonicalFit(spec, canonical, width, height)
+
+			// The geography sits inside the frame, centred, filling one axis edge
+			// to edge — the fit contract itself.
+			const [[x0, y0], [x1, y1]] = geoPath(derived).bounds(
+				shape as unknown as Parameters<ReturnType<typeof geoPath>['bounds']>[0],
+			)
+
+			expect(x0).toBeGreaterThanOrEqual(-0.5)
+
+			expect(y0).toBeGreaterThanOrEqual(-0.5)
+
+			expect(x1).toBeLessThanOrEqual(width + 0.5)
+
+			expect(y1).toBeLessThanOrEqual(height + 0.5)
+
+			expect(Math.min(width - (x1 - x0), height - (y1 - y0))).toBeLessThan(1)
+
+			expect(x0 + x1).toBeCloseTo(width, 0)
+
+			expect(y0 + y1).toBeCloseTo(height, 0)
+
+			// And it lands where a direct fitSize would, within the sub-percent
+			// margin of d3's adaptive resampling — fitSize measures bounds at its
+			// probe scale, the canonical fit at drawing scale.
+			const direct = fitMapProjection(spec, features, width, height)
+
+			expect(Math.abs(derived.scale() / direct.scale() - 1)).toBeLessThan(0.01)
+		}
+	})
+
+	it('leaves the cached canonical projection untouched', () => {
+		const canonical = canonicalFit('mercator', FEATURES)
+
+		if (canonical === null) throw new Error('nothing to fit')
+
+		const scale = canonical.projection.scale()
+
+		const translate = canonical.projection.translate()
+
+		scaleCanonicalFit('mercator', canonical, 300, 100)
+
+		expect(canonical.projection.scale()).toBe(scale)
+
+		expect(canonical.projection.translate()).toEqual(translate)
 	})
 })
 

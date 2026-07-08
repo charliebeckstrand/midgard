@@ -71,18 +71,22 @@ export function resolveRangeLegend(
 ): ResolvedRangeLegend {
 	const requested = requestedPlacement(legend, defaultPlacement)
 
-	// Off, or stripped with the rest of the chrome at the spark floor — the way a
-	// cartesian frame drops its legend to draw a bare sparkline.
-	if (legend === false || isSparkBox(width, height)) {
-		return { show: false, placement: requested, orientation: rangeLegendOrientation(requested) }
-	}
-
-	// A box too narrow for a side rail drops a side placement to a horizontal row
-	// under the plot, the way a side categorical legend stacks below its engage
-	// width. A stacked placement is already horizontal and stays put.
+	// A measured box too narrow for a side rail drops a side placement to a
+	// horizontal row under the plot, the way a side categorical legend stacks
+	// below its engage width; a stacked placement is already horizontal and stays
+	// put. Resolved ahead of the spark check so shedding and re-showing the bar
+	// never moves it between structures: a placement that flipped with `show`
+	// would rebuild the frame around the plot, and the remount's transient
+	// measurements can feed back into this resolution and oscillate it. An
+	// unmeasured box (width 0) keeps the request — there is nothing to adjust to.
 	const side = requested === 'left' || requested === 'right'
 
-	const placement: ChartLegendPlacement = side && width < COMPACT_WIDTH ? 'bottom' : requested
+	const placement: ChartLegendPlacement =
+		side && width > 0 && width < COMPACT_WIDTH ? 'bottom' : requested
 
-	return { show: true, placement, orientation: rangeLegendOrientation(placement) }
+	// Off, or stripped with the rest of the chrome at the spark floor — the way a
+	// cartesian frame drops its legend to draw a bare sparkline.
+	const show = legend !== false && !isSparkBox(width, height)
+
+	return { show, placement, orientation: rangeLegendOrientation(placement) }
 }
