@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
+import { useScrollOverflow } from '../../hooks'
 import { Density } from '../../primitives/density'
 import { FloatingSurface } from '../../primitives/floating-surface'
 import { PopoverPanel } from '../../primitives/popover'
@@ -24,6 +25,10 @@ export type MenuContentProps = {
  * its items. A `static` menu renders inline as part of the page (no autofocus);
  * otherwise it mounts as a floating overlay that closes on `Escape`. Resolves
  * size and spacing from the enclosing {@link Menu}.
+ *
+ * @remarks Items scroll inside a height-capped viewport whose clipped edges
+ * fade out while more content lies past them, so an overflowing menu reads as
+ * scrollable without a persistent scrollbar.
  */
 export function MenuContent({
 	className,
@@ -34,6 +39,17 @@ export function MenuContent({
 	const { open, menuId, floatingStyles, getFloatingProps, density, size } = useMenuState()
 	const { close, static: isStatic, setFloating } = useMenuActions()
 	const glass = useGlass()
+
+	// The mask fading the scroll edges lives on this inner viewport, not the
+	// panel: masking the panel would dissolve its border and shadow with the
+	// content wherever a fade is open.
+	const scrollOverflowRef = useScrollOverflow()
+
+	const viewport = (
+		<div ref={scrollOverflowRef} data-slot="menu-viewport" className={k.viewport({ density })}>
+			{children}
+		</div>
+	)
 
 	if (isStatic) {
 		return (
@@ -50,7 +66,7 @@ export function MenuContent({
 					autoFocus={false}
 					className={cn(k.content, className)}
 				>
-					{children}
+					{viewport}
 				</PopoverPanel>
 			</Density>
 		)
@@ -75,7 +91,7 @@ export function MenuContent({
 						if (event.key === 'Escape') close()
 					}}
 				>
-					{children}
+					{viewport}
 				</PopoverPanel>
 			</Density>
 		</FloatingSurface>

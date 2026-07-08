@@ -61,6 +61,7 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 | `useMediaQuery` | True when `query` matches the viewport; true during SSR. |
 | `useMinWidth` | True when the viewport is at least `px` wide; true during SSR. |
 | `useIsTruncated` | True when text overflows the element, measured via an off-screen mirror span (not `scrollWidth`). |
+| `useScrollOverflow` | Callback ref stamping `data-overflow-above`/`-below` on a scroll container while content extends past an edge, for CSS scroll affordances. |
 | `useScrollWithin` | Returns a scroll-into-view fn scoped to the nearest scrollable ancestor, stopping at clipping boundaries. |
 | `useVirtualWindow` | Drives a vertical windowed list off `@tanstack/react-virtual`: visible items plus top/bottom spacer heights. |
 

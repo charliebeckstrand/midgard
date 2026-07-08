@@ -215,6 +215,26 @@ describe('MenuContent', () => {
 		expect(screen.getByText('Item')).toBeInTheDocument()
 	})
 
+	it('wraps items in a scroll viewport carrying the overflow affordance', () => {
+		const { container } = renderUI(
+			<Menu defaultOpen>
+				<MenuContent>
+					<MenuItem>Item</MenuItem>
+				</MenuContent>
+			</Menu>,
+		)
+
+		const viewport = bySlot(container, 'menu-viewport')
+
+		expect(viewport).toBeInTheDocument()
+
+		expect(viewport).toContainElement(screen.getByText('Item'))
+
+		// jsdom reports zero scroll extent, so the content never overflows and
+		// neither edge attribute may be stamped.
+		expect(viewport).not.toHaveAttribute('data-overflow-below')
+	})
+
 	it('closes the menu when Escape is pressed on the menu panel', () => {
 		renderUI(
 			<Menu placement="bottom-start">
