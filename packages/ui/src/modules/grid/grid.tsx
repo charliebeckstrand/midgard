@@ -16,6 +16,8 @@ export type {
 	GridGroupHeaderRow,
 	GridHeader,
 	GridInfiniteScroll,
+	GridPinning,
+	GridPinningState,
 	GridRowReorder,
 	GridSelection,
 	GridSort,

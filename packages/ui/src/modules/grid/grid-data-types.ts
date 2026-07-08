@@ -326,6 +326,29 @@ export type GridColumnOrder = {
 }
 
 /**
+ * Runtime pin state for {@link GridPinning}, keyed by stringified column id: a
+ * side freezes the column to that edge, `'none'` unpins a statically-pinned
+ * one. Columns absent keep their {@link GridColumn.pinned} flag; a
+ * {@link GridColumn.locked} column ignores entries entirely. Plain-object
+ * shape so the state serializes for persistence.
+ */
+export type GridPinningState = Record<string, 'left' | 'right' | 'none'>
+
+/**
+ * Controlled/uncontrolled runtime-pinning binding for
+ * {@link GridProps.pinning}: the pin changes the header context menu's Pin
+ * left / Pin right / Unpin items and the column manager's per-column pin
+ * control apply, layered over each column's static {@link GridColumn.pinned}
+ * flag. Omit it and the grid keeps the state internally, exactly as before —
+ * bind it to persist the user's pins.
+ */
+export type GridPinning = {
+	value?: GridPinningState
+	defaultValue?: GridPinningState
+	onValueChange?: (pinning: GridPinningState) => void
+}
+
+/**
  * Controlled/uncontrolled row-selection binding for {@link GridProps.selection},
  * plus an optional batch-action bar shown while any row is selected.
  */
@@ -571,6 +594,16 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 
 	selection?: GridSelection
 	columnOrder?: GridColumnOrder
+
+	/**
+	 * Runtime-pinning binding: the pin changes the header menu and column
+	 * manager apply, controlled/uncontrolled over a serializable
+	 * {@link GridPinningState}. Omit to keep the state internal.
+	 *
+	 * @see {@link GridPinning}
+	 */
+	pinning?: GridPinning
+
 	columnManager?: GridColumnManagerConfig
 
 	/**

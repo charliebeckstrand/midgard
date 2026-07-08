@@ -109,7 +109,7 @@ describe('grid-columns · applyPinOverrides', () => {
 		const empty: PinOverrides = new Map()
 
 		const full: PinOverrides = new Map(
-			columns.map((col, i) => [col.id, i % 2 === 0 ? 'left' : 'right'] as const),
+			columns.map((col, i) => [String(col.id), i % 2 === 0 ? 'left' : 'right'] as const),
 		)
 
 		bench(`${cols} cols · no overrides (identity)`, () => {

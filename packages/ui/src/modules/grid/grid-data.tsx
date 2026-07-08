@@ -10,11 +10,10 @@ import {
 	useLayoutEffect,
 	useMemo,
 	useRef,
-	useState,
 } from 'react'
 import { Table } from '../../components/table'
 import { announce, cn, dataAttr } from '../../core'
-import { useA11yAnnouncements } from '../../hooks'
+import { useA11yAnnouncements, useControllable } from '../../hooks'
 import { Density } from '../../primitives/density'
 import { type DensityLevel, densityToSize, useDensityLevel } from '../../providers/density'
 import { k } from '../../recipes/kata/grid'
@@ -46,6 +45,7 @@ import type {
 	GridDataProps,
 	GridGroupHeaderRow,
 	GridInfiniteScroll,
+	GridPinningState,
 	GridVirtualize,
 } from './grid-data-types'
 import { GridFooter as GridFooterBar } from './grid-footer'
@@ -58,7 +58,7 @@ import {
 import { GridHead } from './grid-head'
 import { useGridMenuActions } from './grid-menu-actions'
 import { GridPagination as GridPaginationFooter } from './grid-pagination'
-import { applyPinOverrides, type PinOverrides, type PinSide } from './grid-pin-overrides'
+import { applyPinOverrides, type PinSide, toPinOverrides } from './grid-pin-overrides'
 import {
 	GridReorderContext,
 	restrictToFirstScrollableAncestor,
@@ -665,6 +665,7 @@ export function GridData<T>({
 	sortable = true,
 	selection: selectionConfig,
 	columnOrder: columnOrderConfig,
+	pinning: pinningConfig,
 	columnManager: columnManagerConfig,
 	groups: groupsConfig,
 	groupBy: groupByConfig,
@@ -742,8 +743,19 @@ export function GridData<T>({
 
 	// Menu-applied pin changes, layered over the static `pinned` flags. Folding
 	// them into the columns here lets the column and engine hooks read one
-	// `pinned` flag whether it came from the definition or the menu.
-	const [pinOverrides, setPinOverrides] = useState<PinOverrides>(() => new Map())
+	// `pinned` flag whether it came from the definition or the menu. The state
+	// is controllable through the `pinning` binding so consumers can persist it;
+	// unbound, it stays internal exactly as before.
+	const onPinningChange = pinningConfig?.onValueChange
+
+	const [pinningState, setPinningState] = useControllable<GridPinningState>({
+		value: pinningConfig?.value,
+		defaultValue: pinningConfig?.defaultValue,
+		// Coalesced to a concrete object, matching the other bindings' non-nullable callbacks.
+		onValueChange: (next) => onPinningChange?.(next ?? {}),
+	})
+
+	const pinOverrides = useMemo(() => toPinOverrides(pinningState), [pinningState])
 
 	const pinnedColumns = useMemo(
 		() => applyPinOverrides(resolvedColumns, pinOverrides),
@@ -814,18 +826,15 @@ export function GridData<T>({
 		return column ? columnLabel(column) : String(id)
 	}
 
-	const pinColumn = useCallback((id: string | number, side: PinSide | false) => {
-		setPinOverrides((prev) => {
-			const next = new Map(prev)
+	const pinColumn = useCallback(
+		(id: string | number, side: PinSide | false) => {
+			setPinningState((prev) => ({ ...prev, [String(id)]: side === false ? 'none' : side }))
 
-			next.set(id, side === false ? 'none' : side)
-
-			return next
-		})
-
-		// Narrate the pin change; the header gives no visible text cue (WCAG 4.1.3).
-		announce(describePin(columnLabelRef.current(id), side))
-	}, [])
+			// Narrate the pin change; the header gives no visible text cue (WCAG 4.1.3).
+			announce(describePin(columnLabelRef.current(id), side))
+		},
+		[setPinningState],
+	)
 
 	// Keyboard cursor (and, under `editable`, per-row editing layered on it).
 	// Bounds, the active row, the row keys, and the visible data columns resolve

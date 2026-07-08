@@ -392,6 +392,31 @@ describe('Grid context menus', () => {
 		expect(head?.style.left).toBe('')
 	})
 
+	it('seeds runtime pins from the pinning binding', () => {
+		const { container } = renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				pinning={{ defaultValue: { name: 'left' } }}
+			/>,
+		)
+
+		expect(headerCell(container, 'name')?.className).toContain('sticky')
+	})
+
+	it('emits menu pin changes through the pinning binding', () => {
+		const onValueChange = vi.fn()
+
+		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} pinning={{ onValueChange }} />)
+
+		rightClick('columnheader', 'Name')
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Pin left' }))
+
+		expect(onValueChange).toHaveBeenCalledWith({ name: 'left' })
+	})
+
 	it('exposes the pin state and actions to a column-menu builder', () => {
 		renderUI(
 			<Grid

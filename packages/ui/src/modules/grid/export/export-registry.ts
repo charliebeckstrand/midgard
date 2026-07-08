@@ -1,5 +1,5 @@
 import { downloadCsv, rowsToCsv } from './export-csv'
-import { downloadExcel, rowsToExcelHtml } from './export-excel'
+import { downloadExcel, rowsToXlsx } from './export-excel'
 import { printRows } from './export-print'
 import type { GridExportContext, GridExportType } from './types'
 
@@ -29,6 +29,6 @@ export const BUILTIN_EXPORTERS: Record<
 	<T>(context: GridExportContext<T>) => void
 > = {
 	csv: (context) => downloadCsv('grid.csv', rowsToCsv(context.columns, context.rows)),
-	excel: (context) => downloadExcel('grid.xls', rowsToExcelHtml(context.columns, context.rows)),
+	excel: (context) => downloadExcel('grid.xlsx', rowsToXlsx(context.columns, context.rows)),
 	print: (context) => printRows(context.columns, context.rows),
 }

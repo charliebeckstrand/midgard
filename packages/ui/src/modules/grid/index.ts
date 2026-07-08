@@ -1,4 +1,5 @@
 export { type GridContextValue, type SortState, useGrid } from './context'
+export { downloadExcel, rowsToXlsx } from './export/export-excel'
 export type {
 	GridExportAction,
 	GridExportContext,
@@ -20,6 +21,8 @@ export {
 	type GridGroupHeaderRow,
 	type GridHeader,
 	type GridInfiniteScroll,
+	type GridPinning,
+	type GridPinningState,
 	type GridProps,
 	type GridRowClick,
 	type GridRowReorder,

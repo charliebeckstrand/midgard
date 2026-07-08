@@ -1,6 +1,7 @@
+import { strFromU8, unzipSync } from 'fflate'
 import { describe, expect, it, vi } from 'vitest'
 import type { GridColumn } from '../../modules/grid'
-import { downloadExcel, rowsToExcelHtml } from '../../modules/grid/export/export-excel'
+import { downloadExcel, rowsToXlsx } from '../../modules/grid/export/export-excel'
 import { rowsToHtmlTable } from '../../modules/grid/export/export-html-table'
 import { printRows, rowsToPrintHtml } from '../../modules/grid/export/export-print'
 
@@ -45,18 +46,52 @@ describe('rowsToHtmlTable', () => {
 	})
 })
 
-describe('rowsToExcelHtml', () => {
-	it('wraps the HTML table in the Excel namespace shell', () => {
-		const html = rowsToExcelHtml(columns, rows)
+describe('rowsToXlsx', () => {
+	const sheetXml = (workbook: Uint8Array) =>
+		strFromU8(unzipSync(workbook)['xl/worksheets/sheet1.xml'] as Uint8Array)
 
-		expect(html).toContain('xmlns:x="urn:schemas-microsoft-com:office:excel"')
+	it('zips the OOXML parts a workbook needs', () => {
+		const parts = Object.keys(unzipSync(rowsToXlsx(columns, rows)))
 
-		expect(html).toContain(rowsToHtmlTable(columns, rows))
+		expect(parts).toEqual(
+			expect.arrayContaining([
+				'[Content_Types].xml',
+				'_rels/.rels',
+				'xl/workbook.xml',
+				'xl/_rels/workbook.xml.rels',
+				'xl/worksheets/sheet1.xml',
+			]),
+		)
+	})
+
+	it('emits a header row of labels and one escaped inline-string row per datum', () => {
+		const sheet = sheetXml(rowsToXlsx(columns, rows))
+
+		expect(sheet).toContain(
+			'<row r="1"><c r="A1" t="inlineStr"><is><t xml:space="preserve">Name</t></is></c>',
+		)
+
+		expect(sheet).toContain('<t xml:space="preserve">Alice</t>')
+
+		// XML-significant characters in cell text are escaped.
+		expect(sheet).toContain('<t xml:space="preserve">Bob &amp; Co</t>')
+	})
+
+	it('serializes finite numbers as native numeric cells', () => {
+		type Item = { id: number; count: number }
+
+		const itemColumns: GridColumn<Item>[] = [
+			{ id: 'count', title: 'Count', cell: (row) => row.count, value: (row) => row.count },
+		]
+
+		const sheet = sheetXml(rowsToXlsx(itemColumns, [{ id: 1, count: 42 }]))
+
+		expect(sheet).toContain('<c r="A2"><v>42</v></c>')
 	})
 })
 
 describe('downloadExcel', () => {
-	it('wraps the document in an Excel-typed blob and clicks an object-URL anchor', async () => {
+	it('wraps the workbook in an xlsx-typed blob and clicks an object-URL anchor', async () => {
 		// URL.createObjectURL/revokeObjectURL are stubbed in jsdom-stubs.ts; spy on
 		// them so restoreMocks auto-reverts (no raw reassignment to leak).
 		const createObjectURL = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock')
@@ -65,15 +100,13 @@ describe('downloadExcel', () => {
 
 		const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
 
-		downloadExcel('grid.xls', '<html></html>')
+		downloadExcel('grid.xlsx', rowsToXlsx(columns, rows))
 
 		expect(createObjectURL).toHaveBeenCalledTimes(1)
 
 		const blob = createObjectURL.mock.calls[0]?.[0] as Blob
 
-		expect(blob.type).toBe('application/vnd.ms-excel')
-
-		expect(await blob.text()).toBe('<html></html>')
+		expect(blob.type).toBe('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 
 		expect(click).toHaveBeenCalledTimes(1)
 
