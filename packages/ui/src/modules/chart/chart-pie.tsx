@@ -21,7 +21,7 @@ import {
 } from './chart-schema'
 import { formatChartValue, type SlotPaint, seriesValues } from './chart-series'
 import { chartPolicy, isSparkBox, policyPlotHeight } from './chart-tier'
-import { useChartHover } from './context'
+import { useChartFullscreen, useChartHover } from './context'
 import {
 	CALLOUT_CHAR_WIDTH,
 	CALLOUT_GAP,
@@ -489,6 +489,32 @@ function resolvePieFit(
 }
 
 /**
+ * The ratio a default pie / donut takes inside the fullscreen dialog. The
+ * dialog panel is sized for a 16/9 chart — the same ratio the cartesian charts
+ * default to — so a pie left at its square content fit fills the panel's width
+ * and overruns its height cap; there it adopts the panel's ratio instead. An
+ * explicit `aspectRatio` still wins. See {@link ChartContextMenu}.
+ *
+ * @internal
+ */
+const FULLSCREEN_ASPECT_RATIO: ChartAspectRatio = '16/9'
+
+/**
+ * The aspect a pie frame resolves its sizing through: the caller's explicit
+ * `aspectRatio` when set, else the {@link FULLSCREEN_ASPECT_RATIO} while the
+ * chart is the fullscreen dialog's re-mounted copy, else free-form so the frame
+ * fits the pie's own content. Kept off {@link ChartPie}'s own branch count.
+ *
+ * @internal
+ */
+function pieAspectRatio(
+	aspectRatio: ChartAspectRatio | undefined,
+	fullscreen: boolean,
+): ChartAspectRatio | undefined {
+	return aspectRatio ?? (fullscreen ? FULLSCREEN_ASPECT_RATIO : undefined)
+}
+
+/**
  * The pie frame's sizing policy: an explicit `height` or `aspectRatio` always
  * wins, resolved the same way every cartesian chart does. Left at both
  * defaults, the frame instead fits its height to the pie's own footprint —
@@ -742,6 +768,11 @@ export function ChartPie<T>(props: ChartPieProps<T>) {
 		...name
 	} = props
 
+	// Free-form, a pie fits its own square footprint; inside the fullscreen dialog
+	// that square overruns the 16/9 panel, so the re-mounted copy takes the panel's
+	// ratio there instead.
+	const frameAspectRatio = pieAspectRatio(aspectRatio, useChartFullscreen())
+
 	const { segment: showSegmentLabels, callouts: showCallouts } = resolvePieLabels(labels)
 
 	const { show: showTooltip, trigger } = resolveTooltip(tooltip)
@@ -765,7 +796,7 @@ export function ChartPie<T>(props: ChartPieProps<T>) {
 	// pie's own radius reacts to that, below.
 	const sizing = pieFrameSizing(
 		height,
-		aspectRatio,
+		frameAspectRatio,
 		calloutRoom(showCallouts, calloutSpec, values),
 		vMargin,
 		calloutFitRadius(showCallouts, calloutSpec, values, vMargin),
