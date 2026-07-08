@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { ChartFullscreenContext } from '../../modules/chart/context'
 import { DonutChart } from '../../modules/chart/donut-chart'
 import { allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
 
@@ -121,5 +122,20 @@ describe('DonutChart', () => {
 		const { container } = renderUI(chart({ animate: true }))
 
 		expect(allBySlot(container, 'chart-slice')).toHaveLength(3)
+	})
+
+	it('restricts the default donut to 16/9 inside the fullscreen dialog', () => {
+		// A donut shares the pie's sizing: on the page it fits its own square, and
+		// the fullscreen copy takes the 16/9 panel's ratio — 300 / (16/9) ≈ 169 —
+		// so it holds the panel's height rather than overrunning it as a square.
+		const page = renderUI(chart({ height: undefined }))
+
+		expect(page.container.querySelector('svg')?.getAttribute('viewBox')).toBe('0 0 300 300')
+
+		const { container } = renderUI(
+			<ChartFullscreenContext value={true}>{chart({ height: undefined })}</ChartFullscreenContext>,
+		)
+
+		expect(container.querySelector('svg')?.getAttribute('viewBox')).toBe('0 0 300 169')
 	})
 })

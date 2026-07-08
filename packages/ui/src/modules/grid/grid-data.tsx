@@ -588,6 +588,28 @@ function buildRovingCellActivate<T>(
 }
 
 /**
+ * Composes the grid's own cell double-click intent (double-click-to-edit, see
+ * {@link GridEditableConfig.trigger}) with the consumer's handler on the one
+ * built-in event: the internal intent fires first, then the consumer is
+ * notified. Either alone passes through untouched; `undefined` when neither is
+ * set, so an inert row attaches no handler.
+ *
+ * @internal
+ */
+function composeCellDoubleClick<T>(
+	internal: GridCellClick<T> | undefined,
+	consumer: GridCellClick<T> | undefined,
+): GridCellClick<T> | undefined {
+	if (!internal || !consumer) return internal ?? consumer
+
+	return (cell, event) => {
+		internal(cell, event)
+
+		consumer(cell, event)
+	}
+}
+
+/**
  * Resolves the column-group band row for the rendered columns: the
  * {@link GridGroupHeader} spans (from the visible column ids and their pin
  * sides) and whether any band actually spans columns. Kept out of
@@ -935,6 +957,13 @@ export function GridData<T>({
 			dataColumnsRef,
 		},
 	})
+
+	// Double-click-to-edit (under `editable.trigger: 'doubleClick'`) rides the
+	// built-in cell double-click event, ahead of the consumer's handler.
+	const cellDoubleClick = useMemo(
+		() => composeCellDoubleClick(cursor.editOnCellDoubleClick, handleCellDoubleClick),
+		[cursor.editOnCellDoubleClick, handleCellDoubleClick],
+	)
 
 	const { sort, setSort, toggleSort } = useGridSort(sortConfig)
 
@@ -1333,7 +1362,9 @@ export function GridData<T>({
 	// doesn't light up mid-drag.
 	const rowHover = resolveHover(
 		hover,
-		{ onRowClick, onCellClick, onRowDoubleClick, onCellDoubleClick },
+		// The composed double-click stands in for the raw prop so the grid's own
+		// double-click-to-edit rows carry the hover wash too.
+		{ onRowClick, onCellClick, onRowDoubleClick, onCellDoubleClick: cellDoubleClick },
 		resizing,
 	)
 
@@ -1425,7 +1456,7 @@ export function GridData<T>({
 					onRowClick={handleRowClick}
 					onCellClick={handleCellClick}
 					onRowDoubleClick={handleRowDoubleClick}
-					onCellDoubleClick={handleCellDoubleClick}
+					onCellDoubleClick={cellDoubleClick}
 					rowRoving={roving.rovingRows}
 					rowStaticStop={roving.rowStaticStop}
 					cellRoving={roving.rovingCells}

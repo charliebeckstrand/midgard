@@ -173,7 +173,10 @@ export function EditableExample() {
 	// `name`/`email` infer a text editor and `active` a yes/no listbox from their
 	// value type; `role` overrides with a listbox slot. The pencil swaps the whole
 	// row into edit mode (every cell becomes an editor); the check saves the row's
-	// edits together.
+	// edits together. `trigger: 'doubleClick'` adds the grid-owned session over
+	// the same binding: double-click a cell (or press Enter on the cursor's active
+	// cell) to start editing its row, Enter in an editor to save, Escape to
+	// discard.
 	const columns: GridColumn<Person>[] = [
 		{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
 		{ id: 'email', title: 'Email', field: 'email', cell: (row) => row.email },
@@ -237,8 +240,8 @@ export function EditableExample() {
 	return (
 		<>
 			<EditHelp label="Editing help">
-				Click the pencil to edit a row: every cell becomes an editor at once. Make your changes,
-				then click the check to save them together. Escape reverts a cell.
+				Double-click a cell (or click the pencil) to edit its row: every cell becomes an editor at
+				once. Enter saves the row's changes together — as does the check — and Escape discards them.
 			</EditHelp>
 			<Grid
 				columns={columns}
@@ -247,6 +250,7 @@ export function EditableExample() {
 				editable={{
 					rows: editing,
 					onRowsChange: setEditing,
+					trigger: 'doubleClick',
 					onValueChange: (changes) => setPeople((prev) => applyChanges(prev, changes)),
 				}}
 			/>

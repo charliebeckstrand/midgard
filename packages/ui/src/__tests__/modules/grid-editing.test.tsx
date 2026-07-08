@@ -258,4 +258,190 @@ describe('Grid per-row editing', () => {
 
 		expect(liveRegion()).toHaveTextContent('1 cell updated')
 	})
+
+	it('does not enter edit mode on a cell double-click in the default manual mode', () => {
+		const { container } = renderGrid()
+
+		fireEvent.doubleClick(container.querySelector('td[data-grid-col="name"]') as HTMLElement)
+
+		expect(bySlot(container, 'grid-edit-input')).toBeNull()
+	})
+})
+
+/**
+ * Grid-owned edit sessions (`editable.trigger: 'doubleClick'`): double-clicking
+ * an editable data cell — through the grid's built-in cell double-click event —
+ * or pressing Enter on the keyboard cursor's active cell puts its row into edit
+ * mode and focuses that cell's editor; an editor's Enter saves the row as the
+ * usual one-batch commit and Escape abandons its staged edits, focus returning
+ * to the grid's tab stop either way. Entry and exit flow through the same
+ * controllable set, so `onRowsChange` reports every transition.
+ */
+describe("Grid double-click-to-edit (trigger: 'doubleClick')", () => {
+	type Row = { id: number; name: string; count: number; done: boolean }
+
+	const baseRows: Row[] = [
+		{ id: 1, name: 'Alice', count: 2, done: false },
+		{ id: 2, name: 'Bob', count: 5, done: true },
+	]
+
+	const columns: GridColumn<Row>[] = [
+		{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
+		{ id: 'count', title: 'Count', field: 'count', cell: (row) => String(row.count) },
+	]
+
+	function renderTriggerGrid(cols: GridColumn<Row>[] = columns) {
+		const onValueChange = vi.fn()
+
+		const onRowsChange = vi.fn()
+
+		const view = renderUI(
+			<Grid
+				columns={cols}
+				rows={baseRows}
+				getKey={(row) => row.id}
+				editable={{ trigger: 'doubleClick', onRowsChange, onValueChange }}
+			/>,
+		)
+
+		return {
+			...view,
+			onValueChange,
+			onRowsChange,
+			cell: (col: string, rowIndex = 0) =>
+				view.container.querySelectorAll<HTMLElement>(`td[data-grid-col="${col}"]`)[
+					rowIndex
+				] as HTMLElement,
+		}
+	}
+
+	it("puts the row into edit mode on an editable cell double-click and focuses that cell's editor", () => {
+		const { container, cell, onRowsChange } = renderTriggerGrid()
+
+		fireEvent.doubleClick(cell('name'))
+
+		// The whole row edits (the per-row model), and the double-clicked cell's
+		// editor takes focus.
+		expect(bySlot(container, 'grid-edit-input')).toHaveFocus()
+
+		expect(bySlot(container, 'grid-edit-number-input')).toBeInTheDocument()
+
+		// The entry flows through the controllable set, so a bound consumer hears it.
+		expect(onRowsChange).toHaveBeenCalledWith(new Set([1]))
+	})
+
+	it('ignores a double-click on a readOnly column', () => {
+		const { container, cell } = renderTriggerGrid([
+			{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
+			{
+				id: 'count',
+				title: 'Count',
+				field: 'count',
+				cell: (row) => String(row.count),
+				readOnly: true,
+			},
+		])
+
+		fireEvent.doubleClick(cell('count'))
+
+		expect(bySlot(container, 'grid-edit-input')).toBeNull()
+	})
+
+	it('saves the row as one batch on Enter and returns focus to the grid', () => {
+		const { container, cell, onValueChange, getByRole } = renderTriggerGrid()
+
+		fireEvent.doubleClick(cell('name'))
+
+		const input = bySlot(container, 'grid-edit-input') as HTMLInputElement
+
+		fireEvent.change(input, { target: { value: 'Alicia' } })
+
+		fireEvent.keyDown(input, { key: 'Enter' })
+
+		expect(onValueChange).toHaveBeenCalledTimes(1)
+
+		expect(onValueChange).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'name', value: 'Alicia' }])
+
+		// The editors close and the keyboard lands back on the grid's tab stop.
+		expect(bySlot(container, 'grid-edit-input')).toBeNull()
+
+		expect(getByRole('grid')).toHaveFocus()
+	})
+
+	it("abandons the row's staged edits on Escape without emitting", () => {
+		const { container, cell, onValueChange } = renderTriggerGrid()
+
+		fireEvent.doubleClick(cell('name'))
+
+		const input = bySlot(container, 'grid-edit-input') as HTMLInputElement
+
+		fireEvent.change(input, { target: { value: 'Discarded' } })
+
+		fireEvent.keyDown(input, { key: 'Escape' })
+
+		expect(bySlot(container, 'grid-edit-input')).toBeNull()
+
+		expect(onValueChange).not.toHaveBeenCalled()
+
+		// The drafts are dropped, not held: re-entering shows the row's value.
+		fireEvent.doubleClick(cell('name'))
+
+		expect((bySlot(container, 'grid-edit-input') as HTMLInputElement).value).toBe('Alice')
+	})
+
+	it("enters edit mode from the keyboard: Enter on the cursor's active cell", () => {
+		const { container, getByRole } = renderTriggerGrid()
+
+		const grid = getByRole('grid')
+
+		// Tab into the grid seeds the cursor on the first cell; Enter begins the edit.
+		fireEvent.focus(grid)
+
+		fireEvent.keyDown(grid, { key: 'Enter' })
+
+		expect(bySlot(container, 'grid-edit-input')).toHaveFocus()
+	})
+
+	it('abandons the session on Escape from any editor, not just the inferred inputs', () => {
+		const { container, cell, onValueChange } = renderTriggerGrid([
+			{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
+			{ id: 'done', title: 'Done', field: 'done', cell: (row) => (row.done ? 'Yes' : 'No') },
+		])
+
+		fireEvent.doubleClick(cell('name'))
+
+		// Escape from the (closed) boolean listbox abandons like from a text input:
+		// the editing cell's host owns the key, not each editor.
+		fireEvent.keyDown(bySlot(container, 'grid-edit-boolean-input') as HTMLElement, {
+			key: 'Escape',
+		})
+
+		expect(bySlot(container, 'grid-edit-input')).toBeNull()
+
+		expect(onValueChange).not.toHaveBeenCalled()
+	})
+
+	it('defers Escape to an open floating surface inside the cell', () => {
+		const { container, cell } = renderTriggerGrid([
+			{
+				id: 'name',
+				title: 'Name',
+				field: 'name',
+				cell: (row) => row.name,
+				editCell: () => (
+					<button type="button" data-slot="open-disclosure" aria-expanded="true">
+						open
+					</button>
+				),
+			},
+		])
+
+		fireEvent.doubleClick(cell('name'))
+
+		// The press belongs to the open surface — its document-level escape layer
+		// closes it after this handler — so the session stays alive.
+		fireEvent.keyDown(bySlot(container, 'open-disclosure') as HTMLElement, { key: 'Escape' })
+
+		expect(bySlot(container, 'open-disclosure')).toBeInTheDocument()
+	})
 })
