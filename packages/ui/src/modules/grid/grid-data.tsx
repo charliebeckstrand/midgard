@@ -1379,6 +1379,8 @@ export function GridData<T>({
 		reorder,
 		visibleColumns,
 		reorderColumns,
+		onReorderStart: columnOrderConfig?.onReorderStart,
+		onReorderEnd: columnOrderConfig?.onReorderEnd,
 	})
 
 	// Row drag-reorder rides @dnd-kit's vertical sortable; `rowReorderPermitted`

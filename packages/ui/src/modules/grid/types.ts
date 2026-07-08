@@ -355,6 +355,20 @@ export type GridColumnSizing = {
 	value?: GridColumnSizingState
 	defaultValue?: GridColumnSizingState
 	onValueChange?: (sizing: GridColumnSizingState) => void
+	/**
+	 * Fires with the column id when a pointer/touch drag-resize begins. Pair with
+	 * {@link GridColumnSizing.onResizeEnd} to bracket the drag. A keyboard nudge
+	 * has no drag lifecycle — it commits straight through
+	 * {@link GridColumnSizing.onValueChange} — so it fires neither.
+	 */
+	onResizeStart?: (columnId: string) => void
+	/**
+	 * Fires with the column id when a pointer/touch drag-resize ends. The settled
+	 * width has already flowed through {@link GridColumnSizing.onValueChange}; this
+	 * only marks the drag's conclusion (e.g. to re-enable something held down over
+	 * it).
+	 */
+	onResizeEnd?: (columnId: string) => void
 }
 
 /**
