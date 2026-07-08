@@ -87,6 +87,44 @@ describe('Chart context menu', () => {
 		expect(screen.getByRole('dialog')).toBeInTheDocument()
 	})
 
+	it('seats initial focus on Close so the fullscreen dialog opens with a tab stop', () => {
+		const { container } = renderUI(
+			<BarChart
+				aria-label="Revenue by quarter"
+				title="Revenue by quarter"
+				data={data}
+				series={[...series]}
+			/>,
+		)
+
+		openChartMenu(container)
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Fullscreen' }))
+
+		expect(screen.getByRole('button', { name: 'Close' })).toHaveFocus()
+	})
+
+	it('closes the fullscreen dialog on Escape', () => {
+		const { container } = renderUI(
+			<BarChart
+				aria-label="Revenue by quarter"
+				title="Revenue by quarter"
+				data={data}
+				series={[...series]}
+			/>,
+		)
+
+		openChartMenu(container)
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Fullscreen' }))
+
+		expect(screen.getByRole('dialog')).toBeInTheDocument()
+
+		fireEvent.keyDown(document.body, { key: 'Escape' })
+
+		expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+	})
+
 	it('leaves the native menu with contextMenu={false}', () => {
 		const { container } = renderUI(
 			<BarChart
