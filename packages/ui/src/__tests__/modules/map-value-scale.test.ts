@@ -84,6 +84,26 @@ describe('resolveValueBins', () => {
 		expect(domain).toEqual([0, 200])
 	})
 
+	it('treats a null or empty value as no-data, so it never drags the domain floor to zero', () => {
+		type Loose = { id: string; v: number | null | string }
+
+		const rows: Loose[] = [
+			{ id: 'a', v: null },
+			{ id: 'b', v: '' },
+			{ id: 'c', v: 50 },
+			{ id: 'd', v: 100 },
+		]
+
+		const { domain } = resolveValueBins(rows, 'v', {
+			colorRange: ['#000000', '#ffffff'],
+			format: round,
+		})
+
+		// A bare Number(null)/Number('') is 0 and would pull the extent to [0, 100];
+		// the blanks are excluded, so the real minimum stands.
+		expect(domain).toEqual([50, 100])
+	})
+
 	it('returns no bins and a null domain when no row carries a finite value', () => {
 		const empty = resolveValueBins([{ id: 'a', v: Number.NaN }], 'v', {
 			colorRange: ['#000000', '#ffffff'],
@@ -109,6 +129,24 @@ describe('regionValueIndexes', () => {
 		)
 
 		expect(regionValueIndexes(['a'], ROWS, 'id', 'v', 3, null)).toEqual([null])
+	})
+
+	it('reads null for a blank value rather than binning it as zero', () => {
+		type Loose = { id: string; v: number | null | string }
+
+		const rows: Loose[] = [
+			{ id: 'a', v: null },
+			{ id: 'b', v: '' },
+			{ id: 'c', v: 100 },
+		]
+
+		// `null` and `''` are no-data (the neutral fill), not bin 0 — only the real
+		// value bins.
+		expect(regionValueIndexes(['a', 'b', 'c'], rows, 'id', 'v', 4, [0, 100])).toEqual([
+			null,
+			null,
+			3,
+		])
 	})
 
 	it('places every region in bin 0 when the domain has no span', () => {
