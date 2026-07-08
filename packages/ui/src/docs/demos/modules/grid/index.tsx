@@ -495,13 +495,7 @@ const RowClickExample = () => {
 				getKey={(row) => row.id}
 				onRowClick={(row) => setPicked(row)}
 			/>
-			{picked ? (
-				<JsonTree data={picked} />
-			) : (
-				<Text size="sm" severity="muted">
-					Click a row to inspect its datum.
-				</Text>
-			)}
+			{picked && <JsonTree data={picked} />}
 		</Stack>
 	)
 }
@@ -519,19 +513,12 @@ const CellClickExample = () => {
 	return (
 		<Stack gap="md">
 			<Grid
-				navigable
 				columns={columns}
 				rows={people}
 				getKey={(row) => row.id}
 				onCellClick={(cell) => setPicked({ ...cell, value: String(cell.value) })}
 			/>
-			{picked ? (
-				<JsonTree data={picked} />
-			) : (
-				<Text size="sm" severity="muted">
-					Click a cell to inspect its context.
-				</Text>
-			)}
+			{picked && <JsonTree data={picked} />}
 		</Stack>
 	)
 }
@@ -554,13 +541,7 @@ const DoubleClickExample = () => {
 					setPicked({ event: 'cellDoubleClick', ...cell, value: String(cell.value) })
 				}
 			/>
-			{picked ? (
-				<JsonTree data={picked} />
-			) : (
-				<Text size="sm" severity="muted">
-					Double-click a cell to inspect the event payload.
-				</Text>
-			)}
+			{picked && <JsonTree data={picked} />}
 		</Stack>
 	)
 }
@@ -936,6 +917,24 @@ const ExportExample = () => (
 	/>
 )
 
+// `selection` and `exportable` work together: when a selection is active, the
+// export menu and context items only include the selected rows. The grid doesn't
+// own the selection state, so the consumer must hold it and pass it back to the
+// grid.
+const ExportWithSelectionExample = () => {
+	const [selection, setSelection] = useState<Set<string | number>>(new Set())
+
+	return (
+		<Grid
+			exportable={['csv', 'excel']}
+			columns={[{ id: 'select', selectable: true }, ...filterableColumns]}
+			rows={people}
+			getKey={(row) => row.id}
+			selection={{ value: selection, onValueChange: (s) => setSelection(s ?? new Set()) }}
+		/>
+	)
+}
+
 const ServerPaginationExample = () => {
 	const [pagination, setPagination] = useState<GridPaginationState>({ pageIndex: 0, pageSize: 10 })
 
@@ -976,11 +975,11 @@ const ClientPaginationExample = () => (
 	/>
 )
 
-// Local infinite scroll: the whole set is held in memory, and the grid renders a
+// Client-side infinite scroll: the whole set is held in memory, and the grid renders a
 // growing slice of it through the virtual window. `onLoadMore` lifts the slice
 // synchronously as the scroll nears the loaded end; `hasMore` stops it once the
 // slice reaches the full set.
-const LocalInfiniteScrollExample = () => {
+const ClientInfiniteScrollExample = () => {
 	const [count, setCount] = useState(20)
 
 	const rows = useMemo(() => manyPeople.slice(0, count), [count])
@@ -1019,7 +1018,7 @@ const makeServerRows = (offset: number, limit: number): Person[] =>
 // Stand-in for a paged server fetch: resolve the next page after a short delay.
 const fetchServerRows = (offset: number): Promise<Person[]> =>
 	new Promise((resolve) => {
-		setTimeout(() => resolve(makeServerRows(offset, 25)), 600)
+		setTimeout(() => resolve(makeServerRows(offset, 25)), 500)
 	})
 
 // Server-side rendered infinite scroll: the first page stands in for the server-rendered
@@ -1529,8 +1528,15 @@ export function Demo() {
 
 				<TabContent value="Export">
 					<Stack gap="xl">
-						<Example title="CSV + Excel" code={code`<Grid exportable={['csv', 'excel']} />`}>
+						<Example title="Export" code={code`<Grid exportable={['csv', 'excel']} />`}>
 							<ExportExample />
+						</Example>
+
+						<Example
+							title="Export with selection"
+							code={code`<Grid exportable={['csv', 'excel']} selection={{ value, onValueChange }} />`}
+						>
+							<ExportWithSelectionExample />
 						</Example>
 					</Stack>
 				</TabContent>
@@ -1562,21 +1568,47 @@ export function Demo() {
 				</TabContent>
 
 				<TabContent value="Virtualization">
-					<Stack gap="xl">
+					<Tabs defaultValue="Client">
+						<TabList aria-label="Virtualization type">
+							<Tab value="Client">Client</Tab>
+							<Tab value="Server">Server</Tab>
+						</TabList>
+						<TabContents fade={false}>
+							<TabContent value="Client">
+								<Stack gap="xl">
+									<Example title="Client virtualization" code={code`<Grid virtualize />`}>
+										<ClientInfiniteScrollExample />
+									</Example>
+								</Stack>
+							</TabContent>
+
+							<TabContent value="Server">
+								<Stack gap="xl">
+									<Example
+										title="Server virtualization"
+										code={code`<Grid virtualize infiniteScroll={{ onLoadMore, hasMore, loadingMore }} />`}
+									>
+										<ServerInfiniteScrollExample />
+									</Example>
+								</Stack>
+							</TabContent>
+						</TabContents>
+					</Tabs>
+					{/* <Stack gap="xl">
 						<Example
-							title="Local"
+							title="Client infinite scroll"
 							code={code`<Grid virtualize infiniteScroll={{ onLoadMore, hasMore }} />`}
 						>
-							<LocalInfiniteScrollExample />
+							<ClientInfiniteScrollExample />
 						</Example>
 
 						<Example
-							title="Server-side rendered"
+							title="Server-side infinite scroll"
 							code={code`<Grid virtualize infiniteScroll={{ onLoadMore, hasMore, loadingMore }} />`}
 						>
 							<ServerInfiniteScrollExample />
 						</Example>
-					</Stack>
+					</Stack> */}
 				</TabContent>
 
 				<TabContent value="State">
