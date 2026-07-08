@@ -14,9 +14,10 @@ function placeholderRows() {
  * contract): the backend groups, and `rows` is the rendered sequence — group
  * headers carrying counts and aggregates, interleaved with the children of
  * expanded groups. Expansion is a controlled key set whose expand toggles fire
- * the `onGroupExpand` lazy-load hook, and the `panel` flag surfaces the group
- * panel whose affordances emit through `onValueChange`. The manual mode stands
- * the cursor / virtualization / total rows down, tested elsewhere by absence.
+ * the `onGroupExpand` lazy-load hook, and the `groupButton` flag adds a per-column
+ * header group-by button that toggles grouping through `onValueChange`. The manual
+ * mode stands the cursor / virtualization / total rows down, tested elsewhere by
+ * absence.
  */
 describe('Grid manual (server-side) row grouping', () => {
 	type Sale = {
@@ -85,7 +86,7 @@ describe('Grid manual (server-side) row grouping', () => {
 		return screen.getByText(text).closest('tr')
 	}
 
-	it('emits the grouped column when a groupable header affordance is pressed', async () => {
+	it('emits the grouped column when a groupable header button is pressed', async () => {
 		const user = userEvent.setup()
 
 		const onValueChange = vi.fn()
@@ -95,22 +96,24 @@ describe('Grid manual (server-side) row grouping', () => {
 				columns={columns}
 				rows={westChildren}
 				getKey={getKey}
-				groupBy={{ manual: true, value: null, onValueChange, groupRow, panel: true }}
+				groupBy={{ manual: true, value: null, onValueChange, groupRow, groupButton: true }}
 			/>,
 		)
 
-		// Ungrouped: the panel invites a drop, and only the groupable column offers
-		// the affordance.
-		expect(screen.getByText('Drag a column here to group its rows')).toBeInTheDocument()
+		// Only the groupable column offers the button, and it reads unpressed while
+		// ungrouped.
+		expect(screen.queryByRole('button', { name: 'Group by Rep' })).not.toBeInTheDocument()
 
-		expect(screen.queryByRole('button', { name: 'Group rows by Rep' })).not.toBeInTheDocument()
+		const button = screen.getByRole('button', { name: 'Group by Region' })
 
-		await user.click(screen.getByRole('button', { name: 'Group rows by Region' }))
+		expect(button).toHaveAttribute('aria-pressed', 'false')
+
+		await user.click(button)
 
 		expect(onValueChange).toHaveBeenCalledWith('region')
 	})
 
-	it('shows the active group as a panel chip whose remove button ungroups', async () => {
+	it('keeps the active column button pressed and ungroups on a second press', async () => {
 		const user = userEvent.setup()
 
 		const onValueChange = vi.fn()
@@ -120,14 +123,17 @@ describe('Grid manual (server-side) row grouping', () => {
 				columns={columns}
 				rows={[westHeader, eastHeader]}
 				getKey={getKey}
-				groupBy={{ manual: true, value: 'region', onValueChange, groupRow, panel: true }}
+				groupBy={{ manual: true, value: 'region', onValueChange, groupRow, groupButton: true }}
 			/>,
 		)
 
-		// The active column's header affordance stands down; the chip owns the state.
-		expect(screen.queryByRole('button', { name: 'Group rows by Region' })).not.toBeInTheDocument()
+		// The active column's button stays put (unlike the old panel, which hid it),
+		// reading pressed; a second press ungroups.
+		const button = screen.getByRole('button', { name: 'Group by Region' })
 
-		await user.click(screen.getByRole('button', { name: 'Ungroup Region' }))
+		expect(button).toHaveAttribute('aria-pressed', 'true')
+
+		await user.click(button)
 
 		expect(onValueChange).toHaveBeenCalledWith(null)
 	})

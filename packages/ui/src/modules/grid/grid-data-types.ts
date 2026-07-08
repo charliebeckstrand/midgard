@@ -162,7 +162,7 @@ export type GridGroupBy<T = unknown> = {
 	value?: string | number | null
 	/** Initial grouped column id for the uncontrolled case. @defaultValue null */
 	defaultValue?: string | number | null
-	/** Fires with the next grouped column id (or `null` when grouping is cleared) — a {@link GridGroupBy.panel} edit, or a controlled write. */
+	/** Fires with the next grouped column id (or `null` when grouping is cleared) — a {@link GridGroupBy.groupButton} press, or a controlled write. */
 	onValueChange?: (columnId: string | number | null) => void
 	/**
 	 * Whether groups start expanded (rows visible) or collapsed (just the group
@@ -231,15 +231,15 @@ export type GridGroupBy<T = unknown> = {
 	 */
 	onGroupExpand?: (key: string | number) => void
 	/**
-	 * Renders the group panel above the table: drag a
-	 * {@link GridColumn.groupable} column in (or press the "group rows by"
-	 * affordance its header gains) to group by it, and remove the active chip
-	 * to ungroup — each emitting through {@link GridGroupBy.onValueChange}.
-	 * Works in both modes; single-level, so the panel holds one column and a
-	 * second drop replaces it.
+	 * Adds a group-by button to each {@link GridColumn.groupable} column header:
+	 * press it to group the rows by that column, press it again to ungroup —
+	 * each emitting through {@link GridGroupBy.onValueChange}. The active
+	 * column's button holds a blue accent, like an applied column filter. Works
+	 * in both modes; single-level, so grouping one column replaces any current
+	 * grouping.
 	 * @defaultValue false
 	 */
-	panel?: boolean
+	groupButton?: boolean
 	/**
 	 * Per-group presentation overlay the row manager edits — a palette color and a
 	 * manual leaf order keyed by each group's value (see {@link GridRowGroup}). The

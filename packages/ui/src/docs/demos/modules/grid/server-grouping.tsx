@@ -67,8 +67,8 @@ const fetchFlatRows = (): Promise<Order[]> =>
 const dollars = (value: unknown) => `$${Number(value).toLocaleString('en-US')}`
 
 const orderColumns: GridColumn<Order>[] = [
-	// `groupable` puts the column in play for the group panel: its header gains
-	// the group affordance (press, or drag into the panel).
+	// `groupable` puts the column in play for the group-by button: its header
+	// gains a button that groups on press and ungroups on a second press.
 	{
 		id: 'country',
 		title: 'Country',
@@ -109,8 +109,9 @@ const groupRow = (row: Order): GridGroupHeaderRow | null =>
 // headers with counts and aggregates, plus the children of any group expanded
 // so far. Expanding a group fires `onGroupExpand`, which fetches that group's
 // children and splices them in after their header; collapse just hides them
-// (they stay cached in state). The panel's chip and header affordances drive
-// `onValueChange`, which refetches grouped or flat as the grouping changes.
+// (they stay cached in state). A groupable column's header group-by button
+// drives `onValueChange`, which refetches grouped or flat as the grouping
+// changes.
 export const ServerGroupingExample = () => {
 	const [rows, setRows] = useState<Order[]>([])
 
@@ -185,7 +186,7 @@ export const ServerGroupingExample = () => {
 				value: groupedBy,
 				onValueChange: regroup,
 				groupRow,
-				panel: true,
+				groupButton: true,
 				expanded,
 				onExpandedChange: setExpanded,
 				onGroupExpand: loadChildren,

@@ -49,12 +49,7 @@ import type {
 	GridVirtualize,
 } from './grid-data-types'
 import { GridFooter as GridFooterBar } from './grid-footer'
-import {
-	GridGroupByContext,
-	type GridGroupByContextValue,
-	GridGroupByDndRegion,
-	GridGroupByPanel,
-} from './grid-group-by-panel'
+import { GridGroupByContext, type GridGroupByContextValue } from './grid-group-by-button'
 import { GridHead } from './grid-head'
 import { useGridMenuActions } from './grid-menu-actions'
 import { GridPagination as GridPaginationFooter } from './grid-pagination'
@@ -230,26 +225,24 @@ function resolveManualGroupBody<T>(args: {
 }
 
 /**
- * The group-panel context value the header handles and the panel read, or
- * `null` while the `groupBy.panel` flag is off — both then render nothing.
- * Kept off {@link GridData}'s complexity budget.
+ * The group-by context value the header buttons read, or `null` while the
+ * `groupBy.groupButton` flag is off — the buttons then render nothing. Kept off
+ * {@link GridData}'s complexity budget.
  *
  * @internal
  */
-function resolveGroupByPanel(args: {
-	panel: boolean
+function resolveGroupByContext(args: {
+	groupButton: boolean
 	grouping: (string | number) | null
 	setGrouping: (next: (string | number) | null) => void
 	hasData: boolean
-	dragDisabled: boolean
 }): GridGroupByContextValue | null {
-	if (!args.panel) return null
+	if (!args.groupButton) return null
 
 	return {
 		grouping: args.grouping,
 		setGrouping: args.setGrouping,
 		enabled: args.hasData,
-		dragDisabled: args.dragDisabled,
 	}
 }
 
@@ -372,6 +365,8 @@ type GridRegionProps<T> = {
 	clearSort: () => void
 	/** Pins a column to an edge, or unpins it with `false`; backs the header menu's Pin items. */
 	pinColumn: (column: string | number, side: PinSide | false) => void
+	/** The group-by wiring, or `null` when the group button is off; backs the header menu's "Group by …" item. */
+	groupBy: GridGroupByContextValue | null
 	autoSizeColumns: (() => void) | null
 	chooseColumns: (() => void) | null
 	/** One action per configured export type; empty when export is off. */
@@ -405,6 +400,7 @@ function GridRegion<T>({
 	sortColumn,
 	clearSort,
 	pinColumn,
+	groupBy,
 	autoSizeColumns,
 	chooseColumns,
 	exportActions,
@@ -434,6 +430,7 @@ function GridRegion<T>({
 			sortColumn={sortColumn}
 			clearSort={clearSort}
 			pinColumn={pinColumn}
+			groupBy={groupBy}
 			autoSizeColumns={autoSizeColumns}
 			chooseColumns={chooseColumns}
 			exportActions={exportActions}
@@ -1376,20 +1373,17 @@ export function GridData<T>({
 		[manualGroupingActive, groupRow, manualExpanded, toggleGroup],
 	)
 
-	// The group panel's wiring, or `null` while `groupBy.panel` is off — the
-	// panel and the header handles then render nothing. The pointer drag stands
-	// down (the press-to-group path stays) while a column or row reorder owns
-	// the nested dnd context, which would swallow the handle's drag.
-	const groupByPanel = useMemo(
+	// The group-by wiring, or `null` while `groupBy.groupButton` is off — the
+	// header buttons then render nothing.
+	const groupByContext = useMemo(
 		() =>
-			resolveGroupByPanel({
-				panel: groupByConfig?.panel === true,
+			resolveGroupByContext({
+				groupButton: groupByConfig?.groupButton === true,
 				grouping,
 				setGrouping,
 				hasData,
-				dragDisabled: reorderActive || rowReorderActive,
 			}),
-		[groupByConfig?.panel, grouping, setGrouping, hasData, reorderActive, rowReorderActive],
+		[groupByConfig?.groupButton, grouping, setGrouping, hasData],
 	)
 
 	// The cursor store is always provided (inert when not navigable/editable); only
@@ -1561,42 +1555,35 @@ export function GridData<T>({
 						setSelection={setSelection}
 					/>
 
-					<GridGroupByContext value={groupByPanel}>
-						<GridGroupByDndRegion
-							active={groupByPanel != null}
-							columns={pinnedColumns}
-							setGrouping={setGrouping}
+					<GridGroupByContext value={groupByContext}>
+						<GridRegion
+							canReorder={reorderActive}
+							dndContextProps={dndContextProps}
+							itemIds={itemIds}
+							strategy={strategy}
+							activeReorderId={activeId}
+							contextMenu={resolvedContextMenu}
+							columns={visibleColumns}
+							rows={renderRows}
+							rowKeys={rowKeys}
+							sort={sort}
+							sortColumn={sortColumn}
+							clearSort={clearSort}
+							pinColumn={pinColumn}
+							groupBy={groupByContext}
+							autoSizeColumns={autoSizeColumns}
+							chooseColumns={chooseColumns}
+							exportActions={exportActions}
+							rowGroupMenu={rowManager.rowGroupMenu}
+							columnGroupMenu={columnGroupMenu}
 						>
-							<GridGroupByPanel columns={pinnedColumns} />
-
-							<GridRegion
-								canReorder={reorderActive}
-								dndContextProps={dndContextProps}
-								itemIds={itemIds}
-								strategy={strategy}
-								activeReorderId={activeId}
-								contextMenu={resolvedContextMenu}
-								columns={visibleColumns}
-								rows={renderRows}
-								rowKeys={rowKeys}
-								sort={sort}
-								sortColumn={sortColumn}
-								clearSort={clearSort}
-								pinColumn={pinColumn}
-								autoSizeColumns={autoSizeColumns}
-								chooseColumns={chooseColumns}
-								exportActions={exportActions}
-								rowGroupMenu={rowManager.rowGroupMenu}
-								columnGroupMenu={columnGroupMenu}
+							<GridRowReorderRegion
+								active={rowReorderActive}
+								dndContextProps={rowReorder.dndContextProps}
 							>
-								<GridRowReorderRegion
-									active={rowReorderActive}
-									dndContextProps={rowReorder.dndContextProps}
-								>
-									<DensityCascade level={density}>{tableRegion}</DensityCascade>
-								</GridRowReorderRegion>
-							</GridRegion>
-						</GridGroupByDndRegion>
+								<DensityCascade level={density}>{tableRegion}</DensityCascade>
+							</GridRowReorderRegion>
+						</GridRegion>
 					</GridGroupByContext>
 
 					<GridFooterBar config={footer} stats={footerStats} />
