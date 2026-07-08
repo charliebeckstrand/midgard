@@ -950,7 +950,7 @@ export function MapPlat<T = never>({
 		regionLabel,
 	)
 
-	const { hidden, toggle, setFocus, emphasis } = useMapToggle()
+	const { hidden, toggle, setFocus, emphasis: activeFocus } = useMapToggle()
 
 	const { entries, register } = useMapLegendRegistry()
 
@@ -972,6 +972,22 @@ export function MapPlat<T = never>({
 		() => new Map(entries.map((entry, index) => [entry.id, index])),
 		[entries],
 	)
+
+	// The focused id can outlive its entry: an overlay unmounting under the
+	// pointer fires no leave or blur, so `useMapToggle` keeps the dead id. Gate
+	// emphasis on the live legend ids — the categories plus the registered
+	// overlays — so a stale focus can't dim the whole map against a group that no
+	// mark belongs to.
+	const legendIds = useMemo(
+		() =>
+			new Set<string>([
+				...categoryMetas.map((meta) => categoryLegendId(meta.value)),
+				...entries.map((entry) => entry.id),
+			]),
+		[categoryMetas, entries],
+	)
+
+	const emphasis = activeFocus !== null && legendIds.has(activeFocus) ? activeFocus : null
 
 	const plat = useMemo<MapPlatContextValue>(
 		() => ({ project: shape.project, register, colors, order, hidden, emphasis, animate }),
