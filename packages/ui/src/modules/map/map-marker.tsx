@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'motion/react'
-import { type PointerEvent, type ReactNode, useEffect, useId, useMemo } from 'react'
+import { type PointerEvent, useEffect, useId, useMemo } from 'react'
 import { cn } from '../../core'
 import { k, type MapSeriesColor } from '../../recipes/kata/map'
 import { useMapHoverSet, useMapPlat } from './context'
@@ -14,7 +14,8 @@ import {
 	ROUTE_HIT_WIDTH,
 	ROUTE_STROKE_WIDTH,
 } from './map-constants'
-import { linePath, type MapPoint2D } from './map-geometry'
+import { MapDot } from './map-dot'
+import { linePath } from './map-geometry'
 import type { LngLat } from './types'
 
 /** Props for {@link MapMarker}. */
@@ -44,11 +45,13 @@ export type MapMarkerProps = {
  * colour; hovering any part raises the tooltip with the marker's name and
  * detail.
  *
- * @remarks Renders only inside {@link MapPlat}. Under the plat's `animate`
- * the journey plays in travel order — the origin pin pops, the connector
- * draws itself in from it, then the destination pin pops as the line lands —
- * so direction reads from the reveal. A pin whose position the projection
- * drops is omitted; the connector still draws through the surviving geometry.
+ * @remarks Renders only inside {@link MapPlat}. Pins and connector ride
+ * device pixels (non-scaling strokes), so a resize scales the geography under
+ * them without changing their size. Under the plat's `animate` the journey
+ * plays in travel order — the origin pin pops, the connector draws itself in
+ * from it, then the destination pin pops as the line lands — so direction
+ * reads from the reveal. A pin whose position the projection drops is
+ * omitted; the connector still draws through the surviving geometry.
  */
 export function MapMarker({ label, start, end, path, color, detail }: MapMarkerProps) {
 	const id = useId()
@@ -91,6 +94,9 @@ export function MapMarker({ label, start, end, path, color, detail }: MapMarkerP
 		strokeWidth: ROUTE_STROKE_WIDTH,
 		strokeLinecap: 'round' as const,
 		strokeLinejoin: 'round' as const,
+		// Width in device pixels, as the region borders: a resize whose refit
+		// lands late scales the geometry but must not thicken the line with it.
+		vectorEffect: 'non-scaling-stroke' as const,
 		className: cn(paint.stroke),
 	}
 
@@ -113,15 +119,25 @@ export function MapMarker({ label, start, end, path, color, detail }: MapMarkerP
 				))}
 
 			{from && (
-				<MarkerPin slot="map-marker-start" at={from} animate={animate} transition={PIN_POP}>
-					<circle cx={from.x} cy={from.y} r={PIN_RADIUS} className={cn(paint.fill)} />
-				</MarkerPin>
+				<MapDot
+					slot="map-marker-start"
+					at={from}
+					radius={PIN_RADIUS}
+					className={cn(paint.stroke)}
+					animate={animate}
+					transition={PIN_POP}
+				/>
 			)}
 
 			{to && (
-				<MarkerPin slot="map-marker-end" at={to} animate={animate} transition={MARKER_END_POP}>
-					<circle cx={to.x} cy={to.y} r={PIN_RADIUS} className={cn(paint.fill)} />
-				</MarkerPin>
+				<MapDot
+					slot="map-marker-end"
+					at={to}
+					radius={PIN_RADIUS}
+					className={cn(paint.stroke)}
+					animate={animate}
+					transition={MARKER_END_POP}
+				/>
 			)}
 
 			{d !== '' && (
@@ -164,34 +180,5 @@ export function MapMarker({ label, start, end, path, color, detail }: MapMarkerP
 				/>
 			)}
 		</g>
-	)
-}
-
-/** One pin, popping in on its own beat of the travel-order reveal. @internal */
-function MarkerPin({
-	slot,
-	at,
-	animate,
-	transition,
-	children,
-}: {
-	slot: string
-	at: MapPoint2D
-	animate: boolean
-	transition: { duration: number; delay?: number }
-	children: ReactNode
-}) {
-	if (!animate) return <g data-slot={slot}>{children}</g>
-
-	return (
-		<motion.g
-			data-slot={slot}
-			initial={{ opacity: 0, scale: 0 }}
-			animate={{ opacity: 1, scale: 1 }}
-			transition={transition}
-			style={{ transformOrigin: `${at.x}px ${at.y}px` }}
-		>
-			{children}
-		</motion.g>
 	)
 }

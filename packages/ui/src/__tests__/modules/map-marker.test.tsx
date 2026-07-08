@@ -21,24 +21,29 @@ describe('MapMarker', () => {
 	it('draws solid origin and destination pins and the connector between them', () => {
 		const { container } = renderUI(plat(<MapMarker label="A → C" start={START} end={END} />))
 
-		const start = bySlot(container, 'map-marker-start')?.querySelector('circle')
+		const start = bySlot(container, 'map-marker-start')
 
-		const end = bySlot(container, 'map-marker-end')?.querySelector('circle')
+		const end = bySlot(container, 'map-marker-end')
 
-		// Both pins are solid fill dots in the slot colour — no ring.
-		expect(start?.getAttribute('class')).toContain('fill-blue-600')
+		// Both pins are solid dots — zero-length round caps in the slot colour,
+		// stroke-painted so the non-scaling stroke holds device-pixel size.
+		expect(start?.getAttribute('class')).toContain('stroke-blue-600')
 
-		expect(start?.getAttribute('class')).not.toContain('stroke')
+		expect(start?.getAttribute('vector-effect')).toBe('non-scaling-stroke')
 
-		expect(end?.getAttribute('class')).toContain('fill-blue-600')
+		expect(end?.getAttribute('class')).toContain('stroke-blue-600')
 
-		expect(end?.getAttribute('class')).not.toContain('stroke')
+		expect(end?.getAttribute('vector-effect')).toBe('non-scaling-stroke')
 
 		const connector = bySlot(container, 'map-marker-path')
 
 		expect(connector?.getAttribute('d')).toMatch(/^M/)
 
 		expect(connector?.getAttribute('class')).toContain('stroke-blue-600')
+
+		// The connector's width rides device pixels too — a late refit scales the
+		// geometry, never the line.
+		expect(connector?.getAttribute('vector-effect')).toBe('non-scaling-stroke')
 	})
 
 	it('follows routed path geometry through intermediate waypoints', () => {

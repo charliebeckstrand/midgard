@@ -30,6 +30,10 @@ describe('MapRoute', () => {
 
 		expect(route?.getAttribute('class')).toContain('stroke-blue-600')
 
+		// The line's width rides device pixels — a late refit scales the geometry,
+		// never the stroke.
+		expect(route?.getAttribute('vector-effect')).toBe('non-scaling-stroke')
+
 		const hit = bySlot(container, 'map-route-hit')
 
 		expect(hit?.getAttribute('stroke-width')).toBe(String(ROUTE_HIT_WIDTH))
