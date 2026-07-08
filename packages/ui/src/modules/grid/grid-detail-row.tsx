@@ -55,15 +55,13 @@ export function GridExpandToggle({
 			aria-expanded={expanded}
 			aria-controls={detailPanelId(rowKey)}
 			aria-label={`${expanded ? 'Collapse' : 'Expand'} details for ${name}`}
-			className="p-0"
 		>
 			{/* The rotate rides this span, not the Icon — Icon forwards no `data-*`,
-			    so the `data-[open]:rotate-90` variant needs its own carrier. */}
-			<span
-				data-slot="grid-detail-chevron"
-				data-open={dataAttr(expanded)}
-				className={cn(k.detail.chevron)}
-			>
+			    so the `data-[open]:rotate-90` variant needs its own carrier. The span
+			    carries `data-slot="icon"` so the Button reads the toggle as icon-only
+			    and holds its square padding floor — without it the wrapper counts as a
+			    text label, swapping in the taller labeled-control height. */}
+			<span data-slot="icon" data-open={dataAttr(expanded)} className={cn(k.detail.chevron)}>
 				<Icon icon={<ChevronRight />} />
 			</span>
 		</Button>

@@ -53,16 +53,16 @@ describe('Grid master-detail', () => {
 		expect(toggle).toHaveAttribute('aria-expanded', 'false')
 
 		// The chevron carries `data-open` so its CSS rotate fires when the panel opens.
-		expect(toggle.querySelector('[data-slot="grid-detail-chevron"]')).not.toHaveAttribute(
-			'data-open',
-		)
+		// It is the toggle's first `data-slot="icon"` (the rotate carrier wrapping the
+		// glyph), which also lets the Button read the control as icon-only.
+		expect(toggle.querySelector('[data-slot="icon"]')).not.toHaveAttribute('data-open')
 
 		await user.click(toggle)
 
 		expect(
 			screen
 				.getByRole('button', { name: 'Collapse details for row 1' })
-				.querySelector('[data-slot="grid-detail-chevron"]'),
+				.querySelector('[data-slot="icon"]'),
 		).toHaveAttribute('data-open')
 
 		// The panel opens: aria-expanded flips, the detail row leaves the hidden state.
