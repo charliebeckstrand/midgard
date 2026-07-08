@@ -250,35 +250,37 @@ function stackedRibbons(
  * />
  * ```
  */
-export function AreaChart<T>({
-	data,
-	series,
-	size,
-	width,
-	height,
-	aspectRatio,
-	axes = true,
-	gridLines = true,
-	legend,
-	tooltip,
-	crosshair,
-	animate = false,
-	stacked = false,
-	texture = false,
-	points = false,
-	interpolation = 'linear',
-	min,
-	max,
-	leftAxis,
-	rightAxis,
-	reference,
-	xAxis,
-	tickRotation,
-	labels,
-	formatValue,
-	className,
-	...label
-}: AreaChartProps<T>) {
+export function AreaChart<T>(props: AreaChartProps<T>) {
+	const {
+		data,
+		series,
+		size,
+		width,
+		height,
+		aspectRatio,
+		axes = true,
+		gridLines = true,
+		legend,
+		tooltip,
+		crosshair,
+		animate = false,
+		stacked = false,
+		texture = false,
+		points = false,
+		interpolation = 'linear',
+		min,
+		max,
+		leftAxis,
+		rightAxis,
+		reference,
+		xAxis,
+		tickRotation,
+		labels,
+		formatValue,
+		className,
+		...label
+	} = props
+
 	const chart = useChartCartesian(
 		{
 			data,
@@ -386,6 +388,7 @@ export function AreaChart<T>({
 	return (
 		<ChartFrame
 			{...label}
+			fullscreen={<AreaChart {...props} />}
 			ref={chart.ref}
 			width={chart.width}
 			fixedWidth={chart.fixedWidth}

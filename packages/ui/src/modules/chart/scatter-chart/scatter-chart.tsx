@@ -350,28 +350,30 @@ function ScatterChrome(props: {
  * />
  * ```
  */
-export function ScatterChart<T>({
-	data,
-	series,
-	size,
-	width,
-	height,
-	aspectRatio = '16/9',
-	axes = true,
-	gridLines = true,
-	legend,
-	tooltip,
-	crosshair,
-	animate = false,
-	min,
-	max,
-	xMin,
-	xMax,
-	formatValue,
-	formatXValue,
-	className,
-	...label
-}: ScatterChartProps<T>) {
+export function ScatterChart<T>(props: ScatterChartProps<T>) {
+	const {
+		data,
+		series,
+		size,
+		width,
+		height,
+		aspectRatio = '16/9',
+		axes = true,
+		gridLines = true,
+		legend,
+		tooltip,
+		crosshair,
+		animate = false,
+		min,
+		max,
+		xMin,
+		xMax,
+		formatValue,
+		formatXValue,
+		className,
+		...label
+	} = props
+
 	const resolvedSize = useResolvedSize(size)
 
 	const metrics = CHART_METRICS[resolvedSize as Step] ?? CHART_METRICS.md
@@ -474,6 +476,7 @@ export function ScatterChart<T>({
 	return (
 		<ChartFrame
 			{...label}
+			fullscreen={<ScatterChart {...props} />}
 			ref={ref}
 			width={frameWidth}
 			fixedWidth={width}

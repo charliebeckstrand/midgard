@@ -46,6 +46,7 @@ import {
 } from '../chart-schema'
 import { formatChartValue, READOUT_GAP } from '../chart-series'
 import { ChartTable } from '../chart-table'
+import { useChartFullscreen } from '../context'
 import type { ChartReadout } from '../types'
 import { cellAt, heatmapCells } from './heatmap-chart-geometry'
 import {
@@ -689,28 +690,34 @@ function HeatmapFigure({ plot, legend, placement, aside }: HeatmapFigureProps) {
  * />
  * ```
  */
-export function HeatmapChart<T>({
-	data,
-	series,
-	width,
-	height,
-	aspectRatio,
-	legend,
-	tooltip,
-	formatValue,
-	className,
-	// Destructured off so the unwired base switches never fall into `...label` and
-	// spread onto the plot element as invalid DOM attributes. The heatmap draws no
-	// header (a range legend, not a series frame), so `subtitle` joins them; `title`
-	// is kept off the DOM too but still names the context menu's fullscreen view.
-	animate: _animate,
-	texture: _texture,
-	title,
-	subtitle: _subtitle,
-	contextMenu,
-	...label
-}: HeatmapChartProps<T>) {
+export function HeatmapChart<T>(props: HeatmapChartProps<T>) {
+	const {
+		data,
+		series,
+		width,
+		height,
+		aspectRatio,
+		legend,
+		tooltip,
+		formatValue,
+		className,
+		// Destructured off so the unwired base switches never fall into `...label` and
+		// spread onto the plot element as invalid DOM attributes. The heatmap draws no
+		// header (a range legend, not a series frame), so `subtitle` joins them; `title`
+		// is kept off the DOM too but still names the context menu's fullscreen view.
+		animate: _animate,
+		texture: _texture,
+		title,
+		subtitle: _subtitle,
+		contextMenu,
+		...label
+	} = props
+
 	const primary = series[0]
+
+	// A heatmap inside the fullscreen dialog is the menu's own re-mounted copy, so
+	// its frame skips the context menu (see the return below).
+	const isFullscreen = useChartFullscreen()
 
 	const { show: showTooltip, trigger } = resolveTooltip(tooltip)
 
@@ -830,32 +837,41 @@ export function HeatmapChart<T>({
 		</div>
 	)
 
+	const heatmapRoot = (
+		<div
+			ref={containerRef}
+			data-slot="heatmap"
+			className={cn('flex flex-col gap-3', width === undefined && 'w-full max-w-2xl', className)}
+			style={width === undefined ? undefined : { width }}
+		>
+			<HeatmapHoverProvider>
+				<HeatmapFocusProvider>
+					<HeatmapFigure
+						plot={plotRegion}
+						legend={legendNode}
+						placement={rangeLegend.placement}
+						aside={aside}
+					/>
+				</HeatmapFocusProvider>
+			</HeatmapHoverProvider>
+
+			{readout && <ChartTable readout={readout} />}
+		</div>
+	)
+
+	// Inside the fullscreen dialog the heatmap is the menu's own re-mounted copy:
+	// render it plain, with no nested context menu.
+	if (isFullscreen) return heatmapRoot
+
 	return (
 		<ChartContextMenu
 			contextMenu={contextMenu}
 			rootRef={containerRef}
 			readout={readout}
 			title={title}
+			fullscreen={<HeatmapChart {...props} />}
 		>
-			<div
-				ref={containerRef}
-				data-slot="heatmap"
-				className={cn('flex flex-col gap-3', width === undefined && 'w-full max-w-2xl', className)}
-				style={width === undefined ? undefined : { width }}
-			>
-				<HeatmapHoverProvider>
-					<HeatmapFocusProvider>
-						<HeatmapFigure
-							plot={plotRegion}
-							legend={legendNode}
-							placement={rangeLegend.placement}
-							aside={aside}
-						/>
-					</HeatmapFocusProvider>
-				</HeatmapHoverProvider>
-
-				{readout && <ChartTable readout={readout} />}
-			</div>
+			{heatmapRoot}
 		</ChartContextMenu>
 	)
 }

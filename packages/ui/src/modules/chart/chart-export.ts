@@ -1,8 +1,8 @@
 /**
  * Client-side export helpers behind the chart context menu: rasterising the
- * plot SVG to a bitmap, building a CSV from the readout, and the download /
- * clipboard plumbing they hand off to. Pure DOM work run on a menu action, so
- * they touch `document` / `navigator` only when called.
+ * chart to a bitmap, building a CSV from the readout, and the download plumbing
+ * they hand off to. Pure DOM work run on a menu action, so they touch
+ * `document` only when called.
  */
 
 import type { ChartReadout } from './types'
@@ -10,77 +10,84 @@ import type { ChartReadout } from './types'
 /** The bitmap formats the chart exports to. @internal */
 export type ChartImageType = 'image/png' | 'image/jpeg'
 
-/**
- * The SVG presentation properties copied inline before rasterising. The plot's
- * paint lives in CSS classes and `currentColor`, which a serialised SVG loses
- * once it leaves the document, so each is resolved through `getComputedStyle`
- * and written onto the clone.
- *
- * @internal
- */
-const INLINED_STYLE_PROPERTIES = [
-	'fill',
-	'fill-opacity',
-	'fill-rule',
-	'stroke',
-	'stroke-width',
-	'stroke-opacity',
-	'stroke-dasharray',
-	'stroke-dashoffset',
-	'stroke-linecap',
-	'stroke-linejoin',
-	'opacity',
-	'color',
-	'font-family',
-	'font-size',
-	'font-weight',
-	'font-style',
-	'text-anchor',
-	'dominant-baseline',
-	'letter-spacing',
-	'visibility',
-	'display',
-	'mix-blend-mode',
-] as const
-
 /** The pixel scale a rasterised chart is drawn at, so the bitmap stays crisp on hi-dpi displays. @internal */
 const RASTER_SCALE = 2
 
 /** The JPEG quality passed to `toBlob`. @internal */
 const JPEG_QUALITY = 0.95
 
+/** The chart's legend containers, hidden when an image export drops the legend. @internal */
+const LEGEND_SELECTOR = '[data-slot="chart-legend"],[data-slot="heatmap-legend-box"]'
+
 /**
- * Walks a source element and its clone in lockstep, writing the source's
- * resolved presentation styles onto the clone. `getComputedStyle` resolves
- * `currentColor` and class-driven paint to used values, so the detached clone
- * carries its own colours once the document's stylesheets no longer reach it.
+ * Copies a source element's full computed style inline onto its clone.
+ * Rasterising through a `foreignObject` renders the clone detached from the
+ * document's stylesheets, so every class-driven and inherited value — colour,
+ * layout, and font — has to travel on the element itself.
  *
  * @internal
  */
-function inlineComputedStyles(source: Element, clone: Element): void {
+function copyComputedStyle(source: Element, clone: Element): void {
 	const computed = getComputedStyle(source)
 
-	let inline = ''
+	let cssText = ''
 
-	for (const property of INLINED_STYLE_PROPERTIES) {
-		const value = computed.getPropertyValue(property)
+	for (let index = 0; index < computed.length; index++) {
+		const property = computed.item(index)
 
-		if (value) inline += `${property}:${value};`
+		cssText += `${property}:${computed.getPropertyValue(property)};`
 	}
 
-	clone.setAttribute('style', inline)
+	clone.setAttribute('style', cssText)
+}
+
+/**
+ * Walks a source tree and its clone in lockstep, freezing each node's computed
+ * style onto the clone ({@link copyComputedStyle}) so the detached copy lays out
+ * and paints exactly as rendered.
+ *
+ * @internal
+ */
+function freezeStyleTree(source: Element, clone: Element): void {
+	copyComputedStyle(source, clone)
 
 	const sourceChildren = source.children
 
 	const cloneChildren = clone.children
 
-	for (let index = 0; index < sourceChildren.length; index++) {
+	const count = Math.min(sourceChildren.length, cloneChildren.length)
+
+	for (let index = 0; index < count; index++) {
 		const sourceChild = sourceChildren.item(index)
 
 		const cloneChild = cloneChildren.item(index)
 
-		if (sourceChild && cloneChild) inlineComputedStyles(sourceChild, cloneChild)
+		if (sourceChild && cloneChild) freezeStyleTree(sourceChild, cloneChild)
 	}
+}
+
+/**
+ * Hides a chart's legend containers in place, returning a restore per node. Used
+ * to reflow the live chart without its legend before the styles are frozen, so
+ * an export that drops the legend leaves no gap where it sat. Synchronous — the
+ * caller restores before yielding, so the page never repaints the hidden state.
+ *
+ * @internal
+ */
+function hideLegends(root: Element): (() => void)[] {
+	const restores: (() => void)[] = []
+
+	for (const node of root.querySelectorAll<HTMLElement>(LEGEND_SELECTOR)) {
+		const previous = node.style.display
+
+		node.style.display = 'none'
+
+		restores.push(() => {
+			node.style.display = previous
+		})
+	}
+
+	return restores
 }
 
 /** Loads a data-URL into an `Image`, resolving once decoded. @internal */
@@ -98,42 +105,13 @@ function loadImage(source: string): Promise<HTMLImageElement> {
 	})
 }
 
-/**
- * Rasterises a plot SVG to a {@link Blob}: clones it, inlines its computed
- * paint, serialises it to a data-URL, then draws it to a `2×` canvas. A `'image/jpeg'`
- * type paints an opaque white ground first (JPEG has no alpha); PNG stays
- * transparent.
- *
- * @param svg - The live plot `<svg>` to capture.
- * @param type - The bitmap format to encode.
- * @returns The encoded image, or `null` when the canvas cannot encode it.
- */
-export async function rasterizeChartSvg(
-	svg: SVGSVGElement,
+/** Draws a decoded image to a `2×` canvas — white-grounded for JPEG, transparent for PNG — and encodes it. @internal */
+async function encode(
+	image: HTMLImageElement,
+	width: number,
+	height: number,
 	type: ChartImageType,
 ): Promise<Blob | null> {
-	const rect = svg.getBoundingClientRect()
-
-	const width = Math.max(1, Math.round(rect.width))
-
-	const height = Math.max(1, Math.round(rect.height))
-
-	const clone = svg.cloneNode(true) as SVGSVGElement
-
-	clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
-
-	clone.setAttribute('width', String(width))
-
-	clone.setAttribute('height', String(height))
-
-	inlineComputedStyles(svg, clone)
-
-	const serialized = new XMLSerializer().serializeToString(clone)
-
-	const dataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(serialized)}`
-
-	const image = await loadImage(dataUrl)
-
 	const canvas = document.createElement('canvas')
 
 	canvas.width = width * RASTER_SCALE
@@ -157,36 +135,52 @@ export async function rasterizeChartSvg(
 	})
 }
 
-/** Prefix stamped on a snapshot's ids and references, so the clone never collides with the live chart's ids. @internal */
-const SNAPSHOT_ID_PREFIX = 'chart-fs-'
-
 /**
- * Namespaces every `id` and same-document reference (`url(#…)`, `href="#…"`) in
- * a markup string, so a chart cloned into the fullscreen dialog stays
- * self-consistent without colliding with the live chart's ids — a textured
- * chart's pattern fills keep resolving to the clone's own defs, not the
- * original's.
+ * Rasterises a whole chart — plot, header, and (by default) legend — to a
+ * {@link Blob}. Clones the root, freezes its computed styles onto the clone, and
+ * draws it through an SVG `foreignObject` so the HTML chrome and the SVG marks
+ * export as one image. `includeLegend: false` hides the legend first, so the
+ * chart reflows without it and no gap remains. JPEG gets an opaque white ground;
+ * PNG stays transparent.
  *
- * @internal
+ * @param root - The chart root element to capture.
+ * @param options - The bitmap `type` and whether to keep the legend.
+ * @returns The encoded image, or `null` when the canvas cannot encode it.
  */
-function namespaceSvgIds(markup: string): string {
-	return markup
-		.replace(/\bid="([^"]+)"/g, `id="${SNAPSHOT_ID_PREFIX}$1"`)
-		.replace(/url\(#([^)]+)\)/g, `url(#${SNAPSHOT_ID_PREFIX}$1)`)
-		.replace(/((?:xlink:href|href)=")#([^"]+)"/g, `$1#${SNAPSHOT_ID_PREFIX}$2`)
-}
+export async function rasterizeChartImage(
+	root: HTMLElement,
+	{ type, includeLegend }: { type: ChartImageType; includeLegend: boolean },
+): Promise<Blob | null> {
+	// Synchronous capture: hide the legend, measure and clone the reflowed chart,
+	// freeze its styles, then restore — all before the first await, so the page
+	// never paints the hidden state.
+	const restores = includeLegend ? [] : hideLegends(root)
 
-/**
- * Captures a chart's rendered markup as an id-namespaced HTML string for the
- * fullscreen dialog — a same-document snapshot whose CSS classes still resolve,
- * so the enlarged chart keeps its paint without re-measuring. It is a visual
- * still: the live chart and its data table stay the accessible source.
- *
- * @param root - The chart root element to clone.
- * @returns The chart's `outerHTML` with its ids namespaced.
- */
-export function captureChartSnapshot(root: HTMLElement): string {
-	return namespaceSvgIds(root.outerHTML)
+	const rect = root.getBoundingClientRect()
+
+	const width = Math.max(1, Math.round(rect.width))
+
+	const height = Math.max(1, Math.round(rect.height))
+
+	const clone = root.cloneNode(true) as HTMLElement
+
+	freezeStyleTree(root, clone)
+
+	for (const restore of restores) restore()
+
+	clone.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml')
+
+	const serialized = new XMLSerializer().serializeToString(clone)
+
+	const svg =
+		`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">` +
+		`<foreignObject x="0" y="0" width="${width}" height="${height}">${serialized}</foreignObject></svg>`
+
+	const dataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
+
+	const image = await loadImage(dataUrl)
+
+	return encode(image, width, height, type)
 }
 
 /** Escapes one CSV field, quoting it when it holds a comma, quote, or newline. @internal */
@@ -256,33 +250,6 @@ export function downloadBlob(blob: Blob, filename: string): void {
 /** Downloads text as a UTF-8 file of the given MIME type. @internal */
 export function downloadText(text: string, filename: string, mime: string): void {
 	downloadBlob(new Blob([text], { type: `${mime};charset=utf-8` }), filename)
-}
-
-/**
- * Whether the async Clipboard image API is available — a secure context with
- * `ClipboardItem`. Gates the "Copy image" action, so it never renders where the
- * write would throw.
- *
- * @internal
- */
-export function canCopyImage(): boolean {
-	return (
-		typeof navigator !== 'undefined' &&
-		Boolean(navigator.clipboard) &&
-		typeof ClipboardItem !== 'undefined'
-	)
-}
-
-/** Writes an image blob to the clipboard; a rejected write (denied permission) no-ops. @internal */
-export async function copyImage(blob: Blob): Promise<void> {
-	if (!canCopyImage()) return
-
-	try {
-		await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })])
-	} catch {
-		// Fire-and-forget: a denied permission or unfocused document has no
-		// copy-failed affordance to drive, matching the grid's clipboard writes.
-	}
 }
 
 /** Writes text to the clipboard; a rejected write no-ops. @internal */

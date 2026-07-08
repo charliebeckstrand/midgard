@@ -39,6 +39,9 @@ describe('Chart context menu', () => {
 		]) {
 			expect(screen.getByRole('menuitem', { name })).toBeInTheDocument()
 		}
+
+		// Copy image is not a default action.
+		expect(screen.queryByRole('menuitem', { name: 'Copy image' })).not.toBeInTheDocument()
 	})
 
 	it('merges custom items and can hide the defaults', () => {

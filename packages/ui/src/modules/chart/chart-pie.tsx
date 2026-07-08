@@ -723,23 +723,25 @@ function PieCallouts({ items, animate, emphasis }: PieCalloutsProps) {
  *
  * @internal
  */
-export function ChartPie<T>({
-	data,
-	series,
-	innerRatio,
-	width,
-	height,
-	aspectRatio,
-	legend,
-	tooltip,
-	animate = false,
-	texture = false,
-	labels,
-	formatValue,
-	className,
-	children,
-	...name
-}: ChartPieProps<T>) {
+export function ChartPie<T>(props: ChartPieProps<T>) {
+	const {
+		data,
+		series,
+		innerRatio,
+		width,
+		height,
+		aspectRatio,
+		legend,
+		tooltip,
+		animate = false,
+		texture = false,
+		labels,
+		formatValue,
+		className,
+		children,
+		...name
+	} = props
+
 	const { segment: showSegmentLabels, callouts: showCallouts } = resolvePieLabels(labels)
 
 	const { show: showTooltip, trigger } = resolveTooltip(tooltip)
@@ -902,6 +904,7 @@ export function ChartPie<T>({
 	return (
 		<ChartFrame
 			{...name}
+			fullscreen={<ChartPie {...props} />}
 			ref={ref}
 			width={frameWidth}
 			fixedWidth={width}

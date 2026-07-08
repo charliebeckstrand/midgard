@@ -59,3 +59,17 @@ export type ChartEmphasis = {
 
 export const [ChartEmphasisContext, useChartEmphasis] =
 	createContext<ChartEmphasis>('ChartEmphasis')
+
+/**
+ * Whether the chart is rendering inside the fullscreen dialog. The chart the
+ * menu re-mounts there is a live, interactive copy — its frame reads this to
+ * skip its own context menu, so the enlarged chart is a child of the menu, not
+ * another menu host (which would recurse). Default `false` for a chart in the
+ * page.
+ *
+ * @internal
+ */
+export const [ChartFullscreenContext, useChartFullscreen] = createContext<boolean>(
+	'ChartFullscreen',
+	{ default: false },
+)

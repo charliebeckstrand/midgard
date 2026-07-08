@@ -17,6 +17,20 @@ import type { ChartAspectRatio } from './chart-layout'
 export type DataKey<T> = keyof T & string
 
 /**
+ * A chart's right-click menu configuration: the shared {@link ContextMenuConfig}
+ * (custom `items`, `defaultItems`, `position`) plus the chart's own export
+ * options.
+ */
+export type ChartContextMenuConfig = ContextMenuConfig & {
+	/**
+	 * Include the legend in the downloaded PNG / JPG. Off exports the plot and
+	 * header alone, the chart reflowing to fill the space the legend leaves.
+	 * @defaultValue true
+	 */
+	downloadLegend?: boolean
+}
+
+/**
  * Which value axis a series or reference line reads against: the primary
  * `'left'` axis or the secondary `'right'` one. The names are identities, not
  * geometry — under `orientation="horizontal"` the transpose puts the primary
@@ -487,16 +501,17 @@ export type ChartBaseProps<T> = AccessibleName & {
 	/** Formats tick and tooltip values; defaults to locale integer/fraction formatting. */
 	formatValue?: (value: number) => string
 	/**
-	 * The right-click context menu. By default a chart offers Fullscreen, image
-	 * downloads (PNG / JPG), Copy image, and — where a data readout exists —
-	 * Download CSV / Copy data. Pass a config to add custom `items` (each a
-	 * `{ label, icon, onSelect }`), place them `'before'` or `'after'` the defaults,
-	 * or drop the defaults with `defaultItems: false`; a separator divides the two
-	 * groups when both show. `false` disables the menu, leaving the browser's
-	 * native one.
-	 * @see {@link ContextMenuConfig}
+	 * The right-click context menu. By default a chart offers Fullscreen (a live,
+	 * interactive copy in a large dialog), image downloads (PNG / JPG, legend
+	 * included), and — where a data readout exists — Download CSV / Copy data. Pass
+	 * a config to add custom `items` (each a `{ label, icon, onSelect }`), place
+	 * them `'before'` or `'after'` the defaults, or drop the defaults with
+	 * `defaultItems: false`; a separator divides the two groups when both show. Set
+	 * `downloadLegend: false` to export images without the legend. `false` disables
+	 * the menu, leaving the browser's native one.
+	 * @see {@link ChartContextMenuConfig}
 	 */
-	contextMenu?: ContextMenuConfig | false
+	contextMenu?: ChartContextMenuConfig | false
 	className?: string
 }
 

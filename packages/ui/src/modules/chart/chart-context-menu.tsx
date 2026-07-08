@@ -1,59 +1,69 @@
 'use client'
 
-import { Clipboard, Copy, Download, Image as ImageIcon, Maximize2, X } from 'lucide-react'
-import { type ReactNode, type RefObject, useState } from 'react'
-import { Button } from '../../components/button'
+import { Clipboard, Download, Image as ImageIcon, Maximize2, X } from 'lucide-react'
 import {
-	ContextMenu,
-	type ContextMenuConfig,
-	type ContextMenuItem,
-} from '../../components/context-menu'
-import { Dialog, DialogClose, DialogTitle } from '../../components/dialog'
+	cloneElement,
+	isValidElement,
+	type ReactElement,
+	type ReactNode,
+	type RefObject,
+	useState,
+} from 'react'
+import { Button } from '../../components/button'
+import { ContextMenu, type ContextMenuItem } from '../../components/context-menu'
+import { Dialog, DialogClose } from '../../components/dialog'
 import {
 	type ChartImageType,
-	canCopyImage,
-	captureChartSnapshot,
 	chartFileName,
-	copyImage,
 	copyText,
 	downloadBlob,
 	downloadText,
-	rasterizeChartSvg,
+	rasterizeChartImage,
 	readoutToCsv,
 } from './chart-export'
+import type { ChartContextMenuConfig } from './chart-schema'
+import { ChartFullscreenContext } from './context'
 import type { ChartReadout } from './types'
 
 /** Props for {@link ChartContextMenu}. @internal */
 export type ChartContextMenuProps = {
 	/**
-	 * The caller's configuration: custom items, whether to keep the defaults, and
-	 * where the custom block sits. `false` suppresses the menu entirely;
-	 * `undefined` shows the defaults alone.
+	 * The caller's configuration: custom items, whether to keep the defaults,
+	 * where the custom block sits, and whether image downloads keep the legend.
+	 * `false` suppresses the menu; `undefined` shows the defaults alone.
 	 */
-	contextMenu: ContextMenuConfig | false | undefined
-	/** The chart root, read on an action for its `<svg>` (image export) and cloned for fullscreen. */
+	contextMenu: ChartContextMenuConfig | false | undefined
+	/** The chart root, read on an image-export action to rasterise the whole chart. */
 	rootRef: RefObject<HTMLDivElement | null>
 	/** The values behind the marks, backing the CSV actions; `null` drops them. */
 	readout: ChartReadout | null
 	/** The chart title, naming the fullscreen dialog and seeding export filenames. */
 	title?: string
+	/**
+	 * A fresh, re-mountable copy of the chart, rendered large in the fullscreen
+	 * dialog so hover and keyboard keep working — the chart re-measures at the
+	 * dialog size rather than scaling a still. Absent, the Fullscreen item drops.
+	 */
+	fullscreen?: ReactElement
 	/** The chart, wrapped as the right-click surface. */
 	children: ReactNode
 }
 
+/** Sizes the fullscreen chart to the largest box of its ratio that fits the dialog, centered. @internal */
+const FULLSCREEN_CHART_CLASS = 'max-h-full w-full max-w-[calc(100cqh*16/9)]'
+
 /**
  * The chart family's right-click menu and fullscreen view. Wraps a chart in a
- * {@link ContextMenu} whose default actions — Fullscreen, Download PNG / JPG,
- * Copy image, and (with a readout) Download CSV / Copy data — operate on the
- * live plot `<svg>` and readout, merged with any caller {@link ContextMenuConfig}.
- * Fullscreen opens a large dialog holding a still snapshot of the chart, scaled
- * to fill; the live chart and its data table remain the accessible source.
+ * {@link ContextMenu} whose default actions — Fullscreen, Download PNG / JPG, and
+ * (with a readout) Download CSV / Copy data — merge with any caller
+ * {@link ChartContextMenuConfig}. Fullscreen opens a large dialog holding a live,
+ * re-mounted copy of the chart, centered at its aspect ratio; image downloads
+ * rasterise the whole chart, legend included, unless `downloadLegend` is off.
  *
- * @remarks Image export rasterises the plot's marks and axes (not the HTML
- * header or legend) at `2×`, inlining the SVG's computed paint so the bitmap
- * carries its colours. "Copy image" appears only where the Clipboard image API
- * is available. `contextMenu={false}` renders the chart untouched, leaving the
- * browser's native menu.
+ * @remarks Image export draws the chart through an SVG `foreignObject` so its
+ * HTML chrome and SVG marks capture together, inlining computed styles so the
+ * bitmap carries its colours. `contextMenu={false}` renders the chart untouched,
+ * leaving the browser's native menu.
  *
  * @internal
  */
@@ -62,22 +72,22 @@ export function ChartContextMenu({
 	rootRef,
 	readout,
 	title,
+	fullscreen,
 	children,
 }: ChartContextMenuProps) {
-	// The fullscreen snapshot's markup, or `null` when the dialog is closed.
-	const [snapshot, setSnapshot] = useState<string | null>(null)
+	const [open, setOpen] = useState(false)
 
 	if (contextMenu === false) return <>{children}</>
 
-	const plotSvg = (): SVGSVGElement | null => rootRef.current?.querySelector('svg') ?? null
+	const includeLegend = contextMenu?.downloadLegend ?? true
 
 	const exportImage = async (type: ChartImageType, extension: string): Promise<void> => {
-		const svg = plotSvg()
+		const root = rootRef.current
 
-		if (!svg) return
+		if (!root) return
 
 		try {
-			const blob = await rasterizeChartSvg(svg, type)
+			const blob = await rasterizeChartImage(root, { type, includeLegend })
 
 			if (blob) downloadBlob(blob, chartFileName(title, extension))
 		} catch {
@@ -85,33 +95,17 @@ export function ChartContextMenu({
 		}
 	}
 
-	const copyChartImage = async (): Promise<void> => {
-		const svg = plotSvg()
-
-		if (!svg) return
-
-		try {
-			const blob = await rasterizeChartSvg(svg, 'image/png')
-
-			if (blob) await copyImage(blob)
-		} catch {
-			// As with export: nothing to surface on a failed rasterise.
-		}
-	}
-
-	const openFullscreen = (): void => {
-		const root = rootRef.current
-
-		if (root) setSnapshot(captureChartSnapshot(root))
-	}
-
 	const imageActions: ContextMenuItem[] = [
-		{
-			key: 'fullscreen',
-			label: 'Fullscreen',
-			icon: <Maximize2 />,
-			onSelect: openFullscreen,
-		},
+		...(fullscreen
+			? [
+					{
+						key: 'fullscreen',
+						label: 'Fullscreen',
+						icon: <Maximize2 />,
+						onSelect: () => setOpen(true),
+					} satisfies ContextMenuItem,
+				]
+			: []),
 		{
 			key: 'download-png',
 			label: 'Download PNG',
@@ -124,16 +118,6 @@ export function ChartContextMenu({
 			icon: <ImageIcon />,
 			onSelect: () => void exportImage('image/jpeg', 'jpg'),
 		},
-		...(canCopyImage()
-			? [
-					{
-						key: 'copy-image',
-						label: 'Copy image',
-						icon: <Copy />,
-						onSelect: () => void copyChartImage(),
-					} satisfies ContextMenuItem,
-				]
-			: []),
 	]
 
 	const dataActions: ContextMenuItem[] = readout
@@ -168,17 +152,13 @@ export function ChartContextMenu({
 			</ContextMenu>
 
 			<Dialog
-				open={snapshot !== null}
-				onOpenChange={(open) => {
-					if (!open) setSnapshot(null)
-				}}
+				open={open}
+				onOpenChange={setOpen}
 				size="full"
 				aria-label={title ?? 'Chart'}
-				className="flex h-[calc(100svh-2rem)] max-h-[calc(100svh-2rem)] flex-col"
+				className="flex h-[calc(100dvh-2rem)] flex-col"
 			>
-				<div data-slot="chart-fullscreen-bar" className="flex items-center justify-between gap-4">
-					<DialogTitle className="min-w-0 truncate">{title ?? 'Chart'}</DialogTitle>
-
+				<div data-slot="chart-fullscreen-bar" className="flex justify-end">
 					<DialogClose>
 						<Button variant="bare" aria-label="Close fullscreen">
 							<X />
@@ -186,18 +166,20 @@ export function ChartContextMenu({
 					</DialogClose>
 				</div>
 
-				{snapshot !== null && (
-					<div
-						// The enlarged chart is a purely visual still — the live chart behind
-						// the overlay and its data table stay the accessible source, so hide
-						// the duplicate from assistive tech.
-						aria-hidden="true"
-						data-slot="chart-fullscreen"
-						className="mt-4 min-h-0 flex-1 overflow-auto [&>*]:h-full"
-						// biome-ignore lint/security/noDangerouslySetInnerHtml: an id-namespaced same-document snapshot of the chart's own markup, not external input
-						dangerouslySetInnerHTML={{ __html: snapshot }}
-					/>
-				)}
+				<div
+					data-slot="chart-fullscreen"
+					className="flex min-h-0 flex-1 items-center justify-center [container-type:size]"
+				>
+					{open && isValidElement(fullscreen) && (
+						<ChartFullscreenContext value={true}>
+							{cloneElement(fullscreen as ReactElement<Record<string, unknown>>, {
+								width: undefined,
+								height: undefined,
+								className: FULLSCREEN_CHART_CLASS,
+							})}
+						</ChartFullscreenContext>
+					)}
+				</div>
 			</Dialog>
 		</>
 	)

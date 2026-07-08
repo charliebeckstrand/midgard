@@ -90,34 +90,36 @@ export type ComboChartProps<T> = ChartBaseProps<T> &
  * />
  * ```
  */
-export function ComboChart<T>({
-	data,
-	series,
-	size,
-	width,
-	height,
-	aspectRatio,
-	axes = true,
-	gridLines = true,
-	legend,
-	tooltip,
-	crosshair,
-	animate = false,
-	points = true,
-	interpolation = 'linear',
-	min,
-	max,
-	leftAxis,
-	rightAxis,
-	reference,
-	xAxis,
-	tickRotation,
-	texture = false,
-	labels,
-	formatValue,
-	className,
-	...label
-}: ComboChartProps<T>) {
+export function ComboChart<T>(props: ComboChartProps<T>) {
+	const {
+		data,
+		series,
+		size,
+		width,
+		height,
+		aspectRatio,
+		axes = true,
+		gridLines = true,
+		legend,
+		tooltip,
+		crosshair,
+		animate = false,
+		points = true,
+		interpolation = 'linear',
+		min,
+		max,
+		leftAxis,
+		rightAxis,
+		reference,
+		xAxis,
+		tickRotation,
+		texture = false,
+		labels,
+		formatValue,
+		className,
+		...label
+	} = props
+
 	const chart = useChartCartesian(
 		{
 			data,
@@ -282,6 +284,7 @@ export function ComboChart<T>({
 	return (
 		<ChartFrame
 			{...label}
+			fullscreen={<ComboChart {...props} />}
 			ref={chart.ref}
 			width={chart.width}
 			fixedWidth={chart.fixedWidth}

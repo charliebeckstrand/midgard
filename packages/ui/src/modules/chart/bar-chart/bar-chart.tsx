@@ -86,34 +86,36 @@ export type BarChartProps<T> = CartesianChartProps<T> & {
  * />
  * ```
  */
-export function BarChart<T>({
-	data,
-	series,
-	size,
-	width,
-	height,
-	aspectRatio,
-	axes = true,
-	gridLines = true,
-	legend,
-	tooltip,
-	crosshair,
-	animate = false,
-	orientation = 'vertical',
-	stacked = false,
-	thick = false,
-	texture = false,
-	min,
-	max,
-	leftAxis,
-	rightAxis,
-	reference,
-	xAxis,
-	tickRotation,
-	formatValue,
-	className,
-	...label
-}: BarChartProps<T>) {
+export function BarChart<T>(props: BarChartProps<T>) {
+	const {
+		data,
+		series,
+		size,
+		width,
+		height,
+		aspectRatio,
+		axes = true,
+		gridLines = true,
+		legend,
+		tooltip,
+		crosshair,
+		animate = false,
+		orientation = 'vertical',
+		stacked = false,
+		thick = false,
+		texture = false,
+		min,
+		max,
+		leftAxis,
+		rightAxis,
+		reference,
+		xAxis,
+		tickRotation,
+		formatValue,
+		className,
+		...label
+	} = props
+
 	const chart = useChartCartesian(
 		{
 			data,
@@ -217,6 +219,7 @@ export function BarChart<T>({
 	return (
 		<ChartFrame
 			{...label}
+			fullscreen={<BarChart {...props} />}
 			ref={chart.ref}
 			width={chart.width}
 			fixedWidth={chart.fixedWidth}
