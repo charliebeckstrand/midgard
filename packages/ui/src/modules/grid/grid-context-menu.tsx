@@ -24,15 +24,8 @@ import {
 	useRef,
 	useState,
 } from 'react'
-import { Icon } from '../../components/icon'
-import {
-	Menu,
-	MenuContent,
-	MenuItem,
-	MenuLabel,
-	MenuSeparator,
-	useMenuActions,
-} from '../../components/menu'
+import { ContextMenuList } from '../../components/context-menu'
+import { Menu, MenuContent, useMenuActions } from '../../components/menu'
 import type { SortState } from './context'
 import type { GridExportAction } from './export/types'
 import type { GridColumnGroup } from './grid-group-types'
@@ -358,18 +351,6 @@ export function useColumnGroupMenu(args: {
 	)
 }
 
-/** Renders one {@link GridMenuItem} as a menu item or separator. @internal */
-function renderMenuItem(item: GridMenuItem): ReactNode {
-	if ('separator' in item) return <MenuSeparator key={item.key} />
-
-	return (
-		<MenuItem key={item.key} onAction={item.onSelect} disabled={item.disabled}>
-			{item.icon ? <Icon icon={item.icon} /> : null}
-			<MenuLabel>{item.label}</MenuLabel>
-		</MenuItem>
-	)
-}
-
 /**
  * Right-click context menus for a {@link Grid}: a single cursor-anchored
  * {@link Menu} wrapping the table region. A right-click on a header (`th`) or
@@ -548,7 +529,9 @@ export function GridContextMenu<T>({
 				{children}
 			</GridContextMenuSurface>
 
-			<MenuContent>{items.map(renderMenuItem)}</MenuContent>
+			<MenuContent>
+				<ContextMenuList entries={items} />
+			</MenuContent>
 		</Menu>
 	)
 }

@@ -13,7 +13,9 @@ import {
 	Fragment,
 	type MouseEvent,
 	type PointerEvent,
+	type ReactElement,
 	type ReactNode,
+	type RefObject,
 	startTransition,
 	useCallback,
 	useMemo,
@@ -34,12 +36,14 @@ import {
 	LABEL_CHAR_WIDTH,
 	TICK_CHAR_WIDTH,
 } from '../chart-constants'
+import { ChartContextMenu } from '../chart-context-menu'
 import { chartFrameSizing, type PlotRect, plotRect, thinned } from '../chart-layout'
 import type { ChartOrientation } from '../chart-orientation'
 import { ChartPlotBox } from '../chart-plot-box'
 import { resolveRangeLegend } from '../chart-range-legend'
 import { bandScale } from '../chart-scale'
 import {
+	type ChartContextMenuConfig,
 	type ChartLegendPlacement,
 	type ChartTooltipTrigger,
 	resolveTooltip,
@@ -47,6 +51,7 @@ import {
 import { formatChartValue, READOUT_GAP } from '../chart-series'
 import { ChartTable } from '../chart-table'
 import { isSparkBox } from '../chart-tier'
+import { useChartFullscreen } from '../context'
 import type { ChartReadout } from '../types'
 import { cellAt, heatmapCells } from './heatmap-chart-geometry'
 import {
@@ -702,25 +707,29 @@ function HeatmapFigure({ plot, legend, placement, aside }: HeatmapFigureProps) {
  * />
  * ```
  */
-export function HeatmapChart<T>({
-	data,
-	series,
-	width,
-	height,
-	aspectRatio,
-	legend,
-	tooltip,
-	formatValue,
-	className,
-	// Destructured off so the unwired base switches never fall into `...label` and
-	// spread onto the plot element as invalid DOM attributes. The heatmap draws no
-	// header (a range legend, not a series frame), so `title` / `subtitle` join them.
-	animate: _animate,
-	texture: _texture,
-	title: _title,
-	subtitle: _subtitle,
-	...label
-}: HeatmapChartProps<T>) {
+export function HeatmapChart<T>(props: HeatmapChartProps<T>) {
+	const {
+		data,
+		series,
+		width,
+		height,
+		aspectRatio,
+		legend,
+		tooltip,
+		formatValue,
+		className,
+		// Destructured off so the unwired base switches never fall into `...label` and
+		// spread onto the plot element as invalid DOM attributes. The heatmap draws no
+		// header (a range legend, not a series frame), so `subtitle` joins them; `title`
+		// is kept off the DOM too but still names the context menu's fullscreen view.
+		animate: _animate,
+		texture: _texture,
+		title,
+		subtitle: _subtitle,
+		contextMenu,
+		...label
+	} = props
+
 	const primary = series[0]
 
 	const {
@@ -856,7 +865,7 @@ export function HeatmapChart<T>({
 		</div>
 	)
 
-	return (
+	const heatmapRoot = (
 		<div
 			ref={containerRef}
 			data-slot="heatmap"
@@ -876,5 +885,59 @@ export function HeatmapChart<T>({
 
 			{readout && <ChartTable readout={readout} />}
 		</div>
+	)
+
+	return (
+		<HeatmapContextFrame
+			contextMenu={contextMenu}
+			rootRef={containerRef}
+			readout={readout}
+			title={title}
+			self={<HeatmapChart {...props} />}
+		>
+			{heatmapRoot}
+		</HeatmapContextFrame>
+	)
+}
+
+/** Props for {@link HeatmapContextFrame}. @internal */
+type HeatmapContextFrameProps = {
+	contextMenu: ChartContextMenuConfig | false | undefined
+	rootRef: RefObject<HTMLDivElement | null>
+	readout: ChartReadout | null
+	title?: string
+	/** A fresh copy of the heatmap for the menu's fullscreen re-mount. */
+	self: ReactElement
+	children: ReactNode
+}
+
+/**
+ * Wraps a heatmap's root in its {@link ChartContextMenu} — or returns it bare
+ * when the heatmap is itself the menu's re-mounted fullscreen copy, so the
+ * enlarged chart never nests a second menu. Split from {@link HeatmapChart} so
+ * that gate stays off the component's own complexity budget.
+ *
+ * @internal
+ */
+function HeatmapContextFrame({
+	contextMenu,
+	rootRef,
+	readout,
+	title,
+	self,
+	children,
+}: HeatmapContextFrameProps) {
+	if (useChartFullscreen()) return <>{children}</>
+
+	return (
+		<ChartContextMenu
+			contextMenu={contextMenu}
+			rootRef={rootRef}
+			readout={readout}
+			title={title}
+			fullscreen={self}
+		>
+			{children}
+		</ChartContextMenu>
 	)
 }

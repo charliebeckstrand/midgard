@@ -1,14 +1,15 @@
 'use client'
 
-import { type ReactNode, type RefObject, useMemo, useState } from 'react'
+import { type ReactElement, type ReactNode, type RefObject, useMemo, useRef, useState } from 'react'
 import { cn } from '../../core'
 import type { FrameReserve } from '../../hooks'
 import { k } from '../../recipes/kata/chart'
 import type { AccessibleName } from '../../types'
+import { ChartContextMenu } from './chart-context-menu'
 import { ChartHeader } from './chart-header'
 import type { ChartOrientation } from './chart-orientation'
 import { ChartPlotBox } from './chart-plot-box'
-import type { ChartLegendPlacement } from './chart-schema'
+import type { ChartContextMenuConfig, ChartLegendPlacement } from './chart-schema'
 import type { ChartSnap } from './chart-snap'
 import { ChartTable } from './chart-table'
 import type { ChartTier } from './chart-tier'
@@ -20,6 +21,7 @@ import {
 	ChartHoverContext,
 	type ChartPoint,
 	ChartTierContext,
+	useChartFullscreen,
 } from './context'
 import type { ChartReadout } from './types'
 import {
@@ -190,6 +192,18 @@ export type ChartFrameProps = AccessibleName & {
 	overlay?: ReactNode
 	/** Visually-hidden HTML beside the data table — reference-line parity outside the plot. */
 	annotations?: ReactNode
+	/**
+	 * The right-click context menu config, forwarded from the chart's prop. `false`
+	 * suppresses the menu; omitted, the default actions show alone.
+	 * @see {@link ChartContextMenu}
+	 */
+	contextMenu?: ChartContextMenuConfig | false
+	/**
+	 * A fresh copy of the whole chart for the menu's fullscreen view — a live
+	 * re-mount, so hover and keyboard keep working at the dialog size. Ignored
+	 * when the frame is itself rendering inside the fullscreen dialog.
+	 */
+	fullscreen?: ReactElement
 	/** The SVG content: axes, gridlines, marks, and the hit layer. */
 	children: ReactNode
 }
@@ -226,9 +240,19 @@ export function ChartFrame({
 	className,
 	overlay,
 	annotations,
+	contextMenu,
+	fullscreen,
 	children,
 	...label
 }: ChartFrameProps) {
+	// The chart root, read by the context menu to rasterise the chart for an
+	// image export.
+	const rootRef = useRef<HTMLDivElement>(null)
+
+	// A frame rendered inside the fullscreen dialog is the menu's own re-mounted
+	// copy: it skips its context menu, so it never nests a second menu or recurses.
+	const isFullscreen = useChartFullscreen()
+
 	const [pointed, setPointed] = useState<{
 		index: number | null
 		point: ChartPoint | null
@@ -360,8 +384,9 @@ export function ChartFrame({
 		</div>
 	)
 
-	return (
+	const chartRoot = (
 		<div
+			ref={rootRef}
 			data-slot="chart"
 			data-tier={tier}
 			className={cn(
@@ -400,6 +425,22 @@ export function ChartFrame({
 
 			{annotations}
 		</div>
+	)
+
+	// Inside the fullscreen dialog the frame is the menu's own re-mounted copy:
+	// render the plain chart, with no nested context menu.
+	if (isFullscreen) return chartRoot
+
+	return (
+		<ChartContextMenu
+			contextMenu={contextMenu}
+			rootRef={rootRef}
+			readout={readout}
+			title={title}
+			fullscreen={fullscreen}
+		>
+			{chartRoot}
+		</ChartContextMenu>
 	)
 }
 
