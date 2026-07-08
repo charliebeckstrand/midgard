@@ -43,6 +43,33 @@ describe('GridColumnManager', () => {
 		expect(checkbox).toBeDisabled()
 	})
 
+	it('lists every orderable column when the stored order is empty', () => {
+		// An empty persisted order (nothing saved yet, or a stale preference) must
+		// not blank the orderable section — absent ids append in declaration order,
+		// the engine's own contract.
+		const { container } = renderUI(<GridColumnManager columns={columns} order={[]} />)
+
+		expect(allBySlot(container, 'list-item')).toHaveLength(3)
+
+		expect(screen.getByRole('checkbox', { name: 'Show Email' })).toBeInTheDocument()
+
+		expect(screen.getByRole('checkbox', { name: 'Show Role' })).toBeInTheDocument()
+	})
+
+	it('appends columns missing from a stale stored order, in declaration order', () => {
+		// A saved order that predates a newly added column still shows the new one.
+		const { container } = renderUI(<GridColumnManager columns={columns} order={['role']} />)
+
+		expect(allBySlot(container, 'list-item')).toHaveLength(3)
+
+		const labels = Array.from(container.querySelectorAll('[data-slot="list-item"]')).map((item) =>
+			item.textContent?.trim(),
+		)
+
+		// Pinned Name leads its group; Role (in the order) precedes Email (appended).
+		expect(labels.indexOf('Role')).toBeLessThan(labels.indexOf('Email'))
+	})
+
 	it('reorders an orderable column via the keyboard, keeping pinned columns first', () => {
 		const onOrderChange = vi.fn()
 

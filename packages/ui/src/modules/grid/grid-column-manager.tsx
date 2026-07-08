@@ -267,13 +267,21 @@ export function GridColumnManager({
 		[columns],
 	)
 
-	const orderableColumns = useMemo(
-		() =>
-			order
-				.map((id) => byId.get(id))
-				.filter((c): c is GridColumnManagerItem => !!c && effectivePinSide(c) === undefined),
-		[order, byId],
-	)
+	// Orderable columns follow the controllable order, then any not in it append
+	// in declaration order — the engine's own contract for absent ids — so a
+	// stored order that is stale (columns added since) or empty (nothing
+	// persisted yet) can't drop columns from the manager.
+	const orderableColumns = useMemo(() => {
+		const inOrder = order
+			.map((id) => byId.get(id))
+			.filter((c): c is GridColumnManagerItem => !!c && effectivePinSide(c) === undefined)
+
+		const seen = new Set(inOrder.map((c) => c.id))
+
+		const missing = columns.filter((c) => effectivePinSide(c) === undefined && !seen.has(c.id))
+
+		return [...inOrder, ...missing]
+	}, [order, byId, columns])
 
 	const toggle = useCallback(
 		(id: string | number) => {
