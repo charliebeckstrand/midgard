@@ -72,6 +72,89 @@ describe('allocateColumnWidths', () => {
 			expect(total(sizing)).toBe(400)
 		})
 
+		it('holds a frozen column at its content and flows the surplus to the scrolling columns', () => {
+			// The pinned column measures to 100 of content; rather than being lifted with
+			// the rest, it hugs that width and the scrolling column absorbs the surplus.
+			const frozen: ColumnSizeProfile = {
+				id: 'p',
+				content: 100,
+				min: 40,
+				max: UNBOUNDED,
+				frozen: true,
+			}
+
+			const sizing = allocateColumnWidths([frozen, profile('f', 100)], 400)
+
+			expect(sizing.p).toBe(100)
+
+			expect(sizing.f).toBe(300)
+
+			expect(total(sizing)).toBe(400)
+		})
+
+		it('holds each frozen rail at content while the lone scrolling column takes the rest', () => {
+			// A left- and a right-pinned column framing one scrolling column: both rails
+			// stay at their content widths and the centre column fills what is left.
+			const left: ColumnSizeProfile = {
+				id: 'l',
+				content: 80,
+				min: 40,
+				max: UNBOUNDED,
+				frozen: true,
+			}
+
+			const right: ColumnSizeProfile = {
+				id: 'r',
+				content: 70,
+				min: 40,
+				max: UNBOUNDED,
+				frozen: true,
+			}
+
+			const sizing = allocateColumnWidths([left, profile('c', 100), right], 600)
+
+			expect(sizing.l).toBe(80)
+
+			expect(sizing.r).toBe(70)
+
+			expect(sizing.c).toBe(450)
+
+			expect(total(sizing)).toBe(600)
+		})
+
+		it('leaves trailing space rather than stretching frozen columns when every column is pinned', () => {
+			const a: ColumnSizeProfile = { id: 'a', content: 100, min: 40, max: UNBOUNDED, frozen: true }
+
+			const b: ColumnSizeProfile = { id: 'b', content: 120, min: 40, max: UNBOUNDED, frozen: true }
+
+			const sizing = allocateColumnWidths([a, b], 500)
+
+			// Both hug their content; the 280px of surplus is left as trailing space.
+			expect(sizing).toEqual({ a: 100, b: 120 })
+
+			expect(total(sizing)).toBe(220)
+		})
+
+		it('still lifts a frozen column up to its floor before holding it', () => {
+			// A pinned column whose content is below its floor floors first, then holds —
+			// the freeze caps growth above content, it never starves the header.
+			const frozen: ColumnSizeProfile = {
+				id: 'p',
+				content: 20,
+				min: 60,
+				max: UNBOUNDED,
+				frozen: true,
+			}
+
+			const sizing = allocateColumnWidths([frozen, profile('f', 100)], 400)
+
+			expect(sizing.p).toBe(60)
+
+			expect(sizing.f).toBe(340)
+
+			expect(total(sizing)).toBe(400)
+		})
+
 		it('caps each column at its max and leaves trailing space rather than overstretching', () => {
 			const sizing = allocateColumnWidths(
 				[profile('a', 100, { max: 120 }), profile('b', 100, { max: 120 })],

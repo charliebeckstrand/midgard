@@ -9,6 +9,7 @@ import {
 	DEFAULT_MIN_COLUMN_SIZE,
 	HEADER_TRUNCATE_ALLOWANCE,
 } from './grid-constants'
+import { isFrozen } from './grid-pin-overrides'
 import { parsePxWidth } from './grid-table-options'
 import type { GridColumn } from './types'
 
@@ -224,7 +225,9 @@ function columnFloor<T>(col: GridColumn<T>, th: HTMLElement | undefined, slotGap
  * the running max so a wider row paging in only grows the column); the floor is
  * always honored, so a single-word header still fits while a multi-word one
  * truncates to the data. `max` is the column's `maxWidth`, else unbounded — which
- * also lifts the content cap, an explicit ceiling being deliberate.
+ * also lifts the content cap, an explicit ceiling being deliberate. A frozen
+ * (pinned or locked) column is marked so the allocator holds it at content rather
+ * than lifting it into the surplus.
  *
  * @internal
  */
@@ -246,7 +249,7 @@ function columnProfile<T>(
 
 	runningContent.set(id, content)
 
-	return { id, min: floor, content, max }
+	return { id, min: floor, content, max, frozen: isFrozen(col) }
 }
 
 /**
