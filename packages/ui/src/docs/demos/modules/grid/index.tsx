@@ -1412,7 +1412,7 @@ export function Demo() {
 
 									<Example
 										title="Server-side grouping"
-										code={code`<Grid groupBy={{ manual: true, value, onValueChange, groupRow, panel: true, expanded, onExpandedChange, onGroupExpand }} />`}
+										code={code`<Grid groupBy={{ manual: true, value, onValueChange, groupRow, groupButton: true, expanded, onExpandedChange, onGroupExpand }} />`}
 									>
 										<ServerGroupingExample />
 									</Example>

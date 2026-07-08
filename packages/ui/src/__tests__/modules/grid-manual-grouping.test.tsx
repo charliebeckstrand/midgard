@@ -14,9 +14,10 @@ function placeholderRows() {
  * contract): the backend groups, and `rows` is the rendered sequence — group
  * headers carrying counts and aggregates, interleaved with the children of
  * expanded groups. Expansion is a controlled key set whose expand toggles fire
- * the `onGroupExpand` lazy-load hook, and the `panel` flag surfaces the group
- * panel whose affordances emit through `onValueChange`. The manual mode stands
- * the cursor / virtualization / total rows down, tested elsewhere by absence.
+ * the `onGroupExpand` lazy-load hook, and the `groupButton` flag adds a per-column
+ * header group-by button that toggles grouping through `onValueChange`. The manual
+ * mode stands the cursor / virtualization / total rows down, tested elsewhere by
+ * absence.
  */
 describe('Grid manual (server-side) row grouping', () => {
 	type Sale = {
@@ -85,7 +86,7 @@ describe('Grid manual (server-side) row grouping', () => {
 		return screen.getByText(text).closest('tr')
 	}
 
-	it('emits the grouped column when a groupable header affordance is pressed', async () => {
+	it('emits the grouped column when a groupable header button is pressed', async () => {
 		const user = userEvent.setup()
 
 		const onValueChange = vi.fn()
@@ -95,22 +96,19 @@ describe('Grid manual (server-side) row grouping', () => {
 				columns={columns}
 				rows={westChildren}
 				getKey={getKey}
-				groupBy={{ manual: true, value: null, onValueChange, groupRow, panel: true }}
+				groupBy={{ manual: true, value: null, onValueChange, groupRow, groupButton: true }}
 			/>,
 		)
 
-		// Ungrouped: the panel invites a drop, and only the groupable column offers
-		// the affordance.
-		expect(screen.getByText('Drag a column here to group its rows')).toBeInTheDocument()
+		// Only the groupable column offers the button, named for the group action.
+		expect(screen.queryByRole('button', { name: 'Group by Rep' })).not.toBeInTheDocument()
 
-		expect(screen.queryByRole('button', { name: 'Group rows by Rep' })).not.toBeInTheDocument()
-
-		await user.click(screen.getByRole('button', { name: 'Group rows by Region' }))
+		await user.click(screen.getByRole('button', { name: 'Group by Region' }))
 
 		expect(onValueChange).toHaveBeenCalledWith('region')
 	})
 
-	it('shows the active group as a panel chip whose remove button ungroups', async () => {
+	it('flips the active column button to Ungroup and ungroups on a second press', async () => {
 		const user = userEvent.setup()
 
 		const onValueChange = vi.fn()
@@ -120,14 +118,15 @@ describe('Grid manual (server-side) row grouping', () => {
 				columns={columns}
 				rows={[westHeader, eastHeader]}
 				getKey={getKey}
-				groupBy={{ manual: true, value: 'region', onValueChange, groupRow, panel: true }}
+				groupBy={{ manual: true, value: 'region', onValueChange, groupRow, groupButton: true }}
 			/>,
 		)
 
-		// The active column's header affordance stands down; the chip owns the state.
-		expect(screen.queryByRole('button', { name: 'Group rows by Region' })).not.toBeInTheDocument()
+		// The active column's button stays put (unlike the old panel, which hid it)
+		// but flips to a plain "Ungroup"; pressing it ungroups.
+		expect(screen.queryByRole('button', { name: 'Group by Region' })).not.toBeInTheDocument()
 
-		await user.click(screen.getByRole('button', { name: 'Ungroup Region' }))
+		await user.click(screen.getByRole('button', { name: 'Ungroup' }))
 
 		expect(onValueChange).toHaveBeenCalledWith(null)
 	})
@@ -167,6 +166,47 @@ describe('Grid manual (server-side) row grouping', () => {
 		// The grand-total row stands down under manual grouping — the engine would
 		// sum the group-header rows as data.
 		expect(screen.queryByText('Total')).not.toBeInTheDocument()
+	})
+
+	it('sorts the groups by the grouped column, reordering whole group blocks', async () => {
+		const user = userEvent.setup()
+
+		// The grouped column made sortable — its header gains the sort toggle.
+		const sortableColumns = columns.map((col) =>
+			col.id === 'region' ? { ...col, sortable: true } : col,
+		)
+
+		renderUI(
+			<Grid
+				columns={sortableColumns}
+				rows={[westHeader, ...westChildren, eastHeader, ...eastChildren]}
+				getKey={getKey}
+				groupBy={{ manual: true, value: 'region', groupRow, expanded: new Set(['west', 'east']) }}
+			/>,
+		)
+
+		// True when `b` follows `a` in document order — so `a` leads `b`.
+		const leads = (a: string, b: string) =>
+			Boolean(
+				screen.getByText(a).compareDocumentPosition(screen.getByText(b)) &
+					Node.DOCUMENT_POSITION_FOLLOWING,
+			)
+
+		// Backend order: the West block leads the East block.
+		expect(leads('West (3)', 'East (2)')).toBe(true)
+
+		// Ascending sort on Region reorders the blocks by value — East (E) leads West (W)…
+		await user.click(screen.getByRole('button', { name: 'Sort by Region' }))
+
+		expect(leads('East (2)', 'West (3)')).toBe(true)
+
+		// …and each group's children move with it: West's leaf stays under West's header.
+		expect(leads('West (3)', 'Wade')).toBe(true)
+
+		// A second click flips to descending, restoring the West block ahead of East.
+		await user.click(screen.getByRole('button', { name: 'Sort by Region' }))
+
+		expect(leads('West (3)', 'East (2)')).toBe(true)
 	})
 
 	it('treats expansion as controlled state, reporting toggles without mutating it', async () => {

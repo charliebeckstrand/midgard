@@ -162,7 +162,7 @@ export type GridGroupBy<T = unknown> = {
 	value?: string | number | null
 	/** Initial grouped column id for the uncontrolled case. @defaultValue null */
 	defaultValue?: string | number | null
-	/** Fires with the next grouped column id (or `null` when grouping is cleared) — a {@link GridGroupBy.panel} edit, or a controlled write. */
+	/** Fires with the next grouped column id (or `null` when grouping is cleared) — a {@link GridGroupBy.groupButton} press, or a controlled write. */
 	onValueChange?: (columnId: string | number | null) => void
 	/**
 	 * Whether groups start expanded (rows visible) or collapsed (just the group
@@ -194,7 +194,10 @@ export type GridGroupBy<T = unknown> = {
 	 * leaf alike — still needs a stable, unique {@link GridDataProps.getKey}.
 	 * Single-level, like client grouping; the aggregate total rows
 	 * ({@link GridDataProps.groupTotalRow} / {@link GridDataProps.grandTotalRow})
-	 * stand down, since the backend owns the figures.
+	 * stand down, since the backend owns the figures. Sorting the grouped column
+	 * reorders the group blocks client-side (by group value, each header's
+	 * children moving with it); sorting any other column stays manual, emitted
+	 * through the `sort` binding for the backend to honour.
 	 * @defaultValue false
 	 */
 	manual?: boolean
@@ -224,22 +227,22 @@ export type GridGroupBy<T = unknown> = {
 	 *
 	 * @remarks The group opens the instant its header is toggled (expansion is
 	 * controlled state, not gated on the fetch). Until the children land the grid
-	 * fills the opened group with placeholder skeleton rows — a group whose
-	 * backend `count` is positive but whose children aren't present yet — so the
-	 * expand reads as immediate rather than waiting on the request. A group the
+	 * fills the opened group with a single placeholder skeleton row — for a group
+	 * whose backend `count` is positive but whose children aren't present yet — so
+	 * the expand reads as immediate rather than waiting on the request. A group the
 	 * backend reports empty (`count` of 0) shows nothing.
 	 */
 	onGroupExpand?: (key: string | number) => void
 	/**
-	 * Renders the group panel above the table: drag a
-	 * {@link GridColumn.groupable} column in (or press the "group rows by"
-	 * affordance its header gains) to group by it, and remove the active chip
-	 * to ungroup — each emitting through {@link GridGroupBy.onValueChange}.
-	 * Works in both modes; single-level, so the panel holds one column and a
-	 * second drop replaces it.
+	 * Adds a group-by button to each {@link GridColumn.groupable} column header:
+	 * press it to group the rows by that column, press it again to ungroup —
+	 * each emitting through {@link GridGroupBy.onValueChange}. The active
+	 * column's button holds a blue accent, like an applied column filter. Works
+	 * in both modes; single-level, so grouping one column replaces any current
+	 * grouping.
 	 * @defaultValue false
 	 */
-	panel?: boolean
+	groupButton?: boolean
 	/**
 	 * Per-group presentation overlay the row manager edits — a palette color and a
 	 * manual leaf order keyed by each group's value (see {@link GridRowGroup}). The

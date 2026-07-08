@@ -12,7 +12,7 @@ const EMPTY_EXPANDED: ReadonlySet<string | number> = new Set()
 type GridRowGroupingResult<T> = {
 	/** The grouped column id, or `null` when ungrouped (also `null` for an unknown/non-data id). */
 	grouping: (string | number) | null
-	/** Writes the grouped column id back through the binding — the group panel's commit sink. */
+	/** Writes the grouped column id back through the binding — the group-by button's commit sink. */
 	setGrouping: (next: (string | number) | null) => void
 	/** Whether the binding runs server-side (`manual: true`). */
 	manual: boolean
@@ -32,7 +32,7 @@ type GridRowGroupingResult<T> = {
 
 /**
  * Resolves the {@link GridGroupBy} binding into the grouping state the grid
- * runs on: the grouped column id (controllable — the group panel writes it
+ * runs on: the grouped column id (controllable — the group-by button writes it
  * back through `setGrouping`), the client-mode engine expansion state (seeded
  * from a boolean `defaultExpanded`, then toggled per group header), the
  * manual-mode expanded key set (controllable, seeded from a `Set`

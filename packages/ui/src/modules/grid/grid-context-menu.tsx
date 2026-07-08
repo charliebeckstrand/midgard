@@ -10,9 +10,11 @@ import {
 	Columns3,
 	Copy,
 	Download,
+	Group,
 	PinOff,
 	Printer,
 	StretchHorizontal,
+	Ungroup,
 } from 'lucide-react'
 import {
 	type MouseEvent,
@@ -30,12 +32,13 @@ import type { SortState } from './context'
 import type { GridExportAction } from './export/types'
 import type { GridColumnGroup } from './grid-group-types'
 import { frozenSide, isLocked, normalizeFreeze } from './grid-pin-overrides'
-import type {
-	GridCellMenuContext,
-	GridColumn,
-	GridColumnMenuContext,
-	GridContextMenu as GridContextMenuConfig,
-	GridMenuItem,
+import {
+	columnLabel,
+	type GridCellMenuContext,
+	type GridColumn,
+	type GridColumnMenuContext,
+	type GridContextMenu as GridContextMenuConfig,
+	type GridMenuItem,
 } from './types'
 
 /** Menu-item icon for an export action: a printer for `print`, a download glyph otherwise. @internal */
@@ -59,6 +62,20 @@ type SortColumn = (column: string | number, direction: 'asc' | 'desc') => void
 /** Pins a column to an edge, or unpins it with `false`. @internal */
 type PinColumn = (column: string | number, side: 'left' | 'right' | false) => void
 
+/**
+ * The group-by toggle a `groupable` column's header menu offers: the active
+ * grouped column id and the write-back that groups by a column (or `null` to
+ * ungroup). `null` at the call site turns the menu's group item off.
+ *
+ * @internal
+ */
+type GridGroupByMenu = {
+	/** The active grouped column id, or `null` when ungrouped. */
+	grouping: (string | number) | null
+	/** Groups by a column, or ungroups with `null` — through the `groupBy` binding. */
+	setGrouping: (next: (string | number) | null) => void
+}
+
 /** Props for {@link GridContextMenu}. @internal */
 type GridContextMenuProps<T> = {
 	config: GridContextMenuConfig<T>
@@ -74,6 +91,12 @@ type GridContextMenuProps<T> = {
 	clearSort: () => void
 	/** Pins the right-clicked column to an edge, or unpins it; backs the menu's Pin items. */
 	pinColumn: PinColumn
+	/**
+	 * The group-by toggle for a right-clicked `groupable` column — the active
+	 * grouped column id and the write-back — or `null` when the group button is
+	 * off. Backs the menu's "Group by …" / "Ungroup …" item.
+	 */
+	groupBy: GridGroupByMenu | null
 	/** Auto-sizes resizable columns to fill the width, or `null` when the grid is not resizable. */
 	autoSizeColumns: (() => void) | null
 	/** Opens the column-manager dialog ("Manage columns"), or `null` when none is reachable. */
@@ -113,9 +136,44 @@ type ColumnMenuDefaultArgs<T> = {
 	sortColumn: SortColumn
 	clearSort: () => void
 	pinColumn: PinColumn
+	/** The group-by toggle, or `null` when the group button is off. */
+	groupBy: GridGroupByMenu | null
 	autoSizeColumns: (() => void) | null
 	chooseColumns: (() => void) | null
 	exportActions: GridExportAction[]
+}
+
+/**
+ * The group item for a column's menu: "Group by {column}" on an ungrouped
+ * groupable column (naming the column dynamically), flipping to a plain
+ * "Ungroup" once it is the active group — single-level, so only one column is
+ * ever grouped. The header button's toggle as a menu action. Empty when the
+ * group button is off or the column isn't groupable.
+ *
+ * @internal
+ */
+function groupMenuItems<T>(column: GridColumn<T>, groupBy: GridGroupByMenu | null): GridMenuItem[] {
+	if (!groupBy || !column.groupable) return []
+
+	if (column.id === groupBy.grouping) {
+		return [
+			{
+				key: 'ungroup',
+				label: 'Ungroup',
+				icon: <Ungroup />,
+				onSelect: () => groupBy.setGrouping(null),
+			},
+		]
+	}
+
+	return [
+		{
+			key: 'group-by',
+			label: `Group by ${columnLabel(column)}`,
+			icon: <Group />,
+			onSelect: () => groupBy.setGrouping(column.id),
+		},
+	]
 }
 
 /**
@@ -165,10 +223,12 @@ function pinMenuItems<T>(column: GridColumn<T>, pinColumn: PinColumn): GridMenuI
 
 /**
  * Default header-menu items: sort controls (when the column sorts) with a
- * "Clear sort" once it is the sorted column and the column's pin controls (Pin
- * left / Pin right / Unpin), then the table-wide tools under a separator —
- * "Auto-size columns" (when resizing is on), "Manage columns" (when a manager is
- * reachable), and one item per active export type (when export is on).
+ * "Clear sort" once it is the sorted column, the column's pin controls (Pin
+ * left / Pin right / Unpin), and the group-by toggle (when the column is
+ * groupable and the group button is on), then the table-wide tools under a
+ * separator — "Auto-size columns" (when resizing is on), "Manage columns" (when
+ * a manager is reachable), and one item per active export type (when export is
+ * on).
  *
  * @internal
  */
@@ -179,6 +239,7 @@ function columnMenuDefaults<T>(args: ColumnMenuDefaultArgs<T>): GridMenuItem[] {
 		sortColumn,
 		clearSort,
 		pinColumn,
+		groupBy,
 		autoSizeColumns,
 		chooseColumns,
 		exportActions,
@@ -214,6 +275,9 @@ function columnMenuDefaults<T>(args: ColumnMenuDefaultArgs<T>): GridMenuItem[] {
 
 	// Pin controls sit with the column's own actions, above the table-wide tools.
 	items.push(...pinMenuItems(column, pinColumn))
+
+	// Grouping follows the pin controls, closing out the column's own actions.
+	items.push(...groupMenuItems(column, groupBy))
 
 	// Table-wide tools sit under a separator, set off from the clicked column's
 	// own sort and pin actions. "Auto-size columns" leads them: it re-fits every
@@ -371,6 +435,7 @@ export function GridContextMenu<T>({
 	sortColumn,
 	clearSort,
 	pinColumn,
+	groupBy,
 	autoSizeColumns,
 	chooseColumns,
 	exportActions,
@@ -412,6 +477,7 @@ export function GridContextMenu<T>({
 				sortColumn,
 				clearSort,
 				pinColumn,
+				groupBy,
 				autoSizeColumns,
 				chooseColumns,
 				exportActions,
@@ -446,6 +512,7 @@ export function GridContextMenu<T>({
 			sortColumn,
 			clearSort,
 			pinColumn,
+			groupBy,
 			autoSizeColumns,
 			chooseColumns,
 			exportActions,

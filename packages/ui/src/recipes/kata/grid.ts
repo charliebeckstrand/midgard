@@ -206,30 +206,14 @@ export const k = {
 		// from the search field (and stays at the end even when it stands alone).
 		actions: 'sm:ml-auto',
 	},
-	// The group panel between the toolbar and the table (see `GridGroupByPanel`):
-	// the drop target a groupable column's header affordance drags into, carrying
-	// the active group as a removable `Badge` chip (the drag ghost and the empty
-	// hint are a `Badge` and `Text`, so this surface carries only the panel shell
-	// and the drag-handle cursor). Dashed at rest — an invitation to drop — and
-	// lifted solid-accent while a drag hovers it (`data-over`).
-	groupPanel: {
-		root: [
-			flex.row,
-			'items-center',
-			'min-h-11',
-			'gap-2',
-			'px-3',
-			'py-1.5',
-			border.subtle,
-			rounded.lg,
-			'border-dashed',
-			'data-[over]:border-solid',
-			...mode('data-[over]:border-blue-600', 'dark:data-[over]:border-blue-500'),
-		],
-		// Header affordance on a groupable column: press to group, or drag into the
-		// panel. Grab cursor at rest (the `Button` carries the rest of the styling).
-		// `touch-none` keeps a touch-drag from scrolling the page instead of lifting the column.
-		handle: ['cursor-grab active:cursor-grabbing', 'touch-none select-none'],
+	// Group-by icon button in a column header (see `GridGroupByButton`): press to
+	// group the rows by the column, press again to ungroup.
+	groupButton: {
+		// Layout only. The active accent (this column is the group) comes from the
+		// Button's `color` prop; `idle` is the resting muted tint, dropped when
+		// active so it doesn't override that colour — mirroring the filter button.
+		button: ['shrink-0'],
+		idle: [text.muted, fg.hover],
 	},
 	batch: {
 		bar: [

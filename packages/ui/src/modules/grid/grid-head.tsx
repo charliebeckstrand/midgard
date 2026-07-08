@@ -29,7 +29,7 @@ import {
 	COLUMN_RESIZE_STEP,
 	GRID_STATUS_DEBOUNCE_MS,
 } from './grid-constants'
-import { GridGroupByHandle } from './grid-group-by-panel'
+import { GridGroupByButton } from './grid-group-by-button'
 import { GridGroupHead } from './grid-group-head'
 import { isFrozen, isLocked } from './grid-pin-overrides'
 import { pinnedClassName, pinnedOffsetStyle } from './grid-pinning'
@@ -712,7 +712,7 @@ const GridColumnHeader = memo(function GridColumnHeader({
 				) : (
 					label
 				)}
-				<GridGroupByHandle column={column} />
+				<GridGroupByButton column={column} />
 				{filter && showsFilterButton(filter, column.id, interactive, filterQuery) && (
 					<GridColumnFilterButton column={column} filter={filter} query={filterQuery} />
 				)}
@@ -829,7 +829,7 @@ const GridReorderableColumnHeader = memo(function GridReorderableColumnHeader({
 					toggleSort={toggleSort}
 					interactive={interactive}
 				/>
-				<GridGroupByHandle column={column} />
+				<GridGroupByButton column={column} />
 				{filter && showsFilterButton(filter, column.id, interactive, filterQuery) && (
 					<GridColumnFilterButton column={column} filter={filter} query={filterQuery} />
 				)}

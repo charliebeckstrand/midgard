@@ -13,6 +13,7 @@ import { Alert } from '../../components/alert'
 import { TableBody, TableEmpty, TableLoading } from '../../components/table'
 import type { DensityLevel } from '../../providers/density'
 import { hasAggregation } from './grid-aggregate'
+import { GRID_LOADING_ROWS } from './grid-constants'
 import type { ResolvedInfiniteScroll } from './grid-data-resolvers'
 import type { GridGroupBy, GridGroupHeaderRow } from './grid-data-types'
 import { GridGroupLeafRow } from './grid-group-leaf-row'
@@ -21,6 +22,7 @@ import {
 	GridManualGroupPlaceholderRows,
 	GridManualGroupRow,
 	type GridManualGroupSegment,
+	orderManualGroupSegments,
 	segmentManualGroupRows,
 } from './grid-manual-group-row'
 import { type GridRowsProps, renderGridRow } from './grid-row'
@@ -70,6 +72,14 @@ type GridBodyProps<T> = GridRowsProps<T> & {
 	} | null
 	/** The grouped column id, read for each group header's value; `null` when ungrouped. */
 	groupColumnId: string | number | null
+	/**
+	 * The grouped column's active sort direction under manual grouping, or `null`
+	 * when unsorted or not manually grouped. Reorders the group blocks (each
+	 * header with its children) by group value — a client-side group sort that
+	 * moves whole blocks, so children never leave their header and the backend's
+	 * within-group order stands.
+	 */
+	manualGroupSort: 'asc' | 'desc' | null
 	/** Group-header label override from the {@link GridGroupBy} binding, if any. */
 	groupRenderHeader: GridGroupBy['renderHeader']
 	/** Append a per-group total row under each group's leaves; effective only while columns aggregate. */
@@ -278,6 +288,7 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 		manualRows,
 		manualGroup,
 		groupColumnId,
+		manualGroupSort,
 		groupRenderHeader,
 		getKey,
 		density,
@@ -285,7 +296,7 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 		virtualize,
 	} = props
 
-	if (loading) return <TableLoading columns={visibleColumns.length} />
+	if (loading) return <TableLoading columns={visibleColumns.length} rows={GRID_LOADING_ROWS} />
 
 	// An error state pre-empts the empty slot: a failed fetch has no rows, but the
 	// cause isn't "no items". `true` renders a default error alert.
@@ -306,9 +317,16 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 	// that follow them. Checked before the empty gate — `rows` carries only the
 	// leaves, and a fully collapsed server-grouped grid holds headers alone.
 	if (manualRows && manualRows.length > 0 && manualGroup && groupColumnId != null) {
+		// A sort on the grouped column reorders the group blocks by value; the
+		// backend's within-group leaf order (and any headerless leading run) stands.
+		const segments = orderManualGroupSegments(
+			segmentManualGroupRows(manualRows, manualGroup.groupRow),
+			manualGroupSort,
+		)
+
 		return (
 			<TableBody>
-				{segmentManualGroupRows(manualRows, manualGroup.groupRow).map((segment, index) =>
+				{segments.map((segment, index) =>
 					renderManualSegment(segment, index, {
 						props,
 						columnId: groupColumnId,

@@ -168,9 +168,10 @@ export type GridColumn<T> = {
 	value?: (row: T) => unknown
 	/**
 	 * Marks this data column as one the rows can be grouped by from the grid's
-	 * chrome: the {@link GridGroupBy.panel | group panel} offers it — a header
-	 * affordance that groups on click or drags into the panel. Gates the panel
-	 * only; a `groupBy` binding can still name any data column directly.
+	 * chrome: the {@link GridGroupBy.groupButton | group-by button} shows on its
+	 * header — a click groups the rows by the column, a second click ungroups.
+	 * Gates that button only; a `groupBy` binding can still name any data column
+	 * directly.
 	 * @defaultValue false
 	 */
 	groupable?: boolean

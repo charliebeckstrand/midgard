@@ -70,6 +70,17 @@ describe('Grid', () => {
 		expect(screen.queryByText('No items')).not.toBeInTheDocument()
 	})
 
+	it('draws a single skeleton row in the loading state', () => {
+		const { container } = renderUI(<Grid columns={columns} rows={rows} getKey={getKey} loading />)
+
+		// One loading row, with a skeleton cell per column.
+		expect(container.querySelectorAll('tbody tr')).toHaveLength(1)
+
+		expect(container.querySelectorAll('tbody [data-slot="placeholder"]')).toHaveLength(
+			columns.length,
+		)
+	})
+
 	it('renders a selection checkbox column when a column declares selectable', () => {
 		const selectColumns = [{ id: 'select', selectable: true }, ...columns]
 

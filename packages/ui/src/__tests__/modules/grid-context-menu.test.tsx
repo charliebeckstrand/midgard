@@ -10,6 +10,18 @@ describe('Grid context menus', () => {
 		{ id: 'role', title: 'Role', cell: (row) => row.role },
 	]
 
+	// Name is groupable, Role is not — for the header menu's group-by item.
+	const groupableColumns: GridColumn<Row>[] = [
+		{
+			id: 'name',
+			title: 'Name',
+			cell: (row) => row.name,
+			value: (row) => row.name,
+			groupable: true,
+		},
+		{ id: 'role', title: 'Role', cell: (row) => row.role },
+	]
+
 	const rows: Row[] = [
 		{ id: 1, name: 'Alice', role: 'Developer' },
 		{ id: 2, name: 'Bob', role: 'Designer' },
@@ -58,6 +70,81 @@ describe('Grid context menus', () => {
 		expect(onValueChange).toHaveBeenCalledWith<[SortState[]]>([
 			{ column: 'name', direction: 'desc' },
 		])
+	})
+
+	it('offers "Group by {column}" on a groupable header when the group button is on', () => {
+		const onValueChange = vi.fn()
+
+		renderUI(
+			<Grid
+				columns={groupableColumns}
+				rows={rows}
+				getKey={getKey}
+				contextMenu={{ column: true }}
+				groupBy={{ value: null, onValueChange, groupButton: true }}
+			/>,
+		)
+
+		rightClick('columnheader', 'Name')
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Group by Name' }))
+
+		expect(onValueChange).toHaveBeenCalledWith('name')
+	})
+
+	it('flips the group item to a plain "Ungroup" once the column is the active group', () => {
+		const onValueChange = vi.fn()
+
+		renderUI(
+			<Grid
+				columns={groupableColumns}
+				rows={rows}
+				getKey={getKey}
+				contextMenu={{ column: true }}
+				groupBy={{ value: 'name', onValueChange, groupButton: true }}
+			/>,
+		)
+
+		rightClick('columnheader', 'Name')
+
+		// The grouped column drops "Group by" for a bare "Ungroup".
+		expect(screen.queryByRole('menuitem', { name: 'Group by Name' })).not.toBeInTheDocument()
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Ungroup' }))
+
+		expect(onValueChange).toHaveBeenCalledWith(null)
+	})
+
+	it('shows no group item on a non-groupable column, or with the group button off', () => {
+		const { rerender } = renderUI(
+			<Grid
+				columns={groupableColumns}
+				rows={rows}
+				getKey={getKey}
+				contextMenu={{ column: true }}
+				groupBy={{ value: null, onValueChange: () => {}, groupButton: true }}
+			/>,
+		)
+
+		// Role isn't groupable — its header carries no group item.
+		rightClick('columnheader', 'Role')
+
+		expect(screen.queryByRole('menuitem', { name: 'Group by Role' })).not.toBeInTheDocument()
+
+		// With the group button off, the groupable column offers none either.
+		rerender(
+			<Grid
+				columns={groupableColumns}
+				rows={rows}
+				getKey={getKey}
+				contextMenu={{ column: true }}
+				groupBy={{ value: null, onValueChange: () => {} }}
+			/>,
+		)
+
+		rightClick('columnheader', 'Name')
+
+		expect(screen.queryByRole('menuitem', { name: 'Group by Name' })).not.toBeInTheDocument()
 	})
 
 	it('opens a cell menu with Copy by default on a body-cell right-click', () => {
