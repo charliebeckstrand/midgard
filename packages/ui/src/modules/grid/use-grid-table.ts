@@ -494,13 +494,27 @@ export function useGridTable<T>({
 		[setPaginationState],
 	)
 
+	// Held true by the autosizer around its own writes (see `useGridColumnAutoSize`),
+	// so the content fit updates the engine's sizing state without surfacing through
+	// the consumer's `onValueChange` — that binding reflects user/consumer intent
+	// (a drag, a keyboard nudge, a controlled write), not the internal auto-fit.
+	const autoSizingRef = useRef(false)
+
 	const [columnSizingState, setColumnSizingState] = useControllable<GridColumnSizingState>({
 		value: columnSizingConfig?.value,
 		defaultValue: columnSizingConfig?.defaultValue ?? EMPTY_SIZING,
-		onValueChange: (next) => columnSizingConfig?.onValueChange?.(next ?? {}),
+		onValueChange: (next) => {
+			if (autoSizingRef.current) return
+
+			columnSizingConfig?.onValueChange?.(next ?? {})
+		},
 	})
 
 	const resolvedSizing = columnSizingState ?? EMPTY_SIZING
+
+	// The consumer-seeded widths (a restored/persisted sizing), captured once so the
+	// autosizer can hold them on reload rather than measuring over them.
+	const initialSizingRef = useRef(columnSizingConfig?.value ?? columnSizingConfig?.defaultValue)
 
 	// Per-column hard floors the autosizer measures (a single-word header's full
 	// width, a multi-word one's icons); a stable map the resize bounds and the
@@ -701,6 +715,10 @@ export function useGridTable<T>({
 		columnFloors: columnFloorsRef.current,
 		// Infinite scroll's stable widths hold the fit against each appended batch.
 		freezeOnRowChange: stableColumnWidths,
+		// Restored/persisted widths start held, and the autosizer flags its own
+		// writes so they stay off the consumer's `onValueChange`.
+		initialSizing: initialSizingRef.current,
+		autoSizingRef,
 	})
 
 	const resize = useMemo<GridColumnResize | null>(() => {

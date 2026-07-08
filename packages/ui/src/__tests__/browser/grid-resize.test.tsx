@@ -122,6 +122,45 @@ describe('grid column resizing (real browser)', () => {
 		expect(onValueChange).toHaveBeenCalled()
 	})
 
+	it('does not fire onValueChange for the content auto-fit (no user resize)', async () => {
+		const onValueChange = vi.fn()
+
+		const { container } = setup({ onValueChange })
+
+		// Let the initial fit settle (and any ResizeObserver ticks flush).
+		await waitFor(() =>
+			expect(nameHeader(container).getBoundingClientRect().width).toBeGreaterThan(0),
+		)
+
+		await new Promise((resolve) => setTimeout(resolve, 50))
+
+		// The autosizer sized the columns, but that fit is not a user preference.
+		expect(onValueChange).not.toHaveBeenCalled()
+	})
+
+	it('holds a seeded (restored) width instead of re-fitting it', async () => {
+		const { container } = renderUI(
+			<div style={{ width: '400px' }}>
+				<Grid
+					columns={columns}
+					rows={rows}
+					getKey={getKey}
+					columnSizing={{ defaultValue: { name: 320 } }}
+				/>
+			</div>,
+		)
+
+		// The seeded width is held as a manual width, so the auto-fit fills the
+		// remaining columns around it rather than measuring the Name column back
+		// down to its content.
+		await waitFor(() =>
+			expect(
+				container.querySelector<HTMLElement>('th[data-grid-col="name"]')?.getBoundingClientRect()
+					.width,
+			).toBeCloseTo(320, -1),
+		)
+	})
+
 	it('accents the dragged column grip while a resize is in flight', async () => {
 		const { container, separator } = setup()
 

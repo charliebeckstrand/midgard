@@ -36,10 +36,45 @@ type GridColumnAutoSizeOptions<T> = {
 	 * @defaultValue false
 	 */
 	freezeOnRowChange?: boolean
+	/**
+	 * Widths the consumer seeded (a restored/persisted `columnSizing`): their
+	 * columns start held at those widths — like a manual resize — so the fit
+	 * fills the rest around them instead of measuring over them. Empty (a
+	 * first-time grid) leaves every column to auto-fit. Read once at mount.
+	 */
+	initialSizing?: Record<string, number>
+	/**
+	 * Set true by the autosizer around its own `setColumnSizing` writes so the
+	 * table hook can tell an internal content fit from a user resize and keep the
+	 * fit off the consumer's `columnSizing.onValueChange`. Owned by the caller.
+	 */
+	autoSizingRef?: RefObject<boolean>
 }
 
 /** Empty measurement; the resolved value before the first DOM read. @internal */
 const EMPTY_MEASUREMENT: ColumnMeasurement = { profiles: [], fixed: 0, floors: new Map() }
+
+/**
+ * Runs an autosizer `setColumnSizing` write with `autoSizingRef` held true, so
+ * the table hook's `onColumnSizingChange` — invoked synchronously inside the
+ * write — can tell an internal content fit from a user resize and keep the fit
+ * off the consumer's `columnSizing.onValueChange`. @internal
+ */
+function writeAutoSize(ref: RefObject<boolean> | undefined, write: () => void): void {
+	if (!ref) {
+		write()
+
+		return
+	}
+
+	ref.current = true
+
+	try {
+		write()
+	} finally {
+		ref.current = false
+	}
+}
 
 /**
  * Auto-sizes a resizable grid's data columns to their content within the
@@ -77,6 +112,8 @@ export function useGridColumnAutoSize<T>({
 	density,
 	columnFloors,
 	freezeOnRowChange = false,
+	initialSizing,
+	autoSizingRef,
 }: GridColumnAutoSizeOptions<T>): {
 	sizeToFit: () => void
 	resetColumn: (id: string | number) => void
@@ -86,8 +123,9 @@ export function useGridColumnAutoSize<T>({
 
 	// Columns held out of the fit at their current width. A manual resize (drag or
 	// keyboard) adds every column here at once, so resizing one never reflows the
-	// rest; `sizeToFit` clears the set to re-arm auto-fit.
-	const manualPinnedRef = useRef<Set<string>>(new Set())
+	// rest; `sizeToFit` clears the set to re-arm auto-fit. Seeded from any restored
+	// `columnSizing` so persisted widths hold on reload instead of being re-fit.
+	const manualPinnedRef = useRef<Set<string>>(new Set(Object.keys(initialSizing ?? {})))
 
 	// `width`-seeded columns the user released via "Auto-size columns"; they rejoin
 	// the fit instead of holding their initial `width`. Persists a deliberate
@@ -170,16 +208,19 @@ export function useGridColumnAutoSize<T>({
 
 			// Skip the write when nothing moved: a height-only resize tick (or any change
 			// landing on the same pixels) must not allocate a fresh sizing object and
-			// re-render the head, body, and footer for nothing.
-			table.setColumnSizing((prev) => {
-				for (const id in sizing) {
-					if (prev[id] !== sizing[id]) return { ...prev, ...sizing }
-				}
+			// re-render the head, body, and footer for nothing. Flagged as an internal
+			// fit so the table hook keeps it off the consumer's `onValueChange`.
+			writeAutoSize(autoSizingRef, () =>
+				table.setColumnSizing((prev) => {
+					for (const id in sizing) {
+						if (prev[id] !== sizing[id]) return { ...prev, ...sizing }
+					}
 
-				return prev
-			})
+					return prev
+				}),
+			)
 		},
-		[enabled, table, columns, containerRef, structSig, columnFloors],
+		[enabled, table, columns, containerRef, structSig, columnFloors, autoSizingRef],
 	)
 
 	// Hand width control to the user: hold every visible data column at its current
