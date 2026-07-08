@@ -99,6 +99,10 @@ export function useGridRowReorder<T>({
 
 	const onReorder = rowReorder?.onReorder
 
+	const onReorderStart = rowReorder?.onReorderStart
+
+	const onReorderEnd = rowReorder?.onReorderEnd
+
 	const handleReorder = useCallback(
 		(next: RowItem<T>[]) => {
 			onReorder?.(next.map((item) => item.row))
@@ -111,11 +115,20 @@ export function useGridRowReorder<T>({
 		[onReorder, items, rowLabel],
 	)
 
+	const handleDragStart = useCallback(
+		(item: RowItem<T>) => onReorderStart?.(item.key),
+		[onReorderStart],
+	)
+
+	const handleDragEnd = useCallback((item: RowItem<T>) => onReorderEnd?.(item.key), [onReorderEnd])
+
 	const { itemIds, strategy, dndContextProps, activeId } = useSortableList<RowItem<T>>({
 		items,
 		getKey: (item) => String(item.key),
 		onReorder: canReorder ? handleReorder : undefined,
 		orientation: 'vertical',
+		onDragStart: onReorderStart ? handleDragStart : undefined,
+		onDragEnd: onReorderEnd ? handleDragEnd : undefined,
 	})
 
 	return {

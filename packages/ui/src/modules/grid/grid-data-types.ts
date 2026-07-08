@@ -374,6 +374,17 @@ export type GridRowReorder<T> = {
 	 * @defaultValue false
 	 */
 	disabled?: boolean
+	/**
+	 * Fires with the dragged row's key when a reorder drag begins. Pair with
+	 * {@link GridRowReorder.onReorderEnd} to bracket the drag.
+	 */
+	onReorderStart?: (rowKey: string | number) => void
+	/**
+	 * Fires with the dragged row's key when a reorder drag ends — a drop (whether
+	 * or not the order changed) or a cancel. The reordered rows, when they changed,
+	 * arrive separately through {@link GridRowReorder.onReorder}.
+	 */
+	onReorderEnd?: (rowKey: string | number) => void
 }
 
 /**
@@ -386,6 +397,18 @@ export type GridColumnOrder = {
 	value?: (string | number)[]
 	defaultValue?: (string | number)[]
 	onValueChange?: (order: (string | number)[]) => void
+	/**
+	 * Fires with the dragged column's id when a header reorder drag begins (the
+	 * `reorder` handles). Pair with {@link GridColumnOrder.onReorderEnd} to bracket
+	 * the drag.
+	 */
+	onReorderStart?: (columnId: string | number) => void
+	/**
+	 * Fires with the dragged column's id when a header reorder drag ends — a drop
+	 * (whether or not the order changed) or a cancel. The new order, when it
+	 * changed, arrives separately through {@link GridColumnOrder.onValueChange}.
+	 */
+	onReorderEnd?: (columnId: string | number) => void
 }
 
 /**

@@ -723,6 +723,34 @@ export function useGridTable<T>({
 		}
 	}, [resizable, table, sizeToFit, resetColumn, holdManualWidths])
 
+	// Pointer/touch drag-resize lifecycle. The engine flags the column under an
+	// active drag in `columnSizingInfo.isResizingColumn` (a pointer/touch drag
+	// only — a keyboard nudge writes the width straight through `columnSizing`), so
+	// a transition off/onto a column id brackets the drag. Read from the engine and
+	// fired from an effect, keeping the callbacks out of the controlled-state write
+	// path (unlike `onValueChange`, which the sizing setter drives).
+	const resizingColumnId = resizable ? table.getState().columnSizingInfo.isResizingColumn : false
+
+	const onResizeStart = columnSizingConfig?.onResizeStart
+
+	const onResizeEnd = columnSizingConfig?.onResizeEnd
+
+	const prevResizingRef = useRef<string | false>(false)
+
+	useEffect(() => {
+		const prev = prevResizingRef.current
+
+		if (prev === resizingColumnId) return
+
+		prevResizingRef.current = resizingColumnId
+
+		// End the outgoing column's drag first (a settle, or a pointer that slid
+		// straight onto another handle), then start the incoming one.
+		if (prev) onResizeEnd?.(prev)
+
+		if (resizingColumnId) onResizeStart?.(resizingColumnId)
+	}, [resizingColumnId, onResizeStart, onResizeEnd])
+
 	const globalFilter = useMemo<GridGlobalFilterView | null>(
 		() =>
 			globalConfigured
