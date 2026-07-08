@@ -194,6 +194,28 @@ export function useGridCursor<T>({
 
 	const { rowEditing } = editing
 
+	// The `<table>` cursor props, with the session's Escape layered ahead of
+	// navigation when the grid owns the edit session: the table (the cursor's
+	// `role="grid"` tab stop) sees every editor's keys — portaled panels
+	// included, since portal events propagate through the React tree — so no
+	// editor wires its own abandon.
+	const navTableProps = useMemo<GridNavTableProps | undefined>(() => {
+		const base = nav.navTableProps
+
+		const sessionEscape = editing.sessionEscape
+
+		if (!base || !sessionEscape) return base
+
+		return {
+			...base,
+			onKeyDown: (event) => {
+				sessionEscape(event)
+
+				base.onKeyDown(event)
+			},
+		}
+	}, [nav.navTableProps, editing.sessionEscape])
+
 	const wrap = useMemo(
 		() =>
 			editingEnabled
@@ -207,7 +229,7 @@ export function useGridCursor<T>({
 	return {
 		cursorEnabled,
 		navStore: nav.store,
-		navTableProps: nav.navTableProps,
+		navTableProps,
 		reconcile: nav.reconcile,
 		columns: editingEnabled ? editColumns : navColumns,
 		editOnCellDoubleClick,

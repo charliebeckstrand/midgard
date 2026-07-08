@@ -1,6 +1,13 @@
 'use client'
 
-import { type RefObject, useCallback, useEffect, useMemo, useRef } from 'react'
+import {
+	type KeyboardEvent as ReactKeyboardEvent,
+	type RefObject,
+	useCallback,
+	useEffect,
+	useMemo,
+	useRef,
+} from 'react'
 import { announce } from '../../core'
 import { useControllable } from '../../hooks'
 import { EMPTY_SET } from './grid-constants'
@@ -19,6 +26,14 @@ export type GridEditingApi = {
 	 * a row already editing.
 	 */
 	enterRowEdit: (rowKey: string | number, coord: Coord) => void
+	/**
+	 * Abandons an editing row's session when an Escape bubbles up from one of its
+	 * editors — layered onto the grid `<table>`'s key handler by
+	 * {@link useGridCursor}, so every editor (inferred input, listbox, `editCell`
+	 * slot) inherits it without wiring of its own. `undefined` unless the grid
+	 * owns the session (`trigger: 'doubleClick'`).
+	 */
+	sessionEscape: ((event: ReactKeyboardEvent<HTMLTableElement>) => void) | undefined
 }
 
 /** Focusable editor content inside an editing cell, in preference order. @internal */
@@ -268,6 +283,41 @@ export function useGridEditing<T>({
 		[exitRowEdit],
 	)
 
+	// Escape from any of an editing row's editors abandons its session. It stands
+	// down while the press belongs to an inner floating surface, whose
+	// document-level escape layer runs *after* this React handler: a press
+	// already consumed (`defaultPrevented`), one fired from focus inside a
+	// portaled panel (an open listbox's options, the date picker's calendar), or
+	// one on an open disclosure's own trigger/input (`aria-expanded="true"`, a
+	// combobox typing with its panel open) — each closes that surface instead,
+	// and the next press abandons. The row resolves from the event's `<tr>`
+	// (`data-row-index` into the display order), so only an editing row's Escape
+	// is consumed and every other press keeps bubbling.
+	const sessionEscape = useCallback(
+		(event: ReactKeyboardEvent<HTMLTableElement>) => {
+			if (event.key !== 'Escape' || event.defaultPrevented) return
+
+			if (!(event.target instanceof Element)) return
+
+			if (event.target.closest('[data-floating-ui-portal]')) return
+
+			if (event.target.closest('[aria-expanded="true"]')) return
+
+			const rowIndex = event.target.closest('tr[data-row-index]')?.getAttribute('data-row-index')
+
+			if (rowIndex == null) return
+
+			const rowKey = rowKeysRef.current[Number(rowIndex)]
+
+			if (rowKey === undefined || !editableRowsRef.current.has(rowKey)) return
+
+			event.preventDefault()
+
+			cancelRowEdit(rowKey)
+		},
+		[cancelRowEdit, rowKeysRef],
+	)
+
 	// Flush rows that left the editable set since the last render: emit their
 	// staged changes as one batch and clear the drafts. The editors for those rows
 	// have unmounted, but the drafts persist in the ref until flushed here.
@@ -303,5 +353,5 @@ export function useGridEditing<T>({
 		[editableRows, stageDraft, unstageDraft, sessionOwned, exitRowEdit, cancelRowEdit],
 	)
 
-	return { rowEditing, enterRowEdit }
+	return { rowEditing, enterRowEdit, sessionEscape: sessionOwned ? sessionEscape : undefined }
 }

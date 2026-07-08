@@ -27,14 +27,23 @@ export type GridEditInputProps = {
 	required?: boolean
 	/** Saves the row's edit session (Enter) when the grid owns it (`trigger: 'doubleClick'`); absent under a consumer-owned session. */
 	commitRow?: () => void
-	/** Abandons the row's edit session (Escape) when the grid owns it; absent under a consumer-owned session, where Escape reverts the cell. */
+	/**
+	 * Present when the grid owns the row's edit session: Escape then belongs to
+	 * the grid table's key surface, which abandons the whole row, so the editor's
+	 * per-cell revert stands down and the key bubbles. Absent under a
+	 * consumer-owned session, where Escape reverts this cell.
+	 */
 	cancelRow?: () => void
 }
 
 /**
- * Escape reverts the cell — or abandons the whole row's session when the grid
- * owns it (`trigger: 'doubleClick'`) — and Enter saves that session's row.
- * Staging is live, so there is no per-cell commit key. @internal
+ * Enter saves the row when the grid owns the session (`trigger:
+ * 'doubleClick'`); Escape reverts the cell under a consumer-owned session. A
+ * grid-owned session's Escape abandons the whole row instead, handled once on
+ * the grid `<table>`'s key surface (see `useGridEditing`'s `sessionEscape`) so
+ * every editor — these inferred inputs, the listbox, an `editCell` slot —
+ * inherits it; the key bubbles past the editor here. Staging is live, so there
+ * is no per-cell commit key. @internal
  */
 const editorKeys =
 	({
@@ -43,11 +52,10 @@ const editorKeys =
 		cancelRow,
 	}: Pick<GridEditInputProps, 'cancel' | 'commitRow' | 'cancelRow'>) =>
 	(event: KeyboardEvent<HTMLElement>) => {
-		if (event.key === 'Escape') {
+		if (event.key === 'Escape' && !cancelRow) {
 			event.preventDefault()
 
-			if (cancelRow) cancelRow()
-			else cancel()
+			cancel()
 		} else if (event.key === 'Enter' && commitRow) {
 			event.preventDefault()
 
@@ -117,10 +125,11 @@ const BOOLEAN_OPTIONS = [
 ]
 
 /**
- * Boolean editor for true/false cells, a yes/no `Listbox`. The session keys
- * stay off it — Enter and Escape belong to the listbox's own open/select
- * interaction, so a grid-owned session ends from a sibling text/number editor
- * or the consumer's save affordance. @internal
+ * Boolean editor for true/false cells, a yes/no `Listbox`. The commit key stays
+ * off it — Enter belongs to the listbox's own open/select interaction — so a
+ * grid-owned session saves from a sibling text/number editor or the consumer's
+ * save affordance. Escape still abandons the session through the grid table's
+ * key surface (deferring to the open panel), like every editor. @internal
  */
 function GridBooleanEditInput({ draft, onValueUpdate, ariaLabel, required }: GridEditInputProps) {
 	return (

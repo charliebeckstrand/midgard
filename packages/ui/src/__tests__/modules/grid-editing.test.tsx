@@ -401,4 +401,47 @@ describe("Grid double-click-to-edit (trigger: 'doubleClick')", () => {
 
 		expect(bySlot(container, 'grid-edit-input')).toHaveFocus()
 	})
+
+	it('abandons the session on Escape from any editor, not just the inferred inputs', () => {
+		const { container, cell, onValueChange } = renderTriggerGrid([
+			{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
+			{ id: 'done', title: 'Done', field: 'done', cell: (row) => (row.done ? 'Yes' : 'No') },
+		])
+
+		fireEvent.doubleClick(cell('name'))
+
+		// Escape from the (closed) boolean listbox abandons like from a text input:
+		// the editing cell's host owns the key, not each editor.
+		fireEvent.keyDown(bySlot(container, 'grid-edit-boolean-input') as HTMLElement, {
+			key: 'Escape',
+		})
+
+		expect(bySlot(container, 'grid-edit-input')).toBeNull()
+
+		expect(onValueChange).not.toHaveBeenCalled()
+	})
+
+	it('defers Escape to an open floating surface inside the cell', () => {
+		const { container, cell } = renderTriggerGrid([
+			{
+				id: 'name',
+				title: 'Name',
+				field: 'name',
+				cell: (row) => row.name,
+				editCell: () => (
+					<button type="button" data-slot="open-disclosure" aria-expanded="true">
+						open
+					</button>
+				),
+			},
+		])
+
+		fireEvent.doubleClick(cell('name'))
+
+		// The press belongs to the open surface — its document-level escape layer
+		// closes it after this handler — so the session stays alive.
+		fireEvent.keyDown(bySlot(container, 'open-disclosure') as HTMLElement, { key: 'Escape' })
+
+		expect(bySlot(container, 'open-disclosure')).toBeInTheDocument()
+	})
 })
