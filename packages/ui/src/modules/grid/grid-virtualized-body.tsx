@@ -48,7 +48,9 @@ export function GridVirtualizedBody<T>(props: GridVirtualizedBodyProps<T>) {
 	// Fire the infinite-scroll load-more as the last rendered row nears the loaded
 	// end (see `useGridInfiniteScroll`); inert when `infiniteScroll` is null. The
 	// window renders past the viewport by `overscan`, so the last item's index
-	// leads the visible bottom, giving the fetch a head start.
+	// leads the visible bottom, giving the fetch a head start. The scroll ref
+	// supplies the bounded-window evidence (overflow) and the scroll events that
+	// arm each post-fill fire.
 	const lastItem = virtualItems[virtualItems.length - 1]
 
 	const { infiniteScroll } = props
@@ -57,6 +59,7 @@ export function GridVirtualizedBody<T>(props: GridVirtualizedBodyProps<T>) {
 		lastRenderedIndex: lastItem ? lastItem.index : -1,
 		count: rows.length,
 		infiniteScroll,
+		scrollRef,
 	})
 
 	// Publish a row-scroller to the cursor while this windowed body is mounted, so a

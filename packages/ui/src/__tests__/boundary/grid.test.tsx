@@ -1125,7 +1125,7 @@ describe('Grid', () => {
 			age: i,
 		}))
 
-		it('throws when infiniteScroll is set without virtualize', () => {
+		it('throws when infiniteScroll is set without maxHeight', () => {
 			expect(() =>
 				renderUI(
 					<Grid
@@ -1135,7 +1135,40 @@ describe('Grid', () => {
 						infiniteScroll={{ onLoadMore: vi.fn() }}
 					/>,
 				),
-			).toThrow(/requires `virtualize`/)
+			).toThrow(/requires `maxHeight`/)
+		})
+
+		it('throws when virtualize is explicitly refused', () => {
+			expect(() =>
+				renderUI(
+					<Grid
+						columns={columns}
+						rows={manyRows}
+						getKey={getKey}
+						virtualize={false}
+						maxHeight="300px"
+						infiniteScroll={{ onLoadMore: vi.fn() }}
+					/>,
+				),
+			).toThrow(/implies `virtualize`/)
+		})
+
+		it('implies virtualize, windowing the rows without the explicit prop', () => {
+			const { container } = renderUI(
+				<Grid
+					columns={columns}
+					rows={manyRows}
+					getKey={getKey}
+					maxHeight="300px"
+					infiniteScroll={{ onLoadMore: vi.fn() }}
+				/>,
+			)
+
+			// The windowed scroll wrapper and table semantics render as if
+			// `virtualize` were set — infinite scroll implied it.
+			expect(bySlot(container, 'grid-scroll')).toBeInTheDocument()
+
+			expect(container.querySelector('table')).toHaveAttribute('role', 'table')
 		})
 
 		it('throws when combined with pagination', () => {
@@ -1260,6 +1293,65 @@ describe('Grid', () => {
 
 			// hasMore is false: the loaded set is the whole set — 60 rows + the header.
 			expect(container.querySelector('table')).toHaveAttribute('aria-rowcount', '61')
+		})
+
+		it('reports a determinate aria-rowcount from totalRows while more rows load', () => {
+			const { container } = renderUI(
+				<Grid
+					columns={columns}
+					rows={manyRows}
+					getKey={getKey}
+					virtualize
+					maxHeight="300px"
+					infiniteScroll={{ onLoadMore: vi.fn(), totalRows: 500 }}
+				/>,
+			)
+
+			// The server total is stated, so the count is the real set + the header
+			// rather than the indeterminate -1 (60 of 500 loaded).
+			expect(container.querySelector('table')).toHaveAttribute('aria-rowcount', '501')
+		})
+
+		it('reports totalRows through the footer rowTotal instead of the loaded extent', () => {
+			const { container } = renderUI(
+				<Grid
+					columns={columns}
+					rows={manyRows}
+					getKey={getKey}
+					virtualize
+					maxHeight="300px"
+					footer={{ rowTotal: true }}
+					infiniteScroll={{ onLoadMore: vi.fn(), totalRows: 500 }}
+				/>,
+			)
+
+			expect(bySlot(container, 'grid-footer')).toHaveTextContent('500')
+		})
+
+		it('sizes the scroll region by flexing under maxHeight="fill"', () => {
+			const { container } = renderUI(
+				<div style={{ height: '400px' }}>
+					<Grid
+						columns={columns}
+						rows={manyRows}
+						getKey={getKey}
+						virtualize
+						maxHeight="fill"
+						infiniteScroll={{ onLoadMore: vi.fn() }}
+					/>
+				</div>,
+			)
+
+			const scroll = bySlot(container, 'grid-scroll')
+
+			// Fill mode carries no inline max-height cap — the scroll region flexes
+			// into the parent's box instead (jsdom does no layout; the class-level
+			// behavior is exercised in the browser project).
+			expect(scroll?.style.maxHeight).toBe('')
+
+			expect(scroll?.className).toContain('flex-1')
+
+			expect(bySlot(container, 'grid')?.className).toContain('h-full')
 		})
 	})
 

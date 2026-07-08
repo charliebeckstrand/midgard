@@ -1025,7 +1025,9 @@ const fetchServerRows = (offset: number): Promise<Person[]> =>
 // Server-side rendered infinite scroll: the first page stands in for the server-rendered
 // initial rows, and the client appends each subsequent page as the scroll nears
 // the end. `loadingMore` holds a pending flag across the async fetch — the grid
-// shows a trailing skeleton row and won't re-request until the batch lands.
+// shows a trailing skeleton row and won't re-request until the batch lands — and
+// the backend's `totalRows` derives `hasMore`, keeps `aria-rowcount` determinate,
+// and reports the real set through the footer's row total.
 const ServerInfiniteScrollExample = () => {
 	const [rows, setRows] = useState<Person[]>(() => makeServerRows(0, 25))
 
@@ -1048,9 +1050,10 @@ const ServerInfiniteScrollExample = () => {
 			getKey={(row) => row.id}
 			virtualize
 			maxHeight="320px"
+			footer={{ rowTotal: true }}
 			infiniteScroll={{
 				onLoadMore: loadMore,
-				hasMore: rows.length < SERVER_TOTAL,
+				totalRows: SERVER_TOTAL,
 				loadingMore,
 			}}
 		/>
@@ -1587,7 +1590,7 @@ export function Demo() {
 								<Stack gap="xl">
 									<Example
 										title="Server infinite scroll"
-										code={code`<Grid virtualize infiniteScroll={{ onLoadMore, hasMore, loadingMore }} />`}
+										code={code`<Grid virtualize infiniteScroll={{ onLoadMore, totalRows, loadingMore }} />`}
 									>
 										<ServerInfiniteScrollExample />
 									</Example>

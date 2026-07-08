@@ -82,30 +82,38 @@ export type ResolvedInfiniteScroll = {
 	loadingMore: boolean
 	/** Rows from the loaded end that trip a load. */
 	threshold: number
+	/** Server-known total row count, or `null` when the full extent is unknown. */
+	totalRows: number | null
 	/** Trailing-row content shown while loading, or `undefined` for the default skeleton. */
 	loadingIndicator: ReactNode
 }
 
 /**
  * Collapses the `infiniteScroll` binding into its resolved gates, or `null` when
- * unset. `hasMore` defaults on (the consumer stops it) and `loadingMore` off;
- * `threshold` falls back to the virtualization `overscan`, so the fetch leads
- * the viewport by about the windowed overscan. Returns `null` for no binding —
- * the body then wires no end-detection and renders no indicator.
+ * unset. `hasMore` defaults to comparing the loaded count against a supplied
+ * `totalRows` — else on outright (the consumer stops it) — and `loadingMore`
+ * defaults off; `threshold` falls back to the virtualization `overscan`, so the
+ * fetch leads the viewport by about the windowed overscan. Returns `null` for no
+ * binding — the body then wires no end-detection and renders no indicator.
  *
  * @internal
  */
 export function resolveInfiniteScroll(
 	infiniteScroll: GridInfiniteScroll | undefined,
 	overscan: number,
+	/** Rows currently loaded (the source `rows` length); derives `hasMore` under `totalRows`. */
+	loadedCount: number,
 ): ResolvedInfiniteScroll | null {
 	if (!infiniteScroll) return null
 
+	const totalRows = infiniteScroll.totalRows ?? null
+
 	return {
 		onLoadMore: infiniteScroll.onLoadMore,
-		hasMore: infiniteScroll.hasMore ?? true,
+		hasMore: infiniteScroll.hasMore ?? (totalRows != null ? loadedCount < totalRows : true),
 		loadingMore: infiniteScroll.loadingMore ?? false,
 		threshold: infiniteScroll.threshold ?? overscan,
+		totalRows,
 		loadingIndicator: infiniteScroll.loadingIndicator,
 	}
 }
@@ -180,10 +188,11 @@ export function resolveTableProps(args: {
 
 /**
  * The grid's `aria-rowcount`: the server total + 1 when paginating with a known
- * total, the rendered count + 1 when unpaginated, or ARIA's `-1` "indeterminate"
- * sentinel when the whole extent is unknown — a server feed paginating by
- * `pageCount` alone, or `indeterminate` (infinite scroll with more rows to
- * load) — rather than misreporting the loaded window as the whole set.
+ * total — or infinite-scrolling with a known {@link GridInfiniteScroll.totalRows}
+ * — the rendered count + 1 when unpaginated, or ARIA's `-1` "indeterminate"
+ * sentinel when the whole extent is unknown: a server feed paginating by
+ * `pageCount` alone, or infinite scroll with more rows to load and no stated
+ * total — rather than misreporting the loaded window as the whole set.
  * `extraHeaderRows` adds any header rows beyond the column header — the
  * column-group band row — so the count spans both; the indeterminate sentinel is
  * left untouched. @internal
@@ -192,9 +201,11 @@ export function resolveAriaRowCount(
 	pagination: GridPaginationView | null,
 	renderedCount: number,
 	extraHeaderRows = 0,
-	indeterminate = false,
+	infiniteScroll: Pick<ResolvedInfiniteScroll, 'hasMore' | 'totalRows'> | null = null,
 ): number {
-	if (indeterminate || (pagination && pagination.rowCount == null)) return -1
+	if (infiniteScroll?.totalRows != null) return infiniteScroll.totalRows + 1 + extraHeaderRows
+
+	if (infiniteScroll?.hasMore || (pagination && pagination.rowCount == null)) return -1
 
 	return (pagination?.rowCount ?? renderedCount) + 1 + extraHeaderRows
 }
@@ -205,8 +216,10 @@ export function resolveAriaRowCount(
  * source count only when it exceeds the filtered extent — a client filter is
  * narrowing the set; under server-side filtering the core model is one page, so
  * it collapses to the filtered count and the footer shows a bare total rather
- * than a misleading "N of pageSize". Read live off `table` (not memoized) so the
- * counts track client-side search/filtering. @internal
+ * than a misleading "N of pageSize". An infinite-scroll `totalRows` supersedes
+ * the filtered extent: the footer then reports the real (server) set rather
+ * than the loaded window. Read live off `table` (not memoized) so the counts
+ * track client-side search/filtering. @internal
  */
 export function resolveFooterStats<T>(args: {
 	footer: GridFooter | undefined
@@ -214,12 +227,16 @@ export function resolveFooterStats<T>(args: {
 	/** Full filtered row extent across all pages (the grid's `dataRowCount`). */
 	filteredCount: number
 	selected: number
+	/** Resolved infinite scroll, whose known `totalRows` supersedes the loaded extent. */
+	infiniteScroll: Pick<ResolvedInfiniteScroll, 'totalRows'> | null
 }): GridFooterStats | null {
 	if (!args.footer) return null
 
+	const rows = args.infiniteScroll?.totalRows ?? args.filteredCount
+
 	return {
-		rows: args.filteredCount,
-		total: Math.max(args.table.getCoreRowModel().rows.length, args.filteredCount),
+		rows,
+		total: Math.max(args.table.getCoreRowModel().rows.length, rows),
 		selected: args.selected,
 	}
 }
