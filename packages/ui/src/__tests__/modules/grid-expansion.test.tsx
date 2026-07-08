@@ -52,9 +52,9 @@ describe('Grid master-detail', () => {
 
 		expect(toggle).toHaveAttribute('aria-expanded', 'false')
 
-		// The chevron carries `data-open` so its CSS rotate fires when the panel opens.
-		// It is the toggle's first `data-slot="icon"` (the rotate carrier wrapping the
-		// glyph), which also lets the Button read the control as icon-only.
+		// The chevron `<svg>` carries `data-open` so its CSS rotate fires when the
+		// panel opens. It is the toggle's `data-slot="icon"` element (the lucide glyph
+		// the Icon clones), which also lets the Button read the control as icon-only.
 		expect(toggle.querySelector('[data-slot="icon"]')).not.toHaveAttribute('data-open')
 
 		await user.click(toggle)

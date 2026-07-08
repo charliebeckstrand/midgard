@@ -56,14 +56,15 @@ export function GridExpandToggle({
 			aria-controls={detailPanelId(rowKey)}
 			aria-label={`${expanded ? 'Collapse' : 'Expand'} details for ${name}`}
 		>
-			{/* The rotate rides this span, not the Icon — Icon forwards no `data-*`,
-			    so the `data-[open]:rotate-90` variant needs its own carrier. The span
-			    carries `data-slot="icon"` so the Button reads the toggle as icon-only
-			    and holds its square padding floor — without it the wrapper counts as a
-			    text label, swapping in the taller labeled-control height. */}
-			<span data-slot="icon" data-open={dataAttr(expanded)} className={cn(k.detail.chevron)}>
-				<Icon icon={<ChevronRight />} />
-			</span>
+			{/* `data-open` rides the chevron element itself: `Icon` clones it and
+			    preserves props it doesn't set, and a lucide glyph forwards `data-*`
+			    onto its `<svg>` — so the rotate cue and the recipe's rotate class land
+			    on the same svg with no wrapper. `Icon` also stamps `data-slot="icon"`,
+			    so the Button reads the control as icon-only and holds its square floor. */}
+			<Icon
+				icon={<ChevronRight data-open={dataAttr(expanded)} />}
+				className={cn(k.detail.chevron)}
+			/>
 		</Button>
 	)
 }

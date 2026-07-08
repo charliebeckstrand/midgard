@@ -459,10 +459,11 @@ export const k = {
 	},
 	detail: {
 		// The master-detail chevron in an expander cell: rotates a quarter-turn as
-		// the panel opens (`data-open`), honouring `prefers-reduced-motion`. Inline
-		// flex so the rotate spins the icon about its own centre.
+		// the panel opens (`data-open`), honouring `prefers-reduced-motion`. The
+		// class rides the chevron `<svg>` directly (the expander passes `data-open`
+		// and this recipe onto the lucide element), which rotates about its own
+		// centre without a wrapper.
 		chevron: [
-			'inline-flex',
 			'shrink-0',
 			'transition-transform',
 			'duration-200',
