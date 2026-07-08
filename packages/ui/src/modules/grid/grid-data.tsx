@@ -88,7 +88,7 @@ import { type GridExpansionResult, useGridExpansion } from './use-grid-expansion
 import { useGridExport } from './use-grid-export'
 import { type GridGroupHeader, type GridGroupResult, useGridGroup } from './use-grid-group'
 import { type GridCellActivate, GridNavContext, type GridRowActivate } from './use-grid-navigation'
-import { useGridReorder } from './use-grid-reorder'
+import { resolveGridReorder, useGridReorder } from './use-grid-reorder'
 import { useGridRoving } from './use-grid-roving'
 import { useGridRowGrouping } from './use-grid-row-grouping'
 import { type GridRowManagerRegionResult, useGridRowManagerRegion } from './use-grid-row-manager'
@@ -1374,9 +1374,12 @@ export function GridData<T>({
 
 	// Column reorder rides @dnd-kit's horizontal sortable; the dnd context wraps
 	// the whole table region (see `useGridReorder`), and the header reads
-	// `canReorder` to register each draggable cell against it.
+	// `canReorder` to register each draggable cell against it. `reorderHandle`
+	// picks the grip vs. whole-header drag affordance the headers render.
+	const { enabled: reorderEnabled, handle: reorderHandle } = resolveGridReorder(reorder)
+
 	const { canReorder, itemIds, strategy, dndContextProps, activeId } = useGridReorder<T>({
-		reorder,
+		reorder: reorderEnabled,
 		visibleColumns,
 		reorderColumns,
 		onReorderStart: columnOrderConfig?.onReorderStart,
@@ -1558,6 +1561,7 @@ export function GridData<T>({
 					selectAllLabel={selectAllLabel}
 					gridSemantics={gridSemantics}
 					reorderable={reorderActive}
+					reorderHandle={reorderHandle}
 					resize={resize}
 					filters={filters}
 					pinning={pinning}
@@ -1660,7 +1664,7 @@ export function GridData<T>({
 							columns={managerItems}
 							order={columnOrder}
 							onOrderChange={setColumnOrder}
-							reorderable={reorder}
+							reorderable={reorderEnabled}
 							hidden={hiddenColumns}
 							onHiddenChange={handleHiddenChange}
 							onPinChange={pinColumn}

@@ -304,7 +304,24 @@ export const k = {
 	sort: {
 		// `min-w-0` lets the button shrink within the header slot so its title can
 		// truncate; the title carries the ellipsis while the sort arrow holds its size.
-		button: [flex.inline, 'min-w-0', text.muted, fg.hover, focus.ring, cursor, 'select-none'],
+		// The trailing pair holds the title at the muted shade on hover while a column
+		// drag lifts and mutes this header (an ancestor carrying `data-dragging`) —
+		// otherwise `fg.hover` would brighten the held column's own title under the
+		// dragging pointer, fighting the dim cue. The `hover:not-disabled` modifiers
+		// mirror `fg.hover`, and the `[data-dragging]` ancestor adds the specificity
+		// that outranks it, so the hold lands without `!`. Inert on any header with no
+		// dragging ancestor — every non-reorder header, and a reorder header at rest.
+		button: [
+			flex.inline,
+			'min-w-0',
+			text.muted,
+			fg.hover,
+			focus.ring,
+			cursor,
+			'select-none',
+			'[[data-dragging]_&]:hover:not-disabled:text-zinc-500',
+			'dark:[[data-dragging]_&]:hover:not-disabled:text-zinc-400',
+		],
 		icon: sortIcon,
 		// Priority number beside the arrow under a multi-column sort: small, muted,
 		// tabular (so digits hold their box), and non-shrinking next to the title.
@@ -336,6 +353,14 @@ export const k = {
 		// Promotes a non-sticky reorder cell to `relative` while dragging so its
 		// lift z-index takes effect.
 		shift: 'data-[dragging]:relative',
+		// Whole-header drag handle (`reorder.handle: false`): the header cell itself
+		// carries the grab cursor — grabbing while lifted (`data-[dragging]`, the same
+		// live-drag flag the grip uses, not `:active`, so a context-menu press doesn't
+		// strand it) — and suppresses text selection and touch-scroll so a press
+		// anywhere on the header lifts the column. A sortable column's sort control
+		// keeps `cursor-pointer`: set on the control itself, it out-resolves this
+		// inherited grab cursor on that child.
+		grab: ['cursor-grab', 'touch-none', 'select-none', 'data-[dragging]:cursor-grabbing'],
 		// Keeps the grip, title, and any sort control on one baseline. A block-level
 		// flex (not inline) fills the header width so the title between the grip and
 		// the filter button can shrink to an ellipsis instead of overrunning the cell.
