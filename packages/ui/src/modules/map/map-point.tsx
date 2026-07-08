@@ -1,6 +1,5 @@
 'use client'
 
-import { motion } from 'motion/react'
 import { type PointerEvent, useEffect, useId } from 'react'
 import { cn } from '../../core'
 import { k, type MapSeriesColor } from '../../recipes/kata/map'
@@ -12,6 +11,7 @@ import {
 	POINT_STAGGER,
 	POINT_STAGGER_MAX,
 } from './map-constants'
+import { MapDot } from './map-dot'
 import type { LngLat } from './types'
 
 /** Props for {@link MapPoint}. */
@@ -34,8 +34,10 @@ export type MapPointProps = {
  *
  * @remarks Renders only inside {@link MapPlat}, and renders nothing when the
  * projection has no image for its position (the US composite drops points
- * outside its insets). Under the plat's `animate` the dot pops in, staggered
- * by its registration order so a cluster of points reveals in sequence.
+ * outside its insets). The dot rides device pixels (a non-scaling stroke),
+ * so a resize scales the geography under it without changing its size. Under
+ * the plat's `animate` the dot pops in, staggered by its registration order
+ * so a cluster of points reveals in sequence.
  */
 export function MapPoint({ label, at, color, detail }: MapPointProps) {
 	const id = useId()
@@ -59,36 +61,22 @@ export function MapPoint({ label, at, color, detail }: MapPointProps) {
 		set({ kind: 'entry', id }, { x: event.clientX, y: event.clientY })
 	}
 
-	const dot = (
-		<circle
-			data-slot="map-point"
-			cx={position.x}
-			cy={position.y}
-			r={POINT_RADIUS}
-			className={cn(k.series[slot].fill)}
-		/>
-	)
-
 	return (
 		<g
 			className={cn(k.group(emphasis !== null && emphasis !== id))}
 			onPointerLeave={() => set(null, null)}
 		>
-			{animate ? (
-				<motion.g
-					initial={{ opacity: 0, scale: 0 }}
-					animate={{ opacity: 1, scale: 1 }}
-					transition={{
-						...POINT_POP,
-						delay: Math.min((order.get(id) ?? 0) * POINT_STAGGER, POINT_STAGGER_MAX),
-					}}
-					style={{ transformOrigin: `${position.x}px ${position.y}px` }}
-				>
-					{dot}
-				</motion.g>
-			) : (
-				dot
-			)}
+			<MapDot
+				slot="map-point"
+				at={position}
+				radius={POINT_RADIUS}
+				className={cn(k.series[slot].stroke)}
+				animate={animate}
+				transition={{
+					...POINT_POP,
+					delay: Math.min((order.get(id) ?? 0) * POINT_STAGGER, POINT_STAGGER_MAX),
+				}}
+			/>
 
 			<circle
 				data-slot="map-point-hit"

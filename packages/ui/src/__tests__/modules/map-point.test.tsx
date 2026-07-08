@@ -19,14 +19,19 @@ describe('MapPoint', () => {
 
 		const dot = bySlot(container, 'map-point')
 
-		// A solid fill dot in its slot colour — no ring.
-		expect(dot?.getAttribute('class')).toContain('fill-blue-600')
+		// A solid dot: a zero-length round cap in the slot colour, stroke-painted so
+		// the non-scaling stroke holds it at device-pixel size through a resize.
+		expect(dot?.getAttribute('class')).toContain('stroke-blue-600')
 
-		expect(dot?.getAttribute('class')).not.toContain('stroke')
+		expect(dot?.getAttribute('stroke-width')).toBe(String(POINT_RADIUS * 2))
 
-		expect(dot?.getAttribute('r')).toBe(String(POINT_RADIUS))
+		expect(dot?.getAttribute('stroke-linecap')).toBe('round')
 
-		const cx = Number(dot?.getAttribute('cx'))
+		expect(dot?.getAttribute('vector-effect')).toBe('non-scaling-stroke')
+
+		const at = dot?.getAttribute('d')?.match(/^M([\d.]+),([\d.]+)l0,0$/)
+
+		const cx = Number(at?.[1])
 
 		expect(cx).toBeGreaterThan(0)
 
@@ -36,7 +41,7 @@ describe('MapPoint', () => {
 
 		expect(hit?.getAttribute('r')).toBe(String(POINT_HIT_RADIUS))
 
-		expect(hit?.getAttribute('cx')).toBe(dot?.getAttribute('cx'))
+		expect(Number(hit?.getAttribute('cx'))).toBeCloseTo(cx, 1)
 	})
 
 	it('registers a legend entry and answers hover with the tooltip', () => {
@@ -71,9 +76,9 @@ describe('MapPoint', () => {
 
 		const dots = allBySlot(container, 'map-point')
 
-		expect(dots[0]?.getAttribute('class')).toContain('fill-blue-600')
+		expect(dots[0]?.getAttribute('class')).toContain('stroke-blue-600')
 
-		expect(dots[1]?.getAttribute('class')).toContain('fill-amber-600')
+		expect(dots[1]?.getAttribute('class')).toContain('stroke-amber-600')
 
 		fireEvent.click(allBySlot(container, 'map-legend-item')[0] as HTMLButtonElement)
 
@@ -81,6 +86,6 @@ describe('MapPoint', () => {
 
 		expect(remaining).toHaveLength(1)
 
-		expect(remaining[0]?.getAttribute('class')).toContain('fill-amber-600')
+		expect(remaining[0]?.getAttribute('class')).toContain('stroke-amber-600')
 	})
 })

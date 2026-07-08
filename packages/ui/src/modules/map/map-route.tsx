@@ -37,9 +37,11 @@ export type MapRouteProps = {
  * the tooltip with the route's name and detail; a wide invisible hit stroke
  * keeps the thin line aimable.
  *
- * @remarks Renders only inside {@link MapPlat}. Under the plat's `animate`
- * the route draws itself in (`pathLength` 0 → 1), the same self-drawing
- * reveal as the chart module's lines.
+ * @remarks Renders only inside {@link MapPlat}. The line's width rides
+ * device pixels (a non-scaling stroke), so a resize scales the geography
+ * under it without thickening the line. Under the plat's `animate` the route
+ * draws itself in (`pathLength` 0 → 1), the same self-drawing reveal as the
+ * chart module's lines.
  */
 export function MapRoute({ label, stops, path, color, detail }: MapRouteProps) {
 	const id = useId()
@@ -76,6 +78,9 @@ export function MapRoute({ label, stops, path, color, detail }: MapRouteProps) {
 		strokeWidth: ROUTE_STROKE_WIDTH,
 		strokeLinecap: 'round' as const,
 		strokeLinejoin: 'round' as const,
+		// Width in device pixels, as the region borders: a resize whose refit
+		// lands late scales the geometry but must not thicken the line with it.
+		vectorEffect: 'non-scaling-stroke' as const,
 		className: cn(paint.stroke),
 	}
 

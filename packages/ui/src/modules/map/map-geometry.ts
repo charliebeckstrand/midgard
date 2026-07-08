@@ -94,6 +94,18 @@ export function linePath(
 		.join('')
 }
 
+/**
+ * A dot's SVG path: a zero-length segment whose round cap paints the circle.
+ * Drawn as a stroke — not a `<circle>` — because only stroke width can ride
+ * device pixels (`vector-effect="non-scaling-stroke"`); a radius scales with
+ * the viewBox, so a resize whose refit lands late would balloon it.
+ *
+ * @internal
+ */
+export function dotPath(at: MapPoint2D): string {
+	return `M${round(at.x)},${round(at.y)}l0,0`
+}
+
 /** Two-decimal rounding keeping path strings compact. @internal */
 function round(value: number): number {
 	return Math.round(value * 100) / 100

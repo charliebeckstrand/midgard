@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+	dotPath,
 	geographyFeatures,
 	linePath,
 	projectPoint,
@@ -80,6 +81,13 @@ describe('projectPoint', () => {
 		const projection = fitMapProjection('albers-usa', [], 300, 100)
 
 		expect(projectPoint(projection, [-0.13, 51.5])).toBeNull()
+	})
+})
+
+describe('dotPath', () => {
+	it('draws a zero-length segment at the rounded position', () => {
+		// The round linecap paints the dot; two decimals match linePath's rounding.
+		expect(dotPath({ x: 12.3456, y: 7.891 })).toBe('M12.35,7.89l0,0')
 	})
 })
 

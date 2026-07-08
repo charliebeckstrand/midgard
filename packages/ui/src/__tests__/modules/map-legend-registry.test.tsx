@@ -51,9 +51,9 @@ describe('map legend registry', () => {
 		// The relabelled entry keeps its first-slot blue; its sibling stays orange.
 		const dots = allBySlot(container, 'map-point')
 
-		expect(dots[0]?.getAttribute('class')).toContain('fill-blue-600')
+		expect(dots[0]?.getAttribute('class')).toContain('stroke-blue-600')
 
-		expect(dots[1]?.getAttribute('class')).toContain('fill-orange-600')
+		expect(dots[1]?.getAttribute('class')).toContain('stroke-orange-600')
 	})
 
 	it('drops an unmounted overlay from the legend', () => {
