@@ -44,10 +44,14 @@ import {
 	resolveVirtualization,
 } from './grid-data-resolvers'
 import type {
+	GridColumnManagerConfig,
+	GridColumnOrder,
 	GridDataProps,
 	GridGroupHeaderRow,
 	GridInfiniteScroll,
+	GridPinning,
 	GridPinningState,
+	GridPreferences,
 	GridVirtualize,
 } from './grid-data-types'
 import { GridFooter as GridFooterBar } from './grid-footer'
@@ -78,6 +82,7 @@ import type { GridScrollRowIntoView } from './grid-virtualized-body'
 import {
 	columnLabel,
 	type GridColumn,
+	type GridColumnSizing,
 	type GridContextMenu as GridContextMenuConfig,
 	type GridMenuItem,
 	type GridPagination,
@@ -333,6 +338,61 @@ function resolveDetailExpansion<T>(
 			render: expansion.render,
 		},
 	}
+}
+
+/** Whether a consumer already bound a dimension's initial state (so a `preferences` seed must not override it). @internal */
+function isBound(config: { value?: unknown; defaultValue?: unknown } | undefined): boolean {
+	return config?.value !== undefined || config?.defaultValue !== undefined
+}
+
+/** Seeds {@link GridColumnOrder.defaultValue} from `preferences.order`, skipping an empty order (which would defeat the declaration-order fallback). @internal */
+function seedColumnOrder(
+	config: GridColumnOrder | undefined,
+	preferences: GridPreferences | undefined,
+): GridColumnOrder | undefined {
+	const order = preferences?.order
+
+	if (!order?.length || isBound(config)) return config
+
+	return { ...config, defaultValue: order }
+}
+
+/** Seeds {@link GridPinning.defaultValue} from `preferences.pinning`. @internal */
+function seedPinning(
+	config: GridPinning | undefined,
+	preferences: GridPreferences | undefined,
+): GridPinning | undefined {
+	const pinning = preferences?.pinning
+
+	if (pinning === undefined || isBound(config)) return config
+
+	return { ...config, defaultValue: pinning }
+}
+
+/** Seeds {@link GridColumnSizing.defaultValue} from `preferences.columnSizing`. @internal */
+function seedColumnSizing(
+	config: GridColumnSizing | undefined,
+	preferences: GridPreferences | undefined,
+): GridColumnSizing | undefined {
+	const sizing = preferences?.columnSizing
+
+	if (sizing === undefined || isBound(config)) return config
+
+	return { ...config, defaultValue: sizing }
+}
+
+/** Seeds {@link GridColumnManagerConfig.defaultHidden} from `preferences.hidden`, unless the consumer bound visibility. @internal */
+function seedColumnManager(
+	config: GridColumnManagerConfig | undefined,
+	preferences: GridPreferences | undefined,
+): GridColumnManagerConfig | undefined {
+	const hidden = preferences?.hidden
+
+	if (hidden === undefined || config?.hidden !== undefined || config?.defaultHidden !== undefined) {
+		return config
+	}
+
+	return { ...config, defaultHidden: new Set(hidden) }
 }
 
 /**
@@ -785,9 +845,10 @@ export function GridData<T>({
 	sort: sortConfig,
 	sortable = true,
 	selection: selectionConfig,
-	columnOrder: columnOrderConfig,
-	pinning: pinningConfig,
-	columnManager: columnManagerConfig,
+	preferences,
+	columnOrder: columnOrderConfigProp,
+	pinning: pinningConfigProp,
+	columnManager: columnManagerConfigProp,
 	groups: groupsConfig,
 	groupBy: groupByConfig,
 	groupTotalRow,
@@ -795,7 +856,7 @@ export function GridData<T>({
 	expandable: expandableConfig,
 	pagination: paginationConfig,
 	resizable = true,
-	columnSizing: columnSizingConfig,
+	columnSizing: columnSizingConfigProp,
 	search: searchConfig,
 	columnFilters: columnFiltersConfig,
 	contextMenu,
@@ -829,6 +890,19 @@ export function GridData<T>({
 	hover,
 	className,
 }: GridDataProps<T>) {
+	// Fold the `preferences` snapshot into each column binding as its default,
+	// unless the consumer bound that dimension explicitly (an explicit
+	// value/defaultValue wins). This is the single seed the four bindings share;
+	// changes still flow out through each binding's own callbacks. An empty order
+	// is treated as absent so it can't defeat the declaration-order fallback.
+	const columnOrderConfig = seedColumnOrder(columnOrderConfigProp, preferences)
+
+	const pinningConfig = seedPinning(pinningConfigProp, preferences)
+
+	const columnSizingConfig = seedColumnSizing(columnSizingConfigProp, preferences)
+
+	const columnManagerConfig = seedColumnManager(columnManagerConfigProp, preferences)
+
 	// Up-front invariants for the mutually-dependent props (virtualize/maxHeight,
 	// infiniteScroll/virtualize, infiniteScroll-vs-pagination); see `assertGridProps`.
 	assertGridProps({
