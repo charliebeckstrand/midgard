@@ -1652,6 +1652,7 @@ export function GridData<T>({
 							columns={managerItems}
 							order={columnOrder}
 							onOrderChange={setColumnOrder}
+							reorderable={reorder}
 							hidden={hiddenColumns}
 							onHiddenChange={handleHiddenChange}
 							onPinChange={pinColumn}
