@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { renderUI, screen } from '../helpers'
+import { fireEvent, renderUI, screen } from '../helpers'
 
 /**
  * The consolidated `preferences` snapshot seeds every column dimension's initial
@@ -93,6 +93,51 @@ describe('Grid preferences', () => {
 		)
 
 		expect(headerOrder()).toEqual(['role', 'team', 'name'])
+	})
+
+	it('confirms "Auto-size all columns" while a sizing preference is in play', () => {
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				preferences={{ columnSizing: { name: 240 } }}
+			/>,
+		)
+
+		const header = screen
+			.getAllByRole('columnheader')
+			.find((th) => th.textContent?.includes('Name'))
+
+		if (!header) throw new Error('no Name header')
+
+		fireEvent.contextMenu(header)
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Auto-size all columns' }))
+
+		// The action detours through the confirmation instead of running outright.
+		expect(screen.getByText('Auto-size all columns?')).toBeInTheDocument()
+
+		expect(screen.getByRole('button', { name: 'Keep my widths' })).toBeInTheDocument()
+
+		expect(screen.getByRole('button', { name: 'Auto-size columns' })).toBeInTheDocument()
+	})
+
+	it('runs "Auto-size all columns" unprompted without a sizing preference', () => {
+		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+
+		const header = screen
+			.getAllByRole('columnheader')
+			.find((th) => th.textContent?.includes('Name'))
+
+		if (!header) throw new Error('no Name header')
+
+		fireEvent.contextMenu(header)
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Auto-size all columns' }))
+
+		// No confirmation — the fit executes (and establishes the preference).
+		expect(screen.queryByText('Auto-size all columns?')).not.toBeInTheDocument()
 	})
 
 	it('ignores an empty order so the declaration order stands', () => {

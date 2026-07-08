@@ -138,6 +138,31 @@ describe('grid column resizing (real browser)', () => {
 		expect(onValueChange).not.toHaveBeenCalled()
 	})
 
+	it('"Auto-size all columns" emits the fitted widths (a deliberate choice persists)', async () => {
+		const onValueChange = vi.fn()
+
+		const { container } = setup({ onValueChange })
+
+		await waitFor(() =>
+			expect(nameHeader(container).getBoundingClientRect().width).toBeGreaterThan(0),
+		)
+
+		expect(onValueChange).not.toHaveBeenCalled()
+
+		fireEvent.contextMenu(nameHeader(container))
+
+		const item = Array.from(document.querySelectorAll('[role="menuitem"]')).find((el) =>
+			el.textContent?.includes('Auto-size all columns'),
+		)
+
+		if (!item) throw new Error('no Auto-size all columns item')
+
+		fireEvent.click(item)
+
+		// The user-invoked fit flows to the consumer, unlike the automatic one.
+		await waitFor(() => expect(onValueChange).toHaveBeenCalled())
+	})
+
 	it('holds a seeded (restored) width instead of re-fitting it', async () => {
 		const { container } = renderUI(
 			<div style={{ width: '400px' }}>

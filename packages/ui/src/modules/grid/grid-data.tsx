@@ -28,6 +28,7 @@ import {
 	describeSelection,
 	describeSort,
 } from './grid-announcements'
+import { GridAutoSizeConfirmDialog } from './grid-auto-size-confirm-dialog'
 import { GridBody } from './grid-body'
 import { GridBusyStatus } from './grid-busy-status'
 import { GridColumnManagerDialog } from './grid-column-manager-dialog'
@@ -471,6 +472,8 @@ type GridRegionProps<T> = {
 	/** Id of the column being dragged, or `null`; handed to the reordering body cells for their lift cue. */
 	activeReorderId: string | null
 	contextMenu: GridContextMenuConfig<T> | undefined
+	/** Behavioral gate for the menus; the wrapper stays mounted either way (see GridContextMenu.enabled). */
+	contextMenuEnabled: boolean
 	columns: GridColumn<T>[]
 	rows: T[]
 	rowKeys: (string | number)[]
@@ -510,6 +513,7 @@ function GridRegion<T>({
 	strategy,
 	activeReorderId,
 	contextMenu,
+	contextMenuEnabled,
 	columns,
 	rows,
 	rowKeys,
@@ -541,6 +545,7 @@ function GridRegion<T>({
 	return (
 		<GridContextMenu
 			config={contextMenu}
+			enabled={contextMenuEnabled}
 			columns={columns}
 			rows={rows}
 			rowKeys={rowKeys}
@@ -1406,6 +1411,7 @@ export function GridData<T>({
 	// context menus, and derive the header-menu actions; see `useGridMenuActions`.
 	const {
 		contextMenu: resolvedContextMenu,
+		contextMenuEnabled,
 		renderDialog,
 		showButton,
 		managerLabel,
@@ -1414,6 +1420,9 @@ export function GridData<T>({
 		sortColumn,
 		clearSort,
 		autoSizeColumns,
+		autoSizeConfirmOpen,
+		setAutoSizeConfirmOpen,
+		confirmAutoSize,
 		autoSizeColumn,
 		chooseColumns,
 	} = useGridMenuActions<T>({
@@ -1422,6 +1431,10 @@ export function GridData<T>({
 		resize,
 		setSort,
 		hasData,
+		// A seeded sizing (a restored preference, or an explicit binding seed)
+		// makes "Auto-size all columns" confirm before replacing those widths.
+		hasSizingPreference:
+			Object.keys(columnSizingConfig?.value ?? columnSizingConfig?.defaultValue ?? {}).length > 0,
 	})
 
 	// Row manager: the per-group color / order overlay the "Manage rows" dialog
@@ -1746,6 +1759,14 @@ export function GridData<T>({
 
 					<GridRowManagerRegionDialog region={rowManager} />
 
+					{confirmAutoSize && (
+						<GridAutoSizeConfirmDialog
+							open={autoSizeConfirmOpen}
+							onOpenChange={setAutoSizeConfirmOpen}
+							onConfirm={confirmAutoSize}
+						/>
+					)}
+
 					<GridToolbar
 						filter={globalFilter}
 						showColumnManager={showButton}
@@ -1767,6 +1788,7 @@ export function GridData<T>({
 							strategy={strategy}
 							activeReorderId={activeId}
 							contextMenu={resolvedContextMenu}
+							contextMenuEnabled={contextMenuEnabled}
 							columns={visibleColumns}
 							rows={renderRows}
 							rowKeys={rowKeys}

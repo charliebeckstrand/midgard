@@ -1,7 +1,7 @@
 'use client'
 
 import { useVirtualizer, type VirtualItem } from '@tanstack/react-virtual'
-import { useCallback } from 'react'
+import { useCallback, useEffect, useReducer } from 'react'
 
 type VirtualWindowOptions = {
 	/** Total number of items in the full (unvirtualized) list. */
@@ -47,6 +47,19 @@ export function useVirtualWindow({
 		getScrollElement,
 		estimateSize: getSize,
 		overscan,
+	})
+
+	// Re-sync guard: the virtualizer captures its scroll element in a layout
+	// effect, which runs *before* an ancestor's ref attaches when that ancestor
+	// (re)mounted in the same commit (React commits bottom-up). It then resolves
+	// `null`, renders an empty window, and — with no further renders — never
+	// recovers. This passive effect runs after every commit (refs all attached
+	// by then) and forces one re-render whenever the virtualizer's captured
+	// element diverges from the live one, letting it re-attach and measure.
+	const [, forceResync] = useReducer((x: number) => x + 1, 0)
+
+	useEffect(() => {
+		if (virtualizer.scrollElement !== getScrollElement()) forceResync()
 	})
 
 	const virtualItems = virtualizer.getVirtualItems()

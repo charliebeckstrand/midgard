@@ -55,13 +55,19 @@ type GridColumnAutoSizeOptions<T> = {
 const EMPTY_MEASUREMENT: ColumnMeasurement = { profiles: [], fixed: 0, floors: new Map() }
 
 /**
- * Runs an autosizer `setColumnSizing` write with `autoSizingRef` held true, so
- * the table hook's `onColumnSizingChange` — invoked synchronously inside the
- * write — can tell an internal content fit from a user resize and keep the fit
- * off the consumer's `columnSizing.onValueChange`. @internal
+ * Runs an autosizer `setColumnSizing` write. An automatic fit holds
+ * `autoSizingRef` true around it, so the table hook's `onColumnSizingChange` —
+ * invoked synchronously inside the write — can tell it from a user resize and
+ * keep it off the consumer's `columnSizing.onValueChange`. A user-invoked fit
+ * (`emit` — "Auto-size all columns") writes unflagged: it is a deliberate width
+ * choice, persisted like a drag. @internal
  */
-function writeAutoSize(ref: RefObject<boolean> | undefined, write: () => void): void {
-	if (!ref) {
+function writeAutoSize(
+	ref: RefObject<boolean> | undefined,
+	emit: boolean,
+	write: () => void,
+): void {
+	if (!ref || emit) {
 		write()
 
 		return
@@ -155,7 +161,7 @@ export function useGridColumnAutoSize<T>({
 	)
 
 	const run = useCallback(
-		(forceMeasure: boolean) => {
+		(forceMeasure: boolean, emit = false) => {
 			const container = containerRef?.current
 
 			const width = container?.clientWidth ?? 0
@@ -208,9 +214,8 @@ export function useGridColumnAutoSize<T>({
 
 			// Skip the write when nothing moved: a height-only resize tick (or any change
 			// landing on the same pixels) must not allocate a fresh sizing object and
-			// re-render the head, body, and footer for nothing. Flagged as an internal
-			// fit so the table hook keeps it off the consumer's `onValueChange`.
-			writeAutoSize(autoSizingRef, () =>
+			// re-render the head, body, and footer for nothing.
+			writeAutoSize(autoSizingRef, emit, () =>
 				table.setColumnSizing((prev) => {
 					for (const id in sizing) {
 						if (prev[id] !== sizing[id]) return { ...prev, ...sizing }
@@ -350,7 +355,9 @@ export function useGridColumnAutoSize<T>({
 
 		runningContentRef.current.clear()
 
-		run(true)
+		// A user action: the fitted widths flow to the consumer's `onValueChange`
+		// (persisted like a drag), superseding any saved sizing.
+		run(true, true)
 	}, [run, columns])
 
 	// Reset one column to its content width, leaving the rest held where they are —
