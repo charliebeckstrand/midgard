@@ -145,9 +145,10 @@ type ColumnMenuDefaultArgs<T> = {
 
 /**
  * The group item for a column's menu: "Group by {column}" on an ungrouped
- * groupable column, flipping to "Ungroup {column}" once it is the active group —
- * the header button's toggle as a menu action, naming the column dynamically.
- * Empty when the group button is off or the column isn't groupable.
+ * groupable column (naming the column dynamically), flipping to a plain
+ * "Ungroup" once it is the active group — single-level, so only one column is
+ * ever grouped. The header button's toggle as a menu action. Empty when the
+ * group button is off or the column isn't groupable.
  *
  * @internal
  */
@@ -158,7 +159,7 @@ function groupMenuItems<T>(column: GridColumn<T>, groupBy: GridGroupByMenu | nul
 		return [
 			{
 				key: 'ungroup',
-				label: `Ungroup ${columnLabel(column)}`,
+				label: 'Ungroup',
 				icon: <Ungroup />,
 				onSelect: () => groupBy.setGrouping(null),
 			},
@@ -222,11 +223,12 @@ function pinMenuItems<T>(column: GridColumn<T>, pinColumn: PinColumn): GridMenuI
 
 /**
  * Default header-menu items: sort controls (when the column sorts) with a
- * "Clear sort" once it is the sorted column, the group-by toggle (when the
- * column is groupable and the group button is on), and the column's pin controls
- * (Pin left / Pin right / Unpin), then the table-wide tools under a separator —
- * "Auto-size columns" (when resizing is on), "Manage columns" (when a manager is
- * reachable), and one item per active export type (when export is on).
+ * "Clear sort" once it is the sorted column, the column's pin controls (Pin
+ * left / Pin right / Unpin), and the group-by toggle (when the column is
+ * groupable and the group button is on), then the table-wide tools under a
+ * separator — "Auto-size columns" (when resizing is on), "Manage columns" (when
+ * a manager is reachable), and one item per active export type (when export is
+ * on).
  *
  * @internal
  */
@@ -271,11 +273,11 @@ function columnMenuDefaults<T>(args: ColumnMenuDefaultArgs<T>): GridMenuItem[] {
 		}
 	}
 
-	// Grouping sits with the column's own row-arranging actions, alongside sort.
-	items.push(...groupMenuItems(column, groupBy))
-
 	// Pin controls sit with the column's own actions, above the table-wide tools.
 	items.push(...pinMenuItems(column, pinColumn))
+
+	// Grouping follows the pin controls, closing out the column's own actions.
+	items.push(...groupMenuItems(column, groupBy))
 
 	// Table-wide tools sit under a separator, set off from the clicked column's
 	// own sort and pin actions. "Auto-size columns" leads them: it re-fits every

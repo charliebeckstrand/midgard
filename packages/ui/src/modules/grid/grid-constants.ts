@@ -86,9 +86,9 @@ export const GRID_SEARCH_DEBOUNCE_MS = 200
 /**
  * Placeholder skeleton rows shown under an expanded {@link GridGroupBy.manual}
  * group while its children load — a group opens instantly on expand, and these
- * fill it until the consumer's `onGroupExpand` fetch feeds the children back.
- * Capped so a large group (server grouping exists precisely because a group can
- * be enormous) shows a brief loading affordance rather than thousands of
- * skeletons; a smaller group shows only as many rows as it holds. @internal
+ * fill it until the consumer's `onGroupExpand` fetch feeds the children back. A
+ * single loading line stands in for the whole group, whatever its size (server
+ * grouping exists precisely because a group can be enormous); an empty group
+ * (backend `count` of 0) shows none. @internal
  */
-export const MANUAL_GROUP_PLACEHOLDER_ROWS = 3
+export const MANUAL_GROUP_PLACEHOLDER_ROWS = 1

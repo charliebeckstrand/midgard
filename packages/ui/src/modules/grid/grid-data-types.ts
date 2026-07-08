@@ -224,9 +224,9 @@ export type GridGroupBy<T = unknown> = {
 	 *
 	 * @remarks The group opens the instant its header is toggled (expansion is
 	 * controlled state, not gated on the fetch). Until the children land the grid
-	 * fills the opened group with placeholder skeleton rows — a group whose
-	 * backend `count` is positive but whose children aren't present yet — so the
-	 * expand reads as immediate rather than waiting on the request. A group the
+	 * fills the opened group with a single placeholder skeleton row — for a group
+	 * whose backend `count` is positive but whose children aren't present yet — so
+	 * the expand reads as immediate rather than waiting on the request. A group the
 	 * backend reports empty (`count` of 0) shows nothing.
 	 */
 	onGroupExpand?: (key: string | number) => void

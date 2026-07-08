@@ -30,12 +30,13 @@ export const [GridGroupByContext, useGridGroupByButton] =
 
 /**
  * A groupable column's header button: press it to group the rows by the column,
- * press it again to ungroup — a single toggle, so the accent, icon, and label
- * all track whether this column is the active group. The active column's button
- * holds a blue accent (like an applied column filter) and swaps its {@link Group}
- * icon for {@link Ungroup}; `aria-pressed` carries the same state, so it isn't
- * conveyed by colour alone. Renders nothing while the feature is off, on a
- * non-`groupable` column, or on an empty grid.
+ * press it again to ungroup. The action reads off whether this column is the
+ * active group — "Group by {column}" ungrouped, a plain "Ungroup" once grouped
+ * (single-level, so only one column is ever grouped). The active button holds a
+ * blue accent (like an applied column filter) and swaps its {@link Group} icon
+ * for {@link Ungroup}, so its state reads by shape and label, not colour alone.
+ * Renders nothing while the feature is off, on a non-`groupable` column, or on
+ * an empty grid.
  *
  * @internal
  */
@@ -50,7 +51,9 @@ export function GridGroupByButton({
 
 	const grouped = column.id === context.grouping
 
-	const label = columnLabel(column)
+	// The action the press performs, doubling as the accessible name and tooltip:
+	// name the column when grouping, but a bare "Ungroup" when clearing it.
+	const action = grouped ? 'Ungroup' : `Group by ${columnLabel(column)}`
 
 	return (
 		<Tooltip>
@@ -62,10 +65,7 @@ export function GridGroupByButton({
 					// doesn't override the colour.
 					color={grouped ? 'blue' : undefined}
 					data-active={dataAttr(grouped)}
-					// A toggle whose label names the column; `aria-pressed` carries the
-					// grouped state so it reads without the accent colour (WCAG 1.4.1).
-					aria-pressed={grouped}
-					aria-label={`Group by ${label}`}
+					aria-label={action}
 					className={cn(k.groupButton.button, !grouped && k.groupButton.idle)}
 					onClick={() => context.setGrouping(grouped ? null : column.id)}
 				>
@@ -73,8 +73,7 @@ export function GridGroupByButton({
 				</Button>
 			</TooltipTrigger>
 
-			{/* Names the column dynamically, mirroring the header context menu's item. */}
-			<TooltipContent>Group by {label}</TooltipContent>
+			<TooltipContent>{action}</TooltipContent>
 		</Tooltip>
 	)
 }

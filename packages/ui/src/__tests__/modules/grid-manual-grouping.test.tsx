@@ -100,20 +100,15 @@ describe('Grid manual (server-side) row grouping', () => {
 			/>,
 		)
 
-		// Only the groupable column offers the button, and it reads unpressed while
-		// ungrouped.
+		// Only the groupable column offers the button, named for the group action.
 		expect(screen.queryByRole('button', { name: 'Group by Rep' })).not.toBeInTheDocument()
 
-		const button = screen.getByRole('button', { name: 'Group by Region' })
-
-		expect(button).toHaveAttribute('aria-pressed', 'false')
-
-		await user.click(button)
+		await user.click(screen.getByRole('button', { name: 'Group by Region' }))
 
 		expect(onValueChange).toHaveBeenCalledWith('region')
 	})
 
-	it('keeps the active column button pressed and ungroups on a second press', async () => {
+	it('flips the active column button to Ungroup and ungroups on a second press', async () => {
 		const user = userEvent.setup()
 
 		const onValueChange = vi.fn()
@@ -127,13 +122,11 @@ describe('Grid manual (server-side) row grouping', () => {
 			/>,
 		)
 
-		// The active column's button stays put (unlike the old panel, which hid it),
-		// reading pressed; a second press ungroups.
-		const button = screen.getByRole('button', { name: 'Group by Region' })
+		// The active column's button stays put (unlike the old panel, which hid it)
+		// but flips to a plain "Ungroup"; pressing it ungroups.
+		expect(screen.queryByRole('button', { name: 'Group by Region' })).not.toBeInTheDocument()
 
-		expect(button).toHaveAttribute('aria-pressed', 'true')
-
-		await user.click(button)
+		await user.click(screen.getByRole('button', { name: 'Ungroup' }))
 
 		expect(onValueChange).toHaveBeenCalledWith(null)
 	})

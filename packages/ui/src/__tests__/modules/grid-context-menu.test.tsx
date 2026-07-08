@@ -92,7 +92,7 @@ describe('Grid context menus', () => {
 		expect(onValueChange).toHaveBeenCalledWith('name')
 	})
 
-	it('flips the group item to "Ungroup {column}" once the column is the active group', () => {
+	it('flips the group item to a plain "Ungroup" once the column is the active group', () => {
 		const onValueChange = vi.fn()
 
 		renderUI(
@@ -107,10 +107,10 @@ describe('Grid context menus', () => {
 
 		rightClick('columnheader', 'Name')
 
-		// The grouped column drops "Group by" for its "Ungroup" counterpart.
+		// The grouped column drops "Group by" for a bare "Ungroup".
 		expect(screen.queryByRole('menuitem', { name: 'Group by Name' })).not.toBeInTheDocument()
 
-		fireEvent.click(screen.getByRole('menuitem', { name: 'Ungroup Name' }))
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Ungroup' }))
 
 		expect(onValueChange).toHaveBeenCalledWith(null)
 	})
