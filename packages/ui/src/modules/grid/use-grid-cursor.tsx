@@ -1,8 +1,10 @@
 'use client'
 
-import { type ReactNode, type RefObject, useMemo } from 'react'
+import { type ReactNode, type RefObject, useCallback, useMemo, useRef } from 'react'
 import { GridRowEditingContext } from './grid-editing-context'
 import type { GridEditableConfig } from './grid-editing-types'
+import { isColumnEditable } from './grid-editing-utilities'
+import type { GridCellClick } from './grid-row'
 import type { GridColumn } from './types'
 import { useGridEditing } from './use-grid-editing'
 import { useGridEditingColumns } from './use-grid-editing-columns'
@@ -76,6 +78,12 @@ export function useGridCursor<T>({
 	reconcile: (rowCount: number, colCount: number) => void
 	/** The augmented columns to feed the engine. */
 	columns: GridColumn<T>[]
+	/**
+	 * The grid's own double-click-to-edit intent under `editable.trigger:
+	 * 'doubleClick'` — {@link GridData} composes it ahead of the consumer's
+	 * handler on the built-in cell double-click event. `undefined` otherwise.
+	 */
+	editOnCellDoubleClick: GridCellClick<T> | undefined
 	/** Wraps the table with the editing contexts when editable, else returns it unchanged. */
 	wrap: (children: ReactNode) => ReactNode
 } {
@@ -83,14 +91,36 @@ export function useGridCursor<T>({
 
 	const cursorEnabled = navigable || editingEnabled
 
+	// Grid-owned edit sessions: the grid begins one on a cell double-click or the
+	// cursor's Enter; the default 'manual' mode leaves entry to the consumer.
+	const sessionOwned = editingEnabled && editable.trigger === 'doubleClick'
+
 	const { rowsRef, colCountRef, rowIndexMapRef, colIndexMapRef, rowKeysRef, dataColumnsRef } = refs
+
+	// Enter on the cursor's active cell begins the row's edit session — the
+	// keyboard peer of the pointer double-click. The entry resolver needs the
+	// editing hook (which in turn needs the cursor's `cellId`), so the wrapper
+	// reads it through a ref assigned below.
+	const enterEditAtRef = useRef<(rowIdx: number, colIdx: number) => void>(() => {})
+
+	const onCellActivateWithEdit = useMemo<GridCellActivate | undefined>(() => {
+		if (!sessionOwned) return onCellActivate
+
+		return (rowIdx, colIdx, event) => {
+			// The consumer's cell click fires first — the same order the pointer path
+			// fires the single-click handlers ahead of the double-click.
+			onCellActivate?.(rowIdx, colIdx, event)
+
+			if (event.key === 'Enter') enterEditAtRef.current(rowIdx, colIdx)
+		}
+	}, [sessionOwned, onCellActivate])
 
 	const nav = useGridNavigation({
 		enabled: cursorEnabled,
 		rowsRef,
 		colCountRef,
 		onRowActivate,
-		onCellActivate,
+		onCellActivate: onCellActivateWithEdit,
 		selectableRef,
 		toggleActiveRow,
 		scrollRowIntoViewRef,
@@ -103,7 +133,43 @@ export function useGridCursor<T>({
 		rowsRef,
 		rowKeysRef,
 		dataColumnsRef,
+		cellId: nav.cellId,
 	})
+
+	// Begins the edit session for the cell at a cursor coord: resolves its row
+	// key and column from the live display maps, gates on an editable column
+	// (a `readOnly` or slotless/fieldless one never enters), and hands the
+	// coord to the editing layer to focus that cell's editor once it mounts.
+	const enterEditAt = useCallback(
+		(rowIdx: number, colIdx: number) => {
+			const rowKey = rowKeysRef.current[rowIdx]
+
+			const col = dataColumnsRef.current[colIdx]
+
+			if (rowKey === undefined || !col || !isColumnEditable(col)) return
+
+			editing.enterRowEdit(rowKey, { row: rowIdx, col: colIdx })
+		},
+		[editing.enterRowEdit, rowKeysRef, dataColumnsRef],
+	)
+
+	enterEditAtRef.current = enterEditAt
+
+	// The pointer entry, fired through the grid's built-in cell double-click
+	// event (so the interactive-content guard and data-cell resolution apply).
+	const editOnCellDoubleClick = useMemo<GridCellClick<T> | undefined>(() => {
+		if (!sessionOwned) return undefined
+
+		return (cell) => {
+			const rowIdx = rowKeysRef.current.indexOf(cell.rowKey)
+
+			const colIdx = colIndexMapRef.current.get(cell.columnId)
+
+			if (rowIdx < 0 || colIdx === undefined) return
+
+			enterEditAt(rowIdx, colIdx)
+		}
+	}, [sessionOwned, enterEditAt, rowKeysRef, colIndexMapRef])
 
 	// Cursor-only augmentation for a plain navigable grid; editing-aware
 	// augmentation (which mounts the editors) for an editable one.
@@ -144,6 +210,7 @@ export function useGridCursor<T>({
 		navTableProps: nav.navTableProps,
 		reconcile: nav.reconcile,
 		columns: editingEnabled ? editColumns : navColumns,
+		editOnCellDoubleClick,
 		wrap,
 	}
 }

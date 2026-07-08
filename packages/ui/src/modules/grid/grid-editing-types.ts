@@ -26,7 +26,13 @@ export type GridEditCellContext<T> = {
 	value: unknown
 	/** Stage the next value without committing — call on each keystroke or selection change. */
 	onValueUpdate: (next: unknown) => void
-	/** Commit the staged value (or `next` when given) and close the editor, advancing focus back to the cell. */
+	/**
+	 * Stage `next` (when given) and, when the grid owns the edit session
+	 * ({@link GridEditableConfig.trigger} `'doubleClick'`), save the row — the
+	 * same one-batch commit removing it from the editable set. Under the default
+	 * consumer-owned session it only stages: the row's save flushes the staged
+	 * values, so there is no per-cell close.
+	 */
 	commit: (next?: unknown) => void
 	/** Discard the edit and close the editor. */
 	cancel: () => void
@@ -66,6 +72,21 @@ export type GridEditableConfig = {
 	defaultRows?: Set<string | number>
 	/** Fires with the next editable-row set. The grid coalesces an internal clear to an empty set, so the payload is never `undefined`. */
 	onRowsChange?: (rows: Set<string | number>) => void
+	/**
+	 * How a row enters (and leaves) edit mode from the grid itself, alongside the
+	 * consumer-driven `rows` binding. `'manual'` — the default — renders no
+	 * built-in trigger: the consumer flips rows in and out (a pencil / check row
+	 * action). `'doubleClick'` hands the session to the grid: double-clicking an
+	 * editable data cell (the grid's built-in cell double-click event, so a
+	 * consumer {@link GridDataProps.onCellDoubleClick} still fires) — or pressing
+	 * Enter on the keyboard cursor's active cell — puts its row into edit mode
+	 * and focuses that cell's editor; Enter in an inferred text/number editor
+	 * then saves the row (the same one-batch commit), and Escape abandons the
+	 * row's staged edits. Every entry and exit still flows through
+	 * `rows`/`onRowsChange`, so a controlled binding stays the source of truth.
+	 * @defaultValue 'manual'
+	 */
+	trigger?: 'manual' | 'doubleClick'
 	/**
 	 * Called when an editing row is saved (removed from the set), with one
 	 * {@link CellChange} per changed cell in that row, batched into a single call.

@@ -19,6 +19,18 @@ export type GridRowEditing = {
 	stageDraft: (rowKey: string | number, columnId: string | number, value: unknown) => void
 	/** Drop a cell's pending value — Escape reverts it to the row's current value. */
 	unstageDraft: (rowKey: string | number, columnId: string | number) => void
+	/**
+	 * Ends a row's edit session, saving its staged changes — the grid-owned exit
+	 * (an editor's Enter) under `trigger: 'doubleClick'`. Absent when the
+	 * consumer owns the session, whose save is removing the row from the set.
+	 */
+	commitRowEdit?: (rowKey: string | number) => void
+	/**
+	 * Ends a row's edit session, discarding every staged draft — the grid-owned
+	 * abandon (an editor's Escape) under `trigger: 'doubleClick'`. Absent when
+	 * the consumer owns the session, where Escape reverts one cell instead.
+	 */
+	cancelRowEdit?: (rowKey: string | number) => void
 }
 
 export const [GridRowEditingContext, useGridRowEditing] =
