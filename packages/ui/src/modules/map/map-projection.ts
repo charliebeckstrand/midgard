@@ -143,6 +143,31 @@ export function scaleCanonicalFit(
 }
 
 /**
+ * The measured-frame fit, or `null` when there is nothing to frame: no
+ * geography, geometry whose bounds collapse (a lone point — the canonical fit is
+ * already `null` for both), or an unmeasured frame. Gating on the canonical fit
+ * keeps a degenerate atlas from reaching {@link fitMapProjection}, whose
+ * `fitSize` would return an infinite-scale projection that emits `NaN`
+ * coordinates. A named projection derives the fit from the cached canonical one
+ * by arithmetic ({@link scaleCanonicalFit}); a passed instance fits directly.
+ *
+ * @internal
+ */
+export function measuredMapFit(
+	projection: MapProjection,
+	features: MapFeature[],
+	canonical: MapCanonicalFit | null,
+	width: number,
+	height: number,
+): GeoProjection | null {
+	if (canonical === null || width <= 0 || height <= 0) return null
+
+	return typeof projection === 'string'
+		? scaleCanonicalFit(projection, canonical, width, height)
+		: fitMapProjection(projection, features, width, height)
+}
+
+/**
  * The geography's own projected aspect ratio (`width / height`), for
  * `aspectRatio: 'auto'`: the {@link canonicalFit}'s fitted bounds. Pure and
  * synchronous, so the CSS aspect box is reservable before the frame's width is;

@@ -42,12 +42,7 @@ import {
 import { type MapPoint2D, projectPoint, regionPaths } from './map-geometry'
 import { staticMapGeometry } from './map-geometry-cache'
 import { MapLegend, type MapLegendItem } from './map-legend'
-import {
-	fitMapProjection,
-	mapFrameSizing,
-	projectionFallbackAspect,
-	scaleCanonicalFit,
-} from './map-projection'
+import { mapFrameSizing, measuredMapFit, projectionFallbackAspect } from './map-projection'
 import { MapRangeLegend, type MapRangeLegendProps } from './map-range-legend'
 import { MapRegions } from './map-regions'
 import { MapTable } from './map-table'
@@ -287,39 +282,32 @@ function useMapShape(
 		reserve,
 	} = usePlotFrame(width, mapFrameSizing(height, aspectRatio, reserveAspect))
 
-	const measured = useMemo(() => {
-		if (!(frameWidth > 0 && frameHeight > 0)) return null
+	// The measured refit, its region paths, and the projector, resolved as one
+	// unit so a resize reprojects all three together. A passed d3 instance is fit
+	// in place and keeps its reference, so keying the paths or the projector on
+	// that reference alone would freeze them at the first fit — the region layer
+	// and the overlays would disagree with the resized viewBox. Deriving them
+	// inside one memo over the live frame dimensions reprojects on every resize,
+	// and hands the context a fresh `project` identity so overlay marks recompute.
+	// With nothing to frame the measured fit is `null`, so the map holds the
+	// canonical draw (or the neutral frame) rather than projecting through an
+	// unfitted default.
+	const view = useMemo(() => {
+		const measured = measuredMapFit(projection, features, canonical, frameWidth, frameHeight)
 
-		// A named projection derives the measured fit from the cached canonical one
-		// by arithmetic alone (see `scaleCanonicalFit`) — no per-resize bounds pass
-		// over every coordinate. A passed d3 instance is stateful and uncached, so
-		// it still fits directly.
-		return typeof projection === 'string' && canonical !== null
-			? scaleCanonicalFit(projection, canonical, frameWidth, frameHeight)
-			: fitMapProjection(projection, features, frameWidth, frameHeight)
-	}, [projection, features, canonical, frameWidth, frameHeight])
+		// Draw from the measured fit once it lands, the canonical fit until then, so
+		// the geography never waits on the container being measured.
+		const fitted = measured ?? canonical?.projection ?? null
 
-	// The measured refit's region paths, once the container is measured; `null`
-	// until then, when the cached canonical paths carry the first paint.
-	const measuredPaths = useMemo(
-		() => (measured === null ? null : regionPaths(features, measured)),
-		[features, measured],
-	)
+		return {
+			viewWidth: measured ? frameWidth : (canonical?.width ?? 0),
+			viewHeight: measured ? frameHeight : (canonical?.height ?? 0),
+			paths: measured ? regionPaths(features, measured) : canonicalPaths,
+			project: (position: LngLat) => (fitted === null ? null : projectPoint(fitted, position)),
+		}
+	}, [projection, features, canonical, canonicalPaths, frameWidth, frameHeight])
 
-	// Draw from the measured fit once it lands, the canonical fit until then, so
-	// the geography never waits on the container being measured.
-	const fitted = measured ?? canonical?.projection ?? null
-
-	const viewWidth = measured ? frameWidth : (canonical?.width ?? 0)
-
-	const viewHeight = measured ? frameHeight : (canonical?.height ?? 0)
-
-	const paths = measuredPaths ?? canonicalPaths
-
-	const project = useCallback(
-		(position: LngLat) => (fitted === null ? null : projectPoint(fitted, position)),
-		[fitted],
-	)
+	const { viewWidth, viewHeight, paths, project } = view
 
 	return { ref, boxHeight: frameHeight, reserve, viewWidth, viewHeight, paths, features, project }
 }
