@@ -224,6 +224,8 @@ type MapShape = {
 	/** The plot box's drawing height in px (`0` until measured); the reserve holds the space meanwhile. */
 	boxHeight: number
 	reserve: FrameReserve | null
+	/** Free-form (`aspectRatio={false}`) sizing: the plot fills the height its region already holds. */
+	fill: boolean
 	/** The active viewBox width: measured px once the container is measured, the canonical frame until then. */
 	viewWidth: number
 	/** The active viewBox height, paired with {@link viewWidth}. */
@@ -276,12 +278,9 @@ function useMapShape(
 	// shift.
 	const reserveAspect = canonical?.aspect ?? projectionFallbackAspect(projection)
 
-	const {
-		ref,
-		width: frameWidth,
-		height: frameHeight,
-		reserve,
-	} = usePlotFrame(width, mapFrameSizing(height, aspectRatio, reserveAspect))
+	const sizing = mapFrameSizing(height, aspectRatio, reserveAspect)
+
+	const { ref, width: frameWidth, height: frameHeight, reserve } = usePlotFrame(width, sizing)
 
 	// The measured refit, its region paths, and the projector, resolved as one
 	// unit so a resize reprojects all three together. A passed d3 instance is fit
@@ -310,7 +309,17 @@ function useMapShape(
 
 	const { viewWidth, viewHeight, paths, project } = view
 
-	return { ref, boxHeight: frameHeight, reserve, viewWidth, viewHeight, paths, features, project }
+	return {
+		ref,
+		boxHeight: frameHeight,
+		reserve,
+		fill: sizing.mode === 'fill',
+		viewWidth,
+		viewHeight,
+		paths,
+		features,
+		project,
+	}
 }
 
 /** The resolved categorical or numeric readout behind the regions. @internal */
@@ -761,6 +770,8 @@ type MapFrameProps = {
 	tooltip: boolean
 	table: ReactNode
 	width: number | undefined
+	/** Free-form (`aspectRatio={false}`) sizing: the frame fills its container's height. */
+	fill: boolean
 	className?: string
 }
 
@@ -774,6 +785,7 @@ function MapFrame({
 	tooltip,
 	table,
 	width,
+	fill,
 	className,
 }: MapFrameProps) {
 	const aside = legendPlacement === 'left' || legendPlacement === 'right'
@@ -782,7 +794,15 @@ function MapFrame({
 		<div
 			ref={containerRef}
 			data-slot="map"
-			className={cn('flex flex-col gap-4', width === undefined && 'w-full', className)}
+			// A free-form fill frame grabs its container's height (`h-full`) so the
+			// plot region has a real height to grow into; every other mode reserves
+			// height from the plot's own width and needs none.
+			className={cn(
+				'flex flex-col gap-4',
+				width === undefined && 'w-full',
+				fill && 'h-full',
+				className,
+			)}
 			style={width === undefined ? undefined : { width }}
 		>
 			<MapHoverProvider enabled={tooltip} plotRef={plotRef}>
@@ -832,11 +852,21 @@ function MapPlotRegion({ shape, aside, tooltip, children, ...name }: MapPlotRegi
 			data-slot="map-plot"
 			role="img"
 			{...name}
-			className={cn('relative', aside && 'min-w-0 flex-1')}
+			// A side legend takes the width remainder (`min-w-0 flex-1`); a free-form
+			// `fill` map instead grows into the height its region already holds — a
+			// `flex-1 min-h-0` child of the `h-full` frame — so the box measures a real
+			// height rather than the zero its own reserve would feed back.
+			className={cn(
+				'relative',
+				aside && 'min-w-0',
+				(aside || shape.fill) && 'flex-1',
+				shape.fill && 'min-h-0',
+			)}
 		>
 			{/* PlotBox reserves the box height from its own width — steady before the
-			    width is measured and across animation replays — or takes a fixed height. */}
-			<ChartPlotBox reserve={shape.reserve} height={shape.boxHeight}>
+			    width is measured and across animation replays — takes a fixed height, or
+			    (under `fill`) fills the height its region already holds. */}
+			<ChartPlotBox reserve={shape.reserve} height={shape.boxHeight} fill={shape.fill}>
 				{children}
 			</ChartPlotBox>
 
@@ -1083,6 +1113,7 @@ export function MapPlat<T = never>({
 				) : null
 			}
 			width={width}
+			fill={shape.fill}
 			className={className}
 		/>
 	)
