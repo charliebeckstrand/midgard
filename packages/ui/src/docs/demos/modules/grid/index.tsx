@@ -5,12 +5,14 @@ import { Badge } from '../../../../components/badge'
 import { Button } from '../../../../components/button'
 import { HoldButton } from '../../../../components/hold-button'
 import { Icon } from '../../../../components/icon'
+import { JsonTree } from '../../../../components/json-tree'
 import { Sparkline } from '../../../../components/sparkline'
 import { Stack } from '../../../../components/stack'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../../components/tabs'
 import { Text } from '../../../../components/text'
 import {
 	Grid,
+	type GridCellClickContext,
 	type GridColumn,
 	type GridColumnGroup,
 	type GridPaginationState,
@@ -473,10 +475,10 @@ const RowClickExample = () => {
 
 	// A click on interactive cell content (here the row-action buttons) is ignored,
 	// so the row click and per-row controls coexist. The row is also focusable and
-	// activates on Enter / Space.
+	// activates on Enter / Space. The tree below the grid inspects the clicked
+	// row's datum.
 	return (
-		<>
-			{picked && <Badge color="blue">Selected {picked.name}</Badge>}
+		<Stack gap="md">
 			<Grid
 				columns={[
 					...columns,
@@ -493,7 +495,73 @@ const RowClickExample = () => {
 				getKey={(row) => row.id}
 				onRowClick={(row) => setPicked(row)}
 			/>
-		</>
+			{picked ? (
+				<JsonTree data={picked} />
+			) : (
+				<Text size="sm" severity="muted">
+					Click a row to inspect its datum.
+				</Text>
+			)}
+		</Stack>
+	)
+}
+
+// The clicked cell's context, its `unknown` value stringified so the payload
+// stays a JSON-serializable tree for the inspector below the grid.
+type PickedCell = Omit<GridCellClickContext<Person>, 'value'> & { value: string }
+
+const CellClickExample = () => {
+	const [picked, setPicked] = useState<PickedCell | null>(null)
+
+	// The cell context carries the column id and the cell's value alongside the
+	// owning row; clicks on non-data cells are ignored. `navigable` gives the
+	// keyboard the same event — the cursor's Enter activates the active cell.
+	return (
+		<Stack gap="md">
+			<Grid
+				navigable
+				columns={columns}
+				rows={people}
+				getKey={(row) => row.id}
+				onCellClick={(cell) => setPicked({ ...cell, value: String(cell.value) })}
+			/>
+			{picked ? (
+				<JsonTree data={picked} />
+			) : (
+				<Text size="sm" severity="muted">
+					Click a cell to inspect its context.
+				</Text>
+			)}
+		</Stack>
+	)
+}
+
+const DoubleClickExample = () => {
+	const [picked, setPicked] = useState<({ event: string } & PickedCell) | null>(null)
+
+	// Double-click events layer over the single-click pair for a secondary
+	// "open" affordance: `onRowDoubleClick` carries the row datum, and
+	// `onCellDoubleClick` (shown here) the same context as `onCellClick`, fired
+	// ahead of the row handler. Per the DOM's event order a double-click also
+	// fires any single-click handlers twice first.
+	return (
+		<Stack gap="md">
+			<Grid
+				columns={columns}
+				rows={people}
+				getKey={(row) => row.id}
+				onCellDoubleClick={(cell) =>
+					setPicked({ event: 'cellDoubleClick', ...cell, value: String(cell.value) })
+				}
+			/>
+			{picked ? (
+				<JsonTree data={picked} />
+			) : (
+				<Text size="sm" severity="muted">
+					Double-click a cell to inspect the event payload.
+				</Text>
+			)}
+		</Stack>
 	)
 }
 
@@ -1116,6 +1184,7 @@ const tabs = [
 	'Variants',
 	'Sorting',
 	'Selection',
+	'Events',
 	'Reorder',
 	'Resize',
 	'Expand',
@@ -1211,15 +1280,33 @@ export function Demo() {
 							<BatchActionsExample />
 						</Example>
 
-						<Example title="Row click" code={code`<Grid onRowClick={(row) => ...} />`}>
-							<RowClickExample />
-						</Example>
-
 						<Example
 							title="Context menus"
 							code={code`<Grid contextMenu={{ column: true, cell: true }} />`}
 						>
 							<ContextMenuExample />
+						</Example>
+					</Stack>
+				</TabContent>
+
+				<TabContent value="Events">
+					<Stack gap="xl">
+						<Example title="Row click" code={code`<Grid onRowClick={(row) => ...} />`}>
+							<RowClickExample />
+						</Example>
+
+						<Example
+							title="Cell click"
+							code={code`<Grid navigable onCellClick={({ row, rowKey, columnId, value }) => ...} />`}
+						>
+							<CellClickExample />
+						</Example>
+
+						<Example
+							title="Double click"
+							code={code`<Grid onRowDoubleClick={(row) => ...} onCellDoubleClick={(cell) => ...} />`}
+						>
+							<DoubleClickExample />
 						</Example>
 					</Stack>
 				</TabContent>

@@ -5,7 +5,7 @@ import type { SortState } from './context'
 import type { GridExportEntry } from './export/types'
 import type { GridEditableConfig } from './grid-editing-types'
 import type { GridColumnGroups } from './grid-group-types'
-import type { GridRowClick } from './grid-row'
+import type { GridCellClick, GridRowClick } from './grid-row'
 import type { GridRowGroups } from './grid-row-group-types'
 import type {
 	GridColumn,
@@ -727,7 +727,8 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * tab stop (`role="grid"`) whose active cell moves with the arrow keys, Home/End
 	 * (row edges), Ctrl/Cmd+Home/End (grid corners), and PageUp/PageDown, tracked
 	 * for assistive tech through `aria-activedescendant` and ringed on screen.
-	 * Enter/Space activates the active row's {@link GridDataProps.onRowClick};
+	 * Enter/Space activates the active cell's {@link GridDataProps.onCellClick}
+	 * and the active row's {@link GridDataProps.onRowClick}, in that order;
 	 * clicking a cell seats the cursor there.
 	 *
 	 * Off by default, so a static table keeps the browser/screen-reader's native
@@ -759,6 +760,36 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * relying on the row click alone for the clearest screen-reader semantics.
 	 */
 	onRowClick?: GridRowClick<T>
+
+	/**
+	 * Invoked when a data cell is clicked, with the {@link GridCellClickContext}
+	 * — the row datum, its key, the column id, and the cell's value (the
+	 * column's {@link GridColumn.value} accessor, else the row field named by
+	 * the column id) — and the originating event. Fires ahead of
+	 * {@link GridDataProps.onRowClick} on the same click. The
+	 * interactive-content guard of `onRowClick` applies, and a click on a
+	 * non-data cell (selection, actions, drag handle, expander) is ignored.
+	 * Pointer-driven on its own; pair with {@link GridDataProps.navigable},
+	 * whose cursor activates the active cell on Enter, for keyboard parity.
+	 */
+	onCellClick?: GridCellClick<T>
+
+	/**
+	 * Invoked when a row is double-clicked, with the row datum and the
+	 * originating event — a secondary "open" affordance layered over a primary
+	 * {@link GridDataProps.onRowClick}. Per the DOM's event order a double-click
+	 * also fires the single-click handlers twice first; keep the two actions
+	 * compatible. The interactive-content guard of `onRowClick` applies.
+	 */
+	onRowDoubleClick?: GridRowClick<T>
+
+	/**
+	 * Invoked when a data cell is double-clicked, with the
+	 * {@link GridCellClickContext} and the originating event — the cell-level
+	 * counterpart of {@link GridDataProps.onRowDoubleClick}, fired ahead of it
+	 * on the same double-click.
+	 */
+	onCellDoubleClick?: GridCellClick<T>
 
 	/**
 	 * Human-readable name for a row; labels its selection checkbox

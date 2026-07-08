@@ -7,6 +7,7 @@ import type { GridColumn } from './types'
 import { useGridEditing } from './use-grid-editing'
 import { useGridEditingColumns } from './use-grid-editing-columns'
 import {
+	type GridCellActivate,
 	type GridNavTableProps,
 	type GridRowActivate,
 	useGridNavigation,
@@ -41,6 +42,7 @@ export function useGridCursor<T>({
 	editable,
 	columns,
 	onRowActivate,
+	onCellActivate,
 	selectableRef,
 	toggleActiveRow,
 	scrollRowIntoViewRef,
@@ -52,6 +54,8 @@ export function useGridCursor<T>({
 	/** The pinned/resolved columns to augment. */
 	columns: GridColumn<T>[]
 	onRowActivate: GridRowActivate | undefined
+	/** Activates the cell under the cursor on Enter, ahead of the row activation. */
+	onCellActivate: GridCellActivate | undefined
 	/** Whether the grid has a selection column; gates the cursor's Space-to-select. */
 	selectableRef: RefObject<boolean>
 	/** Toggles the active row's selection by display index, for the cursor's Space key. */
@@ -86,6 +90,7 @@ export function useGridCursor<T>({
 		rowsRef,
 		colCountRef,
 		onRowActivate,
+		onCellActivate,
 		selectableRef,
 		toggleActiveRow,
 		scrollRowIntoViewRef,

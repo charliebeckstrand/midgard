@@ -22,7 +22,7 @@ import type {
 	GridInfiniteScroll,
 	GridVirtualize,
 } from './grid-data-types'
-import type { GridRowClick } from './grid-row'
+import type { GridCellClick, GridRowClick } from './grid-row'
 import type { GridColumn } from './types'
 import type { GridNavTableProps } from './use-grid-navigation'
 import type { GridColumnResize, GridPaginationView } from './use-grid-table'
@@ -255,21 +255,28 @@ export function resolveGridSemantics(
 
 /**
  * Whether the grid paints the shared {@link Table} `hover` wash: when the
- * consumer opts in with `hover`, or implicitly for a clickable grid
- * (`onRowClick`), whose rows then read as actionable — but never through a
- * column drag-resize (`resizing`), so the row under the pointer doesn't light
- * up mid-drag (matching the truncation tooltips' `!resizing` gate). Pulled out
- * of {@link GridData} so the boolean logic stays off its cognitive-complexity
- * budget.
+ * consumer opts in with `hover`, or implicitly for a clickable grid (any of the
+ * row- or cell-level click `handlers` set), whose rows then read as actionable
+ * — but never through a column drag-resize (`resizing`), so the row under the
+ * pointer doesn't light up mid-drag (matching the truncation tooltips'
+ * `!resizing` gate). Pulled out of {@link GridData} so the boolean logic stays
+ * off its cognitive-complexity budget.
  *
  * @internal
  */
 export function resolveHover<T>(
 	hover: boolean | undefined,
-	onRowClick: GridRowClick<T> | undefined,
+	handlers: {
+		onRowClick: GridRowClick<T> | undefined
+		onCellClick: GridCellClick<T> | undefined
+		onRowDoubleClick: GridRowClick<T> | undefined
+		onCellDoubleClick: GridCellClick<T> | undefined
+	},
 	resizing: boolean,
 ): boolean {
-	return (hover === true || onRowClick != null) && !resizing
+	const clickable = Object.values(handlers).some((handler) => handler != null)
+
+	return (hover === true || clickable) && !resizing
 }
 
 /**

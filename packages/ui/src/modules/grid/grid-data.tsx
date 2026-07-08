@@ -5,6 +5,7 @@ import { SortableContext } from '@dnd-kit/sortable'
 import {
 	type ComponentProps,
 	type ReactNode,
+	type RefObject,
 	useCallback,
 	useLayoutEffect,
 	useMemo,
@@ -64,7 +65,7 @@ import {
 	restrictToHorizontalAxis,
 	restrictToVerticalAxis,
 } from './grid-reorder'
-import type { GridRowClick, GridRowsProps } from './grid-row'
+import { cellValue, type GridCellClick, type GridRowClick, type GridRowsProps } from './grid-row'
 import { GridRowManagerDialog } from './grid-row-manager-dialog'
 import { useGridSort } from './grid-sort-state'
 import { useColumnSettleWidths } from './grid-table-views'
@@ -83,7 +84,7 @@ import { useGridCursor } from './use-grid-cursor'
 import { type GridExpansionResult, useGridExpansion } from './use-grid-expansion'
 import { useGridExport } from './use-grid-export'
 import { type GridGroupHeader, type GridGroupResult, useGridGroup } from './use-grid-group'
-import { GridNavContext, type GridRowActivate } from './use-grid-navigation'
+import { type GridCellActivate, GridNavContext, type GridRowActivate } from './use-grid-navigation'
 import { useGridReorder } from './use-grid-reorder'
 import { useGridRowGrouping } from './use-grid-row-grouping'
 import { type GridRowManagerRegionResult, useGridRowManagerRegion } from './use-grid-row-manager'
@@ -491,26 +492,24 @@ function GridRowManagerRegionDialog({ region }: { region: GridRowManagerRegionRe
 }
 
 /**
- * Stabilizes an `onRowClick` callback so the memoized rows hold across renders:
- * returns a referentially-stable handler (or `undefined` when no callback is
- * set) that reads the live callback through a ref, so an inline consumer
- * callback doesn't churn every row.
+ * Stabilizes a consumer event callback (`onRowClick`, `onCellClick`, and their
+ * double-click counterparts) so the memoized rows hold across renders: returns
+ * a referentially-stable handler (or `undefined` when no callback is set) that
+ * reads the live callback through a ref, so an inline consumer callback
+ * doesn't churn every row.
  *
  * @internal
  */
-function useStableRowClick<T>(
-	onRowClick: GridRowClick<T> | undefined,
-): GridRowClick<T> | undefined {
-	const ref = useRef(onRowClick)
+function useStableHandler<A extends unknown[]>(
+	handler: ((...args: A) => void) | undefined,
+): ((...args: A) => void) | undefined {
+	const ref = useRef(handler)
 
-	ref.current = onRowClick
+	ref.current = handler
 
-	const hasRowClick = onRowClick != null
+	const present = handler != null
 
-	return useMemo(
-		() => (hasRowClick ? (row: T, event) => ref.current?.(row, event) : undefined),
-		[hasRowClick],
-	)
+	return useMemo(() => (present ? (...args: A) => ref.current?.(...args) : undefined), [present])
 }
 
 /**
@@ -527,6 +526,37 @@ function bridgeRowActivate<T>(
 
 	return (row, event) =>
 		handleRowClick(row as T, event as unknown as Parameters<GridRowClick<T>>[1])
+}
+
+/**
+ * Adapts the cell-click into the cursor's `onCellActivate`: the cursor speaks
+ * display indices, so the bridge resolves them to the cell context — row datum,
+ * key, data column, and value — through the live refs at activation time.
+ * `undefined` when the grid has no cell click.
+ *
+ * @internal
+ */
+function bridgeCellActivate<T>(
+	handleCellClick: GridCellClick<T> | undefined,
+	refs: {
+		rowsRef: RefObject<T[]>
+		rowKeysRef: RefObject<(string | number)[]>
+		dataColumnsRef: RefObject<GridColumn<T>[]>
+	},
+): GridCellActivate | undefined {
+	if (!handleCellClick) return undefined
+
+	return (rowIdx, colIdx, event) => {
+		const row = refs.rowsRef.current[rowIdx]
+
+		const rowKey = refs.rowKeysRef.current[rowIdx]
+
+		const col = refs.dataColumnsRef.current[colIdx]
+
+		if (row === undefined || rowKey === undefined || !col) return
+
+		handleCellClick({ row, rowKey, columnId: col.id, value: cellValue(col, row) }, event)
+	}
 }
 
 /**
@@ -627,6 +657,9 @@ export function GridData<T>({
 	truncate = true,
 	rowClassName,
 	onRowClick,
+	onCellClick,
+	onRowDoubleClick,
+	onCellDoubleClick,
 	rowLabel,
 	header,
 	maxHeight,
@@ -805,12 +838,25 @@ export function GridData<T>({
 	// measures it for the viewport-relative PageUp/Down step.
 	const scrollRef = useRef<HTMLDivElement>(null)
 
-	// A stable click handler so the memoized rows don't churn when the consumer
-	// passes an inline `onRowClick`; the cursor also activates its row on Enter.
-	const handleRowClick = useStableRowClick(onRowClick)
+	// Stable click handlers so the memoized rows don't churn when the consumer
+	// passes inline callbacks; the cursor also activates its cell/row on Enter.
+	const handleRowClick = useStableHandler(onRowClick)
+
+	const handleCellClick = useStableHandler(onCellClick)
+
+	const handleRowDoubleClick = useStableHandler(onRowDoubleClick)
+
+	const handleCellDoubleClick = useStableHandler(onCellDoubleClick)
 
 	// Bridge the row-click into the cursor's Enter/Space activation (see `bridgeRowActivate`).
 	const onRowActivate = useMemo(() => bridgeRowActivate(handleRowClick), [handleRowClick])
+
+	// Bridge the cell-click the same way: the cursor hands over its display
+	// indices, resolved to the cell context through the live refs at activation.
+	const onCellActivate = useMemo(
+		() => bridgeCellActivate(handleCellClick, { rowsRef, rowKeysRef, dataColumnsRef }),
+		[handleCellClick],
+	)
 
 	// Column groups: the controllable binding, collapse state, the ids collapsed
 	// groups hide from the engine, and the band-row resolver rendered below.
@@ -826,6 +872,7 @@ export function GridData<T>({
 		editable,
 		columns: pinnedColumns,
 		onRowActivate,
+		onCellActivate,
 		selectableRef,
 		toggleActiveRow,
 		scrollRowIntoViewRef,
@@ -1214,11 +1261,16 @@ export function GridData<T>({
 		selectAllLabel,
 	} = resolveGridSemantics(gated.virtualize, pagination, gated.navigable, manualGroupingActive)
 
-	// A clickable grid reads as actionable through the shared `<Table hover>`
-	// wash, layered over any explicit `hover`; the row keeps its own pointer
-	// cursor (see `GridRow`). Suppressed through a column drag-resize so the row
-	// under the pointer doesn't light up mid-drag.
-	const rowHover = resolveHover(hover, onRowClick, resizing)
+	// A clickable grid — any row- or cell-level click handler — reads as
+	// actionable through the shared `<Table hover>` wash, layered over any
+	// explicit `hover`; the row keeps its own pointer cursor (see `GridRow`).
+	// Suppressed through a column drag-resize so the row under the pointer
+	// doesn't light up mid-drag.
+	const rowHover = resolveHover(
+		hover,
+		{ onRowClick, onCellClick, onRowDoubleClick, onCellDoubleClick },
+		resizing,
+	)
 
 	// Column and row reorder can't share one grid: they'd need one dnd context to
 	// disambiguate a header drag from a row drag. Row reorder takes precedence, so
@@ -1303,6 +1355,9 @@ export function GridData<T>({
 					rowClassName={rowClassName}
 					rowLabel={rowLabel}
 					onRowClick={handleRowClick}
+					onCellClick={handleCellClick}
+					onRowDoubleClick={handleRowDoubleClick}
+					onCellDoubleClick={handleCellDoubleClick}
 					empty={empty}
 					error={error}
 					gridSemantics={gridSemantics}

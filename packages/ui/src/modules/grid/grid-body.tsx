@@ -151,6 +151,9 @@ function renderGroup<T>(
 						selectable={props.selectable}
 						rowLabel={props.rowLabel?.(leaf.original)}
 						onRowClick={props.onRowClick}
+						onCellClick={props.onCellClick}
+						onRowDoubleClick={props.onRowDoubleClick}
+						onCellDoubleClick={props.onCellDoubleClick}
 						truncate={props.truncate}
 						settleWidths={props.settleWidths}
 						pinning={props.pinning}
@@ -227,6 +230,9 @@ function renderManualSegment<T>(
 						selectable={props.selectable}
 						rowLabel={props.rowLabel?.(leaf.original)}
 						onRowClick={props.onRowClick}
+						onCellClick={props.onCellClick}
+						onRowDoubleClick={props.onRowDoubleClick}
+						onCellDoubleClick={props.onCellDoubleClick}
 						truncate={props.truncate}
 						settleWidths={props.settleWidths}
 						pinning={props.pinning}

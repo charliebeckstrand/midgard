@@ -8,6 +8,8 @@ export type {
 } from './export/types'
 export {
 	Grid,
+	type GridCellClick,
+	type GridCellClickContext,
 	type GridColumnManagerConfig,
 	type GridColumnOrder,
 	type GridExpandable,
@@ -19,6 +21,7 @@ export {
 	type GridHeader,
 	type GridInfiniteScroll,
 	type GridProps,
+	type GridRowClick,
 	type GridRowReorder,
 	type GridSelection,
 	type GridSort,

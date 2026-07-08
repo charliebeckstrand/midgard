@@ -11,7 +11,12 @@ import type { DensityLevel } from '../../providers/density'
 import { k } from '../../recipes/kata/grid'
 import { GridCellContent } from './grid-cell-content'
 import { pinnedClassName, pinnedOffsetStyle } from './grid-pinning'
-import { fromInteractiveContent, type GridRowClick, resolveCellTooltip } from './grid-row'
+import {
+	type GridCellClick,
+	type GridRowClick,
+	resolveCellTooltip,
+	rowPointerHandler,
+} from './grid-row'
 import type { GridColumn } from './types'
 import type { GridColumnPinning } from './use-grid-table'
 
@@ -39,6 +44,9 @@ type GridGroupLeafRowProps<T> = {
 	selectable: boolean
 	rowLabel?: string
 	onRowClick?: GridRowClick<T>
+	onCellClick?: GridCellClick<T>
+	onRowDoubleClick?: GridRowClick<T>
+	onCellDoubleClick?: GridCellClick<T>
 	truncate: boolean
 	settleWidths: (number | undefined)[]
 	pinning: GridColumnPinning | null
@@ -212,6 +220,9 @@ export function GridGroupLeafRow<T>({
 	selectable,
 	rowLabel,
 	onRowClick,
+	onCellClick,
+	onRowDoubleClick,
+	onCellDoubleClick,
 	truncate,
 	settleWidths,
 	pinning,
@@ -231,13 +242,16 @@ export function GridGroupLeafRow<T>({
 			aria-hidden={expanded ? undefined : true}
 			inert={!expanded}
 			tabIndex={onRowClick && expanded ? 0 : undefined}
-			onClick={
-				onRowClick
-					? (event) => {
-							if (!fromInteractiveContent(event.target)) onRowClick(row, event)
-						}
-					: undefined
-			}
+			// The click and double-click handlers each fire their cell-level
+			// counterpart first, then the row-level one (see `rowPointerHandler`).
+			onClick={rowPointerHandler({ cells, row, rowKey, onRow: onRowClick, onCell: onCellClick })}
+			onDoubleClick={rowPointerHandler({
+				cells,
+				row,
+				rowKey,
+				onRow: onRowDoubleClick,
+				onCell: onCellDoubleClick,
+			})}
 			onKeyDown={
 				onRowClick
 					? (event) => {
@@ -252,7 +266,9 @@ export function GridGroupLeafRow<T>({
 						}
 					: undefined
 			}
-			className={cn(onRowClick && k.row.clickable)}
+			className={cn(
+				(onRowClick || onCellClick || onRowDoubleClick || onCellDoubleClick) && k.row.clickable,
+			)}
 		>
 			{cells.map((cell, colIdx) => {
 				const col = cell.column.columnDef.meta?.gridColumn

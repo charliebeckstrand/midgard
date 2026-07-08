@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
-import { Grid, type GridColumn } from '../../modules/grid'
+import { Grid, type GridCellClickContext, type GridColumn } from '../../modules/grid'
 import { GRID_STATUS_DEBOUNCE_MS } from '../../modules/grid/grid-constants'
 import { renderUI, screen, userEvent, withFakeTime } from '../helpers'
 
@@ -90,6 +90,201 @@ describe('Grid row click', () => {
 		expect(container.querySelector('table')?.className).not.toContain('hover:bg-zinc-950/5')
 
 		expect(screen.getByText('Alice').closest('tr')?.className).not.toContain('cursor-pointer')
+	})
+})
+
+describe('Grid cell click', () => {
+	type Row = { id: number; name: string; role: string }
+
+	const columns: GridColumn<Row>[] = [
+		{ id: 'name', title: 'Name', cell: (row) => row.name },
+		{ id: 'role', title: 'Role', cell: (row) => row.role, value: (row) => `role:${row.role}` },
+		{ id: 'actions', actions: (row) => <Button>Edit {row.name}</Button> },
+	]
+
+	const rows: Row[] = [
+		{ id: 1, name: 'Alice', role: 'Admin' },
+		{ id: 2, name: 'Bob', role: 'User' },
+	]
+
+	const getKey = (row: Row) => row.id
+
+	it('fires onCellClick with the cell context when a data cell is clicked', async () => {
+		const user = userEvent.setup()
+
+		const onCellClick = vi.fn()
+
+		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} onCellClick={onCellClick} />)
+
+		await user.click(screen.getByText('Alice'))
+
+		expect(onCellClick).toHaveBeenCalledTimes(1)
+
+		// The value falls back to the row field named by the column id.
+		expect(onCellClick.mock.calls[0]?.[0]).toEqual({
+			row: rows[0],
+			rowKey: 1,
+			columnId: 'name',
+			value: 'Alice',
+		})
+	})
+
+	it('reads the cell value through the column value accessor when set', async () => {
+		const user = userEvent.setup()
+
+		const onCellClick = vi.fn()
+
+		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} onCellClick={onCellClick} />)
+
+		await user.click(screen.getByText('User'))
+
+		expect(onCellClick.mock.calls[0]?.[0]).toEqual({
+			row: rows[1],
+			rowKey: 2,
+			columnId: 'role',
+			value: 'role:User',
+		})
+	})
+
+	it('fires the cell click ahead of the row click on the same click', async () => {
+		const user = userEvent.setup()
+
+		const order: string[] = []
+
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				onCellClick={() => order.push('cell')}
+				onRowClick={() => order.push('row')}
+			/>,
+		)
+
+		await user.click(screen.getByText('Alice'))
+
+		expect(order).toEqual(['cell', 'row'])
+	})
+
+	it('defers to interactive cell content rather than firing the cell click', async () => {
+		const user = userEvent.setup()
+
+		const onCellClick = vi.fn()
+
+		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} onCellClick={onCellClick} />)
+
+		await user.click(screen.getByRole('button', { name: 'Edit Bob' }))
+
+		expect(onCellClick).not.toHaveBeenCalled()
+	})
+
+	it('fires from a grouped body leaf cell too', async () => {
+		const user = userEvent.setup()
+
+		const onCellClick = vi.fn()
+
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				groupBy={{ value: 'role' }}
+				onCellClick={onCellClick}
+			/>,
+		)
+
+		await user.click(screen.getByText('Alice'))
+
+		expect(onCellClick).toHaveBeenCalledTimes(1)
+
+		expect(onCellClick.mock.calls[0]?.[0]).toMatchObject({ columnId: 'name', rowKey: 1 })
+	})
+
+	it('washes a cell-clickable grid with the shared Table hover variant', () => {
+		const { container } = renderUI(
+			<Grid columns={columns} rows={rows} getKey={getKey} onCellClick={vi.fn()} />,
+		)
+
+		expect(container.querySelector('table')?.className).toContain(
+			'[&>tbody>tr]:hover:bg-zinc-950/5',
+		)
+	})
+})
+
+describe('Grid double click', () => {
+	type Row = { id: number; name: string }
+
+	const columns: GridColumn<Row>[] = [
+		{ id: 'name', title: 'Name', cell: (row) => row.name },
+		{ id: 'actions', actions: (row) => <Button>Edit {row.name}</Button> },
+	]
+
+	const rows: Row[] = [
+		{ id: 1, name: 'Alice' },
+		{ id: 2, name: 'Bob' },
+	]
+
+	const getKey = (row: Row) => row.id
+
+	it('fires onRowDoubleClick with the row datum', async () => {
+		const user = userEvent.setup()
+
+		const onRowDoubleClick = vi.fn()
+
+		renderUI(
+			<Grid columns={columns} rows={rows} getKey={getKey} onRowDoubleClick={onRowDoubleClick} />,
+		)
+
+		await user.dblClick(screen.getByText('Alice'))
+
+		expect(onRowDoubleClick).toHaveBeenCalledTimes(1)
+
+		expect(onRowDoubleClick.mock.calls[0]?.[0]).toEqual(rows[0])
+	})
+
+	it('fires onCellDoubleClick with the cell context, ahead of the row double-click', async () => {
+		const user = userEvent.setup()
+
+		const order: string[] = []
+
+		const onCellDoubleClick = vi.fn((_cell: GridCellClickContext<Row>) => {
+			order.push('cell')
+		})
+
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				onCellDoubleClick={onCellDoubleClick}
+				onRowDoubleClick={() => order.push('row')}
+			/>,
+		)
+
+		await user.dblClick(screen.getByText('Bob'))
+
+		expect(order).toEqual(['cell', 'row'])
+
+		expect(onCellDoubleClick.mock.calls[0]?.[0]).toEqual({
+			row: rows[1],
+			rowKey: 2,
+			columnId: 'name',
+			value: 'Bob',
+		})
+	})
+
+	it('defers to interactive cell content rather than firing the double-click', async () => {
+		const user = userEvent.setup()
+
+		const onRowDoubleClick = vi.fn()
+
+		renderUI(
+			<Grid columns={columns} rows={rows} getKey={getKey} onRowDoubleClick={onRowDoubleClick} />,
+		)
+
+		await user.dblClick(screen.getByRole('button', { name: 'Edit Bob' }))
+
+		expect(onRowDoubleClick).not.toHaveBeenCalled()
 	})
 })
 
