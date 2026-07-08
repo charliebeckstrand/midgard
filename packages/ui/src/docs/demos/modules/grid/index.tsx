@@ -5,12 +5,14 @@ import { Badge } from '../../../../components/badge'
 import { Button } from '../../../../components/button'
 import { HoldButton } from '../../../../components/hold-button'
 import { Icon } from '../../../../components/icon'
+import { JsonTree } from '../../../../components/json-tree'
 import { Sparkline } from '../../../../components/sparkline'
 import { Stack } from '../../../../components/stack'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../../components/tabs'
 import { Text } from '../../../../components/text'
 import {
 	Grid,
+	type GridCellClickContext,
 	type GridColumn,
 	type GridColumnGroup,
 	type GridPaginationState,
@@ -472,11 +474,11 @@ const RowClickExample = () => {
 	const [picked, setPicked] = useState<Person | null>(null)
 
 	// A click on interactive cell content (here the row-action buttons) is ignored,
-	// so the row click and per-row controls coexist. The row is also focusable and
-	// activates on Enter / Space.
+	// so the row click and per-row controls coexist. The rows are a roving-tabindex
+	// group — Tab into the grid, then Up/Down between rows — and each activates on
+	// Enter / Space. The tree below the grid inspects the clicked row's datum.
 	return (
-		<>
-			{picked && <Badge color="blue">Selected {picked.name}</Badge>}
+		<Stack gap="md">
 			<Grid
 				columns={[
 					...columns,
@@ -493,7 +495,55 @@ const RowClickExample = () => {
 				getKey={(row) => row.id}
 				onRowClick={(row) => setPicked(row)}
 			/>
-		</>
+			{picked && <JsonTree data={picked} />}
+		</Stack>
+	)
+}
+
+// The clicked cell's context, its `unknown` value stringified so the payload
+// stays a JSON-serializable tree for the inspector below the grid.
+type PickedCell = Omit<GridCellClickContext<Person>, 'value'> & { value: string }
+
+const CellClickExample = () => {
+	const [picked, setPicked] = useState<PickedCell | null>(null)
+
+	// The cell context carries the column id and the cell's value alongside the
+	// owning row; clicks on non-data cells are ignored. A cell handler makes the
+	// data cells a roving-tabindex group — Tab into the grid, then arrow between
+	// cells (Up/Down/Left/Right) and press Enter — the keyboard peer of the click.
+	return (
+		<Stack gap="md">
+			<Grid
+				columns={columns}
+				rows={people}
+				getKey={(row) => row.id}
+				onCellClick={(cell) => setPicked({ ...cell, value: String(cell.value) })}
+			/>
+			{picked && <JsonTree data={picked} />}
+		</Stack>
+	)
+}
+
+const DoubleClickExample = () => {
+	const [picked, setPicked] = useState<({ event: string } & PickedCell) | null>(null)
+
+	// Double-click events layer over the single-click pair for a secondary
+	// "open" affordance: `onRowDoubleClick` carries the row datum, and
+	// `onCellDoubleClick` (shown here) the same context as `onCellClick`, fired
+	// ahead of the row handler. Per the DOM's event order a double-click also
+	// fires any single-click handlers twice first.
+	return (
+		<Stack gap="md">
+			<Grid
+				columns={columns}
+				rows={people}
+				getKey={(row) => row.id}
+				onCellDoubleClick={(cell) =>
+					setPicked({ event: 'cellDoubleClick', ...cell, value: String(cell.value) })
+				}
+			/>
+			{picked && <JsonTree data={picked} />}
+		</Stack>
 	)
 }
 
@@ -868,6 +918,24 @@ const ExportExample = () => (
 	/>
 )
 
+// `selection` and `exportable` work together: when a selection is active, the
+// export menu and context items only include the selected rows. The grid doesn't
+// own the selection state, so the consumer must hold it and pass it back to the
+// grid.
+const ExportWithSelectionExample = () => {
+	const [selection, setSelection] = useState<Set<string | number>>(new Set())
+
+	return (
+		<Grid
+			exportable={['csv', 'excel']}
+			columns={[{ id: 'select', selectable: true }, ...filterableColumns]}
+			rows={people}
+			getKey={(row) => row.id}
+			selection={{ value: selection, onValueChange: (s) => setSelection(s ?? new Set()) }}
+		/>
+	)
+}
+
 const ServerPaginationExample = () => {
 	const [pagination, setPagination] = useState<GridPaginationState>({ pageIndex: 0, pageSize: 10 })
 
@@ -908,11 +976,11 @@ const ClientPaginationExample = () => (
 	/>
 )
 
-// Local infinite scroll: the whole set is held in memory, and the grid renders a
+// Client-side infinite scroll: the whole set is held in memory, and the grid renders a
 // growing slice of it through the virtual window. `onLoadMore` lifts the slice
 // synchronously as the scroll nears the loaded end; `hasMore` stops it once the
 // slice reaches the full set.
-const LocalInfiniteScrollExample = () => {
+const ClientInfiniteScrollExample = () => {
 	const [count, setCount] = useState(20)
 
 	const rows = useMemo(() => manyPeople.slice(0, count), [count])
@@ -951,7 +1019,7 @@ const makeServerRows = (offset: number, limit: number): Person[] =>
 // Stand-in for a paged server fetch: resolve the next page after a short delay.
 const fetchServerRows = (offset: number): Promise<Person[]> =>
 	new Promise((resolve) => {
-		setTimeout(() => resolve(makeServerRows(offset, 25)), 600)
+		setTimeout(() => resolve(makeServerRows(offset, 25)), 500)
 	})
 
 // Server-side rendered infinite scroll: the first page stands in for the server-rendered
@@ -1116,6 +1184,7 @@ const tabs = [
 	'Variants',
 	'Sorting',
 	'Selection',
+	'Events',
 	'Reorder',
 	'Resize',
 	'Expand',
@@ -1211,15 +1280,33 @@ export function Demo() {
 							<BatchActionsExample />
 						</Example>
 
-						<Example title="Row click" code={code`<Grid onRowClick={(row) => ...} />`}>
-							<RowClickExample />
-						</Example>
-
 						<Example
 							title="Context menus"
 							code={code`<Grid contextMenu={{ column: true, cell: true }} />`}
 						>
 							<ContextMenuExample />
+						</Example>
+					</Stack>
+				</TabContent>
+
+				<TabContent value="Events">
+					<Stack gap="xl">
+						<Example title="Row click" code={code`<Grid onRowClick={(row) => ...} />`}>
+							<RowClickExample />
+						</Example>
+
+						<Example
+							title="Cell click"
+							code={code`<Grid onCellClick={({ row, rowKey, columnId, value }) => ...} />`}
+						>
+							<CellClickExample />
+						</Example>
+
+						<Example
+							title="Double click"
+							code={code`<Grid onRowDoubleClick={(row) => ...} onCellDoubleClick={(cell) => ...} />`}
+						>
+							<DoubleClickExample />
 						</Example>
 					</Stack>
 				</TabContent>
@@ -1442,8 +1529,15 @@ export function Demo() {
 
 				<TabContent value="Export">
 					<Stack gap="xl">
-						<Example title="CSV + Excel" code={code`<Grid exportable={['csv', 'excel']} />`}>
+						<Example title="Export" code={code`<Grid exportable={['csv', 'excel']} />`}>
 							<ExportExample />
+						</Example>
+
+						<Example
+							title="Export with selection"
+							code={code`<Grid exportable={['csv', 'excel']} selection={{ value, onValueChange }} />`}
+						>
+							<ExportWithSelectionExample />
 						</Example>
 					</Stack>
 				</TabContent>
@@ -1475,21 +1569,32 @@ export function Demo() {
 				</TabContent>
 
 				<TabContent value="Virtualization">
-					<Stack gap="xl">
-						<Example
-							title="Local"
-							code={code`<Grid virtualize infiniteScroll={{ onLoadMore, hasMore }} />`}
-						>
-							<LocalInfiniteScrollExample />
-						</Example>
+					<Tabs defaultValue="Client">
+						<TabList aria-label="Virtualization type">
+							<Tab value="Client">Client</Tab>
+							<Tab value="Server">Server</Tab>
+						</TabList>
+						<TabContents fade={false}>
+							<TabContent value="Client">
+								<Stack gap="xl">
+									<Example title="Client infinite scroll" code={code`<Grid virtualize />`}>
+										<ClientInfiniteScrollExample />
+									</Example>
+								</Stack>
+							</TabContent>
 
-						<Example
-							title="Server-side rendered"
-							code={code`<Grid virtualize infiniteScroll={{ onLoadMore, hasMore, loadingMore }} />`}
-						>
-							<ServerInfiniteScrollExample />
-						</Example>
-					</Stack>
+							<TabContent value="Server">
+								<Stack gap="xl">
+									<Example
+										title="Server infinite scroll"
+										code={code`<Grid virtualize infiniteScroll={{ onLoadMore, hasMore, loadingMore }} />`}
+									>
+										<ServerInfiniteScrollExample />
+									</Example>
+								</Stack>
+							</TabContent>
+						</TabContents>
+					</Tabs>
 				</TabContent>
 
 				<TabContent value="State">

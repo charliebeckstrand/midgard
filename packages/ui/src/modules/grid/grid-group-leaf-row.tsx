@@ -9,9 +9,17 @@ import { cn, dataAttr } from '../../core'
 import type { PaletteColor } from '../../core/recipe'
 import type { DensityLevel } from '../../providers/density'
 import { k } from '../../recipes/kata/grid'
+import { isDataColumn } from '../../utilities'
 import { GridCellContent } from './grid-cell-content'
 import { pinnedClassName, pinnedOffsetStyle } from './grid-pinning'
-import { fromInteractiveContent, type GridRowClick, resolveCellTooltip } from './grid-row'
+import {
+	cellRovingAttrs,
+	type GridCellClick,
+	type GridCellRovingActivate,
+	type GridRowClick,
+	resolveCellTooltip,
+	rowPointerHandler,
+} from './grid-row'
 import type { GridColumn } from './types'
 import type { GridColumnPinning } from './use-grid-table'
 
@@ -39,6 +47,15 @@ type GridGroupLeafRowProps<T> = {
 	selectable: boolean
 	rowLabel?: string
 	onRowClick?: GridRowClick<T>
+	onCellClick?: GridCellClick<T>
+	onRowDoubleClick?: GridRowClick<T>
+	onCellDoubleClick?: GridCellClick<T>
+	/** Whether the leaf row is a roving-tabindex item (row-mode keyboard nav). @defaultValue false */
+	rowRoving?: boolean
+	/** Whether the leaf's data cells are roving-tabindex items (cell-mode keyboard nav). @defaultValue false */
+	cellRoving?: boolean
+	/** Stable focused-cell activation for cell roving (see {@link GridRowsProps.cellActivate}). */
+	cellActivate?: GridCellRovingActivate<T>
 	truncate: boolean
 	settleWidths: (number | undefined)[]
 	pinning: GridColumnPinning | null
@@ -124,6 +141,10 @@ type GridGroupLeafCellProps<T> = {
 	expanded: boolean
 	/** Density padding class for the innermost content wrapper. */
 	pad: string
+	/** Whether this data cell is a roving-tabindex item (cell-mode keyboard nav). @defaultValue false */
+	cellRoving?: boolean
+	/** Stable focused-cell activation for cell roving. */
+	cellActivate?: GridCellRovingActivate<T>
 }
 
 /**
@@ -151,16 +172,32 @@ function GridGroupLeafCell<T>({
 	color,
 	expanded,
 	pad,
+	cellRoving = false,
+	cellActivate,
 }: GridGroupLeafCellProps<T>) {
 	const chrome = leafCellChrome(col)
+
+	// Only data cells rove (the selection / actions / drag-handle leaf cells stay
+	// plain); `cellRovingAttrs` returns the marker + Enter/Space activation.
+	const dataCell = isDataColumn(col)
+
+	const roving = cellRovingAttrs({
+		cellRoving: cellRoving && dataCell,
+		cellActivate,
+		col,
+		row,
+		rowKey,
+	})
 
 	return (
 		<td
 			data-grid-col={col.id}
+			{...roving}
 			// The leftmost cell carries the group's rail, so it runs unbroken down the
 			// group's leaf rows and joins the header's segment above — in the group's
 			// color when the row manager assigns one, else the neutral tint.
 			className={cn(
+				cellRoving && dataCell && k.cell.rovable,
 				leading && k.rowGroup.rail.padded,
 				leading && color && k.rowGroup.rail.color[color],
 				chrome.td,
@@ -212,6 +249,12 @@ export function GridGroupLeafRow<T>({
 	selectable,
 	rowLabel,
 	onRowClick,
+	onCellClick,
+	onRowDoubleClick,
+	onCellDoubleClick,
+	rowRoving = false,
+	cellRoving = false,
+	cellActivate,
 	truncate,
 	settleWidths,
 	pinning,
@@ -226,18 +269,26 @@ export function GridGroupLeafRow<T>({
 			data-selected={dataAttr(selected)}
 			aria-selected={selectable ? selected : undefined}
 			data-clickable={dataAttr(onRowClick != null)}
+			// Row-mode roving marks an expanded leaf an item the roving hook owns the
+			// `tabIndex` of; a collapsed leaf is `inert` and excluded by the selector.
+			data-roving={dataAttr(rowRoving && expanded)}
 			// A collapsed group's leaves are visually clipped to nothing; take them out
 			// of the tab order and the accessibility tree too (WCAG 1.3.1 / 2.4.3).
 			aria-hidden={expanded ? undefined : true}
 			inert={!expanded}
-			tabIndex={onRowClick && expanded ? 0 : undefined}
-			onClick={
-				onRowClick
-					? (event) => {
-							if (!fromInteractiveContent(event.target)) onRowClick(row, event)
-						}
-					: undefined
-			}
+			// Row roving hands the `tabIndex` to the roving hook; without it a clickable
+			// expanded leaf stays a static stop, and cell roving leaves the row unfocusable.
+			tabIndex={rowRoving ? undefined : onRowClick && !cellRoving && expanded ? 0 : undefined}
+			// The click and double-click handlers each fire their cell-level
+			// counterpart first, then the row-level one (see `rowPointerHandler`).
+			onClick={rowPointerHandler({ cells, row, rowKey, onRow: onRowClick, onCell: onCellClick })}
+			onDoubleClick={rowPointerHandler({
+				cells,
+				row,
+				rowKey,
+				onRow: onRowDoubleClick,
+				onCell: onCellDoubleClick,
+			})}
 			onKeyDown={
 				onRowClick
 					? (event) => {
@@ -252,7 +303,9 @@ export function GridGroupLeafRow<T>({
 						}
 					: undefined
 			}
-			className={cn(onRowClick && k.row.clickable)}
+			className={cn(
+				(onRowClick || onCellClick || onRowDoubleClick || onCellDoubleClick) && k.row.clickable,
+			)}
 		>
 			{cells.map((cell, colIdx) => {
 				const col = cell.column.columnDef.meta?.gridColumn
@@ -276,6 +329,8 @@ export function GridGroupLeafRow<T>({
 						color={color}
 						expanded={expanded}
 						pad={pad}
+						cellRoving={cellRoving}
+						cellActivate={cellActivate}
 					/>
 				)
 			})}

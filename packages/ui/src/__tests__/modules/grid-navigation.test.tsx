@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { Grid, type GridColumn } from '../../modules/grid'
+import { Grid, type GridCellClickContext, type GridColumn } from '../../modules/grid'
 import { fireEvent, renderUI, screen } from '../helpers'
 
 type Row = { id: number; name: string; role: string }
@@ -193,6 +193,47 @@ describe('Grid navigable cursor', () => {
 		expect(onRowClick).toHaveBeenCalledTimes(1)
 
 		expect(onRowClick.mock.calls[0]?.[0]).toEqual(rows[1])
+	})
+
+	it('activates the cell under the cursor on Enter, ahead of the row', () => {
+		const order: string[] = []
+
+		const onCellClick = vi.fn((_cell: GridCellClickContext<Row>) => {
+			order.push('cell')
+		})
+
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				navigable
+				onCellClick={onCellClick}
+				onRowClick={() => {
+					order.push('row')
+				}}
+			/>,
+		)
+
+		const grid = screen.getByRole('grid')
+
+		const cells = screen.getAllByRole('gridcell')
+
+		// Seat the cursor on the second row's Role cell, then activate it.
+		fireEvent.mouseDown(cells[ROW1_ROLE] as HTMLElement)
+
+		fireEvent.keyDown(grid, { key: 'Enter' })
+
+		expect(onCellClick).toHaveBeenCalledTimes(1)
+
+		expect(onCellClick.mock.calls[0]?.[0]).toEqual({
+			row: rows[1],
+			rowKey: 2,
+			columnId: 'role',
+			value: 'User',
+		})
+
+		expect(order).toEqual(['cell', 'row'])
 	})
 
 	it('defers a click on focusable cell content to that content', () => {

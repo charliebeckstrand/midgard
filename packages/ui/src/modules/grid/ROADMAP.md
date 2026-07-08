@@ -115,6 +115,7 @@ Per-row inline editing is baked into Grid via the `editable` binding (a controll
 | Unified grid-state snapshot (sort + filter + order + visibility + sizing + pagination) save/restore | Generalize the column-manager preset to full table state |
 | URL / `searchParams` sync for SSR | Next.js App Router helper mapping table state to the query string |
 | Global `aria-rowindex`/`aria-colindex` under pagination | Shipped — pagination emits `role="grid"` with page-aware global indices, alongside virtualization; a plain whole-set grid stays a native table |
+| Roving-tabindex keyboard navigation for click handlers | Shipped — a clickable grid without the navigable cursor becomes a single Tab stop whose active row/cell moves with the arrow keys (`use-grid-roving` over `useA11yRoving`): a row handler (`onRowClick` / `onRowDoubleClick`) roves the rows (Up/Down), a cell handler (`onCellClick` / `onCellDoubleClick`) the data cells (two-dimensional, `cols` = data-column count) and takes precedence, and Enter/Space activates the focused item (a cell fires the cell click then the row click). Stands down under the navigable cursor (which owns the keyboard) and virtualization (rows unmount on scroll), where a per-row static Tab stop is kept. Remaining: roving the virtualized window (scroll an off-window target into view before focusing), and promoting to `role="grid"`/`gridcell` semantics |
 
 ---
 

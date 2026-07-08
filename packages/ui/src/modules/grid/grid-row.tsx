@@ -21,6 +21,7 @@ import { Icon } from '../../components/icon'
 import { TableCell, TableRow } from '../../components/table'
 import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/grid'
+import { isDataColumn } from '../../utilities'
 import { type CellTooltip, GridCellContent } from './grid-cell-content'
 import { GridDetailRow, GridExpandToggle } from './grid-detail-row'
 import { isFrozen } from './grid-pin-overrides'
@@ -30,13 +31,135 @@ import type { GridColumn } from './types'
 import type { GridColumnPinning } from './use-grid-table'
 
 /**
- * Row-click handler: the row datum and the originating pointer or keyboard
- * event. @internal
+ * Row-level event handler for {@link GridDataProps.onRowClick} and
+ * {@link GridDataProps.onRowDoubleClick}: the row datum and the originating
+ * pointer or keyboard event.
+ *
+ * @typeParam T - Shape of a single row.
  */
 export type GridRowClick<T> = (
 	row: T,
 	event: ReactMouseEvent<HTMLTableRowElement> | ReactKeyboardEvent<HTMLTableRowElement>,
 ) => void
+
+/**
+ * Context for a cell-level event ({@link GridDataProps.onCellClick} /
+ * {@link GridDataProps.onCellDoubleClick}): the cell's column id and data
+ * value alongside the owning row.
+ *
+ * @typeParam T - Shape of a single row.
+ */
+export type GridCellClickContext<T> = {
+	/** The owning row's datum. */
+	row: T
+	/** The owning row's key, from {@link GridDataProps.getKey}. */
+	rowKey: string | number
+	/** The clicked column's id. */
+	columnId: string | number
+	/**
+	 * The cell's data value: the column's {@link GridColumn.value} accessor when
+	 * set, else the row field named by the column id — the same resolution sort,
+	 * filter, and export read. `undefined` when the column has neither.
+	 */
+	value: unknown
+}
+
+/**
+ * Cell-level event handler for {@link GridDataProps.onCellClick} and
+ * {@link GridDataProps.onCellDoubleClick}: the {@link GridCellClickContext}
+ * and the originating pointer or keyboard event.
+ *
+ * @typeParam T - Shape of a single row.
+ */
+export type GridCellClick<T> = (
+	cell: GridCellClickContext<T>,
+	event: ReactMouseEvent<HTMLElement> | ReactKeyboardEvent<HTMLElement>,
+) => void
+
+/**
+ * Activates a keyboard-focused data cell (cell roving): fires the cell click
+ * then the row click for the given context, matching the order a pointer click
+ * fires them in. @internal
+ */
+export type GridCellRovingActivate<T> = (
+	cell: GridCellClickContext<T>,
+	event: ReactKeyboardEvent<HTMLElement>,
+) => void
+
+/**
+ * A cell's data value: the column's {@link GridColumn.value} accessor when set,
+ * else the row field named by the column id — the resolution sort, filter, and
+ * export share. @internal
+ */
+export function cellValue<T>(col: GridColumn<T>, row: T): unknown {
+	if (col.value) return col.value(row)
+
+	return (row as Record<string | number, unknown>)[col.id]
+}
+
+/**
+ * Resolves the data cell a row-level pointer event landed on: the closest
+ * `td[data-grid-col]` names the column, matched back through the row's engine
+ * cells. Non-data cells (selection, actions, drag handle, expander) resolve to
+ * `null`, so cell-level events fire only for row content.
+ *
+ * @internal
+ */
+function resolveCellContext<T>(
+	cells: Cell<T, unknown>[],
+	row: T,
+	rowKey: string | number,
+	target: EventTarget | null,
+): GridCellClickContext<T> | null {
+	if (!(target instanceof Element)) return null
+
+	const id = target.closest('td[data-grid-col]')?.getAttribute('data-grid-col')
+
+	if (id == null) return null
+
+	for (const cell of cells) {
+		const col = cell.column.columnDef.meta?.gridColumn
+
+		if (col && String(col.id) === id && isDataColumn(col)) {
+			return { row, rowKey, columnId: col.id, value: cellValue(col, row) }
+		}
+	}
+
+	return null
+}
+
+/**
+ * The row's DOM handler for a click or double-click: a click on interactive
+ * cell content defers to that content; otherwise the cell-level handler fires
+ * first — when the event landed on a data cell — then the row-level one,
+ * matching the DOM's inside-out event order. `undefined` when the row carries
+ * neither, so an inert row attaches no handler.
+ *
+ * @internal
+ */
+export function rowPointerHandler<T>(args: {
+	cells: Cell<T, unknown>[]
+	row: T
+	rowKey: string | number
+	onRow: GridRowClick<T> | undefined
+	onCell: GridCellClick<T> | undefined
+}): ((event: ReactMouseEvent<HTMLTableRowElement>) => void) | undefined {
+	const { cells, row, rowKey, onRow, onCell } = args
+
+	if (!onRow && !onCell) return undefined
+
+	return (event) => {
+		if (fromInteractiveContent(event.target)) return
+
+		if (onCell) {
+			const cell = resolveCellContext(cells, row, rowKey, event.target)
+
+			if (cell) onCell(cell, event)
+		}
+
+		onRow?.(row, event)
+	}
+}
 
 /**
  * Interactive cell content that handles its own click, so a row-level
@@ -70,6 +193,33 @@ export type GridRowsProps<T> = {
 	rowLabel?: (row: T) => string
 	/** Stable per-row click handler; rows are inert when omitted. */
 	onRowClick?: GridRowClick<T>
+	/** Stable data-cell click handler, fired ahead of {@link GridRowsProps.onRowClick} on the same click. */
+	onCellClick?: GridCellClick<T>
+	/** Stable per-row double-click handler. */
+	onRowDoubleClick?: GridRowClick<T>
+	/** Stable data-cell double-click handler, fired ahead of {@link GridRowsProps.onRowDoubleClick}. */
+	onCellDoubleClick?: GridCellClick<T>
+	/**
+	 * Whether the rows are roving-tabindex items (row-mode keyboard navigation):
+	 * each marks itself `data-roving` and lets the grid's roving hook own its
+	 * `tabIndex`. @defaultValue false
+	 */
+	rowRoving?: boolean
+	/**
+	 * Whether each clickable row is a static Tab stop (`tabIndex=0`) — the legacy
+	 * per-row model kept for the virtualized body, where roving stands down.
+	 * @defaultValue false
+	 */
+	rowStaticStop?: boolean
+	/**
+	 * Whether the data cells are roving-tabindex items (cell-mode keyboard
+	 * navigation): each marks itself `data-roving`, takes the focus ring, and
+	 * activates on Enter / Space through {@link GridRowsProps.cellActivate}.
+	 * @defaultValue false
+	 */
+	cellRoving?: boolean
+	/** Stable focused-cell activation for cell roving — the cell click then the row click, matching a pointer click. */
+	cellActivate?: GridCellRovingActivate<T>
 	selection: Set<string | number>
 	toggleRow: (key: string | number) => void
 	/** Whether the grid renders a selection column, so each row exposes its `aria-selected` state. */
@@ -141,6 +291,13 @@ export function renderGridRow<T>(
 		className: props.rowClassName?.(row),
 		rowLabel: props.rowLabel?.(row),
 		onRowClick: props.onRowClick,
+		onCellClick: props.onCellClick,
+		onRowDoubleClick: props.onRowDoubleClick,
+		onCellDoubleClick: props.onCellDoubleClick,
+		rowRoving: props.rowRoving,
+		rowStaticStop: props.rowStaticStop,
+		cellRoving: props.cellRoving,
+		cellActivate: props.cellActivate,
 		selected: props.selection.has(key),
 		toggleRow: props.toggleRow,
 		selectable: props.selectable,
@@ -235,6 +392,20 @@ type GridRowProps<T> = {
 	settleWidths: (number | undefined)[]
 	/** Invoked when the row is clicked or activated by keyboard; `undefined` makes the row inert. */
 	onRowClick?: GridRowClick<T>
+	/** Invoked when one of the row's data cells is clicked, ahead of {@link GridRowProps.onRowClick}. */
+	onCellClick?: GridCellClick<T>
+	/** Invoked when the row is double-clicked. */
+	onRowDoubleClick?: GridRowClick<T>
+	/** Invoked when one of the row's data cells is double-clicked, ahead of {@link GridRowProps.onRowDoubleClick}. */
+	onCellDoubleClick?: GridCellClick<T>
+	/** Whether the row is a roving-tabindex item (row-mode keyboard nav); the grid's roving hook owns its `tabIndex`. @defaultValue false */
+	rowRoving?: boolean
+	/** Whether the row is a static Tab stop (`tabIndex=0`), the legacy per-row model kept for the virtualized body. @defaultValue false */
+	rowStaticStop?: boolean
+	/** Whether the row's data cells are roving-tabindex items (cell-mode keyboard nav). @defaultValue false */
+	cellRoving?: boolean
+	/** Stable focused-cell activation for cell roving (see {@link GridRowsProps.cellActivate}). */
+	cellActivate?: GridCellRovingActivate<T>
 	/**
 	 * 1-based position in the full row set (header = 1). Set when the rendered
 	 * body is a window onto a larger set — virtualization or pagination — so
@@ -308,6 +479,13 @@ function GridRowImpl<T>({
 	truncate,
 	settleWidths,
 	onRowClick,
+	onCellClick,
+	onRowDoubleClick,
+	onCellDoubleClick,
+	rowRoving = false,
+	rowStaticStop = false,
+	cellRoving = false,
+	cellActivate,
 	rowIndex,
 	dataRowIndex,
 	pinning,
@@ -330,19 +508,29 @@ function GridRowImpl<T>({
 			data-row-index={dataRowIndex}
 			data-grid-row={String(rowKey)}
 			data-clickable={dataAttr(onRowClick != null)}
+			// Row-mode roving marks the row an item the grid's roving hook owns the
+			// `tabIndex` of; the cell-mode/inert cases leave it off.
+			data-roving={dataAttr(rowRoving)}
 			aria-rowindex={rowIndex}
-			// A clickable row is keyboard-focusable and activates on Enter / Space;
-			// a click on interactive cell content defers to that content. Activation
-			// from the keyboard is gated to the row itself so inner controls keep
-			// their own Enter / Space behaviour.
-			tabIndex={onRowClick ? 0 : undefined}
-			onClick={
-				onRowClick
-					? (event) => {
-							if (!fromInteractiveContent(event.target)) onRowClick(row, event)
-						}
-					: undefined
-			}
+			// A clickable row activates on Enter / Space; a click on interactive cell
+			// content defers to that content. Activation from the keyboard is gated to
+			// the row itself so inner controls keep their own Enter / Space behaviour.
+			// The click and double-click handlers each fire their cell-level
+			// counterpart first, then the row-level one (see `rowPointerHandler`).
+			//
+			// Focusability: a row-roving row omits `tabIndex` so the roving hook can
+			// own it (one row at `0`, the rest `-1`); the virtualized body keeps the
+			// legacy static per-row stop; cell roving and the navigable cursor leave
+			// the row unfocusable (the cells / the table hold focus).
+			tabIndex={rowRoving ? undefined : rowStaticStop ? 0 : undefined}
+			onClick={rowPointerHandler({ cells, row, rowKey, onRow: onRowClick, onCell: onCellClick })}
+			onDoubleClick={rowPointerHandler({
+				cells,
+				row,
+				rowKey,
+				onRow: onRowDoubleClick,
+				onCell: onCellDoubleClick,
+			})}
 			onKeyDown={
 				onRowClick
 					? (event) => {
@@ -359,10 +547,10 @@ function GridRowImpl<T>({
 			}
 			// A clickable row carries the pointer cursor and a keyboard focus ring (see
 			// `k.row.clickable`); its hover wash is the shared `<Table hover>` variant
-			// that `GridData` enables for a row-click handler.
+			// that `GridData` enables for any row- or cell-level click handler.
 			className={cn(
 				loading && k.row.loading,
-				onRowClick && k.row.clickable,
+				(onRowClick || onCellClick || onRowDoubleClick || onCellDoubleClick) && k.row.clickable,
 				sortable && k.rowReorder.dragging,
 				className,
 			)}
@@ -448,12 +636,15 @@ function GridRowImpl<T>({
 						cell={cell}
 						col={col}
 						row={row}
+						rowKey={rowKey}
 						colIndex={colIndex}
 						columnIndex={colIdx}
 						reorderable={reorderable}
 						truncate={truncate}
 						resizeSettleKey={settleWidths[colIdx]}
 						pinning={pinning}
+						cellRoving={cellRoving}
+						cellActivate={cellActivate}
 					/>
 				)
 			})}
@@ -551,6 +742,8 @@ type GridDataCellProps<T> = {
 	cell: Cell<T, unknown>
 	col: GridColumn<T>
 	row: T
+	/** The owning row's key, carried so cell roving can build the {@link GridCellClickContext}. */
+	rowKey: string | number
 	colIndex: number | undefined
 	/** 0-based visible column index, matching the header's, so a reorder drag keys the body shift the same way. */
 	columnIndex: number
@@ -559,6 +752,42 @@ type GridDataCellProps<T> = {
 	/** This column's settled width snapshot; re-renders the cell to re-measure overflow when a resize settles (see {@link GridCellContent}). */
 	resizeSettleKey: number | undefined
 	pinning: GridColumnPinning | null
+	/** Whether the cell is a roving-tabindex item (cell-mode keyboard nav): the focus ring, and Enter / Space activation. @defaultValue false */
+	cellRoving?: boolean
+	/** Stable focused-cell activation for cell roving (see {@link GridRowsProps.cellActivate}). */
+	cellActivate?: GridCellRovingActivate<T>
+}
+
+/**
+ * The roving attributes a focusable data cell carries in cell mode: the
+ * `data-roving` marker the grid's roving hook seats a `tabIndex` on, and an
+ * Enter / Space handler that activates the cell — gated to the cell itself so an
+ * inner control keeps its own key behaviour. `null` outside cell roving. @internal
+ */
+export function cellRovingAttrs<T>(args: {
+	cellRoving: boolean
+	cellActivate: GridCellRovingActivate<T> | undefined
+	col: GridColumn<T>
+	row: T
+	rowKey: string | number
+}): {
+	'data-roving': '' | undefined
+	onKeyDown: (event: ReactKeyboardEvent<HTMLElement>) => void
+} | null {
+	const { cellRoving, cellActivate, col, row, rowKey } = args
+
+	if (!cellRoving) return null
+
+	return {
+		'data-roving': dataAttr(true),
+		onKeyDown: (event) => {
+			if ((event.key === 'Enter' || event.key === ' ') && event.target === event.currentTarget) {
+				event.preventDefault()
+
+				cellActivate?.({ row, rowKey, columnId: col.id, value: cellValue(col, row) }, event)
+			}
+		},
+	}
 }
 
 /**
@@ -572,14 +801,23 @@ function GridDataCellImpl<T>({
 	cell,
 	col,
 	row,
+	rowKey,
 	colIndex,
 	columnIndex,
 	reorderable,
 	truncate,
 	resizeSettleKey,
 	pinning,
+	cellRoving = false,
+	cellActivate,
 }: GridDataCellProps<T>) {
 	const cellExtra = col.cellProps?.(row)
+
+	// Cell-mode roving: the focus ring plus the marker/activation attributes,
+	// applied to whichever `<td>` this cell renders (reorder-aware or plain).
+	const roving = cellRovingAttrs({ cellRoving, cellActivate, col, row, rowKey })
+
+	const rovingClass = cellRoving ? k.cell.rovable : undefined
 
 	// Render only columns that declare a `cell`; a bare accessor column stays empty
 	// rather than falling back to TanStack's default value renderer.
@@ -602,8 +840,8 @@ function GridDataCellImpl<T>({
 				id={col.id}
 				columnIndex={columnIndex}
 				colIndex={colIndex}
-				className={col.className}
-				cellProps={cellExtra}
+				className={cn(rovingClass, col.className)}
+				cellProps={roving ? { ...cellExtra, ...roving } : cellExtra}
 			>
 				{content}
 			</GridReorderableCell>
@@ -614,8 +852,14 @@ function GridDataCellImpl<T>({
 		<TableCell
 			aria-colindex={colIndex}
 			{...cellExtra}
+			{...roving}
 			data-grid-col={col.id}
-			className={cn(pinnedClassName(pinning, col.id), col.className, cellExtra?.className)}
+			className={cn(
+				rovingClass,
+				pinnedClassName(pinning, col.id),
+				col.className,
+				cellExtra?.className,
+			)}
 			style={{ ...cellExtra?.style, ...pinnedOffsetStyle(pinning, col.id) }}
 		>
 			{content}
