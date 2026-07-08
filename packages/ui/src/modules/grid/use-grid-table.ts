@@ -146,6 +146,8 @@ type UseGridTableParams<T> = {
 	manualGroupRow?: ((row: T) => boolean) | null
 	pagination?: GridPagination
 	resizable?: boolean
+	/** Hold the auto-fit column widths steady against appended rows (infinite scroll); the initial fit, structural changes, and container resizes still apply. */
+	stableColumnWidths?: boolean
 	columnSizing?: GridColumnSizing
 	globalFilter?: GridSearch
 	columnFilters?: GridColumnFilters
@@ -442,6 +444,7 @@ export function useGridTable<T>({
 	manualGroupRow = null,
 	pagination: paginationConfig,
 	resizable = false,
+	stableColumnWidths = false,
 	columnSizing: columnSizingConfig,
 	globalFilter: globalFilterConfig,
 	columnFilters: columnFiltersConfig,
@@ -696,6 +699,8 @@ export function useGridTable<T>({
 		containerRef,
 		density,
 		columnFloors: columnFloorsRef.current,
+		// Infinite scroll's stable widths hold the fit against each appended batch.
+		freezeOnRowChange: stableColumnWidths,
 	})
 
 	const resize = useMemo<GridColumnResize | null>(() => {

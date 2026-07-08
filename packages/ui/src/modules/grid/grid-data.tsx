@@ -1079,6 +1079,11 @@ export function GridData<T>({
 		// is `undefined` while grouping), so the engine doesn't page the groups.
 		pagination: gated.pagination,
 		resizable,
+		// Infinite scroll can hold the auto-fit column widths steady so an appended
+		// batch never reflows the columns (see `GridInfiniteScroll.stableColumnWidths`).
+		// `resolveInfiniteScroll` already defaulted the flag; `useGridTable` treats an
+		// absent binding (undefined) as off.
+		stableColumnWidths: infiniteScroll?.stableColumnWidths,
 		columnSizing: columnSizingConfig,
 		globalFilter: searchConfig,
 		columnFilters: columnFiltersConfig,

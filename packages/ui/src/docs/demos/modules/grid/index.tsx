@@ -1024,8 +1024,10 @@ const fetchServerRows = (offset: number): Promise<Person[]> =>
 
 // Server-side rendered infinite scroll: the first page stands in for the server-rendered
 // initial rows, and the client appends each subsequent page as the scroll nears
-// the end. `loadingMore` holds a pending flag across the async fetch — the grid
-// shows a trailing skeleton row and won't re-request until the batch lands.
+// the end. `loadingMore` holds a pending flag across the async fetch — it won't
+// re-request until the batch lands, and `showLoadingIndicator` opts the trailing
+// skeleton row in. `stableColumnWidths` holds the columns steady as batches append,
+// and `endMessage` closes the list once the whole set has loaded.
 const ServerInfiniteScrollExample = () => {
 	const [rows, setRows] = useState<Person[]>(() => makeServerRows(0, 25))
 
@@ -1052,6 +1054,9 @@ const ServerInfiniteScrollExample = () => {
 				onLoadMore: loadMore,
 				hasMore: rows.length < SERVER_TOTAL,
 				loadingMore,
+				showLoadingIndicator: true,
+				stableColumnWidths: true,
+				endMessage: 'No more results',
 			}}
 		/>
 	)
@@ -1587,7 +1592,7 @@ export function Demo() {
 								<Stack gap="xl">
 									<Example
 										title="Server infinite scroll"
-										code={code`<Grid virtualize infiniteScroll={{ onLoadMore, hasMore, loadingMore }} />`}
+										code={code`<Grid virtualize infiniteScroll={{ onLoadMore, hasMore, loadingMore, showLoadingIndicator: true, stableColumnWidths: true, endMessage: 'No more results' }} />`}
 									>
 										<ServerInfiniteScrollExample />
 									</Example>
