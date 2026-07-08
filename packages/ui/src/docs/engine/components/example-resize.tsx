@@ -8,6 +8,7 @@ import {
 	useState,
 } from 'react'
 import { cn, dataAttr } from '../../../core'
+import { TouchTarget } from '../../../primitives/touch-target'
 
 /**
  * Width grid, in pixels, the handle snaps to when `snap` is on. A resized frame
@@ -279,12 +280,14 @@ type ExampleResizeHandleProps = {
 }
 
 /**
- * The grip on an {@link Example} frame's right edge, rendered as an `<hr>` — the
- * element whose implicit `separator` role carries the ARIA window-splitter
- * semantics, so no `role` override is needed. Its `aria-valuenow` tracks the
- * current width; drag it or use the arrow keys (Home/End for a defined bound) to
- * resize the frame. The two grip bars are drawn with `::before`/`::after`, since
- * `<hr>` takes no children.
+ * The grip on an {@link Example} frame's right edge, an interactive
+ * window-splitter rendered as a focusable `div` with `role="separator"` — an
+ * `<hr>` is a non-interactive thematic break, so it can't carry the splitter's
+ * value semantics. Its `aria-valuenow` tracks the current width; drag it or use
+ * the arrow keys (Home/End for a defined bound) to resize the frame. A
+ * {@link TouchTarget} floors the pointer/touch hit area to the WCAG minimums
+ * (24px on fine pointers, 44px on coarse) without widening the slim visible
+ * grip, whose two bars are the {@link TouchTarget}'s children.
  *
  * @internal
  */
@@ -295,9 +298,11 @@ export function ExampleResizeHandle({
 	handlers,
 }: ExampleResizeHandleProps) {
 	return (
-		<hr
+		// biome-ignore lint/a11y/useSemanticElements: an interactive window-splitter is role="separator" with aria-value*; <hr> is a non-interactive thematic break
+		<div
 			data-slot="example-resize-handle"
 			data-resizing={dataAttr(resizing)}
+			role="separator"
 			aria-orientation="vertical"
 			aria-label="Resize example"
 			aria-valuenow={width !== undefined ? Math.round(width) : undefined}
@@ -315,9 +320,12 @@ export function ExampleResizeHandle({
 				'border-zinc-200 bg-zinc-100 text-zinc-400 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-500',
 				'outline-none hover:text-zinc-600 focus-visible:border-blue-500 dark:hover:text-zinc-300',
 				'data-[resizing]:border-blue-500 data-[resizing]:text-blue-500',
-				"before:h-4 before:w-px before:bg-current before:content-['']",
-				"after:h-4 after:w-px after:bg-current after:content-['']",
 			)}
-		/>
+		>
+			<TouchTarget>
+				<span className="h-4 w-px bg-current" />
+				<span className="h-4 w-px bg-current" />
+			</TouchTarget>
+		</div>
 	)
 }
