@@ -172,6 +172,13 @@ export type CartesianChart = {
 	/** Moves the legend emphasis (`null` clears it). */
 	setEmphasis: (index: number | null) => void
 	readout: ChartReadout | null
+	/**
+	 * The series indices the hover tooltip lists {@link readout}'s rows in — the
+	 * marks' own visible top-to-bottom order (a vertical stack reversed, else the
+	 * legend's value order). Empty when there is no readout; the readout stays in
+	 * series order for the hidden data table.
+	 */
+	readoutOrder: number[]
 	legendItems: ChartLegendItem[] | null
 	/** The reference lines' legend chips, when the legend shows; empty otherwise. */
 	referenceItems: ChartLegendReference[]
@@ -661,6 +668,29 @@ function orderLegend(metas: SeriesMeta[], byValue: boolean | undefined): SeriesM
 }
 
 /**
+ * The series indices the tooltip lists its rows in, so the hover readout reads
+ * top-to-bottom in the marks' own visible order. The readout itself stays in the
+ * caller's series order for the hidden data table; this reorders only the
+ * display. A vertical stack piles the first series at the bottom, so its rows
+ * reverse — the top segment reads first; a horizontal stack runs first-to-last
+ * left to right and keeps the series order. Off a stack the rows take the
+ * legend's own {@link orderLegend} order, so overlapping lines read in their
+ * drawn value order and the tooltip agrees with the legend.
+ *
+ * @internal
+ */
+function orderReadout(
+	visible: SeriesMeta[],
+	stacked: boolean,
+	orientation: ChartOrientation,
+	byValue: boolean | undefined,
+): number[] {
+	if (stacked && orientation === 'vertical') return visible.map((meta) => meta.index).reverse()
+
+	return orderLegend(visible, byValue).map((meta) => meta.index)
+}
+
+/**
  * The orchestration every cartesian chart shares: density and container
  * sizing, the series and legend / readout models, and the value and band scales
  * with their ticks. The oriented scale-and-layout math lives in
@@ -799,6 +829,13 @@ export function useChartCartesian<T>(
 			? chartReadout(data, xKey, visible, formatAxisValue, readoutCategory)
 			: null
 
+	// The tooltip lists its rows in the marks' visible order (a vertical stack
+	// reversed, else the legend's value order); the readout keeps series order for
+	// the hidden table. Empty without a readout to order.
+	const readoutOrder = readout
+		? orderReadout(visible, stack, orientation, config.legendByValue)
+		: []
+
 	// Reference lines map onto their own axis's scale the way the rules do, kept
 	// aligned to the prop so the keyboard's active-rule index names the rule it
 	// draws; a rule toggled off through its chip drops its stop with its rule.
@@ -846,6 +883,7 @@ export function useChartCartesian<T>(
 		emphasis,
 		setEmphasis: setFocus,
 		readout,
+		readoutOrder,
 		legendItems: legendItemsOf(metas, legend, config.legendByValue),
 		referenceItems,
 		referenceHidden,

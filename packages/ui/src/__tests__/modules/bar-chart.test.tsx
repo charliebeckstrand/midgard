@@ -635,6 +635,48 @@ describe('BarChart', () => {
 		expect(bySlot(stacked.container, 'chart-axis-y')?.textContent).toContain('100')
 	})
 
+	it('reads the stacked tooltip top segment first, the grouped one in series order', () => {
+		// A snapping crosshair carries the readout to the nearest column, so the probe
+		// lands anywhere over the plot and still lists both series.
+		const grouped = renderUI(chart({ crosshair: { x: true, y: true, snap: true } }))
+
+		fireEvent.pointerMove(bySlot(grouped.container, 'chart-hit') as Element, {
+			clientX: 280,
+			clientY: 40,
+		})
+
+		const groupedText =
+			(bySlot(grouped.container, 'tooltip-content') as HTMLElement).textContent ?? ''
+
+		// Grouped bars grow from one baseline, so the readout keeps the declared order.
+		expect(groupedText).toContain('Revenue')
+
+		expect(groupedText.indexOf('Revenue')).toBeLessThan(groupedText.indexOf('Costs'))
+
+		const stacked = renderUI(chart({ stacked: true, crosshair: { x: true, y: true, snap: true } }))
+
+		fireEvent.pointerMove(bySlot(stacked.container, 'chart-hit') as Element, {
+			clientX: 280,
+			clientY: 40,
+		})
+
+		const stackedText =
+			(bySlot(stacked.container, 'tooltip-content') as HTMLElement).textContent ?? ''
+
+		// Costs piles on top of Revenue, so the readout reverses to read the column top
+		// to bottom — the top segment first.
+		expect(stackedText).toContain('Costs')
+
+		expect(stackedText.indexOf('Costs')).toBeLessThan(stackedText.indexOf('Revenue'))
+
+		// The hidden data table keeps the declared series order regardless.
+		expect(
+			[
+				...stacked.container.querySelectorAll('[data-slot="chart-table"] thead th[scope="col"]'),
+			].map((th) => th.textContent),
+		).toEqual(['Revenue', 'Costs'])
+	})
+
 	it('widens the bars to fill the band under thick', () => {
 		// The first bar's left edge, off the `M x0 …` that opens its path.
 		const leftEdge = (container: HTMLElement) =>

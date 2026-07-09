@@ -236,6 +236,7 @@ export function LineChart<T>(props: LineChartProps<T>) {
 			legend={<ChartCartesianLegend chart={chart} legend={legend} texture={tex.active} />}
 			legendPlacement={typeof legend === 'string' ? legend : undefined}
 			readout={chart.readout}
+			readoutOrder={chart.readoutOrder}
 			emphasis={chart.emphasis}
 			tooltip={showTooltip}
 			snap={snapTargets(rails, chart.bandPositions, chart.snapPoints)}
