@@ -1,6 +1,6 @@
 'use client'
 
-import { ArrowLeftToLine, ArrowRightToLine, Pin, PinOff } from 'lucide-react'
+import { ArrowLeftToLine, ArrowRightToLine, EllipsisVertical, Pin, PinOff } from 'lucide-react'
 import { type ReactNode, useCallback, useMemo } from 'react'
 import { Button } from '../../components/button'
 import { Checkbox, CheckboxField, CheckboxGroup } from '../../components/checkbox'
@@ -97,10 +97,11 @@ type GridColumnPinControlProps = {
 }
 
 /**
- * Per-column pin control: a pin button opening a menu that freezes the column to
- * an edge or releases it. A scrolling column offers Pin left / Pin right; a
+ * Per-column pin control: a menu button opening a menu that freezes the column
+ * to an edge or releases it. A scrolling column offers Pin left / Pin right; a
  * frozen one offers the opposite edge and Unpin — mirroring the header context
- * menu's pin items.
+ * menu's pin items. The trigger shows an overflow glyph while the column
+ * scrolls and switches to a pin glyph once it's frozen.
  *
  * @internal
  */
@@ -115,7 +116,7 @@ function GridColumnPinControl({
 		<Menu placement={placement} className={className}>
 			<MenuTrigger>
 				<button type="button" className={cn(k.pinButton)} aria-label={`Pin ${columnLabel(item)}`}>
-					<Icon icon={<Pin />} />
+					<Icon icon={side ? <Pin /> : <EllipsisVertical />} />
 				</button>
 			</MenuTrigger>
 			<MenuContent>
@@ -357,13 +358,21 @@ export function GridColumnManager({
 		[columns],
 	)
 
-	const orderableColumns = useMemo(
-		() =>
-			order
-				.map((id) => byId.get(id))
-				.filter((c): c is GridColumnManagerItem => !!c && effectivePinSide(c) === undefined),
-		[order, byId],
-	)
+	// Orderable columns follow the controllable order, then any not in it append
+	// in declaration order — the engine's own contract for absent ids — so a
+	// stored order that is stale (columns added since) or empty (nothing
+	// persisted yet) can't drop columns from the manager.
+	const orderableColumns = useMemo(() => {
+		const inOrder = order
+			.map((id) => byId.get(id))
+			.filter((c): c is GridColumnManagerItem => !!c && effectivePinSide(c) === undefined)
+
+		const seen = new Set(inOrder.map((c) => c.id))
+
+		const missing = columns.filter((c) => effectivePinSide(c) === undefined && !seen.has(c.id))
+
+		return [...inOrder, ...missing]
+	}, [order, byId, columns])
 
 	const toggle = useCallback(
 		(id: string | number) => {

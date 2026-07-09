@@ -34,6 +34,12 @@ export type ChartHitAreaProps = {
 	 * @defaultValue false
 	 */
 	snaps?: boolean
+	/**
+	 * Reports a click that resolves to a category band, by data index — the
+	 * plumbing behind the charts' public `onCategoryClick`. Also carries a
+	 * pointer cursor across the plot so the bands read as clickable.
+	 */
+	onIndexClick?: (index: number) => void
 }
 
 /**
@@ -65,6 +71,7 @@ function ChartHitRect({
 	orientation = 'vertical',
 	trigger = 'hover',
 	snaps = false,
+	onIndexClick,
 }: ChartHitAreaProps) {
 	// The band runs across x when vertical, down y when horizontal, so the index
 	// reads whichever coordinate the orientation puts the band on.
@@ -73,7 +80,14 @@ function ChartHitRect({
 		[band, count, orientation],
 	)
 
-	const { ref, ...handlers } = useChartPointer(plot, resolveIndex, onData, trigger, snaps)
+	const { ref, ...handlers } = useChartPointer(
+		plot,
+		resolveIndex,
+		onData,
+		trigger,
+		snaps,
+		onIndexClick,
+	)
 
 	return (
 		<rect
@@ -85,7 +99,7 @@ function ChartHitRect({
 			height={plot.height}
 			fill="none"
 			pointerEvents="all"
-			className={cn(trigger === 'click' && snaps && 'cursor-pointer')}
+			className={cn(((trigger === 'click' && snaps) || onIndexClick) && 'cursor-pointer')}
 			{...handlers}
 		/>
 	)

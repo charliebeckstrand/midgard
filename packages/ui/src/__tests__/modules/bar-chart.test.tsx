@@ -131,6 +131,62 @@ describe('BarChart', () => {
 		expect(bySlot(container, 'chart-hit')?.getAttribute('class')).toContain('cursor-pointer')
 	})
 
+	it('reports a band click through onCategoryClick with its label and index', () => {
+		const clicks: [string, number][] = []
+
+		const { container } = renderUI(
+			chart({ onCategoryClick: (category, index) => clicks.push([category, index]) }),
+		)
+
+		const hit = bySlot(container, 'chart-hit') as HTMLElement
+
+		// The bands read as clickable, and a click on Q3's band reports it.
+		expect(hit.getAttribute('class')).toContain('cursor-pointer')
+
+		fireEvent.click(hit, { clientX: 300, clientY: 100 })
+
+		expect(clicks).toEqual([['Q3', 2]])
+
+		// Hover tooltips still track — activation never hijacks the readout.
+		fireEvent.pointerMove(hit, { clientX: 300, clientY: 100 })
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Q3')
+	})
+
+	it('reports a band click through onCategoryClick under the click trigger too', () => {
+		const clicks: string[] = []
+
+		const { container } = renderUI(
+			chart({
+				tooltip: { trigger: 'click' },
+				onCategoryClick: (category) => clicks.push(category),
+			}),
+		)
+
+		const hit = bySlot(container, 'chart-hit') as HTMLElement
+
+		// One gesture pins the readout AND reports the activation.
+		fireEvent.click(hit, { clientX: 300, clientY: 100 })
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Q3')
+
+		expect(clicks).toEqual(['Q3'])
+	})
+
+	it('mounts the hit layer for onCategoryClick even with the tooltip off', () => {
+		const clicks: string[] = []
+
+		const { container } = renderUI(
+			chart({ tooltip: false, onCategoryClick: (category) => clicks.push(category) }),
+		)
+
+		const hit = bySlot(container, 'chart-hit') as HTMLElement
+
+		fireEvent.click(hit, { clientX: 60, clientY: 100 })
+
+		expect(clicks).toEqual(['Q1'])
+	})
+
 	it('dismisses on an off-mark click without stranding the band (no snap)', () => {
 		const { container } = renderUI(chart({ tooltip: { trigger: 'click' } }))
 

@@ -142,12 +142,12 @@ describe('CheckboxGroup', () => {
 })
 
 describe('Checkbox size', () => {
-	it('defaults to md (size-4.5)', () => {
+	it('defaults to md (size-5)', () => {
 		const { container } = renderUI(<Checkbox />)
 
 		const label = bySlot(container, 'control')
 
-		expect(label?.className).toContain('size-4.5')
+		expect(label?.className).toContain('size-5')
 	})
 
 	it('reflects an explicit size prop', () => {

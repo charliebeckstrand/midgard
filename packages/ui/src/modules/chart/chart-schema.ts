@@ -600,6 +600,15 @@ export type CartesianFrameProps = {
 	 * @defaultValue false
 	 */
 	tickRotation?: boolean
+	/**
+	 * Fires when a click lands on a category's band — the whole band is the
+	 * target, the same generous hit the tooltip reads — with the category's label
+	 * and its data index. The cross-filter hook: a dashboard toggles a filter on
+	 * the clicked category and narrows its neighbours. Coexists with the tooltip
+	 * on either trigger (a `'click'`-triggered readout still pins), and carries a
+	 * pointer cursor across the plot so the marks read as clickable.
+	 */
+	onCategoryClick?: (category: string, index: number) => void
 }
 
 /**

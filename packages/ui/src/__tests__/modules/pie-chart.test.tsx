@@ -48,6 +48,43 @@ describe('PieChart', () => {
 		])
 	})
 
+	it('reports a slice click through onCategoryClick with its label and index', () => {
+		const clicks: [string, number][] = []
+
+		const { container } = renderUI(
+			chart({ onCategoryClick: (category, index) => clicks.push([category, index]) }),
+		)
+
+		const slices = allBySlot(container, 'chart-slice')
+
+		// The slices read as clickable, and clicking the second reports it.
+		expect(slices[0]?.getAttribute('class')).toContain('cursor-pointer')
+
+		fireEvent.click(slices[1] as Element)
+
+		expect(clicks).toEqual([['Direct', 1]])
+	})
+
+	it('reports a slice click under the click trigger alongside the pinned readout', () => {
+		const clicks: string[] = []
+
+		const { container } = renderUI(
+			chart({
+				tooltip: { trigger: 'click' },
+				onCategoryClick: (category) => clicks.push(category),
+			}),
+		)
+
+		const [first] = allBySlot(container, 'chart-slice')
+
+		// One gesture pins the readout AND reports the activation.
+		fireEvent.click(first as Element)
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Search')
+
+		expect(clicks).toEqual(['Search'])
+	})
+
 	it('does not recede the pie when a sliceless legend entry takes emphasis', () => {
 		const { container } = renderUI(
 			chart({

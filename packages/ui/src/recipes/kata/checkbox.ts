@@ -27,7 +27,7 @@ export const k = bridge.check(
 		color,
 		size: {
 			sm: ['size-4', radius.r('0.75')],
-			md: ['size-4.5', radius.r('1')],
+			md: ['size-5', radius.r('1')],
 			lg: ['size-5', radius.r('1.25')],
 		},
 		skeleton: checkbox,

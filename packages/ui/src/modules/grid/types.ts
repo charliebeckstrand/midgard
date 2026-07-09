@@ -350,6 +350,16 @@ export type GridColumnSizingState = Record<string, number>
  * Controlled/uncontrolled column-width binding for {@link GridProps.columnSizing},
  * backed by the grid's TanStack Table engine. Pairs with
  * {@link GridProps.resizable} to persist and restore drag-resized widths.
+ *
+ * @remarks `onValueChange` reports *user/consumer* width changes — a drag, a
+ * keyboard nudge, a column reset, a controlled write — and settles once the
+ * gesture does (debounce a persist on it to "save when the resize finishes").
+ * The grid's own content auto-fit does **not** fire it: the fit updates the
+ * rendered widths but isn't a preference, so persisting `onValueChange` never
+ * saves autosized widths, only deliberate ones. A `value`/`defaultValue`
+ * seeded on mount is honoured as a manual width — restored widths hold on
+ * reload rather than being re-fit — so the binding round-trips: persist what
+ * `onValueChange` reports, feed it back as `defaultValue`.
  */
 export type GridColumnSizing = {
 	value?: GridColumnSizingState

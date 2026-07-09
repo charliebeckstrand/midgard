@@ -207,6 +207,13 @@ export type CartesianChart = {
 	formatAxisValue: (value: number, axis: ChartValueAxisSide) => string
 	/** Which way the chart faces — the frame parts read it to draw the transpose. */
 	orientation: ChartOrientation
+	/**
+	 * The consumer's `onCategoryClick` resolved to the hit layer's index-based
+	 * contract, or `undefined` when unset — pass to {@link ChartHitArea}'s
+	 * `onIndexClick`, and mount the hit area whenever it's set so the clicks
+	 * land even with the tooltip off.
+	 */
+	onBandClick?: (index: number) => void
 }
 
 /**
@@ -693,6 +700,14 @@ export function useChartCartesian<T>(
 
 	const categories = xKey ? data.map((datum) => String(datum[xKey])) : []
 
+	// The public category-activation callback resolved to the hit layer's
+	// index-based contract: one mapping here instead of one per chart.
+	const { onCategoryClick } = props
+
+	const onBandClick = onCategoryClick
+		? (index: number) => onCategoryClick(categories[index] ?? '', index)
+		: undefined
+
 	const layout: CartesianLayout = (
 		orientation === 'horizontal' ? horizontalLayout : verticalLayout
 	)({
@@ -779,5 +794,6 @@ export function useChartCartesian<T>(
 		axisTitles: layout.titles,
 		formatAxisValue,
 		orientation,
+		onBandClick,
 	}
 }

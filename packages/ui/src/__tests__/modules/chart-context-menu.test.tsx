@@ -125,6 +125,32 @@ describe('Chart context menu', () => {
 		expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
 	})
 
+	it('renders the fullscreen chart at a definite ratio even when the source fills', () => {
+		// A fill-mode source (`aspectRatio={false}`) fills its parent's height; the
+		// auto-height fullscreen dialog gives it none, collapsing the plot. The
+		// fullscreen copy must fall back to the default ratio so it reserves height.
+		const { container } = renderUI(
+			<BarChart
+				aria-label="Revenue by quarter"
+				title="Revenue by quarter"
+				data={data}
+				series={[...series]}
+				aspectRatio={false}
+			/>,
+		)
+
+		openChartMenu(container)
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Fullscreen' }))
+
+		const dialog = screen.getByRole('dialog')
+		const figure = dialog.querySelector<HTMLElement>('[data-slot="chart-figure"]')
+
+		expect(figure).not.toBeNull()
+		// The default 16/9 rides `aspect-ratio`; a still-filling copy would carry none.
+		expect(figure?.style.aspectRatio).not.toBe('')
+	})
+
 	it('leaves the native menu with contextMenu={false}', () => {
 		const { container } = renderUI(
 			<BarChart

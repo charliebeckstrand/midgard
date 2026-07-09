@@ -1,7 +1,7 @@
 'use client'
 
 import { Search, X } from 'lucide-react'
-import { type ChangeEvent, useCallback, useRef } from 'react'
+import { type ChangeEvent, type ReactNode, useCallback, useRef } from 'react'
 import { cn } from '../../core'
 import { useComposedRef } from '../../hooks'
 import { Button } from '../button'
@@ -25,6 +25,12 @@ export type SearchInputProps = Omit<
 	loading?: boolean
 	/** Fires when the field is cleared, whether by the clear button or by emptying it. */
 	onClear?: () => void
+	/**
+	 * Extra trailing content rendered after the field's own suffix (the spinner
+	 * or clear button) — e.g. a go-to-result action once a search resolves to a
+	 * single match. The field's own suffix keeps its slot either way.
+	 */
+	suffix?: ReactNode
 }
 
 const SEARCH_PREFIX = <Icon icon={<Search />} />
@@ -52,6 +58,7 @@ export function SearchInput({
 	name,
 	ref,
 	className,
+	suffix: extraSuffix,
 	...props
 }: SearchInputProps) {
 	const inputRef = useRef<HTMLInputElement>(null)
@@ -99,7 +106,7 @@ export function SearchInput({
 		input?.focus()
 	}, [])
 
-	const suffix = loading ? (
+	const ownSuffix = loading ? (
 		<LoadingSpinner />
 	) : currentValue !== '' ? (
 		<Button
@@ -111,6 +118,18 @@ export function SearchInput({
 			<Icon icon={<X />} />
 		</Button>
 	) : undefined
+
+	// The consumer's trailing content joins after the field's own suffix; with
+	// neither present the slot stays empty (no wrapper), as before.
+	const suffix =
+		extraSuffix != null ? (
+			<>
+				{ownSuffix}
+				{extraSuffix}
+			</>
+		) : (
+			ownSuffix
+		)
 
 	return (
 		<Input

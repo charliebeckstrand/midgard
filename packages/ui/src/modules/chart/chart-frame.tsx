@@ -516,6 +516,11 @@ function ChartFigure({
 	return (
 		<div
 			data-slot="chart-figure"
+			// The free-form fill frame's own box: its height is the tile's, unmoved by
+			// the header and legend the tier mounts or drops inside it, so `usePlotFrame`
+			// reads the tier's spark height off this rather than the plot's chrome-shrunk
+			// remainder — which the tier would otherwise perturb into an oscillation.
+			{...(containerFill && { 'data-plot-fill-container': '' })}
 			// The ratio rides `aspect-ratio` as a preference, not a demand: `max-h-full`
 			// lets a definite-height parent clamp the figure below what the ratio would
 			// ask for, and the `flex-1` plot then measures the clamped height and draws

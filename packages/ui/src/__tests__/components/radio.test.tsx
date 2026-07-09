@@ -61,10 +61,10 @@ describe('RadioGroup', () => {
 })
 
 describe('Radio size', () => {
-	it('defaults to md (size-4.5)', () => {
+	it('defaults to md (size-5)', () => {
 		const { container } = renderUI(<Radio />)
 
-		expect(bySlot(container, 'control')?.className).toContain('size-4.5')
+		expect(bySlot(container, 'control')?.className).toContain('size-5')
 	})
 
 	it('reflects an explicit size prop', () => {

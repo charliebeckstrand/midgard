@@ -7,7 +7,7 @@ import { fireEvent, present, renderUI, screen, waitFor } from '../helpers'
 // `<tbody>`, so assert against the table element's class list (a running
 // animation / opacity is unreliable in jsdom — mirror `grid-sort.test.tsx`).
 const PULSE = '[&>tbody:first-of-type]:motion-safe:animate-pulse'
-const DIM = '[&>tbody:first-of-type]:opacity-50'
+const DIM = '[&>tbody:first-of-type]:motion-reduce:opacity-50'
 
 describe('Grid server-sort settle', () => {
 	type Row = { id: number; name: string }

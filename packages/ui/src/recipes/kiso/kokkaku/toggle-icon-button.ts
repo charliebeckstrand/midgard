@@ -13,7 +13,7 @@ const { rounded } = kasane
 export const toggleIconButton = {
 	base: rounded.lg,
 	size: {
-		xs: 'size-4.5',
+		xs: 'size-5',
 		sm: 'size-6',
 		md: 'size-7.5',
 		lg: 'size-9',

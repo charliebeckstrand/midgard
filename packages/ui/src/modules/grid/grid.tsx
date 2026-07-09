@@ -18,6 +18,7 @@ export type {
 	GridInfiniteScroll,
 	GridPinning,
 	GridPinningState,
+	GridPreferences,
 	GridReorder,
 	GridRowReorder,
 	GridSelection,

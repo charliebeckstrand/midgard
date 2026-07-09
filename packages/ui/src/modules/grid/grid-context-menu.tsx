@@ -81,6 +81,15 @@ type GridGroupByMenu = {
 /** Props for {@link GridContextMenu}. @internal */
 type GridContextMenuProps<T> = {
 	config: GridContextMenuConfig<T>
+	/**
+	 * Whether right-clicks resolve to a menu at all. When `false` every click
+	 * falls through to the native menu — the stand-down for a grid with no data.
+	 * A *flag* rather than unmounting this wrapper: the wrapper appearing later
+	 * (data arriving) would remount the whole table region, tearing down the
+	 * scroll container out from under the virtualizer mid-commit.
+	 * @defaultValue true
+	 */
+	enabled?: boolean
 	/** Visible columns, for resolving a right-clicked header/cell to its column. */
 	columns: GridColumn<T>[]
 	/** Rendered rows, parallel to `rowKeys`, for resolving a cell to its row. */
@@ -449,6 +458,7 @@ export function useColumnGroupMenu(args: {
  */
 export function GridContextMenu<T>({
 	config,
+	enabled = true,
 	columns,
 	rows,
 	rowKeys,
@@ -578,24 +588,28 @@ export function GridContextMenu<T>({
 		[config.cell, columnById, rowByKey, exportActions],
 	)
 
+	// `enabled` gates every resolver (a `null` resolution leaves the native menu
+	// alone), so a no-data grid stands its menus down without unmounting this
+	// wrapper — see the prop's remark.
 	const resolveItems = useCallback(
 		(target: HTMLElement): GridMenuItem[] | null =>
-			resolveTarget(target, resolveColumnItems, resolveCellItems),
-		[resolveColumnItems, resolveCellItems],
+			enabled ? resolveTarget(target, resolveColumnItems, resolveCellItems) : null,
+		[enabled, resolveColumnItems, resolveCellItems],
 	)
 
 	// Group-header rows carry their own menu (Manage rows, expand/collapse, color),
 	// keyed by the group's shared value; `null` when the row manager isn't live.
 	const resolveGroupItems = useCallback(
-		(key: string): GridMenuItem[] | null => (rowGroupMenu ? rowGroupMenu(key) : null),
-		[rowGroupMenu],
+		(key: string): GridMenuItem[] | null => (enabled && rowGroupMenu ? rowGroupMenu(key) : null),
+		[enabled, rowGroupMenu],
 	)
 
 	// Column-group band badges carry their own menu (Clear color, Manage columns),
 	// keyed by the group's id; `null` when grouping is off.
 	const resolveColumnGroupItems = useCallback(
-		(id: string): GridMenuItem[] | null => (columnGroupMenu ? columnGroupMenu(id) : null),
-		[columnGroupMenu],
+		(id: string): GridMenuItem[] | null =>
+			enabled && columnGroupMenu ? columnGroupMenu(id) : null,
+		[enabled, columnGroupMenu],
 	)
 
 	// Restore focus to the grid when a keyboard-opened menu closes, so the cursor —

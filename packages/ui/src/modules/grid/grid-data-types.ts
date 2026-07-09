@@ -12,6 +12,7 @@ import type {
 	GridColumnFilters,
 	GridColumnManagerPreset,
 	GridColumnSizing,
+	GridColumnSizingState,
 	GridContextMenu as GridContextMenuConfig,
 	GridPagination,
 	GridSearch,
@@ -161,6 +162,16 @@ export type GridSort = {
 	 * @defaultValue false
 	 */
 	manual?: boolean
+	/**
+	 * Animate rows sliding to their new places when a sort reorders them — a
+	 * Framer Motion layout (FLIP) glide over the rows' position change, rather than
+	 * an instant repaint. Applies to the plain body only: it stands down under
+	 * `virtualize` (windowed rows mount and unmount on scroll, so there is no stable
+	 * element to glide) and under grouping (whose group and leaf rows run their own
+	 * reveals), and honors `prefers-reduced-motion` (no motion at all).
+	 * @defaultValue false
+	 */
+	animate?: boolean
 }
 
 /**
@@ -461,6 +472,25 @@ export type GridPinning = {
 }
 
 /**
+ * A saved column layout — order, hidden ids, widths, and runtime pins — as one
+ * storage-agnostic snapshot for {@link GridProps.preferences}. Every field is
+ * optional; a dimension the snapshot omits falls back to the grid's own default
+ * (declaration order, all-visible, content auto-fit, static pins).
+ *
+ * @see {@link GridProps.preferences}
+ */
+export type GridPreferences = {
+	/** Column display order, by id (the {@link GridColumnOrder} seed). */
+	order?: (string | number)[]
+	/** Hidden column ids (the {@link GridColumnManagerConfig.defaultHidden} seed). */
+	hidden?: (string | number)[]
+	/** Per-column widths in px, keyed by id (the {@link GridColumnSizing} seed) — held as manual widths, so the auto-fit fills the rest around them. */
+	columnSizing?: GridColumnSizingState
+	/** Runtime pin overrides, keyed by id (the {@link GridPinning} seed). */
+	pinning?: GridPinningState
+}
+
+/**
  * Controlled/uncontrolled row-selection binding for {@link GridProps.selection},
  * plus an optional batch-action bar shown while any row is selected.
  */
@@ -705,6 +735,25 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	grandTotalRow?: 'bottom'
 
 	selection?: GridSelection
+
+	/**
+	 * A saved column layout applied as the initial state of every dimension it
+	 * carries — order, hidden ids, widths, and pins — in one storage-agnostic
+	 * {@link GridPreferences} snapshot, so a consumer wires persistence once
+	 * rather than threading four `defaultValue`s. Applied at first render, so it
+	 * lands **server-side**: SSR paints the saved order and widths, and a seeded
+	 * width holds as a manual one (the content auto-fit fills the rest around it)
+	 * rather than reflowing after mount. Each dimension is exactly the matching
+	 * binding's `defaultValue` — an explicit `columnOrder`/`columnSizing`/
+	 * `pinning` `value`/`defaultValue` (or `columnManager.defaultHidden`) wins
+	 * for that dimension. Changes still flow out through those bindings'
+	 * callbacks (`onValueChange`, `onResizeEnd`, `onReorderEnd`); this is the
+	 * read/seed side, not a controlled channel.
+	 *
+	 * @see {@link GridPreferences}
+	 */
+	preferences?: GridPreferences
+
 	columnOrder?: GridColumnOrder
 
 	/**

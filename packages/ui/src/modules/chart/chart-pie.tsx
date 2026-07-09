@@ -78,6 +78,15 @@ export type PieBaseProps<T> = ChartBaseProps<T> & {
 	 * bare marks, its share read from the tooltip and table instead.
 	 */
 	labels?: PieLabels
+	/**
+	 * Fires when a click lands on a slice — its gap-spanning hit wedge, the same
+	 * generous target the tooltip reads — with the slice's `xKey` label and its
+	 * data index. The cross-filter hook: a dashboard toggles a filter on the
+	 * clicked slice and narrows its neighbours. Coexists with the tooltip on
+	 * either trigger (a `'click'`-triggered readout still pins), and points the
+	 * cursor over the slices so they read as clickable.
+	 */
+	onCategoryClick?: (category: string, index: number) => void
 }
 
 /** Props for {@link ChartPie}: the shared pie base plus the hole size and center content. @internal */
@@ -102,6 +111,19 @@ function resolvePieLabels(labels: PieLabels | undefined): Required<PieLabels> {
 /** A slice group's dim classes — on the wrapper, so motion's inline opacity composes. @internal */
 function sliceGroupClass(emphasis: number | null, index: number): string {
 	return cn('transition-opacity', emphasis !== null && emphasis !== index && 'opacity-25')
+}
+
+/**
+ * The public `onCategoryClick` resolved to the marks' index-based contract —
+ * a slice's data index names it through the data-aligned label list.
+ *
+ * @internal
+ */
+function sliceActivation(
+	onCategoryClick: ((category: string, index: number) => void) | undefined,
+	sliceLabels: string[],
+): ((index: number) => void) | undefined {
+	return onCategoryClick && ((index) => onCategoryClick(sliceLabels[index] ?? '', index))
 }
 
 /**
@@ -237,6 +259,12 @@ type PieChartMarksProps = {
 	 * @defaultValue 'hover'
 	 */
 	trigger?: ChartTooltipTrigger
+	/**
+	 * Reports a click on a slice by data index — the plumbing behind the pie's
+	 * public `onCategoryClick`. Rides either trigger (after the `'click'`
+	 * trigger's own pin/dismiss) and gives the slices a pointer cursor.
+	 */
+	onIndexClick?: (index: number) => void
 }
 
 /**
@@ -267,12 +295,15 @@ function PieChartMarks({
 	fills,
 	textureActive = false,
 	trigger = 'hover',
+	onIndexClick,
 }: PieChartMarksProps) {
 	const { index: active, set } = useChartHover()
 
 	const sweepId = useId()
 
 	const click = trigger === 'click'
+
+	const clickable = click || onIndexClick !== undefined
 
 	return (
 		<g data-slot="chart-slices" onPointerLeave={click ? undefined : () => set(null, null)}>
@@ -298,7 +329,9 @@ function PieChartMarks({
 			<g mask={animate ? `url(#${sweepId})` : undefined}>
 				{slices.map((slice) => {
 					// Anchor the readout at the pointer within the SVG; the click branch
-					// toggles — a second click of the shown slice clears it.
+					// toggles — a second click of the shown slice clears it. A click also
+					// reports through `onIndexClick` on either trigger, after the toggle,
+					// so one gesture drives both the readout and the consumer's activation.
 					const at = (event: PointerEvent<SVGPathElement> | MouseEvent<SVGPathElement>) => {
 						const box = event.currentTarget.ownerSVGElement?.getBoundingClientRect()
 
@@ -307,12 +340,19 @@ function PieChartMarks({
 						set(slice.index, { x: event.clientX - box.left, y: event.clientY - box.top })
 					}
 
+					const activate = () => onIndexClick?.(slice.index)
+
 					const handlers = click
 						? {
-								onClick: (event: MouseEvent<SVGPathElement>) =>
-									active === slice.index ? set(null, null) : at(event),
+								onClick: (event: MouseEvent<SVGPathElement>) => {
+									if (active === slice.index) set(null, null)
+									else at(event)
+
+									activate()
+								},
 							}
 						: {
+								onClick: onIndexClick ? activate : undefined,
 								onPointerEnter: () => set(slice.index, slice.centroid),
 								onPointerMove: at,
 							}
@@ -329,7 +369,7 @@ function PieChartMarks({
 								d={slice.hit}
 								fill="none"
 								pointerEvents="all"
-								className={cn(click && 'cursor-pointer')}
+								className={cn(clickable && 'cursor-pointer')}
 								{...handlers}
 							/>
 
@@ -341,7 +381,7 @@ function PieChartMarks({
 									paints[slice.index]?.fill,
 									textureClass(textureActive, fills?.[slice.index]),
 									'hover:brightness-110',
-									click && 'cursor-pointer',
+									clickable && 'cursor-pointer',
 								)}
 								{...handlers}
 							/>
@@ -762,6 +802,7 @@ export function ChartPie<T>(props: ChartPieProps<T>) {
 		animate = false,
 		texture = false,
 		labels,
+		onCategoryClick,
 		formatValue,
 		className,
 		children,
@@ -922,6 +963,7 @@ export function ChartPie<T>(props: ChartPieProps<T>) {
 				fills={sliceFills}
 				textureActive={tex.active}
 				trigger={trigger}
+				onIndexClick={sliceActivation(onCategoryClick, sliceLabels)}
 			/>
 
 			{labelItems.length > 0 && (

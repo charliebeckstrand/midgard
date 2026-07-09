@@ -152,6 +152,66 @@ describe('chart resize tracking (real browser)', () => {
 		expect(Math.round(plotSvg(container).getBoundingClientRect().width)).toBe(900)
 	})
 
+	it('settles a fill-mode chart at the spark floor even with a wrapping legend', async () => {
+		// A free-form fill chart (`aspectRatio={false}`) shares its container box with
+		// the header and legend, so the `flex-1` plot's height is the container's less
+		// that chrome. Feed that measured remainder to the tier and it loops at the
+		// spark floor: spark drops the chrome, the remainder jumps back above the
+		// floor, the tier flips to compact, the chrome returns, the remainder drops —
+		// a synchronous re-measure with no fixed point, which React aborts with
+		// "Maximum update depth exceeded". The tier reads the chrome-independent
+		// container box instead, so it settles. Many series force the bottom legend to
+		// WRAP — the case a fixed one-row chrome estimate got wrong (it reappeared as
+		// the same loop), which measuring the container rather than estimating fixes.
+		const series = Array.from({ length: 8 }, (_, i) => ({
+			xKey: 'x' as const,
+			yKey: 'y' as const,
+			yName: `Series number ${i + 1}`,
+		}))
+
+		const { container } = renderUI(
+			<div data-testid="host" style={{ width: 300, height: 160 }}>
+				<BarChart
+					aria-label="Values by quarter"
+					title="Quarterly values"
+					data={DATA}
+					series={series}
+					aspectRatio={false}
+				/>
+			</div>,
+		)
+
+		const host = container.querySelector<HTMLElement>('[data-testid="host"]')
+
+		if (!host) throw new Error('no host rendered')
+
+		const tier = () => {
+			const el = container.querySelector<HTMLElement>('[data-slot="chart"]')
+
+			if (!el) throw new Error('no chart root')
+
+			return el.getAttribute('data-tier')
+		}
+
+		await waitFor(() => expect(tier()).not.toBeNull())
+
+		// Sweep container heights through the region where the plot remainder crosses
+		// the 96px spark floor; at every step the tier must be the same across two
+		// frames — a loop would flicker the tier between reads, or throw "Maximum
+		// update depth exceeded" mid-sweep before we ever get to compare.
+		for (let height = 100; height <= 220; height += 4) {
+			host.style.height = `${height}px`
+
+			await frames()
+
+			const settled = tier()
+
+			await frames()
+
+			expect(tier()).toBe(settled)
+		}
+	})
+
 	it('keeps tracking a heatmap resize across a legend placement flip', async () => {
 		// The heatmap's range bar drops from a side rail to a bottom band as the
 		// measured width crosses the compact boundary — a runtime re-arrangement of

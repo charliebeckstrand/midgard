@@ -411,6 +411,72 @@ function resolveTransformModes(args: {
 }
 
 /**
+ * Fires the column-resize drag lifecycle. The engine flags the column under an
+ * active pointer/touch drag in `columnSizingInfo.isResizingColumn` (a keyboard
+ * nudge writes the width straight through `columnSizing` instead), so a
+ * transition off/onto a column id brackets the drag: the outgoing column ends
+ * first (a settle, or a pointer that slid onto another handle), then the incoming
+ * one starts. Read from the engine and fired from an effect, keeping the
+ * callbacks out of the controlled-state write path. Kept out of
+ * {@link useGridTable} for its cognitive-complexity budget.
+ *
+ * @internal
+ */
+function useColumnResizeLifecycle<T>(
+	table: Table<T>,
+	resizable: boolean,
+	onResizeStart: ((id: string) => void) | undefined,
+	onResizeEnd: ((id: string) => void) | undefined,
+): void {
+	const resizingColumnId = resizable ? table.getState().columnSizingInfo.isResizingColumn : false
+
+	const prevResizingRef = useRef<string | false>(false)
+
+	useEffect(() => {
+		const prev = prevResizingRef.current
+
+		if (prev === resizingColumnId) return
+
+		prevResizingRef.current = resizingColumnId
+
+		if (prev) onResizeEnd?.(prev)
+
+		if (resizingColumnId) onResizeStart?.(resizingColumnId)
+	}, [resizingColumnId, onResizeStart, onResizeEnd])
+}
+
+/**
+ * Warns (dev only) when the global search and the column filters are both
+ * configured but their `manual` flags disagree: the engine filters both through
+ * one table-wide model, so {@link resolveFilterMode} runs manual for both and the
+ * client-side surface silently stops filtering. Effect-scoped so it fires once
+ * per config change, not every render. Kept out of {@link useGridTable} for its
+ * cognitive-complexity budget.
+ *
+ * @internal
+ */
+function useFilterModeMismatchWarning(args: {
+	globalConfigured: boolean
+	hasColumnFilters: boolean
+	globalManual: boolean | undefined
+	columnManual: boolean | undefined
+}): void {
+	const { globalConfigured, hasColumnFilters, globalManual, columnManual } = args
+
+	useEffect(() => {
+		if (process.env.NODE_ENV === 'production') return
+
+		if (!globalConfigured || !hasColumnFilters) return
+
+		if (Boolean(globalManual) === Boolean(columnManual)) return
+
+		console.warn(
+			"Grid: the global search and column filters share one table-wide filtering mode, but their `manual` flags disagree. The grid runs manual (server) filtering for both, so the client-side surface won't filter locally — set both `manual` the same.",
+		)
+	}, [globalConfigured, hasColumnFilters, globalManual, columnManual])
+}
+
+/**
  * Builds the {@link https://tanstack.com/table | TanStack Table} instance that
  * powers a {@link Grid}: it adapts the grid's `GridColumn[]` to TanStack
  * `ColumnDef[]` (mapping `value` to an accessor) and `getKey` to `getRowId`,
@@ -494,13 +560,27 @@ export function useGridTable<T>({
 		[setPaginationState],
 	)
 
+	// Held true by the autosizer around its own writes (see `useGridColumnAutoSize`),
+	// so the content fit updates the engine's sizing state without surfacing through
+	// the consumer's `onValueChange` — that binding reflects user/consumer intent
+	// (a drag, a keyboard nudge, a controlled write), not the internal auto-fit.
+	const autoSizingRef = useRef(false)
+
 	const [columnSizingState, setColumnSizingState] = useControllable<GridColumnSizingState>({
 		value: columnSizingConfig?.value,
 		defaultValue: columnSizingConfig?.defaultValue ?? EMPTY_SIZING,
-		onValueChange: (next) => columnSizingConfig?.onValueChange?.(next ?? {}),
+		onValueChange: (next) => {
+			if (autoSizingRef.current) return
+
+			columnSizingConfig?.onValueChange?.(next ?? {})
+		},
 	})
 
 	const resolvedSizing = columnSizingState ?? EMPTY_SIZING
+
+	// The consumer-seeded widths (a restored/persisted sizing), captured once so the
+	// autosizer can hold them on reload rather than measuring over them.
+	const initialSizingRef = useRef(columnSizingConfig?.value ?? columnSizingConfig?.defaultValue)
 
 	// Per-column hard floors the autosizer measures (a single-word header's full
 	// width, a multi-word one's icons); a stable map the resize bounds and the
@@ -558,24 +638,14 @@ export function useGridTable<T>({
 
 	// The engine filters the global search and the column filters through one
 	// model, so filtering mode is table-wide — it can't be client for one surface
-	// and server for the other. Warn (dev) when both are configured but their
-	// `manual` flags disagree: `resolveFilterMode` runs manual for both, so the
-	// client-side surface would silently stop filtering. Effect-scoped (not in the
-	// per-render resolver) so it fires once per config change, not every render.
-	const globalManual = globalFilterConfig?.manual
-	const columnManual = columnFiltersConfig?.manual
-
-	useEffect(() => {
-		if (process.env.NODE_ENV === 'production') return
-
-		if (!globalConfigured || !hasColumnFilters) return
-
-		if (Boolean(globalManual) === Boolean(columnManual)) return
-
-		console.warn(
-			"Grid: the global search and column filters share one table-wide filtering mode, but their `manual` flags disagree. The grid runs manual (server) filtering for both, so the client-side surface won't filter locally — set both `manual` the same.",
-		)
-	}, [globalConfigured, hasColumnFilters, globalManual, columnManual])
+	// and server for the other; warn (dev) when both are configured but their
+	// `manual` flags disagree.
+	useFilterModeMismatchWarning({
+		globalConfigured,
+		hasColumnFilters,
+		globalManual: globalFilterConfig?.manual,
+		columnManual: columnFiltersConfig?.manual,
+	})
 
 	const onSortingChange = useCallback<OnChangeFn<SortingState>>(
 		(updater) => setSort?.(toSortState(applyUpdater(updater, toSortingState(sort)))),
@@ -701,6 +771,10 @@ export function useGridTable<T>({
 		columnFloors: columnFloorsRef.current,
 		// Infinite scroll's stable widths hold the fit against each appended batch.
 		freezeOnRowChange: stableColumnWidths,
+		// Restored/persisted widths start held, and the autosizer flags its own
+		// writes so they stay off the consumer's `onValueChange`.
+		initialSizing: initialSizingRef.current,
+		autoSizingRef,
 	})
 
 	const resize = useMemo<GridColumnResize | null>(() => {
@@ -723,33 +797,12 @@ export function useGridTable<T>({
 		}
 	}, [resizable, table, sizeToFit, resetColumn, holdManualWidths])
 
-	// Pointer/touch drag-resize lifecycle. The engine flags the column under an
-	// active drag in `columnSizingInfo.isResizingColumn` (a pointer/touch drag
-	// only — a keyboard nudge writes the width straight through `columnSizing`), so
-	// a transition off/onto a column id brackets the drag. Read from the engine and
-	// fired from an effect, keeping the callbacks out of the controlled-state write
-	// path (unlike `onValueChange`, which the sizing setter drives).
-	const resizingColumnId = resizable ? table.getState().columnSizingInfo.isResizingColumn : false
-
-	const onResizeStart = columnSizingConfig?.onResizeStart
-
-	const onResizeEnd = columnSizingConfig?.onResizeEnd
-
-	const prevResizingRef = useRef<string | false>(false)
-
-	useEffect(() => {
-		const prev = prevResizingRef.current
-
-		if (prev === resizingColumnId) return
-
-		prevResizingRef.current = resizingColumnId
-
-		// End the outgoing column's drag first (a settle, or a pointer that slid
-		// straight onto another handle), then start the incoming one.
-		if (prev) onResizeEnd?.(prev)
-
-		if (resizingColumnId) onResizeStart?.(resizingColumnId)
-	}, [resizingColumnId, onResizeStart, onResizeEnd])
+	useColumnResizeLifecycle(
+		table,
+		resizable,
+		columnSizingConfig?.onResizeStart,
+		columnSizingConfig?.onResizeEnd,
+	)
 
 	const globalFilter = useMemo<GridGlobalFilterView | null>(
 		() =>

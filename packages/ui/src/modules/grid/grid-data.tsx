@@ -2,6 +2,7 @@
 
 import { DndContext } from '@dnd-kit/core'
 import { SortableContext } from '@dnd-kit/sortable'
+import { useReducedMotion } from 'motion/react'
 import {
 	type ComponentProps,
 	type ReactNode,
@@ -29,6 +30,7 @@ import {
 	describeSelection,
 	describeSort,
 } from './grid-announcements'
+import { GridAutoSizeConfirmDialog } from './grid-auto-size-confirm-dialog'
 import { GridBody } from './grid-body'
 import { GridBusyStatus } from './grid-busy-status'
 import { GridColumnManagerDialog } from './grid-column-manager-dialog'
@@ -45,10 +47,14 @@ import {
 	resolveVirtualization,
 } from './grid-data-resolvers'
 import type {
+	GridColumnManagerConfig,
+	GridColumnOrder,
 	GridDataProps,
 	GridGroupHeaderRow,
 	GridInfiniteScroll,
+	GridPinning,
 	GridPinningState,
+	GridPreferences,
 	GridVirtualize,
 } from './grid-data-types'
 import { GridFooter as GridFooterBar } from './grid-footer'
@@ -79,6 +85,7 @@ import type { GridScrollRowIntoView } from './grid-virtualized-body'
 import {
 	columnLabel,
 	type GridColumn,
+	type GridColumnSizing,
 	type GridContextMenu as GridContextMenuConfig,
 	type GridMenuItem,
 	type GridPagination,
@@ -336,6 +343,61 @@ function resolveDetailExpansion<T>(
 	}
 }
 
+/** Whether a consumer already bound a dimension's initial state (so a `preferences` seed must not override it). @internal */
+function isBound(config: { value?: unknown; defaultValue?: unknown } | undefined): boolean {
+	return config?.value !== undefined || config?.defaultValue !== undefined
+}
+
+/** Seeds {@link GridColumnOrder.defaultValue} from `preferences.order`, skipping an empty order (which would defeat the declaration-order fallback). @internal */
+function seedColumnOrder(
+	config: GridColumnOrder | undefined,
+	preferences: GridPreferences | undefined,
+): GridColumnOrder | undefined {
+	const order = preferences?.order
+
+	if (!order?.length || isBound(config)) return config
+
+	return { ...config, defaultValue: order }
+}
+
+/** Seeds {@link GridPinning.defaultValue} from `preferences.pinning`. @internal */
+function seedPinning(
+	config: GridPinning | undefined,
+	preferences: GridPreferences | undefined,
+): GridPinning | undefined {
+	const pinning = preferences?.pinning
+
+	if (pinning === undefined || isBound(config)) return config
+
+	return { ...config, defaultValue: pinning }
+}
+
+/** Seeds {@link GridColumnSizing.defaultValue} from `preferences.columnSizing`. @internal */
+function seedColumnSizing(
+	config: GridColumnSizing | undefined,
+	preferences: GridPreferences | undefined,
+): GridColumnSizing | undefined {
+	const sizing = preferences?.columnSizing
+
+	if (sizing === undefined || isBound(config)) return config
+
+	return { ...config, defaultValue: sizing }
+}
+
+/** Seeds {@link GridColumnManagerConfig.defaultHidden} from `preferences.hidden`, unless the consumer bound visibility. @internal */
+function seedColumnManager(
+	config: GridColumnManagerConfig | undefined,
+	preferences: GridPreferences | undefined,
+): GridColumnManagerConfig | undefined {
+	const hidden = preferences?.hidden
+
+	if (hidden === undefined || config?.hidden !== undefined || config?.defaultHidden !== undefined) {
+		return config
+	}
+
+	return { ...config, defaultHidden: new Set(hidden) }
+}
+
 /**
  * Validates the mutually-dependent grid props up front, throwing a pointed error
  * for a combination the grid can't render: virtualization (or the infinite
@@ -456,6 +518,8 @@ type GridRegionProps<T> = {
 	/** Id of the column being dragged, or `null`; handed to the reordering body cells for their lift cue. */
 	activeReorderId: string | null
 	contextMenu: GridContextMenuConfig<T> | undefined
+	/** Behavioral gate for the menus; the wrapper stays mounted either way (see GridContextMenu.enabled). */
+	contextMenuEnabled: boolean
 	columns: GridColumn<T>[]
 	rows: T[]
 	rowKeys: (string | number)[]
@@ -495,6 +559,7 @@ function GridRegion<T>({
 	strategy,
 	activeReorderId,
 	contextMenu,
+	contextMenuEnabled,
 	columns,
 	rows,
 	rowKeys,
@@ -526,6 +591,7 @@ function GridRegion<T>({
 	return (
 		<GridContextMenu
 			config={contextMenu}
+			enabled={contextMenuEnabled}
 			columns={columns}
 			rows={rows}
 			rowKeys={rowKeys}
@@ -816,6 +882,17 @@ function gridWrapperClass(fill: boolean): string {
 }
 
 /**
+ * The data-body settle wash while a server-side sort is in flight — the pulse
+ * over the reduced-motion dim, projected onto the data `<tbody>` (see
+ * `k.body.settling`) — or `undefined` once the sort settles (or when it's
+ * client-side, where `settling` never sets). Kept off {@link GridData}'s
+ * complexity budget. @internal
+ */
+function settleBodyClass(settling: boolean): readonly string[] | undefined {
+	return settling ? k.body.settling : undefined
+}
+
+/**
  * The read-only data-grid implementation behind {@link Grid}. Kept a separate
  * component so the public dispatcher calls no hooks ahead of its `editable`
  * branch (the rules of hooks forbid a conditional early return over them).
@@ -830,9 +907,10 @@ export function GridData<T>({
 	sort: sortConfig,
 	sortable = true,
 	selection: selectionConfig,
-	columnOrder: columnOrderConfig,
-	pinning: pinningConfig,
-	columnManager: columnManagerConfig,
+	preferences,
+	columnOrder: columnOrderConfigProp,
+	pinning: pinningConfigProp,
+	columnManager: columnManagerConfigProp,
 	groups: groupsConfig,
 	groupBy: groupByConfig,
 	groupTotalRow,
@@ -840,7 +918,7 @@ export function GridData<T>({
 	expandable: expandableConfig,
 	pagination: paginationConfig,
 	resizable = true,
-	columnSizing: columnSizingConfig,
+	columnSizing: columnSizingConfigProp,
 	search: searchConfig,
 	columnFilters: columnFiltersConfig,
 	contextMenu,
@@ -874,6 +952,19 @@ export function GridData<T>({
 	hover,
 	className,
 }: GridDataProps<T>) {
+	// Fold the `preferences` snapshot into each column binding as its default,
+	// unless the consumer bound that dimension explicitly (an explicit
+	// value/defaultValue wins). This is the single seed the four bindings share;
+	// changes still flow out through each binding's own callbacks. An empty order
+	// is treated as absent so it can't defeat the declaration-order fallback.
+	const columnOrderConfig = seedColumnOrder(columnOrderConfigProp, preferences)
+
+	const pinningConfig = seedPinning(pinningConfigProp, preferences)
+
+	const columnSizingConfig = seedColumnSizing(columnSizingConfigProp, preferences)
+
+	const columnManagerConfig = seedColumnManager(columnManagerConfigProp, preferences)
+
 	// Up-front invariants for the mutually-dependent props (virtualize/maxHeight,
 	// infiniteScroll/virtualize, infiniteScroll-vs-pagination); see `assertGridProps`.
 	assertGridProps({
@@ -1123,6 +1214,11 @@ export function GridData<T>({
 
 	const serverSortSettling = useServerSortSettle({ enabled: sortManual, sort, rows })
 
+	// Drives the opt-in row-sort FLIP down through `GridBody`; read here so the
+	// gate below stands the animation down for a reduced-motion user (WCAG 2.3.3) —
+	// a `MotionConfig` alone would not, since it leaves `layout` animations running.
+	const reduceMotion = useReducedMotion()
+
 	// Selection state lives above the engine so the table can mirror it into its
 	// own `state.rowSelection`; the row-derived flags and toggles come after the
 	// engine produces `rowKeys` (see `useGridSelectionActions` below).
@@ -1348,10 +1444,10 @@ export function GridData<T>({
 
 	// While a server-side (manual) sort is in flight, the data body pulses at a
 	// reduced opacity until the reordered rows land (projected from the `<table>`
-	// onto its data `<tbody>`; see `k.body.settling`). `serverSortSettling` is only
+	// onto its data `<tbody>`; see `settleBodyClass`). `serverSortSettling` is only
 	// ever set under a manual sort, so a client-sorted grid's table class is
 	// untouched — the engine reorders it in place with no round trip.
-	const bodyStateClass = serverSortSettling ? k.body.settling : undefined
+	const bodyStateClass = settleBodyClass(serverSortSettling)
 
 	// Per-visible-column width snapshot threaded to the body cells' truncation
 	// detector so a settled resize (or keyboard nudge) re-renders just that
@@ -1392,6 +1488,7 @@ export function GridData<T>({
 	// context menus, and derive the header-menu actions; see `useGridMenuActions`.
 	const {
 		contextMenu: resolvedContextMenu,
+		contextMenuEnabled,
 		renderDialog,
 		showButton,
 		managerLabel,
@@ -1400,6 +1497,9 @@ export function GridData<T>({
 		sortColumn,
 		clearSort,
 		autoSizeColumns,
+		autoSizeConfirmOpen,
+		setAutoSizeConfirmOpen,
+		confirmAutoSize,
 		autoSizeColumn,
 		chooseColumns,
 	} = useGridMenuActions<T>({
@@ -1408,6 +1508,10 @@ export function GridData<T>({
 		resize,
 		setSort,
 		hasData,
+		// A seeded sizing (a restored preference, or an explicit binding seed)
+		// makes "Auto-size all columns" confirm before replacing those widths.
+		hasSizingPreference:
+			Object.keys(columnSizingConfig?.value ?? columnSizingConfig?.defaultValue ?? {}).length > 0,
 	})
 
 	// Row manager: the per-group color / order overlay the "Manage rows" dialog
@@ -1550,6 +1654,15 @@ export function GridData<T>({
 	// column reorder stands down while it's active (documented on `rowReorder`).
 	const reorderActive = canReorder && hasData && !rowReorderActive
 
+	// Opt-in row-sort FLIP (see `GridSort.animate`), resolved to the plain body: it
+	// stands down under virtualization (windowed rows unmount on scroll, leaving no
+	// stable element to glide), under either grouping mode (whose group and leaf
+	// rows run their own reveals), and for a reduced-motion user. Row reorder is
+	// already mutually exclusive with an active sort, and each row re-checks its own
+	// `sortable` besides, so no extra guard is needed here.
+	const animateSortRows =
+		(sortConfig?.animate ?? false) && !gated.virtualize && !groupingMode.active && !reduceMotion
+
 	// Manual-grouping body wiring for `GridBody`, or `null` outside manual mode.
 	const manualGroupBody = useMemo(
 		() =>
@@ -1654,6 +1767,7 @@ export function GridData<T>({
 					selectable={hasSelectionColumn}
 					reorderable={reorderActive}
 					rowReorderActive={rowReorderActive}
+					animateSortRows={animateSortRows}
 					rowSortable={rowReorder.sortableContext}
 					groupedRows={groupedRows}
 					manualRows={manualRows}
@@ -1736,6 +1850,14 @@ export function GridData<T>({
 
 					<GridRowManagerRegionDialog region={rowManager} />
 
+					{confirmAutoSize && (
+						<GridAutoSizeConfirmDialog
+							open={autoSizeConfirmOpen}
+							onOpenChange={setAutoSizeConfirmOpen}
+							onConfirm={confirmAutoSize}
+						/>
+					)}
+
 					<GridToolbar
 						filter={globalFilter}
 						showColumnManager={showButton}
@@ -1757,6 +1879,7 @@ export function GridData<T>({
 							strategy={strategy}
 							activeReorderId={activeId}
 							contextMenu={resolvedContextMenu}
+							contextMenuEnabled={contextMenuEnabled}
 							columns={visibleColumns}
 							rows={renderRows}
 							rowKeys={rowKeys}

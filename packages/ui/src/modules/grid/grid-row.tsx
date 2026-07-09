@@ -5,6 +5,7 @@ import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { type Cell, flexRender, type Table } from '@tanstack/react-table'
 import { GripVertical } from 'lucide-react'
+import { motion } from 'motion/react'
 import {
 	type CSSProperties,
 	Fragment,
@@ -232,6 +233,14 @@ export type GridRowsProps<T> = {
 	 * grip is live; when false the grip (if any) is inert. @defaultValue false
 	 */
 	rowReorderActive: boolean
+	/**
+	 * Animate rows sliding to their sorted places — a Framer `layout` (FLIP) glide
+	 * over each row's position change when a sort reorders the plain body. Resolved
+	 * by {@link GridData}: opted in through {@link GridSort.animate} and already
+	 * stood down under virtualization, grouping, and reduced motion, so a row
+	 * honors it directly. @defaultValue false
+	 */
+	animateSortRows?: boolean
 	/** Truncate overflowing cell content with an ellipsis and an on-hover tooltip. */
 	truncate: boolean
 	/**
@@ -305,6 +314,7 @@ export function renderGridRow<T>(
 		truncate: props.truncate,
 		settleWidths: props.settleWidths,
 		pinning: props.pinning,
+		animateSortRows: props.animateSortRows,
 		dataRowIndex,
 		rowIndex,
 		expanded,
@@ -429,6 +439,13 @@ type GridRowProps<T> = {
 	 */
 	sortable?: GridRowSortable
 	/**
+	 * Whether this row animates to its sorted place (a Framer `layout` FLIP) when a
+	 * sort reorders it; ignored on a drag-reorder node ({@link GridRowProps.sortable}),
+	 * which drives its own transform. Threaded from {@link GridRowsProps.animateSortRows}.
+	 * @defaultValue false
+	 */
+	animateSortRows?: boolean
+	/**
 	 * This row's master-detail open state, read by an {@link GridColumn.expander}
 	 * cell's chevron. @defaultValue false
 	 */
@@ -458,6 +475,15 @@ export function resolveCellTooltip<T>(col: GridColumn<T>, row: T): CellTooltip {
 
 	return node == null ? { kind: 'none' } : { kind: 'custom', node }
 }
+
+/**
+ * A `TableRow` that can carry Framer's `layout` prop, so a sort-animated row
+ * FLIPs from its old slot to its new one when a sort reorders it (see
+ * {@link GridRowProps.animateSortRows}). `motion.create` wraps the primitive
+ * rather than a bare `motion.tr` so the row keeps `TableRow`'s base styling and
+ * `data-slot`. @internal
+ */
+const MotionTableRow = motion.create(TableRow)
 
 /**
  * One data row: maps `columns` to cells (selection checkbox, actions, or `cell`
@@ -490,12 +516,26 @@ function GridRowImpl<T>({
 	dataRowIndex,
 	pinning,
 	sortable,
+	animateSortRows = false,
 	expanded = false,
 	rowExpandable = false,
 	toggleExpand,
 }: GridRowProps<T>) {
+	// A sort-animated row renders through `MotionTableRow`, so Framer's `layout`
+	// FLIPs it from its old slot to its new one when a sort reorders the rows. A
+	// drag-reorder node (`sortable`) never animates: it drives its own dnd-kit
+	// transform, and row reorder is gated to unsorted grids anyway. Reduced motion
+	// is resolved out upstream (see `GridData`), so the flag alone decides here.
+	const animate = animateSortRows && sortable == null
+
+	// One element, chosen per row. `layout` / `transition` stay `undefined` on the
+	// plain row — React drops undefined props, so nothing lands on a static `<tr>`.
+	const Row = (animate ? MotionTableRow : TableRow) as typeof MotionTableRow
+
 	return (
-		<TableRow
+		<Row
+			layout={animate ? 'position' : undefined}
+			transition={animate ? k.motion.rowSort : undefined}
 			// The `<tr>` is the row's dnd-kit sortable node when reorderable; its
 			// transform/transition ride the inline style, and `data-dragging` lifts it.
 			ref={sortable?.setNodeRef}
@@ -648,7 +688,7 @@ function GridRowImpl<T>({
 					/>
 				)
 			})}
-		</TableRow>
+		</Row>
 	)
 }
 
