@@ -6,7 +6,7 @@ import { Heading } from '../../components/heading'
 import { Text } from '../../components/text'
 import { SidebarLayout } from '../../layouts'
 import { DensityProvider } from '../../providers/density'
-import { jumpTo } from './components/demo-nav'
+import { jumpTo, jumpToWhenReady } from './components/demo-nav'
 import { DemoErrorBoundary, DemoLoadError } from './components/error-boundary'
 import { SettingsDialog } from './components/settings-dialog'
 import { SidebarContent } from './components/sidebar'
@@ -58,11 +58,15 @@ export function App() {
 		// route lands at the top of the content pane.
 		const slug = window.location.hash.slice(1)
 
-		if (slug) {
-			jumpTo(slug)
-		} else {
+		if (!slug) {
 			contentRef.current?.closest('[class*="overflow-y"]')?.scrollTo(0, 0)
+
+			return
 		}
+
+		// The target example may not be mounted yet — a tab route lands before its
+		// chunk resolves — so wait for it, then jump with the sticky-header offset.
+		return jumpToWhenReady(slug)
 	}, [demoId, tab])
 
 	// A live hash change (an address-bar edit, a plain `#anchor` link) is a

@@ -66,6 +66,12 @@ export function jumpTo(id: string) {
 
 	const headerHeight = header?.offsetHeight ?? 0
 
+	// Offset any scroll into this column — a native hash jump, `scrollIntoView`,
+	// a focus-driven scroll — by the sticky header's height, so a landing anchor
+	// never hides beneath it. Cleared and re-measured on every jump since the
+	// header height tracks the density cascade.
+	scroller.style.scrollPaddingTop = `${headerHeight + JUMP_GAP_PX}px`
+
 	const top =
 		target.getBoundingClientRect().top -
 		scroller.getBoundingClientRect().top +
@@ -74,6 +80,36 @@ export function jumpTo(id: string) {
 		JUMP_GAP_PX
 
 	scroller.scrollTo({ top, behavior: 'smooth' })
+}
+
+// Frames to wait for a lazily-mounted target before giving up (~0.5s at 60fps).
+const JUMP_MAX_FRAMES = 30
+
+/**
+ * {@link jumpTo} that waits for the anchored element to mount. A deep link to a
+ * tab route lands before that route's chunk resolves, so the example the hash
+ * names isn't in the DOM on the first frame; poll across animation frames until
+ * it is, then jump. Returns a canceller so a superseding navigation can abort a
+ * pending poll.
+ */
+export function jumpToWhenReady(id: string): () => void {
+	let frame = 0
+
+	let handle = 0
+
+	const attempt = () => {
+		if (document.getElementById(id)) {
+			jumpTo(id)
+
+			return
+		}
+
+		if (frame++ < JUMP_MAX_FRAMES) handle = requestAnimationFrame(attempt)
+	}
+
+	handle = requestAnimationFrame(attempt)
+
+	return () => cancelAnimationFrame(handle)
 }
 
 /**
