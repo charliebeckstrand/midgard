@@ -210,6 +210,13 @@ export function usePlotFrame(
 	ref: PlotFrameRef
 	width: number
 	height: number
+	/**
+	 * The fill frame's own box height, measured from the nearest ancestor marked
+	 * `data-plot-fill-container` — the chrome-independent height a tier decision
+	 * can read without the plot's chrome feeding back into it (see the chart
+	 * callers). `0` outside `fill` mode, where no such ancestor is marked.
+	 */
+	containerHeight: number
 	reserve: FrameReserve | null
 } {
 	// The observed node is state, not a bare ref: measurement and observation
@@ -246,7 +253,14 @@ export function usePlotFrame(
 	// remainder its figure's aspect-ratio leaves once the legend takes its size.
 	const measureHeight = sizing.mode === 'fill' || sizing.mode === 'aspect-fill'
 
-	const [size, setSize] = useState({ width: 0, height: 0 })
+	// Only a free-form fill frame needs the container box measured too: its tier
+	// resolves the spark floor against a height, and the plot's own remainder shifts
+	// with the chrome the tier drops — so read the chrome-independent container
+	// instead. `aspect-fill` resolves that height from the width / ratio, so it never
+	// reads this.
+	const measureContainer = sizing.mode === 'fill'
+
+	const [size, setSize] = useState({ width: 0, height: 0, containerHeight: 0 })
 
 	const measure = useCallback(
 		(el: HTMLDivElement) => {
@@ -256,18 +270,31 @@ export function usePlotFrame(
 			// remount loop. Skip it; the replacement node measures on attach.
 			if (!el.isConnected) return
 
+			// The fill frame's own box — the nearest ancestor the frame marks. Its
+			// height is the tile's, held steady as the tier mounts or drops the chrome
+			// inside it, so a tier read off it can't oscillate the way the plot's
+			// chrome-shrunk remainder does.
+			const container = measureContainer
+				? (el.closest<HTMLElement>('[data-plot-fill-container]')?.clientHeight ?? 0)
+				: 0
+
 			// Integer px, equality-guarded, so observer notifications can't churn
 			// state. An axis the policy ignores stays 0 and never re-renders it.
 			const next = {
 				width: measureWidth ? Math.round(el.clientWidth) : 0,
 				height: measureHeight ? Math.round(el.clientHeight) : 0,
+				containerHeight: Math.round(container),
 			}
 
 			setSize((current) =>
-				current.width === next.width && current.height === next.height ? current : next,
+				current.width === next.width &&
+				current.height === next.height &&
+				current.containerHeight === next.containerHeight
+					? current
+					: next,
 			)
 		},
-		[measureWidth, measureHeight],
+		[measureWidth, measureHeight, measureContainer],
 	)
 
 	// Settle the size before the browser paints, and re-settle on every size
@@ -318,5 +345,5 @@ export function usePlotFrame(
 
 	const { height, reserve } = resolveFrameSizing(sizing, resolvedWidth, size.height)
 
-	return { ref, width: resolvedWidth, height, reserve }
+	return { ref, width: resolvedWidth, height, containerHeight: size.containerHeight, reserve }
 }

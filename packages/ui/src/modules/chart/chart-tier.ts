@@ -256,22 +256,33 @@ export function chartChromeReserve({ headerLines, legend }: ChartChrome): number
 }
 
 /**
- * The plot height the {@link chartPolicy} tier resolves against. A stacked
- * aspect-fill figure shares its ratio box with the header and legend, so the
- * plot's *measured* remainder shrinks while the tier keeps that chrome and jumps
- * when spark drops it — feeding that remainder back into the tier oscillates with
- * no fixed point. Under that mode the height is derived from the figure's own
- * `width / ratio` less the {@link chartChromeReserve chrome reserve}, a value no
- * tier decision perturbs, while the drawing still fills the measured remainder.
- * Every other frame mode's measured height is already tier-independent and passes
- * through untouched.
+ * The plot height the {@link chartPolicy} tier resolves against — always a value
+ * no tier decision can perturb, so the spark floor never oscillates. A stacked
+ * figure shares its box with the header and legend, so the plot's *measured*
+ * remainder shrinks while the tier keeps that chrome and jumps when spark drops
+ * it: feed that remainder back into the tier and it flips spark → compact → spark
+ * forever, with no fixed point.
+ *
+ * Both stacked modes sidestep it by reading a chrome-independent height and taking
+ * off the {@link chartChromeReserve chrome reserve}. `aspect-fill` derives that
+ * height from the figure's own `width / ratio` — the width is chrome-independent.
+ * A free-form `fill` frame has no ratio, so it reads the figure's *measured* box
+ * height (`containerHeight`) instead: the tile's own height, held steady as the
+ * chrome mounts or drops inside it. Subtracting even a one-row reserve estimate
+ * off a value the tier can't move is stable — the estimate only shifts where the
+ * floor sits, never whether the decision settles. The drawing still fills the
+ * measured remainder in both. Every other frame mode's measured height is already
+ * tier-independent and passes through untouched.
  *
  * @param measuredHeight The plot's measured drawing height, still the drawing's.
  * @param width The measured plot (and figure) width.
- * @param figureAspect The `width / height` the figure carries — set only for the
- * stacked aspect-fill frame, `null` / `undefined` otherwise, which passes the
- * measured height straight through.
+ * @param figureAspect The `width / ratio` the figure carries — set only for the
+ * stacked aspect-fill frame, `null` / `undefined` otherwise.
  * @param chrome The header and stacked legend the figure lays out around the plot.
+ * @param fill Whether the frame is a free-form container fill (`sizing.mode ===
+ * 'fill'`), which reads `containerHeight` rather than deriving from the width.
+ * @param containerHeight The fill frame's measured box height (from
+ * `usePlotFrame`); ignored unless `fill`.
  * @internal
  */
 export function policyPlotHeight(
@@ -279,7 +290,11 @@ export function policyPlotHeight(
 	width: number,
 	figureAspect: number | null | undefined,
 	chrome: ChartChrome,
+	fill = false,
+	containerHeight = 0,
 ): number {
+	if (fill) return Math.max(0, containerHeight - chartChromeReserve(chrome))
+
 	if (!figureAspect || width <= 0) return measuredHeight
 
 	return Math.max(0, width / figureAspect - chartChromeReserve(chrome))

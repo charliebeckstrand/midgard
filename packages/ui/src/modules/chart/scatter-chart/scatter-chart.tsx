@@ -1,6 +1,5 @@
 'use client'
 
-import { useLayoutEffect } from 'react'
 import { cn } from '../../../core'
 import { type FrameSizing, usePlotFrame } from '../../../hooks'
 import { useResolvedSize } from '../../../primitives/density'
@@ -40,12 +39,11 @@ import {
 } from '../chart-schema'
 import { formatChartValue, type SlotPaint } from '../chart-series'
 import { snapTargets } from '../chart-snap'
-import { chartPolicy } from '../chart-tier'
+import { chartPolicy, policyPlotHeight } from '../chart-tier'
 import { useChartTier } from '../context'
 import type { ChartReadout } from '../types'
 import { cartesianFocus } from '../use-chart-keyboard'
 import { useChartSeriesToggle } from '../use-chart-series-toggle'
-import { useChartTierPlotHeight } from '../use-chart-tier-plot-height'
 import {
 	anchorEndTicks,
 	diameterRange,
@@ -498,7 +496,13 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 		placement,
 	} = scatterFrame(legend, height, aspectRatio)
 
-	const { ref, width: frameWidth, height: frameHeight, reserve } = usePlotFrame(width, sizing)
+	const {
+		ref,
+		width: frameWidth,
+		height: frameHeight,
+		containerHeight,
+		reserve,
+	} = usePlotFrame(width, sizing)
 
 	// The scatter reads the intrinsic tier from its measured box for the
 	// `data-tier` styling hook and the legend's row cap; its own axis ticks keep
@@ -507,19 +511,16 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 	// measured remainder shrinks with the legend and jumps when spark drops it, so
 	// resolve the tier against a height no tier decision perturbs. A scatter carries
 	// no header, so the chrome is the legend alone.
-	const { tierHeight, commitTier } = useChartTierPlotHeight(
+	const policyHeight = policyPlotHeight(
 		frameHeight,
 		frameWidth,
 		frameAspect,
 		{ headerLines: 0, legend: Boolean(legend ?? series.length > 1) && !aside },
 		sizing.mode === 'fill',
+		containerHeight,
 	)
 
-	const policy = chartPolicy(frameWidth, tierHeight, metrics.tickTarget)
-
-	// Record the chrome this commit renders so the next fill recovery adds back the
-	// right reserve; the layout effect lands the tier before paint.
-	useLayoutEffect(() => commitTier(policy.tier), [commitTier, policy.tier])
+	const policy = chartPolicy(frameWidth, policyHeight, metrics.tickTarget)
 
 	// Spark stands the chart's chrome down to bare marks: ScatterChrome and
 	// scatterScales read this to shed their axis labels, gridlines, and the gutter
