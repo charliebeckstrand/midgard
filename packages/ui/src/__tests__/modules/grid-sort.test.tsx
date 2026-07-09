@@ -309,3 +309,107 @@ describe('Grid sort header: reorder-drag hover hold', () => {
 		)
 	})
 })
+
+describe('Grid animated sorting', () => {
+	type Row = { id: number; name: string }
+
+	const columns: GridColumn<Row>[] = [
+		{
+			id: 'name',
+			title: 'Name',
+			cell: (row) => row.name,
+			value: (row) => row.name,
+			sortable: true,
+		},
+	]
+
+	const rows: Row[] = [
+		{ id: 1, name: 'Charlie' },
+		{ id: 2, name: 'Alice' },
+		{ id: 3, name: 'Bob' },
+	]
+
+	const getKey = (row: Row) => row.id
+
+	const order = () => screen.getAllByRole('cell').map((cell) => cell.textContent)
+
+	// The `<tr>`s carrying a row key — the data rows, skipping the header row.
+	const dataRows = () =>
+		screen.getAllByRole('row').filter((row) => row.hasAttribute('data-grid-row'))
+
+	// The layout FLIP is a browser lifecycle stubbed to a plain `<tr>` here (motion
+	// is globally mocked, CONVENTIONS §10.3); the mock surfaces the `layout` prop as
+	// `data-layout`, so these assert the synchronous seam — the opt-in still sorts,
+	// and it reaches each row as a real `layout` marker only when enabled.
+	it('sorts correctly with the animation opt-in on', () => {
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				sort={{ value: [{ column: 'name', direction: 'asc' }], animate: true }}
+			/>,
+		)
+
+		expect(order()).toEqual(['Alice', 'Bob', 'Charlie'])
+	})
+
+	it('marks every data row for the layout FLIP when opted in', () => {
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				sort={{ value: [{ column: 'name', direction: 'asc' }], animate: true }}
+			/>,
+		)
+
+		expect(dataRows().map((row) => row.getAttribute('data-layout'))).toEqual([
+			'position',
+			'position',
+			'position',
+		])
+	})
+
+	it('leaves rows unmarked without the opt-in', () => {
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				sort={{ value: [{ column: 'name', direction: 'asc' }] }}
+			/>,
+		)
+
+		expect(dataRows().some((row) => row.hasAttribute('data-layout'))).toBe(false)
+	})
+
+	it('keeps each row element stable across a re-sort, so it can glide to its new slot', () => {
+		const { rerender } = renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				sort={{ value: [{ column: 'name', direction: 'asc' }], animate: true }}
+			/>,
+		)
+
+		// Grab Alice's row by its stable key before the re-sort.
+		const aliceRow = screen.getByText('Alice').closest('[data-grid-row]')
+
+		rerender(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				sort={{ value: [{ column: 'name', direction: 'desc' }], animate: true }}
+			/>,
+		)
+
+		// Desc leads with Charlie and trails with Alice — and Alice is the very same
+		// `<tr>` node (moved, not remounted), the identity Framer's `layout` FLIPs.
+		expect(order()).toEqual(['Charlie', 'Bob', 'Alice'])
+
+		expect(screen.getByText('Alice').closest('[data-grid-row]')).toBe(aliceRow)
+	})
+})

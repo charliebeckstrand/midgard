@@ -1,4 +1,11 @@
-import { createElement, forwardRef, type ReactNode, useEffect, useRef } from 'react'
+import {
+	type ComponentType,
+	createElement,
+	forwardRef,
+	type ReactNode,
+	useEffect,
+	useRef,
+} from 'react'
 import { vi } from 'vitest'
 
 /**
@@ -37,6 +44,11 @@ function stripMotionProps(props: Record<string, unknown>) {
 		if (!MOTION_PROPS.has(k)) clean[k] = v
 	}
 
+	// Surfaces the `layout` prop as `data-layout`, making the FLIP opt-in observable
+	// (e.g. the grid's animated sort rows). Like the offsets below, it appears only
+	// when the prop is present, and nothing asserts its absence.
+	if (props.layout !== undefined) clean['data-layout'] = String(props.layout)
+
 	// Surfaces the enter offset as `data-initial-x` / `data-initial-y`, making the
 	// position → slide-direction mapping observable (e.g. ToastAlert's vertical
 	// slide, the chart reference rules' value-axis rise). Harmless elsewhere: each
@@ -60,8 +72,40 @@ const components = new Map<
 	ReturnType<typeof forwardRef<unknown, Record<string, unknown>>>
 >()
 
+// `motion.create(Component)` / `motion.create('tag')`: wrap the target so motion
+// props are stripped and the ref reaches it, mirroring the real factory (used by
+// the grid's animated row, `motion.create(TableRow)`). Cached per target so the
+// wrapper's identity holds across renders, like the tag components above.
+const createdComponents = new Map<
+	unknown,
+	ReturnType<typeof forwardRef<unknown, Record<string, unknown>>>
+>()
+
+function createMotionComponent(Component: string | ComponentType<Record<string, unknown>>) {
+	let created = createdComponents.get(Component)
+
+	if (!created) {
+		created = forwardRef<unknown, Record<string, unknown>>((props, ref) =>
+			createElement(Component, { ref, ...stripMotionProps(props) }),
+		)
+
+		created.displayName = `motion.create(${
+			typeof Component === 'string'
+				? Component
+				: (Component.displayName ?? Component.name ?? 'Component')
+		})`
+
+		createdComponents.set(Component, created)
+	}
+
+	return created
+}
+
 const handler: ProxyHandler<object> = {
 	get(_, tag: string) {
+		// `motion.create` is the component factory, not an element tag.
+		if (tag === 'create') return createMotionComponent
+
 		let component = components.get(tag)
 
 		if (!component) {

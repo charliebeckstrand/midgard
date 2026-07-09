@@ -161,6 +161,16 @@ export type GridSort = {
 	 * @defaultValue false
 	 */
 	manual?: boolean
+	/**
+	 * Animate rows sliding to their new places when a sort reorders them — a
+	 * Framer Motion layout (FLIP) glide over the rows' position change, rather than
+	 * an instant repaint. Applies to the plain body only: it stands down under
+	 * `virtualize` (windowed rows mount and unmount on scroll, so there is no stable
+	 * element to glide) and under grouping (whose group and leaf rows run their own
+	 * reveals), and honors `prefers-reduced-motion` (no motion at all).
+	 * @defaultValue false
+	 */
+	animate?: boolean
 }
 
 /**

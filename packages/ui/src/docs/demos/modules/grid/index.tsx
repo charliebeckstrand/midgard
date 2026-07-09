@@ -358,6 +358,23 @@ function ClientSortExample() {
 	)
 }
 
+function AnimatedSortExample() {
+	const [sort, setSort] = useState<SortState[]>([{ column: 'name', direction: 'asc' }])
+
+	// `sort.animate` turns each re-sort into a Framer `layout` FLIP: click a header
+	// (or Shift-click a second) and the rows glide from their old places to their
+	// new ones instead of snapping. Plain-body only — it stands down under
+	// `virtualize` and grouping — and honors `prefers-reduced-motion`.
+	return (
+		<Grid
+			columns={clientSortColumns}
+			rows={people}
+			getKey={(row) => row.id}
+			sort={{ value: sort, onValueChange: setSort, animate: true }}
+		/>
+	)
+}
+
 function MultiSortExample() {
 	// Seeded with a two-column sort (Role, then Name) so the priority badges show
 	// at a glance; Shift-click any sortable header to extend or reorder the sort.
@@ -1280,6 +1297,13 @@ export function Demo() {
 
 						<Example title="Client sorting" code={code`<Grid sort={{ value, onValueChange }} />`}>
 							<ClientSortExample />
+						</Example>
+
+						<Example
+							title="Animated sorting"
+							code={code`<Grid sort={{ value, onValueChange, animate: true }} />`}
+						>
+							<AnimatedSortExample />
 						</Example>
 
 						<Example

@@ -2,6 +2,7 @@
 
 import { DndContext } from '@dnd-kit/core'
 import { SortableContext } from '@dnd-kit/sortable'
+import { useReducedMotion } from 'motion/react'
 import {
 	type ComponentProps,
 	type ReactNode,
@@ -1070,6 +1071,11 @@ export function GridData<T>({
 
 	const { sort, setSort, toggleSort } = useGridSort(sortConfig)
 
+	// Drives the opt-in row-sort FLIP down through `GridBody`; read here so the
+	// gate below stands the animation down for a reduced-motion user (WCAG 2.3.3) —
+	// a `MotionConfig` alone would not, since it leaves `layout` animations running.
+	const reduceMotion = useReducedMotion()
+
 	// Selection state lives above the engine so the table can mirror it into its
 	// own `state.rowSelection`; the row-derived flags and toggles come after the
 	// engine produces `rowKeys` (see `useGridSelectionActions` below).
@@ -1490,6 +1496,15 @@ export function GridData<T>({
 	// column reorder stands down while it's active (documented on `rowReorder`).
 	const reorderActive = canReorder && hasData && !rowReorderActive
 
+	// Opt-in row-sort FLIP (see `GridSort.animate`), resolved to the plain body: it
+	// stands down under virtualization (windowed rows unmount on scroll, leaving no
+	// stable element to glide), under either grouping mode (whose group and leaf
+	// rows run their own reveals), and for a reduced-motion user. Row reorder is
+	// already mutually exclusive with an active sort, and each row re-checks its own
+	// `sortable` besides, so no extra guard is needed here.
+	const animateSortRows =
+		(sortConfig?.animate ?? false) && !gated.virtualize && !groupingMode.active && !reduceMotion
+
 	// Manual-grouping body wiring for `GridBody`, or `null` outside manual mode.
 	const manualGroupBody = useMemo(
 		() =>
@@ -1594,6 +1609,7 @@ export function GridData<T>({
 					selectable={hasSelectionColumn}
 					reorderable={reorderActive}
 					rowReorderActive={rowReorderActive}
+					animateSortRows={animateSortRows}
 					rowSortable={rowReorder.sortableContext}
 					groupedRows={groupedRows}
 					manualRows={manualRows}
