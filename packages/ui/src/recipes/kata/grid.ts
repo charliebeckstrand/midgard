@@ -15,7 +15,7 @@ const { rounded } = kasane
 const { flex } = narabi
 const { bg } = omote
 const { border, focus } = sen
-const { css } = ugoki
+const { css, spring } = ugoki
 
 /** Sort-direction arrow: inked while its column is the active sort, muted otherwise. */
 const sortIcon = defineRecipe({
@@ -652,6 +652,18 @@ export const k = {
 		// those.
 		clickable: ['cursor-pointer', focus.inset],
 		loading: [css.pulse, 'opacity-50'],
+	},
+	// Framer transition configs (spread/passed to a `motion` element, never to
+	// `cn`). Unlike the CSS `grid-template-rows` reveals the group and detail rows
+	// use, a sort reflow moves whole rows between slots — a FLIP `layout` animation,
+	// which only a real `motion.tr` can drive.
+	motion: {
+		// Layout transition for the sort row reflow: on a sort, each stable-keyed
+		// row FLIPs from its old place to its new one on the shared `layoutId`
+		// spring (snappy, lightly damped — settles fast without a bounce). Reduced
+		// motion stands the whole animation down upstream, so no `duration: 0` branch
+		// is needed here.
+		rowSort: { layout: spring },
 	},
 	nav: {
 		// The `navigable` grid's `<table>` is the cursor's single tab stop; drop its
