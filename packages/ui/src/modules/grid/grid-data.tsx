@@ -11,6 +11,7 @@ import {
 	useLayoutEffect,
 	useMemo,
 	useRef,
+	useState,
 } from 'react'
 import { Table } from '../../components/table'
 import { announce, cn, dataAttr } from '../../core'
@@ -400,6 +401,50 @@ function useMaxHeightGuard(maxHeight: string | undefined): void {
 			`<Grid maxHeight="${maxHeight}">: a percentage can't bind — the grid's wrapper is auto-height, so the scroll container gets no bounded height and virtualization degrades to rendering every row. Use a fixed CSS length, or \`maxHeight="fill"\` inside a CSS-sized parent.`,
 		)
 	}, [maxHeight])
+}
+
+/**
+ * Tracks whether a server-side (manual) sort is in flight — the interval between
+ * the grid emitting a sort change and the consumer handing back the reordered
+ * `rows` — so the body can dim its rows to a settle wash until the new order
+ * lands (see `k.body.settling`). Enabled only under {@link GridSort.manual}: a
+ * change to the sort with no new `rows` yet marks the grid settling; the next
+ * `rows` reference (the fetched, reordered set) clears it. A consumer that swaps
+ * `rows` in the same commit as the sort — a synchronous re-sort — settles at
+ * once, so its rows never flash dim.
+ *
+ * @internal
+ */
+function useServerSortSettle<T>(args: { enabled: boolean; sort: SortState[]; rows: T[] }): boolean {
+	const { enabled, sort, rows } = args
+
+	const [settling, setSettling] = useState(false)
+
+	const prevSortRef = useRef(sort)
+
+	const prevRowsRef = useRef(rows)
+
+	useEffect(() => {
+		const sortChanged = prevSortRef.current !== sort
+
+		const rowsChanged = prevRowsRef.current !== rows
+
+		prevSortRef.current = sort
+
+		prevRowsRef.current = rows
+
+		// New rows landed (or the mode is off): the sort has settled.
+		if (!enabled || rowsChanged) {
+			setSettling(false)
+
+			return
+		}
+
+		// The sort changed but its reordered rows haven't arrived yet — in flight.
+		if (sortChanged) setSettling(true)
+	}, [enabled, sort, rows])
+
+	return enabled && settling
 }
 
 /** Props for {@link GridRegion}. @internal */
@@ -1070,6 +1115,14 @@ export function GridData<T>({
 
 	const { sort, setSort, toggleSort } = useGridSort(sortConfig)
 
+	// Server-side (manual) sort dims the rows to a settle wash from the moment the
+	// grid emits the sort change until the consumer hands back the reordered rows,
+	// so the current rows stay readable while they reorder (see `k.body`). Off for
+	// client sorting, where the engine reorders in place with no round trip.
+	const sortManual = sortConfig?.manual ?? false
+
+	const serverSortSettling = useServerSortSettle({ enabled: sortManual, sort, rows })
+
 	// Selection state lives above the engine so the table can mirror it into its
 	// own `state.rowSelection`; the row-derived flags and toggles come after the
 	// engine produces `rowKeys` (see `useGridSelectionActions` below).
@@ -1156,7 +1209,7 @@ export function GridData<T>({
 		columnVisibility,
 		sort,
 		setSort,
-		sortManual: sortConfig?.manual ?? false,
+		sortManual,
 		// Client grouping only — manual grouping keeps the engine ungrouped and
 		// renders the consumer's sequence instead.
 		grouping: groupingMode.engineGrouping,
@@ -1292,6 +1345,14 @@ export function GridData<T>({
 		density,
 		className,
 	})
+
+	// The data-body settle wash, projected from the `<table>` onto its data
+	// `<tbody>`: the opacity easing whenever a manual sort is configured, plus the
+	// dim itself while that sort is in flight. Empty for client sorting, so a
+	// client-sorted grid's table class is untouched.
+	const bodyStateClass = sortManual
+		? cn(k.body.settle, serverSortSettling && k.body.settling)
+		: undefined
 
 	// Per-visible-column width snapshot threaded to the body cells' truncation
 	// detector so a settled resize (or keyboard nudge) re-renders just that
@@ -1534,7 +1595,7 @@ export function GridData<T>({
 				outline={outline}
 				striped={striped}
 				hover={rowHover}
-				className={condensedTableClass(condensed, tableClassName)}
+				className={condensedTableClass(condensed, cn(tableClassName, bodyStateClass))}
 				tableProps={resolveTableProps({
 					tableProps,
 					// The cursor's tab stop, active-cell pointer, and key/focus handlers.

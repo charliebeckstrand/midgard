@@ -1,5 +1,5 @@
 import { PencilIcon } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Alert } from '../../../../components/alert'
 import { Badge } from '../../../../components/badge'
 import { Button } from '../../../../components/button'
@@ -307,34 +307,46 @@ function DefaultExample() {
 	return <Grid columns={columns} rows={people} getKey={(row) => row.id} />
 }
 
+// Sort `people` by the ordered sort list — the work a backend does for a
+// server-side (manual) sort, walking the list in priority order.
+function sortPeople(sort: SortState[]): Person[] {
+	if (!sort.length) return people
+
+	return [...people].sort((a, b) => {
+		for (const { column, direction } of sort) {
+			const key = column as keyof Person
+
+			const dir = direction === 'asc' ? 1 : -1
+
+			if (a[key] < b[key]) return -dir
+
+			if (a[key] > b[key]) return dir
+		}
+
+		return 0
+	})
+}
+
 function SortableExample() {
 	const [sort, setSort] = useState<SortState[]>([{ column: 'name', direction: 'asc' }])
 
-	// Server-side (manual) sorting: the consumer sorts `rows` and the grid leaves
-	// their order untouched. The sort is an ordered list — Shift-click a header to
-	// add columns — so the comparator walks it in priority order.
-	const sortedPeople = useMemo(() => {
-		if (!sort.length) return people
+	// Server-side (manual) sorting: the grid emits the sort change and leaves the
+	// row order untouched; the consumer fetches the reordered rows. The timeout
+	// stands in for that round trip — while it's in flight the grid dims the current
+	// rows to a settle wash, clearing when the reordered page lands. The sort is an
+	// ordered list — Shift-click a header to add columns.
+	const [rows, setRows] = useState<Person[]>(() => sortPeople(sort))
 
-		return [...people].sort((a, b) => {
-			for (const { column, direction } of sort) {
-				const key = column as keyof Person
+	useEffect(() => {
+		const id = setTimeout(() => setRows(sortPeople(sort)), 600)
 
-				const dir = direction === 'asc' ? 1 : -1
-
-				if (a[key] < b[key]) return -dir
-
-				if (a[key] > b[key]) return dir
-			}
-
-			return 0
-		})
+		return () => clearTimeout(id)
 	}, [sort])
 
 	return (
 		<Grid
 			columns={sortableColumns}
-			rows={sortedPeople}
+			rows={rows}
 			getKey={(row) => row.id}
 			sort={{ value: sort, onValueChange: setSort, manual: true }}
 		/>
