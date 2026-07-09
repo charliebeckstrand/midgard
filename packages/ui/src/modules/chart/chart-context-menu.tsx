@@ -176,6 +176,14 @@ export function ChartContextMenu({
 							{cloneElement(fullscreen as ReactElement<Record<string, unknown>>, {
 								width: undefined,
 								height: undefined,
+								// The dialog is auto-height and sized for the default 16/9 ratio,
+								// so a consumer's fill mode (`aspectRatio={false}`) — which fills
+								// its parent's height — has nothing to fill and collapses the plot
+								// to nothing. Drop fill back to the default ratio for the
+								// fullscreen view; an explicit ratio is left as the consumer set it.
+								...((fullscreen.props as { aspectRatio?: unknown }).aspectRatio === false
+									? { aspectRatio: undefined }
+									: {}),
 								className: FULLSCREEN_CHART_CLASS,
 							})}
 						</ChartFullscreenContext>
