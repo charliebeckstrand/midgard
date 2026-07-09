@@ -130,22 +130,6 @@ export const CHART_LEGEND_ROW_HEIGHT = 30
  */
 export const CHART_FIGURE_GAP = 12
 
-/**
- * Resolves the anatomy {@link ChartPolicy} for a plot box of `width` × `height`,
- * capping the height-driven tick target at the density ceiling `tickCap`. Pure
- * and space-only: it reads the box the frame measured and never the viewport,
- * and it never consults the caller's `axes` / `gridLines` intent — a chart
- * composes those at the layout boundary, so a policy is deterministic in its box
- * alone and testable without a render.
- *
- * @param width The plot box's width in px — pays for the value gutter, the
- * number format, and the band-label density.
- * @param height The plot box's height in px — pays for the tick count and the
- * band-axis row.
- * @param tickCap The density-resolved tick ceiling (`CHART_METRICS[size]`), so
- * space can take ticks away but never add past the density step.
- * @internal
- */
 /** The tier a non-spark box reads, widest to narrowest. @internal */
 function tierOf(width: number, height: number): Exclude<ChartTier, 'spark'> {
 	if (width < COMPACT_WIDTH || height < COMPACT_HEIGHT) return 'compact'
@@ -176,8 +160,42 @@ export function isSparkBox(width: number, height: number): boolean {
 	return width < SPARK_WIDTH || height < SPARK_HEIGHT
 }
 
-export function chartPolicy(width: number, height: number, tickCap: number): ChartPolicy {
-	const spark = isSparkBox(width, height)
+/**
+ * Resolves the anatomy {@link ChartPolicy} for a plot box of `width` × `height`,
+ * capping the height-driven tick target at the density ceiling `tickCap`. Pure
+ * and space-only: it reads the box the frame measured and never the viewport,
+ * and it never consults the caller's `axes` / `gridLines` intent — a chart
+ * composes those at the layout boundary, so a policy is deterministic in its box
+ * alone and testable without a render.
+ *
+ * @param width The plot box's width in px — pays for the value gutter, the
+ * number format, and the band-label density.
+ * @param height The plot box's height in px — pays for the tick count and the
+ * band-axis row.
+ * @param tickCap The density-resolved tick ceiling (`CHART_METRICS[size]`), so
+ * space can take ticks away but never add past the density step.
+ * @param fill The frame fills its container (`aspectRatio={false}`), so the
+ * measured `height` is the remainder the chart's own chrome leaves — a value
+ * every chrome decision perturbs. Spark dropping the header and legend (or the
+ * legend taking another row) moves the very remainder that decided it, a
+ * feedback loop with no fixed point that a resize drives to React's update
+ * depth; and no container measurement escapes it, since an indefinite-height
+ * parent collapses any ancestor box to that same content. So under `fill` the
+ * chrome-affecting decisions — spark and the legend-row cap — resolve from the
+ * width alone, which no chrome can move, while the plot-internal anatomy (tick
+ * target, band row, titles, the tier label) still reads the measured height it
+ * cannot feed back into. A very short fill box draws a cramped-but-stable frame
+ * rather than a sparkline; a caller wanting spark-by-height passes a `height`
+ * or ratio instead.
+ * @internal
+ */
+export function chartPolicy(
+	width: number,
+	height: number,
+	tickCap: number,
+	fill = false,
+): ChartPolicy {
+	const spark = fill ? width < SPARK_WIDTH : isSparkBox(width, height)
 
 	if (spark) {
 		return {
@@ -202,8 +220,10 @@ export function chartPolicy(width: number, height: number, tickCap: number): Cha
 		gridLines: true,
 		// A stacked band takes two rows only where it has both the width to pack them
 		// and the height to spend on them; a narrow or short frame holds one row and
-		// chips the rest.
-		legendRows: width < COMPACT_WIDTH || height < TWO_ROW_LEGEND_HEIGHT ? 1 : 2,
+		// chips the rest. A fill frame grants by width alone — its measured height
+		// already contains the rows it would be granting, so a height check flips
+		// forever in the band a second row spans.
+		legendRows: width < COMPACT_WIDTH || (!fill && height < TWO_ROW_LEGEND_HEIGHT) ? 1 : 2,
 	}
 }
 
@@ -263,8 +283,11 @@ export function chartChromeReserve({ headerLines, legend }: ChartChrome): number
  * no fixed point. Under that mode the height is derived from the figure's own
  * `width / ratio` less the {@link chartChromeReserve chrome reserve}, a value no
  * tier decision perturbs, while the drawing still fills the measured remainder.
- * Every other frame mode's measured height is already tier-independent and passes
- * through untouched.
+ * Every other frame mode's measured height passes through untouched: a fixed or
+ * side-legend frame's is already tier-independent, and a free-form `fill`
+ * frame's — the same shared-box remainder, with no ratio to derive a safe height
+ * from — is defused inside {@link chartPolicy} instead, whose `fill` flag
+ * resolves the chrome-affecting decisions from the width alone.
  *
  * @param measuredHeight The plot's measured drawing height, still the drawing's.
  * @param width The measured plot (and figure) width.

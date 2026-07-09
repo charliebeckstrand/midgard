@@ -276,8 +276,10 @@ export function usePlotFrame(
 	// a single measure would paint the first size, then jump when the reflow
 	// re-measures. Re-running on `size` drives that measure → reflow → re-measure
 	// chain to a fixed point before the first paint, so the frame never flashes a
-	// size it is about to abandon. The tier resolves from a chrome-independent
-	// height (see `chartPolicy` callers), so the chain converges rather than
+	// size it is about to abandon. The chrome-affecting decisions resolve from
+	// chrome-independent inputs — an aspect-fill tier from the figure's own
+	// `width / ratio`, a fill frame's spark and legend-row grants from the width
+	// alone (see `chartPolicy` callers) — so the chain converges rather than
 	// oscillating, and the equality-guarded `setSize` stops it once it lands.
 	// A layout effect, not passive, so the settle precedes paint the way the
 	// legend's own fit measure does — and `node` lands here as state pre-paint

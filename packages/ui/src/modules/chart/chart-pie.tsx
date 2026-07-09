@@ -822,13 +822,20 @@ export function ChartPie<T>(props: ChartPieProps<T>) {
 	// Under a stacked aspect-fill figure the plot's measured remainder shrinks with
 	// the legend and jumps when spark drops it, so resolve the tier against the
 	// figure's `width / ratio` less that legend rather than the remainder it would
-	// loop on. A pie carries no header, so the chrome is the legend alone.
+	// loop on. A pie carries no header, so the chrome is the legend alone. A
+	// free-form fill frame shares that box with no ratio to derive a safe height
+	// from, so the policy's fill flag resolves the chrome decisions by width alone.
 	const policyHeight = policyPlotHeight(frameHeight, frameWidth, frameAspect, {
 		headerLines: 0,
 		legend: stackedLegend,
 	})
 
-	const policy = chartPolicy(frameWidth, policyHeight, CHART_METRICS.md.tickTarget)
+	const policy = chartPolicy(
+		frameWidth,
+		policyHeight,
+		CHART_METRICS.md.tickTarget,
+		frameSizing.mode === 'fill',
+	)
 
 	const { hidden, toggle, setFocus, emphasis } = useChartSeriesToggle()
 
