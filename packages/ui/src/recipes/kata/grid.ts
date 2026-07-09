@@ -645,21 +645,17 @@ export const k = {
 	// (`:first-of-type`, ahead of the grand-total body — so the header, filter row,
 	// and totals stay crisp). Currently the server-sort settle: a manual sort emits
 	// its change to the consumer, who fetches the reordered rows; until they land
-	// the grid dims the current rows to a uniform wash rather than swapping in a
-	// skeleton, so the data stays readable while it reorders.
+	// the grid dims the current rows rather than swapping in a skeleton, so the data
+	// stays readable while it reorders.
 	body: {
-		// The opacity easing, projected onto the data body. Applied whenever a manual
-		// sort is configured so the wash fades both in (a sort goes in flight) and out
-		// (its rows settle), honouring `prefers-reduced-motion`.
-		settle: [
-			'[&>tbody:first-of-type]:transition-opacity',
-			'[&>tbody:first-of-type]:duration-300',
-			'[&>tbody:first-of-type]:ease-out',
-			'[&>tbody:first-of-type]:motion-reduce:transition-none',
+		// While a server-side (manual) sort is in flight, the whole data body takes
+		// the same busy treatment as a loading row (`k.row.loading`) until the
+		// reordered rows arrive: a `motion-safe` pulse over a reduced 50% opacity, so
+		// reduced-motion users get the static dim alone.
+		settling: [
+			'[&>tbody:first-of-type]:motion-safe:animate-pulse',
+			'[&>tbody:first-of-type]:opacity-50',
 		],
-		// The in-flight dim itself: the data body drops to the busy 50% opacity (the
-		// shade `k.row.loading` uses) until the reordered rows arrive.
-		settling: '[&>tbody:first-of-type]:opacity-50',
 	},
 	row: {
 		// A clickable row (`onRowClick`): the pointer cursor and a keyboard focus

@@ -332,9 +332,9 @@ function SortableExample() {
 
 	// Server-side (manual) sorting: the grid emits the sort change and leaves the
 	// row order untouched; the consumer fetches the reordered rows. The timeout
-	// stands in for that round trip — while it's in flight the grid dims the current
-	// rows to a settle wash, clearing when the reordered page lands. The sort is an
-	// ordered list — Shift-click a header to add columns.
+	// stands in for that round trip — while it's in flight the grid pulses the
+	// current rows at a reduced opacity, clearing when the reordered page lands. The
+	// sort is an ordered list — Shift-click a header to add columns.
 	const [rows, setRows] = useState<Person[]>(() => sortPeople(sort))
 
 	useEffect(() => {

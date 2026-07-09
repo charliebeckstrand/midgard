@@ -1115,10 +1115,10 @@ export function GridData<T>({
 
 	const { sort, setSort, toggleSort } = useGridSort(sortConfig)
 
-	// Server-side (manual) sort dims the rows to a settle wash from the moment the
-	// grid emits the sort change until the consumer hands back the reordered rows,
-	// so the current rows stay readable while they reorder (see `k.body`). Off for
-	// client sorting, where the engine reorders in place with no round trip.
+	// Server-side (manual) sort pulses the rows at a reduced opacity from the moment
+	// the grid emits the sort change until the consumer hands back the reordered
+	// rows, so the current rows stay readable while they reorder (see `k.body`). Off
+	// for client sorting, where the engine reorders in place with no round trip.
 	const sortManual = sortConfig?.manual ?? false
 
 	const serverSortSettling = useServerSortSettle({ enabled: sortManual, sort, rows })
@@ -1346,13 +1346,12 @@ export function GridData<T>({
 		className,
 	})
 
-	// The data-body settle wash, projected from the `<table>` onto its data
-	// `<tbody>`: the opacity easing whenever a manual sort is configured, plus the
-	// dim itself while that sort is in flight. Empty for client sorting, so a
-	// client-sorted grid's table class is untouched.
-	const bodyStateClass = sortManual
-		? cn(k.body.settle, serverSortSettling && k.body.settling)
-		: undefined
+	// While a server-side (manual) sort is in flight, the data body pulses at a
+	// reduced opacity until the reordered rows land (projected from the `<table>`
+	// onto its data `<tbody>`; see `k.body.settling`). `serverSortSettling` is only
+	// ever set under a manual sort, so a client-sorted grid's table class is
+	// untouched — the engine reorders it in place with no round trip.
+	const bodyStateClass = serverSortSettling ? k.body.settling : undefined
 
 	// Per-visible-column width snapshot threaded to the body cells' truncation
 	// detector so a settled resize (or keyboard nudge) re-renders just that

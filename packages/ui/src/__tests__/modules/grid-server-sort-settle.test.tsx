@@ -4,9 +4,9 @@ import { Grid, type GridColumn, type SortState } from '../../modules/grid'
 import { fireEvent, present, renderUI, screen, waitFor } from '../helpers'
 
 // The server-sort settle wash is projected from the `<table>` onto its data
-// `<tbody>`, so assert against the table element's class list (computed `:hover`
-// / opacity is unreliable in jsdom — mirror `grid-sort.test.tsx`).
-const TRANSITION = '[&>tbody:first-of-type]:transition-opacity'
+// `<tbody>`, so assert against the table element's class list (a running
+// animation / opacity is unreliable in jsdom — mirror `grid-sort.test.tsx`).
+const PULSE = '[&>tbody:first-of-type]:motion-safe:animate-pulse'
 const DIM = '[&>tbody:first-of-type]:opacity-50'
 
 describe('Grid server-sort settle', () => {
@@ -56,37 +56,27 @@ describe('Grid server-sort settle', () => {
 		)
 	}
 
-	it('eases the data body whenever a manual sort is configured', () => {
-		renderUI(
-			<Grid
-				columns={columns}
-				rows={initialRows}
-				getKey={getKey}
-				sort={{ value: [], onValueChange: () => {}, manual: true }}
-			/>,
-		)
-
-		// The transition is present at rest so the wash fades both directions; the
-		// dim itself is not, since no sort is in flight.
-		expect(table().className).toContain(TRANSITION)
-
-		expect(table().className).not.toContain(DIM)
-	})
-
-	it('dims the rows while a server sort is in flight, clearing when the rows land', async () => {
+	it('pulses and dims the rows while a server sort is in flight, clearing when the rows land', async () => {
 		renderUI(<AsyncHarness />)
+
+		// At rest — no sort in flight — the body carries neither the pulse nor the dim.
+		expect(table().className).not.toContain(PULSE)
 
 		expect(table().className).not.toContain(DIM)
 
 		// Emitting the sort with no new rows yet marks the grid settling.
 		sortByName()
 
-		await waitFor(() => expect(table().className).toContain(DIM))
+		await waitFor(() => expect(table().className).toContain(PULSE))
+
+		expect(table().className).toContain(DIM)
 
 		// The reordered rows arriving settles the sort and clears the wash.
 		fireEvent.click(screen.getByRole('button', { name: 'land' }))
 
-		await waitFor(() => expect(table().className).not.toContain(DIM))
+		await waitFor(() => expect(table().className).not.toContain(PULSE))
+
+		expect(table().className).not.toContain(DIM)
 	})
 
 	it('never dims when the consumer swaps rows in the same commit as the sort', async () => {
@@ -111,8 +101,10 @@ describe('Grid server-sort settle', () => {
 
 		sortByName()
 
-		// Give any settling effect a chance to run, then confirm the dim never applied.
+		// Give any settling effect a chance to run, then confirm the wash never applied.
 		await waitFor(() => expect(screen.getByText('Charlie')).toBeTruthy())
+
+		expect(table().className).not.toContain(PULSE)
 
 		expect(table().className).not.toContain(DIM)
 	})
@@ -136,8 +128,8 @@ describe('Grid server-sort settle', () => {
 		sortByName()
 
 		// Client sorting reorders in place with no round trip, so no settle wash —
-		// neither the easing nor the dim — is projected onto the body.
-		expect(table().className).not.toContain(TRANSITION)
+		// neither the pulse nor the dim — is projected onto the body.
+		expect(table().className).not.toContain(PULSE)
 
 		expect(table().className).not.toContain(DIM)
 	})
