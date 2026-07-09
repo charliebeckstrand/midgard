@@ -116,6 +116,7 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 		tickRotation,
 		texture = false,
 		labels,
+		onCategoryClick,
 		formatValue,
 		className,
 		...label
@@ -138,6 +139,7 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 			reference,
 			xAxis,
 			tickRotation,
+			onCategoryClick,
 			formatValue,
 			// The header travels to the frame through `label`; the hook reads it too,
 			// so its tier reserves the header band's height (see `cartesianChrome`).
@@ -354,7 +356,7 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 
 			<ChartValueLabels labels={valueLabelItems} animate={animate} />
 
-			{(showTooltip || rails !== null) && data.length > 0 && (
+			{(showTooltip || rails !== null || chart.onBandClick !== undefined) && data.length > 0 && (
 				<ChartHitArea
 					plot={chart.plot}
 					band={chart.band}
@@ -375,6 +377,7 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 					}
 					trigger={trigger}
 					snaps={crosshairSnaps(rails)}
+					onIndexClick={chart.onBandClick}
 				/>
 			)}
 

@@ -41,6 +41,12 @@ function toFrame(plot: PlotRect, box: DOMRect, clientX: number, clientY: number)
  * stays a pointer). The scroll rescue stands down there; floating-ui's own
  * autoUpdate keeps the pinned readout anchored across a scroll.
  *
+ * An `onIndexClick` rides either trigger: a click that resolves to a category
+ * reports its index — after the `'click'` trigger's own pin/dismiss toggle, so
+ * the two read one gesture — and carries a pointer cursor across the plot so
+ * the marks read as clickable. It's the activation channel behind the charts'
+ * public `onCategoryClick`.
+ *
  * @remarks The hit element's own bounding box anchors the coordinate math,
  * so the handlers stay correct however the frame scrolls or transforms.
  * @param resolveIndex - Maps a frame point to the hover category index, or `null`
@@ -55,6 +61,7 @@ export function useChartPointer(
 	onData?: (x: number, y: number) => boolean,
 	trigger: ChartTooltipTrigger = 'hover',
 	snaps = false,
+	onIndexClick?: (index: number) => void,
 ): ChartPointerHandlers {
 	const { index: active, set } = useChartHover()
 
@@ -94,6 +101,8 @@ export function useChartPointer(
 
 	// A click pins the band under it; clicking the shown band again clears it, so
 	// the same gesture toggles the readout. No guard — a click always lands inside.
+	// A resolved index also reports through `onIndexClick`, after the toggle, so
+	// one gesture both pins the readout and drives the consumer's activation.
 	const toggle = useCallback(
 		(clientX: number, clientY: number) => {
 			const box = ref.current?.getBoundingClientRect()
@@ -111,8 +120,27 @@ export function useChartPointer(
 			// hidden one, so the next click of a real mark still opens it.
 			if (index === active || !(snaps || onDataHit)) set(null, null)
 			else set(index, { x, y }, onDataHit)
+
+			if (index !== null) onIndexClick?.(index)
 		},
-		[plot, resolveIndex, onData, snaps, active, set],
+		[plot, resolveIndex, onData, snaps, active, set, onIndexClick],
+	)
+
+	// The hover trigger's activation click: resolve the band under the click and
+	// report it, leaving the tracked readout alone — hover keeps owning it.
+	const activate = useCallback(
+		(clientX: number, clientY: number) => {
+			const box = ref.current?.getBoundingClientRect()
+
+			if (box === undefined || onIndexClick === undefined) return
+
+			const { x, y } = toFrame(plot, box, clientX, clientY)
+
+			const index = resolveIndex(x, y)
+
+			if (index !== null) onIndexClick(index)
+		},
+		[plot, resolveIndex, onIndexClick],
 	)
 
 	// Under a non-snap click trigger, point the cursor only where a click reads — on
@@ -161,6 +189,8 @@ export function useChartPointer(
 
 	return {
 		ref,
+		// Activation only — the tracked readout stays hover-owned.
+		onClick: onIndexClick ? (event) => activate(event.clientX, event.clientY) : undefined,
 		onPointerMove: (event) => {
 			pointerInside.current = true
 

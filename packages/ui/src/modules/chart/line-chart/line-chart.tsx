@@ -103,6 +103,7 @@ export function LineChart<T>(props: LineChartProps<T>) {
 		xAxis,
 		tickRotation,
 		labels,
+		onCategoryClick,
 		formatValue,
 		className,
 		...label
@@ -125,6 +126,7 @@ export function LineChart<T>(props: LineChartProps<T>) {
 			reference,
 			xAxis,
 			tickRotation,
+			onCategoryClick,
 			formatValue,
 			// The header travels to the frame through `label`; the hook reads it too,
 			// so its tier reserves the header band's height (see `cartesianChrome`).
@@ -282,7 +284,7 @@ export function LineChart<T>(props: LineChartProps<T>) {
 
 			<ChartValueLabels labels={valueLabelItems} animate={animate} />
 
-			{(showTooltip || rails !== null) && data.length > 0 && (
+			{(showTooltip || rails !== null || chart.onBandClick !== undefined) && data.length > 0 && (
 				<ChartHitArea
 					plot={chart.plot}
 					band={chart.band}
@@ -293,6 +295,7 @@ export function LineChart<T>(props: LineChartProps<T>) {
 					}
 					trigger={trigger}
 					snaps={crosshairSnaps(rails)}
+					onIndexClick={chart.onBandClick}
 				/>
 			)}
 
