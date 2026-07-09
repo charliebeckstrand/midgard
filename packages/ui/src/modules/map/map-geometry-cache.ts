@@ -19,7 +19,7 @@
  * already served.
  */
 
-import { geographyFeatures, regionPaths } from './map-geometry'
+import { geographyFeatures, regionPaths, rewindFeatures } from './map-geometry'
 import { canonicalFit, type MapCanonicalFit } from './map-projection'
 import type { MapFeature, MapGeography, MapProjection } from './types'
 
@@ -58,7 +58,10 @@ export function computeStaticMapGeometry(
 	geographyObject: string | undefined,
 	projection: MapProjection,
 ): StaticMapGeometry {
-	const features = geographyFeatures(geography, geographyObject)
+	// Rewind before fitting: a raw-GeoJSON exterior wound opposite d3's spherical
+	// convention would otherwise fit as the region's complement and flood the
+	// frame. This is the cached stage, so the pass is paid once per atlas.
+	const features = rewindFeatures(geographyFeatures(geography, geographyObject))
 
 	const canonical = canonicalFit(projection, features)
 
