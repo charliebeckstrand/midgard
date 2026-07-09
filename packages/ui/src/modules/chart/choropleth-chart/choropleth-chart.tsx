@@ -1,5 +1,7 @@
 'use client'
 
+import { type ReactElement, type ReactNode, type RefObject, useRef } from 'react'
+import { cn } from '../../../core'
 import type { AccessibleName } from '../../../types'
 import {
 	type MapAspectRatio,
@@ -9,7 +11,11 @@ import {
 	MapPlat,
 	type MapProjection,
 } from '../../map'
-import type { ChartRangeLegendConfig, DataKey } from '../chart-schema'
+import { ChartContextMenu } from '../chart-context-menu'
+import type { ChartContextMenuConfig, ChartRangeLegendConfig, DataKey } from '../chart-schema'
+import { formatChartValue, READOUT_GAP } from '../chart-series'
+import { useChartFullscreen } from '../context'
+import type { ChartReadout } from '../types'
 
 /**
  * The one series a choropleth shades regions with: the id and value fields to
@@ -113,7 +119,75 @@ export type ChoroplethChartProps<T = never> = AccessibleName & {
 	 * @defaultValue false
 	 */
 	animate?: boolean
+	/**
+	 * Names the right-click menu's fullscreen dialog and seeds the download
+	 * filenames. The choropleth draws no header, so it is not painted on the map.
+	 */
+	title?: string
+	/**
+	 * The right-click context menu. By default the choropleth offers Fullscreen (a
+	 * live, interactive copy in a large dialog), image downloads (PNG / JPG, legend
+	 * included), and — from the `data` — Download CSV / Copy data. Pass a config to
+	 * add custom `items`, place them `'before'` or `'after'` the defaults, or drop
+	 * the defaults with `defaultItems: false`; set `downloadLegend: false` to export
+	 * the map without its legend. `false` disables the menu, leaving the browser's
+	 * native one.
+	 * @see {@link ChartContextMenuConfig}
+	 */
+	contextMenu?: ChartContextMenuConfig | false
 	className?: string
+}
+
+/**
+ * Coerces a row's raw value to a number for the CSV, mapping the blanks a data
+ * source uses for "no value" — `null`, `undefined`, and empty strings — to `NaN`
+ * so they read as no-data rather than the `0` a bare {@link Number} yields.
+ * Mirrors the map scale's own coercion, so the CSV agrees with the tooltip.
+ *
+ * @internal
+ */
+function binnable(value: unknown): number {
+	if (typeof value === 'number') return value
+
+	if (typeof value === 'string' && value.trim() !== '') return Number(value)
+
+	return Number.NaN
+}
+
+/**
+ * The context menu's CSV / copy readout: one column of region ids against one
+ * column of formatted values, built from the input `data` — a faithful export of
+ * the rows the caller passed, keyed by the `idKey` they join on. Distinct from
+ * the map's own feature-joined table, which names regions from the geography and
+ * carries the no-data ones; this mirrors the data instead. `null` with no series
+ * or no rows, which drops the data actions from the menu.
+ *
+ * @internal
+ */
+function choroplethReadout<T>(
+	data: T[] | undefined,
+	primary: ChoroplethChartSeries<T> | undefined,
+	format: (value: number) => string,
+): ChartReadout | null {
+	if (!primary || !data || data.length === 0) return null
+
+	const { idKey, colorKey, colorName } = primary
+
+	return {
+		categories: data.map((row) => String(row[idKey])),
+		rows: [
+			{
+				label: colorName ?? colorKey,
+				swatchClass: '',
+				swatch: 'rect',
+				values: data.map((row) => {
+					const value = binnable(row[colorKey])
+
+					return Number.isFinite(value) ? format(value) : READOUT_GAP
+				}),
+			},
+		],
+	}
 }
 
 /**
@@ -136,17 +210,30 @@ export type ChoroplethChartProps<T = never> = AccessibleName & {
  * />
  * ```
  */
-export function ChoroplethChart<T = never>({
-	series,
-	formatValue,
-	...map
-}: ChoroplethChartProps<T>) {
+export function ChoroplethChart<T = never>(props: ChoroplethChartProps<T>) {
+	// `contextMenu`, `title`, and `className` are the frame's, not MapPlat's; peel
+	// them off the rest that spreads onto the map. `width` is peeled to size the
+	// rasterised wrapper, then handed back to MapPlat below.
+	const { series, formatValue, contextMenu, title, className, width, ...map } = props
+
 	const [primary] = series
+
+	const format = formatValue ?? formatChartValue
+
+	// Built from the input rows for the menu's CSV / copy actions; drops them when
+	// there is nothing to export.
+	const readout = choroplethReadout(props.data, primary, format)
+
+	// The rasterised root and right-click surface. MapPlat keeps its own root ref
+	// private, so wrap it in one sized like MapPlat's frame — full-width, or the
+	// fixed `width` — so an image export captures the map tightly, with no gutter.
+	const rootRef = useRef<HTMLDivElement>(null)
 
 	// Unwrap the (single) series onto MapPlat's numeric mode. The `AccessibleName`
 	// union makes a raw spread ambiguous, so assemble the props and assert.
-	const props = {
+	const mapProps = {
 		...map,
+		width,
 		// A choropleth is always a chart tile, so default it to the board's shared
 		// 16/9 ratio (overridable) to match its neighbours, and defer the first paint:
 		// the map then draws once at that measured aspect with its legend resolved,
@@ -163,5 +250,64 @@ export function ChoroplethChart<T = never>({
 		valueFormat: formatValue,
 	} as Parameters<typeof MapPlat<T>>[0]
 
-	return <MapPlat<T> {...props} />
+	return (
+		<ChoroplethContextFrame
+			contextMenu={contextMenu}
+			rootRef={rootRef}
+			readout={readout}
+			title={title}
+			self={<ChoroplethChart {...props} />}
+		>
+			<div
+				ref={rootRef}
+				data-slot="choropleth"
+				className={cn(width === undefined && 'w-full', className)}
+				style={width === undefined ? undefined : { width }}
+			>
+				<MapPlat<T> {...mapProps} />
+			</div>
+		</ChoroplethContextFrame>
+	)
+}
+
+/** Props for {@link ChoroplethContextFrame}. @internal */
+type ChoroplethContextFrameProps = {
+	contextMenu: ChartContextMenuConfig | false | undefined
+	rootRef: RefObject<HTMLDivElement | null>
+	readout: ChartReadout | null
+	title?: string
+	/** A fresh copy of the choropleth for the menu's fullscreen re-mount. */
+	self: ReactElement
+	children: ReactNode
+}
+
+/**
+ * Wraps a choropleth's root in its {@link ChartContextMenu} — or returns it bare
+ * when the choropleth is itself the menu's re-mounted fullscreen copy, so the
+ * enlarged map never nests a second menu. The heatmap's frame, keyed to the map;
+ * split from {@link ChoroplethChart} so that fullscreen gate stays off its render.
+ *
+ * @internal
+ */
+function ChoroplethContextFrame({
+	contextMenu,
+	rootRef,
+	readout,
+	title,
+	self,
+	children,
+}: ChoroplethContextFrameProps) {
+	if (useChartFullscreen()) return <>{children}</>
+
+	return (
+		<ChartContextMenu
+			contextMenu={contextMenu}
+			rootRef={rootRef}
+			readout={readout}
+			title={title}
+			fullscreen={self}
+		>
+			{children}
+		</ChartContextMenu>
+	)
 }

@@ -274,7 +274,9 @@ export function BarChart<T>(props: BarChartProps<T>) {
 				titles={chart.axisTitles}
 			/>
 
-			<ChartMarksLayer animate={animate}>{marksNode}</ChartMarksLayer>
+			<ChartMarksLayer animate={animate} dataKey={chart.dataKey}>
+				{marksNode}
+			</ChartMarksLayer>
 
 			{rails && (
 				<ChartCrosshair

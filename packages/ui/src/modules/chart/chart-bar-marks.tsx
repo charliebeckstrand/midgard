@@ -3,7 +3,7 @@
 import { motion } from 'motion/react'
 import { cn } from '../../core'
 import type { BarMark } from './bar-chart/bar-chart-geometry'
-import { BAR_GROW, BAR_STAGGER, barGrow } from './chart-motion'
+import { BAR_GROW, BAR_SHRINK, BAR_STAGGER, barGrow } from './chart-motion'
 import type { ChartOrientation } from './chart-orientation'
 import { textureClass, textureStyle } from './chart-pattern-defs'
 import { fillClass, rawColor, type SeriesPaint } from './chart-series'
@@ -73,7 +73,7 @@ export function ChartBarMarks({
 	})
 }
 
-/** The Framer Motion bars, growing from the baseline along the value axis in sequence. @internal */
+/** The Framer Motion bars, growing from the baseline along the value axis in sequence — and shrinking back to it on a data change. @internal */
 export function AnimatedChartBarMarks({
 	marks,
 	paints,
@@ -99,6 +99,9 @@ export function AnimatedChartBarMarks({
 					className={barClass(paint, dimmed?.[seriesIndex], textureActive, fills?.[seriesIndex])}
 					initial={grow.initial}
 					animate={grow.animate}
+					// The bar shrinks back to the same baseline end it grew from — the
+					// reveal in reverse — when a data change swaps the marks generation.
+					exit={{ ...grow.initial, transition: BAR_SHRINK }}
 					style={{ ...grow.style, ...textureStyle(fills?.[seriesIndex]) }}
 					transition={{ ...BAR_GROW, delay: index * BAR_STAGGER }}
 				/>

@@ -525,8 +525,8 @@ type GridColumnResizeHandleProps = {
 /**
  * Resize separator on a resizable column header's trailing edge: a focusable
  * window-splitter, sized to the header, that starts a pointer drag-resize and
- * accepts Arrow keys to nudge the width. Its always-visible grip is the
- * `aria-hidden` child.
+ * accepts Arrow keys to nudge the width. A double-click auto-sizes the column
+ * to its content. Its always-visible grip is the `aria-hidden` child.
  *
  * @internal
  */
@@ -629,6 +629,18 @@ function GridColumnResizeHandle({ id, label, resize, resizing }: GridColumnResiz
 			// alongside the resize.
 			onPointerDown={(event) => event.stopPropagation()}
 			onClick={(event) => event.stopPropagation()}
+			onDoubleClick={(event) => {
+				// Double-click auto-sizes the column to its content — the pointer
+				// twin of the Enter key's reset, and the "Auto-size this column"
+				// context-menu action. The two no-op drag-resizes the double press
+				// registers (down/up without motion) leave the width untouched, so
+				// the reset lands on the width the second release left in place.
+				event.stopPropagation()
+
+				resize.reset(id)
+
+				announceSettledWidth()
+			}}
 			onKeyDown={handleKeyDown}
 		>
 			<span aria-hidden="true" className={cn(k.resize.grip)} />

@@ -11,7 +11,7 @@ import { ChartFrame } from './chart-frame'
 import { type ChartAspectRatio, chartFrameSizing } from './chart-layout'
 import { ChartLegend, type ChartLegendItem } from './chart-legend'
 import { ChartMarksLayer } from './chart-marks-layer'
-import { SLICE_FADE, SLICE_SWEEP } from './chart-motion'
+import { SLICE_FADE, SLICE_SWEEP, SLICE_UNFADE, SLICE_UNSWEEP, seriesDataKey } from './chart-motion'
 import { textureClass, textureStyle, useChartTexture } from './chart-pattern-defs'
 import {
 	type ChartBaseProps,
@@ -193,6 +193,7 @@ function PieSegmentLabels({ items, paints, animate, emphasis }: PieSegmentLabels
 								{...shared}
 								initial={{ opacity: 0 }}
 								animate={{ opacity: 1 }}
+								exit={{ opacity: 0, transition: SLICE_UNFADE }}
 								transition={{ ...SLICE_FADE, delay: sweepDelay(slice.mid) }}
 							>
 								{text}
@@ -320,6 +321,9 @@ function PieChartMarks({
 							strokeWidth={radius + 4}
 							initial={{ pathLength: 0 }}
 							animate={{ pathLength: 1 }}
+							// The sweep runs backwards on a data change — the disc un-wipes to
+							// nothing before the new pie sweeps in.
+							exit={{ pathLength: 0, transition: SLICE_UNSWEEP }}
 							transition={SLICE_SWEEP}
 						/>
 					</g>
@@ -765,6 +769,7 @@ function PieCallouts({ items, animate, emphasis }: PieCalloutsProps) {
 							<motion.g
 								initial={{ opacity: 0 }}
 								animate={{ opacity: 1 }}
+								exit={{ opacity: 0, transition: SLICE_UNFADE }}
 								transition={{ ...SLICE_FADE, delay: sweepDelay(item.mid) }}
 							>
 								{callout}
@@ -1029,7 +1034,9 @@ export function ChartPie<T>(props: ChartPieProps<T>) {
 		>
 			{tex.defs}
 
-			<ChartMarksLayer animate={animate}>{marks}</ChartMarksLayer>
+			<ChartMarksLayer animate={animate} dataKey={seriesDataKey([values])}>
+				{marks}
+			</ChartMarksLayer>
 		</ChartFrame>
 	)
 }

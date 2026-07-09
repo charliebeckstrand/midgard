@@ -15,6 +15,7 @@ import {
 	verticalLayout,
 } from './chart-layout'
 import type { ChartLegendItem, ChartLegendReference } from './chart-legend'
+import { seriesDataKey } from './chart-motion'
 import type { ChartOrientation } from './chart-orientation'
 import { referenceLegendItems } from './chart-reference-lines'
 import type { BandScale, LinearScale } from './chart-scale'
@@ -152,6 +153,14 @@ export type CartesianChart = {
 	xTicks: ChartAxisTick[]
 	/** Every series, toggled or not — the legend lists them all. */
 	metas: SeriesMeta[]
+	/**
+	 * A signature of every series' values — {@link seriesDataKey} — the animated
+	 * marks swap their generation on to replay the reveal out-then-in when the
+	 * data changes. Read off all series, not the visible ones, so a legend toggle
+	 * holds it steady; derived from the values, not the geometry, so a resize does
+	 * too. The static path ignores it.
+	 */
+	dataKey: string
 	/** The series still toggled on — scales, marks, and readout draw these. */
 	visible: SeriesMeta[]
 	/** Legend indexes toggled off. */
@@ -775,6 +784,9 @@ export function useChartCartesian<T>(
 		rightTicks: layout.rightTicks,
 		xTicks: layout.bandTicks,
 		metas,
+		// Read off every series' values, so a legend toggle (which drops a series
+		// from `visible`) leaves the key steady and only a real data change swaps it.
+		dataKey: seriesDataKey(metas.map((meta) => meta.values)),
 		visible,
 		hidden,
 		toggleSeries: toggle,

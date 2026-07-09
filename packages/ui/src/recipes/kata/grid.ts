@@ -206,6 +206,44 @@ export const k = {
 			right: ['shadow-[-1px_0_3px_rgba(0,0,0,0.08)]', 'dark:shadow-[-1px_0_3px_rgba(0,0,0,0.5)]'],
 		},
 	},
+	// The `outline` variant's cell borders, drawn in `border-collapse: separate`
+	// mode so every rule rides its own cell instead of the collapsed table grid.
+	// Collapsed borders weld to the table, not the cell: a sticky header or frozen
+	// column keeps its content and fill pinned but leaves its collapsed borders
+	// behind on the scrolling table, so a 1px seam opens above the header and a
+	// frozen column's leading rule shifts as the border collapses in and out at the
+	// scroll edges. Separate borders stay on the cell, so the sticky/frozen frame
+	// holds. The grid applies this in place of `kata/table`'s collapse-mode
+	// `projection.outline`, which it stops forwarding to `<Table>` when outlined.
+	//
+	// `border-spacing-0` keeps the cells flush. To avoid doubling every interior
+	// line, each cell draws only its right and bottom rule; the two open outer edges
+	// close with a top rule on the first header row (riding the sticky header) and a
+	// left rule on each row's first cell (riding a frozen leading column). All cast
+	// from the `<table>` onto its descendants — like the table's own outline — so
+	// cells read no context and render in RSC. Full literals for Tailwind's scanner;
+	// keep the subtle tint in step with `kata/table`'s `projection.outline`.
+	outline: {
+		// Border model: separate, flush cells.
+		table: ['border-separate', 'border-spacing-0'],
+		// Interior gridlines plus the right/bottom outer edges: every cell. The tint
+		// is an all-sides `border-color`; only the sided widths below render it, so the
+		// top/left rules inherit the same colour without repeating it.
+		cell: [
+			'[&>*>tr>td]:border-r',
+			'[&>*>tr>td]:border-b',
+			'[&>*>tr>th]:border-r',
+			'[&>*>tr>th]:border-b',
+			'[&>*>tr>td]:border-zinc-950/5',
+			'dark:[&>*>tr>td]:border-white/5',
+			'[&>*>tr>th]:border-zinc-950/5',
+			'dark:[&>*>tr>th]:border-white/5',
+		],
+		// Top outer edge: the first header row, riding the sticky header.
+		top: ['[&>thead>tr:first-child>th]:border-t'],
+		// Left outer edge: each row's first cell, riding a frozen leading column.
+		left: ['[&>*>tr>*:first-child]:border-l'],
+	},
 	// The toolbar region above the table — see `GridToolbar`, the single home for
 	// the grid's above-table controls. A vertical stack of the top control row and,
 	// while a row is selected, the batch-action row beneath it.

@@ -1,10 +1,11 @@
 'use client'
 
-import { motion } from 'motion/react'
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { cn } from '../../core'
+import { ReducedMotion } from '../../primitives/reduced-motion'
 import { TICK_CHAR_WIDTH } from './chart-constants'
 import type { PlotRect } from './chart-layout'
-import { POINT_POP } from './chart-motion'
+import { POINT_POP, POINT_UNPOP, STATIC_GENERATION } from './chart-motion'
 import { fillClass, formatChartValue, rawColor, type SeriesPaint } from './chart-series'
 import { useChartTier } from './context'
 
@@ -363,50 +364,86 @@ const LABEL_INK = 'text-xs font-semibold tabular-nums'
  * chrome — a chart passes its placed labels through and leaves the tier to the
  * frame.
  *
+ * Under `animate` each label fades in once its line has drawn, the same beat as
+ * the point markers, and — on a genuine data change — fades out with the
+ * outgoing marks before the new labels fade in: the group is keyed by
+ * {@link ChartValueLabelsProps.dataKey} inside an `AnimatePresence`, mirroring
+ * the marks layer, so the labels transition in step with the data they annotate.
+ * A reduced-motion preference pins the key steady, so the new labels swap in
+ * place. (The per-label keys are geometry-derived, so a resize already remounts
+ * them; the generation key sits above that and only swaps on a data change.)
+ *
  * @internal
  */
-export function ChartValueLabels({
-	labels,
-	animate,
-}: {
+export type ChartValueLabelsProps = {
 	labels: PlacedValueLabel[]
 	animate: boolean
-}) {
+	/**
+	 * The marks' generation signature — {@link seriesDataKey} — that the
+	 * data-change fade swaps on; omitted, the labels never replay on a data change.
+	 */
+	dataKey?: string
+}
+
+export function ChartValueLabels({ labels, animate, dataKey }: ChartValueLabelsProps) {
 	const spark = useChartTier() === 'spark'
+
+	// Called unconditionally to keep the hook order stable; only the animated
+	// branch reads it.
+	const reducedMotion = useReducedMotion()
 
 	if (spark || labels.length === 0) return null
 
-	return (
-		<g data-slot="chart-value-labels" pointerEvents="none">
-			{labels.map((label) => {
-				const shared = {
-					'data-slot': 'chart-value-label',
-					x: label.x,
-					y: label.y,
-					textAnchor: label.anchor,
-					dominantBaseline: 'central' as const,
-					// A raw colour inks through the `fill` attribute; a slot omits it and
-					// inks through its class.
-					fill: label.color,
-					className: cn(LABEL_INK, label.fill),
-				}
+	const content = labels.map((label) => {
+		const shared = {
+			'data-slot': 'chart-value-label',
+			x: label.x,
+			y: label.y,
+			textAnchor: label.anchor,
+			dominantBaseline: 'central' as const,
+			// A raw colour inks through the `fill` attribute; a slot omits it and
+			// inks through its class.
+			fill: label.color,
+			className: cn(LABEL_INK, label.fill),
+		}
 
-				return animate ? (
-					<motion.text
-						key={`${label.x}:${label.y}:${label.text}`}
-						{...shared}
-						initial={{ opacity: 0 }}
-						animate={{ opacity: 1 }}
-						transition={POINT_POP}
-					>
-						{label.text}
-					</motion.text>
-				) : (
-					<text key={`${label.x}:${label.y}:${label.text}`} {...shared}>
-						{label.text}
-					</text>
-				)
-			})}
-		</g>
+		return animate ? (
+			<motion.text
+				key={`${label.x}:${label.y}:${label.text}`}
+				{...shared}
+				initial={{ opacity: 0 }}
+				animate={{ opacity: 1 }}
+				exit={{ opacity: 0, transition: POINT_UNPOP }}
+				transition={POINT_POP}
+			>
+				{label.text}
+			</motion.text>
+		) : (
+			<text key={`${label.x}:${label.y}:${label.text}`} {...shared}>
+				{label.text}
+			</text>
+		)
+	})
+
+	if (!animate) {
+		return (
+			<g data-slot="chart-value-labels" pointerEvents="none">
+				{content}
+			</g>
+		)
+	}
+
+	// A reduced-motion preference holds the generation steady, so a data change
+	// reconciles the labels in place rather than fading out-then-in.
+	const generation = reducedMotion ? STATIC_GENERATION : (dataKey ?? STATIC_GENERATION)
+
+	return (
+		<ReducedMotion>
+			<AnimatePresence mode="wait">
+				<motion.g key={generation} data-slot="chart-value-labels" pointerEvents="none">
+					{content}
+				</motion.g>
+			</AnimatePresence>
+		</ReducedMotion>
 	)
 }

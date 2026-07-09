@@ -822,6 +822,19 @@ function condensedTableClass(condensed: boolean, base: string): string {
 }
 
 /**
+ * The `outline` variant's cell borders (see `k.outline`), or `''` when not
+ * outlined. The grid draws its own outline in `border-collapse: separate` mode —
+ * every rule riding its own cell — instead of forwarding `outline` to `<Table>`,
+ * whose collapse-mode borders weld to the table grid and scroll out from under the
+ * sticky header and frozen columns (a seam above the header, a shifting frozen
+ * rule). Kept a helper so the branch lives here, off {@link GridData}'s complexity
+ * budget. @internal
+ */
+function outlineTableClass(outline: boolean | undefined): string {
+	return outline ? cn(k.outline.table, k.outline.cell, k.outline.top, k.outline.left) : ''
+}
+
+/**
  * Broadcasts the grid's resolved density onto the *table region* as a density
  * cascade, so size-aware *client* cell content (a `Sparkline`, an inline `Input`,
  * the selection checkbox) tracks the grid's `density` — and its `condensed` step,
@@ -1704,10 +1717,12 @@ export function GridData<T>({
 			<Table
 				density={density}
 				bleed={bleed}
-				outline={outline}
 				striped={striped}
 				hover={rowHover}
-				className={condensedTableClass(condensed, cn(tableClassName, bodyStateClass))}
+				className={condensedTableClass(
+					condensed,
+					cn(tableClassName, bodyStateClass, outlineTableClass(outline)),
+				)}
 				tableProps={resolveTableProps({
 					tableProps,
 					// The cursor's tab stop, active-cell pointer, and key/focus handlers.

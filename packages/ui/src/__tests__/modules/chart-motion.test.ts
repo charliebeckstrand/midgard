@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { barGrow, referenceRise } from '../../modules/chart/chart-motion'
+import { barGrow, referenceRise, seriesDataKey } from '../../modules/chart/chart-motion'
 
 // One orientation predicate drives every value-axis mount reveal, so the bar
 // grow and the reference rise always agree on which screen axis is the value
@@ -48,5 +48,38 @@ describe('barGrow', () => {
 			animate: { scaleX: 1 },
 			style: { originX: 1 },
 		})
+	})
+})
+
+// The data-change transition swaps its generation on this signature: it must
+// change when the values change and hold when they do not, so a resize or a
+// legend toggle — same numbers, or a series merely dropped from the drawn set —
+// never replays the reveal, and only a genuine data change does.
+describe('seriesDataKey', () => {
+	it('holds steady when the values are unchanged', () => {
+		expect(
+			seriesDataKey([
+				[1, 2, 3],
+				[4, 5, 6],
+			]),
+		).toBe(
+			seriesDataKey([
+				[1, 2, 3],
+				[4, 5, 6],
+			]),
+		)
+	})
+
+	it('changes when a value changes', () => {
+		expect(seriesDataKey([[1, 2, 3]])).not.toBe(seriesDataKey([[1, 2, 9]]))
+	})
+
+	it('distinguishes a null gap from a zero', () => {
+		expect(seriesDataKey([[1, null, 3]])).not.toBe(seriesDataKey([[1, 0, 3]]))
+	})
+
+	it('distinguishes a value moving between series', () => {
+		// The row separator keeps `[[1],[2]]` from colliding with `[[1,2]]`.
+		expect(seriesDataKey([[1], [2]])).not.toBe(seriesDataKey([[1, 2]]))
 	})
 })

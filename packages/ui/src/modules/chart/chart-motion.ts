@@ -14,6 +14,15 @@
  * its own — so both agree on the axis and the sign. The builders return plain
  * motion targets and carry no `motion/react` import, so this module stays a pure
  * spec the renderers consume and the mapping is unit-testable in isolation.
+ *
+ * A data change replays the reveal out-then-in: the marks run their reveal in
+ * reverse — a bar shrinks back to its baseline, a line un-draws, a point pops
+ * out, the pie un-sweeps, a value label fades — then the incoming data reveals
+ * normally, the way AG Charts re-animated on a data update. The exit *target* of
+ * every mark is the `initial` state it reveals from, so this module adds no new
+ * geometry; it adds only the reverse *timings* below (quicker and delay-free, so
+ * the outgoing marks clear before the incoming reveal begins) and the
+ * {@link seriesDataKey} signature an animated renderer swaps its generation on.
  */
 
 import type { ChartOrientation } from './chart-orientation'
@@ -54,6 +63,30 @@ export const SLICE_SWEEP = { duration: 0.8, ease: 'easeInOut' } as const
 /** Label fade-in as the sweep passes its slice. @internal */
 export const SLICE_FADE = { duration: 0.3, ease: 'easeOut' } as const
 
+// Reverse timings for the data-change exit — the outgoing marks running their
+// reveal backwards. Each is quicker than its reveal and carries no delay, so an
+// outgoing generation clears fully before the incoming one begins (the
+// `mode="wait"` sequence the marks layer orchestrates), rather than dragging its
+// stagger and hold beats into the transition.
+
+/** Bar shrink back to the baseline — the reverse of {@link BAR_GROW}. @internal */
+export const BAR_SHRINK = { duration: 0.3, ease: 'easeIn' } as const
+
+/** Line un-draw (`pathLength` 1 → 0) — the reverse of {@link LINE_DRAW}. @internal */
+export const LINE_UNDRAW = { duration: 0.4, ease: 'easeInOut' } as const
+
+/** Area wash fade-out — the reverse of {@link AREA_FADE}. @internal */
+export const AREA_UNFADE = { duration: 0.3, ease: 'easeIn' } as const
+
+/** Point-marker pop-out — the reverse of {@link POINT_POP}. @internal */
+export const POINT_UNPOP = { duration: 0.2, ease: 'easeIn' } as const
+
+/** Pie un-sweep (`pathLength` 1 → 0) — the reverse of {@link SLICE_SWEEP}. @internal */
+export const SLICE_UNSWEEP = { duration: 0.5, ease: 'easeInOut' } as const
+
+/** Pie label / callout fade-out — the reverse of {@link SLICE_FADE}. @internal */
+export const SLICE_UNFADE = { duration: 0.2, ease: 'easeIn' } as const
+
 /**
  * Whether the value axis runs vertically for this orientation — the one place
  * the mount reveals decide which screen axis to animate, mirroring the
@@ -91,3 +124,28 @@ export function referenceRise(orientation: ChartOrientation, offset: number) {
 		? { initial: { y: offset }, animate: { y: 0 } }
 		: { initial: { x: offset }, animate: { x: 0 } }
 }
+
+/**
+ * A stable signature of a chart's resolved series values — the generation key an
+ * animated renderer swaps on to replay its reveal out-then-in when the data
+ * changes. It reads the *values*, not the drawn geometry, so it holds through a
+ * resize (same numbers at new coordinates) and a legend toggle (the caller feeds
+ * every series, visible or not), and changes only when the underlying data does
+ * — the Ship Date filter re-running the query. `null` gaps stringify distinctly
+ * from a zero, so a value going missing counts as a change.
+ *
+ * @internal
+ */
+export function seriesDataKey(values: readonly (readonly (number | null)[])[]): string {
+	return values.map((row) => row.map((value) => (value === null ? '_' : value)).join(',')).join(';')
+}
+
+/**
+ * The generation key an animated renderer holds still on when it must not replay
+ * the out-then-in transition — a reduced-motion preference, where a data change
+ * skips straight to the new marks. A constant, so the generation never swaps and
+ * the marks reconcile in place.
+ *
+ * @internal
+ */
+export const STATIC_GENERATION = 'static'

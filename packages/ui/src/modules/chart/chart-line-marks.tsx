@@ -13,7 +13,14 @@ import {
 	REFERENCE_DASH,
 } from './chart-constants'
 import type { PlotRect } from './chart-layout'
-import { AREA_FADE, LINE_DRAW, POINT_POP } from './chart-motion'
+import {
+	AREA_FADE,
+	AREA_UNFADE,
+	LINE_DRAW,
+	LINE_UNDRAW,
+	POINT_POP,
+	POINT_UNPOP,
+} from './chart-motion'
 import { textureClass, textureStyle } from './chart-pattern-defs'
 import {
 	fillClass,
@@ -162,6 +169,7 @@ export function AnimatedChartLineMarks({
 							style={{ originX: 0 }}
 							initial={{ scaleX: 0 }}
 							animate={{ scaleX: 1 }}
+							exit={{ scaleX: 0, transition: LINE_UNDRAW }}
 							transition={{ ...LINE_DRAW, delay }}
 						/>
 					</clipPath>
@@ -190,6 +198,7 @@ export function AnimatedChartLineMarks({
 									className={cn(fillClass(paint), textureClass(textureActive, patternFill))}
 									initial={{ opacity: 0 }}
 									animate={{ opacity: 1 }}
+									exit={{ opacity: 0, transition: AREA_UNFADE }}
 									transition={{ ...AREA_FADE, delay: AREA_FADE.delay + delay }}
 								/>
 							))}
@@ -213,6 +222,9 @@ export function AnimatedChartLineMarks({
 									{...segmentProps(paint, false)}
 									initial={{ pathLength: 0 }}
 									animate={{ pathLength: 1 }}
+									// The stroke un-draws along its own length — the draw-on reversed —
+									// when a data change swaps the marks generation.
+									exit={{ pathLength: 0, transition: LINE_UNDRAW }}
 									transition={{ ...LINE_DRAW, delay }}
 								/>
 							),
@@ -229,6 +241,7 @@ export function AnimatedChartLineMarks({
 								className={markerClass(paint, stroke)}
 								initial={{ r: 0, opacity: 0 }}
 								animate={{ r: MARKER_RADIUS, opacity: 1 }}
+								exit={{ r: 0, opacity: 0, transition: POINT_UNPOP }}
 								transition={{ ...POINT_POP, delay: POINT_POP.delay + delay }}
 							/>
 						))}

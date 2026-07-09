@@ -17,7 +17,8 @@ const RASTER_SCALE = 2
 const JPEG_QUALITY = 0.95
 
 /** The chart's legend containers, hidden when an image export drops the legend. @internal */
-const LEGEND_SELECTOR = '[data-slot="chart-legend"],[data-slot="heatmap-legend-box"]'
+const LEGEND_SELECTOR =
+	'[data-slot="chart-legend"],[data-slot="heatmap-legend-box"],[data-slot="map-legend-box"]'
 
 /**
  * Copies a source element's full computed style inline onto its clone.

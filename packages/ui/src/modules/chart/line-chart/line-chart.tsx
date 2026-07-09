@@ -280,9 +280,11 @@ export function LineChart<T>(props: LineChartProps<T>) {
 				/>
 			)}
 
-			<ChartMarksLayer animate={animate}>{marksNode}</ChartMarksLayer>
+			<ChartMarksLayer animate={animate} dataKey={chart.dataKey}>
+				{marksNode}
+			</ChartMarksLayer>
 
-			<ChartValueLabels labels={valueLabelItems} animate={animate} />
+			<ChartValueLabels labels={valueLabelItems} animate={animate} dataKey={chart.dataKey} />
 
 			{(showTooltip || rails !== null || chart.onBandClick !== undefined) && data.length > 0 && (
 				<ChartHitArea

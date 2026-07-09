@@ -489,6 +489,14 @@ export type ChartBaseProps<T> = AccessibleName & {
 	 * `prefers-reduced-motion` through the `ReducedMotion` primitive. Off by
 	 * default — a static dashboard of charts stays a plain-SVG tree with no
 	 * motion runtime work.
+	 *
+	 * A change to the underlying data replays that reveal out-then-in: the
+	 * outgoing marks run it in reverse — bars shrink to the baseline, lines
+	 * un-draw, points pop out, the pie un-sweeps, value labels fade — and the new
+	 * data then reveals normally, so a re-query (say a dashboard filter change)
+	 * transitions rather than snapping. A resize or a legend toggle is not a data
+	 * change and updates in place; a reduced-motion preference skips straight to
+	 * the new data.
 	 * @defaultValue false
 	 */
 	animate?: boolean
