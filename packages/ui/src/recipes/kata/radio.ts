@@ -28,7 +28,7 @@ export const k = bridge.check(
 		color,
 		size: {
 			sm: 'size-4',
-			md: 'size-4.5',
+			md: 'size-5',
 			lg: 'size-5',
 		},
 		skeleton: radio,

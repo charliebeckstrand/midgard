@@ -9,5 +9,5 @@ import { kasane } from '../kasane'
 const { rounded } = kasane
 
 export const radio = {
-	base: ['size-4.5', rounded.full],
+	base: ['size-5', rounded.full],
 } as const
