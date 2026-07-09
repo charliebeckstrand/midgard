@@ -172,6 +172,12 @@ export type ChartFrameProps = AccessibleName & {
 	/** The values behind the marks, or `null` when there is nothing to read. */
 	readout: ChartReadout | null
 	/**
+	 * The series indices, in the order the tooltip lists {@link readout}'s rows —
+	 * the marks' own visible top-to-bottom order. Omitted, the rows keep the
+	 * readout's series order. The hidden data table always reads in series order.
+	 */
+	readoutOrder?: number[]
+	/**
 	 * The emphasised series' index, when one is — a legend entry or the keyboard
 	 * cursor picking a series. The tooltip dims every other row against it, mirroring
 	 * the marks; `null` (the default) reads every row at full strength.
@@ -243,6 +249,7 @@ export function ChartFrame({
 	legend,
 	legendPlacement = 'bottom',
 	readout,
+	readoutOrder,
 	emphasis: seriesEmphasis = null,
 	tooltip,
 	snap,
@@ -407,6 +414,7 @@ export function ChartFrame({
 				<ChartTooltip
 					plotRef={ref}
 					readout={readout}
+					order={readoutOrder}
 					snap={snap}
 					orientation={orientation}
 					// The pointed mark's series dims the other rows too, so a hovered bar or

@@ -344,6 +344,43 @@ describe('LineChart', () => {
 		])
 	})
 
+	it('orders the tooltip rows to match the legend, not the series order', () => {
+		const { container } = renderUI(
+			<LineChart
+				aria-label="Two metrics by month"
+				data={[
+					{ month: 'Jan', low: 10, high: 20 },
+					{ month: 'Feb', low: 12, high: 40 },
+				]}
+				series={[
+					{ xKey: 'month', yKey: 'low', yName: 'Low' },
+					{ xKey: 'month', yKey: 'high', yName: 'High' },
+				]}
+				width={400}
+				crosshair={{ x: true, y: true, snap: true }}
+			/>,
+		)
+
+		// A snapping crosshair carries the readout to the nearest column wherever the
+		// probe lands.
+		fireEvent.pointerMove(bySlot(container, 'chart-hit') as Element, { clientX: 200, clientY: 10 })
+
+		const text = (bySlot(container, 'tooltip-content') as HTMLElement).textContent ?? ''
+
+		// 'High' runs above 'Low', so the readout reads it first though it is the
+		// second series — the same value order the legend takes, not the declared one.
+		expect(text).toContain('High')
+
+		expect(text.indexOf('High')).toBeLessThan(text.indexOf('Low'))
+
+		// The hidden data table stays in the declared series order.
+		expect(
+			[...container.querySelectorAll('[data-slot="chart-table"] thead th[scope="col"]')].map(
+				(th) => th.textContent,
+			),
+		).toEqual(['Low', 'High'])
+	})
+
 	it('toggles the series a reordered entry names, not its display slot', () => {
 		const { container } = renderUI(
 			<LineChart

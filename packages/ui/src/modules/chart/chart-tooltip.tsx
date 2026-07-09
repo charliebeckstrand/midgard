@@ -41,6 +41,14 @@ export type ChartTooltipProps = {
 	 */
 	orientation?: ChartOrientation
 	/**
+	 * The series indices, in the order the rows should read — the marks' own
+	 * visible top-to-bottom order, so a stacked column reads its top segment first
+	 * and overlapping lines read in their drawn value order. Omitted, the rows keep
+	 * the readout's series order. The readout itself is untouched, so the
+	 * visually-hidden table still reads in series order.
+	 */
+	order?: number[]
+	/**
 	 * The emphasised series' index, when one is — the keyboard cursor reading a
 	 * dataset, or a legend entry. Its row stays at full strength while every other
 	 * row dims, mirroring the marks; `null` (the default) reads every row equally.
@@ -84,9 +92,22 @@ export function ChartTooltip({
 	readout,
 	snap,
 	orientation = 'vertical',
+	order,
 	emphasis = null,
 }: ChartTooltipProps) {
 	const { index, point, onData } = useChartHover()
+
+	// The rows read in the marks' visible order when the chart supplies one — a
+	// stacked column top-first, overlapping lines in value order — looked up by
+	// series index off the readout, which itself stays in series order for the
+	// hidden data table. No order given, the rows keep that series order.
+	const rows = order
+		? order.flatMap((series) => {
+				const row = readout.rows.find((candidate) => candidate.index === series)
+
+				return row ? [row] : []
+			})
+		: readout.rows
 
 	// Snapped, the anchor is the intersection — the band center crossed with the
 	// value nearest the pointer, projected onto the screen through the orientation;
@@ -156,7 +177,7 @@ export function ChartTooltip({
 						<div className={cn(k.label, 'mb-1 whitespace-nowrap')}>{readout.categories[index]}</div>
 
 						<div className="space-y-0.5">
-							{readout.rows.map((row) => (
+							{rows.map((row) => (
 								<div
 									key={row.label}
 									data-slot="chart-tooltip-row"
