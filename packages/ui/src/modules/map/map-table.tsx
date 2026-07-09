@@ -11,6 +11,9 @@ export type MapTableProps = {
 	regionNames: string[]
 	/** Each region's category index, `null` where no datum matches. */
 	regionCategory: (number | null)[]
+	/** Each region's own formatted value (numeric mode); the cell shows it instead
+	 * of the bin range. `null` in categorical mode, where the category label reads. */
+	regionValues: (string | null)[]
 	categories: MapCategoryMeta[]
 	/** Registered overlays, appended as their own rows. */
 	entries: MapOverlayEntry[]
@@ -31,6 +34,7 @@ export const MapTable = memo(function MapTable({
 	header,
 	regionNames,
 	regionCategory,
+	regionValues,
 	categories,
 	entries,
 }: MapTableProps) {
@@ -53,7 +57,8 @@ export const MapTable = memo(function MapTable({
 							<th scope="row">{regionNames[index]}</th>
 
 							<td>
-								{category == null ? READOUT_GAP : (categories[category]?.label ?? READOUT_GAP)}
+								{regionValues[index] ??
+									(category == null ? READOUT_GAP : (categories[category]?.label ?? READOUT_GAP))}
 							</td>
 						</tr>
 					)

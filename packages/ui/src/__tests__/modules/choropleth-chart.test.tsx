@@ -42,6 +42,28 @@ describe('ChoroplethChart', () => {
 		)
 	})
 
+	it('reads each region its own value in the table, not the bin range it colours in', () => {
+		const { container } = renderUI(
+			<ChoroplethChart
+				aria-label="Population"
+				geography={FIXTURE_GEOJSON}
+				data={ROWS}
+				series={[{ idKey: 'region', colorKey: 'pop', colorRange: RANGE, colorName: 'Population' }]}
+				width={400}
+			/>,
+		)
+
+		const cells = [...(bySlot(container, 'map-table')?.querySelectorAll('tbody td') ?? [])].map(
+			(td) => td.textContent,
+		)
+
+		// A region reads its own total (its bin only drives the colour) — 0 / 50 / 100,
+		// never the bucket range string a `format(lo)–format(hi)` bin label would emit.
+		expect(cells).toEqual(expect.arrayContaining(['0', '50', '100']))
+
+		expect(cells.some((text) => text?.includes('–'))).toBe(false)
+	})
+
 	it('defaults its legend to the right', () => {
 		const { container } = renderUI(
 			<ChoroplethChart

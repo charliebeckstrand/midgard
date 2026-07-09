@@ -33,6 +33,9 @@ export type MapTooltipProps = {
 	regionNames: string[]
 	/** Each region's category index, `null` where no datum matches. */
 	regionCategory: (number | null)[]
+	/** Each region's own formatted value (numeric mode); shown instead of the bin
+	 * range. `null` in categorical mode, where the category label reads instead. */
+	regionValues: (string | null)[]
 	categories: MapCategoryMeta[]
 	/** Registered overlay entries by legend id. */
 	entries: ReadonlyMap<string, MapTooltipEntry>
@@ -61,7 +64,7 @@ const SWATCH_SHAPE = { rect: 'square', line: 'line', dot: 'circle' } as const sa
 /** Resolves the tooltip content for a hover target, or `null` to stay away. @internal */
 function resolve(
 	target: MapHoverTarget,
-	{ regionNames, regionCategory, categories, entries, hidden }: MapTooltipProps,
+	{ regionNames, regionCategory, regionValues, categories, entries, hidden }: MapTooltipProps,
 ): MapTooltipContent | null {
 	if (target.kind === 'entry') {
 		if (hidden.has(target.id)) return null
@@ -93,7 +96,9 @@ function resolve(
 		row: {
 			swatch: 'rect',
 			...(paint.kind === 'value' ? { swatchColor: paint.color } : { swatchClass: cn(paint.text) }),
-			text: meta.label,
+			// A region's own value in numeric mode (its bin only drives the colour);
+			// the category label otherwise.
+			text: regionValues[target.index] ?? meta.label,
 		},
 	}
 }

@@ -48,7 +48,7 @@ import { MapRangeLegend, type MapRangeLegendProps } from './map-range-legend'
 import { MapRegions } from './map-regions'
 import { MapTable } from './map-table'
 import { MapTooltip, type MapTooltipEntry } from './map-tooltip'
-import { regionValueIndexes, resolveValueBins } from './map-value-scale'
+import { regionValueIndexes, regionValueLabels, resolveValueBins } from './map-value-scale'
 import type {
 	DataKey,
 	LngLat,
@@ -352,6 +352,10 @@ type MapRegionReadout = {
 	regionNames: string[]
 	/** Each region's category / bin index, `null` where no datum matches. */
 	regionCategory: (number | null)[]
+	/** Each region's own formatted value in the numeric (choropleth) mode — the
+	 * tooltip and table readout, distinct from its bin's range label; `null` in
+	 * categorical mode and wherever no datum matches. */
+	regionValues: (string | null)[]
 	/** The numeric value extent in the numeric (choropleth) mode; `null` otherwise. Feeds the range legend. */
 	domain: [number, number] | null
 }
@@ -387,22 +391,33 @@ function useMapRegionReadout<T>(
 	const {
 		categoryMetas,
 		regionCategory,
+		regionValues,
 		domain: extent,
 	} = useMemo<{
 		categoryMetas: MapCategoryMeta[]
 		regionCategory: (number | null)[]
+		regionValues: (string | null)[]
 		domain: [number, number] | null
 	}>(() => {
+		const noValues = regionIds.map(() => null)
+
 		if (data === undefined || regionKey === undefined) {
-			return { categoryMetas: [], regionCategory: regionIds.map(() => null), domain: null }
+			return {
+				categoryMetas: [],
+				regionCategory: regionIds.map(() => null),
+				regionValues: noValues,
+				domain: null,
+			}
 		}
 
 		if (valueKey !== undefined && colorRange !== undefined) {
+			const format = valueFormat ?? ((value) => String(value))
+
 			const { metas, domain: resolved } = resolveValueBins(data, valueKey, {
 				colorRange,
 				bins,
 				domain,
-				format: valueFormat ?? ((value) => String(value)),
+				format,
 			})
 
 			return {
@@ -415,6 +430,9 @@ function useMapRegionReadout<T>(
 					metas.length,
 					resolved,
 				),
+				// A region's readout is its own value, not the bin range its colour reads
+				// from — so the tooltip and table show "2,088", not "1–135".
+				regionValues: regionValueLabels(regionIds, data, regionKey, valueKey, format),
 				domain: resolved,
 			}
 		}
@@ -425,11 +443,18 @@ function useMapRegionReadout<T>(
 			return {
 				categoryMetas: metas,
 				regionCategory: regionCategoryIndexes(regionIds, data, regionKey, categoryKey, metas),
+				// Categorical mode reads the category label off the meta; no separate value.
+				regionValues: noValues,
 				domain: null,
 			}
 		}
 
-		return { categoryMetas: [], regionCategory: regionIds.map(() => null), domain: null }
+		return {
+			categoryMetas: [],
+			regionCategory: regionIds.map(() => null),
+			regionValues: noValues,
+			domain: null,
+		}
 	}, [
 		data,
 		regionKey,
@@ -443,7 +468,7 @@ function useMapRegionReadout<T>(
 		regionIds,
 	])
 
-	return { categoryMetas, regionNames, regionCategory, domain: extent }
+	return { categoryMetas, regionNames, regionCategory, regionValues, domain: extent }
 }
 
 /**
@@ -965,6 +990,7 @@ export function MapPlat<T = never>({
 		categoryMetas,
 		regionNames,
 		regionCategory,
+		regionValues,
 		domain: valueExtent,
 	} = useMapRegionReadout(
 		shape.features,
@@ -1137,6 +1163,7 @@ export function MapPlat<T = never>({
 							<MapTooltip
 								regionNames={regionNames}
 								regionCategory={regionCategory}
+								regionValues={regionValues}
 								categories={categoryMetas}
 								entries={tooltipEntries}
 								hidden={hidden}
@@ -1156,6 +1183,7 @@ export function MapPlat<T = never>({
 						header={valueColumnHeader(categoryKey, valueKey, valueName)}
 						regionNames={data === undefined ? [] : regionNames}
 						regionCategory={regionCategory}
+						regionValues={regionValues}
 						categories={categoryMetas}
 						entries={entries}
 					/>

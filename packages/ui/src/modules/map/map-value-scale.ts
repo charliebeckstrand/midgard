@@ -104,3 +104,33 @@ export function regionValueIndexes<T>(
 		return binIndex(toBinnableNumber(datum[valueKey]), domain, bins)
 	})
 }
+
+/**
+ * Each region's own formatted value: the row whose `regionKey` matches the
+ * region takes its `valueKey` value through `format`; `null` where no row
+ * matches or the value is non-finite. Index-aligned with `regionIds`. The
+ * tooltip and table read a region's precise value from here, not the bin's
+ * range label — the region reads the same colour bin as its neighbours in the
+ * bucket, but its readout is its own total.
+ *
+ * @internal
+ */
+export function regionValueLabels<T>(
+	regionIds: string[],
+	data: T[],
+	regionKey: DataKey<T>,
+	valueKey: DataKey<T>,
+	format: (value: number) => string,
+): (string | null)[] {
+	const byRegion = new Map(data.map((datum) => [String(datum[regionKey]), datum]))
+
+	return regionIds.map((id) => {
+		const datum = byRegion.get(id)
+
+		if (datum == null) return null
+
+		const value = toBinnableNumber(datum[valueKey])
+
+		return Number.isFinite(value) ? format(value) : null
+	})
+}
