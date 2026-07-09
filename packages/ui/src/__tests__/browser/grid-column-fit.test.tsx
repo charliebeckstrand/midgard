@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
+import { Badge } from '../../components/badge'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { renderUI, waitFor } from '../helpers'
+import { fireEvent, renderUI, waitFor } from '../helpers'
 
 /**
  * Content-aware column auto-sizing against a real layout engine. The autosizer
@@ -174,6 +175,146 @@ describe('grid column auto-sizing (real browser)', () => {
 
 		// The frozen rail stays narrow while the scrolling column runs far past an even split.
 		expect(flex - pin).toBeGreaterThan(200)
+	})
+
+	it('sizes a badge column to the badges’ natural width, not their clipped width', async () => {
+		// A composed cell — a flex row of Badge chips — is a block box that fills the
+		// clipped leaf, so its in-place rect reads the current column width rather than
+		// the width the chips want; only the batched max-content pass can see their
+		// natural row. (A lone Badge inherits the leaf's nowrap and measures true even
+		// clipped; the wrapper is the case that breaks without the pass.)
+		const { container, table, scroll } = render(240, [
+			{
+				id: 'status',
+				title: 'Status',
+				cell: () => (
+					<div style={{ display: 'flex', gap: '4px' }}>
+						<Badge>Verification pending review</Badge>
+
+						<Badge>Escalated to compliance team</Badge>
+					</div>
+				),
+			},
+		])
+
+		// The chip row needs more than the 240px frame: the column holds at the row's
+		// natural width and the table overflows sideways instead of clipping the chips.
+		await waitFor(() =>
+			expect(table.getBoundingClientRect().width).toBeGreaterThan(scroll.clientWidth),
+		)
+
+		// Nothing in the chip row is cut off by its wrapper…
+		const wrap = container.querySelector<HTMLElement>('td [data-grid-content] > div') as HTMLElement
+
+		expect(wrap.scrollWidth).toBeLessThanOrEqual(wrap.clientWidth + 1)
+
+		// …and the row isn't clipped by the cell's truncating leaf either.
+		const leaf = container.querySelector<HTMLElement>('td [data-grid-content]') as HTMLElement
+
+		expect(leaf.scrollWidth).toBeLessThanOrEqual(leaf.clientWidth + 1)
+	})
+
+	it('"Auto-size all columns" grows a capped column until its content shows whole', async () => {
+		const huge = `${tinyRows[0]?.big} and then keeps going well past the automatic runaway-cell cap`
+
+		const rows: Row[] = [{ id: 1, tiny: 'x', big: huge }]
+
+		const { container, header } = render(
+			600,
+			[
+				{ id: 'name', title: 'Name', cell: (row) => row.tiny },
+				{ id: 'big', title: 'Detail', cell: (row) => row.big },
+			],
+			rows,
+		)
+
+		const leaf = () =>
+			container.querySelector<HTMLElement>(
+				'td[data-grid-col="big"] [data-grid-content]',
+			) as HTMLElement
+
+		// The automatic fit holds the runaway column at the content cap, truncating it.
+		await waitFor(() => expect(leaf().scrollWidth).toBeGreaterThan(leaf().clientWidth + 1))
+
+		fireEvent.contextMenu(header('big'))
+
+		const item = Array.from(document.querySelectorAll('[role="menuitem"]')).find((el) =>
+			el.textContent?.includes('Auto-size all columns'),
+		)
+
+		if (!item) throw new Error('no Auto-size all columns item')
+
+		fireEvent.click(item)
+
+		// The user-invoked fit lifts the cap: the column grows to the smallest width
+		// that shows the content untruncated, overflowing the frame.
+		await waitFor(() => expect(leaf().scrollWidth).toBeLessThanOrEqual(leaf().clientWidth + 1))
+
+		expect(header('big').getBoundingClientRect().width).toBeGreaterThan(600)
+	})
+
+	it('"Auto-size this column" shrinks a surplus-stretched column to its content', async () => {
+		const { header } = render(600, [
+			{ id: 'name', title: 'Name', cell: (row) => row.tiny },
+			{ id: 'role', title: 'Role', cell: (row) => row.tiny },
+		])
+
+		// The surplus levels both undemanding columns to an even split.
+		await waitFor(() => expect(header('name').getBoundingClientRect().width).toBeGreaterThan(250))
+
+		fireEvent.contextMenu(header('name'))
+
+		const item = Array.from(document.querySelectorAll('[role="menuitem"]')).find((el) =>
+			el.textContent?.includes('Auto-size this column'),
+		)
+
+		if (!item) throw new Error('no Auto-size this column item')
+
+		fireEvent.click(item)
+
+		// The reset column drops to the smallest width its header and data need…
+		await waitFor(() => expect(header('name').getBoundingClientRect().width).toBeLessThan(150))
+
+		// …while its neighbour holds the width it had instead of re-fitting.
+		expect(header('role').getBoundingClientRect().width).toBeGreaterThan(250)
+	})
+
+	it('"Auto-size this column" grows a truncated column until its content shows whole', async () => {
+		const huge = `${tinyRows[0]?.big} and then keeps going well past the automatic runaway-cell cap`
+
+		const rows: Row[] = [{ id: 1, tiny: 'x', big: huge }]
+
+		const { container, header } = render(
+			600,
+			[
+				{ id: 'name', title: 'Name', cell: (row) => row.tiny },
+				{ id: 'big', title: 'Detail', cell: (row) => row.big },
+			],
+			rows,
+		)
+
+		const leaf = () =>
+			container.querySelector<HTMLElement>(
+				'td[data-grid-col="big"] [data-grid-content]',
+			) as HTMLElement
+
+		await waitFor(() => expect(leaf().scrollWidth).toBeGreaterThan(leaf().clientWidth + 1))
+
+		fireEvent.contextMenu(header('big'))
+
+		const item = Array.from(document.querySelectorAll('[role="menuitem"]')).find((el) =>
+			el.textContent?.includes('Auto-size this column'),
+		)
+
+		if (!item) throw new Error('no Auto-size this column item')
+
+		fireEvent.click(item)
+
+		// The single-column fit measures uncapped: the column lands at the smallest
+		// width that shows its content untruncated.
+		await waitFor(() => expect(leaf().scrollWidth).toBeLessThanOrEqual(leaf().clientWidth + 1))
+
+		expect(header('big').getBoundingClientRect().width).toBeGreaterThan(600)
 	})
 
 	it('fills the container without a phantom scrollbar under outline borders', async () => {

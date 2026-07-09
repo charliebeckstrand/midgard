@@ -55,6 +55,19 @@ type GridColumnAutoSizeOptions<T> = {
 const EMPTY_MEASUREMENT: ColumnMeasurement = { profiles: [], fixed: 0, floors: new Map() }
 
 /**
+ * The columns a fit measures uncapped: a user-invoked "Auto-size all columns"
+ * (`emit`) lifts the runaway-cell cap on every data column — each first gets the
+ * smallest width that shows its content whole, before any surplus levels the
+ * rest up to fill the grid — while an automatic fit keeps the cap and returns
+ * none. @internal
+ */
+function uncappedColumns<T>(emit: boolean, columns: GridColumn<T>[]): Set<string> | undefined {
+	if (!emit) return undefined
+
+	return new Set(columns.filter(isDataColumn).map((col) => String(col.id)))
+}
+
+/**
  * Runs an autosizer `setColumnSizing` write. An automatic fit holds
  * `autoSizingRef` true around it, so the table hook's `onColumnSizingChange` —
  * invoked synchronously inside the write — can tell it from a user resize and
@@ -189,6 +202,7 @@ export function useGridColumnAutoSize<T>({
 					manualPinned: manualPinnedRef.current,
 					released: widthReleasedRef.current,
 					runningContent: runningContentRef.current,
+					uncapped: uncappedColumns(emit, columns),
 				})
 			}
 
@@ -363,9 +377,11 @@ export function useGridColumnAutoSize<T>({
 	// Reset one column to its content width, leaving the rest held where they are —
 	// a reset re-fits the single column, not the grid. Measures with the column
 	// treated as auto-sized (so its intrinsic width resolves even while the others
-	// are held), then holds it at that width; clearing its running max first so the
-	// re-measure isn't floored by a stale wider row, and its `width` release so a
-	// `width`-seeded column re-measures from content rather than snapping back.
+	// are held) and uncapped (a user-invoked fit shows the content whole, past the
+	// automatic fit's runaway cap), then holds it at that width; clearing its
+	// running max first so the re-measure isn't floored by a stale wider row, and
+	// its `width` release so a `width`-seeded column re-measures from content
+	// rather than snapping back.
 	const resetColumn = useCallback(
 		(id: string | number) => {
 			const container = containerRef?.current
@@ -393,6 +409,7 @@ export function useGridColumnAutoSize<T>({
 				manualPinned: held,
 				released: widthReleasedRef.current,
 				runningContent: runningContentRef.current,
+				uncapped: new Set([key]),
 			})
 
 			for (const [colId, floor] of floors) columnFloors.set(colId, floor)

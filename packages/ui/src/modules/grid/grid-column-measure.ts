@@ -132,29 +132,105 @@ function collectCells(container: HTMLElement): {
 }
 
 /**
- * The widest content in a column's body cells, in border-box pixels. Each
- * truncating leaf (`data-grid-content`) fills its cell, so the cell's border box
- * minus the leaf's box is the cell chrome (padding + border), and the leaf's
- * intrinsic text width added back gives the border-box width the cell wants —
- * independent of the column's current width. A cell with no leaf (the editable
- * grid's mounted editor, or empty content) falls back to its own `scrollWidth`.
+ * A body leaf whose contents include element children (a Badge, an icon row, a
+ * composed cell), deferred to the batched `max-content` read — see
+ * {@link resolvePendingLeaves}. `chrome` is its cell's padding and border (the
+ * cell border box minus the leaf's), captured while the leaf still fills the
+ * cell.
  *
  * @internal
  */
-function bodyContentWidth(cells: HTMLElement[]): number {
+type PendingLeaf = { leaf: HTMLElement; chrome: number }
+
+/**
+ * One column's body scan: the widest content need resolved against the current
+ * layout (text-only and leafless cells), plus the element-bearing leaves
+ * awaiting the batched `max-content` read, which folds into `widest`.
+ *
+ * @internal
+ */
+type ColumnScan = { widest: number; pending: PendingLeaf[] }
+
+/**
+ * Scans a column's body cells against the current layout, in border-box pixels.
+ * Each truncating leaf (`data-grid-content`) fills its cell, so the cell's
+ * border box minus the leaf's box is the cell chrome (padding + border), and
+ * the leaf's content width added back gives the width the cell wants.
+ *
+ * A text-only leaf resolves here: clipped or not, `nowrap` text lays out at its
+ * full width under the overflow, so its intrinsic width (see
+ * {@link intrinsicWidth}) reads true in place. A leaf holding element children
+ * does not — an atomic shrink-to-fit box (a Badge's `fit-content`) genuinely
+ * narrows into a tight cell, so its in-place rect reports the shrunk width, not
+ * the natural one — those defer to {@link resolvePendingLeaves}. A cell with no
+ * leaf (the editable grid's mounted editor, or empty content) falls back to its
+ * own `scrollWidth`.
+ *
+ * @internal
+ */
+function scanBodyCells(cells: HTMLElement[]): ColumnScan {
 	let widest = 0
+
+	const pending: PendingLeaf[] = []
 
 	for (const td of cells) {
 		const leaf = td.querySelector<HTMLElement>('[data-grid-content]')
 
-		const need = leaf
-			? td.getBoundingClientRect().width - leaf.offsetWidth + intrinsicWidth(leaf)
-			: td.scrollWidth
+		if (!leaf) {
+			if (td.scrollWidth > widest) widest = td.scrollWidth
 
-		if (need > widest) widest = need
+			continue
+		}
+
+		const chrome = td.getBoundingClientRect().width - leaf.offsetWidth
+
+		if (leaf.childElementCount > 0) {
+			pending.push({ leaf, chrome })
+		} else {
+			const need = chrome + intrinsicWidth(leaf)
+
+			if (need > widest) widest = need
+		}
 	}
 
-	return widest
+	return { widest, pending }
+}
+
+/**
+ * Resolves the deferred element-bearing leaves (see {@link scanBodyCells}) by
+ * briefly laying each out at `width: max-content`: every leaf widens in one
+ * write pass, every rect is read in one pass (a single forced layout), then the
+ * inline widths revert — all synchronous inside the measurement, so nothing
+ * paints mid-flight and the truncation observers see no net change. Widening
+ * frees a shrink-to-fit child to its natural width, which the clipped in-place
+ * rect can't report, and folds each leaf's `chrome + width` into its column's
+ * `widest`. `scrollWidth` stands in where rect geometry is unavailable (jsdom),
+ * matching {@link intrinsicWidth}.
+ *
+ * @internal
+ */
+function resolvePendingLeaves(scans: readonly ColumnScan[]): void {
+	const pending: PendingLeaf[] = []
+
+	for (const scan of scans) pending.push(...scan.pending)
+
+	if (pending.length === 0) return
+
+	const prior = pending.map(({ leaf }) => leaf.style.width)
+
+	for (const { leaf } of pending) leaf.style.width = 'max-content'
+
+	for (const scan of scans) {
+		for (const { leaf, chrome } of scan.pending) {
+			const need = chrome + (Math.ceil(leaf.getBoundingClientRect().width) || leaf.scrollWidth)
+
+			if (need > scan.widest) scan.widest = need
+		}
+	}
+
+	pending.forEach(({ leaf }, i) => {
+		leaf.style.width = prior[i] ?? ''
+	})
 }
 
 /** A measured column slice: the auto-sized columns' {@link ColumnSizeProfile}s, the summed width held by the rest, and every data column's floor. @internal */
@@ -184,6 +260,14 @@ type MeasureOptions<T> = {
 	 * (no jitter). Mutated in place; cleared by the caller on a structural change.
 	 */
 	runningContent: Map<string, number>
+	/**
+	 * Columns measured to their full content width: the automatic fit's
+	 * runaway-cell cap ({@link DEFAULT_CONTENT_MAX}) lifts to each column's own
+	 * `maxWidth`, so a user-invoked fit ("Auto-size this column" / "Auto-size all
+	 * columns") lands on the smallest width that shows the content untruncated.
+	 * Absent for the automatic passes, which keep the cap.
+	 */
+	uncapped?: ReadonlySet<string>
 }
 
 /**
@@ -220,30 +304,34 @@ function columnFloor<T>(col: GridColumn<T>, th: HTMLElement | undefined, slotGap
 
 /**
  * Builds one auto-sized data column's {@link ColumnSizeProfile} from its `floor`
- * (see {@link columnFloor}) and rendered body cells. The width is driven by the
- * body content (capped so a runaway cell can't starve the rest, then folded into
- * the running max so a wider row paging in only grows the column); the floor is
- * always honored, so a single-word header still fits while a multi-word one
- * truncates to the data. `max` is the column's `maxWidth`, else unbounded — which
- * also lifts the content cap, an explicit ceiling being deliberate. A frozen
- * (pinned or locked) column is marked so the allocator holds it at content rather
- * than lifting it into the surplus.
+ * (see {@link columnFloor}) and measured body width (see {@link scanBodyCells}).
+ * The width is driven by the body content (capped so a runaway cell can't starve
+ * the rest, then folded into the running max so a wider row paging in only grows
+ * the column); the floor is always honored, so a single-word header still fits
+ * while a multi-word one truncates to the data. `max` is the column's
+ * `maxWidth`, else unbounded — which also lifts the content cap, an explicit
+ * ceiling being deliberate. An `uncapped` column (a user-invoked fit) lifts the
+ * cap the same way: showing the content whole is the point of the action, and a
+ * horizontal overflow is the accepted cost. A frozen (pinned or locked) column
+ * is marked so the allocator holds it at content rather than lifting it into
+ * the surplus.
  *
  * @internal
  */
 function columnProfile<T>(
 	col: GridColumn<T>,
-	cells: HTMLElement[],
+	bodyWidth: number,
 	floor: number,
 	runningContent: Map<string, number>,
+	uncapped: boolean,
 ): ColumnSizeProfile {
 	const id = String(col.id)
 
 	const max = col.maxWidth ?? Number.MAX_SAFE_INTEGER
 
-	const cap = col.maxWidth ?? DEFAULT_CONTENT_MAX
+	const cap = uncapped ? max : (col.maxWidth ?? DEFAULT_CONTENT_MAX)
 
-	const measured = Math.max(floor, Math.min(bodyContentWidth(cells), cap))
+	const measured = Math.max(floor, Math.min(bodyWidth, cap))
 
 	const content = Math.max(measured, runningContent.get(id) ?? 0)
 
@@ -285,8 +373,12 @@ export function isAutoSized<T>(
  * the caller to reserve.
  *
  * Measurements are read from the live DOM unclipped by the current column widths
- * (see {@link headerWidth} / {@link bodyContentWidth}), so re-measuring after the
- * autosizer resizes a column yields the same profile — no feedback loop.
+ * (see {@link headerWidth} / {@link scanBodyCells}), so re-measuring after the
+ * autosizer resizes a column yields the same profile — no feedback loop. Reads
+ * against the current layout all land first; the one measurement that needs a
+ * different layout — an element-bearing leaf, whose shrink-to-fit content clips
+ * with the cell — then runs as a single batched widen-read-revert (see
+ * {@link resolvePendingLeaves}).
  *
  * @internal
  */
@@ -297,6 +389,7 @@ export function measureColumnIntrinsics<T>({
 	manualPinned,
 	released,
 	runningContent,
+	uncapped,
 }: MeasureOptions<T>): ColumnMeasurement {
 	const { headers, bodies } = collectCells(container)
 
@@ -304,12 +397,14 @@ export function measureColumnIntrinsics<T>({
 	// class), so read it once for the whole pass instead of per column.
 	const slotGap = headerSlotGap(headers)
 
-	const profiles: ColumnSizeProfile[] = []
+	const scans = new Map<string, ColumnScan>()
 
 	const floors = new Map<string, number>()
 
 	let fixed = 0
 
+	// Pass one: every read against the current layout — header floors and body
+	// scans — before the batched leaf widening below dirties it.
 	for (const col of columns) {
 		const id = String(col.id)
 
@@ -322,15 +417,37 @@ export function measureColumnIntrinsics<T>({
 
 		// Every data column gets a floor — a `width`-held or drag-held one honors it on
 		// a resize even though it sits out the distribution.
-		const floor = columnFloor(col, headers.get(id), slotGap)
-
-		floors.set(id, floor)
+		floors.set(id, columnFloor(col, headers.get(id), slotGap))
 
 		if (isAutoSized(col, manualPinned, released)) {
-			profiles.push(columnProfile(col, bodies.get(id) ?? [], floor, runningContent))
+			scans.set(id, scanBodyCells(bodies.get(id) ?? []))
 		} else {
 			fixed += table.getColumn(id)?.getSize() ?? DEFAULT_COLUMN_SIZE
 		}
+	}
+
+	// Pass two: widen the element-bearing leaves to `max-content` and read the
+	// widths the clipped layout couldn't show (a Badge shrunk into a narrow cell).
+	resolvePendingLeaves([...scans.values()])
+
+	const profiles: ColumnSizeProfile[] = []
+
+	for (const col of columns) {
+		const id = String(col.id)
+
+		const scan = scans.get(id)
+
+		if (!scan) continue
+
+		profiles.push(
+			columnProfile(
+				col,
+				scan.widest,
+				floors.get(id) ?? 0,
+				runningContent,
+				uncapped?.has(id) ?? false,
+			),
+		)
 	}
 
 	return { profiles, fixed, floors }

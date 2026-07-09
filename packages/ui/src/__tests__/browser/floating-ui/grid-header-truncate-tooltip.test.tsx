@@ -96,7 +96,7 @@ describe('grid header truncation tooltip (real browser)', () => {
 		fireEvent.mouseUp(document, { clientX: x - 30, clientY: y })
 	})
 
-	it('reveals the header tooltip for a title clipped by a sub-tenth-of-a-pixel amount', async () => {
+	it('reveals the header tooltip for a title clipped by a sub-tenth-of-a-pixel amount', async (ctx) => {
 		// The header shares the cell's overflow detector, so it shared the dead zone:
 		// a title clipped by a fraction of a pixel (the ellipsis painted) read as
 		// fitting, withholding the tooltip until the column shrank further. The
@@ -116,6 +116,21 @@ describe('grid header truncation tooltip (real browser)', () => {
 
 		const column = { id: 'name', title: longTitle, cell: (row: Row) => row.name } as const
 
+		// Container-scoped throughout — the pointer can be parked over the grid from
+		// an earlier test, auto-opening the hover tooltip whose content duplicates
+		// the title and makes a document-wide text query ambiguous.
+		const settledSpan = async (root: HTMLElement, settle = 20) => {
+			await waitFor(() => expect(titleSpan(root)).not.toBeNull())
+
+			await new Promise((resolve) => setTimeout(resolve, settle))
+
+			const span = titleSpan(root)
+
+			if (!span) throw new Error('header title span not found')
+
+			return span
+		}
+
 		// Probe: title content width and the fixed header chrome (sort/resize/padding).
 		const probe = renderUI(
 			<Grid
@@ -127,13 +142,7 @@ describe('grid header truncation tooltip (real browser)', () => {
 			/>,
 		)
 
-		await screen.findByText(longTitle)
-
-		await new Promise((resolve) => setTimeout(resolve, 30))
-
-		const probed = titleSpan(probe.container)
-
-		if (!probed) throw new Error('header title span not found')
+		const probed = await settledSpan(probe.container, 30)
 
 		const boundary = probed.scrollWidth + (300 - probed.clientWidth)
 
@@ -155,13 +164,9 @@ describe('grid header truncation tooltip (real browser)', () => {
 				/>,
 			)
 
-			await screen.findByText(longTitle)
+			const span = await settledSpan(container)
 
-			await new Promise((resolve) => setTimeout(resolve, 20))
-
-			const span = titleSpan(container)
-
-			if (span && span.scrollWidth === span.clientWidth) {
+			if (span.scrollWidth === span.clientWidth) {
 				const overflow = measureOverflow(span)
 
 				if (overflow > 0.02 && overflow < 0.1) deadZone = w
@@ -170,9 +175,14 @@ describe('grid header truncation tooltip (real browser)', () => {
 			unmount()
 		}
 
-		if (deadZone === undefined) throw new Error('no sub-tenth-pixel clip width found in sweep')
+		// Where scroll/client round apart on any fractional clip, no dead-zone width
+		// exists for the detector to miss and the assertion has nothing to bite on.
+		if (deadZone === undefined)
+			return ctx.skip(
+				'no sub-tenth-pixel dead-zone width exists in this environment (font/rounding dependent)',
+			)
 
-		renderUI(
+		const { container } = renderUI(
 			<Grid
 				resizable
 				columns={[column]}
@@ -182,7 +192,9 @@ describe('grid header truncation tooltip (real browser)', () => {
 			/>,
 		)
 
-		await userEvent.hover(screen.getByText(longTitle))
+		// Hover the header's own span, not a text query: the parked pointer may have
+		// already opened the tooltip, whose content repeats the title.
+		await userEvent.hover(await settledSpan(container))
 
 		const tip = await screen.findByRole('tooltip')
 
