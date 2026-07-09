@@ -11,12 +11,12 @@ import type { ChartLegendReference } from './chart-legend'
 import { REFERENCE_RISE, referenceRise } from './chart-motion'
 import { bandExtent, type ChartOrientation, project, type Vec } from './chart-orientation'
 import type { LinearScale } from './chart-scale'
-import type { ChartReferenceLine, ChartValueAxisSide } from './chart-schema'
+import type { ChartReferenceLine, ChartValueAxisId } from './chart-schema'
 import { formatChartValue, isSeriesSlot } from './chart-series'
 import { useChartEmphasis, useChartTier } from './context'
 
 /** Formats a reference value with its own axis's formatter. @internal */
-type ReferenceFormat = (value: number, axis: ChartValueAxisSide) => string
+type ReferenceFormat = (value: number, axis: ChartValueAxisId) => string
 
 /** The neutral de-emphasis slot a reference takes until coloured. @internal */
 const DEFAULT_REFERENCE_COLOR = 'zinc' satisfies ChartSeriesColor
@@ -26,8 +26,8 @@ export type ChartReferenceLinesProps = {
 	plot: PlotRect
 	/** The resolved primary value scale, or `null` before a domain resolves. */
 	scale: LinearScale | null
-	/** The secondary scale, for rules bound to the right axis; a rule whose scale is `null` draws nothing. */
-	rightScale?: LinearScale | null
+	/** The secondary scale, for rules bound to `y2`; a rule whose scale is `null` draws nothing. */
+	y2Scale?: LinearScale | null
 	/** The reference lines to draw, or none; non-finite values are skipped. */
 	reference: ChartReferenceLine[] | undefined
 	/**
@@ -390,7 +390,7 @@ function ReferenceRule(props: ReferenceRuleProps) {
 export function ChartReferenceLines({
 	plot,
 	scale,
-	rightScale = null,
+	y2Scale = null,
 	reference,
 	orientation = 'vertical',
 	format,
@@ -398,7 +398,7 @@ export function ChartReferenceLines({
 	labels = false,
 	hidden,
 }: ChartReferenceLinesProps) {
-	if ((!scale && !rightScale) || !reference || reference.length === 0) return null
+	if ((!scale && !y2Scale) || !reference || reference.length === 0) return null
 
 	const [from, to] = bandExtent(orientation, plot)
 
@@ -416,9 +416,9 @@ export function ChartReferenceLines({
 	const group = (
 		<g data-slot="chart-reference-lines">
 			{reference.map((line, index) => {
-				const axis = line.axis ?? 'left'
+				const axis = line.axis ?? 'y'
 
-				const ruleScale = axis === 'right' ? rightScale : scale
+				const ruleScale = axis === 'y2' ? y2Scale : scale
 
 				// A rule toggled off through its chip draws nothing but keeps its slot, so
 				// a shown rule's emphasis still keys off its own `reference` index.
@@ -476,7 +476,7 @@ export function ChartReferenceList({ reference, format, hidden }: ChartReference
 
 	const resolvedFormat = format ?? formatChartValue
 
-	const value = (line: ChartReferenceLine) => resolvedFormat(line.value, line.axis ?? 'left')
+	const value = (line: ChartReferenceLine) => resolvedFormat(line.value, line.axis ?? 'y')
 
 	return (
 		<ul data-slot="chart-reference-list" className="sr-only">
@@ -510,7 +510,7 @@ export function referenceLegendItems(
 		.map(({ line, index }) => {
 			const color = line.color ?? DEFAULT_REFERENCE_COLOR
 
-			const label = line.label ?? format(line.value, line.axis ?? 'left')
+			const label = line.label ?? format(line.value, line.axis ?? 'y')
 
 			// Mirror the rule: dashed unless it is explicitly drawn solid.
 			const dashed = line.dashed !== false

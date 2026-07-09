@@ -18,7 +18,7 @@ function line(type?: 'category' | 'time') {
 			data={DAILY}
 			series={[{ xKey: 'day', yKey: 'visits', yName: 'Visits' }]}
 			width={600}
-			axes={type ? [{ axis: 'x', type }] : true}
+			axes={type ? { x: { type } } : true}
 		/>,
 	)
 }

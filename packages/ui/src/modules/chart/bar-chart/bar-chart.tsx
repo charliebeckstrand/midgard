@@ -95,7 +95,7 @@ export function BarChart<T>(props: BarChartProps<T>) {
 		height,
 		aspectRatio,
 		axes,
-		gridLines = true,
+		grid = true,
 		legend,
 		tooltip,
 		crosshair,
@@ -256,13 +256,13 @@ export function BarChart<T>(props: BarChartProps<T>) {
 				plot={chart.plot}
 				valueTicks={chart.yTicks}
 				hasScale={chart.yScale !== null}
-				rightTicks={chart.rightTicks}
-				hasRightScale={chart.rightScale !== null}
+				y2Ticks={chart.y2Ticks}
+				hasY2Scale={chart.y2Scale !== null}
 				categoryTicks={chart.xTicks}
 				hasData={data.length > 0}
 				baseline={chart.baseline}
 				axes={chart.axes}
-				gridLines={gridLines}
+				grid={grid}
 				gridPositions={chart.gridPositions}
 				categoryGridPositions={chart.categoryGridPositions}
 				categorySeparator={chart.categorySeparator}
@@ -319,7 +319,7 @@ export function BarChart<T>(props: BarChartProps<T>) {
 			<ChartReferenceLines
 				plot={chart.plot}
 				scale={chart.yScale}
-				rightScale={chart.rightScale}
+				y2Scale={chart.y2Scale}
 				reference={reference}
 				orientation={chart.orientation}
 				format={chart.formatAxisValue}

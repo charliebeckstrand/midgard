@@ -11,10 +11,10 @@ export type ChartCartesianAxesProps = {
 	valueTicks: ChartAxisTick[]
 	/** Whether the primary value scale resolved — an empty domain draws no value axis. */
 	hasScale: boolean
-	/** Secondary value ticks along the far side; empty without a right scale. */
-	rightTicks?: ChartAxisTick[]
+	/** Secondary value ticks along the far side; empty without a `y2` scale. */
+	y2Ticks?: ChartAxisTick[]
 	/** Whether the secondary scale resolved — it draws on the right (vertical) or top (horizontal). */
-	hasRightScale?: boolean
+	hasY2Scale?: boolean
 	/** Category labels along the band axis. */
 	categoryTicks: ChartAxisTick[]
 	/** Whether there are rows to label the category axis. */
@@ -24,7 +24,7 @@ export type ChartCartesianAxesProps = {
 	/** Draw the axes. */
 	axes: boolean
 	/** Draw the value gridlines. */
-	gridLines: boolean
+	grid: boolean
 	/**
 	 * The gridline positions, per-axis participation already applied; defaults
 	 * to the primary ticks so a single-axis chart passes nothing extra.
@@ -32,7 +32,7 @@ export type ChartCartesianAxesProps = {
 	gridPositions?: number[]
 	/**
 	 * The band-axis positions for the category dividers, one per boundary between
-	 * rows; empty draws none. Already gated by the chart's `categories.separator`
+	 * rows; empty draws none. Already gated by the category axis's `separator`
 	 * switch and tier.
 	 */
 	categoryGridPositions?: number[]
@@ -60,13 +60,13 @@ export function ChartCartesianAxes({
 	plot,
 	valueTicks,
 	hasScale,
-	rightTicks = [],
-	hasRightScale = false,
+	y2Ticks = [],
+	hasY2Scale = false,
 	categoryTicks,
 	hasData,
 	baseline,
 	axes,
-	gridLines,
+	grid,
 	gridPositions,
 	categoryGridPositions = [],
 	categorySeparator,
@@ -78,7 +78,7 @@ export function ChartCartesianAxes({
 
 	return (
 		<>
-			{gridLines && positions.length > 0 && (
+			{grid && positions.length > 0 && (
 				<ChartGridLines plot={plot} ticks={positions} orientation={orientation} />
 			)}
 
@@ -102,12 +102,12 @@ export function ChartCartesianAxes({
 				/>
 			)}
 
-			{axes && hasRightScale && (
+			{axes && hasY2Scale && (
 				<ChartAxis
 					axis={vertical ? 'y' : 'x'}
 					position={vertical ? 'right' : 'top'}
 					plot={plot}
-					ticks={rightTicks}
+					ticks={y2Ticks}
 				/>
 			)}
 

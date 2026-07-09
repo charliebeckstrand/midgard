@@ -137,9 +137,9 @@ describe('chartPolicy axis titles', () => {
 
 describe('chartPolicy gridlines', () => {
 	it('draws gridlines except at spark', () => {
-		expect(chartPolicy(SPARK_WIDTH - 1, 300, CAP).gridLines).toBe(false)
+		expect(chartPolicy(SPARK_WIDTH - 1, 300, CAP).grid).toBe(false)
 
-		expect(chartPolicy(COMPACT_WIDTH, 300, CAP).gridLines).toBe(true)
+		expect(chartPolicy(COMPACT_WIDTH, 300, CAP).grid).toBe(true)
 	})
 })
 

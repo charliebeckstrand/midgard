@@ -62,7 +62,7 @@ export type ChartPolicy = {
 	/** Whether the value-axis titles have room to draw. */
 	axisTitles: boolean
 	/** Whether the hairline gridlines draw. */
-	gridLines: boolean
+	grid: boolean
 	/**
 	 * How many rows a stacked (top / bottom) legend band may take before the rest
 	 * collapse into a `+N` overflow chip: two where the frame is tall and wide,
@@ -164,7 +164,7 @@ export function isSparkBox(width: number, height: number): boolean {
  * Resolves the anatomy {@link ChartPolicy} for a plot box of `width` × `height`,
  * capping the height-driven tick target at the density ceiling `tickCap`. Pure
  * and space-only: it reads the box the frame measured and never the viewport,
- * and it never consults the caller's `axes` / `gridLines` intent — a chart
+ * and it never consults the caller's `axes` / `grid` intent — a chart
  * composes those at the layout boundary, so a policy is deterministic in its box
  * alone and testable without a render.
  *
@@ -205,7 +205,7 @@ export function chartPolicy(
 			tickTarget: 0,
 			compactFormat: true,
 			axisTitles: false,
-			gridLines: false,
+			grid: false,
 			legendRows: 0,
 		}
 	}
@@ -217,7 +217,7 @@ export function chartPolicy(
 		tickTarget: Math.max(MIN_TICK_TARGET, Math.min(Math.floor(height / TICK_SPACING), tickCap)),
 		compactFormat: width < COMPACT_WIDTH,
 		axisTitles: width >= AXIS_TITLE_WIDTH && height >= AXIS_TITLE_HEIGHT,
-		gridLines: true,
+		grid: true,
 		// A stacked band takes two rows only where it has both the width to pack them
 		// and the height to spend on them; a narrow or short frame holds one row and
 		// chips the rest. A fill frame grants by width alone — its measured height

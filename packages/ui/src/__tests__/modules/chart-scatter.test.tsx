@@ -246,7 +246,7 @@ describe('ScatterChart', () => {
 				data={STOPS}
 				width={480}
 				series={[{ xKey: 'distance', yKey: 'dwell', yName: 'Dwell' }]}
-				axes={[{ axis: 'x', format: (value) => `${value} mi` }]}
+				axes={{ x: { format: (value: number) => `${value} mi` } }}
 			/>,
 		)
 
@@ -272,7 +272,7 @@ describe('ScatterChart', () => {
 				data={STOPS}
 				width={480}
 				series={[{ xKey: 'distance', yKey: 'dwell', yName: 'Dwell' }]}
-				axes={[{ axis: 'x', format: (value) => `${value} mi` }]}
+				axes={{ x: { format: (value: number) => `${value} mi` } }}
 			/>,
 		)
 
@@ -397,10 +397,7 @@ describe('scatter axis titles', () => {
 				width={560}
 				height={360}
 				series={[{ xKey: 'distance', yKey: 'dwell', yName: 'Dwell' }]}
-				axes={[
-					{ axis: 'x', title: 'Distance' },
-					{ axis: 'y', title: 'Dwell' },
-				]}
+				axes={{ x: { title: 'Distance' }, y: { title: 'Dwell' } }}
 			/>,
 		)
 
@@ -431,7 +428,7 @@ describe('scatter axis titles', () => {
 				width={120}
 				height={40}
 				series={[{ xKey: 'distance', yKey: 'dwell', yName: 'Dwell' }]}
-				axes={[{ axis: 'x', title: 'Distance' }]}
+				axes={{ x: { title: 'Distance' } }}
 			/>,
 		)
 

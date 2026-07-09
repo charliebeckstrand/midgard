@@ -6,7 +6,7 @@
 import { cn } from '../../core'
 import { type ChartSeriesColor, k } from '../../recipes/kata/chart'
 import { formatFraction, formatInteger, resolveFormat } from '../../utilities'
-import type { ChartSeries, ChartValueAxisSide, DataKey } from './chart-schema'
+import type { ChartSeries, ChartValueAxisId, DataKey } from './chart-schema'
 import type { ChartReadout } from './types'
 
 /** The em-dash a readout shows where a datum is non-finite. @internal */
@@ -173,7 +173,7 @@ export type SeriesMeta = {
 	swatch: 'rect' | 'line'
 	values: (number | null)[]
 	/** The value axis the series reads against — its scale, formatter, and baseline. */
-	axis: ChartValueAxisSide
+	axis: ChartValueAxisId
 	/** Draw the connecting stroke dashed rather than solid; bars have none to dash. */
 	dashed?: boolean
 }
@@ -193,7 +193,7 @@ export function chartReadout<T>(
 	data: T[],
 	xKey: DataKey<T>,
 	metas: SeriesMeta[],
-	format: (value: number, axis: ChartValueAxisSide) => string,
+	format: (value: number, axis: ChartValueAxisId) => string,
 	formatCategory: (value: unknown) => string = String,
 ): ChartReadout {
 	return {

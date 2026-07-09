@@ -133,11 +133,11 @@ function comboMarkAt(
 
 /**
  * A combined bar, line, and area chart: one shared value axis by default, with
- * a second on request — a series carrying `axis: 'right'` reads the secondary
- * scale the `{ position: 'right' }` axis entry shapes, so a count plots beside a
- * currency at its natural size. Bars sit at the back, the translucent area washes ride over
- * them, and lines draw on top; every series reads a zero-baseline domain, and
- * the frame is the cartesian standard: axes, gridlines, legend, crosshair
+ * a second on request — a series carrying `axis: 'y2'` reads the secondary
+ * scale the chart's `axes.y2` config shapes, so a count plots beside a currency
+ * at its natural size. Bars sit at the back, the translucent area washes ride
+ * over them, and lines draw on top; every series reads a zero-baseline domain,
+ * and the frame is the cartesian standard: axes, grid, legend, crosshair
  * tooltip, and the visually-hidden data table.
  *
  * @remarks Under `animate`, the bars rise, the area washes fade, and the lines
@@ -153,9 +153,9 @@ function comboMarkAt(
  *   data={weeks}
  *   series={[
  *     { type: 'area', xKey: 'week', yKey: 'shipments', yName: 'Shipments' },
- *     { type: 'line', xKey: 'week', yKey: 'exceptions', yName: 'Exceptions', axis: 'right' },
+ *     { type: 'line', xKey: 'week', yKey: 'exceptions', yName: 'Exceptions', axis: 'y2' },
  *   ]}
- *   axes={[{ position: 'right', title: 'Exceptions' }]}
+ *   axes={{ y2: { title: 'Exceptions' } }}
  * />
  * ```
  */
@@ -168,7 +168,7 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 		height,
 		aspectRatio,
 		axes,
-		gridLines = true,
+		grid = true,
 		legend,
 		tooltip,
 		crosshair,
@@ -387,7 +387,7 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 		>
 			{tex.defs}
 
-			{gridLines && chart.gridPositions.length > 0 && (
+			{grid && chart.gridPositions.length > 0 && (
 				<ChartGridLines plot={chart.plot} ticks={chart.gridPositions} />
 			)}
 
@@ -402,8 +402,8 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 
 			{chart.axes && chart.yScale && <ChartAxis axis="y" plot={chart.plot} ticks={chart.yTicks} />}
 
-			{chart.axes && chart.rightScale && (
-				<ChartAxis axis="y" position="right" plot={chart.plot} ticks={chart.rightTicks} />
+			{chart.axes && chart.y2Scale && (
+				<ChartAxis axis="y" position="right" plot={chart.plot} ticks={chart.y2Ticks} />
 			)}
 
 			{chart.axes && data.length > 0 && (
@@ -458,7 +458,7 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 			<ChartReferenceLines
 				plot={chart.plot}
 				scale={chart.yScale}
-				rightScale={chart.rightScale}
+				y2Scale={chart.y2Scale}
 				reference={reference}
 				format={chart.formatAxisValue}
 				animate={animate}
