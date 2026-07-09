@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../components/tabs'
 import { BarChart } from '../../modules/chart/bar-chart'
 import { HeatmapChart } from '../../modules/chart/heatmap-chart'
+import { PieChart } from '../../modules/chart/pie-chart'
 import { renderUI, waitFor } from '../helpers'
 
 /**
@@ -282,5 +283,157 @@ describe('chart resize tracking (real browser)', () => {
 		await waitFor(() => expect(asideNow()).toBe(true))
 
 		await waitFor(() => tracks())
+	})
+})
+
+/** The chart root's published anatomy tier, or `null` before one resolves. */
+function chartTier(container: HTMLElement): string | null {
+	return container.querySelector('[data-slot="chart"]')?.getAttribute('data-tier') ?? null
+}
+
+/**
+ * Fill mode (`aspectRatio={false}`) under a real engine: the plot's measured
+ * height is the remainder the chart's own chrome leaves in the shared
+ * container, so any chrome decision read from it — spark dropping the header
+ * and legend, the legend-row grant — moves its own input and the layout-effect
+ * re-measure chain loops until React aborts at max update depth (the dashboard
+ * tile crash). These pin the fix: fill resolves its chrome from width alone,
+ * so a resize sweep across the old spark boundary lands on one stable tier.
+ */
+describe('chart fill-mode resize stability (real browser)', () => {
+	const SERIES = (['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'] as const).map((key, index) => ({
+		xKey: 'x' as const,
+		yKey: key,
+		yName: `Series ${index + 1}`,
+	}))
+
+	const ROWS = [
+		{ x: 'Q1', a: 2, b: 3, c: 4, d: 5, e: 6, f: 7, g: 8, h: 9 },
+		{ x: 'Q2', a: 4, b: 6, c: 8, d: 10, e: 12, f: 14, g: 16, h: 18 },
+		{ x: 'Q3', a: 6, b: 9, c: 12, d: 15, e: 18, f: 21, g: 24, h: 27 },
+		{ x: 'Q4', a: 8, b: 12, c: 16, d: 20, e: 24, f: 28, g: 32, h: 36 },
+	]
+
+	/** A fill bar chart wearing the dashboard chrome: two header lines and a wrapping legend. */
+	function fillChart() {
+		return (
+			<BarChart
+				aria-label="Values by quarter"
+				title="Quarterly values"
+				subtitle="All teams"
+				data={ROWS}
+				series={SERIES}
+				aspectRatio={false}
+			/>
+		)
+	}
+
+	/** Uncaught errors reported while `run` executes — the crash channel React aborts through. */
+	async function collectErrors(run: () => Promise<void>): Promise<unknown[]> {
+		const errors: unknown[] = []
+
+		const onError = (event: ErrorEvent) => errors.push(event.error ?? event.message)
+
+		window.addEventListener('error', onError)
+
+		try {
+			await run()
+		} finally {
+			window.removeEventListener('error', onError)
+		}
+
+		return errors
+	}
+
+	it('sweeps an aspect-ratio tile across the old spark boundary without looping', async () => {
+		// The dashboard shape: a tile whose height derives from its width, so a
+		// width drag moves the height every frame. Shrinking walks the plot
+		// remainder through SPARK_HEIGHT — where the tier used to flip between
+		// spark (chrome dropped, remainder tall) and compact (chrome kept,
+		// remainder short) until React threw.
+		const { container } = renderUI(
+			<div data-testid="host" style={{ width: 400 }}>
+				<div style={{ aspectRatio: '4 / 3' }}>{fillChart()}</div>
+			</div>,
+		)
+
+		const host = container.querySelector<HTMLElement>('[data-testid="host"]')
+
+		if (!host) throw new Error('no host rendered')
+
+		await waitFor(() => expect(frameWidth(container)).toBe('400'))
+
+		const errors = await collectErrors(async () => {
+			for (const width of [360, 320, 280, 260, 240]) {
+				host.style.width = `${width}px`
+
+				await frames()
+
+				// Fill never sparks by height, whatever remainder this drag frame left.
+				expect(chartTier(container)).not.toBe('spark')
+			}
+		})
+
+		expect(errors).toEqual([])
+
+		// The chain settles: one committed tier, and the drawing tracks the box.
+		await waitFor(() => expect(frameWidth(container)).toBe('240'))
+
+		expect(chartTier(container)).toBe('compact')
+
+		await frames()
+
+		expect(chartTier(container)).toBe('compact')
+	})
+
+	it('mounts a fill pie with a side legend in a small tile without looping', async () => {
+		// The visible dashboard failure: below the side rail's engage width the
+		// panel stacks under the plot, its rows leave a sub-spark remainder, and
+		// the mount settle chain used to flip spark ↔ compact until React threw —
+		// the tile showing only a clipped legend and no plot.
+		const SLICES = ['One', 'Two', 'Three', 'Four', 'Five', 'Six'].map((slice, index) => ({
+			slice,
+			value: index + 1,
+		}))
+
+		const errors = await collectErrors(async () => {
+			const { container } = renderUI(
+				<div data-testid="host" style={{ width: 300, height: 240 }}>
+					<PieChart
+						aria-label="Share by slice"
+						data={SLICES}
+						series={[{ xKey: 'slice', yKey: 'value' }]}
+						aspectRatio={false}
+						legend="right"
+					/>
+				</div>,
+			)
+
+			await waitFor(() => expect(chartTier(container)).toBe('compact'))
+
+			await frames()
+
+			expect(chartTier(container)).toBe('compact')
+		})
+
+		expect(errors).toEqual([])
+	})
+
+	it('degrades to a framed chart, not a loop, when no parent height is definite', async () => {
+		// An auto-height parent gives `h-full` nothing to resolve against, so the
+		// remainder collapses to content — a height fill mode cannot trust. The
+		// chrome still resolves from the width: a framed compact chart with a
+		// collapsed plot, never a sparkline and never a re-measure loop.
+		const errors = await collectErrors(async () => {
+			const { container } = renderUI(<div style={{ width: 400 }}>{fillChart()}</div>)
+
+			await waitFor(() => expect(chartTier(container)).toBe('compact'))
+
+			await frames()
+
+			expect(chartTier(container)).toBe('compact')
+		})
+
+		expect(errors).toEqual([])
 	})
 })

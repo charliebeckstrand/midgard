@@ -19,6 +19,7 @@ export type {
 	GridPinning,
 	GridPinningState,
 	GridPreferences,
+	GridReorder,
 	GridRowReorder,
 	GridSelection,
 	GridSort,

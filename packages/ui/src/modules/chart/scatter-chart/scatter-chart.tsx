@@ -496,31 +496,23 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 		placement,
 	} = scatterFrame(legend, height, aspectRatio)
 
-	const {
-		ref,
-		width: frameWidth,
-		height: frameHeight,
-		containerHeight,
-		reserve,
-	} = usePlotFrame(width, sizing)
+	const { ref, width: frameWidth, height: frameHeight, reserve } = usePlotFrame(width, sizing)
 
 	// The scatter reads the intrinsic tier from its measured box for the
 	// `data-tier` styling hook and the legend's row cap; its own axis ticks keep
 	// the density target above, so only the tier and its legend budget are taken.
-	// Under a stacked figure (a shared ratio or a free-form fill) the plot's
-	// measured remainder shrinks with the legend and jumps when spark drops it, so
-	// resolve the tier against a height no tier decision perturbs. A scatter carries
-	// no header, so the chrome is the legend alone.
-	const policyHeight = policyPlotHeight(
-		frameHeight,
-		frameWidth,
-		frameAspect,
-		{ headerLines: 0, legend: Boolean(legend ?? series.length > 1) && !aside },
-		sizing.mode === 'fill',
-		containerHeight,
-	)
+	// Under a stacked aspect-fill figure the plot's measured remainder shrinks
+	// with the legend and jumps when spark drops it, so resolve the tier against
+	// the figure's `width / ratio` less that legend instead of the remainder it
+	// would loop on. A scatter carries no header, so the chrome is the legend alone.
+	// A free-form fill frame shares that box with no ratio to derive a safe height
+	// from, so the policy's fill flag resolves the chrome decisions by width alone.
+	const policyHeight = policyPlotHeight(frameHeight, frameWidth, frameAspect, {
+		headerLines: 0,
+		legend: Boolean(legend ?? series.length > 1) && !aside,
+	})
 
-	const policy = chartPolicy(frameWidth, policyHeight, metrics.tickTarget)
+	const policy = chartPolicy(frameWidth, policyHeight, metrics.tickTarget, sizing.mode === 'fill')
 
 	// Spark stands the chart's chrome down to bare marks: ScatterChrome and
 	// scatterScales read this to shed their axis labels, gridlines, and the gutter

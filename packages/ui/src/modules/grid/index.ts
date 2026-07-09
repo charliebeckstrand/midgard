@@ -25,6 +25,7 @@ export {
 	type GridPinningState,
 	type GridPreferences,
 	type GridProps,
+	type GridReorder,
 	type GridRowClick,
 	type GridRowReorder,
 	type GridSelection,

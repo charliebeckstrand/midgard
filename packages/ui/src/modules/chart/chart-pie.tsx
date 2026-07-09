@@ -854,32 +854,29 @@ export function ChartPie<T>(props: ChartPieProps<T>) {
 		stackedLegend,
 	} = pieFrame(sizing, legend, data.length)
 
-	const {
-		ref,
-		width: frameWidth,
-		height: frameHeight,
-		containerHeight,
-		reserve,
-	} = usePlotFrame(width, frameSizing)
+	const { ref, width: frameWidth, height: frameHeight, reserve } = usePlotFrame(width, frameSizing)
 
 	// The pie reads the same intrinsic tier as a cartesian chart from its measured
 	// box — the `data-tier` styling hook, and the legend's row cap so a many-slice
 	// stacked legend never overruns the frame the way it used to. It has no value
 	// ticks, so the density ceiling the tick target would clamp is moot here.
-	// Under a stacked figure (a shared ratio or a free-form fill) the plot's
-	// measured remainder shrinks with the legend and jumps when spark drops it, so
-	// resolve the tier against a height no tier decision perturbs. A pie carries no
-	// header, so the chrome is the legend alone.
-	const policyHeight = policyPlotHeight(
-		frameHeight,
-		frameWidth,
-		frameAspect,
-		{ headerLines: 0, legend: stackedLegend },
-		frameSizing.mode === 'fill',
-		containerHeight,
-	)
+	// Under a stacked aspect-fill figure the plot's measured remainder shrinks with
+	// the legend and jumps when spark drops it, so resolve the tier against the
+	// figure's `width / ratio` less that legend rather than the remainder it would
+	// loop on. A pie carries no header, so the chrome is the legend alone. A
+	// free-form fill frame shares that box with no ratio to derive a safe height
+	// from, so the policy's fill flag resolves the chrome decisions by width alone.
+	const policyHeight = policyPlotHeight(frameHeight, frameWidth, frameAspect, {
+		headerLines: 0,
+		legend: stackedLegend,
+	})
 
-	const policy = chartPolicy(frameWidth, policyHeight, CHART_METRICS.md.tickTarget)
+	const policy = chartPolicy(
+		frameWidth,
+		policyHeight,
+		CHART_METRICS.md.tickTarget,
+		frameSizing.mode === 'fill',
+	)
 
 	const { hidden, toggle, setFocus, emphasis } = useChartSeriesToggle()
 

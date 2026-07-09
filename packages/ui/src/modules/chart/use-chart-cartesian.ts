@@ -650,33 +650,26 @@ export function useChartCartesian<T>(
 
 	const { sizing, outerAspect } = chartFrameLayout(height, aspectRatio, aside)
 
-	const {
-		ref,
-		width: frameWidth,
-		height: frameHeight,
-		containerHeight,
-		reserve,
-	} = usePlotFrame(width, sizing)
+	const { ref, width: frameWidth, height: frameHeight, reserve } = usePlotFrame(width, sizing)
 
 	// The measured plot box resolves the anatomy tier: the value gutter's compact
 	// format and the band-label density from width, the tick count from height,
 	// density still capping the ticks. Its budgets fold into the layout below.
-	// A stacked figure (a shared ratio or a free-form fill) shares its box with the
-	// header and legend, so measuring the plot's remainder for the tier loops —
-	// spark drops that chrome, the remainder jumps, the tier flips back.
-	// `policyPlotHeight` resolves it against a height no tier decision perturbs (the
-	// figure's `width / ratio`, or a free-form fill's measured container box); the
-	// drawing still fills the measured remainder.
+	// A stacked aspect-fill figure shares its ratio box with the header and legend,
+	// so measuring the plot's remainder for the tier loops — spark drops that
+	// chrome, the remainder jumps, the tier flips back. Resolve it against the
+	// figure's own `width / ratio` less the chrome instead; the drawing still fills
+	// the measured remainder. A free-form fill frame shares that box with no ratio
+	// to derive a safe height from, so the policy's fill flag resolves the
+	// chrome-affecting decisions from the width alone.
 	const policyHeight = policyPlotHeight(
 		frameHeight,
 		frameWidth,
 		outerAspect,
 		cartesianChrome(props, aside),
-		sizing.mode === 'fill',
-		containerHeight,
 	)
 
-	const policy = chartPolicy(frameWidth, policyHeight, metrics.tickTarget)
+	const policy = chartPolicy(frameWidth, policyHeight, metrics.tickTarget, sizing.mode === 'fill')
 
 	// Spark stands the axis chrome down to a bare sparkline; every wider tier keeps
 	// the caller's `axes` intent. The value gutter, band labels, and titles all

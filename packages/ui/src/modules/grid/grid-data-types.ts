@@ -413,6 +413,32 @@ export type GridColumnOrder = {
 }
 
 /**
+ * Column-reorder config for {@link GridProps.reorder}. The boolean is the
+ * shorthand — `true` turns reordering on with a leading grip on each
+ * reorderable header, `false` (or omit) off. The object form keeps that toggle
+ * in `enabled` and adds `handle` to choose what the user grabs.
+ */
+export type GridReorder = {
+	/**
+	 * Whether column reordering is on. Defaults to `true` in the object form —
+	 * passing the object is itself the opt-in — so `{ handle: false }` enables
+	 * reordering with a whole-header handle.
+	 * @defaultValue true
+	 */
+	enabled?: boolean
+	/**
+	 * The drag affordance. `true` prefixes each reorderable header with a grip
+	 * button that carries the drag activator. `false` makes the *entire* header
+	 * the drag handle: the header cell takes the grab cursor (grabbing while
+	 * lifted) and the pointer/keyboard activator, and no grip renders. A sortable
+	 * column's sort control keeps its pointer cursor — set on the control itself,
+	 * it out-resolves the header's inherited grab cursor on that child.
+	 * @defaultValue true
+	 */
+	handle?: boolean
+}
+
+/**
  * Runtime pin state for {@link GridPinning}, keyed by stringified column id: a
  * side freezes the column to that edge, `'none'` unpins a statically-pinned
  * one. Columns absent keep their {@link GridColumn.pinned} flag; a
@@ -841,14 +867,18 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	exportable?: boolean | GridExportEntry<T>[]
 
 	/**
-	 * Adds a drag handle to each reorderable column header — every visible,
-	 * non-pinned data column — letting the user reorder columns by pointer or
-	 * keyboard. Commits through `columnOrder`; `select`, `actions`, and `pinned`
-	 * columns hold their position. No handles render until at least two columns
-	 * are reorderable.
+	 * Lets the user reorder columns by pointer or keyboard across every visible,
+	 * non-pinned data column — `select`, `actions`, and `pinned` columns hold
+	 * their position. Commits through `columnOrder`; nothing renders until at
+	 * least two columns are reorderable.
+	 *
+	 * `true` prefixes each reorderable header with a grip handle. Pass a
+	 * {@link GridReorder} object to keep that toggle in `enabled` and drop the
+	 * grip with `handle: false`, making the whole header the drag handle instead.
 	 * @defaultValue false
+	 * @see {@link GridReorder}
 	 */
-	reorder?: boolean
+	reorder?: boolean | GridReorder
 
 	/**
 	 * Enables per-row master-detail: an expandable panel beneath each row

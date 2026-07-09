@@ -163,6 +163,75 @@ describe('chartPolicy legend rows', () => {
 	})
 })
 
+describe('chartPolicy fill frame', () => {
+	it('never sparks by height — the measured remainder is chrome-dependent there', () => {
+		// The dashboard-tile crash: a fill plot short enough to read spark drops the
+		// header and legend, the remainder jumps back above the floor, the tier
+		// flips — forever. Under fill the spark decision must ignore the height.
+		expect(chartPolicy(400, SPARK_HEIGHT - 1, CAP, true).tier).not.toBe('spark')
+
+		expect(chartPolicy(400, 0, CAP, true).tier).not.toBe('spark')
+	})
+
+	it('still sparks by width, which no chrome decision can move', () => {
+		expect(chartPolicy(SPARK_WIDTH - 1, 500, CAP, true).tier).toBe('spark')
+
+		expect(chartPolicy(SPARK_WIDTH - 1, 500, CAP, true).legendRows).toBe(0)
+	})
+
+	it('grants the legend rows by width alone', () => {
+		// A second granted row sits inside the measured remainder, so a height check
+		// flips forever across the band that row spans; the width can't.
+		expect(chartPolicy(900, TWO_ROW_LEGEND_HEIGHT - 1, CAP, true).legendRows).toBe(2)
+
+		expect(chartPolicy(COMPACT_WIDTH - 1, 500, CAP, true).legendRows).toBe(1)
+	})
+
+	it('keeps the plot-internal anatomy height-responsive', () => {
+		// Nothing inside the plot box can reflow it — the SVG is out of flow — so
+		// the band row, tick target, and tier label still read the measured height.
+		const short = chartPolicy(800, BAND_ROW_HEIGHT - 1, CAP, true)
+
+		expect(short.bandAxis).toBe('off')
+
+		expect(short.tickTarget).toBe(MIN_TICK_TARGET)
+
+		expect(short.tier).toBe('compact')
+	})
+
+	it('resolves identical chrome for the two remainders the spark loop alternated between', () => {
+		// The crash mechanism, replayed: with the chrome kept the remainder reads
+		// container − chrome, with it dropped ~the container. Whatever the container
+		// height, both remainders must grant the same chrome, or the layout-effect
+		// re-measure chain has no fixed point and React aborts at max update depth.
+		const chrome = chartChromeReserve({ headerLines: 2, legend: true })
+
+		for (let container = 0; container <= 400; container += 8) {
+			const kept = chartPolicy(400, Math.max(0, container - chrome), CAP, true)
+
+			const dropped = chartPolicy(400, container, CAP, true)
+
+			expect(kept.tier === 'spark').toBe(dropped.tier === 'spark')
+
+			expect(kept.legendRows).toBe(dropped.legendRows)
+		}
+	})
+
+	it('resolves identical chrome across a granted second legend row', () => {
+		// The subtler loop: granting row two shrinks the remainder by the row it
+		// granted, which a height check would read as grounds to take it back.
+		for (let remainder = 0; remainder <= 400; remainder += 8) {
+			const oneRow = chartPolicy(900, remainder, CAP, true)
+
+			const twoRows = chartPolicy(900, Math.max(0, remainder - CHART_LEGEND_ROW_HEIGHT), CAP, true)
+
+			expect(oneRow.legendRows).toBe(twoRows.legendRows)
+
+			expect(oneRow.tier === 'spark').toBe(twoRows.tier === 'spark')
+		}
+	})
+})
+
 describe('headerLineCount', () => {
 	it('counts the present header lines', () => {
 		expect(headerLineCount(undefined, undefined)).toBe(0)
