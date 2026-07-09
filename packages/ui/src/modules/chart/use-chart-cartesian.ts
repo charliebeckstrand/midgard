@@ -652,7 +652,9 @@ export function useChartCartesian<T>(
 	// so measuring the plot's remainder for the tier loops — spark drops that
 	// chrome, the remainder jumps, the tier flips back. Resolve it against the
 	// figure's own `width / ratio` less the chrome instead; the drawing still fills
-	// the measured remainder.
+	// the measured remainder. A free-form fill frame shares that box with no ratio
+	// to derive a safe height from, so the policy's fill flag resolves the
+	// chrome-affecting decisions from the width alone.
 	const policyHeight = policyPlotHeight(
 		frameHeight,
 		frameWidth,
@@ -660,7 +662,7 @@ export function useChartCartesian<T>(
 		cartesianChrome(props, aside),
 	)
 
-	const policy = chartPolicy(frameWidth, policyHeight, metrics.tickTarget)
+	const policy = chartPolicy(frameWidth, policyHeight, metrics.tickTarget, sizing.mode === 'fill')
 
 	// Spark stands the axis chrome down to a bare sparkline; every wider tier keeps
 	// the caller's `axes` intent. The value gutter, band labels, and titles all
