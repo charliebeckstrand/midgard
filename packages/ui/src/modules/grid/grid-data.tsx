@@ -12,6 +12,7 @@ import {
 	useLayoutEffect,
 	useMemo,
 	useRef,
+	useState,
 } from 'react'
 import { Table } from '../../components/table'
 import { announce, cn, dataAttr } from '../../core'
@@ -464,6 +465,50 @@ function useMaxHeightGuard(maxHeight: string | undefined): void {
 	}, [maxHeight])
 }
 
+/**
+ * Tracks whether a server-side (manual) sort is in flight — the interval between
+ * the grid emitting a sort change and the consumer handing back the reordered
+ * `rows` — so the body can dim its rows to a settle wash until the new order
+ * lands (see `k.body.settling`). Enabled only under {@link GridSort.manual}: a
+ * change to the sort with no new `rows` yet marks the grid settling; the next
+ * `rows` reference (the fetched, reordered set) clears it. A consumer that swaps
+ * `rows` in the same commit as the sort — a synchronous re-sort — settles at
+ * once, so its rows never flash dim.
+ *
+ * @internal
+ */
+function useServerSortSettle<T>(args: { enabled: boolean; sort: SortState[]; rows: T[] }): boolean {
+	const { enabled, sort, rows } = args
+
+	const [settling, setSettling] = useState(false)
+
+	const prevSortRef = useRef(sort)
+
+	const prevRowsRef = useRef(rows)
+
+	useEffect(() => {
+		const sortChanged = prevSortRef.current !== sort
+
+		const rowsChanged = prevRowsRef.current !== rows
+
+		prevSortRef.current = sort
+
+		prevRowsRef.current = rows
+
+		// New rows landed (or the mode is off): the sort has settled.
+		if (!enabled || rowsChanged) {
+			setSettling(false)
+
+			return
+		}
+
+		// The sort changed but its reordered rows haven't arrived yet — in flight.
+		if (sortChanged) setSettling(true)
+	}, [enabled, sort, rows])
+
+	return enabled && settling
+}
+
 /** Props for {@link GridRegion}. @internal */
 type GridRegionProps<T> = {
 	canReorder: boolean
@@ -837,6 +882,17 @@ function gridWrapperClass(fill: boolean): string {
 }
 
 /**
+ * The data-body settle wash while a server-side sort is in flight — the pulse
+ * over the reduced-motion dim, projected onto the data `<tbody>` (see
+ * `k.body.settling`) — or `undefined` once the sort settles (or when it's
+ * client-side, where `settling` never sets). Kept off {@link GridData}'s
+ * complexity budget. @internal
+ */
+function settleBodyClass(settling: boolean): readonly string[] | undefined {
+	return settling ? k.body.settling : undefined
+}
+
+/**
  * The read-only data-grid implementation behind {@link Grid}. Kept a separate
  * component so the public dispatcher calls no hooks ahead of its `editable`
  * branch (the rules of hooks forbid a conditional early return over them).
@@ -1150,6 +1206,14 @@ export function GridData<T>({
 
 	const { sort, setSort, toggleSort } = useGridSort(sortConfig)
 
+	// Server-side (manual) sort pulses the rows at a reduced opacity from the moment
+	// the grid emits the sort change until the consumer hands back the reordered
+	// rows, so the current rows stay readable while they reorder (see `k.body`). Off
+	// for client sorting, where the engine reorders in place with no round trip.
+	const sortManual = sortConfig?.manual ?? false
+
+	const serverSortSettling = useServerSortSettle({ enabled: sortManual, sort, rows })
+
 	// Drives the opt-in row-sort FLIP down through `GridBody`; read here so the
 	// gate below stands the animation down for a reduced-motion user (WCAG 2.3.3) —
 	// a `MotionConfig` alone would not, since it leaves `layout` animations running.
@@ -1241,7 +1305,7 @@ export function GridData<T>({
 		columnVisibility,
 		sort,
 		setSort,
-		sortManual: sortConfig?.manual ?? false,
+		sortManual,
 		// Client grouping only — manual grouping keeps the engine ungrouped and
 		// renders the consumer's sequence instead.
 		grouping: groupingMode.engineGrouping,
@@ -1377,6 +1441,13 @@ export function GridData<T>({
 		density,
 		className,
 	})
+
+	// While a server-side (manual) sort is in flight, the data body pulses at a
+	// reduced opacity until the reordered rows land (projected from the `<table>`
+	// onto its data `<tbody>`; see `settleBodyClass`). `serverSortSettling` is only
+	// ever set under a manual sort, so a client-sorted grid's table class is
+	// untouched — the engine reorders it in place with no round trip.
+	const bodyStateClass = settleBodyClass(serverSortSettling)
 
 	// Per-visible-column width snapshot threaded to the body cells' truncation
 	// detector so a settled resize (or keyboard nudge) re-renders just that
@@ -1636,7 +1707,7 @@ export function GridData<T>({
 				outline={outline}
 				striped={striped}
 				hover={rowHover}
-				className={condensedTableClass(condensed, tableClassName)}
+				className={condensedTableClass(condensed, cn(tableClassName, bodyStateClass))}
 				tableProps={resolveTableProps({
 					tableProps,
 					// The cursor's tab stop, active-cell pointer, and key/focus handlers.

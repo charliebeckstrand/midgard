@@ -641,6 +641,23 @@ export const k = {
 		trailing: ['flex', 'flex-wrap', 'items-center', 'gap-x-4', 'gap-y-1', 'ml-auto'],
 		item: 'whitespace-nowrap',
 	},
+	// Data-body state washes projected from the `<table>` onto its data `<tbody>`
+	// (`:first-of-type`, ahead of the grand-total body — so the header, filter row,
+	// and totals stay crisp). Currently the server-sort settle: a manual sort emits
+	// its change to the consumer, who fetches the reordered rows; until they land
+	// the grid dims the current rows rather than swapping in a skeleton, so the data
+	// stays readable while it reorders.
+	body: {
+		// While a server-side (manual) sort is in flight, the whole data body signals
+		// busy until the reordered rows arrive — a `motion-safe` pulse, or, for a
+		// reduced-motion user, a static 50% dim in its place (never both: the pulse
+		// already troughs to that opacity, so the standing dim is the reduced-motion
+		// fallback alone).
+		settling: [
+			'[&>tbody:first-of-type]:motion-safe:animate-pulse',
+			'[&>tbody:first-of-type]:motion-reduce:opacity-50',
+		],
+	},
 	row: {
 		// A clickable row (`onRowClick`): the pointer cursor and a keyboard focus
 		// ring (the row is a roving tab stop). The ring is `inset` — clip-safe, like
