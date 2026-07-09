@@ -835,6 +835,22 @@ function outlineTableClass(outline: boolean | undefined): string {
 }
 
 /**
+ * The effective `striped` parity under the `outline` variant: an outlined grid
+ * pairs its per-cell rules with odd-row zebra, so a bare `striped` (the `true`
+ * boolean, which `<Table>` would read as even) resolves to `'odd'` when
+ * outlined. An explicit `'odd'` / `'even'` is a deliberate override and passes
+ * through untouched, as does `striped` on a plain (un-outlined) grid. Kept a
+ * helper so the branch lives here, off {@link GridData}'s complexity budget.
+ * @internal
+ */
+function stripedForOutline(
+	striped: boolean | 'odd' | 'even' | undefined,
+	outline: boolean | undefined,
+): boolean | 'odd' | 'even' | undefined {
+	return outline && striped === true ? 'odd' : striped
+}
+
+/**
  * Broadcasts the grid's resolved density onto the *table region* as a density
  * cascade, so size-aware *client* cell content (a `Sparkline`, an inline `Input`,
  * the selection checkbox) tracks the grid's `density` — and its `condensed` step,
@@ -1717,7 +1733,7 @@ export function GridData<T>({
 			<Table
 				density={density}
 				bleed={bleed}
-				striped={striped}
+				striped={stripedForOutline(striped, outline)}
 				hover={rowHover}
 				className={condensedTableClass(
 					condensed,
