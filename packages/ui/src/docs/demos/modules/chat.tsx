@@ -48,23 +48,6 @@ const transcript: ChatContent[] = [
 	},
 ]
 
-function ConversationList() {
-	const [current, setCurrent] = useState('1')
-
-	return (
-		<ChatList aria-label="Conversations" className="max-w-xs">
-			{conversations.map((conversation) => (
-				<ChatListItem
-					key={conversation.id}
-					title={conversation.title}
-					current={conversation.id === current}
-					onSelect={() => setCurrent(conversation.id)}
-				/>
-			))}
-		</ChatList>
-	)
-}
-
 function DefaultPrompt() {
 	const [value, setValue] = useState('')
 
@@ -130,13 +113,15 @@ function StreamingPrompt() {
 export const meta = { name: 'Chat' }
 
 export function Demo() {
+	const [current, setCurrent] = useState('1')
+
 	return (
 		<Tabs defaultValue="Message">
 			<TabList aria-label="Chat module">
 				<Tab value="Message">Message</Tab>
-				<Tab value="Prompt">Prompt</Tab>
 				<Tab value="Transcript">Transcript</Tab>
-				<Tab value="ChatList">Chat List</Tab>
+				<Tab value="List">List</Tab>
+				<Tab value="Prompt">Prompt</Tab>
 			</TabList>
 			<TabContents fade={false}>
 				<TabContent value="Message">
@@ -194,6 +179,27 @@ export function Demo() {
 					</Stack>
 				</TabContent>
 
+				<TabContent value="Transcript">
+					<Example title="Transcript">
+						<ChatTranscript messages={transcript} />
+					</Example>
+				</TabContent>
+
+				<TabContent value="List">
+					<Example title="List">
+						<ChatList aria-label="Conversations" className="max-w-xs">
+							{conversations.map((conversation) => (
+								<ChatListItem
+									key={conversation.id}
+									title={conversation.title}
+									current={conversation.id === current}
+									onSelect={() => setCurrent(conversation.id)}
+								/>
+							))}
+						</ChatList>
+					</Example>
+				</TabContent>
+
 				<TabContent value="Prompt">
 					<Stack gap="xl">
 						<Example title="Default">
@@ -212,18 +218,6 @@ export function Demo() {
 							<StreamingPrompt />
 						</Example>
 					</Stack>
-				</TabContent>
-
-				<TabContent value="Transcript">
-					<Example title="Transcript">
-						<ChatTranscript messages={transcript} />
-					</Example>
-				</TabContent>
-
-				<TabContent value="ChatList">
-					<Example title="Chat list">
-						<ConversationList />
-					</Example>
 				</TabContent>
 			</TabContents>
 		</Tabs>

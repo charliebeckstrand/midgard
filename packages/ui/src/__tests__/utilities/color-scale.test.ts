@@ -2,7 +2,10 @@ import { describe, expect, it } from 'vitest'
 import {
 	binColors,
 	binIndex,
+	quantileBinIndex,
+	quantileThresholds,
 	resolveColorBins,
+	resolveQuantileBins,
 	sampleRange,
 	valueExtent,
 } from '../../utilities/color-scale'
@@ -93,5 +96,81 @@ describe('binIndex', () => {
 		expect(binIndex(5, [0, 100], 0)).toBeNull()
 
 		expect(binIndex(50, [50, 50], 4)).toBe(0)
+	})
+})
+
+describe('quantileThresholds', () => {
+	it('cuts count-1 interior edges at the i/count quantiles of the sorted values', () => {
+		// 0..10 into 5 buckets: edges at the 20/40/60/80th percentiles.
+		expect(quantileThresholds([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 5)).toEqual([2, 4, 6, 8])
+	})
+
+	it('returns no edges for a flat domain or fewer than two buckets — a single bin', () => {
+		expect(quantileThresholds([7, 7, 7], 5)).toEqual([])
+
+		expect(quantileThresholds([1, 2, 3], 1)).toEqual([])
+
+		expect(quantileThresholds([], 5)).toEqual([])
+	})
+
+	it('ignores non-finite values when ranking', () => {
+		expect(quantileThresholds([0, Number.NaN, 10], 2)).toEqual([5])
+	})
+})
+
+describe('quantileBinIndex', () => {
+	it('counts the thresholds a value meets or exceeds — an edge reads into the upper bin', () => {
+		const thresholds = [2, 4, 6, 8]
+
+		expect(quantileBinIndex(1, thresholds)).toBe(0)
+
+		expect(quantileBinIndex(2, thresholds)).toBe(1) // on the edge → up
+
+		expect(quantileBinIndex(5, thresholds)).toBe(2)
+
+		expect(quantileBinIndex(100, thresholds)).toBe(4)
+	})
+
+	it('reads null for a non-finite value and bin 0 with no thresholds', () => {
+		expect(quantileBinIndex(Number.NaN, [2, 4])).toBeNull()
+
+		expect(quantileBinIndex(42, [])).toBe(0)
+	})
+})
+
+describe('resolveQuantileBins', () => {
+	it('paints one bin per bucket with edges from the quantile thresholds', () => {
+		const { bins, thresholds } = resolveQuantileBins(
+			[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+			['#000000', '#ffffff'],
+			5,
+		)
+
+		expect(thresholds).toEqual([2, 4, 6, 8])
+
+		expect(bins).toHaveLength(5)
+
+		// Edges are min, the thresholds, then max.
+		expect(bins.map((bin) => [bin.lo, bin.hi])).toEqual([
+			[0, 2],
+			[2, 4],
+			[4, 6],
+			[6, 8],
+			[8, 10],
+		])
+
+		expect(bins[0]?.color).toBe('#000000')
+
+		expect(bins.at(-1)?.color).toBe('#ffffff')
+	})
+
+	it('collapses to a single bin over the extent when the domain is flat', () => {
+		const { bins, thresholds } = resolveQuantileBins([7, 7, 7], ['#000000', '#ffffff'], 5)
+
+		expect(thresholds).toEqual([])
+
+		expect(bins).toHaveLength(1)
+
+		expect(bins[0]).toMatchObject({ lo: 7, hi: 7 })
 	})
 })

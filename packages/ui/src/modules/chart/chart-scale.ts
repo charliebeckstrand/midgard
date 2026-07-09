@@ -298,6 +298,20 @@ export function bandScale({ count, range, padding = 0.2 }: BandScaleOptions): Ba
 }
 
 /**
+ * The internal boundaries between adjacent bands — the `count - 1` slot edges
+ * that sit halfway between neighbouring centers, none at the outer ends where
+ * the frame already bounds the plot. The category dividers rule one dashed line
+ * per gap. Empty below two bands or on a collapsed (zero-step) scale.
+ *
+ * @internal
+ */
+export function bandBoundaries(scale: BandScale, count: number): number[] {
+	if (count < 2 || scale.step <= 0) return []
+
+	return Array.from({ length: count - 1 }, (_, index) => scale.center(index) + scale.step / 2)
+}
+
+/**
  * Resolves a pointer coordinate to the index of the band under it, clamped
  * into `[0, count - 1]`; `null` when there are no bands.
  *

@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { GUTTER_GAP, TICK_CHAR_WIDTH } from '../../modules/chart/chart-constants'
 import { bandScale } from '../../modules/chart/chart-scale'
-import { parseInstant, timeCategory, timeTicks } from '../../modules/chart/chart-time'
+import {
+	dateCategoryFormat,
+	parseInstant,
+	timeCategory,
+	timeTicks,
+} from '../../modules/chart/chart-time'
 
 /** A band scale placing `count` rows evenly across `[0, length]`. */
 function band(count: number, length = 600) {
@@ -155,5 +160,37 @@ describe('timeCategory', () => {
 
 	it('falls back to the string form of an unparseable value', () => {
 		expect(timeCategory('en-US')('Q1')).toBe('Q1')
+	})
+})
+
+describe('dateCategoryFormat', () => {
+	it('labels a single-year span MM-DD, dropping the reference year', () => {
+		const format = dateCategoryFormat(['2026-06-10', '2026-07-04', '2026-12-31'], 2026)
+
+		expect(format).not.toBeNull()
+
+		expect(format?.('2026-06-10')).toBe('06-10')
+
+		expect(format?.('2026-12-31')).toBe('12-31')
+	})
+
+	it('keeps the year as MM-DD-YYYY once any value falls outside the reference year', () => {
+		const format = dateCategoryFormat(['2025-12-30', '2026-01-02'], 2026)
+
+		expect(format?.('2025-12-30')).toBe('12-30-2025')
+
+		expect(format?.('2026-01-02')).toBe('01-02-2026')
+	})
+
+	it('reads Dates and epoch numbers, not just ISO strings', () => {
+		const format = dateCategoryFormat([new Date(2026, 5, 10), new Date(2026, 6, 4)], 2026)
+
+		expect(format?.(new Date(2026, 5, 10))).toBe('06-10')
+	})
+
+	it('returns null when any value is not a date, so a plain axis keeps its labels', () => {
+		expect(dateCategoryFormat(['2026-06-10', 'Q3'], 2026)).toBeNull()
+
+		expect(dateCategoryFormat([], 2026)).toBeNull()
 	})
 })

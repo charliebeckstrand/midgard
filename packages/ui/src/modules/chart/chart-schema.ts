@@ -71,6 +71,32 @@ export type ChartValueAxis = {
 }
 
 /**
+ * The category (band) axis's presentation, for a cartesian chart's `categories`
+ * prop: its between-category dividers and its label format.
+ */
+export type ChartCategoryConfig = {
+	/**
+	 * Rule a divider between each category — one hairline at every band boundary,
+	 * none at the outer edges — so a dense axis reads which marks belong to which
+	 * row: `'solid'` or `'dashed'`, omitted draws none. Recessive under the marks
+	 * beside the value gridlines, and it stands down with the rest of the chrome
+	 * at the spark tier. Under `orientation="horizontal"` the dividers run between
+	 * the stacked bands.
+	 */
+	separator?: 'solid' | 'dashed'
+	/**
+	 * Format each row's category — the band-axis labels and the tooltip and data
+	 * table readout — from its raw `xKey` value. Overrides the default `String`
+	 * coercion and the automatic date normalization: with no formatter set, a band
+	 * axis whose every value parses as a date labels itself `MM-DD` (or
+	 * `MM-DD-YYYY` across years) on its own. Ignored on the ticks of an
+	 * `xAxis="time"` axis, which places and labels its own calendar ticks, though
+	 * it still formats that axis's readout.
+	 */
+	format?: (value: unknown) => string
+}
+
+/**
  * One plotted series: the fields it reads and how the legend and tooltip
  * name it.
  *
@@ -549,6 +575,11 @@ export type CartesianFrameProps = {
 	 * @defaultValue true
 	 */
 	gridLines?: boolean
+	/**
+	 * The category (band) axis's presentation — its dividers and label format.
+	 * @see {@link ChartCategoryConfig}
+	 */
+	categories?: ChartCategoryConfig
 	/**
 	 * Draw a hover crosshair. `true` (the shorthand) draws both rules — a
 	 * horizontal value rule and a vertical category rule; a {@link Crosshair}

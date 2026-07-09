@@ -6,6 +6,7 @@ export type { ChartAspectRatio } from './chart-layout'
 export type { ChartOrientation } from './chart-orientation'
 export type {
 	BubbleChartSeries,
+	ChartCategoryConfig,
 	ChartLegendPlacement,
 	ChartRangeLegendConfig,
 	ChartRangeLegendType,

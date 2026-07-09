@@ -10,6 +10,7 @@ import type { ChartAxisTick } from './chart-axis'
 import {
 	AXIS_TITLE_BAND,
 	AXIS_TITLE_GAP,
+	BAND_EDGE_PAD,
 	BAND_LABEL_HEIGHT,
 	FLOOR_LABEL_PAD,
 	GUTTER_EDGE_PAD,
@@ -418,6 +419,19 @@ export function lineMarkReach(points: boolean): number {
  */
 function markPadOf(input: CartesianLayoutInput): number {
 	return input.axes ? 0 : (input.markInset ?? 0)
+}
+
+/**
+ * The band axis's edge inset: a framed chart holds its end categories a fixed
+ * {@link BAND_EDGE_PAD} margin off the plot's sides, so an edge label never
+ * crowds the value gutter and the endpoint marks breathe; a spark chart insets
+ * by its mark reach ({@link markPadOf}) instead, just clearing an endpoint
+ * marker.
+ *
+ * @internal
+ */
+function bandPadOf(input: CartesianLayoutInput): number {
+	return input.axes ? BAND_EDGE_PAD : markPadOf(input)
 }
 
 /**
@@ -873,9 +887,10 @@ export function verticalLayout(input: CartesianLayoutInput): CartesianLayout {
 		height: Math.max(0, frameHeight - PLOT_TOP_PAD - axisBandHeight),
 	}
 
-	// The band inset mirrors the value one: an endpoint mark at the first or last
-	// band center clears the frame's sides, however thin the slots run.
-	const band = bandScale({ count, range: markInsetRange(bandExtent('vertical', plot), markPad) })
+	const band = bandScale({
+		count,
+		range: markInsetRange(bandExtent('vertical', plot), bandPadOf(input)),
+	})
 
 	const scales: ValueScales = { left: valueScale, right: rightScale }
 
@@ -1067,7 +1082,7 @@ export function horizontalLayout(input: CartesianLayoutInput): CartesianLayout {
 
 	const band = bandScale({
 		count,
-		range: markInsetRange(bandExtent('horizontal', plot), markPad),
+		range: markInsetRange(bandExtent('horizontal', plot), bandPadOf(input)),
 	})
 
 	const scales: ValueScales = { left: valueScale, right: rightScale }

@@ -6,8 +6,17 @@ import { k } from '../../../recipes/kata/chart'
 import { rangeKeys } from '../../../utilities'
 import { BUBBLE_FILL_OPACITY, MARKER_RING_WIDTH } from '../chart-constants'
 import { POINT_POP } from '../chart-motion'
-import { type SlotPaint, seriesGroupClass } from '../chart-series'
+import type { SlotPaint } from '../chart-series'
+import { useChartMarkEmphasis } from '../context'
 import type { ScatterMark } from './scatter-chart-geometry'
+
+/**
+ * The opacity a receded disc fades to — the numeric twin of the `opacity-25`
+ * utility the bar and line dims use, so the animated discs (which drive opacity
+ * through motion, where a class would lose to the inline value) recede to the
+ * same depth. @internal
+ */
+const DIM_OPACITY = 0.25
 
 /** One scatter series' render inputs. @internal */
 export type ChartScatterSeries = {
@@ -18,8 +27,6 @@ export type ChartScatterSeries = {
 	marks: ScatterMark[]
 	/** Whether the series carries the bubble size encoding — sized discs fill translucently. */
 	sized: boolean
-	/** Legend emphasis elsewhere — this series fades back. */
-	dimmed?: boolean
 }
 
 /** Shared shape for the static and animated scatter renderers. @internal */
@@ -44,18 +51,32 @@ function markProps(paint: SlotPaint, sized: boolean) {
  * @internal
  */
 export function ScatterChartMarks({ list }: ScatterChartMarksProps) {
-	return list.map(({ index, label, paint, marks, sized, dimmed }) => (
-		<g key={index} data-slot="chart-scatter-series" className={seriesGroupClass(dimmed)}>
-			{rangeKeys(marks.length, label).map((key, index) => (
-				<circle
-					key={key}
-					data-slot="chart-scatter-point"
-					cx={marks[index]?.x}
-					cy={marks[index]?.y}
-					r={marks[index]?.r}
-					{...markProps(paint, sized)}
-				/>
-			))}
+	const { lit } = useChartMarkEmphasis()
+
+	return list.map(({ index, label, paint, marks, sized }) => (
+		<g key={index} data-slot="chart-scatter-series">
+			{rangeKeys(marks.length, label).map((key, datum) => {
+				const props = markProps(paint, sized)
+
+				return (
+					<circle
+						key={key}
+						data-slot="chart-scatter-point"
+						cx={marks[datum]?.x}
+						cy={marks[datum]?.y}
+						r={marks[datum]?.r}
+						{...props}
+						// The disc the pointer isolates keeps full strength; its siblings and
+						// every other series recede — the dim rides the class here, with no
+						// inline opacity to lose to.
+						className={cn(
+							props.className,
+							'transition-opacity',
+							!lit(index, datum) && 'opacity-25',
+						)}
+					/>
+				)
+			})}
 		</g>
 	))
 }
@@ -67,17 +88,22 @@ export function ScatterChartMarks({ list }: ScatterChartMarksProps) {
  * @internal
  */
 export function AnimatedScatterChartMarks({ list }: ScatterChartMarksProps) {
-	return list.map(({ index, label, paint, marks, sized, dimmed }) => (
-		<g key={index} data-slot="chart-scatter-series" className={seriesGroupClass(dimmed)}>
-			{rangeKeys(marks.length, label).map((key, index) => (
+	const { lit } = useChartMarkEmphasis()
+
+	return list.map(({ index, label, paint, marks, sized }) => (
+		<g key={index} data-slot="chart-scatter-series">
+			{rangeKeys(marks.length, label).map((key, datum) => (
 				<motion.circle
 					key={key}
 					data-slot="chart-scatter-point"
-					cx={marks[index]?.x}
-					cy={marks[index]?.y}
+					cx={marks[datum]?.x}
+					cy={marks[datum]?.y}
 					{...markProps(paint, sized)}
 					initial={{ r: 0, opacity: 0 }}
-					animate={{ r: marks[index]?.r ?? 0, opacity: 1 }}
+					// Motion owns the disc's opacity through the pop-in, so the dim rides the
+					// same channel — receding to the class dim's depth — rather than a class
+					// the inline value would override.
+					animate={{ r: marks[datum]?.r ?? 0, opacity: lit(index, datum) ? 1 : DIM_OPACITY }}
 					transition={{ ...POINT_POP, delay: 0 }}
 				/>
 			))}

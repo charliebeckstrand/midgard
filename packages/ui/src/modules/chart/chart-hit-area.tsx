@@ -6,7 +6,7 @@ import type { PlotRect } from './chart-layout'
 import { bandCoord, type ChartOrientation } from './chart-orientation'
 import { type BandScale, nearestBandIndex } from './chart-scale'
 import type { ChartTooltipTrigger } from './chart-schema'
-import { useChartTier } from './context'
+import { type ChartMarkRef, useChartTier } from './context'
 import { useChartPointer } from './use-chart-pointer'
 
 /** Props for {@link ChartHitArea}. @internal */
@@ -14,8 +14,20 @@ export type ChartHitAreaProps = {
 	plot: PlotRect
 	band: BandScale
 	count: number
-	/** The chart's mark hit test; the tooltip shows only where it holds. */
-	onData?: (x: number, y: number) => boolean
+	/**
+	 * The chart's mark hit test: the mark under the point — a bar, a line — that
+	 * isolation lifts and every other mark recedes behind, or `null` off the marks,
+	 * which is also where the tooltip stays shut. `held` carries the mark currently
+	 * emphasised, so a bounded catch can stay sticky across the midline between two
+	 * overlapping catches; `index` carries the resolved category, so a snapping
+	 * chart can hand the emphasis to the stop the tooltip anchors in that column.
+	 */
+	markAt?: (
+		x: number,
+		y: number,
+		held: ChartMarkRef | null,
+		index: number | null,
+	) => ChartMarkRef | null
 	/**
 	 * Which axis the band runs along, so the pointer resolves the right coordinate.
 	 * @defaultValue 'vertical'
@@ -67,7 +79,7 @@ function ChartHitRect({
 	plot,
 	band,
 	count,
-	onData,
+	markAt,
 	orientation = 'vertical',
 	trigger = 'hover',
 	snaps = false,
@@ -83,10 +95,11 @@ function ChartHitRect({
 	const { ref, ...handlers } = useChartPointer(
 		plot,
 		resolveIndex,
-		onData,
+		undefined,
 		trigger,
 		snaps,
 		onIndexClick,
+		markAt,
 	)
 
 	return (

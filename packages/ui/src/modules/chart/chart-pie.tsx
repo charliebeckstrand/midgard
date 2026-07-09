@@ -266,6 +266,12 @@ type PieChartMarksProps = {
 	 * trigger's own pin/dismiss) and gives the slices a pointer cursor.
 	 */
 	onIndexClick?: (index: number) => void
+	/**
+	 * Emphasises a slice while the pointer sits on it (`null` clears) — the same
+	 * channel the legend hover drives, so hovering a slice isolates it and recedes
+	 * the rest exactly as its legend chip does.
+	 */
+	onEmphasis?: (index: number | null) => void
 }
 
 /**
@@ -297,6 +303,7 @@ function PieChartMarks({
 	textureActive = false,
 	trigger = 'hover',
 	onIndexClick,
+	onEmphasis,
 }: PieChartMarksProps) {
 	const { index: active, set } = useChartHover()
 
@@ -307,7 +314,16 @@ function PieChartMarks({
 	const clickable = click || onIndexClick !== undefined
 
 	return (
-		<g data-slot="chart-slices" onPointerLeave={click ? undefined : () => set(null, null)}>
+		<g
+			data-slot="chart-slices"
+			// Leaving the pie clears the isolation whichever way the tooltip opens; the
+			// hover-tracked readout clears with it, a click-pinned one stays put.
+			onPointerLeave={() => {
+				onEmphasis?.(null)
+
+				if (!click) set(null, null)
+			}}
+		>
 			{animate && (
 				<mask id={sweepId}>
 					{/* The circle's stroke starts at 3 o'clock; the group turns it to 12. */}
@@ -346,6 +362,10 @@ function PieChartMarks({
 
 					const activate = () => onIndexClick?.(slice.index)
 
+					// Pointing a slice isolates it either way the tooltip opens; the hover
+					// trigger also tracks the readout onto it.
+					const emphasize = () => onEmphasis?.(slice.index)
+
 					const handlers = click
 						? {
 								onClick: (event: MouseEvent<SVGPathElement>) => {
@@ -354,10 +374,15 @@ function PieChartMarks({
 
 									activate()
 								},
+								onPointerEnter: emphasize,
 							}
 						: {
 								onClick: onIndexClick ? activate : undefined,
-								onPointerEnter: () => set(slice.index, slice.centroid),
+								onPointerEnter: () => {
+									set(slice.index, slice.centroid)
+
+									emphasize()
+								},
 								onPointerMove: at,
 							}
 
@@ -367,7 +392,7 @@ function PieChartMarks({
 							    pointer only where the slice recedes — its half of each channel —
 							    so sweeping across the gap keeps the tooltip instead of dropping
 							    it onto the bare surface. The visible slice, drawn over it, wins
-							    the pointer on its own body and keeps the hover brightness. */}
+							    the pointer on its own body and isolates itself on hover. */}
 							<path
 								data-slot="chart-slice-hit"
 								d={slice.hit}
@@ -384,7 +409,6 @@ function PieChartMarks({
 								className={cn(
 									paints[slice.index]?.fill,
 									textureClass(textureActive, fills?.[slice.index]),
-									'hover:brightness-110',
 									clickable && 'cursor-pointer',
 								)}
 								{...handlers}
@@ -969,6 +993,7 @@ export function ChartPie<T>(props: ChartPieProps<T>) {
 				textureActive={tex.active}
 				trigger={trigger}
 				onIndexClick={sliceActivation(onCategoryClick, sliceLabels)}
+				onEmphasis={setFocus}
 			/>
 
 			{labelItems.length > 0 && (

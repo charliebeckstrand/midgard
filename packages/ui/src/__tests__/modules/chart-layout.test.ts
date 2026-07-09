@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { BAND_EDGE_PAD } from '../../modules/chart/chart-constants'
 import { type CartesianLayoutInput, verticalLayout } from '../../modules/chart/chart-layout'
 
 const input = (frameHeight: number, valueHeadroom: number): CartesianLayoutInput => ({
@@ -88,5 +89,20 @@ describe('verticalLayout value-label room', () => {
 		const bare = verticalLayout({ ...input(120, 0), bandAxis: 'off' })
 
 		expect(layout.valueScale?.domain).toEqual(bare.valueScale?.domain)
+	})
+})
+
+describe('verticalLayout band-edge inset', () => {
+	it('holds the first and last category the margin off the plot sides', () => {
+		const layout = verticalLayout(input(300, 0))
+
+		const { band, plot } = layout
+
+		// The band range is inset a fixed margin at both ends, so the first slot's
+		// left edge and the last slot's right edge sit BAND_EDGE_PAD inside the plot
+		// — an edge label never crowds the value gutter, and the span stays centered.
+		expect(band.center(0) - band.step / 2 - plot.x).toBeCloseTo(BAND_EDGE_PAD)
+
+		expect(plot.x + plot.width - (band.center(5) + band.step / 2)).toBeCloseTo(BAND_EDGE_PAD)
 	})
 })

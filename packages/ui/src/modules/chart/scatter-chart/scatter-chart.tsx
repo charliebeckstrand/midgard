@@ -49,15 +49,18 @@ import {
 	diameterRange,
 	type ScatterDatum,
 	type ScatterMark,
+	type ScatterSnapStop,
 	scatterData,
+	scatterMarkAt,
 	scatterMarks,
 	scatterReadoutValues,
 	scatterSnapColumns,
+	scatterSnappedStop,
+	scatterSnapStops,
 	scatterXRange,
 	sizeDomain,
 	sizeRadius,
 	uniqueXValues,
-	withinScatterMarks,
 } from './scatter-chart-geometry'
 import { ScatterChartHitArea } from './scatter-chart-hit-area'
 import {
@@ -407,23 +410,45 @@ function ScatterHitLayer(props: {
 	crosshair: ResolvedCrosshair | null
 	/** The unique x columns' screen positions — nothing to snap to when empty. */
 	centers: number[]
-	/** Every visible series' marks, for the point hit test that gates the readout. */
+	/** Every visible series' marks, for the point hit test that gates the readout and isolation. */
 	marks: ScatterMark[][]
+	/** Each visible series' own index, aligned to `marks` — the identity the isolation keys on. */
+	indices: number[]
+	/** Per column, the snap stops with the point behind each — the snapped isolation's targets. */
+	stops: ScatterSnapStop[][]
 	trigger: ChartTooltipTrigger
 }) {
-	const { plot, tooltip, crosshair, centers, marks, trigger } = props
+	const { plot, tooltip, crosshair, centers, marks, indices, stops, trigger } = props
 
 	const spark = useChartTier() === 'spark'
 
 	if (spark || centers.length === 0 || !(tooltip || crosshair !== null)) return null
 
+	const snapping = crosshairSnaps(crosshair)
+
 	return (
 		<ScatterChartHitArea
 			plot={plot}
 			centers={centers}
-			onData={(x, y) => withinScatterMarks(marks, x, y, SCATTER_HIT_SLACK)}
+			markAt={(x, y, held, index) => {
+				// The held disc's drawn position, keeping the resolution sticky across
+				// the midline between overlapping discs.
+				const heldAt = held?.datum != null ? indices.indexOf(held.series) : -1
+
+				const sticky =
+					heldAt < 0 || held?.datum == null ? null : { series: heldAt, datum: held.datum }
+
+				// Isolation mirrors the readout: on a disc (within its slack), that
+				// disc; off every disc the emphasis goes to the stop the snapped
+				// readout anchors — the point nearest the pointer in the snapped column.
+				const hit =
+					scatterMarkAt(marks, x, y, SCATTER_HIT_SLACK, sticky) ??
+					(snapping ? scatterSnappedStop(stops, index, y) : null)
+
+				return hit && { series: indices[hit.series] ?? hit.series, datum: hit.datum }
+			}}
 			trigger={trigger}
-			snaps={crosshairSnaps(crosshair)}
+			snaps={snapping}
 		/>
 	)
 }
@@ -551,13 +576,18 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 
 	const bandPositions = scaled ? uniqueXs.map((x) => xScale.map(x)) : []
 
-	const snapColumns = scaled
-		? scatterSnapColumns(
+	// The snap stops kept whole — position and point identity together — so the
+	// crosshair reads the positions while the isolation names the disc behind
+	// the stop the tooltip anchors.
+	const snapStops = scaled
+		? scatterSnapStops(
 				visible.map((meta) => meta.points),
 				uniqueXs,
 				yScale.map,
 			)
 		: []
+
+	const snapColumns = scatterSnapColumns(snapStops)
 
 	const list: ChartScatterSeries[] = scaled
 		? visible.map((meta) => ({
@@ -566,11 +596,12 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 				paint: meta.paint,
 				marks: scatterMarks(meta.points, xScale.map, yScale.map, meta.radius),
 				sized: meta.sized,
-				dimmed: emphasis !== null && meta.index !== emphasis,
 			}))
 		: []
 
 	const allMarks = list.map((entry) => entry.marks)
+
+	const indices = list.map((entry) => entry.index)
 
 	const readout = scatterReadout(visible, uniqueXs, format, formatX)
 
@@ -646,6 +677,8 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 				crosshair={rails}
 				centers={bandPositions}
 				marks={allMarks}
+				indices={indices}
+				stops={snapStops}
 				trigger={trigger}
 			/>
 		</ChartFrame>

@@ -79,6 +79,16 @@ export const GUTTER_MAX = 96
 export const X_AXIS_HEIGHT = 24
 
 /**
+ * Air inset at each end of a framed chart's band axis, holding the first and
+ * last category centers — their marks and tick labels — off the plot's sides so
+ * an edge label never crowds the value gutter it sits beside, and the endpoint
+ * marks breathe rather than riding the frame. A spark chart insets by its mark
+ * reach instead (see {@link CartesianLayoutInput.markInset}); this is the framed
+ * margin, wider than any mark's overhang. @internal
+ */
+export const BAND_EDGE_PAD = 16
+
+/**
  * Degrees a category label tilts under {@link CartesianFrameProps.tickRotation}
  * once it would otherwise be thinned — negative so the label reads rising
  * left to right, its near end tucked under the tick. @internal

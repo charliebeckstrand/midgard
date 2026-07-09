@@ -103,6 +103,22 @@ const freight: FreightMonth[] = [
 	{ month: 'Jun', rate: 1.58, weight: 585 },
 ]
 
+// A short daily run keyed by ISO date — a plain category axis normalizes these
+// to MM-DD on its own, a distinct shape from the 118-day time-axis series above.
+const signups: { day: string; count: number }[] = [
+	{ day: '2026-03-02', count: 32 },
+	{ day: '2026-03-03', count: 41 },
+	{ day: '2026-03-04', count: 38 },
+	{ day: '2026-03-05', count: 55 },
+	{ day: '2026-03-06', count: 61 },
+	{ day: '2026-03-07', count: 48 },
+	{ day: '2026-03-08', count: 44 },
+	{ day: '2026-03-09', count: 67 },
+	{ day: '2026-03-10', count: 72 },
+	{ day: '2026-03-11', count: 65 },
+	{ day: '2026-03-12', count: 81 },
+]
+
 // Atlas data stays out of the package: fetch the us-atlas TopoJSON as a static
 // asset on first render, the same shape a consumer's lazily-loaded geography
 // takes. `null` until it lands — the choropleth reserves its frame meanwhile.
@@ -443,6 +459,30 @@ export function Demo() {
 									data={dailyVisits}
 									series={[{ xKey: 'date', yKey: 'visits', yName: 'Visits' }]}
 									xAxis="time"
+								/>
+							</Example>
+
+							<Example title="Date labels" code={code`<LineChart … />`}>
+								{/* A plain category axis whose every key parses as a date labels
+								    itself MM-DD on its own — no xAxis="time", so the per-row labels
+								    stay, just normalized. */}
+								<LineChart
+									aria-label="Signups per day, dates normalized to MM-DD"
+									data={signups}
+									series={[{ xKey: 'day', yKey: 'count', yName: 'Signups' }]}
+									points
+								/>
+							</Example>
+
+							<Example
+								title="Category dividers"
+								code={code`<LineChart categories={{ separator: 'dashed' }} … />`}
+							>
+								<LineChart
+									aria-label="Revenue by month, with a divider between each"
+									data={months}
+									series={[{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' }]}
+									categories={{ separator: 'dashed' }}
 								/>
 							</Example>
 

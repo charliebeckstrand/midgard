@@ -6,7 +6,7 @@ import { ChartCrosshair, crosshairSnaps, resolveCrosshair } from '../chart-cross
 import { ChartFrame } from '../chart-frame'
 import { ChartGridLines } from '../chart-grid-lines'
 import { ChartHitArea } from '../chart-hit-area'
-import { nearSeriesLines, withinSeriesAreas } from '../chart-hit-test'
+import { nearestSeriesArea, nearestSeriesLine } from '../chart-hit-test'
 import { lineMarkReach } from '../chart-layout'
 import { AnimatedChartLineMarks, ChartLineMarks, type ChartLineSeries } from '../chart-line-marks'
 import { ChartMarksLayer } from '../chart-marks-layer'
@@ -17,7 +17,7 @@ import {
 	type ChartValueLabelConfig,
 	resolveTooltip,
 } from '../chart-schema'
-import { snapTargets } from '../chart-snap'
+import { snappedSeriesAt, snapTargets } from '../chart-snap'
 import { ChartValueLabels, resolveValueLabels, valueLabelHeadroom } from '../chart-value-labels'
 import { bandCenters, useChartCartesian } from '../use-chart-cartesian'
 import { cartesianFocus } from '../use-chart-keyboard'
@@ -102,6 +102,7 @@ export function LineChart<T>(props: LineChartProps<T>) {
 		reference,
 		xAxis,
 		tickRotation,
+		categories,
 		labels,
 		onCategoryClick,
 		formatValue,
@@ -126,6 +127,7 @@ export function LineChart<T>(props: LineChartProps<T>) {
 			reference,
 			xAxis,
 			tickRotation,
+			categories,
 			onCategoryClick,
 			formatValue,
 			// The header travels to the frame through `label`; the hook reads it too,
@@ -166,7 +168,6 @@ export function LineChart<T>(props: LineChartProps<T>) {
 		paint: meta.paint,
 		geometry: lineGeometry(meta.values, xs, scale.map, floor, interpolation),
 		markers: points,
-		dimmed: chart.emphasis !== null && meta.index !== chart.emphasis,
 		dashed: meta.dashed,
 	}))
 
@@ -210,6 +211,8 @@ export function LineChart<T>(props: LineChartProps<T>) {
 	)
 
 	const rails = resolveCrosshair(crosshair)
+
+	const snapping = crosshairSnaps(rails)
 
 	const { show: showTooltip, trigger } = resolveTooltip(tooltip)
 
@@ -259,6 +262,15 @@ export function LineChart<T>(props: LineChartProps<T>) {
 				<ChartGridLines plot={chart.plot} ticks={chart.gridPositions} />
 			)}
 
+			{chart.categoryGridPositions.length > 0 && (
+				<ChartGridLines
+					plot={chart.plot}
+					ticks={chart.categoryGridPositions}
+					orientation="horizontal"
+					dashed={categories?.separator === 'dashed'}
+				/>
+			)}
+
 			{chart.axes && chart.yScale && <ChartAxis axis="y" plot={chart.plot} ticks={chart.yTicks} />}
 
 			{chart.axes && chart.rightScale && (
@@ -291,12 +303,27 @@ export function LineChart<T>(props: LineChartProps<T>) {
 					plot={chart.plot}
 					band={chart.band}
 					count={data.length}
-					onData={(x, y) =>
-						nearSeriesLines(seriesRuns, x, y) ||
-						(fill && withinSeriesAreas(seriesRuns, floor, x, y))
-					}
+					markAt={(x, y, held, index) => {
+						// A pointer on a line keeps that line — held sticky where two catches
+						// overlap — and a filled chart reads the wash under it the same way.
+						const heldAt = held ? list.findIndex((entry) => entry.index === held.series) : -1
+
+						const near =
+							nearestSeriesLine(seriesRuns, x, y, undefined, heldAt < 0 ? null : heldAt) ??
+							(fill ? nearestSeriesArea(seriesRuns, floor, x, y) : null)
+
+						if (near !== null) return { series: list[near]?.index ?? near, datum: null }
+
+						// Isolation mirrors the snapped readout: off the strokes the emphasis
+						// goes to the series point the tooltip anchors in the snapped column.
+						const series = snapping
+							? snappedSeriesAt(chart.snapPoints, chart.snapSeries, index, y)
+							: null
+
+						return series === null ? null : { series, datum: null }
+					}}
 					trigger={trigger}
-					snaps={crosshairSnaps(rails)}
+					snaps={snapping}
 					onIndexClick={chart.onBandClick}
 				/>
 			)}

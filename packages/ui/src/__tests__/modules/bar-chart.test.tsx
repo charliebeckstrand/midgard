@@ -65,8 +65,8 @@ describe('BarChart', () => {
 		const hit = bySlot(container, 'chart-hit') as Element
 
 		// jsdom boxes sit at 0, so client coordinates map straight into the plot;
-		// (300, 100) lands inside Q3's revenue bar.
-		fireEvent.pointerMove(hit, { clientX: 300, clientY: 100 })
+		// (280, 100) lands inside Q3's revenue bar.
+		fireEvent.pointerMove(hit, { clientX: 280, clientY: 100 })
 
 		const tooltip = bySlot(container, 'tooltip-content')
 
@@ -77,7 +77,7 @@ describe('BarChart', () => {
 		expect(tooltip?.textContent).toContain('28')
 
 		// Above the bar tops, or in the gap between groups, the tooltip stays away.
-		fireEvent.pointerMove(hit, { clientX: 300, clientY: 20 })
+		fireEvent.pointerMove(hit, { clientX: 280, clientY: 20 })
 
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
 
@@ -85,7 +85,7 @@ describe('BarChart', () => {
 
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
 
-		fireEvent.pointerMove(hit, { clientX: 300, clientY: 100 })
+		fireEvent.pointerMove(hit, { clientX: 280, clientY: 100 })
 
 		fireEvent.pointerLeave(hit)
 
@@ -100,23 +100,23 @@ describe('BarChart', () => {
 		// Movement never summons the readout under the click trigger; it only points
 		// the cursor at the bars — a pointer over Q3's bar, the default over the gap
 		// above it (this chart doesn't snap).
-		fireEvent.pointerMove(hit, { clientX: 300, clientY: 100 })
+		fireEvent.pointerMove(hit, { clientX: 280, clientY: 100 })
 
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
 
 		expect(hit.style.cursor).toBe('pointer')
 
-		fireEvent.pointerMove(hit, { clientX: 300, clientY: 20 })
+		fireEvent.pointerMove(hit, { clientX: 280, clientY: 20 })
 
 		expect(hit.style.cursor).toBe('default')
 
 		// A click on Q3's bar pins its readout.
-		fireEvent.click(hit, { clientX: 300, clientY: 100 })
+		fireEvent.click(hit, { clientX: 280, clientY: 100 })
 
 		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Q3')
 
 		// Clicking the same band again dismisses it.
-		fireEvent.click(hit, { clientX: 300, clientY: 100 })
+		fireEvent.click(hit, { clientX: 280, clientY: 100 })
 
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
 	})
@@ -143,12 +143,12 @@ describe('BarChart', () => {
 		// The bands read as clickable, and a click on Q3's band reports it.
 		expect(hit.getAttribute('class')).toContain('cursor-pointer')
 
-		fireEvent.click(hit, { clientX: 300, clientY: 100 })
+		fireEvent.click(hit, { clientX: 280, clientY: 100 })
 
 		expect(clicks).toEqual([['Q3', 2]])
 
 		// Hover tooltips still track — activation never hijacks the readout.
-		fireEvent.pointerMove(hit, { clientX: 300, clientY: 100 })
+		fireEvent.pointerMove(hit, { clientX: 280, clientY: 100 })
 
 		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Q3')
 	})
@@ -166,7 +166,7 @@ describe('BarChart', () => {
 		const hit = bySlot(container, 'chart-hit') as HTMLElement
 
 		// One gesture pins the readout AND reports the activation.
-		fireEvent.click(hit, { clientX: 300, clientY: 100 })
+		fireEvent.click(hit, { clientX: 280, clientY: 100 })
 
 		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Q3')
 
@@ -192,20 +192,46 @@ describe('BarChart', () => {
 
 		const hit = bySlot(container, 'chart-hit') as Element
 
-		fireEvent.click(hit, { clientX: 300, clientY: 100 })
+		fireEvent.click(hit, { clientX: 280, clientY: 100 })
 
 		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Q3')
 
 		// A click above the bars reads nothing on a non-snap chart, so it dismisses
 		// rather than pinning a hidden band.
-		fireEvent.click(hit, { clientX: 300, clientY: 20 })
+		fireEvent.click(hit, { clientX: 280, clientY: 20 })
 
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
 
 		// The next click on the bar still opens it — no dead click from a stray index.
-		fireEvent.click(hit, { clientX: 300, clientY: 100 })
+		fireEvent.click(hit, { clientX: 280, clientY: 100 })
 
 		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Q3')
+	})
+
+	it('isolates the snapped nearest bar past the bars when the crosshair snaps', () => {
+		const snapped = renderUI(chart({ crosshair: { x: true, y: false, snap: true } }))
+
+		const hit = bySlot(snapped.container, 'chart-hit') as Element
+
+		// High above the bars, late in the band axis — off every bar's own span.
+		const probe = { clientX: Number(hit.getAttribute('width')) * 0.8, clientY: 5 }
+
+		fireEvent.pointerMove(hit, probe)
+
+		const lit = (container: HTMLElement) =>
+			allBySlot(container, 'chart-bar').filter(
+				(bar) => !bar.getAttribute('class')?.includes('opacity-25'),
+			)
+
+		// Isolation mirrors the snapped readout: the nearest bar lifts alone.
+		expect(lit(snapped.container)).toHaveLength(1)
+
+		// Without the snap the readout reads nothing here, so nothing isolates.
+		const free = renderUI(chart())
+
+		fireEvent.pointerMove(bySlot(free.container, 'chart-hit') as Element, probe)
+
+		expect(lit(free.container)).toHaveLength(6)
 	})
 
 	it('rules a horizontal value line at the pointer with crosshair x', () => {

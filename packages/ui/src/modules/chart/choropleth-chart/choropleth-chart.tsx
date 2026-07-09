@@ -39,10 +39,19 @@ export type ChoroplethChartSeries<T> = {
 	/** The value's display name; the legend caption / table header. AG Charts' `colorName`. */
 	colorName?: string
 	/**
-	 * Equal-interval bin count for the scale and its legend.
+	 * Bin count for the scale and its legend.
 	 * @defaultValue one bin per `colorRange` stop
 	 */
 	bins?: number
+	/**
+	 * How the bins divide the data: `'linear'` (the default) by equal value span,
+	 * or `'quantile'` by rank so each shade covers a similar number of regions —
+	 * the reading for skewed data, where an equal-interval ramp leaves most
+	 * regions in the lowest bucket. Pair it with a `bins` count above the ramp's
+	 * stop count for a finer gradient.
+	 * @defaultValue 'linear'
+	 */
+	binning?: 'linear' | 'quantile'
 }
 
 /**
@@ -247,6 +256,7 @@ export function ChoroplethChart<T = never>(props: ChoroplethChartProps<T>) {
 		domain: primary?.colorDomain,
 		valueName: primary?.colorName,
 		bins: primary?.bins,
+		binning: primary?.binning,
 		valueFormat: formatValue,
 	} as Parameters<typeof MapPlat<T>>[0]
 

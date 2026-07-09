@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+	bandBoundaries,
 	bandScale,
 	headroomFits,
 	linearScale,
@@ -263,6 +264,21 @@ describe('bandScale', () => {
 		expect(scale.step).toBe(0)
 
 		expect(scale.width).toBe(0)
+	})
+})
+
+describe('bandBoundaries', () => {
+	it('rules one line per gap, halfway between adjacent centers, none at the ends', () => {
+		const scale = bandScale({ count: 4, range: [0, 400] })
+
+		// Centers land at 50, 150, 250, 350; boundaries at their midpoints.
+		expect(bandBoundaries(scale, 4)).toEqual([100, 200, 300])
+	})
+
+	it('draws nothing below two bands or on a collapsed scale', () => {
+		expect(bandBoundaries(bandScale({ count: 1, range: [0, 400] }), 1)).toEqual([])
+
+		expect(bandBoundaries(bandScale({ count: 0, range: [0, 400] }), 0)).toEqual([])
 	})
 })
 

@@ -7,6 +7,7 @@ import { BAR_GROW, BAR_SHRINK, BAR_STAGGER, barGrow } from './chart-motion'
 import type { ChartOrientation } from './chart-orientation'
 import { textureClass, textureStyle } from './chart-pattern-defs'
 import { fillClass, rawColor, type SeriesPaint } from './chart-series'
+import { useChartMarkEmphasis } from './context'
 
 /** Shared shape for the static and animated bar renderers. @internal */
 export type ChartBarMarksProps = {
@@ -14,8 +15,8 @@ export type ChartBarMarksProps = {
 	marks: (BarMark | null)[][]
 	/** Paint per series, indexed like `marks`. */
 	paints: SeriesPaint[]
-	/** Per-series dim flags — legend emphasis fades the others out. */
-	dimmed?: boolean[]
+	/** Each series' own index (`meta.index`), aligned to `marks` — the identity the mark emphasis keys on. */
+	indices: number[]
 	/** Per-series texture-tile fill URLs, aligned with `paints`; a raw colour or flat mode leaves the slot empty. */
 	fills?: (string | undefined)[]
 	/** Whether the `texture` prop is on, so tiles paint in every mode, not only forced-colors / print. */
@@ -27,16 +28,16 @@ export type ChartBarMarksProps = {
 	orientation?: ChartOrientation
 }
 
-/** One bar's classes: series fill, its texture tile, hover lift, and the emphasis dim. @internal */
+/** One bar's classes: series fill, its texture tile, and the emphasis dim. @internal */
 function barClass(
 	paint: SeriesPaint | undefined,
-	dim: boolean | undefined,
+	dim: boolean,
 	active: boolean,
 	fill: string | undefined,
 ): string {
 	return cn(
 		paint && fillClass(paint),
-		'transition-opacity hover:brightness-110',
+		'transition-opacity',
 		dim && 'opacity-25',
 		textureClass(active, fill),
 	)
@@ -46,15 +47,19 @@ function barClass(
 export function ChartBarMarks({
 	marks,
 	paints,
-	dimmed,
+	indices,
 	fills,
 	textureActive = false,
 }: ChartBarMarksProps) {
+	const { lit } = useChartMarkEmphasis()
+
 	return marks.flatMap((row, seriesIndex) => {
 		const paint = paints[seriesIndex]
 
+		const series = indices[seriesIndex] ?? seriesIndex
+
 		return row.map(
-			(mark) =>
+			(mark, datum) =>
 				mark && (
 					// `mark.key` is geometry-free: a resize shifts the bar's position but
 					// must not remount the mark, which would replay the grow animation.
@@ -66,7 +71,7 @@ export function ChartBarMarks({
 						d={mark.d}
 						fill={paint && rawColor(paint)}
 						style={textureStyle(fills?.[seriesIndex])}
-						className={barClass(paint, dimmed?.[seriesIndex], textureActive, fills?.[seriesIndex])}
+						className={barClass(paint, !lit(series, datum), textureActive, fills?.[seriesIndex])}
 					/>
 				),
 		)
@@ -77,13 +82,17 @@ export function ChartBarMarks({
 export function AnimatedChartBarMarks({
 	marks,
 	paints,
-	dimmed,
+	indices,
 	fills,
 	textureActive = false,
 	orientation = 'vertical',
 }: ChartBarMarksProps) {
+	const { lit } = useChartMarkEmphasis()
+
 	return marks.flatMap((row, seriesIndex) => {
 		const paint = paints[seriesIndex]
+
+		const series = indices[seriesIndex] ?? seriesIndex
 
 		return row.map((mark, index) => {
 			if (!mark) return null
@@ -96,7 +105,7 @@ export function AnimatedChartBarMarks({
 					data-slot="chart-bar"
 					d={mark.d}
 					fill={paint && rawColor(paint)}
-					className={barClass(paint, dimmed?.[seriesIndex], textureActive, fills?.[seriesIndex])}
+					className={barClass(paint, !lit(series, index), textureActive, fills?.[seriesIndex])}
 					initial={grow.initial}
 					animate={grow.animate}
 					// The bar shrinks back to the same baseline end it grew from — the

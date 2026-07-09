@@ -31,6 +31,88 @@ export type ChartHover = {
 export const [ChartHoverContext, useChartHover] = createContext<ChartHover>('ChartHover')
 
 /**
+ * A reference to one drawn mark: its series index (a slice's own index for the
+ * pies), and the datum within that series — a bar's or point's position — or
+ * `null` for the whole series, which is what a line, an area, and legend or
+ * keyboard emphasis all point at.
+ *
+ * @internal
+ */
+export type ChartMarkRef = { series: number; datum: number | null }
+
+/**
+ * Whether `mark` lights the given series — and datum, when one is checked: a
+ * whole-series emphasis (`datum: null`) lights every datum in its series, while
+ * a datum emphasis lights only its own. A group-level query passes no `datum`
+ * and reads the series alone. @internal
+ */
+function markLights(mark: ChartMarkRef, series: number, datum: number | null | undefined): boolean {
+	if (mark.series !== series) return false
+
+	return datum === undefined || mark.datum === null || mark.datum === datum
+}
+
+/**
+ * The one mark emphasis every cartesian and point chart shares: the mark the
+ * pointer sits on — a bar, a line, a disc — else the series the legend or
+ * keyboard picks, receding all the others behind it. Its own context so the
+ * marks re-render only when the emphasised mark changes — a discrete crossing —
+ * never on the per-pixel pointer movement the hover context carries; the frame
+ * holds the marks as children, so its own hover state never reaches them.
+ *
+ * The pointed mark wins over a still-held legend / keyboard one, the way the
+ * reference emphasis resolves the pointer over the keyboard. A datum reference
+ * (`datum` set) isolates one mark; a series reference (`datum: null`) — a line,
+ * or the coarse legend emphasis — isolates the whole series.
+ *
+ * @internal
+ */
+export type ChartMarkEmphasis = {
+	/** The emphasised mark — the pointer's, else the legend / keyboard series — or `null` when nothing is. */
+	mark: ChartMarkRef | null
+	/**
+	 * Whether a mark reads at full strength: nothing emphasised, or this is the
+	 * emphasised series (and datum, when one is checked). A renderer dims a mark
+	 * where this returns `false`. Omit `datum` for a whole-series group.
+	 */
+	lit: (series: number, datum?: number | null) => boolean
+	/** Sets the pointed mark (`null` clears); the hit layer writes it while the pointer sits on a mark. */
+	setPointed: (mark: ChartMarkRef | null) => void
+}
+
+export const [ChartMarkEmphasisContext, useChartMarkEmphasis] = createContext<ChartMarkEmphasis>(
+	'ChartMarkEmphasis',
+	{ default: { mark: null, lit: () => true, setPointed: () => {} } },
+)
+
+/**
+ * Resolves the shared {@link ChartMarkEmphasis}: the pointed mark takes the
+ * emphasis, else the legend / keyboard series lifts to a whole-series reference,
+ * else nothing is emphasised and every mark reads lit. The frame builds it from
+ * its own pointer state and the emphasis its chart passes down.
+ *
+ * @internal
+ */
+export function chartMarkEmphasis(
+	pointed: ChartMarkRef | null,
+	legendSeries: number | null,
+	setPointed: (mark: ChartMarkRef | null) => void,
+): ChartMarkEmphasis {
+	const mark = pointed ?? (legendSeries !== null ? { series: legendSeries, datum: null } : null)
+
+	return {
+		mark,
+		lit: (series, datum) => mark === null || markLights(mark, series, datum),
+		setPointed,
+	}
+}
+
+/** Whether two mark references coincide, so a redundant pointed write can bail. @internal */
+export function sameMark(a: ChartMarkRef | null, b: ChartMarkRef | null): boolean {
+	return a === b || (a !== null && b !== null && a.series === b.series && a.datum === b.datum)
+}
+
+/**
  * Marks emphasis shared between a chart's reference layer and its marks:
  * pointing a reference rule — or roving the keyboard cursor onto it — recedes the
  * data marks to it and its sibling rules with them, the same focus the legend

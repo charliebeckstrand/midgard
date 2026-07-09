@@ -277,6 +277,49 @@ export function timeTicks(options: TimeTicksOptions): ChartAxisTick[] | null {
 	return ticks
 }
 
+/** A one-or-two-digit number zero-padded to two, for a numeric date field. @internal */
+function pad2(value: number): string {
+	return String(value).padStart(2, '0')
+}
+
+/**
+ * A numeric date formatter for a plain category axis: when *every* category
+ * value parses as a date, labels them `MM-DD` — or `MM-DD-YYYY` once any of
+ * them falls outside `referenceYear` (the current year by default), so a
+ * cross-year span keeps the year and a single-year one drops it. Returns `null`
+ * when any value is not a date, leaving a non-date axis its raw labels; the
+ * same formatter labels the axis ticks, tooltip, and data table.
+ *
+ * @param values - Each row's raw `xKey` value, in row order.
+ * @param referenceYear - The year that reads without a suffix; defaults to the
+ * current calendar year.
+ * @internal
+ */
+export function dateCategoryFormat(
+	values: unknown[],
+	referenceYear: number = new Date().getFullYear(),
+): ((value: unknown) => string) | null {
+	if (values.length === 0) return null
+
+	const times = values.map(parseInstant)
+
+	if (times.some((time) => time === null)) return null
+
+	const withYear = times.some((time) => new Date(time as number).getFullYear() !== referenceYear)
+
+	return (value) => {
+		const time = parseInstant(value)
+
+		if (time === null) return String(value)
+
+		const date = new Date(time)
+
+		const md = `${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`
+
+		return withYear ? `${md}-${date.getFullYear()}` : md
+	}
+}
+
 /**
  * A category formatter for a time axis: each row's raw `xKey` value as a medium
  * locale date, so the tooltip and data table read the same dates the axis

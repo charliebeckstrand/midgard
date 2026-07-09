@@ -29,6 +29,7 @@ import {
 	seriesGroupClass,
 	strokeClass,
 } from './chart-series'
+import { useChartMarkEmphasis } from './context'
 import type { LineSeriesGeometry } from './line-chart/line-chart-geometry'
 
 /** One line series' render inputs. @internal */
@@ -40,8 +41,6 @@ export type ChartLineSeries = {
 	geometry: LineSeriesGeometry
 	/** Mark every point, not only the isolated ones. */
 	markers: boolean
-	/** Legend emphasis elsewhere — this series fades back. */
-	dimmed?: boolean
 	/** Dash the connecting stroke — the reference-line dash — leaving fill and markers untouched. */
 	dashed?: boolean
 }
@@ -90,13 +89,15 @@ export function ChartLineMarks({
 	fills,
 	textureActive = false,
 }: ChartLineMarksProps) {
-	return list.map(({ index, label, paint, geometry, markers, dimmed, dashed }, seriesIndex) => {
+	const { lit } = useChartMarkEmphasis()
+
+	return list.map(({ index, label, paint, geometry, markers, dashed }, seriesIndex) => {
 		const points = markers ? geometry.points : geometry.isolated
 
 		const patternFill = fills?.[seriesIndex]
 
 		return (
-			<g key={index} data-slot="chart-line-series" className={seriesGroupClass(dimmed)}>
+			<g key={index} data-slot="chart-line-series" className={seriesGroupClass(!lit(index))}>
 				{fill &&
 					rangeKeys(geometry.areas.length, `${label}-area`).map((key, index) => (
 						<path
@@ -156,6 +157,8 @@ export function AnimatedChartLineMarks({
 
 	const wipe = plot && list.some((series) => series.dashed)
 
+	const { lit } = useChartMarkEmphasis()
+
 	return (
 		<>
 			{wipe && (
@@ -176,7 +179,7 @@ export function AnimatedChartLineMarks({
 				</defs>
 			)}
 
-			{list.map(({ index, label, paint, geometry, markers, dimmed, dashed }, seriesIndex) => {
+			{list.map(({ index, label, paint, geometry, markers, dashed }, seriesIndex) => {
 				const points = markers ? geometry.points : geometry.isolated
 
 				const patternFill = fills?.[seriesIndex]
@@ -184,7 +187,7 @@ export function AnimatedChartLineMarks({
 				const clip = dashed && wipe ? `url(#${wipeId})` : undefined
 
 				return (
-					<g key={index} data-slot="chart-line-series" className={seriesGroupClass(dimmed)}>
+					<g key={index} data-slot="chart-line-series" className={seriesGroupClass(!lit(index))}>
 						{fill &&
 							rangeKeys(geometry.areas.length, `${label}-area`).map((key, index) => (
 								<motion.path

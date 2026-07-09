@@ -1,6 +1,14 @@
 'use client'
 
-import { type ReactElement, type ReactNode, type RefObject, useMemo, useRef, useState } from 'react'
+import {
+	type ReactElement,
+	type ReactNode,
+	type RefObject,
+	useCallback,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import { cn } from '../../core'
 import type { FrameReserve } from '../../hooks'
 import { k } from '../../recipes/kata/chart'
@@ -19,8 +27,12 @@ import {
 	ChartEmphasisContext,
 	type ChartHover,
 	ChartHoverContext,
+	ChartMarkEmphasisContext,
+	type ChartMarkRef,
 	type ChartPoint,
 	ChartTierContext,
+	chartMarkEmphasis,
+	sameMark,
 	useChartFullscreen,
 } from './context'
 import type { ChartReadout } from './types'
@@ -278,6 +290,18 @@ export function ChartFrame({
 
 	const [activeReference, setActiveReference] = useState<number | null>(null)
 
+	// The mark the pointer sits on — a bar, a line, a disc — resolved by the hit
+	// layer. It recedes every other mark behind it, and merges below with the
+	// series the legend or keyboard emphasises: the pointed mark wins while it's
+	// held, the coarse series emphasis stands in the rest of the time.
+	const [pointedMark, setPointedMark] = useState<ChartMarkRef | null>(null)
+
+	const pointMark = useCallback((mark: ChartMarkRef | null) => {
+		// Bail on a no-op so sweeping within one mark — or off the marks entirely
+		// once already clear — costs no mark re-render, the same guard hover.set keeps.
+		setPointedMark((prev) => (sameMark(prev, mark) ? prev : mark))
+	}, [])
+
 	// The frame owns the spark posture end to end: it stands the tooltip and
 	// keyboard down here, veils the header and drops the legend (chartChrome), lays
 	// the `k.drawing` pointer veto over the SVG so nothing inside can take a hover,
@@ -316,6 +340,13 @@ export function ChartFrame({
 			emphasizedReference: pointerReference ?? activeReference,
 		}),
 		[pointerReference, activeReference],
+	)
+
+	// The mark emphasis the marks and tooltip both read: the pointed mark, else the
+	// series the legend or keyboard passed down, lifted to a whole-series reference.
+	const markEmphasis = useMemo(
+		() => chartMarkEmphasis(pointedMark, seriesEmphasis, pointMark),
+		[pointedMark, seriesEmphasis, pointMark],
 	)
 
 	// The SVG renders at its committed pixel size and anchors to the box's
@@ -378,7 +409,9 @@ export function ChartFrame({
 					readout={readout}
 					snap={snap}
 					orientation={orientation}
-					emphasis={seriesEmphasis}
+					// The pointed mark's series dims the other rows too, so a hovered bar or
+					// line foregrounds its row exactly as the coarse legend emphasis does.
+					emphasis={markEmphasis.mark?.series ?? null}
 				/>
 			)}
 		</div>
@@ -407,17 +440,19 @@ export function ChartFrame({
 		>
 			<ChartTierContext value={tier ?? 'standard'}>
 				<ChartEmphasisContext value={emphasis}>
-					<ChartHoverContext value={hover}>
-						<ChartFigure
-							plot={plotRegion}
-							header={header}
-							legend={legendFrame}
-							legendPlacement={legendPlacement}
-							aside={aside}
-							containerFill={containerFill}
-							aspect={aspect}
-						/>
-					</ChartHoverContext>
+					<ChartMarkEmphasisContext value={markEmphasis}>
+						<ChartHoverContext value={hover}>
+							<ChartFigure
+								plot={plotRegion}
+								header={header}
+								legend={legendFrame}
+								legendPlacement={legendPlacement}
+								aside={aside}
+								containerFill={containerFill}
+								aspect={aspect}
+							/>
+						</ChartHoverContext>
+					</ChartMarkEmphasisContext>
 				</ChartEmphasisContext>
 			</ChartTierContext>
 

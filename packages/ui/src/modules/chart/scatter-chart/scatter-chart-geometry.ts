@@ -13,8 +13,10 @@ import {
 	MARKER_RADIUS,
 	TICK_CHAR_WIDTH,
 } from '../chart-constants'
+import { beatsHeldMark } from '../chart-hit-test'
 import { linearScale } from '../chart-scale'
 import { READOUT_GAP } from '../chart-series'
+import { nearestStopIndex } from '../chart-snap'
 
 /** One parsed point: finite x and y, with the size measure where one was read. @internal */
 export type ScatterDatum = {
@@ -147,37 +149,78 @@ export function scatterMarks(
 	}))
 }
 
+/** One snapped column stop: its value-axis screen position and the point behind it. @internal */
+export type ScatterSnapStop = { y: number; series: number; datum: number }
+
 /**
- * Per unique x, the visible series' y screen positions — every point at that
- * x, duplicates included — the crosshair's and keyboard cursor's snap targets,
- * shaped exactly like the band charts' snap points.
+ * Per unique x, every visible point at that x — duplicates included — with its
+ * screen y and identity, in series-major point order. The snap targets behind
+ * {@link scatterSnapColumns}, kept whole here so the mark isolation can name
+ * the disc behind the stop the tooltip anchors.
  *
  * @internal
  */
-export function scatterSnapColumns(
+export function scatterSnapStops(
 	seriesData: ScatterDatum[][],
 	uniqueXs: number[],
 	mapY: (value: number) => number,
-): number[][] {
-	// Group each series' screen ys by x in one pass, so each column reads its stops
-	// off the map rather than re-scanning every point — O(points) over the grid
-	// instead of O(uniqueXs × points), which turns quadratic on the all-distinct x
-	// the docs advertise. Insertion order matches a per-column filter, so the stops
-	// stay in point order.
-	const byX = seriesData.map((points) => {
-		const groups = new Map<number, number[]>()
+): ScatterSnapStop[][] {
+	// Group each series' stops by x in one pass, so each column reads off the map
+	// rather than re-scanning every point — O(points) over the grid instead of
+	// O(uniqueXs × points), which turns quadratic on the all-distinct x the docs
+	// advertise. Insertion order matches a per-column filter, so the stops stay
+	// in point order.
+	const byX = seriesData.map((points, series) => {
+		const groups = new Map<number, ScatterSnapStop[]>()
 
-		for (const point of points) {
-			const ys = groups.get(point.x)
+		points.forEach((point, datum) => {
+			const stop = { y: mapY(point.y), series, datum }
 
-			if (ys) ys.push(mapY(point.y))
-			else groups.set(point.x, [mapY(point.y)])
-		}
+			const stops = groups.get(point.x)
+
+			if (stops) stops.push(stop)
+			else groups.set(point.x, [stop])
+		})
 
 		return groups
 	})
 
 	return uniqueXs.map((x) => byX.flatMap((groups) => groups.get(x) ?? []))
+}
+
+/**
+ * Per unique x, the visible series' y screen positions — every point at that
+ * x, duplicates included — the crosshair's and keyboard cursor's snap targets,
+ * shaped exactly like the band charts' snap points. The positions half of
+ * {@link scatterSnapStops}, index-aligned with it.
+ *
+ * @internal
+ */
+export function scatterSnapColumns(stops: ScatterSnapStop[][]): number[][] {
+	return stops.map((column) => column.map((stop) => stop.y))
+}
+
+/**
+ * The stop nearest `y` in column `index`, or `null` off every stop (an empty
+ * column, or no column). The same resolution the snapped tooltip anchors with,
+ * so the isolated disc and the readout can never disagree: moving along the
+ * column hands both to the next point at the midpoint between stops.
+ *
+ * @internal
+ */
+export function scatterSnappedStop(
+	stops: ScatterSnapStop[][],
+	index: number | null,
+	y: number,
+): ScatterSnapStop | null {
+	const column = index === null ? [] : (stops[index] ?? [])
+
+	const stop = nearestStopIndex(
+		column.map((entry) => entry.y),
+		y,
+	)
+
+	return stop === null ? null : (column[stop] ?? null)
 }
 
 /**
@@ -237,16 +280,75 @@ export function nearestCenterIndex(coord: number, centers: number[]): number | n
 	return best
 }
 
-/** Whether the pointer sits on any point's disc, within `slack` of its edge. @internal */
-export function withinScatterMarks(
+/**
+ * Arbitrates the held disc against the nearest caught one: the held keeps the
+ * win while it stayed caught (a finite distance) and no challenger
+ * {@link beatsHeldMark | decisively} closes.
+ *
+ * @internal
+ */
+function resolveHeldDisc(
+	best: { series: number; datum: number } | null,
+	bestDistance: number,
+	held: { series: number; datum: number } | null,
+	heldDistance: number,
+): { series: number; datum: number } | null {
+	if (best === null || held === null || !Number.isFinite(heldDistance)) return best
+
+	if (best.series === held.series && best.datum === held.datum) return best
+
+	if (beatsHeldMark(bestDistance * bestDistance, heldDistance * heldDistance)) return best
+
+	return held
+}
+
+/**
+ * The disc the pointer sits on — its series and datum indices — or `null` off
+ * every disc, each disc caught within `slack` of its edge. The nearest disc
+ * centre wins where discs overlap, so the isolation lifts the one the pointer
+ * is truly on rather than whichever drew first. A `held` disc — the one
+ * already emphasised — keeps the win while it stays caught, unless a
+ * challenger decisively closes ({@link beatsHeldMark}): the resolution is
+ * sticky across the midline between discs rather than flipping on it.
+ *
+ * @internal
+ */
+export function scatterMarkAt(
 	marks: ScatterMark[][],
 	x: number,
 	y: number,
 	slack: number,
-): boolean {
-	return marks.some((points) =>
-		points.some((point) => Math.hypot(point.x - x, point.y - y) <= point.r + slack),
-	)
+	held: { series: number; datum: number } | null = null,
+): { series: number; datum: number } | null {
+	let best: { series: number; datum: number } | null = null
+
+	let bestDistance = Number.POSITIVE_INFINITY
+
+	let heldDistance = Number.POSITIVE_INFINITY
+
+	for (let series = 0; series < marks.length; series++) {
+		const points = marks[series] as ScatterMark[]
+
+		for (let datum = 0; datum < points.length; datum++) {
+			const point = points[datum] as ScatterMark
+
+			const distance = Math.hypot(point.x - x, point.y - y)
+
+			if (distance > point.r + slack) continue
+
+			if (held !== null && series === held.series && datum === held.datum) {
+				heldDistance = distance
+			}
+
+			if (distance < bestDistance) {
+				bestDistance = distance
+
+				best = { series, datum }
+			}
+		}
+	}
+
+	return resolveHeldDisc(best, bestDistance, held, heldDistance)
 }
 
 /**

@@ -4,6 +4,7 @@ import { useCallback } from 'react'
 import { cn } from '../../../core'
 import type { PlotRect } from '../chart-layout'
 import type { ChartTooltipTrigger } from '../chart-schema'
+import type { ChartMarkRef } from '../context'
 import { useChartPointer } from '../use-chart-pointer'
 import { nearestCenterIndex } from './scatter-chart-geometry'
 
@@ -12,8 +13,19 @@ export type ScatterChartHitAreaProps = {
 	plot: PlotRect
 	/** The unique x values' screen positions — the hover index snaps to the nearest. */
 	centers: number[]
-	/** The chart's point hit test; the tooltip shows only where it holds. */
-	onData?: (x: number, y: number) => boolean
+	/**
+	 * The chart's point hit test: the disc under the point that isolation lifts and
+	 * the others recede behind, or `null` off every disc, where the tooltip stays
+	 * shut. `held` carries the disc currently emphasised, for sticky resolution
+	 * within overlapping discs; `index` carries the resolved column, so a snapping
+	 * chart can hand the emphasis to the stop the tooltip anchors there.
+	 */
+	markAt?: (
+		x: number,
+		y: number,
+		held: ChartMarkRef | null,
+		index: number | null,
+	) => ChartMarkRef | null
 	/**
 	 * How the tooltip opens: tracked on `'hover'`, pinned by a click on `'click'`
 	 * — which also points the cursor at the points a click can read.
@@ -41,14 +53,22 @@ export type ScatterChartHitAreaProps = {
 export function ScatterChartHitArea({
 	plot,
 	centers,
-	onData,
+	markAt,
 	trigger = 'hover',
 	snaps = false,
 }: ScatterChartHitAreaProps) {
 	// The nearest unique-x column stands in for the band charts' evenly spaced band.
 	const resolveIndex = useCallback((x: number) => nearestCenterIndex(x, centers), [centers])
 
-	const { ref, ...handlers } = useChartPointer(plot, resolveIndex, onData, trigger, snaps)
+	const { ref, ...handlers } = useChartPointer(
+		plot,
+		resolveIndex,
+		undefined,
+		trigger,
+		snaps,
+		undefined,
+		markAt,
+	)
 
 	return (
 		<rect

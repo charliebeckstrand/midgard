@@ -76,6 +76,7 @@ type MapNumericAbsent = {
 	valueKey?: undefined
 	colorRange?: undefined
 	bins?: undefined
+	binning?: undefined
 	domain?: undefined
 	valueFormat?: undefined
 	valueName?: undefined
@@ -100,10 +101,20 @@ type MapNumericData<T> = MapRegionRows<T> & {
 	/** Ordered CSS colour stops the bins sample, low → high — the data-driven scale. */
 	colorRange: string[]
 	/**
-	 * Equal-interval bin count for the ramp and its legend.
+	 * Bin count for the ramp and its legend.
 	 * @defaultValue one bin per `colorRange` stop
 	 */
 	bins?: number
+	/**
+	 * How the bins divide the data: `'linear'` (the default) by equal value
+	 * span, or `'quantile'` by rank so each shade covers a similar number of
+	 * regions — the reading for skewed data, where an equal-interval ramp leaves
+	 * most regions in the lowest bucket. The range legend shows the ramp and the
+	 * data extent either way; under `'quantile'` the colour-to-value mapping is
+	 * non-linear, so the bar reads as an approximation of where the breaks fall.
+	 * @defaultValue 'linear'
+	 */
+	binning?: 'linear' | 'quantile'
 	/** Fixed `[min, max]` for the ramp; derived from the data extent when omitted. */
 	domain?: [number, number]
 	/** Formats the bin-range labels, the tooltip value, and the table cell. */
@@ -371,6 +382,7 @@ function useMapRegionReadout<T>(
 		valueKey,
 		colorRange,
 		bins,
+		binning,
 		domain,
 		valueFormat,
 	}: MapRegionData<T>,
@@ -413,23 +425,21 @@ function useMapRegionReadout<T>(
 		if (valueKey !== undefined && colorRange !== undefined) {
 			const format = valueFormat ?? ((value) => String(value))
 
-			const { metas, domain: resolved } = resolveValueBins(data, valueKey, {
+			const {
+				metas,
+				domain: resolved,
+				assign,
+			} = resolveValueBins(data, valueKey, {
 				colorRange,
 				bins,
+				binning,
 				domain,
 				format,
 			})
 
 			return {
 				categoryMetas: metas,
-				regionCategory: regionValueIndexes(
-					regionIds,
-					data,
-					regionKey,
-					valueKey,
-					metas.length,
-					resolved,
-				),
+				regionCategory: regionValueIndexes(regionIds, data, regionKey, valueKey, assign),
 				// A region's readout is its own value, not the bin range its colour reads
 				// from — so the tooltip and table show "2,088", not "1–135".
 				regionValues: regionValueLabels(regionIds, data, regionKey, valueKey, format),
@@ -463,6 +473,7 @@ function useMapRegionReadout<T>(
 		valueKey,
 		colorRange,
 		bins,
+		binning,
 		domain,
 		valueFormat,
 		regionIds,
@@ -960,6 +971,7 @@ export function MapPlat<T = never>({
 	valueKey,
 	colorRange,
 	bins,
+	binning,
 	domain,
 	valueFormat,
 	valueName,
@@ -1002,6 +1014,7 @@ export function MapPlat<T = never>({
 			valueKey,
 			colorRange,
 			bins,
+			binning,
 			domain,
 			valueFormat,
 		} as MapRegionData<T>,

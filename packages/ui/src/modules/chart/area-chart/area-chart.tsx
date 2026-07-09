@@ -6,7 +6,7 @@ import { ChartCrosshair, crosshairSnaps, resolveCrosshair } from '../chart-cross
 import { ChartFrame } from '../chart-frame'
 import { ChartGridLines } from '../chart-grid-lines'
 import { ChartHitArea } from '../chart-hit-area'
-import { withinSeriesAreas } from '../chart-hit-test'
+import { nearestSeriesArea } from '../chart-hit-test'
 import { lineMarkReach } from '../chart-layout'
 import { AnimatedChartLineMarks, ChartLineMarks, type ChartLineSeries } from '../chart-line-marks'
 import { ChartMarksLayer } from '../chart-marks-layer'
@@ -18,8 +18,7 @@ import {
 	type Crosshair,
 	resolveTooltip,
 } from '../chart-schema'
-import type { SeriesMeta } from '../chart-series'
-import { snapTargets } from '../chart-snap'
+import { snappedSeriesAt, snapTargets } from '../chart-snap'
 import { ChartValueLabels, resolveValueLabels } from '../chart-value-labels'
 import {
 	type LineInterpolation,
@@ -276,6 +275,7 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 		reference,
 		xAxis,
 		tickRotation,
+		categories,
 		labels,
 		onCategoryClick,
 		formatValue,
@@ -300,6 +300,7 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 			reference,
 			xAxis,
 			tickRotation,
+			categories,
 			onCategoryClick,
 			formatValue,
 			// The header travels to the frame through `label`; the hook reads it too,
@@ -316,8 +317,6 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 	const floor = chart.plot.y + chart.plot.height
 
 	const xs = bandCenters(chart)
-
-	const dimmed = (meta: SeriesMeta) => chart.emphasis !== null && meta.index !== chart.emphasis
 
 	// A stack binds to one axis (the side its series agree on, else the left),
 	// so its ribbons read that one scale; unstacked series each read their own.
@@ -336,7 +335,6 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 			interpolation,
 		}),
 		markers: points,
-		dimmed: dimmed(entry.meta),
 		dashed: entry.meta.dashed,
 	}))
 
@@ -382,6 +380,8 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 	const rails = resolveCrosshair(
 		crosshair ?? { x: false, y: true, snap: interpolation !== 'smooth' },
 	)
+
+	const snapping = crosshairSnaps(rails)
 
 	const { show: showTooltip, trigger } = resolveTooltip(tooltip)
 
@@ -432,6 +432,15 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 				<ChartGridLines plot={chart.plot} ticks={chart.gridPositions} />
 			)}
 
+			{chart.categoryGridPositions.length > 0 && (
+				<ChartGridLines
+					plot={chart.plot}
+					ticks={chart.categoryGridPositions}
+					orientation="horizontal"
+					dashed={categories?.separator === 'dashed'}
+				/>
+			)}
+
 			{chart.axes && chart.yScale && <ChartAxis axis="y" plot={chart.plot} ticks={chart.yTicks} />}
 
 			{chart.axes && chart.rightScale && (
@@ -464,16 +473,29 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 					plot={chart.plot}
 					band={chart.band}
 					count={data.length}
-					onData={(x, y) =>
-						withinSeriesAreas(
-							list.map((series) => series.geometry.runs),
+					markAt={(x, y, _held, index) => {
+						// The ribbon or wash the pointer sits in isolates its whole series — a
+						// dot on a ribbon's boundary already reads as the ribbon whose edge it
+						// marks.
+						const within = nearestSeriesArea(
+							list.map((entry) => entry.geometry.runs),
 							floor,
 							x,
 							y,
 						)
-					}
+
+						if (within !== null) return { series: list[within]?.index ?? within, datum: null }
+
+						// Isolation mirrors the snapped readout: above the fills the emphasis
+						// goes to the band edge the tooltip anchors in the snapped column. A
+						// stacked column offers no stops, so its readout floats free and
+						// nothing isolates outside the stack.
+						const series = snapping ? snappedSeriesAt(snapPoints, chart.snapSeries, index, y) : null
+
+						return series === null ? null : { series, datum: null }
+					}}
 					trigger={trigger}
-					snaps={crosshairSnaps(rails)}
+					snaps={snapping}
 					onIndexClick={chart.onBandClick}
 				/>
 			)}

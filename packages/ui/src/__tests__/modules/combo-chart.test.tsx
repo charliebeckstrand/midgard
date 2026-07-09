@@ -175,4 +175,57 @@ describe('ComboChart', () => {
 
 		expect(allBySlot(container, 'chart-bar')).toHaveLength(3)
 	})
+
+	it('isolates the nearer stroke where the line and area edge share the catch', () => {
+		const { container } = renderUI(chart({ series: [...TRIO] }))
+
+		const hit = bySlot(container, 'chart-hit') as Element
+
+		// jsdom boxes sit at 0, so a dot's frame coordinates map back to client
+		// coordinates through the plot offset the hit rect carries.
+		const plotX = Number(hit.getAttribute('x'))
+
+		const plotY = Number(hit.getAttribute('y'))
+
+		const groups = allBySlot(container, 'chart-line-series')
+
+		const areaGroup = groups.find((g) => g.querySelector('[data-slot="chart-area"]')) as Element
+
+		const lineGroup = groups.find((g) => !g.querySelector('[data-slot="chart-area"]')) as Element
+
+		const dotAt = (group: Element, index: number) => {
+			const dot = group.querySelectorAll('[data-slot="chart-point"]')[index] as Element
+
+			return { x: Number(dot.getAttribute('cx')), y: Number(dot.getAttribute('cy')) }
+		}
+
+		const areaDot = dotAt(areaGroup, 1)
+
+		const lineDot = dotAt(lineGroup, 1)
+
+		// The premise: at Q2 both strokes sit inside one 32px catch, so a
+		// draw-order priority would always hand the hover to the line.
+		expect(Math.abs(areaDot.y - lineDot.y)).toBeLessThanOrEqual(32)
+
+		// On the area's own dot, the area is the nearer stroke — it isolates,
+		// the line and bars recede.
+		fireEvent.pointerMove(hit, { clientX: areaDot.x - plotX, clientY: areaDot.y - plotY })
+
+		expect(areaGroup.getAttribute('class')).not.toContain('opacity-25')
+
+		expect(lineGroup.getAttribute('class')).toContain('opacity-25')
+
+		expect(
+			allBySlot(container, 'chart-bar').every((bar) =>
+				bar.getAttribute('class')?.includes('opacity-25'),
+			),
+		).toBe(true)
+
+		// And on the line's dot the resolution flips.
+		fireEvent.pointerMove(hit, { clientX: lineDot.x - plotX, clientY: lineDot.y - plotY })
+
+		expect(lineGroup.getAttribute('class')).not.toContain('opacity-25')
+
+		expect(areaGroup.getAttribute('class')).toContain('opacity-25')
+	})
 })

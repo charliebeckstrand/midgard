@@ -59,7 +59,7 @@ describe('tooltip across a scroll', () => {
 		boxOf(hit, 400, 240)
 
 		// Hover Q3; the readout appears and the pointer is recorded.
-		act(() => fireEvent.pointerMove(hit, { clientX: 300, clientY: 100 }))
+		act(() => fireEvent.pointerMove(hit, { clientX: 280, clientY: 100 }))
 
 		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Q3')
 
@@ -132,7 +132,7 @@ describe('tooltip across a scroll', () => {
 
 		boxOf(hit, 400, 240)
 
-		act(() => fireEvent.pointerMove(hit, { clientX: 300, clientY: 100 }))
+		act(() => fireEvent.pointerMove(hit, { clientX: 280, clientY: 100 }))
 
 		expect(bySlot(container, 'tooltip-content')).not.toBeNull()
 

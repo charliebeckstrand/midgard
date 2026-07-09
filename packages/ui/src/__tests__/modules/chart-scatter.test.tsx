@@ -5,6 +5,7 @@ import {
 	anchorEndTicks,
 	diameterRange,
 	nearestCenterIndex,
+	scatterMarkAt,
 	sizeRadius,
 	uniqueXValues,
 } from '../../modules/chart/scatter-chart/scatter-chart-geometry'
@@ -33,6 +34,41 @@ describe('scatter geometry', () => {
 				],
 			]),
 		).toEqual([1, 3])
+	})
+
+	it('resolves the disc under the pointer, the nearest centre where discs overlap', () => {
+		const marks = [
+			[
+				{ x: 10, y: 10, r: 5 },
+				{ x: 40, y: 40, r: 5 },
+			],
+			[{ x: 12, y: 12, r: 5 }],
+		]
+
+		// On the second series' lone disc, clear of the rest.
+		expect(scatterMarkAt(marks, 12, 12, 0)).toEqual({ series: 1, datum: 0 })
+
+		// Between the two overlapping discs at (10,10) and (12,12): the nearer wins.
+		expect(scatterMarkAt(marks, 10.5, 10.5, 0)).toEqual({ series: 0, datum: 0 })
+
+		// Off every disc, past the edge slack.
+		expect(scatterMarkAt(marks, 100, 100, 2)).toBeNull()
+	})
+
+	it('holds the emphasised disc across the midline until a challenger decisively closes', () => {
+		// Discs at (10,10) and (40,10); the midline sits at x=25.
+		const marks = [
+			[
+				{ x: 10, y: 10, r: 5 },
+				{ x: 40, y: 10, r: 5 },
+			],
+		]
+
+		// Just past the midline the held disc keeps the win.
+		expect(scatterMarkAt(marks, 27, 10, 100, { series: 0, datum: 0 })?.datum).toBe(0)
+
+		// Decisively onto the other disc — under half the held distance — it flips.
+		expect(scatterMarkAt(marks, 37, 10, 100, { series: 0, datum: 0 })?.datum).toBe(1)
 	})
 
 	it('resolves the nearest center however unevenly they sit', () => {

@@ -4,7 +4,7 @@ import { type MouseEvent, type PointerEvent, type RefObject, useCallback, useRef
 import { useHoverAcrossScroll } from '../../hooks'
 import type { PlotRect } from './chart-layout'
 import type { ChartTooltipTrigger } from './chart-schema'
-import { useChartHover } from './context'
+import { type ChartMarkRef, useChartHover, useChartMarkEmphasis } from './context'
 
 /** The handlers {@link useChartPointer} spreads onto the hit layer's rect. @internal */
 export type ChartPointerHandlers = {
@@ -62,10 +62,50 @@ export function useChartPointer(
 	trigger: ChartTooltipTrigger = 'hover',
 	snaps = false,
 	onIndexClick?: (index: number) => void,
+	markAt?: (
+		x: number,
+		y: number,
+		held: ChartMarkRef | null,
+		index: number | null,
+	) => ChartMarkRef | null,
 ): ChartPointerHandlers {
 	const { index: active, set } = useChartHover()
 
+	const { setPointed } = useChartMarkEmphasis()
+
 	const ref = useRef<SVGRectElement>(null)
+
+	// The mark the pointer currently holds, fed back into the resolver so a
+	// bounded catch can stay sticky: the held mark keeps the emphasis across the
+	// midline between two overlapping catches until the pointer commits to
+	// another. A ref, not state: it shadows what setPointed last published.
+	const heldMark = useRef<ChartMarkRef | null>(null)
+
+	// The mark under a frame point and whether a readout shows there: with a
+	// `markAt` resolver the mark itself gates the readout — on a mark, or off it —
+	// and feeds the isolation; without one the chart's own `onData` gates alone and
+	// nothing isolates. One probe so the hit test and the isolation never disagree.
+	// The resolved category index rides along so a snapping chart can hand the
+	// emphasis to the stop the tooltip anchors in that category's column.
+	const probe = useCallback(
+		(x: number, y: number, index: number | null) => {
+			const mark = markAt ? markAt(x, y, heldMark.current, index) : null
+
+			return { mark, onData: markAt ? mark !== null : (onData?.(x, y) ?? true) }
+		},
+		[markAt, onData],
+	)
+
+	// Every write to the pointed mark goes through here, so the held ref never
+	// drifts from what the emphasis shows.
+	const point = useCallback(
+		(mark: ChartMarkRef | null) => {
+			heldMark.current = mark
+
+			setPointed(mark)
+		},
+		[setPointed],
+	)
 
 	// Whether the pointer is currently over the hit layer. The shared hover is also
 	// written by the keyboard, so the scroll rescue reads this to tell a
@@ -89,14 +129,22 @@ export function useChartPointer(
 			) {
 				set(null, null)
 
+				point(null)
+
 				return
 			}
 
 			const { x, y } = toFrame(plot, box, clientX, clientY)
 
-			set(resolveIndex(x, y), { x, y }, onData ? onData(x, y) : true)
+			const index = resolveIndex(x, y)
+
+			const { mark, onData: onDataHit } = probe(x, y, index)
+
+			set(index, { x, y }, onDataHit)
+
+			point(mark)
 		},
-		[plot, resolveIndex, onData, set],
+		[plot, resolveIndex, probe, set, point],
 	)
 
 	// A click pins the band under it; clicking the shown band again clears it, so
@@ -113,7 +161,7 @@ export function useChartPointer(
 
 			const index = resolveIndex(x, y)
 
-			const onDataHit = onData ? onData(x, y) : true
+			const { onData: onDataHit } = probe(x, y, index)
 
 			// Toggle the shown category off; and a click that would read nothing — off
 			// the marks on a chart that doesn't snap — dismisses rather than pinning a
@@ -123,7 +171,7 @@ export function useChartPointer(
 
 			if (index !== null) onIndexClick?.(index)
 		},
-		[plot, resolveIndex, onData, snaps, active, set, onIndexClick],
+		[plot, resolveIndex, probe, snaps, active, set, onIndexClick],
 	)
 
 	// The hover trigger's activation click: resolve the band under the click and
@@ -143,11 +191,13 @@ export function useChartPointer(
 		[plot, resolveIndex, onIndexClick],
 	)
 
-	// Under a non-snap click trigger, point the cursor only where a click reads — on
-	// a mark, not the bare plot above or between them. Written straight to the node
-	// so tracking the marks never re-renders the plot; a snapping chart reads a click
-	// anywhere, so a static class carries its cursor instead.
-	const reflectCursor = useCallback(
+	// The click trigger's pointer move: isolation stays a hover affordance even with
+	// the readout click-pinned, so movement isolates the mark under the pointer here
+	// too. Under a non-snap chart it also points the cursor only where a click reads
+	// — on a mark, not the bare plot above or between them — written straight to the
+	// node so tracking the marks never re-renders the plot; a snapping chart reads a
+	// click anywhere, so a static class carries its cursor and this leaves it be.
+	const pointCursor = useCallback(
 		(clientX: number, clientY: number) => {
 			const node = ref.current
 
@@ -157,9 +207,13 @@ export function useChartPointer(
 
 			const { x, y } = toFrame(plot, box, clientX, clientY)
 
-			node.style.cursor = (onData?.(x, y) ?? true) ? 'pointer' : 'default'
+			const { mark, onData: onDataHit } = probe(x, y, resolveIndex(x, y))
+
+			point(mark)
+
+			if (!snaps) node.style.cursor = onDataHit ? 'pointer' : 'default'
 		},
-		[plot, onData],
+		[plot, resolveIndex, probe, snaps, point],
 	)
 
 	// The scroll rescue only re-resolves while the pointer is engaged; a
@@ -172,8 +226,12 @@ export function useChartPointer(
 	)
 
 	const clear = useCallback(() => {
-		if (pointerInside.current) set(null, null)
-	}, [set])
+		if (pointerInside.current) {
+			set(null, null)
+
+			point(null)
+		}
+	}, [set, point])
 
 	// The scroll rescue is a hover affordance; a pinned click readout stays put and
 	// lets floating-ui's autoUpdate re-anchor it, so it stands down under `'click'`.
@@ -183,7 +241,10 @@ export function useChartPointer(
 		return {
 			ref,
 			onClick: (event) => toggle(event.clientX, event.clientY),
-			onPointerMove: snaps ? undefined : (event) => reflectCursor(event.clientX, event.clientY),
+			// Isolation follows the pointer under a pinned readout; the cursor rides
+			// along on a non-snap chart (see pointCursor).
+			onPointerMove: (event) => pointCursor(event.clientX, event.clientY),
+			onPointerLeave: () => point(null),
 		}
 	}
 
@@ -200,6 +261,8 @@ export function useChartPointer(
 			pointerInside.current = false
 
 			set(null, null)
+
+			point(null)
 		},
 	}
 }

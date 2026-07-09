@@ -1,6 +1,6 @@
 'use client'
 
-import { barMarks } from '../bar-chart/bar-chart-geometry'
+import { type BarMark, barMarks } from '../bar-chart/bar-chart-geometry'
 import { ChartAxis, ChartAxisTitles } from '../chart-axis'
 import { AnimatedChartBarMarks, ChartBarMarks } from '../chart-bar-marks'
 import { ChartCartesianLegend } from '../chart-cartesian-legend'
@@ -9,7 +9,7 @@ import { ChartCrosshair, crosshairSnaps, resolveCrosshair } from '../chart-cross
 import { ChartFrame } from '../chart-frame'
 import { ChartGridLines } from '../chart-grid-lines'
 import { ChartHitArea } from '../chart-hit-area'
-import { nearSeriesLines, withinBarMarks, withinSeriesAreas } from '../chart-hit-test'
+import { barMarkAt, nearestSeriesArea, nearestSeriesLine } from '../chart-hit-test'
 import { lineMarkReach } from '../chart-layout'
 import { AnimatedChartLineMarks, ChartLineMarks, type ChartLineSeries } from '../chart-line-marks'
 import { ChartMarksLayer } from '../chart-marks-layer'
@@ -22,9 +22,9 @@ import {
 	type ComboChartSeries,
 	resolveTooltip,
 } from '../chart-schema'
-import type { SeriesMeta } from '../chart-series'
-import { snapTargets } from '../chart-snap'
+import { snappedSeriesAt, snapTargets } from '../chart-snap'
 import { ChartValueLabels, resolveValueLabels } from '../chart-value-labels'
+import type { ChartMarkRef } from '../context'
 import { type LineInterpolation, lineGeometry } from '../line-chart/line-chart-geometry'
 import {
 	bandCenters,
@@ -62,6 +62,74 @@ export type ComboChartProps<T> = ChartBaseProps<T> &
 		 */
 		labels?: ChartValueLabelConfig
 	}
+
+/** The drawn geometry {@link comboMarkAt} resolves the pointer against. @internal */
+type ComboMarks = {
+	/** The line series, then the area series behind them in stroke order. */
+	lines: ChartLineSeries[]
+	areas: ChartLineSeries[]
+	/** Series-major bar marks, with each bar series' own index alongside. */
+	bars: (BarMark | null)[][]
+	barIndices: number[]
+	/** The plot floor the area fills read down to. */
+	floor: number
+}
+
+/**
+ * The held mark's position among the strokes — the drawn slot the sticky
+ * resolution keys on — or `null` when the held mark is a bar or absent.
+ *
+ * @internal
+ */
+function heldStrokeAt(strokes: ChartLineSeries[], held: ChartMarkRef | null): number | null {
+	if (!held || held.datum !== null) return null
+
+	const at = strokes.findIndex((entry) => entry.index === held.series)
+
+	return at < 0 ? null : at
+}
+
+/** Each stroke series' gap-split runs, in the order `strokes` lists them. @internal */
+function comboStrokeRuns(strokes: ChartLineSeries[]) {
+	return strokes.map((entry) => entry.geometry.runs)
+}
+
+/**
+ * The combo's pointer-to-mark resolution. Strokes compete by proximity, never
+ * draw order: the lines and the areas' top edges are all thin marks, so the
+ * nearest one is the one being pointed at — a pointer on an area's dot resolves
+ * that area even with a line inside the catch tolerance, and vice versa — with
+ * the held stroke kept sticky across their midline. Kinds that can't be
+ * compared by distance rank by the visual stack instead: any stroke outranks a
+ * fill (strokes draw on top), and the fills resolve by containment with the
+ * wash winning the bar it covers.
+ *
+ * @internal
+ */
+function comboMarkAt(
+	marks: ComboMarks,
+	x: number,
+	y: number,
+	held: ChartMarkRef | null,
+): ChartMarkRef | null {
+	const { lines, areas, bars, barIndices, floor } = marks
+
+	const strokes = [...lines, ...areas]
+
+	const strokeRuns = comboStrokeRuns(strokes)
+
+	const stroke = nearestSeriesLine(strokeRuns, x, y, undefined, heldStrokeAt(strokes, held))
+
+	if (stroke !== null) return { series: strokes[stroke]?.index ?? stroke, datum: null }
+
+	const area = nearestSeriesArea(comboStrokeRuns(areas), floor, x, y)
+
+	if (area !== null) return { series: areas[area]?.index ?? area, datum: null }
+
+	const bar = barMarkAt(bars, x, y, MARK_GAP)
+
+	return bar && { series: barIndices[bar.series] ?? bar.series, datum: bar.datum }
+}
 
 /**
  * A combined bar, line, and area chart: one shared value axis by default, with
@@ -114,6 +182,7 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 		reference,
 		xAxis,
 		tickRotation,
+		categories,
 		texture = false,
 		labels,
 		onCategoryClick,
@@ -139,6 +208,7 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 			reference,
 			xAxis,
 			tickRotation,
+			categories,
 			onCategoryClick,
 			formatValue,
 			// The header travels to the frame through `label`; the hook reads it too,
@@ -159,8 +229,6 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 	// the crosshair, hit layer, value labels, and reference hovers stand
 	// themselves down through ChartTierContext.
 	const floor = chart.plot.y + chart.plot.height
-
-	const dim = (meta: SeriesMeta) => chart.emphasis !== null && meta.index !== chart.emphasis
 
 	// Each visible series draws through its own axis's scale; the mark kinds
 	// partition off the one drawn list so their indices stay aligned.
@@ -195,7 +263,6 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 			paint: meta.paint,
 			geometry: lineGeometry(meta.values, xs, scale.map, floor, interpolation),
 			markers: points,
-			dimmed: dim(meta),
 			dashed: meta.dashed,
 		}))
 
@@ -221,7 +288,9 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 
 	const barPaints = barEntries.map((entry) => entry.meta.paint)
 
-	const barDims = barEntries.map((entry) => dim(entry.meta))
+	// The bar series' own indices, aligned to `bars`, so the isolation keys on the
+	// series identity rather than the bar's slot among the picked bar series.
+	const barIndices = barEntries.map((entry) => entry.meta.index)
 
 	// One tile set over every visible slot, so the bars and area washes both
 	// resolve their fill; the line series carry no fill and stay flat.
@@ -248,7 +317,7 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 			<AnimatedChartBarMarks
 				marks={bars}
 				paints={barPaints}
-				dimmed={barDims}
+				indices={barIndices}
 				fills={barFills}
 				textureActive={tex.active}
 			/>
@@ -269,7 +338,7 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 			<ChartBarMarks
 				marks={bars}
 				paints={barPaints}
-				dimmed={barDims}
+				indices={barIndices}
 				fills={barFills}
 				textureActive={tex.active}
 			/>
@@ -287,6 +356,8 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 	)
 
 	const rails = resolveCrosshair(crosshair)
+
+	const snapping = crosshairSnaps(rails)
 
 	const { show: showTooltip, trigger } = resolveTooltip(tooltip)
 
@@ -331,6 +402,15 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 				<ChartGridLines plot={chart.plot} ticks={chart.gridPositions} />
 			)}
 
+			{chart.categoryGridPositions.length > 0 && (
+				<ChartGridLines
+					plot={chart.plot}
+					ticks={chart.categoryGridPositions}
+					orientation="horizontal"
+					dashed={categories?.separator === 'dashed'}
+				/>
+			)}
+
 			{chart.axes && chart.yScale && <ChartAxis axis="y" plot={chart.plot} ticks={chart.yTicks} />}
 
 			{chart.axes && chart.rightScale && (
@@ -363,22 +443,24 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 					plot={chart.plot}
 					band={chart.band}
 					count={data.length}
-					onData={(x, y) =>
-						withinBarMarks(bars, x, y, MARK_GAP) ||
-						nearSeriesLines(
-							lines.map((series) => series.geometry.runs),
-							x,
-							y,
-						) ||
-						withinSeriesAreas(
-							areas.map((series) => series.geometry.runs),
-							floor,
-							x,
-							y,
-						)
-					}
+					markAt={(x, y, held, index) => {
+						const direct = comboMarkAt({ lines, areas, bars, barIndices, floor }, x, y, held)
+
+						if (direct) return direct
+
+						// Isolation mirrors the snapped readout: off every mark the emphasis
+						// goes to the stop the tooltip anchors in the snapped column — a bar's
+						// stop isolating that one bar, a line's or area's its whole series.
+						const meta = snapping
+							? snappedSeriesAt(chart.snapPoints, chart.snapSeries, index, y)
+							: null
+
+						if (meta === null || index === null) return null
+
+						return { series: meta, datum: (series[meta]?.type ?? 'bar') === 'bar' ? index : null }
+					}}
 					trigger={trigger}
-					snaps={crosshairSnaps(rails)}
+					snaps={snapping}
 					onIndexClick={chart.onBandClick}
 				/>
 			)}

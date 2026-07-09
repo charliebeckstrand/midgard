@@ -140,6 +140,94 @@ describe('LineChart', () => {
 		expect(readout?.textContent).toContain('Churn')
 	})
 
+	it('isolates the nearest line anywhere in the plot when the readout snaps', () => {
+		// Values pushed far apart, so a probe point can sit past the stroke
+		// tolerance from both lines and still discriminate the nearer one.
+		const wide = [
+			{ week: 'W1', signups: 100, churn: 5 },
+			{ week: 'W2', signups: 100, churn: 5 },
+			{ week: 'W3', signups: 100, churn: 5 },
+		]
+
+		const { container } = renderUI(
+			chart({ data: wide, points: true, crosshair: { x: true, y: true, snap: true } }),
+		)
+
+		const hit = bySlot(container, 'chart-hit') as Element
+
+		// jsdom boxes sit at 0, so a dot's frame coordinates map back to client
+		// coordinates through the plot offset the hit rect carries.
+		const plotX = Number(hit.getAttribute('x'))
+
+		const plotY = Number(hit.getAttribute('y'))
+
+		const groups = allBySlot(container, 'chart-line-series')
+
+		const dot = (group: Element) => {
+			const point = group.querySelectorAll('[data-slot="chart-point"]')[1] as Element
+
+			return { x: Number(point.getAttribute('cx')), y: Number(point.getAttribute('cy')) }
+		}
+
+		const top = dot(groups[0] as Element)
+
+		const bottom = dot(groups[1] as Element)
+
+		// A third of the way down the gap: nearer the top line's stop, yet past
+		// the stroke tolerance from both — the space the snap must cover.
+		const gap = bottom.y - top.y
+
+		expect(gap / 3).toBeGreaterThan(32)
+
+		fireEvent.pointerMove(hit, { clientX: top.x - plotX, clientY: top.y + gap / 3 - plotY })
+
+		expect(groups[0]?.getAttribute('class')).not.toContain('opacity-25')
+
+		expect(groups[1]?.getAttribute('class')).toContain('opacity-25')
+
+		// Past the midpoint between the stops, both the emphasis and the tooltip
+		// anchor hand over to the other series' point — the tooltip re-anchors
+		// ahead of the pointer, so it can never be caught.
+		fireEvent.pointerMove(hit, {
+			clientX: top.x - plotX,
+			clientY: top.y + gap * 0.55 - plotY,
+		})
+
+		expect(groups[1]?.getAttribute('class')).not.toContain('opacity-25')
+
+		expect(groups[0]?.getAttribute('class')).toContain('opacity-25')
+	})
+
+	it('keeps the isolation on the strokes when the readout does not snap', () => {
+		const wide = [
+			{ week: 'W1', signups: 100, churn: 5 },
+			{ week: 'W2', signups: 100, churn: 5 },
+			{ week: 'W3', signups: 100, churn: 5 },
+		]
+
+		const { container } = renderUI(chart({ data: wide, points: true }))
+
+		const hit = bySlot(container, 'chart-hit') as Element
+
+		const plotX = Number(hit.getAttribute('x'))
+
+		const plotY = Number(hit.getAttribute('y'))
+
+		const groups = allBySlot(container, 'chart-line-series')
+
+		const point = groups[0]?.querySelectorAll('[data-slot="chart-point"]')[1] as Element
+
+		const top = { x: Number(point.getAttribute('cx')), y: Number(point.getAttribute('cy')) }
+
+		// Past the tolerance in the gap between the lines: the readout reads
+		// nothing here, so nothing isolates either — the two stay in step.
+		fireEvent.pointerMove(hit, { clientX: top.x - plotX, clientY: top.y + 50 - plotY })
+
+		expect(groups[0]?.getAttribute('class')).not.toContain('opacity-25')
+
+		expect(groups[1]?.getAttribute('class')).not.toContain('opacity-25')
+	})
+
 	it('still gates the tooltip on a mark when the crosshair does not snap', () => {
 		const { container } = renderUI(chart({ crosshair: { x: true, y: true } }))
 

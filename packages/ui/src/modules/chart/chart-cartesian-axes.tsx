@@ -30,6 +30,14 @@ export type ChartCartesianAxesProps = {
 	 * to the primary ticks so a single-axis chart passes nothing extra.
 	 */
 	gridPositions?: number[]
+	/**
+	 * The band-axis positions for the category dividers, one per boundary between
+	 * rows; empty draws none. Already gated by the chart's `categories.separator`
+	 * switch and tier.
+	 */
+	categoryGridPositions?: number[]
+	/** The divider style — `'dashed'` dashes the lines, else they draw solid. */
+	categorySeparator?: 'solid' | 'dashed'
 	/** The value-axis titles the layout placed; empty draws none. */
 	titles?: ChartAxisTitlePlacement[]
 }
@@ -60,6 +68,8 @@ export function ChartCartesianAxes({
 	axes,
 	gridLines,
 	gridPositions,
+	categoryGridPositions = [],
+	categorySeparator,
 	titles = [],
 }: ChartCartesianAxesProps) {
 	const vertical = orientation === 'vertical'
@@ -70,6 +80,17 @@ export function ChartCartesianAxes({
 		<>
 			{gridLines && positions.length > 0 && (
 				<ChartGridLines plot={plot} ticks={positions} orientation={orientation} />
+			)}
+
+			{/* Dividers run parallel to the value axis, so they take the transposed
+			    orientation — a vertical chart rules them down its band boundaries. */}
+			{categoryGridPositions.length > 0 && (
+				<ChartGridLines
+					plot={plot}
+					ticks={categoryGridPositions}
+					orientation={vertical ? 'horizontal' : 'vertical'}
+					dashed={categorySeparator === 'dashed'}
+				/>
 			)}
 
 			{axes && hasScale && (

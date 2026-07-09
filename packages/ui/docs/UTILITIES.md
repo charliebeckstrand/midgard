@@ -40,6 +40,9 @@ The sequential-scale primitives the data-driven colour charts share — the chor
 | `sampleRange` | The colour a fraction `t` (`0`–`1`) of the way along an ordered stop list, exact stops verbatim and between-stops mixed in sRGB. |
 | `resolveColorBins` | Quantises a `[min, max]` domain into equal-interval `ColorBin`s sampled from a colour range, the last bin pinned to the max. |
 | `binIndex` | The equal-interval bin a value falls in — top edge clamped into the last bin, flat domain to bin `0`, non-finite to `null`. |
+| `resolveQuantileBins` | Splits values into equal-count (quantile) `ColorBin`s by rank — the skew-aware counterpart to `resolveColorBins` — with the thresholds rows assign by. |
+| `quantileThresholds` | The `count - 1` interior cut points splitting values into equal-count quantile buckets; empty for a flat domain (a single bin). |
+| `quantileBinIndex` | The quantile bin a value falls in — the count of thresholds it meets or exceeds; non-finite to `null`, bin `0` with no thresholds. |
 | `valueExtent` | The `[min, max]` of the finite values, an explicit override, or `null` when nothing spans a domain. |
 | `ColorBin` *(type)* | One bin: its `color` and the `[lo, hi]` value range it covers. |
 

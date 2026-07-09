@@ -14,6 +14,12 @@ export type ChartGridLinesProps = {
 	 * @defaultValue 'vertical'
 	 */
 	orientation?: ChartOrientation
+	/**
+	 * Dash the lines — the category dividers ruled between bands, set apart from
+	 * the solid value gridlines.
+	 * @defaultValue false
+	 */
+	dashed?: boolean
 }
 
 /**
@@ -24,7 +30,12 @@ export type ChartGridLinesProps = {
  *
  * @internal
  */
-export function ChartGridLines({ plot, ticks, orientation = 'vertical' }: ChartGridLinesProps) {
+export function ChartGridLines({
+	plot,
+	ticks,
+	orientation = 'vertical',
+	dashed = false,
+}: ChartGridLinesProps) {
 	const [from, to] = bandExtent(orientation, plot)
 
 	return (
@@ -42,6 +53,7 @@ export function ChartGridLines({ plot, ticks, orientation = 'vertical' }: ChartG
 						x2={end.x}
 						y2={end.y}
 						strokeWidth={1}
+						strokeDasharray={dashed ? '3 3' : undefined}
 						shapeRendering="crispEdges"
 						className={cn(k.grid)}
 					/>

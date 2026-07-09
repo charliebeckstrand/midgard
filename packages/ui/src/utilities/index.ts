@@ -3,7 +3,10 @@ export { clamp } from './clamp'
 export {
 	binIndex,
 	type ColorBin,
+	quantileBinIndex,
+	quantileThresholds,
 	resolveColorBins,
+	resolveQuantileBins,
 	sampleRange,
 	valueExtent,
 } from './color-scale'

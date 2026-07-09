@@ -7,13 +7,13 @@ import { MARK_GAP } from '../chart-constants'
 import { ChartCrosshair, crosshairSnaps, resolveCrosshair } from '../chart-crosshair'
 import { ChartFrame } from '../chart-frame'
 import { ChartHitArea } from '../chart-hit-area'
-import { withinBarMarks } from '../chart-hit-test'
+import { barMarkAt } from '../chart-hit-test'
 import { ChartMarksLayer } from '../chart-marks-layer'
-import type { ChartOrientation } from '../chart-orientation'
+import { type ChartOrientation, valueCoord } from '../chart-orientation'
 import { useChartTexture } from '../chart-pattern-defs'
 import { ChartReferenceLines, ChartReferenceList } from '../chart-reference-lines'
 import { type CartesianChartProps, resolveTooltip } from '../chart-schema'
-import { snapTargets } from '../chart-snap'
+import { snappedSeriesAt, snapTargets } from '../chart-snap'
 import { barProjection, drawnSeries, useChartCartesian } from '../use-chart-cartesian'
 import { cartesianFocus } from '../use-chart-keyboard'
 import {
@@ -111,6 +111,7 @@ export function BarChart<T>(props: BarChartProps<T>) {
 		reference,
 		xAxis,
 		tickRotation,
+		categories,
 		onCategoryClick,
 		formatValue,
 		className,
@@ -134,6 +135,7 @@ export function BarChart<T>(props: BarChartProps<T>) {
 			reference,
 			xAxis,
 			tickRotation,
+			categories,
 			onCategoryClick,
 			formatValue,
 			// The header travels to the frame through `label`; the hook reads it too,
@@ -184,9 +186,9 @@ export function BarChart<T>(props: BarChartProps<T>) {
 
 	const paints = drawn.map((entry) => entry.meta.paint)
 
-	const dimmed = drawn.map(
-		(entry) => chart.emphasis !== null && entry.meta.index !== chart.emphasis,
-	)
+	// Each drawn series' own index, aligned to `marks`, so the isolation and hit
+	// test speak the series identity the emphasis keys on rather than a draw slot.
+	const indices = drawn.map((entry) => entry.meta.index)
 
 	const tex = useChartTexture(
 		texture,
@@ -199,7 +201,7 @@ export function BarChart<T>(props: BarChartProps<T>) {
 		<AnimatedChartBarMarks
 			marks={marks}
 			paints={paints}
-			dimmed={dimmed}
+			indices={indices}
 			fills={fills}
 			textureActive={tex.active}
 			orientation={chart.orientation}
@@ -208,7 +210,7 @@ export function BarChart<T>(props: BarChartProps<T>) {
 		<ChartBarMarks
 			marks={marks}
 			paints={paints}
-			dimmed={dimmed}
+			indices={indices}
 			fills={fills}
 			textureActive={tex.active}
 		/>
@@ -217,6 +219,8 @@ export function BarChart<T>(props: BarChartProps<T>) {
 	// Spark needs no gate here: the frame renders the drawing pointer-inert and the
 	// crosshair and hit layer stand themselves down through ChartTierContext.
 	const rails = resolveCrosshair(crosshair)
+
+	const snapping = crosshairSnaps(rails)
 
 	const { show: showTooltip, trigger } = resolveTooltip(tooltip)
 
@@ -271,6 +275,8 @@ export function BarChart<T>(props: BarChartProps<T>) {
 				axes={chart.axes}
 				gridLines={gridLines}
 				gridPositions={chart.gridPositions}
+				categoryGridPositions={chart.categoryGridPositions}
+				categorySeparator={categories?.separator}
 				titles={chart.axisTitles}
 			/>
 
@@ -293,10 +299,29 @@ export function BarChart<T>(props: BarChartProps<T>) {
 					plot={chart.plot}
 					band={chart.band}
 					count={data.length}
-					onData={(x, y) => withinBarMarks(marks, x, y, MARK_GAP, chart.orientation)}
+					markAt={(x, y, _held, index) => {
+						// Isolation mirrors the readout: on a bar, that bar.
+						const hit = barMarkAt(marks, x, y, MARK_GAP, chart.orientation)
+
+						if (hit) return { series: indices[hit.series] ?? hit.series, datum: hit.datum }
+
+						// Past the bars the emphasis goes to the stop the snapped readout
+						// anchors — the bar top nearest the pointer along the value axis in
+						// the snapped band — isolating that one bar.
+						const series = snapping
+							? snappedSeriesAt(
+									valuePoints,
+									snapSeries,
+									index,
+									valueCoord(chart.orientation, { x, y }),
+								)
+							: null
+
+						return series === null || index === null ? null : { series, datum: index }
+					}}
 					orientation={chart.orientation}
 					trigger={trigger}
-					snaps={crosshairSnaps(rails)}
+					snaps={snapping}
 					onIndexClick={chart.onBandClick}
 				/>
 			)}

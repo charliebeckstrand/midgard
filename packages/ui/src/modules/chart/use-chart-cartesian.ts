@@ -18,7 +18,7 @@ import type { ChartLegendItem, ChartLegendReference } from './chart-legend'
 import { seriesDataKey } from './chart-motion'
 import type { ChartOrientation } from './chart-orientation'
 import { referenceLegendItems } from './chart-reference-lines'
-import type { BandScale, LinearScale } from './chart-scale'
+import { type BandScale, bandBoundaries, type LinearScale } from './chart-scale'
 import type {
 	CartesianChartProps,
 	ChartReferenceLine,
@@ -43,7 +43,7 @@ import {
 	headerLineCount,
 	policyPlotHeight,
 } from './chart-tier'
-import { parseInstant, timeCategory } from './chart-time'
+import { dateCategoryFormat, parseInstant, timeCategory } from './chart-time'
 import type { ChartReadout } from './types'
 import { useChartReferenceToggle, useChartSeriesToggle } from './use-chart-series-toggle'
 
@@ -210,6 +210,12 @@ export type CartesianChart = {
 	 * switch still gates the layer.
 	 */
 	gridPositions: number[]
+	/**
+	 * The band-axis positions for the category dividers — one per boundary between
+	 * adjacent rows, none at the ends. Empty unless `categories.separator` is set,
+	 * and gated by the same tier switch as {@link CartesianChart.gridPositions}.
+	 */
+	categoryGridPositions: number[]
 	/** The value-axis titles the layout placed; empty without titles. */
 	axisTitles: ChartAxisTitlePlacement[]
 	/** Formats a value with its axis's formatter — the readout, labels, and reference rules share it. */
@@ -472,6 +478,46 @@ function gridPositionsOf<T>(
 	]
 }
 
+/** The category labels, their raw forms, and the readout formatter. @internal */
+type ResolvedCategories = {
+	/** The band-axis labels — formatted when a formatter resolved, else raw. */
+	categories: string[]
+	/** The raw `String`-coerced values, which the click callback keys off. */
+	rawCategories: string[]
+	/** The tooltip and data table category formatter; `undefined` falls back to `String`. */
+	readoutCategory: ((value: unknown) => string) | undefined
+}
+
+/**
+ * Resolves the band axis's category labels and readout formatter from the raw
+ * `xKey` values. An explicit `formatCategory` wins for both the labels and the
+ * readout; with none set, a plain axis whose every value parses as a date
+ * normalizes itself to `MM-DD` (see {@link dateCategoryFormat}), while a time
+ * axis leaves its labels to its own calendar ticks and formats only its
+ * readout. The formatter resolves once over every value so a whole-dataset
+ * decision — the date normalization's year elision — reads the same for every
+ * label.
+ *
+ * @internal
+ */
+function resolveCategories<T>(
+	data: T[],
+	xKey: (keyof T & string) | undefined,
+	timeAxis: boolean,
+	formatCategory: ((value: unknown) => string) | undefined,
+): ResolvedCategories {
+	const rawValues = xKey ? data.map((datum) => datum[xKey]) : []
+
+	const categoryFormat =
+		formatCategory ?? (timeAxis ? undefined : (dateCategoryFormat(rawValues) ?? undefined))
+
+	return {
+		categories: categoryFormat ? rawValues.map(categoryFormat) : rawValues.map(String),
+		rawCategories: rawValues.map(String),
+		readoutCategory: categoryFormat ?? (timeAxis ? timeCategory() : undefined),
+	}
+}
+
 /**
  * The legend entries: on request, or by default once a second series needs
  * telling apart. Opted into `byValue`, the switches list in the marks' visible
@@ -707,14 +753,21 @@ export function useChartCartesian<T>(
 		policy.axisTitles,
 	)
 
-	const categories = xKey ? data.map((datum) => String(datum[xKey])) : []
+	const { categories, rawCategories, readoutCategory } = resolveCategories(
+		data,
+		xKey,
+		timeAxis,
+		props.categories?.format,
+	)
 
 	// The public category-activation callback resolved to the hit layer's
-	// index-based contract: one mapping here instead of one per chart.
+	// index-based contract: one mapping here instead of one per chart. It carries
+	// the raw category, not the formatted label, so a cross-filter keys off the
+	// underlying value the way the time axis's callback already does.
 	const { onCategoryClick } = props
 
 	const onBandClick = onCategoryClick
-		? (index: number) => onCategoryClick(categories[index] ?? '', index)
+		? (index: number) => onCategoryClick(rawCategories[index] ?? '', index)
 		: undefined
 
 	const layout: CartesianLayout = (
@@ -743,7 +796,7 @@ export function useChartCartesian<T>(
 
 	const readout =
 		xKey && data.length > 0 && visible.length > 0
-			? chartReadout(data, xKey, visible, formatAxisValue, timeAxis ? timeCategory() : undefined)
+			? chartReadout(data, xKey, visible, formatAxisValue, readoutCategory)
 			: null
 
 	// Reference lines map onto their own axis's scale the way the rules do, kept
@@ -803,6 +856,12 @@ export function useChartCartesian<T>(
 		valueLabelRoom: layout.valueLabelRoom,
 		referencePositions,
 		gridPositions: gridPositionsOf(props, layout, policy.gridLines),
+		// Gated by the same tier switch as the value gridlines, so the dividers
+		// stand down together with the rest of the chrome at spark.
+		categoryGridPositions:
+			props.categories?.separator && policy.gridLines
+				? bandBoundaries(layout.band, data.length)
+				: [],
 		axisTitles: layout.titles,
 		formatAxisValue,
 		orientation,
