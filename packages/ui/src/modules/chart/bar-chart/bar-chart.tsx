@@ -94,7 +94,7 @@ export function BarChart<T>(props: BarChartProps<T>) {
 		width,
 		height,
 		aspectRatio,
-		axes = true,
+		axes,
 		gridLines = true,
 		legend,
 		tooltip,
@@ -104,14 +104,8 @@ export function BarChart<T>(props: BarChartProps<T>) {
 		stacked = false,
 		thick = false,
 		texture = false,
-		min,
-		max,
-		leftAxis,
-		rightAxis,
 		reference,
-		xAxis,
 		tickRotation,
-		categories,
 		onCategoryClick,
 		formatValue,
 		className,
@@ -128,14 +122,8 @@ export function BarChart<T>(props: BarChartProps<T>) {
 			aspectRatio,
 			axes,
 			legend,
-			min,
-			max,
-			leftAxis,
-			rightAxis,
 			reference,
-			xAxis,
 			tickRotation,
-			categories,
 			onCategoryClick,
 			formatValue,
 			// The header travels to the frame through `label`; the hook reads it too,
@@ -277,7 +265,7 @@ export function BarChart<T>(props: BarChartProps<T>) {
 				gridLines={gridLines}
 				gridPositions={chart.gridPositions}
 				categoryGridPositions={chart.categoryGridPositions}
-				categorySeparator={categories?.separator}
+				categorySeparator={chart.categorySeparator}
 				titles={chart.axisTitles}
 			/>
 

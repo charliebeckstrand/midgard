@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { BarChart } from '../../modules/chart/bar-chart'
-import type { ChartValueAxis } from '../../modules/chart/chart-schema'
+import type { ChartPositionAxis } from '../../modules/chart/chart-schema'
 import { ComboChart } from '../../modules/chart/combo-chart'
 import { LineChart } from '../../modules/chart/line-chart'
 import { act, allBySlot, bySlot, fireEvent, renderUI, userEvent } from '../helpers'
@@ -17,9 +17,11 @@ const dollars = (value: number) => `$${value}`
 
 const percent = (value: number) => `${value}%`
 
+type AxisOverride = Omit<ChartPositionAxis, 'position'>
+
 function line(overrides?: {
-	leftAxis?: ChartValueAxis
-	rightAxis?: ChartValueAxis
+	leftAxis?: AxisOverride
+	rightAxis?: AxisOverride
 	rightSeries?: boolean
 	/** The frame width; wide enough for axis titles (≥ 512) only where a test needs them. */
 	width?: number
@@ -35,8 +37,10 @@ function line(overrides?: {
 					? []
 					: [{ xKey: 'week', yKey: 'rate', yName: 'Rate', axis: 'right' } as const]),
 			]}
-			leftAxis={{ format: dollars, ...overrides?.leftAxis }}
-			rightAxis={{ format: percent, ...overrides?.rightAxis }}
+			axes={[
+				{ position: 'left', format: dollars, ...overrides?.leftAxis },
+				{ position: 'right', format: percent, ...overrides?.rightAxis },
+			]}
 		/>,
 	)
 }
@@ -161,6 +165,30 @@ describe('secondary y-axis', () => {
 		expect(bySlot(container, 'chart-axis-titles')).toBeNull()
 	})
 
+	it('draws the category (x) axis title flat under its labels', () => {
+		const { container } = renderUI(
+			<LineChart
+				aria-label="Shipments by week"
+				data={WEEKS}
+				width={560}
+				height={360}
+				series={[{ xKey: 'week', yKey: 'shipments', yName: 'Shipments' }]}
+				axes={[{ axis: 'x', title: 'Week' }]}
+			/>,
+		)
+
+		const titles = bySlot(container, 'chart-axis-titles')
+
+		expect(titles?.textContent).toContain('Week')
+
+		// The band-axis title reads horizontally under the labels — no rotation.
+		const week = [...(titles?.querySelectorAll('text') ?? [])].find(
+			(node) => node.textContent === 'Week',
+		)
+
+		expect(week?.getAttribute('transform') ?? '').not.toContain('rotate(')
+	})
+
 	it('drops the right axis when its last series toggles off, and the left when everything binds right', async () => {
 		const user = userEvent.setup()
 
@@ -215,7 +243,7 @@ describe('secondary y-axis', () => {
 					{ xKey: 'week', yKey: 'shipments', yName: 'Shipments' },
 					{ xKey: 'week', yKey: 'rate', yName: 'Rate', axis: 'right' },
 				]}
-				rightAxis={{ format: percent }}
+				axes={[{ position: 'right', format: percent }]}
 				reference={[{ value: 40, label: 'Ceiling', axis: 'right' }]}
 			/>,
 		)
@@ -260,7 +288,7 @@ describe('secondary y-axis', () => {
 					{ type: 'bar', xKey: 'week', yKey: 'shipments', yName: 'Shipments' },
 					{ type: 'line', xKey: 'week', yKey: 'rate', yName: 'Rate', axis: 'right' },
 				]}
-				rightAxis={{ format: percent }}
+				axes={[{ position: 'right', format: percent }]}
 			/>,
 		)
 

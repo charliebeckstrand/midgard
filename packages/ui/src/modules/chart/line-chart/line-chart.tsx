@@ -85,7 +85,7 @@ export function LineChart<T>(props: LineChartProps<T>) {
 		width,
 		height,
 		aspectRatio,
-		axes = true,
+		axes,
 		gridLines = true,
 		legend,
 		tooltip,
@@ -95,14 +95,8 @@ export function LineChart<T>(props: LineChartProps<T>) {
 		fill = false,
 		texture = false,
 		interpolation = 'linear',
-		min,
-		max,
-		leftAxis,
-		rightAxis,
 		reference,
-		xAxis,
 		tickRotation,
-		categories,
 		labels,
 		onCategoryClick,
 		formatValue,
@@ -120,14 +114,8 @@ export function LineChart<T>(props: LineChartProps<T>) {
 			aspectRatio,
 			axes,
 			legend,
-			min,
-			max,
-			leftAxis,
-			rightAxis,
 			reference,
-			xAxis,
 			tickRotation,
-			categories,
 			onCategoryClick,
 			formatValue,
 			// The header travels to the frame through `label`; the hook reads it too,
@@ -268,7 +256,7 @@ export function LineChart<T>(props: LineChartProps<T>) {
 					plot={chart.plot}
 					ticks={chart.categoryGridPositions}
 					orientation="horizontal"
-					dashed={categories?.separator === 'dashed'}
+					dashed={chart.categorySeparator === 'dashed'}
 				/>
 			)}
 

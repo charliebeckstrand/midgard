@@ -417,7 +417,7 @@ export function Demo() {
 
 							<Example
 								title="Dual axis"
-								code={code`<LineChart leftAxis={{ format: … }} rightAxis={{ format: … }} series={[…, { …, axis: 'right' }]} … />`}
+								code={code`<LineChart axes={[{ position: 'left', format: … }, { position: 'right', format: … }]} series={[…, { …, axis: 'right' }]} … />`}
 							>
 								<LineChart
 									aria-label="Rate per pound against shipped weight by month"
@@ -426,8 +426,18 @@ export function Demo() {
 										{ xKey: 'month', yKey: 'rate', yName: 'Rate' },
 										{ xKey: 'month', yKey: 'weight', yName: 'Weight', axis: 'right' },
 									]}
-									leftAxis={{ title: '$ / lb', format: (value) => `$${value.toFixed(2)}` }}
-									rightAxis={{ title: 'Weight', format: (value) => `${value}k lb` }}
+									axes={[
+										{
+											position: 'left',
+											title: '$ / lb',
+											format: (value: number) => `$${value.toFixed(2)}`,
+										},
+										{
+											position: 'right',
+											title: 'Weight',
+											format: (value: number) => `${value}k lb`,
+										},
+									]}
 								/>
 							</Example>
 
@@ -448,24 +458,37 @@ export function Demo() {
 											dashed: true,
 										},
 									]}
-									leftAxis={{ title: '$ / lb', format: (value) => `$${value.toFixed(2)}` }}
-									rightAxis={{ title: 'Weight', format: (value) => `${value}k lb` }}
+									axes={[
+										{
+											position: 'left',
+											title: '$ / lb',
+											format: (value: number) => `$${value.toFixed(2)}`,
+										},
+										{
+											position: 'right',
+											title: 'Weight',
+											format: (value: number) => `${value}k lb`,
+										},
+									]}
 									points
 								/>
 							</Example>
 
-							<Example title="Time axis" code={code`<LineChart xAxis="time" … />`}>
+							<Example
+								title="Time axis"
+								code={code`<LineChart axes={[{ axis: 'x', type: 'time' }]} … />`}
+							>
 								<LineChart
 									aria-label="Visits by day"
 									data={dailyVisits}
 									series={[{ xKey: 'date', yKey: 'visits', yName: 'Visits' }]}
-									xAxis="time"
+									axes={[{ axis: 'x', type: 'time' }]}
 								/>
 							</Example>
 
 							<Example title="Date labels" code={code`<LineChart … />`}>
 								{/* A plain category axis whose every key parses as a date labels
-								    itself MM-DD on its own — no xAxis="time", so the per-row labels
+								    itself MM-DD on its own — no time axis, so the per-row labels
 								    stay, just normalized. */}
 								<LineChart
 									aria-label="Signups per day, dates normalized to MM-DD"
@@ -477,13 +500,13 @@ export function Demo() {
 
 							<Example
 								title="Category dividers"
-								code={code`<LineChart categories={{ separator: 'dashed' }} … />`}
+								code={code`<LineChart axes={[{ axis: 'x', separator: 'dashed' }]} … />`}
 							>
 								<LineChart
 									aria-label="Revenue by month, with a divider between each"
 									data={months}
 									series={[{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' }]}
-									categories={{ separator: 'dashed' }}
+									axes={[{ axis: 'x', separator: 'dashed' }]}
 								/>
 							</Example>
 
@@ -740,7 +763,7 @@ export function Demo() {
 
 							<Example
 								title="Dual axis"
-								code={code`<ComboChart rightAxis={{ title: 'Exceptions' }} series={[…, { …, axis: 'right' }]} … />`}
+								code={code`<ComboChart axes={[{ position: 'right', title: 'Exceptions' }]} series={[…, { …, axis: 'right' }]} … />`}
 							>
 								<ComboChart
 									aria-label="Weekly shipments with exception counts"
@@ -755,8 +778,10 @@ export function Demo() {
 											axis: 'right',
 										},
 									]}
-									leftAxis={{ title: 'Shipments' }}
-									rightAxis={{ title: 'Exceptions' }}
+									axes={[
+										{ position: 'left', title: 'Shipments' },
+										{ position: 'right', title: 'Exceptions' },
+									]}
 								/>
 							</Example>
 
@@ -785,7 +810,7 @@ export function Demo() {
 										{ xKey: 'distance', yKey: 'dwell', yName: 'Dwell' },
 										{ xKey: 'distance', yKey: 'handling', yName: 'Handling' },
 									]}
-									formatXValue={(value) => `${value} mi`}
+									axes={[{ axis: 'x', format: (value) => `${value} mi` }]}
 									crosshair
 								/>
 							</Example>
@@ -822,7 +847,7 @@ export function Demo() {
 											yName: 'Stops',
 										},
 									]}
-									formatXValue={(value) => `${value} mi`}
+									axes={[{ axis: 'x', format: (value) => `${value} mi` }]}
 									crosshair
 								/>
 							</Example>
@@ -840,7 +865,7 @@ export function Demo() {
 											yName: 'Stops',
 										},
 									]}
-									formatXValue={(value) => `${value} mi`}
+									axes={[{ axis: 'x', format: (value) => `${value} mi` }]}
 									animate
 								/>
 							</AnimatedExample>

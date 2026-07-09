@@ -11,14 +11,14 @@ const DAILY = Array.from({ length: 90 }, (_, index) => {
 	return { day: iso, visits: 100 + index }
 })
 
-function line(xAxis?: 'category' | 'time') {
+function line(type?: 'category' | 'time') {
 	return renderUI(
 		<LineChart
 			aria-label="Visits by day"
 			data={DAILY}
 			series={[{ xKey: 'day', yKey: 'visits', yName: 'Visits' }]}
 			width={600}
-			xAxis={xAxis}
+			axes={type ? [{ axis: 'x', type }] : true}
 		/>,
 	)
 }

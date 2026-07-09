@@ -6,20 +6,23 @@ export type { ChartAspectRatio } from './chart-layout'
 export type { ChartOrientation } from './chart-orientation'
 export type {
 	BubbleChartSeries,
-	ChartCategoryConfig,
+	CartesianAxis,
+	ChartCategoryAxis,
 	ChartLegendPlacement,
+	ChartPositionAxis,
 	ChartRangeLegendConfig,
 	ChartRangeLegendType,
 	ChartReferenceLine,
 	ChartSeries,
 	ChartTooltipConfig,
 	ChartTooltipTrigger,
-	ChartValueAxis,
 	ChartValueAxisSide,
+	ChartValueRoleAxis,
 	ComboChartSeries,
 	Crosshair,
 	DataKey,
 	PieChartSeries,
+	ScatterAxis,
 	ScatterChartSeries,
 } from './chart-schema'
 export { ChartSkeleton, type ChartSkeletonProps } from './chart-skeleton'

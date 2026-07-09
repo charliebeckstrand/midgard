@@ -134,8 +134,8 @@ function comboMarkAt(
 /**
  * A combined bar, line, and area chart: one shared value axis by default, with
  * a second on request — a series carrying `axis: 'right'` reads the secondary
- * scale the `rightAxis` prop shapes, so a count plots beside a currency at its
- * natural size. Bars sit at the back, the translucent area washes ride over
+ * scale the `{ position: 'right' }` axis entry shapes, so a count plots beside a
+ * currency at its natural size. Bars sit at the back, the translucent area washes ride over
  * them, and lines draw on top; every series reads a zero-baseline domain, and
  * the frame is the cartesian standard: axes, gridlines, legend, crosshair
  * tooltip, and the visually-hidden data table.
@@ -155,7 +155,7 @@ function comboMarkAt(
  *     { type: 'area', xKey: 'week', yKey: 'shipments', yName: 'Shipments' },
  *     { type: 'line', xKey: 'week', yKey: 'exceptions', yName: 'Exceptions', axis: 'right' },
  *   ]}
- *   rightAxis={{ title: 'Exceptions' }}
+ *   axes={[{ position: 'right', title: 'Exceptions' }]}
  * />
  * ```
  */
@@ -167,7 +167,7 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 		width,
 		height,
 		aspectRatio,
-		axes = true,
+		axes,
 		gridLines = true,
 		legend,
 		tooltip,
@@ -175,14 +175,8 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 		animate = false,
 		points = true,
 		interpolation = 'linear',
-		min,
-		max,
-		leftAxis,
-		rightAxis,
 		reference,
-		xAxis,
 		tickRotation,
-		categories,
 		texture = false,
 		labels,
 		onCategoryClick,
@@ -201,14 +195,8 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 			aspectRatio,
 			axes,
 			legend,
-			min,
-			max,
-			leftAxis,
-			rightAxis,
 			reference,
-			xAxis,
 			tickRotation,
-			categories,
 			onCategoryClick,
 			formatValue,
 			// The header travels to the frame through `label`; the hook reads it too,
@@ -408,7 +396,7 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 					plot={chart.plot}
 					ticks={chart.categoryGridPositions}
 					orientation="horizontal"
-					dashed={categories?.separator === 'dashed'}
+					dashed={chart.categorySeparator === 'dashed'}
 				/>
 			)}
 

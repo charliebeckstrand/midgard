@@ -19,11 +19,13 @@ import { seriesDataKey } from './chart-motion'
 import type { ChartOrientation } from './chart-orientation'
 import { referenceLegendItems } from './chart-reference-lines'
 import { type BandScale, bandBoundaries, type LinearScale } from './chart-scale'
-import type {
-	CartesianChartProps,
-	ChartReferenceLine,
-	ChartSeries,
-	ChartValueAxisSide,
+import {
+	type CartesianChartProps,
+	type ChartReferenceLine,
+	type ChartSeries,
+	type ChartValueAxisSide,
+	type ResolvedCartesianAxes,
+	resolveCartesianAxes,
 } from './chart-schema'
 import {
 	chartReadout,
@@ -219,11 +221,13 @@ export type CartesianChart = {
 	gridPositions: number[]
 	/**
 	 * The band-axis positions for the category dividers — one per boundary between
-	 * adjacent rows, none at the ends. Empty unless `categories.separator` is set,
-	 * and gated by the same tier switch as {@link CartesianChart.gridPositions}.
+	 * adjacent rows, none at the ends. Empty unless the category axis sets a
+	 * `separator`, and gated by the same tier switch as {@link CartesianChart.gridPositions}.
 	 */
 	categoryGridPositions: number[]
-	/** The value-axis titles the layout placed; empty without titles. */
+	/** The category axis's divider style, driving the dividers' dash; `undefined` draws none. */
+	categorySeparator?: 'solid' | 'dashed'
+	/** The value- and band-axis titles the layout placed; empty without titles. */
 	axisTitles: ChartAxisTitlePlacement[]
 	/** Formats a value with its axis's formatter — the readout, labels, and reference rules share it. */
 	formatAxisValue: (value: number, axis: ChartValueAxisSide) => string
@@ -334,6 +338,8 @@ function domainValuesFor<T>(args: {
 type ResolvedValueAxes = {
 	leftValue?: ChartValueAxisInput
 	rightValue?: ChartValueAxisInput
+	/** The category axis's title, gated on the tier affording a title band. */
+	bandTitle?: string
 	formatAxisValue: (value: number, axis: ChartValueAxisSide) => string
 }
 
@@ -361,10 +367,10 @@ function axisFormatters(
 }
 
 /**
- * Resolves both value axes from the props and the frame's tier budget: each
- * side's domain candidates and pins — `leftAxis` winning over the top-level
- * `min` / `max`, its `format` over `formatValue` — its tick and readout
- * formatters, and its title. Two formatters per side, not one: the tick labels
+ * Resolves both value axes from the resolved `axes` config and the frame's tier
+ * budget: each side's domain candidates and pins, its `format` (winning over the
+ * chart's `formatValue`), its tick and readout formatters, and its title. Two
+ * formatters per side, not one: the tick labels
  * take the compact default in a narrow frame (`compactFormat`) while the readout
  * — tooltip, hidden table, reference rules — always reads full precision, so a
  * gutter stays cheap without coarsening the numbers a reader opens the tooltip
@@ -376,6 +382,7 @@ function axisFormatters(
  */
 function resolveValueAxes<T>(
 	props: CartesianData<T>,
+	axes: ResolvedCartesianAxes,
 	visible: SeriesMeta[],
 	stack: boolean,
 	data: T[],
@@ -387,9 +394,9 @@ function resolveValueAxes<T>(
 	// full precision. An explicit per-axis or chart formatter wins for both.
 	const tickDefault = compactFormat ? formatChartValueCompact : formatChartValue
 
-	const left = axisFormatters(props.leftAxis?.format ?? props.formatValue, tickDefault)
+	const left = axisFormatters(axes.left?.format ?? props.formatValue, tickDefault)
 
-	const right = axisFormatters(props.rightAxis?.format ?? props.formatValue, tickDefault)
+	const right = axisFormatters(axes.right?.format ?? props.formatValue, tickDefault)
 
 	const leftDomainValues = domainValuesFor({
 		side: 'left',
@@ -415,8 +422,8 @@ function resolveValueAxes<T>(
 	const hasRightAxis =
 		rightDomainValues.length > 0 ||
 		visible.some((meta) => meta.axis === 'right') ||
-		props.rightAxis?.min !== undefined ||
-		props.rightAxis?.max !== undefined
+		axes.right?.min !== undefined ||
+		axes.right?.max !== undefined
 
 	// The left axis stands down the same way once everything binds right; with
 	// no right axis it stays on as the default home, so an empty chart still
@@ -425,30 +432,29 @@ function resolveValueAxes<T>(
 		!hasRightAxis ||
 		leftDomainValues.length > 0 ||
 		visible.some((meta) => meta.axis === 'left') ||
-		props.leftAxis?.min !== undefined ||
-		props.leftAxis?.max !== undefined ||
-		props.min !== undefined ||
-		props.max !== undefined
+		axes.left?.min !== undefined ||
+		axes.left?.max !== undefined
 
 	return {
 		leftValue: hasLeftAxis
 			? {
 					domainValues: leftDomainValues,
-					min: props.leftAxis?.min ?? props.min,
-					max: props.leftAxis?.max ?? props.max,
+					min: axes.left?.min,
+					max: axes.left?.max,
 					format: left.tick,
-					title: axisTitles ? props.leftAxis?.title : undefined,
+					title: axisTitles ? axes.left?.title : undefined,
 				}
 			: undefined,
 		rightValue: hasRightAxis
 			? {
 					domainValues: rightDomainValues,
-					min: props.rightAxis?.min,
-					max: props.rightAxis?.max,
+					min: axes.right?.min,
+					max: axes.right?.max,
 					format: right.tick,
-					title: axisTitles ? props.rightAxis?.title : undefined,
+					title: axisTitles ? axes.right?.title : undefined,
 				}
 			: undefined,
+		bandTitle: axisTitles ? axes.category.title : undefined,
 		formatAxisValue: (value, side) =>
 			side === 'right' ? right.readout(value) : left.readout(value),
 	}
@@ -463,17 +469,17 @@ function resolveValueAxes<T>(
  *
  * @internal
  */
-function gridPositionsOf<T>(
-	props: CartesianData<T>,
+function gridPositionsOf(
+	axes: ResolvedCartesianAxes,
 	layout: CartesianLayout,
 	gridLines: boolean,
 ): number[] {
 	if (!gridLines) return []
 
-	const leftGrid = (props.leftAxis?.gridLines ?? true) && layout.valueScale !== null
+	const leftGrid = (axes.left?.gridLines ?? true) && layout.valueScale !== null
 
 	const rightGrid =
-		(props.rightAxis?.gridLines ?? layout.valueScale === null) && layout.rightScale !== null
+		(axes.right?.gridLines ?? layout.valueScale === null) && layout.rightScale !== null
 
 	// De-duplicated: two independent scales can land ticks on one position —
 	// both domains' floors map to the plot edge — and one hairline is enough.
@@ -483,6 +489,25 @@ function gridPositionsOf<T>(
 			...(rightGrid ? layout.rightTicks.map((tick) => tick.at) : []),
 		]),
 	]
+}
+
+/**
+ * The band-axis divider positions — one per boundary between adjacent rows, none
+ * at the ends — when the category axis sets a `separator`. Gated by the same tier
+ * `gridLines` switch as the value gridlines, so the dividers stand down together
+ * with the rest of the chrome at spark; empty otherwise.
+ *
+ * @internal
+ */
+function categoryGridPositionsOf(
+	axes: ResolvedCartesianAxes,
+	layout: CartesianLayout,
+	count: number,
+	gridLines: boolean,
+): number[] {
+	if (!(axes.category.separator && gridLines)) return []
+
+	return bandBoundaries(layout.band, count)
 }
 
 /** The category labels, their raw forms, and the readout formatter. @internal */
@@ -708,7 +733,11 @@ export function useChartCartesian<T>(
 	props: CartesianData<T>,
 	config: CartesianConfig<T>,
 ): CartesianChart {
-	const { data, series, size, width, height, aspectRatio = '16/9', axes = true, legend } = props
+	const { data, series, size, width, height, aspectRatio = '16/9', legend } = props
+
+	// The one place the `axes` prop's boolean-or-array union is read: the draw
+	// switch, the two value axes by side, and the category axis's own config.
+	const axes = resolveCartesianAxes(props.axes)
 
 	const orientation = config.orientation ?? 'vertical'
 
@@ -718,7 +747,7 @@ export function useChartCartesian<T>(
 
 	// A time axis reads the same category field as a date: the row instants
 	// place its calendar ticks, and a date formatter labels the readout to match.
-	const timeAxis = props.xAxis === 'time'
+	const timeAxis = axes.category.type === 'time'
 
 	const times = timeAxis && xKey ? data.map((datum) => parseInstant(datum[xKey])) : undefined
 
@@ -759,7 +788,7 @@ export function useChartCartesian<T>(
 	// Spark stands the axis chrome down to a bare sparkline; every wider tier keeps
 	// the caller's `axes` intent. The value gutter, band labels, and titles all
 	// gate on this downstream.
-	const drawAxes = axes && policy.tier !== 'spark'
+	const drawAxes = axes.draw && policy.tier !== 'spark'
 
 	const { hidden, toggle, setFocus, emphasis } = useChartSeriesToggle()
 
@@ -773,8 +802,9 @@ export function useChartCartesian<T>(
 	// because each meta's paint keyed off its original index.
 	const visible = metas.filter((meta) => !hidden.has(meta.index))
 
-	const { leftValue, rightValue, formatAxisValue } = resolveValueAxes(
+	const { leftValue, rightValue, bandTitle, formatAxisValue } = resolveValueAxes(
 		props,
+		axes,
 		visible,
 		stack,
 		data,
@@ -787,7 +817,7 @@ export function useChartCartesian<T>(
 		data,
 		xKey,
 		timeAxis,
-		props.categories?.format,
+		axes.category.format,
 	)
 
 	// The public category-activation callback resolved to the hit layer's
@@ -811,6 +841,7 @@ export function useChartCartesian<T>(
 		value: leftValue,
 		rightValue,
 		categories,
+		bandTitle,
 		bandAxis: policy.bandAxis,
 		tickRotation: props.tickRotation,
 		times,
@@ -893,13 +924,9 @@ export function useChartCartesian<T>(
 		snapSeries: layout.snapSeries,
 		valueLabelRoom: layout.valueLabelRoom,
 		referencePositions,
-		gridPositions: gridPositionsOf(props, layout, policy.gridLines),
-		// Gated by the same tier switch as the value gridlines, so the dividers
-		// stand down together with the rest of the chrome at spark.
-		categoryGridPositions:
-			props.categories?.separator && policy.gridLines
-				? bandBoundaries(layout.band, data.length)
-				: [],
+		gridPositions: gridPositionsOf(axes, layout, policy.gridLines),
+		categoryGridPositions: categoryGridPositionsOf(axes, layout, data.length, policy.gridLines),
+		categorySeparator: axes.category.separator,
 		axisTitles: layout.titles,
 		formatAxisValue,
 		orientation,
