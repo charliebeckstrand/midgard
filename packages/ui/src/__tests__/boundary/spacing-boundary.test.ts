@@ -12,26 +12,26 @@ import { srcDir, walkSource } from '../helpers/walk-source'
 //      Tailwind natives directly (`p-3`, `gap-2`) from `ma`'s values via
 //      a static `Record<Ma, string>` lookup.
 //
-//   2. The `calc(--spacing(v)-1px)` formula (ring-compensated padding) lives
-//      only in `recipes/kiso/kasane.ts`; consumers reach it through
-//      `kasane.p / px / py / pl / pr`.
+//   2. The `calc(--spacing(v)-1px)` formula (ring-compensated padding /
+//      radius) lives only in `recipes/kiso/kasane/*`; consumers reach it
+//      through `kasane.p / px / py / pl / pr` and the radius helpers.
 //
 // Both rules carry an ALLOWLIST of files exempt from the check. The first
-// list is empty. The second retains entries whose
-// remaining `calc(--spacing(…))` literals carry Tailwind variant prefixes
-// (`data-*`, `has-*`, `autofill:*`); variants must appear in source and
-// can't move behind the kasane helpers.
+// list is empty. The second holds kasane itself (the formula's home) plus
+// entries whose remaining `calc(--spacing(…))` literals carry Tailwind
+// variant prefixes (`data-*`, `has-*`, `autofill:*`); variants must appear
+// in source and can't move behind the kasane helpers.
 
-// Kiso roots are listed individually because not every kiso family exists in
-// every checkout; missing roots are filtered rather than walked.
+// Every styling layer that spells Tailwind classes: the three recipe layers,
+// component and module recipes, primitives, and layout variants. Roots are
+// filtered by `existsSync` so a checkout missing one (e.g. no `layouts`) is
+// walked, not errored.
 const SCAN_ROOTS = [
-	join(srcDir, 'recipes/kata'),
-	join(srcDir, 'recipes/katakana'),
-	join(srcDir, 'recipes/kiso/control'),
-	join(srcDir, 'recipes/kiso/popover'),
-	join(srcDir, 'recipes/kiso/segment'),
-	join(srcDir, 'recipes/kiso/slider'),
+	join(srcDir, 'recipes'),
 	join(srcDir, 'components'),
+	join(srcDir, 'modules'),
+	join(srcDir, 'primitives'),
+	join(srcDir, 'layouts'),
 ].filter((root) => existsSync(root))
 
 const RENAMED_UTILITY =
@@ -48,6 +48,8 @@ const RENAMED_UTILITY_ALLOWLIST = new Set<string>()
  * in source; Tailwind variants can't move behind the kasane helpers.
  */
 const RAW_CALC_ALLOWLIST = new Set([
+	'recipes/kiso/kasane/padding.ts',
+	'recipes/kiso/kasane/radius.ts',
 	'recipes/kiso/control/affix.ts',
 	'recipes/kata/button.ts',
 	'recipes/kata/tag-input.ts',

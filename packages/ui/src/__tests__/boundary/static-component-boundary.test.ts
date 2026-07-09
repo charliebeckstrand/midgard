@@ -1,7 +1,7 @@
-import { readFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { existsSync, readFileSync } from 'node:fs'
+import { join, relative } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { srcDir } from '../helpers/walk-source'
+import { srcDir, walkSource } from '../helpers/walk-source'
 
 // Static leaves are the library's server-renderable surface: no 'use client'
 // directive, no React hooks, no ambient-context reads (the boundary
@@ -9,14 +9,30 @@ import { srcDir } from '../helpers/walk-source'
 // the source level, where a regression (a context read quietly turning a
 // leaf back into a client component) produces no build error.
 //
-// Add a file when a component sheds its context reads; never remove one to
-// silence this test. Paths are relative to `src/components`.
+// Coverage comes from two mechanisms that never overlap:
+//
+//   - STATIC_COMPONENT_FILES below is the curated list of declared static
+//     *atoms* (box, text, table parts, inert display leaves). It's a
+//     deliberate contract, not "every hookless file" — most component files
+//     that read no context are only incidentally hookless composition
+//     wrappers whose interactivity lives in their children, and those are
+//     not server-renderable leaves. Add a file when a component becomes a
+//     genuine static leaf; never remove one to silence this test.
+//   - Every `*-skeleton.{ts,tsx}` is scanned automatically. Skeleton
+//     variants are static by definition (CONVENTIONS §3.7), a closed set
+//     discoverable by filename, so the scan needs no list and can't drift as
+//     new skeletons land. Do not add skeleton files to the curated list —
+//     the scan already owns them.
+//
+// Curated paths are relative to `src/components`.
 const STATIC_COMPONENT_FILES = [
+	'alert/alert-body.tsx',
+	'alert/alert-description.tsx',
+	'alert/alert-title.tsx',
+	'aspect-ratio/aspect-ratio.tsx',
 	'avatar/avatar.tsx',
 	'avatar/avatar-group.tsx',
-	'avatar/avatar-skeleton.tsx',
 	'badge/badge.tsx',
-	'badge/badge-skeleton.tsx',
 	'banner/banner.tsx',
 	'box/box.tsx',
 	'breadcrumb/breadcrumb.tsx',
@@ -24,45 +40,36 @@ const STATIC_COMPONENT_FILES = [
 	'breadcrumb/breadcrumb-link.tsx',
 	'breadcrumb/breadcrumb-list.tsx',
 	'breadcrumb/breadcrumb-separator.tsx',
-	'button/button-skeleton.tsx',
 	'card/card.tsx',
 	'card/card-body.tsx',
 	'card/card-description.tsx',
 	'card/card-footer.tsx',
 	'card/card-header.tsx',
 	'card/card-title.tsx',
-	'checkbox/checkbox-skeleton.tsx',
-	'color/color-panel-skeleton.tsx',
-	'control/control-skeleton.tsx',
+	'code/code.tsx',
+	'container/container.tsx',
 	'divider/divider.tsx',
 	'dl/description-details.tsx',
 	'dl/description-list.tsx',
 	'dl/description-term.tsx',
+	'fieldset/fieldset.tsx',
 	'fieldset/legend.tsx',
 	'flex/flex.tsx',
 	'heading/heading.tsx',
-	'heading/heading-skeleton.tsx',
 	'icon/icon.tsx',
 	'kbd/kbd.tsx',
 	'loading/loading-dots.tsx',
 	'loading/loading-spinner.tsx',
 	'placeholder/placeholder.tsx',
-	'placeholder/placeholder-skeleton.ts',
-	'radio/radio-skeleton.tsx',
-	'shiny-text/shiny-text-skeleton.tsx',
+	'spacer/spacer.tsx',
 	'split/split.tsx',
 	'stack/stack.tsx',
 	'stat/stat-delta.tsx',
-	'stat/stat-delta-skeleton.tsx',
 	'stat/stat-description.tsx',
-	'stat/stat-description-skeleton.tsx',
 	'stat/stat-label.tsx',
-	'stat/stat-label-skeleton.tsx',
 	'stat/stat-value.tsx',
-	'stat/stat-value-skeleton.tsx',
 	'status/status-dot.tsx',
 	'swatch/swatch.tsx',
-	'switch/switch-skeleton.tsx',
 	'table/table.tsx',
 	'table/table-body.tsx',
 	'table/table-cell.tsx',
@@ -72,11 +79,11 @@ const STATIC_COMPONENT_FILES = [
 	'table/table-loading.tsx',
 	'table/table-row.tsx',
 	'text/text.tsx',
-	'text/text-skeleton.tsx',
-	'textarea/textarea-skeleton.tsx',
 ] as const
 
 const componentsDir = join(srcDir, 'components')
+
+const modulesDir = join(srcDir, 'modules')
 
 // Ambient-context sources a static leaf must not import. `primitives/link`
 // and `primitives/polymorphic`'s client export read LinkContext;
@@ -106,18 +113,75 @@ const HOOK_CALL = /\buse[A-Z]\w*\(/
 // (no word boundary between `c` and `S`).
 const CLIENT_POLYMORPHIC = /import \{[^}]*(?<!Static)\bPolymorphic\b(?!Static)[^}]*\}/
 
+// Matches a skeleton variant by filename. `.ts` covers the rare non-JSX
+// skeleton (placeholder), `.tsx` the rest.
+const SKELETON_FILE = /-skeleton\.tsx?$/
+
+/**
+ * Return one human-readable reason per way `content` breaches the static
+ * contract, or an empty array when the file is server-renderable. Shared by
+ * the curated-list check and the skeleton scan so both enforce the same
+ * rules.
+ */
+function staticBreaches(content: string): string[] {
+	const reasons: string[] = []
+
+	if (/^['"]use client['"]/.test(content)) reasons.push("carries 'use client'")
+
+	if (HOOK_CALL.test(content)) reasons.push('calls a hook')
+
+	if (CLIENT_POLYMORPHIC.test(content)) reasons.push('imports the client Polymorphic')
+
+	for (const banned of BANNED_IMPORT_SOURCES) {
+		if (banned.test(content)) reasons.push(`imports an ambient-context module (${banned})`)
+	}
+
+	return reasons
+}
+
+/** Every `*-skeleton.{ts,tsx}` under `components/` and `modules/`. */
+function collectSkeletonFiles(): string[] {
+	const files: string[] = []
+
+	for (const root of [componentsDir, modulesDir]) {
+		walkSource(root, (path) => {
+			if (SKELETON_FILE.test(path)) files.push(path)
+		})
+	}
+
+	return files.sort()
+}
+
 describe('static component boundary', () => {
 	it.each(STATIC_COMPONENT_FILES)('%s stays server-renderable', (file) => {
-		const content = readFileSync(join(componentsDir, file), 'utf8')
+		const breaches = staticBreaches(readFileSync(join(componentsDir, file), 'utf8'))
 
-		expect(content, `${file} carries 'use client'`).not.toMatch(/^['"]use client['"]/)
+		expect(breaches, `${file}: ${breaches.join(', ')}`).toEqual([])
+	})
 
-		expect(content, `${file} calls a hook`).not.toMatch(HOOK_CALL)
+	it('the curated static list has no stale entries', () => {
+		const missing = STATIC_COMPONENT_FILES.filter((file) => !existsSync(join(componentsDir, file)))
 
-		expect(content, `${file} imports the client Polymorphic`).not.toMatch(CLIENT_POLYMORPHIC)
+		expect(
+			missing,
+			`static list entry/ies point to files that no longer exist — remove them:\n${missing
+				.map((file) => `  ${file}`)
+				.join('\n')}`,
+		).toEqual([])
+	})
 
-		for (const banned of BANNED_IMPORT_SOURCES) {
-			expect(content, `${file} imports an ambient-context module (${banned})`).not.toMatch(banned)
-		}
+	it('every skeleton variant stays server-renderable', () => {
+		const violations = collectSkeletonFiles().flatMap((path) => {
+			const breaches = staticBreaches(readFileSync(path, 'utf8'))
+
+			return breaches.length ? [`${relative(srcDir, path)}: ${breaches.join(', ')}`] : []
+		})
+
+		expect(
+			violations,
+			`skeleton variants must stay static (CONVENTIONS §3.7):\n${violations
+				.map((v) => `  ${v}`)
+				.join('\n')}`,
+		).toEqual([])
 	})
 })
