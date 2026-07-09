@@ -198,7 +198,30 @@ export function useFloatingPanel({
 }
 
 /** Ref shape {@link isFloatingOutsidePress} needs from a floating panel's `refs`. @internal */
-type FloatingOutsidePressRefs = Pick<ExtendedRefs<ReferenceType>, 'floating' | 'domReference'>
+type FloatingOutsidePressRefs = Pick<
+	ExtendedRefs<ReferenceType>,
+	'floating' | 'domReference' | 'reference'
+>
+
+/**
+ * The DOM element a floating panel is anchored to: its `domReference` for a
+ * normal disclosure, or — for a right-click context menu anchored at the cursor
+ * via `setPositionReference` — the position reference's `contextElement`, since
+ * that route leaves `domReference` null. Both point at where in the DOM the
+ * panel was opened from, which the ancestor-portal test needs even when no DOM
+ * reference was set.
+ *
+ * @internal
+ */
+function floatingReferenceElement(refs: FloatingOutsidePressRefs): Element | null {
+	if (refs.domReference.current) return refs.domReference.current
+
+	const positionReference = refs.reference.current
+
+	return positionReference && 'contextElement' in positionReference
+		? (positionReference.contextElement ?? null)
+		: null
+}
 
 /**
  * True when a document `pointerdown` at `event` falls outside the floating
@@ -214,7 +237,10 @@ type FloatingOutsidePressRefs = Pick<ExtendedRefs<ReferenceType>, 'floating' | '
  * in for. A target portal that *contains* this panel's own reference — e.g.
  * the enclosing Dialog/Sheet a bare `FloatingPortal` nests inside by default —
  * is instead an ANCESTOR portal: genuinely outside, so a press there must
- * still dismiss.
+ * still dismiss. That reference is the panel's `domReference`, or — for a
+ * context menu anchored at a cursor point, whose `domReference` is null — its
+ * position reference's `contextElement`, so a menu opened inside a Dialog still
+ * reads the Dialog as its ancestor rather than a nested descendant.
  *
  * @see {@link useFloatingUI} and `useFloatingDisclosure`, the two document
  * `pointerdown` listeners that share this predicate instead of floating-ui's
@@ -246,7 +272,7 @@ export function isFloatingOutsidePress(
 
 	const ownPortal = floating.closest('[data-floating-ui-portal]')
 
-	const reference = refs.domReference.current
+	const reference = floatingReferenceElement(refs)
 
 	const insideNestedFloating =
 		!!targetPortal &&
