@@ -1,4 +1,4 @@
-import { readdirSync } from 'node:fs'
+import { existsSync, readdirSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
@@ -21,10 +21,11 @@ function directoryNames(dir: string): string[] {
 }
 
 /**
- * Demo file basenames (sans `.tsx`). A component demo is
- * `demos/components/<name>.tsx`; a few provider-like components (e.g.
- * `headless`, `toast`) are namespaced under `demos/providers/<name>.tsx`, so
- * both directories count toward coverage.
+ * Demo names. A component demo is `demos/components/<name>.tsx`, or — when its
+ * examples split into routed tab pages — the folder `demos/components/<name>/`
+ * with an `index.tsx`; a few provider-like components (e.g. `headless`,
+ * `toast`) are namespaced under `demos/providers/`, so both directories count
+ * toward coverage.
  */
 function demoBasenames(): Set<string> {
 	const names = new Set<string>()
@@ -32,6 +33,9 @@ function demoBasenames(): Set<string> {
 	for (const dir of [join(DEMOS, 'components'), join(DEMOS, 'providers')]) {
 		for (const entry of readdirSync(dir, { withFileTypes: true })) {
 			if (entry.isFile() && entry.name.endsWith('.tsx')) names.add(entry.name.replace(/\.tsx$/, ''))
+
+			if (entry.isDirectory() && existsSync(join(dir, entry.name, 'index.tsx')))
+				names.add(entry.name)
 		}
 	}
 

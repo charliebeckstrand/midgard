@@ -78,7 +78,7 @@ export const warehouses: { city: string; abbreviation: string; at: LngLat; detai
 
 // The routed examples below carry only origin and destination coordinates.
 // The demo fetches the road route between them from the OSRM demo server at
-// render time (see `useRoute` in index.tsx), so the line follows the streets
+// render time (see `useRoute` in _shared.tsx), so the line follows the streets
 // and the mileage is real — the geocode → route → draw flow a consumer runs.
 
 /** Two long-haul corridors the routes example draws as line-only routes. */
