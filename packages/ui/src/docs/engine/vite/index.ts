@@ -51,6 +51,10 @@ export function defineDocsConfig({
 	return {
 		base: '/',
 		root,
+		// The site is path-routed; `spa` (Vite's default, pinned here on purpose)
+		// serves the history fallback in dev and preview, so a deep link like
+		// /modules/grid/sorting resolves to index.html.
+		appType: 'spa',
 		plugins: [
 			docsPlugin({ packageName, srcDir }),
 			react(),
@@ -66,7 +70,13 @@ export function defineDocsConfig({
 					sourcemap: true,
 				}),
 		],
-		server: { port: 3456 },
+		server: {
+			port: 3456,
+			// Pre-transform the entry graph on server start instead of on the first
+			// request — the chrome (engine + ui components) is deep enough that the
+			// first paint otherwise pays the whole transform chain.
+			warmup: { clientFiles: ['./main.tsx'] },
+		},
 		resolve: {
 			alias: [
 				// Use the web bundle (web-relevant languages only) instead of all ~300

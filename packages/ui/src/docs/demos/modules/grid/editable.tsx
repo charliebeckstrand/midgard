@@ -29,6 +29,7 @@ import {
 	type GridEditCellContext,
 } from '../../../../modules/grid'
 import { useFormat } from '../../../../providers/locale'
+import { code, Example } from '../../../engine'
 
 // Applies committed cell changes onto the row state: each change patches one
 // field on the row it keys. The grid emits these (as one batch per row) through
@@ -156,7 +157,7 @@ const roleOptions = ['Developer', 'Designer', 'Manager', 'Analyst'].map((role) =
 	value: role,
 }))
 
-export function EditableExample() {
+function EditableExample() {
 	const [people, setPeople] = useState<Person[]>(initialPeople)
 
 	const [editing, setEditing] = useState<Set<string | number>>(new Set())
@@ -286,7 +287,7 @@ const statusOptions = [
 	{ label: 'Done', value: 'done' },
 ]
 
-export function EditorTypesExample() {
+function EditorTypesExample() {
 	const money = useFormat({ type: 'currency' })
 
 	// Every row stays editable so each editor type shows at once: `title` infers a
@@ -374,7 +375,7 @@ function FormCurrencyInput({ name, placeholder }: { name: string; placeholder?: 
 	)
 }
 
-export function BulkEditExample() {
+function BulkEditExample() {
 	const money = useFormat({ type: 'currency' })
 
 	const [rates, setRates] = useState<LaneRate[]>(initialRates)
@@ -493,5 +494,29 @@ export function BulkEditExample() {
 				</Form>
 			</Dialog>
 		</>
+	)
+}
+
+export function Demo() {
+	return (
+		<Stack gap="xl">
+			<Example
+				title="Editable"
+				code={code`<Grid editable={{ rows, onRowsChange, onValueChange }} />`}
+			>
+				<EditableExample />
+			</Example>
+
+			<Example
+				title="Editor types"
+				code={code`<Grid columns={[{ ...col, field, editCell }]} editable={{ rows, onValueChange }} />`}
+			>
+				<EditorTypesExample />
+			</Example>
+
+			<Example title="Bulk edit">
+				<BulkEditExample />
+			</Example>
+		</Stack>
 	)
 }

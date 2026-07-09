@@ -1,7 +1,7 @@
 'use client'
 
 import { ArrowDownAZ, ArrowUpZA } from 'lucide-react'
-import { use, useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
+import { type MouseEvent, use, useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { Button } from '../../../components/button'
 import { Combobox, ComboboxOption, useComboboxQuery } from '../../../components/combobox'
 import { Flex } from '../../../components/flex'
@@ -21,8 +21,9 @@ import { cn } from '../../../core'
 import { useScrollWithin } from '../../../hooks'
 import { useDensity } from '../../../primitives/density'
 import { OffcanvasContext } from '../../../primitives/offcanvas'
-import { navigate } from '../hooks/use-hash'
 import { type Demo, demos, preloadDemo } from '../registry'
+import { navigate, withBase } from '../router'
+import { demoHref } from '../routes'
 import { titleCase } from './format'
 
 const SEARCH_PAGE_SIZE = 20
@@ -99,17 +100,22 @@ function DemoItem({ demo, current }: { demo: Demo; current: boolean }) {
 
 	return (
 		<SidebarItem
-			href={`#${demo.id}`}
+			href={withBase(demoHref(demo))}
+			data-demo={demo.id}
 			current={current}
-			onClick={(event) => {
-				// Prevent the browser's default hash-link scroll;
-				// the deferredRoute effect scrolls to top after
-				// the new demo commits.
+			onClick={(event: MouseEvent<HTMLElement>) => {
+				// Modified clicks (new tab, new window) keep the browser's default;
+				// the real href makes them work like any link.
+				if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0)
+					return
+
+				// Plain clicks route client-side; the route effect scrolls to top
+				// after the new demo commits.
 				event.preventDefault()
 
 				prefetch()
 
-				navigate(demo.id)
+				navigate(demoHref(demo))
 			}}
 			onMouseEnter={prefetch}
 			onFocus={prefetch}
@@ -168,12 +174,16 @@ export function SidebarContent({ route }: { route: string }) {
 						onValueChange={(id) => {
 							if (!id) return
 
-							navigate(id)
+							const demo = demos.find((d) => d.id === id)
+
+							if (!demo) return
+
+							navigate(demoHref(demo))
 
 							// Scroll the matching sidebar item into view
 							const sidebar = document.querySelector('[data-slot="sidebar"]')
 
-							const item = sidebar?.querySelector<HTMLElement>(`[href="#${id}"]`)
+							const item = sidebar?.querySelector<HTMLElement>(`[data-demo="${id}"]`)
 
 							if (item) scrollWithin(item, { block: 'center', behavior: 'smooth' })
 

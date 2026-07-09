@@ -3,6 +3,7 @@
 // stepper, and labeled rows drive the interactive controls; `code` and the
 // format helpers shape inline snippets and labels.
 export { code } from './code'
+export { DemoTab, DemoTabPanel, DemoTabs } from './components/demo-tabs'
 export { DensityListbox } from './components/density-listbox'
 export { Example } from './components/example'
 export { capitalize } from './components/format'

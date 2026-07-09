@@ -1,61 +1,57 @@
 import apiData from 'virtual:api-reference'
 import demoMetas from 'virtual:demo-metas'
-import type { ComponentType } from 'react'
+import type { ComponentType, ReactNode } from 'react'
 import type { ComponentApi } from './api-reference'
 import { titleCase } from './components/format'
 import type { DemoMeta } from './demo-meta'
+import { stripBase } from './router'
+import { type Demo, demoHref, parseDemoGlobKey, parseLayoutGlobKey, parsePathname } from './routes'
 
-/** One sidebar entry: a demo's id, display name, and category. */
-export type Demo = { id: string; name: string; category: string }
+export type { Demo, TabRoute } from './routes'
 
 /**
  * The demo loader map a consumer hands to {@link initRegistry}, produced by
- * `import.meta.glob('./demos/*.tsx', { import: 'Demo' })` in the consuming
- * library's entry. Keys are demo paths; each value lazy-imports the demo's
- * `Demo` component.
+ * `import.meta.glob` over the consuming library's `demos/` tree. Keys are demo
+ * paths; each value lazy-imports the page's `Demo` component. Pages deeper than
+ * `demos/<category>/<demo>/<tab>.tsx`, `layout.tsx` files, and `_`-prefixed
+ * helpers must stay out of the glob (see `main.tsx` for the exclusion
+ * patterns).
  */
 export type DemoLoaders = Record<string, () => Promise<ComponentType>>
 
-// A demo's category is its subfolder under `demos/` (`demos/pages/x` →
-// 'pages'); top-level demos are 'components'. Any subfolder becomes its own
-// category, so a library groups demos simply by adding folders — the sidebar
-// renders a section per category present, in no fixed set.
-function categoryOf(path: string): string {
-	const rel = path.replace(/^\.\/demos\//, '')
+/** The component shape a demo folder's `layout.tsx` exports: the routed tab page renders as `children`. */
+export type LayoutComponent = ComponentType<{ children: ReactNode }>
 
-	const slash = rel.indexOf('/')
+/** The layout loader map from the consumer's `layout.tsx` glob, keyed like {@link DemoLoaders}. */
+export type LayoutLoaders = Record<string, () => Promise<LayoutComponent>>
 
-	return slash === -1 ? 'components' : rel.slice(0, slash)
-}
+/** The glob pair a consumer's entry hands to `mount`: its demo pages plus any demo-folder layouts. */
+export type MountInput = { demos: DemoLoaders; layouts?: LayoutLoaders }
 
-// Subfolders namespace the id with their folder (`pages/x` → `pages-x`,
-// `providers/x` → `providers-x`); a provider demo and a component demo of the
-// same name (e.g. Link) get distinct ids. `components/` is the one subfolder
-// exempted: it's just the explicit form of the top-level default, so its ids
-// stay bare (`components/button` → `button`) to match the component's API
-// reference key (`buildApi` keys the components root unprefixed) and keep
-// existing hash routes stable.
-function pathToId(path: string) {
-	return path
-		.replace(/^\.\/demos\//, '')
-		.replace(/^components\//, '')
-		.replace(/\/index\.tsx$/, '')
-		.replace('.tsx', '')
-		.replace(/\//g, '-')
-}
+// Loader keys join the demo id and tab slug; '#' can appear in neither.
+const keyOf = (id: string, tab: string) => `${id}#${tab}`
 
 // Metas come from a build-time virtual module; demo sources stay in their lazy
-// chunks. The map is keyed by the same id scheme the loaders use.
-const metaById = new Map<string, DemoMeta>()
+// chunks. Keyed by the same id+tab scheme the loaders use.
+const metaByKey = new Map<string, DemoMeta>()
 
 for (const [path, meta] of Object.entries(demoMetas)) {
-	metaById.set(pathToId(path), meta)
+	const key = parseDemoGlobKey(path)
+
+	if (key) metaByKey.set(keyOf(key.id, key.tab), meta)
 }
 
-// Filled by initRegistry from the consumer-provided loader glob.
-let loaderById = new Map<string, () => Promise<ComponentType>>()
+// Filled by initRegistry from the consumer-provided loader globs.
+let loaderByKey = new Map<string, () => Promise<ComponentType>>()
 
-// Demo loading: one cached promise per id, consumed via React's `use()` hook.
+let layoutById = new Map<string, () => Promise<LayoutComponent>>()
+
+let demoByPath = new Map<string, Demo>()
+
+let demoById = new Map<string, Demo>()
+
+// Demo and layout loading: one cached promise per key, consumed via React's
+// `use()` hook.
 
 // React's `use()` returns synchronously only when a promise carries
 // `status`/`value`/`reason`; an untagged promise suspends on first read even
@@ -66,19 +62,12 @@ type TrackedPromise<T> = Promise<T> & {
 	reason?: unknown
 }
 
-const promiseCache = new Map<string, TrackedPromise<ComponentType>>()
-
-/** Return a cached promise for the demo's component, kicking off the import on first call. */
-export function loadDemo(id: string): Promise<ComponentType> {
-	const cached = promiseCache.get(id)
-
-	if (cached) return cached
-
-	const loader = loaderById.get(id)
-
-	if (!loader) throw new Error(`No demo found for id: ${id}`)
-
-	const tracked = loader() as TrackedPromise<ComponentType>
+// Tag a loader promise for `use()`, evicting on rejection so a later
+// navigation or an error-boundary retry re-attempts the import instead of
+// replaying the cached failure — a transient chunk-load error (offline, deploy
+// skew) must be recoverable.
+function track<T>(promise: Promise<T>, evict: () => void): TrackedPromise<T> {
+	const tracked = promise as TrackedPromise<T>
 
 	tracked.status = 'pending'
 
@@ -91,21 +80,91 @@ export function loadDemo(id: string): Promise<ComponentType> {
 			tracked.status = 'rejected'
 			tracked.reason = reason
 
-			// Evict the rejection so a later navigation or an error-boundary retry
-			// re-attempts the import instead of replaying the cached failure — a
-			// transient chunk-load error (offline, deploy skew) must be recoverable.
-			promiseCache.delete(id)
+			evict()
 		},
 	)
-
-	promiseCache.set(id, tracked)
 
 	return tracked
 }
 
-/** Start and cache the demo's dynamic import ahead of navigation. */
-export function preloadDemo(id: string) {
-	if (loaderById.has(id)) loadDemo(id)
+const demoPromises = new Map<string, TrackedPromise<ComponentType>>()
+
+const layoutPromises = new Map<string, TrackedPromise<LayoutComponent>>()
+
+/** Return a cached promise for a demo page's component, kicking off the import on first call. */
+export function loadDemo(id: string, tab = ''): Promise<ComponentType> {
+	const key = keyOf(id, tab)
+
+	const cached = demoPromises.get(key)
+
+	if (cached) return cached
+
+	const loader = loaderByKey.get(key)
+
+	if (!loader) throw new Error(`No demo found for id: ${id}${tab ? ` tab: ${tab}` : ''}`)
+
+	const tracked = track(loader(), () => demoPromises.delete(key))
+
+	demoPromises.set(key, tracked)
+
+	return tracked
+}
+
+/**
+ * Return a cached promise for a demo folder's `layout.tsx` component, or null
+ * when the demo has none. Null (not a promise) keeps the no-layout case
+ * synchronous for `use()`-site conditionals.
+ */
+export function loadLayout(id: string): Promise<LayoutComponent> | null {
+	const loader = layoutById.get(id)
+
+	if (!loader) return null
+
+	const cached = layoutPromises.get(id)
+
+	if (cached) return cached
+
+	const tracked = track(loader(), () => layoutPromises.delete(id))
+
+	layoutPromises.set(id, tracked)
+
+	return tracked
+}
+
+// Pre-fulfilled tracked promises for layout fallbacks, one per component, so
+// `use()` reads a no-layout demo synchronously instead of suspending a tick.
+const layoutFallbacks = new Map<LayoutComponent, TrackedPromise<LayoutComponent>>()
+
+/**
+ * {@link loadLayout} with a fallback component for demos without a
+ * `layout.tsx`. Always returns a `use()`-ready promise, keeping the call
+ * unconditional at the hook site.
+ */
+export function loadLayoutOr(id: string, fallback: LayoutComponent): Promise<LayoutComponent> {
+	const layout = loadLayout(id)
+
+	if (layout) return layout
+
+	let cached = layoutFallbacks.get(fallback)
+
+	if (!cached) {
+		cached = Promise.resolve(fallback) as TrackedPromise<LayoutComponent>
+
+		cached.status = 'fulfilled'
+
+		cached.value = fallback
+
+		layoutFallbacks.set(fallback, cached)
+	}
+
+	return cached
+}
+
+/** Start and cache a demo route's dynamic imports (page plus layout) ahead of navigation. */
+export function preloadDemo(id: string, tab = '') {
+	if (loaderByKey.has(keyOf(id, tab))) loadDemo(id, tab)
+
+	loadLayout(id)
 }
 
 // Component API: pre-computed at build time via virtual:api-reference
@@ -119,50 +178,134 @@ export function getComponentApi(id: string): ComponentApi[] | undefined {
 // chrome reads them at render time, after the consumer's entry has mounted.
 export let demos: Demo[] = []
 
-export let defaultDemo = ''
+export let defaultDemo: Demo | null = null
+
+/** A pathname resolved against the registry: the demo it addresses and the tab slug within it. */
+export type ResolvedRoute = { demo: Demo; tab: string }
 
 /**
- * Bind the registry to a consuming library's demo loaders. Builds the sorted
- * sidebar list, resolves each demo's name from its build-time meta, and returns
- * the initial route's preload promise so the entry can await the first chunk
- * before mounting. Called once, from the consumer's entry, before render.
+ * Resolve an app-relative pathname to its demo and tab: the root falls back to
+ * {@link defaultDemo}; an unknown demo path or tab slug is null — the chrome's
+ * not-found state.
  */
-export function initRegistry(loaders: DemoLoaders): { initialPreload: Promise<unknown> } {
-	loaderById = new Map()
+export function resolveRoute(pathname: string): ResolvedRoute | null {
+	const parsed = parsePathname(pathname)
 
-	const list: Demo[] = []
+	if (!parsed) return null
 
-	for (const [path, loader] of Object.entries(loaders)) {
-		const id = pathToId(path)
+	if (!parsed.demoPath) return defaultDemo ? { demo: defaultDemo, tab: '' } : null
 
-		loaderById.set(id, loader)
+	const demo = demoByPath.get(parsed.demoPath)
 
-		const category = categoryOf(path)
+	if (!demo) return null
 
-		// Strip the category prefix the id carries for namespaced subfolders
-		// (`pages-auth` → `auth`), then title-case for the fallback display name.
-		const label = id.startsWith(`${category}-`) ? id.slice(category.length + 1) : id
+	const known =
+		demo.tabs.length === 0 ? parsed.tab === '' : demo.tabs.some((t) => t.slug === parsed.tab)
 
-		const meta = metaById.get(id)
+	return known ? { demo, tab: parsed.tab } : null
+}
 
-		const name = meta?.name ?? titleCase(label)
+/**
+ * Map a legacy hash route (`/#modules-grid`, the pre-path URL scheme) to its
+ * path-routed href, or null when the hash names no demo — then it's an example
+ * anchor, not a route.
+ */
+export function resolveLegacyHash(hash: string): string | null {
+	const demo = demoById.get(hash.replace(/^#/, ''))
 
-		list.push({ id, name, category })
+	return demo ? demoHref(demo) : null
+}
+
+/**
+ * Start the current location's dynamic imports — page chunk and layout chunk in
+ * parallel — and return a promise the entry can await before mounting, so the
+ * first paint renders the route instead of a loading fallback. Resolves
+ * immediately off-route or outside a browser.
+ */
+export function preloadCurrentRoute(): Promise<unknown> {
+	if (typeof window === 'undefined') return Promise.resolve()
+
+	const route = resolveRoute(stripBase(window.location.pathname))
+
+	if (!route) return Promise.resolve()
+
+	const layout = loadLayout(route.demo.id)
+
+	return Promise.allSettled([loadDemo(route.demo.id, route.tab), ...(layout ? [layout] : [])])
+}
+
+/**
+ * Bind the registry to a consuming library's demo and layout loaders. Groups
+ * tab pages under their demo folder, resolves each demo's and tab's name from
+ * its build-time meta, and builds the sorted sidebar list. Called once, from
+ * the consumer's entry, before render.
+ */
+export function initRegistry({ demos: demoLoaders, layouts = {} }: MountInput) {
+	loaderByKey = new Map()
+
+	layoutById = new Map()
+
+	demoByPath = new Map()
+
+	demoById = new Map()
+
+	// One accumulating entry per demo id; tab routes attach as their pages parse.
+	const byId = new Map<string, Demo>()
+
+	for (const [path, loader] of Object.entries(demoLoaders)) {
+		const key = parseDemoGlobKey(path)
+
+		if (!key) continue
+
+		loaderByKey.set(keyOf(key.id, key.tab), loader)
+
+		let demo = byId.get(key.id)
+
+		if (!demo) {
+			demo = {
+				id: key.id,
+				name: titleCase(key.label),
+				category: key.category,
+				path: `${key.category}/${key.label}`,
+				tabs: [],
+			}
+
+			byId.set(key.id, demo)
+		}
+
+		const meta = metaByKey.get(keyOf(key.id, key.tab))
+
+		// The index page names the demo itself; every page names its tab.
+		if (key.tab === '' && meta?.name) demo.name = meta.name
+
+		demo.tabs.push({
+			slug: key.tab,
+			name: meta?.name ?? (key.tab ? titleCase(key.tab) : 'Overview'),
+		})
 	}
 
-	demos = list.sort((a, b) => a.name.localeCompare(b.name))
+	for (const [path, loader] of Object.entries(layouts)) {
+		const id = parseLayoutGlobKey(path)
 
-	defaultDemo = demos[0]?.id || ''
+		if (id) layoutById.set(id, loader)
+	}
 
-	// Start the initial demo's import and expose the promise; the entry awaits
-	// it before mounting.
-	const initialPreload: Promise<unknown> = (() => {
-		if (typeof window === 'undefined') return Promise.resolve()
+	for (const demo of byId.values()) {
+		// A folder with only its index page is a single-page demo: no tab routes.
+		if (demo.tabs.length === 1 && demo.tabs[0]?.slug === '') demo.tabs = []
 
-		const initialId = window.location.hash.slice(1) || defaultDemo
+		// Index first, then alphabetical — the default order for auto-built tab
+		// bars; an explicit layout.tsx orders its own.
+		demo.tabs.sort((a, b) =>
+			a.slug === '' ? -1 : b.slug === '' ? 1 : a.name.localeCompare(b.name),
+		)
 
-		return loaderById.has(initialId) ? loadDemo(initialId) : Promise.resolve()
-	})()
+		demoByPath.set(demo.path, demo)
 
-	return { initialPreload }
+		demoById.set(demo.id, demo)
+	}
+
+	demos = [...byId.values()].sort((a, b) => a.name.localeCompare(b.name))
+
+	defaultDemo = demos[0] ?? null
 }

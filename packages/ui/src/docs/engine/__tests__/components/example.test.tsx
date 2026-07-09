@@ -60,6 +60,33 @@ describe('resolveWidth', () => {
 	})
 })
 
+describe('Example anchors', () => {
+	it('derives a stable slug anchor from a string title', () => {
+		const { container } = renderUI(<Example title="Server grouping">demo</Example>)
+
+		expect(bySlot(container, 'example')).toHaveAttribute('id', 'server-grouping')
+	})
+
+	it('prefers an explicit id over the derived slug', () => {
+		const { container } = renderUI(
+			<Example id="custom-anchor" title="Server grouping">
+				demo
+			</Example>,
+		)
+
+		expect(bySlot(container, 'example')).toHaveAttribute('id', 'custom-anchor')
+	})
+
+	it('links a string title to its own hash anchor', () => {
+		renderUI(<Example title="Server grouping">demo</Example>)
+
+		expect(screen.getByRole('link', { name: /Server grouping/ })).toHaveAttribute(
+			'href',
+			'#server-grouping',
+		)
+	})
+})
+
 describe('Example resize', () => {
 	it('renders no handle and a solid border by default', () => {
 		const { container } = renderExample()

@@ -14,6 +14,7 @@ import {
 } from '../../../components/menu'
 import { createContext } from '../../../core'
 import { useCurrentPanelActive } from '../../../primitives/current'
+import { replaceHash } from '../router'
 
 // A page with no titled examples has nothing to jump to, so the nav stays
 // hidden; one example or more earns it a place in the header.
@@ -45,10 +46,8 @@ const [ExampleEntriesContext, useExampleEntries] = createContext<readonly Exampl
  * Scrolls the example anchored to `id` into view within the docs content
  * scroller, clearing the sticky header. No-ops when the element or its scroll
  * ancestor is absent.
- *
- * @internal
  */
-function jumpTo(id: string) {
+export function jumpTo(id: string) {
 	const target = document.getElementById(id)
 
 	if (!target) return
@@ -155,6 +154,9 @@ function DemoNavItem({ entry }: { entry: ExampleEntry }) {
 	return (
 		<MenuItem
 			onAction={() => {
+				// The hash mirrors the jump so the address bar deep-links the example.
+				replaceHash(entry.id)
+
 				jumpTo(entry.id)
 
 				triggerRef.current?.focus({ preventScroll: true })

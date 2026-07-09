@@ -8,7 +8,9 @@ import { Heading } from '../../../components/heading'
 import { Stack } from '../../../components/stack'
 import { cn } from '../../../core'
 import { deriveCode } from '../derive-code'
-import { useRegisterExample } from './demo-nav'
+import { replaceHash } from '../router'
+import { slugify } from '../routes'
+import { jumpTo, useRegisterExample } from './demo-nav'
 import {
 	ExampleResizeHandle,
 	maxDefined,
@@ -16,6 +18,42 @@ import {
 	resolveResize,
 	useExampleResize,
 } from './example-resize'
+
+/**
+ * Anchor link wrapping a string example title: navigating sets the example
+ * hash (deep-linkable, copyable from the address bar) and scrolls the frame
+ * under the sticky header. The `#` affordance surfaces on hover and focus.
+ *
+ * @internal
+ */
+function ExampleAnchor({ slug, children }: { slug: string; children: ReactNode }) {
+	return (
+		<a
+			href={`#${slug}`}
+			className="group/anchor text-current no-underline"
+			onClick={(event) => {
+				// Modified clicks keep the browser default (copy link, new tab).
+				if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+
+				// The default hash jump ignores the sticky header; replaceState plus
+				// jumpTo lands the frame beneath it without a history entry.
+				event.preventDefault()
+
+				replaceHash(slug)
+
+				jumpTo(slug)
+			}}
+		>
+			{children}
+			<span
+				aria-hidden="true"
+				className="ml-2 select-none opacity-0 transition-opacity group-hover/anchor:opacity-60 group-focus-visible/anchor:opacity-60"
+			>
+				#
+			</span>
+		</a>
+	)
+}
 
 /**
  * The demo showcase frame: renders its `children` in a bordered preview with a
@@ -28,11 +66,17 @@ import {
  * slots frame the preview. A titled example registers itself with the page's
  * jump nav ({@link DemoNav}) and anchors the scroll target it jumps to.
  *
+ * A string title also derives the frame's stable anchor slug (`'Server
+ * grouping'` → `#server-grouping`) — the URL-hash deep link the title's hover
+ * anchor and the jump nav write; `id` overrides the derivation. Titles must be
+ * unique within a page for their anchors to be.
+ *
  * The optional `width` and `minWidth` props size the frame, and `resize` makes
  * it horizontally draggable via a right-edge handle and switches its border to
  * dashed; see {@link resolveResize} for how the boolean and object forms normalize.
  */
 export function Example({
+	id,
 	title,
 	prefix,
 	actions,
@@ -44,6 +88,8 @@ export function Example({
 	resize,
 	children,
 }: {
+	/** Explicit anchor slug; overrides the one a string `title` derives. */
+	id?: string
 	title?: ReactNode
 	prefix?: ReactNode
 	actions?: ReactNode
@@ -73,7 +119,12 @@ export function Example({
 
 	const [open, setOpen] = useState(false)
 
-	const anchorId = useId()
+	// Stable, human-readable anchor: an explicit id, else the slug of a string
+	// title. The useId fallback keeps untitled frames uniquely addressable for
+	// the nav registry without pretending to be a durable deep link.
+	const autoId = useId()
+
+	const anchorId = id ?? (typeof title === 'string' ? slugify(title) : undefined) ?? autoId
 
 	useRegisterExample(anchorId, title)
 
@@ -109,7 +160,15 @@ export function Example({
 					align={{ initial: 'start', sm: 'center' }}
 					justify={{ initial: 'start', sm: 'between' }}
 				>
-					{title && <Heading level={3}>{title}</Heading>}
+					{title && (
+						<Heading level={3}>
+							{typeof title === 'string' ? (
+								<ExampleAnchor slug={anchorId}>{title}</ExampleAnchor>
+							) : (
+								title
+							)}
+						</Heading>
+					)}
 					{actions}
 				</Flex>
 			)}
