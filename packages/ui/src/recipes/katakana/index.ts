@@ -14,7 +14,8 @@
  * `segment` (segmented control shared by Segment and Tabs), and `panel`
  * (panel bundle shared by Dialog, Drawer, and Sheet). `slider` has no
  * bridge; it's a pure colour token bundle the slider kata read from kiso
- * directly.
+ * directly. Alongside the archetypes, `backdrop` is a small shared recipe
+ * (not an archetype) for the drawer/sheet modal scrim.
  *
  * **The bridge is namespaced.** Bridges are reached through the `bridge`
  * object; a kata imports the token bundle under its bare archetype
@@ -24,8 +25,9 @@
  *     import { bridge } from '../katakana'
  *     export const k = bridge.control(control, { base: 'block', slots: { … } })
  *
- * **What the barrel surfaces.** The `bridge` object of archetype wirings,
- * plus `basePalette`: a shared palette wiring (not an archetype) that
+ * **What the barrel surfaces.** The `bridge` object of archetype wirings
+ * (plus the `backdrop` shared recipe), plus `basePalette`: a shared palette
+ * wiring (not an archetype) that
  * bundles an injected `iro.palette` into the solid / soft / outline matrix
  * the chromatic surface kata share. The bridges are generic over the token
  * bundle they receive; variant types resolve from the concrete `k` at the
@@ -34,11 +36,12 @@
  * kata import them from there.
  */
 
+import { backdrop } from './backdrop'
 import { check, control } from './control'
 import { panel } from './panel'
 import { popover } from './popover'
 import { segment } from './segment'
 
-export const bridge = { control, check, popover, segment, panel }
+export const bridge = { control, check, popover, segment, panel, backdrop }
 
 export { basePalette } from './palette'

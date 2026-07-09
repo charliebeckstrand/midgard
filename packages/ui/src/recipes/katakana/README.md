@@ -32,6 +32,9 @@ The barrel surfaces the `bridge` object only. Variant types resolve at the kata 
 | `popover`  | `kiso/popover`  | `trigger` / `portal` / `text` / `panel` bundle.                                          | `popover`                                     |
 | `segment`  | `kiso/segment`  | `control` / `item` recipes + `indicator` fragment.                                       | `segment`, `tabs`                             |
 | `panel`    | `kiso/panel`    | Caller `panel` / `backdrop` recipes + standard slot bundle.                              | `dialog`, `drawer`, `sheet`                   |
+| `backdrop` | `omote.backdrop`| Full-bleed scrim recipe with a `surface` axis (`flat` / `glass`). *Shared recipe, not an archetype.* | `drawer`, `sheet`                 |
+
+`backdrop` is a small shared recipe rather than an archetype: dialog has no scrim of this shape, so the two edge-panels build it directly (`bridge.backdrop(omote.backdrop)`) and hand the result to `bridge.panel(…, { backdrop })`.
 
 `slider` has no bridge — it's a pure colour bundle the slider kata read from `kiso/slider` directly. Kata that need only a subset of an archetype's fragments (combobox / listbox / date-picker / select / switch / box) likewise read the bundle from `kiso/<archetype>` without a bridge.
 

@@ -50,14 +50,7 @@ export const k = {
 			],
 			defaults: { side: 'right', size: 'md', surface: 'flat' },
 		}),
-		backdrop: defineRecipe({
-			base: 'absolute inset-0',
-			surface: {
-				glass: [...backdrop.glass],
-				flat: [...backdrop.base],
-			},
-			defaults: { surface: 'flat' },
-		}),
+		backdrop: bridge.backdrop(backdrop),
 		title: { extra: 'px-6 pt-6' },
 		description: { extra: 'px-6' },
 		footer: { extra: 'px-6 pb-6' },

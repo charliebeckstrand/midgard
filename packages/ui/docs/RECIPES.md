@@ -23,7 +23,7 @@ Atomic concerns, one sub-folder each; `index.ts` assembles the named bundle. Ful
 | `ma` 間 | Named spacing scale projected as Tailwind utilities, plus the raw `--spacing` numerals. |
 | `narabi` 並び | Sibling arrangement — field adjacency, toggle grid, slide positioning, icon slot, truncation, flex primitives. |
 | `omote` 面 | Generic surface fills and chromes (`bg`, `blur`, `surface`, `popover`, `glass`, `backdrop`, `content`, `skeleton`). |
-| `hannou` 反応 | Interaction feedback (`disabled`, `fg`, `cursor`, `tint`) plus the kata-shaped `item` / `nav` composites. |
+| `hannou` 反応 | Interaction feedback (`disabled`, `fg`, `cursor`, `tint`, `active`) plus the kata-shaped `item` / `nav` composites. |
 | `sen` 線 | Borders, rings, dividers, focus indicators, and forced-colors safety nets. |
 | `shaku` 尺 | Dimension scales per surface (`icon`, `avatar`, `panel`, `scroll-area`, `mark`, `combobox`, `listbox`). |
 | `ugoki` 動き | Motion — CSS transitions and Framer Motion enter/exit configs. |
@@ -55,6 +55,7 @@ Each bridge is a pure function `(<tokens>, overlay?) => k`, reached through the 
 | `popover` | `kiso/popover` | `trigger` / `portal` / `text` / `panel` bundle. | `popover` |
 | `segment` | `kiso/segment` | `control` / `item` recipes + `indicator` fragment. | `segment`, `tabs` |
 | `panel` | `kiso/panel` | Caller `panel` / `backdrop` recipes + standard slot bundle. | `dialog`, `drawer`, `sheet` |
+| `backdrop` | `omote.backdrop` | Full-bleed scrim recipe with a `surface` axis (`flat` / `glass`). *Shared recipe, not an archetype.* | `drawer`, `sheet` |
 
 ## Kata — shape
 
