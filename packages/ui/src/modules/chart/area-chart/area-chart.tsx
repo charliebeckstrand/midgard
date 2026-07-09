@@ -259,7 +259,7 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 		height,
 		aspectRatio,
 		axes,
-		gridLines = true,
+		grid = true,
 		legend,
 		tooltip,
 		crosshair,
@@ -417,7 +417,7 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 		>
 			{tex.defs}
 
-			{gridLines && chart.gridPositions.length > 0 && (
+			{grid && chart.gridPositions.length > 0 && (
 				<ChartGridLines plot={chart.plot} ticks={chart.gridPositions} />
 			)}
 
@@ -432,8 +432,8 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 
 			{chart.axes && chart.yScale && <ChartAxis axis="y" plot={chart.plot} ticks={chart.yTicks} />}
 
-			{chart.axes && chart.rightScale && (
-				<ChartAxis axis="y" position="right" plot={chart.plot} ticks={chart.rightTicks} />
+			{chart.axes && chart.y2Scale && (
+				<ChartAxis axis="y" position="right" plot={chart.plot} ticks={chart.y2Ticks} />
 			)}
 
 			{chart.axes && data.length > 0 && (
@@ -493,7 +493,7 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 			<ChartReferenceLines
 				plot={chart.plot}
 				scale={chart.yScale}
-				rightScale={chart.rightScale}
+				y2Scale={chart.y2Scale}
 				reference={reference}
 				format={chart.formatAxisValue}
 				animate={animate}

@@ -31,58 +31,54 @@ export type ChartContextMenuConfig = ContextMenuConfig & {
 }
 
 /**
- * Which value axis a series or reference line reads against: the primary
- * `'left'` axis or the secondary `'right'` one. The names are identities, not
- * geometry — under `orientation="horizontal"` the transpose puts the primary
- * value axis on the bottom and the secondary on top, and the binding reads the
- * same either way.
+ * Which value axis a series or reference line reads against: the key of the
+ * chart's {@link CartesianAxes | axes} object configuring it — the primary
+ * `'y'` axis or the secondary `'y2'`. The names are roles, not geometry: `y`
+ * lines the left gutter and `y2` the right when vertical, and the transpose
+ * under `orientation="horizontal"` moves them to the bottom and top with the
+ * binding reading the same either way.
  */
-export type ChartValueAxisSide = 'left' | 'right'
+export type ChartValueAxisId = 'y' | 'y2'
 
 /**
- * One value axis of a cartesian chart, addressed by the side it draws on — an
- * entry of the chart's {@link CartesianFrameProps.axes | axes} array carrying a
- * `position`. An independent domain, tick formatter, title, and grid-line
+ * One value axis's configuration — a `y` / `y2` entry of a cartesian chart's
+ * {@link CartesianAxes | axes} object, or either {@link ScatterAxes} entry of a
+ * point chart's. An independent domain, tick formatter, title, and grid-line
  * participation, so two measures of different scale — a count against a
  * currency, a rate against a weight — each read their own axis instead of
- * sharing one domain. The `'right'` axis appears only once a series binds to it,
- * a reference reads against it, or its domain is pinned here.
+ * sharing one domain.
  */
-export type ChartPositionAxis = {
-	/** Which value axis this entry configures: the primary `'left'` or the secondary `'right'`. */
-	position: ChartValueAxisSide
+export type ChartValueAxis = {
 	/** Domain floor; defaults to this axis's data (and zero on a bar-bearing chart). */
 	min?: number
 	/** Domain ceiling; defaults to this axis's data maximum. */
 	max?: number
 	/**
 	 * Formats this axis's ticks and its series' tooltip, label, and data-table
-	 * values — a currency for the left, a percent for the right.
+	 * values — a currency for `y`, a percent for `y2`.
 	 * @defaultValue the chart's `formatValue`
 	 */
 	format?: (value: number) => string
 	/** A short title drawn along the axis, naming the measure it scales. */
 	title?: string
 	/**
-	 * Draw this axis's ticks as the chart's gridlines. One axis should carry
-	 * them — two independent tick sets rarely align, and doubled hairlines read
-	 * as noise — so the left axis defaults on and the right defaults off,
-	 * standing in only when no left-bound series resolves a scale. The chart's
-	 * `gridLines` switch still gates the whole layer.
-	 * @defaultValue `true` for the left axis, `false` for the right
+	 * Draw this axis's ticks as the chart's grid. On a cartesian chart one axis
+	 * should carry them — two independent tick sets rarely align, and doubled
+	 * hairlines read as noise — so `y` defaults on and `y2` off, standing in
+	 * only when no `y`-bound series resolves a scale; a point chart's grid
+	 * reads both ways, so both its axes default on. The chart's `grid` switch
+	 * still gates the whole layer.
+	 * @defaultValue `true`, except a cartesian chart's `y2`
 	 */
-	gridLines?: boolean
+	grid?: boolean
 }
 
 /**
- * The category (band) axis of a cartesian chart, addressed by role as its `'x'`
- * axis — an entry of the {@link CartesianFrameProps.axes | axes} array carrying
- * `axis: 'x'`. Types the band axis (plain categories or time), formats its
- * labels, rules its between-category dividers, and titles it.
+ * The category (band) axis of a cartesian chart — the `x` entry of its
+ * {@link CartesianAxes | axes} object. Types the band axis (plain categories or
+ * time), formats its labels, rules its between-category dividers, and titles it.
  */
 export type ChartCategoryAxis = {
-	/** Marks this entry as the category (band) axis. */
-	axis: 'x'
 	/**
 	 * Type the band axis. `'time'` reads each row's `xKey` as a date — a `Date`,
 	 * epoch milliseconds, or an ISO string (a bare `YYYY-MM-DD` as a local day) —
@@ -111,7 +107,7 @@ export type ChartCategoryAxis = {
 	 * Rule a divider between each category — one hairline at every band boundary,
 	 * none at the outer edges — so a dense axis reads which marks belong to which
 	 * row: `'solid'` or `'dashed'`, omitted draws none. Recessive under the marks
-	 * beside the value gridlines, and it stands down with the rest of the chrome
+	 * beside the value grid, and it stands down with the rest of the chrome
 	 * at the spark tier. Under `orientation="horizontal"` the dividers run between
 	 * the stacked bands.
 	 */
@@ -121,130 +117,47 @@ export type ChartCategoryAxis = {
 }
 
 /**
- * One numeric axis of a point chart (Scatter / Bubble), addressed by role as its
- * `'x'` or `'y'` axis — an entry of the chart's `axes` array carrying `axis`.
- * Both axes are value axes here, unlike the band-axis charts, so each takes its
- * own domain, tick formatter, and title.
+ * A cartesian chart's axes, one optional config under each axis's own key: the
+ * category (band) axis as `x`, the primary value axis as `y`, the secondary as
+ * `y2` — the same names a series' or reference line's `axis` binding uses. An
+ * omitted key keeps that axis's defaults, so a chart names only the axes it
+ * tunes.
  */
-export type ChartValueRoleAxis = {
-	/** Which axis this entry configures: the horizontal `'x'` or the vertical `'y'`. */
-	axis: 'x' | 'y'
-	/** Domain floor; defaults to this axis's data. Pin it to compare charts on one scale. */
-	min?: number
-	/** Domain ceiling; defaults to this axis's data maximum. */
-	max?: number
+export type CartesianAxes = {
+	/** The category (band) axis. */
+	x?: ChartCategoryAxis
+	/** The primary value axis; every series reads it unless bound to `y2`. */
+	y?: ChartValueAxis
 	/**
-	 * Formats this axis's ticks and the readout column reading against it.
-	 * @defaultValue the chart's `formatValue` (y) or locale integer / fraction (x)
+	 * The secondary value axis. It appears only once a series binds to it, a
+	 * reference reads against it, or its domain is pinned here.
 	 */
-	format?: (value: number) => string
-	/** A short title drawn along the axis, naming the measure it scales. */
-	title?: string
+	y2?: ChartValueAxis
 }
 
 /**
- * One entry of a cartesian chart's {@link CartesianFrameProps.axes | axes}
- * array: a value axis addressed by `position` (`'left'` / `'right'`) or the
- * category axis addressed by role (`axis: 'x'`).
+ * A point chart's axes (Scatter / Bubble), one optional config per role. Both
+ * are value axes here — there is no band axis and no `y2` — so each takes the
+ * same domain pins, tick formatter, title, and grid participation.
  */
-export type CartesianAxis = ChartPositionAxis | ChartCategoryAxis
-
-/** One entry of a point chart's `axes` array: a numeric axis addressed by role (`axis: 'x'` / `'y'`). */
-export type ScatterAxis = ChartValueRoleAxis
-
-/**
- * A cartesian chart's `axes` prop resolved to concrete per-axis configs: whether
- * the axis chrome draws at all, each value axis by side, and the category axis
- * (always an object, empty when unset). The `false` shorthand drops the chrome,
- * `true` / `undefined` draws the defaults, and an array configures — and draws —
- * each named axis.
- *
- * @internal
- */
-export type ResolvedCartesianAxes = {
-	/** Whether the axis chrome draws — `false` only for the bare-marks `axes={false}`. */
-	draw: boolean
-	/** The primary value axis's config, sans its `position` discriminant. */
-	left?: Omit<ChartPositionAxis, 'position'>
-	/** The secondary value axis's config, sans its `position` discriminant. */
-	right?: Omit<ChartPositionAxis, 'position'>
-	/** The category axis's config, sans its `axis` discriminant; empty when unconfigured. */
-	category: Omit<ChartCategoryAxis, 'axis'>
+export type ScatterAxes = {
+	/** The horizontal value axis. */
+	x?: ChartValueAxis
+	/** The vertical value axis. */
+	y?: ChartValueAxis
 }
 
 /**
- * Resolves a cartesian chart's `axes` prop to its {@link ResolvedCartesianAxes}.
- * `false` drops the chrome; `undefined` / `true` draw the defaults; an array
- * distributes its entries to the two value sides and the category axis (a later
- * entry for one axis wins over an earlier one), always drawing.
+ * Reads an `axes` prop's boolean-or-object union: whether the axis chrome draws
+ * at all (`false` alone drops it, the bare-marks plot) and the per-axis configs
+ * (the booleans read as none — every axis at its defaults).
  *
  * @internal
  */
-export function resolveCartesianAxes(
-	axes: boolean | CartesianAxis[] | undefined,
-): ResolvedCartesianAxes {
-	if (axes === false) return { draw: false, category: {} }
-
-	if (axes === undefined || axes === true) return { draw: true, category: {} }
-
-	const resolved: ResolvedCartesianAxes = { draw: true, category: {} }
-
-	for (const entry of axes) {
-		if ('position' in entry) {
-			const { position, ...rest } = entry
-
-			if (position === 'right') resolved.right = rest
-			else resolved.left = rest
-		} else {
-			const { axis: _axis, ...rest } = entry
-
-			resolved.category = rest
-		}
-	}
-
-	return resolved
-}
-
-/**
- * A point chart's `axes` prop resolved to concrete per-axis configs: whether the
- * axis chrome draws, and each numeric axis by role. The `false` shorthand drops
- * the chrome, `true` / `undefined` draws the defaults, and an array configures —
- * and draws — the named axes.
- *
- * @internal
- */
-export type ResolvedScatterAxes = {
-	/** Whether the axis chrome draws — `false` only for the bare-marks `axes={false}`. */
-	draw: boolean
-	/** The x axis's config, sans its `axis` discriminant. */
-	x?: Omit<ChartValueRoleAxis, 'axis'>
-	/** The y axis's config, sans its `axis` discriminant. */
-	y?: Omit<ChartValueRoleAxis, 'axis'>
-}
-
-/**
- * Resolves a point chart's `axes` prop to its {@link ResolvedScatterAxes}.
- * `false` drops the chrome; `undefined` / `true` draw the defaults; an array
- * distributes its entries to the x and y axes (a later entry for one axis wins),
- * always drawing.
- *
- * @internal
- */
-export function resolveScatterAxes(axes: boolean | ScatterAxis[] | undefined): ResolvedScatterAxes {
-	if (axes === false) return { draw: false }
-
-	if (axes === undefined || axes === true) return { draw: true }
-
-	const resolved: ResolvedScatterAxes = { draw: true }
-
-	for (const entry of axes) {
-		const { axis, ...rest } = entry
-
-		if (axis === 'y') resolved.y = rest
-		else resolved.x = rest
-	}
-
-	return resolved
+export function resolveAxes<A extends object>(
+	axes: boolean | A | undefined,
+): { draw: boolean; config: Partial<A> } {
+	return { draw: axes !== false, config: typeof axes === 'object' ? axes : {} }
 }
 
 /**
@@ -280,14 +193,14 @@ export type ChartSeries<T> = {
 	 */
 	color?: ChartSeriesColor | (string & {})
 	/**
-	 * The value axis this series reads against. `'right'` binds it to the
-	 * secondary axis — its own domain, ticks, and formatter via the chart's
-	 * `{ position: 'right' }` axis entry — so a second measure plots at its natural
-	 * scale beside the first. A stacked chart reads every series on one axis: the
-	 * side they all agree on, else the left.
-	 * @defaultValue 'left'
+	 * The value axis this series reads against. `'y2'` binds it to the secondary
+	 * axis — its own domain, ticks, and formatter via the chart's `axes.y2`
+	 * config — so a second measure plots at its natural scale beside the first.
+	 * A stacked chart reads every series on one axis: the one they all agree on,
+	 * else `y`.
+	 * @defaultValue 'y'
 	 */
-	axis?: ChartValueAxisSide
+	axis?: ChartValueAxisId
 	/**
 	 * Dash this series' connecting stroke instead of drawing it solid — a second
 	 * identity channel beside colour, so two lines sharing one chart tell apart
@@ -492,11 +405,11 @@ export type ChartReferenceLine = {
 	dashed?: boolean
 	/**
 	 * The value axis the rule's `value` reads against. It folds into that
-	 * axis's domain and draws at that axis's projection, so a right-axis
-	 * threshold annotates the right-bound series rather than the left scale.
-	 * @defaultValue 'left'
+	 * axis's domain and draws at that axis's projection, so a `y2` threshold
+	 * annotates the `y2`-bound series rather than the primary scale.
+	 * @defaultValue 'y'
 	 */
-	axis?: ChartValueAxisSide
+	axis?: ChartValueAxisId
 }
 
 /**
@@ -717,23 +630,23 @@ export type CartesianFrameProps = {
 	/** Resolves against enclosing Density; sets the default frame height and tick count. */
 	size?: Step
 	/**
-	 * The chart's axes. `true` (the default) draws the value and category axes at
-	 * their defaults; `false` drops the axis chrome for a bare-marks plot. An array
-	 * configures — and draws — each axis: a value axis by the side it draws on
-	 * (`{ position: 'left' | 'right', min, max, format, title, gridLines }`, the
-	 * secondary `'right'` axis appearing only once a series binds to it, a reference
-	 * reads against it, or its domain is pinned) and the category axis by role
-	 * (`{ axis: 'x', type, format, separator, title }`). An omitted axis keeps its
-	 * defaults, so a chart names only the axes it tunes.
+	 * The chart's axes. `true` (the default) draws the value and category axes
+	 * at their defaults; `false` drops the axis chrome for a bare-marks plot.
+	 * The object form configures each axis under its own key — the category
+	 * axis as `x` (`{ type, format, separator, title }`), a value axis as `y`
+	 * or `y2` (`{ min, max, format, title, grid }`) — matching the names a
+	 * series' `axis` binding uses. An omitted key keeps that axis's defaults, so
+	 * a chart names only the axes it tunes.
 	 * @defaultValue true
-	 * @see {@link CartesianAxis}
+	 * @see {@link CartesianAxes}
 	 */
-	axes?: boolean | CartesianAxis[]
+	axes?: boolean | CartesianAxes
 	/**
-	 * Draw horizontal hairline gridlines at the y ticks.
+	 * Draw the grid: hairlines at the value ticks. Which axis's ticks rule it
+	 * is each axis's own `grid` switch; this one gates the whole layer.
 	 * @defaultValue true
 	 */
-	gridLines?: boolean
+	grid?: boolean
 	/**
 	 * Draw a hover crosshair. `true` (the shorthand) draws both rules — a
 	 * horizontal value rule and a vertical category rule; a {@link Crosshair}

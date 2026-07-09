@@ -35,11 +35,12 @@ import {
 	type ChartBaseProps,
 	type ChartLegendPlacement,
 	type ChartTooltipTrigger,
+	type ChartValueAxis,
 	type Crosshair,
 	type ResolvedCrosshair,
-	resolveScatterAxes,
+	resolveAxes,
 	resolveTooltip,
-	type ScatterAxis,
+	type ScatterAxes,
 	type ScatterChartSeries,
 } from '../chart-schema'
 import { formatChartValue, type SlotPaint } from '../chart-series'
@@ -76,8 +77,8 @@ import {
 
 /**
  * The frame switches the point charts (Scatter / Bubble) add on top of
- * {@link ChartBaseProps}: axes and gridlines both ways, per-axis domain pins,
- * the x formatter, and the hover crosshair.
+ * {@link ChartBaseProps}: axes and grid both ways, per-axis domains, formats,
+ * and titles, and the hover crosshair.
  *
  * @internal
  */
@@ -86,20 +87,22 @@ export type ScatterFrameProps = {
 	size?: Step
 	/**
 	 * The chart's axes. `true` (the default) draws both value axes at their
-	 * defaults; `false` drops the axis chrome for a bare-marks plot. An array
-	 * configures — and draws — each axis by role: `{ axis: 'x' | 'y', min, max,
-	 * format, title }`. Both axes are value axes here, so each takes its own domain,
-	 * tick formatter, and title; an omitted axis keeps its defaults.
+	 * defaults; `false` drops the axis chrome for a bare-marks plot. The object
+	 * form configures each axis under its own key — `{ min, max, format, title,
+	 * grid }` for either. Both are value axes here, so each takes its own
+	 * domain, tick formatter, and title; an omitted key keeps that axis's
+	 * defaults.
 	 * @defaultValue true
-	 * @see {@link ScatterAxis}
+	 * @see {@link ScatterAxes}
 	 */
-	axes?: boolean | ScatterAxis[]
+	axes?: boolean | ScatterAxes
 	/**
-	 * Draw hairline gridlines at both axes' ticks — both are value axes here,
-	 * so the grid reads both ways.
+	 * Draw the grid: hairlines at both axes' ticks — both are value axes here,
+	 * so the grid reads both ways unless an axis opts out through its own
+	 * `grid` switch.
 	 * @defaultValue true
 	 */
-	gridLines?: boolean
+	grid?: boolean
 	/**
 	 * Draw a hover crosshair. `true` draws both rules; a {@link Crosshair}
 	 * object snaps them to the nearest point (`snap`) or drops one. Opt-in:
@@ -244,6 +247,11 @@ function scatterLegendItems(
 		swatch: 'rect',
 		color: meta.color,
 	}))
+}
+
+/** One axis's grid participation: the chart's `grid` gate and the axis's own switch. @internal */
+function axisGrid(grid: boolean, axis: ChartValueAxis | undefined): boolean {
+	return grid && (axis?.grid ?? true)
 }
 
 /** Both scales' pins, lifted off the props. @internal */
@@ -421,7 +429,9 @@ function ScatterChrome(props: {
 	/** Spark strips the chrome entirely — the component renders nothing. */
 	spark: boolean
 	axes: boolean
-	gridLines: boolean
+	/** Whether each axis's ticks rule the grid — the chart's `grid` gate and the axis's own switch, resolved. */
+	xGrid: boolean
+	yGrid: boolean
 	xScale: LinearScale | null
 	yScale: LinearScale | null
 	xTicks: ChartAxisTick[]
@@ -429,15 +439,15 @@ function ScatterChrome(props: {
 	/** The placed axis titles, empty when neither axis is titled. */
 	titles: ChartAxisTitlePlacement[]
 }) {
-	const { plot, spark, axes, gridLines, xScale, yScale, xTicks, yTicks, titles } = props
+	const { plot, spark, axes, xGrid, yGrid, xScale, yScale, xTicks, yTicks, titles } = props
 
 	if (spark) return null
 
 	return (
 		<>
-			{gridLines && yScale && <ChartGridLines plot={plot} ticks={yTicks.map((tick) => tick.at)} />}
+			{yGrid && yScale && <ChartGridLines plot={plot} ticks={yTicks.map((tick) => tick.at)} />}
 
-			{gridLines && xScale && (
+			{xGrid && xScale && (
 				<ChartGridLines
 					plot={plot}
 					ticks={xTicks.map((tick) => tick.at)}
@@ -549,7 +559,7 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 		height,
 		aspectRatio = '16/9',
 		axes,
-		gridLines = true,
+		grid = true,
 		legend,
 		tooltip,
 		crosshair,
@@ -559,9 +569,9 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 		...label
 	} = props
 
-	// The one place the `axes` prop's boolean-or-array union is read: the draw
-	// switch and each numeric axis's domain, formatter, and title.
-	const axesConfig = resolveScatterAxes(axes)
+	// The one place the `axes` prop's boolean-or-object union is read: the draw
+	// switch and each axis's domain, formatter, title, and grid participation.
+	const { draw, config: axesConfig } = resolveAxes(axes)
 
 	const resolvedSize = useResolvedSize(size)
 
@@ -621,7 +631,7 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 		visible,
 		frameWidth,
 		frameHeight,
-		axes: axesConfig.draw,
+		axes: draw,
 		spark,
 		tickTarget: metrics.tickTarget,
 		pins: {
@@ -722,8 +732,9 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 			<ScatterChrome
 				plot={plot}
 				spark={spark}
-				axes={axesConfig.draw}
-				gridLines={gridLines}
+				axes={draw}
+				xGrid={axisGrid(grid, axesConfig.x)}
+				yGrid={axisGrid(grid, axesConfig.y)}
 				xScale={xScale}
 				yScale={yScale}
 				xTicks={xTicks}
