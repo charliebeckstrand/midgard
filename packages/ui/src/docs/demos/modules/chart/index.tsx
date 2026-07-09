@@ -380,7 +380,10 @@ export function Demo() {
 								/>
 							</Example>
 
-							<Example title="Multi-series" code={code`<LineChart crosshair={{ snap: true }} … />`}>
+							<Example
+								title="Multi-series"
+								code={code`<LineChart crosshair={{ x: false, y: true }} … />`}
+							>
 								<LineChart
 									aria-label="Revenue and margin by month"
 									data={months}
@@ -389,7 +392,7 @@ export function Demo() {
 										{ xKey: 'month', yKey: 'margin', yName: 'Margin' },
 										{ xKey: 'month', yKey: 'costs', yName: 'Costs' },
 									]}
-									crosshair={{ snap: true }}
+									crosshair={{ x: false, y: true }}
 								/>
 							</Example>
 
@@ -425,7 +428,6 @@ export function Demo() {
 									]}
 									leftAxis={{ title: '$ / lb', format: (value) => `$${value.toFixed(2)}` }}
 									rightAxis={{ title: 'Weight', format: (value) => `${value}k lb` }}
-									crosshair={{ snap: true }}
 								/>
 							</Example>
 
@@ -449,7 +451,6 @@ export function Demo() {
 									leftAxis={{ title: '$ / lb', format: (value) => `$${value.toFixed(2)}` }}
 									rightAxis={{ title: 'Weight', format: (value) => `${value}k lb` }}
 									points
-									crosshair={{ snap: true }}
 								/>
 							</Example>
 
@@ -709,7 +710,7 @@ export function Demo() {
 						<Stack gap="xl">
 							<Example
 								title="Bar and line"
-								code={code`<ComboChart crosshair={{ snap: true }} … />`}
+								code={code`<ComboChart crosshair={{ x: true, y: false }} … />`}
 							>
 								<ComboChart
 									aria-label="Revenue bars with margin line by month"
@@ -718,7 +719,7 @@ export function Demo() {
 										{ type: 'bar', xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
 										{ type: 'line', xKey: 'month', yKey: 'margin', yName: 'Margin' },
 									]}
-									crosshair={{ snap: true }}
+									crosshair={{ x: true, y: false }}
 								/>
 							</Example>
 
@@ -734,7 +735,6 @@ export function Demo() {
 										{ type: 'area', xKey: 'month', yKey: 'costs', yName: 'Costs' },
 										{ type: 'line', xKey: 'month', yKey: 'margin', yName: 'Margin' },
 									]}
-									crosshair={{ snap: true }}
 								/>
 							</Example>
 
@@ -757,7 +757,6 @@ export function Demo() {
 									]}
 									leftAxis={{ title: 'Shipments' }}
 									rightAxis={{ title: 'Exceptions' }}
-									crosshair={{ snap: true }}
 								/>
 							</Example>
 
@@ -778,10 +777,7 @@ export function Demo() {
 
 					<TabContent value="scatter">
 						<Stack gap="xl">
-							<Example
-								title="Multi-series"
-								code={code`<ScatterChart crosshair={{ snap: true }} … />`}
-							>
+							<Example title="Multi-series" code={code`<ScatterChart crosshair … />`}>
 								<ScatterChart
 									aria-label="Dwell and handling time against stop distance"
 									data={stops}
@@ -790,7 +786,7 @@ export function Demo() {
 										{ xKey: 'distance', yKey: 'handling', yName: 'Handling' },
 									]}
 									formatXValue={(value) => `${value} mi`}
-									crosshair={{ snap: true }}
+									crosshair
 								/>
 							</Example>
 
@@ -812,7 +808,7 @@ export function Demo() {
 						<Stack gap="xl">
 							<Example
 								title="Size encoding"
-								code={code`<BubbleChart series={[{ …, sizeKey: 'weight' }]} … />`}
+								code={code`<BubbleChart series={[{ …, sizeKey: 'weight' }]} crosshair … />`}
 							>
 								<BubbleChart
 									aria-label="Dwell against distance, sized by weight"
@@ -827,6 +823,7 @@ export function Demo() {
 										},
 									]}
 									formatXValue={(value) => `${value} mi`}
+									crosshair
 								/>
 							</Example>
 
