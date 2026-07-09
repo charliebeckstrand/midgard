@@ -56,6 +56,28 @@ describe('MapPlat', () => {
 		expect(allBySlot(container, 'map-region')).toHaveLength(3)
 	})
 
+	it('holds the paint until measured under deferPaint, the reserve still owning the box', () => {
+		// deferPaint inverts the default above: an unmeasured frame (jsdom never
+		// measures) mounts no SVG — the geography waits to paint once at the
+		// measured aspect instead of flashing the canonical fit and refitting —
+		// while the plot region still stands and reserves the space.
+		const { container } = renderUI(
+			<MapPlat aria-label="Tile" geography={FIXTURE_GEOJSON} deferPaint />,
+		)
+
+		expect(container.querySelector('svg')).toBeNull()
+
+		expect(bySlot(container, 'map-plot')).toBeInTheDocument()
+	})
+
+	it('paints immediately under deferPaint when an explicit width fixes the frame', () => {
+		// An explicit width is already "measured" (the SSR / test path), so there is
+		// nothing to defer for: the map draws on the first commit as usual.
+		const { container } = renderUI(plat({ deferPaint: true }))
+
+		expect(allBySlot(container, 'map-region')).toHaveLength(3)
+	})
+
 	it('reserves the frame without geography and paints it once provided', () => {
 		// A lazily fetched atlas passes through as null: no guard at the call
 		// site, no crash — the plot box holds the space, then the geography

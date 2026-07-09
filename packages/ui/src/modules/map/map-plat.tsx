@@ -180,6 +180,21 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 */
 		aspectRatio?: MapAspectRatio
 		/**
+		 * Hold the frame empty — its reserved box still owning the space — until the
+		 * container is measured, then paint the geography once at the measured aspect
+		 * with the legend already resolved, instead of painting the measurement-free
+		 * canonical fit and visibly refitting (and reserving a late legend rail) once
+		 * the measurement lands. For a chart-context map — a dashboard tile behind a
+		 * loading state, carrying an explicit `aspectRatio` that differs from the
+		 * geography's own — the canonical paint would draw at the wrong aspect and
+		 * legend-less, then jump; deferring trades the instant first paint (invisible
+		 * behind the tile's reserved box and its loading state) for a single settled
+		 * one. Off by default, so every other map keeps the instant canonical paint for
+		 * SSR and the first client commit.
+		 * @defaultValue false
+		 */
+		deferPaint?: boolean
+		/**
 		 * Show the legend. Defaults to on when there are two or more categories
 		 * or any registered overlay — the identity channel colour alone must
 		 * never carry. A placement moves the centered row under the plot
@@ -256,6 +271,7 @@ function useMapShape(
 	width: number | undefined,
 	height: number | undefined,
 	aspectRatio: MapAspectRatio,
+	deferPaint: boolean,
 ): MapShape {
 	// The mount-critical geometry — decode, the measurement-free canonical fit,
 	// and its region paths — memoised across instances and mounts (see
@@ -295,6 +311,14 @@ function useMapShape(
 	const view = useMemo(() => {
 		const measured = measuredMapFit(projection, features, canonical, frameWidth, frameHeight)
 
+		// Deferred paint: hold the frame empty (the reserve still owns the box) until
+		// the measurement lands, so the geography paints once at the measured aspect
+		// with the legend already resolved rather than flashing the canonical fit and
+		// refitting. The `viewWidth` 0 keeps the SVG unmounted meanwhile.
+		if (!measured && deferPaint) {
+			return { viewWidth: 0, viewHeight: 0, paths: canonicalPaths, project: () => null }
+		}
+
 		// Draw from the measured fit once it lands, the canonical fit until then, so
 		// the geography never waits on the container being measured.
 		const fitted = measured ?? canonical?.projection ?? null
@@ -305,7 +329,7 @@ function useMapShape(
 			paths: measured ? regionPaths(features, measured) : canonicalPaths,
 			project: (position: LngLat) => (fitted === null ? null : projectPoint(fitted, position)),
 		}
-	}, [projection, features, canonical, canonicalPaths, frameWidth, frameHeight])
+	}, [projection, features, canonical, canonicalPaths, frameWidth, frameHeight, deferPaint])
 
 	const { viewWidth, viewHeight, paths, project } = view
 
@@ -919,6 +943,7 @@ export function MapPlat<T = never>({
 	width,
 	height,
 	aspectRatio = 'auto',
+	deferPaint = false,
 	legend,
 	tooltip = true,
 	animate = false,
@@ -926,7 +951,15 @@ export function MapPlat<T = never>({
 	children,
 	...name
 }: MapPlatProps<T>) {
-	const shape = useMapShape(geography, geographyObject, projection, width, height, aspectRatio)
+	const shape = useMapShape(
+		geography,
+		geographyObject,
+		projection,
+		width,
+		height,
+		aspectRatio,
+		deferPaint,
+	)
 
 	const {
 		categoryMetas,

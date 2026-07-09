@@ -96,7 +96,9 @@ describe('plotRect', () => {
 	it('reserves the label gutter and axis band with edge slack', () => {
 		const plot = plotRect(400, 240, true, ['0', '1,000'])
 
-		expect(plot.x).toBe(Math.ceil(5 * TICK_CHAR_WIDTH) + GUTTER_GAP + GUTTER_EDGE_PAD)
+		// The widest label is 5 chars; the gutter rounds the count up to an even 6,
+		// so a one-character magnitude swing never shifts the plot.
+		expect(plot.x).toBe(Math.ceil(6 * TICK_CHAR_WIDTH) + GUTTER_GAP + GUTTER_EDGE_PAD)
 
 		expect(plot.y).toBe(PLOT_TOP_PAD)
 
@@ -123,11 +125,24 @@ describe('plotRect', () => {
 
 		const labels = plotRect(400, 240, true, ['Wed'], LABEL_CHAR_WIDTH)
 
-		expect(digits.x).toBe(Math.ceil(3 * TICK_CHAR_WIDTH) + GUTTER_GAP + GUTTER_EDGE_PAD)
+		// 'Wed' is 3 chars; the gutter rounds the count up to an even 4 either way.
+		expect(digits.x).toBe(Math.ceil(4 * TICK_CHAR_WIDTH) + GUTTER_GAP + GUTTER_EDGE_PAD)
 
-		expect(labels.x).toBe(Math.ceil(3 * LABEL_CHAR_WIDTH) + GUTTER_GAP + GUTTER_EDGE_PAD)
+		expect(labels.x).toBe(Math.ceil(4 * LABEL_CHAR_WIDTH) + GUTTER_GAP + GUTTER_EDGE_PAD)
 
 		expect(labels.x).toBeGreaterThan(digits.x)
+	})
+
+	it('holds the gutter across a one-character change in the widest label', () => {
+		// A nice-tick axis topping out at 8,000 (5 chars) and one at 40,000 (6)
+		// reserve the same gutter, so switching between two charts in a tile — or a
+		// filter shifting the magnitude by a digit — never slides the plot and its
+		// right-anchored labels sideways.
+		const thousands = plotRect(400, 240, true, ['0', '8,000'])
+
+		const tenThousands = plotRect(400, 240, true, ['0', '40,000'])
+
+		expect(tenThousands.x).toBe(thousands.x)
 	})
 })
 

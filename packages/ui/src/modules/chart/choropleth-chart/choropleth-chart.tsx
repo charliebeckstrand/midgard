@@ -82,9 +82,12 @@ export type ChoroplethChartProps<T = never> = AccessibleName & {
 	/** Frame height in px; wins over `aspectRatio` when set. */
 	height?: number
 	/**
-	 * Height as a ratio of the width: `'auto'` takes the fitted geography's own
-	 * proportions.
-	 * @defaultValue 'auto'
+	 * Height as a ratio of the width. Defaults to `'16/9'` — the shared chart-tile
+	 * ratio the cartesian and pie charts hold — rather than the map's own `'auto'`
+	 * fit, so a choropleth lines up with the charts it sits beside in a dashboard
+	 * row instead of running taller and driving the row height. Pass `'auto'` to
+	 * take the fitted geography's own projected proportions.
+	 * @defaultValue '16/9'
 	 */
 	aspectRatio?: MapAspectRatio
 	/**
@@ -144,6 +147,13 @@ export function ChoroplethChart<T = never>({
 	// union makes a raw spread ambiguous, so assemble the props and assert.
 	const props = {
 		...map,
+		// A choropleth is always a chart tile, so default it to the board's shared
+		// 16/9 ratio (overridable) to match its neighbours, and defer the first paint:
+		// the map then draws once at that measured aspect with its legend resolved,
+		// instead of flashing the map's canonical (auto-aspect, legend-less) fit and
+		// refitting when measured (see MapPlat's `deferPaint`).
+		aspectRatio: map.aspectRatio ?? '16/9',
+		deferPaint: true,
 		regionKey: primary?.idKey,
 		valueKey: primary?.colorKey,
 		colorRange: primary?.colorRange,

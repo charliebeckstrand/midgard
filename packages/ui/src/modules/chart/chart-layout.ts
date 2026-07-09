@@ -160,13 +160,20 @@ export type PlotRect = {
 /**
  * The gutter width a run of tick `labels` needs: the widest label's estimated
  * advance plus the gap and edge slack, clamped so extreme labels can't crowd
- * out the plot.
+ * out the plot. The character count rounds up to an even number first, so the
+ * gutter — and the plot with its right-anchored labels — holds steady when the
+ * widest label swings by a single character (a nice-tick axis topping out at
+ * `8,000` and one at `40,000` reserve the same width) and steps only once it
+ * grows by two, a change of scale large enough to be worth the reflow. Without
+ * it a filter that nudges the magnitude by a digit, or two charts sharing a
+ * tile, would slide the plot sideways.
  *
  * @remarks Computed, never measured: value ticks render in tabular figures, so
  * their widest string estimates reliably from its length at {@link
  * TICK_CHAR_WIDTH} per glyph. Ceil plus edge slack — an estimate rounded down
- * clips the widest label against the SVG's own overflow. A caller whose gutter
- * holds proportional category labels instead — the heatmap's rows, not digits —
+ * clips the widest label against the SVG's own overflow; the even round-up only
+ * ever reserves more, so it never clips either. A caller whose gutter holds
+ * proportional category labels instead — the heatmap's rows, not digits —
  * passes a wider `charWidth` ({@link LABEL_CHAR_WIDTH}) so a capital-initial
  * label still clears the frame edge.
  * @param charWidth Per-glyph advance estimate for the labels; defaults to the
@@ -174,7 +181,11 @@ export type PlotRect = {
  * @internal
  */
 function tickGutter(labels: string[], charWidth: number = TICK_CHAR_WIDTH): number {
-	const chars = labels.reduce((widest, label) => Math.max(widest, label.length), 0)
+	const widest = labels.reduce((max, label) => Math.max(max, label.length), 0)
+
+	// Round the count up to an even number so a one-character swing in the widest
+	// label (`8,000` ↔ `40,000`) leaves the gutter where it is — see the doc above.
+	const chars = widest + (widest % 2)
 
 	return Math.min(GUTTER_MAX, Math.ceil(chars * charWidth) + GUTTER_GAP + GUTTER_EDGE_PAD)
 }

@@ -501,8 +501,10 @@ describe('BarChart', () => {
 
 		expect(yAxis?.textContent).toContain('$')
 
+		// The '$'-prefixed ticks widen the value gutter, narrowing the plot and
+		// nudging the bars right; (280, 100) sits on Q3's revenue bar under it.
 		fireEvent.pointerMove(bySlot(container, 'chart-hit') as Element, {
-			clientX: 300,
+			clientX: 280,
 			clientY: 100,
 		})
 

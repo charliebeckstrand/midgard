@@ -254,7 +254,9 @@ describe('HeatmapChart', () => {
 
 		// Pinned to the proportional estimate: a regression to TICK_CHAR_WIDTH would
 		// drop x below the label's estimated width, pushing its left edge off-frame.
-		expect(x).toBe(Math.ceil(3 * LABEL_CHAR_WIDTH) + GUTTER_EDGE_PAD)
+		// The 3-char count rounds up to an even 4 (the gutter's magnitude-stability
+		// round-up), still at the wider proportional per-glyph width.
+		expect(x).toBe(Math.ceil(4 * LABEL_CHAR_WIDTH) + GUTTER_EDGE_PAD)
 
 		expect(x).toBeGreaterThanOrEqual(3 * LABEL_CHAR_WIDTH)
 	})

@@ -85,8 +85,14 @@ export function resolveRangeLegend(
 		side && width > 0 && width < COMPACT_WIDTH ? 'bottom' : requested
 
 	// Off, or stripped with the rest of the chrome at the spark floor — the way a
-	// cartesian frame drops its legend to draw a bare sparkline.
-	const show = legend !== false && !isSparkBox(width, height)
+	// cartesian frame drops its legend to draw a bare sparkline. An unmeasured box
+	// (width 0) keeps the bar, matching the placement's posture above: shedding on
+	// "unmeasured" would mount the bar only after the measurement lands — a
+	// transition later than the plot's own pre-paint measure — so the plot would
+	// paint at full width first and visibly shrink when the rail arrived. Reserving
+	// ahead means the plot's first measurement already excludes the rail, and a box
+	// that then proves spark-small sheds it on the next commit instead.
+	const show = legend !== false && (width === 0 || !isSparkBox(width, height))
 
 	return { show, placement, orientation: rangeLegendOrientation(placement) }
 }
