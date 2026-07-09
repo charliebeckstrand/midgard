@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'motion/react'
-import { type MouseEvent, type PointerEvent, type ReactNode, useId } from 'react'
+import { type MouseEvent, type PointerEvent, type ReactNode, useId, useLayoutEffect } from 'react'
 import { cn } from '../../core'
 import { type FrameSizing, usePlotFrame } from '../../hooks'
 import { type ChartSeriesColor, k } from '../../recipes/kata/chart'
@@ -20,7 +20,7 @@ import {
 	resolveTooltip,
 } from './chart-schema'
 import { formatChartValue, type SlotPaint, seriesValues } from './chart-series'
-import { chartPolicy, isSparkBox, policyPlotHeight } from './chart-tier'
+import { chartPolicy, isSparkBox } from './chart-tier'
 import { useChartFullscreen, useChartHover } from './context'
 import {
 	CALLOUT_CHAR_WIDTH,
@@ -39,6 +39,7 @@ import {
 } from './pie-chart/pie-chart-geometry'
 import type { ChartReadout } from './types'
 import { useChartSeriesToggle } from './use-chart-series-toggle'
+import { useChartTierPlotHeight } from './use-chart-tier-plot-height'
 
 /** The label switches {@link PieBaseProps.labels} accepts. */
 export type PieLabels = {
@@ -819,16 +820,23 @@ export function ChartPie<T>(props: ChartPieProps<T>) {
 	// box — the `data-tier` styling hook, and the legend's row cap so a many-slice
 	// stacked legend never overruns the frame the way it used to. It has no value
 	// ticks, so the density ceiling the tick target would clamp is moot here.
-	// Under a stacked aspect-fill figure the plot's measured remainder shrinks with
-	// the legend and jumps when spark drops it, so resolve the tier against the
-	// figure's `width / ratio` less that legend rather than the remainder it would
-	// loop on. A pie carries no header, so the chrome is the legend alone.
-	const policyHeight = policyPlotHeight(frameHeight, frameWidth, frameAspect, {
-		headerLines: 0,
-		legend: stackedLegend,
-	})
+	// Under a stacked figure (a shared ratio or a free-form fill) the plot's
+	// measured remainder shrinks with the legend and jumps when spark drops it, so
+	// resolve the tier against a height no tier decision perturbs. A pie carries no
+	// header, so the chrome is the legend alone.
+	const { tierHeight, commitTier } = useChartTierPlotHeight(
+		frameHeight,
+		frameWidth,
+		frameAspect,
+		{ headerLines: 0, legend: stackedLegend },
+		frameSizing.mode === 'fill',
+	)
 
-	const policy = chartPolicy(frameWidth, policyHeight, CHART_METRICS.md.tickTarget)
+	const policy = chartPolicy(frameWidth, tierHeight, CHART_METRICS.md.tickTarget)
+
+	// Record the chrome this commit renders so the next fill recovery adds back the
+	// right reserve; the layout effect lands the tier before paint.
+	useLayoutEffect(() => commitTier(policy.tier), [commitTier, policy.tier])
 
 	const { hidden, toggle, setFocus, emphasis } = useChartSeriesToggle()
 

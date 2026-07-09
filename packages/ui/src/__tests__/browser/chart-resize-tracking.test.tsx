@@ -151,6 +151,62 @@ describe('chart resize tracking (real browser)', () => {
 		expect(Math.round(plotSvg(container).getBoundingClientRect().width)).toBe(900)
 	})
 
+	it('settles a fill-mode chart at the spark floor without oscillating the tier', async () => {
+		// A free-form fill chart (`aspectRatio={false}`) shares its container box with
+		// the header and legend, so the `flex-1` plot's height is the container's less
+		// that chrome. Feed that measured remainder to the tier and it loops at the
+		// spark floor: spark drops the chrome, the remainder jumps back above the
+		// floor, the tier flips to compact, the chrome returns, the remainder drops —
+		// a synchronous re-measure with no fixed point, which React aborts with
+		// "Maximum update depth exceeded". The tier must resolve against a
+		// chrome-independent height instead, so a container height that lands the
+		// remainder near the floor settles rather than flickering.
+		const { container } = renderUI(
+			<div data-testid="host" style={{ width: 400, height: 160 }}>
+				<BarChart
+					aria-label="Values by quarter"
+					title="Quarterly values"
+					data={DATA}
+					series={[
+						{ xKey: 'x', yKey: 'y', yName: 'Value' },
+						{ xKey: 'x', yKey: 'y', yName: 'Value 2' },
+					]}
+					aspectRatio={false}
+				/>
+			</div>,
+		)
+
+		const host = container.querySelector<HTMLElement>('[data-testid="host"]')
+
+		if (!host) throw new Error('no host rendered')
+
+		const tier = () => {
+			const el = container.querySelector<HTMLElement>('[data-slot="chart"]')
+
+			if (!el) throw new Error('no chart root')
+
+			return el.getAttribute('data-tier')
+		}
+
+		await waitFor(() => expect(tier()).not.toBeNull())
+
+		// Sweep container heights through the region where the plot remainder crosses
+		// the 96px spark floor; at every step the tier must be the same across two
+		// frames — a loop would flicker the tier between reads, or throw "Maximum
+		// update depth exceeded" mid-sweep before we ever get to compare.
+		for (let height = 108; height <= 200; height += 4) {
+			host.style.height = `${height}px`
+
+			await frames()
+
+			const settled = tier()
+
+			await frames()
+
+			expect(tier()).toBe(settled)
+		}
+	})
+
 	it('keeps tracking a heatmap resize across a legend placement flip', async () => {
 		// The heatmap's range bar drops from a side rail to a bottom band as the
 		// measured width crosses the compact boundary — a runtime re-arrangement of

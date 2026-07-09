@@ -1,5 +1,6 @@
 'use client'
 
+import { useLayoutEffect } from 'react'
 import { type FrameReserve, usePlotFrame } from '../../hooks'
 import { useResolvedSize } from '../../primitives/density'
 import type { Step } from '../../recipes'
@@ -35,16 +36,11 @@ import {
 	seriesValues,
 	textClass,
 } from './chart-series'
-import {
-	type ChartChrome,
-	type ChartTier,
-	chartPolicy,
-	headerLineCount,
-	policyPlotHeight,
-} from './chart-tier'
+import { type ChartChrome, type ChartTier, chartPolicy, headerLineCount } from './chart-tier'
 import { parseInstant, timeCategory } from './chart-time'
 import type { ChartReadout } from './types'
 import { useChartReferenceToggle, useChartSeriesToggle } from './use-chart-series-toggle'
+import { useChartTierPlotHeight } from './use-chart-tier-plot-height'
 
 /** The cartesian props minus the accessible name, which stays with the frame. @internal */
 export type CartesianData<T> = Omit<CartesianChartProps<T>, 'aria-label' | 'aria-labelledby'>
@@ -648,19 +644,25 @@ export function useChartCartesian<T>(
 	// The measured plot box resolves the anatomy tier: the value gutter's compact
 	// format and the band-label density from width, the tick count from height,
 	// density still capping the ticks. Its budgets fold into the layout below.
-	// A stacked aspect-fill figure shares its ratio box with the header and legend,
-	// so measuring the plot's remainder for the tier loops — spark drops that
-	// chrome, the remainder jumps, the tier flips back. Resolve it against the
-	// figure's own `width / ratio` less the chrome instead; the drawing still fills
-	// the measured remainder.
-	const policyHeight = policyPlotHeight(
+	// A stacked figure (a shared ratio or a free-form fill) shares its box with the
+	// header and legend, so measuring the plot's remainder for the tier loops —
+	// spark drops that chrome, the remainder jumps, the tier flips back.
+	// `useChartTierPlotHeight` resolves it against a height no tier decision perturbs;
+	// the drawing still fills the measured remainder.
+	const { tierHeight, commitTier } = useChartTierPlotHeight(
 		frameHeight,
 		frameWidth,
 		outerAspect,
 		cartesianChrome(props, aside),
+		sizing.mode === 'fill',
 	)
 
-	const policy = chartPolicy(frameWidth, policyHeight, metrics.tickTarget)
+	const policy = chartPolicy(frameWidth, tierHeight, metrics.tickTarget)
+
+	// Record the chrome this commit actually renders so the next fill recovery adds
+	// back the right reserve — the layout effect lands the tier before paint, the
+	// same posture as the frame's own settle.
+	useLayoutEffect(() => commitTier(policy.tier), [commitTier, policy.tier])
 
 	// Spark stands the axis chrome down to a bare sparkline; every wider tier keeps
 	// the caller's `axes` intent. The value gutter, band labels, and titles all
