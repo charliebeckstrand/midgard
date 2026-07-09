@@ -10,7 +10,7 @@ const base = [
 	'group/option grid w-full items-baseline',
 	'grid-cols-[1fr_--spacing(5)] sm:grid-cols-[1fr_--spacing(4)]',
 	rounded.lg,
-	...mode('data-active:bg-zinc-950/5', 'dark:data-active:bg-white/5'),
+	...hannou.active,
 	...mode(
 		'group-data-editing/combobox:only-of-type:bg-zinc-950/5',
 		'dark:group-data-editing/combobox:only-of-type:bg-white/5',

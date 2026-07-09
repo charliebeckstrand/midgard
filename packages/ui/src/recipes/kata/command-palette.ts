@@ -27,7 +27,7 @@ export const k = {
 		'gap-2',
 		...hannou.item,
 		...narabi.item,
-		...mode('data-active:bg-zinc-950/5', 'dark:data-active:bg-white/5'),
+		...hannou.active,
 		// Deepen the wash when the active row is also hovered, so the
 		// keyboard-roved item stays distinguishable under the pointer. The
 		// `not-disabled:not-data-disabled` guards mirror `hannou.tint` to

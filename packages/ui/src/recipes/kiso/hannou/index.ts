@@ -5,6 +5,7 @@
  * assembles the named bundle that every kata reads.
  */
 
+import { active } from './active'
 import { cursor } from './cursor'
 import { disabled } from './disabled'
 import { fg } from './fg'
@@ -22,6 +23,8 @@ export const hannou = {
 	cursor,
 	/** Hover/focus tint: mode-neutral wash on the active surface. */
 	tint,
+	/** Roved-item wash: `data-active` background at `tint`'s intensity, for listbox keyboard cursors. */
+	active,
 	/** Foreground (text-colour) feedback on hover / focus / disabled / current. */
 	fg,
 } as const
