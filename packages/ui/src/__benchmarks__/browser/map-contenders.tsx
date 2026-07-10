@@ -152,6 +152,50 @@ function hcData(rows: object[]): Highcharts.PointOptionsObject[] {
 	return rows as Highcharts.PointOptionsObject[]
 }
 
+/**
+ * An ECharts zone map for the legend-emphasis bench: the shared categorical
+ * option plus `emphasis.focus: 'self'` — its documented recede, where entering
+ * emphasis blurs everything else — kept off the shared contenders so the
+ * mount / update / hover scenarios measure the default configuration. Returns
+ * the chart instance: the emphasis bench drives `dispatchAction`
+ * highlight / downplay on it, ECharts' programmatic equivalent of its
+ * visual-map hover link.
+ */
+export function ecZoneEmphasisChart(
+	host: HTMLElement,
+	atlas: MapAtlas,
+	data: ZoneData,
+): echarts.ECharts {
+	const chart = echarts.init(host, null, { width: WIDTH, height: HEIGHT })
+
+	chart.setOption({
+		animation: false,
+		tooltip: {},
+		visualMap: {
+			type: 'piecewise',
+			pieces: ZONES.map((zone, index) => ({
+				value: index,
+				label: zone,
+				color: ZONE_COLORS[index],
+			})),
+		},
+		series: [
+			{
+				type: 'map',
+				map: ecMapName(atlas),
+				nameProperty: 'fips',
+				projection: conicProjection(),
+				data: data.ecRows,
+				emphasis: { focus: 'self' },
+			},
+		],
+	})
+
+	flushFrame(chart)
+
+	return chart
+}
+
 /** Categorical zone contenders over one prepared atlas. */
 export function zoneMapContenders(atlas: MapAtlas): Contender<ZoneData>[] {
 	return [
