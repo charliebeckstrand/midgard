@@ -297,8 +297,6 @@ function useMapShape(
 		[geography, geographyObject, projection],
 	)
 
-	const { features, canonical } = statics
-
 	// A refit reprojects every region path, so resize commits ride the plot
 	// frame's transition priority: a burst coalesces to the sizes the machine
 	// can afford, and a stale refit is abandoned rather than blocking.
@@ -306,7 +304,7 @@ function useMapShape(
 	// projection (albers-usa is the US) still knows the ratio it will take, so
 	// the frame reserves it and a lazily fetched atlas swaps in without a height
 	// shift.
-	const reserveAspect = canonical?.aspect ?? projectionFallbackAspect(projection)
+	const reserveAspect = statics.canonical?.aspect ?? projectionFallbackAspect(projection)
 
 	const sizing = mapFrameSizing(height, aspectRatio, reserveAspect)
 
@@ -361,7 +359,7 @@ function useMapShape(
 		viewWidth,
 		viewHeight,
 		paths,
-		features,
+		features: statics.features,
 		project,
 	}
 }
@@ -1165,21 +1163,21 @@ export function MapPlat<T = never>({
 	// county atlas — and none of it is mount-critical: defer it off the urgent
 	// render the way the chart frame defers its data table, so the geography
 	// commits first and the table hydrates a low-priority beat behind. The
-	// readout rides as one value, so the deferred render can't tear across a
-	// data change. Parity is unchanged — the table always converges on the
-	// current readout, one low-priority commit behind.
-	const tableReadout = useMemo(
+	// table rides as one memoised element, so the deferred render can't tear
+	// across a data change. Parity is unchanged — the table always converges
+	// on the current readout, one low-priority commit behind.
+	const table = useMemo(
 		() =>
-			hasReadout
-				? {
-						header: valueColumnHeader(categoryKey, valueKey, valueName),
-						regionNames: data === undefined ? [] : regionNames,
-						regionCategory,
-						regionValues,
-						categories: categoryMetas,
-						entries,
-					}
-				: null,
+			hasReadout ? (
+				<MapTable
+					header={valueColumnHeader(categoryKey, valueKey, valueName)}
+					regionNames={data === undefined ? [] : regionNames}
+					regionCategory={regionCategory}
+					regionValues={regionValues}
+					categories={categoryMetas}
+					entries={entries}
+				/>
+			) : null,
 		[
 			hasReadout,
 			categoryKey,
@@ -1194,7 +1192,7 @@ export function MapPlat<T = never>({
 		],
 	)
 
-	const deferredTable = useDeferredValue(tableReadout, null)
+	const deferredTable = useDeferredValue(table, null)
 
 	return (
 		<MapFrame
@@ -1234,7 +1232,7 @@ export function MapPlat<T = never>({
 			plotRef={shape.ref}
 			containerRef={containerRef}
 			tooltip={tooltip}
-			table={deferredTable ? <MapTable {...deferredTable} /> : null}
+			table={deferredTable}
 			width={width}
 			fill={shape.fill}
 			className={className}

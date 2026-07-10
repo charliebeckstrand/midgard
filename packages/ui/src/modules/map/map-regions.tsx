@@ -151,9 +151,7 @@ function Region({
 		/>
 	)
 
-	if (!animate) return path
-
-	return <g className={cn(k.group(dimmed))}>{path}</g>
+	return animate ? <g className={cn(k.group(dimmed))}>{path}</g> : path
 }
 
 /**
