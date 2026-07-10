@@ -1,24 +1,12 @@
-# Competitive chart benchmarks
+# Competitive benchmarks
 
-> **The chart module measured against AG Charts and Highcharts in real Chromium, so every optimization lands against the market, not against yesterday's self.** `pnpm bench:browser` runs the suite; the jsdom benches one directory up keep localizing regressions, this suite keeps score.
+> **The chart module measured against AG Charts and Highcharts, and the map module against Highcharts Maps and ECharts, in real Chromium — so every optimization lands against the market, not against yesterday's self.** `pnpm bench:browser` runs both suites; the jsdom benches one directory up keep localizing regressions, this suite keeps score.
 
 ## Why a browser suite
 
-AG Charts draws to a real canvas and all three contenders deserve real layout, style, and event plumbing, so jsdom timings would not survive scrutiny; the suite runs through Vitest browser mode on the Playwright Chromium the test suite already uses. Chromium launches with its frame-rate limit off — AG defers scene renders to animation frames and the hover benches settle one frame per iteration, so a vsync'd browser would quantize those samples to ~16ms.
+AG Charts and ECharts draw to real canvases and every contender deserves real layout, style, and event plumbing, so jsdom timings would not survive scrutiny; the suite runs through Vitest browser mode on the Playwright Chromium the test suite already uses. Chromium launches with its frame-rate limit off — AG and ECharts defer drawing to animation frames and the hover benches settle one frame per iteration, so a vsync'd browser would quantize those samples to ~16ms.
 
-## Methodology
-
-Every scenario draws the same deterministic dataset ([`fixtures.ts`](fixtures.ts), LCG-seeded) into the same fixed 800×450 box with animations off, through each library's idiomatic API ([`contenders.tsx`](contenders.tsx)): the ui module renders through React (`createRoot` + `flushSync` — the synchronous commit a consumer pays), AG Charts and Highcharts through their vanilla factories, each with its own settle contract (AG awaits `waitForUpdate()`; Highcharts and the ui module draw synchronously).
-
-- [`chart-mount.bench.tsx`](chart-mount.bench.tsx) — full mount-to-painted-DOM plus teardown per iteration: line at 100 / 1k / 10k × 1 series and 1k × 5, bar at 50 / 500 × 2, scatter at 1k / 10k.
-
-- [`chart-update.bench.tsx`](chart-update.bench.tsx) — redraw on a live chart, alternating two same-shape datasets so no iteration bails on an equality guard: the ui module re-renders through its root, AG and Highcharts take their in-place data updates.
-
-- [`chart-hover.bench.tsx`](chart-hover.bench.tsx) — a 20-step pointer sweep across the plot plus one settled frame: hit-testing, crosshair/tooltip work, and frame-deferred drawing. Every contender receives the same `pointermove` + `mousemove` pair per step, so dispatch overhead is symmetric across their differing interaction stacks.
-
-React runs in **production** mode ([`vitest.bench.browser.config.ts`](../../../vitest.bench.browser.config.ts) forces `NODE_ENV=production`): the module ships the production build, and the vanilla contenders carry no dev/prod split, so a dev-React number would score the module's diagnostics rather than its shipped speed. The gap is real — dev React runs several times the work per render — so this is a correctness condition, not a thumb on the scale.
-
-Fairness notes, both directions: the ui module keeps its built-in accessible output (the visually-hidden data table renders one row per datum) while Highcharts runs without its optional accessibility module and AG registers its standard `AllCommunityModule`; Highcharts' `boost` module stays off, matching default installs; the ui module pays React reconciliation the vanilla factories don't, and that is the product being measured.
+React runs in **production** mode ([`vitest.bench.browser.config.ts`](../../../vitest.bench.browser.config.ts) forces `NODE_ENV=production`): the modules ship the production build, and the vanilla contenders carry no dev/prod split, so a dev-React number would score the modules' diagnostics rather than their shipped speed. The gap is real — dev React runs several times the work per render — so this is a correctness condition, not a thumb on the scale.
 
 ## Reading and driving improvements
 
@@ -30,9 +18,23 @@ pnpm bench:browser -- --outputJson bench-baseline.json
 pnpm bench:browser -- --compare bench-baseline.json
 ```
 
-When a competitive scenario regresses or lags, the jsdom benches (`pnpm bench`) and the pure-geometry cores (`chart-scale`, `chart-layout`, per-chart `*-geometry`) are the ladder down to the responsible layer.
+When a competitive scenario regresses or lags, the jsdom benches (`pnpm bench`) and the pure cores (`chart-scale`, `chart-layout`, per-chart `*-geometry`; `map-render`'s cold/warm geometry split) are the ladder down to the responsible layer.
 
-## Standings (2026-07-10, this container)
+## Charts
+
+### Methodology
+
+Every scenario draws the same deterministic dataset ([`fixtures.ts`](fixtures.ts), LCG-seeded) into the same fixed 800×450 box with animations off, through each library's idiomatic API ([`contenders.tsx`](contenders.tsx)): the ui module renders through React (`createRoot` + `flushSync` — the synchronous commit a consumer pays), AG Charts and Highcharts through their vanilla factories, each with its own settle contract (AG awaits `waitForUpdate()`; Highcharts and the ui module draw synchronously).
+
+- [`chart-mount.bench.tsx`](chart-mount.bench.tsx) — full mount-to-painted-DOM plus teardown per iteration: line at 100 / 1k / 10k × 1 series and 1k × 5, bar at 50 / 500 × 2, scatter at 1k / 10k.
+
+- [`chart-update.bench.tsx`](chart-update.bench.tsx) — redraw on a live chart, alternating two same-shape datasets so no iteration bails on an equality guard: the ui module re-renders through its root, AG and Highcharts take their in-place data updates.
+
+- [`chart-hover.bench.tsx`](chart-hover.bench.tsx) — a 20-step pointer sweep across the plot plus one settled frame: hit-testing, crosshair/tooltip work, and frame-deferred drawing. Every contender receives the same `pointermove` + `mousemove` pair per step, so dispatch overhead is symmetric across their differing interaction stacks.
+
+Fairness notes, both directions: the ui module keeps its built-in accessible output (the visually-hidden data table renders one row per datum) while Highcharts runs without its optional accessibility module and AG registers its standard `AllCommunityModule`; Highcharts' `boost` module stays off, matching default installs; the ui module pays React reconciliation the vanilla factories don't, and that is the product being measured.
+
+### Standings (2026-07-10, this container)
 
 Absolute numbers move with hardware; the ratios are the signal. Mean ms per iteration, ui / AG / Highcharts — **bold** marks a scenario where ui beats both.
 
@@ -79,3 +81,36 @@ Each entry names the change and the scenarios it moved; the levers are ordered a
 9. **Early-exit date detection** ([`chart-time.ts`](../../modules/chart/chart-time.ts) `dateCategoryFormat`). The band axis's are-these-all-dates probe parsed every category (`Date.parse` per row) before answering; a non-date axis now fails on its first value, one parse instead of ten thousand. Worth ~11ms of the line 10k mount.
 
 Open: the scatter hover sweep still trails AG by a whisker (~18 vs ~17) — the residual is a React commit per pointer move against AG's vanilla redraw, closable only by moving the shared crosshair/tooltip tracking to imperative DOM writes. Everything else stands beaten or tied.
+
+## Maps
+
+### Methodology
+
+Every scenario draws the same prepared `us-atlas` geometry ([`map-fixtures.ts`](map-fixtures.ts)) into the same fixed 800×450 box with animations off, joined to the same LCG-seeded rows by FIPS id, through each library's idiomatic API ([`map-contenders.tsx`](map-contenders.tsx)): the ui module renders `MapPlat` through React, Highcharts Maps and ECharts through their vanilla factories. AG Charts sits this suite out — its map series is enterprise-only, so the community package the chart benches run has nothing to enter. ECharts paints through zrender's animation-frame loop, so its adapter flushes the pending frame synchronously (`getZr().flush()`) after every option set, the way the AG chart adapter awaits `waitForUpdate()`.
+
+The geometry is the conterminous US — `states-10m` (49 regions) and `counties-10m` (3,108 regions), territories and the non-conterminous states filtered for every contender alike. The rivals ship no free US composite: their US idiom is a Lambert conformal conic, which Alaska's antimeridian crossing would smear across the projected plane, shrinking their fitted map to a fraction of the frame while the ui module's `albers-usa` insets fill it — the lower 48 is the largest geometry all three project comparably. Projections are each library's US idiom from there: the ui module's `albers-usa` composite, Highcharts' Lambert conformal conic (its own custom-US-map guidance), and that same conic for ECharts through its documented d3-geo projection hook.
+
+- [`map-mount.bench.tsx`](map-mount.bench.tsx) — full mount-to-painted-DOM plus teardown per iteration, at steady state: each library's one-time geometry setup (the ui module's static-geometry cache, ECharts' `registerMap`, whatever Highcharts caches on the topology) warms during the uncounted warmup iterations, so the timed region is the remount a dashboard actually pays. The cold decode-and-fit path keeps its own jsdom bench (`map-render`).
+
+- [`map-update.bench.tsx`](map-update.bench.tsx) — recolour on a live map, alternating two same-shape datasets: re-zoning every region in the categorical scenarios, re-valuing every region in the choropleth. The ui module re-renders through its root; Highcharts and ECharts take their in-place data updates. Geometry never changes — an update moves data, not the atlas.
+
+- [`map-hover.bench.tsx`](map-hover.bench.tsx) — a 20-step pointer sweep across the plot plus one settled frame. Every contender receives the same `pointermove` + `mousemove` pair per step; the dispatch target differs the way the libraries' interaction stacks do — Highcharts and ECharts hear moves on their container and hit-test from coordinates in script, while the ui module's regions are their own hit targets (the browser's native SVG hit test retargets a real pointer, costing no contender script time), so its per-step targets resolve to the region under each point once, outside the timed region.
+
+Fairness notes, both directions: the ui module keeps its built-in accessible output — the visually-hidden region table renders one row per region — while Highcharts runs without its optional accessibility module; every contender's default legend stays on (the ui switchboard, Highcharts' data classes, ECharts' visual map); the categorical scenarios pin the same four zone colours and the choropleth the same five-stop ramp everywhere; the ui module pays React reconciliation the vanilla factories don't, and that is the product being measured. One county (Falls Church, VA) projects below sub-pixel size and draws no path in the ui module, so it renders 3,107 paths to the rivals' 3,108.
+
+### Standings (2026-07-10, this container)
+
+Mean ms per iteration, ui / Highcharts Maps / ECharts — **bold** marks a scenario where ui beats both.
+
+| Scenario | ui | Highcharts | ECharts |
+| --- | ---: | ---: | ---: |
+| mount · states · 49 × 4 zones | 24.3 | 18.2 | 13.4 |
+| mount · counties · 3,108 × 4 zones | 475.9 | 224.6 | 203.5 |
+| mount · counties choropleth · 3,108 | 504.6 | 235.4 | 206.1 |
+| update · states · re-zone | **0.6** | 8.5 | 10.7 |
+| update · counties · re-zone | **15.1** | 152.4 | 191.5 |
+| update · counties choropleth · re-value | **17.6** | 163.2 | 223.9 |
+| hover · states · sweep | 16.5 | 17.5 | 9.5 |
+| hover · counties · sweep | **8.2** | 20.2 | 19.8 |
+
+The first baseline splits cleanly along the module's design. The updates are not close — 9–19× ahead of both rivals — because the memoised region layer holds its geometry and React recolours fills in place, while the rivals rebuild their scene from the new data; the county hover also leads both. Every mount trails both rivals at roughly 2×, and the states hover trails ECharts' canvas — those are the concrete targets the optimization work aims at, with the mount gap the whole story: the county atlas pays the hidden 3,108-row table, a two-element tree per region, and a full reprojection inside every timed mount.

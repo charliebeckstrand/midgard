@@ -4,7 +4,8 @@
  * run-to-run variance reflects the library under test, not the data.
  */
 
-function rng(seed = 1) {
+/** The shared LCG behind every generator here and in `map-fixtures.ts`. */
+export function rng(seed = 1) {
 	let state = seed >>> 0
 
 	return () => {

@@ -3,15 +3,17 @@ import { playwright } from '@vitest/browser-playwright'
 import { defineConfig } from 'vitest/config'
 
 /**
- * Competitive chart benchmarks in real Chromium (`pnpm bench:browser`) — the
- * ui chart module against AG Charts and Highcharts, per
+ * Competitive benchmarks in real Chromium (`pnpm bench:browser`) — the ui
+ * chart module against AG Charts and Highcharts, and the ui map module
+ * against Highcharts Maps and ECharts, per
  * `src/__benchmarks__/browser/README.md`. A real browser because the
- * comparison needs one: AG Charts draws to a real canvas and all three
- * contenders deserve real layout, so jsdom numbers would not be credible.
+ * comparison needs one: AG Charts and ECharts draw to real canvases and
+ * every contender deserves real layout, so jsdom numbers would not be
+ * credible.
  *
- * Chromium launches with the frame-rate limit off: AG defers scene renders
- * to animation frames and the hover benches settle one frame per iteration,
- * so a vsync'd browser would quantize every such sample to ~16ms.
+ * Chromium launches with the frame-rate limit off: AG and ECharts defer
+ * drawing to animation frames and the hover benches settle one frame per
+ * iteration, so a vsync'd browser would quantize every such sample to ~16ms.
  */
 export default defineConfig({
 	plugins: [tailwindcss()],
@@ -32,7 +34,10 @@ export default defineConfig({
 			'@floating-ui/react',
 			'@internationalized/date',
 			'ag-charts-community',
+			'd3-geo',
+			'echarts',
 			'highcharts',
+			'highcharts/modules/map',
 			'lucide-react',
 			'motion',
 			'motion/react',
@@ -40,6 +45,7 @@ export default defineConfig({
 			'react-dom',
 			'react-dom/client',
 			'tinykeys',
+			'topojson-client',
 		],
 	},
 	test: {

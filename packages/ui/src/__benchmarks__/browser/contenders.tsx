@@ -51,7 +51,7 @@ export type Contender<D> = {
 }
 
 /** Mounts a React tree synchronously and redraws through the same root. */
-function reactContender<D>(name: string, element: (data: D) => ReactElement): Contender<D> {
+export function reactContender<D>(name: string, element: (data: D) => ReactElement): Contender<D> {
 	return {
 		name,
 		mount(host, data) {
