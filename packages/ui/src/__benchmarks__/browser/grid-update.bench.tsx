@@ -46,6 +46,15 @@ async function prepare(a: Shipment[], b: Shipment[]): Promise<PreparedBench[]> {
 				grid.update(next)
 
 				await painted(host, [next[0]?.reference ?? '', next[8]?.reference ?? ''])
+
+				// Yield one real frame per refresh, the way a polling dashboard paints
+				// between updates. A synchronous contender (the ui module's `flushSync`
+				// commit, MUI's render) otherwise settles in zero frames, so many
+				// iterations chain in one tick with no yield — React counts those as
+				// nested updates and trips its depth guard on the ui grid's benign
+				// post-commit re-render. The frame is near-free with the frame-rate
+				// limit off (see the bench config) and lands on every contender alike.
+				await new Promise(requestAnimationFrame)
 			},
 		})
 	}

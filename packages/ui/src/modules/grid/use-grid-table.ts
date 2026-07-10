@@ -24,7 +24,9 @@ import { type ReactNode, type RefObject, useCallback, useEffect, useMemo, useRef
 import { useControllable } from '../../hooks'
 import type { DensityLevel } from '../../providers/density/context'
 import type { SortState } from './context'
+import { columnAccessor } from './grid-column-accessor'
 import { DEFAULT_PAGE_SIZE } from './grid-constants'
+import { type SmartSortField, sortRowsSmart } from './grid-sorting-utilities'
 import {
 	buildState,
 	clampSizingToFloors,
@@ -335,15 +337,17 @@ function useGridRowModel<T>(args: {
 	grouped: boolean
 	/** Manual-grouping group-header predicate; splits the display rows into headers and leaves. */
 	manualGroupRow: ((row: T) => boolean) | null
-	/** Whether a client transform (sort/filter/pagination/grouping) is active, so the engine model is read. */
+	/** Whether an engine transform (filter/pagination/grouping) is active, so the engine model is read. */
 	materialize: boolean
+	/** The off-engine sorted view (rows + keys) when a sort is the grid's sole transform, else `null`. */
+	sortView: { rows: T[]; keys: (string | number)[] } | null
 }): {
 	groupedRows: Row<T>[] | null
 	manualRows: Row<T>[] | null
 	renderRows: T[]
 	rowKeys: (string | number)[]
 } {
-	const { table, rows, getKey, grouped, manualGroupRow, materialize } = args
+	const { table, rows, getKey, grouped, manualGroupRow, materialize, sortView } = args
 
 	const displayRows = materialize ? table.getRowModel().rows : null
 
@@ -367,18 +371,19 @@ function useGridRowModel<T>(args: {
 
 	const manualRows = manualGroupRow ? displayRows : null
 
+	// Engine leaves when materialized; else the off-engine sorted view; else the
+	// rows straight through. Each key is taken at the row's original data index,
+	// so a sorted-position key never diverges from `getRowId`.
 	const renderRows = useMemo(
-		() => (leafRows ? leafRows.map((leaf) => leaf.original) : rows),
-		[leafRows, rows],
+		() => (leafRows ? leafRows.map((leaf) => leaf.original) : (sortView?.rows ?? rows)),
+		[leafRows, sortView, rows],
 	)
 
-	const rowKeys = useMemo<(string | number)[]>(
-		() =>
-			leafRows
-				? leafRows.map((leaf) => getKey(leaf.original, leaf.index))
-				: rows.map((row, index) => getKey(row, index)),
-		[leafRows, rows, getKey],
-	)
+	const rowKeys = useMemo<(string | number)[]>(() => {
+		if (leafRows) return leafRows.map((leaf) => getKey(leaf.original, leaf.index))
+
+		return sortView?.keys ?? rows.map((row, index) => getKey(row, index))
+	}, [leafRows, sortView, rows, getKey])
 
 	return { groupedRows, manualRows, renderRows, rowKeys }
 }
@@ -408,6 +413,98 @@ function resolveTransformModes(args: {
 			columnManual: args.manualGrouped || args.columnManual,
 		}),
 	}
+}
+
+/** Fingerprint of the rendered rows — count and end keys — the autosizer re-measures on. @internal */
+function rowsSignatureOf(rowKeys: (string | number)[]): string {
+	return `${rowKeys.length}:${rowKeys[0] ?? ''}:${rowKeys.at(-1) ?? ''}`
+}
+
+/**
+ * Whether a client transform is *actively* reshaping the rows, deciding
+ * whether the engine row model materializes. Capability is not activity: an
+ * empty sort list, a configured search with no query, and a filter surface
+ * with no entries all transform nothing. Kept out of {@link useGridTable} for
+ * its cognitive-complexity budget.
+ *
+ * @internal
+ */
+function resolveActiveEngineTransform(args: {
+	paginated: boolean
+	paginationManual: boolean
+	filterMode: { configured: boolean; manual: boolean }
+	globalFilter: string
+	columnFilters: ColumnFiltersState
+	grouped: boolean
+}): boolean {
+	const filtering = args.globalFilter !== '' || args.columnFilters.length > 0
+
+	return usesClientModel({
+		paginated: args.paginated,
+		paginationManual: args.paginationManual,
+		filtersConfigured: args.filterMode.configured && filtering,
+		filtersManual: args.filterMode.manual,
+		// Sort is handled by the off-engine fast path (`useSortView`), so it never
+		// forces the engine model on its own — only a filter, client pagination,
+		// or grouping does.
+		sortClient: false,
+		grouped: args.grouped,
+	})
+}
+
+/**
+ * The off-engine client sort: when a sort is the grid's *only* transform, orders
+ * `rows` directly through {@link sortRowsSmart} (which matches the engine's
+ * `getSortedRowModel` exactly), so a plain sorted grid never materializes the
+ * engine's Row-per-datum model — the same win the lite-cell body buys mount and
+ * update, extended to sort. `null` when inactive (no sort, or a filter /
+ * pagination / grouping is also live and the engine sorts inside its pipeline).
+ *
+ * The sort columns are resolved to {@link SmartSortField}s in their own memo
+ * keyed on the sort and columns, so a data change re-sorts without rebuilding
+ * the field list; the sort itself re-runs on that or a `rows` change.
+ *
+ * @internal
+ */
+function useSortView<T>(args: {
+	rows: T[]
+	getKey: (row: T, index: number) => string | number
+	sort: SortState[] | undefined
+	/** Whether the grid sorts client-side (a manual/server sort orders `rows` itself). */
+	clientSort: boolean
+	/** Whether the engine model is already materialized for another transform, which then sorts inside its pipeline. */
+	materialize: boolean
+	/** The full column set, to resolve each sort column's value accessor and any manual `sortFn`. */
+	columns: GridColumn<T>[]
+}): { rows: T[]; keys: (string | number)[] } | null {
+	const { rows, getKey, sort, clientSort, materialize, columns } = args
+
+	// The sort columns as fields, or `null` unless a sort is the sole transform (a
+	// client sort with entries and no engine transform already reshaping the rows).
+	const fields = useMemo<SmartSortField<T>[] | null>(() => {
+		if (!clientSort || materialize || !sort?.length) return null
+
+		const byId = new Map(columns.map((col) => [String(col.id), col] as const))
+
+		return sort.map((entry) => {
+			const col = byId.get(String(entry.column))
+
+			return {
+				descending: entry.direction === 'desc',
+				// The column's shared value accessor; a sort id with no matching
+				// column (never, in practice) falls back to the raw field read.
+				accessor: col
+					? columnAccessor(col)
+					: (row) => (row as Record<string | number, unknown>)[entry.column],
+				sortFn: col?.sortFn ?? null,
+			}
+		})
+	}, [clientSort, materialize, sort, columns])
+
+	return useMemo(
+		() => (fields ? sortRowsSmart(rows, getKey, fields) : null),
+		[fields, rows, getKey],
+	)
 }
 
 /**
@@ -719,19 +816,30 @@ export function useGridTable<T>({
 
 	const visibleColumns = useVisibleColumns(table)
 
-	// Materialize the row model only when a client-side transform is active (a
-	// client sort/filter/pagination, or grouping); otherwise hand `rows` straight
-	// to the body. The row-model derivation (display rows, grouped display list,
-	// flat leaf rows, and the `renderRows`/`rowKeys` the body reads) lives in
-	// `useGridRowModel`.
-	const clientTransform = usesClientModel({
+	// Materialize the engine row model only when a transform that *needs* it is
+	// active — a client filter, client pagination, or grouping. Capability is not
+	// activity: a configured search with no query and a filter surface with no
+	// entries reshape nothing, and materializing anyway would build the engine's
+	// Row-per-datum model on every plain mount, the linear term the windowed body
+	// exists to avoid. Sort is deliberately absent: a sort that is the grid's only
+	// transform runs off the engine through `useSortView` below, so it never
+	// forces the model. The row-model derivation (display rows, grouped display
+	// list, flat leaf rows, and the `renderRows`/`rowKeys` the body reads) lives
+	// in `useGridRowModel`.
+	const engineTransform = resolveActiveEngineTransform({
 		paginated,
 		paginationManual: manual,
-		filtersConfigured: filterMode.configured,
-		filtersManual: filterMode.manual,
-		sortClient: clientSort,
+		filterMode,
+		globalFilter: resolvedGlobalFilter,
+		columnFilters: resolvedColumnFilters,
 		grouped,
 	})
+
+	const materialize = paginated || engineTransform || manualGroupRow != null
+
+	// The off-engine client sort, active only when a sort is the grid's *sole*
+	// transform (otherwise the engine sorts inside its pipeline, above).
+	const sortView = useSortView({ rows, getKey, sort, clientSort, materialize, columns })
 
 	const { groupedRows, manualRows, renderRows, rowKeys } = useGridRowModel({
 		table,
@@ -741,7 +849,8 @@ export function useGridTable<T>({
 		manualGroupRow,
 		// Manual grouping materializes the (untransformed) core model too: the
 		// grouped body reads each leaf's engine cells.
-		materialize: paginated || clientTransform || manualGroupRow != null,
+		materialize,
+		sortView,
 	})
 
 	// Computed each render (not memoized) so the total reflects live client-side
@@ -767,6 +876,9 @@ export function useGridTable<T>({
 		// Fit distributes width across the *visible* data columns, not the hidden ones.
 		columns: visibleColumns,
 		containerRef,
+		// Fingerprint from the keys the grid already derived, so the autosizer
+		// never touches the engine row model just to notice a row change.
+		rowsSignature: rowsSignatureOf(rowKeys),
 		density,
 		columnFloors: columnFloorsRef.current,
 		// Infinite scroll's stable widths hold the fit against each appended batch.

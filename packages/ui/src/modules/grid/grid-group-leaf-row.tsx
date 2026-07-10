@@ -263,6 +263,12 @@ export function GridGroupLeafRow<T>({
 }: GridGroupLeafRowProps<T>) {
 	const pad = k.rowGroup.reveal.pad({ density })
 
+	// The pointer handlers speak GridColumn (shared with the flat body's rows);
+	// recover the list once from the engine cells this grouped row renders by.
+	const columns = cells
+		.map((cell) => cell.column.columnDef.meta?.gridColumn)
+		.filter((col): col is GridColumn<T> => col != null)
+
 	return (
 		<tr
 			data-grid-row={String(rowKey)}
@@ -281,9 +287,9 @@ export function GridGroupLeafRow<T>({
 			tabIndex={rowRoving ? undefined : onRowClick && !cellRoving && expanded ? 0 : undefined}
 			// The click and double-click handlers each fire their cell-level
 			// counterpart first, then the row-level one (see `rowPointerHandler`).
-			onClick={rowPointerHandler({ cells, row, rowKey, onRow: onRowClick, onCell: onCellClick })}
+			onClick={rowPointerHandler({ columns, row, rowKey, onRow: onRowClick, onCell: onCellClick })}
 			onDoubleClick={rowPointerHandler({
-				cells,
+				columns,
 				row,
 				rowKey,
 				onRow: onRowDoubleClick,

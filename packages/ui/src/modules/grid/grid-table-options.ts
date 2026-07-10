@@ -26,6 +26,7 @@ import {
 import { isDataColumn } from '../../utilities'
 import { evaluateQuery } from '../query'
 import type { SortState } from './context'
+import { columnAccessor } from './grid-column-accessor'
 import { DRAG_HANDLE_COLUMN_SIZE, EXPANDER_COLUMN_SIZE, SELECT_COLUMN_SIZE } from './grid-constants'
 import { compareSortKeys, type SortKey, toSortKey } from './grid-sorting-utilities'
 import { isQueryGroup } from './grid-table-views'
@@ -106,11 +107,6 @@ export function parsePxWidth(width: string | undefined): number | undefined {
 	const match = /^(\d+(?:\.\d+)?)(?:px)?$/.exec(width.trim())
 
 	return match ? Number(match[1]) : undefined
-}
-
-/** Reads the row field named by a column id — the default sort accessor when a column declares no `value`. @internal */
-function readField<T>(row: T, id: string | number): unknown {
-	return (row as Record<string | number, unknown>)[id]
 }
 
 /**
@@ -210,7 +206,9 @@ const defaultSmartSortingFn = makeSmartSortingFn(() => false)
 function deriveColumnBehavior<T>(col: GridColumn<T>, smartSortingFn: SortingFn<unknown>) {
 	const { value, sortFn } = col
 
-	const accessorFn = value ?? (isDataColumn(col) ? (row: T) => readField(row, col.id) : undefined)
+	// Data columns read through the shared accessor (value or id field); a
+	// non-data column has no default accessor, only its explicit `value`.
+	const accessorFn = isDataColumn(col) ? columnAccessor(col) : value
 
 	const sortingFn: SortingFn<T> | undefined = !isDataColumn(col)
 		? undefined

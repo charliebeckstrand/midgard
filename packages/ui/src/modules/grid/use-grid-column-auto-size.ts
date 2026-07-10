@@ -19,6 +19,14 @@ type GridColumnAutoSizeOptions<T> = {
 	columns: GridColumn<T>[]
 	/** Grid wrapper whose width the columns fill (and which holds the rendered cells). */
 	containerRef: RefObject<HTMLElement | null> | undefined
+	/**
+	 * Fingerprint of the rendered rows (count and end keys), supplied by the
+	 * caller from data it already holds: a page turn, filter, or sort that
+	 * changes the visible rows re-measures (new content may be wider), without
+	 * this hook forcing the engine's Row-per-datum model just to fingerprint a
+	 * measurement.
+	 */
+	rowsSignature: string
 	/** Density of the rendered table; a change re-measures (padding and icons scale with it). */
 	density: DensityLevel | undefined
 	/**
@@ -128,6 +136,7 @@ export function useGridColumnAutoSize<T>({
 	table,
 	columns,
 	containerRef,
+	rowsSignature,
 	density,
 	columnFloors,
 	freezeOnRowChange = false,
@@ -162,11 +171,12 @@ export function useGridColumnAutoSize<T>({
 	// running-max cache and forces a fresh DOM read.
 	const structSigRef = useRef<string>('')
 
-	// Rendered rows' fingerprint — count and end ids — so a page turn, filter, or
-	// sort that changes the visible rows re-measures (new content may be wider).
-	const rowModel = table.getRowModel()
-
-	const rowsSig = `${rowModel.rows.length}:${rowModel.rows[0]?.id ?? ''}:${rowModel.rows.at(-1)?.id ?? ''}`
+	// Rendered rows' fingerprint — count and end keys — so a page turn, filter,
+	// or sort that changes the visible rows re-measures (new content may be
+	// wider). Supplied by the caller (see the option) rather than read off
+	// `table.getRowModel()`, which would materialize the engine's row model on
+	// every mount of every resizable-by-default grid.
+	const rowsSig = rowsSignature
 
 	const structSig = useMemo(
 		() => `${columns.map((col) => String(col.id)).join('')}|${density ?? ''}`,

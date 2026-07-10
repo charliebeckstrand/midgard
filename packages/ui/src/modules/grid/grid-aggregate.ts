@@ -6,24 +6,9 @@
  */
 
 import { formatFraction, formatInteger } from '../../utilities'
+import { columnAccessor } from './grid-column-accessor'
 import { parseNumeric } from './grid-sorting-utilities'
 import type { GridColumn } from './types'
-
-/**
- * The accessor an aggregation reads a column's values through: its
- * {@link GridColumn.value} (the same one sort, filter, and export read) when
- * set, else the row field named by the column id — so an aggregate always
- * agrees with the values the rest of the grid operates on. Exported for the
- * manual group row, which reads a backend aggregate off the group row itself
- * through the same accessor.
- *
- * @internal
- */
-export function aggAccessor<T>(column: GridColumn<T>): (row: T) => unknown {
-	if (column.value) return column.value
-
-	return (row) => (row as Record<string | number, unknown>)[column.id]
-}
 
 /** Whether any column carries an aggregation — the one gate for the aggregate rows. @internal */
 export function hasAggregation<T>(columns: GridColumn<T>[]): boolean {
@@ -41,7 +26,7 @@ export function hasAggregation<T>(columns: GridColumn<T>[]): boolean {
  * @internal
  */
 function numericValues<T>(column: GridColumn<T>, rows: T[]): number[] {
-	const accessor = aggAccessor(column)
+	const accessor = columnAccessor(column)
 
 	return rows.reduce<number[]>((values, row) => {
 		const value = parseNumeric(accessor(row))

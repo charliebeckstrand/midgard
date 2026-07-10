@@ -155,3 +155,127 @@ export function compareSmart(a: unknown, b: unknown): number {
 
 	return compareSortKeys(toSortKey(a), toSortKey(b))
 }
+
+/**
+ * One resolved column of a client sort: its direction, the accessor that reads
+ * its value from a row (`value` or the id field, the engine's `accessorFn`),
+ * and an optional custom `sortFn` that overrides the smart comparison. The
+ * caller resolves these from the sort list and column set so this stays free of
+ * any `GridColumn` dependency.
+ *
+ * @internal
+ */
+export type SmartSortField<T> = {
+	descending: boolean
+	accessor: (row: T) => unknown
+	/** A column's manual comparator; when set, overrides the smart {@link SortKey} path for this field. */
+	sortFn: ((a: T, b: T) => number) | null
+}
+
+/**
+ * Orders `rows` by an ordered {@link SmartSortField} list, off the engine — the
+ * client-sort fast path for a grid whose only transform is the sort, matching
+ * {@link makeSmartSortingFn} exactly so it interchanges with the engine's
+ * `getSortedRowModel`.
+ *
+ * A decorate-sort-undecorate: each smart field's {@link SortKey} is computed once
+ * per row (the costly `parseNumeric` and type checks), and the sort then compares
+ * pre-decoded keys with no reparsing — the per-comparison work the engine's
+ * cached comparator also avoids, here without a `WeakMap`/`Map` lookup apiece.
+ * Empties sink last under both directions; a `desc` field negates only the
+ * non-empty comparison (the engine's negation-plus-pre-invert, folded into one
+ * sign here). Fields are consulted in priority order, and equal rows fall back to
+ * their original index, so the sort is stable — the tie-break the engine's
+ * `sortIndex` supplies.
+ *
+ * @returns The reordered rows and their keys, each key taken at the row's
+ * *original* index (the identity `getRowId` saw), so it matches the engine path's
+ * `rowKeys` and the body's `getRow` lookups regardless of sorted position.
+ * @internal
+ */
+export function sortRowsSmart<T>(
+	rows: T[],
+	getKey: (row: T, index: number) => string | number,
+	fields: SmartSortField<T>[],
+): { rows: T[]; keys: (string | number)[] } {
+	// One index comparator per field, each closing over its decoded keys (the
+	// costly decode runs once here, not per comparison).
+	const comparators = fields.map((field) => buildFieldComparator(rows, field))
+
+	// The common case is a single sort column; skip the multi-field loop's
+	// per-comparison iterator and closure hop for it.
+	const compareFields =
+		comparators.length === 1
+			? (comparators[0] as (i: number, j: number) => number)
+			: (i: number, j: number): number => {
+					for (const compare of comparators) {
+						const raw = compare(i, j)
+
+						if (raw !== 0) return raw
+					}
+
+					return 0
+				}
+
+	const order = rows.map((_, index) => index)
+
+	// `|| i - j` holds the original order when every field ties (stable sort).
+	order.sort((i, j) => compareFields(i, j) || i - j)
+
+	// One pass builds both outputs, so a row's index is looked up once.
+	const sortedRows = new Array<T>(order.length)
+
+	const keys = new Array<string | number>(order.length)
+
+	for (let position = 0; position < order.length; position++) {
+		const index = order[position] as number
+
+		const row = rows[index] as T
+
+		sortedRows[position] = row
+
+		keys[position] = getKey(row, index)
+	}
+
+	return { rows: sortedRows, keys }
+}
+
+/**
+ * Builds one field's index comparator: a custom `sortFn` compares the two rows
+ * directly (negated for a descending field), while the smart path decodes each
+ * row's {@link SortKey} once up front and compares the pre-decoded keys — empties
+ * last under both directions, only the non-empty comparison flipping for
+ * descending.
+ *
+ * @internal
+ */
+function buildFieldComparator<T>(
+	rows: T[],
+	field: SmartSortField<T>,
+): (i: number, j: number) => number {
+	const { descending, sortFn } = field
+
+	if (sortFn) {
+		return (i, j) => {
+			const raw = sortFn(rows[i] as T, rows[j] as T)
+
+			return descending ? -raw : raw
+		}
+	}
+
+	const keys = rows.map((row) => toSortKey(field.accessor(row)))
+
+	return (i, j) => {
+		const a = keys[i] as SortKey
+
+		const b = keys[j] as SortKey
+
+		const raw = compareSortKeys(a, b)
+
+		// Empties sink last under both directions; only the non-empty comparison
+		// flips for a descending field.
+		if (a.empty || b.empty) return raw
+
+		return descending ? -raw : raw
+	}
+}

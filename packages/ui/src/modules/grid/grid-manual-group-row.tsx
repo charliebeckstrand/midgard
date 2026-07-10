@@ -9,7 +9,8 @@ import { TableCell, TableRow } from '../../components/table'
 import { TextSkeleton } from '../../components/text'
 import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/grid'
-import { aggAccessor, aggregateLabelSpan, formatAggregate, hasAggregation } from './grid-aggregate'
+import { aggregateLabelSpan, formatAggregate, hasAggregation } from './grid-aggregate'
+import { columnAccessor } from './grid-column-accessor'
 import { MANUAL_GROUP_PLACEHOLDER_ROWS } from './grid-constants'
 import type { GridGroupBy, GridGroupHeaderRow } from './grid-data-types'
 import { formatGroupValue } from './grid-group-row'
@@ -103,7 +104,7 @@ export function orderManualGroupSegments<T>(
 
 /**
  * A column's aggregate on a manual group-header row: the backend-computed value
- * read off the group row itself — through {@link aggAccessor}, the same
+ * read off the group row itself — through {@link columnAccessor}, the same
  * `value`-accessor-else-field path every client aggregate reads — rendered via
  * the column's {@link GridColumn.aggCell} (whose `rows` context is empty here:
  * the children may not be loaded) else the default formatting. `null` for a
@@ -114,7 +115,7 @@ export function orderManualGroupSegments<T>(
 function renderManualAggregate<T>(column: GridColumn<T>, row: T): ReactNode {
 	if (column.aggFunc === undefined) return null
 
-	const value = aggAccessor(column)(row)
+	const value = columnAccessor(column)(row)
 
 	return column.aggCell ? column.aggCell({ value, rows: [] }) : formatAggregate(value)
 }
