@@ -51,10 +51,10 @@ Absolute numbers move with hardware; the ratios are the signal. Mean ms per iter
 | update · line · 1,000 × 5 | **21.2** | 32.0 | 30.5 |
 | update · bar · 500 × 2 | **9.9** | 23.1 | 35.9 |
 | update · scatter · 10,000 | **60.5** | 61.8 | 524.8 |
-| hover · line · 1,000 · sweep | **16.9** | 17.4 | 62.1 |
-| hover · scatter · 10,000 · sweep | 36.3 | 17.1 | 87.3 |
+| hover · line · 1,000 · sweep | 17.4 | 17.0 | 31.0 |
+| hover · scatter · 10,000 · sweep | 22.7 | 17.3 | 73.3 |
 
-The module now beats **Highcharts on all fifteen** scenarios and **AG Charts on twelve**. The three it trails are AG Charts alone, all at 10,000 points — line mount, scatter mount, and the scatter hover sweep — where AG rasterizes to a canvas bitmap and this module renders real SVG DOM. That is the trade that buys print fidelity, forced-colors, and a DOM the assistive tree and the hidden data table read; closing it means a canvas fallback for large N, which forfeits exactly those properties. It is a design call, not a free win, so the SVG path holds and AG keeps the dense-canvas extreme.
+The module beats **Highcharts on all fifteen** scenarios and **AG Charts on eleven**, ties AG on the line hover sweep (a dead heat at ~17ms — the noisy 500ms window had read it as a win either way), and trails AG on three, all at 10,000 points: line mount, scatter mount, and the scatter hover sweep. The two mounts are where AG rasterizes to a canvas bitmap and this module renders real SVG DOM — the trade that buys print fidelity, forced-colors, and a DOM the assistive tree and hidden data table read. The scatter hover residual is not the marks (memoised single path) or the hit test (~0.2ms per move) but a React commit per pointer move driving the crosshair and tooltip, against AG's vanilla redraw. Closing any of the three trades a design property or the shared hover model for a benchmark column, so the SVG path holds and AG keeps the dense-canvas extreme.
 
 ### Optimization log
 

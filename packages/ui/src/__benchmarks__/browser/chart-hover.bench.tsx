@@ -65,18 +65,24 @@ async function prepare<D>(contenders: Contender<D>[], data: D): Promise<Prepared
 	return prepared
 }
 
+// A settled sweep runs tens of milliseconds, so the default 500ms window takes
+// only ten-odd samples and its mean swings run to run — enough to read a genuine
+// tie as a loss. A longer window buys the sample count these slow iterations
+// need to separate signal from noise, the way the mount and update benches do.
+const WINDOW = { time: 2_500 }
+
 const line1k = await prepare(lineContenders(1), makeTrend(1_000, 1))
 
 const points10k = await prepare(scatterContenders(), makePoints(10_000))
 
 describe('hover · line · 1,000 × 1 series · 20-step sweep', () => {
 	for (const { name, run } of line1k) {
-		bench(name, run)
+		bench(name, run, WINDOW)
 	}
 })
 
 describe('hover · scatter · 10,000 points · 20-step sweep', () => {
 	for (const { name, run } of points10k) {
-		bench(name, run)
+		bench(name, run, WINDOW)
 	}
 })
