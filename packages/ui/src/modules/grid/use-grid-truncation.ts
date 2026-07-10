@@ -1,6 +1,6 @@
 'use client'
 
-import { type RefObject, useEffect, useRef } from 'react'
+import { type RefCallback, useEffect, useRef } from 'react'
 import { useTruncation } from '../../hooks/use-truncation'
 
 /**
@@ -21,14 +21,19 @@ import { useTruncation } from '../../hooks/use-truncation'
  * and this hook backs that up with a deferred frame in case the layout settled
  * after the synchronous read. The header omits it — it already re-renders on its
  * own `width` prop.
- * @returns `[ref, truncated]`: attach `ref` to the single-line element; read
- * `truncated` to gate the reveal tooltip.
+ * @param suspended - Stands the measure down entirely (a drag-resize in flight,
+ * whose reveal the cell holds closed anyway); the first commit after it lifts
+ * re-measures.
+ * @returns `[ref, truncated, contacted]`: attach `ref` to the single-line
+ * element; read `truncated` to gate the reveal tooltip and `contacted` to defer
+ * mounting the reveal machinery until the first contact that could open it.
  * @internal
  */
 export function useGridTruncation<E extends HTMLElement>(
 	resizeSettleKey?: unknown,
-): [RefObject<E | null>, boolean] {
-	const [ref, truncated, measure] = useTruncation<E>()
+	suspended?: boolean,
+): [RefCallback<E>, boolean, boolean] {
+	const [ref, truncated, measure, contacted] = useTruncation<E>({ suspended })
 
 	// Deferred backstop for the settle re-measure: the `resizeSettleKey` change
 	// already re-renders the cell (re-running the commit measure in `useTruncation`),
@@ -58,5 +63,5 @@ export function useGridTruncation<E extends HTMLElement>(
 		return () => cancelAnimationFrame(frame)
 	}, [measure, resizeSettleKey])
 
-	return [ref, truncated]
+	return [ref, truncated, contacted]
 }

@@ -4,12 +4,12 @@ import { defineConfig } from 'vitest/config'
 
 /**
  * Competitive benchmarks in real Chromium (`pnpm bench:browser`) — the ui
- * chart module against AG Charts and Highcharts, and the ui map module
- * against Highcharts Maps and ECharts, per
- * `src/__benchmarks__/browser/README.md`. A real browser because the
- * comparison needs one: AG Charts and ECharts draw to real canvases and
- * every contender deserves real layout, so jsdom numbers would not be
- * credible.
+ * chart module against AG Charts and Highcharts, the ui grid module against
+ * AG Grid and MUI X DataGrid, and the ui map module against Highcharts Maps
+ * and ECharts, per `src/__benchmarks__/browser/README.md`. A real browser
+ * because the comparison needs one: AG Charts and ECharts draw to real
+ * canvases, the grids virtualize against real scroll geometry, and every
+ * contender deserves real layout, so jsdom numbers would not be credible.
  *
  * Chromium launches with the frame-rate limit off: AG and ECharts defer
  * drawing to animation frames and the hover benches settle one frame per
@@ -33,7 +33,9 @@ export default defineConfig({
 		include: [
 			'@floating-ui/react',
 			'@internationalized/date',
+			'@mui/x-data-grid',
 			'ag-charts-community',
+			'ag-grid-community',
 			'd3-geo',
 			'echarts',
 			'highcharts',

@@ -144,7 +144,11 @@ function ChartLegendEntry({
 	onFocusEmphasis,
 	ghost = false,
 }: ChartLegendEntryProps) {
-	const [labelRef, truncated] = useTruncation<HTMLSpanElement>()
+	// The whole entry is the tooltip trigger, so its contact — not just the
+	// label span's — must arm the truncation measure.
+	const entryRef = useRef<HTMLButtonElement>(null)
+
+	const [labelRef, truncated] = useTruncation<HTMLSpanElement>({ armRef: entryRef })
 
 	const content = (
 		<>
@@ -188,6 +192,7 @@ function ChartLegendEntry({
 	// it reads as a harmless no-op rather than a reason to drop the button.
 	const control = (
 		<Button
+			ref={entryRef}
 			size="sm"
 			variant="plain"
 			data-slot={ghost ? 'chart-legend-ghost' : 'chart-legend-item'}
