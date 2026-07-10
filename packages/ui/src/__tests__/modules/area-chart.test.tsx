@@ -72,8 +72,7 @@ describe('AreaChart', () => {
 				series={[{ xKey: 'day', yKey: 'net', yName: 'Net' }]}
 				width={400}
 				height={200}
-				min={-10}
-				max={10}
+				axes={{ y: { min: -10, max: 10 } }}
 			/>,
 		)
 

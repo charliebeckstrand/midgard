@@ -177,7 +177,7 @@ describe('cartesian layout', () => {
 		value: { domainValues: [0, 40, 80], format: (value) => String(value) },
 		categories: ['Q1', 'Q2'],
 		count: 2,
-		visibleValues: [{ values: [40, 80], side: 'left', index: 0 }],
+		visibleValues: [{ values: [40, 80], axis: 'y', index: 0 }],
 	}
 
 	it('runs value up y and the band across x when vertical', () => {
@@ -221,8 +221,8 @@ describe('cartesian layout', () => {
 			count: 2,
 			categories: ['Q1', 'Q2'],
 			visibleValues: [
-				{ values: [40, null], side: 'left', index: 0 },
-				{ values: [60, 80], side: 'left', index: 1 },
+				{ values: [40, null], axis: 'y', index: 0 },
+				{ values: [60, 80], axis: 'y', index: 1 },
 			],
 		}
 

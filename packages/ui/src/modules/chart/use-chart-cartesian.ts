@@ -20,11 +20,13 @@ import { seriesDataKey } from './chart-motion'
 import type { ChartOrientation } from './chart-orientation'
 import { referenceLegendItems } from './chart-reference-lines'
 import { type BandScale, bandBoundaries, type LinearScale } from './chart-scale'
-import type {
-	CartesianChartProps,
-	ChartReferenceLine,
-	ChartSeries,
-	ChartValueAxisSide,
+import {
+	type CartesianAxes,
+	type CartesianChartProps,
+	type ChartReferenceLine,
+	type ChartSeries,
+	type ChartValueAxisId,
+	resolveAxes,
 } from './chart-schema'
 import {
 	chartReadout,
@@ -138,18 +140,18 @@ export type CartesianChart = {
 	axes: boolean
 	plot: PlotRect
 	band: BandScale
-	/** The primary (left) value scale; `null` when nothing yields its domain — render the empty frame. */
+	/** The primary (`y`) value scale; `null` when nothing yields its domain — render the empty frame. */
 	yScale: LinearScale | null
-	/** The secondary (right) value scale; `null` while nothing binds to the right axis. */
-	rightScale: LinearScale | null
+	/** The secondary (`y2`) value scale; `null` while nothing binds to that axis. */
+	y2Scale: LinearScale | null
 	/** The primary zero line's position along the value axis, for bar baselines and the category axis. */
 	baseline: number
-	/** The right scale's zero position, for the marks bound to it; the primary baseline when absent. */
-	rightBaseline: number
+	/** The `y2` scale's zero position, for the marks bound to it; the primary baseline when absent. */
+	y2Baseline: number
 	/** Primary value ticks along the value axis (y when vertical, x when horizontal). */
 	yTicks: ChartAxisTick[]
-	/** Secondary value ticks along the far side; empty without a right scale. */
-	rightTicks: ChartAxisTick[]
+	/** Secondary value ticks along the far side; empty without a `y2` scale. */
+	y2Ticks: ChartAxisTick[]
 	/** Category labels along the band axis (x when vertical, y when horizontal). */
 	xTicks: ChartAxisTick[]
 	/** Every series, toggled or not — the legend lists them all. */
@@ -212,22 +214,24 @@ export type CartesianChart = {
 	 */
 	referencePositions: (number | null)[]
 	/**
-	 * The gridline positions along the value axis, per-axis participation
-	 * already applied — the left axis's ticks by default, the right's on request
-	 * (or standing in when no left scale resolves). The chart's `gridLines`
-	 * switch still gates the layer.
+	 * The grid positions along the value axis, per-axis participation already
+	 * applied — the `y` axis's ticks by default, `y2`'s on request (or standing
+	 * in when no `y` scale resolves). The chart's `grid` switch still gates the
+	 * layer.
 	 */
 	gridPositions: number[]
 	/**
 	 * The band-axis positions for the category dividers — one per boundary between
-	 * adjacent rows, none at the ends. Empty unless `categories.separator` is set,
-	 * and gated by the same tier switch as {@link CartesianChart.gridPositions}.
+	 * adjacent rows, none at the ends. Empty unless the category axis sets a
+	 * `separator`, and gated by the same tier switch as {@link CartesianChart.gridPositions}.
 	 */
 	categoryGridPositions: number[]
-	/** The value-axis titles the layout placed; empty without titles. */
+	/** The category axis's divider style, driving the dividers' dash; `undefined` draws none. */
+	categorySeparator?: 'solid' | 'dashed'
+	/** The value- and band-axis titles the layout placed; empty without titles. */
 	axisTitles: ChartAxisTitlePlacement[]
 	/** Formats a value with its axis's formatter — the readout, labels, and reference rules share it. */
-	formatAxisValue: (value: number, axis: ChartValueAxisSide) => string
+	formatAxisValue: (value: number, axis: ChartValueAxisId) => string
 	/** Which way the chart faces — the frame parts read it to draw the transpose. */
 	orientation: ChartOrientation
 	/**
@@ -250,21 +254,21 @@ export type CartesianChart = {
  */
 function referencePositionsOf(
 	reference: ChartReferenceLine[] | undefined,
-	scales: Record<ChartValueAxisSide, LinearScale | null>,
+	scales: Record<ChartValueAxisId, LinearScale | null>,
 	hidden: ReadonlySet<number>,
 ): (number | null)[] {
 	return (reference ?? []).map((line, index) => {
-		const scale = scales[line.axis ?? 'left']
+		const scale = scales[line.axis ?? 'y']
 
 		return scale && Number.isFinite(line.value) && !hidden.has(index) ? scale.map(line.value) : null
 	})
 }
 
-/** The one axis a stack binds to: the side every series agrees on, else the left. @internal */
-function stackSideOf<T>(series: ChartSeries<T>[]): ChartValueAxisSide {
-	const first = series[0]?.axis ?? 'left'
+/** The one axis a stack binds to: the axis every series agrees on, else `y`. @internal */
+function stackAxisOf<T>(series: ChartSeries<T>[]): ChartValueAxisId {
+	const first = series[0]?.axis ?? 'y'
 
-	return series.every((entry) => (entry.axis ?? 'left') === first) ? first : 'left'
+	return series.every((entry) => (entry.axis ?? 'y') === first) ? first : 'y'
 }
 
 /** Every series resolved to its meta: label, paint, swatch, values, and axis binding. @internal */
@@ -274,7 +278,7 @@ function seriesMetas<T>(
 	swatch: CartesianConfig<T>['swatch'],
 	stack: boolean,
 ): SeriesMeta[] {
-	const stackSide = stackSideOf(series)
+	const stackAxis = stackAxisOf(series)
 
 	return series.map((entry, index) => {
 		const paint = seriesPaint(entry, index)
@@ -288,7 +292,7 @@ function seriesMetas<T>(
 			values: seriesValues(data, entry.yKey),
 			// A stack reads as one part-to-whole column, so every series binds to the
 			// stack's one axis rather than splitting segments across two domains.
-			axis: stack ? stackSide : (entry.axis ?? 'left'),
+			axis: stack ? stackAxis : (entry.axis ?? 'y'),
 			dashed: entry.dashed,
 		}
 	})
@@ -304,28 +308,28 @@ function seriesMetas<T>(
  * @internal
  */
 function domainValuesFor<T>(args: {
-	side: ChartValueAxisSide
+	axis: ChartValueAxisId
 	visible: SeriesMeta[]
 	stack: boolean
 	data: T[]
 	reference: ChartReferenceLine[] | undefined
 	referenceHidden: ReadonlySet<number>
 }): number[] {
-	const { side, visible, stack, data, reference, referenceHidden } = args
+	const { axis, visible, stack, data, reference, referenceHidden } = args
 
-	const sided = visible.filter((meta) => meta.axis === side)
+	const bound = visible.filter((meta) => meta.axis === axis)
 
 	// Stacked charts scale to the per-category column totals; every other chart
 	// scales to the individual values.
 	const values = stack
-		? sided.length > 0
-			? data.map((_, index) => sided.reduce((sum, meta) => sum + (meta.values[index] ?? 0), 0))
+		? bound.length > 0
+			? data.map((_, index) => bound.reduce((sum, meta) => sum + (meta.values[index] ?? 0), 0))
 			: []
-		: sided.flatMap((meta) => meta.values.filter((value): value is number => value !== null))
+		: bound.flatMap((meta) => meta.values.filter((value): value is number => value !== null))
 
 	const referenceValues = (reference ?? [])
 		.map((line, index) => ({ line, index }))
-		.filter(({ line, index }) => (line.axis ?? 'left') === side && !referenceHidden.has(index))
+		.filter(({ line, index }) => (line.axis ?? 'y') === axis && !referenceHidden.has(index))
 		.map(({ line }) => line.value)
 
 	return values.concat(referenceValues)
@@ -333,9 +337,11 @@ function domainValuesFor<T>(args: {
 
 /** The per-axis formatters and layout inputs resolved from the chart props. @internal */
 type ResolvedValueAxes = {
-	leftValue?: ChartValueAxisInput
-	rightValue?: ChartValueAxisInput
-	formatAxisValue: (value: number, axis: ChartValueAxisSide) => string
+	value?: ChartValueAxisInput
+	value2?: ChartValueAxisInput
+	/** The category axis's title, gated on the tier affording a title band. */
+	bandTitle?: string
+	formatAxisValue: (value: number, axis: ChartValueAxisId) => string
 }
 
 /** One axis's tick and readout formatters. @internal */
@@ -362,10 +368,10 @@ function axisFormatters(
 }
 
 /**
- * Resolves both value axes from the props and the frame's tier budget: each
- * side's domain candidates and pins — `leftAxis` winning over the top-level
- * `min` / `max`, its `format` over `formatValue` — its tick and readout
- * formatters, and its title. Two formatters per side, not one: the tick labels
+ * Resolves both value axes from the `axes` config and the frame's tier budget:
+ * each axis's domain candidates and pins, its `format` (winning over the
+ * chart's `formatValue`), its tick and readout formatters, and its title. Two
+ * formatters per axis, not one: the tick labels
  * take the compact default in a narrow frame (`compactFormat`) while the readout
  * — tooltip, hidden table, reference rules — always reads full precision, so a
  * gutter stays cheap without coarsening the numbers a reader opens the tooltip
@@ -377,6 +383,7 @@ function axisFormatters(
  */
 function resolveValueAxes<T>(
 	props: CartesianData<T>,
+	axes: Partial<CartesianAxes>,
 	visible: SeriesMeta[],
 	stack: boolean,
 	data: T[],
@@ -388,12 +395,12 @@ function resolveValueAxes<T>(
 	// full precision. An explicit per-axis or chart formatter wins for both.
 	const tickDefault = compactFormat ? formatChartValueCompact : formatChartValue
 
-	const left = axisFormatters(props.leftAxis?.format ?? props.formatValue, tickDefault)
+	const y = axisFormatters(axes.y?.format ?? props.formatValue, tickDefault)
 
-	const right = axisFormatters(props.rightAxis?.format ?? props.formatValue, tickDefault)
+	const y2 = axisFormatters(axes.y2?.format ?? props.formatValue, tickDefault)
 
-	const leftDomainValues = domainValuesFor({
-		side: 'left',
+	const yDomainValues = domainValuesFor({
+		axis: 'y',
 		visible,
 		stack,
 		data,
@@ -401,8 +408,8 @@ function resolveValueAxes<T>(
 		referenceHidden,
 	})
 
-	const rightDomainValues = domainValuesFor({
-		side: 'right',
+	const y2DomainValues = domainValuesFor({
+		axis: 'y2',
 		visible,
 		stack,
 		data,
@@ -410,80 +417,96 @@ function resolveValueAxes<T>(
 		referenceHidden,
 	})
 
-	// The right axis exists only while something binds to it — a visible
-	// right-bound series, a right reference, or a domain pin — so a single-axis
-	// chart never reserves the gutter.
-	const hasRightAxis =
-		rightDomainValues.length > 0 ||
-		visible.some((meta) => meta.axis === 'right') ||
-		props.rightAxis?.min !== undefined ||
-		props.rightAxis?.max !== undefined
+	// The y2 axis exists only while something binds to it — a visible y2-bound
+	// series, a y2 reference, or a domain pin — so a single-axis chart never
+	// reserves the gutter.
+	const hasY2Axis =
+		y2DomainValues.length > 0 ||
+		visible.some((meta) => meta.axis === 'y2') ||
+		axes.y2?.min !== undefined ||
+		axes.y2?.max !== undefined
 
-	// The left axis stands down the same way once everything binds right; with
-	// no right axis it stays on as the default home, so an empty chart still
-	// frames its value axis.
-	const hasLeftAxis =
-		!hasRightAxis ||
-		leftDomainValues.length > 0 ||
-		visible.some((meta) => meta.axis === 'left') ||
-		props.leftAxis?.min !== undefined ||
-		props.leftAxis?.max !== undefined ||
-		props.min !== undefined ||
-		props.max !== undefined
+	// The y axis stands down the same way once everything binds y2; with no y2
+	// axis it stays on as the default home, so an empty chart still frames its
+	// value axis.
+	const hasYAxis =
+		!hasY2Axis ||
+		yDomainValues.length > 0 ||
+		visible.some((meta) => meta.axis === 'y') ||
+		axes.y?.min !== undefined ||
+		axes.y?.max !== undefined
 
 	return {
-		leftValue: hasLeftAxis
+		value: hasYAxis
 			? {
-					domainValues: leftDomainValues,
-					min: props.leftAxis?.min ?? props.min,
-					max: props.leftAxis?.max ?? props.max,
-					format: left.tick,
-					title: axisTitles ? props.leftAxis?.title : undefined,
+					domainValues: yDomainValues,
+					min: axes.y?.min,
+					max: axes.y?.max,
+					format: y.tick,
+					title: axisTitles ? axes.y?.title : undefined,
 				}
 			: undefined,
-		rightValue: hasRightAxis
+		value2: hasY2Axis
 			? {
-					domainValues: rightDomainValues,
-					min: props.rightAxis?.min,
-					max: props.rightAxis?.max,
-					format: right.tick,
-					title: axisTitles ? props.rightAxis?.title : undefined,
+					domainValues: y2DomainValues,
+					min: axes.y2?.min,
+					max: axes.y2?.max,
+					format: y2.tick,
+					title: axisTitles ? axes.y2?.title : undefined,
 				}
 			: undefined,
-		formatAxisValue: (value, side) =>
-			side === 'right' ? right.readout(value) : left.readout(value),
+		bandTitle: axisTitles ? axes.x?.title : undefined,
+		formatAxisValue: (value, axis) => (axis === 'y2' ? y2.readout(value) : y.readout(value)),
 	}
 }
 
 /**
- * The gridline positions along the value axis: each side contributes its ticks
- * while its gridLines flag holds — left on by default, right standing in only
- * when no left scale resolves — so one hairline layer serves both axes. The tier
- * `gridLines` gate stands the whole layer down at spark, where the value ticks
- * are already gone.
+ * The grid positions along the value axis: each axis contributes its ticks
+ * while its `grid` flag holds — `y` on by default, `y2` standing in only when
+ * no `y` scale resolves — so one hairline layer serves both axes. The tier's
+ * grid gate stands the whole layer down at spark, where the value ticks are
+ * already gone.
  *
  * @internal
  */
-function gridPositionsOf<T>(
-	props: CartesianData<T>,
+function gridPositionsOf(
+	axes: Partial<CartesianAxes>,
 	layout: CartesianLayout,
-	gridLines: boolean,
+	grid: boolean,
 ): number[] {
-	if (!gridLines) return []
+	if (!grid) return []
 
-	const leftGrid = (props.leftAxis?.gridLines ?? true) && layout.valueScale !== null
+	const yGrid = (axes.y?.grid ?? true) && layout.valueScale !== null
 
-	const rightGrid =
-		(props.rightAxis?.gridLines ?? layout.valueScale === null) && layout.rightScale !== null
+	const y2Grid = (axes.y2?.grid ?? layout.valueScale === null) && layout.value2Scale !== null
 
 	// De-duplicated: two independent scales can land ticks on one position —
 	// both domains' floors map to the plot edge — and one hairline is enough.
 	return [
 		...new Set([
-			...(leftGrid ? layout.valueTicks.map((tick) => tick.at) : []),
-			...(rightGrid ? layout.rightTicks.map((tick) => tick.at) : []),
+			...(yGrid ? layout.valueTicks.map((tick) => tick.at) : []),
+			...(y2Grid ? layout.value2Ticks.map((tick) => tick.at) : []),
 		]),
 	]
+}
+
+/**
+ * The band-axis divider positions — one per boundary between adjacent rows, none
+ * at the ends — when the category axis sets a `separator`. Gated by the same tier
+ * grid switch as the value grid, so the dividers stand down together with the
+ * rest of the chrome at spark; empty otherwise.
+ *
+ * @internal
+ */
+function categoryGridPositionsOf(
+	axes: Partial<CartesianAxes>,
+	layout: CartesianLayout,
+	count: number,
+	grid: boolean,
+): number[] {
+	if (!(axes.x?.separator && grid)) return []
+
+	return bandBoundaries(layout.band, count)
 }
 
 /** The category labels, their raw forms, and the readout formatter. @internal */
@@ -592,9 +615,9 @@ export function drawnSeries(chart: CartesianChart): DrawnSeries[] {
 	// binds them all to the stack side — so each series reads its own `meta.axis`
 	// whether stacked or grouped; no separate stack branch is needed.
 	return chart.visible.flatMap((meta) => {
-		const scale = meta.axis === 'right' ? chart.rightScale : chart.yScale
+		const scale = meta.axis === 'y2' ? chart.y2Scale : chart.yScale
 
-		const baseline = meta.axis === 'right' ? chart.rightBaseline : chart.baseline
+		const baseline = meta.axis === 'y2' ? chart.y2Baseline : chart.baseline
 
 		return scale ? [{ meta, scale, baseline }] : []
 	})
@@ -709,7 +732,11 @@ export function useChartCartesian<T>(
 	props: CartesianData<T>,
 	config: CartesianConfig<T>,
 ): CartesianChart {
-	const { data, series, size, width, height, aspectRatio = '16/9', axes = true, legend } = props
+	const { data, series, size, width, height, aspectRatio = '16/9', legend } = props
+
+	// The one place the `axes` prop's boolean-or-object union is read: the draw
+	// switch, and each axis's config under its own key.
+	const { draw, config: axes } = resolveAxes(props.axes)
 
 	const orientation = config.orientation ?? 'vertical'
 
@@ -719,7 +746,7 @@ export function useChartCartesian<T>(
 
 	// A time axis reads the same category field as a date: the row instants
 	// place its calendar ticks, and a date formatter labels the readout to match.
-	const timeAxis = props.xAxis === 'time'
+	const timeAxis = axes.x?.type === 'time'
 
 	const times = timeAxis && xKey ? data.map((datum) => parseInstant(datum[xKey])) : undefined
 
@@ -760,7 +787,7 @@ export function useChartCartesian<T>(
 	// Spark stands the axis chrome down to a bare sparkline; every wider tier keeps
 	// the caller's `axes` intent. The value gutter, band labels, and titles all
 	// gate on this downstream.
-	const drawAxes = axes && policy.tier !== 'spark'
+	const drawAxes = draw && policy.tier !== 'spark'
 
 	const { hidden, toggle, setFocus, emphasis } = useChartSeriesToggle()
 
@@ -774,8 +801,9 @@ export function useChartCartesian<T>(
 	// because each meta's paint keyed off its original index.
 	const visible = metas.filter((meta) => !hidden.has(meta.index))
 
-	const { leftValue, rightValue, formatAxisValue } = resolveValueAxes(
+	const { value, value2, bandTitle, formatAxisValue } = resolveValueAxes(
 		props,
+		axes,
 		visible,
 		stack,
 		data,
@@ -788,7 +816,7 @@ export function useChartCartesian<T>(
 		data,
 		xKey,
 		timeAxis,
-		props.categories?.format,
+		axes.x?.format,
 	)
 
 	// The public category-activation callback resolved to the hit layer's
@@ -809,9 +837,10 @@ export function useChartCartesian<T>(
 		axes: drawAxes,
 		tickTarget: policy.tickTarget,
 		zeroBaseline: config.zeroBaseline,
-		value: leftValue,
-		rightValue,
+		value,
+		value2,
 		categories,
+		bandTitle,
 		bandAxis: policy.bandAxis,
 		tickRotation: props.tickRotation,
 		times,
@@ -820,7 +849,7 @@ export function useChartCartesian<T>(
 		valueHeadroom: config.valueHeadroom,
 		visibleValues: visible.map((meta) => ({
 			values: meta.values,
-			side: meta.axis,
+			axis: meta.axis,
 			index: meta.index,
 		})),
 	})
@@ -848,8 +877,8 @@ export function useChartCartesian<T>(
 	const referencePositions = referencePositionsOf(
 		props.reference,
 		{
-			left: layout.valueScale,
-			right: layout.rightScale,
+			y: layout.valueScale,
+			y2: layout.value2Scale,
 		},
 		referenceHidden,
 	)
@@ -873,11 +902,11 @@ export function useChartCartesian<T>(
 		plot: layout.plot,
 		band: layout.band,
 		yScale: layout.valueScale,
-		rightScale: layout.rightScale,
+		y2Scale: layout.value2Scale,
 		baseline: layout.baseline,
-		rightBaseline: layout.rightBaseline,
+		y2Baseline: layout.value2Baseline,
 		yTicks: layout.valueTicks,
-		rightTicks: layout.rightTicks,
+		y2Ticks: layout.value2Ticks,
 		xTicks: layout.bandTicks,
 		metas,
 		// Read off every series' values, so a legend toggle (which drops a series
@@ -899,13 +928,9 @@ export function useChartCartesian<T>(
 		snapSeries: layout.snapSeries,
 		valueLabelRoom: layout.valueLabelRoom,
 		referencePositions,
-		gridPositions: gridPositionsOf(props, layout, policy.gridLines),
-		// Gated by the same tier switch as the value gridlines, so the dividers
-		// stand down together with the rest of the chrome at spark.
-		categoryGridPositions:
-			props.categories?.separator && policy.gridLines
-				? bandBoundaries(layout.band, data.length)
-				: [],
+		gridPositions: gridPositionsOf(axes, layout, policy.grid),
+		categoryGridPositions: categoryGridPositionsOf(axes, layout, data.length, policy.grid),
+		categorySeparator: axes.x?.separator,
 		axisTitles: layout.titles,
 		formatAxisValue,
 		orientation,

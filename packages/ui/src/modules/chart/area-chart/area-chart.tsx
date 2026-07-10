@@ -258,8 +258,8 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 		width,
 		height,
 		aspectRatio,
-		axes = true,
-		gridLines = true,
+		axes,
+		grid = true,
 		legend,
 		tooltip,
 		crosshair,
@@ -268,14 +268,8 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 		texture = false,
 		points = false,
 		interpolation = 'linear',
-		min,
-		max,
-		leftAxis,
-		rightAxis,
 		reference,
-		xAxis,
 		tickRotation,
-		categories,
 		labels,
 		onCategoryClick,
 		formatValue,
@@ -293,14 +287,8 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 			aspectRatio,
 			axes,
 			legend,
-			min,
-			max,
-			leftAxis,
-			rightAxis,
 			reference,
-			xAxis,
 			tickRotation,
-			categories,
 			onCategoryClick,
 			formatValue,
 			// The header travels to the frame through `label`; the hook reads it too,
@@ -429,7 +417,7 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 		>
 			{tex.defs}
 
-			{gridLines && chart.gridPositions.length > 0 && (
+			{grid && chart.gridPositions.length > 0 && (
 				<ChartGridLines plot={chart.plot} ticks={chart.gridPositions} />
 			)}
 
@@ -438,14 +426,14 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 					plot={chart.plot}
 					ticks={chart.categoryGridPositions}
 					orientation="horizontal"
-					dashed={categories?.separator === 'dashed'}
+					dashed={chart.categorySeparator === 'dashed'}
 				/>
 			)}
 
 			{chart.axes && chart.yScale && <ChartAxis axis="y" plot={chart.plot} ticks={chart.yTicks} />}
 
-			{chart.axes && chart.rightScale && (
-				<ChartAxis axis="y" position="right" plot={chart.plot} ticks={chart.rightTicks} />
+			{chart.axes && chart.y2Scale && (
+				<ChartAxis axis="y" position="right" plot={chart.plot} ticks={chart.y2Ticks} />
 			)}
 
 			{chart.axes && data.length > 0 && (
@@ -505,7 +493,7 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 			<ChartReferenceLines
 				plot={chart.plot}
 				scale={chart.yScale}
-				rightScale={chart.rightScale}
+				y2Scale={chart.y2Scale}
 				reference={reference}
 				format={chart.formatAxisValue}
 				animate={animate}

@@ -33,7 +33,7 @@ import {
 	type LinearScale,
 	linearScale,
 } from './chart-scale'
-import type { ChartValueAxisSide } from './chart-schema'
+import type { ChartValueAxisId } from './chart-schema'
 import type { ChartBandAxisMode } from './chart-tier'
 import { timeTicks } from './chart-time'
 
@@ -278,20 +278,20 @@ export type ChartAxisTitlePlacement = {
  */
 export type CartesianLayout = {
 	plot: PlotRect
-	/** The primary (left) value scale, its range already the correct screen axis; `null` for an empty domain. */
+	/** The primary value scale, its range already the correct screen axis; `null` for an empty domain. */
 	valueScale: LinearScale | null
-	/** The secondary (right) value scale; `null` while nothing binds to it. */
-	rightScale: LinearScale | null
+	/** The secondary value scale; `null` while nothing binds to it. */
+	value2Scale: LinearScale | null
 	/** The categorical band, its range already the cross axis. */
 	band: BandScale
 	/** The primary zero line's position along the value axis — bar baselines and the category axis line. */
 	baseline: number
 	/** The secondary scale's zero position, for marks bound to it; falls back to `baseline`. */
-	rightBaseline: number
+	value2Baseline: number
 	/** Primary value ticks at their value-axis positions. */
 	valueTicks: ChartAxisTick[]
-	/** Secondary value ticks; empty without a right scale. */
-	rightTicks: ChartAxisTick[]
+	/** Secondary value ticks; empty without a secondary scale. */
+	value2Ticks: ChartAxisTick[]
 	/** Category labels, thinned, at their band-axis centers. */
 	bandTicks: ChartAxisTick[]
 	/** Each category's band center — the crosshair's and tooltip's band snap. */
@@ -340,20 +340,26 @@ export type CartesianLayoutInput = {
 	tickTarget: number
 	zeroBaseline: boolean
 	/**
-	 * The primary (left) value axis. Like {@link CartesianLayoutInput.rightValue}
-	 * it is only passed while something binds to it — though the left side is
-	 * also the default home, so it stays on whenever no right axis exists.
+	 * The primary value axis. Like {@link CartesianLayoutInput.value2} it is
+	 * only passed while something binds to it — though the primary is also the
+	 * default home, so it stays on whenever no secondary axis exists.
 	 */
 	value?: ChartValueAxisInput
 	/**
-	 * The secondary (right) value axis. Only pass it once something binds to the
-	 * axis — a visible right-bound series, a right reference, or a domain pin —
-	 * since a zero-baseline chart would otherwise resolve an empty `[0, 1]`
-	 * scale and reserve a gutter for nothing.
+	 * The secondary value axis. Only pass it once something binds to the axis —
+	 * a visible `y2`-bound series, a `y2` reference, or a domain pin — since a
+	 * zero-baseline chart would otherwise resolve an empty `[0, 1]` scale and
+	 * reserve a gutter for nothing.
 	 */
-	rightValue?: ChartValueAxisInput
+	value2?: ChartValueAxisInput
 	/** The category label per row — the band axis, and the gutter estimate when horizontal. */
 	categories: string[]
+	/**
+	 * The band (category) axis's title, drawn past its labels — under them when
+	 * vertical, rotated in the left gutter when horizontal — with a band reserved
+	 * for it. Already gated by the tier's title budget, so a set value always draws.
+	 */
+	bandTitle?: string
 	/**
 	 * Tilt overflowing category labels instead of thinning them; the vertical
 	 * layout's own concern, ignored by the horizontal one. See {@link
@@ -464,7 +470,7 @@ function markInsetRange(range: [number, number], inset: number): [number, number
  */
 export type VisibleValues = {
 	values: (number | null)[]
-	side: ChartValueAxisSide
+	axis: ChartValueAxisId
 	/** The series' index in the caller's list — what the keyboard cursor maps a stop back to. */
 	index: number
 }
@@ -496,11 +502,11 @@ function snapPointsOf(
 	count: number,
 	visibleValues: VisibleValues[],
 ): number[][] {
-	if (!scales.left && !scales.right) return []
+	if (!scales.y && !scales.y2) return []
 
 	return Array.from({ length: count }, (_, index) =>
 		visibleValues.reduce<number[]>((positions, series) => {
-			const scale = scales[series.side]
+			const scale = scales[series.axis]
 
 			const value = series.values[index]
 
@@ -535,11 +541,11 @@ function snapSeriesOf(
 	count: number,
 	visibleValues: VisibleValues[],
 ): number[][] {
-	if (!scales.left && !scales.right) return []
+	if (!scales.y && !scales.y2) return []
 
 	return Array.from({ length: count }, (_, index) =>
 		visibleValues.reduce<number[]>((series, entry) => {
-			if (snappable(scales[entry.side], entry.values[index])) series.push(entry.index)
+			if (snappable(scales[entry.axis], entry.values[index])) series.push(entry.index)
 
 			return series
 		}, []),
@@ -668,7 +674,7 @@ function valueScaleOf(
 }
 
 /** Both value scales resolved over one shared screen range. @internal */
-type ValueScales = Record<ChartValueAxisSide, LinearScale | null>
+type ValueScales = Record<ChartValueAxisId, LinearScale | null>
 
 /**
  * A value axis's gutter: its tick labels plus, where titled, the title band and
@@ -716,7 +722,10 @@ function labelRoomOf(headroom: number | undefined, rangePx: number): boolean {
 function verticalLabelRoom(input: CartesianLayoutInput, flatRange: [number, number]): boolean {
 	if (!input.valueHeadroom) return true
 
-	const worstBand = input.tickRotation && !input.times ? TICK_ROTATION_HEIGHT : X_AXIS_HEIGHT
+	const labelBand = input.tickRotation && !input.times ? TICK_ROTATION_HEIGHT : X_AXIS_HEIGHT
+
+	// A titled band adds its title band under the labels, eating the same value room.
+	const worstBand = labelBand + (input.bandTitle ? AXIS_TITLE_BAND : 0)
 
 	// Without axes there is no band chrome to vary; the mark-inset range is
 	// already monotone in the frame.
@@ -727,27 +736,42 @@ function verticalLabelRoom(input: CartesianLayoutInput, flatRange: [number, numb
 	return headroomFits(input.valueHeadroom, floor)
 }
 
-/** The vertical layout's rotated gutter titles, one per titled axis with a resolved scale. @internal */
+/**
+ * The vertical layout's placed axis titles: a rotated title in each titled value
+ * gutter, and — where the band axis is titled — a horizontal one centered under
+ * its labels, past the `bandLabelHeight` the labels occupy. @internal
+ */
 function verticalTitles(
 	input: CartesianLayoutInput,
 	scales: ValueScales,
 	plot: PlotRect,
 	frameWidth: number,
+	bandTitle: string | undefined,
+	bandLabelHeight: number,
 ): ChartAxisTitlePlacement[] {
 	const titles: ChartAxisTitlePlacement[] = []
 
 	const y = plot.y + plot.height / 2
 
-	if (input.axes && scales.left && input.value?.title) {
+	if (input.axes && scales.y && input.value?.title) {
 		titles.push({ text: input.value.title, x: AXIS_TITLE_BAND / 2, y, rotate: -90 })
 	}
 
-	if (input.axes && scales.right && input.rightValue?.title) {
+	if (input.axes && scales.y2 && input.value2?.title) {
 		titles.push({
-			text: input.rightValue.title,
+			text: input.value2.title,
 			x: frameWidth - AXIS_TITLE_BAND / 2,
 			y,
 			rotate: 90,
+		})
+	}
+
+	if (bandTitle) {
+		titles.push({
+			text: bandTitle,
+			x: plot.x + plot.width / 2,
+			y: plot.y + plot.height + bandLabelHeight + AXIS_TITLE_BAND / 2,
+			rotate: 0,
 		})
 	}
 
@@ -757,9 +781,9 @@ function verticalTitles(
 /** One vertical layout's value scales and their formatted gutter ticks, against a resolved y-range. @internal */
 type VerticalValueAxes = {
 	valueScale: LinearScale | null
-	rightScale: LinearScale | null
+	value2Scale: LinearScale | null
 	valueTicks: ChartAxisTick[]
-	rightTicks: ChartAxisTick[]
+	value2Ticks: ChartAxisTick[]
 }
 
 /**
@@ -783,8 +807,8 @@ function verticalValueAxes(
 		input.valueHeadroom,
 	)
 
-	const rightScale = valueScaleOf(
-		input.rightValue,
+	const value2Scale = valueScaleOf(
+		input.value2,
 		range,
 		input.tickTarget,
 		input.zeroBaseline,
@@ -793,10 +817,10 @@ function verticalValueAxes(
 
 	const valueTicks = valueScale && input.value ? valueTicksOf(valueScale, input.value.format) : []
 
-	const rightTicks =
-		rightScale && input.rightValue ? valueTicksOf(rightScale, input.rightValue.format) : []
+	const value2Ticks =
+		value2Scale && input.value2 ? valueTicksOf(value2Scale, input.value2.format) : []
 
-	return { valueScale, rightScale, valueTicks, rightTicks }
+	return { valueScale, value2Scale, valueTicks, value2Ticks }
 }
 
 /**
@@ -821,7 +845,12 @@ export function verticalLayout(input: CartesianLayoutInput): CartesianLayout {
 	// without axes.
 	const drawBand = axes && bandMode !== 'off'
 
-	const flatHeight = drawBand ? X_AXIS_HEIGHT : axes ? FLOOR_LABEL_PAD : 0
+	// The band axis titles only when its labels draw; the title band adds under them.
+	const bandTitle = drawBand ? input.bandTitle : undefined
+
+	const titleBand = bandTitle ? AXIS_TITLE_BAND : 0
+
+	const flatHeight = drawBand ? X_AXIS_HEIGHT + titleBand : axes ? FLOOR_LABEL_PAD : 0
 
 	// Without the axis chrome the marks border the frame directly, so each edge
 	// reserves the widest mark's painted reach instead — the floor takes it whole
@@ -852,9 +881,9 @@ export function verticalLayout(input: CartesianLayoutInput): CartesianLayout {
 	)
 
 	const rightGutter = valueGutter(
-		axes && flatAxes.rightScale !== null,
-		flatAxes.rightTicks,
-		input.rightValue?.title,
+		axes && flatAxes.value2Scale !== null,
+		flatAxes.value2Ticks,
+		input.value2?.title,
 	)
 
 	const plotWidth = Math.max(0, frameWidth - leftGutter - rightGutter)
@@ -874,9 +903,9 @@ export function verticalLayout(input: CartesianLayoutInput): CartesianLayout {
 		!input.times &&
 		willThin(count, plotWidth, slot)
 
-	const axisBandHeight = tilt ? TICK_ROTATION_HEIGHT : flatHeight
+	const axisBandHeight = tilt ? TICK_ROTATION_HEIGHT + titleBand : flatHeight
 
-	const { valueScale, rightScale, valueTicks, rightTicks } = tilt
+	const { valueScale, value2Scale, valueTicks, value2Ticks } = tilt
 		? verticalValueAxes(scaleInput, [frameHeight - axisBandHeight, PLOT_TOP_PAD])
 		: flatAxes
 
@@ -892,24 +921,31 @@ export function verticalLayout(input: CartesianLayoutInput): CartesianLayout {
 		range: markInsetRange(bandExtent('vertical', plot), bandPadOf(input)),
 	})
 
-	const scales: ValueScales = { left: valueScale, right: rightScale }
+	const scales: ValueScales = { y: valueScale, y2: value2Scale }
 
 	const floor = plot.y + plot.height
 
 	return {
 		plot,
 		valueScale,
-		rightScale,
+		value2Scale,
 		band,
-		baseline: zeroOf(valueScale, rightScale, floor),
-		rightBaseline: zeroOf(rightScale, valueScale, floor),
+		baseline: zeroOf(valueScale, value2Scale, floor),
+		value2Baseline: zeroOf(value2Scale, valueScale, floor),
 		valueTicks,
-		rightTicks,
+		value2Ticks,
 		bandTicks: bandAxisTicks(input, band, plot.width, slot, bandMode, tilt),
 		bandPositions: bandCenters(band, count),
 		snapPoints: snapPointsOf(scales, count, input.visibleValues),
 		snapSeries: snapSeriesOf(scales, count, input.visibleValues),
-		titles: verticalTitles(input, scales, plot, frameWidth),
+		titles: verticalTitles(
+			input,
+			scales,
+			plot,
+			frameWidth,
+			bandTitle,
+			tilt ? TICK_ROTATION_HEIGHT : X_AXIS_HEIGHT,
+		),
 		valueLabelRoom,
 	}
 }
@@ -967,17 +1003,22 @@ function valueAxisRange(probes: ValueAxisProbe[], span: [number, number]): [numb
 	return insetFrom < insetTo ? [insetFrom, insetTo] : span
 }
 
-/** The horizontal layout's band titles, centered under the bottom axis and over the top one. @internal */
+/**
+ * The horizontal layout's placed axis titles: the value titles centered under
+ * the bottom axis and over the top one, and — where the band axis is titled — a
+ * rotated one in the far-left gutter, past its labels. @internal
+ */
 function horizontalTitles(
 	input: CartesianLayoutInput,
 	scales: ValueScales,
 	plot: PlotRect,
+	bandTitle: string | undefined,
 ): ChartAxisTitlePlacement[] {
 	const titles: ChartAxisTitlePlacement[] = []
 
 	const x = plot.x + plot.width / 2
 
-	if (input.axes && scales.left && input.value?.title) {
+	if (input.axes && scales.y && input.value?.title) {
 		titles.push({
 			text: input.value.title,
 			x,
@@ -986,12 +1027,21 @@ function horizontalTitles(
 		})
 	}
 
-	if (input.axes && scales.right && input.rightValue?.title) {
+	if (input.axes && scales.y2 && input.value2?.title) {
 		titles.push({
-			text: input.rightValue.title,
+			text: input.value2.title,
 			x,
 			y: plot.y - X_AXIS_HEIGHT - AXIS_TITLE_BAND / 2,
 			rotate: 0,
+		})
+	}
+
+	if (bandTitle) {
+		titles.push({
+			text: bandTitle,
+			x: AXIS_TITLE_BAND / 2,
+			y: plot.y + plot.height / 2,
+			rotate: -90,
 		})
 	}
 
@@ -1014,6 +1064,25 @@ function shownBandLabels(categories: string[], mode: ChartBandAxisMode): string[
 }
 
 /**
+ * The horizontal layout's left gutter and its band title: the label gutter (the
+ * widest drawn band label, or none when the band is dropped) plus a title band
+ * where the axis is titled. The title draws only when its labels do, so the two
+ * resolve as one. @internal
+ */
+function horizontalBandGutter(
+	input: CartesianLayoutInput,
+	drawBand: boolean,
+	bandMode: ChartBandAxisMode,
+	categories: string[],
+): { gutter: number; bandTitle: string | undefined } {
+	const bandTitle = drawBand ? input.bandTitle : undefined
+
+	const labels = drawBand ? tickGutter(shownBandLabels(categories, bandMode)) : 0
+
+	return { gutter: labels + (bandTitle ? AXIS_TITLE_BAND + AXIS_TITLE_GAP : 0), bandTitle }
+}
+
+/**
  * The transposed layout: value on x with the scales filling the plot width,
  * categories down y. The band labels — not the value ticks — line the left
  * gutter, and they are known up front, so the plot rect resolves first and the
@@ -1030,17 +1099,19 @@ export function horizontalLayout(input: CartesianLayoutInput): CartesianLayout {
 	const bandMode = input.bandAxis ?? 'thinned'
 
 	// The band labels line the left gutter here; a dropped band frees it, an ends
-	// band sizes it to just the first and last label.
+	// band sizes it to just the first and last label. Its title, when set, rides a
+	// rotated band past them at the far left — the transpose of the vertical value
+	// title — so the gutter and the title resolve together.
 	const drawBand = axes && bandMode !== 'off'
 
-	const rightProbe = probeOf(input.rightValue, input.tickTarget, input.zeroBaseline)
+	const { gutter, bandTitle } = horizontalBandGutter(input, drawBand, bandMode, categories)
+
+	const value2Probe = probeOf(input.value2, input.tickTarget, input.zeroBaseline)
 
 	const bottomBand = axes ? X_AXIS_HEIGHT + (input.value?.title ? AXIS_TITLE_BAND : 0) : 0
 
 	const topBand =
-		axes && rightProbe ? X_AXIS_HEIGHT + (input.rightValue?.title ? AXIS_TITLE_BAND : 0) : 0
-
-	const gutter = drawBand ? tickGutter(shownBandLabels(categories, bandMode)) : 0
+		axes && value2Probe ? X_AXIS_HEIGHT + (input.value2?.title ? AXIS_TITLE_BAND : 0) : 0
 
 	const plot: PlotRect = {
 		x: gutter,
@@ -1051,9 +1122,11 @@ export function horizontalLayout(input: CartesianLayoutInput): CartesianLayout {
 
 	const span = valueExtent('horizontal', plot)
 
-	const leftProbe = probeOf(input.value, input.tickTarget, input.zeroBaseline)
+	const valueProbe = probeOf(input.value, input.tickTarget, input.zeroBaseline)
 
-	const probes = [leftProbe, rightProbe].filter((probe): probe is ValueAxisProbe => probe !== null)
+	const probes = [valueProbe, value2Probe].filter(
+		(probe): probe is ValueAxisProbe => probe !== null,
+	)
 
 	// Without the axis chrome the marks border the frame directly, so both layouts
 	// reserve the widest mark's painted reach on every plot edge — here the value
@@ -1072,8 +1145,8 @@ export function horizontalLayout(input: CartesianLayoutInput): CartesianLayout {
 		input.valueHeadroom,
 	)
 
-	const rightScale = valueScaleOf(
-		input.rightValue,
+	const value2Scale = valueScaleOf(
+		input.value2,
 		range,
 		input.tickTarget,
 		input.zeroBaseline,
@@ -1085,23 +1158,22 @@ export function horizontalLayout(input: CartesianLayoutInput): CartesianLayout {
 		range: markInsetRange(bandExtent('horizontal', plot), bandPadOf(input)),
 	})
 
-	const scales: ValueScales = { left: valueScale, right: rightScale }
+	const scales: ValueScales = { y: valueScale, y2: value2Scale }
 
 	return {
 		plot,
 		valueScale,
-		rightScale,
+		value2Scale,
 		band,
-		baseline: zeroOf(valueScale, rightScale, plot.x),
-		rightBaseline: zeroOf(rightScale, valueScale, plot.x),
+		baseline: zeroOf(valueScale, value2Scale, plot.x),
+		value2Baseline: zeroOf(value2Scale, valueScale, plot.x),
 		valueTicks: valueScale && input.value ? valueTicksOf(valueScale, input.value.format) : [],
-		rightTicks:
-			rightScale && input.rightValue ? valueTicksOf(rightScale, input.rightValue.format) : [],
+		value2Ticks: value2Scale && input.value2 ? valueTicksOf(value2Scale, input.value2.format) : [],
 		bandTicks: bandAxisTicks(input, band, plot.height, BAND_LABEL_HEIGHT, bandMode),
 		bandPositions: bandCenters(band, count),
 		snapPoints: snapPointsOf(scales, count, input.visibleValues),
 		snapSeries: snapSeriesOf(scales, count, input.visibleValues),
-		titles: horizontalTitles(input, scales, plot),
+		titles: horizontalTitles(input, scales, plot, bandTitle),
 		valueLabelRoom: labelRoomOf(input.valueHeadroom, Math.abs(range[1] - range[0])),
 	}
 }

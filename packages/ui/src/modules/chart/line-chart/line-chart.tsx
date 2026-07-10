@@ -85,8 +85,8 @@ export function LineChart<T>(props: LineChartProps<T>) {
 		width,
 		height,
 		aspectRatio,
-		axes = true,
-		gridLines = true,
+		axes,
+		grid = true,
 		legend,
 		tooltip,
 		crosshair,
@@ -95,14 +95,8 @@ export function LineChart<T>(props: LineChartProps<T>) {
 		fill = false,
 		texture = false,
 		interpolation = 'linear',
-		min,
-		max,
-		leftAxis,
-		rightAxis,
 		reference,
-		xAxis,
 		tickRotation,
-		categories,
 		labels,
 		onCategoryClick,
 		formatValue,
@@ -120,14 +114,8 @@ export function LineChart<T>(props: LineChartProps<T>) {
 			aspectRatio,
 			axes,
 			legend,
-			min,
-			max,
-			leftAxis,
-			rightAxis,
 			reference,
-			xAxis,
 			tickRotation,
-			categories,
 			onCategoryClick,
 			formatValue,
 			// The header travels to the frame through `label`; the hook reads it too,
@@ -157,7 +145,7 @@ export function LineChart<T>(props: LineChartProps<T>) {
 	// Each visible series draws through its own axis's scale; a series whose
 	// scale never resolved takes no marks.
 	const drawn = chart.visible.flatMap((meta) => {
-		const scale = meta.axis === 'right' ? chart.rightScale : chart.yScale
+		const scale = meta.axis === 'y2' ? chart.y2Scale : chart.yScale
 
 		return scale ? [{ meta, scale }] : []
 	})
@@ -259,7 +247,7 @@ export function LineChart<T>(props: LineChartProps<T>) {
 		>
 			{tex.defs}
 
-			{gridLines && chart.gridPositions.length > 0 && (
+			{grid && chart.gridPositions.length > 0 && (
 				<ChartGridLines plot={chart.plot} ticks={chart.gridPositions} />
 			)}
 
@@ -268,14 +256,14 @@ export function LineChart<T>(props: LineChartProps<T>) {
 					plot={chart.plot}
 					ticks={chart.categoryGridPositions}
 					orientation="horizontal"
-					dashed={categories?.separator === 'dashed'}
+					dashed={chart.categorySeparator === 'dashed'}
 				/>
 			)}
 
 			{chart.axes && chart.yScale && <ChartAxis axis="y" plot={chart.plot} ticks={chart.yTicks} />}
 
-			{chart.axes && chart.rightScale && (
-				<ChartAxis axis="y" position="right" plot={chart.plot} ticks={chart.rightTicks} />
+			{chart.axes && chart.y2Scale && (
+				<ChartAxis axis="y" position="right" plot={chart.plot} ticks={chart.y2Ticks} />
 			)}
 
 			{chart.axes && data.length > 0 && (
@@ -333,7 +321,7 @@ export function LineChart<T>(props: LineChartProps<T>) {
 			<ChartReferenceLines
 				plot={chart.plot}
 				scale={chart.yScale}
-				rightScale={chart.rightScale}
+				y2Scale={chart.y2Scale}
 				reference={reference}
 				format={chart.formatAxisValue}
 				animate={animate}
