@@ -25,9 +25,9 @@ describe('chart legend focus persistence (real browser)', () => {
 		{ xKey: 'q', yKey: 'cost', yName: 'Costs' },
 	] as const
 
-	// Two categories × two series: bars run [rev Q1, rev Q2, cost Q1, cost Q2], so
-	// a bar from the second series stands in for "the other series dimmed".
-	const otherSeriesBar = (container: HTMLElement) => allBySlot(container, 'chart-bar')[2]
+	// Each series draws as one `chart-bar` path, so the second path is the second
+	// series — it stands in for "the other series dimmed".
+	const otherSeriesBar = (container: HTMLElement) => allBySlot(container, 'chart-bar')[1]
 
 	const dimmed = (el: Element | undefined) =>
 		(el?.getAttribute('class') ?? '').includes('opacity-25')

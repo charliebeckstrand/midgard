@@ -101,7 +101,8 @@ describe('spark tier is non-interactive (real browser)', () => {
 	it('a spark scatter drops its value labels and hit layer, keeping the points', () => {
 		const { container } = renderUI(scatter(140, 100))
 
-		expect(allBySlot(container, 'chart-scatter-point').length).toBeGreaterThan(0)
+		// Plain discs draw as one path per series; a spark scatter keeps drawing them.
+		expect(bySlot(container, 'chart-scatter-discs')?.getAttribute('d')).toBeTruthy()
 
 		expect(bySlot(container, 'chart-axis-x')).toBeNull()
 

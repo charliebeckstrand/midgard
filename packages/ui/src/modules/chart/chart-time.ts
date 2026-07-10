@@ -301,11 +301,19 @@ export function dateCategoryFormat(
 ): ((value: unknown) => string) | null {
 	if (values.length === 0) return null
 
-	const times = values.map(parseInstant)
+	// One pass with an early exit: the usual non-date axis fails on its first
+	// value, so detection costs one parse instead of one per row — `Date.parse`
+	// on an arbitrary string is expensive, and a mapped-then-checked pass paid
+	// it for the whole dataset before answering "not dates".
+	let withYear = false
 
-	if (times.some((time) => time === null)) return null
+	for (const value of values) {
+		const time = parseInstant(value)
 
-	const withYear = times.some((time) => new Date(time as number).getFullYear() !== referenceYear)
+		if (time === null) return null
+
+		if (new Date(time).getFullYear() !== referenceYear) withYear = true
+	}
 
 	return (value) => {
 		const time = parseInstant(value)

@@ -10,6 +10,23 @@ import { TICK_CHAR_WIDTH } from '../../modules/chart/chart-constants'
 import { bandScale } from '../../modules/chart/chart-scale'
 import { act, allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
 
+/**
+ * How many bars drew. Each visible series is one `chart-bar` path and each bar
+ * an `M`-opened subfigure within it, so the count sums the move-tos across the
+ * series paths — the per-bar total the marks used to render as separate paths.
+ */
+function barCount(container: HTMLElement): number {
+	return allBySlot(container, 'chart-bar').reduce(
+		(sum, path) => sum + (path.getAttribute('d')?.match(/M/g)?.length ?? 0),
+		0,
+	)
+}
+
+/** The isolation overlay bars — one per pointed/snapped datum, re-drawn full over the dimmed series. */
+function spots(container: HTMLElement): Element[] {
+	return allBySlot(container, 'chart-bar-spot')
+}
+
 const DATA = [
 	{ quarter: 'Q1', revenue: 40, costs: 24 },
 	{ quarter: 'Q2', revenue: 80, costs: 31 },
@@ -37,7 +54,7 @@ describe('BarChart', () => {
 	it('draws one grouped bar per series per category', () => {
 		const { container } = renderUI(chart())
 
-		expect(allBySlot(container, 'chart-bar')).toHaveLength(6)
+		expect(barCount(container)).toBe(6)
 
 		expect(bySlot(container, 'chart-plot')).toHaveAttribute('aria-label', 'Revenue by quarter')
 	})
@@ -218,20 +235,25 @@ describe('BarChart', () => {
 
 		fireEvent.pointerMove(hit, probe)
 
-		const lit = (container: HTMLElement) =>
-			allBySlot(container, 'chart-bar').filter(
-				(bar) => !bar.getAttribute('class')?.includes('opacity-25'),
+		const dimmed = (container: HTMLElement) =>
+			allBySlot(container, 'chart-bar').every((bar) =>
+				bar.getAttribute('class')?.includes('opacity-25'),
 			)
 
-		// Isolation mirrors the snapped readout: the nearest bar lifts alone.
-		expect(lit(snapped.container)).toHaveLength(1)
+		// Isolation mirrors the snapped readout: every series path recedes and the
+		// nearest bar lifts alone as the overlay.
+		expect(dimmed(snapped.container)).toBe(true)
+
+		expect(spots(snapped.container)).toHaveLength(1)
 
 		// Without the snap the readout reads nothing here, so nothing isolates.
 		const free = renderUI(chart())
 
 		fireEvent.pointerMove(bySlot(free.container, 'chart-hit') as Element, probe)
 
-		expect(lit(free.container)).toHaveLength(6)
+		expect(dimmed(free.container)).toBe(false)
+
+		expect(spots(free.container)).toHaveLength(0)
 	})
 
 	it('rules a horizontal value line at the pointer with crosshair x', () => {
@@ -386,7 +408,7 @@ describe('BarChart', () => {
 			chart({ data: gappy, series: [{ xKey: 'quarter', yKey: 'revenue', yName: 'Revenue' }] }),
 		)
 
-		expect(allBySlot(container, 'chart-bar')).toHaveLength(2)
+		expect(barCount(container)).toBe(2)
 
 		expect(bySlot(container, 'chart-table')?.textContent).toContain('—')
 	})
@@ -394,7 +416,7 @@ describe('BarChart', () => {
 	it('still renders the marks under animate', () => {
 		const { container } = renderUI(chart({ animate: true }))
 
-		expect(allBySlot(container, 'chart-bar')).toHaveLength(6)
+		expect(barCount(container)).toBe(6)
 	})
 
 	it('renders the legend as toggle buttons, centered on mobile', () => {
@@ -433,7 +455,7 @@ describe('BarChart', () => {
 
 		expect(bySlot(container, 'chart-legend')).toHaveAttribute('role', 'toolbar')
 
-		expect(allBySlot(container, 'chart-bar')).toHaveLength(3)
+		expect(barCount(container)).toBe(3)
 
 		fireEvent.click(item)
 
@@ -441,11 +463,11 @@ describe('BarChart', () => {
 
 		expect(item.querySelector('.line-through')).not.toBeNull()
 
-		expect(allBySlot(container, 'chart-bar')).toHaveLength(0)
+		expect(barCount(container)).toBe(0)
 
 		fireEvent.click(item)
 
-		expect(allBySlot(container, 'chart-bar')).toHaveLength(3)
+		expect(barCount(container)).toBe(3)
 	})
 
 	it('roves legend focus with the arrow keys as one tab stop, clearing on Escape', async () => {
@@ -483,10 +505,10 @@ describe('BarChart', () => {
 
 		const bars = allBySlot(container, 'chart-bar')
 
-		// Revenue bars (first series) dim; costs bars stay full.
+		// Revenue path (first series) dims; the costs path stays full.
 		expect(bars[0]?.getAttribute('class')).toContain('opacity-25')
 
-		expect(bars[3]?.getAttribute('class')).not.toContain('opacity-25')
+		expect(bars[1]?.getAttribute('class')).not.toContain('opacity-25')
 
 		fireEvent.pointerLeave(costs)
 
@@ -500,7 +522,7 @@ describe('BarChart', () => {
 
 		fireEvent.click(costs)
 
-		expect(allBySlot(container, 'chart-bar')).toHaveLength(3)
+		expect(barCount(container)).toBe(3)
 
 		expect(costs).toHaveAttribute('aria-pressed', 'false')
 
@@ -517,7 +539,7 @@ describe('BarChart', () => {
 
 		fireEvent.click(costs)
 
-		expect(allBySlot(container, 'chart-bar')).toHaveLength(6)
+		expect(barCount(container)).toBe(6)
 	})
 
 	it('routes formatValue through ticks, tooltip, and the data table', () => {
@@ -612,7 +634,7 @@ describe('BarChart', () => {
 	it('renders an empty frame for empty data', () => {
 		const { container } = renderUI(chart({ data: [] }))
 
-		expect(allBySlot(container, 'chart-bar')).toHaveLength(0)
+		expect(barCount(container)).toBe(0)
 
 		expect(bySlot(container, 'chart-table')).toBeNull()
 
@@ -628,7 +650,7 @@ describe('BarChart', () => {
 		const stacked = renderUI(chart({ stacked: true }))
 
 		// One segment per series per category still.
-		expect(allBySlot(stacked.container, 'chart-bar')).toHaveLength(6)
+		expect(barCount(stacked.container)).toBe(6)
 
 		// The value axis now spans the summed column (Q2 = 80 + 31 = 111), so a
 		// three-figure tick appears that the grouped chart never reaches.
@@ -783,7 +805,7 @@ describe('BarChart horizontal', () => {
 	it('draws the same bars with the axes transposed', () => {
 		const { container } = renderUI(chart({ orientation: 'horizontal' }))
 
-		expect(allBySlot(container, 'chart-bar')).toHaveLength(6)
+		expect(barCount(container)).toBe(6)
 
 		// Categories move to the left (y) axis, values to the bottom (x) axis.
 		const categoryAxis = bySlot(container, 'chart-axis-y')

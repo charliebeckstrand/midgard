@@ -5,6 +5,7 @@ import { type FrameSizing, usePlotFrame } from '../../../hooks'
 import { useResolvedSize } from '../../../primitives/density'
 import type { Step } from '../../../recipes'
 import { type ChartSeriesColor, k } from '../../../recipes/kata/chart'
+import { once } from '../../../utilities'
 import { ChartAxis, type ChartAxisTick } from '../chart-axis'
 import {
 	CHART_METRICS,
@@ -603,7 +604,14 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 
 	const indices = list.map((entry) => entry.index)
 
-	const readout = scatterReadout(visible, uniqueXs, format, formatX)
+	// A cached thunk: at ten thousand points the readout formats every unique-x
+	// column through `Intl`, which costs more than drawing the discs — so the
+	// mount render only decides one exists and the first consumer (the hover
+	// tooltip, the deferred table) materializes it off that path.
+	const readout =
+		visible.length === 0 || uniqueXs.length === 0
+			? null
+			: once(() => scatterReadout(visible, uniqueXs, format, formatX))
 
 	const rails = resolveCrosshair(crosshair)
 

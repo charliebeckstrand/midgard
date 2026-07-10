@@ -1,6 +1,7 @@
 'use client'
 
 import { motion } from 'motion/react'
+import { useMemo } from 'react'
 import { cn } from '../../core'
 import type { BarMark } from './bar-chart/bar-chart-geometry'
 import { BAR_GROW, BAR_SHRINK, BAR_STAGGER, barGrow } from './chart-motion'
@@ -43,7 +44,20 @@ function barClass(
 	)
 }
 
-/** The plain-SVG bars: the cheap default with no motion runtime work. @internal */
+/**
+ * The plain-SVG bars: each series drawn as a single `<path>` of every bar —
+ * each a one-end-rounded subfigure — rather than a path apiece, so a dense
+ * grouped chart is one DOM node per series and one paint. Bars are opaque and
+ * never overlap, so the concatenation reads identically to separate paths.
+ *
+ * Isolation stays per-datum without re-drawing the series: a pointed bar
+ * recedes every other, so the whole series path dims and the one lit bar
+ * re-draws over it — a single overlay path, not a rebuild. The series paths are
+ * memoised on `marks`, so a pointer crossing (which re-runs this component only
+ * through the emphasis context, never the chart body) rebuilds nothing.
+ *
+ * @internal
+ */
 export function ChartBarMarks({
 	marks,
 	paints,
@@ -51,29 +65,56 @@ export function ChartBarMarks({
 	fills,
 	textureActive = false,
 }: ChartBarMarksProps) {
-	const { lit } = useChartMarkEmphasis()
+	const { mark } = useChartMarkEmphasis()
 
-	return marks.flatMap((row, seriesIndex) => {
+	// Stable across emphasis changes — the chart body holds `marks` steady while
+	// the pointer moves, so a crossing never rebuilds these strings.
+	const paths = useMemo(
+		() =>
+			marks.map((row) =>
+				row
+					.filter((bar): bar is BarMark => bar !== null)
+					.map((bar) => bar.d)
+					.join(' '),
+			),
+		[marks],
+	)
+
+	return marks.map((row, seriesIndex) => {
 		const paint = paints[seriesIndex]
 
 		const series = indices[seriesIndex] ?? seriesIndex
 
-		return row.map(
-			(mark, datum) =>
-				mark && (
-					// `mark.key` is geometry-free: a resize shifts the bar's position but
-					// must not remount the mark, which would replay the grow animation.
-					// A raw colour paints through the `fill` attribute; a slot omits it
-					// (`undefined`) and fills through its class.
+		// A whole-series emphasis (a legend hover, `datum: null`) lights its series
+		// and dims the rest; a single pointed bar (`datum` set) dims every series,
+		// its own included, and the lit bar re-draws over the dim below.
+		const seriesLit = mark !== null && mark.series === series && mark.datum === null
+
+		const dimmed = mark !== null && !seriesLit
+
+		const spot =
+			mark !== null && mark.series === series && mark.datum !== null ? row[mark.datum] : undefined
+
+		return (
+			<g key={series} data-slot="chart-bar-series">
+				<path
+					data-slot="chart-bar"
+					d={paths[seriesIndex]}
+					fill={paint && rawColor(paint)}
+					style={textureStyle(fills?.[seriesIndex])}
+					className={barClass(paint, dimmed, textureActive, fills?.[seriesIndex])}
+				/>
+
+				{spot && (
 					<path
-						key={mark.key}
-						data-slot="chart-bar"
-						d={mark.d}
+						data-slot="chart-bar-spot"
+						d={spot.d}
 						fill={paint && rawColor(paint)}
 						style={textureStyle(fills?.[seriesIndex])}
-						className={barClass(paint, !lit(series, datum), textureActive, fills?.[seriesIndex])}
+						className={barClass(paint, false, textureActive, fills?.[seriesIndex])}
 					/>
-				),
+				)}
+			</g>
 		)
 	})
 }

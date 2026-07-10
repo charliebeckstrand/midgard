@@ -2,6 +2,14 @@ import { describe, expect, it } from 'vitest'
 import { ComboChart } from '../../modules/chart/combo-chart'
 import { allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
 
+/** Bars in a combo draw as one path per series; each bar is an `M`-opened subfigure. */
+function barCount(container: HTMLElement): number {
+	return allBySlot(container, 'chart-bar').reduce(
+		(sum, path) => sum + (path.getAttribute('d')?.match(/M/g)?.length ?? 0),
+		0,
+	)
+}
+
 const DATA = [
 	{ quarter: 'Q1', revenue: 40, margin: 12, cost: 28 },
 	{ quarter: 'Q2', revenue: 80, margin: 18, cost: 30 },
@@ -35,7 +43,7 @@ describe('ComboChart', () => {
 	it('draws bar series as bars and line series as lines, bars behind', () => {
 		const { container } = renderUI(chart())
 
-		expect(allBySlot(container, 'chart-bar')).toHaveLength(3)
+		expect(barCount(container)).toBe(3)
 
 		expect(allBySlot(container, 'chart-line')).toHaveLength(1)
 
@@ -90,7 +98,7 @@ describe('ComboChart', () => {
 	it('still renders both mark kinds under animate', () => {
 		const { container } = renderUI(chart({ animate: true }))
 
-		expect(allBySlot(container, 'chart-bar')).toHaveLength(3)
+		expect(barCount(container)).toBe(3)
 
 		expect(allBySlot(container, 'chart-line')).toHaveLength(1)
 	})
@@ -108,7 +116,7 @@ describe('ComboChart', () => {
 	it('draws an area series as a filled wash under its top-edge line', () => {
 		const { container } = renderUI(chart({ series: [...TRIO] }))
 
-		expect(allBySlot(container, 'chart-bar')).toHaveLength(3)
+		expect(barCount(container)).toBe(3)
 
 		// One contiguous run of three points: a single wash under a single edge.
 		expect(allBySlot(container, 'chart-area')).toHaveLength(1)
@@ -173,7 +181,7 @@ describe('ComboChart', () => {
 
 		expect(allBySlot(container, 'chart-area')).toHaveLength(1)
 
-		expect(allBySlot(container, 'chart-bar')).toHaveLength(3)
+		expect(barCount(container)).toBe(3)
 	})
 
 	it('isolates the nearer stroke where the line and area edge share the catch', () => {

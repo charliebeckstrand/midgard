@@ -18,7 +18,7 @@ import { k } from '../../recipes/kata/chart'
 import { bandCoord, type ChartOrientation, project, valueCoord } from './chart-orientation'
 import { type ChartSnap, nearestValue } from './chart-snap'
 import { useChartHover } from './context'
-import type { ChartReadout } from './types'
+import type { ChartReadout, ChartReadoutSource } from './types'
 
 /** Props for {@link ChartTooltip}. @internal */
 export type ChartTooltipProps = {
@@ -28,7 +28,11 @@ export type ChartTooltipProps = {
 	 * region one-to-one, so the rect origin plus a frame point is that point.
 	 */
 	plotRef: RefObject<HTMLDivElement | null>
-	readout: ChartReadout
+	/**
+	 * The values behind the marks as a cached thunk — materialized here only
+	 * while a hover is live, so an idle chart never pays the cell formatting.
+	 */
+	readout: ChartReadoutSource
 	/**
 	 * Snap targets when the crosshair snaps. Present, the tooltip rides the
 	 * snapped intersection wherever the pointer is in the plot; absent, it
@@ -54,6 +58,19 @@ export type ChartTooltipProps = {
 	 * row dims, mirroring the marks; `null` (the default) reads every row equally.
 	 */
 	emphasis?: number | null
+}
+
+/** The readout's rows in the caller's display order, or as they are without one. @internal */
+function readoutRows(readout: ChartReadout | null, order: number[] | undefined) {
+	if (readout === null) return []
+
+	if (!order) return readout.rows
+
+	return order.flatMap((series) => {
+		const row = readout.rows.find((candidate) => candidate.index === series)
+
+		return row ? [row] : []
+	})
 }
 
 /** The gap in px floating-ui keeps between the anchor point and the readout. @internal */
@@ -89,7 +106,7 @@ const SWATCH_SHAPE = { rect: 'square', line: 'line' } as const satisfies Record<
  */
 export function ChartTooltip({
 	plotRef,
-	readout,
+	readout: source,
 	snap,
 	orientation = 'vertical',
 	order,
@@ -97,17 +114,15 @@ export function ChartTooltip({
 }: ChartTooltipProps) {
 	const { index, point, onData } = useChartHover()
 
+	// Materialized only while a hover is live: the thunk caches, so the first
+	// pointed frame pays the build once and every later move reads it back.
+	const readout = index === null ? null : source()
+
 	// The rows read in the marks' visible order when the chart supplies one — a
 	// stacked column top-first, overlapping lines in value order — looked up by
 	// series index off the readout, which itself stays in series order for the
 	// hidden data table. No order given, the rows keep that series order.
-	const rows = order
-		? order.flatMap((series) => {
-				const row = readout.rows.find((candidate) => candidate.index === series)
-
-				return row ? [row] : []
-			})
-		: readout.rows
+	const rows = readoutRows(readout, order)
 
 	// Snapped, the anchor is the intersection — the band center crossed with the
 	// value nearest the pointer, projected onto the screen through the orientation;
@@ -172,7 +187,7 @@ export function ChartTooltip({
 	return (
 		<TooltipContext value={value}>
 			<TooltipContent size="sm">
-				{index !== null && (
+				{index !== null && readout !== null && (
 					<div aria-hidden="true">
 						<div className={cn(k.label, 'mb-1 whitespace-nowrap')}>{readout.categories[index]}</div>
 

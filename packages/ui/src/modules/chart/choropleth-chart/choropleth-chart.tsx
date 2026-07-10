@@ -3,6 +3,7 @@
 import { type ReactElement, type ReactNode, type RefObject, useRef } from 'react'
 import { cn } from '../../../core'
 import type { AccessibleName } from '../../../types'
+import { once } from '../../../utilities'
 import {
 	type MapAspectRatio,
 	type MapFeature,
@@ -15,7 +16,7 @@ import { ChartContextMenu } from '../chart-context-menu'
 import type { ChartContextMenuConfig, ChartRangeLegendConfig, DataKey } from '../chart-schema'
 import { formatChartValue, READOUT_GAP } from '../chart-series'
 import { useChartFullscreen } from '../context'
-import type { ChartReadout } from '../types'
+import type { ChartReadout, ChartReadoutSource } from '../types'
 
 /**
  * The one series a choropleth shades regions with: the id and value fields to
@@ -230,8 +231,9 @@ export function ChoroplethChart<T = never>(props: ChoroplethChartProps<T>) {
 	const format = formatValue ?? formatChartValue
 
 	// Built from the input rows for the menu's CSV / copy actions; drops them when
-	// there is nothing to export.
-	const readout = choroplethReadout(props.data, primary, format)
+	// there is nothing to export. A cached thunk ({@link ChartReadoutSource}), so
+	// only a selected action materializes it.
+	const readout = once(() => choroplethReadout(props.data, primary, format))
 
 	// The rasterised root and right-click surface. MapPlat keeps its own root ref
 	// private, so wrap it in one sized like MapPlat's frame — full-width, or the
@@ -284,7 +286,7 @@ export function ChoroplethChart<T = never>(props: ChoroplethChartProps<T>) {
 type ChoroplethContextFrameProps = {
 	contextMenu: ChartContextMenuConfig | false | undefined
 	rootRef: RefObject<HTMLDivElement | null>
-	readout: ChartReadout | null
+	readout: ChartReadoutSource | null
 	title?: string
 	/** A fresh copy of the choropleth for the menu's fullscreen re-mount. */
 	self: ReactElement

@@ -13,6 +13,7 @@ import {
 	MARKER_RADIUS,
 	TICK_CHAR_WIDTH,
 } from '../chart-constants'
+import { coord } from '../chart-coords'
 import { beatsHeldMark } from '../chart-hit-test'
 import { linearScale } from '../chart-scale'
 import { READOUT_GAP } from '../chart-series'
@@ -147,6 +148,46 @@ export function scatterMarks(
 		y: mapY(point.y),
 		r: radius(point.size),
 	}))
+}
+
+/**
+ * Every disc of a series concatenated into one path `d`. Each disc is a closed
+ * subfigure — two half-arcs around its centre — so the fill fills every disc
+ * and the stroke rings each one, exactly as separate circles did. Marks with a
+ * non-positive radius are skipped — a degenerate arc would paint nothing and
+ * only lengthen the string.
+ *
+ * A plain series shares one radius across every disc, so the two arc commands
+ * — which read only the radius, not the centre — are identical for all of
+ * them; the builder caches that suffix and rebuilds it only when a radius
+ * actually changes, leaving one move-to per disc as the sole per-mark
+ * formatting. At ten thousand points that is the difference between fifty
+ * thousand coordinate roundings and twenty thousand.
+ *
+ * @internal
+ */
+export function scatterDiscsPath(marks: ScatterMark[]): string {
+	const parts: string[] = []
+
+	let cachedR = Number.NaN
+
+	let arc = ''
+
+	for (const mark of marks) {
+		if (mark.r <= 0) continue
+
+		if (mark.r !== cachedR) {
+			cachedR = mark.r
+
+			const r = coord(mark.r)
+
+			arc = `a ${r} ${r} 0 1 0 ${coord(mark.r * 2)} 0 a ${r} ${r} 0 1 0 ${coord(-mark.r * 2)} 0 Z`
+		}
+
+		parts.push(`M ${coord(mark.x - mark.r)} ${coord(mark.y)} ${arc}`)
+	}
+
+	return parts.join(' ')
 }
 
 /** One snapped column stop: its value-axis screen position and the point behind it. @internal */
@@ -289,15 +330,15 @@ export function nearestCenterIndex(coord: number, centers: number[]): number | n
  */
 function resolveHeldDisc(
 	best: { series: number; datum: number } | null,
-	bestDistance: number,
+	bestSquared: number,
 	held: { series: number; datum: number } | null,
-	heldDistance: number,
+	heldSquared: number,
 ): { series: number; datum: number } | null {
-	if (best === null || held === null || !Number.isFinite(heldDistance)) return best
+	if (best === null || held === null || !Number.isFinite(heldSquared)) return best
 
 	if (best.series === held.series && best.datum === held.datum) return best
 
-	if (beatsHeldMark(bestDistance * bestDistance, heldDistance * heldDistance)) return best
+	if (beatsHeldMark(bestSquared, heldSquared)) return best
 
 	return held
 }
@@ -311,6 +352,10 @@ function resolveHeldDisc(
  * challenger decisively closes ({@link beatsHeldMark}): the resolution is
  * sticky across the midline between discs rather than flipping on it.
  *
+ * This scan runs per pointer move over every visible point, so it stays in
+ * squared distances end to end — nearest-by-distance and nearest-by-squared
+ * pick the same disc, and {@link beatsHeldMark} already compares squares.
+ *
  * @internal
  */
 export function scatterMarkAt(
@@ -322,33 +367,56 @@ export function scatterMarkAt(
 ): { series: number; datum: number } | null {
 	let best: { series: number; datum: number } | null = null
 
-	let bestDistance = Number.POSITIVE_INFINITY
+	let bestSquared = Number.POSITIVE_INFINITY
 
-	let heldDistance = Number.POSITIVE_INFINITY
+	let heldSquared = Number.POSITIVE_INFINITY
 
 	for (let series = 0; series < marks.length; series++) {
 		const points = marks[series] as ScatterMark[]
 
 		for (let datum = 0; datum < points.length; datum++) {
-			const point = points[datum] as ScatterMark
+			const squared = discCatchSquared(points[datum] as ScatterMark, x, y, slack)
 
-			const distance = Math.hypot(point.x - x, point.y - y)
-
-			if (distance > point.r + slack) continue
+			if (squared < 0) continue
 
 			if (held !== null && series === held.series && datum === held.datum) {
-				heldDistance = distance
+				heldSquared = squared
 			}
 
-			if (distance < bestDistance) {
-				bestDistance = distance
+			if (squared < bestSquared) {
+				bestSquared = squared
 
 				best = { series, datum }
 			}
 		}
 	}
 
-	return resolveHeldDisc(best, bestDistance, held, heldDistance)
+	return resolveHeldDisc(best, bestSquared, held, heldSquared)
+}
+
+/**
+ * The squared pointer distance to a caught disc, or `-1` off it. Rejects on
+ * each axis before multiplying, so the far discs (nearly all of them, every
+ * move) cost two compares and no arithmetic. `Math.hypot` has no place here:
+ * it buys overflow safety these viewport-sized coordinates never need, at
+ * several times the cost of the products.
+ *
+ * @internal
+ */
+function discCatchSquared(point: ScatterMark, x: number, y: number, slack: number): number {
+	const reach = point.r + slack
+
+	const dx = point.x - x
+
+	if (dx > reach || dx < -reach) return -1
+
+	const dy = point.y - y
+
+	if (dy > reach || dy < -reach) return -1
+
+	const squared = dx * dx + dy * dy
+
+	return squared > reach * reach ? -1 : squared
 }
 
 /**

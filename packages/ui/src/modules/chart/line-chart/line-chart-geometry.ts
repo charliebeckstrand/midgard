@@ -5,6 +5,8 @@
  * isolation.
  */
 
+import { coord } from '../chart-coords'
+
 /** How a line connects its points: straight or a rounded monotone curve. */
 export type LineInterpolation = 'linear' | 'smooth'
 
@@ -79,12 +81,12 @@ function segmentPath(run: LinePoint[], interpolation: LineInterpolation): string
 	const start = run[0] as LinePoint
 
 	if (interpolation === 'linear' || run.length < 3) {
-		return `M ${run.map((point) => `${point.x} ${point.y}`).join(' L ')}`
+		return `M ${run.map((point) => `${coord(point.x)} ${coord(point.y)}`).join(' L ')}`
 	}
 
 	const tangents = monotoneTangents(run)
 
-	let d = `M ${start.x} ${start.y}`
+	let d = `M ${coord(start.x)} ${coord(start.y)}`
 
 	for (let i = 0; i < run.length - 1; i++) {
 		const p0 = run[i] as LinePoint
@@ -101,7 +103,7 @@ function segmentPath(run: LinePoint[], interpolation: LineInterpolation): string
 
 		const c2y = p1.y - (tangents[i + 1] as number) * dx
 
-		d += ` C ${c1x} ${c1y} ${c2x} ${c2y} ${p1.x} ${p1.y}`
+		d += ` C ${coord(c1x)} ${coord(c1y)} ${coord(c2x)} ${coord(c2y)} ${coord(p1.x)} ${coord(p1.y)}`
 	}
 
 	return d
@@ -174,7 +176,7 @@ export function lineGeometry(
 
 		const last = run.at(-1) as LinePoint
 
-		return `${segments[index]} L ${last.x} ${baseline} L ${first.x} ${baseline} Z`
+		return `${segments[index]} L ${coord(last.x)} ${coord(baseline)} L ${coord(first.x)} ${coord(baseline)} Z`
 	})
 
 	return {

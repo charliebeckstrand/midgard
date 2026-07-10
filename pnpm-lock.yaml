@@ -239,6 +239,12 @@ importers:
       '@vitest/coverage-v8':
         specifier: ^4.1.8
         version: 4.1.8(@vitest/browser@4.1.8)(vitest@4.1.8)
+      ag-charts-community:
+        specifier: ^14.0.0
+        version: 14.0.0
+      highcharts:
+        specifier: ^13.0.0
+        version: 13.0.0
       jest-axe:
         specifier: ^10.0.0
         version: 10.0.0
@@ -1922,6 +1928,18 @@ packages:
     engines: {node: '>=0.4.0'}
     hasBin: true
 
+  ag-charts-community@14.0.0:
+    resolution: {integrity: sha512-u/O7T/EGxj8s6cZjbYU1CaRObnjMzdfXZVido9uXbeAwBkT4rxXF6OWSq1SkkSrZD1+pwusHn3cbul4Ly3yzPA==}
+
+  ag-charts-core@14.0.0:
+    resolution: {integrity: sha512-xcFSQ0Ces8JvH5RpKoZIjrFzdvju91gIXODj33Byg6ShwkixrHyLaCf17addfSsqerSSdMkw0iiceD9afU83UQ==}
+
+  ag-charts-locale@14.0.0:
+    resolution: {integrity: sha512-14mGnsQgG7VzdQwt7Jq2MFPGPtO8y6jAECN4nae7t3fJAPq162mmrgDaqpwHdAZxKPkMNte98DUQ8ULrtSbUpQ==}
+
+  ag-charts-types@14.0.0:
+    resolution: {integrity: sha512-89X4J/OeOTzTp505126JayGEn3k6QUKz3UHSR0/ggoVZYzVqtMN13k/B136S1+YBwgnzyJ/NARnnIRTPWsWG9g==}
+
   ajv@8.20.0:
     resolution: {integrity: sha512-Thbli+OlOj+iMPYFBVBfJ3OmCAnaSyNn4M1vz9T6Gka5Jt9ba/HIR56joy65tY6kx/FCF5VXNB819Y7/GUrBGA==}
 
@@ -2358,6 +2376,17 @@ packages:
 
   hast-util-whitespace@3.0.0:
     resolution: {integrity: sha512-88JUN06ipLwsnv+dVn+OIYOvAuvBMy/Qoi6O7mQHxdPXpjy+Cd6xRkWwux7DKO+4sYILtLBRIKgsdpS2gQc7qw==}
+
+  highcharts@13.0.0:
+    resolution: {integrity: sha512-AoFXei9hSnVXo8X5PmXzSiNXwPMgA+NzyN35uRRy0N1XwbJbRI1laTCaaFci9QB9Wyv9ZFWlgF0xzgivavJpDA==}
+    peerDependencies:
+      jspdf: ^4.1.0
+      svg2pdf.js: ^2.7.0
+    peerDependenciesMeta:
+      jspdf:
+        optional: true
+      svg2pdf.js:
+        optional: true
 
   hlidskjalf@0.4.4:
     resolution: {integrity: sha512-P6+RC+88moV1OgqFGOmZ5X7Pqh8alBwJZQh2SdX0gDMUCTiAxvIHsxo8nX8XkPXf0b95oxL9sIQUUmkCTT2z/Q==}
@@ -4743,6 +4772,20 @@ snapshots:
 
   acorn@8.16.0: {}
 
+  ag-charts-community@14.0.0:
+    dependencies:
+      ag-charts-core: 14.0.0
+      ag-charts-locale: 14.0.0
+      ag-charts-types: 14.0.0
+
+  ag-charts-core@14.0.0:
+    dependencies:
+      ag-charts-types: 14.0.0
+
+  ag-charts-locale@14.0.0: {}
+
+  ag-charts-types@14.0.0: {}
+
   ajv@8.20.0:
     dependencies:
       fast-deep-equal: 3.1.3
@@ -5132,6 +5175,8 @@ snapshots:
   hast-util-whitespace@3.0.0:
     dependencies:
       '@types/hast': 3.0.4
+
+  highcharts@13.0.0: {}
 
   hlidskjalf@0.4.4(@types/react@19.2.15):
     dependencies:

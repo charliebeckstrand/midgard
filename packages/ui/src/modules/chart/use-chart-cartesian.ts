@@ -3,6 +3,7 @@
 import { type FrameReserve, usePlotFrame } from '../../hooks'
 import { useResolvedSize } from '../../primitives/density'
 import type { Step } from '../../recipes'
+import { once } from '../../utilities'
 import type { ChartAxisTick } from './chart-axis'
 import { CHART_METRICS } from './chart-constants'
 import {
@@ -44,7 +45,7 @@ import {
 	policyPlotHeight,
 } from './chart-tier'
 import { dateCategoryFormat, parseInstant, timeCategory } from './chart-time'
-import type { ChartReadout } from './types'
+import type { ChartReadoutSource } from './types'
 import { useChartReferenceToggle, useChartSeriesToggle } from './use-chart-series-toggle'
 
 /** The cartesian props minus the accessible name, which stays with the frame. @internal */
@@ -171,7 +172,7 @@ export type CartesianChart = {
 	emphasis: number | null
 	/** Moves the legend emphasis (`null` clears it). */
 	setEmphasis: (index: number | null) => void
-	readout: ChartReadout | null
+	readout: ChartReadoutSource | null
 	/**
 	 * The series indices the hover tooltip lists {@link readout}'s rows in — the
 	 * marks' own visible top-to-bottom order (a vertical stack reversed, else the
@@ -824,9 +825,14 @@ export function useChartCartesian<T>(
 		})),
 	})
 
+	// A cached thunk, never a value: building the readout formats every category
+	// × series cell, which at dense sizes outweighs drawing the marks, so the
+	// mount-critical render only decides whether one exists (cheap) and leaves
+	// materializing to the first consumer that needs the cells — the tooltip on
+	// hover, the deferred table a beat after mount ({@link ChartReadoutSource}).
 	const readout =
 		xKey && data.length > 0 && visible.length > 0
-			? chartReadout(data, xKey, visible, formatAxisValue, readoutCategory)
+			? once(() => chartReadout(data, xKey, visible, formatAxisValue, readoutCategory))
 			: null
 
 	// The tooltip lists its rows in the marks' visible order (a vertical stack

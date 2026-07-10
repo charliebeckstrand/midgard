@@ -23,6 +23,16 @@ function points(container: HTMLElement): SVGCircleElement[] {
 	return [...container.querySelectorAll<SVGCircleElement>('[data-slot="chart-scatter-point"]')]
 }
 
+/** The `d` of a plain series' single discs path, where every disc is one `M` subfigure. */
+function discsPath(container: HTMLElement): string {
+	return bySlot(container, 'chart-scatter-discs')?.getAttribute('d') ?? ''
+}
+
+/** How many discs a plain series drew — one `M` command opens each. */
+function discCount(container: HTMLElement): number {
+	return discsPath(container).match(/M/g)?.length ?? 0
+}
+
 describe('scatter geometry', () => {
 	it('keys on the ascending unique x values across series', () => {
 		expect(
@@ -150,7 +160,7 @@ describe('ScatterChart', () => {
 			/>,
 		)
 
-		expect(points(container)).toHaveLength(3)
+		expect(discCount(container)).toBe(3)
 
 		// Numeric ticks line both axes.
 		expect(bySlot(container, 'chart-axis-y')).not.toBeNull()
@@ -174,7 +184,7 @@ describe('ScatterChart', () => {
 			/>,
 		)
 
-		expect(points(container)).toHaveLength(3)
+		expect(discCount(container)).toBe(3)
 
 		// One unique-x column carries all three values, coincident ones included.
 		expect(bySlot(container, 'chart-table')?.textContent).toContain('5, 5, 9')
@@ -195,11 +205,11 @@ describe('ScatterChart', () => {
 			/>,
 		)
 
-		for (const disc of points(spread.container)) {
-			expect(Number.isFinite(Number(disc.getAttribute('cx')))).toBe(true)
+		// Both discs plot on finite coordinates — a wide magnitude range never
+		// leaks a `NaN` into the path that would blank the whole series.
+		expect(discCount(spread.container)).toBe(2)
 
-			expect(Number.isFinite(Number(disc.getAttribute('cy')))).toBe(true)
-		}
+		expect(discsPath(spread.container)).not.toContain('NaN')
 
 		const lone = renderUI(
 			<ScatterChart
@@ -210,9 +220,9 @@ describe('ScatterChart', () => {
 			/>,
 		)
 
-		expect(points(lone.container)).toHaveLength(1)
+		expect(discCount(lone.container)).toBe(1)
 
-		expect(Number.isFinite(Number(points(lone.container)[0]?.getAttribute('cx')))).toBe(true)
+		expect(discsPath(lone.container)).not.toContain('NaN')
 	})
 
 	it('toggles a series off through the legend', async () => {

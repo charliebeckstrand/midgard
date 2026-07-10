@@ -35,20 +35,39 @@ describe('spark scatter fits and centers in its box (real browser)', () => {
 		{ x: 4, y: 67, w: 70 },
 	]
 
-	/** The drawing box and every disc's center and radius, read off the rendered SVG. */
+	/**
+	 * The drawing box and every disc's center and radius, read off the rendered
+	 * SVG. A bubble series draws a circle per disc; a plain series draws one path
+	 * of `M cx-r cy a r …` subfigures, so each disc's center reads back as the
+	 * move-to x plus the radius.
+	 */
 	const discs = (container: HTMLElement) => {
 		const svg = bySlot(container, 'chart-plot')?.querySelector('svg') as SVGSVGElement
 
+		const box = { width: svg.viewBox.baseVal.width, height: svg.viewBox.baseVal.height }
+
 		const circles = allBySlot(container, 'chart-scatter-point') as unknown as SVGCircleElement[]
 
-		return {
-			box: { width: svg.viewBox.baseVal.width, height: svg.viewBox.baseVal.height },
-			marks: circles.map((circle) => ({
-				cx: circle.cx.baseVal.value,
-				cy: circle.cy.baseVal.value,
-				r: circle.r.baseVal.value,
-			})),
+		if (circles.length > 0) {
+			return {
+				box,
+				marks: circles.map((circle) => ({
+					cx: circle.cx.baseVal.value,
+					cy: circle.cy.baseVal.value,
+					r: circle.r.baseVal.value,
+				})),
+			}
 		}
+
+		const d = bySlot(container, 'chart-scatter-discs')?.getAttribute('d') ?? ''
+
+		const marks = [...d.matchAll(/M (-?[\d.]+) (-?[\d.]+) a (-?[\d.]+)/g)].map((m) => {
+			const r = Number(m[3])
+
+			return { cx: Number(m[1]) + r, cy: Number(m[2]), r }
+		})
+
+		return { box, marks }
 	}
 
 	it('a spark scatter pins the data extremes to the inset edges and clips nothing', () => {
