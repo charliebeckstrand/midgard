@@ -148,7 +148,7 @@ function ChartLegendEntry({
 	// label span's — must arm the truncation measure.
 	const entryRef = useRef<HTMLButtonElement>(null)
 
-	const [labelRef, truncated] = useTruncation<HTMLSpanElement>(entryRef)
+	const [labelRef, truncated] = useTruncation<HTMLSpanElement>({ armRef: entryRef })
 
 	const content = (
 		<>

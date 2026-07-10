@@ -1,6 +1,14 @@
 'use client'
 
-import { type RefObject, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import {
+	type RefCallback,
+	type RefObject,
+	useCallback,
+	useEffect,
+	useLayoutEffect,
+	useRef,
+	useState,
+} from 'react'
 import { flushSync } from 'react-dom'
 
 /**
@@ -109,18 +117,28 @@ function observeTruncation(el: Element, measure: () => void): () => void {
  * Shared by the grid's data-cell and header truncation ({@link useGridTruncation}
  * layers a resize-settle backstop on top) and the chart legend's entry labels.
  *
- * @param armRef - Element whose pointer/focus contact arms the measure, when the
- * reveal's trigger surface is an ancestor of the measured element (a legend
- * entry around its label span); defaults to the measured element itself.
- * @returns `[ref, truncated, measure]`: attach `ref` to the single-line element;
- * read `truncated` to gate the reveal tooltip; call `measure` to force a re-read
- * (e.g. a deferred backstop after a late layout settle) — an explicit call arms.
+ * @param options - `armRef`: element whose pointer/focus contact arms the
+ * measure, when the reveal's trigger surface is an ancestor of the measured
+ * element (a legend entry around its label span); defaults to the measured
+ * element itself. `suspended`: stands every measure down (a column drag-resize,
+ * whose reveal is held closed anyway); the first commit after suspension lifts
+ * re-measures armed elements.
+ * @returns `[ref, truncated, measure, contacted]`: attach `ref` to the
+ * single-line element (a callback ref — it survives the element being
+ * reparented, re-binding its listeners to the replacement node); read
+ * `truncated` to gate the reveal tooltip; call `measure` to force a re-read
+ * (e.g. a deferred backstop after a late layout settle) — a no-op until contact
+ * arms the element; read `contacted` to defer mounting reveal machinery until
+ * the first contact that could ever open it.
  * @internal
  */
-export function useTruncation<E extends HTMLElement>(
-	armRef?: RefObject<HTMLElement | null>,
-): [RefObject<E | null>, boolean, () => void] {
-	const ref = useRef<E>(null)
+export function useTruncation<E extends HTMLElement>(options?: {
+	armRef?: RefObject<HTMLElement | null>
+	suspended?: boolean
+}): [RefCallback<E>, boolean, () => void, boolean] {
+	const { armRef, suspended = false } = options ?? {}
+
+	const elRef = useRef<E | null>(null)
 
 	const [truncated, setTruncated] = useState(false)
 
@@ -128,40 +146,81 @@ export function useTruncation<E extends HTMLElement>(
 	// cell scrolled through and never visited costs no layout reads.
 	const armed = useRef(false)
 
+	// The arm, as state: consumers that lazily mount their reveal machinery
+	// (a cell's tooltip stack) re-render once when contact first arrives.
+	const [contacted, setContacted] = useState(false)
+
+	const suspendedRef = useRef(suspended)
+
+	suspendedRef.current = suspended
+
 	// Setting the same value bails out of a re-render, so measuring on every
 	// commit can't loop.
-	const measureIfArmed = useCallback(() => {
-		if (!armed.current) return
+	const measure = useCallback(() => {
+		if (!armed.current || suspendedRef.current) return
 
-		const el = ref.current
+		const el = elRef.current
 
 		if (el) setTruncated(isOverflowing(el))
 	}, [])
 
-	// The exported force-a-re-read arms first: an explicit call (a resize-settle
-	// backstop) is a statement that the flag is about to be looked at.
-	const measure = useCallback(() => {
-		armed.current = true
+	// The listener/observer bindings live in the effect below, keyed on this
+	// version: a consumer that reparents the measured element while it stays
+	// mounted (a cell wrapping its span in a lazily-mounted tooltip) commits a
+	// replacement node the effect never sees on its own, stranding the bindings
+	// on the detached one. The callback ref bumps the version on a replacement —
+	// and only then, so the plain mount pays no extra render.
+	const [nodeVersion, setNodeVersion] = useState(0)
 
-		measureIfArmed()
-	}, [measureIfArmed])
+	const bound = useRef(false)
 
-	useLayoutEffect(measureIfArmed)
+	const setNode = useCallback((node: E | null) => {
+		elRef.current = node
+
+		if (node && bound.current) setNodeVersion((version) => version + 1)
+	}, [])
+
+	useLayoutEffect(measure)
 
 	useEffect(() => {
-		const el = ref.current
+		// Read here so a node replacement (which bumps the version) re-runs the
+		// bindings against the new element; the body reads the node via `elRef`.
+		void nodeVersion
+
+		const el = elRef.current
 
 		if (!el) return
 
+		bound.current = true
+
+		// The width observation and the font-settle re-measure exist to keep an
+		// armed flag current; before contact nothing reads it, so both defer to the
+		// first arm — an unvisited cell costs two listener registrations and
+		// nothing else (a virtualized scroll step otherwise pays an observe /
+		// unobserve and a `fonts.ready` subscription per recycled cell).
+		let unobserve: (() => void) | null = null
+
+		const watch = () => {
+			unobserve = observeTruncation(el, measure)
+
+			if (document.fonts?.ready) document.fonts.ready.then(measure).catch(() => {})
+		}
+
 		const arm = () => {
 			armed.current = true
+
+			if (!unobserve) watch()
 
 			// Synchronous commit, because ordering decides whether the reveal opens:
 			// the tooltip's hover logic rides React's root-delegated events, and this
 			// element-level listener fires first on the same `pointerover`/`focusin`
 			// dispatch — flushing here lands `truncated` (and the tooltip's `enabled`)
 			// before the hover logic evaluates the very contact that armed it.
-			flushSync(measureIfArmed)
+			flushSync(() => {
+				setContacted(true)
+
+				measure()
+			})
 		}
 
 		// The reveal these flags gate opens on hover or focus, and both begin with
@@ -174,18 +233,18 @@ export function useTruncation<E extends HTMLElement>(
 
 		target.addEventListener('focusin', arm)
 
-		if (document.fonts?.ready) document.fonts.ready.then(measureIfArmed).catch(() => {})
-
-		const unobserve = observeTruncation(el, measureIfArmed)
+		// A reparent re-runs these bindings with the arm already taken (the version
+		// bump); the replacement node picks its observation straight back up.
+		if (armed.current) watch()
 
 		return () => {
 			target.removeEventListener('pointerover', arm)
 
 			target.removeEventListener('focusin', arm)
 
-			unobserve()
+			unobserve?.()
 		}
-	}, [measureIfArmed, armRef])
+	}, [measure, armRef, nodeVersion])
 
-	return [ref, truncated, measure]
+	return [setNode, truncated, measure, contacted]
 }

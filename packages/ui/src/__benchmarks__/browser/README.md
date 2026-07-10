@@ -104,23 +104,23 @@ Absolute numbers move with hardware; the ratios are the signal. Mean ms per iter
 
 | Scenario | ui (baseline) | AG Grid | MUI X |
 | --- | ---: | ---: | ---: |
-| mount · 1,000 × 8 | 40.1 (39.3) | 27.7 | 35.0 |
-| mount · 10,000 × 8 | 73.8 (75.2) | 30.3 | 34.1 |
-| mount · 100,000 × 8 | 455.3 (471.4) | 137.3 | 89.3 |
-| update · 10,000 × 8 | 61.7 (72.7) | 12.8 | 30.6 |
-| update · 100,000 × 8 | 434.7 (587.3) | 181.9 | 76.5 |
-| sort · 10,000 · flip | 95.1 (182.8) | 28.7 | 22.6 |
-| sort · 100,000 · flip | 633.5 (1,562.1) | 61.3 | 80.2 |
-| scroll · 10,000 · round trip | 1,647.1 (3,627.3) | 767.5 | — |
-| scroll · 100,000 · round trip | 1,680.2 (3,718.0) | 863.6 | — |
+| mount · 1,000 × 8 | **22.1** (39.3) | 28.9 | 35.5 |
+| mount · 10,000 × 8 | 59.0 (75.2) | 31.4 | 32.2 |
+| mount · 100,000 × 8 | 451.4 (471.4) | 141.7 | 85.9 |
+| update · 10,000 × 8 | 46.7 (72.7) | 16.5 | 25.0 |
+| update · 100,000 × 8 | 442.3 (587.3) | 188.8 | 79.2 |
+| sort · 10,000 · flip | 64.3 (182.8) | 29.7 | 24.3 |
+| sort · 100,000 · flip | 669.6 (1,562.1) | 60.8 | 89.5 |
+| scroll · 10,000 · round trip | **653.4** (3,627.3) | 747.5 | — |
+| scroll · 100,000 · round trip | **655.2** (3,718.0) | 862.4 | — |
 
-The board is honest: the first two levers bought sort 2.5× and scroll 2.2×, and the ui grid still trails both competitors at scale. The gap decomposes into three measured residuals, in order of leverage:
+Four levers in, the shape has changed: the scroll sweep — the metric that decides whether a grid feels instant — now beats AG Grid at both scales (5.6× off its own baseline), the 1k mount beats both contenders, and the realistic several-hundred-row plain mount (unvirtualized, every row rendered — tracked outside this table) fell from ~700ms to ~210ms at 300 rows and ~1,100 to ~340 at 500. What remains is the 100k tail, two measured residuals:
 
-1. **The engine row model** — the mount/update linear term (~4µs per row that virtualization never renders; ui 455 vs AG 137 / MUI 89 at 100k). A CPU profile lands it in TanStack Table's `accessRows`/`createRow`, a `Row` object per data row, forced even on the untransformed path because the body renders cells through `table.getRow(key).getVisibleCells()` ([`grid-row.tsx`](../../modules/grid/grid-row.tsx)). The lever is a lite cell path: render from `renderRows` × `visibleColumns` directly when no client transform is active, leaving engine rows to the transformed paths that need them.
+1. **The engine row model** — the mount/update linear term (~4µs per row that virtualization never renders; ui 451 vs AG 142 / MUI 86 at 100k). A CPU profile lands it in TanStack Table's `accessRows`/`createRow`, a `Row` object per data row, forced even on the untransformed path because the body renders cells through `table.getRow(key).getVisibleCells()` ([`grid-row.tsx`](../../modules/grid/grid-row.tsx)). The lever is a lite cell path: render from `renderRows` × `visibleColumns` directly when no client transform is active, leaving engine rows to the transformed paths that need them.
 
-2. **Closed-tooltip machinery per cell** — ~40ms of the ~70ms scroll step (~150µs × ~270 remounted cells; measured by benching `cellTooltip: () => null` against the default). Every data cell mounts the full floating-ui `Tooltip` hook stack to gate a reveal that almost no cell ever opens. The lever is mounting the reveal machinery on first pointer/focus contact — which needs the truncation binding to survive the span's reparenting (see the stranded-observer remark in [`grid-cell-content.tsx`](../../modules/grid/grid-cell-content.tsx)).
+2. **Per-compare sort dispatch** — the sort residual (670 vs AG 61 at 100k) is not the collation (cached collator, entry 1) but the per-comparison `WeakMap` + `Map` sort-key lookups and engine comparator dispatch, paid O(N log N) times, plus the same row-model rebuild as (1). The lever is array-indexed sort keys resolved once per sort.
 
-3. **Per-compare sort dispatch** — the sort residual (633 vs AG 61 at 100k) is not the collation (cached collator, entry 1) but the per-comparison `WeakMap` + `Map` sort-key lookups and engine comparator dispatch, paid O(N log N) times. The lever is array-indexed sort keys resolved once per sort.
+Below those two, the per-cell render itself still runs ~90µs against the competitors' ~30 (profiled as diffuse React commit and allocation pressure across the cell tree — `GridDataCell` → `TableCell` → span), so a cell-tree diet is the third rung once the structural levers land.
 
 #### Optimization log
 
@@ -129,3 +129,7 @@ Each entry names the change and the scenarios it moved.
 1. **Cached natural collator** ([`grid-sorting-utilities.ts`](../../modules/grid/grid-sorting-utilities.ts)). The smart comparator's string fallback ran `localeCompare(…, { numeric: true })`, which re-resolves collation machinery on every call — O(N log N) times per sort; a shared `Intl.Collator` answers the same ordering. Sort 100k 1,562 → ~750, sort 10k 183 → ~104.
 
 2. **Lazily-armed truncation measure** ([`use-truncation.ts`](../../hooks/use-truncation.ts)). Every mounted cell measured overflow (`scrollWidth` + two `Range`/element rect reads) in a layout effect on every commit — a scroll step remounts ~270 cells, and the census read ~350 of each per step, ~70ms of forced measurement for a flag that only gates hover/focus reveals no unvisited cell can show. The first pointer/focus contact now arms the element (a `flushSync` on the element-level event lands the state before the tooltip's root-delegated hover logic evaluates the same contact), and only armed elements re-measure. Scroll 10k round trip 3,627 → ~1,650, 100k 3,718 → ~1,680; update 100k 587 → ~435 (its remounted windows carried the same per-commit measures).
+
+3. **Contact-mounted reveal machinery** ([`grid-cell-content.tsx`](../../modules/grid/grid-cell-content.tsx), `contacted` from [`use-truncation.ts`](../../hooks/use-truncation.ts)). Every data cell mounted the full floating-ui `Tooltip` hook stack to gate a reveal almost no cell ever opens — ~150µs of the ~250µs per-cell render, the largest single term in mount and scroll (measured by benching `cellTooltip: () => null` against the default). The stack now mounts on the first pointer/focus contact with a cell that measures truncated; the wrap reparents the span once at that mount, and the hook's callback ref re-binds its observation to the replacement node (the stranded-observer hazard that once kept the tooltip permanently mounted). Gating on *truncated*, not just contact, is a correctness condition too: an in-place editor lives inside the span, and a reparent triggered by its own focus or a passing pointer would tear down a focused editor holding a draft — a fitting cell stays a bare span through any contact. Scroll 10k 1,650 → 653 and 100k 1,680 → 655 (both now past AG); mount 1k 39 → 22 (past both); mount 10k 75 → 59; update 10k 73 → 47; plain 300-row mount ~700 → ~210, 500-row ~1,100 → ~340.
+
+4. **Deferred observation, suspended drags, shared descriptors** ([`use-truncation.ts`](../../hooks/use-truncation.ts), [`grid-row.tsx`](../../modules/grid/grid-row.tsx), [`grid-cell-content.tsx`](../../modules/grid/grid-cell-content.tsx)). The width `ResizeObserver` and `fonts.ready` subscription defer to first contact with the rest of the reveal — an unvisited cell now costs two listener registrations and nothing else per mount or recycle. Truncation measurement stands down entirely while a column drag-resize is in flight (`suspended`; the reveal is held closed through a drag anyway) and the settle re-measures. The per-cell `{ kind: 'auto' }` tooltip descriptor and the static span/tooltip classes are shared module constants rather than per-render allocations.

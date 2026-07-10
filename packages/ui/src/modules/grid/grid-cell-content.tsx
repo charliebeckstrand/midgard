@@ -34,29 +34,40 @@ type GridCellContentProps = {
  * {@link Tooltip} carrying the full content — or a column's `cellTooltip` node in
  * its place — while `none` suppresses it.
  *
- * @remarks The tooltip stays mounted and is gated by its `enabled` prop rather
- * than mounted only while truncated: keeping the span in place means the overflow
- * `ResizeObserver` never detaches, so widening a column back out re-measures and
- * `enabled` closes the tooltip. (Remounting the span on every truncation toggle
- * stranded the observer on the old node, leaving a stale tooltip.) The closed
- * tooltip renders no surface, so an untruncated cell adds no DOM.
+ * @remarks The tooltip machinery mounts on first pointer/focus contact with a
+ * cell that measures truncated, not with the cell: the reveal it drives cannot
+ * open before contact (or without a clip), and the full floating stack costs
+ * real render time per cell — at a few hundred visible cells it was the
+ * largest single term in the grid's mount and scroll cost. The wrap reparents
+ * the span at that mount; `useTruncation`'s callback ref re-binds its overflow
+ * observer to the replacement node, so widening a column back out still
+ * re-measures and closes the reveal (the hazard that once kept the tooltip
+ * permanently mounted). Truncation measurement also stands down entirely while
+ * a drag-resize is in flight — the reveal is held closed through the drag, and
+ * the settle re-measures.
  * @internal
  */
 export function GridCellContent({ content, tooltip, resizeSettleKey }: GridCellContentProps) {
 	const resizing = useGridResizing()
 
-	const [ref, truncated] = useGridTruncation<HTMLSpanElement>(resizeSettleKey)
+	const [ref, truncated, contacted] = useGridTruncation<HTMLSpanElement>(resizeSettleKey, resizing)
 
 	const span = (
 		// `data-grid-content` marks the truncating leaf so the column autosizer can
 		// read its intrinsic content width (`scrollWidth`/`Range`), unclipped by the
 		// column it's measuring.
-		<span ref={ref} data-grid-content className={cn(k.cell.truncate)}>
+		<span ref={ref} data-grid-content className={TRUNCATE_CLASS}>
 			{content}
 		</span>
 	)
 
-	if (tooltip.kind === 'none') return span
+	// Mount the reveal machinery only for a cell that is both visited and
+	// actually clipped: the wrap reparents the span, and a cell hosting live
+	// state below it — an in-place editor, focused and holding a draft — must
+	// never be torn down by a passing pointer or its own focus bubbling up. A
+	// fitting cell's content (an editor stretched to the column, a short value)
+	// measures untruncated, so it stays a bare span through any contact.
+	if (tooltip.kind === 'none' || !contacted || !truncated) return span
 
 	const node = tooltip.kind === 'custom' ? tooltip.node : content
 
@@ -67,7 +78,13 @@ export function GridCellContent({ content, tooltip, resizeSettleKey }: GridCellC
 		<Tooltip enabled={truncated && !resizing}>
 			<TooltipTrigger>{span}</TooltipTrigger>
 
-			<TooltipContent className={cn(k.cell.tooltip)}>{node}</TooltipContent>
+			<TooltipContent className={TOOLTIP_CLASS}>{node}</TooltipContent>
 		</Tooltip>
 	)
 }
+
+/** The static truncating-span class, composed once — not per rendered cell. @internal */
+const TRUNCATE_CLASS = cn(k.cell.truncate)
+
+/** The static tooltip-content class, composed once. @internal */
+const TOOLTIP_CLASS = cn(k.cell.tooltip)
