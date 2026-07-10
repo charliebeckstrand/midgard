@@ -1,6 +1,7 @@
 import { useRef } from 'react'
 import { describe, expect, it } from 'vitest'
 import { useVirtualWindow } from '../../hooks'
+import { type ChatContent, ChatTranscript } from '../../modules/chat'
 import { VirtualOptions } from '../../primitives/virtual-options'
 import { renderUI, waitFor } from '../helpers'
 
@@ -10,11 +11,13 @@ import { renderUI, waitFor } from '../helpers'
  * renders and that the window tracks scroll position, behaviour jsdom can't
  * exercise (zero-size scroll container → zero rendered rows).
  *
- * Coverage spans the two production windowing seams: `useVirtualWindow` (the
+ * Coverage spans the three production windowing seams: `useVirtualWindow` (the
  * hook Grid's virtualized body delegates to, exercised in a minimal real
- * table) and `VirtualOptions` (the primitive that windows Combobox/Listbox
- * options). Both require a viewport of definite height; the harnesses supply a
- * fixed height rather than relying on `max-height`.
+ * table), `VirtualOptions` (the primitive that windows Combobox/Listbox
+ * options), and `ChatTranscript` (the chat module's windowed transcript, with
+ * per-row dynamic measurement and pinned-to-newest scrolling). All require a
+ * viewport of definite height; the harnesses supply a fixed height rather
+ * than relying on `max-height`.
  *
  * The full Grid component is not driven here: its render lifecycle never
  * initialises the virtualizer on an isolated headless mount (CONVENTIONS §10.3).
@@ -163,6 +166,66 @@ describe('VirtualOptions windowing', () => {
 			expect(container.textContent).toContain('Item 400')
 
 			expect(container.textContent).not.toContain('Item 0')
+		})
+	})
+})
+
+describe('ChatTranscript windowing', () => {
+	const messages: ChatContent[] = Array.from({ length: 300 }, (_, i) => ({
+		id: String(i),
+		role: i % 2 === 0 ? ('user' as const) : ('agent' as const),
+		content: `Message ${i}`,
+	}))
+
+	function Harness() {
+		return (
+			<div style={{ height: 400, display: 'flex', flexDirection: 'column' }}>
+				<ChatTranscript messages={messages} virtualize />
+			</div>
+		)
+	}
+
+	function bubbles(root: ParentNode) {
+		return root.querySelectorAll('[data-slot="chat-message"]')
+	}
+
+	it('renders a bounded, measured window and opens pinned to the newest messages', async () => {
+		const { container } = renderUI(<Harness />)
+
+		await waitFor(() => {
+			const rendered = bubbles(container).length
+
+			expect(rendered).toBeGreaterThan(0)
+
+			expect(rendered).toBeLessThan(150)
+		})
+
+		// The mount-time jump lands the window at the transcript's tail, not its head.
+		await waitFor(() => {
+			expect(container.textContent).toContain('Message 299')
+
+			expect(container.textContent).not.toContain('Message 0')
+		})
+	})
+
+	it('mounts earlier messages as the transcript scrolls back up', async () => {
+		const { container } = renderUI(<Harness />)
+
+		// Let the mount-settle pin land on the tail before scrolling away from it.
+		await waitFor(() => expect(container.textContent).toContain('Message 299'))
+
+		const transcript = container.querySelector<HTMLElement>('[data-slot="chat-transcript"]')
+
+		if (!transcript) throw new Error('transcript not found')
+
+		transcript.scrollTop = 0
+
+		transcript.dispatchEvent(new Event('scroll'))
+
+		await waitFor(() => {
+			expect(container.textContent).toContain('Message 0')
+
+			expect(container.textContent).not.toContain('Message 299')
 		})
 	})
 })

@@ -55,3 +55,44 @@ describe('ChatTranscript', () => {
 		expect(present(pulsing[0], 'streaming bubble')).toHaveTextContent('Hello!')
 	})
 })
+
+// jsdom has no layout; react-virtual sees a 0-height scroll container and
+// renders (at most) the overscan window. These tests assert boundedness and
+// structure; real windowing geometry is covered by the browser suite
+// (`__tests__/browser/virtualization.test.tsx`).
+
+describe('ChatTranscript virtualize', () => {
+	const many: ChatContent[] = Array.from({ length: 500 }, (_, i) => ({
+		id: String(i),
+		role: i % 2 === 0 ? 'user' : 'agent',
+		content: `Message ${i}`,
+	}))
+
+	it('renders the transcript slot as its own scroll container', () => {
+		const { container } = renderUI(<ChatTranscript messages={many} virtualize />)
+
+		const transcript = present(bySlot(container, 'chat-transcript'), 'transcript')
+
+		expect(transcript.className).toContain('overflow-y-auto')
+	})
+
+	it('never mounts more bubbles than the transcript holds', () => {
+		const { container } = renderUI(<ChatTranscript messages={many} virtualize />)
+
+		expect(allBySlot(container, 'chat-message').length).toBeLessThanOrEqual(many.length)
+	})
+
+	it('accepts windowing knobs as an options object', () => {
+		const { container } = renderUI(
+			<ChatTranscript messages={many} virtualize={{ estimateSize: 48, overscan: 4 }} />,
+		)
+
+		expect(bySlot(container, 'chat-transcript')).toBeInTheDocument()
+	})
+
+	it('renders every message when virtualization stays off', () => {
+		const { container } = renderUI(<ChatTranscript messages={many.slice(0, 40)} />)
+
+		expect(allBySlot(container, 'chat-message')).toHaveLength(40)
+	})
+})

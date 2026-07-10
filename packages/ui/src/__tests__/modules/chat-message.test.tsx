@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { ChatMessage } from '../../modules/chat'
-import { bySlot, renderUI, screen } from '../helpers'
+import { bySlot, renderUI, screen, waitFor } from '../helpers'
 
 describe('ChatMessage', () => {
 	it('renders children inside the bubble slot', () => {
@@ -77,6 +77,41 @@ describe('ChatMessage', () => {
 		expect(bySlot(container, 'markdown')).toHaveClass('animate-pulse')
 
 		expect(container.querySelector('strong')?.textContent).toBe('bold')
+	})
+
+	it('renders a chart fence as a live ChatChart, other fences as code blocks', async () => {
+		const spec = JSON.stringify({
+			type: 'line',
+			title: 'Signups',
+			data: [{ week: 'W1', signups: 12 }],
+			series: [{ xKey: 'week', yKey: 'signups' }],
+		})
+
+		const content = `Here you go:\n\n\`\`\`chart\n${spec}\n\`\`\`\n\n\`\`\`tsx\nconst x = 1\n\`\`\``
+
+		const { container } = renderUI(<ChatMessage>{content}</ChatMessage>)
+
+		expect(bySlot(container, 'chat-chart')).toHaveAttribute('data-state', 'chart')
+
+		// The tsx fence keeps the stock CodeBlock rendering beside the chart.
+		expect(bySlot(container, 'code-block')).toBeInTheDocument()
+
+		// Let the (mocked) async highlight land before teardown.
+		await waitFor(() =>
+			expect(container.querySelector('pre.shiki')).toHaveAttribute('data-lang', 'tsx'),
+		)
+	})
+
+	it('shows a chart skeleton for an incomplete chart fence while streaming', () => {
+		const content = '```chart\n{"type": "line", "data": ['
+
+		const { container } = renderUI(<ChatMessage streaming>{content}</ChatMessage>)
+
+		const chart = bySlot(container, 'chat-chart')
+
+		expect(chart).toHaveAttribute('data-state', 'pending')
+
+		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
 	})
 
 	it.each([

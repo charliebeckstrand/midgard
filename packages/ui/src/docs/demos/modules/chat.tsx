@@ -23,6 +23,55 @@ const conversations = [
 	{ id: '4', title: 'Architecture design', timestamp: '3d' },
 ]
 
+const chartSpec = JSON.stringify(
+	{
+		type: 'line',
+		title: 'Signups per week',
+		data: [
+			{ week: 'W1', signups: 210, churn: 40 },
+			{ week: 'W2', signups: 260, churn: 52 },
+			{ week: 'W3', signups: 300, churn: 47 },
+			{ week: 'W4', signups: 365, churn: 55 },
+			{ week: 'W5', signups: 410, churn: 61 },
+			{ week: 'W6', signups: 490, churn: 58 },
+		],
+		series: [
+			{ xKey: 'week', yKey: 'signups', yName: 'Signups' },
+			{ xKey: 'week', yKey: 'churn', yName: 'Churn' },
+		],
+	},
+	null,
+	'\t',
+)
+
+const chartMessage = [
+	'Signups keep climbing while churn holds flat — the last six weeks:',
+	'',
+	'```chart',
+	chartSpec,
+	'```',
+	'',
+	'Worth showing this trend in the kickoff deck.',
+].join('\n')
+
+// A long generated history exercising the windowed transcript; the tail ends
+// on a chart-bearing reply so the pinned-open view shows a rich bubble.
+const history: ChatContent[] = [
+	...Array.from({ length: 199 }, (_, i): ChatContent => {
+		const role = i % 2 === 0 ? ('user' as const) : ('agent' as const)
+
+		return {
+			id: String(i),
+			role,
+			content:
+				i % 7 === 3
+					? `Message ${i}: a longer turn that wraps across a few lines, the way real answers do — context, a caveat, and a follow-up question to keep the thread moving.`
+					: `Message ${i}`,
+		}
+	}),
+	{ id: '199', role: 'agent', content: chartMessage },
+]
+
 const transcript: ChatContent[] = [
 	{
 		id: '1',
@@ -143,6 +192,10 @@ export function Demo() {
 							</ChatMessage>
 						</Example>
 
+						<Example title="With a chart">
+							<ChatMessage type="assistant">{chartMessage}</ChatMessage>
+						</Example>
+
 						<Example title="Timestamped">
 							<ChatMessage type="assistant" timestamp="11:10 AM">
 								Heading out now, ETA 3pm.
@@ -180,9 +233,18 @@ export function Demo() {
 				</TabContent>
 
 				<TabContent value="Transcript">
-					<Example title="Transcript">
-						<ChatTranscript messages={transcript} />
-					</Example>
+					<Stack gap="xl">
+						<Example title="Transcript">
+							<ChatTranscript messages={transcript} />
+						</Example>
+
+						<Example title="Virtualized">
+							{/* Windowing needs a bounded viewport; only the visible messages mount. */}
+							<div className="flex h-96 flex-col">
+								<ChatTranscript messages={history} virtualize />
+							</div>
+						</Example>
+					</Stack>
 				</TabContent>
 
 				<TabContent value="List">
