@@ -118,14 +118,21 @@ describe('chart stacked legend row cap (real browser)', () => {
 
 		// Toggling a panel switch drives the same series-hidden set the row's switches
 		// do: the switch reads off, and one grouped bar per category drops from the
-		// plot (two categories, so two bars for the toggled series).
-		const barsBefore = allBySlot(container, 'chart-bar').length
+		// plot (two categories, so two bars for the toggled series). Each series is
+		// one path, so count the bars as its `M`-opened subfigures.
+		const barCount = () =>
+			allBySlot(container, 'chart-bar').reduce(
+				(sum, path) => sum + (path.getAttribute('d')?.match(/M/g)?.length ?? 0),
+				0,
+			)
+
+		const barsBefore = barCount()
 
 		await userEvent.click(target)
 
 		await waitFor(() => expect(target.getAttribute('aria-pressed')).toBe('false'))
 
-		expect(allBySlot(container, 'chart-bar').length).toBe(barsBefore - 2)
+		expect(barCount()).toBe(barsBefore - 2)
 
 		// Toggling a folded-away series doesn't reshuffle the visible row: the cut
 		// holds, so the chip still stands for the same overflow it opened.
