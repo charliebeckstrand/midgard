@@ -151,34 +151,43 @@ export function scatterMarks(
 }
 
 /**
- * One disc as a closed path subfigure — two half-arcs around its centre. The
- * whole series draws as a single `<path>` of these, so a dense scatter is one
- * DOM node and one paint instead of a circle element per point; the fill fills
- * every disc and the stroke rings each one, exactly as separate circles did.
- *
- * @internal
- */
-function discPath(mark: ScatterMark): string {
-	const { x, y, r } = mark
-
-	return `M ${coord(x - r)} ${coord(y)} a ${coord(r)} ${coord(r)} 0 1 0 ${coord(r * 2)} 0 a ${coord(r)} ${coord(r)} 0 1 0 ${coord(-r * 2)} 0 Z`
-}
-
-/**
- * Every disc of a series concatenated into one path `d`. Marks with a
+ * Every disc of a series concatenated into one path `d`. Each disc is a closed
+ * subfigure — two half-arcs around its centre — so the fill fills every disc
+ * and the stroke rings each one, exactly as separate circles did. Marks with a
  * non-positive radius are skipped — a degenerate arc would paint nothing and
  * only lengthen the string.
+ *
+ * A plain series shares one radius across every disc, so the two arc commands
+ * — which read only the radius, not the centre — are identical for all of
+ * them; the builder caches that suffix and rebuilds it only when a radius
+ * actually changes, leaving one move-to per disc as the sole per-mark
+ * formatting. At ten thousand points that is the difference between fifty
+ * thousand coordinate roundings and twenty thousand.
  *
  * @internal
  */
 export function scatterDiscsPath(marks: ScatterMark[]): string {
-	let d = ''
+	const parts: string[] = []
+
+	let cachedR = Number.NaN
+
+	let arc = ''
 
 	for (const mark of marks) {
-		if (mark.r > 0) d += (d === '' ? '' : ' ') + discPath(mark)
+		if (mark.r <= 0) continue
+
+		if (mark.r !== cachedR) {
+			cachedR = mark.r
+
+			const r = coord(mark.r)
+
+			arc = `a ${r} ${r} 0 1 0 ${coord(mark.r * 2)} 0 a ${r} ${r} 0 1 0 ${coord(-mark.r * 2)} 0 Z`
+		}
+
+		parts.push(`M ${coord(mark.x - mark.r)} ${coord(mark.y)} ${arc}`)
 	}
 
-	return d
+	return parts.join(' ')
 }
 
 /** One snapped column stop: its value-axis screen position and the point behind it. @internal */

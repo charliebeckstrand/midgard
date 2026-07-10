@@ -38,23 +38,23 @@ Absolute numbers move with hardware; the ratios are the signal. Mean ms per iter
 
 | Scenario | ui | AG Charts | Highcharts |
 | --- | ---: | ---: | ---: |
-| mount · line · 100 × 1 | **5.1** | 35.3 | 26.6 |
-| mount · line · 1,000 × 1 | **12.8** | 34.0 | 36.3 |
-| mount · line · 10,000 × 1 | 89.4 | 66.4 | 78.2 |
-| mount · line · 1,000 × 5 | **47.4** | 61.8 | 58.5 |
-| mount · bar · 50 × 2 | **9.8** | 34.3 | 40.4 |
-| mount · bar · 500 × 2 | **24.3** | 62.4 | 83.8 |
-| mount · scatter · 1,000 | **16.7** | 49.8 | 61.8 |
-| mount · scatter · 10,000 | 152.8 | 102.4 | 478.5 |
-| update · line · 1,000 × 1 | **7.0** | 14.7 | 12.9 |
-| update · line · 10,000 × 1 | **30.5** | 51.2 | 48.8 |
-| update · line · 1,000 × 5 | **17.6** | 36.1 | 27.9 |
-| update · bar · 500 × 2 | **8.1** | 19.8 | 35.1 |
-| update · scatter · 10,000 | 67.5 | 49.1 | 506.9 |
-| hover · line · 1,000 · sweep | 17.9 | 17.2 | 35.2 |
-| hover · scatter · 10,000 · sweep | 27.1 | 17.1 | 76.4 |
+| mount · line · 100 × 1 | **5.0** | 36.5 | 30.6 |
+| mount · line · 1,000 × 1 | **13.1** | 35.2 | 33.0 |
+| mount · line · 10,000 × 1 | 91.8 | 71.3 | 82.4 |
+| mount · line · 1,000 × 5 | **49.8** | 68.7 | 61.6 |
+| mount · bar · 50 × 2 | **10.9** | 32.8 | 31.5 |
+| mount · bar · 500 × 2 | **24.9** | 59.7 | 86.1 |
+| mount · scatter · 1,000 | **15.2** | 45.6 | 66.3 |
+| mount · scatter · 10,000 | 125.9 | 96.1 | 459.8 |
+| update · line · 1,000 × 1 | **6.0** | 13.4 | 11.4 |
+| update · line · 10,000 × 1 | **27.1** | 54.8 | 52.7 |
+| update · line · 1,000 × 5 | **21.2** | 32.0 | 30.5 |
+| update · bar · 500 × 2 | **9.9** | 23.1 | 35.9 |
+| update · scatter · 10,000 | **60.5** | 61.8 | 524.8 |
+| hover · line · 1,000 · sweep | **16.9** | 17.4 | 62.1 |
+| hover · scatter · 10,000 · sweep | 36.3 | 17.1 | 87.3 |
 
-The module now beats **Highcharts on all fifteen** scenarios and **AG Charts on ten**. The five it trails are all AG Charts alone, and all but the hover-line tie (0.7ms, inside the noise) are the 10,000-point cases where AG rasterizes to a canvas bitmap and this module renders real SVG DOM — the trade that buys print fidelity, forced-colors, and a DOM the assistive tree and the hidden data table read. Closing those last cases means either shaving the geometry hot paths further or a canvas fallback for large N, which would forfeit exactly those SVG properties; that is a design call, not a free win.
+The module now beats **Highcharts on all fifteen** scenarios and **AG Charts on twelve**. The three it trails are AG Charts alone, all at 10,000 points — line mount, scatter mount, and the scatter hover sweep — where AG rasterizes to a canvas bitmap and this module renders real SVG DOM. That is the trade that buys print fidelity, forced-colors, and a DOM the assistive tree and the hidden data table read; closing it means a canvas fallback for large N, which forfeits exactly those properties. It is a design call, not a free win, so the SVG path holds and AG keeps the dense-canvas extreme.
 
 ### Optimization log
 
@@ -68,6 +68,8 @@ Each entry names the change and the scenarios it moved; the levers are ordered a
 
 4. **Single-path bars** ([`chart-bar-marks.tsx`](../../modules/chart/chart-bar-marks.tsx)). Each series' bars concatenate into one `<path>` — bars are opaque and never overlap, so it reads identically — with the same group-dim-plus-overlay isolation the scatter path uses. Bar 500 mount 138 → 24 and update 67 → 8, both now past AG and Highcharts; the combo and dual-axis bars ride the same renderer.
 
-5. **Sub-pixel path coordinates** ([`chart-coords.ts`](../../modules/chart/chart-coords.ts)). Path `d` strings round to two decimals, a fraction of the full-float size; a structural cleanup that shrinks the DOM payload the large-N paths ship.
+5. **Constant-radius disc path** ([`scatter-chart-geometry.ts`](../../modules/chart/scatter-chart/scatter-chart-geometry.ts)). A plain scatter series shares one radius across every disc, so the two arc commands are identical for all of them; the builder caches that suffix and formats only the one moving coordinate per disc. Scatter 10k update 67 → 60, past AG.
 
-Open, and where the gap sits: every remaining loss is to AG Charts's canvas at 10,000 points (line mount, and the scatter mount / update / hover trio), plus a hover-line result inside measurement noise. Each is the SVG-DOM-versus-bitmap trade rather than a missing optimization — the marks are already one path per series — so closing them trades a design property for a benchmark column.
+6. **Sub-pixel path coordinates** ([`chart-coords.ts`](../../modules/chart/chart-coords.ts)). Path `d` strings round to two decimals, a fraction of the full-float size; a structural cleanup that shrinks the DOM payload the large-N paths ship.
+
+Open, and where the gap sits: every remaining loss is to AG Charts's canvas at 10,000 points — line mount, scatter mount, and the scatter hover sweep. Each is the SVG-DOM-versus-bitmap trade rather than a missing optimization: the marks are already one path per series, and the remaining cost is the DOM the browser lays out plus, for the hover sweep, a React commit per pointer move against AG's vanilla redraw. Closing them trades a design property for a benchmark column, so they stay open by choice.
