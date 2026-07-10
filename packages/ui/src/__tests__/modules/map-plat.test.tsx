@@ -626,6 +626,33 @@ describe('MapPlat choropleth mode', () => {
 		expect(bySlot(container, 'map-regions-lit')).toBeNull()
 	})
 
+	it('marks the hovered region at its exact value on the range bar, not its bin centre', () => {
+		const { container } = renderUI(choropleth({ legend: 'range' }))
+
+		const arrowTop = () => {
+			const style = bySlot(container, 'map-range-arrow')?.getAttribute('style') ?? ''
+
+			return Number(style.match(/top:\s*([\d.]+)%/)?.[1] ?? Number.NaN)
+		}
+
+		const [alpha, beta, gamma] = allRegions(container)
+
+		// A = 0, the domain floor: the arrow reads the value itself — flush to the
+		// bottom (100% from the top), not seated at the lowest bin's band centre.
+		fireEvent.pointerEnter(alpha as Element, { clientX: 40, clientY: 20 })
+
+		expect(arrowTop()).toBe(100)
+
+		// B = 50 sits mid-bar; C = 100 tops it.
+		fireEvent.pointerEnter(beta as Element, { clientX: 150, clientY: 20 })
+
+		expect(arrowTop()).toBe(50)
+
+		fireEvent.pointerEnter(gamma as Element, { clientX: 300, clientY: 20 })
+
+		expect(arrowTop()).toBe(0)
+	})
+
 	it('stands the range bar vertical on the right by default', () => {
 		const { container } = renderUI(choropleth({ legend: 'range' }))
 

@@ -182,37 +182,31 @@ function HeatmapCells({ cells, fills, cellBins }: HeatmapCellsProps) {
 }
 
 /**
- * The legend's hover arrow: it marks the bin of the cell the pointer is on, its
- * own {@link useHeatmapHover} consumer so a grid hover re-renders only the glyph.
- * The choropleth's region arrow, keyed to a cell instead.
+ * The legend's hover arrow: it marks the exact value of the cell the pointer
+ * is on, its own {@link useHeatmapHover} consumer so a grid hover re-renders
+ * only the glyph. The choropleth's region arrow, keyed to a cell instead.
  *
  * @internal
  */
 function HeatmapRangeArrow({
 	values,
 	domain,
-	bins,
 	orientation,
 }: {
 	values: (number | null)[][]
 	domain: [number, number] | null
-	bins: number
 	/** Which way the host bar runs, so the glyph pins to its matching edge. */
 	orientation: ChartOrientation
 }) {
 	const { cell } = useHeatmapHover()
 
-	if (cell === null || domain === null || bins === 0) return null
+	if (cell === null || domain === null) return null
 
 	const value = values[cell.row]?.[cell.col]
 
 	if (value == null) return null
 
-	const bin = binIndex(value, domain, bins)
-
-	if (bin === null) return null
-
-	return <RangeArrow bin={bin} bins={bins} slot="heatmap-range" orientation={orientation} />
+	return <RangeArrow value={value} domain={domain} slot="heatmap-range" orientation={orientation} />
 }
 
 /** Props for {@link HeatmapRangeLegend}: the scale the shared bar paints and the values its arrow reads. @internal */
@@ -258,9 +252,7 @@ function HeatmapRangeLegend({
 			bins={bins}
 			orientation={orientation}
 			onProbe={set}
-			arrow={
-				<HeatmapRangeArrow values={values} domain={domain} bins={bins} orientation={orientation} />
-			}
+			arrow={<HeatmapRangeArrow values={values} domain={domain} orientation={orientation} />}
 		/>
 	)
 }

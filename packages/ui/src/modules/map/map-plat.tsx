@@ -51,7 +51,7 @@ import { MapRangeLegend, type MapRangeLegendProps } from './map-range-legend'
 import { MapRegions } from './map-regions'
 import { MapTable } from './map-table'
 import { MapTooltip, type MapTooltipEntry } from './map-tooltip'
-import { regionValueIndexes, regionValueLabels, resolveValueBins } from './map-value-scale'
+import { regionValueJoin, resolveValueBins } from './map-value-scale'
 import type {
 	DataKey,
 	LngLat,
@@ -376,6 +376,10 @@ type MapRegionReadout = {
 	 * tooltip and table readout, distinct from its bin's range label; `null` in
 	 * categorical mode and wherever no datum matches. */
 	regionValues: (string | null)[]
+	/** Each region's raw number in the numeric (choropleth) mode — the range
+	 * legend's arrow marks it on the continuous bar; `null` in categorical mode
+	 * and wherever no datum matches. */
+	regionNumbers: (number | null)[]
 	/** The numeric value extent in the numeric (choropleth) mode; `null` otherwise. Feeds the range legend. */
 	domain: [number, number] | null
 }
@@ -413,11 +417,13 @@ function useMapRegionReadout<T>(
 		categoryMetas,
 		regionCategory,
 		regionValues,
+		regionNumbers,
 		domain: extent,
 	} = useMemo<{
 		categoryMetas: MapCategoryMeta[]
 		regionCategory: (number | null)[]
 		regionValues: (string | null)[]
+		regionNumbers: (number | null)[]
 		domain: [number, number] | null
 	}>(() => {
 		const noValues = regionIds.map(() => null)
@@ -427,6 +433,7 @@ function useMapRegionReadout<T>(
 				categoryMetas: [],
 				regionCategory: regionIds.map(() => null),
 				regionValues: noValues,
+				regionNumbers: noValues,
 				domain: null,
 			}
 		}
@@ -446,12 +453,12 @@ function useMapRegionReadout<T>(
 				format,
 			})
 
+			// One joined pass: each region's bin (its colour), its own formatted
+			// readout (the tooltip and table show "2,088", not the bin's "1–135"),
+			// and its raw number (the range legend's arrow).
 			return {
 				categoryMetas: metas,
-				regionCategory: regionValueIndexes(regionIds, data, regionKey, valueKey, assign),
-				// A region's readout is its own value, not the bin range its colour reads
-				// from — so the tooltip and table show "2,088", not "1–135".
-				regionValues: regionValueLabels(regionIds, data, regionKey, valueKey, format),
+				...regionValueJoin(regionIds, data, regionKey, valueKey, assign, format),
 				domain: resolved,
 			}
 		}
@@ -464,6 +471,7 @@ function useMapRegionReadout<T>(
 				regionCategory: regionCategoryIndexes(regionIds, data, regionKey, categoryKey, metas),
 				// Categorical mode reads the category label off the meta; no separate value.
 				regionValues: noValues,
+				regionNumbers: noValues,
 				domain: null,
 			}
 		}
@@ -472,6 +480,7 @@ function useMapRegionReadout<T>(
 			categoryMetas: [],
 			regionCategory: regionIds.map(() => null),
 			regionValues: noValues,
+			regionNumbers: noValues,
 			domain: null,
 		}
 	}, [
@@ -488,7 +497,7 @@ function useMapRegionReadout<T>(
 		regionIds,
 	])
 
-	return { categoryMetas, regionNames, regionCategory, regionValues, domain: extent }
+	return { categoryMetas, regionNames, regionCategory, regionValues, regionNumbers, domain: extent }
 }
 
 /**
@@ -572,7 +581,8 @@ type MapRangeScale = {
 	valueExtent: [number, number] | null
 	valueFormat: ((value: number) => string) | undefined
 	valueName: string | undefined
-	regionCategory: (number | null)[]
+	/** Each region's raw value — the bar's hover arrow marks the pointed one. */
+	regionNumbers: (number | null)[]
 	onFocus: (id: string | null) => void
 }
 
@@ -631,7 +641,7 @@ function planMapLegend(
 					format: scale.valueFormat ?? ((value) => String(value)),
 					label: scale.valueName,
 					bins: switchboard.categoryCount,
-					regionCategory: scale.regionCategory,
+					regionNumbers: scale.regionNumbers,
 					onFocus: scale.onFocus,
 					orientation: resolved.orientation,
 				}
@@ -1031,6 +1041,7 @@ export function MapPlat<T = never>({
 		regionNames,
 		regionCategory,
 		regionValues,
+		regionNumbers,
 		domain: valueExtent,
 	} = useMapRegionReadout(
 		shape.features,
@@ -1158,7 +1169,7 @@ export function MapPlat<T = never>({
 		numeric,
 		{ width: containerWidth, height: shape.boxHeight },
 		{ categoryCount: categoryMetas.length, entryCount: entries.length, children },
-		{ colorRange, valueExtent, valueFormat, valueName, regionCategory, onFocus: setFocus },
+		{ colorRange, valueExtent, valueFormat, valueName, regionNumbers, onFocus: setFocus },
 	)
 
 	const aside = legendPlacement === 'left' || legendPlacement === 'right'

@@ -14,26 +14,6 @@ import { useMapHoverState } from './context'
 import { categoryLegendId } from './map-categories'
 
 /**
- * A bin's distance down the bar as a percentage: the highest bin near the top
- * (the domain max), the lowest near the bottom (the min). Halfway between
- * seating each bin at its band's centre (extremes inset a half-band) and
- * spreading them end to end (extremes flush to the edges) — so the ends land a
- * quarter-band in, close to the domain labels without touching the rim. A lone
- * bin sits centred.
- *
- * @internal
- */
-export function binOffset(bin: number, bins: number): number {
-	if (bins <= 1) return 50
-
-	const centred = 1 - (bin + 0.5) / bins
-
-	const spanned = 1 - bin / (bins - 1)
-
-	return ((centred + spanned) / 2) * 100
-}
-
-/**
  * Which way a range legend and its glyph lay out: `'vertical'` stands the scale
  * bar on end (low at the bottom, high at the top), `'horizontal'` lays it flat
  * (low at the left, high at the right).
@@ -44,10 +24,10 @@ export type RangeOrientation = 'horizontal' | 'vertical'
 
 /** Props for {@link RangeArrow}. @internal */
 export type RangeArrowProps = {
-	/** The class the glyph points at, spread across the bar via {@link binOffset}. */
-	bin: number
-	/** The scale's class count — the divisor {@link binOffset} spreads the glyph across. */
-	bins: number
+	/** The exact value the glyph marks along the bar. */
+	value: number
+	/** The bar's `[low, high]` extent — the axis its endpoints label. */
+	domain: [number, number]
 	/** The `data-slot` prefix, matching the host legend's. @defaultValue 'range' */
 	slot?: string
 	/**
@@ -60,19 +40,22 @@ export type RangeArrowProps = {
 }
 
 /**
- * The range legend's hover glyph: an arrow pinned to the bar's edge at a class's
- * mark, apex to the bar. Presentational — the host supplies the `bin` from its
- * own hover state (a region on the choropleth, a cell on the heatmap), so the
- * same glyph ties either chart's marks to the scale. It rides the low→high axis
- * the bar paints: down the left of a vertical bar, along the top of a horizontal
- * one, whose class offset is the vertical measure mirrored (low now leads at the
- * left).
+ * The range legend's hover glyph: an arrow pinned to the bar's edge at a mark's
+ * exact value — the same continuous position the probe thumb reads, so the
+ * glyph never contradicts the axis the endpoints label. (A class-centre
+ * placement drifts rimward as the class count grows: an eleven-class bar seats
+ * its lowest centre below where the minimum label reads, so a small-but-real
+ * value looked pinned to the floor.) Presentational — the host supplies the
+ * `value` from its own hover state (a region on the choropleth, a cell on the
+ * heatmap), so the same glyph ties either chart's marks to the scale. It rides
+ * the low→high axis the bar paints: down the left of a vertical bar, along the
+ * top of a horizontal one.
  *
  * @internal
  */
 export function RangeArrow({
-	bin,
-	bins,
+	value,
+	domain,
 	slot = 'range',
 	orientation = 'vertical',
 }: RangeArrowProps) {
@@ -86,7 +69,7 @@ export function RangeArrow({
 					'absolute bottom-full mb-1 h-1.5 w-2.5 -translate-x-1/2 transition-[left] duration-150 ease-out',
 					k.arrow,
 				)}
-				style={{ left: `${100 - binOffset(bin, bins)}%` }}
+				style={{ left: `${probePercent(value, domain, true)}%` }}
 				fill="currentColor"
 			>
 				<path d="M0 0 10 0 5 6Z" />
@@ -103,7 +86,7 @@ export function RangeArrow({
 				'absolute right-full mr-1 h-2.5 w-1.5 -translate-y-1/2 transition-[top] duration-150 ease-out',
 				k.arrow,
 			)}
-			style={{ top: `${binOffset(bin, bins)}%` }}
+			style={{ top: `${probePercent(value, domain, false)}%` }}
 			fill="currentColor"
 		>
 			<path d="M0 0 0 10 6 5Z" />
@@ -537,8 +520,8 @@ export type MapRangeLegendProps = {
 	label?: string
 	/** The bin count; the bar snaps to these bands. */
 	bins: number
-	/** Each region's bin index (`null` = no data), feature-index aligned — maps a hovered region to its bin. */
-	regionCategory: (number | null)[]
+	/** Each region's raw value (`null` = no data), feature-index aligned — the arrow marks the hovered region's. */
+	regionNumbers: (number | null)[]
 	/** Emphasises a bin's regions (`null` clears); other regions dim while set — the filter. */
 	onFocus: (id: string | null) => void
 	/**
@@ -550,34 +533,35 @@ export type MapRangeLegendProps = {
 }
 
 /**
- * The hover arrow: a glyph on the scale bar's edge marking the bin of the region
- * the pointer is on. Isolated as its own {@link useMapHoverState} consumer so a
- * pointer move over the map re-renders only this glyph — never the gradient bar,
- * the thumb, or the endpoint labels. Its edge follows the bar's `orientation`.
+ * The hover arrow: a glyph on the scale bar's edge marking the exact value of
+ * the region the pointer is on. Isolated as its own {@link useMapHoverState}
+ * consumer so a pointer move over the map re-renders only this glyph — never
+ * the gradient bar, the thumb, or the endpoint labels. Its edge follows the
+ * bar's `orientation`.
  *
  * @internal
  */
 function RangeHoverArrow({
-	regionCategory,
-	bins,
+	regionNumbers,
+	domain,
 	orientation,
 }: {
-	regionCategory: (number | null)[]
-	bins: number
+	regionNumbers: (number | null)[]
+	domain: [number, number]
 	orientation: RangeOrientation
 }) {
 	const { target } = useMapHoverState()
 
-	const bin = target !== null && target.kind === 'region' ? regionCategory[target.index] : null
+	const value = target !== null && target.kind === 'region' ? regionNumbers[target.index] : null
 
-	if (bin == null) return null
+	if (value == null) return null
 
-	return <RangeArrow bin={bin} bins={bins} slot="map-range" orientation={orientation} />
+	return <RangeArrow value={value} domain={domain} slot="map-range" orientation={orientation} />
 }
 
 /**
  * The choropleth's range legend: the shared {@link RangeLegend} scale-bar
- * slider, wired to the map — its hover arrow tracks the pointed region's bin,
+ * slider, wired to the map — its hover arrow tracks the pointed region's value,
  * and probing the bar emphasises that class's regions through `onFocus`, dimming
  * the rest. The `map-range` slot keeps the map's part names. `orientation`
  * follows the resolved placement — vertical beside the plot, horizontal above or
@@ -591,7 +575,7 @@ export function MapRangeLegend({
 	format,
 	label,
 	bins,
-	regionCategory,
+	regionNumbers,
 	onFocus,
 	orientation = 'vertical',
 }: MapRangeLegendProps) {
@@ -609,7 +593,11 @@ export function MapRangeLegend({
 				orientation={orientation}
 				onProbe={(bin) => onFocus(bin === null ? null : categoryLegendId(String(bin)))}
 				arrow={
-					<RangeHoverArrow regionCategory={regionCategory} bins={bins} orientation={orientation} />
+					<RangeHoverArrow
+						regionNumbers={regionNumbers}
+						domain={domain}
+						orientation={orientation}
+					/>
 				}
 			/>
 		</div>
