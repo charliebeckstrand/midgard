@@ -469,12 +469,18 @@ type GridRowProps<T> = {
  * @internal
  */
 export function resolveCellTooltip<T>(col: GridColumn<T>, row: T): CellTooltip {
-	if (col.cellTooltip == null) return { kind: 'auto' }
+	if (col.cellTooltip == null) return AUTO_TOOLTIP
 
 	const node = col.cellTooltip(row)
 
-	return node == null ? { kind: 'none' } : { kind: 'custom', node }
+	return node == null ? NO_TOOLTIP : { kind: 'custom', node }
 }
+
+/** Shared default-tooltip descriptor — one allocation, not one per rendered cell. @internal */
+const AUTO_TOOLTIP: CellTooltip = { kind: 'auto' }
+
+/** Shared suppressed-tooltip descriptor. @internal */
+const NO_TOOLTIP: CellTooltip = { kind: 'none' }
 
 /**
  * A `TableRow` that can carry Framer's `layout` prop, so a sort-animated row

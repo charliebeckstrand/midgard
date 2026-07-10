@@ -21,3 +21,6 @@ minimumReleaseAgeExclude:
   - '@turbo/windows-64@2.9.18'
   - '@turbo/windows-arm64@2.9.18'
   - turbo@2.9.18
+  - '@mui/x-data-grid@9.9.0'
+  - '@mui/x-internals@9.9.0'
+  - '@mui/x-virtualizer@0.6.0'

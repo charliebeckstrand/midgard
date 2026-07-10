@@ -3,11 +3,12 @@ import { playwright } from '@vitest/browser-playwright'
 import { defineConfig } from 'vitest/config'
 
 /**
- * Competitive chart benchmarks in real Chromium (`pnpm bench:browser`) — the
- * ui chart module against AG Charts and Highcharts, per
- * `src/__benchmarks__/browser/README.md`. A real browser because the
- * comparison needs one: AG Charts draws to a real canvas and all three
- * contenders deserve real layout, so jsdom numbers would not be credible.
+ * Competitive benchmarks in real Chromium (`pnpm bench:browser`) — the ui
+ * chart module against AG Charts and Highcharts, the ui grid module against
+ * AG Grid and MUI X DataGrid, per `src/__benchmarks__/browser/README.md`. A
+ * real browser because the comparison needs one: AG Charts draws to a real
+ * canvas, the grids virtualize against real scroll geometry, and every
+ * contender deserves real layout, so jsdom numbers would not be credible.
  *
  * Chromium launches with the frame-rate limit off: AG defers scene renders
  * to animation frames and the hover benches settle one frame per iteration,
@@ -31,7 +32,9 @@ export default defineConfig({
 		include: [
 			'@floating-ui/react',
 			'@internationalized/date',
+			'@mui/x-data-grid',
 			'ag-charts-community',
+			'ag-grid-community',
 			'highcharts',
 			'lucide-react',
 			'motion',

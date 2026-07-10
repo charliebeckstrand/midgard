@@ -6,6 +6,16 @@
  * compare for everything else.
  */
 
+/**
+ * The natural, locale-aware collation the string fallback orders by — built
+ * once and reused. `String#localeCompare` with options re-resolves collation
+ * machinery on every call, which a sort pays O(N log N) times; the shared
+ * collator answers the same ordering at a fraction of the per-compare cost.
+ *
+ * @internal
+ */
+const NATURAL_COLLATOR = new Intl.Collator(undefined, { numeric: true })
+
 /** Grouping separators and spacing stripped before a numeric parse (US/UK convention: comma groups, dot decimal). @internal */
 const NUMERIC_NOISE = /[\s,_]/g
 
@@ -127,7 +137,7 @@ export function compareSortKeys(a: SortKey, b: SortKey): number {
 
 	if (b.numeric !== null) return 1
 
-	return a.text.localeCompare(b.text, undefined, { numeric: true })
+	return NATURAL_COLLATOR.compare(a.text, b.text)
 }
 
 /**
