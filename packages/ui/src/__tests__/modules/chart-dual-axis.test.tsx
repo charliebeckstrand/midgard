@@ -18,9 +18,9 @@ const dollars = (value: number) => `$${value}`
 const percent = (value: number) => `${value}%`
 
 function line(overrides?: {
-	leftAxis?: ChartValueAxis
-	rightAxis?: ChartValueAxis
-	rightSeries?: boolean
+	yAxis?: ChartValueAxis
+	y2Axis?: ChartValueAxis
+	y2Series?: boolean
 	/** The frame width; wide enough for axis titles (≥ 512) only where a test needs them. */
 	width?: number
 }) {
@@ -31,12 +31,14 @@ function line(overrides?: {
 			width={overrides?.width ?? 480}
 			series={[
 				{ xKey: 'week', yKey: 'shipments', yName: 'Shipments' },
-				...(overrides?.rightSeries === false
+				...(overrides?.y2Series === false
 					? []
-					: [{ xKey: 'week', yKey: 'rate', yName: 'Rate', axis: 'right' } as const]),
+					: [{ xKey: 'week', yKey: 'rate', yName: 'Rate', axis: 'y2' } as const]),
 			]}
-			leftAxis={{ format: dollars, ...overrides?.leftAxis }}
-			rightAxis={{ format: percent, ...overrides?.rightAxis }}
+			axes={{
+				y: { format: dollars, ...overrides?.yAxis },
+				y2: { format: percent, ...overrides?.y2Axis },
+			}}
 		/>,
 	)
 }
@@ -54,7 +56,7 @@ describe('secondary y-axis', () => {
 
 		expect(bySlot(dual.container, 'chart-axis-y-right')).not.toBeNull()
 
-		const single = line({ rightSeries: false })
+		const single = line({ y2Series: false })
 
 		expect(bySlot(single.container, 'chart-axis-y-right')).toBeNull()
 	})
@@ -89,8 +91,8 @@ describe('secondary y-axis', () => {
 		expect(table?.textContent).toContain('12%')
 	})
 
-	it('pins the right domain through rightAxis min / max', () => {
-		const { container } = line({ rightAxis: { min: 0, max: 50 } })
+	it('pins the y2 domain through axes.y2 min / max', () => {
+		const { container } = line({ y2Axis: { min: 0, max: 50 } })
 
 		const right = tickLabels(container, 'chart-axis-y-right')
 
@@ -112,7 +114,7 @@ describe('secondary y-axis', () => {
 			defaulted.container.querySelectorAll('[data-slot="chart-grid-lines"] line'),
 		).toHaveLength(leftTickCount)
 
-		const optedIn = line({ rightAxis: { gridLines: true } })
+		const optedIn = line({ y2Axis: { grid: true } })
 
 		const opted = optedIn.container.querySelectorAll('[data-slot="chart-grid-lines"] line').length
 
@@ -131,8 +133,8 @@ describe('secondary y-axis', () => {
 		// A frame wide and tall enough to afford titles (past the tier's title bounds).
 		const { container } = line({
 			width: 560,
-			leftAxis: { title: 'Shipments' },
-			rightAxis: { title: 'Exception rate' },
+			yAxis: { title: 'Shipments' },
+			y2Axis: { title: 'Exception rate' },
 		})
 
 		const titles = bySlot(container, 'chart-axis-titles')
@@ -154,11 +156,35 @@ describe('secondary y-axis', () => {
 		// tier's title width): the gutter reserves no title band and none draw, the
 		// scales and their series still reading through the legend and tooltip.
 		const { container } = line({
-			leftAxis: { title: 'Shipments' },
-			rightAxis: { title: 'Exception rate' },
+			yAxis: { title: 'Shipments' },
+			y2Axis: { title: 'Exception rate' },
 		})
 
 		expect(bySlot(container, 'chart-axis-titles')).toBeNull()
+	})
+
+	it('draws the category (x) axis title flat under its labels', () => {
+		const { container } = renderUI(
+			<LineChart
+				aria-label="Shipments by week"
+				data={WEEKS}
+				width={560}
+				height={360}
+				series={[{ xKey: 'week', yKey: 'shipments', yName: 'Shipments' }]}
+				axes={{ x: { title: 'Week' } }}
+			/>,
+		)
+
+		const titles = bySlot(container, 'chart-axis-titles')
+
+		expect(titles?.textContent).toContain('Week')
+
+		// The band-axis title reads horizontally under the labels — no rotation.
+		const week = [...(titles?.querySelectorAll('text') ?? [])].find(
+			(node) => node.textContent === 'Week',
+		)
+
+		expect(week?.getAttribute('transform') ?? '').not.toContain('rotate(')
 	})
 
 	it('drops the right axis when its last series toggles off, and the left when everything binds right', async () => {
@@ -176,8 +202,8 @@ describe('secondary y-axis', () => {
 				data={WEEKS}
 				width={480}
 				series={[
-					{ xKey: 'week', yKey: 'rate', yName: 'Rate', axis: 'right' },
-					{ xKey: 'week', yKey: 'shipments', yName: 'Shipments', axis: 'right' },
+					{ xKey: 'week', yKey: 'rate', yName: 'Rate', axis: 'y2' },
+					{ xKey: 'week', yKey: 'shipments', yName: 'Shipments', axis: 'y2' },
 				]}
 			/>,
 		)
@@ -213,10 +239,10 @@ describe('secondary y-axis', () => {
 				width={480}
 				series={[
 					{ xKey: 'week', yKey: 'shipments', yName: 'Shipments' },
-					{ xKey: 'week', yKey: 'rate', yName: 'Rate', axis: 'right' },
+					{ xKey: 'week', yKey: 'rate', yName: 'Rate', axis: 'y2' },
 				]}
-				rightAxis={{ format: percent }}
-				reference={[{ value: 40, label: 'Ceiling', axis: 'right' }]}
+				axes={{ y2: { format: percent } }}
+				reference={[{ value: 40, label: 'Ceiling', axis: 'y2' }]}
 			/>,
 		)
 
@@ -239,7 +265,7 @@ describe('secondary y-axis', () => {
 				width={480}
 				series={[
 					{ xKey: 'week', yKey: 'shipments', yName: 'Shipments' },
-					{ xKey: 'week', yKey: 'rate', yName: 'Rate', axis: 'right' },
+					{ xKey: 'week', yKey: 'rate', yName: 'Rate', axis: 'y2' },
 				]}
 				stacked
 			/>,
@@ -258,9 +284,9 @@ describe('secondary y-axis', () => {
 				width={480}
 				series={[
 					{ type: 'bar', xKey: 'week', yKey: 'shipments', yName: 'Shipments' },
-					{ type: 'line', xKey: 'week', yKey: 'rate', yName: 'Rate', axis: 'right' },
+					{ type: 'line', xKey: 'week', yKey: 'rate', yName: 'Rate', axis: 'y2' },
 				]}
-				rightAxis={{ format: percent }}
+				axes={{ y2: { format: percent } }}
 			/>,
 		)
 

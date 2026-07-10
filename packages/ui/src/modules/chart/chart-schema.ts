@@ -31,18 +31,20 @@ export type ChartContextMenuConfig = ContextMenuConfig & {
 }
 
 /**
- * Which value axis a series or reference line reads against: the primary
- * `'left'` axis or the secondary `'right'` one. The names are identities, not
- * geometry — under `orientation="horizontal"` the transpose puts the primary
- * value axis on the bottom and the secondary on top, and the binding reads the
- * same either way.
+ * Which value axis a series or reference line reads against: the key of the
+ * chart's {@link CartesianAxes | axes} object configuring it — the primary
+ * `'y'` axis or the secondary `'y2'`. The names are roles, not geometry: `y`
+ * lines the left gutter and `y2` the right when vertical, and the transpose
+ * under `orientation="horizontal"` moves them to the bottom and top with the
+ * binding reading the same either way.
  */
-export type ChartValueAxisSide = 'left' | 'right'
+export type ChartValueAxisId = 'y' | 'y2'
 
 /**
- * One value axis's own configuration, for a cartesian chart's `leftAxis` /
- * `rightAxis` props: an independent domain, tick formatter, title, and
- * grid-line participation. Two measures of different scale — a count against a
+ * One value axis's configuration — a `y` / `y2` entry of a cartesian chart's
+ * {@link CartesianAxes | axes} object, or either {@link ScatterAxes} entry of a
+ * point chart's. An independent domain, tick formatter, title, and grid-line
+ * participation, so two measures of different scale — a count against a
  * currency, a rate against a weight — each read their own axis instead of
  * sharing one domain.
  */
@@ -53,47 +55,109 @@ export type ChartValueAxis = {
 	max?: number
 	/**
 	 * Formats this axis's ticks and its series' tooltip, label, and data-table
-	 * values — a currency for the left, a percent for the right.
+	 * values — a currency for `y`, a percent for `y2`.
 	 * @defaultValue the chart's `formatValue`
 	 */
 	format?: (value: number) => string
 	/** A short title drawn along the axis, naming the measure it scales. */
 	title?: string
 	/**
-	 * Draw this axis's ticks as the chart's gridlines. One axis should carry
-	 * them — two independent tick sets rarely align, and doubled hairlines read
-	 * as noise — so the left axis defaults on and the right defaults off,
-	 * standing in only when no left-bound series resolves a scale. The chart's
-	 * `gridLines` switch still gates the whole layer.
-	 * @defaultValue `true` for the left axis, `false` for the right
+	 * Draw this axis's ticks as the chart's grid. On a cartesian chart one axis
+	 * should carry them — two independent tick sets rarely align, and doubled
+	 * hairlines read as noise — so `y` defaults on and `y2` off, standing in
+	 * only when no `y`-bound series resolves a scale; a point chart's grid
+	 * reads both ways, so both its axes default on. The chart's `grid` switch
+	 * still gates the whole layer.
+	 * @defaultValue `true`, except a cartesian chart's `y2`
 	 */
-	gridLines?: boolean
+	grid?: boolean
 }
 
 /**
- * The category (band) axis's presentation, for a cartesian chart's `categories`
- * prop: its between-category dividers and its label format.
+ * The category (band) axis of a cartesian chart — the `x` entry of its
+ * {@link CartesianAxes | axes} object. Types the band axis (plain categories or
+ * time), formats its labels, rules its between-category dividers, and titles it.
  */
-export type ChartCategoryConfig = {
+export type ChartCategoryAxis = {
 	/**
-	 * Rule a divider between each category — one hairline at every band boundary,
-	 * none at the outer edges — so a dense axis reads which marks belong to which
-	 * row: `'solid'` or `'dashed'`, omitted draws none. Recessive under the marks
-	 * beside the value gridlines, and it stands down with the rest of the chrome
-	 * at the spark tier. Under `orientation="horizontal"` the dividers run between
-	 * the stacked bands.
+	 * Type the band axis. `'time'` reads each row's `xKey` as a date — a `Date`,
+	 * epoch milliseconds, or an ISO string (a bare `YYYY-MM-DD` as a local day) —
+	 * and lines the axis with calendar-boundary ticks (year, quarter, month, week,
+	 * day, hour) chosen against the tick target, each placed at its true position
+	 * between the evenly spaced rows and formatted for the runtime locale through
+	 * `@internationalized/date`; the tooltip and data table read the same dates.
+	 * Rows stay index-aligned, so spacing is uniform — the ticks track time, the
+	 * marks track order. Under `orientation="horizontal"` this types the vertical
+	 * band axis. Falls back to plain labels when fewer than two rows carry a
+	 * parseable, spanning date.
+	 * @defaultValue 'category'
 	 */
-	separator?: 'solid' | 'dashed'
+	type?: 'category' | 'time'
 	/**
 	 * Format each row's category — the band-axis labels and the tooltip and data
 	 * table readout — from its raw `xKey` value. Overrides the default `String`
 	 * coercion and the automatic date normalization: with no formatter set, a band
 	 * axis whose every value parses as a date labels itself `MM-DD` (or
-	 * `MM-DD-YYYY` across years) on its own. Ignored on the ticks of an
-	 * `xAxis="time"` axis, which places and labels its own calendar ticks, though
-	 * it still formats that axis's readout.
+	 * `MM-DD-YYYY` across years) on its own. Ignored on the ticks of a `type: 'time'`
+	 * axis, which places and labels its own calendar ticks, though it still formats
+	 * that axis's readout.
 	 */
 	format?: (value: unknown) => string
+	/**
+	 * Rule a divider between each category — one hairline at every band boundary,
+	 * none at the outer edges — so a dense axis reads which marks belong to which
+	 * row: `'solid'` or `'dashed'`, omitted draws none. Recessive under the marks
+	 * beside the value grid, and it stands down with the rest of the chrome
+	 * at the spark tier. Under `orientation="horizontal"` the dividers run between
+	 * the stacked bands.
+	 */
+	separator?: 'solid' | 'dashed'
+	/** A short title drawn along the band axis, naming what the categories enumerate. */
+	title?: string
+}
+
+/**
+ * A cartesian chart's axes, one optional config under each axis's own key: the
+ * category (band) axis as `x`, the primary value axis as `y`, the secondary as
+ * `y2` — the same names a series' or reference line's `axis` binding uses. An
+ * omitted key keeps that axis's defaults, so a chart names only the axes it
+ * tunes.
+ */
+export type CartesianAxes = {
+	/** The category (band) axis. */
+	x?: ChartCategoryAxis
+	/** The primary value axis; every series reads it unless bound to `y2`. */
+	y?: ChartValueAxis
+	/**
+	 * The secondary value axis. It appears only once a series binds to it, a
+	 * reference reads against it, or its domain is pinned here.
+	 */
+	y2?: ChartValueAxis
+}
+
+/**
+ * A point chart's axes (Scatter / Bubble), one optional config per role. Both
+ * are value axes here — there is no band axis and no `y2` — so each takes the
+ * same domain pins, tick formatter, title, and grid participation.
+ */
+export type ScatterAxes = {
+	/** The horizontal value axis. */
+	x?: ChartValueAxis
+	/** The vertical value axis. */
+	y?: ChartValueAxis
+}
+
+/**
+ * Reads an `axes` prop's boolean-or-object union: whether the axis chrome draws
+ * at all (`false` alone drops it, the bare-marks plot) and the per-axis configs
+ * (the booleans read as none — every axis at its defaults).
+ *
+ * @internal
+ */
+export function resolveAxes<A extends object>(
+	axes: boolean | A | undefined,
+): { draw: boolean; config: Partial<A> } {
+	return { draw: axes !== false, config: typeof axes === 'object' ? axes : {} }
 }
 
 /**
@@ -129,14 +193,14 @@ export type ChartSeries<T> = {
 	 */
 	color?: ChartSeriesColor | (string & {})
 	/**
-	 * The value axis this series reads against. `'right'` binds it to the
-	 * secondary axis — its own domain, ticks, and formatter via the chart's
-	 * `rightAxis` prop — so a second measure plots at its natural scale beside
-	 * the first. A stacked chart reads every series on one axis: the side they
-	 * all agree on, else the left.
-	 * @defaultValue 'left'
+	 * The value axis this series reads against. `'y2'` binds it to the secondary
+	 * axis — its own domain, ticks, and formatter via the chart's `axes.y2`
+	 * config — so a second measure plots at its natural scale beside the first.
+	 * A stacked chart reads every series on one axis: the one they all agree on,
+	 * else `y`.
+	 * @defaultValue 'y'
 	 */
-	axis?: ChartValueAxisSide
+	axis?: ChartValueAxisId
 	/**
 	 * Dash this series' connecting stroke instead of drawing it solid — a second
 	 * identity channel beside colour, so two lines sharing one chart tell apart
@@ -341,11 +405,11 @@ export type ChartReferenceLine = {
 	dashed?: boolean
 	/**
 	 * The value axis the rule's `value` reads against. It folds into that
-	 * axis's domain and draws at that axis's projection, so a right-axis
-	 * threshold annotates the right-bound series rather than the left scale.
-	 * @defaultValue 'left'
+	 * axis's domain and draws at that axis's projection, so a `y2` threshold
+	 * annotates the `y2`-bound series rather than the primary scale.
+	 * @defaultValue 'y'
 	 */
-	axis?: ChartValueAxisSide
+	axis?: ChartValueAxisId
 }
 
 /**
@@ -566,20 +630,23 @@ export type CartesianFrameProps = {
 	/** Resolves against enclosing Density; sets the default frame height and tick count. */
 	size?: Step
 	/**
-	 * Draw the x and y axes.
+	 * The chart's axes. `true` (the default) draws the value and category axes
+	 * at their defaults; `false` drops the axis chrome for a bare-marks plot.
+	 * The object form configures each axis under its own key — the category
+	 * axis as `x` (`{ type, format, separator, title }`), a value axis as `y`
+	 * or `y2` (`{ min, max, format, title, grid }`) — matching the names a
+	 * series' `axis` binding uses. An omitted key keeps that axis's defaults, so
+	 * a chart names only the axes it tunes.
+	 * @defaultValue true
+	 * @see {@link CartesianAxes}
+	 */
+	axes?: boolean | CartesianAxes
+	/**
+	 * Draw the grid: hairlines at the value ticks. Which axis's ticks rule it
+	 * is each axis's own `grid` switch; this one gates the whole layer.
 	 * @defaultValue true
 	 */
-	axes?: boolean
-	/**
-	 * Draw horizontal hairline gridlines at the y ticks.
-	 * @defaultValue true
-	 */
-	gridLines?: boolean
-	/**
-	 * The category (band) axis's presentation — its dividers and label format.
-	 * @see {@link ChartCategoryConfig}
-	 */
-	categories?: ChartCategoryConfig
+	grid?: boolean
 	/**
 	 * Draw a hover crosshair. `true` (the shorthand) draws both rules — a
 	 * horizontal value rule and a vertical category rule; a {@link Crosshair}
@@ -587,26 +654,6 @@ export type CartesianFrameProps = {
 	 * `false`). Opt-in: nothing is drawn unless set.
 	 */
 	crosshair?: boolean | Crosshair
-	/** Value-domain floor; defaults to the data (and zero for bars). Pin it to compare charts on one scale. */
-	min?: number
-	/** Value-domain ceiling; defaults to the data maximum. */
-	max?: number
-	/**
-	 * The primary (left) value axis's own configuration — domain pins, tick
-	 * formatter, title, gridline participation. Its `min` / `max` win over the
-	 * top-level pins and its `format` over `formatValue`, so a dual-axis chart
-	 * reads both axes from one prop pair.
-	 */
-	leftAxis?: ChartValueAxis
-	/**
-	 * The secondary (right) value axis: an independent scale for the series
-	 * bound to it with `axis: 'right'`. The axis appears once a right-bound
-	 * series is visible, a reference line reads against it, or its domain is
-	 * pinned here; with none of those it stays off and the chart is the
-	 * single-axis default. Under `orientation="horizontal"` the transpose
-	 * draws it along the top.
-	 */
-	rightAxis?: ChartValueAxis
 	/**
 	 * Reference lines drawn across the plot at fixed values — targets, thresholds,
 	 * or averages the marks read against. Each value folds into the domain so an
@@ -615,20 +662,6 @@ export type CartesianFrameProps = {
 	 * itself in it as a static identity chip.
 	 */
 	reference?: ChartReferenceLine[]
-	/**
-	 * Type the categorical (band) axis. `'time'` reads each row's `xKey` as a
-	 * date — a `Date`, epoch milliseconds, or an ISO string (a bare `YYYY-MM-DD`
-	 * as a local day) — and lines the axis with calendar-boundary ticks (year,
-	 * quarter, month, week, day, hour) chosen against the tick target, each placed
-	 * at its true position between the evenly spaced rows and formatted for the
-	 * runtime locale through `@internationalized/date`; the tooltip and data table
-	 * read the same dates. Rows stay index-aligned, so spacing is uniform — the
-	 * ticks track time, the marks track order. Under `orientation="horizontal"`
-	 * this types the vertical band axis. Falls back to plain labels when fewer than
-	 * two rows carry a parseable, spanning date.
-	 * @defaultValue 'category'
-	 */
-	xAxis?: 'category' | 'time'
 	/**
 	 * Tilt category labels that would otherwise collide instead of thinning them
 	 * to every nth: past that point every label draws, angled, and none are

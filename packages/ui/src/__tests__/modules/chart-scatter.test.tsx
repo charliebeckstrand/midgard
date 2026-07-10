@@ -256,7 +256,7 @@ describe('ScatterChart', () => {
 				data={STOPS}
 				width={480}
 				series={[{ xKey: 'distance', yKey: 'dwell', yName: 'Dwell' }]}
-				formatXValue={(value) => `${value} mi`}
+				axes={{ x: { format: (value: number) => `${value} mi` } }}
 			/>,
 		)
 
@@ -282,7 +282,7 @@ describe('ScatterChart', () => {
 				data={STOPS}
 				width={480}
 				series={[{ xKey: 'distance', yKey: 'dwell', yName: 'Dwell' }]}
-				formatXValue={(value) => `${value} mi`}
+				axes={{ x: { format: (value: number) => `${value} mi` } }}
 			/>,
 		)
 
@@ -395,5 +395,53 @@ describe('BubbleChart', () => {
 
 		// The data table names the size measure beside each value.
 		expect(bySlot(container, 'chart-table')?.textContent).toContain('34 (weight: 4)')
+	})
+})
+
+describe('scatter axis titles', () => {
+	it('draws the x and y axis titles from their axes entries', () => {
+		const { container } = renderUI(
+			<ScatterChart
+				aria-label="Dwell against distance"
+				data={STOPS}
+				width={560}
+				height={360}
+				series={[{ xKey: 'distance', yKey: 'dwell', yName: 'Dwell' }]}
+				axes={{ x: { title: 'Distance' }, y: { title: 'Dwell' } }}
+			/>,
+		)
+
+		const titles = bySlot(container, 'chart-axis-titles')
+
+		expect(titles?.textContent).toContain('Distance')
+
+		expect(titles?.textContent).toContain('Dwell')
+
+		// The y title rotates along the left gutter; the x title reads flat.
+		const transforms = [...(titles?.querySelectorAll('text') ?? [])].map((node) => ({
+			text: node.textContent,
+			transform: node.getAttribute('transform') ?? '',
+		}))
+
+		expect(transforms.find((entry) => entry.text === 'Dwell')?.transform).toContain('rotate(-90')
+
+		expect(transforms.find((entry) => entry.text === 'Distance')?.transform).not.toContain(
+			'rotate(',
+		)
+	})
+
+	it('sheds the titles at the spark tier', () => {
+		const { container } = renderUI(
+			<ScatterChart
+				aria-label="Dwell against distance"
+				data={STOPS}
+				width={120}
+				height={40}
+				series={[{ xKey: 'distance', yKey: 'dwell', yName: 'Dwell' }]}
+				axes={{ x: { title: 'Distance' } }}
+			/>,
+		)
+
+		expect(bySlot(container, 'chart-axis-titles')).toBeNull()
 	})
 })

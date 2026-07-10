@@ -6,8 +6,10 @@ import { useResolvedSize } from '../../../primitives/density'
 import type { Step } from '../../../recipes'
 import { type ChartSeriesColor, k } from '../../../recipes/kata/chart'
 import { once } from '../../../utilities'
-import { ChartAxis, type ChartAxisTick } from '../chart-axis'
+import { ChartAxis, type ChartAxisTick, ChartAxisTitles } from '../chart-axis'
 import {
+	AXIS_TITLE_BAND,
+	AXIS_TITLE_GAP,
 	CHART_METRICS,
 	MARKER_RADIUS,
 	MARKER_RING_WIDTH,
@@ -20,6 +22,7 @@ import { ChartFrame } from '../chart-frame'
 import { ChartGridLines } from '../chart-grid-lines'
 import {
 	type ChartAspectRatio,
+	type ChartAxisTitlePlacement,
 	chartFrameLayout,
 	type PlotRect,
 	plotRect,
@@ -33,9 +36,12 @@ import {
 	type ChartBaseProps,
 	type ChartLegendPlacement,
 	type ChartTooltipTrigger,
+	type ChartValueAxis,
 	type Crosshair,
 	type ResolvedCrosshair,
+	resolveAxes,
 	resolveTooltip,
+	type ScatterAxes,
 	type ScatterChartSeries,
 } from '../chart-schema'
 import { formatChartValue, type SlotPaint } from '../chart-series'
@@ -72,8 +78,8 @@ import {
 
 /**
  * The frame switches the point charts (Scatter / Bubble) add on top of
- * {@link ChartBaseProps}: axes and gridlines both ways, per-axis domain pins,
- * the x formatter, and the hover crosshair.
+ * {@link ChartBaseProps}: axes and grid both ways, per-axis domains, formats,
+ * and titles, and the hover crosshair.
  *
  * @internal
  */
@@ -81,32 +87,29 @@ export type ScatterFrameProps = {
 	/** Resolves against enclosing Density; sets the default frame height and tick count. */
 	size?: Step
 	/**
-	 * Draw the x and y axes.
+	 * The chart's axes. `true` (the default) draws both value axes at their
+	 * defaults; `false` drops the axis chrome for a bare-marks plot. The object
+	 * form configures each axis under its own key — `{ min, max, format, title,
+	 * grid }` for either. Both are value axes here, so each takes its own
+	 * domain, tick formatter, and title; an omitted key keeps that axis's
+	 * defaults.
 	 * @defaultValue true
+	 * @see {@link ScatterAxes}
 	 */
-	axes?: boolean
+	axes?: boolean | ScatterAxes
 	/**
-	 * Draw hairline gridlines at both axes' ticks — both are value axes here,
-	 * so the grid reads both ways.
+	 * Draw the grid: hairlines at both axes' ticks — both are value axes here,
+	 * so the grid reads both ways unless an axis opts out through its own
+	 * `grid` switch.
 	 * @defaultValue true
 	 */
-	gridLines?: boolean
+	grid?: boolean
 	/**
 	 * Draw a hover crosshair. `true` draws both rules; a {@link Crosshair}
 	 * object snaps them to the nearest point (`snap`) or drops one. Opt-in:
 	 * nothing is drawn unless set.
 	 */
 	crosshair?: boolean | Crosshair
-	/** y-domain floor; defaults to the data. Pin it to compare charts on one scale. */
-	min?: number
-	/** y-domain ceiling; defaults to the data maximum. */
-	max?: number
-	/** x-domain floor; defaults to the data. */
-	xMin?: number
-	/** x-domain ceiling; defaults to the data maximum. */
-	xMax?: number
-	/** Formats x ticks and the readout's x column. @defaultValue locale integer / fraction */
-	formatXValue?: (value: number) => string
 }
 
 /**
@@ -190,6 +193,26 @@ function scatterReadout(
 	}
 }
 
+/**
+ * The readout as a cached thunk, or `null` when there's nothing to read. At ten
+ * thousand points the readout formats every unique-x column through `Intl`,
+ * which costs more than drawing the discs — so the mount render only decides one
+ * exists and the first consumer (the hover tooltip, the deferred table)
+ * materializes it off that path.
+ *
+ * @internal
+ */
+function scatterReadoutThunk(
+	visible: ScatterMeta[],
+	uniqueXs: number[],
+	format: (value: number) => string,
+	formatX: (value: number) => string,
+): (() => ChartReadout | null) | null {
+	if (visible.length === 0 || uniqueXs.length === 0) return null
+
+	return once(() => scatterReadout(visible, uniqueXs, format, formatX))
+}
+
 /** The resolved frame flags: the plot's sizing plus the figure and legend layout. @internal */
 type ScatterFrame = {
 	sizing: FrameSizing
@@ -247,16 +270,51 @@ function scatterLegendItems(
 	}))
 }
 
+/** One axis's grid participation: the chart's `grid` gate and the axis's own switch. @internal */
+function axisGrid(grid: boolean, axis: ChartValueAxis | undefined): boolean {
+	return grid && (axis?.grid ?? true)
+}
+
 /** Both scales' pins, lifted off the props. @internal */
 type ScatterPins = { min?: number; max?: number; xMin?: number; xMax?: number }
 
-/** The resolved scatter plot: rect, scales, and ticks for both axes. @internal */
+/** The resolved scatter plot: rect, scales, ticks, and placed axis titles. @internal */
 type ScatterScales = {
 	plot: PlotRect
 	xScale: LinearScale | null
 	yScale: LinearScale | null
 	xTicks: ChartAxisTick[]
 	yTicks: ChartAxisTick[]
+	/** The x / y axis titles placed in the bands the plot reserved for them; empty without titles. */
+	titles: ChartAxisTitlePlacement[]
+}
+
+/**
+ * The scatter's placed axis titles: a rotated one in the left gutter for the y
+ * axis, a horizontal one under the x labels for the x axis — each in the band
+ * {@link scatterScales} reserved. @internal
+ */
+function scatterTitles(
+	plot: PlotRect,
+	xTitle: string | undefined,
+	yTitle: string | undefined,
+): ChartAxisTitlePlacement[] {
+	const titles: ChartAxisTitlePlacement[] = []
+
+	if (yTitle) {
+		titles.push({ text: yTitle, x: AXIS_TITLE_BAND / 2, y: plot.y + plot.height / 2, rotate: -90 })
+	}
+
+	if (xTitle) {
+		titles.push({
+			text: xTitle,
+			x: plot.x + plot.width / 2,
+			y: plot.y + plot.height + X_AXIS_HEIGHT + AXIS_TITLE_BAND / 2,
+			rotate: 0,
+		})
+	}
+
+	return titles
 }
 
 /**
@@ -296,10 +354,24 @@ function scatterScales(args: {
 	pins: ScatterPins
 	format: (value: number) => string
 	formatX: (value: number) => string
+	/** The x / y axis titles; each reserves a band past its labels where the tier affords one. */
+	xTitle?: string
+	yTitle?: string
 }): ScatterScales {
 	const { visible, frameWidth, frameHeight, axes, spark, tickTarget, pins, format, formatX } = args
 
 	const drawAxes = axes && !spark
+
+	// A titled axis reserves a band past its labels — the x title under the x-axis
+	// band, the y title rotated at the far left — folded into the plot the way the
+	// cartesian layout folds its own.
+	const xTitle = drawAxes ? args.xTitle : undefined
+
+	const yTitle = drawAxes ? args.yTitle : undefined
+
+	const xTitleBand = xTitle ? AXIS_TITLE_BAND : 0
+
+	const yTitleBand = yTitle ? AXIS_TITLE_BAND + AXIS_TITLE_GAP : 0
 
 	// A spark scatter fits its domain tight — like a spark line, filling the box
 	// rather than sinking into the empty air a nice-stepped scale leaves — and
@@ -313,7 +385,10 @@ function scatterScales(args: {
 
 	const yScale = linearScale({
 		values: visible.flatMap((meta) => meta.points.map((point) => point.y)),
-		range: [frameHeight - (drawAxes ? X_AXIS_HEIGHT : inset), spark ? inset : PLOT_TOP_PAD],
+		range: [
+			frameHeight - (drawAxes ? X_AXIS_HEIGHT + xTitleBand : inset),
+			spark ? inset : PLOT_TOP_PAD,
+		],
 		tickTarget: scaleTicks,
 		min: pins.min,
 		max: pins.max,
@@ -321,12 +396,21 @@ function scatterScales(args: {
 
 	const yTicks = valueTicksOf(yScale, format)
 
-	const plot = plotRect(
+	const base = plotRect(
 		frameWidth,
 		frameHeight,
 		drawAxes,
 		yTicks.map((tick) => tick.label),
 	)
+
+	// The title bands narrow the plot from the base gutter / axis-band reservation
+	// the way the yScale range already dropped the x title's height.
+	const plot: PlotRect = {
+		x: base.x + yTitleBand,
+		y: base.y,
+		width: Math.max(0, base.width - yTitleBand),
+		height: Math.max(0, base.height - xTitleBand),
+	}
 
 	const xValues = visible.flatMap((meta) => meta.points.map((point) => point.x))
 
@@ -350,13 +434,15 @@ function scatterScales(args: {
 		yScale,
 		xTicks: drawAxes ? anchorEndTicks(xTicks, xRange[0], xRange[1]) : xTicks,
 		yTicks,
+		titles: scatterTitles(plot, xTitle, yTitle),
 	}
 }
 
 /**
- * The scatter frame's chrome: both axes' gridlines and tick labels. Draws
- * nothing at the spark tier — a sparkline is bare marks, so the labels and
- * gridlines that would clutter it stand down with the rest of the chrome.
+ * The scatter frame's chrome: both axes' gridlines, tick labels, and titles.
+ * Draws nothing at the spark tier — a sparkline is bare marks, so the labels,
+ * gridlines, and titles that would clutter it stand down with the rest of the
+ * chrome.
  * @internal
  */
 function ScatterChrome(props: {
@@ -364,21 +450,25 @@ function ScatterChrome(props: {
 	/** Spark strips the chrome entirely — the component renders nothing. */
 	spark: boolean
 	axes: boolean
-	gridLines: boolean
+	/** Whether each axis's ticks rule the grid — the chart's `grid` gate and the axis's own switch, resolved. */
+	xGrid: boolean
+	yGrid: boolean
 	xScale: LinearScale | null
 	yScale: LinearScale | null
 	xTicks: ChartAxisTick[]
 	yTicks: ChartAxisTick[]
+	/** The placed axis titles, empty when neither axis is titled. */
+	titles: ChartAxisTitlePlacement[]
 }) {
-	const { plot, spark, axes, gridLines, xScale, yScale, xTicks, yTicks } = props
+	const { plot, spark, axes, xGrid, yGrid, xScale, yScale, xTicks, yTicks, titles } = props
 
 	if (spark) return null
 
 	return (
 		<>
-			{gridLines && yScale && <ChartGridLines plot={plot} ticks={yTicks.map((tick) => tick.at)} />}
+			{yGrid && yScale && <ChartGridLines plot={plot} ticks={yTicks.map((tick) => tick.at)} />}
 
-			{gridLines && xScale && (
+			{xGrid && xScale && (
 				<ChartGridLines
 					plot={plot}
 					ticks={xTicks.map((tick) => tick.at)}
@@ -389,6 +479,8 @@ function ScatterChrome(props: {
 			{axes && yScale && <ChartAxis axis="y" plot={plot} ticks={yTicks} />}
 
 			{axes && xScale && <ChartAxis axis="x" plot={plot} ticks={xTicks} />}
+
+			{axes && <ChartAxisTitles titles={titles} />}
 		</>
 	)
 }
@@ -487,21 +579,20 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 		width,
 		height,
 		aspectRatio = '16/9',
-		axes = true,
-		gridLines = true,
+		axes,
+		grid = true,
 		legend,
 		tooltip,
 		crosshair,
 		animate = false,
-		min,
-		max,
-		xMin,
-		xMax,
 		formatValue,
-		formatXValue,
 		className,
 		...label
 	} = props
+
+	// The one place the `axes` prop's boolean-or-object union is read: the draw
+	// switch and each axis's domain, formatter, title, and grid participation.
+	const { draw, config: axesConfig } = resolveAxes(axes)
 
 	const resolvedSize = useResolvedSize(size)
 
@@ -547,9 +638,9 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 	// ChartTierContext, and the frame renders the drawing pointer-inert.
 	const spark = policy.tier === 'spark'
 
-	const format = formatValue ?? formatChartValue
+	const format = axesConfig.y?.format ?? formatValue ?? formatChartValue
 
-	const formatX = formatXValue ?? formatChartValue
+	const formatX = axesConfig.x?.format ?? formatChartValue
 
 	const { hidden, toggle, setFocus, emphasis } = useChartSeriesToggle()
 
@@ -557,16 +648,25 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 
 	const visible = metas.filter((meta) => !hidden.has(meta.index))
 
-	const { plot, xScale, yScale, xTicks, yTicks } = scatterScales({
+	const { plot, xScale, yScale, xTicks, yTicks, titles } = scatterScales({
 		visible,
 		frameWidth,
 		frameHeight,
-		axes,
+		axes: draw,
 		spark,
 		tickTarget: metrics.tickTarget,
-		pins: { min, max, xMin, xMax },
+		pins: {
+			min: axesConfig.y?.min,
+			max: axesConfig.y?.max,
+			xMin: axesConfig.x?.min,
+			xMax: axesConfig.x?.max,
+		},
 		format,
 		formatX,
+		// Titles resolve only when the tier affords a title band, the same gate the
+		// cartesian value titles pass through.
+		xTitle: policy.axisTitles ? axesConfig.x?.title : undefined,
+		yTitle: policy.axisTitles ? axesConfig.y?.title : undefined,
 	})
 
 	// The sorted unique x values are the scatter's categories: the hover index,
@@ -604,14 +704,7 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 
 	const indices = list.map((entry) => entry.index)
 
-	// A cached thunk: at ten thousand points the readout formats every unique-x
-	// column through `Intl`, which costs more than drawing the discs — so the
-	// mount render only decides one exists and the first consumer (the hover
-	// tooltip, the deferred table) materializes it off that path.
-	const readout =
-		visible.length === 0 || uniqueXs.length === 0
-			? null
-			: once(() => scatterReadout(visible, uniqueXs, format, formatX))
+	const readout = scatterReadoutThunk(visible, uniqueXs, format, formatX)
 
 	const rails = resolveCrosshair(crosshair)
 
@@ -660,12 +753,14 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 			<ScatterChrome
 				plot={plot}
 				spark={spark}
-				axes={axes}
-				gridLines={gridLines}
+				axes={draw}
+				xGrid={axisGrid(grid, axesConfig.x)}
+				yGrid={axisGrid(grid, axesConfig.y)}
 				xScale={xScale}
 				yScale={yScale}
 				xTicks={xTicks}
 				yTicks={yTicks}
+				titles={titles}
 			/>
 
 			{rails && (

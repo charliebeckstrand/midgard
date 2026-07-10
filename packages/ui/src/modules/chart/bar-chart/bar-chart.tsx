@@ -94,8 +94,8 @@ export function BarChart<T>(props: BarChartProps<T>) {
 		width,
 		height,
 		aspectRatio,
-		axes = true,
-		gridLines = true,
+		axes,
+		grid = true,
 		legend,
 		tooltip,
 		crosshair,
@@ -104,14 +104,8 @@ export function BarChart<T>(props: BarChartProps<T>) {
 		stacked = false,
 		thick = false,
 		texture = false,
-		min,
-		max,
-		leftAxis,
-		rightAxis,
 		reference,
-		xAxis,
 		tickRotation,
-		categories,
 		onCategoryClick,
 		formatValue,
 		className,
@@ -128,14 +122,8 @@ export function BarChart<T>(props: BarChartProps<T>) {
 			aspectRatio,
 			axes,
 			legend,
-			min,
-			max,
-			leftAxis,
-			rightAxis,
 			reference,
-			xAxis,
 			tickRotation,
-			categories,
 			onCategoryClick,
 			formatValue,
 			// The header travels to the frame through `label`; the hook reads it too,
@@ -268,16 +256,16 @@ export function BarChart<T>(props: BarChartProps<T>) {
 				plot={chart.plot}
 				valueTicks={chart.yTicks}
 				hasScale={chart.yScale !== null}
-				rightTicks={chart.rightTicks}
-				hasRightScale={chart.rightScale !== null}
+				y2Ticks={chart.y2Ticks}
+				hasY2Scale={chart.y2Scale !== null}
 				categoryTicks={chart.xTicks}
 				hasData={data.length > 0}
 				baseline={chart.baseline}
 				axes={chart.axes}
-				gridLines={gridLines}
+				grid={grid}
 				gridPositions={chart.gridPositions}
 				categoryGridPositions={chart.categoryGridPositions}
-				categorySeparator={categories?.separator}
+				categorySeparator={chart.categorySeparator}
 				titles={chart.axisTitles}
 			/>
 
@@ -331,7 +319,7 @@ export function BarChart<T>(props: BarChartProps<T>) {
 			<ChartReferenceLines
 				plot={chart.plot}
 				scale={chart.yScale}
-				rightScale={chart.rightScale}
+				y2Scale={chart.y2Scale}
 				reference={reference}
 				orientation={chart.orientation}
 				format={chart.formatAxisValue}
