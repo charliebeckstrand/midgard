@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { MapPlat, MapPoint } from '../../modules/map'
 import { POINT_HIT_RADIUS, POINT_RADIUS } from '../../modules/map/map-constants'
 import { allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
-import { FIXTURE_GEOJSON } from '../helpers/map-geography'
+import { FIXTURE_GEOJSON, FIXTURE_ROWS } from '../helpers/map-geography'
 
 function plat(children: ReactNode) {
 	return (
@@ -87,5 +87,48 @@ describe('MapPoint', () => {
 		expect(remaining).toHaveLength(1)
 
 		expect(remaining[0]?.getAttribute('class')).toContain('stroke-amber-600')
+	})
+
+	it('trades the pointed-mark recede with the regions', () => {
+		const { container } = renderUI(
+			<MapPlat
+				aria-label="Test map"
+				geography={FIXTURE_GEOJSON}
+				data={FIXTURE_ROWS}
+				regionKey="state"
+				categoryKey="zone"
+				width={400}
+			>
+				<MapPoint label="Depot" at={[15, 5]} />
+			</MapPlat>,
+		)
+
+		const dotGroup = () => bySlot(container, 'map-point')?.parentElement?.getAttribute('class')
+
+		const regionGroups = () =>
+			allBySlot(container, 'map-region').map((el) => el.parentElement?.getAttribute('class') ?? '')
+
+		// Pointing the dot isolates it: every region recedes behind it.
+		fireEvent.pointerEnter(bySlot(container, 'map-point-hit') as Element, {
+			clientX: 200,
+			clientY: 30,
+		})
+
+		expect(dotGroup()).not.toContain('opacity-25')
+
+		expect(regionGroups().every((cls) => cls.includes('opacity-25'))).toBe(true)
+
+		// Pointing a matched region isolates it the other way: the dot recedes.
+		const [alpha] = allBySlot(container, 'map-region')
+
+		fireEvent.pointerEnter(alpha as Element, { clientX: 40, clientY: 20 })
+
+		expect(regionGroups()[0]).not.toContain('opacity-25')
+
+		expect(dotGroup()).toContain('opacity-25')
+
+		fireEvent.pointerLeave(bySlot(container, 'map-regions') as Element)
+
+		expect(dotGroup()).not.toContain('opacity-25')
 	})
 })

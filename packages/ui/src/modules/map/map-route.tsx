@@ -4,7 +4,7 @@ import { motion } from 'motion/react'
 import { type PointerEvent, useEffect, useId, useMemo } from 'react'
 import { cn } from '../../core'
 import { k, type MapSeriesColor } from '../../recipes/kata/map'
-import { useMapHoverSet, useMapPlat } from './context'
+import { mapMarkDimmed, useMapHoverSet, useMapPlat, useMapPointedMark } from './context'
 import { ROUTE_DRAW, ROUTE_HIT_WIDTH, ROUTE_STROKE_WIDTH } from './map-constants'
 import { linePath } from './map-geometry'
 import type { LngLat } from './types'
@@ -35,8 +35,9 @@ export type MapRouteProps = {
  * A route drawn over the geography: a round-joined polyline through its
  * stops (or along a street-following `path`), registered in the plat's
  * legend as its own toggleable, focusable entry. Hovering the line raises
- * the tooltip with the route's name and detail; a wide invisible hit stroke
- * keeps the thin line aimable.
+ * the tooltip with the route's name and detail and isolates the route —
+ * every other mark recedes, as under its legend entry's focus; a wide
+ * invisible hit stroke keeps the thin line aimable.
  *
  * @remarks Renders only inside {@link MapPlat}. The line's width rides
  * device pixels (a non-scaling stroke), so a resize scales the geography
@@ -50,6 +51,8 @@ export function MapRoute({ label, stops, path, color, detail }: MapRouteProps) {
 	const { project, register, colors, hidden, emphasis, animate } = useMapPlat()
 
 	const set = useMapHoverSet()
+
+	const pointed = useMapPointedMark()
 
 	useEffect(
 		() => register({ id, label, kind: 'route', swatch: 'line', color, detail }),
@@ -92,7 +95,7 @@ export function MapRoute({ label, stops, path, color, detail }: MapRouteProps) {
 
 	return (
 		<g
-			className={cn(k.group(emphasis !== null && emphasis !== id))}
+			className={cn(k.group(mapMarkDimmed(pointed, { kind: 'entry', id }, emphasis, id)))}
 			onPointerLeave={() => set(null, null)}
 		>
 			{animate ? (
