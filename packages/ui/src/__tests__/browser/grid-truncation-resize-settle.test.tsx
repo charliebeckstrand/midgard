@@ -15,6 +15,11 @@ import { act, renderUI, waitFor } from '../helpers'
  * squeezing the *content* (`letter-spacing`) rather than resizing the box, so
  * the observed box never changes size and the `ResizeObserver` stays silent on
  * its own — isolating the deferred pass without stubbing the shared observer.
+ *
+ * Overflow measurement is contact-gated (a cell scrolled past but never
+ * hovered pays no layout read), so the element is armed with a `pointerover`
+ * before the flag is expected to reflect anything — the same contact the reveal
+ * tooltip it gates always begins with.
  */
 function Leaf({ signal }: { signal: number }) {
 	const [ref, truncated] = useGridTruncation<HTMLDivElement>(signal)
@@ -40,6 +45,12 @@ describe('useGridTruncation resize-settle reconciliation (real browser)', () => 
 		const leaf = getByTestId('leaf')
 
 		const flag = () => getByTestId('flag').textContent
+
+		// Arm the detector: measurement stands down until the element sees the
+		// pointer/focus contact its reveal opens on.
+		await act(async () => {
+			leaf.dispatchEvent(new PointerEvent('pointerover', { bubbles: true }))
+		})
 
 		// Content overflows the 60px box → flagged truncated.
 		await waitFor(() => expect(flag()).toBe('truncated'))

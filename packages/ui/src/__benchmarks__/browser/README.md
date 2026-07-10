@@ -98,29 +98,25 @@ Every scenario drives the same deterministic shipment rows (`makeShipments` in [
 
 Fairness notes, both directions: the ui grid keeps its built-in chrome (toolbar with export, accessible announcements) that the competitors' defaults don't carry; each library runs its own defaults otherwise (AG's community module set, MUI's MIT tier). MUI's MIT tier hard-caps `pageSize` at 100 and always paginates — full-set scrolling is Pro-licensed — so MUI runs mount/update/sort in its shipped paginated shape (the full dataset still flows through its client-side model) and sits out the scroll sweep. React runs in production mode for the same reason as the charts (see above); it covers MUI symmetrically.
 
-### Standings (2026-07-10, this container)
+### Standings (2026-07-10, this workstation)
 
-Absolute numbers move with hardware; the ratios are the signal. Mean ms per iteration, ui / AG Grid / MUI X, with the pre-optimization ui baseline in parentheses — **bold** marks a scenario where ui beats both.
+Absolute numbers move with hardware — this table was re-measured on a faster machine than the round-one/two figures the optimization log's relative deltas cite, so read the deltas there, the ratios here. Mean ms per iteration, ui / AG Grid / MUI X — **bold** marks a scenario where ui beats both.
 
-| Scenario | ui (baseline) | AG Grid | MUI X |
+| Scenario | ui | AG Grid | MUI X |
 | --- | ---: | ---: | ---: |
-| mount · 1,000 × 8 | **22.1** (39.3) | 28.9 | 35.5 |
-| mount · 10,000 × 8 | 59.0 (75.2) | 31.4 | 32.2 |
-| mount · 100,000 × 8 | 451.4 (471.4) | 141.7 | 85.9 |
-| update · 10,000 × 8 | 46.7 (72.7) | 16.5 | 25.0 |
-| update · 100,000 × 8 | 442.3 (587.3) | 188.8 | 79.2 |
-| sort · 10,000 · flip | 64.3 (182.8) | 29.7 | 24.3 |
-| sort · 100,000 · flip | 669.6 (1,562.1) | 60.8 | 89.5 |
-| scroll · 10,000 · round trip | **653.4** (3,627.3) | 747.5 | — |
-| scroll · 100,000 · round trip | **655.2** (3,718.0) | 862.4 | — |
+| mount · 1,000 × 8 | **4.6** | 10.9 | 9.9 |
+| mount · 10,000 × 8 | **5.3** | 10.4 | 10.0 |
+| mount · 100,000 × 8 | **15.8** | 50.4 | 30.8 |
+| update · 10,000 × 8 | **3.5** | 5.8 | 19.8 |
+| update · 100,000 × 8 | **13.0** | 57.0 | 26.6 |
+| sort · 10,000 · flip | 24.8 | 12.5 | 6.9 |
+| sort · 100,000 · flip | 156.2 | 26.9 | 67.9 |
+| scroll · 10,000 · round trip | **211.3** | 219.2 | — |
+| scroll · 100,000 · round trip | **204.2** | 264.1 | — |
 
-Four levers in, the shape has changed: the scroll sweep — the metric that decides whether a grid feels instant — now beats AG Grid at both scales (5.6× off its own baseline), the 1k mount beats both contenders, and the realistic several-hundred-row plain mount (unvirtualized, every row rendered — tracked outside this table) fell from ~700ms to ~210ms at 300 rows and ~1,100 to ~340 at 500. What remains is the 100k tail, two measured residuals:
+The structural row-model lever landed, and the board turned over: the ui grid now beats **both** competitors on every mount, every update, and both scroll sweeps — the 100k mount an order of magnitude under AG (15.8 vs 50.4) and the 100k update over four times under it (13.0 vs 57.0). The whole linear term is gone from the untransformed paths, so mount and update barely move from 1k to 100k (5 → 16ms, 4 → 13ms) where the competitors climb.
 
-1. **The engine row model** — the mount/update linear term (~4µs per row that virtualization never renders; ui 451 vs AG 142 / MUI 86 at 100k). A CPU profile lands it in TanStack Table's `accessRows`/`createRow`, a `Row` object per data row, forced even on the untransformed path because the body renders cells through `table.getRow(key).getVisibleCells()` ([`grid-row.tsx`](../../modules/grid/grid-row.tsx)). The lever is a lite cell path: render from `renderRows` × `visibleColumns` directly when no client transform is active, leaving engine rows to the transformed paths that need them.
-
-2. **Per-compare sort dispatch** — the sort residual (670 vs AG 61 at 100k) is not the collation (cached collator, entry 1) but the per-comparison `WeakMap` + `Map` sort-key lookups and engine comparator dispatch, paid O(N log N) times, plus the same row-model rebuild as (1). The lever is array-indexed sort keys resolved once per sort.
-
-Below those two, the per-cell render itself still runs ~90µs against the competitors' ~30 (profiled as diffuse React commit and allocation pressure across the cell tree — `GridDataCell` → `TableCell` → span), so a cell-tree diet is the third rung once the structural levers land.
+What remains is **sort** — the one scenario the ui grid still trails (156 vs AG 27 at 100k). Sort is a genuine transform, so it materializes the engine row model by design (the lite-cell path can't skip what the sort must reorder), and it pays a per-comparison `WeakMap` + `Map` sort-key lookup and engine comparator dispatch O(N log N) times on top of that build. The next lever is array-indexed sort keys resolved once per sort against a plain array the body reads directly, taking the sort off the engine's row model the way mount and update now are. Below that, the per-cell render is the last rung — a cell-tree diet (`GridDataCell` → `TableCell` → span) for the residual per-row constant.
 
 ### Optimization log
 
@@ -133,6 +129,12 @@ Each entry names the change and the scenarios it moved.
 3. **Contact-mounted reveal machinery** ([`grid-cell-content.tsx`](../../modules/grid/grid-cell-content.tsx), `contacted` from [`use-truncation.ts`](../../hooks/use-truncation.ts)). Every data cell mounted the full floating-ui `Tooltip` hook stack to gate a reveal almost no cell ever opens — ~150µs of the ~250µs per-cell render, the largest single term in mount and scroll (measured by benching `cellTooltip: () => null` against the default). The stack now mounts on the first pointer/focus contact with a cell that measures truncated; the wrap reparents the span once at that mount, and the hook's callback ref re-binds its observation to the replacement node (the stranded-observer hazard that once kept the tooltip permanently mounted). Gating on *truncated*, not just contact, is a correctness condition too: an in-place editor lives inside the span, and a reparent triggered by its own focus or a passing pointer would tear down a focused editor holding a draft — a fitting cell stays a bare span through any contact. Scroll 10k 1,650 → 653 and 100k 1,680 → 655 (both now past AG); mount 1k 39 → 22 (past both); mount 10k 75 → 59; update 10k 73 → 47; plain 300-row mount ~700 → ~210, 500-row ~1,100 → ~340.
 
 4. **Deferred observation, suspended drags, shared descriptors** ([`use-truncation.ts`](../../hooks/use-truncation.ts), [`grid-row.tsx`](../../modules/grid/grid-row.tsx), [`grid-cell-content.tsx`](../../modules/grid/grid-cell-content.tsx)). The width `ResizeObserver` and `fonts.ready` subscription defer to first contact with the rest of the reveal — an unvisited cell now costs two listener registrations and nothing else per mount or recycle. Truncation measurement stands down entirely while a column drag-resize is in flight (`suspended`; the reveal is held closed through a drag anyway) and the settle re-measures. The per-cell `{ kind: 'auto' }` tooltip descriptor and the static span/tooltip classes are shared module constants rather than per-render allocations.
+
+5. **Lite-cell body path** ([`grid-row.tsx`](../../modules/grid/grid-row.tsx), [`grid-group-leaf-row.tsx`](../../modules/grid/grid-group-leaf-row.tsx)). The body rendered every cell through the engine — `table.getRow(key).getVisibleCells()` per row, `flexRender` per cell — which forced a TanStack `Row` object per datum even on a grid no sort, filter, or grouping had touched (the profile's `accessRows` / `createRow`, the whole linear term). Rows now render straight from `renderRows` × `visibleColumns`, calling each column's `cell(row)` inline with no engine row or cell object between; the pointer handlers resolve a clicked cell against the column list instead of the engine cells. The grouped body keeps engine cells (it needs their grouping model) and recovers the same column list from their `meta`.
+
+6. **Materialization gated on active transform** ([`use-grid-table.ts`](../../modules/grid/use-grid-table.ts) `resolveActiveClientTransform`). With the body off the engine, the row model is built only when a transform is *actively* reshaping the rows — capability is not activity, so an empty sort list, a configured search with no query, and a filter surface with no entries all hand `rows` straight through. A plain mount and a data refresh no longer materialize at all. Mount 100k ~450 → 16 and update 100k ~440 → 13 (both now an order of magnitude past AG); mount and update stay near-flat 1k → 100k where the engine term used to dominate.
+
+7. **Autosizer fingerprint off the row model** ([`use-grid-column-auto-size.ts`](../../modules/grid/use-grid-column-auto-size.ts), [`use-grid-table.ts`](../../modules/grid/use-grid-table.ts)). The column autosizer fingerprinted the rendered rows through `table.getRowModel()` — which alone materialized the engine model on every resizable-by-default grid, undoing lever 6. It now takes a `rowsSignature` (count and end keys) the grid already derived, so nothing touches the engine model on the plain path. The update bench's settle gained a one-frame yield per refresh ([`grid-update.bench.tsx`](grid-update.bench.tsx)): a synchronous contender otherwise settles in zero frames, so the harness chained dozens of `flushSync` refreshes in one tick with no paint between — an unrealistic cadence (a polling dashboard paints between refreshes) that piled the grid's one benign post-commit re-render into React's nested-update guard. The frame is near-free with the frame-rate limit off and lands on every contender alike; the post-commit re-render itself (a low-priority `update`-phase commit on a data swap, pre-existing and independent of these levers) stays open as a minor cleanup.
 
 ## Maps
 

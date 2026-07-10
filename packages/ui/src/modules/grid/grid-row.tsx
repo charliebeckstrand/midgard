@@ -3,7 +3,6 @@
 import type { DraggableAttributes, DraggableSyntheticListeners } from '@dnd-kit/core'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { type Cell, flexRender, type Table } from '@tanstack/react-table'
 import { GripVertical } from 'lucide-react'
 import { motion } from 'motion/react'
 import {
@@ -100,14 +99,14 @@ export function cellValue<T>(col: GridColumn<T>, row: T): unknown {
 
 /**
  * Resolves the data cell a row-level pointer event landed on: the closest
- * `td[data-grid-col]` names the column, matched back through the row's engine
- * cells. Non-data cells (selection, actions, drag handle, expander) resolve to
- * `null`, so cell-level events fire only for row content.
+ * `td[data-grid-col]` names the column, matched back through the row's visible
+ * columns. Non-data cells (selection, actions, drag handle, expander) resolve
+ * to `null`, so cell-level events fire only for row content.
  *
  * @internal
  */
 function resolveCellContext<T>(
-	cells: Cell<T, unknown>[],
+	columns: GridColumn<T>[],
 	row: T,
 	rowKey: string | number,
 	target: EventTarget | null,
@@ -118,10 +117,8 @@ function resolveCellContext<T>(
 
 	if (id == null) return null
 
-	for (const cell of cells) {
-		const col = cell.column.columnDef.meta?.gridColumn
-
-		if (col && String(col.id) === id && isDataColumn(col)) {
+	for (const col of columns) {
+		if (String(col.id) === id && isDataColumn(col)) {
 			return { row, rowKey, columnId: col.id, value: cellValue(col, row) }
 		}
 	}
@@ -139,13 +136,13 @@ function resolveCellContext<T>(
  * @internal
  */
 export function rowPointerHandler<T>(args: {
-	cells: Cell<T, unknown>[]
+	columns: GridColumn<T>[]
 	row: T
 	rowKey: string | number
 	onRow: GridRowClick<T> | undefined
 	onCell: GridCellClick<T> | undefined
 }): ((event: ReactMouseEvent<HTMLTableRowElement>) => void) | undefined {
-	const { cells, row, rowKey, onRow, onCell } = args
+	const { columns, row, rowKey, onRow, onCell } = args
 
 	if (!onRow && !onCell) return undefined
 
@@ -153,7 +150,7 @@ export function rowPointerHandler<T>(args: {
 		if (fromInteractiveContent(event.target)) return
 
 		if (onCell) {
-			const cell = resolveCellContext(cells, row, rowKey, event.target)
+			const cell = resolveCellContext(columns, row, rowKey, event.target)
 
 			if (cell) onCell(cell, event)
 		}
@@ -175,19 +172,16 @@ export function fromInteractiveContent(target: EventTarget | null): boolean {
 }
 
 /**
- * Per-row wiring shared by the plain and virtualized bodies: the engine, the
- * row/key sources, and the flags every {@link GridRow} reads. Both bodies
- * extend this with their own layout props and render rows through
- * {@link renderGridRow}.
+ * Per-row wiring shared by the plain and virtualized bodies: the row/key/column
+ * sources and the flags every {@link GridRow} reads. Both bodies extend this
+ * with their own layout props and render rows through {@link renderGridRow}.
  *
  * @internal
  */
 export type GridRowsProps<T> = {
-	/** The engine; rows read their cells from it. */
-	table: Table<T>
 	rows: T[]
 	rowKeys: (string | number)[]
-	/** Visible columns, kept for the loading/empty/spacer column spans. */
+	/** Visible columns, in display order: each row renders its cells straight from these, and the loading/empty/spacer rows span them. */
 	visibleColumns: GridColumn<T>[]
 	rowLoading?: (row: T) => boolean
 	rowClassName?: (row: T) => string | undefined
@@ -293,7 +287,7 @@ export function renderGridRow<T>(
 	const expanded = expandable && (props.expansion?.expanded.has(key) ?? false)
 
 	const rowProps = {
-		cells: props.table.getRow(String(key)).getVisibleCells(),
+		columns: props.visibleColumns,
 		row,
 		rowKey: key,
 		loading: props.rowLoading?.(row) ?? false,
@@ -363,12 +357,13 @@ type GridRowProps<T> = {
 	row: T
 	rowKey: string | number
 	/**
-	 * This row's visible cells from the engine (`row.getVisibleCells()`), rendered
-	 * through `flexRender`. Passed in (not pulled off a stable `table`) so the
-	 * memoized row re-renders when the cell set changes — the array's identity
-	 * shifts on a column-def rebuild but holds across cursor navigation.
+	 * The visible columns, in display order; the row renders one cell per entry
+	 * straight from the column's declaration (`cell` / `selectable` / `actions` /
+	 * …), with no engine row or cell objects in between — the layer that once
+	 * forced a `Row` per data row on grids no transform had touched. Passed in
+	 * (not derived) so the memoized row re-renders when the visible set changes.
 	 */
-	cells: Cell<T, unknown>[]
+	columns: GridColumn<T>[]
 	loading: boolean
 	className: string | undefined
 	/** Human-readable name for the selection checkbox ("Select {label}"); falls back to the row key. */
@@ -500,7 +495,7 @@ const MotionTableRow = motion.create(TableRow)
 function GridRowImpl<T>({
 	row,
 	rowKey,
-	cells,
+	columns,
 	loading,
 	className,
 	rowLabel,
@@ -569,9 +564,9 @@ function GridRowImpl<T>({
 			// legacy static per-row stop; cell roving and the navigable cursor leave
 			// the row unfocusable (the cells / the table hold focus).
 			tabIndex={rowRoving ? undefined : rowStaticStop ? 0 : undefined}
-			onClick={rowPointerHandler({ cells, row, rowKey, onRow: onRowClick, onCell: onCellClick })}
+			onClick={rowPointerHandler({ columns, row, rowKey, onRow: onRowClick, onCell: onCellClick })}
 			onDoubleClick={rowPointerHandler({
-				cells,
+				columns,
 				row,
 				rowKey,
 				onRow: onRowDoubleClick,
@@ -601,13 +596,7 @@ function GridRowImpl<T>({
 				className,
 			)}
 		>
-			{cells.map((cell, colIdx) => {
-				// Every engine column carries its source column on `meta`; the guard
-				// narrows the optional type (it is always set in `toColumnDef`).
-				const col = cell.column.columnDef.meta?.gridColumn
-
-				if (!col) return null
-
+			{columns.map((col, colIdx) => {
 				// Cell column indices accompany aria-rowindex under virtualization
 				// (rowIndex is only set then).
 				const colIndex = rowIndex !== undefined ? colIdx + 1 : undefined
@@ -679,7 +668,6 @@ function GridRowImpl<T>({
 				return (
 					<GridDataCell<T>
 						key={col.id}
-						cell={cell}
 						col={col}
 						row={row}
 						rowKey={rowKey}
@@ -785,7 +773,6 @@ function GridRowDragHandle({ sortable, rowLabel, rowKey }: GridRowDragHandleProp
 
 /** Props for {@link GridDataCell}. @internal */
 type GridDataCellProps<T> = {
-	cell: Cell<T, unknown>
 	col: GridColumn<T>
 	row: T
 	/** The owning row's key, carried so cell roving can build the {@link GridCellClickContext}. */
@@ -837,14 +824,15 @@ export function cellRovingAttrs<T>(args: {
 }
 
 /**
- * One data cell: renders its content through the engine (`flexRender`), wrapping
- * it in the truncation reveal unless the grid opts out, then in a reorder-aware
- * `<td>`. A column with no `cell` yields null content and stays bare.
+ * One data cell: renders the column's `cell` slot directly against the row,
+ * wrapping it in the truncation reveal unless the grid opts out, then in a
+ * reorder-aware `<td>`. A column with no `cell` yields null content and stays
+ * bare. The direct call — no engine `Cell`, no `flexRender` component boundary —
+ * is what lets a body render without materializing the engine row model.
  *
  * @internal
  */
 function GridDataCellImpl<T>({
-	cell,
 	col,
 	row,
 	rowKey,
@@ -865,9 +853,9 @@ function GridDataCellImpl<T>({
 
 	const rovingClass = cellRoving ? k.cell.rovable : undefined
 
-	// Render only columns that declare a `cell`; a bare accessor column stays empty
-	// rather than falling back to TanStack's default value renderer.
-	const rawContent = col.cell ? flexRender(cell.column.columnDef.cell, cell.getContext()) : null
+	// Render only columns that declare a `cell`; a bare accessor column stays
+	// empty rather than falling back to an engine default renderer.
+	const rawContent = col.cell ? (col.cell(row) ?? null) : null
 
 	const content =
 		truncate && rawContent != null ? (
@@ -915,9 +903,9 @@ function GridDataCellImpl<T>({
 
 /**
  * Memoized {@link GridDataCellImpl}: when a row re-renders, only the cells whose
- * own props (cell, column, row, pinning) changed re-render, so a row-level change
- * (selection, truncation) doesn't re-run `flexRender` and `cellProps` for every
- * cell in the row. @internal
+ * own props (column, row, pinning) changed re-render, so a row-level change
+ * (selection, truncation) doesn't re-run the cell renderer and `cellProps` for
+ * every cell in the row. @internal
  */
 const GridDataCell = memo(GridDataCellImpl) as typeof GridDataCellImpl
 

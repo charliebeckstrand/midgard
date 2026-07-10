@@ -1774,7 +1774,6 @@ export function GridData<T>({
 
 				<GridBody<T>
 					loading={loading}
-					table={table}
 					rows={renderRows}
 					rowKeys={rowKeys}
 					visibleColumns={visibleColumns}

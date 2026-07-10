@@ -410,6 +410,42 @@ function resolveTransformModes(args: {
 	}
 }
 
+/** Fingerprint of the rendered rows — count and end keys — the autosizer re-measures on. @internal */
+function rowsSignatureOf(rowKeys: (string | number)[]): string {
+	return `${rowKeys.length}:${rowKeys[0] ?? ''}:${rowKeys.at(-1) ?? ''}`
+}
+
+/**
+ * Whether a client transform is *actively* reshaping the rows, deciding
+ * whether the engine row model materializes. Capability is not activity: an
+ * empty sort list, a configured search with no query, and a filter surface
+ * with no entries all transform nothing. Kept out of {@link useGridTable} for
+ * its cognitive-complexity budget.
+ *
+ * @internal
+ */
+function resolveActiveClientTransform(args: {
+	paginated: boolean
+	paginationManual: boolean
+	filterMode: { configured: boolean; manual: boolean }
+	globalFilter: string
+	columnFilters: ColumnFiltersState
+	clientSort: boolean
+	sort: SortState[] | undefined
+	grouped: boolean
+}): boolean {
+	const filtering = args.globalFilter !== '' || args.columnFilters.length > 0
+
+	return usesClientModel({
+		paginated: args.paginated,
+		paginationManual: args.paginationManual,
+		filtersConfigured: args.filterMode.configured && filtering,
+		filtersManual: args.filterMode.manual,
+		sortClient: args.clientSort && (args.sort?.length ?? 0) > 0,
+		grouped: args.grouped,
+	})
+}
+
 /**
  * Fires the column-resize drag lifecycle. The engine flags the column under an
  * active pointer/touch drag in `columnSizingInfo.isResizingColumn` (a keyboard
@@ -719,17 +755,23 @@ export function useGridTable<T>({
 
 	const visibleColumns = useVisibleColumns(table)
 
-	// Materialize the row model only when a client-side transform is active (a
-	// client sort/filter/pagination, or grouping); otherwise hand `rows` straight
-	// to the body. The row-model derivation (display rows, grouped display list,
-	// flat leaf rows, and the `renderRows`/`rowKeys` the body reads) lives in
-	// `useGridRowModel`.
-	const clientTransform = usesClientModel({
+	// Materialize the row model only when a client-side transform is *actively*
+	// reshaping the rows; otherwise hand `rows` straight to the body. Capability
+	// is not activity: client sorting is on for every grid, but an empty sort
+	// list transforms nothing — likewise a configured search with no query and a
+	// filter surface with no entries — and materializing anyway would build the
+	// engine's Row-per-datum model on every plain mount, the linear term the
+	// windowed body exists to avoid. The row-model derivation (display rows,
+	// grouped display list, flat leaf rows, and the `renderRows`/`rowKeys` the
+	// body reads) lives in `useGridRowModel`.
+	const clientTransform = resolveActiveClientTransform({
 		paginated,
 		paginationManual: manual,
-		filtersConfigured: filterMode.configured,
-		filtersManual: filterMode.manual,
-		sortClient: clientSort,
+		filterMode,
+		globalFilter: resolvedGlobalFilter,
+		columnFilters: resolvedColumnFilters,
+		clientSort,
+		sort,
 		grouped,
 	})
 
@@ -767,6 +809,9 @@ export function useGridTable<T>({
 		// Fit distributes width across the *visible* data columns, not the hidden ones.
 		columns: visibleColumns,
 		containerRef,
+		// Fingerprint from the keys the grid already derived, so the autosizer
+		// never touches the engine row model just to notice a row change.
+		rowsSignature: rowsSignatureOf(rowKeys),
 		density,
 		columnFloors: columnFloorsRef.current,
 		// Infinite scroll's stable widths hold the fit against each appended batch.
