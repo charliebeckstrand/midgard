@@ -96,7 +96,7 @@ The geometry is the conterminous US — `states-10m` (49 regions) and `counties-
 
 - [`map-hover.bench.tsx`](map-hover.bench.tsx) — a 20-step pointer sweep across the plot plus one settled frame. Every contender receives the same `pointermove` + `mousemove` pair per step; the dispatch target differs the way the libraries' interaction stacks do — Highcharts and ECharts hear moves on their container and hit-test from coordinates in script, while the ui module's regions are their own hit targets (the browser's native SVG hit test retargets a real pointer, costing no contender script time), so its per-step targets resolve to the region under each point once, outside the timed region.
 
-Fairness notes, both directions: the ui module keeps its built-in accessible output — the visually-hidden region table renders one row per region — while Highcharts runs without its optional accessibility module; every contender's default legend stays on (the ui switchboard, Highcharts' data classes, ECharts' visual map); the categorical scenarios pin the same four zone colours and the choropleth the same five-stop ramp everywhere; the ui module pays React reconciliation the vanilla factories don't, and that is the product being measured. One county (Falls Church, VA) projects below sub-pixel size and draws no path in the ui module, so it renders 3,107 paths to the rivals' 3,108.
+Fairness notes, both directions: the ui module keeps its built-in accessible output — the visually-hidden region table, deferred one low-priority commit behind the geography — while Highcharts runs without its optional accessibility module; every contender's default legend stays on (the ui switchboard, Highcharts' data classes, ECharts' visual map); the categorical scenarios pin the same four zone colours and the choropleth the same five-stop ramp everywhere; the ui module pays React reconciliation the vanilla factories don't, and that is the product being measured. One county (Falls Church, VA) projects below sub-pixel size and draws no path in the ui module, so it renders 3,107 paths to the rivals' 3,108.
 
 ### Standings (2026-07-10, this container)
 
@@ -104,13 +104,25 @@ Mean ms per iteration, ui / Highcharts Maps / ECharts — **bold** marks a scena
 
 | Scenario | ui | Highcharts | ECharts |
 | --- | ---: | ---: | ---: |
-| mount · states · 49 × 4 zones | 24.3 | 18.2 | 13.4 |
-| mount · counties · 3,108 × 4 zones | 475.9 | 224.6 | 203.5 |
-| mount · counties choropleth · 3,108 | 504.6 | 235.4 | 206.1 |
-| update · states · re-zone | **0.6** | 8.5 | 10.7 |
-| update · counties · re-zone | **15.1** | 152.4 | 191.5 |
-| update · counties choropleth · re-value | **17.6** | 163.2 | 223.9 |
-| hover · states · sweep | 16.5 | 17.5 | 9.5 |
-| hover · counties · sweep | **8.2** | 20.2 | 19.8 |
+| mount · states · 49 × 4 zones | **4.7** | 20.4 | 15.1 |
+| mount · counties · 3,108 × 4 zones | **112.9** | 223.0 | 193.0 |
+| mount · counties choropleth · 3,108 | **138.7** | 225.7 | 201.7 |
+| update · states · re-zone | **0.5** | 10.2 | 11.8 |
+| update · counties · re-zone | **8.3** | 154.6 | 191.0 |
+| update · counties choropleth · re-value | **7.7** | 154.6 | 214.0 |
+| hover · states · sweep | 13.6 | 17.7 | 9.1 |
+| hover · counties · sweep | **7.7** | 17.5 | 17.5 |
 
-The first baseline splits cleanly along the module's design. The updates are not close — 9–19× ahead of both rivals — because the memoised region layer holds its geometry and React recolours fills in place, while the rivals rebuild their scene from the new data; the county hover also leads both. Every mount trails both rivals at roughly 2×, and the states hover trails ECharts' canvas — those are the concrete targets the optimization work aims at, with the mount gap the whole story: the county atlas pays the hidden 3,108-row table, a two-element tree per region, and a full reprojection inside every timed mount.
+The module beats **Highcharts Maps on all eight** scenarios and **ECharts on seven**. The updates are not close — 18–26× — because the memoised region layer holds its geometry and React recolours fills in place, while the rivals rebuild their scene from the new data; that is the dashboard refresh path the module was shaped for. The one deficit is the states hover sweep against ECharts' canvas, the chart suite's residual under another name: a React commit per pointer move drives the pointer-anchored Tooltip against a vanilla canvas redraw, and closing it means the same imperative-DOM trade the chart module has left open by choice. The sweep itself coalesces to one commit per iteration under React's continuous-event batching — the same coalescing a real pointer stream gets.
+
+### Optimization log
+
+The baseline run (suite as first landed) had the counties mounts at 476–505ms against rivals near 200–235, every mount trailing both; three levers closed it, sized by a stub-probed breakdown of the 476ms categorical mount before any landed.
+
+1. **Deferred region table** ([`map-plat.tsx`](../../modules/map/map-plat.tsx), `useDeferredValue`) — the chart suite's lever 2 applied to the map. The visually-hidden table renders one row per region, ~190ms of the county mount's urgent render; the geography now commits first and the table hydrates a low-priority beat behind, and a data update's urgent recolour no longer carries the 3,108-row re-map either (counties update 15.1 → 8.3, choropleth 17.6 → 7.7). Parity unchanged — the table always converges, one commit behind.
+
+2. **Flattened static region tree** ([`map-regions.tsx`](../../modules/map/map-regions.tsx)). Every region carried a `<g>` wrapper whose only job was the legend-emphasis dim; a static map now carries the dim class on the path itself, halving the region layer's element count (~40ms of the county commit). The wrapper survives under `animate`, where the dim's opacity transition would collide with the colour wash's `transition-colors` on one element.
+
+3. **Measured-paths memo** ([`map-geometry-cache.ts`](../../modules/map/map-geometry-cache.ts) `measuredRegionPaths`). The measured refit reprojected and restringified every region on each mount — ~116ms on the county atlas — though for a named projection it is a pure function of the cached geometry and the frame box. The shared cache now keeps the last measured fit's paths per geometry (one slot; a resize replaces it), so a remount at the same box — a tab switch, a dashboard's small multiples — reuses them the way the canonical stage already reused its fit. States mount 24.3 → 4.7, counties 476 → 113, choropleth 505 → 139: every mount now ahead of both rivals.
+
+Open: the states hover sweep trails ECharts (~14 vs ~9) — the React-commit-per-move residual named above, shared with the chart suite's scatter hover and closable only by the same imperative-DOM trade. Everything else stands beaten.

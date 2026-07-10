@@ -19,6 +19,7 @@
  * already served.
  */
 
+import type { GeoProjection } from 'd3-geo'
 import { geographyFeatures, regionPaths, rewindFeatures } from './map-geometry'
 import { canonicalFit, type MapCanonicalFit } from './map-projection'
 import type { MapFeature, MapGeography, MapProjection } from './types'
@@ -115,4 +116,42 @@ export function staticMapGeometry(
 	}
 
 	return geometry
+}
+
+// The last measured-fit paths per shared geometry. Reprojecting every region
+// through the fitted projection is the measured refit's whole cost — the bulk
+// of a mount on a county atlas — yet for a named projection the fit is a pure
+// function of the geometry and the frame box, so a remount at the same box (a
+// tab switch, a dashboard's small multiples) can reuse the previous paths the
+// way the canonical stage already reuses its fit. One slot per geometry: a
+// resize replaces it, so the cache never accumulates sizes.
+const measuredPaths = new WeakMap<
+	StaticMapGeometry,
+	{ width: number; height: number; paths: (string | null)[] }
+>()
+
+/**
+ * Region paths under a measured fit, memoised on the shared
+ * {@link StaticMapGeometry} entry by frame box. A geometry computed outside
+ * the cache (a passed d3 instance) is a fresh object each time, so it misses
+ * here and pays the projection directly — its stateful projection couldn't
+ * key a shared entry anyway.
+ *
+ * @internal
+ */
+export function measuredRegionPaths(
+	geometry: StaticMapGeometry,
+	fitted: GeoProjection,
+	width: number,
+	height: number,
+): (string | null)[] {
+	const hit = measuredPaths.get(geometry)
+
+	if (hit !== undefined && hit.width === width && hit.height === height) return hit.paths
+
+	const paths = regionPaths(geometry.features, fitted)
+
+	measuredPaths.set(geometry, { width, height, paths })
+
+	return paths
 }

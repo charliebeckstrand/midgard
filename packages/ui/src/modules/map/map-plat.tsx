@@ -5,6 +5,7 @@ import {
 	type RefObject,
 	startTransition,
 	useCallback,
+	useDeferredValue,
 	useMemo,
 	useRef,
 	useState,
@@ -40,8 +41,8 @@ import {
 	resolveCategories,
 	slotColor,
 } from './map-categories'
-import { type MapPoint2D, projectPoint, regionPaths } from './map-geometry'
-import { staticMapGeometry } from './map-geometry-cache'
+import { type MapPoint2D, projectPoint } from './map-geometry'
+import { measuredRegionPaths, staticMapGeometry } from './map-geometry-cache'
 import { MapLegend, type MapLegendItem } from './map-legend'
 import { mapFrameSizing, measuredMapFit, projectionFallbackAspect } from './map-projection'
 import { MapRangeLegend, type MapRangeLegendProps } from './map-range-legend'
@@ -291,10 +292,12 @@ function useMapShape(
 	// Canonical output is deterministic, so the server and the first client
 	// render agree. The per-size measured refit below stays per-instance; it
 	// reprojects to constant-pixel marks a beat after this canonical draw.
-	const { features, canonical, canonicalPaths } = useMemo(
+	const statics = useMemo(
 		() => staticMapGeometry(geography, geographyObject, projection),
 		[geography, geographyObject, projection],
 	)
+
+	const { features, canonical } = statics
 
 	// A refit reprojects every region path, so resize commits ride the plot
 	// frame's transition priority: a burst coalesces to the sizes the machine
@@ -316,10 +319,14 @@ function useMapShape(
 	// and the overlays would disagree with the resized viewBox. Deriving them
 	// inside one memo over the live frame dimensions reprojects on every resize,
 	// and hands the context a fresh `project` identity so overlay marks recompute.
-	// With nothing to frame the measured fit is `null`, so the map holds the
-	// canonical draw (or the neutral frame) rather than projecting through an
-	// unfitted default.
+	// The measured paths themselves come through the cross-instance memo
+	// (`measuredRegionPaths`), so a remount at the same box reuses them instead
+	// of reprojecting the atlas. With nothing to frame the measured fit is
+	// `null`, so the map holds the canonical draw (or the neutral frame) rather
+	// than projecting through an unfitted default.
 	const view = useMemo(() => {
+		const { features, canonical, canonicalPaths } = statics
+
 		const measured = measuredMapFit(projection, features, canonical, frameWidth, frameHeight)
 
 		// Deferred paint: hold the frame empty (the reserve still owns the box) until
@@ -337,10 +344,12 @@ function useMapShape(
 		return {
 			viewWidth: measured ? frameWidth : (canonical?.width ?? 0),
 			viewHeight: measured ? frameHeight : (canonical?.height ?? 0),
-			paths: measured ? regionPaths(features, measured) : canonicalPaths,
+			paths: measured
+				? measuredRegionPaths(statics, measured, frameWidth, frameHeight)
+				: canonicalPaths,
 			project: (position: LngLat) => (fitted === null ? null : projectPoint(fitted, position)),
 		}
-	}, [projection, features, canonical, canonicalPaths, frameWidth, frameHeight, deferPaint])
+	}, [projection, statics, frameWidth, frameHeight, deferPaint])
 
 	const { viewWidth, viewHeight, paths, project } = view
 
@@ -1152,6 +1161,41 @@ export function MapPlat<T = never>({
 
 	const hasReadout = (data !== undefined && regionNames.length > 0) || entries.length > 0
 
+	// The visually-hidden table renders one row per region — thousands on a
+	// county atlas — and none of it is mount-critical: defer it off the urgent
+	// render the way the chart frame defers its data table, so the geography
+	// commits first and the table hydrates a low-priority beat behind. The
+	// readout rides as one value, so the deferred render can't tear across a
+	// data change. Parity is unchanged — the table always converges on the
+	// current readout, one low-priority commit behind.
+	const tableReadout = useMemo(
+		() =>
+			hasReadout
+				? {
+						header: valueColumnHeader(categoryKey, valueKey, valueName),
+						regionNames: data === undefined ? [] : regionNames,
+						regionCategory,
+						regionValues,
+						categories: categoryMetas,
+						entries,
+					}
+				: null,
+		[
+			hasReadout,
+			categoryKey,
+			valueKey,
+			valueName,
+			data,
+			regionNames,
+			regionCategory,
+			regionValues,
+			categoryMetas,
+			entries,
+		],
+	)
+
+	const deferredTable = useDeferredValue(tableReadout, null)
+
 	return (
 		<MapFrame
 			legendNode={
@@ -1190,18 +1234,7 @@ export function MapPlat<T = never>({
 			plotRef={shape.ref}
 			containerRef={containerRef}
 			tooltip={tooltip}
-			table={
-				hasReadout ? (
-					<MapTable
-						header={valueColumnHeader(categoryKey, valueKey, valueName)}
-						regionNames={data === undefined ? [] : regionNames}
-						regionCategory={regionCategory}
-						regionValues={regionValues}
-						categories={categoryMetas}
-						entries={entries}
-					/>
-				) : null
-			}
+			table={deferredTable ? <MapTable {...deferredTable} /> : null}
 			width={width}
 			fill={shape.fill}
 			className={className}

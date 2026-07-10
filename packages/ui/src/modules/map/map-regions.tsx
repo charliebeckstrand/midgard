@@ -88,8 +88,12 @@ function regionFill(
 /**
  * One region path. A categorical slot fills by Tailwind class; a numeric bin
  * fills by an inline CSS colour from the consumer's `colorRange`. No-data — and
- * the pre-reveal beat under `animate` — takes the neutral class. Regions outside
- * the emphasised group dim on the wrapper.
+ * the pre-reveal beat under `animate` — takes the neutral class. Regions
+ * outside the emphasised group dim: a static region carries the dim on the
+ * path itself, so the default tree stays one element per region — thousands
+ * of wrappers priced the county-atlas mount — while an animated region keeps
+ * the wrapper, whose opacity transition would otherwise collide with the
+ * colour wash's `transition-colors` on the same element.
  *
  * @internal
  */
@@ -111,41 +115,45 @@ function Region({
 		revealed,
 	)
 
-	return (
-		<g className={cn(k.group(emphasis !== null && emphasis !== groupId))}>
-			<path
-				data-slot="map-region"
-				// Read by the hover provider's scroll-settle resolve to name the
-				// region under the pointer straight off the DOM.
-				data-region-index={index}
-				d={d}
-				strokeWidth={REGION_STROKE_WIDTH}
-				// The border rides device pixels, not viewBox units, so it stays a
-				// hairline whatever the viewBox-to-box ratio is: a resize that lands
-				// the refit a beat late (the box grown past the frame the marks were
-				// built against) scales the geometry crisply but must not fatten the
-				// stroke with it — the constant-pixel refit sharpens, this pins.
-				vectorEffect="non-scaling-stroke"
-				className={cn(
-					fillClass,
-					k.region.border,
-					active && k.region.hover,
-					animate && 'transition-colors ease-out motion-reduce:transition-none',
-				)}
-				style={{
-					...(fillColor !== undefined ? { fill: fillColor } : null),
-					...(animate
-						? {
-								transitionDuration: `${REGION_FADE.duration * 1000}ms`,
-								transitionDelay: `${Math.min(index * REGION_STAGGER, REGION_STAGGER_MAX) * 1000}ms`,
-							}
-						: null),
-				}}
-				onPointerEnter={onTrack}
-				onPointerMove={onTrack}
-			/>
-		</g>
+	const dimmed = emphasis !== null && emphasis !== groupId
+
+	const path = (
+		<path
+			data-slot="map-region"
+			// Read by the hover provider's scroll-settle resolve to name the
+			// region under the pointer straight off the DOM.
+			data-region-index={index}
+			d={d}
+			strokeWidth={REGION_STROKE_WIDTH}
+			// The border rides device pixels, not viewBox units, so it stays a
+			// hairline whatever the viewBox-to-box ratio is: a resize that lands
+			// the refit a beat late (the box grown past the frame the marks were
+			// built against) scales the geometry crisply but must not fatten the
+			// stroke with it — the constant-pixel refit sharpens, this pins.
+			vectorEffect="non-scaling-stroke"
+			className={cn(
+				fillClass,
+				k.region.border,
+				active && k.region.hover,
+				animate ? 'transition-colors ease-out motion-reduce:transition-none' : k.group(dimmed),
+			)}
+			style={{
+				...(fillColor !== undefined ? { fill: fillColor } : null),
+				...(animate
+					? {
+							transitionDuration: `${REGION_FADE.duration * 1000}ms`,
+							transitionDelay: `${Math.min(index * REGION_STAGGER, REGION_STAGGER_MAX) * 1000}ms`,
+						}
+					: null),
+			}}
+			onPointerEnter={onTrack}
+			onPointerMove={onTrack}
+		/>
 	)
+
+	if (!animate) return path
+
+	return <g className={cn(k.group(dimmed))}>{path}</g>
 }
 
 /**

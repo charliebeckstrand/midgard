@@ -287,9 +287,9 @@ describe('MapPlat', () => {
 
 		fireEvent.pointerEnter(east as HTMLButtonElement)
 
-		const groups = allBySlot(container, 'map-region').map(
-			(el) => el.parentElement?.getAttribute('class') ?? '',
-		)
+		// A static region carries the dim on the path itself (the wrapper exists
+		// only under `animate`).
+		const groups = allBySlot(container, 'map-region').map((el) => el.getAttribute('class') ?? '')
 
 		expect(groups[0]).not.toContain('opacity-25')
 
@@ -301,7 +301,7 @@ describe('MapPlat', () => {
 
 		expect(
 			allBySlot(container, 'map-region').every(
-				(el) => !(el.parentElement?.getAttribute('class') ?? '').includes('opacity-25'),
+				(el) => !(el.getAttribute('class') ?? '').includes('opacity-25'),
 			),
 		).toBe(true)
 	})
@@ -524,9 +524,11 @@ describe('MapPlat choropleth mode', () => {
 
 		expect(track).not.toBeNull()
 
+		// A static region carries the dim on the path itself (the wrapper exists
+		// only under `animate`).
 		const dimmedCount = () =>
 			allBySlot(container, 'map-region').filter((region) =>
-				region.parentElement?.getAttribute('class')?.includes('opacity-25'),
+				region.getAttribute('class')?.includes('opacity-25'),
 			).length
 
 		// Nothing dims until the bar is pointed.

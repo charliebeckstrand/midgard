@@ -135,9 +135,11 @@ describe('MapRoute', () => {
 
 		const { container, rerender } = renderUI(view(true))
 
+		// A static region carries the dim on the path itself (the wrapper exists
+		// only under `animate`).
 		const anyDimmed = () =>
 			allBySlot(container, 'map-region').some((el) =>
-				(el.parentElement?.getAttribute('class') ?? '').includes('opacity-25'),
+				(el.getAttribute('class') ?? '').includes('opacity-25'),
 			)
 
 		fireEvent.pointerEnter(bySlot(container, 'map-legend-item') as HTMLButtonElement)
