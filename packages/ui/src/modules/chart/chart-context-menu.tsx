@@ -24,7 +24,7 @@ import {
 } from './chart-export'
 import type { ChartContextMenuConfig } from './chart-schema'
 import { ChartFullscreenContext } from './context'
-import type { ChartReadout } from './types'
+import type { ChartReadoutSource } from './types'
 
 /** Props for {@link ChartContextMenu}. @internal */
 export type ChartContextMenuProps = {
@@ -36,8 +36,11 @@ export type ChartContextMenuProps = {
 	contextMenu: ChartContextMenuConfig | false | undefined
 	/** The chart root, read on an image-export action to rasterise the whole chart. */
 	rootRef: RefObject<HTMLDivElement | null>
-	/** The values behind the marks, backing the CSV actions; `null` drops them. */
-	readout: ChartReadout | null
+	/**
+	 * The values behind the marks as a cached thunk, backing the CSV actions;
+	 * `null` drops them. Materialized only when an action is selected.
+	 */
+	readout: ChartReadoutSource | null
 	/** The chart title, naming the fullscreen dialog and seeding export filenames. */
 	title?: string
 	/**
@@ -128,20 +131,27 @@ export function ChartContextMenu({
 		},
 	]
 
+	// Selection materializes the readout thunk; a thunk that resolves to no
+	// readout exports the empty CSV its chart would have rendered as a table.
+	const exportCsv = (readout: ChartReadoutSource) => {
+		const data = readout()
+
+		return data === null ? '' : readoutToCsv(data)
+	}
+
 	const dataActions: ContextMenuItem[] = readout
 		? [
 				{
 					key: 'download-csv',
 					label: 'Download CSV',
 					icon: <Download />,
-					onSelect: () =>
-						downloadText(readoutToCsv(readout), chartFileName(title, 'csv'), 'text/csv'),
+					onSelect: () => downloadText(exportCsv(readout), chartFileName(title, 'csv'), 'text/csv'),
 				},
 				{
 					key: 'copy-data',
 					label: 'Copy data',
 					icon: <Clipboard />,
-					onSelect: () => copyText(readoutToCsv(readout)),
+					onSelect: () => copyText(exportCsv(readout)),
 				},
 			]
 		: []

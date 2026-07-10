@@ -36,7 +36,7 @@ import {
 	sameMark,
 	useChartFullscreen,
 } from './context'
-import type { ChartReadout } from './types'
+import type { ChartReadoutSource } from './types'
 import {
 	type ChartFocusTargets,
 	type ChartKeyboardProps,
@@ -170,8 +170,13 @@ export type ChartFrameProps = AccessibleName & {
 	 * @defaultValue 'bottom'
 	 */
 	legendPlacement?: ChartLegendPlacement
-	/** The values behind the marks, or `null` when there is nothing to read. */
-	readout: ChartReadout | null
+	/**
+	 * The values behind the marks as a cached thunk, or `null` when there is
+	 * nothing to read. A thunk so the mount-critical render never formats the
+	 * cells ({@link ChartReadoutSource}): the tooltip materializes it on the
+	 * first hover, the deferred data table a low-priority beat after mount.
+	 */
+	readout: ChartReadoutSource | null
 	/**
 	 * The series indices, in the order the tooltip lists {@link readout}'s rows —
 	 * the marks' own visible top-to-bottom order. Omitted, the rows keep the
@@ -280,15 +285,16 @@ export function ChartFrame({
 	}>({ index: null, point: null, onData: false })
 
 	// The visually-hidden data table holds one row per datum, so at large row
-	// counts building it dominates the commit — yet nothing visual waits on it and
-	// assistive tech reads it from the settled DOM, not the first frame. Deferring
-	// it drops it off the urgent render: the plot paints at full priority from the
-	// live `readout`, then React re-renders the table alone in a low-priority pass.
-	// The `null` initial value holds the table out of the very first commit too, so
-	// a fresh mount paints its marks before it builds the table; a data change keeps
-	// the prior table up for a beat rather than blocking the new marks behind a
-	// rebuild. Parity is unchanged — the table always converges on the current
-	// readout, one low-priority commit behind.
+	// counts materializing and committing it dominates — yet nothing visual waits
+	// on it and assistive tech reads it from the settled DOM, not the first frame.
+	// Deferring the thunk drops it off the urgent render: the plot paints at full
+	// priority, then React re-renders the table alone in a low-priority pass, and
+	// only that pass calls the thunk — the mount commit never formats a cell. The
+	// `null` initial value holds the table out of the very first commit too, so a
+	// fresh mount paints its marks before any of it; a data change keeps the prior
+	// table up for a beat rather than blocking the new marks behind a rebuild.
+	// Parity is unchanged — the table always converges on the current readout,
+	// one low-priority commit behind.
 	const tableReadout = useDeferredValue(readout, null)
 
 	const hover = useMemo<ChartHover>(

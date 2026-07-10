@@ -35,12 +35,12 @@ function frame(width: number, extras?: Partial<Parameters<typeof ChartFrame>[0]>
 					onFocus={noop}
 				/>
 			}
-			readout={{
+			readout={() => ({
 				categories: ['Q1', 'Q2'],
 				rows: [
 					{ label: 'Revenue', swatchClass: 'bg-blue-600', swatch: 'rect', values: ['1', '2'] },
 				],
-			}}
+			})}
 			tooltip={true}
 			{...extras}
 		>

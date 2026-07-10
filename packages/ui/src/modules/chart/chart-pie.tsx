@@ -5,7 +5,7 @@ import { type MouseEvent, type PointerEvent, type ReactNode, useId } from 'react
 import { cn } from '../../core'
 import { type FrameSizing, usePlotFrame } from '../../hooks'
 import { type ChartSeriesColor, k } from '../../recipes/kata/chart'
-import { formatPercent } from '../../utilities'
+import { formatPercent, once } from '../../utilities'
 import { CHART_METRICS, MARK_GAP, TICK_CHAR_WIDTH } from './chart-constants'
 import { ChartFrame } from './chart-frame'
 import { type ChartAspectRatio, chartFrameSizing } from './chart-layout'
@@ -955,7 +955,11 @@ export function ChartPie<T>(props: ChartPieProps<T>) {
 			? buildCallouts(calloutSpec, slices, center, radius, frameHeight)
 			: []
 
-	const readout = pieReadout(sliceLabels, paints, entry.yName ?? entry.yKey, values, format)
+	// A cached thunk ({@link ChartReadoutSource}): slices are few, but the frame
+	// contract defers every readout to its first consumer all the same.
+	const readout = once(() =>
+		pieReadout(sliceLabels, paints, entry.yName ?? entry.yKey, values, format),
+	)
 
 	const legendItems = hasLegend
 		? pieLegendItems(sliceLabels, paints, colors, sliceValues, aside)

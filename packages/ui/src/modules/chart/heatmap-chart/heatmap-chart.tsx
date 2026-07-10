@@ -27,7 +27,7 @@ import { TooltipContext } from '../../../components/tooltip/context'
 import { cn, createContext } from '../../../core'
 import { usePlotFrame, useResizeObserver } from '../../../hooks'
 import { k } from '../../../recipes/kata/chart'
-import { binIndex, type ColorBin, resolveColorBins, valueExtent } from '../../../utilities'
+import { binIndex, type ColorBin, once, resolveColorBins, valueExtent } from '../../../utilities'
 import { RangeArrow, RangeLegend } from '../../map'
 import { ChartAxis, type ChartAxisTick } from '../chart-axis'
 import {
@@ -52,7 +52,7 @@ import { formatChartValue, READOUT_GAP } from '../chart-series'
 import { ChartTable } from '../chart-table'
 import { isSparkBox } from '../chart-tier'
 import { useChartFullscreen } from '../context'
-import type { ChartReadout } from '../types'
+import type { ChartReadout, ChartReadoutSource } from '../types'
 import { cellAt, heatmapCells } from './heatmap-chart-geometry'
 import {
 	type HeatmapChartProps,
@@ -511,7 +511,7 @@ type HeatmapModel = {
 	bins: ColorBin[]
 	domain: [number, number] | null
 	ticks: { x: ChartAxisTick[]; y: ChartAxisTick[] }
-	readout: ChartReadout | null
+	readout: ChartReadoutSource | null
 	format: (value: number) => string
 }
 
@@ -634,7 +634,9 @@ function useHeatmap<T>(
 		bins,
 		domain,
 		ticks: heatmapTicks(matrix, xBand, yBand, plot),
-		readout: cols > 0 && rows > 0 ? heatmapReadout(matrix, format) : null,
+		// A cached thunk ({@link ChartReadoutSource}); the deferred table and hover
+		// tooltip materialize it off the mount render.
+		readout: cols > 0 && rows > 0 ? once(() => heatmapReadout(matrix, format)) : null,
 		format,
 	}
 }
@@ -904,7 +906,7 @@ export function HeatmapChart<T>(props: HeatmapChartProps<T>) {
 type HeatmapContextFrameProps = {
 	contextMenu: ChartContextMenuConfig | false | undefined
 	rootRef: RefObject<HTMLDivElement | null>
-	readout: ChartReadout | null
+	readout: ChartReadoutSource | null
 	title?: string
 	/** A fresh copy of the heatmap for the menu's fullscreen re-mount. */
 	self: ReactElement
