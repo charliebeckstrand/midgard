@@ -23,6 +23,14 @@ type VirtualWindow = {
 	bottomSpacer: number
 	/** Scrolls the item at `index` into the window, mounting it if it was outside it. */
 	scrollToIndex: (index: number, options?: { align?: 'auto' | 'center' | 'end' | 'start' }) => void
+	/**
+	 * Ref callback opting a row into dynamic measurement: attach to each row
+	 * element alongside a `data-index={virtualItem.index}` attribute and the
+	 * virtualizer replaces `estimateSize` with the row's rendered height, so
+	 * variable-height rows (chat bubbles, rich cells) window without drift.
+	 * Rows that never attach it keep the uniform estimate.
+	 */
+	measureElement: (el: Element | null) => void
 }
 
 /**
@@ -30,7 +38,8 @@ type VirtualWindow = {
  * visible items plus the top/bottom spacer heights that stand in for the rows
  * outside the viewport. Callers render their own row and spacer elements
  * (table rows, list divs); this owns only the virtualizer wiring and the
- * spacer math.
+ * spacer math. Uniform `estimateSize` heights by default; rows opt into
+ * per-row measurement via the returned `measureElement`.
  */
 export function useVirtualWindow({
 	count,
@@ -72,5 +81,11 @@ export function useVirtualWindow({
 
 	const bottomSpacer = lastItem ? totalSize - lastItem.end : 0
 
-	return { virtualItems, topSpacer, bottomSpacer, scrollToIndex: virtualizer.scrollToIndex }
+	return {
+		virtualItems,
+		topSpacer,
+		bottomSpacer,
+		scrollToIndex: virtualizer.scrollToIndex,
+		measureElement: virtualizer.measureElement,
+	}
 }
