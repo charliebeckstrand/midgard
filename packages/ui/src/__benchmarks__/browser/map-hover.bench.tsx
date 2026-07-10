@@ -39,7 +39,7 @@ function plotTarget(host: HTMLElement): Element {
  * pointer. The coordinate-listening contenders take the plot itself each step.
  */
 function sweepTargets(host: HTMLElement, plot: Element, xs: number[], y: number): Element[] {
-	const regions = [...host.querySelectorAll('[data-slot="map-region"]')]
+	const regions = [...host.querySelectorAll('[data-region-index]')]
 
 	if (regions.length === 0) return xs.map(() => plot)
 

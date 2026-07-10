@@ -64,7 +64,7 @@ export type ValueScaleOptions = {
  * by its value range and painted a colour sampled from `colorRange`. Returns the
  * resolved domain (for the range legend's extent) and an `assign` that maps a
  * raw value to its bin — equal-interval or quantile per `binning` — so
- * {@link regionValueIndexes} colours regions through the same scale the legend
+ * {@link regionValueJoin} colours regions through the same scale the legend
  * describes. Empty (with a `null` domain and a no-op `assign`) when no row
  * carries a finite value.
  *
@@ -117,58 +117,55 @@ export function resolveValueBins<T>(
 	return { metas, domain: resolved, assign }
 }
 
+/** The per-region readout {@link regionValueJoin} resolves, index-aligned with the region ids. @internal */
+export type RegionValueJoin = {
+	/** Each region's bin index — its colour — or `null` off data. */
+	regionCategory: (number | null)[]
+	/** Each region's own formatted value — the tooltip and table readout, not the bin's range label. */
+	regionValues: (string | null)[]
+	/** Each region's raw number — the range legend's arrow marks it on the continuous bar. */
+	regionNumbers: (number | null)[]
+}
+
 /**
- * Matches each region to its bin: the row whose `regionKey` equals the region's
- * id is placed by its `valueKey` through `assign` (from {@link resolveValueBins}
- * — equal-interval or quantile alike). `null` where no row matches or the value
- * is non-finite — the region draws in the neutral no-data fill.
+ * Matches each region to its row in one pass: the row whose `regionKey` equals
+ * the region's id yields the bin its colour reads from (through `assign` — the
+ * {@link resolveValueBins} scale, equal-interval or quantile alike), its own
+ * formatted value (the tooltip and table show "2,088", not the bin's "1–135"),
+ * and its raw number. `null` throughout where no row matches or the value is
+ * non-finite — the region draws in the neutral no-data fill and reads silent.
  *
  * @internal
  */
-export function regionValueIndexes<T>(
+export function regionValueJoin<T>(
 	regionIds: string[],
 	data: T[],
 	regionKey: DataKey<T>,
 	valueKey: DataKey<T>,
 	assign: (value: number) => number | null,
-): (number | null)[] {
-	const byRegion = new Map(data.map((datum) => [String(datum[regionKey]), datum]))
-
-	return regionIds.map((id) => {
-		const datum = byRegion.get(id)
-
-		if (datum == null) return null
-
-		return assign(toBinnableNumber(datum[valueKey]))
-	})
-}
-
-/**
- * Each region's own formatted value: the row whose `regionKey` matches the
- * region takes its `valueKey` value through `format`; `null` where no row
- * matches or the value is non-finite. Index-aligned with `regionIds`. The
- * tooltip and table read a region's precise value from here, not the bin's
- * range label — the region reads the same colour bin as its neighbours in the
- * bucket, but its readout is its own total.
- *
- * @internal
- */
-export function regionValueLabels<T>(
-	regionIds: string[],
-	data: T[],
-	regionKey: DataKey<T>,
-	valueKey: DataKey<T>,
 	format: (value: number) => string,
-): (string | null)[] {
+): RegionValueJoin {
 	const byRegion = new Map(data.map((datum) => [String(datum[regionKey]), datum]))
 
-	return regionIds.map((id) => {
+	const regionCategory: (number | null)[] = []
+
+	const regionValues: (string | null)[] = []
+
+	const regionNumbers: (number | null)[] = []
+
+	for (const id of regionIds) {
 		const datum = byRegion.get(id)
 
-		if (datum == null) return null
+		const value = datum == null ? Number.NaN : toBinnableNumber(datum[valueKey])
 
-		const value = toBinnableNumber(datum[valueKey])
+		const finite = Number.isFinite(value)
 
-		return Number.isFinite(value) ? format(value) : null
-	})
+		regionCategory.push(finite ? assign(value) : null)
+
+		regionValues.push(finite ? format(value) : null)
+
+		regionNumbers.push(finite ? value : null)
+	}
+
+	return { regionCategory, regionValues, regionNumbers }
 }

@@ -5,6 +5,7 @@ import { type MouseEvent, useCallback, useId, useMemo } from 'react'
 import { useFloatingDisclosure } from '../../hooks'
 import { useDensity } from '../../primitives/density'
 import type { Step } from '../../recipes'
+import { isNativeContextMenuRequest } from '../../utilities'
 
 type MenuStateOptions = {
 	open?: boolean
@@ -114,6 +115,11 @@ export function useMenuState({
 
 	const handleContextMenu = useCallback(
 		(event: MouseEvent) => {
+			// Ctrl + secondary-button click yields to the browser's native menu; bail
+			// before `preventDefault` (below) so it is not suppressed. Shared with the
+			// grid's own delegation surface via {@link isNativeContextMenuRequest}.
+			if (isNativeContextMenuRequest(event)) return
+
 			event.preventDefault()
 
 			// The menu panel is portaled out of the DOM but stays a React child of

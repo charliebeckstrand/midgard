@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { MapPlat } from '../../modules/map'
-import { allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
+import { allBySlot, allRegions, bySlot, fireEvent, firstRegion, renderUI } from '../helpers'
 import { FIXTURE_GEOJSON, FIXTURE_ROWS, FIXTURE_TOPOLOGY } from '../helpers/map-geography'
 
 type Row = (typeof FIXTURE_ROWS)[number]
@@ -26,7 +26,7 @@ describe('MapPlat', () => {
 	it('draws one region per feature under a labelled role="img" plot', () => {
 		const { container } = renderUI(plat())
 
-		expect(allBySlot(container, 'map-region')).toHaveLength(3)
+		expect(allRegions(container)).toHaveLength(3)
 
 		expect(bySlot(container, 'map-plot')).toHaveAttribute('role', 'img')
 
@@ -38,7 +38,7 @@ describe('MapPlat', () => {
 	it('decodes a TopoJSON topology to the same regions', () => {
 		const { container } = renderUI(plat({ geography: FIXTURE_TOPOLOGY }))
 
-		expect(allBySlot(container, 'map-region')).toHaveLength(3)
+		expect(allRegions(container)).toHaveLength(3)
 	})
 
 	it('paints the neutral geography before the container is measured', () => {
@@ -53,7 +53,7 @@ describe('MapPlat', () => {
 
 		expect(svg?.getAttribute('viewBox')).toMatch(/^0 0 \d/)
 
-		expect(allBySlot(container, 'map-region')).toHaveLength(3)
+		expect(allRegions(container)).toHaveLength(3)
 	})
 
 	it('holds the paint until measured under deferPaint, the reserve still owning the box', () => {
@@ -75,7 +75,7 @@ describe('MapPlat', () => {
 		// nothing to defer for: the map draws on the first commit as usual.
 		const { container } = renderUI(plat({ deferPaint: true }))
 
-		expect(allBySlot(container, 'map-region')).toHaveLength(3)
+		expect(allRegions(container)).toHaveLength(3)
 	})
 
 	it('reserves the frame without geography and paints it once provided', () => {
@@ -89,11 +89,11 @@ describe('MapPlat', () => {
 		// The reserved plot box holds the space; nothing is drawn yet.
 		expect(bySlot(container, 'map-plot')).toBeInTheDocument()
 
-		expect(allBySlot(container, 'map-region')).toHaveLength(0)
+		expect(allRegions(container)).toHaveLength(0)
 
 		rerender(<MapPlat aria-label="Backdrop" geography={FIXTURE_GEOJSON} width={400} />)
 
-		expect(allBySlot(container, 'map-region')).toHaveLength(3)
+		expect(allRegions(container)).toHaveLength(3)
 	})
 
 	it('reserves the US ratio for an albers-usa plat awaiting its geography', () => {
@@ -112,7 +112,7 @@ describe('MapPlat', () => {
 	it('washes colour in over solid geography under animate, never fading the paths', () => {
 		const { container } = renderUI(plat({ animate: true }))
 
-		const [alpha] = allBySlot(container, 'map-region')
+		const [alpha] = allRegions(container)
 
 		// A plain <path> carrying the colour transition — not a motion opacity
 		// fade — so the geometry is legible at once and only the fill animates on.
@@ -129,7 +129,7 @@ describe('MapPlat', () => {
 	it('colours matched regions by category slot and leaves the rest neutral', () => {
 		const { container } = renderUI(plat())
 
-		const [alpha, beta, gamma] = allBySlot(container, 'map-region')
+		const [alpha, beta, gamma] = allRegions(container)
 
 		// First-appearance order: East takes the first slot, West the second.
 		expect(alpha?.getAttribute('class')).toContain('fill-blue-600')
@@ -146,7 +146,7 @@ describe('MapPlat', () => {
 			}),
 		)
 
-		const [alpha, beta] = allBySlot(container, 'map-region')
+		const [alpha, beta] = allRegions(container)
 
 		expect(beta?.getAttribute('class')).toContain('fill-rose-600')
 
@@ -227,7 +227,7 @@ describe('MapPlat', () => {
 
 		expect(east).toHaveAttribute('aria-pressed', 'false')
 
-		const [alpha] = allBySlot(container, 'map-region')
+		const [alpha] = allRegions(container)
 
 		expect(alpha?.getAttribute('class')).toContain('fill-zinc-200')
 
@@ -287,29 +287,108 @@ describe('MapPlat', () => {
 
 		fireEvent.pointerEnter(east as HTMLButtonElement)
 
-		// A static region carries the dim on the path itself (the wrapper exists
-		// only under `animate`).
-		const groups = allBySlot(container, 'map-region').map((el) => el.getAttribute('class') ?? '')
+		// The layer recedes as one group and the focused category redraws lit
+		// above it — the chart marks' isolation pattern.
+		expect(bySlot(container, 'map-regions-recede')?.getAttribute('class')).toContain('opacity-25')
 
-		expect(groups[0]).not.toContain('opacity-25')
+		const lit = bySlot(container, 'map-regions-lit')
 
-		expect(groups[1]).toContain('opacity-25')
+		expect(lit?.querySelectorAll('path')).toHaveLength(1)
 
-		expect(groups[2]).toContain('opacity-25')
+		expect(lit?.querySelector('path')?.getAttribute('class')).toContain('fill-blue-600')
 
 		fireEvent.pointerLeave(east as HTMLButtonElement)
 
+		expect(bySlot(container, 'map-regions-recede')?.getAttribute('class')).not.toContain(
+			'opacity-25',
+		)
+
+		expect(bySlot(container, 'map-regions-lit')).toBeNull()
+	})
+
+	it('isolates the pointed region, dimming every other region', () => {
+		const { container } = renderUI(plat())
+
+		const [alpha] = allRegions(container)
+
+		fireEvent.pointerEnter(alpha as Element, { clientX: 40, clientY: 20 })
+
+		// The layer recedes behind the pointed region's lit copy — identical
+		// geometry, so the opaque copy covers its dimmed original exactly.
+		expect(bySlot(container, 'map-regions-recede')?.getAttribute('class')).toContain('opacity-25')
+
+		const copy = bySlot(container, 'map-regions-lit')?.querySelector('path')
+
+		expect(copy?.getAttribute('d')).toBe(alpha?.getAttribute('d'))
+
+		expect(bySlot(container, 'map-regions-lit')?.querySelectorAll('path')).toHaveLength(1)
+
+		fireEvent.pointerLeave(bySlot(container, 'map-regions') as Element)
+
+		expect(bySlot(container, 'map-regions-recede')?.getAttribute('class')).not.toContain(
+			'opacity-25',
+		)
+
+		expect(bySlot(container, 'map-regions-lit')).toBeNull()
+	})
+
+	it('lets the pointed region win over a still-held legend emphasis', () => {
+		const { container } = renderUI(plat())
+
+		const [east] = allBySlot(container, 'map-legend-item')
+
+		fireEvent.pointerEnter(east as HTMLButtonElement)
+
+		// East's region lights under the legend focus...
 		expect(
-			allBySlot(container, 'map-region').every(
-				(el) => !(el.getAttribute('class') ?? '').includes('opacity-25'),
-			),
-		).toBe(true)
+			bySlot(container, 'map-regions-lit')?.querySelector('path')?.getAttribute('class'),
+		).toContain('fill-blue-600')
+
+		const [, beta] = allRegions(container)
+
+		fireEvent.pointerEnter(beta as Element, { clientX: 150, clientY: 20 })
+
+		// ...until pointed: the pointer's mark takes the emphasis, its copy —
+		// carrying the static hover brightness — receding even the focused group.
+		const copy = bySlot(container, 'map-regions-lit')?.querySelector('path')
+
+		expect(copy?.getAttribute('class')).toContain('fill-orange-600')
+
+		expect(copy?.getAttribute('class')).toContain('brightness-110')
+
+		expect(bySlot(container, 'map-regions-lit')?.querySelectorAll('path')).toHaveLength(1)
+	})
+
+	it('keeps the map lit while the pointer sits on a no-data or toggled-off region', () => {
+		const { container } = renderUI(plat())
+
+		const lit = () =>
+			!(bySlot(container, 'map-regions-recede')?.getAttribute('class') ?? '').includes(
+				'opacity-25',
+			) && bySlot(container, 'map-regions-lit') === null
+
+		const [alpha, , gamma] = allRegions(container)
+
+		// Gamma matches no row: the neutral fill takes no emphasis — isolating
+		// nothing would read as a broken map.
+		fireEvent.pointerEnter(gamma as Element, { clientX: 300, clientY: 20 })
+
+		expect(lit()).toBe(true)
+
+		const [east] = allBySlot(container, 'map-legend-item')
+
+		fireEvent.click(east as HTMLButtonElement)
+
+		// Alpha's category is toggled off, so its region reads neutral and inert.
+		fireEvent.pointerEnter(alpha as Element, { clientX: 40, clientY: 20 })
+
+		expect(lit()).toBe(true)
 	})
 
 	it('raises the Tooltip readout over a matched region and stays silent off data', () => {
 		const { container } = renderUI(plat())
 
-		const [alpha, , gamma] = allBySlot(container, 'map-region')
+		const [alpha, , gamma] = allRegions(container)
 
 		fireEvent.pointerEnter(alpha as Element, { clientX: 40, clientY: 20 })
 
@@ -340,7 +419,7 @@ describe('MapPlat', () => {
 
 		fireEvent.click(east as HTMLButtonElement)
 
-		const [alpha] = allBySlot(container, 'map-region')
+		const [alpha] = allRegions(container)
 
 		fireEvent.pointerEnter(alpha as Element, { clientX: 40, clientY: 20 })
 
@@ -348,7 +427,7 @@ describe('MapPlat', () => {
 
 		const silent = renderUI(plat({ tooltip: false }))
 
-		const [first] = allBySlot(silent.container, 'map-region')
+		const [first] = allRegions(silent.container)
 
 		fireEvent.pointerEnter(first as Element, { clientX: 40, clientY: 20 })
 
@@ -360,7 +439,9 @@ describe('MapPlat', () => {
 
 		const table = bySlot(container, 'map-table')
 
-		expect(table).toHaveClass('sr-only')
+		// The wrapper carries the hiding: `sr-only` sizing on the table itself
+		// wouldn't collapse it (table width/height are minimums).
+		expect(table?.parentElement).toHaveClass('sr-only')
 
 		const rows = Array.from(table?.querySelectorAll('tbody tr') ?? []).map((row) =>
 			Array.from(row.querySelectorAll('th, td')).map((cell) => cell.textContent),
@@ -389,7 +470,7 @@ describe('MapPlat', () => {
 			}),
 		)
 
-		const [alpha] = allBySlot(container, 'map-region')
+		const [alpha] = allRegions(container)
 
 		expect(alpha?.getAttribute('class')).toContain('fill-blue-600')
 
@@ -409,7 +490,7 @@ describe('MapPlat choropleth mode', () => {
 	// A three-stop scale, pale → deep; bins default to one per stop.
 	const RANGE = ['#dbeafe', '#3b82f6', '#1e3a8a']
 
-	const fillOf = (el?: Element) => (el as SVGPathElement | undefined)?.style.fill
+	const fillOf = (el?: Element) => el?.getAttribute('fill')
 
 	function choropleth(extra?: Partial<Parameters<typeof MapPlat<(typeof NUMERIC)[number]>>[0]>) {
 		const props = {
@@ -433,15 +514,15 @@ describe('MapPlat choropleth mode', () => {
 		// The border rides device pixels, not viewBox units: a resize that lands the
 		// refit late (box grown past the built-against frame) must not scale the
 		// hairline up with the geometry.
-		const region = bySlot(container, 'map-region')
+		const region = firstRegion(container)
 
 		expect(region?.getAttribute('vector-effect')).toBe('non-scaling-stroke')
 	})
 
-	it('fills regions with the colorRange colour for their bin, as an inline value', () => {
+	it('fills regions with the colorRange colour for their bin, as a fill attribute', () => {
 		const { container } = renderUI(choropleth())
 
-		const [alpha, , gamma] = allBySlot(container, 'map-region')
+		const [alpha, , gamma] = allRegions(container)
 
 		// A=0 lands in the first (pale) bin, C=100 in the last (deep) one: distinct
 		// inline fills (the exact colour → bin mapping is unit-tested in map-value-scale).
@@ -462,11 +543,11 @@ describe('MapPlat choropleth mode', () => {
 			}),
 		)
 
-		const [, beta] = allBySlot(container, 'map-region')
+		const [, beta] = allRegions(container)
 
 		expect(beta?.getAttribute('class')).toContain('fill-zinc-200')
 
-		expect(fillOf(beta)).toBe('')
+		expect(fillOf(beta)).toBeNull()
 	})
 
 	it('shows one legend entry per bin, largest first, labelled by value range', () => {
@@ -524,24 +605,52 @@ describe('MapPlat choropleth mode', () => {
 
 		expect(track).not.toBeNull()
 
-		// A static region carries the dim on the path itself (the wrapper exists
-		// only under `animate`).
-		const dimmedCount = () =>
-			allBySlot(container, 'map-region').filter((region) =>
-				region.getAttribute('class')?.includes('opacity-25'),
-			).length
+		// The layer recedes as one group; the snapped bin's regions redraw lit.
+		const receded = () =>
+			(bySlot(container, 'map-regions-recede')?.getAttribute('class') ?? '').includes('opacity-25')
 
 		// Nothing dims until the bar is pointed.
-		expect(dimmedCount()).toBe(0)
+		expect(receded()).toBe(false)
 
 		fireEvent.pointerMove(track as Element, { clientY: 10 })
 
-		// Regions outside the snapped bin dim — the switchboard's hover filter.
-		expect(dimmedCount()).toBeGreaterThan(0)
+		// Regions outside the snapped bin recede — the switchboard's hover filter.
+		expect(receded()).toBe(true)
+
+		expect(bySlot(container, 'map-regions-lit')?.querySelectorAll('path').length).toBeGreaterThan(0)
 
 		fireEvent.pointerLeave(track as Element)
 
-		expect(dimmedCount()).toBe(0)
+		expect(receded()).toBe(false)
+
+		expect(bySlot(container, 'map-regions-lit')).toBeNull()
+	})
+
+	it('marks the hovered region at its exact value on the range bar, not its bin centre', () => {
+		const { container } = renderUI(choropleth({ legend: 'range' }))
+
+		const arrowTop = () => {
+			const style = bySlot(container, 'map-range-arrow')?.getAttribute('style') ?? ''
+
+			return Number(style.match(/top:\s*([\d.]+)%/)?.[1] ?? Number.NaN)
+		}
+
+		const [alpha, beta, gamma] = allRegions(container)
+
+		// A = 0, the domain floor: the arrow reads the value itself — flush to the
+		// bottom (100% from the top), not seated at the lowest bin's band centre.
+		fireEvent.pointerEnter(alpha as Element, { clientX: 40, clientY: 20 })
+
+		expect(arrowTop()).toBe(100)
+
+		// B = 50 sits mid-bar; C = 100 tops it.
+		fireEvent.pointerEnter(beta as Element, { clientX: 150, clientY: 20 })
+
+		expect(arrowTop()).toBe(50)
+
+		fireEvent.pointerEnter(gamma as Element, { clientX: 300, clientY: 20 })
+
+		expect(arrowTop()).toBe(0)
 	})
 
 	it('stands the range bar vertical on the right by default', () => {

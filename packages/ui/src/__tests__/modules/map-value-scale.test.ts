@@ -1,9 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import {
-	regionValueIndexes,
-	resolveValueBins,
-	sampleRange,
-} from '../../modules/map/map-value-scale'
+import { regionValueJoin, resolveValueBins, sampleRange } from '../../modules/map/map-value-scale'
 
 type Row = { id: string; v: number }
 
@@ -162,7 +158,7 @@ describe('resolveValueBins — quantile binning', () => {
 	})
 })
 
-describe('regionValueIndexes', () => {
+describe('regionValueJoin', () => {
 	const assignFor = (opts?: { bins?: number; domain?: [number, number] }) =>
 		resolveValueBins(ROWS, 'v', {
 			colorRange: ['#000000', '#888888', '#ffffff'],
@@ -171,20 +167,30 @@ describe('regionValueIndexes', () => {
 			format: round,
 		}).assign
 
-	it('assigns each region its bin through the resolved scale', () => {
-		expect(regionValueIndexes(['a', 'b', 'c'], ROWS, 'id', 'v', assignFor({ bins: 3 }))).toEqual([
-			0, 1, 2,
-		])
+	it('joins each region to its bin, formatted readout, and raw number in one pass', () => {
+		expect(
+			regionValueJoin(['a', 'b', 'c'], ROWS, 'id', 'v', assignFor({ bins: 3 }), round),
+		).toEqual({
+			regionCategory: [0, 1, 2],
+			regionValues: ['0', '50', '100'],
+			regionNumbers: [0, 50, 100],
+		})
 	})
 
-	it('reads null for an unmatched region or a non-finite value', () => {
+	it('reads null throughout for an unmatched region or a non-finite value', () => {
 		const assign = assignFor()
 
-		expect(regionValueIndexes(['x'], ROWS, 'id', 'v', assign)).toEqual([null])
+		expect(regionValueJoin(['x'], ROWS, 'id', 'v', assign, round)).toEqual({
+			regionCategory: [null],
+			regionValues: [null],
+			regionNumbers: [null],
+		})
 
-		expect(regionValueIndexes(['a'], [{ id: 'a', v: Number.NaN }], 'id', 'v', assign)).toEqual([
-			null,
-		])
+		expect(regionValueJoin(['a'], [{ id: 'a', v: Number.NaN }], 'id', 'v', assign, round)).toEqual({
+			regionCategory: [null],
+			regionValues: [null],
+			regionNumbers: [null],
+		})
 	})
 
 	it('reads null for a blank value rather than binning it as zero', () => {
@@ -205,12 +211,15 @@ describe('regionValueIndexes', () => {
 
 		// `null` and `''` are no-data (the neutral fill), not bin 0 — only the real
 		// value bins.
-		expect(regionValueIndexes(['a', 'b', 'c'], rows, 'id', 'v', assign)).toEqual([null, null, 3])
+		expect(regionValueJoin(['a', 'b', 'c'], rows, 'id', 'v', assign, round).regionCategory).toEqual(
+			[null, null, 3],
+		)
 	})
 
 	it('places every region in bin 0 when the domain has no span', () => {
 		expect(
-			regionValueIndexes(['a', 'b'], ROWS, 'id', 'v', assignFor({ domain: [50, 50] })),
+			regionValueJoin(['a', 'b'], ROWS, 'id', 'v', assignFor({ domain: [50, 50] }), round)
+				.regionCategory,
 		).toEqual([0, 0])
 	})
 })

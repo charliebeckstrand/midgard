@@ -1,9 +1,17 @@
 'use client'
 
-import { memo, type PointerEvent, useEffect, useState } from 'react'
+import {
+	type CSSProperties,
+	memo,
+	type PointerEvent,
+	useCallback,
+	useEffect,
+	useMemo,
+	useState,
+} from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
-import { useMapHoverSet } from './context'
+import { type MapHoverTarget, useMapHoverSet, useMapPointedMark } from './context'
 import { categoryLegendId, type MapCategoryMeta } from './map-categories'
 import {
 	REGION_FADE,
@@ -21,109 +29,154 @@ export type MapRegionsProps = {
 	categories: MapCategoryMeta[]
 	/** Toggled-off legend ids; a hidden category's regions fall back to neutral. */
 	hidden: ReadonlySet<string>
-	/** The emphasised legend id; regions outside its category dim. */
+	/** The emphasised legend id; regions outside its category recede. */
 	emphasis: string | null
 	animate: boolean
 }
 
-/** Props for {@link Region}: one feature's path plus the state that colours it. @internal */
-type RegionProps = {
-	d: string
-	index: number
-	category: number | null
-	categories: MapCategoryMeta[]
-	hidden: ReadonlySet<string>
-	emphasis: string | null
-	revealed: boolean
-	animate: boolean
-	onTrack: (event: PointerEvent<SVGPathElement>) => void
+/** The colour wash's transition classes under `animate`; static maps colour without one. */
+const WASH = 'transition-colors ease-out motion-reduce:transition-none'
+
+const WASH_DURATION = `${REGION_FADE.duration * 1000}ms`
+
+// The wash's per-region timing, shared where the stagger caps: beyond the cap
+// every region carries the same delay, so one frozen object serves them all —
+// and the memoised Region sees a stable style identity instead of a fresh
+// object per render.
+const CAPPED_WASH_STYLE: CSSProperties = {
+	transitionDuration: WASH_DURATION,
+	transitionDelay: `${REGION_STAGGER_MAX * 1000}ms`,
 }
 
-/** A region's resolved colour state: emphasis membership and the fill to paint. @internal */
-type RegionFill = {
-	/** The category is matched and not toggled off. */
-	active: boolean
-	/** The emphasis group the region belongs to, `null` when inactive. */
+const STAGGERED_WASH_STYLES: CSSProperties[] = Array.from(
+	{ length: Math.ceil(REGION_STAGGER_MAX / REGION_STAGGER) },
+	(_, index) => ({
+		transitionDuration: WASH_DURATION,
+		transitionDelay: `${index * REGION_STAGGER * 1000}ms`,
+	}),
+)
+
+/** The wash timing for a region: its own staggered delay below the cap, the shared capped style past it. @internal */
+function washStyle(index: number): CSSProperties {
+	return STAGGERED_WASH_STYLES[index] ?? CAPPED_WASH_STYLE
+}
+
+/** One category's resolved region paint, shared by every region in the category. @internal */
+type RegionPaint = {
+	/** The emphasis / toggle group the region belongs to, `null` when inactive. */
 	groupId: string | null
-	/** The Tailwind fill class — the neutral no-data class, a categorical slot, or none for a value fill. */
-	fillClass: string | string[] | undefined
-	/** The inline CSS fill for a numeric bin, `undefined` for a class fill. */
+	/** The `fill` attribute colour for a numeric bin, `undefined` for a class fill. */
 	fillColor: string | undefined
+	/** The path's classes. */
+	className: string
 }
 
 /**
- * Resolves a region's colour state from its category. The toggle / emphasis key
- * is the category's stable value ({@link categoryLegendId}), not its index, so a
- * reorder or removal can't re-point a hidden or emphasised entry at a different
- * category. The neutral fill covers no-data, a toggled-off category, and the
+ * One category's paint: the toggle / emphasis key is the category's stable
+ * value ({@link categoryLegendId}), not its index, so a reorder or removal
+ * can't re-point a hidden or emphasised entry at a different category. The
+ * neutral fill covers no-data (`null`), a toggled-off category, and the
  * pre-reveal beat, so the colour — not the geometry — animates on.
  *
  * @internal
  */
-function regionFill(
-	category: number | null,
-	categories: MapCategoryMeta[],
+function categoryPaint(
+	meta: MapCategoryMeta | null,
 	hidden: ReadonlySet<string>,
 	revealed: boolean,
-): RegionFill {
-	const meta = category === null ? null : (categories[category] ?? null)
-
+	animate: boolean,
+): RegionPaint {
 	const id = meta === null ? null : categoryLegendId(meta.value)
 
 	const active = id !== null && !hidden.has(id)
 
-	const paint = active && revealed && meta !== null ? meta.paint : null
+	const applied = active && revealed && meta !== null ? meta.paint : null
 
 	const fillClass =
-		paint === null ? k.region.empty : paint.kind === 'class' ? paint.fill : undefined
+		applied === null ? k.region.empty : applied.kind === 'class' ? applied.fill : undefined
 
 	return {
-		active,
 		groupId: active ? id : null,
-		fillClass,
-		fillColor: paint?.kind === 'value' ? paint.color : undefined,
+		fillColor: applied?.kind === 'value' ? applied.color : undefined,
+		className: cn(fillClass, k.region.border, active && k.region.hover, animate && WASH),
 	}
 }
 
 /**
- * One region path. A categorical slot fills by Tailwind class; a numeric bin
- * fills by an inline CSS colour from the consumer's `colorRange`. No-data — and
- * the pre-reveal beat under `animate` — takes the neutral class. Regions
- * outside the emphasised group dim: a static region carries the dim on the
- * path itself, so the default tree stays one element per region — thousands
- * of wrappers priced the county-atlas mount — while an animated region keeps
- * the wrapper, whose opacity transition would otherwise collide with the
- * colour wash's `transition-colors` on the same element.
+ * Every category's paint plus the no-data neutral, resolved once for the
+ * whole layer: a county atlas shares a handful of paints across thousands of
+ * regions, so the class joins and paint lookups run per category, not per
+ * region.
  *
  * @internal
  */
-function Region({
+function resolveRegionPaints(
+	categories: MapCategoryMeta[],
+	hidden: ReadonlySet<string>,
+	revealed: boolean,
+	animate: boolean,
+): { byCategory: RegionPaint[]; none: RegionPaint } {
+	return {
+		byCategory: categories.map((meta) => categoryPaint(meta, hidden, revealed, animate)),
+		none: categoryPaint(null, hidden, revealed, animate),
+	}
+}
+
+/** The paint for one region's category index, the neutral where nothing matches. @internal */
+function paintAt(
+	paints: { byCategory: RegionPaint[]; none: RegionPaint },
+	category: number | null,
+): RegionPaint {
+	return (category === null ? undefined : paints.byCategory[category]) ?? paints.none
+}
+
+/** Props for {@link Region}: one feature's path plus its resolved paint. @internal */
+type RegionProps = {
+	d: string
+	index: number
+	className: string
+	/** The `fill` attribute colour for a numeric bin, `undefined` for a class fill. */
+	fillColor: string | undefined
+	/** The wash's transition timing under `animate`; `undefined` on static maps. */
+	style: CSSProperties | undefined
+	onTrack: (event: PointerEvent<SVGPathElement>) => void
+}
+
+/**
+ * One region path. A categorical slot fills by Tailwind class; a numeric bin
+ * fills by a `fill` attribute colour from the consumer's `colorRange`.
+ * No-data — and the pre-reveal beat under `animate` — takes the neutral class.
+ *
+ * Memoised on its resolved primitives: a legend toggle or the reveal flip
+ * re-renders the categories whose paint changed and every other region holds
+ * its last render.
+ *
+ * @internal
+ */
+const Region = memo(function Region({
 	d,
 	index,
-	category,
-	categories,
-	hidden,
-	emphasis,
-	revealed,
-	animate,
+	className,
+	fillColor,
+	style,
 	onTrack,
 }: RegionProps) {
-	const { active, groupId, fillClass, fillColor } = regionFill(
-		category,
-		categories,
-		hidden,
-		revealed,
-	)
-
-	const dimmed = emphasis !== null && emphasis !== groupId
-
-	const path = (
+	return (
 		<path
-			data-slot="map-region"
-			// Read by the hover provider's scroll-settle resolve to name the
-			// region under the pointer straight off the DOM.
+			// The region's DOM anchor: the hover provider's scroll-settle resolve,
+			// the shared track handler, and the tests name the region straight off
+			// this attribute. Deliberately not a `data-slot`: the stylesheet carries
+			// `[data-slot=…]` attribute selectors for other components, so on a
+			// county atlas thousands of paths would each pay attribute-rule
+			// matching at first style resolution — a quarter of the mount — for an
+			// anchor nothing styles by. The layer keeps its `map-regions` slot.
 			data-region-index={index}
 			d={d}
+			// A numeric bin's colour rides the `fill` presentation attribute, not
+			// an inline style: per-element CSSOM style declarations priced ~a fifth
+			// of the choropleth mount. A value paint never carries a fill class, so
+			// nothing in the cascade sits above the attribute.
+			fill={fillColor}
 			strokeWidth={REGION_STROKE_WIDTH}
 			// The border rides device pixels, not viewBox units, so it stays a
 			// hairline whatever the viewBox-to-box ratio is: a resize that lands
@@ -131,29 +184,156 @@ function Region({
 			// built against) scales the geometry crisply but must not fatten the
 			// stroke with it — the constant-pixel refit sharpens, this pins.
 			vectorEffect="non-scaling-stroke"
-			className={cn(
-				fillClass,
-				k.region.border,
-				active && k.region.hover,
-				animate ? 'transition-colors ease-out motion-reduce:transition-none' : k.group(dimmed),
-			)}
-			style={{
-				...(fillColor !== undefined ? { fill: fillColor } : null),
-				...(animate
-					? {
-							transitionDuration: `${REGION_FADE.duration * 1000}ms`,
-							transitionDelay: `${Math.min(index * REGION_STAGGER, REGION_STAGGER_MAX) * 1000}ms`,
-						}
-					: null),
-			}}
+			className={className}
+			style={style}
 			onPointerEnter={onTrack}
 			onPointerMove={onTrack}
 		/>
 	)
+})
 
-	if (!animate) return path
+/** Props for {@link MapRegionsBase}: the layer's own inputs, none of the shared emphasis. @internal */
+type MapRegionsBaseProps = {
+	paths: (string | null)[]
+	regionCategory: (number | null)[]
+	categories: MapCategoryMeta[]
+	hidden: ReadonlySet<string>
+	revealed: boolean
+	animate: boolean
+}
 
-	return <g className={cn(k.group(dimmed))}>{path}</g>
+/**
+ * Every region path, painted by category. Deliberately blind to the shared
+ * emphasis — the pointed mark and the legend focus recede this layer from
+ * outside ({@link MapRegions}) — so on a county atlas the three-thousand-path
+ * tree never re-renders while the pointer travels or a legend chip is held;
+ * only a toggle, the reveal flip, or new geometry re-maps it.
+ *
+ * @internal
+ */
+const MapRegionsBase = memo(function MapRegionsBase({
+	paths,
+	regionCategory,
+	categories,
+	hidden,
+	revealed,
+	animate,
+}: MapRegionsBaseProps) {
+	const set = useMapHoverSet()
+
+	const paints = useMemo(
+		() => resolveRegionPaints(categories, hidden, revealed, animate),
+		[categories, hidden, revealed, animate],
+	)
+
+	// One stable handler for every region, reading the pointed index off the
+	// path's own anchor attribute: a layer re-render allocates no per-region
+	// closures, and the memoised Region's props hold their identity.
+	const track = useCallback(
+		(event: PointerEvent<SVGPathElement>) => {
+			set(
+				{ kind: 'region', index: Number(event.currentTarget.getAttribute('data-region-index')) },
+				{ x: event.clientX, y: event.clientY },
+			)
+		},
+		[set],
+	)
+
+	return (
+		<>
+			{paths.map((d, index) => {
+				if (d === null) return null
+
+				const paint = paintAt(paints, regionCategory[index] ?? null)
+
+				return (
+					<Region
+						// biome-ignore lint/suspicious/noArrayIndexKey: regions are index-aligned with the features and never reorder.
+						key={index}
+						d={d}
+						index={index}
+						className={paint.className}
+						fillColor={paint.fillColor}
+						style={animate ? washStyle(index) : undefined}
+						onTrack={track}
+					/>
+				)
+			})}
+		</>
+	)
+})
+
+/** Props for {@link MapRegionsLit}: what the emphasis holds lit above the receded layer. @internal */
+type MapRegionsLitProps = MapRegionsBaseProps & {
+	pointed: MapHoverTarget | null
+	emphasis: string | null
+}
+
+/**
+ * The lit copies above the receded layer — the chart marks' isolation
+ * pattern: the layer dims as one group and the emphasised marks draw again
+ * at full strength over it. A pointed region redraws alone; a legend focus
+ * redraws its category. The copies are `pointer-events-none` and carry no
+ * anchor attribute, so the base paths stay the hit targets and the scroll
+ * resolve never sees a double; opaque fills over identical geometry cover
+ * their dimmed originals exactly.
+ *
+ * @internal
+ */
+function MapRegionsLit({
+	pointed,
+	emphasis,
+	paths,
+	regionCategory,
+	categories,
+	hidden,
+	revealed,
+	animate,
+}: MapRegionsLitProps) {
+	const paints = useMemo(
+		() => resolveRegionPaints(categories, hidden, revealed, animate),
+		[categories, hidden, revealed, animate],
+	)
+
+	// The pointed mark wins over a still-held legend focus, mirroring the
+	// chart's mark-emphasis resolution: a pointed region lights alone, a
+	// pointed overlay entry lights nothing here (the whole layer recedes
+	// behind it), else the focused category lights.
+	const lit: number[] = []
+
+	if (pointed !== null) {
+		if (pointed.kind === 'region') lit.push(pointed.index)
+	} else if (emphasis !== null) {
+		for (const [index, d] of paths.entries()) {
+			if (d === null) continue
+
+			if (paintAt(paints, regionCategory[index] ?? null).groupId === emphasis) lit.push(index)
+		}
+	}
+
+	if (lit.length === 0) return null
+
+	return (
+		<g data-slot="map-regions-lit" className="pointer-events-none">
+			{lit.map((index) => {
+				const paint = paintAt(paints, regionCategory[index] ?? null)
+
+				return (
+					<path
+						key={index}
+						d={paths[index] as string}
+						fill={paint.fillColor}
+						strokeWidth={REGION_STROKE_WIDTH}
+						vectorEffect="non-scaling-stroke"
+						// The pointed copy carries the hover emphasis statically: it is
+						// the hovered region by definition, and `:hover` can't reach a
+						// pointer-events-none element.
+						className={cn(paint.className, pointed !== null && k.region.pointed)}
+					/>
+				)
+			})}
+		</g>
+	)
 }
 
 /**
@@ -162,6 +342,12 @@ function Region({
  * off — a hole in a map reads broken, unlike a missing bar). Regions are
  * their own hit targets: browser SVG hit testing is the point-in-polygon
  * test, so pointing one moves the shared hover target directly.
+ *
+ * The shared emphasis recedes the layer as one group — the pointed mark
+ * isolates itself, else the legend's focused group holds — and the
+ * emphasised marks redraw lit above it ({@link MapRegionsLit}). One element
+ * fades where thousands of per-path transitions once ran, and the base tree
+ * holds its render through the whole interaction.
  *
  * @remarks Under `animate` the geography paints solid at once and only the
  * category colour washes in: each region's fill crossfades from the neutral
@@ -172,8 +358,10 @@ function Region({
  *
  * Memoised so it repaints only when its own geometry, category, or legend
  * state changes: an overlay child registering its legend entry re-renders the
- * plat, but the region layer — thousands of paths on a county atlas — holds
- * its last render rather than re-mapping for a change it doesn't read.
+ * plat, but the region layer holds. The pointed mark arrives through its own
+ * context, past the memo — and lands on the recede wrapper and the lit
+ * overlay only, so a crossing re-renders one copy path while the
+ * three-thousand-path base stands.
  * @internal
  */
 export const MapRegions = memo(function MapRegions({
@@ -185,6 +373,8 @@ export const MapRegions = memo(function MapRegions({
 	animate,
 }: MapRegionsProps) {
 	const set = useMapHoverSet()
+
+	const pointed = useMapPointedMark()
 
 	// The colour reveal: static maps colour at once; an animated map holds the
 	// neutral backdrop for the first beat, then flips to the category fills so
@@ -199,28 +389,32 @@ export const MapRegions = memo(function MapRegions({
 		if (animate && paths.length > 0) setRevealed(true)
 	}, [animate, paths.length])
 
-	const track = (index: number) => (event: PointerEvent<SVGPathElement>) => {
-		set({ kind: 'region', index }, { x: event.clientX, y: event.clientY })
-	}
+	const receded = pointed !== null || emphasis !== null
 
 	return (
 		<g data-slot="map-regions" onPointerLeave={() => set(null, null)}>
-			{paths.map((d, index) =>
-				d === null ? null : (
-					<Region
-						// biome-ignore lint/suspicious/noArrayIndexKey: regions are index-aligned with the features and never reorder.
-						key={index}
-						d={d}
-						index={index}
-						category={regionCategory[index] ?? null}
-						categories={categories}
-						hidden={hidden}
-						emphasis={emphasis}
-						revealed={revealed}
-						animate={animate}
-						onTrack={track(index)}
-					/>
-				),
+			<g data-slot="map-regions-recede" className={cn(k.group(receded))}>
+				<MapRegionsBase
+					paths={paths}
+					regionCategory={regionCategory}
+					categories={categories}
+					hidden={hidden}
+					revealed={revealed}
+					animate={animate}
+				/>
+			</g>
+
+			{receded && (
+				<MapRegionsLit
+					pointed={pointed}
+					emphasis={emphasis}
+					paths={paths}
+					regionCategory={regionCategory}
+					categories={categories}
+					hidden={hidden}
+					revealed={revealed}
+					animate={animate}
+				/>
 			)}
 		</g>
 	)

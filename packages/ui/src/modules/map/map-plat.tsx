@@ -28,9 +28,10 @@ import {
 	MapHoverSetContext,
 	type MapHoverState,
 	MapHoverStateContext,
-	type MapHoverTarget,
 	MapPlatContext,
 	type MapPlatContextValue,
+	MapPointedMarkContext,
+	sameTarget,
 } from './context'
 import {
 	categoryLegendId,
@@ -38,6 +39,7 @@ import {
 	defaultRegionLabel,
 	type MapCategoryMeta,
 	regionCategoryIndexes,
+	regionGroupId,
 	resolveCategories,
 	slotColor,
 } from './map-categories'
@@ -49,7 +51,7 @@ import { MapRangeLegend, type MapRangeLegendProps } from './map-range-legend'
 import { MapRegions } from './map-regions'
 import { MapTable } from './map-table'
 import { MapTooltip, type MapTooltipEntry } from './map-tooltip'
-import { regionValueIndexes, regionValueLabels, resolveValueBins } from './map-value-scale'
+import { regionValueJoin, resolveValueBins } from './map-value-scale'
 import type {
 	DataKey,
 	LngLat,
@@ -297,8 +299,6 @@ function useMapShape(
 		[geography, geographyObject, projection],
 	)
 
-	const { features, canonical } = statics
-
 	// A refit reprojects every region path, so resize commits ride the plot
 	// frame's transition priority: a burst coalesces to the sizes the machine
 	// can afford, and a stale refit is abandoned rather than blocking.
@@ -306,7 +306,7 @@ function useMapShape(
 	// projection (albers-usa is the US) still knows the ratio it will take, so
 	// the frame reserves it and a lazily fetched atlas swaps in without a height
 	// shift.
-	const reserveAspect = canonical?.aspect ?? projectionFallbackAspect(projection)
+	const reserveAspect = statics.canonical?.aspect ?? projectionFallbackAspect(projection)
 
 	const sizing = mapFrameSizing(height, aspectRatio, reserveAspect)
 
@@ -361,7 +361,7 @@ function useMapShape(
 		viewWidth,
 		viewHeight,
 		paths,
-		features,
+		features: statics.features,
 		project,
 	}
 }
@@ -376,6 +376,10 @@ type MapRegionReadout = {
 	 * tooltip and table readout, distinct from its bin's range label; `null` in
 	 * categorical mode and wherever no datum matches. */
 	regionValues: (string | null)[]
+	/** Each region's raw number in the numeric (choropleth) mode — the range
+	 * legend's arrow marks it on the continuous bar; `null` in categorical mode
+	 * and wherever no datum matches. */
+	regionNumbers: (number | null)[]
 	/** The numeric value extent in the numeric (choropleth) mode; `null` otherwise. Feeds the range legend. */
 	domain: [number, number] | null
 }
@@ -413,11 +417,13 @@ function useMapRegionReadout<T>(
 		categoryMetas,
 		regionCategory,
 		regionValues,
+		regionNumbers,
 		domain: extent,
 	} = useMemo<{
 		categoryMetas: MapCategoryMeta[]
 		regionCategory: (number | null)[]
 		regionValues: (string | null)[]
+		regionNumbers: (number | null)[]
 		domain: [number, number] | null
 	}>(() => {
 		const noValues = regionIds.map(() => null)
@@ -427,6 +433,7 @@ function useMapRegionReadout<T>(
 				categoryMetas: [],
 				regionCategory: regionIds.map(() => null),
 				regionValues: noValues,
+				regionNumbers: noValues,
 				domain: null,
 			}
 		}
@@ -446,12 +453,12 @@ function useMapRegionReadout<T>(
 				format,
 			})
 
+			// One joined pass: each region's bin (its colour), its own formatted
+			// readout (the tooltip and table show "2,088", not the bin's "1–135"),
+			// and its raw number (the range legend's arrow).
 			return {
 				categoryMetas: metas,
-				regionCategory: regionValueIndexes(regionIds, data, regionKey, valueKey, assign),
-				// A region's readout is its own value, not the bin range its colour reads
-				// from — so the tooltip and table show "2,088", not "1–135".
-				regionValues: regionValueLabels(regionIds, data, regionKey, valueKey, format),
+				...regionValueJoin(regionIds, data, regionKey, valueKey, assign, format),
 				domain: resolved,
 			}
 		}
@@ -464,6 +471,7 @@ function useMapRegionReadout<T>(
 				regionCategory: regionCategoryIndexes(regionIds, data, regionKey, categoryKey, metas),
 				// Categorical mode reads the category label off the meta; no separate value.
 				regionValues: noValues,
+				regionNumbers: noValues,
 				domain: null,
 			}
 		}
@@ -472,6 +480,7 @@ function useMapRegionReadout<T>(
 			categoryMetas: [],
 			regionCategory: regionIds.map(() => null),
 			regionValues: noValues,
+			regionNumbers: noValues,
 			domain: null,
 		}
 	}, [
@@ -488,7 +497,7 @@ function useMapRegionReadout<T>(
 		regionIds,
 	])
 
-	return { categoryMetas, regionNames, regionCategory, regionValues, domain: extent }
+	return { categoryMetas, regionNames, regionCategory, regionValues, regionNumbers, domain: extent }
 }
 
 /**
@@ -572,7 +581,8 @@ type MapRangeScale = {
 	valueExtent: [number, number] | null
 	valueFormat: ((value: number) => string) | undefined
 	valueName: string | undefined
-	regionCategory: (number | null)[]
+	/** Each region's raw value — the bar's hover arrow marks the pointed one. */
+	regionNumbers: (number | null)[]
 	onFocus: (id: string | null) => void
 }
 
@@ -631,7 +641,7 @@ function planMapLegend(
 					format: scale.valueFormat ?? ((value) => String(value)),
 					label: scale.valueName,
 					bins: switchboard.categoryCount,
-					regionCategory: scale.regionCategory,
+					regionNumbers: scale.regionNumbers,
 					onFocus: scale.onFocus,
 					orientation: resolved.orientation,
 				}
@@ -726,41 +736,36 @@ function legendItems(
 	return [...categoryItems, ...entryItems]
 }
 
-/** Whether two hover targets are the same mark, so a redundant hover write can bail. @internal */
-function sameTarget(a: MapHoverTarget | null, b: MapHoverTarget | null): boolean {
-	if (a === b) return true
-
-	if (a === null || b === null || a.kind !== b.kind) return false
-
-	return a.kind === 'region'
-		? a.index === (b as { index: number }).index
-		: a.id === (b as { id: string }).id
-}
-
 /** Whether two hover points coincide, so a redundant hover write can bail. @internal */
 function samePoint(a: MapPoint2D | null, b: MapPoint2D | null): boolean {
 	return a === b || (a !== null && b !== null && a.x === b.x && a.y === b.y)
 }
 
 /**
- * Owns the pointer readout and hands it down split: the stable mover through
- * {@link MapHoverSetContext} — the marks read it, so they never repaint as the
- * pointer travels — and the live {@link MapHoverState} through its own context,
- * which only the tooltip reads. Holding the state here, below {@link MapPlat}
- * and around the plot alone, keeps a pointer move from re-rendering the plat,
- * the legend, or the region layer: the provider re-renders and its stable
- * `children` bail, so the tooltip is the sole subtree that repaints.
+ * Owns the pointer readout and hands it down split three ways: the stable
+ * mover through {@link MapHoverSetContext} — the marks read it, so they never
+ * repaint as the pointer travels — the live {@link MapHoverState} through its
+ * own context, which only the tooltip reads, and the pointed mark through
+ * {@link MapPointedMarkContext}, whose identity holds across a same-mark move
+ * so the marks reading it repaint only on discrete crossings. Holding the
+ * state here, below {@link MapPlat} and around the plot alone, keeps a pointer
+ * move from re-rendering the plat, the legend, or the region layer: the
+ * provider re-renders and its stable `children` bail, so the tooltip is the
+ * sole subtree that repaints.
  *
  * @internal
  */
 function MapHoverProvider({
 	enabled,
 	plotRef,
+	regionActive,
 	children,
 }: {
 	/** Whether the tooltip is on; gates the scroll listener on a stable flag. */
 	enabled: boolean
 	plotRef: RefObject<HTMLDivElement | null>
+	/** Whether a region's category is matched and shown — the pointed-emphasis gate, the same silence the tooltip keeps off data. */
+	regionActive: (index: number) => boolean
 	children: ReactNode
 }) {
 	const [state, setState] = useState<MapHoverState>({ target: null, point: null })
@@ -768,11 +773,28 @@ function MapHoverProvider({
 	const set = useCallback<MapHoverSet>(
 		(target, point) =>
 			// Bail on a no-op so a scroll's repeated clears cost one render, and a
-			// page scroll far from this map costs none.
-			setState((prev) =>
-				sameTarget(prev.target, target) && samePoint(prev.point, point) ? prev : { target, point },
-			),
+			// page scroll far from this map costs none. A same-mark move keeps the
+			// held target's identity — every tracked pointer event builds a fresh
+			// target object — so the pointed-mark context below changes only on a
+			// crossing, never per pixel.
+			setState((prev) => {
+				if (sameTarget(prev.target, target) && samePoint(prev.point, point)) return prev
+
+				return { target: sameTarget(prev.target, target) ? prev.target : target, point }
+			}),
 		[],
+	)
+
+	// The pointed mark the marks dim against: the hover target, gated so a
+	// region outside every live group — no data, or its category toggled
+	// off — takes no emphasis; isolating the neutral fill would read as a
+	// broken map, the way a chart never dims against a hidden series.
+	const target = state.target
+
+	const pointed = useMemo(
+		() =>
+			target !== null && target.kind === 'region' && !regionActive(target.index) ? null : target,
+		[target, regionActive],
 	)
 
 	const clear = useCallback(() => set(null, null), [set])
@@ -821,7 +843,9 @@ function MapHoverProvider({
 
 	return (
 		<MapHoverSetContext value={set}>
-			<MapHoverStateContext value={state}>{children}</MapHoverStateContext>
+			<MapPointedMarkContext value={pointed}>
+				<MapHoverStateContext value={state}>{children}</MapHoverStateContext>
+			</MapPointedMarkContext>
 		</MapHoverSetContext>
 	)
 }
@@ -837,6 +861,8 @@ type MapFrameProps = {
 	containerRef: RefObject<HTMLDivElement | null>
 	/** Whether the tooltip is on; gates the hover provider's scroll listener. */
 	tooltip: boolean
+	/** Whether a region's category is matched and shown; the hover provider's pointed-emphasis gate. */
+	regionActive: (index: number) => boolean
 	table: ReactNode
 	width: number | undefined
 	/** Free-form (`aspectRatio={false}`) sizing: the frame fills its container's height. */
@@ -852,6 +878,7 @@ function MapFrame({
 	plotRef,
 	containerRef,
 	tooltip,
+	regionActive,
 	table,
 	width,
 	fill,
@@ -874,7 +901,7 @@ function MapFrame({
 			)}
 			style={width === undefined ? undefined : { width }}
 		>
-			<MapHoverProvider enabled={tooltip} plotRef={plotRef}>
+			<MapHoverProvider enabled={tooltip} plotRef={plotRef} regionActive={regionActive}>
 				{aside ? (
 					// The panel and plot sit side by side from lg; below it they stack
 					// with the panel always under the map, so a left panel reverses
@@ -958,8 +985,10 @@ function valueColumnHeader(
 /**
  * An SVG geography map on the chart module's interaction grammar: regions
  * coloured by category from typed rows, one merged legend where pointing an
- * entry dims everything outside its group and clicking toggles it off, a
- * pointer-anchored Tooltip readout, and a visually-hidden data table.
+ * entry dims everything outside its group and clicking toggles it off,
+ * pointing a region or overlay on the map isolating it behind the same
+ * recede, a pointer-anchored Tooltip readout, and a visually-hidden data
+ * table.
  * Geometry is prop-supplied TopoJSON / GeoJSON; {@link MapRoute},
  * {@link MapPoint}, and {@link MapMarker} children draw over the geography
  * and register their own legend entries.
@@ -1012,6 +1041,7 @@ export function MapPlat<T = never>({
 		regionNames,
 		regionCategory,
 		regionValues,
+		regionNumbers,
 		domain: valueExtent,
 	} = useMapRegionReadout(
 		shape.features,
@@ -1070,6 +1100,18 @@ export function MapPlat<T = never>({
 
 	const emphasis = activeFocus !== null && legendIds.has(activeFocus) ? activeFocus : null
 
+	// The hover provider's pointed-emphasis gate: a region takes the emphasis
+	// only while its category is matched and shown, resolved through the same
+	// group id the region fill keys on so the two can't disagree.
+	const regionActive = useCallback(
+		(index: number) => {
+			const id = regionGroupId(regionCategory[index] ?? null, categoryMetas)
+
+			return id !== null && !hidden.has(id)
+		},
+		[regionCategory, categoryMetas, hidden],
+	)
+
 	const plat = useMemo<MapPlatContextValue>(
 		() => ({ project: shape.project, register, colors, order, hidden, emphasis, animate }),
 		[shape.project, register, colors, order, hidden, emphasis, animate],
@@ -1127,7 +1169,7 @@ export function MapPlat<T = never>({
 		numeric,
 		{ width: containerWidth, height: shape.boxHeight },
 		{ categoryCount: categoryMetas.length, entryCount: entries.length, children },
-		{ colorRange, valueExtent, valueFormat, valueName, regionCategory, onFocus: setFocus },
+		{ colorRange, valueExtent, valueFormat, valueName, regionNumbers, onFocus: setFocus },
 	)
 
 	const aside = legendPlacement === 'left' || legendPlacement === 'right'
@@ -1165,21 +1207,21 @@ export function MapPlat<T = never>({
 	// county atlas — and none of it is mount-critical: defer it off the urgent
 	// render the way the chart frame defers its data table, so the geography
 	// commits first and the table hydrates a low-priority beat behind. The
-	// readout rides as one value, so the deferred render can't tear across a
-	// data change. Parity is unchanged — the table always converges on the
-	// current readout, one low-priority commit behind.
-	const tableReadout = useMemo(
+	// table rides as one memoised element, so the deferred render can't tear
+	// across a data change. Parity is unchanged — the table always converges
+	// on the current readout, one low-priority commit behind.
+	const table = useMemo(
 		() =>
-			hasReadout
-				? {
-						header: valueColumnHeader(categoryKey, valueKey, valueName),
-						regionNames: data === undefined ? [] : regionNames,
-						regionCategory,
-						regionValues,
-						categories: categoryMetas,
-						entries,
-					}
-				: null,
+			hasReadout ? (
+				<MapTable
+					header={valueColumnHeader(categoryKey, valueKey, valueName)}
+					regionNames={data === undefined ? [] : regionNames}
+					regionCategory={regionCategory}
+					regionValues={regionValues}
+					categories={categoryMetas}
+					entries={entries}
+				/>
+			) : null,
 		[
 			hasReadout,
 			categoryKey,
@@ -1194,7 +1236,7 @@ export function MapPlat<T = never>({
 		],
 	)
 
-	const deferredTable = useDeferredValue(tableReadout, null)
+	const deferredTable = useDeferredValue(table, null)
 
 	return (
 		<MapFrame
@@ -1234,7 +1276,8 @@ export function MapPlat<T = never>({
 			plotRef={shape.ref}
 			containerRef={containerRef}
 			tooltip={tooltip}
-			table={deferredTable ? <MapTable {...deferredTable} /> : null}
+			regionActive={regionActive}
+			table={deferredTable}
 			width={width}
 			fill={shape.fill}
 			className={className}

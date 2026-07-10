@@ -16,7 +16,7 @@ export const READOUT_GAP = '—'
  * categorical slot carries Tailwind class lists from the CVD-validated palette
  * (`fill` for the region, `text` for the `<Swatch>` currentColor); a numeric
  * choropleth bin carries a single CSS `color` value from the consumer's
- * `colorRange`, applied as an inline fill / swatch colour.
+ * `colorRange`, applied as the region's `fill` attribute / the swatch's inline colour.
  *
  * @internal
  */
@@ -51,6 +51,23 @@ export type MapCategoryMeta = {
  */
 export function categoryLegendId(value: string): string {
 	return `category:${value}`
+}
+
+/**
+ * The legend id a region's toggle and emphasis key on — its category's stable
+ * {@link categoryLegendId} — or `null` for a no-data region outside every
+ * group. One resolution shared by the region fill and the plat's pointed-mark
+ * gate, so the two can't disagree on which regions belong to a group.
+ *
+ * @internal
+ */
+export function regionGroupId(
+	category: number | null,
+	categories: MapCategoryMeta[],
+): string | null {
+	const meta = category === null ? null : (categories[category] ?? null)
+
+	return meta === null ? null : categoryLegendId(meta.value)
 }
 
 /** The slot colour for the series at `index`, in the fixed categorical order. @internal */
