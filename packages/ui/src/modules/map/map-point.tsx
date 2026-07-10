@@ -3,7 +3,7 @@
 import { type PointerEvent, useEffect, useId } from 'react'
 import { cn } from '../../core'
 import { k, type MapSeriesColor } from '../../recipes/kata/map'
-import { useMapHoverSet, useMapPlat } from './context'
+import { mapMarkDimmed, useMapHoverSet, useMapPlat, useMapPointedMark } from './context'
 import {
 	POINT_HIT_RADIUS,
 	POINT_POP,
@@ -30,7 +30,9 @@ export type MapPointProps = {
  * A solid circle marker at one coordinate — a warehouse, a stop, a geocoded
  * address — filled in its slot colour and registered in the plat's legend as
  * its own toggleable, focusable entry. Hovering raises the tooltip with the
- * point's name and detail; an invisible hit circle keeps the dot aimable.
+ * point's name and detail and isolates the dot — every other mark recedes,
+ * as under its legend entry's focus; an invisible hit circle keeps the dot
+ * aimable.
  *
  * @remarks Renders only inside {@link MapPlat}, and renders nothing when the
  * projection has no image for its position (the US composite drops points
@@ -45,6 +47,8 @@ export function MapPoint({ label, at, color, detail }: MapPointProps) {
 	const { project, register, colors, order, hidden, emphasis, animate } = useMapPlat()
 
 	const set = useMapHoverSet()
+
+	const pointed = useMapPointedMark()
 
 	useEffect(
 		() => register({ id, label, kind: 'point', swatch: 'dot', color, detail }),
@@ -63,7 +67,7 @@ export function MapPoint({ label, at, color, detail }: MapPointProps) {
 
 	return (
 		<g
-			className={cn(k.group(emphasis !== null && emphasis !== id))}
+			className={cn(k.group(mapMarkDimmed(pointed, { kind: 'entry', id }, emphasis, id)))}
 			onPointerLeave={() => set(null, null)}
 		>
 			<MapDot

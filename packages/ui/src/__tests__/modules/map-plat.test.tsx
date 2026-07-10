@@ -304,6 +304,73 @@ describe('MapPlat', () => {
 		).toBe(true)
 	})
 
+	it('isolates the pointed region, dimming every other region', () => {
+		const { container } = renderUI(plat())
+
+		// A static region carries the dim on the path itself (the wrapper exists
+		// only under `animate`).
+		const groups = () => allRegions(container).map((el) => el.getAttribute('class') ?? '')
+
+		const [alpha] = allRegions(container)
+
+		fireEvent.pointerEnter(alpha as Element, { clientX: 40, clientY: 20 })
+
+		expect(groups()[0]).not.toContain('opacity-25')
+
+		expect(groups()[1]).toContain('opacity-25')
+
+		expect(groups()[2]).toContain('opacity-25')
+
+		fireEvent.pointerLeave(bySlot(container, 'map-regions') as Element)
+
+		expect(groups().every((cls) => !cls.includes('opacity-25'))).toBe(true)
+	})
+
+	it('lets the pointed region win over a still-held legend emphasis', () => {
+		const { container } = renderUI(plat())
+
+		const [east] = allBySlot(container, 'map-legend-item')
+
+		fireEvent.pointerEnter(east as HTMLButtonElement)
+
+		const [alpha, beta] = allRegions(container)
+
+		// West's region dims under the legend's East focus...
+		expect(beta?.getAttribute('class')).toContain('opacity-25')
+
+		fireEvent.pointerEnter(beta as Element, { clientX: 150, clientY: 20 })
+
+		// ...until pointed: the pointer's mark takes the emphasis, receding even
+		// the legend-focused group behind it.
+		expect(beta?.getAttribute('class')).not.toContain('opacity-25')
+
+		expect(alpha?.getAttribute('class')).toContain('opacity-25')
+	})
+
+	it('keeps the map lit while the pointer sits on a no-data or toggled-off region', () => {
+		const { container } = renderUI(plat())
+
+		const lit = () =>
+			allRegions(container).every((el) => !(el.getAttribute('class') ?? '').includes('opacity-25'))
+
+		const [alpha, , gamma] = allRegions(container)
+
+		// Gamma matches no row: the neutral fill takes no emphasis — isolating
+		// nothing would read as a broken map.
+		fireEvent.pointerEnter(gamma as Element, { clientX: 300, clientY: 20 })
+
+		expect(lit()).toBe(true)
+
+		const [east] = allBySlot(container, 'map-legend-item')
+
+		fireEvent.click(east as HTMLButtonElement)
+
+		// Alpha's category is toggled off, so its region reads neutral and inert.
+		fireEvent.pointerEnter(alpha as Element, { clientX: 40, clientY: 20 })
+
+		expect(lit()).toBe(true)
+	})
+
 	it('raises the Tooltip readout over a matched region and stays silent off data', () => {
 		const { container } = renderUI(plat())
 
@@ -358,7 +425,9 @@ describe('MapPlat', () => {
 
 		const table = bySlot(container, 'map-table')
 
-		expect(table).toHaveClass('sr-only')
+		// The wrapper carries the hiding: `sr-only` sizing on the table itself
+		// wouldn't collapse it (table width/height are minimums).
+		expect(table?.parentElement).toHaveClass('sr-only')
 
 		const rows = Array.from(table?.querySelectorAll('tbody tr') ?? []).map((row) =>
 			Array.from(row.querySelectorAll('th, td')).map((cell) => cell.textContent),

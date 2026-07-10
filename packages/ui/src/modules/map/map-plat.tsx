@@ -28,9 +28,10 @@ import {
 	MapHoverSetContext,
 	type MapHoverState,
 	MapHoverStateContext,
-	type MapHoverTarget,
 	MapPlatContext,
 	type MapPlatContextValue,
+	MapPointedMarkContext,
+	sameTarget,
 } from './context'
 import {
 	categoryLegendId,
@@ -38,6 +39,7 @@ import {
 	defaultRegionLabel,
 	type MapCategoryMeta,
 	regionCategoryIndexes,
+	regionGroupId,
 	resolveCategories,
 	slotColor,
 } from './map-categories'
@@ -724,41 +726,36 @@ function legendItems(
 	return [...categoryItems, ...entryItems]
 }
 
-/** Whether two hover targets are the same mark, so a redundant hover write can bail. @internal */
-function sameTarget(a: MapHoverTarget | null, b: MapHoverTarget | null): boolean {
-	if (a === b) return true
-
-	if (a === null || b === null || a.kind !== b.kind) return false
-
-	return a.kind === 'region'
-		? a.index === (b as { index: number }).index
-		: a.id === (b as { id: string }).id
-}
-
 /** Whether two hover points coincide, so a redundant hover write can bail. @internal */
 function samePoint(a: MapPoint2D | null, b: MapPoint2D | null): boolean {
 	return a === b || (a !== null && b !== null && a.x === b.x && a.y === b.y)
 }
 
 /**
- * Owns the pointer readout and hands it down split: the stable mover through
- * {@link MapHoverSetContext} — the marks read it, so they never repaint as the
- * pointer travels — and the live {@link MapHoverState} through its own context,
- * which only the tooltip reads. Holding the state here, below {@link MapPlat}
- * and around the plot alone, keeps a pointer move from re-rendering the plat,
- * the legend, or the region layer: the provider re-renders and its stable
- * `children` bail, so the tooltip is the sole subtree that repaints.
+ * Owns the pointer readout and hands it down split three ways: the stable
+ * mover through {@link MapHoverSetContext} — the marks read it, so they never
+ * repaint as the pointer travels — the live {@link MapHoverState} through its
+ * own context, which only the tooltip reads, and the pointed mark through
+ * {@link MapPointedMarkContext}, whose identity holds across a same-mark move
+ * so the marks reading it repaint only on discrete crossings. Holding the
+ * state here, below {@link MapPlat} and around the plot alone, keeps a pointer
+ * move from re-rendering the plat, the legend, or the region layer: the
+ * provider re-renders and its stable `children` bail, so the tooltip is the
+ * sole subtree that repaints.
  *
  * @internal
  */
 function MapHoverProvider({
 	enabled,
 	plotRef,
+	regionActive,
 	children,
 }: {
 	/** Whether the tooltip is on; gates the scroll listener on a stable flag. */
 	enabled: boolean
 	plotRef: RefObject<HTMLDivElement | null>
+	/** Whether a region's category is matched and shown — the pointed-emphasis gate, the same silence the tooltip keeps off data. */
+	regionActive: (index: number) => boolean
 	children: ReactNode
 }) {
 	const [state, setState] = useState<MapHoverState>({ target: null, point: null })
@@ -766,11 +763,28 @@ function MapHoverProvider({
 	const set = useCallback<MapHoverSet>(
 		(target, point) =>
 			// Bail on a no-op so a scroll's repeated clears cost one render, and a
-			// page scroll far from this map costs none.
-			setState((prev) =>
-				sameTarget(prev.target, target) && samePoint(prev.point, point) ? prev : { target, point },
-			),
+			// page scroll far from this map costs none. A same-mark move keeps the
+			// held target's identity — every tracked pointer event builds a fresh
+			// target object — so the pointed-mark context below changes only on a
+			// crossing, never per pixel.
+			setState((prev) => {
+				if (sameTarget(prev.target, target) && samePoint(prev.point, point)) return prev
+
+				return { target: sameTarget(prev.target, target) ? prev.target : target, point }
+			}),
 		[],
+	)
+
+	// The pointed mark the marks dim against: the hover target, gated so a
+	// region outside every live group — no data, or its category toggled
+	// off — takes no emphasis; isolating the neutral fill would read as a
+	// broken map, the way a chart never dims against a hidden series.
+	const target = state.target
+
+	const pointed = useMemo(
+		() =>
+			target !== null && target.kind === 'region' && !regionActive(target.index) ? null : target,
+		[target, regionActive],
 	)
 
 	const clear = useCallback(() => set(null, null), [set])
@@ -819,7 +833,9 @@ function MapHoverProvider({
 
 	return (
 		<MapHoverSetContext value={set}>
-			<MapHoverStateContext value={state}>{children}</MapHoverStateContext>
+			<MapPointedMarkContext value={pointed}>
+				<MapHoverStateContext value={state}>{children}</MapHoverStateContext>
+			</MapPointedMarkContext>
 		</MapHoverSetContext>
 	)
 }
@@ -835,6 +851,8 @@ type MapFrameProps = {
 	containerRef: RefObject<HTMLDivElement | null>
 	/** Whether the tooltip is on; gates the hover provider's scroll listener. */
 	tooltip: boolean
+	/** Whether a region's category is matched and shown; the hover provider's pointed-emphasis gate. */
+	regionActive: (index: number) => boolean
 	table: ReactNode
 	width: number | undefined
 	/** Free-form (`aspectRatio={false}`) sizing: the frame fills its container's height. */
@@ -850,6 +868,7 @@ function MapFrame({
 	plotRef,
 	containerRef,
 	tooltip,
+	regionActive,
 	table,
 	width,
 	fill,
@@ -872,7 +891,7 @@ function MapFrame({
 			)}
 			style={width === undefined ? undefined : { width }}
 		>
-			<MapHoverProvider enabled={tooltip} plotRef={plotRef}>
+			<MapHoverProvider enabled={tooltip} plotRef={plotRef} regionActive={regionActive}>
 				{aside ? (
 					// The panel and plot sit side by side from lg; below it they stack
 					// with the panel always under the map, so a left panel reverses
@@ -956,8 +975,10 @@ function valueColumnHeader(
 /**
  * An SVG geography map on the chart module's interaction grammar: regions
  * coloured by category from typed rows, one merged legend where pointing an
- * entry dims everything outside its group and clicking toggles it off, a
- * pointer-anchored Tooltip readout, and a visually-hidden data table.
+ * entry dims everything outside its group and clicking toggles it off,
+ * pointing a region or overlay on the map isolating it behind the same
+ * recede, a pointer-anchored Tooltip readout, and a visually-hidden data
+ * table.
  * Geometry is prop-supplied TopoJSON / GeoJSON; {@link MapRoute},
  * {@link MapPoint}, and {@link MapMarker} children draw over the geography
  * and register their own legend entries.
@@ -1067,6 +1088,18 @@ export function MapPlat<T = never>({
 	)
 
 	const emphasis = activeFocus !== null && legendIds.has(activeFocus) ? activeFocus : null
+
+	// The hover provider's pointed-emphasis gate: a region takes the emphasis
+	// only while its category is matched and shown, resolved through the same
+	// group id the region fill keys on so the two can't disagree.
+	const regionActive = useCallback(
+		(index: number) => {
+			const id = regionGroupId(regionCategory[index] ?? null, categoryMetas)
+
+			return id !== null && !hidden.has(id)
+		},
+		[regionCategory, categoryMetas, hidden],
+	)
 
 	const plat = useMemo<MapPlatContextValue>(
 		() => ({ project: shape.project, register, colors, order, hidden, emphasis, animate }),
@@ -1232,6 +1265,7 @@ export function MapPlat<T = never>({
 			plotRef={shape.ref}
 			containerRef={containerRef}
 			tooltip={tooltip}
+			regionActive={regionActive}
 			table={deferredTable}
 			width={width}
 			fill={shape.fill}

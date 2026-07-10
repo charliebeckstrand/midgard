@@ -29,7 +29,7 @@ import {
 } from 'react'
 import { ContextMenuList } from '../../components/context-menu'
 import { Menu, MenuContent, useMenuActions } from '../../components/menu'
-import { isDataColumn } from '../../utilities'
+import { isDataColumn, isNativeContextMenuRequest } from '../../utilities'
 import type { SortState } from './context'
 import type { GridExportAction } from './export/types'
 import type { GridColumnGroup } from './grid-group-types'
@@ -780,12 +780,11 @@ function GridContextMenuSurface({
 			// fire for the same event.
 			event.stopPropagation()
 
-			// Ctrl + a secondary-button click (`button === 2`) is the escape hatch to the
-			// browser's native menu, on every platform. A Ctrl + primary-button click
-			// (`button === 0`) — macOS's secondary click — falls through to the grid menu
-			// instead, so Mac users reach it without a right button (CONT-04). The two
-			// only differ by button, not platform, so no platform sniff is needed.
-			if (event.ctrlKey && event.button === 2) return
+			// Ctrl + secondary-button click yields to the browser's native menu; a
+			// Ctrl + primary-button click (macOS's secondary click) falls through to
+			// the grid menu instead, so Mac users reach it without a right button
+			// (CONT-04). Shared with the {@link Menu} context menu.
+			if (isNativeContextMenuRequest(event)) return
 
 			const target = event.target as HTMLElement
 

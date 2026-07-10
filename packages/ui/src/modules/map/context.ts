@@ -45,6 +45,55 @@ export const [MapHoverStateContext, useMapHoverState] =
 
 export const [MapHoverSetContext, useMapHoverSet] = createContext<MapHoverSet>('MapHoverSet')
 
+/** Whether two hover targets name the same mark, so a redundant write can bail. @internal */
+export function sameTarget(a: MapHoverTarget | null, b: MapHoverTarget | null): boolean {
+	if (a === b) return true
+
+	if (a === null || b === null || a.kind !== b.kind) return false
+
+	return a.kind === 'region'
+		? a.index === (b as { index: number }).index
+		: a.id === (b as { id: string }).id
+}
+
+/**
+ * The mark the pointer sits on — a region or an overlay entry — taking the
+ * emphasis, so everything else on the map recedes behind it: the map's twin of
+ * the chart's pointed-mark emphasis. Derived from the hover target but held
+ * apart from {@link MapHoverState}: the hover provider pins the target's
+ * identity across a same-mark move, so this value — and every mark reading
+ * it — changes only on a discrete crossing, never as the pointer travels.
+ * A region whose category is unmatched or toggled off never takes it, the
+ * same silence the tooltip keeps off data. Defaults to `null` so a mark
+ * rendered outside the provider reads lit.
+ *
+ * @internal
+ */
+export const [MapPointedMarkContext, useMapPointedMark] = createContext<MapHoverTarget | null>(
+	'MapPointedMark',
+	{ default: null },
+)
+
+/**
+ * Whether a mark reads dimmed under the shared emphasis: the pointed mark
+ * recedes everything but itself, else the legend's focused id dims marks
+ * outside its group (`groupId` — an overlay's own entry id, a region's
+ * category id), else nothing dims. The pointed mark winning over a still-held
+ * legend focus mirrors the chart's mark-emphasis resolution.
+ *
+ * @internal
+ */
+export function mapMarkDimmed(
+	pointed: MapHoverTarget | null,
+	self: MapHoverTarget,
+	emphasis: string | null,
+	groupId: string | null,
+): boolean {
+	if (pointed !== null) return !sameTarget(pointed, self)
+
+	return emphasis !== null && emphasis !== groupId
+}
+
 /**
  * What {@link MapPlat} provides its overlay children: the fitted projection
  * as a closure, legend registration, the resolved slot colour per registered
