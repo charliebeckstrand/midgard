@@ -51,7 +51,7 @@ export type Contender<D> = {
 }
 
 /** Mounts a React tree synchronously and redraws through the same root. */
-function reactContender<D>(name: string, element: (data: D) => ReactElement): Contender<D> {
+export function reactContender<D>(name: string, element: (data: D) => ReactElement): Contender<D> {
 	return {
 		name,
 		mount(host, data) {
@@ -93,21 +93,29 @@ function agContender<D>(name: string, options: (data: D) => AgChartOptions): Con
 	}
 }
 
-/** Creates a Highcharts chart; its SVG build and redraws are synchronous. */
-function hcContender<D>(
+/**
+ * Creates a Highcharts chart — or a Highcharts map, through `factory` — with
+ * the shared parity settings; its SVG build and redraws are synchronous.
+ */
+export function hcContender<D>(
 	name: string,
 	options: (data: D) => Highcharts.Options,
 	update: (chart: Highcharts.Chart, data: D) => void,
+	factory: (host: HTMLElement, options: Highcharts.Options) => Highcharts.Chart = Highcharts.chart,
 ): Contender<D> {
 	return {
 		name,
 		mount(host, data) {
-			const chart = Highcharts.chart(host, {
-				...options(data),
-				chart: { width: WIDTH, height: HEIGHT, animation: false },
+			const base = options(data)
+
+			const chart = factory(host, {
+				...base,
+				// The fixed sizing merges over the base chart block rather than
+				// replacing it: a map contender's topology rides in `chart.map`.
+				chart: { ...base.chart, width: WIDTH, height: HEIGHT, animation: false },
 				title: { text: undefined },
 				// Parity note, not a handicap: the a11y module isn't loaded, so this
-				// only silences its absence warning. The ui charts keep their built-in
+				// only silences its absence warning. The ui modules keep their built-in
 				// accessible output (hidden data table, roving focus) in every bench.
 				accessibility: { enabled: false },
 				plotOptions: { series: { animation: false } },

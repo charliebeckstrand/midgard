@@ -135,10 +135,9 @@ describe('MapRoute', () => {
 
 		const { container, rerender } = renderUI(view(true))
 
+		// The region layer recedes as one group.
 		const anyDimmed = () =>
-			allBySlot(container, 'map-region').some((el) =>
-				(el.parentElement?.getAttribute('class') ?? '').includes('opacity-25'),
-			)
+			(bySlot(container, 'map-regions-recede')?.getAttribute('class') ?? '').includes('opacity-25')
 
 		fireEvent.pointerEnter(bySlot(container, 'map-legend-item') as HTMLButtonElement)
 

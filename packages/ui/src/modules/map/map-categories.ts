@@ -16,7 +16,7 @@ export const READOUT_GAP = '—'
  * categorical slot carries Tailwind class lists from the CVD-validated palette
  * (`fill` for the region, `text` for the `<Swatch>` currentColor); a numeric
  * choropleth bin carries a single CSS `color` value from the consumer's
- * `colorRange`, applied as an inline fill / swatch colour.
+ * `colorRange`, applied as the region's `fill` attribute / the swatch's inline colour.
  *
  * @internal
  */

@@ -5,6 +5,7 @@ import {
 	type RefObject,
 	startTransition,
 	useCallback,
+	useDeferredValue,
 	useMemo,
 	useRef,
 	useState,
@@ -42,15 +43,15 @@ import {
 	resolveCategories,
 	slotColor,
 } from './map-categories'
-import { type MapPoint2D, projectPoint, regionPaths } from './map-geometry'
-import { staticMapGeometry } from './map-geometry-cache'
+import { type MapPoint2D, projectPoint } from './map-geometry'
+import { measuredRegionPaths, staticMapGeometry } from './map-geometry-cache'
 import { MapLegend, type MapLegendItem } from './map-legend'
 import { mapFrameSizing, measuredMapFit, projectionFallbackAspect } from './map-projection'
 import { MapRangeLegend, type MapRangeLegendProps } from './map-range-legend'
 import { MapRegions } from './map-regions'
 import { MapTable } from './map-table'
 import { MapTooltip, type MapTooltipEntry } from './map-tooltip'
-import { regionValueIndexes, regionValueLabels, resolveValueBins } from './map-value-scale'
+import { type RegionValueJoin, regionValueJoin, resolveValueBins } from './map-value-scale'
 import type {
 	DataKey,
 	LngLat,
@@ -293,7 +294,7 @@ function useMapShape(
 	// Canonical output is deterministic, so the server and the first client
 	// render agree. The per-size measured refit below stays per-instance; it
 	// reprojects to constant-pixel marks a beat after this canonical draw.
-	const { features, canonical, canonicalPaths } = useMemo(
+	const statics = useMemo(
 		() => staticMapGeometry(geography, geographyObject, projection),
 		[geography, geographyObject, projection],
 	)
@@ -305,7 +306,7 @@ function useMapShape(
 	// projection (albers-usa is the US) still knows the ratio it will take, so
 	// the frame reserves it and a lazily fetched atlas swaps in without a height
 	// shift.
-	const reserveAspect = canonical?.aspect ?? projectionFallbackAspect(projection)
+	const reserveAspect = statics.canonical?.aspect ?? projectionFallbackAspect(projection)
 
 	const sizing = mapFrameSizing(height, aspectRatio, reserveAspect)
 
@@ -318,10 +319,14 @@ function useMapShape(
 	// and the overlays would disagree with the resized viewBox. Deriving them
 	// inside one memo over the live frame dimensions reprojects on every resize,
 	// and hands the context a fresh `project` identity so overlay marks recompute.
-	// With nothing to frame the measured fit is `null`, so the map holds the
-	// canonical draw (or the neutral frame) rather than projecting through an
-	// unfitted default.
+	// The measured paths themselves come through the cross-instance memo
+	// (`measuredRegionPaths`), so a remount at the same box reuses them instead
+	// of reprojecting the atlas. With nothing to frame the measured fit is
+	// `null`, so the map holds the canonical draw (or the neutral frame) rather
+	// than projecting through an unfitted default.
 	const view = useMemo(() => {
+		const { features, canonical, canonicalPaths } = statics
+
 		const measured = measuredMapFit(projection, features, canonical, frameWidth, frameHeight)
 
 		// Deferred paint: hold the frame empty (the reserve still owns the box) until
@@ -339,10 +344,12 @@ function useMapShape(
 		return {
 			viewWidth: measured ? frameWidth : (canonical?.width ?? 0),
 			viewHeight: measured ? frameHeight : (canonical?.height ?? 0),
-			paths: measured ? regionPaths(features, measured) : canonicalPaths,
+			paths: measured
+				? measuredRegionPaths(statics, measured, frameWidth, frameHeight)
+				: canonicalPaths,
 			project: (position: LngLat) => (fitted === null ? null : projectPoint(fitted, position)),
 		}
-	}, [projection, features, canonical, canonicalPaths, frameWidth, frameHeight, deferPaint])
+	}, [projection, statics, frameWidth, frameHeight, deferPaint])
 
 	const { viewWidth, viewHeight, paths, project } = view
 
@@ -354,7 +361,7 @@ function useMapShape(
 		viewWidth,
 		viewHeight,
 		paths,
-		features,
+		features: statics.features,
 		project,
 	}
 }
@@ -369,6 +376,10 @@ type MapRegionReadout = {
 	 * tooltip and table readout, distinct from its bin's range label; `null` in
 	 * categorical mode and wherever no datum matches. */
 	regionValues: (string | null)[]
+	/** Each region's raw number in the numeric (choropleth) mode — the range
+	 * legend's arrow marks it on the continuous bar; `null` in categorical mode
+	 * and wherever no datum matches. */
+	regionNumbers: (number | null)[]
 	/** The numeric value extent in the numeric (choropleth) mode; `null` otherwise. Feeds the range legend. */
 	domain: [number, number] | null
 }
@@ -406,20 +417,22 @@ function useMapRegionReadout<T>(
 		categoryMetas,
 		regionCategory,
 		regionValues,
+		regionNumbers,
 		domain: extent,
-	} = useMemo<{
-		categoryMetas: MapCategoryMeta[]
-		regionCategory: (number | null)[]
-		regionValues: (string | null)[]
-		domain: [number, number] | null
-	}>(() => {
+	} = useMemo<
+		RegionValueJoin & { categoryMetas: MapCategoryMeta[]; domain: [number, number] | null }
+	>(() => {
+		// The all-null column, shared by every field a branch leaves empty:
+		// nothing downstream mutates the readout arrays, so one allocation
+		// serves them all.
 		const noValues = regionIds.map(() => null)
 
 		if (data === undefined || regionKey === undefined) {
 			return {
 				categoryMetas: [],
-				regionCategory: regionIds.map(() => null),
+				regionCategory: noValues,
 				regionValues: noValues,
+				regionNumbers: noValues,
 				domain: null,
 			}
 		}
@@ -439,12 +452,12 @@ function useMapRegionReadout<T>(
 				format,
 			})
 
+			// One joined pass: each region's bin (its colour), its own formatted
+			// readout (the tooltip and table show "2,088", not the bin's "1–135"),
+			// and its raw number (the range legend's arrow).
 			return {
 				categoryMetas: metas,
-				regionCategory: regionValueIndexes(regionIds, data, regionKey, valueKey, assign),
-				// A region's readout is its own value, not the bin range its colour reads
-				// from — so the tooltip and table show "2,088", not "1–135".
-				regionValues: regionValueLabels(regionIds, data, regionKey, valueKey, format),
+				...regionValueJoin(regionIds, data, regionKey, valueKey, assign, format),
 				domain: resolved,
 			}
 		}
@@ -457,14 +470,16 @@ function useMapRegionReadout<T>(
 				regionCategory: regionCategoryIndexes(regionIds, data, regionKey, categoryKey, metas),
 				// Categorical mode reads the category label off the meta; no separate value.
 				regionValues: noValues,
+				regionNumbers: noValues,
 				domain: null,
 			}
 		}
 
 		return {
 			categoryMetas: [],
-			regionCategory: regionIds.map(() => null),
+			regionCategory: noValues,
 			regionValues: noValues,
+			regionNumbers: noValues,
 			domain: null,
 		}
 	}, [
@@ -481,7 +496,7 @@ function useMapRegionReadout<T>(
 		regionIds,
 	])
 
-	return { categoryMetas, regionNames, regionCategory, regionValues, domain: extent }
+	return { categoryMetas, regionNames, regionCategory, regionValues, regionNumbers, domain: extent }
 }
 
 /**
@@ -565,7 +580,8 @@ type MapRangeScale = {
 	valueExtent: [number, number] | null
 	valueFormat: ((value: number) => string) | undefined
 	valueName: string | undefined
-	regionCategory: (number | null)[]
+	/** Each region's raw value — the bar's hover arrow marks the pointed one. */
+	regionNumbers: (number | null)[]
 	onFocus: (id: string | null) => void
 }
 
@@ -624,7 +640,7 @@ function planMapLegend(
 					format: scale.valueFormat ?? ((value) => String(value)),
 					label: scale.valueName,
 					bins: switchboard.categoryCount,
-					regionCategory: scale.regionCategory,
+					regionNumbers: scale.regionNumbers,
 					onFocus: scale.onFocus,
 					orientation: resolved.orientation,
 				}
@@ -1024,6 +1040,7 @@ export function MapPlat<T = never>({
 		regionNames,
 		regionCategory,
 		regionValues,
+		regionNumbers,
 		domain: valueExtent,
 	} = useMapRegionReadout(
 		shape.features,
@@ -1151,7 +1168,7 @@ export function MapPlat<T = never>({
 		numeric,
 		{ width: containerWidth, height: shape.boxHeight },
 		{ categoryCount: categoryMetas.length, entryCount: entries.length, children },
-		{ colorRange, valueExtent, valueFormat, valueName, regionCategory, onFocus: setFocus },
+		{ colorRange, valueExtent, valueFormat, valueName, regionNumbers, onFocus: setFocus },
 	)
 
 	const aside = legendPlacement === 'left' || legendPlacement === 'right'
@@ -1185,6 +1202,50 @@ export function MapPlat<T = never>({
 
 	const hasReadout = (data !== undefined && regionNames.length > 0) || entries.length > 0
 
+	// Memoised like the sibling derivations (`colors`, `tooltipEntries`, the
+	// table): the plat re-renders per legend focus, toggle, and resize commit,
+	// in none of which the items change — without the memo each such render
+	// rebuilds every item object and its class join.
+	const items = useMemo(
+		() => legendItems(categoryMetas, entries, colors, numeric),
+		[categoryMetas, entries, colors, numeric],
+	)
+
+	// The visually-hidden table renders one row per region — thousands on a
+	// county atlas — and none of it is mount-critical: defer it off the urgent
+	// render the way the chart frame defers its data table, so the geography
+	// commits first and the table hydrates a low-priority beat behind. The
+	// table rides as one memoised element, so the deferred render can't tear
+	// across a data change. Parity is unchanged — the table always converges
+	// on the current readout, one low-priority commit behind.
+	const table = useMemo(
+		() =>
+			hasReadout ? (
+				<MapTable
+					header={valueColumnHeader(categoryKey, valueKey, valueName)}
+					regionNames={data === undefined ? [] : regionNames}
+					regionCategory={regionCategory}
+					regionValues={regionValues}
+					categories={categoryMetas}
+					entries={entries}
+				/>
+			) : null,
+		[
+			hasReadout,
+			categoryKey,
+			valueKey,
+			valueName,
+			data,
+			regionNames,
+			regionCategory,
+			regionValues,
+			categoryMetas,
+			entries,
+		],
+	)
+
+	const deferredTable = useDeferredValue(table, null)
+
 	return (
 		<MapFrame
 			legendNode={
@@ -1192,7 +1253,7 @@ export function MapPlat<T = never>({
 					range={rangeLegend}
 					show={showLegend}
 					aside={aside}
-					items={legendItems(categoryMetas, entries, colors, numeric)}
+					items={items}
 					hidden={hidden}
 					onToggle={toggle}
 					onFocus={setFocus}
@@ -1224,18 +1285,7 @@ export function MapPlat<T = never>({
 			containerRef={containerRef}
 			tooltip={tooltip}
 			regionActive={regionActive}
-			table={
-				hasReadout ? (
-					<MapTable
-						header={valueColumnHeader(categoryKey, valueKey, valueName)}
-						regionNames={data === undefined ? [] : regionNames}
-						regionCategory={regionCategory}
-						regionValues={regionValues}
-						categories={categoryMetas}
-						entries={entries}
-					/>
-				) : null
-			}
+			table={deferredTable}
 			width={width}
 			fill={shape.fill}
 			className={className}

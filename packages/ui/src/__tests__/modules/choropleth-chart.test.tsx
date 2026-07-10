@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { ChoroplethChart } from '../../modules/chart'
-import { allBySlot, bySlot, fireEvent, renderUI, screen } from '../helpers'
+import { allBySlot, allRegions, bySlot, fireEvent, renderUI, screen } from '../helpers'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 
 const ROWS = [
@@ -11,7 +11,7 @@ const ROWS = [
 
 const RANGE = ['#dbeafe', '#1e3a8a']
 
-const fillOf = (el?: Element) => (el as SVGPathElement | undefined)?.style.fill
+const fillOf = (el?: Element) => el?.getAttribute('fill')
 
 describe('ChoroplethChart', () => {
 	it('shades regions from the series colorRange, joined by idKey / colorKey', () => {
@@ -25,11 +25,11 @@ describe('ChoroplethChart', () => {
 			/>,
 		)
 
-		const regions = allBySlot(container, 'map-region')
+		const regions = allRegions(container)
 
 		expect(regions).toHaveLength(3)
 
-		// The scale reaches the regions as inline fill values; low and high differ.
+		// The scale reaches the regions as fill attributes; low and high differ.
 		expect(fillOf(regions[0])).toBeTruthy()
 
 		expect(fillOf(regions[2])).toBeTruthy()

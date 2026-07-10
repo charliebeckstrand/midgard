@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { describe, expect, it } from 'vitest'
 import { MapPlat, MapPoint } from '../../modules/map'
 import { POINT_HIT_RADIUS, POINT_RADIUS } from '../../modules/map/map-constants'
-import { allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
+import { allBySlot, allRegions, bySlot, fireEvent, renderUI } from '../helpers'
 import { FIXTURE_GEOJSON, FIXTURE_ROWS } from '../helpers/map-geography'
 
 function plat(children: ReactNode) {
@@ -105,8 +105,9 @@ describe('MapPoint', () => {
 
 		const dotGroup = () => bySlot(container, 'map-point')?.parentElement?.getAttribute('class')
 
-		const regionGroups = () =>
-			allBySlot(container, 'map-region').map((el) => el.parentElement?.getAttribute('class') ?? '')
+		// The region layer recedes as one group; the pointed region redraws lit.
+		const receded = () =>
+			(bySlot(container, 'map-regions-recede')?.getAttribute('class') ?? '').includes('opacity-25')
 
 		// Pointing the dot isolates it: every region recedes behind it.
 		fireEvent.pointerEnter(bySlot(container, 'map-point-hit') as Element, {
@@ -116,19 +117,25 @@ describe('MapPoint', () => {
 
 		expect(dotGroup()).not.toContain('opacity-25')
 
-		expect(regionGroups().every((cls) => cls.includes('opacity-25'))).toBe(true)
+		expect(receded()).toBe(true)
+
+		expect(bySlot(container, 'map-regions-lit')).toBeNull()
 
 		// Pointing a matched region isolates it the other way: the dot recedes.
-		const [alpha] = allBySlot(container, 'map-region')
+		const [alpha] = allRegions(container)
 
 		fireEvent.pointerEnter(alpha as Element, { clientX: 40, clientY: 20 })
 
-		expect(regionGroups()[0]).not.toContain('opacity-25')
+		expect(bySlot(container, 'map-regions-lit')?.querySelector('path')?.getAttribute('d')).toBe(
+			alpha?.getAttribute('d'),
+		)
 
 		expect(dotGroup()).toContain('opacity-25')
 
 		fireEvent.pointerLeave(bySlot(container, 'map-regions') as Element)
 
 		expect(dotGroup()).not.toContain('opacity-25')
+
+		expect(receded()).toBe(false)
 	})
 })

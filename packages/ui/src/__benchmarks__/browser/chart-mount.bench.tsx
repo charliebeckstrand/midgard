@@ -6,30 +6,10 @@
  * render is awaited so its bar covers actual drawing, not scheduling.
  */
 
-import { bench, describe } from 'vitest'
-import { barContenders, type Contender, lineContenders, scatterContenders } from './contenders'
+import { describe } from 'vitest'
+import { barContenders, lineContenders, scatterContenders } from './contenders'
 import { makePoints, makeTrend } from './fixtures'
-
-const host = document.createElement('div')
-
-document.body.append(host)
-
-/** The big scenarios see >100ms iterations; a longer window keeps samples up. */
-const SLOW = { time: 2_000 }
-
-function mountBenches<D>(contenders: Contender<D>[], data: D, options?: { time: number }) {
-	for (const contender of contenders) {
-		bench(
-			contender.name,
-			async () => {
-				const chart = await contender.mount(host, data)
-
-				chart.destroy()
-			},
-			options,
-		)
-	}
-}
+import { mountBenches, SLOW } from './harness'
 
 describe('mount · line · 100 × 1 series', () => {
 	mountBenches(lineContenders(1), makeTrend(100, 1))

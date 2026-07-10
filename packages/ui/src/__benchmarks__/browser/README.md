@@ -1,10 +1,24 @@
 # Competitive benchmarks
 
-> **The chart module measured against AG Charts and Highcharts, the grid module against AG Grid and MUI X DataGrid, in real Chromium — so every optimization lands against the market, not against yesterday's self.** `pnpm bench:browser` runs both suites; the jsdom benches one directory up keep localizing regressions, this suite keeps score.
+> **The chart module measured against AG Charts and Highcharts, the grid module against AG Grid and MUI X DataGrid, and the map module against Highcharts Maps and ECharts, in real Chromium — so every optimization lands against the market, not against yesterday's self.** `pnpm bench:browser` runs all three suites; the jsdom benches one directory up keep localizing regressions, this suite keeps score.
 
 ## Why a browser suite
 
-AG draws to a real canvas, the grids virtualize against real scroll geometry, and every contender deserves real layout, style, and event plumbing, so jsdom timings would not survive scrutiny; the suite runs through Vitest browser mode on the Playwright Chromium the test suite already uses. Chromium launches with its frame-rate limit off — AG defers work to animation frames and several benches settle frames inside the timed region, so a vsync'd browser would quantize those samples to ~16ms.
+AG Charts and ECharts draw to real canvases, the grids virtualize against real scroll geometry, and every contender deserves real layout, style, and event plumbing, so jsdom timings would not survive scrutiny; the suite runs through Vitest browser mode on the Playwright Chromium the test suite already uses. Chromium launches with its frame-rate limit off — AG and ECharts defer drawing to animation frames and several benches settle frames inside the timed region, so a vsync'd browser would quantize those samples to ~16ms.
+
+React runs in **production** mode ([`vitest.bench.browser.config.ts`](../../../vitest.bench.browser.config.ts) forces `NODE_ENV=production`): the modules ship the production build, and the vanilla contenders carry no dev/prod split, so a dev-React number would score the modules' diagnostics rather than their shipped speed. The gap is real — dev React runs several times the work per render — so this is a correctness condition, not a thumb on the scale.
+
+## Reading and driving improvements
+
+Each `describe` groups one scenario's three contenders, so the `BENCH Summary` prints the head-to-head ratios directly. To hold a before/after line through an optimization, snapshot then compare:
+
+```sh
+pnpm bench:browser -- --outputJson bench-baseline.json
+# …optimize…
+pnpm bench:browser -- --compare bench-baseline.json
+```
+
+When a competitive scenario regresses or lags, the jsdom benches (`pnpm bench`) and the pure cores (`chart-scale`, `chart-layout`, per-chart `*-geometry`; `map-render`'s cold/warm geometry split) are the ladder down to the responsible layer.
 
 ## Charts
 
@@ -18,21 +32,7 @@ Every scenario draws the same deterministic dataset ([`fixtures.ts`](fixtures.ts
 
 - [`chart-hover.bench.tsx`](chart-hover.bench.tsx) — a 20-step pointer sweep across the plot plus one settled frame: hit-testing, crosshair/tooltip work, and frame-deferred drawing. Every contender receives the same `pointermove` + `mousemove` pair per step, so dispatch overhead is symmetric across their differing interaction stacks.
 
-React runs in **production** mode ([`vitest.bench.browser.config.ts`](../../../vitest.bench.browser.config.ts) forces `NODE_ENV=production`): the module ships the production build, and the vanilla contenders carry no dev/prod split, so a dev-React number would score the module's diagnostics rather than its shipped speed. The gap is real — dev React runs several times the work per render — so this is a correctness condition, not a thumb on the scale.
-
 Fairness notes, both directions: the ui module keeps its built-in accessible output (the visually-hidden data table renders one row per datum) while Highcharts runs without its optional accessibility module and AG registers its standard `AllCommunityModule`; Highcharts' `boost` module stays off, matching default installs; the ui module pays React reconciliation the vanilla factories don't, and that is the product being measured.
-
-### Reading and driving improvements
-
-Each `describe` groups one scenario's three contenders, so the `BENCH Summary` prints the head-to-head ratios directly. To hold a before/after line through an optimization, snapshot then compare:
-
-```sh
-pnpm bench:browser -- --outputJson bench-baseline.json
-# …optimize…
-pnpm bench:browser -- --compare bench-baseline.json
-```
-
-When a competitive scenario regresses or lags, the jsdom benches (`pnpm bench`) and the pure-geometry cores (`chart-scale`, `chart-layout`, per-chart `*-geometry`) are the ladder down to the responsible layer.
 
 ### Standings (2026-07-10, this container)
 
@@ -58,7 +58,7 @@ Absolute numbers move with hardware; the ratios are the signal. Mean ms per iter
 
 The module beats **Highcharts on all fifteen** scenarios and **AG Charts on thirteen** — every mount and every update, the 10,000-point canvas cases included. The two it still trails are the hover sweeps, both within one or two milliseconds of AG (and the line sweep has read as a dead heat on other runs; the 10,000-point scatter update sits on the same boundary in the other direction, so read those edges as ties). The hover residual is not the marks (memoised single path per series) or the hit test (a squared-distance scan costing well under a millisecond) but a React commit per pointer move driving the crosshair and tooltip, against AG's vanilla canvas redraw; closing it means moving the shared hover layer to imperative DOM writes — a trade of the declarative hover model for the last millisecond, open by choice.
 
-#### Optimization log
+### Optimization log
 
 Each entry names the change and the scenarios it moved; the levers are ordered as they landed.
 
@@ -122,7 +122,7 @@ Four levers in, the shape has changed: the scroll sweep — the metric that deci
 
 Below those two, the per-cell render itself still runs ~90µs against the competitors' ~30 (profiled as diffuse React commit and allocation pressure across the cell tree — `GridDataCell` → `TableCell` → span), so a cell-tree diet is the third rung once the structural levers land.
 
-#### Optimization log
+### Optimization log
 
 Each entry names the change and the scenarios it moved.
 
@@ -133,3 +133,61 @@ Each entry names the change and the scenarios it moved.
 3. **Contact-mounted reveal machinery** ([`grid-cell-content.tsx`](../../modules/grid/grid-cell-content.tsx), `contacted` from [`use-truncation.ts`](../../hooks/use-truncation.ts)). Every data cell mounted the full floating-ui `Tooltip` hook stack to gate a reveal almost no cell ever opens — ~150µs of the ~250µs per-cell render, the largest single term in mount and scroll (measured by benching `cellTooltip: () => null` against the default). The stack now mounts on the first pointer/focus contact with a cell that measures truncated; the wrap reparents the span once at that mount, and the hook's callback ref re-binds its observation to the replacement node (the stranded-observer hazard that once kept the tooltip permanently mounted). Gating on *truncated*, not just contact, is a correctness condition too: an in-place editor lives inside the span, and a reparent triggered by its own focus or a passing pointer would tear down a focused editor holding a draft — a fitting cell stays a bare span through any contact. Scroll 10k 1,650 → 653 and 100k 1,680 → 655 (both now past AG); mount 1k 39 → 22 (past both); mount 10k 75 → 59; update 10k 73 → 47; plain 300-row mount ~700 → ~210, 500-row ~1,100 → ~340.
 
 4. **Deferred observation, suspended drags, shared descriptors** ([`use-truncation.ts`](../../hooks/use-truncation.ts), [`grid-row.tsx`](../../modules/grid/grid-row.tsx), [`grid-cell-content.tsx`](../../modules/grid/grid-cell-content.tsx)). The width `ResizeObserver` and `fonts.ready` subscription defer to first contact with the rest of the reveal — an unvisited cell now costs two listener registrations and nothing else per mount or recycle. Truncation measurement stands down entirely while a column drag-resize is in flight (`suspended`; the reveal is held closed through a drag anyway) and the settle re-measures. The per-cell `{ kind: 'auto' }` tooltip descriptor and the static span/tooltip classes are shared module constants rather than per-render allocations.
+
+## Maps
+
+### Methodology
+
+Every scenario draws the same prepared `us-atlas` geometry ([`map-fixtures.ts`](map-fixtures.ts)) into the same fixed 800×450 box with animations off, joined to the same LCG-seeded rows by FIPS id, through each library's idiomatic API ([`map-contenders.tsx`](map-contenders.tsx)): the ui module renders `MapPlat` through React, Highcharts Maps and ECharts through their vanilla factories. AG Charts sits this suite out — its map series is enterprise-only, so the community package the chart benches run has nothing to enter. ECharts paints through zrender's animation-frame loop, so its adapter flushes the pending frame synchronously (`getZr().flush()`) after every option set, the way the AG chart adapter awaits `waitForUpdate()`.
+
+The geometry is the conterminous US — `states-10m` (49 regions) and `counties-10m` (3,108 regions), territories and the non-conterminous states filtered for every contender alike. The rivals ship no free US composite: their US idiom is a Lambert conformal conic, which Alaska's antimeridian crossing would smear across the projected plane, shrinking their fitted map to a fraction of the frame while the ui module's `albers-usa` insets fill it — the lower 48 is the largest geometry all three project comparably. Projections are each library's US idiom from there: the ui module's `albers-usa` composite, Highcharts' Lambert conformal conic (its own custom-US-map guidance), and that same conic for ECharts through its documented d3-geo projection hook.
+
+- [`map-mount.bench.tsx`](map-mount.bench.tsx) — full mount-to-painted-DOM plus teardown per iteration, at steady state: each library's one-time geometry setup (the ui module's static-geometry cache, ECharts' `registerMap`, whatever Highcharts caches on the topology) warms during the uncounted warmup iterations, so the timed region is the remount a dashboard actually pays. The cold decode-and-fit path keeps its own jsdom bench (`map-render`).
+
+- [`map-update.bench.tsx`](map-update.bench.tsx) — recolour on a live map, alternating two same-shape datasets: re-zoning every region in the categorical scenarios, re-valuing every region in the choropleth. The ui module re-renders through its root; Highcharts and ECharts take their in-place data updates. Geometry never changes — an update moves data, not the atlas.
+
+- [`map-hover.bench.tsx`](map-hover.bench.tsx) — a 20-step pointer sweep across the plot plus one settled frame. Every contender receives the same `pointermove` + `mousemove` pair per step; the dispatch target differs the way the libraries' interaction stacks do — Highcharts and ECharts hear moves on their container and hit-test from coordinates in script, while the ui module's regions are their own hit targets (the browser's native SVG hit test retargets a real pointer, costing no contender script time), so its per-step targets resolve to the region under each point once, outside the timed region.
+
+- [`map-emphasis.bench.tsx`](map-emphasis.bench.tsx) — a legend-emphasis flip on the live county atlas: emphasise the first category (every region outside it recedes), settle two frames, release, settle again. The ui module and Highcharts take real pointer events on their legend UI — the switchboard chip; the data-class legend item, whose hover sets the other 2,337 points inactive — while ECharts' piecewise visual map draws on canvas, unreachable by a synthetic pointer without brittle pixel targeting, so it takes its documented `dispatchAction` highlight / downplay over the category's rows with `emphasis.focus: 'self'`, the programmatic form of the same hover link.
+
+Fairness notes, both directions: the ui module keeps its built-in accessible output — the visually-hidden region table, deferred one low-priority commit behind the geography — while Highcharts runs without its optional accessibility module; every contender's default legend stays on (the ui switchboard, Highcharts' data classes, ECharts' visual map); the categorical scenarios pin the same four zone colours and the choropleth the same five-stop ramp everywhere; the ui module pays React reconciliation the vanilla factories don't, and that is the product being measured. One county (Falls Church, VA) projects below sub-pixel size and draws no path in the ui module, so it renders 3,107 paths to the rivals' 3,108.
+
+### Standings (2026-07-10, this container)
+
+Mean ms per iteration, ui / Highcharts Maps / ECharts — **bold** marks a scenario where ui beats both.
+
+| Scenario | ui | Highcharts | ECharts |
+| --- | ---: | ---: | ---: |
+| mount · states · 49 × 4 zones | **6.8** | 29.0 | 20.4 |
+| mount · counties · 3,108 × 4 zones | **102.4** | 339.2 | 287.3 |
+| mount · counties choropleth · 3,108 | **101.5** | 331.4 | 305.8 |
+| update · states · re-zone | **0.6** | 11.8 | 19.6 |
+| update · counties · re-zone | **9.1** | 224.3 | 286.5 |
+| update · counties choropleth · re-value | **11.2** | 208.8 | 282.4 |
+| hover · states · sweep | **12.5** | 17.9 | 12.6 |
+| hover · counties · sweep | **9.3** | 18.7 | 25.8 |
+| emphasis · counties · isolate zone + release | **62.0** | 291.4 | 131.6 |
+
+(Every contender's absolutes ran ~1.6× an earlier same-day session here — container drift; the ratios are the comparison.) The module beats **Highcharts Maps on all nine** scenarios and **ECharts on eight, with the ninth a dead heat**: the states hover sweep — the suite's one standing deficit, the React-commit-per-crossing residual shared with the chart suite's scatter hover — reads 12.5 vs ECharts' 12.6 by mean since the layer-recede round, without the imperative-DOM trade (by median it still trails, ~17 vs ~13: an iteration that commits waits out the settle frame, one that converges on its previous end state bails at sub-millisecond cost). The choropleth's mount premium over the categorical map is fully erased, and the emphasis flip — the layer-recede round's own scenario — runs 2.1× ahead of ECharts' focus actions and 4.7× ahead of Highcharts' inactive-state hover: one recede transition plus the lit copies against their per-point state writes. The updates are not close — 19–31× — because the memoised region layer holds its geometry and React recolours fills in place, while the rivals rebuild their scene from the new data; that is the dashboard refresh path the module was shaped for.
+
+### Optimization log
+
+The baseline run (suite as first landed) had the counties mounts at 476–505ms against rivals near 200–235, every mount trailing both; three levers closed it, sized by a stub-probed breakdown of the 476ms categorical mount before any landed.
+
+1. **Deferred region table** ([`map-plat.tsx`](../../modules/map/map-plat.tsx), `useDeferredValue`) — the chart suite's lever 2 applied to the map. The visually-hidden table renders one row per region, ~190ms of the county mount's urgent render; the geography now commits first and the table hydrates a low-priority beat behind, and a data update's urgent recolour no longer carries the 3,108-row re-map either (counties update 15.1 → 8.3, choropleth 17.6 → 7.7). Parity unchanged — the table always converges, one commit behind.
+
+2. **Flattened static region tree** ([`map-regions.tsx`](../../modules/map/map-regions.tsx)). Every region carried a `<g>` wrapper whose only job was the legend-emphasis dim; a static map now carries the dim class on the path itself, halving the region layer's element count (~40ms of the county commit). The wrapper survives under `animate`, where the dim's opacity transition would collide with the colour wash's `transition-colors` on one element.
+
+3. **Measured-paths memo** ([`map-geometry-cache.ts`](../../modules/map/map-geometry-cache.ts) `measuredRegionPaths`). The measured refit reprojected and restringified every region on each mount — ~116ms on the county atlas — though for a named projection it is a pure function of the cached geometry and the frame box. The shared cache now keeps the last measured fit's paths per geometry (one slot; a resize replaces it), so a remount at the same box — a tab switch, a dashboard's small multiples — reuses them the way the canonical stage already reused its fit. States mount 24.3 → 4.7, counties 476 → 113, choropleth 505 → 139: every mount now ahead of both rivals.
+
+4. **Slot-less region paths** ([`map-regions.tsx`](../../modules/map/map-regions.tsx)). A bare-`<path>` floor probe put the county mount ~30ms above it, and bisecting the per-region props landed the whole gap on one attribute: `data-slot="map-region"`. The stylesheet carries `[data-slot=…]` attribute selectors for other components, so every element bearing the attribute pays attribute-rule matching at first style resolution — 3,108 paths × the sheet's `data-slot` rules, for an anchor nothing styles by. Regions now anchor on `data-region-index` alone (free — no selector in the sheet reads it, and the hover provider's scroll resolve already read it); the layer keeps its `map-regions` slot, and the tests and this suite's sweep resolver target the index attribute. Counties mount 94.6 → 61.0 on this container.
+
+5. **Attribute fill for numeric bins** ([`map-regions.tsx`](../../modules/map/map-regions.tsx)). The choropleth's bin colour rode a per-region inline `style`, and 3,108 CSSOM style declarations priced ~24ms — nearly the whole categorical → choropleth mount gap. The colour now rides the `fill` presentation attribute: a value paint never carries a fill class, so nothing in the cascade sits above it, and the colour wash's `transition-colors` animates either way. Choropleth mount 123.5 → 68.6 with lever 4, update 6.6 → 6.1.
+
+6. **Per-category paints, memoised regions, and a snap dim** ([`map-regions.tsx`](../../modules/map/map-regions.tsx), [`kata/map`](../../recipes/kata/map.ts) `region.dim`). Two edge probes motivated this: a legend-focus flip on a live county atlas cost ~990ms settled — ~85% of it the ~2,300 simultaneous per-path `transition-opacity` runs, the rest a 3,107-component re-render — and the pointed-mark isolation (#952) put that same shape on every region crossing, doubling the counties hover sweep (8.6 → 17.1 on its container). Three moves land together: each category's classes and fill resolve once for the whole layer (`regionFill` + `cn` ran per region; now per category); `Region` is memoised on resolved primitives with one shared track handler reading the index off the path's own anchor attribute, so a crossing re-renders the two regions whose dim flipped rather than the atlas; and the region dim snaps (`k.region.dim`, deliberately transition-free) instead of fading — an untransitioned opacity also composes with the wash's `transition-colors` on one element, so the `animate` wrapper is gone and an animated tree is one element per region too. Legend flip 990 → 142ms settled; the counties hover sweep back ahead of both rivals with sub-millisecond bail iterations; mounts and updates hold their ratios.
+
+7. **Layer recede with lit copies** ([`map-regions.tsx`](../../modules/map/map-regions.tsx) `MapRegionsLit`). The chart marks' own isolation pattern (its levers 3–4: dim the group, redraw the lit mark over it) applied to the region layer, superseding lever 6's snap: the emphasis dim moves off the individual paths onto one recede wrapper (`k.group` at the layer — one transition), and the emphasised marks redraw lit above it, `pointer-events-none` copies over identical geometry — the pointed region alone, or a legend focus's whole category. The enter/leave fade lever 6 traded away returns at one animated element instead of thousands, `k.region.dim` and the per-region dim machinery go, and the base tree is blind to the shared emphasis: a crossing re-renders one copy path where lever 6 still ran 3,107 memo compares. Legend flip 142 → 56ms settled (990 before lever 6 — now faster *and* fading again); counties hover 15.2 → 9.3; states hover 16.8 → 12.5, pulling the suite's one open deficit to a dead heat with ECharts' canvas without the imperative-DOM trade. Lever 6's per-category paints, memoised `Region`, and shared track handler stay — they now serve toggles and the reveal. The flip graduated into the suite as its own competitive scenario ([`map-emphasis.bench.tsx`](map-emphasis.bench.tsx)).
+
+Probed, not landed: lazy value labels (the chart's lever 7 shape — `regionValueLabels` off the urgent render) measured ~2.7ms on the choropleth mount, the default `String` format being nothing like the chart's per-cell `Intl` work; dropping the `hover:brightness-110` filter measured ~1.1ms of the states sweep; the destroy half of the mount-plus-teardown scenarios measured ~10ms of ~150. Each priced below its complexity. Path precision was already spent when the module landed (`REGION_PATH_DIGITS = 1` — the chart's lever 6 shape).
+
+Open: nothing stands beaten against the module by mean — the states hover sweep's residual median gap (~17 vs ~13, the settle frame around a committing iteration) is the last trace of the React-commit-per-crossing trade, shared with the chart suite's scatter hover.

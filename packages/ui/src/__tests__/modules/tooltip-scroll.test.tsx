@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { BarChart } from '../../modules/chart/bar-chart'
 import { ScatterChart } from '../../modules/chart/scatter-chart'
 import { MapPlat } from '../../modules/map'
-import { act, allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
+import { act, allRegions, bySlot, fireEvent, renderUI } from '../helpers'
 import { FIXTURE_GEOJSON, FIXTURE_ROWS } from '../helpers/map-geography'
 
 const DATA = [
@@ -158,7 +158,7 @@ describe('tooltip across a scroll', () => {
 			/>,
 		)
 
-		const [alpha] = allBySlot(container, 'map-region')
+		const [alpha] = allRegions(container)
 
 		// jsdom has no layout, so name the region the settled pointer lands on.
 		document.elementFromPoint = vi.fn().mockReturnValue(alpha ?? null)
@@ -190,7 +190,7 @@ describe('tooltip across a scroll', () => {
 			/>,
 		)
 
-		const [alpha] = allBySlot(container, 'map-region')
+		const [alpha] = allRegions(container)
 
 		act(() => fireEvent.pointerEnter(alpha as Element, { clientX: 40, clientY: 20 }))
 
