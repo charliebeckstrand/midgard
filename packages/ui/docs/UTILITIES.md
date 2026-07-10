@@ -65,6 +65,7 @@ The sequential-scale primitives the data-driven colour charts share — the chor
 | Export | Summary |
 |---|---|
 | `subscribeDocumentEvent` | Subscribes to a document event via one shared listener per type; returns an unsubscribe fn. |
+| `isNativeContextMenuRequest` | Whether a `contextmenu` event asks for the browser's native menu (Ctrl + secondary-button click) instead of a custom one. |
 
 ## Keyboard navigation
 
