@@ -1,12 +1,14 @@
-# Competitive chart benchmarks
+# Competitive benchmarks
 
-> **The chart module measured against AG Charts and Highcharts in real Chromium, so every optimization lands against the market, not against yesterday's self.** `pnpm bench:browser` runs the suite; the jsdom benches one directory up keep localizing regressions, this suite keeps score.
+> **The chart module measured against AG Charts and Highcharts, the grid module against AG Grid and MUI X DataGrid, in real Chromium — so every optimization lands against the market, not against yesterday's self.** `pnpm bench:browser` runs both suites; the jsdom benches one directory up keep localizing regressions, this suite keeps score.
 
 ## Why a browser suite
 
-AG Charts draws to a real canvas and all three contenders deserve real layout, style, and event plumbing, so jsdom timings would not survive scrutiny; the suite runs through Vitest browser mode on the Playwright Chromium the test suite already uses. Chromium launches with its frame-rate limit off — AG defers scene renders to animation frames and the hover benches settle one frame per iteration, so a vsync'd browser would quantize those samples to ~16ms.
+AG draws to a real canvas, the grids virtualize against real scroll geometry, and every contender deserves real layout, style, and event plumbing, so jsdom timings would not survive scrutiny; the suite runs through Vitest browser mode on the Playwright Chromium the test suite already uses. Chromium launches with its frame-rate limit off — AG defers work to animation frames and several benches settle frames inside the timed region, so a vsync'd browser would quantize those samples to ~16ms.
 
-## Methodology
+## Charts
+
+### Methodology
 
 Every scenario draws the same deterministic dataset ([`fixtures.ts`](fixtures.ts), LCG-seeded) into the same fixed 800×450 box with animations off, through each library's idiomatic API ([`contenders.tsx`](contenders.tsx)): the ui module renders through React (`createRoot` + `flushSync` — the synchronous commit a consumer pays), AG Charts and Highcharts through their vanilla factories, each with its own settle contract (AG awaits `waitForUpdate()`; Highcharts and the ui module draw synchronously).
 
@@ -20,7 +22,7 @@ React runs in **production** mode ([`vitest.bench.browser.config.ts`](../../../v
 
 Fairness notes, both directions: the ui module keeps its built-in accessible output (the visually-hidden data table renders one row per datum) while Highcharts runs without its optional accessibility module and AG registers its standard `AllCommunityModule`; Highcharts' `boost` module stays off, matching default installs; the ui module pays React reconciliation the vanilla factories don't, and that is the product being measured.
 
-## Reading and driving improvements
+### Reading and driving improvements
 
 Each `describe` groups one scenario's three contenders, so the `BENCH Summary` prints the head-to-head ratios directly. To hold a before/after line through an optimization, snapshot then compare:
 
@@ -32,7 +34,7 @@ pnpm bench:browser -- --compare bench-baseline.json
 
 When a competitive scenario regresses or lags, the jsdom benches (`pnpm bench`) and the pure-geometry cores (`chart-scale`, `chart-layout`, per-chart `*-geometry`) are the ladder down to the responsible layer.
 
-## Standings (2026-07-10, this container)
+### Standings (2026-07-10, this container)
 
 Absolute numbers move with hardware; the ratios are the signal. Mean ms per iteration, ui / AG / Highcharts — **bold** marks a scenario where ui beats both.
 
@@ -56,7 +58,7 @@ Absolute numbers move with hardware; the ratios are the signal. Mean ms per iter
 
 The module beats **Highcharts on all fifteen** scenarios and **AG Charts on thirteen** — every mount and every update, the 10,000-point canvas cases included. The two it still trails are the hover sweeps, both within one or two milliseconds of AG (and the line sweep has read as a dead heat on other runs; the 10,000-point scatter update sits on the same boundary in the other direction, so read those edges as ties). The hover residual is not the marks (memoised single path per series) or the hit test (a squared-distance scan costing well under a millisecond) but a React commit per pointer move driving the crosshair and tooltip, against AG's vanilla canvas redraw; closing it means moving the shared hover layer to imperative DOM writes — a trade of the declarative hover model for the last millisecond, open by choice.
 
-### Optimization log
+#### Optimization log
 
 Each entry names the change and the scenarios it moved; the levers are ordered as they landed.
 
@@ -79,3 +81,41 @@ Each entry names the change and the scenarios it moved; the levers are ordered a
 9. **Early-exit date detection** ([`chart-time.ts`](../../modules/chart/chart-time.ts) `dateCategoryFormat`). The band axis's are-these-all-dates probe parsed every category (`Date.parse` per row) before answering; a non-date axis now fails on its first value, one parse instead of ten thousand. Worth ~11ms of the line 10k mount.
 
 Open: the scatter hover sweep still trails AG by a whisker (~18 vs ~17) — the residual is a React commit per pointer move against AG's vanilla redraw, closable only by moving the shared crosshair/tooltip tracking to imperative DOM writes. Everything else stands beaten or tied.
+
+## Grids
+
+### Methodology
+
+Every scenario drives the same deterministic shipment rows (`makeShipments` in [`../fixtures.ts`](../fixtures.ts), LCG-seeded, 8 columns) into the same fixed 960×600 box with animations off and fixed 120px columns, through each library's idiomatic API ([`grid-contenders.tsx`](grid-contenders.tsx)): the ui module and MUI X render through React (`createRoot` + `flushSync`), AG Grid through its vanilla `createGrid` factory. The settle contract is shared rather than per-library — each operation is timed until a paint probe sees the expected cell text in the live DOM — so a library that defers row DOM onto animation frames pays for exactly the frames it defers, and none is trusted about its own "ready" signal.
+
+- [`grid-mount.bench.tsx`](grid-mount.bench.tsx) — full mount-to-painted-rows plus teardown per iteration, at 1k / 10k / 100k rows.
+
+- [`grid-update.bench.tsx`](grid-update.bench.tsx) — whole-dataset refresh on a live grid (same row ids, new values), alternating two same-shape datasets so no iteration bails on an equality guard, at 10k / 100k.
+
+- [`grid-sort.bench.tsx`](grid-sort.bench.tsx) — an asc/desc sort flip on `id` through each library's programmatic sort state, so the engine re-sorts the full dataset and repaints the window, at 10k / 100k.
+
+- [`grid-scroll.bench.tsx`](grid-scroll.bench.tsx) — a top-to-bottom-and-back sweep in 12 even jumps, one settled frame per step plus a fully-painted probe at each end — the virtualization stress, at 10k / 100k.
+
+Fairness notes, both directions: the ui grid keeps its built-in chrome (toolbar with export, accessible announcements) that the competitors' defaults don't carry; each library runs its own defaults otherwise (AG's community module set, MUI's MIT tier). MUI's MIT tier hard-caps `pageSize` at 100 and always paginates — full-set scrolling is Pro-licensed — so MUI runs mount/update/sort in its shipped paginated shape (the full dataset still flows through its client-side model) and sits out the scroll sweep. React runs in production mode for the same reason as the charts (see above); it covers MUI symmetrically.
+
+### Standings (2026-07-10, this container, pre-optimization baseline)
+
+Absolute numbers move with hardware; the ratios are the signal. Mean ms per iteration, ui / AG Grid / MUI X — **bold** marks a scenario where ui beats both.
+
+| Scenario | ui | AG Grid | MUI X |
+| --- | ---: | ---: | ---: |
+| mount · 1,000 × 8 | 39.3 | 53.8 | 34.8 |
+| mount · 10,000 × 8 | 75.2 | 32.9 | 35.1 |
+| mount · 100,000 × 8 | 471.4 | 135.4 | 92.1 |
+| update · 10,000 × 8 | 72.7 | 64.9 | 37.2 |
+| update · 100,000 × 8 | 587.3 | 167.2 | 111.6 |
+| sort · 10,000 · flip | 182.8 | 84.8 | 27.3 |
+| sort · 100,000 · flip | 1562.1 | 85.6 | 100.8 |
+| scroll · 10,000 · round trip | 3627.3 | 1954.7 | — |
+| scroll · 100,000 · round trip | 3718.0 | 866.7 | — |
+
+The baseline reads plainly: the ui grid holds its own at 1k rows and falls away linearly as the dataset grows — mount runs ~4.4µs per row that virtualization never renders (39 → 75 → 471ms across 1k → 10k → 100k, where AG and MUI stay flat), sort at 100k trails AG by 18×, and the scroll sweep pays ~150ms per step at every scale. The linear mount/update term, the sort engine, and the per-step scroll render are the three levers, in that order of leverage; the optimization log below will track them as they land.
+
+#### Optimization log
+
+*(empty — baseline recorded, levers pending)*
