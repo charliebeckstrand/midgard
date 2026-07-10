@@ -12,6 +12,13 @@ type VirtualWindowOptions = {
 	estimateSize: number
 	/** Rows to render outside the viewport on each side. */
 	overscan: number
+	/**
+	 * Scroll offset (px) to seed the window with before the first scroll, so the
+	 * initial render lands somewhere other than the top — e.g. a chat transcript
+	 * opening at its tail passes the estimated total height. The virtualizer
+	 * clamps it to the range. Omit to open at the top (offset 0).
+	 */
+	initialOffset?: number
 }
 
 type VirtualWindow = {
@@ -46,6 +53,7 @@ export function useVirtualWindow({
 	getScrollElement,
 	estimateSize,
 	overscan,
+	initialOffset,
 }: VirtualWindowOptions): VirtualWindow {
 	// `@tanstack/react-virtual` reads these getters off the options object each
 	// cycle; a fresh closure per render busts its internal option identity.
@@ -56,6 +64,7 @@ export function useVirtualWindow({
 		getScrollElement,
 		estimateSize: getSize,
 		overscan,
+		initialOffset,
 	})
 
 	// Re-sync guard: the virtualizer captures its scroll element in a layout

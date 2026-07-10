@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useLayoutEffect, useRef } from 'react'
 import { cn } from '../../core'
 import { useVirtualWindow } from '../../hooks'
 import { k } from '../../recipes/kata/chat-transcript'
@@ -162,22 +162,28 @@ function ChatTranscriptVirtualized({
 		getScrollElement,
 		estimateSize,
 		overscan,
+		// Seed the window at the estimated tail so its first populated render is
+		// already the newest messages, matching the pin below — no head-then-tail
+		// flash.
+		initialOffset: messages.length * estimateSize,
 	})
 
-	// Mount-settle pin. The plain body opens on the bottom via useChatScroll's
-	// before-paint jump, but here that jump fires on the windowed body's empty
-	// first render (the virtualizer captures its scroll element in a later
-	// layout effect) and moves nothing. Instead, re-pin the scroll offset to
-	// the bottom after every commit while the mount is settling — attach, the
-	// estimated window, then per-row measurement each change the scroll height
-	// and trigger the next commit — and disarm at the first commit whose height
-	// held steady, handing scroll control back to the user (and subsequent
-	// appends back to useChatScroll's smooth sentinel scroll).
+	// Mount-settle pin, jumping to the bottom on or before the first paint. The
+	// plain body opens on the bottom via useChatScroll's before-paint jump, but
+	// here that jump fires on the windowed body's empty first render (the
+	// virtualizer resolves its scroll element and tail window in a layout effect,
+	// which flushes a second commit before paint) and moves nothing. This layout
+	// effect re-pins the scroll offset to the bottom on every commit while the
+	// mount settles — the virtualizer's tail commit, then per-row measurement,
+	// each change the scroll height — so every painted frame is already at the
+	// bottom, no visible glide. It disarms at the first commit whose height held
+	// steady, handing scroll control back to the user (and later appends back to
+	// useChatScroll's smooth sentinel scroll).
 	const pinsLeft = useRef(MOUNT_PIN_LIMIT)
 
 	const pinnedHeight = useRef(-1)
 
-	useEffect(() => {
+	useLayoutEffect(() => {
 		if (pinsLeft.current <= 0) return
 
 		const el = containerRef.current
