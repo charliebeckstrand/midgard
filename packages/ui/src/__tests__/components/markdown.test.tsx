@@ -131,3 +131,47 @@ describe('Markdown', () => {
 		)
 	})
 })
+
+describe('Markdown fence override', () => {
+	it('renders the override node in place of a claimed fence', () => {
+		const fence = (code: string, lang: string | undefined) =>
+			lang === 'chart' ? <div data-testid="chart-stub">{code}</div> : undefined
+
+		const { container, getByTestId } = renderUI(
+			<Markdown fence={fence}>{'```chart\n{"kind":"demo"}\n```'}</Markdown>,
+		)
+
+		expect(getByTestId('chart-stub')).toHaveTextContent('{"kind":"demo"}')
+
+		expect(bySlot(container, 'code-block')).not.toBeInTheDocument()
+	})
+
+	it('falls through to CodeBlock when the override declines', () => {
+		const fence = (_code: string, lang: string | undefined) =>
+			lang === 'chart' ? <div data-testid="chart-stub" /> : undefined
+
+		const { container } = renderUI(<Markdown fence={fence}>{'```tsx\nconst x = 1\n```'}</Markdown>)
+
+		expect(bySlot(container, 'code-block')).toBeInTheDocument()
+	})
+
+	it("passes each fence's info-string first word, and undefined when unlabeled", () => {
+		const langs: (string | undefined)[] = []
+
+		const fence = (_code: string, lang: string | undefined) => {
+			langs.push(lang)
+
+			return undefined
+		}
+
+		renderUI(
+			<Markdown fence={fence}>
+				{'```ts title=x\na\n```\n\n```\nb\n```\n\n- item\n\n  ```chart\nc\n  ```'}
+			</Markdown>,
+		)
+
+		// Fences surface top-level and from inside list items; the info string's
+		// trailing metadata is stripped to its first word.
+		expect(langs).toEqual(['ts', undefined, 'chart'])
+	})
+})

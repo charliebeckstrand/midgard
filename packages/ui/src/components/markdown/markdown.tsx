@@ -2,7 +2,7 @@ import { Marked } from 'marked'
 import { memo } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/markdown'
-import { MarkdownRenderer } from './markdown-renderer'
+import { type MarkdownFence, MarkdownRenderer } from './markdown-renderer'
 
 // Module-scoped instance: keeps options local instead of mutating the shared
 // `marked` singleton a consuming app may also configure. GFM is on (tables,
@@ -22,6 +22,14 @@ export type MarkdownProps = {
 	 * @defaultValue false
 	 */
 	inline?: boolean
+	/**
+	 * Fenced-code override, called per fence with its body and language; return
+	 * a node to claim the fence (a chart, a diagram) or `undefined` to keep the
+	 * default syntax-highlighted rendering. See {@link MarkdownFence}. Pass a
+	 * stable reference — an inline closure busts this component's memo. Inert
+	 * under `inline`, where fences do not parse.
+	 */
+	fence?: MarkdownFence
 }
 
 /**
@@ -54,6 +62,7 @@ export const Markdown = memo(function Markdown({
 	children,
 	className,
 	inline = false,
+	fence,
 }: MarkdownProps) {
 	if (inline) {
 		return (
@@ -65,7 +74,7 @@ export const Markdown = memo(function Markdown({
 
 	return (
 		<div data-slot="markdown" className={cn(k.root, className)}>
-			<MarkdownRenderer tokens={md.lexer(children)} />
+			<MarkdownRenderer tokens={md.lexer(children)} fence={fence} />
 		</div>
 	)
 })

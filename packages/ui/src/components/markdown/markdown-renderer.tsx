@@ -8,6 +8,16 @@ import { Code, CodeBlock } from '../code'
 const HEADING_TAGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'] as const
 
 /**
+ * A fenced-code override for {@link Markdown}: called for every fenced code
+ * block with its body and the info string's first word (`undefined` for an
+ * unlabeled fence). Return a node to render in the fence's place, or
+ * `undefined` to fall through to the default syntax-highlighted
+ * {@link CodeBlock} — so one language can be claimed (a `chart` spec, a
+ * diagram DSL) while every other fence keeps the stock rendering.
+ */
+export type MarkdownFence = (code: string, lang: string | undefined) => ReactNode | undefined
+
+/**
  * Render a flat list of marked tokens — block or inline — to React nodes,
  * recursing through each token's inline children.
  *
@@ -21,16 +31,17 @@ const HEADING_TAGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'] as const
  * reaches the DOM.
  *
  * @param tokens - Token list from `marked`'s block lexer or inline lexer.
+ * @param fence - Optional fenced-code override; see {@link MarkdownFence}.
  */
-export function MarkdownRenderer({ tokens }: { tokens: Token[] }) {
-	return <>{tokens.map(renderToken)}</>
+export function MarkdownRenderer({ tokens, fence }: { tokens: Token[]; fence?: MarkdownFence }) {
+	return <>{tokens.map((token, index) => renderToken(token, index, fence))}</>
 }
 
-function renderChildren(tokens: Token[] | undefined): ReactNode {
-	return tokens?.map(renderToken)
+function renderChildren(tokens: Token[] | undefined, fence?: MarkdownFence): ReactNode {
+	return tokens?.map((token, index) => renderToken(token, index, fence))
 }
 
-function renderToken(token: Token, index: number): ReactNode {
+function renderToken(token: Token, index: number, fence?: MarkdownFence): ReactNode {
 	switch (token.type) {
 		case 'heading': {
 			const depth = Math.min(Math.max(token.depth, 1), 6) as 1 | 2 | 3 | 4 | 5 | 6
@@ -39,44 +50,44 @@ function renderToken(token: Token, index: number): ReactNode {
 
 			return (
 				<Tag key={index} className={cn(k.heading[depth])}>
-					{renderChildren(token.tokens)}
+					{renderChildren(token.tokens, fence)}
 				</Tag>
 			)
 		}
 		case 'paragraph':
 			return (
 				<p key={index} className={cn(k.paragraph)}>
-					{renderChildren(token.tokens)}
+					{renderChildren(token.tokens, fence)}
 				</p>
 			)
 		case 'text':
 			return token.tokens ? (
-				<Fragment key={index}>{renderChildren(token.tokens)}</Fragment>
+				<Fragment key={index}>{renderChildren(token.tokens, fence)}</Fragment>
 			) : (
 				token.text
 			)
 		case 'strong':
 			return (
 				<strong key={index} className={cn(k.strong)}>
-					{renderChildren(token.tokens)}
+					{renderChildren(token.tokens, fence)}
 				</strong>
 			)
 		case 'em':
 			return (
 				<em key={index} className={cn(k.em)}>
-					{renderChildren(token.tokens)}
+					{renderChildren(token.tokens, fence)}
 				</em>
 			)
 		case 'del':
 			return (
 				<del key={index} className={cn(k.del)}>
-					{renderChildren(token.tokens)}
+					{renderChildren(token.tokens, fence)}
 				</del>
 			)
 		case 'link':
 			return (
 				<a key={index} href={token.href} title={token.title ?? undefined} className={cn(k.link)}>
-					{renderChildren(token.tokens)}
+					{renderChildren(token.tokens, fence)}
 				</a>
 			)
 		case 'image':
@@ -95,16 +106,21 @@ function renderToken(token: Token, index: number): ReactNode {
 					{token.text}
 				</Code>
 			)
-		case 'code':
+		case 'code': {
+			const override = fence?.(token.text, fenceLang(token.lang))
+
+			if (override !== undefined) return <Fragment key={index}>{override}</Fragment>
+
 			return <CodeBlock key={index} code={token.text} lang={resolveLang(token.lang)} />
+		}
 		case 'blockquote':
 			return (
 				<blockquote key={index} className={cn(k.blockquote)}>
-					{renderChildren(token.tokens)}
+					{renderChildren(token.tokens, fence)}
 				</blockquote>
 			)
 		case 'list':
-			return renderList(token as Tokens.List, index)
+			return renderList(token as Tokens.List, index, fence)
 		case 'checkbox':
 			return (
 				<input
@@ -130,8 +146,8 @@ function renderToken(token: Token, index: number): ReactNode {
 	}
 }
 
-function renderList(token: Tokens.List, key: number): ReactNode {
-	const items = token.items.map(renderListItem)
+function renderList(token: Tokens.List, key: number, fence?: MarkdownFence): ReactNode {
+	const items = token.items.map((item, index) => renderListItem(item, index, fence))
 
 	if (token.ordered) {
 		const start = typeof token.start === 'number' && token.start !== 1 ? token.start : undefined
@@ -150,10 +166,10 @@ function renderList(token: Tokens.List, key: number): ReactNode {
 	)
 }
 
-function renderListItem(item: Tokens.ListItem, index: number): ReactNode {
+function renderListItem(item: Tokens.ListItem, index: number, fence?: MarkdownFence): ReactNode {
 	return (
 		<li key={index} className={cn(k.li, item.task && k.task)}>
-			{renderChildren(item.tokens)}
+			{renderChildren(item.tokens, fence)}
 		</li>
 	)
 }
@@ -193,12 +209,20 @@ function alignClass(align: Tokens.TableCell['align']): string | undefined {
 }
 
 /**
+ * A fence info string's first word (info strings carry extra metadata, e.g. a
+ * filename, after the language), or `undefined` for an unlabeled fence — the
+ * language identity a {@link MarkdownFence} override matches on.
+ */
+function fenceLang(lang: string | undefined): string | undefined {
+	return lang?.trim().split(/\s+/, 1)[0] || undefined
+}
+
+/**
  * Resolve a fenced code block's info string to a Shiki grammar id: its first
- * word (info strings carry extra metadata, e.g. a filename, after the
- * language), or `'text'` — Shiki's built-in no-highlight grammar — for an
- * unlabeled fence. An id Shiki doesn't bundle still renders: {@link CodeBlock}
- * falls back to plain text rather than throwing.
+ * word (see {@link fenceLang}), or `'text'` — Shiki's built-in no-highlight
+ * grammar — for an unlabeled fence. An id Shiki doesn't bundle still renders:
+ * {@link CodeBlock} falls back to plain text rather than throwing.
  */
 function resolveLang(lang: string | undefined): BundledLanguage {
-	return (lang?.trim().split(/\s+/, 1)[0] || 'text') as BundledLanguage
+	return (fenceLang(lang) ?? 'text') as BundledLanguage
 }
