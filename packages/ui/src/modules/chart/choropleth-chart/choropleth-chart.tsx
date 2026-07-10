@@ -13,7 +13,13 @@ import {
 	type MapProjection,
 } from '../../map'
 import { ChartContextMenu } from '../chart-context-menu'
-import type { ChartContextMenuConfig, ChartRangeLegendConfig, DataKey } from '../chart-schema'
+import {
+	type ChartContextMenuConfig,
+	type ChartHeaderConfig,
+	type ChartRangeLegendConfig,
+	type DataKey,
+	resolveHeader,
+} from '../chart-schema'
 import { formatChartValue, READOUT_GAP } from '../chart-series'
 import { useChartFullscreen } from '../context'
 import type { ChartReadout, ChartReadoutSource } from '../types'
@@ -131,9 +137,10 @@ export type ChoroplethChartProps<T = never> = AccessibleName & {
 	animate?: boolean
 	/**
 	 * Names the right-click menu's fullscreen dialog and seeds the download
-	 * filenames. The choropleth draws no header, so it is not painted on the map.
+	 * filenames (its title). The choropleth draws no header band, so nothing is
+	 * painted on the map; the shape matches the rest of the chart family.
 	 */
-	title?: string
+	header?: string | ChartHeaderConfig
 	/**
 	 * The right-click context menu. By default the choropleth offers Fullscreen (a
 	 * live, interactive copy in a large dialog), image downloads (PNG / JPG, legend
@@ -221,10 +228,10 @@ function choroplethReadout<T>(
  * ```
  */
 export function ChoroplethChart<T = never>(props: ChoroplethChartProps<T>) {
-	// `contextMenu`, `title`, and `className` are the frame's, not MapPlat's; peel
+	// `contextMenu`, `header`, and `className` are the frame's, not MapPlat's; peel
 	// them off the rest that spreads onto the map. `width` is peeled to size the
 	// rasterised wrapper, then handed back to MapPlat below.
-	const { series, formatValue, contextMenu, title, className, width, ...map } = props
+	const { series, formatValue, contextMenu, header, className, width, ...map } = props
 
 	const [primary] = series
 
@@ -267,7 +274,7 @@ export function ChoroplethChart<T = never>(props: ChoroplethChartProps<T>) {
 			contextMenu={contextMenu}
 			rootRef={rootRef}
 			readout={readout}
-			title={title}
+			title={resolveHeader(header).title}
 			self={<ChoroplethChart {...props} />}
 		>
 			<div

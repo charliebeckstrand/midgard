@@ -27,6 +27,7 @@ import {
 	type ChartSeries,
 	type ChartValueAxisId,
 	resolveAxes,
+	resolveHeader,
 } from './chart-schema'
 import {
 	chartReadout,
@@ -586,8 +587,10 @@ function legendItemsOf(
  * @internal
  */
 function cartesianChrome<T>(props: CartesianData<T>, aside: boolean): ChartChrome {
+	const head = resolveHeader(props.header)
+
 	return {
-		headerLines: headerLineCount(props.title, props.subtitle),
+		headerLines: headerLineCount(head.title, head.subtitle),
 		legend: Boolean(props.legend ?? props.series.length > 1) && !aside,
 	}
 }

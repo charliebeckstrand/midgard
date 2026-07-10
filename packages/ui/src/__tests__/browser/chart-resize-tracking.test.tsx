@@ -173,7 +173,7 @@ describe('chart resize tracking (real browser)', () => {
 			<div data-testid="host" style={{ width: 300, height: 160 }}>
 				<BarChart
 					aria-label="Values by quarter"
-					title="Quarterly values"
+					header="Quarterly values"
 					data={DATA}
 					series={series}
 					aspectRatio={false}
@@ -319,8 +319,7 @@ describe('chart fill-mode resize stability (real browser)', () => {
 		return (
 			<BarChart
 				aria-label="Values by quarter"
-				title="Quarterly values"
-				subtitle="All teams"
+				header={{ title: 'Quarterly values', subtitle: 'All teams' }}
 				data={ROWS}
 				series={SERIES}
 				aspectRatio={false}

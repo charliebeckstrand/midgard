@@ -7,6 +7,7 @@
  * `types.ts`.
  */
 
+import type { ReactNode } from 'react'
 import type { ContextMenuConfig } from '../../components/context-menu'
 import type { Step } from '../../recipes'
 import type { ChartSeriesColor } from '../../recipes/kata/chart'
@@ -501,6 +502,47 @@ export function resolveTooltip(tooltip: boolean | ChartTooltipConfig | undefined
 }
 
 /**
+ * The object form of a chart's `header` prop: the title with an optional
+ * subtitle, and adornments on either side of them. The prop also takes a
+ * bare string — a title alone — so the object is only needed past that.
+ *
+ * Adornments are live chrome, not part of the plot: a status dot or icon
+ * before the title (`prefix`), a badge or menu after it (`suffix`). One
+ * arriving or leaving after mount animates in, the title sliding over to
+ * make room — the same motion the dashboard's drag handle rides when
+ * editing begins.
+ */
+export type ChartHeaderConfig = {
+	/** The heading line, clipped to one line with a reveal tooltip. */
+	title?: string
+	/**
+	 * A subheading under the {@link ChartHeaderConfig.title | title}, muted and
+	 * smaller — a unit, a period, a caveat. It truncates the same way and shares
+	 * the spark header's hover / focus veil.
+	 */
+	subtitle?: string
+	/** Leading adornment, before the title; entering or leaving slides the title over. */
+	prefix?: ReactNode
+	/** Trailing adornment, at the header row's far end. */
+	suffix?: ReactNode
+}
+
+/**
+ * Resolves the `header` prop's string-or-object union to one config shape:
+ * `undefined` is an empty header, a string is its title, and the object form
+ * passes through — so a chart reads one shape however the prop was written.
+ *
+ * @internal
+ */
+export function resolveHeader(header: string | ChartHeaderConfig | undefined): ChartHeaderConfig {
+	if (header === undefined) return {}
+
+	if (typeof header === 'string') return { title: header }
+
+	return header
+}
+
+/**
  * The props every chart shares: the data plus the frame's sizing, legend,
  * tooltip, and animation switches. Each chart type extends this with its own
  * `series` shape and mark-specific switches — intersect more props on to grow
@@ -515,20 +557,17 @@ export type ChartBaseProps<T> = AccessibleName & {
 	/** The rows to plot. An empty array renders an empty frame. */
 	data: T[]
 	/**
-	 * A heading drawn above the plot — the chart's own title, distinct from the
-	 * accessible name the `role="img"` region carries for assistive tech. It sits
-	 * inside the aspect box, so the drawing fills the height it leaves, and
-	 * truncates to one line with a reveal tooltip. At the spark tier the header
-	 * leaves the flow and shows as a centered overlay on hover or focus, so a
-	 * sparkline stays pure marks until a reader asks what it is.
+	 * The chart's header, drawn above the plot — distinct from the accessible
+	 * name the `role="img"` region carries for assistive tech. A string is a
+	 * bare title; the object form adds a subtitle and leading / trailing
+	 * adornments ({@link ChartHeaderConfig}). The header sits inside the aspect
+	 * box, so the drawing fills the height it leaves, and its lines truncate to
+	 * one each with a reveal tooltip. At the spark tier the title and subtitle
+	 * leave the flow for a centered overlay on hover or focus — a sparkline
+	 * stays pure marks until a reader asks what it is — and the adornments
+	 * stand down with the rest of the chrome.
 	 */
-	title?: string
-	/**
-	 * A subheading under the {@link ChartBaseProps.title | title}, muted and
-	 * smaller — a unit, a period, a caveat. It truncates the same way and shares
-	 * the spark header's hover / focus veil.
-	 */
-	subtitle?: string
+	header?: string | ChartHeaderConfig
 	/**
 	 * Frame width in px. Omitted, the chart measures its container and fills
 	 * it; pass a width for a fixed frame (and for deterministic SSR output).

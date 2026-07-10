@@ -3,6 +3,7 @@
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
+import { useDragHandle } from '../../primitives/drag-handle'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { STATIC_GENERATION } from './chart-motion'
 import { useChartEmphasis } from './context'
@@ -48,9 +49,14 @@ export function ChartMarksLayer({ animate, dataKey, children }: ChartMarksLayerP
 	// animated branches; only the animated branch reads it.
 	const reducedMotion = useReducedMotion()
 
+	// A drag-handle host means the chart sits in a tile being arranged (the
+	// dashboard's editing mode): the marks hold still — a reveal replaying
+	// under a drag reads as jitter, and the reader is arranging, not reading.
+	const hosted = useDragHandle() !== null
+
 	const className = cn('transition-opacity', referenceActive && 'opacity-25')
 
-	if (!animate) {
+	if (!animate || hosted) {
 		return (
 			<g data-slot="chart-marks" className={className}>
 				{children}

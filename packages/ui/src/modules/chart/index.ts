@@ -8,6 +8,7 @@ export type {
 	BubbleChartSeries,
 	CartesianAxes,
 	ChartCategoryAxis,
+	ChartHeaderConfig,
 	ChartLegendPlacement,
 	ChartRangeLegendConfig,
 	ChartRangeLegendType,

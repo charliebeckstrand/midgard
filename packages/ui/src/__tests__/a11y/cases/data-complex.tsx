@@ -11,6 +11,8 @@ import {
 	KanbanColumnTitle,
 } from '../../../components/kanban'
 import { PivotTable } from '../../../components/pivot-table'
+import { BarChart } from '../../../modules/chart'
+import { DashboardGrid, DashboardItem } from '../../../modules/dashboard'
 import { Grid, type GridColumn } from '../../../modules/grid'
 import { QueryBuilder, type QueryField } from '../../../modules/query'
 import type { Case } from './types'
@@ -129,5 +131,38 @@ export const dataComplexCases: readonly Case[] = [
 				<Input placeholder="Search" />
 			</FiltersField>
 		</Filters>,
+	],
+	[
+		// Editing dashboard: drag grips (adopted into the chart header on one
+		// tile, floated on the plain one), resize splitters, and column guides.
+		'dashboard',
+		<DashboardGrid
+			key="db"
+			aria-label="Sales dashboard"
+			editing
+			layout={{
+				value: [
+					{ id: 'revenue', x: 0, y: 0, w: 12 },
+					{ id: 'notes', x: 12, y: 0, w: 12, h: 18 },
+				],
+			}}
+		>
+			<DashboardItem id="revenue" ratio={16 / 9}>
+				<BarChart
+					aria-label="Revenue by month"
+					header="Revenue"
+					data={[
+						{ month: 'Jan', revenue: 42 },
+						{ month: 'Feb', revenue: 51 },
+					]}
+					series={[{ xKey: 'month', yKey: 'revenue' }]}
+					width={400}
+				/>
+			</DashboardItem>
+
+			<DashboardItem id="notes">
+				<p>Notes</p>
+			</DashboardItem>
+		</DashboardGrid>,
 	],
 ]

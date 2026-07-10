@@ -46,6 +46,7 @@ import {
 	type ChartContextMenuConfig,
 	type ChartLegendPlacement,
 	type ChartTooltipTrigger,
+	resolveHeader,
 	resolveTooltip,
 } from '../chart-schema'
 import { formatChartValue, READOUT_GAP } from '../chart-series'
@@ -714,12 +715,11 @@ export function HeatmapChart<T>(props: HeatmapChartProps<T>) {
 		className,
 		// Destructured off so the unwired base switches never fall into `...label` and
 		// spread onto the plot element as invalid DOM attributes. The heatmap draws no
-		// header (a range legend, not a series frame), so `subtitle` joins them; `title`
-		// is kept off the DOM too but still names the context menu's fullscreen view.
+		// header (a range legend, not a series frame), so the `header` prop stays off
+		// the DOM too — its title still names the context menu's fullscreen view.
 		animate: _animate,
 		texture: _texture,
-		title,
-		subtitle: _subtitle,
+		header,
 		contextMenu,
 		...label
 	} = props
@@ -886,7 +886,7 @@ export function HeatmapChart<T>(props: HeatmapChartProps<T>) {
 			contextMenu={contextMenu}
 			rootRef={containerRef}
 			readout={readout}
-			title={title}
+			title={resolveHeader(header).title}
 			self={<HeatmapChart {...props} />}
 		>
 			{heatmapRoot}

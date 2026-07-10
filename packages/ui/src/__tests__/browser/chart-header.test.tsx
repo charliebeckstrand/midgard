@@ -28,8 +28,7 @@ describe('chart header (real browser)', () => {
 					aria-label="Revenue"
 					data={data}
 					series={[{ xKey: 'q', yKey: 'rev' }]}
-					title="Revenue"
-					subtitle="by quarter"
+					header={{ title: 'Revenue', subtitle: 'by quarter' }}
 					aspectRatio={16 / 9}
 				/>
 			</div>,
@@ -73,7 +72,7 @@ describe('chart header (real browser)', () => {
 				aria-label="Rev"
 				data={data}
 				series={[{ xKey: 'q', yKey: 'rev' }]}
-				title="Revenue"
+				header="Revenue"
 				width={150}
 			/>,
 		)

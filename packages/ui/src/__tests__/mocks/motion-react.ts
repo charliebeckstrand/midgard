@@ -182,6 +182,15 @@ function useTransform<I, O>(source: { get: () => I } | (() => O), transform?: (v
 	}
 }
 
+// Imperative motion-value animation modelled as instant, like the component
+// targets above: the value jumps straight to its target and the returned
+// control is inert (used by the dashboard tiles' FLIP glide).
+function animate(value: { set: (next: unknown) => void }, target: unknown) {
+	value.set(target)
+
+	return { stop: () => {} }
+}
+
 // Reads the reduced-motion preference from `window.matchMedia`, mirroring the
 // real hook. Defaults to `false` via the jsdom matchMedia stub; a test forces
 // the reduced path with `stubMatchMedia` + `vi.unstubAllGlobals()` in
@@ -195,6 +204,7 @@ function useReducedMotion(): boolean {
 }
 
 export default {
+	animate,
 	motion,
 	AnimatePresence,
 	LayoutGroup,

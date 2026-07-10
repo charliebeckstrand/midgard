@@ -113,7 +113,7 @@ describe('ChoroplethChart context menu', () => {
 		const { container } = renderUI(
 			<ChoroplethChart
 				aria-label="Population"
-				title="Population by region"
+				header="Population by region"
 				geography={FIXTURE_GEOJSON}
 				data={ROWS}
 				series={[{ idKey: 'region', colorKey: 'pop', colorRange: RANGE, colorName: 'Population' }]}
@@ -169,7 +169,7 @@ describe('ChoroplethChart context menu', () => {
 		const { container } = renderUI(
 			<ChoroplethChart
 				aria-label="Population"
-				title="Population by region"
+				header="Population by region"
 				geography={FIXTURE_GEOJSON}
 				data={ROWS}
 				series={[{ idKey: 'region', colorKey: 'pop', colorRange: RANGE }]}

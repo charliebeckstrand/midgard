@@ -74,7 +74,7 @@ describe('Chart context menu', () => {
 		const { container } = renderUI(
 			<BarChart
 				aria-label="Revenue by quarter"
-				title="Revenue by quarter"
+				header="Revenue by quarter"
 				data={data}
 				series={[...series]}
 			/>,
@@ -91,7 +91,7 @@ describe('Chart context menu', () => {
 		const { container } = renderUI(
 			<BarChart
 				aria-label="Revenue by quarter"
-				title="Revenue by quarter"
+				header="Revenue by quarter"
 				data={data}
 				series={[...series]}
 			/>,
@@ -108,7 +108,7 @@ describe('Chart context menu', () => {
 		const { container } = renderUI(
 			<BarChart
 				aria-label="Revenue by quarter"
-				title="Revenue by quarter"
+				header="Revenue by quarter"
 				data={data}
 				series={[...series]}
 			/>,
@@ -132,7 +132,7 @@ describe('Chart context menu', () => {
 		const { container } = renderUI(
 			<BarChart
 				aria-label="Revenue by quarter"
-				title="Revenue by quarter"
+				header="Revenue by quarter"
 				data={data}
 				series={[...series]}
 				aspectRatio={false}

@@ -363,8 +363,7 @@ export function Demo() {
 										{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
 										{ xKey: 'month', yKey: 'costs', yName: 'Costs' },
 									]}
-									title="Revenue & costs"
-									subtitle="Last six months"
+									header={{ title: 'Revenue & costs', subtitle: 'Last six months' }}
 								/>
 							</Example>
 						</Stack>

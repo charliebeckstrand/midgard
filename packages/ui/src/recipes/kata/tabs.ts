@@ -52,7 +52,11 @@ const list = defineRecipe({
  * active tab scrolls into view and roving keeps every tab reachable.
  */
 const scroll = defineRecipe({
-	base: ['[scrollbar-width:none]', '[&::-webkit-scrollbar]:hidden'],
+	// `shrink-0` keeps the tab row at its intrinsic size: the viewport's own
+	// `overflow` (below) zeroes its flex auto-min-size, so a height-constrained
+	// `flex-col` parent with a tall sibling (e.g. a loaded list under the tabs)
+	// would otherwise collapse the row to nothing.
+	base: ['shrink-0', '[scrollbar-width:none]', '[&::-webkit-scrollbar]:hidden'],
 	orientation: {
 		horizontal: 'overflow-x-auto overflow-y-hidden',
 		vertical: 'overflow-y-auto overflow-x-hidden',

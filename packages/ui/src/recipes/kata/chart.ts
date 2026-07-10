@@ -18,7 +18,7 @@
  * reordering or re-shading.
  */
 import { mode } from '../../core/recipe'
-import { iro, kokkaku, sen } from '../kiso'
+import { iro, kokkaku, sen, ugoki } from '../kiso'
 
 const { text } = iro
 
@@ -143,5 +143,22 @@ export const k = {
 	 * nothing.
 	 */
 	drawing: (spark: boolean) => (spark ? ['pointer-events-none', '**:pointer-events-none'] : []),
+	/**
+	 * Header row motion. Adornments — the dashboard's drag handle, a caller's
+	 * prefix or suffix — pop in and out on a scale-fade while every sibling
+	 * slides over on the shared layout spring: one animation whichever chrome
+	 * arrives. `adornment` spreads onto each slot inside an `AnimatePresence
+	 * mode="popLayout"`; `slide` spreads onto the title block so it makes room.
+	 */
+	header: {
+		adornment: {
+			layout: 'position' as const,
+			initial: { opacity: 0, scale: 0.8 },
+			animate: { opacity: 1, scale: 1 },
+			exit: { opacity: 0, scale: 0.8 },
+			transition: ugoki.spring,
+		},
+		slide: { layout: 'position' as const, transition: ugoki.spring },
+	},
 	skeleton: kokkaku.chart,
 } as const

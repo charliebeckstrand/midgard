@@ -40,6 +40,7 @@ import { TouchTarget } from 'ui/primitives/touch-target'
 | `query` | Query context for type-ahead roots (Combobox, CommandPalette): shares live + deferred query text; descendants read it to filter items. | `QueryContext`, `useQuery`, `useQueryValue` |
 | `active-indicator` | Motion shared-element marker that morphs between sibling nav/tab items via a scoped `layoutId`. | `ActiveIndicatorScope`, `useActiveIndicator`, `ActiveIndicator` |
 | `toggle` | Layout primitives for toggle/switch fields: a group container and a single control-plus-label row, driven by the shared toggle recipe. | `ToggleGroup`, `ToggleField` |
+| `drag-handle` | Ambient drag-grip channel between a tile host and the chrome inside it: the dashboard mints the wired handle, a chart header adopts and `claim`s it, and unclaimed tiles keep the host's floating fallback. | `DragHandleContext`, `useDragHandle`, `DragHandleContextValue` |
 
 ## Motion & hit area
 

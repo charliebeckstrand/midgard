@@ -120,8 +120,7 @@ export function LineChart<T>(props: LineChartProps<T>) {
 			formatValue,
 			// The header travels to the frame through `label`; the hook reads it too,
 			// so its tier reserves the header band's height (see `cartesianChrome`).
-			title: label.title,
-			subtitle: label.subtitle,
+			header: label.header,
 		},
 		{
 			zeroBaseline: false,

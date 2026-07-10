@@ -32,8 +32,7 @@ function chart() {
 	return (
 		<BarChart
 			aria-label="Revenue and costs by month"
-			title="Revenue & costs"
-			subtitle="Last six months, in thousands"
+			header={{ title: 'Revenue & costs', subtitle: 'Last six months, in thousands' }}
 			data={DATA}
 			series={[
 				{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },

@@ -45,8 +45,7 @@ describe.each([600, 300, 140])('chart mount settling at %ipx (real browser)', (w
 			<div style={{ width }}>
 				<BarChart
 					aria-label="Revenue and costs by month"
-					title="Revenue & costs"
-					subtitle="Last six months"
+					header={{ title: 'Revenue & costs', subtitle: 'Last six months' }}
 					data={DATA}
 					series={[
 						{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },

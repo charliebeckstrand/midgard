@@ -17,10 +17,11 @@ import {
 	type ChartBaseProps,
 	type ChartTooltipTrigger,
 	type PieChartSeries,
+	resolveHeader,
 	resolveTooltip,
 } from './chart-schema'
 import { formatChartValue, type SlotPaint, seriesValues } from './chart-series'
-import { chartPolicy, isSparkBox, policyPlotHeight } from './chart-tier'
+import { chartPolicy, headerLineCount, isSparkBox, policyPlotHeight } from './chart-tier'
 import { useChartFullscreen, useChartHover } from './context'
 import {
 	CALLOUT_CHAR_WIDTH,
@@ -827,6 +828,7 @@ export function ChartPie<T>(props: ChartPieProps<T>) {
 		height,
 		aspectRatio,
 		legend,
+		header,
 		tooltip,
 		animate = false,
 		texture = false,
@@ -837,6 +839,8 @@ export function ChartPie<T>(props: ChartPieProps<T>) {
 		children,
 		...name
 	} = props
+
+	const head = resolveHeader(header)
 
 	// Free-form, a pie fits its own square footprint; inside the fullscreen dialog
 	// that square overruns the 16/9 panel, so the re-mounted copy takes the panel's
@@ -892,11 +896,12 @@ export function ChartPie<T>(props: ChartPieProps<T>) {
 	// Under a stacked aspect-fill figure the plot's measured remainder shrinks with
 	// the legend and jumps when spark drops it, so resolve the tier against the
 	// figure's `width / ratio` less that legend rather than the remainder it would
-	// loop on. A pie carries no header, so the chrome is the legend alone. A
-	// free-form fill frame shares that box with no ratio to derive a safe height
-	// from, so the policy's fill flag resolves the chrome decisions by width alone.
+	// loop on — the header band counted with it, so a titled pie reserves its
+	// lines the way a cartesian chart does. A free-form fill frame shares that
+	// box with no ratio to derive a safe height from, so the policy's fill flag
+	// resolves the chrome decisions by width alone.
 	const policyHeight = policyPlotHeight(frameHeight, frameWidth, frameAspect, {
-		headerLines: 0,
+		headerLines: headerLineCount(head.title, head.subtitle),
 		legend: stackedLegend,
 	})
 
@@ -1025,6 +1030,7 @@ export function ChartPie<T>(props: ChartPieProps<T>) {
 			height={frameHeight}
 			reserve={reserve}
 			fill={fillFrame}
+			header={header}
 			aspect={frameAspect}
 			tier={policy.tier}
 			legend={

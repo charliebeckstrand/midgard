@@ -34,8 +34,7 @@ describe('chart tier header reserve (real browser)', () => {
 			<div style={{ width: 300 }}>
 				<BarChart
 					aria-label="Revenue and costs by month"
-					title="Revenue & costs"
-					subtitle="Last six months"
+					header={{ title: 'Revenue & costs', subtitle: 'Last six months' }}
 					data={DATA}
 					series={[...SERIES]}
 				/>

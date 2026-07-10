@@ -12,13 +12,19 @@ import {
 } from 'react'
 import { cn } from '../../core'
 import type { FrameReserve } from '../../hooks'
+import { useDragHandle } from '../../primitives/drag-handle'
 import { k } from '../../recipes/kata/chart'
 import type { AccessibleName } from '../../types'
 import { ChartContextMenu } from './chart-context-menu'
 import { ChartHeader } from './chart-header'
 import type { ChartOrientation } from './chart-orientation'
 import { ChartPlotBox } from './chart-plot-box'
-import type { ChartContextMenuConfig, ChartLegendPlacement } from './chart-schema'
+import {
+	type ChartContextMenuConfig,
+	type ChartHeaderConfig,
+	type ChartLegendPlacement,
+	resolveHeader,
+} from './chart-schema'
 import type { ChartSnap } from './chart-snap'
 import { ChartTable } from './chart-table'
 import type { ChartTier } from './chart-tier'
@@ -54,26 +60,30 @@ function ignoreActiveSeries(_series: number | null): void {}
 /**
  * The header, spark veil, and legend a framed chart draws at its resolved tier.
  * A framed tier bands the header above the plot inside the aspect box and keeps
- * the legend beside or below it; spark strips both to bare marks — the header
- * leaves the flow for a centered hover / focus veil over the plot, and the
- * legend drops entirely so the `flex-1` plot reclaims the whole aspect box and
- * draws as a pure sparkline, rather than wrapping under a legend band that
- * crushes it to a sliver of dashes. The series then read on the hover tooltip,
- * as the title does on the veil. A chart with no title or subtitle draws no
- * header either way.
+ * the legend beside or below it; spark strips both to bare marks — the title
+ * lines leave the flow for a centered hover / focus veil over the plot (the
+ * adornments stand down entirely), and the legend drops so the `flex-1` plot
+ * reclaims the whole aspect box and draws as a pure sparkline, rather than
+ * wrapping under a legend band that crushes it to a sliver of dashes. The
+ * series then read on the hover tooltip, as the title does on the veil. A
+ * header with nothing to show draws nothing either way.
  *
  * @internal
  */
 function chartChrome(
 	tier: ChartTier | undefined,
-	title: string | undefined,
-	subtitle: string | undefined,
+	header: ChartHeaderConfig,
 	legend: ReactNode,
 ): { header: ReactNode; sparkVeil: ReactNode; legend: ReactNode } {
 	const spark = tier === 'spark'
 
-	const head =
-		title || subtitle ? <ChartHeader title={title} subtitle={subtitle} veil={spark} /> : null
+	const hasLines = Boolean(header.title || header.subtitle)
+
+	const hasChrome = hasLines || header.prefix !== undefined || header.suffix !== undefined
+
+	const head = spark
+		? hasLines && <ChartHeader header={header} veil />
+		: hasChrome && <ChartHeader header={header} />
 
 	return {
 		header: spark ? null : head,
@@ -152,14 +162,14 @@ export type ChartFrameProps = AccessibleName & {
 	 */
 	tier?: ChartTier
 	/**
-	 * The chart title, drawn above the plot inside the aspect box (so the drawing
-	 * fills the height it leaves) and clipped to one line with a reveal tooltip. At
-	 * the spark tier it leaves the flow for a centered hover / focus veil over the
-	 * marks instead.
+	 * The chart header, drawn above the plot inside the aspect box (so the
+	 * drawing fills the height it leaves): the title and subtitle each clipped
+	 * to one line with a reveal tooltip, between any leading and trailing
+	 * adornments. At the spark tier the title lines leave the flow for a
+	 * centered hover / focus veil over the marks and the adornments stand down.
+	 * Takes the raw prop union; the frame resolves it once.
 	 */
-	title?: string
-	/** The chart subtitle, muted under the {@link ChartFrameProps.title | title}, sharing its clip and spark veil. */
-	subtitle?: string
+	header?: string | ChartHeaderConfig
 	/** The prepared legend row, or `null` to omit it (single series). */
 	legend: ReactNode
 	/**
@@ -250,8 +260,7 @@ export function ChartFrame({
 	fill = false,
 	aspect,
 	tier,
-	title,
-	subtitle,
+	header,
 	legend,
 	legendPlacement = 'bottom',
 	readout,
@@ -336,12 +345,19 @@ export function ChartFrame({
 	// stand themselves down. A chart never gates any of that per call site.
 	const spark = tier === 'spark'
 
+	// A drag-handle host means the chart sits in a tile being arranged — the
+	// dashboard's editing mode. The chart borrows spark's interaction standby
+	// (tooltip, keyboard, and the pointer veto stand down) while keeping its
+	// framed anatomy: the reader is arranging tiles, and a crosshair chasing
+	// the drag pointer reads as noise.
+	const hosted = useDragHandle() !== null
+
 	// Spark sheds its hover chrome with the rest of its anatomy: a sparkline reveals
 	// what it is through the title veil on hover, not a data readout, so the tooltip
 	// — and the keyboard cursor whose only output is that tooltip — stand down. The
 	// accessible name and the data table still carry its values. Every wider tier
 	// keeps the caller's `tooltip`.
-	const tooltipShown = tooltip && !spark
+	const tooltipShown = tooltip && !spark && !hosted
 
 	// Arrow-key navigation over the value points and reference lines, driving the
 	// same hover the pointer does — a tab stop only where a readout can answer it.
@@ -388,7 +404,7 @@ export function ChartFrame({
 	const svg = width > 0 && (
 		<svg
 			aria-hidden="true"
-			className={cn('absolute left-0 top-0 block', k.drawing(spark))}
+			className={cn('absolute left-0 top-0 block', k.drawing(spark || hosted))}
 			width={width}
 			height={height}
 			viewBox={`0 0 ${width} ${height}`}
@@ -407,7 +423,9 @@ export function ChartFrame({
 	// A framed tier bands the header above the plot and keeps the legend; spark
 	// strips both to bare marks — the header to a centered hover / focus veil, the
 	// legend gone so the plot reclaims the whole aspect box (see chartChrome).
-	const { header, sparkVeil, legend: legendFrame } = chartChrome(tier, title, subtitle, legend)
+	const head = resolveHeader(header)
+
+	const { header: headerBand, sparkVeil, legend: legendFrame } = chartChrome(tier, head, legend)
 
 	const plotRegion = (
 		<div
@@ -471,7 +489,7 @@ export function ChartFrame({
 						<ChartHoverContext value={hover}>
 							<ChartFigure
 								plot={plotRegion}
-								header={header}
+								header={headerBand}
 								legend={legendFrame}
 								legendPlacement={legendPlacement}
 								aside={aside}
@@ -498,7 +516,7 @@ export function ChartFrame({
 			contextMenu={contextMenu}
 			rootRef={rootRef}
 			readout={readout}
-			title={title}
+			title={head.title}
 			fullscreen={fullscreen}
 		>
 			{chartRoot}
