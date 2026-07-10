@@ -13,6 +13,7 @@ import {
 	MARKER_RADIUS,
 	TICK_CHAR_WIDTH,
 } from '../chart-constants'
+import { coord } from '../chart-coords'
 import { beatsHeldMark } from '../chart-hit-test'
 import { linearScale } from '../chart-scale'
 import { READOUT_GAP } from '../chart-series'
@@ -147,6 +148,37 @@ export function scatterMarks(
 		y: mapY(point.y),
 		r: radius(point.size),
 	}))
+}
+
+/**
+ * One disc as a closed path subfigure — two half-arcs around its centre. The
+ * whole series draws as a single `<path>` of these, so a dense scatter is one
+ * DOM node and one paint instead of a circle element per point; the fill fills
+ * every disc and the stroke rings each one, exactly as separate circles did.
+ *
+ * @internal
+ */
+function discPath(mark: ScatterMark): string {
+	const { x, y, r } = mark
+
+	return `M ${coord(x - r)} ${coord(y)} a ${coord(r)} ${coord(r)} 0 1 0 ${coord(r * 2)} 0 a ${coord(r)} ${coord(r)} 0 1 0 ${coord(-r * 2)} 0 Z`
+}
+
+/**
+ * Every disc of a series concatenated into one path `d`. Marks with a
+ * non-positive radius are skipped — a degenerate arc would paint nothing and
+ * only lengthen the string.
+ *
+ * @internal
+ */
+export function scatterDiscsPath(marks: ScatterMark[]): string {
+	let d = ''
+
+	for (const mark of marks) {
+		if (mark.r > 0) d += (d === '' ? '' : ' ') + discPath(mark)
+	}
+
+	return d
 }
 
 /** One snapped column stop: its value-axis screen position and the point behind it. @internal */

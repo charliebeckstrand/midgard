@@ -5,6 +5,7 @@ import {
 	type ReactNode,
 	type RefObject,
 	useCallback,
+	useDeferredValue,
 	useMemo,
 	useRef,
 	useState,
@@ -278,6 +279,18 @@ export function ChartFrame({
 		onData: boolean
 	}>({ index: null, point: null, onData: false })
 
+	// The visually-hidden data table holds one row per datum, so at large row
+	// counts building it dominates the commit — yet nothing visual waits on it and
+	// assistive tech reads it from the settled DOM, not the first frame. Deferring
+	// it drops it off the urgent render: the plot paints at full priority from the
+	// live `readout`, then React re-renders the table alone in a low-priority pass.
+	// The `null` initial value holds the table out of the very first commit too, so
+	// a fresh mount paints its marks before it builds the table; a data change keeps
+	// the prior table up for a beat rather than blocking the new marks behind a
+	// rebuild. Parity is unchanged — the table always converges on the current
+	// readout, one low-priority commit behind.
+	const tableReadout = useDeferredValue(readout, null)
+
 	const hover = useMemo<ChartHover>(
 		() => ({
 			...pointed,
@@ -464,7 +477,7 @@ export function ChartFrame({
 				</ChartEmphasisContext>
 			</ChartTierContext>
 
-			{readout && <ChartTable readout={readout} />}
+			{tableReadout && <ChartTable readout={tableReadout} />}
 
 			{annotations}
 		</div>

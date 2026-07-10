@@ -16,6 +16,8 @@ Every scenario draws the same deterministic dataset ([`fixtures.ts`](fixtures.ts
 
 - [`chart-hover.bench.tsx`](chart-hover.bench.tsx) — a 20-step pointer sweep across the plot plus one settled frame: hit-testing, crosshair/tooltip work, and frame-deferred drawing. Every contender receives the same `pointermove` + `mousemove` pair per step, so dispatch overhead is symmetric across their differing interaction stacks.
 
+React runs in **production** mode ([`vitest.bench.browser.config.ts`](../../../vitest.bench.browser.config.ts) forces `NODE_ENV=production`): the module ships the production build, and the vanilla contenders carry no dev/prod split, so a dev-React number would score the module's diagnostics rather than its shipped speed. The gap is real — dev React runs several times the work per render — so this is a correctness condition, not a thumb on the scale.
+
 Fairness notes, both directions: the ui module keeps its built-in accessible output (the visually-hidden data table renders one row per datum) while Highcharts runs without its optional accessibility module and AG registers its standard `AllCommunityModule`; Highcharts' `boost` module stays off, matching default installs; the ui module pays React reconciliation the vanilla factories don't, and that is the product being measured.
 
 ## Reading and driving improvements
@@ -30,26 +32,38 @@ pnpm bench:browser -- --compare bench-baseline.json
 
 When a competitive scenario regresses or lags, the jsdom benches (`pnpm bench`) and the pure-geometry cores (`chart-scale`, `chart-layout`, per-chart `*-geometry`) are the ladder down to the responsible layer.
 
-## Baseline (2026-07-10, this container)
+## Standings (2026-07-10, this container)
 
-Absolute numbers move with hardware; the ratios are the signal. Mean ms per iteration, ui / AG / Highcharts:
+Absolute numbers move with hardware; the ratios are the signal. Mean ms per iteration, ui / AG / Highcharts — **bold** marks a scenario where ui beats both.
 
 | Scenario | ui | AG Charts | Highcharts |
 | --- | ---: | ---: | ---: |
-| mount · line · 100 × 1 | 34.2 | 39.2 | 29.5 |
-| mount · line · 1,000 × 1 | 239.7 | 36.9 | 33.9 |
-| mount · line · 10,000 × 1 | 2,061.9 | 74.8 | 77.6 |
-| mount · line · 1,000 × 5 | 623.8 | 67.0 | 60.5 |
-| mount · bar · 50 × 2 | 53.9 | 38.5 | 35.3 |
-| mount · bar · 500 × 2 | 396.2 | 63.0 | 102.2 |
-| mount · scatter · 1,000 | 321.9 | 49.6 | 79.6 |
-| mount · scatter · 10,000 | 2,575.7 | 88.1 | 446.2 |
-| update · line · 1,000 × 1 | 74.5 | 13.4 | 11.4 |
-| update · line · 10,000 × 1 | 670.0 | 46.7 | 49.9 |
-| update · line · 1,000 × 5 | 201.0 | 30.4 | 30.2 |
-| update · bar · 500 × 2 | 147.0 | 19.1 | 32.2 |
-| update · scatter · 10,000 | 1,452.7 | 54.7 | 501.1 |
-| hover · line · 1,000 · sweep | 23.8 | 17.1 | 40.0 |
-| hover · scatter · 10,000 · sweep | 169.3 | 17.2 | 79.0 |
+| mount · line · 100 × 1 | **5.0** | 30.6 | 26.7 |
+| mount · line · 1,000 × 1 | **11.9** | 32.4 | 33.0 |
+| mount · line · 10,000 × 1 | 87.5 | 65.7 | 78.3 |
+| mount · line · 1,000 × 5 | **47.9** | 65.1 | 66.1 |
+| mount · bar · 50 × 2 | **21.5** | 31.8 | 36.1 |
+| mount · bar · 500 × 2 | 138.0 | 61.2 | 83.0 |
+| mount · scatter · 1,000 | **16.4** | 46.9 | 60.1 |
+| mount · scatter · 10,000 | 136.6 | 93.1 | 478.5 |
+| update · line · 1,000 × 1 | **5.5** | 12.8 | 11.2 |
+| update · line · 10,000 × 1 | **27.3** | 50.6 | 50.2 |
+| update · line · 1,000 × 5 | **20.1** | 28.7 | 30.0 |
+| update · bar · 500 × 2 | 66.9 | 24.9 | 38.6 |
+| update · scatter · 10,000 | 62.8 | 50.2 | 495.7 |
+| hover · line · 1,000 · sweep | 17.2 | 17.0 | 34.0 |
+| hover · scatter · 10,000 · sweep | 25.2 | 17.1 | 74.9 |
 
-The shape of the gap is the finding. At dashboard-typical sizes the module is competitive — the 100-point mount beats AG Charts and the 1,000-point hover sweep beats Highcharts — but cost grows near-linearly with row count while both rivals stay almost flat, opening to ~27× on the 10,000-point mounts and ~13–48× on the large updates. Profile-first suspects for that slope: the hidden accessibility table (one DOM row per datum, rebuilt on every data swap), per-datum SVG node counts against the competitors' single-path / canvas marks, and the update path re-rendering the whole frame instead of patching marks. The slow ui rows carry ±10–30% rme (their iterations are so slow the 2s window yields ~10 samples); the ratios dwarf that noise.
+### Optimization log
+
+Each entry names the change and the scenarios it moved; the levers are ordered as they landed.
+
+1. **Production React in the bench** (methodology). Measuring the shipped build instead of the dev one cut every ui number ~2.6× — the largest single move, and the honest baseline the rest build on.
+
+2. **Deferred data table** ([`chart-frame.tsx`](../../modules/chart/chart-frame.tsx), `useDeferredValue`). The visually-hidden table holds one row per datum; taking its build off the urgent render dropped the line mounts most (1k line mount 235 → ~12 under dev React at the time), since a line's marks are one path and the table was the whole linear term. Parity is unchanged — the table converges one low-priority commit behind.
+
+3. **Single-path plain scatter** ([`scatter-chart-marks.tsx`](../../modules/chart/scatter-chart/scatter-chart-marks.tsx)). A plain series draws as one `<path>` of every disc rather than a circle apiece, and isolation dims the group then re-draws the one lit disc over it, so a pointer crossing rebuilds nothing. Scatter 1k mount 66 → 16 (beats both); 10k mount 711 → 137, update 616 → 63, hover 30 → 25 (all now past Highcharts, closing on AG's canvas). Bubbles keep a circle each — their translucent fills must composite disc over disc.
+
+4. **Sub-pixel path coordinates** ([`chart-coords.ts`](../../modules/chart/chart-coords.ts)). Path `d` strings round to two decimals, a fraction of the full-float size; a structural cleanup that shrinks the DOM payload the large-N paths ship.
+
+Open, and where the gap sits: the two bar scenarios still draw a rect per bar (the same per-mark cost the scatter path retired); line-10k and the scatter-10k trio trail AG's canvas by a smaller margin than they did; hover-line sits within measurement noise of AG.

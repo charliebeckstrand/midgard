@@ -15,9 +15,19 @@ import { defineConfig } from 'vitest/config'
  */
 export default defineConfig({
 	plugins: [tailwindcss()],
+	// Measure the React the module actually ships: production, not the
+	// development build Vite serves by default. The dev build's invariant checks
+	// and warnings run several times the work per render, so a dev-React number
+	// would score the module's diagnostics, not its shipped speed — and the
+	// vanilla contenders (AG, Highcharts) carry no such build split, so the
+	// comparison would be lopsided. Defined at both layers because React selects
+	// its build through a `process.env.NODE_ENV` require that both the app
+	// transform and the dependency pre-bundle must fold to `'production'`.
+	define: { 'process.env.NODE_ENV': '"production"' },
 	// Pre-bundle the bench dependency set so the optimizer doesn't discover it
 	// lazily and reload the page mid-run (see vitest.browser.config.ts).
 	optimizeDeps: {
+		esbuildOptions: { define: { 'process.env.NODE_ENV': '"production"' } },
 		include: [
 			'@floating-ui/react',
 			'@internationalized/date',
