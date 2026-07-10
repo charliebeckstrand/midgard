@@ -53,6 +53,23 @@ export function categoryLegendId(value: string): string {
 	return `category:${value}`
 }
 
+/**
+ * The legend id a region's toggle and emphasis key on — its category's stable
+ * {@link categoryLegendId} — or `null` for a no-data region outside every
+ * group. One resolution shared by the region fill and the plat's pointed-mark
+ * gate, so the two can't disagree on which regions belong to a group.
+ *
+ * @internal
+ */
+export function regionGroupId(
+	category: number | null,
+	categories: MapCategoryMeta[],
+): string | null {
+	const meta = category === null ? null : (categories[category] ?? null)
+
+	return meta === null ? null : categoryLegendId(meta.value)
+}
+
 /** The slot colour for the series at `index`, in the fixed categorical order. @internal */
 export function slotColor(index: number): MapSeriesColor {
 	return k.order[index % k.order.length] ?? 'blue'

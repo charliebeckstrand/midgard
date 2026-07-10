@@ -3,8 +3,8 @@
 import { memo, type PointerEvent, useEffect, useState } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
-import { useMapHoverSet } from './context'
-import { categoryLegendId, type MapCategoryMeta } from './map-categories'
+import { type MapHoverTarget, mapMarkDimmed, useMapHoverSet, useMapPointedMark } from './context'
+import { type MapCategoryMeta, regionGroupId } from './map-categories'
 import {
 	REGION_FADE,
 	REGION_STAGGER,
@@ -34,6 +34,8 @@ type RegionProps = {
 	categories: MapCategoryMeta[]
 	hidden: ReadonlySet<string>
 	emphasis: string | null
+	/** The pointed mark taking the emphasis; every region but a pointed self dims. */
+	pointed: MapHoverTarget | null
 	revealed: boolean
 	animate: boolean
 	onTrack: (event: PointerEvent<SVGPathElement>) => void
@@ -68,7 +70,7 @@ function regionFill(
 ): RegionFill {
 	const meta = category === null ? null : (categories[category] ?? null)
 
-	const id = meta === null ? null : categoryLegendId(meta.value)
+	const id = regionGroupId(category, categories)
 
 	const active = id !== null && !hidden.has(id)
 
@@ -88,8 +90,9 @@ function regionFill(
 /**
  * One region path. A categorical slot fills by Tailwind class; a numeric bin
  * fills by an inline CSS colour from the consumer's `colorRange`. No-data — and
- * the pre-reveal beat under `animate` — takes the neutral class. Regions outside
- * the emphasised group dim on the wrapper.
+ * the pre-reveal beat under `animate` — takes the neutral class. The pointed
+ * mark isolates itself — every other region dims on the wrapper — else regions
+ * outside the emphasised legend group dim.
  *
  * @internal
  */
@@ -100,6 +103,7 @@ function Region({
 	categories,
 	hidden,
 	emphasis,
+	pointed,
 	revealed,
 	animate,
 	onTrack,
@@ -112,7 +116,9 @@ function Region({
 	)
 
 	return (
-		<g className={cn(k.group(emphasis !== null && emphasis !== groupId))}>
+		<g
+			className={cn(k.group(mapMarkDimmed(pointed, { kind: 'region', index }, emphasis, groupId)))}
+		>
 			<path
 				data-slot="map-region"
 				// Read by the hover provider's scroll-settle resolve to name the
@@ -165,7 +171,10 @@ function Region({
  * Memoised so it repaints only when its own geometry, category, or legend
  * state changes: an overlay child registering its legend entry re-renders the
  * plat, but the region layer — thousands of paths on a county atlas — holds
- * its last render rather than re-mapping for a change it doesn't read.
+ * its last render rather than re-mapping for a change it doesn't read. The
+ * pointed mark arrives through its own context, past the memo — a discrete
+ * crossing repaints the layer the way a legend focus does, while the
+ * per-pixel pointer movement stays in the hover state only the tooltip reads.
  * @internal
  */
 export const MapRegions = memo(function MapRegions({
@@ -177,6 +186,8 @@ export const MapRegions = memo(function MapRegions({
 	animate,
 }: MapRegionsProps) {
 	const set = useMapHoverSet()
+
+	const pointed = useMapPointedMark()
 
 	// The colour reveal: static maps colour at once; an animated map holds the
 	// neutral backdrop for the first beat, then flips to the category fills so
@@ -208,6 +219,7 @@ export const MapRegions = memo(function MapRegions({
 						categories={categories}
 						hidden={hidden}
 						emphasis={emphasis}
+						pointed={pointed}
 						revealed={revealed}
 						animate={animate}
 						onTrack={track(index)}

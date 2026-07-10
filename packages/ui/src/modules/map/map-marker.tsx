@@ -4,7 +4,7 @@ import { motion } from 'motion/react'
 import { type PointerEvent, useEffect, useId, useMemo } from 'react'
 import { cn } from '../../core'
 import { k, type MapSeriesColor } from '../../recipes/kata/map'
-import { useMapHoverSet, useMapPlat } from './context'
+import { mapMarkDimmed, useMapHoverSet, useMapPlat, useMapPointedMark } from './context'
 import {
 	MARKER_DRAW,
 	MARKER_END_POP,
@@ -43,7 +43,8 @@ export type MapMarkerProps = {
  * origin → destination mark, registered in the plat's legend as one
  * toggleable, focusable entry. Both pins are solid dots in the marker's slot
  * colour; hovering any part raises the tooltip with the marker's name and
- * detail.
+ * detail and isolates the pair — every other mark recedes, as under its
+ * legend entry's focus.
  *
  * @remarks Renders only inside {@link MapPlat}. Pins and connector ride
  * device pixels (non-scaling strokes), so a resize scales the geography under
@@ -59,6 +60,8 @@ export function MapMarker({ label, start, end, path, color, detail }: MapMarkerP
 	const { project, register, colors, hidden, emphasis, animate } = useMapPlat()
 
 	const set = useMapHoverSet()
+
+	const pointed = useMapPointedMark()
 
 	useEffect(
 		() => register({ id, label, kind: 'marker', swatch: 'line', color, detail }),
@@ -108,7 +111,7 @@ export function MapMarker({ label, start, end, path, color, detail }: MapMarkerP
 	return (
 		<g
 			data-slot="map-marker"
-			className={cn(k.group(emphasis !== null && emphasis !== id))}
+			className={cn(k.group(mapMarkDimmed(pointed, { kind: 'entry', id }, emphasis, id)))}
 			onPointerLeave={() => set(null, null)}
 		>
 			{connector &&

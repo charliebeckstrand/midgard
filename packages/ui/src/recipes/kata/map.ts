@@ -31,9 +31,10 @@ export const k = {
 		hover: 'hover:brightness-110',
 	},
 	/**
-	 * A mark group's response to legend emphasis: marks outside the focused
-	 * group dim, the focused group holds. On the wrapper, so motion's inline
-	 * opacity composes.
+	 * A mark group's response to emphasis — the legend's focused group, or the
+	 * pointed mark on the map itself: everything outside it dims, the
+	 * emphasised mark holds. On the wrapper, so motion's inline opacity
+	 * composes.
 	 */
 	group: (dimmed: boolean) => ['transition-opacity', dimmed ? 'opacity-25' : ''],
 	/** Keyboard focus ring for the range legend's scale-bar slider — the shared accent outline. */
