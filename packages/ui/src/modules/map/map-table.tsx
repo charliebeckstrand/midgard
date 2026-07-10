@@ -39,39 +39,45 @@ export const MapTable = memo(function MapTable({
 	entries,
 }: MapTableProps) {
 	return (
-		<table data-slot="map-table" className="sr-only">
-			<thead>
-				<tr>
-					<td />
+		// The hiding lives on a wrapper: width/height on a `display: table` box
+		// are minimums, so `sr-only` on the table itself leaves it laid out at
+		// full size — invisible, but still stretching the page's scroll range on
+		// a large atlas. The block wrapper collapses to 1px and clips it.
+		<div className="sr-only">
+			<table data-slot="map-table">
+				<thead>
+					<tr>
+						<td />
 
-					<th scope="col">{header}</th>
-				</tr>
-			</thead>
-
-			<tbody>
-				{rangeKeys(regionNames.length, 'region').map((key, index) => {
-					const category = regionCategory[index]
-
-					return (
-						<tr key={key}>
-							<th scope="row">{regionNames[index]}</th>
-
-							<td>
-								{regionValues[index] ??
-									(category == null ? READOUT_GAP : (categories[category]?.label ?? READOUT_GAP))}
-							</td>
-						</tr>
-					)
-				})}
-
-				{entries.map((entry) => (
-					<tr key={entry.id}>
-						<th scope="row">{entry.label}</th>
-
-						<td>{entry.detail ?? entry.kind}</td>
+						<th scope="col">{header}</th>
 					</tr>
-				))}
-			</tbody>
-		</table>
+				</thead>
+
+				<tbody>
+					{rangeKeys(regionNames.length, 'region').map((key, index) => {
+						const category = regionCategory[index]
+
+						return (
+							<tr key={key}>
+								<th scope="row">{regionNames[index]}</th>
+
+								<td>
+									{regionValues[index] ??
+										(category == null ? READOUT_GAP : (categories[category]?.label ?? READOUT_GAP))}
+								</td>
+							</tr>
+						)
+					})}
+
+					{entries.map((entry) => (
+						<tr key={entry.id}>
+							<th scope="row">{entry.label}</th>
+
+							<td>{entry.detail ?? entry.kind}</td>
+						</tr>
+					))}
+				</tbody>
+			</table>
+		</div>
 	)
 })

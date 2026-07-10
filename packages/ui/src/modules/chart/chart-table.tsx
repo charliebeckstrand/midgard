@@ -23,30 +23,36 @@ export function ChartTable({ readout: source }: ChartTableProps) {
 	if (readout === null) return null
 
 	return (
-		<table data-slot="chart-table" className="sr-only">
-			<thead>
-				<tr>
-					<td />
+		// The hiding lives on a wrapper: width/height on a `display: table` box
+		// are minimums, so `sr-only` on the table itself leaves it laid out at
+		// full size — invisible, but still stretching the page's scroll range.
+		// The block wrapper collapses to 1px and clips it.
+		<div className="sr-only">
+			<table data-slot="chart-table">
+				<thead>
+					<tr>
+						<td />
 
-					{readout.rows.map((row, index) => (
-						<th key={row.index ?? index} scope="col">
-							{row.label}
-						</th>
-					))}
-				</tr>
-			</thead>
-
-			<tbody>
-				{rangeKeys(readout.categories.length, 'category').map((key, index) => (
-					<tr key={key}>
-						<th scope="row">{readout.categories[index]}</th>
-
-						{readout.rows.map((row, column) => (
-							<td key={row.index ?? column}>{row.values[index]}</td>
+						{readout.rows.map((row, index) => (
+							<th key={row.index ?? index} scope="col">
+								{row.label}
+							</th>
 						))}
 					</tr>
-				))}
-			</tbody>
-		</table>
+				</thead>
+
+				<tbody>
+					{rangeKeys(readout.categories.length, 'category').map((key, index) => (
+						<tr key={key}>
+							<th scope="row">{readout.categories[index]}</th>
+
+							{readout.rows.map((row, column) => (
+								<td key={row.index ?? column}>{row.values[index]}</td>
+							))}
+						</tr>
+					))}
+				</tbody>
+			</table>
+		</div>
 	)
 }
