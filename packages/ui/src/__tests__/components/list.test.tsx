@@ -85,6 +85,21 @@ describe('ListItem', () => {
 		expect(content?.tagName).toBe('DIV')
 	})
 
+	it('renders the content as the requested element via as', () => {
+		const { container } = renderUI(
+			<List items={items.slice(0, 1)} getKey={(i) => i.id}>
+				{(item) => <ListItem as="button">{item.label}</ListItem>}
+			</List>,
+		)
+
+		const content = bySlot(container, 'list-item-content')
+
+		expect(content?.tagName).toBe('BUTTON')
+
+		// Polymorphic stamps type="button" on a rendered <button>.
+		expect(content).toHaveAttribute('type', 'button')
+	})
+
 	it('renders the content as a link when href is provided, keeping the li wrapper', () => {
 		const { container } = renderUI(
 			<List items={items.slice(0, 1)} getKey={(i) => i.id}>
