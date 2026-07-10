@@ -37,6 +37,10 @@ function pointerPair(target: Element, over: 'over' | 'out') {
 	)
 }
 
+// One call, positional pick: the ui contender drives the pointer-on-chip
+// recede, Highcharts its legend-item hover.
+const [ui, hc] = zoneMapContenders(countiesAtlas)
+
 async function prepare(): Promise<PreparedEmphasis[]> {
 	const prepared: PreparedEmphasis[] = []
 
@@ -45,8 +49,6 @@ async function prepare(): Promise<PreparedEmphasis[]> {
 		const host = document.createElement('div')
 
 		document.body.append(host)
-
-		const [ui] = zoneMapContenders(countiesAtlas)
 
 		await (ui as NonNullable<typeof ui>).mount(host, data)
 
@@ -72,8 +74,6 @@ async function prepare(): Promise<PreparedEmphasis[]> {
 		const host = document.createElement('div')
 
 		document.body.append(host)
-
-		const [, hc] = zoneMapContenders(countiesAtlas)
 
 		await (hc as NonNullable<typeof hc>).mount(host, data)
 

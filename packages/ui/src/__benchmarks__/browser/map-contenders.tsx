@@ -26,9 +26,11 @@ import Highcharts from 'highcharts'
 import 'highcharts/modules/map'
 import { MapPlat } from '../../modules/map/map-plat'
 import type { MapCategory } from '../../modules/map/types'
-import { type Contender, HEIGHT, reactContender, WIDTH } from './contenders'
+import { type Contender, HEIGHT, hcContender, reactContender, WIDTH } from './contenders'
 import {
+	type JoinRow,
 	type MapAtlas,
+	type NamedRow,
 	VALUE_MAX,
 	VALUE_RAMP,
 	type ValueData,
@@ -111,45 +113,94 @@ function ecContender<D>(
 	}
 }
 
-/** Creates a Highcharts map; its SVG build and redraws are synchronous. */
-function hcMapContender<D>(
-	name: string,
-	options: (data: D) => Highcharts.Options,
-	update: (chart: Highcharts.Chart, data: D) => void,
-): Contender<D> {
-	return {
-		name,
-		mount(host, data) {
-			const base = options(data)
-
-			const chart = Highcharts.mapChart(host, {
-				...base,
-				// The topology rides in `chart.map`, so the fixed sizing merges over
-				// the base chart block rather than replacing it.
-				chart: { ...base.chart, width: WIDTH, height: HEIGHT, animation: false },
-				title: { text: undefined },
-				// Parity note, not a handicap (see `hcContender`): the a11y module
-				// isn't loaded, so this only silences its absence warning. The ui map
-				// keeps its built-in hidden data table in every bench.
-				accessibility: { enabled: false },
-				plotOptions: { series: { animation: false } },
-			})
-
-			return {
-				update(next) {
-					update(chart, next)
-
-					chart.redraw(false)
-				},
-				destroy: () => chart.destroy(),
-			}
-		},
-	}
-}
-
 /** The Highcharts data rows, through the loose point type its `joinBy` join reads. */
 function hcData(rows: object[]): Highcharts.PointOptionsObject[] {
 	return rows as Highcharts.PointOptionsObject[]
+}
+
+/**
+ * A Highcharts US map contender over one prepared atlas: the shared chart /
+ * projection / FIPS-joined series and its in-place data update, leaving only
+ * the colour scale (a zone data-class set, or a choropleth ramp) per scenario.
+ * Built through the shared {@link hcContender} with `Highcharts.mapChart` as
+ * the factory — the topology rides in `chart.map`, which its base-block merge
+ * preserves.
+ */
+function hcUsMapContender<D extends { hcRows: JoinRow[] }>(
+	seriesName: string,
+	atlas: MapAtlas,
+	colorAxis: Highcharts.ColorAxisOptions,
+): Contender<D> {
+	return hcContender<D>(
+		'Highcharts map',
+		(data) => ({
+			chart: { map: atlas.topology as unknown as Highcharts.GeoJSON },
+			mapView: HC_PROJECTION,
+			colorAxis,
+			series: [
+				{ type: 'map', name: seriesName, data: hcData(data.hcRows), joinBy: ['fips', 'fips'] },
+			],
+		}),
+		(chart, data) => {
+			chart.series[0]?.setData(hcData(data.hcRows), false, false)
+		},
+		Highcharts.mapChart,
+	)
+}
+
+/**
+ * The shared ECharts map series: the prepared atlas by name, the FIPS
+ * name-join, and the same Lambert conic the other contenders run. Every map
+ * scenario's series is this shape — an option or emphasis variant spreads it.
+ */
+function ecMapSeries(atlas: MapAtlas, data: NamedRow[]) {
+	return {
+		type: 'map' as const,
+		map: ecMapName(atlas),
+		nameProperty: 'fips',
+		projection: conicProjection(),
+		data,
+	}
+}
+
+/** An update that recolours the ECharts map in place — the same merge for zone and choropleth. */
+function ecDataUpdate(data: { ecRows: NamedRow[] }): echarts.EChartsOption {
+	return { series: [{ data: data.ecRows }] }
+}
+
+/**
+ * The ECharts categorical zone option: the piecewise visual map keyed to the
+ * fixed zone classes plus the shared map series. `emphasis` spreads
+ * `focus: 'self'` into the series — its documented recede — for the
+ * legend-emphasis bench, off the default the mount / update / hover scenarios
+ * measure.
+ */
+function ecZoneOption(atlas: MapAtlas, data: ZoneData, emphasis = false): echarts.EChartsOption {
+	const series = ecMapSeries(atlas, data.ecRows)
+
+	return {
+		tooltip: {},
+		visualMap: {
+			type: 'piecewise',
+			pieces: ZONES.map((zone, index) => ({
+				value: index,
+				label: zone,
+				color: ZONE_COLORS[index],
+			})),
+		},
+		// `emphasis.focus: 'self'` is a documented map option ECharts' published
+		// types omit; the cast keeps the runtime behaviour its `setOption` accepts.
+		series: [emphasis ? ({ ...series, emphasis: { focus: 'self' } } as typeof series) : series],
+	}
+}
+
+/** The ECharts numeric choropleth option: a continuous visual map over the ramp plus the shared series. */
+function ecChoroplethOption(atlas: MapAtlas, data: ValueData): echarts.EChartsOption {
+	return {
+		tooltip: {},
+		visualMap: { min: 0, max: VALUE_MAX, inRange: { color: VALUE_RAMP } },
+		series: [ecMapSeries(atlas, data.ecRows)],
+	}
 }
 
 /**
@@ -168,28 +219,7 @@ export function ecZoneEmphasisChart(
 ): echarts.ECharts {
 	const chart = echarts.init(host, null, { width: WIDTH, height: HEIGHT })
 
-	chart.setOption({
-		animation: false,
-		tooltip: {},
-		visualMap: {
-			type: 'piecewise',
-			pieces: ZONES.map((zone, index) => ({
-				value: index,
-				label: zone,
-				color: ZONE_COLORS[index],
-			})),
-		},
-		series: [
-			{
-				type: 'map',
-				map: ecMapName(atlas),
-				nameProperty: 'fips',
-				projection: conicProjection(),
-				data: data.ecRows,
-				emphasis: { focus: 'self' },
-			},
-		],
-	})
+	chart.setOption({ animation: false, ...ecZoneOption(atlas, data, true) })
 
 	flushFrame(chart)
 
@@ -212,51 +242,15 @@ export function zoneMapContenders(atlas: MapAtlas): Contender<ZoneData>[] {
 				height={HEIGHT}
 			/>
 		)),
-		hcMapContender(
-			'Highcharts map',
-			(data) => ({
-				chart: { map: atlas.topology as unknown as Highcharts.GeoJSON },
-				mapView: HC_PROJECTION,
-				colorAxis: {
-					dataClasses: ZONES.map((zone, index) => ({
-						from: index,
-						to: index,
-						name: zone,
-						color: ZONE_COLORS[index],
-					})),
-				},
-				series: [
-					{ type: 'map', name: 'Zones', data: hcData(data.hcRows), joinBy: ['fips', 'fips'] },
-				],
-			}),
-			(chart, data) => {
-				chart.series[0]?.setData(hcData(data.hcRows), false, false)
-			},
-		),
-		ecContender(
-			'ECharts map',
-			(data) => ({
-				tooltip: {},
-				visualMap: {
-					type: 'piecewise',
-					pieces: ZONES.map((zone, index) => ({
-						value: index,
-						label: zone,
-						color: ZONE_COLORS[index],
-					})),
-				},
-				series: [
-					{
-						type: 'map',
-						map: ecMapName(atlas),
-						nameProperty: 'fips',
-						projection: conicProjection(),
-						data: data.ecRows,
-					},
-				],
-			}),
-			(data) => ({ series: [{ data: data.ecRows }] }),
-		),
+		hcUsMapContender<ZoneData>('Zones', atlas, {
+			dataClasses: ZONES.map((zone, index) => ({
+				from: index,
+				to: index,
+				name: zone,
+				color: ZONE_COLORS[index],
+			})),
+		}),
+		ecContender<ZoneData>('ECharts map', (data) => ecZoneOption(atlas, data), ecDataUpdate),
 	]
 }
 
@@ -277,42 +271,13 @@ export function choroplethMapContenders(atlas: MapAtlas): Contender<ValueData>[]
 				height={HEIGHT}
 			/>
 		)),
-		hcMapContender(
-			'Highcharts map',
-			(data) => ({
-				chart: { map: atlas.topology as unknown as Highcharts.GeoJSON },
-				mapView: HC_PROJECTION,
-				colorAxis: {
-					min: 0,
-					max: VALUE_MAX,
-					stops: VALUE_RAMP.map(
-						(color, index) => [index / (VALUE_RAMP.length - 1), color] as [number, string],
-					),
-				},
-				series: [
-					{ type: 'map', name: 'Values', data: hcData(data.hcRows), joinBy: ['fips', 'fips'] },
-				],
-			}),
-			(chart, data) => {
-				chart.series[0]?.setData(hcData(data.hcRows), false, false)
-			},
-		),
-		ecContender(
-			'ECharts map',
-			(data) => ({
-				tooltip: {},
-				visualMap: { min: 0, max: VALUE_MAX, inRange: { color: VALUE_RAMP } },
-				series: [
-					{
-						type: 'map',
-						map: ecMapName(atlas),
-						nameProperty: 'fips',
-						projection: conicProjection(),
-						data: data.ecRows,
-					},
-				],
-			}),
-			(data) => ({ series: [{ data: data.ecRows }] }),
-		),
+		hcUsMapContender<ValueData>('Values', atlas, {
+			min: 0,
+			max: VALUE_MAX,
+			stops: VALUE_RAMP.map(
+				(color, index) => [index / (VALUE_RAMP.length - 1), color] as [number, string],
+			),
+		}),
+		ecContender<ValueData>('ECharts map', (data) => ecChoroplethOption(atlas, data), ecDataUpdate),
 	]
 }

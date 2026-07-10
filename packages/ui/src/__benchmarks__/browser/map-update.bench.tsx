@@ -8,47 +8,10 @@
  * updates. Geometry never changes — an update moves data, not the atlas.
  */
 
-import { bench, describe } from 'vitest'
-import type { Contender } from './contenders'
+import { describe } from 'vitest'
+import { prepare, SLOW, updateBenches } from './harness'
 import { choroplethMapContenders, zoneMapContenders } from './map-contenders'
 import { countiesAtlas, makeValues, makeZones, statesAtlas } from './map-fixtures'
-
-/** The county scenarios see slow iterations; a longer window keeps samples up. */
-const SLOW = { time: 2_000 }
-
-type PreparedBench = { name: string; run: () => void | Promise<void> }
-
-/** Mounts every contender on dataset `a` and closes each over an a/b swap. */
-async function prepare<D>(contenders: Contender<D>[], a: D, b: D): Promise<PreparedBench[]> {
-	const prepared: PreparedBench[] = []
-
-	for (const contender of contenders) {
-		const host = document.createElement('div')
-
-		document.body.append(host)
-
-		const map = await contender.mount(host, a)
-
-		let flip = false
-
-		prepared.push({
-			name: contender.name,
-			run: () => {
-				flip = !flip
-
-				return map.update(flip ? b : a)
-			},
-		})
-	}
-
-	return prepared
-}
-
-function updateBenches(prepared: PreparedBench[], options?: { time: number }) {
-	for (const { name, run } of prepared) {
-		bench(name, run, options)
-	}
-}
 
 const states = await prepare(
 	zoneMapContenders(statesAtlas),

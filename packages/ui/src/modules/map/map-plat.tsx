@@ -51,7 +51,7 @@ import { MapRangeLegend, type MapRangeLegendProps } from './map-range-legend'
 import { MapRegions } from './map-regions'
 import { MapTable } from './map-table'
 import { MapTooltip, type MapTooltipEntry } from './map-tooltip'
-import { regionValueJoin, resolveValueBins } from './map-value-scale'
+import { type RegionValueJoin, regionValueJoin, resolveValueBins } from './map-value-scale'
 import type {
 	DataKey,
 	LngLat,
@@ -419,19 +419,18 @@ function useMapRegionReadout<T>(
 		regionValues,
 		regionNumbers,
 		domain: extent,
-	} = useMemo<{
-		categoryMetas: MapCategoryMeta[]
-		regionCategory: (number | null)[]
-		regionValues: (string | null)[]
-		regionNumbers: (number | null)[]
-		domain: [number, number] | null
-	}>(() => {
+	} = useMemo<
+		RegionValueJoin & { categoryMetas: MapCategoryMeta[]; domain: [number, number] | null }
+	>(() => {
+		// The all-null column, shared by every field a branch leaves empty:
+		// nothing downstream mutates the readout arrays, so one allocation
+		// serves them all.
 		const noValues = regionIds.map(() => null)
 
 		if (data === undefined || regionKey === undefined) {
 			return {
 				categoryMetas: [],
-				regionCategory: regionIds.map(() => null),
+				regionCategory: noValues,
 				regionValues: noValues,
 				regionNumbers: noValues,
 				domain: null,
@@ -478,7 +477,7 @@ function useMapRegionReadout<T>(
 
 		return {
 			categoryMetas: [],
-			regionCategory: regionIds.map(() => null),
+			regionCategory: noValues,
 			regionValues: noValues,
 			regionNumbers: noValues,
 			domain: null,
@@ -1203,6 +1202,15 @@ export function MapPlat<T = never>({
 
 	const hasReadout = (data !== undefined && regionNames.length > 0) || entries.length > 0
 
+	// Memoised like the sibling derivations (`colors`, `tooltipEntries`, the
+	// table): the plat re-renders per legend focus, toggle, and resize commit,
+	// in none of which the items change — without the memo each such render
+	// rebuilds every item object and its class join.
+	const items = useMemo(
+		() => legendItems(categoryMetas, entries, colors, numeric),
+		[categoryMetas, entries, colors, numeric],
+	)
+
 	// The visually-hidden table renders one row per region — thousands on a
 	// county atlas — and none of it is mount-critical: defer it off the urgent
 	// render the way the chart frame defers its data table, so the geography
@@ -1245,7 +1253,7 @@ export function MapPlat<T = never>({
 					range={rangeLegend}
 					show={showLegend}
 					aside={aside}
-					items={legendItems(categoryMetas, entries, colors, numeric)}
+					items={items}
 					hidden={hidden}
 					onToggle={toggle}
 					onFocus={setFocus}

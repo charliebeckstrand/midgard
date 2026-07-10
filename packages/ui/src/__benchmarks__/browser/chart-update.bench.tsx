@@ -7,46 +7,10 @@
  * Highcharts take their in-place data-update APIs.
  */
 
-import { bench, describe } from 'vitest'
-import { barContenders, type Contender, lineContenders, scatterContenders } from './contenders'
+import { describe } from 'vitest'
+import { barContenders, lineContenders, scatterContenders } from './contenders'
 import { makePoints, makeTrend } from './fixtures'
-
-/** The big scenarios see slow iterations; a longer window keeps samples up. */
-const SLOW = { time: 2_000 }
-
-type PreparedBench = { name: string; run: () => void | Promise<void> }
-
-/** Mounts every contender on dataset `a` and closes each over an a/b swap. */
-async function prepare<D>(contenders: Contender<D>[], a: D, b: D): Promise<PreparedBench[]> {
-	const prepared: PreparedBench[] = []
-
-	for (const contender of contenders) {
-		const host = document.createElement('div')
-
-		document.body.append(host)
-
-		const chart = await contender.mount(host, a)
-
-		let flip = false
-
-		prepared.push({
-			name: contender.name,
-			run: () => {
-				flip = !flip
-
-				return chart.update(flip ? b : a)
-			},
-		})
-	}
-
-	return prepared
-}
-
-function updateBenches(prepared: PreparedBench[], options?: { time: number }) {
-	for (const { name, run } of prepared) {
-		bench(name, run, options)
-	}
-}
+import { prepare, SLOW, updateBenches } from './harness'
 
 const line1k = await prepare(lineContenders(1), makeTrend(1_000, 1, 1), makeTrend(1_000, 1, 2))
 

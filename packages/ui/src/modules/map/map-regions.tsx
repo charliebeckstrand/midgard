@@ -71,6 +71,9 @@ type RegionPaint = {
 	className: string
 }
 
+/** Every category's paint plus the no-data neutral. @internal */
+type ResolvedRegionPaints = { byCategory: RegionPaint[]; none: RegionPaint }
+
 /**
  * One category's paint: the toggle / emphasis key is the category's stable
  * value ({@link categoryLegendId}), not its index, so a reorder or removal
@@ -115,7 +118,7 @@ function resolveRegionPaints(
 	hidden: ReadonlySet<string>,
 	revealed: boolean,
 	animate: boolean,
-): { byCategory: RegionPaint[]; none: RegionPaint } {
+): ResolvedRegionPaints {
 	return {
 		byCategory: categories.map((meta) => categoryPaint(meta, hidden, revealed, animate)),
 		none: categoryPaint(null, hidden, revealed, animate),
@@ -123,10 +126,7 @@ function resolveRegionPaints(
 }
 
 /** The paint for one region's category index, the neutral where nothing matches. @internal */
-function paintAt(
-	paints: { byCategory: RegionPaint[]; none: RegionPaint },
-	category: number | null,
-): RegionPaint {
+function paintAt(paints: ResolvedRegionPaints, category: number | null): RegionPaint {
 	return (category === null ? undefined : paints.byCategory[category]) ?? paints.none
 }
 
@@ -196,9 +196,8 @@ const Region = memo(function Region({
 type MapRegionsBaseProps = {
 	paths: (string | null)[]
 	regionCategory: (number | null)[]
-	categories: MapCategoryMeta[]
-	hidden: ReadonlySet<string>
-	revealed: boolean
+	/** The paint table {@link MapRegions} resolves once for this layer and the lit overlay. */
+	paints: ResolvedRegionPaints
 	animate: boolean
 }
 
@@ -207,24 +206,19 @@ type MapRegionsBaseProps = {
  * emphasis — the pointed mark and the legend focus recede this layer from
  * outside ({@link MapRegions}) — so on a county atlas the three-thousand-path
  * tree never re-renders while the pointer travels or a legend chip is held;
- * only a toggle, the reveal flip, or new geometry re-maps it.
+ * only a toggle, the reveal flip, or new geometry re-maps it. The paint table
+ * arrives resolved from the parent, so the memo compares one stable reference
+ * where it once compared the four inputs behind it.
  *
  * @internal
  */
 const MapRegionsBase = memo(function MapRegionsBase({
 	paths,
 	regionCategory,
-	categories,
-	hidden,
-	revealed,
+	paints,
 	animate,
 }: MapRegionsBaseProps) {
 	const set = useMapHoverSet()
-
-	const paints = useMemo(
-		() => resolveRegionPaints(categories, hidden, revealed, animate),
-		[categories, hidden, revealed, animate],
-	)
 
 	// One stable handler for every region, reading the pointed index off the
 	// path's own anchor attribute: a layer re-render allocates no per-region
@@ -264,7 +258,7 @@ const MapRegionsBase = memo(function MapRegionsBase({
 })
 
 /** Props for {@link MapRegionsLit}: what the emphasis holds lit above the receded layer. @internal */
-type MapRegionsLitProps = MapRegionsBaseProps & {
+type MapRegionsLitProps = Omit<MapRegionsBaseProps, 'animate'> & {
 	pointed: MapHoverTarget | null
 	emphasis: string | null
 }
@@ -280,25 +274,14 @@ type MapRegionsLitProps = MapRegionsBaseProps & {
  *
  * @internal
  */
-function MapRegionsLit({
-	pointed,
-	emphasis,
-	paths,
-	regionCategory,
-	categories,
-	hidden,
-	revealed,
-	animate,
-}: MapRegionsLitProps) {
-	const paints = useMemo(
-		() => resolveRegionPaints(categories, hidden, revealed, animate),
-		[categories, hidden, revealed, animate],
-	)
-
-	// The pointed mark wins over a still-held legend focus, mirroring the
-	// chart's mark-emphasis resolution: a pointed region lights alone, a
-	// pointed overlay entry lights nothing here (the whole layer recedes
-	// behind it), else the focused category lights.
+function MapRegionsLit({ pointed, emphasis, paths, regionCategory, paints }: MapRegionsLitProps) {
+	// The lit set is the exact complement of the shared dim rule
+	// (`mapMarkDimmed` in context.ts — change one, change both): the pointed
+	// mark wins over a still-held legend focus, so a pointed region lights
+	// alone, a pointed overlay entry lights nothing here (the whole layer
+	// recedes behind it), else the focused category lights. Resolved by branch
+	// rather than through the helper so a pointer crossing costs O(1), not a
+	// per-region scan.
 	const lit: number[] = []
 
 	if (pointed !== null) {
@@ -389,6 +372,16 @@ export const MapRegions = memo(function MapRegions({
 		if (animate && paths.length > 0) setRevealed(true)
 	}, [animate, paths.length])
 
+	// One paint table for both layers: the memo's identity holds across the
+	// pointed-mark re-renders this component takes per crossing, so the base
+	// layer's memo still compares equal — and the lit overlay, which mounts and
+	// unmounts with the emphasis, reads the cached table instead of resolving
+	// its own from cold on every hover-in.
+	const paints = useMemo(
+		() => resolveRegionPaints(categories, hidden, revealed, animate),
+		[categories, hidden, revealed, animate],
+	)
+
 	const receded = pointed !== null || emphasis !== null
 
 	return (
@@ -397,9 +390,7 @@ export const MapRegions = memo(function MapRegions({
 				<MapRegionsBase
 					paths={paths}
 					regionCategory={regionCategory}
-					categories={categories}
-					hidden={hidden}
-					revealed={revealed}
+					paints={paints}
 					animate={animate}
 				/>
 			</g>
@@ -410,10 +401,7 @@ export const MapRegions = memo(function MapRegions({
 					emphasis={emphasis}
 					paths={paths}
 					regionCategory={regionCategory}
-					categories={categories}
-					hidden={hidden}
-					revealed={revealed}
-					animate={animate}
+					paints={paints}
 				/>
 			)}
 		</g>

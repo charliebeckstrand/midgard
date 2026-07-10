@@ -10,7 +10,7 @@ import {
 import { Text } from '../../components/text'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
-import { useMapHoverState } from './context'
+import { useMapPointedMark } from './context'
 import { categoryLegendId } from './map-categories'
 
 /**
@@ -534,10 +534,11 @@ export type MapRangeLegendProps = {
 
 /**
  * The hover arrow: a glyph on the scale bar's edge marking the exact value of
- * the region the pointer is on. Isolated as its own {@link useMapHoverState}
- * consumer so a pointer move over the map re-renders only this glyph — never
- * the gradient bar, the thumb, or the endpoint labels. Its edge follows the
- * bar's `orientation`.
+ * the region the pointer is on. Isolated as its own {@link useMapPointedMark}
+ * consumer — the crossing-stable context, not the per-pixel hover state — so
+ * pointer travel within a region re-renders nothing and only a crossing moves
+ * this glyph; the gradient bar, the thumb, and the endpoint labels never
+ * re-render either way. Its edge follows the bar's `orientation`.
  *
  * @internal
  */
@@ -550,9 +551,9 @@ function RangeHoverArrow({
 	domain: [number, number]
 	orientation: RangeOrientation
 }) {
-	const { target } = useMapHoverState()
+	const pointed = useMapPointedMark()
 
-	const value = target !== null && target.kind === 'region' ? regionNumbers[target.index] : null
+	const value = pointed !== null && pointed.kind === 'region' ? regionNumbers[pointed.index] : null
 
 	if (value == null) return null
 
