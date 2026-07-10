@@ -287,41 +287,49 @@ describe('MapPlat', () => {
 
 		fireEvent.pointerEnter(east as HTMLButtonElement)
 
-		// A region carries the dim on the path itself.
-		const groups = allRegions(container).map((el) => el.getAttribute('class') ?? '')
+		// The layer recedes as one group and the focused category redraws lit
+		// above it — the chart marks' isolation pattern.
+		expect(bySlot(container, 'map-regions-recede')?.getAttribute('class')).toContain('opacity-25')
 
-		expect(groups[0]).not.toContain('opacity-25')
+		const lit = bySlot(container, 'map-regions-lit')
 
-		expect(groups[1]).toContain('opacity-25')
+		expect(lit?.querySelectorAll('path')).toHaveLength(1)
 
-		expect(groups[2]).toContain('opacity-25')
+		expect(lit?.querySelector('path')?.getAttribute('class')).toContain('fill-blue-600')
 
 		fireEvent.pointerLeave(east as HTMLButtonElement)
 
-		expect(
-			allRegions(container).every((el) => !(el.getAttribute('class') ?? '').includes('opacity-25')),
-		).toBe(true)
+		expect(bySlot(container, 'map-regions-recede')?.getAttribute('class')).not.toContain(
+			'opacity-25',
+		)
+
+		expect(bySlot(container, 'map-regions-lit')).toBeNull()
 	})
 
 	it('isolates the pointed region, dimming every other region', () => {
 		const { container } = renderUI(plat())
 
-		// A region carries the dim on the path itself.
-		const groups = () => allRegions(container).map((el) => el.getAttribute('class') ?? '')
-
 		const [alpha] = allRegions(container)
 
 		fireEvent.pointerEnter(alpha as Element, { clientX: 40, clientY: 20 })
 
-		expect(groups()[0]).not.toContain('opacity-25')
+		// The layer recedes behind the pointed region's lit copy — identical
+		// geometry, so the opaque copy covers its dimmed original exactly.
+		expect(bySlot(container, 'map-regions-recede')?.getAttribute('class')).toContain('opacity-25')
 
-		expect(groups()[1]).toContain('opacity-25')
+		const copy = bySlot(container, 'map-regions-lit')?.querySelector('path')
 
-		expect(groups()[2]).toContain('opacity-25')
+		expect(copy?.getAttribute('d')).toBe(alpha?.getAttribute('d'))
+
+		expect(bySlot(container, 'map-regions-lit')?.querySelectorAll('path')).toHaveLength(1)
 
 		fireEvent.pointerLeave(bySlot(container, 'map-regions') as Element)
 
-		expect(groups().every((cls) => !cls.includes('opacity-25'))).toBe(true)
+		expect(bySlot(container, 'map-regions-recede')?.getAttribute('class')).not.toContain(
+			'opacity-25',
+		)
+
+		expect(bySlot(container, 'map-regions-lit')).toBeNull()
 	})
 
 	it('lets the pointed region win over a still-held legend emphasis', () => {
@@ -331,25 +339,33 @@ describe('MapPlat', () => {
 
 		fireEvent.pointerEnter(east as HTMLButtonElement)
 
-		const [alpha, beta] = allRegions(container)
+		// East's region lights under the legend focus...
+		expect(
+			bySlot(container, 'map-regions-lit')?.querySelector('path')?.getAttribute('class'),
+		).toContain('fill-blue-600')
 
-		// West's region dims under the legend's East focus...
-		expect(beta?.getAttribute('class')).toContain('opacity-25')
+		const [, beta] = allRegions(container)
 
 		fireEvent.pointerEnter(beta as Element, { clientX: 150, clientY: 20 })
 
-		// ...until pointed: the pointer's mark takes the emphasis, receding even
-		// the legend-focused group behind it.
-		expect(beta?.getAttribute('class')).not.toContain('opacity-25')
+		// ...until pointed: the pointer's mark takes the emphasis, its copy —
+		// carrying the static hover brightness — receding even the focused group.
+		const copy = bySlot(container, 'map-regions-lit')?.querySelector('path')
 
-		expect(alpha?.getAttribute('class')).toContain('opacity-25')
+		expect(copy?.getAttribute('class')).toContain('fill-orange-600')
+
+		expect(copy?.getAttribute('class')).toContain('brightness-110')
+
+		expect(bySlot(container, 'map-regions-lit')?.querySelectorAll('path')).toHaveLength(1)
 	})
 
 	it('keeps the map lit while the pointer sits on a no-data or toggled-off region', () => {
 		const { container } = renderUI(plat())
 
 		const lit = () =>
-			allRegions(container).every((el) => !(el.getAttribute('class') ?? '').includes('opacity-25'))
+			!(bySlot(container, 'map-regions-recede')?.getAttribute('class') ?? '').includes(
+				'opacity-25',
+			) && bySlot(container, 'map-regions-lit') === null
 
 		const [alpha, , gamma] = allRegions(container)
 
@@ -589,22 +605,25 @@ describe('MapPlat choropleth mode', () => {
 
 		expect(track).not.toBeNull()
 
-		// A region carries the dim on the path itself.
-		const dimmedCount = () =>
-			allRegions(container).filter((region) => region.getAttribute('class')?.includes('opacity-25'))
-				.length
+		// The layer recedes as one group; the snapped bin's regions redraw lit.
+		const receded = () =>
+			(bySlot(container, 'map-regions-recede')?.getAttribute('class') ?? '').includes('opacity-25')
 
 		// Nothing dims until the bar is pointed.
-		expect(dimmedCount()).toBe(0)
+		expect(receded()).toBe(false)
 
 		fireEvent.pointerMove(track as Element, { clientY: 10 })
 
-		// Regions outside the snapped bin dim — the switchboard's hover filter.
-		expect(dimmedCount()).toBeGreaterThan(0)
+		// Regions outside the snapped bin recede — the switchboard's hover filter.
+		expect(receded()).toBe(true)
+
+		expect(bySlot(container, 'map-regions-lit')?.querySelectorAll('path').length).toBeGreaterThan(0)
 
 		fireEvent.pointerLeave(track as Element)
 
-		expect(dimmedCount()).toBe(0)
+		expect(receded()).toBe(false)
+
+		expect(bySlot(container, 'map-regions-lit')).toBeNull()
 	})
 
 	it('stands the range bar vertical on the right by default', () => {

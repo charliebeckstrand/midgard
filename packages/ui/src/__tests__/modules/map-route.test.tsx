@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import type { LngLat } from '../../modules/map'
 import { MapPlat, MapRoute } from '../../modules/map'
 import { ROUTE_HIT_WIDTH } from '../../modules/map/map-constants'
-import { allBySlot, allRegions, bySlot, fireEvent, renderUI } from '../helpers'
+import { allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 
 const STOPS: LngLat[] = [
@@ -135,9 +135,9 @@ describe('MapRoute', () => {
 
 		const { container, rerender } = renderUI(view(true))
 
-		// A region carries the dim on the path itself.
+		// The region layer recedes as one group.
 		const anyDimmed = () =>
-			allRegions(container).some((el) => (el.getAttribute('class') ?? '').includes('opacity-25'))
+			(bySlot(container, 'map-regions-recede')?.getAttribute('class') ?? '').includes('opacity-25')
 
 		fireEvent.pointerEnter(bySlot(container, 'map-legend-item') as HTMLButtonElement)
 

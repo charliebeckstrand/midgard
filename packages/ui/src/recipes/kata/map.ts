@@ -30,21 +30,20 @@ export const k = {
 		/** Pointer emphasis on the hovered region. */
 		hover: 'hover:brightness-110',
 		/**
-		 * The shared-emphasis dim on a region path. Deliberately transition-free,
-		 * unlike `group`: a county atlas dims thousands of paths at once, and that
-		 * many simultaneous opacity transitions price a legend focus — or the
-		 * pointed mark's first crossing — at hundreds of milliseconds of per-frame
-		 * compositing. Snapping keeps the recede one repaint, and an untransitioned
-		 * opacity composes with the colour wash's `transition-colors` on the same
-		 * element, so a region never needs a wrapper.
+		 * The pointed region's lit copy carries the hover emphasis statically:
+		 * it is the hovered region by definition, and `:hover` can't reach the
+		 * pointer-events-none copy.
 		 */
-		dim: 'opacity-25',
+		pointed: 'brightness-110',
 	},
 	/**
 	 * A mark group's response to emphasis — the legend's focused group, or the
 	 * pointed mark on the map itself: everything outside it dims, the
-	 * emphasised mark holds. On the wrapper, so motion's inline opacity
-	 * composes.
+	 * emphasised mark holds. On a wrapper (an overlay's, or the whole region
+	 * layer's recede group), so motion's inline opacity composes — and so a
+	 * county atlas fades as one transition, never one per path: thousands of
+	 * simultaneous opacity transitions priced a legend focus at hundreds of
+	 * milliseconds of per-frame compositing.
 	 */
 	group: (dimmed: boolean) => ['transition-opacity', dimmed ? 'opacity-25' : ''],
 	/** Keyboard focus ring for the range legend's scale-bar slider — the shared accent outline. */
