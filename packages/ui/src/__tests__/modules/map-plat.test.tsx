@@ -287,8 +287,7 @@ describe('MapPlat', () => {
 
 		fireEvent.pointerEnter(east as HTMLButtonElement)
 
-		// A static region carries the dim on the path itself (the wrapper exists
-		// only under `animate`).
+		// A region carries the dim on the path itself.
 		const groups = allRegions(container).map((el) => el.getAttribute('class') ?? '')
 
 		expect(groups[0]).not.toContain('opacity-25')
@@ -307,8 +306,7 @@ describe('MapPlat', () => {
 	it('isolates the pointed region, dimming every other region', () => {
 		const { container } = renderUI(plat())
 
-		// A static region carries the dim on the path itself (the wrapper exists
-		// only under `animate`).
+		// A region carries the dim on the path itself.
 		const groups = () => allRegions(container).map((el) => el.getAttribute('class') ?? '')
 
 		const [alpha] = allRegions(container)
@@ -591,8 +589,7 @@ describe('MapPlat choropleth mode', () => {
 
 		expect(track).not.toBeNull()
 
-		// A static region carries the dim on the path itself (the wrapper exists
-		// only under `animate`).
+		// A region carries the dim on the path itself.
 		const dimmedCount = () =>
 			allRegions(container).filter((region) => region.getAttribute('class')?.includes('opacity-25'))
 				.length

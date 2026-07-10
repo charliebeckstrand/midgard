@@ -135,8 +135,7 @@ describe('MapRoute', () => {
 
 		const { container, rerender } = renderUI(view(true))
 
-		// A static region carries the dim on the path itself (the wrapper exists
-		// only under `animate`).
+		// A region carries the dim on the path itself.
 		const anyDimmed = () =>
 			allRegions(container).some((el) => (el.getAttribute('class') ?? '').includes('opacity-25'))
 

@@ -29,6 +29,16 @@ export const k = {
 		border: mode('stroke-white', 'dark:stroke-zinc-900'),
 		/** Pointer emphasis on the hovered region. */
 		hover: 'hover:brightness-110',
+		/**
+		 * The shared-emphasis dim on a region path. Deliberately transition-free,
+		 * unlike `group`: a county atlas dims thousands of paths at once, and that
+		 * many simultaneous opacity transitions price a legend focus — or the
+		 * pointed mark's first crossing — at hundreds of milliseconds of per-frame
+		 * compositing. Snapping keeps the recede one repaint, and an untransitioned
+		 * opacity composes with the colour wash's `transition-colors` on the same
+		 * element, so a region never needs a wrapper.
+		 */
+		dim: 'opacity-25',
 	},
 	/**
 	 * A mark group's response to emphasis — the legend's focused group, or the
