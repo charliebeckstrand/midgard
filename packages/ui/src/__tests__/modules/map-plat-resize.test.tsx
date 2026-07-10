@@ -1,7 +1,7 @@
 import { geoMercator } from 'd3-geo'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { MapPlat } from '../../modules/map'
-import { act, allBySlot, bySlot, mockDomGeometry, renderUI } from '../helpers'
+import { act, allRegions, bySlot, mockDomGeometry, renderUI } from '../helpers'
 import { FIXTURE_GEOJSON, FIXTURE_ROWS } from '../helpers/map-geography'
 
 /**
@@ -74,7 +74,7 @@ describe('MapPlat resize with a passed projection instance', () => {
 
 	/** The first region's path `d`, or `null` before any region is drawn. */
 	function firstRegionPath(container: HTMLElement): string | null {
-		return allBySlot(container, 'map-region')[0]?.getAttribute('d') ?? null
+		return allRegions(container)[0]?.getAttribute('d') ?? null
 	}
 
 	/** The width component of the plot SVG's `viewBox`. */

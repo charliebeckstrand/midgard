@@ -47,7 +47,7 @@ type RegionFill = {
 	groupId: string | null
 	/** The Tailwind fill class — the neutral no-data class, a categorical slot, or none for a value fill. */
 	fillClass: string | string[] | undefined
-	/** The inline CSS fill for a numeric bin, `undefined` for a class fill. */
+	/** The `fill` attribute colour for a numeric bin, `undefined` for a class fill. */
 	fillColor: string | undefined
 }
 
@@ -87,7 +87,7 @@ function regionFill(
 
 /**
  * One region path. A categorical slot fills by Tailwind class; a numeric bin
- * fills by an inline CSS colour from the consumer's `colorRange`. No-data — and
+ * fills by a `fill` attribute colour from the consumer's `colorRange`. No-data — and
  * the pre-reveal beat under `animate` — takes the neutral class. Regions
  * outside the emphasised group dim: a static region carries the dim on the
  * path itself, so the default tree stays one element per region — thousands
@@ -119,11 +119,20 @@ function Region({
 
 	const path = (
 		<path
-			data-slot="map-region"
-			// Read by the hover provider's scroll-settle resolve to name the
-			// region under the pointer straight off the DOM.
+			// The region's DOM anchor: the hover provider's scroll-settle resolve —
+			// and the tests — name the region under the pointer straight off this
+			// attribute. Deliberately not a `data-slot`: the stylesheet carries
+			// `[data-slot=…]` attribute selectors for other components, so on a
+			// county atlas thousands of paths would each pay attribute-rule
+			// matching at first style resolution — a quarter of the mount — for an
+			// anchor nothing styles by. The layer keeps its `map-regions` slot.
 			data-region-index={index}
 			d={d}
+			// A numeric bin's colour rides the `fill` presentation attribute, not
+			// an inline style: per-element CSSOM style declarations priced ~a fifth
+			// of the choropleth mount. A value paint never carries a fill class, so
+			// nothing in the cascade sits above the attribute.
+			fill={fillColor}
 			strokeWidth={REGION_STROKE_WIDTH}
 			// The border rides device pixels, not viewBox units, so it stays a
 			// hairline whatever the viewBox-to-box ratio is: a resize that lands
@@ -137,15 +146,14 @@ function Region({
 				active && k.region.hover,
 				animate ? 'transition-colors ease-out motion-reduce:transition-none' : k.group(dimmed),
 			)}
-			style={{
-				...(fillColor !== undefined ? { fill: fillColor } : null),
-				...(animate
+			style={
+				animate
 					? {
 							transitionDuration: `${REGION_FADE.duration * 1000}ms`,
 							transitionDelay: `${Math.min(index * REGION_STAGGER, REGION_STAGGER_MAX) * 1000}ms`,
 						}
-					: null),
-			}}
+					: undefined
+			}
 			onPointerEnter={onTrack}
 			onPointerMove={onTrack}
 		/>

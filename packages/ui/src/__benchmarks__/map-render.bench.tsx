@@ -81,7 +81,7 @@ describe('static geometry · cold vs warm (states-10m)', () => {
 describe('MapPlat · hover cascade (states, 52 regions)', () => {
 	const { container } = render(statesPlat())
 
-	const region = container.querySelector('[data-slot="map-region"]') as Element
+	const region = container.querySelector('[data-region-index]') as Element
 
 	const legendItem = container.querySelector('[data-slot="map-legend-item"]') as Element
 
@@ -103,7 +103,7 @@ describe('MapPlat · hover cascade (counties, 3143 regions)', () => {
 		<MapPlat aria-label="Counties" geography={countiesGeo} width={800} />,
 	)
 
-	const region = container.querySelector('[data-slot="map-region"]') as Element
+	const region = container.querySelector('[data-region-index]') as Element
 
 	bench('10 pointermoves over one region', () => {
 		for (let i = 0; i < 10; i++) {

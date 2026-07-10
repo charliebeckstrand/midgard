@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import type { LngLat } from '../../modules/map'
 import { MapPlat, MapRoute } from '../../modules/map'
 import { ROUTE_HIT_WIDTH } from '../../modules/map/map-constants'
-import { allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
+import { allBySlot, allRegions, bySlot, fireEvent, renderUI } from '../helpers'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 
 const STOPS: LngLat[] = [
@@ -138,9 +138,7 @@ describe('MapRoute', () => {
 		// A static region carries the dim on the path itself (the wrapper exists
 		// only under `animate`).
 		const anyDimmed = () =>
-			allBySlot(container, 'map-region').some((el) =>
-				(el.getAttribute('class') ?? '').includes('opacity-25'),
-			)
+			allRegions(container).some((el) => (el.getAttribute('class') ?? '').includes('opacity-25'))
 
 		fireEvent.pointerEnter(bySlot(container, 'map-legend-item') as HTMLButtonElement)
 

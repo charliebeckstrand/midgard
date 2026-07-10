@@ -104,16 +104,16 @@ Mean ms per iteration, ui / Highcharts Maps / ECharts — **bold** marks a scena
 
 | Scenario | ui | Highcharts | ECharts |
 | --- | ---: | ---: | ---: |
-| mount · states · 49 × 4 zones | **4.7** | 20.4 | 15.1 |
-| mount · counties · 3,108 × 4 zones | **112.9** | 223.0 | 193.0 |
-| mount · counties choropleth · 3,108 | **138.7** | 225.7 | 201.7 |
-| update · states · re-zone | **0.5** | 10.2 | 11.8 |
-| update · counties · re-zone | **8.3** | 154.6 | 191.0 |
-| update · counties choropleth · re-value | **7.7** | 154.6 | 214.0 |
-| hover · states · sweep | 13.6 | 17.7 | 9.1 |
-| hover · counties · sweep | **7.7** | 17.5 | 17.5 |
+| mount · states · 49 × 4 zones | **4.3** | 16.5 | 12.9 |
+| mount · counties · 3,108 × 4 zones | **61.0** | 208.2 | 163.1 |
+| mount · counties choropleth · 3,108 | **68.6** | 210.3 | 171.3 |
+| update · states · re-zone | **0.4** | 7.7 | 9.1 |
+| update · counties · re-zone | **6.4** | 132.8 | 154.2 |
+| update · counties choropleth · re-value | **6.1** | 146.2 | 162.8 |
+| hover · states · sweep | **16.4** | 17.4 | 9.6 |
+| hover · counties · sweep | **8.6** | 17.8 | 20.5 |
 
-The module beats **Highcharts Maps on all eight** scenarios and **ECharts on seven**. The updates are not close — 18–26× — because the memoised region layer holds its geometry and React recolours fills in place, while the rivals rebuild their scene from the new data; that is the dashboard refresh path the module was shaped for. The one deficit is the states hover sweep against ECharts' canvas, the chart suite's residual under another name: a React commit per pointer move drives the pointer-anchored Tooltip against a vanilla canvas redraw, and closing it means the same imperative-DOM trade the chart module has left open by choice. The sweep itself coalesces to one commit per iteration under React's continuous-event batching — the same coalescing a real pointer stream gets.
+The module beats **Highcharts Maps on all eight** scenarios and **ECharts on seven**. The updates are not close — 19–27× — because the memoised region layer holds its geometry and React recolours fills in place, while the rivals rebuild their scene from the new data; that is the dashboard refresh path the module was shaped for. The one deficit is the states hover sweep against ECharts' canvas, the chart suite's residual under another name: a React commit per pointer move drives the pointer-anchored Tooltip against a vanilla canvas redraw, and closing it means the same imperative-DOM trade the chart module has left open by choice. The sweep itself coalesces to one commit per iteration under React's continuous-event batching — the same coalescing a real pointer stream gets.
 
 ### Optimization log
 
@@ -125,4 +125,10 @@ The baseline run (suite as first landed) had the counties mounts at 476–505ms 
 
 3. **Measured-paths memo** ([`map-geometry-cache.ts`](../../modules/map/map-geometry-cache.ts) `measuredRegionPaths`). The measured refit reprojected and restringified every region on each mount — ~116ms on the county atlas — though for a named projection it is a pure function of the cached geometry and the frame box. The shared cache now keeps the last measured fit's paths per geometry (one slot; a resize replaces it), so a remount at the same box — a tab switch, a dashboard's small multiples — reuses them the way the canonical stage already reused its fit. States mount 24.3 → 4.7, counties 476 → 113, choropleth 505 → 139: every mount now ahead of both rivals.
 
-Open: the states hover sweep trails ECharts (~14 vs ~9) — the React-commit-per-move residual named above, shared with the chart suite's scatter hover and closable only by the same imperative-DOM trade. Everything else stands beaten.
+4. **Slot-less region paths** ([`map-regions.tsx`](../../modules/map/map-regions.tsx)). A bare-`<path>` floor probe put the county mount ~30ms above it, and bisecting the per-region props landed the whole gap on one attribute: `data-slot="map-region"`. The stylesheet carries `[data-slot=…]` attribute selectors for other components, so every element bearing the attribute pays attribute-rule matching at first style resolution — 3,108 paths × the sheet's `data-slot` rules, for an anchor nothing styles by. Regions now anchor on `data-region-index` alone (free — no selector in the sheet reads it, and the hover provider's scroll resolve already read it); the layer keeps its `map-regions` slot, and the tests and this suite's sweep resolver target the index attribute. Counties mount 94.6 → 61.0 on this container.
+
+5. **Attribute fill for numeric bins** ([`map-regions.tsx`](../../modules/map/map-regions.tsx)). The choropleth's bin colour rode a per-region inline `style`, and 3,108 CSSOM style declarations priced ~24ms — nearly the whole categorical → choropleth mount gap. The colour now rides the `fill` presentation attribute: a value paint never carries a fill class, so nothing in the cascade sits above it, and the colour wash's `transition-colors` animates either way. Choropleth mount 123.5 → 68.6 with lever 4, update 6.6 → 6.1.
+
+Probed, not landed: lazy value labels (the chart's lever 7 shape — `regionValueLabels` off the urgent render) measured ~2.7ms on the choropleth mount, the default `String` format being nothing like the chart's per-cell `Intl` work; hoisting the per-region fill resolution and `cn` out of the 3,107-region map measured ~3.7ms; dropping the `hover:brightness-110` filter measured ~1.1ms of the states sweep. Each priced below its complexity, and the states-hover distributions (ui and Highcharts pinned near one frame regardless of region count, ui counties bimodal down to sub-millisecond samples) say that residual is the settled frame around the React commit, not script.
+
+Open: the states hover sweep trails ECharts (~16 vs ~10) — the React-commit-per-move residual named above, shared with the chart suite's scatter hover and closable only by the same imperative-DOM trade. Everything else stands beaten.
