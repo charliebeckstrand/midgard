@@ -100,23 +100,23 @@ Fairness notes, both directions: the ui grid keeps its built-in chrome (toolbar 
 
 ### Standings (2026-07-10, this workstation)
 
-Absolute numbers move with hardware — this table was re-measured on a faster machine than the round-one/two figures the optimization log's relative deltas cite, so read the deltas there, the ratios here. Mean ms per iteration, ui / AG Grid / MUI X — **bold** marks a scenario where ui beats both.
+Absolute numbers move with hardware — this table was re-measured on a faster machine than the round-one/two figures the optimization log's relative deltas cite, so read the deltas there, the ratios here. Mean ms per iteration, ui (before this suite's off-engine work → after) / AG Grid / MUI X — **bold** marks a scenario where the ui number beats both rivals. The `before` column benches the pre-off-engine grid source through the same harness on the same machine, so the before/after is a true same-machine delta.
 
-| Scenario | ui | AG Grid | MUI X |
-| --- | ---: | ---: | ---: |
-| mount · 1,000 × 8 | **4.6** | 10.9 | 9.9 |
-| mount · 10,000 × 8 | **5.3** | 10.4 | 10.0 |
-| mount · 100,000 × 8 | **15.8** | 50.4 | 30.8 |
-| update · 10,000 × 8 | **3.5** | 5.8 | 19.8 |
-| update · 100,000 × 8 | **13.0** | 57.0 | 26.6 |
-| sort · 10,000 · flip | 24.8 | 12.5 | 6.9 |
-| sort · 100,000 · flip | 156.2 | 26.9 | 67.9 |
-| scroll · 10,000 · round trip | **211.3** | 219.2 | — |
-| scroll · 100,000 · round trip | **204.2** | 264.1 | — |
+| Scenario | ui before | ui | AG Grid | MUI X |
+| --- | ---: | ---: | ---: | ---: |
+| mount · 1,000 × 8 | 7.3 | **4.9** | 11.0 | 9.7 |
+| mount · 10,000 × 8 | 17.5 | **5.5** | 15.6 | 10.6 |
+| mount · 100,000 × 8 | 157 | **16.0** | 50.1 | 25.4 |
+| update · 10,000 × 8 | 15.8 | **3.0** | 5.3 | 19.8 |
+| update · 100,000 × 8 | 155 | **12.2** | 54.2 | 24.5 |
+| sort · 10,000 · flip | 24.8 | 9.5 | 9.8 | 6.5 |
+| sort · 100,000 · flip | 162 | 40.2 | 23.1 | 31.3 |
+| scroll · 10,000 · round trip | 235 | **206.7** | 217.0 | — |
+| scroll · 100,000 · round trip | 218 | **206.7** | 246.3 | — |
 
-The structural row-model lever landed, and the board turned over: the ui grid now beats **both** competitors on every mount, every update, and both scroll sweeps — the 100k mount an order of magnitude under AG (15.8 vs 50.4) and the 100k update over four times under it (13.0 vs 57.0). The whole linear term is gone from the untransformed paths, so mount and update barely move from 1k to 100k (5 → 16ms, 4 → 13ms) where the competitors climb.
+The structural row-model lever landed, and the board turned over: the ui grid now beats **both** competitors on every mount and every update — the 100k mount ~3× under AG (16 vs 50) and the 100k update over 4× under it (12 vs 54). The whole linear term is gone from the untransformed paths, so mount and update barely move from 1k to 100k (5 → 16ms, 3 → 12ms) where the competitors climb. Scroll is unchanged here — that win landed earlier (#954's lazy truncation) and still beats AG; this PR left it flat, as the before/after shows.
 
-What remains is **sort** — the one scenario the ui grid still trails (156 vs AG 27 at 100k). Sort is a genuine transform, so it materializes the engine row model by design (the lite-cell path can't skip what the sort must reorder), and it pays a per-comparison `WeakMap` + `Map` sort-key lookup and engine comparator dispatch O(N log N) times on top of that build. The next lever is array-indexed sort keys resolved once per sort against a plain array the body reads directly, taking the sort off the engine's row model the way mount and update now are. Below that, the per-cell render is the last rung — a cell-tree diet (`GridDataCell` → `TableCell` → span) for the residual per-row constant.
+Sort took the off-engine path too and closed most of its gap — 100k sort fell from 162 to 40ms (from 7× behind AG to 1.7×, from 5× behind MUI to 1.3×), and 10k from 25 to 9.5ms (now edging AG, still behind MUI's 6.5). A sort that is the grid's only transform now orders `rows` directly, off the engine, like mount and update — but it still trails both rivals at 100k, the suite's one open scenario. The 40-vs-23 residual is the decode: an asc↔desc flip re-derives every row's `SortKey` (the `parseNumeric` regex work) even though only the direction changed. The next lever is caching the decoded keys per (rows, column) so a flip re-sorts without re-decoding — a `WeakMap` keyed on the `rows` array, no manual invalidation — which should close the AG gap. Below that, the per-cell render is the last rung — a cell-tree diet (`GridDataCell` → `TableCell` → span) for the residual per-row constant.
 
 ### Optimization log
 
@@ -132,9 +132,11 @@ Each entry names the change and the scenarios it moved.
 
 5. **Lite-cell body path** ([`grid-row.tsx`](../../modules/grid/grid-row.tsx), [`grid-group-leaf-row.tsx`](../../modules/grid/grid-group-leaf-row.tsx)). The body rendered every cell through the engine — `table.getRow(key).getVisibleCells()` per row, `flexRender` per cell — which forced a TanStack `Row` object per datum even on a grid no sort, filter, or grouping had touched (the profile's `accessRows` / `createRow`, the whole linear term). Rows now render straight from `renderRows` × `visibleColumns`, calling each column's `cell(row)` inline with no engine row or cell object between; the pointer handlers resolve a clicked cell against the column list instead of the engine cells. The grouped body keeps engine cells (it needs their grouping model) and recovers the same column list from their `meta`.
 
-6. **Materialization gated on active transform** ([`use-grid-table.ts`](../../modules/grid/use-grid-table.ts) `resolveActiveClientTransform`). With the body off the engine, the row model is built only when a transform is *actively* reshaping the rows — capability is not activity, so an empty sort list, a configured search with no query, and a filter surface with no entries all hand `rows` straight through. A plain mount and a data refresh no longer materialize at all. Mount 100k ~450 → 16 and update 100k ~440 → 13 (both now an order of magnitude past AG); mount and update stay near-flat 1k → 100k where the engine term used to dominate.
+6. **Materialization gated on active transform** ([`use-grid-table.ts`](../../modules/grid/use-grid-table.ts) `resolveActiveEngineTransform`). With the body off the engine, the row model is built only when a transform is *actively* reshaping the rows — capability is not activity, so an empty sort list, a configured search with no query, and a filter surface with no entries all hand `rows` straight through. A plain mount and a data refresh no longer materialize at all. Mount 100k ~450 → 16 and update 100k ~440 → 13 (both now an order of magnitude past AG); mount and update stay near-flat 1k → 100k where the engine term used to dominate.
 
 7. **Autosizer fingerprint off the row model** ([`use-grid-column-auto-size.ts`](../../modules/grid/use-grid-column-auto-size.ts), [`use-grid-table.ts`](../../modules/grid/use-grid-table.ts)). The column autosizer fingerprinted the rendered rows through `table.getRowModel()` — which alone materialized the engine model on every resizable-by-default grid, undoing lever 6. It now takes a `rowsSignature` (count and end keys) the grid already derived, so nothing touches the engine model on the plain path. The update bench's settle gained a one-frame yield per refresh ([`grid-update.bench.tsx`](grid-update.bench.tsx)): a synchronous contender otherwise settles in zero frames, so the harness chained dozens of `flushSync` refreshes in one tick with no paint between — an unrealistic cadence (a polling dashboard paints between refreshes) that piled the grid's one benign post-commit re-render into React's nested-update guard. The frame is near-free with the frame-rate limit off and lands on every contender alike; the post-commit re-render itself (a low-priority `update`-phase commit on a data swap, pre-existing and independent of these levers) stays open as a minor cleanup.
+
+8. **Off-engine client sort** ([`grid-sorting-utilities.ts`](../../modules/grid/grid-sorting-utilities.ts) `sortRowsSmart`, [`use-grid-table.ts`](../../modules/grid/use-grid-table.ts) `useSortView`). Sort was the last transform still forcing the engine model — a plain sorted grid built a `Row` per datum and paid a per-comparison `WeakMap` + `Map` sort-key lookup on top. A sort that is the grid's *sole* transform now orders `rows` directly through `sortRowsSmart`, a decorate-sort-undecorate that decodes each row's `SortKey` once and sorts pre-decoded keys — matching the engine's `makeSmartSortingFn` exactly (empties last under both directions, multi-column priority, stable tie-break) so it interchanges with `getSortedRowModel` when a filter or grouping is also live. The column accessor the sort reads is the shared `columnAccessor` (one resolution sort, filter, aggregation, and export now all read through). Sort 100k 162 → 40 (from 7× behind AG to 1.7×, still trailing both rivals), 10k 25 → 9.5 (now edging AG, still behind MUI). The residual is the re-decode on a direction flip — the open `WeakMap`-cache lever above.
 
 ## Maps
 
