@@ -75,7 +75,7 @@ describe('parseChatChartSpec', () => {
 })
 
 describe('ChatChart', () => {
-	it('renders a valid spec as its chart kind, titled and accessibly named', () => {
+	it('renders a valid spec as its chart kind, titled and accessibly named, on its own border', () => {
 		const { container, getByRole } = renderUI(<ChatChart code={LINE_SPEC} />)
 
 		const el = present(bySlot(container, 'chat-chart'), 'chat chart')
@@ -83,6 +83,9 @@ describe('ChatChart', () => {
 		expect(el).toHaveAttribute('data-state', 'chart')
 
 		expect(el).toHaveAttribute('data-type', 'line')
+
+		// The chart stands on a sen border rather than in a bubble.
+		expect(el.className).toContain('border')
 
 		expect(getByRole('img', { name: 'Signups per week' })).toBeInTheDocument()
 	})

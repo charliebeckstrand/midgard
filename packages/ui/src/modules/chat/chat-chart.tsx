@@ -2,6 +2,8 @@
 
 import { useMemo } from 'react'
 import { CodeBlock } from '../../components/code'
+import { cn } from '../../core'
+import { k } from '../../recipes/kata/chat-chart'
 import { AreaChart } from '../chart/area-chart'
 import { BarChart } from '../chart/bar-chart'
 import type { PieChartSeries, ScatterChartSeries } from '../chart/chart-schema'
@@ -141,12 +143,16 @@ export type ChatChartProps = {
  * hidden data table.
  *
  * @remarks
- * Degrades instead of throwing: while `streaming`, an unparseable spec is an
- * in-flight fence and renders a {@link ChartSkeleton} that the finished chart
- * replaces in place; settled, it renders the raw JSON as a {@link CodeBlock},
- * so a malformed spec stays legible (and copyable) rather than vanishing. The
- * spec is data-only — fields are whitelisted onto the chart's props, so fence
- * JSON can never inject markup or reach arbitrary props.
+ * Stands on its own {@link sen} border rather than inside a message bubble
+ * (see {@link ChatMessage}, which lifts a chart out of the bubble flow) — a
+ * bordered card the plot fills. Degrades instead of throwing: while
+ * `streaming`, an unparseable spec is an in-flight fence and renders a
+ * bordered {@link ChartSkeleton} that the finished chart replaces in place;
+ * settled, it renders the raw JSON as a copyable {@link CodeBlock} (borderless
+ * — the code block carries its own frame), so a malformed spec stays legible
+ * rather than vanishing. The spec is data-only — fields are whitelisted onto
+ * the chart's props, so fence JSON can never inject markup or reach arbitrary
+ * props.
  */
 export function ChatChart({ code, streaming, className }: ChatChartProps) {
 	const spec = useMemo(() => parseChatChartSpec(code), [code])
@@ -156,7 +162,9 @@ export function ChatChart({ code, streaming, className }: ChatChartProps) {
 			<div
 				data-slot="chat-chart"
 				data-state={streaming ? 'pending' : 'invalid'}
-				className={className}
+				// Pending: border the loading footprint. Invalid: the code block
+				// supplies its own frame, so no doubled border.
+				className={cn(streaming && k(), className)}
 			>
 				{streaming ? <ChartSkeleton /> : <CodeBlock code={code} lang="json" />}
 			</div>
@@ -173,7 +181,12 @@ export function ChatChart({ code, streaming, className }: ChatChartProps) {
 	}
 
 	return (
-		<div data-slot="chat-chart" data-state="chart" data-type={spec.type} className={className}>
+		<div
+			data-slot="chat-chart"
+			data-state="chart"
+			data-type={spec.type}
+			className={cn(k(), className)}
+		>
 			{spec.type === 'line' && <LineChart {...shared} series={spec.series} />}
 			{spec.type === 'area' && <AreaChart {...shared} series={spec.series} />}
 			{spec.type === 'bar' && <BarChart {...shared} series={spec.series} stacked={spec.stacked} />}

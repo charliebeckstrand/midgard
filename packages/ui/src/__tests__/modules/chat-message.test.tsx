@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { ChatMessage } from '../../modules/chat'
-import { bySlot, renderUI, screen, waitFor } from '../helpers'
+import { allBySlot, bySlot, present, renderUI, screen, waitFor } from '../helpers'
 
 describe('ChatMessage', () => {
 	it('renders children inside the bubble slot', () => {
@@ -79,7 +79,7 @@ describe('ChatMessage', () => {
 		expect(container.querySelector('strong')?.textContent).toBe('bold')
 	})
 
-	it('renders a chart fence as a live ChatChart, other fences as code blocks', async () => {
+	it('lifts a chart fence out of the bubble, keeping surrounding prose in bubbles', () => {
 		const spec = JSON.stringify({
 			type: 'line',
 			title: 'Signups',
@@ -87,16 +87,36 @@ describe('ChatMessage', () => {
 			series: [{ xKey: 'week', yKey: 'signups' }],
 		})
 
-		const content = `Here you go:\n\n\`\`\`chart\n${spec}\n\`\`\`\n\n\`\`\`tsx\nconst x = 1\n\`\`\``
+		const content = `Here you go:\n\n\`\`\`chart\n${spec}\n\`\`\`\n\nThat's the trend.`
 
 		const { container } = renderUI(<ChatMessage>{content}</ChatMessage>)
 
-		expect(bySlot(container, 'chat-chart')).toHaveAttribute('data-state', 'chart')
+		const chart = present(bySlot(container, 'chat-chart'), 'chart')
 
-		// The tsx fence keeps the stock CodeBlock rendering beside the chart.
-		expect(bySlot(container, 'code-block')).toBeInTheDocument()
+		expect(chart).toHaveAttribute('data-state', 'chart')
 
-		// Let the (mocked) async highlight land before teardown.
+		// The chart is a sibling of the bubbles, never nested inside one.
+		expect(chart.closest('[data-slot="chat-message-bubble"]')).toBeNull()
+
+		// The prose on either side of the chart keeps its own bubble.
+		const bubbles = allBySlot(container, 'chat-message-bubble')
+
+		expect(bubbles).toHaveLength(2)
+
+		expect(present(bubbles[0], 'lead prose')).toHaveTextContent('Here you go:')
+
+		expect(present(bubbles[1], 'trailing prose')).toHaveTextContent("That's the trend.")
+	})
+
+	it('renders a non-chart fence as a code block inside the bubble', async () => {
+		const { container } = renderUI(<ChatMessage>{'```tsx\nconst x = 1\n```'}</ChatMessage>)
+
+		const codeBlock = present(bySlot(container, 'code-block'), 'code block')
+
+		expect(codeBlock.closest('[data-slot="chat-message-bubble"]')).not.toBeNull()
+
+		expect(bySlot(container, 'chat-chart')).not.toBeInTheDocument()
+
 		await waitFor(() =>
 			expect(container.querySelector('pre.shiki')).toHaveAttribute('data-lang', 'tsx'),
 		)
