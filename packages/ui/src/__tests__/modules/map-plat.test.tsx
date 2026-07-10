@@ -360,7 +360,9 @@ describe('MapPlat', () => {
 
 		const table = bySlot(container, 'map-table')
 
-		expect(table).toHaveClass('sr-only')
+		// The wrapper carries the hiding: `sr-only` sizing on the table itself
+		// wouldn't collapse it (table width/height are minimums).
+		expect(table?.parentElement).toHaveClass('sr-only')
 
 		const rows = Array.from(table?.querySelectorAll('tbody tr') ?? []).map((row) =>
 			Array.from(row.querySelectorAll('th, td')).map((cell) => cell.textContent),
