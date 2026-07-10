@@ -38,23 +38,23 @@ Absolute numbers move with hardware; the ratios are the signal. Mean ms per iter
 
 | Scenario | ui | AG Charts | Highcharts |
 | --- | ---: | ---: | ---: |
-| mount · line · 100 × 1 | **5.4** | 32.9 | 27.3 |
-| mount · line · 1,000 × 1 | **12.9** | 38.7 | 34.4 |
-| mount · line · 10,000 × 1 | 92.4 | 67.6 | 76.9 |
-| mount · line · 1,000 × 5 | **46.6** | 69.2 | 56.8 |
-| mount · bar · 50 × 2 | **9.8** | 36.8 | 38.8 |
-| mount · bar · 500 × 2 | **24.3** | 61.1 | 85.0 |
-| mount · scatter · 1,000 | **15.5** | 49.4 | 65.1 |
-| mount · scatter · 10,000 | 126.5 | 102.4 | 462.0 |
-| update · line · 1,000 × 1 | **5.9** | 13.4 | 11.1 |
-| update · line · 10,000 × 1 | **27.7** | 58.0 | 53.1 |
-| update · line · 1,000 × 5 | **19.1** | 33.2 | 30.2 |
-| update · bar · 500 × 2 | **9.0** | 21.8 | 32.9 |
-| update · scatter · 10,000 | 59.6 | 62.7 | 513.5 |
-| hover · line · 1,000 · sweep | 18.8 | 17.1 | 31.4 |
-| hover · scatter · 10,000 · sweep | 23.5 | 17.2 | 71.8 |
+| mount · line · 100 × 1 | **5.1** | 34.9 | 31.9 |
+| mount · line · 1,000 × 1 | **9.9** | 34.3 | 36.5 |
+| mount · line · 10,000 × 1 | **62.5** | 70.5 | 82.2 |
+| mount · line · 1,000 × 5 | **36.1** | 66.4 | 62.6 |
+| mount · bar · 50 × 2 | **10.1** | 34.4 | 33.1 |
+| mount · bar · 500 × 2 | **21.3** | 58.6 | 87.6 |
+| mount · scatter · 1,000 | **10.0** | 52.2 | 70.3 |
+| mount · scatter · 10,000 | **77.0** | 92.8 | 466.2 |
+| update · line · 1,000 × 1 | **5.1** | 13.8 | 11.3 |
+| update · line · 10,000 × 1 | **20.7** | 50.7 | 51.9 |
+| update · line · 1,000 × 5 | **14.6** | 34.5 | 29.1 |
+| update · bar · 500 × 2 | **8.2** | 21.2 | 33.1 |
+| update · scatter · 10,000 | **51.0** | 52.9 | 563.4 |
+| hover · line · 1,000 · sweep | 18.4 | 17.2 | 33.6 |
+| hover · scatter · 10,000 · sweep | 19.6 | 17.2 | 79.2 |
 
-The module beats **Highcharts on all fifteen** scenarios. Against AG Charts it wins the eleven small-to-mid mount and update cases outright, by wide margins. Two scenarios sit on AG's boundary and flip run to run: the line hover sweep is a dead heat (~17–19ms either side) and the 10,000-point scatter update straddles the line (~60ms against AG's ~51–63) — read both as ties, not clean wins (the table shows one favourable run). Three trail AG consistently, all at 10,000 points: line mount (~90 vs ~68), scatter mount (~127 vs ~100), and the scatter hover sweep (~24 vs ~17). The mounts are where AG rasterizes to a canvas bitmap and this module renders real SVG DOM — the trade that buys print fidelity, forced-colors, and a DOM the assistive tree and hidden data table read. The scatter-hover residual is not the marks (memoised single path) or the hit test (~0.2ms per move) but a React commit per pointer move driving the crosshair and tooltip, against AG's vanilla redraw. These slow 10k iterations carry a few percent rme even at the widened window, so the boundary cases are genuinely too close to call; closing the three real gaps trades a design property or the shared hover model for a benchmark column, so the SVG path holds and AG keeps the dense-canvas extreme.
+The module beats **Highcharts on all fifteen** scenarios and **AG Charts on thirteen** — every mount and every update, the 10,000-point canvas cases included. The two it still trails are the hover sweeps, both within one or two milliseconds of AG (and the line sweep has read as a dead heat on other runs; the 10,000-point scatter update sits on the same boundary in the other direction, so read those edges as ties). The hover residual is not the marks (memoised single path per series) or the hit test (a squared-distance scan costing well under a millisecond) but a React commit per pointer move driving the crosshair and tooltip, against AG's vanilla canvas redraw; closing it means moving the shared hover layer to imperative DOM writes — a trade of the declarative hover model for the last millisecond, open by choice.
 
 ### Optimization log
 
