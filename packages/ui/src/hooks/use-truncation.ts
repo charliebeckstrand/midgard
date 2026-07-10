@@ -1,6 +1,7 @@
 'use client'
 
 import { type RefObject, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { flushSync } from 'react-dom'
 
 /**
  * Floating-point epsilon (px) on the `Range` overflow test. The single-line
@@ -90,11 +91,16 @@ function observeTruncation(el: Element, measure: () => void): () => void {
 
 /**
  * Tracks whether an element's single-line content overflows its box (clipped to
- * an ellipsis). Measured eagerly — after every commit, for content changes, and
- * on `ResizeObserver` width changes that don't re-render — and once web fonts
- * settle (which reflows text without resizing the box), so a resting overflow
- * affordance (a `cursor-help`, a reveal tooltip's arming) reflects the current
- * state rather than a stale flag.
+ * an ellipsis). Measured lazily: the first pointer or focus contact arms the
+ * element and takes the first read, and an armed element then re-measures
+ * eagerly — after every commit, on `ResizeObserver` width changes that don't
+ * re-render, and once web fonts settle (which reflows text without resizing
+ * the box) — so the flag is current whenever it can be seen. Every consumer
+ * gates a hover/focus reveal (a tooltip's arming, a `cursor-help`) on
+ * `truncated`, and none of those is observable before the pointer or focus
+ * arrives, so an element that is never visited never pays a layout read; the
+ * eager alternative charged every mounted cell a `Range` measure per commit,
+ * which billed a virtualized grid's scroll step hundreds of forced reads.
  *
  * The overflow test reads `scrollWidth`/`clientWidth` first and falls back to a
  * `Range` over the contents for sub-pixel clips, so the truncating element must
@@ -103,35 +109,83 @@ function observeTruncation(el: Element, measure: () => void): () => void {
  * Shared by the grid's data-cell and header truncation ({@link useGridTruncation}
  * layers a resize-settle backstop on top) and the chart legend's entry labels.
  *
+ * @param armRef - Element whose pointer/focus contact arms the measure, when the
+ * reveal's trigger surface is an ancestor of the measured element (a legend
+ * entry around its label span); defaults to the measured element itself.
  * @returns `[ref, truncated, measure]`: attach `ref` to the single-line element;
  * read `truncated` to gate the reveal tooltip; call `measure` to force a re-read
- * (e.g. a deferred backstop after a late layout settle).
+ * (e.g. a deferred backstop after a late layout settle) — an explicit call arms.
  * @internal
  */
-export function useTruncation<E extends HTMLElement>(): [RefObject<E | null>, boolean, () => void] {
+export function useTruncation<E extends HTMLElement>(
+	armRef?: RefObject<HTMLElement | null>,
+): [RefObject<E | null>, boolean, () => void] {
 	const ref = useRef<E>(null)
 
 	const [truncated, setTruncated] = useState(false)
 
+	// Armed on first pointer/focus contact; measures stand down before it, so a
+	// cell scrolled through and never visited costs no layout reads.
+	const armed = useRef(false)
+
 	// Setting the same value bails out of a re-render, so measuring on every
 	// commit can't loop.
-	const measure = useCallback(() => {
+	const measureIfArmed = useCallback(() => {
+		if (!armed.current) return
+
 		const el = ref.current
 
 		if (el) setTruncated(isOverflowing(el))
 	}, [])
 
-	useLayoutEffect(measure)
+	// The exported force-a-re-read arms first: an explicit call (a resize-settle
+	// backstop) is a statement that the flag is about to be looked at.
+	const measure = useCallback(() => {
+		armed.current = true
+
+		measureIfArmed()
+	}, [measureIfArmed])
+
+	useLayoutEffect(measureIfArmed)
 
 	useEffect(() => {
 		const el = ref.current
 
 		if (!el) return
 
-		if (document.fonts?.ready) document.fonts.ready.then(measure).catch(() => {})
+		const arm = () => {
+			armed.current = true
 
-		return observeTruncation(el, measure)
-	}, [measure])
+			// Synchronous commit, because ordering decides whether the reveal opens:
+			// the tooltip's hover logic rides React's root-delegated events, and this
+			// element-level listener fires first on the same `pointerover`/`focusin`
+			// dispatch — flushing here lands `truncated` (and the tooltip's `enabled`)
+			// before the hover logic evaluates the very contact that armed it.
+			flushSync(measureIfArmed)
+		}
+
+		// The reveal these flags gate opens on hover or focus, and both begin with
+		// one of these events, so arming on the trigger surface measures just in
+		// time. `pointerover` (not `pointerenter`) so the contact also bubbles up
+		// from descendants when the arm target wraps the measured element.
+		const target = armRef?.current ?? el
+
+		target.addEventListener('pointerover', arm)
+
+		target.addEventListener('focusin', arm)
+
+		if (document.fonts?.ready) document.fonts.ready.then(measureIfArmed).catch(() => {})
+
+		const unobserve = observeTruncation(el, measureIfArmed)
+
+		return () => {
+			target.removeEventListener('pointerover', arm)
+
+			target.removeEventListener('focusin', arm)
+
+			unobserve()
+		}
+	}, [measureIfArmed, armRef])
 
 	return [ref, truncated, measure]
 }

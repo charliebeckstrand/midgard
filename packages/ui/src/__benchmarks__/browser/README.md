@@ -98,24 +98,34 @@ Every scenario drives the same deterministic shipment rows (`makeShipments` in [
 
 Fairness notes, both directions: the ui grid keeps its built-in chrome (toolbar with export, accessible announcements) that the competitors' defaults don't carry; each library runs its own defaults otherwise (AG's community module set, MUI's MIT tier). MUI's MIT tier hard-caps `pageSize` at 100 and always paginates — full-set scrolling is Pro-licensed — so MUI runs mount/update/sort in its shipped paginated shape (the full dataset still flows through its client-side model) and sits out the scroll sweep. React runs in production mode for the same reason as the charts (see above); it covers MUI symmetrically.
 
-### Standings (2026-07-10, this container, pre-optimization baseline)
+### Standings (2026-07-10, this container)
 
-Absolute numbers move with hardware; the ratios are the signal. Mean ms per iteration, ui / AG Grid / MUI X — **bold** marks a scenario where ui beats both.
+Absolute numbers move with hardware; the ratios are the signal. Mean ms per iteration, ui / AG Grid / MUI X, with the pre-optimization ui baseline in parentheses — **bold** marks a scenario where ui beats both.
 
-| Scenario | ui | AG Grid | MUI X |
+| Scenario | ui (baseline) | AG Grid | MUI X |
 | --- | ---: | ---: | ---: |
-| mount · 1,000 × 8 | 39.3 | 53.8 | 34.8 |
-| mount · 10,000 × 8 | 75.2 | 32.9 | 35.1 |
-| mount · 100,000 × 8 | 471.4 | 135.4 | 92.1 |
-| update · 10,000 × 8 | 72.7 | 64.9 | 37.2 |
-| update · 100,000 × 8 | 587.3 | 167.2 | 111.6 |
-| sort · 10,000 · flip | 182.8 | 84.8 | 27.3 |
-| sort · 100,000 · flip | 1562.1 | 85.6 | 100.8 |
-| scroll · 10,000 · round trip | 3627.3 | 1954.7 | — |
-| scroll · 100,000 · round trip | 3718.0 | 866.7 | — |
+| mount · 1,000 × 8 | 40.1 (39.3) | 27.7 | 35.0 |
+| mount · 10,000 × 8 | 73.8 (75.2) | 30.3 | 34.1 |
+| mount · 100,000 × 8 | 455.3 (471.4) | 137.3 | 89.3 |
+| update · 10,000 × 8 | 61.7 (72.7) | 12.8 | 30.6 |
+| update · 100,000 × 8 | 434.7 (587.3) | 181.9 | 76.5 |
+| sort · 10,000 · flip | 95.1 (182.8) | 28.7 | 22.6 |
+| sort · 100,000 · flip | 633.5 (1,562.1) | 61.3 | 80.2 |
+| scroll · 10,000 · round trip | 1,647.1 (3,627.3) | 767.5 | — |
+| scroll · 100,000 · round trip | 1,680.2 (3,718.0) | 863.6 | — |
 
-The baseline reads plainly: the ui grid holds its own at 1k rows and falls away linearly as the dataset grows — mount runs ~4.4µs per row that virtualization never renders (39 → 75 → 471ms across 1k → 10k → 100k, where AG and MUI stay flat), sort at 100k trails AG by 18×, and the scroll sweep pays ~150ms per step at every scale. The linear mount/update term, the sort engine, and the per-step scroll render are the three levers, in that order of leverage; the optimization log below will track them as they land.
+The board is honest: the first two levers bought sort 2.5× and scroll 2.2×, and the ui grid still trails both competitors at scale. The gap decomposes into three measured residuals, in order of leverage:
+
+1. **The engine row model** — the mount/update linear term (~4µs per row that virtualization never renders; ui 455 vs AG 137 / MUI 89 at 100k). A CPU profile lands it in TanStack Table's `accessRows`/`createRow`, a `Row` object per data row, forced even on the untransformed path because the body renders cells through `table.getRow(key).getVisibleCells()` ([`grid-row.tsx`](../../modules/grid/grid-row.tsx)). The lever is a lite cell path: render from `renderRows` × `visibleColumns` directly when no client transform is active, leaving engine rows to the transformed paths that need them.
+
+2. **Closed-tooltip machinery per cell** — ~40ms of the ~70ms scroll step (~150µs × ~270 remounted cells; measured by benching `cellTooltip: () => null` against the default). Every data cell mounts the full floating-ui `Tooltip` hook stack to gate a reveal that almost no cell ever opens. The lever is mounting the reveal machinery on first pointer/focus contact — which needs the truncation binding to survive the span's reparenting (see the stranded-observer remark in [`grid-cell-content.tsx`](../../modules/grid/grid-cell-content.tsx)).
+
+3. **Per-compare sort dispatch** — the sort residual (633 vs AG 61 at 100k) is not the collation (cached collator, entry 1) but the per-comparison `WeakMap` + `Map` sort-key lookups and engine comparator dispatch, paid O(N log N) times. The lever is array-indexed sort keys resolved once per sort.
 
 #### Optimization log
 
-*(empty — baseline recorded, levers pending)*
+Each entry names the change and the scenarios it moved.
+
+1. **Cached natural collator** ([`grid-sorting-utilities.ts`](../../modules/grid/grid-sorting-utilities.ts)). The smart comparator's string fallback ran `localeCompare(…, { numeric: true })`, which re-resolves collation machinery on every call — O(N log N) times per sort; a shared `Intl.Collator` answers the same ordering. Sort 100k 1,562 → ~750, sort 10k 183 → ~104.
+
+2. **Lazily-armed truncation measure** ([`use-truncation.ts`](../../hooks/use-truncation.ts)). Every mounted cell measured overflow (`scrollWidth` + two `Range`/element rect reads) in a layout effect on every commit — a scroll step remounts ~270 cells, and the census read ~350 of each per step, ~70ms of forced measurement for a flag that only gates hover/focus reveals no unvisited cell can show. The first pointer/focus contact now arms the element (a `flushSync` on the element-level event lands the state before the tooltip's root-delegated hover logic evaluates the same contact), and only armed elements re-measure. Scroll 10k round trip 3,627 → ~1,650, 100k 3,718 → ~1,680; update 100k 587 → ~435 (its remounted windows carried the same per-commit measures).
