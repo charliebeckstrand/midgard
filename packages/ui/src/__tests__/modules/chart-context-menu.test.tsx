@@ -165,4 +165,28 @@ describe('Chart context menu', () => {
 
 		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
 	})
+
+	it('defers to the native menu on a Ctrl + right-click (button 2)', () => {
+		const { container } = renderUI(
+			<BarChart aria-label="Revenue by quarter" data={data} series={[...series]} />,
+		)
+
+		// The secondary button held with Ctrl is the escape hatch to the browser
+		// menu — the same one the grid uses (via isNativeContextMenuRequest).
+		fireEvent.contextMenu(bySlot(container, 'chart') ?? container, { ctrlKey: true, button: 2 })
+
+		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+	})
+
+	it('opens the chart menu on a Ctrl + click (button 0, macOS secondary click)', () => {
+		const { container } = renderUI(
+			<BarChart aria-label="Revenue by quarter" data={data} series={[...series]} />,
+		)
+
+		// A primary-button Ctrl+click is macOS's secondary click; it reaches the
+		// chart menu rather than the native one, so Mac users get there too.
+		fireEvent.contextMenu(bySlot(container, 'chart') ?? container, { ctrlKey: true, button: 0 })
+
+		expect(screen.getByRole('menu')).toBeInTheDocument()
+	})
 })
