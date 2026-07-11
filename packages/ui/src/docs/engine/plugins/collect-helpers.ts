@@ -1,4 +1,10 @@
-import ts from 'typescript'
+import {
+	Node,
+	Project,
+	type SourceFile,
+	type VariableDeclaration,
+	type VariableStatement,
+} from 'ts-morph'
 
 type Helper = { name: string; code: string }
 
@@ -7,21 +13,10 @@ type Helper = { name: string; code: string }
 // `__code` is never read — skip it rather than shipping the whole page source.
 const ENTRY_EXPORT = 'Demo'
 
-function isDefaultExport(modifiers: readonly ts.ModifierLike[] | undefined): boolean {
-	if (!modifiers) return false
-
-	let hasExport = false
-
-	let hasDefault = false
-
-	for (const mod of modifiers) {
-		if (mod.kind === ts.SyntaxKind.ExportKeyword) hasExport = true
-
-		if (mod.kind === ts.SyntaxKind.DefaultKeyword) hasDefault = true
-	}
-
-	return hasExport && hasDefault
-}
+// In-memory project reused across transform calls; the fixed filename is
+// overwritten on each parse. Lib files are skipped — these walks are purely
+// syntactic and never consult type information.
+const project = new Project({ useInMemoryFileSystem: true, skipLoadingLibFiles: true })
 
 // Matches `return <Tag`, `return (<Tag`, `return <>`, `=> <Tag`, `=> (<Tag`, `=> <>`.
 // Identifier-prefixed `<` (e.g. `useState<string>()`) doesn't match; the
@@ -45,63 +40,59 @@ type Preamble = { names: string[]; code: string; index: number }
  * statement: in `const A = () => <X />, B = somethingElse`, only A matches.
  * This predicate drives both helper collection and the preamble exclusion.
  */
-function jsxHelperName(
-	decl: ts.VariableDeclaration,
-	sf: ts.SourceFile,
-	source: string,
-): string | null {
-	if (!ts.isIdentifier(decl.name)) return null
+function jsxHelperName(decl: VariableDeclaration): string | null {
+	const nameNode = decl.getNameNode()
 
-	if (!/^[A-Z]/.test(decl.name.text)) return null
+	if (!Node.isIdentifier(nameNode)) return null
 
-	const init = decl.initializer
+	if (!/^[A-Z]/.test(nameNode.getText())) return null
+
+	const init = decl.getInitializer()
 
 	if (!init) return null
 
-	if (!ts.isArrowFunction(init) && !ts.isFunctionExpression(init)) return null
+	if (!Node.isArrowFunction(init) && !Node.isFunctionExpression(init)) return null
 
-	if (!JSX_RETURN.test(source.slice(init.getStart(sf), init.getEnd()))) return null
+	if (!JSX_RETURN.test(init.getText())) return null
 
-	return decl.name.text
+	return nameNode.getText()
 }
 
-function isJsxReturningVariableStatement(
-	stmt: ts.VariableStatement,
-	sf: ts.SourceFile,
-	source: string,
-): boolean {
-	return stmt.declarationList.declarations.some((decl) => jsxHelperName(decl, sf, source) !== null)
+function isJsxReturningVariableStatement(stmt: VariableStatement): boolean {
+	return stmt.getDeclarations().some((decl) => jsxHelperName(decl) !== null)
 }
 
-function collectPreambles(sf: ts.SourceFile, source: string): Preamble[] {
+function collectPreambles(sf: SourceFile): Preamble[] {
 	const preambles: Preamble[] = []
 
-	for (const stmt of sf.statements) {
-		const index = stmt.getStart(sf)
+	for (const stmt of sf.getStatements()) {
+		const index = stmt.getStart()
 
-		if (ts.isTypeAliasDeclaration(stmt)) {
-			preambles.push({ names: [stmt.name.text], code: source.slice(index, stmt.getEnd()), index })
-
-			continue
-		}
-
-		if (ts.isInterfaceDeclaration(stmt)) {
-			preambles.push({ names: [stmt.name.text], code: source.slice(index, stmt.getEnd()), index })
+		if (Node.isTypeAliasDeclaration(stmt)) {
+			preambles.push({ names: [stmt.getName()], code: stmt.getText(), index })
 
 			continue
 		}
 
-		if (ts.isVariableStatement(stmt)) {
-			const code = source.slice(index, stmt.getEnd())
+		if (Node.isInterfaceDeclaration(stmt)) {
+			preambles.push({ names: [stmt.getName()], code: stmt.getText(), index })
+
+			continue
+		}
+
+		if (Node.isVariableStatement(stmt)) {
+			const code = stmt.getText()
 
 			// JSX-returning helper statements belong to `collectHelpers`, not the
 			// preamble.
-			if (isJsxReturningVariableStatement(stmt, sf, source)) continue
+			if (isJsxReturningVariableStatement(stmt)) continue
 
 			const names: string[] = []
 
-			for (const decl of stmt.declarationList.declarations) {
-				if (ts.isIdentifier(decl.name)) names.push(decl.name.text)
+			for (const decl of stmt.getDeclarations()) {
+				const nameNode = decl.getNameNode()
+
+				if (Node.isIdentifier(nameNode)) names.push(nameNode.getText())
 			}
 
 			if (names.length === 0) continue
@@ -149,38 +140,36 @@ function prependReferencedPreamble(helperCode: string, preambles: Preamble[]): s
  * snippet.
  */
 export function collectHelpers(source: string): Helper[] {
-	const sf = ts.createSourceFile(
-		'demo.tsx',
-		source,
-		ts.ScriptTarget.Latest,
-		true,
-		ts.ScriptKind.TSX,
-	)
+	const sf = project.createSourceFile('__collect-helpers.tsx', source, { overwrite: true })
 
-	const preambles = collectPreambles(sf, source)
+	const preambles = collectPreambles(sf)
 
 	const helpers: Helper[] = []
 
-	for (const stmt of sf.statements) {
-		if (ts.isFunctionDeclaration(stmt) && stmt.name && /^[A-Z]/.test(stmt.name.text) && stmt.body) {
-			if (isDefaultExport(stmt.modifiers) || stmt.name.text === ENTRY_EXPORT) continue
+	for (const stmt of sf.getStatements()) {
+		if (Node.isFunctionDeclaration(stmt)) {
+			const name = stmt.getName()
 
-			const code = source.slice(stmt.getStart(sf), stmt.getEnd())
+			if (name && /^[A-Z]/.test(name) && stmt.getBody()) {
+				if (stmt.isDefaultExport() || name === ENTRY_EXPORT) continue
 
-			if (!JSX_RETURN.test(code)) continue
+				const code = stmt.getText()
 
-			helpers.push({ name: stmt.name.text, code: prependReferencedPreamble(code, preambles) })
+				if (!JSX_RETURN.test(code)) continue
+
+				helpers.push({ name, code: prependReferencedPreamble(code, preambles) })
+			}
 
 			continue
 		}
 
-		if (ts.isVariableStatement(stmt)) {
-			for (const decl of stmt.declarationList.declarations) {
-				const name = jsxHelperName(decl, sf, source)
+		if (Node.isVariableStatement(stmt)) {
+			for (const decl of stmt.getDeclarations()) {
+				const name = jsxHelperName(decl)
 
 				if (!name || name === ENTRY_EXPORT) continue
 
-				const code = source.slice(stmt.getStart(sf), stmt.getEnd())
+				const code = stmt.getText()
 
 				helpers.push({ name, code: prependReferencedPreamble(code, preambles) })
 			}

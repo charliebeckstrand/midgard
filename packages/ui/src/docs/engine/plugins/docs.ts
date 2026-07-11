@@ -1,16 +1,16 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { Node, Project, SyntaxKind } from 'ts-morph'
-import ts from 'typescript'
 import type { Plugin } from 'vite'
 import { buildApi } from '../api-reference'
 import { type DemoMeta, META_KEYS } from '../demo-meta'
 import { collectHelpers } from './collect-helpers'
 import { virtualJsonModules } from './virtual-json'
 
-// ---------------------------------------------------------------------------
-// Demo metadata parsed for `virtual:demo-metas`
-// ---------------------------------------------------------------------------
+// Shared in-memory project backing the barrel/import parsers below; each parse
+// overwrites the source file at its own path. Lib files are skipped — the walks
+// are purely syntactic and never consult type information.
+const parseProject = new Project({ useInMemoryFileSystem: true, skipLoadingLibFiles: true })
 
 function isMetaKey(key: string): key is keyof DemoMeta {
 	return (META_KEYS as readonly string[]).includes(key)
@@ -68,10 +68,6 @@ function generateDemoMetas(demosDir: string): Record<string, DemoMeta> {
 	return result
 }
 
-// ---------------------------------------------------------------------------
-// Component tagging: `virtual:component-modules` + the index-barrel transform
-// ---------------------------------------------------------------------------
-
 /**
  * A single named re-export parsed from a barrel: its source module, the local
  * (imported) name, the exported name, and whether the specifier is type-only.
@@ -83,27 +79,29 @@ export type ReExport = { source: string; localName: string; exportedName: string
  * Ignores other top-level forms (default exports, plain `export const`).
  */
 export function parseReExports(source: string, fileName: string): ReExport[] {
-	const sf = ts.createSourceFile(fileName, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS)
+	const sf = parseProject.createSourceFile(fileName, source, { overwrite: true })
 
 	const result: ReExport[] = []
 
-	for (const stmt of sf.statements) {
-		if (!ts.isExportDeclaration(stmt)) continue
+	for (const stmt of sf.getStatements()) {
+		if (!Node.isExportDeclaration(stmt)) continue
 
-		if (!stmt.moduleSpecifier || !ts.isStringLiteral(stmt.moduleSpecifier)) continue
+		const moduleSpecifier = stmt.getModuleSpecifierValue()
 
-		if (!stmt.exportClause || !ts.isNamedExports(stmt.exportClause)) continue
+		// A named re-export always carries a `from '...'`; `export { A }` without
+		// one, and `export * from '...'` (no named specifiers), yield nothing.
+		if (!moduleSpecifier) continue
 
-		const moduleSpecifier = stmt.moduleSpecifier.text
+		const wholeIsType = stmt.isTypeOnly()
 
-		const wholeIsType = stmt.isTypeOnly
+		for (const spec of stmt.getNamedExports()) {
+			const exportedName = spec.getAliasNode()?.getText() ?? spec.getName()
 
-		for (const spec of stmt.exportClause.elements) {
 			result.push({
 				source: moduleSpecifier,
-				localName: spec.propertyName?.text ?? spec.name.text,
-				exportedName: spec.name.text,
-				isType: wholeIsType || spec.isTypeOnly,
+				localName: spec.getName(),
+				exportedName,
+				isType: wholeIsType || spec.isTypeOnly(),
 			})
 		}
 	}
@@ -130,27 +128,25 @@ const EXCLUDED_PACKAGES = /^(react|react-dom)(\/|$)/
  * import a reader would write.
  */
 export function parseExternalImports(source: string, fileName: string): ExternalImport[] {
-	const sf = ts.createSourceFile(fileName, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX)
+	const sf = parseProject.createSourceFile(fileName, source, { overwrite: true })
 
 	const result: ExternalImport[] = []
 
-	for (const stmt of sf.statements) {
-		if (!ts.isImportDeclaration(stmt) || !ts.isStringLiteral(stmt.moduleSpecifier)) continue
+	for (const stmt of sf.getStatements()) {
+		if (!Node.isImportDeclaration(stmt)) continue
 
-		const specifier = stmt.moduleSpecifier.text
+		const specifier = stmt.getModuleSpecifierValue()
 
 		if (specifier.startsWith('.') || EXCLUDED_PACKAGES.test(specifier)) continue
 
-		const clause = stmt.importClause
+		// `import type { … }` and default/namespace-only imports contribute no
+		// named value bindings; `getNamedImports()` is empty for the latter.
+		if (stmt.isTypeOnly()) continue
 
-		if (!clause || clause.isTypeOnly || !clause.namedBindings) continue
+		for (const spec of stmt.getNamedImports()) {
+			if (spec.isTypeOnly()) continue
 
-		if (!ts.isNamedImports(clause.namedBindings)) continue
-
-		for (const spec of clause.namedBindings.elements) {
-			if (spec.isTypeOnly) continue
-
-			const name = (spec.propertyName ?? spec.name).text
+			const name = spec.getName()
 
 			if (isPascalCase(name)) result.push({ name, specifier })
 		}
@@ -359,10 +355,6 @@ function findSrcDir(root: string): string {
 
 	return dir
 }
-
-// ---------------------------------------------------------------------------
-// The plugin
-// ---------------------------------------------------------------------------
 
 /**
  * The single Vite plugin backing the docs site. It provides:

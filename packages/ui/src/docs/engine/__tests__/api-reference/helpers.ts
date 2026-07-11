@@ -4,13 +4,30 @@ import { ts } from 'ts-morph'
 
 const PROJECT_ROOT = '/project'
 
-// The real `typescript` package's lib directory (`…/typescript/lib`). ts-morph's
-// own `ts.getDefaultLibFilePath` points at its bundled `@ts-morph/common/dist`
-// libs, which aren't emitted to disk — so lib files never load and every global
-// (`Array`, `string[]`, …) resolves to `{}`. Resolving the installed typescript
-// (a direct dependency, version-matched to ts-morph's bundled compiler) gives a
-// real on-disk lib dir the compiler host can read through its `ts.sys` fallback.
-const TS_LIB_DIR = path.dirname(createRequire(import.meta.url).resolve('typescript'))
+// The on-disk directory holding the standard `lib.*.d.ts` files. ts-morph's own
+// `ts.getDefaultLibFilePath` points at its bundled `@ts-morph/common/dist` libs,
+// which aren't emitted to disk — so without this, lib files never load and every
+// global (`Array`, `string[]`, …) resolves to `{}`. TypeScript 7 moved these
+// files out of the `typescript` package (whose `.` entry now resolves to
+// `lib/version.cjs`) and into the platform-native `@typescript/typescript-
+// <platform>-<arch>` package, located the same way `typescript/lib/getExePath.js`
+// finds the compiler binary. The compiler host reads them through its `ts.sys`
+// fallback; the pre-7 layout (libs beside the package entry) is the fallback.
+function resolveTsLibDir(): string {
+	const tsEntry = createRequire(import.meta.url).resolve('typescript')
+
+	try {
+		const platformPackage = `@typescript/typescript-${process.platform}-${process.arch}`
+
+		const platformPkgJson = createRequire(tsEntry).resolve(`${platformPackage}/package.json`)
+
+		return path.join(path.dirname(platformPkgJson), 'lib')
+	} catch {
+		return path.dirname(tsEntry)
+	}
+}
+
+const TS_LIB_DIR = resolveTsLibDir()
 
 /**
  * Caches lib and other on-disk `.d.ts` SourceFiles once per worker, reused
