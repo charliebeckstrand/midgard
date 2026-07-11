@@ -7,6 +7,7 @@
  */
 
 import { BAR_END_RADIUS, BAR_MAX_WIDTH, MARK_GAP } from '../chart-constants'
+import { coord } from '../chart-coords'
 import type { ChartOrientation } from '../chart-orientation'
 import type { BandScale } from '../chart-scale'
 
@@ -50,12 +51,12 @@ function verticalBarPath(x0: number, x1: number, valueY: number, baseline: numbe
 	if (valueY < baseline) {
 		const shoulder = valueY + radius
 
-		return `M ${x0} ${baseline} L ${x0} ${shoulder} A ${radius} ${radius} 0 0 1 ${x0 + radius} ${valueY} L ${x1 - radius} ${valueY} A ${radius} ${radius} 0 0 1 ${x1} ${shoulder} L ${x1} ${baseline} Z`
+		return `M ${coord(x0)} ${coord(baseline)} L ${coord(x0)} ${coord(shoulder)} A ${coord(radius)} ${coord(radius)} 0 0 1 ${coord(x0 + radius)} ${coord(valueY)} L ${coord(x1 - radius)} ${coord(valueY)} A ${coord(radius)} ${coord(radius)} 0 0 1 ${coord(x1)} ${coord(shoulder)} L ${coord(x1)} ${coord(baseline)} Z`
 	}
 
 	const shoulder = valueY - radius
 
-	return `M ${x0} ${baseline} L ${x0} ${shoulder} A ${radius} ${radius} 0 0 0 ${x0 + radius} ${valueY} L ${x1 - radius} ${valueY} A ${radius} ${radius} 0 0 0 ${x1} ${shoulder} L ${x1} ${baseline} Z`
+	return `M ${coord(x0)} ${coord(baseline)} L ${coord(x0)} ${coord(shoulder)} A ${coord(radius)} ${coord(radius)} 0 0 0 ${coord(x0 + radius)} ${coord(valueY)} L ${coord(x1 - radius)} ${coord(valueY)} A ${coord(radius)} ${coord(radius)} 0 0 0 ${coord(x1)} ${coord(shoulder)} L ${coord(x1)} ${coord(baseline)} Z`
 }
 
 /**
@@ -70,12 +71,12 @@ function horizontalBarPath(y0: number, y1: number, valueX: number, baseline: num
 	if (valueX > baseline) {
 		const shoulder = valueX - radius
 
-		return `M ${baseline} ${y0} L ${shoulder} ${y0} A ${radius} ${radius} 0 0 1 ${valueX} ${y0 + radius} L ${valueX} ${y1 - radius} A ${radius} ${radius} 0 0 1 ${shoulder} ${y1} L ${baseline} ${y1} Z`
+		return `M ${coord(baseline)} ${coord(y0)} L ${coord(shoulder)} ${coord(y0)} A ${coord(radius)} ${coord(radius)} 0 0 1 ${coord(valueX)} ${coord(y0 + radius)} L ${coord(valueX)} ${coord(y1 - radius)} A ${coord(radius)} ${coord(radius)} 0 0 1 ${coord(shoulder)} ${coord(y1)} L ${coord(baseline)} ${coord(y1)} Z`
 	}
 
 	const shoulder = valueX + radius
 
-	return `M ${baseline} ${y0} L ${shoulder} ${y0} A ${radius} ${radius} 0 0 0 ${valueX} ${y0 + radius} L ${valueX} ${y1 - radius} A ${radius} ${radius} 0 0 0 ${shoulder} ${y1} L ${baseline} ${y1} Z`
+	return `M ${coord(baseline)} ${coord(y0)} L ${coord(shoulder)} ${coord(y0)} A ${coord(radius)} ${coord(radius)} 0 0 0 ${coord(valueX)} ${coord(y0 + radius)} L ${coord(valueX)} ${coord(y1 - radius)} A ${coord(radius)} ${coord(radius)} 0 0 0 ${coord(shoulder)} ${coord(y1)} L ${coord(baseline)} ${coord(y1)} Z`
 }
 
 /**
@@ -140,12 +141,12 @@ function barSpan(
  * @internal
  */
 function verticalSquarePath(x0: number, x1: number, valueY: number, baseline: number): string {
-	return `M ${x0} ${baseline} L ${x0} ${valueY} L ${x1} ${valueY} L ${x1} ${baseline} Z`
+	return `M ${coord(x0)} ${coord(baseline)} L ${coord(x0)} ${coord(valueY)} L ${coord(x1)} ${coord(valueY)} L ${coord(x1)} ${coord(baseline)} Z`
 }
 
 /** The vertical square path's transpose: the span runs along x. @internal */
 function horizontalSquarePath(y0: number, y1: number, valueX: number, baseline: number): string {
-	return `M ${baseline} ${y0} L ${valueX} ${y0} L ${valueX} ${y1} L ${baseline} ${y1} Z`
+	return `M ${coord(baseline)} ${coord(y0)} L ${coord(valueX)} ${coord(y0)} L ${coord(valueX)} ${coord(y1)} L ${coord(baseline)} ${coord(y1)} Z`
 }
 
 /**
