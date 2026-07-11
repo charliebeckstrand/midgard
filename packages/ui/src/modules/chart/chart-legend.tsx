@@ -395,6 +395,12 @@ export type ChartLegendProps = {
 	 * chrome dropped elsewhere).
 	 */
 	maxRows?: number
+	/**
+	 * Render as a static key: the swatches and labels, but no series toggle,
+	 * emphasis, or tab stop — the identity channel without the switchboard.
+	 * @defaultValue false
+	 */
+	inert?: boolean
 }
 
 /** The switches and chips split into the run that shows and the overflow the `+N` chip holds. @internal */
@@ -479,6 +485,7 @@ export function ChartLegend({
 	panel = false,
 	texture = false,
 	maxRows,
+	inert = false,
 }: ChartLegendProps) {
 	const ref = useRef<HTMLDivElement>(null)
 
@@ -602,8 +609,9 @@ export function ChartLegend({
 	// The row is a toolbar — one Tab stop, arrow-key roving, Escape to drop focus —
 	// whenever it holds a focusable control: the series switches (every entry is
 	// one, a lone series included), or the reference chips, which recede the marks
-	// on hover or focus.
-	const interactive = items.length > 0 || references.length > 0
+	// on hover or focus. An inert legend holds none, so it drops the toolbar role
+	// with the rest of its interactivity.
+	const interactive = !inert && (items.length > 0 || references.length > 0)
 
 	// A side panel stacks its controls in a column, so the arrows that rove them
 	// follow the layout — Up/Down down the panel, Left/Right across the wrap row.
@@ -815,6 +823,11 @@ export function ChartLegend({
 		<div
 			ref={ref}
 			data-slot="chart-legend"
+			// A static key: the HTML `inert` attribute takes the whole subtree out of
+			// the tab order and off the pointer in one place — the switches keep their
+			// look but shed the click, hover, and focus, no per-control gating. The
+			// series names still reach assistive tech through the chart's data table.
+			inert={inert}
 			{...toolbarProps}
 			className={cn(
 				// The side panel reserves a rail that scales with the chart's own

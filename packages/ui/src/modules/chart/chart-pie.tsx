@@ -17,6 +17,7 @@ import {
 	type ChartBaseProps,
 	type ChartTooltipTrigger,
 	type PieChartSeries,
+	resolveLegend,
 	resolveTooltip,
 } from './chart-schema'
 import { formatChartValue, type SlotPaint, seriesValues } from './chart-series'
@@ -838,6 +839,8 @@ export function ChartPie<T>(props: ChartPieProps<T>) {
 		...name
 	} = props
 
+	const resolvedLegend = resolveLegend(legend)
+
 	// Free-form, a pie fits its own square footprint; inside the fullscreen dialog
 	// that square overruns the 16/9 panel, so the re-mounted copy takes the panel's
 	// ratio there instead.
@@ -881,7 +884,7 @@ export function ChartPie<T>(props: ChartPieProps<T>) {
 		aside,
 		hasLegend,
 		stackedLegend,
-	} = pieFrame(sizing, legend, data.length)
+	} = pieFrame(sizing, resolvedLegend.value, data.length)
 
 	const { ref, width: frameWidth, height: frameHeight, reserve } = usePlotFrame(width, frameSizing)
 
@@ -1037,10 +1040,11 @@ export function ChartPie<T>(props: ChartPieProps<T>) {
 						panel={aside}
 						maxRows={policy.legendRows}
 						texture={tex.active}
+						inert={resolvedLegend.inert}
 					/>
 				)
 			}
-			legendPlacement={typeof legend === 'string' ? legend : undefined}
+			legendPlacement={resolvedLegend.placement}
 			readout={readout}
 			tooltip={showTooltip}
 			focus={{ points: focusPoints }}

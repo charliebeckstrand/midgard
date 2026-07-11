@@ -12,7 +12,7 @@ import { ChartMarksLayer } from '../chart-marks-layer'
 import { type ChartOrientation, valueCoord } from '../chart-orientation'
 import { useChartTexture } from '../chart-pattern-defs'
 import { ChartReferenceLines, ChartReferenceList } from '../chart-reference-lines'
-import { type CartesianChartProps, resolveTooltip } from '../chart-schema'
+import { type CartesianChartProps, resolveLegend, resolveTooltip } from '../chart-schema'
 import { snappedSeriesAt, snapTargets } from '../chart-snap'
 import { barProjection, drawnSeries, useChartCartesian } from '../use-chart-cartesian'
 import { cartesianFocus } from '../use-chart-keyboard'
@@ -112,6 +112,10 @@ export function BarChart<T>(props: BarChartProps<T>) {
 		...label
 	} = props
 
+	// The legend prop resolves to its placement / show value and the inert flag;
+	// the hook and frame read the value, the legend the flag.
+	const resolvedLegend = resolveLegend(legend)
+
 	const chart = useChartCartesian(
 		{
 			data,
@@ -121,7 +125,7 @@ export function BarChart<T>(props: BarChartProps<T>) {
 			height,
 			aspectRatio,
 			axes,
-			legend,
+			legend: resolvedLegend.value,
 			reference,
 			tickRotation,
 			onCategoryClick,
@@ -224,8 +228,15 @@ export function BarChart<T>(props: BarChartProps<T>) {
 			fill={chart.fill}
 			aspect={chart.outerAspect ?? undefined}
 			tier={chart.tier}
-			legend={<ChartCartesianLegend chart={chart} legend={legend} texture={tex.active} />}
-			legendPlacement={typeof legend === 'string' ? legend : undefined}
+			legend={
+				<ChartCartesianLegend
+					chart={chart}
+					legend={resolvedLegend.value}
+					inert={resolvedLegend.inert}
+					texture={tex.active}
+				/>
+			}
+			legendPlacement={resolvedLegend.placement}
 			readout={chart.readout}
 			readoutOrder={chart.readoutOrder}
 			emphasis={chart.emphasis}

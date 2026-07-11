@@ -15,6 +15,7 @@ import { ChartReferenceLines, ChartReferenceList } from '../chart-reference-line
 import {
 	type CartesianChartProps,
 	type ChartValueLabelConfig,
+	resolveLegend,
 	resolveTooltip,
 } from '../chart-schema'
 import { snappedSeriesAt, snapTargets } from '../chart-snap'
@@ -104,6 +105,8 @@ export function LineChart<T>(props: LineChartProps<T>) {
 		...label
 	} = props
 
+	const resolvedLegend = resolveLegend(legend)
+
 	const chart = useChartCartesian(
 		{
 			data,
@@ -113,7 +116,7 @@ export function LineChart<T>(props: LineChartProps<T>) {
 			height,
 			aspectRatio,
 			axes,
-			legend,
+			legend: resolvedLegend.value,
 			reference,
 			tickRotation,
 			onCategoryClick,
@@ -221,8 +224,15 @@ export function LineChart<T>(props: LineChartProps<T>) {
 			fill={chart.fill}
 			aspect={chart.outerAspect ?? undefined}
 			tier={chart.tier}
-			legend={<ChartCartesianLegend chart={chart} legend={legend} texture={tex.active} />}
-			legendPlacement={typeof legend === 'string' ? legend : undefined}
+			legend={
+				<ChartCartesianLegend
+					chart={chart}
+					legend={resolvedLegend.value}
+					inert={resolvedLegend.inert}
+					texture={tex.active}
+				/>
+			}
+			legendPlacement={resolvedLegend.placement}
 			readout={chart.readout}
 			readoutOrder={chart.readoutOrder}
 			emphasis={chart.emphasis}
