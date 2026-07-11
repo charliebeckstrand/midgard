@@ -145,7 +145,7 @@ function pinMenuItems<T>(column: GridColumn<T>, pinColumn: PinColumn): GridMenuI
 }
 
 /** The glyph for each pin choice — icons stay in the shell, off the engine's decision tree. @internal */
-function pinChoiceIcon(key: PinMenuChoice['key']): ReactElement {
+export function pinChoiceIcon(key: PinMenuChoice['key']): ReactElement {
 	if (key === 'pin-left') return <ArrowLeftToLine />
 
 	return key === 'pin-right' ? <ArrowRightToLine /> : <PinOff />
