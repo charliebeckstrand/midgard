@@ -16,7 +16,6 @@ import {
 	type SortingFn,
 	type SortingState,
 	type Table,
-	type Updater,
 	useReactTable,
 	type VisibilityState,
 } from '@tanstack/react-table'
@@ -25,7 +24,6 @@ import { useControllable } from '../../hooks'
 import type { DensityLevel } from '../../providers/density/context'
 import type { SortState } from './context'
 import { columnAccessor } from './engine/grid-column/accessor'
-import { DEFAULT_PAGE_SIZE } from './engine/grid-constants'
 import { isManualPagination } from './engine/grid-pagination-utilities'
 import { type SmartSortField, sortRowsSmart } from './engine/grid-sort/utilities'
 import {
@@ -42,8 +40,21 @@ import {
 	toRowSelectionState,
 	toSortingState,
 	toSortState,
-	usesClientModel,
 } from './engine/grid-table/options'
+import {
+	applyUpdater,
+	DEFAULT_PAGINATION_STATE,
+	DEFAULT_SEARCH_PLACEHOLDER,
+	deriveLeafRows,
+	EMPTY_COLUMN_FILTERS,
+	EMPTY_COLUMN_ORDER,
+	EMPTY_GROUPING,
+	EMPTY_SIZING,
+	EMPTY_VISIBILITY,
+	resolveActiveEngineTransform,
+	resolveTransformModes,
+	rowsSignatureOf,
+} from './engine/grid-table/state'
 import {
 	buildColumnFilters,
 	buildColumnPinning,
@@ -83,32 +94,6 @@ declare module '@tanstack/react-table' {
 	interface ColumnMeta<TData extends RowData, TValue> {
 		gridColumn: GridColumn<TData>
 	}
-}
-
-/** First page at the default size; the fallback when no `value`/`defaultValue` page is bound. @internal */
-const DEFAULT_PAGINATION_STATE: GridPaginationState = { pageIndex: 0, pageSize: DEFAULT_PAGE_SIZE }
-
-/** Stable empty sizing default; read-only, replaced wholesale on change. @internal */
-const EMPTY_SIZING: GridColumnSizingState = {}
-
-/** Stable empty column-filters default; read-only, replaced wholesale on change. @internal */
-const EMPTY_COLUMN_FILTERS: ColumnFiltersState = []
-
-/** Stable empty column-order default (engine reads definition order); read-only. @internal */
-const EMPTY_COLUMN_ORDER: (string | number)[] = []
-
-/** Stable empty column-visibility default (all visible); read-only. @internal */
-const EMPTY_VISIBILITY: VisibilityState = {}
-
-/** Stable empty grouping default (ungrouped); read-only. @internal */
-const EMPTY_GROUPING: GroupingState = []
-
-/** Search-input placeholder when {@link GridSearch} supplies none. @internal */
-const DEFAULT_SEARCH_PLACEHOLDER = 'Search'
-
-/** Resolves a TanStack `Updater<S>` against a base value. @internal */
-function applyUpdater<S>(updater: Updater<S>, base: S): S {
-	return typeof updater === 'function' ? (updater as (prev: S) => S)(base) : updater
 }
 
 /** Parameters for {@link useGridTable}. @internal */
@@ -294,22 +279,6 @@ function useGroupingSlice(
 }
 
 /**
- * Collapses the engine's display rows to their flat leaf set. Under grouping the
- * display rows carry group headers and only the expanded leaves, so each group
- * expands to its full leaf set (whatever its expansion) to recover every data
- * row; ungrouped display rows are already the leaves, and `null` passes through.
- *
- * @internal
- */
-function deriveLeafRows<T>(displayRows: Row<T>[] | null, grouped: boolean): Row<T>[] | null {
-	if (!displayRows) return null
-
-	if (!grouped) return displayRows
-
-	return displayRows.flatMap((row) => (row.getIsGrouped() ? row.getLeafRows() : [row]))
-}
-
-/**
  * Derives the row-model views the body reads: the grouped display list
  * (`groupedRows` — group headers interleaved with expanded leaves, or `null`
  * when ungrouped) and the flat `renderRows`/`rowKeys` backing selection identity
@@ -382,70 +351,6 @@ function useGridRowModel<T>(args: {
 	}, [leafRows, sortView, rows, getKey])
 
 	return { groupedRows, manualRows, renderRows, rowKeys }
-}
-
-/**
- * Resolves the engine's sort and filter transform modes. Manual grouping forces
- * both manual: the supplied rows are a positional header/children sequence, and
- * a client reorder or prune would tear children from their group headers. Kept
- * out of {@link useGridTable} for its cognitive-complexity budget.
- *
- * @internal
- */
-function resolveTransformModes(args: {
-	manualGrouped: boolean
-	sortManual: boolean
-	globalConfigured: boolean
-	hasColumnFilters: boolean
-	globalManual: boolean | undefined
-	columnManual: boolean | undefined
-}): { clientSort: boolean; filterMode: { configured: boolean; manual: boolean } } {
-	return {
-		clientSort: !args.sortManual && !args.manualGrouped,
-		filterMode: resolveFilterMode({
-			globalConfigured: args.globalConfigured,
-			hasColumnFilters: args.hasColumnFilters,
-			globalManual: args.manualGrouped || args.globalManual,
-			columnManual: args.manualGrouped || args.columnManual,
-		}),
-	}
-}
-
-/** Fingerprint of the rendered rows — count and end keys — the autosizer re-measures on. @internal */
-function rowsSignatureOf(rowKeys: (string | number)[]): string {
-	return `${rowKeys.length}:${rowKeys[0] ?? ''}:${rowKeys.at(-1) ?? ''}`
-}
-
-/**
- * Whether a client transform is *actively* reshaping the rows, deciding
- * whether the engine row model materializes. Capability is not activity: an
- * empty sort list, a configured search with no query, and a filter surface
- * with no entries all transform nothing. Kept out of {@link useGridTable} for
- * its cognitive-complexity budget.
- *
- * @internal
- */
-function resolveActiveEngineTransform(args: {
-	paginated: boolean
-	paginationManual: boolean
-	filterMode: { configured: boolean; manual: boolean }
-	globalFilter: string
-	columnFilters: ColumnFiltersState
-	grouped: boolean
-}): boolean {
-	const filtering = args.globalFilter !== '' || args.columnFilters.length > 0
-
-	return usesClientModel({
-		paginated: args.paginated,
-		paginationManual: args.paginationManual,
-		filtersConfigured: args.filterMode.configured && filtering,
-		filtersManual: args.filterMode.manual,
-		// Sort is handled by the off-engine fast path (`useSortView`), so it never
-		// forces the engine model on its own — only a filter, client pagination,
-		// or grouping does.
-		sortClient: false,
-		grouped: args.grouped,
-	})
 }
 
 /**
