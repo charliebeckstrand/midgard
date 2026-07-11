@@ -196,17 +196,36 @@ export function linearScale({
 	max,
 	headroom = 0,
 }: LinearScaleOptions): LinearScale | null {
-	const finite = values.filter((value) => Number.isFinite(value))
+	// One pass for the finite extent, folding the zero baseline and the pins in as
+	// they are seen — the filter-to-a-copy then `Math.min(...spread)` it replaces
+	// allocated an array the size of the series and spread it through `apply`
+	// twice, which also blows the argument limit on a large enough series. The
+	// loop allocates nothing and can't overflow, over exactly the same value set.
+	let dataLow = Number.POSITIVE_INFINITY
 
-	if (zeroBaseline) finite.push(0)
+	let dataHigh = Number.NEGATIVE_INFINITY
 
-	if (min !== undefined) finite.push(min)
+	let any = false
 
-	if (max !== undefined) finite.push(max)
+	const fold = (value: number) => {
+		if (value < dataLow) dataLow = value
 
-	if (finite.length === 0) return null
+		if (value > dataHigh) dataHigh = value
 
-	const [rawLow, rawHigh] = widen(Math.min(...finite), Math.max(...finite), zeroBaseline)
+		any = true
+	}
+
+	for (const value of values) if (Number.isFinite(value)) fold(value)
+
+	if (zeroBaseline) fold(0)
+
+	if (min !== undefined) fold(min)
+
+	if (max !== undefined) fold(max)
+
+	if (!any) return null
+
+	const [rawLow, rawHigh] = widen(dataLow, dataHigh, zeroBaseline)
 
 	// A spark scale carries no axis to align to (`tickTarget` 0), so it fits the
 	// domain to the data extent rather than nice-stepping it — a nice-stepped
