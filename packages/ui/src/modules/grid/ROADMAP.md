@@ -16,9 +16,9 @@ The first question this roadmap had to answer — did centralizing the engine (t
 
 The centralized engine is not a tax to claw back — it is the single largest speedup in the module's history, and it also halved sort's run-to-run variance (±26–30% pre-refactor to ±16–19% post). The regression hunt found the opposite of a regression; the optimization work below builds up from a proven floor, not down from a suspected hole.
 
-## The frontier — sort was the one axis the module lost, now won
+## Standing — the module now leads every competitive axis
 
-Against AG Grid and MUI X DataGrid, the module won mount and update outright and trailed on sort alone. Avenue 4 (below) closed it: caching the sort permutation across re-sorts of unchanged rows put the module ahead on sort too, so it now leads every axis. Mean ms, ui / AG / MUI — **bold** where ui leads:
+Against AG Grid and MUI X DataGrid, the module trailed on sort alone; avenue 4 (below) closed it by caching the sort permutation across re-sorts of unchanged rows. It now leads mount, update, sort, and scroll — the whole competitive suite. Mean ms, this container, ui / AG / MUI — **bold** where ui leads (MUI's MIT tier paginates at 100 rows, so it has no full-set scroll to measure):
 
 | Scenario | ui | AG Grid | MUI X |
 | --- | ---: | ---: | ---: |
@@ -28,14 +28,16 @@ Against AG Grid and MUI X DataGrid, the module won mount and update outright and
 | update · 100,000 | **39.9** | 181.5 | 81.4 |
 | sort · 10,000 (was 29.8, last) | **21.8** | 26.8 | 23.6 |
 | sort · 100,000 (was 111.6, last) | **48.6** | 72.3 | 100.5 |
+| scroll · 10,000 · round trip | **616** | 715 | — |
+| scroll · 100,000 · round trip | **596** | 918 | — |
 
-The node benches localized where sort's time went before avenue 4 landed. The comparator was never the problem — the engine already runs the decorated path (values decorated once through `toSortKey`, then `compareSortKeys` over the keys, over a single reused `Intl.Collator`; the per-call `localeCompare` tax was banked before this work began) — and that pass is ~5 ms for 10,000 rows. But the whole `sortRowsSmart` (decode + sort + materialize) is ~50 ms for 100,000 rows, ~45% of the 111 ms the browser sort cost, and every asc↔desc flip re-ran all of it from scratch. The remaining ~55% is the React commit that re-keys the virtualized window. Avenue 4 removed the recomputed compute; avenue 1 is the standing attack on the commit.
+The node benches localized where sort's time went before avenue 4 landed. The comparator was never the problem — the engine already runs the decorated path (values decorated once through `toSortKey`, then `compareSortKeys` over the keys, over a single reused `Intl.Collator`; the per-call `localeCompare` tax was banked before this work began) — and that pass is ~5 ms for 10,000 rows. But the whole `sortRowsSmart` (decode + sort + materialize) is ~50 ms for 100,000 rows, ~45% of the 111 ms the browser sort cost, and every asc↔desc flip re-ran all of it from scratch. The `sortRowsSmart` split bench now holds that line: at 100,000 rows `computeSortOrder` (the cached half) is ~69 ms against `materializeSort`'s ~2 ms, so a cached flip pays ~33× less. The remaining ~46 ms of the browser sort is the top-level React commit and the virtualizer recompute — not the ~30-row window, which is memoized and moves rather than remounts — so avenue 1 (imperative repaint) targets an already-small surface and is held as low-ROI until a profile says otherwise.
 
 ## Optimization avenues
 
-Ranked by measured headroom, each falling out of a core concept rather than a micro-tweak — elegant because it removes a layer, fast because vanilla beats the abstraction on the hot path.
+With the competitive suite swept, the shipped avenues (2, 4) are the wins that got there; the open ones (1, 3, 5, 6) are held against measured ROI rather than pursued for their own sake — an avenue lands only when a profile says it moves a real number. Each falls out of a core concept rather than a micro-tweak — elegant because it removes a layer, fast because vanilla beats the abstraction on the hot path.
 
-1. **Repaint the sort; don't reconcile it.** With the recomputed compute gone (avenue 4), the residual sort cost is the keyed-list commit — the ~55% the profile left. A sort reorders rows but leaves the visible *set* of cells identical — same components, same data, new order — so the window's row nodes can be reordered in place (a permutation applied to existing DOM, cell text repainted) instead of remounted through React's reconciler. This is the trade the chart module's hover residual already names; it consumes exactly the cached permutation avenue 4 already produces.
+1. **Repaint the sort; don't reconcile it — *held, low-ROI*.** The premise was that the residual sort cost is the keyed-list commit, repaintable in place from the cached permutation. But the residual sits in the top-level React commit and the virtualizer recompute, not the window: the window is ~30 memoized rows that React *moves* rather than remounts, so an imperative reorder there attacks an already-small surface. Reopen only if a flame profile pins measurable time on the window's reconciliation specifically; until then the cached-permutation path (avenue 4) has taken the tractable share.
 
 2. **Fast-reject the text column's decode — *shipped*.** `parseNumeric` ran its three regex strips (currency, grouping, percent) plus a decimal test over *every* value, including a text column's whole set — names, cities, statuses — none of which is a number. An anchored O(1) probe (`NUMERIC_START`) now rejects a value that can't begin a number before any strip runs; every numeric shape passes the gate unchanged, so ordering is identical. Decode of a string column fell ~4.5× (`toSortKey` over 10,000 strings, 1.68 ms → 0.37 ms); numeric columns are neutral (they pass the gate), a digit-led non-number like a date pays one extra anchored test (~30 ns/value). This cuts the cold cost of a first sort, the case the permutation cache (avenue 4) can't help. (The collator reuse this avenue first proposed was already in place; corrected here.)
 
