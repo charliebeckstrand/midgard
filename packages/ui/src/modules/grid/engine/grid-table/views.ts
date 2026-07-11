@@ -366,3 +366,21 @@ export function buildPaginationView<T>(args: {
 		setPageSize: (size) => args.table.setPageSize(size),
 	}
 }
+
+/**
+ * Whether a filterable column shows its filter button: when the grid has data,
+ * or — even with an empty view — when this column carries an active filter, so a
+ * filter that emptied the grid can still be reached and cleared.
+ *
+ * @internal
+ */
+export function showsFilterButton(
+	filter: GridColumnFilter,
+	columnId: string | number,
+	interactive: boolean,
+	filterQuery: QueryGroupNode | undefined,
+): boolean {
+	if (!filter.canFilter(columnId)) return false
+
+	return interactive || (filterQuery?.children.length ?? 0) > 0
+}
