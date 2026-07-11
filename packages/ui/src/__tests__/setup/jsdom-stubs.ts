@@ -60,6 +60,45 @@ stubWindowScrollBy()
 // on every call. Returns null instead; components null-check the context.
 HTMLCanvasElement.prototype.getContext = (() => null) as HTMLCanvasElement['getContext']
 
+// jsdom implements neither Window's focus() nor print(): each logs a "Not
+// implemented" jsdomError on call. The print paths (grid HTML export's
+// `printRows`, the PDF viewer's `printPdf`) call both on a print iframe's
+// `contentWindow` — a distinct Window from the main one, with its own
+// own-property `focus`/`print`, so stubbing here alone can't reach it. Neutralize
+// them on the main window for any direct call, and wrap the iframe
+// `contentWindow` getter to neutralize each real print iframe's window once (a
+// WeakSet keeps the getter idempotent; tests that swap in a mock `contentWindow`
+// shadow the getter on the instance and are untouched).
+for (const method of ['focus', 'print'] as const) {
+	Object.defineProperty(window, method, { writable: true, configurable: true, value: vi.fn() })
+}
+
+const contentWindowDescriptor = Object.getOwnPropertyDescriptor(
+	HTMLIFrameElement.prototype,
+	'contentWindow',
+)
+
+if (contentWindowDescriptor?.get) {
+	const nativeContentWindow = contentWindowDescriptor.get
+	const stubbed = new WeakSet<WindowProxy>()
+
+	Object.defineProperty(HTMLIFrameElement.prototype, 'contentWindow', {
+		...contentWindowDescriptor,
+		get(this: HTMLIFrameElement) {
+			const win = nativeContentWindow.call(this) as WindowProxy | null
+
+			if (win && !stubbed.has(win)) {
+				stubbed.add(win)
+
+				win.focus = vi.fn()
+				win.print = vi.fn()
+			}
+
+			return win
+		},
+	})
+}
+
 // jsdom implements neither URL.createObjectURL nor URL.revokeObjectURL; the
 // blob-download paths (CSV/HTML export, PDF viewer) call them. Stub as no-ops so
 // the properties exist and tests can wrap them with vi.spyOn (auto-restored by
