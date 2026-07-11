@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import type { GridColumnGroup } from '../../modules/grid/grid-group-types'
 import {
 	buildGroupSpans,
 	collapsedHiddenIds,
 	groupByColumn,
 	groupedColumnOrder,
-} from '../../modules/grid/use-grid-group'
+} from '../../modules/grid/engine/grid-group/compute'
+import type { GridColumnGroup } from '../../modules/grid/grid-group-types'
 
 const noPin = () => undefined
 

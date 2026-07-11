@@ -2,7 +2,6 @@ import type { ClientRect, DroppableContainer, UniqueIdentifier } from '@dnd-kit/
 import { useState } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn, type GridColumnGroup } from '../../modules/grid'
-import { groupAwareKeyboardCoordinates } from '../../modules/grid/grid-group-manager'
 import {
 	addGroupTo,
 	assignColumn,
@@ -17,7 +16,8 @@ import {
 	UNGROUPED,
 	type ZoneMap,
 	zoneMapToStores,
-} from '../../modules/grid/use-grid-group-manager'
+} from '../../modules/grid/engine/grid-zone/map'
+import { groupAwareKeyboardCoordinates } from '../../modules/grid/grid-group-manager'
 import { fireEvent, renderUI, screen } from '../helpers'
 
 describe('group manager reducers', () => {

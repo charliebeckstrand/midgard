@@ -31,14 +31,16 @@ import type { PaletteColor } from '../../core/recipe'
 import { useGrabbingCursor, useSortableSensors } from '../../hooks'
 import { k } from '../../recipes/kata/grid-group'
 import { columnLabel } from './engine/grid-column/label'
-import type { GridColumnGroup } from './grid-group-types'
-import { DEFAULT_COLOR_OPTIONS, GridManagerColorMenu } from './grid-manager-color-menu'
-import type { GridColumnManagerItem } from './types'
 import {
 	GROUP_PREFIX,
 	type GridGroupManagerZone,
 	isGroupDragId,
 	UNGROUPED,
+} from './engine/grid-zone/map'
+import type { GridColumnGroup } from './grid-group-types'
+import { DEFAULT_COLOR_OPTIONS, GridManagerColorMenu } from './grid-manager-color-menu'
+import type { GridColumnManagerItem } from './types'
+import {
 	useGridGroupManager,
 	useGroupColumnSortable,
 	useGroupZoneDroppable,
