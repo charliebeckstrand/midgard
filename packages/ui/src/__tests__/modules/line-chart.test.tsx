@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
+import { lineGeometry } from '../../modules/chart/engine/chart-geometry/line'
 import { LineChart } from '../../modules/chart/line-chart'
-import { lineGeometry } from '../../modules/chart/line-chart/line-chart-geometry'
 import { allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
 
 const DATA = [

@@ -1,27 +1,33 @@
 'use client'
 
-import { AnimatedChartBarMarks, ChartBarMarks } from '../chart-bar-marks'
-import { ChartCartesianAxes } from '../chart-cartesian-axes'
-import { ChartCartesianLegend } from '../chart-cartesian-legend'
-import { MARK_GAP } from '../chart-constants'
-import { ChartCrosshair, crosshairSnaps, resolveCrosshair } from '../chart-crosshair'
-import { ChartFrame } from '../chart-frame'
-import { ChartHitArea } from '../chart-hit-area'
-import { barMarkAt } from '../chart-hit-test'
-import { ChartMarksLayer } from '../chart-marks-layer'
-import { type ChartOrientation, valueCoord } from '../chart-orientation'
-import { useChartTexture } from '../chart-pattern-defs'
-import { ChartReferenceLines, ChartReferenceList } from '../chart-reference-lines'
-import { type CartesianChartProps, resolveLegend, resolveTooltip } from '../chart-schema'
-import { snappedSeriesAt, snapTargets } from '../chart-snap'
-import { barProjection, drawnSeries, useChartCartesian } from '../use-chart-cartesian'
-import { cartesianFocus } from '../use-chart-keyboard'
+import { ChartCartesianAxes } from '../engine/chart-axes/cartesian'
+import { MARK_GAP } from '../engine/chart-constants'
+import { ChartCrosshair, crosshairSnaps, resolveCrosshair } from '../engine/chart-crosshair'
+import { ChartCartesianFrame } from '../engine/chart-frame/cartesian'
 import {
 	barMarks,
 	stackedBarMarks,
 	stackedBarSnapPoints,
 	stackedBarSnapSeries,
-} from './bar-chart-geometry'
+} from '../engine/chart-geometry/bar'
+import { ChartHitArea, cartesianHitActive } from '../engine/chart-hit-area'
+import { barMarkAt } from '../engine/chart-hit-test'
+import { resolveLegend } from '../engine/chart-legend/schema'
+import { AnimatedChartBarMarks, ChartBarMarks } from '../engine/chart-marks/bar'
+import { ChartMarksLayer } from '../engine/chart-marks/layer'
+import { type ChartOrientation, valueCoord } from '../engine/chart-orientation'
+import { useChartTexture } from '../engine/chart-pattern-defs'
+import { ChartReferenceLines } from '../engine/chart-reference-lines'
+import { snappedSeriesAt, snapTargets } from '../engine/chart-snap'
+import { resolveTooltip } from '../engine/chart-tooltip'
+import type { CartesianChartProps } from '../engine/types'
+import {
+	barProjection,
+	cartesianData,
+	drawnSeries,
+	useChartCartesian,
+} from '../engine/use-chart-cartesian'
+import { cartesianFocus } from '../engine/use-chart-keyboard'
 
 /**
  * Props for {@link BarChart}. Requires an accessible name (`aria-label` or
@@ -116,27 +122,12 @@ export function BarChart<T>(props: BarChartProps<T>) {
 	// the hook and frame read the value, the legend the flag.
 	const resolvedLegend = resolveLegend(legend)
 
-	const chart = useChartCartesian(
-		{
-			data,
-			series,
-			size,
-			width,
-			height,
-			aspectRatio,
-			axes,
-			legend: resolvedLegend.value,
-			reference,
-			tickRotation,
-			onCategoryClick,
-			formatValue,
-			// The header travels to the frame through `label`; the hook reads it too,
-			// so its tier reserves the header band's height (see `cartesianChrome`).
-			title: label.title,
-			subtitle: label.subtitle,
-		},
-		{ zeroBaseline: true, swatch: () => 'rect', orientation, stack: stacked },
-	)
+	const chart = useChartCartesian(cartesianData(props, resolvedLegend.value), {
+		zeroBaseline: true,
+		swatch: () => 'rect',
+		orientation,
+		stack: stacked,
+	})
 
 	// Each visible series draws through its own axis's scale and grows from its
 	// own baseline; a series whose scale never resolved takes no marks.
@@ -217,30 +208,13 @@ export function BarChart<T>(props: BarChartProps<T>) {
 	const { show: showTooltip, trigger } = resolveTooltip(tooltip)
 
 	return (
-		<ChartFrame
+		<ChartCartesianFrame
 			{...label}
+			chart={chart}
+			resolvedLegend={resolvedLegend}
+			tex={tex}
 			fullscreen={<BarChart {...props} />}
-			ref={chart.ref}
-			width={chart.width}
-			fixedWidth={chart.fixedWidth}
-			height={chart.height}
-			reserve={chart.reserve}
-			fill={chart.fill}
-			aspect={chart.outerAspect ?? undefined}
-			tier={chart.tier}
-			legend={
-				<ChartCartesianLegend
-					chart={chart}
-					legend={resolvedLegend.value}
-					inert={resolvedLegend.inert}
-					texture={tex.active}
-				/>
-			}
-			legendPlacement={resolvedLegend.placement}
-			readout={chart.readout}
-			readoutOrder={chart.readoutOrder}
-			emphasis={chart.emphasis}
-			tooltip={showTooltip}
+			showTooltip={showTooltip}
 			snap={snapTargets(rails, chart.bandPositions, valuePoints)}
 			focus={cartesianFocus(
 				chart.bandPositions,
@@ -249,19 +223,9 @@ export function BarChart<T>(props: BarChartProps<T>) {
 				chart.referencePositions,
 				snapSeries,
 			)}
-			onActiveSeries={chart.setEmphasis}
-			orientation={chart.orientation}
+			reference={reference}
 			className={className}
-			annotations={
-				<ChartReferenceList
-					reference={reference}
-					hidden={chart.referenceHidden}
-					format={chart.formatAxisValue}
-				/>
-			}
 		>
-			{tex.defs}
-
 			<ChartCartesianAxes
 				orientation={chart.orientation}
 				plot={chart.plot}
@@ -294,7 +258,7 @@ export function BarChart<T>(props: BarChartProps<T>) {
 				/>
 			)}
 
-			{(showTooltip || rails !== null || chart.onBandClick !== undefined) && data.length > 0 && (
+			{cartesianHitActive(showTooltip, rails, chart.onBandClick, data.length) && (
 				<ChartHitArea
 					plot={chart.plot}
 					band={chart.band}
@@ -337,6 +301,6 @@ export function BarChart<T>(props: BarChartProps<T>) {
 				animate={animate}
 				hidden={chart.referenceHidden}
 			/>
-		</ChartFrame>
+		</ChartCartesianFrame>
 	)
 }

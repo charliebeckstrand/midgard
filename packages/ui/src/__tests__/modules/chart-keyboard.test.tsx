@@ -1,8 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { AreaChart } from '../../modules/chart/area-chart'
 import { DonutChart } from '../../modules/chart/donut-chart'
-import { LineChart } from '../../modules/chart/line-chart'
-import { PieChart } from '../../modules/chart/pie-chart'
 import {
 	cartesianFocus,
 	clampCursor,
@@ -11,7 +9,9 @@ import {
 	firstCursor,
 	hasFocusTargets,
 	moveCursor,
-} from '../../modules/chart/use-chart-keyboard'
+} from '../../modules/chart/engine/use-chart-keyboard'
+import { LineChart } from '../../modules/chart/line-chart'
+import { PieChart } from '../../modules/chart/pie-chart'
 import { act, allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
 
 // Category 0 carries two coincident points (a chart whose series overlap on the

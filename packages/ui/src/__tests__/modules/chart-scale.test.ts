@@ -5,7 +5,7 @@ import {
 	headroomFits,
 	linearScale,
 	nearestBandIndex,
-} from '../../modules/chart/chart-scale'
+} from '../../modules/chart/engine/chart-scale'
 
 describe('linearScale', () => {
 	it('derives the domain from the finite values and lands ticks on clean steps', () => {

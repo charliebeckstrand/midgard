@@ -3,7 +3,7 @@ import {
 	type LegendEntryRect,
 	OVERFLOW_CHIP_RESERVE,
 	visibleLegendCount,
-} from '../../modules/chart/chart-legend-fit'
+} from '../../modules/chart/engine/chart-legend/fit'
 
 /** Entries at ascending right edges on the given rows, in wrap order. */
 function rects(...entries: [row: number, right: number][]): LegendEntryRect[] {

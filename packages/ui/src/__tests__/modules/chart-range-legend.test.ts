@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { rangeLegendOrientation, resolveRangeLegend } from '../../modules/chart/chart-range-legend'
-import { COMPACT_WIDTH, SPARK_HEIGHT, SPARK_WIDTH } from '../../modules/chart/chart-tier'
+import {
+	rangeLegendOrientation,
+	resolveRangeLegend,
+} from '../../modules/chart/engine/chart-legend/range'
+import { COMPACT_WIDTH, SPARK_HEIGHT, SPARK_WIDTH } from '../../modules/chart/engine/chart-tier'
 
 // A roomy, non-spark, non-narrow box the placement passes through untouched.
 const WIDE = 500

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { HeatmapChart, type HeatmapChartSeries } from '../../modules/chart'
-import { GUTTER_EDGE_PAD, LABEL_CHAR_WIDTH } from '../../modules/chart/chart-constants'
+import { GUTTER_EDGE_PAD, LABEL_CHAR_WIDTH } from '../../modules/chart/engine/chart-constants'
 import { act, bySlot, fireEvent, renderUI } from '../helpers'
 
 type Row = { day: string; hour: string; commits: number }

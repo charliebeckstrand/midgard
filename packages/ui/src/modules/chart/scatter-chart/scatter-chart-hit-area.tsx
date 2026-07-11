@@ -2,11 +2,11 @@
 
 import { useCallback } from 'react'
 import { cn } from '../../../core'
-import type { PlotRect } from '../chart-layout'
-import type { ChartTooltipTrigger } from '../chart-schema'
-import type { ChartMarkRef } from '../context'
-import { useChartPointer } from '../use-chart-pointer'
-import { nearestCenterIndex } from './scatter-chart-geometry'
+import { nearestCenterIndex } from '../engine/chart-geometry/scatter'
+import type { PlotRect } from '../engine/chart-layout'
+import type { ChartTooltipTrigger } from '../engine/chart-tooltip'
+import type { ChartMarkRef } from '../engine/context'
+import { useChartPointer } from '../engine/use-chart-pointer'
 
 /** Props for {@link ScatterChartHitArea}. @internal */
 export type ScatterChartHitAreaProps = {

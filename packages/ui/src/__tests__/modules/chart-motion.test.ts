@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { barGrow, referenceRise, seriesDataKey } from '../../modules/chart/chart-motion'
+import { barGrow, referenceRise, seriesDataKey } from '../../modules/chart/engine/chart-motion'
 
 // One orientation predicate drives every value-axis mount reveal, so the bar
 // grow and the reference rise always agree on which screen axis is the value

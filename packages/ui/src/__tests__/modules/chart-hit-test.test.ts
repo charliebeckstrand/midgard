@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { BarMark } from '../../modules/chart/bar-chart/bar-chart-geometry'
+import type { BarMark } from '../../modules/chart/engine/chart-geometry/bar'
 import {
 	barMarkAt,
 	nearestSeriesArea,
@@ -7,7 +7,7 @@ import {
 	nearSeriesLines,
 	withinBarMarks,
 	withinSeriesAreas,
-} from '../../modules/chart/chart-hit-test'
+} from '../../modules/chart/engine/chart-hit-test'
 
 const bar = (x: number, x1: number, top: number, bottom: number): BarMark => ({
 	d: '',

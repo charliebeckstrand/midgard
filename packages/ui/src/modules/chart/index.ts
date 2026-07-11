@@ -1,32 +1,6 @@
-export type { ChartSeriesColor } from '../../recipes/kata/chart'
 export { AreaChart, type AreaChartProps } from './area-chart'
 export { BarChart, type BarChartProps } from './bar-chart'
 export { BubbleChart, type BubbleChartProps } from './bubble-chart'
-export type { ChartAspectRatio } from './chart-layout'
-export type { ChartOrientation } from './chart-orientation'
-export type {
-	BubbleChartSeries,
-	CartesianAxes,
-	ChartCategoryAxis,
-	ChartLegendConfig,
-	ChartLegendPlacement,
-	ChartRangeLegendConfig,
-	ChartRangeLegendType,
-	ChartReferenceLine,
-	ChartSeries,
-	ChartTooltipConfig,
-	ChartTooltipTrigger,
-	ChartValueAxis,
-	ChartValueAxisId,
-	ComboChartSeries,
-	Crosshair,
-	DataKey,
-	PieChartSeries,
-	ScatterAxes,
-	ScatterChartSeries,
-} from './chart-schema'
-export { ChartSkeleton, type ChartSkeletonProps } from './chart-skeleton'
-export type { ChartTier } from './chart-tier'
 export {
 	ChoroplethChart,
 	type ChoroplethChartProps,
@@ -34,6 +8,31 @@ export {
 } from './choropleth-chart'
 export { ComboChart, type ComboChartProps } from './combo-chart'
 export { DonutChart, type DonutChartProps } from './donut-chart'
+export type {
+	CartesianAxes,
+	ChartCategoryAxis,
+	ChartValueAxis,
+	ChartValueAxisId,
+	ScatterAxes,
+} from './engine/chart-axes/schema'
+export type { ChartSeriesColor } from './engine/chart-color/palette'
+export type { Crosshair } from './engine/chart-crosshair'
+export type { ChartAspectRatio } from './engine/chart-layout'
+export type { ChartRangeLegendConfig, ChartRangeLegendType } from './engine/chart-legend/range'
+export type { ChartLegendConfig, ChartLegendPlacement } from './engine/chart-legend/schema'
+export type { ChartOrientation } from './engine/chart-orientation'
+export type { ChartReferenceLine } from './engine/chart-reference-lines'
+export { ChartSkeleton, type ChartSkeletonProps } from './engine/chart-skeleton'
+export type { ChartTier } from './engine/chart-tier'
+export type { ChartTooltipConfig, ChartTooltipTrigger } from './engine/chart-tooltip'
+export type {
+	BubbleChartSeries,
+	ChartSeries,
+	ComboChartSeries,
+	DataKey,
+	PieChartSeries,
+	ScatterChartSeries,
+} from './engine/types'
 export {
 	HeatmapChart,
 	type HeatmapChartProps,

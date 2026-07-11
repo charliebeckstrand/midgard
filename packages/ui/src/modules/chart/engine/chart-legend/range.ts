@@ -1,0 +1,129 @@
+/**
+ * Placement and orientation resolution for a colour-scaled chart's range
+ * legend, kept React-free beside `chart-tier.ts` so the breakpoint math is
+ * unit-testable in isolation. A colour-scaled chart (heatmap, choropleth) keys
+ * its continuous scale bar off the same `legend` prop a categorical chart does,
+ * then lets the measured box adjust it the way the categorical legend adjusts:
+ * the bar sheds at the spark tier, and a box too narrow for a side rail drops a
+ * side placement to a horizontal row under the plot. A `'left'` / `'right'`
+ * placement stands the bar vertical, a `'top'` / `'bottom'` one lays it flat.
+ */
+
+import type { ChartOrientation } from '../chart-orientation'
+import { COMPACT_WIDTH, isSparkBox } from '../chart-tier'
+import { type ChartLegendPlacement, legendAside } from './schema'
+
+/**
+ * The kind of legend a colour-scaled chart (heatmap, choropleth) draws — only
+ * the continuous `'range'` scale bar today, a placeholder for the discriminant a
+ * future binned switchboard would join.
+ */
+export type ChartRangeLegendType = 'range'
+
+/**
+ * The object form of a colour-scaled chart's `legend` prop: the legend `type`
+ * (only `'range'` today) with its `placement`, which drives the scale bar's
+ * orientation — a `'left'` / `'right'` placement stands the bar vertical beside
+ * the plot, a `'top'` / `'bottom'` one lays it horizontal above or below. The
+ * prop also takes a bare boolean (show at the default placement, or drop it) or a
+ * bare placement string, so the object is only needed to name the type and
+ * placement together.
+ */
+export type ChartRangeLegendConfig = {
+	/**
+	 * The legend variant. Only the continuous `'range'` scale bar today — a
+	 * colour-scaled chart has no categorical switchboard to swap to.
+	 * @defaultValue 'range'
+	 */
+	type?: ChartRangeLegendType
+	/**
+	 * Where the bar sits around the plot; drives its orientation. A side
+	 * placement stands it vertical, a stacked one lays it horizontal.
+	 * @defaultValue 'right'
+	 */
+	placement?: ChartLegendPlacement
+}
+
+/** A `legend` prop resolved against the measured box to concrete placement, orientation, and visibility. @internal */
+export type ResolvedRangeLegend = {
+	/** Whether the scale bar mounts at all — off at the spark tier, or when `legend` is `false`. */
+	show: boolean
+	/** Where the bar sits, after the box adjusts a side placement in a too-narrow frame. */
+	placement: ChartLegendPlacement
+	/** The bar's axis: a side placement stands it vertical, a stacked one lays it horizontal. */
+	orientation: ChartOrientation
+}
+
+/**
+ * A left/right placement stands the scale bar vertical beside the plot; a
+ * top/bottom one lays it horizontal above or below.
+ *
+ * @internal
+ */
+export function rangeLegendOrientation(placement: ChartLegendPlacement): ChartOrientation {
+	return legendAside(placement) ? 'vertical' : 'horizontal'
+}
+
+/** The placement a `legend` prop names, before the box adjusts it. @internal */
+function requestedPlacement(
+	legend: boolean | ChartLegendPlacement | ChartRangeLegendConfig | undefined,
+	defaultPlacement: ChartLegendPlacement,
+): ChartLegendPlacement {
+	if (typeof legend === 'string') return legend
+
+	if (legend !== null && typeof legend === 'object') return legend.placement ?? defaultPlacement
+
+	return defaultPlacement
+}
+
+/**
+ * Resolves a colour-scaled chart's `legend` prop against its measured box to the
+ * range legend's placement, orientation, and whether it shows. The prop names a
+ * placement — a bare boolean at the default, a bare string, or `{ placement }` —
+ * and the box then adjusts it the way a categorical legend adjusts: the bar
+ * sheds at the spark tier (its chrome stripped to bare marks), and a box too
+ * narrow for a side rail (`compact` width) drops a side placement to a
+ * horizontal row under the plot. A left/right placement stands the bar vertical,
+ * a top/bottom one lays it horizontal.
+ *
+ * @param legend The caller's `legend` prop.
+ * @param width The box width the placement decides against — pass the chart's
+ * own container, not the plot, so moving the bar off the side never feeds the
+ * plot's own width back and oscillates the placement.
+ * @param height The box height, for the spark-floor check.
+ * @param defaultPlacement Where the bar sits when the prop names none.
+ * @internal
+ */
+export function resolveRangeLegend(
+	legend: boolean | ChartLegendPlacement | ChartRangeLegendConfig | undefined,
+	width: number,
+	height: number,
+	defaultPlacement: ChartLegendPlacement = 'right',
+): ResolvedRangeLegend {
+	const requested = requestedPlacement(legend, defaultPlacement)
+
+	// A measured box too narrow for a side rail drops a side placement to a
+	// horizontal row under the plot, the way a side categorical legend stacks
+	// below its engage width; a stacked placement is already horizontal and stays
+	// put. Resolved ahead of the spark check so shedding and re-showing the bar
+	// never moves it between structures: a placement that flipped with `show`
+	// would rebuild the frame around the plot, and the remount's transient
+	// measurements can feed back into this resolution and oscillate it. An
+	// unmeasured box (width 0) keeps the request — there is nothing to adjust to.
+	const side = legendAside(requested)
+
+	const placement: ChartLegendPlacement =
+		side && width > 0 && width < COMPACT_WIDTH ? 'bottom' : requested
+
+	// Off, or stripped with the rest of the chrome at the spark floor — the way a
+	// cartesian frame drops its legend to draw a bare sparkline. An unmeasured box
+	// (width 0) keeps the bar, matching the placement's posture above: shedding on
+	// "unmeasured" would mount the bar only after the measurement lands — a
+	// transition later than the plot's own pre-paint measure — so the plot would
+	// paint at full width first and visibly shrink when the rail arrived. Reserving
+	// ahead means the plot's first measurement already excludes the rail, and a box
+	// that then proves spark-small sheds it on the next commit instead.
+	const show = legend !== false && (width === 0 || !isSparkBox(width, height))
+
+	return { show, placement, orientation: rangeLegendOrientation(placement) }
+}

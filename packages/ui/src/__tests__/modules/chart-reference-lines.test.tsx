@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { BarChart } from '../../modules/chart/bar-chart'
-import type { ChartReferenceLine } from '../../modules/chart/chart-schema'
+import type { ChartReferenceLine } from '../../modules/chart/engine/chart-reference-lines'
 import { LineChart } from '../../modules/chart/line-chart'
 import { allBySlot, bySlot, fireEvent, renderUI, userEvent, waitFor } from '../helpers'
 

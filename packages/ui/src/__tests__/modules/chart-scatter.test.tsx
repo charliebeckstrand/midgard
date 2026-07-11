@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest'
 import { BubbleChart } from '../../modules/chart/bubble-chart'
-import { ScatterChart } from '../../modules/chart/scatter-chart'
 import {
 	anchorEndTicks,
 	diameterRange,
@@ -8,7 +7,8 @@ import {
 	scatterMarkAt,
 	sizeRadius,
 	uniqueXValues,
-} from '../../modules/chart/scatter-chart/scatter-chart-geometry'
+} from '../../modules/chart/engine/chart-geometry/scatter'
+import { ScatterChart } from '../../modules/chart/scatter-chart'
 import { act, allBySlot, bySlot, fireEvent, renderUI, userEvent } from '../helpers'
 
 type Stop = { distance: unknown; dwell: unknown; weight?: unknown }

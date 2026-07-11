@@ -4,9 +4,13 @@ import { cn } from '../../../core'
 import { type FrameSizing, usePlotFrame } from '../../../hooks'
 import { useResolvedSize } from '../../../primitives/density'
 import type { Step } from '../../../recipes'
-import { type ChartSeriesColor, k } from '../../../recipes/kata/chart'
+import { type ChartColorSlot, k } from '../../../recipes/kata/chart'
 import { once } from '../../../utilities'
-import { ChartAxis, type ChartAxisTick, ChartAxisTitles } from '../chart-axis'
+import { ChartAxis, type ChartAxisTick, ChartAxisTitles } from '../engine/chart-axes/axis'
+import { ChartGridLines } from '../engine/chart-axes/grid-lines'
+import { type ChartValueAxis, resolveAxes, type ScatterAxes } from '../engine/chart-axes/schema'
+import type { SlotPaint } from '../engine/chart-color/paint'
+import { paletteSlot } from '../engine/chart-color/palette'
 import {
 	AXIS_TITLE_BAND,
 	AXIS_TITLE_GAP,
@@ -16,42 +20,10 @@ import {
 	PLOT_TOP_PAD,
 	SCATTER_HIT_SLACK,
 	X_AXIS_HEIGHT,
-} from '../chart-constants'
-import { ChartCrosshair, crosshairSnaps, resolveCrosshair } from '../chart-crosshair'
-import { ChartFrame } from '../chart-frame'
-import { ChartGridLines } from '../chart-grid-lines'
-import {
-	type ChartAspectRatio,
-	type ChartAxisTitlePlacement,
-	chartFrameLayout,
-	type PlotRect,
-	plotRect,
-	valueTicksOf,
-} from '../chart-layout'
-import type { ChartLegendItem } from '../chart-legend'
-import { ChartLegend } from '../chart-legend'
-import { ChartMarksLayer } from '../chart-marks-layer'
-import { type LinearScale, linearScale } from '../chart-scale'
-import {
-	type ChartBaseProps,
-	type ChartLegendPlacement,
-	type ChartTooltipTrigger,
-	type ChartValueAxis,
-	type Crosshair,
-	type ResolvedCrosshair,
-	resolveAxes,
-	resolveLegend,
-	resolveTooltip,
-	type ScatterAxes,
-	type ScatterChartSeries,
-} from '../chart-schema'
-import { formatChartValue, type SlotPaint } from '../chart-series'
-import { snapTargets } from '../chart-snap'
-import { chartPolicy, policyPlotHeight } from '../chart-tier'
-import { useChartTier } from '../context'
-import type { ChartReadout } from '../types'
-import { cartesianFocus } from '../use-chart-keyboard'
-import { useChartSeriesToggle } from '../use-chart-series-toggle'
+} from '../engine/chart-constants'
+import type { Crosshair, ResolvedCrosshair } from '../engine/chart-crosshair'
+import { ChartCrosshair, crosshairSnaps, resolveCrosshair } from '../engine/chart-crosshair'
+import { ChartFrame } from '../engine/chart-frame/frame'
 import {
 	anchorEndTicks,
 	diameterRange,
@@ -69,7 +41,35 @@ import {
 	sizeDomain,
 	sizeRadius,
 	uniqueXValues,
-} from './scatter-chart-geometry'
+} from '../engine/chart-geometry/scatter'
+import {
+	type ChartAspectRatio,
+	type ChartAxisTitlePlacement,
+	chartFrameLayout,
+	frameFills,
+	type PlotRect,
+	plotRect,
+	valueTicksOf,
+} from '../engine/chart-layout'
+import type { ChartLegendItem } from '../engine/chart-legend/legend'
+import { ChartLegend } from '../engine/chart-legend/legend'
+import {
+	legendAside,
+	legendBands,
+	legendVisible,
+	type ResolvedLegend,
+	resolveLegend,
+} from '../engine/chart-legend/schema'
+import { ChartMarksLayer } from '../engine/chart-marks/layer'
+import { type LinearScale, linearScale } from '../engine/chart-scale'
+import { formatChartValue } from '../engine/chart-series'
+import { snapTargets } from '../engine/chart-snap'
+import { chartFramePolicy } from '../engine/chart-tier'
+import { type ChartTooltipTrigger, resolveTooltip } from '../engine/chart-tooltip'
+import { useChartTier } from '../engine/context'
+import type { ChartBaseProps, ChartReadout, ScatterChartSeries } from '../engine/types'
+import { cartesianFocus } from '../engine/use-chart-keyboard'
+import { useChartSeriesToggle } from '../engine/use-chart-series-toggle'
 import { ScatterChartHitArea } from './scatter-chart-hit-area'
 import {
 	AnimatedScatterChartMarks,
@@ -129,7 +129,7 @@ type ScatterMeta = {
 	index: number
 	label: string
 	paint: SlotPaint
-	color: ChartSeriesColor
+	color: ChartColorSlot
 	points: ScatterDatum[]
 	sized: boolean
 	sizeName: string | null
@@ -153,7 +153,7 @@ function scatterMetas<T>(data: T[], series: ScatterChartSeries<T>[]): ScatterMet
 
 		const diameters = diameterRange(entry.size, entry.maxSize)
 
-		const color = entry.color ?? k.order[index % k.order.length] ?? 'blue'
+		const color = entry.color ?? paletteSlot(index)
 
 		return {
 			index,
@@ -223,8 +223,6 @@ type ScatterFrame = {
 	fill: boolean
 	/** The legend is a side panel, so it lays out beside the plot. */
 	aside: boolean
-	/** The legend's resolved placement, or `undefined` for the default row. */
-	placement?: ChartLegendPlacement
 }
 
 /**
@@ -238,29 +236,28 @@ type ScatterFrame = {
  * @internal
  */
 function scatterFrame(
-	legend: ScatterChartProps<unknown>['legend'],
+	legend: ResolvedLegend['value'],
 	height: number | undefined,
 	aspectRatio: ChartAspectRatio,
 ): ScatterFrame {
-	const aside = legend === 'left' || legend === 'right'
+	const aside = legendAside(legend)
 
 	const { sizing, outerAspect } = chartFrameLayout(height, aspectRatio, aside)
 
 	return {
 		sizing,
 		frameAspect: outerAspect ?? undefined,
-		fill: sizing.mode === 'fill' || sizing.mode === 'aspect-fill',
+		fill: frameFills(sizing),
 		aside,
-		placement: typeof legend === 'string' ? legend : undefined,
 	}
 }
 
 /** The legend entries: on request, or by default once a second series needs telling apart. @internal */
 function scatterLegendItems(
 	metas: ScatterMeta[],
-	legend: ScatterChartProps<unknown>['legend'],
+	legend: ResolvedLegend['value'],
 ): ChartLegendItem[] | null {
-	if (!(legend ?? metas.length > 1)) return null
+	if (!legendVisible(legend, metas.length)) return null
 
 	return metas.map((meta) => ({
 		index: meta.index,
@@ -272,7 +269,7 @@ function scatterLegendItems(
 }
 
 /** One axis's grid participation: the chart's `grid` gate and the axis's own switch. @internal */
-function axisGrid(grid: boolean, axis: ChartValueAxis | undefined): boolean {
+function resolveAxisGrid(grid: boolean, axis: ChartValueAxis | undefined): boolean {
 	return grid && (axis?.grid ?? true)
 }
 
@@ -613,7 +610,6 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 		frameAspect,
 		fill: fillFrame,
 		aside,
-		placement,
 	} = scatterFrame(resolvedLegend.value, height, aspectRatio)
 
 	const { ref, width: frameWidth, height: frameHeight, reserve } = usePlotFrame(width, sizing)
@@ -621,18 +617,19 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 	// The scatter reads the intrinsic tier from its measured box for the
 	// `data-tier` styling hook and the legend's row cap; its own axis ticks keep
 	// the density target above, so only the tier and its legend budget are taken.
-	// Under a stacked aspect-fill figure the plot's measured remainder shrinks
-	// with the legend and jumps when spark drops it, so resolve the tier against
-	// the figure's `width / ratio` less that legend instead of the remainder it
-	// would loop on. A scatter carries no header, so the chrome is the legend alone.
-	// A free-form fill frame shares that box with no ratio to derive a safe height
-	// from, so the policy's fill flag resolves the chrome decisions by width alone.
-	const policyHeight = policyPlotHeight(frameHeight, frameWidth, frameAspect, {
-		headerLines: 0,
-		legend: Boolean(resolvedLegend.value ?? series.length > 1) && !aside,
+	// A scatter carries no header, so the chrome is the legend alone; chartFramePolicy
+	// resolves the tier against the figure's `width / ratio` less that legend.
+	const policy = chartFramePolicy({
+		width: frameWidth,
+		height: frameHeight,
+		aspect: frameAspect,
+		chrome: {
+			headerLines: 0,
+			legend: legendBands(resolvedLegend.value, series.length),
+		},
+		tickTarget: metrics.tickTarget,
+		fill: sizing.mode === 'fill',
 	})
-
-	const policy = chartPolicy(frameWidth, policyHeight, metrics.tickTarget, sizing.mode === 'fill')
 
 	// Spark stands the chart's chrome down to bare marks: ScatterChrome and
 	// scatterScales read this to shed their axis labels, gridlines, and the gutter
@@ -713,7 +710,7 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 
 	const { show: showTooltip, trigger } = resolveTooltip(tooltip)
 
-	const legendItems = scatterLegendItems(metas, legend)
+	const legendItems = scatterLegendItems(metas, resolvedLegend.value)
 
 	const marksNode = animate ? (
 		<AnimatedScatterChartMarks list={list} />
@@ -746,7 +743,7 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 					/>
 				)
 			}
-			legendPlacement={placement}
+			legendPlacement={resolvedLegend.placement}
 			readout={readout}
 			emphasis={emphasis}
 			tooltip={showTooltip}
@@ -758,8 +755,8 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 				plot={plot}
 				spark={spark}
 				axes={draw}
-				xGrid={axisGrid(grid, axesConfig.x)}
-				yGrid={axisGrid(grid, axesConfig.y)}
+				xGrid={resolveAxisGrid(grid, axesConfig.x)}
+				yGrid={resolveAxisGrid(grid, axesConfig.y)}
 				xScale={xScale}
 				yScale={yScale}
 				xTicks={xTicks}
