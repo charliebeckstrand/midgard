@@ -1,6 +1,6 @@
 'use client'
 
-import { type SectorBaseProps, SectorChart } from '../sector-chart/sector-chart'
+import { type SectorBaseProps, SectorChart } from '../sector-chart'
 
 /**
  * Props for {@link PieChart}. Requires an accessible name (`aria-label` or

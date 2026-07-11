@@ -1,7 +1,7 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { type SectorBaseProps, SectorChart } from '../sector-chart/sector-chart'
+import { type SectorBaseProps, SectorChart } from '../sector-chart'
 
 /**
  * Props for {@link DonutChart}. Requires an accessible name (`aria-label` or
