@@ -30,7 +30,7 @@ import {
 	GRID_STATUS_DEBOUNCE_MS,
 } from './engine/grid-constants'
 import { isFrozen, isLocked } from './engine/grid-pin/overrides'
-import { pinnedClassName, pinnedOffsetStyle } from './engine/grid-pin/styles'
+import { pinnedHeaderProps } from './engine/grid-pin/styles'
 import { GridColumnFilterButton } from './grid-column-filter-button'
 import { GridGroupByButton } from './grid-group-by-button'
 import { GridGroupHead } from './grid-group-head'
@@ -210,19 +210,13 @@ function GridDragHandleHeaderCell<T>({
 	stickyHeader: boolean
 	pinning: GridColumnPinning | null
 }) {
+	const pinned = pinnedHeaderProps(pinning, column, column.width || undefined)
+
 	return (
 		<TableHeader
 			aria-colindex={colIndex}
-			className={cn(
-				k.rowReorder.cell,
-				stickyHeader && k.sticky.head,
-				pinnedClassName(pinning, column.id, { header: true }),
-				column.headerClassName,
-			)}
-			style={{
-				...(column.width ? { width: column.width } : null),
-				...pinnedOffsetStyle(pinning, column.id),
-			}}
+			className={cn(k.rowReorder.cell, stickyHeader && k.sticky.head, pinned.className)}
+			style={pinned.style}
 		>
 			<span className="sr-only">Reorder rows</span>
 		</TableHeader>
@@ -255,19 +249,13 @@ function GridHeaderCell<T>({
 		useGrid()
 
 	if (column.selectable) {
+		const pinned = pinnedHeaderProps(pinning, column, column.width || undefined)
+
 		return (
 			<TableHeader
 				aria-colindex={colIndex}
-				className={cn(
-					k.cell.select,
-					stickyHeader && k.sticky.head,
-					pinnedClassName(pinning, column.id, { header: true }),
-					column.headerClassName,
-				)}
-				style={{
-					...(column.width ? { width: column.width } : null),
-					...pinnedOffsetStyle(pinning, column.id),
-				}}
+				className={cn(k.cell.select, stickyHeader && k.sticky.head, pinned.className)}
+				style={pinned.style}
 			>
 				{hasRows && (
 					<Checkbox
@@ -718,6 +706,8 @@ const GridColumnHeader = memo(function GridColumnHeader({
 		/>
 	)
 
+	const pinned = pinnedHeaderProps(pinning, column, width ?? undefined)
+
 	return (
 		<TableHeader
 			aria-colindex={colIndex}
@@ -727,13 +717,9 @@ const GridColumnHeader = memo(function GridColumnHeader({
 			className={cn(
 				stickyHeader && k.sticky.head,
 				canResize && !stickyHeader && k.resize.cell,
-				pinnedClassName(pinning, column.id, { header: true }),
-				column.headerClassName,
+				pinned.className,
 			)}
-			style={{
-				...(width != null ? { width } : null),
-				...pinnedOffsetStyle(pinning, column.id),
-			}}
+			style={pinned.style}
 		>
 			{/* `data-grid-header` marks the header's flex row so the autosizer can
 			    subtract its justified free space and measure the title + affordances. */}

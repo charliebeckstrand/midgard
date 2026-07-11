@@ -11,7 +11,7 @@ import type { DensityLevel } from '../../providers/density'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
 import { NO_PADDING } from './engine/grid-constants'
-import { pinnedClassName, pinnedOffsetStyle } from './engine/grid-pin/styles'
+import { pinnedCellProps } from './engine/grid-pin/styles'
 import type { GridCellClick, GridCellRovingActivate, GridRowClick } from './engine/grid-row/cell'
 import { rowClickableClass, rowShellProps } from './engine/grid-row/shell'
 import { GridCellContent } from './grid-cell-content'
@@ -174,6 +174,8 @@ function GridGroupLeafCell<T>({
 	// plain); `cellRovingAttrs` returns the marker + Enter/Space activation.
 	const dataCell = isDataColumn(col)
 
+	const pinned = pinnedCellProps(pinning, col)
+
 	const roving = cellRovingAttrs({
 		cellRoving: cellRoving && dataCell,
 		cellActivate,
@@ -194,10 +196,9 @@ function GridGroupLeafCell<T>({
 				leading && k.rowGroup.rail.padded,
 				leading && color && k.rowGroup.rail.color[color],
 				chrome.td,
-				pinnedClassName(pinning, col.id),
-				col.className,
+				pinned.className,
 			)}
-			style={{ ...NO_PADDING, ...pinnedOffsetStyle(pinning, col.id) }}
+			style={{ ...NO_PADDING, ...pinned.style }}
 		>
 			<div className={cn(k.rowGroup.reveal.track)} data-open={dataAttr(expanded)}>
 				<div className={cn(k.rowGroup.reveal.clip)}>

@@ -21,7 +21,7 @@ import { TableCell, TableRow } from '../../components/table'
 import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/grid'
 import { isFrozen } from './engine/grid-pin/overrides'
-import { pinnedClassName, pinnedOffsetStyle } from './engine/grid-pin/styles'
+import { pinnedCellProps } from './engine/grid-pin/styles'
 import {
 	cellValue,
 	type GridCellClick,
@@ -445,12 +445,14 @@ function GridRowImpl<T>({
 				const colIndex = rowIndex !== undefined ? colIdx + 1 : undefined
 
 				if (col.dragHandle) {
+					const pinned = pinnedCellProps(pinning, col)
+
 					return (
 						<TableCell
 							key={col.id}
 							aria-colindex={colIndex}
-							className={cn(k.rowReorder.cell, pinnedClassName(pinning, col.id), col.className)}
-							style={pinnedOffsetStyle(pinning, col.id)}
+							className={cn(k.rowReorder.cell, pinned.className)}
+							style={pinned.style}
 						>
 							<GridRowDragHandle sortable={sortable} rowLabel={rowLabel} rowKey={rowKey} />
 						</TableCell>
@@ -458,12 +460,14 @@ function GridRowImpl<T>({
 				}
 
 				if (col.selectable) {
+					const pinned = pinnedCellProps(pinning, col)
+
 					return (
 						<TableCell
 							key={col.id}
 							aria-colindex={colIndex}
-							className={cn(k.cell.select, pinnedClassName(pinning, col.id), col.className)}
-							style={pinnedOffsetStyle(pinning, col.id)}
+							className={cn(k.cell.select, pinned.className)}
+							style={pinned.style}
 						>
 							<Checkbox
 								checked={selected}
@@ -475,12 +479,14 @@ function GridRowImpl<T>({
 				}
 
 				if (col.expander) {
+					const pinned = pinnedCellProps(pinning, col)
+
 					return (
 						<TableCell
 							key={col.id}
 							aria-colindex={colIndex}
-							className={cn(k.cell.expander, pinnedClassName(pinning, col.id), col.className)}
-							style={pinnedOffsetStyle(pinning, col.id)}
+							className={cn(k.cell.expander, pinned.className)}
+							style={pinned.style}
 						>
 							{toggleExpand && (
 								<GridExpandToggle
@@ -496,12 +502,14 @@ function GridRowImpl<T>({
 				}
 
 				if (col.actions) {
+					const pinned = pinnedCellProps(pinning, col)
+
 					return (
 						<TableCell
 							key={col.id}
 							aria-colindex={colIndex}
-							className={cn(k.cell.actions, pinnedClassName(pinning, col.id), col.className)}
-							style={pinnedOffsetStyle(pinning, col.id)}
+							className={cn(k.cell.actions, pinned.className)}
+							style={pinned.style}
 						>
 							{col.actions(row)}
 						</TableCell>
@@ -691,6 +699,8 @@ function GridDataCellImpl<T>({
 	// applied to whichever `<td>` this cell renders (reorder-aware or plain).
 	const roving = cellRovingAttrs({ cellRoving, cellActivate, col, row, rowKey })
 
+	const pinned = pinnedCellProps(pinning, col)
+
 	const rovingClass = cellRoving ? k.cell.rovable : undefined
 
 	// Render only columns that declare a `cell`; a bare accessor column stays
@@ -728,13 +738,8 @@ function GridDataCellImpl<T>({
 			{...cellExtra}
 			{...roving}
 			data-grid-col={col.id}
-			className={cn(
-				rovingClass,
-				pinnedClassName(pinning, col.id),
-				col.className,
-				cellExtra?.className,
-			)}
-			style={{ ...cellExtra?.style, ...pinnedOffsetStyle(pinning, col.id) }}
+			className={cn(rovingClass, pinned.className, cellExtra?.className)}
+			style={{ ...cellExtra?.style, ...pinned.style }}
 		>
 			{content}
 		</TableCell>

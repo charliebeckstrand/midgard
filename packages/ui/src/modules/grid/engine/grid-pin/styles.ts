@@ -54,3 +54,41 @@ export function pinnedClassName(
 
 	return cn(options.header ? k.pinned.head : k.pinned.cell, sideBorder, edge)
 }
+
+/**
+ * The pinned chrome a body cell merges: the sticky/boundary classes joined with
+ * the column's own `className`, and the sticky-offset style. One call per cell
+ * in place of the class/style pair every renderer repeated.
+ *
+ * @internal
+ */
+export function pinnedCellProps(
+	pinning: GridColumnPinning | null,
+	col: { id: string | number; className?: string },
+): { className: string; style: CSSProperties | undefined } {
+	return {
+		className: cn(pinnedClassName(pinning, col.id), col.className),
+		style: pinnedOffsetStyle(pinning, col.id),
+	}
+}
+
+/**
+ * The header-cell counterpart of {@link pinnedCellProps}: the header-layer
+ * pinned classes joined with the column's `headerClassName`, and the fixed
+ * width (when set) merged under the sticky offset.
+ *
+ * @internal
+ */
+export function pinnedHeaderProps(
+	pinning: GridColumnPinning | null,
+	column: { id: string | number; headerClassName?: string },
+	width: string | number | undefined,
+): { className: string; style: CSSProperties } {
+	return {
+		className: cn(pinnedClassName(pinning, column.id, { header: true }), column.headerClassName),
+		style: {
+			...(width !== undefined ? { width } : null),
+			...pinnedOffsetStyle(pinning, column.id),
+		},
+	}
+}

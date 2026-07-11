@@ -13,6 +13,7 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/grid-column-manager'
 import { toggleItem } from '../../utilities'
 import { columnLabel } from './engine/grid-column/label'
+import { effectivePinSide } from './engine/grid-pin/overrides'
 import { GridGroupManager } from './grid-group-manager'
 import type { GridColumnGroup } from './grid-group-types'
 import { applyColumnReorder } from './grid-reorder'
@@ -73,17 +74,6 @@ export type GridColumnManagerProps = {
 	savePresetLabel?: ReactNode
 
 	className?: string
-}
-
-/**
- * The edge a column is frozen to in the manager — its immutable
- * {@link GridColumnManagerItem.locked} side, else its movable
- * {@link GridColumnManagerItem.pinned} side — or `undefined` when it scrolls.
- *
- * @internal
- */
-function effectivePinSide(item: GridColumnManagerItem): 'left' | 'right' | undefined {
-	return item.locked ?? item.pinned
 }
 
 /** Props for {@link GridColumnPinControl}. @internal */

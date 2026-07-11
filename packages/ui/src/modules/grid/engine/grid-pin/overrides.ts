@@ -99,3 +99,18 @@ export function applyPinOverrides<T>(
 		return { ...col, pinned: override === 'none' ? undefined : override }
 	})
 }
+
+/**
+ * A column-manager item's effective frozen edge: its immutable `locked` side,
+ * else its movable `pinned` side — or `undefined` when it scrolls. The
+ * manager-side counterpart of {@link frozenSide}, whose input is a raw column
+ * with un-normalized flags.
+ *
+ * @internal
+ */
+export function effectivePinSide(item: {
+	pinned?: PinSide
+	locked?: PinSide
+}): PinSide | undefined {
+	return item.locked ?? item.pinned
+}
