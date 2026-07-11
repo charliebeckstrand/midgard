@@ -32,9 +32,9 @@ import { Menu, MenuContent, useMenuActions } from '../../components/menu'
 import { isDataColumn, isNativeContextMenuRequest } from '../../utilities'
 import type { SortState } from './context'
 import { columnLabel } from './engine/grid-column/label'
-import type { GridExportAction } from './export/types'
+import type { GridExportAction } from './engine/grid-export/types'
+import { frozenSide, isLocked, normalizeFreeze } from './engine/grid-pin/overrides'
 import type { GridColumnGroup } from './grid-group-types'
-import { frozenSide, isLocked, normalizeFreeze } from './grid-pin-overrides'
 import type {
 	GridCellMenuContext,
 	GridColumn,

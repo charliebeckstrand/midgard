@@ -5,10 +5,10 @@
  * reducers are unit-testable in isolation.
  */
 
-import { formatFraction, formatInteger } from '../../utilities'
-import { columnAccessor } from './grid-column-accessor'
-import { parseNumeric } from './grid-sorting-utilities'
-import type { GridColumn } from './types'
+import { formatFraction, formatInteger } from '../../../utilities'
+import type { GridColumn } from '../types'
+import { columnAccessor } from './grid-column/accessor'
+import { parseNumeric } from './grid-sort/utilities'
 
 /** Whether any column carries an aggregation — the one gate for the aggregate rows. @internal */
 export function hasAggregation<T>(columns: GridColumn<T>[]): boolean {

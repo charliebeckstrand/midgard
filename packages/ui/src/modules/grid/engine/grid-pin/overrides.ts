@@ -1,5 +1,5 @@
-import type { GridPinningState } from './grid-data-types'
-import type { GridColumn } from './types'
+import type { GridPinningState } from '../../grid-data-types'
+import type { GridColumn } from '../../types'
 
 /** A column's frozen edge once normalized (`true` collapses to `'left'`). @internal */
 export type PinSide = 'left' | 'right'

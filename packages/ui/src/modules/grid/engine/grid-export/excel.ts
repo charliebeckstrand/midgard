@@ -1,9 +1,9 @@
 'use client'
 
 import { strToU8, zipSync } from 'fflate'
-import type { GridColumn } from '../types'
-import { cellText, exportFields } from './export-accessor'
-import { downloadBlob } from './export-download'
+import type { GridColumn } from '../../types'
+import { cellText, exportFields } from './accessor'
+import { downloadBlob } from './download'
 
 /** Escapes the five XML-significant characters for worksheet text. @internal */
 function xmlEscape(value: string): string {

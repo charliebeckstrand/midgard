@@ -3,8 +3,8 @@
 import { useCallback, useMemo } from 'react'
 import { useSortableList } from '../../hooks'
 import { isDataColumn } from '../../utilities'
+import { isFrozen } from './engine/grid-pin/overrides'
 import type { GridReorder } from './grid-data-types'
-import { isFrozen } from './grid-pin-overrides'
 import type { GridColumn } from './types'
 
 /** Stable drag id for a column. @internal */

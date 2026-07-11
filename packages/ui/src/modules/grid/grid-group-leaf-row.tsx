@@ -10,8 +10,8 @@ import type { PaletteColor } from '../../core/recipe'
 import type { DensityLevel } from '../../providers/density'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
+import { pinnedClassName, pinnedOffsetStyle } from './engine/grid-pin/styles'
 import { GridCellContent } from './grid-cell-content'
-import { pinnedClassName, pinnedOffsetStyle } from './grid-pinning'
 import {
 	cellRovingAttrs,
 	type GridCellClick,

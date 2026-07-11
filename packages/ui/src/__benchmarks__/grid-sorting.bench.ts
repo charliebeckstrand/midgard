@@ -7,7 +7,7 @@ import {
 	parseNumeric,
 	type SortKey,
 	toSortKey,
-} from '../modules/grid/grid-sorting-utilities'
+} from '../modules/grid/engine/grid-sort/utilities'
 import { makeShipments } from './fixtures'
 
 // The grid's client sort runs these comparators O(n log n) times per sorted

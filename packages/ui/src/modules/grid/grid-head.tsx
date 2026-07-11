@@ -22,18 +22,18 @@ import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
 import type { QueryGroupNode } from '../query'
 import { type SortState, useGrid, useGridResizing } from './context'
+import { describeResize } from './engine/grid-announcements'
 import { columnLabel } from './engine/grid-column/label'
-import { describeResize } from './grid-announcements'
-import { GridColumnFilterButton } from './grid-column-filter-button'
 import {
 	COLUMN_RESIZE_PAGE_STEP,
 	COLUMN_RESIZE_STEP,
 	GRID_STATUS_DEBOUNCE_MS,
-} from './grid-constants'
+} from './engine/grid-constants'
+import { isFrozen, isLocked } from './engine/grid-pin/overrides'
+import { pinnedClassName, pinnedOffsetStyle } from './engine/grid-pin/styles'
+import { GridColumnFilterButton } from './grid-column-filter-button'
 import { GridGroupByButton } from './grid-group-by-button'
 import { GridGroupHead } from './grid-group-head'
-import { isFrozen, isLocked } from './grid-pin-overrides'
-import { pinnedClassName, pinnedOffsetStyle } from './grid-pinning'
 import { columnShiftStyle, useColumnReorderShift } from './grid-reorder'
 import type { GridColumn } from './types'
 import type { GridGroupHeader } from './use-grid-group'

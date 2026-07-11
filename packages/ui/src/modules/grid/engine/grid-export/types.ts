@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import type { GridColumn } from '../types'
+import type { GridColumn } from '../../types'
 
 /**
  * An export format's identifier: one of the built-ins shipped in this folder

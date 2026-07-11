@@ -22,15 +22,16 @@ import { type DensityLevel, densityToSize, useDensityLevel } from '../../provide
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
 import { GridContext, GridResizingContext, type SortState } from './context'
-import { columnLabel } from './engine/grid-column/label'
-import { DEFAULT_EXPORTABLE } from './export/export-registry'
-import type { GridExportAction } from './export/types'
 import {
 	describeColumnVisibility,
 	describePin,
 	describeSelection,
 	describeSort,
-} from './grid-announcements'
+} from './engine/grid-announcements'
+import { columnLabel } from './engine/grid-column/label'
+import { DEFAULT_EXPORTABLE } from './engine/grid-export/registry'
+import type { GridExportAction } from './engine/grid-export/types'
+import { applyPinOverrides, type PinSide, toPinOverrides } from './engine/grid-pin/overrides'
 import { GridAutoSizeConfirmDialog } from './grid-auto-size-confirm-dialog'
 import { GridBody } from './grid-body'
 import { GridBusyStatus } from './grid-busy-status'
@@ -63,7 +64,6 @@ import { GridGroupByContext, type GridGroupByContextValue } from './grid-group-b
 import { GridHead } from './grid-head'
 import { useGridMenuActions } from './grid-menu-actions'
 import { GridPagination as GridPaginationFooter } from './grid-pagination'
-import { applyPinOverrides, type PinSide, toPinOverrides } from './grid-pin-overrides'
 import {
 	GridReorderContext,
 	restrictToFirstScrollableAncestor,

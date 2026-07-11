@@ -26,9 +26,13 @@ import {
 import { isDataColumn } from '../../utilities'
 import { evaluateQuery } from '../query'
 import type { SortState } from './context'
-import { columnAccessor } from './grid-column-accessor'
-import { DRAG_HANDLE_COLUMN_SIZE, EXPANDER_COLUMN_SIZE, SELECT_COLUMN_SIZE } from './grid-constants'
-import { compareSortKeys, type SortKey, toSortKey } from './grid-sorting-utilities'
+import { columnAccessor } from './engine/grid-column/accessor'
+import {
+	DRAG_HANDLE_COLUMN_SIZE,
+	EXPANDER_COLUMN_SIZE,
+	SELECT_COLUMN_SIZE,
+} from './engine/grid-constants'
+import { compareSortKeys, type SortKey, toSortKey } from './engine/grid-sort/utilities'
 import { isQueryGroup } from './grid-table-views'
 import type { GridColumn, GridPagination } from './types'
 

@@ -15,7 +15,7 @@ import { cn } from '../../core'
 import type { DensityLevel } from '../../providers/density/context'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
-import { DEFAULT_OVERSCAN, ROW_HEIGHT_BY_DENSITY } from './grid-constants'
+import { DEFAULT_OVERSCAN, ROW_HEIGHT_BY_DENSITY } from './engine/grid-constants'
 import type {
 	GridFooter,
 	GridFooterStats,

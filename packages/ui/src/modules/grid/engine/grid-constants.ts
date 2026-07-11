@@ -1,4 +1,4 @@
-import type { DensityLevel } from '../../providers/density/context'
+import type { DensityLevel } from '../../../providers/density/context'
 
 /**
  * Estimated row height (px) for virtualization when {@link GridVirtualize}

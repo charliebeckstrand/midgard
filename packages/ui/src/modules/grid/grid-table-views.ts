@@ -4,8 +4,8 @@ import type { ColumnPinningState, PaginationState, Table } from '@tanstack/react
 import { useRef } from 'react'
 import { isDataColumn } from '../../utilities'
 import { isQueryActive, type QueryField, type QueryGroupNode } from '../query'
-import { DEFAULT_COLUMN_SIZE, DEFAULT_MIN_COLUMN_SIZE } from './grid-constants'
-import { frozenSide } from './grid-pin-overrides'
+import { DEFAULT_COLUMN_SIZE, DEFAULT_MIN_COLUMN_SIZE } from './engine/grid-constants'
+import { frozenSide } from './engine/grid-pin/overrides'
 import type { GridColumn, GridPagination } from './types'
 
 /**

@@ -1,6 +1,6 @@
 import type { HTMLAttributes, ReactNode } from 'react'
 import type { ContextMenuEntry } from '../../components/context-menu'
-import type { GridExportAction } from './export/types'
+import type { GridExportAction } from './engine/grid-export/types'
 import type { GridEditCell } from './grid-editing-types'
 
 /** The built-in per-column aggregation names. @see {@link GridColumn.aggFunc} */

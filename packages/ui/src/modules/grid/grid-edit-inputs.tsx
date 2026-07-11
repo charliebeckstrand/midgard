@@ -5,7 +5,7 @@ import { Input } from '../../components/input'
 import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
 import { NumberInput } from '../../components/number-input'
 import { k } from '../../recipes/kata/grid'
-import type { EditorKind } from './grid-editing-utilities'
+import type { EditorKind } from './engine/grid-editing-utilities'
 
 /**
  * Shared props for an internal inline editor: the typed `draft`, the staging and

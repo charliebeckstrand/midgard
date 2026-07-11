@@ -1,9 +1,9 @@
 'use client'
 
 import type { CSSProperties } from 'react'
-import { cn } from '../../core'
-import { k } from '../../recipes/kata/grid'
-import type { GridColumnPinning } from './use-grid-table'
+import { cn } from '../../../../core'
+import { k } from '../../../../recipes/kata/grid'
+import type { GridColumnPinning } from '../../use-grid-table'
 
 /**
  * Inline sticky offset for a pinned cell — `left` for a left-pinned column,

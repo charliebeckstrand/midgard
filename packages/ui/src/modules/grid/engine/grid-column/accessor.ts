@@ -1,4 +1,4 @@
-import type { GridColumn } from './types'
+import type { GridColumn } from '../../types'
 
 /**
  * A column's value accessor — its explicit {@link GridColumn.value}, else the

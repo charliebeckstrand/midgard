@@ -3,7 +3,7 @@
 import { useCallback, useMemo } from 'react'
 import { announce } from '../../core'
 import { useSortableList } from '../../hooks'
-import { describeRowReorder } from './grid-announcements'
+import { describeRowReorder } from './engine/grid-announcements'
 import type { GridRowReorder } from './grid-data-types'
 
 /** A row paired with its stable key — the shape the vertical row sortable orders. @internal */

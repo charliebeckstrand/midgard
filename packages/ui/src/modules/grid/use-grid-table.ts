@@ -24,9 +24,9 @@ import { type ReactNode, type RefObject, useCallback, useEffect, useMemo, useRef
 import { useControllable } from '../../hooks'
 import type { DensityLevel } from '../../providers/density/context'
 import type { SortState } from './context'
-import { columnAccessor } from './grid-column-accessor'
-import { DEFAULT_PAGE_SIZE } from './grid-constants'
-import { type SmartSortField, sortRowsSmart } from './grid-sorting-utilities'
+import { columnAccessor } from './engine/grid-column/accessor'
+import { DEFAULT_PAGE_SIZE } from './engine/grid-constants'
+import { type SmartSortField, sortRowsSmart } from './engine/grid-sort/utilities'
 import {
 	buildState,
 	clampSizingToFloors,

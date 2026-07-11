@@ -12,7 +12,7 @@ import {
 import { Select, SelectLabel, SelectOption } from '../../components/select'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/grid'
-import { getVisiblePages } from './grid-pagination-utilities'
+import { getVisiblePages } from './engine/grid-pagination-utilities'
 import type { GridPaginationView } from './use-grid-table'
 
 /** Props for {@link GridPagination}. @internal */

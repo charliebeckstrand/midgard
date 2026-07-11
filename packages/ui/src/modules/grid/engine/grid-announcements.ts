@@ -5,9 +5,9 @@
  * so the wording is unit-testable without rendering.
  */
 
-import type { SortState } from './context'
-import { columnLabel } from './engine/grid-column/label'
-import type { GridColumn } from './types'
+import type { SortState } from '../context'
+import type { GridColumn } from '../types'
+import { columnLabel } from './grid-column/label'
 
 /**
  * The polite announcement for the grid's current sort, narrated to assistive

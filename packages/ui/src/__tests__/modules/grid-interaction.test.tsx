@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import { Grid, type GridCellClickContext, type GridColumn } from '../../modules/grid'
-import { GRID_STATUS_DEBOUNCE_MS } from '../../modules/grid/grid-constants'
+import { GRID_STATUS_DEBOUNCE_MS } from '../../modules/grid/engine/grid-constants'
 import { renderUI, screen, userEvent, withFakeTime } from '../helpers'
 
 describe('Grid row click', () => {

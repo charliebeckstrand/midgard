@@ -12,7 +12,7 @@ import {
 	aggregateLabelSpan,
 	formatAggregate,
 	hasAggregation,
-} from './grid-aggregate'
+} from './engine/grid-aggregate'
 import type { GridColumn } from './types'
 
 /** Stable empty row model read while the grand total is inactive, so its memo doesn't rebuild. @internal */

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { GRID_STATUS_DEBOUNCE_MS } from '../../modules/grid/grid-constants'
+import { GRID_STATUS_DEBOUNCE_MS } from '../../modules/grid/engine/grid-constants'
 import { fireEvent, liveRegion, renderUI, screen, userEvent, withFakeTime } from '../helpers'
 
 /**
@@ -170,7 +170,7 @@ describe('Grid announcements', () => {
  */
 describe('Grid announcement builders', () => {
 	it('describes a pin to each edge and an unpin', async () => {
-		const { describePin } = await import('../../modules/grid/grid-announcements')
+		const { describePin } = await import('../../modules/grid/engine/grid-announcements')
 
 		expect(describePin('Name', 'left')).toBe('Pinned Name to the left')
 
@@ -180,7 +180,9 @@ describe('Grid announcement builders', () => {
 	})
 
 	it('describes a show and a hide', async () => {
-		const { describeColumnVisibility } = await import('../../modules/grid/grid-announcements')
+		const { describeColumnVisibility } = await import(
+			'../../modules/grid/engine/grid-announcements'
+		)
 
 		expect(describeColumnVisibility('Age', true)).toBe('Hid Age column')
 
@@ -188,13 +190,13 @@ describe('Grid announcement builders', () => {
 	})
 
 	it('describes a settled resize, rounding the width', async () => {
-		const { describeResize } = await import('../../modules/grid/grid-announcements')
+		const { describeResize } = await import('../../modules/grid/engine/grid-announcements')
 
 		expect(describeResize('Name', 240.6)).toBe('Name column 241 pixels')
 	})
 
 	it('describes a committed row drag-reorder with the 1-based position', async () => {
-		const { describeRowReorder } = await import('../../modules/grid/grid-announcements')
+		const { describeRowReorder } = await import('../../modules/grid/engine/grid-announcements')
 
 		expect(describeRowReorder('Bob', 3, 8)).toBe('Moved Bob to position 3 of 8')
 	})

@@ -1,9 +1,9 @@
 'use client'
 
 import { type ReactNode, type RefObject, useCallback, useMemo, useRef } from 'react'
+import { isColumnEditable } from './engine/grid-editing-utilities'
 import { GridRowEditingContext } from './grid-editing-context'
 import type { GridEditableConfig } from './grid-editing-types'
-import { isColumnEditable } from './grid-editing-utilities'
 import type { GridCellClick } from './grid-row'
 import type { GridColumn } from './types'
 import { useGridEditing } from './use-grid-editing'

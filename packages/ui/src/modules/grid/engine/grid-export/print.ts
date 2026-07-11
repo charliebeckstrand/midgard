@@ -1,7 +1,7 @@
 'use client'
 
-import type { GridColumn } from '../types'
-import { rowsToHtmlTable } from './export-html-table'
+import type { GridColumn } from '../../types'
+import { rowsToHtmlTable } from './html-table'
 
 /**
  * Wraps rows' HTML table (see {@link rowsToHtmlTable}) in a minimal print

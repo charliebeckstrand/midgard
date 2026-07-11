@@ -2,14 +2,14 @@
 
 import type { Table } from '@tanstack/react-table'
 import { isDataColumn } from '../../utilities'
-import type { ColumnSizeProfile } from './grid-column-allocate'
+import type { ColumnSizeProfile } from './engine/grid-column/allocate'
 import {
 	DEFAULT_COLUMN_SIZE,
 	DEFAULT_CONTENT_MAX,
 	DEFAULT_MIN_COLUMN_SIZE,
 	HEADER_TRUNCATE_ALLOWANCE,
-} from './grid-constants'
-import { isFrozen } from './grid-pin-overrides'
+} from './engine/grid-constants'
+import { isFrozen } from './engine/grid-pin/overrides'
 import { parsePxWidth } from './grid-table-options'
 import type { GridColumn } from './types'
 
