@@ -204,7 +204,7 @@ export function sectorLegendItems(
 		return {
 			index,
 			label: entry,
-			swatchClass: paints[index]?.text.join(' ') ?? '',
+			swatchClass: cn(paints[index]?.text),
 			swatch: 'rect' as const,
 			color: colors[index],
 			detail: panel ? share : undefined,

@@ -357,19 +357,6 @@ export function valueLabels(options: ValueLabelsOptions): PlacedValueLabel[] {
 }
 
 /**
- * Gates the labels on the `labels` config and builds them from a line / area
- * render list: an empty (or absent) config draws none, so a chart calls this
- * with one flat statement and keeps its own branching under budget. The series
- * are built only when a label is actually asked for.
- *
- * Point labels are a single-series feature: with more than one labelable series
- * (`list`), the numbers would crowd between the lines with no reliable place to
- * sit, so the labels stand down and the tooltip carries the readout. Reference
- * labels are unaffected — they route through the reference rules, not here.
- *
- * @internal
- */
-/**
  * Each visible series' value formatter, bound to its own value axis so a
  * dual-axis chart labels a currency series against `y` and a percent against
  * `y2`. The formatter array {@link resolveValueLabels} reads, built one way by
@@ -384,6 +371,19 @@ export function axisLabelFormats(
 	return metas.map((meta) => (value: number) => formatAxisValue(value, meta.axis))
 }
 
+/**
+ * Gates the labels on the `labels` config and builds them from a line / area
+ * render list: an empty (or absent) config draws none, so a chart calls this
+ * with one flat statement and keeps its own branching under budget. The series
+ * are built only when a label is actually asked for.
+ *
+ * Point labels are a single-series feature: with more than one labelable series
+ * (`list`), the numbers would crowd between the lines with no reliable place to
+ * sit, so the labels stand down and the tooltip carries the readout. Reference
+ * labels are unaffected — they route through the reference rules, not here.
+ *
+ * @internal
+ */
 export function resolveValueLabels(
 	config: ValueLabelConfig | undefined,
 	list: { paint: ChartPaint; geometry: { points: { x: number; y: number }[] } }[],

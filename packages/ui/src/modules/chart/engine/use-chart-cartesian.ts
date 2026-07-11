@@ -20,7 +20,7 @@ import {
 	verticalLayout,
 } from './chart-layout'
 import type { ChartLegendItem, ChartLegendReference } from './chart-legend/legend'
-import { legendAside, legendVisible, type ResolvedLegend } from './chart-legend/schema'
+import { legendAside, legendBands, legendVisible, type ResolvedLegend } from './chart-legend/schema'
 import { seriesDataKey } from './chart-motion'
 import type { ChartOrientation } from './chart-orientation'
 import type { ChartReferenceLine } from './chart-reference-lines'
@@ -39,9 +39,21 @@ import type { CartesianChartProps, ChartReadoutSource, ChartSeries } from './typ
 import { useChartReferenceToggle, useChartSeriesToggle } from './use-chart-series-toggle'
 
 /** The cartesian props minus the accessible name, which stays with the frame. @internal */
-export type CartesianData<T> = Omit<
+export type CartesianData<T> = Pick<
 	CartesianChartProps<T>,
-	'aria-label' | 'aria-labelledby' | 'legend'
+	| 'data'
+	| 'series'
+	| 'size'
+	| 'width'
+	| 'height'
+	| 'aspectRatio'
+	| 'axes'
+	| 'reference'
+	| 'tickRotation'
+	| 'onCategoryClick'
+	| 'formatValue'
+	| 'title'
+	| 'subtitle'
 > & {
 	/** The `legend` prop already resolved to its show value — the entry component resolves it before the hook reads it. */
 	legend?: ResolvedLegend['value']
@@ -610,10 +622,10 @@ function cartesianLegendItems(
  *
  * @internal
  */
-function cartesianChrome<T>(props: CartesianData<T>, aside: boolean): ChartChrome {
+function cartesianChrome<T>(props: CartesianData<T>): ChartChrome {
 	return {
 		headerLines: headerLineCount(props.title, props.subtitle),
-		legend: legendVisible(props.legend, props.series.length) && !aside,
+		legend: legendBands(props.legend, props.series.length),
 	}
 }
 
@@ -801,7 +813,7 @@ export function useChartCartesian<T>(
 		width: frameWidth,
 		height: frameHeight,
 		aspect: outerAspect,
-		chrome: cartesianChrome(props, aside),
+		chrome: cartesianChrome(props),
 		tickTarget: metrics.tickTarget,
 		fill: sizing.mode === 'fill',
 	})

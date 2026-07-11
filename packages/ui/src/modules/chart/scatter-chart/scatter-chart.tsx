@@ -54,8 +54,8 @@ import {
 import type { ChartLegendItem } from '../engine/chart-legend/legend'
 import { ChartLegend } from '../engine/chart-legend/legend'
 import {
-	type ChartLegendPlacement,
 	legendAside,
+	legendBands,
 	legendVisible,
 	type ResolvedLegend,
 	resolveLegend,
@@ -223,8 +223,6 @@ type ScatterFrame = {
 	fill: boolean
 	/** The legend is a side panel, so it lays out beside the plot. */
 	aside: boolean
-	/** The legend's resolved placement, or `undefined` for the default row. */
-	placement?: ChartLegendPlacement
 }
 
 /**
@@ -251,7 +249,6 @@ function scatterFrame(
 		frameAspect: outerAspect ?? undefined,
 		fill: frameFills(sizing),
 		aside,
-		placement: typeof legend === 'string' ? legend : undefined,
 	}
 }
 
@@ -613,7 +610,6 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 		frameAspect,
 		fill: fillFrame,
 		aside,
-		placement,
 	} = scatterFrame(resolvedLegend.value, height, aspectRatio)
 
 	const { ref, width: frameWidth, height: frameHeight, reserve } = usePlotFrame(width, sizing)
@@ -629,7 +625,7 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 		aspect: frameAspect,
 		chrome: {
 			headerLines: 0,
-			legend: legendVisible(resolvedLegend.value, series.length) && !aside,
+			legend: legendBands(resolvedLegend.value, series.length),
 		},
 		tickTarget: metrics.tickTarget,
 		fill: sizing.mode === 'fill',
@@ -747,7 +743,7 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 					/>
 				)
 			}
-			legendPlacement={placement}
+			legendPlacement={resolvedLegend.placement}
 			readout={readout}
 			emphasis={emphasis}
 			tooltip={showTooltip}

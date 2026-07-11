@@ -6,7 +6,14 @@ import { cn } from '../../../core'
 import { ReducedMotion } from '../../../primitives/reduced-motion'
 import { type ChartColorSlot, k } from '../../../recipes/kata/chart'
 import type { ChartValueAxisId } from './chart-axes/schema'
-import { type ChartColor, isColorSlot } from './chart-color/paint'
+import {
+	type ChartColor,
+	fillClass,
+	rawColor,
+	resolvePaint,
+	strokeClass,
+	textClass,
+} from './chart-color/paint'
 import { REFERENCE_DASH, REFERENCE_HIT_WIDTH, REFERENCE_STROKE_WIDTH } from './chart-constants'
 import type { PlotRect } from './chart-layout'
 import type { ChartLegendReference } from './chart-legend/legend'
@@ -176,17 +183,15 @@ type RulePoints = { x1: number; y1: number; x2: number; y2: number }
  * hit line over this. @internal
  */
 function ReferenceRuleStroke({ line, points }: { line: ChartReferenceLine; points: RulePoints }) {
-	const color = line.color ?? DEFAULT_REFERENCE_COLOR
-
-	const slot = isColorSlot(color)
+	const paint = resolvePaint(line.color ?? DEFAULT_REFERENCE_COLOR)
 
 	return (
 		<line
 			{...points}
 			strokeWidth={REFERENCE_STROKE_WIDTH}
 			strokeDasharray={line.dashed === false ? undefined : REFERENCE_DASH}
-			className={slot ? cn(k.series[color].stroke) : undefined}
-			style={slot ? undefined : { stroke: color }}
+			className={strokeClass(paint)}
+			style={rawColor(paint) ? { stroke: rawColor(paint) } : undefined}
 			pointerEvents="none"
 		/>
 	)
@@ -214,9 +219,7 @@ function LabelledReferenceRule({
 }: ReferenceRuleProps) {
 	const { emphasizedReference } = useChartEmphasis()
 
-	const color = line.color ?? DEFAULT_REFERENCE_COLOR
-
-	const slot = isColorSlot(color)
+	const paint = resolvePaint(line.color ?? DEFAULT_REFERENCE_COLOR)
 
 	const anchor = referenceLabelAnchor(orientation, end, plot)
 
@@ -239,8 +242,8 @@ function LabelledReferenceRule({
 				y={anchor.y}
 				textAnchor={anchor.textAnchor}
 				dominantBaseline="central"
-				className={cn(REFERENCE_LABEL_INK, slot ? cn(k.series[color].fill) : undefined)}
-				style={slot ? undefined : { fill: color }}
+				className={cn(REFERENCE_LABEL_INK, fillClass(paint))}
+				style={rawColor(paint) ? { fill: rawColor(paint) } : undefined}
 			>
 				{line.label ? line.label : valueText}
 			</text>
@@ -288,9 +291,7 @@ function HoverReferenceRule({
 }: ReferenceRuleProps) {
 	const { setReferenceActive, activeReference, emphasizedReference } = useChartEmphasis()
 
-	const color = line.color ?? DEFAULT_REFERENCE_COLOR
-
-	const slot = isColorSlot(color)
+	const paint = resolvePaint(line.color ?? DEFAULT_REFERENCE_COLOR)
 
 	const points: RulePoints = { x1: start.x, y1: start.y, x2: end.x, y2: end.y }
 
@@ -348,9 +349,9 @@ function HoverReferenceRule({
 						data-slot="chart-reference-swatch"
 						className={cn(
 							'inline-block h-[2px] w-3 rounded-full',
-							slot && cn(k.series[color].text, 'bg-current'),
+							textClass(paint) && cn(textClass(paint), 'bg-current'),
 						)}
-						style={slot ? undefined : { backgroundColor: color }}
+						style={rawColor(paint) ? { backgroundColor: rawColor(paint) } : undefined}
 					/>
 
 					<span className={cn(k.value)}>{format(line.value)}</span>
@@ -549,7 +550,7 @@ export function referenceLegendItems(
 		.map((line, index) => ({ line, index }))
 		.filter(({ line }) => Number.isFinite(line.value))
 		.map(({ line, index }) => {
-			const color = line.color ?? DEFAULT_REFERENCE_COLOR
+			const paint = resolvePaint(line.color ?? DEFAULT_REFERENCE_COLOR)
 
 			const label = line.label ?? format(line.value, line.axis ?? 'y')
 
@@ -559,8 +560,6 @@ export function referenceLegendItems(
 			// Carry the rule's own array index — the plot rules key their emphasis off
 			// it, and a non-finite rule dropped from the chips leaves a gap the plot
 			// keeps, so the chip must name the index rather than its own position.
-			return isColorSlot(color)
-				? { index, label, swatchClass: k.series[color].text.join(' '), dashed }
-				: { index, label, swatchClass: '', color, dashed }
+			return { index, label, swatchClass: textClass(paint) ?? '', color: rawColor(paint), dashed }
 		})
 }
