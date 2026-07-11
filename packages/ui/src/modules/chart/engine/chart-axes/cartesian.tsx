@@ -19,8 +19,8 @@ export type ChartCartesianAxesProps = {
 	categoryTicks: ChartAxisTick[]
 	/** Whether there are rows to label the category axis. */
 	hasData: boolean
-	/** The zero line's position along the value axis — the category axis baseline. */
-	baseline: number
+	/** The zero line's position along the value axis — the category axis baseline; omitted draws none. */
+	baseline?: number
 	/** Draw the axes. */
 	axes: boolean
 	/** Draw the value gridlines. */

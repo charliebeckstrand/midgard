@@ -1,7 +1,6 @@
 'use client'
 
-import { ChartAxis, ChartAxisTitles } from '../engine/chart-axes/axis'
-import { ChartGridLines } from '../engine/chart-axes/grid-lines'
+import { ChartCartesianAxes } from '../engine/chart-axes/cartesian'
 import { ChartCrosshair, crosshairSnaps, resolveCrosshair } from '../engine/chart-crosshair'
 import { ChartFrame } from '../engine/chart-frame/frame'
 import { type LineInterpolation, lineGeometry } from '../engine/chart-geometry/line'
@@ -265,30 +264,22 @@ export function LineChart<T>(props: LineChartProps<T>) {
 		>
 			{tex.defs}
 
-			{grid && chart.gridPositions.length > 0 && (
-				<ChartGridLines plot={chart.plot} ticks={chart.gridPositions} />
-			)}
-
-			{chart.categoryGridPositions.length > 0 && (
-				<ChartGridLines
-					plot={chart.plot}
-					ticks={chart.categoryGridPositions}
-					orientation="horizontal"
-					dashed={chart.categorySeparator === 'dashed'}
-				/>
-			)}
-
-			{chart.axes && chart.yScale && <ChartAxis axis="y" plot={chart.plot} ticks={chart.yTicks} />}
-
-			{chart.axes && chart.y2Scale && (
-				<ChartAxis axis="y" position="right" plot={chart.plot} ticks={chart.y2Ticks} />
-			)}
-
-			{chart.axes && data.length > 0 && (
-				<ChartAxis axis="x" plot={chart.plot} ticks={chart.xTicks} />
-			)}
-
-			{chart.axes && <ChartAxisTitles titles={chart.axisTitles} />}
+			<ChartCartesianAxes
+				orientation={chart.orientation}
+				plot={chart.plot}
+				valueTicks={chart.yTicks}
+				hasScale={chart.yScale !== null}
+				y2Ticks={chart.y2Ticks}
+				hasY2Scale={chart.y2Scale !== null}
+				categoryTicks={chart.xTicks}
+				hasData={data.length > 0}
+				axes={chart.axes}
+				grid={grid}
+				gridPositions={chart.gridPositions}
+				categoryGridPositions={chart.categoryGridPositions}
+				categorySeparator={chart.categorySeparator}
+				titles={chart.axisTitles}
+			/>
 
 			{rails && (
 				<ChartCrosshair
