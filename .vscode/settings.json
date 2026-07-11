@@ -11,5 +11,9 @@
 	},
 	"[javascript]": {
 		"editor.defaultFormatter": "biomejs.biome"
+	},
+	"js/ts.experimental.useTsgo": false,
+	"[jsonc]": {
+		"editor.defaultFormatter": "vscode.json-language-features"
 	}
 }
