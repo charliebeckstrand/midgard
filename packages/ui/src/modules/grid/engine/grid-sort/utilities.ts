@@ -26,6 +26,18 @@ const CURRENCY = /[$£€¥₹]/g
 const DECIMAL = /^[+-]?(?:\d+\.?\d*|\.\d+)$/
 
 /**
+ * The characters a number can begin with — a digit, sign, decimal point, opening
+ * paren (an accounting negative), or a currency symbol. A trimmed value that
+ * starts with anything else (a letter, most punctuation) cannot parse to a number,
+ * so it is rejected before the strip-and-test gauntlet runs. Every shape
+ * {@link parseNumeric} accepts begins with one of these, so the gate never rejects
+ * a real number.
+ *
+ * @internal
+ */
+const NUMERIC_START = /^[-+.\d($£€¥₹]/
+
+/**
  * Parses a value to a number when it reads as one, else `null`. Accepts plain
  * numbers and numeric strings dressed as data usually is: comma/space grouping
  * (`1,234`), a currency symbol (`$1,234.50`, `€90`), a trailing percent (`45%`),
@@ -46,6 +58,12 @@ export function parseNumeric(value: unknown): number | null {
 	const trimmed = value.trim()
 
 	if (trimmed === '') return null
+
+	// Fast reject: a value that can't begin a number sorts as text. This anchored,
+	// O(1) probe skips the three strips and the decimal test for a text column's
+	// whole decode — every non-numeric value — where the natural string fallback
+	// orders it anyway. Numeric shapes all pass the gate and take the path below.
+	if (!NUMERIC_START.test(trimmed)) return null
 
 	// Accounting negative: a fully parenthesized amount is negative.
 	const negative = trimmed.startsWith('(') && trimmed.endsWith(')')
@@ -198,6 +216,25 @@ export function sortRowsSmart<T>(
 	getKey: (row: T, index: number) => string | number,
 	fields: SmartSortField<T>[],
 ): { rows: T[]; keys: (string | number)[] } {
+	return materializeSort(rows, computeSortOrder(rows, fields), getKey)
+}
+
+/**
+ * The costly half of {@link sortRowsSmart}: decodes each smart field's
+ * {@link SortKey} once (the `parseNumeric` and type checks) and sorts an index
+ * array over the decoded keys, returning the row indices in sorted order — the
+ * *permutation*, not the rows. Fields are consulted in priority order and equal
+ * rows fall back to their original index, so the order is stable.
+ *
+ * Split from {@link materializeSort} because the permutation depends only on the
+ * rows and the fields, not on `getKey`: a re-sort of unchanged rows by a spec
+ * already computed (an asc/desc flip, the module's costliest interaction) reuses
+ * this permutation and pays only the linear materialize, never the decode/sort
+ * again.
+ *
+ * @internal
+ */
+export function computeSortOrder<T>(rows: T[], fields: SmartSortField<T>[]): number[] {
 	// One index comparator per field, each closing over its decoded keys (the
 	// costly decode runs once here, not per comparison).
 	const comparators = fields.map((field) => buildFieldComparator(rows, field))
@@ -222,6 +259,23 @@ export function sortRowsSmart<T>(
 	// `|| i - j` holds the original order when every field ties (stable sort).
 	order.sort((i, j) => compareFields(i, j) || i - j)
 
+	return order
+}
+
+/**
+ * The cheap half of {@link sortRowsSmart}: projects a sort permutation (from
+ * {@link computeSortOrder}) into the reordered rows and their keys in one O(rows)
+ * pass, each key taken at the row's *original* index (the identity `getRowId`
+ * saw), so it matches the engine path's `rowKeys` and the body's `getRow` lookups
+ * regardless of sorted position.
+ *
+ * @internal
+ */
+export function materializeSort<T>(
+	rows: T[],
+	order: number[],
+	getKey: (row: T, index: number) => string | number,
+): { rows: T[]; keys: (string | number)[] } {
 	// One pass builds both outputs, so a row's index is looked up once.
 	const sortedRows = new Array<T>(order.length)
 
