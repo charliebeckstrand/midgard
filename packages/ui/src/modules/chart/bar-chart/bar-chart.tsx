@@ -10,7 +10,7 @@ import {
 	stackedBarSnapPoints,
 	stackedBarSnapSeries,
 } from '../engine/chart-geometry/bar'
-import { ChartHitArea } from '../engine/chart-hit-area'
+import { ChartHitArea, cartesianHitActive } from '../engine/chart-hit-area'
 import { barMarkAt } from '../engine/chart-hit-test'
 import { AnimatedChartBarMarks, ChartBarMarks } from '../engine/chart-marks/bar'
 import { ChartMarksLayer } from '../engine/chart-marks/layer'
@@ -19,7 +19,12 @@ import { useChartTexture } from '../engine/chart-pattern-defs'
 import { ChartReferenceLines } from '../engine/chart-reference-lines'
 import { type CartesianChartProps, resolveLegend, resolveTooltip } from '../engine/chart-schema'
 import { snappedSeriesAt, snapTargets } from '../engine/chart-snap'
-import { barProjection, drawnSeries, useChartCartesian } from '../engine/use-chart-cartesian'
+import {
+	barProjection,
+	cartesianData,
+	drawnSeries,
+	useChartCartesian,
+} from '../engine/use-chart-cartesian'
 import { cartesianFocus } from '../engine/use-chart-keyboard'
 
 /**
@@ -115,27 +120,12 @@ export function BarChart<T>(props: BarChartProps<T>) {
 	// the hook and frame read the value, the legend the flag.
 	const resolvedLegend = resolveLegend(legend)
 
-	const chart = useChartCartesian(
-		{
-			data,
-			series,
-			size,
-			width,
-			height,
-			aspectRatio,
-			axes,
-			legend: resolvedLegend.value,
-			reference,
-			tickRotation,
-			onCategoryClick,
-			formatValue,
-			// The header travels to the frame through `label`; the hook reads it too,
-			// so its tier reserves the header band's height (see `cartesianChrome`).
-			title: label.title,
-			subtitle: label.subtitle,
-		},
-		{ zeroBaseline: true, swatch: () => 'rect', orientation, stack: stacked },
-	)
+	const chart = useChartCartesian(cartesianData(props, resolvedLegend.value), {
+		zeroBaseline: true,
+		swatch: () => 'rect',
+		orientation,
+		stack: stacked,
+	})
 
 	// Each visible series draws through its own axis's scale and grows from its
 	// own baseline; a series whose scale never resolved takes no marks.
@@ -266,7 +256,7 @@ export function BarChart<T>(props: BarChartProps<T>) {
 				/>
 			)}
 
-			{(showTooltip || rails !== null || chart.onBandClick !== undefined) && data.length > 0 && (
+			{cartesianHitActive(showTooltip, rails, chart.onBandClick, data.length) && (
 				<ChartHitArea
 					plot={chart.plot}
 					band={chart.band}

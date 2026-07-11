@@ -55,6 +55,37 @@ export type CartesianData<T> = Omit<
 	legend?: ResolvedLegend['value']
 }
 
+/**
+ * The hook input picked off an entry component's props with its `legend`
+ * resolved — the one place the four cartesian charts' shared field list lives,
+ * so each hands the hook `cartesianData(props, resolvedLegend.value)` rather
+ * than repeating it. The header fields travel to the frame through the props'
+ * rest, and the hook reads them too so its tier reserves the header band.
+ *
+ * @internal
+ */
+export function cartesianData<T>(
+	props: CartesianChartProps<T>,
+	legend: ResolvedLegend['value'],
+): CartesianData<T> {
+	return {
+		data: props.data,
+		series: props.series,
+		size: props.size,
+		width: props.width,
+		height: props.height,
+		aspectRatio: props.aspectRatio,
+		axes: props.axes,
+		legend,
+		reference: props.reference,
+		tickRotation: props.tickRotation,
+		onCategoryClick: props.onCategoryClick,
+		formatValue: props.formatValue,
+		title: props.title,
+		subtitle: props.subtitle,
+	}
+}
+
 /** Per-chart configuration for {@link useChartCartesian}. @internal */
 export type CartesianConfig<T> = {
 	/** Anchor the value domains at zero — bar-bearing charts. */

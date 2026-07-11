@@ -5,7 +5,7 @@ import { cn } from '../../../core'
 import type { PlotRect } from './chart-layout'
 import { bandCoord, type ChartOrientation } from './chart-orientation'
 import { type BandScale, nearestBandIndex } from './chart-scale'
-import type { ChartTooltipTrigger } from './chart-schema'
+import type { ChartTooltipTrigger, ResolvedCrosshair } from './chart-schema'
 import { type ChartMarkRef, useChartTier } from './context'
 import { useChartPointer } from './use-chart-pointer'
 
@@ -116,4 +116,21 @@ function ChartHitRect({
 			{...handlers}
 		/>
 	)
+}
+
+/**
+ * Whether a cartesian chart mounts its hit area: something must read the
+ * pointer — a tooltip, a snapping crosshair, or a band-click handler — and
+ * there must be data under it. The one gate the four cartesian charts share
+ * before their own mark hit-test.
+ *
+ * @internal
+ */
+export function cartesianHitActive(
+	showTooltip: boolean,
+	rails: ResolvedCrosshair | null,
+	onBandClick: ((index: number) => void) | undefined,
+	count: number,
+): boolean {
+	return (showTooltip || rails !== null || onBandClick !== undefined) && count > 0
 }

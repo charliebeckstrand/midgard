@@ -9,7 +9,7 @@ import {
 	type LineSeriesGeometry,
 	lineGeometry,
 } from '../engine/chart-geometry/line'
-import { ChartHitArea } from '../engine/chart-hit-area'
+import { ChartHitArea, cartesianHitActive } from '../engine/chart-hit-area'
 import { nearestSeriesArea } from '../engine/chart-hit-test'
 import { lineMarkReach } from '../engine/chart-layout'
 import { ChartMarksLayer } from '../engine/chart-marks/layer'
@@ -28,9 +28,14 @@ import {
 	resolveTooltip,
 } from '../engine/chart-schema'
 import { snappedSeriesAt, snapTargets } from '../engine/chart-snap'
-import { ChartValueLabels, resolveValueLabels } from '../engine/chart-value-labels'
+import {
+	axisLabelFormats,
+	ChartValueLabels,
+	resolveValueLabels,
+} from '../engine/chart-value-labels'
 import {
 	bandCenters,
+	cartesianData,
 	type DrawnSeries,
 	drawnSeries,
 	useChartCartesian,
@@ -282,27 +287,12 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 
 	const resolvedLegend = resolveLegend(legend)
 
-	const chart = useChartCartesian(
-		{
-			data,
-			series,
-			size,
-			width,
-			height,
-			aspectRatio,
-			axes,
-			legend: resolvedLegend.value,
-			reference,
-			tickRotation,
-			onCategoryClick,
-			formatValue,
-			// The header travels to the frame through `label`; the hook reads it too,
-			// so its tier reserves the header band's height (see `cartesianChrome`).
-			title: label.title,
-			subtitle: label.subtitle,
-		},
-		{ zeroBaseline: true, swatch: () => 'line', stack: stacked, markInset: lineMarkReach(points) },
-	)
+	const chart = useChartCartesian(cartesianData(props, resolvedLegend.value), {
+		zeroBaseline: true,
+		swatch: () => 'line',
+		stack: stacked,
+		markInset: lineMarkReach(points),
+	})
 
 	// Spark needs no gate here: the frame renders the drawing pointer-inert, and
 	// the crosshair, hit layer, value labels, and reference hovers stand
@@ -338,17 +328,15 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 
 	const fills = drawn.map(({ meta }) => tex.fillFor(meta.slot))
 
+	const labelMetas = drawn.map(({ meta }) => meta)
+
 	const valueLabelItems = resolveValueLabels(
 		labels,
 		list,
-		drawn.map(({ meta }) => meta),
+		labelMetas,
 		chart.plot,
 		formatValue,
-		drawn.map(
-			({ meta }) =>
-				(value: number) =>
-					chart.formatAxisValue(value, meta.axis),
-		),
+		axisLabelFormats(labelMetas, chart.formatAxisValue),
 		// Stacked ribbons carry a top-edge point per category (nulls included), not
 		// the gap-skipped points a line's geometry emits, so the labels read each
 		// category's value by index rather than zipping the gap-filtered values.
@@ -435,7 +423,7 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 
 			<ChartValueLabels labels={valueLabelItems} animate={animate} dataKey={chart.dataKey} />
 
-			{(showTooltip || rails !== null || chart.onBandClick !== undefined) && data.length > 0 && (
+			{cartesianHitActive(showTooltip, rails, chart.onBandClick, data.length) && (
 				<ChartHitArea
 					plot={chart.plot}
 					band={chart.band}

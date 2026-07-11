@@ -7,6 +7,7 @@ import { type ChartPaint, fillClass, rawColor } from './chart-color/paint'
 import { TICK_CHAR_WIDTH } from './chart-constants'
 import type { PlotRect } from './chart-layout'
 import { POINT_POP, POINT_UNPOP, STATIC_GENERATION } from './chart-motion'
+import type { ChartValueAxisId } from './chart-schema'
 import { formatChartValue } from './chart-series'
 import { useChartTier } from './context'
 
@@ -331,6 +332,21 @@ export function valueLabels(options: ValueLabelsOptions): PlacedValueLabel[] {
  *
  * @internal
  */
+/**
+ * Each visible series' value formatter, bound to its own value axis so a
+ * dual-axis chart labels a currency series against `y` and a percent against
+ * `y2`. The formatter array {@link resolveValueLabels} reads, built one way by
+ * the line, area, and combo charts.
+ *
+ * @internal
+ */
+export function axisLabelFormats(
+	metas: { axis: ChartValueAxisId }[],
+	formatAxisValue: (value: number, axis: ChartValueAxisId) => string,
+): ((value: number) => string)[] {
+	return metas.map((meta) => (value: number) => formatAxisValue(value, meta.axis))
+}
+
 export function resolveValueLabels(
 	config: ValueLabelConfig | undefined,
 	list: { paint: ChartPaint; geometry: { points: { x: number; y: number }[] } }[],

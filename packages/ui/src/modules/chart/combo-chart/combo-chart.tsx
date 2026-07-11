@@ -6,7 +6,7 @@ import { ChartCrosshair, crosshairSnaps, resolveCrosshair } from '../engine/char
 import { ChartCartesianFrame } from '../engine/chart-frame/cartesian'
 import { type BarMark, barMarks } from '../engine/chart-geometry/bar'
 import { type LineInterpolation, lineSeriesOf } from '../engine/chart-geometry/line'
-import { ChartHitArea } from '../engine/chart-hit-area'
+import { ChartHitArea, cartesianHitActive } from '../engine/chart-hit-area'
 import { barMarkAt, nearestSeriesArea, nearestSeriesLine } from '../engine/chart-hit-test'
 import { lineMarkReach } from '../engine/chart-layout'
 import { AnimatedChartBarMarks, ChartBarMarks } from '../engine/chart-marks/bar'
@@ -27,11 +27,16 @@ import {
 	resolveTooltip,
 } from '../engine/chart-schema'
 import { snappedSeriesAt, snapTargets } from '../engine/chart-snap'
-import { ChartValueLabels, resolveValueLabels } from '../engine/chart-value-labels'
+import {
+	axisLabelFormats,
+	ChartValueLabels,
+	resolveValueLabels,
+} from '../engine/chart-value-labels'
 import type { ChartMarkRef } from '../engine/context'
 import {
 	bandCenters,
 	barProjection,
+	cartesianData,
 	drawnSeries,
 	useChartCartesian,
 } from '../engine/use-chart-cartesian'
@@ -189,33 +194,13 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 
 	const resolvedLegend = resolveLegend(legend)
 
-	const chart = useChartCartesian(
-		{
-			data,
-			series,
-			size,
-			width,
-			height,
-			aspectRatio,
-			axes,
-			legend: resolvedLegend.value,
-			reference,
-			tickRotation,
-			onCategoryClick,
-			formatValue,
-			// The header travels to the frame through `label`; the hook reads it too,
-			// so its tier reserves the header band's height (see `cartesianChrome`).
-			title: label.title,
-			subtitle: label.subtitle,
-		},
-		{
-			zeroBaseline: true,
-			swatch: (_, index) => (series[index]?.type === 'bar' ? 'rect' : 'line'),
-			// Only the line and area series paint past their coordinate — bars end at
-			// theirs — so the inset stands only where such a series exists to need it.
-			markInset: series.some((entry) => entry.type !== 'bar') ? lineMarkReach(points) : 0,
-		},
-	)
+	const chart = useChartCartesian(cartesianData(props, resolvedLegend.value), {
+		zeroBaseline: true,
+		swatch: (_, index) => (series[index]?.type === 'bar' ? 'rect' : 'line'),
+		// Only the line and area series paint past their coordinate — bars end at
+		// theirs — so the inset stands only where such a series exists to need it.
+		markInset: series.some((entry) => entry.type !== 'bar') ? lineMarkReach(points) : 0,
+	})
 
 	// Spark needs no gate here: the frame renders the drawing pointer-inert, and
 	// the crosshair, hit layer, value labels, and reference hovers stand
@@ -255,17 +240,15 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 	// Value labels ride the line and area series only — bars read against the axis.
 	const labelled = [...areaEntries, ...lineEntries]
 
+	const labelMetas = labelled.map(({ meta }) => meta)
+
 	const valueLabelItems = resolveValueLabels(
 		labels,
 		[...areas, ...lines],
-		labelled.map(({ meta }) => meta),
+		labelMetas,
 		chart.plot,
 		formatValue,
-		labelled.map(
-			({ meta }) =>
-				(value: number) =>
-					chart.formatAxisValue(value, meta.axis),
-		),
+		axisLabelFormats(labelMetas, chart.formatAxisValue),
 	)
 
 	const barPaints = barEntries.map((entry) => entry.meta.paint)
@@ -395,7 +378,7 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 
 			<ChartValueLabels labels={valueLabelItems} animate={animate} dataKey={chart.dataKey} />
 
-			{(showTooltip || rails !== null || chart.onBandClick !== undefined) && data.length > 0 && (
+			{cartesianHitActive(showTooltip, rails, chart.onBandClick, data.length) && (
 				<ChartHitArea
 					plot={chart.plot}
 					band={chart.band}
