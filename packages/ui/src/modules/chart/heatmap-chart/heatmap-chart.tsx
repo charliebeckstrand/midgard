@@ -367,8 +367,12 @@ function HeatmapTooltip({ columns, rows, values, format, fills, cols }: HeatmapT
 
 	const fill = cell === null ? null : fills[cell.row * cols + cell.col]
 
+	// `track="point"`: a pure-hover readout repositions on every pointer move, so it
+	// skips autoUpdate's per-open observer wiring — ~1.5x cheaper across the
+	// open/reposition/teardown cycle (`tooltip-track.bench`). Safe here because the
+	// heatmap tooltip has no click-pinned mode that would need autoUpdate on scroll.
 	return (
-		<TooltipPointer open={open} point={point} size="sm">
+		<TooltipPointer open={open} point={point} track="point" size="sm">
 			{cell !== null && (
 				<div aria-hidden="true">
 					<div className={cn(k.label, 'mb-1 whitespace-nowrap')}>{columns[cell.col]}</div>

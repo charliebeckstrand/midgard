@@ -111,8 +111,12 @@ export function MapTooltip(props: MapTooltipProps) {
 
 	const open = content !== null && point !== null
 
+	// `track="point"`: a pure-hover readout repositions on every pointer move, so it
+	// skips autoUpdate's per-open observer wiring — ~1.5x cheaper across the
+	// open/reposition/teardown cycle (`tooltip-track.bench`). Safe here because the
+	// map tooltip has no click-pinned mode that would need autoUpdate across a scroll.
 	return (
-		<TooltipPointer open={open} point={point} size="sm">
+		<TooltipPointer open={open} point={point} track="point" size="sm">
 			{content && (
 				<div aria-hidden="true">
 					<div className={cn(k.label, 'whitespace-nowrap', content.row && 'mb-1')}>
