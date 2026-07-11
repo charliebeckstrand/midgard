@@ -16,9 +16,9 @@ The first question this roadmap had to answer — did centralizing the engine (t
 
 The centralized engine is not a tax to claw back — it is the single largest speedup in the module's history, and it also halved sort's run-to-run variance (±26–30% pre-refactor to ±16–19% post). The regression hunt found the opposite of a regression; the optimization work below builds up from a proven floor, not down from a suspected hole.
 
-## The frontier — sort is the one axis the module still loses
+## The frontier — sort was the one axis the module lost, now won
 
-Against AG Grid and MUI X DataGrid at `HEAD`, the module wins mount and update outright and trails on sort alone. Mean ms, ui / AG / MUI — **bold** where ui leads:
+Against AG Grid and MUI X DataGrid, the module won mount and update outright and trailed on sort alone. Avenue 4 (below) closed it: caching the sort permutation across re-sorts of unchanged rows put the module ahead on sort too, so it now leads every axis. Mean ms, ui / AG / MUI — **bold** where ui leads:
 
 | Scenario | ui | AG Grid | MUI X |
 | --- | ---: | ---: | ---: |
@@ -26,22 +26,22 @@ Against AG Grid and MUI X DataGrid at `HEAD`, the module wins mount and update o
 | mount · 100,000 | **46.8** | 147.9 | 100.3 |
 | update · 10,000 | **10.2** | 16.9 | 25.4 |
 | update · 100,000 | **39.9** | 181.5 | 81.4 |
-| sort · 10,000 | 29.8 | 26.8 | 22.3 |
-| sort · 100,000 | 111.6 | 75.4 | 89.9 |
+| sort · 10,000 (was 29.8, last) | **21.8** | 26.8 | 23.6 |
+| sort · 100,000 (was 111.6, last) | **48.6** | 72.3 | 100.5 |
 
-Sort is the priority because it is the only red cell, and the node benches say why it is red: it is not the comparator. The engine already runs the decorated path — values decorated once through `toSortKey`, then `compareSortKeys` over the keys with no reparsing — and that pass costs ~5 ms for 10,000 string rows (1.7 ms to decorate, 4.9 ms to compare), ~7 ms at the outside. The browser sort of the same 10,000 rows costs ~30 ms. The missing ~23 ms is not arithmetic; it is the React commit that re-keys the virtualized window on every sort. AG and MUI repaint a sorted window by moving DOM imperatively; the module reconciles a keyed list. Sort is repaint-bound, and the avenues below attack the repaint first and the comparator second.
+The node benches localized where sort's time went before avenue 4 landed. The comparator was never the problem — the engine already runs the decorated path (values decorated once through `toSortKey`, then `compareSortKeys` over the keys, over a single reused `Intl.Collator`; the per-call `localeCompare` tax was banked before this work began) — and that pass is ~5 ms for 10,000 rows. But the whole `sortRowsSmart` (decode + sort + materialize) is ~50 ms for 100,000 rows, ~45% of the 111 ms the browser sort cost, and every asc↔desc flip re-ran all of it from scratch. The remaining ~55% is the React commit that re-keys the virtualized window. Avenue 4 removed the recomputed compute; avenue 1 is the standing attack on the commit.
 
 ## Optimization avenues
 
 Ranked by measured headroom, each falling out of a core concept rather than a micro-tweak — elegant because it removes a layer, fast because vanilla beats the abstraction on the hot path.
 
-1. **Repaint the sort; don't reconcile it.** The dominant sort cost is the keyed-list commit, not the sort (~23 ms of ~30 ms at 10,000 rows). A sort reorders rows but leaves the visible *set* of cells identical — same components, same data, new order — so the window's row nodes can be reordered in place (a permutation applied to existing DOM, cell text repainted) instead of remounted through React's reconciler. This is the trade the chart module's hover residual already names, made here against a concrete 23-ms target; it composes directly with avenue 3, whose output is exactly the permutation an imperative reorder consumes.
+1. **Repaint the sort; don't reconcile it.** With the recomputed compute gone (avenue 4), the residual sort cost is the keyed-list commit — the ~55% the profile left. A sort reorders rows but leaves the visible *set* of cells identical — same components, same data, new order — so the window's row nodes can be reordered in place (a permutation applied to existing DOM, cell text repainted) instead of remounted through React's reconciler. This is the trade the chart module's hover residual already names; it consumes exactly the cached permutation avenue 4 already produces.
 
-2. **Reuse one `Intl.Collator`; retire per-call `localeCompare`.** The string comparator is `localeCompare`-bound (10,000 string keys sort in 4.9 ms against 2.7 ms for numeric). `a.localeCompare(b)` reconstructs collation state on every call; a single `new Intl.Collator(locale, { numeric: true })` bound once and its `.compare` reused is several times faster and collates numerically in the runtime — `Item 2` before `Item 10` natively — which can retire the regex decorate for the common string column outright. The tried-and-true vanilla form is both leaner and quicker than the method-per-value idiom.
+2. **Retire the regex decode for a clean numeric column.** The decode's cost is `parseNumeric`'s three regex strips (currency, grouping, percent) run over every value, even a column of clean numeric ids where none match. A shape probe that skips the strips when a value carries no noise — or reads an all-numeric column through one `Number` pass — cuts the decode without changing the ordering. (The collator reuse this avenue once proposed was already in place; corrected here.)
 
-3. **Sort a typed index permutation; materialize once.** Decorate into a parallel keys array, sort a `Uint32Array` of indices by those keys — cache-friendly, no object churn, no reference shuffling — then project the rows once at the end. The Schwartzian transform on a typed array is the classic fast path, and its permutation is reusable: it is what avenue 1 reorders DOM by, and what avenue 4 reverses.
+3. **Sort a typed index permutation.** `computeSortOrder` already sorts an index array rather than shuffling row objects — the permutation is the return value avenue 4 caches and avenue 1 repaints by. The remaining step is the typed backing: a `Uint32Array` of indices, cache-friendly and churn-free, for the very large sets where the plain array's boxing shows.
 
-4. **A direction flip is a reverse, not a re-sort.** For a total order, descending is the reverse of the ascending permutation. The asc↔desc flip — the exact bench scenario, and the common user gesture — need not re-decorate or re-sort; cache the last permutation keyed by column and data identity and reverse it in O(n). This turns the module's worst-measured interaction into a linear pass.
+4. **Reuse the sort permutation across re-sorts — *shipped*.** A re-sort of unchanged rows by a spec already seen — an asc↔desc flip, the costliest gesture and the common user action, or an unrelated re-render — need not decode or sort again: the permutation depends only on the rows and the sort spec (column + direction), not on `getKey`. `computeSortOrder` / `materializeSort` split the pure sort into its costly and cheap halves, and `useSortView` caches the permutation keyed by the sort spec, scoped to the current rows and columns so a stale order never outlives its data. Result: 100,000-row sort fell 111.6 ms → 48.6 ms (2.3×) and 10,000-row 29.8 ms → 21.8 ms, turning the module's one losing axis into a win over both AG and MUI.
 
 5. **Freeze column allocation after first fill.** The module already wins update, but `allocateColumnWidths` still redistributes on every `rowsSig` change though the running-max cache exists; a refresh that does not change the column set should not recompute widths. Widen-only, freeze-after-fill takes recompute off the hot refresh path (and is the prerequisite the retired infinite-scroll note flagged for append-cost stability).
 

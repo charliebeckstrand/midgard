@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import {
 	compareSmart,
+	computeSortOrder,
+	materializeSort,
 	parseNumeric,
 	type SmartSortField,
 	sortRowsSmart,
@@ -161,5 +163,56 @@ describe('sortRowsSmart', () => {
 
 		// Sorted order is b, c, a — but each key carries the row's *source* index.
 		expect(keys).toEqual(['b@1', 'c@2', 'a@0'])
+	})
+
+	describe('computeSortOrder / materializeSort split', () => {
+		it('composes to exactly sortRowsSmart', () => {
+			const rows: Row[] = [
+				{ id: 'a', amount: 3 },
+				{ id: 'b', amount: 1 },
+				{ id: 'c', amount: 2 },
+			]
+
+			const fields = [field('amount')]
+
+			const composed = materializeSort(rows, computeSortOrder(rows, fields), getKey)
+
+			expect(composed).toEqual(sortRowsSmart(rows, getKey, fields))
+		})
+
+		it('re-materializes a reused permutation with a different getKey', () => {
+			const rows: Row[] = [
+				{ id: 'a', amount: 3 },
+				{ id: 'b', amount: 1 },
+				{ id: 'c', amount: 2 },
+			]
+
+			// The permutation is computed once; the cache reuses it across renders
+			// whose getKey identity differs. Both projections must key correctly off
+			// the row's *original* index, never drift with the sorted position.
+			const permutation = computeSortOrder(rows, [field('amount')])
+
+			expect(materializeSort(rows, permutation, (row) => row.id).keys).toEqual(['b', 'c', 'a'])
+
+			expect(materializeSort(rows, permutation, (row, index) => `${row.id}@${index}`).keys).toEqual(
+				['b@1', 'c@2', 'a@0'],
+			)
+		})
+
+		it('reversing direction is a distinct permutation, empties still last', () => {
+			const rows: Row[] = [
+				{ id: 'a', amount: 2 },
+				{ id: 'empty', amount: null },
+				{ id: 'b', amount: 1 },
+			]
+
+			const asc = computeSortOrder(rows, [field('amount')])
+
+			const desc = computeSortOrder(rows, [field('amount', true)])
+
+			expect(asc).toEqual([2, 0, 1])
+
+			expect(desc).toEqual([0, 2, 1])
+		})
 	})
 })

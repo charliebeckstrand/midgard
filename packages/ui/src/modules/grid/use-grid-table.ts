@@ -25,7 +25,11 @@ import type { DensityLevel } from '../../providers/density/context'
 import type { SortState } from './context'
 import { columnAccessor } from './engine/grid-column/accessor'
 import { isManualPagination } from './engine/grid-pagination-utilities'
-import { type SmartSortField, sortRowsSmart } from './engine/grid-sort/utilities'
+import {
+	computeSortOrder,
+	materializeSort,
+	type SmartSortField,
+} from './engine/grid-sort/utilities'
 import {
 	buildState,
 	clampSizingToFloors,
@@ -402,10 +406,42 @@ function useSortView<T>(args: {
 		})
 	}, [clientSort, materialize, sort, columns])
 
-	return useMemo(
-		() => (fields ? sortRowsSmart(rows, getKey, fields) : null),
-		[fields, rows, getKey],
-	)
+	// The decode-and-sort produces a permutation that depends only on the rows and
+	// the sort spec (each column's id + direction), never on `getKey` — so a re-sort
+	// of unchanged rows by a spec already seen (an asc/desc flip, the module's
+	// costliest gesture; or an unrelated re-render) reuses the cached permutation
+	// and pays only the linear materialize. The cache is scoped to the current rows
+	// and columns — either identity changing drops it — so a stale order can never
+	// outlive the data or the accessors it was computed against.
+	const orderCacheRef = useRef<{
+		rows: T[]
+		columns: GridColumn<T>[]
+		orders: Map<string, number[]>
+	} | null>(null)
+
+	return useMemo(() => {
+		if (!fields || !sort?.length) return null
+
+		let cache = orderCacheRef.current
+
+		if (!cache || cache.rows !== rows || cache.columns !== columns) {
+			cache = { rows, columns, orders: new Map() }
+
+			orderCacheRef.current = cache
+		}
+
+		const sig = sort.map((entry) => `${String(entry.column)}:${entry.direction}`).join('|')
+
+		let order = cache.orders.get(sig)
+
+		if (!order) {
+			order = computeSortOrder(rows, fields)
+
+			cache.orders.set(sig, order)
+		}
+
+		return materializeSort(rows, order, getKey)
+	}, [fields, rows, getKey, sort, columns])
 }
 
 /**
