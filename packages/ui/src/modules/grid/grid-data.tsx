@@ -33,6 +33,12 @@ import { DEFAULT_EXPORTABLE } from './engine/grid-export/registry'
 import type { GridExportAction } from './engine/grid-export/types'
 import { applyPinOverrides, type PinSide, toPinOverrides } from './engine/grid-pin/overrides'
 import {
+	resolveGridReorder,
+	restrictToFirstScrollableAncestor,
+	restrictToHorizontalAxis,
+	restrictToVerticalAxis,
+} from './engine/grid-reorder-compute'
+import {
 	cellValue,
 	type GridCellClick,
 	type GridCellRovingActivate,
@@ -70,12 +76,7 @@ import { GridGroupByContext, type GridGroupByContextValue } from './grid-group-b
 import { GridHead } from './grid-head'
 import { useGridMenuActions } from './grid-menu-actions'
 import { GridPagination as GridPaginationFooter } from './grid-pagination'
-import {
-	GridReorderContext,
-	restrictToFirstScrollableAncestor,
-	restrictToHorizontalAxis,
-	restrictToVerticalAxis,
-} from './grid-reorder'
+import { GridReorderContext } from './grid-reorder'
 import type { GridRowsProps } from './grid-row'
 import { GridRowManagerDialog } from './grid-row-manager-dialog'
 import { useGridSort } from './grid-sort-state'
@@ -96,7 +97,7 @@ import { type GridExpansionResult, useGridExpansion } from './use-grid-expansion
 import { useGridExport } from './use-grid-export'
 import { type GridGroupHeader, type GridGroupResult, useGridGroup } from './use-grid-group'
 import { type GridCellActivate, GridNavContext, type GridRowActivate } from './use-grid-navigation'
-import { resolveGridReorder, useGridReorder } from './use-grid-reorder'
+import { useGridReorder } from './use-grid-reorder'
 import { useGridRoving } from './use-grid-roving'
 import { useGridRowGrouping } from './use-grid-row-grouping'
 import { type GridRowManagerRegionResult, useGridRowManagerRegion } from './use-grid-row-manager'

@@ -10,8 +10,8 @@ import { arrayMove } from '@dnd-kit/sortable'
 import { useCallback, useId, useMemo, useRef, useState } from 'react'
 import type { PaletteColor } from '../../core/recipe'
 import { useSortableItem } from '../../hooks'
+import { applyColumnReorder } from './engine/grid-reorder-compute'
 import type { GridColumnGroup } from './grid-group-types'
-import { applyColumnReorder } from './grid-reorder'
 import type { GridColumnManagerItem } from './types'
 
 /** Sentinel zone id for the ungrouped column pool. @internal */

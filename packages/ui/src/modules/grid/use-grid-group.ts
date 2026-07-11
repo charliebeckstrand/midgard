@@ -2,8 +2,8 @@
 
 import { useCallback, useMemo, useState } from 'react'
 import { useControllable } from '../../hooks'
+import { applyColumnReorder } from './engine/grid-reorder-compute'
 import type { GridColumnGroup, GridColumnGroups, GridGroupSpan } from './grid-group-types'
-import { applyColumnReorder } from './grid-reorder'
 
 /**
  * Maps each grouped column id to its {@link GridColumnGroup}. The first group to

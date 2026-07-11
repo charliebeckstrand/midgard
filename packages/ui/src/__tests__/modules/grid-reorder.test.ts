@@ -4,7 +4,7 @@ import {
 	columnShiftStyle,
 	restrictToFirstScrollableAncestor,
 	restrictToHorizontalAxis,
-} from '../../modules/grid/grid-reorder'
+} from '../../modules/grid/engine/grid-reorder-compute'
 
 /** dnd-kit's modifier args are broad; the modifier only reads `transform`. */
 type ModifierArgs = Parameters<typeof restrictToHorizontalAxis>[0]

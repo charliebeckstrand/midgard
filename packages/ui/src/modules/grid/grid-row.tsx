@@ -22,6 +22,7 @@ import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/grid'
 import { isFrozen } from './engine/grid-pin/overrides'
 import { pinnedCellProps } from './engine/grid-pin/styles'
+import { columnShiftStyle } from './engine/grid-reorder-compute'
 import {
 	cellValue,
 	type GridCellClick,
@@ -32,7 +33,7 @@ import {
 import { activateOnEnterSpace, rowClickableClass, rowShellProps } from './engine/grid-row/shell'
 import { type CellTooltip, GridCellContent } from './grid-cell-content'
 import { GridDetailRow, GridExpandToggle } from './grid-detail-row'
-import { columnShiftStyle, GridReorderContext } from './grid-reorder'
+import { GridReorderContext } from './grid-reorder'
 import type { GridColumn } from './types'
 import type { GridColumnPinning } from './use-grid-table'
 

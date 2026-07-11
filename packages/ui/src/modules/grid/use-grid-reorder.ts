@@ -4,7 +4,6 @@ import { useCallback, useMemo } from 'react'
 import { useSortableList } from '../../hooks'
 import { isDataColumn } from '../../utilities'
 import { isFrozen } from './engine/grid-pin/overrides'
-import type { GridReorder } from './grid-data-types'
 import type { GridColumn } from './types'
 
 /** Stable drag id for a column. @internal */
@@ -12,23 +11,6 @@ const columnDragId = (col: { id: string | number }) => String(col.id)
 
 /** Stable empty list so a non-reorderable table keeps a constant sortable `items` reference. @internal */
 const EMPTY_COLUMNS: never[] = []
-
-/**
- * Resolves the {@link GridReorder} prop to its two flags: `enabled` gates the
- * reorder wiring, `handle` picks the grip vs. whole-header drag affordance. The
- * boolean shorthand keeps the grip; the object form defaults `enabled` to `true`
- * (passing the object is the opt-in) and `handle` to `true`.
- *
- * @internal
- */
-export function resolveGridReorder(reorder: boolean | GridReorder): {
-	enabled: boolean
-	handle: boolean
-} {
-	if (typeof reorder === 'boolean') return { enabled: reorder, handle: true }
-
-	return { enabled: reorder.enabled ?? true, handle: reorder.handle ?? true }
-}
 
 /** Options for {@link useGridReorder}. @internal */
 type GridReorderOptions<T> = {
