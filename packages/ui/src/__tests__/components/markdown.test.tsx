@@ -77,9 +77,9 @@ describe('Markdown', () => {
 
 		expect(boxes).toHaveLength(2)
 
-		expect((boxes?.[0] as HTMLInputElement).checked).toBe(true)
+		expect((boxes?.[0] as HTMLInputElement | undefined)?.checked).toBe(true)
 
-		expect((boxes?.[1] as HTMLInputElement).checked).toBe(false)
+		expect((boxes?.[1] as HTMLInputElement | undefined)?.checked).toBe(false)
 
 		expect(boxes?.[0]).toBeDisabled()
 	})

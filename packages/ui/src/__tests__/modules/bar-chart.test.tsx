@@ -627,7 +627,8 @@ describe('BarChart', () => {
 		expect(bySlot(fixed.container, 'chart-figure')?.style.aspectRatio).toBe('')
 
 		expect(
-			(bySlot(fixed.container, 'chart-plot')?.firstElementChild as HTMLElement).style.height,
+			(bySlot(fixed.container, 'chart-plot')?.firstElementChild as HTMLElement | undefined)?.style
+				.height,
 		).toBe('260px')
 	})
 

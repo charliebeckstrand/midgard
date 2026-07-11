@@ -361,7 +361,7 @@ describe('DateInput', () => {
 
 		expect(onChange.mock.lastCall?.[0]).toBeInstanceOf(Date)
 
-		expect((onChange.mock.lastCall?.[0] as Date).getFullYear()).toBe(2026)
+		expect((onChange.mock.lastCall?.[0] as Date | undefined)?.getFullYear()).toBe(2026)
 	})
 
 	it('renders the invalid-format message for a complete impossible date', async () => {

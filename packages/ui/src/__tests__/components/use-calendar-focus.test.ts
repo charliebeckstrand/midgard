@@ -174,7 +174,7 @@ describe('useCalendarFocus: footer', () => {
 
 		const buttons = footer?.querySelectorAll('button')
 
-		;(buttons?.item(1) as HTMLButtonElement).focus()
+		;(buttons?.item(1) as HTMLButtonElement | undefined)?.focus()
 
 		handleFooterKeyDown(makeKeyEvent('ArrowRight'))
 
@@ -186,7 +186,7 @@ describe('useCalendarFocus: footer', () => {
 
 		const buttons = footer?.querySelectorAll('button')
 
-		;(buttons?.item(0) as HTMLButtonElement).focus()
+		;(buttons?.item(0) as HTMLButtonElement | undefined)?.focus()
 
 		handleFooterKeyDown(makeKeyEvent('ArrowLeft'))
 
@@ -216,7 +216,7 @@ describe('useCalendarFocus: footer', () => {
 	it('stopPropagation propagates from footer ArrowUp when configured', () => {
 		const { footer, handleFooterKeyDown } = setup({ footer: true, stopPropagation: true })
 
-		;(footer?.querySelector('button') as HTMLButtonElement).focus()
+		;(footer?.querySelector('button') as HTMLButtonElement | undefined)?.focus()
 
 		const event = makeKeyEvent('ArrowUp')
 
@@ -232,7 +232,7 @@ describe('useCalendarFocus: footer', () => {
 			stopPropagation: true,
 		})
 
-		;(footer?.querySelector('button') as HTMLButtonElement).focus()
+		;(footer?.querySelector('button') as HTMLButtonElement | undefined)?.focus()
 
 		const event = makeKeyEvent('ArrowRight')
 

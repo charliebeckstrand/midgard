@@ -417,7 +417,7 @@ describe('Calendar keyboard navigation', () => {
 
 		expect(onChange).toHaveBeenCalledTimes(1)
 
-		expect((onChange.mock.calls[0]?.[0] as Date).getDate()).toBe(20)
+		expect((onChange.mock.calls[0]?.[0] as Date | undefined)?.getDate()).toBe(20)
 	})
 
 	it('selects the focused day with Space', async () => {
