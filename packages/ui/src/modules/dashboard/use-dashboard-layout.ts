@@ -3,15 +3,14 @@
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { useControllable } from '../../hooks'
 import { clamp } from '../../utilities'
+import type { CellConstraints } from './dashboard-constraints'
 import {
 	appendCell,
-	compactUp,
 	DEFAULT_CELL_HEIGHT,
 	DEFAULT_CELL_WIDTH,
 	deriveHeight,
 	type LayoutCell,
 } from './dashboard-layout'
-import { type CellConstraints, deriveLayout } from './dashboard-responsive'
 import type { DashboardLayoutBinding, DashboardLayoutItem } from './types'
 
 /** Options for {@link useDashboardLayout}. @internal */
@@ -20,22 +19,18 @@ type DashboardLayoutOptions = {
 	layout: DashboardLayoutBinding | undefined
 	/** The grid's column count. */
 	columns: number
-	/** The gutter in px. */
-	gap: number
-	/** The container's measured width; `0` before the first measurement. */
-	containerWidth: number
 }
 
 /** What {@link useDashboardLayout} returns. @internal */
 type DashboardLayoutState = {
 	/** Registers an item's content demands; returns the unregister. */
 	register: (id: string, constraints: CellConstraints) => () => void
-	/** The canonical cells: bound entries resolved, unknowns auto-slotted, compacted. */
-	canonical: LayoutCell[]
-	/** The cells to paint at rest: the responsive derivation of the canonical layout. */
+	/**
+	 * The canonical cells, the layout the tiles paint: bound entries resolved,
+	 * unknowns auto-slotted, compacted. Geometry is proportional, so this same
+	 * layout scales to every container width — nothing re-derives on resize.
+	 */
 	rendered: LayoutCell[]
-	/** Whether the derivation changed nothing — the gate on editing gestures. */
-	identity: boolean
 	/** The live constraint registry, for the gesture hooks' ratio lookups. */
 	constraints: ReadonlyMap<string, CellConstraints>
 	/** Commits a gesture's cells as the canonical layout and returns the emitted items. */
@@ -76,25 +71,23 @@ function resolveCell(
 
 /**
  * The grid's layout state: the controlled / uncontrolled binding, the item
- * constraint registry, and the two derived layouts — canonical (what edits
- * apply to and commits emit) and rendered (the responsive derivation the
- * tiles paint at rest).
+ * constraint registry, and the canonical layout the tiles paint — what
+ * edits apply to and commits emit. Geometry is proportional, so this one
+ * layout scales to every container width and nothing re-derives on resize.
  *
  * The canonical cells resolve from the binding against the mounted items:
- * entries without a mounted item drop out (so removal self-heals through
- * compaction, the canonical array untouched), mounted items without an
- * entry auto-slot below the last row in mount order, duplicates keep their
- * first entry, and the whole set compacts. Nothing is emitted for any of
- * that — the binding only fires on {@link DashboardLayoutState.commit},
- * a gesture's explicit mutation.
+ * entries without a mounted item drop out (removal leaves its cell open —
+ * the canvas never repacks, and the canonical array is untouched), mounted
+ * items without an entry auto-slot below the last row in mount order, and
+ * duplicates keep their first entry. Nothing is emitted for any of that —
+ * the binding only fires on {@link DashboardLayoutState.commit}, a
+ * gesture's explicit mutation.
  *
  * @internal
  */
 export function useDashboardLayout({
 	layout,
 	columns,
-	gap,
-	containerWidth,
 }: DashboardLayoutOptions): DashboardLayoutState {
 	const [value, setValue] = useControllable<DashboardLayoutItem[]>({
 		value: layout?.value,
@@ -154,19 +147,8 @@ export function useDashboardLayout({
 			)
 		}
 
-		return compactUp(cells)
+		return cells
 	}, [value, registryVersion, columns])
-
-	const derived = useMemo(() => {
-		void registryVersion
-
-		return deriveLayout(canonical, {
-			containerWidth,
-			gap,
-			columns,
-			constraints: constraintsRef.current,
-		})
-	}, [canonical, containerWidth, gap, columns, registryVersion])
 
 	const toPublic = useCallback((cells: readonly LayoutCell[]): DashboardLayoutItem[] => {
 		return cells.map((cell) => {
@@ -200,9 +182,7 @@ export function useDashboardLayout({
 
 	return {
 		register,
-		canonical,
-		rendered: derived.cells,
-		identity: derived.identity,
+		rendered: canonical,
 		constraints: constraintsRef.current,
 		commit,
 		publicLayout,

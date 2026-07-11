@@ -16,6 +16,7 @@ import {
 	type CartesianChartProps,
 	type ChartValueLabelConfig,
 	type Crosshair,
+	resolveLegend,
 	resolveTooltip,
 } from '../chart-schema'
 import { snappedSeriesAt, snapTargets } from '../chart-snap'
@@ -277,6 +278,8 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 		...label
 	} = props
 
+	const resolvedLegend = resolveLegend(legend)
+
 	const chart = useChartCartesian(
 		{
 			data,
@@ -286,7 +289,7 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 			height,
 			aspectRatio,
 			axes,
-			legend,
+			legend: resolvedLegend.value,
 			reference,
 			tickRotation,
 			onCategoryClick,
@@ -390,8 +393,15 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 			fill={chart.fill}
 			aspect={chart.outerAspect ?? undefined}
 			tier={chart.tier}
-			legend={<ChartCartesianLegend chart={chart} legend={legend} texture={tex.active} />}
-			legendPlacement={typeof legend === 'string' ? legend : undefined}
+			legend={
+				<ChartCartesianLegend
+					chart={chart}
+					legend={resolvedLegend.value}
+					texture={tex.active}
+					inert={resolvedLegend.inert}
+				/>
+			}
+			legendPlacement={typeof resolvedLegend.value === 'string' ? resolvedLegend.value : undefined}
 			readout={chart.readout}
 			readoutOrder={chart.readoutOrder}
 			emphasis={chart.emphasis}

@@ -18,10 +18,18 @@ import {
 	type ChartTooltipTrigger,
 	type PieChartSeries,
 	resolveHeader,
+	resolveLegend,
 	resolveTooltip,
 } from './chart-schema'
 import { formatChartValue, type SlotPaint, seriesValues } from './chart-series'
-import { chartPolicy, headerLineCount, isSparkBox, policyPlotHeight } from './chart-tier'
+import {
+	type ChartChrome,
+	chartChromeShift,
+	chartPolicy,
+	headerLineCount,
+	isSparkBox,
+	policyPlotHeight,
+} from './chart-tier'
 import { useChartFullscreen, useChartHover } from './context'
 import {
 	CALLOUT_CHAR_WIDTH,
@@ -840,6 +848,8 @@ export function ChartPie<T>(props: ChartPieProps<T>) {
 		...name
 	} = props
 
+	const resolvedLegend = resolveLegend(legend)
+
 	const head = resolveHeader(header)
 
 	// Free-form, a pie fits its own square footprint; inside the fullscreen dialog
@@ -885,9 +895,28 @@ export function ChartPie<T>(props: ChartPieProps<T>) {
 		aside,
 		hasLegend,
 		stackedLegend,
-	} = pieFrame(sizing, legend, data.length)
+	} = pieFrame(sizing, resolvedLegend.value, data.length)
 
-	const { ref, width: frameWidth, height: frameHeight, reserve } = usePlotFrame(width, frameSizing)
+	// The header band counts with the stacked legend, so a titled pie reserves
+	// its lines the way a cartesian chart does.
+	const chrome: ChartChrome = {
+		headerLines: headerLineCount(head.title, head.subtitle),
+		legend: stackedLegend,
+	}
+
+	// A resize that crosses a chrome boundary — tier, legend-row cap — commits
+	// before paint rather than as a transition, so the old anatomy never paints a
+	// frame into the new box (see `chartChromeShift`).
+	const {
+		ref,
+		width: frameWidth,
+		height: frameHeight,
+		reserve,
+	} = usePlotFrame(
+		width,
+		frameSizing,
+		chartChromeShift(width, frameSizing, frameAspect, chrome, CHART_METRICS.md.tickTarget),
+	)
 
 	// The pie reads the same intrinsic tier as a cartesian chart from its measured
 	// box — the `data-tier` styling hook, and the legend's row cap so a many-slice
@@ -896,14 +925,10 @@ export function ChartPie<T>(props: ChartPieProps<T>) {
 	// Under a stacked aspect-fill figure the plot's measured remainder shrinks with
 	// the legend and jumps when spark drops it, so resolve the tier against the
 	// figure's `width / ratio` less that legend rather than the remainder it would
-	// loop on — the header band counted with it, so a titled pie reserves its
-	// lines the way a cartesian chart does. A free-form fill frame shares that
-	// box with no ratio to derive a safe height from, so the policy's fill flag
-	// resolves the chrome decisions by width alone.
-	const policyHeight = policyPlotHeight(frameHeight, frameWidth, frameAspect, {
-		headerLines: headerLineCount(head.title, head.subtitle),
-		legend: stackedLegend,
-	})
+	// loop on. A free-form fill frame shares that box with no ratio to derive a
+	// safe height from, so the policy's fill flag resolves the chrome decisions by
+	// width alone.
+	const policyHeight = policyPlotHeight(frameHeight, frameWidth, frameAspect, chrome)
 
 	const policy = chartPolicy(
 		frameWidth,
@@ -1043,10 +1068,11 @@ export function ChartPie<T>(props: ChartPieProps<T>) {
 						panel={aside}
 						maxRows={policy.legendRows}
 						texture={tex.active}
+						inert={resolvedLegend.inert}
 					/>
 				)
 			}
-			legendPlacement={typeof legend === 'string' ? legend : undefined}
+			legendPlacement={typeof resolvedLegend.value === 'string' ? resolvedLegend.value : undefined}
 			readout={readout}
 			tooltip={showTooltip}
 			focus={{ points: focusPoints }}

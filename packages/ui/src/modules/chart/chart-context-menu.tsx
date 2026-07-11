@@ -23,7 +23,7 @@ import {
 	readoutToCsv,
 } from './chart-export'
 import type { ChartContextMenuConfig } from './chart-schema'
-import { ChartFullscreenContext } from './context'
+import { ChartFullscreenContext, ChartFullscreenControlContext } from './context'
 import type { ChartReadoutSource } from './types'
 
 /** Props for {@link ChartContextMenu}. @internal */
@@ -158,6 +158,11 @@ export function ChartContextMenu({
 
 	const defaults = [...imageActions, ...dataActions]
 
+	// The imperative open, published to chrome inside the chart only when a
+	// fullscreen copy exists — a spark tile's veil clicks through to it. Null
+	// otherwise, so a veil with nothing to open renders no click affordance.
+	const fullscreenControl = fullscreen ? () => setOpen(true) : null
+
 	return (
 		<>
 			<ContextMenu
@@ -166,7 +171,9 @@ export function ChartContextMenu({
 				defaultItems={contextMenu?.defaultItems}
 				position={contextMenu?.position}
 			>
-				{children}
+				<ChartFullscreenControlContext value={fullscreenControl}>
+					{children}
+				</ChartFullscreenControlContext>
 			</ContextMenu>
 
 			<Dialog

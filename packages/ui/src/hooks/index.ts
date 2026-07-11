@@ -46,6 +46,7 @@ export {
 	type FrameReserve,
 	type FrameSizing,
 	type PlotFrameRef,
+	type PlotFrameSize,
 	type ResolvedFrameSizing,
 	resolveFrameSizing,
 	usePlotFrame,

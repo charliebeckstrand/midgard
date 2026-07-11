@@ -8,8 +8,10 @@ import {
 	useEffect,
 	useLayoutEffect,
 	useMemo,
+	useRef,
 	useState,
 } from 'react'
+import { flushSync } from 'react-dom'
 
 /**
  * Frame sizing and measurement for the plot-bearing modules (chart, map): a
@@ -80,6 +82,27 @@ export type FrameSizing =
 export type FrameReserve =
 	| { mode: 'aspect'; ratio: number }
 	| { mode: 'content'; offset: number; min: number }
+
+/**
+ * A frame measurement as {@link usePlotFrame} tracks it: each axis is `0`
+ * where the sizing policy doesn't consume it. The shape an `urgent` predicate
+ * compares across a resize.
+ *
+ * @internal
+ */
+export type PlotFrameSize = {
+	/** The plot box's measured width; `0` under an explicit `width` prop. */
+	width: number
+	/** The plot box's measured height; `0` outside `fill` / `aspect-fill`. */
+	height: number
+	/** The marked fill container's height; `0` outside `fill`. */
+	containerHeight: number
+}
+
+/** Axis-wise equality for {@link PlotFrameSize} — the state-churn guard. @internal */
+function sameSize(a: PlotFrameSize, b: PlotFrameSize): boolean {
+	return a.width === b.width && a.height === b.height && a.containerHeight === b.containerHeight
+}
 
 /** A resolved frame box: the drawing height, and how the box reserves it. @internal */
 export type ResolvedFrameSizing = {
@@ -183,8 +206,15 @@ export type PlotFrameRef = RefCallback<HTMLDivElement> & RefObject<HTMLDivElemen
  * live — no settle window, no timers — while React coalesces a burst by
  * abandoning renders whose size is already stale, so a window drag on a slow
  * frame refits at the pace the machine can afford and always lands on the
- * final size. A measurement of a node a commit has already detached (a layout
- * branch re-arranged around the plot mid-notification) is skipped rather than
+ * final size. The exception is a resize the `urgent` predicate flags — one
+ * that crosses a discrete chrome threshold (a chart's anatomy tier, its legend
+ * row cap) — which commits through `flushSync` inside the notification, before
+ * the browser paints: a transition would let the old chrome paint one frame
+ * into the new box (a two-row legend wrapping where the new tier chips it),
+ * the tier-switch flicker. Intra-tier staleness is a few px of mark geometry —
+ * invisible — so only the boundary pays the synchronous render. A measurement
+ * of a node a commit has already detached (a layout branch re-arranged around
+ * the plot mid-notification) is skipped rather than
  * committed as zero, so the frame holds its last real size until the live
  * node reports one. The mount measurement instead settles in a layout effect that
  * re-runs on each size change, so a size that resolves a tier which mounts or
@@ -196,6 +226,10 @@ export type PlotFrameRef = RefCallback<HTMLDivElement> & RefObject<HTMLDivElemen
  * measure the container.
  * @param sizing - The frame's sizing policy, from `chartFrameSizing` or
  * `mapFrameSizing`.
+ * @param urgent - Flags a resize whose commit must land before the next paint
+ * — `true` when the two measurements resolve different discrete chrome (see
+ * `chartChromeShift`). Read through a ref, so an inline closure never re-tears
+ * the observer; omitted, every resize commits as a transition.
  * @returns The wrapper `ref` to attach — a callback ref that re-targets the
  * observer if React swaps the node, still readable through `.current` — and
  * the resolved drawing box; an unmeasured `width` stays `0`, which renders the
@@ -206,6 +240,7 @@ export type PlotFrameRef = RefCallback<HTMLDivElement> & RefObject<HTMLDivElemen
 export function usePlotFrame(
 	width: number | undefined,
 	sizing: FrameSizing,
+	urgent?: (prev: PlotFrameSize, next: PlotFrameSize) => boolean,
 ): {
 	ref: PlotFrameRef
 	width: number
@@ -262,13 +297,13 @@ export function usePlotFrame(
 
 	const [size, setSize] = useState({ width: 0, height: 0, containerHeight: 0 })
 
-	const measure = useCallback(
-		(el: HTMLDivElement) => {
+	const read = useCallback(
+		(el: HTMLDivElement): PlotFrameSize | null => {
 			// A node the commit just detached (a layout branch re-arranged around
 			// the plot) measures 0 × 0 — garbage that would flip every size-driven
 			// policy downstream (spark shedding, legend placement) and can feed a
 			// remount loop. Skip it; the replacement node measures on attach.
-			if (!el.isConnected) return
+			if (!el.isConnected) return null
 
 			// The fill frame's own box — the nearest ancestor the frame marks. Its
 			// height is the tile's, held steady as the tier mounts or drops the chrome
@@ -278,24 +313,35 @@ export function usePlotFrame(
 				? (el.closest<HTMLElement>('[data-plot-fill-container]')?.clientHeight ?? 0)
 				: 0
 
-			// Integer px, equality-guarded, so observer notifications can't churn
-			// state. An axis the policy ignores stays 0 and never re-renders it.
-			const next = {
+			// Integer px; an axis the policy ignores stays 0 and never re-renders it.
+			return {
 				width: measureWidth ? Math.round(el.clientWidth) : 0,
 				height: measureHeight ? Math.round(el.clientHeight) : 0,
 				containerHeight: Math.round(container),
 			}
-
-			setSize((current) =>
-				current.width === next.width &&
-				current.height === next.height &&
-				current.containerHeight === next.containerHeight
-					? current
-					: next,
-			)
 		},
 		[measureWidth, measureHeight, measureContainer],
 	)
+
+	// Equality-guarded, so observer notifications can't churn state.
+	const commit = useCallback((next: PlotFrameSize) => {
+		setSize((current) => (sameSize(current, next) ? current : next))
+	}, [])
+
+	// The committed size and the urgency predicate, mirrored into refs the
+	// observer callback reads: `painted` is what the last commit rendered — the
+	// baseline a notification's measurement is judged urgent against — and the
+	// ref indirection lets a caller pass `urgent` as an inline closure without
+	// re-tearing the observer every render.
+	const painted = useRef(size)
+
+	const urgentRef = useRef(urgent)
+
+	useLayoutEffect(() => {
+		painted.current = size
+
+		urgentRef.current = urgent
+	})
 
 	// Settle the size before the browser paints, and re-settle on every size
 	// change: the mount measure can resolve a tier that mounts or drops the
@@ -317,8 +363,10 @@ export function usePlotFrame(
 	useLayoutEffect(() => {
 		if (!node || !(measureWidth || measureHeight)) return
 
-		measure(node)
-	}, [node, measure, measureWidth, measureHeight, size])
+		const next = read(node)
+
+		if (next) commit(next)
+	}, [node, read, commit, measureWidth, measureHeight, size])
 
 	// Observe only while a measured axis feeds the sizing — a fully fixed
 	// frame constructs no observer, so a resize never re-renders it. Keyed on
@@ -329,19 +377,53 @@ export function usePlotFrame(
 	useEffect(() => {
 		if (!node || !(measureWidth || measureHeight)) return
 
+		// Cleared on cleanup, so a re-arm scheduled below can't revive a torn-down
+		// observer against a detached node.
+		let armed = true
+
 		const observer = new ResizeObserver(() => {
-			// Transition priority: a burst of notifications coalesces — React
-			// abandons a render for a size a newer notification has already
+			const next = read(node)
+
+			if (!next || sameSize(painted.current, next)) return
+
+			// A notification is delivered after layout, before paint — the one window
+			// where a chrome-shifting commit can land without the old chrome painting
+			// a frame into the new box. flushSync takes it when the caller's `urgent`
+			// predicate flags the shift (a tier boundary, a legend-row cap change).
+			// The sync render can't loop — the chrome-affecting decisions resolve
+			// from chrome-independent inputs (see the settle effect above) — but the
+			// chrome it mounts or drops resizes this very node mid-delivery, an
+			// observation the browser can only report as the "ResizeObserver loop
+			// completed with undelivered notifications" window error. So the node is
+			// let go for the flush and re-observed a frame later: observe() delivers
+			// an initial notification with the then-current size, so nothing in the
+			// gap is lost — a stale measurement lands there and no-ops on equality.
+			if (urgentRef.current?.(painted.current, next)) {
+				observer.unobserve(node)
+
+				flushSync(() => commit(next))
+
+				requestAnimationFrame(() => {
+					if (armed) observer.observe(node)
+				})
+
+				return
+			}
+
+			// Transition priority otherwise: a burst of notifications coalesces —
+			// React abandons a render for a size a newer notification has already
 			// outdated — and the geometry rebuild never blocks urgent work.
-			startTransition(() => measure(node))
+			startTransition(() => commit(next))
 		})
 
 		observer.observe(node)
 
 		return () => {
+			armed = false
+
 			observer.disconnect()
 		}
-	}, [node, measure, measureWidth, measureHeight])
+	}, [node, read, commit, measureWidth, measureHeight])
 
 	const resolvedWidth = width ?? size.width
 

@@ -2,6 +2,7 @@
 
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { type KeyboardEvent, type RefObject, useLayoutEffect, useRef, useState } from 'react'
+import { flushSync } from 'react-dom'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { Popover, PopoverContent, PopoverTrigger } from '../../components/popover'
@@ -11,6 +12,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/toolti
 import { cn } from '../../core'
 import { useA11yRoving } from '../../hooks/a11y'
 import { useTruncation } from '../../hooks/use-truncation'
+import { useDragHandle } from '../../primitives/drag-handle'
 import type { ChartSeriesColor } from '../../recipes/kata/chart'
 import { OVERFLOW_CHIP_RESERVE, visibleLegendCount } from './chart-legend-fit'
 import { ChartSwatch } from './chart-pattern-defs'
@@ -50,7 +52,7 @@ function useLegendFit(
 		// ghost, so the row count is a dependency, not just the observed size.
 		if (!ghost || maxRows === undefined || count === 0) return
 
-		const measure = () => {
+		const computeVisible = () => {
 			const controls = [...ghost.querySelectorAll<HTMLElement>('button')]
 
 			// A wrapped control drops about a full control-height; a swatch-vs-chip
@@ -71,12 +73,21 @@ function useLegendFit(
 				right: control.offsetLeft + control.offsetWidth,
 			}))
 
-			setVisible(visibleLegendCount(rects, maxRows, ghost.clientWidth, OVERFLOW_CHIP_RESERVE))
+			return visibleLegendCount(rects, maxRows, ghost.clientWidth, OVERFLOW_CHIP_RESERVE)
 		}
 
-		measure()
+		// The first cut runs inside this layout effect, so React already flushes it
+		// before paint.
+		setVisible(computeVisible())
 
-		const observer = new ResizeObserver(measure)
+		// A resize is delivered after layout but before paint; a bare setState from
+		// the observer would batch into a later frame, so the visible row repaints
+		// wrapped at the new width for one frame before the re-slice lands — the
+		// flicker. flushSync applies the cut within the delivery frame, so the wrapped
+		// row never paints. This can't spin a resize loop: the observed ghost holds
+		// every control regardless of the cut, so its measured size never depends on
+		// `visible`.
+		const observer = new ResizeObserver(() => flushSync(() => setVisible(computeVisible())))
 
 		observer.observe(ghost)
 
@@ -354,6 +365,22 @@ export type ChartLegendReference = {
 	dashed?: boolean
 }
 
+/**
+ * Whether a legend renders as a static key: the caller's explicit `inert`, or —
+ * on its own — a legend inside a dashboard tile being arranged, which takes the
+ * same interaction standby its chart's hover, tooltip, and keyboard do (a
+ * drag-handle host is the arranging signal). So an arranging reader never
+ * toggles a series or catches a stray tab stop, and a caller sets `inert` only
+ * for a static legend outside a tile.
+ *
+ * @internal
+ */
+function useLegendInert(inert: boolean): boolean {
+	const arranging = useDragHandle() !== null
+
+	return inert || arranging
+}
+
 /** Props for {@link ChartLegend}. @internal */
 export type ChartLegendProps = {
 	items: ChartLegendItem[]
@@ -395,6 +422,15 @@ export type ChartLegendProps = {
 	 * chrome dropped elsewhere).
 	 */
 	maxRows?: number
+	/**
+	 * Render as a static key: the swatches and labels, but no series toggle,
+	 * emphasis, or tab stop. OR-ed with the arranging-tile standby — a legend
+	 * inside a dashboard tile being edited inerts on its own, the same posture
+	 * its chart's hover takes — so a caller sets this only for a static legend
+	 * outside that.
+	 * @defaultValue false
+	 */
+	inert?: boolean
 }
 
 /** The switches and chips split into the run that shows and the overflow the `+N` chip holds. @internal */
@@ -479,7 +515,10 @@ export function ChartLegend({
 	panel = false,
 	texture = false,
 	maxRows,
+	inert = false,
 }: ChartLegendProps) {
+	const isInert = useLegendInert(inert)
+
 	const ref = useRef<HTMLDivElement>(null)
 
 	const ghostRef = useRef<HTMLDivElement>(null)
@@ -602,8 +641,9 @@ export function ChartLegend({
 	// The row is a toolbar — one Tab stop, arrow-key roving, Escape to drop focus —
 	// whenever it holds a focusable control: the series switches (every entry is
 	// one, a lone series included), or the reference chips, which recede the marks
-	// on hover or focus.
-	const interactive = items.length > 0 || references.length > 0
+	// on hover or focus. An inert legend holds none, so it drops the toolbar role
+	// with the rest of its interactivity.
+	const interactive = !isInert && (items.length > 0 || references.length > 0)
 
 	// A side panel stacks its controls in a column, so the arrows that rove them
 	// follow the layout — Up/Down down the panel, Left/Right across the wrap row.
@@ -815,6 +855,11 @@ export function ChartLegend({
 		<div
 			ref={ref}
 			data-slot="chart-legend"
+			// A static key: the HTML `inert` attribute takes the whole subtree out of
+			// the tab order and off the pointer in one place — the switches keep their
+			// look but shed the click, hover, and focus, no per-control gating. The
+			// series names still reach assistive tech through the chart's data table.
+			inert={isInert}
 			{...toolbarProps}
 			className={cn(
 				// The side panel reserves a rail that scales with the chart's own

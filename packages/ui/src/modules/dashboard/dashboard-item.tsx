@@ -1,20 +1,13 @@
 'use client'
 
 import { useDraggable } from '@dnd-kit/core'
-import { animate, motion, useMotionValue, useReducedMotion } from 'motion/react'
-import {
-	type ReactNode,
-	useCallback,
-	useEffect,
-	useLayoutEffect,
-	useMemo,
-	useRef,
-	useState,
-} from 'react'
+import { motion } from 'motion/react'
+import { type ReactNode, useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { cn, dataAttr } from '../../core'
-import { useComposedRef } from '../../hooks'
 import { DragHandleContext, type DragHandleContextValue } from '../../primitives/drag-handle'
+import { TileSurfaceContext } from '../../primitives/tile-surface'
 import { k } from '../../recipes/kata/dashboard'
+import { clamp } from '../../utilities'
 import { useDashboard } from './context'
 import { DashboardHandle } from './dashboard-handle'
 import { type LayoutCell, ROW_SUBDIVISION } from './dashboard-layout'
@@ -26,7 +19,7 @@ import { DashboardResizeHandle } from './dashboard-resize-handle'
  *
  * @internal
  */
-const DEFAULT_MIN_WIDTH = 240
+const DEFAULT_MIN_WIDTH = 320
 
 /** Props for {@link DashboardItem}. */
 export type DashboardItemProps = {
@@ -41,12 +34,11 @@ export type DashboardItemProps = {
 	 */
 	ratio?: number
 	/**
-	 * The narrowest the content stays legible, in px. It clamps how far the
-	 * tile resizes down, and drives the content-based stacking: in a container
-	 * too narrow to honour it side by side, the tile widens and its former
-	 * neighbours wrap below — each tile inducing its own private breakpoint,
-	 * with no global one anywhere.
-	 * @defaultValue 240
+	 * The narrowest the content stays legible, in px — one line read from two
+	 * sides. It clamps how far the tile resizes down, and it is the tile's
+	 * vote in the grid's responsive projection: once the container renders
+	 * this tile narrower, the board re-packs so it never is.
+	 * @defaultValue 320
 	 */
 	minWidth?: number
 	children?: ReactNode
@@ -73,19 +65,30 @@ function resizeReadout(cell: LayoutCell, columnPitch: number, gap: number): stri
 
 /**
  * One dashboard tile: the positioned shell its content renders into. It
- * registers its content demands (`ratio`, `minWidth`) with the grid, paints
- * at its cell through pure percentage geometry (SSR-correct at any width),
- * and glides between cells on the shared spring — a FLIP on its transform,
- * skipped under reduced motion. In editing mode it mints the drag grip and
- * broadcasts it through the ambient `DragHandleContext`: a chart header
- * inside adopts and claims it, and while nothing claims, the same grip
- * floats on the tile's corner. Its east edge (south too, free-form) carries
- * a splitter; while the tile is dragged its content rides the drag overlay
- * and the shell stays behind as the snapped, gliding placeholder.
+ * registers its content demands (`ratio`, `minWidth`) with the grid and
+ * paints at its cell through pure percentage geometry, SSR-correct at any
+ * width. A change of cell eases on a CSS transition, so a tile a drag
+ * displaces glides to its new spot with no animation runtime in the loop —
+ * and because nothing re-renders through that transition, a chart header
+ * inside never re-measures and so never jitters. A responsive re-pack drops
+ * that glide (`repacking`): the board jumps to fit its container in one
+ * frame rather than animating a sweep a fill chart would lag a wrong size
+ * across.
+ *
+ * The tile drags itself — there is no overlay clone. In editing mode it
+ * mints the drag grip and broadcasts it through the ambient
+ * `DragHandleContext`: a chart header inside adopts and claims it, and while
+ * nothing claims, the same grip floats on the tile's corner. While it is
+ * the dragged tile it drops the cell transition and tracks the pointer
+ * through a `translate` transform; on release the transition returns and
+ * that transform eases to zero exactly as its landing cell eases into place
+ * under it — the two read as one motion into the slot, never a teleport.
+ * Its east edge (south too, free-form) carries a resize splitter.
  *
  * @remarks Keep `children` referentially stable (hoist or memoize heavy
- * content): the shell re-renders on every preview beat of a gesture, and a
- * stable element lets React bail out of the content subtree.
+ * content): the shell re-renders each frame of a drag, and a stable element
+ * lets React bail out of the content subtree so the chart never re-renders
+ * mid-drag.
  */
 export function DashboardItem({
 	id,
@@ -95,6 +98,7 @@ export function DashboardItem({
 }: DashboardItemProps) {
 	const {
 		editing,
+		repacking,
 		columns,
 		gap,
 		maxRow,
@@ -103,7 +107,6 @@ export function DashboardItem({
 		register,
 		activeId,
 		resizingId,
-		overlay,
 	} = useDashboard()
 
 	useLayoutEffect(() => register(id, { ratio, minWidth }), [register, id, ratio, minWidth])
@@ -112,86 +115,39 @@ export function DashboardItem({
 
 	const interactive = editing && cell !== undefined && !cell.static
 
-	const {
-		attributes,
-		listeners,
-		setNodeRef: setDraggableRef,
-		setActivatorNodeRef,
-	} = useDraggable({ id, disabled: !interactive })
+	const { attributes, listeners, transform, setNodeRef, setActivatorNodeRef } = useDraggable({
+		id,
+		disabled: !interactive,
+	})
 
-	const elementRef = useRef<HTMLDivElement | null>(null)
+	const dragging = activeId === id
 
-	const shellRef = useComposedRef(setDraggableRef, elementRef)
+	const resizing = resizingId === id
 
-	// The tile's content, mirrored for the drag overlay: the overlay renders
-	// this exact node while the shell stays behind as the placeholder.
-	overlay.current.set(id, children)
+	// The drop is a snap, not a glide: the tile follows the pointer freely
+	// through the drag, then lands in its cell with the transition suppressed
+	// for the one frame the release commits — so it settles exactly where the
+	// board shows it, never drifting in from the direction it came. (A glide
+	// would always carry the sub-cell gap between the free pointer and the
+	// grid, visible even on a drop that looks precise.) The flag clears on the
+	// next frame, restoring the transition for ordinary reflow.
+	const [dropping, setDropping] = useState(false)
 
-	useEffect(() => {
-		return () => {
-			overlay.current.delete(id)
-		}
-	}, [overlay, id])
-
-	// FLIP glide: a cell change jumps the transform by the old-minus-new pixel
-	// delta, then springs it back to zero — the tile appears to slide from
-	// where it was. Interruptions accumulate into the same motion values, so a
-	// reflow mid-flight redirects instead of snapping. The tile driving a
-	// gesture is exempt: its placeholder snaps to each simulated cell at once,
-	// so the drop target reads crisp under the pointer while only the
-	// displaced neighbours glide.
-	const dx = useMotionValue(0)
-
-	const dy = useMotionValue(0)
-
-	const reducedMotion = useReducedMotion()
-
-	const gesturing = activeId === id || resizingId === id
-
-	const previousRef = useRef<{ x: number; y: number } | null>(null)
-
-	const x = cell?.x
-
-	const y = cell?.y
+	const wasDragging = useRef(dragging)
 
 	useLayoutEffect(() => {
-		if (x === undefined || y === undefined) return
+		const released = wasDragging.current && !dragging
 
-		const previous = previousRef.current
+		wasDragging.current = dragging
 
-		previousRef.current = { x, y }
+		if (!released) return
 
-		if (previous === null || columnPitch <= 0 || reducedMotion || gesturing) return
+		setDropping(true)
 
-		const deltaX = (previous.x - x) * columnPitch
+		const frame = requestAnimationFrame(() => setDropping(false))
 
-		const deltaY = ((previous.y - y) * columnPitch) / ROW_SUBDIVISION
-
-		if (deltaX === 0 && deltaY === 0) return
-
-		dx.set(dx.get() + deltaX)
-
-		dy.set(dy.get() + deltaY)
-
-		// Motion renders value writes on its next animation frame — one frame
-		// after this effect, which would let the browser paint the tile already
-		// at its destination before the compensating transform lands: a visible
-		// jump. Writing the transform here, pre-paint, closes that frame; the
-		// spring then takes over from the same numbers.
-		if (elementRef.current) {
-			elementRef.current.style.transform = `translate3d(${dx.get()}px, ${dy.get()}px, 0)`
-		}
-
-		const settleX = animate(dx, 0, k.motion.flip)
-
-		const settleY = animate(dy, 0, k.motion.flip)
-
-		return () => {
-			settleX.stop()
-
-			settleY.stop()
-		}
-	}, [x, y, columnPitch, reducedMotion, gesturing, dx, dy])
+		return () => cancelAnimationFrame(frame)
+	}, [dragging])
 
 	// The adoption count: a chart header claiming the handle stands the
 	// floating fallback down. Child layout effects run before this shell
@@ -222,15 +178,30 @@ export function DashboardItem({
 
 	if (cell === undefined) return null
 
-	const dragging = activeId === id
+	// The pointer offset, confined to the canvas. Clamped here against the
+	// tile's own rendered geometry — its resting cell plus this transform kept
+	// inside `[0, columns] × [0, maxRow]` in px — so a tile can never be
+	// dragged past an edge or below the board, whatever raw offset dnd-kit
+	// hands back. Gated on our own `dragging` flag, not dnd-kit's transform,
+	// so it zeroes in the same render the cell commits; with the transition
+	// suppressed that frame (`data-dropping`), the tile snaps home.
+	const rowPitch = columnPitch / ROW_SUBDIVISION
 
-	const resizing = resizingId === id
+	const tx = dragging
+		? clamp(transform?.x ?? 0, -cell.x * columnPitch, (columns - cell.w - cell.x) * columnPitch)
+		: 0
+
+	const ty = dragging
+		? clamp(transform?.y ?? 0, -cell.y * rowPitch, (maxRow - cell.h - cell.y) * rowPitch)
+		: 0
 
 	return (
-		<motion.div
-			ref={shellRef}
+		<div
+			ref={setNodeRef}
 			data-slot="dashboard-item"
 			data-dragging={dataAttr(dragging)}
+			data-dropping={dataAttr(dropping)}
+			data-repacking={dataAttr(repacking)}
 			data-static={dataAttr(cell.static)}
 			className={cn(k.item({ dragging, lifted: resizing }))}
 			style={{
@@ -239,24 +210,24 @@ export function DashboardItem({
 				width: pct(cell.w / columns),
 				height: pct(cell.h / maxRow),
 				padding: gap / 2,
-				x: dx,
-				y: dy,
+				transform: `translate3d(${tx}px, ${ty}px, 0)`,
 			}}
 		>
-			{dragging && (
-				<div
-					data-slot="dashboard-placeholder"
-					className={cn(k.placeholder)}
-					style={{ margin: gap / 2 }}
-				/>
-			)}
-
-			<div
+			<motion.div
+				// A layout root scopes the content's own layout animations — the
+				// chart header's title slide and adornment pops — to this box. It
+				// resolves them against itself, and `layoutRoot` settles its own
+				// layout instantly, so the tile moving, resizing, or reflowing (all
+				// driven by CSS on the shell above) never reads as the header's
+				// content shifting and never fires its motion.
+				layout
+				layoutRoot
 				data-slot="dashboard-item-content"
-				className={cn(k.content({ editing }))}
-				style={dragging ? { visibility: 'hidden' } : undefined}
+				className={cn(k.content({ editing, dragging }))}
 			>
-				<DragHandleContext value={handleValue}>{children}</DragHandleContext>
+				<TileSurfaceContext value={true}>
+					<DragHandleContext value={handleValue}>{children}</DragHandleContext>
+				</TileSurfaceContext>
 
 				{handleValue !== null && claims === 0 && (
 					<DashboardHandle
@@ -288,7 +259,7 @@ export function DashboardItem({
 						{resizeReadout(cell, columnPitch, gap)}
 					</div>
 				)}
-			</div>
-		</motion.div>
+			</motion.div>
+		</div>
 	)
 }

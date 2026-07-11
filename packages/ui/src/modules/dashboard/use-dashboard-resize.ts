@@ -10,14 +10,14 @@ import {
 } from 'react'
 import { clamp } from '../../utilities'
 import type { DashboardResizeEdge } from './context'
+import { type CellConstraints, minColumns } from './dashboard-constraints'
 import {
-	compactUp,
 	deriveHeight,
+	fits,
 	type LayoutCell,
 	ROW_SUBDIVISION,
 	sameGeometry,
 } from './dashboard-layout'
-import { type CellConstraints, minColumns } from './dashboard-responsive'
 import type { DashboardGestureEndEvent, DashboardGestureStartEvent } from './types'
 
 /** The shortest a free-form tile resizes to: one column pitch tall. @internal */
@@ -29,8 +29,6 @@ type DashboardResizeOptions = {
 	containerRef: RefObject<HTMLDivElement | null>
 	/** The cells painted at rest — the snapshot source for a new gesture. */
 	rendered: LayoutCell[]
-	/** Live gate: gestures only run while the rendered layout is canonical. */
-	identity: boolean
 	columns: number
 	gap: number
 	/** Measured column pitch in px; `0` disables resizing. */
@@ -61,12 +59,15 @@ type DashboardResizeState = {
  * One cell resized along its edge under the tile's clamps: the width stays
  * between the content's minimum span and the columns its `x` leaves, a
  * ratio-locked height re-derives from the width (the `s` axis is inert on
- * it), and a free-form height keeps a floor of one column pitch. The grid
- * unbounded below needs no height ceiling.
+ * it), and a free-form height keeps a floor of one column pitch. Nothing
+ * else on the canvas ever moves, so a grow also stops at the nearest
+ * neighbour: the candidate steps back one column (its ratio height
+ * re-deriving) or one row until it stands clear.
  *
  * @internal
  */
 function resizeCell(
+	snapshot: readonly LayoutCell[],
 	cell: LayoutCell,
 	edge: DashboardResizeEdge,
 	dw: number,
@@ -75,14 +76,29 @@ function resizeCell(
 	columns: number,
 	ratio: number | undefined,
 ): LayoutCell {
-	const w = edge === 's' ? cell.w : clamp(cell.w + dw, Math.min(minW, cell.w), columns - cell.x)
+	const floorW = Math.min(minW, cell.w)
 
-	const h =
+	let w = edge === 's' ? cell.w : clamp(cell.w + dw, floorW, columns - cell.x)
+
+	let h =
 		ratio !== undefined
 			? deriveHeight(w, ratio)
 			: edge === 'e'
 				? cell.h
 				: Math.max(MIN_CELL_ROWS, cell.h + dh)
+
+	while (!fits(snapshot, { ...cell, w, h }, columns)) {
+		if (w > cell.w) {
+			w -= 1
+
+			if (ratio !== undefined) h = deriveHeight(w, ratio)
+		} else if (h > cell.h) {
+			h -= 1
+		} else {
+			// Shrinks never collide on a valid canvas; the original size holds.
+			return { ...cell }
+		}
+	}
 
 	return { ...cell, w, h }
 }
@@ -101,7 +117,6 @@ function resizeCell(
 export function useDashboardResize({
 	containerRef,
 	rendered,
-	identity,
 	columns,
 	gap,
 	columnPitch,
@@ -122,10 +137,6 @@ export function useDashboardResize({
 	const renderedRef = useRef(rendered)
 
 	renderedRef.current = rendered
-
-	const identityRef = useRef(identity)
-
-	identityRef.current = identity
 
 	const pitchRef = useRef(columnPitch)
 
@@ -151,7 +162,7 @@ export function useDashboardResize({
 
 			const container = containerRef.current
 
-			if (!identityRef.current || pitch <= 0 || container === null || cleanupRef.current) return
+			if (pitch <= 0 || container === null || cleanupRef.current) return
 
 			const snapshot = renderedRef.current
 
@@ -178,7 +189,7 @@ export function useDashboardResize({
 
 				const dh = Math.round((pointer.clientY - start.y) / (pitch / ROW_SUBDIVISION))
 
-				const next = resizeCell(origin, edge, dw, dh, minW, columns, demands?.ratio)
+				const next = resizeCell(snapshot, origin, edge, dw, dh, minW, columns, demands?.ratio)
 
 				const key = `${next.w}x${next.h}`
 
@@ -186,7 +197,7 @@ export function useDashboardResize({
 
 				lastKey = key
 
-				setPreview(compactUp(snapshot.map((cell) => (cell.id === id ? next : { ...cell }))))
+				setPreview(snapshot.map((cell) => (cell.id === id ? next : { ...cell })))
 			}
 
 			const settle = (canceled: boolean) => {
@@ -198,8 +209,7 @@ export function useDashboardResize({
 
 				setPreview(null)
 
-				const changed =
-					!canceled && result !== null && identityRef.current && !sameGeometry(result, snapshot)
+				const changed = !canceled && result !== null && !sameGeometry(result, snapshot)
 
 				if (changed) {
 					const layout = commit(result)
@@ -253,7 +263,7 @@ export function useDashboardResize({
 		(id: string, edge: DashboardResizeEdge, dw: number, dh: number) => {
 			const pitch = pitchRef.current
 
-			if (!identityRef.current || pitch <= 0) return
+			if (pitch <= 0) return
 
 			const base = renderedRef.current
 
@@ -266,12 +276,10 @@ export function useDashboardResize({
 			const minW =
 				demands?.minWidth === undefined ? 1 : minColumns(demands.minWidth, gap, pitch, columns)
 
-			const next = compactUp(
-				base.map((cell) =>
-					cell.id === id
-						? resizeCell(origin, edge, dw, dh, minW, columns, demands?.ratio)
-						: { ...cell },
-				),
+			const next = base.map((cell) =>
+				cell.id === id
+					? resizeCell(base, origin, edge, dw, dh, minW, columns, demands?.ratio)
+					: { ...cell },
 			)
 
 			if (sameGeometry(next, base)) return

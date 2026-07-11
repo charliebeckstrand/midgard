@@ -158,6 +158,19 @@ export const [ChartFullscreenContext, useChartFullscreen] = createContext<boolea
 )
 
 /**
+ * An imperative handle to open the chart's fullscreen dialog, published by the
+ * context menu so chrome inside the chart can raise the enlarged view without
+ * the right-click menu — a spark tile's hover veil turns it into a click
+ * target. `null` where the chart has no fullscreen view (no `fullscreen` copy,
+ * or the context menu is suppressed), so a consumer renders no affordance.
+ *
+ * @internal
+ */
+export const [ChartFullscreenControlContext, useChartFullscreenControl] = createContext<
+	(() => void) | null
+>('ChartFullscreenControl', { default: null })
+
+/**
  * The frame's resolved {@link ChartTier}, published so the interactive layers
  * stand themselves down at spark — the hit areas and crosshair unmount, the
  * value labels drop, and the reference rules shed their hover rendering —

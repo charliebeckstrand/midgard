@@ -40,13 +40,14 @@ import {
 	type Crosshair,
 	type ResolvedCrosshair,
 	resolveAxes,
+	resolveLegend,
 	resolveTooltip,
 	type ScatterAxes,
 	type ScatterChartSeries,
 } from '../chart-schema'
 import { formatChartValue, type SlotPaint } from '../chart-series'
 import { snapTargets } from '../chart-snap'
-import { chartPolicy, policyPlotHeight } from '../chart-tier'
+import { type ChartChrome, chartChromeShift, chartPolicy, policyPlotHeight } from '../chart-tier'
 import { useChartTier } from '../context'
 import type { ChartReadout } from '../types'
 import { cartesianFocus } from '../use-chart-keyboard'
@@ -590,6 +591,8 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 		...label
 	} = props
 
+	const resolvedLegend = resolveLegend(legend)
+
 	// The one place the `axes` prop's boolean-or-object union is read: the draw
 	// switch and each axis's domain, formatter, title, and grid participation.
 	const { draw, config: axesConfig } = resolveAxes(axes)
@@ -611,9 +614,27 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 		fill: fillFrame,
 		aside,
 		placement,
-	} = scatterFrame(legend, height, aspectRatio)
+	} = scatterFrame(resolvedLegend.value, height, aspectRatio)
 
-	const { ref, width: frameWidth, height: frameHeight, reserve } = usePlotFrame(width, sizing)
+	// A scatter carries no header, so the chrome is the legend alone.
+	const chrome: ChartChrome = {
+		headerLines: 0,
+		legend: Boolean(resolvedLegend.value ?? series.length > 1) && !aside,
+	}
+
+	// A resize that crosses a chrome boundary — tier, band-axis mode, legend-row
+	// cap — commits before paint rather than as a transition, so the old anatomy
+	// never paints a frame into the new box (see `chartChromeShift`).
+	const {
+		ref,
+		width: frameWidth,
+		height: frameHeight,
+		reserve,
+	} = usePlotFrame(
+		width,
+		sizing,
+		chartChromeShift(width, sizing, frameAspect, chrome, metrics.tickTarget),
+	)
 
 	// The scatter reads the intrinsic tier from its measured box for the
 	// `data-tier` styling hook and the legend's row cap; its own axis ticks keep
@@ -621,13 +642,10 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 	// Under a stacked aspect-fill figure the plot's measured remainder shrinks
 	// with the legend and jumps when spark drops it, so resolve the tier against
 	// the figure's `width / ratio` less that legend instead of the remainder it
-	// would loop on. A scatter carries no header, so the chrome is the legend alone.
-	// A free-form fill frame shares that box with no ratio to derive a safe height
-	// from, so the policy's fill flag resolves the chrome decisions by width alone.
-	const policyHeight = policyPlotHeight(frameHeight, frameWidth, frameAspect, {
-		headerLines: 0,
-		legend: Boolean(legend ?? series.length > 1) && !aside,
-	})
+	// would loop on. A free-form fill frame shares that box with no ratio to
+	// derive a safe height from, so the policy's fill flag resolves the chrome
+	// decisions by width alone.
+	const policyHeight = policyPlotHeight(frameHeight, frameWidth, frameAspect, chrome)
 
 	const policy = chartPolicy(frameWidth, policyHeight, metrics.tickTarget, sizing.mode === 'fill')
 
@@ -739,6 +757,7 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 						onFocus={setFocus}
 						panel={aside}
 						maxRows={policy.legendRows}
+						inert={resolvedLegend.inert}
 					/>
 				)
 			}

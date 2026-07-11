@@ -16,7 +16,10 @@ export type DashboardLayoutItem = {
 	id: string
 	/** Leftmost column, `0`-based, within `[0, columns - w]`. */
 	x: number
-	/** Top row, `0`-based. Compaction owns the resting value — gaps close upward. */
+	/**
+	 * Top row, `0`-based. Persisted exactly: the canvas never repacks tiles,
+	 * so what you save is what renders — gaps included.
+	 */
 	y: number
 	/** Column span, at least `1`. */
 	w: number
@@ -27,8 +30,8 @@ export type DashboardLayoutItem = {
 	 */
 	h?: number
 	/**
-	 * A static tile never moves: compaction pins it, drags flow around it, and
-	 * it takes no handles in editing mode.
+	 * A static tile never moves: it neither drags, swaps, nor resizes, and it
+	 * takes no handles in editing mode.
 	 * @defaultValue false
 	 */
 	static?: boolean
@@ -37,10 +40,10 @@ export type DashboardLayoutItem = {
 /**
  * The layout binding, on the house `value` / `defaultValue` / `onValueChange`
  * triad. Omitted entirely, the grid runs uncontrolled from nothing: every
- * mounted item auto-slots below the last row and compacts up in mount order.
- * Items mounted without a matching entry auto-slot the same way; entries
- * whose item unmounted are ignored, so removal self-heals without consumer
- * bookkeeping — the canonical array is never mutated on unmount.
+ * mounted item auto-slots below the last row in mount order. Items mounted
+ * without a matching entry auto-slot the same way; entries whose item
+ * unmounted are ignored and their cell is left open — the canvas never
+ * repacks, and the canonical array is never mutated on unmount.
  */
 export type DashboardLayoutBinding = {
 	/** Controlled layout. `undefined` leaves the grid uncontrolled. */

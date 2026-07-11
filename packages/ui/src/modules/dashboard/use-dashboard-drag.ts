@@ -5,10 +5,8 @@ import type {
 	DragMoveEvent,
 	DragStartEvent,
 	KeyboardCoordinateGetter,
-	Modifier,
 } from '@dnd-kit/core'
-import { getEventCoordinates } from '@dnd-kit/utilities'
-import { type RefObject, useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import { useSortableSensors } from '../../hooks'
 import { clamp } from '../../utilities'
 import {
@@ -17,25 +15,14 @@ import {
 	describeDragMove,
 	describeDragStart,
 } from './dashboard-announcements'
-import { type IntentTracker, trackIntent } from './dashboard-intent'
-import {
-	compactUp,
-	type LayoutCell,
-	moveElement,
-	ROW_SUBDIVISION,
-	sameGeometry,
-	swapCells,
-} from './dashboard-layout'
+import { bottom, type LayoutCell, ROW_SUBDIVISION, sameGeometry } from './dashboard-layout'
+import { reorderPreview } from './dashboard-reorder'
 import type { DashboardGestureEndEvent, DashboardGestureStartEvent } from './types'
 
 /** Options for {@link useDashboardDrag}. @internal */
 type DashboardDragOptions = {
-	/** The grid canvas element, for container-relative pointer math. */
-	containerRef: RefObject<HTMLDivElement | null>
 	/** The cells painted at rest — the snapshot source for a new gesture. */
 	rendered: LayoutCell[]
-	/** Live gate: gestures only commit while the rendered layout is canonical. */
-	identity: boolean
 	/** The grid's column count. */
 	columns: number
 	/** Measured column pitch in px; `0` disables cell math (and gestures with it). */
@@ -48,13 +35,18 @@ type DashboardDragOptions = {
 	onDragEnd?: (event: DashboardGestureEndEvent) => void
 }
 
-/** A live drag: the gripped cell, the layout it simulates from, and the pointer anchor. @internal */
+/** A live drag: the gripped cell and the layout it simulates from. @internal */
 type DragState = {
 	id: string
 	origin: LayoutCell
 	snapshot: LayoutCell[]
-	/** The activating pointer's page coordinates, or `null` for a keyboard drag. */
-	pointerStart: { x: number; y: number } | null
+	/**
+	 * The lowest row the tile may reach: the board's own bottom edge less the
+	 * tile's height, so its travel stays flush within the occupied rows. A
+	 * drag only reorders against another tile, so it never needs to reach open
+	 * space — and nothing it does can grow the canvas.
+	 */
+	maxY: number
 }
 
 /** What {@link useDashboardDrag} returns. @internal */
@@ -68,97 +60,22 @@ type DashboardDragState = {
 }
 
 /**
- * The snapshot cell under a point, in grid units — the classifier's whole
- * notion of "hovered". Reading the frozen snapshot rather than live rects
- * is what makes the drag stable: the preview can reflow tiles all it wants
- * without ever re-answering where the pointer is.
- *
- * @internal
- */
-function snapshotCellAt(
-	snapshot: readonly LayoutCell[],
-	selfId: string,
-	column: number,
-	row: number,
-): LayoutCell | undefined {
-	return snapshot.find(
-		(cell) =>
-			cell.id !== selfId &&
-			!cell.static &&
-			column >= cell.x &&
-			column < cell.x + cell.w &&
-			row >= cell.y &&
-			row < cell.y + cell.h,
-	)
-}
-
-/**
- * The layout a committed intent previews: origins swap on the middle band;
- * the edge bands move the dragged cell onto the hovered cell's top edge (or
- * past its bottom), opening the gap there. Always simulated from the
- * snapshot and compacted, so the preview is gap-free and drop-exact.
- *
- * @internal
- */
-function intentPreview(
-	live: DragState,
-	overId: string,
-	zone: 'above' | 'swap' | 'below',
-	columns: number,
-): LayoutCell[] | null {
-	if (zone === 'swap') return compactUp(swapCells(live.snapshot, live.id, overId))
-
-	const over = live.snapshot.find((cell) => cell.id === overId)
-
-	if (over === undefined) return null
-
-	const toY = zone === 'above' ? over.y : over.y + over.h
-
-	// Hop-free: an explicit insert moves the hovered tile softly out of the
-	// way, one row at a time, never leapfrogging it past the drop.
-	return compactUp(moveElement(live.snapshot, live.id, over.x, toY, columns, { hop: false }))
-}
-
-/**
- * The layout a free move previews: the dragged cell lands `delta` away from
- * its origin, rounded to whole cells, and the displacement engine resolves
- * whatever it lands on. Pure in the drag's start values and the pointer
- * delta — no rect is ever read.
- *
- * @internal
- */
-function deltaPreview(
-	live: DragState,
-	delta: { x: number; y: number },
-	columnPitch: number,
-	columns: number,
-): LayoutCell[] {
-	const toX = clamp(live.origin.x + Math.round(delta.x / columnPitch), 0, columns - live.origin.w)
-
-	const toY = Math.max(0, live.origin.y + Math.round(delta.y / (columnPitch / ROW_SUBDIVISION)))
-
-	return compactUp(moveElement(live.snapshot, live.id, toX, toY, columns))
-}
-
-/**
- * The drag orchestration behind the dashboard grid. Every sample is
+ * The drag orchestration behind the dashboard canvas. Every move is
  * answered in one frozen reference frame — the drag-start snapshot, in
- * grid units — so the preview's own reflow can never feed back into the
- * classification, and simulating from that same snapshot means dragging
- * away restores what a pass-through displaced and Escape reverts for free.
- * Over a snapshot cell, the pointer's band picks the meaning (swap on the
- * middle, insert above or below on the edges), every change debounced by
- * the intent tracker's dwell; over open grid, the tile lands a whole-cell
- * delta from its origin. A preview whose geometry matches the current one
- * is skipped outright, so tiles only ever move when the answer truly
- * changed.
+ * grid units — keyed by the travelling tile's own cell: its origin plus
+ * the drag delta, rounded, clamped to the occupied rows exactly as the
+ * tile's visual travel is. A drag reorders ({@link reorderPreview}) against
+ * an equal-span tile it mostly covers — shifting its row's run open when the
+ * partner shares its row, trading places when the partner is on another.
+ * Anything else is blocked — the placeholder clears and a drop changes
+ * nothing. Only the tiles the reorder names ever move, and nothing grows the
+ * canvas. The tile drags itself — no overlay clone — so a drop commits
+ * exactly the preview the board shows; Escape reverts outright.
  *
  * @internal
  */
 export function useDashboardDrag({
-	containerRef,
 	rendered,
-	identity,
 	columns,
 	columnPitch,
 	commit,
@@ -180,15 +97,15 @@ export function useDashboardDrag({
 
 	previewRef.current = preview
 
-	const intentRef = useRef<IntentTracker | null>(null)
+	/** The last applied target cell — the quantizer's memory. */
+	const targetRef = useRef<{ x: number; y: number } | null>(null)
+
+	/** The current reorder partner and its kind, for the announcement channel. */
+	const partnerRef = useRef<{ id: string; shift: boolean } | null>(null)
 
 	const renderedRef = useRef(rendered)
 
 	renderedRef.current = rendered
-
-	const identityRef = useRef(identity)
-
-	identityRef.current = identity
 
 	const pitchRef = useRef(columnPitch)
 
@@ -217,11 +134,16 @@ export function useDashboardDrag({
 
 			if (origin === undefined) return
 
-			const coordinates = event.activatorEvent ? getEventCoordinates(event.activatorEvent) : null
+			setDrag({
+				id,
+				origin,
+				snapshot,
+				maxY: Math.max(0, bottom(snapshot) - origin.h),
+			})
 
-			setDrag({ id, origin, snapshot, pointerStart: coordinates ?? null })
+			targetRef.current = null
 
-			intentRef.current = null
+			partnerRef.current = null
 
 			onDragStart?.({ id, layout: publicLayoutRef.current })
 		},
@@ -232,53 +154,46 @@ export function useDashboardDrag({
 		(event: DragMoveEvent) => {
 			const live = dragRef.current
 
-			const container = containerRef.current
-
 			const pitch = pitchRef.current
 
-			if (live === null || container === null || pitch <= 0) return
+			if (live === null || pitch <= 0) return
 
-			// Classify the pointer against the frozen snapshot, in grid units.
-			// A keyboard drag has no pointer and always takes the delta path.
-			let overId: string | null = null
+			// The travelling tile's own cell, not the pointer's: the grip sits in
+			// the tile's corner, so a pointer sample would read a cell a whole
+			// span away from the one the tile visibly covers.
+			const tx = Math.round(
+				clamp(live.origin.x + event.delta.x / pitch, 0, columns - live.origin.w),
+			)
 
-			let relativeY = 0
+			const ty = Math.round(
+				clamp(live.origin.y + (event.delta.y * ROW_SUBDIVISION) / pitch, 0, live.maxY),
+			)
 
-			if (live.pointerStart !== null) {
-				const rect = container.getBoundingClientRect()
+			// Quantized: within one cell nothing changed, so nothing re-simulates.
+			const last = targetRef.current
 
-				const column = (live.pointerStart.x + event.delta.x - rect.left) / pitch
+			if (last !== null && last.x === tx && last.y === ty) return
 
-				const row = (live.pointerStart.y + event.delta.y - rect.top) / (pitch / ROW_SUBDIVISION)
+			targetRef.current = { x: tx, y: ty }
 
-				const over = snapshotCellAt(live.snapshot, live.id, column, row)
+			// Blocked targets clear the preview: the placeholder disappears and a
+			// pending swap partner returns home, so the board always shows exactly
+			// what a drop right now would do — including nothing.
+			const next = reorderPreview(live.snapshot, live.id, tx, ty)
 
-				if (over !== undefined) {
-					overId = over.id
+			partnerRef.current = next ? { id: next.swapWith, shift: next.shift } : null
 
-					relativeY = (row - over.y) / over.h
-				}
-			}
-
-			const tracker = trackIntent(intentRef.current, overId, relativeY, performance.now())
-
-			intentRef.current = tracker
-
-			const next =
-				(tracker.committed !== null
-					? intentPreview(live, tracker.committed.overId, tracker.committed.zone, columns)
-					: null) ?? deltaPreview(live, event.delta, pitch, columns)
-
-			// Only a genuinely different arrangement re-renders: the placeholder
-			// hopping within one resting spot, or a re-simulation landing where the
-			// preview already stands, changes nothing on screen.
+			// Only a genuinely different arrangement re-renders: a re-simulation
+			// landing where the preview already stands changes nothing on screen.
 			setPreview((current) => {
+				if (next === null) return null
+
 				const base = current ?? live.snapshot
 
-				return sameGeometry(next, base) ? current : next
+				return sameGeometry(next.cells, base) ? current : next.cells
 			})
 		},
-		[containerRef, columns],
+		[columns],
 	)
 
 	const settle = useCallback(() => {
@@ -286,7 +201,9 @@ export function useDashboardDrag({
 
 		setPreview(null)
 
-		intentRef.current = null
+		targetRef.current = null
+
+		partnerRef.current = null
 	}, [])
 
 	const handleDragEnd = useCallback(() => {
@@ -296,9 +213,7 @@ export function useDashboardDrag({
 
 		const result = previewRef.current
 
-		// A downgrade mid-gesture invalidates the geometry the drag was computed
-		// against, so the drop reverts like an Escape.
-		const changed = result !== null && identityRef.current && !sameGeometry(result, live.snapshot)
+		const changed = result !== null && !sameGeometry(result, live.snapshot)
 
 		if (changed) {
 			const layout = commit(result)
@@ -355,23 +270,6 @@ export function useDashboardDrag({
 		keyboardCoordinateGetter: coordinateGetter,
 	})
 
-	// The travelling clone moves in whole cells, not free pixels: its snapped
-	// position is the same rounded delta the drop settles on, so what you see
-	// mid-drag is exactly where the tile lands.
-	const snapToCells = useCallback<Modifier>(({ transform }) => {
-		const pitch = pitchRef.current
-
-		if (pitch <= 0) return transform
-
-		const rowPitch = pitch / ROW_SUBDIVISION
-
-		return {
-			...transform,
-			x: Math.round(transform.x / pitch) * pitch,
-			y: Math.round(transform.y / rowPitch) * rowPitch,
-		}
-	}, [])
-
 	const announcements = useMemo<NonNullable<DndContextProps['accessibility']>['announcements']>(
 		() => ({
 			onDragStart: ({ active }) => {
@@ -382,10 +280,8 @@ export function useDashboardDrag({
 			onDragOver: ({ active }) => {
 				const cell = placeholder()
 
-				const intent = intentRef.current?.committed ?? null
-
 				return cell
-					? describeDragMove(String(active.id), cell, columns, intent ?? undefined)
+					? describeDragMove(String(active.id), cell, columns, partnerRef.current ?? undefined)
 					: undefined
 			},
 			onDragEnd: ({ active }) => {
@@ -405,25 +301,17 @@ export function useDashboardDrag({
 	const dndContextProps = useMemo<DndContextProps>(
 		() => ({
 			sensors,
-			modifiers: [snapToCells],
-			// No droppables exist: the classifier reads the snapshot, never the
-			// DOM, so dnd-kit carries only the sensors, the overlay, and the
-			// announcement channel.
+			// No droppables, no overlay, no modifiers: the tile drags itself and
+			// clamps its own transform to the canvas as it paints, and the
+			// classifier reads the snapshot, never the DOM — so dnd-kit carries
+			// only the sensors, the pointer transform, and the announcement channel.
 			accessibility: { announcements },
 			onDragStart: handleDragStart,
 			onDragMove: handleDragMove,
 			onDragEnd: handleDragEnd,
 			onDragCancel: handleDragCancel,
 		}),
-		[
-			sensors,
-			snapToCells,
-			announcements,
-			handleDragStart,
-			handleDragMove,
-			handleDragEnd,
-			handleDragCancel,
-		],
+		[sensors, announcements, handleDragStart, handleDragMove, handleDragEnd, handleDragCancel],
 	)
 
 	return { dndContextProps, activeId: drag?.id ?? null, preview }

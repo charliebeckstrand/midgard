@@ -70,13 +70,15 @@ describe('DashboardGrid', () => {
 	})
 
 	it('auto-slots unbound items in mount order and stacks them', () => {
+		// Explicit demands hold the default-span tiles above the projection line
+		// at the mocked width, so the canonical auto-slot geometry is what paints.
 		const { container } = renderUI(
 			<DashboardGrid aria-label="Sales">
-				<DashboardItem id="first">
+				<DashboardItem id="first" minWidth={200}>
 					<div />
 				</DashboardItem>
 
-				<DashboardItem id="second">
+				<DashboardItem id="second" minWidth={200}>
 					<div />
 				</DashboardItem>
 			</DashboardGrid>,
@@ -158,15 +160,22 @@ describe('DashboardGrid', () => {
 			<DashboardGrid
 				aria-label="Sales"
 				editing
-				layout={{ defaultValue: WIDE, onValueChange }}
+				layout={{
+					// Room to grow: the neighbour stands half the board away.
+					defaultValue: [
+						{ id: 'a', x: 0, y: 0, w: 8 },
+						{ id: 'b', x: 16, y: 0, w: 8 },
+					],
+					onValueChange,
+				}}
 				onResizeStart={onResizeStart}
 				onResizeEnd={onResizeEnd}
 			>
-				<DashboardItem id="a" ratio={16 / 9}>
+				<DashboardItem id="a" ratio={16 / 9} minWidth={240}>
 					<div />
 				</DashboardItem>
 
-				<DashboardItem id="b" ratio={16 / 9}>
+				<DashboardItem id="b" ratio={16 / 9} minWidth={240}>
 					<div />
 				</DashboardItem>
 			</DashboardGrid>,
@@ -184,13 +193,13 @@ describe('DashboardGrid', () => {
 
 		const committed = onValueChange.mock.calls.at(-1)?.[0] as DashboardLayoutItem[]
 
-		expect(committed.find((item) => item.id === 'a')?.w).toBe(13)
+		expect(committed.find((item) => item.id === 'a')?.w).toBe(9)
 
 		// Ratio-locked tiles emit without a stored height.
 		expect(committed.find((item) => item.id === 'a')?.h).toBeUndefined()
 
-		// The widened tile overlaps its neighbour, which compacts below it.
-		expect(committed.find((item) => item.id === 'b')?.y).toBeGreaterThan(0)
+		// Nothing else on the canvas moved.
+		expect(committed.find((item) => item.id === 'b')).toMatchObject({ x: 16, y: 0 })
 
 		expect(onResizeEnd).toHaveBeenCalledWith(expect.objectContaining({ id: 'a', canceled: false }))
 	})
@@ -199,5 +208,43 @@ describe('DashboardGrid', () => {
 		const { container } = renderUI(<StrictMode>{board(true)}</StrictMode>)
 
 		expect(allBySlot(container, 'dashboard-item')).toHaveLength(2)
+	})
+
+	it('stacks starved tiles full-width and stands editing down under projection', () => {
+		// 400px over 24 columns: both 12-wides fall under the default 240px
+		// minWidth, so the projection stacks them and editing chrome never mounts
+		// despite the prop.
+		mockMeasuredWidth(400)
+
+		const { container } = renderUI(board(true))
+
+		const [a, b] = allBySlot(container, 'dashboard-item')
+
+		expect(a?.style.width).toBe('100%')
+
+		expect(b?.style.width).toBe('100%')
+
+		expect(a?.style.top).toBe('0%')
+
+		expect(b?.style.top).toBe('50%')
+
+		expect(bySlot(container, 'dashboard-handle')).toBeNull()
+
+		expect(bySlot(container, 'dashboard-resize-handle')).toBeNull()
+
+		expect(bySlot(container, 'dashboard-grid')?.dataset.editing).toBeUndefined()
+
+		// A re-pack snaps rather than gliding: the tile drops its cell transition
+		// so a fill chart inside can't lag a wrong size across an animated sweep.
+		expect(a?.dataset.repacking).toBe('')
+	})
+
+	it('leaves the tiles gliding while the canonical layout fits', () => {
+		mockMeasuredWidth(960)
+
+		const { container } = renderUI(board(false, { value: WIDE }))
+
+		// No re-pack: the drag-reflow glide stays armed.
+		expect(allBySlot(container, 'dashboard-item')[0]?.dataset.repacking).toBeUndefined()
 	})
 })

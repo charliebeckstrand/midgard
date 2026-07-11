@@ -301,6 +301,60 @@ export type BubbleChartSeries<T> = ScatterChartSeries<T> & {
 export type ChartLegendPlacement = 'top' | 'bottom' | 'left' | 'right'
 
 /**
+ * The object form of a categorical chart's `legend` prop, naming a `placement`
+ * and whether the legend is `inert` together. The bare boolean (show at the
+ * default placement, or drop it) and bare placement string still work — the
+ * object is only needed to make the legend a static key. An inert legend keeps
+ * its swatches and labels but sheds every control: no series toggle, no hover
+ * or focus emphasis, and no tab stop — the identity channel without the
+ * switchboard. A chart in a dashboard tile being arranged inerts its legend on
+ * its own, the same standby its hover takes, so this is for a static legend
+ * outside that — a print view, a read-only report.
+ */
+export type ChartLegendConfig = {
+	/**
+	 * Where the legend sits around the plot — a row above / below or a side
+	 * panel, exactly as the bare placement string.
+	 * @defaultValue 'bottom'
+	 */
+	placement?: ChartLegendPlacement
+	/**
+	 * Render the legend as a static key: swatches and labels, but no toggle,
+	 * emphasis, or tab stop.
+	 * @defaultValue false
+	 */
+	inert?: boolean
+}
+
+/** The legend value the show / placement logic reads, and whether it renders inert. @internal */
+export type ResolvedLegend = {
+	/** The boolean / placement the show and placement rules read — the object's `placement`, or the bare value. */
+	value: boolean | ChartLegendPlacement | undefined
+	/** The legend renders as a static key. */
+	inert: boolean
+}
+
+/**
+ * Normalizes a categorical chart's `legend` prop — a boolean, a placement
+ * string, or a {@link ChartLegendConfig} — to the placement / show value the
+ * frame and item logic already read, plus the `inert` flag. The object's
+ * `placement` becomes the value (so `{ placement: 'left' }` places exactly as
+ * `'left'` and an object with no placement falls to the default show rule), and
+ * a bare boolean or string passes through with `inert` off.
+ *
+ * @internal
+ */
+export function resolveLegend(
+	legend: boolean | ChartLegendPlacement | ChartLegendConfig | undefined,
+): ResolvedLegend {
+	if (legend !== null && typeof legend === 'object') {
+		return { value: legend.placement, inert: legend.inert ?? false }
+	}
+
+	return { value: legend, inert: false }
+}
+
+/**
  * The kind of legend a colour-scaled chart (heatmap, choropleth) draws — only
  * the continuous `'range'` scale bar today, a placeholder for the discriminant a
  * future binned switchboard would join.
@@ -600,9 +654,12 @@ export type ChartBaseProps<T> = AccessibleName & {
 	 * above it (`'top'`) — centered on mobile, justified edge to edge from `sm`
 	 * — or a column panel beside it (`'left'` / `'right'`), side by side once the
 	 * chart's own container is wide enough for both and stacked under the plot
-	 * below that width.
+	 * below that width. The object form ({@link ChartLegendConfig}) names a
+	 * `placement` and an `inert` flag together — an inert legend is a static key,
+	 * its switches shed. A chart arranged in a dashboard tile inerts its legend
+	 * on its own.
 	 */
-	legend?: boolean | ChartLegendPlacement
+	legend?: boolean | ChartLegendPlacement | ChartLegendConfig
 	/**
 	 * The tooltip naming the pointed series or slice. `true` (the default) tracks
 	 * the pointer; `false` drops it. The object form keeps it on and sets how it

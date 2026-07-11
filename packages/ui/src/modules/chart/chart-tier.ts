@@ -13,6 +13,8 @@
  * are never on the ladder; only the chrome around them is.
  */
 
+import { type FrameSizing, type PlotFrameSize, resolveFrameSizing } from '../../hooks'
+
 /**
  * A chart's resolved anatomy tier, narrowest to widest. `spark` is pure marks —
  * a sparkline with the chrome stripped; `compact` keeps a value gutter (compact
@@ -75,7 +77,7 @@ export type ChartPolicy = {
 }
 
 /** Width below which a chart is a bare sparkline — the marks alone. @internal */
-export const SPARK_WIDTH = 160
+export const SPARK_WIDTH = 192
 
 /** Height below which a chart is a bare sparkline — the marks alone. @internal */
 export const SPARK_HEIGHT = 96
@@ -306,4 +308,57 @@ export function policyPlotHeight(
 	if (!figureAspect || width <= 0) return measuredHeight
 
 	return Math.max(0, width / figureAspect - chartChromeReserve(chrome))
+}
+
+/**
+ * Builds `usePlotFrame`'s `urgent` predicate for a chart frame: whether a
+ * resize crosses a discrete chrome boundary — a different tier, band-axis
+ * mode, legend-row cap, or axis-title grant — between two measurements.
+ *
+ * A resize commits as a transition, so the browser paints frames where the box
+ * has its new size but the chart still renders the old measurement. Inside a
+ * tier that staleness is a few px of mark geometry — invisible. Across a
+ * boundary it is the old anatomy painted into the new box (a two-row legend
+ * wrapping where the new cap chips it, a gutter the new tier drops), the
+ * tier-switch flicker — so exactly those commits flush before paint instead.
+ *
+ * The predicate replays the caller's own `resolveFrameSizing` →
+ * {@link policyPlotHeight} → {@link chartPolicy} pipeline at each measurement
+ * — every stage pure, so a candidate size resolves without a render — and
+ * compares only the discrete grants. The tick target (a gridline per ~44px of
+ * height) and the compact number format are left out: the first would flag a
+ * flush every few rows of drag for a one-hairline change, and the second flips
+ * only at the compact width the band-axis mode already crosses.
+ *
+ * @param width - The caller's explicit drawing width, or `undefined` where the
+ * frame measures — the same value handed to `usePlotFrame`.
+ * @param sizing - The frame's sizing policy, as handed to `usePlotFrame`.
+ * @param figureAspect - The figure's whole-chart ratio under aspect-fill,
+ * `null` / `undefined` otherwise — as handed to {@link policyPlotHeight}.
+ * @param chrome - The header and stacked legend around the plot — as handed to
+ * {@link policyPlotHeight}.
+ * @param tickCap - The density-resolved tick ceiling — as handed to
+ * {@link chartPolicy}.
+ * @internal
+ */
+export function chartChromeShift(
+	width: number | undefined,
+	sizing: FrameSizing,
+	figureAspect: number | null | undefined,
+	chrome: ChartChrome,
+	tickCap: number,
+): (prev: PlotFrameSize, next: PlotFrameSize) => boolean {
+	const anatomyAt = (size: PlotFrameSize): string => {
+		const resolvedWidth = width ?? size.width
+
+		const { height } = resolveFrameSizing(sizing, resolvedWidth, size.height)
+
+		const plotHeight = policyPlotHeight(height, resolvedWidth, figureAspect, chrome)
+
+		const policy = chartPolicy(resolvedWidth, plotHeight, tickCap, sizing.mode === 'fill')
+
+		return `${policy.tier} ${policy.valueAxis} ${policy.bandAxis} ${policy.legendRows} ${policy.axisTitles}`
+	}
+
+	return (prev, next) => anatomyAt(prev) !== anatomyAt(next)
 }

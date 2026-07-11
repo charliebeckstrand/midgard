@@ -1,7 +1,7 @@
 'use client'
 
 import { AnimatePresence, motion } from 'motion/react'
-import { type ReactNode, useLayoutEffect } from 'react'
+import { type KeyboardEvent, type ReactNode, useLayoutEffect } from 'react'
 import { Box } from '../../components/box'
 import { Heading } from '../../components/heading'
 import { Text } from '../../components/text'
@@ -9,8 +9,10 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/toolti
 import { cn } from '../../core'
 import { useTruncation } from '../../hooks/use-truncation'
 import { useDragHandle } from '../../primitives/drag-handle'
+import { useTileSurface } from '../../primitives/tile-surface'
 import { k } from '../../recipes/kata/chart'
 import type { ChartHeaderConfig } from './chart-schema'
+import { useChartFullscreenControl } from './context'
 
 /** Props for {@link ChartHeaderClip}. @internal */
 type ChartHeaderClipProps = {
@@ -39,7 +41,14 @@ function ChartHeaderClip({ slot, text, children }: ChartHeaderClipProps) {
 				<span
 					ref={ref}
 					data-slot={slot}
-					className={cn('block max-w-full truncate leading-tight', truncated && 'cursor-help')}
+					// `text-start`, not the veil's inherited `text-center`: a centered line
+					// clips both ends with no ellipsis when it overflows, so the clip pins
+					// to the start and ellipsizes the end. A short line still reads centered
+					// — it shrink-wraps and the veil's `items-center` centers the block.
+					className={cn(
+						'block max-w-full truncate text-start leading-tight',
+						truncated && 'cursor-help',
+					)}
 				>
 					{children}
 				</span>
@@ -107,6 +116,10 @@ type ChartHeaderProps = {
  * `veil` — the spark tier, where the header would crowd the marks — it instead
  * overlays the plot centered on a faint surface, faded out until a pointer or
  * keyboard focus asks what the sparkline is, carrying only the title lines.
+ * Inside a tile the veil bleeds over the tile's content padding to the card
+ * edge and, where the chart carries a fullscreen view, becomes a button that
+ * opens it — so a sparkline shrunk past its chrome is still one click from the
+ * full chart.
  *
  * @internal
  */
@@ -114,6 +127,12 @@ export function ChartHeader({ header, veil = false }: ChartHeaderProps) {
 	const { title, subtitle, prefix, suffix } = header
 
 	const dragHandle = useDragHandle()
+
+	// A veil inside a tile bleeds to the tile's edge and clicks through to the
+	// chart's fullscreen view; both stand down for a standalone spark chart.
+	const tiled = useTileSurface()
+
+	const openFullscreen = useChartFullscreenControl()
 
 	// The veil never adopts: a spark tile's grip stays with the host's floating
 	// fallback, where it reads over bare marks instead of inside a hover veil.
@@ -180,14 +199,45 @@ export function ChartHeader({ header, veil = false }: ChartHeaderProps) {
 		)
 	}
 
+	// Inside a tile with a fullscreen view the veil is a click target for it —
+	// role, focus, and the space/enter parity a native button carries. A tile
+	// veil with no fullscreen (or a standalone spark chart) stays inert.
+	const clickable = tiled && openFullscreen !== null
+
+	const trigger = clickable
+		? {
+				role: 'button' as const,
+				tabIndex: 0,
+				onClick: openFullscreen,
+				onKeyDown: (event: KeyboardEvent) => {
+					if (event.key === 'Enter' || event.key === ' ') {
+						event.preventDefault()
+
+						openFullscreen()
+					}
+				},
+				'aria-label': title ? `Expand ${title}` : 'Expand chart',
+			}
+		: null
+
 	return (
 		<Box
 			data-slot="chart-header"
 			bg="popover"
-			radius="sm"
+			// A tile veil matches the tile card's radius; a standalone one the plot's.
+			radius={tiled ? 'lg' : 'sm'}
+			{...trigger}
 			// Centered over the marks and faded out until the chart is hovered or holds
-			// focus; `pointer-events-none` so it never eats a mark's own hover.
-			className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-0.5 px-2 text-center opacity-0 transition-opacity duration-150 group-hover/chart:opacity-100 group-focus-within/chart:opacity-100"
+			// focus. Standalone it fills the plot box, inert so it never eats a mark's
+			// hover; in a tile it bleeds over the tile's `p-3` content padding to the
+			// card edge (`-inset-3`) and, with a fullscreen view, clicks through to it.
+			className={cn(
+				// `items-center` centers each line's block; the lines themselves align to
+				// the start so an overflowing title ellipsizes cleanly (see ChartHeaderClip).
+				'absolute flex flex-col items-center justify-center gap-0.5 px-2 opacity-0 transition-opacity duration-150 group-hover/chart:opacity-100 group-focus-within/chart:opacity-100',
+				tiled ? '-inset-3' : 'inset-0',
+				clickable ? 'cursor-pointer' : 'pointer-events-none',
+			)}
 		>
 			{lines}
 		</Box>

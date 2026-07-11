@@ -147,15 +147,24 @@ export function useCurrentContentsMorph(
 		// the container's height to the incoming panel's, measured before this
 		// frame paints.
 		const observe = () => {
+			const current = [...element.children].filter((child) => child.hasAttribute('data-current'))
+
+			// The mutation watcher covers the whole subtree, so any content
+			// re-rendering inside a panel lands here — including a chart's pre-paint
+			// tier commit, delivered mid-ResizeObserver-cycle. When the panel set
+			// itself is unchanged, leave the observations alone: disconnecting here
+			// drops the panels' pending deliveries and re-queues observations on the
+			// shallowest boxes in the tree, which the browser can only report as the
+			// "ResizeObserver loop" error once anything deeper has already delivered.
+			if (current.length === boxes.size && current.every((child) => boxes.has(child))) return
+
 			const settled = boxes.size > 0
 
 			resizeObserver.disconnect()
 
 			boxes.clear()
 
-			for (const child of element.children) {
-				if (!child.hasAttribute('data-current')) continue
-
+			for (const child of current) {
 				resizeObserver.observe(child)
 
 				boxes.set(child, measureBox(child))

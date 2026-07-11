@@ -41,6 +41,7 @@ import { TouchTarget } from 'ui/primitives/touch-target'
 | `active-indicator` | Motion shared-element marker that morphs between sibling nav/tab items via a scoped `layoutId`. | `ActiveIndicatorScope`, `useActiveIndicator`, `ActiveIndicator` |
 | `toggle` | Layout primitives for toggle/switch fields: a group container and a single control-plus-label row, driven by the shared toggle recipe. | `ToggleGroup`, `ToggleField` |
 | `drag-handle` | Ambient drag-grip channel between a tile host and the chrome inside it: the dashboard mints the wired handle, a chart header adopts and `claim`s it, and unclaimed tiles keep the host's floating fallback. | `DragHandleContext`, `useDragHandle`, `DragHandleContextValue` |
+| `tile-surface` | Ambient marker that content sits inside a tile host (a dashboard tile): stands at rest, unlike `drag-handle`, so chrome co-styles against the padded card — a chart's spark veil reads it to bleed flush to the tile edge and click through to fullscreen. | `TileSurfaceContext`, `useTileSurface` |
 
 ## Motion & hit area
 

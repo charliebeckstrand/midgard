@@ -1,14 +1,14 @@
 # Dashboard Module — Feature Plan — 2026-07-10
 
-A Grafana-style board for the chart family: draggable, resizable, gravity-compacted tiles behind one `ui/modules/dashboard` entry point. Companion to the module's [ROADMAP](../src/modules/dashboard/ROADMAP.md), which tracks status and backlog.
+A dashboard canvas for the chart family: draggable, resizable tiles behind one `ui/modules/dashboard` entry point, where nothing moves on the board's own initiative. Companion to the module's [ROADMAP](../src/modules/dashboard/ROADMAP.md), which tracks status and backlog.
 
 ## Thesis
 
-The chart module was shaped for dashboards — `data-tier` published for tile co-styling, a container-fill frame, a shared tile ratio — but nothing owned the board. This plan adds the board as its own module on a pure, immutable layout core: 24 columns, rows a quarter of a column's pitch so ratio-locked heights derive exactly (`round(4·w / ratio)` — equal ratios at equal spans hold equal heights by construction, never by rounding luck), react-grid-layout's proven compaction and displacement math for the Grafana feel, gestures that simulate from their start snapshot so reverts are free, hybrid drop semantics (swap on a tile's middle, insert on its edge bands), and a breakpoint-free responsive derivation driven by each tile's own minimum content width. Geometry is purely proportional CSS, so server markup is correct before any measurement and one positioning system serves every width.
+The chart module was shaped for dashboards — `data-tier` published for tile co-styling, a container-fill frame, a shared tile ratio — but nothing owned the board. This plan adds the board as its own module on a pure, immutable layout core: 24 columns, rows a quarter of a column's pitch so ratio-locked heights derive exactly (`round(4·w / ratio)` — equal ratios at equal spans hold equal heights by construction, never by rounding luck), a free-placement canvas (tiles persist exactly where they are put — no gravity, no compaction), gestures that simulate from their start snapshot so reverts are free, and reorder drop semantics (whole-cell quantized: dropping onto an equal-span tile mostly covered shifts that row's run open when the two share a row and trades places when they don't, anything else is blocked — and a drag never grows the canvas). Geometry is purely proportional CSS, so server markup is correct before any measurement, one positioning system serves every width, and resizing the container scales the board in place rather than reshaping it — each tile's minimum content width only floors its resize, not a breakpoint.
 
 ## Current state (verified in tree, 2026-07-10)
 
-- Pure core: `src/modules/dashboard/dashboard-layout.ts` (collision, gravity compaction with statics, displacement with the `moved` loop guard and depth-0 upward hops, origin swap, auto-slot append, derived heights), `dashboard-responsive.ts` (widen-and-wrap `deriveLayout` with the `identity` gate), `dashboard-intent.ts` (25/50/25 zones, Schmitt band, dwell), `dashboard-announcements.ts` (WCAG 4.1.3 strings).
+- Pure core: `src/modules/dashboard/dashboard-layout.ts` (collision, placement validity, origin swap, in-row insertion shift, auto-slot append, derived heights — no gravity, no compaction), `dashboard-constraints.ts` (the `minColumns` floor from each tile's `minWidth`, read by both the resize clamp and the responsive projection), `dashboard-reorder.ts` (the canvas drop policy: majority-overlap equal-span reorder — in-row shift or cross-row swap, blocked otherwise), `dashboard-responsive.ts` (the content-first projection: starved tiles widen, shelves re-pack in reading order and stretch full-span, editing stands down — a view, never a mutation), `dashboard-announcements.ts` (WCAG 4.1.3 strings).
 
 - Components and hooks: `dashboard-grid.tsx` (DndContext + inlined DragOverlay, proportional root via `aspect-ratio`, kata column guides), `dashboard-item.tsx` (percentage cells, FLIP transform springs on `ugoki.spring`, handle minting, placeholder posture), `dashboard-handle.tsx`, `dashboard-resize-handle.tsx` (separator semantics, arrow / Shift / Home / End), `use-dashboard-layout.ts` (binding, constraint registry, auto-slot), `use-dashboard-drag.ts` (snapshot simulation, intent, keyboard cell stepping, announcements), `use-dashboard-resize.ts` (pointer capture per the resizable precedent, Escape / `pointercancel` / `contextmenu` revert).
 
@@ -32,11 +32,9 @@ The chart module was shaped for dashboards — `data-tier` published for tile co
 
 ## Non-goals
 
-- Per-breakpoint saved layouts: the responsive derivation is a pure render-time function and is never persisted (Grafana Scenes' choice).
+- Per-breakpoint saved layouts and content-based reflow: the board scales proportionally at every width, so there is no breakpoint machinery to persist (Grafana Scenes' choice).
 
-- Editing while the derivation is active: gestures stand down whenever rendered ≠ canonical, since edits apply to the canonical layout.
-
-- Grid-unit `minW` / `maxW` / `minH` / `maxH` clamps: `minWidth` px derives the floor; unit clamps wait for demand.
+- Grid-unit `minW` / `maxW` / `minH` / `maxH` clamps: `minWidth` px derives the resize floor; unit clamps wait for demand.
 
 ## Accessibility
 
@@ -48,7 +46,7 @@ The chart module was shaped for dashboards — `data-tier` published for tile co
 
 ## Tests
 
-- Unit: `dashboard-layout.test.ts`, `dashboard-responsive.test.ts`, `dashboard-intent.test.ts`, `dashboard-announcements.test.ts` — the pure core.
+- Unit: `dashboard-layout.test.ts`, `dashboard-constraints.test.ts`, `dashboard-reorder.test.ts`, `dashboard-announcements.test.ts` — the pure core.
 
 - Render (jsdom, callback seams per CONVENTIONS §10.3 — no driven pointer lifecycles): `dashboard-grid.test.tsx`, `dashboard-handle.test.tsx`, `dashboard-resize.test.tsx`, `chart-header-config.test.tsx`.
 

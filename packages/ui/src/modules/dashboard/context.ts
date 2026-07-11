@@ -1,9 +1,9 @@
 'use client'
 
-import type { ReactNode, PointerEvent as ReactPointerEvent, RefObject } from 'react'
+import type { PointerEvent as ReactPointerEvent } from 'react'
 import { createContext } from '../../core'
+import type { CellConstraints } from './dashboard-constraints'
 import type { LayoutCell } from './dashboard-layout'
-import type { CellConstraints } from './dashboard-responsive'
 
 /** The edges a tile resizes from; the corner drives both axes at once. @internal */
 export type DashboardResizeEdge = 'e' | 's' | 'se'
@@ -17,12 +17,16 @@ export type DashboardResizeEdge = 'e' | 's' | 'se'
  * @internal
  */
 export type DashboardContextValue = {
-	/**
-	 * Whether editing gestures are live: the `editing` prop, gated off while
-	 * the responsive derivation is reshaping the layout — edits apply to the
-	 * canonical layout, so they are only offered while it is what renders.
-	 */
+	/** Whether editing gestures are live — the grid's `editing` prop. */
 	editing: boolean
+	/**
+	 * The board is re-packing responsively (or settling out of it), so a tile's
+	 * cell change snaps rather than gliding: the glide exists for the drag
+	 * reflow, and animating a wholesale responsive re-pack would let a fill
+	 * chart inside — which commits its measured size a frame late — track a
+	 * visibly wrong size across the animation.
+	 */
+	repacking: boolean
 	/** The grid's column count. */
 	columns: number
 	/** The gutter in px, rendered as a half-gap inset inside each cell. */
@@ -43,8 +47,6 @@ export type DashboardContextValue = {
 	beginResize: (id: string, edge: DashboardResizeEdge, event: ReactPointerEvent) => void
 	/** Applies one keyboard resize step, committing immediately. */
 	resizeBy: (id: string, edge: DashboardResizeEdge, dw: number, dh: number) => void
-	/** The live drag-overlay content by id, written by each item as it renders. */
-	overlay: RefObject<Map<string, ReactNode>>
 }
 
 export const [DashboardContext, useDashboard] = createContext<DashboardContextValue>('Dashboard')

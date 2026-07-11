@@ -25,17 +25,17 @@ describe('dashboard announcements', () => {
 		)
 	})
 
-	it('names the hovered tile and the drop meaning while moving', () => {
+	it('names the reorder partner while one is on the table, else the landing spot', () => {
 		expect(describeDragMove('revenue', CELL, 24)).toBe(
 			'Tile revenue moved to column 3 of 24, row 5.',
 		)
 
-		expect(describeDragMove('revenue', CELL, 24, { overId: 'orders', zone: 'swap' })).toBe(
-			'Tile revenue over orders, drop to swap.',
+		expect(describeDragMove('revenue', CELL, 24, { id: 'orders', shift: true })).toBe(
+			'Tile revenue over orders, drop to reorder.',
 		)
 
-		expect(describeDragMove('revenue', CELL, 24, { overId: 'orders', zone: 'above' })).toBe(
-			'Tile revenue over orders, drop to insert above.',
+		expect(describeDragMove('revenue', CELL, 24, { id: 'orders', shift: false })).toBe(
+			'Tile revenue over orders, drop to swap.',
 		)
 	})
 

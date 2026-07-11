@@ -5,7 +5,6 @@
  * from the hooks so the wording is unit-testable without a gesture.
  */
 
-import type { DashboardDropZone } from './dashboard-intent'
 import type { LayoutCell } from './dashboard-layout'
 
 /** A cell's spoken position: 1-based column and row over the grid's span. @internal */
@@ -25,9 +24,9 @@ export function describeDragStart(id: string, cell: LayoutCell, columns: number)
 }
 
 /**
- * The announcement while a lifted tile moves: its would-be landing spot,
- * plus what dropping over another tile would mean — `Tile Revenue over
- * Orders, drop to swap.` or the insert direction the pointer's band picked.
+ * The announcement while a lifted tile moves: `Tile Revenue over Orders,
+ * drop to reorder.` for an in-row shift or `…drop to swap.` for a cross-row
+ * trade while a partner is on the table, else its would-be landing spot.
  *
  * @internal
  */
@@ -35,13 +34,13 @@ export function describeDragMove(
 	id: string,
 	cell: LayoutCell,
 	columns: number,
-	intent?: { overId: string; zone: DashboardDropZone },
+	partner?: { id: string; shift: boolean },
 ): string {
-	if (intent === undefined) return `Tile ${id} moved to ${describePosition(cell, columns)}.`
+	if (partner !== undefined) {
+		return `Tile ${id} over ${partner.id}, drop to ${partner.shift ? 'reorder' : 'swap'}.`
+	}
 
-	if (intent.zone === 'swap') return `Tile ${id} over ${intent.overId}, drop to swap.`
-
-	return `Tile ${id} over ${intent.overId}, drop to insert ${intent.zone}.`
+	return `Tile ${id} moved to ${describePosition(cell, columns)}.`
 }
 
 /** The announcement for a settled drop: `Tile Revenue dropped at column 3 of 24, row 5.` @internal */

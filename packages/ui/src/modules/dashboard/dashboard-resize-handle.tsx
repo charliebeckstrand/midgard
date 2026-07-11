@@ -4,8 +4,8 @@ import type { KeyboardEvent } from 'react'
 import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/dashboard'
 import { type DashboardResizeEdge, useDashboard } from './context'
+import { minColumns } from './dashboard-constraints'
 import { type LayoutCell, ROW_SUBDIVISION } from './dashboard-layout'
-import { minColumns } from './dashboard-responsive'
 
 /** Props for {@link DashboardResizeHandle}. @internal */
 export type DashboardResizeHandleProps = {

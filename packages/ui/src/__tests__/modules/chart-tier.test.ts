@@ -10,6 +10,7 @@ import {
 	COMPACT_HEIGHT,
 	COMPACT_WIDTH,
 	chartChromeReserve,
+	chartChromeShift,
 	chartPolicy,
 	EXPANDED_WIDTH,
 	headerLineCount,
@@ -229,6 +230,67 @@ describe('chartPolicy fill frame', () => {
 
 			expect(oneRow.tier === 'spark').toBe(twoRows.tier === 'spark')
 		}
+	})
+})
+
+describe('chartChromeShift', () => {
+	// A measurement as usePlotFrame tracks it: only the axes the sizing consumes
+	// are non-zero — an aspect-fill frame measures width and its own remainder.
+	const at = (width: number, height = 0, containerHeight = 0) => ({
+		width,
+		height,
+		containerHeight,
+	})
+
+	const chrome = { headerLines: 0, legend: true } as const
+
+	it('flags a resize that crosses a tier boundary under aspect-fill', () => {
+		const shifted = chartChromeShift(
+			undefined,
+			{ mode: 'aspect-fill', ratio: 16 / 9 },
+			16 / 9,
+			chrome,
+			CAP,
+		)
+
+		// Standard → expanded at the expanded width; ends → thinned at the compact
+		// width. Both are the discrete anatomy the stale frame would paint wrong.
+		expect(shifted(at(EXPANDED_WIDTH - 1), at(EXPANDED_WIDTH))).toBe(true)
+
+		expect(shifted(at(COMPACT_WIDTH - 1), at(COMPACT_WIDTH))).toBe(true)
+	})
+
+	it('stays quiet for an intra-tier resize', () => {
+		const shifted = chartChromeShift(
+			undefined,
+			{ mode: 'aspect-fill', ratio: 16 / 9 },
+			16 / 9,
+			chrome,
+			CAP,
+		)
+
+		expect(shifted(at(500), at(508))).toBe(false)
+	})
+
+	it('flags the spark boundary under a fill frame by width alone', () => {
+		const shifted = chartChromeShift(undefined, { mode: 'fill' }, null, chrome, CAP)
+
+		expect(shifted(at(SPARK_WIDTH, 300), at(SPARK_WIDTH - 1, 300))).toBe(true)
+	})
+
+	it('ignores a tick-target-only height change', () => {
+		// A fill frame's height moves the tick target roughly every TICK_SPACING px
+		// — a one-hairline change not worth a synchronous commit — while the
+		// discrete grants hold; the predicate reads only the grants.
+		const shifted = chartChromeShift(undefined, { mode: 'fill' }, null, chrome, 8)
+
+		expect(shifted(at(400, 7 * TICK_SPACING - 2), at(400, 7 * TICK_SPACING + 2))).toBe(false)
+	})
+
+	it('flags the band row dropping in a shortening fill frame', () => {
+		const shifted = chartChromeShift(undefined, { mode: 'fill' }, null, chrome, CAP)
+
+		expect(shifted(at(400, BAND_ROW_HEIGHT), at(400, BAND_ROW_HEIGHT - 1))).toBe(true)
 	})
 })
 

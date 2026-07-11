@@ -9,6 +9,7 @@ export type {
 	CartesianAxes,
 	ChartCategoryAxis,
 	ChartHeaderConfig,
+	ChartLegendConfig,
 	ChartLegendPlacement,
 	ChartRangeLegendConfig,
 	ChartRangeLegendType,

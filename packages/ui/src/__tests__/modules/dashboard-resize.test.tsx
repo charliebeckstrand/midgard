@@ -31,11 +31,13 @@ function board(onValueChange?: (layout: DashboardLayoutItem[]) => void) {
 				onValueChange,
 			}}
 		>
-			<DashboardItem id="locked" ratio={16 / 9}>
+			{/* Explicit demands, so the clamp assertions don't track the default
+			    minWidth and the board stays above the projection line at 960px. */}
+			<DashboardItem id="locked" ratio={16 / 9} minWidth={240}>
 				<div />
 			</DashboardItem>
 
-			<DashboardItem id="free">
+			<DashboardItem id="free" minWidth={240}>
 				<div />
 			</DashboardItem>
 		</DashboardGrid>
@@ -120,20 +122,17 @@ describe('dashboard resize handles', () => {
 		expect(committed.find((item) => item.id === 'free')?.w).toBe(7)
 	})
 
-	it('grows to the remaining columns with End and no further', () => {
+	it('stops a grow at the neighbour and commits nothing when already flush', () => {
 		const onValueChange = vi.fn()
 
 		const { container } = renderUI(board(onValueChange))
 
 		const east = handlesOf(container, 'locked').get('e')
 
+		// The neighbour sits flush at column 12: End has nowhere to grow, so
+		// nothing moves and nothing commits — the canvas never makes room.
 		if (east) fireEvent.keyDown(east, { key: 'End' })
 
-		const committed = onValueChange.mock.calls.at(-1)?.[0] as DashboardLayoutItem[]
-
-		expect(committed.find((item) => item.id === 'locked')?.w).toBe(24)
-
-		// Its neighbour wraps below rather than overlapping.
-		expect(committed.find((item) => item.id === 'free')?.y).toBeGreaterThan(0)
+		expect(onValueChange).not.toHaveBeenCalled()
 	})
 })

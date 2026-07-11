@@ -43,6 +43,7 @@ import {
 import {
 	type ChartChrome,
 	type ChartTier,
+	chartChromeShift,
 	chartPolicy,
 	headerLineCount,
 	policyPlotHeight,
@@ -766,7 +767,21 @@ export function useChartCartesian<T>(
 
 	const { sizing, outerAspect } = chartFrameLayout(height, aspectRatio, aside)
 
-	const { ref, width: frameWidth, height: frameHeight, reserve } = usePlotFrame(width, sizing)
+	const chrome = cartesianChrome(props, aside)
+
+	// A resize that crosses a chrome boundary — tier, band-axis mode, legend-row
+	// cap — commits before paint rather than as a transition, so the old anatomy
+	// never paints a frame into the new box (see `chartChromeShift`).
+	const {
+		ref,
+		width: frameWidth,
+		height: frameHeight,
+		reserve,
+	} = usePlotFrame(
+		width,
+		sizing,
+		chartChromeShift(width, sizing, outerAspect, chrome, metrics.tickTarget),
+	)
 
 	// The measured plot box resolves the anatomy tier: the value gutter's compact
 	// format and the band-label density from width, the tick count from height,
@@ -778,12 +793,7 @@ export function useChartCartesian<T>(
 	// the measured remainder. A free-form fill frame shares that box with no ratio
 	// to derive a safe height from, so the policy's fill flag resolves the
 	// chrome-affecting decisions from the width alone.
-	const policyHeight = policyPlotHeight(
-		frameHeight,
-		frameWidth,
-		outerAspect,
-		cartesianChrome(props, aside),
-	)
+	const policyHeight = policyPlotHeight(frameHeight, frameWidth, outerAspect, chrome)
 
 	const policy = chartPolicy(frameWidth, policyHeight, metrics.tickTarget, sizing.mode === 'fill')
 

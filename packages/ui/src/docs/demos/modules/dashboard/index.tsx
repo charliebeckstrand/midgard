@@ -4,7 +4,7 @@ import { Button } from '../../../../components/button'
 import { Flex } from '../../../../components/flex'
 import { Spacer } from '../../../../components/spacer'
 import { Stack } from '../../../../components/stack'
-import { AreaChart, BarChart, DonutChart, LineChart } from '../../../../modules/chart'
+import { AreaChart, BarChart, ComboChart, DonutChart, LineChart } from '../../../../modules/chart'
 import {
 	DashboardGrid,
 	DashboardItem,
@@ -38,17 +38,20 @@ const LAYOUT: DashboardLayoutItem[] = [
 	{ id: 'orders', x: 0, y: 27, w: 8 },
 	{ id: 'costs', x: 8, y: 27, w: 8 },
 	{ id: 'margin', x: 16, y: 27, w: 8 },
+	{ id: 'repacking', x: 0, y: 45, w: 24 },
 ]
 
 export function Demo() {
-	const [editing, setEditing] = useState(true)
+	const [editing, setEditing] = useState(false)
 
 	return (
 		<Stack gap="lg">
-			<Example title="Dashboard" minWidth={320} resize>
+			<Example title="Dashboard">
 				<Stack gap="md">
-					<Flex>
+					<Flex gap="sm" align="center">
 						<Spacer />
+
+						{/* {editing && <Button color="blue">Add</Button>} */}
 
 						<Button onClick={() => setEditing((live) => !live)}>
 							{editing ? 'Done' : 'Edit layout'}
@@ -63,7 +66,7 @@ export function Demo() {
 						<DashboardItem id="revenue" ratio={16 / 9}>
 							<BarChart
 								aria-label="Revenue and costs by month"
-								header={{ title: 'Revenue', subtitle: 'Monthly', suffix: <Badge>Live</Badge> }}
+								header={{ title: 'Revenue', suffix: <Badge>Live</Badge> }}
 								data={months}
 								series={[
 									{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
@@ -73,13 +76,12 @@ export function Demo() {
 							/>
 						</DashboardItem>
 
-						<DashboardItem id="traffic" ratio={16 / 9} minWidth={280}>
+						<DashboardItem id="traffic" ratio={16 / 9}>
 							<DonutChart
 								aria-label="Traffic by source"
 								header="Traffic"
 								data={sources}
 								series={[{ xKey: 'source', yKey: 'visits' }]}
-								legend="right"
 								aspectRatio={false}
 							/>
 						</DashboardItem>
@@ -114,6 +116,20 @@ export function Demo() {
 									{ xKey: 'month', yKey: 'costs', yName: 'Costs' },
 								]}
 								stacked
+								aspectRatio={false}
+							/>
+						</DashboardItem>
+
+						<DashboardItem id="repacking" ratio={16 / 9}>
+							<ComboChart
+								aria-label="Revenue, costs, and margin by month"
+								header="Repacking"
+								data={months}
+								series={[
+									{ xKey: 'month', yKey: 'revenue', yName: 'Revenue', type: 'bar' },
+									{ xKey: 'month', yKey: 'costs', yName: 'Costs', type: 'bar' },
+									{ xKey: 'month', yKey: 'margin', yName: 'Margin', type: 'line' },
+								]}
 								aspectRatio={false}
 							/>
 						</DashboardItem>
