@@ -6,6 +6,8 @@
  */
 
 import { coord } from '../chart-coords'
+import type { ChartLineSeries } from '../chart-marks/line'
+import type { DrawnSeries } from '../use-chart-cartesian'
 
 /** How a line connects its points: straight or a rounded monotone curve. */
 export type LineInterpolation = 'linear' | 'smooth'
@@ -186,4 +188,30 @@ export function lineGeometry(
 		runs: pointRuns,
 		isolated: pointRuns.filter((run) => run.length === 1).flat(),
 	}
+}
+
+/**
+ * The line render-series for a set of drawn cartesian series: each entry's
+ * values projected through its own axis's scale into {@link lineGeometry},
+ * carrying the meta's paint, label, and dash so the marks, hit-test, and value
+ * labels all read one aligned list. Bar/line/area charts build their line-kind
+ * marks through this instead of repeating the map.
+ *
+ * @internal
+ */
+export function lineSeriesOf(
+	entries: DrawnSeries[],
+	xs: number[],
+	floor: number,
+	interpolation: LineInterpolation,
+	markers: boolean,
+): ChartLineSeries[] {
+	return entries.map(({ meta, scale }) => ({
+		index: meta.index,
+		label: meta.label,
+		paint: meta.paint,
+		geometry: lineGeometry(meta.values, xs, scale.map, floor, interpolation),
+		markers,
+		dashed: meta.dashed,
+	}))
 }

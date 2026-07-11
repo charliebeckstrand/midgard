@@ -3,17 +3,13 @@
 import { ChartCartesianAxes } from '../engine/chart-axes/cartesian'
 import { ChartCrosshair, crosshairSnaps, resolveCrosshair } from '../engine/chart-crosshair'
 import { ChartFrame } from '../engine/chart-frame/frame'
-import { type LineInterpolation, lineGeometry } from '../engine/chart-geometry/line'
+import { type LineInterpolation, lineSeriesOf } from '../engine/chart-geometry/line'
 import { ChartHitArea } from '../engine/chart-hit-area'
 import { nearestSeriesArea, nearestSeriesLine } from '../engine/chart-hit-test'
 import { lineMarkReach } from '../engine/chart-layout'
 import { ChartCartesianLegend } from '../engine/chart-legend/cartesian'
 import { ChartMarksLayer } from '../engine/chart-marks/layer'
-import {
-	AnimatedChartLineMarks,
-	ChartLineMarks,
-	type ChartLineSeries,
-} from '../engine/chart-marks/line'
+import { AnimatedChartLineMarks, ChartLineMarks } from '../engine/chart-marks/line'
 import { useChartTexture } from '../engine/chart-pattern-defs'
 import { ChartReferenceLines, ChartReferenceList } from '../engine/chart-reference-lines'
 import {
@@ -28,7 +24,7 @@ import {
 	resolveValueLabels,
 	valueLabelHeadroom,
 } from '../engine/chart-value-labels'
-import { bandCenters, useChartCartesian } from '../engine/use-chart-cartesian'
+import { bandCenters, drawnSeries, useChartCartesian } from '../engine/use-chart-cartesian'
 import { cartesianFocus } from '../engine/use-chart-keyboard'
 
 /**
@@ -154,20 +150,9 @@ export function LineChart<T>(props: LineChartProps<T>) {
 
 	// Each visible series draws through its own axis's scale; a series whose
 	// scale never resolved takes no marks.
-	const drawn = chart.visible.flatMap((meta) => {
-		const scale = meta.axis === 'y2' ? chart.y2Scale : chart.yScale
+	const drawn = drawnSeries(chart)
 
-		return scale ? [{ meta, scale }] : []
-	})
-
-	const list: ChartLineSeries[] = drawn.map(({ meta, scale }) => ({
-		index: meta.index,
-		label: meta.label,
-		paint: meta.paint,
-		geometry: lineGeometry(meta.values, xs, scale.map, floor, interpolation),
-		markers: points,
-		dashed: meta.dashed,
-	}))
+	const list = lineSeriesOf(drawn, xs, floor, interpolation, points)
 
 	const seriesRuns = list.map((series) => series.geometry.runs)
 

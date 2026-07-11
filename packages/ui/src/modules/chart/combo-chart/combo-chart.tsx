@@ -5,7 +5,7 @@ import { MARK_GAP } from '../engine/chart-constants'
 import { ChartCrosshair, crosshairSnaps, resolveCrosshair } from '../engine/chart-crosshair'
 import { ChartFrame } from '../engine/chart-frame/frame'
 import { type BarMark, barMarks } from '../engine/chart-geometry/bar'
-import { type LineInterpolation, lineGeometry } from '../engine/chart-geometry/line'
+import { type LineInterpolation, lineSeriesOf } from '../engine/chart-geometry/line'
 import { ChartHitArea } from '../engine/chart-hit-area'
 import { barMarkAt, nearestSeriesArea, nearestSeriesLine } from '../engine/chart-hit-test'
 import { lineMarkReach } from '../engine/chart-layout'
@@ -33,7 +33,6 @@ import type { ChartMarkRef } from '../engine/context'
 import {
 	bandCenters,
 	barProjection,
-	type DrawnSeries,
 	drawnSeries,
 	useChartCartesian,
 } from '../engine/use-chart-cartesian'
@@ -250,19 +249,9 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 	// fills down to the baseline.
 	const xs = bandCenters(chart)
 
-	const toSeries = (entries: DrawnSeries[]): ChartLineSeries[] =>
-		entries.map(({ meta, scale }) => ({
-			index: meta.index,
-			label: meta.label,
-			paint: meta.paint,
-			geometry: lineGeometry(meta.values, xs, scale.map, floor, interpolation),
-			markers: points,
-			dashed: meta.dashed,
-		}))
+	const lines = lineSeriesOf(lineEntries, xs, floor, interpolation, points)
 
-	const lines = toSeries(lineEntries)
-
-	const areas = toSeries(areaEntries)
+	const areas = lineSeriesOf(areaEntries, xs, floor, interpolation, points)
 
 	// Value labels ride the line and area series only — bars read against the axis.
 	const labelled = [...areaEntries, ...lineEntries]
