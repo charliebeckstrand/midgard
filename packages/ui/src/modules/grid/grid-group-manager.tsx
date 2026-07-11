@@ -38,8 +38,9 @@ import { cn, dataAttr } from '../../core'
 import { colors, extendedColors, type PaletteColor } from '../../core/recipe'
 import { useGrabbingCursor, useSortableSensors } from '../../hooks'
 import { k } from '../../recipes/kata/grid-group'
+import { columnLabel } from './engine/grid-column/label'
 import type { GridColumnGroup } from './grid-group-types'
-import { columnLabel, type GridColumnManagerItem } from './types'
+import type { GridColumnManagerItem } from './types'
 import {
 	GROUP_PREFIX,
 	type GridGroupManagerZone,

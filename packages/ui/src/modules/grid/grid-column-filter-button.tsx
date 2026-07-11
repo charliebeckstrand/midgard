@@ -16,7 +16,8 @@ import {
 	type QueryField,
 	type QueryGroupNode,
 } from '../query'
-import { columnLabel, type GridColumn } from './types'
+import { columnLabel } from './engine/grid-column/label'
+import type { GridColumn } from './types'
 import type { GridColumnFilter } from './use-grid-table'
 
 /** The subset of a column the filter sheet reads. @internal */

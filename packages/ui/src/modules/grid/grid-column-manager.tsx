@@ -12,10 +12,11 @@ import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from '../../compo
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/grid-column-manager'
 import { toggleItem } from '../../utilities'
+import { columnLabel } from './engine/grid-column/label'
 import { GridGroupManager } from './grid-group-manager'
 import type { GridColumnGroup } from './grid-group-types'
 import { applyColumnReorder } from './grid-reorder'
-import { columnLabel, type GridColumnManagerItem, type GridColumnManagerPreset } from './types'
+import type { GridColumnManagerItem, GridColumnManagerPreset } from './types'
 import { useGridColumnVisibility } from './use-grid-column-visibility'
 
 /** Pins a column to an edge, or unpins it with `false`. @internal */

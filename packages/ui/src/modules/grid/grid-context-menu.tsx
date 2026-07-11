@@ -31,16 +31,16 @@ import { ContextMenuList } from '../../components/context-menu'
 import { Menu, MenuContent, useMenuActions } from '../../components/menu'
 import { isDataColumn, isNativeContextMenuRequest } from '../../utilities'
 import type { SortState } from './context'
+import { columnLabel } from './engine/grid-column/label'
 import type { GridExportAction } from './export/types'
 import type { GridColumnGroup } from './grid-group-types'
 import { frozenSide, isLocked, normalizeFreeze } from './grid-pin-overrides'
-import {
-	columnLabel,
-	type GridCellMenuContext,
-	type GridColumn,
-	type GridColumnMenuContext,
-	type GridContextMenu as GridContextMenuConfig,
-	type GridMenuItem,
+import type {
+	GridCellMenuContext,
+	GridColumn,
+	GridColumnMenuContext,
+	GridContextMenu as GridContextMenuConfig,
+	GridMenuItem,
 } from './types'
 
 /** Menu-item icon for an export action: a printer for `print`, a download glyph otherwise. @internal */

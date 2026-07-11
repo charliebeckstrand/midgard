@@ -22,6 +22,7 @@ import { type DensityLevel, densityToSize, useDensityLevel } from '../../provide
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
 import { GridContext, GridResizingContext, type SortState } from './context'
+import { columnLabel } from './engine/grid-column/label'
 import { DEFAULT_EXPORTABLE } from './export/export-registry'
 import type { GridExportAction } from './export/types'
 import {
@@ -82,13 +83,12 @@ import { useColumnSettleWidths } from './grid-table-views'
 import { GridToolbar } from './grid-toolbar'
 import { GridGrandTotalBody, useGridGrandTotal } from './grid-total-row'
 import type { GridScrollRowIntoView } from './grid-virtualized-body'
-import {
-	columnLabel,
-	type GridColumn,
-	type GridColumnSizing,
-	type GridContextMenu as GridContextMenuConfig,
-	type GridMenuItem,
-	type GridPagination,
+import type {
+	GridColumn,
+	GridColumnSizing,
+	GridContextMenu as GridContextMenuConfig,
+	GridMenuItem,
+	GridPagination,
 } from './types'
 import { useGridColumns } from './use-grid-columns'
 import { useGridCursor } from './use-grid-cursor'

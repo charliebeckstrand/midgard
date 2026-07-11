@@ -6,7 +6,8 @@
  */
 
 import type { SortState } from './context'
-import { columnLabel, type GridColumn } from './types'
+import { columnLabel } from './engine/grid-column/label'
+import type { GridColumn } from './types'
 
 /**
  * The polite announcement for the grid's current sort, narrated to assistive

@@ -1,8 +1,9 @@
 'use client'
 
 import { isDataColumn } from '../../../utilities'
+import { columnLabel } from '../engine/grid-column/label'
 import { columnAccessor } from '../grid-column-accessor'
-import { columnLabel, type GridColumn } from '../types'
+import type { GridColumn } from '../types'
 
 /** Stringifies a cell value for export: nullish becomes empty, everything else `String()`s. Shared by the CSV and HTML-table serializers. @internal */
 export function cellText(value: unknown): string {
