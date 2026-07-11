@@ -13,6 +13,7 @@ import {
 	type ChartAxisTitlePlacement,
 	type ChartValueAxisInput,
 	chartFrameLayout,
+	frameFills,
 	horizontalLayout,
 	type PlotRect,
 	verticalLayout,
@@ -40,13 +41,7 @@ import {
 	type SeriesMeta,
 	seriesValues,
 } from './chart-series'
-import {
-	type ChartChrome,
-	type ChartTier,
-	chartPolicy,
-	headerLineCount,
-	policyPlotHeight,
-} from './chart-tier'
+import { type ChartChrome, type ChartTier, chartFramePolicy, headerLineCount } from './chart-tier'
 import { dateCategoryFormat, parseInstant, timeCategory } from './chart-time'
 import type { ChartReadoutSource } from './types'
 import { useChartReferenceToggle, useChartSeriesToggle } from './use-chart-series-toggle'
@@ -777,19 +772,16 @@ export function useChartCartesian<T>(
 	// density still capping the ticks. Its budgets fold into the layout below.
 	// A stacked aspect-fill figure shares its ratio box with the header and legend,
 	// so measuring the plot's remainder for the tier loops — spark drops that
-	// chrome, the remainder jumps, the tier flips back. Resolve it against the
-	// figure's own `width / ratio` less the chrome instead; the drawing still fills
-	// the measured remainder. A free-form fill frame shares that box with no ratio
-	// to derive a safe height from, so the policy's fill flag resolves the
-	// chrome-affecting decisions from the width alone.
-	const policyHeight = policyPlotHeight(
-		frameHeight,
-		frameWidth,
-		outerAspect,
-		cartesianChrome(props, aside),
-	)
-
-	const policy = chartPolicy(frameWidth, policyHeight, metrics.tickTarget, sizing.mode === 'fill')
+	// chrome, the remainder jumps, the tier flips back. chartFramePolicy resolves
+	// it against the figure's own `width / ratio` less the chrome instead.
+	const policy = chartFramePolicy({
+		width: frameWidth,
+		height: frameHeight,
+		aspect: outerAspect,
+		chrome: cartesianChrome(props, aside),
+		tickTarget: metrics.tickTarget,
+		fill: sizing.mode === 'fill',
+	})
 
 	// Spark stands the axis chrome down to a bare sparkline; every wider tier keeps
 	// the caller's `axes` intent. The value gutter, band labels, and titles all
@@ -901,7 +893,7 @@ export function useChartCartesian<T>(
 		fixedWidth: width,
 		height: frameHeight,
 		reserve,
-		fill: sizing.mode === 'fill' || sizing.mode === 'aspect-fill',
+		fill: frameFills(sizing),
 		outerAspect,
 		tier: policy.tier,
 		legendRows: policy.legendRows,

@@ -307,3 +307,27 @@ export function policyPlotHeight(
 
 	return Math.max(0, width / figureAspect - chartChromeReserve(chrome))
 }
+
+/**
+ * A frame's tier resolved in one step: the plot height the tier reads —
+ * {@link policyPlotHeight}'s figure-derived height under a stacked aspect-fill
+ * frame, else the measured height — fed into {@link chartPolicy}. The one place
+ * the two compose, so every engine resolves its tier the same way against the
+ * figure's `width / ratio` less its chrome rather than the measured remainder
+ * it would loop on. `fill` is the free-form fill mode alone (a definite-height
+ * fill box with no ratio), which chartPolicy defuses by width.
+ *
+ * @internal
+ */
+export function chartFramePolicy(args: {
+	width: number
+	height: number
+	aspect: number | null | undefined
+	chrome: ChartChrome
+	tickTarget: number
+	fill: boolean
+}): ChartPolicy {
+	const height = policyPlotHeight(args.height, args.width, args.aspect, args.chrome)
+
+	return chartPolicy(args.width, height, args.tickTarget, args.fill)
+}

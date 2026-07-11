@@ -44,6 +44,7 @@ import {
 	type ChartAspectRatio,
 	type ChartAxisTitlePlacement,
 	chartFrameLayout,
+	frameFills,
 	type PlotRect,
 	plotRect,
 	valueTicksOf,
@@ -70,7 +71,7 @@ import {
 } from '../engine/chart-schema'
 import { formatChartValue } from '../engine/chart-series'
 import { snapTargets } from '../engine/chart-snap'
-import { chartPolicy, policyPlotHeight } from '../engine/chart-tier'
+import { chartFramePolicy } from '../engine/chart-tier'
 import { useChartTier } from '../engine/context'
 import type { ChartReadout } from '../engine/types'
 import { cartesianFocus } from '../engine/use-chart-keyboard'
@@ -254,7 +255,7 @@ function scatterFrame(
 	return {
 		sizing,
 		frameAspect: outerAspect ?? undefined,
-		fill: sizing.mode === 'fill' || sizing.mode === 'aspect-fill',
+		fill: frameFills(sizing),
 		aside,
 		placement: typeof legend === 'string' ? legend : undefined,
 	}
@@ -277,7 +278,7 @@ function scatterLegendItems(
 }
 
 /** One axis's grid participation: the chart's `grid` gate and the axis's own switch. @internal */
-function axisGrid(grid: boolean, axis: ChartValueAxis | undefined): boolean {
+function resolveAxisGrid(grid: boolean, axis: ChartValueAxis | undefined): boolean {
 	return grid && (axis?.grid ?? true)
 }
 
@@ -626,18 +627,19 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 	// The scatter reads the intrinsic tier from its measured box for the
 	// `data-tier` styling hook and the legend's row cap; its own axis ticks keep
 	// the density target above, so only the tier and its legend budget are taken.
-	// Under a stacked aspect-fill figure the plot's measured remainder shrinks
-	// with the legend and jumps when spark drops it, so resolve the tier against
-	// the figure's `width / ratio` less that legend instead of the remainder it
-	// would loop on. A scatter carries no header, so the chrome is the legend alone.
-	// A free-form fill frame shares that box with no ratio to derive a safe height
-	// from, so the policy's fill flag resolves the chrome decisions by width alone.
-	const policyHeight = policyPlotHeight(frameHeight, frameWidth, frameAspect, {
-		headerLines: 0,
-		legend: legendVisible(resolvedLegend.value, series.length) && !aside,
+	// A scatter carries no header, so the chrome is the legend alone; chartFramePolicy
+	// resolves the tier against the figure's `width / ratio` less that legend.
+	const policy = chartFramePolicy({
+		width: frameWidth,
+		height: frameHeight,
+		aspect: frameAspect,
+		chrome: {
+			headerLines: 0,
+			legend: legendVisible(resolvedLegend.value, series.length) && !aside,
+		},
+		tickTarget: metrics.tickTarget,
+		fill: sizing.mode === 'fill',
 	})
-
-	const policy = chartPolicy(frameWidth, policyHeight, metrics.tickTarget, sizing.mode === 'fill')
 
 	// Spark stands the chart's chrome down to bare marks: ScatterChrome and
 	// scatterScales read this to shed their axis labels, gridlines, and the gutter
@@ -763,8 +765,8 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 				plot={plot}
 				spark={spark}
 				axes={draw}
-				xGrid={axisGrid(grid, axesConfig.x)}
-				yGrid={axisGrid(grid, axesConfig.y)}
+				xGrid={resolveAxisGrid(grid, axesConfig.x)}
+				yGrid={resolveAxisGrid(grid, axesConfig.y)}
 				xScale={xScale}
 				yScale={yScale}
 				xTicks={xTicks}

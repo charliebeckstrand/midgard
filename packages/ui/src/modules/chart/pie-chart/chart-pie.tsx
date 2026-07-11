@@ -25,7 +25,7 @@ import {
 	pieSlices,
 	segmentLabelFits,
 } from '../engine/chart-geometry/pie'
-import { type ChartAspectRatio, chartFrameSizing } from '../engine/chart-layout'
+import { type ChartAspectRatio, chartFrameSizing, frameFills } from '../engine/chart-layout'
 import { ChartLegend, type ChartLegendItem } from '../engine/chart-legend/legend'
 import { ChartMarksLayer } from '../engine/chart-marks/layer'
 import {
@@ -47,7 +47,7 @@ import {
 	resolveTooltip,
 } from '../engine/chart-schema'
 import { formatChartValue, seriesValues } from '../engine/chart-series'
-import { chartPolicy, isSparkBox, policyPlotHeight } from '../engine/chart-tier'
+import { chartFramePolicy, isSparkBox } from '../engine/chart-tier'
 import { useChartFullscreen, useChartHover } from '../engine/context'
 import type { ChartReadout } from '../engine/types'
 import { useChartSeriesToggle } from '../engine/use-chart-series-toggle'
@@ -666,7 +666,7 @@ function pieFrame(
 	return {
 		sizing: frameSizing,
 		frameAspect: shareAspect ? sizing.ratio : undefined,
-		fill: frameSizing.mode === 'fill' || frameSizing.mode === 'aspect-fill',
+		fill: frameFills(frameSizing),
 		aside,
 		hasLegend,
 		// Only a stacked band shares the aspect box the chrome reserve applies to; a
@@ -903,23 +903,16 @@ export function ChartPie<T>(props: ChartPieProps<T>) {
 	// box — the `data-tier` styling hook, and the legend's row cap so a many-slice
 	// stacked legend never overruns the frame the way it used to. It has no value
 	// ticks, so the density ceiling the tick target would clamp is moot here.
-	// Under a stacked aspect-fill figure the plot's measured remainder shrinks with
-	// the legend and jumps when spark drops it, so resolve the tier against the
-	// figure's `width / ratio` less that legend rather than the remainder it would
-	// loop on. A pie carries no header, so the chrome is the legend alone. A
-	// free-form fill frame shares that box with no ratio to derive a safe height
-	// from, so the policy's fill flag resolves the chrome decisions by width alone.
-	const policyHeight = policyPlotHeight(frameHeight, frameWidth, frameAspect, {
-		headerLines: 0,
-		legend: stackedLegend,
+	// A pie carries no header, so the chrome is the legend alone; chartFramePolicy
+	// resolves the tier against the figure's `width / ratio` less that legend.
+	const policy = chartFramePolicy({
+		width: frameWidth,
+		height: frameHeight,
+		aspect: frameAspect,
+		chrome: { headerLines: 0, legend: stackedLegend },
+		tickTarget: CHART_METRICS.md.tickTarget,
+		fill: frameSizing.mode === 'fill',
 	})
-
-	const policy = chartPolicy(
-		frameWidth,
-		policyHeight,
-		CHART_METRICS.md.tickTarget,
-		frameSizing.mode === 'fill',
-	)
 
 	const { hidden, toggle, setFocus, emphasis } = useChartSeriesToggle()
 

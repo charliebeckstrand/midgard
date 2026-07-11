@@ -87,6 +87,18 @@ export function chartFrameSizing(
 }
 
 /**
+ * Whether a frame's plot grows into its region's height rather than reserving
+ * one: the free-form `fill` and stacked `aspect-fill` modes. The one place the
+ * two fill modes are read together — distinct from {@link chartPolicy}'s `fill`
+ * flag, which is the free-form mode alone.
+ *
+ * @internal
+ */
+export function frameFills(sizing: FrameSizing): boolean {
+	return sizing.mode === 'fill' || sizing.mode === 'aspect-fill'
+}
+
+/**
  * A chart frame's sizing under the box-law: the {@link FrameSizing} the plot
  * measures through, and the CSS `aspect-ratio` the figure wrapper carries so the
  * whole chart — legend and all — holds the ratio as a preference the parent can
