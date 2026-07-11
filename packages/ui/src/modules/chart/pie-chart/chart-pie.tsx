@@ -6,6 +6,8 @@ import { cn } from '../../../core'
 import { type FrameSizing, usePlotFrame } from '../../../hooks'
 import { type ChartSeriesColor, k } from '../../../recipes/kata/chart'
 import { formatPercent, once } from '../../../utilities'
+import type { SlotPaint } from '../engine/chart-color/paint'
+import { paletteSlot } from '../engine/chart-color/palette'
 import { CHART_METRICS, MARK_GAP, TICK_CHAR_WIDTH } from '../engine/chart-constants'
 import { ChartFrame } from '../engine/chart-frame/frame'
 import {
@@ -41,7 +43,7 @@ import {
 	resolveLegend,
 	resolveTooltip,
 } from '../engine/chart-schema'
-import { formatChartValue, paletteSlot, type SlotPaint, seriesValues } from '../engine/chart-series'
+import { formatChartValue, seriesValues } from '../engine/chart-series'
 import { chartPolicy, isSparkBox, policyPlotHeight } from '../engine/chart-tier'
 import { useChartFullscreen, useChartHover } from '../engine/context'
 import type { ChartReadout } from '../engine/types'

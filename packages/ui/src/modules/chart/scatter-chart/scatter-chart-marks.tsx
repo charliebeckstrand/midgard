@@ -5,10 +5,10 @@ import { useMemo } from 'react'
 import { cn } from '../../../core'
 import { k } from '../../../recipes/kata/chart'
 import { rangeKeys } from '../../../utilities'
+import type { SlotPaint } from '../engine/chart-color/paint'
 import { BUBBLE_FILL_OPACITY, MARKER_RING_WIDTH } from '../engine/chart-constants'
 import { type ScatterMark, scatterDiscsPath } from '../engine/chart-geometry/scatter'
 import { POINT_POP } from '../engine/chart-motion'
-import type { SlotPaint } from '../engine/chart-series'
 import { useChartMarkEmphasis } from '../engine/context'
 
 /**

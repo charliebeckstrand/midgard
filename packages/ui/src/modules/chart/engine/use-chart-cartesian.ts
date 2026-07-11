@@ -5,6 +5,8 @@ import { useResolvedSize } from '../../../primitives/density'
 import type { Step } from '../../../recipes'
 import { once } from '../../../utilities'
 import type { ChartAxisTick } from './chart-axes/axis'
+import { paintSlot, rawColor, textClass } from './chart-color/paint'
+import { seriesPaint } from './chart-color/palette'
 import { CHART_METRICS } from './chart-constants'
 import {
 	type CartesianLayout,
@@ -32,12 +34,8 @@ import {
 	chartReadout,
 	formatChartValue,
 	formatChartValueCompact,
-	paintSlot,
-	rawColor,
 	type SeriesMeta,
-	seriesPaint,
 	seriesValues,
-	textClass,
 } from './chart-series'
 import {
 	type ChartChrome,

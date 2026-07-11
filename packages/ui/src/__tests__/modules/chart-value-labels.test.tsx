@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { AreaChart } from '../../modules/chart/area-chart'
-import { paintFor } from '../../modules/chart/engine/chart-series'
+import { paintFor } from '../../modules/chart/engine/chart-color/paint'
 import {
 	labelPoints,
 	type PlacedValueLabel,

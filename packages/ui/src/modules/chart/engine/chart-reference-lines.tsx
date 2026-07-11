@@ -5,6 +5,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/too
 import { cn } from '../../../core'
 import { ReducedMotion } from '../../../primitives/reduced-motion'
 import { type ChartSeriesColor, k } from '../../../recipes/kata/chart'
+import { isSeriesSlot } from './chart-color/paint'
 import { REFERENCE_DASH, REFERENCE_HIT_WIDTH, REFERENCE_STROKE_WIDTH } from './chart-constants'
 import type { PlotRect } from './chart-layout'
 import type { ChartLegendReference } from './chart-legend/legend'
@@ -12,7 +13,7 @@ import { REFERENCE_RISE, referenceRise } from './chart-motion'
 import { bandExtent, type ChartOrientation, project, type Vec } from './chart-orientation'
 import type { LinearScale } from './chart-scale'
 import type { ChartReferenceLine, ChartValueAxisId } from './chart-schema'
-import { formatChartValue, isSeriesSlot } from './chart-series'
+import { formatChartValue } from './chart-series'
 import { useChartEmphasis, useChartTier } from './context'
 
 /** Formats a reference value with its own axis's formatter. @internal */

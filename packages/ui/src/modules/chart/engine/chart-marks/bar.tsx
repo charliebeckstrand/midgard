@@ -3,11 +3,11 @@
 import { motion } from 'motion/react'
 import { useMemo } from 'react'
 import { cn } from '../../../../core'
+import { fillClass, rawColor, type SeriesPaint } from '../chart-color/paint'
 import type { BarMark } from '../chart-geometry/bar'
 import { BAR_GROW, BAR_SHRINK, BAR_STAGGER, barGrow } from '../chart-motion'
 import type { ChartOrientation } from '../chart-orientation'
 import { textureClass, textureStyle } from '../chart-pattern-defs'
-import { fillClass, rawColor, type SeriesPaint } from '../chart-series'
 import { useChartMarkEmphasis } from '../context'
 
 /** Shared shape for the static and animated bar renderers. @internal */

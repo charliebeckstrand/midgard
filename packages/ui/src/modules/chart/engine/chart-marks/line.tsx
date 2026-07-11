@@ -5,6 +5,7 @@ import { useId } from 'react'
 import { cn } from '../../../../core'
 import { k } from '../../../../recipes/kata/chart'
 import { rangeKeys } from '../../../../utilities'
+import { fillClass, rawColor, type SeriesPaint, strokeClass } from '../chart-color/paint'
 import {
 	AREA_FILL_OPACITY,
 	LINE_STROKE_WIDTH,
@@ -23,13 +24,7 @@ import {
 	POINT_UNPOP,
 } from '../chart-motion'
 import { textureClass, textureStyle } from '../chart-pattern-defs'
-import {
-	fillClass,
-	rawColor,
-	type SeriesPaint,
-	seriesGroupClass,
-	strokeClass,
-} from '../chart-series'
+import { seriesGroupClass } from '../chart-series'
 import { useChartMarkEmphasis } from '../context'
 
 /** One line series' render inputs. @internal */

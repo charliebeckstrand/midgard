@@ -8,6 +8,8 @@ import { type ChartSeriesColor, k } from '../../../recipes/kata/chart'
 import { once } from '../../../utilities'
 import { ChartAxis, type ChartAxisTick, ChartAxisTitles } from '../engine/chart-axes/axis'
 import { ChartGridLines } from '../engine/chart-axes/grid-lines'
+import type { SlotPaint } from '../engine/chart-color/paint'
+import { paletteSlot } from '../engine/chart-color/palette'
 import {
 	AXIS_TITLE_BAND,
 	AXIS_TITLE_GAP,
@@ -63,7 +65,7 @@ import {
 	type ScatterAxes,
 	type ScatterChartSeries,
 } from '../engine/chart-schema'
-import { formatChartValue, paletteSlot, type SlotPaint } from '../engine/chart-series'
+import { formatChartValue } from '../engine/chart-series'
 import { snapTargets } from '../engine/chart-snap'
 import { chartPolicy, policyPlotHeight } from '../engine/chart-tier'
 import { useChartTier } from '../engine/context'

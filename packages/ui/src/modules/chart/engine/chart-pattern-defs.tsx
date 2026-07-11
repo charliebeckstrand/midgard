@@ -4,7 +4,7 @@ import { type CSSProperties, type ReactNode, useId } from 'react'
 import { Swatch } from '../../../components/swatch'
 import { cn } from '../../../core'
 import { type ChartSeriesColor, k } from '../../../recipes/kata/chart'
-import type { SlotPaint } from './chart-series'
+import type { SlotPaint } from './chart-color/paint'
 
 /** The pattern tile edge, in `viewBox` units — the hatch repeats every `TILE`. @internal */
 const TILE = 8

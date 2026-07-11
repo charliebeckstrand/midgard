@@ -3,10 +3,11 @@
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { cn } from '../../../core'
 import { ReducedMotion } from '../../../primitives/reduced-motion'
+import { fillClass, rawColor, type SeriesPaint } from './chart-color/paint'
 import { TICK_CHAR_WIDTH } from './chart-constants'
 import type { PlotRect } from './chart-layout'
 import { POINT_POP, POINT_UNPOP, STATIC_GENERATION } from './chart-motion'
-import { fillClass, formatChartValue, rawColor, type SeriesPaint } from './chart-series'
+import { formatChartValue } from './chart-series'
 import { useChartTier } from './context'
 
 /**
