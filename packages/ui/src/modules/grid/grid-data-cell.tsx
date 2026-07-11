@@ -62,8 +62,6 @@ function GridDataCellImpl<T>({
 	// applied to whichever `<td>` this cell renders (reorder-aware or plain).
 	const roving = cellRovingAttrs({ cellRoving, cellActivate, col, row, rowKey })
 
-	const pinned = pinnedCellProps(pinning, col)
-
 	const rovingClass = cellRoving ? k.cell.rovable : undefined
 
 	// Render only columns that declare a `cell`; a bare accessor column stays
@@ -94,6 +92,10 @@ function GridDataCellImpl<T>({
 			</GridReorderableCell>
 		)
 	}
+
+	// Pinned chrome resolves only on the plain path — the reorderable cell above
+	// glides via `columnShiftStyle` and never reads it.
+	const pinned = pinnedCellProps(pinning, col)
 
 	return (
 		<TableCell

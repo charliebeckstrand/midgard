@@ -1,6 +1,6 @@
 'use client'
 
-import { ArrowLeftToLine, ArrowRightToLine, EllipsisVertical, Pin, PinOff } from 'lucide-react'
+import { ArrowLeftToLine, ArrowRightToLine, EllipsisVertical, Pin } from 'lucide-react'
 import { type ReactNode, useCallback, useMemo } from 'react'
 import { Button } from '../../components/button'
 import { Checkbox, CheckboxField, CheckboxGroup } from '../../components/checkbox'
@@ -15,6 +15,7 @@ import { toggleItem } from '../../utilities'
 import { columnLabel } from './engine/grid-column/label'
 import { effectivePinSide, pinMenuChoices } from './engine/grid-pin/overrides'
 import { applyColumnReorder } from './engine/grid-reorder-compute'
+import { pinChoiceIcon } from './grid-context-menu-utilities'
 import { GridGroupManager } from './grid-group-manager'
 import type { GridColumnGroup } from './grid-group-types'
 import type { GridColumnManagerItem, GridColumnManagerPreset } from './types'
@@ -113,17 +114,7 @@ function GridColumnPinControl({
 			<MenuContent>
 				{pinMenuChoices(side).map((choice) => (
 					<MenuItem key={choice.key} onAction={() => onPinChange(item.id, choice.target)}>
-						<Icon
-							icon={
-								choice.key === 'pin-left' ? (
-									<ArrowLeftToLine />
-								) : choice.key === 'pin-right' ? (
-									<ArrowRightToLine />
-								) : (
-									<PinOff />
-								)
-							}
-						/>
+						<Icon icon={pinChoiceIcon(choice.key)} />
 						<MenuLabel>{choice.label}</MenuLabel>
 					</MenuItem>
 				))}
