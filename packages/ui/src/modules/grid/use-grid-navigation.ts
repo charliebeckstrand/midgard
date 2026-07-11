@@ -12,7 +12,7 @@ import {
 import { createContext } from '../../core'
 import { useIdScope } from '../../hooks'
 import { clamp } from '../../utilities'
-import { NAV_PAGE_STEP } from './grid-constants'
+import { NAV_PAGE_STEP } from './engine/grid-constants'
 
 /** Zero-based cursor position over the grid's data cells, in display order. @internal */
 export type Coord = { row: number; col: number }

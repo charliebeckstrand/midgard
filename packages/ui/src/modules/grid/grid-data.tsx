@@ -1,40 +1,60 @@
 'use client'
 
-import { DndContext } from '@dnd-kit/core'
-import { SortableContext } from '@dnd-kit/sortable'
 import { useReducedMotion } from 'motion/react'
-import {
-	type ComponentProps,
-	type ReactNode,
-	type RefObject,
-	useCallback,
-	useEffect,
-	useLayoutEffect,
-	useMemo,
-	useRef,
-	useState,
-} from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Table } from '../../components/table'
 import { announce, cn, dataAttr } from '../../core'
 import { useA11yAnnouncements, useControllable } from '../../hooks'
-import { Density } from '../../primitives/density'
-import { type DensityLevel, densityToSize, useDensityLevel } from '../../providers/density'
-import { k } from '../../recipes/kata/grid'
+import { useDensityLevel } from '../../providers/density'
 import { isDataColumn } from '../../utilities'
 import { GridContext, GridResizingContext, type SortState } from './context'
-import { DEFAULT_EXPORTABLE } from './export/export-registry'
-import type { GridExportAction } from './export/types'
 import {
 	describeColumnVisibility,
 	describePin,
 	describeSelection,
 	describeSort,
-} from './grid-announcements'
+} from './engine/grid-announcements'
+import { columnLabel } from './engine/grid-column/label'
+import { DEFAULT_EXPORTABLE } from './engine/grid-export/registry'
+import {
+	isGroupableColumnId,
+	manualGroupPredicate,
+	manualGroupSortDirection,
+	resolveDetailExpansion,
+	resolveGroupByContext,
+	resolveGroupHeaderRow,
+	resolveGroupingGates,
+	resolveGroupingMode,
+	resolveManualGroupBody,
+} from './engine/grid-group/resolve'
+import { applyPinOverrides, type PinSide, toPinOverrides } from './engine/grid-pin/overrides'
+import { resolveGridReorder } from './engine/grid-reorder-compute'
+import {
+	bridgeCellActivate,
+	bridgeRowActivate,
+	buildRovingCellActivate,
+	composeCellDoubleClick,
+} from './engine/grid-row/bridges'
+import {
+	condensedTableClass,
+	gridWrapperClass,
+	outlineTableClass,
+	resolveDensity,
+	settleBodyClass,
+	stripedForOutline,
+} from './engine/grid-table/classes'
+import { assertGridProps, implyVirtualize } from './engine/grid-table/guards'
+import {
+	seedColumnManager,
+	seedColumnOrder,
+	seedColumnSizing,
+	seedPinning,
+} from './engine/grid-table/seeds'
 import { GridAutoSizeConfirmDialog } from './grid-auto-size-confirm-dialog'
 import { GridBody } from './grid-body'
 import { GridBusyStatus } from './grid-busy-status'
 import { GridColumnManagerDialog } from './grid-column-manager-dialog'
-import { GridContextMenu, useColumnGroupMenu } from './grid-context-menu'
+import { useColumnGroupMenu } from './grid-context-menu'
 import {
 	resolveAriaRowCount,
 	resolveFooterStats,
@@ -46,86 +66,38 @@ import {
 	resolveTableProps,
 	resolveVirtualization,
 } from './grid-data-resolvers'
-import type {
-	GridColumnManagerConfig,
-	GridColumnOrder,
-	GridDataProps,
-	GridGroupHeaderRow,
-	GridInfiniteScroll,
-	GridPinning,
-	GridPinningState,
-	GridPreferences,
-	GridVirtualize,
-} from './grid-data-types'
+import type { GridDataProps, GridPinningState } from './grid-data-types'
 import { GridFooter as GridFooterBar } from './grid-footer'
-import { GridGroupByContext, type GridGroupByContextValue } from './grid-group-by-button'
+import { GridGroupByContext } from './grid-group-by-button'
 import { GridHead } from './grid-head'
 import { useGridMenuActions } from './grid-menu-actions'
 import { GridPagination as GridPaginationFooter } from './grid-pagination'
-import { applyPinOverrides, type PinSide, toPinOverrides } from './grid-pin-overrides'
 import {
-	GridReorderContext,
-	restrictToFirstScrollableAncestor,
-	restrictToHorizontalAxis,
-	restrictToVerticalAxis,
-} from './grid-reorder'
-import {
-	cellValue,
-	type GridCellClick,
-	type GridCellRovingActivate,
-	type GridRowClick,
-	type GridRowsProps,
-} from './grid-row'
-import { GridRowManagerDialog } from './grid-row-manager-dialog'
+	DensityCascade,
+	GridRegion,
+	GridRowManagerRegionDialog,
+	GridRowReorderRegion,
+	GridScrollRegion,
+} from './grid-region'
 import { useGridSort } from './grid-sort-state'
 import { useColumnSettleWidths } from './grid-table-views'
 import { GridToolbar } from './grid-toolbar'
 import { GridGrandTotalBody, useGridGrandTotal } from './grid-total-row'
 import type { GridScrollRowIntoView } from './grid-virtualized-body'
-import {
-	columnLabel,
-	type GridColumn,
-	type GridColumnSizing,
-	type GridContextMenu as GridContextMenuConfig,
-	type GridMenuItem,
-	type GridPagination,
-} from './types'
+import type { GridColumn } from './types'
 import { useGridColumns } from './use-grid-columns'
 import { useGridCursor } from './use-grid-cursor'
-import { type GridExpansionResult, useGridExpansion } from './use-grid-expansion'
+import { useGridExpansion } from './use-grid-expansion'
 import { useGridExport } from './use-grid-export'
-import { type GridGroupHeader, type GridGroupResult, useGridGroup } from './use-grid-group'
-import { type GridCellActivate, GridNavContext, type GridRowActivate } from './use-grid-navigation'
-import { resolveGridReorder, useGridReorder } from './use-grid-reorder'
+import { useGridGroup } from './use-grid-group'
+import { GridNavContext } from './use-grid-navigation'
+import { useGridReorder } from './use-grid-reorder'
 import { useGridRoving } from './use-grid-roving'
 import { useGridRowGrouping } from './use-grid-row-grouping'
-import { type GridRowManagerRegionResult, useGridRowManagerRegion } from './use-grid-row-manager'
+import { useGridRowManagerRegion } from './use-grid-row-manager'
 import { useGridRowReorder } from './use-grid-row-reorder'
 import { useGridSelectionActions, useGridSelectionState } from './use-grid-selection'
-import { type GridColumnPinning, isManualPagination, useGridTable } from './use-grid-table'
-
-/**
- * Locks column drags to the x-axis and bounds them to the scroll container, so
- * horizontal auto-scroll can reach off-screen columns without running away. @internal
- */
-const REORDER_MODIFIERS = [restrictToHorizontalAxis, restrictToFirstScrollableAncestor]
-
-/**
- * Column-drag auto-scroll: horizontal only — a wide table scrolls sideways to
- * reach off-screen columns (bounded by the scroll-ancestor modifier above) —
- * with the vertical axis off so a downward drag can't scroll the body. @internal
- */
-const REORDER_AUTO_SCROLL = { threshold: { x: 0.2, y: 0 } }
-
-/** Locks a row drag to the y-axis and bounds it to the scroll container. @internal */
-const ROW_REORDER_MODIFIERS = [restrictToVerticalAxis, restrictToFirstScrollableAncestor]
-
-/**
- * Row-drag auto-scroll: vertical only — a tall grid scrolls up/down to reach
- * off-screen rows (bounded by the scroll-ancestor modifier) — with the
- * horizontal axis off so a sideways nudge can't scroll the columns. @internal
- */
-const ROW_REORDER_AUTO_SCROLL = { threshold: { x: 0, y: 0.2 } }
+import { useGridTable } from './use-grid-table'
 
 /**
  * Whether the grid's current state permits a manual row drag-reorder. A manual
@@ -157,292 +129,6 @@ function rowReorderPermitted(args: {
 		!args.sorted &&
 		args.renderedCount === args.sourceCount
 	)
-}
-
-/** Whether `id` names a groupable column — a present data column (not selection / actions / drag-handle). @internal */
-function isGroupableColumnId<T>(columns: GridColumn<T>[], id: string | number): boolean {
-	return columns.some((col) => col.id === id && isDataColumn(col))
-}
-
-/**
- * Resolves which row-grouping mode is active from the binding slice: client
- * grouping (the engine computes the groups), manual grouping (the consumer's
- * rows carry them — which needs the `groupRow` contract), either (`active`),
- * and the grouping id the engine receives — client mode only, since manual
- * grouping keeps the engine ungrouped. Kept out of {@link GridData} for its
- * complexity budget.
- *
- * @internal
- */
-function resolveGroupingMode<T>(args: {
-	manual: boolean
-	grouping: (string | number) | null
-	groupRow: ((row: T) => GridGroupHeaderRow | null) | undefined
-}): {
-	groupingActive: boolean
-	manualGroupingActive: boolean
-	active: boolean
-	engineGrouping: (string | number) | null
-} {
-	const groupingActive = !args.manual && args.grouping != null
-
-	const manualGroupingActive = args.manual && args.grouping != null && args.groupRow != null
-
-	return {
-		groupingActive,
-		manualGroupingActive,
-		active: groupingActive || manualGroupingActive,
-		engineGrouping: groupingActive ? args.grouping : null,
-	}
-}
-
-/**
- * The engine's manual group-header predicate — rows the binding's `groupRow`
- * contract marks — or `null` outside manual grouping. Split out so the branch
- * lives here, off {@link GridData}'s complexity budget.
- *
- * @internal
- */
-function manualGroupPredicate<T>(
-	active: boolean,
-	groupRow: ((row: T) => GridGroupHeaderRow | null) | undefined,
-): ((row: T) => boolean) | null {
-	if (!active || !groupRow) return null
-
-	return (row) => groupRow(row) != null
-}
-
-/**
- * Manual-grouping body wiring for {@link GridBody} — the group-header resolver,
- * the expanded key set, and the toggle — or `null` outside manual grouping.
- * Kept off {@link GridData}'s complexity budget.
- *
- * @internal
- */
-function resolveManualGroupBody<T>(args: {
-	active: boolean
-	groupRow: ((row: T) => GridGroupHeaderRow | null) | undefined
-	expanded: ReadonlySet<string | number>
-	toggle: (key: string | number) => void
-}): {
-	groupRow: (row: T) => GridGroupHeaderRow | null
-	expanded: ReadonlySet<string | number>
-	toggle: (key: string | number) => void
-} | null {
-	if (!args.active || !args.groupRow) return null
-
-	return { groupRow: args.groupRow, expanded: args.expanded, toggle: args.toggle }
-}
-
-/**
- * The grouped column's active sort direction under manual grouping, or `null`
- * when the grid isn't manually grouped or its grouped column isn't sorted — what
- * {@link GridBody} reorders the manual group blocks by. Kept off
- * {@link GridData}'s complexity budget.
- *
- * @internal
- */
-function manualGroupSortDirection(args: {
-	active: boolean
-	sort: SortState[]
-	grouping: (string | number) | null
-}): 'asc' | 'desc' | null {
-	if (!args.active) return null
-
-	return args.sort.find((entry) => entry.column === args.grouping)?.direction ?? null
-}
-
-/**
- * The group-by context value the header buttons read, or `null` while the
- * `groupBy.groupButton` flag is off — the buttons then render nothing. Kept off
- * {@link GridData}'s complexity budget.
- *
- * @internal
- */
-function resolveGroupByContext(args: {
-	groupButton: boolean
-	grouping: (string | number) | null
-	setGrouping: (next: (string | number) | null) => void
-	hasData: boolean
-}): GridGroupByContextValue | null {
-	if (!args.groupButton) return null
-
-	return {
-		grouping: args.grouping,
-		setGrouping: args.setGrouping,
-		enabled: args.hasData,
-	}
-}
-
-/**
- * Zeroes the grid features that a self-rendering body stands over. Grouping —
- * client or manual — renders its own plain body, so it stands the navigable
- * cursor and virtualization down; client grouping (a whole-set body) also
- * stands pagination down, while manual grouping keeps *manual* pagination (the
- * backend pages the grouped sequence) and drops only a client one, whose
- * arbitrary slice boundaries would tear children from their group headers.
- * Master-detail interleaves auto-height detail rows into the flat body, so it
- * stands the cursor and virtualization down (a window assumes uniform row
- * heights) but keeps pagination — the two compose. Each flag passes through
- * when none is active. Split out so {@link GridData} stays within its
- * complexity budget.
- *
- * @internal
- */
-function resolveGroupingGates(args: {
-	groupingActive: boolean
-	manualGroupingActive: boolean
-	expandableActive: boolean
-	navigable: boolean
-	virtualize: boolean
-	pagination: GridPagination | undefined
-}): { navigable: boolean; virtualize: boolean; pagination: GridPagination | undefined } {
-	// Any self-rendering body stands the cursor and virtualization down.
-	const ownBody = args.groupingActive || args.manualGroupingActive || args.expandableActive
-
-	const pagination = args.manualGroupingActive
-		? isManualPagination(args.pagination)
-			? args.pagination
-			: undefined
-		: args.groupingActive
-			? undefined
-			: args.pagination
-
-	return {
-		navigable: ownBody ? false : args.navigable,
-		virtualize: ownBody ? false : args.virtualize,
-		pagination,
-	}
-}
-
-/**
- * Resolves the master-detail hook into what {@link GridData} threads onward:
- * whether it's active (grouping renders its own body, so expansion stands down
- * under it) and the body wiring the flat rows read — the expanded set, the
- * per-row predicate, the toggle, and the detail renderer — or `null` when
- * inactive. Kept off {@link GridData}'s complexity budget.
- *
- * @internal
- */
-function resolveDetailExpansion<T>(
-	expansion: GridExpansionResult<T>,
-	groupingActive: boolean,
-): { active: boolean; body: GridRowsProps<T>['expansion'] } {
-	const active = expansion.active && !groupingActive
-
-	if (!active || !expansion.render) return { active: false, body: null }
-
-	return {
-		active: true,
-		body: {
-			expanded: expansion.expanded,
-			rowExpandable: expansion.rowExpandable,
-			toggle: expansion.toggle,
-			render: expansion.render,
-		},
-	}
-}
-
-/** Whether a consumer already bound a dimension's initial state (so a `preferences` seed must not override it). @internal */
-function isBound(config: { value?: unknown; defaultValue?: unknown } | undefined): boolean {
-	return config?.value !== undefined || config?.defaultValue !== undefined
-}
-
-/** Seeds {@link GridColumnOrder.defaultValue} from `preferences.order`, skipping an empty order (which would defeat the declaration-order fallback). @internal */
-function seedColumnOrder(
-	config: GridColumnOrder | undefined,
-	preferences: GridPreferences | undefined,
-): GridColumnOrder | undefined {
-	const order = preferences?.order
-
-	if (!order?.length || isBound(config)) return config
-
-	return { ...config, defaultValue: order }
-}
-
-/** Seeds {@link GridPinning.defaultValue} from `preferences.pinning`. @internal */
-function seedPinning(
-	config: GridPinning | undefined,
-	preferences: GridPreferences | undefined,
-): GridPinning | undefined {
-	const pinning = preferences?.pinning
-
-	if (pinning === undefined || isBound(config)) return config
-
-	return { ...config, defaultValue: pinning }
-}
-
-/** Seeds {@link GridColumnSizing.defaultValue} from `preferences.columnSizing`. @internal */
-function seedColumnSizing(
-	config: GridColumnSizing | undefined,
-	preferences: GridPreferences | undefined,
-): GridColumnSizing | undefined {
-	const sizing = preferences?.columnSizing
-
-	if (sizing === undefined || isBound(config)) return config
-
-	return { ...config, defaultValue: sizing }
-}
-
-/** Seeds {@link GridColumnManagerConfig.defaultHidden} from `preferences.hidden`, unless the consumer bound visibility. @internal */
-function seedColumnManager(
-	config: GridColumnManagerConfig | undefined,
-	preferences: GridPreferences | undefined,
-): GridColumnManagerConfig | undefined {
-	const hidden = preferences?.hidden
-
-	if (hidden === undefined || config?.hidden !== undefined || config?.defaultHidden !== undefined) {
-		return config
-	}
-
-	return { ...config, defaultHidden: new Set(hidden) }
-}
-
-/**
- * Validates the mutually-dependent grid props up front, throwing a pointed error
- * for a combination the grid can't render: virtualization (or the infinite
- * scroll that implies it) without a sized scroll container, infinite scroll
- * against an explicitly refused window, or alongside the paged footer it
- * replaces. Kept off {@link GridData}'s cognitive-complexity budget. @internal
- */
-function assertGridProps(args: {
-	virtualize: GridVirtualize | undefined
-	maxHeight: string | undefined
-	infiniteScroll: GridInfiniteScroll | undefined
-	pagination: GridPagination | undefined
-}): void {
-	if ((args.virtualize || args.infiniteScroll) && !args.maxHeight) {
-		throw new Error(
-			'<Grid virtualize / infiniteScroll> requires `maxHeight` — the windowed rows need a scroll container of known size: a fixed CSS length, or `"fill"` inside a CSS-sized parent.',
-		)
-	}
-
-	if (args.infiniteScroll && args.virtualize === false) {
-		throw new Error(
-			'<Grid infiniteScroll> windows the loaded rows through the virtualized scroll container — it implies `virtualize`, which must not be explicitly `false`.',
-		)
-	}
-
-	if (args.infiniteScroll && args.pagination) {
-		throw new Error(
-			'<Grid> takes either `pagination` or `infiniteScroll`, not both — infinite scroll replaces the paged footer.',
-		)
-	}
-}
-
-/**
- * The `virtualize` setting with the `infiniteScroll` implication applied:
- * infinite scroll layers on the virtualized window, so setting it implies
- * `virtualize` rather than requiring three coupled props. An explicit
- * `virtualize` (object or `true`) still tunes the window; the contradictory
- * `virtualize={false}` + `infiniteScroll` throws in {@link assertGridProps}.
- * Kept off {@link GridData}'s complexity budget. @internal
- */
-function implyVirtualize(
-	virtualize: GridVirtualize | undefined,
-	infiniteScroll: GridInfiniteScroll | undefined,
-): GridVirtualize | undefined {
-	return virtualize ?? (infiniteScroll ? true : undefined)
 }
 
 /**
@@ -509,162 +195,6 @@ function useServerSortSettle<T>(args: { enabled: boolean; sort: SortState[]; row
 	return enabled && settling
 }
 
-/** Props for {@link GridRegion}. @internal */
-type GridRegionProps<T> = {
-	canReorder: boolean
-	dndContextProps: ComponentProps<typeof DndContext>
-	itemIds: ComponentProps<typeof SortableContext>['items']
-	strategy: ComponentProps<typeof SortableContext>['strategy']
-	/** Id of the column being dragged, or `null`; handed to the reordering body cells for their lift cue. */
-	activeReorderId: string | null
-	contextMenu: GridContextMenuConfig<T> | undefined
-	/** Behavioral gate for the menus; the wrapper stays mounted either way (see GridContextMenu.enabled). */
-	contextMenuEnabled: boolean
-	columns: GridColumn<T>[]
-	rows: T[]
-	rowKeys: (string | number)[]
-	/** Active sort columns in priority order, so the header menu can offer "Clear sort" for a sorted column. */
-	sort: SortState[]
-	sortColumn: (column: string | number, direction: 'asc' | 'desc') => void
-	clearSort: () => void
-	/** Pins a column to an edge, or unpins it with `false`; backs the header menu's Pin items. */
-	pinColumn: (column: string | number, side: PinSide | false) => void
-	/** The group-by wiring, or `null` when the group button is off; backs the header menu's "Group by …" item. */
-	groupBy: GridGroupByContextValue | null
-	autoSizeColumns: (() => void) | null
-	/** Re-fits a single column to its content; backs the header menu's "Auto-size this column" item. */
-	autoSizeColumn: ((column: string | number) => void) | null
-	chooseColumns: (() => void) | null
-	/** One action per configured export type; empty when export is off. */
-	exportActions: GridExportAction[]
-	/** Resolves the group-header menu for a right-clicked group by key, or `null` when the row manager is off. */
-	rowGroupMenu: ((key: string) => GridMenuItem[] | null) | null
-	/** Resolves the column-group band menu for a right-clicked group by id. */
-	columnGroupMenu: ((id: string) => GridMenuItem[] | null) | null
-	children: ReactNode
-}
-
-/**
- * Wraps the table region in its interaction layers: the column-reorder dnd
- * context (when reorderable) nested inside the right-click context menu (when
- * configured). Split out of {@link GridData} so its body stays within the
- * cognitive-complexity budget.
- *
- * @internal
- */
-function GridRegion<T>({
-	canReorder,
-	dndContextProps,
-	itemIds,
-	strategy,
-	activeReorderId,
-	contextMenu,
-	contextMenuEnabled,
-	columns,
-	rows,
-	rowKeys,
-	sort,
-	sortColumn,
-	clearSort,
-	pinColumn,
-	groupBy,
-	autoSizeColumns,
-	autoSizeColumn,
-	chooseColumns,
-	exportActions,
-	rowGroupMenu,
-	columnGroupMenu,
-	children,
-}: GridRegionProps<T>) {
-	const reordered = canReorder ? (
-		<DndContext {...dndContextProps} modifiers={REORDER_MODIFIERS} autoScroll={REORDER_AUTO_SCROLL}>
-			<SortableContext items={itemIds} strategy={strategy}>
-				<GridReorderContext value={activeReorderId}>{children}</GridReorderContext>
-			</SortableContext>
-		</DndContext>
-	) : (
-		children
-	)
-
-	if (!contextMenu) return reordered
-
-	return (
-		<GridContextMenu
-			config={contextMenu}
-			enabled={contextMenuEnabled}
-			columns={columns}
-			rows={rows}
-			rowKeys={rowKeys}
-			sort={sort}
-			sortColumn={sortColumn}
-			clearSort={clearSort}
-			pinColumn={pinColumn}
-			groupBy={groupBy}
-			autoSizeColumns={autoSizeColumns}
-			autoSizeColumn={autoSizeColumn}
-			chooseColumns={chooseColumns}
-			exportActions={exportActions}
-			rowGroupMenu={rowGroupMenu}
-			columnGroupMenu={columnGroupMenu}
-		>
-			{reordered}
-		</GridContextMenu>
-	)
-}
-
-/**
- * Wraps the table region in the row drag-reorder `<DndContext>` when rows are
- * reorderable, else renders the region untouched. The context sits outside the
- * `<table>` (its injected a11y nodes must not be table children) and locks drags
- * to the y-axis, bounding them to the scroll container. Split out so
- * {@link GridData} stays within its complexity budget.
- *
- * @internal
- */
-function GridRowReorderRegion({
-	active,
-	dndContextProps,
-	children,
-}: {
-	active: boolean
-	dndContextProps: ComponentProps<typeof DndContext>
-	children: ReactNode
-}) {
-	if (!active) return children
-
-	return (
-		<DndContext
-			{...dndContextProps}
-			modifiers={ROW_REORDER_MODIFIERS}
-			autoScroll={ROW_REORDER_AUTO_SCROLL}
-		>
-			{children}
-		</DndContext>
-	)
-}
-
-/**
- * Mounts the "Manage rows" dialog when the row manager is reachable (client
- * grouping + the header context menu), else renders nothing — keeping the
- * reachability branch off {@link GridData}'s complexity budget.
- *
- * @internal
- */
-function GridRowManagerRegionDialog({ region }: { region: GridRowManagerRegionResult }) {
-	if (!region.reachable) return null
-
-	return (
-		<GridRowManagerDialog
-			open={region.open}
-			onOpenChange={region.setOpen}
-			label="Manage rows"
-			groups={region.managerGroups}
-			onRecolor={region.recolor}
-			onReorderGroups={region.reorderGroups}
-		/>
-	)
-}
-
 /**
  * Stabilizes a consumer event callback (`onRowClick`, `onCellClick`, and their
  * double-click counterparts) so the memoized rows hold across renders: returns
@@ -684,241 +214,6 @@ function useStableHandler<A extends unknown[]>(
 	const present = handler != null
 
 	return useMemo(() => (present ? (...args: A) => ref.current?.(...args) : undefined), [present])
-}
-
-/**
- * Adapts the row-click into the cursor's `onRowActivate`: the cursor fires from
- * the grid `<table>` (its single tab stop), so the row-level event type is bridged
- * to the table-level one here. `undefined` when the grid has no row click.
- *
- * @internal
- */
-function bridgeRowActivate<T>(
-	handleRowClick: GridRowClick<T> | undefined,
-): GridRowActivate | undefined {
-	if (!handleRowClick) return undefined
-
-	return (row, event) =>
-		handleRowClick(row as T, event as unknown as Parameters<GridRowClick<T>>[1])
-}
-
-/**
- * Adapts the cell-click into the cursor's `onCellActivate`: the cursor speaks
- * display indices, so the bridge resolves them to the cell context — row datum,
- * key, data column, and value — through the live refs at activation time.
- * `undefined` when the grid has no cell click.
- *
- * @internal
- */
-function bridgeCellActivate<T>(
-	handleCellClick: GridCellClick<T> | undefined,
-	refs: {
-		rowsRef: RefObject<T[]>
-		rowKeysRef: RefObject<(string | number)[]>
-		dataColumnsRef: RefObject<GridColumn<T>[]>
-	},
-): GridCellActivate | undefined {
-	if (!handleCellClick) return undefined
-
-	return (rowIdx, colIdx, event) => {
-		const row = refs.rowsRef.current[rowIdx]
-
-		const rowKey = refs.rowKeysRef.current[rowIdx]
-
-		const col = refs.dataColumnsRef.current[colIdx]
-
-		if (row === undefined || rowKey === undefined || !col) return
-
-		handleCellClick({ row, rowKey, columnId: col.id, value: cellValue(col, row) }, event)
-	}
-}
-
-/**
- * Builds the cell-roving activation: a focused cell's Enter/Space fires the cell
- * click then the row click, the order (and pair) a pointer click on the cell
- * fires them in. `undefined` when the grid has neither handler. Kept off
- * {@link GridData}'s complexity budget. @internal
- */
-function buildRovingCellActivate<T>(
-	handleCellClick: GridCellClick<T> | undefined,
-	handleRowClick: GridRowClick<T> | undefined,
-): GridCellRovingActivate<T> | undefined {
-	if (!handleCellClick && !handleRowClick) return undefined
-
-	return (context, event) => {
-		handleCellClick?.(context, event)
-
-		// The activation fires from the cell's `<td>`, so the event's element type
-		// is widened to the row-click's `<tr>` signature — as the cursor bridge does.
-		handleRowClick?.(context.row, event as unknown as Parameters<GridRowClick<T>>[1])
-	}
-}
-
-/**
- * Composes the grid's own cell double-click intent (double-click-to-edit, see
- * {@link GridEditableConfig.trigger}) with the consumer's handler on the one
- * built-in event: the internal intent fires first, then the consumer is
- * notified. Either alone passes through untouched; `undefined` when neither is
- * set, so an inert row attaches no handler.
- *
- * @internal
- */
-function composeCellDoubleClick<T>(
-	internal: GridCellClick<T> | undefined,
-	consumer: GridCellClick<T> | undefined,
-): GridCellClick<T> | undefined {
-	if (!internal || !consumer) return internal ?? consumer
-
-	return (cell, event) => {
-		internal(cell, event)
-
-		consumer(cell, event)
-	}
-}
-
-/**
- * Resolves the column-group band row for the rendered columns: the
- * {@link GridGroupHeader} spans (from the visible column ids and their pin
- * sides) and whether any band actually spans columns. Kept out of
- * {@link GridData} so its branch doesn't weigh on the component's complexity.
- *
- * @internal
- */
-function resolveGroupHeaderRow<T>(
-	group: GridGroupResult,
-	visibleColumns: GridColumn<T>[],
-	pinning: GridColumnPinning | null,
-): { header: GridGroupHeader | null; hasGroupRow: boolean } {
-	if (!group.hasGroups) return { header: null, hasGroupRow: false }
-
-	const header = group.resolveHeader(
-		visibleColumns.map((c) => c.id),
-		(id) => pinning?.side(id),
-	)
-
-	return { header, hasGroupRow: header.spans.some((span) => span.kind === 'group') }
-}
-
-/**
- * Effective density under {@link GridDataProps.condensed}: the tight preset
- * forces the compact step for every density-derived metric (cell padding,
- * resize-handle width, virtualized row-height, autosize measurement); a plain
- * grid keeps its resolved level. Kept out of {@link GridData} so its branch
- * doesn't weigh on the component's complexity budget. @internal
- */
-function resolveDensity(condensed: boolean, resolved: DensityLevel): DensityLevel {
-	return condensed ? 'compact' : resolved
-}
-
-/**
- * Table className with the {@link GridDataProps.condensed} down-projections —
- * cell font, header/body icons, and consumer badges — layered onto the resolved
- * layout class, or that class untouched. All cast from the `<table>` onto its
- * descendants, so cells and headers read no context (see `kata/grid`
- * `condensed`). @internal
- */
-function condensedTableClass(condensed: boolean, base: string): string {
-	return condensed ? cn(base, k.condensed.font, k.condensed.icon, k.condensed.badge) : base
-}
-
-/**
- * The `outline` variant's cell borders (see `k.outline`), or `''` when not
- * outlined. The grid draws its own outline in `border-collapse: separate` mode —
- * every rule riding its own cell — instead of forwarding `outline` to `<Table>`,
- * whose collapse-mode borders weld to the table grid and scroll out from under the
- * sticky header and frozen columns (a seam above the header, a shifting frozen
- * rule). Kept a helper so the branch lives here, off {@link GridData}'s complexity
- * budget. @internal
- */
-function outlineTableClass(outline: boolean | undefined): string {
-	return outline ? cn(k.outline.table, k.outline.cell, k.outline.top, k.outline.left) : ''
-}
-
-/**
- * The effective `striped` parity under the `outline` variant: an outlined grid
- * pairs its per-cell rules with odd-row zebra, so a bare `striped` (the `true`
- * boolean, which `<Table>` would read as even) resolves to `'odd'` when
- * outlined. An explicit `'odd'` / `'even'` is a deliberate override and passes
- * through untouched, as does `striped` on a plain (un-outlined) grid. Kept a
- * helper so the branch lives here, off {@link GridData}'s complexity budget.
- * @internal
- */
-function stripedForOutline(
-	striped: boolean | 'odd' | 'even' | undefined,
-	outline: boolean | undefined,
-): boolean | 'odd' | 'even' | undefined {
-	return outline && striped === true ? 'odd' : striped
-}
-
-/**
- * Broadcasts the grid's resolved density onto the *table region* as a density
- * cascade, so size-aware *client* cell content (a `Sparkline`, an inline `Input`,
- * the selection checkbox) tracks the grid's `density` — and its `condensed` step,
- * which {@link resolveDensity} folds to `compact`. Scoped to the table on purpose
- * — it sits inside the context-menu trigger, below the toolbar/footer, so a
- * portaled overlay (context menu, dialog) the grid spawns stays on the ambient
- * density rather than inheriting the grid's. Static leaves (`Badge`, `Icon`,
- * `Text`) read no density; the `<table>` class down-projects those under
- * `condensed` (see `condensedTableClass`). A grid already at the ambient density
- * broadcasts its own level — a no-op. Kept a component so the branch lives here,
- * off {@link GridData}'s complexity budget. @internal
- */
-function DensityCascade({ level, children }: { level: DensityLevel; children: ReactNode }) {
-	return <Density scale={densityToSize[level]}>{children}</Density>
-}
-
-/** Props for {@link GridScrollRegion}. @internal */
-type GridScrollRegionProps = {
-	/** Whether the table needs the scroll wrapper (sticky header or virtualization). */
-	active: boolean
-	scrollRef: RefObject<HTMLDivElement | null>
-	maxHeight: string | undefined
-	children: ReactNode
-}
-
-/**
- * The sticky/virtualized scroll container around the table, or the table
- * untouched when no scroll wrapper is needed. `maxHeight="fill"` sizes by
- * flexing into the parent's box (see `k.fill`) rather than an inline cap; any
- * other value caps the wrapper directly. Split out of {@link GridData} so the
- * branching stays off its complexity budget. @internal
- */
-function GridScrollRegion({ active, scrollRef, maxHeight, children }: GridScrollRegionProps) {
-	if (!active) return children
-
-	const fillHeight = maxHeight === 'fill'
-
-	return (
-		<div
-			ref={scrollRef}
-			data-slot="grid-scroll"
-			className={cn(k.sticky.wrapper, fillHeight && k.fill.scroll)}
-			style={maxHeight && !fillHeight ? { maxHeight } : undefined}
-		>
-			{children}
-		</div>
-	)
-}
-
-/**
- * Wrapper class for the grid's outer `data-slot="grid"` element: the base
- * chrome, plus — under `maxHeight="fill"` — the stretch that hands the
- * consumer's box to the flexing scroll region (see `k.fill`). Kept off
- * {@link GridData}'s complexity budget. @internal
- */
-function gridWrapperClass(fill: boolean): string {
-	return fill ? cn(k.wrapper, k.fill.wrapper) : cn(k.wrapper)
-}
-
-/**
- * The data-body settle wash while a server-side sort is in flight — the pulse
- * over the reduced-motion dim, projected onto the data `<tbody>` (see
- * `k.body.settling`) — or `undefined` once the sort settles (or when it's
- * client-side, where `settling` never sets). Kept off {@link GridData}'s
- * complexity budget. @internal
- */
-function settleBodyClass(settling: boolean): readonly string[] | undefined {
-	return settling ? k.body.settling : undefined
 }
 
 /**

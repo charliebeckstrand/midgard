@@ -1,0 +1,94 @@
+import type { CSSProperties } from 'react'
+import { cn } from '../../../../core'
+import { k } from '../../../../recipes/kata/grid'
+import type { GridColumnPinning } from '../../use-grid-table'
+
+/**
+ * Inline sticky offset for a pinned cell — `left` for a left-pinned column,
+ * `right` for a right-pinned one, each summed from the engine — or `undefined`
+ * when the column scrolls. Pairs with {@link pinnedClassName}, which carries the
+ * `position: sticky` itself.
+ *
+ * @internal
+ */
+export function pinnedOffsetStyle(
+	pinning: GridColumnPinning | null,
+	id: string | number,
+): CSSProperties | undefined {
+	if (!pinning) return undefined
+
+	const side = pinning.side(id)
+
+	if (!side) return undefined
+
+	return side === 'left' ? { left: pinning.leftOffset(id) } : { right: pinning.rightOffset(id) }
+}
+
+/**
+ * Sticky, opaque-surface, boundary-border, and boundary-shadow classes for a
+ * pinned cell, or `''` when the column scrolls. Only the innermost column of each
+ * frozen group — the one at the scroll-facing boundary — carries the edge border
+ * (right for a left group, left for a right group) and the separating shadow; the
+ * columns behind it get just the sticky surface. The engine's left/right sections
+ * combine pinned and locked columns, so the boundary resolves across whichever mix
+ * is frozen. `header` selects the header layer (above the sticky head).
+ *
+ * @internal
+ */
+export function pinnedClassName(
+	pinning: GridColumnPinning | null,
+	id: string | number,
+	options: { header?: boolean } = {},
+): string {
+	if (!pinning) return ''
+
+	const side = pinning.side(id)
+
+	if (!side) return ''
+
+	const atBoundary = side === 'left' ? pinning.isLastLeft(id) : pinning.isFirstRight(id)
+
+	const sideBorder = atBoundary && (side === 'left' ? k.pinned.border.right : k.pinned.border.left)
+
+	const edge = atBoundary && (side === 'left' ? k.pinned.edge.left : k.pinned.edge.right)
+
+	return cn(options.header ? k.pinned.head : k.pinned.cell, sideBorder, edge)
+}
+
+/**
+ * The pinned chrome a body cell merges: the sticky/boundary classes joined with
+ * the column's own `className`, and the sticky-offset style. One call per cell
+ * in place of the class/style pair every renderer repeated.
+ *
+ * @internal
+ */
+export function pinnedCellProps(
+	pinning: GridColumnPinning | null,
+	col: { id: string | number; className?: string },
+): { className: string; style: CSSProperties | undefined } {
+	return {
+		className: cn(pinnedClassName(pinning, col.id), col.className),
+		style: pinnedOffsetStyle(pinning, col.id),
+	}
+}
+
+/**
+ * The header-cell counterpart of {@link pinnedCellProps}: the header-layer
+ * pinned classes joined with the column's `headerClassName`, and the fixed
+ * width (when set) merged under the sticky offset.
+ *
+ * @internal
+ */
+export function pinnedHeaderProps(
+	pinning: GridColumnPinning | null,
+	column: { id: string | number; headerClassName?: string },
+	width: string | number | undefined,
+): { className: string; style: CSSProperties } {
+	return {
+		className: cn(pinnedClassName(pinning, column.id, { header: true }), column.headerClassName),
+		style: {
+			...(width !== undefined ? { width } : null),
+			...pinnedOffsetStyle(pinning, column.id),
+		},
+	}
+}

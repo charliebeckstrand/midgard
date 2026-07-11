@@ -5,8 +5,8 @@ import { Ban, ChevronsDownUp, ChevronsUpDown, ListTree } from 'lucide-react'
 import { type ReactNode, useCallback, useMemo, useState } from 'react'
 import type { PaletteColor } from '../../core/recipe'
 import { useControllable } from '../../hooks'
+import { groupValueLabel } from './engine/grid-column/label'
 import type { GridGroupBy } from './grid-data-types'
-import { formatGroupValue } from './grid-group-row'
 import type { GridRowGroup, GridRowGroups } from './grid-row-group-types'
 import type { GridMenuItem } from './types'
 
@@ -105,7 +105,7 @@ export function buildRowManagerGroups<T>(
 		.map((row) => {
 			const value = row.getGroupingValue(String(columnId)) as string | number
 
-			return { key: value, label: formatGroupValue(value), count: row.subRows.length }
+			return { key: value, label: groupValueLabel(value), count: row.subRows.length }
 		})
 }
 

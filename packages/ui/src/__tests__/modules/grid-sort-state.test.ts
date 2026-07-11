@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { SortState } from '../../modules/grid/context'
-import { nextSort } from '../../modules/grid/grid-sort-state'
+import { nextSort } from '../../modules/grid/engine/grid-sort/state'
 
 describe('nextSort', () => {
 	describe('plain click (non-additive)', () => {

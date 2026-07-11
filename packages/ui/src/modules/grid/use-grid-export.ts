@@ -2,11 +2,11 @@
 
 import type { Table } from '@tanstack/react-table'
 import { useMemo } from 'react'
-import { resolveExportActions } from './export/export-resolve'
-import type { GridExportAction, GridExportEntry } from './export/types'
+import { resolveExportActions } from './engine/grid-export/resolve'
+import type { GridExportAction, GridExportEntry } from './engine/grid-export/types'
 import type { GridColumn } from './types'
 
-export type { GridExportAction } from './export/types'
+export type { GridExportAction } from './engine/grid-export/types'
 
 /**
  * Resolves the `exportable` prop (see {@link GridDataProps.exportable}) into

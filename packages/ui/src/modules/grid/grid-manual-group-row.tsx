@@ -1,6 +1,5 @@
 'use client'
 
-import type { Row } from '@tanstack/react-table'
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import type { ReactElement, ReactNode } from 'react'
 import { Button } from '../../components/button'
@@ -9,116 +8,12 @@ import { TableCell, TableRow } from '../../components/table'
 import { TextSkeleton } from '../../components/text'
 import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/grid'
-import { aggregateLabelSpan, formatAggregate, hasAggregation } from './grid-aggregate'
-import { columnAccessor } from './grid-column-accessor'
-import { MANUAL_GROUP_PLACEHOLDER_ROWS } from './grid-constants'
+import { aggregateLabelSpan, hasAggregation } from './engine/grid-aggregate'
+import { groupValueLabel } from './engine/grid-column/label'
+import { MANUAL_GROUP_PLACEHOLDER_ROWS } from './engine/grid-constants'
+import { GridAggregateCells } from './grid-aggregate-cells'
 import type { GridGroupBy, GridGroupHeaderRow } from './grid-data-types'
-import { formatGroupValue } from './grid-group-row'
-import { compareSmart } from './grid-sorting-utilities'
 import type { GridColumn } from './types'
-
-/**
- * One run of the manual grouped body: a group-header row (with its
- * {@link GridGroupHeaderRow} descriptor) followed by the leaf rows positionally
- * associated with it — or, for leaves preceding any header, a headerless run
- * that always renders expanded.
- *
- * @internal
- */
-export type GridManualGroupSegment<T> = {
-	/** The group-header engine row, or `null` for a leading headerless run. */
-	header: Row<T> | null
-	/** The header's descriptor, resolved once; `null` alongside a `null` header. */
-	info: GridGroupHeaderRow | null
-	/** The leaf rows under this header, in supplied order. */
-	leaves: Row<T>[]
-}
-
-/**
- * Splits the manual display rows into {@link GridManualGroupSegment}s by
- * position: each group-header row (per the binding's `groupRow` resolver)
- * opens a segment collecting the leaves after it, up to the next header. Leaves
- * before any header collect into a leading headerless segment. Pure, so the
- * positional-association contract is unit-testable on its own.
- *
- * @internal
- */
-export function segmentManualGroupRows<T>(
-	rows: Row<T>[],
-	groupRow: (row: T) => GridGroupHeaderRow | null,
-): GridManualGroupSegment<T>[] {
-	const segments: GridManualGroupSegment<T>[] = []
-
-	let current: GridManualGroupSegment<T> | null = null
-
-	for (const row of rows) {
-		const info = groupRow(row.original)
-
-		if (info) {
-			current = { header: row, info, leaves: [] }
-
-			segments.push(current)
-
-			continue
-		}
-
-		if (!current) {
-			current = { header: null, info: null, leaves: [] }
-
-			segments.push(current)
-		}
-
-		current.leaves.push(row)
-	}
-
-	return segments
-}
-
-/**
- * Orders manual group {@link GridManualGroupSegment}s for a sort on the grouped
- * column: the header segments sort by their group `value` through
- * {@link compareSmart} (negated for descending), while a leading headerless run
- * — leaves before any header — stays at the front. The leaves within each
- * segment keep their supplied (backend) order — only the group blocks move, so
- * children never leave their header. Returns the segments untouched when no
- * group sort is active. Pure, so the group-sort contract is unit-testable.
- *
- * @internal
- */
-export function orderManualGroupSegments<T>(
-	segments: GridManualGroupSegment<T>[],
-	direction: 'asc' | 'desc' | null,
-): GridManualGroupSegment<T>[] {
-	if (!direction) return segments
-
-	const factor = direction === 'asc' ? 1 : -1
-
-	const headerless = segments.filter((segment) => segment.header === null)
-
-	const headed = segments
-		.filter((segment) => segment.header !== null)
-		.sort((a, b) => factor * compareSmart(a.info?.value, b.info?.value))
-
-	return [...headerless, ...headed]
-}
-
-/**
- * A column's aggregate on a manual group-header row: the backend-computed value
- * read off the group row itself — through {@link columnAccessor}, the same
- * `value`-accessor-else-field path every client aggregate reads — rendered via
- * the column's {@link GridColumn.aggCell} (whose `rows` context is empty here:
- * the children may not be loaded) else the default formatting. `null` for a
- * column with no aggregation, so its cell stays empty.
- *
- * @internal
- */
-function renderManualAggregate<T>(column: GridColumn<T>, row: T): ReactNode {
-	if (column.aggFunc === undefined) return null
-
-	const value = columnAccessor(column)(row)
-
-	return column.aggCell ? column.aggCell({ value, rows: [] }) : formatAggregate(value)
-}
 
 /** Props for {@link GridManualGroupRow}. @internal */
 type GridManualGroupRowProps<T> = {
@@ -161,7 +56,7 @@ export function GridManualGroupRow<T>({
 }: GridManualGroupRowProps<T>) {
 	const label: ReactNode = renderHeader
 		? renderHeader({ columnId, value: info.value, count: info.count })
-		: `${formatGroupValue(info.value)} (${info.count})`
+		: `${groupValueLabel(info.value)} (${info.count})`
 
 	const aggregated = hasAggregation(columns)
 
@@ -174,7 +69,7 @@ export function GridManualGroupRow<T>({
 					variant="bare"
 					onClick={() => toggle(info.key)}
 					aria-expanded={expanded}
-					aria-label={`${expanded ? 'Collapse' : 'Expand'} group ${formatGroupValue(info.value)}`}
+					aria-label={`${expanded ? 'Collapse' : 'Expand'} group ${groupValueLabel(info.value)}`}
 					className="p-0"
 					suffix={
 						<Icon
@@ -187,16 +82,7 @@ export function GridManualGroupRow<T>({
 				</Button>
 			</TableCell>
 
-			{aggregated &&
-				columns.slice(span).map((column) => (
-					<TableCell
-						key={column.id}
-						data-grid-col={column.id}
-						className={cn(k.aggregate.cell, column.className)}
-					>
-						{renderManualAggregate(column, row)}
-					</TableCell>
-				))}
+			{aggregated && <GridAggregateCells columns={columns} headerRow={row} from={span} />}
 		</TableRow>
 	)
 }

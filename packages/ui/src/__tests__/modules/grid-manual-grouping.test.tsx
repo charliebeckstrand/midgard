@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn, type GridGroupHeaderRow } from '../../modules/grid'
-import { MANUAL_GROUP_PLACEHOLDER_ROWS } from '../../modules/grid/grid-constants'
+import { MANUAL_GROUP_PLACEHOLDER_ROWS } from '../../modules/grid/engine/grid-constants'
 import { renderUI, screen, userEvent } from '../helpers'
 
 /** The placeholder skeleton rows the grid draws under a loading manual group. */

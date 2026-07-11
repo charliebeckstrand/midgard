@@ -16,9 +16,8 @@ import {
 	sortableKeyboardCoordinates,
 	verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
-import { Ban, EllipsisVertical, GripVertical, Plus, Trash2 } from 'lucide-react'
+import { EllipsisVertical, GripVertical, Plus, Trash2 } from 'lucide-react'
 import { type ReactNode, useMemo } from 'react'
-import { Badge } from '../../components/badge'
 import { Button } from '../../components/button'
 import { Card, CardBody, CardHeader } from '../../components/card'
 import { Checkbox, CheckboxField, CheckboxGroup } from '../../components/checkbox'
@@ -26,30 +25,27 @@ import { Control } from '../../components/control'
 import { Label } from '../../components/fieldset'
 import { Icon } from '../../components/icon'
 import { Input } from '../../components/input'
-import {
-	Menu,
-	MenuContent,
-	MenuItem,
-	MenuLabel,
-	MenuSeparator,
-	MenuTrigger,
-} from '../../components/menu'
+import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from '../../components/menu'
 import { cn, dataAttr } from '../../core'
-import { colors, extendedColors, type PaletteColor } from '../../core/recipe'
+import type { PaletteColor } from '../../core/recipe'
 import { useGrabbingCursor, useSortableSensors } from '../../hooks'
 import { k } from '../../recipes/kata/grid-group'
-import type { GridColumnGroup } from './grid-group-types'
-import { columnLabel, type GridColumnManagerItem } from './types'
+import { columnLabel } from './engine/grid-column/label'
 import {
 	GROUP_PREFIX,
 	type GridGroupManagerZone,
 	isGroupDragId,
 	UNGROUPED,
+} from './engine/grid-zone/map'
+import type { GridColumnGroup } from './grid-group-types'
+import { DEFAULT_COLOR_OPTIONS, GridManagerColorMenu } from './grid-manager-color-menu'
+import type { GridColumnManagerItem } from './types'
+import {
 	useGridGroupManager,
 	useGroupColumnSortable,
 	useGroupZoneDroppable,
-	useGroupZoneSortable,
 } from './use-grid-group-manager'
+import { useGridZoneSortable } from './use-grid-zone-sortable'
 
 /**
  * Whether droppable `containerId` belongs to the same sortable as the active
@@ -119,19 +115,6 @@ export const groupAwareKeyboardCoordinates: KeyboardCoordinateGetter = (event, a
 		...args,
 		context: { ...args.context, droppableContainers: scoped },
 	})
-}
-
-/** The palette presets offered by the color Menu: standard palette then extended. @internal */
-const DEFAULT_COLOR_OPTIONS: PaletteColor[] = [...colors, ...extendedColors]
-
-/** Capitalizes a palette color name for display (`violet` → `Violet`). @internal */
-function colorLabel(color: PaletteColor): string {
-	return color.charAt(0).toUpperCase() + color.slice(1)
-}
-
-/** A group's display label: its `title` when a string, else its `id`. @internal */
-function groupTitle(group: GridColumnGroup): string {
-	return typeof group.title === 'string' ? group.title : String(group.id)
 }
 
 /** Props for {@link GridGroupManager}. @internal */
@@ -289,14 +272,14 @@ type GridGroupManagerZoneViewProps = {
  */
 function GridGroupManagerGroupZone(props: GridGroupManagerZoneViewProps) {
 	const { setNodeRef, setActivatorNodeRef, attributes, listeners, style, dragging } =
-		useGroupZoneSortable(props.zone.id)
+		useGridZoneSortable(`${GROUP_PREFIX}${props.zone.id}`)
 
 	const handle = (
 		<button
 			type="button"
 			ref={setActivatorNodeRef}
 			className={cn(k.manager.row.grip)}
-			aria-label={`Reorder group ${props.zone.group ? groupTitle(props.zone.group) : ''}`}
+			aria-label={`Reorder group ${props.zone.group ? columnLabel(props.zone.group) : ''}`}
 			{...attributes}
 			{...listeners}
 		>
@@ -420,7 +403,7 @@ function GridGroupManagerZoneHeader({
 	recolorGroup,
 	removeGroup,
 }: GridGroupManagerZoneHeaderProps) {
-	const label = groupTitle(group)
+	const label = columnLabel(group)
 
 	return (
 		<div className={cn(k.manager.zone.header)}>
@@ -434,34 +417,13 @@ function GridGroupManagerZoneHeader({
 				onChange={(event) => renameGroup(group.id, event.target.value)}
 			/>
 
-			<Menu aria-label={`Color menu for ${label}`} placement="bottom-end">
-				<MenuTrigger>
-					<Button color={group.color} variant="soft" aria-label={`Color for ${label}`}>
-						{group.color ? colorLabel(group.color) : 'Color'}
-					</Button>
-				</MenuTrigger>
-				<MenuContent>
-					{/* Clear the color — offered only once the group has one to clear. */}
-					{group.color !== undefined && (
-						<MenuItem onAction={() => recolorGroup(group.id, undefined)}>
-							<Icon icon={<Ban />} />
-							<MenuLabel>None</MenuLabel>
-						</MenuItem>
-					)}
-					{group.color !== undefined && <MenuSeparator />}
-					{colorOptions.map((color) => (
-						<MenuItem
-							key={color}
-							onAction={() => recolorGroup(group.id, color)}
-							disabled={usedColors.has(color)}
-						>
-							<Badge color={color} variant="soft">
-								{colorLabel(color)}
-							</Badge>
-						</MenuItem>
-					))}
-				</MenuContent>
-			</Menu>
+			<GridManagerColorMenu
+				label={label}
+				color={group.color}
+				colorOptions={colorOptions}
+				usedColors={usedColors}
+				onRecolor={(color) => recolorGroup(group.id, color)}
+			/>
 
 			<Button
 				variant="bare"
@@ -549,7 +511,7 @@ function GridGroupManagerColumnRow({
 							.filter((group) => group.id !== zoneId)
 							.map((group) => (
 								<MenuItem key={group.id} onAction={() => assign(item.id, group.id)}>
-									<MenuLabel>Move to {groupTitle(group)}</MenuLabel>
+									<MenuLabel>Move to {columnLabel(group)}</MenuLabel>
 								</MenuItem>
 							))}
 						{inGroup && (

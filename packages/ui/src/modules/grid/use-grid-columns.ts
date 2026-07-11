@@ -2,14 +2,14 @@
 
 import { useCallback, useMemo } from 'react'
 import { isDataColumn } from '../../utilities'
-import { EMPTY_SET } from './grid-constants'
+import { EMPTY_SET } from './engine/grid-constants'
+import { groupedColumnOrder } from './engine/grid-group/compute'
+import { isFrozen, normalizeFreeze } from './engine/grid-pin/overrides'
+import { applyColumnReorder } from './engine/grid-reorder-compute'
 import type { GridColumnManagerConfig, GridColumnOrder } from './grid-data-types'
 import type { GridColumnGroup } from './grid-group-types'
-import { isFrozen, normalizeFreeze } from './grid-pin-overrides'
-import { applyColumnReorder } from './grid-reorder'
 import type { GridColumn, GridColumnManagerItem } from './types'
 import { useGridColumnVisibility } from './use-grid-column-visibility'
-import { groupedColumnOrder } from './use-grid-group'
 
 /**
  * The engine's `columnVisibility` state ({ id: false }) for the hidden columns —

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
 	allocateColumnWidths,
 	type ColumnSizeProfile,
-} from '../../modules/grid/grid-column-allocate'
+} from '../../modules/grid/engine/grid-column/allocate'
 
 /** Unbounded ceiling, as the measurer emits for a column with no `maxWidth`. */
 const UNBOUNDED = Number.MAX_SAFE_INTEGER
