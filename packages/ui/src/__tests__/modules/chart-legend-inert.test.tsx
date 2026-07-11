@@ -28,25 +28,35 @@ function chart(legend?: Parameters<typeof BarChart<(typeof DATA)[number]>>[0]['l
 
 describe('resolveLegend', () => {
 	it('passes a boolean or placement string through with inert off', () => {
-		expect(resolveLegend(undefined)).toEqual({ value: undefined, inert: false })
+		expect(resolveLegend(undefined)).toEqual({
+			value: undefined,
+			placement: undefined,
+			inert: false,
+		})
 
-		expect(resolveLegend(true)).toEqual({ value: true, inert: false })
+		// A bare boolean carries the show value but no placement.
+		expect(resolveLegend(true)).toEqual({ value: true, placement: undefined, inert: false })
 
-		expect(resolveLegend(false)).toEqual({ value: false, inert: false })
+		expect(resolveLegend(false)).toEqual({ value: false, placement: undefined, inert: false })
 
-		expect(resolveLegend('left')).toEqual({ value: 'left', inert: false })
+		expect(resolveLegend('left')).toEqual({ value: 'left', placement: 'left', inert: false })
 	})
 
 	it('reads the object form as its placement plus the inert flag', () => {
 		expect(resolveLegend({ placement: 'left', inert: true })).toEqual({
 			value: 'left',
+			placement: 'left',
 			inert: true,
 		})
 
 		// No placement falls to the default show rule (value undefined), inert defaulting off.
-		expect(resolveLegend({ inert: true })).toEqual({ value: undefined, inert: true })
+		expect(resolveLegend({ inert: true })).toEqual({
+			value: undefined,
+			placement: undefined,
+			inert: true,
+		})
 
-		expect(resolveLegend({})).toEqual({ value: undefined, inert: false })
+		expect(resolveLegend({})).toEqual({ value: undefined, placement: undefined, inert: false })
 	})
 })
 
@@ -76,6 +86,17 @@ describe('chart legend inert prop', () => {
 
 		// Its entries are live switches.
 		expect(allBySlot(container, 'chart-legend-item').length).toBeGreaterThan(0)
+	})
+
+	it('places an inert legend exactly as its bare placement would', () => {
+		// A side placement lays the rail out as a panel; inert only sheds the controls.
+		const { container } = renderUI(chart({ placement: 'left', inert: true }))
+
+		const legend = bySlot(container, 'chart-legend')
+
+		expect(legend?.hasAttribute('inert')).toBe(true)
+
+		expect(legend?.className).toContain('flex-col')
 	})
 
 	it('inerts the legend on its own inside a tile being arranged', () => {

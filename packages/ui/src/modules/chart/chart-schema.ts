@@ -326,21 +326,28 @@ export type ChartLegendConfig = {
 	inert?: boolean
 }
 
-/** The legend value the show / placement logic reads, and whether it renders inert. @internal */
+/** A `legend` prop resolved to what the frame, item logic, and legend each read. @internal */
 export type ResolvedLegend = {
-	/** The boolean / placement the show and placement rules read — the object's `placement`, or the bare value. */
+	/**
+	 * The boolean / placement the show rule reads (`legend ?? seriesCount > 1`)
+	 * and the panel/side logic keys off — the object's `placement`, or the bare
+	 * value. Carries the `false` / `true` show-hide the placement alone can't.
+	 */
 	value: boolean | ChartLegendPlacement | undefined
+	/** Just the placement, `undefined` for a bare boolean — the frame's `legendPlacement`. */
+	placement: ChartLegendPlacement | undefined
 	/** The legend renders as a static key. */
 	inert: boolean
 }
 
 /**
  * Normalizes a categorical chart's `legend` prop — a boolean, a placement
- * string, or a {@link ChartLegendConfig} — to the placement / show value the
- * frame and item logic already read, plus the `inert` flag. The object's
- * `placement` becomes the value (so `{ placement: 'left' }` places exactly as
- * `'left'` and an object with no placement falls to the default show rule), and
- * a bare boolean or string passes through with `inert` off.
+ * string, or a {@link ChartLegendConfig} — to the show `value` the frame and
+ * item logic already read, the `placement` alone (a bare boolean resolving to
+ * none), and the `inert` flag. The object's `placement` becomes both `value`
+ * and `placement` (so `{ placement: 'left' }` places exactly as `'left'` and an
+ * object with no placement falls to the default show rule); a bare boolean or
+ * string passes through with `inert` off.
  *
  * @internal
  */
@@ -348,10 +355,14 @@ export function resolveLegend(
 	legend: boolean | ChartLegendPlacement | ChartLegendConfig | undefined,
 ): ResolvedLegend {
 	if (legend !== null && typeof legend === 'object') {
-		return { value: legend.placement, inert: legend.inert ?? false }
+		return { value: legend.placement, placement: legend.placement, inert: legend.inert ?? false }
 	}
 
-	return { value: legend, inert: false }
+	return {
+		value: legend,
+		placement: typeof legend === 'string' ? legend : undefined,
+		inert: false,
+	}
 }
 
 /**

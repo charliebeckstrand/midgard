@@ -227,11 +227,11 @@ export function LineChart<T>(props: LineChartProps<T>) {
 				<ChartCartesianLegend
 					chart={chart}
 					legend={resolvedLegend.value}
-					texture={tex.active}
 					inert={resolvedLegend.inert}
+					texture={tex.active}
 				/>
 			}
-			legendPlacement={typeof resolvedLegend.value === 'string' ? resolvedLegend.value : undefined}
+			legendPlacement={resolvedLegend.placement}
 			readout={chart.readout}
 			readoutOrder={chart.readoutOrder}
 			emphasis={chart.emphasis}

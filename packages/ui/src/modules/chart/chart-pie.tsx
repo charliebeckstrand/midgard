@@ -1072,7 +1072,7 @@ export function ChartPie<T>(props: ChartPieProps<T>) {
 					/>
 				)
 			}
-			legendPlacement={typeof resolvedLegend.value === 'string' ? resolvedLegend.value : undefined}
+			legendPlacement={resolvedLegend.placement}
 			readout={readout}
 			tooltip={showTooltip}
 			focus={{ points: focusPoints }}
