@@ -330,6 +330,7 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 			tex={tex}
 			fullscreen={<ComboChart {...props} />}
 			showTooltip={showTooltip}
+			tooltipTrigger={trigger}
 			snap={snapTargets(rails, chart.bandPositions, chart.snapPoints)}
 			focus={cartesianFocus(
 				chart.bandPositions,

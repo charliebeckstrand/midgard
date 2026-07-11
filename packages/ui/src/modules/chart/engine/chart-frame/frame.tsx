@@ -23,7 +23,7 @@ import { ChartPlotBox } from '../chart-plot-box'
 import type { ChartSnap } from '../chart-snap'
 import { ChartTable } from '../chart-table'
 import type { ChartTier } from '../chart-tier'
-import { ChartTooltip } from '../chart-tooltip'
+import { ChartTooltip, type ChartTooltipTrigger } from '../chart-tooltip'
 import {
 	type ChartEmphasis,
 	ChartEmphasisContext,
@@ -192,6 +192,13 @@ export type ChartFrameProps = AccessibleName & {
 	emphasis?: number | null
 	/** Mount the hover tooltip. */
 	tooltip: boolean
+	/**
+	 * How the tooltip is summoned, so the readout picks its reposition strategy:
+	 * a pointer-tracked `'hover'` readout drops `autoUpdate`, a pinned `'click'`
+	 * one keeps it. Undefined keeps the `autoUpdate` parity default.
+	 * @see {@link ChartTooltip}
+	 */
+	tooltipTrigger?: ChartTooltipTrigger
 	/** Snap targets when the crosshair snaps, carrying the tooltip to the intersection. */
 	snap?: ChartSnap
 	/**
@@ -259,6 +266,7 @@ export function ChartFrame({
 	readoutOrder,
 	emphasis: seriesEmphasis = null,
 	tooltip,
+	tooltipTrigger,
 	snap,
 	focus,
 	onActiveSeries = ignoreActiveSeries,
@@ -437,6 +445,7 @@ export function ChartFrame({
 					order={readoutOrder}
 					snap={snap}
 					orientation={orientation}
+					trigger={tooltipTrigger}
 					// The pointed mark's series dims the other rows too, so a hovered bar or
 					// line foregrounds its row exactly as the coarse legend emphasis does.
 					emphasis={markEmphasis.mark?.series ?? null}

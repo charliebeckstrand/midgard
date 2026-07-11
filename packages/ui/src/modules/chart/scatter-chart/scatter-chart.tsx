@@ -747,6 +747,7 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 			readout={readout}
 			emphasis={emphasis}
 			tooltip={showTooltip}
+			tooltipTrigger={trigger}
 			snap={snapTargets(rails, bandPositions, snapColumns)}
 			focus={cartesianFocus(bandPositions, snapColumns, 'vertical')}
 			className={className}

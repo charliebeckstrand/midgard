@@ -215,6 +215,7 @@ export function BarChart<T>(props: BarChartProps<T>) {
 			tex={tex}
 			fullscreen={<BarChart {...props} />}
 			showTooltip={showTooltip}
+			tooltipTrigger={trigger}
 			snap={snapTargets(rails, chart.bandPositions, valuePoints)}
 			focus={cartesianFocus(
 				chart.bandPositions,
