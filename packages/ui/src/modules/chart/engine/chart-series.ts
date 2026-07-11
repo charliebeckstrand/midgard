@@ -43,9 +43,20 @@ export function isSeriesSlot(color: string): color is ChartSeriesColor {
 }
 
 /**
+ * The palette slot at a series index in the fixed categorical order, wrapping
+ * past the eighth series — aggregate at the call site before then. The one
+ * place the cycle lives, so a series with no explicit colour, a scatter point,
+ * and a pie slice all draw the same eighth colour for the eighth series.
+ *
+ * @internal
+ */
+export function paletteSlot(index: number): ChartSeriesColor {
+	return k.order[index % k.order.length] ?? 'blue'
+}
+
+/**
  * Resolves a series' colour: its explicit `color` — a palette slot or a raw CSS
- * colour — else its slot in the fixed categorical order. Slots wrap past the
- * eighth series — aggregate at the call site before then.
+ * colour — else its slot in the fixed categorical order.
  *
  * @internal
  */
@@ -53,7 +64,7 @@ export function seriesColor<T>(
 	series: ChartSeries<T>,
 	index: number,
 ): ChartSeriesColor | (string & {}) {
-	return series.color ?? k.order[index % k.order.length] ?? 'blue'
+	return series.color ?? paletteSlot(index)
 }
 
 /**

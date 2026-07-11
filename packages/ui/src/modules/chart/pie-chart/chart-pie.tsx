@@ -41,7 +41,7 @@ import {
 	resolveLegend,
 	resolveTooltip,
 } from '../engine/chart-schema'
-import { formatChartValue, type SlotPaint, seriesValues } from '../engine/chart-series'
+import { formatChartValue, paletteSlot, type SlotPaint, seriesValues } from '../engine/chart-series'
 import { chartPolicy, isSparkBox, policyPlotHeight } from '../engine/chart-tier'
 import { useChartFullscreen, useChartHover } from '../engine/context'
 import type { ChartReadout } from '../engine/types'
@@ -921,9 +921,7 @@ export function ChartPie<T>(props: ChartPieProps<T>) {
 	// A toggled-off row leaves the sweep entirely, so the survivors re-share the whole.
 	const sliceValues = values.map((entry, index) => (hidden.has(index) ? null : entry))
 
-	const colors = values.map(
-		(_, index) => (k.order[index % k.order.length] ?? 'blue') as ChartSeriesColor,
-	)
+	const colors = values.map((_, index) => paletteSlot(index))
 
 	const paints = colors.map((color) => k.series[color])
 

@@ -63,7 +63,7 @@ import {
 	type ScatterAxes,
 	type ScatterChartSeries,
 } from '../engine/chart-schema'
-import { formatChartValue, type SlotPaint } from '../engine/chart-series'
+import { formatChartValue, paletteSlot, type SlotPaint } from '../engine/chart-series'
 import { snapTargets } from '../engine/chart-snap'
 import { chartPolicy, policyPlotHeight } from '../engine/chart-tier'
 import { useChartTier } from '../engine/context'
@@ -153,7 +153,7 @@ function scatterMetas<T>(data: T[], series: ScatterChartSeries<T>[]): ScatterMet
 
 		const diameters = diameterRange(entry.size, entry.maxSize)
 
-		const color = entry.color ?? k.order[index % k.order.length] ?? 'blue'
+		const color = entry.color ?? paletteSlot(index)
 
 		return {
 			index,
