@@ -1,18 +1,8 @@
 'use client'
 
-import {
-	autoUpdate,
-	flip,
-	offset,
-	shift,
-	useClientPoint,
-	useFloating,
-	useInteractions,
-} from '@floating-ui/react'
-import { type RefObject, useMemo } from 'react'
+import type { RefObject } from 'react'
 import { Swatch, type SwatchProps } from '../../../components/swatch'
-import { TooltipContent } from '../../../components/tooltip'
-import { TooltipContext } from '../../../components/tooltip/context'
+import { TooltipPointer } from '../../../components/tooltip/tooltip-pointer'
 import { cn } from '../../../core'
 import { k } from '../../../recipes/kata/chart'
 import { bandCoord, type ChartOrientation, project, valueCoord } from './chart-orientation'
@@ -109,6 +99,16 @@ export type ChartTooltipProps = {
 	 * row dims, mirroring the marks; `null` (the default) reads every row equally.
 	 */
 	emphasis?: number | null
+	/**
+	 * How the readout is summoned, forwarded from the chart. `'hover'` tracks the
+	 * pointer — the tooltip repositions on every move, so it drops `autoUpdate`
+	 * (`track: 'point'`); a scroll under a stationary pointer is handled by the
+	 * chart's own hover-across-scroll rescue, not `autoUpdate`. `'click'` pins the
+	 * readout, which relies on `autoUpdate` to re-anchor across a scroll that fires
+	 * no pointer event, so it keeps `track: 'auto'`. Undefined keeps the
+	 * `autoUpdate` parity default.
+	 */
+	trigger?: ChartTooltipTrigger
 }
 
 /** The readout's rows in the caller's display order, or as they are without one. @internal */
@@ -162,6 +162,7 @@ export function ChartTooltip({
 	orientation = 'vertical',
 	order,
 	emphasis = null,
+	trigger,
 }: ChartTooltipProps) {
 	const { index, point, onData } = useChartHover()
 
@@ -199,76 +200,46 @@ export function ChartTooltip({
 	// point the floating readout anchors to.
 	const rect = plotRef.current?.getBoundingClientRect()
 
-	const clientX = anchor && rect ? rect.left + anchor.x : null
-
-	const clientY = anchor && rect ? rect.top + anchor.y : null
-
-	const { refs, floatingStyles, context } = useFloating({
-		open,
-		placement: 'top',
-		middleware: [offset(TRACK_OFFSET), flip(), shift({ padding: 8 })],
-		whileElementsMounted: autoUpdate,
-	})
-
-	const clientPoint = useClientPoint(context, { x: clientX, y: clientY })
-
-	const { getReferenceProps, getFloatingProps } = useInteractions([clientPoint])
-
-	const value = useMemo(
-		() => ({
-			open,
-			interactive: false,
-			enabled: true,
-			setReference: refs.setReference,
-			setFloating: refs.setFloating,
-			floatingStyles,
-			getReferenceProps,
-			getFloatingProps,
-		}),
-		[
-			open,
-			refs.setReference,
-			refs.setFloating,
-			floatingStyles,
-			getReferenceProps,
-			getFloatingProps,
-		],
-	)
+	const clientPoint = anchor && rect ? { x: rect.left + anchor.x, y: rect.top + anchor.y } : null
 
 	return (
-		<TooltipContext value={value}>
-			<TooltipContent size="sm">
-				{index !== null && readout !== null && (
-					<div aria-hidden="true">
-						<div className={cn(k.label, 'mb-1 whitespace-nowrap')}>{readout.categories[index]}</div>
+		<TooltipPointer
+			open={open}
+			point={clientPoint}
+			offset={TRACK_OFFSET}
+			track={trigger === 'hover' ? 'point' : 'auto'}
+			size="sm"
+		>
+			{index !== null && readout !== null && (
+				<div aria-hidden="true">
+					<div className={cn(k.label, 'mb-1 whitespace-nowrap')}>{readout.categories[index]}</div>
 
-						<div className="space-y-0.5">
-							{rows.map((row) => (
-								<div
-									key={row.label}
-									data-slot="chart-tooltip-row"
-									className={cn(
-										'flex items-center gap-1.5 whitespace-nowrap transition-opacity',
-										// A cursor on one dataset dims the rest, the same recede the marks take.
-										emphasis !== null && row.index !== emphasis && 'opacity-25',
-									)}
-								>
-									<Swatch
-										shape={SWATCH_SHAPE[row.swatch]}
-										size="sm"
-										color={row.swatchClasses?.[index] ?? row.swatchClass}
-										style={row.swatchColor ? { color: row.swatchColor } : undefined}
-									/>
+					<div className="space-y-0.5">
+						{rows.map((row) => (
+							<div
+								key={row.label}
+								data-slot="chart-tooltip-row"
+								className={cn(
+									'flex items-center gap-1.5 whitespace-nowrap transition-opacity',
+									// A cursor on one dataset dims the rest, the same recede the marks take.
+									emphasis !== null && row.index !== emphasis && 'opacity-25',
+								)}
+							>
+								<Swatch
+									shape={SWATCH_SHAPE[row.swatch]}
+									size="sm"
+									color={row.swatchClasses?.[index] ?? row.swatchClass}
+									style={row.swatchColor ? { color: row.swatchColor } : undefined}
+								/>
 
-									<span className={cn(k.value)}>{row.values[index]}</span>
+								<span className={cn(k.value)}>{row.values[index]}</span>
 
-									<span className={cn(k.label)}>{row.label}</span>
-								</div>
-							))}
-						</div>
+								<span className={cn(k.label)}>{row.label}</span>
+							</div>
+						))}
 					</div>
-				)}
-			</TooltipContent>
-		</TooltipContext>
+				</div>
+			)}
+		</TooltipPointer>
 	)
 }

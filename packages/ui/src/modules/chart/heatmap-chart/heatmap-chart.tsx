@@ -1,15 +1,6 @@
 'use client'
 
 import {
-	autoUpdate,
-	flip,
-	offset,
-	shift,
-	useClientPoint,
-	useFloating,
-	useInteractions,
-} from '@floating-ui/react'
-import {
 	Fragment,
 	type MouseEvent,
 	type PointerEvent,
@@ -22,8 +13,7 @@ import {
 	useRef,
 	useState,
 } from 'react'
-import { TooltipContent } from '../../../components/tooltip'
-import { TooltipContext } from '../../../components/tooltip/context'
+import { TooltipPointer } from '../../../components/tooltip/tooltip-pointer'
 import { cn, createContext } from '../../../core'
 import { usePlotFrame, useResizeObserver } from '../../../hooks'
 import { k } from '../../../recipes/kata/chart'
@@ -360,7 +350,7 @@ type HeatmapTooltipProps = {
 
 /**
  * The hover readout: one cell's row and column labels and its value, in the
- * real Tooltip chrome anchored to the pointer through `useClientPoint`. A
+ * real Tooltip chrome via {@link TooltipPointer} anchored at the pointer. A
  * pointer enhancement, `aria-hidden` by design — the same values ship in the
  * visually-hidden table.
  *
@@ -369,71 +359,37 @@ type HeatmapTooltipProps = {
 function HeatmapTooltip({ columns, rows, values, format, fills, cols }: HeatmapTooltipProps) {
 	const { cell, point } = useHeatmapHover()
 
-	const open = cell !== null && point !== null
-
 	// `point` is already the client coordinate the pointer sat at, so the tooltip
 	// anchors to the cursor directly.
-	const clientX = point?.x ?? null
-
-	const clientY = point?.y ?? null
-
-	const { refs, floatingStyles, context } = useFloating({
-		open,
-		placement: 'top',
-		middleware: [offset(12), flip(), shift({ padding: 8 })],
-		whileElementsMounted: autoUpdate,
-	})
-
-	const clientPoint = useClientPoint(context, { x: clientX, y: clientY })
-
-	const { getReferenceProps, getFloatingProps } = useInteractions([clientPoint])
-
-	const value = useMemo(
-		() => ({
-			open,
-			interactive: false,
-			enabled: true,
-			setReference: refs.setReference,
-			setFloating: refs.setFloating,
-			floatingStyles,
-			getReferenceProps,
-			getFloatingProps,
-		}),
-		[
-			open,
-			refs.setReference,
-			refs.setFloating,
-			floatingStyles,
-			getReferenceProps,
-			getFloatingProps,
-		],
-	)
+	const open = cell !== null && point !== null
 
 	const datum = cell === null ? null : values[cell.row]?.[cell.col]
 
 	const fill = cell === null ? null : fills[cell.row * cols + cell.col]
 
+	// `track="point"`: a pure-hover readout repositions on every pointer move, so it
+	// skips autoUpdate's per-open observer wiring — ~1.5x cheaper across the
+	// open/reposition/teardown cycle (`tooltip-track.bench`). Safe here because the
+	// heatmap tooltip has no click-pinned mode that would need autoUpdate on scroll.
 	return (
-		<TooltipContext value={value}>
-			<TooltipContent size="sm">
-				{cell !== null && (
-					<div aria-hidden="true">
-						<div className={cn(k.label, 'mb-1 whitespace-nowrap')}>{columns[cell.col]}</div>
+		<TooltipPointer open={open} point={point} track="point" size="sm">
+			{cell !== null && (
+				<div aria-hidden="true">
+					<div className={cn(k.label, 'mb-1 whitespace-nowrap')}>{columns[cell.col]}</div>
 
-						<div className="flex items-center gap-1.5 whitespace-nowrap">
-							<span
-								className={cn('size-2.5 shrink-0 rounded-xs', fill === null && NO_DATA_FILL)}
-								style={fill === null ? undefined : { backgroundColor: fill }}
-							/>
+					<div className="flex items-center gap-1.5 whitespace-nowrap">
+						<span
+							className={cn('size-2.5 shrink-0 rounded-xs', fill === null && NO_DATA_FILL)}
+							style={fill === null ? undefined : { backgroundColor: fill }}
+						/>
 
-							<span className={cn(k.value)}>{datum == null ? READOUT_GAP : format(datum)}</span>
+						<span className={cn(k.value)}>{datum == null ? READOUT_GAP : format(datum)}</span>
 
-							<span className={cn(k.label)}>{rows[cell.row]}</span>
-						</div>
+						<span className={cn(k.label)}>{rows[cell.row]}</span>
 					</div>
-				)}
-			</TooltipContent>
-		</TooltipContext>
+				</div>
+			)}
+		</TooltipPointer>
 	)
 }
 

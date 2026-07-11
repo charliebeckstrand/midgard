@@ -10,7 +10,7 @@ import { ChartFrame, type ChartFrameProps } from './frame'
 
 /** Props for {@link ChartCartesianFrame}. @internal */
 export type ChartCartesianFrameProps = AccessibleName &
-	Pick<ChartFrameProps, 'title' | 'subtitle' | 'contextMenu'> & {
+	Pick<ChartFrameProps, 'title' | 'subtitle' | 'contextMenu' | 'tooltipTrigger'> & {
 		/** The resolved chart the frame reads its sizing, tier, legend, and readout off. */
 		chart: CartesianChart
 		/** The `legend` prop resolved to its show value, placement, and inert flag. */
@@ -52,6 +52,7 @@ export function ChartCartesianFrame({
 	tex,
 	fullscreen,
 	showTooltip,
+	tooltipTrigger,
 	snap,
 	focus,
 	reference,
@@ -84,6 +85,7 @@ export function ChartCartesianFrame({
 			readoutOrder={chart.readoutOrder}
 			emphasis={chart.emphasis}
 			tooltip={showTooltip}
+			tooltipTrigger={tooltipTrigger}
 			snap={snap}
 			focus={focus}
 			onActiveSeries={chart.setEmphasis}
