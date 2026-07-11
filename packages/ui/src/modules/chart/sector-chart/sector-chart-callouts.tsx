@@ -19,7 +19,7 @@ import {
 } from '../engine/chart-geometry/pie'
 import { SLICE_FADE, SLICE_UNFADE } from '../engine/chart-motion'
 import { isSparkBox } from '../engine/chart-tier'
-import { sliceGroupClass, sweepDelay } from './pie-chart-marks'
+import { sliceGroupClass, sweepDelay } from './sector-chart-marks'
 
 /** A placed callout with its resolved label text. @internal */
 type CalloutLabel = PieCallout & { text: string }
@@ -144,7 +144,7 @@ export function calloutsShown(
  *
  * @internal
  */
-export function resolvePieFit(
+export function resolveSectorFit(
 	show: boolean,
 	spec: CalloutSpec,
 	sliceValues: (number | null)[],
@@ -183,8 +183,8 @@ export function buildCallouts(
 	})
 }
 
-/** Props for {@link PieCallouts}. @internal */
-type PieCalloutsProps = {
+/** Props for {@link SectorChartCallouts}. @internal */
+type SectorChartCalloutsProps = {
 	items: CalloutLabel[]
 	animate: boolean
 	emphasis: number | null
@@ -198,7 +198,7 @@ type PieCalloutsProps = {
  *
  * @internal
  */
-export function PieCallouts({ items, animate, emphasis }: PieCalloutsProps) {
+export function SectorChartCallouts({ items, animate, emphasis }: SectorChartCalloutsProps) {
 	return (
 		<g data-slot="chart-callouts" pointerEvents="none">
 			{items.map((item) => {

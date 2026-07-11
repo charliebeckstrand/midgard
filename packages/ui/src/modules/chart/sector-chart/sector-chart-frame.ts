@@ -7,10 +7,10 @@ import { type ChartAspectRatio, chartFrameSizing, frameFills } from '../engine/c
 import type { ChartLegendItem } from '../engine/chart-legend/legend'
 import { legendAside, legendVisible, type ResolvedLegend } from '../engine/chart-legend/schema'
 import type { ChartReadout } from '../engine/types'
-import type { PieLabels } from './chart-pie'
+import type { SectorLabels } from './sector-chart'
 
 /** Defaults both label switches off. @internal */
-export function resolvePieLabels(labels: PieLabels | undefined): Required<PieLabels> {
+export function resolveSectorLabels(labels: SectorLabels | undefined): Required<SectorLabels> {
 	return { segment: labels?.segment ?? false, callouts: labels?.callouts ?? false }
 }
 
@@ -61,11 +61,11 @@ const FULLSCREEN_ASPECT_RATIO: ChartAspectRatio = '16/9'
  * The aspect a pie frame resolves its sizing through: the caller's explicit
  * `aspectRatio` when set, else the {@link FULLSCREEN_ASPECT_RATIO} while the
  * chart is the fullscreen dialog's re-mounted copy, else free-form so the frame
- * fits the pie's own content. Kept off {@link ChartPie}'s own branch count.
+ * fits the pie's own content. Kept off {@link SectorChart}'s own branch count.
  *
  * @internal
  */
-export function pieAspectRatio(
+export function sectorAspectRatio(
 	aspectRatio: ChartAspectRatio | undefined,
 	fullscreen: boolean,
 ): ChartAspectRatio | undefined {
@@ -84,7 +84,7 @@ export function pieAspectRatio(
  *
  * @internal
  */
-export function pieFrameSizing(
+export function sectorFrameSizing(
 	height: number | undefined,
 	aspectRatio: ChartAspectRatio | undefined,
 	hMargin: number,
@@ -99,7 +99,7 @@ export function pieFrameSizing(
 }
 
 /** The resolved pie frame: the plot's sizing plus the figure and legend layout. @internal */
-type PieFrame = {
+type SectorFrame = {
 	sizing: FrameSizing
 	/** The whole-chart aspect the figure carries; `undefined` when the plot box reserves its own. */
 	frameAspect?: number
@@ -124,11 +124,11 @@ type PieFrame = {
  *
  * @internal
  */
-export function pieFrame(
+export function sectorFrame(
 	sizing: FrameSizing,
 	legend: ResolvedLegend['value'],
 	dataLength: number,
-): PieFrame {
+): SectorFrame {
 	const hasLegend = legendVisible(legend, dataLength)
 
 	const aside = legendAside(legend)
@@ -154,7 +154,7 @@ export function pieFrame(
 }
 
 /** The values behind the slices for the tooltip and table; `null` with no rows. @internal */
-export function pieReadout(
+export function sectorReadout(
 	labels: string[],
 	paints: SlotPaint[],
 	valueLabel: string,
@@ -184,7 +184,7 @@ export function pieReadout(
  *
  * @internal
  */
-export function pieLegendItems(
+export function sectorLegendItems(
 	labels: string[],
 	paints: SlotPaint[],
 	colors: ChartColorSlot[],

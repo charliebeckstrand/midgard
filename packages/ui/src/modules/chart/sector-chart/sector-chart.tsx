@@ -25,23 +25,23 @@ import {
 	calloutFitRadius,
 	calloutRoom,
 	calloutsShown,
-	PieCallouts,
-	resolvePieFit,
-} from './pie-chart-callouts'
+	resolveSectorFit,
+	SectorChartCallouts,
+} from './sector-chart-callouts'
 import {
 	donutCenterStyle,
-	pieAspectRatio,
-	pieFrame,
-	pieFrameSizing,
-	pieLegendItems,
-	pieReadout,
-	resolvePieLabels,
+	resolveSectorLabels,
+	sectorAspectRatio,
+	sectorFrame,
+	sectorFrameSizing,
+	sectorLegendItems,
+	sectorReadout,
 	sliceActivation,
-} from './pie-chart-frame'
-import { PieChartMarks, PieSegmentLabels, segmentLabelItems } from './pie-chart-marks'
+} from './sector-chart-frame'
+import { SectorChartMarks, SectorSegmentLabels, segmentLabelItems } from './sector-chart-marks'
 
-/** The label switches {@link PieBaseProps.labels} accepts. */
-export type PieLabels = {
+/** The label switches {@link SectorBaseProps.labels} accepts. */
+export type SectorLabels = {
 	/** @defaultValue false */
 	segment?: boolean
 	/** @defaultValue false */
@@ -57,7 +57,7 @@ export type PieLabels = {
  * The legend defaults on for two or more slices — the identity channel colour
  * alone must never carry.
  */
-export type PieBaseProps<T> = ChartBaseProps<T> & {
+export type SectorBaseProps<T> = ChartBaseProps<T> & {
 	/**
 	 * The one series to sweep: `xKey` names each slice in the legend, tooltip,
 	 * and table; `yKey` holds its positive share — non-positive rows take no
@@ -77,7 +77,7 @@ export type PieBaseProps<T> = ChartBaseProps<T> & {
 	 * would starve the pie to the spark floor — they drop and the pie draws as
 	 * bare marks, its share read from the tooltip and table instead.
 	 */
-	labels?: PieLabels
+	labels?: SectorLabels
 	/**
 	 * Fires when a click lands on a slice — its gap-spanning hit wedge, the same
 	 * generous target the tooltip reads — with the slice's `xKey` label and its
@@ -89,8 +89,8 @@ export type PieBaseProps<T> = ChartBaseProps<T> & {
 	onCategoryClick?: (category: string, index: number) => void
 }
 
-/** Props for {@link ChartPie}: the shared pie base plus the hole size and center content. @internal */
-export type ChartPieProps<T> = PieBaseProps<T> & {
+/** Props for {@link SectorChart}: the shared pie base plus the hole size and center content. @internal */
+export type SectorChartProps<T> = SectorBaseProps<T> & {
 	/** Hole radius as a fraction of the outer radius: `0` sweeps a full pie, `> 0` a donut ring. */
 	innerRatio: number
 	/** Center content, rendered over a donut's hole. */
@@ -107,7 +107,7 @@ export type ChartPieProps<T> = PieBaseProps<T> & {
  *
  * @internal
  */
-export function ChartPie<T>(props: ChartPieProps<T>) {
+export function SectorChart<T>(props: SectorChartProps<T>) {
 	const {
 		data,
 		series,
@@ -132,9 +132,9 @@ export function ChartPie<T>(props: ChartPieProps<T>) {
 	// Free-form, a pie fits its own square footprint; inside the fullscreen dialog
 	// that square overruns the 16/9 panel, so the re-mounted copy takes the panel's
 	// ratio there instead.
-	const frameAspectRatio = pieAspectRatio(aspectRatio, useChartFullscreen())
+	const frameAspectRatio = sectorAspectRatio(aspectRatio, useChartFullscreen())
 
-	const { segment: showSegmentLabels, callouts: showCallouts } = resolvePieLabels(labels)
+	const { segment: showSegmentLabels, callouts: showCallouts } = resolveSectorLabels(labels)
 
 	const { show: showTooltip, trigger } = resolveTooltip(tooltip)
 
@@ -155,7 +155,7 @@ export function ChartPie<T>(props: ChartPieProps<T>) {
 	// Sized from the full dataset rather than the toggled-visible one, so the
 	// frame holds still as a legend entry hides or reveals a slice — only the
 	// pie's own radius reacts to that, below.
-	const sizing = pieFrameSizing(
+	const sizing = sectorFrameSizing(
 		height,
 		frameAspectRatio,
 		calloutRoom(showCallouts, calloutSpec, values),
@@ -172,7 +172,7 @@ export function ChartPie<T>(props: ChartPieProps<T>) {
 		aside,
 		hasLegend,
 		stackedLegend,
-	} = pieFrame(sizing, resolvedLegend.value, data.length)
+	} = sectorFrame(sizing, resolvedLegend.value, data.length)
 
 	const { ref, width: frameWidth, height: frameHeight, reserve } = usePlotFrame(width, frameSizing)
 
@@ -213,7 +213,7 @@ export function ChartPie<T>(props: ChartPieProps<T>) {
 	// square rather than holding the taller callout band's margin.
 	const drawVMargin = drawCallouts ? vMargin : MARK_GAP * 2
 
-	const pieFit = resolvePieFit(drawCallouts, calloutSpec, sliceValues, frameWidth)
+	const pieFit = resolveSectorFit(drawCallouts, calloutSpec, sliceValues, frameWidth)
 
 	const radius = Math.max(0, Math.min(pieFit.radius, frameHeight / 2 - drawVMargin))
 
@@ -240,11 +240,11 @@ export function ChartPie<T>(props: ChartPieProps<T>) {
 	// A cached thunk ({@link ChartReadoutSource}): slices are few, but the frame
 	// contract defers every readout to its first consumer all the same.
 	const readout = once(() =>
-		pieReadout(sliceLabels, paints, entry.yName ?? entry.yKey, values, format),
+		sectorReadout(sliceLabels, paints, entry.yName ?? entry.yKey, values, format),
 	)
 
 	const legendItems = hasLegend
-		? pieLegendItems(sliceLabels, paints, colors, sliceValues, aside)
+		? sectorLegendItems(sliceLabels, paints, colors, sliceValues, aside)
 		: null
 
 	const labelItems = segmentLabelItems({
@@ -268,7 +268,7 @@ export function ChartPie<T>(props: ChartPieProps<T>) {
 
 	const marks = (
 		<>
-			<PieChartMarks
+			<SectorChartMarks
 				slices={slices}
 				paints={paints}
 				animate={animate}
@@ -283,7 +283,7 @@ export function ChartPie<T>(props: ChartPieProps<T>) {
 			/>
 
 			{labelItems.length > 0 && (
-				<PieSegmentLabels
+				<SectorSegmentLabels
 					items={labelItems}
 					paints={paints}
 					animate={animate}
@@ -292,7 +292,7 @@ export function ChartPie<T>(props: ChartPieProps<T>) {
 			)}
 
 			{calloutItems.length > 0 && (
-				<PieCallouts items={calloutItems} animate={animate} emphasis={sliceEmphasis} />
+				<SectorChartCallouts items={calloutItems} animate={animate} emphasis={sliceEmphasis} />
 			)}
 		</>
 	)
@@ -300,7 +300,7 @@ export function ChartPie<T>(props: ChartPieProps<T>) {
 	return (
 		<ChartFrame
 			{...name}
-			fullscreen={<ChartPie {...props} />}
+			fullscreen={<SectorChart {...props} />}
 			ref={ref}
 			width={frameWidth}
 			fixedWidth={width}

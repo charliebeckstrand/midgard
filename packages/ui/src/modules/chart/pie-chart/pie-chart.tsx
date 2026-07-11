@@ -1,13 +1,13 @@
 'use client'
 
-import { ChartPie, type PieBaseProps } from './chart-pie'
+import { type SectorBaseProps, SectorChart } from '../sector-chart/sector-chart'
 
 /**
  * Props for {@link PieChart}. Requires an accessible name (`aria-label` or
  * `aria-labelledby`) — the plot is `role="img"`, so assistive tech needs a
  * name for it.
  */
-export type PieChartProps<T> = PieBaseProps<T>
+export type PieChartProps<T> = SectorBaseProps<T>
 
 /**
  * A pie chart: one dataset's positive shares swept clockwise from the top
@@ -31,5 +31,5 @@ export type PieChartProps<T> = PieBaseProps<T>
  * ```
  */
 export function PieChart<T>(props: PieChartProps<T>) {
-	return <ChartPie {...props} innerRatio={0} />
+	return <SectorChart {...props} innerRatio={0} />
 }

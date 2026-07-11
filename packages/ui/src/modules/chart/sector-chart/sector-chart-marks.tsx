@@ -13,7 +13,7 @@ import type { ChartTooltipTrigger } from '../engine/chart-tooltip'
 import { useChartHover } from '../engine/context'
 
 /** One placed segment label: its slice and resolved text. @internal */
-export type PieSegmentLabel = {
+export type SectorSegmentLabel = {
 	slice: PieSlice
 	text: string
 }
@@ -34,8 +34,8 @@ export function sweepDelay(mid: number): number {
 }
 
 /** Shared shape for the static and animated segment-label renderers. @internal */
-type PieSegmentLabelsProps = {
-	items: PieSegmentLabel[]
+type SectorSegmentLabelsProps = {
+	items: SectorSegmentLabel[]
 	paints: SlotPaint[]
 	animate: boolean
 	/** The legend-emphasised slice; other labels dim with their slices. */
@@ -51,7 +51,12 @@ type PieSegmentLabelsProps = {
  *
  * @internal
  */
-export function PieSegmentLabels({ items, paints, animate, emphasis }: PieSegmentLabelsProps) {
+export function SectorSegmentLabels({
+	items,
+	paints,
+	animate,
+	emphasis,
+}: SectorSegmentLabelsProps) {
 	return (
 		<g data-slot="chart-segment-labels" pointerEvents="none">
 			{items.map(({ slice, text }) => {
@@ -100,7 +105,7 @@ export function segmentLabelItems({
 	slices,
 	radius,
 	innerRadius,
-}: SegmentLabelOptions): PieSegmentLabel[] {
+}: SegmentLabelOptions): SectorSegmentLabel[] {
 	if (!show || radius <= 0) return []
 
 	const depth = innerRadius > 0 ? radius - innerRadius : radius
@@ -117,7 +122,7 @@ export function segmentLabelItems({
 }
 
 /** Shared shape for the static and animated slice renderers. @internal */
-type PieChartMarksProps = {
+type SectorChartMarksProps = {
 	slices: PieSlice[]
 	paints: SlotPaint[]
 	animate: boolean
@@ -170,7 +175,7 @@ type PieChartMarksProps = {
  * stay static, so hover and dimming behave identically mid-reveal.
  * @internal
  */
-export function PieChartMarks({
+export function SectorChartMarks({
 	slices,
 	paints,
 	animate,
@@ -182,7 +187,7 @@ export function PieChartMarks({
 	trigger = 'hover',
 	onIndexClick,
 	onEmphasis,
-}: PieChartMarksProps) {
+}: SectorChartMarksProps) {
 	const { index: active, set } = useChartHover()
 
 	const sweepId = useId()
