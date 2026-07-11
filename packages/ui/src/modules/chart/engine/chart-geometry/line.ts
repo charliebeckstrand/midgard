@@ -137,6 +137,88 @@ export type LineSeriesGeometry = {
 	isolated: LinePoint[]
 }
 
+/**
+ * Min/max-per-pixel-column decimation of a dense run, for *drawing only*. A plot
+ * `width` px wide can't show more than a couple of points per horizontal pixel,
+ * so a run of thousands draws identically from its per-column vertical envelope:
+ * keep each column's first, last, min-y, and max-y points, in original order.
+ * The extremes hold every visible spike; the endpoints hold the slope into and
+ * out of the column, so the drawn line is pixel-identical to the full path.
+ *
+ * A run already at drawing resolution (at most two points per column) returns
+ * unchanged, so a normal chart's path is byte-for-byte what it was. Only the
+ * drawn `d` shrinks — the hit test, markers, value labels, and data table read
+ * the full-resolution run, never this — so pointer values and parity stay exact.
+ *
+ * @internal
+ */
+export function decimateRun(run: LinePoint[], width: number): LinePoint[] {
+	if (width <= 0 || run.length <= width * 2) return run
+
+	const out: LinePoint[] = []
+
+	let column = Math.round((run[0] as LinePoint).x)
+
+	let first = 0
+
+	let last = 0
+
+	let lo = 0
+
+	let hi = 0
+
+	const flush = () => {
+		// The four picks in ascending index order, deduped — at most four, so a
+		// small in-place sort beats a Set allocation per column.
+		const picks = [first, last, lo, hi].sort((a, b) => a - b)
+
+		let prev = -1
+
+		for (const index of picks) {
+			if (index !== prev) out.push(run[index] as LinePoint)
+
+			prev = index
+		}
+	}
+
+	for (let i = 1; i < run.length; i++) {
+		const c = Math.round((run[i] as LinePoint).x)
+
+		if (c !== column) {
+			flush()
+
+			column = c
+
+			first = i
+
+			last = i
+
+			lo = i
+
+			hi = i
+
+			continue
+		}
+
+		last = i
+
+		if ((run[i] as LinePoint).y < (run[lo] as LinePoint).y) lo = i
+
+		if ((run[i] as LinePoint).y > (run[hi] as LinePoint).y) hi = i
+	}
+
+	flush()
+
+	return out
+}
+
+/** The plot's drawn x-span in px — the density threshold decimation gates on. @internal */
+function drawWidth(xs: number[]): number {
+	if (xs.length < 2) return 0
+
+	return Math.abs((xs[xs.length - 1] as number) - (xs[0] as number))
+}
+
 /** Splits the values into contiguous non-null runs of plotted points. @internal */
 function runs(values: (number | null)[], xs: number[], map: (value: number) => number) {
 	const out: LinePoint[][] = []
@@ -183,9 +265,16 @@ export function lineGeometry(
 
 	const drawable = pointRuns.filter((run) => run.length > 1)
 
-	const segments = drawable.map((run) => segmentPath(run, interpolation))
+	// Decimate the drawn runs to the plot's pixel width; the full-resolution
+	// `pointRuns` still feed the hit test, markers, labels, and data table below,
+	// so only the `d` strings shrink. Sub-threshold runs pass through untouched.
+	const width = drawWidth(xs)
 
-	const areas = drawable.map((run, index) => {
+	const drawnRuns = drawable.map((run) => decimateRun(run, width))
+
+	const segments = drawnRuns.map((run) => segmentPath(run, interpolation))
+
+	const areas = drawnRuns.map((run, index) => {
 		const first = run[0] as LinePoint
 
 		const last = run.at(-1) as LinePoint
