@@ -12,10 +12,12 @@ import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from '../../compo
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/grid-column-manager'
 import { toggleItem } from '../../utilities'
+import { columnLabel } from './engine/grid-column/label'
+import { effectivePinSide, pinMenuChoices } from './engine/grid-pin/overrides'
+import { applyColumnReorder } from './engine/grid-reorder-compute'
 import { GridGroupManager } from './grid-group-manager'
 import type { GridColumnGroup } from './grid-group-types'
-import { applyColumnReorder } from './grid-reorder'
-import { columnLabel, type GridColumnManagerItem, type GridColumnManagerPreset } from './types'
+import type { GridColumnManagerItem, GridColumnManagerPreset } from './types'
 import { useGridColumnVisibility } from './use-grid-column-visibility'
 
 /** Pins a column to an edge, or unpins it with `false`. @internal */
@@ -74,17 +76,6 @@ export type GridColumnManagerProps = {
 	className?: string
 }
 
-/**
- * The edge a column is frozen to in the manager — its immutable
- * {@link GridColumnManagerItem.locked} side, else its movable
- * {@link GridColumnManagerItem.pinned} side — or `undefined` when it scrolls.
- *
- * @internal
- */
-function effectivePinSide(item: GridColumnManagerItem): 'left' | 'right' | undefined {
-	return item.locked ?? item.pinned
-}
-
 /** Props for {@link GridColumnPinControl}. @internal */
 type GridColumnPinControlProps = {
 	item: GridColumnManagerItem
@@ -120,24 +111,22 @@ function GridColumnPinControl({
 				</button>
 			</MenuTrigger>
 			<MenuContent>
-				{side !== 'left' && (
-					<MenuItem onAction={() => onPinChange(item.id, 'left')}>
-						<Icon icon={<ArrowLeftToLine />} />
-						<MenuLabel>Pin left</MenuLabel>
+				{pinMenuChoices(side).map((choice) => (
+					<MenuItem key={choice.key} onAction={() => onPinChange(item.id, choice.target)}>
+						<Icon
+							icon={
+								choice.key === 'pin-left' ? (
+									<ArrowLeftToLine />
+								) : choice.key === 'pin-right' ? (
+									<ArrowRightToLine />
+								) : (
+									<PinOff />
+								)
+							}
+						/>
+						<MenuLabel>{choice.label}</MenuLabel>
 					</MenuItem>
-				)}
-				{side !== 'right' && (
-					<MenuItem onAction={() => onPinChange(item.id, 'right')}>
-						<Icon icon={<ArrowRightToLine />} />
-						<MenuLabel>Pin right</MenuLabel>
-					</MenuItem>
-				)}
-				{side && (
-					<MenuItem onAction={() => onPinChange(item.id, false)}>
-						<Icon icon={<PinOff />} />
-						<MenuLabel>Unpin</MenuLabel>
-					</MenuItem>
-				)}
+				))}
 			</MenuContent>
 		</Menu>
 	)

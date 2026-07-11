@@ -2,7 +2,7 @@
 
 import { startTransition, useEffect, useRef, useState } from 'react'
 import { SearchInput } from '../../components/search-input'
-import { GRID_SEARCH_DEBOUNCE_MS } from './grid-constants'
+import { GRID_SEARCH_DEBOUNCE_MS } from './engine/grid-constants'
 import type { GridGlobalFilterView } from './use-grid-table'
 
 /** Props for {@link GridFilter}. @internal */

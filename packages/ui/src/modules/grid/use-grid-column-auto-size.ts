@@ -4,9 +4,9 @@ import type { Table } from '@tanstack/react-table'
 import { type RefObject, useCallback, useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import type { DensityLevel } from '../../providers/density/context'
 import { isDataColumn } from '../../utilities'
-import { allocateColumnWidths } from './grid-column-allocate'
-import { type ColumnMeasurement, measureColumnIntrinsics } from './grid-column-measure'
-import { parsePxWidth } from './grid-table-options'
+import { allocateColumnWidths } from './engine/grid-column/allocate'
+import { type ColumnMeasurement, measureColumnIntrinsics } from './engine/grid-column/measure'
+import { parsePxWidth } from './engine/grid-table/options'
 import type { GridColumn } from './types'
 
 /** Options for {@link useGridColumnAutoSize}. @internal */

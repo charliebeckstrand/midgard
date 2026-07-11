@@ -4,6 +4,7 @@ import { type ReactElement, type RefObject, useCallback, useEffect } from 'react
 import { TableBody, TableCell } from '../../components/table'
 import { Text, TextSkeleton } from '../../components/text'
 import { useVirtualWindow } from '../../hooks'
+import { ariaRowIndex } from './engine/grid-row/shell'
 import type { ResolvedInfiniteScroll } from './grid-data-resolvers'
 import { type GridRowsProps, renderGridRow } from './grid-row'
 import type { GridColumn } from './types'
@@ -151,10 +152,15 @@ export function GridVirtualizedBody<T>(props: GridVirtualizedBodyProps<T>) {
 					/>
 				</tr>
 			)}
-			{/* Header occupies row 1; data rows are offset by 2, plus any page offset
-			    (a paginated, virtualized window starts past prior pages). */}
+			{/* Global row indices for the windowed rows; see `ariaRowIndex` for the
+			    offset math (a paginated, virtualized window starts past prior pages). */}
 			{virtualItems.map((vr) =>
-				renderGridRow(props, rows[vr.index] as T, vr.index, props.rowIndexOffset + vr.index + 2),
+				renderGridRow(
+					props,
+					rows[vr.index] as T,
+					vr.index,
+					ariaRowIndex(props.rowIndexOffset, vr.index),
+				),
 			)}
 			{bottomSpacer > 0 && (
 				// biome-ignore lint/a11y/noAriaHiddenOnFocusable: the spacer is an empty, non-focusable layout filler that must not be exposed as a table row

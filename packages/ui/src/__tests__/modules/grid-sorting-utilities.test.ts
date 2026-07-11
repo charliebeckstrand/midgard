@@ -4,7 +4,7 @@ import {
 	parseNumeric,
 	type SmartSortField,
 	sortRowsSmart,
-} from '../../modules/grid/grid-sorting-utilities'
+} from '../../modules/grid/engine/grid-sort/utilities'
 
 describe('parseNumeric', () => {
 	it('parses plain numbers, comma grouping, currency, percent, and accounting negatives', () => {

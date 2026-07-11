@@ -10,7 +10,7 @@ import {
 } from 'react'
 import { announce } from '../../core'
 import { useControllable } from '../../hooks'
-import { EMPTY_SET } from './grid-constants'
+import { EMPTY_SET } from './engine/grid-constants'
 import type { GridRowEditing } from './grid-editing-context'
 import type { CellChange, GridEditableConfig } from './grid-editing-types'
 import type { GridColumn } from './types'

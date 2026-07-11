@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { GridColumn } from '../../modules/grid'
-import { isAutoSized } from '../../modules/grid/grid-column-measure'
+import { isAutoSized } from '../../modules/grid/engine/grid-column/measure'
 
 /** No drag-holds and no width-releases — the initial state of a fresh grid. */
 const NONE: ReadonlySet<string> = new Set()

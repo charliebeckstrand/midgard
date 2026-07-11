@@ -5,171 +5,20 @@ import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { GripVertical } from 'lucide-react'
 import { motion } from 'motion/react'
-import {
-	type CSSProperties,
-	Fragment,
-	type HTMLAttributes,
-	memo,
-	type ReactElement,
-	type KeyboardEvent as ReactKeyboardEvent,
-	type MouseEvent as ReactMouseEvent,
-	type ReactNode,
-	useContext,
-} from 'react'
+import { type CSSProperties, Fragment, memo, type ReactElement, type ReactNode } from 'react'
 import { Checkbox } from '../../components/checkbox'
 import { Icon } from '../../components/icon'
 import { TableCell, TableRow } from '../../components/table'
 import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/grid'
-import { isDataColumn } from '../../utilities'
-import { type CellTooltip, GridCellContent } from './grid-cell-content'
+import { pinnedCellProps } from './engine/grid-pin/styles'
+import type { GridCellClick, GridCellRovingActivate, GridRowClick } from './engine/grid-row/cell'
+import { rowClickableClass, rowShellProps } from './engine/grid-row/shell'
+import { GridCellContent } from './grid-cell-content'
+import { GridDataCell } from './grid-data-cell'
 import { GridDetailRow, GridExpandToggle } from './grid-detail-row'
-import { isFrozen } from './grid-pin-overrides'
-import { pinnedClassName, pinnedOffsetStyle } from './grid-pinning'
-import { columnShiftStyle, GridReorderContext } from './grid-reorder'
 import type { GridColumn } from './types'
 import type { GridColumnPinning } from './use-grid-table'
-
-/**
- * Row-level event handler for {@link GridDataProps.onRowClick} and
- * {@link GridDataProps.onRowDoubleClick}: the row datum and the originating
- * pointer or keyboard event.
- *
- * @typeParam T - Shape of a single row.
- */
-export type GridRowClick<T> = (
-	row: T,
-	event: ReactMouseEvent<HTMLTableRowElement> | ReactKeyboardEvent<HTMLTableRowElement>,
-) => void
-
-/**
- * Context for a cell-level event ({@link GridDataProps.onCellClick} /
- * {@link GridDataProps.onCellDoubleClick}): the cell's column id and data
- * value alongside the owning row.
- *
- * @typeParam T - Shape of a single row.
- */
-export type GridCellClickContext<T> = {
-	/** The owning row's datum. */
-	row: T
-	/** The owning row's key, from {@link GridDataProps.getKey}. */
-	rowKey: string | number
-	/** The clicked column's id. */
-	columnId: string | number
-	/**
-	 * The cell's data value: the column's {@link GridColumn.value} accessor when
-	 * set, else the row field named by the column id — the same resolution sort,
-	 * filter, and export read. `undefined` when the column has neither.
-	 */
-	value: unknown
-}
-
-/**
- * Cell-level event handler for {@link GridDataProps.onCellClick} and
- * {@link GridDataProps.onCellDoubleClick}: the {@link GridCellClickContext}
- * and the originating pointer or keyboard event.
- *
- * @typeParam T - Shape of a single row.
- */
-export type GridCellClick<T> = (
-	cell: GridCellClickContext<T>,
-	event: ReactMouseEvent<HTMLElement> | ReactKeyboardEvent<HTMLElement>,
-) => void
-
-/**
- * Activates a keyboard-focused data cell (cell roving): fires the cell click
- * then the row click for the given context, matching the order a pointer click
- * fires them in. @internal
- */
-export type GridCellRovingActivate<T> = (
-	cell: GridCellClickContext<T>,
-	event: ReactKeyboardEvent<HTMLElement>,
-) => void
-
-/**
- * A cell's data value: the column's {@link GridColumn.value} accessor when set,
- * else the row field named by the column id — the resolution sort, filter, and
- * export share. @internal
- */
-export function cellValue<T>(col: GridColumn<T>, row: T): unknown {
-	if (col.value) return col.value(row)
-
-	return (row as Record<string | number, unknown>)[col.id]
-}
-
-/**
- * Resolves the data cell a row-level pointer event landed on: the closest
- * `td[data-grid-col]` names the column, matched back through the row's visible
- * columns. Non-data cells (selection, actions, drag handle, expander) resolve
- * to `null`, so cell-level events fire only for row content.
- *
- * @internal
- */
-function resolveCellContext<T>(
-	columns: GridColumn<T>[],
-	row: T,
-	rowKey: string | number,
-	target: EventTarget | null,
-): GridCellClickContext<T> | null {
-	if (!(target instanceof Element)) return null
-
-	const id = target.closest('td[data-grid-col]')?.getAttribute('data-grid-col')
-
-	if (id == null) return null
-
-	for (const col of columns) {
-		if (String(col.id) === id && isDataColumn(col)) {
-			return { row, rowKey, columnId: col.id, value: cellValue(col, row) }
-		}
-	}
-
-	return null
-}
-
-/**
- * The row's DOM handler for a click or double-click: a click on interactive
- * cell content defers to that content; otherwise the cell-level handler fires
- * first — when the event landed on a data cell — then the row-level one,
- * matching the DOM's inside-out event order. `undefined` when the row carries
- * neither, so an inert row attaches no handler.
- *
- * @internal
- */
-export function rowPointerHandler<T>(args: {
-	columns: GridColumn<T>[]
-	row: T
-	rowKey: string | number
-	onRow: GridRowClick<T> | undefined
-	onCell: GridCellClick<T> | undefined
-}): ((event: ReactMouseEvent<HTMLTableRowElement>) => void) | undefined {
-	const { columns, row, rowKey, onRow, onCell } = args
-
-	if (!onRow && !onCell) return undefined
-
-	return (event) => {
-		if (fromInteractiveContent(event.target)) return
-
-		if (onCell) {
-			const cell = resolveCellContext(columns, row, rowKey, event.target)
-
-			if (cell) onCell(cell, event)
-		}
-
-		onRow?.(row, event)
-	}
-}
-
-/**
- * Interactive cell content that handles its own click, so a row-level
- * `onRowClick` defers to it rather than double-firing. @internal
- */
-const INTERACTIVE_CELL_CONTENT =
-	'a,button,input,select,textarea,label,[role="button"],[role="menuitem"],[role="checkbox"],[contenteditable="true"]'
-
-/** Whether the event originated inside interactive cell content. @internal */
-export function fromInteractiveContent(target: EventTarget | null): boolean {
-	return target instanceof Element && target.closest(INTERACTIVE_CELL_CONTENT) != null
-}
 
 /**
  * Per-row wiring shared by the plain and virtualized bodies: the row/key/column
@@ -457,27 +306,6 @@ type GridRowProps<T> = {
 }
 
 /**
- * Resolves a column's truncation tooltip: `auto` (the cell's own content) when
- * the column declares no `cellTooltip`, a `custom` node when it returns one, or
- * `none` when it returns null/undefined.
- *
- * @internal
- */
-export function resolveCellTooltip<T>(col: GridColumn<T>, row: T): CellTooltip {
-	if (col.cellTooltip == null) return AUTO_TOOLTIP
-
-	const node = col.cellTooltip(row)
-
-	return node == null ? NO_TOOLTIP : { kind: 'custom', node }
-}
-
-/** Shared default-tooltip descriptor — one allocation, not one per rendered cell. @internal */
-const AUTO_TOOLTIP: CellTooltip = { kind: 'auto' }
-
-/** Shared suppressed-tooltip descriptor. @internal */
-const NO_TOOLTIP: CellTooltip = { kind: 'none' }
-
-/**
  * A `TableRow` that can carry Framer's `layout` prop, so a sort-animated row
  * FLIPs from its old slot to its new one when a sort reorders it (see
  * {@link GridRowProps.animateSortRows}). `motion.create` wraps the primitive
@@ -542,56 +370,34 @@ function GridRowImpl<T>({
 			ref={sortable?.setNodeRef}
 			style={sortable?.style}
 			data-dragging={sortable ? dataAttr(sortable.dragging) : undefined}
-			// Selectable rows expose their checkbox state to assistive tech; a grid
-			// with no selection column omits the attribute entirely.
-			aria-selected={selectable ? selected : undefined}
-			data-selected={dataAttr(selected)}
+			// The shared row shell: identifying/state attributes, pointer handlers
+			// (cell-level first, then row-level), and Enter / Space activation gated
+			// to the row itself (see `rowShellProps`).
+			{...rowShellProps({
+				columns,
+				row,
+				rowKey,
+				selected,
+				selectable,
+				rowRoving,
+				onRowClick,
+				onCellClick,
+				onRowDoubleClick,
+				onCellDoubleClick,
+			})}
 			data-row-index={dataRowIndex}
-			data-grid-row={String(rowKey)}
-			data-clickable={dataAttr(onRowClick != null)}
-			// Row-mode roving marks the row an item the grid's roving hook owns the
-			// `tabIndex` of; the cell-mode/inert cases leave it off.
-			data-roving={dataAttr(rowRoving)}
 			aria-rowindex={rowIndex}
-			// A clickable row activates on Enter / Space; a click on interactive cell
-			// content defers to that content. Activation from the keyboard is gated to
-			// the row itself so inner controls keep their own Enter / Space behaviour.
-			// The click and double-click handlers each fire their cell-level
-			// counterpart first, then the row-level one (see `rowPointerHandler`).
-			//
 			// Focusability: a row-roving row omits `tabIndex` so the roving hook can
 			// own it (one row at `0`, the rest `-1`); the virtualized body keeps the
 			// legacy static per-row stop; cell roving and the navigable cursor leave
 			// the row unfocusable (the cells / the table hold focus).
 			tabIndex={rowRoving ? undefined : rowStaticStop ? 0 : undefined}
-			onClick={rowPointerHandler({ columns, row, rowKey, onRow: onRowClick, onCell: onCellClick })}
-			onDoubleClick={rowPointerHandler({
-				columns,
-				row,
-				rowKey,
-				onRow: onRowDoubleClick,
-				onCell: onCellDoubleClick,
-			})}
-			onKeyDown={
-				onRowClick
-					? (event) => {
-							if (
-								(event.key === 'Enter' || event.key === ' ') &&
-								event.target === event.currentTarget
-							) {
-								event.preventDefault()
-
-								onRowClick(row, event)
-							}
-						}
-					: undefined
-			}
 			// A clickable row carries the pointer cursor and a keyboard focus ring (see
 			// `k.row.clickable`); its hover wash is the shared `<Table hover>` variant
 			// that `GridData` enables for any row- or cell-level click handler.
 			className={cn(
 				loading && k.row.loading,
-				(onRowClick || onCellClick || onRowDoubleClick || onCellDoubleClick) && k.row.clickable,
+				rowClickableClass({ onRowClick, onCellClick, onRowDoubleClick, onCellDoubleClick }),
 				sortable && k.rowReorder.dragging,
 				className,
 			)}
@@ -602,12 +408,14 @@ function GridRowImpl<T>({
 				const colIndex = rowIndex !== undefined ? colIdx + 1 : undefined
 
 				if (col.dragHandle) {
+					const pinned = pinnedCellProps(pinning, col)
+
 					return (
 						<TableCell
 							key={col.id}
 							aria-colindex={colIndex}
-							className={cn(k.rowReorder.cell, pinnedClassName(pinning, col.id), col.className)}
-							style={pinnedOffsetStyle(pinning, col.id)}
+							className={cn(k.rowReorder.cell, pinned.className)}
+							style={pinned.style}
 						>
 							<GridRowDragHandle sortable={sortable} rowLabel={rowLabel} rowKey={rowKey} />
 						</TableCell>
@@ -615,12 +423,14 @@ function GridRowImpl<T>({
 				}
 
 				if (col.selectable) {
+					const pinned = pinnedCellProps(pinning, col)
+
 					return (
 						<TableCell
 							key={col.id}
 							aria-colindex={colIndex}
-							className={cn(k.cell.select, pinnedClassName(pinning, col.id), col.className)}
-							style={pinnedOffsetStyle(pinning, col.id)}
+							className={cn(k.cell.select, pinned.className)}
+							style={pinned.style}
 						>
 							<Checkbox
 								checked={selected}
@@ -632,12 +442,14 @@ function GridRowImpl<T>({
 				}
 
 				if (col.expander) {
+					const pinned = pinnedCellProps(pinning, col)
+
 					return (
 						<TableCell
 							key={col.id}
 							aria-colindex={colIndex}
-							className={cn(k.cell.expander, pinnedClassName(pinning, col.id), col.className)}
-							style={pinnedOffsetStyle(pinning, col.id)}
+							className={cn(k.cell.expander, pinned.className)}
+							style={pinned.style}
 						>
 							{toggleExpand && (
 								<GridExpandToggle
@@ -653,12 +465,14 @@ function GridRowImpl<T>({
 				}
 
 				if (col.actions) {
+					const pinned = pinnedCellProps(pinning, col)
+
 					return (
 						<TableCell
 							key={col.id}
 							aria-colindex={colIndex}
-							className={cn(k.cell.actions, pinnedClassName(pinning, col.id), col.className)}
-							style={pinnedOffsetStyle(pinning, col.id)}
+							className={cn(k.cell.actions, pinned.className)}
+							style={pinned.style}
 						>
 							{col.actions(row)}
 						</TableCell>
@@ -770,186 +584,3 @@ function GridRowDragHandle({ sortable, rowLabel, rowKey }: GridRowDragHandleProp
 		</button>
 	)
 }
-
-/** Props for {@link GridDataCell}. @internal */
-type GridDataCellProps<T> = {
-	col: GridColumn<T>
-	row: T
-	/** The owning row's key, carried so cell roving can build the {@link GridCellClickContext}. */
-	rowKey: string | number
-	colIndex: number | undefined
-	/** 0-based visible column index, matching the header's, so a reorder drag keys the body shift the same way. */
-	columnIndex: number
-	reorderable: boolean
-	truncate: boolean
-	/** This column's settled width snapshot; re-renders the cell to re-measure overflow when a resize settles (see {@link GridCellContent}). */
-	resizeSettleKey: number | undefined
-	pinning: GridColumnPinning | null
-	/** Whether the cell is a roving-tabindex item (cell-mode keyboard nav): the focus ring, and Enter / Space activation. @defaultValue false */
-	cellRoving?: boolean
-	/** Stable focused-cell activation for cell roving (see {@link GridRowsProps.cellActivate}). */
-	cellActivate?: GridCellRovingActivate<T>
-}
-
-/**
- * The roving attributes a focusable data cell carries in cell mode: the
- * `data-roving` marker the grid's roving hook seats a `tabIndex` on, and an
- * Enter / Space handler that activates the cell — gated to the cell itself so an
- * inner control keeps its own key behaviour. `null` outside cell roving. @internal
- */
-export function cellRovingAttrs<T>(args: {
-	cellRoving: boolean
-	cellActivate: GridCellRovingActivate<T> | undefined
-	col: GridColumn<T>
-	row: T
-	rowKey: string | number
-}): {
-	'data-roving': '' | undefined
-	onKeyDown: (event: ReactKeyboardEvent<HTMLElement>) => void
-} | null {
-	const { cellRoving, cellActivate, col, row, rowKey } = args
-
-	if (!cellRoving) return null
-
-	return {
-		'data-roving': dataAttr(true),
-		onKeyDown: (event) => {
-			if ((event.key === 'Enter' || event.key === ' ') && event.target === event.currentTarget) {
-				event.preventDefault()
-
-				cellActivate?.({ row, rowKey, columnId: col.id, value: cellValue(col, row) }, event)
-			}
-		},
-	}
-}
-
-/**
- * One data cell: renders the column's `cell` slot directly against the row,
- * wrapping it in the truncation reveal unless the grid opts out, then in a
- * reorder-aware `<td>`. A column with no `cell` yields null content and stays
- * bare. The direct call — no engine `Cell`, no `flexRender` component boundary —
- * is what lets a body render without materializing the engine row model.
- *
- * @internal
- */
-function GridDataCellImpl<T>({
-	col,
-	row,
-	rowKey,
-	colIndex,
-	columnIndex,
-	reorderable,
-	truncate,
-	resizeSettleKey,
-	pinning,
-	cellRoving = false,
-	cellActivate,
-}: GridDataCellProps<T>) {
-	const cellExtra = col.cellProps?.(row)
-
-	// Cell-mode roving: the focus ring plus the marker/activation attributes,
-	// applied to whichever `<td>` this cell renders (reorder-aware or plain).
-	const roving = cellRovingAttrs({ cellRoving, cellActivate, col, row, rowKey })
-
-	const rovingClass = cellRoving ? k.cell.rovable : undefined
-
-	// Render only columns that declare a `cell`; a bare accessor column stays
-	// empty rather than falling back to an engine default renderer.
-	const rawContent = col.cell ? (col.cell(row) ?? null) : null
-
-	const content =
-		truncate && rawContent != null ? (
-			<GridCellContent
-				content={rawContent}
-				tooltip={resolveCellTooltip(col, row)}
-				resizeSettleKey={resizeSettleKey}
-			/>
-		) : (
-			rawContent
-		)
-
-	if (reorderable && !isFrozen(col)) {
-		return (
-			<GridReorderableCell
-				id={col.id}
-				columnIndex={columnIndex}
-				colIndex={colIndex}
-				className={cn(rovingClass, col.className)}
-				cellProps={roving ? { ...cellExtra, ...roving } : cellExtra}
-			>
-				{content}
-			</GridReorderableCell>
-		)
-	}
-
-	return (
-		<TableCell
-			aria-colindex={colIndex}
-			{...cellExtra}
-			{...roving}
-			data-grid-col={col.id}
-			className={cn(
-				rovingClass,
-				pinnedClassName(pinning, col.id),
-				col.className,
-				cellExtra?.className,
-			)}
-			style={{ ...cellExtra?.style, ...pinnedOffsetStyle(pinning, col.id) }}
-		>
-			{content}
-		</TableCell>
-	)
-}
-
-/**
- * Memoized {@link GridDataCellImpl}: when a row re-renders, only the cells whose
- * own props (column, row, pinning) changed re-render, so a row-level change
- * (selection, truncation) doesn't re-run the cell renderer and `cellProps` for
- * every cell in the row. @internal
- */
-const GridDataCell = memo(GridDataCellImpl) as typeof GridDataCellImpl
-
-/** Props for {@link GridReorderableCell}. @internal */
-type GridReorderableCellProps = {
-	id: string | number
-	/** 0-based visible column index keying the CSS-variable shift its header writes. */
-	columnIndex: number
-	colIndex: number | undefined
-	className: string | undefined
-	cellProps: Omit<HTMLAttributes<HTMLTableCellElement>, 'children'> | undefined
-	children: ReactNode
-}
-
-/**
- * Body cell for a reordering column. It no longer registers a sortable of its
- * own — that put the column's header id on every body row, a duplicate-id churn
- * dnd-kit re-measures over. Instead the whole column glides via the CSS variable
- * its header writes (see {@link columnShiftStyle}), and this cell only reflects
- * the dragged-column lift from {@link GridReorderContext} — a value that
- * flips just at drag start and end, so a drag re-renders it twice, never per move.
- *
- * @internal
- */
-const GridReorderableCell = memo(function GridReorderableCell({
-	id,
-	columnIndex,
-	colIndex,
-	className,
-	cellProps,
-	children,
-}: GridReorderableCellProps) {
-	const dragging = useContext(GridReorderContext) === String(id)
-
-	return (
-		<TableCell
-			aria-colindex={colIndex}
-			{...cellProps}
-			data-dragging={dataAttr(dragging)}
-			data-grid-col={id}
-			className={cn(k.reorder.cell, k.reorder.shift, className, cellProps?.className)}
-			style={{ ...cellProps?.style, ...columnShiftStyle(columnIndex) }}
-		>
-			{children}
-		</TableCell>
-	)
-})

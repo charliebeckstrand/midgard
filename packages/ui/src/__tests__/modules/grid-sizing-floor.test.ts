@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { clampSizingToFloors } from '../../modules/grid/grid-table-options'
+import { clampSizingToFloors } from '../../modules/grid/engine/grid-table/options'
 
 describe('clampSizingToFloors', () => {
 	it('raises a width below its floor up to the floor', () => {

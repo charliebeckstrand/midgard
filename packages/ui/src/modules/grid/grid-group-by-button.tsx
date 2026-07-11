@@ -6,7 +6,8 @@ import { Icon } from '../../components/icon'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
 import { cn, createContext, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/grid'
-import { columnLabel, type GridColumn } from './types'
+import { columnLabel } from './engine/grid-column/label'
+import type { GridColumn } from './types'
 
 /**
  * The group-by wiring {@link GridGroupByButton} reads: the active grouped

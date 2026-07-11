@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { getVisiblePages } from '../../modules/grid/grid-pagination-utilities'
+import { getVisiblePages } from '../../modules/grid/engine/grid-pagination-utilities'
 
 describe('getVisiblePages', () => {
 	it('returns an empty window when there are no pages', () => {

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { GRID_STATUS_DEBOUNCE_MS } from './grid-constants'
+import { GRID_STATUS_DEBOUNCE_MS } from './engine/grid-constants'
 
 /**
  * The polite live-region message for the grid: `Loading` while loading, then —
