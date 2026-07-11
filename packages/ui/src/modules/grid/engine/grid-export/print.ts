@@ -1,5 +1,3 @@
-'use client'
-
 import type { GridColumn } from '../../types'
 import { rowsToHtmlTable } from './html-table'
 

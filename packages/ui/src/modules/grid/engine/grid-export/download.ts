@@ -1,5 +1,3 @@
-'use client'
-
 /**
  * Triggers a client-side download of `content` as a file named `filename`
  * with the given MIME `type`: wraps it in a `Blob`, clicks a transient

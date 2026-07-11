@@ -1,5 +1,3 @@
-'use client'
-
 import type { GridColumn } from '../../types'
 import { cellText, exportFields } from './accessor'
 

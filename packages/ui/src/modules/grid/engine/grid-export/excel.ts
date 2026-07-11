@@ -1,5 +1,3 @@
-'use client'
-
 import { strToU8, zipSync } from 'fflate'
 import type { GridColumn } from '../../types'
 import { cellText, exportFields } from './accessor'

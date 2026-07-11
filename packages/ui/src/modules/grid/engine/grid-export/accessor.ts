@@ -1,5 +1,3 @@
-'use client'
-
 import { isDataColumn } from '../../../../utilities'
 import type { GridColumn } from '../../types'
 import { columnAccessor } from '../grid-column/accessor'
