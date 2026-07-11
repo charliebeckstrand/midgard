@@ -10,6 +10,7 @@ import {
 } from 'react'
 import { announce } from '../../core'
 import { useControllable } from '../../hooks'
+import { focusWithoutReveal } from '../../hooks/use-truncation'
 import { EMPTY_SET } from './engine/grid-constants'
 import type { GridRowEditing } from './grid-editing-context'
 import type { CellChange, GridEditableConfig } from './grid-editing-types'
@@ -247,10 +248,15 @@ export function useGridEditing<T>({
 
 		if (!editableRows.has(pending.rowKey)) return
 
-		document
+		const editor = document
 			.getElementById(cellId(pending.coord.row, pending.coord.col))
 			?.querySelector<HTMLElement>(EDITOR_FOCUSABLE)
-			?.focus()
+
+		// The editor sits inside its cell's truncation span; focusing it here fires a
+		// `focusin` that arms that span. This effect runs during React's commit, where
+		// the arm's synchronous `flushSync` cannot flush and warns — route the focus
+		// through the helper so the arm takes its no-flush path.
+		if (editor) focusWithoutReveal(editor)
 	}, [editableRows, cellId])
 
 	// Grid-owned exits: both reseat focus on the grid's tab stop before the
