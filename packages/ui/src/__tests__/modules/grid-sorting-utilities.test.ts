@@ -23,6 +23,12 @@ describe('parseNumeric', () => {
 		expect(parseNumeric('(1,234)')).toBe(-1234)
 
 		expect(parseNumeric('-$50')).toBe(-50)
+
+		// A leading decimal point and surrounding whitespace still read as numbers —
+		// the fast-reject gate runs after the trim and admits a `.`-led value.
+		expect(parseNumeric('.5')).toBe(0.5)
+
+		expect(parseNumeric('  42  ')).toBe(42)
 	})
 
 	it('returns null for ambiguous or non-numeric values (kept as text)', () => {
@@ -36,6 +42,11 @@ describe('parseNumeric', () => {
 		expect(parseNumeric('555-1234')).toBeNull()
 
 		expect(parseNumeric('abc')).toBeNull()
+
+		// A value not starting like a number is fast-rejected (a text column's case).
+		expect(parseNumeric('LAX')).toBeNull()
+
+		expect(parseNumeric('N/A')).toBeNull()
 
 		expect(parseNumeric('')).toBeNull()
 
