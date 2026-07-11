@@ -40,6 +40,7 @@ import {
 	type Crosshair,
 	type ResolvedCrosshair,
 	resolveAxes,
+	resolveLegend,
 	resolveTooltip,
 	type ScatterAxes,
 	type ScatterChartSeries,
@@ -590,6 +591,8 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 		...label
 	} = props
 
+	const resolvedLegend = resolveLegend(legend)
+
 	// The one place the `axes` prop's boolean-or-object union is read: the draw
 	// switch and each axis's domain, formatter, title, and grid participation.
 	const { draw, config: axesConfig } = resolveAxes(axes)
@@ -611,7 +614,7 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 		fill: fillFrame,
 		aside,
 		placement,
-	} = scatterFrame(legend, height, aspectRatio)
+	} = scatterFrame(resolvedLegend.value, height, aspectRatio)
 
 	const { ref, width: frameWidth, height: frameHeight, reserve } = usePlotFrame(width, sizing)
 
@@ -626,7 +629,7 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 	// from, so the policy's fill flag resolves the chrome decisions by width alone.
 	const policyHeight = policyPlotHeight(frameHeight, frameWidth, frameAspect, {
 		headerLines: 0,
-		legend: Boolean(legend ?? series.length > 1) && !aside,
+		legend: Boolean(resolvedLegend.value ?? series.length > 1) && !aside,
 	})
 
 	const policy = chartPolicy(frameWidth, policyHeight, metrics.tickTarget, sizing.mode === 'fill')
@@ -739,6 +742,7 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 						onFocus={setFocus}
 						panel={aside}
 						maxRows={policy.legendRows}
+						inert={resolvedLegend.inert}
 					/>
 				)
 			}

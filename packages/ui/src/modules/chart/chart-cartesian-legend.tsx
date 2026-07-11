@@ -11,10 +11,12 @@ type ChartCartesianLegendProps = {
 	 */
 	chart: CartesianChart
 	/**
-	 * The caller's `legend` prop: a side placement lays the rail out as a panel, a
-	 * stacked one (or the boolean default) as the capped wrap row.
+	 * The caller's resolved `legend` placement: a side one lays the rail out as a
+	 * panel, a stacked one (or the boolean default) as the capped wrap row.
 	 */
 	legend: boolean | ChartLegendPlacement | undefined
+	/** Render the legend as a static key — no toggle, emphasis, or tab stop. */
+	inert?: boolean
 	/** The `texture` prop is on, so the swatches hatch in every mode to mirror the marks. */
 	texture: boolean
 }
@@ -29,7 +31,7 @@ type ChartCartesianLegendProps = {
  *
  * @internal
  */
-export function ChartCartesianLegend({ chart, legend, texture }: ChartCartesianLegendProps) {
+export function ChartCartesianLegend({ chart, legend, inert, texture }: ChartCartesianLegendProps) {
 	if (!chart.legendItems) return null
 
 	return (
@@ -44,6 +46,7 @@ export function ChartCartesianLegend({ chart, legend, texture }: ChartCartesianL
 			panel={legend === 'left' || legend === 'right'}
 			maxRows={chart.legendRows}
 			texture={texture}
+			inert={inert}
 		/>
 	)
 }

@@ -20,6 +20,7 @@ import {
 	type ChartBaseProps,
 	type ChartValueLabelConfig,
 	type ComboChartSeries,
+	resolveLegend,
 	resolveTooltip,
 } from '../chart-schema'
 import { snappedSeriesAt, snapTargets } from '../chart-snap'
@@ -185,6 +186,8 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 		...label
 	} = props
 
+	const resolvedLegend = resolveLegend(legend)
+
 	const chart = useChartCartesian(
 		{
 			data,
@@ -194,7 +197,7 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 			height,
 			aspectRatio,
 			axes,
-			legend,
+			legend: resolvedLegend.value,
 			reference,
 			tickRotation,
 			onCategoryClick,
@@ -361,8 +364,15 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 			fill={chart.fill}
 			aspect={chart.outerAspect ?? undefined}
 			tier={chart.tier}
-			legend={<ChartCartesianLegend chart={chart} legend={legend} texture={tex.active} />}
-			legendPlacement={typeof legend === 'string' ? legend : undefined}
+			legend={
+				<ChartCartesianLegend
+					chart={chart}
+					legend={resolvedLegend.value}
+					inert={resolvedLegend.inert}
+					texture={tex.active}
+				/>
+			}
+			legendPlacement={resolvedLegend.placement}
 			readout={chart.readout}
 			readoutOrder={chart.readoutOrder}
 			emphasis={chart.emphasis}
