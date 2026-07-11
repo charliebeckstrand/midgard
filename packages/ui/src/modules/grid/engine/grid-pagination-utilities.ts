@@ -1,3 +1,4 @@
+import type { GridPagination } from '../types'
 /** A window entry: a 1-based page number, or `'gap'` for an elided range. @internal */
 export type GridPageItem = number | 'gap'
 
@@ -22,4 +23,9 @@ export function getVisiblePages(current: number, total: number): GridPageItem[] 
 	if (current >= total - 2) return [1, 2, 'gap', total - 3, total - 2, total - 1, total]
 
 	return [1, 'gap', current - 1, current, current + 1, 'gap', total]
+}
+
+/** Server (manual) pagination is implied once a total is supplied. Exported for the grouping gates in `GridData`. @internal */
+export function isManualPagination(config: GridPagination | undefined): boolean {
+	return config?.manual ?? (config?.rowCount != null || config?.pageCount != null)
 }

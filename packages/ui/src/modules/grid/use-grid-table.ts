@@ -26,6 +26,7 @@ import type { DensityLevel } from '../../providers/density/context'
 import type { SortState } from './context'
 import { columnAccessor } from './engine/grid-column/accessor'
 import { DEFAULT_PAGE_SIZE } from './engine/grid-constants'
+import { isManualPagination } from './engine/grid-pagination-utilities'
 import { type SmartSortField, sortRowsSmart } from './engine/grid-sort/utilities'
 import {
 	buildState,
@@ -108,11 +109,6 @@ const DEFAULT_SEARCH_PLACEHOLDER = 'Search'
 /** Resolves a TanStack `Updater<S>` against a base value. @internal */
 function applyUpdater<S>(updater: Updater<S>, base: S): S {
 	return typeof updater === 'function' ? (updater as (prev: S) => S)(base) : updater
-}
-
-/** Server (manual) pagination is implied once a total is supplied. Exported for the grouping gates in `GridData`. @internal */
-export function isManualPagination(config: GridPagination | undefined): boolean {
-	return config?.manual ?? (config?.rowCount != null || config?.pageCount != null)
 }
 
 /** Parameters for {@link useGridTable}. @internal */
