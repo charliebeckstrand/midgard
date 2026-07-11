@@ -41,7 +41,7 @@ import { ChartContextMenu } from '../engine/chart-context-menu'
 import { cellAt, heatmapCells } from '../engine/chart-geometry/heatmap'
 import { chartFrameSizing, type PlotRect, plotRect, thinned } from '../engine/chart-layout'
 import { resolveRangeLegend } from '../engine/chart-legend/range'
-import type { ChartLegendPlacement } from '../engine/chart-legend/schema'
+import { type ChartLegendPlacement, legendAside } from '../engine/chart-legend/schema'
 import type { ChartOrientation } from '../engine/chart-orientation'
 import { ChartPlotBox } from '../engine/chart-plot-box'
 import { bandScale } from '../engine/chart-scale'
@@ -778,7 +778,7 @@ export function HeatmapChart<T>(props: HeatmapChartProps<T>) {
 
 	const rangeLegend = resolveRangeLegend(legend, containerWidth, frameHeight)
 
-	const aside = rangeLegend.placement === 'left' || rangeLegend.placement === 'right'
+	const aside = legendAside(rangeLegend.placement)
 
 	const showLegend = rangeLegend.show && domain !== null && bins.length > 0
 
