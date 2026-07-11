@@ -1,6 +1,5 @@
 'use client'
 
-import type { Row } from '@tanstack/react-table'
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import type { ReactElement, ReactNode } from 'react'
 import { Button } from '../../components/button'

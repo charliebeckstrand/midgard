@@ -1,71 +1,24 @@
 'use client'
 
 import { DndContext } from '@dnd-kit/core'
-import { SortableContext, useSortable } from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
-import { Ban, GripVertical } from 'lucide-react'
-import type { CSSProperties, ReactNode } from 'react'
-import { Badge } from '../../components/badge'
-import { Button } from '../../components/button'
+import { SortableContext } from '@dnd-kit/sortable'
+import { GripVertical } from 'lucide-react'
 import { Card } from '../../components/card'
 import { Icon } from '../../components/icon'
-import {
-	Menu,
-	MenuContent,
-	MenuItem,
-	MenuLabel,
-	MenuSeparator,
-	MenuTrigger,
-} from '../../components/menu'
+import { Menu } from '../../components/menu'
 import { cn, dataAttr } from '../../core'
-import { colors, extendedColors, type PaletteColor } from '../../core/recipe'
+import type { PaletteColor } from '../../core/recipe'
 import { useGrabbingCursor, useSortableList } from '../../hooks'
 import { k as groupK } from '../../recipes/kata/grid-group'
 import { k } from '../../recipes/kata/grid-row-manager'
 import { columnLabel } from './engine/grid-column/label'
+import { DEFAULT_COLOR_OPTIONS, GridManagerColorMenu } from './grid-manager-color-menu'
 import { restrictToParentElement, restrictToVerticalAxis } from './grid-reorder'
 import type { GridRowManagerGroup } from './use-grid-row-manager'
+import { useGridZoneSortable } from './use-grid-zone-sortable'
 
 /** Locks the group drag to the y-axis and bounds it to the list, so a zone can't be dragged off either end. @internal */
 const GROUP_DRAG_MODIFIERS = [restrictToVerticalAxis, restrictToParentElement]
-
-/** The palette presets offered by the color Menu: standard palette then extended. @internal */
-const DEFAULT_COLOR_OPTIONS: PaletteColor[] = [...colors, ...extendedColors]
-
-/** Capitalizes a palette color name for display (`violet` → `Violet`). @internal */
-function colorLabel(color: PaletteColor): string {
-	return color.charAt(0).toUpperCase() + color.slice(1)
-}
-
-/**
- * Registers a group zone as an in-place sortable item so whole groups reorder in
- * one vertical list — the source dims (no {@link DragOverlay}) rather than hides,
- * since a group is a single container dnd-kit can animate in place. The grip beside
- * the group label carries the returned `attributes` / `listeners`.
- *
- * @internal
- */
-function useZoneSortable(id: string) {
-	const {
-		setNodeRef,
-		setActivatorNodeRef,
-		attributes,
-		listeners,
-		transform,
-		transition,
-		isDragging,
-	} = useSortable({ id })
-
-	const style: CSSProperties = {
-		transform: CSS.Transform.toString(transform),
-		transition,
-		opacity: isDragging ? 0.6 : 1,
-		zIndex: isDragging ? 1 : undefined,
-		position: isDragging ? 'relative' : undefined,
-	}
-
-	return { setNodeRef, setActivatorNodeRef, attributes, listeners, style, dragging: isDragging }
-}
 
 /** Props for {@link GridRowManager}. */
 export type GridRowManagerProps = {
@@ -145,7 +98,7 @@ type GridRowManagerZoneProps = {
  */
 function GridRowManagerZone({ group, onRecolor, colorOptions }: GridRowManagerZoneProps) {
 	const { setNodeRef, setActivatorNodeRef, attributes, listeners, style, dragging } =
-		useZoneSortable(String(group.key))
+		useGridZoneSortable(String(group.key))
 
 	const label = columnLabel({ id: group.key, title: group.label })
 
@@ -172,61 +125,15 @@ function GridRowManagerZone({ group, onRecolor, colorOptions }: GridRowManagerZo
 						<span className={cn(k.zone.count)}>({group.count})</span>
 					</div>
 
-					<GridRowManagerColorMenu
+					<GridManagerColorMenu
 						label={label}
 						color={group.color}
 						colorOptions={colorOptions}
 						onRecolor={(next) => onRecolor(group.key, next)}
+						className={cn(k.zone.color)}
 					/>
 				</div>
 			</Card>
 		</div>
-	)
-}
-
-/** Props for {@link GridRowManagerColorMenu}. @internal */
-type GridRowManagerColorMenuProps = {
-	label: string
-	color: PaletteColor | undefined
-	colorOptions: PaletteColor[]
-	onRecolor: (color: PaletteColor | undefined) => void
-}
-
-/** The group's color Menu: a "None" item to clear plus a Badge-swatch per palette color. @internal */
-function GridRowManagerColorMenu({
-	label,
-	color,
-	colorOptions,
-	onRecolor,
-}: GridRowManagerColorMenuProps): ReactNode {
-	return (
-		<Menu
-			aria-label={`Color menu for ${label}`}
-			placement="bottom-end"
-			className={cn(k.zone.color)}
-		>
-			<MenuTrigger>
-				<Button color={color} variant="soft" aria-label={`Color for ${label}`}>
-					{color ? colorLabel(color) : 'Color'}
-				</Button>
-			</MenuTrigger>
-			<MenuContent>
-				{/* Clear the color — offered only once the group has one to clear. */}
-				{color !== undefined && (
-					<MenuItem onAction={() => onRecolor(undefined)}>
-						<Icon icon={<Ban />} />
-						<MenuLabel>None</MenuLabel>
-					</MenuItem>
-				)}
-				{color !== undefined && <MenuSeparator />}
-				{colorOptions.map((option) => (
-					<MenuItem key={option} onAction={() => onRecolor(option)}>
-						<Badge color={option} variant="soft">
-							{colorLabel(option)}
-						</Badge>
-					</MenuItem>
-				))}
-			</MenuContent>
-		</Menu>
 	)
 }

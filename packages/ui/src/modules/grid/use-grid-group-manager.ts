@@ -6,9 +6,8 @@ import {
 	type DragStartEvent,
 	useDroppable,
 } from '@dnd-kit/core'
-import { arrayMove, useSortable } from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
-import { type CSSProperties, useCallback, useId, useMemo, useRef, useState } from 'react'
+import { arrayMove } from '@dnd-kit/sortable'
+import { useCallback, useId, useMemo, useRef, useState } from 'react'
 import type { PaletteColor } from '../../core/recipe'
 import { useSortableItem } from '../../hooks'
 import type { GridColumnGroup } from './grid-group-types'
@@ -474,35 +473,4 @@ export function useGroupZoneDroppable(zoneId: string | number) {
  */
 export function useGroupColumnSortable(columnId: string | number) {
 	return useSortableItem({ id: String(columnId) })
-}
-
-/**
- * Registers a group zone as a sortable item (id {@link GROUP_PREFIX} + group id)
- * so whole groups reorder in a single vertical list. Unlike the column rows it
- * sorts in place — the group is one container, so dnd-kit animates the reflow
- * without an overlay; the source dims rather than hides. The handle beside the
- * group name carries the returned `attributes`/`listeners`.
- *
- * @internal
- */
-export function useGroupZoneSortable(groupId: string | number) {
-	const {
-		setNodeRef,
-		setActivatorNodeRef,
-		attributes,
-		listeners,
-		transform,
-		transition,
-		isDragging,
-	} = useSortable({ id: `${GROUP_PREFIX}${groupId}` })
-
-	const style: CSSProperties = {
-		transform: CSS.Transform.toString(transform),
-		transition,
-		opacity: isDragging ? 0.6 : 1,
-		zIndex: isDragging ? 1 : undefined,
-		position: isDragging ? 'relative' : undefined,
-	}
-
-	return { setNodeRef, setActivatorNodeRef, attributes, listeners, style, dragging: isDragging }
 }
