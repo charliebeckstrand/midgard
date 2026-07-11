@@ -32,6 +32,12 @@ import { columnLabel } from './engine/grid-column/label'
 import { DEFAULT_EXPORTABLE } from './engine/grid-export/registry'
 import type { GridExportAction } from './engine/grid-export/types'
 import { applyPinOverrides, type PinSide, toPinOverrides } from './engine/grid-pin/overrides'
+import {
+	cellValue,
+	type GridCellClick,
+	type GridCellRovingActivate,
+	type GridRowClick,
+} from './engine/grid-row/cell'
 import { GridAutoSizeConfirmDialog } from './grid-auto-size-confirm-dialog'
 import { GridBody } from './grid-body'
 import { GridBusyStatus } from './grid-busy-status'
@@ -70,13 +76,7 @@ import {
 	restrictToHorizontalAxis,
 	restrictToVerticalAxis,
 } from './grid-reorder'
-import {
-	cellValue,
-	type GridCellClick,
-	type GridCellRovingActivate,
-	type GridRowClick,
-	type GridRowsProps,
-} from './grid-row'
+import type { GridRowsProps } from './grid-row'
 import { GridRowManagerDialog } from './grid-row-manager-dialog'
 import { useGridSort } from './grid-sort-state'
 import { useColumnSettleWidths } from './grid-table-views'

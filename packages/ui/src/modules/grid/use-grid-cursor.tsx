@@ -2,9 +2,9 @@
 
 import { type ReactNode, type RefObject, useCallback, useMemo, useRef } from 'react'
 import { isColumnEditable } from './engine/grid-editing-utilities'
+import type { GridCellClick } from './engine/grid-row/cell'
 import { GridRowEditingContext } from './grid-editing-context'
 import type { GridEditableConfig } from './grid-editing-types'
-import type { GridCellClick } from './grid-row'
 import type { GridColumn } from './types'
 import { useGridEditing } from './use-grid-editing'
 import { useGridEditingColumns } from './use-grid-editing-columns'

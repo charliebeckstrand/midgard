@@ -3,9 +3,9 @@ import type { TableElementProps, TableVariants } from '../../components/table'
 import type { DensityLevel } from '../../providers/density'
 import type { SortState } from './context'
 import type { GridExportEntry } from './engine/grid-export/types'
+import type { GridCellClick, GridRowClick } from './engine/grid-row/cell'
 import type { GridEditableConfig } from './grid-editing-types'
 import type { GridColumnGroups } from './grid-group-types'
-import type { GridCellClick, GridRowClick } from './grid-row'
 import type { GridRowGroups } from './grid-row-group-types'
 import type {
 	GridColumn,

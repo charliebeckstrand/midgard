@@ -13,6 +13,7 @@ import {
 	formatAggregate,
 	hasAggregation,
 } from './engine/grid-aggregate'
+import { NO_PADDING } from './engine/grid-constants'
 import type { GridColumn } from './types'
 
 /** Stable empty row model read while the grand total is inactive, so its memo doesn't rebuild. @internal */
@@ -209,7 +210,7 @@ function GroupRevealCell({
 				color && k.rowGroup.tint[color],
 				className,
 			)}
-			style={{ padding: 0 }}
+			style={NO_PADDING}
 		>
 			<div className={cn(k.rowGroup.reveal.track)} data-open={dataAttr(expanded)}>
 				<div className={cn(k.rowGroup.reveal.clip)}>

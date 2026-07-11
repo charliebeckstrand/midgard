@@ -6,9 +6,7 @@ import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/grid'
-
-/** Zero cell padding for the detail `<td>`; hoisted so every mounted detail row shares one object. @internal */
-const NO_PADDING = { padding: 0 }
+import { NO_PADDING } from './engine/grid-constants'
 
 /** The DOM id of a row's detail panel, so the expander's `aria-controls` names it. @internal */
 export function detailPanelId(rowKey: string | number): string {

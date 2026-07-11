@@ -99,3 +99,12 @@ export const MANUAL_GROUP_PLACEHOLDER_ROWS = 1
  * pretending to a row count the data hasn't set yet. @internal
  */
 export const GRID_LOADING_ROWS = 1
+
+/**
+ * Zero cell padding as an inline style — highest specificity, so it clears the
+ * table's density projection on `td`. Hoisted so every consumer shares one
+ * object.
+ *
+ * @internal
+ */
+export const NO_PADDING = { padding: 0 } as const

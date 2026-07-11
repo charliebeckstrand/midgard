@@ -4,6 +4,7 @@ import { memo } from 'react'
 import { GridData } from './grid-data'
 import type { GridDataProps } from './grid-data-types'
 
+export type { GridCellClick, GridCellClickContext, GridRowClick } from './engine/grid-row/cell'
 export type {
 	GridColumnManagerConfig,
 	GridColumnOrder,
@@ -26,7 +27,6 @@ export type {
 	GridVirtualize,
 } from './grid-data-types'
 export type { GridColumnGroup, GridColumnGroups } from './grid-group-types'
-export type { GridCellClick, GridCellClickContext, GridRowClick } from './grid-row'
 
 /**
  * Props for {@link Grid}: a flat `rows` source mapped through `columns`. Pass an

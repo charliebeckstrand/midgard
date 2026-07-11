@@ -16,13 +16,13 @@ import type { DensityLevel } from '../../providers/density/context'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
 import { DEFAULT_OVERSCAN, ROW_HEIGHT_BY_DENSITY } from './engine/grid-constants'
+import type { GridCellClick, GridRowClick } from './engine/grid-row/cell'
 import type {
 	GridFooter,
 	GridFooterStats,
 	GridInfiniteScroll,
 	GridVirtualize,
 } from './grid-data-types'
-import type { GridCellClick, GridRowClick } from './grid-row'
 import type { GridColumn } from './types'
 import type { GridNavTableProps } from './use-grid-navigation'
 import type { GridColumnResize, GridPaginationView } from './use-grid-table'

@@ -12,7 +12,6 @@ import {
 	memo,
 	type ReactElement,
 	type KeyboardEvent as ReactKeyboardEvent,
-	type MouseEvent as ReactMouseEvent,
 	type ReactNode,
 	useContext,
 } from 'react'
@@ -21,155 +20,21 @@ import { Icon } from '../../components/icon'
 import { TableCell, TableRow } from '../../components/table'
 import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/grid'
-import { isDataColumn } from '../../utilities'
 import { isFrozen } from './engine/grid-pin/overrides'
 import { pinnedClassName, pinnedOffsetStyle } from './engine/grid-pin/styles'
+import {
+	cellValue,
+	type GridCellClick,
+	type GridCellClickContext,
+	type GridCellRovingActivate,
+	type GridRowClick,
+} from './engine/grid-row/cell'
+import { activateOnEnterSpace, rowClickableClass, rowShellProps } from './engine/grid-row/shell'
 import { type CellTooltip, GridCellContent } from './grid-cell-content'
 import { GridDetailRow, GridExpandToggle } from './grid-detail-row'
 import { columnShiftStyle, GridReorderContext } from './grid-reorder'
 import type { GridColumn } from './types'
 import type { GridColumnPinning } from './use-grid-table'
-
-/**
- * Row-level event handler for {@link GridDataProps.onRowClick} and
- * {@link GridDataProps.onRowDoubleClick}: the row datum and the originating
- * pointer or keyboard event.
- *
- * @typeParam T - Shape of a single row.
- */
-export type GridRowClick<T> = (
-	row: T,
-	event: ReactMouseEvent<HTMLTableRowElement> | ReactKeyboardEvent<HTMLTableRowElement>,
-) => void
-
-/**
- * Context for a cell-level event ({@link GridDataProps.onCellClick} /
- * {@link GridDataProps.onCellDoubleClick}): the cell's column id and data
- * value alongside the owning row.
- *
- * @typeParam T - Shape of a single row.
- */
-export type GridCellClickContext<T> = {
-	/** The owning row's datum. */
-	row: T
-	/** The owning row's key, from {@link GridDataProps.getKey}. */
-	rowKey: string | number
-	/** The clicked column's id. */
-	columnId: string | number
-	/**
-	 * The cell's data value: the column's {@link GridColumn.value} accessor when
-	 * set, else the row field named by the column id — the same resolution sort,
-	 * filter, and export read. `undefined` when the column has neither.
-	 */
-	value: unknown
-}
-
-/**
- * Cell-level event handler for {@link GridDataProps.onCellClick} and
- * {@link GridDataProps.onCellDoubleClick}: the {@link GridCellClickContext}
- * and the originating pointer or keyboard event.
- *
- * @typeParam T - Shape of a single row.
- */
-export type GridCellClick<T> = (
-	cell: GridCellClickContext<T>,
-	event: ReactMouseEvent<HTMLElement> | ReactKeyboardEvent<HTMLElement>,
-) => void
-
-/**
- * Activates a keyboard-focused data cell (cell roving): fires the cell click
- * then the row click for the given context, matching the order a pointer click
- * fires them in. @internal
- */
-export type GridCellRovingActivate<T> = (
-	cell: GridCellClickContext<T>,
-	event: ReactKeyboardEvent<HTMLElement>,
-) => void
-
-/**
- * A cell's data value: the column's {@link GridColumn.value} accessor when set,
- * else the row field named by the column id — the resolution sort, filter, and
- * export share. @internal
- */
-export function cellValue<T>(col: GridColumn<T>, row: T): unknown {
-	if (col.value) return col.value(row)
-
-	return (row as Record<string | number, unknown>)[col.id]
-}
-
-/**
- * Resolves the data cell a row-level pointer event landed on: the closest
- * `td[data-grid-col]` names the column, matched back through the row's visible
- * columns. Non-data cells (selection, actions, drag handle, expander) resolve
- * to `null`, so cell-level events fire only for row content.
- *
- * @internal
- */
-function resolveCellContext<T>(
-	columns: GridColumn<T>[],
-	row: T,
-	rowKey: string | number,
-	target: EventTarget | null,
-): GridCellClickContext<T> | null {
-	if (!(target instanceof Element)) return null
-
-	const id = target.closest('td[data-grid-col]')?.getAttribute('data-grid-col')
-
-	if (id == null) return null
-
-	for (const col of columns) {
-		if (String(col.id) === id && isDataColumn(col)) {
-			return { row, rowKey, columnId: col.id, value: cellValue(col, row) }
-		}
-	}
-
-	return null
-}
-
-/**
- * The row's DOM handler for a click or double-click: a click on interactive
- * cell content defers to that content; otherwise the cell-level handler fires
- * first — when the event landed on a data cell — then the row-level one,
- * matching the DOM's inside-out event order. `undefined` when the row carries
- * neither, so an inert row attaches no handler.
- *
- * @internal
- */
-export function rowPointerHandler<T>(args: {
-	columns: GridColumn<T>[]
-	row: T
-	rowKey: string | number
-	onRow: GridRowClick<T> | undefined
-	onCell: GridCellClick<T> | undefined
-}): ((event: ReactMouseEvent<HTMLTableRowElement>) => void) | undefined {
-	const { columns, row, rowKey, onRow, onCell } = args
-
-	if (!onRow && !onCell) return undefined
-
-	return (event) => {
-		if (fromInteractiveContent(event.target)) return
-
-		if (onCell) {
-			const cell = resolveCellContext(columns, row, rowKey, event.target)
-
-			if (cell) onCell(cell, event)
-		}
-
-		onRow?.(row, event)
-	}
-}
-
-/**
- * Interactive cell content that handles its own click, so a row-level
- * `onRowClick` defers to it rather than double-firing. @internal
- */
-const INTERACTIVE_CELL_CONTENT =
-	'a,button,input,select,textarea,label,[role="button"],[role="menuitem"],[role="checkbox"],[contenteditable="true"]'
-
-/** Whether the event originated inside interactive cell content. @internal */
-export function fromInteractiveContent(target: EventTarget | null): boolean {
-	return target instanceof Element && target.closest(INTERACTIVE_CELL_CONTENT) != null
-}
 
 /**
  * Per-row wiring shared by the plain and virtualized bodies: the row/key/column
@@ -542,56 +407,34 @@ function GridRowImpl<T>({
 			ref={sortable?.setNodeRef}
 			style={sortable?.style}
 			data-dragging={sortable ? dataAttr(sortable.dragging) : undefined}
-			// Selectable rows expose their checkbox state to assistive tech; a grid
-			// with no selection column omits the attribute entirely.
-			aria-selected={selectable ? selected : undefined}
-			data-selected={dataAttr(selected)}
+			// The shared row shell: identifying/state attributes, pointer handlers
+			// (cell-level first, then row-level), and Enter / Space activation gated
+			// to the row itself (see `rowShellProps`).
+			{...rowShellProps({
+				columns,
+				row,
+				rowKey,
+				selected,
+				selectable,
+				rowRoving,
+				onRowClick,
+				onCellClick,
+				onRowDoubleClick,
+				onCellDoubleClick,
+			})}
 			data-row-index={dataRowIndex}
-			data-grid-row={String(rowKey)}
-			data-clickable={dataAttr(onRowClick != null)}
-			// Row-mode roving marks the row an item the grid's roving hook owns the
-			// `tabIndex` of; the cell-mode/inert cases leave it off.
-			data-roving={dataAttr(rowRoving)}
 			aria-rowindex={rowIndex}
-			// A clickable row activates on Enter / Space; a click on interactive cell
-			// content defers to that content. Activation from the keyboard is gated to
-			// the row itself so inner controls keep their own Enter / Space behaviour.
-			// The click and double-click handlers each fire their cell-level
-			// counterpart first, then the row-level one (see `rowPointerHandler`).
-			//
 			// Focusability: a row-roving row omits `tabIndex` so the roving hook can
 			// own it (one row at `0`, the rest `-1`); the virtualized body keeps the
 			// legacy static per-row stop; cell roving and the navigable cursor leave
 			// the row unfocusable (the cells / the table hold focus).
 			tabIndex={rowRoving ? undefined : rowStaticStop ? 0 : undefined}
-			onClick={rowPointerHandler({ columns, row, rowKey, onRow: onRowClick, onCell: onCellClick })}
-			onDoubleClick={rowPointerHandler({
-				columns,
-				row,
-				rowKey,
-				onRow: onRowDoubleClick,
-				onCell: onCellDoubleClick,
-			})}
-			onKeyDown={
-				onRowClick
-					? (event) => {
-							if (
-								(event.key === 'Enter' || event.key === ' ') &&
-								event.target === event.currentTarget
-							) {
-								event.preventDefault()
-
-								onRowClick(row, event)
-							}
-						}
-					: undefined
-			}
 			// A clickable row carries the pointer cursor and a keyboard focus ring (see
 			// `k.row.clickable`); its hover wash is the shared `<Table hover>` variant
 			// that `GridData` enables for any row- or cell-level click handler.
 			className={cn(
 				loading && k.row.loading,
-				(onRowClick || onCellClick || onRowDoubleClick || onCellDoubleClick) && k.row.clickable,
+				rowClickableClass({ onRowClick, onCellClick, onRowDoubleClick, onCellDoubleClick }),
 				sortable && k.rowReorder.dragging,
 				className,
 			)}
@@ -813,13 +656,10 @@ export function cellRovingAttrs<T>(args: {
 
 	return {
 		'data-roving': dataAttr(true),
-		onKeyDown: (event) => {
-			if ((event.key === 'Enter' || event.key === ' ') && event.target === event.currentTarget) {
-				event.preventDefault()
-
-				cellActivate?.({ row, rowKey, columnId: col.id, value: cellValue(col, row) }, event)
-			}
-		},
+		onKeyDown: (event) =>
+			activateOnEnterSpace(event, (e) =>
+				cellActivate?.({ row, rowKey, columnId: col.id, value: cellValue(col, row) }, e),
+			),
 	}
 }
 

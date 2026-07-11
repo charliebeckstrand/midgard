@@ -10,21 +10,14 @@ import type { PaletteColor } from '../../core/recipe'
 import type { DensityLevel } from '../../providers/density'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
+import { NO_PADDING } from './engine/grid-constants'
 import { pinnedClassName, pinnedOffsetStyle } from './engine/grid-pin/styles'
+import type { GridCellClick, GridCellRovingActivate, GridRowClick } from './engine/grid-row/cell'
+import { rowClickableClass, rowShellProps } from './engine/grid-row/shell'
 import { GridCellContent } from './grid-cell-content'
-import {
-	cellRovingAttrs,
-	type GridCellClick,
-	type GridCellRovingActivate,
-	type GridRowClick,
-	resolveCellTooltip,
-	rowPointerHandler,
-} from './grid-row'
+import { cellRovingAttrs, resolveCellTooltip } from './grid-row'
 import type { GridColumn } from './types'
 import type { GridColumnPinning } from './use-grid-table'
-
-/** Zero cell padding as an inline style — highest specificity, so it clears the table's density projection on `td`. @internal */
-const NO_PADDING = { padding: 0 } as const
 
 /** A leaf cell's extra `<td>` width class and inner-wrapper layout class, by column kind. @internal */
 function leafCellChrome<T>(col: GridColumn<T>): { td: string; inner: string } {
@@ -271,13 +264,22 @@ export function GridGroupLeafRow<T>({
 
 	return (
 		<tr
-			data-grid-row={String(rowKey)}
-			data-selected={dataAttr(selected)}
-			aria-selected={selectable ? selected : undefined}
-			data-clickable={dataAttr(onRowClick != null)}
-			// Row-mode roving marks an expanded leaf an item the roving hook owns the
-			// `tabIndex` of; a collapsed leaf is `inert` and excluded by the selector.
-			data-roving={dataAttr(rowRoving && expanded)}
+			// The shared row shell (attributes, pointer handlers, Enter / Space
+			// activation). Row-mode roving marks an expanded leaf an item the roving
+			// hook owns the `tabIndex` of; a collapsed leaf is `inert` and excluded
+			// by the selector, so roving is gated on expansion here.
+			{...rowShellProps({
+				columns,
+				row,
+				rowKey,
+				selected,
+				selectable,
+				rowRoving: rowRoving && expanded,
+				onRowClick,
+				onCellClick,
+				onRowDoubleClick,
+				onCellDoubleClick,
+			})}
 			// A collapsed group's leaves are visually clipped to nothing; take them out
 			// of the tab order and the accessibility tree too (WCAG 1.3.1 / 2.4.3).
 			aria-hidden={expanded ? undefined : true}
@@ -285,32 +287,8 @@ export function GridGroupLeafRow<T>({
 			// Row roving hands the `tabIndex` to the roving hook; without it a clickable
 			// expanded leaf stays a static stop, and cell roving leaves the row unfocusable.
 			tabIndex={rowRoving ? undefined : onRowClick && !cellRoving && expanded ? 0 : undefined}
-			// The click and double-click handlers each fire their cell-level
-			// counterpart first, then the row-level one (see `rowPointerHandler`).
-			onClick={rowPointerHandler({ columns, row, rowKey, onRow: onRowClick, onCell: onCellClick })}
-			onDoubleClick={rowPointerHandler({
-				columns,
-				row,
-				rowKey,
-				onRow: onRowDoubleClick,
-				onCell: onCellDoubleClick,
-			})}
-			onKeyDown={
-				onRowClick
-					? (event) => {
-							if (
-								(event.key === 'Enter' || event.key === ' ') &&
-								event.target === event.currentTarget
-							) {
-								event.preventDefault()
-
-								onRowClick(row, event)
-							}
-						}
-					: undefined
-			}
 			className={cn(
-				(onRowClick || onCellClick || onRowDoubleClick || onCellDoubleClick) && k.row.clickable,
+				rowClickableClass({ onRowClick, onCellClick, onRowDoubleClick, onCellDoubleClick }),
 			)}
 		>
 			{cells.map((cell, colIdx) => {

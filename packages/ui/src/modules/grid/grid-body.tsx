@@ -11,9 +11,11 @@ import {
 } from 'react'
 import { Alert } from '../../components/alert'
 import { TableBody, TableEmpty, TableLoading } from '../../components/table'
+import type { PaletteColor } from '../../core/recipe'
 import type { DensityLevel } from '../../providers/density'
 import { hasAggregation } from './engine/grid-aggregate'
 import { GRID_LOADING_ROWS } from './engine/grid-constants'
+import { ariaRowIndex } from './engine/grid-row/shell'
 import type { ResolvedInfiniteScroll } from './grid-data-resolvers'
 import type { GridGroupBy, GridGroupHeaderRow } from './grid-data-types'
 import { GridGroupLeafRow } from './grid-group-leaf-row'
@@ -105,6 +107,49 @@ type GridBodyProps<T> = GridRowsProps<T> & {
 }
 
 /**
+ * The {@link GridGroupLeafRow} prop block the client-grouped and manual-grouped
+ * bodies share: the leaf's identity/selection wiring from the shared body props
+ * plus the caller's expansion state and (client grouping only) group color.
+ *
+ * @internal
+ */
+function leafRowProps<T>(
+	props: GridBodyProps<T>,
+	leaf: Row<T>,
+	args: {
+		expanded: boolean
+		getKey: (row: T, index: number) => string | number
+		density: DensityLevel
+		color?: PaletteColor
+	},
+): ComponentProps<typeof GridGroupLeafRow<T>> {
+	const key = args.getKey(leaf.original, leaf.index)
+
+	return {
+		expanded: args.expanded,
+		cells: leaf.getVisibleCells(),
+		row: leaf.original,
+		rowKey: key,
+		selected: props.selection.has(key),
+		toggleRow: props.toggleRow,
+		selectable: props.selectable,
+		rowLabel: props.rowLabel?.(leaf.original),
+		onRowClick: props.onRowClick,
+		onCellClick: props.onCellClick,
+		onRowDoubleClick: props.onRowDoubleClick,
+		onCellDoubleClick: props.onCellDoubleClick,
+		rowRoving: props.rowRoving,
+		cellRoving: props.cellRoving,
+		cellActivate: props.cellActivate,
+		truncate: props.truncate,
+		settleWidths: props.settleWidths,
+		pinning: props.pinning,
+		density: args.density,
+		color: args.color,
+	}
+}
+
+/**
  * Renders one group as a header row ({@link GridGroupRow}) followed by every one
  * of its leaves ({@link GridGroupLeafRow}). The leaves stay mounted whatever the
  * group's expansion — each animates open/closed from the `expanded` flag — so the
@@ -146,35 +191,12 @@ function renderGroup<T>(
 				renderHeader={renderHeader}
 				color={color}
 			/>
-			{groupRow.subRows.map((leaf) => {
-				const key = getKey(leaf.original, leaf.index)
-
-				return (
-					<GridGroupLeafRow<T>
-						key={leaf.id}
-						expanded={expanded}
-						cells={leaf.getVisibleCells()}
-						row={leaf.original}
-						rowKey={key}
-						selected={props.selection.has(key)}
-						toggleRow={props.toggleRow}
-						selectable={props.selectable}
-						rowLabel={props.rowLabel?.(leaf.original)}
-						onRowClick={props.onRowClick}
-						onCellClick={props.onCellClick}
-						onRowDoubleClick={props.onRowDoubleClick}
-						onCellDoubleClick={props.onCellDoubleClick}
-						rowRoving={props.rowRoving}
-						cellRoving={props.cellRoving}
-						cellActivate={props.cellActivate}
-						truncate={props.truncate}
-						settleWidths={props.settleWidths}
-						pinning={props.pinning}
-						density={density}
-						color={color}
-					/>
-				)
-			})}
+			{groupRow.subRows.map((leaf) => (
+				<GridGroupLeafRow<T>
+					key={leaf.id}
+					{...leafRowProps(props, leaf, { expanded, getKey, density, color })}
+				/>
+			))}
 			{totalled && (
 				<GridTotalRow<T>
 					columns={props.visibleColumns}
@@ -228,34 +250,12 @@ function renderManualSegment<T>(
 					toggle={args.toggle}
 				/>
 			)}
-			{segment.leaves.map((leaf) => {
-				const key = getKey(leaf.original, leaf.index)
-
-				return (
-					<GridGroupLeafRow<T>
-						key={leaf.id}
-						expanded={open}
-						cells={leaf.getVisibleCells()}
-						row={leaf.original}
-						rowKey={key}
-						selected={props.selection.has(key)}
-						toggleRow={props.toggleRow}
-						selectable={props.selectable}
-						rowLabel={props.rowLabel?.(leaf.original)}
-						onRowClick={props.onRowClick}
-						onCellClick={props.onCellClick}
-						onRowDoubleClick={props.onRowDoubleClick}
-						onCellDoubleClick={props.onCellDoubleClick}
-						rowRoving={props.rowRoving}
-						cellRoving={props.cellRoving}
-						cellActivate={props.cellActivate}
-						truncate={props.truncate}
-						settleWidths={props.settleWidths}
-						pinning={props.pinning}
-						density={density}
-					/>
-				)
-			})}
+			{segment.leaves.map((leaf) => (
+				<GridGroupLeafRow<T>
+					key={leaf.id}
+					{...leafRowProps(props, leaf, { expanded: open, getKey, density })}
+				/>
+			))}
 			{/* Expanded, but its children aren't loaded yet (the consumer's
 			    onGroupExpand fetch is in flight): fill the opened group with skeleton
 			    placeholders until they land. A group the backend reports empty
@@ -382,11 +382,15 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 		return <GridVirtualizedBody<T> {...props} {...virtualize} />
 	}
 
-	// Header occupies row 1; data rows are offset by 2, plus the page offset so a
-	// paginated row reports its place in the full set. Only emitted under grid
-	// semantics (a plain table conveys it natively).
+	// Global row indices only under grid semantics (a plain table conveys them
+	// natively); see `ariaRowIndex` for the offset math.
 	const body = rows.map((row, index) =>
-		renderGridRow(props, row, index, gridSemantics ? rowIndexOffset + index + 2 : undefined),
+		renderGridRow(
+			props,
+			row,
+			index,
+			gridSemantics ? ariaRowIndex(rowIndexOffset, index) : undefined,
+		),
 	)
 
 	// When rows are drag-reorderable, the sortable context wraps them (its
