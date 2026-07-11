@@ -3,7 +3,7 @@ import { docsPlugin } from './src/docs/engine/plugins'
 
 const CI = Boolean(process.env.CI)
 
-// Setup files for both jsdom projects (unit, boundary).
+// Setup files for both jsdom projects (unit, integration).
 const setupFiles = [
 	'./src/__tests__/setup/index.ts',
 	'./src/__tests__/setup/module-mocks.ts',
@@ -53,7 +53,7 @@ export default defineConfig({
 		},
 		// @tanstack/virtual-core's isScrolling debounce can outlive its test
 		// file's jsdom environment; the late timer then throws "window is not
-		// defined" from a virtual-core frame. The boundary project isolates
+		// defined" from a virtual-core frame. The integration project isolates
 		// those suites per file, so the stray timer only ever fires after its
 		// own file's teardown — ignore exactly that error (message and a
 		// virtual-core stack frame together) so a same-message error from any
@@ -95,8 +95,8 @@ export default defineConfig({
 					// The browser suite (vitest.browser.config.ts) verifies behaviour
 					// jsdom can't — layout/colour geometry and, in its floating-ui
 					// project, real-floating-engine focus trapping — so it may not
-					// run under this jsdom config. Boundary suites run in the
-					// isolated project below.
+					// run under this jsdom config. The boundary/ suites run in the
+					// two projects below.
 					exclude: [
 						...configDefaults.exclude,
 						'src/__tests__/browser/**',
@@ -106,13 +106,13 @@ export default defineConfig({
 			},
 			{
 				extends: true,
-				// Architectural rule suites (*-boundary.test.ts): node:fs walks over
-				// source text — no DOM, no React, no mocks. A plain node environment
-				// on one shared worker strips the per-file fork + jsdom + setup cost
-				// they paid in the forks project, which serializes into real wall
-				// clock on few-core CI agents.
+				// Architectural boundary suites (*-boundary.test.ts): node:fs walks
+				// over source text — no DOM, no React, no mocks. A plain node
+				// environment on one shared worker strips the per-file fork + jsdom
+				// + setup cost they'd pay in the integration project below, which
+				// serializes into real wall clock on few-core CI agents.
 				test: {
-					name: 'rules',
+					name: 'boundary',
 					environment: 'node',
 					pool: 'threads',
 					isolate: false,
@@ -121,15 +121,15 @@ export default defineConfig({
 			},
 			{
 				extends: true,
-				// Environment-boundary suites: virtualizer, canvas, PDF, map —
-				// integrations that schedule work past a test's lifetime or lean on
-				// jsdom's edges — plus suites that vi.mock a shared source module
+				// Integration suites: virtualizer, canvas, PDF, map — integrations
+				// that schedule work past a test's lifetime or lean on jsdom's
+				// edges — plus suites that vi.mock a shared source module
 				// (use-chat-scroll) and need forks' per-file module graph for the
 				// mock to stay authoritative. Process-isolated forks keep their
 				// leakage from perturbing sibling files; everything else stays on
 				// the fast shared-worker pool above.
 				test: {
-					name: 'boundary',
+					name: 'integration',
 					setupFiles,
 					pool: 'forks',
 					include: ['src/__tests__/boundary/**/*.test.{ts,tsx}'],
