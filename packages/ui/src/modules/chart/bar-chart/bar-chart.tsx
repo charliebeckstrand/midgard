@@ -1,27 +1,27 @@
 'use client'
 
-import { AnimatedChartBarMarks, ChartBarMarks } from '../chart-bar-marks'
-import { ChartCartesianAxes } from '../chart-cartesian-axes'
-import { ChartCartesianLegend } from '../chart-cartesian-legend'
-import { MARK_GAP } from '../chart-constants'
-import { ChartCrosshair, crosshairSnaps, resolveCrosshair } from '../chart-crosshair'
-import { ChartFrame } from '../chart-frame'
-import { ChartHitArea } from '../chart-hit-area'
-import { barMarkAt } from '../chart-hit-test'
-import { ChartMarksLayer } from '../chart-marks-layer'
-import { type ChartOrientation, valueCoord } from '../chart-orientation'
-import { useChartTexture } from '../chart-pattern-defs'
-import { ChartReferenceLines, ChartReferenceList } from '../chart-reference-lines'
-import { type CartesianChartProps, resolveLegend, resolveTooltip } from '../chart-schema'
-import { snappedSeriesAt, snapTargets } from '../chart-snap'
-import { barProjection, drawnSeries, useChartCartesian } from '../use-chart-cartesian'
-import { cartesianFocus } from '../use-chart-keyboard'
+import { ChartCartesianAxes } from '../engine/chart-axes/cartesian'
+import { MARK_GAP } from '../engine/chart-constants'
+import { ChartCrosshair, crosshairSnaps, resolveCrosshair } from '../engine/chart-crosshair'
+import { ChartFrame } from '../engine/chart-frame/frame'
 import {
 	barMarks,
 	stackedBarMarks,
 	stackedBarSnapPoints,
 	stackedBarSnapSeries,
-} from './bar-chart-geometry'
+} from '../engine/chart-geometry/bar'
+import { ChartHitArea } from '../engine/chart-hit-area'
+import { barMarkAt } from '../engine/chart-hit-test'
+import { ChartCartesianLegend } from '../engine/chart-legend/cartesian'
+import { AnimatedChartBarMarks, ChartBarMarks } from '../engine/chart-marks/bar'
+import { ChartMarksLayer } from '../engine/chart-marks/layer'
+import { type ChartOrientation, valueCoord } from '../engine/chart-orientation'
+import { useChartTexture } from '../engine/chart-pattern-defs'
+import { ChartReferenceLines, ChartReferenceList } from '../engine/chart-reference-lines'
+import { type CartesianChartProps, resolveLegend, resolveTooltip } from '../engine/chart-schema'
+import { snappedSeriesAt, snapTargets } from '../engine/chart-snap'
+import { barProjection, drawnSeries, useChartCartesian } from '../engine/use-chart-cartesian'
+import { cartesianFocus } from '../engine/use-chart-keyboard'
 
 /**
  * Props for {@link BarChart}. Requires an accessible name (`aria-label` or

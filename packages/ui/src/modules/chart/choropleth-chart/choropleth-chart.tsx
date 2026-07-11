@@ -12,11 +12,15 @@ import {
 	MapPlat,
 	type MapProjection,
 } from '../../map'
-import { ChartContextMenu } from '../chart-context-menu'
-import type { ChartContextMenuConfig, ChartRangeLegendConfig, DataKey } from '../chart-schema'
-import { formatChartValue, READOUT_GAP } from '../chart-series'
-import { useChartFullscreen } from '../context'
-import type { ChartReadout, ChartReadoutSource } from '../types'
+import { ChartContextMenu } from '../engine/chart-context-menu'
+import type {
+	ChartContextMenuConfig,
+	ChartRangeLegendConfig,
+	DataKey,
+} from '../engine/chart-schema'
+import { formatChartValue, READOUT_GAP } from '../engine/chart-series'
+import { useChartFullscreen } from '../engine/context'
+import type { ChartReadout, ChartReadoutSource } from '../engine/types'
 
 /**
  * The one series a choropleth shades regions with: the id and value fields to

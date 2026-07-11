@@ -1,7 +1,7 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { ChartPie, type PieBaseProps } from '../chart-pie'
+import { ChartPie, type PieBaseProps } from '../pie-chart/chart-pie'
 
 /**
  * Props for {@link DonutChart}. Requires an accessible name (`aria-label` or

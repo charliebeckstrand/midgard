@@ -2,8 +2,15 @@ export type { ChartSeriesColor } from '../../recipes/kata/chart'
 export { AreaChart, type AreaChartProps } from './area-chart'
 export { BarChart, type BarChartProps } from './bar-chart'
 export { BubbleChart, type BubbleChartProps } from './bubble-chart'
-export type { ChartAspectRatio } from './chart-layout'
-export type { ChartOrientation } from './chart-orientation'
+export {
+	ChoroplethChart,
+	type ChoroplethChartProps,
+	type ChoroplethChartSeries,
+} from './choropleth-chart'
+export { ComboChart, type ComboChartProps } from './combo-chart'
+export { DonutChart, type DonutChartProps } from './donut-chart'
+export type { ChartAspectRatio } from './engine/chart-layout'
+export type { ChartOrientation } from './engine/chart-orientation'
 export type {
 	BubbleChartSeries,
 	CartesianAxes,
@@ -24,16 +31,9 @@ export type {
 	PieChartSeries,
 	ScatterAxes,
 	ScatterChartSeries,
-} from './chart-schema'
-export { ChartSkeleton, type ChartSkeletonProps } from './chart-skeleton'
-export type { ChartTier } from './chart-tier'
-export {
-	ChoroplethChart,
-	type ChoroplethChartProps,
-	type ChoroplethChartSeries,
-} from './choropleth-chart'
-export { ComboChart, type ComboChartProps } from './combo-chart'
-export { DonutChart, type DonutChartProps } from './donut-chart'
+} from './engine/chart-schema'
+export { ChartSkeleton, type ChartSkeletonProps } from './engine/chart-skeleton'
+export type { ChartTier } from './engine/chart-tier'
 export {
 	HeatmapChart,
 	type HeatmapChartProps,

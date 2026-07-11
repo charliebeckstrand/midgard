@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { BarChart } from '../../modules/chart/bar-chart'
-import { STATIC_GENERATION } from '../../modules/chart/chart-motion'
+import { STATIC_GENERATION } from '../../modules/chart/engine/chart-motion'
 import { PieChart } from '../../modules/chart/pie-chart'
 import { bySlot, renderUI, stubMatchMedia } from '../helpers'
 

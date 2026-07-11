@@ -6,7 +6,8 @@ import { useResolvedSize } from '../../../primitives/density'
 import type { Step } from '../../../recipes'
 import { type ChartSeriesColor, k } from '../../../recipes/kata/chart'
 import { once } from '../../../utilities'
-import { ChartAxis, type ChartAxisTick, ChartAxisTitles } from '../chart-axis'
+import { ChartAxis, type ChartAxisTick, ChartAxisTitles } from '../engine/chart-axes/axis'
+import { ChartGridLines } from '../engine/chart-axes/grid-lines'
 import {
 	AXIS_TITLE_BAND,
 	AXIS_TITLE_GAP,
@@ -16,42 +17,9 @@ import {
 	PLOT_TOP_PAD,
 	SCATTER_HIT_SLACK,
 	X_AXIS_HEIGHT,
-} from '../chart-constants'
-import { ChartCrosshair, crosshairSnaps, resolveCrosshair } from '../chart-crosshair'
-import { ChartFrame } from '../chart-frame'
-import { ChartGridLines } from '../chart-grid-lines'
-import {
-	type ChartAspectRatio,
-	type ChartAxisTitlePlacement,
-	chartFrameLayout,
-	type PlotRect,
-	plotRect,
-	valueTicksOf,
-} from '../chart-layout'
-import type { ChartLegendItem } from '../chart-legend'
-import { ChartLegend } from '../chart-legend'
-import { ChartMarksLayer } from '../chart-marks-layer'
-import { type LinearScale, linearScale } from '../chart-scale'
-import {
-	type ChartBaseProps,
-	type ChartLegendPlacement,
-	type ChartTooltipTrigger,
-	type ChartValueAxis,
-	type Crosshair,
-	type ResolvedCrosshair,
-	resolveAxes,
-	resolveLegend,
-	resolveTooltip,
-	type ScatterAxes,
-	type ScatterChartSeries,
-} from '../chart-schema'
-import { formatChartValue, type SlotPaint } from '../chart-series'
-import { snapTargets } from '../chart-snap'
-import { chartPolicy, policyPlotHeight } from '../chart-tier'
-import { useChartTier } from '../context'
-import type { ChartReadout } from '../types'
-import { cartesianFocus } from '../use-chart-keyboard'
-import { useChartSeriesToggle } from '../use-chart-series-toggle'
+} from '../engine/chart-constants'
+import { ChartCrosshair, crosshairSnaps, resolveCrosshair } from '../engine/chart-crosshair'
+import { ChartFrame } from '../engine/chart-frame/frame'
 import {
 	anchorEndTicks,
 	diameterRange,
@@ -69,7 +37,39 @@ import {
 	sizeDomain,
 	sizeRadius,
 	uniqueXValues,
-} from './scatter-chart-geometry'
+} from '../engine/chart-geometry/scatter'
+import {
+	type ChartAspectRatio,
+	type ChartAxisTitlePlacement,
+	chartFrameLayout,
+	type PlotRect,
+	plotRect,
+	valueTicksOf,
+} from '../engine/chart-layout'
+import type { ChartLegendItem } from '../engine/chart-legend/legend'
+import { ChartLegend } from '../engine/chart-legend/legend'
+import { ChartMarksLayer } from '../engine/chart-marks/layer'
+import { type LinearScale, linearScale } from '../engine/chart-scale'
+import {
+	type ChartBaseProps,
+	type ChartLegendPlacement,
+	type ChartTooltipTrigger,
+	type ChartValueAxis,
+	type Crosshair,
+	type ResolvedCrosshair,
+	resolveAxes,
+	resolveLegend,
+	resolveTooltip,
+	type ScatterAxes,
+	type ScatterChartSeries,
+} from '../engine/chart-schema'
+import { formatChartValue, type SlotPaint } from '../engine/chart-series'
+import { snapTargets } from '../engine/chart-snap'
+import { chartPolicy, policyPlotHeight } from '../engine/chart-tier'
+import { useChartTier } from '../engine/context'
+import type { ChartReadout } from '../engine/types'
+import { cartesianFocus } from '../engine/use-chart-keyboard'
+import { useChartSeriesToggle } from '../engine/use-chart-series-toggle'
 import { ScatterChartHitArea } from './scatter-chart-hit-area'
 import {
 	AnimatedScatterChartMarks,

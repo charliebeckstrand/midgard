@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { GUTTER_GAP, TICK_CHAR_WIDTH } from '../../modules/chart/chart-constants'
-import { bandScale } from '../../modules/chart/chart-scale'
+import { GUTTER_GAP, TICK_CHAR_WIDTH } from '../../modules/chart/engine/chart-constants'
+import { bandScale } from '../../modules/chart/engine/chart-scale'
 import {
 	dateCategoryFormat,
 	parseInstant,
 	timeCategory,
 	timeTicks,
-} from '../../modules/chart/chart-time'
+} from '../../modules/chart/engine/chart-time'
 
 /** A band scale placing `count` rows evenly across `[0, length]`. */
 function band(count: number, length = 600) {

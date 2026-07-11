@@ -1,6 +1,6 @@
 'use client'
 
-import type { BubbleChartSeries, ChartBaseProps } from '../chart-schema'
+import type { BubbleChartSeries, ChartBaseProps } from '../engine/chart-schema'
 import { ScatterChart, type ScatterFrameProps } from '../scatter-chart'
 
 /**

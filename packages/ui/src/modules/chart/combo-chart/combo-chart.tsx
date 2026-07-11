@@ -1,20 +1,25 @@
 'use client'
 
-import { type BarMark, barMarks } from '../bar-chart/bar-chart-geometry'
-import { ChartAxis, ChartAxisTitles } from '../chart-axis'
-import { AnimatedChartBarMarks, ChartBarMarks } from '../chart-bar-marks'
-import { ChartCartesianLegend } from '../chart-cartesian-legend'
-import { MARK_GAP } from '../chart-constants'
-import { ChartCrosshair, crosshairSnaps, resolveCrosshair } from '../chart-crosshair'
-import { ChartFrame } from '../chart-frame'
-import { ChartGridLines } from '../chart-grid-lines'
-import { ChartHitArea } from '../chart-hit-area'
-import { barMarkAt, nearestSeriesArea, nearestSeriesLine } from '../chart-hit-test'
-import { lineMarkReach } from '../chart-layout'
-import { AnimatedChartLineMarks, ChartLineMarks, type ChartLineSeries } from '../chart-line-marks'
-import { ChartMarksLayer } from '../chart-marks-layer'
-import { useChartTexture } from '../chart-pattern-defs'
-import { ChartReferenceLines, ChartReferenceList } from '../chart-reference-lines'
+import { ChartAxis, ChartAxisTitles } from '../engine/chart-axes/axis'
+import { ChartGridLines } from '../engine/chart-axes/grid-lines'
+import { MARK_GAP } from '../engine/chart-constants'
+import { ChartCrosshair, crosshairSnaps, resolveCrosshair } from '../engine/chart-crosshair'
+import { ChartFrame } from '../engine/chart-frame/frame'
+import { type BarMark, barMarks } from '../engine/chart-geometry/bar'
+import { type LineInterpolation, lineGeometry } from '../engine/chart-geometry/line'
+import { ChartHitArea } from '../engine/chart-hit-area'
+import { barMarkAt, nearestSeriesArea, nearestSeriesLine } from '../engine/chart-hit-test'
+import { lineMarkReach } from '../engine/chart-layout'
+import { ChartCartesianLegend } from '../engine/chart-legend/cartesian'
+import { AnimatedChartBarMarks, ChartBarMarks } from '../engine/chart-marks/bar'
+import { ChartMarksLayer } from '../engine/chart-marks/layer'
+import {
+	AnimatedChartLineMarks,
+	ChartLineMarks,
+	type ChartLineSeries,
+} from '../engine/chart-marks/line'
+import { useChartTexture } from '../engine/chart-pattern-defs'
+import { ChartReferenceLines, ChartReferenceList } from '../engine/chart-reference-lines'
 import {
 	type CartesianFrameProps,
 	type ChartBaseProps,
@@ -22,19 +27,18 @@ import {
 	type ComboChartSeries,
 	resolveLegend,
 	resolveTooltip,
-} from '../chart-schema'
-import { snappedSeriesAt, snapTargets } from '../chart-snap'
-import { ChartValueLabels, resolveValueLabels } from '../chart-value-labels'
-import type { ChartMarkRef } from '../context'
-import { type LineInterpolation, lineGeometry } from '../line-chart/line-chart-geometry'
+} from '../engine/chart-schema'
+import { snappedSeriesAt, snapTargets } from '../engine/chart-snap'
+import { ChartValueLabels, resolveValueLabels } from '../engine/chart-value-labels'
+import type { ChartMarkRef } from '../engine/context'
 import {
 	bandCenters,
 	barProjection,
 	type DrawnSeries,
 	drawnSeries,
 	useChartCartesian,
-} from '../use-chart-cartesian'
-import { cartesianFocus } from '../use-chart-keyboard'
+} from '../engine/use-chart-cartesian'
+import { cartesianFocus } from '../engine/use-chart-keyboard'
 
 /**
  * Props for {@link ComboChart}. Requires an accessible name (`aria-label` or

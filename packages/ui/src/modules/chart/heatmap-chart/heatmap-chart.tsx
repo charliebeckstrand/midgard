@@ -29,31 +29,31 @@ import { usePlotFrame, useResizeObserver } from '../../../hooks'
 import { k } from '../../../recipes/kata/chart'
 import { binIndex, type ColorBin, once, resolveColorBins, valueExtent } from '../../../utilities'
 import { RangeArrow, RangeLegend } from '../../map'
-import { ChartAxis, type ChartAxisTick } from '../chart-axis'
+import { ChartAxis, type ChartAxisTick } from '../engine/chart-axes/axis'
 import {
 	BAND_LABEL_HEIGHT,
 	GUTTER_GAP,
 	LABEL_CHAR_WIDTH,
 	TICK_CHAR_WIDTH,
-} from '../chart-constants'
-import { ChartContextMenu } from '../chart-context-menu'
-import { chartFrameSizing, type PlotRect, plotRect, thinned } from '../chart-layout'
-import type { ChartOrientation } from '../chart-orientation'
-import { ChartPlotBox } from '../chart-plot-box'
-import { resolveRangeLegend } from '../chart-range-legend'
-import { bandScale } from '../chart-scale'
+} from '../engine/chart-constants'
+import { ChartContextMenu } from '../engine/chart-context-menu'
+import { cellAt, heatmapCells } from '../engine/chart-geometry/heatmap'
+import { chartFrameSizing, type PlotRect, plotRect, thinned } from '../engine/chart-layout'
+import { resolveRangeLegend } from '../engine/chart-legend/range'
+import type { ChartOrientation } from '../engine/chart-orientation'
+import { ChartPlotBox } from '../engine/chart-plot-box'
+import { bandScale } from '../engine/chart-scale'
 import {
 	type ChartContextMenuConfig,
 	type ChartLegendPlacement,
 	type ChartTooltipTrigger,
 	resolveTooltip,
-} from '../chart-schema'
-import { formatChartValue, READOUT_GAP } from '../chart-series'
-import { ChartTable } from '../chart-table'
-import { isSparkBox } from '../chart-tier'
-import { useChartFullscreen } from '../context'
-import type { ChartReadout, ChartReadoutSource } from '../types'
-import { cellAt, heatmapCells } from './heatmap-chart-geometry'
+} from '../engine/chart-schema'
+import { formatChartValue, READOUT_GAP } from '../engine/chart-series'
+import { ChartTable } from '../engine/chart-table'
+import { isSparkBox } from '../engine/chart-tier'
+import { useChartFullscreen } from '../engine/context'
+import type { ChartReadout, ChartReadoutSource } from '../engine/types'
 import {
 	type HeatmapChartProps,
 	type HeatmapMatrix,

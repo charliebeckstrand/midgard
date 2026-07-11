@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { BarChart } from '../../modules/chart/bar-chart'
-import type { ChartValueAxis } from '../../modules/chart/chart-schema'
 import { ComboChart } from '../../modules/chart/combo-chart'
+import type { ChartValueAxis } from '../../modules/chart/engine/chart-schema'
 import { LineChart } from '../../modules/chart/line-chart'
 import { act, allBySlot, bySlot, fireEvent, renderUI, userEvent } from '../helpers'
 

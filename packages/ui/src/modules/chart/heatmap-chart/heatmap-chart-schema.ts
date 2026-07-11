@@ -16,7 +16,7 @@ import type {
 	ChartLegendPlacement,
 	ChartRangeLegendConfig,
 	DataKey,
-} from '../chart-schema'
+} from '../engine/chart-schema'
 
 /**
  * The one series a heatmap shades cells with: the two fields that place a cell

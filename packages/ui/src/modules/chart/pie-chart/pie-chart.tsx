@@ -1,6 +1,6 @@
 'use client'
 
-import { ChartPie, type PieBaseProps } from '../chart-pie'
+import { ChartPie, type PieBaseProps } from './chart-pie'
 
 /**
  * Props for {@link PieChart}. Requires an accessible name (`aria-label` or

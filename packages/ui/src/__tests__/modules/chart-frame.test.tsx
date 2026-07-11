@@ -7,16 +7,16 @@ import {
 	PLOT_TOP_PAD,
 	TICK_CHAR_WIDTH,
 	X_AXIS_HEIGHT,
-} from '../../modules/chart/chart-constants'
-import { ChartFrame } from '../../modules/chart/chart-frame'
+} from '../../modules/chart/engine/chart-constants'
+import { ChartFrame } from '../../modules/chart/engine/chart-frame/frame'
 import {
 	type CartesianLayoutInput,
 	chartFrameSizing,
 	horizontalLayout,
 	plotRect,
 	verticalLayout,
-} from '../../modules/chart/chart-layout'
-import { ChartLegend } from '../../modules/chart/chart-legend'
+} from '../../modules/chart/engine/chart-layout'
+import { ChartLegend } from '../../modules/chart/engine/chart-legend/legend'
 import { bySlot, noop, renderUI } from '../helpers'
 
 function frame(width: number, extras?: Partial<Parameters<typeof ChartFrame>[0]>) {

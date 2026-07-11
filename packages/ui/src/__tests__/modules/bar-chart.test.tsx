@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import { BarChart } from '../../modules/chart/bar-chart'
+import { TICK_CHAR_WIDTH } from '../../modules/chart/engine/chart-constants'
 import {
 	barMarks,
 	stackedBarMarks,
 	stackedBarSnapPoints,
 	stackedBarSnapSeries,
-} from '../../modules/chart/bar-chart/bar-chart-geometry'
-import { TICK_CHAR_WIDTH } from '../../modules/chart/chart-constants'
-import { bandScale } from '../../modules/chart/chart-scale'
+} from '../../modules/chart/engine/chart-geometry/bar'
+import { bandScale } from '../../modules/chart/engine/chart-scale'
 import { act, allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
 
 /**

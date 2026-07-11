@@ -1,28 +1,36 @@
 'use client'
 
-import { ChartAxis, ChartAxisTitles } from '../chart-axis'
-import { ChartCartesianLegend } from '../chart-cartesian-legend'
-import { ChartCrosshair, crosshairSnaps, resolveCrosshair } from '../chart-crosshair'
-import { ChartFrame } from '../chart-frame'
-import { ChartGridLines } from '../chart-grid-lines'
-import { ChartHitArea } from '../chart-hit-area'
-import { nearestSeriesArea, nearestSeriesLine } from '../chart-hit-test'
-import { lineMarkReach } from '../chart-layout'
-import { AnimatedChartLineMarks, ChartLineMarks, type ChartLineSeries } from '../chart-line-marks'
-import { ChartMarksLayer } from '../chart-marks-layer'
-import { useChartTexture } from '../chart-pattern-defs'
-import { ChartReferenceLines, ChartReferenceList } from '../chart-reference-lines'
+import { ChartAxis, ChartAxisTitles } from '../engine/chart-axes/axis'
+import { ChartGridLines } from '../engine/chart-axes/grid-lines'
+import { ChartCrosshair, crosshairSnaps, resolveCrosshair } from '../engine/chart-crosshair'
+import { ChartFrame } from '../engine/chart-frame/frame'
+import { type LineInterpolation, lineGeometry } from '../engine/chart-geometry/line'
+import { ChartHitArea } from '../engine/chart-hit-area'
+import { nearestSeriesArea, nearestSeriesLine } from '../engine/chart-hit-test'
+import { lineMarkReach } from '../engine/chart-layout'
+import { ChartCartesianLegend } from '../engine/chart-legend/cartesian'
+import { ChartMarksLayer } from '../engine/chart-marks/layer'
+import {
+	AnimatedChartLineMarks,
+	ChartLineMarks,
+	type ChartLineSeries,
+} from '../engine/chart-marks/line'
+import { useChartTexture } from '../engine/chart-pattern-defs'
+import { ChartReferenceLines, ChartReferenceList } from '../engine/chart-reference-lines'
 import {
 	type CartesianChartProps,
 	type ChartValueLabelConfig,
 	resolveLegend,
 	resolveTooltip,
-} from '../chart-schema'
-import { snappedSeriesAt, snapTargets } from '../chart-snap'
-import { ChartValueLabels, resolveValueLabels, valueLabelHeadroom } from '../chart-value-labels'
-import { bandCenters, useChartCartesian } from '../use-chart-cartesian'
-import { cartesianFocus } from '../use-chart-keyboard'
-import { type LineInterpolation, lineGeometry } from './line-chart-geometry'
+} from '../engine/chart-schema'
+import { snappedSeriesAt, snapTargets } from '../engine/chart-snap'
+import {
+	ChartValueLabels,
+	resolveValueLabels,
+	valueLabelHeadroom,
+} from '../engine/chart-value-labels'
+import { bandCenters, useChartCartesian } from '../engine/use-chart-cartesian'
+import { cartesianFocus } from '../engine/use-chart-keyboard'
 
 /**
  * Props for {@link LineChart}. Requires an accessible name (`aria-label` or

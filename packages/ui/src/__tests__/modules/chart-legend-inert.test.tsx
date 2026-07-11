@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { BarChart } from '../../modules/chart'
-import { resolveLegend } from '../../modules/chart/chart-schema'
+import { resolveLegend } from '../../modules/chart/engine/chart-schema'
 import { allBySlot, bySlot, renderUI } from '../helpers'
 
 const DATA = [

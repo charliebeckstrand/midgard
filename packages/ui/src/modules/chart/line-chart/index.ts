@@ -1,2 +1,2 @@
+export type { LineInterpolation } from '../engine/chart-geometry/line'
 export { LineChart, type LineChartProps } from './line-chart'
-export type { LineInterpolation } from './line-chart-geometry'

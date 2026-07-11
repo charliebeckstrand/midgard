@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import { AreaChart } from '../../modules/chart/area-chart'
-import { paintFor } from '../../modules/chart/chart-series'
+import { paintFor } from '../../modules/chart/engine/chart-series'
 import {
 	labelPoints,
 	type PlacedValueLabel,
 	resolveValueLabels,
 	type ValueLabelSeries,
 	valueLabels,
-} from '../../modules/chart/chart-value-labels'
+} from '../../modules/chart/engine/chart-value-labels'
 import { LineChart } from '../../modules/chart/line-chart'
 import { allBySlot, bySlot, renderUI } from '../helpers'
 
