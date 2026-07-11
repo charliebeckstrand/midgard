@@ -4,7 +4,7 @@ import { cn } from '../../../core'
 import { type FrameSizing, usePlotFrame } from '../../../hooks'
 import { useResolvedSize } from '../../../primitives/density'
 import type { Step } from '../../../recipes'
-import { type ChartSeriesColor, k } from '../../../recipes/kata/chart'
+import { type ChartColorSlot, k } from '../../../recipes/kata/chart'
 import { once } from '../../../utilities'
 import { ChartAxis, type ChartAxisTick, ChartAxisTitles } from '../engine/chart-axes/axis'
 import { ChartGridLines } from '../engine/chart-axes/grid-lines'
@@ -131,7 +131,7 @@ type ScatterMeta = {
 	index: number
 	label: string
 	paint: SlotPaint
-	color: ChartSeriesColor
+	color: ChartColorSlot
 	points: ScatterDatum[]
 	sized: boolean
 	sizeName: string | null

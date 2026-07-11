@@ -3,7 +3,7 @@
 import { type CSSProperties, type ReactNode, useId } from 'react'
 import { Swatch } from '../../../components/swatch'
 import { cn } from '../../../core'
-import { type ChartSeriesColor, k } from '../../../recipes/kata/chart'
+import { type ChartColorSlot, k } from '../../../recipes/kata/chart'
 import type { SlotPaint } from './chart-color/paint'
 
 /** The pattern tile edge, in `viewBox` units — the hatch repeats every `TILE`. @internal */
@@ -45,8 +45,8 @@ const TEXTURES: readonly Texture[] = [
 ]
 
 /** The tile for a slot, by its place in the fixed order; off-order slots hatch. @internal */
-function textureFor(color: ChartSeriesColor): Texture {
-	const index = (k.order as readonly ChartSeriesColor[]).indexOf(color)
+function textureFor(color: ChartColorSlot): Texture {
+	const index = (k.order as readonly ChartColorSlot[]).indexOf(color)
 
 	return TEXTURES[index] ?? (TEXTURES[0] as Texture)
 }
@@ -80,7 +80,7 @@ function hatch(texture: Texture): ReactNode {
 }
 
 /** One tile to define: the slot's hue paint and the scoped `id` the marks reference. @internal */
-export type ChartPatternEntry = { color: ChartSeriesColor; paint: SlotPaint; id: string }
+export type ChartPatternEntry = { color: ChartColorSlot; paint: SlotPaint; id: string }
 
 /**
  * The `<defs>` block of texture tiles — one per distinct slot in use, a hue
@@ -127,7 +127,7 @@ export type ChartTexture = {
 	/** The `<defs>` to mount inside the SVG — the tiles for the slots in use. */
 	defs: ReactNode
 	/** The tile fill URL for a slot, or `undefined` for a raw colour, which takes no tile. */
-	fillFor: (slot: ChartSeriesColor | null) => string | undefined
+	fillFor: (slot: ChartColorSlot | null) => string | undefined
 	/** The `texture` prop: tiles paint in every mode, not only forced-colors / print. */
 	active: boolean
 }
@@ -144,14 +144,14 @@ export type ChartTexture = {
  *
  * @internal
  */
-export function useChartTexture(active: boolean, slots: (ChartSeriesColor | null)[]): ChartTexture {
+export function useChartTexture(active: boolean, slots: (ChartColorSlot | null)[]): ChartTexture {
 	// React's useId carries colons — safe as an attribute, but not inside the
 	// url() a CSS class reads — so strip them for the referenced pattern ids.
 	const base = useId().replace(/:/g, '')
 
-	const idFor = (slot: ChartSeriesColor) => `chart-tx-${base}-${slot}`
+	const idFor = (slot: ChartColorSlot) => `chart-tx-${base}-${slot}`
 
-	const distinct = new Set<ChartSeriesColor>()
+	const distinct = new Set<ChartColorSlot>()
 
 	for (const slot of slots) if (slot !== null) distinct.add(slot)
 
@@ -205,7 +205,7 @@ export function ChartSwatch({
 	swatchClass: string
 	/** A raw series colour inked inline on the swatch's `currentColor`; unset for a palette slot. */
 	swatchColor?: string
-	color?: ChartSeriesColor
+	color?: ChartColorSlot
 	/** Dash the `line` swatch, mirroring a dashed series stroke; ignored for a `rect`. */
 	dashed?: boolean
 	active: boolean

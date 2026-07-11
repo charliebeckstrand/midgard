@@ -8,10 +8,10 @@
  */
 import { mode } from '../../core/recipe'
 import { iro, kokkaku, sen } from '../kiso'
-import { type ChartSeriesColor, k as chart } from './chart'
+import { type ChartColorSlot, k as chart } from './chart'
 
 /** A named map mark colour: the chart module's eight categorical slots plus `zinc`. */
-export type MapSeriesColor = ChartSeriesColor
+export type MapSeriesColor = ChartColorSlot
 
 export const k = {
 	/** Shared data-viz palette: same slots, same order, same validation as `kata/chart`. */

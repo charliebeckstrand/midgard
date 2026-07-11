@@ -5,10 +5,11 @@
  */
 
 import { cn } from '../../../core'
-import type { ChartSeriesColor } from '../../../recipes/kata/chart'
+import type { ChartColorSlot } from '../../../recipes/kata/chart'
 import { formatFraction, formatInteger, resolveFormat } from '../../../utilities'
-import { rawColor, type SeriesPaint, textClass } from './chart-color/paint'
-import type { ChartSeries, ChartValueAxisId, DataKey } from './chart-schema'
+import { rawColor, textClass } from './chart-color/paint'
+import type { ChartSeriesPaint } from './chart-color/palette'
+import type { ChartValueAxisId, DataKey } from './chart-schema'
 import type { ChartReadout } from './types'
 
 /** The em-dash a readout shows where a datum is non-finite. @internal */
@@ -71,9 +72,9 @@ export type SeriesMeta = {
 	/** The series' position in the caller's list — slot colours and toggles key off it. */
 	index: number
 	label: string
-	paint: SeriesPaint
+	paint: ChartSeriesPaint
 	/** The resolved slot the texture tile keys off, or `null` for a raw colour. */
-	slot: ChartSeriesColor | null
+	slot: ChartColorSlot | null
 	/** Swatch shape, mirroring the mark. */
 	swatch: 'rect' | 'line'
 	values: (number | null)[]

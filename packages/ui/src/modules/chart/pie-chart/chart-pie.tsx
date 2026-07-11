@@ -4,7 +4,7 @@ import { motion } from 'motion/react'
 import { type MouseEvent, type PointerEvent, type ReactNode, useId } from 'react'
 import { cn } from '../../../core'
 import { type FrameSizing, usePlotFrame } from '../../../hooks'
-import { type ChartSeriesColor, k } from '../../../recipes/kata/chart'
+import { type ChartColorSlot, k } from '../../../recipes/kata/chart'
 import { formatPercent, once } from '../../../utilities'
 import type { SlotPaint } from '../engine/chart-color/paint'
 import { paletteSlot } from '../engine/chart-color/palette'
@@ -729,7 +729,7 @@ function pieReadout(
 function pieLegendItems(
 	labels: string[],
 	paints: SlotPaint[],
-	colors: ChartSeriesColor[],
+	colors: ChartColorSlot[],
 	sliceValues: (number | null)[],
 	panel: boolean,
 ): ChartLegendItem[] {

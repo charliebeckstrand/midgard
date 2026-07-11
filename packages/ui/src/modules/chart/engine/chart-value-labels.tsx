@@ -3,7 +3,7 @@
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { cn } from '../../../core'
 import { ReducedMotion } from '../../../primitives/reduced-motion'
-import { fillClass, rawColor, type SeriesPaint } from './chart-color/paint'
+import { type ChartPaint, fillClass, rawColor } from './chart-color/paint'
 import { TICK_CHAR_WIDTH } from './chart-constants'
 import type { PlotRect } from './chart-layout'
 import { POINT_POP, POINT_UNPOP, STATIC_GENERATION } from './chart-motion'
@@ -123,7 +123,7 @@ export type ValueLabelSeries = {
  * @internal
  */
 export function lineLabelSeries(
-	list: { paint: SeriesPaint; geometry: { points: { x: number; y: number }[] } }[],
+	list: { paint: ChartPaint; geometry: { points: { x: number; y: number }[] } }[],
 	metas: { values: (number | null)[] }[],
 	formats?: ((value: number) => string)[],
 	gapSkipped = true,
@@ -333,7 +333,7 @@ export function valueLabels(options: ValueLabelsOptions): PlacedValueLabel[] {
  */
 export function resolveValueLabels(
 	config: ValueLabelConfig | undefined,
-	list: { paint: SeriesPaint; geometry: { points: { x: number; y: number }[] } }[],
+	list: { paint: ChartPaint; geometry: { points: { x: number; y: number }[] } }[],
 	metas: { values: (number | null)[] }[],
 	plot: PlotRect,
 	format: ((value: number) => string) | undefined,

@@ -5,7 +5,7 @@ import { useId } from 'react'
 import { cn } from '../../../../core'
 import { k } from '../../../../recipes/kata/chart'
 import { rangeKeys } from '../../../../utilities'
-import { fillClass, rawColor, type SeriesPaint, strokeClass } from '../chart-color/paint'
+import { type ChartPaint, fillClass, rawColor, strokeClass } from '../chart-color/paint'
 import {
 	AREA_FILL_OPACITY,
 	LINE_STROKE_WIDTH,
@@ -32,7 +32,7 @@ export type ChartLineSeries = {
 	/** The series' own index in the caller's list — the React key, stable across toggles and unique where two series share a label. */
 	index: number
 	label: string
-	paint: SeriesPaint
+	paint: ChartPaint
 	geometry: LineSeriesGeometry
 	/** Mark every point, not only the isolated ones. */
 	markers: boolean
@@ -58,12 +58,12 @@ export type ChartLineMarksProps = {
 }
 
 /** The marker dot's classes: series fill, gaining a white surface stroke only where a dot crosses opaque marks. @internal */
-function markerClass(paint: SeriesPaint, stroke: boolean): string {
+function markerClass(paint: ChartPaint, stroke: boolean): string {
 	return cn(fillClass(paint), stroke && k.stroke)
 }
 
 /** A line segment's shared presentation, dashed for a dashed series. @internal */
-function segmentProps(paint: SeriesPaint, dashed: boolean | undefined) {
+function segmentProps(paint: ChartPaint, dashed: boolean | undefined) {
 	return {
 		fill: 'none',
 		stroke: rawColor(paint),

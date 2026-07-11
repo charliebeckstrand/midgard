@@ -4,8 +4,8 @@ import { motion } from 'motion/react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
 import { cn } from '../../../core'
 import { ReducedMotion } from '../../../primitives/reduced-motion'
-import { type ChartSeriesColor, k } from '../../../recipes/kata/chart'
-import { isSeriesSlot } from './chart-color/paint'
+import { type ChartColorSlot, k } from '../../../recipes/kata/chart'
+import { isColorSlot } from './chart-color/paint'
 import { REFERENCE_DASH, REFERENCE_HIT_WIDTH, REFERENCE_STROKE_WIDTH } from './chart-constants'
 import type { PlotRect } from './chart-layout'
 import type { ChartLegendReference } from './chart-legend/legend'
@@ -20,7 +20,7 @@ import { useChartEmphasis, useChartTier } from './context'
 type ReferenceFormat = (value: number, axis: ChartValueAxisId) => string
 
 /** The neutral de-emphasis slot a reference takes until coloured. @internal */
-const DEFAULT_REFERENCE_COLOR = 'zinc' satisfies ChartSeriesColor
+const DEFAULT_REFERENCE_COLOR = 'zinc' satisfies ChartColorSlot
 
 /** Props for {@link ChartReferenceLines}. @internal */
 export type ChartReferenceLinesProps = {
@@ -138,7 +138,7 @@ type RulePoints = { x1: number; y1: number; x2: number; y2: number }
 function ReferenceRuleStroke({ line, points }: { line: ChartReferenceLine; points: RulePoints }) {
 	const color = line.color ?? DEFAULT_REFERENCE_COLOR
 
-	const slot = isSeriesSlot(color)
+	const slot = isColorSlot(color)
 
 	return (
 		<line
@@ -176,7 +176,7 @@ function LabelledReferenceRule({
 
 	const color = line.color ?? DEFAULT_REFERENCE_COLOR
 
-	const slot = isSeriesSlot(color)
+	const slot = isColorSlot(color)
 
 	const anchor = referenceLabelAnchor(orientation, end, plot)
 
@@ -250,7 +250,7 @@ function HoverReferenceRule({
 
 	const color = line.color ?? DEFAULT_REFERENCE_COLOR
 
-	const slot = isSeriesSlot(color)
+	const slot = isColorSlot(color)
 
 	const points: RulePoints = { x1: start.x, y1: start.y, x2: end.x, y2: end.y }
 
@@ -519,7 +519,7 @@ export function referenceLegendItems(
 			// Carry the rule's own array index — the plot rules key their emphasis off
 			// it, and a non-finite rule dropped from the chips leaves a gap the plot
 			// keeps, so the chip must name the index rather than its own position.
-			return isSeriesSlot(color)
+			return isColorSlot(color)
 				? { index, label, swatchClass: k.series[color].text.join(' '), dashed }
 				: { index, label, swatchClass: '', color, dashed }
 		})

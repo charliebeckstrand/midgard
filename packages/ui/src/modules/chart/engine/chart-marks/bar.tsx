@@ -3,7 +3,7 @@
 import { motion } from 'motion/react'
 import { useMemo } from 'react'
 import { cn } from '../../../../core'
-import { fillClass, rawColor, type SeriesPaint } from '../chart-color/paint'
+import { type ChartPaint, fillClass, rawColor } from '../chart-color/paint'
 import type { BarMark } from '../chart-geometry/bar'
 import { BAR_GROW, BAR_SHRINK, BAR_STAGGER, barGrow } from '../chart-motion'
 import type { ChartOrientation } from '../chart-orientation'
@@ -15,7 +15,7 @@ export type ChartBarMarksProps = {
 	/** Series-major marks; `null` entries are omitted bars. */
 	marks: (BarMark | null)[][]
 	/** Paint per series, indexed like `marks`. */
-	paints: SeriesPaint[]
+	paints: ChartPaint[]
 	/** Each series' own index (`meta.index`), aligned to `marks` — the identity the mark emphasis keys on. */
 	indices: number[]
 	/** Per-series texture-tile fill URLs, aligned with `paints`; a raw colour or flat mode leaves the slot empty. */
@@ -31,7 +31,7 @@ export type ChartBarMarksProps = {
 
 /** One bar's classes: series fill, its texture tile, and the emphasis dim. @internal */
 function barClass(
-	paint: SeriesPaint | undefined,
+	paint: ChartPaint | undefined,
 	dim: boolean,
 	active: boolean,
 	fill: string | undefined,

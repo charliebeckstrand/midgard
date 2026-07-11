@@ -9,8 +9,10 @@
 
 import type { ContextMenuConfig } from '../../../components/context-menu'
 import type { Step } from '../../../recipes'
-import type { ChartSeriesColor } from '../../../recipes/kata/chart'
+import type { ChartColorSlot } from '../../../recipes/kata/chart'
 import type { AccessibleName } from '../../../types'
+import type { ChartColor } from './chart-color/paint'
+import type { ChartSeriesColor } from './chart-color/palette'
 import type { ChartAspectRatio } from './chart-layout'
 
 /** A key of `T` naming the field a chart reads from each datum. */
@@ -191,7 +193,7 @@ export type ChartSeries<T> = {
 	 * slot palette in fixed order, so a series keeps its colour when siblings
 	 * toggle.
 	 */
-	color?: ChartSeriesColor | (string & {})
+	color?: ChartSeriesColor
 	/**
 	 * The value axis this series reads against. `'y2'` binds it to the secondary
 	 * axis — its own domain, ticks, and formatter via the chart's `axes.y2`
@@ -257,7 +259,7 @@ export type ScatterChartSeries<T> = {
 	 * Named mark colour override. Defaults to the categorical slot palette in
 	 * fixed order, so a series keeps its colour when siblings toggle.
 	 */
-	color?: ChartSeriesColor
+	color?: ChartColorSlot
 	/**
 	 * The field sizing each point — the bubble encoding. Sizes scale by area
 	 * (radii on a square root) between `size` and `maxSize` over this series'
@@ -459,7 +461,7 @@ export type ChartReferenceLine = {
 	 * emphasis.
 	 * @defaultValue 'zinc'
 	 */
-	color?: ChartSeriesColor | (string & {})
+	color?: ChartColor
 	/**
 	 * Dash the rule — the annotation convention, telling a reference apart from a
 	 * data line — or draw it solid.

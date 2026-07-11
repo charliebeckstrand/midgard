@@ -11,7 +11,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '../../../../components/
 import { cn } from '../../../../core'
 import { useA11yRoving } from '../../../../hooks/a11y'
 import { useTruncation } from '../../../../hooks/use-truncation'
-import type { ChartSeriesColor } from '../../../../recipes/kata/chart'
+import type { ChartColorSlot } from '../../../../recipes/kata/chart'
 import { ChartSwatch } from '../chart-pattern-defs'
 import { useChartEmphasis } from '../context'
 import { OVERFLOW_CHIP_RESERVE, visibleLegendCount } from './fit'
@@ -318,7 +318,7 @@ export type ChartLegendItem = {
 	 */
 	dashed?: boolean
 	/** The slot colour, so a textured legend swatch mirrors the mark's tile; unset for a raw colour. */
-	color?: ChartSeriesColor
+	color?: ChartColorSlot
 	/** A trailing readout — the side panel carries each slice's live share. */
 	detail?: string
 }
