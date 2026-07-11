@@ -33,7 +33,13 @@ import { isDataColumn, isNativeContextMenuRequest } from '../../utilities'
 import type { SortState } from './context'
 import { columnLabel } from './engine/grid-column/label'
 import type { GridExportAction } from './engine/grid-export/types'
-import { frozenSide, isLocked, normalizeFreeze } from './engine/grid-pin/overrides'
+import {
+	frozenSide,
+	isLocked,
+	normalizeFreeze,
+	type PinMenuChoice,
+	pinMenuChoices,
+} from './engine/grid-pin/overrides'
 import type { GridColumnGroup } from './grid-group-types'
 import type {
 	GridCellMenuContext,
@@ -202,38 +208,19 @@ function groupMenuItems<T>(column: GridColumn<T>, groupBy: GridGroupByMenu | nul
 function pinMenuItems<T>(column: GridColumn<T>, pinColumn: PinColumn): GridMenuItem[] {
 	if (isLocked(column)) return []
 
-	const side = normalizeFreeze(column.pinned)
+	return pinMenuChoices(normalizeFreeze(column.pinned)).map((choice) => ({
+		key: choice.key,
+		label: choice.label,
+		icon: pinChoiceIcon(choice.key),
+		onSelect: () => pinColumn(column.id, choice.target),
+	}))
+}
 
-	const items: GridMenuItem[] = []
+/** The glyph for each pin choice — icons stay in the shell, off the engine's decision tree. @internal */
+function pinChoiceIcon(key: PinMenuChoice['key']): ReactElement {
+	if (key === 'pin-left') return <ArrowLeftToLine />
 
-	if (side !== 'left') {
-		items.push({
-			key: 'pin-left',
-			label: 'Pin left',
-			icon: <ArrowLeftToLine />,
-			onSelect: () => pinColumn(column.id, 'left'),
-		})
-	}
-
-	if (side !== 'right') {
-		items.push({
-			key: 'pin-right',
-			label: 'Pin right',
-			icon: <ArrowRightToLine />,
-			onSelect: () => pinColumn(column.id, 'right'),
-		})
-	}
-
-	if (side) {
-		items.push({
-			key: 'unpin',
-			label: 'Unpin',
-			icon: <PinOff />,
-			onSelect: () => pinColumn(column.id, false),
-		})
-	}
-
-	return items
+	return key === 'pin-right' ? <ArrowRightToLine /> : <PinOff />
 }
 
 /**

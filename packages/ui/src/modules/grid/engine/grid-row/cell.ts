@@ -1,6 +1,7 @@
 import type { KeyboardEvent as ReactKeyboardEvent, MouseEvent as ReactMouseEvent } from 'react'
 import { isDataColumn } from '../../../../utilities'
 import type { GridColumn } from '../../types'
+import { columnAccessor } from '../grid-column/accessor'
 
 /**
  * Row-level event handler for {@link GridDataProps.onRowClick} and
@@ -64,9 +65,7 @@ export type GridCellRovingActivate<T> = (
  * export share. @internal
  */
 export function cellValue<T>(col: GridColumn<T>, row: T): unknown {
-	if (col.value) return col.value(row)
-
-	return (row as Record<string | number, unknown>)[col.id]
+	return columnAccessor(col)(row)
 }
 
 /**

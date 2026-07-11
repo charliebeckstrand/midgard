@@ -13,7 +13,7 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/grid-column-manager'
 import { toggleItem } from '../../utilities'
 import { columnLabel } from './engine/grid-column/label'
-import { effectivePinSide } from './engine/grid-pin/overrides'
+import { effectivePinSide, pinMenuChoices } from './engine/grid-pin/overrides'
 import { GridGroupManager } from './grid-group-manager'
 import type { GridColumnGroup } from './grid-group-types'
 import { applyColumnReorder } from './grid-reorder'
@@ -111,24 +111,22 @@ function GridColumnPinControl({
 				</button>
 			</MenuTrigger>
 			<MenuContent>
-				{side !== 'left' && (
-					<MenuItem onAction={() => onPinChange(item.id, 'left')}>
-						<Icon icon={<ArrowLeftToLine />} />
-						<MenuLabel>Pin left</MenuLabel>
+				{pinMenuChoices(side).map((choice) => (
+					<MenuItem key={choice.key} onAction={() => onPinChange(item.id, choice.target)}>
+						<Icon
+							icon={
+								choice.key === 'pin-left' ? (
+									<ArrowLeftToLine />
+								) : choice.key === 'pin-right' ? (
+									<ArrowRightToLine />
+								) : (
+									<PinOff />
+								)
+							}
+						/>
+						<MenuLabel>{choice.label}</MenuLabel>
 					</MenuItem>
-				)}
-				{side !== 'right' && (
-					<MenuItem onAction={() => onPinChange(item.id, 'right')}>
-						<Icon icon={<ArrowRightToLine />} />
-						<MenuLabel>Pin right</MenuLabel>
-					</MenuItem>
-				)}
-				{side && (
-					<MenuItem onAction={() => onPinChange(item.id, false)}>
-						<Icon icon={<PinOff />} />
-						<MenuLabel>Unpin</MenuLabel>
-					</MenuItem>
-				)}
+				))}
 			</MenuContent>
 		</Menu>
 	)

@@ -114,3 +114,32 @@ export function effectivePinSide(item: {
 }): PinSide | undefined {
 	return item.locked ?? item.pinned
 }
+
+/** One offering of the pin menu: its stable key, display label, and the pin target it commits. @internal */
+export type PinMenuChoice = {
+	key: 'pin-left' | 'pin-right' | 'unpin'
+	label: string
+	/** The edge to pin to, or `false` to unpin. */
+	target: PinSide | false
+}
+
+/**
+ * The pin choices a column's menu offers, from its current frozen edge: "Pin
+ * left" / "Pin right" for the edges it is not already frozen to, and "Unpin"
+ * once it is frozen. A scrolling column offers both edges; a left-pinned one
+ * offers Pin right and Unpin, and vice versa. The one decision tree behind the
+ * header context menu's pin items and the column manager's pin control.
+ *
+ * @internal
+ */
+export function pinMenuChoices(side: PinSide | undefined): PinMenuChoice[] {
+	const choices: PinMenuChoice[] = []
+
+	if (side !== 'left') choices.push({ key: 'pin-left', label: 'Pin left', target: 'left' })
+
+	if (side !== 'right') choices.push({ key: 'pin-right', label: 'Pin right', target: 'right' })
+
+	if (side) choices.push({ key: 'unpin', label: 'Unpin', target: false })
+
+	return choices
+}
