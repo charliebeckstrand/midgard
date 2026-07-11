@@ -14,15 +14,12 @@ import { cn } from '../../../../core'
 import type { FrameReserve } from '../../../../hooks'
 import { k } from '../../../../recipes/kata/chart'
 import type { AccessibleName } from '../../../../types'
+import type { ChartContextMenuConfig } from '../chart-context-menu'
 import { ChartContextMenu } from '../chart-context-menu'
 import { ChartHeader } from '../chart-header'
+import { type ChartLegendPlacement, legendAside } from '../chart-legend/schema'
 import type { ChartOrientation } from '../chart-orientation'
 import { ChartPlotBox } from '../chart-plot-box'
-import {
-	type ChartContextMenuConfig,
-	type ChartLegendPlacement,
-	legendAside,
-} from '../chart-schema'
 import type { ChartSnap } from '../chart-snap'
 import { ChartTable } from '../chart-table'
 import type { ChartTier } from '../chart-tier'

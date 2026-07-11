@@ -36,22 +36,19 @@ import {
 	LABEL_CHAR_WIDTH,
 	TICK_CHAR_WIDTH,
 } from '../engine/chart-constants'
+import type { ChartContextMenuConfig } from '../engine/chart-context-menu'
 import { ChartContextMenu } from '../engine/chart-context-menu'
 import { cellAt, heatmapCells } from '../engine/chart-geometry/heatmap'
 import { chartFrameSizing, type PlotRect, plotRect, thinned } from '../engine/chart-layout'
 import { resolveRangeLegend } from '../engine/chart-legend/range'
+import type { ChartLegendPlacement } from '../engine/chart-legend/schema'
 import type { ChartOrientation } from '../engine/chart-orientation'
 import { ChartPlotBox } from '../engine/chart-plot-box'
 import { bandScale } from '../engine/chart-scale'
-import {
-	type ChartContextMenuConfig,
-	type ChartLegendPlacement,
-	type ChartTooltipTrigger,
-	resolveTooltip,
-} from '../engine/chart-schema'
 import { formatChartValue, READOUT_GAP } from '../engine/chart-series'
 import { ChartTable } from '../engine/chart-table'
 import { isSparkBox } from '../engine/chart-tier'
+import { type ChartTooltipTrigger, resolveTooltip } from '../engine/chart-tooltip'
 import { useChartFullscreen } from '../engine/context'
 import type { ChartReadout, ChartReadoutSource } from '../engine/types'
 import {

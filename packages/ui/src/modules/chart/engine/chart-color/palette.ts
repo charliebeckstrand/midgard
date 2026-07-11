@@ -11,7 +11,7 @@
  */
 
 import { type ChartColorSlot, k } from '../../../../recipes/kata/chart'
-import type { ChartSeries } from '../chart-schema'
+import type { ChartSeries } from '../types'
 import { type ChartColor, type ChartPaint, resolvePaint } from './paint'
 
 /**

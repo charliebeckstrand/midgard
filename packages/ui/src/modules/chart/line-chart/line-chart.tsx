@@ -7,23 +7,21 @@ import { type LineInterpolation, lineSeriesOf } from '../engine/chart-geometry/l
 import { ChartHitArea, cartesianHitActive } from '../engine/chart-hit-area'
 import { nearestSeriesArea, nearestSeriesLine } from '../engine/chart-hit-test'
 import { lineMarkReach } from '../engine/chart-layout'
+import { resolveLegend } from '../engine/chart-legend/schema'
 import { ChartMarksLayer } from '../engine/chart-marks/layer'
 import { AnimatedChartLineMarks, ChartLineMarks } from '../engine/chart-marks/line'
 import { useChartTexture } from '../engine/chart-pattern-defs'
 import { ChartReferenceLines } from '../engine/chart-reference-lines'
-import {
-	type CartesianChartProps,
-	type ChartValueLabelConfig,
-	resolveLegend,
-	resolveTooltip,
-} from '../engine/chart-schema'
 import { snappedSeriesAt, snapTargets } from '../engine/chart-snap'
+import { resolveTooltip } from '../engine/chart-tooltip'
+import type { ChartValueLabelConfig } from '../engine/chart-value-labels'
 import {
 	axisLabelFormats,
 	ChartValueLabels,
 	resolveValueLabels,
 	valueLabelHeadroom,
 } from '../engine/chart-value-labels'
+import type { CartesianChartProps } from '../engine/types'
 import {
 	bandCenters,
 	cartesianData,

@@ -11,7 +11,11 @@ import {
 	useState,
 } from 'react'
 import { Button } from '../../../components/button'
-import { ContextMenu, type ContextMenuItem } from '../../../components/context-menu'
+import {
+	ContextMenu,
+	type ContextMenuConfig,
+	type ContextMenuItem,
+} from '../../../components/context-menu'
 import { Dialog, DialogFooter } from '../../../components/dialog'
 import {
 	type ChartImageType,
@@ -22,9 +26,22 @@ import {
 	rasterizeChartImage,
 	readoutToCsv,
 } from './chart-export'
-import type { ChartContextMenuConfig } from './chart-schema'
 import { ChartFullscreenContext } from './context'
 import type { ChartReadoutSource } from './types'
+
+/**
+ * A chart's right-click menu configuration: the shared {@link ContextMenuConfig}
+ * (custom `items`, `defaultItems`, `position`) plus the chart's own export
+ * options.
+ */
+export type ChartContextMenuConfig = ContextMenuConfig & {
+	/**
+	 * Include the legend in the downloaded PNG / JPG. Off exports the plot and
+	 * header alone, the chart reflowing to fill the space the legend leaves.
+	 * @defaultValue true
+	 */
+	downloadLegend?: boolean
+}
 
 /** Props for {@link ChartContextMenu}. @internal */
 export type ChartContextMenuProps = {

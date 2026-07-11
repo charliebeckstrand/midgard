@@ -12,13 +12,15 @@ import {
 } from '../engine/chart-geometry/bar'
 import { ChartHitArea, cartesianHitActive } from '../engine/chart-hit-area'
 import { barMarkAt } from '../engine/chart-hit-test'
+import { resolveLegend } from '../engine/chart-legend/schema'
 import { AnimatedChartBarMarks, ChartBarMarks } from '../engine/chart-marks/bar'
 import { ChartMarksLayer } from '../engine/chart-marks/layer'
 import { type ChartOrientation, valueCoord } from '../engine/chart-orientation'
 import { useChartTexture } from '../engine/chart-pattern-defs'
 import { ChartReferenceLines } from '../engine/chart-reference-lines'
-import { type CartesianChartProps, resolveLegend, resolveTooltip } from '../engine/chart-schema'
 import { snappedSeriesAt, snapTargets } from '../engine/chart-snap'
+import { resolveTooltip } from '../engine/chart-tooltip'
+import type { CartesianChartProps } from '../engine/types'
 import {
 	barProjection,
 	cartesianData,

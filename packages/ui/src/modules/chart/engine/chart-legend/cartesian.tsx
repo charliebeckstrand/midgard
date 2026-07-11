@@ -1,6 +1,6 @@
-import { type ChartLegendPlacement, legendAside } from '../chart-schema'
 import type { CartesianChart } from '../use-chart-cartesian'
 import { ChartLegend } from './legend'
+import { type ChartLegendPlacement, legendAside } from './schema'
 
 /** Props for {@link ChartCartesianLegend}. @internal */
 type ChartCartesianLegendProps = {

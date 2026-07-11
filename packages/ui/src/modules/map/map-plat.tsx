@@ -20,9 +20,9 @@ import {
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { k, type MapSeriesColor } from '../../recipes/kata/map'
 import type { AccessibleName } from '../../types'
+import type { ChartRangeLegendConfig } from '../chart/engine/chart-legend/range'
 import { resolveRangeLegend } from '../chart/engine/chart-legend/range'
 import { ChartPlotBox } from '../chart/engine/chart-plot-box'
-import type { ChartRangeLegendConfig } from '../chart/engine/chart-schema'
 import {
 	type MapHoverSet,
 	MapHoverSetContext,

@@ -5,16 +5,56 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/too
 import { cn } from '../../../core'
 import { ReducedMotion } from '../../../primitives/reduced-motion'
 import { type ChartColorSlot, k } from '../../../recipes/kata/chart'
-import { isColorSlot } from './chart-color/paint'
+import type { ChartValueAxisId } from './chart-axes/schema'
+import { type ChartColor, isColorSlot } from './chart-color/paint'
 import { REFERENCE_DASH, REFERENCE_HIT_WIDTH, REFERENCE_STROKE_WIDTH } from './chart-constants'
 import type { PlotRect } from './chart-layout'
 import type { ChartLegendReference } from './chart-legend/legend'
 import { REFERENCE_RISE, referenceRise } from './chart-motion'
 import { bandExtent, type ChartOrientation, project, type Vec } from './chart-orientation'
 import type { LinearScale } from './chart-scale'
-import type { ChartReferenceLine, ChartValueAxisId } from './chart-schema'
 import { formatChartValue } from './chart-series'
 import { useChartEmphasis, useChartTier } from './context'
+
+/**
+ * One reference line: a value-axis annotation drawn across the plot — a target,
+ * threshold, budget, or average to read the marks against. It sits at a raw
+ * domain `value`, so its position tracks the scale; the value also folds into
+ * the domain, keeping an off-data target on-frame rather than clamped to an
+ * edge.
+ */
+export type ChartReferenceLine = {
+	/** The domain value the line sits at, in the same units the series are read in. */
+	value: number
+	/**
+	 * A short label naming the rule — carried in its hover tooltip and legend chip,
+	 * and drawn beside the rule at its far end once a chart's `labels.references` is
+	 * on. Omitted, the rule reads by its value alone.
+	 */
+	label?: string
+	/**
+	 * The rule's colour: a named palette slot (rendered through the CVD-safe slot
+	 * classes) or any raw CSS colour string — a hex like `'#e11d48'`, an
+	 * `'oklch(…)'`, or any value CSS accepts — applied inline. Defaults to the
+	 * neutral de-emphasis slot, so a reference reads as chrome until coloured for
+	 * emphasis.
+	 * @defaultValue 'zinc'
+	 */
+	color?: ChartColor
+	/**
+	 * Dash the rule — the annotation convention, telling a reference apart from a
+	 * data line — or draw it solid.
+	 * @defaultValue true
+	 */
+	dashed?: boolean
+	/**
+	 * The value axis the rule's `value` reads against. It folds into that
+	 * axis's domain and draws at that axis's projection, so a `y2` threshold
+	 * annotates the `y2`-bound series rather than the primary scale.
+	 * @defaultValue 'y'
+	 */
+	axis?: ChartValueAxisId
+}
 
 /** Formats a reference value with its own axis's formatter. @internal */
 type ReferenceFormat = (value: number, axis: ChartValueAxisId) => string

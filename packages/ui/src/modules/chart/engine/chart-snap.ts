@@ -5,7 +5,7 @@
  * ride the snap read it the same way, whichever way the chart faces.
  */
 
-import type { ResolvedCrosshair } from './chart-schema'
+import type { ResolvedCrosshair } from './chart-crosshair'
 
 /**
  * The snap targets a chart hands its snapping overlays: where the rules meet

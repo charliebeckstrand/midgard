@@ -1,6 +1,7 @@
 'use client'
 
 import { ChartCartesianAxes } from '../engine/chart-axes/cartesian'
+import type { Crosshair } from '../engine/chart-crosshair'
 import { ChartCrosshair, crosshairSnaps, resolveCrosshair } from '../engine/chart-crosshair'
 import { ChartCartesianFrame } from '../engine/chart-frame/cartesian'
 import { type StackedAreaGeometry, stackedAreas } from '../engine/chart-geometry/area'
@@ -12,6 +13,7 @@ import {
 import { ChartHitArea, cartesianHitActive } from '../engine/chart-hit-area'
 import { nearestSeriesArea } from '../engine/chart-hit-test'
 import { lineMarkReach } from '../engine/chart-layout'
+import { resolveLegend } from '../engine/chart-legend/schema'
 import { ChartMarksLayer } from '../engine/chart-marks/layer'
 import {
 	AnimatedChartLineMarks,
@@ -20,19 +22,15 @@ import {
 } from '../engine/chart-marks/line'
 import { useChartTexture } from '../engine/chart-pattern-defs'
 import { ChartReferenceLines } from '../engine/chart-reference-lines'
-import {
-	type CartesianChartProps,
-	type ChartValueLabelConfig,
-	type Crosshair,
-	resolveLegend,
-	resolveTooltip,
-} from '../engine/chart-schema'
 import { snappedSeriesAt, snapTargets } from '../engine/chart-snap'
+import { resolveTooltip } from '../engine/chart-tooltip'
+import type { ChartValueLabelConfig } from '../engine/chart-value-labels'
 import {
 	axisLabelFormats,
 	ChartValueLabels,
 	resolveValueLabels,
 } from '../engine/chart-value-labels'
+import type { CartesianChartProps } from '../engine/types'
 import {
 	bandCenters,
 	cartesianData,

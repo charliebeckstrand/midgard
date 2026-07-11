@@ -8,6 +8,7 @@ import { type ChartColorSlot, k } from '../../../recipes/kata/chart'
 import { once } from '../../../utilities'
 import { ChartAxis, type ChartAxisTick, ChartAxisTitles } from '../engine/chart-axes/axis'
 import { ChartGridLines } from '../engine/chart-axes/grid-lines'
+import { type ChartValueAxis, resolveAxes, type ScatterAxes } from '../engine/chart-axes/schema'
 import type { SlotPaint } from '../engine/chart-color/paint'
 import { paletteSlot } from '../engine/chart-color/palette'
 import {
@@ -20,6 +21,7 @@ import {
 	SCATTER_HIT_SLACK,
 	X_AXIS_HEIGHT,
 } from '../engine/chart-constants'
+import type { Crosshair, ResolvedCrosshair } from '../engine/chart-crosshair'
 import { ChartCrosshair, crosshairSnaps, resolveCrosshair } from '../engine/chart-crosshair'
 import { ChartFrame } from '../engine/chart-frame/frame'
 import {
@@ -51,29 +53,21 @@ import {
 } from '../engine/chart-layout'
 import type { ChartLegendItem } from '../engine/chart-legend/legend'
 import { ChartLegend } from '../engine/chart-legend/legend'
-import { ChartMarksLayer } from '../engine/chart-marks/layer'
-import { type LinearScale, linearScale } from '../engine/chart-scale'
 import {
-	type ChartBaseProps,
 	type ChartLegendPlacement,
-	type ChartTooltipTrigger,
-	type ChartValueAxis,
-	type Crosshair,
 	legendAside,
 	legendVisible,
-	type ResolvedCrosshair,
 	type ResolvedLegend,
-	resolveAxes,
 	resolveLegend,
-	resolveTooltip,
-	type ScatterAxes,
-	type ScatterChartSeries,
-} from '../engine/chart-schema'
+} from '../engine/chart-legend/schema'
+import { ChartMarksLayer } from '../engine/chart-marks/layer'
+import { type LinearScale, linearScale } from '../engine/chart-scale'
 import { formatChartValue } from '../engine/chart-series'
 import { snapTargets } from '../engine/chart-snap'
 import { chartFramePolicy } from '../engine/chart-tier'
+import { type ChartTooltipTrigger, resolveTooltip } from '../engine/chart-tooltip'
 import { useChartTier } from '../engine/context'
-import type { ChartReadout } from '../engine/types'
+import type { ChartBaseProps, ChartReadout, ScatterChartSeries } from '../engine/types'
 import { cartesianFocus } from '../engine/use-chart-keyboard'
 import { useChartSeriesToggle } from '../engine/use-chart-series-toggle'
 import { ScatterChartHitArea } from './scatter-chart-hit-area'

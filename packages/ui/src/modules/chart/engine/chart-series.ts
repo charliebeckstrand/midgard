@@ -7,10 +7,10 @@
 import { cn } from '../../../core'
 import type { ChartColorSlot } from '../../../recipes/kata/chart'
 import { formatFraction, formatInteger, resolveFormat } from '../../../utilities'
+import type { ChartValueAxisId } from './chart-axes/schema'
 import { rawColor, textClass } from './chart-color/paint'
 import type { ChartSeriesPaint } from './chart-color/palette'
-import type { ChartValueAxisId, DataKey } from './chart-schema'
-import type { ChartReadout } from './types'
+import type { ChartReadout, DataKey } from './types'
 
 /** The em-dash a readout shows where a datum is non-finite. @internal */
 export const READOUT_GAP = '—'

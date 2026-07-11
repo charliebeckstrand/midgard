@@ -9,7 +9,7 @@ import { TICK_CHAR_WIDTH } from '../engine/chart-constants'
 import { type PieSlice, pieCentroidRadius, segmentLabelFits } from '../engine/chart-geometry/pie'
 import { SLICE_FADE, SLICE_SWEEP, SLICE_UNFADE, SLICE_UNSWEEP } from '../engine/chart-motion'
 import { textureClass, textureStyle } from '../engine/chart-pattern-defs'
-import type { ChartTooltipTrigger } from '../engine/chart-schema'
+import type { ChartTooltipTrigger } from '../engine/chart-tooltip'
 import { useChartHover } from '../engine/context'
 
 /** One placed segment label: its slice and resolved text. @internal */

@@ -1,9 +1,10 @@
 import type { ReactElement, ReactNode } from 'react'
 import type { AccessibleName } from '../../../../types'
 import { ChartCartesianLegend } from '../chart-legend/cartesian'
+import type { ResolvedLegend } from '../chart-legend/schema'
 import type { ChartTexture } from '../chart-pattern-defs'
+import type { ChartReferenceLine } from '../chart-reference-lines'
 import { ChartReferenceList } from '../chart-reference-lines'
-import type { ChartReferenceLine, ResolvedLegend } from '../chart-schema'
 import type { CartesianChart } from '../use-chart-cartesian'
 import { ChartFrame, type ChartFrameProps } from './frame'
 

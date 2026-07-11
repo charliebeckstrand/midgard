@@ -11,12 +11,9 @@
  * value-domain or crosshair switches.
  */
 
-import type {
-	ChartBaseProps,
-	ChartLegendPlacement,
-	ChartRangeLegendConfig,
-	DataKey,
-} from '../engine/chart-schema'
+import type { ChartRangeLegendConfig } from '../engine/chart-legend/range'
+import type { ChartLegendPlacement } from '../engine/chart-legend/schema'
+import type { ChartBaseProps, DataKey } from '../engine/types'
 
 /**
  * The one series a heatmap shades cells with: the two fields that place a cell

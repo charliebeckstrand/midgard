@@ -12,9 +12,50 @@ import {
 	valueCoord,
 	valueExtent,
 } from './chart-orientation'
-import type { Crosshair, ResolvedCrosshair } from './chart-schema'
 import { nearestValue } from './chart-snap'
 import { useChartHover, useChartTier } from './context'
+
+/**
+ * The object form of a cartesian chart's hover crosshair: two rules, both on
+ * unless overridden. `x` is the horizontal rule across the value axis, `y` the
+ * vertical rule down the category axis; each defaults on, so set one `false` to
+ * draw only the other (both `false` draws none). Without `snap` each rule
+ * tracks the pointer exactly; with it the pair meets the nearest data point —
+ * the horizontal at that point's value, the vertical at its category — and the
+ * tooltip rides that same intersection.
+ *
+ * @remarks The `crosshair` prop also takes `true` as shorthand for both rules.
+ */
+export type Crosshair = {
+	/**
+	 * Draw the horizontal rule across the value axis.
+	 * @defaultValue true
+	 */
+	x?: boolean
+	/**
+	 * Draw the vertical rule down the category axis.
+	 * @defaultValue true
+	 */
+	y?: boolean
+	/**
+	 * Snap the rules to the nearest data point instead of tracking the pointer.
+	 * The tooltip snaps with them: it reads the nearest point — in a multi-series
+	 * chart, the line the pointer sits closest to — anywhere in the plot, rather
+	 * than only over a mark.
+	 * @defaultValue false
+	 */
+	snap?: boolean
+}
+
+/**
+ * A crosshair with every rule resolved to a concrete boolean: what a chart
+ * actually draws once the `true` shorthand and the both-on base are applied.
+ * `null` stands in for a crosshair that draws nothing, letting a chart gate the
+ * overlay on one truthy check.
+ *
+ * @internal
+ */
+export type ResolvedCrosshair = Required<Crosshair>
 
 /** Props for {@link ChartCrosshair}. @internal */
 export type ChartCrosshairProps = {

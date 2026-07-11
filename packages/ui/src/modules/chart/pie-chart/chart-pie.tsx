@@ -25,22 +25,20 @@ import {
 } from '../engine/chart-geometry/pie'
 import { type ChartAspectRatio, chartFrameSizing, frameFills } from '../engine/chart-layout'
 import { ChartLegend, type ChartLegendItem } from '../engine/chart-legend/legend'
+import {
+	legendAside,
+	legendVisible,
+	type ResolvedLegend,
+	resolveLegend,
+} from '../engine/chart-legend/schema'
 import { ChartMarksLayer } from '../engine/chart-marks/layer'
 import { SLICE_FADE, SLICE_UNFADE, seriesDataKey } from '../engine/chart-motion'
 import { useChartTexture } from '../engine/chart-pattern-defs'
-import {
-	type ChartBaseProps,
-	legendAside,
-	legendVisible,
-	type PieChartSeries,
-	type ResolvedLegend,
-	resolveLegend,
-	resolveTooltip,
-} from '../engine/chart-schema'
 import { formatChartValue, seriesValues } from '../engine/chart-series'
 import { chartFramePolicy, isSparkBox } from '../engine/chart-tier'
+import { resolveTooltip } from '../engine/chart-tooltip'
 import { useChartFullscreen } from '../engine/context'
-import type { ChartReadout } from '../engine/types'
+import type { ChartBaseProps, ChartReadout, PieChartSeries } from '../engine/types'
 import { useChartSeriesToggle } from '../engine/use-chart-series-toggle'
 import {
 	PieChartMarks,

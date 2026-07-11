@@ -2,10 +2,11 @@
 
 import { useCallback } from 'react'
 import { cn } from '../../../core'
+import type { ResolvedCrosshair } from './chart-crosshair'
 import type { PlotRect } from './chart-layout'
 import { bandCoord, type ChartOrientation } from './chart-orientation'
 import { type BandScale, nearestBandIndex } from './chart-scale'
-import type { ChartTooltipTrigger, ResolvedCrosshair } from './chart-schema'
+import type { ChartTooltipTrigger } from './chart-tooltip'
 import { type ChartMarkRef, useChartTier } from './context'
 import { useChartPointer } from './use-chart-pointer'
 

@@ -3,7 +3,7 @@
 import { type MouseEvent, type PointerEvent, type RefObject, useCallback, useRef } from 'react'
 import { useHoverAcrossScroll } from '../../../hooks'
 import type { PlotRect } from './chart-layout'
-import type { ChartTooltipTrigger } from './chart-schema'
+import type { ChartTooltipTrigger } from './chart-tooltip'
 import { type ChartMarkRef, useChartHover, useChartMarkEmphasis } from './context'
 
 /** The handlers {@link useChartPointer} spreads onto the hit layer's rect. @internal */

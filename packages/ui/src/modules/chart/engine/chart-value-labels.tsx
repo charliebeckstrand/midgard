@@ -3,13 +3,50 @@
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { cn } from '../../../core'
 import { ReducedMotion } from '../../../primitives/reduced-motion'
+import type { ChartValueAxisId } from './chart-axes/schema'
 import { type ChartPaint, fillClass, rawColor } from './chart-color/paint'
 import { TICK_CHAR_WIDTH } from './chart-constants'
 import type { PlotRect } from './chart-layout'
 import { POINT_POP, POINT_UNPOP, STATIC_GENERATION } from './chart-motion'
-import type { ChartValueAxisId } from './chart-schema'
 import { formatChartValue } from './chart-series'
 import { useChartTier } from './context'
+
+/**
+ * Selective value labels for a line-bearing chart: direct labels at the points
+ * worth naming — and, with `references`, beside each reference rule — so a reader
+ * gets the numbers without the tooltip. All default off; set any. The full
+ * readout stays in the tooltip and data table.
+ *
+ * `endpoints` and `extremes` apply only to a single-series chart: with more
+ * than one series the numbers would crowd between the lines with nowhere
+ * reliable to sit, so they stand down and the tooltip carries the readout.
+ * When they draw, the chart reserves value-axis room past the data extremes so
+ * a label at an edge sits clear of the line instead of flipping onto it; a
+ * plot too short to afford that room sheds the point labels whole rather than
+ * render them crowded. `references` is unaffected by either rule.
+ */
+export type ChartValueLabelConfig = {
+	/**
+	 * Label the first and last point — single-series charts only.
+	 * @defaultValue false
+	 */
+	endpoints?: boolean
+	/**
+	 * Label the minimum and maximum point — single-series charts only.
+	 * @defaultValue false
+	 */
+	extremes?: boolean
+	/**
+	 * Draw each reference line's value — prefixed by its label where it has one —
+	 * beside the rule at its far end, inked to match the rule. The standing
+	 * readout replaces the rule's hover tooltip: with it on, the rules shed their
+	 * pointer target and keyboard stop, since the label already reads what the
+	 * tooltip would. The visually-hidden reference list keeps the assistive-tech
+	 * parity either way.
+	 * @defaultValue false
+	 */
+	references?: boolean
+}
 
 /**
  * Selective value labels for a line-bearing chart's single series: direct

@@ -5,6 +5,7 @@ import { useResolvedSize } from '../../../primitives/density'
 import type { Step } from '../../../recipes'
 import { once } from '../../../utilities'
 import type { ChartAxisTick } from './chart-axes/axis'
+import { type CartesianAxes, type ChartValueAxisId, resolveAxes } from './chart-axes/schema'
 import { paintSlot, rawColor, textClass } from './chart-color/paint'
 import { seriesPaint } from './chart-color/palette'
 import { CHART_METRICS } from './chart-constants'
@@ -19,21 +20,12 @@ import {
 	verticalLayout,
 } from './chart-layout'
 import type { ChartLegendItem, ChartLegendReference } from './chart-legend/legend'
+import { legendAside, legendVisible, type ResolvedLegend } from './chart-legend/schema'
 import { seriesDataKey } from './chart-motion'
 import type { ChartOrientation } from './chart-orientation'
+import type { ChartReferenceLine } from './chart-reference-lines'
 import { referenceLegendItems } from './chart-reference-lines'
 import { type BandScale, bandBoundaries, type LinearScale } from './chart-scale'
-import {
-	type CartesianAxes,
-	type CartesianChartProps,
-	type ChartReferenceLine,
-	type ChartSeries,
-	type ChartValueAxisId,
-	legendAside,
-	legendVisible,
-	type ResolvedLegend,
-	resolveAxes,
-} from './chart-schema'
 import {
 	chartReadout,
 	formatChartValue,
@@ -43,7 +35,7 @@ import {
 } from './chart-series'
 import { type ChartChrome, type ChartTier, chartFramePolicy, headerLineCount } from './chart-tier'
 import { dateCategoryFormat, parseInstant, timeCategory } from './chart-time'
-import type { ChartReadoutSource } from './types'
+import type { CartesianChartProps, ChartReadoutSource, ChartSeries } from './types'
 import { useChartReferenceToggle, useChartSeriesToggle } from './use-chart-series-toggle'
 
 /** The cartesian props minus the accessible name, which stays with the frame. @internal */

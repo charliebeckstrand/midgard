@@ -7,6 +7,7 @@
 
 import type { FrameSizing } from '../../../hooks'
 import type { ChartAxisTick } from './chart-axes/axis'
+import type { ChartValueAxisId } from './chart-axes/schema'
 import {
 	AXIS_TITLE_BAND,
 	AXIS_TITLE_GAP,
@@ -33,7 +34,6 @@ import {
 	type LinearScale,
 	linearScale,
 } from './chart-scale'
-import type { ChartValueAxisId } from './chart-schema'
 import type { ChartBandAxisMode } from './chart-tier'
 import { timeTicks } from './chart-time'
 

@@ -4,7 +4,7 @@ import { useCallback } from 'react'
 import { cn } from '../../../core'
 import { nearestCenterIndex } from '../engine/chart-geometry/scatter'
 import type { PlotRect } from '../engine/chart-layout'
-import type { ChartTooltipTrigger } from '../engine/chart-schema'
+import type { ChartTooltipTrigger } from '../engine/chart-tooltip'
 import type { ChartMarkRef } from '../engine/context'
 import { useChartPointer } from '../engine/use-chart-pointer'
 

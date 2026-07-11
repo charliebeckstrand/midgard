@@ -9,6 +9,7 @@ import { type LineInterpolation, lineSeriesOf } from '../engine/chart-geometry/l
 import { ChartHitArea, cartesianHitActive } from '../engine/chart-hit-area'
 import { barMarkAt, nearestSeriesArea, nearestSeriesLine } from '../engine/chart-hit-test'
 import { lineMarkReach } from '../engine/chart-layout'
+import { resolveLegend } from '../engine/chart-legend/schema'
 import { AnimatedChartBarMarks, ChartBarMarks } from '../engine/chart-marks/bar'
 import { ChartMarksLayer } from '../engine/chart-marks/layer'
 import {
@@ -18,21 +19,16 @@ import {
 } from '../engine/chart-marks/line'
 import { useChartTexture } from '../engine/chart-pattern-defs'
 import { ChartReferenceLines } from '../engine/chart-reference-lines'
-import {
-	type CartesianFrameProps,
-	type ChartBaseProps,
-	type ChartValueLabelConfig,
-	type ComboChartSeries,
-	resolveLegend,
-	resolveTooltip,
-} from '../engine/chart-schema'
 import { snappedSeriesAt, snapTargets } from '../engine/chart-snap'
+import { resolveTooltip } from '../engine/chart-tooltip'
+import type { ChartValueLabelConfig } from '../engine/chart-value-labels'
 import {
 	axisLabelFormats,
 	ChartValueLabels,
 	resolveValueLabels,
 } from '../engine/chart-value-labels'
 import type { ChartMarkRef } from '../engine/context'
+import type { CartesianFrameProps, ChartBaseProps, ComboChartSeries } from '../engine/types'
 import {
 	bandCenters,
 	barProjection,
