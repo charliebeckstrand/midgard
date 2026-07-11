@@ -83,7 +83,19 @@ function segmentPath(run: LinePoint[], interpolation: LineInterpolation): string
 	const start = run[0] as LinePoint
 
 	if (interpolation === 'linear' || run.length < 3) {
-		return `M ${run.map((point) => `${coord(point.x)} ${coord(point.y)}`).join(' L ')}`
+		// Accumulate into one buffer rather than `map().join()`: the map allocates
+		// an N-string array the join then walks and discards. At ten thousand
+		// points that intermediate array is the cost the marks never needed —
+		// concatenation builds the same string without it. Byte-identical output.
+		let d = `M ${coord(start.x)} ${coord(start.y)}`
+
+		for (let i = 1; i < run.length; i++) {
+			const point = run[i] as LinePoint
+
+			d += ` L ${coord(point.x)} ${coord(point.y)}`
+		}
+
+		return d
 	}
 
 	const tangents = monotoneTangents(run)

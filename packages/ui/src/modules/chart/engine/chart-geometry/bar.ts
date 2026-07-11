@@ -50,28 +50,12 @@ function verticalBarPath(x0: number, x1: number, valueY: number, baseline: numbe
 	if (valueY < baseline) {
 		const shoulder = valueY + radius
 
-		return [
-			`M ${x0} ${baseline}`,
-			`L ${x0} ${shoulder}`,
-			`A ${radius} ${radius} 0 0 1 ${x0 + radius} ${valueY}`,
-			`L ${x1 - radius} ${valueY}`,
-			`A ${radius} ${radius} 0 0 1 ${x1} ${shoulder}`,
-			`L ${x1} ${baseline}`,
-			'Z',
-		].join(' ')
+		return `M ${x0} ${baseline} L ${x0} ${shoulder} A ${radius} ${radius} 0 0 1 ${x0 + radius} ${valueY} L ${x1 - radius} ${valueY} A ${radius} ${radius} 0 0 1 ${x1} ${shoulder} L ${x1} ${baseline} Z`
 	}
 
 	const shoulder = valueY - radius
 
-	return [
-		`M ${x0} ${baseline}`,
-		`L ${x0} ${shoulder}`,
-		`A ${radius} ${radius} 0 0 0 ${x0 + radius} ${valueY}`,
-		`L ${x1 - radius} ${valueY}`,
-		`A ${radius} ${radius} 0 0 0 ${x1} ${shoulder}`,
-		`L ${x1} ${baseline}`,
-		'Z',
-	].join(' ')
+	return `M ${x0} ${baseline} L ${x0} ${shoulder} A ${radius} ${radius} 0 0 0 ${x0 + radius} ${valueY} L ${x1 - radius} ${valueY} A ${radius} ${radius} 0 0 0 ${x1} ${shoulder} L ${x1} ${baseline} Z`
 }
 
 /**
@@ -86,28 +70,12 @@ function horizontalBarPath(y0: number, y1: number, valueX: number, baseline: num
 	if (valueX > baseline) {
 		const shoulder = valueX - radius
 
-		return [
-			`M ${baseline} ${y0}`,
-			`L ${shoulder} ${y0}`,
-			`A ${radius} ${radius} 0 0 1 ${valueX} ${y0 + radius}`,
-			`L ${valueX} ${y1 - radius}`,
-			`A ${radius} ${radius} 0 0 1 ${shoulder} ${y1}`,
-			`L ${baseline} ${y1}`,
-			'Z',
-		].join(' ')
+		return `M ${baseline} ${y0} L ${shoulder} ${y0} A ${radius} ${radius} 0 0 1 ${valueX} ${y0 + radius} L ${valueX} ${y1 - radius} A ${radius} ${radius} 0 0 1 ${shoulder} ${y1} L ${baseline} ${y1} Z`
 	}
 
 	const shoulder = valueX + radius
 
-	return [
-		`M ${baseline} ${y0}`,
-		`L ${shoulder} ${y0}`,
-		`A ${radius} ${radius} 0 0 0 ${valueX} ${y0 + radius}`,
-		`L ${valueX} ${y1 - radius}`,
-		`A ${radius} ${radius} 0 0 0 ${shoulder} ${y1}`,
-		`L ${baseline} ${y1}`,
-		'Z',
-	].join(' ')
+	return `M ${baseline} ${y0} L ${shoulder} ${y0} A ${radius} ${radius} 0 0 0 ${valueX} ${y0 + radius} L ${valueX} ${y1 - radius} A ${radius} ${radius} 0 0 0 ${shoulder} ${y1} L ${baseline} ${y1} Z`
 }
 
 /**

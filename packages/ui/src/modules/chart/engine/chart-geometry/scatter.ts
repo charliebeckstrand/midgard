@@ -167,7 +167,11 @@ export function scatterMarks(
  * @internal
  */
 export function scatterDiscsPath(marks: ScatterMark[]): string {
-	const parts: string[] = []
+	// Accumulate into one buffer rather than a per-disc parts array joined at the
+	// end: the array is an N-string allocation the concatenation avoids, and the
+	// disc path is the scatter mount's largest string term at ten thousand
+	// points. Byte-identical to the prior `parts.join(' ')`.
+	let d = ''
 
 	let cachedR = Number.NaN
 
@@ -184,10 +188,12 @@ export function scatterDiscsPath(marks: ScatterMark[]): string {
 			arc = `a ${r} ${r} 0 1 0 ${coord(mark.r * 2)} 0 a ${r} ${r} 0 1 0 ${coord(-mark.r * 2)} 0 Z`
 		}
 
-		parts.push(`M ${coord(mark.x - mark.r)} ${coord(mark.y)} ${arc}`)
+		if (d !== '') d += ' '
+
+		d += `M ${coord(mark.x - mark.r)} ${coord(mark.y)} ${arc}`
 	}
 
-	return parts.join(' ')
+	return d
 }
 
 /** One snapped column stop: its value-axis screen position and the point behind it. @internal */
