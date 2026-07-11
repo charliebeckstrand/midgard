@@ -2,16 +2,15 @@
 
 import { ChartCartesianAxes } from '../engine/chart-axes/cartesian'
 import { ChartCrosshair, crosshairSnaps, resolveCrosshair } from '../engine/chart-crosshair'
-import { ChartFrame } from '../engine/chart-frame/frame'
+import { ChartCartesianFrame } from '../engine/chart-frame/cartesian'
 import { type LineInterpolation, lineSeriesOf } from '../engine/chart-geometry/line'
 import { ChartHitArea } from '../engine/chart-hit-area'
 import { nearestSeriesArea, nearestSeriesLine } from '../engine/chart-hit-test'
 import { lineMarkReach } from '../engine/chart-layout'
-import { ChartCartesianLegend } from '../engine/chart-legend/cartesian'
 import { ChartMarksLayer } from '../engine/chart-marks/layer'
 import { AnimatedChartLineMarks, ChartLineMarks } from '../engine/chart-marks/line'
 import { useChartTexture } from '../engine/chart-pattern-defs'
-import { ChartReferenceLines, ChartReferenceList } from '../engine/chart-reference-lines'
+import { ChartReferenceLines } from '../engine/chart-reference-lines'
 import {
 	type CartesianChartProps,
 	type ChartValueLabelConfig,
@@ -205,30 +204,13 @@ export function LineChart<T>(props: LineChartProps<T>) {
 	const referenceLabels = labels?.references ?? false
 
 	return (
-		<ChartFrame
+		<ChartCartesianFrame
 			{...label}
+			chart={chart}
+			resolvedLegend={resolvedLegend}
+			tex={tex}
 			fullscreen={<LineChart {...props} />}
-			ref={chart.ref}
-			width={chart.width}
-			fixedWidth={chart.fixedWidth}
-			height={chart.height}
-			reserve={chart.reserve}
-			fill={chart.fill}
-			aspect={chart.outerAspect ?? undefined}
-			tier={chart.tier}
-			legend={
-				<ChartCartesianLegend
-					chart={chart}
-					legend={resolvedLegend.value}
-					inert={resolvedLegend.inert}
-					texture={tex.active}
-				/>
-			}
-			legendPlacement={resolvedLegend.placement}
-			readout={chart.readout}
-			readoutOrder={chart.readoutOrder}
-			emphasis={chart.emphasis}
-			tooltip={showTooltip}
+			showTooltip={showTooltip}
 			snap={snapTargets(rails, chart.bandPositions, chart.snapPoints)}
 			focus={cartesianFocus(
 				chart.bandPositions,
@@ -237,18 +219,9 @@ export function LineChart<T>(props: LineChartProps<T>) {
 				referenceLabels ? undefined : chart.referencePositions,
 				chart.snapSeries,
 			)}
-			onActiveSeries={chart.setEmphasis}
+			reference={reference}
 			className={className}
-			annotations={
-				<ChartReferenceList
-					reference={reference}
-					hidden={chart.referenceHidden}
-					format={chart.formatAxisValue}
-				/>
-			}
 		>
-			{tex.defs}
-
 			<ChartCartesianAxes
 				orientation={chart.orientation}
 				plot={chart.plot}
@@ -322,6 +295,6 @@ export function LineChart<T>(props: LineChartProps<T>) {
 				labels={referenceLabels}
 				hidden={chart.referenceHidden}
 			/>
-		</ChartFrame>
+		</ChartCartesianFrame>
 	)
 }

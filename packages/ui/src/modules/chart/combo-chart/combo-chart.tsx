@@ -3,13 +3,12 @@
 import { ChartCartesianAxes } from '../engine/chart-axes/cartesian'
 import { MARK_GAP } from '../engine/chart-constants'
 import { ChartCrosshair, crosshairSnaps, resolveCrosshair } from '../engine/chart-crosshair'
-import { ChartFrame } from '../engine/chart-frame/frame'
+import { ChartCartesianFrame } from '../engine/chart-frame/cartesian'
 import { type BarMark, barMarks } from '../engine/chart-geometry/bar'
 import { type LineInterpolation, lineSeriesOf } from '../engine/chart-geometry/line'
 import { ChartHitArea } from '../engine/chart-hit-area'
 import { barMarkAt, nearestSeriesArea, nearestSeriesLine } from '../engine/chart-hit-test'
 import { lineMarkReach } from '../engine/chart-layout'
-import { ChartCartesianLegend } from '../engine/chart-legend/cartesian'
 import { AnimatedChartBarMarks, ChartBarMarks } from '../engine/chart-marks/bar'
 import { ChartMarksLayer } from '../engine/chart-marks/layer'
 import {
@@ -18,7 +17,7 @@ import {
 	type ChartLineSeries,
 } from '../engine/chart-marks/line'
 import { useChartTexture } from '../engine/chart-pattern-defs'
-import { ChartReferenceLines, ChartReferenceList } from '../engine/chart-reference-lines'
+import { ChartReferenceLines } from '../engine/chart-reference-lines'
 import {
 	type CartesianFrameProps,
 	type ChartBaseProps,
@@ -345,30 +344,13 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 	const { show: showTooltip, trigger } = resolveTooltip(tooltip)
 
 	return (
-		<ChartFrame
+		<ChartCartesianFrame
 			{...label}
+			chart={chart}
+			resolvedLegend={resolvedLegend}
+			tex={tex}
 			fullscreen={<ComboChart {...props} />}
-			ref={chart.ref}
-			width={chart.width}
-			fixedWidth={chart.fixedWidth}
-			height={chart.height}
-			reserve={chart.reserve}
-			fill={chart.fill}
-			aspect={chart.outerAspect ?? undefined}
-			tier={chart.tier}
-			legend={
-				<ChartCartesianLegend
-					chart={chart}
-					legend={resolvedLegend.value}
-					inert={resolvedLegend.inert}
-					texture={tex.active}
-				/>
-			}
-			legendPlacement={resolvedLegend.placement}
-			readout={chart.readout}
-			readoutOrder={chart.readoutOrder}
-			emphasis={chart.emphasis}
-			tooltip={showTooltip}
+			showTooltip={showTooltip}
 			snap={snapTargets(rails, chart.bandPositions, chart.snapPoints)}
 			focus={cartesianFocus(
 				chart.bandPositions,
@@ -377,18 +359,9 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 				chart.referencePositions,
 				chart.snapSeries,
 			)}
-			onActiveSeries={chart.setEmphasis}
+			reference={reference}
 			className={className}
-			annotations={
-				<ChartReferenceList
-					reference={reference}
-					hidden={chart.referenceHidden}
-					format={chart.formatAxisValue}
-				/>
-			}
 		>
-			{tex.defs}
-
 			<ChartCartesianAxes
 				orientation={chart.orientation}
 				plot={chart.plot}
@@ -459,6 +432,6 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 				animate={animate}
 				hidden={chart.referenceHidden}
 			/>
-		</ChartFrame>
+		</ChartCartesianFrame>
 	)
 }
