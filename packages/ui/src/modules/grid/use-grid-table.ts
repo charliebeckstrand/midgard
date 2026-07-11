@@ -42,7 +42,7 @@ import {
 	toSortingState,
 	toSortState,
 	usesClientModel,
-} from './grid-table-options'
+} from './engine/grid-table/options'
 import {
 	buildColumnFilters,
 	buildColumnPinning,
@@ -54,8 +54,8 @@ import {
 	type GridGlobalFilterView,
 	type GridPaginationView,
 	toColumnPinningState,
-	useVisibleColumns,
-} from './grid-table-views'
+} from './engine/grid-table/views'
+import { useVisibleColumns } from './grid-table-views'
 import type {
 	GridColumn,
 	GridColumnFilters,
@@ -73,7 +73,7 @@ export type {
 	GridColumnResize,
 	GridGlobalFilterView,
 	GridPaginationView,
-} from './grid-table-views'
+} from './engine/grid-table/views'
 
 declare module '@tanstack/react-table' {
 	// Carries the source GridColumn on each ColumnDef so the body renderer reads a

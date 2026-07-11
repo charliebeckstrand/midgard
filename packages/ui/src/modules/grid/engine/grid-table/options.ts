@@ -23,18 +23,18 @@ import {
 	type TableOptions,
 	type VisibilityState,
 } from '@tanstack/react-table'
-import { isDataColumn } from '../../utilities'
-import { evaluateQuery } from '../query'
-import type { SortState } from './context'
-import { columnAccessor } from './engine/grid-column/accessor'
+import { isDataColumn } from '../../../../utilities'
+import { evaluateQuery } from '../../../query'
+import type { SortState } from '../../context'
+import type { GridColumn, GridPagination } from '../../types'
+import { columnAccessor } from '../grid-column/accessor'
 import {
 	DRAG_HANDLE_COLUMN_SIZE,
 	EXPANDER_COLUMN_SIZE,
 	SELECT_COLUMN_SIZE,
-} from './engine/grid-constants'
-import { compareSortKeys, type SortKey, toSortKey } from './engine/grid-sort/utilities'
-import { isQueryGroup } from './grid-table-views'
-import type { GridColumn, GridPagination } from './types'
+} from '../grid-constants'
+import { compareSortKeys, type SortKey, toSortKey } from '../grid-sort/utilities'
+import { isQueryGroup } from './views'
 
 /** Adapts the grid's ordered {@link SortState} list to a TanStack `SortingState`, priority order preserved. @internal */
 export function toSortingState(sort: SortState[] | undefined): SortingState {
