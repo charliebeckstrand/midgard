@@ -1,5 +1,6 @@
 import type { KeyboardEvent as ReactKeyboardEvent, MouseEvent as ReactMouseEvent } from 'react'
 import { isDataColumn } from '../../../../utilities'
+import type { CellTooltip } from '../../grid-cell-content'
 import type { GridColumn } from '../../types'
 import { columnAccessor } from '../grid-column/accessor'
 
@@ -107,3 +108,24 @@ const INTERACTIVE_CELL_CONTENT =
 export function fromInteractiveContent(target: EventTarget | null): boolean {
 	return target instanceof Element && target.closest(INTERACTIVE_CELL_CONTENT) != null
 }
+
+/**
+ * Resolves a column's truncation tooltip: `auto` (the cell's own content) when
+ * the column declares no `cellTooltip`, a `custom` node when it returns one, or
+ * `none` when it returns null/undefined.
+ *
+ * @internal
+ */
+export function resolveCellTooltip<T>(col: GridColumn<T>, row: T): CellTooltip {
+	if (col.cellTooltip == null) return AUTO_TOOLTIP
+
+	const node = col.cellTooltip(row)
+
+	return node == null ? NO_TOOLTIP : { kind: 'custom', node }
+}
+
+/** Shared default-tooltip descriptor — one allocation, not one per rendered cell. @internal */
+const AUTO_TOOLTIP: CellTooltip = { kind: 'auto' }
+
+/** Shared suppressed-tooltip descriptor. @internal */
+const NO_TOOLTIP: CellTooltip = { kind: 'none' }

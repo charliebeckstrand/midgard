@@ -3,8 +3,10 @@ import { dataAttr } from '../../../../core'
 import { k } from '../../../../recipes/kata/grid'
 import type { GridColumn } from '../../types'
 import {
+	cellValue,
 	fromInteractiveContent,
 	type GridCellClick,
+	type GridCellRovingActivate,
 	type GridRowClick,
 	resolveCellContext,
 } from './cell'
@@ -158,4 +160,33 @@ export function rowShellProps<T>(args: GridRowShellArgs<T>): {
  */
 export function ariaRowIndex(rowIndexOffset: number, index: number): number {
 	return rowIndexOffset + index + 2
+}
+
+/**
+ * The roving attributes a focusable data cell carries in cell mode: the
+ * `data-roving` marker the grid's roving hook seats a `tabIndex` on, and an
+ * Enter / Space handler that activates the cell — gated to the cell itself so an
+ * inner control keeps its own key behaviour. `null` outside cell roving. @internal
+ */
+export function cellRovingAttrs<T>(args: {
+	cellRoving: boolean
+	cellActivate: GridCellRovingActivate<T> | undefined
+	col: GridColumn<T>
+	row: T
+	rowKey: string | number
+}): {
+	'data-roving': '' | undefined
+	onKeyDown: (event: ReactKeyboardEvent<HTMLElement>) => void
+} | null {
+	const { cellRoving, cellActivate, col, row, rowKey } = args
+
+	if (!cellRoving) return null
+
+	return {
+		'data-roving': dataAttr(true),
+		onKeyDown: (event) =>
+			activateOnEnterSpace(event, (e) =>
+				cellActivate?.({ row, rowKey, columnId: col.id, value: cellValue(col, row) }, e),
+			),
+	}
 }
