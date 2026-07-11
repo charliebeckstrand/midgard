@@ -15,7 +15,7 @@ export const ROW_HEIGHT_BY_DENSITY = {
 /** Rows rendered beyond the viewport on each side under virtualization, when unset. @internal */
 export const DEFAULT_OVERSCAN = 10
 
-// Stable empty-set default for omitted `hidden`/`defaultHidden`. Read-only; toggles copy it.
+/** Stable empty-set default for omitted `hidden`/`defaultHidden`. Read-only; toggles copy it. @internal */
 export const EMPTY_SET: Set<string | number> = new Set()
 
 /** Rows per page when {@link GridPagination} omits a `defaultValue`/`value` page size. @internal */

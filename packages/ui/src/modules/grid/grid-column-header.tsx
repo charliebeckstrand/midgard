@@ -57,7 +57,7 @@ export function GridDragHandleHeaderCell<T>({
 }
 
 /** Props for the column header cells. @internal */
-export type GridColumnHeaderProps = {
+type GridColumnHeaderProps = {
 	column: Pick<
 		GridColumn<unknown>,
 		'id' | 'title' | 'sortable' | 'headerClassName' | 'filterType' | 'filterOptions' | 'groupable'

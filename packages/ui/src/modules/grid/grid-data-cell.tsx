@@ -15,7 +15,7 @@ import type { GridColumn } from './types'
 import type { GridColumnPinning } from './use-grid-table'
 
 /** Props for {@link GridDataCell}. @internal */
-export type GridDataCellProps<T> = {
+type GridDataCellProps<T> = {
 	col: GridColumn<T>
 	row: T
 	/** The owning row's key, carried so cell roving can build the {@link GridCellClickContext}. */
