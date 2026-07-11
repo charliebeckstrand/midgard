@@ -4,7 +4,14 @@ import type { CSSProperties } from 'react'
 import { createContext } from '../../core'
 import type { Step } from '../../recipes'
 
-type TooltipContextValue = {
+/**
+ * The value shared through {@link TooltipContext}: the floating handles a
+ * `<TooltipContent>` needs, plus the display flags (`interactive`, `enabled`,
+ * `size`, `className`) its chrome reads. Built by `useTooltipState` for the
+ * DOM-anchored `<Tooltip>` and by `usePointerTooltipState` for the
+ * point-anchored `<PointerTooltip>`.
+ */
+export type TooltipContextValue = {
 	open: boolean
 	interactive: boolean
 	enabled: boolean
