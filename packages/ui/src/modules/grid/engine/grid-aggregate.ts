@@ -5,6 +5,7 @@
  * reducers are unit-testable in isolation.
  */
 
+import type { ReactNode } from 'react'
 import { formatFraction, formatInteger } from '../../../utilities'
 import type { GridColumn } from '../types'
 import { columnAccessor } from './grid-column/accessor'
@@ -102,4 +103,25 @@ export function aggregateLabelSpan<T>(columns: GridColumn<T>[]): number {
 	const first = columns.findIndex((column) => column.aggFunc !== undefined)
 
 	return first <= 0 ? 1 : first
+}
+
+/**
+ * One column's rendered aggregate: its {@link GridColumn.aggCell} over the
+ * value and rows, else the default formatting; `null` for a column with no
+ * aggregation, so its cell stays empty. Client grouping and totals compute the
+ * value over `rows`; manual (server) grouping passes the group-header row as
+ * `headerRow` instead, reading the backend figure off the row itself — through
+ * {@link columnAccessor}, the same `value`-accessor-else-field path every
+ * client aggregate reads — with `rows` empty by contract (the children may not
+ * be loaded).
+ *
+ * @internal
+ */
+export function renderAggregate<T>(column: GridColumn<T>, rows: T[], headerRow?: T): ReactNode {
+	if (column.aggFunc === undefined) return null
+
+	const value =
+		headerRow !== undefined ? columnAccessor(column)(headerRow) : aggregateColumn(column, rows)
+
+	return column.aggCell ? column.aggCell({ value, rows }) : formatAggregate(value)
 }

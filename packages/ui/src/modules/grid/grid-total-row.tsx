@@ -7,13 +7,9 @@ import { cn, dataAttr } from '../../core'
 import type { PaletteColor } from '../../core/recipe'
 import type { DensityLevel } from '../../providers/density'
 import { k } from '../../recipes/kata/grid'
-import {
-	aggregateColumn,
-	aggregateLabelSpan,
-	formatAggregate,
-	hasAggregation,
-} from './engine/grid-aggregate'
+import { aggregateLabelSpan, hasAggregation, renderAggregate } from './engine/grid-aggregate'
 import { NO_PADDING } from './engine/grid-constants'
+import { GridAggregateCells } from './grid-aggregate-cells'
 import type { GridColumn } from './types'
 
 /** Stable empty row model read while the grand total is inactive, so its memo doesn't rebuild. @internal */
@@ -100,53 +96,6 @@ export function GridGrandTotalBody<T>({
 			/>
 		</TableBody>
 	)
-}
-
-/**
- * One column's rendered aggregate: its {@link GridColumn.aggCell} over the
- * value and rows, else the default formatting; `null` for a column with no
- * aggregation, so its cell stays empty.
- *
- * @internal
- */
-export function renderAggregate<T>(column: GridColumn<T>, rows: T[]): ReactNode {
-	if (column.aggFunc === undefined) return null
-
-	const value = aggregateColumn(column, rows)
-
-	return column.aggCell ? column.aggCell({ value, rows }) : formatAggregate(value)
-}
-
-/** Props for {@link GridAggregateCells}. @internal */
-type GridAggregateCellsProps<T> = {
-	/** The visible columns, in render order. */
-	columns: GridColumn<T>[]
-	/** The rows behind the aggregates. */
-	rows: T[]
-	/** The first column index to render — the cells after the row's label span. */
-	from: number
-	/** The group's overlay color, tinting each aggregate cell at low opacity; `undefined` leaves them untinted. */
-	color?: PaletteColor
-}
-
-/**
- * The aggregate cells after an aggregate row's label span: one `<td>` per
- * remaining visible column, carrying the column's aggregate where it declares
- * one and staying empty otherwise, so every figure sits under its own column. A
- * `color` washes each cell in the group's hue at low opacity.
- *
- * @internal
- */
-export function GridAggregateCells<T>({ columns, rows, from, color }: GridAggregateCellsProps<T>) {
-	return columns.slice(from).map((column) => (
-		<TableCell
-			key={column.id}
-			data-grid-col={column.id}
-			className={cn(k.aggregate.cell, color && k.rowGroup.tint[color], column.className)}
-		>
-			{renderAggregate(column, rows)}
-		</TableCell>
-	))
 }
 
 /** Props for {@link GridTotalRow}. @internal */

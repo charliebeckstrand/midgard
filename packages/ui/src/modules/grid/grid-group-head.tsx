@@ -11,15 +11,11 @@ import { cn } from '../../core'
 import { k as gridK } from '../../recipes/kata/grid'
 import { k } from '../../recipes/kata/grid-group'
 import { useGrid } from './context'
+import { columnLabel } from './engine/grid-column/label'
 import { pinnedClassName, pinnedOffsetStyle } from './engine/grid-pin/styles'
 import type { GridColumnGroup, GridGroupSpan } from './grid-group-types'
 import type { GridGroupHeader } from './use-grid-group'
 import type { GridColumnPinning } from './use-grid-table'
-
-/** A group's display label: its `title` when set, else its `id` stringified. @internal */
-function groupLabel(group: GridColumnGroup): string {
-	return typeof group.title === 'string' ? group.title : String(group.id)
-}
 
 /** Props for {@link GridGroupHead}. @internal */
 type GridGroupHeadProps = {
@@ -151,7 +147,7 @@ type GridGroupBandProps = {
 
 /** The colored band content: icon + title Badge, a trailing fold chevron (collapsible), and a `+N` count when collapsed. @internal */
 function GridGroupBand({ group, collapsed, onToggleCollapse }: GridGroupBandProps) {
-	const label = groupLabel(group)
+	const label = columnLabel(group)
 
 	// Members the band hides while collapsed — every column but the anchor.
 	const hiddenCount = Math.max(0, group.columns.length - 1)

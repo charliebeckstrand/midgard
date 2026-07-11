@@ -130,11 +130,6 @@ function colorLabel(color: PaletteColor): string {
 	return color.charAt(0).toUpperCase() + color.slice(1)
 }
 
-/** A group's display label: its `title` when a string, else its `id`. @internal */
-function groupTitle(group: GridColumnGroup): string {
-	return typeof group.title === 'string' ? group.title : String(group.id)
-}
-
 /** Props for {@link GridGroupManager}. @internal */
 export type GridGroupManagerProps = {
 	groups: GridColumnGroup[]
@@ -297,7 +292,7 @@ function GridGroupManagerGroupZone(props: GridGroupManagerZoneViewProps) {
 			type="button"
 			ref={setActivatorNodeRef}
 			className={cn(k.manager.row.grip)}
-			aria-label={`Reorder group ${props.zone.group ? groupTitle(props.zone.group) : ''}`}
+			aria-label={`Reorder group ${props.zone.group ? columnLabel(props.zone.group) : ''}`}
 			{...attributes}
 			{...listeners}
 		>
@@ -421,7 +416,7 @@ function GridGroupManagerZoneHeader({
 	recolorGroup,
 	removeGroup,
 }: GridGroupManagerZoneHeaderProps) {
-	const label = groupTitle(group)
+	const label = columnLabel(group)
 
 	return (
 		<div className={cn(k.manager.zone.header)}>
@@ -550,7 +545,7 @@ function GridGroupManagerColumnRow({
 							.filter((group) => group.id !== zoneId)
 							.map((group) => (
 								<MenuItem key={group.id} onAction={() => assign(item.id, group.id)}>
-									<MenuLabel>Move to {groupTitle(group)}</MenuLabel>
+									<MenuLabel>Move to {columnLabel(group)}</MenuLabel>
 								</MenuItem>
 							))}
 						{inGroup && (

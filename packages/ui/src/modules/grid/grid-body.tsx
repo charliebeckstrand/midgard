@@ -15,18 +15,17 @@ import type { PaletteColor } from '../../core/recipe'
 import type { DensityLevel } from '../../providers/density'
 import { hasAggregation } from './engine/grid-aggregate'
 import { GRID_LOADING_ROWS } from './engine/grid-constants'
+import {
+	type GridManualGroupSegment,
+	orderManualGroupSegments,
+	segmentManualGroupRows,
+} from './engine/grid-group/segments'
 import { ariaRowIndex } from './engine/grid-row/shell'
 import type { ResolvedInfiniteScroll } from './grid-data-resolvers'
 import type { GridGroupBy, GridGroupHeaderRow } from './grid-data-types'
 import { GridGroupLeafRow } from './grid-group-leaf-row'
 import { GridGroupRow } from './grid-group-row'
-import {
-	GridManualGroupPlaceholderRows,
-	GridManualGroupRow,
-	type GridManualGroupSegment,
-	orderManualGroupSegments,
-	segmentManualGroupRows,
-} from './grid-manual-group-row'
+import { GridManualGroupPlaceholderRows, GridManualGroupRow } from './grid-manual-group-row'
 import { type GridRowsProps, renderGridRow } from './grid-row'
 import { GridTotalRow } from './grid-total-row'
 import { type GridScrollRowIntoView, GridVirtualizedBody } from './grid-virtualized-body'

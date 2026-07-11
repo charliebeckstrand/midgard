@@ -22,6 +22,7 @@ import { colors, extendedColors, type PaletteColor } from '../../core/recipe'
 import { useGrabbingCursor, useSortableList } from '../../hooks'
 import { k as groupK } from '../../recipes/kata/grid-group'
 import { k } from '../../recipes/kata/grid-row-manager'
+import { columnLabel } from './engine/grid-column/label'
 import { restrictToParentElement, restrictToVerticalAxis } from './grid-reorder'
 import type { GridRowManagerGroup } from './use-grid-row-manager'
 
@@ -34,11 +35,6 @@ const DEFAULT_COLOR_OPTIONS: PaletteColor[] = [...colors, ...extendedColors]
 /** Capitalizes a palette color name for display (`violet` → `Violet`). @internal */
 function colorLabel(color: PaletteColor): string {
 	return color.charAt(0).toUpperCase() + color.slice(1)
-}
-
-/** A group's textual label for `aria-label`s: its `label` when a string, else its key. @internal */
-function groupLabelText(group: GridRowManagerGroup): string {
-	return typeof group.label === 'string' ? group.label : String(group.key)
 }
 
 /**
@@ -151,7 +147,7 @@ function GridRowManagerZone({ group, onRecolor, colorOptions }: GridRowManagerZo
 	const { setNodeRef, setActivatorNodeRef, attributes, listeners, style, dragging } =
 		useZoneSortable(String(group.key))
 
-	const label = groupLabelText(group)
+	const label = columnLabel({ id: group.key, title: group.label })
 
 	return (
 		<div ref={setNodeRef} style={style} data-dragging={dataAttr(dragging)}>

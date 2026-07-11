@@ -10,14 +10,10 @@ import { cn, dataAttr } from '../../core'
 import type { PaletteColor } from '../../core/recipe'
 import { k } from '../../recipes/kata/grid'
 import { aggregateLabelSpan, hasAggregation } from './engine/grid-aggregate'
+import { groupValueLabel } from './engine/grid-column/label'
+import { GridAggregateCells } from './grid-aggregate-cells'
 import type { GridGroupBy } from './grid-data-types'
-import { GridAggregateCells } from './grid-total-row'
 import type { GridColumn } from './types'
-
-/** A group value rendered for the header label: `—` for an empty value, else its string form. Shared with the manual group row. @internal */
-export function formatGroupValue(value: unknown): string {
-	return value == null || value === '' ? '—' : String(value)
-}
 
 /** Props for {@link GridGroupRow}. @internal */
 type GridGroupRowProps<T> = {
@@ -62,7 +58,7 @@ export function GridGroupRow<T>({
 
 	const label: ReactNode = renderHeader
 		? renderHeader({ columnId, value, count })
-		: `${formatGroupValue(value)} (${count})`
+		: `${groupValueLabel(value)} (${count})`
 
 	const aggregated = hasAggregation(columns)
 
@@ -80,7 +76,7 @@ export function GridGroupRow<T>({
 					variant="bare"
 					onClick={row.getToggleExpandedHandler()}
 					aria-expanded={expanded}
-					aria-label={`${expanded ? 'Collapse' : 'Expand'} group ${formatGroupValue(value)}`}
+					aria-label={`${expanded ? 'Collapse' : 'Expand'} group ${groupValueLabel(value)}`}
 					className="p-0"
 					suffix={
 						<Icon
