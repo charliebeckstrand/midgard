@@ -28,6 +28,9 @@ import {
 	type ChartReferenceLine,
 	type ChartSeries,
 	type ChartValueAxisId,
+	legendAside,
+	legendVisible,
+	type ResolvedLegend,
 	resolveAxes,
 } from './chart-schema'
 import {
@@ -49,7 +52,13 @@ import type { ChartReadoutSource } from './types'
 import { useChartReferenceToggle, useChartSeriesToggle } from './use-chart-series-toggle'
 
 /** The cartesian props minus the accessible name, which stays with the frame. @internal */
-export type CartesianData<T> = Omit<CartesianChartProps<T>, 'aria-label' | 'aria-labelledby'>
+export type CartesianData<T> = Omit<
+	CartesianChartProps<T>,
+	'aria-label' | 'aria-labelledby' | 'legend'
+> & {
+	/** The `legend` prop already resolved to its show value — the entry component resolves it before the hook reads it. */
+	legend?: ResolvedLegend['value']
+}
 
 /** Per-chart configuration for {@link useChartCartesian}. @internal */
 export type CartesianConfig<T> = {
@@ -555,12 +564,12 @@ function resolveCategories<T>(
  *
  * @internal
  */
-function legendItemsOf(
+function cartesianLegendItems(
 	metas: SeriesMeta[],
-	legend: CartesianChartProps<unknown>['legend'],
+	legend: ResolvedLegend['value'],
 	byValue: boolean | undefined,
 ): ChartLegendItem[] | null {
-	if (!(legend ?? metas.length > 1)) return null
+	if (!legendVisible(legend, metas.length)) return null
 
 	return orderLegend(metas, byValue).map((meta) => ({
 		index: meta.index,
@@ -578,15 +587,15 @@ function legendItemsOf(
  * aspect-fill figure — the header lines, and whether a stacked legend bands below
  * — for the tier's {@link chartChromeReserve chrome reserve}. A side legend never
  * shares the aspect box, so it counts as no stacked band; the legend otherwise
- * shows for two or more series unless forced, the same rule {@link legendItemsOf}
- * reads.
+ * shows for two or more series unless forced, the same rule
+ * {@link cartesianLegendItems} reads.
  *
  * @internal
  */
 function cartesianChrome<T>(props: CartesianData<T>, aside: boolean): ChartChrome {
 	return {
 		headerLines: headerLineCount(props.title, props.subtitle),
-		legend: Boolean(props.legend ?? props.series.length > 1) && !aside,
+		legend: legendVisible(props.legend, props.series.length) && !aside,
 	}
 }
 
@@ -757,7 +766,7 @@ export function useChartCartesian<T>(
 	// box and bands beside it. Only the side / stacked distinction needs the prop —
 	// a legend shows for two or more series unless it is forced — so it takes no
 	// measurement.
-	const aside = legend === 'left' || legend === 'right'
+	const aside = legendAside(legend)
 
 	const { sizing, outerAspect } = chartFrameLayout(height, aspectRatio, aside)
 
@@ -917,7 +926,7 @@ export function useChartCartesian<T>(
 		setEmphasis: setFocus,
 		readout,
 		readoutOrder,
-		legendItems: legendItemsOf(metas, legend, config.legendByValue),
+		legendItems: cartesianLegendItems(metas, legend, config.legendByValue),
 		referenceItems,
 		referenceHidden,
 		toggleReference,

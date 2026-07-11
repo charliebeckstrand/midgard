@@ -18,7 +18,11 @@ import { ChartContextMenu } from '../chart-context-menu'
 import { ChartHeader } from '../chart-header'
 import type { ChartOrientation } from '../chart-orientation'
 import { ChartPlotBox } from '../chart-plot-box'
-import type { ChartContextMenuConfig, ChartLegendPlacement } from '../chart-schema'
+import {
+	type ChartContextMenuConfig,
+	type ChartLegendPlacement,
+	legendAside,
+} from '../chart-schema'
 import type { ChartSnap } from '../chart-snap'
 import { ChartTable } from '../chart-table'
 import type { ChartTier } from '../chart-tier'
@@ -397,7 +401,7 @@ export function ChartFrame({
 		</svg>
 	)
 
-	const aside = legendPlacement === 'left' || legendPlacement === 'right'
+	const aside = legendAside(legendPlacement)
 
 	// A free-form fill frame grabs the container's height itself, since no ratio
 	// wrapper supplies it; a ratio-with-legend frame instead leans on the figure's

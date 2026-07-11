@@ -1,4 +1,4 @@
-import type { ChartLegendPlacement } from '../chart-schema'
+import { type ChartLegendPlacement, legendAside } from '../chart-schema'
 import type { CartesianChart } from '../use-chart-cartesian'
 import { ChartLegend } from './legend'
 
@@ -43,7 +43,7 @@ export function ChartCartesianLegend({ chart, legend, inert, texture }: ChartCar
 			onToggle={chart.toggleSeries}
 			onToggleReference={chart.toggleReference}
 			onFocus={chart.setEmphasis}
-			panel={legend === 'left' || legend === 'right'}
+			panel={legendAside(legend)}
 			maxRows={chart.legendRows}
 			texture={texture}
 			inert={inert}

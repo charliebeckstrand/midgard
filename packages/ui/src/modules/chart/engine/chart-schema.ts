@@ -365,6 +365,29 @@ export function resolveLegend(
 }
 
 /**
+ * Whether a resolved `legend` value shows the legend: an explicit boolean or
+ * placement forces it, otherwise it defaults on for two or more entries — the
+ * identity channel colour alone must never carry. The one show rule every
+ * engine reads.
+ *
+ * @internal
+ */
+export function legendVisible(legend: ResolvedLegend['value'], count: number): boolean {
+	return Boolean(legend ?? count > 1)
+}
+
+/**
+ * Whether a resolved `legend` value places the legend down a side (`left` /
+ * `right`) rather than along the top or bottom — so it lays out beside the plot
+ * and takes the plot's width, not its height.
+ *
+ * @internal
+ */
+export function legendAside(legend: ResolvedLegend['value']): boolean {
+	return legend === 'left' || legend === 'right'
+}
+
+/**
  * The kind of legend a colour-scaled chart (heatmap, choropleth) draws — only
  * the continuous `'range'` scale bar today, a placeholder for the discriminant a
  * future binned switchboard would join.

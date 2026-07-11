@@ -58,7 +58,10 @@ import {
 	type ChartTooltipTrigger,
 	type ChartValueAxis,
 	type Crosshair,
+	legendAside,
+	legendVisible,
 	type ResolvedCrosshair,
+	type ResolvedLegend,
 	resolveAxes,
 	resolveLegend,
 	resolveTooltip,
@@ -240,11 +243,11 @@ type ScatterFrame = {
  * @internal
  */
 function scatterFrame(
-	legend: ScatterChartProps<unknown>['legend'],
+	legend: ResolvedLegend['value'],
 	height: number | undefined,
 	aspectRatio: ChartAspectRatio,
 ): ScatterFrame {
-	const aside = legend === 'left' || legend === 'right'
+	const aside = legendAside(legend)
 
 	const { sizing, outerAspect } = chartFrameLayout(height, aspectRatio, aside)
 
@@ -260,9 +263,9 @@ function scatterFrame(
 /** The legend entries: on request, or by default once a second series needs telling apart. @internal */
 function scatterLegendItems(
 	metas: ScatterMeta[],
-	legend: ScatterChartProps<unknown>['legend'],
+	legend: ResolvedLegend['value'],
 ): ChartLegendItem[] | null {
-	if (!(legend ?? metas.length > 1)) return null
+	if (!legendVisible(legend, metas.length)) return null
 
 	return metas.map((meta) => ({
 		index: meta.index,
@@ -631,7 +634,7 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 	// from, so the policy's fill flag resolves the chrome decisions by width alone.
 	const policyHeight = policyPlotHeight(frameHeight, frameWidth, frameAspect, {
 		headerLines: 0,
-		legend: Boolean(resolvedLegend.value ?? series.length > 1) && !aside,
+		legend: legendVisible(resolvedLegend.value, series.length) && !aside,
 	})
 
 	const policy = chartPolicy(frameWidth, policyHeight, metrics.tickTarget, sizing.mode === 'fill')
@@ -715,7 +718,7 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 
 	const { show: showTooltip, trigger } = resolveTooltip(tooltip)
 
-	const legendItems = scatterLegendItems(metas, legend)
+	const legendItems = scatterLegendItems(metas, resolvedLegend.value)
 
 	const marksNode = animate ? (
 		<AnimatedScatterChartMarks list={list} />

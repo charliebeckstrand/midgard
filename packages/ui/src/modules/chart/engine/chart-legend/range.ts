@@ -10,7 +10,11 @@
  */
 
 import type { ChartOrientation } from '../chart-orientation'
-import type { ChartLegendPlacement, ChartRangeLegendConfig } from '../chart-schema'
+import {
+	type ChartLegendPlacement,
+	type ChartRangeLegendConfig,
+	legendAside,
+} from '../chart-schema'
 import { COMPACT_WIDTH, isSparkBox } from '../chart-tier'
 
 /** A `legend` prop resolved against the measured box to concrete placement, orientation, and visibility. @internal */
@@ -30,7 +34,7 @@ export type ResolvedRangeLegend = {
  * @internal
  */
 export function rangeLegendOrientation(placement: ChartLegendPlacement): ChartOrientation {
-	return placement === 'left' || placement === 'right' ? 'vertical' : 'horizontal'
+	return legendAside(placement) ? 'vertical' : 'horizontal'
 }
 
 /** The placement a `legend` prop names, before the box adjusts it. @internal */
@@ -79,7 +83,7 @@ export function resolveRangeLegend(
 	// would rebuild the frame around the plot, and the remount's transient
 	// measurements can feed back into this resolution and oscillate it. An
 	// unmeasured box (width 0) keeps the request — there is nothing to adjust to.
-	const side = requested === 'left' || requested === 'right'
+	const side = legendAside(requested)
 
 	const placement: ChartLegendPlacement =
 		side && width > 0 && width < COMPACT_WIDTH ? 'bottom' : requested

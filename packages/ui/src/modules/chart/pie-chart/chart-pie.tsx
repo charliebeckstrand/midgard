@@ -39,7 +39,10 @@ import { textureClass, textureStyle, useChartTexture } from '../engine/chart-pat
 import {
 	type ChartBaseProps,
 	type ChartTooltipTrigger,
+	legendAside,
+	legendVisible,
 	type PieChartSeries,
+	type ResolvedLegend,
 	resolveLegend,
 	resolveTooltip,
 } from '../engine/chart-schema'
@@ -645,12 +648,12 @@ type PieFrame = {
  */
 function pieFrame(
 	sizing: FrameSizing,
-	legend: ChartPieProps<unknown>['legend'],
+	legend: ResolvedLegend['value'],
 	dataLength: number,
 ): PieFrame {
-	const hasLegend = Boolean(legend ?? dataLength > 1)
+	const hasLegend = legendVisible(legend, dataLength)
 
-	const aside = legend === 'left' || legend === 'right'
+	const aside = legendAside(legend)
 
 	// Only a stacked legend shares the pie's aspect box; a side legend leaves the
 	// ratio on the pie box and bands beside it, the same as a legend-free pie.
