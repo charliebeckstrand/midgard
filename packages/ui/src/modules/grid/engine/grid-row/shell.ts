@@ -19,7 +19,7 @@ import {
  *
  * @internal
  */
-export function activateOnEnterSpace<E extends Element>(
+function activateOnEnterSpace<E extends Element>(
 	event: ReactKeyboardEvent<E>,
 	activate: (event: ReactKeyboardEvent<E>) => void,
 ): void {
@@ -39,7 +39,7 @@ export function activateOnEnterSpace<E extends Element>(
  *
  * @internal
  */
-export function rowPointerHandler<T>(args: {
+function rowPointerHandler<T>(args: {
 	columns: GridColumn<T>[]
 	row: T
 	rowKey: string | number

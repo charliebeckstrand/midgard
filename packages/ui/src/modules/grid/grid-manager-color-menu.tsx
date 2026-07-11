@@ -19,7 +19,7 @@ import { colors, extendedColors, type PaletteColor } from '../../core/recipe'
 export const DEFAULT_COLOR_OPTIONS: PaletteColor[] = [...colors, ...extendedColors]
 
 /** Capitalizes a palette color name for display (`violet` → `Violet`). @internal */
-export function colorLabel(color: PaletteColor): string {
+function colorLabel(color: PaletteColor): string {
 	return color.charAt(0).toUpperCase() + color.slice(1)
 }
 

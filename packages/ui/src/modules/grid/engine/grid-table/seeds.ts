@@ -7,7 +7,7 @@ import type {
 import type { GridColumnSizing } from '../../types'
 
 /** Whether a consumer already bound a dimension's initial state (so a `preferences` seed must not override it). @internal */
-export function isBound(config: { value?: unknown; defaultValue?: unknown } | undefined): boolean {
+function isBound(config: { value?: unknown; defaultValue?: unknown } | undefined): boolean {
 	return config?.value !== undefined || config?.defaultValue !== undefined
 }
 

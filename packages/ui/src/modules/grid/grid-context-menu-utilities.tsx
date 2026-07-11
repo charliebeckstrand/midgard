@@ -31,12 +31,12 @@ import type { GridColumnGroup } from './grid-group-types'
 import type { GridColumn, GridMenuItem } from './types'
 
 /** Menu-item icon for an export action: a printer for `print`, a download glyph otherwise. @internal */
-export function exportIcon(type: GridExportAction['type']): ReactElement {
+function exportIcon(type: GridExportAction['type']): ReactElement {
 	return type === 'print' ? <Printer /> : <Download />
 }
 
 /** Maps active export actions to menu items — the shape the column and cell menus each append. @internal */
-export function exportMenuItems(exportActions: GridExportAction[]): GridMenuItem[] {
+function exportMenuItems(exportActions: GridExportAction[]): GridMenuItem[] {
 	return exportActions.map((action) => ({
 		key: `export-${action.type}`,
 		label: action.label,
@@ -101,10 +101,7 @@ type ColumnMenuDefaultArgs<T> = {
  *
  * @internal
  */
-export function groupMenuItems<T>(
-	column: GridColumn<T>,
-	groupBy: GridGroupByMenu | null,
-): GridMenuItem[] {
+function groupMenuItems<T>(column: GridColumn<T>, groupBy: GridGroupByMenu | null): GridMenuItem[] {
 	if (!groupBy || !column.groupable) return []
 
 	if (column.id === groupBy.grouping) {
@@ -136,7 +133,7 @@ export function groupMenuItems<T>(
  *
  * @internal
  */
-export function pinMenuItems<T>(column: GridColumn<T>, pinColumn: PinColumn): GridMenuItem[] {
+function pinMenuItems<T>(column: GridColumn<T>, pinColumn: PinColumn): GridMenuItem[] {
 	if (isLocked(column)) return []
 
 	return pinMenuChoices(normalizeFreeze(column.pinned)).map((choice) => ({
@@ -148,7 +145,7 @@ export function pinMenuItems<T>(column: GridColumn<T>, pinColumn: PinColumn): Gr
 }
 
 /** The glyph for each pin choice — icons stay in the shell, off the engine's decision tree. @internal */
-export function pinChoiceIcon(key: PinMenuChoice['key']): ReactElement {
+function pinChoiceIcon(key: PinMenuChoice['key']): ReactElement {
 	if (key === 'pin-left') return <ArrowLeftToLine />
 
 	return key === 'pin-right' ? <ArrowRightToLine /> : <PinOff />
