@@ -173,6 +173,22 @@ export type OptionProps<TValue = unknown> = {
 	icon?: ReactNode
 	className?: string
 	children?: ReactNode
+	/**
+	 * Explicit id, overriding the auto-generated one. Set this when the option
+	 * renders inside a `VirtualOptions` with `getOptionId`: the host needs a
+	 * data-driven, predictable id to point `aria-activedescendant` at before the
+	 * row mounts, which React's auto-`id` (opaque, minted per instance) can't
+	 * supply.
+	 */
+	id?: string
+	/**
+	 * Windowed-list a11y position from `VirtualOptions`' render `meta` — spread
+	 * directly (`{...meta}`) so a windowed listbox still reports the option's
+	 * true "n of m" position.
+	 */
+	'aria-setsize'?: number
+	/** Windowed-list a11y position from `VirtualOptions`' render `meta`; see `aria-setsize`. */
+	'aria-posinset'?: number
 }
 
 /** Props for `OptionLabel`. */
@@ -244,7 +260,16 @@ export function createSelectOption<
 	activeDescendant?: boolean
 	context: ReactContext<TContext>
 }) {
-	function Option({ value, disabled, icon, className, children }: OptionProps<TValue>) {
+	function Option({
+		value,
+		disabled,
+		icon,
+		className,
+		children,
+		id,
+		'aria-setsize': ariaSetsize,
+		'aria-posinset': ariaPosinset,
+	}: OptionProps<TValue>) {
 		const { value: selectedValue, multiple, onSelect } = use(config.context)
 
 		const selected = isOptionSelected(selectedValue, value, multiple)
@@ -255,6 +280,7 @@ export function createSelectOption<
 
 		return (
 			<BaseOption
+				id={id}
 				selected={selected}
 				disabled={disabled}
 				icon={icon}
@@ -262,6 +288,8 @@ export function createSelectOption<
 				data-slot={`${config.slotPrefix}-option`}
 				className={className}
 				activeDescendant={config.activeDescendant}
+				aria-setsize={ariaSetsize}
+				aria-posinset={ariaPosinset}
 				// Focus-roving single-select only: active-descendant lists keep DOM
 				// focus on the input (the option never sees the keydown), and
 				// multi-select toggles stay put until an explicit Enter/Space/click.
