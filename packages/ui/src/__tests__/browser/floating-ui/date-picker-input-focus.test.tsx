@@ -41,18 +41,27 @@ describe('a11y open focus (real browser): date picker input mode', () => {
 		expect(document.getElementById(controls as string)).toHaveAttribute('role', 'listbox')
 	})
 
-	it('keeps focus on the toggle when the calendar opens from a click', async () => {
+	it('focuses the input when the calendar opens from a click', async () => {
 		renderUI(<DatePicker input />)
+
+		const input = screen.getByLabelText('Date') as HTMLInputElement
 
 		const calendar = screen.getByRole('button', { name: 'Open calendar' })
 
 		await userEvent.click(calendar)
 
-		await screen.findByRole('dialog')
+		const dialog = await screen.findByRole('dialog')
 
-		// The toggle that opened the popover holds focus; it is never yanked into
-		// the dialog (or dropped to <body>).
-		await waitFor(() => expect(calendar).toHaveFocus())
+		// Open-focus lands on the editable field (not the toggle, not the dialog),
+		// and the real modal manager leaves it there — the input sits inside the
+		// reference, so focus-out never fires. The user can type immediately.
+		await waitFor(() => expect(input).toHaveFocus())
+
+		expect(dialog.contains(document.activeElement)).toBe(false)
+
+		await userEvent.keyboard('12252026')
+
+		expect(input.value).toBe('12/25/2026')
 	})
 
 	it('roves the grid via aria-activedescendant and commits on Enter, focus never leaving the input', async () => {

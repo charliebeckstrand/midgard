@@ -1,7 +1,7 @@
 'use client'
 
 import type { Placement } from '@floating-ui/react'
-import type { ReactElement } from 'react'
+import { type ReactElement, useRef } from 'react'
 import { cn, composeEventHandlers } from '../../core'
 import { useDensity } from '../../primitives/density'
 import { k } from '../../recipes/kata/date-picker'
@@ -233,6 +233,10 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 
 	const state = useDatePickerState(props)
 
+	// The DateInput's native input; `input` mode seeds dialog-open focus here so
+	// the user can type and the keydown stream roves the grid.
+	const inputRef = useRef<HTMLInputElement>(null)
+
 	const inputTab = useDatePickerInputTab({
 		open: state.open,
 		triggerRef: state.triggerRef,
@@ -254,11 +258,11 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 			context={state.context}
 			size={size}
 			onKeyDown={onContentKeyDown}
-			// `input` mode keeps focus on the editable DateInput and drives the
-			// calendar via its `aria-activedescendant`; the dialog must not seize
-			// focus on open. The button-trigger variant keeps the container-focus
-			// virtual-highlight default.
-			autoFocus={!input}
+			// `input` mode seeds open-focus on the editable DateInput (not the dialog
+			// container) so the user can type and the same keydown stream roves the
+			// grid via the input's `aria-activedescendant`. The button-trigger variant
+			// keeps the container-focus virtual-highlight default.
+			initialFocusRef={input ? inputRef : undefined}
 			// The reference group stays editable (and Tab-reachable via
 			// useDatePickerInputTab) while open, so it must stay out of the modal
 			// trap's aria-hidden marking. Non-input mode keeps the standard
@@ -292,6 +296,7 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 					{...state.getReferenceProps({ onKeyDown: inputTab.onReferenceKeyDown })}
 				>
 					<DateInput
+						ref={inputRef}
 						data-slot="datepicker-input"
 						value={state.value ?? null}
 						onValueChange={state.setValue}

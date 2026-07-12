@@ -927,24 +927,43 @@ describe('DatePicker input', () => {
 	})
 
 	// The reported bug: opening the calendar seized DOM focus onto the dialog
-	// container, dropping it from the editable field. `input` mode now keeps focus
-	// on the reference (the calendar button holds it here) and drives the grid via
-	// the input's aria-activedescendant, the same shape as the Menu dropdown fix.
-	it('leaves focus on the reference when the calendar opens, not the dialog', async () => {
+	// container, dropping it from the editable field. `input` mode now seeds
+	// open-focus on the DateInput itself — so the user can keep typing and the
+	// keydown stream roves the grid — never the dialog container.
+	it('focuses the input when the calendar opens, not the dialog', async () => {
 		const user = userEvent.setup({ delay: null })
 
-		renderUI(<DatePicker input />)
+		const { container } = renderUI(<DatePicker input />)
 
-		const calendar = screen.getByRole('button', { name: 'Open calendar' })
+		const input = bySlot(container, 'datepicker-input') as HTMLInputElement
 
-		await user.click(calendar)
+		await user.click(screen.getByRole('button', { name: 'Open calendar' }))
 
 		expect(screen.getByRole('dialog')).toBeInTheDocument()
 
-		// Focus rests on the toggle that opened it, never the dialog container.
-		expect(calendar).toHaveFocus()
+		// Focus lands on the editable field, never the dialog container.
+		expect(input).toHaveFocus()
 
 		expect(screen.getByRole('dialog')).not.toHaveFocus()
+	})
+
+	it('accepts typing into the input after opening from the calendar button', async () => {
+		const user = userEvent.setup({ delay: null })
+
+		const onChange = vi.fn()
+
+		const { container } = renderUI(<DatePicker input onValueChange={onChange} />)
+
+		const input = bySlot(container, 'datepicker-input') as HTMLInputElement
+
+		await user.click(screen.getByRole('button', { name: 'Open calendar' }))
+
+		// Open-focus landed on the field, so digits type straight through.
+		await user.keyboard('12252026')
+
+		expect(input.value).toBe('12/25/2026')
+
+		expect(onChange).toHaveBeenLastCalledWith(expect.any(Date))
 	})
 
 	it('opens from the input with ArrowDown while keeping focus on it', async () => {
