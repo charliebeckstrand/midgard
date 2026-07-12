@@ -26,9 +26,9 @@ export type TabContentProps = Omit<ComponentPropsWithoutRef<typeof CurrentConten
  * unmount waits for the panel's fade-out, so the cross-fade still plays. `fade`
  * (default `true`) animates the container height across the swap either way.
  * Set `mount` to hold inactive panels: `mount="lazy"` defers never-visited
- * panels, and `mount="always"` keeps them all mounted — via the opacity
- * cross-fade under `fade`, or `<Activity mode="hidden">` (state preserved,
- * effects paused) when `fade={false}`.
+ * panels, and `mount="always"` keeps them all mounted. Held panels rest in
+ * `<Activity mode="hidden">` (state preserved, effects paused); under `fade`
+ * they wake for the opacity cross-fade and rest again once it lands.
  */
 export function TabContents({ fade = true, mount, ...props }: TabContentsProps) {
 	const tabsContext = useTabsContext()

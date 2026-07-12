@@ -30,7 +30,16 @@ export function useTabPanelTabIndex(ref: RefObject<HTMLElement | null>): 0 | und
 
 		const observer = new MutationObserver(update)
 
-		observer.observe(el, { childList: true, subtree: true, attributes: true })
+		// Only the attributes the focusable selector reads. Unfiltered, every
+		// inline-style write registers here — and Motion writes `element.style`
+		// per frame — so any animation on or inside the panel would run this
+		// callback (and its querySelector) every frame.
+		observer.observe(el, {
+			childList: true,
+			subtree: true,
+			attributes: true,
+			attributeFilter: ['tabindex', 'disabled', 'href'],
+		})
 
 		return () => observer.disconnect()
 	}, [ref])
