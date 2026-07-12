@@ -97,6 +97,84 @@ describe('useComboboxState', () => {
 		expect(result.current.editing).toBe(false)
 	})
 
+	it('freezes the menu query through close so the filter holds during the exit animation', () => {
+		const { result } = setup<string>()
+
+		act(() => {
+			result.current.setOpen(true)
+		})
+
+		act(() => {
+			result.current.setQuery('partial')
+		})
+
+		expect(result.current.menuDeferredQuery).toBe('partial')
+
+		act(() => {
+			result.current.close()
+		})
+
+		// The live query clears immediately, but the menu keeps filtering on the
+		// pre-close snapshot so its content stays put while the panel animates out.
+		expect(result.current.query).toBe('')
+
+		expect(result.current.deferredQuery).toBe('')
+
+		expect(result.current.menuQuery).toBe('partial')
+
+		expect(result.current.menuDeferredQuery).toBe('partial')
+	})
+
+	it('releases the frozen menu query on flushPending (exit-complete)', () => {
+		const { result } = setup<string>()
+
+		act(() => {
+			result.current.setOpen(true)
+		})
+
+		act(() => {
+			result.current.setQuery('partial')
+		})
+
+		act(() => {
+			result.current.close()
+		})
+
+		act(() => {
+			result.current.flushPending()
+		})
+
+		expect(result.current.menuQuery).toBe('')
+
+		expect(result.current.menuDeferredQuery).toBe('')
+	})
+
+	it('releases the frozen menu query when the menu reopens mid-close', () => {
+		const { result } = setup<string>()
+
+		act(() => {
+			result.current.setOpen(true)
+		})
+
+		act(() => {
+			result.current.setQuery('partial')
+		})
+
+		act(() => {
+			result.current.close()
+		})
+
+		// Reopen before the exit animation completes: onExitComplete never fires,
+		// so the reopen guard must clear the freeze instead.
+		act(() => {
+			result.current.setOpen(true)
+		})
+
+		expect(result.current.menuQuery).toBe('')
+
+		expect(result.current.menuDeferredQuery).toBe('')
+	})
+
 	it('falls back to onValueChange when selectable is false', () => {
 		const onValueChange = vi.fn()
 
