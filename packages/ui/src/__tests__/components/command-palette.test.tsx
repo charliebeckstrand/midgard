@@ -83,7 +83,7 @@ describe('CommandPalette active descendant', () => {
 
 		const input = screen.getByRole('combobox') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.keyboard('{ArrowDown}')
 
@@ -106,7 +106,7 @@ describe('CommandPalette active descendant', () => {
 
 		const input = screen.getByRole('combobox') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.keyboard('{ArrowDown}')
 
@@ -124,7 +124,7 @@ describe('CommandPalette active descendant', () => {
 	it('moves the active item to the top result when the filter changes', async () => {
 		renderUI(<FilteredPalette />)
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		// Activate the first option (Alpha), then filter it out.
 		await user.keyboard('{ArrowDown}')
@@ -145,7 +145,7 @@ describe('CommandPalette active descendant', () => {
 	it('clears the active item when the filter matches nothing', async () => {
 		renderUI(<FilteredPalette />)
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.keyboard('{ArrowDown}')
 
@@ -267,7 +267,7 @@ describe('CommandPaletteItem', () => {
 			</CommandPalette>,
 		)
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.click(screen.getByText('Run'))
 
@@ -289,7 +289,7 @@ describe('CommandPaletteItem', () => {
 			</CommandPalette>,
 		)
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.click(screen.getByText('Run'))
 
@@ -312,7 +312,7 @@ describe('CommandPaletteItem', () => {
 			</CommandPalette>,
 		)
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.click(screen.getByText('Run'))
 
@@ -332,7 +332,7 @@ describe('CommandPaletteItem', () => {
 			</CommandPalette>,
 		)
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.click(screen.getByText('Run'))
 
@@ -350,7 +350,7 @@ describe('CommandPaletteItem', () => {
 			</CommandPalette>,
 		)
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.click(screen.getByText('Run'))
 
@@ -494,7 +494,7 @@ describe('CommandPalette open/close transitions', () => {
 
 		const input = screen.getByRole('combobox') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.type(input, 'p')
 

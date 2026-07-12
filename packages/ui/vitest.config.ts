@@ -13,6 +13,15 @@ const setupFiles = [
 export default defineConfig({
 	test: {
 		environment: 'jsdom',
+		// Vitest reserves a core for the main thread, so the vmThreads pool defaults
+		// to one fewer worker than the machine has cores — a jsdom suite this size
+		// leaves ~15-20% of local wall on the table. jsdom setup and module eval
+		// spend enough time in GC/async idle that scheduling a worker per core
+		// (not core-minus-one) fills it without CPU oversubscription: no extra
+		// vmMemoryLimit pressure, no per-worker slowdown toward the waitFor budget.
+		// CI keeps the default — its agents are shared and noisier, and the scaled
+		// timeouts above assume that slack — so this stays a local-only speedup.
+		...(CI ? {} : { minWorkers: '100%', maxWorkers: '100%' }),
 		globals: true,
 		// Machine speed must change when a test passes, never whether it passes:
 		// CI agents are slower and noisier than dev machines, so wall-clock

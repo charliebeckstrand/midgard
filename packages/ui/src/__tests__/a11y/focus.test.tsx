@@ -22,7 +22,7 @@ describe('a11y focus: overlays capture focus on open', () => {
 	it.each(
 		focus,
 	)('%s moves focus off the trigger into the surface', async (_name, element, open) => {
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		renderUI(element)
 
@@ -48,7 +48,7 @@ describe('a11y focus: overlays capture focus on open', () => {
  */
 describe('a11y focus: restoration (dropdown family)', () => {
 	it('menu returns focus to its trigger on Escape', async () => {
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		renderUI(
 			<Menu>

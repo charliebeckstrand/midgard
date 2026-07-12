@@ -88,7 +88,7 @@ describe('DateInput', () => {
 
 		const input = bySlot(container, 'date-input') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		// Partial entry: no complete date has committed, but the field holds text.
 		await user.type(input, '122')
@@ -114,7 +114,7 @@ describe('DateInput', () => {
 
 		expect(input.value).toBe('06/15/2026')
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.click(screen.getByRole('button', { name: 'Clear date' }))
 
@@ -187,7 +187,7 @@ describe('DateInput', () => {
 
 		const input = bySlot(container, 'date-input') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.type(input, '12252026')
 
@@ -207,7 +207,7 @@ describe('DateInput', () => {
 
 		const input = bySlot(container, 'date-input') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.type(input, '1/5/2026')
 
@@ -221,7 +221,7 @@ describe('DateInput', () => {
 
 		const input = bySlot(container, 'date-input') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.type(input, '12252026')
 
@@ -237,7 +237,7 @@ describe('DateInput', () => {
 
 		const input = bySlot(container, 'date-input') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.type(input, '12')
 
@@ -255,7 +255,7 @@ describe('DateInput', () => {
 
 		const input = bySlot(container, 'date-input') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.type(input, '02312025')
 
@@ -279,7 +279,7 @@ describe('DateInput', () => {
 
 		const input = bySlot(container, 'date-input') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.type(input, '06152027')
 
@@ -298,7 +298,7 @@ describe('DateInput', () => {
 
 		const input = bySlot(container, 'date-input') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.type(input, '12/3')
 
@@ -318,7 +318,7 @@ describe('DateInput', () => {
 
 		const input = bySlot(container, 'date-input') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.type(input, '122526')
 
@@ -345,7 +345,7 @@ describe('DateInput', () => {
 
 		const input = bySlot(container, 'date-input') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		// The four-digit year passes through a two-digit state; it must not commit
 		// as 2020 before the full year is typed.
@@ -369,7 +369,7 @@ describe('DateInput', () => {
 
 		const input = bySlot(container, 'date-input') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		expect(bySlot(container, 'message')).not.toBeInTheDocument()
 
@@ -394,7 +394,7 @@ describe('DateInput', () => {
 
 		const input = bySlot(container, 'date-input') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.type(input, '12/3')
 
@@ -412,7 +412,7 @@ describe('DateInput', () => {
 
 		const input = bySlot(container, 'date-input') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.type(input, '02312025')
 
@@ -430,7 +430,7 @@ describe('DateInput', () => {
 
 		const input = bySlot(container, 'date-input') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.type(input, '02312025')
 
@@ -444,7 +444,7 @@ describe('DateInput', () => {
 
 		const input = bySlot(container, 'date-input') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.type(input, '02312025')
 
@@ -493,7 +493,7 @@ describe('DateInput', () => {
 
 		const input = bySlot(container, 'date-input') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.type(input, '12/3')
 
@@ -513,7 +513,7 @@ describe('DateInput', () => {
 
 		const input = bySlot(container, 'date-input') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		// Retype the final digit: the text leaves and re-enters the held day.
 		await user.type(input, '{Backspace}')
@@ -549,7 +549,7 @@ describe('DateInput', () => {
 
 		const input = bySlot(container, 'date-input') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.type(input, '12252026')
 

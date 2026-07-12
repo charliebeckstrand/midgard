@@ -32,7 +32,7 @@ function ControlledRelativePicker({
 }
 
 function openPicker() {
-	return userEvent.setup()
+	return userEvent.setup({ delay: null })
 }
 
 describe('DatePicker (relative)', () => {

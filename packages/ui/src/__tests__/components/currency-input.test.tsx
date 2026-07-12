@@ -66,7 +66,7 @@ describe('CurrencyInput', () => {
 
 		const input = bySlot(container, 'currency-input') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.click(input)
 
@@ -84,7 +84,7 @@ describe('CurrencyInput', () => {
 
 		const input = bySlot(container, 'currency-input') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.click(input)
 
@@ -96,7 +96,7 @@ describe('CurrencyInput', () => {
 
 		const input = bySlot(container, 'currency-input') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.click(input)
 
@@ -122,7 +122,7 @@ describe('CurrencyInput', () => {
 
 		const input = bySlot(container, 'currency-input') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.click(input)
 
@@ -142,7 +142,7 @@ describe('CurrencyInput', () => {
 
 		const input = bySlot(container, 'currency-input') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.click(input)
 
@@ -180,7 +180,7 @@ describe('CurrencyInput', () => {
 
 		const input = bySlot(container, 'currency-input') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		input.focus()
 
@@ -200,7 +200,7 @@ describe('CurrencyInput', () => {
 
 		const input = bySlot(container, 'currency-input') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		input.focus()
 
@@ -216,7 +216,7 @@ describe('CurrencyInput', () => {
 
 		const input = bySlot(container, 'currency-input') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.click(input)
 
@@ -245,7 +245,7 @@ describe('CurrencyInput', () => {
 			</Form>,
 		)
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		const input = bySlot(container, 'currency-input') as HTMLInputElement
 

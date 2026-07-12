@@ -40,7 +40,7 @@ describe('PhoneInput', () => {
 
 		const input = bySlot(container, 'phone-input') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.type(input, '5551234567')
 
@@ -56,7 +56,7 @@ describe('PhoneInput', () => {
 
 		const input = bySlot(container, 'phone-input') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.type(input, 'abc555')
 
@@ -68,7 +68,7 @@ describe('PhoneInput', () => {
 
 		const input = bySlot(container, 'phone-input') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.type(input, '+14155551234')
 
@@ -94,7 +94,7 @@ describe('PhoneInput', () => {
 
 		input.setSelectionRange(2, 2)
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.keyboard('1')
 
@@ -132,7 +132,7 @@ describe('PhoneInput', () => {
 
 		const input = bySlot(container, 'phone-input') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.type(input, '+')
 
@@ -167,7 +167,7 @@ describe('PhoneInput', () => {
 			</Form>,
 		)
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		const input = bySlot(container, 'phone-input') as HTMLInputElement
 
@@ -199,7 +199,7 @@ describe('PhoneInput', () => {
 
 		const input = bySlot(container, 'phone-input') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.click(input)
 

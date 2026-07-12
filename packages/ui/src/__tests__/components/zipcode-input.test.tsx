@@ -56,7 +56,7 @@ describe('ZipcodeInput', () => {
 
 		const input = bySlot(container, 'zipcode-input') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.type(input, '941031234')
 
@@ -70,7 +70,7 @@ describe('ZipcodeInput', () => {
 
 		const input = bySlot(container, 'zipcode-input') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.type(input, 'abc94103xyz')
 
@@ -82,7 +82,7 @@ describe('ZipcodeInput', () => {
 
 		const input = bySlot(container, 'zipcode-input') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.type(input, 'k1a0b1')
 
@@ -147,7 +147,7 @@ describe('ZipcodeInput', () => {
 			</Form>,
 		)
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		const input = bySlot(container, 'zipcode-input') as HTMLInputElement
 
@@ -179,7 +179,7 @@ describe('ZipcodeInput', () => {
 
 		const input = bySlot(container, 'zipcode-input') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.click(input)
 

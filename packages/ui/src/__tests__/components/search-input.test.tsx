@@ -42,7 +42,7 @@ describe('SearchInput', () => {
 
 		renderUI(<SearchInput value="query" onClear={onClear} onChange={() => {}} />)
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.click(screen.getByLabelText('Clear search'))
 
@@ -64,7 +64,7 @@ describe('SearchInput', () => {
 
 		expect(input.value).toBe('query')
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.click(screen.getByLabelText('Clear search'))
 
@@ -76,7 +76,7 @@ describe('SearchInput', () => {
 
 		const input = screen.getByRole('searchbox')
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.click(screen.getByLabelText('Clear search'))
 
@@ -106,7 +106,7 @@ describe('SearchInput', () => {
 
 		const input = bySlot(container, 'search-input') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.type(input, 'a')
 
@@ -120,7 +120,7 @@ describe('SearchInput', () => {
 
 		const input = bySlot(container, 'search-input') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.clear(input)
 
@@ -139,7 +139,7 @@ describe('SearchInput', () => {
 
 		const input = bySlot(container, 'search-input') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.type(input, 'midgard')
 
@@ -167,7 +167,7 @@ describe('SearchInput', () => {
 
 		const input = bySlot(container, 'search-input') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.click(input)
 

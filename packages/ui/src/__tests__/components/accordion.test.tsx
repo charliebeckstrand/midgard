@@ -308,7 +308,7 @@ describe('Accordion keyboard navigation', () => {
 	}
 
 	it('moves focus between headers with arrows, skipping the disabled trigger', async () => {
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		renderAccordion()
 

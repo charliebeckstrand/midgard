@@ -30,7 +30,7 @@ describe('NumberInput', () => {
 
 		const input = screen.getByRole('spinbutton')
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.click(input)
 
@@ -45,7 +45,7 @@ describe('NumberInput', () => {
 	it('announces the stepped value through the polite live region', async () => {
 		renderUI(<NumberInput defaultValue={4} />)
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.click(screen.getByLabelText('Increase'))
 
@@ -57,7 +57,7 @@ describe('NumberInput', () => {
 
 		renderUI(<NumberInput defaultValue={5} onBlur={onBlur} />)
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		const input = screen.getByRole('spinbutton')
 
@@ -143,7 +143,7 @@ describe('NumberInput', () => {
 
 		renderUI(<NumberInput {...props} onValueChange={onValueChange} />)
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.click(screen.getByLabelText(button))
 
@@ -155,7 +155,7 @@ describe('NumberInput', () => {
 
 		renderUI(<NumberInput onValueChange={onChange} />)
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		const input = screen.getByRole('spinbutton')
 
@@ -169,7 +169,7 @@ describe('NumberInput', () => {
 
 		renderUI(<NumberInput min={10} onValueChange={onChange} />)
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		const input = screen.getByRole('spinbutton') as HTMLInputElement
 
@@ -187,7 +187,7 @@ describe('NumberInput', () => {
 
 		renderUI(<NumberInput min={10} onValueChange={onChange} />)
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		const input = screen.getByRole('spinbutton') as HTMLInputElement
 
@@ -203,7 +203,7 @@ describe('NumberInput', () => {
 
 		renderUI(<NumberInput defaultValue={7} onValueChange={onChange} />)
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		const input = screen.getByRole('spinbutton') as HTMLInputElement
 
@@ -222,7 +222,7 @@ describe('NumberInput', () => {
 			</Form>,
 		)
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		const input = screen.getByRole('spinbutton') as HTMLInputElement
 
@@ -238,7 +238,7 @@ describe('NumberInput', () => {
 
 		renderUI(<NumberInput onValueChange={onChange} />)
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		const input = screen.getByRole('spinbutton') as HTMLInputElement
 
