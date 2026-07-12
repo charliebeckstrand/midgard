@@ -1,10 +1,13 @@
+import { fileURLToPath } from 'node:url'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 import { docsPlugin } from './src/engine/plugin'
 
+const uiDir = fileURLToPath(new URL('../../packages/ui', import.meta.url))
+
 export default defineConfig({
-	plugins: [docsPlugin(), react(), tailwindcss()],
+	plugins: [docsPlugin({ apiPackageDir: uiDir }), react(), tailwindcss()],
 	server: { port: 3457 },
 	resolve: {
 		alias: [

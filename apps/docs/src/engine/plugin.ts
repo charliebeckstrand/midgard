@@ -1,5 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
+import type { ApiExtractor } from 'docs-extractor'
 import { type ModuleNode, type Plugin, transformWithEsbuild } from 'vite'
 import type { DocMeta } from './contracts'
 import { deriveDocMeta, type ParsedDoc, parseDoc } from './parse'
@@ -12,9 +13,17 @@ export type DocsPluginOptions = {
 
 	/** The documented library's import prefix; drives module derivation. @defaultValue 'ui' */
 	packageName?: string
+
+	/**
+	 * Absolute path to the documented package, enabling `virtual:docs/api` via
+	 * docs-extractor. Omitted, the api module serves an empty snapshot.
+	 */
+	apiPackageDir?: string
 }
 
 const MANIFEST_ID = 'virtual:docs/manifest'
+
+const API_ID = 'virtual:docs/api'
 
 const PREVIEW_PREFIX = 'virtual:docs/preview/'
 
@@ -27,11 +36,34 @@ const PREVIEW_PREFIX = 'virtual:docs/preview/'
 export function docsPlugin({
 	contentDir = 'content',
 	packageName = 'ui',
+	apiPackageDir,
 }: DocsPluginOptions = {}): Plugin {
 	let contentRoot = contentDir
 
 	// Parse cache keyed by absolute md path; cleared per file on change.
 	const cache = new Map<string, ParsedDoc>()
+
+	// Created on the api module's first read — a dynamic import so the dev
+	// server boots (and the app builds content-only) without the extractor.
+	let extractor: ApiExtractor | null = null
+
+	const loadExtractor = async (): Promise<ApiExtractor | null> => {
+		if (!apiPackageDir) return null
+
+		if (!extractor) {
+			const { createExtractor } = await import('docs-extractor')
+
+			extractor = createExtractor({ packageDir: apiPackageDir, packageName })
+		}
+
+		return extractor
+	}
+
+	const isApiSource = (file: string) =>
+		apiPackageDir !== undefined &&
+		file.startsWith(`${path.join(apiPackageDir, 'src')}${path.sep}`) &&
+		!file.includes(`${path.sep}docs${path.sep}`) &&
+		!file.includes('__tests__')
 
 	const isContentMd = (file: string) => file.startsWith(`${contentRoot}/`) && file.endsWith('.md')
 
@@ -83,6 +115,15 @@ export function docsPlugin({
 					)
 					.sort((a, b) => a.name.localeCompare(b.name)),
 			shouldInvalidate: isContentMd,
+		},
+		{
+			id: API_ID,
+			generate: async () => {
+				const active = await loadExtractor()
+
+				return active ? active.extract() : { schemaVersion: 1, modules: {} }
+			},
+			shouldInvalidate: isApiSource,
 		},
 	])
 
@@ -159,6 +200,9 @@ export function docsPlugin({
 
 		handleHotUpdate(ctx) {
 			if (isContentMd(ctx.file)) cache.delete(ctx.file)
+
+			// Narrow the re-extraction before the api cache regenerates.
+			if (isApiSource(ctx.file)) extractor?.invalidate(ctx.file)
 
 			const fromJson = jsonHooks.handleHotUpdate(ctx)
 

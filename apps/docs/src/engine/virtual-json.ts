@@ -5,17 +5,19 @@ import type { HmrContext, ModuleNode } from 'vite'
 // from the ui engine's copy, which only ever spreads them.
 type Hooks = {
 	resolveId: (id: string) => string | undefined
-	load: (id: string) => string | undefined
+	load: (id: string) => Promise<string | undefined>
 	handleHotUpdate: (ctx: HmrContext) => ModuleNode[] | undefined
 }
 
 /**
  * One virtual JSON module: a stable id, a generator run at first read, and a
- * predicate telling HMR which file changes invalidate its cache.
+ * predicate telling HMR which file changes invalidate its cache. `generate`
+ * may be async — the api module dynamic-imports the extractor on first read so
+ * the dev server boots without it.
  */
 export type VirtualJsonSpec = {
 	id: string
-	generate: () => unknown
+	generate: () => unknown | Promise<unknown>
 	shouldInvalidate: (file: string) => boolean
 }
 
@@ -47,12 +49,12 @@ export function virtualJsonModules(specs: VirtualJsonSpec[]): Hooks {
 			return byId.get(id)?.resolved
 		},
 
-		load(id) {
+		async load(id) {
 			const entry = byResolved.get(id)
 
 			if (!entry) return undefined
 
-			entry.cached ??= JSON.stringify(entry.spec.generate())
+			entry.cached ??= JSON.stringify(await entry.spec.generate())
 
 			return `export default ${entry.cached}`
 		},

@@ -1,5 +1,5 @@
 import { PanelLeft, PanelLeftDashed } from 'lucide-react'
-import { use } from 'react'
+import { Suspense, use } from 'react'
 import { Button } from 'ui/button'
 import { Flex } from 'ui/flex'
 import { Heading } from 'ui/heading'
@@ -10,6 +10,7 @@ import { Stack } from 'ui/stack'
 import { Tab, TabContent, TabContents, TabList, Tabs } from 'ui/tabs'
 import { Text } from 'ui/text'
 import type { DocMeta } from '../engine/contracts'
+import { ApiPanel } from './api-panel'
 import { PreviewTab } from './preview-tab'
 import { loadDoc } from './registry'
 import { setParam } from './router'
@@ -80,7 +81,9 @@ export function DocPage({
 							<Text severity="muted">The Usage tab arrives with the usage engine.</Text>
 						</TabContent>
 						<TabContent value="api">
-							<Text severity="muted">The API reference arrives with the extractor.</Text>
+							<Suspense fallback={null}>
+								<ApiPanel meta={doc.meta} />
+							</Suspense>
 						</TabContent>
 					</TabContents>
 				</Tabs>
