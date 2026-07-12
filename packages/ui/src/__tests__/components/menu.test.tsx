@@ -14,7 +14,7 @@ import {
 import { useMenuContext } from '../../components/menu/context'
 import { Density } from '../../primitives/density'
 import { DensityProvider } from '../../providers/density'
-import { bySlot, fireEvent, renderUI, screen } from '../helpers'
+import { bySlot, fireEvent, renderUI, screen, userEvent } from '../helpers'
 
 describe('MenuSection', () => {
 	it('renders with data-slot="menu-section"', () => {
@@ -215,7 +215,7 @@ describe('MenuContent', () => {
 		expect(screen.getByText('Item')).toBeInTheDocument()
 	})
 
-	it('seats focus on the first menu item when a dropdown opens', () => {
+	it('keeps focus on the trigger when a dropdown opens', () => {
 		renderUI(
 			<Menu placement="bottom-start">
 				<MenuTrigger>
@@ -228,13 +228,66 @@ describe('MenuContent', () => {
 			</Menu>,
 		)
 
-		fireEvent.click(screen.getByText('Open'))
+		const trigger = screen.getByRole('button', { name: 'Open' })
 
-		// A menu carries no selection, so opening lands on its first item — a real
-		// role="menuitem" control — rather than the bare panel container.
-		expect(screen.getByRole('menuitem', { name: 'Edit' })).toHaveFocus()
+		trigger.focus()
+
+		fireEvent.click(trigger)
+
+		// Opening never pulls focus into the panel; it rests on the trigger so a
+		// portaled, animating panel can't drop it to <body> (WCAG 2.4.3).
+		expect(trigger).toHaveFocus()
 
 		expect(screen.getByRole('menu')).not.toHaveFocus()
+
+		expect(screen.getByRole('menuitem', { name: 'Edit' })).not.toHaveFocus()
+	})
+
+	it('closes the menu when Tab is pressed on the trigger', async () => {
+		const user = userEvent.setup()
+
+		renderUI(
+			<Menu placement="bottom-start">
+				<MenuTrigger>
+					<button type="button">Open</button>
+				</MenuTrigger>
+				<MenuContent>
+					<MenuItem>Edit</MenuItem>
+				</MenuContent>
+			</Menu>,
+		)
+
+		const trigger = screen.getByRole('button', { name: 'Open' })
+
+		await user.click(trigger)
+
+		expect(screen.getByRole('menu')).toBeInTheDocument()
+
+		// Tab off the trigger dismisses the menu rather than leaving it open behind
+		// the moved focus.
+		await user.tab()
+
+		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+
+		// Focus proceeds past the trigger; it is not snapped back to it.
+		expect(trigger).not.toHaveFocus()
+	})
+
+	it('pulls focus into the panel when a right-click context menu opens', () => {
+		renderUI(
+			<Menu>
+				<div data-testid="surface">right-click me</div>
+				<MenuContent>
+					<MenuItem>Edit</MenuItem>
+				</MenuContent>
+			</Menu>,
+		)
+
+		fireEvent.contextMenu(screen.getByTestId('surface'))
+
+		// A context menu has no persistent trigger to hold focus, so — unlike a
+		// dropdown — it moves focus into the panel for keyboard navigation.
+		expect(screen.getByRole('menu')).toHaveFocus()
 	})
 
 	it('wraps items in a scroll viewport carrying the overflow affordance', () => {

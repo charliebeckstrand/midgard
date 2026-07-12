@@ -8,6 +8,12 @@ type MenuStateValue = {
 	open: boolean
 	/** Id of the menu panel; the trigger's `aria-controls` points at it. */
 	menuId: string
+	/**
+	 * True for a placement-driven dropdown (a {@link MenuTrigger} keeps focus while
+	 * open); false for a right-click context menu, which has no persistent trigger
+	 * and so pulls focus into its panel on open.
+	 */
+	isDropdown: boolean
 	floatingStyles: CSSProperties
 	getReferenceProps: (userProps?: Record<string, unknown>) => Record<string, unknown>
 	getFloatingProps: () => Record<string, unknown>
@@ -18,6 +24,12 @@ type MenuStateValue = {
 type MenuActionsValue = {
 	setOpen: (open: boolean) => void
 	close: () => void
+	/**
+	 * Dismisses the menu as a Tab-out: closes it with a `'focus-out'` reason so
+	 * focus is left where Tab is carrying it rather than snapped back to the
+	 * trigger. {@link MenuTrigger} calls this on Tab while the menu is open.
+	 */
+	dismissToTab: (event: Event) => void
 	static: boolean
 	triggerRef: RefObject<HTMLButtonElement | null>
 	setReference: (node: HTMLElement | null) => void

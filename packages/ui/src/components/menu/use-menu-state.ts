@@ -86,7 +86,7 @@ export function useMenuState({
 	// `aria-controls` to the real menu panel.
 	const menuId = useId()
 
-	const { open, setOpen, close, triggerRef, refs, floatingStyles, dismiss, role } =
+	const { open, setOpen, close, triggerRef, refs, floatingStyles, context, dismiss, role } =
 		useFloatingDisclosure({
 			open: openProp,
 			defaultOpen,
@@ -95,6 +95,16 @@ export function useMenuState({
 			placement: placement ?? 'bottom-start',
 			matchReferenceWidth: isDropdown,
 		})
+
+	// Tab off the trigger closes the menu (focus stays on the trigger while it is
+	// open). Routing through `context.onOpenChange` with `'focus-out'` records the
+	// reason so the disclosure's focus-return effect leaves focus where the Tab is
+	// carrying it — forward to the next tabbable, back with Shift+Tab — instead of
+	// snapping it back to the trigger and swallowing the keystroke.
+	const dismissToTab = useCallback(
+		(event: Event) => context.onOpenChange(false, event, 'focus-out'),
+		[context],
+	)
 
 	const { getReferenceProps, getFloatingProps } = useInteractions([dismiss, role])
 
@@ -139,6 +149,7 @@ export function useMenuState({
 		() => ({
 			open,
 			menuId,
+			isDropdown,
 			floatingStyles,
 			getReferenceProps,
 			getFloatingProps,
@@ -148,6 +159,7 @@ export function useMenuState({
 		[
 			open,
 			menuId,
+			isDropdown,
 			floatingStyles,
 			getReferenceProps,
 			getFloatingProps,
@@ -160,13 +172,23 @@ export function useMenuState({
 		() => ({
 			setOpen,
 			close,
+			dismissToTab,
 			static: isStatic,
 			triggerRef,
 			setReference: refs.setReference,
 			setFloating: refs.setFloating,
 			openAt,
 		}),
-		[setOpen, close, isStatic, triggerRef, refs.setReference, refs.setFloating, openAt],
+		[
+			setOpen,
+			close,
+			dismissToTab,
+			isStatic,
+			triggerRef,
+			refs.setReference,
+			refs.setFloating,
+			openAt,
+		],
 	)
 
 	return { state, actions, handleContextMenu, isDropdown }

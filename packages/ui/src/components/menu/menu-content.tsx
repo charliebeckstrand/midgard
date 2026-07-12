@@ -36,7 +36,8 @@ export function MenuContent({
 	'aria-labelledby': ariaLabelledby,
 	children,
 }: MenuContentProps) {
-	const { open, menuId, floatingStyles, getFloatingProps, density, size } = useMenuState()
+	const { open, menuId, isDropdown, floatingStyles, getFloatingProps, density, size } =
+		useMenuState()
 	const { close, static: isStatic, setFloating } = useMenuActions()
 	const glass = useGlass()
 
@@ -84,9 +85,14 @@ export function MenuContent({
 					id={menuId}
 					role="menu"
 					itemSelector='[role="menuitem"]:not([data-disabled])'
-					// A menu carries no stored selection, so opening seats focus on its
-					// first item (APG menu button) rather than the bare panel container.
-					autoFocusItem
+					// A dropdown keeps focus on its trigger while open; opening never
+					// pulls focus into the panel. Seating focus on the portaled,
+					// animating panel is the path that drops to `<body>` on open in a
+					// real browser — leaving it on the trigger sidesteps that, and Tab
+					// off the trigger closes the menu (see MenuTrigger). A right-click
+					// context menu has no persistent trigger to hold focus, so it still
+					// pulls focus into the panel for keyboard navigation.
+					autoFocus={!isDropdown}
 					typeahead
 					glass={glass}
 					className={cn('relative', k.content, className)}

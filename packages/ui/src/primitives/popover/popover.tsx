@@ -30,7 +30,6 @@ export function PopoverPanel({
 	role = 'listbox',
 	itemSelector = '[role="option"]:not([data-disabled])',
 	autoFocus = true,
-	autoFocusItem = false,
 	typeahead = false,
 	glass = false,
 	multiselectable,
@@ -62,18 +61,6 @@ export function PopoverPanel({
 	 */
 	autoFocus?: boolean
 	/**
-	 * When no option is selected, seat focus on the first navigable item rather
-	 * than the panel container. The dropdown-menu pattern (APG menu button): a
-	 * menu has no stored selection, so opening lands on its first item. Leaving
-	 * focus on the bare `tabIndex={-1}` container is the fragile path — a real
-	 * browser can drop it to `<body>` mid-open (portaled, animating) — where a
-	 * genuine `role="menuitem"` control holds it. Ignored while an option is
-	 * selected (that option still wins) and when {@link autoFocus} is off.
-	 *
-	 * @defaultValue false
-	 */
-	autoFocusItem?: boolean
-	/**
 	 * Enable WAI-ARIA type-ahead: jump to the item whose label matches typed keys.
 	 *
 	 * @defaultValue false
@@ -103,20 +90,14 @@ export function PopoverPanel({
 
 		const selected = panelRef.current.querySelector<HTMLElement>(`${itemSelector}[data-selected]`)
 
-		// Prefer the selected option; else the first item when the caller opts in
-		// (menus, which carry no selection); else the panel container.
-		const first = autoFocusItem ? panelRef.current.querySelector<HTMLElement>(itemSelector) : null
+		if (selected) {
+			selected.focus()
 
-		const target = selected ?? first
-
-		if (target) {
-			target.focus()
-
-			scrollWithin(target, { block: 'nearest' })
+			scrollWithin(selected, { block: 'nearest' })
 		} else {
 			panelRef.current.focus()
 		}
-	}, [autoFocus, autoFocusItem, itemSelector, scrollWithin])
+	}, [autoFocus, itemSelector, scrollWithin])
 
 	return (
 		<ReducedMotion>

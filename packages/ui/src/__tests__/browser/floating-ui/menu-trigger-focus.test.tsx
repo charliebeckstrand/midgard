@@ -2,67 +2,77 @@ import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Button } from '../../../components/button'
 import { Menu, MenuContent, MenuItem, MenuTrigger } from '../../../components/menu'
-import { Toolbar } from '../../../components/toolbar'
 import { renderUI, screen, waitFor } from '../../helpers'
 
 /**
- * Opening a dropdown menu from a focused trigger must carry keyboard focus into
- * the panel and seat it on the first menu item — a real `role="menuitem"`
- * control — not leave it on the bare `tabIndex={-1}` container, which a browser
- * can drop to `<body>` mid-open (WCAG 2.4.3). Real Tab/focus movement needs the
- * live floating engine, so this runs in the browser suite.
+ * Opening a dropdown menu keeps keyboard focus on the trigger — it is never
+ * pulled into the portaled, animating panel, which a real browser can drop to
+ * `<body>` on open (WCAG 2.4.3). Tab off the trigger then closes the menu and
+ * carries focus to the next tabbable in one keystroke. Real focus movement needs
+ * the live floating engine, so this runs in the browser suite.
  */
 describe('MenuTrigger focus on open (real floating engine)', () => {
-	const menu = (
-		<Menu placement="bottom-start">
-			<MenuTrigger>
-				<Button>Open</Button>
-			</MenuTrigger>
-			<MenuContent>
-				<MenuItem>Edit</MenuItem>
-				<MenuItem>Duplicate</MenuItem>
-			</MenuContent>
-		</Menu>
-	)
+	function tree() {
+		return (
+			<>
+				<Menu placement="bottom-start">
+					<MenuTrigger>
+						<Button>Open</Button>
+					</MenuTrigger>
+					<MenuContent>
+						<MenuItem>Edit</MenuItem>
+						<MenuItem>Duplicate</MenuItem>
+					</MenuContent>
+				</Menu>
+				<button type="button">after</button>
+			</>
+		)
+	}
 
-	async function expectFirstItemFocused() {
+	it('keeps focus on the trigger on open (click), never dropping to body', async () => {
+		renderUI(tree())
+		const trigger = screen.getByRole('button', { name: 'Open' })
+		trigger.focus()
+
+		await userEvent.click(trigger)
 		await screen.findByRole('menu')
 
 		await waitFor(() => {
 			expect(document.activeElement).not.toBe(document.body)
-			expect(document.activeElement).toBe(screen.getByRole('menuitem', { name: 'Edit' }))
+			expect(trigger).toHaveFocus()
 		})
-	}
-
-	it('click seats focus on the first menu item, not the body', async () => {
-		renderUI(menu)
-		const trigger = screen.getByRole('button', { name: 'Open' })
-		trigger.focus()
-
-		await userEvent.click(trigger)
-		await expectFirstItemFocused()
 	})
 
-	it('Enter seats focus on the first menu item, not the body', async () => {
-		renderUI(menu)
+	it('keeps focus on the trigger on open (Enter), never dropping to body', async () => {
+		renderUI(tree())
 		const trigger = screen.getByRole('button', { name: 'Open' })
 		trigger.focus()
 
 		await userEvent.keyboard('{Enter}')
-		await expectFirstItemFocused()
+		await screen.findByRole('menu')
+
+		await waitFor(() => {
+			expect(document.activeElement).not.toBe(document.body)
+			expect(trigger).toHaveFocus()
+		})
 	})
 
-	it('a trigger inside a roving Toolbar still lands focus on the first item', async () => {
-		renderUI(
-			<Toolbar aria-label="Tools">
-				{menu}
-				<Button>Other</Button>
-			</Toolbar>,
-		)
+	it('closes the menu and moves focus onward when Tab is pressed', async () => {
+		renderUI(tree())
 		const trigger = screen.getByRole('button', { name: 'Open' })
 		trigger.focus()
 
 		await userEvent.click(trigger)
-		await expectFirstItemFocused()
+		await screen.findByRole('menu')
+		expect(trigger).toHaveFocus()
+
+		await userEvent.keyboard('{Tab}')
+
+		await waitFor(() => {
+			expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+			// Focus proceeds to the next tabbable after the trigger, not back onto it
+			// and not to the body.
+			expect(screen.getByRole('button', { name: 'after' })).toHaveFocus()
+		})
 	})
 })
