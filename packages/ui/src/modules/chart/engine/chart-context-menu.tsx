@@ -218,7 +218,7 @@ export function ChartContextMenu({
 				</div>
 
 				<DialogFooter>
-					<Button ref={closeRef} onClick={() => setOpen(false)}>
+					<Button type="button" ref={closeRef} onClick={() => setOpen(false)}>
 						Close
 					</Button>
 				</DialogFooter>

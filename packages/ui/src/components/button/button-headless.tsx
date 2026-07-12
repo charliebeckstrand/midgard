@@ -15,7 +15,7 @@ type ButtonHeadlessProps = {
 	className?: string
 	loading?: boolean
 	children?: ReactNode
-} & Omit<ComponentPropsWithoutRef<'button'>, 'href' | 'ref' | 'className' | 'children' | 'type'>
+} & Omit<ComponentPropsWithoutRef<'button'>, 'href' | 'ref' | 'className' | 'children'>
 
 /**
  * Unstyled `Button` fallback rendered under the headless provider: a bare
@@ -32,6 +32,7 @@ export function ButtonHeadless({
 	className,
 	loading = false,
 	children,
+	type = 'submit',
 	...props
 }: ButtonHeadlessProps) {
 	if (href !== undefined) {
@@ -55,7 +56,7 @@ export function ButtonHeadless({
 		<button
 			ref={ref as Ref<HTMLButtonElement>}
 			data-slot={slot}
-			type="button"
+			type={type}
 			className={className}
 			{...bareButtonProps}
 			disabled={loading || bareButtonProps.disabled}

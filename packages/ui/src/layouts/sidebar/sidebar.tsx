@@ -154,6 +154,7 @@ export function SidebarLayout({
 			{/* Navbar on mobile */}
 			<Flex align="center" className={cn('lg:p-0 lg:hidden', navbarPaddingForSize(size))}>
 				<Button
+					type="button"
 					variant="bare"
 					aria-label="Open navigation"
 					prefix={menuIcon ?? <Icon icon={<Menu />} />}

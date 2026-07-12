@@ -149,6 +149,7 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 				<Menu placement="bottom-end">
 					<MenuTrigger>
 						<Button
+							type="button"
 							variant="bare"
 							color="blue"
 							// Name carries the applied state so it isn't conveyed by colour
@@ -176,6 +177,7 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 				</Menu>
 			) : (
 				<Button
+					type="button"
 					variant="bare"
 					aria-label={`Filter ${label}`}
 					aria-haspopup="dialog"
@@ -203,11 +205,11 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 				</SheetBody>
 
 				<SheetFooter>
-					<Button variant="outline" onClick={() => handleOpenChange(false)}>
+					<Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
 						Cancel
 					</Button>
 
-					<Button color="blue" onClick={apply}>
+					<Button type="button" color="blue" onClick={apply}>
 						Apply
 					</Button>
 				</SheetFooter>

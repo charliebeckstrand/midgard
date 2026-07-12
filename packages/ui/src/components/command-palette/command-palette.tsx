@@ -136,7 +136,7 @@ export function CommandPalette({
 							onChange={(event) => setQuery(event.target.value)}
 							onKeyDown={onKeyDown}
 						/>
-						<Button variant="plain" aria-label="Close" onClick={close}>
+						<Button type="button" variant="plain" aria-label="Close" onClick={close}>
 							<Icon icon={<X />} />
 						</Button>
 					</Flex>

@@ -93,6 +93,7 @@ function QueryBuilderGroupImpl({ group, root, className }: QueryBuilderGroupProp
 				<Menu placement="bottom-start">
 					<MenuTrigger>
 						<Button
+							type="button"
 							ref={addRuleRef}
 							variant="bare"
 							suffix={<Icon icon={<ChevronDown />} />}

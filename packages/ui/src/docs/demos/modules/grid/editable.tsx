@@ -20,7 +20,6 @@ import { Icon } from '../../../../components/icon'
 import { Listbox, ListboxLabel, ListboxOption } from '../../../../components/listbox'
 import { NumberInput } from '../../../../components/number-input'
 import { Stack } from '../../../../components/stack'
-import { SubmitButton } from '../../../../components/submit-button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../../components/tooltip'
 import {
 	type CellChange,
@@ -484,10 +483,12 @@ export function BulkEditExample() {
 							</Stack>
 						</DialogBody>
 						<DialogFooter>
-							<Button variant="plain" onClick={() => setEditOpen(false)}>
+							<Button type="button" variant="plain" onClick={() => setEditOpen(false)}>
 								Cancel
 							</Button>
-							<SubmitButton color="blue">Apply</SubmitButton>
+							<Button type="submit" color="blue">
+								Apply
+							</Button>
 						</DialogFooter>
 					</DialogContent>
 				</Form>

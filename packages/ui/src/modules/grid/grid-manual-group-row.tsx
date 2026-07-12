@@ -66,6 +66,7 @@ export function GridManualGroupRow<T>({
 		<TableRow data-group-row data-expanded={dataAttr(expanded)}>
 			<TableCell colSpan={span} className={cn(k.rowGroup.rail.padded)}>
 				<Button
+					type="button"
 					variant="bare"
 					onClick={() => toggle(info.key)}
 					aria-expanded={expanded}

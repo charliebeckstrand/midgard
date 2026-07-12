@@ -327,6 +327,7 @@ function dateInputSuffix({
 
 	const clear = (
 		<Button
+			type="button"
 			variant="bare"
 			className="pointer-events-auto"
 			aria-label="Clear date"

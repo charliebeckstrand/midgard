@@ -121,10 +121,21 @@ export function Confirm({
 			{children !== undefined &&
 				(description === undefined ? <ConfirmBody>{children}</ConfirmBody> : children)}
 			<DialogFooter>
-				<Button variant="plain" color={cancel?.color} disabled={cancel?.disabled} onClick={close}>
+				<Button
+					type="button"
+					variant="plain"
+					color={cancel?.color}
+					disabled={cancel?.disabled}
+					onClick={close}
+				>
 					{cancel?.label ?? 'Cancel'}
 				</Button>
-				<Button color={confirm?.color} disabled={confirm?.disabled} onClick={onConfirm}>
+				<Button
+					type="button"
+					color={confirm?.color}
+					disabled={confirm?.disabled}
+					onClick={onConfirm}
+				>
 					{confirm?.label ?? 'Confirm'}
 				</Button>
 			</DialogFooter>

@@ -77,6 +77,11 @@ export type ButtonProps = ButtonBaseProps &
  * `<LoadingSpinner>` while `loading`, collapses to a square hit area when icon-only,
  * and degrades to headless output under that provider. Compose `<ButtonSkeleton>`
  * in loading trees.
+ *
+ * @remarks
+ * Mirrors native `<button>` submission semantics: `type` defaults to `'submit'`,
+ * so a Button left untyped inside a `<Form>`/`<form>` submits it. Pass
+ * `type="button"` for non-submitting actions and `type="reset"` to reset.
  */
 export function Button({
 	variant,
@@ -91,6 +96,7 @@ export function Button({
 	loading: loadingProp = false,
 	prefix,
 	suffix,
+	type,
 	'data-slot': slot = 'button',
 	...props
 }: ButtonProps) {
@@ -110,6 +116,7 @@ export function Button({
 				data-slot={slot}
 				className={className}
 				loading={loading}
+				type={type as ComponentPropsWithoutRef<'button'>['type']}
 				{...(props as ComponentPropsWithoutRef<'button'>)}
 			>
 				{children}
@@ -173,7 +180,7 @@ export function Button({
 				{...(spring && buttonSpring)}
 				ref={ref as Ref<HTMLButtonElement>}
 				{...sharedProps}
-				type="button"
+				type={type ?? 'submit'}
 				className={classes}
 				{...buttonProps}
 				disabled={loading || buttonProps.disabled}

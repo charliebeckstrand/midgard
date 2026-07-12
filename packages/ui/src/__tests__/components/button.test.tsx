@@ -19,12 +19,32 @@ describe('Button', () => {
 		expect(button?.tagName).toBe('BUTTON')
 	})
 
-	it('defaults to type="button"', () => {
+	it('defaults to type="submit", matching native <button> semantics', () => {
 		const { container } = renderUI(<Button>Submit</Button>)
 
 		const button = bySlot(container, 'button')
 
-		expect(button).toHaveAttribute('type', 'button')
+		expect(button).toHaveAttribute('type', 'submit')
+	})
+
+	it('forwards an explicit type, overriding the submit default', () => {
+		const { container } = renderUI(<Button type="button">Action</Button>)
+
+		expect(bySlot(container, 'button')).toHaveAttribute('type', 'button')
+	})
+
+	it('submits an enclosing form when left untyped', () => {
+		const onSubmit = vi.fn((event) => event.preventDefault())
+
+		const { container } = renderUI(
+			<form onSubmit={onSubmit}>
+				<Button>Save</Button>
+			</form>,
+		)
+
+		fireEvent.click(bySlot(container, 'button') as HTMLElement)
+
+		expect(onSubmit).toHaveBeenCalledOnce()
 	})
 
 	it('forwards click handler', async () => {

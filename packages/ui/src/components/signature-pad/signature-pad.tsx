@@ -159,6 +159,7 @@ export function SignaturePad({
 			{clearable && !disabled && !readOnly && !empty && (
 				<div data-slot="signature-pad-actions" className={cn(k.actions)}>
 					<Button
+						type="button"
 						size="sm"
 						color="amber"
 						data-slot="signature-pad-clear"

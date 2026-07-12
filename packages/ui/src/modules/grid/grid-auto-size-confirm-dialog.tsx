@@ -36,10 +36,11 @@ export function GridAutoSizeConfirmDialog({
 				</Text>
 			</DialogBody>
 			<DialogFooter>
-				<Button variant="outline" onClick={() => onOpenChange(false)}>
+				<Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
 					Keep my widths
 				</Button>
 				<Button
+					type="button"
 					color="blue"
 					onClick={() => {
 						onOpenChange(false)

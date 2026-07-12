@@ -30,6 +30,7 @@ export function DatePickerCalendarButton({
 		<Tooltip>
 			<TooltipTrigger>
 				<Button
+					type="button"
 					variant="bare"
 					aria-label={label}
 					aria-haspopup="dialog"

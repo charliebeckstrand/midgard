@@ -146,6 +146,7 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 
 			{removable && (
 				<Button
+					type="button"
 					ref={removeRef}
 					variant="bare"
 					color="red"
