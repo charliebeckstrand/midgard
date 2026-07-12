@@ -12,6 +12,9 @@
 			"entry": ["next.config.{js,ts,mjs}"],
 			"ignoreDependencies": ["@tailwindcss/postcss"]
 		},
+		"apps/docs": {
+			"entry": ["index.html"]
+		},
 		"packages/*": {
 			"entry": ["src/**/index.ts"]
 		},

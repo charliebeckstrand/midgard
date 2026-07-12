@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en" class="h-full antialiased">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+		<title>ui docs</title>
+	</head>
+	<body class="h-full bg-zinc-100 dark:bg-zinc-900 text-zinc-950 dark:text-white">
+		<div id="root" class="h-full"></div>
+		<script>
+			// Pre-hydration theme paint. Must resolve the stored preference the
+			// same way `useTheme` does, including `'system'` — which the hook
+			// persists as the untouched default — or a dark-OS visitor flashes
+			// light on every load until React's post-paint effect corrects it.
+			// Storage access can throw (blocked cookies, embedded contexts); fall
+			// back to the OS preference rather than letting the script abort.
+			let t = null
+
+			try {
+				t = localStorage.getItem('theme')
+			} catch {}
+
+			const systemDark = matchMedia('(prefers-color-scheme: dark)').matches
+
+			if (t === 'dark' || ((t === 'system' || !t) && systemDark)) {
+				document.documentElement.classList.add('dark')
+			}
+		</script>
+		<script type="module" src="/src/main.tsx"></script>
+	</body>
+</html>
