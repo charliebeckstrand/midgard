@@ -46,7 +46,7 @@ describe('MaskInput', () => {
 
 		const input = bySlot(container, 'mask-input') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.type(input, '123456')
 
@@ -86,7 +86,7 @@ describe('MaskInput', () => {
 
 		input.setSelectionRange(2, 2)
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.keyboard('9')
 
@@ -114,7 +114,7 @@ describe('MaskInput', () => {
 
 		input.setSelectionRange(1, 1)
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.keyboard('z')
 
@@ -141,7 +141,7 @@ describe('MaskInput', () => {
 			</Form>,
 		)
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		const input = bySlot(container, 'mask-input') as HTMLInputElement
 

@@ -301,7 +301,7 @@ describe('Tab', () => {
 
 		const tabs = container.querySelectorAll<HTMLElement>('[data-slot="tab"]')
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.click(tabs[1] as HTMLElement)
 
@@ -698,7 +698,7 @@ describe('Tabs keyboard navigation', () => {
 	}
 
 	it('moves focus with arrows, skipping the disabled tab', async () => {
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		renderTabs()
 
@@ -714,7 +714,7 @@ describe('Tabs keyboard navigation', () => {
 	})
 
 	it('jumps to the first and last tab with Home / End', async () => {
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		renderTabs()
 

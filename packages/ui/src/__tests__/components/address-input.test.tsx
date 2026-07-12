@@ -85,7 +85,7 @@ describe('AddressInput', () => {
 
 		const input = bySlot(container, 'combobox-input') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.type(input, 'ab')
 

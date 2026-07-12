@@ -50,7 +50,7 @@ describe('CreditCardInput', () => {
 
 		const input = bySlot(container, 'credit-card-input') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.type(input, '4242424242424242')
 
@@ -68,7 +68,7 @@ describe('CreditCardInput', () => {
 
 		const input = bySlot(container, 'credit-card-input') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.type(input, typed)
 
@@ -82,7 +82,7 @@ describe('CreditCardInput', () => {
 
 		const input = bySlot(container, 'credit-card-input') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		// Two-digit prefix unambiguously narrows to Visa within the supported
 		// brand list; a single '4' is insufficient (multiple brands share that prefix).
@@ -151,7 +151,7 @@ describe('CreditCardInputExpiry', () => {
 
 		const input = bySlot(container, 'input') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.type(input, typed)
 
@@ -163,7 +163,7 @@ describe('CreditCardInputExpiry', () => {
 
 		const input = bySlot(container, 'input') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.type(input, '12')
 
@@ -181,7 +181,7 @@ describe('CreditCardInputExpiry', () => {
 
 		const input = bySlot(container, 'input') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		const yy = String((new Date().getFullYear() + 2) % 100).padStart(2, '0')
 
@@ -202,7 +202,7 @@ describe('CreditCardInputExpiry', () => {
 
 		const input = bySlot(container, 'input') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.type(input, '1330')
 
@@ -214,7 +214,7 @@ describe('CreditCardInputExpiry', () => {
 
 		const input = bySlot(container, 'input') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.type(input, '1330')
 
@@ -228,7 +228,7 @@ describe('CreditCardInputExpiry', () => {
 
 		const input = bySlot(container, 'input') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.type(input, '12')
 
@@ -242,7 +242,7 @@ describe('CreditCardInputExpiry', () => {
 
 		const input = bySlot(container, 'input') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.type(input, '12')
 
@@ -260,7 +260,7 @@ describe('CreditCardInputExpiry', () => {
 
 		const input = bySlot(container, 'input') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.click(input)
 
@@ -274,7 +274,7 @@ describe('CreditCardInputExpiry', () => {
 
 		const input = bySlot(container, 'input') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		expect(bySlot(container, 'message')).not.toBeInTheDocument()
 
@@ -299,7 +299,7 @@ describe('CreditCardInputExpiry', () => {
 
 		const input = bySlot(container, 'input') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.type(input, '12')
 
@@ -317,7 +317,7 @@ describe('CreditCardInputExpiry', () => {
 
 		const input = bySlot(container, 'input') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.type(input, '1330')
 
@@ -339,7 +339,7 @@ describe('CreditCardInputExpiry', () => {
 
 		const input = bySlot(container, 'input') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.type(input, '1330')
 
@@ -373,7 +373,7 @@ describe('CreditCardInputCvv', () => {
 
 		const input = bySlot(container, 'input') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.type(input, typed)
 
@@ -394,7 +394,7 @@ describe('Credit card trio + Form', () => {
 			</Form>,
 		)
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.type(bySlot(container, 'credit-card-input') as HTMLInputElement, '4242424242424242')
 
@@ -432,7 +432,7 @@ describe('Credit card trio + Form', () => {
 			</Form>,
 		)
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.click(bySlot(container, 'credit-card-input') as HTMLInputElement)
 

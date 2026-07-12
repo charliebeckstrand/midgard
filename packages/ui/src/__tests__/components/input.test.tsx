@@ -82,7 +82,7 @@ describe('Input', () => {
 
 		const input = bySlot(container, 'input') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.type(input, 'a')
 

@@ -293,7 +293,7 @@ describe('Stepper keyboard navigation', () => {
 	}
 
 	it('moves focus across steps with arrows, skipping the disabled step', async () => {
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		const steps = renderStepper()
 

@@ -29,7 +29,7 @@ describe('Textarea', () => {
 
 		const el = bySlot(container, 'textarea') as HTMLTextAreaElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.type(el, 'a')
 
@@ -73,7 +73,7 @@ describe('Textarea', () => {
 
 		expect(el.value).toBe('')
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.type(el, 'abc')
 
@@ -101,7 +101,7 @@ describe('Textarea', () => {
 
 		expect(el.value).toBe('hi')
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.type(el, ' there')
 
