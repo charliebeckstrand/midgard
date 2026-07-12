@@ -3,9 +3,11 @@
 import { Check } from 'lucide-react'
 import {
 	type ComponentPropsWithoutRef,
+	memo,
 	type Context as ReactContext,
 	type ReactNode,
 	use,
+	useCallback,
 	useId,
 } from 'react'
 import { ariaAttr, cn, dataAttr } from '../../core'
@@ -73,9 +75,12 @@ export type BaseOptionProps = {
  * For active-descendant lists it mints a stable `id` and `preventDefault`s
  * mousedown to keep DOM focus on the owning input; an explicit `id` always
  * wins. With `commitOnTab`, an unselected option commits on Tab before the
- * keystroke leaves the widget. Reads ambient Density via `useDensity`.
+ * keystroke leaves the widget. Reads ambient Density via `useDensity`. Memoized:
+ * with a stable `onSelect`, an option skips re-rendering when its own `selected`
+ * state is unchanged, so committing a selection re-renders only the rows that
+ * actually changed rather than every option in the list.
  */
-export function BaseOption({
+function BaseOptionImpl({
 	children,
 	className,
 	icon,
@@ -137,6 +142,12 @@ export function BaseOption({
 	)
 }
 
+/**
+ * Shared, memoized option row for select-like components. See
+ * {@link BaseOptionImpl} for behavior.
+ */
+export const BaseOption = memo(BaseOptionImpl)
+
 /** Primary label for a select-like option. */
 export function OptionLabel({ className, ...props }: ComponentPropsWithoutRef<'span'>) {
 	return <span {...props} className={cn(k.label, className)} />
@@ -181,6 +192,34 @@ export type OptionSelectionContext<TValue = unknown> = {
 	onSelect: (value: TValue) => void
 }
 
+// Membership sets keyed by the selected-values array. Every option in one render
+// reads the same array reference off the host context, so the first option to
+// look up builds the set (O(k)) and the rest reuse it (O(1)) — a multi-select
+// toggle costs O(n + k), not the O(n·k) of an `includes` scan per option. The
+// host swaps in a new array on change, so a WeakMap keys cleanly and old sets
+// are collected with their arrays.
+const membershipCache = new WeakMap<readonly unknown[], Set<unknown>>()
+
+function isOptionSelected(
+	selectedValue: unknown,
+	value: unknown,
+	multiple: boolean | undefined,
+): boolean {
+	if (multiple && Array.isArray(selectedValue)) {
+		let set = membershipCache.get(selectedValue)
+
+		if (set === undefined) {
+			set = new Set(selectedValue)
+
+			membershipCache.set(selectedValue, set)
+		}
+
+		return set.has(value)
+	}
+
+	return selectedValue === value
+}
+
 /**
  * Factory for select-like option components. Consumers supply the data-slot
  * prefix and the host's selection {@link OptionSelectionContext}; the generated
@@ -208,17 +247,18 @@ export function createSelectOption<
 	function Option({ value, disabled, icon, className, children }: OptionProps<TValue>) {
 		const { value: selectedValue, multiple, onSelect } = use(config.context)
 
-		const selected =
-			multiple && Array.isArray(selectedValue)
-				? selectedValue.includes(value)
-				: selectedValue === value
+		const selected = isOptionSelected(selectedValue, value, multiple)
+
+		// Stable per option (the host's `onSelect` is stable and `value` is fixed),
+		// so the memoized `BaseOption` can bail when `selected` is unchanged.
+		const handleSelect = useCallback(() => onSelect(value), [onSelect, value])
 
 		return (
 			<BaseOption
 				selected={selected}
 				disabled={disabled}
 				icon={icon}
-				onSelect={() => onSelect(value)}
+				onSelect={handleSelect}
 				data-slot={`${config.slotPrefix}-option`}
 				className={className}
 				activeDescendant={config.activeDescendant}
