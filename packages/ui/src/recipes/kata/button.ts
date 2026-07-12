@@ -98,7 +98,7 @@ export const k = defineRecipe(
 		skeleton: button,
 	},
 	{
-		motion: spring,
+		motion: spring.slide,
 	},
 )
 

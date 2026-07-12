@@ -7,7 +7,7 @@ const { size } = ji
 const { rounded } = kasane
 const { flex } = narabi
 const { border, divider } = sen
-const { css } = ugoki
+const { collapse, css } = ugoki
 
 const item = defineRecipe({
 	base: [
@@ -62,7 +62,7 @@ export const k = defineRecipe(
 		},
 		defaults: { variant: 'separated' },
 	},
-	{ item },
+	{ item, motion: collapse.fade },
 )
 
 /** Recipe variant props for {@link Accordion} — the styling axes its kata exposes (`variant`), for consumers composing custom slots. */

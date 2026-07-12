@@ -4,14 +4,9 @@ import { type PointerEvent, useEffect, useId } from 'react'
 import { cn } from '../../core'
 import { k, type MapSeriesColor } from '../../recipes/kata/map'
 import { mapMarkDimmed, useMapHoverSet, useMapPlat, useMapPointedMark } from './context'
-import {
-	POINT_HIT_RADIUS,
-	POINT_POP,
-	POINT_RADIUS,
-	POINT_STAGGER,
-	POINT_STAGGER_MAX,
-} from './map-constants'
+import { POINT_HIT_RADIUS, POINT_RADIUS } from './map-constants'
 import { MapDot } from './map-dot'
+import { POINT_POP, POINT_STAGGER, POINT_STAGGER_MAX } from './map-motion'
 import type { LngLat } from './types'
 
 /** Props for {@link MapPoint}. */

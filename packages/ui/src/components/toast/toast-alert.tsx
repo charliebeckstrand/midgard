@@ -12,6 +12,18 @@ function getToastMotion(position: ToastPosition) {
 	return position.startsWith('top') ? k.motion.top : k.motion.bottom
 }
 
+/** Fade-out for a user dismissal; the height collapse is left to the neighbours' layout spring. @internal */
+const manualDismiss = { opacity: 0, transition: k.motion.dismiss }
+
+/** Collapse for an auto-dismissal from a top viewport edge: height and the gap padding below close together. @internal */
+const autoDismissTop = { height: 0, paddingBottom: 0, transition: k.motion.dismiss }
+
+/** Collapse for an auto-dismissal from a bottom viewport edge. @internal */
+const autoDismissBottom = { height: 0, paddingTop: 0, transition: k.motion.dismiss }
+
+/** The stack re-pack: neighbours FLIP into the dismissed toast's slot on the kata's layout spring. @internal */
+const layoutTransition = { layout: k.spring }
+
 /**
  * Maps each toast severity to an {@link Alert} variant/color pair. Typed from
  * the Alert recipe unions so a palette change there propagates here.
@@ -72,13 +84,7 @@ export function ToastAlert({
 
 	const positionTop = position.startsWith('top')
 
-	const autoDismiss = {
-		height: 0,
-		...(positionTop ? { paddingBottom: 0 } : { paddingTop: 0 }),
-		transition: { duration: 0.15 },
-	}
-
-	const manualDismiss = { opacity: 0, transition: { duration: 0.15 } }
+	const autoDismiss = positionTop ? autoDismissTop : autoDismissBottom
 
 	// Screen readers do not reliably announce role="status" content mounted in
 	// the same commit as the live region; mirror polite toasts through the
@@ -103,7 +109,7 @@ export function ToastAlert({
 				zIndex,
 			}}
 			exit={t.dismissed ? manualDismiss : autoDismiss}
-			transition={{ layout: { type: 'spring', stiffness: 500, damping: 25 } }}
+			transition={layoutTransition}
 		>
 			<motion.div
 				initial={{ ...motionConfig.initial, opacity: 0 }}
