@@ -6,10 +6,10 @@ import {
 	startTransition,
 	useCallback,
 	useEffect,
-	useLayoutEffect,
 	useMemo,
 	useState,
 } from 'react'
+import { useIsomorphicLayoutEffect } from './use-isomorphic-layout-effect'
 
 /**
  * Frame sizing and measurement for the plot-bearing modules (chart, map): a
@@ -314,7 +314,7 @@ export function usePlotFrame(
 	// re-trigger, not read: each run measures the DOM afresh, so re-running on
 	// the last committed size walks the chain to its fixed point.
 	// biome-ignore lint/correctness/useExhaustiveDependencies: `size` re-triggers the re-measure; the effect reads the live DOM, not the value.
-	useLayoutEffect(() => {
+	useIsomorphicLayoutEffect(() => {
 		if (!node || !(measureWidth || measureHeight)) return
 
 		measure(node)

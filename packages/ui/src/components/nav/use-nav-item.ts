@@ -1,14 +1,8 @@
 'use client'
 
-import {
-	type MouseEvent,
-	type ReactElement,
-	type ReactNode,
-	use,
-	useLayoutEffect,
-	useRef,
-} from 'react'
+import { type MouseEvent, type ReactElement, type ReactNode, use, useRef } from 'react'
 import { useScrollWithin } from '../../hooks'
+import { useIsomorphicLayoutEffect } from '../../hooks/use-isomorphic-layout-effect'
 import { useActiveIndicator } from '../../primitives/active-indicator'
 import { useCurrent } from '../../primitives/current'
 import { useDensity } from '../../primitives/density'
@@ -87,7 +81,7 @@ export function useNavItem({ current, value, size, preventClose, onClick }: NavI
 	// those replays but resets on a true remount, keeping deep-link scroll.
 	const scrolledRef = useRef(false)
 
-	useLayoutEffect(() => {
+	useIsomorphicLayoutEffect(() => {
 		if (!isCurrent) {
 			scrolledRef.current = false
 

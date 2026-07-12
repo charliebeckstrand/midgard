@@ -2,8 +2,9 @@
 
 import { type AnimationPlaybackControls, animate } from 'motion'
 import { useReducedMotion } from 'motion/react'
-import { type RefObject, useLayoutEffect } from 'react'
+import type { RefObject } from 'react'
 import { createContext } from '../../core'
+import { useIsomorphicLayoutEffect } from '../../hooks/use-isomorphic-layout-effect'
 import { columnShiftVar } from './engine/grid-reorder-compute'
 
 /**
@@ -49,7 +50,7 @@ export function useColumnReorderShift(
 ): void {
 	const reduceMotion = useReducedMotion()
 
-	useLayoutEffect(() => {
+	useIsomorphicLayoutEffect(() => {
 		const table = tableRef.current
 
 		if (!table) return

@@ -6,12 +6,12 @@ import {
 	type ReactNode,
 	type RefObject,
 	useCallback,
-	useLayoutEffect,
 	useMemo,
 	useRef,
 	useSyncExternalStore,
 } from 'react'
 import { cn } from '../../core'
+import { useIsomorphicLayoutEffect } from '../../hooks/use-isomorphic-layout-effect'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
 import { fromInteractiveContent } from './engine/grid-row/cell'
@@ -92,7 +92,7 @@ export function GridNavCell({
 		() => false,
 	)
 
-	useLayoutEffect(() => {
+	useIsomorphicLayoutEffect(() => {
 		const cell = ref.current?.closest<HTMLElement>('[role="gridcell"]')
 
 		if (!cell) return

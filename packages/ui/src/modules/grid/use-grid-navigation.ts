@@ -5,12 +5,12 @@ import {
 	type KeyboardEvent,
 	type RefObject,
 	useCallback,
-	useLayoutEffect,
 	useRef,
 	useState,
 } from 'react'
 import { createContext } from '../../core'
 import { useIdScope } from '../../hooks'
+import { useIsomorphicLayoutEffect } from '../../hooks/use-isomorphic-layout-effect'
 import { clamp } from '../../utilities'
 import { NAV_PAGE_STEP } from './engine/grid-constants'
 
@@ -228,7 +228,7 @@ export function useGridNavigation({
 
 	const internal = internalRef.current
 
-	useLayoutEffect(() => {
+	useIsomorphicLayoutEffect(() => {
 		internal.active = active
 
 		for (const listener of internal.listeners) listener()

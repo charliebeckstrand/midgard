@@ -1,7 +1,8 @@
 'use client'
 
-import { type Ref, useLayoutEffect, useRef } from 'react'
+import { type Ref, useRef } from 'react'
 import { useComposedRef } from './use-composed-ref'
+import { useIsomorphicLayoutEffect } from './use-isomorphic-layout-effect'
 
 /**
  * Caret-preserving plumbing for formatted text inputs. Spread the returned
@@ -37,7 +38,7 @@ export function usePendingCaret(externalRef?: Ref<HTMLInputElement>) {
 	}
 
 	// Consumes the pending caret on the commit that re-rendered the input.
-	useLayoutEffect(flush)
+	useIsomorphicLayoutEffect(flush)
 
 	const setCaret = (position: number | null) => {
 		pendingCaretRef.current = position

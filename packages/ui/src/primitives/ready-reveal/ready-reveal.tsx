@@ -1,8 +1,9 @@
 'use client'
 
 import { motion } from 'motion/react'
-import { Activity, type ReactNode, useLayoutEffect, useRef, useState } from 'react'
+import { Activity, type ReactNode, useRef, useState } from 'react'
 import { cn } from '../../core'
+import { useIsomorphicLayoutEffect } from '../../hooks/use-isomorphic-layout-effect'
 import { k } from '../../recipes/kata/ready-reveal'
 import { ReducedMotion } from '../reduced-motion'
 
@@ -85,7 +86,7 @@ export function ReadyReveal({ ready, placeholder, children, className }: ReadyRe
 	// focus has since moved elsewhere on the page.
 	const lastFocused = useRef<HTMLElement | null>(null)
 
-	useLayoutEffect(() => {
+	useIsomorphicLayoutEffect(() => {
 		const deactivating = ready ? placeholderRef.current : contentRef.current
 
 		const activating = ready ? contentRef.current : placeholderRef.current
