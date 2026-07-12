@@ -1,7 +1,12 @@
 import { renderHook } from '@testing-library/react'
 import { useRef } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { queryItems, setVirtualActive, useA11yRoving } from '../../hooks/a11y/use-a11y-roving'
+import {
+	clearVirtualActive,
+	queryItems,
+	setVirtualActive,
+	useA11yRoving,
+} from '../../hooks/a11y/use-a11y-roving'
 import { makeKeyEvent } from '../helpers'
 
 // Containers are appended to document.body for real focus/roving; RTL cleanup()
@@ -93,6 +98,42 @@ describe('setVirtualActive', () => {
 		expect(items[0]?.hasAttribute('data-active')).toBe(true)
 
 		expect(items[0]?.hasAttribute('aria-selected')).toBe(false)
+	})
+})
+
+describe('clearVirtualActive', () => {
+	it('drops the owner aria-activedescendant (rows already unmounted)', () => {
+		const owner = document.createElement('input')
+
+		owner.setAttribute('aria-activedescendant', 'opt-1')
+
+		clearVirtualActive({ current: owner })
+
+		expect(owner.hasAttribute('aria-activedescendant')).toBe(false)
+	})
+
+	it('also strips the active row when items are supplied', () => {
+		const active = document.createElement('div')
+
+		active.setAttribute('role', 'option')
+
+		active.id = 'opt-0'
+
+		active.setAttribute('data-active', '')
+
+		active.setAttribute('aria-selected', 'true')
+
+		const owner = document.createElement('input')
+
+		owner.setAttribute('aria-activedescendant', 'opt-0')
+
+		clearVirtualActive({ current: owner }, [active])
+
+		expect(active.hasAttribute('data-active')).toBe(false)
+
+		expect(active.getAttribute('aria-selected')).toBe('false')
+
+		expect(owner.hasAttribute('aria-activedescendant')).toBe(false)
 	})
 })
 
@@ -317,6 +358,35 @@ describe('useA11yRoving', () => {
 		result.current(makeKeyEvent('Enter'))
 
 		expect(clickSpy).toHaveBeenCalled()
+
+		container.remove()
+	})
+
+	it('virtual mode: any key in an activationKey list clicks the active item', () => {
+		const container = makeContainer(3)
+
+		const items = Array.from(container.querySelectorAll('button'))
+
+		items[1]?.setAttribute('data-active', '')
+
+		const clickSpy = vi.fn()
+
+		items[1]?.addEventListener('click', clickSpy)
+
+		const { result } = renderHook(() => {
+			const ref = useRef<HTMLElement>(container)
+
+			return useA11yRoving(ref, {
+				itemSelector: '[role="option"]',
+				mode: 'virtual',
+				activationKey: ['Enter', ' '],
+			})
+		})
+
+		// Space (' ') is a listed activation key, so it activates like Enter.
+		result.current(makeKeyEvent(' '))
+
+		expect(clickSpy).toHaveBeenCalledTimes(1)
 
 		container.remove()
 	})

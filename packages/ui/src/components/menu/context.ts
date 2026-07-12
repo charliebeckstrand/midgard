@@ -1,6 +1,6 @@
 'use client'
 
-import type { CSSProperties, RefObject } from 'react'
+import type { CSSProperties, KeyboardEvent, RefObject } from 'react'
 import { createContext } from '../../core'
 import type { Step } from '../../recipes'
 
@@ -8,6 +8,12 @@ type MenuStateValue = {
 	open: boolean
 	/** Id of the menu panel; the trigger's `aria-controls` points at it. */
 	menuId: string
+	/**
+	 * True for a placement-driven dropdown (a {@link MenuTrigger} keeps focus while
+	 * open); false for a right-click context menu, which has no persistent trigger
+	 * and so pulls focus into its panel on open.
+	 */
+	isDropdown: boolean
 	floatingStyles: CSSProperties
 	getReferenceProps: (userProps?: Record<string, unknown>) => Record<string, unknown>
 	getFloatingProps: () => Record<string, unknown>
@@ -18,6 +24,19 @@ type MenuStateValue = {
 type MenuActionsValue = {
 	setOpen: (open: boolean) => void
 	close: () => void
+	/**
+	 * Dismisses the menu as a Tab-out: closes it with a `'focus-out'` reason so
+	 * focus is left where Tab is carrying it rather than snapped back to the
+	 * trigger. {@link MenuTrigger} calls this on Tab while the menu is open.
+	 */
+	dismissToTab: (event: Event) => void
+	/**
+	 * Virtual-roving key handler for the trigger: arrow / Home / End / type-ahead
+	 * move the dropdown's `aria-activedescendant` cursor over the menu items while
+	 * focus stays on the trigger, and Enter activates the active row. No-ops while
+	 * the panel is unmounted (a closed menu). {@link MenuTrigger} spreads it.
+	 */
+	rovingKeyDown: (event: KeyboardEvent) => void
 	static: boolean
 	triggerRef: RefObject<HTMLButtonElement | null>
 	setReference: (node: HTMLElement | null) => void

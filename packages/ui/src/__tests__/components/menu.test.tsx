@@ -14,7 +14,7 @@ import {
 import { useMenuContext } from '../../components/menu/context'
 import { Density } from '../../primitives/density'
 import { DensityProvider } from '../../providers/density'
-import { bySlot, fireEvent, renderUI, screen } from '../helpers'
+import { bySlot, fireEvent, renderUI, screen, userEvent } from '../helpers'
 
 describe('MenuSection', () => {
 	it('renders with data-slot="menu-section"', () => {
@@ -236,6 +236,150 @@ describe('MenuContent', () => {
 		fireEvent.click(screen.getByText('Open'))
 
 		expect(screen.getByText('Item')).toBeInTheDocument()
+	})
+
+	it('keeps focus on the trigger when a dropdown opens', () => {
+		renderUI(
+			<Menu placement="bottom-start">
+				<MenuTrigger>
+					<button type="button">Open</button>
+				</MenuTrigger>
+				<MenuContent>
+					<MenuItem>Edit</MenuItem>
+					<MenuItem>Duplicate</MenuItem>
+				</MenuContent>
+			</Menu>,
+		)
+
+		const trigger = screen.getByRole('button', { name: 'Open' })
+
+		trigger.focus()
+
+		fireEvent.click(trigger)
+
+		// Opening never pulls focus into the panel; it rests on the trigger so a
+		// portaled, animating panel can't drop it to <body> (WCAG 2.4.3).
+		expect(trigger).toHaveFocus()
+
+		expect(screen.getByRole('menu')).not.toHaveFocus()
+
+		expect(screen.getByRole('menuitem', { name: 'Edit' })).not.toHaveFocus()
+	})
+
+	it('closes the menu when Tab is pressed on the trigger', async () => {
+		const user = userEvent.setup()
+
+		renderUI(
+			<Menu placement="bottom-start">
+				<MenuTrigger>
+					<button type="button">Open</button>
+				</MenuTrigger>
+				<MenuContent>
+					<MenuItem>Edit</MenuItem>
+				</MenuContent>
+			</Menu>,
+		)
+
+		const trigger = screen.getByRole('button', { name: 'Open' })
+
+		await user.click(trigger)
+
+		expect(screen.getByRole('menu')).toBeInTheDocument()
+
+		// Tab off the trigger dismisses the menu rather than leaving it open behind
+		// the moved focus.
+		await user.tab()
+
+		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+
+		// Focus proceeds past the trigger; it is not snapped back to it.
+		expect(trigger).not.toHaveFocus()
+	})
+
+	// A key held when focus lands on the trigger (e.g. released from a HoldButton
+	// that moved focus on completion) must not open the menu: the trigger swallows
+	// the button's native activation until a discrete, fresh press re-arms it.
+	// jsdom does not synthesize a button's keyboard click, so these assert the
+	// `preventDefault` that suppresses it (fireEvent returns false when prevented).
+	describe('requires a fresh activation key press to open (no bleed-through)', () => {
+		function closedMenu() {
+			renderUI(
+				<Menu placement="bottom-start">
+					<MenuTrigger>
+						<button type="button">Open</button>
+					</MenuTrigger>
+					<MenuContent>
+						<MenuItem>Edit</MenuItem>
+					</MenuContent>
+				</Menu>,
+			)
+
+			return screen.getByRole('button', { name: 'Open' })
+		}
+
+		it("suppresses a held Space's keyup when no fresh press armed the trigger", () => {
+			const trigger = closedMenu()
+
+			// Space activates a button on keyup; with no prior keydown here it is a
+			// release from a press that began elsewhere.
+			expect(fireEvent.keyUp(trigger, { key: ' ' })).toBe(false)
+		})
+
+		it("suppresses a held Enter's auto-repeat keydown", () => {
+			const trigger = closedMenu()
+
+			expect(fireEvent.keyDown(trigger, { key: 'Enter', repeat: true })).toBe(false)
+		})
+
+		it('lets a fresh, non-repeat press through so the menu still opens', () => {
+			const trigger = closedMenu()
+
+			// A discrete Space press: keydown arms, keyup is honored (the native click
+			// it triggers opens the menu).
+			expect(fireEvent.keyDown(trigger, { key: ' ' })).toBe(true)
+			expect(fireEvent.keyUp(trigger, { key: ' ' })).toBe(true)
+
+			// A discrete Enter press fires its click on keydown; not suppressed.
+			expect(fireEvent.keyDown(trigger, { key: 'Enter' })).toBe(true)
+		})
+
+		it('re-arms only on a fresh keydown, not on a repeat after release', () => {
+			const trigger = closedMenu()
+
+			// Held press bleeds in and is swallowed…
+			expect(fireEvent.keyDown(trigger, { key: 'Enter', repeat: true })).toBe(false)
+
+			// …then a discrete press is honored.
+			expect(fireEvent.keyDown(trigger, { key: 'Enter' })).toBe(true)
+		})
+
+		it('swallows auto-repeat after a fresh press so holding does not re-toggle', () => {
+			const trigger = closedMenu()
+
+			// A held Enter fires the button's native click on every repeat keydown;
+			// swallowing the repeats keeps one press to one activation (no rapid
+			// open/close), even though the fresh press itself is honored.
+			expect(fireEvent.keyDown(trigger, { key: 'Enter' })).toBe(true)
+			expect(fireEvent.keyDown(trigger, { key: 'Enter', repeat: true })).toBe(false)
+			expect(fireEvent.keyDown(trigger, { key: 'Enter', repeat: true })).toBe(false)
+		})
+	})
+
+	it('pulls focus into the panel when a right-click context menu opens', () => {
+		renderUI(
+			<Menu>
+				<div data-testid="surface">right-click me</div>
+				<MenuContent>
+					<MenuItem>Edit</MenuItem>
+				</MenuContent>
+			</Menu>,
+		)
+
+		fireEvent.contextMenu(screen.getByTestId('surface'))
+
+		// A context menu has no persistent trigger to hold focus, so — unlike a
+		// dropdown — it moves focus into the panel for keyboard navigation.
+		expect(screen.getByRole('menu')).toHaveFocus()
 	})
 
 	it('wraps items in a scroll viewport carrying the overflow affordance', () => {

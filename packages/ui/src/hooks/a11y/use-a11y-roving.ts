@@ -78,6 +78,22 @@ export function setVirtualActive(
 }
 
 /**
+ * Clear the virtual-mode active marker: strips `data-active` / `aria-selected`
+ * from the active row (when `items` are passed) and drops the owner's
+ * `aria-activedescendant`. The named reset counterpart to {@link setVirtualActive},
+ * so callers express intent as `clearVirtualActive(ref)` rather than the cryptic
+ * `setVirtualActive([], -1, ref)`. A closing panel unmounts its rows, so the
+ * owner-clear alone — no `items` — is the usual call.
+ */
+export function clearVirtualActive(
+	activeDescendantRef: RefObject<HTMLElement | null>,
+	items: HTMLElement[] = [],
+	options?: { ariaSelected?: boolean },
+): void {
+	setVirtualActive(items, -1, activeDescendantRef, options)
+}
+
+/**
  * Seat the single focus-mode Tab stop: `active` takes `tabIndex=0` and every
  * other item `-1`. Writes only on divergence; a MutationObserver watches
  * `tabindex` and fires on every edit. Pass `undefined` to demote all.
@@ -235,9 +251,13 @@ function handleActivationKey(
 	event: KeyboardEvent,
 	ctx: RovingKeyContext,
 	currentIndex: number,
-	activationKey: string | null,
+	activationKey: string | readonly string[] | null,
 ): boolean {
-	if (!ctx.isVirtual || !activationKey || event.key !== activationKey) return false
+	if (!ctx.isVirtual || !activationKey) return false
+
+	const keys = typeof activationKey === 'string' ? [activationKey] : activationKey
+
+	if (!keys.includes(event.key)) return false
 
 	if (currentIndex === -1) return true
 
@@ -329,8 +349,13 @@ type RovingOptions = NavigationConfig & {
 	 * @defaultValue true
 	 */
 	manageAriaSelected?: boolean
-	/** Virtual mode: key that clicks the active item. Pass null to disable. @defaultValue 'Enter' */
-	activationKey?: string | null
+	/**
+	 * Virtual mode: key (or keys) that clicks the active item. A menu passes
+	 * `['Enter', ' ']` so Space activates like Enter (APG menu pattern); a text
+	 * input owner keeps the default `'Enter'` so Space still types. Pass `null`
+	 * to disable. @defaultValue 'Enter'
+	 */
+	activationKey?: string | readonly string[] | null
 	/**
 	 * Focus mode: own the roving `tabIndex` so the widget is a single Tab stop.
 	 * Seats `tabIndex=0` on the resting item (see `activeSelector`, else the first

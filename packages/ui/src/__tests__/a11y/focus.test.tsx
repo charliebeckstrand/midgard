@@ -39,19 +39,19 @@ describe('a11y focus: overlays capture focus on open', () => {
 })
 
 /**
- * Focus restoration on close. The modal Overlay family returns focus through
- * floating-ui's previously-focused-element path, which jsdom resolves to
- * `<body>` rather than the trigger; covered in the real-browser suite. The
- * dropdown family restores via a direct `.focus()` on the trigger ref
- * (`useFloatingUI`'s `restoreFocusTo`), which jsdom honours; Menu stands in
- * for that path.
+ * Focus on close. The modal Overlay family returns focus through floating-ui's
+ * previously-focused-element path, which jsdom resolves to `<body>` rather than
+ * the trigger; covered in the real-browser suite. Popover restores via a direct
+ * `.focus()` on the trigger ref (`useFloatingPanel`'s `returnFocusTo`), which
+ * jsdom honours. Menu never moves focus off its trigger in the first place, so
+ * closing leaves it there with nothing to restore.
  */
 describe('a11y focus: restoration (dropdown family)', () => {
-	it('menu returns focus to its trigger on Escape', async () => {
+	it('keeps focus on its trigger through open and Escape', async () => {
 		const user = userEvent.setup({ delay: null })
 
 		renderUI(
-			<Menu>
+			<Menu placement="bottom-start">
 				<MenuTrigger>
 					<Button variant="outline">Options</Button>
 				</MenuTrigger>
@@ -65,14 +65,19 @@ describe('a11y focus: restoration (dropdown family)', () => {
 			</Menu>,
 		)
 
-		await user.click(screen.getByRole('button', { name: 'Options' }))
+		const trigger = screen.getByRole('button', { name: 'Options' })
+
+		await user.click(trigger)
 
 		screen.getByRole('menu')
 
+		// Focus stayed on the trigger while the menu was open, so Escape closes it
+		// with the trigger still focused (WCAG 2.4.3) — no restore needed.
+		expect(trigger).toHaveFocus()
+
 		await user.keyboard('{Escape}')
 
-		// Re-query: the trigger node is recreated across the open/close cycle.
-		expect(screen.getByRole('button', { name: 'Options' })).toHaveFocus()
+		expect(trigger).toHaveFocus()
 	})
 
 	// Popover restores via `returnFocusTo: triggerRef` (useFloatingPanel), the

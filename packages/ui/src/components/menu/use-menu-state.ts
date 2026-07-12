@@ -1,11 +1,23 @@
 'use client'
 
 import { type Placement, useInteractions } from '@floating-ui/react'
-import { type MouseEvent, useCallback, useId, useMemo } from 'react'
+import { type MouseEvent, useCallback, useEffect, useId, useMemo } from 'react'
 import { useFloatingDisclosure } from '../../hooks'
+import { clearVirtualActive, useA11yRoving } from '../../hooks/a11y/use-a11y-roving'
 import { useDensity } from '../../primitives/density'
 import type { Step } from '../../recipes'
 import { isNativeContextMenuRequest } from '../../utilities'
+
+/** Navigable menu items: `role="menuitem"`, excluding disabled rows. @internal */
+export const MENUITEM_SELECTOR = '[role="menuitem"]:not([data-disabled])'
+
+/**
+ * Keys that activate the active menu item. Space joins Enter (APG menu pattern):
+ * the trigger is a button, not a text input, so Space selects rather than types.
+ * Module-level for a stable reference so the roving handler stays memoized.
+ * @internal
+ */
+const MENU_ACTIVATION_KEYS = ['Enter', ' '] as const
 
 type MenuStateOptions = {
 	open?: boolean
@@ -86,7 +98,7 @@ export function useMenuState({
 	// `aria-controls` to the real menu panel.
 	const menuId = useId()
 
-	const { open, setOpen, close, triggerRef, refs, floatingStyles, dismiss, role } =
+	const { open, setOpen, close, triggerRef, refs, floatingStyles, context, dismiss, role } =
 		useFloatingDisclosure({
 			open: openProp,
 			defaultOpen,
@@ -95,6 +107,39 @@ export function useMenuState({
 			placement: placement ?? 'bottom-start',
 			matchReferenceWidth: isDropdown,
 		})
+
+	// Tab off the trigger closes the menu (focus stays on the trigger while it is
+	// open). Routing through `context.onOpenChange` with `'focus-out'` records the
+	// reason so the disclosure's focus-return effect leaves focus where the Tab is
+	// carrying it — forward to the next tabbable, back with Shift+Tab — instead of
+	// snapping it back to the trigger and swallowing the keystroke.
+	const dismissToTab = useCallback(
+		(event: Event) => context.onOpenChange(false, event, 'focus-out'),
+		[context],
+	)
+
+	// A dropdown keeps focus on its trigger, so its items rove by
+	// `aria-activedescendant`, not real focus: arrow / Home / End / type-ahead move
+	// a `data-active` cursor over the panel's items (`refs.floating` holds them) and
+	// point the trigger's `aria-activedescendant` at the active row; Enter clicks it.
+	// `manageAriaSelected: false` — `aria-selected` is not a `menuitem` state. The
+	// handler is spread onto the trigger (below); it no-ops while the panel is
+	// unmounted, so a closed menu ignores arrows.
+	const rovingKeyDown = useA11yRoving(refs.floating, {
+		mode: 'virtual',
+		itemSelector: MENUITEM_SELECTOR,
+		activeDescendantRef: triggerRef,
+		typeahead: true,
+		activationKey: MENU_ACTIVATION_KEYS,
+		manageAriaSelected: false,
+	})
+
+	// Clear the trigger's `aria-activedescendant` once closed: the panel (and the
+	// ids it pointed at) unmounts, so the attribute would otherwise dangle, and the
+	// next open must start with no active row (the first arrow picks the first item).
+	useEffect(() => {
+		if (!open) clearVirtualActive(triggerRef)
+	}, [open, triggerRef])
 
 	const { getReferenceProps, getFloatingProps } = useInteractions([dismiss, role])
 
@@ -139,6 +184,7 @@ export function useMenuState({
 		() => ({
 			open,
 			menuId,
+			isDropdown,
 			floatingStyles,
 			getReferenceProps,
 			getFloatingProps,
@@ -148,6 +194,7 @@ export function useMenuState({
 		[
 			open,
 			menuId,
+			isDropdown,
 			floatingStyles,
 			getReferenceProps,
 			getFloatingProps,
@@ -160,13 +207,25 @@ export function useMenuState({
 		() => ({
 			setOpen,
 			close,
+			dismissToTab,
+			rovingKeyDown,
 			static: isStatic,
 			triggerRef,
 			setReference: refs.setReference,
 			setFloating: refs.setFloating,
 			openAt,
 		}),
-		[setOpen, close, isStatic, triggerRef, refs.setReference, refs.setFloating, openAt],
+		[
+			setOpen,
+			close,
+			dismissToTab,
+			rovingKeyDown,
+			isStatic,
+			triggerRef,
+			refs.setReference,
+			refs.setFloating,
+			openAt,
+		],
 	)
 
 	return { state, actions, handleContextMenu, isDropdown }

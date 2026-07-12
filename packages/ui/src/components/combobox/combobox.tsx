@@ -17,7 +17,7 @@ import {
 	useScrollWithin,
 	useSelectableValueChange,
 } from '../../hooks'
-import { queryItems, setVirtualActive } from '../../hooks/a11y/use-a11y-roving'
+import { clearVirtualActive, queryItems, setVirtualActive } from '../../hooks/a11y/use-a11y-roving'
 import { useKeyboardSettled } from '../../hooks/use-keyboard-settled'
 import { useControlSize } from '../../primitives/density'
 import { QueryContext, useQueryValue } from '../../primitives/query'
@@ -292,7 +292,7 @@ export function Combobox<T>({
 
 	useEffect(() => {
 		if (!open) {
-			setVirtualActive([], -1, inputRef, { ariaSelected: false })
+			clearVirtualActive(inputRef)
 
 			lastQueryRef.current = deferredQuery
 
