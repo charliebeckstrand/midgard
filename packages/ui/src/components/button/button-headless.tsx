@@ -32,7 +32,7 @@ export function ButtonHeadless({
 	className,
 	loading = false,
 	children,
-	type = 'submit',
+	type,
 	...props
 }: ButtonHeadlessProps) {
 	if (href !== undefined) {

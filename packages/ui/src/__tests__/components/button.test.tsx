@@ -19,12 +19,16 @@ describe('Button', () => {
 		expect(button?.tagName).toBe('BUTTON')
 	})
 
-	it('defaults to type="submit", matching native <button> semantics', () => {
+	it('defaults to the native submit type without emitting a type attribute', () => {
 		const { container } = renderUI(<Button>Submit</Button>)
 
-		const button = bySlot(container, 'button')
+		const button = bySlot(container, 'button') as HTMLButtonElement
 
-		expect(button).toHaveAttribute('type', 'submit')
+		// No explicit attribute — the DOM applies the native `submit` default, so
+		// the IDL property reads `submit` while the attribute stays absent.
+		expect(button).not.toHaveAttribute('type')
+
+		expect(button.type).toBe('submit')
 	})
 
 	it('forwards an explicit type, overriding the submit default', () => {

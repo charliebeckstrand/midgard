@@ -79,9 +79,10 @@ export type ButtonProps = ButtonBaseProps &
  * in loading trees.
  *
  * @remarks
- * Mirrors native `<button>` submission semantics: `type` defaults to `'submit'`,
- * so a Button left untyped inside a `<Form>`/`<form>` submits it. Pass
- * `type="button"` for non-submitting actions and `type="reset"` to reset.
+ * Mirrors native `<button>` submission semantics: an untyped Button emits no
+ * `type` attribute, so the DOM applies its native `submit` default and the
+ * Button submits an enclosing `<Form>`/`<form>`. Pass `type="button"` for
+ * non-submitting actions and `type="reset"` to reset.
  */
 export function Button({
 	variant,
@@ -180,7 +181,7 @@ export function Button({
 				{...(spring && buttonSpring)}
 				ref={ref as Ref<HTMLButtonElement>}
 				{...sharedProps}
-				type={type ?? 'submit'}
+				type={type}
 				className={classes}
 				{...buttonProps}
 				disabled={loading || buttonProps.disabled}
