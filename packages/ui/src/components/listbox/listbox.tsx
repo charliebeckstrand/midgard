@@ -14,6 +14,10 @@ import {
 import { useAriaIds, useFloatingUI, useSelectableValueChange } from '../../hooks'
 import { useControlSize } from '../../primitives/density'
 import { SelectTrigger } from '../../primitives/select-trigger'
+import {
+	resolveCapitalize,
+	type SelectCapitalize,
+} from '../../primitives/select-trigger/capitalize'
 import { useGlass } from '../../providers/glass/context'
 import { Button } from '../button'
 import { type ControlSize, useControl } from '../control/context'
@@ -61,6 +65,12 @@ type ListboxBaseProps = {
 	truncate?: boolean
 	/** Show a clear button in place of the chevron when a value is selected. */
 	clearable?: boolean
+	/**
+	 * Applies the `capitalize` text-transform to the selected `displayValue` and
+	 * the option list. Pass an object to target each surface independently.
+	 * @defaultValue true
+	 */
+	capitalize?: SelectCapitalize
 	/** Controlled menu open state. */
 	open?: boolean
 	/** Fires when the menu open state changes. */
@@ -153,6 +163,7 @@ export function Listbox<T>({
 	tabularNums,
 	truncate = true,
 	clearable = false,
+	capitalize = true,
 	open: openProp,
 	onOpenChange,
 	'data-group': dataGroup,
@@ -257,6 +268,8 @@ export function Listbox<T>({
 		setTouched()
 	}
 
+	const capitalization = resolveCapitalize(capitalize)
+
 	const label = resolveLabel({ value, displayValue, multiple })
 
 	const hasValue = hasListboxValue(value, multiple)
@@ -348,6 +361,7 @@ export function Listbox<T>({
 						placeholder={placeholder}
 						truncate={truncate}
 						tabularNums={tabularNums}
+						capitalize={capitalization.displayValue}
 						density={token.space}
 						size={token.size}
 					/>
@@ -358,6 +372,7 @@ export function Listbox<T>({
 					open={open}
 					glass={glass}
 					multiple={multiple}
+					capitalize={capitalization.options}
 					density={token.space}
 					size={token.size}
 					ariaLabel={ariaLabel}

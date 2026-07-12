@@ -10,8 +10,6 @@ type OptionsListboxProps<T extends string> = {
 	value: T
 	placement?: 'bottom-start' | 'bottom-end'
 	onValueChange: (value: T) => void
-	className?: string
-	optionClassName?: string
 }
 
 /**
@@ -26,8 +24,6 @@ export function OptionsListbox<T extends string>({
 	value,
 	placement = 'bottom-end',
 	onValueChange,
-	className,
-	optionClassName,
 }: OptionsListboxProps<T>) {
 	const labelFor = (v: T) => options.find((option) => option.value === v)?.label ?? v
 
@@ -37,11 +33,10 @@ export function OptionsListbox<T extends string>({
 			displayValue={labelFor}
 			placement={placement}
 			onValueChange={(v) => v && onValueChange(v)}
-			className={className}
 		>
 			{options.map((option) => (
 				<ListboxOption key={option.value} value={option.value}>
-					<ListboxLabel className={optionClassName}>{option.label}</ListboxLabel>
+					<ListboxLabel>{option.label}</ListboxLabel>
 				</ListboxOption>
 			))}
 		</Listbox>

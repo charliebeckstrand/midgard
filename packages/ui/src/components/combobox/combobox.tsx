@@ -22,6 +22,10 @@ import { useKeyboardSettled } from '../../hooks/use-keyboard-settled'
 import { useControlSize } from '../../primitives/density'
 import { QueryContext, useQueryValue } from '../../primitives/query'
 import { SelectTrigger } from '../../primitives/select-trigger'
+import {
+	resolveCapitalize,
+	type SelectCapitalize,
+} from '../../primitives/select-trigger/capitalize'
 import { useGlass } from '../../providers/glass/context'
 import { Button } from '../button'
 import { type ControlSize, useControl } from '../control/context'
@@ -72,6 +76,14 @@ type ComboboxBaseProps<T> = {
 	clearOnEmpty?: boolean
 	/** Show a clear button in place of the chevron when a value is selected. */
 	clearable?: boolean
+	/**
+	 * Applies the `capitalize` text-transform to the input's resolved
+	 * `displayValue` and the option list. Pass an object to target each surface
+	 * independently. The transform is visual only; the underlying query and value
+	 * are untouched.
+	 * @defaultValue true
+	 */
+	capitalize?: SelectCapitalize
 	/** Controlled menu open state. */
 	open?: boolean
 	/** Fires when the menu open state changes. */
@@ -153,6 +165,7 @@ export function Combobox<T>({
 	closeOnSelect,
 	clearOnEmpty = false,
 	clearable = false,
+	capitalize = true,
 	open: openProp,
 	onOpenChange,
 	onQueryChange,
@@ -358,6 +371,8 @@ export function Combobox<T>({
 		role: null,
 	})
 
+	const capitalization = resolveCapitalize(capitalize)
+
 	const inputDisplay = resolveInputDisplay({ editing, query, value, displayValue, multiple })
 
 	const inputHandlers = useComboboxInput<T>({
@@ -465,6 +480,8 @@ export function Combobox<T>({
 						required={resolvedRequired}
 						value={inputDisplay}
 						placeholder={placeholder}
+						editing={editing}
+						capitalize={capitalization.displayValue}
 						density={token.space}
 						size={token.size}
 						handlers={inputHandlers}
@@ -476,6 +493,7 @@ export function Combobox<T>({
 					open={open}
 					editing={editing}
 					multiple={multiple}
+					capitalize={capitalization.options}
 					glass={glass}
 					density={token.space}
 					size={token.size}
