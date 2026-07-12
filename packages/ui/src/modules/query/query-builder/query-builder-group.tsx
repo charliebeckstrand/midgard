@@ -1,5 +1,6 @@
 'use client'
 
+import { memo } from 'react'
 import { Alert } from '../../../components/alert'
 import { Button } from '../../../components/button'
 import { Flex } from '../../../components/flex'
@@ -25,9 +26,10 @@ export type QueryBuilderGroupProps = {
  * Renders one query group: its child rules and nested groups, each joined by an
  * AND/OR combinator segment, plus "add rule"/"add group" actions. The root
  * renders as a plain `<div>`; nested groups render as a labelled `<fieldset>`
- * with a hold-to-remove control.
+ * with a hold-to-remove control. Memoized: the tree-edit helpers preserve the
+ * identity of untouched subtrees, so an edit re-renders only the affected group.
  */
-export function QueryBuilderGroup({ group, root, className }: QueryBuilderGroupProps) {
+function QueryBuilderGroupImpl({ group, root, className }: QueryBuilderGroupProps) {
 	const { disabled, allowGroups, requireRule } = useQueryBuilderState()
 
 	const { updateCombinator, addRule, addGroup, remove } = useQueryBuilderActions()
@@ -124,3 +126,9 @@ export function QueryBuilderGroup({ group, root, className }: QueryBuilderGroupP
 		</Wrapper>
 	)
 }
+
+/**
+ * Renders one query group and its descendants. See {@link QueryBuilderGroupImpl}.
+ * Memoized so a single edit re-renders only the touched group, not the whole tree.
+ */
+export const QueryBuilderGroup = memo(QueryBuilderGroupImpl)

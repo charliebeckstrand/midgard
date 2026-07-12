@@ -77,11 +77,28 @@ export function Tree({ size, indent = false, children, className, ...labelProps 
 
 		ensureFirstItemActive(container)
 
-		const observer = new MutationObserver(() => ensureFirstItemActive(container))
+		// Expanding/collapsing a branch animates its subtree, so the observer fires
+		// repeatedly through the transition; each `ensureFirstItemActive` scans every
+		// treeitem. Coalesce the bursts into one scan on the next frame.
+		let frame: number | null = null
+
+		const observer = new MutationObserver(() => {
+			if (frame !== null) return
+
+			frame = requestAnimationFrame(() => {
+				frame = null
+
+				ensureFirstItemActive(container)
+			})
+		})
 
 		observer.observe(container, { childList: true, subtree: true })
 
-		return () => observer.disconnect()
+		return () => {
+			if (frame !== null) cancelAnimationFrame(frame)
+
+			observer.disconnect()
+		}
 	}, [])
 
 	const handleFocus = (event: FocusEvent<HTMLDivElement>) => {

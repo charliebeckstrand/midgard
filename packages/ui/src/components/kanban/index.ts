@@ -1,8 +1,10 @@
 export {
 	type KanbanColumnContextValue,
 	type KanbanContextValue,
+	type KanbanDragStateValue,
 	useKanbanColumnContext,
 	useKanbanContext,
+	useKanbanDragState,
 } from './context'
 export { Kanban, type KanbanProps } from './kanban'
 export { KanbanCard, type KanbanCardProps } from './kanban-card'

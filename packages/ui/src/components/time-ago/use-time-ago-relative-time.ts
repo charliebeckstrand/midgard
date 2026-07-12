@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { DAY, HOUR, MIN, MONTH, SEC, WEEK, YEAR } from './time-ago-constants'
+import { subscribeTimeAgoTick } from './time-ago-ticker'
 
 type Unit = 'second' | 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year'
 
@@ -119,12 +120,12 @@ export function useTimeAgoRelativeTime({
 	useEffect(() => {
 		if (!valid) return
 
-		// Establishes the clock after mount, then refreshes on the computed interval.
+		// Establishes the clock after mount, then refreshes on the computed cadence
+		// through a shared per-cadence ticker (one timer for every same-cadence
+		// TimeAgo on the page, paused while the tab is hidden).
 		setNow(new Date())
 
-		const id = window.setInterval(() => setNow(new Date()), adaptiveMs)
-
-		return () => window.clearInterval(id)
+		return subscribeTimeAgoTick(adaptiveMs, () => setNow(new Date()))
 	}, [adaptiveMs, valid])
 
 	if (!valid || now === null) return { then, valid, text: '' }

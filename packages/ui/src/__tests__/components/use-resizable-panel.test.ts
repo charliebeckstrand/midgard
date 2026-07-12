@@ -1,9 +1,21 @@
 import { act, renderHook } from '@testing-library/react'
 import { createRef, type RefObject } from 'react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { PanelConfig } from '../../components/resizable/types'
 import { useResizablePanel } from '../../components/resizable/use-resizable-panel'
 import { makePointerEvent } from '../helpers'
+
+// The drag path coalesces pointermove commits into one animation frame, so tests
+// drive a controllable rAF queue and flush it to observe the committed sizes.
+let frameQueue: FrameRequestCallback[] = []
+
+function flushFrames(): void {
+	const pending = frameQueue
+
+	frameQueue = []
+
+	for (const cb of pending) cb(0)
+}
 
 function makeGroup(rect: { width: number; height: number }, handleCount = 0): HTMLDivElement {
 	const el = document.createElement('div')
@@ -41,7 +53,21 @@ const equalPanels: PanelConfig[] = [
 ]
 
 describe('useResizablePanel', () => {
+	beforeEach(() => {
+		frameQueue = []
+
+		vi.stubGlobal('requestAnimationFrame', (cb: FrameRequestCallback) => {
+			frameQueue.push(cb)
+
+			return frameQueue.length
+		})
+
+		vi.stubGlobal('cancelAnimationFrame', () => {})
+	})
+
 	afterEach(() => {
+		vi.unstubAllGlobals()
+
 		document.body.innerHTML = ''
 	})
 
@@ -375,6 +401,8 @@ describe('useResizablePanel', () => {
 
 			act(() => {
 				document.dispatchEvent(new PointerEvent('pointermove', { clientX: 600, clientY: 0 }))
+
+				flushFrames()
 			})
 
 			// 100px delta / 1000px available = 10% shift.
@@ -400,6 +428,8 @@ describe('useResizablePanel', () => {
 
 			act(() => {
 				document.dispatchEvent(new PointerEvent('pointermove', { clientX: 0, clientY: 700 }))
+
+				flushFrames()
 			})
 
 			expect(result.current.sizes).toEqual([70, 30])
