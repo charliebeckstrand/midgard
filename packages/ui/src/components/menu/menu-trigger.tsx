@@ -45,13 +45,13 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 
 	const mergeRefs = useComposedRef<HTMLButtonElement>(triggerRef, setReference, childRef)
 
-	// The menu opens only from an activation key pressed discretely *on* the
-	// trigger. A key still held when focus lands here — e.g. released from a
-	// HoldButton whose completion moved focus here — must not open the menu on its
-	// stray auto-repeat (Enter fires the button's native click on each repeat
-	// keydown) or its release (Space fires on keyup). We arm on a fresh, non-repeat
-	// keydown and `preventDefault` the native activation until then, so opening
-	// requires letting go and pressing again (a discrete press, per APG).
+	// The menu opens once per discrete activation-key press on the trigger. The
+	// trigger keeps native timing — Enter fires the button's click on keydown,
+	// Space on keyup — but its OS auto-repeat is swallowed, so a held key neither
+	// rapidly re-toggles the menu (Enter's per-repeat clicks) nor opens it when the
+	// key was already down as focus arrived (released from a HoldButton whose
+	// completion moved focus here). A fresh, non-repeat keydown arms; opening then
+	// requires letting go and pressing again.
 	const activationHeldRef = useRef(false)
 
 	// Focus rests on the trigger while the menu is open, so every navigation key
@@ -62,10 +62,11 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 	// `dismissToTab` marks the close `'focus-out'` so focus is not yanked back.
 	const handleTriggerKeyDown = (event: KeyboardEvent) => {
 		if (event.key === 'Enter' || event.key === ' ') {
-			// A repeat before a fresh keydown is an auto-repeat from a press that
-			// started elsewhere; swallow its native click. The first fresh press arms.
+			// Swallow every auto-repeat's native click; only a fresh press arms and
+			// activates. This stops a held Enter from rapid-toggling and a key held on
+			// arrival (its first keydown landed elsewhere) from opening the menu.
 			if (event.repeat) {
-				if (!activationHeldRef.current) event.preventDefault()
+				event.preventDefault()
 			} else {
 				activationHeldRef.current = true
 			}

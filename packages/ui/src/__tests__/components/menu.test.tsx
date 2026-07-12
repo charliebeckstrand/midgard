@@ -352,6 +352,17 @@ describe('MenuContent', () => {
 			// …then a discrete press is honored.
 			expect(fireEvent.keyDown(trigger, { key: 'Enter' })).toBe(true)
 		})
+
+		it('swallows auto-repeat after a fresh press so holding does not re-toggle', () => {
+			const trigger = closedMenu()
+
+			// A held Enter fires the button's native click on every repeat keydown;
+			// swallowing the repeats keeps one press to one activation (no rapid
+			// open/close), even though the fresh press itself is honored.
+			expect(fireEvent.keyDown(trigger, { key: 'Enter' })).toBe(true)
+			expect(fireEvent.keyDown(trigger, { key: 'Enter', repeat: true })).toBe(false)
+			expect(fireEvent.keyDown(trigger, { key: 'Enter', repeat: true })).toBe(false)
+		})
 	})
 
 	it('pulls focus into the panel when a right-click context menu opens', () => {
