@@ -1,7 +1,7 @@
 'use client'
 
-import { FloatingFocusManager, FloatingPortal, useFloating } from '@floating-ui/react'
-import { AnimatePresence, motion } from 'motion/react'
+import { FloatingFocusManager, useFloating } from '@floating-ui/react'
+import { motion } from 'motion/react'
 import {
 	type HTMLAttributes,
 	type ReactElement,
@@ -9,14 +9,12 @@ import {
 	type RefObject,
 	useEffect,
 	useRef,
-	useState,
 } from 'react'
 import { cn } from '../../core'
 import { useDismissable } from '../../hooks/use-dismissable'
 import { useScrollLock } from '../../hooks/use-scroll-lock'
 import { k } from '../../recipes/kata/overlay'
-import { usePortalContainer } from '../portal'
-import { ReducedMotion } from '../reduced-motion'
+import { PresencePortal } from '../portal'
 import { notifyOverlaySignal } from './overlay-signal'
 
 /**
@@ -99,20 +97,10 @@ export function Overlay({
 }: OverlayProps) {
 	const { refs, context } = useFloating({ open, onOpenChange })
 
-	// Mount the portal only while open or animating out, so a closed overlay leaves
-	// no `[data-floating-ui-portal]` node behind (a page of many closed overlays —
-	// e.g. one filter drawer per column — would otherwise strand an empty div
-	// each). `mounted` flips on with `open` and off once the exit animation ends.
-	const [mounted, setMounted] = useState(open)
-
-	if (open && !mounted) setMounted(true)
-
+	// `PresencePortal` owns the teleport and the mount-while-open lifecycle. An
+	// explicit `container` scopes the overlay to that element (`absolute`, no
+	// scroll lock); modal positioning and scroll lock key off `scoped`.
 	const scoped = container != null
-
-	// Explicit `container` (scoped overlay) wins; otherwise falls back to the
-	// ambient <UIProvider>, then document.body. The provider relocates the
-	// portal mount only; modal positioning and scroll lock key off `scoped`.
-	const portalContainer = usePortalContainer(container)
 
 	const containerRef = useRef<HTMLDivElement>(null)
 
@@ -131,10 +119,6 @@ export function Overlay({
 	useEffect(() => {
 		if (open) notifyOverlaySignal()
 	}, [open])
-
-	if (typeof document === 'undefined') return null
-
-	if (!mounted) return null
 
 	const panel = (
 		<div
@@ -162,22 +146,12 @@ export function Overlay({
 		</div>
 	)
 
-	// Teleport through floating-ui's portal (not React's `createPortal`) so a
-	// floating menu opened inside the overlay — a `Select` listbox, a date picker —
-	// nests in the portal context and is excluded from the modal focus manager's
-	// `markOthers`; React's portal left those nested surfaces inert and unreachable.
 	return (
-		<FloatingPortal root={portalContainer ?? undefined}>
-			<ReducedMotion>
-				<AnimatePresence onExitComplete={() => setMounted(false)}>
-					{open && (
-						<OverlayFocus modal={modal} context={context} initialFocus={initialFocus}>
-							{panel}
-						</OverlayFocus>
-					)}
-				</AnimatePresence>
-			</ReducedMotion>
-		</FloatingPortal>
+		<PresencePortal open={open} container={container}>
+			<OverlayFocus modal={modal} context={context} initialFocus={initialFocus}>
+				{panel}
+			</OverlayFocus>
+		</PresencePortal>
 	)
 }
 

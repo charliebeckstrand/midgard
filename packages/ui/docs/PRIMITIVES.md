@@ -11,12 +11,12 @@ import { TouchTarget } from 'ui/primitives/touch-target'
 
 | Primitive | Summary | Key exports |
 |---|---|---|
-| `floating-surface` | Portal + presence + positioning shell shared by Tooltip, Popover, and Menu; owns `FloatingPortal`, `AnimatePresence`, and optional focus trap. | `FloatingSurface` |
-| `overlay` | Portalled backdrop-and-panel shell for modal surfaces (Dialog, Sheet, Drawer): focus trap, scroll lock, dismissal, dimming scrim. | `Overlay`, `notifyOverlaySignal`, `subscribeOverlaySignal` |
+| `floating-surface` | Positioning shell shared by Tooltip, Popover, and Menu; owns the positioned wrapper and optional focus trap over a `PresencePortal`. | `FloatingSurface` |
+| `overlay` | Backdrop-and-panel shell for modal surfaces (Dialog, Sheet, Drawer) over a `PresencePortal`: focus trap, scroll lock, dismissal, dimming scrim. | `Overlay`, `notifyOverlaySignal`, `subscribeOverlaySignal` |
 | `popover` | Animated listbox-style floating panel (Select, Combobox, Menu) wiring roving keyboard nav, type-ahead, and open autofocus. | `PopoverPanel` |
 | `panel` | Slot family + context envelope for panel surfaces; `createPanel` builds Title/Description/Header/Body/Footer/Content with Close and A11y contexts. | `createPanel`, `PanelProviders`, `PanelClose`, `PanelTrigger` |
 | `offcanvas` | React context exposing a `close()` handle so descendants can dismiss the surrounding slide-in drawer. | `OffcanvasContext` |
-| `portal` | Portal-container context resolving where library UI teleports: per-call container, then ambient `UIProvider`, then each portal's fallback. | `usePortalContainer`, `PortalContext` |
+| `portal` | Portal-container context resolving where library UI teleports (per-call container, then ambient `UIProvider`, then each portal's fallback), plus `PresencePortal`, the portal + mount-while-open + `AnimatePresence` cell the floating and overlay shells share. | `usePortalContainer`, `PortalContext`, `PresencePortal` |
 | `ready-reveal` | Gates content on a ready flag, crossfading placeholder→children in a shared grid cell (inert/`aria-hidden`, ReducedMotion) to avoid a flash of unready content. | `ReadyReveal` |
 
 ## Composition & polymorphism
