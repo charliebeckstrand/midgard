@@ -56,10 +56,10 @@ const spinner = defineRecipe({
 })
 
 /**
- * Breathing gradient sphere: positioning root for the orb's layered halo and
- * core. Diameter tracks the spinner scale; `color` feeds the gradient layers
- * through `currentColor`. Motion is component-driven (framer `motion.*`),
- * resting as a static orb under `prefers-reduced-motion` (WCAG 2.3.3).
+ * Morphing gradient blob: positioning root for the orb's animated layers.
+ * Diameter tracks the spinner scale; `color` feeds the gradient fill through
+ * `currentColor`. Motion is component-driven (framer `motion.*`), resting as
+ * a static circular orb under `prefers-reduced-motion` (WCAG 2.3.3).
  */
 const orb = defineRecipe({
 	base: 'relative inline-block shrink-0',

@@ -94,33 +94,29 @@ describe('LoadingOrb', () => {
 		expect(screen.getByText('Saving')).toBeInTheDocument()
 	})
 
-	it('renders aria-hidden halo and core layers', () => {
+	it('renders an aria-hidden morphing blob layer', () => {
 		const { container } = renderUI(<LoadingOrb />)
 
-		const halo = bySlot(container, 'loading-orb-halo')
+		const blob = bySlot(container, 'loading-orb-blob')
 
-		const core = bySlot(container, 'loading-orb-core')
-
-		expect(halo).toHaveAttribute('aria-hidden', 'true')
-
-		expect(core).toHaveAttribute('aria-hidden', 'true')
+		expect(blob).toHaveAttribute('aria-hidden', 'true')
 	})
 
-	it('renders the aurora layer stack in rainbow mode', () => {
+	it('renders the sweep and glow layers in rainbow mode', () => {
 		const { container } = renderUI(<LoadingOrb color="rainbow" />)
 
-		const core = bySlot(container, 'loading-orb-core')
+		const blob = bySlot(container, 'loading-orb-blob')
 
-		// Mono orbs bake shading into one sphere gradient; rainbow stacks a
-		// luminous base, four drifting tints, and a static centre glow.
-		expect(core?.children).toHaveLength(6)
+		// Mono blobs bake shading into one sphere gradient; rainbow layers a
+		// drifting conic sweep and a static centre glow over the base.
+		expect(blob?.children).toHaveLength(2)
 	})
 
-	it('renders a single sphere layer in monochrome mode', () => {
+	it('renders no inner layers in monochrome mode', () => {
 		const { container } = renderUI(<LoadingOrb color="blue" />)
 
-		const core = bySlot(container, 'loading-orb-core')
+		const blob = bySlot(container, 'loading-orb-blob')
 
-		expect(core?.children).toHaveLength(1)
+		expect(blob?.children).toHaveLength(0)
 	})
 })

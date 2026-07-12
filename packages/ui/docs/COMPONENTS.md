@@ -49,7 +49,7 @@ Components split into a **static** (server-renderable) tier and a **client** tie
 
 `loading` · `progress`
 
-> `loading` provides `LoadingSpinner` / `LoadingDots` (static leaves) plus `LoadingOrb`, a client-tier breathing gradient sphere whose `color` axis adds a `rainbow` spectrum mode.
+> `loading` provides `LoadingSpinner` / `LoadingDots` (static leaves) plus `LoadingOrb`, a client-tier morphing gradient blob whose `color` axis adds a `rainbow` spectrum mode.
 
 ## Domain & specialized
 
