@@ -21,7 +21,13 @@ export type ReadyRevealProps = {
 const HIDDEN = { opacity: 0, filter: 'blur(4px)' }
 const VISIBLE = { opacity: 1, filter: 'blur(0px)' }
 
-const GRID_CELL = { gridArea: '1 / 1' } as const
+// The content layer occupies the single grid cell and, as the only in-flow
+// layer, is the sole thing that sizes it. The placeholder is lifted out of flow
+// (absolute, filling the cell) so its silhouette — whether it stands taller or
+// shorter than the content — never inflates the reserved box.
+const CONTENT_CELL = { gridArea: '1 / 1' } as const
+
+const PLACEHOLDER_CELL = { position: 'absolute', inset: 0 } as const
 
 const FOCUSABLE =
 	'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])'
@@ -29,8 +35,9 @@ const FOCUSABLE =
 /**
  * Gates content on a `ready` flag, crossfading (opacity plus blur) from
  * `placeholder` to `children` to avoid a flash of unready content. The two
- * layers share one grid cell so the placeholder mirrors the content layout and
- * dimensions stay stable across the swap.
+ * layers stack in one grid cell; the content layer sits in flow and the
+ * placeholder is lifted out of flow over it, so the content alone sizes the
+ * cell and the box stays put across the swap.
  *
  * @remarks
  * Wraps its layers in {@link ReducedMotion}, so the crossfade honours
@@ -43,11 +50,12 @@ const FOCUSABLE =
  * held in `<Activity mode="hidden">`: kept in the DOM with state preserved, but
  * `display: none`, with its effects torn down, its skeleton pulse stopped, and
  * re-rendering deferred. The content layer, by contrast, stays live and in flow
- * in every state, so it — never the placeholder — drives the shared grid cell's
- * block size. The reserved box therefore matches the real content's dimensions
- * whether or not it has resolved, and the swap holds its place to the pixel even
- * when the placeholder's silhouette stands a little shorter than the content it
- * fills in for (a skeleton sized to its font, say, against a taller line box).
+ * in every state, and — with the placeholder positioned absolutely over it — is
+ * the only layer that sizes the cell. The reserved box therefore matches the
+ * real content's dimensions whether or not it has resolved, so the swap holds
+ * its place to the pixel no matter how the placeholder's silhouette is sized: a
+ * skeleton drawn a shade shorter or taller than the content it fills in for
+ * shifts nothing.
  */
 export function ReadyReveal({ ready, placeholder, children, className }: ReadyRevealProps) {
 	const placeholderRef = useRef<HTMLDivElement>(null)
@@ -100,7 +108,7 @@ export function ReadyReveal({ ready, placeholder, children, className }: ReadyRe
 		<ReducedMotion>
 			<div
 				data-slot="ready-reveal"
-				className={cn('grid', className)}
+				className={cn('relative grid', className)}
 				style={{ gridTemplate: '1fr / 1fr' }}
 			>
 				<Activity mode={ready && settled ? 'hidden' : 'visible'}>
@@ -123,15 +131,15 @@ export function ReadyReveal({ ready, placeholder, children, className }: ReadyRe
 						onAnimationComplete={() => {
 							if (ready) setSettled(true)
 						}}
-						style={GRID_CELL}
+						style={PLACEHOLDER_CELL}
 					>
 						{placeholder}
 					</motion.div>
 				</Activity>
 				{/* The content layer is never rested: it stays live and in flow so
-				    the grid cell always reserves the real content's block size —
-				    while loading (behind the placeholder) as much as after the
-				    reveal — keeping the swap free of layout shift. */}
+				    the grid cell always reserves the real content's size — behind
+				    the placeholder while loading as much as after the reveal —
+				    keeping the swap free of layout shift. */}
 				<motion.div
 					ref={contentRef}
 					onFocus={(event) => {
@@ -142,7 +150,7 @@ export function ReadyReveal({ ready, placeholder, children, className }: ReadyRe
 					animate={ready ? VISIBLE : HIDDEN}
 					initial={false}
 					transition={k.transition}
-					style={GRID_CELL}
+					style={CONTENT_CELL}
 				>
 					{children}
 				</motion.div>
