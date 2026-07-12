@@ -11,6 +11,14 @@ import { isNativeContextMenuRequest } from '../../utilities'
 /** Navigable menu items: `role="menuitem"`, excluding disabled rows. @internal */
 export const MENUITEM_SELECTOR = '[role="menuitem"]:not([data-disabled])'
 
+/**
+ * Keys that activate the active menu item. Space joins Enter (APG menu pattern):
+ * the trigger is a button, not a text input, so Space selects rather than types.
+ * Module-level for a stable reference so the roving handler stays memoized.
+ * @internal
+ */
+const MENU_ACTIVATION_KEYS = ['Enter', ' '] as const
+
 type MenuStateOptions = {
 	open?: boolean
 	defaultOpen?: boolean
@@ -122,6 +130,7 @@ export function useMenuState({
 		itemSelector: MENUITEM_SELECTOR,
 		activeDescendantRef: triggerRef,
 		typeahead: true,
+		activationKey: MENU_ACTIVATION_KEYS,
 		manageAriaSelected: false,
 	})
 

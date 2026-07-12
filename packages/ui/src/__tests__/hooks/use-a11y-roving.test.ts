@@ -362,6 +362,35 @@ describe('useA11yRoving', () => {
 		container.remove()
 	})
 
+	it('virtual mode: any key in an activationKey list clicks the active item', () => {
+		const container = makeContainer(3)
+
+		const items = Array.from(container.querySelectorAll('button'))
+
+		items[1]?.setAttribute('data-active', '')
+
+		const clickSpy = vi.fn()
+
+		items[1]?.addEventListener('click', clickSpy)
+
+		const { result } = renderHook(() => {
+			const ref = useRef<HTMLElement>(container)
+
+			return useA11yRoving(ref, {
+				itemSelector: '[role="option"]',
+				mode: 'virtual',
+				activationKey: ['Enter', ' '],
+			})
+		})
+
+		// Space (' ') is a listed activation key, so it activates like Enter.
+		result.current(makeKeyEvent(' '))
+
+		expect(clickSpy).toHaveBeenCalledTimes(1)
+
+		container.remove()
+	})
+
 	it('virtual mode: mirrors the active item into aria-selected and aria-activedescendant', () => {
 		const container = makeContainer(3)
 

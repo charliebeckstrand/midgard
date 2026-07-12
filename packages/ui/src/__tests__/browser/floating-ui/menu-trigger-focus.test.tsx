@@ -144,6 +144,34 @@ describe('MenuTrigger arrow-key roving (real floating engine)', () => {
 		})
 	})
 
+	it('Space activates the active item and stays closed (does not re-toggle)', async () => {
+		const onEdit = vi.fn()
+		renderUI(menu(onEdit))
+		const trigger = screen.getByRole('button', { name: 'Open' })
+		trigger.focus()
+		await userEvent.click(trigger)
+		await screen.findByRole('menu')
+
+		await userEvent.keyboard('{ArrowDown}')
+		await waitFor(() =>
+			expect(screen.getByRole('menuitem', { name: 'Edit' })).toHaveAttribute('data-active'),
+		)
+
+		// Space selects the active row like Enter; the trigger's native Space
+		// activation must not fire and re-open the just-closed menu.
+		await userEvent.keyboard('[Space]')
+
+		await waitFor(() => {
+			expect(onEdit).toHaveBeenCalledTimes(1)
+			expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+		})
+
+		// Settle a frame in case a stray keyup click would re-toggle it.
+		await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))
+		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+		expect(onEdit).toHaveBeenCalledTimes(1)
+	})
+
 	it('clears aria-activedescendant when the menu closes', async () => {
 		renderUI(menu())
 		const trigger = screen.getByRole('button', { name: 'Open' })
