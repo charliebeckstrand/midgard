@@ -2,18 +2,11 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useControllable } from '../../../hooks'
+import { createGroup, createRule } from '../engine/query-node'
+import { addChild, mapNode, removeChild } from '../engine/query-tree'
+import type { QueryField, QueryGroup } from '../engine/types'
 import type { FocusRegister, QueryBuilderActions } from './context'
-import {
-	addChild,
-	createGroup,
-	createRule,
-	type FocusTarget,
-	findFocusTarget,
-	focusKeyOf,
-	mapNode,
-	removeChild,
-} from './query-builder-utilities'
-import type { QueryField, QueryGroup } from './types'
+import { type FocusTarget, findFocusTarget, focusKeyOf } from './query-builder-utilities'
 
 type QueryBuilderTreeOptions = {
 	fields: QueryField[]

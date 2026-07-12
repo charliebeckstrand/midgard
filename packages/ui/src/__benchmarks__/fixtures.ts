@@ -7,7 +7,7 @@
 
 import type { GridColumn } from '../modules/grid'
 import type { ColumnSizeProfile } from '../modules/grid/engine/grid-column/allocate'
-import type { QueryField, QueryGroup, QueryNode } from '../modules/query/query-builder/types'
+import type { QueryField, QueryGroup, QueryNode } from '../modules/query/engine/types'
 
 function rng(seed = 1) {
 	let state = seed >>> 0

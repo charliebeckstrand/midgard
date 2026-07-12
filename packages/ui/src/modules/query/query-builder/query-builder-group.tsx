@@ -9,10 +9,10 @@ import { Segment, SegmentControl, SegmentItem } from '../../../components/segmen
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
 import { cn } from '../../../core'
 import { k } from '../../../recipes/kata/query-builder'
+import type { QueryCombinator, QueryGroup } from '../engine/types'
 import { useFocusableRef, useQueryBuilderActions, useQueryBuilderState } from './context'
 import { QueryBuilderRule } from './query-builder-rule'
 import { focusKeys } from './query-builder-utilities'
-import type { QueryCombinator, QueryGroup } from './types'
 
 /** Props for {@link QueryBuilderGroup}: the group node to render and whether it is the tree root. */
 export type QueryBuilderGroupProps = {

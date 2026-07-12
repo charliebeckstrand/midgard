@@ -1,12 +1,18 @@
+export { isQueryActive } from './engine/query-active'
+export { evaluateQuery, matchQueryRule } from './engine/query-evaluate'
+export { createGroup, createRule } from './engine/query-node'
+export { getOperators } from './engine/query-operators'
+export { addChild, mapNode, removeChild } from './engine/query-tree'
+export type {
+	QueryCombinator,
+	QueryField,
+	QueryFieldType,
+	QueryGroup as QueryGroupNode,
+	QueryNode,
+	QueryOperator,
+	QueryRule as QueryRuleNode,
+} from './engine/types'
 export {
-	addChild,
-	createGroup,
-	createRule,
-	evaluateQuery,
-	getOperators,
-	isQueryActive,
-	mapNode,
-	matchQueryRule,
 	QueryBuilder,
 	type QueryBuilderContextValue,
 	QueryBuilderGroup,
@@ -16,13 +22,5 @@ export {
 	type QueryBuilderRuleProps,
 	QueryBuilderRuleValue,
 	type QueryBuilderRuleValueProps,
-	type QueryCombinator,
-	type QueryField,
-	type QueryFieldType,
-	type QueryGroupNode,
-	type QueryNode,
-	type QueryOperator,
-	type QueryRuleNode,
-	removeChild,
 	useQueryBuilderContext,
 } from './query-builder'

@@ -1,4 +1,4 @@
-import { isEmptyValue } from './query-builder-utilities'
+import { isEmptyValue } from './query-active'
 import type { QueryGroup, QueryNode } from './types'
 
 /**

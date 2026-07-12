@@ -2,7 +2,7 @@
 
 import { type ReactNode, useCallback } from 'react'
 import { createContext } from '../../../core'
-import type { QueryCombinator, QueryField, QueryGroup, QueryRule } from './types'
+import type { QueryCombinator, QueryField, QueryGroup, QueryRule } from '../engine/types'
 
 /** Registers (or, with `null`, unregisters) a focusable control under `key`. */
 export type FocusRegister = (key: string, el: HTMLElement | null) => void

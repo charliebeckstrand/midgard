@@ -9,10 +9,11 @@ import { ListboxOption } from '../../../components/listbox'
 import { Select } from '../../../components/select'
 import { cn } from '../../../core'
 import { k } from '../../../recipes/kata/query-builder'
+import { getOperators } from '../engine/query-operators'
+import type { QueryRule } from '../engine/types'
 import { useFocusableRef, useQueryBuilderActions, useQueryBuilderState } from './context'
 import { QueryBuilderRuleValue } from './query-builder-rule-value'
-import { focusKeys, getOperators } from './query-builder-utilities'
-import type { QueryRule } from './types'
+import { focusKeys } from './query-builder-utilities'
 
 /** Props for {@link QueryBuilderRule}: the rule node to render. */
 export type QueryBuilderRuleProps = {
