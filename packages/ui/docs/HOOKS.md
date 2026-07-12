@@ -44,7 +44,7 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 | `useA11yControl` | Field a11y scaffolding: `useA11yScope` specialized for a labelled control (label/description/error slots). |
 | `useA11yPanel` | Modal-panel labelling scope: `useA11yScope` for dialog roots, setting role + `aria-modal` and title/desc ids. |
 | `useA11yDisclosure` | Non-modal trigger↔panel pairing: reciprocal `aria-controls`/`aria-labelledby` (+ optional `aria-expanded`). |
-| `useA11yRoving` | Arrow/Home/End roving over container items: focus or virtual mode, single-Tab-stop ownership, row cross-axis. |
+| `useA11yRoving` | Arrow/Home/End roving over container items: focus or virtual mode, single-Tab-stop ownership, row cross-axis, or an indexed `VirtualItemSource` for windowed lists. |
 | `useA11yAutoFocus` | Moves focus to `ref.current` whenever `when` flips true; re-focuses on false→true. |
 | `useA11yLiveRegion` | Props for a consumer-filled live region: status/alert landmark with matching `aria-live`/`aria-atomic`. |
 | `useA11yAnnouncements` | Declaratively narrates a changing status string to the live-region announcer, skipping initial and dupes. |

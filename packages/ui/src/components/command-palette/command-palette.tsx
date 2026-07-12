@@ -6,6 +6,7 @@ import type { KeybindingsMap } from 'tinykeys'
 import { cn } from '../../core'
 import { useKeybindings } from '../../hooks/use-keybindings'
 import { QueryContext, useQueryValue } from '../../primitives/query'
+import { VirtualItemSourceContext } from '../../primitives/virtual-options/virtual-item-source-context'
 import { k } from '../../recipes/kata/command-palette'
 import { Button } from '../button'
 import { Dialog, DialogBody, type DialogPanelVariants } from '../dialog'
@@ -46,9 +47,13 @@ export type CommandPaletteProps = Pick<DialogPanelVariants, 'size'> & {
 	/**
 	 * Items to render in the palette. Read the live and deferred query with
 	 * {@link useCommandPaletteQuery}; filter against `deferredQuery` to keep
-	 * typing responsive. CommandPalette does not virtualize; keep the rendered
-	 * set to a few hundred items, or wrap children in your own windowed renderer
-	 * for larger sets.
+	 * typing responsive. Wrap the filtered items in `VirtualOptions` with
+	 * `getOptionId` for large lists: arrow then navigates the full set by
+	 * index, reaching items outside the rendered window. Unlike
+	 * `Combobox`/`Listbox`, whose panel already carries a fixed max-height,
+	 * `DialogBody` sizes to its content — give `VirtualOptions` a wrapper with
+	 * an explicit, definite height (not just `max-height`) and `overflow-y:
+	 * auto`, e.g. `<div style={{ height: 320, overflow: 'auto' }}>`.
 	 */
 	children: ReactNode
 }
@@ -63,7 +68,10 @@ const DEFAULT_TRIGGER_SHORTCUT = '$mod+KeyK'
  * `initialFocus`; arrow keys drive a virtual roving highlight via
  * `aria-activedescendant` while focus stays on the input. The listbox owns only
  * options (`aria-required-children`), so the no-results message lives in a
- * sibling live `<output>` that announces when the filtered set empties.
+ * sibling live `<output>` that announces when the filtered set empties. A
+ * `VirtualOptions` inside `children` registers its windowed item source
+ * automatically, so the highlight and type-ahead reach items outside the
+ * rendered window.
  */
 export function CommandPalette({
 	open,
@@ -86,6 +94,7 @@ export function CommandPalette({
 		onKeyDown,
 		close,
 		context,
+		virtualSourceRef,
 	} = useCommandPaletteState({ open, onOpenChange })
 
 	const triggerBindings = useMemo<KeybindingsMap>(() => {
@@ -149,7 +158,9 @@ export function CommandPalette({
 							data-slot="command-palette-list"
 							className={cn(k.list)}
 						>
-							{children}
+							<VirtualItemSourceContext value={virtualSourceRef}>
+								{children}
+							</VirtualItemSourceContext>
 						</div>
 						{/* The listbox owns only options (`aria-required-children`). The
 					    no-results status is a sibling `<output>` that announces when the
