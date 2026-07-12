@@ -60,6 +60,7 @@ export function GridGroupByButton({
 		<Tooltip>
 			<TooltipTrigger>
 				<Button
+					type="button"
 					variant="bare"
 					// The blue accent marks the active group, matching an applied filter's
 					// button; `idle` is the resting muted tint, dropped once accented so it

@@ -55,6 +55,7 @@ function VisibilityToggle({ visible, onToggle, showLabel, hideLabel, disabled }:
 				    screen readers do not reliably announce a name swap on the same
 				    control. The visible tooltip still swaps. */}
 				<Button
+					type="button"
 					variant="bare"
 					aria-label={showLabel}
 					aria-pressed={visible}

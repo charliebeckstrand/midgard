@@ -130,6 +130,29 @@ describe('MenuTrigger', () => {
 		expect(onKeyDown).toHaveBeenCalled()
 	})
 
+	it("composes the cloned child's own ref with the floating reference", () => {
+		let node: HTMLElement | null = null
+
+		renderUI(
+			<Menu placement="bottom-start">
+				<MenuTrigger>
+					<button
+						type="button"
+						ref={(el) => {
+							node = el
+						}}
+					>
+						Open
+					</button>
+				</MenuTrigger>
+			</Menu>,
+		)
+
+		// The trigger clones the child and wires its own floating ref; the child's
+		// ref must still receive the node rather than be clobbered.
+		expect(node).toBe(screen.getByText('Open'))
+	})
+
 	it('toggles open and still calls a consumer onClick on the fallback button', () => {
 		// On the plain-button fallback a consumer onClick must not clobber the
 		// open toggle.

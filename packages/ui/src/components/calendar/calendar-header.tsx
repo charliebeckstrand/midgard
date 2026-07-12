@@ -59,6 +59,7 @@ export function CalendarHeader({
 			className={cn(k.header({ size }))}
 		>
 			<Button
+				type="button"
 				variant="plain"
 				onClick={onPrevMonth}
 				aria-label="Previous month"
@@ -77,6 +78,7 @@ export function CalendarHeader({
 				triggerClassName={cn(activeIndex === 1 && k.day.active.base)}
 			/>
 			<Button
+				type="button"
 				variant="plain"
 				onClick={onNextMonth}
 				aria-label="Next month"

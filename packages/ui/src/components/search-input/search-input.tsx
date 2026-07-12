@@ -110,6 +110,7 @@ export function SearchInput({
 		<LoadingSpinner />
 	) : currentValue !== '' ? (
 		<Button
+			type="button"
 			variant="bare"
 			className="pointer-events-auto"
 			aria-label="Clear search"

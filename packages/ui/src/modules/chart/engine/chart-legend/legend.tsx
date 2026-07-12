@@ -192,6 +192,7 @@ function ChartLegendEntry({
 	// it reads as a harmless no-op rather than a reason to drop the button.
 	const control = (
 		<Button
+			type="button"
 			ref={entryRef}
 			size="sm"
 			variant="plain"
@@ -263,6 +264,7 @@ function ChartLegendOverflowSwitch({
 }: ChartLegendOverflowSwitchProps) {
 	return (
 		<Button
+			type="button"
 			size="sm"
 			variant="plain"
 			data-slot="chart-legend-item"
@@ -678,6 +680,7 @@ export function ChartLegend({
 
 		return (
 			<Button
+				type="button"
 				key={`reference:${reference.index}`}
 				size="sm"
 				variant="plain"
@@ -749,6 +752,7 @@ export function ChartLegend({
 					className="flex w-full items-center justify-between gap-1 pt-1"
 				>
 					<Button
+						type="button"
 						size="sm"
 						variant="plain"
 						aria-label="Previous legend entries"
@@ -763,6 +767,7 @@ export function ChartLegend({
 					</Text>
 
 					<Button
+						type="button"
 						size="sm"
 						variant="plain"
 						aria-label="Next legend entries"
@@ -784,7 +789,12 @@ export function ChartLegend({
 				// keyboard open lands on the switches it just revealed.
 				<Popover placement="bottom">
 					<PopoverTrigger>
-						<Button size="sm" variant="plain" aria-label={`Show ${overflowCount} more`}>
+						<Button
+							type="button"
+							size="sm"
+							variant="plain"
+							aria-label={`Show ${overflowCount} more`}
+						>
 							<Text as="span" severity="muted" size="sm" className="tabular-nums">
 								+{overflowCount}
 							</Text>

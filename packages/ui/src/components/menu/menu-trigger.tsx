@@ -7,6 +7,7 @@ import {
 	type KeyboardEvent,
 	type MouseEvent,
 	type ReactElement,
+	type Ref,
 } from 'react'
 import { cn } from '../../core'
 import { useComposedRef } from '../../hooks'
@@ -21,7 +22,9 @@ export type MenuTriggerProps =
  * Disclosure trigger for a dropdown {@link Menu}. Clones a single child element
  * or renders its own `<button>`, wiring `aria-haspopup="menu"`,
  * `aria-expanded`, and `aria-controls` and toggling open state on click while
- * composing with the consumer's own `onClick`.
+ * composing with the consumer's own `onClick`. A cloned child's own `ref`
+ * merges with the floating reference, so the trigger element stays reachable
+ * (e.g. as a focus target).
  *
  * The trigger keeps focus while the menu is open, so Tab off it closes the menu
  * and lets focus proceed to the next tabbable in one keystroke.
@@ -31,7 +34,15 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 
 	const { setOpen, dismissToTab, triggerRef, setReference } = useMenuActions()
 
-	const mergeRefs = useComposedRef<HTMLButtonElement>(triggerRef, setReference)
+	// Merge the child's own ref (React 19 ref-as-prop) with the floating
+	// reference so a consumer can register the trigger element (e.g. as a focus
+	// target) rather than have it clobbered — matching `TooltipTrigger`/
+	// `PopoverTrigger`.
+	const childRef = isValidElement(children)
+		? ((children.props as { ref?: Ref<HTMLButtonElement> }).ref ?? undefined)
+		: undefined
+
+	const mergeRefs = useComposedRef<HTMLButtonElement>(triggerRef, setReference, childRef)
 
 	// Focus rests on the trigger while the menu is open, so Tab (either direction)
 	// arrives here rather than in the panel. Close on it without `preventDefault`,

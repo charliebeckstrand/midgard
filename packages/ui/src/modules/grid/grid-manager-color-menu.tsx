@@ -56,7 +56,7 @@ export function GridManagerColorMenu({
 	return (
 		<Menu aria-label={`Color menu for ${label}`} placement="bottom-end" className={className}>
 			<MenuTrigger>
-				<Button color={color} variant="soft" aria-label={`Color for ${label}`}>
+				<Button type="button" color={color} variant="soft" aria-label={`Color for ${label}`}>
 					{color ? colorLabel(color) : 'Color'}
 				</Button>
 			</MenuTrigger>

@@ -1,11 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import {
-	createGroup,
-	createRule,
-	evaluateQuery,
-	matchQueryRule,
-	type QueryField,
-} from '../../modules/query'
+import { evaluateQuery, matchQueryRule } from '../../modules/query/engine/query-evaluate'
+import { createGroup, createRule } from '../../modules/query/engine/query-node'
+import type { QueryField } from '../../modules/query/engine/types'
 
 describe('matchQueryRule', () => {
 	it('matches text operators case-insensitively', () => {

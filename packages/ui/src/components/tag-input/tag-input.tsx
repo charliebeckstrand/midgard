@@ -181,6 +181,7 @@ export function TagInput({
 			prefix={badges}
 			suffix={
 				<Button
+					type="button"
 					aria-label="Add tag"
 					variant="bare"
 					disabled={disabled || atMax || inputValue.trim() === ''}

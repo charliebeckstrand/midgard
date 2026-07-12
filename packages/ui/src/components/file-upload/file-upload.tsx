@@ -177,6 +177,7 @@ function renderInputVariant(props: FileUploadInputProps, state: FileUploadRender
 						suffix={
 							hasFiles ? (
 								<Button
+									type="button"
 									variant="bare"
 									className="pointer-events-auto"
 									aria-label="Clear selected file(s)"
@@ -187,6 +188,7 @@ function renderInputVariant(props: FileUploadInputProps, state: FileUploadRender
 								</Button>
 							) : (
 								<Button
+									type="button"
 									variant="bare"
 									className="pointer-events-auto"
 									aria-label="Browse files"
@@ -225,6 +227,7 @@ function renderButtonVariant(props: FileUploadButtonProps, state: FileUploadRend
 				onChange={handleChange}
 			/>
 			<Button
+				type="button"
 				size={size}
 				color={color}
 				disabled={disabled}
@@ -236,6 +239,7 @@ function renderButtonVariant(props: FileUploadButtonProps, state: FileUploadRend
 			</Button>
 			{hasFiles && (
 				<Button
+					type="button"
 					size={size}
 					variant="soft"
 					color="red"
@@ -322,6 +326,7 @@ function DropSelection({
 				{text}
 			</div>
 			<Button
+				type="button"
 				variant="soft"
 				color="red"
 				disabled={disabled}

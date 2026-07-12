@@ -54,6 +54,7 @@ export function PdfViewerToolbar() {
 							<Tooltip>
 								<TooltipTrigger>
 									<Button
+										type="button"
 										variant="plain"
 										aria-label={sidebarToggleLabel}
 										aria-expanded={sidebarOpen}
@@ -71,6 +72,7 @@ export function PdfViewerToolbar() {
 							<Tooltip>
 								<TooltipTrigger>
 									<Button
+										type="button"
 										variant="plain"
 										aria-label="Show thumbnails"
 										aria-expanded={thumbsOpen}
@@ -120,6 +122,7 @@ export function PdfViewerToolbar() {
 					<Tooltip>
 						<TooltipTrigger>
 							<Button
+								type="button"
 								variant="plain"
 								aria-label="Rotate"
 								disabled={controlsDisabled}

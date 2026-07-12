@@ -69,6 +69,7 @@ export function HoldButton({
 
 	return (
 		<Button
+			type="button"
 			{...props}
 			disabled={disabled}
 			data-slot="hold-button"

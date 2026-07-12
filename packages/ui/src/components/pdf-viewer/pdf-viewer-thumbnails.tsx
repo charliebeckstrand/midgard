@@ -96,6 +96,7 @@ export function PdfViewerThumbnails() {
 						<Flex gap="sm" justify="between" align="center">
 							<div>Pages</div>
 							<Button
+								type="button"
 								variant="plain"
 								aria-label="Close thumbnails"
 								onClick={() => setThumbsOpen(false)}

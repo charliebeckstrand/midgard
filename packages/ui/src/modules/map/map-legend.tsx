@@ -98,6 +98,7 @@ export function MapLegend({ items, hidden, onToggle, onFocus, panel = false }: M
 
 				return (
 					<Button
+						type="button"
 						key={item.id}
 						size="sm"
 						variant="plain"

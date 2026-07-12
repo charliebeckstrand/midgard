@@ -31,6 +31,7 @@ export function SidebarHeader({ className, children, closeIcon, ...props }: Side
 			{children}
 			{offcanvas && (
 				<Button
+					type="button"
 					variant="bare"
 					aria-label="Close navigation"
 					className="ml-auto"

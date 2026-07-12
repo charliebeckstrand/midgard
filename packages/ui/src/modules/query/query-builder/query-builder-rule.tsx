@@ -9,10 +9,11 @@ import { ListboxOption } from '../../../components/listbox'
 import { Select } from '../../../components/select'
 import { cn } from '../../../core'
 import { k } from '../../../recipes/kata/query-builder'
+import { getOperators } from '../engine/query-operators'
+import type { QueryRule } from '../engine/types'
 import { useFocusableRef, useQueryBuilderActions, useQueryBuilderState } from './context'
+import { focusKeys } from './query-builder-focus'
 import { QueryBuilderRuleValue } from './query-builder-rule-value'
-import { focusKeys, getOperators } from './query-builder-utilities'
-import type { QueryRule } from './types'
 
 /** Props for {@link QueryBuilderRule}: the rule node to render. */
 export type QueryBuilderRuleProps = {
@@ -145,12 +146,13 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 
 			{removable && (
 				<Button
+					type="button"
 					ref={removeRef}
 					variant="bare"
 					color="red"
 					aria-label="Remove rule"
 					disabled={disabled}
-					className={k.rowRemove}
+					className={k.remove}
 					onClick={onRemove}
 				>
 					<Icon icon={<Trash />} />

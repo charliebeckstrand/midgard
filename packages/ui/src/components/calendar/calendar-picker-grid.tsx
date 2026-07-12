@@ -70,15 +70,17 @@ export function CalendarPickerGrid({
 				className={cn(k.header({ size }))}
 			>
 				<Button
+					type="button"
 					variant="plain"
 					onClick={onPrev}
 					aria-label={prevLabel}
 					prefix={<Icon icon={<ChevronLeft />} />}
 				/>
-				<Button variant="plain" onClick={onCenter}>
+				<Button type="button" variant="plain" onClick={onCenter}>
 					{centerLabel}
 				</Button>
 				<Button
+					type="button"
 					variant="plain"
 					onClick={onNext}
 					aria-label={nextLabel}
@@ -94,6 +96,7 @@ export function CalendarPickerGrid({
 			>
 				{cells.map((cell) => (
 					<Button
+						type="button"
 						key={cell.key}
 						role="option"
 						aria-selected={cell.selected}

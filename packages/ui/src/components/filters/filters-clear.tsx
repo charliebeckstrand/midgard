@@ -39,7 +39,7 @@ export function FiltersClear({ children, className }: FiltersClearProps) {
 	}
 
 	return (
-		<Button data-slot="filter-clear" onClick={handleClear} className={className}>
+		<Button type="button" data-slot="filter-clear" onClick={handleClear} className={className}>
 			{children}
 		</Button>
 	)

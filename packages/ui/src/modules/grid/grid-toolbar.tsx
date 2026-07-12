@@ -97,7 +97,12 @@ export function GridToolbar({
 					{/* Grouped with the search on the row's start (filter-related), across
 					    from the table tools; surfaces only while a filter constrains rows. */}
 					{hasActiveFilters && (
-						<Button variant="soft" color="amber" onClick={() => columnFilters?.clear()}>
+						<Button
+							type="button"
+							variant="soft"
+							color="amber"
+							onClick={() => columnFilters?.clear()}
+						>
 							Clear all filters
 						</Button>
 					)}
@@ -105,7 +110,12 @@ export function GridToolbar({
 					{showTools && (
 						<Toolbar aria-label="Table tools" className={cn(k.toolbar.actions)}>
 							{showColumnManager && (
-								<Button variant="plain" aria-haspopup="dialog" onClick={onManageColumns}>
+								<Button
+									type="button"
+									variant="plain"
+									aria-haspopup="dialog"
+									onClick={onManageColumns}
+								>
 									<Icon icon={<SlidersHorizontal />} />
 									{columnManagerLabel}
 								</Button>
@@ -114,7 +124,7 @@ export function GridToolbar({
 							{showExport && (
 								<Menu placement="bottom-start">
 									<MenuTrigger>
-										<Button variant="plain">
+										<Button type="button" variant="plain">
 											<Icon icon={<Download />} />
 											Export
 										</Button>
