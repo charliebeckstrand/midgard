@@ -55,6 +55,25 @@ const spinner = defineRecipe({
 	defaults: { size: 'md', color: 'current' },
 })
 
+/**
+ * Breathing gradient sphere: positioning root for the orb's layered halo and
+ * core. Diameter tracks the spinner scale; `color` feeds the gradient layers
+ * through `currentColor`. Motion is component-driven (framer `motion.*`),
+ * resting as a static orb under `prefers-reduced-motion` (WCAG 2.3.3).
+ */
+const orb = defineRecipe({
+	base: 'relative inline-block shrink-0',
+	size: {
+		xs: 'size-3',
+		sm: 'size-4',
+		md: 'size-5',
+		lg: 'size-6',
+		xl: 'size-8',
+	},
+	color,
+	defaults: { size: 'md', color: 'current' },
+})
+
 export const k = defineRecipe(
 	{
 		base: [flex.inline, 'shrink-0'],
@@ -68,10 +87,12 @@ export const k = defineRecipe(
 		color,
 		defaults: { size: 'md', color: 'current' },
 	},
-	{ dot, spinner },
+	{ dot, spinner, orb },
 )
 
 /** Recipe variant props for {@link LoadingDots} — the styling axes its kata exposes (`size`, `color`), for consumers composing custom slots. */
 export type LoadingDotsVariants = VariantProps<typeof k>
 /** Recipe variant props for {@link LoadingSpinner} — its styling axes (`size`, `color`), for consumers composing custom slots. */
 export type LoadingSpinnerVariants = VariantProps<typeof spinner>
+/** Recipe variant props for {@link LoadingOrb} — its styling axes (`size`, `color`), for consumers composing custom slots. */
+export type LoadingOrbVariants = VariantProps<typeof orb>

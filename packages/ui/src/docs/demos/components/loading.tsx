@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Button } from '../../../components/button'
 import { Flex } from '../../../components/flex'
-import { LoadingDots, LoadingSpinner } from '../../../components/loading'
+import { LoadingDots, LoadingOrb, LoadingSpinner } from '../../../components/loading'
 import { Stack } from '../../../components/stack'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../components/tabs'
 import { capitalize, Example, LabeledColumn, SizeListbox } from '../../engine'
@@ -23,6 +23,7 @@ export function Demo() {
 				<TabList aria-label="Loader style">
 					<Tab value="spinner">Spinner</Tab>
 					<Tab value="dots">Dots</Tab>
+					<Tab value="orb">Orb</Tab>
 				</TabList>
 				<TabContents>
 					<TabContent value="spinner">
@@ -116,6 +117,37 @@ export function Demo() {
 										Saving
 									</Button>
 								</Flex>
+							</Example>
+						</Stack>
+					</TabContent>
+					<TabContent value="orb">
+						<Stack gap="xl">
+							<Example title="Default">
+								<LoadingOrb />
+							</Example>
+
+							<Example title="Sizes">
+								<Flex gap="lg" align="end">
+									{sizes.map((s) => (
+										<LabeledColumn key={s} label={s}>
+											<LoadingOrb size={s} />
+										</LabeledColumn>
+									))}
+								</Flex>
+							</Example>
+
+							<Example title="Colors">
+								<Flex gap="lg">
+									{colors.map((c) => (
+										<LabeledColumn key={c} label={capitalize(c)}>
+											<LoadingOrb color={c} size="lg" />
+										</LabeledColumn>
+									))}
+								</Flex>
+							</Example>
+
+							<Example title="Rainbow">
+								<LoadingOrb color="rainbow" size="xl" />
 							</Example>
 						</Stack>
 					</TabContent>

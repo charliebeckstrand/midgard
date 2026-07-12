@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { LoadingDots, LoadingSpinner } from '../../components/loading'
+import { LoadingDots, LoadingOrb, LoadingSpinner } from '../../components/loading'
 import { bySlot, renderUI, screen } from '../helpers'
 
 describe('LoadingDots', () => {
@@ -70,5 +70,49 @@ describe('LoadingSpinner', () => {
 
 		// Rests as a static glyph under prefers-reduced-motion rather than spinning.
 		expect(spinner?.className).toContain('motion-safe:animate-spin')
+	})
+})
+
+describe('LoadingOrb', () => {
+	it('renders an output with data-slot="loading-orb" and a default sr-only label of "Loading"', () => {
+		const { container } = renderUI(<LoadingOrb />)
+
+		const orb = bySlot(container, 'loading-orb')
+
+		expect(orb).toBeInTheDocument()
+
+		expect(orb?.tagName).toBe('OUTPUT')
+
+		expect(screen.getByText('Loading')).toBeInTheDocument()
+
+		expect(screen.getByText('Loading')).toHaveClass('sr-only')
+	})
+
+	it('accepts a custom label', () => {
+		renderUI(<LoadingOrb label="Saving" />)
+
+		expect(screen.getByText('Saving')).toBeInTheDocument()
+	})
+
+	it('renders aria-hidden halo and core layers', () => {
+		const { container } = renderUI(<LoadingOrb />)
+
+		const halo = bySlot(container, 'loading-orb-halo')
+
+		const core = bySlot(container, 'loading-orb-core')
+
+		expect(halo).toHaveAttribute('aria-hidden', 'true')
+
+		expect(core).toHaveAttribute('aria-hidden', 'true')
+	})
+
+	it('renders a specular highlight layer in rainbow mode', () => {
+		const { container } = renderUI(<LoadingOrb color="rainbow" />)
+
+		const core = bySlot(container, 'loading-orb-core')
+
+		// Mono orbs bake the highlight into the sphere gradient; rainbow adds a
+		// separate static layer over the revolving spectrum.
+		expect(core?.children).toHaveLength(2)
 	})
 })
