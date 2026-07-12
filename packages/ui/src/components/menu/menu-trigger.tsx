@@ -32,7 +32,7 @@ export type MenuTriggerProps =
 export function MenuTrigger({ children, className, ...props }: MenuTriggerProps) {
 	const { open, menuId, getReferenceProps } = useMenuState()
 
-	const { setOpen, dismissToTab, triggerRef, setReference } = useMenuActions()
+	const { setOpen, dismissToTab, rovingKeyDown, triggerRef, setReference } = useMenuActions()
 
 	// Merge the child's own ref (React 19 ref-as-prop) with the floating
 	// reference so a consumer can register the trigger element (e.g. as a focus
@@ -44,11 +44,15 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 
 	const mergeRefs = useComposedRef<HTMLButtonElement>(triggerRef, setReference, childRef)
 
-	// Focus rests on the trigger while the menu is open, so Tab (either direction)
-	// arrives here rather than in the panel. Close on it without `preventDefault`,
-	// letting the browser carry focus onward; `dismissToTab` marks the close
-	// `'focus-out'` so focus is not yanked back to the trigger.
-	const closeOnTab = (event: KeyboardEvent) => {
+	// Focus rests on the trigger while the menu is open, so every navigation key
+	// arrives here rather than in the panel. `rovingKeyDown` moves the
+	// `aria-activedescendant` cursor over the items (arrow / Home / End /
+	// type-ahead) and activates the active row on Enter — no-op while closed. Tab
+	// closes without `preventDefault`, letting the browser carry focus onward;
+	// `dismissToTab` marks the close `'focus-out'` so focus is not yanked back.
+	const handleTriggerKeyDown = (event: KeyboardEvent) => {
+		rovingKeyDown(event)
+
 		if (open && event.key === 'Tab') dismissToTab(event.nativeEvent)
 	}
 
@@ -72,7 +76,7 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 				},
 				onKeyDown: (event: KeyboardEvent) => {
 					childOnKeyDown?.(event)
-					closeOnTab(event)
+					handleTriggerKeyDown(event)
 				},
 			}),
 			ref: mergeRefs,
@@ -107,7 +111,7 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 				},
 				onKeyDown: (event: KeyboardEvent<HTMLButtonElement>) => {
 					consumerOnKeyDown?.(event)
-					closeOnTab(event)
+					handleTriggerKeyDown(event)
 				},
 			})}
 		>

@@ -1,6 +1,6 @@
 'use client'
 
-import type { CSSProperties, RefObject } from 'react'
+import type { CSSProperties, KeyboardEvent, RefObject } from 'react'
 import { createContext } from '../../core'
 import type { Step } from '../../recipes'
 
@@ -30,6 +30,13 @@ type MenuActionsValue = {
 	 * trigger. {@link MenuTrigger} calls this on Tab while the menu is open.
 	 */
 	dismissToTab: (event: Event) => void
+	/**
+	 * Virtual-roving key handler for the trigger: arrow / Home / End / type-ahead
+	 * move the dropdown's `aria-activedescendant` cursor over the menu items while
+	 * focus stays on the trigger, and Enter activates the active row. No-ops while
+	 * the panel is unmounted (a closed menu). {@link MenuTrigger} spreads it.
+	 */
+	rovingKeyDown: (event: KeyboardEvent) => void
 	static: boolean
 	triggerRef: RefObject<HTMLButtonElement | null>
 	setReference: (node: HTMLElement | null) => void

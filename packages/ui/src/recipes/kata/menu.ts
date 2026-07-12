@@ -14,7 +14,11 @@ const { flex, description } = narabi
 const { divider } = sen
 
 const item = defineRecipe({
-	base: ['group/option', flex.row, 'w-full', ...hannou.item, ...narabi.item],
+	// `hannou.active` layers the `data-active` wash beside `hannou.item`'s
+	// focus/hover wash: a dropdown roves its items via `aria-activedescendant`
+	// (focus stays on the trigger), marking the active row `data-active` rather
+	// than focusing it, so the highlight must key off that too.
+	base: ['group/option', flex.row, 'w-full', ...hannou.item, ...hannou.active, ...narabi.item],
 	// Padding and gap track the density axis; text tracks the size axis.
 	// They move together under a diagonal `<Density>` and split when the axes
 	// are set independently.

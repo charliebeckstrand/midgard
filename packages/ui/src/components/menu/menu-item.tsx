@@ -1,6 +1,6 @@
 'use client'
 
-import type { KeyboardEvent, MouseEvent, ReactNode } from 'react'
+import { type KeyboardEvent, type MouseEvent, type ReactNode, useId } from 'react'
 import { ariaAttr, cn, dataAttr } from '../../core'
 import { useDensity } from '../../primitives/density'
 import { useLink } from '../../primitives/link'
@@ -39,6 +39,12 @@ export function MenuItem(props: MenuItemProps) {
 
 	const { disabled, className, children, onAction } = props
 
+	// A stable id so a dropdown's `aria-activedescendant` (roving with focus on the
+	// trigger) can point at this row; a consumer-supplied id wins.
+	const reactId = useId()
+
+	const id = props.id ?? reactId
+
 	function handleSelect() {
 		if (disabled) return
 
@@ -56,6 +62,7 @@ export function MenuItem(props: MenuItemProps) {
 		if (disabled) {
 			return (
 				<span
+					id={id}
 					role="menuitem"
 					tabIndex={-1}
 					aria-disabled={true}
@@ -69,6 +76,7 @@ export function MenuItem(props: MenuItemProps) {
 		}
 
 		const {
+			id: _id,
 			disabled: _disabled,
 			className: _className,
 			children: _children,
@@ -79,6 +87,7 @@ export function MenuItem(props: MenuItemProps) {
 
 		return (
 			<LinkComponent
+				id={id}
 				role="menuitem"
 				tabIndex={-1}
 				data-slot="menu-item"
@@ -96,6 +105,7 @@ export function MenuItem(props: MenuItemProps) {
 	}
 
 	const {
+		id: _id,
 		disabled: _disabled,
 		className: _className,
 		children: _children,
@@ -107,6 +117,7 @@ export function MenuItem(props: MenuItemProps) {
 
 	return (
 		<button
+			id={id}
 			type="button"
 			role="menuitem"
 			tabIndex={-1}
