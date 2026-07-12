@@ -8,9 +8,13 @@
 		"build": "vite build",
 		"lint": "biome check --config-path=../.. .",
 		"lint:fix": "biome check --config-path=../.. --write .",
-		"check-types": "tsc --noEmit"
+		"check-types": "tsc --noEmit && node --experimental-strip-types scripts/check-fences.ts",
+		"test": "vitest run",
+		"test:related": "vitest related --run",
+		"test:changed": "base=$(git merge-base HEAD origin/main) && vitest run --passWithNoTests --changed=\"$base\""
 	},
 	"dependencies": {
+		"lucide-react": "^1.21.0",
 		"react": "^19.2.7",
 		"react-dom": "^19.2.7",
 		"ui": "workspace:*"
@@ -22,8 +26,11 @@
 		"@types/react": "^19.2.0",
 		"@types/react-dom": "^19.2.0",
 		"@vitejs/plugin-react": "^6.0.1",
+		"marked": "^18.0.5",
 		"tailwindcss": "^4.3.0",
 		"typescript": "^7.0.2",
-		"vite": "^8.0.16"
+		"vite": "^8.0.16",
+		"vitest": "^4.1.8",
+		"yaml": "^2.8.0"
 	}
 }
