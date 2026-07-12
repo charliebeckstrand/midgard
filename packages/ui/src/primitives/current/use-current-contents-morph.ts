@@ -166,19 +166,35 @@ export function useCurrentContentsMorph(
 
 		observe()
 
-		const mutationObserver = new MutationObserver(observe)
+		// The observed set is always a subset of `element.children` (`observe`
+		// scans only direct children), so just two mutations can change it: the
+		// container's own child list, and a direct child's `data-current` flip.
+		// Split scopes keep deep subtree churn — content re-rendering inside a
+		// panel — from re-running `observe` and its forced-layout re-measure:
+		// the child-list scope omits `subtree`, and the attribute scope (which
+		// needs `subtree`, child attributes are unobservable without it) filters
+		// to `data-current` plus a direct-child check that drops stamps from
+		// nested widgets.
+		const childListObserver = new MutationObserver(observe)
 
-		mutationObserver.observe(element, {
-			childList: true,
-			subtree: true,
+		childListObserver.observe(element, { childList: true })
+
+		const currentObserver = new MutationObserver((records) => {
+			if (records.some((record) => record.target.parentElement === element)) observe()
+		})
+
+		currentObserver.observe(element, {
 			attributes: true,
+			subtree: true,
 			attributeFilter: ['data-current'],
 		})
 
 		return () => {
 			resizeObserver.disconnect()
 
-			mutationObserver.disconnect()
+			childListObserver.disconnect()
+
+			currentObserver.disconnect()
 		}
 	}, [ref, enabled])
 
