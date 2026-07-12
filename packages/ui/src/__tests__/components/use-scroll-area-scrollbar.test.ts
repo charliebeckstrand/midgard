@@ -3,6 +3,47 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useScrollAreaScrollbar } from '../../components/scroll-area/use-scroll-area-scrollbar'
 import { makePointerEvent, mockDomGeometry } from '../helpers'
 
+// The scroll path coalesces thumb re-measures into one animation frame, so the
+// hook tests drive a controllable rAF queue and flush it after handleScroll to
+// observe the committed thumb state.
+let frameQueue: FrameRequestCallback[] = []
+
+function flushFrames(): void {
+	const pending = frameQueue
+
+	frameQueue = []
+
+	for (const cb of pending) cb(0)
+}
+
+/** Runs handleScroll and flushes the pending thumb frame in one act. */
+function scroll(hook: { result: { current: { handleScroll: () => void } } }): void {
+	act(() => {
+		hook.result.current.handleScroll()
+
+		flushFrames()
+	})
+}
+
+/** Registers a controllable rAF queue for the enclosing describe. */
+function useFrameQueue(): void {
+	beforeEach(() => {
+		frameQueue = []
+
+		vi.stubGlobal('requestAnimationFrame', (cb: FrameRequestCallback) => {
+			frameQueue.push(cb)
+
+			return frameQueue.length
+		})
+
+		vi.stubGlobal('cancelAnimationFrame', () => {})
+	})
+
+	afterEach(() => {
+		vi.unstubAllGlobals()
+	})
+}
+
 function setupHook(orientation: 'vertical' | 'horizontal' | 'both', scrollbar: 'auto' | 'visible') {
 	const hook = renderHook(() => useScrollAreaScrollbar({ orientation, scrollbar }))
 
@@ -76,10 +117,12 @@ describe('useScrollAreaScrollbar', () => {
 	})
 
 	describe('thumb computation via handleScroll', () => {
+		useFrameQueue()
+
 		it('computes a visible vertical thumb proportional to viewport/content ratio', () => {
 			const { hook, viewport } = setupHook('vertical', 'visible')
 
-			act(() => hook.result.current.handleScroll())
+			scroll(hook)
 
 			// viewport=100, content=400, track=100 → rawSize=25, clamped to MIN_THUMB_SIZE=20 → 25
 			expect(hook.result.current.verticalThumb.size).toBe(25)
@@ -90,7 +133,7 @@ describe('useScrollAreaScrollbar', () => {
 
 			mockDomGeometry(viewport, { scrollTop: 150 })
 
-			act(() => hook.result.current.handleScroll())
+			scroll(hook)
 
 			// maxScroll=300, scrollTop=150 → ratio 0.5 → offset 0.5 * (100-25) = 37.5
 			expect(hook.result.current.verticalThumb.offset).toBe(37.5)
@@ -101,7 +144,7 @@ describe('useScrollAreaScrollbar', () => {
 
 			mockDomGeometry(viewport, { scrollHeight: 80 })
 
-			act(() => hook.result.current.handleScroll())
+			scroll(hook)
 
 			expect(hook.result.current.verticalThumb).toEqual({ size: 0, offset: 0, visible: false })
 		})
@@ -112,7 +155,7 @@ describe('useScrollAreaScrollbar', () => {
 			// viewport=100, content=2000, track=100 → raw=5 → clamped to 20
 			mockDomGeometry(viewport, { scrollHeight: 2000 })
 
-			act(() => hook.result.current.handleScroll())
+			scroll(hook)
 
 			expect(hook.result.current.verticalThumb.size).toBe(20)
 		})
@@ -120,7 +163,7 @@ describe('useScrollAreaScrollbar', () => {
 		it('updates only the active axis when orientation is single', () => {
 			const { hook } = setupHook('vertical', 'visible')
 
-			act(() => hook.result.current.handleScroll())
+			scroll(hook)
 
 			expect(hook.result.current.horizontalThumb.visible).toBe(false)
 		})
@@ -138,7 +181,7 @@ describe('useScrollAreaScrollbar', () => {
 		it('sets isScrolling=true on scroll and fades after the delay', () => {
 			const { hook } = setupHook('vertical', 'auto')
 
-			act(() => hook.result.current.handleScroll())
+			scroll(hook)
 
 			expect(hook.result.current.isScrolling).toBe(true)
 
@@ -152,13 +195,13 @@ describe('useScrollAreaScrollbar', () => {
 		it('resets the fade timer on each scroll', () => {
 			const { hook } = setupHook('vertical', 'auto')
 
-			act(() => hook.result.current.handleScroll())
+			scroll(hook)
 
 			act(() => {
 				vi.advanceTimersByTime(600)
 			})
 
-			act(() => hook.result.current.handleScroll())
+			scroll(hook)
 
 			act(() => {
 				vi.advanceTimersByTime(600)
@@ -176,7 +219,7 @@ describe('useScrollAreaScrollbar', () => {
 		it('does not toggle isScrolling when scrollbar="visible"', () => {
 			const { hook } = setupHook('vertical', 'visible')
 
-			act(() => hook.result.current.handleScroll())
+			scroll(hook)
 
 			expect(hook.result.current.isScrolling).toBe(false)
 		})
@@ -195,6 +238,8 @@ describe('useScrollAreaScrollbar', () => {
 	})
 
 	describe('startDrag', () => {
+		useFrameQueue()
+
 		it('returns a function; calling it without refs is a noop', () => {
 			const { result } = renderHook(() =>
 				useScrollAreaScrollbar({ orientation: 'vertical', scrollbar: 'visible' }),
@@ -214,7 +259,7 @@ describe('useScrollAreaScrollbar', () => {
 		it('attaches pointermove/pointerup listeners and scrolls the viewport during drag', () => {
 			const { hook, viewport } = setupHook('vertical', 'visible')
 
-			act(() => hook.result.current.handleScroll())
+			scroll(hook)
 
 			const handler = hook.result.current.startDrag('y')
 
@@ -260,7 +305,7 @@ describe('useScrollAreaScrollbar', () => {
 		it('stops the drag on pointercancel', () => {
 			const { hook, viewport } = setupHook('vertical', 'visible')
 
-			act(() => hook.result.current.handleScroll())
+			scroll(hook)
 
 			const handler = hook.result.current.startDrag('y')
 
@@ -283,7 +328,7 @@ describe('useScrollAreaScrollbar', () => {
 		it('cleans up listeners on unmount mid-drag', () => {
 			const { hook, viewport } = setupHook('vertical', 'visible')
 
-			act(() => hook.result.current.handleScroll())
+			scroll(hook)
 
 			const handler = hook.result.current.startDrag('y')
 
@@ -306,7 +351,7 @@ describe('useScrollAreaScrollbar', () => {
 
 			mockDomGeometry(viewport, { scrollWidth: 400, clientWidth: 100, scrollHeight: 100 })
 
-			act(() => hook.result.current.handleScroll())
+			scroll(hook)
 
 			const handler = hook.result.current.startDrag('x')
 
@@ -326,7 +371,7 @@ describe('useScrollAreaScrollbar', () => {
 		it('cleans up a prior drag if startDrag is called again before pointerup', () => {
 			const { hook, viewport } = setupHook('vertical', 'visible')
 
-			act(() => hook.result.current.handleScroll())
+			scroll(hook)
 
 			const handler = hook.result.current.startDrag('y')
 
@@ -351,7 +396,7 @@ describe('useScrollAreaScrollbar', () => {
 			// trackSize - thumbSize <= 0 → scale = 0 → onMove leaves scrollTop alone.
 			const { hook, viewport, vTrack } = setupHook('vertical', 'visible')
 
-			act(() => hook.result.current.handleScroll())
+			scroll(hook)
 
 			mockDomGeometry(vTrack, { clientHeight: 10 })
 
