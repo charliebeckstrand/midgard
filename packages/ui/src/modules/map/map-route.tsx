@@ -5,8 +5,9 @@ import { type PointerEvent, useEffect, useId, useMemo } from 'react'
 import { cn } from '../../core'
 import { k, type MapSeriesColor } from '../../recipes/kata/map'
 import { mapMarkDimmed, useMapHoverSet, useMapPlat, useMapPointedMark } from './context'
-import { ROUTE_DRAW, ROUTE_HIT_WIDTH, ROUTE_STROKE_WIDTH } from './map-constants'
+import { ROUTE_HIT_WIDTH, ROUTE_STROKE_WIDTH } from './map-constants'
 import { linePath } from './map-geometry'
+import { ROUTE_DRAW } from './map-motion'
 import type { LngLat } from './types'
 
 /** Props for {@link MapRoute}. */

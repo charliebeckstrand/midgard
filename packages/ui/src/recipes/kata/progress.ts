@@ -6,12 +6,13 @@
  * provide; the bar reads the `bg` slice, the gauge reads all three.
  */
 import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
-import { iro, ji, kasane, kokkaku, narabi } from '../kiso'
+import { iro, ji, kasane, kokkaku, narabi, ugoki } from '../kiso'
 
 const { text } = iro
 const { size, weight } = ji
 const { rounded } = kasane
 const { flex } = narabi
+const { spring } = ugoki
 
 /**
  * Per-colour fill / bg / stroke classes shared between bar and gauge. The
@@ -93,6 +94,8 @@ export const k = defineRecipe(
 	},
 	{
 		color,
+		/** Value-fill settle: the bar and gauge sweep to their value on this spring. */
+		spring: spring.settle,
 		bar: {
 			fill,
 			indeterminate: 'w-1/3 animate-[progress-indeterminate_1.5s_ease-in-out_infinite]',
