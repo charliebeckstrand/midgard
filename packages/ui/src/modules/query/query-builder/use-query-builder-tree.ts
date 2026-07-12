@@ -1,19 +1,10 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useControllable } from '../../../hooks'
-import { createGroup, createRule } from '../engine/query-node'
-import { addChild, mapNode, removeChild } from '../engine/query-tree'
-import type { QueryField, QueryGroup } from '../engine/types'
+import type { QueryGroup } from '../engine/types'
+import { type QueryTreeOptions, useQueryTree } from '../use-query-tree'
 import type { FocusRegister, QueryBuilderActions } from './context'
-import { type FocusTarget, findFocusTarget, focusKeyOf } from './query-builder-utilities'
-
-type QueryBuilderTreeOptions = {
-	fields: QueryField[]
-	value?: QueryGroup
-	defaultValue?: QueryGroup
-	onValueChange?: (value: QueryGroup) => void
-}
+import { type FocusTarget, findFocusTarget, focusKeyOf } from './query-builder-focus'
 
 type QueryBuilderTreeResult = {
 	root: QueryGroup
@@ -21,25 +12,18 @@ type QueryBuilderTreeResult = {
 	register: FocusRegister
 }
 
-export function useQueryBuilderTree({
-	fields,
-	value,
-	defaultValue,
-	onValueChange,
-}: QueryBuilderTreeOptions): QueryBuilderTreeResult {
-	const initial = useMemo(() => defaultValue ?? createGroup('and'), [defaultValue])
+/**
+ * Composes the headless {@link useQueryTree} with the builder's focus
+ * management: it wraps `remove` so removing a node moves focus to a surviving
+ * neighbour (WCAG 2.4.3) rather than dropping to `<body>`, and exposes the
+ * `register` callback controls use to enrol their focusable elements.
+ */
+export function useQueryBuilderTree(options: QueryTreeOptions): QueryBuilderTreeResult {
+	const { root, actions } = useQueryTree(options)
 
-	const [tree, setTree] = useControllable<QueryGroup>({
-		value,
-		defaultValue: initial,
-		onValueChange: onValueChange && ((v) => v !== undefined && onValueChange(v)),
-	})
-
-	const root = tree ?? initial
-
-	// `remove` is referentially stable and cannot close over the live tree. A
-	// ref mirrors the latest root; the handler reads it to compute where focus
-	// lands after a node disappears.
+	// The wrapped `remove` is referentially stable and cannot close over the live
+	// tree. A ref mirrors the latest root; the handler reads it to compute where
+	// focus lands after a node disappears.
 	const treeRef = useRef(root)
 
 	treeRef.current = root
@@ -75,57 +59,23 @@ export function useQueryBuilderTree({
 		}
 	}, [pendingFocus])
 
-	const updateRule = useCallback<QueryBuilderActions['updateRule']>(
-		(id, patch) => {
-			setTree((prev) =>
-				mapNode(prev ?? initial, id, (node) =>
-					node.type === 'rule' ? { ...node, ...patch, type: 'rule' as const } : node,
-				),
-			)
-		},
-		[setTree, initial],
-	)
-
-	const updateCombinator = useCallback<QueryBuilderActions['updateCombinator']>(
-		(id, combinator) => {
-			setTree((prev) => mapNode(prev ?? initial, id, (node) => ({ ...node, combinator })))
-		},
-		[setTree, initial],
-	)
-
-	const addRule = useCallback(
-		(groupId: string) => {
-			setTree((prev) => addChild(prev ?? initial, groupId, createRule(fields[0])))
-		},
-		[setTree, initial, fields],
-	)
-
-	const addGroup = useCallback(
-		(groupId: string) => {
-			setTree((prev) =>
-				addChild(prev ?? initial, groupId, createGroup('and', [createRule(fields[0])])),
-			)
-		},
-		[setTree, initial, fields],
-	)
-
-	const remove = useCallback(
-		(id: string) => {
-			// Resolves focus candidates from the pre-removal tree; the effect
-			// moves focus once the node has unmounted.
+	const remove = useCallback<QueryBuilderActions['remove']>(
+		(id) => {
+			// Resolves focus candidates from the pre-removal tree; the effect moves
+			// focus once the node has unmounted.
 			const targets = findFocusTarget(treeRef.current, id)
 
-			setTree((prev) => removeChild(prev ?? initial, id))
+			actions.remove(id)
 
 			if (targets.length > 0) setPendingFocus(targets)
 		},
-		[setTree, initial],
+		[actions],
 	)
 
-	const actions = useMemo<QueryBuilderActions>(
-		() => ({ updateRule, updateCombinator, addRule, addGroup, remove }),
-		[updateRule, updateCombinator, addRule, addGroup, remove],
+	const builderActions = useMemo<QueryBuilderActions>(
+		() => ({ ...actions, remove }),
+		[actions, remove],
 	)
 
-	return { root, actions, register }
+	return { root, actions: builderActions, register }
 }

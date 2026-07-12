@@ -12,8 +12,8 @@ import { k } from '../../../recipes/kata/query-builder'
 import { getOperators } from '../engine/query-operators'
 import type { QueryRule } from '../engine/types'
 import { useFocusableRef, useQueryBuilderActions, useQueryBuilderState } from './context'
+import { focusKeys } from './query-builder-focus'
 import { QueryBuilderRuleValue } from './query-builder-rule-value'
-import { focusKeys } from './query-builder-utilities'
 
 /** Props for {@link QueryBuilderRule}: the rule node to render. */
 export type QueryBuilderRuleProps = {

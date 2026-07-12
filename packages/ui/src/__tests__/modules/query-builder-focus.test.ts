@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { createGroup, createRule } from '../../modules/query/engine/query-node'
 import type { QueryField } from '../../modules/query/engine/types'
-import { findFocusTarget } from '../../modules/query/query-builder/query-builder-utilities'
+import { findFocusTarget } from '../../modules/query/query-builder/query-builder-focus'
 
 const textField: QueryField = { name: 'title', label: 'Title', type: 'text' }
 

@@ -24,7 +24,7 @@ import {
 	type VisibilityState,
 } from '@tanstack/react-table'
 import { isDataColumn } from '../../../../utilities'
-import { evaluateQuery } from '../../../query'
+import { evaluateQuery } from '../../../query/engine/query-evaluate'
 import type { SortState } from '../../context'
 import type { GridColumn, GridPagination } from '../../types'
 import { columnAccessor } from '../grid-column/accessor'
