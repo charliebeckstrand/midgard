@@ -3,13 +3,13 @@
 import { type Placement, useInteractions } from '@floating-ui/react'
 import { type MouseEvent, useCallback, useEffect, useId, useMemo } from 'react'
 import { useFloatingDisclosure } from '../../hooks'
-import { useA11yRoving } from '../../hooks/a11y/use-a11y-roving'
+import { clearVirtualActive, useA11yRoving } from '../../hooks/a11y/use-a11y-roving'
 import { useDensity } from '../../primitives/density'
 import type { Step } from '../../recipes'
 import { isNativeContextMenuRequest } from '../../utilities'
 
 /** Navigable menu items: `role="menuitem"`, excluding disabled rows. @internal */
-const MENUITEM_SELECTOR = '[role="menuitem"]:not([data-disabled])'
+export const MENUITEM_SELECTOR = '[role="menuitem"]:not([data-disabled])'
 
 type MenuStateOptions = {
 	open?: boolean
@@ -129,7 +129,7 @@ export function useMenuState({
 	// ids it pointed at) unmounts, so the attribute would otherwise dangle, and the
 	// next open must start with no active row (the first arrow picks the first item).
 	useEffect(() => {
-		if (!open) triggerRef.current?.removeAttribute('aria-activedescendant')
+		if (!open) clearVirtualActive(triggerRef)
 	}, [open, triggerRef])
 
 	const { getReferenceProps, getFloatingProps } = useInteractions([dismiss, role])

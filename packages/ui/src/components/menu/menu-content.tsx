@@ -9,6 +9,7 @@ import { PopoverPanel } from '../../primitives/popover'
 import { useGlass } from '../../providers/glass/context'
 import { k } from '../../recipes/kata/menu'
 import { useMenuActions, useMenuState } from './context'
+import { MENUITEM_SELECTOR } from './use-menu-state'
 
 /** Props for {@link MenuContent}: an optional accessible name for `static` menus. */
 export type MenuContentProps = {
@@ -59,7 +60,7 @@ export function MenuContent({
 					role="menu"
 					aria-label={ariaLabel}
 					aria-labelledby={ariaLabelledby}
-					itemSelector='[role="menuitem"]:not([data-disabled])'
+					itemSelector={MENUITEM_SELECTOR}
 					typeahead
 					glass={glass}
 					// A static menu is part of the page, not a transient overlay;
@@ -84,7 +85,7 @@ export function MenuContent({
 				<PopoverPanel
 					id={menuId}
 					role="menu"
-					itemSelector='[role="menuitem"]:not([data-disabled])'
+					itemSelector={MENUITEM_SELECTOR}
 					// A dropdown keeps focus on its trigger while open; opening never
 					// pulls focus into the panel. Seating focus on the portaled,
 					// animating panel is the path that drops to `<body>` on open in a

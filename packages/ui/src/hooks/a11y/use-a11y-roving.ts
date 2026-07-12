@@ -78,6 +78,22 @@ export function setVirtualActive(
 }
 
 /**
+ * Clear the virtual-mode active marker: strips `data-active` / `aria-selected`
+ * from the active row (when `items` are passed) and drops the owner's
+ * `aria-activedescendant`. The named reset counterpart to {@link setVirtualActive},
+ * so callers express intent as `clearVirtualActive(ref)` rather than the cryptic
+ * `setVirtualActive([], -1, ref)`. A closing panel unmounts its rows, so the
+ * owner-clear alone — no `items` — is the usual call.
+ */
+export function clearVirtualActive(
+	activeDescendantRef: RefObject<HTMLElement | null>,
+	items: HTMLElement[] = [],
+	options?: { ariaSelected?: boolean },
+): void {
+	setVirtualActive(items, -1, activeDescendantRef, options)
+}
+
+/**
  * Seat the single focus-mode Tab stop: `active` takes `tabIndex=0` and every
  * other item `-1`. Writes only on divergence; a MutationObserver watches
  * `tabindex` and fires on every edit. Pass `undefined` to demote all.
