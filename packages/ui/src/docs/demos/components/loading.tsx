@@ -126,28 +126,8 @@ export function Demo() {
 								<LoadingOrb />
 							</Example>
 
-							<Example title="Sizes">
-								<Flex gap="lg" align="end">
-									{sizes.map((s) => (
-										<LabeledColumn key={s} label={s}>
-											<LoadingOrb size={s} />
-										</LabeledColumn>
-									))}
-								</Flex>
-							</Example>
-
-							<Example title="Colors">
-								<Flex gap="lg">
-									{colors.map((c) => (
-										<LabeledColumn key={c} label={capitalize(c)}>
-											<LoadingOrb color={c} size="lg" />
-										</LabeledColumn>
-									))}
-								</Flex>
-							</Example>
-
 							<Example title="Rainbow">
-								<LoadingOrb color="rainbow" size="xl" />
+								<LoadingOrb color="rainbow" />
 							</Example>
 						</Stack>
 					</TabContent>
