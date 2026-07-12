@@ -7,7 +7,7 @@ import { ListboxOption } from '../../../components/listbox'
 import { NumberInput } from '../../../components/number-input'
 import { Select } from '../../../components/select'
 import { cn } from '../../../core'
-import type { QueryField } from './types'
+import type { QueryField } from '../engine/types'
 
 /** Props for {@link QueryBuilderRuleValue}: the rule's `field` and its current value plus a change callback. */
 export type QueryBuilderRuleValueProps = {

@@ -39,8 +39,8 @@ describe('grid column filter sheet (real browser)', () => {
 
 		await userEvent.click(screen.getByRole('button', { name: 'Filter Name' }))
 
-		// The sheet is open: its single-column query builder shows "Add rule".
-		await screen.findByRole('button', { name: 'Add rule' })
+		// The sheet is open: its single-column query builder shows the "Add" menu.
+		await screen.findByRole('button', { name: 'Add' })
 
 		// The operator listbox teleports to its own floating portal, outside the
 		// sheet. Opening it and picking an option must not dismiss the sheet.
@@ -53,7 +53,7 @@ describe('grid column filter sheet (real browser)', () => {
 		// The sheet stands, and the pick committed to the draft's operator trigger.
 		await waitFor(() => expect(operator).toHaveTextContent('starts with'))
 
-		expect(screen.getByRole('button', { name: 'Add rule' })).toBeInTheDocument()
+		expect(screen.getByRole('button', { name: 'Add' })).toBeInTheDocument()
 	})
 
 	it('closes the operator listbox on a press elsewhere in the sheet', async () => {
@@ -61,21 +61,22 @@ describe('grid column filter sheet (real browser)', () => {
 
 		await userEvent.click(screen.getByRole('button', { name: 'Filter Name' }))
 
-		await screen.findByRole('button', { name: 'Add rule' })
+		await screen.findByRole('button', { name: 'Add' })
 
 		await userEvent.click(screen.getByRole('combobox', { name: 'Operator' }))
 
 		await screen.findByRole('listbox')
 
-		// Press "Add rule" — inside the sheet, outside the listbox. The open listbox
+		// Press "Add" — inside the sheet, outside the listbox. The open listbox
 		// overlays the row, so dispatch the pointerdown the dismiss listens for
 		// directly rather than via a click Playwright would block as covered.
-		fireEvent.pointerDown(screen.getByRole('button', { name: 'Add rule' }))
+		// A pointerdown does not open the menu (the trigger toggles on click).
+		fireEvent.pointerDown(screen.getByRole('button', { name: 'Add' }))
 
 		// The listbox dismisses; the sheet stays open.
 		await waitFor(() => expect(screen.queryByRole('listbox')).toBeNull())
 
-		expect(screen.getByRole('button', { name: 'Add rule' })).toBeInTheDocument()
+		expect(screen.getByRole('button', { name: 'Add' })).toBeInTheDocument()
 	})
 
 	it('traps Tab focus within the open filter sheet', async () => {
@@ -83,7 +84,7 @@ describe('grid column filter sheet (real browser)', () => {
 
 		await userEvent.click(screen.getByRole('button', { name: 'Filter Name' }))
 
-		const panel = (await screen.findByRole('button', { name: 'Add rule' })).closest(
+		const panel = (await screen.findByRole('button', { name: 'Add' })).closest(
 			'[data-slot="sheet"]',
 		)
 

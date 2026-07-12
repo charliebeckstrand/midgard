@@ -44,6 +44,17 @@ const fields: QueryField[] = [
 	{ name: 'age', label: 'Age', type: 'number' },
 ]
 
+// "Add rule"/"Add group" live behind a per-group "Add" menu trigger. Opening it
+// mounts the items (portalled) as `role="menuitem"`. Scope the trigger lookup to
+// a specific group with `within(...)`; the items themselves portal to the body,
+// so query them from `screen`.
+const openAddMenu = (scope: { getByRole: typeof screen.getByRole } = screen) =>
+	fireEvent.click(scope.getByRole('button', { name: 'Add' }))
+
+const addRuleItem = () => screen.getByRole('menuitem', { name: 'Add rule' })
+
+const addGroupItem = () => screen.getByRole('menuitem', { name: 'Add group' })
+
 describe('QueryBuilder', () => {
 	it('renders the root query group', () => {
 		const { container } = renderUI(<QueryBuilder fields={fields} />)
@@ -76,7 +87,9 @@ describe('QueryBuilder', () => {
 
 		renderUI(<QueryBuilder fields={fields} onValueChange={onChange} />)
 
-		fireEvent.click(screen.getByRole('button', { name: 'Add rule' }))
+		openAddMenu()
+
+		fireEvent.click(addRuleItem())
 
 		expect(onChange).toHaveBeenCalled()
 	})
@@ -84,7 +97,9 @@ describe('QueryBuilder', () => {
 	it('disables the controls when disabled is set', () => {
 		renderUI(<QueryBuilder fields={fields} disabled />)
 
-		expect(screen.getByRole('button', { name: 'Add rule' })).toBeDisabled()
+		// The "Add" trigger gates access to the rule/group actions, so disabling
+		// the builder disables it.
+		expect(screen.getByRole('button', { name: 'Add' })).toBeDisabled()
 	})
 
 	it('renders a remove button on each rule that removes the rule when clicked', () => {
@@ -181,10 +196,12 @@ describe('QueryBuilder', () => {
 	it('hides the "Add group" action when allowGroups is false', () => {
 		renderUI(<QueryBuilder fields={fields} allowGroups={false} />)
 
-		expect(screen.queryByRole('button', { name: 'Add group' })).not.toBeInTheDocument()
+		openAddMenu()
+
+		expect(screen.queryByRole('menuitem', { name: 'Add group' })).not.toBeInTheDocument()
 
 		// "Add rule" stays available.
-		expect(screen.getByRole('button', { name: 'Add rule' })).toBeInTheDocument()
+		expect(addRuleItem()).toBeInTheDocument()
 	})
 
 	it('renders a number input for number-typed rule fields', () => {
@@ -289,7 +306,9 @@ describe('QueryBuilderGroup', () => {
 
 		renderUI(<QueryBuilder fields={fields} onValueChange={onChange} />)
 
-		fireEvent.click(screen.getByRole('button', { name: 'Add rule' }))
+		openAddMenu()
+
+		fireEvent.click(addRuleItem())
 
 		const next = onChange.mock.calls.at(-1)?.[0]
 
@@ -303,7 +322,9 @@ describe('QueryBuilderGroup', () => {
 
 		renderUI(<QueryBuilder fields={fields} onValueChange={onChange} />)
 
-		fireEvent.click(screen.getByRole('button', { name: 'Add group' }))
+		openAddMenu()
+
+		fireEvent.click(addGroupItem())
 
 		const next = onChange.mock.calls.at(-1)?.[0]
 
@@ -368,14 +389,18 @@ describe('QueryBuilderGroup', () => {
 
 		const groups = container.querySelectorAll<HTMLElement>('[data-slot="query-group"]')
 
-		// Root plus the one nested group; each group renders its own "Add group" button.
+		// Root plus the one nested group; each group renders its own "Add" menu.
 		expect(groups).toHaveLength(2)
 
 		const nested = groups[1]
 
 		if (!nested) throw new Error('expected a nested query-group')
 
-		fireEvent.click(within(nested).getByRole('button', { name: 'Add group' }))
+		// Open only the nested group's menu, so its "Add group" item is the sole
+		// one mounted and the body-portalled lookup is unambiguous.
+		openAddMenu(within(nested))
+
+		fireEvent.click(addGroupItem())
 
 		const next = onChange.mock.calls.at(-1)?.[0]
 
@@ -568,7 +593,7 @@ describe('QueryBuilderRuleValue', () => {
 
 // Removing a rule unmounts its remove button; without focus management that
 // drops focus to <body> (WCAG 2.4.3). Focus follows the APG list pattern:
-// previous sibling, else next, else the group's "Add rule" control.
+// previous sibling, else next, else the group's "Add" menu trigger.
 describe('QueryBuilder removal focus', () => {
 	const removeButtons = () => screen.getAllByRole('button', { name: 'Remove rule' })
 
@@ -600,7 +625,7 @@ describe('QueryBuilder removal focus', () => {
 		expect(document.activeElement).toBe(second)
 	})
 
-	it("moves focus to the group's Add rule control after removing the only rule", () => {
+	it("moves focus to the group's Add menu trigger after removing the only rule", () => {
 		const tree = createGroup('and', [createRule(fields[0])])
 
 		renderUI(<QueryBuilder fields={fields} defaultValue={tree} />)
@@ -609,6 +634,6 @@ describe('QueryBuilder removal focus', () => {
 
 		expect(screen.queryAllByRole('button', { name: 'Remove rule' })).toHaveLength(0)
 
-		expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Add rule' }))
+		expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Add' }))
 	})
 })

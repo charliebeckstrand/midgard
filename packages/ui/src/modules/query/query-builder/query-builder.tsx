@@ -4,10 +4,10 @@ import { useCallback, useMemo } from 'react'
 import { Fieldset } from '../../../components/fieldset'
 import { cn } from '../../../core'
 import { k } from '../../../recipes/kata/query-builder'
+import type { QueryField, QueryGroup as QueryGroupNode } from '../engine/types'
 import type { QueryBuilderStateValue } from './context'
 import { QueryBuilderProvider } from './context'
 import { QueryBuilderGroup } from './query-builder-group'
-import type { QueryField, QueryGroup as QueryGroupNode } from './types'
 import { useQueryBuilderTree } from './use-query-builder-tree'
 
 /** Props for {@link QueryBuilder}: the queryable `fields` and the controlled/uncontrolled query tree. */

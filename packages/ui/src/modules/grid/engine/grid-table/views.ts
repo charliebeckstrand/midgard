@@ -1,5 +1,6 @@
 import type { ColumnPinningState, PaginationState, Table } from '@tanstack/react-table'
-import { isQueryActive, type QueryField, type QueryGroupNode } from '../../../query'
+import { isQueryActive } from '../../../query/engine/query-active'
+import type { QueryField, QueryGroup as QueryGroupNode } from '../../../query/engine/types'
 import type { GridColumn, GridPagination } from '../../types'
 import { DEFAULT_COLUMN_SIZE, DEFAULT_MIN_COLUMN_SIZE } from '../grid-constants'
 import { frozenSide } from '../grid-pin/overrides'

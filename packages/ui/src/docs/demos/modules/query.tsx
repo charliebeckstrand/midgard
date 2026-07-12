@@ -25,10 +25,7 @@ const seed: QueryGroupNode = {
 	id: 'root',
 	type: 'group',
 	combinator: 'and',
-	children: [
-		{ id: 'r1', type: 'rule', field: 'name', operator: 'contains', value: 'ada' },
-		{ id: 'r2', type: 'rule', field: 'status', operator: 'equals', value: 'active' },
-	],
+	children: [{ id: 'r1', type: 'rule', field: 'status', operator: 'equals', value: 'active' }],
 }
 
 function BuilderExample() {

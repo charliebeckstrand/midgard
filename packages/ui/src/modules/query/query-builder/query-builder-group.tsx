@@ -1,18 +1,21 @@
 'use client'
 
+import { ChevronDown, CopyPlus, Plus } from 'lucide-react'
 import { memo } from 'react'
 import { Alert } from '../../../components/alert'
 import { Button } from '../../../components/button'
 import { Flex } from '../../../components/flex'
 import { HoldButton } from '../../../components/hold-button'
+import { Icon } from '../../../components/icon'
+import { Menu, MenuContent, MenuItem, MenuTrigger } from '../../../components/menu'
 import { Segment, SegmentControl, SegmentItem } from '../../../components/segment'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
 import { cn } from '../../../core'
 import { k } from '../../../recipes/kata/query-builder'
+import type { QueryCombinator, QueryGroup } from '../engine/types'
 import { useFocusableRef, useQueryBuilderActions, useQueryBuilderState } from './context'
+import { focusKeys } from './query-builder-focus'
 import { QueryBuilderRule } from './query-builder-rule'
-import { focusKeys } from './query-builder-utilities'
-import type { QueryCombinator, QueryGroup } from './types'
 
 /** Props for {@link QueryBuilderGroup}: the group node to render and whether it is the tree root. */
 export type QueryBuilderGroupProps = {
@@ -38,6 +41,10 @@ function QueryBuilderGroupImpl({ group, root, className }: QueryBuilderGroupProp
 	// hides its remove control so the query can't be emptied.
 	const rulesRemovable = !requireRule || group.children.length > 1
 
+	// The focus ladder degrades to a group's "add" affordance; that is now the
+	// menu trigger, the always-mounted control that replaced the bare "Add rule"
+	// button. Registering it keeps focus from dropping to <body> when a group's
+	// last rule is removed (WCAG 2.4.3).
 	const addRuleRef = useFocusableRef(focusKeys.add(group.id))
 
 	const removeRef = useFocusableRef(focusKeys.node(group.id))
@@ -83,24 +90,30 @@ function QueryBuilderGroupImpl({ group, root, className }: QueryBuilderGroupProp
 			</div>
 
 			<Flex gap="sm" className={k.actions}>
-				<Button
-					ref={addRuleRef}
-					variant="plain"
-					disabled={disabled}
-					onClick={() => addRule(group.id)}
-				>
-					Add rule
-				</Button>
-				{allowGroups && (
-					<Button
-						variant="soft"
-						color="blue"
-						disabled={disabled}
-						onClick={() => addGroup(group.id)}
-					>
-						Add group
-					</Button>
-				)}
+				<Menu placement="bottom-start">
+					<MenuTrigger>
+						<Button
+							ref={addRuleRef}
+							variant="bare"
+							suffix={<Icon icon={<ChevronDown />} />}
+							disabled={disabled}
+						>
+							Add
+						</Button>
+					</MenuTrigger>
+					<MenuContent>
+						<MenuItem onAction={() => addRule(group.id)}>
+							<Icon icon={<Plus />} />
+							Add rule
+						</MenuItem>
+						{allowGroups && (
+							<MenuItem onAction={() => addGroup(group.id)}>
+								<Icon icon={<CopyPlus />} />
+								Add group
+							</MenuItem>
+						)}
+					</MenuContent>
+				</Menu>
 				{!root && (
 					<Flex justify="end">
 						<Tooltip>
@@ -111,8 +124,7 @@ function QueryBuilderGroupImpl({ group, root, className }: QueryBuilderGroupProp
 									color="red"
 									aria-label="Remove group"
 									disabled={disabled}
-									className={k.rowRemove}
-									duration={500}
+									className={k.remove}
 									onComplete={() => remove(group.id)}
 								>
 									Remove group
