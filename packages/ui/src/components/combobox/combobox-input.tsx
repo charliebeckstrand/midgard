@@ -33,6 +33,10 @@ type ComboboxInputProps = {
 	required?: boolean
 	value: string
 	placeholder?: string
+	/** True while the input shows the live query rather than the resolved value. */
+	editing: boolean
+	/** Capitalizes the resolved display value via the `capitalize` text-transform. */
+	capitalize: boolean
 	density: ControlSize
 	size: ControlSize
 	handlers: ComboboxInputHandlers
@@ -58,6 +62,8 @@ export function ComboboxInput({
 	required,
 	value,
 	placeholder,
+	editing,
+	capitalize,
 	density,
 	size,
 	handlers,
@@ -86,7 +92,8 @@ export function ComboboxInput({
 				required={required}
 				value={value}
 				placeholder={placeholder}
-				className={cn(k({ density, size }))}
+				// Transform only the resolved value; the live query renders as typed.
+				className={cn(k({ density, size }), capitalize && !editing && 'capitalize')}
 				{...handlers}
 			/>
 		</HeadlessProvider>

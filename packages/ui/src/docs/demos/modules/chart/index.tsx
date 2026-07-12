@@ -161,12 +161,12 @@ const LegendPlacementExample = ({
 					<Listbox
 						aria-label="Legend placement"
 						value={placement}
-						displayValue={(value) => value.at(0)?.toUpperCase() + value.slice(1)}
+						displayValue={(value) => value}
 						onValueChange={(value) => setPlacement(value as LegendPlacement)}
 					>
 						{(['right', 'left', 'top', 'bottom'] as LegendPlacement[]).map((option) => (
 							<ListboxOption key={option} value={option}>
-								{option.charAt(0).toUpperCase() + option.slice(1)}
+								{option}
 							</ListboxOption>
 						))}
 					</Listbox>

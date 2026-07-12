@@ -15,6 +15,8 @@ type ComboboxPanelProps = {
 	open: boolean
 	editing: boolean
 	multiple: boolean
+	/** Capitalizes the option list via the `capitalize` text-transform. */
+	capitalize: boolean
 	glass: boolean
 	density: ControlSize
 	size: ControlSize
@@ -47,6 +49,7 @@ export function ComboboxPanel({
 	open,
 	editing,
 	multiple,
+	capitalize,
 	glass,
 	density,
 	size,
@@ -99,7 +102,7 @@ export function ComboboxPanel({
 										aria-label={ariaLabel}
 										aria-labelledby={ariaLabel ? undefined : ariaLabelledby}
 										aria-multiselectable={ariaAttr(multiple)}
-										className={cn(k.list)}
+										className={cn(k.list, capitalize && 'capitalize')}
 									>
 										{children}
 									</div>

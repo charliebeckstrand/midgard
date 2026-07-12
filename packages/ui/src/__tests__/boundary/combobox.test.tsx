@@ -710,6 +710,7 @@ describe('ComboboxPanel', () => {
 				open
 				editing={false}
 				multiple={false}
+				capitalize={false}
 				glass={false}
 				density="md"
 				size="md"
@@ -756,6 +757,7 @@ describe('ComboboxPanel', () => {
 				open
 				editing={false}
 				multiple={false}
+				capitalize={false}
 				glass={false}
 				density="md"
 				size="md"
