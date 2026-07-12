@@ -56,12 +56,20 @@ export function useGridTruncation<E extends HTMLElement>(
 			return
 		}
 
+		// Only an armed cell (one visited by pointer/focus) has a live `truncated`
+		// flag to keep current; before contact `measure` bails, so scheduling a
+		// per-cell frame on every resize would queue thousands of no-op callbacks in
+		// a wide, un-windowed grid — the mass-truncation cost this backstop must not
+		// add. The first contact arms the cell and takes its own read; from there
+		// this backstop runs.
+		if (!contacted) return
+
 		if (typeof requestAnimationFrame !== 'function') return
 
 		const frame = requestAnimationFrame(measure)
 
 		return () => cancelAnimationFrame(frame)
-	}, [measure, resizeSettleKey])
+	}, [measure, resizeSettleKey, contacted])
 
 	return [ref, truncated, contacted]
 }

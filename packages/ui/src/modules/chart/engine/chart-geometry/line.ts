@@ -1,0 +1,318 @@
+/**
+ * Pure geometry for the {@link LineChart}: multi-segment polylines that
+ * break at non-finite values, their area washes, and the point markers.
+ * Independent of React and styling so the mark math is unit-testable in
+ * isolation.
+ */
+
+import { coord } from '../chart-coords'
+import type { ChartLineSeries } from '../chart-marks/line'
+import type { DrawnSeries } from '../use-chart-cartesian'
+
+/** How a line connects its points: straight or a rounded monotone curve. */
+export type LineInterpolation = 'linear' | 'smooth'
+
+/** A resolved point on the line, in `viewBox` user units. @internal */
+export type LinePoint = {
+	x: number
+	y: number
+}
+
+/**
+ * Monotone cubic tangents (Fritsch–Carlson) for the run's y values: the
+ * per-point slopes a smooth curve follows, clamped so the interpolation never
+ * overshoots the data — a curve between two rising points can't dip.
+ *
+ * @internal
+ */
+function monotoneTangents(run: LinePoint[]): number[] {
+	const n = run.length
+
+	const slopes = Array.from({ length: n - 1 }, (_, i) => {
+		const dx = (run[i + 1] as LinePoint).x - (run[i] as LinePoint).x
+
+		return dx === 0 ? 0 : ((run[i + 1] as LinePoint).y - (run[i] as LinePoint).y) / dx
+	})
+
+	const tangents = run.map((_, i) => {
+		if (i === 0) return slopes[0] ?? 0
+
+		if (i === n - 1) return slopes[n - 2] ?? 0
+
+		const prev = slopes[i - 1] as number
+
+		const next = slopes[i] as number
+
+		// A sign change (a local extremum) flattens the tangent to zero.
+		return prev * next <= 0 ? 0 : (prev + next) / 2
+	})
+
+	// Fritsch–Carlson clamp: keep each tangent inside the monotone circle so
+	// the cubic stays within the neighbouring data values.
+	for (let i = 0; i < n - 1; i++) {
+		const slope = slopes[i] as number
+
+		if (slope === 0) {
+			tangents[i] = 0
+
+			tangents[i + 1] = 0
+
+			continue
+		}
+
+		const a = (tangents[i] as number) / slope
+
+		const b = (tangents[i + 1] as number) / slope
+
+		const h = a * a + b * b
+
+		if (h > 9) {
+			const t = 3 / Math.sqrt(h)
+
+			tangents[i] = t * a * slope
+
+			tangents[i + 1] = t * b * slope
+		}
+	}
+
+	return tangents
+}
+
+/** The path for one contiguous run, straight or smoothed. @internal */
+function segmentPath(run: LinePoint[], interpolation: LineInterpolation): string {
+	const start = run[0] as LinePoint
+
+	if (interpolation === 'linear' || run.length < 3) {
+		// Accumulate into one buffer rather than `map().join()`: the map allocates
+		// an N-string array the join then walks and discards. At ten thousand
+		// points that intermediate array is the cost the marks never needed —
+		// concatenation builds the same string without it. Byte-identical output.
+		let d = `M ${coord(start.x)} ${coord(start.y)}`
+
+		for (let i = 1; i < run.length; i++) {
+			const point = run[i] as LinePoint
+
+			d += ` L ${coord(point.x)} ${coord(point.y)}`
+		}
+
+		return d
+	}
+
+	const tangents = monotoneTangents(run)
+
+	let d = `M ${coord(start.x)} ${coord(start.y)}`
+
+	for (let i = 0; i < run.length - 1; i++) {
+		const p0 = run[i] as LinePoint
+
+		const p1 = run[i + 1] as LinePoint
+
+		const dx = (p1.x - p0.x) / 3
+
+		const c1x = p0.x + dx
+
+		const c1y = p0.y + (tangents[i] as number) * dx
+
+		const c2x = p1.x - dx
+
+		const c2y = p1.y - (tangents[i + 1] as number) * dx
+
+		d += ` C ${coord(c1x)} ${coord(c1y)} ${coord(c2x)} ${coord(c2y)} ${coord(p1.x)} ${coord(p1.y)}`
+	}
+
+	return d
+}
+
+/** One series' drawable marks. @internal */
+export type LineSeriesGeometry = {
+	/** One open path per contiguous run of values — a gap starts a new segment. */
+	segments: string[]
+	/** The wash under each segment, closed down to the baseline. */
+	areas: string[]
+	/** Every plotted point, for the opt-in markers. */
+	points: LinePoint[]
+	/** The contiguous runs behind `segments`, for pointer hit tests — a gap splits them. */
+	runs: LinePoint[][]
+	/** Points with a gap on both sides — invisible without a marker, so they always get one. */
+	isolated: LinePoint[]
+}
+
+/**
+ * Min/max-per-pixel-column decimation of a dense run, for *drawing only*. A plot
+ * `width` px wide can't show more than a couple of points per horizontal pixel,
+ * so a run of thousands draws identically from its per-column vertical envelope:
+ * keep each column's first, last, min-y, and max-y points, in original order.
+ * The extremes hold every visible spike; the endpoints hold the slope into and
+ * out of the column, so the drawn line is pixel-identical to the full path.
+ *
+ * A run already at drawing resolution (at most two points per column) returns
+ * unchanged, so a normal chart's path is byte-for-byte what it was. Only the
+ * drawn `d` shrinks — the hit test, markers, value labels, and data table read
+ * the full-resolution run, never this — so pointer values and parity stay exact.
+ *
+ * @internal
+ */
+export function decimateRun(run: LinePoint[], width: number): LinePoint[] {
+	if (width <= 0 || run.length <= width * 2) return run
+
+	const out: LinePoint[] = []
+
+	let column = Math.round((run[0] as LinePoint).x)
+
+	let first = 0
+
+	let last = 0
+
+	let lo = 0
+
+	let hi = 0
+
+	const flush = () => {
+		// The four picks in ascending index order, deduped — at most four, so a
+		// small in-place sort beats a Set allocation per column.
+		const picks = [first, last, lo, hi].sort((a, b) => a - b)
+
+		let prev = -1
+
+		for (const index of picks) {
+			if (index !== prev) out.push(run[index] as LinePoint)
+
+			prev = index
+		}
+	}
+
+	for (let i = 1; i < run.length; i++) {
+		const c = Math.round((run[i] as LinePoint).x)
+
+		if (c !== column) {
+			flush()
+
+			column = c
+
+			first = i
+
+			last = i
+
+			lo = i
+
+			hi = i
+
+			continue
+		}
+
+		last = i
+
+		if ((run[i] as LinePoint).y < (run[lo] as LinePoint).y) lo = i
+
+		if ((run[i] as LinePoint).y > (run[hi] as LinePoint).y) hi = i
+	}
+
+	flush()
+
+	return out
+}
+
+/** The plot's drawn x-span in px — the density threshold decimation gates on. @internal */
+function drawWidth(xs: number[]): number {
+	if (xs.length < 2) return 0
+
+	return Math.abs((xs[xs.length - 1] as number) - (xs[0] as number))
+}
+
+/** Splits the values into contiguous non-null runs of plotted points. @internal */
+function runs(values: (number | null)[], xs: number[], map: (value: number) => number) {
+	const out: LinePoint[][] = []
+
+	let current: LinePoint[] = []
+
+	values.forEach((value, index) => {
+		const x = xs[index]
+
+		if (value === null || x === undefined) {
+			if (current.length > 0) out.push(current)
+
+			current = []
+
+			return
+		}
+
+		current.push({ x, y: map(value) })
+	})
+
+	if (current.length > 0) out.push(current)
+
+	return out
+}
+
+/**
+ * Projects one series onto its line marks: segment paths between gaps, area
+ * washes closed to `baseline`, and the point markers.
+ *
+ * @remarks A run of one point yields no segment — it lands in `isolated`
+ * instead, so the datum stays visible as a marker even with markers off. With
+ * `interpolation: 'smooth'` the segments (and the area's top edge) follow a
+ * monotone cubic that never overshoots the data.
+ * @internal
+ */
+export function lineGeometry(
+	values: (number | null)[],
+	xs: number[],
+	map: (value: number) => number,
+	baseline: number,
+	interpolation: LineInterpolation = 'linear',
+): LineSeriesGeometry {
+	const pointRuns = runs(values, xs, map)
+
+	const drawable = pointRuns.filter((run) => run.length > 1)
+
+	// Decimate the drawn runs to the plot's pixel width; the full-resolution
+	// `pointRuns` still feed the hit test, markers, labels, and data table below,
+	// so only the `d` strings shrink. Sub-threshold runs pass through untouched.
+	const width = drawWidth(xs)
+
+	const drawnRuns = drawable.map((run) => decimateRun(run, width))
+
+	const segments = drawnRuns.map((run) => segmentPath(run, interpolation))
+
+	const areas = drawnRuns.map((run, index) => {
+		const first = run[0] as LinePoint
+
+		const last = run.at(-1) as LinePoint
+
+		return `${segments[index]} L ${coord(last.x)} ${coord(baseline)} L ${coord(first.x)} ${coord(baseline)} Z`
+	})
+
+	return {
+		segments,
+		areas,
+		points: pointRuns.flat(),
+		runs: pointRuns,
+		isolated: pointRuns.filter((run) => run.length === 1).flat(),
+	}
+}
+
+/**
+ * The line render-series for a set of drawn cartesian series: each entry's
+ * values projected through its own axis's scale into {@link lineGeometry},
+ * carrying the meta's paint, label, and dash so the marks, hit-test, and value
+ * labels all read one aligned list. Bar/line/area charts build their line-kind
+ * marks through this instead of repeating the map.
+ *
+ * @internal
+ */
+export function lineSeriesOf(
+	entries: DrawnSeries[],
+	xs: number[],
+	floor: number,
+	interpolation: LineInterpolation,
+	markers: boolean,
+): ChartLineSeries[] {
+	return entries.map(({ meta, scale }) => ({
+		index: meta.index,
+		label: meta.label,
+		paint: meta.paint,
+		geometry: lineGeometry(meta.values, xs, scale.map, floor, interpolation),
+		markers,
+		dashed: meta.dashed,
+	}))
+}

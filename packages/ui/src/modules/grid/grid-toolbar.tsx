@@ -8,7 +8,7 @@ import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from '../../compo
 import { Toolbar } from '../../components/toolbar'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/grid'
-import type { GridExportAction } from './export/types'
+import type { GridExportAction } from './engine/grid-export/types'
 import type { GridSelection } from './grid-data-types'
 import { GridFilter } from './grid-filter'
 import type { GridColumnFilter, GridGlobalFilterView } from './use-grid-table'

@@ -1,18 +1,7 @@
 'use client'
 
-import {
-	autoUpdate,
-	flip,
-	offset,
-	shift,
-	useClientPoint,
-	useFloating,
-	useInteractions,
-} from '@floating-ui/react'
-import { useMemo } from 'react'
 import { Swatch, type SwatchProps } from '../../components/swatch'
-import { TooltipContent } from '../../components/tooltip'
-import { TooltipContext } from '../../components/tooltip/context'
+import { TooltipPointer } from '../../components/tooltip/tooltip-pointer'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
 import { type MapHoverTarget, useMapHoverState } from './context'
@@ -105,11 +94,9 @@ function resolve(
 
 /**
  * The hover readout: the pointed region's name over its category, or an
- * overlay's name over its detail. The panel is the real Tooltip component's
- * — `TooltipContent` driven through `TooltipContext` with the map's own
- * floating state, anchored to the pointer through `useClientPoint` — so the
- * map's readout wears exactly the Tooltip chrome, motion, and glass
- * adoption, flipping and shifting at the viewport edges.
+ * overlay's name over its detail. It is a {@link TooltipPointer} anchored at the
+ * pointer client point, so the map's readout wears exactly the Tooltip chrome,
+ * motion, and glass adoption, flipping and shifting at the viewport edges.
  *
  * @remarks A pointer enhancement by design: the same values ship in the
  * visually-hidden table, so nothing is gated behind hover. Regions with no
@@ -124,62 +111,32 @@ export function MapTooltip(props: MapTooltipProps) {
 
 	const open = content !== null && point !== null
 
-	const { refs, floatingStyles, context } = useFloating({
-		open,
-		placement: 'top',
-		middleware: [offset(12), flip(), shift({ padding: 8 })],
-		whileElementsMounted: autoUpdate,
-	})
-
-	const clientPoint = useClientPoint(context, { x: point?.x ?? null, y: point?.y ?? null })
-
-	const { getReferenceProps, getFloatingProps } = useInteractions([clientPoint])
-
-	const value = useMemo(
-		() => ({
-			open,
-			interactive: false,
-			enabled: true,
-			setReference: refs.setReference,
-			setFloating: refs.setFloating,
-			floatingStyles,
-			getReferenceProps,
-			getFloatingProps,
-		}),
-		[
-			open,
-			refs.setReference,
-			refs.setFloating,
-			floatingStyles,
-			getReferenceProps,
-			getFloatingProps,
-		],
-	)
-
+	// `track="point"`: a pure-hover readout repositions on every pointer move, so it
+	// skips autoUpdate's per-open observer wiring — ~1.5x cheaper across the
+	// open/reposition/teardown cycle (`tooltip-track.bench`). Safe here because the
+	// map tooltip has no click-pinned mode that would need autoUpdate across a scroll.
 	return (
-		<TooltipContext value={value}>
-			<TooltipContent size="sm">
-				{content && (
-					<>
-						<div className={cn(k.label, 'whitespace-nowrap', content.row && 'mb-1')}>
-							{content.title}
+		<TooltipPointer open={open} point={point} track="point" size="sm">
+			{content && (
+				<div aria-hidden="true">
+					<div className={cn(k.label, 'whitespace-nowrap', content.row && 'mb-1')}>
+						{content.title}
+					</div>
+
+					{content.row && (
+						<div className="flex items-center gap-1.5 whitespace-nowrap">
+							<Swatch
+								shape={SWATCH_SHAPE[content.row.swatch]}
+								size="sm"
+								color={content.row.swatchClass}
+								style={content.row.swatchColor ? { color: content.row.swatchColor } : undefined}
+							/>
+
+							<span className={cn(k.value)}>{content.row.text}</span>
 						</div>
-
-						{content.row && (
-							<div className="flex items-center gap-1.5 whitespace-nowrap">
-								<Swatch
-									shape={SWATCH_SHAPE[content.row.swatch]}
-									size="sm"
-									color={content.row.swatchClass}
-									style={content.row.swatchColor ? { color: content.row.swatchColor } : undefined}
-								/>
-
-								<span className={cn(k.value)}>{content.row.text}</span>
-							</div>
-						)}
-					</>
-				)}
-			</TooltipContent>
-		</TooltipContext>
+					)}
+				</div>
+			)}
+		</TooltipPointer>
 	)
 }

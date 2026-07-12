@@ -6,7 +6,7 @@ import type { CSSProperties, KeyboardEvent } from 'react'
 import { createContext } from '../../core'
 import type { ListVariant } from '../../recipes/kata/list'
 
-/** List-wide state shared with items: variant, interactivity/disabled flags, active/lifted ids, item count, the sortable flag, and item event handlers. */
+/** List-wide state shared with items: variant, interactivity/disabled flags, the keyboard-lifted id, item count, the sortable flag, and item event handlers. */
 export type ListContextValue = {
 	/** Visual variant; see `List.variant` for semantics. */
 	variant: ListVariant
@@ -14,8 +14,6 @@ export type ListContextValue = {
 	interactive: boolean
 	/** Whether the list is explicitly disabled (vs. merely non-interactive / read-only). */
 	disabled: boolean
-	/** Id of the item currently being dragged, if any. */
-	activeId: string | null
 	/** Id of the item "lifted" via keyboard (Space), if any. */
 	liftedId: string | null
 	/** Number of items in the list. */

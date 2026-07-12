@@ -207,7 +207,7 @@ describe('CurrentContent mount policy', () => {
 	})
 
 	it('mount="always" preserves a hidden panel’s DOM state across switches', async () => {
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		renderUI(<Panels mount="always" initial="b" />)
 
@@ -220,7 +220,7 @@ describe('CurrentContent mount policy', () => {
 	})
 
 	it('mount="always" fade=false tears down a hidden panel’s effects, then remounts them', async () => {
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		const onSetup = vi.fn()
 
@@ -254,7 +254,7 @@ describe('CurrentContent mount policy', () => {
 	})
 
 	it('mount="active" with fade unmounts the outgoing panel once its fade-out completes', async () => {
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		const onCleanup = vi.fn()
 
@@ -275,7 +275,7 @@ describe('CurrentContent mount policy', () => {
 	})
 
 	it('mount="lazy" with fade holds a visited panel through the cross-fade', async () => {
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		renderUI(<Panels mount="lazy" fade />)
 
@@ -316,7 +316,7 @@ describe('CurrentContent mount policy', () => {
 	})
 
 	it('mount="lazy" defers a panel until first activation, then holds it', async () => {
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		const onSetup = vi.fn()
 

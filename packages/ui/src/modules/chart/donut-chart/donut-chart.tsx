@@ -1,14 +1,14 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { ChartPie, type PieBaseProps } from '../chart-pie'
+import { type SectorBaseProps, SectorChart } from '../sector-chart'
 
 /**
  * Props for {@link DonutChart}. Requires an accessible name (`aria-label` or
  * `aria-labelledby`) — the plot is `role="img"`, so assistive tech needs a
  * name for it.
  */
-export type DonutChartProps<T> = PieBaseProps<T> & {
+export type DonutChartProps<T> = SectorBaseProps<T> & {
 	/** Center content, rendered over the hole — a total, a stat, an icon. */
 	children?: ReactNode
 }
@@ -35,8 +35,8 @@ const DONUT_INNER_RATIO = 0.6
  */
 export function DonutChart<T>({ children, ...props }: DonutChartProps<T>) {
 	return (
-		<ChartPie {...props} innerRatio={DONUT_INNER_RATIO}>
+		<SectorChart {...props} innerRatio={DONUT_INNER_RATIO}>
 			{children}
-		</ChartPie>
+		</SectorChart>
 	)
 }

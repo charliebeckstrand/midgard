@@ -20,7 +20,7 @@ import {
 	SPARK_WIDTH,
 	TICK_SPACING,
 	TWO_ROW_LEGEND_HEIGHT,
-} from '../../modules/chart/chart-tier'
+} from '../../modules/chart/engine/chart-tier'
 
 // A roomy density cap, so the height-driven tick target is what varies unless a
 // test pins the cap itself.

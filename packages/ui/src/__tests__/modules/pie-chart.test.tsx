@@ -1,6 +1,4 @@
 import { describe, expect, it } from 'vitest'
-import { ChartFullscreenContext } from '../../modules/chart/context'
-import { PieChart } from '../../modules/chart/pie-chart'
 import {
 	CALLOUT_CHAR_WIDTH,
 	CALLOUT_GAP,
@@ -13,7 +11,9 @@ import {
 	pieCentroidRadius,
 	pieSlices,
 	segmentLabelFits,
-} from '../../modules/chart/pie-chart/pie-chart-geometry'
+} from '../../modules/chart/engine/chart-geometry/pie'
+import { ChartFullscreenContext } from '../../modules/chart/engine/context'
+import { PieChart } from '../../modules/chart/pie-chart'
 import { act, allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
 
 const DATA = [

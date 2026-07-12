@@ -3,9 +3,9 @@
 import { type ReactNode, useEffect, useId, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/grid'
+import { inferEditorKind, isColumnEditable } from './engine/grid-editing-utilities'
 import { GridEditInputs } from './grid-edit-inputs'
 import { type GridRowEditing, useGridRowEditing } from './grid-editing-context'
-import { inferEditorKind, isColumnEditable } from './grid-editing-utilities'
 import type { GridColumn } from './types'
 import { GridNavCell } from './use-grid-navigation-columns'
 

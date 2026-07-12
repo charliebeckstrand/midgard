@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { BubbleChart } from '../../modules/chart/bubble-chart'
-import { MARKER_RING_WIDTH } from '../../modules/chart/chart-constants'
+import { MARKER_RING_WIDTH } from '../../modules/chart/engine/chart-constants'
 import { ScatterChart } from '../../modules/chart/scatter-chart'
 import { allBySlot, bySlot, renderUI } from '../helpers'
 

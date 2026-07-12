@@ -93,7 +93,6 @@ export function List<T>({
 		itemIds,
 		strategy,
 		interactive,
-		activeId,
 		activeItem,
 		activeIndex,
 		dndContextProps,
@@ -123,51 +122,46 @@ export function List<T>({
 			variant,
 			interactive,
 			disabled: !!disabled,
-			activeId,
 			liftedId,
 			itemCount: items.length,
 			sortable,
 			onItemKeyDown,
 			onItemBlur,
 		}),
-		[
-			variant,
-			interactive,
-			disabled,
-			activeId,
-			liftedId,
-			items.length,
-			sortable,
-			onItemKeyDown,
-			onItemBlur,
-		],
+		[variant, interactive, disabled, liftedId, items.length, sortable, onItemKeyDown, onItemBlur],
 	)
 
-	const ul = (
-		<ul
-			ref={containerRef}
-			aria-label={ariaLabel}
-			data-slot="list"
-			data-orientation={orientation}
-			className={cn(k.root({ variant, orientation }), className)}
-		>
-			{items.map((item, index) => {
-				const id = effectiveGetKey(item)
+	// Memoized so an active-drag change (which only drives the overlay below) does
+	// not recreate every item element and re-run their sortable wiring. The body
+	// depends on none of the volatile drag state, only the item set and layout.
+	const ul = useMemo(
+		() => (
+			<ul
+				ref={containerRef}
+				aria-label={ariaLabel}
+				data-slot="list"
+				data-orientation={orientation}
+				className={cn(k.root({ variant, orientation }), className)}
+			>
+				{items.map((item, index) => {
+					const id = effectiveGetKey(item)
 
-				// Read-only lists use `ListItemStatic`, skipping sortable-item
-				// registration. `useSortableItem` does non-trivial per-item work
-				// (ref wiring, dnd context reads) even when `disabled: true`.
-				return interactive ? (
-					<ListItemSortable key={id} id={id}>
-						{children(item, index)}
-					</ListItemSortable>
-				) : (
-					<ListItemStatic key={id} id={id}>
-						{children(item, index)}
-					</ListItemStatic>
-				)
-			})}
-		</ul>
+					// Read-only lists use `ListItemStatic`, skipping sortable-item
+					// registration. `useSortableItem` does non-trivial per-item work
+					// (ref wiring, dnd context reads) even when `disabled: true`.
+					return interactive ? (
+						<ListItemSortable key={id} id={id}>
+							{children(item, index)}
+						</ListItemSortable>
+					) : (
+						<ListItemStatic key={id} id={id}>
+							{children(item, index)}
+						</ListItemStatic>
+					)
+				})}
+			</ul>
+		),
+		[ariaLabel, orientation, variant, className, items, effectiveGetKey, interactive, children],
 	)
 
 	return (

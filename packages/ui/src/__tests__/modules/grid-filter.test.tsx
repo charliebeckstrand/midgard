@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { GRID_SEARCH_DEBOUNCE_MS } from '../../modules/grid/grid-constants'
+import { GRID_SEARCH_DEBOUNCE_MS } from '../../modules/grid/engine/grid-constants'
 import { renderUI, screen, withFakeTime } from '../helpers'
 
 describe('Grid search', () => {

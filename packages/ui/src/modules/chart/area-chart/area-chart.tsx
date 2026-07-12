@@ -1,39 +1,44 @@
 'use client'
 
-import { ChartAxis, ChartAxisTitles } from '../chart-axis'
-import { ChartCartesianLegend } from '../chart-cartesian-legend'
-import { ChartCrosshair, crosshairSnaps, resolveCrosshair } from '../chart-crosshair'
-import { ChartFrame } from '../chart-frame'
-import { ChartGridLines } from '../chart-grid-lines'
-import { ChartHitArea } from '../chart-hit-area'
-import { nearestSeriesArea } from '../chart-hit-test'
-import { lineMarkReach } from '../chart-layout'
-import { AnimatedChartLineMarks, ChartLineMarks, type ChartLineSeries } from '../chart-line-marks'
-import { ChartMarksLayer } from '../chart-marks-layer'
-import { useChartTexture } from '../chart-pattern-defs'
-import { ChartReferenceLines, ChartReferenceList } from '../chart-reference-lines'
-import {
-	type CartesianChartProps,
-	type ChartValueLabelConfig,
-	type Crosshair,
-	resolveLegend,
-	resolveTooltip,
-} from '../chart-schema'
-import { snappedSeriesAt, snapTargets } from '../chart-snap'
-import { ChartValueLabels, resolveValueLabels } from '../chart-value-labels'
+import { ChartCartesianAxes } from '../engine/chart-axes/cartesian'
+import type { Crosshair } from '../engine/chart-crosshair'
+import { ChartCrosshair, crosshairSnaps, resolveCrosshair } from '../engine/chart-crosshair'
+import { ChartCartesianFrame } from '../engine/chart-frame/cartesian'
+import { type StackedAreaGeometry, stackedAreas } from '../engine/chart-geometry/area'
 import {
 	type LineInterpolation,
 	type LineSeriesGeometry,
 	lineGeometry,
-} from '../line-chart/line-chart-geometry'
+} from '../engine/chart-geometry/line'
+import { ChartHitArea, cartesianHitActive } from '../engine/chart-hit-area'
+import { nearestSeriesArea } from '../engine/chart-hit-test'
+import { lineMarkReach } from '../engine/chart-layout'
+import { resolveLegend } from '../engine/chart-legend/schema'
+import { ChartMarksLayer } from '../engine/chart-marks/layer'
+import {
+	AnimatedChartLineMarks,
+	ChartLineMarks,
+	type ChartLineSeries,
+} from '../engine/chart-marks/line'
+import { useChartTexture } from '../engine/chart-pattern-defs'
+import { ChartReferenceLines } from '../engine/chart-reference-lines'
+import { snappedSeriesAt, snapTargets } from '../engine/chart-snap'
+import { resolveTooltip } from '../engine/chart-tooltip'
+import type { ChartValueLabelConfig } from '../engine/chart-value-labels'
+import {
+	axisLabelFormats,
+	ChartValueLabels,
+	resolveValueLabels,
+} from '../engine/chart-value-labels'
+import type { CartesianChartProps } from '../engine/types'
 import {
 	bandCenters,
+	cartesianData,
 	type DrawnSeries,
 	drawnSeries,
 	useChartCartesian,
-} from '../use-chart-cartesian'
-import { cartesianFocus } from '../use-chart-keyboard'
-import { type StackedAreaGeometry, stackedAreas } from './area-chart-geometry'
+} from '../engine/use-chart-cartesian'
+import { cartesianFocus } from '../engine/use-chart-keyboard'
 
 /**
  * Props for {@link AreaChart}. Requires an accessible name (`aria-label` or
@@ -280,26 +285,12 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 
 	const resolvedLegend = resolveLegend(legend)
 
-	const chart = useChartCartesian(
-		{
-			data,
-			series,
-			size,
-			width,
-			height,
-			aspectRatio,
-			axes,
-			legend: resolvedLegend.value,
-			reference,
-			tickRotation,
-			onCategoryClick,
-			formatValue,
-			// The header travels to the frame through `label`; the hook reads it too,
-			// so its tier reserves the header band's height (see `cartesianChrome`).
-			header: label.header,
-		},
-		{ zeroBaseline: true, swatch: () => 'line', stack: stacked, markInset: lineMarkReach(points) },
-	)
+	const chart = useChartCartesian(cartesianData(props, resolvedLegend.value), {
+		zeroBaseline: true,
+		swatch: () => 'line',
+		stack: stacked,
+		markInset: lineMarkReach(points),
+	})
 
 	// Spark needs no gate here: the frame renders the drawing pointer-inert, and
 	// the crosshair, hit layer, value labels, and reference hovers stand
@@ -335,17 +326,15 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 
 	const fills = drawn.map(({ meta }) => tex.fillFor(meta.slot))
 
+	const labelMetas = drawn.map(({ meta }) => meta)
+
 	const valueLabelItems = resolveValueLabels(
 		labels,
 		list,
-		drawn.map(({ meta }) => meta),
+		labelMetas,
 		chart.plot,
 		formatValue,
-		drawn.map(
-			({ meta }) =>
-				(value: number) =>
-					chart.formatAxisValue(value, meta.axis),
-		),
+		axisLabelFormats(labelMetas, chart.formatAxisValue),
 		// Stacked ribbons carry a top-edge point per category (nulls included), not
 		// the gap-skipped points a line's geometry emits, so the labels read each
 		// category's value by index rather than zipping the gap-filtered values.
@@ -382,30 +371,14 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 	const navSeries = focusSeries(stacked, chart.snapSeries, drawn, stackedGeometry, xs.length)
 
 	return (
-		<ChartFrame
+		<ChartCartesianFrame
 			{...label}
+			chart={chart}
+			resolvedLegend={resolvedLegend}
+			tex={tex}
 			fullscreen={<AreaChart {...props} />}
-			ref={chart.ref}
-			width={chart.width}
-			fixedWidth={chart.fixedWidth}
-			height={chart.height}
-			reserve={chart.reserve}
-			fill={chart.fill}
-			aspect={chart.outerAspect ?? undefined}
-			tier={chart.tier}
-			legend={
-				<ChartCartesianLegend
-					chart={chart}
-					legend={resolvedLegend.value}
-					inert={resolvedLegend.inert}
-					texture={tex.active}
-				/>
-			}
-			legendPlacement={resolvedLegend.placement}
-			readout={chart.readout}
-			readoutOrder={chart.readoutOrder}
-			emphasis={chart.emphasis}
-			tooltip={showTooltip}
+			showTooltip={showTooltip}
+			tooltipTrigger={trigger}
 			snap={snapTargets(rails, chart.bandPositions, snapPoints)}
 			focus={cartesianFocus(
 				chart.bandPositions,
@@ -414,42 +387,25 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 				referenceStops(labels, chart.referencePositions),
 				navSeries,
 			)}
-			onActiveSeries={chart.setEmphasis}
+			reference={reference}
 			className={className}
-			annotations={
-				<ChartReferenceList
-					reference={reference}
-					hidden={chart.referenceHidden}
-					format={chart.formatAxisValue}
-				/>
-			}
 		>
-			{tex.defs}
-
-			{grid && chart.gridPositions.length > 0 && (
-				<ChartGridLines plot={chart.plot} ticks={chart.gridPositions} />
-			)}
-
-			{chart.categoryGridPositions.length > 0 && (
-				<ChartGridLines
-					plot={chart.plot}
-					ticks={chart.categoryGridPositions}
-					orientation="horizontal"
-					dashed={chart.categorySeparator === 'dashed'}
-				/>
-			)}
-
-			{chart.axes && chart.yScale && <ChartAxis axis="y" plot={chart.plot} ticks={chart.yTicks} />}
-
-			{chart.axes && chart.y2Scale && (
-				<ChartAxis axis="y" position="right" plot={chart.plot} ticks={chart.y2Ticks} />
-			)}
-
-			{chart.axes && data.length > 0 && (
-				<ChartAxis axis="x" plot={chart.plot} ticks={chart.xTicks} />
-			)}
-
-			{chart.axes && <ChartAxisTitles titles={chart.axisTitles} />}
+			<ChartCartesianAxes
+				orientation={chart.orientation}
+				plot={chart.plot}
+				valueTicks={chart.yTicks}
+				hasScale={chart.yScale !== null}
+				y2Ticks={chart.y2Ticks}
+				hasY2Scale={chart.y2Scale !== null}
+				categoryTicks={chart.xTicks}
+				hasData={data.length > 0}
+				axes={chart.axes}
+				grid={grid}
+				gridPositions={chart.gridPositions}
+				categoryGridPositions={chart.categoryGridPositions}
+				categorySeparator={chart.categorySeparator}
+				titles={chart.axisTitles}
+			/>
 
 			{rails && (
 				<ChartCrosshair
@@ -466,7 +422,7 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 
 			<ChartValueLabels labels={valueLabelItems} animate={animate} dataKey={chart.dataKey} />
 
-			{(showTooltip || rails !== null || chart.onBandClick !== undefined) && data.length > 0 && (
+			{cartesianHitActive(showTooltip, rails, chart.onBandClick, data.length) && (
 				<ChartHitArea
 					plot={chart.plot}
 					band={chart.band}
@@ -509,6 +465,6 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 				labels={labels?.references}
 				hidden={chart.referenceHidden}
 			/>
-		</ChartFrame>
+		</ChartCartesianFrame>
 	)
 }

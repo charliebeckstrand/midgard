@@ -70,7 +70,7 @@ describe('FiltersField', () => {
 
 		expect(checkbox.checked).toBe(false)
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.click(checkbox)
 
@@ -102,7 +102,7 @@ describe('FiltersField', () => {
 
 		expect(radios[1]?.checked).toBe(false)
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.click(radios[1] as HTMLInputElement)
 
@@ -122,7 +122,7 @@ describe('FiltersField', () => {
 
 		const input = bySlot(container, 'input') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.type(input, 'a')
 
@@ -148,7 +148,7 @@ describe('FiltersField', () => {
 
 		const input = bySlot(container, 'raw-input') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.type(input, 'b')
 
@@ -200,7 +200,7 @@ describe('FiltersClear', () => {
 			</Filters>,
 		)
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.click(screen.getByText('Clear'))
 
@@ -228,7 +228,7 @@ describe('FiltersClear', () => {
 			</Filters>,
 		)
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.click(screen.getByText('Clear'))
 
@@ -248,7 +248,7 @@ describe('FiltersClear', () => {
 			</Filters>,
 		)
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.click(screen.getByText('Clear'))
 
@@ -320,7 +320,7 @@ describe('Filter (uncontrolled)', () => {
 
 		const input = bySlot(container, 'input') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.type(input, 'test')
 
@@ -380,7 +380,7 @@ describe('Filters extras', () => {
 			</Filters>,
 		)
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.click(screen.getByText('Clear'))
 
@@ -415,7 +415,7 @@ describe('Filters extras', () => {
 
 		const input = bySlot(container, 'input') as HTMLInputElement
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		await user.clear(input)
 

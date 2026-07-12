@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import { Grid, type GridCellClickContext, type GridColumn } from '../../modules/grid'
-import { GRID_STATUS_DEBOUNCE_MS } from '../../modules/grid/grid-constants'
+import { GRID_STATUS_DEBOUNCE_MS } from '../../modules/grid/engine/grid-constants'
 import { renderUI, screen, userEvent, withFakeTime } from '../helpers'
 
 describe('Grid row click', () => {
@@ -20,7 +20,7 @@ describe('Grid row click', () => {
 	const getKey = (row: Row) => row.id
 
 	it('fires onRowClick with the row datum when a cell is clicked', async () => {
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		const onRowClick = vi.fn()
 
@@ -34,7 +34,7 @@ describe('Grid row click', () => {
 	})
 
 	it('defers to interactive cell content rather than firing the row click', async () => {
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		const onRowClick = vi.fn()
 
@@ -46,7 +46,7 @@ describe('Grid row click', () => {
 	})
 
 	it('makes a clickable row keyboard-focusable and activates on Enter', async () => {
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		const onRowClick = vi.fn()
 
@@ -110,7 +110,7 @@ describe('Grid cell click', () => {
 	const getKey = (row: Row) => row.id
 
 	it('fires onCellClick with the cell context when a data cell is clicked', async () => {
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		const onCellClick = vi.fn()
 
@@ -130,7 +130,7 @@ describe('Grid cell click', () => {
 	})
 
 	it('reads the cell value through the column value accessor when set', async () => {
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		const onCellClick = vi.fn()
 
@@ -147,7 +147,7 @@ describe('Grid cell click', () => {
 	})
 
 	it('fires the cell click ahead of the row click on the same click', async () => {
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		const order: string[] = []
 
@@ -167,7 +167,7 @@ describe('Grid cell click', () => {
 	})
 
 	it('defers to interactive cell content rather than firing the cell click', async () => {
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		const onCellClick = vi.fn()
 
@@ -179,7 +179,7 @@ describe('Grid cell click', () => {
 	})
 
 	it('fires from a grouped body leaf cell too', async () => {
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		const onCellClick = vi.fn()
 
@@ -227,7 +227,7 @@ describe('Grid double click', () => {
 	const getKey = (row: Row) => row.id
 
 	it('fires onRowDoubleClick with the row datum', async () => {
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		const onRowDoubleClick = vi.fn()
 
@@ -243,7 +243,7 @@ describe('Grid double click', () => {
 	})
 
 	it('fires onCellDoubleClick with the cell context, ahead of the row double-click', async () => {
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		const order: string[] = []
 
@@ -274,7 +274,7 @@ describe('Grid double click', () => {
 	})
 
 	it('defers to interactive cell content rather than firing the double-click', async () => {
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		const onRowDoubleClick = vi.fn()
 

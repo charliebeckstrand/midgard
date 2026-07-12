@@ -180,7 +180,7 @@ describe('Segment keyboard navigation', () => {
 	const item = (name: string) => screen.getByRole('tab', { name })
 
 	it('moves focus across items with arrows, skipping the disabled one', async () => {
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		renderUI(
 			<Segment value="a">

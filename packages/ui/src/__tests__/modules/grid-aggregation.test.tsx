@@ -5,7 +5,7 @@ import {
 	aggregateLabelSpan,
 	formatAggregate,
 	hasAggregation,
-} from '../../modules/grid/grid-aggregate'
+} from '../../modules/grid/engine/grid-aggregate'
 import type { GridColumn } from '../../modules/grid/types'
 import { renderUI, screen, userEvent, within } from '../helpers'
 

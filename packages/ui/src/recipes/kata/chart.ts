@@ -96,8 +96,8 @@ const series = {
 	},
 }
 
-/** A named chart mark colour: the eight categorical slots plus `zinc`. */
-export type ChartSeriesColor = keyof typeof series
+/** A named chart colour slot: the eight categorical slots plus `zinc`. */
+export type ChartColorSlot = keyof typeof series
 
 /** The fixed categorical slot order; a series keeps its slot when siblings toggle. */
 const order = [
@@ -109,7 +109,7 @@ const order = [
 	'sky',
 	'amber',
 	'rose',
-] as const satisfies readonly ChartSeriesColor[]
+] as const satisfies readonly ChartColorSlot[]
 
 export const k = {
 	series,

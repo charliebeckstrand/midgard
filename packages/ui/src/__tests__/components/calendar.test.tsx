@@ -38,7 +38,7 @@ describe('Calendar', () => {
 
 		renderUI(<Calendar onValueChange={onChange} />)
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		const days = screen.getAllByRole('option')
 
@@ -66,7 +66,7 @@ describe('Calendar', () => {
 	})
 
 	it('announces the new month through the polite live region on navigation', async () => {
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} />)
 
@@ -79,7 +79,7 @@ describe('Calendar', () => {
 	})
 
 	it('changes the month when the previous / next nav buttons are clicked', async () => {
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		const defaultValue = new Date(2025, 5, 15)
 
@@ -129,7 +129,7 @@ describe('Calendar', () => {
 
 		renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} min={min} onValueChange={onChange} />)
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		const days = screen.getAllByRole('option')
 
@@ -154,7 +154,7 @@ describe('Calendar', () => {
 
 		renderUI(<Calendar defaultValue={yearOne} onValueChange={onChange} />)
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		const dayButton = screen.getAllByRole('option').find((b) => b.textContent === '20')
 
@@ -224,7 +224,7 @@ describe('Calendar month/year picker', () => {
 	}
 
 	it('opens the month picker when the header label is clicked', async () => {
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		const defaultValue = new Date(2025, 5, 15)
 
@@ -238,7 +238,7 @@ describe('Calendar month/year picker', () => {
 	})
 
 	it('navigates years inside the month picker', async () => {
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		const defaultValue = new Date(2025, 5, 15)
 
@@ -256,7 +256,7 @@ describe('Calendar month/year picker', () => {
 	})
 
 	it('switches the calendar month when a month cell is selected', async () => {
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		const defaultValue = new Date(2025, 5, 15)
 
@@ -270,7 +270,7 @@ describe('Calendar month/year picker', () => {
 	})
 
 	it('exposes the month picker as a labelled listbox with a selected option', async () => {
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} />)
 
@@ -282,7 +282,7 @@ describe('Calendar month/year picker', () => {
 	})
 
 	it('opens the year picker from the month picker and navigates decades', async () => {
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		const defaultValue = new Date(2025, 5, 15)
 
@@ -300,7 +300,7 @@ describe('Calendar month/year picker', () => {
 	})
 
 	it('selects a year and returns to the month picker', async () => {
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		const defaultValue = new Date(2025, 5, 15)
 
@@ -331,7 +331,7 @@ describe('Calendar keyboard navigation', () => {
 	}
 
 	it('moves day focus by one column with ArrowRight / ArrowLeft', async () => {
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		renderJune()
 
@@ -347,7 +347,7 @@ describe('Calendar keyboard navigation', () => {
 	})
 
 	it('moves day focus by one week with ArrowDown / ArrowUp', async () => {
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		renderJune()
 
@@ -363,7 +363,7 @@ describe('Calendar keyboard navigation', () => {
 	})
 
 	it('jumps to the first / last day with Home / End', async () => {
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		renderJune()
 
@@ -381,7 +381,7 @@ describe('Calendar keyboard navigation', () => {
 	})
 
 	it('moves focus from the top row up into the month header', async () => {
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		renderJune()
 
@@ -393,7 +393,7 @@ describe('Calendar keyboard navigation', () => {
 	})
 
 	it('moves focus from the header down into the day grid', async () => {
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		renderJune()
 
@@ -407,7 +407,7 @@ describe('Calendar keyboard navigation', () => {
 	it('selects the focused day with Enter', async () => {
 		const onChange = vi.fn()
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} onValueChange={onChange} />)
 
@@ -417,13 +417,13 @@ describe('Calendar keyboard navigation', () => {
 
 		expect(onChange).toHaveBeenCalledTimes(1)
 
-		expect((onChange.mock.calls[0]?.[0] as Date).getDate()).toBe(20)
+		expect((onChange.mock.calls[0]?.[0] as Date | undefined)?.getDate()).toBe(20)
 	})
 
 	it('selects the focused day with Space', async () => {
 		const onChange = vi.fn()
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} onValueChange={onChange} />)
 
@@ -443,7 +443,7 @@ describe('Calendar keyboard navigation', () => {
 	}
 
 	it('enters the grid on the first enabled day when leading days are disabled', async () => {
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		renderMinTenth()
 
@@ -455,7 +455,7 @@ describe('Calendar keyboard navigation', () => {
 	})
 
 	it('moves up to the header from the first enabled row instead of stalling on a disabled week', async () => {
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		renderMinTenth()
 
@@ -488,7 +488,7 @@ describe('Calendar + Form', () => {
 			</Form>,
 		)
 
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		const day20 = screen.getAllByRole('option').find((o) => o.textContent === '20')
 

@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react'
 import { useControllable } from '../../hooks'
-import { EMPTY_SET } from './grid-constants'
+import { EMPTY_SET } from './engine/grid-constants'
 
 type ColumnLike = { id: string | number }
 

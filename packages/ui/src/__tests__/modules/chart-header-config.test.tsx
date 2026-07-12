@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { BarChart, PieChart } from '../../modules/chart'
-import { resolveHeader } from '../../modules/chart/chart-schema'
+import { resolveHeader } from '../../modules/chart/engine/chart-header'
 import { bySlot, renderUI } from '../helpers'
 
 const ROWS = [

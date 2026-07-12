@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { bandScale } from '../../modules/chart/chart-scale'
-import { cellAt, heatmapCells } from '../../modules/chart/heatmap-chart/heatmap-chart-geometry'
+import { cellAt, heatmapCells } from '../../modules/chart/engine/chart-geometry/heatmap'
+import { bandScale } from '../../modules/chart/engine/chart-scale'
 
 // A 2×3 grid over a 300×200 plot, zero band padding so slots tile the range.
 const X = bandScale({ count: 3, range: [0, 300], padding: 0 })

@@ -96,7 +96,7 @@ export function ScrollArea({
 							className={k.thumb({ orientation: 'vertical' })}
 							style={{
 								height: `${verticalThumb.size}px`,
-								top: `${verticalThumb.offset}px`,
+								transform: `translateY(${verticalThumb.offset}px)`,
 							}}
 							onPointerDown={startDrag('y')}
 						/>
@@ -119,7 +119,7 @@ export function ScrollArea({
 							className={k.thumb({ orientation: 'horizontal' })}
 							style={{
 								width: `${horizontalThumb.size}px`,
-								left: `${horizontalThumb.offset}px`,
+								transform: `translateX(${horizontalThumb.offset}px)`,
 							}}
 							onPointerDown={startDrag('x')}
 						/>

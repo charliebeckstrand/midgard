@@ -5,7 +5,7 @@ import { type ReactNode, useCallback, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { useSortableSensors } from '../../hooks'
 import { k } from '../../recipes/kata/kanban'
-import { KanbanContext } from './context'
+import { KanbanContext, KanbanDragStateContext } from './context'
 import type { KanbanColumnBase } from './types'
 import { useKanbanDrag } from './use-kanban-drag'
 import { useKanbanKeyboard } from './use-kanban-keyboard'
@@ -87,62 +87,58 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 		[rawDragStart, setLiftedCardId],
 	)
 
+	// Card-facing value: stays referentially stable through a pointer drag (which
+	// moves only activeId/columnItemIds), so cards don't re-render per drag move.
 	const contextValue = useMemo(
 		() => ({
 			interactive,
 			disabled: !!disabled,
-			activeId,
 			liftedCardId,
-			columnItemIds,
 			overlayMap,
 			onCardKeyDown,
 			onCardBlur,
 		}),
-		[
-			interactive,
-			disabled,
-			activeId,
-			liftedCardId,
-			columnItemIds,
-			overlayMap,
-			onCardKeyDown,
-			onCardBlur,
-		],
+		[interactive, disabled, liftedCardId, overlayMap, onCardKeyDown, onCardBlur],
 	)
+
+	// Column-facing drag state: churns every drag-over move; confined to columns.
+	const dragStateValue = useMemo(() => ({ activeId, columnItemIds }), [activeId, columnItemIds])
 
 	return (
 		<KanbanContext value={contextValue}>
-			<DndContext
-				sensors={sensors}
-				collisionDetection={closestCorners}
-				onDragStart={interactive ? handleDragStart : undefined}
-				onDragOver={interactive ? handleDragOver : undefined}
-				onDragEnd={interactive ? handleDragEnd : undefined}
-				onDragCancel={interactive ? handleDragCancel : undefined}
-			>
-				<section
-					ref={containerRef}
-					aria-label={ariaLabel}
-					data-slot="kanban"
-					className={cn(k.base, className)}
+			<KanbanDragStateContext value={dragStateValue}>
+				<DndContext
+					sensors={sensors}
+					collisionDetection={closestCorners}
+					onDragStart={interactive ? handleDragStart : undefined}
+					onDragOver={interactive ? handleDragOver : undefined}
+					onDragEnd={interactive ? handleDragEnd : undefined}
+					onDragCancel={interactive ? handleDragCancel : undefined}
 				>
-					{children}
-				</section>
-				{interactive ? (
-					<DragOverlay dropAnimation={null}>
-						{activeId ? (
-							<div
-								data-slot="kanban-card"
-								data-card-id={activeId}
-								data-overlay="true"
-								className={cn(k.card.base, k.card.draggable, k.card.active)}
-							>
-								{overlayMap.current.get(activeId)}
-							</div>
-						) : null}
-					</DragOverlay>
-				) : null}
-			</DndContext>
+					<section
+						ref={containerRef}
+						aria-label={ariaLabel}
+						data-slot="kanban"
+						className={cn(k.base, className)}
+					>
+						{children}
+					</section>
+					{interactive ? (
+						<DragOverlay dropAnimation={null}>
+							{activeId ? (
+								<div
+									data-slot="kanban-card"
+									data-card-id={activeId}
+									data-overlay="true"
+									className={cn(k.card.base, k.card.draggable, k.card.active)}
+								>
+									{overlayMap.current.get(activeId)}
+								</div>
+							) : null}
+						</DragOverlay>
+					) : null}
+				</DndContext>
+			</KanbanDragStateContext>
 		</KanbanContext>
 	)
 }

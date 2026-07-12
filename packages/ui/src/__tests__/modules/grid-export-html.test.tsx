@@ -1,9 +1,9 @@
 import { strFromU8, unzipSync } from 'fflate'
 import { describe, expect, it, vi } from 'vitest'
 import type { GridColumn } from '../../modules/grid'
-import { downloadExcel, rowsToXlsx } from '../../modules/grid/export/export-excel'
-import { rowsToHtmlTable } from '../../modules/grid/export/export-html-table'
-import { printRows, rowsToPrintHtml } from '../../modules/grid/export/export-print'
+import { downloadExcel, rowsToXlsx } from '../../modules/grid/engine/grid-export/excel'
+import { rowsToHtmlTable } from '../../modules/grid/engine/grid-export/html-table'
+import { printRows, rowsToPrintHtml } from '../../modules/grid/engine/grid-export/print'
 
 type Row = { id: number; name: string; role: string }
 

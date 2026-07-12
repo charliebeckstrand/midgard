@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { BarChart } from '../../modules/chart/bar-chart'
-import { textureClass, textureStyle } from '../../modules/chart/chart-pattern-defs'
+import { textureClass, textureStyle } from '../../modules/chart/engine/chart-pattern-defs'
 import { PieChart } from '../../modules/chart/pie-chart'
 import { allBySlot, bySlot, renderUI } from '../helpers'
 

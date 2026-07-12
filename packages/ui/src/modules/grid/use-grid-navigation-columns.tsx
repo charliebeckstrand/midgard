@@ -14,7 +14,7 @@ import {
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
-import { fromInteractiveContent } from './grid-row'
+import { fromInteractiveContent } from './engine/grid-row/cell'
 import type { GridColumn } from './types'
 import { type Coord, useGridNavContext } from './use-grid-navigation'
 

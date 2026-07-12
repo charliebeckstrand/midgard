@@ -108,6 +108,7 @@ export function useScrollAreaScrollbar({ orientation, scrollbar }: ScrollbarOpti
 	const verticalTrackRef = useRef<HTMLDivElement>(null)
 	const horizontalTrackRef = useRef<HTMLDivElement>(null)
 	const scrollFadeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+	const thumbFrameRef = useRef<number | null>(null)
 
 	const [verticalThumb, setVerticalThumb] = useState<ThumbState>(hiddenThumb)
 	const [horizontalThumb, setHorizontalThumb] = useState<ThumbState>(hiddenThumb)
@@ -133,6 +134,19 @@ export function useScrollAreaScrollbar({ orientation, scrollbar }: ScrollbarOpti
 			setHorizontalThumb(computeThumb(el.scrollLeft, el.clientWidth, el.scrollWidth, trackWidth))
 		}
 	}, [hasVertical, hasHorizontal])
+
+	// Scroll events fire faster than frames; coalesce the thumb re-measure (a
+	// layout read plus two setStates) into one commit per frame. Resize/mutation
+	// re-measures stay synchronous — the browser already batches those per frame.
+	const scheduleThumbs = useCallback(() => {
+		if (thumbFrameRef.current !== null) return
+
+		thumbFrameRef.current = requestAnimationFrame(() => {
+			thumbFrameRef.current = null
+
+			updateThumbs()
+		})
+	}, [updateThumbs])
 
 	useEffect(() => {
 		const el = viewportRef.current
@@ -173,6 +187,8 @@ export function useScrollAreaScrollbar({ orientation, scrollbar }: ScrollbarOpti
 	useEffect(
 		() => () => {
 			if (scrollFadeTimeoutRef.current) clearTimeout(scrollFadeTimeoutRef.current)
+
+			if (thumbFrameRef.current !== null) cancelAnimationFrame(thumbFrameRef.current)
 		},
 		[],
 	)
@@ -207,7 +223,7 @@ export function useScrollAreaScrollbar({ orientation, scrollbar }: ScrollbarOpti
 	}, [])
 
 	const handleScroll = useCallback(() => {
-		updateThumbs()
+		scheduleThumbs()
 
 		if (scrollbar === 'auto') {
 			setIsScrolling(true)
@@ -216,7 +232,7 @@ export function useScrollAreaScrollbar({ orientation, scrollbar }: ScrollbarOpti
 
 			scrollFadeTimeoutRef.current = setTimeout(() => setIsScrolling(false), SCROLL_FADE_DELAY_MS)
 		}
-	}, [scrollbar, updateThumbs])
+	}, [scrollbar, scheduleThumbs])
 
 	const dragCleanupRef = useRef<(() => void) | null>(null)
 

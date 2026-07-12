@@ -228,13 +228,17 @@ describe('QueryBuilder', () => {
 
 		fireEvent.change(input, { target: { value: '42' } })
 
-		expect((onChange.mock.calls.at(-1)?.[0] as QueryGroupNode).children[0]).toMatchObject({
+		expect(
+			(onChange.mock.calls.at(-1)?.[0] as QueryGroupNode | undefined)?.children[0],
+		).toMatchObject({
 			value: 42,
 		})
 
 		fireEvent.change(input, { target: { value: '' } })
 
-		expect((onChange.mock.calls.at(-1)?.[0] as QueryGroupNode).children[0]).toMatchObject({
+		expect(
+			(onChange.mock.calls.at(-1)?.[0] as QueryGroupNode | undefined)?.children[0],
+		).toMatchObject({
 			value: '',
 		})
 	})

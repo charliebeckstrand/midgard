@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { AreaChart } from '../../modules/chart/area-chart'
-import { stackedAreas } from '../../modules/chart/area-chart/area-chart-geometry'
+import { stackedAreas } from '../../modules/chart/engine/chart-geometry/area'
 import { allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
 
 const DATA = [

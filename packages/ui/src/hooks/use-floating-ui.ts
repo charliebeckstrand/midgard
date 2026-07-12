@@ -97,13 +97,28 @@ function isScrollbarPress(event: PointerEvent, target: HTMLElement): boolean {
 export type FloatingPanelOptions = {
 	placement: Placement
 	open: boolean
-	onOpenChange: (open: boolean, event?: Event, reason?: OpenChangeReason) => void
+	/**
+	 * Notified on every floating-ui-routed open-state change. Optional: a
+	 * point-anchored surface composes only `useClientPoint`, whose position
+	 * updates never call `onOpenChange`, so it has nothing to hand back.
+	 */
+	onOpenChange?: (open: boolean, event?: Event, reason?: OpenChangeReason) => void
 	/** Offset (px) between reference and floating element. @defaultValue 4 */
 	offset?: number
 	/** When true, adds a size middleware that sets the floating element's min-width to the reference width. @defaultValue false */
 	matchReferenceWidth?: boolean
 	/** Escape hatch: fully overrides the default offset/flip/shift/size middleware chain. */
 	middleware?: Middleware[]
+	/**
+	 * Reposition strategy while mounted. `'auto'` wires `autoUpdate`
+	 * (ResizeObserver plus ancestor scroll/resize listeners), the right default
+	 * for a DOM-anchored panel whose reference moves independently. `'point'`
+	 * drops `whileElementsMounted`: a pointer-anchored surface reseats its
+	 * virtual reference on every coordinate change, which already triggers a
+	 * reposition, so the observer wiring is redundant per-open cost.
+	 * @defaultValue 'auto'
+	 */
+	track?: 'auto' | 'point'
 	/**
 	 * When the panel transitions from open to closed, return focus to this
 	 * element (or its first `button`/`[tabindex]` descendant when the element
@@ -137,6 +152,7 @@ export function useFloatingPanel({
 	matchReferenceWidth = false,
 	middleware,
 	returnFocusTo,
+	track = 'auto',
 }: FloatingPanelOptions): FloatingPanelResult {
 	const resolvedMiddleware = useMemo(
 		() => middleware ?? buildMiddleware(offsetPx, matchReferenceWidth),
@@ -157,7 +173,7 @@ export function useFloatingPanel({
 		(nextOpen: boolean, event?: Event, reason?: OpenChangeReason) => {
 			if (!nextOpen) closeReasonRef.current = reason
 
-			onOpenChangeRef.current(nextOpen, event, reason)
+			onOpenChangeRef.current?.(nextOpen, event, reason)
 		},
 		[],
 	)
@@ -166,7 +182,9 @@ export function useFloatingPanel({
 		placement,
 		open,
 		onOpenChange: handleOpenChange,
-		whileElementsMounted: autoUpdate,
+		// A point-anchored surface (`track: 'point'`) repositions itself on every
+		// coordinate change, so it skips the observer-based `autoUpdate` wiring.
+		whileElementsMounted: track === 'point' ? undefined : autoUpdate,
 		middleware: resolvedMiddleware,
 	})
 

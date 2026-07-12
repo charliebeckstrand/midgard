@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { ChartFullscreenContext } from '../../modules/chart/context'
 import { DonutChart } from '../../modules/chart/donut-chart'
+import { ChartFullscreenContext } from '../../modules/chart/engine/context'
 import { allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
 
 const DATA = [

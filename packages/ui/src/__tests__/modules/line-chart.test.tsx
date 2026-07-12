@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
+import { lineGeometry } from '../../modules/chart/engine/chart-geometry/line'
 import { LineChart } from '../../modules/chart/line-chart'
-import { lineGeometry } from '../../modules/chart/line-chart/line-chart-geometry'
 import { allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
 
 const DATA = [
@@ -463,5 +463,44 @@ describe('lineGeometry', () => {
 		const smooth = lineGeometry([10, 30], [0, 10], identity, 100, 'smooth')
 
 		expect(smooth.segments[0]).toBe('M 0 10 L 10 30')
+	})
+
+	it('leaves a run at drawing resolution byte-for-byte unchanged', () => {
+		// Three points across 800px — far below the two-per-pixel threshold, so
+		// decimation is a no-op and the path is exactly the undecimated one.
+		const geo = lineGeometry([1, 2, 3], [0, 400, 800], identity, 100)
+
+		expect(geo.segments[0]).toBe('M 0 1 L 400 2 L 800 3')
+	})
+
+	it('decimates a dense run for drawing while keeping data full-resolution', () => {
+		// 8,000 points across an 800px span is ten per pixel — far denser than the
+		// plot can show, so the drawn path collapses to the per-column envelope.
+		const n = 8_000
+
+		const xs = Array.from({ length: n }, (_, i) => (i / (n - 1)) * 800)
+
+		const values = Array.from({ length: n }, (_, i) => Math.sin(i / 20) * 40 + 50)
+
+		// An unmistakable single-column spike that decimation must keep.
+		values[1234] = 9999
+
+		const geo = lineGeometry(values, xs, identity, 100)
+
+		const drawn = (geo.segments[0]?.match(/L /g)?.length ?? 0) + 1
+
+		// The drawn path is a fraction of the data…
+		expect(drawn).toBeLessThan(n / 2)
+
+		// …the spike survives it…
+		expect(geo.segments[0]).toContain('9999')
+
+		// …the endpoints are exact…
+		expect(geo.segments[0]?.startsWith('M 0 ')).toBe(true)
+
+		// …and the hit-test / marker / table run keeps every point.
+		expect(geo.runs[0]).toHaveLength(n)
+
+		expect(geo.points).toHaveLength(n)
 	})
 })

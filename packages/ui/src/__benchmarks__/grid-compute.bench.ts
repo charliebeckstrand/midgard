@@ -2,10 +2,10 @@
 
 import { bench, describe } from 'vitest'
 import type { GridColumn } from '../modules/grid'
-import { rowsToCsv } from '../modules/grid/export/export-csv'
-import { rowsToHtmlTable } from '../modules/grid/export/export-html-table'
-import { allocateColumnWidths } from '../modules/grid/grid-column-allocate'
-import { applyPinOverrides, type PinOverrides } from '../modules/grid/grid-pin-overrides'
+import { allocateColumnWidths } from '../modules/grid/engine/grid-column/allocate'
+import { rowsToCsv } from '../modules/grid/engine/grid-export/csv'
+import { rowsToHtmlTable } from '../modules/grid/engine/grid-export/html-table'
+import { applyPinOverrides, type PinOverrides } from '../modules/grid/engine/grid-pin/overrides'
 import {
 	makeColumnSizeProfiles,
 	makeEscapeHeavyRows,

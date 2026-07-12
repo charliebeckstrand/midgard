@@ -88,8 +88,10 @@ const thumb = defineRecipe({
 		),
 	],
 	orientation: {
-		vertical: 'w-full',
-		horizontal: 'h-full',
+		// Anchored at the track origin; the live offset rides `transform` (inline)
+		// so thumb movement stays on the compositor instead of triggering layout.
+		vertical: 'w-full top-0',
+		horizontal: 'h-full left-0',
 	},
 })
 

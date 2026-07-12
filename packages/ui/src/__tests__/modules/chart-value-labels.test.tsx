@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import { AreaChart } from '../../modules/chart/area-chart'
-import { paintFor } from '../../modules/chart/chart-series'
+import { resolvePaint } from '../../modules/chart/engine/chart-color/paint'
 import {
 	labelPoints,
 	type PlacedValueLabel,
 	resolveValueLabels,
 	type ValueLabelSeries,
 	valueLabels,
-} from '../../modules/chart/chart-value-labels'
+} from '../../modules/chart/engine/chart-value-labels'
 import { LineChart } from '../../modules/chart/line-chart'
 import { allBySlot, bySlot, renderUI } from '../helpers'
 
@@ -185,7 +185,7 @@ describe('labelPoints', () => {
 describe('resolveValueLabels', () => {
 	const list = [
 		{
-			paint: paintFor('blue'),
+			paint: resolvePaint('blue'),
 			geometry: {
 				points: [
 					{ x: 10, y: 50 },
@@ -218,7 +218,7 @@ describe('resolveValueLabels', () => {
 		const twoSeries = [
 			...list,
 			{
-				paint: paintFor('orange'),
+				paint: resolvePaint('orange'),
 				geometry: {
 					points: [
 						{ x: 10, y: 80 },

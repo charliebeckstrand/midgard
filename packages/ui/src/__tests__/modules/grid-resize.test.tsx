@@ -136,7 +136,7 @@ describe('Grid resizable columns', () => {
 	})
 
 	it('widens a column with ArrowRight', async () => {
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		const onValueChange = vi.fn()
 
@@ -159,7 +159,7 @@ describe('Grid resizable columns', () => {
 	})
 
 	it('narrows a column with ArrowLeft', async () => {
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		const onValueChange = vi.fn()
 
@@ -181,7 +181,7 @@ describe('Grid resizable columns', () => {
 	})
 
 	it('jumps a coarse step with PageUp and PageDown', async () => {
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		const onValueChange = vi.fn()
 
@@ -209,7 +209,7 @@ describe('Grid resizable columns', () => {
 	})
 
 	it('snaps to the minimum width with Home', async () => {
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		const onValueChange = vi.fn()
 
@@ -231,7 +231,7 @@ describe('Grid resizable columns', () => {
 	})
 
 	it('snaps to the maximum width with End when the column is bounded', async () => {
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		const onValueChange = vi.fn()
 
@@ -255,7 +255,7 @@ describe('Grid resizable columns', () => {
 	})
 
 	it('clamps to the column minimum width', async () => {
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		const onValueChange = vi.fn()
 
@@ -385,7 +385,7 @@ describe('Grid resizable columns', () => {
 	})
 
 	it('does not fire the resize lifecycle for a keyboard nudge', async () => {
-		const user = userEvent.setup()
+		const user = userEvent.setup({ delay: null })
 
 		const onResizeStart = vi.fn()
 

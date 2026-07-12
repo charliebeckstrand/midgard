@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { BAND_EDGE_PAD } from '../../modules/chart/chart-constants'
-import { type CartesianLayoutInput, verticalLayout } from '../../modules/chart/chart-layout'
+import { BAND_EDGE_PAD } from '../../modules/chart/engine/chart-constants'
+import { type CartesianLayoutInput, verticalLayout } from '../../modules/chart/engine/chart-layout'
 
 const input = (frameHeight: number, valueHeadroom: number): CartesianLayoutInput => ({
 	frameWidth: 400,

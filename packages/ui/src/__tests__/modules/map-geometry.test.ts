@@ -111,7 +111,7 @@ describe('rewindFeatures', () => {
 
 		const [fixed] = rewindFeatures([feature])
 
-		const rings = (fixed?.geometry as { coordinates: number[][][] }).coordinates
+		const rings = ((fixed as MapFeature).geometry as { coordinates: number[][][] }).coordinates
 
 		// Exterior unchanged, hole reversed relative to the input.
 		expect(rings[0]).toEqual(CW_EXTERIOR)
@@ -134,7 +134,7 @@ describe('rewindFeatures', () => {
 
 		const [fixed] = rewindFeatures([feature])
 
-		const rings = (fixed?.geometry as { coordinates: number[][][] }).coordinates
+		const rings = ((fixed as MapFeature).geometry as { coordinates: number[][][] }).coordinates
 
 		expect(rings).toHaveLength(1)
 
@@ -151,7 +151,9 @@ describe('rewindFeatures', () => {
 
 		const [fixed] = rewindFeatures([polygonFeature('E', [collinear])])
 
-		expect((fixed?.geometry as { coordinates: number[][][] }).coordinates).toEqual([])
+		expect(((fixed as MapFeature).geometry as { coordinates: number[][][] }).coordinates).toEqual(
+			[],
+		)
 	})
 
 	it('rewinds each polygon of a MultiPolygon', () => {
@@ -168,7 +170,7 @@ describe('rewindFeatures', () => {
 
 		const [fixed] = rewindFeatures([feature])
 
-		const polygons = (fixed?.geometry as { coordinates: number[][][][] }).coordinates
+		const polygons = ((fixed as MapFeature).geometry as { coordinates: number[][][][] }).coordinates
 
 		// The first polygon's mis-wound exterior is flipped; the second, already
 		// correct, is left as it stands.

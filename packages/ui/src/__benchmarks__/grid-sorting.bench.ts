@@ -4,11 +4,15 @@ import { bench, describe } from 'vitest'
 import {
 	compareSmart,
 	compareSortKeys,
+	computeSortOrder,
+	materializeSort,
 	parseNumeric,
+	type SmartSortField,
 	type SortKey,
+	sortRowsSmart,
 	toSortKey,
-} from '../modules/grid/grid-sorting-utilities'
-import { makeShipments } from './fixtures'
+} from '../modules/grid/engine/grid-sort/utilities'
+import { makeShipments, type Shipment } from './fixtures'
 
 // The grid's client sort runs these comparators O(n log n) times per sorted
 // column, over regex-heavy numeric parsing and a locale-aware string fallback —
@@ -102,4 +106,51 @@ describe('grid-sort · parseNumeric (per-value)', () => {
 	bench('mixed value shapes · 6 per iter', () => {
 		for (const v of samples) parseNumeric(v)
 	})
+})
+
+// The whole-function sort cost, split into the two halves the render path caches
+// apart (see `useSortView`): `computeSortOrder` is the costly decode-and-sort that
+// a re-sort of unchanged rows by a seen spec reuses; `materializeSort` is the cheap
+// projection paid on every flip regardless. The ratio between them is what the
+// permutation cache trades on — a flip skips the former and pays only the latter —
+// so a regression that inflates `materializeSort` (or shrinks the gap) is a
+// regression in the cache's value, caught here before the browser suite feels it.
+const getShipmentKey = (r: Shipment) => r.id
+
+const stringField: SmartSortField<Shipment> = {
+	descending: false,
+	accessor: (r) => r.origin,
+	sortFn: null,
+}
+
+const numberField: SmartSortField<Shipment> = {
+	descending: false,
+	accessor: (r) => r.weight,
+	sortFn: null,
+}
+
+describe('grid-sort · sortRowsSmart split (compute vs materialize)', () => {
+	for (const n of [10_000, 100_000]) {
+		const rows = makeShipments(n)
+
+		// The permutation of a pre-sorted set, so `materializeSort` is benched over a
+		// real order rather than the identity — the exact array the cache hands it.
+		const order = computeSortOrder(rows, [stringField])
+
+		bench(`${n.toLocaleString()} · computeSortOrder · string column (the cached half)`, () => {
+			computeSortOrder(rows, [stringField])
+		})
+
+		bench(`${n.toLocaleString()} · computeSortOrder · numeric column (the cached half)`, () => {
+			computeSortOrder(rows, [numberField])
+		})
+
+		bench(`${n.toLocaleString()} · materializeSort (paid every flip)`, () => {
+			materializeSort(rows, order, getShipmentKey)
+		})
+
+		bench(`${n.toLocaleString()} · sortRowsSmart · string column (compute + materialize)`, () => {
+			sortRowsSmart(rows, getShipmentKey, [stringField])
+		})
+	}
 })

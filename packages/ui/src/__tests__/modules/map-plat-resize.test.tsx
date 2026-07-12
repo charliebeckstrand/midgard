@@ -161,7 +161,7 @@ describe('MapPlat free-form fill sizing (aspectRatio={false})', () => {
 		expect(plot?.className).toContain('min-h-0')
 
 		// The plot box fills the region rather than reserving a height from its width.
-		expect((plot?.firstElementChild as HTMLElement).className).toContain('size-full')
+		expect((plot?.firstElementChild as HTMLElement | undefined)?.className).toContain('size-full')
 
 		// With a real container height reported, the geography draws to it — a
 		// reserved-zero box would measure 0 and suppress the SVG.

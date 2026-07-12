@@ -98,6 +98,39 @@ function observeTruncation(el: Element, measure: () => void): () => void {
 }
 
 /**
+ * Set for the duration of a {@link focusWithoutReveal} call and read by
+ * {@link useTruncation}'s arm, which skips its synchronous flush while it holds.
+ * Module-level because the arm is a native listener with no line to its caller.
+ *
+ * @internal
+ */
+let programmaticFocus = false
+
+/**
+ * Moves focus to `el` without arming the truncation reveal's eager flush.
+ *
+ * @remarks {@link useTruncation} arms on a native `focusin` that fires
+ * synchronously inside `el.focus()`, and its arm flushes state synchronously so a
+ * genuine hover or keyboard focus opens the reveal on that same dispatch. A
+ * programmatic focus wants neither: it opens no reveal, and it can land inside a
+ * React commit (a grid editor focused from a post-mount effect), where `flushSync`
+ * cannot flush and warns. Callers that move focus into a possibly-truncated cell
+ * during render/commit route through here so the arm commits through a plain
+ * update — the same eventual state, without the mid-render flush.
+ *
+ * @internal
+ */
+export function focusWithoutReveal(el: HTMLElement): void {
+	programmaticFocus = true
+
+	try {
+		el.focus()
+	} finally {
+		programmaticFocus = false
+	}
+}
+
+/**
  * Tracks whether an element's single-line content overflows its box (clipped to
  * an ellipsis). Measured lazily: the first pointer or focus contact arms the
  * element and takes the first read, and an armed element then re-measures
@@ -211,16 +244,24 @@ export function useTruncation<E extends HTMLElement>(options?: {
 
 			if (!unobserve) watch()
 
+			const commit = () => {
+				setContacted(true)
+
+				measure()
+			}
+
 			// Synchronous commit, because ordering decides whether the reveal opens:
 			// the tooltip's hover logic rides React's root-delegated events, and this
 			// element-level listener fires first on the same `pointerover`/`focusin`
 			// dispatch — flushing here lands `truncated` (and the tooltip's `enabled`)
 			// before the hover logic evaluates the very contact that armed it.
-			flushSync(() => {
-				setContacted(true)
-
-				measure()
-			})
+			//
+			// A programmatic focus (see `focusWithoutReveal`) is the exception: it
+			// opens no reveal and can arm this listener from inside a React commit,
+			// where `flushSync` cannot flush and warns. It commits plainly there — the
+			// same eventual state the mid-render flush would have deferred to anyway.
+			if (programmaticFocus) commit()
+			else flushSync(commit)
 		}
 
 		// The reveal these flags gate opens on hover or focus, and both begin with
