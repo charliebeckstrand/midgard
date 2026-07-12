@@ -1,9 +1,9 @@
 import fs from 'node:fs'
 import path from 'node:path'
-import type { ApiExtractor } from 'docs-extractor'
 import { type ModuleNode, type Plugin, transformWithEsbuild } from 'vite'
-import type { DocMeta } from './contracts'
-import { deriveDocMeta, type ParsedDoc, parseDoc } from './parse'
+import type { DocMeta } from '../engine/contracts'
+import { deriveDocMeta, type ParsedDoc, parseDoc } from '../engine/parse'
+import type { ApiExtractor } from '../extractor'
 import { virtualJsonModules } from './virtual-json'
 
 /** Options for {@link docsPlugin}. */
@@ -51,7 +51,7 @@ export function docsPlugin({
 		if (!apiPackageDir) return null
 
 		if (!extractor) {
-			const { createExtractor } = await import('docs-extractor')
+			const { createExtractor } = await import('../extractor')
 
 			extractor = createExtractor({ packageDir: apiPackageDir, packageName })
 		}

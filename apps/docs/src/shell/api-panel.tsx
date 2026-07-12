@@ -1,7 +1,7 @@
-import type { ApiSnapshot, SymbolApi } from 'docs-extractor'
+import type { DocMeta } from 'docs/engine'
+import type { ApiSnapshot, SymbolApi } from 'docs/extractor'
 import { use } from 'react'
 import { Text } from 'ui/text'
-import type { DocMeta } from '../engine/contracts'
 import { ApiTab } from './api/api-tab'
 
 let snapshot: Promise<ApiSnapshot> | null = null

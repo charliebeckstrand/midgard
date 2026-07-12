@@ -1,4 +1,4 @@
-import ts from 'typescript'
+import ts from 'typescript-6'
 import { type LinkResolver, stripLinks } from './doc'
 import type { DocLink } from './schema'
 import { unaliasSymbol } from './ts-utils'

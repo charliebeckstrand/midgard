@@ -1,4 +1,4 @@
-import ts from 'typescript'
+import ts from 'typescript-6'
 import type { PassThrough } from './schema'
 import {
 	type FunctionLikeNode,

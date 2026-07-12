@@ -1,4 +1,4 @@
-import ts from 'typescript'
+import ts from 'typescript-6'
 import { extractDefaults } from './defaults'
 import { extractDocFromParts, type LinkResolver, stripLinks } from './doc'
 import { readKataDefaults } from './kata-defaults'

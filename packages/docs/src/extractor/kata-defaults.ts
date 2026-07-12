@@ -1,6 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
-import ts from 'typescript'
+import ts from 'typescript-6'
 
 /**
  * Variant-axis defaults for a component, parsed from its kata file's
@@ -26,7 +26,7 @@ export function readKataDefaults(packageDir: string, name: string): Record<strin
 }
 
 /** The `defaults: {…}` entries of the first `defineRecipe({…})` call in a parsed kata source. */
-export function parseKataDefaults(source: ts.SourceFile): Record<string, string> {
+function parseKataDefaults(source: ts.SourceFile): Record<string, string> {
 	const config = findRecipeConfig(source)
 
 	if (!config) return {}

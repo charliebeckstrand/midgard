@@ -1,8 +1,8 @@
 import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
+import { createRequire } from 'node:module'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { parseDoc } from '../src/engine/parse.ts'
 
 // Type-check every `tsx preview` fence. esbuild strips types without checking
 // them, so without this pass authored fence code would never see a compiler.
@@ -10,6 +10,18 @@ import { parseDoc } from '../src/engine/parse.ts'
 // it back to the source md), and one `tsc --noEmit` run covers them all.
 
 const appRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
+
+// The parser ships in the docs package's build output; bootstrap the build
+// once when a fresh checkout hasn't produced it yet.
+const require = createRequire(import.meta.url)
+
+const docsPackageDir = path.dirname(require.resolve('docs/package.json'))
+
+if (!fs.existsSync(path.join(docsPackageDir, 'dist', 'engine.js'))) {
+	execFileSync('pnpm', ['--filter', 'docs', 'build'], { cwd: appRoot, stdio: 'inherit' })
+}
+
+const { parseDoc } = await import('docs/engine')
 
 const contentRoot = path.join(appRoot, 'content')
 

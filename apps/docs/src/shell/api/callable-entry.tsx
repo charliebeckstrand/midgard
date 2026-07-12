@@ -1,4 +1,4 @@
-import type { CallableApi } from 'docs-extractor'
+import type { CallableApi } from 'docs/extractor'
 import { Heading } from 'ui/heading'
 import { Stack } from 'ui/stack'
 import { DocDescription } from './doc-description'

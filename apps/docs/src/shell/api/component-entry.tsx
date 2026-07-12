@@ -1,4 +1,4 @@
-import type { ComponentApi, PassThrough, PropDef } from 'docs-extractor'
+import type { ComponentApi, PassThrough, PropDef } from 'docs/extractor'
 import { Fragment } from 'react'
 import { Heading } from 'ui/heading'
 import { Text } from 'ui/text'

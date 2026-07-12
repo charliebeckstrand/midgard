@@ -1,4 +1,4 @@
-import ts from 'typescript'
+import ts from 'typescript-6'
 
 /**
  * Collect every default the component declares inline on its first parameter:

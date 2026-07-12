@@ -18,7 +18,7 @@
 		"packages/*": {
 			"entry": ["src/**/index.ts"]
 		},
-		"packages/docs-extractor": {
+		"packages/docs": {
 			"entry": ["src/**/index.ts"],
 			"ignore": ["src/__tests__/fixtures/**"]
 		},

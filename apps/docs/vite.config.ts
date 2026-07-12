@@ -1,8 +1,8 @@
 import { fileURLToPath } from 'node:url'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
+import { docsPlugin } from 'docs/vite'
 import { defineConfig } from 'vite'
-import { docsPlugin } from './src/engine/plugin'
 
 const uiDir = fileURLToPath(new URL('../../packages/ui', import.meta.url))
 

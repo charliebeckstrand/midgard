@@ -1,4 +1,4 @@
-import type { PropDef } from 'docs-extractor'
+import type { PropDef } from 'docs/extractor'
 import { ChevronRight } from 'lucide-react'
 import { useState } from 'react'
 import { Badge } from 'ui/badge'

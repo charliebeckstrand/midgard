@@ -1,4 +1,4 @@
-import type { PropDef } from 'docs-extractor'
+import type { PropDef } from 'docs/extractor'
 import { Badge } from 'ui/badge'
 import { CodeBlock } from 'ui/code'
 import { cn } from 'ui/core'

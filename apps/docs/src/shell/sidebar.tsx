@@ -1,3 +1,4 @@
+import type { DocMeta } from 'docs/engine'
 import { ArrowDownAZ, ArrowUpZA } from 'lucide-react'
 import { use, useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { Button } from 'ui/button'
@@ -19,7 +20,6 @@ import {
 	SidebarSection,
 } from 'ui/sidebar'
 import { Text } from 'ui/text'
-import type { DocMeta } from '../engine/contracts'
 import { docs, preloadDoc } from './registry'
 import { navigate } from './router'
 

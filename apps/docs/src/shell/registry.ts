@@ -1,5 +1,5 @@
 import manifest from 'virtual:docs/manifest'
-import type { DocModule } from '../engine/contracts'
+import type { DocModule } from 'docs/engine'
 
 /** Every documented surface, name-sorted; drives the sidebar, search, and routing. */
 export const docs = manifest

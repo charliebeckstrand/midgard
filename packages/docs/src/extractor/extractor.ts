@@ -1,6 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
-import ts from 'typescript'
+import ts from 'typescript-6'
 import { extractModule } from './components'
 import type { LinkResolver } from './doc'
 import { createLinkResolver } from './links'

@@ -1,4 +1,4 @@
-import ts from 'typescript'
+import ts from 'typescript-6'
 import type { TypeShape } from './schema'
 
 /** Nesting budget: fields nested deeper than this degrade to `opaque`. */

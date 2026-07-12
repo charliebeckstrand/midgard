@@ -1,11 +1,11 @@
-import type ts from 'typescript'
+import type ts from 'typescript-6'
 import type { DocLink } from './schema'
 
 /** Matches one `{@link …}` token; the capture group is its raw inner text. */
 export const LINK_RE = /\{@link\s+([^}]+?)\}/g
 
 /** A parsed `{@link …}` token: a symbol reference, or an external `url`. */
-export type LinkToken = {
+type LinkToken = {
 	/** Symbol name or URL the link targets. */
 	target: string
 
