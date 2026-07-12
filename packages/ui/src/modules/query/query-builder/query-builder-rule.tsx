@@ -151,7 +151,7 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 					color="red"
 					aria-label="Remove rule"
 					disabled={disabled}
-					className={k.rowRemove}
+					className={k.remove}
 					onClick={onRemove}
 				>
 					<Icon icon={<Trash />} />

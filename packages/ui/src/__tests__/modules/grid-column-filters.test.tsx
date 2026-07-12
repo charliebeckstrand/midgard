@@ -38,6 +38,11 @@ describe('Grid per-column filters', () => {
 	const nameIsEmpty = () =>
 		createGroup('and', [{ ...createRule(nameField), operator: 'isEmpty', value: '' }])
 
+	// The builder's "Add rule" action now lives behind the group's "Add" menu.
+	const openAddMenu = () => fireEvent.click(screen.getByRole('button', { name: 'Add' }))
+
+	const addRuleItem = () => screen.getByRole('menuitem', { name: 'Add rule' })
+
 	it('warns when the search and column filters request different filtering modes', () => {
 		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
 
@@ -97,10 +102,12 @@ describe('Grid per-column filters', () => {
 
 		fireEvent.click(screen.getByRole('button', { name: /^Filter Name/ }))
 
-		expect(screen.getByRole('button', { name: 'Add rule' })).toBeInTheDocument()
+		openAddMenu()
+
+		expect(addRuleItem()).toBeInTheDocument()
 
 		// Scoped to the column: no field picker, no nested groups.
-		expect(screen.queryByRole('button', { name: 'Add group' })).not.toBeInTheDocument()
+		expect(screen.queryByRole('menuitem', { name: 'Add group' })).not.toBeInTheDocument()
 
 		const labels = Array.from(document.querySelectorAll('[data-slot="listbox-button"]'), (el) =>
 			el.getAttribute('aria-label'),
@@ -117,7 +124,9 @@ describe('Grid per-column filters', () => {
 		// The lone seeded rule can't be removed (the filter keeps one), so no control.
 		expect(screen.queryByRole('button', { name: 'Remove rule' })).not.toBeInTheDocument()
 
-		fireEvent.click(screen.getByRole('button', { name: 'Add rule' }))
+		openAddMenu()
+
+		fireEvent.click(addRuleItem())
 
 		// Two rules now: each can be removed.
 		expect(screen.getAllByRole('button', { name: 'Remove rule' })).toHaveLength(2)
@@ -230,7 +239,8 @@ describe('Grid per-column filters', () => {
 
 		expect(screen.queryByRole('menuitem', { name: 'Edit filters' })).not.toBeInTheDocument()
 
-		expect(screen.getByRole('button', { name: 'Add rule' })).toBeInTheDocument()
+		// The sheet's builder is shown: its "Add" affordance is present.
+		expect(screen.getByRole('button', { name: 'Add' })).toBeInTheDocument()
 
 		fireEvent.change(screen.getByRole('textbox', { name: 'Name value' }), {
 			target: { value: 'Bob' },
