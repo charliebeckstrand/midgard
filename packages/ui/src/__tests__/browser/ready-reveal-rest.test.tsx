@@ -3,14 +3,15 @@ import { ReadyReveal } from '../../primitives/ready-reveal'
 import { renderUI, waitFor } from '../helpers'
 
 /**
- * Real-browser check of ReadyReveal's rest hold. Outside a crossfade the
- * inactive layer sleeps in `<Activity mode="hidden">` (`display: none`, CSS
- * animations stopped); flipping `ready` wakes both layers for the crossfade,
- * then rests the deactivated one once its fade-out lands. This needs a real
+ * Real-browser check of ReadyReveal's rest hold. Only the placeholder rests:
+ * once the reveal crossfade settles it sleeps in `<Activity mode="hidden">`
+ * (`display: none`, skeleton pulse stopped). The content layer stays live in
+ * every state so it, not the placeholder, reserves the grid cell's block size —
+ * the guarantee that keeps the swap free of layout shift. This needs a real
  * browser — jsdom never completes the Motion fade that sets the rest latch.
  */
 describe('ReadyReveal rest hold (real browser)', () => {
-	it('rests the inactive layer at mount and swaps the hold after a reveal', async () => {
+	it('keeps the content layer live and rests the placeholder after a reveal', async () => {
 		const { rerender } = renderUI(
 			<ReadyReveal ready={false} placeholder={<span data-testid="p">loading</span>}>
 				<span data-testid="c">content</span>
@@ -25,10 +26,11 @@ describe('ReadyReveal rest hold (real browser)', () => {
 			return layer
 		}
 
-		// Not ready: the content layer rests hidden while the placeholder shows.
-		await waitFor(() => expect(getComputedStyle(layerOf('c')).display).toBe('none'))
-
+		// Not ready: the placeholder shows and the content layer stays live in
+		// flow (hidden by opacity, never `display: none`) so it reserves the box.
 		expect(getComputedStyle(layerOf('p')).display).not.toBe('none')
+
+		expect(getComputedStyle(layerOf('c')).display).not.toBe('none')
 
 		rerender(
 			<ReadyReveal ready placeholder={<span data-testid="p">loading</span>}>
@@ -36,10 +38,10 @@ describe('ReadyReveal rest hold (real browser)', () => {
 			</ReadyReveal>,
 		)
 
-		// The reveal wakes the content layer immediately; the placeholder rests
-		// once its fade-out lands.
-		await waitFor(() => expect(getComputedStyle(layerOf('c')).display).not.toBe('none'))
-
+		// The reveal leaves the content layer live and rests the placeholder once
+		// its fade-out lands.
 		await waitFor(() => expect(getComputedStyle(layerOf('p')).display).toBe('none'))
+
+		expect(getComputedStyle(layerOf('c')).display).not.toBe('none')
 	})
 })

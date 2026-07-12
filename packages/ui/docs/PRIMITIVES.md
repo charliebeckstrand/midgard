@@ -17,7 +17,7 @@ import { TouchTarget } from 'ui/primitives/touch-target'
 | `panel` | Slot family + context envelope for panel surfaces; `createPanel` builds Title/Description/Header/Body/Footer/Content with Close and A11y contexts. | `createPanel`, `PanelProviders`, `PanelClose`, `PanelTrigger` |
 | `offcanvas` | React context exposing a `close()` handle so descendants can dismiss the surrounding slide-in drawer. | `OffcanvasContext` |
 | `portal` | Portal-container context resolving where library UI teleports (per-call container, then ambient `UIProvider`, then each portal's fallback), plus `PresencePortal`, the portal + mount-while-open + `AnimatePresence` cell the floating and overlay shells share. | `usePortalContainer`, `PortalContext`, `PresencePortal` |
-| `ready-reveal` | Gates content on a ready flag, crossfading placeholder→children in a shared grid cell (inert/`aria-hidden`, ReducedMotion) to avoid a flash of unready content; at rest the inactive layer sleeps in `<Activity mode="hidden">` (effects paused, skeleton pulse stopped), waking only for the crossfade. | `ReadyReveal` |
+| `ready-reveal` | Gates content on a ready flag, crossfading placeholder→children in a shared grid cell (inert/`aria-hidden`, ReducedMotion) to avoid a flash of unready content; the content layer stays live in flow and the placeholder rides out of flow over it, so the real content alone sizes the box in both states (no reveal shift, whether the skeleton is drawn shorter or taller), while the placeholder sleeps in `<Activity mode="hidden">` (effects paused, skeleton pulse stopped) once revealed, waking only for the crossfade. | `ReadyReveal` |
 
 ## Composition & polymorphism
 
