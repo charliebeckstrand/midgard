@@ -191,6 +191,29 @@ export function useResizablePanel({
 
 			setDragging(handleIndex)
 
+			// Pointermove can outpace the frame rate (coalesced move bursts), and each
+			// event would otherwise commit React state + fire onSizesChange, forcing a
+			// synchronous layout per event. Coalesce to one commit per frame: stash the
+			// latest clamped sizes and let a single rAF flush them.
+			let frame: number | null = null
+			let pending: number[] | null = null
+
+			const commitPending = () => {
+				frame = null
+
+				if (!pending) return
+
+				const clamped = pending
+
+				pending = null
+
+				sizesRef.current = clamped
+
+				setSizes(clamped)
+
+				onSizesChangeRef.current?.(clamped)
+			}
+
 			const onMove = (event: PointerEvent) => {
 				const drag = dragRef.current
 
@@ -210,19 +233,25 @@ export function useResizablePanel({
 				next[leftIdx] = (drag.startSizes[leftIdx] ?? 0) + deltaPercent
 				next[rightIdx] = (drag.startSizes[rightIdx] ?? 0) - deltaPercent
 
-				const clamped = clampPair(next, leftIdx, rightIdx, constraintsRef.current)
+				pending = clampPair(next, leftIdx, rightIdx, constraintsRef.current)
 
-				sizesRef.current = clamped
-
-				setSizes(clamped)
-
-				onSizesChangeRef.current?.(clamped)
+				if (frame === null) frame = requestAnimationFrame(commitPending)
 			}
 
 			const onUp = () => {
 				dragRef.current = null
 
 				setDragging(null)
+
+				// Flush the final position synchronously so the last move isn't dropped
+				// when the pointer lifts before the pending frame runs.
+				if (frame !== null) {
+					cancelAnimationFrame(frame)
+
+					frame = null
+				}
+
+				commitPending()
 
 				document.removeEventListener('pointermove', onMove)
 				document.removeEventListener('pointerup', onUp)
@@ -241,6 +270,8 @@ export function useResizablePanel({
 			document.addEventListener('contextmenu', onUp)
 
 			cleanupRef.current = () => {
+				if (frame !== null) cancelAnimationFrame(frame)
+
 				document.removeEventListener('pointermove', onMove)
 				document.removeEventListener('pointerup', onUp)
 				document.removeEventListener('pointercancel', onUp)
