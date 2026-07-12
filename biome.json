@@ -26,6 +26,16 @@
 	"linter": {
 		"rules": {
 			"preset": "recommended",
+			"correctness": {
+				"useExhaustiveDependencies": {
+					"level": "error",
+					"options": {
+						"hooks": [
+							{ "name": "useIsomorphicLayoutEffect", "closureIndex": 0, "dependenciesIndex": 1 }
+						]
+					}
+				}
+			},
 			"performance": {
 				"noImgElement": "off"
 			}

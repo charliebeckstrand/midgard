@@ -1,7 +1,7 @@
 'use client'
 
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { type KeyboardEvent, type RefObject, useLayoutEffect, useRef, useState } from 'react'
+import { type KeyboardEvent, type RefObject, useRef, useState } from 'react'
 import { Button } from '../../../../components/button'
 import { Icon } from '../../../../components/icon'
 import { Popover, PopoverContent, PopoverTrigger } from '../../../../components/popover'
@@ -10,6 +10,7 @@ import { Text } from '../../../../components/text'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../../components/tooltip'
 import { cn } from '../../../../core'
 import { useA11yRoving } from '../../../../hooks/a11y'
+import { useIsomorphicLayoutEffect } from '../../../../hooks/use-isomorphic-layout-effect'
 import { useTruncation } from '../../../../hooks/use-truncation'
 import type { ChartColorSlot } from '../../../../recipes/kata/chart'
 import { ChartSwatch } from '../chart-pattern-defs'
@@ -42,7 +43,7 @@ function useLegendFit(
 	// times, so the observer refits on resize from a stable measurement rather than
 	// the already-cut visible row, which could never reveal that a widened box now
 	// fits more.
-	useLayoutEffect(() => {
+	useIsomorphicLayoutEffect(() => {
 		const ghost = ghostRef.current
 
 		// `count` re-runs the measure when the control set changes — a resize alone

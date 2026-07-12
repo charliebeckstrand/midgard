@@ -132,7 +132,7 @@ export function Example({
 				{prefix && (
 					<div className="border-b border-zinc-200 dark:border-zinc-800 p-4">{prefix}</div>
 				)}
-				<div className="overflow-x-auto p-4 space-y-4">{children}</div>
+				<div className="flex flex-col p-4 gap-4 overflow-x-auto">{children}</div>
 				{preview && (
 					<div className="border-t border-zinc-200 dark:border-zinc-800 p-4">{preview}</div>
 				)}

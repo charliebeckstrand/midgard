@@ -35,7 +35,7 @@ export function Demo() {
 		<>
 			<Alert severity="info" variant="soft" closable>
 				<AlertDescription>
-					Control generates and propagates a stable ID and state to control-aware children.
+					Control propagates a stable ID and state to control-aware children.
 				</AlertDescription>
 			</Alert>
 
