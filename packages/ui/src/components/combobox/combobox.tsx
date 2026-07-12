@@ -309,6 +309,8 @@ export function Combobox<T>({
 	const {
 		query,
 		deferredQuery,
+		menuQuery,
+		menuDeferredQuery,
 		setQuery,
 		open,
 		setOpen,
@@ -532,7 +534,10 @@ export function Combobox<T>({
 		[selectionValue, multiple, select],
 	)
 
-	const queryValue = useQueryValue(query, deferredQuery)
+	// The menu content reads the frozen-through-close query so its filter (and a
+	// deeply scrolled virtual window) holds steady during the exit animation; the
+	// input display above still reads the live `value`.
+	const queryValue = useQueryValue(menuQuery, menuDeferredQuery)
 
 	return (
 		<ComboboxContext value={contextValue}>

@@ -1,6 +1,6 @@
 'use client'
 
-import { type RefObject, useCallback, useDeferredValue, useState } from 'react'
+import { type RefObject, useCallback, useDeferredValue, useEffect, useRef, useState } from 'react'
 import { useControllable } from '../../hooks/use-controllable'
 import { useDeferredToggle } from '../../hooks/use-deferred-toggle'
 
@@ -32,6 +32,10 @@ type ComboboxStateParams<T> = {
  *   the query and refocuses the input depending on `closeOnSelect` (defaults to
  *   single-selection). `selectionValue`/`flushPending` come from the deferred
  *   toggle so the menu reads a value frozen until the panel finishes closing.
+ *   `menuQuery`/`menuDeferredQuery` are the query the *menu content* reads,
+ *   frozen at their close-time snapshot until `flushPending` runs so the filter
+ *   (and thus a deeply scrolled virtual window) holds steady through the exit
+ *   animation instead of snapping back to the full list.
  * @remarks `closeOnSelect` defaults to `true` for single, `false` for multiple.
  * @internal
  */
@@ -72,23 +76,61 @@ export function useComboboxState<T>({
 		[onQueryChange],
 	)
 
+	// Snapshot of the query the menu content filters on, frozen while the panel
+	// animates closed. Clearing `query` synchronously on close snaps
+	// `deferredQuery` to `''` (the empty-query bypass above), re-expanding a
+	// filtered list back to its full extent under the still-visible exit
+	// animation; a virtual window scrolled to a far-down match then repaints the
+	// top of the full list, flickering. `null` means "track the live query".
+	const [frozenQuery, setFrozenQuery] = useState<{ query: string; deferredQuery: string } | null>(
+		null,
+	)
+
 	const close = useCallback(() => {
+		setFrozenQuery({ query, deferredQuery })
+
 		setOpen(false)
 
 		setQuery('')
 
 		setEditing(false)
-	}, [setOpen, setQuery])
+	}, [setOpen, setQuery, query, deferredQuery])
 
 	const shouldClose = closeOnSelect ?? !multiple
 
-	const { toggle, commit, flushPending, selectionValue } = useDeferredToggle<T>({
+	const {
+		toggle,
+		commit,
+		flushPending: flushToggle,
+		selectionValue,
+	} = useDeferredToggle<T>({
 		multiple,
 		nullable,
 		value,
 		setValue,
 		open,
 	})
+
+	// Release the frozen selection *and* the frozen query together on
+	// exit-complete; both were snapshotted for the same close animation.
+	const flushPending = useCallback(() => {
+		flushToggle()
+
+		setFrozenQuery(null)
+	}, [flushToggle])
+
+	// Clear the freeze when the menu reopens: an interrupted exit (reopen
+	// mid-close) skips onExitComplete, so flushPending never runs. Mirrors the
+	// deferred toggle's own reopen guard.
+	const prevOpenRef = useRef(open)
+
+	useEffect(() => {
+		const wasOpen = prevOpenRef.current
+
+		prevOpenRef.current = open
+
+		if (open && !wasOpen) setFrozenQuery(null)
+	}, [open])
 
 	const select = useCallback(
 		(newValue: T) => {
@@ -116,6 +158,11 @@ export function useComboboxState<T>({
 	return {
 		query,
 		deferredQuery,
+		// The query the menu content reads: frozen at its close-time snapshot
+		// until flushPending, so the filtered set (and any deeply scrolled virtual
+		// window) holds steady through the exit animation instead of re-expanding.
+		menuQuery: frozenQuery ? frozenQuery.query : query,
+		menuDeferredQuery: frozenQuery ? frozenQuery.deferredQuery : deferredQuery,
 		setQuery,
 		open,
 		setOpen,
