@@ -48,12 +48,12 @@ export function useComboboxState<T>({
 	setValue,
 	inputRef,
 }: ComboboxStateParams<T>) {
-	const [query, setQueryInternal] = useState('')
+	const [query, setQueryState] = useState('')
 
 	// An empty query bypasses deferral; the filter clears immediately.
-	const deferredQueryInternal = useDeferredValue(query)
+	const deferredQueryRaw = useDeferredValue(query)
 
-	const deferredQuery = query === '' ? '' : deferredQueryInternal
+	const deferredQuery = query === '' ? '' : deferredQueryRaw
 
 	const [open = false, setOpen] = useControllable<boolean>({
 		value: openProp,
@@ -65,7 +65,7 @@ export function useComboboxState<T>({
 
 	const setQuery = useCallback(
 		(next: string) => {
-			setQueryInternal(next)
+			setQueryState(next)
 
 			onQueryChange?.(next)
 		},

@@ -42,9 +42,9 @@ export function useCommandPaletteState({ open, onOpenChange }: CommandPaletteSta
 
 	// Bypasses deferral on empty query: the deferred copy paints one stale
 	// frame of the prior filter when the palette resets on open/close.
-	const deferredQueryInternal = useDeferredValue(query)
+	const deferredQueryRaw = useDeferredValue(query)
 
-	const deferredQuery = query === '' ? '' : deferredQueryInternal
+	const deferredQuery = query === '' ? '' : deferredQueryRaw
 
 	const listboxId = useId()
 
