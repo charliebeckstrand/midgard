@@ -67,6 +67,7 @@ export function NavItem({
 			)}
 			<HeadlessProvider>
 				<Button
+					type="button"
 					data-slot="nav-item-inner"
 					data-current={dataAttr(item.current)}
 					aria-current={item.current ? 'page' : undefined}

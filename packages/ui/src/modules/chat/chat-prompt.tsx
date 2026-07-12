@@ -144,13 +144,20 @@ export function ChatPrompt({
 									className="sr-only"
 									tabIndex={-1}
 								/>
-								<Button variant="plain" size="sm" aria-label="Add attachment" onClick={openPicker}>
+								<Button
+									type="button"
+									variant="plain"
+									size="sm"
+									aria-label="Add attachment"
+									onClick={openPicker}
+								>
 									<Icon icon={<Paperclip />} />
 								</Button>
 							</>
 						)}
 						{streaming ? (
 							<Button
+								type="button"
 								size="sm"
 								color="blue"
 								aria-label="Stop generating"
@@ -160,6 +167,7 @@ export function ChatPrompt({
 							</Button>
 						) : (
 							<Button
+								type="button"
 								size="sm"
 								color="blue"
 								aria-label="Send message"
@@ -184,6 +192,7 @@ export function ChatPrompt({
 							suffix={
 								onRemoveAttachment && (
 									<Button
+										type="button"
 										variant="bare"
 										size="sm"
 										aria-label={`Remove ${file.name}`}

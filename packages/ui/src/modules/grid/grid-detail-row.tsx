@@ -48,6 +48,7 @@ export function GridExpandToggle({
 
 	return (
 		<Button
+			type="button"
 			variant="bare"
 			onClick={() => toggle(rowKey)}
 			aria-expanded={expanded}

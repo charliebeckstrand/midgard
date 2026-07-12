@@ -152,6 +152,7 @@ export function DatePickerTrigger({
 					<AffixContext value={affixStepDown(size)}>
 						<span data-slot="suffix" className={cn(k.affix.base, k.affix.suffix[size])}>
 							<Button
+								type="button"
 								variant="bare"
 								className="pointer-events-auto"
 								aria-label="Clear selection"

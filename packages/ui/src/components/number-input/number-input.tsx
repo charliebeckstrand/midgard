@@ -140,6 +140,7 @@ export function NumberInput({
 				// preventDefault cancels only the focus move; the click still fires.
 				<span className="pointer-events-auto flex items-center gap-0.5">
 					<Button
+						type="button"
 						variant="bare"
 						spring={false}
 						tabIndex={-1}
@@ -151,6 +152,7 @@ export function NumberInput({
 						<Icon icon={<Minus />} />
 					</Button>
 					<Button
+						type="button"
 						variant="bare"
 						spring={false}
 						tabIndex={-1}

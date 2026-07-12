@@ -54,6 +54,7 @@ export function ToggleIconButton({
 		return (
 			<Button
 				{...props}
+				type="button"
 				variant="bare"
 				size={size}
 				data-slot="toggle-icon-button"
@@ -71,6 +72,7 @@ export function ToggleIconButton({
 	return (
 		<Button
 			{...props}
+			type="button"
 			variant="bare"
 			size={size}
 			data-slot="toggle-icon-button"

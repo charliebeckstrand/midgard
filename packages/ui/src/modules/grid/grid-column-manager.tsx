@@ -425,7 +425,7 @@ export function GridColumnManager({
 			)}
 			{onSavePreset && (
 				<div className={cn(k.footer)}>
-					<Button variant="soft" size="sm" onClick={handleSavePreset}>
+					<Button type="button" variant="soft" size="sm" onClick={handleSavePreset}>
 						{savePresetLabel}
 					</Button>
 				</div>

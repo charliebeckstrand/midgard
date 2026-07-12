@@ -39,7 +39,7 @@ export function GridRowManagerDialog({
 				<GridRowManager groups={groups} onRecolor={onRecolor} onReorderGroups={onReorderGroups} />
 			</DialogBody>
 			<DialogFooter>
-				<Button variant="plain" onClick={() => onOpenChange(false)}>
+				<Button type="button" variant="plain" onClick={() => onOpenChange(false)}>
 					Done
 				</Button>
 			</DialogFooter>

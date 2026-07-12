@@ -69,7 +69,7 @@ export function GridColumnManagerDialog({
 				/>
 			</DialogBody>
 			<DialogFooter>
-				<Button variant="plain" onClick={() => onOpenChange(false)}>
+				<Button type="button" variant="plain" onClick={() => onOpenChange(false)}>
 					Done
 				</Button>
 			</DialogFooter>

@@ -223,7 +223,7 @@ export function GridGroupManager({
 					))}
 				</SortableContext>
 
-				<Button variant="soft" onClick={mgr.addGroup} className="self-start">
+				<Button type="button" variant="soft" onClick={mgr.addGroup} className="self-start">
 					<Icon icon={<Plus />} />
 					{addGroupLabel}
 				</Button>
@@ -426,6 +426,7 @@ function GridGroupManagerZoneHeader({
 			/>
 
 			<Button
+				type="button"
 				variant="bare"
 				color="red"
 				aria-label={`Remove group ${label}`}
@@ -502,7 +503,7 @@ function GridGroupManagerColumnRow({
 			{groups.length > 0 && (
 				<Menu placement="bottom-end">
 					<MenuTrigger>
-						<Button variant="bare" aria-label={`Move ${label}`}>
+						<Button type="button" variant="bare" aria-label={`Move ${label}`}>
 							<Icon icon={<EllipsisVertical />} />
 						</Button>
 					</MenuTrigger>

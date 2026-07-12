@@ -103,7 +103,13 @@ export function ChatListItem({
 					<AffixContext value={affixStepDown(density.size)}>
 						{actions}
 						{remove && (
-							<Button aria-label="Remove" variant="bare" color="red" onClick={onRemove}>
+							<Button
+								type="button"
+								aria-label="Remove"
+								variant="bare"
+								color="red"
+								onClick={onRemove}
+							>
 								<Icon icon={<Trash />} />
 							</Button>
 						)}

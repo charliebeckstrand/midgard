@@ -11,7 +11,6 @@ import { JsonTree } from '../../../components/json-tree'
 import { NumberInput } from '../../../components/number-input'
 import { PasswordInput } from '../../../components/password-input'
 import { Stack } from '../../../components/stack'
-import { SubmitButton } from '../../../components/submit-button'
 import { Switch, SwitchField } from '../../../components/switch'
 import { Textarea } from '../../../components/textarea'
 import { Example } from '../../engine'
@@ -73,7 +72,9 @@ function DefaultExample() {
 						<NumberInput name="age" min={0} max={150} />
 					</Field>
 					<Flex gap="sm">
-						<SubmitButton color="blue">Submit</SubmitButton>
+						<Button type="submit" color="blue">
+							Submit
+						</Button>
 						{result && <ResetButton />}
 					</Flex>
 				</Stack>
@@ -129,7 +130,9 @@ function ValidationExample() {
 						<Message name="confirmPassword" />
 					</Field>
 					<Flex gap="sm">
-						<SubmitButton color="green">Create account</SubmitButton>
+						<Button type="submit" color="green">
+							Create account
+						</Button>
 						{result && <ResetButton />}
 					</Flex>
 				</Stack>
@@ -172,7 +175,9 @@ function DirtyTouchedExample() {
 					</Field>
 
 					<Flex gap="sm">
-						<SubmitButton color="blue">Save</SubmitButton>
+						<Button type="submit" color="blue">
+							Save
+						</Button>
 						{result && <ResetButton />}
 					</Flex>
 				</Stack>
@@ -207,7 +212,9 @@ function ServerErrorExample() {
 					<Input name="username" placeholder="Pick a username" loading={loading} />
 					<Message name="username" />
 				</Field>
-				<SubmitButton color="green">Register</SubmitButton>
+				<Button type="submit" color="green">
+					Register
+				</Button>
 			</Stack>
 		</Form>
 	)
@@ -284,7 +291,9 @@ function OnSettledExample() {
 						<Input name="email" type="email" placeholder="you@example.com" />
 					</Field>
 					<Flex gap="sm">
-						<SubmitButton color="blue">Save</SubmitButton>
+						<Button type="submit" color="blue">
+							Save
+						</Button>
 						{outcome && <ResetButton />}
 					</Flex>
 				</Stack>
@@ -332,7 +341,9 @@ function OptInExample() {
 						</CheckboxField>
 					</Control>
 					<Flex gap="sm">
-						<SubmitButton color="blue">Submit</SubmitButton>
+						<Button type="submit" color="blue">
+							Submit
+						</Button>
 						{result && (
 							<Button type="reset" variant="soft" color="red">
 								Reset

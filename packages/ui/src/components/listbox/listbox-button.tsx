@@ -61,6 +61,7 @@ export function ListboxButton({
 	return (
 		<HeadlessProvider>
 			<Button
+				type="button"
 				id={id}
 				ref={ref}
 				role="combobox"

@@ -61,6 +61,7 @@ export const CalendarDayCell = memo(function CalendarDayCell({
 
 	return (
 		<Button
+			type="button"
 			role="option"
 			aria-selected={selected}
 			aria-label={label}

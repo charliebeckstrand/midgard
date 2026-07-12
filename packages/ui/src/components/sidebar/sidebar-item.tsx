@@ -98,6 +98,7 @@ export function SidebarItem({
 
 	const inner = (
 		<Button
+			type="button"
 			data-slot="sidebar-item-inner"
 			data-current={dataAttr(item.current)}
 			aria-current={item.current ? 'page' : undefined}

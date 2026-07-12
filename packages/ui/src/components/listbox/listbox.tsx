@@ -278,6 +278,7 @@ export function Listbox<T>({
 
 	const clearSuffix = showClear ? (
 		<Button
+			type="button"
 			variant="bare"
 			className="pointer-events-auto"
 			aria-label="Clear selection"
