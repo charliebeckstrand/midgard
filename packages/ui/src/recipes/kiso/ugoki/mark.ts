@@ -13,12 +13,16 @@ import { duration, ease } from './base'
 /** Line / route stroke reveal (`pathLength` 0 → 1). */
 const draw = { duration: duration[700], ease: ease.inOut } as const
 
+/** Point-marker pop tempo; consumers hold it (`popHeld`) or stagger it. */
+const pop = { duration: duration[250] } as const
+
 export const mark = {
 	draw,
 	/** Area wash fade, trailing the draw so it fills in as the stroke crosses it. */
 	fade: { duration: duration[500], delay: duration[150] },
-	/** Point-marker pop, held until the draw has finished. */
-	pop: { duration: duration[250], delay: draw.duration },
+	pop,
+	/** The pop held until the draw has finished — the line's end-point landing. */
+	popHeld: { ...pop, delay: draw.duration },
 	/** Per-bar grow from the zero baseline. */
 	grow: { duration: duration[400], ease: ease.out },
 	/** Delay step between adjacent bars, so they rise in sequence. */

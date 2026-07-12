@@ -1,9 +1,8 @@
 /**
  * Ugoki base: the tempo primitives every Framer Motion token composes from —
- * the duration scale and the easing vocabulary. Every ugoki config, and every
- * module-level timing spec downstream (`chart-motion.ts`, `map-constants.ts`),
- * derives from these two maps, so the system's tempo is retuned here and
- * nowhere else.
+ * a constrained, named palette of durations and the easing vocabulary. Call
+ * sites pick a step from the scale instead of minting a literal, so every
+ * tempo in the system is enumerable here.
  *
  * Layer: kiso · Concern: tempo primitives
  */
@@ -25,14 +24,9 @@ export const duration = {
 	800: 0.8,
 } as const
 
-/**
- * The easing vocabulary: Framer's three named curves plus `standard`, the CSS
- * `ease` cubic-bezier — a quick start into a long settle, used where content
- * arrives (the reveal crossfade).
- */
+/** The easing vocabulary: Framer's three named curves. */
 export const ease = {
 	in: 'easeIn',
 	out: 'easeOut',
 	inOut: 'easeInOut',
-	standard: [0.25, 0.1, 0.25, 1],
 } as const

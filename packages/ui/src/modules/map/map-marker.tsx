@@ -5,17 +5,10 @@ import { type PointerEvent, useEffect, useId, useMemo } from 'react'
 import { cn } from '../../core'
 import { k, type MapSeriesColor } from '../../recipes/kata/map'
 import { mapMarkDimmed, useMapHoverSet, useMapPlat, useMapPointedMark } from './context'
-import {
-	MARKER_DRAW,
-	MARKER_END_POP,
-	PIN_POP,
-	PIN_RADIUS,
-	POINT_HIT_RADIUS,
-	ROUTE_HIT_WIDTH,
-	ROUTE_STROKE_WIDTH,
-} from './map-constants'
+import { PIN_RADIUS, POINT_HIT_RADIUS, ROUTE_HIT_WIDTH, ROUTE_STROKE_WIDTH } from './map-constants'
 import { MapDot } from './map-dot'
 import { linePath } from './map-geometry'
+import { MARKER_DRAW, MARKER_END_POP, PIN_POP } from './map-motion'
 import type { LngLat } from './types'
 
 /** Props for {@link MapMarker}. */

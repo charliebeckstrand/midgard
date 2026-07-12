@@ -42,7 +42,7 @@ export const LINE_DRAW = mark.draw
 export const AREA_FADE = mark.fade
 
 /** Point-marker pop, held until the line has finished drawing. @internal */
-export const POINT_POP = mark.pop
+export const POINT_POP = mark.popHeld
 
 /** Per-bar grow from the zero baseline. @internal */
 export const BAR_GROW = mark.grow

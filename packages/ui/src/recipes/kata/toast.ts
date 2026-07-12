@@ -1,7 +1,7 @@
 import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { ugoki } from '../kiso'
 
-const { duration, spring, toast } = ugoki
+const { spring, toast } = ugoki
 
 const viewport = defineRecipe({
 	base: [
@@ -29,8 +29,6 @@ export const k = {
 	],
 	card: 'w-80 max-sm:w-full',
 	motion: toast,
-	/** Dismissal fade / collapse tempo, matching the slide-in. */
-	dismiss: { duration: duration[150] },
 	/** Neighbour re-pack after a dismissal: the FLIP `layout` spring the stack reflows on. */
 	spring: spring.reflow,
 	/** Inter-toast gap (px), animated to 0 on dismiss; neighbours slide in. */

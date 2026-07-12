@@ -12,6 +12,9 @@ function getToastMotion(position: ToastPosition) {
 	return position.startsWith('top') ? k.motion.top : k.motion.bottom
 }
 
+/** Fade-out for a user dismissal; the height collapse is left to the neighbours' layout spring. @internal */
+const manualDismiss = { opacity: 0, transition: k.motion.dismiss }
+
 /**
  * Maps each toast severity to an {@link Alert} variant/color pair. Typed from
  * the Alert recipe unions so a palette change there propagates here.
@@ -75,10 +78,8 @@ export function ToastAlert({
 	const autoDismiss = {
 		height: 0,
 		...(positionTop ? { paddingBottom: 0 } : { paddingTop: 0 }),
-		transition: k.dismiss,
+		transition: k.motion.dismiss,
 	}
-
-	const manualDismiss = { opacity: 0, transition: k.dismiss }
 
 	// Screen readers do not reliably announce role="status" content mounted in
 	// the same commit as the live region; mirror polite toasts through the
