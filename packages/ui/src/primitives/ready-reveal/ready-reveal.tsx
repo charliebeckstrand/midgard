@@ -39,24 +39,27 @@ const FOCUSABLE =
  * it deactivates, focus moves to the revealed layer so keyboard users aren't
  * dropped to the document root.
  *
- * At rest — outside a crossfade — the inactive layer is held in
- * `<Activity mode="hidden">`: kept in the DOM with state preserved, but
- * `display: none`, with its effects torn down, its CSS animations (a
- * skeleton's pulse) stopped, and re-rendering deferred. A rested layer
- * therefore stops contributing to the grid cell's size; a placeholder that
- * mirrors the content's dimensions, as intended, sits flush either way.
+ * Once the content is revealed and the crossfade settles, the placeholder is
+ * held in `<Activity mode="hidden">`: kept in the DOM with state preserved, but
+ * `display: none`, with its effects torn down, its skeleton pulse stopped, and
+ * re-rendering deferred. The content layer, by contrast, stays live and in flow
+ * in every state, so it — never the placeholder — drives the shared grid cell's
+ * block size. The reserved box therefore matches the real content's dimensions
+ * whether or not it has resolved, and the swap holds its place to the pixel even
+ * when the placeholder's silhouette stands a little shorter than the content it
+ * fills in for (a skeleton sized to its font, say, against a taller line box).
  */
 export function ReadyReveal({ ready, placeholder, children, className }: ReadyRevealProps) {
 	const placeholderRef = useRef<HTMLDivElement>(null)
 
 	const contentRef = useRef<HTMLDivElement>(null)
 
-	// Rest latch: true while no crossfade is in flight, so the inactive layer
-	// can be held in a hidden Activity. Cleared in render when `ready` flips
-	// (the adjust-state-during-render form) so both layers are live in the same
-	// pass the crossfade starts; the deactivating layer's fade-out completion
-	// sets it again. Starts true — `initial={false}` means mount plays no
-	// entrance, so the inactive layer rests immediately.
+	// Placeholder-rest latch: true once the reveal crossfade has settled, so the
+	// placeholder can drop into a hidden Activity. Cleared in render when `ready`
+	// flips (the adjust-state-during-render form) so the placeholder is live in
+	// the same pass the crossfade starts; its own fade-out completion sets it
+	// again. Starts true — `initial={false}` means mount plays no entrance, so a
+	// placeholder mounted already-ready rests immediately.
 	const [settled, setSettled] = useState(true)
 
 	const [previousReady, setPreviousReady] = useState(ready)
@@ -115,8 +118,8 @@ export function ReadyReveal({ ready, placeholder, children, className }: ReadyRe
 						animate={ready ? HIDDEN : VISIBLE}
 						initial={false}
 						transition={k.transition}
-						// Only the deactivating layer's completion rests the crossfade;
-						// the guard skips the activating layer's entrance landing.
+						// Rest only after the fade-out that hides the placeholder lands
+						// (`ready`); the guard skips its fade-in when `ready` clears.
 						onAnimationComplete={() => {
 							if (ready) setSettled(true)
 						}}
@@ -125,25 +128,24 @@ export function ReadyReveal({ ready, placeholder, children, className }: ReadyRe
 						{placeholder}
 					</motion.div>
 				</Activity>
-				<Activity mode={!ready && settled ? 'hidden' : 'visible'}>
-					<motion.div
-						ref={contentRef}
-						onFocus={(event) => {
-							lastFocused.current = event.target as HTMLElement
-						}}
-						aria-hidden={!ready}
-						inert={!ready}
-						animate={ready ? VISIBLE : HIDDEN}
-						initial={false}
-						transition={k.transition}
-						onAnimationComplete={() => {
-							if (!ready) setSettled(true)
-						}}
-						style={GRID_CELL}
-					>
-						{children}
-					</motion.div>
-				</Activity>
+				{/* The content layer is never rested: it stays live and in flow so
+				    the grid cell always reserves the real content's block size —
+				    while loading (behind the placeholder) as much as after the
+				    reveal — keeping the swap free of layout shift. */}
+				<motion.div
+					ref={contentRef}
+					onFocus={(event) => {
+						lastFocused.current = event.target as HTMLElement
+					}}
+					aria-hidden={!ready}
+					inert={!ready}
+					animate={ready ? VISIBLE : HIDDEN}
+					initial={false}
+					transition={k.transition}
+					style={GRID_CELL}
+				>
+					{children}
+				</motion.div>
 			</div>
 		</ReducedMotion>
 	)
