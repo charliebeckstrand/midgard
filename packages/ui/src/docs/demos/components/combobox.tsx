@@ -155,7 +155,7 @@ export function Demo() {
 			<Example title="Clearable">
 				<ClearableExample />
 			</Example>
-			<Example title="Virtualized (5,000 options)">
+			<Example title="Virtualized">
 				<VirtualizedComboboxExample />
 			</Example>
 		</>

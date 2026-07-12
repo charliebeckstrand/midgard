@@ -221,7 +221,7 @@ export function Demo() {
 					<CommandResults />
 				</CommandPalette>
 			</Example>
-			<Example title="Virtualized (5,000 items)">
+			<Example title="Virtualized">
 				<VirtualizedCommandPaletteExample />
 			</Example>
 		</>
