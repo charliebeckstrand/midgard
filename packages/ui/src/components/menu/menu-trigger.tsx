@@ -8,6 +8,7 @@ import {
 	type MouseEvent,
 	type ReactElement,
 	type Ref,
+	useRef,
 } from 'react'
 import { cn } from '../../core'
 import { useComposedRef } from '../../hooks'
@@ -44,16 +45,46 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 
 	const mergeRefs = useComposedRef<HTMLButtonElement>(triggerRef, setReference, childRef)
 
+	// The menu opens only from an activation key pressed discretely *on* the
+	// trigger. A key still held when focus lands here — e.g. released from a
+	// HoldButton whose completion moved focus here — must not open the menu on its
+	// stray auto-repeat (Enter fires the button's native click on each repeat
+	// keydown) or its release (Space fires on keyup). We arm on a fresh, non-repeat
+	// keydown and `preventDefault` the native activation until then, so opening
+	// requires letting go and pressing again (a discrete press, per APG).
+	const activationHeldRef = useRef(false)
+
 	// Focus rests on the trigger while the menu is open, so every navigation key
 	// arrives here rather than in the panel. `rovingKeyDown` moves the
 	// `aria-activedescendant` cursor over the items (arrow / Home / End /
-	// type-ahead) and activates the active row on Enter — no-op while closed. Tab
-	// closes without `preventDefault`, letting the browser carry focus onward;
+	// type-ahead) and activates the active row on Enter/Space — no-op while closed.
+	// Tab closes without `preventDefault`, letting the browser carry focus onward;
 	// `dismissToTab` marks the close `'focus-out'` so focus is not yanked back.
 	const handleTriggerKeyDown = (event: KeyboardEvent) => {
+		if (event.key === 'Enter' || event.key === ' ') {
+			// A repeat before a fresh keydown is an auto-repeat from a press that
+			// started elsewhere; swallow its native click. The first fresh press arms.
+			if (event.repeat) {
+				if (!activationHeldRef.current) event.preventDefault()
+			} else {
+				activationHeldRef.current = true
+			}
+		}
+
 		rovingKeyDown(event)
 
 		if (open && event.key === 'Tab') dismissToTab(event.nativeEvent)
+	}
+
+	// Space activates a button on keyup; suppress that release when no fresh press
+	// armed the trigger (the key was held on arrival). The cycle ends here, so the
+	// next press must re-arm.
+	const handleTriggerKeyUp = (event: KeyboardEvent) => {
+		if (event.key !== 'Enter' && event.key !== ' ') return
+
+		if (!activationHeldRef.current) event.preventDefault()
+
+		activationHeldRef.current = false
 	}
 
 	// Consumer/child props route through `getReferenceProps`, which composes
@@ -67,6 +98,8 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 
 		const childOnKeyDown = child.props.onKeyDown as ((event: KeyboardEvent) => void) | undefined
 
+		const childOnKeyUp = child.props.onKeyUp as ((event: KeyboardEvent) => void) | undefined
+
 		return cloneElement(child, {
 			...getReferenceProps({
 				...child.props,
@@ -77,6 +110,10 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 				onKeyDown: (event: KeyboardEvent) => {
 					childOnKeyDown?.(event)
 					handleTriggerKeyDown(event)
+				},
+				onKeyUp: (event: KeyboardEvent) => {
+					childOnKeyUp?.(event)
+					handleTriggerKeyUp(event)
 				},
 			}),
 			ref: mergeRefs,
@@ -91,6 +128,7 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 	const {
 		onClick: consumerOnClick,
 		onKeyDown: consumerOnKeyDown,
+		onKeyUp: consumerOnKeyUp,
 		...rest
 	} = props as ComponentPropsWithoutRef<'button'>
 
@@ -112,6 +150,10 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 				onKeyDown: (event: KeyboardEvent<HTMLButtonElement>) => {
 					consumerOnKeyDown?.(event)
 					handleTriggerKeyDown(event)
+				},
+				onKeyUp: (event: KeyboardEvent<HTMLButtonElement>) => {
+					consumerOnKeyUp?.(event)
+					handleTriggerKeyUp(event)
 				},
 			})}
 		>
