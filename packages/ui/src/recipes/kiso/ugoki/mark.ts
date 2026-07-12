@@ -3,7 +3,8 @@
  * sparklines, and maps draw their marks in with, so the three animating side
  * by side read as one motion family. Only timings at least two data-viz
  * surfaces share live here; each module composes its own reveals (slice sweep,
- * marker sequence, the reverse exit timings) from `base` in its timing spec.
+ * marker sequence, the reverse exit timings) in its timing spec, from the
+ * tempo primitives its kata's `motion` re-exposes.
  *
  * Layer: kiso · Concern: data-viz mark reveals
  */

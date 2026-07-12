@@ -146,8 +146,9 @@ export const k = {
 	drawing: (spark: boolean) => (spark ? ['pointer-events-none', '**:pointer-events-none'] : []),
 	/**
 	 * Motion vocabulary for the mount reveals: the shared data-viz `mark`
-	 * family plus the tempo primitives `chart-motion.ts` composes the
-	 * chart-specific timings from.
+	 * family plus the tempo primitives the timing specs (`chart-motion.ts`,
+	 * and `map-motion.ts` via `kata/map`) compose their module-specific
+	 * timings from.
 	 */
 	motion: { mark, duration, ease },
 	skeleton: kokkaku.chart,

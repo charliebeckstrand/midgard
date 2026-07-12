@@ -715,9 +715,8 @@ export const k = {
 	motion: {
 		// Layout transition for the sort row reflow: on a sort, each stable-keyed
 		// row FLIPs from its old place to its new one on the shared `layoutId`
-		// spring (snappy, lightly damped — settles fast without a bounce). Reduced
-		// motion stands the whole animation down upstream, so no `duration: 0` branch
-		// is needed here.
+		// spring. Reduced motion stands the whole animation down upstream, so no
+		// `duration: 0` branch is needed here.
 		rowSort: { layout: spring.slide },
 		// The make-room glide of an in-flight column drag. Applied imperatively
 		// (`animate()` onto the shift CSS variable in `grid-reorder.ts`), never

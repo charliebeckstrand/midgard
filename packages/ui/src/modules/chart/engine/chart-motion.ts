@@ -4,8 +4,10 @@
  * the area wash fading in behind it, the point pop, the bars growing from the
  * baseline, the reference rules rising to their value, the pie sweeping round.
  * Both the timing specs and the orientation-aware transform builders live here,
- * so an animated renderer reads a reveal rather than re-deriving one, and the
- * charts and Sparkline animating side by side stay one motion family.
+ * so an animated renderer reads a reveal rather than re-deriving one; the
+ * shared draw / fade / pop / grow timings read from the ugoki `mark` family,
+ * so the charts, Sparkline, and maps animating side by side stay one motion
+ * family.
  *
  * The value-axis reveals key on {@link ChartOrientation} exactly as the
  * coordinate transpose in `chart-orientation` does: vertical runs the value axis
