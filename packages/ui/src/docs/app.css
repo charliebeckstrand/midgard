@@ -1,6 +1,20 @@
-/* ui's docs entry stylesheet. The shared base (Tailwind, fonts, the docs
-   chrome's own classes) comes from the engine; this file adds ui's own
-   source so Tailwind generates the classes ui's components and demos use. */
-@import './engine/app.css';
+@import 'tailwindcss';
+@import './fonts.css';
 
-@source '../';
+/* The app renders ui components compiled from workspace source; Tailwind's
+   automatic detection only scans this app, so ui's class names must be added
+   explicitly. The old docs tree is excluded — it is a separate application. */
+@source '../../../packages/ui/src';
+@source not '../../../packages/ui/src/docs';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+	overscroll-behavior: none;
+}
+
+/* Suppress browser default focus ring on mouse click.
+   Keyboard focus-visible indicators are handled by sen.focus.{ring,inset,outline}. */
+:focus:not(:focus-visible) {
+	outline: none !important;
+}
