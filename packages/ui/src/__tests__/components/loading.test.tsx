@@ -106,13 +106,21 @@ describe('LoadingOrb', () => {
 		expect(core).toHaveAttribute('aria-hidden', 'true')
 	})
 
-	it('renders a specular highlight layer in rainbow mode', () => {
+	it('renders the aurora layer stack in rainbow mode', () => {
 		const { container } = renderUI(<LoadingOrb color="rainbow" />)
 
 		const core = bySlot(container, 'loading-orb-core')
 
-		// Mono orbs bake the highlight into the sphere gradient; rainbow adds a
-		// separate static layer over the revolving spectrum.
-		expect(core?.children).toHaveLength(2)
+		// Mono orbs bake shading into one sphere gradient; rainbow stacks a
+		// luminous base, four drifting tints, and a static centre glow.
+		expect(core?.children).toHaveLength(6)
+	})
+
+	it('renders a single sphere layer in monochrome mode', () => {
+		const { container } = renderUI(<LoadingOrb color="blue" />)
+
+		const core = bySlot(container, 'loading-orb-core')
+
+		expect(core?.children).toHaveLength(1)
 	})
 })

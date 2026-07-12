@@ -9,7 +9,8 @@ import { k, type LoadingOrbVariants } from '../../recipes/kata/loading'
 export type LoadingOrbProps = Omit<LoadingOrbVariants, 'color'> & {
 	/**
 	 * Orb colour. Chromatic values share the loading colour axis; `rainbow`
-	 * swaps the monochrome sphere for a slowly revolving spectrum blend.
+	 * swaps the monochrome sphere for a luminous aurora blend of drifting
+	 * pastel tints.
 	 * @defaultValue 'current'
 	 */
 	color?: NonNullable<LoadingOrbVariants['color']> | 'rainbow'
@@ -25,19 +26,45 @@ export type LoadingOrbProps = Omit<LoadingOrbVariants, 'color'> & {
 // toward the upper left over a currentColor body, so the recipe's colour axis
 // drives every monochrome value.
 const MONO_SPHERE =
-	'radial-gradient(circle at 33% 30%, color-mix(in oklab, currentColor 40%, white) 0%, currentColor 70%)'
+	'radial-gradient(circle at 33% 30%, color-mix(in oklab, currentColor 50%, white) 0%, currentColor 58%)'
 
-// Spectrum blend interpolated in oklch so neighbouring hues stay vivid where
-// sRGB interpolation would grey out; the first and last stops match so the
-// seam disappears while the layer revolves.
-const RAINBOW_SPHERE =
-	'conic-gradient(from 0deg in oklch, var(--color-rose-400), var(--color-amber-300), var(--color-lime-300), var(--color-cyan-300), var(--color-blue-400), var(--color-violet-400), var(--color-rose-400))'
+// Luminous base under the aurora tints: white centre easing to a pale violet
+// rim so the orb keeps a defined edge on light surfaces.
+const RAINBOW_BASE =
+	'radial-gradient(circle at 50% 42%, var(--color-white) 0%, var(--color-violet-100) 62%, var(--color-violet-200) 100%)'
 
-// The conic layer has no inherent light source, so a separate specular
-// highlight restores the spherical read — and stays put while the spectrum
-// revolves beneath it.
-const RAINBOW_HIGHLIGHT =
-	'radial-gradient(circle at 33% 30%, rgb(255 255 255 / 0.6) 0%, transparent 55%)'
+// Each tint is an off-centre soft radial; rotating its layer about the orb's
+// centre orbits the blob. Durations are deliberately co-prime-ish and
+// directions alternate so the tints drift and blend organically instead of
+// reading as one spinning wheel.
+const RAINBOW_TINTS = [
+	{
+		background: 'radial-gradient(circle at 30% 72%, var(--color-teal-300) 0%, transparent 80%)',
+		duration: 4.8,
+		direction: 1,
+	},
+	{
+		background: 'radial-gradient(circle at 72% 62%, var(--color-pink-300) 0%, transparent 80%)',
+		duration: 6.4,
+		direction: -1,
+	},
+	{
+		background: 'radial-gradient(circle at 52% 20%, var(--color-violet-400) 0%, transparent 78%)',
+		duration: 7.6,
+		direction: 1,
+	},
+	{
+		background: 'radial-gradient(circle at 76% 30%, var(--color-sky-300) 0%, transparent 75%)',
+		duration: 5.6,
+		direction: -1,
+	},
+] as const
+
+// A soft bright centre over the drifting tints keeps the orb reading as one
+// lit sphere. Kept small and translucent so the tints' falloff washes through
+// the middle rather than leaving a fixed white hole.
+const RAINBOW_GLOW =
+	'radial-gradient(circle at 45% 40%, rgb(255 255 255 / 0.65) 0%, transparent 38%)'
 
 // One shared cycle keeps the halo's bloom and the core's swell in phase — the
 // layers inhale and exhale together.
@@ -47,18 +74,12 @@ const BREATHE = {
 	repeat: Number.POSITIVE_INFINITY,
 } as const
 
-const REVOLVE = {
-	duration: 6,
-	ease: 'linear',
-	repeat: Number.POSITIVE_INFINITY,
-} as const
-
 /**
  * Indeterminate loading indicator: a gradient sphere that breathes — the core
- * swells against a blurred halo that blooms in phase. Rendered as a live
- * `<output>` with an `sr-only` `label`. Client component (framer `motion.*`),
- * unlike its static {@link LoadingSpinner} / {@link LoadingDots} siblings.
- * `size` is explicit (recipe default `md`).
+ * swells against a subtle blurred halo that blooms in phase. Rendered as a
+ * live `<output>` with an `sr-only` `label`. Client component (framer
+ * `motion.*`), unlike its static {@link LoadingSpinner} / {@link LoadingDots}
+ * siblings. `size` is explicit (recipe default `md`).
  *
  * @remarks
  * The loop reads `prefers-reduced-motion` via `useReducedMotion` and rests as
@@ -75,8 +96,6 @@ export function LoadingOrb({
 
 	const rainbow = color === 'rainbow'
 
-	const sphere = rainbow ? RAINBOW_SPHERE : MONO_SPHERE
-
 	return (
 		<output
 			data-slot="loading-orb"
@@ -86,29 +105,34 @@ export function LoadingOrb({
 			<motion.span
 				aria-hidden="true"
 				data-slot="loading-orb-halo"
-				className="absolute -inset-[15%] rounded-full opacity-40 blur-xs"
-				style={{ background: sphere }}
-				animate={reduceMotion ? undefined : { scale: [1, 1.25, 1], opacity: [0.3, 0.65, 0.3] }}
+				className="absolute inset-[-8%] rounded-full opacity-15 blur-xs"
+				style={{ background: rainbow ? RAINBOW_BASE : MONO_SPHERE }}
+				animate={reduceMotion ? undefined : { scale: [1, 1.1, 1], opacity: [0.1, 0.25, 0.1] }}
 				transition={BREATHE}
 			/>
 			<motion.span
 				aria-hidden="true"
 				data-slot="loading-orb-core"
-				className="absolute inset-0 rounded-full"
+				className="absolute inset-0 overflow-hidden rounded-full"
 				animate={reduceMotion ? undefined : { scale: [1, 1.12, 1] }}
 				transition={BREATHE}
 			>
-				<motion.span
-					className="absolute inset-0 rounded-full"
-					style={{ background: sphere }}
-					animate={rainbow && !reduceMotion ? { rotate: 360 } : undefined}
-					transition={REVOLVE}
-				/>
-				{rainbow && (
-					<span
-						className="absolute inset-0 rounded-full"
-						style={{ background: RAINBOW_HIGHLIGHT }}
-					/>
+				{rainbow ? (
+					<>
+						<span className="absolute inset-0" style={{ background: RAINBOW_BASE }} />
+						{RAINBOW_TINTS.map(({ background, duration, direction }) => (
+							<motion.span
+								key={background}
+								className="absolute inset-0"
+								style={{ background }}
+								animate={reduceMotion ? undefined : { rotate: 360 * direction }}
+								transition={{ duration, ease: 'linear', repeat: Number.POSITIVE_INFINITY }}
+							/>
+						))}
+						<span className="absolute inset-0" style={{ background: RAINBOW_GLOW }} />
+					</>
+				) : (
+					<span className="absolute inset-0" style={{ background: MONO_SPHERE }} />
 				)}
 			</motion.span>
 			<span className="sr-only">{label}</span>
