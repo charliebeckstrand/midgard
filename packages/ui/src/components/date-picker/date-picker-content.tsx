@@ -51,6 +51,16 @@ type DatePickerContentProps = {
 	 * the rest of the page remains hidden.
 	 */
 	getInsideElements?: () => Element[]
+	/**
+	 * Move DOM focus into the dialog on open. The default seeds focus on the
+	 * dialog container for the virtual-highlight model. `input` mode passes
+	 * `false` so focus stays on the editable DateInput (the calendar is driven by
+	 * the input's `aria-activedescendant` instead) — floating-ui's
+	 * `ignoreInitialFocus` path, so the modal `aria-hidden` marking still runs.
+	 *
+	 * @defaultValue true
+	 */
+	autoFocus?: boolean
 	onExitComplete?: () => void
 	/**
 	 * Accessible name for the dialog.
@@ -83,6 +93,7 @@ export function DatePickerContent({
 	size,
 	onKeyDown,
 	getInsideElements,
+	autoFocus = true,
 	onExitComplete,
 	label = 'Choose date',
 	children,
@@ -104,7 +115,11 @@ export function DatePickerContent({
 				context={context}
 				modal
 				returnFocus={false}
-				initialFocus={initialFocusRef}
+				// A negative `initialFocus` is floating-ui's `ignoreInitialFocus`: keep
+				// focus where it was (the editable DateInput) while still marking the
+				// rest of the page `aria-hidden`. The ref-seeded container focus is the
+				// virtual-highlight default for the button-trigger variants.
+				initialFocus={autoFocus ? initialFocusRef : -1}
 				getInsideElements={getInsideElements}
 			>
 				<div

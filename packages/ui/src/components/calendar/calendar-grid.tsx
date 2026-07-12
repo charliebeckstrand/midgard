@@ -26,6 +26,10 @@ type CalendarGridProps = {
 	monthLabel: string
 	/** Resolved BCP 47 tag, threaded to each cell's accessible day name. */
 	localeTag: string
+	/** Id for the `role="listbox"` grid, so a parent input's `aria-controls` can point at it. */
+	listboxId?: string
+	/** Id stamped on the active cell, so a parent input's `aria-activedescendant` can reference the roved day. */
+	activeDescendantId?: string
 }
 
 /**
@@ -50,6 +54,8 @@ export function CalendarGrid({
 	onSelect,
 	monthLabel,
 	localeTag,
+	listboxId,
+	activeDescendantId,
 }: CalendarGridProps) {
 	return (
 		<div className={k.grid}>
@@ -61,6 +67,7 @@ export function CalendarGrid({
 
 			<div
 				ref={gridRef}
+				id={listboxId}
 				role="listbox"
 				aria-label={monthLabel}
 				onKeyDown={onGridKeyDown}
@@ -98,6 +105,7 @@ export function CalendarGrid({
 							variant={dayProps?.variant}
 							color={dayProps?.color}
 							className={dayProps?.className}
+							id={isActive ? activeDescendantId : undefined}
 							gridColumnStart={gridColumnStart}
 							localeTag={localeTag}
 							onSelect={onSelect}

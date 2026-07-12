@@ -81,6 +81,18 @@ export type CalendarProps = {
 	getDayProps?: (context: CalendarDayContextValue) => CalendarDayProps
 	/** Element holding the calendar's footer controls; lets roving focus extend into a parent-owned footer zone. */
 	footerRef?: RefObject<HTMLElement | null>
+	/**
+	 * Id for the day `role="listbox"`, so a parent that keeps DOM focus on its
+	 * own input (e.g. DatePicker `input` mode) can point that input's
+	 * `aria-controls` at the grid the roving cursor moves through.
+	 */
+	listboxId?: string
+	/**
+	 * Id stamped on the active grid cell, so a parent that keeps DOM focus on its
+	 * own input can point that input's `aria-activedescendant` at the roved day
+	 * (the active-descendant pattern; pairs with `active` and `listboxId`).
+	 */
+	activeDescendantId?: string
 	ref?: Ref<CalendarHandle>
 	/**
 	 * BCP 47 locale tag driving the first day of the week and the weekday /
@@ -128,6 +140,8 @@ export function Calendar({
 	onPickerOpenChange,
 	getDayProps,
 	footerRef,
+	listboxId,
+	activeDescendantId,
 	ref,
 	locale,
 	size,
@@ -286,6 +300,8 @@ export function Calendar({
 					onSelect={handleSelect}
 					monthLabel={monthLabel}
 					localeTag={localeTag}
+					listboxId={listboxId}
+					activeDescendantId={activeDescendantId}
 				/>
 			</div>
 		</Density>

@@ -925,6 +925,174 @@ describe('DatePicker input', () => {
 
 		expect(input.value).toBe('12/25/2026')
 	})
+
+	// The reported bug: opening the calendar seized DOM focus onto the dialog
+	// container, dropping it from the editable field. `input` mode now keeps focus
+	// on the reference (the calendar button holds it here) and drives the grid via
+	// the input's aria-activedescendant, the same shape as the Menu dropdown fix.
+	it('leaves focus on the reference when the calendar opens, not the dialog', async () => {
+		const user = userEvent.setup({ delay: null })
+
+		renderUI(<DatePicker input />)
+
+		const calendar = screen.getByRole('button', { name: 'Open calendar' })
+
+		await user.click(calendar)
+
+		expect(screen.getByRole('dialog')).toBeInTheDocument()
+
+		// Focus rests on the toggle that opened it, never the dialog container.
+		expect(calendar).toHaveFocus()
+
+		expect(screen.getByRole('dialog')).not.toHaveFocus()
+	})
+
+	it('opens from the input with ArrowDown while keeping focus on it', async () => {
+		const user = userEvent.setup({ delay: null })
+
+		const { container } = renderUI(<DatePicker input />)
+
+		const input = bySlot(container, 'datepicker-input') as HTMLInputElement
+
+		input.focus()
+
+		await user.keyboard('{ArrowDown}')
+
+		expect(bySlot(container, 'datepicker-content')).toBeInTheDocument()
+
+		expect(input).toHaveFocus()
+	})
+
+	it('leaves a closed-calendar Enter to the field (commits typed text, no open)', async () => {
+		const user = userEvent.setup({ delay: null })
+
+		const onChange = vi.fn()
+
+		const { container } = renderUI(<DatePicker input onValueChange={onChange} />)
+
+		const input = bySlot(container, 'datepicker-input') as HTMLInputElement
+
+		await user.type(input, '12252026')
+
+		await user.keyboard('{Enter}')
+
+		// Enter committed the typed date and blurred the field; it did not open the
+		// calendar the way the button-trigger variant's Enter does.
+		expect(bySlot(container, 'datepicker-content')).not.toBeInTheDocument()
+
+		expect(onChange).toHaveBeenLastCalledWith(expect.any(Date))
+
+		expect(input).not.toHaveFocus()
+	})
+
+	it('roves the grid via aria-activedescendant while focus stays on the input', async () => {
+		const user = userEvent.setup({ delay: null })
+
+		// June 2025; the initial highlight lands on the 15th.
+		const { container } = renderUI(<DatePicker input defaultValue={new Date(2025, 5, 15)} />)
+
+		const input = bySlot(container, 'datepicker-input') as HTMLInputElement
+
+		input.focus()
+
+		// Closed: no active-descendant wiring.
+		expect(input).not.toHaveAttribute('aria-controls')
+
+		expect(input).not.toHaveAttribute('aria-activedescendant')
+
+		await user.keyboard('{ArrowDown}') // open
+
+		// Open: aria-controls names the day listbox the cursor moves through.
+		const controls = input.getAttribute('aria-controls')
+
+		expect(controls).toBeTruthy()
+
+		expect(document.getElementById(controls as string)).toHaveAttribute('role', 'listbox')
+
+		await user.keyboard('{ArrowDown}') // materialize the highlight on the 15th
+
+		expect(input).toHaveFocus()
+
+		const active15 = input.getAttribute('aria-activedescendant')
+
+		expect(active15).toBeTruthy()
+
+		// The referenced id resolves to the roved cell, so screen readers announce
+		// the highlighted day without focus ever leaving the input.
+		expect(document.getElementById(active15 as string)).toBe(findDay(15))
+
+		await user.keyboard('{ArrowDown}') // one week forward → the 22nd
+
+		expect(document.getElementById(input.getAttribute('aria-activedescendant') as string)).toBe(
+			findDay(22),
+		)
+
+		await user.keyboard('{Escape}') // close clears the reference
+
+		expect(input).not.toHaveAttribute('aria-activedescendant')
+
+		expect(input).not.toHaveAttribute('aria-controls')
+	})
+
+	it('commits the highlighted day on Enter without leaving the input', async () => {
+		const user = userEvent.setup({ delay: null })
+
+		const onChange = vi.fn()
+
+		const { container } = renderUI(
+			<DatePicker input defaultValue={new Date(2025, 5, 15)} onValueChange={onChange} />,
+		)
+
+		const input = bySlot(container, 'datepicker-input') as HTMLInputElement
+
+		input.focus()
+
+		await user.keyboard('{ArrowDown}') // open
+
+		await user.keyboard('{ArrowDown}') // highlight the 15th
+
+		await user.keyboard('{ArrowDown}') // one week forward → the 22nd
+
+		await user.keyboard('{Enter}') // commit the highlight
+
+		expect(onChange).toHaveBeenCalledTimes(1)
+
+		const committed = onChange.mock.calls[0]?.[0] as Date
+
+		expect(committed.getDate()).toBe(22)
+
+		expect(bySlot(container, 'datepicker-content')).not.toBeInTheDocument()
+
+		// The pick writes back through the field and focus never left it.
+		expect(input.value).toBe('06/22/2025')
+
+		expect(input).toHaveFocus()
+	})
+
+	it('drops aria-activedescendant when the highlight leaves the grid', async () => {
+		const user = userEvent.setup({ delay: null })
+
+		const { container } = renderUI(<DatePicker input defaultValue={new Date(2025, 5, 15)} />)
+
+		const input = bySlot(container, 'datepicker-input') as HTMLInputElement
+
+		input.focus()
+
+		await user.keyboard('{ArrowDown}') // open
+
+		await user.keyboard('{ArrowDown}') // highlight a grid day
+
+		expect(input).toHaveAttribute('aria-activedescendant')
+
+		// Shift+ArrowUp jumps to the header toolbar; only grid cells carry the
+		// referenced id, so the input's active-descendant clears there.
+		await user.keyboard('{Shift>}{ArrowUp}{/Shift}')
+
+		expect(input).not.toHaveAttribute('aria-activedescendant')
+
+		// aria-controls persists while the calendar is open.
+		expect(input).toHaveAttribute('aria-controls')
+	})
 })
 
 describe('DatePicker + Form', () => {
