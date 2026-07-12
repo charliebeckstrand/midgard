@@ -34,10 +34,7 @@ export function AccordionPanel({ className, children }: AccordionPanelProps) {
 						data-slot="accordion-panel"
 						{...panelProps}
 						role="region"
-						initial={{ height: 0, opacity: 0 }}
-						animate={{ height: 'auto', opacity: 1 }}
-						exit={{ height: 0, opacity: 0 }}
-						transition={{ duration: 0.2, ease: 'easeInOut' }}
+						{...k.motion}
 						className={cn(k.panel)}
 					>
 						<div className={cn(k.body, className)}>{children}</div>

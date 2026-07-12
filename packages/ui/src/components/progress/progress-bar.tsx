@@ -69,7 +69,7 @@ export function ProgressBar({
 						className={k.bar.fill({ color })}
 						initial={{ width: 0 }}
 						animate={{ width: `${percent}%` }}
-						transition={{ type: 'spring', stiffness: 100, damping: 20 }}
+						transition={k.spring}
 					/>
 				</ReducedMotion>
 			) : (

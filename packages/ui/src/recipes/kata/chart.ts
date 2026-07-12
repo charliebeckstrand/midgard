@@ -18,9 +18,10 @@
  * reordering or re-shading.
  */
 import { mode } from '../../core/recipe'
-import { iro, kokkaku, sen } from '../kiso'
+import { iro, kokkaku, sen, ugoki } from '../kiso'
 
 const { text } = iro
+const { duration, ease, mark } = ugoki
 
 /**
  * Per-colour mark classes: `stroke` for lines and markers, `fill` for bars,
@@ -143,5 +144,11 @@ export const k = {
 	 * nothing.
 	 */
 	drawing: (spark: boolean) => (spark ? ['pointer-events-none', '**:pointer-events-none'] : []),
+	/**
+	 * Motion vocabulary for the mount reveals: the shared data-viz `mark`
+	 * family plus the tempo primitives `chart-motion.ts` composes the
+	 * chart-specific timings from.
+	 */
+	motion: { mark, duration, ease },
 	skeleton: kokkaku.chart,
 } as const

@@ -7,8 +7,10 @@
  * de-emphasis treatments.
  */
 import { mode } from '../../core/recipe'
-import { iro, kokkaku, sen } from '../kiso'
+import { iro, kokkaku, sen, ugoki } from '../kiso'
 import { type ChartColorSlot, k as chart } from './chart'
+
+const { duration, ease, mark } = ugoki
 
 /** A named map mark colour: the chart module's eight categorical slots plus `zinc`. */
 export type MapSeriesColor = ChartColorSlot
@@ -61,5 +63,12 @@ export const k = {
 		row: 'min-h-4',
 		panel: ['min-h-4', 'shrink-0', 'lg:w-48'],
 	},
+	/**
+	 * Motion vocabulary for the mount reveals: the shared data-viz `mark`
+	 * family plus the tempo primitives `map-constants.ts` composes the map's
+	 * timings from — the same source the chart module reads, so the two
+	 * modules' reveals never drift.
+	 */
+	motion: { mark, duration, ease },
 	skeleton: kokkaku.map,
 } as const

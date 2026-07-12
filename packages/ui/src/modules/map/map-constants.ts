@@ -5,6 +5,8 @@
  * dashboard mixing charts and maps reads as one family.
  */
 
+import { k } from '../../recipes/kata/map'
+
 /** Region boundary stroke width; the seam takes the surface colour. @internal */
 export const REGION_STROKE_WIDTH = 1
 
@@ -33,11 +35,14 @@ export const POINT_HIT_RADIUS = 22
 /** A marker pin's radius — larger than a point, it anchors a route's ends. @internal */
 export const PIN_RADIUS = 5.5
 
-// Motion timings mirror the chart module's (module-private there), so charts
-// and maps animating side by side read as one family.
+// Motion timings read from the ugoki `mark` family and tempo primitives (via
+// `kata/map`) — the same source the chart module composes its reveals from —
+// so charts and maps animating side by side read as one family.
+
+const { duration, ease, mark } = k.motion
 
 /** Region fade-in on the mount reveal. @internal */
-export const REGION_FADE = { duration: 0.4, ease: 'easeOut' } as const
+export const REGION_FADE = { duration: duration[400], ease: ease.out } as const
 
 /** Delay step between adjacent regions, so the geography washes in. @internal */
 export const REGION_STAGGER = 0.01
@@ -46,10 +51,10 @@ export const REGION_STAGGER = 0.01
 export const REGION_STAGGER_MAX = 0.3
 
 /** Route-draw stroke reveal (`pathLength` 0 → 1), matching the chart's line draw. @internal */
-export const ROUTE_DRAW = { duration: 0.7, ease: 'easeInOut' } as const
+export const ROUTE_DRAW = mark.draw
 
-/** A point's scale-and-fade pop-in. @internal */
-export const POINT_POP = { duration: 0.25, ease: 'easeOut' } as const
+/** A point's scale-and-fade pop-in — the chart's pop tempo, staggered instead of held. @internal */
+export const POINT_POP = { duration: mark.pop.duration, ease: ease.out } as const
 
 /** Delay step between points on the mount reveal, so a cluster staggers in. @internal */
 export const POINT_STAGGER = 0.08
@@ -58,7 +63,7 @@ export const POINT_STAGGER = 0.08
 export const POINT_STAGGER_MAX = 0.6
 
 /** A marker pin's pop-in. @internal */
-export const PIN_POP = { duration: 0.25, ease: 'easeOut' } as const
+export const PIN_POP = { duration: mark.pop.duration, ease: ease.out } as const
 
 /** A marker's connector draw, held until the start pin has popped. @internal */
 export const MARKER_DRAW = { ...ROUTE_DRAW, delay: PIN_POP.duration } as const

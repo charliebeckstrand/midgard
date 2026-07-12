@@ -75,10 +75,10 @@ export function ToastAlert({
 	const autoDismiss = {
 		height: 0,
 		...(positionTop ? { paddingBottom: 0 } : { paddingTop: 0 }),
-		transition: { duration: 0.15 },
+		transition: k.dismiss,
 	}
 
-	const manualDismiss = { opacity: 0, transition: { duration: 0.15 } }
+	const manualDismiss = { opacity: 0, transition: k.dismiss }
 
 	// Screen readers do not reliably announce role="status" content mounted in
 	// the same commit as the live region; mirror polite toasts through the
@@ -103,7 +103,7 @@ export function ToastAlert({
 				zIndex,
 			}}
 			exit={t.dismissed ? manualDismiss : autoDismiss}
-			transition={{ layout: { type: 'spring', stiffness: 500, damping: 25 } }}
+			transition={{ layout: k.spring }}
 		>
 			<motion.div
 				initial={{ ...motionConfig.initial, opacity: 0 }}

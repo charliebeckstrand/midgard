@@ -25,25 +25,30 @@
  * {@link seriesDataKey} signature an animated renderer swaps its generation on.
  */
 
+import { k } from '../../../recipes/kata/chart'
 import type { ChartOrientation } from './chart-orientation'
 
-// Timings mirror the Sparkline's (module-private there), so charts and
-// sparklines animating side by side read as one family.
+// The shared draw / fade / pop / grow timings read from the ugoki `mark`
+// family (via `kata/chart`) — the same source the Sparkline and the map module
+// read — and the chart-only timings compose from the same tempo primitives, so
+// the data-viz surfaces animating side by side read as one family.
+
+const { duration, ease, mark } = k.motion
 
 /** Line-draw stroke reveal (`pathLength` 0 → 1). @internal */
-export const LINE_DRAW = { duration: 0.7, ease: 'easeInOut' } as const
+export const LINE_DRAW = mark.draw
 
 /** Area wash fade, trailing the line so it fills in as the stroke crosses it. @internal */
-export const AREA_FADE = { duration: 0.5, delay: 0.15 } as const
+export const AREA_FADE = mark.fade
 
 /** Point-marker pop, held until the line has finished drawing. @internal */
-export const POINT_POP = { duration: 0.25, delay: LINE_DRAW.duration } as const
+export const POINT_POP = mark.pop
 
 /** Per-bar grow from the zero baseline. @internal */
-export const BAR_GROW = { duration: 0.4, ease: 'easeOut' } as const
+export const BAR_GROW = mark.grow
 
 /** Delay step between adjacent bar groups, so they rise in sequence. @internal */
-export const BAR_STAGGER = 0.05
+export const BAR_STAGGER = mark.stagger
 
 /**
  * Reference-rule rise: the rule slides in along the value axis from the baseline
@@ -51,17 +56,21 @@ export const BAR_STAGGER = 0.05
  * grows — held a beat so it lands as the marks settle.
  * @internal
  */
-export const REFERENCE_RISE = { duration: 0.5, ease: 'easeOut', delay: 0.2 } as const
+export const REFERENCE_RISE = {
+	duration: duration[500],
+	ease: ease.out,
+	delay: duration[200],
+} as const
 
 /**
  * The pie's reveal: the disc wipes in clockwise from the top (`pathLength`
  * 0 → 1 on a masking stroke), so the pie draws itself around its angular axis
  * the way the line draws itself along x. @internal
  */
-export const SLICE_SWEEP = { duration: 0.8, ease: 'easeInOut' } as const
+export const SLICE_SWEEP = { duration: duration[800], ease: ease.inOut } as const
 
 /** Label fade-in as the sweep passes its slice. @internal */
-export const SLICE_FADE = { duration: 0.3, ease: 'easeOut' } as const
+export const SLICE_FADE = { duration: duration[300], ease: ease.out } as const
 
 // Reverse timings for the data-change exit — the outgoing marks running their
 // reveal backwards. Each is quicker than its reveal and carries no delay, so an
@@ -70,22 +79,22 @@ export const SLICE_FADE = { duration: 0.3, ease: 'easeOut' } as const
 // stagger and hold beats into the transition.
 
 /** Bar shrink back to the baseline — the reverse of {@link BAR_GROW}. @internal */
-export const BAR_SHRINK = { duration: 0.3, ease: 'easeIn' } as const
+export const BAR_SHRINK = { duration: duration[300], ease: ease.in } as const
 
 /** Line un-draw (`pathLength` 1 → 0) — the reverse of {@link LINE_DRAW}. @internal */
-export const LINE_UNDRAW = { duration: 0.4, ease: 'easeInOut' } as const
+export const LINE_UNDRAW = { duration: duration[400], ease: ease.inOut } as const
 
 /** Area wash fade-out — the reverse of {@link AREA_FADE}. @internal */
-export const AREA_UNFADE = { duration: 0.3, ease: 'easeIn' } as const
+export const AREA_UNFADE = { duration: duration[300], ease: ease.in } as const
 
 /** Point-marker pop-out — the reverse of {@link POINT_POP}. @internal */
-export const POINT_UNPOP = { duration: 0.2, ease: 'easeIn' } as const
+export const POINT_UNPOP = { duration: duration[200], ease: ease.in } as const
 
 /** Pie un-sweep (`pathLength` 1 → 0) — the reverse of {@link SLICE_SWEEP}. @internal */
-export const SLICE_UNSWEEP = { duration: 0.5, ease: 'easeInOut' } as const
+export const SLICE_UNSWEEP = { duration: duration[500], ease: ease.inOut } as const
 
 /** Pie label / callout fade-out — the reverse of {@link SLICE_FADE}. @internal */
-export const SLICE_UNFADE = { duration: 0.2, ease: 'easeIn' } as const
+export const SLICE_UNFADE = { duration: duration[200], ease: ease.in } as const
 
 /**
  * Whether the value axis runs vertically for this orientation — the one place

@@ -4,12 +4,14 @@
  * Layer: kiso · Concern: toast motion
  */
 
+import { duration, ease } from './base'
+
 function slide(value: string) {
 	return {
 		initial: { y: value, opacity: 1 },
 		animate: { y: 0, opacity: 1 },
 		exit: { y: value, opacity: 1 },
-		transition: { duration: 0.15, ease: 'easeOut' as const },
+		transition: { duration: duration[150], ease: ease.out },
 	}
 }
 

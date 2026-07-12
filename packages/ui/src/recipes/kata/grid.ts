@@ -718,7 +718,11 @@ export const k = {
 		// spring (snappy, lightly damped — settles fast without a bounce). Reduced
 		// motion stands the whole animation down upstream, so no `duration: 0` branch
 		// is needed here.
-		rowSort: { layout: spring },
+		rowSort: { layout: spring.slide },
+		// The make-room glide of an in-flight column drag. Applied imperatively
+		// (`animate()` onto the shift CSS variable in `grid-reorder.ts`), never
+		// spread onto a motion element.
+		columnShift: spring.snap,
 	},
 	nav: {
 		// The `navigable` grid's `<table>` is the cursor's single tab stop; drop its

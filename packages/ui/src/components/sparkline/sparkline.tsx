@@ -13,21 +13,6 @@ import { type SparklineGeometry, sparklineGeometry } from './sparkline-geometry'
 /** The area fill's opacity, sitting the wash under the line without muddying it. @internal */
 const AREA_FILL_OPACITY = 0.16
 
-/** Line-draw stroke reveal (`pathLength` 0 → 1). @internal */
-const LINE_DRAW = { duration: 0.7, ease: 'easeInOut' } as const
-
-/** Area wash fade, trailing the line so it fills in as the stroke crosses it. @internal */
-const AREA_FADE = { duration: 0.5, delay: 0.15 } as const
-
-/** End-point pop, held until the line has finished drawing. @internal */
-const POINT_POP = { duration: 0.25, delay: LINE_DRAW.duration } as const
-
-/** Per-bar grow from the baseline. @internal */
-const BAR_GROW = { duration: 0.4, ease: 'easeOut' } as const
-
-/** Delay step between adjacent bars, so they rise in sequence. @internal */
-const BAR_STAGGER = 0.05
-
 type SparklineColor = keyof typeof k.color
 
 /**
@@ -181,7 +166,7 @@ function AnimatedSparklineMarks({
 				className={fillClass}
 				initial={{ y: geometry.baseline, height: 0 }}
 				animate={{ y: bar.y, height: bar.height }}
-				transition={{ ...BAR_GROW, delay: index * BAR_STAGGER }}
+				transition={{ ...k.motion.grow, delay: index * k.motion.stagger }}
 			/>
 		))
 	}
@@ -198,7 +183,7 @@ function AnimatedSparklineMarks({
 					className={fillClass}
 					initial={{ opacity: 0 }}
 					animate={{ opacity: 1 }}
-					transition={AREA_FADE}
+					transition={k.motion.fade}
 				/>
 			)}
 
@@ -211,7 +196,7 @@ function AnimatedSparklineMarks({
 				className={strokeClass}
 				initial={{ pathLength: 0 }}
 				animate={{ pathLength: 1 }}
-				transition={LINE_DRAW}
+				transition={k.motion.draw}
 			/>
 
 			{endPoint && geometry.last && (
@@ -221,7 +206,7 @@ function AnimatedSparklineMarks({
 					className={fillClass}
 					initial={{ r: 0, opacity: 0 }}
 					animate={{ r: pointRadius, opacity: 1 }}
-					transition={POINT_POP}
+					transition={k.motion.pop}
 				/>
 			)}
 		</>
