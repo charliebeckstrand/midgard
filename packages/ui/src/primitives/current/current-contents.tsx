@@ -30,11 +30,12 @@ export type CurrentContentsProps = ComponentPropsWithoutRef<'div'> & {
 	 * animation).
 	 *
 	 * @remarks
-	 * With `always`/`lazy` and `fade={false}`, held-inactive panels wrap in
+	 * With `always`/`lazy`, held-inactive panels wrap in
 	 * `<Activity mode="hidden">`: kept in the DOM with state preserved, but their
-	 * effects are torn down and re-rendering is deferred until shown. `fade` and
-	 * `mount="lazy"`/`"always"` still hold panels via the opacity cross-fade
-	 * instead, since `Activity`'s `display: none` can't animate.
+	 * effects are torn down and re-rendering is deferred until shown. Under
+	 * `fade` — whose `display: none` can't animate — the Activity hold applies
+	 * only at rest: a held panel wakes for the crossfade and drops back into the
+	 * hidden Activity once its fade-out lands.
 	 *
 	 * Under `fade`, mount and unmount ride the cross-fade rather than defeating
 	 * it: a panel mounting after the container's initial render (a `lazy` first

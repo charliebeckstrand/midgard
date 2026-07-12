@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'motion/react'
-import { type ReactNode, useLayoutEffect, useRef } from 'react'
+import { Activity, type ReactNode, useLayoutEffect, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/ready-reveal'
 import { ReducedMotion } from '../reduced-motion'
@@ -38,11 +38,34 @@ const FOCUSABLE =
  * keeping it out of the tab order and accessibility tree; if it held focus when
  * it deactivates, focus moves to the revealed layer so keyboard users aren't
  * dropped to the document root.
+ *
+ * At rest — outside a crossfade — the inactive layer is held in
+ * `<Activity mode="hidden">`: kept in the DOM with state preserved, but
+ * `display: none`, with its effects torn down, its CSS animations (a
+ * skeleton's pulse) stopped, and re-rendering deferred. A rested layer
+ * therefore stops contributing to the grid cell's size; a placeholder that
+ * mirrors the content's dimensions, as intended, sits flush either way.
  */
 export function ReadyReveal({ ready, placeholder, children, className }: ReadyRevealProps) {
 	const placeholderRef = useRef<HTMLDivElement>(null)
 
 	const contentRef = useRef<HTMLDivElement>(null)
+
+	// Rest latch: true while no crossfade is in flight, so the inactive layer
+	// can be held in a hidden Activity. Cleared in render when `ready` flips
+	// (the adjust-state-during-render form) so both layers are live in the same
+	// pass the crossfade starts; the deactivating layer's fade-out completion
+	// sets it again. Starts true — `initial={false}` means mount plays no
+	// entrance, so the inactive layer rests immediately.
+	const [settled, setSettled] = useState(true)
+
+	const [previousReady, setPreviousReady] = useState(ready)
+
+	if (previousReady !== ready) {
+		setPreviousReady(ready)
+
+		setSettled(false)
+	}
 
 	// The last element focused within either layer, tracked via bubbled focusin.
 	// When a `ready` flip sends a focused layer `inert`, the browser drops its
@@ -77,38 +100,50 @@ export function ReadyReveal({ ready, placeholder, children, className }: ReadyRe
 				className={cn('grid', className)}
 				style={{ gridTemplate: '1fr / 1fr' }}
 			>
-				<motion.div
-					ref={placeholderRef}
-					// Track the last focused element per layer (focusin bubbles here),
-					// so the effect can tell whether the deactivating layer held focus.
-					onFocus={(event) => {
-						lastFocused.current = event.target as HTMLElement
-					}}
-					aria-hidden={ready}
-					// `inert` keeps the hidden layer's descendants out of the Tab
-					// order and off the a11y tree.
-					inert={ready}
-					animate={ready ? HIDDEN : VISIBLE}
-					initial={false}
-					transition={k.transition}
-					style={{ ...GRID_CELL, pointerEvents: ready ? 'none' : undefined }}
-				>
-					{placeholder}
-				</motion.div>
-				<motion.div
-					ref={contentRef}
-					onFocus={(event) => {
-						lastFocused.current = event.target as HTMLElement
-					}}
-					aria-hidden={!ready}
-					inert={!ready}
-					animate={ready ? VISIBLE : HIDDEN}
-					initial={false}
-					transition={k.transition}
-					style={{ ...GRID_CELL, pointerEvents: ready ? undefined : 'none' }}
-				>
-					{children}
-				</motion.div>
+				<Activity mode={ready && settled ? 'hidden' : 'visible'}>
+					<motion.div
+						ref={placeholderRef}
+						// Track the last focused element per layer (focusin bubbles here),
+						// so the effect can tell whether the deactivating layer held focus.
+						onFocus={(event) => {
+							lastFocused.current = event.target as HTMLElement
+						}}
+						aria-hidden={ready}
+						// `inert` keeps the hidden layer's descendants out of the Tab
+						// order and off the a11y tree, and swallows pointer events.
+						inert={ready}
+						animate={ready ? HIDDEN : VISIBLE}
+						initial={false}
+						transition={k.transition}
+						// Only the deactivating layer's completion rests the crossfade;
+						// the guard skips the activating layer's entrance landing.
+						onAnimationComplete={() => {
+							if (ready) setSettled(true)
+						}}
+						style={GRID_CELL}
+					>
+						{placeholder}
+					</motion.div>
+				</Activity>
+				<Activity mode={!ready && settled ? 'hidden' : 'visible'}>
+					<motion.div
+						ref={contentRef}
+						onFocus={(event) => {
+							lastFocused.current = event.target as HTMLElement
+						}}
+						aria-hidden={!ready}
+						inert={!ready}
+						animate={ready ? VISIBLE : HIDDEN}
+						initial={false}
+						transition={k.transition}
+						onAnimationComplete={() => {
+							if (!ready) setSettled(true)
+						}}
+						style={GRID_CELL}
+					>
+						{children}
+					</motion.div>
+				</Activity>
 			</div>
 		</ReducedMotion>
 	)
