@@ -5,7 +5,12 @@ import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { type ReactNode, useCallback, useMemo, useState } from 'react'
 import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/kanban'
-import { KanbanColumnContext, kanbanColumnTitleId, useKanbanContext } from './context'
+import {
+	KanbanColumnContext,
+	kanbanColumnTitleId,
+	useKanbanContext,
+	useKanbanDragState,
+} from './context'
 
 /** Props for {@link KanbanColumn}: the `columnId` matching a board column, with an optional accessible-name override. */
 export type KanbanColumnProps = {
@@ -32,7 +37,9 @@ export function KanbanColumn({
 	className,
 	'aria-label': ariaLabel,
 }: KanbanColumnProps) {
-	const { columnItemIds, interactive, activeId } = useKanbanContext()
+	const { interactive } = useKanbanContext()
+
+	const { activeId, columnItemIds } = useKanbanDragState()
 
 	const itemIds = columnItemIds[columnId] ?? []
 

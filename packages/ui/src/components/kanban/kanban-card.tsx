@@ -1,6 +1,6 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import { memo, type ReactNode, useEffect } from 'react'
 import { cn, dataAttr } from '../../core'
 import { useSortableItem } from '../../hooks'
 import { k } from '../../recipes/kata/kanban'
@@ -30,14 +30,10 @@ export type KanbanCardProps = {
  * @remarks
  * Client component. Drag affordances (`role`, `aria-roledescription`,
  * keyboard instructions) come from dnd-kit; set `aria-label` only when the
- * content yields no usable name.
+ * content yields no usable name. Memoized: the card reads only the card-facing
+ * {@link KanbanContext}, so a pointer drag doesn't re-render the whole board.
  */
-export function KanbanCard({
-	cardId,
-	'aria-label': ariaLabel,
-	children,
-	className,
-}: KanbanCardProps) {
+function KanbanCardImpl({ cardId, 'aria-label': ariaLabel, children, className }: KanbanCardProps) {
 	const { interactive, disabled, liftedCardId, overlayMap, onCardKeyDown, onCardBlur } =
 		useKanbanContext()
 
@@ -52,7 +48,11 @@ export function KanbanCard({
 	const lifted = liftedCardId === cardId
 
 	// Keep the drag-overlay content in sync with the card's latest children.
-	if (interactive) overlayMap.current.set(cardId, children)
+	// Runs post-commit (not in render) so it stays pure under concurrent/StrictMode;
+	// the map is populated at mount, well before any drag reads it.
+	useEffect(() => {
+		if (interactive) overlayMap.current.set(cardId, children)
+	}, [interactive, cardId, children, overlayMap])
 
 	return (
 		// biome-ignore lint/a11y/useAriaPropsSupportedByRole: role is provided by dnd-kit's spread attributes
@@ -83,3 +83,10 @@ export function KanbanCard({
 		</div>
 	)
 }
+
+/**
+ * Draggable card within a {@link KanbanColumn}. See {@link KanbanCardImpl}.
+ * Memoized so a card re-renders only when its own props or card-facing context
+ * change, not on every pointer-drag move elsewhere on the board.
+ */
+export const KanbanCard = memo(KanbanCardImpl)
