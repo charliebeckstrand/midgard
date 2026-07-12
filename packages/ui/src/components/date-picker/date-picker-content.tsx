@@ -1,13 +1,12 @@
 'use client'
 
-import { FloatingFocusManager, FloatingPortal, type FloatingRootContext } from '@floating-ui/react'
-import { AnimatePresence, motion } from 'motion/react'
+import { FloatingFocusManager, type FloatingRootContext } from '@floating-ui/react'
+import { motion } from 'motion/react'
 import { type CSSProperties, type KeyboardEvent, type ReactNode, useRef } from 'react'
 
 import { cn } from '../../core'
 import { Density } from '../../primitives/density'
-import { usePortalContainer } from '../../primitives/portal'
-import { ReducedMotion } from '../../primitives/reduced-motion'
+import { PresencePortal } from '../../primitives/portal'
 import { useGlass } from '../../providers/glass/context'
 import { k } from '../../recipes/kata/date-picker'
 import { Box } from '../box'
@@ -90,8 +89,6 @@ export function DatePickerContent({
 }: DatePickerContentProps) {
 	const glass = useGlass()
 
-	const root = usePortalContainer()
-
 	// Focus lands on the dialog container (tabIndex -1) instead of floating-ui's
 	// default, the first tabbable, i.e. the "Previous month" button. The picker
 	// uses a virtual highlight; seeding DOM focus on a button both misleads AT
@@ -99,88 +96,82 @@ export function DatePickerContent({
 	const initialFocusRef = useRef<HTMLElement | null>(null)
 
 	return (
-		<FloatingPortal root={root ?? undefined}>
-			<ReducedMotion>
-				<AnimatePresence onExitComplete={onExitComplete}>
-					{open && (
-						// `returnFocus={false}`: `useFloatingUI`'s `returnFocusTo` restores
-						// focus on Escape or selection but not on an outside-press
-						// dismiss, where focus follows the pointer.
-						<FloatingFocusManager
-							context={context}
-							modal
-							returnFocus={false}
-							initialFocus={initialFocusRef}
-							getInsideElements={getInsideElements}
-						>
-							<div
-								ref={(node) => {
-									setFloating(node)
+		<PresencePortal open={open} onExitComplete={onExitComplete}>
+			{/* `returnFocus={false}`: `useFloatingUI`'s `returnFocusTo` restores focus
+			    on Escape or selection but not on an outside-press dismiss, where focus
+			    follows the pointer. */}
+			<FloatingFocusManager
+				context={context}
+				modal
+				returnFocus={false}
+				initialFocus={initialFocusRef}
+				getInsideElements={getInsideElements}
+			>
+				<div
+					ref={(node) => {
+						setFloating(node)
 
-									initialFocusRef.current = node
-								}}
-								role="dialog"
-								aria-modal="true"
-								aria-label={label}
-								style={floatingStyles}
-								className={cn(k.content.portal)}
-								tabIndex={-1}
-								{...getFloatingProps({
-									// Composed through floating-ui; its own handlers merge
-									// rather than clobber.
-									onKeyDown: (event: KeyboardEvent<HTMLElement>) => {
-										// Keys from portaled descendants (the month/year picker
-										// popover) bubble here through the React tree, not the
-										// DOM. That surface owns its keyboard; acting here would
-										// drive the calendar underneath it.
-										if (event.target instanceof Node && !event.currentTarget.contains(event.target))
-											return
+						initialFocusRef.current = node
+					}}
+					role="dialog"
+					aria-modal="true"
+					aria-label={label}
+					style={floatingStyles}
+					className={cn(k.content.portal)}
+					tabIndex={-1}
+					{...getFloatingProps({
+						// Composed through floating-ui; its own handlers merge
+						// rather than clobber.
+						onKeyDown: (event: KeyboardEvent<HTMLElement>) => {
+							// Keys from portaled descendants (the month/year picker
+							// popover) bubble here through the React tree, not the
+							// DOM. That surface owns its keyboard; acting here would
+							// drive the calendar underneath it.
+							if (event.target instanceof Node && !event.currentTarget.contains(event.target))
+								return
 
-										// Activation keys on a DOM-focused control (the user Tabbed
-										// to a header/footer button) belong to that control; only
-										// the dialog itself routes them to the virtual model.
-										if (
-											(event.key === 'Enter' || event.key === ' ') &&
-											event.target !== event.currentTarget
-										)
-											return
+							// Activation keys on a DOM-focused control (the user Tabbed
+							// to a header/footer button) belong to that control; only
+							// the dialog itself routes them to the virtual model.
+							if (
+								(event.key === 'Enter' || event.key === ' ') &&
+								event.target !== event.currentTarget
+							)
+								return
 
-										// Navigation keys belong to the virtual model even when the
-										// user has Tabbed onto a control inside. Reclaim DOM focus
-										// for the dialog first: a grid move can re-anchor the month
-										// and unmount the focused day button, dropping focus to
-										// <body>.
-										if (NAVIGATION_KEYS.has(event.key) && event.target !== event.currentTarget) {
-											event.currentTarget.focus()
-										}
+							// Navigation keys belong to the virtual model even when the
+							// user has Tabbed onto a control inside. Reclaim DOM focus
+							// for the dialog first: a grid move can re-anchor the month
+							// and unmount the focused day button, dropping focus to
+							// <body>.
+							if (NAVIGATION_KEYS.has(event.key) && event.target !== event.currentTarget) {
+								event.currentTarget.focus()
+							}
 
-										onKeyDown?.(event)
-									},
-								})}
+							onKeyDown?.(event)
+						},
+					})}
+				>
+					<motion.div
+						{...k.content.motion}
+						data-slot="datepicker-content"
+						data-size={size}
+						className={cn('z-50', k.content.text, glass && k.content.glass)}
+						onMouseDown={(event) => event.preventDefault()}
+					>
+						<Density scale={size}>
+							<Box
+								bg={glass ? 'none' : 'popover'}
+								outline={glass || undefined}
+								radius="lg"
+								className={k.content.body({ density: size })}
 							>
-								<motion.div
-									{...k.content.motion}
-									data-slot="datepicker-content"
-									data-size={size}
-									className={cn('z-50', k.content.text, glass && k.content.glass)}
-									onMouseDown={(event) => event.preventDefault()}
-								>
-									<Density scale={size}>
-										<Box
-											bg={glass ? 'none' : 'popover'}
-											outline={glass || undefined}
-											radius="lg"
-											className={k.content.body({ density: size })}
-										>
-											{children}
-										</Box>
-									</Density>
-								</motion.div>
-							</div>
-						</FloatingFocusManager>
-					)}
-				</AnimatePresence>
-			</ReducedMotion>
-		</FloatingPortal>
+								{children}
+							</Box>
+						</Density>
+					</motion.div>
+				</div>
+			</FloatingFocusManager>
+		</PresencePortal>
 	)
 }
