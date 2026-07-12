@@ -41,21 +41,51 @@ export function Demo() {
 				</Flex>
 			</Example>
 
-			<Example title="Dashed line">
+			<Example title="Dashed">
+				<Flex gap="md">
+					{shapes.map((shape) => (
+						<Flex key={shape} gap="sm">
+							<Swatch shape={shape} variant="dashed" color="text-blue-600 dark:text-blue-500" />
+
+							<Text as="span" severity="muted" size="sm">
+								{shape}
+							</Text>
+						</Flex>
+					))}
+				</Flex>
+			</Example>
+
+			<Example title="Color">
 				<Flex gap="md">
 					<Flex gap="sm">
-						<Swatch shape="line" color="text-blue-600 dark:text-blue-500" />
+						<Swatch color="violet" />
 
 						<Text as="span" severity="muted" size="sm">
-							solid
+							palette name
 						</Text>
 					</Flex>
 
 					<Flex gap="sm">
-						<Swatch shape="line" variant="dashed" color="text-blue-600 dark:text-blue-500" />
+						<Swatch color="#e11d48" />
 
 						<Text as="span" severity="muted" size="sm">
-							dashed
+							hex
+						</Text>
+					</Flex>
+
+					<Flex gap="sm">
+						<Swatch color="oklch(0.72 0.19 150)" />
+
+						<Text as="span" severity="muted" size="sm">
+							oklch
+						</Text>
+					</Flex>
+
+					<Flex gap="sm">
+						<Swatch color="text-sky-600 dark:text-sky-500" />
+
+						<Text as="span" severity="muted" size="sm">
+							utility class
 						</Text>
 					</Flex>
 				</Flex>
