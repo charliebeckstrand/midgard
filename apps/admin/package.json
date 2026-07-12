@@ -22,7 +22,7 @@
 		"ui": "workspace:*"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "^2.4.6",
+		"@biomejs/biome": "^2.5.3",
 		"@tailwindcss/postcss": "^4.1.0",
 		"@types/node": "^25.3.3",
 		"@types/react": "^19.2.0",
