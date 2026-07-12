@@ -84,6 +84,9 @@ export function MenuContent({
 					id={menuId}
 					role="menu"
 					itemSelector='[role="menuitem"]:not([data-disabled])'
+					// A menu carries no stored selection, so opening seats focus on its
+					// first item (APG menu button) rather than the bare panel container.
+					autoFocusItem
 					typeahead
 					glass={glass}
 					className={cn('relative', k.content, className)}

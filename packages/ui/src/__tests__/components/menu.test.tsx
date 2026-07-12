@@ -215,6 +215,28 @@ describe('MenuContent', () => {
 		expect(screen.getByText('Item')).toBeInTheDocument()
 	})
 
+	it('seats focus on the first menu item when a dropdown opens', () => {
+		renderUI(
+			<Menu placement="bottom-start">
+				<MenuTrigger>
+					<button type="button">Open</button>
+				</MenuTrigger>
+				<MenuContent>
+					<MenuItem>Edit</MenuItem>
+					<MenuItem>Duplicate</MenuItem>
+				</MenuContent>
+			</Menu>,
+		)
+
+		fireEvent.click(screen.getByText('Open'))
+
+		// A menu carries no selection, so opening lands on its first item — a real
+		// role="menuitem" control — rather than the bare panel container.
+		expect(screen.getByRole('menuitem', { name: 'Edit' })).toHaveFocus()
+
+		expect(screen.getByRole('menu')).not.toHaveFocus()
+	})
+
 	it('wraps items in a scroll viewport carrying the overflow affordance', () => {
 		const { container } = renderUI(
 			<Menu defaultOpen>
