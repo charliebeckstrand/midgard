@@ -14,6 +14,8 @@ type DayCellProps = {
 	variant?: ButtonVariants['variant']
 	color?: ButtonVariants['color']
 	className?: string
+	/** Stamped on the active cell only, so a parent's `aria-activedescendant` can reference the roved day. */
+	id?: string
 	gridColumnStart?: number
 	/** Resolved BCP 47 tag; the day's accessible name uses the same locale as the visible grid. */
 	localeTag: string
@@ -38,6 +40,7 @@ export const CalendarDayCell = memo(function CalendarDayCell({
 	variant,
 	color,
 	className,
+	id,
 	gridColumnStart,
 	localeTag,
 	onSelect,
@@ -62,6 +65,7 @@ export const CalendarDayCell = memo(function CalendarDayCell({
 	return (
 		<Button
 			type="button"
+			id={id}
 			role="option"
 			aria-selected={selected}
 			aria-label={label}

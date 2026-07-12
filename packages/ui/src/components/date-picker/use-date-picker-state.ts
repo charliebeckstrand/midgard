@@ -1,7 +1,7 @@
 'use client'
 
 import type { OpenChangeReason } from '@floating-ui/react'
-import { type KeyboardEvent, useCallback, useMemo, useRef, useState } from 'react'
+import { type KeyboardEvent, useCallback, useId, useMemo, useRef, useState } from 'react'
 
 import { useFloatingUI } from '../../hooks'
 import { useIdScope } from '../../hooks/use-id-scope'
@@ -35,10 +35,20 @@ export function useDatePickerState({
 	footer,
 	placement = 'bottom-start',
 	disabled = false,
+	input = false,
 }: DatePickerBaseProps & DatePickerSingleProps) {
 	const control = useControl()
 
 	const scope = useIdScope({ id: control?.id })
+
+	// `input` mode keeps DOM focus on the DateInput and drives the calendar via
+	// the active-descendant pattern: the input's `aria-controls` points at the
+	// day listbox and its `aria-activedescendant` at the roved cell (whose id is
+	// stamped by the grid). Generated unconditionally; only the input path reads
+	// them.
+	const listboxId = useId()
+
+	const activeDescendantId = useId()
 
 	const resolvedDisabled = disabled || control?.disabled === true
 
@@ -207,6 +217,7 @@ export function useDatePickerState({
 	const onTriggerKeyDown = useDatePickerKeyboard({
 		disabled: resolvedDisabled,
 		open,
+		input,
 		active,
 		setActive,
 		openCalendar,
@@ -234,6 +245,17 @@ export function useDatePickerState({
 		open,
 		onOpenChange,
 		onTriggerKeyDown,
+		listboxId,
+		activeDescendantId,
+		// Active-descendant wiring for the DateInput while `input` mode keeps focus
+		// on it: `aria-controls` names the day listbox once open, and
+		// `aria-activedescendant` follows the roved grid cell (the only zone whose
+		// element carries `activeDescendantId`); both drop when there is no grid
+		// highlight, so the header/footer zones and the closed state clear it.
+		inputAria: {
+			'aria-controls': open ? listboxId : undefined,
+			'aria-activedescendant': active?.zone === 'grid' ? activeDescendantId : undefined,
+		},
 		setReference,
 		setFloating,
 		triggerRef,
