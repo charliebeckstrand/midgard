@@ -1,5 +1,6 @@
 import type { CallableApi, ComponentApi, OtherApi, SymbolApi } from 'docs/extractor'
 import { Accordion, AccordionItem, AccordionPanel, AccordionTrigger } from 'ui/accordion'
+import { Markdown } from 'ui/markdown'
 import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
 import { CallableEntry } from './callable-entry'
@@ -63,7 +64,11 @@ function OtherRow({ entry }: { entry: OtherApi }) {
 	return (
 		<Stack gap="sm">
 			<code className="font-mono font-medium text-zinc-900 dark:text-white">{entry.name}</code>
-			{entry.description && <Text severity="muted">{entry.description}</Text>}
+			{entry.description && (
+				<Text severity="muted">
+					<Markdown inline>{entry.description}</Markdown>
+				</Text>
+			)}
 		</Stack>
 	)
 }
