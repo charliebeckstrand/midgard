@@ -11,7 +11,7 @@
 const isNextBuild =
 	process.env.NEXT_PHASE === 'phase-production-build' ||
 	process.env.NEXT_PRIVATE_BUILD_WORKER === '1' ||
-	(process.argv[1]?.endsWith('/next/dist/bin/next') === true && process.argv[2] === 'build')
+	(process.argv[1]?.endsWith('/next/dist/bin/next') && process.argv[2] === 'build')
 
 const fallback =
 	process.env.NODE_ENV === 'production' && !isNextBuild ? undefined : 'http://localhost:4000'
