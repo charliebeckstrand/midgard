@@ -231,9 +231,16 @@ describe('factory components', () => {
 		expect(component('Rule').props).toEqual([])
 	})
 
-	it('leaves a non-component factory product as `other`', () => {
+	it('models a non-component callable product as a function, not `other`', () => {
 		const formatter = moduleApi.exports.find((entry) => entry.name === 'Formatter')
 
-		expect(formatter?.kind).toBe('other')
+		// `Formatter = makeFormatter()` resolves to `(value: string) => string` —
+		// callable but not component-shaped, so it classifies by shape as a
+		// function (its PascalCase name no longer forces a bare `other` row).
+		expect(formatter?.kind).toBe('function')
+
+		expect(formatter).toMatchObject({
+			signatures: [{ params: [{ name: 'value', type: 'string' }] }],
+		})
 	})
 })

@@ -54,14 +54,15 @@ export function extractModule(
 }
 
 /**
- * Route one export symbol to its API shape. PascalCase value exports that
- * resolve to a callable — a declared function (unwrapping `forwardRef` /
- * `memo`), or a `const X = factory(…)` whose resolved type renders like a
- * component — become components; a PascalCase callable that is not
- * component-shaped stays `OtherApi`. Every other value export whose resolved
- * type carries a call signature — a `useX` hook or a plain function — becomes a
- * `CallableApi` modeling its overload signatures; constants, contexts, and
- * plain objects emit `OtherApi` so nothing errors and everything renders.
+ * Route one export symbol to its API shape by what it *is*, not how it is
+ * cased. A **component** is a callable whose form renders like one — a JSX
+ * return or a props-shaped first parameter — reached as a declared function
+ * (unwrapping `forwardRef` / `memo`) or a `const X = factory(…)`; casing only
+ * breaks ties, so a lowercase render helper is not mistaken for a component and
+ * a PascalCase plain function is not mistaken the other way. Any remaining value
+ * export that carries a call signature — a `useX` hook or a plain function —
+ * becomes a `CallableApi` modeling its overload signatures; constants, contexts,
+ * and plain objects emit `OtherApi` so nothing errors and everything renders.
  */
 function classifyExport(symbol: ts.Symbol, context: ModuleContext): SymbolApi | null {
 	const name = symbol.getName()
@@ -73,16 +74,25 @@ function classifyExport(symbol: ts.Symbol, context: ModuleContext): SymbolApi | 
 	if (/^[A-Z]/.test(name)) {
 		const callable = resolveCallable(target)
 
-		if (callable) return buildComponent(name, target, callable, context)
+		if (callable && isComponentCallable(callable, context.checker)) {
+			return buildComponent(name, target, callable, context)
+		}
 
 		const factory = resolveFactoryComponent(target, context.checker)
 
 		if (factory) return buildFactoryComponent(name, target, factory, context)
-	} else if (isCallable(target, context.checker)) {
-		return buildCallable(name, target, context)
 	}
 
+	if (isCallable(target, context.checker)) return buildCallable(name, target, context)
+
 	return buildOther(name, target, context.checker)
+}
+
+/** Whether a declared callable's own signature renders like a component. */
+function isComponentCallable(callable: FunctionLikeNode, checker: ts.TypeChecker): boolean {
+	const signature = checker.getSignatureFromDeclaration(callable)
+
+	return signature ? isComponentSignature(signature, callable, checker) : false
 }
 
 /** The component's function form: a declaration, or a variable initializer unwrapped through wrappers. */
@@ -148,7 +158,7 @@ function unwrapInitializer(node: ts.Expression): ts.Expression {
 /** Whether a call signature renders like a component: JSX-returning, or first parameter shaped like props. */
 function isComponentSignature(
 	signature: ts.Signature,
-	declaration: ts.VariableDeclaration,
+	declaration: ts.Node,
 	checker: ts.TypeChecker,
 ): boolean {
 	if (returnsJsx(signature.getReturnType())) return true
