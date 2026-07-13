@@ -21,16 +21,36 @@ import type { Coord } from './use-grid-navigation'
 
 /** The per-row editing layer's surface, consumed by {@link useGridCursor}. @internal */
 export type GridEditingApi = {
-	rowEditing: GridRowEditing
+	/**
+	 * The staging half of the cells' editing context — the session store, draft
+	 * callbacks, and focus handshake. {@link useGridCursor} composes the session
+	 * exits (commit-and-move, cancel) over it to form the provided value.
+	 */
+	rowEditing: Omit<GridRowEditing, 'commitRowEdit' | 'cancelRowEdit'>
 	/**
 	 * Puts the cell at `coord` into edit mode through the controllable set (so
 	 * `onRowsChange` fires) and, once its editor mounts, focuses it — the
 	 * grid-owned entry behind `trigger: 'doubleClick'`. Under `scope: 'row'` the
 	 * whole row's editors mount (a no-op for a row already editing); under
 	 * `scope: 'cell'` the entered cell alone mounts, and entering it while
-	 * another cell is active commits that cell's staged edit first.
+	 * another cell is active commits that cell's staged edit first. A `seed`
+	 * (the typed-to-enter character) rides the focus handshake to the editor,
+	 * replacing the cell's value.
 	 */
-	enterRowEdit: (rowKey: string | number, coord: Coord) => void
+	enterRowEdit: (rowKey: string | number, coord: Coord, seed?: string) => void
+	/**
+	 * Ends a row's edit session, saving its staged changes through the flush —
+	 * the raw exit {@link useGridCursor} wraps with the commit-and-move keys.
+	 */
+	exitRowEdit: (rowKey: string | number) => void
+	/** Ends a row's edit session, discarding every staged draft. */
+	cancelRowEdit: (rowKey: string | number) => void
+	/** Whether a row currently has an open edit session, read at event time. */
+	isRowEditing: (rowKey: string | number) => boolean
+	/** Whether the grid owns the session lifecycle (`trigger: 'doubleClick'`). */
+	sessionOwned: boolean
+	/** Whether sessions are cell-scoped (`scope: 'cell'`). */
+	cellScoped: boolean
 	/**
 	 * Abandons an editing row's session when an Escape bubbles up from one of its
 	 * editors — layered onto the grid `<table>`'s key handler by
@@ -326,11 +346,11 @@ export function useGridEditing<T>({
 	// The cell whose editor takes focus once it mounts — recorded by
 	// `enterRowEdit`, resolved by the editor itself through `claimPendingFocus`
 	// at mount (however many render passes the session store and a controlled
-	// binding take to get there).
-	const pendingFocusRef = useRef<ActiveEditCell | null>(null)
+	// binding take to get there). A typed-to-enter seed rides along.
+	const pendingFocusRef = useRef<(ActiveEditCell & { seed?: string }) | null>(null)
 
 	const enterRowEdit = useCallback(
-		(rowKey: string | number, coord: Coord) => {
+		(rowKey: string | number, coord: Coord, seed?: string) => {
 			const columnId = dataColumnsRef.current[coord.col]?.id
 
 			if (columnId === undefined) return
@@ -346,7 +366,7 @@ export function useGridEditing<T>({
 					return
 				}
 
-				pendingFocusRef.current = { rowKey, columnId }
+				pendingFocusRef.current = { rowKey, columnId, seed }
 
 				setActiveCell({ rowKey, columnId })
 
@@ -362,7 +382,7 @@ export function useGridEditing<T>({
 
 			if (editableRowsRef.current.has(rowKey)) return
 
-			pendingFocusRef.current = { rowKey, columnId }
+			pendingFocusRef.current = { rowKey, columnId, seed }
 
 			setEditableRows((prev) => new Set(prev ?? EMPTY_SET).add(rowKey))
 		},
@@ -372,11 +392,11 @@ export function useGridEditing<T>({
 	const claimPendingFocus = useCallback((rowKey: string | number, columnId: string | number) => {
 		const pending = pendingFocusRef.current
 
-		if (!pending || pending.rowKey !== rowKey || pending.columnId !== columnId) return false
+		if (!pending || pending.rowKey !== rowKey || pending.columnId !== columnId) return null
 
 		pendingFocusRef.current = null
 
-		return true
+		return { seed: pending.seed }
 	}, [])
 
 	// Drop a pending focus intent the session moved past — a controlled consumer
@@ -527,17 +547,29 @@ export function useGridEditing<T>({
 		})
 	}, [cellScoped, editableRows, dataColumnsRef])
 
-	const rowEditing = useMemo<GridRowEditing>(
+	const isRowEditing = useCallback(
+		(rowKey: string | number) => editableRowsRef.current.has(rowKey),
+		[],
+	)
+
+	const rowEditing = useMemo<Omit<GridRowEditing, 'commitRowEdit' | 'cancelRowEdit'>>(
 		() => ({
 			store: storeRef.current as GridEditingStore,
 			stageDraft,
 			unstageDraft,
 			claimPendingFocus,
-			commitRowEdit: sessionOwned ? exitRowEdit : undefined,
-			cancelRowEdit: sessionOwned ? cancelRowEdit : undefined,
 		}),
-		[stageDraft, unstageDraft, claimPendingFocus, sessionOwned, exitRowEdit, cancelRowEdit],
+		[stageDraft, unstageDraft, claimPendingFocus],
 	)
 
-	return { rowEditing, enterRowEdit, sessionEscape: sessionOwned ? sessionEscape : undefined }
+	return {
+		rowEditing,
+		enterRowEdit,
+		exitRowEdit,
+		cancelRowEdit,
+		isRowEditing,
+		sessionOwned,
+		cellScoped,
+		sessionEscape: sessionOwned ? sessionEscape : undefined,
+	}
 }

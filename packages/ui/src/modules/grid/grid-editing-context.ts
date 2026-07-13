@@ -1,6 +1,16 @@
 'use client'
 
 import { createContext } from '../../core'
+import type { Coord } from './use-grid-navigation'
+
+/**
+ * Where a grid-owned commit moves the session next — spreadsheet muscle memory:
+ * an editor's Enter moves `'down'` (re-entering edit under `scope: 'cell'`),
+ * Tab / Shift+Tab move `'right'` / `'left'` through the row's editable cells.
+ *
+ * @internal
+ */
+export type SessionMove = 'down' | 'right' | 'left'
 
 /**
  * External-store interface over the editing session, built in `useGridEditing`:
@@ -41,18 +51,26 @@ export type GridRowEditing = {
 	unstageDraft: (rowKey: string | number, columnId: string | number) => void
 	/**
 	 * Resolves a grid-owned entry's focus handshake: an editor calls this once
-	 * mounted, and a `true` return means this cell is the one the entry targeted
-	 * — take focus. Mount-time resolution (rather than the grid locating the
-	 * editor from outside) holds across however many render passes the session
-	 * store and a controlled binding take to actually mount the editor.
+	 * mounted, and a non-null return means this cell is the one the entry
+	 * targeted — take focus, and apply the `seed` (a typed-to-enter character
+	 * that replaces the value, as spreadsheets do) when one rode along.
+	 * Mount-time resolution (rather than the grid locating the editor from
+	 * outside) holds across however many render passes the session store and a
+	 * controlled binding take to actually mount the editor.
 	 */
-	claimPendingFocus: (rowKey: string | number, columnId: string | number) => boolean
+	claimPendingFocus: (
+		rowKey: string | number,
+		columnId: string | number,
+	) => { seed?: string } | null
 	/**
 	 * Ends a row's edit session, saving its staged changes — the grid-owned exit
-	 * (an editor's Enter) under `trigger: 'doubleClick'`. Absent when the
-	 * consumer owns the session, whose save is removing the row from the set.
+	 * (an editor's Enter) under `trigger: 'doubleClick'`. A `move` carries the
+	 * commit-and-move keys: the cursor rides to the neighboring cell resolved
+	 * from `from` (the committing cell's display coord), re-entering edit there
+	 * under `scope: 'cell'`. Absent when the consumer owns the session, whose
+	 * save is removing the row from the set.
 	 */
-	commitRowEdit?: (rowKey: string | number) => void
+	commitRowEdit?: (rowKey: string | number, options?: { move?: SessionMove; from?: Coord }) => void
 	/**
 	 * Ends a row's edit session, discarding every staged draft — the grid-owned
 	 * abandon (an editor's Escape) under `trigger: 'doubleClick'`. Absent when

@@ -1,14 +1,26 @@
 'use client'
 
-import { type ReactNode, type RefObject, useCallback, useMemo, useRef } from 'react'
+import {
+	type KeyboardEvent as ReactKeyboardEvent,
+	type ReactNode,
+	type RefObject,
+	useCallback,
+	useMemo,
+	useRef,
+} from 'react'
 import { isColumnEditable } from './engine/grid-editing-utilities'
 import type { GridCellClick } from './engine/grid-row/cell'
-import { GridRowEditingContext } from './grid-editing-context'
+import {
+	type GridRowEditing,
+	GridRowEditingContext,
+	type SessionMove,
+} from './grid-editing-context'
 import type { GridEditableConfig } from './grid-editing-types'
 import type { GridColumn } from './types'
 import { useGridEditing } from './use-grid-editing'
 import { useGridEditingColumns } from './use-grid-editing-columns'
 import {
+	type Coord,
 	type GridCellActivate,
 	type GridNavTableProps,
 	type GridRowActivate,
@@ -26,12 +38,102 @@ type GridCursorRefs<T> = {
 	dataColumnsRef: RefObject<GridColumn<T>[]>
 }
 
+/** Whether a key press types a printable character (no modifiers; Space stays with selection). @internal */
+function isTypingKey(event: ReactKeyboardEvent<HTMLTableElement>): boolean {
+	return (
+		event.key.length === 1 && event.key !== ' ' && !event.ctrlKey && !event.metaKey && !event.altKey
+	)
+}
+
+/**
+ * The tab-stop half of the session keys: F2 toggles the cursor's cell into
+ * edit, and a printable character enters it seeded (typing replaces the value,
+ * as spreadsheets do). Fires only from the table tab stop, never from within a
+ * control — the caller guarantees the target. Consumes the key only when an
+ * edit actually began, so presses over non-editable cells keep their defaults.
+ *
+ * @internal
+ */
+function tabStopSessionKeys(
+	event: ReactKeyboardEvent<HTMLTableElement>,
+	active: Coord | null,
+	enterEditAt: (row: number, col: number, seed?: string) => boolean,
+): void {
+	if (!active) return
+
+	if (event.key === 'F2') {
+		if (enterEditAt(active.row, active.col)) event.preventDefault()
+	} else if (isTypingKey(event)) {
+		if (enterEditAt(active.row, active.col, event.key)) event.preventDefault()
+	}
+}
+
+/**
+ * Whether a bubbled editor key belongs to an open floating surface (a portaled
+ * panel, or an open disclosure's own trigger) — the session keys defer there,
+ * exactly as the session Escape does. @internal
+ */
+function fromOpenSurface(target: Element): boolean {
+	return (
+		target.closest('[data-floating-ui-portal]') != null ||
+		target.closest('[aria-expanded="true"]') != null
+	)
+}
+
+/**
+ * Resolves the data cell a key bubbling out of an editor belongs to, from the
+ * event target's `<tr data-row-index>` / `<td data-grid-col>` markers into the
+ * cursor's display coord — the same DOM resolution the session Escape uses for
+ * its row. `null` when the key didn't come from a data cell. @internal
+ */
+function resolveEditorCoord(
+	target: Element,
+	colIndexMap: Map<string | number, number>,
+): Coord | null {
+	const rowIndex = target.closest('tr[data-row-index]')?.getAttribute('data-row-index')
+
+	const colId = target.closest('td[data-grid-col]')?.getAttribute('data-grid-col')
+
+	if (rowIndex == null || colId == null) return null
+
+	const row = Number(rowIndex)
+
+	// Column ids may be numbers; the attribute stringifies either shape.
+	const col = colIndexMap.get(colId) ?? colIndexMap.get(Number(colId))
+
+	if (!Number.isInteger(row) || col === undefined) return null
+
+	return { row, col }
+}
+
+/**
+ * Resolves the editing cell a session key bubbling out of an editor targets:
+ * its display coord (via {@link resolveEditorCoord}) and row key, `null` when
+ * the key came from outside a data cell or its row isn't editing. @internal
+ */
+function resolveEditingCell(
+	target: Element,
+	colIndexMap: Map<string | number, number>,
+	rowKeys: (string | number)[],
+	isRowEditing: (rowKey: string | number) => boolean,
+): { from: Coord; rowKey: string | number } | null {
+	const from = resolveEditorCoord(target, colIndexMap)
+
+	if (from === null) return null
+
+	const rowKey = rowKeys[from.row]
+
+	if (rowKey === undefined || !isRowEditing(rowKey)) return null
+
+	return { from, rowKey }
+}
+
 /**
  * The cursor + editing layer for {@link GridData}, gathering the keyboard cursor
- * ({@link useGridNavigation}) and — when `editable` is set — the per-row editing
+ * ({@link useGridNavigation}) and — when `editable` is set — the inline editing
  * session ({@link useGridEditing}) behind one surface. Resolves the column
  * augmentation (cursor-only vs. editing-aware), the `<table>` cursor props (with
- * the editing key handler layered on), the cursor store provider, and a `wrap`
+ * the editing key handlers layered on), the cursor store provider, and a `wrap`
  * that mounts the editing contexts around the table. Pulled out of
  * {@link GridData} so its body stays within the cognitive-complexity budget and
  * the editing wiring reads as one concern.
@@ -72,7 +174,7 @@ export function useGridCursor<T>({
 	cursorEnabled: boolean
 	/** Cursor store to provide to the cells via {@link GridNavContext}. */
 	navStore: ReturnType<typeof useGridNavigation>['store']
-	/** `<table>` cursor props, with the editing key handler layered over navigation when editable. */
+	/** `<table>` cursor props, with the editing key handlers layered over navigation when editable. */
 	navTableProps: GridNavTableProps | undefined
 	/** Re-clamps the cursor to the current bounds; the grid drives it as rows/columns change. */
 	reconcile: (rowCount: number, colCount: number) => void
@@ -97,11 +199,13 @@ export function useGridCursor<T>({
 
 	const { rowsRef, colCountRef, rowIndexMapRef, colIndexMapRef, rowKeysRef, dataColumnsRef } = refs
 
-	// Enter on the cursor's active cell begins the row's edit session — the
+	// Enter on the cursor's active cell begins the cell's edit session — the
 	// keyboard peer of the pointer double-click. The entry resolver needs the
-	// editing hook (which in turn needs the cursor's `cellId`), so the wrapper
-	// reads it through a ref assigned below.
-	const enterEditAtRef = useRef<(rowIdx: number, colIdx: number) => void>(() => {})
+	// editing hook (which in turn feeds the cursor's key layering), so the
+	// activation wrapper reads it through a ref assigned below.
+	const enterEditAtRef = useRef<(rowIdx: number, colIdx: number, seed?: string) => boolean>(
+		() => false,
+	)
 
 	const onCellActivateWithEdit = useMemo<GridCellActivate | undefined>(() => {
 		if (!sessionOwned) return onCellActivate
@@ -127,6 +231,11 @@ export function useGridCursor<T>({
 		scrollContainerRef,
 	})
 
+	// The cursor's active coord at event time, for the tab-stop session keys.
+	const activeCoordRef = useRef(nav.active)
+
+	activeCoordRef.current = nav.active
+
 	const editing = useGridEditing<T>({
 		enabled: editingEnabled,
 		config: editable,
@@ -138,37 +247,124 @@ export function useGridCursor<T>({
 	// Begins the edit session for the cell at a cursor coord: resolves its row
 	// key and column from the live display maps, gates on an editable column
 	// (a `readOnly` or slotless/fieldless one never enters), and hands the
-	// coord to the editing layer to focus that cell's editor once it mounts.
+	// coord — plus any typed-to-enter seed — to the editing layer to focus that
+	// cell's editor once it mounts. Reports whether it entered.
 	const enterEditAt = useCallback(
-		(rowIdx: number, colIdx: number) => {
+		(rowIdx: number, colIdx: number, seed?: string) => {
 			const rowKey = rowKeysRef.current[rowIdx]
 
 			const col = dataColumnsRef.current[colIdx]
 
-			if (rowKey === undefined || !col || !isColumnEditable(col)) return
+			if (rowKey === undefined || !col || !isColumnEditable(col)) return false
 
-			editing.enterRowEdit(rowKey, { row: rowIdx, col: colIdx })
+			editing.enterRowEdit(rowKey, { row: rowIdx, col: colIdx }, seed)
+
+			return true
 		},
 		[editing.enterRowEdit, rowKeysRef, dataColumnsRef],
 	)
 
 	enterEditAtRef.current = enterEditAt
 
-	// The pointer entry, fired through the grid's built-in cell double-click
-	// event (so the interactive-content guard and data-cell resolution apply).
-	const editOnCellDoubleClick = useMemo<GridCellClick<T> | undefined>(() => {
-		if (!sessionOwned) return undefined
+	// Resolves a commit-and-move key's target: 'down' steps one row in the same
+	// column (none past the last row); 'right'/'left' step to the row's nearest
+	// editable column, wrapping at the edges (none when the row has no other
+	// editable column).
+	const resolveMoveTarget = useCallback(
+		(move: SessionMove, from: Coord): Coord | null => {
+			if (move === 'down') {
+				return from.row + 1 < rowsRef.current.length ? { row: from.row + 1, col: from.col } : null
+			}
 
-		return (cell) => {
-			const rowIdx = rowKeysRef.current.indexOf(cell.rowKey)
+			const cols = dataColumnsRef.current
 
-			const colIdx = colIndexMapRef.current.get(cell.columnId)
+			const count = cols.length
 
-			if (rowIdx < 0 || colIdx === undefined) return
+			for (let step = 1; step < count; step++) {
+				const idx = (((from.col + (move === 'right' ? step : -step)) % count) + count) % count
 
-			enterEditAt(rowIdx, colIdx)
-		}
-	}, [sessionOwned, enterEditAt, rowKeysRef, colIndexMapRef])
+				const col = cols[idx]
+
+				if (col && isColumnEditable(col)) return { row: from.row, col: idx }
+			}
+
+			return null
+		},
+		[rowsRef, dataColumnsRef],
+	)
+
+	// The grid-owned session commit, with the commit-and-move keys layered on:
+	// a move re-seats the cursor at the target and — cell-scoped — re-enters
+	// edit there in the same transition, so the outgoing cell commits through
+	// the flush without an intermediate focus bounce. No move (or none
+	// reachable) falls back to the plain exit.
+	const commitSessionWithMove = useCallback(
+		(rowKey: string | number, options?: { move?: SessionMove; from?: Coord }) => {
+			const target =
+				options?.move && options.from ? resolveMoveTarget(options.move, options.from) : null
+
+			if (target) {
+				nav.moveTo(target)
+
+				if (editing.cellScoped && enterEditAt(target.row, target.col)) return
+			}
+
+			editing.exitRowEdit(rowKey)
+		},
+		[resolveMoveTarget, nav.moveTo, editing.cellScoped, editing.exitRowEdit, enterEditAt],
+	)
+
+	// The commit-and-move key surface, layered onto the table's key handler when
+	// the grid owns the session. From the tab stop: F2 toggles the cursor's cell
+	// into edit, and a printable character enters it seeded (typing replaces the
+	// value, as spreadsheets do) — only ever from the tab stop, never from
+	// within a control. Bubbling out of an editor: F2 commits in place, and
+	// Tab / Shift+Tab commit and move through the row's editable cells under
+	// `scope: 'cell'` (row scope keeps native Tab across its mounted editors);
+	// both defer to an open floating surface, as the session Escape does.
+	const editorSessionKeys = useCallback(
+		(event: ReactKeyboardEvent<HTMLTableElement>) => {
+			if (event.key !== 'F2' && event.key !== 'Tab') return
+
+			if (!(event.target instanceof Element) || fromOpenSurface(event.target)) return
+
+			const cell = resolveEditingCell(
+				event.target,
+				colIndexMapRef.current,
+				rowKeysRef.current,
+				editing.isRowEditing,
+			)
+
+			if (!cell) return
+
+			if (event.key === 'F2') {
+				event.preventDefault()
+
+				commitSessionWithMove(cell.rowKey)
+			} else if (editing.cellScoped) {
+				event.preventDefault()
+
+				commitSessionWithMove(cell.rowKey, {
+					move: event.shiftKey ? 'left' : 'right',
+					from: cell.from,
+				})
+			}
+		},
+		[commitSessionWithMove, editing.isRowEditing, editing.cellScoped, colIndexMapRef, rowKeysRef],
+	)
+
+	const sessionMoveKeys = useCallback(
+		(event: ReactKeyboardEvent<HTMLTableElement>) => {
+			if (event.defaultPrevented) return
+
+			if (event.target === event.currentTarget) {
+				tabStopSessionKeys(event, activeCoordRef.current, enterEditAt)
+			} else {
+				editorSessionKeys(event)
+			}
+		},
+		[enterEditAt, editorSessionKeys],
+	)
 
 	// Cursor-only augmentation for a plain navigable grid; editing-aware
 	// augmentation (which mounts the editors) for an editable one.
@@ -191,38 +387,65 @@ export function useGridCursor<T>({
 		moveTo: nav.moveTo,
 	})
 
-	const { rowEditing } = editing
+	// The pointer entry, fired through the grid's built-in cell double-click
+	// event (so the interactive-content guard and data-cell resolution apply).
+	const editOnCellDoubleClick = useMemo<GridCellClick<T> | undefined>(() => {
+		if (!sessionOwned) return undefined
 
-	// The `<table>` cursor props, with the session's Escape layered ahead of
+		return (cell) => {
+			const rowIdx = rowKeysRef.current.indexOf(cell.rowKey)
+
+			const colIdx = colIndexMapRef.current.get(cell.columnId)
+
+			if (rowIdx < 0 || colIdx === undefined) return
+
+			enterEditAt(rowIdx, colIdx)
+		}
+	}, [sessionOwned, enterEditAt, rowKeysRef, colIndexMapRef])
+
+	// The `<table>` cursor props, with the session keys layered ahead of
 	// navigation when the grid owns the edit session: the table (the cursor's
 	// `role="grid"` tab stop) sees every editor's keys — portaled panels
 	// included, since portal events propagate through the React tree — so no
-	// editor wires its own abandon.
+	// editor wires its own abandon or commit-and-move.
 	const navTableProps = useMemo<GridNavTableProps | undefined>(() => {
 		const base = nav.navTableProps
 
 		const sessionEscape = editing.sessionEscape
 
-		if (!base || !sessionEscape) return base
+		if (!base || !sessionOwned) return base
 
 		return {
 			...base,
 			onKeyDown: (event) => {
-				sessionEscape(event)
+				sessionEscape?.(event)
+
+				sessionMoveKeys(event)
 
 				base.onKeyDown(event)
 			},
 		}
-	}, [nav.navTableProps, editing.sessionEscape])
+	}, [nav.navTableProps, editing.sessionEscape, sessionOwned, sessionMoveKeys])
+
+	// The provided editing context: the staging half from the editing hook, with
+	// the grid-owned session exits (commit-and-move, cancel) composed over it.
+	const rowEditingValue = useMemo<GridRowEditing>(
+		() => ({
+			...editing.rowEditing,
+			commitRowEdit: sessionOwned ? commitSessionWithMove : undefined,
+			cancelRowEdit: sessionOwned ? editing.cancelRowEdit : undefined,
+		}),
+		[editing.rowEditing, sessionOwned, commitSessionWithMove, editing.cancelRowEdit],
+	)
 
 	const wrap = useMemo(
 		() =>
 			editingEnabled
 				? (children: ReactNode) => (
-						<GridRowEditingContext value={rowEditing}>{children}</GridRowEditingContext>
+						<GridRowEditingContext value={rowEditingValue}>{children}</GridRowEditingContext>
 					)
 				: (children: ReactNode) => children,
-		[editingEnabled, rowEditing],
+		[editingEnabled, rowEditingValue],
 	)
 
 	return {

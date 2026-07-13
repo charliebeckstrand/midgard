@@ -273,9 +273,11 @@ export function SpreadsheetExample() {
 	const [skus, setSkus] = useState<Sku[]>(initialSkus)
 
 	// `scope: 'cell'` narrows a session to one cell — the spreadsheet model:
-	// double-click a cell (or press Enter on the cursor) to edit just it, Enter to
-	// save that cell alone, Escape to discard it; entering another cell saves the
-	// current one on the way out. The sku column stays read-only.
+	// double-click a cell (or press Enter, F2, or just type on the cursor's cell)
+	// to edit it alone; Enter saves and moves down the column, Tab/Shift+Tab save
+	// and move across the row's editable cells, F2 saves in place, Escape
+	// discards; entering another cell saves the current one on the way out. The
+	// sku column stays read-only.
 	const columns: GridColumn<Sku>[] = [
 		{ id: 'sku', title: 'SKU', cell: (row) => row.sku, readOnly: true },
 		{ id: 'stock', title: 'Stock', field: 'stock', cell: (row) => String(row.stock) },
@@ -298,8 +300,10 @@ export function SpreadsheetExample() {
 	return (
 		<>
 			<EditHelp label="Spreadsheet editing help">
-				Double-click a cell (or press Enter on the keyboard cursor) to edit that cell alone. Enter
-				saves it; Escape discards it; entering another cell saves the current one on the way out.
+				Double-click a cell — or press Enter or F2, or just start typing, on the keyboard cursor's
+				cell — to edit that cell alone. Enter saves and moves down the column; Tab saves and moves
+				across the row; F2 saves in place; Escape discards; entering another cell saves the current
+				one on the way out.
 			</EditHelp>
 			<Grid
 				columns={columns}

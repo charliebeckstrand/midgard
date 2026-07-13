@@ -14,7 +14,7 @@ import { focusWithoutReveal } from '../../hooks/use-truncation'
 import { k } from '../../recipes/kata/grid'
 import { inferEditorKind, isColumnEditable } from './engine/grid-editing-utilities'
 import { GridEditInputs } from './grid-edit-inputs'
-import { type GridRowEditing, useGridRowEditing } from './grid-editing-context'
+import { type GridRowEditing, type SessionMove, useGridRowEditing } from './grid-editing-context'
 import type { GridColumn } from './types'
 import { GridNavCell } from './use-grid-navigation-columns'
 
@@ -70,16 +70,37 @@ function GridCellEditor<T>({
 	// The grid-owned entry that began this session recorded which cell's editor
 	// should take focus; the editor resolves that handshake here at mount —
 	// whatever render pass mounted it — rather than the grid locating it from
-	// outside. Focus routes through the truncation-safe helper: it fires a
-	// `focusin` that arms the cell's truncation span, whose synchronous
-	// `flushSync` cannot flush during the commit this effect runs in.
+	// outside. A typed-to-enter seed replaces the value (spreadsheet typing) in
+	// the inferred text/number editors; slots and the listbox own their controls,
+	// so a seed can't be injected there. Focus routes through the truncation-safe
+	// helper: it fires a `focusin` that arms the cell's truncation span, whose
+	// synchronous `flushSync` cannot flush during the commit this effect runs in.
 	useEffect(() => {
-		if (!claimPendingFocus(rowKey, column.id)) return
+		const claim = claimPendingFocus(rowKey, column.id)
+
+		if (!claim) return
 
 		const editor = hostRef.current?.querySelector<HTMLElement>(EDITOR_FOCUSABLE)
 
 		if (editor) focusWithoutReveal(editor)
-	}, [claimPendingFocus, rowKey, column.id])
+
+		if (claim.seed === undefined || column.editCell) return
+
+		const kind = inferEditorKind(seed)
+
+		const next =
+			kind === 'text'
+				? claim.seed
+				: kind === 'number' && /^\d$/.test(claim.seed)
+					? Number(claim.seed)
+					: undefined
+
+		if (next === undefined) return
+
+		setDraft(next)
+
+		stageDraft(rowKey, column.id, next)
+	}, [claimPendingFocus, rowKey, column, seed, stageDraft])
 
 	const update = (next: unknown) => {
 		setDraft(next)
@@ -93,9 +114,14 @@ function GridCellEditor<T>({
 		unstageDraft(rowKey, column.id)
 	}
 
-	// Grid-owned session exits (`trigger: 'doubleClick'`), bound to this row;
+	// Grid-owned session exits (`trigger: 'doubleClick'`), bound to this cell;
 	// `undefined` under a consumer-owned session, standing the session keys down.
-	const commitRow = commitRowEdit ? () => commitRowEdit(rowKey) : undefined
+	// A move carries the commit-and-move keys (Enter ↓), resolved from this
+	// cell's display coord.
+	const commitRow = commitRowEdit
+		? (move?: SessionMove) =>
+				commitRowEdit(rowKey, move ? { move, from: { row: rowIdx, col: colIdx } } : undefined)
+		: undefined
 
 	const cancelRow = cancelRowEdit ? () => cancelRowEdit(rowKey) : undefined
 

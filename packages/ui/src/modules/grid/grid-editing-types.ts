@@ -78,12 +78,17 @@ export type GridEditableConfig = {
 	 * built-in trigger: the consumer flips rows in and out (a pencil / check row
 	 * action). `'doubleClick'` hands the session to the grid: double-clicking an
 	 * editable data cell (the grid's built-in cell double-click event, so a
-	 * consumer {@link GridDataProps.onCellDoubleClick} still fires) — or pressing
-	 * Enter on the keyboard cursor's active cell — puts its row into edit mode
-	 * and focuses that cell's editor; Enter in an inferred text/number editor
-	 * then saves the row (the same one-batch commit), and Escape abandons the
-	 * row's staged edits. Every entry and exit still flows through
-	 * `rows`/`onRowsChange`, so a controlled binding stays the source of truth.
+	 * consumer {@link GridDataProps.onCellDoubleClick} still fires) — or, on the
+	 * keyboard cursor's active cell, pressing Enter or F2 or typing a printable
+	 * character (which enters edit seeded with it, replacing the value as
+	 * spreadsheets do) — begins a session and focuses the entered cell's editor.
+	 * Enter in an inferred text/number editor saves and moves the cursor down a
+	 * row (re-entering edit under {@link GridEditableConfig.scope | scope}
+	 * `'cell'`), Tab / Shift+Tab save and move through the row's editable cells
+	 * (cell scope, wrapping at the edges), F2 saves in place, and Escape
+	 * abandons the session's staged edits. Every entry and exit still flows
+	 * through `rows`/`onRowsChange`, so a controlled binding stays the source of
+	 * truth.
 	 * @defaultValue 'manual'
 	 */
 	trigger?: 'manual' | 'doubleClick'

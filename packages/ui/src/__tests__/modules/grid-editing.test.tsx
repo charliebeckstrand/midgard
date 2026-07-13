@@ -508,17 +508,19 @@ describe("Grid cell-scoped sessions (scope: 'cell')", () => {
 	it('saves just the cell on Enter, as a one-change batch', () => {
 		const { container, cell, onValueChange, getByRole } = renderCellGrid()
 
-		fireEvent.doubleClick(cell('name'))
+		// The last row, so Enter's commit has no next row to move into and the
+		// session simply closes (the move itself is covered below).
+		fireEvent.doubleClick(cell('name', 1))
 
 		const input = bySlot(container, 'grid-edit-input') as HTMLInputElement
 
-		fireEvent.change(input, { target: { value: 'Alicia' } })
+		fireEvent.change(input, { target: { value: 'Bobby' } })
 
 		fireEvent.keyDown(input, { key: 'Enter' })
 
 		expect(onValueChange).toHaveBeenCalledTimes(1)
 
-		expect(onValueChange).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'name', value: 'Alicia' }])
+		expect(onValueChange).toHaveBeenCalledWith([{ rowKey: 2, columnId: 'name', value: 'Bobby' }])
 
 		// The session closes and the keyboard lands back on the grid's tab stop.
 		expect(bySlot(container, 'grid-edit-input')).toBeNull()
@@ -613,5 +615,236 @@ describe("Grid cell-scoped sessions (scope: 'cell')", () => {
 		expect(bySlot(view.container, 'grid-edit-input')).toBeInTheDocument()
 
 		expect(bySlot(view.container, 'grid-edit-number-input')).toBeNull()
+	})
+})
+
+/**
+ * Commit-and-move keys, on by default wherever the grid owns the session
+ * (`trigger: 'doubleClick'`): Enter commits and moves the cursor down one row
+ * (re-entering edit under `scope: 'cell'`); Tab / Shift+Tab commit and move
+ * through the row's editable cells, wrapping at the edges (cell scope); F2
+ * toggles edit on the cursor's cell; typing a printable character on the active
+ * cell enters edit seeded with it, replacing the value.
+ */
+describe('Grid commit-and-move keys', () => {
+	type Row = { id: number; name: string; count: number }
+
+	const baseRows: Row[] = [
+		{ id: 1, name: 'Alice', count: 2 },
+		{ id: 2, name: 'Bob', count: 5 },
+	]
+
+	const columns: GridColumn<Row>[] = [
+		{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
+		{ id: 'count', title: 'Count', field: 'count', cell: (row) => String(row.count) },
+	]
+
+	function renderKeysGrid(
+		cols: GridColumn<Row>[] = columns,
+		scope: 'row' | 'cell' = 'cell',
+		rows: Row[] = baseRows,
+	) {
+		const onValueChange = vi.fn()
+
+		const view = renderUI(
+			<Grid
+				columns={cols}
+				rows={rows}
+				getKey={(row) => row.id}
+				editable={{ trigger: 'doubleClick', scope, onValueChange }}
+			/>,
+		)
+
+		return {
+			...view,
+			onValueChange,
+			cell: (col: string, rowIndex = 0) =>
+				view.container.querySelectorAll<HTMLElement>(`td[data-grid-col="${col}"]`)[
+					rowIndex
+				] as HTMLElement,
+		}
+	}
+
+	it('re-enters edit on the next row after Enter under cell scope — the column-wise fill flow', () => {
+		const { container, cell, onValueChange } = renderKeysGrid()
+
+		fireEvent.doubleClick(cell('name', 0))
+
+		const input = bySlot(container, 'grid-edit-input') as HTMLInputElement
+
+		fireEvent.change(input, { target: { value: 'Alicia' } })
+
+		fireEvent.keyDown(input, { key: 'Enter' })
+
+		expect(onValueChange).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'name', value: 'Alicia' }])
+
+		// The session lands on the next row's cell in the same column, editing.
+		const next = bySlot(container, 'grid-edit-input') as HTMLInputElement
+
+		expect(next).toHaveFocus()
+
+		expect(next.value).toBe('Bob')
+	})
+
+	it('commits without re-entering when Enter fires on the last row', () => {
+		const { container, cell, onValueChange } = renderKeysGrid()
+
+		fireEvent.doubleClick(cell('name', 1))
+
+		const input = bySlot(container, 'grid-edit-input') as HTMLInputElement
+
+		fireEvent.change(input, { target: { value: 'Bobby' } })
+
+		fireEvent.keyDown(input, { key: 'Enter' })
+
+		expect(onValueChange).toHaveBeenCalledWith([{ rowKey: 2, columnId: 'name', value: 'Bobby' }])
+
+		expect(bySlot(container, 'grid-edit-input')).toBeNull()
+	})
+
+	it('commits and moves through the row on Tab, wrapping at the edges', () => {
+		const { container, cell, onValueChange } = renderKeysGrid()
+
+		fireEvent.doubleClick(cell('name', 0))
+
+		const input = bySlot(container, 'grid-edit-input') as HTMLInputElement
+
+		fireEvent.change(input, { target: { value: 'Alicia' } })
+
+		fireEvent.keyDown(input, { key: 'Tab' })
+
+		// The name cell committed; the session moved right to the count cell.
+		expect(onValueChange).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'name', value: 'Alicia' }])
+
+		const counter = bySlot(container, 'grid-edit-number-input') as HTMLInputElement
+
+		expect(counter).toHaveFocus()
+
+		// Tab from the row's last editable cell wraps to its first.
+		fireEvent.keyDown(counter, { key: 'Tab' })
+
+		expect(bySlot(container, 'grid-edit-input')).toHaveFocus()
+	})
+
+	it('skips a readOnly column when Tab resolves the next editable cell', () => {
+		const { container, cell } = renderKeysGrid([
+			{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
+			{ id: 'id', title: 'ID', cell: (row) => String(row.id), readOnly: true },
+			{ id: 'count', title: 'Count', field: 'count', cell: (row) => String(row.count) },
+		])
+
+		fireEvent.doubleClick(cell('name', 0))
+
+		fireEvent.keyDown(bySlot(container, 'grid-edit-input') as HTMLInputElement, { key: 'Tab' })
+
+		expect(bySlot(container, 'grid-edit-number-input')).toHaveFocus()
+	})
+
+	it('moves backward on Shift+Tab', () => {
+		const { container, cell } = renderKeysGrid()
+
+		fireEvent.doubleClick(cell('count', 0))
+
+		fireEvent.keyDown(bySlot(container, 'grid-edit-number-input') as HTMLInputElement, {
+			key: 'Tab',
+			shiftKey: true,
+		})
+
+		expect(bySlot(container, 'grid-edit-input')).toHaveFocus()
+	})
+
+	it('enters edit on F2 from the tab stop and commits in place on F2 from the editor', () => {
+		const { container, getByRole, onValueChange } = renderKeysGrid()
+
+		const grid = getByRole('grid')
+
+		fireEvent.focus(grid)
+
+		fireEvent.keyDown(grid, { key: 'F2' })
+
+		const input = bySlot(container, 'grid-edit-input') as HTMLInputElement
+
+		expect(input).toHaveFocus()
+
+		fireEvent.change(input, { target: { value: 'Alicia' } })
+
+		fireEvent.keyDown(input, { key: 'F2' })
+
+		// The toggle off: committed in place, no session re-entry, focus back on
+		// the tab stop.
+		expect(onValueChange).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'name', value: 'Alicia' }])
+
+		expect(bySlot(container, 'grid-edit-input')).toBeNull()
+
+		expect(grid).toHaveFocus()
+	})
+
+	it('enters edit seeded when a printable character is typed on the active cell', () => {
+		const { container, getByRole, onValueChange } = renderKeysGrid()
+
+		const grid = getByRole('grid')
+
+		fireEvent.focus(grid)
+
+		fireEvent.keyDown(grid, { key: 'Z' })
+
+		// Typing replaces the value, as spreadsheets do.
+		const input = bySlot(container, 'grid-edit-input') as HTMLInputElement
+
+		expect(input).toHaveFocus()
+
+		expect(input.value).toBe('Z')
+
+		fireEvent.keyDown(input, { key: 'Enter' })
+
+		expect(onValueChange).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'name', value: 'Z' }])
+	})
+
+	it('seeds a number cell when a digit is typed, and enters unseeded otherwise', () => {
+		const { container, getByRole } = renderKeysGrid([
+			{ id: 'count', title: 'Count', field: 'count', cell: (row) => String(row.count) },
+			{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
+		])
+
+		const grid = getByRole('grid')
+
+		fireEvent.focus(grid)
+
+		fireEvent.keyDown(grid, { key: '7' })
+
+		expect((bySlot(container, 'grid-edit-number-input') as HTMLInputElement).value).toBe('7')
+	})
+
+	it('moves the cursor down a row after a row-scoped Enter commit, without re-entering', () => {
+		const { container, cell, getByRole, onValueChange } = renderKeysGrid(columns, 'row')
+
+		fireEvent.doubleClick(cell('name', 0))
+
+		const input = bySlot(container, 'grid-edit-input') as HTMLInputElement
+
+		fireEvent.change(input, { target: { value: 'Alicia' } })
+
+		fireEvent.keyDown(input, { key: 'Enter' })
+
+		expect(onValueChange).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'name', value: 'Alicia' }])
+
+		// No re-entry under row scope — the cursor just steps to the next row.
+		expect(bySlot(container, 'grid-edit-input')).toBeNull()
+
+		expect(getByRole('grid').getAttribute('aria-activedescendant')).toBe(cell('name', 1).id)
+	})
+
+	it('does not start an edit from typing inside a control', () => {
+		const { container, cell } = renderKeysGrid()
+
+		fireEvent.doubleClick(cell('name', 0))
+
+		const input = bySlot(container, 'grid-edit-input') as HTMLInputElement
+
+		// A character keyed inside the editor belongs to the editor; the grid must
+		// not treat it as a typing-starts-edit entry for another cell.
+		fireEvent.keyDown(input, { key: 'x' })
+
+		expect(input).toHaveFocus()
 	})
 })

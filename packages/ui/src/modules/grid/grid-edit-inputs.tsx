@@ -6,6 +6,7 @@ import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
 import { NumberInput } from '../../components/number-input'
 import { k } from '../../recipes/kata/grid'
 import type { EditorKind } from './engine/grid-editing-utilities'
+import type { SessionMove } from './grid-editing-context'
 
 /**
  * Shared props for an internal inline editor: the typed `draft`, the staging and
@@ -25,8 +26,14 @@ export type GridEditInputProps = {
 	errorId?: string
 	/** Marks the editor `aria-required` (the programmatic cue; enforcement stays with `validate`). */
 	required?: boolean
-	/** Saves the row's edit session (Enter) when the grid owns it (`trigger: 'doubleClick'`); absent under a consumer-owned session. */
-	commitRow?: () => void
+	/**
+	 * Saves the cell's edit session when the grid owns it (`trigger:
+	 * 'doubleClick'`); absent under a consumer-owned session. Enter commits with
+	 * a `'down'` move — the cursor steps to the next row, re-entering edit there
+	 * under `scope: 'cell'` (Tab's sideways commit lives on the grid table's key
+	 * surface, so slot editors inherit it too).
+	 */
+	commitRow?: (move?: SessionMove) => void
 	/**
 	 * Present when the grid owns the row's edit session: Escape then belongs to
 	 * the grid table's key surface, which abandons the whole row, so the editor's
@@ -37,13 +44,14 @@ export type GridEditInputProps = {
 }
 
 /**
- * Enter saves the row when the grid owns the session (`trigger:
- * 'doubleClick'`); Escape reverts the cell under a consumer-owned session. A
- * grid-owned session's Escape abandons the whole row instead, handled once on
- * the grid `<table>`'s key surface (see `useGridEditing`'s `sessionEscape`) so
- * every editor — these inferred inputs, the listbox, an `editCell` slot —
- * inherits it; the key bubbles past the editor here. Staging is live, so there
- * is no per-cell commit key. @internal
+ * Enter saves the session and moves the cursor down one row when the grid owns
+ * it (`trigger: 'doubleClick'` — spreadsheet muscle memory, re-entering edit
+ * under `scope: 'cell'`); Escape reverts the cell under a consumer-owned
+ * session. A grid-owned session's Escape abandons the whole session instead,
+ * and F2/Tab commit through the grid `<table>`'s key surface (see
+ * `useGridCursor`'s session keys) so every editor — these inferred inputs, the
+ * listbox, an `editCell` slot — inherits them; those keys bubble past the
+ * editor here. Staging is live, so there is no per-cell commit key. @internal
  */
 const editorKeys =
 	({
@@ -59,7 +67,7 @@ const editorKeys =
 		} else if (event.key === 'Enter' && commitRow) {
 			event.preventDefault()
 
-			commitRow()
+			commitRow('down')
 		}
 	}
 
