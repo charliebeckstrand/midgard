@@ -233,8 +233,8 @@ export function docsPlugin({
 		},
 
 		handleHotUpdate(ctx) {
-			// Narrow the re-extraction before the api cache regenerates.
-			if (isApiSource(ctx.file)) extractor?.invalidate(ctx.file)
+			// Mark the extractor stale so the next api read rebuilds its program.
+			if (isApiSource(ctx.file)) extractor?.invalidate()
 
 			const fromJson = jsonHooks.handleHotUpdate(ctx)
 
