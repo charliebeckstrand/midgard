@@ -10,6 +10,11 @@ declare module 'virtual:docs/api' {
 	export default snapshot
 }
 
+declare module 'virtual:docs/modules' {
+	/** Documented import specifier → a lazy import of its module. */
+	export const modules: Record<string, () => Promise<Record<string, unknown>>>
+}
+
 declare module '*.md' {
 	const doc: import('./engine').DocModule
 

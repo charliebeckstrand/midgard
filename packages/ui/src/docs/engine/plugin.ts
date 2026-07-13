@@ -32,6 +32,8 @@ const API_ID = 'virtual:docs/api'
 
 const PREVIEW_PREFIX = 'virtual:docs/preview/'
 
+const MODULES_ID = 'virtual:docs/modules'
+
 /**
  * The docs engine's single Vite plugin. Three concerns: transform each
  * `content/**` markdown file into a typed doc module, serve every `tsx preview`
@@ -154,7 +156,7 @@ export function docsPlugin({
 		},
 
 		resolveId(id) {
-			if (id.startsWith(PREVIEW_PREFIX)) return `\0${id}`
+			if (id.startsWith(PREVIEW_PREFIX) || id === MODULES_ID) return `\0${id}`
 
 			return jsonHooks.resolveId(id)
 		},
@@ -179,6 +181,19 @@ export function docsPlugin({
 					loader: 'tsx',
 					jsx: 'automatic',
 				})
+			}
+
+			// A `specifier → lazy import` map of the documented modules, so the
+			// Usage tab can resolve a synthesized element's real component at
+			// runtime. Generated (not JSON) — the values are live imports Vite
+			// bundles by their real export-map specifiers.
+			if (id === `\0${MODULES_ID}`) {
+				const entries = documentedModules().map(
+					(specifier) =>
+						`\t${JSON.stringify(specifier)}: () => import(${JSON.stringify(specifier)}),`,
+				)
+
+				return `export const modules = {\n${entries.join('\n')}\n}\n`
 			}
 
 			return jsonHooks.load(id)
@@ -232,6 +247,15 @@ export function docsPlugin({
 				cache.delete(ctx.file)
 
 				metaList = null
+
+				// The documented-module set may have changed, so refresh the map.
+				const modulesMod = ctx.server.moduleGraph.getModuleById(`\0${MODULES_ID}`)
+
+				if (modulesMod) {
+					ctx.server.moduleGraph.invalidateModule(modulesMod)
+
+					invalidated.push(modulesMod)
+				}
 
 				const prefix = `\0${PREVIEW_PREFIX}${docPathOf(ctx.file)}/`
 

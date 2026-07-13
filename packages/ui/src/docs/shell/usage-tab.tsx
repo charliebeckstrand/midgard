@@ -1,5 +1,6 @@
+import { modules } from 'virtual:docs/modules'
 import { Dices } from 'lucide-react'
-import { use, useMemo, useState } from 'react'
+import { type ComponentType, Suspense, use, useMemo, useState } from 'react'
 import { Button } from 'ui/button'
 import { CodeBlock } from 'ui/code'
 import { Flex } from 'ui/flex'
@@ -16,8 +17,11 @@ import {
 	randomSeed,
 	resolveConfig,
 	synthesize,
+	type UsageDoc,
 } from '../engine/usage'
+import { renderUsage, type SymbolResolver } from '../engine/usage/render'
 import { loadSnapshot, selectExports } from './api-data'
+import { DocErrorBoundary } from './error-boundary'
 import { setParam } from './router'
 
 const LEVELS: readonly Complexity[] = ['minimal', 'typical', 'rich']
@@ -33,11 +37,44 @@ function primarySymbol(meta: DocMeta, exports: SymbolApi[]): SymbolApi | null {
 	)
 }
 
+// One lazy import per documented module, shared across re-rolls and revisits.
+const moduleCache = new Map<string, Promise<Record<string, unknown>>>()
+
+function loadModule(specifier: string): Promise<Record<string, unknown>> {
+	let promise = moduleCache.get(specifier)
+
+	if (!promise) {
+		promise = modules[specifier]?.() ?? Promise.resolve({})
+
+		moduleCache.set(specifier, promise)
+	}
+
+	return promise
+}
+
 /**
- * The Usage tab: a synthesized, runnable-looking example of the doc's primary
- * export, generated fresh from a seed. Complexity and seed live in the URL
- * (`?level=`, `?seed=`) so any example is shareable; with no seed pinned, each
- * visit rolls a new one — the same surface, shown a different way every time.
+ * Renders the synthesized component live from the doc's own module. Suspends on
+ * the lazy import; a render failure (an unresolved tag, a missing provider) is
+ * caught by the surrounding boundary, which falls back to the code alone.
+ */
+function LivePreview({ doc, specifier }: { doc: UsageDoc; specifier: string }) {
+	const mod = use(loadModule(specifier))
+
+	const resolve: SymbolResolver = (tag) => mod[tag] as ComponentType<Record<string, unknown>>
+
+	return (
+		<div className="rounded-lg border border-zinc-200 dark:border-zinc-800">
+			<div className="grid place-items-center overflow-x-auto p-8">{renderUsage(doc, resolve)}</div>
+		</div>
+	)
+}
+
+/**
+ * The Usage tab: a synthesized example of the doc's primary export, generated
+ * fresh from a seed. A component renders live above its code, both walking the
+ * same seeded AST so they never drift; hooks and functions show code only for
+ * now. Complexity and seed live in the URL (`?level=`, `?seed=`) so any example
+ * is shareable; with no seed pinned, each visit rolls a new one.
  */
 export function UsageTab({ meta, search }: { meta: DocMeta; search: URLSearchParams }) {
 	const api = use(loadSnapshot())
@@ -68,12 +105,12 @@ export function UsageTab({ meta, search }: { meta: DocMeta; search: URLSearchPar
 		return resolveConfig(meta.usage, params)
 	}, [meta.usage, level, domain])
 
-	const code = useMemo(
-		() => (symbol ? printUsage(synthesize(symbol, meta.module, config, seed)) : ''),
+	const doc = useMemo(
+		() => (symbol ? synthesize(symbol, meta.module, config, seed) : null),
 		[symbol, meta.module, config, seed],
 	)
 
-	if (!symbol) return <Text severity="muted">No usage synthesis for this page.</Text>
+	if (!symbol || !doc) return <Text severity="muted">No usage synthesis for this page.</Text>
 
 	return (
 		<Stack gap="md">
@@ -102,7 +139,14 @@ export function UsageTab({ meta, search }: { meta: DocMeta; search: URLSearchPar
 					seed {formatSeed(seed)}
 				</Text>
 			</Flex>
-			<CodeBlock code={code} lang="tsx" />
+			{symbol.kind === 'component' && (
+				<DocErrorBoundary key={seed} fallback={() => null}>
+					<Suspense fallback={null}>
+						<LivePreview doc={doc} specifier={meta.module} />
+					</Suspense>
+				</DocErrorBoundary>
+			)}
+			<CodeBlock code={printUsage(doc)} lang="tsx" />
 		</Stack>
 	)
 }
