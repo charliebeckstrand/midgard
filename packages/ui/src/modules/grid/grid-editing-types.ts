@@ -64,6 +64,13 @@ export type GridEditCell<T> = (context: GridEditCellContext<T>) => ReactNode
  * into edit mode, out (a save action's check) to settle and commit it. Selection
  * and editing are independent — a row can be selected without being editable, and
  * vice versa.
+ *
+ * An editable grid also keeps a bounded undo history of committed batches, a
+ * pure layer over the sink: Ctrl/Cmd+Z on the grid's tab stop re-emits the
+ * last batch's inverse (old values captured at commit time) through
+ * `onValueChange`, and Shift+Z (or Y) replays it — the consumer still owns the
+ * data. The history stands down when the rows change wholesale (a refetch), so
+ * stale values never replay onto different data.
  */
 export type GridEditableConfig = {
 	/** Controlled set of row keys whose cells are editable; pair with {@link GridEditableConfig.onRowsChange}. */

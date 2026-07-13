@@ -496,24 +496,40 @@ export function useGridCursor<T>({
 
 		const sessionEscape = editing.sessionEscape
 
-		if (!base || !sessionOwned) return base
+		const historyKeys = editing.historyKeys
+
+		if (!base || !editingEnabled) return base
 
 		return {
 			...base,
 			onKeyDown: (event) => {
 				sessionEscape?.(event)
 
-				sessionMoveKeys(event)
+				if (sessionOwned) sessionMoveKeys(event)
+
+				// Undo/redo is a sink layer, armed for every editable grid — the
+				// consumer-owned manual trigger included.
+				historyKeys(event)
 
 				base.onKeyDown(event)
 			},
-			onBlur: (event) => {
-				sessionBlur(event)
+			onBlur: sessionOwned
+				? (event) => {
+						sessionBlur(event)
 
-				base.onBlur(event)
-			},
+						base.onBlur(event)
+					}
+				: base.onBlur,
 		}
-	}, [nav.navTableProps, editing.sessionEscape, sessionOwned, sessionMoveKeys, sessionBlur])
+	}, [
+		nav.navTableProps,
+		editing.sessionEscape,
+		editing.historyKeys,
+		editingEnabled,
+		sessionOwned,
+		sessionMoveKeys,
+		sessionBlur,
+	])
 
 	// The provided editing context: the staging half from the editing hook, with
 	// the grid-owned session exits (commit-and-move, cancel) composed over it.

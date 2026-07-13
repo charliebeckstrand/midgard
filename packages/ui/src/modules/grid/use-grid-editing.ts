@@ -65,6 +65,13 @@ export type GridEditingApi = {
 	 * owns the session (`trigger: 'doubleClick'`).
 	 */
 	sessionEscape: ((event: ReactKeyboardEvent<HTMLTableElement>) => void) | undefined
+	/**
+	 * Undo/redo over the committed-batch history, layered onto the grid
+	 * `<table>`'s key handler whenever the grid is editable: Ctrl/Cmd+Z on the
+	 * tab stop re-emits the last batch's inverse through the sink, Shift+Z (or
+	 * Y) replays it. Keys inside an editor stay the editor's.
+	 */
+	historyKeys: (event: ReactKeyboardEvent<HTMLTableElement>) => void
 }
 
 /**
@@ -99,6 +106,39 @@ function isThenable(value: unknown): value is Promise<void> | Promise<CellChange
 /** Polite plural-aware announcement for a commit's cells (WCAG 4.1.3). @internal */
 function announceCells(count: number, suffix: string): void {
 	announce(`${count} ${count === 1 ? 'cell' : 'cells'} ${suffix}`)
+}
+
+/** One committed batch in the history: the inverse (`undo`) and the batch itself (`redo`). @internal */
+type HistoryEntry = { undo: CellChange[]; redo: CellChange[] }
+
+/** History depth bound; the oldest entry falls off past it. @internal */
+const HISTORY_LIMIT = 100
+
+/**
+ * Captures a batch's inverse at flush time, before the sink applies it: each
+ * change's current value read from the live rows. A cell whose column binds no
+ * `field` has no readable old value and is skipped — its commit is simply not
+ * undoable. @internal
+ */
+function captureInverse<T>(
+	changes: CellChange[],
+	rows: T[],
+	rowKeys: (string | number)[],
+	columns: GridColumn<T>[],
+): CellChange[] {
+	const inverse: CellChange[] = []
+
+	for (const change of changes) {
+		const row = rows[rowKeys.indexOf(change.rowKey)]
+
+		const col = columns.find((candidate) => candidate.id === change.columnId)
+
+		if (row == null || col?.field == null) continue
+
+		inverse.push({ rowKey: change.rowKey, columnId: change.columnId, value: row[col.field] })
+	}
+
+	return inverse
 }
 
 /**
@@ -469,13 +509,68 @@ export function useGridEditing<T>({
 		[stageDraft, setEditableRows],
 	)
 
-	// The sink wrapper every flush routes through: emits the batch, announces a
-	// sync commit immediately (WCAG 4.1.3), and shepherds an async one — the
-	// batch's cells render pending until the promise settles, the settle is
-	// announced, and declined cells (a resolved subset, or the whole batch on a
-	// rejection) restore into edit through `restoreRejected`.
+	// The committed-batch history behind Ctrl/Cmd+Z — a value layer over the
+	// sink; the consumer still owns the data. Each commit pushes its inverse
+	// (old values captured from the live rows at flush time, before the sink
+	// applies) and clears the redo trail, bounded to the last HISTORY_LIMIT.
+	const undoRef = useRef<HistoryEntry[]>([])
+
+	const redoRef = useRef<HistoryEntry[]>([])
+
+	const recordHistory = useCallback(
+		(changes: CellChange[]): HistoryEntry | null => {
+			const undo = captureInverse(
+				changes,
+				rowsRef.current,
+				rowKeysRef.current,
+				dataColumnsRef.current,
+			)
+
+			if (undo.length === 0) return null
+
+			const entry: HistoryEntry = { undo, redo: changes }
+
+			undoRef.current.push(entry)
+
+			if (undoRef.current.length > HISTORY_LIMIT) undoRef.current.shift()
+
+			redoRef.current = []
+
+			return entry
+		},
+		[rowsRef, rowKeysRef, dataColumnsRef],
+	)
+
+	// A rejected async commit never landed; its history entry retires with it
+	// (fully, or narrowed to the accepted cells on a partial rejection).
+	const retireHistory = useCallback((entry: HistoryEntry | null, rejected: CellChange[]) => {
+		if (!entry) return
+
+		const declined = new Set(rejected.map((change) => `${change.rowKey} ${change.columnId}`))
+
+		const keep = (change: CellChange) => !declined.has(`${change.rowKey} ${change.columnId}`)
+
+		entry.undo = entry.undo.filter(keep)
+
+		entry.redo = entry.redo.filter(keep)
+
+		if (entry.undo.length > 0) return
+
+		const at = undoRef.current.indexOf(entry)
+
+		if (at >= 0) undoRef.current.splice(at, 1)
+	}, [])
+
+	// The sink wrapper every flush routes through: records the batch's inverse
+	// for undo, emits it, announces a sync commit immediately (WCAG 4.1.3), and
+	// shepherds an async one — the batch's cells render pending until the
+	// promise settles, the settle is announced, and declined cells (a resolved
+	// subset, or the whole batch on a rejection) restore into edit through
+	// `restoreRejected`.
 	const commitChanges = useCallback(
 		(changes: CellChange[]) => {
+			const entry = recordHistory(changes)
+
 			const result = onValueChangeRef.current?.(changes)
 
 			if (!isThenable(result)) {
@@ -498,6 +593,8 @@ export function useGridEditing<T>({
 						return
 					}
 
+					retireHistory(entry, declined)
+
 					announceCells(declined.length, 'could not be saved, editing restored')
 
 					restoreRejected(declined)
@@ -505,13 +602,67 @@ export function useGridEditing<T>({
 				(reason: unknown) => {
 					markPending(changes, false)
 
+					retireHistory(entry, changes)
+
 					announceCells(changes.length, 'could not be saved, editing restored')
 
 					restoreRejected(changes, reason)
 				},
 			)
 		},
-		[markPending, restoreRejected],
+		[recordHistory, retireHistory, markPending, restoreRejected],
+	)
+
+	// Replays the history: undo re-emits the last batch's inverse through the
+	// sink, redo re-emits the batch. A batch referencing a row no longer present
+	// means the data changed wholesale (a refetch) — the whole history is stale
+	// and drops, rather than replaying values onto different data.
+	const applyHistory = useCallback(
+		(direction: 'undo' | 'redo') => {
+			const source = direction === 'undo' ? undoRef.current : redoRef.current
+
+			const entry = source.pop()
+
+			if (!entry) return
+
+			const changes = direction === 'undo' ? entry.undo : entry.redo
+
+			const rowKeys = rowKeysRef.current
+
+			if (!changes.every((change) => rowKeys.includes(change.rowKey))) {
+				undoRef.current = []
+
+				redoRef.current = []
+
+				return
+			}
+
+			;(direction === 'undo' ? redoRef.current : undoRef.current).push(entry)
+
+			onValueChangeRef.current?.(changes)
+
+			announceCells(changes.length, direction === 'undo' ? 'reverted' : 'reapplied')
+		},
+		[rowKeysRef],
+	)
+
+	// Ctrl/Cmd+Z undoes the last committed batch, Shift+Z (or Y) redoes — from
+	// the grid's tab stop only, so an editor's own text undo keeps its keys.
+	const historyKeys = useCallback(
+		(event: ReactKeyboardEvent<HTMLTableElement>) => {
+			if (event.target !== event.currentTarget || event.defaultPrevented) return
+
+			if (!(event.metaKey || event.ctrlKey) || event.altKey) return
+
+			const key = event.key.toLowerCase()
+
+			if (key !== 'z' && key !== 'y') return
+
+			event.preventDefault()
+
+			applyHistory(key === 'y' || event.shiftKey ? 'redo' : 'undo')
+		},
+		[applyHistory],
 	)
 
 	// The cell whose editor takes focus once it mounts — recorded by
@@ -759,5 +910,6 @@ export function useGridEditing<T>({
 		sessionOwned,
 		cellScoped,
 		sessionEscape: sessionOwned ? sessionEscape : undefined,
+		historyKeys,
 	}
 }

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { Grid, type GridColumn } from '../../modules/grid'
+import { type CellChange, Grid, type GridColumn } from '../../modules/grid'
 import { act, bySlot, fireEvent, liveRegion, renderUI } from '../helpers'
 
 /**
@@ -1042,7 +1042,9 @@ describe('Grid async commit', () => {
 		return { promise, resolve, reject }
 	}
 
-	function renderAsyncGrid(onValueChange: (changes: unknown) => Promise<void | unknown[]>) {
+	function renderAsyncGrid(
+		onValueChange: (changes: unknown) => Promise<void> | Promise<unknown[]>,
+	) {
 		const view = renderUI(
 			<Grid
 				columns={columns}
@@ -1171,5 +1173,169 @@ describe('Grid async commit', () => {
 		expect((bySlot(view.container, 'grid-edit-number-input') as HTMLInputElement).value).toBe('9')
 
 		expect(view.container.querySelector('[role="alert"]')).toHaveTextContent('Value was not saved')
+	})
+})
+
+/**
+ * Undo/redo over committed batches: Ctrl/Cmd+Z on the grid's tab stop re-emits
+ * the last batch's inverse (old values captured at commit time) through the
+ * sink; Shift+Z or Y replays it. A pure layer over `onValueChange` — the
+ * consumer still owns the data — that stands down when the rows change
+ * wholesale.
+ */
+describe('Grid undo/redo', () => {
+	type Row = { id: number; name: string; count: number }
+
+	function Harness({
+		onEmit,
+		rowsOverride,
+	}: {
+		onEmit: (changes: CellChange[]) => void
+		rowsOverride?: Row[]
+	}) {
+		const [rows, setRows] = useState<Row[]>([
+			{ id: 1, name: 'Alice', count: 2 },
+			{ id: 2, name: 'Bob', count: 5 },
+		])
+
+		const columns: GridColumn<Row>[] = [
+			{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
+			{ id: 'count', title: 'Count', field: 'count', cell: (row) => String(row.count) },
+		]
+
+		return (
+			<Grid
+				columns={columns}
+				rows={rowsOverride ?? rows}
+				getKey={(row) => row.id}
+				editable={{
+					trigger: 'doubleClick',
+					scope: 'cell',
+					onValueChange: (changes) => {
+						onEmit(changes)
+
+						setRows((prev) => {
+							const patch = new Map(changes.map((change) => [change.rowKey, change]))
+
+							return prev.map((row) => {
+								const change = patch.get(row.id)
+
+								return change ? { ...row, [change.columnId]: change.value } : row
+							})
+						})
+					},
+				}}
+			/>
+		)
+	}
+
+	function renderHistoryGrid(rowsOverride?: Row[]) {
+		const onEmit = vi.fn()
+
+		const view = renderUI(<Harness onEmit={onEmit} rowsOverride={rowsOverride} />)
+
+		return {
+			...view,
+			onEmit,
+			grid: view.getByRole('grid'),
+			cell: (col: string, rowIndex = 0) =>
+				view.container.querySelectorAll<HTMLElement>(`td[data-grid-col="${col}"]`)[
+					rowIndex
+				] as HTMLElement,
+		}
+	}
+
+	function commitEdit(view: ReturnType<typeof renderHistoryGrid>, value: string) {
+		fireEvent.doubleClick(view.cell('name', 1))
+
+		fireEvent.change(bySlot(view.container, 'grid-edit-input') as HTMLInputElement, {
+			target: { value },
+		})
+
+		fireEvent.keyDown(bySlot(view.container, 'grid-edit-input') as HTMLInputElement, {
+			key: 'Enter',
+		})
+	}
+
+	it('re-emits the inverse batch on Ctrl+Z and replays it on Ctrl+Shift+Z', () => {
+		const view = renderHistoryGrid()
+
+		commitEdit(view, 'Bobby')
+
+		expect(view.onEmit).toHaveBeenLastCalledWith([{ rowKey: 2, columnId: 'name', value: 'Bobby' }])
+
+		fireEvent.focus(view.grid)
+
+		fireEvent.keyDown(view.grid, { key: 'z', ctrlKey: true })
+
+		// The inverse carries the value captured at commit time.
+		expect(view.onEmit).toHaveBeenLastCalledWith([{ rowKey: 2, columnId: 'name', value: 'Bob' }])
+
+		expect(view.cell('name', 1)).toHaveTextContent('Bob')
+
+		fireEvent.keyDown(view.grid, { key: 'z', ctrlKey: true, shiftKey: true })
+
+		expect(view.onEmit).toHaveBeenLastCalledWith([{ rowKey: 2, columnId: 'name', value: 'Bobby' }])
+
+		expect(view.cell('name', 1)).toHaveTextContent('Bobby')
+	})
+
+	it('redoes on Ctrl+Y and walks multiple entries in order', () => {
+		const view = renderHistoryGrid()
+
+		commitEdit(view, 'Bobby')
+
+		commitEdit(view, 'Rob')
+
+		fireEvent.focus(view.grid)
+
+		fireEvent.keyDown(view.grid, { key: 'z', ctrlKey: true })
+
+		expect(view.onEmit).toHaveBeenLastCalledWith([{ rowKey: 2, columnId: 'name', value: 'Bobby' }])
+
+		fireEvent.keyDown(view.grid, { key: 'z', ctrlKey: true })
+
+		expect(view.onEmit).toHaveBeenLastCalledWith([{ rowKey: 2, columnId: 'name', value: 'Bob' }])
+
+		fireEvent.keyDown(view.grid, { key: 'y', ctrlKey: true })
+
+		expect(view.onEmit).toHaveBeenLastCalledWith([{ rowKey: 2, columnId: 'name', value: 'Bobby' }])
+	})
+
+	it('clears the redo trail when a new batch commits', () => {
+		const view = renderHistoryGrid()
+
+		commitEdit(view, 'Bobby')
+
+		fireEvent.focus(view.grid)
+
+		fireEvent.keyDown(view.grid, { key: 'z', ctrlKey: true })
+
+		commitEdit(view, 'Robert')
+
+		fireEvent.focus(view.grid)
+
+		fireEvent.keyDown(view.grid, { key: 'y', ctrlKey: true })
+
+		// Nothing to redo: the new commit invalidated the redo trail.
+		expect(view.onEmit).toHaveBeenLastCalledWith([{ rowKey: 2, columnId: 'name', value: 'Robert' }])
+	})
+
+	it('leaves Ctrl+Z inside an editor to the editor', () => {
+		const view = renderHistoryGrid()
+
+		commitEdit(view, 'Bobby')
+
+		fireEvent.doubleClick(view.cell('name', 0))
+
+		const emits = view.onEmit.mock.calls.length
+
+		fireEvent.keyDown(bySlot(view.container, 'grid-edit-input') as HTMLInputElement, {
+			key: 'z',
+			ctrlKey: true,
+		})
+
+		// The key belongs to the editor's own undo; the grid history stands down.
+		expect(view.onEmit.mock.calls.length).toBe(emits)
 	})
 })
