@@ -8,12 +8,12 @@ import { SidebarLayoutHeader } from 'ui/layouts'
 import { Markdown } from 'ui/markdown'
 import { Stack } from 'ui/stack'
 import { Tab, TabContent, TabContents, TabList, Tabs } from 'ui/tabs'
-import { Text } from 'ui/text'
 import type { DocMeta } from '../engine'
 import { ApiPanel } from './api-panel'
 import { PreviewTab } from './preview-tab'
 import { loadDoc } from './registry'
 import { setParam } from './router'
+import { UsageTab } from './usage-tab'
 
 const TAB_VALUES = ['preview', 'usage', 'api'] as const
 
@@ -78,7 +78,9 @@ export function DocPage({
 							<PreviewTab doc={doc} />
 						</TabContent>
 						<TabContent value="usage">
-							<Text severity="muted">The Usage tab arrives with the usage engine.</Text>
+							<Suspense fallback={null}>
+								<UsageTab meta={doc.meta} search={search} />
+							</Suspense>
 						</TabContent>
 						<TabContent value="api">
 							<Suspense fallback={null}>
