@@ -35,7 +35,7 @@ const SECTION_LABEL_PX: Record<string, string> = {
 }
 
 /** Title-case a hyphenated identifier: 'components' → 'Components', 'data-display' → 'Data Display'. */
-export function titleCase(s: string): string {
+function titleCase(s: string): string {
 	return s.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
 }
 

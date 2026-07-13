@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useMediaQuery } from 'ui/hooks'
 import { type DensityLevel, densityLevels } from 'ui/providers/density'
 
 export type ThemeMode = 'light' | 'dark' | 'system'
@@ -20,38 +21,25 @@ function readStoredMode(): ThemeMode {
 	return 'system'
 }
 
-function prefersDark(): boolean {
-	return window.matchMedia('(prefers-color-scheme: dark)').matches
-}
-
 /**
  * Resolves the site theme from a `light | dark | system` preference, toggling
  * the root `.dark` class and persisting the choice. While `system`, it tracks
- * the OS preference live via `matchMedia`. Mirrors the pre-hydration script in
- * `index.html`, which paints the stored preference before React mounts.
+ * the OS preference live through ui's pooled {@link useMediaQuery}. Mirrors the
+ * pre-hydration script in `index.html`, which paints the stored preference
+ * before React mounts.
  */
 export function useTheme() {
 	const [mode, setMode] = useState<ThemeMode>(readStoredMode)
 
+	const systemDark = useMediaQuery('(prefers-color-scheme: dark)')
+
 	useEffect(() => {
 		localStorage.setItem(THEME_KEY, mode)
 
-		const apply = () => {
-			const dark = mode === 'system' ? prefersDark() : mode === 'dark'
+		const dark = mode === 'system' ? systemDark : mode === 'dark'
 
-			document.documentElement.classList.toggle('dark', dark)
-		}
-
-		apply()
-
-		if (mode !== 'system') return
-
-		const media = window.matchMedia('(prefers-color-scheme: dark)')
-
-		media.addEventListener('change', apply)
-
-		return () => media.removeEventListener('change', apply)
-	}, [mode])
+		document.documentElement.classList.toggle('dark', dark)
+	}, [mode, systemDark])
 
 	return [mode, setMode] as const
 }

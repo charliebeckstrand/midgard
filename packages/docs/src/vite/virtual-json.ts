@@ -17,7 +17,7 @@ type Hooks = {
  */
 export type VirtualJsonSpec = {
 	id: string
-	generate: () => unknown | Promise<unknown>
+	generate: () => unknown
 	shouldInvalidate: (file: string) => boolean
 }
 

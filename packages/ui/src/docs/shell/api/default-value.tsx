@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { cn } from 'ui/core'
 import { LinkText, Prose } from './doc-inline'
-import { parseLinkToken } from './link-syntax'
+import { LINK_RE, parseLinkToken } from './link-syntax'
 
 /** The literal shape a default value denotes, read off its source text. */
 type LiteralKind = 'string' | 'number' | 'boolean' | 'nullish' | 'array' | 'object'
@@ -45,8 +45,9 @@ function renderProse(text: string): ReactNode[] {
 	const nodes: ReactNode[] = []
 
 	// One pass over both token kinds: `{@link …}` (group 1) and an inline-code
-	// span (group 2). A fresh regex avoids sharing `lastIndex` across renders.
-	const re = /\{@link\s+([^}]+?)\}|`([^`]+)`/g
+	// span (group 2). Built from LINK_RE.source so the link grammar stays single-
+	// sourced; a fresh instance avoids sharing `lastIndex` across renders.
+	const re = new RegExp(`${LINK_RE.source}|\`([^\`]+)\``, 'g')
 
 	let last = 0
 
