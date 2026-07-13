@@ -1,6 +1,6 @@
 'use client'
 
-import { type KeyboardEvent, useCallback, useEffect, useRef } from 'react'
+import { type KeyboardEvent, useCallback, useEffect, useMemo, useRef } from 'react'
 import { accessibleName } from '../../core'
 
 /** Idle window after which the type-ahead buffer resets. */
@@ -102,7 +102,7 @@ export function matchTypeahead(
  *
  * @internal
  */
-export function matchTypeaheadIndexed(
+function matchTypeaheadIndexed(
 	state: TypeaheadState,
 	count: number,
 	getTextValue: (index: number) => string,
@@ -123,16 +123,19 @@ export function matchTypeaheadIndexed(
 /**
  * WAI-ARIA type-ahead (jump to the item whose label starts with recently typed
  * characters). Owns one instance's buffer and its idle-reset timer, cleared on
- * unmount; returns a stable matcher with `matchTypeahead` semantics. Labels
- * come from each item's accessible name (`aria-label`, an `aria-labelledby`
- * target, else trimmed `textContent`).
+ * unmount; returns stable matchers over that shared buffer: `match` with
+ * `matchTypeahead` semantics (labels come from each item's accessible name —
+ * `aria-label`, an `aria-labelledby` target, else trimmed `textContent`), and
+ * `matchIndexed` with {@link matchTypeaheadIndexed} semantics, for roving over
+ * a virtual item source instead of DOM elements. A widget routes each keypress
+ * to exactly one of the two, so sharing the buffer is safe.
  *
  * @internal
  */
 export function useTypeahead() {
 	const stateRef = useRef<TypeaheadState>({ query: '', timer: 0 })
 
-	// `matchTypeahead` schedules a 500 ms buffer-reset timer; clear it on unmount.
+	// The matchers schedule a 500 ms buffer-reset timer; clear it on unmount.
 	useEffect(
 		() => () => {
 			if (typeof window !== 'undefined') window.clearTimeout(stateRef.current.timer)
@@ -140,31 +143,13 @@ export function useTypeahead() {
 		[],
 	)
 
-	return useCallback(
+	const match = useCallback(
 		(items: HTMLElement[], key: string, currentIndex: number) =>
 			matchTypeahead(stateRef.current, items, key, currentIndex),
 		[],
 	)
-}
 
-/**
- * Index-based counterpart to {@link useTypeahead}: owns its own buffer and
- * returns a stable matcher with {@link matchTypeaheadIndexed} semantics, for
- * roving over a virtual item source instead of DOM elements.
- *
- * @internal
- */
-export function useTypeaheadIndexed() {
-	const stateRef = useRef<TypeaheadState>({ query: '', timer: 0 })
-
-	useEffect(
-		() => () => {
-			if (typeof window !== 'undefined') window.clearTimeout(stateRef.current.timer)
-		},
-		[],
-	)
-
-	return useCallback(
+	const matchIndexed = useCallback(
 		(
 			count: number,
 			getTextValue: (index: number) => string,
@@ -175,4 +160,6 @@ export function useTypeaheadIndexed() {
 			matchTypeaheadIndexed(stateRef.current, count, getTextValue, isDisabled, key, currentIndex),
 		[],
 	)
+
+	return useMemo(() => ({ match, matchIndexed }), [match, matchIndexed])
 }

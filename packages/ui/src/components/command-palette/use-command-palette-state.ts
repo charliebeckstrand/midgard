@@ -11,9 +11,7 @@ import {
 	useState,
 } from 'react'
 import {
-	queryItems,
-	setVirtualActive,
-	setVirtualActiveIndexed,
+	seedVirtualTopMatch,
 	useA11yRoving,
 	type VirtualItemSource,
 } from '../../hooks/a11y/use-a11y-roving'
@@ -97,23 +95,13 @@ export function useCommandPaletteState({ open, onOpenChange }: CommandPaletteSta
 
 		lastDeferredRef.current = deferredQuery
 
-		const source = virtualSourceRef.current
-
-		if (source) {
-			setVirtualActiveIndexed(
-				listRef.current,
-				source,
-				source.count > 0 ? 0 : -1,
-				activeIndexRef,
-				inputRef,
-			)
-
-			return
-		}
-
-		const items = queryItems(listRef.current, ITEM_SELECTOR)
-
-		setVirtualActive(items, items.length > 0 ? 0 : -1, inputRef)
+		seedVirtualTopMatch(
+			listRef.current,
+			ITEM_SELECTOR,
+			virtualSourceRef.current,
+			activeIndexRef,
+			inputRef,
+		)
 	}, [deferredQuery])
 
 	// Resets query when closed; done during render, not in an effect.

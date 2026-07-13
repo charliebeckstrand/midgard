@@ -22,8 +22,8 @@ import {
 	clearVirtualActive,
 	clearVirtualActiveIndexed,
 	queryItems,
+	seedVirtualTopMatch,
 	setVirtualActive,
-	setVirtualActiveIndexed,
 	type VirtualItemSource,
 } from '../../hooks/a11y/use-a11y-roving'
 import { useKeyboardSettled } from '../../hooks/use-keyboard-settled'
@@ -126,10 +126,10 @@ type ComboboxMultipleProps<T> = {
 }
 
 /**
- * Seeds the virtual highlight to the top match (or clears it when there isn't
- * one): index 0 of `source` when a `VirtualOptions` has registered one, else
- * the first DOM `OPTION_SELECTOR` match. Shared by the highlight-anchoring
- * effect and the option-swap re-anchor observer below.
+ * Seeds the virtual highlight to the top match via {@link seedVirtualTopMatch},
+ * with this combobox's selector and `ariaSelected: false` (options own their
+ * selection state) applied. Shared by the highlight-anchoring effect and the
+ * option-swap re-anchor observer below.
  *
  * @internal
  */
@@ -139,17 +139,9 @@ function seedTopMatch(
 	activeIndexRef: RefObject<number>,
 	inputRef: RefObject<HTMLInputElement | null>,
 ): void {
-	if (source) {
-		setVirtualActiveIndexed(node, source, source.count > 0 ? 0 : -1, activeIndexRef, inputRef, {
-			ariaSelected: false,
-		})
-
-		return
-	}
-
-	const items = queryItems(node, OPTION_SELECTOR)
-
-	setVirtualActive(items, items.length > 0 ? 0 : -1, inputRef, { ariaSelected: false })
+	seedVirtualTopMatch(node, OPTION_SELECTOR, source, activeIndexRef, inputRef, {
+		ariaSelected: false,
+	})
 }
 
 /**

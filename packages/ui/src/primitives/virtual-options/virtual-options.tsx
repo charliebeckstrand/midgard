@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, use, useEffect, useMemo, useRef } from 'react'
+import { type ReactNode, use, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useVirtualWindow } from '../../hooks'
 import type { VirtualItemSource } from '../../hooks/a11y/use-a11y-roving'
 import { VirtualItemSourceContext } from './virtual-item-source-context'
@@ -118,9 +118,27 @@ export function VirtualOptions<T>({
 }: VirtualOptionsProps<T>) {
 	const containerRef = useRef<HTMLDivElement>(null)
 
+	// The scroll container is stable while mounted, but the virtualizer calls
+	// `getScrollElement` after every commit (its own layout effect plus
+	// `useVirtualWindow`'s resync guard) — including each scroll-driven window
+	// change. Cache the resolved element so the getComputedStyle-per-ancestor
+	// walk runs once, not per scroll frame; re-walk only if the cached node
+	// left the document (panel remount).
+	const scrollElementRef = useRef<HTMLElement | null>(null)
+
+	const getScrollElement = useCallback(() => {
+		const cached = scrollElementRef.current
+
+		if (cached?.isConnected) return cached
+
+		scrollElementRef.current = findScrollableAncestor(containerRef.current)
+
+		return scrollElementRef.current
+	}, [])
+
 	const { virtualItems, topSpacer, bottomSpacer, scrollToIndex } = useVirtualWindow({
 		count: items.length,
-		getScrollElement: () => findScrollableAncestor(containerRef.current),
+		getScrollElement,
 		estimateSize,
 		overscan,
 	})
