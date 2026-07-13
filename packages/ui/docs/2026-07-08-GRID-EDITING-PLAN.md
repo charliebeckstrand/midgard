@@ -1,12 +1,14 @@
 # Grid Inline Editing — Feature Plan — 2026-07-08
 
-What the `editable` feature is trying to be, what ships today, and the increments that take it the rest of the way. Companion to the [Grid roadmap](../src/modules/grid/ROADMAP.md) §Selection & editing, which tracks status; this doc holds the design.
+What the `editable` feature is trying to be, what ships today, and the increments that take it the rest of the way. This doc holds the design and tracks status (the roadmap retired feature tracking).
+
+> **Status (2026-07-13): all eight increments shipped.** 1 (triggers), 2 (cell scope), 3 (commit-and-move keys), 4 (`commitOn`), 5 (async commit), 6 (undo/redo), 7 (range + fill + paste, designed in [its own plan](2026-07-13-GRID-RANGE-PLAN.md)), and 8 (new-row entry). Deferred remainders live in the range plan's non-goals (pointer fill handle, series fill, mouse range drag).
 
 ## Thesis
 
 `editable` is heading at **spreadsheet-grade inline editing without a form detour**: the user edits values where they read them, with the pointer and keyboard ergonomics of a spreadsheet (double-click or type to edit, Enter/Tab to commit and move, Escape to bail) and the data discipline of a form (typed editors, validation, batched commits the consumer applies). Everything layers on the one existing model — the controllable editable-row `Set<key>` plus the `CellChange[]` commit sink — rather than introducing a second editing state; each increment widens who drives that set (consumer → grid) and how narrowly a session scopes (row → cell), never how values commit.
 
-## Current state (verified in tree, 2026-07-08)
+## Current state as of increment 1 (verified in tree, 2026-07-08; superseded by the status above)
 
 - **Row-session model.** A row key in the `editable` set puts every editable cell of that row into edit mode at once (`use-grid-editing.ts`, `grid-editing-cell.tsx`). A column is editable when it has a `field` or an `editCell` slot and isn't `readOnly` (`isColumnEditable`).
 - **Staged drafts, batched flush.** Edits stage into a grid-held ref (no per-keystroke render); a row leaving the set flushes its changed, `validate`-passing cells as one `onValueChange` batch, announced politely (WCAG 4.1.3). Escape reverts a single cell.
@@ -19,21 +21,21 @@ What the `editable` feature is trying to be, what ships today, and the increment
 
 Each increment is independently shippable, in dependency order. The `editable` binding grows options; nothing new is exported.
 
-**1. Edit triggers (shipped, this change).** `trigger?: 'manual' | 'doubleClick'` as described above. Foundation for everything below: the grid can now begin and end a session itself, with focus management in both directions (`enterRowEdit` + pending-focus effect into the editor; `restoreGridFocus` back to the tab stop).
+**1. Edit triggers (shipped).** `trigger?: 'manual' | 'doubleClick'` as described above. Foundation for everything below: the grid can now begin and end a session itself, with focus management in both directions (`enterRowEdit` + a mount-time focus handshake the editor claims; `restoreGridFocus` back to the tab stop).
 
-**2. Cell-scoped sessions.** `scope?: 'row' | 'cell'` (default `'row'`, the current model). Under `'cell'` a session is one cell, not one row: the double-clicked/Enter-entered cell alone mounts its editor, and the session key (Enter) or blur commits just that cell — still a `CellChange[]` batch of length one, so the sink contract is unchanged. Internally the editable set is joined by an active-edit coord; `GridEditingCell` renders an editor only when its cell is the active edit (row mode keeps the has-rowKey test). This is where the spreadsheet feel starts; `'row'` remains right for form-like "edit this record" grids.
+**2. Cell-scoped sessions (shipped).** `scope?: 'row' | 'cell'` (default `'row'`, the original model). Under `'cell'` a session is one cell, not one row: the double-clicked/Enter-entered cell alone mounts its editor, and the session key (Enter) or blur commits just that cell — still a `CellChange[]` batch of length one, so the sink contract is unchanged. Internally the editable set is joined by an active-edit coord, and the editor mount test rides a subscribable session store (the cursor-store pattern) so transitions re-render only the cells they touch; a consumer-driven row entry seats at the row's first editable column. This is where the spreadsheet feel starts; `'row'` remains right for form-like "edit this record" grids.
 
-**3. Commit-and-move keys.** Spreadsheet muscle memory, on by default wherever the grid owns the session: Enter commits and moves the cursor down one row (re-entering edit under `scope: 'cell'` when the next cell is editable — a column-wise fill flow); Tab / Shift+Tab commit and move right/left within the row's editable cells, wrapping at the edges; F2 toggles edit on the cursor's active cell (the keyboard-only entry that needs no activation semantics); typing a printable character on the active cell enters edit seeded with that character (replacing the value, as spreadsheets do). Movement rides the existing cursor `moveTo`; the keys extend `editorKeys` and the cursor's key handler.
+**3. Commit-and-move keys (shipped).** Spreadsheet muscle memory, on by default wherever the grid owns the session: Enter commits and moves the cursor down one row (re-entering edit under `scope: 'cell'` when the next cell is editable — a column-wise fill flow); Tab / Shift+Tab commit and move right/left within the row's editable cells, wrapping at the edges (cell scope; row scope keeps native Tab across its mounted editors); F2 toggles edit on the cursor's active cell; typing a printable character on the active cell enters edit seeded with that character (replacing the value, as spreadsheets do). Movement rides the existing cursor `moveTo`; Enter extends `editorKeys`, while F2/Tab ride the table's key surface like the session Escape so slot editors inherit them.
 
-**4. Blur / click-outside commit policy.** `commitOn?: ('enter' | 'blur' | 'clickOutside')[]` (default `['enter']`). `'blur'` commits a cell-scoped session when its editor loses focus to elsewhere in the grid; `'clickOutside'` commits when focus leaves the grid entirely — the forgiving mode where wandering off doesn't discard work. Needs care against the floating-overlay cases the cursor's blur guard already handles (`[data-floating-ui-portal]`): a `DatePicker` slot opening its popover must not read as blur.
+**4. Blur / click-outside commit policy (shipped).** `commitOn?: ('enter' | 'blur' | 'clickOutside')[]` (default `['enter']`, which arms the commit keys). `'blur'` commits a cell-scoped session when its editor loses focus to elsewhere in the grid; `'clickOutside'` commits every open session when focus leaves the grid entirely — the forgiving mode where wandering off doesn't discard work. Rides the table's focusout surface, deferring to the floating-overlay cases the cursor's blur guard already handles (`[data-floating-ui-portal]`): a `DatePicker` slot opening its popover never reads as blur.
 
-**5. Async / optimistic commit** (roadmap backlog). `onValueChange` may return a `Promise`: the grid renders the committed cells in a pending state (subtle shimmer + `aria-busy`), settles on resolve, and on reject restores the drafts and re-enters the row/cell in edit with a per-cell error — the `validate` error surface reused for server rejections. `CellChange` stays the unit, so partial acceptance (resolve with the rejected subset) is expressible.
+**5. Async / optimistic commit (shipped).** `onValueChange` may return a `Promise`: the grid renders the committed cells in a pending state (subtle shimmer + `aria-busy`, through the session store), announces the settle, and on reject restores the drafts and re-enters the row/cell in edit with a per-cell error — the `validate` error surface reused for server rejections. `CellChange` stays the unit, so partial acceptance (resolve with the rejected subset) is expressible; a rejected commit also retires its undo entry.
 
-**6. Undo / redo** (backlog). A value-based history of committed batches wrapping the sink: Ctrl/Cmd+Z re-emits the inverse batch (old values, captured at flush time from the live rows), Shift+Z / Y replays. Purely a layer over `onValueChange` — the consumer still owns the data — bounded (e.g. 100 entries) and cleared when `rows` identity changes wholesale (a refetch).
+**6. Undo / redo (shipped).** A value-based history of committed batches wrapping the sink: Ctrl/Cmd+Z on the tab stop re-emits the inverse batch (old values, captured at flush time from the live rows), Shift+Z / Y replays. Purely a layer over `onValueChange` — the consumer still owns the data — bounded (100 entries) and dropped when a batch references rows no longer present (the wholesale-change guard, enforced lazily at the keypress).
 
-**7. Range selection, fill handle, paste** (backlog, own plan when picked up). The cursor grows an anchored rectangular range; fill drags the active cell's value/series across it and paste maps a clipboard TSV block through the same per-column `validate` + `CellChange[]` path — the batch just spans rows. Depends on nothing above except the cursor; listed here because its commit semantics must stay the one sink.
+**7. Range selection, fill, paste (shipped — [own plan](2026-07-13-GRID-RANGE-PLAN.md)).** The cursor grows an anchored rectangular range (Shift+movement); Ctrl/Cmd+C copies it as TSV, paste maps a clipboard TSV block through per-column coercion + `validate` into one `CellChange[]` batch, and Ctrl/Cmd+D / R fill the range from its leading edge — all through the one sink, so they inherit the async and undo layers. The pointer fill handle, series fill, and mouse range drag stay deferred per that plan's non-goals.
 
-**8. New-row entry.** A pinned blank editor row (top or bottom) whose commit emits an `onRowAdd(values)` rather than `CellChange[]` — the one place the sink doesn't fit, so it's a sibling callback. Furthest out; needs the pinned-row primitive from the row-model backlog.
+**8. New-row entry (shipped).** A blank editor row at the top or bottom of the body (`editable.newRow`) whose commit emits `onRowAdd(values)` rather than `CellChange[]` — the one place the sink doesn't fit, so it's a sibling callback. It renders outside the virtualized window so it is always reachable, renders alone over an empty grid, and stands down under grouping; sticky pinning awaits the pinned-row primitive from the row-model backlog.
 
 ## Non-goals
 
@@ -53,20 +55,20 @@ Every increment keeps the established invariants: editors carry `aria-label` ("E
 
 ## Docs surface
 
-Per CLAUDE.md §3.5: TSDoc on every `GridEditableConfig` addition in the same change; the grid ROADMAP §Selection & editing row tracks status; demos in `src/docs/demos/modules/grid/editable.tsx` grow one example per user-visible behavior (the double-click trigger rides the first example as of this change). No new exports, so the MODULES.md index is untouched.
+Per CLAUDE.md §3.5: TSDoc on every `GridEditableConfig` addition in the same change; this doc's status banner tracks increment state; demos in `src/docs/demos/modules/grid/editable.tsx` grow one example per user-visible behavior (the double-click trigger rides the first example; cell scope, the keys, the commit policy, the range gestures, and the entry row ride the Spreadsheet example; async commit has its own). No new exports, so the MODULES.md index is untouched.
 
-## Suggested PR slicing
+## PR slicing (all shipped)
 
 | PR | Scope | Size |
 |---|---|---|
-| 1 | `trigger: 'doubleClick'` — entry via double-click / cursor Enter, editor Enter/Escape session exit, focus both ways (this change) | M |
-| 2 | `scope: 'cell'` — single-cell sessions over the same set + coord | M |
+| 1 | `trigger: 'doubleClick'` — entry via double-click / cursor Enter, editor Enter/Escape session exit, focus both ways | M |
+| 2 | `scope: 'cell'` — single-cell sessions over the same set + coord, behind the session store | M |
 | 3 | Commit-and-move: Enter ↓, Tab ⇄, F2, typing-starts-edit | M |
 | 4 | `commitOn` blur / click-outside policy | S |
 | 5 | Async commit: pending / rejected cell states over a promise-returning sink | M |
 | 6 | Undo / redo history layer | S |
-| 7 | Range + fill + paste (separate plan) | L |
-| 8 | New-row editor row | M |
+| 7 | Range + fill + paste ([separate plan](2026-07-13-GRID-RANGE-PLAN.md)) | L |
+| 8 | New-row editor row (`editable.newRow`) | M |
 
 ---
 
