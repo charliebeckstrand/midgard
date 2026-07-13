@@ -1,6 +1,6 @@
-import { Project, ScriptKind } from 'ts-morph'
+import { Node, Project, ScriptKind, type SourceFile } from 'ts-morph'
 import { describe, expect, it } from 'vitest'
-import { readPublicExports } from '../../api-reference/engine/find-components'
+import { findComponent, readPublicExports } from '../../api-reference/engine/find-components'
 
 function indexFile(text: string) {
 	// Barrel scanning reads export declarations, never lib types; skipping lib
@@ -8,6 +8,21 @@ function indexFile(text: string) {
 	const project = new Project({ useInMemoryFileSystem: true, skipLoadingLibFiles: true })
 
 	return project.createSourceFile('index.ts', text, { scriptKind: ScriptKind.TS })
+}
+
+/**
+ * Two-file barrel: `index.ts` re-exports from `<component>.tsx`. Returns the
+ * barrel source file so `findComponent` can resolve the re-export across files,
+ * exercising the same cross-file path {@link openProject} builds.
+ */
+function barrel(componentSource: string): SourceFile {
+	const project = new Project({ useInMemoryFileSystem: true, skipLoadingLibFiles: true })
+
+	project.createSourceFile('component.tsx', componentSource, { scriptKind: ScriptKind.TSX })
+
+	return project.createSourceFile('index.ts', `export { Widget } from './component'`, {
+		scriptKind: ScriptKind.TS,
+	})
 }
 
 describe('readPublicExports', () => {
@@ -71,5 +86,59 @@ describe('readPublicExports', () => {
 		const sf = indexFile(`export { InternalButton as Button } from './button'`)
 
 		expect(readPublicExports(sf)).toEqual(['Button'])
+	})
+})
+
+/** Name of the props-bearing first parameter on the resolved callable. */
+function firstParamName(sf: SourceFile): string | undefined {
+	const decl = findComponent('Widget', sf)
+
+	return decl?.callable.getParameters()[0]?.getName()
+}
+
+describe('findComponent', () => {
+	it('resolves a plain `export function` component', () => {
+		const sf = barrel(`export function Widget(props: { label?: string }) { return null }`)
+
+		expect(firstParamName(sf)).toBe('props')
+	})
+
+	it('unwraps an inline `memo(function () {})` argument', () => {
+		const sf = barrel(
+			`import { memo } from 'react'
+			export const Widget = memo(function Widget(props: { label?: string }) { return null })`,
+		)
+
+		expect(firstParamName(sf)).toBe('props')
+	})
+
+	it('resolves a `memo(Impl)` reference argument to its declaration', () => {
+		const sf = barrel(
+			`import { memo } from 'react'
+			function WidgetImpl(props: { label?: string }) { return null }
+			export const Widget = memo(WidgetImpl)`,
+		)
+
+		expect(firstParamName(sf)).toBe('props')
+	})
+
+	it('peels a `memo(Impl) as typeof Impl` cast — the shape Grid ships', () => {
+		const sf = barrel(
+			`import { memo } from 'react'
+			function WidgetImpl<T>(props: { rows: T[] }) { return null }
+			export const Widget = memo(WidgetImpl) as typeof WidgetImpl`,
+		)
+
+		const decl = findComponent('Widget', sf)
+
+		expect(decl?.callable && Node.isFunctionDeclaration(decl.callable)).toBe(true)
+
+		expect(decl?.callable.getParameters()[0]?.getName()).toBe('props')
+	})
+
+	it('returns null when no export names the component', () => {
+		const sf = barrel(`export const notAComponent = 1`)
+
+		expect(findComponent('Widget', sf)).toBeNull()
 	})
 })

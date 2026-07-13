@@ -65,20 +65,19 @@ export function findComponent(name: string, indexFile: SourceFile): ComponentDec
 }
 
 function resolveCallable(decl: ExportedDeclarations): FunctionLike | null {
-	if (Node.isFunctionDeclaration(decl)) return decl
-
-	if (Node.isVariableDeclaration(decl)) {
-		const init = decl.getInitializer()
-
-		if (init) return unwrapFunctionLike(init)
-	}
-
-	return null
+	return unwrapFunctionLike(decl)
 }
 
 /**
- * Walk into call arguments until the first function / arrow form;
- * `forwardRef(<inner>)` and similar wrappers yield the inner function.
+ * Walk a value expression down to the function that receives the props, peeling
+ * the wrappers a component export accumulates:
+ *
+ * - `as` / `satisfies` casts and parentheses — `memo(Impl) as typeof Impl`
+ *   holds the call one `as` deep, so unwrap the operand;
+ * - `forwardRef(<inner>)` / `memo(<inner>)` calls — recurse into the arguments;
+ * - a reference argument — `memo(GridImpl)` passes the component by name rather
+ *   than inline, so resolve the identifier to its declaration and keep going;
+ * - the `const X = <fn>` / `function X` declaration a reference lands on.
  */
 export function unwrapFunctionLike(node: Node): FunctionLike | null {
 	if (
@@ -89,9 +88,33 @@ export function unwrapFunctionLike(node: Node): FunctionLike | null {
 		return node
 	}
 
+	if (
+		Node.isAsExpression(node) ||
+		Node.isSatisfiesExpression(node) ||
+		Node.isParenthesizedExpression(node)
+	) {
+		return unwrapFunctionLike(node.getExpression())
+	}
+
+	if (Node.isVariableDeclaration(node)) {
+		const init = node.getInitializer()
+
+		return init ? unwrapFunctionLike(init) : null
+	}
+
 	if (Node.isCallExpression(node)) {
 		for (const arg of node.getArguments()) {
 			const fn = unwrapFunctionLike(arg)
+
+			if (fn) return fn
+		}
+	}
+
+	if (Node.isIdentifier(node)) {
+		for (const defn of node.getDefinitionNodes()) {
+			if (defn === node) continue
+
+			const fn = unwrapFunctionLike(defn)
 
 			if (fn) return fn
 		}
