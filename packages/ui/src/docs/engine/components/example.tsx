@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, useId, useMemo, useState } from 'react'
+import { type ReactNode, useId, useMemo, useRef, useState } from 'react'
 import { CodeBlock } from '../../../components/code'
 import { Collapse, CollapsePanel, CollapseTrigger } from '../../../components/collapse'
 import { Flex } from '../../../components/flex'
@@ -67,11 +67,29 @@ export function Example({
 	resize?: ResizeProp
 	children: ReactNode
 }) {
-	const derived = useMemo(() => (code ? null : deriveCode(children)), [code, children])
+	const [open, setOpen] = useState(false)
+
+	// `deriveCode` walks the whole children subtree, and a demo hands `Example` a
+	// fresh tree on every render, so the old `useMemo([code, children])` re-walked
+	// for every Example on the page on any control tweak — even closed ones, whose
+	// block is never shown (`open` gates only the panel mount). Whether a block
+	// exists is stable across control tweaks, so settle it once at mount; walk for
+	// the string only while the panel is open, caching the last one so it stays
+	// visible through the close animation (`AnimatePresence` keeps the panel
+	// mounted while it slides shut).
+	const [hasDerivedCode] = useState(() => !code && deriveCode(children) != null)
+
+	const derivedRef = useRef<string | null>(null)
+
+	const derived = useMemo(() => {
+		if (!code && open) derivedRef.current = deriveCode(children)
+
+		return derivedRef.current
+	}, [code, open, children])
 
 	const resolvedCode = code ?? derived
 
-	const [open, setOpen] = useState(false)
+	const showCode = Boolean(code) || hasDerivedCode
 
 	const anchorId = useId()
 
@@ -139,7 +157,7 @@ export function Example({
 				{footer && (
 					<div className="border-t border-zinc-200 dark:border-zinc-800 p-4">{footer}</div>
 				)}
-				{resolvedCode && (
+				{showCode && (
 					<Collapse animate="slide" open={open} onOpenChange={setOpen}>
 						<div className="border-t border-zinc-200 dark:border-zinc-800">
 							<CollapseTrigger className="flex text-sm px-4 py-2 focus-visible:-outline-offset-2">
@@ -147,10 +165,12 @@ export function Example({
 							</CollapseTrigger>
 						</div>
 						<CollapsePanel>
-							<CodeBlock
-								code={resolvedCode}
-								className="rounded-t-none border-t border-zinc-200 dark:border-zinc-800"
-							/>
+							{resolvedCode && (
+								<CodeBlock
+									code={resolvedCode}
+									className="rounded-t-none border-t border-zinc-200 dark:border-zinc-800"
+								/>
+							)}
 						</CollapsePanel>
 					</Collapse>
 				)}
