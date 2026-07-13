@@ -9,6 +9,7 @@
 		"LICENSE"
 	],
 	"exports": {
+		"./theme.css": "./src/theme.css",
 		"./core": {
 			"types": "./src/core/index.ts",
 			"default": "./src/core/index.ts"

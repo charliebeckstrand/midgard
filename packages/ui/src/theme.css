@@ -1,0 +1,88 @@
+/**
+ * The semantic colour token seam.
+ *
+ * Every chromatic recipe class resolves through one of five role ramps —
+ * `neutral` / `danger` / `warning` / `success` / `primary` — declared here as
+ * Tailwind v4 theme variables aliased to the stock hues (zinc / red / amber /
+ * green / blue). Rebranding overrides these variables instead of forking
+ * recipe files: redefine a ramp in a consumer `@theme` block for a build-time
+ * brand, or under a `[data-theme='…']` selector for a runtime theme switched
+ * by `ThemeProvider` (`ui/providers/theme`).
+ *
+ * The per-role `-fg` tokens carry the foreground painted on that role's solid
+ * fill (white everywhere but warning, whose amber fill needs a dark
+ * foreground); override them alongside a ramp when the replacement hue flips
+ * polarity.
+ *
+ * The `dark` variant is class-driven (`.dark` on the root element), owned by
+ * `ThemeProvider` / `ThemeScript` — one strategy for apps, docs, and tests.
+ *
+ * The extended accent hues (rose / violet / sky) and the chart series palette
+ * are deliberately not tokenised: they are decorative / categorical colours,
+ * not brand roles.
+ */
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+	--color-neutral-50: var(--color-zinc-50);
+	--color-neutral-100: var(--color-zinc-100);
+	--color-neutral-200: var(--color-zinc-200);
+	--color-neutral-300: var(--color-zinc-300);
+	--color-neutral-400: var(--color-zinc-400);
+	--color-neutral-500: var(--color-zinc-500);
+	--color-neutral-600: var(--color-zinc-600);
+	--color-neutral-700: var(--color-zinc-700);
+	--color-neutral-800: var(--color-zinc-800);
+	--color-neutral-900: var(--color-zinc-900);
+	--color-neutral-950: var(--color-zinc-950);
+	--color-danger-50: var(--color-red-50);
+	--color-danger-100: var(--color-red-100);
+	--color-danger-200: var(--color-red-200);
+	--color-danger-300: var(--color-red-300);
+	--color-danger-400: var(--color-red-400);
+	--color-danger-500: var(--color-red-500);
+	--color-danger-600: var(--color-red-600);
+	--color-danger-700: var(--color-red-700);
+	--color-danger-800: var(--color-red-800);
+	--color-danger-900: var(--color-red-900);
+	--color-danger-950: var(--color-red-950);
+	--color-warning-50: var(--color-amber-50);
+	--color-warning-100: var(--color-amber-100);
+	--color-warning-200: var(--color-amber-200);
+	--color-warning-300: var(--color-amber-300);
+	--color-warning-400: var(--color-amber-400);
+	--color-warning-500: var(--color-amber-500);
+	--color-warning-600: var(--color-amber-600);
+	--color-warning-700: var(--color-amber-700);
+	--color-warning-800: var(--color-amber-800);
+	--color-warning-900: var(--color-amber-900);
+	--color-warning-950: var(--color-amber-950);
+	--color-success-50: var(--color-green-50);
+	--color-success-100: var(--color-green-100);
+	--color-success-200: var(--color-green-200);
+	--color-success-300: var(--color-green-300);
+	--color-success-400: var(--color-green-400);
+	--color-success-500: var(--color-green-500);
+	--color-success-600: var(--color-green-600);
+	--color-success-700: var(--color-green-700);
+	--color-success-800: var(--color-green-800);
+	--color-success-900: var(--color-green-900);
+	--color-success-950: var(--color-green-950);
+	--color-primary-50: var(--color-blue-50);
+	--color-primary-100: var(--color-blue-100);
+	--color-primary-200: var(--color-blue-200);
+	--color-primary-300: var(--color-blue-300);
+	--color-primary-400: var(--color-blue-400);
+	--color-primary-500: var(--color-blue-500);
+	--color-primary-600: var(--color-blue-600);
+	--color-primary-700: var(--color-blue-700);
+	--color-primary-800: var(--color-blue-800);
+	--color-primary-900: var(--color-blue-900);
+	--color-primary-950: var(--color-blue-950);
+	--color-neutral-fg: var(--color-white);
+	--color-danger-fg: var(--color-white);
+	--color-warning-fg: var(--color-warning-950);
+	--color-success-fg: var(--color-white);
+	--color-primary-fg: var(--color-white);
+}

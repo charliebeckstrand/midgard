@@ -1,6 +1,6 @@
 # Providers
 
-> **Quick-glance index of `ui/providers/*`.** Providers configure the **client** tier — they broadcast ambient state (density, glass, locale, motion, toasts, link/portal integration) through React context to descendant client components. Static (server-renderable) components ignore context and take explicit props; see [`../REFERENCE.md`](../REFERENCE.md) §2 for the server/client boundary.
+> **Quick-glance index of `ui/providers/*`.** Providers configure the **client** tier — they broadcast ambient state (density, glass, locale, motion, theme, toasts, link/portal integration) through React context to descendant client components. Static (server-renderable) components ignore context and take explicit props; see [`../REFERENCE.md`](../REFERENCE.md) §2 for the server/client boundary.
 
 ```ts
 import { DensityProvider } from 'ui/providers/density'
@@ -70,6 +70,22 @@ Broadcasts i18n defaults; explicit component props still win.
 | Export | Summary |
 |---|---|
 | `Motion` | App-root motion config broadcasting `prefers-reduced-motion` handling to descendant framer `motion.*` components. |
+
+## `ui/providers/theme` — colour scheme + brand theme
+
+Owns the colour-scheme seam: resolves `light | dark | system`, toggles the root `.dark` class (the `dark` variant of `ui/theme.css`), persists the choice, and stamps an optional brand theme as `data-theme` for token overrides. See [`RECIPES.md` § Theming](RECIPES.md#theming).
+
+| Export | Summary |
+|---|---|
+| `ThemeProvider` | Resolves and applies the colour-scheme preference (root `.dark` class + `color-scheme`), persists it, tracks the OS while `system`, and stamps the brand theme. |
+| `ThemeProviderProps` *(type)* | Props for `ThemeProvider` (`defaultMode`, `storageKey`, `theme`). |
+| `ThemeScript` | Inline no-flash script for server-rendered apps: applies the stored preference before first paint; mount at the top of `<body>` with matching props. |
+| `ThemeScriptProps` *(type)* | Props for `ThemeScript` (`storageKey`, `defaultMode`). |
+| `useTheme` | Reads `{ mode, resolvedMode, setMode, theme }`; throws outside a `<ThemeProvider>`. |
+| `ThemeContext` | The context behind `useTheme`, for direct `use(ThemeContext)` reads. |
+| `ThemeMode` *(type)* | The preference: `light` · `dark` · `system`. |
+| `ResolvedThemeMode` *(type)* | What `system` resolves to at runtime: `light` · `dark`. |
+| `ThemeContextValue` *(type)* | The value `useTheme` returns. |
 
 ## `ui/providers/toast`
 
