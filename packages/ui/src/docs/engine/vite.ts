@@ -1,7 +1,6 @@
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import type { UserConfig } from 'vite'
-import type { DocKind } from './contracts'
 import type { ExtraDefaults } from './extractor'
 import { docsPlugin } from './plugin'
 
@@ -36,9 +35,6 @@ export type DocsConfigOptions = {
 	 */
 	apiPackageDir?: string
 
-	/** Overrides the default category → doc-kind map for a non-standard content layout. */
-	categoryKinds?: Record<string, DocKind>
-
 	/** Supplies extra component prop defaults (e.g. a design system's variant axes) to the extractor. */
 	extraDefaults?: ExtraDefaults
 }
@@ -61,14 +57,13 @@ export function defineDocsConfig({
 	contentDir = 'content',
 	port = 3456,
 	apiPackageDir,
-	categoryKinds,
 	extraDefaults,
 }: DocsConfigOptions): UserConfig {
 	return {
 		base: '/',
 		root,
 		plugins: [
-			docsPlugin({ contentDir, packageName, apiPackageDir, categoryKinds, extraDefaults }),
+			docsPlugin({ contentDir, packageName, apiPackageDir, extraDefaults }),
 			react(),
 			tailwindcss(),
 		],

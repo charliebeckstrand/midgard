@@ -118,12 +118,6 @@ describe('parseDoc', () => {
 
 		expect(() => parseDoc(source, 'bad.md')).toThrow(/unknown usage key "chaos"/)
 	})
-
-	it('rejects an invalid kind', () => {
-		expect(() => parseDoc('---\nkind: widget\n---\n\n# N\n\nD.\n', 'bad.md')).toThrow(
-			/kind must be one of/,
-		)
-	})
 })
 
 describe('createModuleResolver', () => {
@@ -177,14 +171,12 @@ describe('deriveDocMeta', () => {
 			category: 'components',
 			slug: 'button',
 			module: 'ui/button',
-			kind: 'component',
 		})
 	})
 
 	it('reconciles barrel and nested modules through the resolver', () => {
 		expect(deriveDocMeta('hooks/use-controllable.md', parsed, opts)).toMatchObject({
 			module: 'ui/hooks',
-			kind: 'hook',
 		})
 
 		expect(deriveDocMeta('modules/grid.md', parsed, opts).module).toBe('ui/modules/grid')
@@ -197,37 +189,22 @@ describe('deriveDocMeta', () => {
 		})
 	})
 
-	it('falls back to `<pkg>/<slug>` and the function kind for an unmatched category', () => {
-		expect(deriveDocMeta('recipes/kata.md', parsed, { packageName: 'ui' })).toMatchObject({
-			module: 'ui/kata',
-			kind: 'function',
-		})
+	it('falls back to `<pkg>/<slug>` for an unmatched category', () => {
+		expect(deriveDocMeta('recipes/kata.md', parsed, { packageName: 'ui' }).module).toBe('ui/kata')
 	})
 
-	it('lets front-matter override module and kind', () => {
+	it('lets front-matter override the module', () => {
 		const overridden = parseDoc(
-			'---\nmodule: ui/modules/chart\nkind: module\n---\n\n# Chart\n\nA chart.\n',
+			'---\nmodule: ui/modules/chart\n---\n\n# Chart\n\nA chart.\n',
 			'chart.md',
 		)
 
-		expect(deriveDocMeta('components/chart.md', overridden, opts)).toMatchObject({
-			module: 'ui/modules/chart',
-			kind: 'module',
-		})
+		expect(deriveDocMeta('components/chart.md', overridden, opts).module).toBe('ui/modules/chart')
 	})
 
 	it('honors a custom package name in the fallback', () => {
 		expect(deriveDocMeta('components/button.md', parsed, { packageName: 'grid' }).module).toBe(
 			'grid/button',
 		)
-	})
-
-	it('lets categoryKinds override the default taxonomy', () => {
-		expect(
-			deriveDocMeta('widgets/gauge.md', parsed, {
-				packageName: 'ui',
-				categoryKinds: { widgets: 'component' },
-			}).kind,
-		).toBe('component')
 	})
 })

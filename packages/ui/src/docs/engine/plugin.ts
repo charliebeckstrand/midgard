@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { type ModuleNode, type Plugin, transformWithEsbuild } from 'vite'
-import type { DocKind, DocMeta } from './contracts'
+import type { DocMeta } from './contracts'
 import type { ApiExtractor, ExtraDefaults } from './extractor'
 import { enumerateSurface, isExcludedSource } from './extractor/surface'
 import { createModuleResolver, deriveDocMeta, type ParsedDoc, parseDoc } from './parse'
@@ -24,9 +24,6 @@ export type DocsPluginOptions = {
 	 */
 	apiPackageDir?: string
 
-	/** Overrides the default category → doc-kind map for a non-standard content layout. */
-	categoryKinds?: Record<string, DocKind>
-
 	/** Supplies extra component prop defaults (e.g. a design system's variant axes) to the extractor. */
 	extraDefaults?: ExtraDefaults
 }
@@ -47,7 +44,6 @@ export function docsPlugin({
 	contentDir = 'content',
 	packageName,
 	apiPackageDir,
-	categoryKinds,
 	extraDefaults,
 }: DocsPluginOptions): Plugin {
 	let contentRoot = contentDir
@@ -62,7 +58,7 @@ export function docsPlugin({
 
 	const resolveModule = createModuleResolver([...surface.keys()], packageName)
 
-	const deriveOptions = { packageName, resolveModule, categoryKinds }
+	const deriveOptions = { packageName, resolveModule }
 
 	// Parse cache keyed by absolute md path; cleared per file on change.
 	const cache = new Map<string, ParsedDoc>()

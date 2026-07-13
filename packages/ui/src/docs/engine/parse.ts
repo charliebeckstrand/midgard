@@ -1,6 +1,6 @@
 import { Lexer } from 'marked'
 import { parse as parseYaml } from 'yaml'
-import type { BodySegment, DocKind, DocMeta, UsageAuthorConfig } from './contracts'
+import type { BodySegment, DocMeta, UsageAuthorConfig } from './contracts'
 
 /**
  * Node-free parse of one doc source: everything the Vite transform and the
@@ -28,21 +28,11 @@ export type ParsedFence = {
 /** The whitelisted front-matter surface; any other key is a build error. */
 export type FrontMatter = {
 	module?: string
-	kind?: DocKind
 	symbols?: string[]
 	usage?: UsageAuthorConfig
 }
 
-const DOC_KINDS: readonly DocKind[] = [
-	'component',
-	'module',
-	'provider',
-	'hook',
-	'function',
-	'other',
-]
-
-const FRONT_MATTER_KEYS = ['module', 'kind', 'symbols', 'usage']
+const FRONT_MATTER_KEYS = ['module', 'symbols', 'usage']
 
 const USAGE_KEYS = ['complexity', 'domain', 'include', 'exclude', 'wrap', 'live']
 
@@ -89,10 +79,6 @@ function readFrontMatter(
 		if (!FRONT_MATTER_KEYS.includes(key)) {
 			fail(file, 1, `unknown front-matter key "${key}" (allowed: ${FRONT_MATTER_KEYS.join(', ')})`)
 		}
-	}
-
-	if (record.kind !== undefined && !DOC_KINDS.includes(record.kind as DocKind)) {
-		fail(file, 1, `front-matter kind must be one of: ${DOC_KINDS.join(', ')}`)
 	}
 
 	if (record.usage !== undefined) {
@@ -245,22 +231,6 @@ export function parseDoc(source: string, file: string): ParsedDoc {
 	return { name, description, frontMatter: fm, body, previews }
 }
 
-/**
- * Default category → {@link DocKind} map. A general starting point, not a fixed
- * taxonomy — a consumer overrides it through `categoryKinds` when its content
- * directories don't match these names.
- */
-export const DEFAULT_CATEGORY_KINDS: Record<string, DocKind> = {
-	components: 'component',
-	primitives: 'component',
-	layouts: 'component',
-	modules: 'module',
-	providers: 'provider',
-	hooks: 'hook',
-	core: 'function',
-	types: 'other',
-}
-
 /** Maps a doc's `(category, slug)` to a real module specifier, or undefined when none matches. */
 export type ModuleResolver = (category: string, slug: string) => string | undefined
 
@@ -298,19 +268,16 @@ export type DeriveOptions = {
 
 	/** Reconciles `(category, slug)` to a real specifier; falls back to `<pkg>/<slug>`. */
 	resolveModule?: ModuleResolver
-
-	/** Category → kind map; defaults to {@link DEFAULT_CATEGORY_KINDS}. */
-	categoryKinds?: Record<string, DocKind>
 }
 
 /**
  * Attach path-derived identity to a parsed doc: category and slug from the
- * `content/`-relative path, the module specifier reconciled against the
- * package surface (see {@link createModuleResolver}), and the kind from the
- * category map — front-matter `module` / `kind` overriding either.
+ * `content/`-relative path and the module specifier reconciled against the
+ * package surface (see {@link createModuleResolver}), front-matter `module`
+ * overriding.
  */
 export function deriveDocMeta(relPath: string, parsed: ParsedDoc, options: DeriveOptions): DocMeta {
-	const { packageName, resolveModule, categoryKinds = DEFAULT_CATEGORY_KINDS } = options
+	const { packageName, resolveModule } = options
 
 	const posix = relPath.replaceAll('\\', '/').replace(/^\/+/, '')
 
@@ -332,7 +299,6 @@ export function deriveDocMeta(relPath: string, parsed: ParsedDoc, options: Deriv
 		name: parsed.name,
 		description: parsed.description,
 		module: fm.module ?? resolveModule?.(category, slug) ?? `${packageName}/${slug}`,
-		kind: fm.kind ?? categoryKinds[category] ?? 'function',
 		...(fm.symbols ? { symbols: fm.symbols } : {}),
 		...(fm.usage ? { usage: fm.usage } : {}),
 	}

@@ -1,12 +1,5 @@
 import type { ComponentType } from 'react'
 
-/**
- * Usage-engine strategy selector. Derived from a doc's category directory,
- * overridable per doc via front-matter `kind`; unknown kinds fall back to the
- * `function` call-snippet strategy.
- */
-export type DocKind = 'component' | 'module' | 'provider' | 'hook' | 'function' | 'other'
-
 /** Author defaults for the usage engine, set in a doc's front-matter `usage` block. */
 export type UsageAuthorConfig = {
 	/** Baseline synthesis richness; visitor knobs override. @defaultValue 'typical' */
@@ -47,8 +40,6 @@ export type DocMeta = {
 
 	/** Import specifier of the documented module, e.g. `ui/button`. */
 	module: string
-
-	kind: DocKind
 
 	/** Exported symbols this doc covers; defaults resolve against the module's API. */
 	symbols?: string[]
