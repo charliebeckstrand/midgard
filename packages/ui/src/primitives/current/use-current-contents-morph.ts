@@ -1,7 +1,9 @@
 'use client'
 
-import { type RefObject, useCallback, useEffect, useState } from 'react'
-import { flushSync } from 'react-dom'
+import { type AnimationPlaybackControls, animate } from 'motion'
+import { useReducedMotion } from 'motion/react'
+import { type RefObject, useEffect } from 'react'
+import { k } from '../../recipes/kata/current'
 
 /** One observed panel's border box, split along the morph discriminator. @internal */
 type PanelBox = {
@@ -68,29 +70,28 @@ function classifyEntries(
  * state and no re-render at all. Only a discrete height change morphs: the
  * `data-current` set swapping (a panel switch) or a panel growing at constant
  * width (content expanding in place). The morph pins the container at its
- * current height before the frame paints, commits the target height for the
- * motion tween, and `release` frees the box back to `auto` when the tween
- * completes; a width-coupled change arriving mid-morph cancels it the same
- * way, handing the height back to layout.
+ * current height before the frame paints and tweens the inline style straight
+ * to the target, all outside React: a render must never own the in-flight
+ * height, because re-rendering would stamp the resting value back over the pin
+ * and snap the box before the tween starts. A completed tween — or a
+ * width-coupled change arriving mid-morph, which cancels it — clears the
+ * inline height, handing the box back to `auto` and layout.
  *
- * @returns `morphTo` — the animation target while a morph is in flight,
- * `null` at rest — and the `release` callback for the tween's completion.
+ * Reduced motion opts the whole observer out: the container just reflows to
+ * each panel switch while the crossfade (which `MotionConfig` keeps under
+ * reduced motion) still plays.
+ *
  * @internal
  */
-export function useCurrentContentsMorph(
-	ref: RefObject<HTMLElement | null>,
-	enabled: boolean,
-): { morphTo: number | null; release: () => void } {
-	const [morphTo, setMorphTo] = useState<number | null>(null)
-
-	const release = useCallback(() => {
-		setMorphTo(null)
-	}, [])
+export function useCurrentContentsMorph(ref: RefObject<HTMLElement | null>, enabled: boolean) {
+	// Imperative `animate()` runs outside any MotionConfig; read the OS
+	// preference directly and leave the height to layout under reduced motion.
+	const reducedMotion = useReducedMotion()
 
 	useEffect(() => {
 		const element = ref.current
 
-		if (!element || !enabled) return
+		if (!element || !enabled || reducedMotion) return
 
 		// Track every `data-current` child's box; the container morphs to the
 		// tallest. When the context value is undefined, all panels are
@@ -106,10 +107,21 @@ export function useCurrentContentsMorph(
 		// origin and an interrupted morph continues from where it visually is.
 		let previousHeight = element.getBoundingClientRect().height
 
-		// Pins the container at its animation origin before this frame paints, then
-		// commits the target synchronously so the pin and the tween land together.
-		// Observer callbacks run after layout and before paint, so nothing in
-		// between reaches the screen.
+		let tween: AnimationPlaybackControls | null = null
+
+		// Stops any in-flight tween and rests the box back at `height: auto`.
+		const settle = () => {
+			tween?.stop()
+
+			tween = null
+
+			element.style.height = ''
+		}
+
+		// Pins the container at its animation origin before this frame paints —
+		// observer callbacks run after layout and before paint, so nothing in
+		// between reaches the screen — then tweens the inline height to the
+		// target and hands it back to `auto` on completion.
 		const morph = (to: number) => {
 			const live = element.getBoundingClientRect().height
 
@@ -119,10 +131,16 @@ export function useCurrentContentsMorph(
 
 			if (from === to) return
 
+			tween?.stop()
+
 			element.style.height = `${from}px`
 
-			flushSync(() => {
-				setMorphTo(to)
+			tween = animate(from, to, {
+				...k.transition,
+				onUpdate: (height) => {
+					element.style.height = `${height}px`
+				},
+				onComplete: settle,
 			})
 		}
 
@@ -138,7 +156,7 @@ export function useCurrentContentsMorph(
 				// from it, and stop steering any in-flight morph.
 				previousHeight = element.getBoundingClientRect().height
 
-				setMorphTo((current) => (current === null ? current : null))
+				settle()
 			}
 		})
 
@@ -190,13 +208,13 @@ export function useCurrentContentsMorph(
 		})
 
 		return () => {
+			settle()
+
 			resizeObserver.disconnect()
 
 			childListObserver.disconnect()
 
 			currentObserver.disconnect()
 		}
-	}, [ref, enabled])
-
-	return { morphTo, release }
+	}, [ref, enabled, reducedMotion])
 }

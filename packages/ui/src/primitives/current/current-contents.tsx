@@ -1,9 +1,7 @@
 'use client'
 
-import { motion } from 'motion/react'
 import { type ComponentPropsWithoutRef, useEffect, useRef } from 'react'
 import { cn } from '../../core'
-import { k } from '../../recipes/kata/current'
 import { ReducedMotion } from '../reduced-motion'
 import {
 	CurrentFadeContext,
@@ -69,7 +67,7 @@ export function CurrentContents({
 }: CurrentContentsProps) {
 	const containerRef = useRef<HTMLDivElement>(null)
 
-	const { morphTo, release } = useCurrentContentsMorph(containerRef, fade)
+	useCurrentContentsMorph(containerRef, fade)
 
 	const resolvedMount = resolveMount(fade, mount)
 
@@ -101,19 +99,17 @@ export function CurrentContents({
 			<CurrentMountContext value={resolvedMount}>
 				<CurrentSettledContext value={settledRef}>
 					<ReducedMotion>
-						{/* At rest the height target is `auto`, so completed and cancelled
-						    morphs alike settle the box back into layout's hands. */}
-						<motion.div
+						{/* A plain div: the morph hook pins and tweens the inline height
+						    itself, outside React, so no render can stamp the resting
+						    `auto` back over an in-flight morph. */}
+						<div
 							ref={containerRef}
 							data-slot={`${slotPrefix}-contents`}
-							animate={{ height: morphTo ?? 'auto' }}
-							initial={false}
-							transition={k.transition}
-							onAnimationComplete={morphTo === null ? undefined : release}
 							className={cn('relative overflow-hidden', className)}
+							{...props}
 						>
 							{children}
-						</motion.div>
+						</div>
 					</ReducedMotion>
 				</CurrentSettledContext>
 			</CurrentMountContext>
