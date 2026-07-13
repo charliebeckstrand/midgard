@@ -5,14 +5,14 @@ import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { bench, describe } from 'vitest'
-import { createApiExtractor } from '../api-reference'
-import { buildApi } from '../api-reference/engine/build-api'
+import { createApiExtractor } from '../../docs/engine/api-reference'
+import { buildApi } from '../../docs/engine/api-reference/engine/build-api'
 
 // The benchmarks run against the package's own source tree, the workload the
 // docs plugin actually extracts (~100 barrels over ~1.2k reachable files). The
-// benchDir sits at `src/docs/engine/__benchmarks__`, so the source root is three
-// levels up.
-const srcDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..')
+// benchDir sits at `src/__benchmarks__/docs`, so the source root is two levels
+// up.
+const srcDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 
 // A component source edited between incremental passes. Only the barrels that
 // reach it re-extract.

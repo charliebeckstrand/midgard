@@ -172,10 +172,16 @@ type DevMetrics = {
 	readyMs: number
 	/** First `/main.tsx` transform completing (rides the configured warmup). */
 	entryMs: number
-	/** First `virtual:api-reference-manifest` read — the full ts-morph extraction. */
+	/** First `virtual:api-reference-manifest` read: full extraction cold, a disk-cache replay warm. */
 	apiManifestMs: number
-	/** Manifest re-read after a component-source touch — HMR re-extraction. */
+	/**
+	 * Manifest re-read after the first component-source touch. On a disk-served
+	 * start this pays the extractor's one-time warming pass (a full extraction);
+	 * on a cold start the checker is already warm and it runs per-barrel.
+	 */
 	apiReextractMs: number
+	/** Manifest re-read after a second touch — always the per-barrel steady state. */
+	apiReextractWarmMs: number
 }
 
 /** The resolved (`\0`-prefixed) manifest id as Vite serves it over HTTP. */
@@ -186,15 +192,31 @@ function killDevServer(child: ChildProcess): void {
 }
 
 async function timedFetch(url: string): Promise<number> {
-	const t0 = performance.now()
+	// The dev server closes idle keep-alive sockets while it settles, which
+	// surfaces as ECONNRESET on a reused connection; retry the transient
+	// failures and time only the successful attempt.
+	for (let attempt = 0; ; attempt++) {
+		const t0 = performance.now()
 
-	const res = await fetch(url)
+		try {
+			const res = await fetch(url)
 
-	await res.arrayBuffer()
+			await res.arrayBuffer()
 
-	if (!res.ok) throw new Error(`GET ${url} → ${res.status}`)
+			if (!res.ok) throw new Error(`GET ${url} → ${res.status}`)
 
-	return performance.now() - t0
+			return performance.now() - t0
+		} catch (error) {
+			if (
+				attempt >= 2 ||
+				error instanceof Error === false ||
+				!error.message.includes('fetch failed')
+			)
+				throw error
+
+			await new Promise((r) => setTimeout(r, 250))
+		}
+	}
 }
 
 function waitForReady(child: ChildProcess, t0: number): Promise<{ readyMs: number; url: string }> {
@@ -235,16 +257,24 @@ async function runDev(): Promise<DevMetrics> {
 
 		// Touch (mtime-only) a component source so `shouldInvalidate` clears the
 		// api-reference family, then re-read the manifest: the re-extraction cost
-		// the user pays after every component edit.
-		const now = new Date()
+		// the user pays after a component edit. Twice — the first edit after a
+		// disk-served start pays the extractor's warming pass, the second is the
+		// per-barrel steady state.
+		const touchAndRefetch = async () => {
+			const now = new Date()
 
-		fs.utimesSync(invalidationTarget, now, now)
+			fs.utimesSync(invalidationTarget, now, now)
 
-		await new Promise((r) => setTimeout(r, 500))
+			await new Promise((r) => setTimeout(r, 500))
 
-		const apiReextractMs = await timedFetch(`${url}${MANIFEST_PATH}`)
+			return timedFetch(`${url}${MANIFEST_PATH}`)
+		}
 
-		return { readyMs, entryMs, apiManifestMs, apiReextractMs }
+		const apiReextractMs = await touchAndRefetch()
+
+		const apiReextractWarmMs = await touchAndRefetch()
+
+		return { readyMs, entryMs, apiManifestMs, apiReextractMs, apiReextractWarmMs }
 	} finally {
 		killDevServer(child)
 	}
@@ -302,7 +332,7 @@ function printReport(metrics: Metrics): void {
 		console.log(
 			`\ndev (median of ${metrics.dev.length}): ready ${ms(pick('readyMs'))},` +
 				` entry ${ms(pick('entryMs'))}, api manifest ${ms(pick('apiManifestMs'))},` +
-				` re-extract ${ms(pick('apiReextractMs'))}`,
+				` re-extract ${ms(pick('apiReextractMs'))} first / ${ms(pick('apiReextractWarmMs'))} steady`,
 		)
 	}
 }
@@ -333,7 +363,13 @@ function compareBundles(baseline: BundleReport, current: BundleReport): void {
 }
 
 function compareDev(baseline: DevMetrics[], current: DevMetrics[]): void {
-	for (const key of ['readyMs', 'entryMs', 'apiManifestMs', 'apiReextractMs'] as const) {
+	for (const key of [
+		'readyMs',
+		'entryMs',
+		'apiManifestMs',
+		'apiReextractMs',
+		'apiReextractWarmMs',
+	] as const) {
 		delta(key, median(baseline.map((d) => d[key])), median(current.map((d) => d[key])), ms)
 	}
 }
@@ -386,8 +422,14 @@ async function main(): Promise<void> {
 	}
 }
 
-main().catch((error) => {
-	console.error(error)
+main().then(
+	// A dev-server descendant (esbuild service) can inherit the stdout pipe and
+	// hold the event loop open after SIGTERM; exit explicitly once reporting is
+	// done.
+	() => process.exit(0),
+	(error) => {
+		console.error(error)
 
-	process.exit(1)
-})
+		process.exit(1)
+	},
+)
