@@ -367,7 +367,9 @@ function findSrcDir(root: string): string {
 /**
  * The single Vite plugin backing the docs site. It provides:
  *
- *  - `virtual:api-reference`: prop data parsed from component sources
+ *  - `virtual:api-reference-manifest`: `{ id → () => import(perComponentModule) }`
+ *    over prop data parsed from component sources, one lazily-chunked
+ *    `virtual:api-reference/<id>` module per component
  *  - `virtual:demo-metas`: each demo's `{ name? }`
  *  - `virtual:component-modules`: `{ componentName → module }` for snippet imports
  *  - a transform tagging public index barrels with `__module` / `__name`
@@ -378,8 +380,8 @@ function findSrcDir(root: string): string {
  * `enforce: 'pre'` object.
  *
  * `docsPlugin({ vitest: true })` keeps the real component-modules map and the
- * tagging transform, stubs api-reference and demo-metas with empty defaults,
- * and drops the demo `__code` pre-transform.
+ * tagging transform, stubs the api-reference manifest and demo-metas with empty
+ * defaults, and drops the demo `__code` pre-transform.
  *
  * `packageName` is the documented library's import prefix (`ui`, `grid`, …),
  * baked into `virtual:component-modules` so derived snippets read
@@ -409,7 +411,8 @@ export function docsPlugin({
 
 		...virtualJsonModules([
 			{
-				id: 'virtual:api-reference',
+				prefix: 'virtual:api-reference/',
+				manifestId: 'virtual:api-reference-manifest',
 				generate: () => (vitest ? {} : buildApi(srcDir)),
 				shouldInvalidate: (file) =>
 					file.startsWith(srcDir) &&

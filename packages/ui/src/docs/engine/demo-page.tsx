@@ -1,7 +1,7 @@
 'use client'
 
 import { PanelLeft, PanelLeftDashed } from 'lucide-react'
-import { use } from 'react'
+import { Suspense, use } from 'react'
 import { Button } from '../../components/button'
 import { Flex } from '../../components/flex'
 import { Heading } from '../../components/heading'
@@ -11,7 +11,7 @@ import { SidebarLayoutHeader } from '../../layouts'
 import { ApiReference } from './components/api-reference'
 import { DemoNav, DemoNavProvider } from './components/demo-nav'
 import type { Demo } from './registry'
-import { getComponentApi, loadDemo } from './registry'
+import { hasComponentApi, loadComponentApi, loadDemo } from './registry'
 
 /**
  * The route body for one demo: its lazily-loaded component, a sidebar-lock
@@ -28,8 +28,6 @@ export function DemoPage({
 	onToggleLocked: () => void
 }) {
 	const Component = use(loadDemo(demo.id))
-
-	const api = getComponentApi(demo.id)
 
 	return (
 		<DemoNavProvider>
@@ -49,13 +47,26 @@ export function DemoPage({
 			</SidebarLayoutHeader>
 			<Stack gap="xl">
 				<Component />
-				{api && (
-					<Stack gap="sm">
-						<Heading level={2}>API Reference</Heading>
-						<ApiReference api={api} />
-					</Stack>
+				{hasComponentApi(demo.id) && (
+					// Its own boundary so the demo paints immediately while the API
+					// data's chunk streams in, rather than suspending the whole route.
+					<Suspense fallback={null}>
+						<ApiReferenceSection id={demo.id} />
+					</Suspense>
 				)}
 			</Stack>
 		</DemoNavProvider>
+	)
+}
+
+/** The API-reference section for a component, suspending on its lazy chunk. */
+function ApiReferenceSection({ id }: { id: string }) {
+	const api = use(loadComponentApi(id))
+
+	return (
+		<Stack gap="sm">
+			<Heading level={2}>API Reference</Heading>
+			<ApiReference api={api} />
+		</Stack>
 	)
 }
