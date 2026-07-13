@@ -72,6 +72,7 @@ import { GridFooter as GridFooterBar } from './grid-footer'
 import { GridGroupByContext } from './grid-group-by-button'
 import { GridHead } from './grid-head'
 import { useGridMenuActions } from './grid-menu-actions'
+import { GridNewRow } from './grid-new-row'
 import { GridPagination as GridPaginationFooter } from './grid-pagination'
 import {
 	DensityCascade,
@@ -1000,6 +1001,19 @@ export function GridData<T>({
 		[manualGroupingActive, groupRow, manualExpanded, toggleGroup],
 	)
 
+	// The blank entry row (`editable.newRow`), handed to the body with its
+	// chosen end; grouping stands it down (group headers are not data rows).
+	const newRowConfig = editable?.newRow
+
+	const newRow = useMemo(() => {
+		if (!newRowConfig || groupingMode.active) return null
+
+		return {
+			position: newRowConfig.position ?? ('bottom' as const),
+			node: <GridNewRow<T> columns={visibleColumns} sample={renderRows[0]} config={newRowConfig} />,
+		}
+	}, [newRowConfig, groupingMode.active, visibleColumns, renderRows])
+
 	// Sorting the grouped column reorders the group blocks client-side (the engine
 	// keeps the rows manual so children stay under their headers); the direction,
 	// or `null` when the grouped column isn't sorted, drives that reorder in the body.
@@ -1120,6 +1134,7 @@ export function GridData<T>({
 								}
 							: null
 					}
+					newRow={newRow}
 				/>
 
 				<GridGrandTotalBody<T>

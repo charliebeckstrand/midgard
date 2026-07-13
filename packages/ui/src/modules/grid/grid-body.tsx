@@ -103,6 +103,13 @@ type GridBodyProps<T> = GridRowsProps<T> & {
 		/** Infinite-scroll gates, or `null` when the windowed grid isn't infinite-scrolling. */
 		infiniteScroll: ResolvedInfiniteScroll | null
 	} | null
+	/**
+	 * The blank entry row (`editable.newRow`) and which end of the body carries
+	 * it, or `null`. Renders in the plain and virtualized bodies (outside the
+	 * window, so it is always reachable) and alone over an empty grid — a
+	 * creation flow needs no existing rows; grouping stands it down.
+	 */
+	newRow: { node: ReactNode; position: 'top' | 'bottom' } | null
 }
 
 /**
@@ -280,9 +287,6 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 		visibleColumns,
 		empty,
 		error,
-		gridSemantics,
-		rowIndexOffset,
-		rowSortable,
 		groupedRows,
 		manualRows,
 		manualGroup,
@@ -293,6 +297,7 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 		density,
 		rowGroupPresentation,
 		virtualize,
+		newRow,
 	} = props
 
 	if (loading) return <TableLoading columns={visibleColumns.length} rows={GRID_LOADING_ROWS} />
@@ -340,7 +345,15 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 		)
 	}
 
-	if (rows.length === 0) return <TableEmpty columns={visibleColumns.length}>{empty}</TableEmpty>
+	// An empty grid with an entry row renders the row alone: a creation flow
+	// starts from zero rows, and an empty slot would bury the affordance.
+	if (rows.length === 0) {
+		return newRow ? (
+			<TableBody>{newRow.node}</TableBody>
+		) : (
+			<TableEmpty columns={visibleColumns.length}>{empty}</TableEmpty>
+		)
+	}
 
 	// Grouping renders its own body: each group's header row followed by all its
 	// leaf rows, which stay mounted and animate open/closed with the group via a
@@ -381,8 +394,22 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 		return <GridVirtualizedBody<T> {...props} {...virtualize} />
 	}
 
-	// Global row indices only under grid semantics (a plain table conveys them
-	// natively); see `ariaRowIndex` for the offset math.
+	return <GridPlainBody<T> {...props} />
+}
+
+/**
+ * The plain (unwindowed) body: the row map — wrapped in the row-reorder
+ * sortable context when active (its `<DndContext>` sits outside the `<table>`,
+ * provided by the grid; a DOM-less fragment, so it nests inside `<tbody>`
+ * without adding an element) — with the entry row at its chosen end. Global
+ * row indices only under grid semantics (a plain table conveys them natively);
+ * see `ariaRowIndex` for the offset math.
+ *
+ * @internal
+ */
+function GridPlainBody<T>(props: GridBodyProps<T>) {
+	const { rows, gridSemantics, rowIndexOffset, rowSortable, newRow } = props
+
 	const body = rows.map((row, index) =>
 		renderGridRow(
 			props,
@@ -392,11 +419,9 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 		),
 	)
 
-	// When rows are drag-reorderable, the sortable context wraps them (its
-	// `<DndContext>` sits outside the `<table>`, provided by the grid). A DOM-less
-	// fragment, so it nests inside `<tbody>` without adding an element.
 	return (
 		<TableBody>
+			{newRow?.position === 'top' && newRow.node}
 			{rowSortable ? (
 				<SortableContext items={rowSortable.itemIds} strategy={rowSortable.strategy}>
 					{body}
@@ -404,6 +429,7 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 			) : (
 				body
 			)}
+			{newRow?.position === 'bottom' && newRow.node}
 		</TableBody>
 	)
 }

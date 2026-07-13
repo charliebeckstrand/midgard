@@ -306,6 +306,7 @@ export function SpreadsheetExample() {
 				across the row; F2 saves in place; Escape discards; entering another cell saves the current
 				one on the way out. Shift+arrows stretch a range: Ctrl/Cmd+C copies it as TSV, Ctrl/Cmd+V
 				pastes a block, Ctrl/Cmd+D and R fill it down/right, and Ctrl/Cmd+Z undoes the last save.
+				The blank row at the bottom appends: fill it in and press Enter.
 			</EditHelp>
 			<Grid
 				columns={columns}
@@ -316,6 +317,26 @@ export function SpreadsheetExample() {
 					scope: 'cell',
 					commitOn: ['enter', 'blur', 'clickOutside'],
 					onValueChange: (changes) => setSkus((prev) => applyChanges(prev, changes)),
+					// The blank entry row at the body's end: fill it in and press Enter
+					// to append a row; the read-only sku is generated here.
+					newRow: {
+						onRowAdd: (values) =>
+							setSkus((prev) => {
+								const id = Math.max(0, ...prev.map((row) => row.id)) + 1
+
+								return [
+									...prev,
+									{
+										id,
+										sku: `NEW-${String(id).padStart(3, '0')}`,
+										stock: 0,
+										reorderAt: 0,
+										unitCost: 0,
+										...values,
+									},
+								]
+							}),
+					},
 				}}
 			/>
 		</>

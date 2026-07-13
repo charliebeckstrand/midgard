@@ -53,6 +53,28 @@ export type GridEditCellContext<T> = {
 export type GridEditCell<T> = (context: GridEditCellContext<T>) => ReactNode
 
 /**
+ * The blank entry row of {@link GridEditableConfig.newRow}: where it sits and
+ * where its committed values go. The entry row renders an empty editor in
+ * every editable column; Enter in one of its text/number editors commits the
+ * staged, `validate`-passing values through {@link GridNewRowConfig.onRowAdd}
+ * and reseeds the row blank, and Escape discards them.
+ */
+export type GridNewRowConfig = {
+	/**
+	 * Which end of the body carries the entry row.
+	 * @defaultValue 'bottom'
+	 */
+	position?: 'top' | 'bottom'
+	/**
+	 * Called when the entry row commits, with the staged values keyed by each
+	 * column's `field` (falling back to its id). Build the new row and append it
+	 * to your data — row creation is the one place the {@link CellChange} sink
+	 * doesn't fit, so it is this sibling callback instead.
+	 */
+	onRowAdd: (values: Record<string, unknown>) => void
+}
+
+/**
  * Editing binding for {@link GridProps.editable}: marks which rows are in edit
  * mode and sinks their committed cell values. Setting it bakes per-row editing
  * into the grid — a row in the set puts all of its editable cells into edit mode
@@ -131,6 +153,13 @@ export type GridEditableConfig = {
 	 * @defaultValue ['enter']
 	 */
 	commitOn?: ('enter' | 'blur' | 'clickOutside')[]
+	/**
+	 * A blank entry row pinned to one end of the body for adding rows in place —
+	 * see {@link GridNewRowConfig}. Stands down while grouping renders the body
+	 * (group headers are not data rows) and sits outside the virtualized window,
+	 * so it is always reachable.
+	 */
+	newRow?: GridNewRowConfig
 	/**
 	 * Called when an editing session saves, with one {@link CellChange} per
 	 * changed cell, batched into a single call. Unchanged and `validate`-failing

@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactElement, type RefObject, useCallback, useEffect } from 'react'
+import { type ReactElement, type ReactNode, type RefObject, useCallback, useEffect } from 'react'
 import { TableBody, TableCell } from '../../components/table'
 import { Text, TextSkeleton } from '../../components/text'
 import { useVirtualWindow } from '../../hooks'
@@ -86,6 +86,8 @@ type GridVirtualizedBodyProps<T> = GridRowsProps<T> & {
 	scrollIntoViewRef: RefObject<GridScrollRowIntoView | null>
 	/** Infinite-scroll gates driving end-detection and the trailing loading/end/error row, or `null` when off. */
 	infiniteScroll: ResolvedInfiniteScroll | null
+	/** The blank entry row (`editable.newRow`), rendered outside the window's spacers so it is always reachable; `null` when off. */
+	newRow: { node: ReactNode; position: 'top' | 'bottom' } | null
 }
 
 /**
@@ -143,6 +145,9 @@ export function GridVirtualizedBody<T>(props: GridVirtualizedBodyProps<T>) {
 
 	return (
 		<TableBody>
+			{/* The entry row sits outside the window's spacers, so it is always
+			    rendered and reachable however far the window has scrolled. */}
+			{props.newRow?.position === 'top' && props.newRow.node}
 			{topSpacer > 0 && (
 				// biome-ignore lint/a11y/noAriaHiddenOnFocusable: the spacer is an empty, non-focusable layout filler that must not be exposed as a table row
 				<tr data-slot="grid-spacer" aria-hidden="true">
@@ -177,6 +182,7 @@ export function GridVirtualizedBody<T>(props: GridVirtualizedBodyProps<T>) {
 			{infiniteScroll && (
 				<GridInfiniteScrollTrailer<T> infiniteScroll={infiniteScroll} columns={visibleColumns} />
 			)}
+			{props.newRow?.position === 'bottom' && props.newRow.node}
 		</TableBody>
 	)
 }

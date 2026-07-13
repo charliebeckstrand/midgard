@@ -1339,3 +1339,143 @@ describe('Grid undo/redo', () => {
 		expect(view.onEmit.mock.calls.length).toBe(emits)
 	})
 })
+
+/**
+ * The blank entry row (`editable.newRow`): an empty editor in every editable
+ * column at one end of the body; Enter commits the staged, validate-passing
+ * values through `onRowAdd` (keyed by column field) and reseeds it blank,
+ * Escape discards the entry. Renders even over an empty grid.
+ */
+describe('Grid new-row entry', () => {
+	type Row = { id: number; name: string; count: number }
+
+	const baseRows: Row[] = [{ id: 1, name: 'Alice', count: 2 }]
+
+	const columns: GridColumn<Row>[] = [
+		{ id: 'id', title: 'ID', cell: (row) => String(row.id), readOnly: true },
+		{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
+		{ id: 'count', title: 'Count', field: 'count', cell: (row) => String(row.count) },
+	]
+
+	function renderNewRowGrid(args?: {
+		position?: 'top' | 'bottom'
+		rows?: Row[]
+		cols?: GridColumn<Row>[]
+	}) {
+		const onRowAdd = vi.fn()
+
+		const view = renderUI(
+			<Grid
+				columns={args?.cols ?? columns}
+				rows={args?.rows ?? baseRows}
+				getKey={(row) => row.id}
+				editable={{
+					newRow: { position: args?.position, onRowAdd },
+					onValueChange: () => {},
+				}}
+			/>,
+		)
+
+		const entry = () => view.container.querySelector('tr[data-slot="grid-new-row"]') as HTMLElement
+
+		return {
+			...view,
+			onRowAdd,
+			entry,
+			entryInput: (index = 0) =>
+				entry().querySelectorAll<HTMLInputElement>('input')[index] as HTMLInputElement,
+		}
+	}
+
+	it('renders a blank editor per editable column, skipping read-only ones', () => {
+		const { entry } = renderNewRowGrid()
+
+		// name (text) and count (number) get editors; the read-only id cell is blank.
+		expect(entry()).toBeInTheDocument()
+
+		expect(entry().querySelectorAll('input').length).toBe(2)
+
+		expect(entry().querySelector('[aria-label="New row Name"]')).toBeInTheDocument()
+
+		// The entry row sits at the body's end by default.
+		const rows = entry().parentElement?.querySelectorAll('tr')
+
+		expect(rows?.[rows.length - 1]).toBe(entry())
+	})
+
+	it('commits the staged values through onRowAdd on Enter and reseeds blank', () => {
+		const { entry, entryInput, onRowAdd } = renderNewRowGrid()
+
+		fireEvent.change(entryInput(0), { target: { value: 'Dana' } })
+
+		fireEvent.change(entryInput(1), { target: { value: '4' } })
+
+		fireEvent.keyDown(entryInput(0), { key: 'Enter' })
+
+		expect(onRowAdd).toHaveBeenCalledTimes(1)
+
+		expect(onRowAdd).toHaveBeenCalledWith({ name: 'Dana', count: 4 })
+
+		// The entry reseeds blank for the next row.
+		expect(entryInput(0).value).toBe('')
+
+		expect(entry().querySelectorAll('input').length).toBe(2)
+	})
+
+	it('discards the entry on Escape without emitting', () => {
+		const { entryInput, onRowAdd } = renderNewRowGrid()
+
+		fireEvent.change(entryInput(0), { target: { value: 'Dropped' } })
+
+		fireEvent.keyDown(entryInput(0), { key: 'Escape' })
+
+		expect(entryInput(0).value).toBe('')
+
+		fireEvent.keyDown(entryInput(0), { key: 'Enter' })
+
+		expect(onRowAdd).not.toHaveBeenCalled()
+	})
+
+	it('drops validate-failing cells at commit and emits nothing when empty', () => {
+		const { entryInput, onRowAdd } = renderNewRowGrid({
+			cols: [
+				{
+					id: 'name',
+					title: 'Name',
+					field: 'name',
+					cell: (row) => row.name,
+					validate: (value) => (String(value).length > 2 ? null : 'Too short'),
+				},
+			],
+		})
+
+		fireEvent.change(entryInput(0), { target: { value: 'ab' } })
+
+		fireEvent.keyDown(entryInput(0), { key: 'Enter' })
+
+		// The only staged cell fails validate, so nothing commits.
+		expect(onRowAdd).not.toHaveBeenCalled()
+
+		fireEvent.change(entryInput(0), { target: { value: 'abc' } })
+
+		fireEvent.keyDown(entryInput(0), { key: 'Enter' })
+
+		expect(onRowAdd).toHaveBeenCalledWith({ name: 'abc' })
+	})
+
+	it("renders at the body's head under position 'top'", () => {
+		const { entry } = renderNewRowGrid({ position: 'top' })
+
+		const rows = entry().parentElement?.querySelectorAll('tr')
+
+		expect(rows?.[0]).toBe(entry())
+	})
+
+	it('renders over an empty grid, so a creation flow starts from zero rows', () => {
+		const { entry } = renderNewRowGrid({ rows: [] })
+
+		expect(entry()).toBeInTheDocument()
+
+		expect(entry().querySelectorAll('input').length).toBe(2)
+	})
+})
