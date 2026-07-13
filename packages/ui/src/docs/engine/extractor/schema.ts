@@ -36,7 +36,6 @@ export type CallableApi = {
 	name: string
 	description?: string
 	signatures: SignatureApi[]
-	deprecated?: string | boolean
 }
 
 /** Any export the extractor recognizes but does not model — nothing errors, everything renders. */
@@ -110,7 +109,6 @@ export type PropDef = {
  */
 export type PassThrough = {
 	element: string
-	omitted?: string[]
 }
 
 /**

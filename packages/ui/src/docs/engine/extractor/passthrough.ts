@@ -4,7 +4,6 @@ import {
 	type FunctionLikeNode,
 	resolveTypeAliasTarget,
 	STRING_LITERAL_PASS_THROUGHS,
-	stringLiteralKeys,
 	typeRefName,
 } from './ts-utils'
 
@@ -14,8 +13,8 @@ import {
  *   - The props annotation contains a recognized pass-through type —
  *     `ComponentPropsWithRef<'tag'>` / `ComponentPropsWithoutRef<'tag'>`,
  *     `*HTMLAttributes<HTMLTagElement>`, or `PolymorphicProps<'tag'>` —
- *     possibly behind `Omit<…>` (whose keys become `omitted`), project
- *     aliases, or `Extract`/`Exclude` narrowing.
+ *     possibly behind `Omit<…>`, project aliases, or `Extract`/`Exclude`
+ *     narrowing.
  *   - The body spreads the first parameter's `...rest` binding onto an
  *     intrinsic JSX tag (`<button {...props}>`), which surfaces that tag's
  *     attrs even when the annotation never names a pass-through type.
@@ -27,11 +26,7 @@ export function extractPassThrough(
 ): PassThrough[] {
 	const found: PassThrough[] = []
 
-	if (annotation) {
-		const visited = new Set<string>()
-
-		walk(annotation, [], found, visited, checker)
-	}
+	if (annotation) walk(annotation, found, new Set(), checker)
 
 	for (const element of restSpreadTargets(callable)) {
 		found.push({ element })
@@ -42,28 +37,24 @@ export function extractPassThrough(
 
 function walk(
 	node: ts.TypeNode,
-	omitted: string[],
 	out: PassThrough[],
 	visited: Set<string>,
 	checker: ts.TypeChecker,
 ): void {
-	// Key by node + omitted context: the same alias reached through different
-	// `Omit<…>` wrappers produces separate pass-through entries, each carrying
-	// its own omitted-key set.
-	const key = `${node.getSourceFile().fileName}:${node.pos}:${node.end} ${omitted.join('|')}`
+	const key = `${node.getSourceFile().fileName}:${node.pos}:${node.end}`
 
 	if (visited.has(key)) return
 
 	visited.add(key)
 
 	if (ts.isIntersectionTypeNode(node) || ts.isUnionTypeNode(node)) {
-		for (const member of node.types) walk(member, omitted, out, visited, checker)
+		for (const member of node.types) walk(member, out, visited, checker)
 
 		return
 	}
 
 	if (ts.isParenthesizedTypeNode(node)) {
-		walk(node.type, omitted, out, visited, checker)
+		walk(node.type, out, visited, checker)
 
 		return
 	}
@@ -72,24 +63,15 @@ function walk(
 
 	const name = typeRefName(node.typeName)
 
-	// Omit<T, 'a' | 'b'>: recurse, carrying the keys forward.
-	if (name === 'Omit') {
-		const [inner, keys] = node.typeArguments ?? []
-
-		if (inner) walk(inner, [...omitted, ...stringLiteralKeys(keys)], out, visited, checker)
-
-		return
-	}
-
 	// Pick narrows to a slice, not a full pass-through.
 	if (name === 'Pick') return
 
-	// Extract<T, U> / Exclude<T, U> narrow T without changing its element; a
-	// pass-through inside T survives the filter, so recurse into T only.
-	if (name === 'Extract' || name === 'Exclude') {
+	// Omit / Extract / Exclude narrow the first argument without changing its
+	// element; a pass-through inside it survives, so recurse into it only.
+	if (name === 'Omit' || name === 'Extract' || name === 'Exclude') {
 		const inner = node.typeArguments?.[0]
 
-		if (inner) walk(inner, omitted, out, visited, checker)
+		if (inner) walk(inner, out, visited, checker)
 
 		return
 	}
@@ -97,7 +79,7 @@ function walk(
 	const direct = matchDirectPassThrough(name, node.typeArguments ?? [], checker)
 
 	if (direct) {
-		out.push({ element: direct, ...(omitted.length > 0 ? { omitted } : {}) })
+		out.push({ element: direct })
 
 		return
 	}
@@ -105,7 +87,7 @@ function walk(
 	// Project alias: follow to its RHS and keep walking.
 	const target = resolveTypeAliasTarget(node.typeName, checker)
 
-	if (target) walk(target, omitted, out, visited, checker)
+	if (target) walk(target, out, visited, checker)
 }
 
 /** HTML element name for a recognized pass-through type; null otherwise. */
@@ -278,18 +260,8 @@ function dedupe(items: PassThrough[]): PassThrough[] {
 	const seen = new Map<string, PassThrough>()
 
 	for (const item of items) {
-		const existing = seen.get(item.element)
-
-		if (!existing) {
-			seen.set(item.element, item)
-
-			continue
-		}
-
-		if (item.omitted) {
-			existing.omitted = Array.from(new Set([...(existing.omitted ?? []), ...item.omitted]))
-		}
+		if (!seen.has(item.element)) seen.set(item.element, item)
 	}
 
-	return Array.from(seen.values())
+	return [...seen.values()]
 }

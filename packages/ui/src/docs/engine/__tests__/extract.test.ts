@@ -173,10 +173,8 @@ describe('pass-through', () => {
 		expect(component('Chip').passThrough).toEqual([{ element: 'button' }])
 	})
 
-	it('carries `Omit` keys as the omitted list', () => {
-		expect(component('Field').passThrough).toEqual([
-			{ element: 'input', omitted: ['size', 'color'] },
-		])
+	it('detects a pass-through behind `Omit`', () => {
+		expect(component('Field').passThrough).toEqual([{ element: 'input' }])
 	})
 
 	it('keeps only project-authored props in the table', () => {

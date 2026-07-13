@@ -150,12 +150,6 @@ describe('tsdoc', () => {
 		expect(callable('parse').signatures[0]?.returns.description).toBe('The parsed record.')
 	})
 
-	it('carries `@deprecated` text, or `true` when the tag is bare', () => {
-		expect(callable('legacyLabel').deprecated).toBe('Use `label` instead.')
-
-		expect(callable('reset').deprecated).toBe(true)
-	})
-
 	it('lifts the callable summary', () => {
 		expect(callable('identity').description).toBe('Echo a value back unchanged.')
 	})
