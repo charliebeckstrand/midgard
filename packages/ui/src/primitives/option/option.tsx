@@ -14,6 +14,7 @@ import { ariaAttr, cn, dataAttr } from '../../core'
 import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/option'
 import { useDensity } from '../density'
+import { capitalizeFirst } from '../select-trigger/capitalize'
 
 /**
  * Per-Density-step Tailwind size class for the selected-state check icon,
@@ -199,13 +200,15 @@ export type OptionDescriptionProps = ComponentPropsWithoutRef<'span'>
 
 /**
  * Selection state a {@link createSelectOption} host exposes through its context:
- * the current `value` (an array when `multiple`), the `multiple` flag, and the
- * `onSelect` callback fired when an option is activated.
+ * the current `value` (an array when `multiple`), the `multiple` flag, the
+ * `onSelect` callback fired when an option is activated, and the `capitalize`
+ * flag that first-word-capitalizes string option labels at render.
  */
 export type OptionSelectionContext<TValue = unknown> = {
 	value: TValue | TValue[] | undefined
 	multiple?: boolean
 	onSelect: (value: TValue) => void
+	capitalize?: boolean
 }
 
 // Membership sets keyed by the selected-values array. Every option in one render
@@ -270,7 +273,7 @@ export function createSelectOption<
 		'aria-setsize': ariaSetsize,
 		'aria-posinset': ariaPosinset,
 	}: OptionProps<TValue>) {
-		const { value: selectedValue, multiple, onSelect } = use(config.context)
+		const { value: selectedValue, multiple, onSelect, capitalize } = use(config.context)
 
 		const selected = isOptionSelected(selectedValue, value, multiple)
 
@@ -295,13 +298,22 @@ export function createSelectOption<
 				// multi-select toggles stay put until an explicit Enter/Space/click.
 				commitOnTab={!config.activeDescendant && !multiple}
 			>
-				{children}
+				{capitalize && typeof children === 'string' ? capitalizeFirst(children) : children}
 			</BaseOption>
 		)
 	}
 
-	function Label({ className, ...props }: OptionLabelProps) {
-		return <OptionLabel data-slot={`${config.slotPrefix}-label`} className={className} {...props} />
+	function Label({ className, children, ...props }: OptionLabelProps) {
+		// The host's `capitalize` formats string labels at render — the same JS
+		// mechanism every select-family surface uses (custom nodes pass through
+		// as authored).
+		const { capitalize } = use(config.context)
+
+		return (
+			<OptionLabel data-slot={`${config.slotPrefix}-label`} className={className} {...props}>
+				{capitalize && typeof children === 'string' ? capitalizeFirst(children) : children}
+			</OptionLabel>
+		)
 	}
 
 	function Description({ className, ...props }: OptionDescriptionProps) {

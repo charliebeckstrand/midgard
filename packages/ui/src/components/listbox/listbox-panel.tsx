@@ -21,8 +21,6 @@ type ListboxPanelProps = {
 	open: boolean
 	glass: boolean
 	multiple: boolean
-	/** Capitalizes the option list via the `capitalize` text-transform. */
-	capitalize: boolean
 	density: ControlSize
 	size: ControlSize
 	/** Accessible name for the listbox, threaded from the trigger's name. */
@@ -50,7 +48,6 @@ export function ListboxPanel({
 	open,
 	glass,
 	multiple,
-	capitalize,
 	density,
 	size,
 	ariaLabel,
@@ -111,7 +108,7 @@ export function ListboxPanel({
 									multiselectable={multiple || undefined}
 									typeahead
 									glass={glass}
-									className={cn(k.panel, k.options, capitalize && 'capitalize')}
+									className={cn(k.panel, k.options)}
 								>
 									{children}
 								</PopoverPanel>

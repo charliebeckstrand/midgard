@@ -107,9 +107,11 @@ describe('AddressInput', () => {
 
 			await clock.advance(0)
 
-			expect(getByText('x Main St')).toBeInTheDocument()
+			// `capitalize` defaults on: string option labels render (and expose
+			// their accessible name) first-word-capitalized.
+			expect(getByText('X Main St')).toBeInTheDocument()
 
-			expect(getByText('x Oak Ave')).toBeInTheDocument()
+			expect(getByText('X Oak Ave')).toBeInTheDocument()
 		})
 	})
 
@@ -208,9 +210,11 @@ describe('AddressInput', () => {
 
 			await clock.advance(0)
 
-			await clock.user.click(screen.getByRole('option', { name: /x Main St/ }))
+			await clock.user.click(screen.getByRole('option', { name: /X Main St/ }))
 
-			expect(input.value).toBe('x Main St')
+			// `capitalize` defaults on, so the resolved display value is
+			// first-word-capitalized in the input's DOM value.
+			expect(input.value).toBe('X Main St')
 
 			await clock.user.clear(input)
 
@@ -244,7 +248,7 @@ describe('AddressInput', () => {
 
 			await clock.advance(0)
 
-			await clock.user.click(screen.getByRole('option', { name: /x Main St/ }))
+			await clock.user.click(screen.getByRole('option', { name: /X Main St/ }))
 
 			const clear = screen.getByRole('button', { name: 'Clear selection' })
 

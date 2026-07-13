@@ -86,10 +86,10 @@ type ComboboxBaseProps<T> = {
 	/** Show a clear button in place of the chevron when a value is selected. */
 	clearable?: boolean
 	/**
-	 * Applies the `capitalize` text-transform to the input's resolved
-	 * `displayValue` and the option list. Pass an object to target each surface
-	 * independently. The transform is visual only; the underlying query and value
-	 * are untouched.
+	 * Capitalizes the first letter (first word only) of the input's resolved
+	 * `displayValue` and of each option's string label; custom label nodes
+	 * render as authored. Pass an object to target each surface independently.
+	 * Display-only: the underlying query and value are untouched.
 	 * @defaultValue true
 	 */
 	capitalize?: SelectCapitalize
@@ -522,8 +522,13 @@ export function Combobox<T>({
 	// The input display reads the live `value`; the menu reads `selectionValue`,
 	// which stays frozen until the panel finishes closing.
 	const contextValue = useMemo(
-		() => ({ value: selectionValue, multiple, onSelect: select as (v: unknown) => void }),
-		[selectionValue, multiple, select],
+		() => ({
+			value: selectionValue,
+			multiple,
+			onSelect: select as (v: unknown) => void,
+			capitalize: capitalization.options,
+		}),
+		[selectionValue, multiple, select, capitalization.options],
 	)
 
 	// The menu content reads the frozen-through-close query so its filter (and a
@@ -583,7 +588,6 @@ export function Combobox<T>({
 					open={open}
 					editing={editing}
 					multiple={multiple}
-					capitalize={capitalization.options}
 					glass={glass}
 					density={token.space}
 					size={token.size}

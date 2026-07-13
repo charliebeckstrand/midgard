@@ -24,8 +24,6 @@ type ListboxButtonProps = {
 	placeholder: string
 	truncate: boolean
 	tabularNums?: boolean
-	/** Capitalizes the selected-value label via the `capitalize` text-transform. */
-	capitalize: boolean
 	density: ControlSize
 	size: ControlSize
 }
@@ -54,7 +52,6 @@ export function ListboxButton({
 	placeholder,
 	truncate,
 	tabularNums,
-	capitalize,
 	density,
 	size,
 }: ListboxButtonProps) {
@@ -80,14 +77,7 @@ export function ListboxButton({
 				{...invalidAttrs(invalid)}
 				className={cn(k({ density, size }))}
 			>
-				<span
-					className={cn(
-						k.value({ truncate }),
-						tabularNums && 'tabular-nums',
-						// Gate on `label` so the placeholder is never transformed.
-						capitalize && label && 'capitalize',
-					)}
-				>
+				<span className={cn(k.value({ truncate }), tabularNums && 'tabular-nums')}>
 					{label || <span className={cn(k.placeholder)}>{placeholder}</span>}
 				</span>
 			</Button>
