@@ -23,9 +23,9 @@ export function createLinkResolver(project: Project): LinkResolver {
 
 		if (cached !== undefined) return cached
 
-		const symbol = index.get(name)
+		const target = index.get(name)
 
-		const link = symbol ? toDocLink(name, symbol, checker) : null
+		const link = target ? toDocLink(name, target.symbol, checker) : null
 
 		cache.set(name, link)
 
@@ -33,16 +33,19 @@ export function createLinkResolver(project: Project): LinkResolver {
 	}
 }
 
+/** One indexed link target: its resolved symbol and the source file that declares it. */
+type IndexedTarget = { symbol: ts.Symbol; file: string }
+
 /** Map every PascalCase top-level declaration in project source to its symbol; first declaration wins. */
-function buildIndex(project: Project): Map<string, ts.Symbol> {
-	const index = new Map<string, ts.Symbol>()
+function buildIndex(project: Project): Map<string, IndexedTarget> {
+	const index = new Map<string, IndexedTarget>()
 
 	const add = (name: string | undefined, node: Node) => {
 		if (!name || !/^[A-Z]/.test(name) || index.has(name)) return
 
 		const symbol = node.getSymbol()?.compilerSymbol
 
-		if (symbol) index.set(name, symbol)
+		if (symbol) index.set(name, { symbol, file: node.getSourceFile().getFilePath() })
 	}
 
 	for (const sf of project.getSourceFiles()) {
@@ -66,6 +69,21 @@ function buildIndex(project: Project): Map<string, ts.Symbol> {
 	}
 
 	return index
+}
+
+/**
+ * Map every `{@link}`-addressable PascalCase declaration name to the source file
+ * that declares it. The incremental extractor keys each barrel's cache on the
+ * files its resolved links point at, so editing a linked target's source
+ * re-extracts the barrels that link to it — cross-file links carry no import
+ * edge, so directory ownership alone would leave those summaries stale.
+ */
+export function buildLinkTargetFiles(project: Project): Map<string, string> {
+	const files = new Map<string, string>()
+
+	for (const [name, { file }] of buildIndex(project)) files.set(name, file)
+
+	return files
 }
 
 /** Turn an indexed symbol into the hover card's signature header and summary. */

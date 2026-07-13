@@ -17,30 +17,27 @@ import {
 import { createLinkResolver } from './link-resolver'
 
 /**
- * Extract API reference data for every component under `<srcDir>/components`
- * and `<srcDir>/modules`, keyed by directory name (modules as `modules-<name>`).
- * One ts-morph Project covers the whole package; the type checker resolves
- * cross-file references in a single pass.
+ * The two documented roots and the key prefix each barrel takes. Components key
+ * by bare directory name; modules namespace their key as `modules-<name>` to
+ * match the demo id (`pathToId('demos/modules/<name>')`).
  */
-export function buildApi(srcDir: string): Record<string, ComponentApi[]> {
-	const componentsDir = path.join(srcDir, 'components')
+export const DOCUMENTED_ROOTS = [
+	['components', ''],
+	['modules', 'modules-'],
+] as const
 
-	if (!fs.existsSync(componentsDir)) return {}
+/** One documentable barrel: its result key and the `index.ts` that exports it. */
+export type Barrel = { key: string; indexPath: string }
 
-	const project = openProject(srcDir)
+/**
+ * List every documentable barrel under `<srcDir>/components` and
+ * `<srcDir>/modules` in a stable order, keyed to match the demo ids. Missing
+ * roots and directories without an `index.ts` are skipped.
+ */
+export function listBarrels(srcDir: string): Barrel[] {
+	const barrels: Barrel[] = []
 
-	const checker = project.getTypeChecker().compilerObject
-
-	const resolveLink = createLinkResolver(project)
-
-	const result: Record<string, ComponentApi[]> = {}
-
-	// Components key by directory name; modules namespace their key as
-	// `modules-<name>` to match the demo id (`pathToId('demos/modules/<name>')`).
-	for (const [root, prefix] of [
-		['components', ''],
-		['modules', 'modules-'],
-	] as const) {
+	for (const [root, prefix] of DOCUMENTED_ROOTS) {
 		const rootDir = path.join(srcDir, root)
 
 		if (!fs.existsSync(rootDir)) continue
@@ -50,30 +47,73 @@ export function buildApi(srcDir: string): Record<string, ComponentApi[]> {
 
 			const indexPath = path.join(rootDir, dir.name, 'index.ts')
 
-			const indexFile = project.getSourceFile(indexPath)
-
-			if (!indexFile) continue
-
-			const names = readPublicExports(indexFile)
-
-			if (names.length === 0) continue
-
-			const apis: ComponentApi[] = []
-
-			for (const name of names) {
-				const decl = findComponent(name, indexFile)
-
-				if (!decl) {
-					apis.push({ name, props: [] })
-
-					continue
-				}
-
-				apis.push(buildComponent(decl, checker, resolveLink))
-			}
-
-			if (apis.length > 0) result[`${prefix}${dir.name}`] = apis
+			if (fs.existsSync(indexPath)) barrels.push({ key: `${prefix}${dir.name}`, indexPath })
 		}
+	}
+
+	return barrels
+}
+
+/**
+ * Extract the API reference for a single barrel from an already-open project.
+ * Returns `null` when the index is absent from the project or exports nothing
+ * documentable, so the caller can drop the key. The type checker and link
+ * resolver are passed in so a batch shares one checker pass.
+ */
+export function extractBarrel(
+	project: Project,
+	checker: ts.TypeChecker,
+	resolveLink: LinkResolver,
+	indexPath: string,
+): ComponentApi[] | null {
+	const indexFile = project.getSourceFile(indexPath)
+
+	if (!indexFile) return null
+
+	const names = readPublicExports(indexFile)
+
+	if (names.length === 0) return null
+
+	const apis: ComponentApi[] = []
+
+	for (const name of names) {
+		const decl = findComponent(name, indexFile)
+
+		if (!decl) {
+			apis.push({ name, props: [] })
+
+			continue
+		}
+
+		apis.push(buildComponent(decl, checker, resolveLink))
+	}
+
+	return apis.length > 0 ? apis : null
+}
+
+/**
+ * Extract API reference data for every component under `<srcDir>/components`
+ * and `<srcDir>/modules`, keyed by directory name (modules as `modules-<name>`).
+ * One ts-morph Project covers the whole package; the type checker resolves
+ * cross-file references in a single pass. This is the one-shot form; the docs
+ * plugin drives incremental, disk-cached extraction through
+ * {@link createApiExtractor}.
+ */
+export function buildApi(srcDir: string): Record<string, ComponentApi[]> {
+	if (!fs.existsSync(path.join(srcDir, 'components'))) return {}
+
+	const project = openProject(srcDir)
+
+	const checker = project.getTypeChecker().compilerObject
+
+	const resolveLink = createLinkResolver(project)
+
+	const result: Record<string, ComponentApi[]> = {}
+
+	for (const { key, indexPath } of listBarrels(srcDir)) {
+		const apis = extractBarrel(project, checker, resolveLink, indexPath)
+
+		if (apis) result[key] = apis
 	}
 
 	return result
@@ -81,12 +121,25 @@ export function buildApi(srcDir: string): Record<string, ComponentApi[]> {
 
 /**
  * Open a ts-morph Project rooted at the package's `tsconfig.json` (one level
- * above `srcDir`). That config excludes `src/docs`.
+ * above `srcDir`), scoped to the documented barrels and the source files they
+ * reach. `skipAddingFilesFromTsConfig` drops the tsconfig's whole `include`
+ * glob (~1.8k files, most of them irrelevant `node_modules` typings the checker
+ * pulls in lazily anyway); adding only the barrel indices and resolving their
+ * dependencies pulls in exactly the project source the extractor and the
+ * package-wide link index read, cutting the checker's eager work roughly in
+ * half with byte-identical output.
  */
-function openProject(srcDir: string): Project {
-	return new Project({
+export function openProject(srcDir: string): Project {
+	const project = new Project({
 		tsConfigFilePath: path.resolve(srcDir, '..', 'tsconfig.json'),
+		skipAddingFilesFromTsConfig: true,
 	})
+
+	project.addSourceFilesAtPaths(listBarrels(srcDir).map((b) => b.indexPath))
+
+	project.resolveSourceFileDependencies()
+
+	return project
 }
 
 /** Assemble the `ComponentApi` for one component from the focused extractors. */
