@@ -34,7 +34,7 @@ export type FrontMatter = {
 
 const FRONT_MATTER_KEYS = ['module', 'symbols', 'usage']
 
-const USAGE_KEYS = ['complexity', 'domain', 'include', 'exclude', 'wrap', 'live']
+const USAGE_KEYS = ['complexity', 'domain', 'include', 'exclude', 'wrap']
 
 function fail(file: string, line: number, message: string): never {
 	throw new Error(`${file}:${line} ${message}`)

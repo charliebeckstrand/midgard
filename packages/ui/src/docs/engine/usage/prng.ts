@@ -17,9 +17,6 @@ export type Rng = {
 
 	/** True with probability `p` (clamped to `[0, 1]`). */
 	chance(p: number): boolean
-
-	/** Up to `n` distinct members in draw order; all of them when `n >= length`. */
-	sample<T>(items: readonly T[], n: number): T[]
 }
 
 /**
@@ -49,18 +46,6 @@ export function makeRng(seed: number): Rng {
 		int,
 		pick,
 		chance: (p) => next() < p,
-		sample<T>(items: readonly T[], n: number): T[] {
-			if (n >= items.length) return [...items]
-
-			const pool = [...items]
-
-			const out: T[] = []
-
-			for (let i = 0; i < n && pool.length > 0; i++)
-				out.push(pool.splice(int(pool.length), 1)[0] as T)
-
-			return out
-		},
 	}
 }
 

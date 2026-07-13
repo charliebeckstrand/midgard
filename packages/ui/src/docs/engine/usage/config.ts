@@ -16,9 +16,6 @@ export type UsageConfig = {
 	include: string[]
 	exclude: string[]
 	wrap: string[]
-
-	/** Author/visitor override of the kind's live-render default; `undefined` defers to the kind. */
-	live: boolean | undefined
 }
 
 /** Per-complexity synthesis knobs. */
@@ -65,7 +62,6 @@ export function resolveConfig(
 		include: author?.include ?? [],
 		exclude: author?.exclude ?? [],
 		wrap: author?.wrap ?? [],
-		live: author?.live,
 	}
 }
 

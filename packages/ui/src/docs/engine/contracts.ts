@@ -16,9 +16,6 @@ export type UsageAuthorConfig = {
 
 	/** Provider components to wrap generated usage in, e.g. `['UIProvider']`. */
 	wrap?: string[]
-
-	/** Force live rendering on or off, overriding the kind's default. */
-	live?: boolean
 }
 
 /** One documented surface: the parsed identity of a `content/**` markdown file. */
