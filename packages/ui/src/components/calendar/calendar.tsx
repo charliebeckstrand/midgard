@@ -76,7 +76,6 @@ export type CalendarProps = {
 	max?: Date
 	/** Externally-driven roving-focus cell, letting a parent (e.g. DatePicker) steer focus across the header, grid, and footer zones. */
 	active?: CalendarActive | null
-	onPickerOpenChange?: (open: boolean) => void
 	/** Per-cell decorator invoked for every day; returns selection, button variant/color, hover handlers, and classes. @see {@link CalendarDayProps} */
 	getDayProps?: (context: CalendarDayContextValue) => CalendarDayProps
 	/** Element holding the calendar's footer controls; lets roving focus extend into a parent-owned footer zone. */
@@ -137,7 +136,6 @@ export function Calendar({
 	min,
 	max,
 	active,
-	onPickerOpenChange,
 	getDayProps,
 	footerRef,
 	listboxId,
@@ -192,17 +190,9 @@ export function Calendar({
 
 	const [pickerOpen, setPickerOpen] = useState(false)
 
-	const handlePickerOpenChange = useCallback(
-		(open: boolean) => {
-			setPickerOpen(open)
-			onPickerOpenChange?.(open)
-		},
-		[onPickerOpenChange],
-	)
-
 	const openPicker = useCallback(() => {
-		handlePickerOpenChange(true)
-	}, [handlePickerOpenChange])
+		setPickerOpen(true)
+	}, [])
 
 	const isDisabled = useCallback(
 		(date: Date) => {
@@ -279,7 +269,7 @@ export function Calendar({
 					monthLabel={monthLabel}
 					monthLabels={monthLabels}
 					pickerOpen={pickerOpen}
-					onPickerOpenChange={handlePickerOpenChange}
+					onPickerOpenChange={setPickerOpen}
 					onPickerNavigate={navigateTo}
 					onPrevMonth={prevMonth}
 					onNextMonth={nextMonth}

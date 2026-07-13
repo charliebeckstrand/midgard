@@ -102,7 +102,13 @@ export function SidebarItem({
 			data-slot="sidebar-item-inner"
 			data-current={dataAttr(item.current)}
 			aria-current={item.current ? 'page' : undefined}
-			className={cn(k.item.base({ size: item.size, chrome: hasAffix ? 'row' : 'item' }), className)}
+			className={cn(
+				k.item.base({ size: item.size, chrome: hasAffix ? 'row' : 'item' }),
+				// In the mini rail this Button is the tooltip trigger; restore the nav
+				// cursor over the trigger's help-cursor default.
+				mini && '*:cursor-pointer',
+				className,
+			)}
 			onClick={item.handleClick}
 			{...props}
 		>
@@ -129,9 +135,7 @@ export function SidebarItem({
 				{mini ? (
 					// The label renders twice: visually hidden inside the rail button
 					// (keeping the accessible name) and as the tooltip surface.
-					// `*:cursor-pointer` restores nav cursor over the trigger's
-					// help-cursor default.
-					<Tooltip placement="right" className="*:cursor-pointer">
+					<Tooltip placement="right">
 						<TooltipTrigger>{inner}</TooltipTrigger>
 						<TooltipContent>{tooltip}</TooltipContent>
 					</Tooltip>

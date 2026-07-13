@@ -46,7 +46,7 @@ function assignRef<T>(ref: Ref<T> | undefined, node: T | null) {
  * content is invalid markup.
  */
 export function TooltipTrigger({ children }: TooltipTriggerProps) {
-	const { setReference, getReferenceProps, enabled, className } = useTooltipContext()
+	const { setReference, getReferenceProps, enabled } = useTooltipContext()
 
 	const child = isValidElement(children)
 		? (children as ReactElement<
@@ -73,7 +73,7 @@ export function TooltipTrigger({ children }: TooltipTriggerProps) {
 		[setReference, childRef],
 	)
 
-	const triggerClassName = cn(k.trigger, enabled && k.cursor, className)
+	const triggerClassName = cn(k.trigger, enabled && k.cursor)
 
 	if (child) {
 		return cloneElement(child, {

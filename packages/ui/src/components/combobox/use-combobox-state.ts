@@ -8,13 +8,11 @@ import { useFrozenOnClose } from '../../hooks/use-frozen-on-close'
 type ComboboxStateParams<T> = {
 	multiple: boolean
 	nullable: boolean
-	selectable: boolean
 	value: T | T[] | undefined
 	closeOnSelect?: boolean
 	open?: boolean
 	onOpenChange?: (open: boolean) => void
 	onQueryChange?: (query: string) => void
-	onValueChange?: (value: T) => void
 	setValue: (
 		value: T | T[] | undefined | ((prev: T | T[] | undefined) => T | T[] | undefined),
 	) => void
@@ -28,8 +26,7 @@ type ComboboxStateParams<T> = {
  *   setEditing, close, select, flushPending, selectionValue }`. `query` tracks
  *   every keystroke; `deferredQuery` lags for filtering but snaps to empty
  *   immediately so clearing the filter is instant. `open` is controllable via
- *   the `open` prop. `select` routes through `useSelectableValueChange` semantics:
- *   notify-only when `!selectable`, otherwise commit or toggle; closes or resets
+ *   the `open` prop. `select` commits or toggles the value, then closes or resets
  *   the query and refocuses the input depending on `closeOnSelect` (defaults to
  *   single-selection). `selectionValue`/`flushPending` come from the deferred
  *   toggle so the menu reads a value frozen until the panel finishes closing.
@@ -43,13 +40,11 @@ type ComboboxStateParams<T> = {
 export function useComboboxState<T>({
 	multiple,
 	nullable,
-	selectable,
 	value,
 	closeOnSelect,
 	open: openProp,
 	onOpenChange,
 	onQueryChange,
-	onValueChange,
 	setValue,
 	inputRef,
 }: ComboboxStateParams<T>) {
@@ -138,9 +133,7 @@ export function useComboboxState<T>({
 
 	const select = useCallback(
 		(newValue: T) => {
-			if (!selectable) {
-				onValueChange?.(newValue)
-			} else if (shouldClose) {
+			if (shouldClose) {
 				commit(newValue)
 			} else {
 				toggle(newValue)
@@ -156,7 +149,7 @@ export function useComboboxState<T>({
 				inputRef.current?.focus()
 			}
 		},
-		[selectable, shouldClose, toggle, commit, onValueChange, close, setQuery, inputRef],
+		[shouldClose, toggle, commit, close, setQuery, inputRef],
 	)
 
 	return {

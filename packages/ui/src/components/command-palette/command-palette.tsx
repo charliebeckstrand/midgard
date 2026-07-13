@@ -30,7 +30,6 @@ export type CommandPaletteProps = Pick<DialogPanelVariants, 'size'> & {
 	 * @defaultValue 'Type a command or search'
 	 */
 	placeholder?: string
-	icon?: ReactNode
 	/** Close the palette when the backdrop is clicked. @defaultValue true */
 	dismissOnBackdrop?: boolean
 	className?: string
@@ -77,7 +76,6 @@ export function CommandPalette({
 	open,
 	onOpenChange,
 	placeholder = 'Type a command or search',
-	icon,
 	dismissOnBackdrop = true,
 	size = '2xl',
 	className,
@@ -132,7 +130,7 @@ export function CommandPalette({
 					<Flex gap="sm">
 						<Input
 							ref={inputRef}
-							prefix={icon ?? <Icon icon={<Search />} />}
+							prefix={<Icon icon={<Search />} />}
 							role="combobox"
 							aria-label={placeholder}
 							aria-expanded={open}

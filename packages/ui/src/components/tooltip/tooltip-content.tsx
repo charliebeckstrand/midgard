@@ -13,11 +13,9 @@ import { useTooltipContext } from './context'
 /** Props for {@link TooltipContent}. */
 export type TooltipContentProps = {
 	/**
-	 * Size step that drives padding and text size. Overrides any `size` passed
-	 * to the parent `<Tooltip>`.
+	 * Size step that drives padding and text size.
 	 *
-	 * Resolution order: explicit prop, then `<Tooltip size>`, then enclosing
-	 * Density size, then `'md'`.
+	 * Resolution order: explicit prop, then enclosing Density size, then `'md'`.
 	 */
 	size?: Step
 	className?: string
@@ -33,19 +31,12 @@ export type TooltipContentProps = {
  * so a non-interactive panel never intercepts hover.
  */
 export function TooltipContent({ size, className, children }: TooltipContentProps) {
-	const {
-		open,
-		interactive,
-		size: rootSize,
-		setFloating,
-		floatingStyles,
-		getFloatingProps,
-	} = useTooltipContext()
+	const { open, interactive, setFloating, floatingStyles, getFloatingProps } = useTooltipContext()
 
 	const glass = useGlass()
 	const inherited = useDensity()
 
-	const resolvedSize: Step = size ?? rootSize ?? inherited.size
+	const resolvedSize: Step = size ?? inherited.size
 
 	return (
 		<FloatingSurface

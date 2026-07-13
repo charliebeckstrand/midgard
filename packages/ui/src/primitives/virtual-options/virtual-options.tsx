@@ -66,12 +66,6 @@ export type VirtualOptionsProps<T> = {
 	 */
 	estimateSize?: number
 	/**
-	 * How many rows to render outside the viewport.
-	 *
-	 * @defaultValue 10
-	 */
-	overscan?: number
-	/**
 	 * Stable id for the option at `index`, matching the `id` the rendered
 	 * option carries. Registers a keyboard-navigable item source with the
 	 * nearest roving owner (`Combobox`, `CommandPalette`), so arrow / type-ahead
@@ -86,6 +80,10 @@ export type VirtualOptionsProps<T> = {
 	/** Render function for each item, given the a11y `meta` to spread onto the rendered option. */
 	children: (item: T, index: number, meta: VirtualOptionMeta) => ReactNode
 }
+
+// Rows rendered outside the viewport on each side. Fixed for option lists,
+// whose row heights are uniform and small.
+const OVERSCAN = 10
 
 /**
  * Virtualized list for option lists inside a `PopoverPanel` (Combobox, Listbox).
@@ -110,7 +108,6 @@ export type VirtualOptionsProps<T> = {
 export function VirtualOptions<T>({
 	items,
 	estimateSize = 36,
-	overscan = 10,
 	getOptionId,
 	isDisabled,
 	getTextValue,
@@ -140,7 +137,7 @@ export function VirtualOptions<T>({
 		count: items.length,
 		getScrollElement,
 		estimateSize,
-		overscan,
+		overscan: OVERSCAN,
 	})
 
 	const source = useMemo<VirtualItemSource | null>(() => {

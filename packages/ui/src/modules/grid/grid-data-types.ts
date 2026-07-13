@@ -425,17 +425,10 @@ export type GridColumnOrder = {
 /**
  * Column-reorder config for {@link GridProps.reorder}. The boolean is the
  * shorthand — `true` turns reordering on with a leading grip on each
- * reorderable header, `false` (or omit) off. The object form keeps that toggle
- * in `enabled` and adds `handle` to choose what the user grabs.
+ * reorderable header, `false` (or omit) off. The object form is itself the
+ * opt-in (reordering on) and adds `handle` to choose what the user grabs.
  */
 export type GridReorder = {
-	/**
-	 * Whether column reordering is on. Defaults to `true` in the object form —
-	 * passing the object is itself the opt-in — so `{ handle: false }` enables
-	 * reordering with a whole-header handle.
-	 * @defaultValue true
-	 */
-	enabled?: boolean
 	/**
 	 * The drag affordance. `true` prefixes each reorderable header with a grip
 	 * button that carries the drag activator. `false` makes the *entire* header

@@ -160,7 +160,9 @@ export function SidebarContent({ route }: { route: string }) {
 						id={`${id}-search-docs`}
 						placeholder="Search docs"
 						autoComplete="off"
-						selectable={false}
+						// Controlled empty: selecting a result navigates via onValueChange
+						// without the search box retaining the picked option.
+						value=""
 						onQueryChange={() => setSearchLimit(SEARCH_PAGE_SIZE)}
 						onOpenChange={(open) => {
 							if (!open) setSearchLimit(SEARCH_PAGE_SIZE)

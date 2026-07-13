@@ -31,19 +31,6 @@ describe('SidebarLayout', () => {
 		expect(screen.getByRole('button', { name: 'Open navigation' })).toBeInTheDocument()
 	})
 
-	it('renders a custom menu icon when provided', () => {
-		renderUI(
-			<SidebarLayout
-				sidebar={<div>sidebar</div>}
-				menuIcon={<span data-testid="custom-menu">☰</span>}
-			>
-				body
-			</SidebarLayout>,
-		)
-
-		expect(screen.getByTestId('custom-menu')).toBeInTheDocument()
-	})
-
 	it('renders desktop header actions when actions are provided', () => {
 		renderUI(
 			<SidebarLayout sidebar={<div>sidebar</div>} actions={<button type="button">Save</button>}>
@@ -104,20 +91,6 @@ describe('SidebarLayout', () => {
 		const inlinePanel = container.querySelector('.w-xs')
 
 		expect(inlinePanel).toBeNull()
-	})
-
-	it('applies panelClassName to the desktop panel wrapper', () => {
-		const { container } = renderUI(
-			<SidebarLayout sidebar={<div>sidebar</div>} panelClassName="custom-panel">
-				body
-			</SidebarLayout>,
-		)
-
-		const desktopPanel = container.querySelector('.custom-panel')
-
-		expect(desktopPanel).toBeInTheDocument()
-
-		expect(desktopPanel?.className).toContain('max-lg:hidden')
 	})
 })
 

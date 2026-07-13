@@ -665,7 +665,7 @@ describe('MapPlat choropleth mode', () => {
 	})
 
 	it('lays the range bar horizontal under the { type, placement } object form', () => {
-		const { container } = renderUI(choropleth({ legend: { type: 'range', placement: 'bottom' } }))
+		const { container } = renderUI(choropleth({ legend: { placement: 'bottom' } }))
 
 		const track = bySlot(container, 'map-range-track')
 

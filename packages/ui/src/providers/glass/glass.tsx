@@ -3,7 +3,6 @@ import { GlassContext } from './context'
 
 /** Props for {@link GlassProvider}. */
 export type GlassProviderProps = {
-	className?: string
 	children: ReactNode
 }
 
@@ -12,14 +11,14 @@ export type GlassProviderProps = {
  * glass-aware descendant to its glass variant. Form fields and Button adopt
  * the glass variant when no explicit variant is set; surface chrome (Popover,
  * Dialog, etc.) reads the flag through `useGlass()`. Renders a `display:
- * contents` span unless `className` is supplied.
+ * contents` span.
  *
  * @see {@link useGlass} for reading the flag at a leaf.
  */
-export function GlassProvider({ className, children }: GlassProviderProps) {
+export function GlassProvider({ children }: GlassProviderProps) {
 	return (
 		<GlassContext value={true}>
-			<span data-slot="glass" className={className ?? 'contents'}>
+			<span data-slot="glass" className="contents">
 				{children}
 			</span>
 		</GlassContext>

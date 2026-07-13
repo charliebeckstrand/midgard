@@ -4,7 +4,6 @@ import { type DensityLevel, densityToSize, sizeToDensityLevel } from './context'
 
 type DensityProviderProps = {
 	density: DensityLevel
-	className?: string
 	children: ReactNode
 }
 
@@ -21,12 +20,12 @@ type DensityProviderProps = {
  * `<DensityProvider density="compact">` shrinks to `'sm'` without touching
  * its props.
  */
-export function DensityProvider({ density, className, children }: DensityProviderProps) {
+export function DensityProvider({ density, children }: DensityProviderProps) {
 	const step = densityToSize[density]
 
 	return (
 		<DensityPrimitive scale={step}>
-			<span data-slot="density" data-density={density} className={className ?? 'contents'}>
+			<span data-slot="density" data-density={density} className="contents">
 				{children}
 			</span>
 		</DensityPrimitive>

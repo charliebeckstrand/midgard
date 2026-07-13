@@ -105,29 +105,6 @@ describe('ChatList', () => {
 		expect(allBySlot(container, 'chat-list-item-select')[0]).toHaveProperty('tabIndex', 0)
 	})
 
-	it('chains a consumer onKeyDown without losing roving', () => {
-		const onKeyDown = vi.fn()
-
-		const { container } = renderUI(
-			<ChatList aria-label="Conversations" onKeyDown={onKeyDown}>
-				<ChatListItem title="One" current onSelect={vi.fn()} />
-				<ChatListItem title="Two" onSelect={vi.fn()} />
-			</ChatList>,
-		)
-
-		const list = present(bySlot(container, 'chat-list'), 'chat list')
-
-		const items = allBySlot(container, 'chat-list-item-select')
-
-		present(items[0], 'first item').focus()
-
-		fireEvent.keyDown(list, { key: 'ArrowDown' })
-
-		expect(items[1]).toHaveFocus()
-
-		expect(onKeyDown).toHaveBeenCalledTimes(1)
-	})
-
 	it('renders a standalone ChatListItem as a div, not a list item', () => {
 		const { container } = renderUI(<ChatListItem title="Solo" onSelect={vi.fn()} />)
 

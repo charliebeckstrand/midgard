@@ -83,17 +83,20 @@ export function Demo() {
 						<Stack gap="xl">
 							<Example title="Severity">
 								<Stack gap="lg">
-									<Field severity="error" message="Enter a valid email address.">
+									<Field severity="error">
 										<Label>Email</Label>
 										<Input defaultValue="not-an-email" />
+										<Message severity="error">Enter a valid email address.</Message>
 									</Field>
-									<Field severity="warning" message="This password is weak.">
+									<Field severity="warning">
 										<Label>Password</Label>
 										<PasswordInput defaultValue="123456" />
+										<Message severity="warning">This password is weak.</Message>
 									</Field>
-									<Field severity="success" message="Username is available.">
+									<Field severity="success">
 										<Label>Username</Label>
 										<Input defaultValue="jane" />
+										<Message severity="success">Username is available.</Message>
 									</Field>
 								</Stack>
 							</Example>
