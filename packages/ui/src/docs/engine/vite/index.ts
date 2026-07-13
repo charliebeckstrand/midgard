@@ -71,7 +71,33 @@ export function defineDocsConfig({
 					sourcemap: true,
 				}),
 		],
-		server: { port: 3456 },
+		server: {
+			port: 3456,
+			// Transform the entry graph (chrome, host, providers) on server start
+			// so the first page paints without an on-demand transform stall.
+			warmup: { clientFiles: ['./main.tsx'] },
+		},
+		// Pre-bundle the heavy component deps up front. Left to lazy discovery,
+		// Vite finds each the first time a demo importing it renders and re-runs
+		// the optimizer, which triggers a full-page reload mid-session — the same
+		// failure the vitest browser config guards against. `shiki` resolves
+		// through the alias below to the curated core shim, so declaring it here
+		// prebundles that shim (and its `shiki/core` grammars) as one entry that
+		// CodeBlock's lazy `import('shiki')` then reuses.
+		optimizeDeps: {
+			include: [
+				'@dnd-kit/core',
+				'@dnd-kit/sortable',
+				'@dnd-kit/utilities',
+				'@floating-ui/react',
+				'@tanstack/react-table',
+				'@tanstack/react-virtual',
+				'lucide-react',
+				'motion',
+				'motion/react',
+				'shiki',
+			],
+		},
 		resolve: {
 			alias: [
 				// Redirect the bare `shiki` specifier to a curated `shiki/core` build
