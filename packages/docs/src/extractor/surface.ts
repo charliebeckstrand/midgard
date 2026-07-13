@@ -2,6 +2,16 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 /**
+ * Package-relative (POSIX) source paths that are never public library source:
+ * the docs chrome and any test tree. The single owner of "what isn't real
+ * source" — the surface walk excludes these entries, and the Vite plugin uses
+ * it to decide which edits re-trigger API extraction.
+ */
+export function isExcludedSource(relPath: string): boolean {
+	return relPath.startsWith('src/docs/') || /(^|\/)__tests__(\/|$)/.test(relPath)
+}
+
+/**
  * Enumerate a package's public surface from its `package.json` `exports` map:
  * import specifier → absolute entry file. Fixed entries resolve directly;
  * wildcard entries (`./primitives/*`) enumerate matching directories on disk;
@@ -125,7 +135,7 @@ function resolveEntry(packageDir: string, target: string): string | null {
 
 	const relative = path.relative(packageDir, entry).split(path.sep).join('/')
 
-	if (relative.startsWith('src/docs/')) return null
+	if (isExcludedSource(relative)) return null
 
 	if (!fs.existsSync(entry) || !fs.statSync(entry).isFile()) return null
 

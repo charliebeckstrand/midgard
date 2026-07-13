@@ -4,6 +4,8 @@ import { type ModuleNode, type Plugin, transformWithEsbuild } from 'vite'
 import type { DocMeta } from '../engine/contracts'
 import { deriveDocMeta, type ParsedDoc, parseDoc } from '../engine/parse'
 import type { ApiExtractor } from '../extractor'
+import { isExcludedSource } from '../extractor/surface'
+import { scanMarkdown } from './scan'
 import { virtualJsonModules } from './virtual-json'
 
 /** Options for {@link docsPlugin}. */
@@ -59,11 +61,13 @@ export function docsPlugin({
 		return extractor
 	}
 
-	const isApiSource = (file: string) =>
-		apiPackageDir !== undefined &&
-		file.startsWith(`${path.join(apiPackageDir, 'src')}${path.sep}`) &&
-		!file.includes(`${path.sep}docs${path.sep}`) &&
-		!file.includes('__tests__')
+	const isApiSource = (file: string) => {
+		if (apiPackageDir === undefined) return false
+
+		const rel = path.relative(apiPackageDir, file).split(path.sep).join('/')
+
+		return rel.startsWith('src/') && !isExcludedSource(rel)
+	}
 
 	const isContentMd = (file: string) => file.startsWith(`${contentRoot}/`) && file.endsWith('.md')
 
@@ -95,21 +99,11 @@ export function docsPlugin({
 		return parsed
 	}
 
-	const scanDocs = (dir: string): string[] => {
-		if (!fs.existsSync(dir)) return []
-
-		return fs
-			.readdirSync(dir, { withFileTypes: true, recursive: true })
-			.filter((entry) => entry.isFile() && entry.name.endsWith('.md'))
-			.map((entry) => path.join(entry.parentPath, entry.name))
-			.sort()
-	}
-
 	const jsonHooks = virtualJsonModules([
 		{
 			id: MANIFEST_ID,
 			generate: (): DocMeta[] =>
-				scanDocs(contentRoot)
+				scanMarkdown(contentRoot)
 					.map((file) =>
 						deriveDocMeta(path.relative(contentRoot, file), parsedFor(file), packageName),
 					)
@@ -202,8 +196,6 @@ export function docsPlugin({
 		},
 
 		handleHotUpdate(ctx) {
-			if (isContentMd(ctx.file)) cache.delete(ctx.file)
-
 			// Narrow the re-extraction before the api cache regenerates.
 			if (isApiSource(ctx.file)) extractor?.invalidate(ctx.file)
 
@@ -212,6 +204,8 @@ export function docsPlugin({
 			const invalidated: ModuleNode[] = []
 
 			if (isContentMd(ctx.file)) {
+				cache.delete(ctx.file)
+
 				const prefix = `\0${PREVIEW_PREFIX}${docPathOf(ctx.file)}/`
 
 				for (const [id, mod] of ctx.server.moduleGraph.idToModuleMap) {

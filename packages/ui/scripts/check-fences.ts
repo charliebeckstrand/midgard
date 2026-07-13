@@ -11,8 +11,8 @@ import { fileURLToPath } from 'node:url'
 
 const appRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 
-// The parser ships in the docs package's build output; bootstrap the build
-// once when a fresh checkout hasn't produced it yet.
+// The parser and the markdown walk ship in the docs package's build output;
+// bootstrap the build once when a fresh checkout hasn't produced it yet.
 const require = createRequire(import.meta.url)
 
 const docsPackageDir = path.dirname(require.resolve('docs/package.json'))
@@ -23,6 +23,8 @@ if (!fs.existsSync(path.join(docsPackageDir, 'dist', 'engine.js'))) {
 
 const { parseDoc } = await import('docs/engine')
 
+const { scanMarkdown } = await import('docs/scan')
+
 const contentRoot = path.join(appRoot, 'src', 'docs', 'content')
 
 const outDir = path.join(appRoot, 'node_modules', '.docs-fences')
@@ -31,13 +33,7 @@ fs.rmSync(outDir, { recursive: true, force: true })
 
 fs.mkdirSync(outDir, { recursive: true })
 
-const mdFiles = fs.existsSync(contentRoot)
-	? fs
-			.readdirSync(contentRoot, { withFileTypes: true, recursive: true })
-			.filter((entry) => entry.isFile() && entry.name.endsWith('.md'))
-			.map((entry) => path.join(entry.parentPath, entry.name))
-			.sort()
-	: []
+const mdFiles = scanMarkdown(contentRoot)
 
 let count = 0
 
@@ -46,9 +42,9 @@ for (const file of mdFiles) {
 
 	const parsed = parseDoc(fs.readFileSync(file, 'utf8'), relative)
 
-	parsed.previews.forEach((fence, index) => {
-		const stem = path.relative(contentRoot, file).replace(/\.md$/, '').replaceAll(path.sep, '__')
+	const stem = path.relative(contentRoot, file).replace(/\.md$/, '').replaceAll(path.sep, '__')
 
+	parsed.previews.forEach((fence, index) => {
 		const header = `// source: ${relative}:${fence.line} (preview fence #${index})\n`
 
 		fs.writeFileSync(path.join(outDir, `${stem}__${index}.tsx`), header + fence.code)

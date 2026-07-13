@@ -9,6 +9,7 @@ export default defineConfig({
 		engine: 'src/engine/index.ts',
 		extractor: 'src/extractor/index.ts',
 		vite: 'src/vite/index.ts',
+		scan: 'src/vite/scan.ts',
 	},
 	format: ['esm'],
 	target: 'node22',

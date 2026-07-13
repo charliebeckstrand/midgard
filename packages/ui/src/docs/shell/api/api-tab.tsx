@@ -15,13 +15,10 @@ import { ComponentEntry } from './component-entry'
  *
  * `exports` arrives in barrel-declaration order; ordering is a display concern
  * settled here, mirroring how {@link ComponentEntry} sorts props and events.
- * Copies keep the sort off the source array.
+ * Copies keep the sort off the source array. The caller ({@link ApiPanel})
+ * owns the empty-surface message, so `exports` is always non-empty here.
  */
 export function ApiTab({ exports }: { exports: SymbolApi[] }) {
-	if (exports.length === 0) {
-		return <Text severity="muted">No extracted API for this page.</Text>
-	}
-
 	const components = sorted(exports.filter((e): e is ComponentApi => e.kind === 'component'))
 
 	const callables = sorted(
