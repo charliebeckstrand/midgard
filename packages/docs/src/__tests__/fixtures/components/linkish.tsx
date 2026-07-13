@@ -11,6 +11,9 @@ export type LinkishProps = BaseProps &
 
 				/** Anchor browsing-context target. */
 				target?: '_blank' | '_self'
+
+				/** Anchor arm: relation text. */
+				probe?: string
 				onPress?: never
 		  }
 		| {
@@ -18,10 +21,13 @@ export type LinkishProps = BaseProps &
 
 				/** Activation callback for the button branch. */
 				onPress?: (value: string) => void
+
+				/** Button arm: activation delay. */
+				probe?: number
 		  }
 	)
 
-/** Anchor-or-button fixture discriminated on `href`. */
+/** Anchor-or-button fixture discriminated on `href`; pairs with {@link Chip}. */
 export function Linkish({ label, href }: LinkishProps) {
 	return href === undefined ? <button type="button">{label}</button> : <a href={href}>{label}</a>
 }

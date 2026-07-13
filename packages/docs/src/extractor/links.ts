@@ -49,7 +49,11 @@ function buildIndex(program: ts.Program, checker: ts.TypeChecker): Map<string, t
 	for (const sf of program.getSourceFiles()) {
 		const file = sf.fileName
 
-		if (file.includes('/node_modules/') || file.includes('/docs/')) continue
+		// `/src/docs/`, not `/docs/`: the broad form matches every file of a
+		// package that merely lives under a `docs` directory, silently emptying
+		// the link index; the guard only means the documented package's own
+		// docs tree, mirroring the `src/docs` exclusion in `surface.ts`.
+		if (file.includes('/node_modules/') || file.includes('/src/docs/')) continue
 
 		for (const node of sf.statements) {
 			if (

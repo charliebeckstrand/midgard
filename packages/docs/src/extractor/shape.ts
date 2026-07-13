@@ -152,8 +152,9 @@ function signatureArity(signature: ts.Signature): number {
  * `ReactNode` / `ReactElement`, or the JSX namespace's `Element`. Structural
  * detection would drag the whole ReactNode union through classification for
  * no gain — the usage engine only needs the "renderable content" signal.
+ * Component classification shares it to recognize JSX-returning signatures.
  */
-function isReactNodeType(type: ts.Type): boolean {
+export function isReactNodeType(type: ts.Type): boolean {
 	const aliasName = type.aliasSymbol?.getName()
 
 	if (aliasName && REACT_NODE_NAMES.has(aliasName)) return true

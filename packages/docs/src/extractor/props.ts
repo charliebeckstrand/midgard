@@ -21,12 +21,14 @@ export type PropContext = {
 }
 
 /**
- * Resolve every project-authored prop the component accepts. `projectNames`
- * is the authoritative filter when an annotation is available; without one,
- * fall back to a per-symbol declaration-source heuristic.
+ * Resolve every project-authored prop the component accepts. `location` is
+ * the node prop types resolve against — the component's callable, or a
+ * factory component's variable declaration. `projectNames` is the
+ * authoritative filter when an annotation is available; without one, fall
+ * back to a per-symbol declaration-source heuristic.
  */
 export function extractProps(
-	callable: ts.SignatureDeclaration,
+	location: ts.Node,
 	propsType: ts.Type,
 	projectNames: ReadonlySet<string> | null,
 	context: PropContext,
@@ -35,7 +37,7 @@ export function extractProps(
 
 	for (const { name, symbol, types } of collectAllProperties(
 		propsType,
-		callable,
+		location,
 		context.checker,
 	)) {
 		if (IGNORED_PROPS.has(name) || name.startsWith('_')) continue
@@ -46,7 +48,7 @@ export function extractProps(
 			continue
 		}
 
-		props.push(buildPropDef(name, symbol, types, callable, context))
+		props.push(buildPropDef(name, symbol, types, location, context))
 	}
 
 	return props
@@ -60,7 +62,7 @@ export function extractProps(
  */
 function collectAllProperties(
 	type: ts.Type,
-	callable: ts.Node,
+	location: ts.Node,
 	checker: ts.TypeChecker,
 ): CollectedProp[] {
 	const seen = new Map<string, { symbol: ts.Symbol; types: ts.Type[] }>()
@@ -69,7 +71,7 @@ function collectAllProperties(
 		for (const sym of t.getProperties()) {
 			const name = sym.getName()
 
-			const armType = checker.getTypeOfSymbolAtLocation(sym, callable)
+			const armType = checker.getTypeOfSymbolAtLocation(sym, location)
 
 			const existing = seen.get(name)
 
@@ -100,7 +102,7 @@ function buildPropDef(
 	name: string,
 	symbol: ts.Symbol,
 	propTypes: ts.Type[],
-	callable: ts.Node,
+	location: ts.Node,
 	context: PropContext,
 ): PropDef {
 	const { checker, resolveLink } = context
@@ -111,7 +113,7 @@ function buildPropDef(
 	// useful information; an alias name plus a `View references` card only adds
 	// indirection over a handful of badges. This takes precedence over the
 	// authored alias text below.
-	const literalUnion = literalUnionType(propTypes, callable, checker)
+	const literalUnion = literalUnionType(propTypes, location, checker)
 
 	// `authoredTypeText` reads one declaration's source; for a prop collected
 	// across multiple discriminated arms, that first arm's text silently drops
@@ -122,7 +124,7 @@ function buildPropDef(
 
 	const prop: PropDef = {
 		name,
-		type: authored ?? formatPropTypes(propTypes, callable, checker),
+		type: authored ?? formatPropTypes(propTypes, location, checker),
 	}
 
 	// Shape classification targets a single, self-contained resolved type;
@@ -133,7 +135,7 @@ function buildPropDef(
 
 	// Inlined literal unions carry no named references; skip resolution so they
 	// surface no card.
-	const references = literalUnion ? undefined : extractReferences(prop.type, callable, checker)
+	const references = literalUnion ? undefined : extractReferences(prop.type, location, checker)
 
 	if (references) prop.references = references
 

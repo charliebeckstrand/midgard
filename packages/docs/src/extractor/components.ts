@@ -5,7 +5,8 @@ import { readKataDefaults } from './kata-defaults'
 import { extractPassThrough } from './passthrough'
 import { extractProjectPropNames } from './project-props'
 import { extractProps } from './props'
-import type { ComponentApi, ModuleApi, OtherApi, SymbolApi } from './schema'
+import type { ComponentApi, ModuleApi, OtherApi, PassThrough, SymbolApi } from './schema'
+import { isReactNodeType } from './shape'
 import {
 	type FunctionLikeNode,
 	getPropsAnnotation,
@@ -53,10 +54,12 @@ export function extractModule(
 
 /**
  * Route one export symbol to its API shape. PascalCase value exports that
- * resolve to a callable (unwrapping `forwardRef` / `memo`) become components;
- * every other value export — camelCase functions, hooks, constants — emits
- * `OtherApi` so nothing errors and everything renders. Callables route to
- * `OtherApi` until the callables pass lands and models their signatures.
+ * resolve to a callable — a declared function (unwrapping `forwardRef` /
+ * `memo`), or a `const X = factory(…)` whose resolved type renders like a
+ * component — become components; every other value export — camelCase
+ * functions, hooks, constants — emits `OtherApi` so nothing errors and
+ * everything renders. Callables route to `OtherApi` until the callables pass
+ * lands and models their signatures.
  */
 function classifyExport(symbol: ts.Symbol, context: ModuleContext): SymbolApi | null {
 	const name = symbol.getName()
@@ -69,6 +72,10 @@ function classifyExport(symbol: ts.Symbol, context: ModuleContext): SymbolApi | 
 		const callable = resolveCallable(target)
 
 		if (callable) return buildComponent(name, target, callable, context)
+
+		const factory = resolveFactoryComponent(target, context.checker)
+
+		if (factory) return buildFactoryComponent(name, target, factory, context)
 	}
 
 	return buildOther(name, target, context.checker)
@@ -89,32 +96,155 @@ function resolveCallable(symbol: ts.Symbol): FunctionLikeNode | null {
 	return null
 }
 
-/** Assemble the `ComponentApi` for one component from the focused extractors. */
+/** A factory-made component: the `const X = factory(…)` declaration and its resolved render signature. */
+type FactoryComponent = { declaration: ts.VariableDeclaration; signature: ts.Signature }
+
+/**
+ * The component form of a `const X = factory(…)` export whose initializer
+ * holds no inline function to unwrap: when the declaration's resolved type has
+ * a call signature that renders like a component, the export documents as a
+ * component with props read from that signature. Generalizes the
+ * `forwardRef` / `memo` unwrapping to any call-expression initializer —
+ * `createSkeleton(…)`-style factories and `memo(Identifier)` wrappers alike.
+ */
+function resolveFactoryComponent(
+	symbol: ts.Symbol,
+	checker: ts.TypeChecker,
+): FactoryComponent | null {
+	for (const decl of symbol.getDeclarations() ?? []) {
+		if (!ts.isVariableDeclaration(decl) || !decl.initializer) continue
+
+		if (!ts.isCallExpression(unwrapInitializer(decl.initializer))) continue
+
+		const type = checker.getTypeOfSymbolAtLocation(symbol, decl)
+
+		for (const signature of type.getCallSignatures()) {
+			if (isComponentSignature(signature, decl, checker)) return { declaration: decl, signature }
+		}
+	}
+
+	return null
+}
+
+/** Strip parentheses, `as` casts, and `satisfies` clauses around an initializer. */
+function unwrapInitializer(node: ts.Expression): ts.Expression {
+	let current = node
+
+	while (
+		ts.isParenthesizedExpression(current) ||
+		ts.isAsExpression(current) ||
+		ts.isSatisfiesExpression(current)
+	) {
+		current = current.expression
+	}
+
+	return current
+}
+
+/** Whether a call signature renders like a component: JSX-returning, or first parameter shaped like props. */
+function isComponentSignature(
+	signature: ts.Signature,
+	declaration: ts.VariableDeclaration,
+	checker: ts.TypeChecker,
+): boolean {
+	if (returnsJsx(signature.getReturnType())) return true
+
+	const param = signature.parameters[0]
+
+	if (!param) return false
+
+	return looksLikeProps(checker.getTypeOfSymbolAtLocation(param, declaration))
+}
+
+/** Name-based JSX detection on a return type, unrolling `ReactElement | null`-style unions. */
+function returnsJsx(type: ts.Type): boolean {
+	if (isReactNodeType(type)) return true
+
+	return type.isUnion() && type.types.some((member) => isReactNodeType(member))
+}
+
+/** An object-shaped type with named members — what a props parameter looks like. */
+function looksLikeProps(type: ts.Type): boolean {
+	if (type.isUnion() || type.isIntersection()) return type.types.some(looksLikeProps)
+
+	if (type.getCallSignatures().length > 0) return false
+
+	if (!(type.flags & ts.TypeFlags.Object)) return false
+
+	return type.getProperties().length > 0
+}
+
+/** Assemble the `ComponentApi` for a declared component from its function form. */
 function buildComponent(
 	name: string,
 	symbol: ts.Symbol,
 	callable: FunctionLikeNode,
 	context: ModuleContext,
 ): ComponentApi {
-	const { checker, resolveLink, packageDir } = context
+	const { checker } = context
 
 	const annotation = getPropsAnnotation(callable)
 
-	const propsType = resolvePropsType(callable, checker)
+	return assembleComponent(name, symbol, context, {
+		location: callable,
+		propsType: resolvePropsType(callable, checker),
+		projectNames: annotation ? extractProjectPropNames(annotation, checker) : null,
+		defaults: extractDefaults(callable),
+		passThrough: extractPassThrough(callable, annotation, checker),
+	})
+}
 
-	const passThrough = extractPassThrough(callable, annotation, checker)
+/**
+ * Assemble the `ComponentApi` for a factory-made component. With no function
+ * body or annotation to inspect, props come from the resolved call signature's
+ * first parameter; destructured defaults and pass-through detection have
+ * nothing to read, so only kata and `@defaultValue` defaults apply.
+ */
+function buildFactoryComponent(
+	name: string,
+	symbol: ts.Symbol,
+	factory: FactoryComponent,
+	context: ModuleContext,
+): ComponentApi {
+	const { checker } = context
 
-	const projectNames = annotation ? extractProjectPropNames(annotation, checker) : null
+	const param = factory.signature.parameters[0]
 
-	const defaults = extractDefaults(callable)
+	return assembleComponent(name, symbol, context, {
+		location: factory.declaration,
+		propsType: param ? checker.getTypeOfSymbolAtLocation(param, factory.declaration) : null,
+		projectNames: null,
+		defaults: new Map(),
+		passThrough: [],
+	})
+}
+
+/** The per-form inputs {@link assembleComponent} folds into one `ComponentApi`. */
+type ComponentParts = {
+	/** Node prop types resolve against — the callable, or the factory declaration. */
+	location: ts.Node
+	propsType: ts.Type | null
+	projectNames: ReadonlySet<string> | null
+	defaults: ReadonlyMap<string, string>
+	passThrough: PassThrough[]
+}
+
+/** Shared tail of component assembly: props, docs, pass-through, and kata defaults. */
+function assembleComponent(
+	name: string,
+	symbol: ts.Symbol,
+	context: ModuleContext,
+	parts: ComponentParts,
+): ComponentApi {
+	const { checker, resolveLink, packageDir } = context
 
 	const variantDefaults = readKataDefaults(packageDir, kebabCase(name))
 
-	const props = propsType
-		? extractProps(callable, propsType, projectNames, {
+	const props = parts.propsType
+		? extractProps(parts.location, parts.propsType, parts.projectNames, {
 				checker,
 				resolveLink,
-				defaults,
+				defaults: parts.defaults,
 				variantDefaults,
 			})
 		: []
@@ -130,7 +260,7 @@ function buildComponent(
 
 	if (links) api.links = links
 
-	if (passThrough.length > 0) api.passThrough = passThrough
+	if (parts.passThrough.length > 0) api.passThrough = parts.passThrough
 
 	if (Object.keys(variantDefaults).length > 0) api.variantDefaults = variantDefaults
 

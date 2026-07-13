@@ -1,0 +1,12 @@
+{
+	"name": "kata",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"exports": {
+		"./chip": {
+			"types": "./src/chip.tsx",
+			"default": "./src/chip.tsx"
+		}
+	}
+}

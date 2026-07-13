@@ -1,4 +1,6 @@
 export { Chip, type ChipProps } from './chip'
+export { Boxed, Formatter, Rule, Stamp } from './factory'
+export { Field, type FieldProps } from './field'
 export { Gallery, type GalleryProps, type GallerySize } from './gallery'
 export { Linkish, type LinkishProps } from './linkish'
 export { Merge, type MergeProps } from './merge'

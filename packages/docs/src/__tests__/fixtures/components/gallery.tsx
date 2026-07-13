@@ -31,13 +31,19 @@ export type GalleryProps = {
 	labels?: boolean
 
 	/**
+	 * Legacy tile gutter step.
+	 * @deprecated
+	 */
+	pad?: number
+
+	/**
 	 * Called with the active tile index.
 	 * @example
 	 * <Gallery items={[]} onActive={(index) => console.log(index)} />
 	 */
 	onActive?: (index: number, id?: string) => void
 
-	/** Pixel widths of each column track. */
+	/** Pixel widths of each column track; see {@link GallerySize | size steps}. */
 	widths?: number[]
 
 	/** Layout overrides for the grid container. */
