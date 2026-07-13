@@ -42,7 +42,7 @@ function FiltersClearButton() {
 	return (
 		<FiltersClear>
 			<Flex>
-				<Button variant="soft" color="red">
+				<Button variant="soft" color="danger">
 					Reset
 				</Button>
 			</Flex>

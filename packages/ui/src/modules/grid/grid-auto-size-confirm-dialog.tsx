@@ -41,7 +41,7 @@ export function GridAutoSizeConfirmDialog({
 				</Button>
 				<Button
 					type="button"
-					color="blue"
+					color="primary"
 					onClick={() => {
 						onOpenChange(false)
 

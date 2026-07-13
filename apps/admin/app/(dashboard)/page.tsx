@@ -6,7 +6,7 @@ export default function DashboardPage() {
 	return (
 		<Stack gap="md">
 			<Heading>Dashboard</Heading>
-			<Text className="text-zinc-500">Select Users from the sidebar to manage accounts.</Text>
+			<Text className="text-neutral-500">Select Users from the sidebar to manage accounts.</Text>
 		</Stack>
 	)
 }

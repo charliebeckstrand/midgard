@@ -242,7 +242,7 @@ function renderButtonVariant(props: FileUploadButtonProps, state: FileUploadRend
 					type="button"
 					size={size}
 					variant="soft"
-					color="red"
+					color="danger"
 					disabled={disabled}
 					className={cn(k.cursor)}
 					onClick={clearFiles}
@@ -328,7 +328,7 @@ function DropSelection({
 			<Button
 				type="button"
 				variant="soft"
-				color="red"
+				color="danger"
 				disabled={disabled}
 				onClick={onClear}
 				className="relative z-10"

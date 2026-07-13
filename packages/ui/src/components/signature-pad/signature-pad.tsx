@@ -161,7 +161,7 @@ export function SignaturePad({
 					<Button
 						type="button"
 						size="sm"
-						color="amber"
+						color="warning"
 						data-slot="signature-pad-clear"
 						aria-label="Clear signature"
 						onPointerDown={(event) => {

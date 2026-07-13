@@ -43,7 +43,7 @@ export type SparklineProps = AccessibleName & {
 	 * @defaultValue 'line'
 	 */
 	variant?: 'line' | 'bar'
-	/** @defaultValue 'zinc' */
+	/** @defaultValue 'neutral' */
 	color?: SparklineColor
 	/** Resolves against enclosing Density; sets the default drawing box and mark scale. */
 	size?: Step
@@ -246,7 +246,7 @@ function AnimatedSparklineMarks({
 export function Sparkline({
 	data,
 	variant = 'line',
-	color = 'zinc',
+	color = 'neutral',
 	size,
 	width,
 	height,

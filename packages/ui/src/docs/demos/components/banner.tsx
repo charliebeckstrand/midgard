@@ -5,7 +5,7 @@ import { Stack } from '../../../components/stack'
 import { capitalize, Example, VariantListbox } from '../../engine'
 
 const variants = ['solid', 'soft', 'outline', 'plain'] as const
-const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
+const colors = ['neutral', 'danger', 'warning', 'success', 'primary'] as const
 const types = ['info', 'success', 'warning', 'error'] as const
 
 function ClosableExample() {
@@ -14,7 +14,7 @@ function ClosableExample() {
 	if (!visible) {
 		return (
 			<div className="px-4">
-				<Button variant="soft" color="red" onClick={() => setVisible(true)}>
+				<Button variant="soft" color="danger" onClick={() => setVisible(true)}>
 					Reset
 				</Button>
 			</div>
@@ -81,7 +81,7 @@ export function Demo() {
 						title="New version available"
 						description="Version 2.0 has been released with new features and improvements."
 						actions={
-							<Button size="sm" color="blue">
+							<Button size="sm" color="primary">
 								Update now
 							</Button>
 						}

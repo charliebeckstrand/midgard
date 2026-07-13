@@ -18,11 +18,11 @@ function getToastMotion(position: ToastPosition) {
  * @internal
  */
 const severityAlertMap = {
-	default: { variant: 'solid', color: 'blue' },
-	secondary: { variant: 'solid', color: 'zinc' },
-	success: { variant: 'solid', color: 'green' },
-	warning: { variant: 'solid', color: 'amber' },
-	error: { variant: 'solid', color: 'red' },
+	default: { variant: 'solid', color: 'primary' },
+	secondary: { variant: 'solid', color: 'neutral' },
+	success: { variant: 'solid', color: 'success' },
+	warning: { variant: 'solid', color: 'warning' },
+	error: { variant: 'solid', color: 'danger' },
 } satisfies Record<
 	NonNullable<ToastSeverity>,
 	{ variant: NonNullable<AlertVariants['variant']>; color: NonNullable<AlertVariants['color']> }

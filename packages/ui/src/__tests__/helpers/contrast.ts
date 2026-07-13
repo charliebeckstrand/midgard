@@ -2,7 +2,10 @@
  * WCAG contrast helpers for the colour ramp guard.
  *
  * Reads Tailwind's `theme.css` at test time and converts each `oklch(…)` token
- * to a relative luminance. Translucent washes (the 15% soft fill) are
+ * to a relative luminance. The library's own `src/theme.css` role aliases
+ * (`--color-primary-600: var(--color-blue-600)` and the per-role `-fg`
+ * foregrounds) are resolved on top, so a guard measures the default token
+ * theme exactly as it ships. Translucent washes (the 15% soft fill) are
  * composited in sRGB space, mirroring how a browser (and axe) flattens a
  * semi-transparent layer; the contrast ratio is then computed in
  * linear-luminance space (WCAG 1.4.3).
@@ -32,6 +35,44 @@ const THEME: Map<string, string> = (() => {
 
 	return map
 })()
+
+/**
+ * Role token → aliased token (`primary-600` → `blue-600`, `warning-fg` →
+ * `warning-950`), lifted from the library's `src/theme.css` seam.
+ */
+const ALIAS: Map<string, string> = (() => {
+	// Self-referencing specifier: resolves through the package's own exports
+	// map, staying valid under vitest's `vmThreads` pool where
+	// `import.meta.url` is not a `file:` URL.
+	const css = readFileSync(require.resolve('ui/theme.css'), 'utf8')
+
+	const map = new Map<string, string>()
+
+	for (const [, token, target] of css.matchAll(
+		/--color-([a-z]+-(?:\d{2,3}|fg)):\s*var\(--color-([a-z]+(?:-\d{2,3})?)\)/g,
+	)) {
+		if (token === undefined || target === undefined) continue
+
+		map.set(token, target)
+	}
+
+	return map
+})()
+
+/** Follow the theme.css alias chain until a Tailwind token / `white` / `black` remains. */
+function resolveAlias(token: string): string {
+	let current = token
+
+	for (let hops = 0; hops < 8; hops++) {
+		const next = ALIAS.get(current)
+
+		if (next === undefined) return current
+
+		current = next
+	}
+
+	throw new Error(`circular theme alias: ${token}`)
+}
 
 const WHITE: RGB = [1, 1, 1]
 const BLACK: RGB = [0, 0, 0]
@@ -82,14 +123,18 @@ const decode = (c: number): number => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) /
 
 const luminance = ([r, g, b]: RGB): number => 0.2126 * r + 0.7152 * g + 0.0722 * b
 
-const SHADE = /(zinc|red|amber|green|blue|rose|violet|sky)-(\d{2,3})(?:\/(\d{1,3}))?/
+const SHADE =
+	/(zinc|red|amber|green|blue|rose|violet|sky|neutral|danger|warning|success|primary)-(\d{2,3}|fg)(?:\/(\d{1,3}))?/
 
 /** Pull the colour token (and any `/alpha`) out of a Tailwind class, ignoring its utility + state prefixes. */
 function tokenOf(cls: string): { token: string; alpha: number } {
 	const shade = SHADE.exec(cls)
 
 	if (shade)
-		return { token: `${shade[1]}-${shade[2]}`, alpha: shade[3] ? Number(shade[3]) / 100 : 1 }
+		return {
+			token: resolveAlias(`${shade[1]}-${shade[2]}`),
+			alpha: shade[3] ? Number(shade[3]) / 100 : 1,
+		}
 
 	if (/\bwhite\b/.test(cls)) return { token: 'white', alpha: 1 }
 	if (/\bblack\b/.test(cls)) return { token: 'black', alpha: 1 }
@@ -104,7 +149,7 @@ function tokenOf(cls: string): { token: string; alpha: number } {
  * shared `contrast` utility.
  */
 export function themeColor(token: string): string {
-	const oklch = THEME.get(token)
+	const oklch = THEME.get(resolveAlias(token))
 
 	if (!oklch) throw new Error(`unknown colour token: ${token}`)
 

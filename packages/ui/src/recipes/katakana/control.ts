@@ -101,7 +101,7 @@ export function check<
 		{
 			config: {
 				base: t.check.base,
-				defaults: { color: 'zinc', size: 'md' },
+				defaults: { color: 'neutral', size: 'md' },
 			},
 			extras: {
 				/** Visually-hidden native `<input>` overlaying the custom check surface. */

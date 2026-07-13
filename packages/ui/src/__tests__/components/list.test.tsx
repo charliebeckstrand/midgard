@@ -126,11 +126,11 @@ describe('ListItem', () => {
 
 		const cls = bySlot(container, 'list-item-content')?.className ?? ''
 
-		expect(cls).toMatch(/(^|\s)text-zinc-500(\s|$)/)
+		expect(cls).toMatch(/(^|\s)text-neutral-500(\s|$)/)
 
-		expect(cls).toMatch(/(^|\s)dark:text-zinc-400(\s|$)/)
+		expect(cls).toMatch(/(^|\s)dark:text-neutral-400(\s|$)/)
 
-		expect(cls).toContain('hover:not-disabled:text-zinc-950')
+		expect(cls).toContain('hover:not-disabled:text-neutral-950')
 
 		expect(cls).toContain('dark:hover:not-disabled:text-white')
 	})
@@ -144,9 +144,9 @@ describe('ListItem', () => {
 
 		const cls = bySlot(container, 'list-item-content')?.className ?? ''
 
-		expect(cls).not.toContain('text-zinc-500')
+		expect(cls).not.toContain('text-neutral-500')
 
-		expect(cls).not.toContain('hover:not-disabled:text-zinc-950')
+		expect(cls).not.toContain('hover:not-disabled:text-neutral-950')
 	})
 
 	it('forwards HTML attributes to the content element', () => {

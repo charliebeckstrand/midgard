@@ -72,7 +72,7 @@ export function CopyButton({
 		<ToggleIconButton
 			{...props}
 			pressed={copied}
-			color={copied ? 'green' : undefined}
+			color={copied ? 'success' : undefined}
 			icon={icon ?? <Clipboard />}
 			pressedIcon={<Check />}
 			size={size}

@@ -4,4 +4,6 @@
    same computed colours the app ships. `@source` is relative to this file —
    `../../../` resolves to `src/`. */
 @import 'tailwindcss';
+/* The token seam: role ramps + the class-driven `dark` variant. */
+@import '../../../theme.css';
 @source '../../../';

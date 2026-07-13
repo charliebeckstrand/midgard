@@ -9,7 +9,7 @@ const variants = ['solid', 'soft', 'outline', 'plain', 'bare'] as const
 
 type Variant = (typeof variants)[number]
 
-const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
+const colors = ['neutral', 'danger', 'warning', 'success', 'primary'] as const
 
 // Button opts into the wide palette (`iro.extendedPalette`); these are available
 // on top of the standard set above.

@@ -2,7 +2,7 @@ import { Checkbox, CheckboxField, CheckboxGroup } from '../../../components/chec
 import { Description, Label } from '../../../components/fieldset'
 import { Example } from '../../engine'
 
-const colors = ['blue', 'green', 'red'] as const
+const colors = ['primary', 'success', 'danger'] as const
 
 export function Demo() {
 	return (

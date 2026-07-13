@@ -22,7 +22,7 @@ export type ProgressGaugeProps = AccessibleName &
 		value?: number
 		/** @defaultValue 100 */
 		max?: number
-		/** @defaultValue 'zinc' */
+		/** @defaultValue 'neutral' */
 		color?: ProgressColor
 		/** Center label; pass `true` to render the rounded percentage, or a node for custom content. */
 		label?: ReactNode | boolean
@@ -49,7 +49,7 @@ export function ProgressGauge({
 	value = 0,
 	max = 100,
 	size,
-	color = 'zinc',
+	color = 'neutral',
 	label,
 	strokeWidth = 3.5,
 	className,

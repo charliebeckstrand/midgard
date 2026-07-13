@@ -23,7 +23,7 @@ export function Demo() {
 	return (
 		<>
 			<Example title="Dialog">
-				<Button color="green" onClick={() => setOpen(true)}>
+				<Button color="success" onClick={() => setOpen(true)}>
 					Create project
 				</Button>
 				<Dialog open={open} onOpenChange={setOpen}>
@@ -47,7 +47,7 @@ export function Demo() {
 						<Button variant="plain" onClick={() => setOpen(false)}>
 							Cancel
 						</Button>
-						<Button color="green" onClick={() => setOpen(false)}>
+						<Button color="success" onClick={() => setOpen(false)}>
 							Create project
 						</Button>
 					</DialogFooter>

@@ -2,7 +2,7 @@
  * Text kata: recipe-shaped surface for `<Text>` with two independent colour
  * axes plus a type scale. `severity` pulls the semantic `iro.text` tokens
  * (default / primary / success / warning / error / muted) and is the
- * meaning-bearing axis; `color` is a separate literal-hue override authored
+ * meaning-bearing axis; `color` is a separate palette-role override authored
  * inline with `mode()`. A consumer sets one or the other — severity for status,
  * color for a bespoke tint. `size` steps the type scale (`sm`/`md`/`lg` →
  * `text-sm`/`text-base`/`text-lg`); it has no default, so an unset size leaves
@@ -25,11 +25,11 @@ export const k = defineRecipe({
 	},
 	color: {
 		current: mode('text-current', 'dark:text-current'),
-		zinc: mode('text-zinc-600', 'dark:text-zinc-400'),
-		red: mode('text-red-600', 'dark:text-red-500'),
-		amber: mode('text-amber-500', 'dark:text-amber-400'),
-		green: mode('text-green-600', 'dark:text-green-500'),
-		blue: mode('text-blue-600', 'dark:text-blue-500'),
+		neutral: mode('text-neutral-600', 'dark:text-neutral-400'),
+		danger: mode('text-danger-600', 'dark:text-danger-500'),
+		warning: mode('text-warning-500', 'dark:text-warning-400'),
+		success: mode('text-success-600', 'dark:text-success-500'),
+		primary: mode('text-primary-600', 'dark:text-primary-500'),
 	},
 	size: {
 		sm: size.sm,

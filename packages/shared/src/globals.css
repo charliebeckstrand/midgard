@@ -1,7 +1,9 @@
 @import './theme.css';
 @import './fonts.css';
 
-@variant dark (@media (prefers-color-scheme: dark));
+/* The `dark` variant is class-driven, defined once in `ui/theme.css` and
+   toggled by ThemeProvider / ThemeScript; the media-query variant that
+   lived here would shadow it and freeze the app on the OS preference. */
 
 :root {
     height: 100%;

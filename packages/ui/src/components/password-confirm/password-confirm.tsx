@@ -70,7 +70,7 @@ export function PasswordConfirm({
 				<div className="space-y-4">{children}</div>
 				{status === 'warning' && warning && !confirmHasFormError && (
 					<div {...liveWarning} id={warningId}>
-						<Text color="amber">{warning}</Text>
+						<Text color="warning">{warning}</Text>
 					</div>
 				)}
 			</div>

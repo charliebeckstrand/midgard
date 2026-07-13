@@ -7,7 +7,8 @@ const { radius } = kasane
 const { checkbox } = kokkaku
 
 const color = defineColors({
-	zinc: '[--check-mark:var(--color-white)] [--check-bg:var(--color-zinc-600)] [--check-border:var(--color-zinc-700)]/90',
+	neutral:
+		'[--check-mark:var(--color-white)] [--check-bg:var(--color-neutral-600)] [--check-border:var(--color-neutral-700)]/90',
 	...control.check.color,
 })
 

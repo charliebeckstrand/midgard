@@ -53,14 +53,14 @@ describe('Grid column groups', () => {
 
 	it('underlines a colored group’s band in its color', () => {
 		const colored: GridColumnGroup[] = [
-			{ id: 'name', title: 'Name', color: 'blue', columns: ['first', 'last'] },
+			{ id: 'name', title: 'Name', color: 'primary', columns: ['first', 'last'] },
 		]
 
 		const { container } = renderUI(
 			<Grid columns={columns} rows={rows} getKey={getKey} groups={colored} />,
 		)
 
-		expect(bandRule(container)?.className).toContain('bg-blue-600')
+		expect(bandRule(container)?.className).toContain('bg-primary-600')
 	})
 
 	it('draws a neutral band underline for a colorless group', () => {
@@ -76,7 +76,7 @@ describe('Grid column groups', () => {
 
 		expect(rule?.className).toContain('bg-zinc-950/10')
 
-		expect(rule?.className).not.toContain('bg-blue-600')
+		expect(rule?.className).not.toContain('bg-primary-600')
 	})
 
 	it('keeps grouped columns contiguous despite declaration order', () => {
@@ -153,7 +153,7 @@ describe('Grid column groups', () => {
 	})
 
 	const colored: GridColumnGroup[] = [
-		{ id: 'name', title: 'Name', color: 'blue', columns: ['first', 'last'] },
+		{ id: 'name', title: 'Name', color: 'primary', columns: ['first', 'last'] },
 	]
 
 	it('offers Manage columns then Clear color (in that order) on a colored band', () => {
@@ -175,7 +175,7 @@ describe('Grid column groups', () => {
 			<Grid columns={columns} rows={rows} getKey={getKey} groups={colored} />,
 		)
 
-		expect(bandRule(container)?.className).toContain('bg-blue-600')
+		expect(bandRule(container)?.className).toContain('bg-primary-600')
 
 		fireEvent.contextMenu(bandCell(container) as HTMLTableCellElement)
 
@@ -184,7 +184,7 @@ describe('Grid column groups', () => {
 		// The color is gone but the underline stays — now a neutral grey.
 		const rule = bandRule(container)
 
-		expect(rule?.className).not.toContain('bg-blue-600')
+		expect(rule?.className).not.toContain('bg-primary-600')
 
 		expect(rule?.className).toContain('bg-zinc-950/10')
 	})

@@ -48,7 +48,7 @@ export const k = {
 		base: [flex.inline, 'gap-1', size.sm],
 		icon: {
 			base: 'size-4 shrink-0',
-			pass: palette.bare.text.green,
+			pass: palette.bare.text.success,
 			fail: text.muted,
 		},
 		text: {

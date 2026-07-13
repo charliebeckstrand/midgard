@@ -1,5 +1,8 @@
 @import 'tailwindcss';
 @import 'shared/globals.css';
+/* The ui token seam: role ramps + the class-driven `dark` variant
+   (managed by ThemeProvider / ThemeScript in the root layout). */
+@import 'ui/theme.css';
 
 @source './';
 @source '../../../packages/shared/src';

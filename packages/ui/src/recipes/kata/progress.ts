@@ -19,43 +19,43 @@ const { flex } = narabi
  * track, `bg` on the central label); `bar.fill` uses the `bg` slice.
  */
 const color = {
-	zinc: {
-		fill: mode('fill-zinc-600', 'dark:fill-zinc-400'),
-		bg: mode('bg-zinc-600', 'dark:bg-zinc-400'),
-		stroke: mode('stroke-zinc-600', 'dark:stroke-zinc-400'),
+	neutral: {
+		fill: mode('fill-neutral-600', 'dark:fill-neutral-400'),
+		bg: mode('bg-neutral-600', 'dark:bg-neutral-400'),
+		stroke: mode('stroke-neutral-600', 'dark:stroke-neutral-400'),
 	},
-	red: {
-		fill: mode('fill-red-600', 'dark:fill-red-500'),
-		bg: mode('bg-red-600', 'dark:bg-red-500'),
-		stroke: mode('stroke-red-600', 'dark:stroke-red-500'),
+	danger: {
+		fill: mode('fill-danger-600', 'dark:fill-danger-500'),
+		bg: mode('bg-danger-600', 'dark:bg-danger-500'),
+		stroke: mode('stroke-danger-600', 'dark:stroke-danger-500'),
 	},
-	amber: {
-		fill: mode('fill-amber-600', 'dark:fill-amber-500'),
-		bg: mode('bg-amber-600', 'dark:bg-amber-500'),
-		stroke: mode('stroke-amber-600', 'dark:stroke-amber-500'),
+	warning: {
+		fill: mode('fill-warning-600', 'dark:fill-warning-500'),
+		bg: mode('bg-warning-600', 'dark:bg-warning-500'),
+		stroke: mode('stroke-warning-600', 'dark:stroke-warning-500'),
 	},
-	green: {
-		fill: mode('fill-green-600', 'dark:fill-green-500'),
-		bg: mode('bg-green-600', 'dark:bg-green-500'),
-		stroke: mode('stroke-green-600', 'dark:stroke-green-500'),
+	success: {
+		fill: mode('fill-success-600', 'dark:fill-success-500'),
+		bg: mode('bg-success-600', 'dark:bg-success-500'),
+		stroke: mode('stroke-success-600', 'dark:stroke-success-500'),
 	},
-	blue: {
-		fill: mode('fill-blue-600', 'dark:fill-blue-500'),
-		bg: mode('bg-blue-600', 'dark:bg-blue-500'),
-		stroke: mode('stroke-blue-600', 'dark:stroke-blue-500'),
+	primary: {
+		fill: mode('fill-primary-600', 'dark:fill-primary-500'),
+		bg: mode('bg-primary-600', 'dark:bg-primary-500'),
+		stroke: mode('stroke-primary-600', 'dark:stroke-primary-500'),
 	},
 }
 
 const fill = defineRecipe({
 	base: ['h-full', rounded.full],
 	color: {
-		zinc: color.zinc.bg,
-		red: color.red.bg,
-		amber: color.amber.bg,
-		green: color.green.bg,
-		blue: color.blue.bg,
+		neutral: color.neutral.bg,
+		danger: color.danger.bg,
+		warning: color.warning.bg,
+		success: color.success.bg,
+		primary: color.primary.bg,
 	},
-	defaults: { color: 'zinc' },
+	defaults: { color: 'neutral' },
 })
 
 const root = defineRecipe({
@@ -82,7 +82,7 @@ const label = defineRecipe({
 
 export const k = defineRecipe(
 	{
-		base: ['overflow-hidden', rounded.full, ...mode('bg-zinc-200', 'dark:bg-zinc-800')],
+		base: ['overflow-hidden', rounded.full, ...mode('bg-neutral-200', 'dark:bg-neutral-800')],
 		size: {
 			sm: 'h-2',
 			md: 'h-3',
@@ -100,7 +100,7 @@ export const k = defineRecipe(
 		gauge: {
 			root,
 			label,
-			track: mode('stroke-zinc-200', 'dark:stroke-zinc-700'),
+			track: mode('stroke-neutral-200', 'dark:stroke-neutral-700'),
 		},
 	},
 )

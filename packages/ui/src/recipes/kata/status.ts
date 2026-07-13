@@ -13,11 +13,11 @@ const { css } = ugoki
 
 /** Each status's `iro.marker` currentColor shade, fed to Swatch's `color`. */
 export const statusColor = {
-	inactive: marker.zinc,
-	active: marker.green,
-	info: marker.blue,
-	warning: marker.amber,
-	error: marker.red,
+	inactive: marker.neutral,
+	active: marker.success,
+	info: marker.primary,
+	warning: marker.warning,
+	error: marker.danger,
 } as const
 
 /** The pulse animation, applied when `pulse` is set. */

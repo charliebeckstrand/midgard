@@ -74,7 +74,7 @@ export const k = defineRecipe({
 		],
 	},
 	color,
-	defaults: { size: 'md', color: 'blue' },
+	defaults: { size: 'md', color: 'primary' },
 	skeleton: kokkaku.slider,
 })
 

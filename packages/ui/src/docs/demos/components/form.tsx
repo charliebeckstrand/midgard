@@ -17,7 +17,7 @@ import { Example } from '../../engine'
 
 function ResetButton() {
 	return (
-		<Button type="reset" variant="soft" color="red">
+		<Button type="reset" variant="soft" color="danger">
 			Reset
 		</Button>
 	)
@@ -30,10 +30,10 @@ function StatusDisplay() {
 
 	return (
 		<Flex gap="sm" align="start">
-			<Badge variant="outline" color={form.dirty ? 'amber' : 'green'}>
+			<Badge variant="outline" color={form.dirty ? 'warning' : 'success'}>
 				dirty: {form.dirty ? 'yes' : 'no'}
 			</Badge>
-			<Badge variant="outline" color={form.valid ? 'green' : 'red'}>
+			<Badge variant="outline" color={form.valid ? 'success' : 'danger'}>
 				valid: {form.valid ? 'yes' : 'no'}
 			</Badge>
 		</Flex>
@@ -72,7 +72,7 @@ function DefaultExample() {
 						<NumberInput name="age" min={0} max={150} />
 					</Field>
 					<Flex gap="sm">
-						<Button type="submit" color="blue">
+						<Button type="submit" color="primary">
 							Submit
 						</Button>
 						{result && <ResetButton />}
@@ -130,7 +130,7 @@ function ValidationExample() {
 						<Message name="confirmPassword" />
 					</Field>
 					<Flex gap="sm">
-						<Button type="submit" color="green">
+						<Button type="submit" color="success">
 							Create account
 						</Button>
 						{result && <ResetButton />}
@@ -175,7 +175,7 @@ function DirtyTouchedExample() {
 					</Field>
 
 					<Flex gap="sm">
-						<Button type="submit" color="blue">
+						<Button type="submit" color="primary">
 							Save
 						</Button>
 						{result && <ResetButton />}
@@ -212,7 +212,7 @@ function ServerErrorExample() {
 					<Input name="username" placeholder="Pick a username" loading={loading} />
 					<Message name="username" />
 				</Field>
-				<Button type="submit" color="green">
+				<Button type="submit" color="success">
 					Register
 				</Button>
 			</Stack>
@@ -238,7 +238,7 @@ function ControlledValuesExample() {
 	return (
 		<Stack gap="lg">
 			{user ? (
-				<Button variant="soft" color="red" onClick={() => setUser(undefined)}>
+				<Button variant="soft" color="danger" onClick={() => setUser(undefined)}>
 					Reset
 				</Button>
 			) : (
@@ -291,7 +291,7 @@ function OnSettledExample() {
 						<Input name="email" type="email" placeholder="you@example.com" />
 					</Field>
 					<Flex gap="sm">
-						<Button type="submit" color="blue">
+						<Button type="submit" color="primary">
 							Save
 						</Button>
 						{outcome && <ResetButton />}
@@ -299,7 +299,7 @@ function OnSettledExample() {
 				</Stack>
 			</Form>
 			{outcome && (
-				<Badge color={outcome.ok ? 'green' : 'red'}>
+				<Badge color={outcome.ok ? 'success' : 'danger'}>
 					{outcome.ok
 						? `ok · submitted ${JSON.stringify(outcome.values)}`
 						: `failed · ${outcome.error.message}`}
@@ -341,11 +341,11 @@ function OptInExample() {
 						</CheckboxField>
 					</Control>
 					<Flex gap="sm">
-						<Button type="submit" color="blue">
+						<Button type="submit" color="primary">
 							Submit
 						</Button>
 						{result && (
-							<Button type="reset" variant="soft" color="red">
+							<Button type="reset" variant="soft" color="danger">
 								Reset
 							</Button>
 						)}

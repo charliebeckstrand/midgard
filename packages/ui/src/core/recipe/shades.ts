@@ -8,8 +8,8 @@
  *
  * @example
  *   const text = shades({
- *     zinc:  ['text-zinc-700', 'dark:text-zinc-400'],
- *     amber: 'text-amber-700',
+ *     neutral: ['text-neutral-700', 'dark:text-neutral-400'],
+ *     warning: 'text-warning-700',
  *   })
  */
 

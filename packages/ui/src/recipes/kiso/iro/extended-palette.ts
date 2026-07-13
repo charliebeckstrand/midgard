@@ -1,15 +1,17 @@
 /**
  * Iro extended palette: the opt-in **wide palette**. Mirrors `iro.palette`'s
  * shape (solid / soft / outline / plain / bare) but keyed by
- * {@link PaletteColor} — every standard colour plus the extended set
+ * {@link PaletteColor} — every standard role plus the extended set
  * (rose / violet / sky). A kata reading this bundle instead of `iro.palette`
  * offers the broader `color` axis; the standard palette and the components
  * that read it are untouched.
  *
- * The extended hues' foreground roles (`onSurface`, `onTint`) are authored
- * color-major below alongside the standard ramp — same policy, same
+ * The extended hues stay literal Tailwind classes rather than token ramps:
+ * they are decorative accents, not brand roles, and sit outside the
+ * `src/theme.css` seam. Their foreground roles (`onSurface`, `onTint`) are
+ * authored color-major below alongside the standard ramp — same policy, same
  * `contrast.test.ts` guard. The solid / soft / outline / plain / bare fill and
- * border shades are the declared surface tables, keyed by every standard colour
+ * border shades are the declared surface tables, keyed by every standard role
  * plus the extended set; solid fills carry white text at a shade that clears
  * text AA on the fill.
  *

@@ -159,7 +159,7 @@ export function ChatPrompt({
 							<Button
 								type="button"
 								size="sm"
-								color="blue"
+								color="primary"
 								aria-label="Stop generating"
 								onClick={() => onStop?.()}
 							>
@@ -169,7 +169,7 @@ export function ChatPrompt({
 							<Button
 								type="button"
 								size="sm"
-								color="blue"
+								color="primary"
 								aria-label="Send message"
 								disabled={!canSubmit}
 								onClick={() => canSubmit && onSubmit()}

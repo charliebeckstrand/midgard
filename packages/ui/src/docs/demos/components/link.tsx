@@ -12,7 +12,7 @@ export function Demo() {
 			<Example title="Inline with text">
 				<Text>
 					For more information, see the{' '}
-					<Link href="#link" color="blue">
+					<Link href="#link" color="primary">
 						getting started guide
 					</Link>
 					.

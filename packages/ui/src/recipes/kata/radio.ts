@@ -7,10 +7,10 @@ const { rounded } = kasane
 const { radio } = kokkaku
 
 const color = defineColors({
-	zinc: {
+	neutral: {
 		light:
-			'[--check-bg:var(--color-zinc-900)] [--check-border:var(--color-zinc-950)]/90 [--check-mark:var(--color-white)]',
-		dark: 'dark:[--check-bg:var(--color-zinc-600)] dark:[--check-border:var(--color-zinc-700)]/90',
+			'[--check-bg:var(--color-neutral-900)] [--check-border:var(--color-neutral-950)]/90 [--check-mark:var(--color-white)]',
+		dark: 'dark:[--check-bg:var(--color-neutral-600)] dark:[--check-border:var(--color-neutral-700)]/90',
 	},
 	...control.check.color,
 })

@@ -21,7 +21,7 @@ export type ProgressBarProps = AccessibleName & {
 	/** @defaultValue 100 */
 	max?: number
 	size?: Step
-	/** @defaultValue 'zinc' */
+	/** @defaultValue 'neutral' */
 	color?: ProgressColor
 	className?: string
 }

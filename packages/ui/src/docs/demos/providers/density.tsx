@@ -59,7 +59,7 @@ function ResetButton() {
 
 	return (
 		<FiltersClear>
-			<Button variant="soft" color="red">
+			<Button variant="soft" color="danger">
 				Reset
 			</Button>
 		</FiltersClear>
@@ -163,14 +163,14 @@ export function Demo() {
 														<Flex justify="end">
 															<Button
 																aria-label={`Edit order ${order.id}`}
-																color="blue"
+																color="primary"
 																variant="bare"
 															>
 																<Icon icon={<Pencil />} />
 															</Button>
 															<Button
 																aria-label={`Delete order ${order.id}`}
-																color="red"
+																color="danger"
 																variant="bare"
 															>
 																<Icon icon={<Trash />} />

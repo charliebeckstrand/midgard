@@ -6,9 +6,10 @@
  * per palette variant; this barrel assembles the named bundle that every
  * kata reads.
  *
- * `palette` is the standard five-colour set (zinc / red / amber / green /
- * blue). `extendedPalette` is the opt-in wide palette — the same shape keyed
- * by every standard colour plus the extended set (rose / violet / sky); a
+ * `palette` is the standard five-role set (neutral / danger / warning /
+ * success / primary), resolved through the token ramps in `src/theme.css`.
+ * `extendedPalette` is the opt-in wide palette — the same shape keyed by
+ * every standard role plus the extended accent set (rose / violet / sky); a
  * kata reads it in place of `palette` to offer the broader `color` axis.
  *
  * Surfaces live in `omote`. Interaction-state text colours live in

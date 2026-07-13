@@ -147,7 +147,7 @@ export function Demo() {
 	return (
 		<Example title="Default">
 			<Button
-				color="blue"
+				color="primary"
 				variant="soft"
 				suffix={<Kbd command>K</Kbd>}
 				onClick={() => setOpen(true)}

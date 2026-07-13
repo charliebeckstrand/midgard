@@ -17,7 +17,7 @@ import { contrastOf, SURFACE, tinted } from '../helpers/contrast'
  * Floors: 4.5:1 for text (WCAG 1.4.3), 3:1 for the graphical marker (1.4.11).
  */
 
-const COLORS = ['zinc', 'red', 'amber', 'green', 'blue'] as const
+const COLORS = ['neutral', 'danger', 'warning', 'success', 'primary'] as const
 
 const TEXT_AA = 4.5
 

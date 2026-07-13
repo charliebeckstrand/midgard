@@ -72,9 +72,9 @@ export const k = {
 		grid: pickerGrid,
 		cellCurrent: [
 			weight.semibold,
-			palette.soft.bg.blue,
-			palette.soft.text.blue,
-			palette.soft.hover.blue,
+			palette.soft.bg.primary,
+			palette.soft.text.primary,
+			palette.soft.hover.primary,
 		],
 	},
 	weekday,

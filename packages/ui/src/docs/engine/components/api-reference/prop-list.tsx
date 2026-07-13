@@ -51,7 +51,7 @@ function PropRow({ prop }: { prop: PropDef }) {
 				{deprecated && (
 					<Tooltip>
 						<TooltipTrigger>
-							<Badge color="red" variant="soft" size="sm">
+							<Badge color="danger" variant="soft" size="sm">
 								deprecated
 							</Badge>
 						</TooltipTrigger>

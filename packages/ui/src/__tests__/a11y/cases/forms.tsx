@@ -18,7 +18,7 @@ export const formCases: readonly Case[] = [
 				<Label>Email</Label>
 				<Input name="email" type="email" placeholder="you@example.com" />
 			</Field>
-			<Button type="submit" color="blue">
+			<Button type="submit" color="primary">
 				Submit
 			</Button>
 		</Form>,

@@ -1,5 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { ThemeProvider } from '../../providers/theme'
 import { App } from './app'
 import { type DemoLoaders, initRegistry } from './registry'
 
@@ -34,7 +35,9 @@ export function mount(loaders: DemoLoaders, rootEl?: HTMLElement | null) {
 		.then(() => {
 			createRoot(root).render(
 				<StrictMode>
-					<App />
+					<ThemeProvider>
+						<App />
+					</ThemeProvider>
 				</StrictMode>,
 			)
 		})

@@ -11,7 +11,7 @@ function BasicExample() {
 	const { toast } = useToast()
 
 	return (
-		<Button color="blue" onClick={() => toast({ title: 'Event created' })}>
+		<Button color="primary" onClick={() => toast({ title: 'Event created' })}>
 			Show toast
 		</Button>
 	)
@@ -22,7 +22,7 @@ function SeverityExample() {
 
 	return (
 		<Flex wrap gap="sm">
-			<Button color="blue" onClick={() => toast({ title: 'Event created' })}>
+			<Button color="primary" onClick={() => toast({ title: 'Event created' })}>
 				Default
 			</Button>
 			<Button
@@ -37,7 +37,7 @@ function SeverityExample() {
 				Secondary
 			</Button>
 			<Button
-				color="green"
+				color="success"
 				onClick={() =>
 					toast({
 						title: 'Saved',
@@ -49,7 +49,7 @@ function SeverityExample() {
 				Success
 			</Button>
 			<Button
-				color="amber"
+				color="warning"
 				onClick={() =>
 					toast({ title: 'Warning', description: 'Storage is almost full.', severity: 'warning' })
 				}
@@ -57,7 +57,7 @@ function SeverityExample() {
 				Warning
 			</Button>
 			<Button
-				color="red"
+				color="danger"
 				onClick={() =>
 					toast({ title: 'Error', description: 'Something went wrong.', severity: 'error' })
 				}
@@ -73,7 +73,7 @@ function PersistExample() {
 
 	return (
 		<Button
-			color="blue"
+			color="primary"
 			onClick={() =>
 				toast({
 					title: 'Attention:',
@@ -106,7 +106,7 @@ function ActionsExample() {
 			severity: 'success',
 			duration: 7000,
 			actions: (
-				<Button color="amber" onClick={handleUndo}>
+				<Button color="warning" onClick={handleUndo}>
 					Undo
 				</Button>
 			),
@@ -114,7 +114,7 @@ function ActionsExample() {
 	}
 
 	return (
-		<Button color="green" onClick={handleClick}>
+		<Button color="success" onClick={handleClick}>
 			With action
 		</Button>
 	)
@@ -142,7 +142,7 @@ const SETUP_CODE = code`
 	function Page() {
 		const { toast } = useToast()
 
-		return <Button color="blue" onClick={() => toast({ title: 'Event created' })}>Show toast</Button>
+		return <Button color="primary" onClick={() => toast({ title: 'Event created' })}>Show toast</Button>
 	}
 `
 
@@ -184,7 +184,7 @@ const ACTIONS_CODE = code`
 		duration: 7000,
 		actions: (
 			<Button
-				color="amber"
+				color="warning"
 				onClick={() => {
 					dismiss({ id })
 					toast({ title: 'Action undone', severity: 'success' })

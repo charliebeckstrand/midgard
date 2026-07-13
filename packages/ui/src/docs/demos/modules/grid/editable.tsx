@@ -198,7 +198,9 @@ export function EditableExample() {
 			title: 'Active',
 			field: 'active',
 			cell: (row) => (
-				<Badge color={row.active ? 'green' : 'zinc'}>{row.active ? 'Active' : 'Inactive'}</Badge>
+				<Badge color={row.active ? 'success' : 'neutral'}>
+					{row.active ? 'Active' : 'Inactive'}
+				</Badge>
 			),
 		},
 		{
@@ -207,7 +209,7 @@ export function EditableExample() {
 				editing.has(row.id) ? (
 					<Button
 						variant="bare"
-						color="green"
+						color="success"
 						aria-label="Save row"
 						onClick={() => setRowEditing(row.id, false)}
 					>
@@ -217,7 +219,7 @@ export function EditableExample() {
 					<Flex gap="sm">
 						<Button
 							variant="bare"
-							color="blue"
+							color="primary"
 							aria-label="Edit row"
 							onClick={() => setRowEditing(row.id, true)}
 						>
@@ -225,7 +227,7 @@ export function EditableExample() {
 						</Button>
 						<Button
 							variant="bare"
-							color="red"
+							color="danger"
 							aria-label="Delete row"
 							onClick={() => setPeople((prev) => prev.filter((p) => p.id !== row.id))}
 						>
@@ -324,7 +326,9 @@ export function EditorTypesExample() {
 			id: 'done',
 			title: 'Done',
 			field: 'done',
-			cell: (row) => <Badge color={row.done ? 'green' : 'zinc'}>{row.done ? 'Yes' : 'No'}</Badge>,
+			cell: (row) => (
+				<Badge color={row.done ? 'success' : 'neutral'}>{row.done ? 'Yes' : 'No'}</Badge>
+			),
 		},
 	]
 
@@ -432,7 +436,7 @@ export function BulkEditExample() {
 							<Button variant="soft" onClick={() => setSelected(new Set())}>
 								Deselect all
 							</Button>
-							<Button variant="soft" color="blue" onClick={() => setEditOpen(true)}>
+							<Button variant="soft" color="primary" onClick={() => setEditOpen(true)}>
 								Edit selected ({selection.size})
 							</Button>
 						</Flex>
@@ -486,7 +490,7 @@ export function BulkEditExample() {
 							<Button type="button" variant="plain" onClick={() => setEditOpen(false)}>
 								Cancel
 							</Button>
-							<Button type="submit" color="blue">
+							<Button type="submit" color="primary">
 								Apply
 							</Button>
 						</DialogFooter>

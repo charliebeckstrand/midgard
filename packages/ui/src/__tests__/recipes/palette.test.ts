@@ -5,7 +5,7 @@ import { k as badge } from '../../recipes/kata/badge'
 describe('palette', () => {
 	it('exposes the matrix unchanged on the returned config', () => {
 		const matrix = {
-			solid: { zinc: ['z-solid'], red: ['r-solid'], amber: [], green: [], blue: [] },
+			solid: { neutral: ['z-solid'], danger: ['r-solid'], warning: [], success: [], primary: [] },
 		}
 
 		const config = definePalette(matrix)
@@ -16,7 +16,7 @@ describe('palette', () => {
 	it('merges overlays left-to-right so a later overlay wins on key collision', () => {
 		// Later `Object.assign` passes overwrite earlier values on the same key.
 		const config = definePalette(
-			{ solid: { zinc: [], red: [], amber: [], green: [], blue: [] } },
+			{ solid: { neutral: [], danger: [], warning: [], success: [], primary: [] } },
 			{ inherit: 'first-inherit', mute: 'first-mute' },
 			{ inherit: 'second-inherit', mute: 'second-mute' },
 		)
@@ -27,14 +27,14 @@ describe('palette', () => {
 	it('scaffolds compound rules for every (variant × palette colour)', () => {
 		const recipe = defineRecipe({
 			palette: definePalette({
-				solid: { zinc: ['z-solid'], red: ['r-solid'], amber: [], green: [], blue: [] },
+				solid: { neutral: ['z-solid'], danger: ['r-solid'], warning: [], success: [], primary: [] },
 			}),
 			defaults: { variant: 'solid' },
 		})
 
-		expect(recipe({ color: 'zinc' })).toContain('z-solid')
+		expect(recipe({ color: 'neutral' })).toContain('z-solid')
 
-		expect(recipe({ color: 'red' })).toContain('r-solid')
+		expect(recipe({ color: 'danger' })).toContain('r-solid')
 	})
 
 	it('merges per-colour entries when the matrix value is an array of records', () => {
@@ -42,11 +42,11 @@ describe('palette', () => {
 		const recipe = defineRecipe({
 			palette: definePalette({
 				solid: [
-					{ zinc: ['z-bg'], red: [], amber: [], green: [], blue: [] },
-					{ zinc: ['z-text'], red: [], amber: [], green: [], blue: [] },
+					{ neutral: ['z-bg'], danger: [], warning: [], success: [], primary: [] },
+					{ neutral: ['z-text'], danger: [], warning: [], success: [], primary: [] },
 				],
 			}),
-			defaults: { variant: 'solid', color: 'zinc' },
+			defaults: { variant: 'solid', color: 'neutral' },
 		})
 
 		const out = recipe()
@@ -61,12 +61,12 @@ describe('palette', () => {
 		const recipe = defineRecipe({
 			variant: { outline: 'has-ring' },
 			palette: definePalette({
-				solid: { zinc: ['solid-zinc'], red: [], amber: [], green: [], blue: [] },
+				solid: { neutral: ['solid-neutral'], danger: [], warning: [], success: [], primary: [] },
 			}),
-			defaults: { color: 'zinc' },
+			defaults: { color: 'neutral' },
 		})
 
-		expect(recipe({ variant: 'solid' })).toContain('solid-zinc')
+		expect(recipe({ variant: 'solid' })).toContain('solid-neutral')
 
 		expect(recipe({ variant: 'outline' })).toContain('has-ring')
 	})
@@ -77,11 +77,11 @@ describe('palette', () => {
 		const recipe = defineRecipe({
 			palette: definePalette({
 				solid: {
-					zinc: ['z'],
-					red: ['r'],
-					amber: ['a'],
-					green: ['g'],
-					blue: ['b'],
+					neutral: ['z'],
+					danger: ['r'],
+					warning: ['a'],
+					success: ['g'],
+					primary: ['b'],
 					rose: ['solid-rose'],
 					violet: ['solid-violet'],
 					sky: ['solid-sky'],
@@ -95,7 +95,7 @@ describe('palette', () => {
 		expect(recipe({ color: 'violet' })).toContain('solid-violet')
 
 		// Standard colours stay intact alongside the extended ones.
-		expect(recipe({ color: 'blue' })).toContain('b')
+		expect(recipe({ color: 'primary' })).toContain('b')
 	})
 
 	it('Badge opts into the wide palette: extended colours resolve to their classes', () => {
@@ -104,6 +104,6 @@ describe('palette', () => {
 		expect(badge({ variant: 'soft', color: 'violet' })).toContain('bg-violet-500/15')
 
 		// The standard palette is unaffected by the opt-in.
-		expect(badge({ variant: 'solid', color: 'zinc' })).toContain('bg-zinc-600')
+		expect(badge({ variant: 'solid', color: 'neutral' })).toContain('bg-neutral-600')
 	})
 })

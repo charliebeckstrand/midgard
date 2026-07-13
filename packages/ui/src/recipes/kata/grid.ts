@@ -104,11 +104,11 @@ const railBorder = ['border-l-2', ...mode('border-l-zinc-950/5', 'dark:border-l-
  * `!important`, no dark-mode fallthrough). Full literals for Tailwind's scanner.
  */
 const railColor: Record<PaletteColor, string> = {
-	zinc: 'border-l-2 border-l-zinc-600 dark:border-l-zinc-600',
-	red: 'border-l-2 border-l-red-600 dark:border-l-red-600',
-	amber: 'border-l-2 border-l-amber-600 dark:border-l-amber-600',
-	green: 'border-l-2 border-l-green-600 dark:border-l-green-600',
-	blue: 'border-l-2 border-l-blue-600 dark:border-l-blue-600',
+	neutral: 'border-l-2 border-l-neutral-600 dark:border-l-neutral-600',
+	danger: 'border-l-2 border-l-danger-600 dark:border-l-danger-600',
+	warning: 'border-l-2 border-l-warning-600 dark:border-l-warning-600',
+	success: 'border-l-2 border-l-success-600 dark:border-l-success-600',
+	primary: 'border-l-2 border-l-primary-600 dark:border-l-primary-600',
 	rose: 'border-l-2 border-l-rose-600 dark:border-l-rose-600',
 	violet: 'border-l-2 border-l-violet-600 dark:border-l-violet-600',
 	sky: 'border-l-2 border-l-sky-600 dark:border-l-sky-600',
@@ -121,11 +121,11 @@ const railColor: Record<PaletteColor, string> = {
  * while staying legible over both surfaces. Full literals for Tailwind's scanner.
  */
 const rowGroupTint: Record<PaletteColor, string> = {
-	zinc: 'bg-zinc-500/10',
-	red: 'bg-red-500/10',
-	amber: 'bg-amber-500/10',
-	green: 'bg-green-500/10',
-	blue: 'bg-blue-500/10',
+	neutral: 'bg-neutral-500/10',
+	danger: 'bg-danger-500/10',
+	warning: 'bg-warning-500/10',
+	success: 'bg-success-500/10',
+	primary: 'bg-primary-500/10',
 	rose: 'bg-rose-500/10',
 	violet: 'bg-violet-500/10',
 	sky: 'bg-sky-500/10',

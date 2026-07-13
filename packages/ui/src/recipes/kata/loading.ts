@@ -9,15 +9,15 @@ const { flex } = narabi
  * class; dots (`bg-current`) and the spinner SVG (`currentColor`) both inherit
  * it. Chromatic colours use the `iro.marker` shade (600 light / 500 dark),
  * which clears non-text 3:1 on the page. `current` inherits the surrounding
- * text colour; `zinc` uses its stronger neutral.
+ * text colour; `neutral` uses its stronger rung.
  */
 const color = {
 	current: 'text-current',
-	zinc: mode('text-zinc-600', 'dark:text-zinc-400'),
-	red: marker.red,
-	amber: marker.amber,
-	green: marker.green,
-	blue: marker.blue,
+	neutral: mode('text-neutral-600', 'dark:text-neutral-400'),
+	danger: marker.danger,
+	warning: marker.warning,
+	success: marker.success,
+	primary: marker.primary,
 }
 
 /**

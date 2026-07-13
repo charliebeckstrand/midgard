@@ -141,7 +141,7 @@ export function UserDetailsClient({ details, chats: initialChats }: UserDetailsC
 					) : chatMessages.length > 0 ? (
 						<ChatTranscript messages={chatMessages} />
 					) : (
-						<Text className="text-zinc-500">No messages in this chat.</Text>
+						<Text className="text-neutral-500">No messages in this chat.</Text>
 					)}
 				</SheetBody>
 			</Sheet>
@@ -161,7 +161,7 @@ export function UserDetailsClient({ details, chats: initialChats }: UserDetailsC
 					<Button variant="outline" onClick={() => setConfirmDeleteChat(null)}>
 						Cancel
 					</Button>
-					<Button color="red" onClick={() => confirmDeleteChat && deleteChat(confirmDeleteChat)}>
+					<Button color="danger" onClick={() => confirmDeleteChat && deleteChat(confirmDeleteChat)}>
 						Delete
 					</Button>
 				</DialogFooter>

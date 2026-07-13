@@ -2,14 +2,14 @@
  * Iro ramp: the color-major source of truth for foreground shades, projected
  * into the role-major maps consumers read.
  *
- * One row per palette color naming the shade each *role* plays as a foreground,
+ * One row per palette role naming the shade each *foreground role* plays,
  * light value first and the `dark:`-prefixed value second — full class literals
  * (Tailwind's scanner sees only literals; nothing is composed at runtime). Each
  * shade is the least-emphatic rung that clears its contrast floor on its
- * surface, save a few taste bumps (amber / green ride a lighter dark rung).
+ * surface, save a few taste bumps (warning / success ride a lighter dark rung).
  *
  * Roles:
- *   - `onSurface`: foreground on the page / card surface (white · zinc-900).
+ *   - `onSurface`: foreground on the page / card surface (white · neutral-900).
  *     The semantic intent bundle and the muted `bare` text read this; clears
  *     AA (4.5:1) on its own surface.
  *   - `onTint`: foreground for the translucent 15% soft fill, one step stronger
@@ -19,7 +19,8 @@
  *     than the text ramp for the low-contrast hues.
  *
  * The `__tests__/recipes/contrast.test.ts` guard re-derives every rung's
- * contrast from Tailwind's own theme and asserts it clears its floor in both
+ * contrast from the default token theme (`src/theme.css` aliases resolved
+ * against Tailwind's own palette) and asserts it clears its floor in both
  * modes — edit a shade here and the guard proves it still clears.
  *
  * Layer: kiso · Concern: color ramp
@@ -36,30 +37,30 @@ type ColorRamp = {
 }
 
 const RAMP = {
-	zinc: {
-		onSurface: ['text-zinc-500', 'dark:text-zinc-400'],
-		onTint: ['text-zinc-700', 'dark:text-zinc-400'],
-		marker: ['text-zinc-500', 'dark:text-zinc-400'],
+	neutral: {
+		onSurface: ['text-neutral-500', 'dark:text-neutral-400'],
+		onTint: ['text-neutral-700', 'dark:text-neutral-400'],
+		marker: ['text-neutral-500', 'dark:text-neutral-400'],
 	},
-	red: {
-		onSurface: ['text-red-600', 'dark:text-red-500'],
-		onTint: ['text-red-700', 'dark:text-red-400'],
-		marker: ['text-red-600', 'dark:text-red-500'],
+	danger: {
+		onSurface: ['text-danger-600', 'dark:text-danger-500'],
+		onTint: ['text-danger-700', 'dark:text-danger-400'],
+		marker: ['text-danger-600', 'dark:text-danger-500'],
 	},
-	amber: {
-		onSurface: ['text-amber-700', 'dark:text-amber-500'],
-		onTint: ['text-amber-800', 'dark:text-amber-400'],
-		marker: ['text-amber-600', 'dark:text-amber-500'],
+	warning: {
+		onSurface: ['text-warning-700', 'dark:text-warning-500'],
+		onTint: ['text-warning-800', 'dark:text-warning-400'],
+		marker: ['text-warning-600', 'dark:text-warning-500'],
 	},
-	green: {
-		onSurface: ['text-green-700', 'dark:text-green-500'],
-		onTint: ['text-green-800', 'dark:text-green-400'],
-		marker: ['text-green-600', 'dark:text-green-500'],
+	success: {
+		onSurface: ['text-success-700', 'dark:text-success-500'],
+		onTint: ['text-success-800', 'dark:text-success-400'],
+		marker: ['text-success-600', 'dark:text-success-500'],
 	},
-	blue: {
-		onSurface: ['text-blue-600', 'dark:text-blue-500'],
-		onTint: ['text-blue-700', 'dark:text-blue-400'],
-		marker: ['text-blue-600', 'dark:text-blue-500'],
+	primary: {
+		onSurface: ['text-primary-600', 'dark:text-primary-500'],
+		onTint: ['text-primary-700', 'dark:text-primary-400'],
+		marker: ['text-primary-600', 'dark:text-primary-500'],
 	},
 } satisfies Record<Color, ColorRamp>
 
@@ -67,5 +68,5 @@ export const onSurface = project(RAMP, 'onSurface')
 export const onTint = project(RAMP, 'onTint')
 export const marker = project(RAMP, 'marker')
 
-/** Max-emphasis neutral foreground: the `default` intent and the `bare` zinc hover. */
-export const strong: [light: string, dark: string] = ['text-zinc-950', 'dark:text-white']
+/** Max-emphasis neutral foreground: the `default` intent and the `bare` neutral hover. */
+export const strong: [light: string, dark: string] = ['text-neutral-950', 'dark:text-white']

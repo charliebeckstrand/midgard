@@ -109,7 +109,7 @@ function EditUserDialog({ user, onClose, onSave }: EditUserDialogProps) {
 				<Button variant="plain" onClick={onClose} disabled={saving}>
 					Cancel
 				</Button>
-				<Button color="blue" onClick={handleSave} disabled={saving}>
+				<Button color="primary" onClick={handleSave} disabled={saving}>
 					{saving ? 'Saving…' : 'Save'}
 				</Button>
 			</DialogFooter>
@@ -226,7 +226,10 @@ export function UsersClient({ users: initialUsers, currentUser }: UsersClientPro
 					<Button variant="outline" onClick={() => setConfirmDeleteUser(null)}>
 						Cancel
 					</Button>
-					<Button color="red" onClick={() => confirmDeleteUser && deleteUser(confirmDeleteUser.id)}>
+					<Button
+						color="danger"
+						onClick={() => confirmDeleteUser && deleteUser(confirmDeleteUser.id)}
+					>
 						Delete
 					</Button>
 				</DialogFooter>

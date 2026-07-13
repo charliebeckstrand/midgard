@@ -63,22 +63,22 @@ describe('useGridRowManager', () => {
 			useGridRowManager({ config: { onValueChange }, naturalGroups: groups }),
 		)
 
-		act(() => result.current.recolor('b', 'red'))
+		act(() => result.current.recolor('b', 'danger'))
 
 		// A complete snapshot (an entry per group), only `b` colored.
 		expect(onValueChange).toHaveBeenLastCalledWith([
 			{ key: 'a' },
-			{ key: 'b', color: 'red' },
+			{ key: 'b', color: 'danger' },
 			{ key: 'c' },
 		])
 
-		expect(result.current.presentation.color('b')).toBe('red')
+		expect(result.current.presentation.color('b')).toBe('danger')
 	})
 
 	it('clearing a color drops the field from the snapshot', () => {
-		const { result } = render([{ key: 'b', color: 'red' }])
+		const { result } = render([{ key: 'b', color: 'danger' }])
 
-		expect(result.current.presentation.color('b')).toBe('red')
+		expect(result.current.presentation.color('b')).toBe('danger')
 
 		act(() => result.current.recolor('b', undefined))
 
@@ -96,9 +96,9 @@ describe('useGridRowManager', () => {
 	})
 
 	it('applies color from a partial overlay but withholds group order until it is complete', () => {
-		const { result } = render([{ key: 'b', color: 'blue' }])
+		const { result } = render([{ key: 'b', color: 'primary' }])
 
-		expect(result.current.presentation.color('b')).toBe('blue')
+		expect(result.current.presentation.color('b')).toBe('primary')
 
 		// The overlay names only `b`, not every group — group order stays natural.
 		expect(result.current.presentation.groupOrder).toBeNull()

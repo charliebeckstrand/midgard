@@ -100,7 +100,7 @@ export function GridToolbar({
 						<Button
 							type="button"
 							variant="soft"
-							color="amber"
+							color="warning"
 							onClick={() => columnFilters?.clear()}
 						>
 							Clear all filters

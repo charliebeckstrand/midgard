@@ -151,9 +151,9 @@ describe('Grid per-column filters', () => {
 
 		expect(button).toHaveAttribute('data-active')
 
-		// The Button's `color="blue"` tints the text (not just the always-blue
+		// The Button's `color="primary"` tints the text (not just the always-primary
 		// focus ring); the resting muted tint drops.
-		expect(button.className).toMatch(/text-blue/)
+		expect(button.className).toMatch(/text-primary/)
 
 		expect(button.className).not.toMatch(/text-zinc-500/)
 
@@ -169,7 +169,7 @@ describe('Grid per-column filters', () => {
 
 		expect(button).not.toHaveAttribute('data-active')
 
-		expect(button.className).not.toMatch(/text-blue/)
+		expect(button.className).not.toMatch(/text-primary/)
 
 		// Idle keeps the plain filter icon, not the active "+" variant.
 		expect(button.querySelector('.lucide-list-filter')).toBeInTheDocument()
@@ -193,7 +193,7 @@ describe('Grid per-column filters', () => {
 
 		expect(button).not.toHaveAttribute('data-active')
 
-		expect(button.className).not.toMatch(/text-blue/)
+		expect(button.className).not.toMatch(/text-primary/)
 	})
 
 	it('activates only after Apply settles a valued rule, and clears on Apply', () => {
@@ -317,7 +317,7 @@ describe('Grid per-column filters', () => {
 
 		expect(button).toHaveAttribute('data-active')
 
-		expect(button.className).toMatch(/text-blue/)
+		expect(button.className).toMatch(/text-primary/)
 
 		// The applied state is in the accessible name too, not conveyed by colour alone.
 		expect(button).toHaveAccessibleName('Filter Name, active')
@@ -393,7 +393,7 @@ describe('Grid per-column filters', () => {
 
 		expect(screen.queryByRole('button', { name: 'Clear all filters' })).toBeNull()
 
-		// A real constraint surfaces it, in the amber soft palette.
+		// A real constraint surfaces it, in the warning soft palette.
 		rerender(
 			<Grid
 				columns={columns}
@@ -403,7 +403,7 @@ describe('Grid per-column filters', () => {
 			/>,
 		)
 
-		expect(screen.getByRole('button', { name: 'Clear all filters' }).className).toMatch(/amber/)
+		expect(screen.getByRole('button', { name: 'Clear all filters' }).className).toMatch(/warning/)
 	})
 
 	it('clears every active filter from the toolbar button, restoring hidden rows', () => {

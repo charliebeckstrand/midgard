@@ -34,7 +34,7 @@ type Size = 'sm' | 'md' | 'lg'
 
 const sizes: Size[] = ['sm', 'md', 'lg']
 
-const statusColor = { Active: 'green', Archived: 'zinc' } as const
+const statusColor = { Active: 'success', Archived: 'neutral' } as const
 
 export function Demo() {
 	const [sizeValues, setSizeValues] = useState<Record<Size, Size>>({ sm: 'sm', md: 'md', lg: 'lg' })

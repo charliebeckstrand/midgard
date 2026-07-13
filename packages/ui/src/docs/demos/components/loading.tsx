@@ -12,7 +12,7 @@ const buttonSizes = ['xs', 'sm', 'md', 'lg'] as const
 
 type ButtonSize = (typeof buttonSizes)[number]
 
-const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
+const colors = ['neutral', 'danger', 'warning', 'success', 'primary'] as const
 
 export function Demo() {
 	const [buttonSize, setButtonSize] = useState<ButtonSize>('md')

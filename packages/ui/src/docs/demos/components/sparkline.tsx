@@ -8,7 +8,7 @@ import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../components
 import type { Color } from '../../../core/recipe'
 import { capitalize, code, Example, LabeledRow, LabeledRows } from '../../engine'
 
-const colors: Color[] = ['zinc', 'red', 'amber', 'green', 'blue'] as const
+const colors: Color[] = ['neutral', 'danger', 'warning', 'success', 'primary'] as const
 
 const sizes = ['sm', 'md', 'lg'] as const
 
@@ -96,7 +96,7 @@ export function Demo() {
 								<LabeledRows>
 									{sizes.map((s) => (
 										<LabeledRow key={s} label={s}>
-											<Sparkline data={series} size={s} color="red" aria-label={`${s} trend`} />
+											<Sparkline data={series} size={s} color="danger" aria-label={`${s} trend`} />
 										</LabeledRow>
 									))}
 								</LabeledRows>
@@ -105,7 +105,7 @@ export function Demo() {
 							<Example title="End-point">
 								<Sparkline
 									data={series}
-									color="amber"
+									color="warning"
 									endPoint
 									aria-label="Trend with area fill and end-point"
 								/>
@@ -114,20 +114,20 @@ export function Demo() {
 							<Example title="Area fill">
 								<Sparkline
 									data={series}
-									color="green"
+									color="success"
 									fill
 									aria-label="Trend with area fill and end-point"
 								/>
 							</Example>
 
-							<AnimatedExample variant="line" color="blue" />
+							<AnimatedExample variant="line" color="primary" />
 						</Stack>
 					</TabContent>
 
 					<TabContent value="bar">
 						<Stack gap="xl">
 							<Example title="Default">
-								<Sparkline data={series} variant="bar" color="blue" aria-label="By period" />
+								<Sparkline data={series} variant="bar" color="primary" aria-label="By period" />
 							</Example>
 
 							<Example title="Colors">
@@ -153,7 +153,7 @@ export function Demo() {
 												data={series}
 												variant="bar"
 												size={s}
-												color="red"
+												color="danger"
 												aria-label={`${s} bars`}
 											/>
 										</LabeledRow>
@@ -161,7 +161,7 @@ export function Demo() {
 								</LabeledRows>
 							</Example>
 
-							<AnimatedExample variant="bar" color="amber" />
+							<AnimatedExample variant="bar" color="warning" />
 						</Stack>
 					</TabContent>
 				</TabContents>

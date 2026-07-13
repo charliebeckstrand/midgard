@@ -7,7 +7,7 @@ const variants = ['solid', 'soft', 'outline', 'plain'] as const
 
 const colorVariants = ['solid', 'soft', 'outline', 'plain'] as const
 
-const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
+const colors = ['neutral', 'danger', 'warning', 'success', 'primary'] as const
 
 // Badge opts into the wide palette (`iro.extendedPalette`); these are available
 // on top of the standard set above.

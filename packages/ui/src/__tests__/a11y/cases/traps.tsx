@@ -91,7 +91,7 @@ export const traps: readonly TrapCase[] = [
 					onConfirm={noop}
 					title="Discard changes?"
 					description="You have unsaved changes that will be lost."
-					confirm={{ label: 'Discard changes', color: 'amber' }}
+					confirm={{ label: 'Discard changes', color: 'warning' }}
 					cancel={{ label: 'Keep editing' }}
 				/>
 			)}

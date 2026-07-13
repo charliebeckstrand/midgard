@@ -4,7 +4,7 @@ import { Stack } from '../../../components/stack'
 import { Text } from '../../../components/text'
 import { capitalize, Example, LabeledRow, LabeledRows, ValueStepper } from '../../engine'
 
-const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
+const colors = ['neutral', 'danger', 'warning', 'success', 'primary'] as const
 
 const sizes = ['sm', 'md', 'lg'] as const
 
@@ -35,7 +35,7 @@ function StepSliderExample() {
 				step={0.1}
 				value={ratio}
 				onValueChange={setRatio}
-				color="red"
+				color="danger"
 			/>
 			<Text className="tabular-nums">{ratio.toFixed(1)}</Text>
 		</>
@@ -47,7 +47,7 @@ function RangeSliderExample() {
 
 	return (
 		<>
-			<RangeSlider value={range} onValueChange={setRange} color="amber" />
+			<RangeSlider value={range} onValueChange={setRange} color="warning" />
 			<Text className="tabular-nums">
 				{range[0]} – {range[1]}
 			</Text>
@@ -71,7 +71,7 @@ function RangeStepSliderExample() {
 					value={rangeClamped}
 					allowCross={false}
 					onValueChange={setRangeClamped}
-					color="green"
+					color="success"
 				/>
 
 				<Text className="tabular-nums">
@@ -89,7 +89,7 @@ function RangeStepSliderExample() {
 					value={rangeSwap}
 					allowCross={true}
 					onValueChange={setRangeSwap}
-					color="green"
+					color="success"
 				/>
 
 				<Text className="tabular-nums">

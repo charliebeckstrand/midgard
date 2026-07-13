@@ -120,7 +120,7 @@ function FormExample() {
 		<>
 			<Button
 				variant={ready ? 'soft' : 'outline'}
-				color={ready ? 'red' : undefined}
+				color={ready ? 'danger' : undefined}
 				onClick={() => setReady(!ready)}
 			>
 				{ready ? 'Reset' : 'Simulate load'}
@@ -139,7 +139,7 @@ function FormExample() {
 				<Textarea placeholder="Bio" />
 			</ReadyReveal>
 			<ReadyReveal ready={ready} placeholder={<ButtonSkeleton />}>
-				<Button color="blue">Sign up</Button>
+				<Button color="primary">Sign up</Button>
 			</ReadyReveal>
 		</>
 	)
@@ -152,7 +152,7 @@ function ProfileCardExample() {
 		<>
 			<Button
 				variant={ready ? 'soft' : 'outline'}
-				color={ready ? 'red' : undefined}
+				color={ready ? 'danger' : undefined}
 				onClick={() => setReady(!ready)}
 			>
 				{ready ? 'Reset' : 'Simulate load'}

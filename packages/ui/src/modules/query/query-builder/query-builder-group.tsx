@@ -122,7 +122,7 @@ function QueryBuilderGroupImpl({ group, root, className }: QueryBuilderGroupProp
 								<HoldButton
 									ref={removeRef}
 									variant="soft"
-									color="red"
+									color="danger"
 									aria-label="Remove group"
 									disabled={disabled}
 									className={k.remove}

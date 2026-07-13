@@ -1,9 +1,9 @@
 @import 'tailwindcss';
 @import './fonts.css';
+/* The token seam: role ramps + the class-driven `dark` variant. */
+@import '../../theme.css';
 
 @source '../';
-
-@custom-variant dark (&:where(.dark, .dark *));
 
 :root {
 	overscroll-behavior: none;

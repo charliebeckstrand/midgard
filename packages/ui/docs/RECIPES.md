@@ -12,13 +12,17 @@
 
 Dependencies point one way: `kata → kiso` (tokens) and `kata → katakana` (structure); the bridge receives tokens by argument and never reaches back into kiso. See [`src/recipes/README.md`](../src/recipes/README.md).
 
+## Theming
+
+Chromatic recipe classes name semantic roles (`bg-primary-600`, `text-danger-700`), not hues; [`src/theme.css`](../src/theme.css) (exported as `ui/theme.css`) declares each role ramp as Tailwind theme variables aliased to the stock hues, plus the per-role `-fg` solid-fill foregrounds and the class-driven `dark` variant. A consumer rebrands by overriding those variables — in an `@theme` block for a build-time brand, or under `[data-theme='…']` for a runtime theme stamped by [`ThemeProvider`](PROVIDERS.md#uiproviderstheme--colour-scheme--brand-theme). The extended accents (rose / violet / sky) and the chart series palette stay literal hues by design: categorical / decorative colour, not brand roles.
+
 ## Kiso — primitive tier
 
 Atomic concerns, one sub-folder each; `index.ts` assembles the named bundle. Full tables in [`src/recipes/kiso/README.md`](../src/recipes/kiso/README.md).
 
 | Token | Concern |
 |---|---|
-| `iro` 色 | Variant × colour × slot palette matrix plus the semantic intent-colour text bundle. `palette` is the standard five-colour set; `spectrum` is the opt-in wide palette (standard + mist / rose / violet / sky). |
+| `iro` 色 | Variant × colour × slot palette matrix plus the semantic intent-colour text bundle. `palette` is the standard five-role set (`neutral` / `danger` / `warning` / `success` / `primary`), resolved through the token ramps in [`src/theme.css`](../src/theme.css); `extendedPalette` is the opt-in wide palette (standard roles + the untokenised rose / violet / sky accents). |
 | `ji` 字 | Typography — size scale plus `weight` / `leading` / `family` aliases. |
 | `ma` 間 | Named spacing scale projected as Tailwind utilities, plus the raw `--spacing` numerals. |
 | `narabi` 並び | Sibling arrangement — field adjacency, toggle grid, slide positioning, icon slot, truncation, flex primitives. |
@@ -81,8 +85,8 @@ The substrate the bridge and kata call, in [`src/core/recipe/`](../src/core/reci
 | `shades` | Builds a `Record<C, string[]>` from per-colour light/dark shade pairs; generic over the colour set, defaulting to `Color` and widening to the extended set in `iro/spectrum`. |
 | `RecipeConfig` *(type)* | The shape a kata declares: reserved fields (`base`, `palette`, `compound`, `slots`, `defaults`, `skeleton`) plus any number of variant axes. |
 | `VariantProps` *(type)* | Extracts the prop shape from a recipe or config; used to type the consumer-facing `<Name>Variants` export. |
-| `Color` *(type)* | The standard palette colour set — `zinc` · `red` · `amber` · `green` · `blue`. |
-| `ExtendedColor` / `PaletteColor` *(types)* | The opt-in extended set — `mist` · `rose` · `violet` · `sky` — and the union of standard + extended a kata surfaces by reading `iro.spectrum`. |
+| `Color` *(type)* | The standard palette role set — `neutral` · `danger` · `warning` · `success` · `primary` — resolved through the `src/theme.css` token ramps (zinc / red / amber / green / blue by default). |
+| `ExtendedColor` / `PaletteColor` *(types)* | The opt-in extended accent set — `rose` · `violet` · `sky` — and the union of standard + extended a kata surfaces by reading `iro.extendedPalette`. |
 
 ## Boundary
 

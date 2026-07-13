@@ -1,7 +1,7 @@
 /**
- * Iro solid: opaque fill palette. The colour paints the background;
- * text is white (amber-950 against amber).
- * Hover darkens the fill by one step.
+ * Iro solid: opaque fill palette. The role paints the background; text is
+ * the role's `-fg` token (white for every default ramp but warning, whose
+ * amber fill carries a dark foreground). Hover darkens the fill by one step.
  *
  * Layer: kiso · Concern: solid palette
  */
@@ -10,24 +10,24 @@ import { shades } from '../../../core/recipe'
 
 export const solid = {
 	bg: shades({
-		zinc: 'bg-zinc-600',
-		red: 'bg-red-600',
-		amber: 'bg-amber-500',
-		green: 'bg-green-700',
-		blue: 'bg-blue-600',
+		neutral: 'bg-neutral-600',
+		danger: 'bg-danger-600',
+		warning: 'bg-warning-500',
+		success: 'bg-success-700',
+		primary: 'bg-primary-600',
 	}),
 	text: shades({
-		zinc: 'text-white',
-		red: 'text-white',
-		amber: 'text-amber-950',
-		green: 'text-white',
-		blue: 'text-white',
+		neutral: 'text-neutral-fg',
+		danger: 'text-danger-fg',
+		warning: 'text-warning-fg',
+		success: 'text-success-fg',
+		primary: 'text-primary-fg',
 	}),
 	hover: shades({
-		zinc: 'not-disabled:hover:bg-zinc-700',
-		red: 'not-disabled:hover:bg-red-700',
-		amber: 'not-disabled:hover:bg-amber-600',
-		green: 'not-disabled:hover:bg-green-800',
-		blue: 'not-disabled:hover:bg-blue-700',
+		neutral: 'not-disabled:hover:bg-neutral-700',
+		danger: 'not-disabled:hover:bg-danger-700',
+		warning: 'not-disabled:hover:bg-warning-600',
+		success: 'not-disabled:hover:bg-success-800',
+		primary: 'not-disabled:hover:bg-primary-700',
 	}),
 }

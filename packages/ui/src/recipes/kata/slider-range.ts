@@ -15,7 +15,7 @@ const root = defineRecipe({
 		lg: 'py-5',
 	},
 	color,
-	defaults: { size: 'md', color: 'blue' },
+	defaults: { size: 'md', color: 'primary' },
 })
 
 const track = defineRecipe({

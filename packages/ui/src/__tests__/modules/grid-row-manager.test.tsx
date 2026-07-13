@@ -105,17 +105,17 @@ describe('Grid row manager', () => {
 		// The dialog lists a color control per group.
 		await user.click(screen.getByRole('button', { name: 'Color for Developer' }))
 
-		await user.click(screen.getByRole('menuitem', { name: 'Red' }))
+		await user.click(screen.getByRole('menuitem', { name: 'Danger' }))
 
 		// A complete snapshot — an entry per group — with only Developer colored.
 		const committed = onValueChange.mock.calls.at(-1)?.[0]
 
-		expect(committed).toEqual(expect.arrayContaining([{ key: 'Developer', color: 'red' }]))
+		expect(committed).toEqual(expect.arrayContaining([{ key: 'Developer', color: 'danger' }]))
 
 		expect(committed).toHaveLength(3)
 
 		// The group's card in the dialog outlines its whole border in the color.
-		expect(document.querySelector('[class*="outline-red-600"]')).not.toBeNull()
+		expect(document.querySelector('[class*="outline-danger-600"]')).not.toBeNull()
 	})
 
 	it('offers the color menu None only once a group is colored', async () => {
@@ -132,7 +132,7 @@ describe('Grid row manager', () => {
 
 		expect(screen.queryByRole('menuitem', { name: 'None' })).not.toBeInTheDocument()
 
-		await user.click(screen.getByRole('menuitem', { name: 'Red' }))
+		await user.click(screen.getByRole('menuitem', { name: 'Danger' }))
 
 		// Colored: reopening the menu now offers None.
 		await user.click(screen.getByRole('button', { name: 'Color for Developer' }))
@@ -151,13 +151,13 @@ describe('Grid row manager', () => {
 
 		await user.click(screen.getByRole('button', { name: 'Color for Developer' }))
 
-		await user.click(screen.getByRole('menuitem', { name: 'Red' }))
+		await user.click(screen.getByRole('menuitem', { name: 'Danger' }))
 
-		// The Developer header row now carries the solid red rail and a red aggregate wash.
+		// The Developer header row now carries the solid danger rail and a danger aggregate wash.
 		const headerRow = screen.getByText('Developer (2)').closest('tr')
 
-		expect(headerRow?.querySelector('[class*="border-l-red-600"]')).not.toBeNull()
+		expect(headerRow?.querySelector('[class*="border-l-danger-600"]')).not.toBeNull()
 
-		expect(headerRow?.querySelector('[class*="bg-red-500"]')).not.toBeNull()
+		expect(headerRow?.querySelector('[class*="bg-danger-500"]')).not.toBeNull()
 	})
 })

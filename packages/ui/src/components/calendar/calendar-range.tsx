@@ -114,7 +114,7 @@ export function CalendarRange({
 			return {
 				selected: isEdge,
 				variant: isInnerRange ? ('soft' as const) : undefined,
-				color: isInnerRange ? ('blue' as const) : undefined,
+				color: isInnerRange ? ('primary' as const) : undefined,
 				className: cn(
 					isInnerRange && 'rounded-none',
 					isLeftEdge && k.day.range.leftEdge,

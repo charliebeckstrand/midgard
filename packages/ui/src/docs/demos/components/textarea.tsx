@@ -29,7 +29,7 @@ function WithActionsExample() {
 						<Button aria-label="Attach file" variant="plain" size="sm">
 							<Icon icon={<Paperclip />} />
 						</Button>
-						<Button aria-label="Send" size="sm" color="blue" disabled={!withActionsValue.trim()}>
+						<Button aria-label="Send" size="sm" color="primary" disabled={!withActionsValue.trim()}>
 							<Icon icon={<ArrowUp />} />
 						</Button>
 					</>

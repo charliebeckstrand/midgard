@@ -21,11 +21,11 @@ const { focus } = sen
  * `-600` shade reads over both light and dark surfaces.
  */
 const bandColor: Record<PaletteColor, string> = {
-	zinc: 'bg-zinc-600',
-	red: 'bg-red-600',
-	amber: 'bg-amber-600',
-	green: 'bg-green-600',
-	blue: 'bg-blue-600',
+	neutral: 'bg-neutral-600',
+	danger: 'bg-danger-600',
+	warning: 'bg-warning-600',
+	success: 'bg-success-600',
+	primary: 'bg-primary-600',
 	rose: 'bg-rose-600',
 	violet: 'bg-violet-600',
 	sky: 'bg-sky-600',
@@ -44,11 +44,11 @@ const bandNeutral = 'bg-zinc-950/10 dark:bg-white/15'
  * neutral outline; full literals for Tailwind's scanner.
  */
 const cardOutline: Record<PaletteColor, string> = {
-	zinc: '!outline-zinc-600',
-	red: '!outline-red-600',
-	amber: '!outline-amber-600',
-	green: '!outline-green-600',
-	blue: '!outline-blue-600',
+	neutral: '!outline-neutral-600',
+	danger: '!outline-danger-600',
+	warning: '!outline-warning-600',
+	success: '!outline-success-600',
+	primary: '!outline-primary-600',
 	rose: '!outline-rose-600',
 	violet: '!outline-violet-600',
 	sky: '!outline-sky-600',

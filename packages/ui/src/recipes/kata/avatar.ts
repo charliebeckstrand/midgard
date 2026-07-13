@@ -21,7 +21,7 @@ export const k = defineRecipe(
 		},
 		size: avatar,
 		palette: definePalette(basePalette(palette)),
-		defaults: { variant: 'solid', color: 'zinc', size: 'md' },
+		defaults: { variant: 'solid', color: 'neutral', size: 'md' },
 		skeleton: kokkaku.avatar,
 	},
 	{

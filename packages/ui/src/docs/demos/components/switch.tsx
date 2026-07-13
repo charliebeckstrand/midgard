@@ -40,15 +40,15 @@ export function Demo() {
 			<Example title="Colors">
 				<SwitchField>
 					<Label>Blue</Label>
-					<Switch color="blue" defaultChecked />
+					<Switch color="primary" defaultChecked />
 				</SwitchField>
 				<SwitchField>
 					<Label>Green</Label>
-					<Switch color="green" defaultChecked />
+					<Switch color="success" defaultChecked />
 				</SwitchField>
 				<SwitchField>
 					<Label>Red</Label>
-					<Switch color="red" defaultChecked />
+					<Switch color="danger" defaultChecked />
 				</SwitchField>
 			</Example>
 

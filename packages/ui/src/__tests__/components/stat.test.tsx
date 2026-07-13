@@ -56,6 +56,6 @@ describe('StatValue size resolution', () => {
 	it('accepts trend on StatDelta', () => {
 		const { container } = renderUI(<StatDelta trend="up">+5%</StatDelta>)
 
-		expect(bySlot(container, 'stat-delta')).toHaveClass('text-green-700')
+		expect(bySlot(container, 'stat-delta')).toHaveClass('text-success-700')
 	})
 })

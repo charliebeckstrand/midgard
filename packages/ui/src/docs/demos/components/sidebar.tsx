@@ -239,7 +239,7 @@ function SuffixSidebarExample() {
 							icon={<Search />}
 							preventClose
 							suffix={
-								<Badge color="zinc" size="md">
+								<Badge color="neutral" size="md">
 									⌘K
 								</Badge>
 							}
@@ -249,7 +249,7 @@ function SuffixSidebarExample() {
 						<SidebarItem
 							icon={<Inbox />}
 							suffix={
-								<Badge color="blue" size="md">
+								<Badge color="primary" size="md">
 									12
 								</Badge>
 							}

@@ -17,7 +17,7 @@ function DefaultExample() {
 				<SignaturePad value={value} onValueChange={setValue} />
 				{value && (
 					<>
-						<Text color="green">Captured!</Text>
+						<Text color="success">Captured!</Text>
 						<Button onClick={() => setPreviewOpen(true)}>Preview</Button>
 						<Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
 							<DialogTitle>Signature Preview</DialogTitle>
@@ -30,7 +30,7 @@ function DefaultExample() {
 							</DialogBody>
 							<DialogFooter>
 								<Button
-									color="blue"
+									color="primary"
 									onClick={() => {
 										const link = document.createElement('a')
 										link.href = value
@@ -64,7 +64,7 @@ function ImperativeHandleExample() {
 					<Flex gap="sm">
 						<Button
 							variant="soft"
-							color="blue"
+							color="primary"
 							onClick={() => {
 								if (ref.current?.isEmpty()) {
 									setSaved(null)
@@ -78,7 +78,7 @@ function ImperativeHandleExample() {
 						</Button>
 						<Button
 							variant="soft"
-							color="amber"
+							color="warning"
 							onClick={() => {
 								ref.current?.clear()
 								setSaved(null)
@@ -88,7 +88,7 @@ function ImperativeHandleExample() {
 						</Button>
 					</Flex>
 				)}
-				{saved && <Text color="green">Saved {saved.length} characters</Text>}
+				{saved && <Text color="success">Saved {saved.length} characters</Text>}
 			</Stack>
 		</Example>
 	)

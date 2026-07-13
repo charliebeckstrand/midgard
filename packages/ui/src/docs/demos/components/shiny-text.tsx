@@ -25,7 +25,7 @@ function SpeedExample() {
 			title="Speed"
 			actions={<ValueStepper value={speed} min={1} max={6} onValueChange={setSpeed} />}
 			prefix={
-				<Badge color="zinc" className="tabular-nums">
+				<Badge color="neutral" className="tabular-nums">
 					{speed}s
 				</Badge>
 			}

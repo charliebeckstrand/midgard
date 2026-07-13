@@ -65,7 +65,7 @@ export function GridGroupByButton({
 					// The blue accent marks the active group, matching an applied filter's
 					// button; `idle` is the resting muted tint, dropped once accented so it
 					// doesn't override the colour.
-					color={grouped ? 'blue' : undefined}
+					color={grouped ? 'primary' : undefined}
 					data-active={dataAttr(grouped)}
 					aria-label={action}
 					className={cn(k.groupButton.button, !grouped && k.groupButton.idle)}

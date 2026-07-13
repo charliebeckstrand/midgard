@@ -12,7 +12,7 @@ import {
 	ValueStepper,
 } from '../../engine'
 
-const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
+const colors = ['neutral', 'danger', 'warning', 'success', 'primary'] as const
 
 const barSizes = ['sm', 'md', 'lg'] as const
 
@@ -62,7 +62,7 @@ export function Demo() {
 										<LabeledRow key={s} label={s}>
 											<ProgressBar
 												size={s}
-												color="red"
+												color="danger"
 												value={40 + i * 10}
 												className="flex-1"
 												aria-label={`${s} progress`}
@@ -106,7 +106,12 @@ export function Demo() {
 								<Flex gap="lg" align="end">
 									{gaugeSizes.map((s) => (
 										<LabeledColumn key={s} label={s}>
-											<ProgressGauge value={75} size={s} color="red" aria-label={`${s} progress`} />
+											<ProgressGauge
+												value={75}
+												size={s}
+												color="danger"
+												aria-label={`${s} progress`}
+											/>
 										</LabeledColumn>
 									))}
 								</Flex>
@@ -119,7 +124,7 @@ export function Demo() {
 											key={s}
 											value={80}
 											size={s}
-											color="amber"
+											color="warning"
 											label
 											aria-label={`${s} progress`}
 										/>

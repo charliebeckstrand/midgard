@@ -27,7 +27,7 @@ export type TagInputProps = {
 	/** Binds the tag list to an enclosing Form field. `Form.defaultValues` should seed `string[]`. */
 	name?: string
 	size?: ControlSize
-	/** Tag appearance; `color` is the badge color for every tag (default `'zinc'`). */
+	/** Tag appearance; `color` is the badge color for every tag (default `'neutral'`). */
 	tag?: { color?: Color }
 	/** Current tag values (controlled). */
 	value?: string[]
@@ -104,7 +104,7 @@ export function TagInput({
 
 	const [inputValue, setInputValue] = useState('')
 
-	const resolvedColor = tag?.color ?? 'zinc'
+	const resolvedColor = tag?.color ?? 'neutral'
 
 	const clearInput = useCallback(() => setInputValue(''), [])
 

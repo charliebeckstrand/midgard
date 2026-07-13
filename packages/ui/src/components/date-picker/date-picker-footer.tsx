@@ -58,7 +58,7 @@ export function DatePickerFooter({
 							type="button"
 							key={kind}
 							variant="soft"
-							color="amber"
+							color="warning"
 							onClick={onClear}
 							aria-label="Clear selection"
 							className={cn(isActive && k.day.active.base)}
@@ -73,7 +73,7 @@ export function DatePickerFooter({
 						type="button"
 						key={kind}
 						variant="soft"
-						color="blue"
+						color="primary"
 						onClick={onToday}
 						className={cn(isActive && k.day.active.base)}
 					>

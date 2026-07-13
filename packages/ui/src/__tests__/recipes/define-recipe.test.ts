@@ -106,17 +106,17 @@ describe('defineRecipe', () => {
 		// resolves user rules as the winner.
 		const recipe = defineRecipe({
 			palette: definePalette({
-				solid: { zinc: ['bg-zinc-600'], red: [], amber: [], green: [], blue: [] },
+				solid: { neutral: ['bg-neutral-600'], danger: [], warning: [], success: [], primary: [] },
 			}),
-			compound: [{ variant: 'solid', color: 'zinc', class: 'bg-zinc-50' }],
-			defaults: { variant: 'solid', color: 'zinc' },
+			compound: [{ variant: 'solid', color: 'neutral', class: 'bg-neutral-50' }],
+			defaults: { variant: 'solid', color: 'neutral' },
 		})
 
 		const out = recipe()
 
-		expect(out).toContain('bg-zinc-50')
+		expect(out).toContain('bg-neutral-50')
 
-		expect(out).not.toContain('bg-zinc-600')
+		expect(out).not.toContain('bg-neutral-600')
 	})
 
 	it('pre-merges slot classes and exposes them as properties on the recipe', () => {
@@ -135,17 +135,25 @@ describe('defineRecipe', () => {
 		// still resolve the default.
 		const classes = button({ variant: 'soft' })
 
-		// The (soft × zinc) compound from button.ts emits bg-zinc-500/15.
-		expect(classes).toContain('bg-zinc-500/15')
+		// The (soft × neutral) compound from button.ts emits bg-neutral-500/15.
+		expect(classes).toContain('bg-neutral-500/15')
 	})
 
 	it('palette overlay applies when caller picks the trailing colour', () => {
 		const recipe = defineRecipe({
 			palette: definePalette(
-				{ solid: { zinc: ['solid-zinc'], red: ['solid-red'], amber: [], green: [], blue: [] } },
+				{
+					solid: {
+						neutral: ['solid-neutral'],
+						danger: ['solid-danger'],
+						warning: [],
+						success: [],
+						primary: [],
+					},
+				},
 				{ inherit: 'solid-inherit' },
 			),
-			defaults: { variant: 'solid', color: 'zinc' },
+			defaults: { variant: 'solid', color: 'neutral' },
 		})
 
 		expect(recipe({ color: 'inherit' })).toContain('solid-inherit')

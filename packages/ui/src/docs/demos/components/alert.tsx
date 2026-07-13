@@ -8,7 +8,7 @@ const variants = ['solid', 'soft', 'outline', 'plain'] as const
 
 const colorVariants = ['solid', 'soft', 'outline', 'plain'] as const
 
-const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
+const colors = ['neutral', 'danger', 'warning', 'success', 'primary'] as const
 
 const severities = ['info', 'success', 'warning', 'error'] as const
 
@@ -17,7 +17,7 @@ function ClosableExample() {
 
 	if (!visible) {
 		return (
-			<Button variant="soft" color="red" onClick={() => setVisible(true)}>
+			<Button variant="soft" color="danger" onClick={() => setVisible(true)}>
 				Reset
 			</Button>
 		)
@@ -39,7 +39,7 @@ function ClosableBlockExample() {
 
 	if (!visible) {
 		return (
-			<Button variant="soft" color="red" onClick={() => setVisible(true)}>
+			<Button variant="soft" color="danger" onClick={() => setVisible(true)}>
 				Reset
 			</Button>
 		)
@@ -118,7 +118,7 @@ export function Demo() {
 					title="Storage is almost full"
 					description="You have used 90% of your available storage."
 					actions={
-						<Button size="sm" color="amber">
+						<Button size="sm" color="warning">
 							Upgrade
 						</Button>
 					}

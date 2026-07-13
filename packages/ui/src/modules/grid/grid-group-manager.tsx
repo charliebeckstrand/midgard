@@ -428,7 +428,7 @@ function GridGroupManagerZoneHeader({
 			<Button
 				type="button"
 				variant="bare"
-				color="red"
+				color="danger"
 				aria-label={`Remove group ${label}`}
 				onClick={() => removeGroup(group.id)}
 			>

@@ -338,7 +338,7 @@ describe('Grid column-group editor', () => {
 	it('disables a color already taken by another group', () => {
 		function ColoredHarness() {
 			const [groups, setGroups] = useState<GridColumnGroup[]>([
-				{ id: 'contact', title: 'Contact', color: 'blue', columns: ['first'] },
+				{ id: 'contact', title: 'Contact', color: 'primary', columns: ['first'] },
 				{ id: 'org', title: 'Org', columns: ['last'] },
 			])
 
@@ -355,22 +355,22 @@ describe('Grid column-group editor', () => {
 
 		renderUI(<ColoredHarness />)
 
-		// Open the second group's color picker; blue (used by the first group) is
+		// Open the second group's color picker; primary (used by the first group) is
 		// offered disabled, while a free color stays selectable.
 		fireEvent.click(screen.getByRole('button', { name: 'Color for Org' }))
 
-		expect(screen.getByRole('menuitem', { name: 'Blue' }).getAttribute('aria-disabled')).toBe(
+		expect(screen.getByRole('menuitem', { name: 'Primary' }).getAttribute('aria-disabled')).toBe(
 			'true',
 		)
 
-		expect(screen.getByRole('menuitem', { name: 'Red' }).getAttribute('aria-disabled')).not.toBe(
+		expect(screen.getByRole('menuitem', { name: 'Danger' }).getAttribute('aria-disabled')).not.toBe(
 			'true',
 		)
 	})
 
 	it('offers the color menu None for a colored group', () => {
 		const colored: GridColumnGroup[] = [
-			{ id: 'contact', title: 'Contact', color: 'blue', columns: ['first', 'last'] },
+			{ id: 'contact', title: 'Contact', color: 'primary', columns: ['first', 'last'] },
 		]
 
 		renderUI(

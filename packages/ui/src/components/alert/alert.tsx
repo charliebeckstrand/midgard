@@ -24,10 +24,10 @@ export type AlertSeverity = 'info' | 'success' | 'warning' | 'error'
 type AlertColor = NonNullable<AlertVariants['color']>
 
 const severityColorMap = {
-	info: 'blue',
-	success: 'green',
-	warning: 'amber',
-	error: 'red',
+	info: 'primary',
+	success: 'success',
+	warning: 'warning',
+	error: 'danger',
 } satisfies Record<AlertSeverity, AlertColor>
 
 const severityIconMap = {
@@ -102,7 +102,7 @@ function resolveAlertPresentation(
 	resolvedIcon: ReactElement | undefined
 	role: 'status' | 'alert' | undefined
 } {
-	const resolvedColor = severity ? severityColorMap[severity] : (color ?? 'zinc')
+	const resolvedColor = severity ? severityColorMap[severity] : (color ?? 'neutral')
 
 	const resolvedIcon = icon ?? (severity ? severityIconMap[severity] : undefined)
 

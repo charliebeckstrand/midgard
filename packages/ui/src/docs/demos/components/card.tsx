@@ -41,7 +41,7 @@ export function Demo() {
 						<Text>Configure your project name, description, and visibility.</Text>
 					</CardBody>
 					<CardFooter>
-						<Button color="blue">Save changes</Button>
+						<Button color="primary">Save changes</Button>
 						<Button variant="plain">Cancel</Button>
 					</CardFooter>
 				</Card>

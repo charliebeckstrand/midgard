@@ -151,7 +151,7 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 						<Button
 							type="button"
 							variant="bare"
-							color="blue"
+							color="primary"
 							// Name carries the applied state so it isn't conveyed by colour
 							// alone (WCAG 1.4.1 / 4.1.2); the menu's open state rides
 							// aria-expanded, wired by MenuTrigger.
@@ -209,7 +209,7 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 						Cancel
 					</Button>
 
-					<Button type="button" color="blue" onClick={apply}>
+					<Button type="button" color="primary" onClick={apply}>
 						Apply
 					</Button>
 				</SheetFooter>

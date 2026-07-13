@@ -1,5 +1,5 @@
 /**
- * Iro outline: bordered palette. No fill; the colour shows as a border
+ * Iro outline: bordered palette. No fill; the role shows as a border
  * (and ring, for kata that paint with rings). Text and hover share the
  * colour-axis sources.
  *
@@ -13,18 +13,18 @@ import { text } from './text'
 
 export const outline = {
 	border: shades({
-		zinc: ['border-zinc-800', 'dark:border-zinc-600'],
-		red: ['border-red-600', 'dark:border-red-700'],
-		amber: ['border-amber-500', 'dark:border-amber-600'],
-		green: ['border-green-600', 'dark:border-green-700'],
-		blue: ['border-blue-600', 'dark:border-blue-700'],
+		neutral: ['border-neutral-800', 'dark:border-neutral-600'],
+		danger: ['border-danger-600', 'dark:border-danger-700'],
+		warning: ['border-warning-500', 'dark:border-warning-600'],
+		success: ['border-success-600', 'dark:border-success-700'],
+		primary: ['border-primary-600', 'dark:border-primary-700'],
 	}),
 	ring: shades({
-		zinc: ['ring-zinc-800', 'dark:ring-zinc-600'],
-		red: ['ring-red-600', 'dark:ring-red-700'],
-		amber: ['ring-amber-500', 'dark:ring-amber-600'],
-		green: ['ring-green-600', 'dark:ring-green-700'],
-		blue: ['ring-blue-600', 'dark:ring-blue-700'],
+		neutral: ['ring-neutral-800', 'dark:ring-neutral-600'],
+		danger: ['ring-danger-600', 'dark:ring-danger-700'],
+		warning: ['ring-warning-500', 'dark:ring-warning-600'],
+		success: ['ring-success-600', 'dark:ring-success-700'],
+		primary: ['ring-primary-600', 'dark:ring-primary-700'],
 	}),
 	text,
 	hover,

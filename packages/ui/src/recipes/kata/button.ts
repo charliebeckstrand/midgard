@@ -94,7 +94,7 @@ export const k = defineRecipe(
 			{ variant: 'bare', size: 'md', class: ['not-data-[has-label]:p-1.25'] },
 			{ variant: 'bare', size: 'lg', class: ['not-data-[has-label]:p-1.5'] },
 		],
-		defaults: { variant: 'solid', color: 'zinc', size: 'md' },
+		defaults: { variant: 'solid', color: 'neutral', size: 'md' },
 		skeleton: button,
 	},
 	{

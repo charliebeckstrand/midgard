@@ -109,7 +109,7 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 									key={preset.id}
 									type="button"
 									variant={selected ? 'solid' : 'bare'}
-									color={selected ? 'blue' : 'zinc'}
+									color={selected ? 'primary' : 'neutral'}
 									aria-pressed={selected}
 									data-relative-preset={preset.id}
 									className={cn(k.relative.preset)}
@@ -122,7 +122,7 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 						<Button
 							type="button"
 							variant={state.customActive ? 'solid' : 'bare'}
-							color={state.customActive ? 'blue' : 'zinc'}
+							color={state.customActive ? 'primary' : 'neutral'}
 							aria-pressed={state.customActive}
 							data-relative-custom=""
 							className={cn(k.relative.custom.row)}

@@ -50,7 +50,7 @@ export const k = defineRecipe({
 		{ rounded: 'full', size: 'md', class: padding.px('2.5') },
 		{ rounded: 'full', size: 'lg', class: padding.px('3') },
 	],
-	defaults: { variant: 'soft', color: 'zinc', size: 'md', rounded: 'md' },
+	defaults: { variant: 'soft', color: 'neutral', size: 'md', rounded: 'md' },
 	skeleton: badge,
 })
 

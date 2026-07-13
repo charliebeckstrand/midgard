@@ -16,7 +16,7 @@ export function Demo() {
 	return (
 		<>
 			<Example title="Confirm">
-				<Button color="amber" onClick={() => setDiscardOpen(true)}>
+				<Button color="warning" onClick={() => setDiscardOpen(true)}>
 					Discard changes
 				</Button>
 				<Confirm
@@ -24,13 +24,13 @@ export function Demo() {
 					onOpenChange={setDiscardOpen}
 					onConfirm={() => setDiscardOpen(false)}
 					description="You have unsaved changes that will be lost."
-					confirm={{ label: 'Discard changes', color: 'amber' }}
+					confirm={{ label: 'Discard changes', color: 'warning' }}
 					cancel={{ label: 'Keep editing' }}
 				/>
 			</Example>
 
 			<Example title="With body content">
-				<Button color="blue" onClick={() => setTermsConditionsOpen(true)}>
+				<Button color="primary" onClick={() => setTermsConditionsOpen(true)}>
 					Accept terms and conditions
 				</Button>
 				<Confirm
@@ -44,7 +44,7 @@ export function Demo() {
 						setAccepted(false)
 					}}
 					title="Terms and Conditions"
-					confirm={{ label: 'Accept', color: 'blue', disabled: !accepted }}
+					confirm={{ label: 'Accept', color: 'primary', disabled: !accepted }}
 				>
 					<DialogBody>
 						<Stack gap="md">
@@ -62,7 +62,11 @@ export function Demo() {
 								qui officia deserunt mollit anim id est laborum.
 							</Text>
 							<CheckboxField>
-								<Checkbox color="blue" checked={accepted} onChange={() => setAccepted(!accepted)} />
+								<Checkbox
+									color="primary"
+									checked={accepted}
+									onChange={() => setAccepted(!accepted)}
+								/>
 								<Label>Accept terms and conditions</Label>
 							</CheckboxField>
 						</Stack>

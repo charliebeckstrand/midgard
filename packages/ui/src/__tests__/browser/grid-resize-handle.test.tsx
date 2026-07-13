@@ -28,7 +28,7 @@ describe('grid resize handle geometry (real browser)', () => {
 		{
 			id: 'status',
 			title: 'Status',
-			cell: (r) => <Badge color={r.status === 'active' ? 'green' : 'zinc'}>{r.status}</Badge>,
+			cell: (r) => <Badge color={r.status === 'active' ? 'success' : 'neutral'}>{r.status}</Badge>,
 			width: '220px',
 			pinned: 'right',
 		},

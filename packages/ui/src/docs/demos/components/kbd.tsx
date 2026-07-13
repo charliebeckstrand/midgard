@@ -23,13 +23,13 @@ export function Demo() {
 			<Example title="Inside a button">
 				<Flex wrap gap="md">
 					<Button suffix={<Kbd command>O</Kbd>}>Open</Button>
-					<Button variant="soft" color="blue" suffix={<Kbd command>S</Kbd>}>
+					<Button variant="soft" color="primary" suffix={<Kbd command>S</Kbd>}>
 						Save
 					</Button>
-					<Button variant="outline" color="green" suffix={<Kbd command>R</Kbd>}>
+					<Button variant="outline" color="success" suffix={<Kbd command>R</Kbd>}>
 						Run
 					</Button>
-					<Button variant="plain" color="red" suffix={<Kbd command>D</Kbd>}>
+					<Button variant="plain" color="danger" suffix={<Kbd command>D</Kbd>}>
 						Delete
 					</Button>
 				</Flex>

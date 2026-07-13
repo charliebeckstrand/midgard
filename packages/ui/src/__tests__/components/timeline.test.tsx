@@ -13,7 +13,7 @@ describe('Timeline', () => {
 		const { container } = renderUI(
 			<Timeline>
 				<TimelineItem>
-					<TimelineMarker color="blue" current />
+					<TimelineMarker color="primary" current />
 					Now
 				</TimelineItem>
 			</Timeline>,
@@ -142,7 +142,7 @@ describe('TimelineMarker', () => {
 		const { container } = renderUI(
 			<Timeline>
 				<TimelineItem>
-					<TimelineMarker color="blue" />
+					<TimelineMarker color="primary" />
 				</TimelineItem>
 			</Timeline>,
 		)
@@ -158,26 +158,26 @@ describe('TimelineMarker', () => {
 		const { container } = renderUI(
 			<Timeline>
 				<TimelineItem>
-					<TimelineMarker lineBefore="blue" lineAfter="amber" />
+					<TimelineMarker lineBefore="primary" lineAfter="warning" />
 				</TimelineItem>
 			</Timeline>,
 		)
 
 		const marker = bySlot(container, 'timeline-marker')
 
-		// The configured palettes, not the 'zinc' defaults: the inbound rail is
-		// painted blue and the outbound rail amber. A prop-less marker emits the
+		// The configured palettes, not the 'neutral' defaults: the inbound rail is
+		// painted primary and the outbound rail warning. A prop-less marker emits the
 		// zinc rail classes instead, so these assertions would fail for it.
-		expect(marker?.className).toContain('before:bg-blue-600')
+		expect(marker?.className).toContain('before:bg-primary-600')
 
-		expect(marker?.className).toContain('after:bg-amber-600')
+		expect(marker?.className).toContain('after:bg-warning-600')
 	})
 
 	it('applies the color variant when no status is provided', () => {
 		const { container } = renderUI(
 			<Timeline>
 				<TimelineItem>
-					<TimelineMarker color="blue" />
+					<TimelineMarker color="primary" />
 				</TimelineItem>
 			</Timeline>,
 		)

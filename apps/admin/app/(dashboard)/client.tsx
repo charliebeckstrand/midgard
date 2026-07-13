@@ -100,7 +100,7 @@ function SidebarUserMenu({ user }: { user?: User }) {
 				<SidebarItem>
 					<Avatar
 						initials={initials}
-						className="bg-zinc-900 text-white dark:bg-white dark:text-zinc-900"
+						className="bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
 					/>
 					<SidebarLabel>{displayName}</SidebarLabel>
 					<ChevronUpDownIcon />

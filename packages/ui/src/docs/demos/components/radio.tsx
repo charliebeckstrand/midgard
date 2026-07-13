@@ -3,7 +3,7 @@ import { Radio, RadioField, RadioGroup } from '../../../components/radio'
 import { Example } from '../../engine'
 
 const plans = ['Starter', 'Business', 'Enterprise'] as const
-const colors = ['blue', 'green', 'red'] as const
+const colors = ['primary', 'success', 'danger'] as const
 
 export function Demo() {
 	return (
@@ -23,7 +23,12 @@ export function Demo() {
 				<RadioGroup aria-label="Color">
 					{colors.map((color) => (
 						<RadioField key={color}>
-							<Radio name="color" value={color} color={color} defaultChecked={color === 'blue'} />
+							<Radio
+								name="color"
+								value={color}
+								color={color}
+								defaultChecked={color === 'primary'}
+							/>
 							<Label>{color}</Label>
 						</RadioField>
 					))}

@@ -16,14 +16,14 @@ function DestructiveHoldButtonExample() {
 
 	return deleted ? (
 		<>
-			<Text color="green">Item deleted!</Text>
+			<Text color="success">Item deleted!</Text>
 
-			<Button variant="soft" color="red" onClick={() => setDeleted(false)}>
+			<Button variant="soft" color="danger" onClick={() => setDeleted(false)}>
 				Reset
 			</Button>
 		</>
 	) : (
-		<HoldButton color="red" onComplete={() => setDeleted(true)} aria-label="Hold to delete">
+		<HoldButton color="danger" onComplete={() => setDeleted(true)} aria-label="Hold to delete">
 			<Icon icon={<Trash />} />
 			Hold to delete
 		</HoldButton>
@@ -72,7 +72,7 @@ export function Demo() {
 			<Example title="Lifecycle callbacks">
 				<Flex direction="col" gap="lg">
 					<HoldButton
-						color="amber"
+						color="warning"
 						onHoldStart={() => setStatus('holding')}
 						onHoldCancel={() => setStatus('cancelled')}
 						onComplete={() => setStatus('confirmed')}

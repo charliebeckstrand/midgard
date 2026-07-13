@@ -19,7 +19,7 @@ export function LinkText({ token }: { token: LinkToken }) {
 
 	if (token.url) {
 		return (
-			<Link color="blue" underline href={token.url} target="_blank" rel="noreferrer">
+			<Link color="primary" underline href={token.url} target="_blank" rel="noreferrer">
 				{label}
 			</Link>
 		)

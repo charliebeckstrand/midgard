@@ -9,47 +9,47 @@ const { focus, ring } = sen
 const { check } = control
 
 const color = defineColors({
-	zinc: {
+	neutral: {
 		light: [
-			'[--switch-bg-ring:var(--color-zinc-950)]/90 [--switch-bg:var(--color-zinc-900)]',
-			'[--switch-ring:var(--color-zinc-950)]/90 [--switch-shadow:var(--color-black)]/10 [--switch:white]',
+			'[--switch-bg-ring:var(--color-neutral-950)]/90 [--switch-bg:var(--color-neutral-900)]',
+			'[--switch-ring:var(--color-neutral-950)]/90 [--switch-shadow:var(--color-black)]/10 [--switch:white]',
 		],
 		dark: [
 			'dark:[--switch-bg-ring:transparent] dark:[--switch-bg:var(--color-white)]/25',
-			'dark:[--switch-ring:var(--color-zinc-700)]/90',
+			'dark:[--switch-ring:var(--color-neutral-700)]/90',
 		],
 	},
-	red: {
+	danger: {
 		light: [
-			'[--switch-bg-ring:var(--color-red-800)]/90 [--switch-bg:var(--color-red-600)]',
-			'[--switch:white] [--switch-ring:var(--color-red-800)]/90 [--switch-shadow:var(--color-red-200)]/20',
-		],
-		dark: 'dark:[--switch-bg-ring:transparent]',
-	},
-	amber: {
-		light: [
-			'[--switch-bg-ring:var(--color-amber-600)]/80 [--switch-bg:var(--color-amber-700)]',
-			'[--switch-ring:transparent] [--switch-shadow:transparent] [--switch:var(--color-amber-100)]',
+			'[--switch-bg-ring:var(--color-danger-800)]/90 [--switch-bg:var(--color-danger-600)]',
+			'[--switch:white] [--switch-ring:var(--color-danger-800)]/90 [--switch-shadow:var(--color-danger-200)]/20',
 		],
 		dark: 'dark:[--switch-bg-ring:transparent]',
 	},
-	green: {
+	warning: {
 		light: [
-			'[--switch-bg-ring:var(--color-green-800)]/90 [--switch-bg:var(--color-green-600)]',
-			'[--switch:white] [--switch-ring:var(--color-green-800)]/90 [--switch-shadow:var(--color-green-200)]/20',
+			'[--switch-bg-ring:var(--color-warning-600)]/80 [--switch-bg:var(--color-warning-700)]',
+			'[--switch-ring:transparent] [--switch-shadow:transparent] [--switch:var(--color-warning-100)]',
 		],
 		dark: 'dark:[--switch-bg-ring:transparent]',
 	},
-	blue: {
+	success: {
 		light: [
-			'[--switch-bg-ring:var(--color-blue-800)]/90 [--switch-bg:var(--color-blue-600)]',
-			'[--switch:white] [--switch-ring:var(--color-blue-800)]/90 [--switch-shadow:var(--color-blue-200)]/20',
+			'[--switch-bg-ring:var(--color-success-800)]/90 [--switch-bg:var(--color-success-600)]',
+			'[--switch:white] [--switch-ring:var(--color-success-800)]/90 [--switch-shadow:var(--color-success-200)]/20',
+		],
+		dark: 'dark:[--switch-bg-ring:transparent]',
+	},
+	primary: {
+		light: [
+			'[--switch-bg-ring:var(--color-primary-800)]/90 [--switch-bg:var(--color-primary-600)]',
+			'[--switch:white] [--switch-ring:var(--color-primary-800)]/90 [--switch-shadow:var(--color-primary-200)]/20',
 		],
 		dark: 'dark:[--switch-bg-ring:transparent]',
 	},
 })
 
-const track = [...mode('bg-zinc-200', 'dark:bg-white/10'), ...ring.inset]
+const track = [...mode('bg-neutral-200', 'dark:bg-white/10'), ...ring.inset]
 
 // The control column sizes to the switch itself so the toggle grid's gap
 // stays uniform across switch sizes without a matching field-level prop.
@@ -74,7 +74,7 @@ export const k = defineRecipe(
 			...track,
 			'has-checked:bg-(--switch-bg) has-checked:ring-(--switch-bg-ring) has-checked:ring-inset',
 			...mode(
-				'not-has-[:disabled]:not-has-[:checked]:hover:bg-zinc-300 not-has-[:disabled]:not-has-[:checked]:group-has-[[data-slot=label]:hover]/field:bg-zinc-300',
+				'not-has-[:disabled]:not-has-[:checked]:hover:bg-neutral-300 not-has-[:disabled]:not-has-[:checked]:group-has-[[data-slot=label]:hover]/field:bg-neutral-300',
 				'dark:not-has-[:disabled]:not-has-[:checked]:hover:bg-white/15 dark:not-has-[:disabled]:not-has-[:checked]:group-has-[[data-slot=label]:hover]/field:bg-white/15',
 			),
 			'not-has-[:disabled]:has-checked:hover:opacity-90 not-has-[:disabled]:has-checked:group-has-[[data-slot=label]:hover]/field:opacity-90',
@@ -101,7 +101,7 @@ export const k = defineRecipe(
 				'has-checked:*:data-[slot=switch-thumb]:left-6',
 			],
 		},
-		defaults: { color: 'zinc', size: 'md' },
+		defaults: { color: 'neutral', size: 'md' },
 		skeleton: kokkaku.switch,
 	},
 	{
@@ -109,7 +109,7 @@ export const k = defineRecipe(
 		thumb: defineRecipe({
 			base: [
 				'absolute top-1 left-1 inline-block',
-				'bg-white ring-1 ring-zinc-950/5',
+				'bg-white ring-1 ring-neutral-950/5',
 				'shadow-sm',
 				rounded.full,
 				'pointer-events-none',

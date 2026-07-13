@@ -30,9 +30,9 @@ const hidden = ['absolute inset-0', 'opacity-0', ...cursor, forced.control]
  * class strings; Tailwind's scanner extracts them statically.
  */
 const validation = [
-	'has-[[data-invalid]]:ring-2 has-[[data-invalid]]:ring-red-600',
-	'has-[[data-warning]]:ring-2 has-[[data-warning]]:ring-amber-500',
-	'has-[[data-valid]]:ring-2 has-[[data-valid]]:ring-green-600',
+	'has-[[data-invalid]]:ring-2 has-[[data-invalid]]:ring-danger-600',
+	'has-[[data-warning]]:ring-2 has-[[data-warning]]:ring-warning-500',
+	'has-[[data-valid]]:ring-2 has-[[data-valid]]:ring-success-600',
 ]
 
 /** Custom check surface (the visible box / circle). */
@@ -40,8 +40,8 @@ const surface = [
 	...mode(
 		[
 			'bg-white',
-			'border border-zinc-950/15',
-			'not-has-[:disabled]:hover:border-zinc-950/30 not-has-[:disabled]:group-has-[[data-slot=label]:hover]/field:border-zinc-950/30',
+			'border border-neutral-950/15',
+			'not-has-[:disabled]:hover:border-neutral-950/30 not-has-[:disabled]:group-has-[[data-slot=label]:hover]/field:border-neutral-950/30',
 		],
 		[
 			'dark:bg-white/5',
@@ -62,18 +62,20 @@ const base = [...shell, ...surface]
 /**
  * Checked-state accent colours shared by the checkbox and radio kata: each
  * injects the foreground mark, fill, and border into `--check-mark` /
- * `--check-bg` / `--check-border` for one accent. zinc diverges per component
- * (checkbox uses a neutral fill, radio a high-contrast one); each kata
- * defines its own zinc and spreads these four. Literal class strings;
+ * `--check-bg` / `--check-border` for one accent. neutral diverges per
+ * component (checkbox uses a mid fill, radio a high-contrast one); each kata
+ * defines its own neutral and spreads these four. Literal class strings;
  * Tailwind's scanner extracts them statically.
  */
 const color = {
-	red: '[--check-mark:var(--color-white)] [--check-bg:var(--color-red-600)] [--check-border:var(--color-red-800)]/90',
-	amber:
-		'[--check-mark:var(--color-amber-100)] [--check-bg:var(--color-amber-700)] [--check-border:var(--color-amber-600)]/80',
-	green:
-		'[--check-mark:var(--color-white)] [--check-bg:var(--color-green-600)] [--check-border:var(--color-green-800)]/90',
-	blue: '[--check-mark:var(--color-white)] [--check-bg:var(--color-blue-600)] [--check-border:var(--color-blue-800)]/90',
+	danger:
+		'[--check-mark:var(--color-white)] [--check-bg:var(--color-danger-600)] [--check-border:var(--color-danger-800)]/90',
+	warning:
+		'[--check-mark:var(--color-warning-100)] [--check-bg:var(--color-warning-700)] [--check-border:var(--color-warning-600)]/80',
+	success:
+		'[--check-mark:var(--color-white)] [--check-bg:var(--color-success-600)] [--check-border:var(--color-success-800)]/90',
+	primary:
+		'[--check-mark:var(--color-white)] [--check-bg:var(--color-primary-600)] [--check-border:var(--color-primary-800)]/90',
 } as const
 
 export const check = {

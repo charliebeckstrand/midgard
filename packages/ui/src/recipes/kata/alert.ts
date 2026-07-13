@@ -22,7 +22,7 @@ export const k = defineRecipe({
 		actions: [flex.row, 'gap-1'],
 		close: 'shrink-0',
 	},
-	defaults: { variant: 'soft', color: 'zinc' },
+	defaults: { variant: 'soft', color: 'neutral' },
 })
 
 /** Recipe variant props for {@link Alert} — the styling axes its kata exposes (`variant`, `color`), for consumers composing custom slots. */

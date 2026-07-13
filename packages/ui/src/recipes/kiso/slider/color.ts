@@ -9,11 +9,14 @@
  */
 
 export const color = {
-	zinc: '[--slider-fill:var(--color-zinc-600)] [--slider-track:var(--color-zinc-200)] dark:[--slider-fill:var(--color-zinc-400)] dark:[--slider-track:var(--color-zinc-700)]',
-	red: '[--slider-fill:var(--color-red-600)] [--slider-track:var(--color-zinc-200)] dark:[--slider-fill:var(--color-red-500)] dark:[--slider-track:var(--color-zinc-700)]',
-	amber:
-		'[--slider-fill:var(--color-amber-500)] [--slider-track:var(--color-zinc-200)] dark:[--slider-fill:var(--color-amber-500)] dark:[--slider-track:var(--color-zinc-700)]',
-	green:
-		'[--slider-fill:var(--color-green-600)] [--slider-track:var(--color-zinc-200)] dark:[--slider-fill:var(--color-green-500)] dark:[--slider-track:var(--color-zinc-700)]',
-	blue: '[--slider-fill:var(--color-blue-600)] [--slider-track:var(--color-zinc-200)] dark:[--slider-fill:var(--color-blue-500)] dark:[--slider-track:var(--color-zinc-700)]',
+	neutral:
+		'[--slider-fill:var(--color-neutral-600)] [--slider-track:var(--color-neutral-200)] dark:[--slider-fill:var(--color-neutral-400)] dark:[--slider-track:var(--color-neutral-700)]',
+	danger:
+		'[--slider-fill:var(--color-danger-600)] [--slider-track:var(--color-neutral-200)] dark:[--slider-fill:var(--color-danger-500)] dark:[--slider-track:var(--color-neutral-700)]',
+	warning:
+		'[--slider-fill:var(--color-warning-500)] [--slider-track:var(--color-neutral-200)] dark:[--slider-fill:var(--color-warning-500)] dark:[--slider-track:var(--color-neutral-700)]',
+	success:
+		'[--slider-fill:var(--color-success-600)] [--slider-track:var(--color-neutral-200)] dark:[--slider-fill:var(--color-success-500)] dark:[--slider-track:var(--color-neutral-700)]',
+	primary:
+		'[--slider-fill:var(--color-primary-600)] [--slider-track:var(--color-neutral-200)] dark:[--slider-fill:var(--color-primary-500)] dark:[--slider-track:var(--color-neutral-700)]',
 } as const

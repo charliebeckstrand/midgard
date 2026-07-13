@@ -16,25 +16,25 @@ import { kokkaku } from '../kiso'
  * serves both the bars and the translucent area.
  */
 const color = {
-	zinc: {
-		stroke: mode('stroke-zinc-600', 'dark:stroke-zinc-400'),
-		fill: mode('fill-zinc-600', 'dark:fill-zinc-400'),
+	neutral: {
+		stroke: mode('stroke-neutral-600', 'dark:stroke-neutral-400'),
+		fill: mode('fill-neutral-600', 'dark:fill-neutral-400'),
 	},
-	red: {
-		stroke: mode('stroke-red-600', 'dark:stroke-red-500'),
-		fill: mode('fill-red-600', 'dark:fill-red-500'),
+	danger: {
+		stroke: mode('stroke-danger-600', 'dark:stroke-danger-500'),
+		fill: mode('fill-danger-600', 'dark:fill-danger-500'),
 	},
-	amber: {
-		stroke: mode('stroke-amber-600', 'dark:stroke-amber-500'),
-		fill: mode('fill-amber-600', 'dark:fill-amber-500'),
+	warning: {
+		stroke: mode('stroke-warning-600', 'dark:stroke-warning-500'),
+		fill: mode('fill-warning-600', 'dark:fill-warning-500'),
 	},
-	green: {
-		stroke: mode('stroke-green-600', 'dark:stroke-green-500'),
-		fill: mode('fill-green-600', 'dark:fill-green-500'),
+	success: {
+		stroke: mode('stroke-success-600', 'dark:stroke-success-500'),
+		fill: mode('fill-success-600', 'dark:fill-success-500'),
 	},
-	blue: {
-		stroke: mode('stroke-blue-600', 'dark:stroke-blue-500'),
-		fill: mode('fill-blue-600', 'dark:fill-blue-500'),
+	primary: {
+		stroke: mode('stroke-primary-600', 'dark:stroke-primary-500'),
+		fill: mode('fill-primary-600', 'dark:fill-primary-500'),
 	},
 }
 

@@ -69,7 +69,9 @@ const columns: GridColumn<Person>[] = [
 	{
 		id: 'status',
 		title: 'Status',
-		cell: (row) => <Badge color={row.status === 'active' ? 'green' : 'zinc'}>{row.status}</Badge>,
+		cell: (row) => (
+			<Badge color={row.status === 'active' ? 'success' : 'neutral'}>{row.status}</Badge>
+		),
 	},
 ]
 
@@ -147,7 +149,7 @@ const ticketColumns: GridColumn<Ticket>[] = [
 		id: 'resolved',
 		title: 'Resolved',
 		cell: (row) => (
-			<Badge color={row.resolved ? 'green' : 'zinc'}>{row.resolved ? 'Yes' : 'No'}</Badge>
+			<Badge color={row.resolved ? 'success' : 'neutral'}>{row.resolved ? 'Yes' : 'No'}</Badge>
 		),
 		value: (row) => row.resolved,
 		filterable: true,
@@ -269,7 +271,9 @@ const employeeColumns: GridColumn<Employee>[] = [
 	{
 		id: 'status',
 		title: 'Status',
-		cell: (row) => <Badge color={row.status === 'active' ? 'green' : 'zinc'}>{row.status}</Badge>,
+		cell: (row) => (
+			<Badge color={row.status === 'active' ? 'success' : 'neutral'}>{row.status}</Badge>
+		),
 		pinned: 'right',
 	},
 ]
@@ -470,7 +474,7 @@ const BatchActionsExample = () => {
 	return (
 		<>
 			{!rows.length && (
-				<Button color="red" variant="soft" onClick={() => setRows(people)}>
+				<Button color="danger" variant="soft" onClick={() => setRows(people)}>
 					Reset
 				</Button>
 			)}
@@ -482,7 +486,7 @@ const BatchActionsExample = () => {
 				selection={{
 					batchActions: ({ selection, setSelection }) => (
 						<HoldButton
-							color="red"
+							color="danger"
 							variant="soft"
 							onComplete={() => {
 								setRows((prev) => prev.filter((row) => !selection.has(row.id)))
@@ -514,7 +518,7 @@ const RowClickExample = () => {
 					{
 						id: 'actions',
 						actions: () => (
-							<Button variant="bare" color="blue">
+							<Button variant="bare" color="primary">
 								<Icon icon={<PencilIcon />} />
 							</Button>
 						),
@@ -584,7 +588,7 @@ const ErrorExample = () => {
 			columns={columns}
 			rows={people}
 			getKey={(row) => row.id}
-			error={<Alert color="red" variant="soft" title="Couldn't load people" block />}
+			error={<Alert color="danger" variant="soft" title="Couldn't load people" block />}
 		/>
 	)
 }
@@ -728,8 +732,8 @@ const AggregationExample = () => (
 // through `groupBy.rowGroups`, seeded here with two colors.
 const RowManagerExample = () => {
 	const [rowGroups, setRowGroups] = useState<GridRowGroup[]>([
-		{ key: 'West', color: 'blue' },
-		{ key: 'East', color: 'amber' },
+		{ key: 'West', color: 'primary' },
+		{ key: 'East', color: 'warning' },
 	])
 
 	return (
@@ -769,7 +773,7 @@ const MasterDetailExample = () => {
 						<Text size="sm" severity="muted">
 							{row.email} · {row.role} · currently {row.status}
 						</Text>
-						<Badge color={row.status === 'active' ? 'green' : 'zinc'}>{row.status}</Badge>
+						<Badge color={row.status === 'active' ? 'success' : 'neutral'}>{row.status}</Badge>
 					</Stack>
 				),
 			}}
@@ -901,7 +905,7 @@ const ColumnManagerExample = () => {
 // header. Each group names its member `columns` (kept adjacent and moved as a
 // block), a `title`, and a `color` from the standard + extended Badge palette.
 const columnGroups: GridColumnGroup[] = [
-	{ id: 'contact', title: 'Contact', color: 'blue', columns: ['name', 'email'] },
+	{ id: 'contact', title: 'Contact', color: 'primary', columns: ['name', 'email'] },
 	{ id: 'org', title: 'Organization', color: 'violet', columns: ['role', 'status'] },
 ]
 
@@ -916,7 +920,7 @@ const collapsibleGroups: GridColumnGroup[] = [
 	{
 		id: 'contact',
 		title: 'Contact',
-		color: 'blue',
+		color: 'primary',
 		description: 'How to reach this person',
 		columns: ['name', 'email'],
 		collapsible: true,
@@ -1190,7 +1194,7 @@ function sparklineColumns(sortKey: string): GridColumn<Metric>[] {
 				<Sparkline
 					key={sortKey}
 					data={row.trend}
-					color="blue"
+					color="primary"
 					fill
 					endPoint
 					animate
@@ -1207,7 +1211,7 @@ function sparklineColumns(sortKey: string): GridColumn<Metric>[] {
 					key={sortKey}
 					data={row.trend}
 					variant="bar"
-					color="green"
+					color="success"
 					animate
 					aria-label={`${row.name} by period, last 12 periods`}
 				/>

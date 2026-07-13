@@ -107,7 +107,7 @@ export function ChatListItem({
 								type="button"
 								aria-label="Remove"
 								variant="bare"
-								color="red"
+								color="danger"
 								onClick={onRemove}
 							>
 								<Icon icon={<Trash />} />

@@ -16,9 +16,9 @@ import { useTimeline } from './context'
 export type TimelineMarkerConfig = {
 	/** Animates the status dot. */
 	pulse?: StatusDotProps['pulse']
-	/** Connector-line color leading into the marker. @defaultValue 'zinc' */
+	/** Connector-line color leading into the marker. @defaultValue 'neutral' */
 	lineBefore?: Color
-	/** Connector-line color leading out of the marker. @defaultValue 'zinc' */
+	/** Connector-line color leading out of the marker. @defaultValue 'neutral' */
 	lineAfter?: Color
 } & ({ status?: StatusDotProps['status']; color?: never } | { color?: Color; status?: never })
 
@@ -60,8 +60,8 @@ export function TimelineMarker({
 				k.marker.base,
 				orientation === 'vertical' ? k.marker.vertical : k.marker.horizontal,
 				color && k.marker.palette[color].dot,
-				k.marker.palette[lineBefore ?? 'zinc'].line.before,
-				k.marker.palette[lineAfter ?? 'zinc'].line.after,
+				k.marker.palette[lineBefore ?? 'neutral'].line.before,
+				k.marker.palette[lineAfter ?? 'neutral'].line.after,
 				children != null && 'size-auto',
 				className,
 			)}
