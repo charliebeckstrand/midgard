@@ -21,6 +21,7 @@ import {
 } from '../../../../modules/grid'
 import { code, Example } from '../../../engine'
 import {
+	AsyncCommitExample,
 	BulkEditExample,
 	EditableExample,
 	EditorTypesExample,
@@ -1703,6 +1704,13 @@ export function Demo() {
 							code={code`<Grid editable={{ trigger: 'doubleClick', scope: 'cell', onValueChange }} />`}
 						>
 							<SpreadsheetExample />
+						</Example>
+
+						<Example
+							title="Async commit"
+							code={code`<Grid editable={{ trigger: 'doubleClick', scope: 'cell', onValueChange: async (changes) => save(changes) }} />`}
+						>
+							<AsyncCommitExample />
 						</Example>
 
 						<Example

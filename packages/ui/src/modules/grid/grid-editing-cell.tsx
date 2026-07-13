@@ -35,6 +35,9 @@ type GridCellEditorProps<T> = Omit<GridEditingCellProps<T>, 'render'> &
 		GridRowEditing,
 		| 'stageDraft'
 		| 'unstageDraft'
+		| 'readDraft'
+		| 'readServerError'
+		| 'clearServerError'
 		| 'claimPendingFocus'
 		| 'commitRowEdit'
 		| 'cancelRowEdit'
@@ -62,6 +65,9 @@ function GridCellEditor<T>({
 	column,
 	stageDraft,
 	unstageDraft,
+	readDraft,
+	readServerError,
+	clearServerError,
 	claimPendingFocus,
 	commitRowEdit,
 	cancelRowEdit,
@@ -69,7 +75,20 @@ function GridCellEditor<T>({
 }: GridCellEditorProps<T>) {
 	const seed = column.field != null ? row[column.field] : undefined
 
-	const [draft, setDraft] = useState<unknown>(seed)
+	// A staged draft outlives the editor's mount (a rejected async commit
+	// re-entering edit, a virtualized row scrolling back into the window), so a
+	// mounting editor resumes from it before falling back to the row's value.
+	const [draft, setDraft] = useState<unknown>(() => {
+		const staged = readDraft(rowKey, column.id)
+
+		return staged ? staged.value : seed
+	})
+
+	// A rejected async commit's error rides the editor like a validate failure
+	// until the user changes the value.
+	const [serverError, setServerError] = useState<string | null>(() =>
+		readServerError(rowKey, column.id),
+	)
 
 	const hostRef = useRef<HTMLSpanElement>(null)
 
@@ -112,12 +131,26 @@ function GridCellEditor<T>({
 		setDraft(next)
 
 		stageDraft(rowKey, column.id, next)
+
+		// Editing the value resolves its rejection; the fresh draft gets its own
+		// verdict at the next commit.
+		if (serverError !== null) {
+			setServerError(null)
+
+			clearServerError(rowKey, column.id)
+		}
 	}
 
 	const cancel = () => {
 		setDraft(seed)
 
 		unstageDraft(rowKey, column.id)
+
+		if (serverError !== null) {
+			setServerError(null)
+
+			clearServerError(rowKey, column.id)
+		}
 	}
 
 	// Grid-owned session exits (`trigger: 'doubleClick'`), bound to this cell;
@@ -140,7 +173,7 @@ function GridCellEditor<T>({
 			? `Edit ${column.title}, row ${rowIdx + 1}`
 			: `Edit row ${rowIdx + 1} column ${colIdx + 1}`
 
-	const error = column.validate ? column.validate(draft, row) : null
+	const error = (column.validate ? column.validate(draft, row) : null) ?? serverError
 
 	// Links the editor to its message (aria-describedby) so the error reaches AT,
 	// not just sighted users (WCAG 1.3.1 / 3.3.1).
@@ -204,14 +237,16 @@ function GridCellEditor<T>({
 }
 
 /**
- * One data cell of an editable grid. While its editing flag is set in the
- * session store — its row is in the editable set and, cell-scoped, it is the
+ * One data cell of an editable grid. While its mode in the session store is
+ * `'editor'` — its row is in the editable set and, cell-scoped, it is the
  * active edit — and the column binds an editor, it mounts
- * {@link GridCellEditor}; otherwise it renders the column's display content
- * through {@link GridNavCell} (which carries the active-cursor ring). The flag
- * is a per-cell store subscription, so a session transition re-renders only the
- * cells it touched, and staging is ref-held, so cells don't re-render as the
- * user types.
+ * {@link GridCellEditor}; under `'pending'` (an unsettled async commit covers
+ * it) it shrouds its display content with `aria-busy` and a subtle shimmer;
+ * otherwise it renders the display content plain. All through
+ * {@link GridNavCell} (which carries the active-cursor ring) except the
+ * editor. The mode is a per-cell store subscription, so a session transition
+ * or commit settle re-renders only the cells it touched, and staging is
+ * ref-held, so cells don't re-render as the user types.
  *
  * @internal
  */
@@ -227,20 +262,20 @@ export function GridEditingCell<T>({
 		store,
 		stageDraft,
 		unstageDraft,
+		readDraft,
+		readServerError,
+		clearServerError,
 		claimPendingFocus,
 		commitRowEdit,
 		cancelRowEdit,
 		commitOnEnter,
 	} = useGridRowEditing()
 
-	const isCellEditing = useCallback(
-		() => store.isCellEditing(rowKey, column.id),
-		[store, rowKey, column.id],
-	)
+	const cellMode = useCallback(() => store.cellMode(rowKey, column.id), [store, rowKey, column.id])
 
-	const editing = useSyncExternalStore(store.subscribe, isCellEditing, isCellEditing)
+	const mode = useSyncExternalStore(store.subscribe, cellMode, cellMode)
 
-	if (editing && isColumnEditable(column)) {
+	if (mode === 'editor' && isColumnEditable(column)) {
 		return (
 			<GridCellEditor
 				rowIdx={rowIdx}
@@ -250,6 +285,9 @@ export function GridEditingCell<T>({
 				column={column}
 				stageDraft={stageDraft}
 				unstageDraft={unstageDraft}
+				readDraft={readDraft}
+				readServerError={readServerError}
+				clearServerError={clearServerError}
 				claimPendingFocus={claimPendingFocus}
 				commitRowEdit={commitRowEdit}
 				cancelRowEdit={cancelRowEdit}
@@ -260,7 +298,16 @@ export function GridEditingCell<T>({
 
 	return (
 		<GridNavCell row={rowIdx} col={colIdx}>
-			{render?.(row)}
+			{mode === 'pending' ? (
+				// The async commit's in-flight shroud: programmatic (aria-busy for AT)
+				// and visual (shimmer) until the sink settles (WCAG 4.1.3's settle is
+				// announced by the commit wrapper).
+				<span aria-busy="true" className={k.edit.pending}>
+					{render?.(row)}
+				</span>
+			) : (
+				render?.(row)
+			)}
 		</GridNavCell>
 	)
 }

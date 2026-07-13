@@ -321,6 +321,62 @@ export function SpreadsheetExample() {
 	)
 }
 
+type Contact = { id: number; name: string; email: string }
+
+const initialContacts: Contact[] = [
+	{ id: 1, name: 'Wade Cooper', email: 'wade@example.com' },
+	{ id: 2, name: 'Arlene McCoy', email: 'arlene@example.com' },
+	{ id: 3, name: 'Devon Webb', email: 'devon@example.com' },
+]
+
+export function AsyncCommitExample() {
+	const [contacts, setContacts] = useState<Contact[]>(initialContacts)
+
+	// A promise-returning `onValueChange` is an async commit: the saved cells
+	// shimmer (aria-busy) until it settles. This fake server takes 800 ms and
+	// rejects any email without an @, so the cell restores into edit carrying
+	// the rejection as its error — try saving one to see the round trip.
+	const save = (changes: CellChange[]) =>
+		new Promise<void>((resolve, reject) => {
+			setTimeout(() => {
+				const bad = changes.find(
+					(change) => change.columnId === 'email' && !String(change.value).includes('@'),
+				)
+
+				if (bad) {
+					reject(new Error('Email must contain @'))
+
+					return
+				}
+
+				setContacts((prev) => applyChanges(prev, changes))
+
+				resolve()
+			}, 800)
+		})
+
+	const columns: GridColumn<Contact>[] = [
+		{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
+		{ id: 'email', title: 'Email', field: 'email', cell: (row) => row.email },
+	]
+
+	return (
+		<>
+			<EditHelp label="Async commit help">
+				Saving hands the batch to a fake 800 ms server: the cell shimmers while it's in flight,
+				settles on success, and on rejection (an email without @) reopens in edit with the server's
+				error.
+			</EditHelp>
+			<Grid
+				columns={columns}
+				rows={contacts}
+				getKey={(row) => row.id}
+				editable={{ trigger: 'doubleClick', scope: 'cell', onValueChange: save }}
+			/>
+		</>
+	)
+}
+
 type Task = {
 	id: number
 	title: string

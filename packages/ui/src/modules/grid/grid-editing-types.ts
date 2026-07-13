@@ -125,10 +125,19 @@ export type GridEditableConfig = {
 	 */
 	commitOn?: ('enter' | 'blur' | 'clickOutside')[]
 	/**
-	 * Called when an editing row is saved (removed from the set), with one
-	 * {@link CellChange} per changed cell in that row, batched into a single call.
-	 * Unchanged and `validate`-failing cells are dropped. Apply each change to your
-	 * own row data and feed it back as `rows`.
+	 * Called when an editing session saves, with one {@link CellChange} per
+	 * changed cell, batched into a single call. Unchanged and `validate`-failing
+	 * cells are dropped. Apply each change to your own row data and feed it back
+	 * as `rows`.
+	 *
+	 * @remarks May return a `Promise` for an async (server) commit: the grid
+	 * renders the committed cells as pending (`aria-busy` plus a subtle shimmer)
+	 * until it settles, announcing the settle politely. Resolve with nothing to
+	 * accept the whole batch; resolve with the rejected subset — {@link CellChange}
+	 * stays the unit, so partial acceptance is expressible — or reject outright
+	 * to decline everything. The grid restores each declined cell's draft and
+	 * re-enters it in edit with a per-cell error (the `validate` surface,
+	 * carrying the rejection's `Error` message when there is one).
 	 */
-	onValueChange: (changes: CellChange[]) => void
+	onValueChange: (changes: CellChange[]) => void | Promise<void> | Promise<CellChange[]>
 }

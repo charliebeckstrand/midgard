@@ -91,6 +91,16 @@ function sameCell(a: ActiveEditCell | null, b: ActiveEditCell | null): boolean {
 	return a?.rowKey === b?.rowKey && a?.columnId === b?.columnId
 }
 
+/** Whether a sink's return is a promise — the async commit path. @internal */
+function isThenable(value: unknown): value is Promise<void> | Promise<CellChange[]> {
+	return value != null && typeof (value as Promise<unknown>).then === 'function'
+}
+
+/** Polite plural-aware announcement for a commit's cells (WCAG 4.1.3). @internal */
+function announceCells(count: number, suffix: string): void {
+	announce(`${count} ${count === 1 ? 'cell' : 'cells'} ${suffix}`)
+}
+
 /**
  * Resolves a row's staged drafts into committed {@link CellChange}s: keeps each
  * changed cell (its draft differs from the row's current value) that passes the
@@ -133,8 +143,8 @@ function flushRow<T>(args: {
 
 /**
  * Flushes every row that left the editable set since the last render: emits its
- * staged changes as one `onValueChange` batch, clears its drafts, and returns the
- * total cells saved across them (for the commit announcement). @internal
+ * staged changes as one batch each through `commit` (the announcing, possibly
+ * async sink wrapper) and clears its drafts. @internal
  */
 function flushExitedRows<T>(args: {
 	prev: Set<string | number>
@@ -143,10 +153,8 @@ function flushExitedRows<T>(args: {
 	columns: GridColumn<T>[]
 	rows: T[]
 	rowKeys: (string | number)[]
-	onValueChange: ((changes: CellChange[]) => void) | undefined
-}): number {
-	let saved = 0
-
+	commit: (changes: CellChange[]) => void
+}): void {
 	for (const rowKey of args.prev) {
 		if (args.next.has(rowKey)) continue
 
@@ -164,21 +172,15 @@ function flushExitedRows<T>(args: {
 			rowKeys: args.rowKeys,
 		})
 
-		if (!changes.length) continue
-
-		args.onValueChange?.(changes)
-
-		saved += changes.length
+		if (changes.length) args.commit(changes)
 	}
-
-	return saved
 }
 
 /**
  * Flushes one cell as a cell-scoped session leaves it while its row stays in the
  * editable set — the within-row move the row-leave flush can't see. Emits the
- * cell's staged draft (changed and `validate`-passing) as a one-change batch and
- * clears it; returns the cells saved (0 or 1). @internal
+ * cell's staged draft (changed and `validate`-passing) as a one-change batch
+ * through `commit` and clears it. @internal
  */
 function flushExitedCell<T>(args: {
 	cell: ActiveEditCell
@@ -186,11 +188,11 @@ function flushExitedCell<T>(args: {
 	columns: GridColumn<T>[]
 	rows: T[]
 	rowKeys: (string | number)[]
-	onValueChange: ((changes: CellChange[]) => void) | undefined
-}): number {
+	commit: (changes: CellChange[]) => void
+}): void {
 	const rowDrafts = args.drafts.get(args.cell.rowKey)
 
-	if (!rowDrafts?.has(args.cell.columnId)) return 0
+	if (!rowDrafts?.has(args.cell.columnId)) return
 
 	const single: RowDrafts = new Map([[args.cell.columnId, rowDrafts.get(args.cell.columnId)]])
 
@@ -204,11 +206,7 @@ function flushExitedCell<T>(args: {
 		rowKeys: args.rowKeys,
 	})
 
-	if (!changes.length) return 0
-
-	args.onValueChange?.(changes)
-
-	return changes.length
+	if (changes.length) args.commit(changes)
 }
 
 /**
@@ -277,23 +275,37 @@ export function useGridEditing<T>({
 
 	activeCellRef.current = activeCell
 
+	const cellScopedRef = useRef(cellScoped)
+
+	cellScopedRef.current = cellScoped
+
 	const onValueChangeRef = useRef(config?.onValueChange)
 
 	onValueChangeRef.current = config?.onValueChange
 
 	// Mirror the session into an external store so each cell subscribes to its
-	// own editing flag (the editor mount test): a session enter, exit, or
-	// within-row move re-renders only the cells whose flag flipped — never the
-	// whole grid — matching the cursor-store pattern (`useGridNavigation`).
+	// own mode (the editor mount test, plus the async commit's pending shroud):
+	// a session enter, exit, within-row move, or commit settle re-renders only
+	// the cells whose mode flipped — never the whole grid — matching the
+	// cursor-store pattern (`useGridNavigation`). The pending map is written
+	// imperatively (an async sink settles outside React's render), so the store
+	// notifies from both the mirror effect and the commit path below.
 	const internalRef = useRef<{
 		rows: Set<string | number>
 		cell: ActiveEditCell | null
 		cellScoped: boolean
+		pending: Map<string | number, Set<string | number>>
 		listeners: Set<() => void>
 	} | null>(null)
 
 	if (internalRef.current === null) {
-		internalRef.current = { rows: editableRows, cell: activeCell, cellScoped, listeners: new Set() }
+		internalRef.current = {
+			rows: editableRows,
+			cell: activeCell,
+			cellScoped,
+			pending: new Map(),
+			listeners: new Set(),
+		}
 	}
 
 	const internal = internalRef.current
@@ -319,10 +331,17 @@ export function useGridEditing<T>({
 					internal.listeners.delete(listener)
 				}
 			},
-			isCellEditing: (rowKey, columnId) =>
-				internal.rows.has(rowKey) &&
-				(!internal.cellScoped ||
-					(internal.cell?.rowKey === rowKey && internal.cell?.columnId === columnId)),
+			cellMode: (rowKey, columnId) => {
+				if (
+					internal.rows.has(rowKey) &&
+					(!internal.cellScoped ||
+						(internal.cell?.rowKey === rowKey && internal.cell?.columnId === columnId))
+				) {
+					return 'editor'
+				}
+
+				return internal.pending.get(rowKey)?.has(columnId) ? 'pending' : 'display'
+			},
 		}
 	}
 
@@ -348,6 +367,152 @@ export function useGridEditing<T>({
 	const unstageDraft = useCallback((rowKey: string | number, columnId: string | number) => {
 		draftsRef.current.get(rowKey)?.delete(columnId)
 	}, [])
+
+	const readDraft = useCallback((rowKey: string | number, columnId: string | number) => {
+		const row = draftsRef.current.get(rowKey)
+
+		return row?.has(columnId) ? { value: row.get(columnId) } : null
+	}, [])
+
+	// Per-cell errors from a rejected async commit, surfaced on the re-entered
+	// editors like validate failures; cleared when the user edits the cell or
+	// abandons the session.
+	const serverErrorsRef = useRef<Map<string | number, Map<string | number, string>>>(new Map())
+
+	const readServerError = useCallback(
+		(rowKey: string | number, columnId: string | number) =>
+			serverErrorsRef.current.get(rowKey)?.get(columnId) ?? null,
+		[],
+	)
+
+	const clearServerError = useCallback((rowKey: string | number, columnId: string | number) => {
+		const row = serverErrorsRef.current.get(rowKey)
+
+		row?.delete(columnId)
+
+		if (row?.size === 0) serverErrorsRef.current.delete(rowKey)
+	}, [])
+
+	const notifyStore = useCallback(() => {
+		for (const listener of internal.listeners) listener()
+	}, [internal])
+
+	// Marks (or clears) a batch's cells pending in the store while its async
+	// sink settles; the affected display cells shroud with `aria-busy`.
+	const markPending = useCallback(
+		(changes: CellChange[], pending: boolean) => {
+			for (const change of changes) {
+				if (pending) {
+					let cols = internal.pending.get(change.rowKey)
+
+					if (!cols) {
+						cols = new Set()
+
+						internal.pending.set(change.rowKey, cols)
+					}
+
+					cols.add(change.columnId)
+				} else {
+					const cols = internal.pending.get(change.rowKey)
+
+					cols?.delete(change.columnId)
+
+					if (cols?.size === 0) internal.pending.delete(change.rowKey)
+				}
+			}
+
+			notifyStore()
+		},
+		[internal, notifyStore],
+	)
+
+	// A rejected async commit re-enters the declined cells in edit: their values
+	// re-stage as drafts, each carries the rejection as a per-cell error (the
+	// validate surface), and their rows rejoin the editable set — through the
+	// controllable setter, so a bound consumer hears (and may decline) the
+	// re-entry. Focus is not stolen; the editors reopen where the user left off.
+	const restoreRejected = useCallback(
+		(rejected: CellChange[], reason?: unknown) => {
+			const message =
+				reason instanceof Error && reason.message ? reason.message : 'Value was not saved'
+
+			for (const change of rejected) {
+				stageDraft(change.rowKey, change.columnId, change.value)
+
+				let row = serverErrorsRef.current.get(change.rowKey)
+
+				if (!row) {
+					row = new Map()
+
+					serverErrorsRef.current.set(change.rowKey, row)
+				}
+
+				row.set(change.columnId, message)
+			}
+
+			const first = rejected[0]
+
+			if (first === undefined) return
+
+			if (cellScopedRef.current) {
+				setActiveCell({ rowKey: first.rowKey, columnId: first.columnId })
+			}
+
+			setEditableRows((prev) => {
+				const next = new Set(prev ?? EMPTY_SET)
+
+				for (const change of rejected) next.add(change.rowKey)
+
+				return next
+			})
+		},
+		[stageDraft, setEditableRows],
+	)
+
+	// The sink wrapper every flush routes through: emits the batch, announces a
+	// sync commit immediately (WCAG 4.1.3), and shepherds an async one — the
+	// batch's cells render pending until the promise settles, the settle is
+	// announced, and declined cells (a resolved subset, or the whole batch on a
+	// rejection) restore into edit through `restoreRejected`.
+	const commitChanges = useCallback(
+		(changes: CellChange[]) => {
+			const result = onValueChangeRef.current?.(changes)
+
+			if (!isThenable(result)) {
+				announceCells(changes.length, 'updated')
+
+				return
+			}
+
+			markPending(changes, true)
+
+			result.then(
+				(rejected) => {
+					markPending(changes, false)
+
+					const declined = Array.isArray(rejected) ? rejected : []
+
+					if (declined.length === 0) {
+						announceCells(changes.length, 'saved')
+
+						return
+					}
+
+					announceCells(declined.length, 'could not be saved, editing restored')
+
+					restoreRejected(declined)
+				},
+				(reason: unknown) => {
+					markPending(changes, false)
+
+					announceCells(changes.length, 'could not be saved, editing restored')
+
+					restoreRejected(changes, reason)
+				},
+			)
+		},
+		[markPending, restoreRejected],
+	)
 
 	// The cell whose editor takes focus once it mounts — recorded by
 	// `enterRowEdit`, resolved by the editor itself through `claimPendingFocus`
@@ -444,6 +609,8 @@ export function useGridEditing<T>({
 		(rowKey: string | number) => {
 			draftsRef.current.delete(rowKey)
 
+			serverErrorsRef.current.delete(rowKey)
+
 			exitRowEdit(rowKey)
 		},
 		[exitRowEdit],
@@ -512,33 +679,32 @@ export function useGridEditing<T>({
 
 		prevCellRef.current = activeCell
 
-		let saved = flushExitedRows({
+		// Each batch routes through the sink wrapper, which announces the commit
+		// politely (WCAG 4.1.3) and shepherds an async sink's pending state.
+		flushExitedRows({
 			prev,
 			next: editableRows,
 			drafts: draftsRef.current,
 			columns: dataColumnsRef.current,
 			rows: rowsRef.current,
 			rowKeys: rowKeysRef.current,
-			onValueChange: onValueChangeRef.current,
+			commit: commitChanges,
 		})
 
 		// The within-row move: the previous active cell stopped editing while its
 		// row stayed in the set, so the row-leave pass above never saw it. A row
 		// that did leave was flushed (and its drafts cleared) there already.
 		if (prevCell && !sameCell(prevCell, activeCell) && editableRows.has(prevCell.rowKey)) {
-			saved += flushExitedCell({
+			flushExitedCell({
 				cell: prevCell,
 				drafts: draftsRef.current,
 				columns: dataColumnsRef.current,
 				rows: rowsRef.current,
 				rowKeys: rowKeysRef.current,
-				onValueChange: onValueChangeRef.current,
+				commit: commitChanges,
 			})
 		}
-
-		// Announce the commit politely, without moving focus (WCAG 4.1.3).
-		if (saved > 0) announce(`${saved} ${saved === 1 ? 'cell' : 'cells'} updated`)
-	}, [editableRows, activeCell, dataColumnsRef, rowsRef, rowKeysRef])
+	}, [editableRows, activeCell, commitChanges, dataColumnsRef, rowsRef, rowKeysRef])
 
 	// Keep the active-edit coord coherent with the set it rides: clear it when
 	// its row leaves the set, and seat a consumer-driven session (a row put into
@@ -575,9 +741,12 @@ export function useGridEditing<T>({
 			store: storeRef.current as GridEditingStore,
 			stageDraft,
 			unstageDraft,
+			readDraft,
+			readServerError,
+			clearServerError,
 			claimPendingFocus,
 		}),
-		[stageDraft, unstageDraft, claimPendingFocus],
+		[stageDraft, unstageDraft, readDraft, readServerError, clearServerError, claimPendingFocus],
 	)
 
 	return {

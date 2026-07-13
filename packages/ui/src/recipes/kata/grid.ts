@@ -746,6 +746,9 @@ export const k = {
 		host: 'relative flex w-full items-center',
 		// The in-cell control fills the cell width.
 		input: 'w-full',
+		// A committed cell awaiting its async sink: a subtle shimmer until the
+		// settle (the programmatic cue is the wrapper's aria-busy).
+		pending: 'block animate-pulse opacity-60',
 		// A failed validation rings the editor and anchors a small message below it.
 		errorRing: ['ring-2 ring-inset', ...mode('ring-red-600', 'dark:ring-red-500'), 'rounded-md'],
 		error: [

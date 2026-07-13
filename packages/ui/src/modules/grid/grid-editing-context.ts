@@ -13,22 +13,33 @@ import type { Coord } from './use-grid-navigation'
 export type SessionMove = 'down' | 'right' | 'left'
 
 /**
+ * What a data cell renders: its display content, its editor (the cell is in an
+ * edit session), or its display content in a pending shroud (an async commit
+ * covering it hasn't settled — `aria-busy` plus a subtle shimmer).
+ *
+ * @internal
+ */
+export type GridCellMode = 'display' | 'editor' | 'pending'
+
+/**
  * External-store interface over the editing session, built in `useGridEditing`:
- * each data cell subscribes to whether it is in edit mode without re-rendering
- * on every session transition — the same pattern the cursor store uses
- * (`GridNavStore`), applied to the editor mount test. A session enter, exit, or
- * within-row move re-renders only the cells whose flag flipped, never the grid.
+ * each data cell subscribes to its own mode without re-rendering on every
+ * session transition — the same pattern the cursor store uses
+ * (`GridNavStore`), applied to the editor mount test. A session enter, exit,
+ * within-row move, or async-commit settle re-renders only the cells whose mode
+ * flipped, never the grid.
  *
  * @internal
  */
 export type GridEditingStore = {
 	subscribe: (listener: () => void) => () => void
 	/**
-	 * Whether the cell at (`rowKey`, `columnId`) is in edit mode: its row is in
-	 * the editable set and — under a cell-scoped session (`scope: 'cell'`) — it
-	 * is the session's active cell. Row scope keeps the whole-row test.
+	 * The cell's render mode. `'editor'` while its row is in the editable set
+	 * and — under a cell-scoped session (`scope: 'cell'`) — it is the session's
+	 * active cell (row scope keeps the whole-row test); `'pending'` while an
+	 * unsettled async commit covers it; `'display'` otherwise.
 	 */
-	isCellEditing: (rowKey: string | number, columnId: string | number) => boolean
+	cellMode: (rowKey: string | number, columnId: string | number) => GridCellMode
 }
 
 /**
@@ -62,6 +73,22 @@ export type GridRowEditing = {
 		rowKey: string | number,
 		columnId: string | number,
 	) => { seed?: string } | null
+	/**
+	 * The cell's staged draft, if any — read at editor mount so a re-mounting
+	 * editor (a rejected async commit re-entering edit, a virtualized row
+	 * scrolling back into the window) resumes from the staged value rather than
+	 * the row's. `null` when nothing is staged (a staged value may itself be
+	 * `undefined`, hence the wrapper).
+	 */
+	readDraft: (rowKey: string | number, columnId: string | number) => { value: unknown } | null
+	/**
+	 * A rejected async commit's per-cell error, surfaced on the editor exactly
+	 * like a `validate` failure until the value changes. `null` when the cell
+	 * has none.
+	 */
+	readServerError: (rowKey: string | number, columnId: string | number) => string | null
+	/** Drops a cell's rejection error — the editor calls it when the user edits the value. */
+	clearServerError: (rowKey: string | number, columnId: string | number) => void
 	/**
 	 * Ends a row's edit session, saving its staged changes — the grid-owned exit
 	 * (an editor's Enter) under `trigger: 'doubleClick'`. A `move` carries the

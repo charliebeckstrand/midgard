@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { bySlot, fireEvent, liveRegion, renderUI } from '../helpers'
+import { act, bySlot, fireEvent, liveRegion, renderUI } from '../helpers'
 
 /**
  * Per-row inline editing baked into Grid: a row in the `editable` set puts all of
@@ -1008,5 +1008,168 @@ describe('Grid commit policy (commitOn)', () => {
 		fireEvent.keyDown(input, { key: 'Tab' })
 
 		expect(onValueChange).not.toHaveBeenCalled()
+	})
+})
+
+/**
+ * Async commit (`onValueChange` returning a Promise): the committed cells
+ * render pending (`aria-busy` + shimmer) until the sink settles; a resolve
+ * announces the save; declined cells — a resolved subset, or the whole batch
+ * on a rejection — restore their drafts and re-enter edit with a per-cell
+ * error on the validate surface.
+ */
+describe('Grid async commit', () => {
+	type Row = { id: number; name: string; count: number }
+
+	const baseRows: Row[] = [{ id: 1, name: 'Alice', count: 2 }]
+
+	const columns: GridColumn<Row>[] = [
+		{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
+		{ id: 'count', title: 'Count', field: 'count', cell: (row) => String(row.count) },
+	]
+
+	function deferred<T>() {
+		let resolve!: (value: T) => void
+
+		let reject!: (reason?: unknown) => void
+
+		const promise = new Promise<T>((res, rej) => {
+			resolve = res
+
+			reject = rej
+		})
+
+		return { promise, resolve, reject }
+	}
+
+	function renderAsyncGrid(onValueChange: (changes: unknown) => Promise<void | unknown[]>) {
+		const view = renderUI(
+			<Grid
+				columns={columns}
+				rows={baseRows}
+				getKey={(row) => row.id}
+				editable={{
+					trigger: 'doubleClick',
+					scope: 'cell',
+					onValueChange: onValueChange as never,
+				}}
+			/>,
+		)
+
+		return {
+			...view,
+			cell: (col: string) =>
+				view.container.querySelector(`td[data-grid-col="${col}"]`) as HTMLElement,
+		}
+	}
+
+	it('renders the committed cell pending until the sink resolves, then announces the save', async () => {
+		const gate = deferred<void>()
+
+		const { container, cell } = renderAsyncGrid(() => gate.promise)
+
+		fireEvent.doubleClick(cell('name'))
+
+		const input = bySlot(container, 'grid-edit-input') as HTMLInputElement
+
+		fireEvent.change(input, { target: { value: 'Alicia' } })
+
+		fireEvent.keyDown(input, { key: 'Enter' })
+
+		// The editor closed and the display content sits under the pending shroud
+		// — programmatic (aria-busy) and visual — until the promise settles.
+		expect(bySlot(container, 'grid-edit-input')).toBeNull()
+
+		expect(container.querySelector('[aria-busy="true"]')).toBeInTheDocument()
+
+		await act(async () => {
+			gate.resolve()
+		})
+
+		expect(container.querySelector('[aria-busy="true"]')).toBeNull()
+
+		expect(liveRegion()).toHaveTextContent('1 cell saved')
+	})
+
+	it('restores the draft and re-enters edit with the rejection message when the sink rejects', async () => {
+		const gate = deferred<void>()
+
+		const { container, cell } = renderAsyncGrid(() => gate.promise)
+
+		fireEvent.doubleClick(cell('name'))
+
+		fireEvent.change(bySlot(container, 'grid-edit-input') as HTMLInputElement, {
+			target: { value: 'Alicia' },
+		})
+
+		fireEvent.keyDown(bySlot(container, 'grid-edit-input') as HTMLInputElement, { key: 'Enter' })
+
+		await act(async () => {
+			gate.reject(new Error('Duplicate name'))
+		})
+
+		// The cell is editing again, resumed from the rejected draft, carrying the
+		// rejection on the validate error surface.
+		const input = bySlot(container, 'grid-edit-input') as HTMLInputElement
+
+		expect(input).toBeInTheDocument()
+
+		expect(input.value).toBe('Alicia')
+
+		expect(container.querySelector('[role="alert"]')).toHaveTextContent('Duplicate name')
+
+		expect(liveRegion()).toHaveTextContent('1 cell could not be saved')
+
+		// Editing the value resolves the rejection; the fresh draft gets its own
+		// verdict at the next commit.
+		fireEvent.change(input, { target: { value: 'Alice B' } })
+
+		expect(container.querySelector('[role="alert"]')).toBeNull()
+	})
+
+	it('re-enters only the rejected subset when the sink resolves with one', async () => {
+		const gate = deferred<unknown[]>()
+
+		const rows: Row[] = [{ id: 1, name: 'Alice', count: 2 }]
+
+		const view = renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={(row) => row.id}
+				editable={{ trigger: 'doubleClick', onValueChange: (() => gate.promise) as never }}
+			/>,
+		)
+
+		const cell = (col: string) =>
+			view.container.querySelector(`td[data-grid-col="${col}"]`) as HTMLElement
+
+		// Row scope: both cells edit and commit as one batch.
+		fireEvent.doubleClick(cell('name'))
+
+		fireEvent.change(bySlot(view.container, 'grid-edit-input') as HTMLInputElement, {
+			target: { value: 'Alicia' },
+		})
+
+		fireEvent.change(bySlot(view.container, 'grid-edit-number-input') as HTMLInputElement, {
+			target: { value: '9' },
+		})
+
+		fireEvent.keyDown(bySlot(view.container, 'grid-edit-input') as HTMLInputElement, {
+			key: 'Enter',
+		})
+
+		expect(bySlot(view.container, 'grid-edit-input')).toBeNull()
+
+		// The server declines only the count change.
+		await act(async () => {
+			gate.resolve([{ rowKey: 1, columnId: 'count', value: 9 }])
+		})
+
+		// The row re-enters edit; the declined cell resumes its draft and carries
+		// the error, the accepted cell seeds clean from the row.
+		expect((bySlot(view.container, 'grid-edit-number-input') as HTMLInputElement).value).toBe('9')
+
+		expect(view.container.querySelector('[role="alert"]')).toHaveTextContent('Value was not saved')
 	})
 })
