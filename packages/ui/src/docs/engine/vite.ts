@@ -29,11 +29,8 @@ export type DocsConfigOptions = {
 	/** Dev-server port. @defaultValue 3456 */
 	port?: number
 
-	/**
-	 * Absolute path to the documented package, enabling `virtual:docs/api`
-	 * extraction. Omitted, the api module serves an empty snapshot.
-	 */
-	apiPackageDir?: string
+	/** Absolute path to the documented package; backs `virtual:docs/api` extraction. */
+	apiPackageDir: string
 
 	/** Supplies extra component prop defaults (e.g. a design system's variant axes) to the extractor. */
 	extraDefaults?: ExtraDefaults

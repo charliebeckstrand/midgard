@@ -17,12 +17,10 @@ export type DocsPluginOptions = {
 	contentDir?: string
 
 	/**
-	 * Absolute path to the documented package, enabling `virtual:docs/api` via
-	 * the extractor and the surface used to reconcile each doc's module.
-	 * Omitted, the api module serves an empty snapshot and modules fall back to
-	 * `<packageName>/<slug>`.
+	 * Absolute path to the documented package. Backs `virtual:docs/api` via the
+	 * extractor and the surface each doc's module reconciles against.
 	 */
-	apiPackageDir?: string
+	apiPackageDir: string
 
 	/** Supplies extra component prop defaults (e.g. a design system's variant axes) to the extractor. */
 	extraDefaults?: ExtraDefaults
@@ -51,10 +49,7 @@ export function docsPlugin({
 	// The package's real export surface: `specifier → entry file`. Reconciles
 	// each doc's module against it (so derivation yields specifiers that exist,
 	// not a guessed shape) and scopes API extraction to what's documented.
-	// Empty when no package is given.
-	const surface = apiPackageDir
-		? enumerateSurface(apiPackageDir, packageName)
-		: new Map<string, string>()
+	const surface = enumerateSurface(apiPackageDir, packageName)
 
 	const resolveModule = createModuleResolver([...surface.keys()], packageName)
 
@@ -64,12 +59,10 @@ export function docsPlugin({
 	const cache = new Map<string, ParsedDoc>()
 
 	// Created on the api module's first read — a dynamic import so the dev
-	// server boots (and the app builds content-only) without the extractor.
+	// server boots without paying for the extractor until a page needs it.
 	let extractor: ApiExtractor | null = null
 
-	const loadExtractor = async (): Promise<ApiExtractor | null> => {
-		if (!apiPackageDir) return null
-
+	const loadExtractor = async (): Promise<ApiExtractor> => {
 		if (!extractor) {
 			const { createExtractor } = await import('./extractor')
 
@@ -85,8 +78,6 @@ export function docsPlugin({
 	}
 
 	const isApiSource = (file: string) => {
-		if (apiPackageDir === undefined) return false
-
 		const rel = path.relative(apiPackageDir, file).split(path.sep).join('/')
 
 		return rel.startsWith('src/') && !isExcludedSource(rel)
@@ -150,11 +141,7 @@ export function docsPlugin({
 		},
 		{
 			id: API_ID,
-			generate: async () => {
-				const active = await loadExtractor()
-
-				return active ? active.extract(documentedModules()) : { schemaVersion: 1, modules: {} }
-			},
+			generate: async () => (await loadExtractor()).extract(documentedModules()),
 			shouldInvalidate: isApiSource,
 		},
 	])
