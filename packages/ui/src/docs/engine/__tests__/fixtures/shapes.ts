@@ -16,6 +16,7 @@ export type Cases = {
 	count: number
 	on: boolean
 	list: number[]
+	tuple: [string, () => void]
 	layout: { gap: number; wrap: boolean }
 	deep: Deep
 	tree: Tree

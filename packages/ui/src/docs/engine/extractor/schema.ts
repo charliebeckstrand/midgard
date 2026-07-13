@@ -51,6 +51,9 @@ export type SignatureApi = {
 	params: ParamApi[]
 	returns: {
 		type: string
+
+		/** Checker-classified structure for the usage engine; display stays on `type`. */
+		shape?: TypeShape
 		description?: string
 		references?: Record<string, string>
 	}
@@ -120,6 +123,7 @@ export type TypeShape =
 	| { k: 'literal-union'; members: (string | number | boolean)[] }
 	| { k: 'primitive'; name: 'string' | 'number' | 'boolean' }
 	| { k: 'array'; element: TypeShape }
+	| { k: 'tuple'; elements: TypeShape[] }
 	| { k: 'object'; fields: Record<string, TypeShape> }
 	| { k: 'fn'; arity: number }
 	| { k: 'react-node' }

@@ -176,7 +176,10 @@ describe('synthesize: callables', () => {
 						},
 					},
 				],
-				returns: { type: '[T | undefined, (value: T) => void]' },
+				returns: {
+					type: '[T | undefined, (value: T) => void]',
+					shape: { k: 'tuple', elements: [{ k: 'opaque' }, { k: 'fn', arity: 1 }] },
+				},
 			},
 		],
 	}

@@ -103,9 +103,11 @@ function buildReturns(
 ): SignatureApi['returns'] {
 	const { checker } = context
 
-	const type = formatType(sig.getReturnType(), checker, location)
+	const returnType = sig.getReturnType()
 
-	const returns: SignatureApi['returns'] = { type }
+	const type = formatType(returnType, checker, location)
+
+	const returns: SignatureApi['returns'] = { type, shape: classifyType(returnType, checker) }
 
 	if (description) returns.description = description
 

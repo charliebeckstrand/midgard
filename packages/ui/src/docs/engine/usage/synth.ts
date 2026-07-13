@@ -185,7 +185,7 @@ function callableStrategy(
 
 	if (callable.kind === 'function') return { imports, body: [{ s: 'show', value: call }] }
 
-	const names = pairNames(signature?.returns.type ?? '')
+	const names = pairNames(signature?.returns.shape)
 
 	return {
 		imports,
@@ -331,44 +331,14 @@ function packageRoot(specifier: string): string {
 
 /**
  * `[value, setValue]` names for a two-element tuple return whose second member
- * is a function — the ubiquitous state-hook shape. Anything else returns `null`
- * so the caller binds a plain `const`.
+ * is a function — the ubiquitous state-hook shape. The checker already
+ * classified the return, so this reads the structure rather than parsing the
+ * type text; anything else returns `null` so the caller binds a plain `const`.
  */
-function pairNames(returnType: string): [string, string] | null {
-	const trimmed = returnType.trim()
-
-	if (!trimmed.startsWith('[') || !trimmed.endsWith(']')) return null
-
-	const parts = splitTopLevel(trimmed.slice(1, -1))
-
-	if (parts.length !== 2) return null
-
-	return parts[1]?.includes('=>') ? ['value', 'setValue'] : null
-}
-
-/** Split on top-level commas, ignoring those nested inside `<>`, `[]`, `{}`, or `()`. */
-function splitTopLevel(source: string): string[] {
-	const parts: string[] = []
-
-	let depth = 0
-
-	let start = 0
-
-	for (let i = 0; i < source.length; i++) {
-		const char = source[i]
-
-		if (char === '<' || char === '[' || char === '{' || char === '(') depth++
-		else if (char === '>' || char === ']' || char === '}' || char === ')') depth--
-		else if (char === ',' && depth === 0) {
-			parts.push(source.slice(start, i))
-
-			start = i + 1
-		}
-	}
-
-	parts.push(source.slice(start))
-
-	return parts.map((part) => part.trim())
+function pairNames(shape: TypeShape | undefined): [string, string] | null {
+	return shape?.k === 'tuple' && shape.elements.length === 2 && shape.elements[1]?.k === 'fn'
+		? ['value', 'setValue']
+		: null
 }
 
 /** Naive singularization for array-element field names: `columns` → `column`. */

@@ -73,6 +73,16 @@ describe('type shapes', () => {
 		expect(shapeOf('list')).toEqual({ k: 'array', element: { k: 'primitive', name: 'number' } })
 	})
 
+	it('classifies tuples by element shapes', () => {
+		expect(shapeOf('tuple')).toEqual({
+			k: 'tuple',
+			elements: [
+				{ k: 'primitive', name: 'string' },
+				{ k: 'fn', arity: 0 },
+			],
+		})
+	})
+
 	it('classifies object fields recursively', () => {
 		expect(shapeOf('layout')).toEqual({
 			k: 'object',

@@ -83,7 +83,13 @@ function classifyGuarded(
 		return { k: 'array', element: classify(element, checker, depth + 1, seen) }
 	}
 
-	if (type.flags & ts.TypeFlags.Object && !checker.isTupleType(type)) {
+	if (checker.isTupleType(type)) {
+		const elements = checker.getTypeArguments(type as ts.TypeReference)
+
+		return { k: 'tuple', elements: elements.map((el) => classify(el, checker, depth + 1, seen)) }
+	}
+
+	if (type.flags & ts.TypeFlags.Object) {
 		const fields: Record<string, TypeShape> = {}
 
 		for (const prop of type.getProperties()) {
