@@ -226,4 +226,36 @@ describe('synthesize: callables', () => {
 
 		expect(parses(printUsage(doc))).toBe(true)
 	})
+
+	it('synthesizes a tuple parameter as an array of its element values', () => {
+		const plot: CallableApi = {
+			kind: 'function',
+			name: 'plot',
+			signatures: [
+				{
+					params: [
+						{
+							name: 'point',
+							type: '[string, number]',
+							shape: {
+								k: 'tuple',
+								elements: [
+									{ k: 'primitive', name: 'string' },
+									{ k: 'primitive', name: 'number' },
+								],
+							},
+						},
+					],
+					returns: { type: 'void', shape: { k: 'opaque' } },
+				},
+			],
+		}
+
+		const show = synthesize(plot, 'ui/plot', config('typical'), 3).body[0]
+
+		expect(show?.s === 'show' && show.value.e === 'call' && show.value.args[0]).toMatchObject({
+			e: 'array',
+			items: [{ e: 'str' }, { e: 'num' }],
+		})
+	})
 })

@@ -186,6 +186,13 @@ describe('pass-through', () => {
 	it('emits no pass-through for a self-contained component', () => {
 		expect(component('Merge').passThrough).toBeUndefined()
 	})
+
+	it('reports no pass-through when a generic alias picks from a pass-through argument', () => {
+		expect(component('Picked').passThrough).toBeUndefined()
+
+		// The picked name still surfaces; only the discarded element is suppressed.
+		expect(component('Picked').props.map((prop) => prop.name)).toContain('tone')
+	})
 })
 
 describe('factory components', () => {

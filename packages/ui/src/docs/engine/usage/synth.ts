@@ -237,6 +237,18 @@ function synthValue(
 			return { e: 'array', items }
 		}
 
+		case 'tuple': {
+			const items: Expr[] = []
+
+			for (const element of shape.elements) {
+				const item = synthValue(element, name, config, rng, knobs, depth + 1)
+
+				if (item) items.push(item)
+			}
+
+			return { e: 'array', items }
+		}
+
 		case 'object': {
 			const fields = []
 

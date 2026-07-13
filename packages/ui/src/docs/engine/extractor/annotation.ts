@@ -122,12 +122,14 @@ function walk(
 	if (aliasTarget) {
 		// Splittable (intersection / union / parens / literal): recurse into each
 		// arm, then the supplied type arguments — a generic alias' RHS is walked
-		// with its parameters unbound, so props or pass-throughs handed in through
-		// an argument would otherwise never surface.
+		// with its parameters unbound, so props handed in through an argument would
+		// otherwise never surface. Only *names* come from an argument: the alias
+		// may narrow it (`Pick<T, …>`) rather than spread it, so a pass-through
+		// argument proves no element (discard the element sink).
 		if (isSplittable(aliasTarget)) {
 			walk(aliasTarget, names, passThrough, visited, checker)
 
-			for (const arg of node.typeArguments ?? []) walk(arg, names, passThrough, visited, checker)
+			for (const arg of node.typeArguments ?? []) walk(arg, names, [], visited, checker)
 
 			return
 		}
