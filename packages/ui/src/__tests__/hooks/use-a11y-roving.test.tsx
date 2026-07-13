@@ -115,7 +115,7 @@ describe('clearVirtualActive', () => {
 		expect(owner.hasAttribute('aria-activedescendant')).toBe(false)
 	})
 
-	it('also strips the active row when items are supplied', () => {
+	it('strips the active row via setVirtualActive when rows are still mounted', () => {
 		const active = document.createElement('div')
 
 		active.setAttribute('role', 'option')
@@ -130,7 +130,7 @@ describe('clearVirtualActive', () => {
 
 		owner.setAttribute('aria-activedescendant', 'opt-0')
 
-		clearVirtualActive({ current: owner }, [active])
+		setVirtualActive([active], -1, { current: owner })
 
 		expect(active.hasAttribute('data-active')).toBe(false)
 

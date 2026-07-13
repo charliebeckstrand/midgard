@@ -5,9 +5,10 @@ import {
 	crossAxisDelta,
 	type NavigationConfig,
 	nextIndexForKey,
+	wrap,
 } from '../../utilities/keyboard-navigation'
 import { useScrollWithin } from '../use-scroll-within'
-import { isTypeaheadKey, useTypeahead, useTypeaheadIndexed } from './use-typeahead'
+import { isTypeaheadKey, useTypeahead } from './use-typeahead'
 
 /**
  * Pluggable index-based item source for virtual (windowed) roving: lets
@@ -103,19 +104,15 @@ export function setVirtualActive(
 }
 
 /**
- * Clear the virtual-mode active marker: strips `data-active` / `aria-selected`
- * from the active row (when `items` are passed) and drops the owner's
+ * Clear the virtual-mode active marker: drops the owner's
  * `aria-activedescendant`. The named reset counterpart to {@link setVirtualActive},
  * so callers express intent as `clearVirtualActive(ref)` rather than the cryptic
  * `setVirtualActive([], -1, ref)`. A closing panel unmounts its rows, so the
- * owner-clear alone — no `items` — is the usual call.
+ * owner-clear is all a caller needs; stripping attributes off still-mounted
+ * rows is {@link setVirtualActive}'s job.
  */
-export function clearVirtualActive(
-	activeDescendantRef: RefObject<HTMLElement | null>,
-	items: HTMLElement[] = [],
-	options?: { ariaSelected?: boolean },
-): void {
-	setVirtualActive(items, -1, activeDescendantRef, options)
+export function clearVirtualActive(activeDescendantRef: RefObject<HTMLElement | null>): void {
+	setVirtualActive([], -1, activeDescendantRef)
 }
 
 /** The id `source` mints for `index`, or undefined out of range. @internal */
@@ -174,6 +171,16 @@ function applyVirtualActiveDom(
 }
 
 /**
+ * The in-flight mount watcher per container. Each navigation owns at most one;
+ * {@link setVirtualActiveIndexed} disconnects the previous one up front, so a
+ * superseded watcher doesn't linger (or stack) waiting for a mutation that may
+ * never come.
+ *
+ * @internal
+ */
+const pendingMountWatchers = new WeakMap<HTMLElement, MutationObserver>()
+
+/**
  * Watches `container` for `id`'s row to mount — a windowed target scrolled
  * into view via `scrollToIndex` doesn't mount synchronously, since the
  * virtualizer re-renders on its own schedule, decoupled from this call.
@@ -202,6 +209,8 @@ function watchForIndexedMount(
 			observer.disconnect()
 	})
 
+	pendingMountWatchers.set(container, observer)
+
 	observer.observe(container, { childList: true, subtree: true })
 }
 
@@ -224,6 +233,9 @@ export function setVirtualActiveIndexed(
 	activeDescendantRef?: RefObject<HTMLElement | null>,
 	{ ariaSelected = true }: { ariaSelected?: boolean } = {},
 ): void {
+	// This navigation supersedes any watcher still waiting on a prior target.
+	if (container) pendingMountWatchers.get(container)?.disconnect()
+
 	activeIndexRef.current = index
 
 	if (!source || index < 0) {
@@ -255,6 +267,43 @@ export function clearVirtualActiveIndexed(
 	activeDescendantRef?: RefObject<HTMLElement | null>,
 ): void {
 	setVirtualActiveIndexed(container, null, -1, activeIndexRef, activeDescendantRef)
+}
+
+/**
+ * Seeds the virtual highlight to the top match, or clears it when there is
+ * none: index 0 of `source` when a `VirtualOptions` has registered one, else
+ * the first DOM `itemSelector` match. The owner-side move `Combobox` and
+ * `CommandPalette` make on each filter change so `data-active` /
+ * `aria-activedescendant` always point at a live option; kept here so the
+ * source-vs-DOM branch stays in one place as more owners adopt an indexed
+ * source.
+ *
+ * @internal
+ */
+export function seedVirtualTopMatch(
+	container: HTMLElement | null,
+	itemSelector: string,
+	source: VirtualItemSource | null,
+	activeIndexRef: RefObject<number>,
+	activeDescendantRef: RefObject<HTMLElement | null>,
+	options?: { ariaSelected?: boolean },
+): void {
+	if (source) {
+		setVirtualActiveIndexed(
+			container,
+			source,
+			source.count > 0 ? 0 : -1,
+			activeIndexRef,
+			activeDescendantRef,
+			options,
+		)
+
+		return
+	}
+
+	const items = queryItems(container, itemSelector)
+
+	setVirtualActive(items, items.length > 0 ? 0 : -1, activeDescendantRef, options)
 }
 
 /**
@@ -346,11 +395,14 @@ function resolveRovingContext(
 		scrollWithin: ScrollWithin
 	},
 ): { ctx: RovingKeyContext; active: HTMLElement | null; currentIndex: number } | null {
-	const items = queryItems(container, itemSelector)
-
 	const isVirtual = mode === 'virtual'
 
-	const indexed = config.itemSource && config.activeIndexRef ? config.itemSource : null
+	// Indexed mode is virtual-only, and none of its keydown paths read `items`;
+	// skip the DOM query rather than run it (plus the array allocation) on
+	// every keystroke — including arrow-key auto-repeat — for a dead value.
+	const indexed = isVirtual && config.itemSource && config.activeIndexRef ? config.itemSource : null
+
+	const items = indexed ? [] : queryItems(container, itemSelector)
 
 	const itemCount = indexed ? indexed.count : items.length
 
@@ -421,7 +473,7 @@ function nextIndexedKey(
 	let index = base
 
 	for (let steps = 0; steps < count; steps++) {
-		index = (((index + direction) % count) + count) % count
+		index = wrap(index + direction, count)
 
 		if (index === currentIndex) return null
 
@@ -582,8 +634,7 @@ function handleTypeahead(
 	event: KeyboardEvent,
 	ctx: RovingKeyContext,
 	currentIndex: number,
-	matchTypeahead: ReturnType<typeof useTypeahead>,
-	matchTypeaheadIndexed: ReturnType<typeof useTypeaheadIndexed>,
+	matchers: ReturnType<typeof useTypeahead>,
 	typeahead: boolean,
 ): boolean {
 	if (!typeahead || !isTypeaheadKey(event)) return false
@@ -595,7 +646,7 @@ function handleTypeahead(
 		// through to main-axis nav, mirroring the DOM path's "no match" no-op.
 		if (!source.getTextValue) return true
 
-		const index = matchTypeaheadIndexed(
+		const index = matchers.matchIndexed(
 			source.count,
 			source.getTextValue,
 			source.isDisabled,
@@ -612,7 +663,7 @@ function handleTypeahead(
 		return true
 	}
 
-	const index = matchTypeahead(ctx.items, event.key, currentIndex)
+	const index = matchers.match(ctx.items, event.key, currentIndex)
 
 	if (index !== null) {
 		event.preventDefault()
@@ -794,9 +845,7 @@ export function useA11yRoving(
 
 	const actionSelector = row?.actionSelector
 
-	const matchTypeahead = useTypeahead()
-
-	const matchTypeaheadIndexed = useTypeaheadIndexed()
+	const typeaheadMatchers = useTypeahead()
 
 	// Focus-mode single-tab-stop ownership. Seats exactly one matched item at
 	// `tabIndex=0` and demotes the rest to `-1`, re-running as the subtree mutates
@@ -904,17 +953,7 @@ export function useA11yRoving(
 
 			if (handleActivationKey(event, ctx, rowResult.currentIndex, activationKey)) return
 
-			if (
-				handleTypeahead(
-					event,
-					ctx,
-					rowResult.currentIndex,
-					matchTypeahead,
-					matchTypeaheadIndexed,
-					typeahead,
-				)
-			)
-				return
+			if (handleTypeahead(event, ctx, rowResult.currentIndex, typeaheadMatchers, typeahead)) return
 
 			handleMainAxisNav(event, rowResult.currentIndex, ctx, { cols, orientation, focusOnEmpty })
 		},
@@ -934,8 +973,7 @@ export function useA11yRoving(
 			manageTabIndex,
 			rowSelector,
 			actionSelector,
-			matchTypeahead,
-			matchTypeaheadIndexed,
+			typeaheadMatchers,
 			itemSource,
 			activeIndexRef,
 		],

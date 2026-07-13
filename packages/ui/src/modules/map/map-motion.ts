@@ -31,11 +31,8 @@ export const POINT_STAGGER = 0.08
 /** Ceiling on the point stagger — a large cluster must not draw out the reveal. @internal */
 export const POINT_STAGGER_MAX = 0.6
 
-/** A marker pin's pop-in — the same gesture as a point's. @internal */
-export const PIN_POP = { ...POINT_POP } as const
-
-/** A marker's connector draw, held until the start pin has popped. @internal */
-export const MARKER_DRAW = { ...ROUTE_DRAW, delay: PIN_POP.duration } as const
+/** A marker's connector draw, held until the start pin (a `POINT_POP`) has popped. @internal */
+export const MARKER_DRAW = { ...ROUTE_DRAW, delay: POINT_POP.duration } as const
 
 /**
  * A marker's end pin, held until the start pin has popped and the connector
@@ -43,6 +40,6 @@ export const MARKER_DRAW = { ...ROUTE_DRAW, delay: PIN_POP.duration } as const
  * order. @internal
  */
 export const MARKER_END_POP = {
-	...PIN_POP,
-	delay: PIN_POP.duration + ROUTE_DRAW.duration,
+	...POINT_POP,
+	delay: POINT_POP.duration + ROUTE_DRAW.duration,
 } as const
