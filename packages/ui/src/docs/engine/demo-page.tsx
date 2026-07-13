@@ -1,7 +1,7 @@
 'use client'
 
 import { PanelLeft, PanelLeftDashed } from 'lucide-react'
-import { Suspense, use } from 'react'
+import { Fragment, Suspense, use } from 'react'
 import { Button } from '../../components/button'
 import { Flex } from '../../components/flex'
 import { Heading } from '../../components/heading'
@@ -9,7 +9,6 @@ import { Icon } from '../../components/icon'
 import { Stack } from '../../components/stack'
 import { SidebarLayoutHeader } from '../../layouts'
 import { ApiReference } from './components/api-reference'
-import { DemoNav, DemoNavProvider } from './components/demo-nav'
 import type { Demo } from './registry'
 import { hasComponentApi, loadComponentApi, loadDemo } from './registry'
 
@@ -30,7 +29,7 @@ export function DemoPage({
 	const Component = use(loadDemo(demo.id))
 
 	return (
-		<DemoNavProvider>
+		<Fragment>
 			<SidebarLayoutHeader>
 				<Flex align="center" gap="md">
 					<Button
@@ -41,7 +40,6 @@ export function DemoPage({
 					>
 						<Icon icon={locked ? <PanelLeftDashed /> : <PanelLeft />} />
 					</Button>
-					<DemoNav />
 					<Heading>{demo.name}</Heading>
 				</Flex>
 			</SidebarLayoutHeader>
@@ -55,7 +53,7 @@ export function DemoPage({
 					</Suspense>
 				)}
 			</Stack>
-		</DemoNavProvider>
+		</Fragment>
 	)
 }
 

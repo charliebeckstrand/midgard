@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, useId, useMemo, useRef, useState } from 'react'
+import { type ReactNode, useMemo, useRef, useState } from 'react'
 import { CodeBlock } from '../../../components/code'
 import { Collapse, CollapsePanel, CollapseTrigger } from '../../../components/collapse'
 import { Flex } from '../../../components/flex'
@@ -8,7 +8,6 @@ import { Heading } from '../../../components/heading'
 import { Stack } from '../../../components/stack'
 import { cn } from '../../../core'
 import { deriveCode } from '../derive-code'
-import { useRegisterExample } from './demo-nav'
 import {
 	ExampleResizeHandle,
 	maxDefined,
@@ -25,8 +24,7 @@ import {
  * The block derives from the rendered subtree via {@link deriveCode}; an
  * explicit `code` overrides it, and when neither yields anything the block is
  * omitted. The optional `title`, `actions`, `prefix`, `preview`, and `footer`
- * slots frame the preview. A titled example registers itself with the page's
- * jump nav ({@link DemoNav}) and anchors the scroll target it jumps to.
+ * slots frame the preview.
  *
  * The optional `width` and `minWidth` props size the frame, and `resize` makes
  * it horizontally draggable via a right-edge handle and switches its border to
@@ -91,10 +89,6 @@ export function Example({
 
 	const showCode = Boolean(code) || hasDerivedCode
 
-	const anchorId = useId()
-
-	useRegisterExample(anchorId, title)
-
 	const resolvedResize = resolveResize(resize)
 
 	// `minWidth` floors the resize range too, composing with any `resize.min`.
@@ -114,7 +108,6 @@ export function Example({
 	return (
 		<Stack
 			gap="sm"
-			id={anchorId}
 			data-slot="example"
 			// Reserve room for the handle's outer half, which straddles the frame's
 			// right edge, so it isn't clipped at full width.
