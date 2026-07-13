@@ -3,7 +3,7 @@ import path from 'node:path'
 import { Node, Project, SyntaxKind } from 'ts-morph'
 import ts from 'typescript'
 import type { Plugin } from 'vite'
-import { buildApi } from '../api-reference'
+import { type ApiExtractor, createApiExtractor } from '../api-reference'
 import { type DemoMeta, META_KEYS } from '../demo-meta'
 import { collectHelpers } from './collect-helpers'
 import { virtualJsonModules } from './virtual-json'
@@ -401,6 +401,17 @@ export function docsPlugin({
 	let srcDir = srcDirOption ?? ''
 	let demosDir = ''
 
+	// Lazily created on first read so `vitest` builds never open a Project. One
+	// long-lived extractor per plugin: it reuses its scoped ts-morph Project and
+	// re-extracts only the barrels a changed file feeds.
+	let extractor: ApiExtractor | null = null
+
+	const apiExtractor = (): ApiExtractor => {
+		extractor ??= createApiExtractor(srcDir)
+
+		return extractor
+	}
+
 	const main: Plugin = {
 		name: 'docs',
 
@@ -413,11 +424,13 @@ export function docsPlugin({
 			{
 				prefix: 'virtual:api-reference/',
 				manifestId: 'virtual:api-reference-manifest',
-				generate: () => (vitest ? {} : buildApi(srcDir)),
+				generate: () => (vitest ? {} : apiExtractor().getAll()),
 				shouldInvalidate: (file) =>
+					!vitest &&
 					file.startsWith(srcDir) &&
 					/\.tsx?$/.test(file) &&
-					!file.includes(`${path.sep}docs${path.sep}`),
+					!file.includes(`${path.sep}docs${path.sep}`) &&
+					apiExtractor().notifyChanged(file),
 			},
 			{
 				id: 'virtual:demo-metas',
