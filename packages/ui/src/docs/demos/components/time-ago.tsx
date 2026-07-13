@@ -3,6 +3,7 @@ import { Flex } from '../../../components/flex'
 import { Stack } from '../../../components/stack'
 import { Text } from '../../../components/text'
 import { TimeAgo } from '../../../components/time-ago'
+import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
 import { Example } from '../../engine'
 
 const SEC = 1000
@@ -62,7 +63,16 @@ function CustomFormatExample() {
 function WithAbsoluteTimeExample() {
 	const now = useNow()
 
-	return <TimeAgo date={new Date(now - 5 * MIN)} absolute />
+	const date = new Date(now - 5 * MIN)
+
+	return (
+		<Tooltip>
+			<TooltipTrigger>
+				<TimeAgo date={date} />
+			</TooltipTrigger>
+			<TooltipContent>{date.toLocaleString()}</TooltipContent>
+		</Tooltip>
+	)
 }
 
 function CustomLocaleExample() {

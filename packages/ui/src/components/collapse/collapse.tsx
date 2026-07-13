@@ -5,8 +5,6 @@ import { cn, dataAttr } from '../../core'
 import { useA11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
 import { useControllable } from '../../hooks/use-controllable'
 import { k } from '../../recipes/kata/collapse'
-import { CollapsePanel } from './collapse-panel'
-import { CollapseTrigger } from './collapse-trigger'
 import { CollapseContext } from './context'
 
 /** Props for {@link Collapse}. */
@@ -21,11 +19,6 @@ export type CollapseProps = {
 	 * @defaultValue 'fade'
 	 */
 	animate?: boolean | 'fade' | 'slide'
-	/**
-	 * Convenience trigger. Strings render as muted hover-highlighted text;
-	 * other ReactNodes render unstyled. Omit for the compound API.
-	 */
-	trigger?: ReactNode
 	children: ReactNode
 	className?: string
 }
@@ -34,9 +27,8 @@ export type CollapseProps = {
  * Disclosure container that animates a single panel open and closed. Drives
  * state controllably via `open`/`onOpenChange` or uncontrolled via `defaultOpen`,
  * wires `aria-expanded`/`aria-controls` through {@link useCollapseContext}, and
- * honors reduced-motion. Pass `trigger` for the built-in trigger-over-panel
- * layout, or omit it and compose `<CollapseTrigger>`/`<CollapsePanel>` for full
- * control over placement.
+ * honors reduced-motion. Compose `<CollapseTrigger>` and `<CollapsePanel>` as
+ * children for full control over placement.
  *
  * @see {@link CollapseTrigger}
  * @see {@link CollapsePanel}
@@ -46,7 +38,6 @@ export function Collapse({
 	open: openProp,
 	onOpenChange,
 	animate: animateProp = 'fade',
-	trigger,
 	children,
 	className,
 }: CollapseProps) {
@@ -70,14 +61,7 @@ export function Collapse({
 	return (
 		<CollapseContext value={value}>
 			<div data-slot="collapse" data-open={dataAttr(open)} className={cn(k.base, className)}>
-				{trigger !== undefined ? (
-					<>
-						<CollapseTrigger>{trigger}</CollapseTrigger>
-						<CollapsePanel>{children}</CollapsePanel>
-					</>
-				) : (
-					children
-				)}
+				{children}
 			</div>
 		</CollapseContext>
 	)

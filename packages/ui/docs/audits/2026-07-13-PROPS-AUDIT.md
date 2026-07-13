@@ -129,17 +129,17 @@ The individual rows mostly instantiate eight repeated patterns; fixing a pattern
 | Sidebar | render-prop `children: (mini) => ReactNode` | sidebar.tsx:25 | The one §3.6 root-render-prop violation in the library — and the context path (`useSidebarMini`, already exported and consumed by SidebarItem) coexists with it. Plain `ReactNode` + the hook | ◯ OPEN |
 | FileUpload | `variant: 'drop' \| 'input' \| 'button'` | file-upload.tsx:48-70 | Three disjoint render functions with disjoint prop sets behind one discriminant → explicit `FileUploadDrop`/`FileUploadInput`/`FileUploadButton` sharing the hidden-input internals | ◯ OPEN |
 | Markdown | `inline` | markdown.tsx:24 | Different lexer, different element, silently unparsed blocks → explicit `MarkdownInline` sharing the renderer | ◯ OPEN |
-| Collapse | `trigger` | collapse.tsx:28 | Body is a byte-for-byte re-expression of the exported compound (`<CollapseTrigger>{trigger}</…>`); compound-only API | ◯ OPEN |
-| AvatarGroup | `extra` | avatar-group.tsx:10 | Appends an `<Avatar initials="+N">` the caller can append as children; only value lost is auto `alt` phrasing | ◯ OPEN |
+| Collapse | `trigger` | collapse.tsx:28 | Body is a byte-for-byte re-expression of the exported compound (`<CollapseTrigger>{trigger}</…>`); compound-only API | ✅ RESOLVED |
+| AvatarGroup | `extra` | avatar-group.tsx:10 | Appends an `<Avatar initials="+N">` the caller can append as children; only value lost is auto `alt` phrasing | ✅ RESOLVED |
 | Alert | `title`/`description` shorthands vs slot trio | alert.tsx:41-72 | Dual API + fragile displayName sniffing to reconcile them. Deliberate call: Toast's data pipeline needs the props, and props dominate usage — so the slots are the removable half, contra the usual §3.6 direction | ◯ OPEN |
 | Filters | `clear`, `prefix`, `suffix`, `equal` | filters.tsx:29-35 | Region ReactNode props where context already escapes the row (`FiltersClear` works anywhere inside the provider); compose rows/actions as children | ◯ OPEN |
 | DashboardLayout | `filters` | layouts/dashboard.tsx:18 | Single-region prop bag → compound child. Adjacent bug found: the "beside the main column" contract renders as a `<Stack>` column (dashboard.tsx:34) — aside and main stack; a `Flex` row was evidently intended | ◯ OPEN |
-| TimeAgo | `absolute` | time-ago.tsx:24 | Convenience boolean drags the whole Tooltip/floating stack into a tiny inline leaf; consumer composes Tooltip, or the import gets lazy-split | ◯ OPEN |
+| TimeAgo | `absolute` | time-ago.tsx:24 | Convenience boolean drags the whole Tooltip/floating stack into a tiny inline leaf; consumer composes Tooltip, or the import gets lazy-split | ✅ RESOLVED |
 | FileUpload | `ratio` (drop variant) | file-upload.tsx:54 | AspectRatio-wrapper sizing where sibling SignaturePad uses `h-40`+`className`; converge on the latter, dropping the prop and the dependency | ◯ OPEN |
-| PasswordInput | `toggleButton` bag | password-input.tsx:14 | Two-level config bag (boolean + i18n labels), fully unused; flatten or fold labels into the T7 locale story | ◯ OPEN |
-| TagInput | `tag` bag | tag-input.tsx:31 | One-key object (`{color}`) read once with a fallback; flatten to `tagColor` or remove | ◯ OPEN |
+| PasswordInput | `toggleButton` bag | password-input.tsx:14 | Two-level config bag (boolean + i18n labels), fully unused; flatten or fold labels into the T7 locale story | ✅ RESOLVED (flattened to `toggleButton?: boolean`; labels deferred to T7) |
+| TagInput | `tag` bag | tag-input.tsx:31 | One-key object (`{color}`) read once with a fallback; flatten to `tagColor` or remove | ◯ OPEN (owner elected to keep the object form) |
 | ControlSkeleton | `joined` | control-skeleton.tsx:19 | Manual echo of the `data-group` stamp the skeleton drops on the floor; forward the stamp (as `use-group.ts` already claims) and derive | ◯ OPEN |
-| Listbox | `tabularNums` | listbox.tsx:59 | One-class prop whose single internal consumer (pdf-viewer toolbar) can use a `className` descendant variant | ◯ OPEN |
+| Listbox | `tabularNums` | listbox.tsx:59 | One-class prop whose single internal consumer (pdf-viewer toolbar) can use a `className` descendant variant | ✅ RESOLVED |
 
 ## Watch-list — recorded keeps and deferred calls
 

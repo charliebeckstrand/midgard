@@ -56,8 +56,6 @@ type ListboxBaseProps = {
 	'aria-labelledby'?: string
 	/** Clicking the selected option clears it. */
 	nullable?: boolean
-	/** Renders the selected value with tabular numerals; digit changes do not shift layout. */
-	tabularNums?: boolean
 	/**
 	 * Truncates the selected-value label when it overflows the trigger.
 	 * Set `false` to let the trigger grow to fit its content, e.g. inside a
@@ -164,7 +162,6 @@ export function Listbox<T>({
 	required,
 	className,
 	id,
-	tabularNums,
 	truncate = true,
 	clearable = false,
 	capitalize = true,
@@ -375,7 +372,6 @@ export function Listbox<T>({
 						onBlur={handleTriggerBlur}
 						placeholder={placeholder}
 						truncate={truncate}
-						tabularNums={tabularNums}
 						density={token.space}
 						size={token.size}
 					/>
