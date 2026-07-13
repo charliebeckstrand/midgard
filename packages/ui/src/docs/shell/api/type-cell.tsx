@@ -71,7 +71,7 @@ function unquote(part: string): string {
  * text (e.g. two type parameters that both resolve to `string`), which would
  * otherwise render redundant badges and collide on the React key.
  */
-function TypeBadges({ type }: { type: string }) {
+export function TypeBadges({ type }: { type: string }) {
 	const arms = [...new Set(splitUnion(type))]
 
 	return (
@@ -107,40 +107,52 @@ function ReferencesPanel({ references }: { references: Record<string, string> })
 	)
 }
 
+/** The rendered facet of a prop, param, or return type — everything `TypeReference` needs. */
+export type TypeFacet = {
+	/** Title for the references sheet — the prop/param name, or `'Returns'`. */
+	label: string
+	type: string
+	references?: Record<string, string>
+
+	/** External package the type originates from, e.g. `@floating-ui/react`. */
+	externalFrom?: string
+}
+
 /**
- * Type-column cell. Picks one of three modes:
+ * Renders a type expression in one of three modes, shared by prop, parameter,
+ * and return rows:
  *
  *   - **External**: outline badge with a source-package tooltip.
  *   - **References**: bare type plus a Sheet trigger for the resolved
  *     definitions of every referenced alias.
- *   - **Simple** (default): plain badges via `TypeBadges`.
+ *   - **Simple** (default): plain badges via {@link TypeBadges}.
  */
-export function TypeCell({ prop }: { prop: PropDef }) {
+export function TypeReference({ label, type, references, externalFrom }: TypeFacet) {
 	const [open, setOpen] = useState(false)
 
-	if (prop.externalFrom) {
+	if (externalFrom) {
 		return (
 			<Tooltip>
 				<TooltipTrigger>
-					<Badge variant="outline">{prop.type}</Badge>
+					<Badge variant="outline">{type}</Badge>
 				</TooltipTrigger>
 				<TooltipContent>
-					Type imported from <span className="font-semibold">{prop.externalFrom}</span>
+					Type imported from <span className="font-semibold">{externalFrom}</span>
 				</TooltipContent>
 			</Tooltip>
 		)
 	}
 
-	const hasReferences = !!prop.references && Object.keys(prop.references).length > 0
+	const hasReferences = !!references && Object.keys(references).length > 0
 
 	if (!hasReferences) {
-		return <TypeBadges type={prop.type} />
+		return <TypeBadges type={type} />
 	}
 
 	return (
 		<>
 			<Flex gap="sm" direction={{ initial: 'col', xl: 'row' }} wrap>
-				<Badge variant="soft">{prop.type}</Badge>
+				<Badge variant="soft">{type}</Badge>
 				<Button size="sm" variant="bare" onClick={() => setOpen(true)}>
 					View references
 					<Icon icon={<ChevronRight />} />
@@ -149,11 +161,11 @@ export function TypeCell({ prop }: { prop: PropDef }) {
 			<GlassProvider>
 				<Sheet open={open} onOpenChange={setOpen}>
 					<SheetHeader>
-						<SheetTitle className="font-mono">{prop.name}</SheetTitle>
-						<SheetDescription className="font-mono">{prop.type}</SheetDescription>
+						<SheetTitle className="font-mono">{label}</SheetTitle>
+						<SheetDescription className="font-mono">{type}</SheetDescription>
 					</SheetHeader>
 					<SheetBody>
-						<ReferencesPanel references={prop.references ?? {}} />
+						<ReferencesPanel references={references ?? {}} />
 					</SheetBody>
 					<SheetFooter>
 						<Button onClick={() => setOpen(false)}>Close</Button>
@@ -161,5 +173,17 @@ export function TypeCell({ prop }: { prop: PropDef }) {
 				</Sheet>
 			</GlassProvider>
 		</>
+	)
+}
+
+/** Type-column cell for a prop row; a thin adapter over {@link TypeReference}. */
+export function TypeCell({ prop }: { prop: PropDef }) {
+	return (
+		<TypeReference
+			label={prop.name}
+			type={prop.type}
+			references={prop.references}
+			externalFrom={prop.externalFrom}
+		/>
 	)
 }

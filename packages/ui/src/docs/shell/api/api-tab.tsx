@@ -44,9 +44,18 @@ export function ApiTab({ exports }: { exports: SymbolApi[] }) {
 					))}
 				</Accordion>
 			)}
-			{callables.map((entry) => (
-				<CallableEntry key={entry.name} entry={entry} />
-			))}
+			{callables.length > 0 && (
+				<Accordion type="multiple">
+					{callables.map((entry) => (
+						<AccordionItem key={entry.name} value={entry.name}>
+							<AccordionTrigger className="font-mono">{`${entry.name}()`}</AccordionTrigger>
+							<AccordionPanel>
+								<CallableEntry entry={entry} />
+							</AccordionPanel>
+						</AccordionItem>
+					))}
+				</Accordion>
+			)}
 			{others.map((entry) => (
 				<OtherRow key={entry.name} entry={entry} />
 			))}
