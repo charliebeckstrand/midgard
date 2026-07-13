@@ -60,6 +60,33 @@ describe('resolveWidth', () => {
 	})
 })
 
+describe('Example code panel', () => {
+	it('omits the code block when nothing derives and no code is given', () => {
+		renderUI(<Example>demo</Example>)
+
+		expect(screen.queryByRole('button', { name: 'Show code' })).toBeNull()
+	})
+
+	it('shows the trigger but defers mounting the code until opened', () => {
+		const { container } = renderUI(<Example code="const x = 1">demo</Example>)
+
+		expect(screen.getByRole('button', { name: 'Show code' })).toBeInTheDocument()
+
+		// Closed: the panel — and its CodeBlock — stay unmounted.
+		expect(bySlot(container, 'code-block')).toBeNull()
+
+		fireEvent.click(screen.getByRole('button', { name: 'Show code' }))
+
+		expect(screen.getByRole('button', { name: 'Hide code' })).toBeInTheDocument()
+
+		const block = bySlot(container, 'code-block')
+
+		expect(block).not.toBeNull()
+
+		expect(block).toHaveTextContent('const x = 1')
+	})
+})
+
 describe('Example resize', () => {
 	it('renders no handle and a solid border by default', () => {
 		const { container } = renderExample()
