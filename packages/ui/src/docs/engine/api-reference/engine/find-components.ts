@@ -1,6 +1,5 @@
 import {
 	type ArrowFunction,
-	type ExportedDeclarations,
 	type FunctionDeclaration,
 	type FunctionExpression,
 	Node,
@@ -56,16 +55,12 @@ export function findComponent(name: string, indexFile: SourceFile): ComponentDec
 	if (!exported) return null
 
 	for (const decl of exported) {
-		const callable = resolveCallable(decl)
+		const callable = unwrapFunctionLike(decl)
 
 		if (callable) return { name, callable }
 	}
 
 	return null
-}
-
-function resolveCallable(decl: ExportedDeclarations): FunctionLike | null {
-	return unwrapFunctionLike(decl)
 }
 
 /**
