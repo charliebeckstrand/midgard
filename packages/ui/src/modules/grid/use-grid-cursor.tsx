@@ -1,6 +1,7 @@
 'use client'
 
 import {
+	type FocusEvent as ReactFocusEvent,
 	type KeyboardEvent as ReactKeyboardEvent,
 	type ReactNode,
 	type RefObject,
@@ -37,6 +38,9 @@ type GridCursorRefs<T> = {
 	rowKeysRef: RefObject<(string | number)[]>
 	dataColumnsRef: RefObject<GridColumn<T>[]>
 }
+
+/** The default commit policy: the commit keys alone save a grid-owned session. @internal */
+const DEFAULT_COMMIT_ON: NonNullable<GridEditableConfig['commitOn']> = ['enter']
 
 /** Whether a key press types a printable character (no modifiers; Space stays with selection). @internal */
 function isTypingKey(event: ReactKeyboardEvent<HTMLTableElement>): boolean {
@@ -129,6 +133,30 @@ function resolveEditingCell(
 }
 
 /**
+ * The 'blur' half of the commit policy: resolves whether an intra-grid focus
+ * move ends a cell-scoped session, returning the session's row key when it
+ * does. Focus that stayed within the editing cell's own `<td>` (an editor's
+ * inner controls) doesn't end it. @internal
+ */
+function blurCommitTarget(
+	target: EventTarget | null,
+	next: Node,
+	colIndexMap: Map<string | number, number>,
+	rowKeys: (string | number)[],
+	isRowEditing: (rowKey: string | number) => boolean,
+): string | number | null {
+	if (!(target instanceof Element)) return null
+
+	const cell = resolveEditingCell(target, colIndexMap, rowKeys, isRowEditing)
+
+	if (!cell) return null
+
+	if (target.closest('td')?.contains(next)) return null
+
+	return cell.rowKey
+}
+
+/**
  * The cursor + editing layer for {@link GridData}, gathering the keyboard cursor
  * ({@link useGridNavigation}) and — when `editable` is set — the inline editing
  * session ({@link useGridEditing}) behind one surface. Resolves the column
@@ -196,6 +224,16 @@ export function useGridCursor<T>({
 	// Grid-owned edit sessions: the grid begins one on a cell double-click or the
 	// cursor's Enter; the default 'manual' mode leaves entry to the consumer.
 	const sessionOwned = editingEnabled && editable.trigger === 'doubleClick'
+
+	// The commit policy (`commitOn`, default ['enter']): whether the commit keys
+	// are armed, and whether blur / click-outside end a session.
+	const commitOn = editable?.commitOn ?? DEFAULT_COMMIT_ON
+
+	const commitKeys = sessionOwned && commitOn.includes('enter')
+
+	const commitOnBlur = sessionOwned && commitOn.includes('blur')
+
+	const commitOnClickOutside = sessionOwned && commitOn.includes('clickOutside')
 
 	const { rowsRef, colCountRef, rowIndexMapRef, colIndexMapRef, rowKeysRef, dataColumnsRef } = refs
 
@@ -359,11 +397,55 @@ export function useGridCursor<T>({
 
 			if (event.target === event.currentTarget) {
 				tabStopSessionKeys(event, activeCoordRef.current, enterEditAt)
-			} else {
+			} else if (commitKeys) {
+				// The bubbled keys are all commits, so the whole branch stands down
+				// when the commit keys aren't armed (`commitOn` without 'enter').
 				editorSessionKeys(event)
 			}
 		},
-		[enterEditAt, editorSessionKeys],
+		[enterEditAt, editorSessionKeys, commitKeys],
+	)
+
+	// The blur / click-outside commit policy (`commitOn`): focus leaving the
+	// grid entirely commits every open session ('clickOutside'), and — cell
+	// scope — an editor losing focus to elsewhere in the grid commits its cell
+	// ('blur'). Focus landing in a floating overlay (a date picker's popover, a
+	// listbox panel) is neither, so an editor's open surface never ends its
+	// session; nor does focus moving within the editing cell's own controls.
+	const sessionBlur = useCallback(
+		(event: ReactFocusEvent<HTMLTableElement>) => {
+			const next = event.relatedTarget
+
+			if (next instanceof Element && next.closest('[data-floating-ui-portal]')) return
+
+			if (!(next instanceof Node) || !event.currentTarget.contains(next)) {
+				if (commitOnClickOutside) editing.exitAllSessions()
+
+				return
+			}
+
+			if (!commitOnBlur || !editing.cellScoped) return
+
+			const rowKey = blurCommitTarget(
+				event.target,
+				next,
+				colIndexMapRef.current,
+				rowKeysRef.current,
+				editing.isRowEditing,
+			)
+
+			if (rowKey !== null) editing.exitRowEdit(rowKey)
+		},
+		[
+			commitOnBlur,
+			commitOnClickOutside,
+			editing.cellScoped,
+			editing.exitAllSessions,
+			editing.exitRowEdit,
+			editing.isRowEditing,
+			colIndexMapRef,
+			rowKeysRef,
+		],
 	)
 
 	// Cursor-only augmentation for a plain navigable grid; editing-aware
@@ -403,11 +485,12 @@ export function useGridCursor<T>({
 		}
 	}, [sessionOwned, enterEditAt, rowKeysRef, colIndexMapRef])
 
-	// The `<table>` cursor props, with the session keys layered ahead of
-	// navigation when the grid owns the edit session: the table (the cursor's
-	// `role="grid"` tab stop) sees every editor's keys — portaled panels
-	// included, since portal events propagate through the React tree — so no
-	// editor wires its own abandon or commit-and-move.
+	// The `<table>` cursor props, with the session keys and the blur policy
+	// layered ahead of navigation when the grid owns the edit session: the table
+	// (the cursor's `role="grid"` tab stop) sees every editor's keys and focus
+	// transitions — portaled panels included, since portal events propagate
+	// through the React tree — so no editor wires its own abandon, commit-and-
+	// move, or blur commit.
 	const navTableProps = useMemo<GridNavTableProps | undefined>(() => {
 		const base = nav.navTableProps
 
@@ -424,8 +507,13 @@ export function useGridCursor<T>({
 
 				base.onKeyDown(event)
 			},
+			onBlur: (event) => {
+				sessionBlur(event)
+
+				base.onBlur(event)
+			},
 		}
-	}, [nav.navTableProps, editing.sessionEscape, sessionOwned, sessionMoveKeys])
+	}, [nav.navTableProps, editing.sessionEscape, sessionOwned, sessionMoveKeys, sessionBlur])
 
 	// The provided editing context: the staging half from the editing hook, with
 	// the grid-owned session exits (commit-and-move, cancel) composed over it.
@@ -434,8 +522,9 @@ export function useGridCursor<T>({
 			...editing.rowEditing,
 			commitRowEdit: sessionOwned ? commitSessionWithMove : undefined,
 			cancelRowEdit: sessionOwned ? editing.cancelRowEdit : undefined,
+			commitOnEnter: commitKeys,
 		}),
-		[editing.rowEditing, sessionOwned, commitSessionWithMove, editing.cancelRowEdit],
+		[editing.rowEditing, sessionOwned, commitSessionWithMove, editing.cancelRowEdit, commitKeys],
 	)
 
 	const wrap = useMemo(

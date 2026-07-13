@@ -26,7 +26,7 @@ export type GridEditingApi = {
 	 * callbacks, and focus handshake. {@link useGridCursor} composes the session
 	 * exits (commit-and-move, cancel) over it to form the provided value.
 	 */
-	rowEditing: Omit<GridRowEditing, 'commitRowEdit' | 'cancelRowEdit'>
+	rowEditing: Omit<GridRowEditing, 'commitRowEdit' | 'cancelRowEdit' | 'commitOnEnter'>
 	/**
 	 * Puts the cell at `coord` into edit mode through the controllable set (so
 	 * `onRowsChange` fires) and, once its editor mounts, focuses it — the
@@ -43,6 +43,12 @@ export type GridEditingApi = {
 	 * the raw exit {@link useGridCursor} wraps with the commit-and-move keys.
 	 */
 	exitRowEdit: (rowKey: string | number) => void
+	/**
+	 * Ends every open session, committing staged edits through the flush — the
+	 * click-outside policy's exit. Focus is not reseated: the user deliberately
+	 * left the grid.
+	 */
+	exitAllSessions: () => void
 	/** Ends a row's edit session, discarding every staged draft. */
 	cancelRowEdit: (rowKey: string | number) => void
 	/** Whether a row currently has an open edit session, read at event time. */
@@ -443,6 +449,16 @@ export function useGridEditing<T>({
 		[exitRowEdit],
 	)
 
+	// The click-outside policy's exit: every open session commits through the
+	// flush. Focus is deliberately not reseated — the user left the grid.
+	const exitAllSessions = useCallback(() => {
+		if (editableRowsRef.current.size === 0) return
+
+		setActiveCell(null)
+
+		setEditableRows(EMPTY_SET)
+	}, [setEditableRows])
+
 	// Escape from any of an editing row's editors abandons its session. It stands
 	// down while the press belongs to an inner floating surface, whose
 	// document-level escape layer runs *after* this React handler: a press
@@ -552,7 +568,9 @@ export function useGridEditing<T>({
 		[],
 	)
 
-	const rowEditing = useMemo<Omit<GridRowEditing, 'commitRowEdit' | 'cancelRowEdit'>>(
+	const rowEditing = useMemo<
+		Omit<GridRowEditing, 'commitRowEdit' | 'cancelRowEdit' | 'commitOnEnter'>
+	>(
 		() => ({
 			store: storeRef.current as GridEditingStore,
 			stageDraft,
@@ -566,6 +584,7 @@ export function useGridEditing<T>({
 		rowEditing,
 		enterRowEdit,
 		exitRowEdit,
+		exitAllSessions,
 		cancelRowEdit,
 		isRowEditing,
 		sessionOwned,

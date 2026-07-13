@@ -110,6 +110,21 @@ export type GridEditableConfig = {
 	 */
 	scope?: 'row' | 'cell'
 	/**
+	 * When a grid-owned session (`trigger: 'doubleClick'`) commits its staged
+	 * edits. `'enter'` — the default — arms the commit keys: an editor's Enter,
+	 * and with it Tab's and F2's commit-and-move. `'blur'` also commits a
+	 * cell-scoped session when its editor loses focus to elsewhere in the grid
+	 * (clicking another cell, tabbing to a row action); `'clickOutside'` commits
+	 * every open session when focus leaves the grid entirely — the forgiving
+	 * mode where wandering off doesn't discard work. Escape always abandons
+	 * instead, an `editCell` slot's programmatic `commit` always saves, and
+	 * focus landing in an open floating surface (a date picker's popover, a
+	 * listbox panel) never reads as blur. No effect under the consumer-owned
+	 * `'manual'` trigger, whose save is removing the row from the set.
+	 * @defaultValue ['enter']
+	 */
+	commitOn?: ('enter' | 'blur' | 'clickOutside')[]
+	/**
 	 * Called when an editing row is saved (removed from the set), with one
 	 * {@link CellChange} per changed cell in that row, batched into a single call.
 	 * Unchanged and `validate`-failing cells are dropped. Apply each change to your

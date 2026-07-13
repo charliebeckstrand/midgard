@@ -277,7 +277,8 @@ export function SpreadsheetExample() {
 	// to edit it alone; Enter saves and moves down the column, Tab/Shift+Tab save
 	// and move across the row's editable cells, F2 saves in place, Escape
 	// discards; entering another cell saves the current one on the way out. The
-	// sku column stays read-only.
+	// forgiving `commitOn` policy also saves on blur and click-outside, so
+	// wandering off never discards work. The sku column stays read-only.
 	const columns: GridColumn<Sku>[] = [
 		{ id: 'sku', title: 'SKU', cell: (row) => row.sku, readOnly: true },
 		{ id: 'stock', title: 'Stock', field: 'stock', cell: (row) => String(row.stock) },
@@ -312,6 +313,7 @@ export function SpreadsheetExample() {
 				editable={{
 					trigger: 'doubleClick',
 					scope: 'cell',
+					commitOn: ['enter', 'blur', 'clickOutside'],
 					onValueChange: (changes) => setSkus((prev) => applyChanges(prev, changes)),
 				}}
 			/>

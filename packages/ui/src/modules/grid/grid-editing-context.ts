@@ -77,6 +77,13 @@ export type GridRowEditing = {
 	 * the consumer owns the session, where Escape reverts one cell instead.
 	 */
 	cancelRowEdit?: (rowKey: string | number) => void
+	/**
+	 * Whether the commit keys are armed — `commitOn` includes `'enter'` (the
+	 * default). The editors' Enter stands down otherwise; an `editCell` slot's
+	 * programmatic `commit` saves regardless, being a deliberate affordance
+	 * rather than a key policy.
+	 */
+	commitOnEnter: boolean
 }
 
 export const [GridRowEditingContext, useGridRowEditing] =

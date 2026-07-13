@@ -33,7 +33,12 @@ type GridEditingCellProps<T> = {
 type GridCellEditorProps<T> = Omit<GridEditingCellProps<T>, 'render'> &
 	Pick<
 		GridRowEditing,
-		'stageDraft' | 'unstageDraft' | 'claimPendingFocus' | 'commitRowEdit' | 'cancelRowEdit'
+		| 'stageDraft'
+		| 'unstageDraft'
+		| 'claimPendingFocus'
+		| 'commitRowEdit'
+		| 'cancelRowEdit'
+		| 'commitOnEnter'
 	>
 
 /** Focusable editor content inside an editing cell, in preference order. @internal */
@@ -60,6 +65,7 @@ function GridCellEditor<T>({
 	claimPendingFocus,
 	commitRowEdit,
 	cancelRowEdit,
+	commitOnEnter,
 }: GridCellEditorProps<T>) {
 	const seed = column.field != null ? row[column.field] : undefined
 
@@ -116,12 +122,16 @@ function GridCellEditor<T>({
 
 	// Grid-owned session exits (`trigger: 'doubleClick'`), bound to this cell;
 	// `undefined` under a consumer-owned session, standing the session keys down.
-	// A move carries the commit-and-move keys (Enter ↓), resolved from this
-	// cell's display coord.
-	const commitRow = commitRowEdit
-		? (move?: SessionMove) =>
-				commitRowEdit(rowKey, move ? { move, from: { row: rowIdx, col: colIdx } } : undefined)
-		: undefined
+	// The slot's programmatic `commit` saves regardless of policy; the editors'
+	// key commit (`commitRow`, whose move carries Enter ↓ resolved from this
+	// cell's display coord) additionally requires `commitOn` to arm the keys.
+	const commitSession = commitRowEdit ? () => commitRowEdit(rowKey) : undefined
+
+	const commitRow =
+		commitRowEdit && commitOnEnter
+			? (move?: SessionMove) =>
+					commitRowEdit(rowKey, move ? { move, from: { row: rowIdx, col: colIdx } } : undefined)
+			: undefined
 
 	const cancelRow = cancelRowEdit ? () => cancelRowEdit(rowKey) : undefined
 
@@ -155,11 +165,11 @@ function GridCellEditor<T>({
 			onValueUpdate: update,
 			// A slot can stage a final value in one call (e.g. a select's pick); the
 			// row's save flushes the staged values, so there is no per-cell close.
-			// Under a grid-owned session the slot's commit also saves the row.
+			// Under a grid-owned session the slot's commit also saves the session.
 			commit: (next) => {
 				if (next !== undefined) update(next)
 
-				commitRow?.()
+				commitSession?.()
 			},
 			cancel,
 			ariaLabel,
@@ -213,8 +223,15 @@ export function GridEditingCell<T>({
 	column,
 	render,
 }: GridEditingCellProps<T>) {
-	const { store, stageDraft, unstageDraft, claimPendingFocus, commitRowEdit, cancelRowEdit } =
-		useGridRowEditing()
+	const {
+		store,
+		stageDraft,
+		unstageDraft,
+		claimPendingFocus,
+		commitRowEdit,
+		cancelRowEdit,
+		commitOnEnter,
+	} = useGridRowEditing()
 
 	const isCellEditing = useCallback(
 		() => store.isCellEditing(rowKey, column.id),
@@ -236,6 +253,7 @@ export function GridEditingCell<T>({
 				claimPendingFocus={claimPendingFocus}
 				commitRowEdit={commitRowEdit}
 				cancelRowEdit={cancelRowEdit}
+				commitOnEnter={commitOnEnter}
 			/>
 		)
 	}

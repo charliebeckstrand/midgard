@@ -848,3 +848,165 @@ describe('Grid commit-and-move keys', () => {
 		expect(input).toHaveFocus()
 	})
 })
+
+/**
+ * The commit policy (`editable.commitOn`, default `['enter']`): `'blur'`
+ * commits a cell-scoped session when its editor loses focus to elsewhere in
+ * the grid, `'clickOutside'` commits every open session when focus leaves the
+ * grid entirely, and omitting `'enter'` stands the commit keys down. Focus
+ * landing in a floating overlay never reads as blur.
+ */
+describe('Grid commit policy (commitOn)', () => {
+	type Row = { id: number; name: string; count: number }
+
+	const baseRows: Row[] = [
+		{ id: 1, name: 'Alice', count: 2 },
+		{ id: 2, name: 'Bob', count: 5 },
+	]
+
+	const columns: GridColumn<Row>[] = [
+		{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
+		{ id: 'count', title: 'Count', field: 'count', cell: (row) => String(row.count) },
+	]
+
+	function renderPolicyGrid(commitOn?: ('enter' | 'blur' | 'clickOutside')[]) {
+		const onValueChange = vi.fn()
+
+		const view = renderUI(
+			<>
+				<button type="button">outside</button>
+				<Grid
+					columns={columns}
+					rows={baseRows}
+					getKey={(row) => row.id}
+					editable={{ trigger: 'doubleClick', scope: 'cell', commitOn, onValueChange }}
+				/>
+			</>,
+		)
+
+		return {
+			...view,
+			onValueChange,
+			outside: view.getByRole('button', { name: 'outside' }),
+			cell: (col: string, rowIndex = 0) =>
+				view.container.querySelectorAll<HTMLElement>(`td[data-grid-col="${col}"]`)[
+					rowIndex
+				] as HTMLElement,
+		}
+	}
+
+	it('keeps the session and its draft on blur under the default policy', () => {
+		const { container, cell, onValueChange } = renderPolicyGrid()
+
+		fireEvent.doubleClick(cell('name'))
+
+		const input = bySlot(container, 'grid-edit-input') as HTMLInputElement
+
+		fireEvent.change(input, { target: { value: 'Alicia' } })
+
+		fireEvent.blur(input, { relatedTarget: cell('count') })
+
+		expect(bySlot(container, 'grid-edit-input')).toBeInTheDocument()
+
+		expect(onValueChange).not.toHaveBeenCalled()
+	})
+
+	it("commits a cell-scoped session when its editor blurs to elsewhere in the grid under 'blur'", () => {
+		const { container, cell, onValueChange } = renderPolicyGrid(['enter', 'blur'])
+
+		fireEvent.doubleClick(cell('name'))
+
+		const input = bySlot(container, 'grid-edit-input') as HTMLInputElement
+
+		fireEvent.change(input, { target: { value: 'Alicia' } })
+
+		fireEvent.blur(input, { relatedTarget: cell('count') })
+
+		expect(onValueChange).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'name', value: 'Alicia' }])
+
+		expect(bySlot(container, 'grid-edit-input')).toBeNull()
+	})
+
+	it('never reads focus landing in a floating overlay as blur', () => {
+		const { container, cell, onValueChange } = renderPolicyGrid(['enter', 'blur', 'clickOutside'])
+
+		fireEvent.doubleClick(cell('name'))
+
+		const input = bySlot(container, 'grid-edit-input') as HTMLInputElement
+
+		fireEvent.change(input, { target: { value: 'Alicia' } })
+
+		// A portaled panel opening from the editor (a DatePicker popover, a
+		// listbox panel) pulls focus out of the table but must not end the session.
+		const portal = document.createElement('div')
+
+		portal.setAttribute('data-floating-ui-portal', '')
+
+		const panelButton = document.createElement('button')
+
+		portal.appendChild(panelButton)
+
+		document.body.appendChild(portal)
+
+		fireEvent.blur(input, { relatedTarget: panelButton })
+
+		expect(bySlot(container, 'grid-edit-input')).toBeInTheDocument()
+
+		expect(onValueChange).not.toHaveBeenCalled()
+
+		portal.remove()
+	})
+
+	it("commits every open session when focus leaves the grid under 'clickOutside'", () => {
+		const { container, cell, outside, onValueChange } = renderPolicyGrid(['enter', 'clickOutside'])
+
+		fireEvent.doubleClick(cell('name'))
+
+		const input = bySlot(container, 'grid-edit-input') as HTMLInputElement
+
+		fireEvent.change(input, { target: { value: 'Alicia' } })
+
+		fireEvent.blur(input, { relatedTarget: outside })
+
+		expect(onValueChange).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'name', value: 'Alicia' }])
+
+		expect(bySlot(container, 'grid-edit-input')).toBeNull()
+	})
+
+	it("does not commit on leaving the grid when 'clickOutside' is not in the policy", () => {
+		const { container, cell, outside, onValueChange } = renderPolicyGrid(['enter'])
+
+		fireEvent.doubleClick(cell('name'))
+
+		const input = bySlot(container, 'grid-edit-input') as HTMLInputElement
+
+		fireEvent.change(input, { target: { value: 'Alicia' } })
+
+		fireEvent.blur(input, { relatedTarget: outside })
+
+		expect(bySlot(container, 'grid-edit-input')).toBeInTheDocument()
+
+		expect(onValueChange).not.toHaveBeenCalled()
+	})
+
+	it("stands the commit keys down when 'enter' is absent from the policy", () => {
+		const { container, cell, onValueChange } = renderPolicyGrid(['blur'])
+
+		fireEvent.doubleClick(cell('name'))
+
+		const input = bySlot(container, 'grid-edit-input') as HTMLInputElement
+
+		fireEvent.change(input, { target: { value: 'Alicia' } })
+
+		fireEvent.keyDown(input, { key: 'Enter' })
+
+		// Enter no longer commits; the session (and its draft) stay open.
+		expect(bySlot(container, 'grid-edit-input')).toBeInTheDocument()
+
+		expect(onValueChange).not.toHaveBeenCalled()
+
+		fireEvent.keyDown(input, { key: 'Tab' })
+
+		expect(onValueChange).not.toHaveBeenCalled()
+	})
+})
