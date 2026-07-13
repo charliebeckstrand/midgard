@@ -1,6 +1,5 @@
-import { modules } from 'virtual:docs/modules'
 import { Dices } from 'lucide-react'
-import { type ComponentType, Suspense, use, useMemo, useState } from 'react'
+import { Suspense } from 'react'
 import { Button } from 'ui/button'
 import { CodeBlock } from 'ui/code'
 import { Flex } from 'ui/flex'
@@ -8,107 +7,29 @@ import { Icon } from 'ui/icon'
 import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
 import type { DocMeta } from '../engine'
-import type { SymbolApi } from '../engine/extractor'
-import {
-	type Complexity,
-	formatSeed,
-	parseSeed,
-	printUsage,
-	randomSeed,
-	resolveConfig,
-	synthesize,
-	type UsageDoc,
-} from '../engine/usage'
-import { renderUsage, type SymbolResolver } from '../engine/usage/render'
-import { loadSnapshot, selectExports } from './api-data'
+import { type Complexity, formatSeed, printUsage, randomSeed } from '../engine/usage'
 import { DocErrorBoundary } from './error-boundary'
 import { setParam } from './router'
+import { LivePreview, useSynthesizedDoc } from './synthesis'
 
 const LEVELS: readonly Complexity[] = ['minimal', 'typical', 'rich']
 
-/** The symbol a doc's Usage tab synthesizes for: a component first, else the first callable. */
-function primarySymbol(meta: DocMeta, exports: SymbolApi[]): SymbolApi | null {
-	const documented = selectExports(meta, exports)
-
-	return (
-		documented.find((symbol) => symbol.kind === 'component') ??
-		documented.find((symbol) => symbol.kind === 'hook' || symbol.kind === 'function') ??
-		null
-	)
-}
-
-// One lazy import per documented module, shared across re-rolls and revisits.
-const moduleCache = new Map<string, Promise<Record<string, unknown>>>()
-
-function loadModule(specifier: string): Promise<Record<string, unknown>> {
-	let promise = moduleCache.get(specifier)
-
-	if (!promise) {
-		promise = modules[specifier]?.() ?? Promise.resolve({})
-
-		moduleCache.set(specifier, promise)
-	}
-
-	return promise
-}
-
 /**
- * Renders the synthesized component live from the doc's own module. Suspends on
- * the lazy import; a render failure (an unresolved tag, a missing provider) is
- * caught by the surrounding boundary, which falls back to the code alone.
+ * The Usage tab: the seeded example the Overview also shows, here with its
+ * printed source and the controls that reshape it. Complexity and seed live in
+ * the URL (`?level=`, `?seed=`) so any example is shareable; the seed is owned
+ * by the page, so shuffling here moves the Overview render in lockstep.
  */
-function LivePreview({ doc, specifier }: { doc: UsageDoc; specifier: string }) {
-	const mod = use(loadModule(specifier))
-
-	const resolve: SymbolResolver = (tag) => mod[tag] as ComponentType<Record<string, unknown>>
-
-	return (
-		<div className="rounded-lg border border-zinc-200 dark:border-zinc-800">
-			<div className="grid place-items-center overflow-x-auto p-8">{renderUsage(doc, resolve)}</div>
-		</div>
-	)
-}
-
-/**
- * The Usage tab: a synthesized example of the doc's primary export, generated
- * fresh from a seed. A component renders live above its code, both walking the
- * same seeded AST so they never drift; hooks and functions show code only for
- * now. Complexity and seed live in the URL (`?level=`, `?seed=`) so any example
- * is shareable; with no seed pinned, each visit rolls a new one.
- */
-export function UsageTab({ meta, search }: { meta: DocMeta; search: URLSearchParams }) {
-	const api = use(loadSnapshot())
-
-	const moduleApi = api.modules[meta.module]
-
-	const symbol = moduleApi ? primarySymbol(meta, moduleApi.exports) : null
-
-	// One ephemeral seed per mount backs the "different every visit" default; a
-	// pinned `?seed=` overrides it and makes the example reproducible.
-	const [ephemeralSeed] = useState(randomSeed)
-
-	const seed = parseSeed(search.get('seed')) ?? ephemeralSeed
-
-	const level = search.get('level')
-
-	const domain = search.get('domain')
-
-	// Rebuild from the two primitives the config actually reads, so the memo
-	// stays stable across route re-parses that leave them unchanged.
-	const config = useMemo(() => {
-		const params = new URLSearchParams()
-
-		if (level) params.set('level', level)
-
-		if (domain) params.set('domain', domain)
-
-		return resolveConfig(meta.usage, params)
-	}, [meta.usage, level, domain])
-
-	const doc = useMemo(
-		() => (symbol ? synthesize(symbol, meta.module, config, seed) : null),
-		[symbol, meta.module, config, seed],
-	)
+export function UsageTab({
+	meta,
+	search,
+	seed: ephemeralSeed,
+}: {
+	meta: DocMeta
+	search: URLSearchParams
+	seed: number
+}) {
+	const { symbol, doc, seed, config } = useSynthesizedDoc(meta, search, ephemeralSeed)
 
 	if (!symbol || !doc) return <Text severity="muted">No usage synthesis for this page.</Text>
 

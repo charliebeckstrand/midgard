@@ -9,31 +9,17 @@ usage:
 
 Polymorphic action control with \`variant\` and \`size\` axes.
 
-\`\`\`tsx
-import { Button } from 'ui/button'
-\`\`\`
-
 ## Variants
 
-Five visual weights.
-
-\`\`\`tsx preview title="Variants"
-export default function Variants() {
-	return null
-}
-\`\`\`
+Five visual weights, from solid to bare.
 
 ## Loading
 
-\`\`\`tsx preview
-export default function Loading() {
-	return null
-}
-\`\`\`
+While \`loading\`, the label yields to a spinner.
 `
 
 describe('parseDoc', () => {
-	it('parses name, description, fences, and sections', () => {
+	it('parses the name, description, and front-matter', () => {
 		const doc = parseDoc(FIXTURE, 'button.md')
 
 		expect(doc.name).toBe('Button')
@@ -41,50 +27,19 @@ describe('parseDoc', () => {
 		expect(doc.description).toBe('Polymorphic action control with `variant` and `size` axes.')
 
 		expect(doc.frontMatter.usage).toEqual({ domain: 'commerce' })
-
-		expect(doc.previews).toHaveLength(2)
-
-		expect(doc.previews[0]).toMatchObject({ title: 'Variants', section: 'Variants' })
-
-		expect(doc.previews[1]).toMatchObject({ title: undefined, section: 'Loading' })
-
-		expect(doc.body.map((segment) => segment.t)).toEqual([
-			'snippet',
-			'prose',
-			'preview',
-			'prose',
-			'preview',
-		])
 	})
 
-	it('keeps h2 headings inside prose segments', () => {
+	it('keeps the prose after the description as the verbatim body', () => {
 		const doc = parseDoc(FIXTURE, 'button.md')
 
-		const prose = doc.body.filter((segment) => segment.t === 'prose')
+		expect(doc.body.startsWith('## Variants')).toBe(true)
 
-		expect(prose[0]?.md).toContain('## Variants')
+		expect(doc.body).toContain('Five visual weights, from solid to bare.')
 
-		expect(prose[0]?.md).toContain('Five visual weights.')
-	})
+		expect(doc.body).toContain('## Loading')
 
-	it('records the opening fence line for preview fences', () => {
-		const doc = parseDoc(FIXTURE, 'button.md')
-
-		const lines = FIXTURE.split('\n')
-
-		for (const fence of doc.previews) {
-			expect(lines[fence.line - 1]).toMatch(/^```tsx preview/)
-		}
-	})
-
-	it('classifies bare fences as snippets', () => {
-		const doc = parseDoc(FIXTURE, 'button.md')
-
-		expect(doc.body[0]).toEqual({
-			t: 'snippet',
-			code: "import { Button } from 'ui/button'",
-			lang: 'tsx',
-		})
+		// The description belongs to `description`, never the body.
+		expect(doc.body).not.toContain('Polymorphic action control')
 	})
 
 	it('rejects a doc without an h1', () => {
@@ -99,12 +54,6 @@ describe('parseDoc', () => {
 		expect(() => parseDoc('# One\n\nDescription.\n\n# Two\n', 'bad.md')).toThrow(
 			/bad\.md:5 multiple h1/,
 		)
-	})
-
-	it('rejects unknown fence roles with a position', () => {
-		const source = '# Name\n\nDescription.\n\n```tsx demo\nconst x = 1\n```\n'
-
-		expect(() => parseDoc(source, 'bad.md')).toThrow(/bad\.md:5 unknown fence role "demo"/)
 	})
 
 	it('rejects unknown front-matter keys', () => {

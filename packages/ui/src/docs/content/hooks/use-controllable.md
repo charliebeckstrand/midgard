@@ -1,47 +1,5 @@
 # useControllable
 
-Manages controlled / uncontrolled value state with a unified setter: pass `value` to control it, `defaultValue` to seed the uncontrolled case, and `onValueChange` to observe every change.
+The hook behind the design system's controlled / uncontrolled pattern.
 
-```tsx
-import { useControllable } from 'ui/hooks'
-```
-
-## Uncontrolled
-
-With only a `defaultValue`, the hook owns the state; the setter accepts a next value or a functional updater.
-
-```tsx preview title="Uncontrolled toggle"
-import { Button } from 'ui/button'
-import { useControllable } from 'ui/hooks'
-
-export default function Uncontrolled() {
-	const [on, setOn] = useControllable<boolean>({ defaultValue: false })
-
-	return (
-		<Button variant={on ? 'solid' : 'outline'} onClick={() => setOn((current) => !current)}>
-			{on ? 'On' : 'Off'}
-		</Button>
-	)
-}
-```
-
-## Controlled
-
-Pass `value` and `onValueChange` to drive the hook from outside; it never writes its own shadow state while controlled.
-
-```tsx preview title="Controlled input"
-import { useState } from 'react'
-import { Input } from 'ui/input'
-import { useControllable } from 'ui/hooks'
-
-export default function Controlled() {
-	const [value, setValue] = useState('')
-
-	const [current, setCurrent] = useControllable<string>({
-		value,
-		onValueChange: (next) => setValue(next ?? ''),
-	})
-
-	return <Input value={current ?? ''} onChange={(event) => setCurrent(event.target.value)} />
-}
-```
+It lets a component accept an optional controlled value from its parent while still working when that value is omitted — the parent drives it when it wants to, and the component keeps its own state when it doesn't. Every input, toggle, and disclosure in the system is built on this one contract, so they all handle both cases the same way. Reach for it when you're building a component that needs to offer the same choice.

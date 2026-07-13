@@ -3,8 +3,8 @@ import path from 'node:path'
 
 /**
  * Every `.md` file under `dir`, recursively, absolute-pathed and sorted. A
- * node-only leaf (no Vite) so the content plugin and a consumer's fence-check
- * script share one walk without either pulling the other's dependencies.
+ * node-only leaf (no Vite), kept separate so the manifest scan stays a plain
+ * filesystem walk with no bundler dependencies.
  */
 export function scanMarkdown(dir: string): string[] {
 	if (!fs.existsSync(dir)) return []

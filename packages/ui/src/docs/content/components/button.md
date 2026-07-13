@@ -5,47 +5,6 @@ usage:
 
 # Button
 
-Polymorphic action control: renders a `<button>`, or an anchor when `href` is set, with `variant`, `color`, and `size` axes, a `loading` state, and `prefix`/`suffix` adornments.
+The primary action control — the thing a user clicks to make something happen.
 
-```tsx
-import { Button } from 'ui/button'
-```
-
-## Variants
-
-Five visual weights, from the filled default down to the chromeless `bare`.
-
-```tsx preview title="Variants"
-import { Button } from 'ui/button'
-
-export default function Variants() {
-	return (
-		<div className="flex flex-wrap items-center gap-2">
-			<Button>Solid</Button>
-			<Button variant="soft">Soft</Button>
-			<Button variant="outline">Outline</Button>
-			<Button variant="plain">Plain</Button>
-			<Button variant="bare">Bare</Button>
-		</div>
-	)
-}
-```
-
-## Loading
-
-While `loading`, the label yields to a spinner and the control stops accepting presses.
-
-```tsx preview title="Loading"
-import { useState } from 'react'
-import { Button } from 'ui/button'
-
-export default function Loading() {
-	const [loading, setLoading] = useState(false)
-
-	return (
-		<Button loading={loading} onClick={() => setLoading((current) => !current)}>
-			{loading ? 'Working…' : 'Start'}
-		</Button>
-	)
-}
-```
+A Button carries the weight of an action: prominent for the main step in a flow, quieter for the choices beside it. It is polymorphic — given a destination it renders as a link instead, so actions and navigation share one look while keeping the right underlying element. It can show a busy state while work is in flight and sit alongside an icon. Reach for it for actions in a view; when the job is moving between pages, let it render as a link so it stays a real anchor.

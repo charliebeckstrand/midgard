@@ -1,6 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
-import { type ModuleNode, type Plugin, transformWithEsbuild } from 'vite'
+import type { ModuleNode, Plugin } from 'vite'
 import type { DocMeta } from './contracts'
 import type { ApiExtractor, ExtraDefaults } from './extractor'
 import { enumerateSurface, isExcludedSource } from './extractor/surface'
@@ -10,8 +10,11 @@ import { virtualJsonModules } from './virtual-json'
 
 /** Options for {@link docsPlugin}. */
 export type DocsPluginOptions = {
-	/** The documented library's import prefix; drives module derivation. */
-	packageName: string
+	/**
+	 * The documented library's import prefix; drives module derivation.
+	 * @defaultValue the documented package's `package.json` `name`
+	 */
+	packageName?: string
 
 	/** Directory of doc markdown, relative to the Vite root. @defaultValue 'content' */
 	contentDir?: string
@@ -30,22 +33,33 @@ const MANIFEST_ID = 'virtual:docs/manifest'
 
 const API_ID = 'virtual:docs/api'
 
-const PREVIEW_PREFIX = 'virtual:docs/preview/'
-
 const MODULES_ID = 'virtual:docs/modules'
+
+/** The `name` from a package's `package.json` — the default import prefix. */
+function readPackageName(packageDir: string): string {
+	const manifest = fs.readFileSync(path.join(packageDir, 'package.json'), 'utf8')
+
+	return (JSON.parse(manifest) as { name: string }).name
+}
 
 /**
  * The docs engine's single Vite plugin. Three concerns: transform each
- * `content/**` markdown file into a typed doc module, serve every `tsx preview`
- * fence as a compiled virtual module (esbuild only — plugin-react never sees
- * them), and expose the scanned {@link DocMeta} list as `virtual:docs/manifest`.
+ * `content/**` markdown file into a typed doc module (its meta and prose body),
+ * expose the scanned {@link DocMeta} list as `virtual:docs/manifest` and the
+ * extracted API as `virtual:docs/api`, and serve the documented modules' live
+ * imports as `virtual:docs/modules` for the Overview and Usage renders.
  */
 export function docsPlugin({
 	contentDir = 'content',
-	packageName,
+	packageName: packageNameOption,
 	apiPackageDir,
 	extraDefaults,
 }: DocsPluginOptions): Plugin {
+	// Default the import prefix to the documented package's own name, so a repo
+	// that vendors this package under a different name (e.g. `@scope/ui`) needs
+	// no config edit — its manifest is the single source of truth.
+	const packageName = packageNameOption ?? readPackageName(apiPackageDir)
+
 	let contentRoot = contentDir
 
 	// The package's real export surface: `specifier → entry file`. Reconciles
@@ -86,22 +100,6 @@ export function docsPlugin({
 	}
 
 	const isContentMd = (file: string) => file.startsWith(`${contentRoot}/`) && file.endsWith('.md')
-
-	/** `content/`-relative path without extension: `components/button`. */
-	const docPathOf = (file: string) =>
-		path
-			.relative(contentRoot, file)
-			.replaceAll('\\', '/')
-			.replace(/\.md$/, '')
-			.replace(/\/index$/, '')
-
-	const fileOf = (docPath: string) => {
-		const flat = path.join(contentRoot, `${docPath}.md`)
-
-		if (fs.existsSync(flat)) return flat
-
-		return path.join(contentRoot, docPath, 'index.md')
-	}
 
 	const parsedFor = (file: string): ParsedDoc => {
 		let parsed = cache.get(file)
@@ -156,37 +154,16 @@ export function docsPlugin({
 		},
 
 		resolveId(id) {
-			if (id.startsWith(PREVIEW_PREFIX) || id === MODULES_ID) return `\0${id}`
+			if (id === MODULES_ID) return `\0${id}`
 
 			return jsonHooks.resolveId(id)
 		},
 
 		load(id) {
-			if (id.startsWith(`\0${PREVIEW_PREFIX}`)) {
-				const ref = id.slice(PREVIEW_PREFIX.length + 1)
-
-				const slash = ref.lastIndexOf('/')
-
-				const docPath = ref.slice(0, slash)
-
-				const index = Number(ref.slice(slash + 1))
-
-				const file = fileOf(docPath)
-
-				const fence = parsedFor(file).previews[index]
-
-				if (!fence) throw new Error(`${file}: preview fence #${index} not found`)
-
-				return transformWithEsbuild(fence.code, `${docPath.replaceAll('/', '-')}-${index}.tsx`, {
-					loader: 'tsx',
-					jsx: 'automatic',
-				})
-			}
-
 			// A `specifier → lazy import` map of the documented modules, so the
-			// Usage tab can resolve a synthesized element's real component at
-			// runtime. Generated (not JSON) — the values are live imports Vite
-			// bundles by their real export-map specifiers.
+			// Overview and Usage renders can resolve a synthesized element's real
+			// component at runtime. Generated (not JSON) — the values are live
+			// imports Vite bundles by their real export-map specifiers.
 			if (id === `\0${MODULES_ID}`) {
 				const entries = documentedModules().map(
 					(specifier) =>
@@ -211,25 +188,13 @@ export function docsPlugin({
 
 			cache.set(file, parsed)
 
-			const docPath = docPathOf(file)
-
 			const meta = deriveDocMeta(path.relative(contentRoot, file), parsed, deriveOptions)
-
-			const previews = parsed.previews.map(
-				(fence, index) =>
-					`{ ${fence.title !== undefined ? `title: ${JSON.stringify(fence.title)}, ` : ''}${
-						fence.section !== undefined ? `section: ${JSON.stringify(fence.section)}, ` : ''
-					}source: ${JSON.stringify(fence.code)}, load: () => import(${JSON.stringify(
-						`${PREVIEW_PREFIX}${docPath}/${index}`,
-					)}) }`,
-			)
 
 			return {
 				code: [
 					`export const meta = ${JSON.stringify(meta)}`,
 					`export const body = ${JSON.stringify(parsed.body)}`,
-					`export const previews = [${previews.join(', ')}]`,
-					'export default { meta, body, previews }',
+					'export default { meta, body }',
 				].join('\n\n'),
 				map: null,
 			}
@@ -255,16 +220,6 @@ export function docsPlugin({
 					ctx.server.moduleGraph.invalidateModule(modulesMod)
 
 					invalidated.push(modulesMod)
-				}
-
-				const prefix = `\0${PREVIEW_PREFIX}${docPathOf(ctx.file)}/`
-
-				for (const [id, mod] of ctx.server.moduleGraph.idToModuleMap) {
-					if (!id.startsWith(prefix)) continue
-
-					ctx.server.moduleGraph.invalidateModule(mod)
-
-					invalidated.push(mod)
 				}
 			}
 

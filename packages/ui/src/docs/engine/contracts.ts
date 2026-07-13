@@ -1,5 +1,3 @@
-import type { ComponentType } from 'react'
-
 /** Author defaults for the usage engine, set in a doc's front-matter `usage` block. */
 export type UsageAuthorConfig = {
 	/** Baseline synthesis richness; visitor knobs override. @defaultValue 'typical' */
@@ -44,28 +42,10 @@ export type DocMeta = {
 	usage?: UsageAuthorConfig
 }
 
-/** One ordered slice of a doc's body, rendered in sequence by the Preview tab. */
-export type BodySegment =
-	| { t: 'prose'; md: string }
-	| { t: 'preview'; index: number }
-	| { t: 'snippet'; code: string; lang: string }
-
-/** A `tsx preview` fence: its verbatim source plus a loader for the compiled module. */
-export type PreviewBlock = {
-	title?: string
-
-	/** Owning h2 text, when the fence sits under one. */
-	section?: string
-
-	/** Verbatim fence body, shown in the collapsible code block. */
-	source: string
-
-	load: () => Promise<{ default: ComponentType }>
-}
-
 /** The module shape every transformed `content/**` markdown file exports. */
 export type DocModule = {
 	meta: DocMeta
-	body: BodySegment[]
-	previews: PreviewBlock[]
+
+	/** The doc's prose body: the Markdown after the description, rendered verbatim. */
+	body: string
 }

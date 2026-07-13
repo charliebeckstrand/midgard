@@ -12,8 +12,9 @@ export type DocsConfigOptions = {
 	/**
 	 * The documented library's import prefix (`ui`, `grid`, `charts`). Drives
 	 * module derivation for `content/<category>/<name>.md` docs.
+	 * @defaultValue the documented package's `package.json` `name`
 	 */
-	packageName: string
+	packageName?: string
 
 	/**
 	 * Vite root — the directory holding `index.html`, the entry `main.tsx`, and
@@ -45,7 +46,7 @@ export type DocsConfigOptions = {
  * // packages/ui/vite.docs.config.ts
  * import { defineDocsConfig } from 'docs/vite'
  *
- * export default defineDocsConfig({ packageName: 'ui', apiPackageDir: import.meta.dirname })
+ * export default defineDocsConfig({ apiPackageDir: import.meta.dirname })
  * ```
  */
 export function defineDocsConfig({

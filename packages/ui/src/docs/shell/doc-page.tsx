@@ -1,5 +1,5 @@
 import { PanelLeft, PanelLeftDashed } from 'lucide-react'
-import { Suspense, use } from 'react'
+import { Suspense, use, useState } from 'react'
 import { Button } from 'ui/button'
 import { Flex } from 'ui/flex'
 import { Heading } from 'ui/heading'
@@ -9,27 +9,28 @@ import { Markdown } from 'ui/markdown'
 import { Stack } from 'ui/stack'
 import { Tab, TabContent, TabContents, TabList, Tabs } from 'ui/tabs'
 import type { DocMeta } from '../engine'
+import { randomSeed } from '../engine/usage'
 import { ApiPanel } from './api-panel'
-import { PreviewTab } from './preview-tab'
+import { OverviewTab } from './overview-tab'
 import { loadDoc } from './registry'
 import { setParam } from './router'
 import { UsageTab } from './usage-tab'
 
-const TAB_VALUES = ['preview', 'usage', 'api'] as const
+const TAB_VALUES = ['overview', 'usage', 'api'] as const
 
 type TabValue = (typeof TAB_VALUES)[number]
 
 function activeTab(search: URLSearchParams): TabValue {
 	const tab = search.get('tab')
 
-	return TAB_VALUES.includes(tab as TabValue) ? (tab as TabValue) : 'preview'
+	return TAB_VALUES.includes(tab as TabValue) ? (tab as TabValue) : 'overview'
 }
 
 /**
- * The route body for one doc: its name and description above the
- * Preview | Usage | API reference segment tabs, with the active tab in the
- * URL (`?tab=`) so any view is linkable. Usage and API panels are placeholders
- * until their engines land.
+ * The route body for one doc: its name, description, and generated import above
+ * the Overview | Usage | API reference segment tabs, with the active tab in the
+ * URL (`?tab=`) so any view is linkable. Overview and Usage share one
+ * page-owned seed, so their synthesized renders match and re-roll together.
  */
 export function DocPage({
 	meta,
@@ -45,6 +46,11 @@ export function DocPage({
 	const doc = use(loadDoc(meta.id))
 
 	const tab = activeTab(search)
+
+	// One ephemeral seed per mount backs the "different every visit" default; a
+	// pinned `?seed=` overrides it. Owned here so the Overview and Usage tabs
+	// synthesize the same example.
+	const [seed] = useState(randomSeed)
 
 	return (
 		<>
@@ -66,20 +72,20 @@ export function DocPage({
 				<Tabs
 					variant="segment"
 					value={tab}
-					onValueChange={(value) => value && setParam('tab', value === 'preview' ? null : value)}
+					onValueChange={(value) => value && setParam('tab', value === 'overview' ? null : value)}
 				>
 					<TabList aria-label="Documentation views">
-						<Tab value="preview">Preview</Tab>
+						<Tab value="overview">Overview</Tab>
 						<Tab value="usage">Usage</Tab>
 						<Tab value="api">API reference</Tab>
 					</TabList>
 					<TabContents mount="lazy" className="pt-6">
-						<TabContent value="preview">
-							<PreviewTab doc={doc} />
+						<TabContent value="overview">
+							<OverviewTab doc={doc} search={search} seed={seed} />
 						</TabContent>
 						<TabContent value="usage">
 							<Suspense fallback={null}>
-								<UsageTab meta={doc.meta} search={search} />
+								<UsageTab meta={doc.meta} search={search} seed={seed} />
 							</Suspense>
 						</TabContent>
 						<TabContent value="api">

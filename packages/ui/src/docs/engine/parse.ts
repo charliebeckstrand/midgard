@@ -1,28 +1,16 @@
 import { Lexer } from 'marked'
 import { parse as parseYaml } from 'yaml'
-import type { BodySegment, DocMeta, UsageAuthorConfig } from './contracts'
+import type { DocMeta, UsageAuthorConfig } from './contracts'
 
 /**
- * Node-free parse of one doc source: everything the Vite transform and the
- * fence checker need, before path-derived identity is attached.
+ * Node-free parse of one doc source: everything the Vite transform needs,
+ * before path-derived identity is attached.
  */
 export type ParsedDoc = {
 	name: string
 	description: string
 	frontMatter: FrontMatter
-	body: BodySegment[]
-	previews: ParsedFence[]
-}
-
-/** A `tsx preview` fence lifted out of the body. */
-export type ParsedFence = {
-	title?: string
-	section?: string
-
-	/** 1-indexed line of the opening fence in the source file. */
-	line: number
-
-	code: string
+	body: string
 }
 
 /** The whitelisted front-matter surface; any other key is a build error. */
@@ -97,37 +85,11 @@ function readFrontMatter(
 }
 
 /**
- * Split a fence info string per the docs grammar: `<lang> [role] [key="value"]…`.
- * The only known role is `preview`; anything else unrecognized is an error at
- * the call site.
- */
-function parseFenceInfo(info: string): {
-	lang: string
-	role?: string
-	attrs: Record<string, string>
-} {
-	const attrs: Record<string, string> = {}
-
-	const words: string[] = []
-
-	const pattern = /([\w-]+)="([^"]*)"|(\S+)/g
-
-	for (const match of info.matchAll(pattern)) {
-		const [, key, value, word] = match
-
-		if (key !== undefined && value !== undefined) attrs[key] = value
-		else if (word !== undefined) words.push(word)
-	}
-
-	const [lang = '', role] = words
-
-	return { lang, role, attrs }
-}
-
-/**
  * Parse one doc's Markdown source into its structured form. The convention is
- * strict — exactly one h1 (the name), a first paragraph (the description),
- * classified fences — and violations throw with `file:line` positions.
+ * strict — exactly one h1 (the name), then a first paragraph (the description) —
+ * and violations throw with `file:line` positions. Everything after the
+ * description is the prose body, kept as verbatim Markdown; docs never author
+ * code examples, since the Usage tab synthesizes those.
  */
 export function parseDoc(source: string, file: string): ParsedDoc {
 	const { fm, rest, lineOffset } = readFrontMatter(source, file)
@@ -140,30 +102,12 @@ export function parseDoc(source: string, file: string): ParsedDoc {
 
 	let description: string | undefined
 
-	let section: string | undefined
-
-	const body: BodySegment[] = []
-
-	const previews: ParsedFence[] = []
-
-	let prose = ''
-
-	const flushProse = () => {
-		if (prose.trim() !== '') body.push({ t: 'prose', md: prose.trim() })
-
-		prose = ''
-	}
+	let body = ''
 
 	for (const token of tokens) {
 		const tokenLine = line
 
 		line += token.raw.split('\n').length - 1
-
-		if (token.type === 'space') {
-			prose += token.raw
-
-			continue
-		}
 
 		if (token.type === 'heading' && token.depth === 1) {
 			if (name !== undefined) fail(file, tokenLine, 'multiple h1 headings; a doc has exactly one')
@@ -173,54 +117,24 @@ export function parseDoc(source: string, file: string): ParsedDoc {
 			continue
 		}
 
+		// Past the description, every non-h1 token is verbatim body Markdown.
+		if (description !== undefined) {
+			body += token.raw
+
+			continue
+		}
+
+		// Before the h1 and description, blank lines carry no meaning.
+		if (token.type === 'space') continue
+
 		if (name === undefined) fail(file, tokenLine, 'the doc must open with an h1 display name')
 
-		if (description === undefined) {
-			if (token.type !== 'paragraph') {
-				fail(file, tokenLine, 'the first content after the h1 must be a description paragraph')
-			}
-
-			description = token.raw.trim()
-
-			continue
+		if (token.type !== 'paragraph') {
+			fail(file, tokenLine, 'the first content after the h1 must be a description paragraph')
 		}
 
-		if (token.type === 'heading' && token.depth === 2) {
-			section = token.text.trim()
-
-			prose += token.raw
-
-			continue
-		}
-
-		if (token.type === 'code') {
-			const { lang, role, attrs } = parseFenceInfo(token.lang ?? '')
-
-			if (role === 'preview') {
-				flushProse()
-
-				body.push({ t: 'preview', index: previews.length })
-
-				previews.push({ title: attrs.title, section, line: tokenLine, code: token.text })
-
-				continue
-			}
-
-			if (role !== undefined) {
-				fail(file, tokenLine, `unknown fence role "${role}" (known roles: preview)`)
-			}
-
-			flushProse()
-
-			body.push({ t: 'snippet', code: token.text, lang: lang || 'tsx' })
-
-			continue
-		}
-
-		prose += token.raw
+		description = token.raw.trim()
 	}
-
-	flushProse()
 
 	if (name === undefined) fail(file, 1, 'the doc must open with an h1 display name')
 
@@ -228,7 +142,7 @@ export function parseDoc(source: string, file: string): ParsedDoc {
 		fail(file, 1, 'the doc must have a description paragraph after the h1')
 	}
 
-	return { name, description, frontMatter: fm, body, previews }
+	return { name, description, frontMatter: fm, body: body.trim() }
 }
 
 /** Maps a doc's `(category, slug)` to a real module specifier, or undefined when none matches. */
