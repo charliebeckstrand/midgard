@@ -2,92 +2,160 @@ import ts from 'typescript'
 import type { PassThrough } from './schema'
 import {
 	type FunctionLikeNode,
+	isPassThroughTypeName,
 	resolveTypeAliasTarget,
 	STRING_LITERAL_PASS_THROUGHS,
+	stringLiteralKeys,
 	typeRefName,
 } from './ts-utils'
 
+/** How a component's props annotation partitions: authored props vs. HTML pass-through. */
+export type PropSurface = {
+	/**
+	 * Project-authored prop names — the table rows. `null` when the component has
+	 * no props annotation, so prop extraction falls back to its own heuristic.
+	 */
+	projectNames: ReadonlySet<string> | null
+
+	/** HTML elements whose attributes pass through — the pass-through note. */
+	passThrough: PassThrough[]
+}
+
 /**
- * Detect HTML pass-through for a component. Two complementary signals:
- *
- *   - The props annotation contains a recognized pass-through type —
- *     `ComponentPropsWithRef<'tag'>` / `ComponentPropsWithoutRef<'tag'>`,
- *     `*HTMLAttributes<HTMLTagElement>`, or `PolymorphicProps<'tag'>` —
- *     possibly behind `Omit<…>`, project aliases, or `Extract`/`Exclude`
- *     narrowing.
- *   - The body spreads the first parameter's `...rest` binding onto an
- *     intrinsic JSX tag (`<button {...props}>`), which surfaces that tag's
- *     attrs even when the annotation never names a pass-through type.
+ * Partition a component's props into the authored surface and the HTML
+ * pass-through, in one walk of the annotation. The two are complementary halves
+ * of the same tree — every arm is either project-authored (a type literal, a
+ * `Pick` slice, a resolved object's properties) or a recognized pass-through
+ * (`ComponentProps<'tag'>`, `*HTMLAttributes`, `PolymorphicProps<'tag'>`,
+ * possibly behind `Omit`/`Extract`/`Exclude` or a project alias) — so walking
+ * them together keeps the two in lockstep by construction. A rest spread onto
+ * an intrinsic tag in the body (`<button {...props}>`) contributes pass-through
+ * the annotation never named.
  */
-export function extractPassThrough(
+export function analyzeProps(
 	callable: FunctionLikeNode,
 	annotation: ts.TypeNode | undefined,
 	checker: ts.TypeChecker,
-): PassThrough[] {
-	const found: PassThrough[] = []
+): PropSurface {
+	const names = new Set<string>()
 
-	if (annotation) walk(annotation, found, new Set(), checker)
+	const passThrough: PassThrough[] = []
 
-	for (const element of restSpreadTargets(callable)) {
-		found.push({ element })
-	}
+	if (annotation) walk(annotation, names, passThrough, new Set(), checker)
 
-	return dedupe(found)
+	for (const element of restSpreadTargets(callable)) passThrough.push({ element })
+
+	return { projectNames: annotation ? names : null, passThrough: dedupe(passThrough) }
 }
 
+/** Route each annotation arm to the authored names or the pass-through elements it contributes. */
 function walk(
 	node: ts.TypeNode,
-	out: PassThrough[],
-	visited: Set<string>,
+	names: Set<string>,
+	passThrough: PassThrough[],
+	visited: Set<ts.Node>,
 	checker: ts.TypeChecker,
 ): void {
-	const key = `${node.getSourceFile().fileName}:${node.pos}:${node.end}`
+	if (visited.has(node)) return
 
-	if (visited.has(key)) return
-
-	visited.add(key)
+	visited.add(node)
 
 	if (ts.isIntersectionTypeNode(node) || ts.isUnionTypeNode(node)) {
-		for (const member of node.types) walk(member, out, visited, checker)
+		for (const member of node.types) walk(member, names, passThrough, visited, checker)
 
 		return
 	}
 
 	if (ts.isParenthesizedTypeNode(node)) {
-		walk(node.type, out, visited, checker)
+		walk(node.type, names, passThrough, visited, checker)
+
+		return
+	}
+
+	// Inline type literal: `{ foo: string; bar?: number }` — authored props.
+	if (ts.isTypeLiteralNode(node)) {
+		for (const member of node.members) {
+			if (ts.isPropertySignature(member) && member.name && ts.isIdentifier(member.name)) {
+				names.add(member.name.text)
+			}
+		}
 
 		return
 	}
 
 	if (!ts.isTypeReferenceNode(node)) return
 
-	const name = typeRefName(node.typeName)
+	const refName = typeRefName(node.typeName)
 
-	// Pick narrows to a slice, not a full pass-through.
-	if (name === 'Pick') return
+	// A recognized HTML/React pass-through surfaces as an element, not a row.
+	// `PolymorphicProps` also adds its `href` discriminator, a real authored prop.
+	if (isPassThroughTypeName(refName)) {
+		if (refName === 'PolymorphicProps') names.add('href')
+
+		const element = matchDirectPassThrough(refName, node.typeArguments ?? [], checker)
+
+		if (element) passThrough.push({ element })
+
+		return
+	}
+
+	// Pick narrows to a named slice: those keys are authored props.
+	if (refName === 'Pick') {
+		for (const key of stringLiteralKeys(node.typeArguments?.[1])) names.add(key)
+
+		return
+	}
 
 	// Omit / Extract / Exclude narrow the first argument without changing its
-	// element; a pass-through inside it survives, so recurse into it only.
-	if (name === 'Omit' || name === 'Extract' || name === 'Exclude') {
+	// element or its remaining props; recurse into it only.
+	if (refName === 'Omit' || refName === 'Extract' || refName === 'Exclude') {
 		const inner = node.typeArguments?.[0]
 
-		if (inner) walk(inner, out, visited, checker)
+		if (inner) walk(inner, names, passThrough, visited, checker)
 
 		return
 	}
 
-	const direct = matchDirectPassThrough(name, node.typeArguments ?? [], checker)
+	// Project alias (`ButtonBaseProps`, `StackProps = FlexProps`, …): inspect the RHS.
+	const aliasTarget = resolveTypeAliasTarget(node.typeName, checker)
 
-	if (direct) {
-		out.push({ element: direct })
+	if (aliasTarget) {
+		// Splittable (intersection / union / parens / literal): recurse into each
+		// arm, then the supplied type arguments — a generic alias' RHS is walked
+		// with its parameters unbound, so props or pass-throughs handed in through
+		// an argument would otherwise never surface.
+		if (isSplittable(aliasTarget)) {
+			walk(aliasTarget, names, passThrough, visited, checker)
 
-		return
+			for (const arg of node.typeArguments ?? []) walk(arg, names, passThrough, visited, checker)
+
+			return
+		}
+
+		// A single reference: a pass-through alias emits its element and no name;
+		// a project alias chain (`StackProps = FlexProps`) follows.
+		if (ts.isTypeReferenceNode(aliasTarget)) {
+			walk(aliasTarget, names, passThrough, visited, checker)
+
+			return
+		}
 	}
 
-	// Project alias: follow to its RHS and keep walking.
-	const target = resolveTypeAliasTarget(node.typeName, checker)
+	// A mapped / conditional alias or a non-alias reference: its resolved apparent
+	// properties are authored props (a pass-through here surfaces no element).
+	for (const symbol of checker.getTypeFromTypeNode(node).getProperties()) {
+		names.add(symbol.getName())
+	}
+}
 
-	if (target) walk(target, out, visited, checker)
+/** Whether an alias' RHS can be recursed into structurally, keeping its arms visible. */
+function isSplittable(node: ts.TypeNode): boolean {
+	return (
+		ts.isIntersectionTypeNode(node) ||
+		ts.isUnionTypeNode(node) ||
+		ts.isParenthesizedTypeNode(node) ||
+		ts.isTypeLiteralNode(node)
+	)
 }
 
 /** HTML element name for a recognized pass-through type; null otherwise. */
@@ -256,6 +324,7 @@ function unwrapExpression(node: ts.Expression): ts.Expression {
 	return current
 }
 
+/** Collapse duplicate pass-through entries by element, first occurrence winning. */
 function dedupe(items: PassThrough[]): PassThrough[] {
 	const seen = new Map<string, PassThrough>()
 

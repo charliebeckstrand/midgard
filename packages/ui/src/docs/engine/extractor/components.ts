@@ -1,10 +1,9 @@
 import ts from 'typescript'
+import { analyzeProps } from './annotation'
 import { buildCallable, isCallable } from './callables'
 import { extractDefaults } from './defaults'
 import { extractDocFromParts, stripLinks } from './doc'
 import type { ExtraDefaults } from './extractor'
-import { extractPassThrough } from './passthrough'
-import { extractProjectPropNames } from './project-props'
 import { extractProps } from './props'
 import type { ComponentApi, ModuleApi, OtherApi, PassThrough, SymbolApi } from './schema'
 import { isReactNodeType } from './shape'
@@ -204,9 +203,8 @@ function buildComponent(
 	return assembleComponent(name, symbol, context, {
 		location: callable,
 		propsType: resolvePropsType(callable, checker),
-		projectNames: annotation ? extractProjectPropNames(annotation, checker) : null,
 		defaults: extractDefaults(callable),
-		passThrough: extractPassThrough(callable, annotation, checker),
+		...analyzeProps(callable, annotation, checker),
 	})
 }
 
