@@ -73,7 +73,12 @@ export function docsPlugin({
 		if (!extractor) {
 			const { createExtractor } = await import('./extractor')
 
-			extractor = createExtractor({ packageDir: apiPackageDir, packageName, extraDefaults })
+			extractor = createExtractor({
+				packageDir: apiPackageDir,
+				packageName,
+				extraDefaults,
+				surface,
+			})
 		}
 
 		return extractor
@@ -117,30 +122,30 @@ export function docsPlugin({
 		return parsed
 	}
 
+	// Scan, parse, and derive every doc's meta once; the manifest and the
+	// documented-module set are both projections of this list. Cleared when a
+	// content file changes so the next read re-derives.
+	let metaList: DocMeta[] | null = null
+
+	const allMeta = (): DocMeta[] => {
+		metaList ??= scanMarkdown(contentRoot).map((file) =>
+			deriveDocMeta(path.relative(contentRoot, file), parsedFor(file), deriveOptions),
+		)
+
+		return metaList
+	}
+
 	// The distinct real module specifiers the content actually documents, so API
 	// extraction covers those and not the whole package — a 2-page site never
 	// pays to extract 90 components.
-	const documentedModules = (): string[] => {
-		const modules = new Set<string>()
-
-		for (const file of scanMarkdown(contentRoot)) {
-			const meta = deriveDocMeta(path.relative(contentRoot, file), parsedFor(file), deriveOptions)
-
-			if (surface.has(meta.module)) modules.add(meta.module)
-		}
-
-		return [...modules]
-	}
+	const documentedModules = (): string[] => [
+		...new Set(allMeta().flatMap((meta) => (surface.has(meta.module) ? [meta.module] : []))),
+	]
 
 	const jsonHooks = virtualJsonModules([
 		{
 			id: MANIFEST_ID,
-			generate: (): DocMeta[] =>
-				scanMarkdown(contentRoot)
-					.map((file) =>
-						deriveDocMeta(path.relative(contentRoot, file), parsedFor(file), deriveOptions),
-					)
-					.sort((a, b) => a.name.localeCompare(b.name)),
+			generate: (): DocMeta[] => [...allMeta()].sort((a, b) => a.name.localeCompare(b.name)),
 			shouldInvalidate: isContentMd,
 		},
 		{
@@ -238,6 +243,8 @@ export function docsPlugin({
 
 			if (isContentMd(ctx.file)) {
 				cache.delete(ctx.file)
+
+				metaList = null
 
 				const prefix = `\0${PREVIEW_PREFIX}${docPathOf(ctx.file)}/`
 

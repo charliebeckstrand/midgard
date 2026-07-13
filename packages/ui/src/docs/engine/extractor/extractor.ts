@@ -22,6 +22,9 @@ export type ExtractorOptions = {
 	/** Import prefix; defaults to the package.json name. */
 	packageName?: string
 
+	/** The package's export surface (`specifier → entry file`); enumerated from the package when omitted. */
+	surface?: ReadonlyMap<string, string>
+
 	/**
 	 * Supplies extra prop defaults a consumer's conventions encode outside the
 	 * function signature — a design system's variant-axis defaults, say. Called
@@ -51,7 +54,7 @@ export function createExtractor(options: ExtractorOptions): ApiExtractor {
 
 	const extraDefaults = options.extraDefaults ?? (() => ({}))
 
-	const surface = enumerateSurface(packageDir, packageName)
+	const surface = options.surface ?? enumerateSurface(packageDir, packageName)
 
 	let session: Session | null = null
 
