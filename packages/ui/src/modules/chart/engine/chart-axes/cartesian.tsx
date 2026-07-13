@@ -23,11 +23,10 @@ export type ChartCartesianAxesProps = {
 	baseline?: number
 	/** Draw the axes. */
 	axes: boolean
-	/** Draw the value gridlines. */
-	grid: boolean
 	/**
-	 * The gridline positions, per-axis participation already applied; defaults
-	 * to the primary ticks so a single-axis chart passes nothing extra.
+	 * The gridline positions, per-axis participation and the spark gate already
+	 * applied — an empty list draws no gridlines; defaults to the primary ticks
+	 * so a single-axis chart passes nothing extra.
 	 */
 	gridPositions?: number[]
 	/**
@@ -66,7 +65,6 @@ export function ChartCartesianAxes({
 	hasData,
 	baseline,
 	axes,
-	grid,
 	gridPositions,
 	categoryGridPositions = [],
 	categorySeparator,
@@ -78,7 +76,7 @@ export function ChartCartesianAxes({
 
 	return (
 		<>
-			{grid && positions.length > 0 && (
+			{positions.length > 0 && (
 				<ChartGridLines plot={plot} ticks={positions} orientation={orientation} />
 			)}
 

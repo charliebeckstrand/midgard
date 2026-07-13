@@ -65,9 +65,7 @@ describe('grid column reorder: whole-header handle (real browser)', () => {
 	})
 
 	it('keeps the grip when handle defaults to true', () => {
-		renderUI(
-			<Grid columns={columns} rows={rows} getKey={(r) => r.id} reorder={{ enabled: true }} />,
-		)
+		renderUI(<Grid columns={columns} rows={rows} getKey={(r) => r.id} reorder={{}} />)
 
 		// The object form with the default `handle` still renders the grip button.
 		expect(screen.queryByRole('button', { name: 'Reorder A' })).not.toBeNull()

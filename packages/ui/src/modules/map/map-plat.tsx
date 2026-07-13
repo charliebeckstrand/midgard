@@ -533,9 +533,8 @@ type MapLegendInput = boolean | MapLegendPlacement | 'range' | ChartRangeLegendC
 function isRangeLegend(legend: MapLegendInput | undefined): boolean {
 	if (legend === 'range') return true
 
-	// The only object form is the range config, so any object asks for the bar;
-	// its `type` (only `'range'`) defaults in.
-	return typeof legend === 'object' && (legend.type ?? 'range') === 'range'
+	// The only object form is the range config, so any object asks for the bar.
+	return typeof legend === 'object'
 }
 
 /**

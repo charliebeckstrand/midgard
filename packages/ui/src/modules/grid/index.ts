@@ -55,7 +55,6 @@ export type {
 	GridColumnFilterState,
 	GridColumnFilters,
 	GridColumnManagerItem,
-	GridColumnManagerPreset,
 	GridColumnMenu,
 	GridColumnMenuContext,
 	GridColumnSizing,

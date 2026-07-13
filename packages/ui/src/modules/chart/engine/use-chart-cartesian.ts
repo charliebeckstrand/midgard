@@ -49,7 +49,6 @@ export type CartesianData<T> = Pick<
 	| 'aspectRatio'
 	| 'axes'
 	| 'reference'
-	| 'tickRotation'
 	| 'onCategoryClick'
 	| 'formatValue'
 	| 'title'
@@ -57,6 +56,13 @@ export type CartesianData<T> = Pick<
 > & {
 	/** The `legend` prop already resolved to its show value — the entry component resolves it before the hook reads it. */
 	legend?: ResolvedLegend['value']
+	/** Whether the category axis tilts colliding labels, resolved from `axes.x.tickRotation`. */
+	tickRotation?: boolean
+}
+
+/** The category axis's `tickRotation` read off the `axes` union (false when unset). @internal */
+function categoryTickRotation(axes: boolean | CartesianAxes | undefined): boolean {
+	return (typeof axes === 'object' ? axes.x?.tickRotation : undefined) ?? false
 }
 
 /**
@@ -82,7 +88,7 @@ export function cartesianData<T>(
 		axes: props.axes,
 		legend,
 		reference: props.reference,
-		tickRotation: props.tickRotation,
+		tickRotation: categoryTickRotation(props.axes),
 		onCategoryClick: props.onCategoryClick,
 		formatValue: props.formatValue,
 		title: props.title,
@@ -876,7 +882,7 @@ export function useChartCartesian<T>(
 		categories,
 		bandTitle,
 		bandAxis: policy.bandAxis,
-		tickRotation: props.tickRotation,
+		tickRotation: categoryTickRotation(props.axes),
 		times,
 		count: data.length,
 		markInset: config.markInset,

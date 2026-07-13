@@ -8,6 +8,7 @@ import { Flex } from '../../../components/flex'
 import { Form, type SubmitOutcome, useFormContext } from '../../../components/form'
 import { Input } from '../../../components/input'
 import { JsonTree } from '../../../components/json-tree'
+import { LoadingSpinner } from '../../../components/loading'
 import { NumberInput } from '../../../components/number-input'
 import { PasswordInput } from '../../../components/password-input'
 import { Stack } from '../../../components/stack'
@@ -209,7 +210,11 @@ function ServerErrorExample() {
 			<Stack gap="lg">
 				<Field autoComplete="username">
 					<Label>Username</Label>
-					<Input name="username" placeholder="Pick a username" loading={loading} />
+					<Input
+						name="username"
+						placeholder="Pick a username"
+						suffix={loading ? <LoadingSpinner /> : undefined}
+					/>
 					<Message name="username" />
 				</Field>
 				<Button type="submit" color="green">

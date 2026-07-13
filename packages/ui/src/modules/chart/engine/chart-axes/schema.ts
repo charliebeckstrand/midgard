@@ -39,8 +39,8 @@ export type ChartValueAxis = {
 	 * should carry them — two independent tick sets rarely align, and doubled
 	 * hairlines read as noise — so `y` defaults on and `y2` off, standing in
 	 * only when no `y`-bound series resolves a scale; a point chart's grid
-	 * reads both ways, so both its axes default on. The chart's `grid` switch
-	 * still gates the whole layer.
+	 * reads both ways, so both its axes default on. Set an axis's `grid` false to
+	 * drop its hairlines; drop every axis's to clear the layer.
 	 * @defaultValue `true`, except a cartesian chart's `y2`
 	 */
 	grid?: boolean
@@ -87,6 +87,16 @@ export type ChartCategoryAxis = {
 	separator?: 'solid' | 'dashed'
 	/** A short title drawn along the band axis, naming what the categories enumerate. */
 	title?: string
+	/**
+	 * Tilt category labels that would otherwise collide instead of thinning them
+	 * to every nth: past that point every label draws, angled, and none are
+	 * dropped. Off by default, so an unset axis keeps thinning.
+	 * @remarks Vertical orientation only — under `orientation="horizontal"`
+	 * category labels already run down the gutter and read straight, so this has
+	 * no effect there.
+	 * @defaultValue false
+	 */
+	tickRotation?: boolean
 }
 
 /**

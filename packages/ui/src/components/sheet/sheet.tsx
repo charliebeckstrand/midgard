@@ -10,8 +10,8 @@ import { PanelProviders } from '../../primitives/panel'
 import { useResolvedSurface } from '../../providers/glass/context'
 import { k, type SheetPanelVariants } from '../../recipes/kata/sheet'
 
-/** Props for {@link Sheet}: open-state control, portal `container`, focus, modality, and panel `side`/`size`/`surface` variants. */
-export type SheetProps = SheetPanelVariants & {
+/** Props for {@link Sheet}: open-state control, portal `container`, focus, modality, and panel `side`/`size` variants. */
+export type SheetProps = Omit<SheetPanelVariants, 'surface'> & {
 	/** Controlled open state. Pair with `onOpenChange`. */
 	open?: boolean
 	/** Initial open state when uncontrolled. */
@@ -83,7 +83,6 @@ export function Sheet({
 	onOpenChange,
 	side = 'right',
 	size,
-	surface,
 	glass,
 	className,
 	children,
@@ -100,7 +99,7 @@ export function Sheet({
 		onValueChange: (next) => onOpenChange?.(next ?? false),
 	})
 
-	const resolvedSurface = useResolvedSurface(surface, glass)
+	const resolvedSurface = useResolvedSurface(glass)
 
 	const { ariaProps, a11y } = useA11yPanel('dialog', modal ?? true)
 

@@ -16,9 +16,10 @@ import { columnLabel } from './engine/grid-column/label'
 import { effectivePinSide, pinMenuChoices } from './engine/grid-pin/overrides'
 import { applyColumnReorder } from './engine/grid-reorder-compute'
 import { pinChoiceIcon } from './grid-context-menu-utilities'
+import type { GridPreferences } from './grid-data-types'
 import { GridGroupManager } from './grid-group-manager'
 import type { GridColumnGroup } from './grid-group-types'
-import type { GridColumnManagerItem, GridColumnManagerPreset } from './types'
+import type { GridColumnManagerItem } from './types'
 import { useGridColumnVisibility } from './use-grid-column-visibility'
 
 /** Pins a column to an edge, or unpins it with `false`. @internal */
@@ -66,8 +67,8 @@ export type GridColumnManagerProps = {
 	/** Commits the next groups from the group editor; its presence turns on the editor. */
 	onGroupsChange?: (groups: GridColumnGroup[]) => void
 
-	/** Called with the current order and hidden ids when the save-preset button is pressed; presence of the handler also shows the button. */
-	onSavePreset?: (preset: GridColumnManagerPreset) => void
+	/** Called with the current order and hidden ids as a {@link GridPreferences} snapshot when the save-preset button is pressed; presence of the handler also shows the button. */
+	onSavePreset?: (preset: GridPreferences) => void
 	/**
 	 * Label on the save-preset button.
 	 * @defaultValue 'Save as preset'
@@ -293,7 +294,7 @@ function GridColumnManagerOrderableList({
  * edge arrow on {@link GridColumnManagerItem.locked} ones. Columns with
  * `hideable: false` show but cannot be unchecked. With `onSavePreset`, a footer
  * button captures the current order and hidden ids as a
- * {@link GridColumnManagerPreset}. Order and hidden set are each controllable.
+ * {@link GridPreferences} snapshot. Order and hidden set are each controllable.
  *
  * @remarks Client component. {@link Grid} renders this inside its own
  * dialog when `columnManager` is configured; use this directly to host the

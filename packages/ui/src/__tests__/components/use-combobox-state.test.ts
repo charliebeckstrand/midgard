@@ -15,7 +15,6 @@ function setup<T>(overrides: Partial<Parameters<typeof useComboboxState<T>>[0]> 
 		useComboboxState<T>({
 			multiple: false,
 			nullable: false,
-			selectable: true,
 			value: undefined,
 			setValue,
 			inputRef,
@@ -173,18 +172,6 @@ describe('useComboboxState', () => {
 		expect(result.current.menuQuery).toBe('')
 
 		expect(result.current.menuDeferredQuery).toBe('')
-	})
-
-	it('falls back to onValueChange when selectable is false', () => {
-		const onValueChange = vi.fn()
-
-		const { result } = setup<string>({ selectable: false, onValueChange })
-
-		act(() => {
-			result.current.select('x')
-		})
-
-		expect(onValueChange).toHaveBeenCalledWith('x')
 	})
 
 	it('refocuses the input and clears the query in multi-select mode', () => {

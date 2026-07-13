@@ -198,11 +198,10 @@ function ChartLegendEntry({
 			size="sm"
 			variant="plain"
 			data-slot={ghost ? 'chart-legend-ghost' : 'chart-legend-item'}
-			block={panel}
 			// Button's own base centers its content; a panel entry stretches to
 			// `w-full` so every row can align its swatch to the same edge, not center
 			// a shorter row's content under a longer one's.
-			className={cn(panel && 'min-w-0 justify-start')}
+			className={cn(panel && 'w-full min-w-0 justify-start')}
 			aria-pressed={!off}
 			onClick={() => onToggle(item.index)}
 			onPointerEnter={() => onPointerEmphasis(item.index)}
@@ -269,8 +268,7 @@ function ChartLegendOverflowSwitch({
 			size="sm"
 			variant="plain"
 			data-slot="chart-legend-item"
-			block
-			className="min-w-0 justify-start"
+			className="w-full min-w-0 justify-start"
 			aria-pressed={!off}
 			onClick={() => onToggle(item.index)}
 			onPointerEnter={() => onEmphasis(item.index)}

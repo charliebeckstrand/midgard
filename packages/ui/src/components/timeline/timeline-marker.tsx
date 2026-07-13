@@ -1,7 +1,7 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { cn, dataAttr } from '../../core'
+import { cn } from '../../core'
 import type { Color } from '../../recipes'
 import { k } from '../../recipes/kata/timeline'
 import { StatusDot, type StatusDotProps } from '../status'
@@ -24,8 +24,6 @@ export type TimelineMarkerConfig = {
 
 /** Props for {@link TimelineMarker}. */
 export type TimelineMarkerProps = TimelineMarkerConfig & {
-	/** Styling hook only; the row's `<li>` carries the `aria-current` announcement. */
-	current?: boolean
 	className?: string
 	/** Custom marker content; replaces the default `<StatusDot>` and relaxes the fixed dot size. */
 	children?: ReactNode
@@ -44,7 +42,6 @@ export function TimelineMarker({
 	pulse,
 	lineBefore,
 	lineAfter,
-	current,
 	className,
 	children,
 }: TimelineMarkerProps) {
@@ -53,9 +50,8 @@ export function TimelineMarker({
 	return (
 		<span
 			data-slot="timeline-marker"
-			// `current` is a styling hook only. ARIA stays on the TimelineItem <li>,
-			// which announces aria-current; the marker carries none.
-			data-current={dataAttr(current)}
+			// ARIA stays on the TimelineItem <li>, which announces aria-current; the
+			// decorative marker carries none.
 			className={cn(
 				k.marker.base,
 				orientation === 'vertical' ? k.marker.vertical : k.marker.horizontal,

@@ -39,10 +39,8 @@ type SidebarLayoutProps = PropsWithChildren<{
 	navbar?: ReactNode
 	sidebar: ReactNode
 	actions?: ReactNode
-	menuIcon?: ReactNode
 	stickyHeader?: boolean
 	floating?: boolean
-	panelClassName?: string
 }>
 
 /**
@@ -59,10 +57,8 @@ export function SidebarLayout({
 	navbar,
 	sidebar,
 	actions,
-	menuIcon,
 	stickyHeader,
 	floating,
-	panelClassName,
 	children,
 }: SidebarLayoutProps) {
 	const { open, setOpen, close } = useOffcanvas()
@@ -94,7 +90,7 @@ export function SidebarLayout({
 			)}
 
 			{/* Sidebar on desktop: inline when locked */}
-			{!floating && <div className={cn(k.panel({ size }), panelClassName)}>{sidebar}</div>}
+			{!floating && <div className={k.panel({ size })}>{sidebar}</div>}
 
 			{/* Sidebar on desktop: sheet when floating. Non-modal so the hover-revealed
 			    peek doesn't steal focus or lock body scroll, but `backdrop` still
@@ -157,7 +153,7 @@ export function SidebarLayout({
 					type="button"
 					variant="bare"
 					aria-label="Open navigation"
-					prefix={menuIcon ?? <Icon icon={<Menu />} />}
+					prefix={<Icon icon={<Menu />} />}
 					onClick={() => setOpen(true)}
 				/>
 				{navbar && <div className="min-w-0 flex-1">{navbar}</div>}

@@ -10,7 +10,6 @@ import type { GridRowGroups } from './grid-row-group-types'
 import type {
 	GridColumn,
 	GridColumnFilters,
-	GridColumnManagerPreset,
 	GridColumnSizing,
 	GridColumnSizingState,
 	GridContextMenu as GridContextMenuConfig,
@@ -37,7 +36,7 @@ export type GridVirtualize = boolean | { estimateSize?: number; overscan?: numbe
  * @remarks One binding, two data sources. A *local* set appends synchronously
  * (leave `loadingMore` unset and gate on `hasMore`); a *server* set fetches the
  * next page and appends it — hold `loadingMore` true while the request is in
- * flight so the grid holds off re-requesting (and, with `showLoadingIndicator`,
+ * flight so the grid holds off re-requesting (and, with `loadingIndicator`,
  * shows a trailing skeleton row). In both, `hasMore` is the master gate: once
  * `false`, `onLoadMore` never fires again and the indicator drops. Supply
  * {@link GridInfiniteScroll.totalRows} when the backend reports its total and
@@ -95,7 +94,7 @@ export type GridInfiniteScroll = {
 	 * Whether a load is in flight. Suppresses re-requesting while the current
 	 * batch resolves; leave unset for a synchronous local source, which appends
 	 * without a pending state. Drives the trailing loading indicator only when
-	 * `showLoadingIndicator` opts in.
+	 * `loadingIndicator` opts in.
 	 * @defaultValue false
 	 */
 	loadingMore?: boolean
@@ -107,18 +106,12 @@ export type GridInfiniteScroll = {
 	 */
 	threshold?: number
 	/**
-	 * Whether to show the trailing loading indicator while `loadingMore` — the
-	 * per-column skeleton cells, or the custom `loadingIndicator`. Off by default,
-	 * so a batch loads silently unless the grid opts the indicator in.
-	 * @defaultValue false
+	 * The trailing indicator shown while `loadingMore`, presence-implied and off
+	 * by default: `true` shows the default per-column skeleton cells; a node
+	 * renders that content instead, in a single cell spanning every column (e.g.
+	 * a run of skeleton rows); omit (or `false`) to load silently.
 	 */
-	showLoadingIndicator?: boolean
-	/**
-	 * Content for the trailing indicator shown while `loadingMore` (and
-	 * `showLoadingIndicator`), superseding the default per-column skeleton cells —
-	 * e.g. a run of skeleton rows. Rendered in a single cell spanning every column.
-	 */
-	loadingIndicator?: ReactNode
+	loadingIndicator?: boolean | ReactNode
 	/**
 	 * Message shown in a muted `Text` on the trailing row once the end is reached
 	 * (`hasMore` false) — a scroll-triggered load that came back empty. Unset shows
@@ -425,17 +418,10 @@ export type GridColumnOrder = {
 /**
  * Column-reorder config for {@link GridProps.reorder}. The boolean is the
  * shorthand — `true` turns reordering on with a leading grip on each
- * reorderable header, `false` (or omit) off. The object form keeps that toggle
- * in `enabled` and adds `handle` to choose what the user grabs.
+ * reorderable header, `false` (or omit) off. The object form is itself the
+ * opt-in (reordering on) and adds `handle` to choose what the user grabs.
  */
 export type GridReorder = {
-	/**
-	 * Whether column reordering is on. Defaults to `true` in the object form —
-	 * passing the object is itself the opt-in — so `{ handle: false }` enables
-	 * reordering with a whole-header handle.
-	 * @defaultValue true
-	 */
-	enabled?: boolean
 	/**
 	 * The drag affordance. `true` prefixes each reorderable header with a grip
 	 * button that carries the drag activator. `false` makes the *entire* header
@@ -558,8 +544,8 @@ export type GridColumnManagerConfig = {
 	defaultOpen?: boolean
 	onOpenChange?: (open: boolean) => void
 
-	/** Called when the manager's "save preset" action fires, with the current order and hidden ids. */
-	onSavePreset?: (preset: GridColumnManagerPreset) => void
+	/** Called when the manager's "save preset" action fires, with the current order and hidden ids as a {@link GridPreferences} snapshot that seeds `preferences` back. */
+	onSavePreset?: (preset: GridPreferences) => void
 }
 
 /**
@@ -683,14 +669,6 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	getKey: (row: T, index: number) => string | number
 
 	sort?: GridSort
-
-	/**
-	 * Whether data columns are sortable by default. Each column overrides this
-	 * through its own {@link GridColumn.sortable}; set `false` to make sorting
-	 * opt-in. Sorting still flows through the {@link GridDataProps.sort} binding.
-	 * @defaultValue true
-	 */
-	sortable?: boolean
 
 	/**
 	 * Groups rows by a single column's value, drawing an expandable group-header
@@ -1088,7 +1066,7 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * Infinite-scroll binding: as the {@link GridDataProps.virtualize | virtualized}
 	 * window nears the end of the loaded rows, the grid calls `onLoadMore` so you
 	 * can append the next batch to `rows` — a local slice, or a server fetch. Opt
-	 * into a trailing skeleton row while `loadingMore` with `showLoadingIndicator`,
+	 * into a trailing skeleton row while `loadingMore` with `loadingIndicator`,
 	 * close the list with `endMessage`, surface a failed load with `error`, and
 	 * hold the columns steady against appends with `stableColumnWidths`. Implies
 	 * `virtualize` (an explicit `virtualize` object still tunes the window;

@@ -35,65 +35,65 @@ The individual rows mostly instantiate eight repeated patterns; fixing a pattern
 | Surface | Prop | Site | Issue | a/d/t | Status |
 |---|---|---|---|---|---|
 | Flex | `inline`, `full`, `flex`, `equal` | flex.tsx:32-38 | Four one-class toggles (`inline-flex`, `w-full`, `flex-1/auto`, `*:flex-1`); sibling code already uses `className="w-full"` instead; 6 internal sites migrate to `className` | 0/3/0 | ◯ OPEN |
-| Button | `block` | button.tsx:39 | One class (`w-full`); two internal chart-legend sites migrate | 0/0/0 | ◯ OPEN |
+| Button | `block` | button.tsx:39 | One class (`w-full`); two internal chart-legend sites migrate | 0/0/0 | ✅ RESOLVED |
 | Button | `spring` | button.tsx:44 | Tap-scale opt-in; only non-demo passes are `spring={false}` = the default (stale-default fingerprint); removal frees non-href Buttons from the `motion.*` wrapper | 0/1/2 | ◯ OPEN |
 | NavItem / SidebarItem | `spring` | use-nav-item.ts:30 | Same knob on the shared nav surface; zero passes repo-wide | 0/0/0 | ◯ OPEN |
-| Container | `center` | container.tsx:29 | Toggles `mx-auto`, default true; a non-centering Container is a contradiction | 0/0/0 | ◯ OPEN |
+| Container | `center` | container.tsx:29 | Toggles `mx-auto`, default true; a non-centering Container is a contradiction | 0/0/0 | ✅ RESOLVED |
 | Banner | `position` | banner.tsx:6-11 | `'sticky'` toggles literal `sticky top-0 z-40` | 0/0/1 | ◯ OPEN |
 | Split | `align` | split.tsx:29 | One `items-*` class | 0/0/1 | ◯ OPEN |
 | Box | `m`, `mx`, `my` | box.tsx:28-33 | Margin tokens on a leaf fight the parent-`gap` spacing model; keep `p/px/py` (real consumers) | 0/0/2 | ◯ OPEN |
 | Listbox + DatePicker | `truncate` | listbox.tsx:66 · date-picker.tsx:131 | One recipe class on the label span, duplicated across the pair; drop both together | 0/0/0 | ◯ OPEN |
-| Combobox | `selectable` | combobox.tsx:75 | Hidden notify-only mode boolean; controlled `value` the consumer declines to update already yields the behavior | 0/0/0 | ◯ OPEN |
-| Combobox | `inputType` | combobox.tsx:67 | APG editable combobox is text-shaped; no other value ever passed | 0/0/0 | ◯ OPEN |
-| ColorPicker / ColorPanel | `eyedropper` | color-picker.tsx:31 · color-panel.tsx:38 | Hides a button that already self-hides when the platform API is absent | 0/0/0 | ◯ OPEN |
-| CommandPalette | `icon` | command-palette.tsx:33 | Replaces the default Search prefix; one `prefix` slot covers it if ever needed | 0/0/0 | ◯ OPEN |
-| Calendar (+ CalendarRange forward) | `onPickerOpenChange` | calendar.tsx:79 · calendar-range.tsx:35 | Embedding notification DatePicker — the embedding contract's only consumer — never passes; its test exists only to exercise it | 0/0/1 | ◯ OPEN |
-| Input | `loading` | input.tsx:23 | Pure suffix sugar: `suffix={<LoadingSpinner/>}` is byte-identical (affix projection sizes the spinner; explicit size is a documented no-op); no `aria-busy`; in-house wrappers ignore it | 0/1/0 | ◯ OPEN |
-| Field | `message`, `name` | field.tsx:29,31 | 1:1 sugar over nesting `<Message>`; TSDoc itself warns against combining both paths; `name` collides with §7.2's value-binding `name` while meaning message binding | 0/3/4 | ◯ OPEN |
-| Group | `data-slot` override | group.tsx:19,52 | Wrapper-override affordance with no wrapper anywhere; composites use `useGroup` directly per its own doc | 0/0/0 | ◯ OPEN |
-| BreadcrumbItem | `current` | breadcrumb-item.tsx:10 | Visually inert whenever `BreadcrumbLink current` is present (the only shown composition); even the demo omits it | 0/0/2 | ◯ OPEN |
-| TimelineMarker | `current` | timeline-marker.tsx:28 | Emits `data-current` that no recipe or CSS styles; `TimelineItem` owns `current` and strips it from the implicit-marker path, so the only path demos use can never set it | 0/0/1 | ◯ OPEN |
+| Combobox | `selectable` | combobox.tsx:75 | Hidden notify-only mode boolean; controlled `value` the consumer declines to update already yields the behavior | 0/0/0 | ✅ RESOLVED |
+| Combobox | `inputType` | combobox.tsx:67 | APG editable combobox is text-shaped; no other value ever passed | 0/0/0 | ✅ RESOLVED |
+| ColorPicker / ColorPanel | `eyedropper` | color-picker.tsx:31 · color-panel.tsx:38 | Hides a button that already self-hides when the platform API is absent | 0/0/0 | ✅ RESOLVED |
+| CommandPalette | `icon` | command-palette.tsx:33 | Replaces the default Search prefix; one `prefix` slot covers it if ever needed | 0/0/0 | ✅ RESOLVED |
+| Calendar (+ CalendarRange forward) | `onPickerOpenChange` | calendar.tsx:79 · calendar-range.tsx:35 | Embedding notification DatePicker — the embedding contract's only consumer — never passes; its test exists only to exercise it | 0/0/1 | ✅ RESOLVED |
+| Input | `loading` | input.tsx:23 | Pure suffix sugar: `suffix={<LoadingSpinner/>}` is byte-identical (affix projection sizes the spinner; explicit size is a documented no-op); no `aria-busy`; in-house wrappers ignore it | 0/1/0 | ✅ RESOLVED |
+| Field | `message`, `name` | field.tsx:29,31 | 1:1 sugar over nesting `<Message>`; TSDoc itself warns against combining both paths; `name` collides with §7.2's value-binding `name` while meaning message binding | 0/3/4 | ✅ RESOLVED |
+| Group | `data-slot` override | group.tsx:19,52 | Wrapper-override affordance with no wrapper anywhere; composites use `useGroup` directly per its own doc | 0/0/0 | ✅ RESOLVED |
+| BreadcrumbItem | `current` | breadcrumb-item.tsx:10 | Visually inert whenever `BreadcrumbLink current` is present (the only shown composition); even the demo omits it | 0/0/2 | ✅ RESOLVED |
+| TimelineMarker | `current` | timeline-marker.tsx:28 | Emits `data-current` that no recipe or CSS styles; `TimelineItem` owns `current` and strips it from the implicit-marker path, so the only path demos use can never set it | 0/0/1 | ✅ RESOLVED |
 | Kbd | `command`, `control` | kbd.tsx:9,11 | Two of five modifiers as glyph-prepending booleans; hardcoded order emits ⌘⌃ — reverse of the platform's ⌃⌘; children express glyphs correctly for free | 0/8/2 | ◯ OPEN |
-| PdfViewer | `defaultRotation` | pdf-viewer.tsx:39 | Speculative seed; per-page state resets on document swap; toolbar covers the real gesture | 0/0/0 | ◯ OPEN |
-| ChatList | `onKeyDown` | chat-list.tsx:18 | Lone DOM pass-through on an otherwise closed surface; keydown bubbles to a wrapper anyway | 0/0/1 | ◯ OPEN |
-| ChatListItem | `remove` + `onRemove` | chat-list-item.tsx:27-29 | Canned trash button in the slot `actions` already fills; tests themselves pass a Delete button via `actions` | 0/0/1 | ◯ OPEN |
-| GridReorder | `enabled` | grid-data-types.ts:438 | `{enabled:false}` ≡ omitting `reorder`; `{enabled:true}` ≡ the default | 0/0/1 | ◯ OPEN |
-| PasswordStrength | `showLabel` | password-strength.tsx:50 | Hides the strength label — which is the `useA11yLiveRegion` live region, so the prop is an AT-silencing footgun | 0/0/0 | ◯ OPEN |
-| AddressInput | `autoComplete` | address-input.tsx:40 | Pass-through whose only sane (and only ever-asserted) value is the default `'off'` | 0/0/1 | ◯ OPEN |
-| StackedLayout | `gap` | layouts/stacked.tsx:11 | Forwarded to the inner Stack; never passed | 0/0/0 | ◯ OPEN |
-| SidebarLayout | `menuIcon`, `panelClassName` | layouts/sidebar/sidebar.tsx:44,46 | Glyph override and single-div class pass-through; the `sidebar` node itself is styleable | 0/0/2 | ◯ OPEN |
-| SidebarHeader | `closeIcon` | sidebar/slots.tsx:14 | Offcanvas close-glyph override; a custom dismiss composes via `OffcanvasContext` | 0/0/1 | ◯ OPEN |
-| ShinyText | `delay` | shiny-text.tsx:54 | The one knob (of nine) not even the demo exercises | 0/0/0 | ◯ OPEN |
-| PopoverContent | `p` | popover-content.tsx:34 | Padding override beside the `size` step that already drives padding | 0/0/0 | ◯ OPEN |
-| PopoverTrigger | `manual` | popover-trigger.tsx:22-28 | Suppresses auto-wired interactions; controlled `open`/`onOpenChange` covers external control | 0/0/2 | ◯ OPEN |
-| Popover | `onExitComplete` | popover.tsx:17 | After-close hook; internal consumers use the `FloatingSurface` seam directly | 0/0/1 | ◯ OPEN |
-| Tooltip (root) | `className` | tooltip.tsx:45 | Context-carried to the *trigger* element — surprising indirection; one internal site migrates | 0/0/0 | ◯ OPEN |
-| Tooltip (root) | `size` | tooltip.tsx:39-44 | Context fallback for `TooltipContent size`, which every consumer uses directly | 0/0/0 | ◯ OPEN |
-| ActiveIndicator | `layoutId`; Scope `id`; `children`, `style` | active-indicator.tsx:36,94-99 | Scope-override and content/style knobs on a decorative marker; every consumer uses the scope + `className` | 0/0/1 | ◯ OPEN |
-| VirtualOptions | `overscan` | virtual-options.tsx:73 | Tuning knob, zero call sites; the hook keeps its own option for non-primitive callers | 0/0/0 | ◯ OPEN |
-| GlassProvider | `className` | providers/glass/glass.tsx:6 | Wrapper-class knob; zero callers including tests | 0/0/0 | ◯ OPEN |
-| DensityProvider | `className` | providers/density/density.tsx:7 | Same pattern; own test only | 0/0/1 | ◯ OPEN |
+| PdfViewer | `defaultRotation` | pdf-viewer.tsx:39 | Speculative seed; per-page state resets on document swap; toolbar covers the real gesture | 0/0/0 | ✅ RESOLVED |
+| ChatList | `onKeyDown` | chat-list.tsx:18 | Lone DOM pass-through on an otherwise closed surface; keydown bubbles to a wrapper anyway | 0/0/1 | ✅ RESOLVED |
+| ChatListItem | `remove` + `onRemove` | chat-list-item.tsx:27-29 | Canned trash button in the slot `actions` already fills; tests themselves pass a Delete button via `actions` | 0/0/1 | ✅ RESOLVED |
+| GridReorder | `enabled` | grid-data-types.ts:438 | `{enabled:false}` ≡ omitting `reorder`; `{enabled:true}` ≡ the default | 0/0/1 | ✅ RESOLVED |
+| PasswordStrength | `showLabel` | password-strength.tsx:50 | Hides the strength label — which is the `useA11yLiveRegion` live region, so the prop is an AT-silencing footgun | 0/0/0 | ✅ RESOLVED |
+| AddressInput | `autoComplete` | address-input.tsx:40 | Pass-through whose only sane (and only ever-asserted) value is the default `'off'` | 0/0/1 | ✅ RESOLVED |
+| StackedLayout | `gap` | layouts/stacked.tsx:11 | Forwarded to the inner Stack; never passed | 0/0/0 | ✅ RESOLVED |
+| SidebarLayout | `menuIcon`, `panelClassName` | layouts/sidebar/sidebar.tsx:44,46 | Glyph override and single-div class pass-through; the `sidebar` node itself is styleable | 0/0/2 | ✅ RESOLVED |
+| SidebarHeader | `closeIcon` | sidebar/slots.tsx:14 | Offcanvas close-glyph override; a custom dismiss composes via `OffcanvasContext` | 0/0/1 | ✅ RESOLVED |
+| ShinyText | `delay` | shiny-text.tsx:54 | The one knob (of nine) not even the demo exercises | 0/0/0 | ✅ RESOLVED |
+| PopoverContent | `p` | popover-content.tsx:34 | Padding override beside the `size` step that already drives padding | 0/0/0 | ✅ RESOLVED |
+| PopoverTrigger | `manual` | popover-trigger.tsx:22-28 | Suppresses auto-wired interactions; controlled `open`/`onOpenChange` covers external control | 0/0/2 | ✅ RESOLVED |
+| Popover | `onExitComplete` | popover.tsx:17 | After-close hook; internal consumers use the `FloatingSurface` seam directly | 0/0/1 | ✅ RESOLVED |
+| Tooltip (root) | `className` | tooltip.tsx:45 | Context-carried to the *trigger* element — surprising indirection; one internal site migrates | 0/0/0 | ✅ RESOLVED |
+| Tooltip (root) | `size` | tooltip.tsx:39-44 | Context fallback for `TooltipContent size`, which every consumer uses directly | 0/0/0 | ✅ RESOLVED |
+| ActiveIndicator | `layoutId`; Scope `id`; `children`, `style` | active-indicator.tsx:36,94-99 | Scope-override and content/style knobs on a decorative marker; every consumer uses the scope + `className` | 0/0/1 | ✅ RESOLVED (`layoutId`, Scope `id`, `children` removed; `style` kept — StepperIndicator needs the inline radius for the morph projection) |
+| VirtualOptions | `overscan` | virtual-options.tsx:73 | Tuning knob, zero call sites; the hook keeps its own option for non-primitive callers | 0/0/0 | ✅ RESOLVED |
+| GlassProvider | `className` | providers/glass/glass.tsx:6 | Wrapper-class knob; zero callers including tests | 0/0/0 | ✅ RESOLVED |
+| DensityProvider | `className` | providers/density/density.tsx:7 | Same pattern; own test only | 0/0/1 | ✅ RESOLVED |
 | LocaleProvider | `dateFormat`, `timeZone` | providers/locale/context.ts:19,21 | Broadcast into context, read by nothing (readers consume `locale`/`currency`/`numberFormat` only); wire a consumer or delete | 0/0/0 | ◯ OPEN |
-| ChartRangeLegendConfig | `type` (+ `ChartRangeLegendType` export) | chart/engine/chart-legend/range.ts:21,38 | Discriminant with one legal value, never read discriminatively; `{ placement }` alone is the object form | 0/0/3 | ◯ OPEN |
-| SidebarSpacer | (whole part) | sidebar barrel | Duplicate of `Spacer` with different mechanics; zero usage anywhere — the admin sidebar pins footers via `k.footer` instead | 0/0/0 | ◯ OPEN |
+| ChartRangeLegendConfig | `type` (+ `ChartRangeLegendType` export) | chart/engine/chart-legend/range.ts:21,38 | Discriminant with one legal value, never read discriminatively; `{ placement }` alone is the object form | 0/0/3 | ✅ RESOLVED |
+| SidebarSpacer | (whole part) | sidebar barrel | Duplicate of `Spacer` with different mechanics; zero usage anywhere — the admin sidebar pins footers via `k.footer` instead | 0/0/0 | ✅ RESOLVED |
 
 ## Findings — MERGE (two channels, keep one)
 
 | Surface | Props | Site | Issue | Fix | Status |
 |---|---|---|---|---|---|
-| Control cascade | `invalid` vs `severity` | control.tsx:23 · use-control-props.ts:79 | Boolean duplicate of `severity="error"`; drift is live — `listbox.tsx:372` reads `control?.invalid` raw, so severity-marked Controls miss Listbox | Fold into `severity`; keep Input's leaf tri-state `invalid` (internally consumed); Listbox inconsistency fixes itself | ◯ OPEN |
-| Dialog / Sheet / Drawer | `glass` vs leaked `surface` | dialog.tsx:26 + siblings | `useResolvedSurface(surface, glass)`; `surface=` passed nowhere; the glass-provider doc names `glass` the house convention | Drop `surface` from the public prop types (stays recipe-internal); resolution moves into the shared panel layer once | ◯ OPEN |
+| Control cascade | `invalid` vs `severity` | control.tsx:23 · use-control-props.ts:79 | Boolean duplicate of `severity="error"`; drift is live — `listbox.tsx:372` reads `control?.invalid` raw, so severity-marked Controls miss Listbox | Fold into `severity`; keep Input's leaf tri-state `invalid` (internally consumed); Listbox inconsistency fixes itself | ✅ RESOLVED (error severity now cascades to nested Controls, consistent with warning/success) |
+| Dialog / Sheet / Drawer | `glass` vs leaked `surface` | dialog.tsx:26 + siblings | `useResolvedSurface(surface, glass)`; `surface=` passed nowhere; the glass-provider doc names `glass` the house convention | Drop `surface` from the public prop types (stays recipe-internal); resolution moves into the shared panel layer once | ✅ RESOLVED (`useResolvedSurface` simplified to `(glass)`) |
 | Overlay | `glass` vs class-replacing `className` | primitives/overlay/overlay.tsx:29,139 | Dialog styles the backdrop via `glass`, Sheet/Drawer via recipe `className`; `glass` silently no-ops once `className` is set | Move Dialog onto the recipe-`className` path; delete `glass` from `OverlayProps` | ◯ OPEN |
-| Grid | top-level `sortable` vs `GridColumn.sortable` | grid-data-types.ts:693 | Default-flipper over a per-column flag — two sources of truth; the module's own demo misreads it (3 of 4 columns marked `sortable: true`, inert) | One source of truth: drop the grid-level flipper or make sorting per-column opt-in | ◯ OPEN |
-| GridInfiniteScroll | `showLoadingIndicator` + `loadingIndicator` | grid-data-types.ts:115,121 | Content prop silently inert unless the gate is also set | `loadingIndicator?: boolean \| ReactNode` (presence-implies, T5) | ◯ OPEN |
-| GridColumnManager | `onSavePreset` payload | grid-data-types.ts:562 | Emits `GridColumnManagerPreset` — a second, narrower persistence vocabulary that can't round-trip into `GridPreferences` | Emit a `GridPreferences` snapshot; save and seed speak one type | ◯ OPEN |
-| Chart (cartesian + scatter) | `grid` vs `axes.*.grid` | chart/engine/types.ts:307 | Whole-layer gate beside per-axis switches whose TSDoc must disambiguate it; never passed anywhere | Fold into the `axes` union | ◯ OPEN |
-| Chart (cartesian) | `tickRotation` | chart/engine/types.ts:332 | Category-axis policy stranded at the frame level while its siblings live in `axes.x`; silent no-op when horizontal | Move into `ChartCategoryAxis` | ◯ OPEN |
-| JsonTree + Grid | `maxHeight` beside `virtualize` | json-tree.tsx:35-37 · grid mirror | Coupled pair enforced by a runtime `throw`; `virtualize` already takes an options object | `virtualize={{ maxHeight, … }}` in both — change both or neither | ◯ OPEN |
-| PasswordConfirm | `onPasswordMatch` + `onPasswordMismatch` | password-confirm.tsx:17,20 | Two callbacks on opposite edges of one boolean | `onMatchChange?: (matched: boolean) => void` | ◯ OPEN |
-| Listbox | `inputId` | listbox.tsx:46 | Same concept spelled `id` on Combobox and `htmlFor` on Field | Rename to `id` for family parity | ◯ OPEN |
-| CommandPalette | `CommandPaletteEmpty` vs built-in empty `<output>` | slots.tsx:44 · command-palette.tsx:169 | Two empty-state mechanisms | Keep one; make the built-in text a slot or drop the component | ◯ OPEN |
-| Motion provider | `reducedMotion` / the provider | providers/motion/motion.tsx:19 | Defaults duplicate the internal `ReducedMotion` primitive already applied at every motion root; only distinct value (`'always'`) has no consumer | Document "handled automatically"; deprecate the provider until `'always'` earns a spelled-out `<ForceReducedMotion>` | ◯ OPEN |
+| Grid | top-level `sortable` vs `GridColumn.sortable` | grid-data-types.ts:693 | Default-flipper over a per-column flag — two sources of truth; the module's own demo misreads it (3 of 4 columns marked `sortable: true`, inert) | One source of truth: drop the grid-level flipper or make sorting per-column opt-in | ✅ RESOLVED (dropped the flipper; per-column `sortable` defaults true unless explicitly false) |
+| GridInfiniteScroll | `showLoadingIndicator` + `loadingIndicator` | grid-data-types.ts:115,121 | Content prop silently inert unless the gate is also set | `loadingIndicator?: boolean \| ReactNode` (presence-implies, T5) | ✅ RESOLVED |
+| GridColumnManager | `onSavePreset` payload | grid-data-types.ts:562 | Emits `GridColumnManagerPreset` — a second, narrower persistence vocabulary that can't round-trip into `GridPreferences` | Emit a `GridPreferences` snapshot; save and seed speak one type | ✅ RESOLVED (dropped `GridColumnManagerPreset`) |
+| Chart (cartesian + scatter) | `grid` vs `axes.*.grid` | chart/engine/types.ts:307 | Whole-layer gate beside per-axis switches whose TSDoc must disambiguate it; never passed anywhere | Fold into the `axes` union | ✅ RESOLVED |
+| Chart (cartesian) | `tickRotation` | chart/engine/types.ts:332 | Category-axis policy stranded at the frame level while its siblings live in `axes.x`; silent no-op when horizontal | Move into `ChartCategoryAxis` | ✅ RESOLVED |
+| JsonTree + Grid | `maxHeight` beside `virtualize` | json-tree.tsx:35-37 · grid mirror | Coupled pair enforced by a runtime `throw`; `virtualize` already takes an options object | `virtualize={{ maxHeight, … }}` in both — change both or neither | ✅ RESOLVED (JsonTree folded to `virtualize={{ maxHeight }}`; Grid `maxHeight` kept top-level by decision — unlike JsonTree it also sizes the sticky-header / infinite-scroll scroll region, so it is a shared scroll-container prop, not virtualize-only) |
+| PasswordConfirm | `onPasswordMatch` + `onPasswordMismatch` | password-confirm.tsx:17,20 | Two callbacks on opposite edges of one boolean | `onMatchChange?: (matched: boolean) => void` | ✅ RESOLVED |
+| Listbox | `inputId` | listbox.tsx:46 | Same concept spelled `id` on Combobox and `htmlFor` on Field | Rename to `id` for family parity | ✅ RESOLVED |
+| CommandPalette | `CommandPaletteEmpty` vs built-in empty `<output>` | slots.tsx:44 · command-palette.tsx:169 | Two empty-state mechanisms | Keep one; make the built-in text a slot or drop the component | ✅ RESOLVED (dropped `CommandPaletteEmpty`; built-in a11y `<output>` kept) |
+| Motion provider | `reducedMotion` / the provider | providers/motion/motion.tsx:19 | Defaults duplicate the internal `ReducedMotion` primitive already applied at every motion root; only distinct value (`'always'`) has no consumer | Document "handled automatically"; deprecate the provider until `'always'` earns a spelled-out `<ForceReducedMotion>` | ✅ RESOLVED (removed the provider outright) |
 
 ## Findings — NARROW (shrink the type)
 
@@ -129,17 +129,17 @@ The individual rows mostly instantiate eight repeated patterns; fixing a pattern
 | Sidebar | render-prop `children: (mini) => ReactNode` | sidebar.tsx:25 | The one §3.6 root-render-prop violation in the library — and the context path (`useSidebarMini`, already exported and consumed by SidebarItem) coexists with it. Plain `ReactNode` + the hook | ◯ OPEN |
 | FileUpload | `variant: 'drop' \| 'input' \| 'button'` | file-upload.tsx:48-70 | Three disjoint render functions with disjoint prop sets behind one discriminant → explicit `FileUploadDrop`/`FileUploadInput`/`FileUploadButton` sharing the hidden-input internals | ◯ OPEN |
 | Markdown | `inline` | markdown.tsx:24 | Different lexer, different element, silently unparsed blocks → explicit `MarkdownInline` sharing the renderer | ◯ OPEN |
-| Collapse | `trigger` | collapse.tsx:28 | Body is a byte-for-byte re-expression of the exported compound (`<CollapseTrigger>{trigger}</…>`); compound-only API | ◯ OPEN |
-| AvatarGroup | `extra` | avatar-group.tsx:10 | Appends an `<Avatar initials="+N">` the caller can append as children; only value lost is auto `alt` phrasing | ◯ OPEN |
+| Collapse | `trigger` | collapse.tsx:28 | Body is a byte-for-byte re-expression of the exported compound (`<CollapseTrigger>{trigger}</…>`); compound-only API | ✅ RESOLVED |
+| AvatarGroup | `extra` | avatar-group.tsx:10 | Appends an `<Avatar initials="+N">` the caller can append as children; only value lost is auto `alt` phrasing | ✅ RESOLVED |
 | Alert | `title`/`description` shorthands vs slot trio | alert.tsx:41-72 | Dual API + fragile displayName sniffing to reconcile them. Deliberate call: Toast's data pipeline needs the props, and props dominate usage — so the slots are the removable half, contra the usual §3.6 direction | ◯ OPEN |
 | Filters | `clear`, `prefix`, `suffix`, `equal` | filters.tsx:29-35 | Region ReactNode props where context already escapes the row (`FiltersClear` works anywhere inside the provider); compose rows/actions as children | ◯ OPEN |
 | DashboardLayout | `filters` | layouts/dashboard.tsx:18 | Single-region prop bag → compound child. Adjacent bug found: the "beside the main column" contract renders as a `<Stack>` column (dashboard.tsx:34) — aside and main stack; a `Flex` row was evidently intended | ◯ OPEN |
-| TimeAgo | `absolute` | time-ago.tsx:24 | Convenience boolean drags the whole Tooltip/floating stack into a tiny inline leaf; consumer composes Tooltip, or the import gets lazy-split | ◯ OPEN |
+| TimeAgo | `absolute` | time-ago.tsx:24 | Convenience boolean drags the whole Tooltip/floating stack into a tiny inline leaf; consumer composes Tooltip, or the import gets lazy-split | ✅ RESOLVED |
 | FileUpload | `ratio` (drop variant) | file-upload.tsx:54 | AspectRatio-wrapper sizing where sibling SignaturePad uses `h-40`+`className`; converge on the latter, dropping the prop and the dependency | ◯ OPEN |
-| PasswordInput | `toggleButton` bag | password-input.tsx:14 | Two-level config bag (boolean + i18n labels), fully unused; flatten or fold labels into the T7 locale story | ◯ OPEN |
-| TagInput | `tag` bag | tag-input.tsx:31 | One-key object (`{color}`) read once with a fallback; flatten to `tagColor` or remove | ◯ OPEN |
+| PasswordInput | `toggleButton` bag | password-input.tsx:14 | Two-level config bag (boolean + i18n labels), fully unused; flatten or fold labels into the T7 locale story | ✅ RESOLVED (flattened to `toggleButton?: boolean`; labels deferred to T7) |
+| TagInput | `tag` bag | tag-input.tsx:31 | One-key object (`{color}`) read once with a fallback; flatten to `tagColor` or remove | ◯ OPEN (owner elected to keep the object form) |
 | ControlSkeleton | `joined` | control-skeleton.tsx:19 | Manual echo of the `data-group` stamp the skeleton drops on the floor; forward the stamp (as `use-group.ts` already claims) and derive | ◯ OPEN |
-| Listbox | `tabularNums` | listbox.tsx:59 | One-class prop whose single internal consumer (pdf-viewer toolbar) can use a `className` descendant variant | ◯ OPEN |
+| Listbox | `tabularNums` | listbox.tsx:59 | One-class prop whose single internal consumer (pdf-viewer toolbar) can use a `className` descendant variant | ✅ RESOLVED |
 
 ## Watch-list — recorded keeps and deferred calls
 

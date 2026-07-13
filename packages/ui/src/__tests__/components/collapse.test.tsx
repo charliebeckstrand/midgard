@@ -10,8 +10,11 @@ import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 describe('Collapse', () => {
 	it('renders panel when open', () => {
 		renderUI(
-			<Collapse trigger="Toggle" defaultOpen>
-				<p>Content</p>
+			<Collapse defaultOpen>
+				<CollapseTrigger>Toggle</CollapseTrigger>
+				<CollapsePanel>
+					<p>Content</p>
+				</CollapsePanel>
 			</Collapse>,
 		)
 
@@ -20,8 +23,11 @@ describe('Collapse', () => {
 
 	it('only references the panel via aria-controls while it is mounted', () => {
 		renderUI(
-			<Collapse trigger="Toggle">
-				<p>Content</p>
+			<Collapse>
+				<CollapseTrigger>Toggle</CollapseTrigger>
+				<CollapsePanel>
+					<p>Content</p>
+				</CollapsePanel>
 			</Collapse>,
 		)
 
@@ -43,8 +49,11 @@ describe('Collapse', () => {
 		const onOpenChange = vi.fn()
 
 		renderUI(
-			<Collapse trigger="Toggle" onOpenChange={onOpenChange}>
-				<p>Content</p>
+			<Collapse onOpenChange={onOpenChange}>
+				<CollapseTrigger>Toggle</CollapseTrigger>
+				<CollapsePanel>
+					<p>Content</p>
+				</CollapsePanel>
 			</Collapse>,
 		)
 
@@ -55,14 +64,20 @@ describe('Collapse', () => {
 
 	it('supports a controlled open state', () => {
 		const { rerender } = renderUI(
-			<Collapse open={false} trigger="Toggle">
-				<p>Body</p>
+			<Collapse open={false}>
+				<CollapseTrigger>Toggle</CollapseTrigger>
+				<CollapsePanel>
+					<p>Body</p>
+				</CollapsePanel>
 			</Collapse>,
 		)
 
 		rerender(
-			<Collapse open={true} trigger="Toggle">
-				<p>Body</p>
+			<Collapse open={true}>
+				<CollapseTrigger>Toggle</CollapseTrigger>
+				<CollapsePanel>
+					<p>Body</p>
+				</CollapsePanel>
 			</Collapse>,
 		)
 
@@ -81,10 +96,15 @@ describe('Collapse', () => {
 		expect(screen.getByText('Just body')).toBeInTheDocument()
 	})
 
-	it('accepts a render-prop child for the trigger', () => {
+	it('accepts a custom node in the compound trigger', () => {
 		renderUI(
-			<Collapse defaultOpen trigger={<span>Custom Trigger</span>}>
-				<p>Body</p>
+			<Collapse defaultOpen>
+				<CollapseTrigger>
+					<span>Custom Trigger</span>
+				</CollapseTrigger>
+				<CollapsePanel>
+					<p>Body</p>
+				</CollapsePanel>
 			</Collapse>,
 		)
 
@@ -93,8 +113,11 @@ describe('Collapse', () => {
 
 	it('supports animate="slide"', () => {
 		const { container } = renderUI(
-			<Collapse animate="slide" trigger="Toggle" defaultOpen>
-				<p>Body</p>
+			<Collapse animate="slide" defaultOpen>
+				<CollapseTrigger>Toggle</CollapseTrigger>
+				<CollapsePanel>
+					<p>Body</p>
+				</CollapsePanel>
 			</Collapse>,
 		)
 
@@ -103,8 +126,11 @@ describe('Collapse', () => {
 
 	it('supports animate={false}', () => {
 		const { container } = renderUI(
-			<Collapse animate={false} trigger="Toggle" defaultOpen>
-				<p>Body</p>
+			<Collapse animate={false} defaultOpen>
+				<CollapseTrigger>Toggle</CollapseTrigger>
+				<CollapsePanel>
+					<p>Body</p>
+				</CollapsePanel>
 			</Collapse>,
 		)
 

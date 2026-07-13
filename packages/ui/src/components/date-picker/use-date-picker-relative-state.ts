@@ -374,7 +374,7 @@ export function useDatePickerRelativeState({
 		describedBy: control?.describedBy,
 		disabled: resolvedDisabled,
 		required: control?.required,
-		invalid: control?.invalid || fieldInvalid,
+		invalid: control?.severity === 'error' || fieldInvalid,
 		value,
 		hasValue,
 		onClear: handleClear,

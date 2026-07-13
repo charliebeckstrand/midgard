@@ -300,12 +300,6 @@ export type CartesianFrameProps = {
 	 */
 	axes?: boolean | CartesianAxes
 	/**
-	 * Draw the grid: hairlines at the value ticks. Which axis's ticks rule it
-	 * is each axis's own `grid` switch; this one gates the whole layer.
-	 * @defaultValue true
-	 */
-	grid?: boolean
-	/**
 	 * Draw a hover crosshair. `true` (the shorthand) draws both rules — a
 	 * horizontal value rule and a vertical category rule; a {@link Crosshair}
 	 * object snaps them to the nearest point (`snap`) or drops one (`x` / `y` set
@@ -320,16 +314,6 @@ export type CartesianFrameProps = {
 	 * itself in it as a static identity chip.
 	 */
 	reference?: ChartReferenceLine[]
-	/**
-	 * Tilt category labels that would otherwise collide instead of thinning them
-	 * to every nth: past that point every label draws, angled, and none are
-	 * dropped. Off by default, so an unset chart keeps thinning.
-	 * @remarks Vertical orientation only — under `orientation="horizontal"`
-	 * category labels already run down the gutter and read straight, so this has
-	 * no effect there.
-	 * @defaultValue false
-	 */
-	tickRotation?: boolean
 	/**
 	 * Fires when a click lands on a category's band — the whole band is the
 	 * target, the same generous hit the tooltip reads — with the category's label

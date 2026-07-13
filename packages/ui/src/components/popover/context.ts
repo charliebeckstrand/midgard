@@ -18,7 +18,6 @@ type PopoverContextValue = {
 	getFloatingProps: (userProps?: object) => Record<string, unknown>
 	/** Floating-ui root context; `PopoverContent`'s `modal` trap mounts on it. */
 	floatingContext: FloatingRootContext
-	onExitComplete?: () => void
 }
 
 export const [PopoverContext, usePopoverContext] = createContext<PopoverContextValue>('Popover')

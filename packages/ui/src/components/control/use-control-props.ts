@@ -15,8 +15,8 @@ export type ControlPropsOptions = {
 	'aria-describedby'?: string
 	/**
 	 * Form-bound invalid state (from `useInputValue` / `useFormValue` /
-	 * `useFormToggle`); OR's with the Control context's `invalid` so an
-	 * external form error and an ambient `<Field invalid>` both surface.
+	 * `useFormToggle`); OR's with an ambient `error` severity so an external form
+	 * error and an ambient `<Field severity="error">` both surface.
 	 */
 	invalid?: boolean
 }
@@ -47,14 +47,14 @@ export type ControlPropsResult = {
  * the Density cascade at the call site).
  *
  * @param input - Explicit control props from the field; each wins over the
- * context value of the same name, except `invalid` (OR-merged) and
- * `aria-describedby` (merged ahead of the field's own ids).
+ * context value of the same name, except `invalid` (OR-merged with `error`
+ * severity) and `aria-describedby` (merged ahead of the field's own ids).
  * @returns The resolved `id`, `autoComplete`, `disabled`, `required`,
  * `readOnly`, `invalid`, and composed `aria-describedby`; any field is
  * `undefined` when neither input nor context supplies it.
- * @remarks `invalid` resolves `true` from an explicit `invalid` (prop, ambient
- * `<Control invalid>`, or form binding) or when the Control `severity` is
- * `error`; a nested `<Message>` is presentational and never marks the control
+ * @remarks `invalid` resolves `true` from an explicit `invalid` (the field's
+ * own prop or form binding) or when the Control / Field `severity` is `error`;
+ * a nested `<Message>` is presentational and never marks the control
  * invalid. `validation` collapses the resolved state into a single spreadable
  * attribute object — invalid wins, then a `warning` / `success` severity — so
  * the three validation rings stay mutually exclusive.
@@ -73,10 +73,10 @@ export function useControlProps(input: ControlPropsOptions = {}): ControlPropsRe
 
 	const severity = control?.severity
 
-	// An explicit `invalid` (prop, ambient `<Control invalid>`, or form binding)
-	// or an `error` severity marks the control invalid. A nested `<Message>` is
+	// An explicit `invalid` (the field's own prop or a form binding) or an ambient
+	// `error` severity marks the control invalid. A nested `<Message>` is
 	// presentational: it never drives the chrome — the ring comes from severity.
-	const invalid = control?.invalid || input.invalid || severity === 'error' || undefined
+	const invalid = input.invalid || severity === 'error' || undefined
 
 	// Invalid wins the validation chrome; otherwise reflect a warning / success
 	// severity. The three states are mutually exclusive.

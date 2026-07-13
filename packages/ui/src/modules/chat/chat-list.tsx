@@ -1,6 +1,6 @@
 'use client'
 
-import { type KeyboardEvent, type ReactNode, useRef } from 'react'
+import { type ReactNode, useRef } from 'react'
 import { cn } from '../../core'
 import { useA11yRoving } from '../../hooks'
 import { ActiveIndicatorScope } from '../../primitives/active-indicator'
@@ -15,7 +15,6 @@ export type ChatListProps = {
 	/** {@link ChatListItem} rows. */
 	children?: ReactNode
 	className?: string
-	onKeyDown?: (event: KeyboardEvent<HTMLUListElement>) => void
 }
 
 /**
@@ -36,7 +35,6 @@ export function ChatList({
 	'aria-labelledby': ariaLabelledBy,
 	children,
 	className,
-	onKeyDown,
 }: ChatListProps) {
 	const ref = useRef<HTMLUListElement>(null)
 
@@ -61,10 +59,7 @@ export function ChatList({
 					aria-label={ariaLabel}
 					aria-labelledby={ariaLabelledBy}
 					className={cn('flex flex-col gap-0.5', className)}
-					onKeyDown={(event) => {
-						handleKeyDown(event)
-						onKeyDown?.(event)
-					}}
+					onKeyDown={handleKeyDown}
 				>
 					{children}
 				</ul>

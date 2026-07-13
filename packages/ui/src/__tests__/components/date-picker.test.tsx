@@ -94,7 +94,7 @@ describe('DatePicker', () => {
 
 	it('surfaces invalid state from an enclosing Control', () => {
 		const { container } = renderUI(
-			<Control invalid>
+			<Control severity="error">
 				<DatePicker />
 			</Control>,
 		)
@@ -653,7 +653,7 @@ describe('DatePicker range', () => {
 
 	it('surfaces invalid state from an enclosing Control', () => {
 		const { container } = renderUI(
-			<Control invalid>
+			<Control severity="error">
 				<DatePicker range />
 			</Control>,
 		)

@@ -821,7 +821,7 @@ describe('ComboboxPanel', () => {
 describe('Combobox + Control', () => {
 	it('surfaces invalid state from an enclosing Control', () => {
 		const { container } = renderUI(
-			<Control invalid>
+			<Control severity="error">
 				<Combobox>
 					<ComboboxOption value="a">
 						<ComboboxLabel>A</ComboboxLabel>
@@ -853,7 +853,7 @@ describe('Combobox + Control', () => {
 
 	it('points aria-describedby at the control description and message', () => {
 		const { container } = renderUI(
-			<Control id="status" invalid>
+			<Control id="status" severity="error">
 				<Description>Choose one</Description>
 				<Combobox>
 					<ComboboxOption value="a">

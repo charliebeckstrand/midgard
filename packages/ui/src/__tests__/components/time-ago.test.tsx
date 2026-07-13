@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { TimeAgo } from '../../components/time-ago'
+import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
 import { act, bySlot, fireEvent, renderUI } from '../helpers'
 
 const SEC = 1000
@@ -81,25 +82,22 @@ describe('TimeAgo', () => {
 		expect(bySlot(container, 'tooltip-content')).not.toBeInTheDocument()
 	})
 
-	it('omits the tooltip when absolute={false}', () => {
-		const { container } = renderUI(<TimeAgo date={new Date()} absolute={false} />)
-
-		act(() => {
-			fireEvent.click(bySlot(container, 'time-ago') as HTMLElement)
-		})
-
-		expect(bySlot(container, 'tooltip-content')).not.toBeInTheDocument()
-	})
-
-	it('reveals the absolute time in a tooltip when absolute', () => {
+	it('reveals the absolute time when composed inside a Tooltip', () => {
 		const date = new Date('2026-04-29T11:30:00Z')
 
-		const { container } = renderUI(<TimeAgo date={date} locale="en-US" absolute />)
+		const { container } = renderUI(
+			<Tooltip>
+				<TooltipTrigger>
+					<TimeAgo date={date} locale="en-US" />
+				</TooltipTrigger>
+				<TooltipContent>{date.toLocaleString('en-US')}</TooltipContent>
+			</Tooltip>,
+		)
 
-		// The <time> keeps its slot and doubles as the trigger; the absolute
-		// time only mounts once the tooltip opens.
+		// The <time> becomes the tooltip trigger; the absolute time only mounts
+		// once the tooltip opens.
 		act(() => {
-			fireEvent.click(bySlot(container, 'time-ago') as HTMLElement)
+			fireEvent.click(bySlot(container, 'tooltip-trigger') as HTMLElement)
 		})
 
 		expect(bySlot(container, 'tooltip-content')?.textContent).toBe(date.toLocaleString('en-US'))

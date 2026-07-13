@@ -54,19 +54,25 @@ export function Demo() {
 	return (
 		<>
 			<Example title="Default">
-				<Collapse trigger="Toggle details">
-					<Text severity="muted">
-						When the trigger is a string, Collapse renders it as muted text that highlights on
-						hover. The panel animates open with a smooth height transition.
-					</Text>
+				<Collapse>
+					<CollapseTrigger>Toggle details</CollapseTrigger>
+					<CollapsePanel>
+						<Text severity="muted">
+							A string in `CollapseTrigger` renders as muted text that highlights on hover. The
+							panel animates open with a smooth height transition.
+						</Text>
+					</CollapsePanel>
 				</Collapse>
 			</Example>
 
 			<Example title="Default open">
-				<Collapse defaultOpen trigger="Toggle details">
-					<Text severity="muted">
-						This content is visible by default because the collapse starts open.
-					</Text>
+				<Collapse defaultOpen>
+					<CollapseTrigger>Toggle details</CollapseTrigger>
+					<CollapsePanel>
+						<Text severity="muted">
+							This content is visible by default because the collapse starts open.
+						</Text>
+					</CollapsePanel>
 				</Collapse>
 			</Example>
 

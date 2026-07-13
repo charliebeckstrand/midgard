@@ -95,7 +95,7 @@ export function PdfViewerToolbar() {
 								}}
 								displayValue={(v) => String(v)}
 								disabled={loading}
-								tabularNums
+								className="tabular-nums"
 							>
 								{pages.map((p, index) => {
 									const pageNumber = index + 1

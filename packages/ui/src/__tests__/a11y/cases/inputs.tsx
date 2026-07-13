@@ -6,7 +6,7 @@ import { CreditCardInput } from '../../../components/credit-card-input'
 import { CurrencyInput } from '../../../components/currency-input'
 import { DateInput } from '../../../components/date-input'
 import { DatePicker } from '../../../components/date-picker'
-import { Field, Label } from '../../../components/fieldset'
+import { Field, Label, Message } from '../../../components/fieldset'
 import { FileUpload } from '../../../components/file-upload'
 import { Input } from '../../../components/input'
 import { MaskInput } from '../../../components/mask-input'
@@ -51,16 +51,18 @@ export const inputCases: readonly Case[] = [
 	],
 	[
 		'input in field (warning)',
-		<Field key="f" severity="warning" message="Double-check this value">
+		<Field key="f" severity="warning">
 			<Label htmlFor="axe-warn">Warning</Label>
 			<Input id="axe-warn" />
+			<Message severity="warning">Double-check this value</Message>
 		</Field>,
 	],
 	[
 		'input in field (success)',
-		<Field key="f" severity="success" message="Looks good">
+		<Field key="f" severity="success">
 			<Label htmlFor="axe-ok">Success</Label>
 			<Input id="axe-ok" />
+			<Message severity="success">Looks good</Message>
 		</Field>,
 	],
 	[

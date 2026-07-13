@@ -76,25 +76,27 @@ describe('Avatar', () => {
 })
 
 describe('AvatarGroup', () => {
-	it('renders an extra count avatar when extra is provided', () => {
+	it('renders a composed overflow count avatar child', () => {
 		const { container } = renderUI(
-			<AvatarGroup extra={3}>
+			<AvatarGroup>
 				<Avatar initials="A" />
+				<Avatar initials="+3" alt="3 more" />
 			</AvatarGroup>,
 		)
 
 		const avatars = allBySlot(container, 'avatar')
 
-		// Original + extra avatar
+		// Original + overflow avatar
 		expect(avatars.length).toBe(2)
 
 		expect(container.textContent).toContain('+3')
 	})
 
-	it('gives the overflow avatar an accessible count label', () => {
+	it('gives a composed overflow avatar an accessible count label', () => {
 		renderUI(
-			<AvatarGroup extra={3}>
+			<AvatarGroup>
 				<Avatar initials="A" />
+				<Avatar initials="+3" alt="3 more" />
 			</AvatarGroup>,
 		)
 

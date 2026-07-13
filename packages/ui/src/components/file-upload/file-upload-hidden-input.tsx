@@ -46,7 +46,7 @@ export function FileUploadHiddenInput({
 			onChange={onChange}
 			className="sr-only"
 			tabIndex={-1}
-			{...invalidAttrs(control?.invalid)}
+			{...invalidAttrs(control?.severity === 'error' || undefined)}
 		/>
 	)
 }

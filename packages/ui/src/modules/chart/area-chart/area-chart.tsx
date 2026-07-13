@@ -265,7 +265,6 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 		height,
 		aspectRatio,
 		axes,
-		grid = true,
 		legend,
 		tooltip,
 		crosshair,
@@ -275,7 +274,6 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 		points = false,
 		interpolation = 'linear',
 		reference,
-		tickRotation,
 		labels,
 		onCategoryClick,
 		formatValue,
@@ -400,7 +398,6 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 				categoryTicks={chart.xTicks}
 				hasData={data.length > 0}
 				axes={chart.axes}
-				grid={grid}
 				gridPositions={chart.gridPositions}
 				categoryGridPositions={chart.categoryGridPositions}
 				categorySeparator={chart.categorySeparator}

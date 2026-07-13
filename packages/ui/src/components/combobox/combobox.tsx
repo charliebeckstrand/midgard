@@ -64,15 +64,12 @@ type ComboboxBaseProps<T> = {
 	/** Marks the field required; surfaces `required`/`aria-required` on the input. */
 	required?: boolean
 	className?: string
-	inputType?: InputHTMLAttributes<HTMLInputElement>['type']
 	autoComplete?: InputHTMLAttributes<HTMLInputElement>['autoComplete']
 	/**
 	 * Accessible name for the input. Required when no `<Field>`/`<Label>` wraps
 	 * the combobox, since the placeholder is not a programmatic name.
 	 */
 	'aria-label'?: string
-	/** Fires onValueChange without storing the value. */
-	selectable?: boolean
 	/** Clicking the selected option clears it. */
 	nullable?: boolean
 	/**
@@ -225,7 +222,6 @@ export function Combobox<T>({
 	disabled,
 	readOnly,
 	required,
-	selectable = true,
 	nullable = valueProp === undefined && defaultValue === undefined,
 	closeOnSelect,
 	clearOnEmpty = false,
@@ -236,7 +232,6 @@ export function Combobox<T>({
 	onQueryChange,
 	className,
 	autoComplete = 'off',
-	inputType = 'text',
 	'aria-label': ariaLabel,
 	'data-group': dataGroup,
 	'data-group-orientation': dataGroupOrientation,
@@ -315,14 +310,12 @@ export function Combobox<T>({
 	} = useComboboxState<T>({
 		multiple,
 		nullable,
-		selectable,
 		value,
 		closeOnSelect,
 		open: openProp,
 		inputRef,
 		onOpenChange,
 		onQueryChange,
-		onValueChange: onValueChange as ((value: T) => void) | undefined,
 		setValue,
 	})
 
@@ -565,7 +558,7 @@ export function Combobox<T>({
 					<ComboboxInput
 						id={id}
 						ref={inputRef}
-						type={inputType}
+						type="text"
 						autoComplete={autoComplete}
 						aria-label={ariaLabel}
 						open={open}

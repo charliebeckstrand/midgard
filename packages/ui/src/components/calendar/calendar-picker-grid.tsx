@@ -103,9 +103,11 @@ export function CalendarPickerGrid({
 						aria-current={ariaAttr(cell.current)}
 						variant={cell.selected ? 'solid' : 'plain'}
 						data-selected={dataAttr(cell.selected)}
-						block={cellBlock}
 						onClick={cell.onSelect}
-						className={cn(cell.current && !cell.selected && k.picker.cellCurrent)}
+						className={cn(
+							cellBlock && 'w-full',
+							cell.current && !cell.selected && k.picker.cellCurrent,
+						)}
 					>
 						{cell.label}
 					</Button>

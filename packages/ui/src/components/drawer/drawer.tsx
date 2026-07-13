@@ -12,8 +12,8 @@ import { useResolvedSurface } from '../../providers/glass/context'
 import type { Step } from '../../recipes'
 import { type DrawerPanelVariants, k } from '../../recipes/kata/drawer'
 
-/** Props for {@link Drawer}: open-state control, surface variant, density `size` cascade, and accessible naming. */
-export type DrawerProps = DrawerPanelVariants & {
+/** Props for {@link Drawer}: open-state control, density `size` cascade, and accessible naming. */
+export type DrawerProps = Omit<DrawerPanelVariants, 'surface'> & {
 	/** Controlled open state. Pair with `onOpenChange`. */
 	open?: boolean
 	/** Initial open state when uncontrolled. */
@@ -61,7 +61,6 @@ export function Drawer({
 	open,
 	defaultOpen,
 	onOpenChange,
-	surface,
 	size,
 	glass,
 	className,
@@ -76,7 +75,7 @@ export function Drawer({
 		onValueChange: (next) => onOpenChange?.(next ?? false),
 	})
 
-	const resolvedSurface = useResolvedSurface(surface, glass)
+	const resolvedSurface = useResolvedSurface(glass)
 
 	const { ariaProps, a11y } = useA11yPanel()
 
