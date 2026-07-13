@@ -235,7 +235,7 @@ export function useDatePickerRangeState({
 		describedBy: control?.describedBy,
 		disabled: resolvedDisabled,
 		required: control?.required,
-		invalid: control?.invalid || fieldInvalid,
+		invalid: control?.severity === 'error' || fieldInvalid,
 		hasValue: value != null,
 		onClear: handleClear,
 		displayValue: value ? formatRange(value[0], value[1]) : '',

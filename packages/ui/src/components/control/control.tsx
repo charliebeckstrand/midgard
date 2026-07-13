@@ -20,10 +20,9 @@ export type ControlProps = {
 	id?: string
 	autoComplete?: string
 	disabled?: boolean
-	invalid?: boolean
 	readOnly?: boolean
 	required?: boolean
-	/** Validation / status severity broadcast to control-aware descendants: `error` (also `aria-invalid`), `warning`, or `success`. */
+	/** Validation / status severity broadcast to control-aware descendants: `error` (also `aria-invalid`), `warning`, or `success`. Pass `severity="error"` to mark the field invalid. */
 	severity?: ControlSeverity
 	size?: ControlSize
 	variant?: ControlVariant
@@ -33,7 +32,7 @@ export type ControlProps = {
 
 /**
  * Form-field context provider: generates a stable id and broadcasts
- * `disabled`, `invalid`, `readOnly`, `required`, `severity`, `size`, and
+ * `disabled`, `readOnly`, `required`, `severity`, `size`, and
  * `variant` to control-aware descendants (input, textarea, switch, listbox,
  * combobox, datepicker, checkbox, radio). Nests: `disabled` / `readOnly`
  * cascade through inner Controls, `severity` / `size` / `variant` inherit
@@ -43,7 +42,6 @@ export function Control({
 	id: idProp,
 	autoComplete,
 	disabled,
-	invalid,
 	readOnly,
 	required,
 	severity,
@@ -75,7 +73,6 @@ export function Control({
 			id: scope.id,
 			autoComplete: mergedAutoComplete,
 			disabled: mergedDisabled,
-			invalid,
 			readOnly: mergedReadOnly,
 			required,
 			severity: mergedSeverity,
@@ -89,7 +86,6 @@ export function Control({
 			scope.id,
 			mergedAutoComplete,
 			mergedDisabled,
-			invalid,
 			mergedReadOnly,
 			required,
 			mergedSeverity,

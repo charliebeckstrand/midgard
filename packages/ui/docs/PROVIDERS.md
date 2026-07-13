@@ -65,12 +65,6 @@ Broadcasts i18n defaults; explicit component props still win.
 | `useFormat` | Resolves a `FormatSpec` to a memoized `(value) => string` formatter, folding in the ambient locale / currency / number-format defaults. |
 | `FormatSpec` *(type)* | What `useFormat` formats a value as: a numeric `Intl` format (`number`/`integer`/`currency`/`percent`/`compact`) or a prefixed `id` (`INV-42`). |
 
-## `ui/providers/motion`
-
-| Export | Summary |
-|---|---|
-| `Motion` | App-root motion config broadcasting `prefers-reduced-motion` handling to descendant framer `motion.*` components. |
-
 ## `ui/providers/toast`
 
 App-root toast state; pairs with the `Toast` component which portals the queue.

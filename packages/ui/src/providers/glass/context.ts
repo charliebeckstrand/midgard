@@ -11,21 +11,16 @@ import { createContext } from '../../core'
 export const [GlassContext, useGlass] = createContext<boolean>('Glass', { default: false })
 
 /**
- * Resolve the `surface` variant for a chrome panel, falling back to `'glass'`
- * when either the `glass` shorthand prop or an enclosing `<GlassProvider>` ambient is
- * set. Returns `undefined` when no surface applies; recipe default variants
- * stay in effect.
+ * Resolve the recipe `surface` variant for a chrome panel: `'glass'` when either
+ * the `glass` shorthand prop or an enclosing `<GlassProvider>` ambient is set,
+ * otherwise `undefined` so the recipe's default variant stays in effect.
  *
- * @param surface - Explicit `surface` variant; wins when set.
  * @param glass - The `glass` shorthand prop on the consuming component.
- * @returns The resolved surface variant, `'glass'`, or `undefined`.
+ * @returns `'glass'`, or `undefined`.
  * @see {@link useGlass}
  */
-export function useResolvedSurface<S extends string>(
-	surface: S | undefined,
-	glass: boolean | undefined,
-): S | 'glass' | undefined {
+export function useResolvedSurface(glass: boolean | undefined): 'glass' | undefined {
 	const glassContext = useGlass()
 
-	return surface ?? (glass || glassContext ? 'glass' : undefined)
+	return glass || glassContext ? 'glass' : undefined
 }

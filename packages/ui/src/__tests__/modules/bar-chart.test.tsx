@@ -753,7 +753,7 @@ describe('BarChart tickRotation', () => {
 		// Below the compact width the band drops to its ends — a more aggressive
 		// reduction than thinning that tickRotation does not override, since the
 		// tier already spent the room a tilted run would need.
-		const { container } = longChart({ width: 300, tickRotation: true })
+		const { container } = longChart({ width: 300, axes: { x: { tickRotation: true } } })
 
 		const ticks = [...(bySlot(container, 'chart-axis-x')?.querySelectorAll('text') ?? [])]
 
@@ -782,7 +782,7 @@ describe('BarChart tickRotation', () => {
 	})
 
 	it('tilts every label instead of thinning once tickRotation is on', () => {
-		const { container } = longChart({ tickRotation: true })
+		const { container } = longChart({ axes: { x: { tickRotation: true } } })
 
 		const ticks = [...(bySlot(container, 'chart-axis-x')?.querySelectorAll('text') ?? [])]
 
@@ -792,7 +792,7 @@ describe('BarChart tickRotation', () => {
 	})
 
 	it('leaves labels flat when they already fit, tickRotation notwithstanding', () => {
-		const { container } = renderUI(chart({ tickRotation: true }))
+		const { container } = renderUI(chart({ axes: { x: { tickRotation: true } } }))
 
 		const ticks = [...(bySlot(container, 'chart-axis-x')?.querySelectorAll('text') ?? [])]
 

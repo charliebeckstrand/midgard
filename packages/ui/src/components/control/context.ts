@@ -22,7 +22,6 @@ export type ControlContextValue = {
 	id: string
 	autoComplete?: string
 	disabled?: boolean
-	invalid?: boolean
 	readOnly?: boolean
 	required?: boolean
 	/** Validation / status severity from `<Control severity>` / `<Field severity>`; control-aware fields map it to the matching `data-*` validation ring (and `error` additionally to `aria-invalid`). */
@@ -47,7 +46,7 @@ export type ControlContextValue = {
 
 /**
  * Form-field cascade. Provided by `<Control>` (and `<Field>` on its behalf).
- * Carries id, autoComplete, disabled, invalid, readOnly, required, size,
+ * Carries id, autoComplete, disabled, readOnly, required, severity, size,
  * variant: every prop a nested form field can inherit. Also the data bridge
  * between `<Field>` (label, help, errors, validation) and the underlying
  * form field.

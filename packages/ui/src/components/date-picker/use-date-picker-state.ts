@@ -236,7 +236,7 @@ export function useDatePickerState({
 		describedBy: control?.describedBy,
 		disabled: resolvedDisabled,
 		required: control?.required,
-		invalid: control?.invalid || fieldInvalid,
+		invalid: control?.severity === 'error' || fieldInvalid,
 		value,
 		setValue,
 		hasValue: value != null,

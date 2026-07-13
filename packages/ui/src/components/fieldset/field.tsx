@@ -59,7 +59,6 @@ export function Field({
 			id: scope.id,
 			autoComplete: autoComplete ?? parent?.autoComplete,
 			disabled: disabled || parent?.disabled,
-			invalid: parent?.invalid,
 			readOnly: parent?.readOnly,
 			required: parent?.required,
 			severity: resolvedSeverity,

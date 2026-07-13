@@ -39,6 +39,7 @@ export type GridAggCellContext<T> = {
 export type GridColumn<T> = {
 	id: string | number
 	title?: ReactNode
+	/** Whether this data column is sortable. Set `false` to opt a column out; sorting flows through the grid's `sort` binding. @defaultValue true */
 	sortable?: boolean
 	/**
 	 * Client-side comparator for this column, overriding the smart default (which
@@ -275,12 +276,6 @@ export type GridColumnManagerItem = {
 	 * @defaultValue true
 	 */
 	hideable?: boolean
-}
-
-/** Snapshot of column-manager state — column `order` and `hidden` ids — captured by the save-preset action. */
-export type GridColumnManagerPreset = {
-	order: (string | number)[]
-	hidden: (string | number)[]
 }
 
 /**

@@ -76,8 +76,7 @@ describe('JsonTree · virtualized render', () => {
 			<JsonTree
 				data={medium}
 				defaultExpandDepth={Number.POSITIVE_INFINITY}
-				virtualize
-				maxHeight="600px"
+				virtualize={{ maxHeight: '600px' }}
 			/>,
 		)
 
@@ -89,8 +88,7 @@ describe('JsonTree · virtualized render', () => {
 			<JsonTree
 				data={large}
 				defaultExpandDepth={Number.POSITIVE_INFINITY}
-				virtualize
-				maxHeight="600px"
+				virtualize={{ maxHeight: '600px' }}
 			/>,
 		)
 
@@ -127,8 +125,7 @@ describe('JsonTree · virtualized · re-render on toggle', () => {
 					data={medium}
 					expanded={expanded ? allExpanded : oneCollapsed}
 					onExpandedChange={noop}
-					virtualize
-					maxHeight="2000px"
+					virtualize={{ maxHeight: '2000px' }}
 				/>,
 			)
 		},
@@ -139,8 +136,7 @@ describe('JsonTree · virtualized · re-render on toggle', () => {
 						data={medium}
 						expanded={oneCollapsed}
 						onExpandedChange={noop}
-						virtualize
-						maxHeight="2000px"
+						virtualize={{ maxHeight: '2000px' }}
 					/>,
 				)
 

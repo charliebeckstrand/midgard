@@ -47,7 +47,7 @@ export function Demo() {
 			</Example>
 
 			<Example title="Invalid">
-				<Control invalid>
+				<Control severity="error">
 					<Label>Email</Label>
 					<Input type="email" />
 					<Message>Please enter a valid email.</Message>

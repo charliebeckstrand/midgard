@@ -230,7 +230,6 @@ export function GridData<T>({
 	rows,
 	getKey,
 	sort: sortConfig,
-	sortable = true,
 	selection: selectionConfig,
 	preferences,
 	columnOrder: columnOrderConfigProp,
@@ -322,9 +321,9 @@ export function GridData<T>({
 	// wrapper); resolved from the `header` config's `position`.
 	const stickyHeader = header?.position === 'sticky'
 
-	// Columns sort by default; bake the grid-level default into each data column
-	// that doesn't set its own, so head and engine read one resolved flag.
-	const resolvedColumns = useMemo(() => resolveSortable(columns, sortable), [columns, sortable])
+	// Columns sort by default; bake that into each data column that doesn't set
+	// its own `sortable`, so head and engine read one resolved flag.
+	const resolvedColumns = useMemo(() => resolveSortable(columns), [columns])
 
 	// Menu-applied pin changes, layered over the static `pinned` flags. Folding
 	// them into the columns here lets the column and engine hooks read one

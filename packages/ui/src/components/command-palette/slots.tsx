@@ -1,7 +1,6 @@
 import { type ComponentPropsWithoutRef, type ReactNode, useId } from 'react'
 import { cn, createSlot } from '../../core'
 import { k } from '../../recipes/kata/command-palette'
-import { Alert, type AlertProps } from '../alert'
 import { Kbd, type KbdProps } from '../kbd'
 
 /** Props for {@link CommandPaletteGroup}; extends native `<div>` attributes, widening `title` to a `ReactNode`. */
@@ -34,18 +33,6 @@ export function CommandPaletteGroup({
 			)}
 			{children}
 		</div>
-	)
-}
-
-/** Props for {@link CommandPaletteEmpty}; same as {@link AlertProps}. */
-export type CommandPaletteEmptyProps = AlertProps
-
-/** Empty-state slot built on Alert, rendered when items filter down to nothing. */
-export function CommandPaletteEmpty({ children, ...props }: CommandPaletteEmptyProps) {
-	return (
-		<Alert data-slot="command-palette-empty" {...props}>
-			{children}
-		</Alert>
 	)
 }
 

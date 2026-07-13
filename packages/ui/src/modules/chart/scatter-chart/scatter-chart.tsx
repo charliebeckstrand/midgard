@@ -99,13 +99,6 @@ export type ScatterFrameProps = {
 	 */
 	axes?: boolean | ScatterAxes
 	/**
-	 * Draw the grid: hairlines at both axes' ticks — both are value axes here,
-	 * so the grid reads both ways unless an axis opts out through its own
-	 * `grid` switch.
-	 * @defaultValue true
-	 */
-	grid?: boolean
-	/**
 	 * Draw a hover crosshair. `true` draws both rules; a {@link Crosshair}
 	 * object snaps them to the nearest point (`snap`) or drops one. Opt-in:
 	 * nothing is drawn unless set.
@@ -268,9 +261,9 @@ function scatterLegendItems(
 	}))
 }
 
-/** One axis's grid participation: the chart's `grid` gate and the axis's own switch. @internal */
-function resolveAxisGrid(grid: boolean, axis: ChartValueAxis | undefined): boolean {
-	return grid && (axis?.grid ?? true)
+/** One axis's grid participation, from its own `grid` switch (default on). @internal */
+function resolveAxisGrid(axis: ChartValueAxis | undefined): boolean {
+	return axis?.grid ?? true
 }
 
 /** Both scales' pins, lifted off the props. @internal */
@@ -448,7 +441,7 @@ function ScatterChrome(props: {
 	/** Spark strips the chrome entirely — the component renders nothing. */
 	spark: boolean
 	axes: boolean
-	/** Whether each axis's ticks rule the grid — the chart's `grid` gate and the axis's own switch, resolved. */
+	/** Whether each axis's ticks rule the grid — resolved from the axis's own `grid` switch. */
 	xGrid: boolean
 	yGrid: boolean
 	xScale: LinearScale | null
@@ -578,7 +571,6 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 		height,
 		aspectRatio = '16/9',
 		axes,
-		grid = true,
 		legend,
 		tooltip,
 		crosshair,
@@ -756,8 +748,8 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 				plot={plot}
 				spark={spark}
 				axes={draw}
-				xGrid={resolveAxisGrid(grid, axesConfig.x)}
-				yGrid={resolveAxisGrid(grid, axesConfig.y)}
+				xGrid={resolveAxisGrid(axesConfig.x)}
+				yGrid={resolveAxisGrid(axesConfig.y)}
 				xScale={xScale}
 				yScale={yScale}
 				xTicks={xTicks}

@@ -43,7 +43,8 @@ type ListboxBaseProps = {
 	/** Marks the field required; surfaces `aria-required` on the trigger. */
 	required?: boolean
 	className?: string
-	inputId?: string
+	/** Id for the trigger; matches the `id` prop on Combobox. Resolves through the explicit prop, then an enclosing `<Control>`/`<Field>`. */
+	id?: string
 	/**
 	 * Names the trigger directly when no `<Field>`/`<Label>` wraps it. The
 	 * combobox trigger's text is its value, not its name; a bare Listbox
@@ -116,7 +117,7 @@ function resolveControlState(
 		| { id?: string; disabled?: boolean; readOnly?: boolean; required?: boolean }
 		| null
 		| undefined,
-	overrides: { inputId?: string; disabled?: boolean; readOnly?: boolean; required?: boolean },
+	overrides: { id?: string; disabled?: boolean; readOnly?: boolean; required?: boolean },
 ): {
 	id: string | undefined
 	disabled: boolean | undefined
@@ -124,7 +125,7 @@ function resolveControlState(
 	required: boolean | undefined
 } {
 	return {
-		id: overrides.inputId ?? control?.id,
+		id: overrides.id ?? control?.id,
 		disabled: overrides.disabled ?? control?.disabled,
 		readOnly: overrides.readOnly ?? control?.readOnly,
 		required: overrides.required ?? control?.required,
@@ -162,7 +163,7 @@ export function Listbox<T>({
 	readOnly,
 	required,
 	className,
-	inputId,
+	id,
 	tabularNums,
 	truncate = true,
 	clearable = false,
@@ -186,7 +187,7 @@ export function Listbox<T>({
 		disabled: resolvedDisabled,
 		readOnly: resolvedReadOnly,
 		required: resolvedRequired,
-	} = resolveControlState(control, { inputId, disabled, readOnly, required })
+	} = resolveControlState(control, { id, disabled, readOnly, required })
 
 	// Merges a consumer aria-describedby with the field's registered ids,
 	// matching Input/Textarea/Checkbox.
@@ -369,7 +370,7 @@ export function Listbox<T>({
 						disabled={resolvedDisabled}
 						readOnly={resolvedReadOnly}
 						required={resolvedRequired}
-						invalid={control?.invalid}
+						invalid={control?.severity === 'error' || undefined}
 						label={label}
 						onBlur={handleTriggerBlur}
 						placeholder={placeholder}

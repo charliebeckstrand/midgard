@@ -437,17 +437,23 @@ describe('Grid', () => {
 			expect(screen.getByRole('button', { name: 'Sort by Name' })).toBeInTheDocument()
 		})
 
-		it('disables sorting for every column when sortable is false', () => {
-			const plainColumns = [
-				{ id: 'name', title: 'Name', cell: (row: { name: string }) => row.name },
-				{ id: 'age', title: 'Age', cell: (row: { age: number }) => row.age, sortable: true },
+		it('opts a column out of sorting with sortable: false while others default in', () => {
+			const mixedColumns = [
+				{
+					id: 'name',
+					title: 'Name',
+					cell: (row: { name: string }) => row.name,
+					sortable: false,
+				},
+				{ id: 'age', title: 'Age', cell: (row: { age: number }) => row.age },
 			]
 
-			renderUI(<Grid columns={plainColumns} rows={rows} getKey={getKey} sortable={false} />)
+			renderUI(<Grid columns={mixedColumns} rows={rows} getKey={getKey} />)
 
+			// The opted-out column has no sort control.
 			expect(screen.queryByRole('button', { name: 'Sort by Name' })).not.toBeInTheDocument()
 
-			// A column opting in explicitly still overrides the grid-level default.
+			// A column that declares nothing sorts by default.
 			expect(screen.getByRole('button', { name: 'Sort by Age' })).toBeInTheDocument()
 		})
 
@@ -1195,7 +1201,7 @@ describe('Grid', () => {
 					getKey={getKey}
 					virtualize
 					maxHeight="300px"
-					infiniteScroll={{ onLoadMore: vi.fn(), loadingMore: true, showLoadingIndicator: true }}
+					infiniteScroll={{ onLoadMore: vi.fn(), loadingMore: true, loadingIndicator: true }}
 				/>,
 			)
 
@@ -1214,7 +1220,7 @@ describe('Grid', () => {
 				/>,
 			)
 
-			// The indicator is opt-in (`showLoadingIndicator`); a batch loads silently.
+			// The indicator is presence-implied (`loadingIndicator`); a batch loads silently.
 			expect(bySlot(container, 'grid-loading-more')).toBeNull()
 		})
 
@@ -1226,7 +1232,7 @@ describe('Grid', () => {
 					getKey={getKey}
 					virtualize
 					maxHeight="300px"
-					infiniteScroll={{ onLoadMore: vi.fn(), loadingMore: true, showLoadingIndicator: true }}
+					infiniteScroll={{ onLoadMore: vi.fn(), loadingMore: true, loadingIndicator: true }}
 				/>,
 			)
 
@@ -1250,7 +1256,6 @@ describe('Grid', () => {
 					infiniteScroll={{
 						onLoadMore: vi.fn(),
 						loadingMore: true,
-						showLoadingIndicator: true,
 						loadingIndicator: <span data-slot="custom-loading">Loading…</span>,
 					}}
 				/>,
@@ -1273,7 +1278,7 @@ describe('Grid', () => {
 					getKey={getKey}
 					virtualize
 					maxHeight="300px"
-					infiniteScroll={{ onLoadMore: vi.fn(), showLoadingIndicator: true }}
+					infiniteScroll={{ onLoadMore: vi.fn(), loadingIndicator: true }}
 				/>,
 			)
 
@@ -1330,7 +1335,7 @@ describe('Grid', () => {
 					infiniteScroll={{
 						onLoadMore: vi.fn(),
 						loadingMore: true,
-						showLoadingIndicator: true,
+						loadingIndicator: true,
 						hasMore: false,
 						endMessage: 'No more results',
 						error: 'Could not load more',

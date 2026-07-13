@@ -143,7 +143,7 @@ export function SignaturePad({
 				tabIndex={-1}
 				// A Form field error (from `name`) forces invalid; an ambient
 				// `<Field invalid>` via Control still applies too.
-				{...invalidAttrs(control?.invalid || invalid)}
+				{...invalidAttrs(control?.severity === 'error' || invalid)}
 				className={cn(k.canvas, (disabled || readOnly) && 'cursor-not-allowed')}
 				onPointerDown={handlePointerDown}
 				onPointerMove={handlePointerMove}

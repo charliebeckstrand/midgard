@@ -57,7 +57,7 @@ describe('grid virtualized fill with async rows', () => {
 									onLoadMore: () => {},
 									hasMore: false,
 									stableColumnWidths: true,
-									showLoadingIndicator: true,
+									loadingIndicator: true,
 								}
 							: undefined
 					}
