@@ -473,7 +473,9 @@ describe('Listbox in a Form', () => {
 			</Form>,
 		)
 
-		expect(screen.getByText('basic')).toBeInTheDocument()
+		// `capitalize` defaults on: the trigger renders the display string
+		// first-word-capitalized (the underlying value stays 'basic').
+		expect(screen.getByText('Basic')).toBeInTheDocument()
 	})
 
 	it('marks the bound field touched when the trigger blurs', () => {

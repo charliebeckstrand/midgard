@@ -15,6 +15,7 @@ import { useAriaIds, useFloatingUI, useSelectableValueChange } from '../../hooks
 import { useControlSize } from '../../primitives/density'
 import { SelectTrigger } from '../../primitives/select-trigger'
 import {
+	capitalizeFirst,
 	resolveCapitalize,
 	type SelectCapitalize,
 } from '../../primitives/select-trigger/capitalize'
@@ -66,8 +67,10 @@ type ListboxBaseProps = {
 	/** Show a clear button in place of the chevron when a value is selected. */
 	clearable?: boolean
 	/**
-	 * Applies the `capitalize` text-transform to the selected `displayValue` and
-	 * the option list. Pass an object to target each surface independently.
+	 * Capitalizes the first letter (first word only) of the selected
+	 * `displayValue` and of each option's string label; custom label nodes
+	 * render as authored. Pass an object to target each surface independently.
+	 * Display-only: the underlying value is untouched.
 	 * @defaultValue true
 	 */
 	capitalize?: SelectCapitalize
@@ -270,7 +273,12 @@ export function Listbox<T>({
 
 	const capitalization = resolveCapitalize(capitalize)
 
-	const label = resolveLabel({ value, displayValue, multiple })
+	const resolvedLabel = resolveLabel({ value, displayValue, multiple })
+
+	// First-word-capitalize the resolved display string at the source; the
+	// trigger button renders it verbatim (`undefined` skips the placeholder).
+	const label =
+		capitalization.displayValue && resolvedLabel ? capitalizeFirst(resolvedLabel) : resolvedLabel
 
 	const hasValue = hasListboxValue(value, multiple)
 
@@ -301,8 +309,13 @@ export function Listbox<T>({
 	// menu reads `selectionValue`, which stays frozen until the panel finishes
 	// closing, keeping the selected row stable during the exit animation.
 	const contextValue = useMemo(
-		() => ({ value: selectionValue, multiple, onSelect: select as (v: unknown) => void }),
-		[selectionValue, multiple, select],
+		() => ({
+			value: selectionValue,
+			multiple,
+			onSelect: select as (v: unknown) => void,
+			capitalize: capitalization.options,
+		}),
+		[selectionValue, multiple, select, capitalization.options],
 	)
 
 	return (
@@ -362,7 +375,6 @@ export function Listbox<T>({
 						placeholder={placeholder}
 						truncate={truncate}
 						tabularNums={tabularNums}
-						capitalize={capitalization.displayValue}
 						density={token.space}
 						size={token.size}
 					/>
@@ -373,7 +385,6 @@ export function Listbox<T>({
 					open={open}
 					glass={glass}
 					multiple={multiple}
-					capitalize={capitalization.options}
 					density={token.space}
 					size={token.size}
 					ariaLabel={ariaLabel}
