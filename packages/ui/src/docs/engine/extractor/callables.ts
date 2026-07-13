@@ -12,15 +12,15 @@ import { classifyType } from './shape'
  * `'hook'` for a `use[A-Z]…` name and `'function'` otherwise. Every overload
  * the checker exposes becomes one {@link SignatureApi}; TS omits the merged
  * implementation signature from `getCallSignatures()`, so an N-overload function
- * emits exactly N entries. Summary, `{@link}` map, and `@deprecated` come from
- * the symbol's TSDoc, read the same way component summaries are.
+ * emits exactly N entries. Summary and `@deprecated` come from the symbol's
+ * TSDoc, read the same way component summaries are.
  */
 export function buildCallable(
 	name: string,
 	symbol: ts.Symbol,
 	context: ModuleContext,
 ): CallableApi {
-	const { checker, resolveLink } = context
+	const { checker } = context
 
 	const kind = /^use[A-Z]/.test(name) ? 'hook' : 'function'
 
@@ -40,14 +40,9 @@ export function buildCallable(
 
 	const api: CallableApi = { kind, name, signatures }
 
-	const { description, links } = extractDocFromParts(
-		symbol.getDocumentationComment(checker),
-		resolveLink,
-	)
+	const description = extractDocFromParts(symbol.getDocumentationComment(checker))
 
 	if (description) api.description = description
-
-	if (links) api.links = links
 
 	const deprecated = deprecatedTag(tags)
 

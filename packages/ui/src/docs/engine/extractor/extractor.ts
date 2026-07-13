@@ -2,8 +2,6 @@ import fs from 'node:fs'
 import path from 'node:path'
 import ts from 'typescript'
 import { extractModule } from './components'
-import type { LinkResolver } from './doc'
-import { createLinkResolver } from './links'
 import { type ApiSnapshot, type ModuleApi, SCHEMA_VERSION } from './schema'
 import { enumerateSurface } from './surface'
 
@@ -39,7 +37,6 @@ type CacheEntry = { module: ModuleApi; files: ReadonlySet<string> }
 type Session = {
 	program: ts.Program
 	checker: ts.TypeChecker
-	resolveLink: LinkResolver
 	moduleCache: ts.ModuleResolutionCache
 }
 
@@ -80,7 +77,6 @@ export function createExtractor(options: ExtractorOptions): ApiExtractor {
 		session = {
 			program,
 			checker: program.getTypeChecker(),
-			resolveLink: createLinkResolver(program, packageDir),
 			// One resolution cache for the session: a full-surface extract walks
 			// shared subtrees (ui/core, utilities) once per importing module, so
 			// caching resolution avoids re-doing filesystem work per module.
@@ -96,7 +92,7 @@ export function createExtractor(options: ExtractorOptions): ApiExtractor {
 		extract(specifiers) {
 			const wanted = specifiers ?? [...surface.keys()]
 
-			const { program, checker, resolveLink, moduleCache } = ensureSession()
+			const { program, checker, moduleCache } = ensureSession()
 
 			const modules: Record<string, ModuleApi> = {}
 
@@ -118,7 +114,6 @@ export function createExtractor(options: ExtractorOptions): ApiExtractor {
 				const module = extractModule(specifier, entry, {
 					program,
 					checker,
-					resolveLink,
 					packageDir,
 					extraDefaults,
 				})

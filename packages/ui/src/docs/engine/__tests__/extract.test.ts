@@ -149,17 +149,10 @@ describe('tsdoc', () => {
 		expect(propOf(gallery, 'pad').deprecated).toBe(true)
 	})
 
-	it('normalizes `{@link}` tokens and resolves them into `links`', () => {
+	it('normalizes `{@link}` tokens in prop descriptions', () => {
 		const tone = propOf(component('Gallery'), 'tone')
 
 		expect(tone.description).toBe('Wash behind the grid; scales with {@link GallerySize}.')
-
-		expect(tone.links).toEqual({
-			GallerySize: {
-				signature: 'type GallerySize',
-				summary: 'Sizing steps shared by gallery fixtures.',
-			},
-		})
 	})
 
 	it('normalizes the piped label form', () => {
@@ -168,20 +161,10 @@ describe('tsdoc', () => {
 		expect(widths.description).toBe(
 			'Pixel widths of each column track; see {@link GallerySize|size steps}.',
 		)
-
-		expect(widths.links?.GallerySize).toBeDefined()
 	})
 
-	it('resolves cross-file links on component summaries without an import', () => {
-		const linkish = component('Linkish')
-
-		expect(linkish.description).toContain('{@link Chip}')
-
-		expect(linkish.links?.Chip?.signature).toMatch(/^function Chip/)
-
-		expect(linkish.links?.Chip?.summary).toBe(
-			'Compact tag control passing its remaining props to the underlying button.',
-		)
+	it('normalizes `{@link}` tokens on component summaries', () => {
+		expect(component('Linkish').description).toContain('{@link Chip}')
 	})
 })
 

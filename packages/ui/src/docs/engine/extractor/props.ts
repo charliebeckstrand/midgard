@@ -1,5 +1,5 @@
 import ts from 'typescript'
-import { extractDocFromParts, type LinkResolver } from './doc'
+import { extractDocFromParts } from './doc'
 import { formatPropType, formatType } from './format-type'
 import { extractReferences } from './references'
 import type { PropDef } from './schema'
@@ -11,7 +11,6 @@ type CollectedProp = { name: string; symbol: ts.Symbol; types: ts.Type[] }
 /** Everything prop extraction needs beyond the checker itself. */
 export type PropContext = {
 	checker: ts.TypeChecker
-	resolveLink: LinkResolver
 
 	/** Destructured binding-pattern defaults, keyed by public prop name. */
 	defaults: ReadonlyMap<string, string>
@@ -105,7 +104,7 @@ function buildPropDef(
 	location: ts.Node,
 	context: PropContext,
 ): PropDef {
-	const { checker, resolveLink } = context
+	const { checker } = context
 
 	// An enum-like prop — a pure union of string/number literals, whether
 	// authored inline or behind an alias (`ContainerPadding = keyof typeof
@@ -143,14 +142,9 @@ function buildPropDef(
 
 	if (externalFrom) prop.externalFrom = externalFrom
 
-	const { description, links } = extractDocFromParts(
-		symbol.getDocumentationComment(checker),
-		resolveLink,
-	)
+	const description = extractDocFromParts(symbol.getDocumentationComment(checker))
 
 	if (description) prop.description = description
-
-	if (links) prop.links = links
 
 	const tags = jsDocTags(symbol, checker)
 

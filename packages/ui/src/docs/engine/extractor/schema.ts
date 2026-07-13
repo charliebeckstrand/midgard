@@ -26,7 +26,6 @@ export type ComponentApi = {
 	kind: 'component'
 	name: string
 	description?: string
-	links?: Record<string, DocLink>
 	props: PropDef[]
 	passThrough?: PassThrough[]
 }
@@ -36,7 +35,6 @@ export type CallableApi = {
 	kind: 'hook' | 'function'
 	name: string
 	description?: string
-	links?: Record<string, DocLink>
 	signatures: SignatureApi[]
 	deprecated?: string | boolean
 }
@@ -83,11 +81,8 @@ export type PropDef = {
 	/** Checker-classified structure for the usage engine; display stays on `type`. */
 	shape?: TypeShape
 
-	/** Prose summary from the prop's TSDoc, with `@`-tags stripped. `{@link}` tokens are normalized; their resolved detail lives in `links`. */
+	/** Prose summary from the prop's TSDoc, with `@`-tags stripped; `{@link}` tokens are normalized to canonical form for the renderer. */
 	description?: string
-
-	/** Resolved `{@link}` targets referenced in `description`, keyed by target name. */
-	links?: Record<string, DocLink>
 
 	/** Present and `true` only for required props; absent reads as optional. */
 	required?: boolean
@@ -116,19 +111,6 @@ export type PropDef = {
 export type PassThrough = {
 	element: string
 	omitted?: string[]
-}
-
-/**
- * A resolved `{@link}` target lifted out of a TSDoc description, keyed in
- * `links` by the target name written in the comment. Backs the hover card
- * behind the rendered reference, mirroring an editor's quick-info popover.
- */
-export type DocLink = {
-	/** One-line signature header, e.g. `type KbdProps` or `function Item(…): …`. */
-	signature?: string
-
-	/** The target's own TSDoc summary. */
-	summary?: string
 }
 
 /**

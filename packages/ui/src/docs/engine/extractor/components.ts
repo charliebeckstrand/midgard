@@ -1,7 +1,7 @@
 import ts from 'typescript'
 import { buildCallable, isCallable } from './callables'
 import { extractDefaults } from './defaults'
-import { extractDocFromParts, type LinkResolver, stripLinks } from './doc'
+import { extractDocFromParts, stripLinks } from './doc'
 import type { ExtraDefaults } from './extractor'
 import { extractPassThrough } from './passthrough'
 import { extractProjectPropNames } from './project-props'
@@ -19,7 +19,6 @@ import {
 export type ModuleContext = {
 	program: ts.Program
 	checker: ts.TypeChecker
-	resolveLink: LinkResolver
 
 	/** Absolute path of the documented package. */
 	packageDir: string
@@ -253,14 +252,13 @@ function assembleComponent(
 	context: ModuleContext,
 	parts: ComponentParts,
 ): ComponentApi {
-	const { checker, resolveLink, packageDir } = context
+	const { checker, packageDir } = context
 
 	const extraDefaults = context.extraDefaults(packageDir, name)
 
 	const props = parts.propsType
 		? extractProps(parts.location, parts.propsType, parts.projectNames, {
 				checker,
-				resolveLink,
 				defaults: parts.defaults,
 				extraDefaults,
 			})
@@ -268,14 +266,9 @@ function assembleComponent(
 
 	const api: ComponentApi = { kind: 'component', name, props }
 
-	const { description, links } = extractDocFromParts(
-		symbol.getDocumentationComment(checker),
-		resolveLink,
-	)
+	const description = extractDocFromParts(symbol.getDocumentationComment(checker))
 
 	if (description) api.description = description
-
-	if (links) api.links = links
 
 	if (parts.passThrough.length > 0) api.passThrough = parts.passThrough
 
