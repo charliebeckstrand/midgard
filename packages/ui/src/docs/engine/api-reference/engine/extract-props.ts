@@ -6,7 +6,7 @@ import { extractReferences } from './extract-references'
 import { formatPropType, formatType } from './format-type'
 import { unaliasSymbol } from './ts-utils'
 
-type CollectedProp = { name: string; symbol: ts.Symbol; types: ts.Type[] }
+type CollectedProp = { name: string; symbol: ts.Symbol; symbols: ts.Symbol[] }
 
 /**
  * Resolve every project-authored prop the component accepts. `projectNames`
@@ -23,7 +23,7 @@ export function extractProps(
 ): PropDef[] {
 	const props: PropDef[] = []
 
-	for (const { name, symbol, types } of collectAllProperties(propsType, callable, checker)) {
+	for (const { name, symbol, symbols } of collectAllProperties(propsType)) {
 		if (IGNORED_PROPS.has(name) || name.startsWith('_')) continue
 
 		if (projectNames) {
@@ -31,6 +31,8 @@ export function extractProps(
 		} else if (!hasProjectDeclaration(symbol)) {
 			continue
 		}
+
+		const types = resolveArmTypes(symbols, callable, checker)
 
 		props.push(buildPropDef(name, symbol, types, callable, defaults, checker, resolveLink))
 	}
@@ -40,29 +42,28 @@ export function extractProps(
 
 /**
  * Collects props from every union and intersection arm individually. Walking
- * arms separately surfaces arm-only discriminated members and collects every
- * contributing type for props that appear in multiple arms with distinct types.
- * Recursion splits nested unions within intersection arms.
+ * arms separately surfaces arm-only discriminated members and gathers every
+ * arm symbol for props that appear in multiple arms. Recursion splits nested
+ * unions within intersection arms.
+ *
+ * Only the symbols are gathered here — resolving each arm's type is deferred to
+ * `resolveArmTypes` so the name/project filters in `extractProps` can discard a
+ * prop (e.g. one of the ~250 inherited HTML/aria symbols a `ComponentProps`
+ * spread contributes) before its type is ever computed.
  */
-function collectAllProperties(
-	type: ts.Type,
-	callable: ts.Node,
-	checker: ts.TypeChecker,
-): CollectedProp[] {
-	const seen = new Map<string, { symbol: ts.Symbol; types: ts.Type[] }>()
+function collectAllProperties(type: ts.Type): CollectedProp[] {
+	const seen = new Map<string, { symbol: ts.Symbol; symbols: ts.Symbol[] }>()
 
 	const visit = (t: ts.Type): void => {
 		for (const sym of t.getProperties()) {
 			const name = sym.getName()
 
-			const armType = checker.getTypeOfSymbolAtLocation(sym, callable)
-
 			const existing = seen.get(name)
 
 			if (!existing) {
-				seen.set(name, { symbol: sym, types: [armType] })
-			} else if (!existing.types.includes(armType)) {
-				existing.types.push(armType)
+				seen.set(name, { symbol: sym, symbols: [sym] })
+			} else {
+				existing.symbols.push(sym)
 			}
 		}
 
@@ -79,7 +80,29 @@ function collectAllProperties(
 
 	visit(type)
 
-	return [...seen.entries()].map(([name, { symbol, types }]) => ({ name, symbol, types }))
+	return [...seen.entries()].map(([name, { symbol, symbols }]) => ({ name, symbol, symbols }))
+}
+
+/**
+ * Resolves each collected arm symbol to its type at the call site, deduped by
+ * type identity so a prop present in multiple arms with the same type
+ * contributes once. Mirrors the per-arm dedupe `collectAllProperties` used to do
+ * inline, now run only for props that survive the filter.
+ */
+function resolveArmTypes(
+	symbols: ts.Symbol[],
+	callable: ts.Node,
+	checker: ts.TypeChecker,
+): ts.Type[] {
+	const types: ts.Type[] = []
+
+	for (const sym of symbols) {
+		const armType = checker.getTypeOfSymbolAtLocation(sym, callable)
+
+		if (!types.includes(armType)) types.push(armType)
+	}
+
+	return types
 }
 
 function buildPropDef(
