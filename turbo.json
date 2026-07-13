@@ -23,6 +23,16 @@
       "cache": false,
       "persistent": true
     },
+    "docs:build": {
+      "inputs": [
+        "src/**",
+        "!src/docs/dist/**",
+        "vite.docs.config.ts",
+        "tsconfig.json",
+        "$TURBO_ROOT$/tsconfig.base.json"
+      ],
+      "outputs": ["src/docs/dist/**"]
+    },
     "lint": {
       "inputs": ["src/**", "app/**", "*.config.ts", "$TURBO_ROOT$/biome.json"]
     },
