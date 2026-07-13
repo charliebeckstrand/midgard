@@ -1,8 +1,13 @@
+import { fileURLToPath } from 'node:url'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { visualizer } from 'rollup-plugin-visualizer'
 import type { UserConfig } from 'vite'
 import { docsPlugin } from '../plugins'
+
+// Resolved once: the curated Shiki module the `shiki` alias points at (a sibling
+// of the engine root, one level up from this `vite/` directory).
+const shikiWeb = fileURLToPath(new URL('../shiki-web.ts', import.meta.url))
 
 export { docsPlugin } from '../plugins'
 export type { DocsPluginOptions } from '../plugins/docs'
@@ -30,7 +35,7 @@ export type DocsConfigOptions = {
 
 /**
  * Build the Vite config for a library's docs site. The shared engine supplies
- * the plugin, React, Tailwind, the Shiki web-bundle alias, and the bundle
+ * the plugin, React, Tailwind, the curated Shiki alias, and the bundle
  * visualizer (under `ANALYZE=1`); the consumer supplies only its
  * `packageName` and, if non-standard, its `root`.
  *
@@ -69,11 +74,12 @@ export function defineDocsConfig({
 		server: { port: 3456 },
 		resolve: {
 			alias: [
-				// Use the web bundle (web-relevant languages only) instead of all ~300
-				// grammars. The public CodeBlock component still references 'shiki' —
-				// this alias only affects the docs build. Regex ensures shiki/wasm etc.
-				// are not rewritten.
-				{ find: /^shiki$/, replacement: 'shiki/bundle/web' },
+				// Point 'shiki' at the curated highlighter (four grammars + one theme,
+				// JS regex engine) instead of the web bundle's every-language-and-theme
+				// payload. The public CodeBlock component still references 'shiki' — this
+				// alias only affects the docs build. Regex ensures shiki/core,
+				// shiki/engine/javascript, etc. are not rewritten.
+				{ find: /^shiki$/, replacement: shikiWeb },
 			],
 		},
 		build: {
