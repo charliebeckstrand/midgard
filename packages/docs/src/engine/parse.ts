@@ -245,7 +245,12 @@ export function parseDoc(source: string, file: string): ParsedDoc {
 	return { name, description, frontMatter: fm, body, previews }
 }
 
-const KIND_BY_CATEGORY: Record<string, DocKind> = {
+/**
+ * Default category → {@link DocKind} map. A general starting point, not a fixed
+ * taxonomy — a consumer overrides it through `categoryKinds` when its content
+ * directories don't match these names.
+ */
+export const DEFAULT_CATEGORY_KINDS: Record<string, DocKind> = {
 	components: 'component',
 	primitives: 'component',
 	layouts: 'component',
@@ -256,30 +261,57 @@ const KIND_BY_CATEGORY: Record<string, DocKind> = {
 	types: 'other',
 }
 
-function moduleFor(category: string, slug: string, packageName: string): string {
-	switch (category) {
-		case 'components':
-			return `${packageName}/${slug}`
-		case 'modules':
-		case 'providers':
-		case 'primitives':
-			return `${packageName}/${category}/${slug}`
-		case 'hooks':
-		case 'core':
-		case 'layouts':
-		case 'types':
-			return `${packageName}/${category}`
-		default:
-			return `${packageName}/${slug}`
+/** Maps a doc's `(category, slug)` to a real module specifier, or undefined when none matches. */
+export type ModuleResolver = (category: string, slug: string) => string | undefined
+
+/**
+ * Build a resolver that reconciles a doc's `(category, slug)` against a
+ * package's real export `specifiers` — the authoritative surface — instead of
+ * guessing a specifier shape. A specifier whose last segment is the slug wins
+ * (a component, module, or provider doc), preferring one whose path also
+ * carries the category to disambiguate a slug that appears twice; otherwise the
+ * `<packageName>/<category>` barrel (a hooks, core, or layouts doc). Returns
+ * undefined when nothing matches, so a bad guess never masquerades as a real
+ * module.
+ */
+export function createModuleResolver(
+	specifiers: readonly string[],
+	packageName: string,
+): ModuleResolver {
+	return (category, slug) => {
+		const slugMatches = specifiers.filter((specifier) => specifier.split('/').at(-1) === slug)
+
+		const byCategory = slugMatches.find((specifier) => specifier.split('/').includes(category))
+
+		return (
+			byCategory ??
+			slugMatches[0] ??
+			specifiers.find((specifier) => specifier === `${packageName}/${category}`)
+		)
 	}
+}
+
+/** Options for {@link deriveDocMeta}: the package prefix plus the taxonomy seams. */
+export type DeriveOptions = {
+	/** Import prefix and the fallback module root. */
+	packageName: string
+
+	/** Reconciles `(category, slug)` to a real specifier; falls back to `<pkg>/<slug>`. */
+	resolveModule?: ModuleResolver
+
+	/** Category → kind map; defaults to {@link DEFAULT_CATEGORY_KINDS}. */
+	categoryKinds?: Record<string, DocKind>
 }
 
 /**
  * Attach path-derived identity to a parsed doc: category and slug from the
- * `content/`-relative path, module specifier and kind from the category table,
- * front-matter overriding both.
+ * `content/`-relative path, the module specifier reconciled against the
+ * package surface (see {@link createModuleResolver}), and the kind from the
+ * category map — front-matter `module` / `kind` overriding either.
  */
-export function deriveDocMeta(relPath: string, parsed: ParsedDoc, packageName = 'ui'): DocMeta {
+export function deriveDocMeta(relPath: string, parsed: ParsedDoc, options: DeriveOptions): DocMeta {
+	const { packageName, resolveModule, categoryKinds = DEFAULT_CATEGORY_KINDS } = options
+
 	const posix = relPath.replaceAll('\\', '/').replace(/^\/+/, '')
 
 	const segments = posix.split('/')
@@ -299,8 +331,8 @@ export function deriveDocMeta(relPath: string, parsed: ParsedDoc, packageName = 
 		slug,
 		name: parsed.name,
 		description: parsed.description,
-		module: fm.module ?? moduleFor(category, slug, packageName),
-		kind: fm.kind ?? KIND_BY_CATEGORY[category] ?? 'function',
+		module: fm.module ?? resolveModule?.(category, slug) ?? `${packageName}/${slug}`,
+		kind: fm.kind ?? categoryKinds[category] ?? 'function',
 		...(fm.symbols ? { symbols: fm.symbols } : {}),
 		...(fm.usage ? { usage: fm.usage } : {}),
 	}

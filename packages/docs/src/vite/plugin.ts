@@ -1,26 +1,31 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { type ModuleNode, type Plugin, transformWithEsbuild } from 'vite'
-import type { DocMeta } from '../engine/contracts'
-import { deriveDocMeta, type ParsedDoc, parseDoc } from '../engine/parse'
+import type { DocKind, DocMeta } from '../engine/contracts'
+import { createModuleResolver, deriveDocMeta, type ParsedDoc, parseDoc } from '../engine/parse'
 import type { ApiExtractor } from '../extractor'
-import { isExcludedSource } from '../extractor/surface'
+import { enumerateSurface, isExcludedSource } from '../extractor/surface'
 import { scanMarkdown } from './scan'
 import { virtualJsonModules } from './virtual-json'
 
 /** Options for {@link docsPlugin}. */
 export type DocsPluginOptions = {
+	/** The documented library's import prefix; drives module derivation. */
+	packageName: string
+
 	/** Directory of doc markdown, relative to the Vite root. @defaultValue 'content' */
 	contentDir?: string
 
-	/** The documented library's import prefix; drives module derivation. @defaultValue 'ui' */
-	packageName?: string
-
 	/**
 	 * Absolute path to the documented package, enabling `virtual:docs/api` via
-	 * docs-extractor. Omitted, the api module serves an empty snapshot.
+	 * the extractor and the surface used to reconcile each doc's module.
+	 * Omitted, the api module serves an empty snapshot and modules fall back to
+	 * `<packageName>/<slug>`.
 	 */
 	apiPackageDir?: string
+
+	/** Overrides the default category → doc-kind map for a non-standard content layout. */
+	categoryKinds?: Record<string, DocKind>
 }
 
 const MANIFEST_ID = 'virtual:docs/manifest'
@@ -37,10 +42,21 @@ const PREVIEW_PREFIX = 'virtual:docs/preview/'
  */
 export function docsPlugin({
 	contentDir = 'content',
-	packageName = 'ui',
+	packageName,
 	apiPackageDir,
-}: DocsPluginOptions = {}): Plugin {
+	categoryKinds,
+}: DocsPluginOptions): Plugin {
 	let contentRoot = contentDir
+
+	// Reconcile each doc's module against the package's real export surface, so
+	// derivation returns specifiers that actually exist rather than guessing a
+	// shape. Empty (falling back to `<pkg>/<slug>`) when no package is given.
+	const resolveModule = createModuleResolver(
+		apiPackageDir ? [...enumerateSurface(apiPackageDir, packageName).keys()] : [],
+		packageName,
+	)
+
+	const deriveOptions = { packageName, resolveModule, categoryKinds }
 
 	// Parse cache keyed by absolute md path; cleared per file on change.
 	const cache = new Map<string, ParsedDoc>()
@@ -105,7 +121,7 @@ export function docsPlugin({
 			generate: (): DocMeta[] =>
 				scanMarkdown(contentRoot)
 					.map((file) =>
-						deriveDocMeta(path.relative(contentRoot, file), parsedFor(file), packageName),
+						deriveDocMeta(path.relative(contentRoot, file), parsedFor(file), deriveOptions),
 					)
 					.sort((a, b) => a.name.localeCompare(b.name)),
 			shouldInvalidate: isContentMd,
@@ -173,7 +189,7 @@ export function docsPlugin({
 
 			const docPath = docPathOf(file)
 
-			const meta = deriveDocMeta(path.relative(contentRoot, file), parsed, packageName)
+			const meta = deriveDocMeta(path.relative(contentRoot, file), parsed, deriveOptions)
 
 			const previews = parsed.previews.map(
 				(fence, index) =>

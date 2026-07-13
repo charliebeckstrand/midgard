@@ -12,5 +12,5 @@ export type {
 } from './contracts'
 export type { LinkToken } from './link-syntax'
 export { LINK_RE, parseLinkToken, stripLinks } from './link-syntax'
-export type { FrontMatter, ParsedDoc, ParsedFence } from './parse'
-export { deriveDocMeta, parseDoc } from './parse'
+export type { DeriveOptions, FrontMatter, ModuleResolver, ParsedDoc, ParsedFence } from './parse'
+export { createModuleResolver, DEFAULT_CATEGORY_KINDS, deriveDocMeta, parseDoc } from './parse'

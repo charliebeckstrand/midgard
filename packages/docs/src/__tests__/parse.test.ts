@@ -1,4 +1,4 @@
-import { deriveDocMeta, parseDoc } from '../engine/parse'
+import { createModuleResolver, deriveDocMeta, parseDoc } from '../engine/parse'
 
 const FIXTURE = `---
 usage:
@@ -126,11 +126,53 @@ describe('parseDoc', () => {
 	})
 })
 
+describe('createModuleResolver', () => {
+	const surface = [
+		'ui/button',
+		'ui/hooks',
+		'ui/core',
+		'ui/modules/grid',
+		'ui/providers/toast',
+		'ui/primitives/polymorphic',
+	]
+
+	const resolve = createModuleResolver(surface, 'ui')
+
+	it('resolves a slug-named specifier for a component', () => {
+		expect(resolve('components', 'button')).toBe('ui/button')
+	})
+
+	it('disambiguates a slug by category for a nested specifier', () => {
+		expect(resolve('modules', 'grid')).toBe('ui/modules/grid')
+
+		expect(resolve('providers', 'toast')).toBe('ui/providers/toast')
+
+		expect(resolve('primitives', 'polymorphic')).toBe('ui/primitives/polymorphic')
+	})
+
+	it('falls back to the category barrel when no specifier names the slug', () => {
+		expect(resolve('hooks', 'use-controllable')).toBe('ui/hooks')
+
+		expect(resolve('core', 'announce')).toBe('ui/core')
+	})
+
+	it('returns undefined when nothing in the surface matches', () => {
+		expect(resolve('widgets', 'nonexistent')).toBeUndefined()
+	})
+})
+
 describe('deriveDocMeta', () => {
 	const parsed = parseDoc('# Button\n\nA button.\n', 'button.md')
 
-	it('derives component identity from the path', () => {
-		expect(deriveDocMeta('components/button.md', parsed)).toMatchObject({
+	const resolveModule = createModuleResolver(
+		['ui/button', 'ui/hooks', 'ui/core', 'ui/modules/grid', 'ui/providers/toast'],
+		'ui',
+	)
+
+	const opts = { packageName: 'ui', resolveModule }
+
+	it('derives component identity from the path, module reconciled against the surface', () => {
+		expect(deriveDocMeta('components/button.md', parsed, opts)).toMatchObject({
 			id: 'components/button',
 			category: 'components',
 			slug: 'button',
@@ -139,37 +181,24 @@ describe('deriveDocMeta', () => {
 		})
 	})
 
-	it('derives barrel-surface modules from the category', () => {
-		expect(deriveDocMeta('hooks/use-controllable.md', parsed)).toMatchObject({
+	it('reconciles barrel and nested modules through the resolver', () => {
+		expect(deriveDocMeta('hooks/use-controllable.md', parsed, opts)).toMatchObject({
 			module: 'ui/hooks',
 			kind: 'hook',
 		})
 
-		expect(deriveDocMeta('core/announce.md', parsed)).toMatchObject({
-			module: 'ui/core',
-			kind: 'function',
-		})
-	})
-
-	it('derives per-directory modules for modules, providers, and primitives', () => {
-		expect(deriveDocMeta('modules/grid.md', parsed).module).toBe('ui/modules/grid')
-
-		expect(deriveDocMeta('providers/toast.md', parsed).module).toBe('ui/providers/toast')
-
-		expect(deriveDocMeta('primitives/polymorphic.md', parsed).module).toBe(
-			'ui/primitives/polymorphic',
-		)
+		expect(deriveDocMeta('modules/grid.md', parsed, opts).module).toBe('ui/modules/grid')
 	})
 
 	it('supports directory docs via index.md', () => {
-		expect(deriveDocMeta('modules/grid/index.md', parsed)).toMatchObject({
+		expect(deriveDocMeta('modules/grid/index.md', parsed, opts)).toMatchObject({
 			id: 'modules/grid',
 			slug: 'grid',
 		})
 	})
 
-	it('falls back to the function kind for unknown categories', () => {
-		expect(deriveDocMeta('recipes/kata.md', parsed)).toMatchObject({
+	it('falls back to `<pkg>/<slug>` and the function kind for an unmatched category', () => {
+		expect(deriveDocMeta('recipes/kata.md', parsed, { packageName: 'ui' })).toMatchObject({
 			module: 'ui/kata',
 			kind: 'function',
 		})
@@ -181,13 +210,24 @@ describe('deriveDocMeta', () => {
 			'chart.md',
 		)
 
-		expect(deriveDocMeta('components/chart.md', overridden)).toMatchObject({
+		expect(deriveDocMeta('components/chart.md', overridden, opts)).toMatchObject({
 			module: 'ui/modules/chart',
 			kind: 'module',
 		})
 	})
 
-	it('honors a custom package name', () => {
-		expect(deriveDocMeta('components/button.md', parsed, 'grid').module).toBe('grid/button')
+	it('honors a custom package name in the fallback', () => {
+		expect(deriveDocMeta('components/button.md', parsed, { packageName: 'grid' }).module).toBe(
+			'grid/button',
+		)
+	})
+
+	it('lets categoryKinds override the default taxonomy', () => {
+		expect(
+			deriveDocMeta('widgets/gauge.md', parsed, {
+				packageName: 'ui',
+				categoryKinds: { widgets: 'component' },
+			}).kind,
+		).toBe('component')
 	})
 })
