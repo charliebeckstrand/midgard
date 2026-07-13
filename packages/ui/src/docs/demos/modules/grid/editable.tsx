@@ -304,7 +304,8 @@ export function SpreadsheetExample() {
 				Double-click a cell — or press Enter or F2, or just start typing, on the keyboard cursor's
 				cell — to edit that cell alone. Enter saves and moves down the column; Tab saves and moves
 				across the row; F2 saves in place; Escape discards; entering another cell saves the current
-				one on the way out.
+				one on the way out. Shift+arrows stretch a range: Ctrl/Cmd+C copies it as TSV, Ctrl/Cmd+V
+				pastes a block, Ctrl/Cmd+D and R fill it down/right, and Ctrl/Cmd+Z undoes the last save.
 			</EditHelp>
 			<Grid
 				columns={columns}

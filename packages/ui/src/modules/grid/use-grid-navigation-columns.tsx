@@ -62,14 +62,16 @@ function obscuringInsets(cell: HTMLElement): { top: number; left: number; right:
 }
 
 /**
- * Active-cell flag for one navigable cell. Subscribes to the cursor store and,
- * when this cell becomes (or stops being) the active one, toggles `data-active`
- * on its owning `role="gridcell"` `<td>` — the read-only mirror of the editable
- * grid's `aria-selected` write. The `<td>`'s `cellProps` are non-reactive so the
- * memoized row holds across cursor moves, so the styling rides this imperative
- * attribute instead; the active cell also scrolls into view, clear of the grid's
- * sticky header and pinned columns. Renders a hidden locator span, not a wrapper,
- * so cell layout is untouched.
+ * Active-cell and range flags for one navigable cell. Subscribes to the cursor
+ * store and, when this cell becomes (or stops being) the active one, toggles
+ * `data-active` on its owning `role="gridcell"` `<td>` — the read-only mirror
+ * of the editable grid's `aria-selected` write; membership in the cursor's
+ * anchored range likewise toggles `data-range` plus `aria-selected`. The
+ * `<td>`'s `cellProps` are non-reactive so the memoized row holds across cursor
+ * moves, so the styling rides these imperative attributes instead; the active
+ * cell also scrolls into view, clear of the grid's sticky header and pinned
+ * columns. Renders a hidden locator span, not a wrapper, so cell layout is
+ * untouched.
  *
  * @internal
  */
@@ -89,6 +91,12 @@ export function GridNavCell({
 	const isActive = useSyncExternalStore(
 		store.subscribe,
 		useCallback(() => store.isActive(row, col), [store, row, col]),
+		() => false,
+	)
+
+	const inRange = useSyncExternalStore(
+		store.subscribe,
+		useCallback(() => store.isInRange(row, col), [store, row, col]),
 		() => false,
 	)
 
@@ -117,6 +125,25 @@ export function GridNavCell({
 			cell.removeAttribute('data-active')
 		}
 	}, [isActive])
+
+	useIsomorphicLayoutEffect(() => {
+		const cell = ref.current?.closest<HTMLElement>('[role="gridcell"]')
+
+		if (!cell) return
+
+		// The range sweep is visual (`data-range`, kata §nav) and programmatic
+		// (`aria-selected`) at once, so AT hears the selection the wash shows.
+		cell.toggleAttribute('data-range', inRange)
+
+		if (inRange) cell.setAttribute('aria-selected', 'true')
+		else cell.removeAttribute('aria-selected')
+
+		return () => {
+			cell.removeAttribute('data-range')
+
+			cell.removeAttribute('aria-selected')
+		}
+	}, [inRange])
 
 	return (
 		<>

@@ -72,6 +72,12 @@ export type GridEditingApi = {
 	 * Y) replays it. Keys inside an editor stay the editor's.
 	 */
 	historyKeys: (event: ReactKeyboardEvent<HTMLTableElement>) => void
+	/**
+	 * The announcing, history-recording, async-shepherding sink wrapper — the
+	 * one path every batch takes. Exposed so batch producers beyond the session
+	 * flush (the range's paste and fill) share it.
+	 */
+	commitBatch: (changes: CellChange[]) => void
 }
 
 /**
@@ -911,5 +917,6 @@ export function useGridEditing<T>({
 		cellScoped,
 		sessionEscape: sessionOwned ? sessionEscape : undefined,
 		historyKeys,
+		commitBatch: commitChanges,
 	}
 }

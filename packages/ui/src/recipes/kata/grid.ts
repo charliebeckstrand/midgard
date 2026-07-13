@@ -735,6 +735,10 @@ export const k = {
 			'data-[active]:ring-2',
 			'data-[active]:ring-inset',
 			...mode('data-[active]:ring-blue-600', 'dark:data-[active]:ring-blue-500'),
+			// Anchored-range membership (Shift+arrows), driven by the `data-range`
+			// the cell marker toggles alongside `data-active`: a soft accent wash
+			// over the whole rectangle.
+			...mode('data-[range]:bg-blue-600/10', 'dark:data-[range]:bg-blue-500/15'),
 		],
 	},
 	// Inline per-row editing: an editable row's cells render their editors (the

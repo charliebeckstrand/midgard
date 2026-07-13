@@ -1,6 +1,7 @@
 'use client'
 
 import {
+	type ClipboardEvent,
 	type FocusEvent,
 	type KeyboardEvent,
 	type RefObject,
@@ -50,13 +51,19 @@ export type GridNavStore = {
 	subscribe: (listener: () => void) => () => void
 	/** Whether the cell at `(row, col)` is currently the active cursor cell. */
 	isActive: (row: number, col: number) => boolean
+	/** Whether the cell at `(row, col)` sits in the cursor's anchored range (Shift+arrows); composed over this store by `useGridRange`. */
+	isInRange: (row: number, col: number) => boolean
 }
 
 /** Provides the read-only cursor store to the cell markers under a `navigable` grid. @internal */
 export const [GridNavContext, useGridNavContext] = createContext<GridNavStore>('GridNav')
 
 /** Inert store for a non-navigable grid, so the hook can return a stable shape unconditionally. @internal */
-const INERT_STORE: GridNavStore = { subscribe: () => () => {}, isActive: () => false }
+const INERT_STORE: GridNavStore = {
+	subscribe: () => () => {},
+	isActive: () => false,
+	isInRange: () => false,
+}
 
 /**
  * The cursor props merged onto a `navigable` grid's `<table>`: the single tab
@@ -71,6 +78,9 @@ export type GridNavTableProps = {
 	onKeyDown: (event: KeyboardEvent<HTMLTableElement>) => void
 	onFocus: (event: FocusEvent<HTMLTableElement>) => void
 	onBlur: (event: FocusEvent<HTMLTableElement>) => void
+	/** The range's clipboard surface (`useGridRange`): copy serializes the range as TSV, paste maps a TSV block through the sink. */
+	onCopy?: (event: ClipboardEvent<HTMLTableElement>) => void
+	onPaste?: (event: ClipboardEvent<HTMLTableElement>) => void
 }
 
 /**
@@ -246,6 +256,9 @@ export function useGridNavigation({
 				}
 			},
 			isActive: (row, col) => internal.active?.row === row && internal.active?.col === col,
+			// The anchored range is a layer above (`useGridRange` composes it over
+			// this store); the bare cursor has none.
+			isInRange: () => false,
 		}
 	}
 

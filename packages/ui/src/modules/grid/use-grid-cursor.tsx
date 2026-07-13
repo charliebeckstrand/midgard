@@ -28,6 +28,7 @@ import {
 	useGridNavigation,
 } from './use-grid-navigation'
 import { useGridNavigationColumns } from './use-grid-navigation-columns'
+import { useGridRange } from './use-grid-range'
 
 /** Live refs the cursor and editing layers read at event/render time, populated by {@link GridData} after the engine resolves order and rows. @internal */
 type GridCursorRefs<T> = {
@@ -282,6 +283,20 @@ export function useGridCursor<T>({
 		dataColumnsRef,
 	})
 
+	// The cursor's anchored rectangular range (Shift+arrows), with copy on its
+	// own, and paste/fill through the editing sink when the grid is editable.
+	// Its store composes range membership over the cursor store for the cells.
+	const range = useGridRange<T>({
+		enabled: cursorEnabled,
+		editable: editingEnabled,
+		baseStore: nav.store,
+		active: nav.active,
+		rowsRef,
+		rowKeysRef,
+		dataColumnsRef,
+		commitBatch: editing.commitBatch,
+	})
+
 	// Begins the edit session for the cell at a cursor coord: resolves its row
 	// key and column from the live display maps, gates on an editable column
 	// (a `readOnly` or slotless/fieldless one never enters), and hands the
@@ -498,7 +513,7 @@ export function useGridCursor<T>({
 
 		const historyKeys = editing.historyKeys
 
-		if (!base || !editingEnabled) return base
+		if (!base) return undefined
 
 		return {
 			...base,
@@ -509,7 +524,11 @@ export function useGridCursor<T>({
 
 				// Undo/redo is a sink layer, armed for every editable grid — the
 				// consumer-owned manual trigger included.
-				historyKeys(event)
+				if (editingEnabled) historyKeys(event)
+
+				// The range's anchor seat/collapse and fill keys ride wherever the
+				// cursor does (paste/fill gate on editable inside).
+				range.rangeKeys(event)
 
 				base.onKeyDown(event)
 			},
@@ -520,6 +539,8 @@ export function useGridCursor<T>({
 						base.onBlur(event)
 					}
 				: base.onBlur,
+			onCopy: range.onCopy,
+			onPaste: range.onPaste,
 		}
 	}, [
 		nav.navTableProps,
@@ -529,6 +550,9 @@ export function useGridCursor<T>({
 		sessionOwned,
 		sessionMoveKeys,
 		sessionBlur,
+		range.rangeKeys,
+		range.onCopy,
+		range.onPaste,
 	])
 
 	// The provided editing context: the staging half from the editing hook, with
@@ -555,7 +579,8 @@ export function useGridCursor<T>({
 
 	return {
 		cursorEnabled,
-		navStore: nav.store,
+		// The range-composed store: active-cell plus range membership.
+		navStore: range.store,
 		navTableProps,
 		reconcile: nav.reconcile,
 		columns: editingEnabled ? editColumns : navColumns,

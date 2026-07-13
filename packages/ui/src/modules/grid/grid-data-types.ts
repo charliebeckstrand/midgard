@@ -935,6 +935,15 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * and the active row's {@link GridDataProps.onRowClick}, in that order;
 	 * clicking a cell seats the cursor there.
 	 *
+	 * The cursor also carries an anchored rectangular range: Shift+movement
+	 * stretches it from where the cursor stood (`aria-selected` on its cells),
+	 * an unshifted move or Escape collapses it, and Ctrl/Cmd+C copies it — or
+	 * the active cell — to the clipboard as TSV. On an
+	 * {@link GridDataProps.editable | editable} grid, Ctrl/Cmd+V pastes a TSV
+	 * block from the range's top-left and Ctrl/Cmd+D / R fill the range from
+	 * its leading edge, each landing as one validated `CellChange[]` batch
+	 * through the same sink as typed edits.
+	 *
 	 * Off by default, so a static table keeps the browser/screen-reader's native
 	 * table navigation; opt in for a spreadsheet-style read-only grid. Focusable
 	 * cell content (links, buttons, the selection checkbox) stays independently
