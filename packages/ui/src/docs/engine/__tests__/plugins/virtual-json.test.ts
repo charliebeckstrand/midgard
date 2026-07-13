@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import {
+	type VirtualJsonFamilySpec,
 	type VirtualJsonSpec,
 	virtualJsonHooks,
 	virtualJsonModules,
@@ -42,7 +43,7 @@ type Callable = {
 	}): { id: string }[] | undefined
 }
 
-function build(specs: VirtualJsonSpec[]): Callable {
+function build(specs: (VirtualJsonSpec | VirtualJsonFamilySpec)[]): Callable {
 	return virtualJsonModules(specs) as unknown as Callable
 }
 
@@ -138,6 +139,127 @@ describe('virtualJsonModules', () => {
 		// Cache untouched: still one generate.
 		hooks.load('\0virtual:a')
 
+		expect(generate).toHaveBeenCalledTimes(1)
+	})
+})
+
+describe('virtualJsonModules (family spec)', () => {
+	const family = (
+		generate: () => Record<string, unknown>,
+		shouldInvalidate: (f: string) => boolean = () => false,
+	): VirtualJsonFamilySpec => ({
+		prefix: 'virtual:api/',
+		manifestId: 'virtual:api-manifest',
+		generate,
+		shouldInvalidate,
+	})
+
+	it('resolves the manifest id and any prefixed key, ignoring others', () => {
+		const hooks = build([family(() => ({ button: [], card: [] }))])
+
+		expect(hooks.resolveId('virtual:api-manifest')).toBe('\0virtual:api-manifest')
+
+		expect(hooks.resolveId('virtual:api/button')).toBe('\0virtual:api/button')
+
+		expect(hooks.resolveId('virtual:api/anything')).toBe('\0virtual:api/anything')
+
+		expect(hooks.resolveId('virtual:other')).toBeUndefined()
+	})
+
+	it('serves the manifest as static import thunks, one per record key', () => {
+		const hooks = build([family(() => ({ button: [{ name: 'Button' }], card: [] }))])
+
+		expect(hooks.load('\0virtual:api-manifest')).toBe(
+			'export default {"button": () => import("virtual:api/button"),' +
+				'"card": () => import("virtual:api/card")}',
+		)
+	})
+
+	it('serves each key module as its slice of the record', () => {
+		const record = { button: [{ name: 'Button' }], card: [] }
+
+		const hooks = build([family(() => record)])
+
+		expect(hooks.load('\0virtual:api/button')).toBe('export default [{"name":"Button"}]')
+
+		expect(hooks.load('\0virtual:api/card')).toBe('export default []')
+
+		// An id with no record entry serves null rather than throwing.
+		expect(hooks.load('\0virtual:api/missing')).toBe('export default null')
+	})
+
+	it('generates the record once across the manifest and every key read', () => {
+		const generate = vi.fn(() => ({ button: [], card: [] }))
+
+		const hooks = build([family(generate)])
+
+		hooks.load('\0virtual:api-manifest')
+
+		hooks.load('\0virtual:api/button')
+
+		hooks.load('\0virtual:api/card')
+
+		expect(generate).toHaveBeenCalledTimes(1)
+	})
+
+	it('re-generates and invalidates the manifest plus served keys on a matching change', () => {
+		let props: unknown[] = [{ name: 'Button' }]
+
+		const generate = vi.fn(() => ({ button: props }))
+
+		const hooks = build([family(generate, (f) => f.endsWith('.tsx'))])
+
+		// Prime the manifest and the button key module.
+		hooks.load('\0virtual:api-manifest')
+
+		expect(hooks.load('\0virtual:api/button')).toBe('export default [{"name":"Button"}]')
+
+		const { server, invalidatedIds } = fakeServer()
+
+		props = [{ name: 'Button', updated: true }]
+
+		const result = hooks.handleHotUpdate({
+			file: 'button.tsx',
+			modules: [{ id: 'button.tsx' }],
+			server,
+		})
+
+		// Both the manifest and the served key module are invalidated, and the
+		// edited file's own module is folded back in ahead of them.
+		expect(invalidatedIds).toEqual(['\0virtual:api-manifest', '\0virtual:api/button'])
+
+		expect(result?.map((m) => m.id)).toEqual([
+			'button.tsx',
+			'\0virtual:api-manifest',
+			'\0virtual:api/button',
+		])
+
+		// The next read re-generates with fresh data.
+		expect(hooks.load('\0virtual:api/button')).toBe(
+			'export default [{"name":"Button","updated":true}]',
+		)
+
+		expect(generate).toHaveBeenCalledTimes(2)
+	})
+
+	it('leaves the family untouched when no predicate matches', () => {
+		const generate = vi.fn(() => ({ button: [] }))
+
+		const hooks = build([family(generate, (f) => f.endsWith('.tsx'))])
+
+		hooks.load('\0virtual:api-manifest')
+
+		const { server, invalidatedIds } = fakeServer()
+
+		expect(
+			hooks.handleHotUpdate({ file: 'notes.md', modules: [{ id: 'notes.md' }], server }),
+		).toBeUndefined()
+
+		expect(invalidatedIds).toEqual([])
+
+		hooks.load('\0virtual:api/button')
+
+		// Cache intact: still a single generate.
 		expect(generate).toHaveBeenCalledTimes(1)
 	})
 })

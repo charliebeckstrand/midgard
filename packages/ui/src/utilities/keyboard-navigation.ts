@@ -40,7 +40,7 @@ export function nextIndexForKey(
 }
 
 /** Wraps `index` into `[0, count)`. */
-function wrap(index: number, count: number): number {
+export function wrap(index: number, count: number): number {
 	return ((index % count) + count) % count
 }
 

@@ -1,4 +1,4 @@
-import apiData from 'virtual:api-reference'
+import apiManifest from 'virtual:api-reference-manifest'
 import demoMetas from 'virtual:demo-metas'
 import type { ComponentType } from 'react'
 import type { ComponentApi } from './api-reference'
@@ -103,16 +103,62 @@ export function loadDemo(id: string): Promise<ComponentType> {
 	return tracked
 }
 
-/** Start and cache the demo's dynamic import ahead of navigation. */
+/** Start and cache the demo's dynamic import ahead of navigation, plus its API chunk. */
 export function preloadDemo(id: string) {
 	if (loaderById.has(id)) loadDemo(id)
+
+	if (hasComponentApi(id)) loadComponentApi(id)
 }
 
-// Component API: pre-computed at build time via virtual:api-reference
+// Component API: extracted at build time, one lazy chunk per component behind
+// `virtual:api-reference-manifest`. The manifest (a small map of id → import
+// thunk) is the only api-reference code in the initial graph; each component's
+// prop data is fetched on demand, alongside its demo.
 
-/** Return the pre-computed API for a component, or undefined if none exists. */
-export function getComponentApi(id: string): ComponentApi[] | undefined {
-	return apiData[id]
+/** Whether a component has build-time API data (a manifest entry). */
+export function hasComponentApi(id: string): boolean {
+	return Object.hasOwn(apiManifest, id)
+}
+
+// One cached tracked promise per id, consumed via React's `use()` like demos.
+const apiPromiseCache = new Map<string, TrackedPromise<ComponentApi[]>>()
+
+/**
+ * Return a cached promise for the component's API data, fetching its chunk on
+ * first call. Throws for an id with no manifest entry — gate on
+ * {@link hasComponentApi} before calling.
+ */
+export function loadComponentApi(id: string): Promise<ComponentApi[]> {
+	const cached = apiPromiseCache.get(id)
+
+	if (cached) return cached
+
+	const loader = apiManifest[id]
+
+	if (!loader) throw new Error(`No API reference found for id: ${id}`)
+
+	const tracked = loader().then((mod) => mod.default) as TrackedPromise<ComponentApi[]>
+
+	tracked.status = 'pending'
+
+	tracked.then(
+		(value) => {
+			tracked.status = 'fulfilled'
+			tracked.value = value
+		},
+		(reason) => {
+			tracked.status = 'rejected'
+			tracked.reason = reason
+
+			// Evict so a retry re-attempts the chunk import instead of replaying a
+			// transient load failure (offline, deploy skew).
+			apiPromiseCache.delete(id)
+		},
+	)
+
+	apiPromiseCache.set(id, tracked)
+
+	return tracked
 }
 
 // `demos` and `defaultDemo` are live bindings populated by initRegistry; the

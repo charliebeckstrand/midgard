@@ -124,11 +124,11 @@ describe('PasswordConfirm warning rendering', () => {
 		expect(screen.getByText('Passwords do not match')).toBeInTheDocument()
 	})
 
-	it('calls onPasswordMatch when passwords match', () => {
-		const onPasswordMatch = vi.fn()
+	it('calls onMatchChange with true when passwords match', () => {
+		const onMatchChange = vi.fn()
 
 		renderUI(
-			<PasswordConfirm onPasswordMatch={onPasswordMatch}>
+			<PasswordConfirm onMatchChange={onMatchChange}>
 				<PasswordInput name="password" />
 				<PasswordConfirmInput name="confirm" />
 			</PasswordConfirm>,
@@ -140,14 +140,14 @@ describe('PasswordConfirm warning rendering', () => {
 
 		fireEvent.change(inputs[1] as HTMLInputElement, { target: { value: 'abc' } })
 
-		expect(onPasswordMatch).toHaveBeenCalled()
+		expect(onMatchChange).toHaveBeenCalledWith(true)
 	})
 
-	it('calls onPasswordMismatch when passwords diverge', () => {
-		const onPasswordMismatch = vi.fn()
+	it('calls onMatchChange with false when passwords diverge', () => {
+		const onMatchChange = vi.fn()
 
 		renderUI(
-			<PasswordConfirm onPasswordMismatch={onPasswordMismatch}>
+			<PasswordConfirm onMatchChange={onMatchChange}>
 				<PasswordInput name="password" />
 				<PasswordConfirmInput name="confirm" />
 			</PasswordConfirm>,
@@ -159,6 +159,6 @@ describe('PasswordConfirm warning rendering', () => {
 
 		fireEvent.change(inputs[1] as HTMLInputElement, { target: { value: 'abd' } })
 
-		expect(onPasswordMismatch).toHaveBeenCalled()
+		expect(onMatchChange).toHaveBeenCalledWith(false)
 	})
 })

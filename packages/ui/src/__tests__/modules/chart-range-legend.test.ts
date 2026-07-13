@@ -58,14 +58,14 @@ describe('resolveRangeLegend', () => {
 		})
 	})
 
-	it('takes the { type, placement } object form', () => {
-		expect(resolveRangeLegend({ type: 'range', placement: 'top' }, WIDE, TALL)).toMatchObject({
+	it('takes the { placement } object form', () => {
+		expect(resolveRangeLegend({ placement: 'top' }, WIDE, TALL)).toMatchObject({
 			placement: 'top',
 			orientation: 'horizontal',
 		})
 
 		// An object without a placement falls back to the default.
-		expect(resolveRangeLegend({ type: 'range' }, WIDE, TALL, 'left')).toMatchObject({
+		expect(resolveRangeLegend({}, WIDE, TALL, 'left')).toMatchObject({
 			placement: 'left',
 			orientation: 'vertical',
 		})

@@ -35,7 +35,7 @@ export function Demo() {
 		<>
 			<Alert severity="info" variant="soft" closable>
 				<AlertDescription>
-					Control generates and propagates a stable ID and state to control-aware children.
+					Control propagates a stable ID and state to control-aware children.
 				</AlertDescription>
 			</Alert>
 
@@ -47,7 +47,7 @@ export function Demo() {
 			</Example>
 
 			<Example title="Invalid">
-				<Control invalid>
+				<Control severity="error">
 					<Label>Email</Label>
 					<Input type="email" />
 					<Message>Please enter a valid email.</Message>

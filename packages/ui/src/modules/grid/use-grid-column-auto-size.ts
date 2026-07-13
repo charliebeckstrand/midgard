@@ -1,7 +1,8 @@
 'use client'
 
 import type { Table } from '@tanstack/react-table'
-import { type RefObject, useCallback, useEffect, useLayoutEffect, useMemo, useRef } from 'react'
+import { type RefObject, useCallback, useEffect, useMemo, useRef } from 'react'
+import { useIsomorphicLayoutEffect } from '../../hooks/use-isomorphic-layout-effect'
 import type { DensityLevel } from '../../providers/density/context'
 import { isDataColumn } from '../../utilities'
 import { allocateColumnWidths } from './engine/grid-column/allocate'
@@ -286,7 +287,7 @@ export function useGridColumnAutoSize<T>({
 	// on each of those — and on every row-model change — is needless churn.
 	const runRef = useRef(run)
 
-	useLayoutEffect(() => {
+	useIsomorphicLayoutEffect(() => {
 		runRef.current = run
 	}, [run])
 
@@ -300,7 +301,7 @@ export function useGridColumnAutoSize<T>({
 	// a structural one when the widths are frozen (see `freezeOnRowChange`).
 	const fitStructSigRef = useRef(structSig)
 
-	useLayoutEffect(() => {
+	useIsomorphicLayoutEffect(() => {
 		if (!enabled) return
 
 		// Read so a row-model change (page turn, filter, sort) re-runs this effect.
@@ -330,7 +331,7 @@ export function useGridColumnAutoSize<T>({
 	// container, so a width-only container resize is the one thing that recreates it
 	// — not a column or row change. Fit synchronously, before paint, so the first
 	// frame carries real widths instead of flashing the engine's default colgroup.
-	useLayoutEffect(() => {
+	useIsomorphicLayoutEffect(() => {
 		const element = containerRef?.current
 
 		if (!enabled || !element || typeof ResizeObserver === 'undefined') return

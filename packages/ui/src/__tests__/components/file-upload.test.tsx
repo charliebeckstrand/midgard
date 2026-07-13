@@ -263,7 +263,7 @@ describe('FileUpload button variant selection', () => {
 describe('FileUpload + Control', () => {
 	it('surfaces invalid and required state onto the hidden file input', () => {
 		const { container } = renderUI(
-			<Control invalid required>
+			<Control severity="error" required>
 				<FileUpload>Upload</FileUpload>
 			</Control>,
 		)
@@ -277,7 +277,7 @@ describe('FileUpload + Control', () => {
 
 	it('points the hidden file input aria-describedby at the control description and message', () => {
 		const { container } = renderUI(
-			<Control id="doc" invalid>
+			<Control id="doc" severity="error">
 				<Description>PDF only</Description>
 				<FileUpload>Upload</FileUpload>
 				<Message>A file is required</Message>

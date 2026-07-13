@@ -1,11 +1,14 @@
-import { renderHook } from '@testing-library/react'
-import { useRef } from 'react'
+import { renderHook, waitFor } from '@testing-library/react'
+import { type RefObject, useRef } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
 	clearVirtualActive,
+	clearVirtualActiveIndexed,
 	queryItems,
 	setVirtualActive,
+	setVirtualActiveIndexed,
 	useA11yRoving,
+	type VirtualItemSource,
 } from '../../hooks/a11y/use-a11y-roving'
 import { makeKeyEvent } from '../helpers'
 
@@ -112,7 +115,7 @@ describe('clearVirtualActive', () => {
 		expect(owner.hasAttribute('aria-activedescendant')).toBe(false)
 	})
 
-	it('also strips the active row when items are supplied', () => {
+	it('strips the active row via setVirtualActive when rows are still mounted', () => {
 		const active = document.createElement('div')
 
 		active.setAttribute('role', 'option')
@@ -127,7 +130,7 @@ describe('clearVirtualActive', () => {
 
 		owner.setAttribute('aria-activedescendant', 'opt-0')
 
-		clearVirtualActive({ current: owner }, [active])
+		setVirtualActive([active], -1, { current: owner })
 
 		expect(active.hasAttribute('data-active')).toBe(false)
 
@@ -798,5 +801,498 @@ describe('useA11yRoving: row actions', () => {
 		expect(byText(container, 'suffix-0')?.tabIndex).toBe(-1)
 
 		container.remove()
+	})
+})
+
+describe('useA11yRoving: itemSource (indexed navigation over a windowed list)', () => {
+	// Simulates a virtualizer that has only `mountedIds` in the DOM out of a
+	// much larger logical `count` — the scenario a10k-item VirtualOptions
+	// window presents.
+	function makeIndexedContainer(mountedIds: string[]) {
+		const container = document.createElement('div')
+
+		for (const id of mountedIds) {
+			const row = document.createElement('div')
+
+			row.id = id
+
+			row.setAttribute('role', 'option')
+
+			row.textContent = id
+
+			container.appendChild(row)
+		}
+
+		document.body.appendChild(container)
+
+		appendedContainers.push(container)
+
+		return container
+	}
+
+	function mountRow(container: HTMLElement, id: string) {
+		const row = document.createElement('div')
+
+		row.id = id
+
+		row.setAttribute('role', 'option')
+
+		row.textContent = id
+
+		container.appendChild(row)
+
+		return row
+	}
+
+	function makeSource(
+		count: number,
+		overrides: Partial<VirtualItemSource> = {},
+	): VirtualItemSource {
+		return {
+			count,
+			getKey: (index) => `opt-${index}`,
+			scrollToIndex: vi.fn(),
+			...overrides,
+		}
+	}
+
+	function setup(
+		container: HTMLElement,
+		source: VirtualItemSource,
+		options: {
+			activeIndex?: number
+			activeDescendantRef?: RefObject<HTMLElement | null>
+			typeahead?: boolean
+		} = {},
+	) {
+		const activeIndexRef = { current: options.activeIndex ?? -1 }
+
+		const { result } = renderHook(() => {
+			const ref = useRef<HTMLElement>(container)
+
+			const sourceRef = useRef(source)
+
+			sourceRef.current = source
+
+			return useA11yRoving(ref, {
+				itemSelector: '[role="option"]',
+				mode: 'virtual',
+				itemSource: sourceRef,
+				activeIndexRef,
+				activeDescendantRef: options.activeDescendantRef,
+				typeahead: options.typeahead,
+			})
+		})
+
+		return { result, activeIndexRef }
+	}
+
+	it('ArrowDown past the rendered window: scrolls the target index and applies the highlight once it mounts', async () => {
+		// Only opt-0..opt-2 are in the DOM (the rendered window); the source
+		// reports 10,000 total items, opt-3 is windowed out.
+		const container = makeIndexedContainer(['opt-0', 'opt-1', 'opt-2'])
+
+		container.querySelector('#opt-2')?.setAttribute('data-active', '')
+
+		const controller = document.createElement('input')
+
+		document.body.appendChild(controller)
+
+		const source = makeSource(10_000)
+
+		const { result, activeIndexRef } = setup(container, source, {
+			activeIndex: 2,
+			activeDescendantRef: { current: controller },
+		})
+
+		result.current(makeKeyEvent('ArrowDown'))
+
+		expect(source.scrollToIndex).toHaveBeenCalledWith(3, { align: 'auto' })
+
+		expect(activeIndexRef.current).toBe(3)
+
+		// aria-activedescendant points at the predicted id immediately, even
+		// before the row mounts.
+		expect(controller.getAttribute('aria-activedescendant')).toBe('opt-3')
+
+		// The old active row is cleared immediately; the new one isn't mounted
+		// yet, so nothing carries `data-active` for a moment.
+		expect(container.querySelector('#opt-2')?.hasAttribute('data-active')).toBe(false)
+
+		expect(container.querySelector('[data-active]')).toBeNull()
+
+		// The virtualizer "renders" the target row once it scrolls into view.
+		mountRow(container, 'opt-3')
+
+		await waitFor(() => {
+			expect(container.querySelector('#opt-3')?.hasAttribute('data-active')).toBe(true)
+		})
+
+		container.remove()
+
+		controller.remove()
+	})
+
+	it('Home jumps straight to index 0 of a 10,000-item source without touching the DOM window', () => {
+		const container = makeIndexedContainer(['opt-500', 'opt-501'])
+
+		const source = makeSource(10_000)
+
+		const { activeIndexRef, result } = setup(container, source, { activeIndex: 500 })
+
+		result.current(makeKeyEvent('Home'))
+
+		expect(source.scrollToIndex).toHaveBeenCalledWith(0, { align: 'auto' })
+
+		expect(activeIndexRef.current).toBe(0)
+
+		container.remove()
+	})
+
+	it('End jumps to the last index of a 10,000-item source', () => {
+		const container = makeIndexedContainer(['opt-0'])
+
+		const source = makeSource(10_000)
+
+		const { activeIndexRef, result } = setup(container, source, { activeIndex: 0 })
+
+		result.current(makeKeyEvent('End'))
+
+		expect(source.scrollToIndex).toHaveBeenCalledWith(9_999, { align: 'auto' })
+
+		expect(activeIndexRef.current).toBe(9_999)
+
+		container.remove()
+	})
+
+	it('type-ahead matches an offscreen item by its data text value, not the DOM', () => {
+		const container = makeIndexedContainer(['opt-0'])
+
+		const labels = ['Apple', 'Banana', 'Cherry', 'Date', 'Cantaloupe']
+
+		const source = makeSource(labels.length, {
+			getTextValue: (index) => labels[index] as string,
+		})
+
+		const { activeIndexRef, result } = setup(container, source, {
+			activeIndex: -1,
+			typeahead: true,
+		})
+
+		result.current(makeKeyEvent('c'))
+
+		// Matches "Cherry" (index 2), not "Cantaloupe" (index 4) — first match
+		// from the start.
+		expect(activeIndexRef.current).toBe(2)
+
+		expect(source.scrollToIndex).toHaveBeenCalledWith(2, { align: 'auto' })
+
+		container.remove()
+	})
+
+	it('type-ahead is a no-op (consumed, no move) when the source has no getTextValue', () => {
+		const container = makeIndexedContainer(['opt-0'])
+
+		const source = makeSource(100)
+
+		const { activeIndexRef, result } = setup(container, source, {
+			activeIndex: -1,
+			typeahead: true,
+		})
+
+		const event = makeKeyEvent('a')
+
+		result.current(event)
+
+		expect(event.preventDefault).not.toHaveBeenCalled()
+
+		expect(activeIndexRef.current).toBe(-1)
+
+		container.remove()
+	})
+
+	it('skips disabled indices on ArrowDown, wrapping past them', () => {
+		const container = makeIndexedContainer(['opt-0', 'opt-1', 'opt-2', 'opt-3'])
+
+		const source = makeSource(4, { isDisabled: (index) => index === 1 || index === 2 })
+
+		const { activeIndexRef, result } = setup(container, source, { activeIndex: 0 })
+
+		result.current(makeKeyEvent('ArrowDown'))
+
+		expect(activeIndexRef.current).toBe(3)
+
+		expect(source.scrollToIndex).toHaveBeenCalledWith(3, { align: 'auto' })
+	})
+
+	it('Home skips a disabled first item and lands on the first enabled one', () => {
+		const container = makeIndexedContainer(['opt-0', 'opt-1'])
+
+		const source = makeSource(3, { isDisabled: (index) => index === 0 })
+
+		const { activeIndexRef, result } = setup(container, source, { activeIndex: -1 })
+
+		result.current(makeKeyEvent('Home'))
+
+		expect(activeIndexRef.current).toBe(1)
+	})
+
+	it('does not move when every index is disabled', () => {
+		const container = makeIndexedContainer(['opt-0'])
+
+		const source = makeSource(3, { isDisabled: () => true })
+
+		const { activeIndexRef, result } = setup(container, source, { activeIndex: -1 })
+
+		const event = makeKeyEvent('ArrowDown')
+
+		result.current(event)
+
+		expect(event.preventDefault).not.toHaveBeenCalled()
+
+		expect(activeIndexRef.current).toBe(-1)
+	})
+
+	it('Enter clicks the mounted active row', () => {
+		const container = makeIndexedContainer(['opt-0', 'opt-1'])
+
+		const clickSpy = vi.fn()
+
+		container.querySelector('#opt-1')?.addEventListener('click', clickSpy)
+
+		const source = makeSource(1_000)
+
+		const { result } = setup(container, source, { activeIndex: 1 })
+
+		result.current(makeKeyEvent('Enter'))
+
+		expect(clickSpy).toHaveBeenCalled()
+
+		container.remove()
+	})
+
+	it('Enter is a no-op when the active row jumped past the window and has not mounted yet', () => {
+		const container = makeIndexedContainer(['opt-0'])
+
+		const source = makeSource(1_000)
+
+		const { result } = setup(container, source, { activeIndex: 500 })
+
+		expect(() => result.current(makeKeyEvent('Enter'))).not.toThrow()
+
+		container.remove()
+	})
+
+	it('clamps a stale activeIndexRef when the source shrinks (e.g. a filter narrows the list)', () => {
+		const container = makeIndexedContainer(['opt-0', 'opt-1', 'opt-2', 'opt-3', 'opt-4'])
+
+		const source = makeSource(5)
+
+		// Stale index from before a filter shrank the source from 1,000 to 5.
+		const { activeIndexRef, result } = setup(container, source, { activeIndex: 50 })
+
+		result.current(makeKeyEvent('ArrowDown'))
+
+		// Clamped to the last valid index (4), then wraps forward to 0.
+		expect(activeIndexRef.current).toBe(0)
+
+		expect(source.scrollToIndex).toHaveBeenCalledWith(0, { align: 'auto' })
+
+		container.remove()
+	})
+})
+
+describe('setVirtualActiveIndexed', () => {
+	it('records the index, scrolls it into view, and applies the highlight when the row is mounted', () => {
+		const container = document.createElement('div')
+
+		const row = document.createElement('div')
+
+		row.id = 'opt-2'
+
+		row.setAttribute('role', 'option')
+
+		container.appendChild(row)
+
+		document.body.appendChild(container)
+
+		const owner = document.createElement('input')
+
+		document.body.appendChild(owner)
+
+		const source: VirtualItemSource = {
+			count: 5,
+			getKey: (i) => `opt-${i}`,
+			scrollToIndex: vi.fn(),
+		}
+
+		const activeIndexRef = { current: -1 }
+
+		setVirtualActiveIndexed(container, source, 2, activeIndexRef, { current: owner })
+
+		expect(activeIndexRef.current).toBe(2)
+
+		expect(source.scrollToIndex).toHaveBeenCalledWith(2, { align: 'auto' })
+
+		expect(row.hasAttribute('data-active')).toBe(true)
+
+		expect(owner.getAttribute('aria-activedescendant')).toBe('opt-2')
+
+		container.remove()
+
+		owner.remove()
+	})
+
+	it('points aria-activedescendant at the predicted id even when the row is not mounted', () => {
+		const container = document.createElement('div')
+
+		document.body.appendChild(container)
+
+		const owner = document.createElement('input')
+
+		document.body.appendChild(owner)
+
+		const source: VirtualItemSource = {
+			count: 5,
+			getKey: (i) => `opt-${i}`,
+			scrollToIndex: vi.fn(),
+		}
+
+		const activeIndexRef = { current: -1 }
+
+		setVirtualActiveIndexed(container, source, 4, activeIndexRef, { current: owner })
+
+		expect(owner.getAttribute('aria-activedescendant')).toBe('opt-4')
+
+		expect(container.querySelector('[data-active]')).toBeNull()
+
+		container.remove()
+
+		owner.remove()
+	})
+})
+
+describe('clearVirtualActiveIndexed', () => {
+	it('resets the active index and drops aria-activedescendant', () => {
+		const container = document.createElement('div')
+
+		const row = document.createElement('div')
+
+		row.id = 'opt-0'
+
+		row.setAttribute('data-active', '')
+
+		container.appendChild(row)
+
+		document.body.appendChild(container)
+
+		const owner = document.createElement('input')
+
+		owner.setAttribute('aria-activedescendant', 'opt-0')
+
+		document.body.appendChild(owner)
+
+		const activeIndexRef = { current: 0 }
+
+		clearVirtualActiveIndexed(container, activeIndexRef, { current: owner })
+
+		expect(activeIndexRef.current).toBe(-1)
+
+		expect(owner.hasAttribute('aria-activedescendant')).toBe(false)
+
+		expect(row.hasAttribute('data-active')).toBe(false)
+
+		container.remove()
+
+		owner.remove()
+	})
+})
+
+describe('setVirtualActiveIndexed: mount-catch-up watcher', () => {
+	// The watcher is scoped to the `container` and `index` a single call
+	// resolves, not a persistent ref-driven effect — so it keeps working
+	// however the container's DOM identity behaves across renders (a
+	// `useEffect`-based observer keyed on the container ref can miss a target
+	// that mounts without the owning component re-rendering, e.g. under a real
+	// animation library rather than a mocked one).
+	it('applies the highlight once the target row mounts after the initial call found nothing', async () => {
+		const container = document.createElement('div')
+
+		document.body.appendChild(container)
+
+		appendedContainers.push(container)
+
+		const owner = document.createElement('input')
+
+		document.body.appendChild(owner)
+
+		const source: VirtualItemSource = {
+			count: 5,
+			getKey: (i) => `watch-opt-${i}`,
+			scrollToIndex: vi.fn(),
+		}
+
+		const activeIndexRef = { current: -1 }
+
+		setVirtualActiveIndexed(container, source, 3, activeIndexRef, { current: owner })
+
+		// Not mounted yet: the highlight only points aria-activedescendant.
+		expect(container.querySelector('[data-active]')).toBeNull()
+
+		const row = document.createElement('div')
+
+		row.id = 'watch-opt-3'
+
+		row.setAttribute('role', 'option')
+
+		container.appendChild(row)
+
+		await waitFor(() => expect(row.hasAttribute('data-active')).toBe(true))
+
+		owner.remove()
+	})
+
+	it('a stale watcher declines to apply once a newer move supersedes it', async () => {
+		const container = document.createElement('div')
+
+		document.body.appendChild(container)
+
+		appendedContainers.push(container)
+
+		const source: VirtualItemSource = {
+			count: 5,
+			getKey: (i) => `stale-opt-${i}`,
+			scrollToIndex: vi.fn(),
+		}
+
+		const activeIndexRef = { current: -1 }
+
+		// First move to index 3 (not mounted yet, arms a watcher for it), then
+		// immediately move to index 1 before it mounts.
+		setVirtualActiveIndexed(container, source, 3, activeIndexRef)
+
+		setVirtualActiveIndexed(container, source, 1, activeIndexRef)
+
+		// The stale index-3 row now appears (e.g. a wide overscan window); its
+		// watcher must not mark it active — activeIndexRef has moved on.
+		const staleRow = document.createElement('div')
+
+		staleRow.id = 'stale-opt-3'
+
+		staleRow.setAttribute('role', 'option')
+
+		container.appendChild(staleRow)
+
+		const freshRow = document.createElement('div')
+
+		freshRow.id = 'stale-opt-1'
+
+		freshRow.setAttribute('role', 'option')
+
+		container.appendChild(freshRow)
+
+		await waitFor(() => expect(freshRow.hasAttribute('data-active')).toBe(true))
+
+		expect(staleRow.hasAttribute('data-active')).toBe(false)
 	})
 })

@@ -214,22 +214,17 @@ describe('JsonTree', () => {
 	})
 
 	describe('virtualize', () => {
-		it('throws when virtualize is set without maxHeight', () => {
-			expect(() => renderUI(<JsonTree data={{}} virtualize />)).toThrow(/requires `maxHeight`/)
-		})
-
 		it.each<[string, () => ReactElement]>([
 			[
 				'mounts with data-slot="json-tree" when virtualized',
-				() => <JsonTree data={{ a: 1, b: 2 }} virtualize maxHeight="200px" />,
+				() => <JsonTree data={{ a: 1, b: 2 }} virtualize={{ maxHeight: '200px' }} />,
 			],
 			[
 				'mounts virtualized with a custom estimateSize and overscan',
 				() => (
 					<JsonTree
 						data={{ a: 1, b: 2 }}
-						virtualize={{ estimateSize: 40, overscan: 5 }}
-						maxHeight="200px"
+						virtualize={{ maxHeight: '200px', estimateSize: 40, overscan: 5 }}
 					/>
 				),
 			],
@@ -238,8 +233,7 @@ describe('JsonTree', () => {
 				() => (
 					<JsonTree
 						data={{ a: 1 }}
-						virtualize
-						maxHeight="200px"
+						virtualize={{ maxHeight: '200px' }}
 						expanded={new Set(['$'])}
 						onExpandedChange={() => {}}
 					/>
@@ -250,8 +244,7 @@ describe('JsonTree', () => {
 				() => (
 					<JsonTree
 						data={{ outer: { needle: 'match' } }}
-						virtualize
-						maxHeight="200px"
+						virtualize={{ maxHeight: '200px' }}
 						search={{ value: 'needle', filter: true }}
 					/>
 				),
@@ -271,8 +264,7 @@ describe('JsonTree', () => {
 				<JsonTree
 					data={{ outer: { inner: { needle: 'match' } } }}
 					defaultExpandDepth={0}
-					virtualize
-					maxHeight="200px"
+					virtualize={{ maxHeight: '200px' }}
 					search={{ value: 'needle' }}
 					onExpandedChange={onExpandedChange}
 				/>,
@@ -291,7 +283,7 @@ describe('JsonTree', () => {
 			const data = Object.fromEntries(Array.from({ length: 100 }, (_, i) => [`key_${i}`, i]))
 
 			const { container } = renderUI(
-				<JsonTree data={data} virtualize maxHeight="400px" defaultExpandDepth={1} />,
+				<JsonTree data={data} virtualize={{ maxHeight: '400px' }} defaultExpandDepth={1} />,
 			)
 
 			// jsdom reports zero viewport; react-virtual renders 0 items plus

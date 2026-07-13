@@ -1,7 +1,7 @@
 'use client'
 
 import { ArrowDownAZ, ArrowUpZA } from 'lucide-react'
-import { use, useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
+import { memo, use, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Button } from '../../../components/button'
 import { Combobox, ComboboxOption, useComboboxQuery } from '../../../components/combobox'
 import { Flex } from '../../../components/flex'
@@ -94,7 +94,10 @@ function SearchResults({ limit, onLoadMore }: { limit: number; onLoadMore: () =>
 	)
 }
 
-function DemoItem({ demo, current }: { demo: Demo; current: boolean }) {
+// Memoized so a navigation re-renders only the two items whose `current`
+// flipped: `demo` is a stable registry reference, leaving `current` as the sole
+// changing prop across the ~110-item list.
+const DemoItem = memo(function DemoItem({ demo, current }: { demo: Demo; current: boolean }) {
 	const prefetch = () => preloadDemo(demo.id)
 
 	return (
@@ -117,7 +120,7 @@ function DemoItem({ demo, current }: { demo: Demo; current: boolean }) {
 			<SidebarLabel>{demo.name}</SidebarLabel>
 		</SidebarItem>
 	)
-}
+})
 
 type SortDirection = 'asc' | 'desc'
 
@@ -136,7 +139,19 @@ export function SidebarContent({ route }: { route: string }) {
 	const [direction, setDirection] = useState<SortDirection>('asc')
 
 	// `demos` is name-sorted ascending; 'asc' shows it as-is, 'desc' reverses.
-	const sorted = direction === 'asc' ? demos : [...demos].reverse()
+	// Memoized so category ordering and per-category filtering recompute only when
+	// the sort direction flips, not on every navigation or lock toggle.
+	const sections = useMemo(() => {
+		const sorted = direction === 'asc' ? demos : [...demos].reverse()
+
+		return orderedCategories(sorted)
+			.map((category) => ({
+				category,
+				label: titleCase(category),
+				items: sorted.filter((demo) => demo.category === category),
+			}))
+			.filter((section) => section.items.length > 0)
+	}, [direction])
 
 	// Scroll the active item into view when the mobile sidebar opens
 	useLayoutEffect(() => {
@@ -160,7 +175,9 @@ export function SidebarContent({ route }: { route: string }) {
 						id={`${id}-search-docs`}
 						placeholder="Search docs"
 						autoComplete="off"
-						selectable={false}
+						// Controlled empty: selecting a result navigates via onValueChange
+						// without the search box retaining the picked option.
+						value=""
 						onQueryChange={() => setSearchLimit(SEARCH_PAGE_SIZE)}
 						onOpenChange={(open) => {
 							if (!open) setSearchLimit(SEARCH_PAGE_SIZE)
@@ -198,29 +215,21 @@ export function SidebarContent({ route }: { route: string }) {
 			    scroll anchoring follows a visible item to its mirrored position
 			    instead of keeping the scroller where it is. */}
 			<SidebarBody className="[overflow-anchor:none]">
-				{orderedCategories(sorted).map((category) => {
-					const items = sorted.filter((demo) => demo.category === category)
-
-					if (items.length === 0) return null
-
-					const label = titleCase(category)
-
-					return (
-						<SidebarSection key={category}>
-							<Text
-								severity="muted"
-								className={cn('mb-2 text-sm uppercase tracking-wide', SECTION_LABEL_PX[size])}
-							>
-								{label}
-							</Text>
-							<SidebarList aria-label={label}>
-								{items.map((demo) => (
-									<DemoItem key={demo.id} demo={demo} current={route === demo.id} />
-								))}
-							</SidebarList>
-						</SidebarSection>
-					)
-				})}
+				{sections.map(({ category, label, items }) => (
+					<SidebarSection key={category}>
+						<Text
+							severity="muted"
+							className={cn('mb-2 text-sm uppercase tracking-wide', SECTION_LABEL_PX[size])}
+						>
+							{label}
+						</Text>
+						<SidebarList aria-label={label}>
+							{items.map((demo) => (
+								<DemoItem key={demo.id} demo={demo} current={route === demo.id} />
+							))}
+						</SidebarList>
+					</SidebarSection>
+				))}
 			</SidebarBody>
 		</Sidebar>
 	)

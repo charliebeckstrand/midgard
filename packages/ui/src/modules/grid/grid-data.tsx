@@ -1,10 +1,11 @@
 'use client'
 
 import { useReducedMotion } from 'motion/react'
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Table } from '../../components/table'
 import { announce, cn, dataAttr } from '../../core'
 import { useA11yAnnouncements, useControllable } from '../../hooks'
+import { useIsomorphicLayoutEffect } from '../../hooks/use-isomorphic-layout-effect'
 import { useDensityLevel } from '../../providers/density'
 import { isDataColumn } from '../../utilities'
 import { GridContext, GridResizingContext, type SortState } from './context'
@@ -229,7 +230,6 @@ export function GridData<T>({
 	rows,
 	getKey,
 	sort: sortConfig,
-	sortable = true,
 	selection: selectionConfig,
 	preferences,
 	columnOrder: columnOrderConfigProp,
@@ -321,9 +321,9 @@ export function GridData<T>({
 	// wrapper); resolved from the `header` config's `position`.
 	const stickyHeader = header?.position === 'sticky'
 
-	// Columns sort by default; bake the grid-level default into each data column
-	// that doesn't set its own, so head and engine read one resolved flag.
-	const resolvedColumns = useMemo(() => resolveSortable(columns, sortable), [columns, sortable])
+	// Columns sort by default; bake that into each data column that doesn't set
+	// its own `sortable`, so head and engine read one resolved flag.
+	const resolvedColumns = useMemo(() => resolveSortable(columns), [columns])
 
 	// Menu-applied pin changes, layered over the static `pinned` flags. Folding
 	// them into the columns here lets the column and engine hooks read one
@@ -701,7 +701,7 @@ export function GridData<T>({
 	// Re-clamp the cursor whenever the rendered bounds change (filter, paginate,
 	// hide a column), so its active cell and `aria-activedescendant` never dangle
 	// past the new extent; inert for a non-cursor grid (active stays unseated).
-	useLayoutEffect(() => {
+	useIsomorphicLayoutEffect(() => {
 		cursor.reconcile(renderRows.length, dataColumns.length)
 	}, [cursor.reconcile, renderRows.length, dataColumns.length])
 

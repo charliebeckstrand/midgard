@@ -3,7 +3,7 @@ import path from 'node:path'
 import { Node, Project, SyntaxKind } from 'ts-morph'
 import ts from 'typescript'
 import type { Plugin } from 'vite'
-import { buildApi } from '../api-reference'
+import { type ApiExtractor, createApiExtractor } from '../api-reference'
 import { type DemoMeta, META_KEYS } from '../demo-meta'
 import { collectHelpers } from './collect-helpers'
 import { virtualJsonModules } from './virtual-json'
@@ -367,7 +367,9 @@ function findSrcDir(root: string): string {
 /**
  * The single Vite plugin backing the docs site. It provides:
  *
- *  - `virtual:api-reference`: prop data parsed from component sources
+ *  - `virtual:api-reference-manifest`: `{ id → () => import(perComponentModule) }`
+ *    over prop data parsed from component sources, one lazily-chunked
+ *    `virtual:api-reference/<id>` module per component
  *  - `virtual:demo-metas`: each demo's `{ name? }`
  *  - `virtual:component-modules`: `{ componentName → module }` for snippet imports
  *  - a transform tagging public index barrels with `__module` / `__name`
@@ -378,8 +380,8 @@ function findSrcDir(root: string): string {
  * `enforce: 'pre'` object.
  *
  * `docsPlugin({ vitest: true })` keeps the real component-modules map and the
- * tagging transform, stubs api-reference and demo-metas with empty defaults,
- * and drops the demo `__code` pre-transform.
+ * tagging transform, stubs the api-reference manifest and demo-metas with empty
+ * defaults, and drops the demo `__code` pre-transform.
  *
  * `packageName` is the documented library's import prefix (`ui`, `grid`, …),
  * baked into `virtual:component-modules` so derived snippets read
@@ -399,6 +401,17 @@ export function docsPlugin({
 	let srcDir = srcDirOption ?? ''
 	let demosDir = ''
 
+	// Lazily created on first read so `vitest` builds never open a Project. One
+	// long-lived extractor per plugin: it reuses its scoped ts-morph Project and
+	// re-extracts only the barrels a changed file feeds.
+	let extractor: ApiExtractor | null = null
+
+	const apiExtractor = (): ApiExtractor => {
+		extractor ??= createApiExtractor(srcDir)
+
+		return extractor
+	}
+
 	const main: Plugin = {
 		name: 'docs',
 
@@ -409,12 +422,15 @@ export function docsPlugin({
 
 		...virtualJsonModules([
 			{
-				id: 'virtual:api-reference',
-				generate: () => (vitest ? {} : buildApi(srcDir)),
+				prefix: 'virtual:api-reference/',
+				manifestId: 'virtual:api-reference-manifest',
+				generate: () => (vitest ? {} : apiExtractor().getAll()),
 				shouldInvalidate: (file) =>
+					!vitest &&
 					file.startsWith(srcDir) &&
 					/\.tsx?$/.test(file) &&
-					!file.includes(`${path.sep}docs${path.sep}`),
+					!file.includes(`${path.sep}docs${path.sep}`) &&
+					apiExtractor().notifyChanged(file),
 			},
 			{
 				id: 'virtual:demo-metas',

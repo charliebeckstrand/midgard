@@ -13,12 +13,8 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
 import { type MapHoverTarget, useMapHoverSet, useMapPointedMark } from './context'
 import { categoryLegendId, type MapCategoryMeta } from './map-categories'
-import {
-	REGION_FADE,
-	REGION_STAGGER,
-	REGION_STAGGER_MAX,
-	REGION_STROKE_WIDTH,
-} from './map-constants'
+import { REGION_STROKE_WIDTH } from './map-constants'
+import { REGION_FADE, REGION_STAGGER, REGION_STAGGER_MAX } from './map-motion'
 
 /** Props for {@link MapRegions}. @internal */
 export type MapRegionsProps = {

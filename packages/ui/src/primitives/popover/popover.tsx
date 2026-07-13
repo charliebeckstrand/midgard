@@ -1,15 +1,10 @@
 'use client'
 
 import { motion } from 'motion/react'
-import {
-	type AriaRole,
-	type KeyboardEventHandler,
-	type ReactNode,
-	useLayoutEffect,
-	useRef,
-} from 'react'
+import { type AriaRole, type KeyboardEventHandler, type ReactNode, useRef } from 'react'
 import { cn } from '../../core'
 import { useA11yRoving, useScrollWithin } from '../../hooks'
+import { useIsomorphicLayoutEffect } from '../../hooks/use-isomorphic-layout-effect'
 import { k } from '../../recipes/kata/popover'
 import { ReducedMotion } from '../reduced-motion'
 
@@ -85,7 +80,7 @@ export function PopoverPanel({
 
 	const scrollWithin = useScrollWithin()
 
-	useLayoutEffect(() => {
+	useIsomorphicLayoutEffect(() => {
 		if (!autoFocus || !panelRef.current) return
 
 		const selected = panelRef.current.querySelector<HTMLElement>(`${itemSelector}[data-selected]`)

@@ -4,8 +4,9 @@ import type { ReactNode } from 'react'
 import { Button } from '../../components/button'
 import { Dialog, DialogBody, DialogFooter, DialogTitle } from '../../components/dialog'
 import { GridColumnManager } from './grid-column-manager'
+import type { GridPreferences } from './grid-data-types'
 import type { GridColumnGroup } from './grid-group-types'
-import type { GridColumnManagerItem, GridColumnManagerPreset } from './types'
+import type { GridColumnManagerItem } from './types'
 
 /** Props for {@link GridColumnManagerDialog}. @internal */
 type GridColumnManagerDialogProps = {
@@ -25,7 +26,7 @@ type GridColumnManagerDialogProps = {
 	groups?: GridColumnGroup[]
 	/** Commits the next groups from the editor; paired with `groups` to enable it. */
 	onGroupsChange?: (groups: GridColumnGroup[]) => void
-	onSavePreset?: (preset: GridColumnManagerPreset) => void
+	onSavePreset?: (preset: GridPreferences) => void
 }
 
 /**

@@ -61,5 +61,7 @@ export const k = {
 		row: 'min-h-4',
 		panel: ['min-h-4', 'shrink-0', 'lg:w-48'],
 	},
+	/** Motion vocabulary for the mount reveals: the chart kata's, verbatim, so the two modules' reveals never drift. */
+	motion: chart.motion,
 	skeleton: kokkaku.map,
 } as const

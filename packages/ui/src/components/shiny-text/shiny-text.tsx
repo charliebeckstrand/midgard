@@ -47,11 +47,6 @@ export type ShinyTextProps = {
 	 * @defaultValue `'left'`
 	 */
 	direction?: 'left' | 'right'
-	/**
-	 * Seconds held between cycles.
-	 * @defaultValue 0
-	 */
-	delay?: number
 	ref?: Ref<HTMLSpanElement>
 	className?: string
 } & Omit<ComponentPropsWithoutRef<'span'>, 'className' | 'color'>
@@ -79,7 +74,6 @@ export function ShinyText({
 	yoyo = false,
 	pauseOnHover = false,
 	direction = 'left',
-	delay = 0,
 	ref,
 	className,
 	children,
@@ -111,7 +105,6 @@ export function ShinyText({
 			ease: 'linear',
 			repeat: Number.POSITIVE_INFINITY,
 			repeatType: yoyo ? 'reverse' : 'loop',
-			repeatDelay: delay,
 		})
 
 		controlsRef.current = controls
@@ -121,7 +114,7 @@ export function ShinyText({
 
 			controlsRef.current = null
 		}
-	}, [disabled, reduceMotion, from, to, speed, yoyo, delay, position])
+	}, [disabled, reduceMotion, from, to, speed, yoyo, position])
 
 	return (
 		<motion.span

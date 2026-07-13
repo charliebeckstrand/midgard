@@ -11,7 +11,6 @@ import {
 import { useEffect, useMemo, useRef } from 'react'
 import { useFloatingDisclosure, useHasHover } from '../../hooks'
 import { subscribeOverlaySignal } from '../../primitives/overlay'
-import type { Step } from '../../recipes'
 
 type TooltipStateOptions = {
 	placement?: Placement
@@ -19,8 +18,6 @@ type TooltipStateOptions = {
 	interactive?: boolean
 	enabled?: boolean
 	forceOpen?: boolean
-	size?: Step
-	className?: string
 }
 
 /**
@@ -56,8 +53,6 @@ export function useTooltipState({
 	interactive = false,
 	enabled = true,
 	forceOpen = false,
-	size,
-	className,
 }: TooltipStateOptions) {
 	// `forceOpen` controls the disclosure open — a programmatic reveal that skips
 	// the pointer, for a tooltip whose trigger can't take hover (an SVG rule the
@@ -140,8 +135,6 @@ export function useTooltipState({
 			open,
 			interactive,
 			enabled,
-			size,
-			className,
 			setReference: refs.setReference,
 			setFloating: refs.setFloating,
 			floatingStyles,
@@ -152,8 +145,6 @@ export function useTooltipState({
 			open,
 			interactive,
 			enabled,
-			size,
-			className,
 			refs.setReference,
 			refs.setFloating,
 			floatingStyles,

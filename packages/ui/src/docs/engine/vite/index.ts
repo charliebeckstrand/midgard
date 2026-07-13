@@ -1,8 +1,13 @@
+import { fileURLToPath } from 'node:url'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { visualizer } from 'rollup-plugin-visualizer'
 import type { UserConfig } from 'vite'
 import { docsPlugin } from '../plugins'
+
+// Curated `shiki/core` shim (tsx, typescript, bash + github-dark-default, JS
+// regex engine) that replaces the bare `shiki` specifier in the docs build.
+const shikiCore = fileURLToPath(new URL('../shiki.ts', import.meta.url))
 
 export { docsPlugin } from '../plugins'
 export type { DocsPluginOptions } from '../plugins/docs'
@@ -30,7 +35,7 @@ export type DocsConfigOptions = {
 
 /**
  * Build the Vite config for a library's docs site. The shared engine supplies
- * the plugin, React, Tailwind, the Shiki web-bundle alias, and the bundle
+ * the plugin, React, Tailwind, the curated Shiki-core alias, and the bundle
  * visualizer (under `ANALYZE=1`); the consumer supplies only its
  * `packageName` and, if non-standard, its `root`.
  *
@@ -66,14 +71,42 @@ export function defineDocsConfig({
 					sourcemap: true,
 				}),
 		],
-		server: { port: 3456 },
+		server: {
+			port: 3456,
+			// Transform the entry graph (chrome, host, providers) on server start
+			// so the first page paints without an on-demand transform stall.
+			warmup: { clientFiles: ['./main.tsx'] },
+		},
+		// Pre-bundle the heavy component deps up front. Left to lazy discovery,
+		// Vite finds each the first time a demo importing it renders and re-runs
+		// the optimizer, which triggers a full-page reload mid-session — the same
+		// failure the vitest browser config guards against. `shiki` resolves
+		// through the alias below to the curated core shim, so declaring it here
+		// prebundles that shim (and its `shiki/core` grammars) as one entry that
+		// CodeBlock's lazy `import('shiki')` then reuses.
+		optimizeDeps: {
+			include: [
+				'@dnd-kit/core',
+				'@dnd-kit/sortable',
+				'@dnd-kit/utilities',
+				'@floating-ui/react',
+				'@tanstack/react-table',
+				'@tanstack/react-virtual',
+				'lucide-react',
+				'motion',
+				'motion/react',
+				'shiki',
+			],
+		},
 		resolve: {
 			alias: [
-				// Use the web bundle (web-relevant languages only) instead of all ~300
-				// grammars. The public CodeBlock component still references 'shiki' —
-				// this alias only affects the docs build. Regex ensures shiki/wasm etc.
-				// are not rewritten.
-				{ find: /^shiki$/, replacement: 'shiki/bundle/web' },
+				// Redirect the bare `shiki` specifier to a curated `shiki/core` build
+				// (three grammars, one theme, JS regex engine) instead of the ~50-grammar,
+				// ~30-theme web bundle with its 622 kB oniguruma-wasm chunk. The public
+				// CodeBlock component still references 'shiki' — this alias only affects
+				// the docs build. The anchored regex leaves shiki/core, shiki/langs/*,
+				// etc. (which the shim itself imports) untouched.
+				{ find: /^shiki$/, replacement: shikiCore },
 			],
 		},
 		build: {

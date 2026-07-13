@@ -102,7 +102,10 @@ export function DatePickerTrigger({
 	const showClear = clearable && hasValue && !disabled
 
 	const valueNode = (
-		<span ref={valueRef} className={k.value({ truncate })}>
+		<span
+			ref={valueRef}
+			className={cn(k.value({ truncate }), truncate ? 'min-w-0 flex-1 overflow-hidden' : 'flex-1')}
+		>
 			{displayValue || <span className={cn(k.placeholder)}>{placeholder}</span>}
 		</span>
 	)
@@ -133,10 +136,7 @@ export function DatePickerTrigger({
 						className={cn(k.button({ density: size, size }))}
 					>
 						{children ?? (
-							<Tooltip
-								enabled={truncate && isTruncated && Boolean(displayValue)}
-								className={truncate ? 'min-w-0 flex-1 overflow-hidden' : 'flex-1'}
-							>
+							<Tooltip enabled={truncate && isTruncated && Boolean(displayValue)}>
 								<TooltipTrigger>{valueNode}</TooltipTrigger>
 								<TooltipContent>{displayValue}</TooltipContent>
 							</Tooltip>

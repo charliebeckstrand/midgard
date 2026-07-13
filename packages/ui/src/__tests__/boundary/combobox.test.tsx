@@ -586,7 +586,10 @@ describe('Combobox active-descendant keyboard model', () => {
 
 		await user.click(screen.getByRole('option', { name: 'Apple' }))
 
-		expect(input).toHaveValue('apple')
+		// `capitalize` defaults on, so the resolved display value renders
+		// first-word-capitalized in the input's DOM value (the underlying
+		// selection stays 'apple').
+		expect(input).toHaveValue('Apple')
 
 		// Focus stayed on the input, so reopen via the chevron.
 		const icon = bySlot(container, 'suffix')?.querySelector<HTMLElement>('[data-slot="icon"]')
@@ -702,6 +705,34 @@ describe('Combobox listbox selection semantics', () => {
 	})
 })
 
+// The `capitalize` default formats string option labels in JS at render, so
+// the accessible name matches the visual: first word only, rest untouched.
+describe('Combobox capitalize', () => {
+	it('capitalizes only the first word of a string option label', () => {
+		renderUI(
+			<Combobox<string> open>
+				<ComboboxOption value="a">
+					<ComboboxLabel>red apple</ComboboxLabel>
+				</ComboboxOption>
+			</Combobox>,
+		)
+
+		expect(screen.getByRole('option', { name: 'Red apple' })).toBeInTheDocument()
+	})
+
+	it('renders string option labels as authored when capitalize is off', () => {
+		renderUI(
+			<Combobox<string> open capitalize={false}>
+				<ComboboxOption value="a">
+					<ComboboxLabel>red apple</ComboboxLabel>
+				</ComboboxOption>
+			</Combobox>,
+		)
+
+		expect(screen.getByRole('option', { name: 'red apple' })).toBeInTheDocument()
+	})
+})
+
 describe('ComboboxPanel', () => {
 	function renderPanel(onClose: () => void) {
 		return renderUI(
@@ -710,7 +741,6 @@ describe('ComboboxPanel', () => {
 				open
 				editing={false}
 				multiple={false}
-				capitalize={false}
 				glass={false}
 				density="md"
 				size="md"
@@ -757,7 +787,6 @@ describe('ComboboxPanel', () => {
 				open
 				editing={false}
 				multiple={false}
-				capitalize={false}
 				glass={false}
 				density="md"
 				size="md"
@@ -792,7 +821,7 @@ describe('ComboboxPanel', () => {
 describe('Combobox + Control', () => {
 	it('surfaces invalid state from an enclosing Control', () => {
 		const { container } = renderUI(
-			<Control invalid>
+			<Control severity="error">
 				<Combobox>
 					<ComboboxOption value="a">
 						<ComboboxLabel>A</ComboboxLabel>
@@ -824,7 +853,7 @@ describe('Combobox + Control', () => {
 
 	it('points aria-describedby at the control description and message', () => {
 		const { container } = renderUI(
-			<Control id="status" invalid>
+			<Control id="status" severity="error">
 				<Description>Choose one</Description>
 				<Combobox>
 					<ComboboxOption value="a">

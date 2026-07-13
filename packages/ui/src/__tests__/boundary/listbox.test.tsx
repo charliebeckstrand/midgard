@@ -373,17 +373,16 @@ describe('Listbox', () => {
 		expect(screen.getByText('ALPHA')).toBeInTheDocument()
 	})
 
-	it('applies tabular-nums when tabularNums is set', () => {
+	it('renders tabular numerals via a tabular-nums className that inherits to the value', () => {
 		const { container } = renderUI(
-			<Listbox tabularNums value="1.234" displayValue={(v) => v}>
+			<Listbox className="tabular-nums" value="1.234" displayValue={(v) => v}>
 				<div>Option</div>
 			</Listbox>,
 		)
 
-		const button = bySlot(container, 'listbox-button') as HTMLElement
-
-		// The tabular-nums class is applied to the inner label span.
-		expect(button.querySelector('.tabular-nums')).toBeInTheDocument()
+		// `font-variant-numeric: tabular-nums` inherits, so the class on the
+		// trigger reaches the value text — no dedicated prop needed.
+		expect(bySlot(container, 'listbox')?.className).toContain('tabular-nums')
 	})
 
 	it('mounts in multi-select mode with an empty default value', () => {
@@ -473,7 +472,9 @@ describe('Listbox in a Form', () => {
 			</Form>,
 		)
 
-		expect(screen.getByText('basic')).toBeInTheDocument()
+		// `capitalize` defaults on: the trigger renders the display string
+		// first-word-capitalized (the underlying value stays 'basic').
+		expect(screen.getByText('Basic')).toBeInTheDocument()
 	})
 
 	it('marks the bound field touched when the trigger blurs', () => {

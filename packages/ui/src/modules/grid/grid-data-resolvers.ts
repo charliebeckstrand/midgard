@@ -28,18 +28,15 @@ import type { GridNavTableProps } from './use-grid-navigation'
 import type { GridColumnResize, GridPaginationView } from './use-grid-table'
 
 /**
- * Applies the grid-level `sortable` default to data columns that don't declare
- * their own: an undefined {@link GridColumn.sortable} inherits `defaultSortable`,
- * while an explicit value (and every non-data column) is left untouched.
+ * Defaults each data column's {@link GridColumn.sortable} to `true` when it
+ * declares none, so sorting is opt-out per column; an explicit value (and every
+ * non-data column) is left untouched.
  *
  * @internal
  */
-export function resolveSortable<T>(
-	columns: GridColumn<T>[],
-	defaultSortable: boolean,
-): GridColumn<T>[] {
+export function resolveSortable<T>(columns: GridColumn<T>[]): GridColumn<T>[] {
 	return columns.map((col) =>
-		isDataColumn(col) && col.sortable === undefined ? { ...col, sortable: defaultSortable } : col,
+		isDataColumn(col) && col.sortable === undefined ? { ...col, sortable: true } : col,
 	)
 }
 
@@ -102,7 +99,7 @@ export type ResolvedInfiniteScroll = {
  * `totalRows` — else on outright (the consumer stops it) — and `loadingMore`
  * defaults off; `threshold` falls back to the virtualization `overscan`, so the
  * fetch leads the viewport by about the windowed overscan. The loading indicator
- * is opt-in (`showLoadingIndicator`, off by default), and `stableColumnWidths`
+ * is presence-implied (`loadingIndicator`, off by default), and `stableColumnWidths`
  * defaults off. Returns `null` for no binding — the body then wires no
  * end-detection and renders no trailing row.
  *
@@ -118,14 +115,19 @@ export function resolveInfiniteScroll(
 
 	const totalRows = infiniteScroll.totalRows ?? null
 
+	// Presence-implied: `loadingIndicator` truthy (a `true` gate or a real node)
+	// shows the indicator; a boolean carries no content, so only a node overrides
+	// the default per-column skeleton.
+	const indicator = infiniteScroll.loadingIndicator
+
 	return {
 		onLoadMore: infiniteScroll.onLoadMore,
 		hasMore: infiniteScroll.hasMore ?? (totalRows != null ? loadedCount < totalRows : true),
 		loadingMore: infiniteScroll.loadingMore ?? false,
 		threshold: infiniteScroll.threshold ?? overscan,
 		totalRows,
-		showLoadingIndicator: infiniteScroll.showLoadingIndicator ?? false,
-		loadingIndicator: infiniteScroll.loadingIndicator,
+		showLoadingIndicator: indicator != null && indicator !== false,
+		loadingIndicator: typeof indicator === 'boolean' ? undefined : indicator,
 		endMessage: infiniteScroll.endMessage,
 		error: infiniteScroll.error,
 		stableColumnWidths: infiniteScroll.stableColumnWidths ?? false,

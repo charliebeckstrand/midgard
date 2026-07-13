@@ -20,17 +20,23 @@ const SKIP = new Set(['__tests__', '__benchmarks__', 'node_modules', 'dist'])
  * Recursively visit every shipped source file under `dir` with its content.
  *
  * @remarks
- * Dot-entries, test and benchmark trees, and build output are skipped. Shared
- * by the boundary tests, which scan source layers for forbidden patterns.
+ * Dot-entries, test and benchmark trees, and build output are skipped, plus
+ * any caller-supplied `skip` entry names — pruned before the read, so an
+ * excluded tree costs no I/O. Shared by the boundary tests, which scan source
+ * layers for forbidden patterns.
  */
-export function walkSource(dir: string, visit: (file: string, content: string) => void): void {
+export function walkSource(
+	dir: string,
+	visit: (file: string, content: string) => void,
+	skip?: ReadonlySet<string>,
+): void {
 	for (const entry of readdirSync(dir, { withFileTypes: true })) {
-		if (entry.name.startsWith('.') || SKIP.has(entry.name)) continue
+		if (entry.name.startsWith('.') || SKIP.has(entry.name) || skip?.has(entry.name)) continue
 
 		const path = join(dir, entry.name)
 
 		if (entry.isDirectory()) {
-			walkSource(path, visit)
+			walkSource(path, visit, skip)
 		} else if (entry.isFile()) {
 			visit(path, readFileSync(path, 'utf8'))
 		}

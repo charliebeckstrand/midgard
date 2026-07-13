@@ -9,11 +9,13 @@ type ComboboxContextValue<T = unknown> = {
 	value: T | T[] | undefined
 	multiple: boolean
 	onSelect: (value: T) => void
+	capitalize: boolean
 }
 
 /**
  * Selection state shared from the {@link Combobox} root to its options:
- * the frozen `value`, the `multiple` flag, and the `onSelect` callback.
+ * the frozen `value`, the `multiple` flag, the `onSelect` callback, and the
+ * `capitalize` flag for string option labels.
  *
  * @internal
  */

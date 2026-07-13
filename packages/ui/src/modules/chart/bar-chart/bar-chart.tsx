@@ -101,7 +101,6 @@ export function BarChart<T>(props: BarChartProps<T>) {
 		height,
 		aspectRatio,
 		axes,
-		grid = true,
 		legend,
 		tooltip,
 		crosshair,
@@ -111,7 +110,6 @@ export function BarChart<T>(props: BarChartProps<T>) {
 		thick = false,
 		texture = false,
 		reference,
-		tickRotation,
 		onCategoryClick,
 		formatValue,
 		className,
@@ -238,7 +236,6 @@ export function BarChart<T>(props: BarChartProps<T>) {
 				hasData={data.length > 0}
 				baseline={chart.baseline}
 				axes={chart.axes}
-				grid={grid}
 				gridPositions={chart.gridPositions}
 				categoryGridPositions={chart.categoryGridPositions}
 				categorySeparator={chart.categorySeparator}

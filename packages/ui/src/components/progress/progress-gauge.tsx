@@ -106,7 +106,7 @@ export function ProgressGauge({
 						className={cn(k.color[color].stroke)}
 						initial={{ strokeDashoffset: circumference }}
 						animate={{ strokeDashoffset: offset }}
-						transition={{ type: 'spring', stiffness: 100, damping: 20 }}
+						transition={k.spring}
 					/>
 				</svg>
 			</ReducedMotion>

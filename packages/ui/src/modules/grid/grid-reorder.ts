@@ -2,8 +2,10 @@
 
 import { type AnimationPlaybackControls, animate } from 'motion'
 import { useReducedMotion } from 'motion/react'
-import { type RefObject, useLayoutEffect } from 'react'
+import type { RefObject } from 'react'
 import { createContext } from '../../core'
+import { useIsomorphicLayoutEffect } from '../../hooks/use-isomorphic-layout-effect'
+import { k } from '../../recipes/kata/grid'
 import { columnShiftVar } from './engine/grid-reorder-compute'
 
 /**
@@ -19,9 +21,6 @@ import { columnShiftVar } from './engine/grid-reorder-compute'
 export const [GridReorderContext] = createContext<string | null>('GridReorder', {
 	default: null,
 })
-
-/** Snappy, lightly-damped spring for the shift glide — settles fast with a touch of give, not a bounce. @internal */
-const SHIFT_SPRING = { type: 'spring', stiffness: 600, damping: 38 } as const
 
 /**
  * Drives a reordering column's shift onto the CSS variable {@link columnShiftStyle}
@@ -49,7 +48,7 @@ export function useColumnReorderShift(
 ): void {
 	const reduceMotion = useReducedMotion()
 
-	useLayoutEffect(() => {
+	useIsomorphicLayoutEffect(() => {
 		const table = tableRef.current
 
 		if (!table) return
@@ -64,7 +63,7 @@ export function useColumnReorderShift(
 		const controls: AnimationPlaybackControls = animate(
 			table,
 			{ [columnShiftVar(index)]: `${x}px` },
-			instant ? { duration: 0 } : SHIFT_SPRING,
+			instant ? { duration: 0 } : k.motion.columnShift,
 		)
 
 		return () => controls.stop()

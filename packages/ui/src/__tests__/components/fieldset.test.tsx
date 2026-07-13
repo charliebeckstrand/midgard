@@ -50,11 +50,12 @@ describe('Field', () => {
 		expect(bySlot(container, 'field')).toHaveAttribute('data-disabled')
 	})
 
-	it('auto-renders an error Message and marks the control invalid for severity="error"', () => {
+	it('marks the control invalid for severity="error" alongside a nested error Message', () => {
 		const { container } = renderUI(
-			<Field severity="error" message="Enter a valid email">
+			<Field severity="error">
 				<Label>Email</Label>
 				<Input />
+				<Message severity="error">Enter a valid email</Message>
 			</Field>,
 		)
 
@@ -73,11 +74,12 @@ describe('Field', () => {
 		expect(input).toHaveAttribute('aria-invalid', 'true')
 	})
 
-	it('auto-renders a polite warning Message and data-warning without aria-invalid', () => {
+	it('renders a polite warning Message and data-warning without aria-invalid', () => {
 		const { container } = renderUI(
-			<Field severity="warning" message="Double-check this value">
+			<Field severity="warning">
 				<Label>Field</Label>
 				<Input />
+				<Message severity="warning">Double-check this value</Message>
 			</Field>,
 		)
 
@@ -96,11 +98,12 @@ describe('Field', () => {
 		expect(input).not.toHaveAttribute('data-invalid')
 	})
 
-	it('auto-renders a success Message and data-valid without aria-invalid', () => {
+	it('renders a success Message and data-valid without aria-invalid', () => {
 		const { container } = renderUI(
-			<Field severity="success" message="Looks good">
+			<Field severity="success">
 				<Label>Field</Label>
 				<Input />
+				<Message severity="success">Looks good</Message>
 			</Field>,
 		)
 
@@ -117,27 +120,18 @@ describe('Field', () => {
 		expect(input).not.toHaveAttribute('aria-invalid')
 	})
 
-	it('does not reference a success auto-Message in aria-describedby', () => {
+	it('does not reference a success Message in aria-describedby', () => {
 		const { container } = renderUI(
-			<Field severity="success" message="Looks good">
+			<Field severity="success">
 				<Input />
+				<Message severity="success">Looks good</Message>
 			</Field>,
 		)
 
 		expect(bySlot(container, 'input')).not.toHaveAttribute('aria-describedby')
 	})
 
-	it('renders no auto-Message without a message or name prop', () => {
-		const { container } = renderUI(
-			<Field>
-				<Input />
-			</Field>,
-		)
-
-		expect(bySlot(container, 'message')).toBeNull()
-	})
-
-	it('auto-renders the bound form field error from the name prop', async () => {
+	it('renders a bound form field error from a nested Message name', async () => {
 		const { container } = renderUI(
 			<Form
 				defaultValues={{ email: '' }}
@@ -145,9 +139,10 @@ describe('Field', () => {
 					helpers.setErrors({ email: 'required' })
 				}}
 			>
-				<Field name="email">
+				<Field>
 					<Label>Email</Label>
 					<Input name="email" />
+					<Message name="email" />
 				</Field>
 				<button type="submit">Submit</button>
 			</Form>,

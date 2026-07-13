@@ -16,7 +16,6 @@ type GroupBaseProps = {
 	 * order: explicit prop, then enclosing Density size, then `'md'`.
 	 */
 	size?: Step
-	'data-slot'?: string
 	ref?: Ref<HTMLDivElement>
 	className?: string
 	children?: ReactNode
@@ -49,7 +48,6 @@ export type GroupProps = GroupBaseProps & PolymorphicProps<'div'>
 export function Group({
 	orientation = 'horizontal',
 	size,
-	'data-slot': slot = 'group',
 	ref,
 	className,
 	href,
@@ -65,7 +63,7 @@ export function Group({
 		<Polymorphic
 			as="div"
 			ref={ref}
-			data-slot={slot}
+			data-slot="group"
 			href={href}
 			data-size={resolvedSize}
 			data-group-orientation={orientation}

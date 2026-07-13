@@ -5,9 +5,35 @@ import {
 	crossAxisDelta,
 	type NavigationConfig,
 	nextIndexForKey,
+	wrap,
 } from '../../utilities/keyboard-navigation'
 import { useScrollWithin } from '../use-scroll-within'
 import { isTypeaheadKey, useTypeahead } from './use-typeahead'
+
+/**
+ * Pluggable index-based item source for virtual (windowed) roving: lets
+ * {@link useA11yRoving} navigate a list by index instead of querying the DOM,
+ * so arrow / type-ahead reach items outside a virtualized window (Home/End
+ * likewise, for a container that routes them to roving rather than reserving
+ * them, as `Combobox`/`CommandPalette` do for the textbox caret).
+ * `VirtualOptions` constructs and registers one from its `items` plus the
+ * `getOptionId` / `isDisabled` / `getTextValue` props.
+ */
+export type VirtualItemSource = {
+	/** Total number of items in the full (unwindowed) list. */
+	count: number
+	/**
+	 * Stable id for the item at `index` — must match the `id` the row renders
+	 * with, so `aria-activedescendant` resolves once the row mounts.
+	 */
+	getKey: (index: number) => string
+	/** Whether the item at `index` is disabled; navigation skips it. */
+	isDisabled?: (index: number) => boolean
+	/** Text value for type-ahead matching at `index`, in place of an element's accessible name. */
+	getTextValue?: (index: number) => string
+	/** Scrolls the item at `index` into the rendered window, mounting it if it was outside it. */
+	scrollToIndex: (index: number, options?: { align?: 'auto' | 'center' | 'end' | 'start' }) => void
+}
 
 type RovingRowConfig = {
 	/** Selector for the wrapper grouping an item with its action controls. */
@@ -78,19 +104,206 @@ export function setVirtualActive(
 }
 
 /**
- * Clear the virtual-mode active marker: strips `data-active` / `aria-selected`
- * from the active row (when `items` are passed) and drops the owner's
+ * Clear the virtual-mode active marker: drops the owner's
  * `aria-activedescendant`. The named reset counterpart to {@link setVirtualActive},
  * so callers express intent as `clearVirtualActive(ref)` rather than the cryptic
  * `setVirtualActive([], -1, ref)`. A closing panel unmounts its rows, so the
- * owner-clear alone — no `items` — is the usual call.
+ * owner-clear is all a caller needs; stripping attributes off still-mounted
+ * rows is {@link setVirtualActive}'s job.
  */
-export function clearVirtualActive(
+export function clearVirtualActive(activeDescendantRef: RefObject<HTMLElement | null>): void {
+	setVirtualActive([], -1, activeDescendantRef)
+}
+
+/** The id `source` mints for `index`, or undefined out of range. @internal */
+function resolveVirtualItemId(source: VirtualItemSource, index: number): string | undefined {
+	return index >= 0 && index < source.count ? source.getKey(index) : undefined
+}
+
+/**
+ * Syncs the DOM to the logical active id for an indexed source: clears a
+ * stale `data-active` row, points the owner's `aria-activedescendant` at `id`
+ * (even before the row mounts — a windowed-out row isn't in the DOM yet), and
+ * marks `data-active`/`aria-selected` on it once it is. Idempotent, so it is
+ * safe to call again once a row that wasn't mounted the first time appears.
+ *
+ * @returns True once `id`'s row is confirmed active in the DOM (already was,
+ * or just applied); false when there's no id to apply, or its row isn't
+ * mounted inside `container` yet — the signal callers use to decide whether
+ * to keep watching for it.
+ * @internal
+ */
+function applyVirtualActiveDom(
+	container: HTMLElement | null,
+	id: string | undefined,
+	activeDescendantRef: RefObject<HTMLElement | null> | undefined,
+	ariaSelected: boolean,
+): boolean {
+	const prev = container?.querySelector<HTMLElement>('[data-active]')
+
+	if (prev && prev.id !== id) {
+		prev.removeAttribute('data-active')
+
+		if (ariaSelected) prev.setAttribute('aria-selected', 'false')
+	}
+
+	const controller = activeDescendantRef?.current
+
+	if (id) controller?.setAttribute('aria-activedescendant', id)
+	else controller?.removeAttribute('aria-activedescendant')
+
+	if (!id) return false
+
+	// `aria-activedescendant` ids are document-unique by spec; resolve through
+	// the document, not a container query, and confirm it's actually inside
+	// `container` before touching it.
+	const next = document.getElementById(id)
+
+	if (!next || !container?.contains(next)) return false
+
+	if (next.dataset.active === undefined) {
+		next.setAttribute('data-active', '')
+
+		if (ariaSelected) next.setAttribute('aria-selected', 'true')
+	}
+
+	return true
+}
+
+/**
+ * The in-flight mount watcher per container. Each navigation owns at most one;
+ * {@link setVirtualActiveIndexed} disconnects the previous one up front, so a
+ * superseded watcher doesn't linger (or stack) waiting for a mutation that may
+ * never come.
+ *
+ * @internal
+ */
+const pendingMountWatchers = new WeakMap<HTMLElement, MutationObserver>()
+
+/**
+ * Watches `container` for `id`'s row to mount — a windowed target scrolled
+ * into view via `scrollToIndex` doesn't mount synchronously, since the
+ * virtualizer re-renders on its own schedule, decoupled from this call.
+ * Scoped to this specific navigation via `index`: on each mutation, a stale
+ * watcher (superseded by a newer move that already changed `activeIndexRef`)
+ * disconnects instead of applying an outdated highlight.
+ *
+ * @internal
+ */
+function watchForIndexedMount(
+	container: HTMLElement,
+	id: string,
+	index: number,
+	activeIndexRef: RefObject<number>,
+	activeDescendantRef: RefObject<HTMLElement | null> | undefined,
+	ariaSelected: boolean,
+): void {
+	const observer = new MutationObserver(() => {
+		if (activeIndexRef.current !== index) {
+			observer.disconnect()
+
+			return
+		}
+
+		if (applyVirtualActiveDom(container, id, activeDescendantRef, ariaSelected))
+			observer.disconnect()
+	})
+
+	pendingMountWatchers.set(container, observer)
+
+	observer.observe(container, { childList: true, subtree: true })
+}
+
+/**
+ * Indexed-source counterpart to {@link setVirtualActive}: records `index` on
+ * `activeIndexRef` (the logical active index, since a windowed-out row has no
+ * DOM `data-active` marker to read it back off of), scrolls it into the
+ * window via the source's `scrollToIndex`, and applies the DOM highlight
+ * immediately if the row is already mounted — else watches `container` until
+ * it mounts. Pass a negative `index` (or a null `source`) to clear, matching
+ * {@link setVirtualActive}.
+ *
+ * @internal
+ */
+export function setVirtualActiveIndexed(
+	container: HTMLElement | null,
+	source: VirtualItemSource | null,
+	index: number,
+	activeIndexRef: RefObject<number>,
+	activeDescendantRef?: RefObject<HTMLElement | null>,
+	{ ariaSelected = true }: { ariaSelected?: boolean } = {},
+): void {
+	// This navigation supersedes any watcher still waiting on a prior target.
+	if (container) pendingMountWatchers.get(container)?.disconnect()
+
+	activeIndexRef.current = index
+
+	if (!source || index < 0) {
+		applyVirtualActiveDom(container, undefined, activeDescendantRef, ariaSelected)
+
+		return
+	}
+
+	source.scrollToIndex(index, { align: 'auto' })
+
+	const id = resolveVirtualItemId(source, index)
+
+	const applied = applyVirtualActiveDom(container, id, activeDescendantRef, ariaSelected)
+
+	if (!applied && container && id) {
+		watchForIndexedMount(container, id, index, activeIndexRef, activeDescendantRef, ariaSelected)
+	}
+}
+
+/**
+ * Clears the indexed-source active state: the named reset counterpart to
+ * {@link setVirtualActiveIndexed}, mirroring {@link clearVirtualActive}.
+ *
+ * @internal
+ */
+export function clearVirtualActiveIndexed(
+	container: HTMLElement | null,
+	activeIndexRef: RefObject<number>,
+	activeDescendantRef?: RefObject<HTMLElement | null>,
+): void {
+	setVirtualActiveIndexed(container, null, -1, activeIndexRef, activeDescendantRef)
+}
+
+/**
+ * Seeds the virtual highlight to the top match, or clears it when there is
+ * none: index 0 of `source` when a `VirtualOptions` has registered one, else
+ * the first DOM `itemSelector` match. The owner-side move `Combobox` and
+ * `CommandPalette` make on each filter change so `data-active` /
+ * `aria-activedescendant` always point at a live option; kept here so the
+ * source-vs-DOM branch stays in one place as more owners adopt an indexed
+ * source.
+ *
+ * @internal
+ */
+export function seedVirtualTopMatch(
+	container: HTMLElement | null,
+	itemSelector: string,
+	source: VirtualItemSource | null,
+	activeIndexRef: RefObject<number>,
 	activeDescendantRef: RefObject<HTMLElement | null>,
-	items: HTMLElement[] = [],
 	options?: { ariaSelected?: boolean },
 ): void {
-	setVirtualActive(items, -1, activeDescendantRef, options)
+	if (source) {
+		setVirtualActiveIndexed(
+			container,
+			source,
+			source.count > 0 ? 0 : -1,
+			activeIndexRef,
+			activeDescendantRef,
+			options,
+		)
+
+		return
+	}
+
+	const items = queryItems(container, itemSelector)
+
+	setVirtualActive(items, items.length > 0 ? 0 : -1, activeDescendantRef, options)
 }
 
 /**
@@ -151,6 +364,123 @@ type RovingKeyContext = {
 	manageAriaSelected: boolean
 	scrollIntoView: boolean
 	scrollWithin: ScrollWithin
+	containerEl: HTMLElement | null
+	/** Set (with `activeIndexRef`) when navigating an indexed source instead of `items`. */
+	itemSource: VirtualItemSource | null
+	activeIndexRef: RefObject<number> | undefined
+}
+
+/**
+ * Resolves the per-keystroke {@link RovingKeyContext} plus the current active
+ * element and index, or null when there's nothing to navigate (`items` is
+ * empty in DOM mode, `itemSource.count` is 0 in indexed mode). Indexed mode
+ * (a virtual `itemSource` paired with `activeIndexRef`) reads the current
+ * index off `activeIndexRef` — clamped to the source's live `count`, since a
+ * filter can shrink it between keystrokes — instead of scanning the DOM,
+ * which may not have the active row mounted.
+ *
+ * @internal
+ */
+function resolveRovingContext(
+	container: HTMLElement | null,
+	itemSelector: string,
+	mode: 'focus' | 'virtual',
+	config: {
+		itemSource: VirtualItemSource | null
+		activeIndexRef: RefObject<number> | undefined
+		manageTabIndex: boolean
+		activeDescendantRef: RefObject<HTMLElement | null> | undefined
+		manageAriaSelected: boolean
+		scrollIntoView: boolean
+		scrollWithin: ScrollWithin
+	},
+): { ctx: RovingKeyContext; active: HTMLElement | null; currentIndex: number } | null {
+	const isVirtual = mode === 'virtual'
+
+	// Indexed mode is virtual-only, and none of its keydown paths read `items`;
+	// skip the DOM query rather than run it (plus the array allocation) on
+	// every keystroke — including arrow-key auto-repeat — for a dead value.
+	const indexed = isVirtual && config.itemSource && config.activeIndexRef ? config.itemSource : null
+
+	const items = indexed ? [] : queryItems(container, itemSelector)
+
+	const itemCount = indexed ? indexed.count : items.length
+
+	if (itemCount === 0) return null
+
+	const active = document.activeElement as HTMLElement | null
+
+	const currentIndex = indexed
+		? Math.min(config.activeIndexRef?.current ?? -1, indexed.count - 1)
+		: resolveDomCurrentIndex(items, isVirtual, active)
+
+	return {
+		ctx: {
+			items,
+			isVirtual,
+			manageTabIndex: config.manageTabIndex,
+			activeDescendantRef: config.activeDescendantRef,
+			manageAriaSelected: config.manageAriaSelected,
+			scrollIntoView: config.scrollIntoView,
+			scrollWithin: config.scrollWithin,
+			containerEl: container,
+			itemSource: indexed,
+			activeIndexRef: config.activeIndexRef,
+		},
+		active,
+		currentIndex,
+	}
+}
+
+/** The DOM-mode current index: the `data-active` item in virtual mode, the focused item otherwise. @internal */
+function resolveDomCurrentIndex(
+	items: HTMLElement[],
+	isVirtual: boolean,
+	active: HTMLElement | null,
+): number {
+	return isVirtual
+		? items.findIndex((el) => el.dataset.active !== undefined)
+		: items.indexOf(active as HTMLElement)
+}
+
+/**
+ * {@link nextIndexForKey} extended to skip indices `isDisabled` marks: walks
+ * from the naive target in the key's implied direction, wrapping until it
+ * finds an enabled index or exhausts the source (returns null). DOM-mode
+ * roving gets disabled-skipping for free — `itemSelector` excludes disabled
+ * rows from `items` entirely — but an index-based source has no DOM to
+ * filter, so the walk is explicit. Grid (`cols`) navigation is out of scope:
+ * `itemSource` targets flat option lists, so the walk always treats `key` as
+ * linear.
+ *
+ * @internal
+ */
+function nextIndexedKey(
+	key: string,
+	currentIndex: number,
+	count: number,
+	config: NavigationConfig,
+	isDisabled: ((index: number) => boolean) | undefined,
+): number | null {
+	const base = nextIndexForKey(key, currentIndex, count, config)
+
+	if (base === null || !isDisabled || !isDisabled(base)) return base
+
+	const forward = config.orientation === 'horizontal' ? 'ArrowRight' : 'ArrowDown'
+
+	const direction = key === 'Home' || key === forward ? 1 : -1
+
+	let index = base
+
+	for (let steps = 0; steps < count; steps++) {
+		index = wrap(index + direction, count)
+
+		if (index === currentIndex) return null
+
+		if (!isDisabled(index)) return index
+	}
+
+	return null
 }
 
 /** Inputs to {@link processRowContext} for resolving row cross-axis navigation. */
@@ -181,6 +511,19 @@ function moveTo(index: number, ctx: RovingKeyContext): void {
 		if (ctx.manageTabIndex) seatTabStop(ctx.items, next)
 
 		next.focus()
+
+		return
+	}
+
+	if (ctx.itemSource && ctx.activeIndexRef) {
+		setVirtualActiveIndexed(
+			ctx.containerEl,
+			ctx.itemSource,
+			index,
+			ctx.activeIndexRef,
+			ctx.activeDescendantRef,
+			{ ariaSelected: ctx.manageAriaSelected },
+		)
 
 		return
 	}
@@ -263,6 +606,18 @@ function handleActivationKey(
 
 	event.preventDefault()
 
+	if (ctx.itemSource) {
+		const id = resolveVirtualItemId(ctx.itemSource, currentIndex)
+
+		const node = id ? document.getElementById(id) : null
+
+		// A jump landed on a not-yet-mounted row (the move's mount watcher
+		// hasn't caught up yet); nothing to click until it renders.
+		node?.click()
+
+		return true
+	}
+
 	ctx.items[currentIndex]?.click()
 
 	return true
@@ -279,12 +634,36 @@ function handleTypeahead(
 	event: KeyboardEvent,
 	ctx: RovingKeyContext,
 	currentIndex: number,
-	matchTypeahead: ReturnType<typeof useTypeahead>,
+	matchers: ReturnType<typeof useTypeahead>,
 	typeahead: boolean,
 ): boolean {
 	if (!typeahead || !isTypeaheadKey(event)) return false
 
-	const index = matchTypeahead(ctx.items, event.key, currentIndex)
+	if (ctx.itemSource) {
+		const source = ctx.itemSource
+
+		// No text values to match against; consume the key rather than fall
+		// through to main-axis nav, mirroring the DOM path's "no match" no-op.
+		if (!source.getTextValue) return true
+
+		const index = matchers.matchIndexed(
+			source.count,
+			source.getTextValue,
+			source.isDisabled,
+			event.key,
+			currentIndex,
+		)
+
+		if (index !== null) {
+			event.preventDefault()
+
+			moveTo(index, ctx)
+		}
+
+		return true
+	}
+
+	const index = matchers.match(ctx.items, event.key, currentIndex)
 
 	if (index !== null) {
 		event.preventDefault()
@@ -308,10 +687,18 @@ function handleMainAxisNav(
 ): void {
 	if (!ctx.isVirtual && currentIndex === -1 && !opts.focusOnEmpty) return
 
-	const nextIndex = nextIndexForKey(event.key, currentIndex, ctx.items.length, {
-		cols: opts.cols,
-		orientation: opts.orientation,
-	})
+	const nextIndex = ctx.itemSource
+		? nextIndexedKey(
+				event.key,
+				currentIndex,
+				ctx.itemSource.count,
+				{ cols: opts.cols, orientation: opts.orientation },
+				ctx.itemSource.isDisabled,
+			)
+		: nextIndexForKey(event.key, currentIndex, ctx.items.length, {
+				cols: opts.cols,
+				orientation: opts.orientation,
+			})
 
 	if (nextIndex === null) return
 
@@ -392,6 +779,27 @@ type RovingOptions = NavigationConfig & {
 	 * always re-enters on an item. Ignored when `cols` is set.
 	 */
 	row?: RovingRowConfig
+	/**
+	 * Virtual mode: pluggable index-based item source for a windowed list,
+	 * where options outside the rendered window never mount in the DOM (see
+	 * `VirtualOptions`). When both this and `activeIndexRef` are set, arrow /
+	 * Home / End / type-ahead navigate `itemSource.current` by index instead of
+	 * querying `itemSelector`, calling `scrollToIndex` to mount the target row
+	 * and applying the highlight once it renders (`setVirtualActiveIndexed`
+	 * watches for the mount, since the row doesn't render synchronously). Leave
+	 * unset for the default DOM-query source — every existing consumer,
+	 * unchanged.
+	 */
+	itemSource?: RefObject<VirtualItemSource | null>
+	/**
+	 * Virtual mode + `itemSource`: caller-owned box for the logical active
+	 * index. Required alongside `itemSource` because a windowed-out active row
+	 * has no DOM `data-active` marker for the hook to read the index back off
+	 * of between keystrokes. The caller also writes it directly, via
+	 * `setVirtualActiveIndexed`, to seed the highlight outside a keypress — on
+	 * open, on a filter change.
+	 */
+	activeIndexRef?: RefObject<number>
 }
 
 /**
@@ -399,12 +807,15 @@ type RovingOptions = NavigationConfig & {
  * both ends; with `row`, the cross arrows rove into per-row action controls.
  * Composes `nextIndexForKey` (key → index math) and `useTypeahead` with the
  * DOM choreography: focus or virtual active-state moves, single-Tab-stop
- * `tabIndex` ownership, and row cross-axis roving.
+ * `tabIndex` ownership, and row cross-axis roving. Pass `itemSource` (with
+ * `activeIndexRef`) to navigate a windowed list by index instead, reaching
+ * items the DOM query can't see.
  *
  * @returns A stable `onKeyDown` handler to attach to the container; it reads
  * items from `containerRef` on each press, so the item set may change between
  * presses. The `tabIndex` ownership (focus mode + `manageTabIndex`) and the
- * `aria-activedescendant` mirroring run as effects, independent of the handler.
+ * `aria-activedescendant` mirroring run as an effect, independent of the
+ * handler.
  */
 export function useA11yRoving(
 	containerRef: RefObject<HTMLElement | null>,
@@ -422,6 +833,8 @@ export function useA11yRoving(
 		manageTabIndex = false,
 		activeSelector,
 		row,
+		itemSource,
+		activeIndexRef,
 	}: RovingOptions,
 ) {
 	const scrollWithin = useScrollWithin()
@@ -432,7 +845,7 @@ export function useA11yRoving(
 
 	const actionSelector = row?.actionSelector
 
-	const matchTypeahead = useTypeahead()
+	const typeaheadMatchers = useTypeahead()
 
 	// Focus-mode single-tab-stop ownership. Seats exactly one matched item at
 	// `tabIndex=0` and demotes the rest to `-1`, re-running as the subtree mutates
@@ -512,43 +925,35 @@ export function useA11yRoving(
 
 	return useCallback(
 		(event: KeyboardEvent) => {
-			const items = queryItems(containerRef.current, itemSelector)
-
-			if (!items.length) return
-
-			const isVirtual = mode === 'virtual'
-
-			const active = document.activeElement as HTMLElement | null
-
-			const currentIndex = isVirtual
-				? items.findIndex((el) => el.dataset.active !== undefined)
-				: items.indexOf(active as HTMLElement)
-
-			const ctx: RovingKeyContext = {
-				items,
-				isVirtual,
+			const resolved = resolveRovingContext(containerRef.current, itemSelector, mode, {
+				itemSource: itemSource?.current ?? null,
+				activeIndexRef,
 				manageTabIndex,
 				activeDescendantRef,
 				manageAriaSelected,
 				scrollIntoView,
 				scrollWithin,
-			}
+			})
 
-			const rowResult = processRowContext(event, containerRef.current, active, currentIndex, {
-				items,
+			if (!resolved) return
+
+			const { ctx, active, currentIndex } = resolved
+
+			const rowResult = processRowContext(event, ctx.containerEl, active, currentIndex, {
+				items: ctx.items,
 				itemSelector,
 				actionSelector,
 				rowSelector,
 				orientation,
 				cols,
-				isVirtual,
+				isVirtual: ctx.isVirtual,
 			})
 
 			if (rowResult.handled) return
 
 			if (handleActivationKey(event, ctx, rowResult.currentIndex, activationKey)) return
 
-			if (handleTypeahead(event, ctx, rowResult.currentIndex, matchTypeahead, typeahead)) return
+			if (handleTypeahead(event, ctx, rowResult.currentIndex, typeaheadMatchers, typeahead)) return
 
 			handleMainAxisNav(event, rowResult.currentIndex, ctx, { cols, orientation, focusOnEmpty })
 		},
@@ -568,7 +973,9 @@ export function useA11yRoving(
 			manageTabIndex,
 			rowSelector,
 			actionSelector,
-			matchTypeahead,
+			typeaheadMatchers,
+			itemSource,
+			activeIndexRef,
 		],
 	)
 }

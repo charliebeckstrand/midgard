@@ -32,7 +32,6 @@ export type CalendarRangeProps = {
 	/** Reports the day entered or left so the parent can drive the `hoverDate` preview. */
 	onHoverDate?: (date: Date | null) => void
 	active?: CalendarActive | null
-	onPickerOpenChange?: (open: boolean) => void
 	footerRef?: RefObject<HTMLElement | null>
 	ref?: Ref<CalendarHandle>
 	/** Forwarded to `<Calendar>`. See its docs for the resolution chain. */
@@ -92,7 +91,6 @@ export function CalendarRange({
 	hoverDate,
 	onHoverDate,
 	active,
-	onPickerOpenChange,
 	footerRef,
 	ref,
 	locale,
@@ -144,7 +142,6 @@ export function CalendarRange({
 			min={min}
 			max={max}
 			active={active}
-			onPickerOpenChange={onPickerOpenChange}
 			getDayProps={getDayProps}
 			footerRef={footerRef}
 			locale={locale}

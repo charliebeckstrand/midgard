@@ -177,7 +177,6 @@ describe('resolveInfiniteScroll', () => {
 				hasMore: false,
 				loadingMore: true,
 				threshold: 3,
-				showLoadingIndicator: true,
 				loadingIndicator: 'more',
 				endMessage: 'No more results',
 				error: 'Failed to load',
@@ -199,6 +198,14 @@ describe('resolveInfiniteScroll', () => {
 			error: 'Failed to load',
 			stableColumnWidths: true,
 		})
+	})
+
+	it('treats loadingIndicator: true as the gate with no custom content', () => {
+		const resolved = resolveInfiniteScroll({ onLoadMore: vi.fn(), loadingIndicator: true }, 10, 50)
+
+		expect(resolved?.showLoadingIndicator).toBe(true)
+
+		expect(resolved?.loadingIndicator).toBeUndefined()
 	})
 
 	it('derives hasMore from totalRows against the loaded count', () => {

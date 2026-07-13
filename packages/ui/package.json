@@ -1,13 +1,10 @@
 {
 	"name": "ui",
 	"version": "0.1.0",
+	"private": true,
 	"type": "module",
 	"license": "MIT",
 	"sideEffects": false,
-	"files": [
-		"dist",
-		"LICENSE"
-	],
 	"exports": {
 		"./core": {
 			"types": "./src/core/index.ts",

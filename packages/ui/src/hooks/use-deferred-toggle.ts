@@ -1,6 +1,7 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback } from 'react'
+import { useFrozenOnClose } from './use-frozen-on-close'
 
 type DeferredToggleOptions<T> = {
 	/** Multi-select mode: the held value is an array and toggling adds / removes entries. */
@@ -60,35 +61,19 @@ export function useDeferredToggle<T>({
 	)
 
 	// Snapshot of the value the menu paints as selected while the panel animates
-	// closed. `null` means "track the live value".
-	const [frozen, setFrozen] = useState<{ value: T | T[] | undefined } | null>(null)
+	// closed; released on exit-complete or reopen.
+	const { snapshot, freeze, flush: flushPending } = useFrozenOnClose<T | T[] | undefined>(open)
 
 	const commit = useCallback(
 		(newValue: T) => {
-			setFrozen({ value })
+			freeze(value)
 
 			toggle(newValue)
 		},
-		[value, toggle],
+		[freeze, value, toggle],
 	)
 
-	const flushPending = useCallback(() => {
-		setFrozen(null)
-	}, [])
-
-	// Clear the freeze when the menu reopens: an interrupted exit (reopen
-	// mid-close) skips onExitComplete and flushPending never runs.
-	const prevOpenRef = useRef(open)
-
-	useEffect(() => {
-		const wasOpen = prevOpenRef.current
-
-		prevOpenRef.current = open
-
-		if (open && !wasOpen) setFrozen(null)
-	}, [open])
-
-	const selectionValue = frozen ? frozen.value : value
+	const selectionValue = snapshot ? snapshot.value : value
 
 	return { toggle, commit, flushPending, selectionValue }
 }

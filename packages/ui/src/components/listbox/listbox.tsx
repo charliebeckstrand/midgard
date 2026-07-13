@@ -15,6 +15,7 @@ import { useAriaIds, useFloatingUI, useSelectableValueChange } from '../../hooks
 import { useControlSize } from '../../primitives/density'
 import { SelectTrigger } from '../../primitives/select-trigger'
 import {
+	capitalizeFirst,
 	resolveCapitalize,
 	type SelectCapitalize,
 } from '../../primitives/select-trigger/capitalize'
@@ -42,7 +43,8 @@ type ListboxBaseProps = {
 	/** Marks the field required; surfaces `aria-required` on the trigger. */
 	required?: boolean
 	className?: string
-	inputId?: string
+	/** Id for the trigger; matches the `id` prop on Combobox. Resolves through the explicit prop, then an enclosing `<Control>`/`<Field>`. */
+	id?: string
 	/**
 	 * Names the trigger directly when no `<Field>`/`<Label>` wraps it. The
 	 * combobox trigger's text is its value, not its name; a bare Listbox
@@ -54,8 +56,6 @@ type ListboxBaseProps = {
 	'aria-labelledby'?: string
 	/** Clicking the selected option clears it. */
 	nullable?: boolean
-	/** Renders the selected value with tabular numerals; digit changes do not shift layout. */
-	tabularNums?: boolean
 	/**
 	 * Truncates the selected-value label when it overflows the trigger.
 	 * Set `false` to let the trigger grow to fit its content, e.g. inside a
@@ -66,8 +66,10 @@ type ListboxBaseProps = {
 	/** Show a clear button in place of the chevron when a value is selected. */
 	clearable?: boolean
 	/**
-	 * Applies the `capitalize` text-transform to the selected `displayValue` and
-	 * the option list. Pass an object to target each surface independently.
+	 * Capitalizes the first letter (first word only) of the selected
+	 * `displayValue` and of each option's string label; custom label nodes
+	 * render as authored. Pass an object to target each surface independently.
+	 * Display-only: the underlying value is untouched.
 	 * @defaultValue true
 	 */
 	capitalize?: SelectCapitalize
@@ -113,7 +115,7 @@ function resolveControlState(
 		| { id?: string; disabled?: boolean; readOnly?: boolean; required?: boolean }
 		| null
 		| undefined,
-	overrides: { inputId?: string; disabled?: boolean; readOnly?: boolean; required?: boolean },
+	overrides: { id?: string; disabled?: boolean; readOnly?: boolean; required?: boolean },
 ): {
 	id: string | undefined
 	disabled: boolean | undefined
@@ -121,7 +123,7 @@ function resolveControlState(
 	required: boolean | undefined
 } {
 	return {
-		id: overrides.inputId ?? control?.id,
+		id: overrides.id ?? control?.id,
 		disabled: overrides.disabled ?? control?.disabled,
 		readOnly: overrides.readOnly ?? control?.readOnly,
 		required: overrides.required ?? control?.required,
@@ -159,8 +161,7 @@ export function Listbox<T>({
 	readOnly,
 	required,
 	className,
-	inputId,
-	tabularNums,
+	id,
 	truncate = true,
 	clearable = false,
 	capitalize = true,
@@ -183,7 +184,7 @@ export function Listbox<T>({
 		disabled: resolvedDisabled,
 		readOnly: resolvedReadOnly,
 		required: resolvedRequired,
-	} = resolveControlState(control, { inputId, disabled, readOnly, required })
+	} = resolveControlState(control, { id, disabled, readOnly, required })
 
 	// Merges a consumer aria-describedby with the field's registered ids,
 	// matching Input/Textarea/Checkbox.
@@ -270,7 +271,12 @@ export function Listbox<T>({
 
 	const capitalization = resolveCapitalize(capitalize)
 
-	const label = resolveLabel({ value, displayValue, multiple })
+	const resolvedLabel = resolveLabel({ value, displayValue, multiple })
+
+	// First-word-capitalize the resolved display string at the source; the
+	// trigger button renders it verbatim (`undefined` skips the placeholder).
+	const label =
+		capitalization.displayValue && resolvedLabel ? capitalizeFirst(resolvedLabel) : resolvedLabel
 
 	const hasValue = hasListboxValue(value, multiple)
 
@@ -301,8 +307,13 @@ export function Listbox<T>({
 	// menu reads `selectionValue`, which stays frozen until the panel finishes
 	// closing, keeping the selected row stable during the exit animation.
 	const contextValue = useMemo(
-		() => ({ value: selectionValue, multiple, onSelect: select as (v: unknown) => void }),
-		[selectionValue, multiple, select],
+		() => ({
+			value: selectionValue,
+			multiple,
+			onSelect: select as (v: unknown) => void,
+			capitalize: capitalization.options,
+		}),
+		[selectionValue, multiple, select, capitalization.options],
 	)
 
 	return (
@@ -356,13 +367,11 @@ export function Listbox<T>({
 						disabled={resolvedDisabled}
 						readOnly={resolvedReadOnly}
 						required={resolvedRequired}
-						invalid={control?.invalid}
+						invalid={control?.severity === 'error' || undefined}
 						label={label}
 						onBlur={handleTriggerBlur}
 						placeholder={placeholder}
 						truncate={truncate}
-						tabularNums={tabularNums}
-						capitalize={capitalization.displayValue}
 						density={token.space}
 						size={token.size}
 					/>
@@ -373,7 +382,6 @@ export function Listbox<T>({
 					open={open}
 					glass={glass}
 					multiple={multiple}
-					capitalize={capitalization.options}
 					density={token.space}
 					size={token.size}
 					ariaLabel={ariaLabel}

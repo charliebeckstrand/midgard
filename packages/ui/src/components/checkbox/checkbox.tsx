@@ -1,15 +1,10 @@
 'use client'
 
 import { Check, Minus } from 'lucide-react'
-import {
-	type ComponentPropsWithoutRef,
-	type ReactNode,
-	type Ref,
-	useLayoutEffect,
-	useRef,
-} from 'react'
+import { type ComponentPropsWithoutRef, type ReactNode, type Ref, useRef } from 'react'
 import { cn } from '../../core'
 import { useComposedRef } from '../../hooks'
+import { useIsomorphicLayoutEffect } from '../../hooks/use-isomorphic-layout-effect'
 import { type CheckboxVariants, k } from '../../recipes/kata/checkbox'
 import { useControlToggle } from '../control/use-control-toggle'
 import { useFormToggle } from '../form/use-form-toggle'
@@ -72,7 +67,7 @@ export function Checkbox({
 	const setRef = useComposedRef(internalRef, ref)
 
 	// `indeterminate` is a DOM property with no attribute; sync it before paint.
-	useLayoutEffect(() => {
+	useIsomorphicLayoutEffect(() => {
 		if (internalRef.current) internalRef.current.indeterminate = !!indeterminate
 	}, [indeterminate])
 

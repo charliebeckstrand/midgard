@@ -33,11 +33,6 @@ type LoadingOptions = Pick<LoadingSpinnerProps, 'color' | 'size' | 'label'>
  */
 type ButtonBaseProps = ButtonVariants & {
 	/**
-	 * Stretch to fill the inline axis (`w-full`).
-	 * @defaultValue false
-	 */
-	block?: boolean
-	/**
 	 * Apply the tap-scale press spring; collapses under prefers-reduced-motion.
 	 * @defaultValue false
 	 */
@@ -58,7 +53,7 @@ type ButtonBaseProps = ButtonVariants & {
 
 /**
  * Props for {@link Button}: visual `variant`/`color`/`size`, the
- * `block`/`spring`/`loading` behavior flags, `prefix`/`suffix` adornments, and
+ * `spring`/`loading` behavior flags, `prefix`/`suffix` adornments, and
  * the polymorphic surface — a `<button>`, or an anchor when `href` is set.
  */
 export type ButtonProps = ButtonBaseProps &
@@ -88,7 +83,6 @@ export function Button({
 	variant,
 	color,
 	size,
-	block = false,
 	className,
 	children,
 	href,
@@ -129,7 +123,7 @@ export function Button({
 	// (see `data-[has-label]` in the button recipe), icon-only buttons stay square.
 	const hasLabel = Children.toArray(children).some((child) => !isIconElement(child))
 
-	const classes = cn(k({ variant, color, size: resolvedSize }), block && 'w-full', className)
+	const classes = cn(k({ variant, color, size: resolvedSize }), className)
 
 	// Shared across the anchor and button renders; consumer `props` spread later
 	// can still override.

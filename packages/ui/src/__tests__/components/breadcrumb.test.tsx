@@ -30,13 +30,13 @@ describe('Breadcrumb', () => {
 })
 
 describe('BreadcrumbItem', () => {
-	it('styles the current item without duplicating aria-current on the <li>', () => {
+	it('keeps aria-current on the crumb link and off the <li>', () => {
 		// aria-current belongs on the crumb (BreadcrumbLink) only; both the
 		// list item and the link carrying it would announce the state twice.
 		const { container } = renderUI(
 			<Breadcrumb>
 				<BreadcrumbList>
-					<BreadcrumbItem current>
+					<BreadcrumbItem>
 						<BreadcrumbLink current>Page</BreadcrumbLink>
 					</BreadcrumbItem>
 				</BreadcrumbList>
@@ -72,7 +72,7 @@ describe('BreadcrumbLink', () => {
 		const { container } = renderUI(
 			<Breadcrumb>
 				<BreadcrumbList>
-					<BreadcrumbItem current>
+					<BreadcrumbItem>
 						<BreadcrumbLink href="/here" current>
 							Here
 						</BreadcrumbLink>

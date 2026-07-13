@@ -8,23 +8,10 @@ import { Icon } from '../icon'
 import { Input, type InputProps } from '../input'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 
-/** Props for {@link PasswordInput}: {@link InputProps} (less `type`/`suffix`) plus configuration for the visibility toggle. */
+/** Props for {@link PasswordInput}: {@link InputProps} (less `type`/`suffix`) plus the visibility-toggle switch. */
 export type PasswordInputProps = Omit<InputProps, 'type' | 'suffix'> & {
-	/** Configures the suffix visibility toggle. */
-	toggleButton?: {
-		/**
-		 * Renders the show/hide toggle.
-		 * @defaultValue `true`
-		 */
-		visible?: boolean
-		/** Accessible labels for the toggle's two states. */
-		label?: {
-			/** @defaultValue `'Show password'` */
-			show?: string
-			/** @defaultValue `'Hide password'` */
-			hide?: string
-		}
-	}
+	/** Renders the suffix show/hide toggle. Pass `false` to suppress it. @defaultValue true */
+	toggleButton?: boolean
 }
 
 type ToggleProps = {
@@ -70,8 +57,8 @@ function VisibilityToggle({ visible, onToggle, showLabel, hideLabel, disabled }:
 	)
 }
 
-/** Masked Input with a tooltip-labeled suffix button that toggles plaintext visibility; suppress it via `toggleButton.visible`. */
-export function PasswordInput({ toggleButton, ...props }: PasswordInputProps) {
+/** Masked Input with a tooltip-labeled suffix button that toggles plaintext visibility; suppress it via `toggleButton={false}`. */
+export function PasswordInput({ toggleButton = true, ...props }: PasswordInputProps) {
 	const [visible, setVisible] = useState(false)
 
 	const control = useControl()
@@ -84,20 +71,18 @@ export function PasswordInput({ toggleButton, ...props }: PasswordInputProps) {
 
 	const revealed = visible && !disabled
 
-	const showToggle = toggleButton?.visible ?? true
-
 	return (
 		<Input
 			data-slot="password-input"
 			{...props}
 			type={revealed ? 'text' : 'password'}
 			suffix={
-				showToggle ? (
+				toggleButton ? (
 					<VisibilityToggle
 						visible={revealed}
 						onToggle={() => setVisible((v) => !v)}
-						showLabel={toggleButton?.label?.show ?? 'Show password'}
-						hideLabel={toggleButton?.label?.hide ?? 'Hide password'}
+						showLabel="Show password"
+						hideLabel="Hide password"
 						disabled={disabled}
 					/>
 				) : undefined

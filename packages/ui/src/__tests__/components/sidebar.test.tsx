@@ -332,22 +332,6 @@ describe('SidebarHeader', () => {
 
 		expect(close).toHaveBeenCalledOnce()
 	})
-
-	it('uses a custom closeIcon when provided in an offcanvas surface', () => {
-		const close = vi.fn()
-
-		renderUI(
-			<OffcanvasContext value={{ close }}>
-				<Sidebar>
-					<SidebarHeader closeIcon={<span data-testid="custom-close">x</span>}>
-						Header
-					</SidebarHeader>
-				</Sidebar>
-			</OffcanvasContext>,
-		)
-
-		expect(screen.getByTestId('custom-close')).toBeInTheDocument()
-	})
 })
 
 describe('SidebarLabel', () => {

@@ -82,7 +82,7 @@ export function useColorPickerState({
 		describedBy: control?.describedBy,
 		disabled: resolvedDisabled,
 		required: control?.required,
-		invalid: control?.invalid,
+		invalid: control?.severity === 'error' || undefined,
 		hsva,
 		setHsva,
 		open,

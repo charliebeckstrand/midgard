@@ -3,7 +3,6 @@
 import type { ComponentPropsWithoutRef, ReactNode, Ref } from 'react'
 import { cn, invalidAttrs } from '../../core'
 import { useIdScope } from '../../hooks/use-id-scope'
-import { affixStepDown } from '../../primitives/affix'
 import { useControlSize } from '../../primitives/density'
 import { useGlass } from '../../providers/glass/context'
 import { useHeadless } from '../../providers/headless/context'
@@ -11,16 +10,13 @@ import type { Step } from '../../recipes'
 import { type InputVariants, k } from '../../recipes/kata/input'
 import { useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
-import { LoadingSpinner } from '../loading'
 import { InputFrame } from './input-frame'
 import { useInputValue } from './use-input-value'
 
-/** Props for {@link Input}: `size`/`variant`/`loading`, `prefix`/`suffix` affixes, and `invalid` override atop native `<input>` attributes. */
+/** Props for {@link Input}: `size`/`variant`, `prefix`/`suffix` affixes, and `invalid` override atop native `<input>` attributes. */
 export type InputProps = Omit<InputVariants, 'size' | 'variant'> & {
 	size?: Step
 	variant?: 'default' | 'outline'
-	/** Replaces `suffix` with a stepped-down {@link LoadingSpinner} while truthy. */
-	loading?: boolean
 	prefix?: ReactNode
 	suffix?: ReactNode
 	/** Forces the invalid state. When omitted, inherits from Control / Form context. */
@@ -32,7 +28,7 @@ export type InputProps = Omit<InputVariants, 'size' | 'variant'> & {
 } & Omit<ComponentPropsWithoutRef<'input'>, 'className' | 'size' | 'prefix'>
 
 /**
- * Text input with optional `prefix`/`suffix` affixes and a `loading` spinner.
+ * Text input with optional `prefix`/`suffix` affixes.
  * Resolves variant, size, and invalid state from enclosing Control, Form,
  * GlassProvider, and Density context, and drops to a bare `<input>` under
  * headless context.
@@ -41,8 +37,8 @@ export type InputProps = Omit<InputVariants, 'size' | 'variant'> & {
  * `undefined`; binds to the Form field named `name` otherwise. Value resolution
  * (explicit prop > bound field > internal state) runs through
  * {@link useInputValue}, and `invalid` OR's the prop, the bound field, and any
- * ambient Control error. Under headless context the affix frame, loading
- * spinner, and recipe classes are all skipped.
+ * ambient Control error. Under headless context the affix frame and recipe
+ * classes are all skipped.
  * @see {@link InputFrame}
  */
 export function Input(props: InputProps) {
@@ -53,7 +49,6 @@ export function Input(props: InputProps) {
 		type,
 		variant,
 		size,
-		loading,
 		prefix,
 		suffix,
 		id,
@@ -77,8 +72,6 @@ export function Input(props: InputProps) {
 	const glass = useGlass()
 	const headless = useHeadless()
 	const token = useControlSize(size)
-
-	const resolvedSize = token.size
 
 	const valueState = useInputValue({ hasValueProp, name, value, onChange, onBlur })
 
@@ -129,16 +122,11 @@ export function Input(props: InputProps) {
 
 	if (headless) return inputEl
 
-	const resolvedPrefix = prefix
-
-	// LoadingSpinner reads no context; it gets the slot's stepped-down size.
-	const resolvedSuffix = loading ? <LoadingSpinner size={affixStepDown(resolvedSize)} /> : suffix
-
 	return (
 		<InputFrame
 			inputEl={inputEl}
-			prefix={resolvedPrefix}
-			suffix={resolvedSuffix}
+			prefix={prefix}
+			suffix={suffix}
 			variant={resolvedVariant}
 			space={token.space}
 			size={token.size}

@@ -20,6 +20,7 @@ export {
 	useA11yPanel,
 	useA11yRoving,
 	useA11yScope,
+	type VirtualItemSource,
 } from './a11y'
 export { useAriaIds } from './use-aria-ids'
 export { useComposedRef } from './use-composed-ref'

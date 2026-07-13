@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
 	Combobox,
 	ComboboxLabel,
@@ -6,6 +6,7 @@ import {
 	useComboboxQuery,
 } from '../../../components/combobox'
 import { Field, Label } from '../../../components/fieldset'
+import { VirtualOptions } from '../../../primitives/virtual-options'
 import { Example } from '../../engine'
 
 const people = [
@@ -86,6 +87,62 @@ function ClearableExample() {
 	)
 }
 
+// 5,000 options — the DOM-query roving `useA11yRoving` falls back to would
+// never reach most of these; `VirtualOptions` with `getOptionId` registers a
+// keyboard-navigable index-based source instead, so arrow keys still traverse
+// the full list.
+const manyPeople = Array.from({ length: 5_000 }, (_, i) => ({ id: i, label: `Person ${i + 1}` }))
+
+function VirtualizedPeople() {
+	const { deferredQuery } = useComboboxQuery()
+
+	const filtered = useMemo(
+		() =>
+			deferredQuery
+				? manyPeople.filter((p) => p.label.toLowerCase().includes(deferredQuery.toLowerCase()))
+				: manyPeople,
+		[deferredQuery],
+	)
+
+	return (
+		<VirtualOptions
+			items={filtered}
+			estimateSize={36}
+			getOptionId={(person) => `virtual-person-${person.id}`}
+		>
+			{(person, _index, meta) => (
+				<ComboboxOption
+					key={person.id}
+					id={`virtual-person-${person.id}`}
+					value={person.id}
+					{...meta}
+				>
+					<ComboboxLabel>{person.label}</ComboboxLabel>
+				</ComboboxOption>
+			)}
+		</VirtualOptions>
+	)
+}
+
+function VirtualizedComboboxExample() {
+	const [selected, setSelected] = useState<number | undefined>(undefined)
+
+	return (
+		<Field>
+			<Label>Assignee</Label>
+			<Combobox
+				nullable
+				value={selected}
+				onValueChange={setSelected}
+				displayValue={(id: number) => manyPeople.find((p) => p.id === id)?.label ?? ''}
+				placeholder="Search 5,000 people"
+			>
+				<VirtualizedPeople />
+			</Combobox>
+		</Field>
+	)
+}
+
 export function Demo() {
 	return (
 		<>
@@ -97,6 +154,9 @@ export function Demo() {
 			</Example>
 			<Example title="Clearable">
 				<ClearableExample />
+			</Example>
+			<Example title="Virtualized">
+				<VirtualizedComboboxExample />
 			</Example>
 		</>
 	)

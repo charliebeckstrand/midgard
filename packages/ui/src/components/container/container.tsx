@@ -23,12 +23,6 @@ export type ContainerProps = {
 	 * @defaultValue 'md'
 	 */
 	padding?: ContainerPadding
-	/**
-	 * Whether the container should center its content horizontally.
-	 *
-	 * @defaultValue true
-	 */
-	center?: boolean
 	className?: string
 } & Omit<ComponentPropsWithoutRef<'div'>, 'className'>
 
@@ -36,7 +30,6 @@ export type ContainerProps = {
 export function Container({
 	size = 'md',
 	padding = 'md',
-	center = true,
 	className,
 	style,
 	children,
@@ -56,9 +49,8 @@ export function Container({
 		<div
 			data-slot="container"
 			className={cn(
-				'w-full h-full',
+				'w-full h-full mx-auto',
 				k.padding[padding],
-				center && 'mx-auto',
 				numeric ? k.size.custom : k.size[size],
 				className,
 			)}

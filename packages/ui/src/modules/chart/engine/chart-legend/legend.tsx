@@ -1,7 +1,7 @@
 'use client'
 
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { type KeyboardEvent, type RefObject, useLayoutEffect, useRef, useState } from 'react'
+import { type KeyboardEvent, type RefObject, useRef, useState } from 'react'
 import { Button } from '../../../../components/button'
 import { Icon } from '../../../../components/icon'
 import { Popover, PopoverContent, PopoverTrigger } from '../../../../components/popover'
@@ -10,6 +10,7 @@ import { Text } from '../../../../components/text'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../../components/tooltip'
 import { cn } from '../../../../core'
 import { useA11yRoving } from '../../../../hooks/a11y'
+import { useIsomorphicLayoutEffect } from '../../../../hooks/use-isomorphic-layout-effect'
 import { useTruncation } from '../../../../hooks/use-truncation'
 import type { ChartColorSlot } from '../../../../recipes/kata/chart'
 import { ChartSwatch } from '../chart-pattern-defs'
@@ -42,7 +43,7 @@ function useLegendFit(
 	// times, so the observer refits on resize from a stable measurement rather than
 	// the already-cut visible row, which could never reveal that a widened box now
 	// fits more.
-	useLayoutEffect(() => {
+	useIsomorphicLayoutEffect(() => {
 		const ghost = ghostRef.current
 
 		// `count` re-runs the measure when the control set changes — a resize alone
@@ -197,11 +198,10 @@ function ChartLegendEntry({
 			size="sm"
 			variant="plain"
 			data-slot={ghost ? 'chart-legend-ghost' : 'chart-legend-item'}
-			block={panel}
 			// Button's own base centers its content; a panel entry stretches to
 			// `w-full` so every row can align its swatch to the same edge, not center
 			// a shorter row's content under a longer one's.
-			className={cn(panel && 'min-w-0 justify-start')}
+			className={cn(panel && 'w-full min-w-0 justify-start')}
 			aria-pressed={!off}
 			onClick={() => onToggle(item.index)}
 			onPointerEnter={() => onPointerEmphasis(item.index)}
@@ -268,8 +268,7 @@ function ChartLegendOverflowSwitch({
 			size="sm"
 			variant="plain"
 			data-slot="chart-legend-item"
-			block
-			className="min-w-0 justify-start"
+			className="w-full min-w-0 justify-start"
 			aria-pressed={!off}
 			onClick={() => onToggle(item.index)}
 			onPointerEnter={() => onEmphasis(item.index)}

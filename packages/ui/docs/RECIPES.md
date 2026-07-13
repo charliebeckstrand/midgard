@@ -26,7 +26,7 @@ Atomic concerns, one sub-folder each; `index.ts` assembles the named bundle. Ful
 | `hannou` 反応 | Interaction feedback (`disabled`, `fg`, `cursor`, `tint`, `active`) plus the kata-shaped `item` / `nav` composites. |
 | `sen` 線 | Borders, rings, dividers, focus indicators, and forced-colors safety nets. |
 | `shaku` 尺 | Dimension scales per surface (`icon`, `avatar`, `panel`, `scroll-area`, `mark`, `combobox`, `listbox`). |
-| `ugoki` 動き | Motion — CSS transitions and Framer Motion enter/exit configs. |
+| `ugoki` 動き | Motion — tempo primitives, the spring vocabulary, the data-viz mark family, CSS transitions, and Framer Motion enter/exit configs. |
 | `kasane` 重ね | The signature 4-layer chrome stack plus ring-compensated padding / radius / rounded / gap helpers. |
 | `kokkaku` 骨格 | Skeleton placeholder dimensions per component — chrome-, variant-, and colour-stripped. |
 | `sun` 寸 | Named density steps (`sm` / `md` / `lg`) and the per-step token table. |

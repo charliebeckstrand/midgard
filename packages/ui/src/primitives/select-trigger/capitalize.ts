@@ -1,7 +1,7 @@
 /**
- * Controls the `capitalize` text-transform applied to a select-family field.
- * `true`/`false` toggles both surfaces at once; the object form targets the
- * trigger's `displayValue` and the option list independently.
+ * Controls first-word capitalization (first letter only) of a select-family
+ * field. `true`/`false` toggles both surfaces at once; the object form targets
+ * the trigger's `displayValue` and the option list independently.
  *
  * @see {@link resolveCapitalize}
  */
@@ -24,4 +24,19 @@ export function resolveCapitalize(capitalize: SelectCapitalize = true): {
 	if (typeof capitalize === 'boolean') return { displayValue: capitalize, options: capitalize }
 
 	return { displayValue: capitalize.displayValue ?? true, options: capitalize.options ?? true }
+}
+
+/**
+ * Uppercases the first letter of `value`, leaving the rest untouched — the
+ * single mechanism behind the select-family `capitalize` prop. Every surface
+ * (trigger display string, option label) formats its display string through
+ * this at render; CSS can't express it (`::first-letter` never forms on an
+ * `<input>`, and no `text-transform` value is sentence-case).
+ *
+ * @param value - The resolved display string.
+ * @returns `value` with its first letter uppercased.
+ * @internal
+ */
+export function capitalizeFirst(value: string): string {
+	return value.charAt(0).toUpperCase() + value.slice(1)
 }

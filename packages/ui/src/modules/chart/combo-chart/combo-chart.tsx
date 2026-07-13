@@ -171,7 +171,6 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 		height,
 		aspectRatio,
 		axes,
-		grid = true,
 		legend,
 		tooltip,
 		crosshair,
@@ -179,7 +178,6 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 		points = true,
 		interpolation = 'linear',
 		reference,
-		tickRotation,
 		texture = false,
 		labels,
 		onCategoryClick,
@@ -353,7 +351,6 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 				hasData={data.length > 0}
 				baseline={chart.baseline}
 				axes={chart.axes}
-				grid={grid}
 				gridPositions={chart.gridPositions}
 				categoryGridPositions={chart.categoryGridPositions}
 				categorySeparator={chart.categorySeparator}
