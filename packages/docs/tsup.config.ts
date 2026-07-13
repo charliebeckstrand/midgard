@@ -8,6 +8,7 @@ export default defineConfig({
 	entry: {
 		engine: 'src/engine/index.ts',
 		extractor: 'src/extractor/index.ts',
+		adapters: 'src/adapters/index.ts',
 		vite: 'src/vite/index.ts',
 		scan: 'src/vite/scan.ts',
 	},

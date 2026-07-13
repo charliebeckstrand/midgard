@@ -2,7 +2,7 @@ import ts from 'typescript-6'
 import { buildCallable, isCallable } from './callables'
 import { extractDefaults } from './defaults'
 import { extractDocFromParts, type LinkResolver, stripLinks } from './doc'
-import { readKataDefaults } from './kata-defaults'
+import type { ExtraDefaults } from './extractor'
 import { extractPassThrough } from './passthrough'
 import { extractProjectPropNames } from './project-props'
 import { extractProps } from './props'
@@ -21,8 +21,11 @@ export type ModuleContext = {
 	checker: ts.TypeChecker
 	resolveLink: LinkResolver
 
-	/** Absolute path of the documented package, for kata lookups. */
+	/** Absolute path of the documented package. */
 	packageDir: string
+
+	/** Consumer-supplied extra prop defaults, keyed per component. */
+	extraDefaults: ExtraDefaults
 }
 
 /**
@@ -243,7 +246,7 @@ type ComponentParts = {
 	passThrough: PassThrough[]
 }
 
-/** Shared tail of component assembly: props, docs, pass-through, and kata defaults. */
+/** Shared tail of component assembly: props, docs, and pass-through. */
 function assembleComponent(
 	name: string,
 	symbol: ts.Symbol,
@@ -252,14 +255,14 @@ function assembleComponent(
 ): ComponentApi {
 	const { checker, resolveLink, packageDir } = context
 
-	const variantDefaults = readKataDefaults(packageDir, kebabCase(name))
+	const extraDefaults = context.extraDefaults(packageDir, name)
 
 	const props = parts.propsType
 		? extractProps(parts.location, parts.propsType, parts.projectNames, {
 				checker,
 				resolveLink,
 				defaults: parts.defaults,
-				variantDefaults,
+				extraDefaults,
 			})
 		: []
 
@@ -275,8 +278,6 @@ function assembleComponent(
 	if (links) api.links = links
 
 	if (parts.passThrough.length > 0) api.passThrough = parts.passThrough
-
-	if (Object.keys(variantDefaults).length > 0) api.variantDefaults = variantDefaults
 
 	return api
 }
@@ -305,9 +306,4 @@ function resolvePropsType(callable: FunctionLikeNode, checker: ts.TypeChecker): 
 	if (!param) return null
 
 	return checker.getTypeOfSymbolAtLocation(param, callable)
-}
-
-/** `CommandPalette` → `command-palette`, matching kata file naming. */
-function kebabCase(name: string): string {
-	return name.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase()
 }

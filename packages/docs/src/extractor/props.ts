@@ -16,8 +16,8 @@ export type PropContext = {
 	/** Destructured binding-pattern defaults, keyed by public prop name. */
 	defaults: ReadonlyMap<string, string>
 
-	/** Kata `defaults: {…}` axis values; fill in when no destructured default exists. */
-	variantDefaults: Readonly<Record<string, string>>
+	/** Consumer-supplied extra defaults (e.g. a design-system's variant axes); fill in when no destructured default exists. */
+	extraDefaults: Readonly<Record<string, string>>
 }
 
 /**
@@ -163,7 +163,7 @@ function buildPropDef(
 	// The destructured default is the value the component actually applies;
 	// the kata's `defaults: {…}` literal covers variant axes the component
 	// forwards untouched; `@default` documents props that are neither.
-	const defaultVal = context.defaults.get(name) ?? context.variantDefaults[name]
+	const defaultVal = context.defaults.get(name) ?? context.extraDefaults[name]
 
 	if (defaultVal !== undefined) prop.default = defaultVal
 	else if (tags.default !== undefined) prop.default = tags.default

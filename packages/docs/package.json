@@ -12,6 +12,10 @@
 			"types": "./src/extractor/index.ts",
 			"default": "./dist/extractor.js"
 		},
+		"./adapters": {
+			"types": "./src/adapters/index.ts",
+			"default": "./dist/adapters.js"
+		},
 		"./vite": {
 			"types": "./src/vite/index.ts",
 			"default": "./dist/vite.js"

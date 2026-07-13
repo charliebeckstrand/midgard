@@ -1,5 +1,6 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { declaredDefaults } from '../adapters'
 import { type ComponentApi, createExtractor } from '../extractor'
 
 const UI_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../ui')
@@ -8,7 +9,11 @@ const UI_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..
 // the real `ui` package without pinning its evolving surface.
 describe('canary: ui/button over the real ui package', () => {
 	it('extracts Button and ButtonSkeleton with component fidelity', { timeout: 120_000 }, () => {
-		const extractor = createExtractor({ packageDir: UI_DIR, packageName: 'ui' })
+		const extractor = createExtractor({
+			packageDir: UI_DIR,
+			packageName: 'ui',
+			extraDefaults: declaredDefaults({ dir: 'src/recipes/kata', call: 'defineRecipe' }),
+		})
 
 		const exports = extractor.extract(['ui/button']).modules['ui/button']?.exports ?? []
 

@@ -3,7 +3,7 @@ import path from 'node:path'
 import { type ModuleNode, type Plugin, transformWithEsbuild } from 'vite'
 import type { DocKind, DocMeta } from '../engine/contracts'
 import { createModuleResolver, deriveDocMeta, type ParsedDoc, parseDoc } from '../engine/parse'
-import type { ApiExtractor } from '../extractor'
+import type { ApiExtractor, ExtraDefaults } from '../extractor'
 import { enumerateSurface, isExcludedSource } from '../extractor/surface'
 import { scanMarkdown } from './scan'
 import { virtualJsonModules } from './virtual-json'
@@ -26,6 +26,9 @@ export type DocsPluginOptions = {
 
 	/** Overrides the default category → doc-kind map for a non-standard content layout. */
 	categoryKinds?: Record<string, DocKind>
+
+	/** Supplies extra component prop defaults (e.g. a design system's variant axes) to the extractor. */
+	extraDefaults?: ExtraDefaults
 }
 
 const MANIFEST_ID = 'virtual:docs/manifest'
@@ -45,6 +48,7 @@ export function docsPlugin({
 	packageName,
 	apiPackageDir,
 	categoryKinds,
+	extraDefaults,
 }: DocsPluginOptions): Plugin {
 	let contentRoot = contentDir
 
@@ -71,7 +75,7 @@ export function docsPlugin({
 		if (!extractor) {
 			const { createExtractor } = await import('../extractor')
 
-			extractor = createExtractor({ packageDir: apiPackageDir, packageName })
+			extractor = createExtractor({ packageDir: apiPackageDir, packageName, extraDefaults })
 		}
 
 		return extractor

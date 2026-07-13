@@ -13,6 +13,9 @@ export type ApiExtractor = {
 	invalidate(file: string): void
 }
 
+/** Extra prop defaults for a component beyond its destructured bindings, keyed by prop name. */
+export type ExtraDefaults = (packageDir: string, componentName: string) => Record<string, string>
+
 /** Configuration for {@link createExtractor}. */
 export type ExtractorOptions = {
 	/** Absolute path to the documented package, e.g. `<repo>/packages/ui`. */
@@ -20,6 +23,15 @@ export type ExtractorOptions = {
 
 	/** Import prefix; defaults to the package.json name. */
 	packageName?: string
+
+	/**
+	 * Supplies extra prop defaults a consumer's conventions encode outside the
+	 * function signature — a design system's variant-axis defaults, say. Called
+	 * per component with the kebab-case name; folded into each matching prop's
+	 * `default` when no destructured binding sets one. Keeps any such convention
+	 * out of this package.
+	 */
+	extraDefaults?: ExtraDefaults
 }
 
 type CacheEntry = { module: ModuleApi; files: ReadonlySet<string> }
@@ -43,6 +55,8 @@ export function createExtractor(options: ExtractorOptions): ApiExtractor {
 	const packageDir = path.resolve(options.packageDir)
 
 	const packageName = options.packageName ?? readPackageName(packageDir)
+
+	const extraDefaults = options.extraDefaults ?? (() => ({}))
 
 	const surface = enumerateSurface(packageDir, packageName)
 
@@ -106,6 +120,7 @@ export function createExtractor(options: ExtractorOptions): ApiExtractor {
 					checker,
 					resolveLink,
 					packageDir,
+					extraDefaults,
 				})
 
 				cache.set(specifier, { module, files: moduleFiles(program, entry, moduleCache) })

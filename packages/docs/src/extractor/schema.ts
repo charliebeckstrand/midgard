@@ -21,7 +21,7 @@ export type ModuleApi = {
 /** One documented export, discriminated on `kind`. */
 export type SymbolApi = ComponentApi | CallableApi | OtherApi
 
-/** A React component export: its authored props, pass-through surface, and recipe defaults. */
+/** A React component export: its authored props and pass-through surface. */
 export type ComponentApi = {
 	kind: 'component'
 	name: string
@@ -29,9 +29,6 @@ export type ComponentApi = {
 	links?: Record<string, DocLink>
 	props: PropDef[]
 	passThrough?: PassThrough[]
-
-	/** Variant-axis defaults parsed from the component's kata `defaults: {…}` literal. */
-	variantDefaults?: Record<string, string>
 }
 
 /** A hook (`/^use[A-Z]/`) or plain function export. */
