@@ -1,6 +1,6 @@
 import type { DocMeta } from 'docs/engine'
 import { ArrowDownAZ, ArrowUpZA } from 'lucide-react'
-import { use, useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
+import { use, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Button } from 'ui/button'
 import { Combobox, ComboboxOption, useComboboxQuery } from 'ui/combobox'
 import { cn } from 'ui/core'
@@ -39,16 +39,30 @@ function titleCase(s: string): string {
 	return s.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
 }
 
-// Categories present in the doc set, rendered top to bottom: 'components'
-// first, then any others alphabetically. Derived from the docs themselves so a
-// library can introduce new groups (a new `content/` subfolder) without
-// touching the chrome.
-function orderedCategories(list: readonly DocMeta[]): string[] {
-	const unique = [...new Set(list.map((d) => d.category))]
+/** One sidebar section: a category, its display label, and the docs in it. */
+type DocGroup = { category: string; label: string; items: DocMeta[] }
 
-	return unique.sort((a, b) =>
-		a === 'components' ? -1 : b === 'components' ? 1 : a.localeCompare(b),
-	)
+// Bucket the docs into sidebar sections in one pass, rendered top to bottom:
+// 'components' first, then any others alphabetically. Categories are derived
+// from the docs themselves, so a library can introduce new groups (a new
+// `content/` subfolder) without touching the chrome.
+function groupByCategory(list: readonly DocMeta[]): DocGroup[] {
+	const byCategory = new Map<string, DocMeta[]>()
+
+	for (const doc of list) {
+		const bucket = byCategory.get(doc.category)
+
+		if (bucket) bucket.push(doc)
+		else byCategory.set(doc.category, [doc])
+	}
+
+	return [...byCategory.keys()]
+		.sort((a, b) => (a === 'components' ? -1 : b === 'components' ? 1 : a.localeCompare(b)))
+		.map((category) => ({
+			category,
+			label: titleCase(category),
+			items: byCategory.get(category) ?? [],
+		}))
 }
 
 function SearchLoadMore({ onVisible }: { onVisible: () => void }) {
@@ -137,8 +151,13 @@ export function SidebarContent({ route }: { route: string }) {
 
 	const [direction, setDirection] = useState<SortDirection>('asc')
 
-	// `docs` is name-sorted ascending; 'asc' shows it as-is, 'desc' reverses.
-	const sorted = direction === 'asc' ? docs : [...docs].reverse()
+	// `docs` is a module constant, so grouping only changes with `direction`
+	// ('asc' shows the name-sorted list as-is, 'desc' reverses it) — memoize it
+	// off the per-navigation, per-keystroke re-renders this sidebar takes.
+	const groups = useMemo(
+		() => groupByCategory(direction === 'asc' ? docs : [...docs].reverse()),
+		[direction],
+	)
 
 	// Scroll the active item into view when the mobile sidebar opens
 	useLayoutEffect(() => {
@@ -200,29 +219,21 @@ export function SidebarContent({ route }: { route: string }) {
 			    scroll anchoring follows a visible item to its mirrored position
 			    instead of keeping the scroller where it is. */}
 			<SidebarBody className="[overflow-anchor:none]">
-				{orderedCategories(sorted).map((category) => {
-					const items = sorted.filter((doc) => doc.category === category)
-
-					if (items.length === 0) return null
-
-					const label = titleCase(category)
-
-					return (
-						<SidebarSection key={category}>
-							<Text
-								severity="muted"
-								className={cn('mb-2 text-sm uppercase tracking-wide', SECTION_LABEL_PX[size])}
-							>
-								{label}
-							</Text>
-							<SidebarList aria-label={label}>
-								{items.map((doc) => (
-									<DocItem key={doc.id} doc={doc} current={route === doc.id} />
-								))}
-							</SidebarList>
-						</SidebarSection>
-					)
-				})}
+				{groups.map(({ category, label, items }) => (
+					<SidebarSection key={category}>
+						<Text
+							severity="muted"
+							className={cn('mb-2 text-sm uppercase tracking-wide', SECTION_LABEL_PX[size])}
+						>
+							{label}
+						</Text>
+						<SidebarList aria-label={label}>
+							{items.map((doc) => (
+								<DocItem key={doc.id} doc={doc} current={route === doc.id} />
+							))}
+						</SidebarList>
+					</SidebarSection>
+				))}
 			</SidebarBody>
 		</Sidebar>
 	)

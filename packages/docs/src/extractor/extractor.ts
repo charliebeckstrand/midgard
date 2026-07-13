@@ -24,7 +24,12 @@ export type ExtractorOptions = {
 
 type CacheEntry = { module: ModuleApi; files: ReadonlySet<string> }
 
-type Session = { program: ts.Program; checker: ts.TypeChecker; resolveLink: LinkResolver }
+type Session = {
+	program: ts.Program
+	checker: ts.TypeChecker
+	resolveLink: LinkResolver
+	moduleCache: ts.ModuleResolutionCache
+}
 
 /**
  * Create an extractor over one package's public surface. The `ts.Program` is
@@ -62,6 +67,10 @@ export function createExtractor(options: ExtractorOptions): ApiExtractor {
 			program,
 			checker: program.getTypeChecker(),
 			resolveLink: createLinkResolver(program),
+			// One resolution cache for the session: a full-surface extract walks
+			// shared subtrees (ui/core, utilities) once per importing module, so
+			// caching resolution avoids re-doing filesystem work per module.
+			moduleCache: ts.createModuleResolutionCache(packageDir, (x) => x, parsed.options),
 		}
 
 		stale = false
@@ -73,7 +82,7 @@ export function createExtractor(options: ExtractorOptions): ApiExtractor {
 		extract(specifiers) {
 			const wanted = specifiers ?? [...surface.keys()]
 
-			const { program, checker, resolveLink } = ensureSession()
+			const { program, checker, resolveLink, moduleCache } = ensureSession()
 
 			const modules: Record<string, ModuleApi> = {}
 
@@ -99,7 +108,7 @@ export function createExtractor(options: ExtractorOptions): ApiExtractor {
 					packageDir,
 				})
 
-				cache.set(specifier, { module, files: moduleFiles(program, entry) })
+				cache.set(specifier, { module, files: moduleFiles(program, entry, moduleCache) })
 
 				modules[specifier] = module
 			}
@@ -153,7 +162,11 @@ function parseConfig(packageDir: string): ts.ParsedCommandLine {
  * over import / re-export specifiers, resolved with the program's own options
  * and stopping at `node_modules`. Backs the per-module invalidation set.
  */
-function moduleFiles(program: ts.Program, entry: string): Set<string> {
+function moduleFiles(
+	program: ts.Program,
+	entry: string,
+	moduleCache: ts.ModuleResolutionCache,
+): Set<string> {
 	const files = new Set<string>()
 
 	const options = program.getCompilerOptions()
@@ -176,7 +189,13 @@ function moduleFiles(program: ts.Program, entry: string): Set<string> {
 
 			if (!specifier) continue
 
-			const resolved = ts.resolveModuleName(specifier, file, options, ts.sys).resolvedModule
+			const resolved = ts.resolveModuleName(
+				specifier,
+				file,
+				options,
+				ts.sys,
+				moduleCache,
+			).resolvedModule
 
 			if (!resolved || resolved.isExternalLibraryImport) continue
 

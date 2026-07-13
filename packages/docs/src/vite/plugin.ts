@@ -170,7 +170,10 @@ export function docsPlugin({
 
 			if (!isContentMd(file)) return undefined
 
-			const parsed = parseDoc(code, file)
+			// The manifest generator already parsed and cached every doc; reuse
+			// that entry (HMR deletes it on change, so a hit is current) rather
+			// than lexing the same Markdown a second time per build.
+			const parsed = cache.get(file) ?? parseDoc(code, file)
 
 			cache.set(file, parsed)
 
