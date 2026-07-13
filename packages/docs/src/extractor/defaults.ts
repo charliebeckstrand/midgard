@@ -35,6 +35,20 @@ export function extractDefaults(callable: ts.SignatureDeclaration): Map<string, 
 }
 
 /**
+ * Source text of a parameter or binding default when it reads as a concrete
+ * literal — an inline primitive / array / object literal, or a same-file `const`
+ * that holds one. Returns null for calls, JSX, and references resolving to
+ * neither, which carry no useful value to surface. Unlike {@link defaultText},
+ * a non-literal yields null rather than its raw source, so a caller can omit the
+ * field entirely.
+ */
+export function literalInitializerText(initializer: ts.Expression): string | null {
+	if (ts.isIdentifier(initializer)) return resolveConstLiteral(initializer)
+
+	return literalText(initializer)
+}
+
+/**
  * Source text of a destructured default. A bare identifier that names a same-file
  * `const` literal collapses to that literal; every other shape keeps its own
  * source text, leaving inline values and unresolved references untouched.

@@ -1,6 +1,6 @@
-import { defineDocsConfig } from './src/docs/engine/vite'
+import { defineDocsConfig } from 'docs/vite'
 
-// The docs site for ui. The engine (under src/docs/engine) supplies the
-// plugin, chrome, and build wiring; ui supplies its `packageName`, its source
-// (auto-detected at `src/`), and its demos under `src/docs/demos`.
-export default defineDocsConfig({ packageName: 'ui' })
+// The docs site for ui. The `docs` package supplies the markdown pipeline,
+// the extractor-backed api module, and the build wiring; ui supplies its
+// `packageName`, the chrome under `src/docs`, and the content it documents.
+export default defineDocsConfig({ packageName: 'ui', apiPackageDir: import.meta.dirname })

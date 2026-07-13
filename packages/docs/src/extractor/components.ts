@@ -1,4 +1,5 @@
 import ts from 'typescript-6'
+import { buildCallable, isCallable } from './callables'
 import { extractDefaults } from './defaults'
 import { extractDocFromParts, type LinkResolver, stripLinks } from './doc'
 import { readKataDefaults } from './kata-defaults'
@@ -56,10 +57,11 @@ export function extractModule(
  * Route one export symbol to its API shape. PascalCase value exports that
  * resolve to a callable — a declared function (unwrapping `forwardRef` /
  * `memo`), or a `const X = factory(…)` whose resolved type renders like a
- * component — become components; every other value export — camelCase
- * functions, hooks, constants — emits `OtherApi` so nothing errors and
- * everything renders. Callables route to `OtherApi` until the callables pass
- * lands and models their signatures.
+ * component — become components; a PascalCase callable that is not
+ * component-shaped stays `OtherApi`. Every other value export whose resolved
+ * type carries a call signature — a `useX` hook or a plain function — becomes a
+ * `CallableApi` modeling its overload signatures; constants, contexts, and
+ * plain objects emit `OtherApi` so nothing errors and everything renders.
  */
 function classifyExport(symbol: ts.Symbol, context: ModuleContext): SymbolApi | null {
 	const name = symbol.getName()
@@ -76,6 +78,8 @@ function classifyExport(symbol: ts.Symbol, context: ModuleContext): SymbolApi | 
 		const factory = resolveFactoryComponent(target, context.checker)
 
 		if (factory) return buildFactoryComponent(name, target, factory, context)
+	} else if (isCallable(target, context.checker)) {
+		return buildCallable(name, target, context)
 	}
 
 	return buildOther(name, target, context.checker)

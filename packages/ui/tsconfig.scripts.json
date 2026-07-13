@@ -4,6 +4,6 @@
 		"noEmit": true,
 		"tsBuildInfoFile": ".tsbuildinfo/scripts.tsbuildinfo"
 	},
-	"include": ["src/__benchmarks__/docs", "*.config.ts"],
+	"include": ["scripts", "*.config.ts"],
 	"exclude": []
 }

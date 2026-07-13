@@ -23,7 +23,7 @@ if (!fs.existsSync(path.join(docsPackageDir, 'dist', 'engine.js'))) {
 
 const { parseDoc } = await import('docs/engine')
 
-const contentRoot = path.join(appRoot, 'content')
+const contentRoot = path.join(appRoot, 'src', 'docs', 'content')
 
 const outDir = path.join(appRoot, 'node_modules', '.docs-fences')
 

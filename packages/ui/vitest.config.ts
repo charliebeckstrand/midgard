@@ -1,5 +1,4 @@
 import { configDefaults, defineConfig } from 'vitest/config'
-import { docsPlugin } from './src/docs/engine/plugins'
 
 const CI = Boolean(process.env.CI)
 
@@ -81,11 +80,6 @@ export default defineConfig({
 		projects: [
 			{
 				extends: true,
-				// The docs engine, pointed at ui, backs the `docs/*` integration
-				// tests under src/__tests__/docs/ (the real component-modules map +
-				// barrel tagging) and runs its own suite under
-				// src/docs/engine/__tests__.
-				plugins: [docsPlugin({ vitest: true })],
 				test: {
 					name: 'unit',
 					setupFiles,
@@ -97,10 +91,7 @@ export default defineConfig({
 					// dominates wall clock when a few-core agent runs the suite
 					// through a single worker.
 					vmMemoryLimit: '1GB',
-					include: [
-						'src/__tests__/**/*.test.{ts,tsx}',
-						'src/docs/engine/__tests__/**/*.test.{ts,tsx}',
-					],
+					include: ['src/__tests__/**/*.test.{ts,tsx}'],
 					// The browser suite (vitest.browser.config.ts) verifies behaviour
 					// jsdom can't — layout/colour geometry and, in its floating-ui
 					// project, real-floating-engine focus trapping — so it may not

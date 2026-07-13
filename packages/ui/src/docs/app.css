@@ -1,11 +1,9 @@
 @import 'tailwindcss';
 @import './fonts.css';
 
-/* The app renders ui components compiled from workspace source; Tailwind's
-   automatic detection only scans this app, so ui's class names must be added
-   explicitly. The old docs tree is excluded — it is a separate application. */
-@source '../../../packages/ui/src';
-@source not '../../../packages/ui/src/docs';
+/* The chrome and every preview render ui components compiled from source;
+   scan the whole package so their class names are generated. */
+@source '../';
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -17,4 +15,20 @@
    Keyboard focus-visible indicators are handled by sen.focus.{ring,inset,outline}. */
 :focus:not(:focus-visible) {
 	outline: none !important;
+}
+
+/* JsonTree: merge adjacent highlighted rows into one visual block.
+   Rows merge when the previous sibling is a highlighted leaf (no data-slot).
+   Branches keep bottom rounding because their children create a visual break. */
+
+/* Remove top rounding when preceded by a highlighted leaf */
+[data-highlighted]:not([data-slot]) + [data-highlighted] > .group\/json-node {
+	border-top-left-radius: 0;
+	border-top-right-radius: 0;
+}
+
+/* Remove bottom rounding for leaves when followed by any highlighted sibling */
+[data-highlighted]:not([data-slot]):has(+ [data-highlighted]) > .group\/json-node {
+	border-bottom-left-radius: 0;
+	border-bottom-right-radius: 0;
 }
