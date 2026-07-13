@@ -1,8 +1,7 @@
 // The usage engine's only source of randomness: a seeded, pure PRNG so every
-// synthesized example is reproducible from its seed alone, and a base36 codec
-// that carries that seed in the URL. No global `Math.random` reaches synthesis
-// — `randomSeed` is the one impure call, made by the chrome to mint a fresh
-// seed on re-roll, never during synthesis itself.
+// synthesized example is reproducible. A doc seeds from a stable hash of its
+// module, so its example is identical on every visit — no `Math.random` ever
+// reaches synthesis.
 
 /** A seeded random source; every draw advances the same 32-bit state. */
 export type Rng = {
@@ -14,15 +13,12 @@ export type Rng = {
 
 	/** A uniformly chosen member; assumes a non-empty list. */
 	pick<T>(items: readonly T[]): T
-
-	/** True with probability `p` (clamped to `[0, 1]`). */
-	chance(p: number): boolean
 }
 
 /**
  * A `mulberry32` generator over `seed`. Fast, tiny, and good enough for
  * plausible mock data — not cryptographic. Identical seeds yield identical
- * sequences across engines, which is what makes `?seed=` shareable.
+ * sequences, which is what makes a hashed-module seed a stable example.
  */
 export function makeRng(seed: number): Rng {
 	let state = seed >>> 0
@@ -41,29 +37,21 @@ export function makeRng(seed: number): Rng {
 
 	const pick = <T>(items: readonly T[]): T => items[int(items.length)] as T
 
-	return {
-		next,
-		int,
-		pick,
-		chance: (p) => next() < p,
+	return { next, int, pick }
+}
+
+/**
+ * A stable 32-bit seed from text (FNV-1a). A doc hashes its module specifier so
+ * its synthesized example is the same every visit, yet differs between modules.
+ */
+export function hashSeed(text: string): number {
+	let hash = 0x811c9dc5
+
+	for (let i = 0; i < text.length; i++) {
+		hash ^= text.charCodeAt(i)
+
+		hash = Math.imul(hash, 0x01000193)
 	}
-}
 
-/** Parse a base36 `?seed=` token to a `uint32`, or `null` when malformed. */
-export function parseSeed(token: string | null | undefined): number | null {
-	if (!token) return null
-
-	const value = Number.parseInt(token, 36)
-
-	return Number.isFinite(value) && value >= 0 ? value >>> 0 : null
-}
-
-/** The URL form of a seed: compact, lowercase base36. */
-export function formatSeed(seed: number): string {
-	return (seed >>> 0).toString(36)
-}
-
-/** A fresh random seed for a re-roll; the sole impurity, never called in synthesis. */
-export function randomSeed(): number {
-	return Math.floor(Math.random() * 0x1_0000_0000) >>> 0
+	return hash >>> 0
 }

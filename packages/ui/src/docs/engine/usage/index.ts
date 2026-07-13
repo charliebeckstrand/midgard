@@ -1,12 +1,12 @@
 // The usage engine: seed → synthesized AST → printed code. React-free and
 // Node-free, so the browser chrome and the golden tests import the same module.
-// Live rendering (the AST → React-element walk) arrives in a later phase behind
-// this same contract.
+// The live AST → React-element walk (`render.tsx`) sits beside this, out of the
+// barrel, since only the chrome needs React.
 
 export type { Attr, Expr, Field, ImportLine, Stmt, UsageDoc } from './ast'
-export type { Complexity, Knobs, UsageConfig } from './config'
-export { KNOBS, resolveConfig } from './config'
+export type { UsageConfig } from './config'
+export { resolveConfig } from './config'
 export { printUsage } from './printer'
-export { formatSeed, makeRng, parseSeed, type Rng, randomSeed } from './prng'
+export { hashSeed, makeRng, type Rng } from './prng'
 export { synthesize } from './synth'
 export type { Domain } from './vocab'

@@ -1,23 +1,21 @@
-// Turn one extracted symbol into a seeded usage AST. The engine knows a prop's
+// Turn one extracted symbol into a usage AST. The engine knows a prop's
 // checker-classified `shape`, so synthesis is a walk over that structure rather
 // than a parse of type text — the extractor already did the parsing at build
-// time. Two strategies (component, callable) share one `synthValue` core and a
-// small set of safety rules that keep generated code runnable: no controlled
-// prop without the state to drive it, no value invented for a type we can't
-// read.
+// time. One autonomous mode: required props (and anything the author names in
+// `include`) on the component's own defaults, plus synthesized text for the
+// text-bearing slots. Reproducible from `seed`.
 
 import type { CallableApi, ComponentApi, PropDef, SymbolApi, TypeShape } from '../extractor/schema'
 import type { Expr, ImportLine, Stmt, UsageDoc } from './ast'
-import { KNOBS, type Knobs, type UsageConfig } from './config'
+import type { UsageConfig } from './config'
 import { makeRng, type Rng } from './prng'
 import { fieldNumber, fieldString, label } from './vocab'
 
 /**
  * Controlled-state props: setting one demands external state and a matching
- * handler, which a self-contained snippet has no business fabricating. They are
- * dropped from optional synthesis (a required one is still honored), which is
- * exactly why an uncontrolled `default*` twin — left untouched here — is what
- * gets set instead.
+ * handler, which a self-contained snippet has no business fabricating. Never set
+ * autonomously — a component's uncontrolled `default*` twin is what gets set
+ * instead — though an author's explicit `include` still forces one on.
  */
 const CONTROLLED_PROPS: ReadonlySet<string> = new Set([
 	'value',
@@ -27,6 +25,30 @@ const CONTROLLED_PROPS: ReadonlySet<string> = new Set([
 	'expanded',
 	'pressed',
 	'active',
+])
+
+/**
+ * React-node props that read as text, so a plain string is the right content
+ * (an Alert's `title`, a Field's `description`). Element-bearing nodes — `icon`,
+ * `prefix`, `actions` — are absent by design and stay unset: there is no safe
+ * element to invent for them.
+ */
+const TEXT_NODE_PROPS: ReadonlySet<string> = new Set([
+	'title',
+	'description',
+	'label',
+	'heading',
+	'subheading',
+	'subtitle',
+	'message',
+	'caption',
+	'summary',
+	'text',
+	'content',
+	'body',
+	'name',
+	'placeholder',
+	'hint',
 ])
 
 /** HTML elements that never take children; a component spreading onto one is self-closing. */
@@ -46,6 +68,9 @@ const VOID_ELEMENTS: ReadonlySet<string> = new Set([
 	'track',
 	'wbr',
 ])
+
+/** Length of a synthesized array value; one item keeps the basic example short. */
+const ARRAY_LENGTH = 1
 
 /** Deepest object/array nesting synthesized before a value degrades to omitted. */
 const MAX_DEPTH = 3
@@ -72,11 +97,10 @@ export function synthesize(
 }
 
 /**
- * A component becomes a single JSX element. Required props are always set;
- * optionals are sampled by an up-front threshold draw so inclusion is monotonic
- * across complexity (`minimal ⊆ typical ⊆ rich` for a fixed seed). Array-valued
- * props hoist to a `const` for readability; a component that spreads onto a
- * non-void element gets a text label child.
+ * A component becomes a single JSX element on its own defaults: required props
+ * and text-bearing content slots are set, other optionals are left to default
+ * unless the author `include`s them, and a component that renders children gets
+ * a text label. Array-valued props hoist to a `const` for readability.
  */
 function componentStrategy(
 	component: ComponentApi,
@@ -86,30 +110,8 @@ function componentStrategy(
 ): UsageDoc {
 	const rng = makeRng(seed)
 
-	const knobs = KNOBS[config.complexity]
+	const included = new Set(config.include)
 
-	// Optionals we could set: synthesizable, not controlled, not author-excluded.
-	const optional = component.props.filter(
-		(prop) =>
-			!prop.required &&
-			!CONTROLLED_PROPS.has(prop.name) &&
-			!config.exclude.includes(prop.name) &&
-			propShape(prop) !== null,
-	)
-
-	// Draw every inclusion threshold before any value, so the included *set* is a
-	// pure function of seed + chance and never shifts with what gets synthesized.
-	const included = new Set<string>()
-
-	for (const prop of optional) {
-		if (rng.chance(knobs.optionalChance)) included.add(prop.name)
-	}
-
-	for (const name of config.include) {
-		if (!config.exclude.includes(name)) included.add(name)
-	}
-
-	// Drawn at a fixed point after the thresholds: stable across complexity.
 	const children: Expr[] = takesChildren(component)
 		? [{ e: 'text', value: label(config.domain, rng) }]
 		: []
@@ -119,13 +121,14 @@ function componentStrategy(
 	const attrs = []
 
 	for (const prop of component.props) {
-		const use = prop.required ? !config.exclude.includes(prop.name) : included.has(prop.name)
+		if (prop.name === 'children' || config.exclude.includes(prop.name)) continue
 
-		if (!use) continue
+		// Set required props, anything the author includes, and the text-bearing
+		// content slots — so a component whose content is all optional (an Alert's
+		// title and description) still renders text rather than empty chrome.
+		if (!(prop.required || included.has(prop.name) || isContentNode(prop))) continue
 
-		const shape = propShape(prop)
-
-		const value = shape && synthValue(shape, prop.name, config, rng, knobs, 0)
+		const value = synthProp(prop, config, rng)
 
 		if (!value) continue
 
@@ -165,8 +168,6 @@ function callableStrategy(
 ): UsageDoc {
 	const rng = makeRng(seed)
 
-	const knobs = KNOBS[config.complexity]
-
 	const signature = callable.signatures[0]
 
 	const args: Expr[] = []
@@ -174,7 +175,7 @@ function callableStrategy(
 	for (const param of signature?.params ?? []) {
 		const shape = param.shape ?? (param.type ? shapeFromType(param.type) : null)
 
-		const value = shape && synthValue(shape, param.name, config, rng, knobs, 0)
+		const value = shape && synthValue(shape, param.name, config, rng, 0)
 
 		if (value) args.push(value)
 	}
@@ -198,18 +199,38 @@ function callableStrategy(
 }
 
 /**
+ * The value for one prop. A text-bearing react-node ({@link TEXT_NODE_PROPS})
+ * becomes synthesized copy; everything else walks its checker shape, or `null`
+ * when there is nothing safe to invent — an element-bearing node, an opaque type.
+ */
+function synthProp(prop: PropDef, config: UsageConfig, rng: Rng): Expr | null {
+	if (prop.shape?.k === 'react-node') {
+		return TEXT_NODE_PROPS.has(prop.name.toLowerCase())
+			? { e: 'str', value: fieldString(prop.name, config.domain, rng) }
+			: null
+	}
+
+	const shape = propShape(prop)
+
+	return shape ? synthValue(shape, prop.name, config, rng, 0) : null
+}
+
+/** A text-bearing react-node prop — a component's own content, filled even when optional. */
+function isContentNode(prop: PropDef): boolean {
+	return prop.shape?.k === 'react-node' && TEXT_NODE_PROPS.has(prop.name.toLowerCase())
+}
+
+/**
  * A value for one shape. Literal unions pick a member, primitives draw
- * name-aware mock data, arrays repeat to the complexity's length, objects
- * recurse over every synthesizable field. Function shapes become a no-op arrow;
- * `react-node` and `opaque` yield `null` — there is nothing safe to invent —
- * and so does anything past {@link MAX_DEPTH}.
+ * name-aware mock data, arrays hold one element, objects recurse over every
+ * synthesizable field. Function shapes become a no-op arrow; anything past
+ * {@link MAX_DEPTH}, and any node/opaque shape, yields `null`.
  */
 function synthValue(
 	shape: TypeShape,
 	name: string,
 	config: UsageConfig,
 	rng: Rng,
-	knobs: Knobs,
 	depth: number,
 ): Expr | null {
 	if (depth > MAX_DEPTH) return null
@@ -228,8 +249,8 @@ function synthValue(
 		case 'array': {
 			const items: Expr[] = []
 
-			for (let i = 0; i < knobs.arrayLength; i++) {
-				const item = synthValue(shape.element, singular(name), config, rng, knobs, depth + 1)
+			for (let i = 0; i < ARRAY_LENGTH; i++) {
+				const item = synthValue(shape.element, singular(name), config, rng, depth + 1)
 
 				if (item) items.push(item)
 			}
@@ -241,7 +262,7 @@ function synthValue(
 			const items: Expr[] = []
 
 			for (const element of shape.elements) {
-				const item = synthValue(element, name, config, rng, knobs, depth + 1)
+				const item = synthValue(element, name, config, rng, depth + 1)
 
 				if (item) items.push(item)
 			}
@@ -255,7 +276,7 @@ function synthValue(
 			for (const [key, fieldShape] of Object.entries(shape.fields)) {
 				if (CONTROLLED_PROPS.has(key)) continue
 
-				const value = synthValue(fieldShape, key, config, rng, knobs, depth + 1)
+				const value = synthValue(fieldShape, key, config, rng, depth + 1)
 
 				if (value) fields.push({ key, value })
 			}
@@ -279,8 +300,6 @@ function synthValue(
  */
 function propShape(prop: PropDef): TypeShape | null {
 	if (prop.shape) {
-		if (prop.shape.k === 'react-node') return null
-
 		if (prop.shape.k === 'opaque') return shapeFromType(prop.type)
 
 		return prop.shape

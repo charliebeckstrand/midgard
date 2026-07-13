@@ -1,5 +1,5 @@
 import { PanelLeft, PanelLeftDashed } from 'lucide-react'
-import { Suspense, use, useState } from 'react'
+import { Suspense, use } from 'react'
 import { Button } from 'ui/button'
 import { Flex } from 'ui/flex'
 import { Heading } from 'ui/heading'
@@ -9,11 +9,11 @@ import { Markdown } from 'ui/markdown'
 import { Stack } from 'ui/stack'
 import { Tab, TabContent, TabContents, TabList, Tabs } from 'ui/tabs'
 import type { DocMeta } from '../engine'
-import { randomSeed } from '../engine/usage'
 import { ApiPanel } from './api-panel'
 import { OverviewTab } from './overview-tab'
 import { loadDoc } from './registry'
 import { setParam } from './router'
+import { SynthesizedRender } from './synthesis'
 import { UsageTab } from './usage-tab'
 
 const TAB_VALUES = ['overview', 'usage', 'api'] as const
@@ -27,10 +27,10 @@ function activeTab(search: URLSearchParams): TabValue {
 }
 
 /**
- * The route body for one doc: its name, description, and generated import above
- * the Overview | Usage | API reference segment tabs, with the active tab in the
- * URL (`?tab=`) so any view is linkable. Overview and Usage share one
- * page-owned seed, so their synthesized renders match and re-roll together.
+ * The route body for one doc: its name and description, then a live render of
+ * the synthesized component, above the Overview | Usage | API reference tabs.
+ * The active tab lives in the URL (`?tab=`) so any view is linkable; the render
+ * is the same deterministic example the Usage tab prints.
  */
 export function DocPage({
 	meta,
@@ -46,11 +46,6 @@ export function DocPage({
 	const doc = use(loadDoc(meta.id))
 
 	const tab = activeTab(search)
-
-	// One ephemeral seed per mount backs the "different every visit" default; a
-	// pinned `?seed=` overrides it. Owned here so the Overview and Usage tabs
-	// synthesize the same example.
-	const [seed] = useState(randomSeed)
 
 	return (
 		<>
@@ -69,6 +64,9 @@ export function DocPage({
 			</SidebarLayoutHeader>
 			<Stack gap="lg">
 				<Markdown className="max-w-prose">{doc.meta.description}</Markdown>
+				<Suspense fallback={null}>
+					<SynthesizedRender meta={doc.meta} />
+				</Suspense>
 				<Tabs
 					variant="segment"
 					value={tab}
@@ -81,11 +79,11 @@ export function DocPage({
 					</TabList>
 					<TabContents mount="lazy" className="pt-6">
 						<TabContent value="overview">
-							<OverviewTab doc={doc} search={search} seed={seed} />
+							<OverviewTab doc={doc} />
 						</TabContent>
 						<TabContent value="usage">
 							<Suspense fallback={null}>
-								<UsageTab meta={doc.meta} search={search} seed={seed} />
+								<UsageTab doc={doc} />
 							</Suspense>
 						</TabContent>
 						<TabContent value="api">

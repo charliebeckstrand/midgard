@@ -7,15 +7,15 @@ usage:
 
 # Button
 
-Polymorphic action control with \`variant\` and \`size\` axes.
+The primary action control.
 
-## Variants
+## Overview
 
-Five visual weights, from solid to bare.
+A polymorphic control that renders a button or a link.
 
-## Loading
+## Usage
 
-While \`loading\`, the label yields to a spinner.
+Reach for it for actions; render it as a link for navigation.
 `
 
 describe('parseDoc', () => {
@@ -24,22 +24,22 @@ describe('parseDoc', () => {
 
 		expect(doc.name).toBe('Button')
 
-		expect(doc.description).toBe('Polymorphic action control with `variant` and `size` axes.')
+		expect(doc.description).toBe('The primary action control.')
 
 		expect(doc.frontMatter.usage).toEqual({ domain: 'commerce' })
 	})
 
-	it('keeps the prose after the description as the verbatim body', () => {
+	it('splits the body into ## sections, keyed by lowercased heading', () => {
 		const doc = parseDoc(FIXTURE, 'button.md')
 
-		expect(doc.body.startsWith('## Variants')).toBe(true)
+		expect(doc.sections.overview).toBe('A polymorphic control that renders a button or a link.')
 
-		expect(doc.body).toContain('Five visual weights, from solid to bare.')
+		expect(doc.sections.usage).toBe('Reach for it for actions; render it as a link for navigation.')
 
-		expect(doc.body).toContain('## Loading')
+		// The heading and the description belong to neither section body.
+		expect(doc.sections.overview).not.toContain('## Overview')
 
-		// The description belongs to `description`, never the body.
-		expect(doc.body).not.toContain('Polymorphic action control')
+		expect(doc.sections.overview).not.toContain('The primary action control')
 	})
 
 	it('rejects a doc without an h1', () => {

@@ -188,16 +188,14 @@ describe('printUsage: style invariants', () => {
 		passThrough: [{ element: 'div' }],
 	}
 
-	/** Every synthesized snippet across a spread of seeds and complexities. */
-	const snippets = ['minimal', 'typical', 'rich'].flatMap((complexity) =>
-		Array.from({ length: 8 }, (_, seed) =>
-			printUsage(
-				synthesize(
-					widget,
-					'ui/widget',
-					resolveConfig({ complexity: complexity as 'typical' }),
-					seed,
-				),
+	/** Every synthesized snippet across a spread of seeds, with its props set. */
+	const snippets = Array.from({ length: 12 }, (_, seed) =>
+		printUsage(
+			synthesize(
+				widget,
+				'ui/widget',
+				resolveConfig({ include: ['variant', 'label', 'count', 'block'] }),
+				seed,
 			),
 		),
 	)

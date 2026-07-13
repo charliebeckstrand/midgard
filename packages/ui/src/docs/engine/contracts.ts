@@ -1,8 +1,5 @@
 /** Author defaults for the usage engine, set in a doc's front-matter `usage` block. */
 export type UsageAuthorConfig = {
-	/** Baseline synthesis richness; visitor knobs override. @defaultValue 'typical' */
-	complexity?: 'minimal' | 'typical' | 'rich'
-
 	/** Vocabulary domain for synthesized strings and data. @defaultValue 'generic' */
 	domain?: 'generic' | 'people' | 'commerce' | 'geo'
 
@@ -46,6 +43,6 @@ export type DocMeta = {
 export type DocModule = {
 	meta: DocMeta
 
-	/** The doc's prose body: the Markdown after the description, rendered verbatim. */
-	body: string
+	/** Prose sections keyed by lowercased `## ` heading (e.g. `overview`, `usage`). */
+	sections: Record<string, string>
 }

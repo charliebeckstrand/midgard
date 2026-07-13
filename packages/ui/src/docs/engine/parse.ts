@@ -10,7 +10,7 @@ export type ParsedDoc = {
 	name: string
 	description: string
 	frontMatter: FrontMatter
-	body: string
+	sections: Record<string, string>
 }
 
 /** The whitelisted front-matter surface; any other key is a build error. */
@@ -22,7 +22,7 @@ export type FrontMatter = {
 
 const FRONT_MATTER_KEYS = ['module', 'symbols', 'usage']
 
-const USAGE_KEYS = ['complexity', 'domain', 'include', 'exclude', 'wrap']
+const USAGE_KEYS = ['domain', 'include', 'exclude', 'wrap']
 
 function fail(file: string, line: number, message: string): never {
 	throw new Error(`${file}:${line} ${message}`)
@@ -102,7 +102,18 @@ export function parseDoc(source: string, file: string): ParsedDoc {
 
 	let description: string | undefined
 
-	let body = ''
+	const sections: Record<string, string> = {}
+
+	// The section currently being filled (its lowercased `## ` heading) and buffer.
+	let heading: string | null = null
+
+	let buffer = ''
+
+	const flush = () => {
+		if (heading !== null) sections[heading] = buffer.trim()
+
+		buffer = ''
+	}
 
 	for (const token of tokens) {
 		const tokenLine = line
@@ -117,24 +128,37 @@ export function parseDoc(source: string, file: string): ParsedDoc {
 			continue
 		}
 
-		// Past the description, every non-h1 token is verbatim body Markdown.
-		if (description !== undefined) {
-			body += token.raw
+		if (name === undefined) {
+			if (token.type === 'space') continue
+
+			fail(file, tokenLine, 'the doc must open with an h1 display name')
+		}
+
+		if (description === undefined) {
+			if (token.type === 'space') continue
+
+			if (token.type !== 'paragraph') {
+				fail(file, tokenLine, 'the first content after the h1 must be a description paragraph')
+			}
+
+			description = token.raw.trim()
 
 			continue
 		}
 
-		// Before the h1 and description, blank lines carry no meaning.
-		if (token.type === 'space') continue
+		// A `## ` heading opens a section; every other token fills the current one.
+		if (token.type === 'heading' && token.depth === 2) {
+			flush()
 
-		if (name === undefined) fail(file, tokenLine, 'the doc must open with an h1 display name')
+			heading = token.text.trim().toLowerCase()
 
-		if (token.type !== 'paragraph') {
-			fail(file, tokenLine, 'the first content after the h1 must be a description paragraph')
+			continue
 		}
 
-		description = token.raw.trim()
+		buffer += token.raw
 	}
+
+	flush()
 
 	if (name === undefined) fail(file, 1, 'the doc must open with an h1 display name')
 
@@ -142,7 +166,7 @@ export function parseDoc(source: string, file: string): ParsedDoc {
 		fail(file, 1, 'the doc must have a description paragraph after the h1')
 	}
 
-	return { name, description, frontMatter: fm, body: body.trim() }
+	return { name, description, frontMatter: fm, sections }
 }
 
 /** Maps a doc's `(category, slug)` to a real module specifier, or undefined when none matches. */

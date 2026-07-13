@@ -193,8 +193,8 @@ export function docsPlugin({
 			return {
 				code: [
 					`export const meta = ${JSON.stringify(meta)}`,
-					`export const body = ${JSON.stringify(parsed.body)}`,
-					'export default { meta, body }',
+					`export const sections = ${JSON.stringify(parsed.sections)}`,
+					'export default { meta, sections }',
 				].join('\n\n'),
 				map: null,
 			}
