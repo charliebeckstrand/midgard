@@ -1,9 +1,9 @@
-import type ts from 'typescript-6'
-import { LINK_RE, parseLinkToken } from '../engine/link-syntax'
+import type ts from 'typescript'
+import { LINK_RE, parseLinkToken } from '../link-syntax'
 import type { DocLink } from './schema'
 
 // Re-exported for the sibling extractor modules that strip links from prose.
-export { stripLinks } from '../engine/link-syntax'
+export { stripLinks } from '../link-syntax'
 
 type ExtractedDoc = { description?: string; links?: Record<string, DocLink> }
 

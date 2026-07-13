@@ -1,8 +1,8 @@
-import type { CallableApi, ComponentApi, OtherApi, SymbolApi } from 'docs/extractor'
 import { Accordion, AccordionItem, AccordionPanel, AccordionTrigger } from 'ui/accordion'
 import { Markdown } from 'ui/markdown'
 import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
+import type { CallableApi, ComponentApi, OtherApi, SymbolApi } from '../../engine/extractor'
 import { CallableEntry } from './callable-entry'
 import { ComponentEntry } from './component-entry'
 

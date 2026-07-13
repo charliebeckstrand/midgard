@@ -1,6 +1,8 @@
-import ts from 'typescript-6'
+import path from 'node:path'
+import ts from 'typescript'
 import { type LinkResolver, stripLinks } from './doc'
 import type { DocLink } from './schema'
+import { isExcludedSource } from './surface'
 import { unaliasSymbol } from './ts-utils'
 
 /**
@@ -10,10 +12,10 @@ import { unaliasSymbol } from './ts-utils'
  * source to its symbol, which the returned resolver turns into hover detail
  * (signature + summary) on demand. Results are memoized, including misses.
  */
-export function createLinkResolver(program: ts.Program): LinkResolver {
+export function createLinkResolver(program: ts.Program, packageDir: string): LinkResolver {
 	const checker = program.getTypeChecker()
 
-	const index = buildIndex(program, checker)
+	const index = buildIndex(program, checker, packageDir)
 
 	const cache = new Map<string, DocLink | null>()
 
@@ -33,7 +35,11 @@ export function createLinkResolver(program: ts.Program): LinkResolver {
 }
 
 /** Map every PascalCase top-level declaration in project source to its symbol; first declaration wins. */
-function buildIndex(program: ts.Program, checker: ts.TypeChecker): Map<string, ts.Symbol> {
+function buildIndex(
+	program: ts.Program,
+	checker: ts.TypeChecker,
+	packageDir: string,
+): Map<string, ts.Symbol> {
 	const index = new Map<string, ts.Symbol>()
 
 	const add = (name: ts.Identifier | ts.BindingName | undefined) => {
@@ -49,11 +55,13 @@ function buildIndex(program: ts.Program, checker: ts.TypeChecker): Map<string, t
 	for (const sf of program.getSourceFiles()) {
 		const file = sf.fileName
 
-		// `/src/docs/`, not `/docs/`: the broad form matches every file of a
-		// package that merely lives under a `docs` directory, silently emptying
-		// the link index; the guard only means the documented package's own
-		// docs tree, mirroring the `src/docs` exclusion in `surface.ts`.
-		if (file.includes('/node_modules/') || file.includes('/src/docs/')) continue
+		// Skip external code and the documented package's own docs tree, the
+		// same package-relative rule `surface.ts` uses — a relative check so a
+		// package that merely lives under some `src/docs/` path (a fixture, this
+		// engine's own home) isn't wrongly emptied by an absolute substring.
+		const rel = path.relative(packageDir, file).split(path.sep).join('/')
+
+		if (file.includes('/node_modules/') || isExcludedSource(rel)) continue
 
 		for (const node of sf.statements) {
 			if (

@@ -1,4 +1,4 @@
-import ts from 'typescript-6'
+import ts from 'typescript'
 import type { ModuleContext } from './components'
 import { literalInitializerText } from './defaults'
 import { extractDocFromParts, stripLinks } from './doc'

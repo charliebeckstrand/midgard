@@ -1,4 +1,4 @@
-import ts from 'typescript-6'
+import ts from 'typescript'
 import { buildCallable, isCallable } from './callables'
 import { extractDefaults } from './defaults'
 import { extractDocFromParts, type LinkResolver, stripLinks } from './doc'

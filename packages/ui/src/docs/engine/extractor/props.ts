@@ -1,4 +1,4 @@
-import ts from 'typescript-6'
+import ts from 'typescript'
 import { extractDocFromParts, type LinkResolver } from './doc'
 import { formatPropType, formatType } from './format-type'
 import { extractReferences } from './references'

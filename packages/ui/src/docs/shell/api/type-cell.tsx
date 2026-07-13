@@ -1,4 +1,3 @@
-import type { PropDef } from 'docs/extractor'
 import { ChevronRight } from 'lucide-react'
 import { useState } from 'react'
 import { Badge } from 'ui/badge'
@@ -11,6 +10,7 @@ import { GlassProvider } from 'ui/providers/glass'
 import { Sheet, SheetBody, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from 'ui/sheet'
 import { Stack } from 'ui/stack'
 import { Tooltip, TooltipContent, TooltipTrigger } from 'ui/tooltip'
+import type { PropDef } from '../../engine/extractor'
 
 /** Split a type expression on top-level `|`, ignoring `|` inside nesting and strings. */
 function splitUnion(type: string): string[] {

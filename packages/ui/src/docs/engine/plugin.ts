@@ -1,10 +1,10 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { type ModuleNode, type Plugin, transformWithEsbuild } from 'vite'
-import type { DocKind, DocMeta } from '../engine/contracts'
-import { createModuleResolver, deriveDocMeta, type ParsedDoc, parseDoc } from '../engine/parse'
-import type { ApiExtractor, ExtraDefaults } from '../extractor'
-import { enumerateSurface, isExcludedSource } from '../extractor/surface'
+import type { DocKind, DocMeta } from './contracts'
+import type { ApiExtractor, ExtraDefaults } from './extractor'
+import { enumerateSurface, isExcludedSource } from './extractor/surface'
+import { createModuleResolver, deriveDocMeta, type ParsedDoc, parseDoc } from './parse'
 import { scanMarkdown } from './scan'
 import { virtualJsonModules } from './virtual-json'
 
@@ -52,13 +52,15 @@ export function docsPlugin({
 }: DocsPluginOptions): Plugin {
 	let contentRoot = contentDir
 
-	// Reconcile each doc's module against the package's real export surface, so
-	// derivation returns specifiers that actually exist rather than guessing a
-	// shape. Empty (falling back to `<pkg>/<slug>`) when no package is given.
-	const resolveModule = createModuleResolver(
-		apiPackageDir ? [...enumerateSurface(apiPackageDir, packageName).keys()] : [],
-		packageName,
-	)
+	// The package's real export surface: `specifier → entry file`. Reconciles
+	// each doc's module against it (so derivation yields specifiers that exist,
+	// not a guessed shape) and scopes API extraction to what's documented.
+	// Empty when no package is given.
+	const surface = apiPackageDir
+		? enumerateSurface(apiPackageDir, packageName)
+		: new Map<string, string>()
+
+	const resolveModule = createModuleResolver([...surface.keys()], packageName)
 
 	const deriveOptions = { packageName, resolveModule, categoryKinds }
 
@@ -73,7 +75,7 @@ export function docsPlugin({
 		if (!apiPackageDir) return null
 
 		if (!extractor) {
-			const { createExtractor } = await import('../extractor')
+			const { createExtractor } = await import('./extractor')
 
 			extractor = createExtractor({ packageDir: apiPackageDir, packageName, extraDefaults })
 		}
@@ -119,6 +121,21 @@ export function docsPlugin({
 		return parsed
 	}
 
+	// The distinct real module specifiers the content actually documents, so API
+	// extraction covers those and not the whole package — a 2-page site never
+	// pays to extract 90 components.
+	const documentedModules = (): string[] => {
+		const modules = new Set<string>()
+
+		for (const file of scanMarkdown(contentRoot)) {
+			const meta = deriveDocMeta(path.relative(contentRoot, file), parsedFor(file), deriveOptions)
+
+			if (surface.has(meta.module)) modules.add(meta.module)
+		}
+
+		return [...modules]
+	}
+
 	const jsonHooks = virtualJsonModules([
 		{
 			id: MANIFEST_ID,
@@ -135,7 +152,7 @@ export function docsPlugin({
 			generate: async () => {
 				const active = await loadExtractor()
 
-				return active ? active.extract() : { schemaVersion: 1, modules: {} }
+				return active ? active.extract(documentedModules()) : { schemaVersion: 1, modules: {} }
 			},
 			shouldInvalidate: isApiSource,
 		},

@@ -1,4 +1,4 @@
-import ts from 'typescript-6'
+import ts from 'typescript'
 import {
 	isPassThroughTypeName,
 	resolveTypeAliasTarget,

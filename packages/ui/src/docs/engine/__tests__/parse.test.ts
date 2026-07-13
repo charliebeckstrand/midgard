@@ -1,4 +1,4 @@
-import { createModuleResolver, deriveDocMeta, parseDoc } from '../engine/parse'
+import { createModuleResolver, deriveDocMeta, parseDoc } from '../parse'
 
 const FIXTURE = `---
 usage:

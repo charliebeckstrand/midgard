@@ -91,7 +91,10 @@ export default defineConfig({
 					// dominates wall clock when a few-core agent runs the suite
 					// through a single worker.
 					vmMemoryLimit: '1GB',
-					include: ['src/__tests__/**/*.test.{ts,tsx}'],
+					include: [
+						'src/__tests__/**/*.test.{ts,tsx}',
+						'src/docs/engine/__tests__/**/*.test.{ts,tsx}',
+					],
 					// The browser suite (vitest.browser.config.ts) verifies behaviour
 					// jsdom can't — layout/colour geometry and, in its floating-ui
 					// project, real-floating-engine focus trapping — so it may not

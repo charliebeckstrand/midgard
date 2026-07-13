@@ -29,18 +29,13 @@
 				"src/**/index.ts"
 			]
 		},
-		"packages/docs": {
-			"entry": [
-				"src/**/index.ts"
-			],
-			"ignore": [
-				"src/__tests__/fixtures/**"
-			]
-		},
 		"packages/ui": {
 			"entry": [
 				"src/**/index.ts",
 				"src/__tests__/**/setup/*.ts"
+			],
+			"ignore": [
+				"src/docs/engine/__tests__/fixtures/**"
 			]
 		}
 	}

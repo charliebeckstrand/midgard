@@ -6,7 +6,7 @@ const HERE = path.dirname(fileURLToPath(import.meta.url))
 
 const FIXTURE_DIR = path.join(HERE, 'fixtures', 'callables')
 
-const UI_DIR = path.resolve(HERE, '../../../ui')
+const UI_DIR = path.resolve(HERE, '../../../..')
 
 // One extraction over the fixture package feeds every fixture-backed suite;
 // the program build dominates the cost, so it runs once through the same public

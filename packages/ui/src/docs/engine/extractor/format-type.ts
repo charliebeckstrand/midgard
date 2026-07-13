@@ -1,4 +1,4 @@
-import ts from 'typescript-6'
+import ts from 'typescript'
 
 const TYPE_FORMAT_FLAGS =
 	ts.TypeFormatFlags.NoTruncation | ts.TypeFormatFlags.UseAliasDefinedOutsideCurrentScope

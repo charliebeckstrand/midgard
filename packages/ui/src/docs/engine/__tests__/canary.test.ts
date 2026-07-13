@@ -1,9 +1,9 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { declaredDefaults } from '../adapters'
 import { type ComponentApi, createExtractor } from '../extractor'
+import { readRecipeDefaults } from '../recipe-defaults'
 
-const UI_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../ui')
+const UI_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../..')
 
 // Loose assertions by design: this suite proves the extractor holds against
 // the real `ui` package without pinning its evolving surface.
@@ -12,7 +12,7 @@ describe('canary: ui/button over the real ui package', () => {
 		const extractor = createExtractor({
 			packageDir: UI_DIR,
 			packageName: 'ui',
-			extraDefaults: declaredDefaults({ dir: 'src/recipes/kata', call: 'defineRecipe' }),
+			extraDefaults: readRecipeDefaults,
 		})
 
 		const exports = extractor.extract(['ui/button']).modules['ui/button']?.exports ?? []

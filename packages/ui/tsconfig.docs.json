@@ -6,5 +6,5 @@
 		"tsBuildInfoFile": ".tsbuildinfo/docs.tsbuildinfo"
 	},
 	"include": ["src/docs"],
-	"exclude": []
+	"exclude": ["src/docs/engine/__tests__/fixtures"]
 }

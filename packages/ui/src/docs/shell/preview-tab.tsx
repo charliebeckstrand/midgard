@@ -1,4 +1,3 @@
-import type { DocModule, PreviewBlock } from 'docs/engine'
 import { type ComponentType, lazy, Suspense, useState } from 'react'
 import { CodeBlock, type CodeBlockProps } from 'ui/code'
 import { Collapse, CollapsePanel, CollapseTrigger } from 'ui/collapse'
@@ -6,6 +5,7 @@ import { Heading } from 'ui/heading'
 import { Markdown } from 'ui/markdown'
 import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
+import type { DocModule, PreviewBlock } from '../engine'
 import { DocErrorBoundary } from './error-boundary'
 
 // `lazy` must see the same component across renders; keyed by the block, which

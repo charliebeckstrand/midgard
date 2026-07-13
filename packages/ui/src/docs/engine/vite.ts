@@ -1,8 +1,8 @@
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import type { UserConfig } from 'vite'
-import type { DocKind } from '../engine/contracts'
-import type { ExtraDefaults } from '../extractor'
+import type { DocKind } from './contracts'
+import type { ExtraDefaults } from './extractor'
 import { docsPlugin } from './plugin'
 
 export type { DocsPluginOptions } from './plugin'

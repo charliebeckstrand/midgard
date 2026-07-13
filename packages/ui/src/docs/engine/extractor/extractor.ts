@@ -1,6 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
-import ts from 'typescript-6'
+import ts from 'typescript'
 import { extractModule } from './components'
 import type { LinkResolver } from './doc'
 import { createLinkResolver } from './links'
@@ -80,7 +80,7 @@ export function createExtractor(options: ExtractorOptions): ApiExtractor {
 		session = {
 			program,
 			checker: program.getTypeChecker(),
-			resolveLink: createLinkResolver(program),
+			resolveLink: createLinkResolver(program, packageDir),
 			// One resolution cache for the session: a full-surface extract walks
 			// shared subtrees (ui/core, utilities) once per importing module, so
 			// caching resolution avoids re-doing filesystem work per module.

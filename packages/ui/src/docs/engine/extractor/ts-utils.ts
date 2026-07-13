@@ -1,4 +1,4 @@
-import ts from 'typescript-6'
+import ts from 'typescript'
 
 /** Props the docs surface never treats as configurable: React-reserved, structural, or styling noise. */
 export const IGNORED_PROPS: ReadonlySet<string> = new Set(['children', 'className', 'key', 'ref'])
