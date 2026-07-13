@@ -1,7 +1,16 @@
 'use client'
 
-import { type ReactNode, useEffect, useId, useRef, useState } from 'react'
+import {
+	type ReactNode,
+	useCallback,
+	useEffect,
+	useId,
+	useRef,
+	useState,
+	useSyncExternalStore,
+} from 'react'
 import { cn } from '../../core'
+import { focusWithoutReveal } from '../../hooks/use-truncation'
 import { k } from '../../recipes/kata/grid'
 import { inferEditorKind, isColumnEditable } from './engine/grid-editing-utilities'
 import { GridEditInputs } from './grid-edit-inputs'
@@ -22,7 +31,13 @@ type GridEditingCellProps<T> = {
 
 /** Props for the mounted editor: the cell plus the row-editing staging and session callbacks. @internal */
 type GridCellEditorProps<T> = Omit<GridEditingCellProps<T>, 'render'> &
-	Pick<GridRowEditing, 'stageDraft' | 'unstageDraft' | 'commitRowEdit' | 'cancelRowEdit'>
+	Pick<
+		GridRowEditing,
+		'stageDraft' | 'unstageDraft' | 'claimPendingFocus' | 'commitRowEdit' | 'cancelRowEdit'
+	>
+
+/** Focusable editor content inside an editing cell, in preference order. @internal */
+const EDITOR_FOCUSABLE = 'input, select, textarea, button, [tabindex]'
 
 /**
  * A cell's in-place editor while its row is in edit mode. Owns its live display
@@ -42,12 +57,29 @@ function GridCellEditor<T>({
 	column,
 	stageDraft,
 	unstageDraft,
+	claimPendingFocus,
 	commitRowEdit,
 	cancelRowEdit,
 }: GridCellEditorProps<T>) {
 	const seed = column.field != null ? row[column.field] : undefined
 
 	const [draft, setDraft] = useState<unknown>(seed)
+
+	const hostRef = useRef<HTMLSpanElement>(null)
+
+	// The grid-owned entry that began this session recorded which cell's editor
+	// should take focus; the editor resolves that handshake here at mount —
+	// whatever render pass mounted it — rather than the grid locating it from
+	// outside. Focus routes through the truncation-safe helper: it fires a
+	// `focusin` that arms the cell's truncation span, whose synchronous
+	// `flushSync` cannot flush during the commit this effect runs in.
+	useEffect(() => {
+		if (!claimPendingFocus(rowKey, column.id)) return
+
+		const editor = hostRef.current?.querySelector<HTMLElement>(EDITOR_FOCUSABLE)
+
+		if (editor) focusWithoutReveal(editor)
+	}, [claimPendingFocus, rowKey, column.id])
 
 	const update = (next: unknown) => {
 		setDraft(next)
@@ -123,7 +155,7 @@ function GridCellEditor<T>({
 	)
 
 	return (
-		<span className={cn(k.edit.host, error && k.edit.errorRing)}>
+		<span ref={hostRef} className={cn(k.edit.host, error && k.edit.errorRing)}>
 			{body}
 
 			{error && (
@@ -136,11 +168,14 @@ function GridCellEditor<T>({
 }
 
 /**
- * One data cell of an editable grid. When its row key is in the editable set and
- * the column binds an editor, it mounts {@link GridCellEditor}; otherwise it
- * renders the column's display content through {@link GridNavCell} (which carries
- * the active-cursor ring). The editable set flips only on a row toggle, so cells
- * don't re-render as the user types.
+ * One data cell of an editable grid. While its editing flag is set in the
+ * session store — its row is in the editable set and, cell-scoped, it is the
+ * active edit — and the column binds an editor, it mounts
+ * {@link GridCellEditor}; otherwise it renders the column's display content
+ * through {@link GridNavCell} (which carries the active-cursor ring). The flag
+ * is a per-cell store subscription, so a session transition re-renders only the
+ * cells it touched, and staging is ref-held, so cells don't re-render as the
+ * user types.
  *
  * @internal
  */
@@ -152,10 +187,17 @@ export function GridEditingCell<T>({
 	column,
 	render,
 }: GridEditingCellProps<T>) {
-	const { editableRows, stageDraft, unstageDraft, commitRowEdit, cancelRowEdit } =
+	const { store, stageDraft, unstageDraft, claimPendingFocus, commitRowEdit, cancelRowEdit } =
 		useGridRowEditing()
 
-	if (editableRows.has(rowKey) && isColumnEditable(column)) {
+	const isCellEditing = useCallback(
+		() => store.isCellEditing(rowKey, column.id),
+		[store, rowKey, column.id],
+	)
+
+	const editing = useSyncExternalStore(store.subscribe, isCellEditing, isCellEditing)
+
+	if (editing && isColumnEditable(column)) {
 		return (
 			<GridCellEditor
 				rowIdx={rowIdx}
@@ -165,6 +207,7 @@ export function GridEditingCell<T>({
 				column={column}
 				stageDraft={stageDraft}
 				unstageDraft={unstageDraft}
+				claimPendingFocus={claimPendingFocus}
 				commitRowEdit={commitRowEdit}
 				cancelRowEdit={cancelRowEdit}
 			/>

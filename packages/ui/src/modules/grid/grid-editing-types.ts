@@ -88,6 +88,23 @@ export type GridEditableConfig = {
 	 */
 	trigger?: 'manual' | 'doubleClick'
 	/**
+	 * How much of a row one edit session covers. `'row'` — the default — puts
+	 * every editable cell of the row into edit mode at once and saves them
+	 * together: the form-like "edit this record" model. `'cell'` narrows a
+	 * session to a single cell — the entered cell alone mounts its editor, and
+	 * its save is a one-change batch through the same
+	 * {@link GridEditableConfig.onValueChange} sink — the spreadsheet model.
+	 *
+	 * @remarks Cell scope keeps one session at a time: entering a cell commits
+	 * the previously active cell's staged edit (Escape still abandons instead).
+	 * Sessions still flow through `rows`/`onRowsChange` — the set carries the
+	 * active cell's row — so a controlled binding can decline an entry. A row
+	 * put into the set by the consumer under `'cell'` (no entered cell to
+	 * narrow to) seats the session at that row's first editable column.
+	 * @defaultValue 'row'
+	 */
+	scope?: 'row' | 'cell'
+	/**
 	 * Called when an editing row is saved (removed from the set), with one
 	 * {@link CellChange} per changed cell in that row, batched into a single call.
 	 * Unchanged and `validate`-failing cells are dropped. Apply each change to your

@@ -20,7 +20,12 @@ import {
 	type SortState,
 } from '../../../../modules/grid'
 import { code, Example } from '../../../engine'
-import { BulkEditExample, EditableExample, EditorTypesExample } from './editable'
+import {
+	BulkEditExample,
+	EditableExample,
+	EditorTypesExample,
+	SpreadsheetExample,
+} from './editable'
 import { ServerGroupingExample } from './server-grouping'
 
 type Person = {
@@ -1691,6 +1696,13 @@ export function Demo() {
 							code={code`<Grid editable={{ rows, onRowsChange, onValueChange }} />`}
 						>
 							<EditableExample />
+						</Example>
+
+						<Example
+							title="Spreadsheet cells"
+							code={code`<Grid editable={{ trigger: 'doubleClick', scope: 'cell', onValueChange }} />`}
+						>
+							<SpreadsheetExample />
 						</Example>
 
 						<Example

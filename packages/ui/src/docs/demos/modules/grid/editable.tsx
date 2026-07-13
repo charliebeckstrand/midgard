@@ -257,6 +257,64 @@ export function EditableExample() {
 	)
 }
 
+type Sku = { id: number; sku: string; stock: number; reorderAt: number; unitCost: number }
+
+const initialSkus: Sku[] = [
+	{ id: 1, sku: 'CBL-HDMI-2M', stock: 140, reorderAt: 40, unitCost: 3.1 },
+	{ id: 2, sku: 'CBL-USBC-1M', stock: 220, reorderAt: 60, unitCost: 2.4 },
+	{ id: 3, sku: 'ADP-65W-GAN', stock: 35, reorderAt: 25, unitCost: 11.8 },
+	{ id: 4, sku: 'HUB-7PORT', stock: 58, reorderAt: 20, unitCost: 9.6 },
+	{ id: 5, sku: 'MNT-ARM-DUAL', stock: 12, reorderAt: 10, unitCost: 24.5 },
+]
+
+export function SpreadsheetExample() {
+	const money = useFormat({ type: 'currency' })
+
+	const [skus, setSkus] = useState<Sku[]>(initialSkus)
+
+	// `scope: 'cell'` narrows a session to one cell — the spreadsheet model:
+	// double-click a cell (or press Enter on the cursor) to edit just it, Enter to
+	// save that cell alone, Escape to discard it; entering another cell saves the
+	// current one on the way out. The sku column stays read-only.
+	const columns: GridColumn<Sku>[] = [
+		{ id: 'sku', title: 'SKU', cell: (row) => row.sku, readOnly: true },
+		{ id: 'stock', title: 'Stock', field: 'stock', cell: (row) => String(row.stock) },
+		{
+			id: 'reorderAt',
+			title: 'Reorder at',
+			field: 'reorderAt',
+			cell: (row) => String(row.reorderAt),
+			validate: (value) => (typeof value === 'number' && value >= 0 ? null : 'Must be ≥ 0'),
+		},
+		{
+			id: 'unitCost',
+			title: 'Unit cost',
+			field: 'unitCost',
+			cell: (row) => money(row.unitCost),
+			editCell: CellCurrency,
+		},
+	]
+
+	return (
+		<>
+			<EditHelp label="Spreadsheet editing help">
+				Double-click a cell (or press Enter on the keyboard cursor) to edit that cell alone. Enter
+				saves it; Escape discards it; entering another cell saves the current one on the way out.
+			</EditHelp>
+			<Grid
+				columns={columns}
+				rows={skus}
+				getKey={(row) => row.id}
+				editable={{
+					trigger: 'doubleClick',
+					scope: 'cell',
+					onValueChange: (changes) => setSkus((prev) => applyChanges(prev, changes)),
+				}}
+			/>
+		</>
+	)
+}
+
 type Task = {
 	id: number
 	title: string

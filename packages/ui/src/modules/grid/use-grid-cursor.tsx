@@ -133,7 +133,6 @@ export function useGridCursor<T>({
 		rowsRef,
 		rowKeysRef,
 		dataColumnsRef,
-		cellId: nav.cellId,
 	})
 
 	// Begins the edit session for the cell at a cursor coord: resolves its row

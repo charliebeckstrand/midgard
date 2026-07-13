@@ -445,3 +445,173 @@ describe("Grid double-click-to-edit (trigger: 'doubleClick')", () => {
 		expect(bySlot(container, 'open-disclosure')).toBeInTheDocument()
 	})
 })
+
+/**
+ * Cell-scoped sessions (`editable.scope: 'cell'`): one session covers a single
+ * cell, not a row — the entered cell alone mounts its editor, its save is a
+ * one-change batch through the same sink, and entering another cell commits the
+ * previously active one. The session's row still rides the controllable
+ * editable set, so `onRowsChange` reports every transition.
+ */
+describe("Grid cell-scoped sessions (scope: 'cell')", () => {
+	type Row = { id: number; name: string; count: number; done: boolean }
+
+	const baseRows: Row[] = [
+		{ id: 1, name: 'Alice', count: 2, done: false },
+		{ id: 2, name: 'Bob', count: 5, done: true },
+	]
+
+	const columns: GridColumn<Row>[] = [
+		{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
+		{ id: 'count', title: 'Count', field: 'count', cell: (row) => String(row.count) },
+	]
+
+	function renderCellGrid(cols: GridColumn<Row>[] = columns) {
+		const onValueChange = vi.fn()
+
+		const onRowsChange = vi.fn()
+
+		const view = renderUI(
+			<Grid
+				columns={cols}
+				rows={baseRows}
+				getKey={(row) => row.id}
+				editable={{ trigger: 'doubleClick', scope: 'cell', onRowsChange, onValueChange }}
+			/>,
+		)
+
+		return {
+			...view,
+			onValueChange,
+			onRowsChange,
+			cell: (col: string, rowIndex = 0) =>
+				view.container.querySelectorAll<HTMLElement>(`td[data-grid-col="${col}"]`)[
+					rowIndex
+				] as HTMLElement,
+		}
+	}
+
+	it('mounts an editor in the double-clicked cell alone, not the whole row', () => {
+		const { container, cell, onRowsChange } = renderCellGrid()
+
+		fireEvent.doubleClick(cell('name'))
+
+		// The entered cell edits; its row-mates keep their display content.
+		expect(bySlot(container, 'grid-edit-input')).toHaveFocus()
+
+		expect(bySlot(container, 'grid-edit-number-input')).toBeNull()
+
+		// The session's row still flows through the controllable set.
+		expect(onRowsChange).toHaveBeenCalledWith(new Set([1]))
+	})
+
+	it('saves just the cell on Enter, as a one-change batch', () => {
+		const { container, cell, onValueChange, getByRole } = renderCellGrid()
+
+		fireEvent.doubleClick(cell('name'))
+
+		const input = bySlot(container, 'grid-edit-input') as HTMLInputElement
+
+		fireEvent.change(input, { target: { value: 'Alicia' } })
+
+		fireEvent.keyDown(input, { key: 'Enter' })
+
+		expect(onValueChange).toHaveBeenCalledTimes(1)
+
+		expect(onValueChange).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'name', value: 'Alicia' }])
+
+		// The session closes and the keyboard lands back on the grid's tab stop.
+		expect(bySlot(container, 'grid-edit-input')).toBeNull()
+
+		expect(getByRole('grid')).toHaveFocus()
+	})
+
+	it("abandons the cell's staged edit on Escape without emitting", () => {
+		const { container, cell, onValueChange } = renderCellGrid()
+
+		fireEvent.doubleClick(cell('name'))
+
+		const input = bySlot(container, 'grid-edit-input') as HTMLInputElement
+
+		fireEvent.change(input, { target: { value: 'Discarded' } })
+
+		fireEvent.keyDown(input, { key: 'Escape' })
+
+		expect(bySlot(container, 'grid-edit-input')).toBeNull()
+
+		expect(onValueChange).not.toHaveBeenCalled()
+	})
+
+	it("commits the active cell's staged edit when another cell of the same row is entered", () => {
+		const { container, cell, onValueChange } = renderCellGrid()
+
+		fireEvent.doubleClick(cell('name'))
+
+		fireEvent.change(bySlot(container, 'grid-edit-input') as HTMLInputElement, {
+			target: { value: 'Alicia' },
+		})
+
+		// Enter the sibling cell: the session moves there, committing the first
+		// cell on the way out — the spreadsheet's click-elsewhere save.
+		fireEvent.doubleClick(cell('count'))
+
+		expect(onValueChange).toHaveBeenCalledTimes(1)
+
+		expect(onValueChange).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'name', value: 'Alicia' }])
+
+		expect(bySlot(container, 'grid-edit-input')).toBeNull()
+
+		expect(bySlot(container, 'grid-edit-number-input')).toHaveFocus()
+	})
+
+	it("commits the active cell's staged edit when a cell of another row is entered", () => {
+		const { container, cell, onValueChange, onRowsChange } = renderCellGrid()
+
+		fireEvent.doubleClick(cell('name', 0))
+
+		fireEvent.change(bySlot(container, 'grid-edit-input') as HTMLInputElement, {
+			target: { value: 'Alicia' },
+		})
+
+		fireEvent.doubleClick(cell('name', 1))
+
+		expect(onValueChange).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'name', value: 'Alicia' }])
+
+		// One session at a time: the set swaps to the new row.
+		expect(onRowsChange).toHaveBeenLastCalledWith(new Set([2]))
+
+		expect((bySlot(container, 'grid-edit-input') as HTMLInputElement).value).toBe('Bob')
+	})
+
+	it("seats a consumer-driven session at the row's first editable column", () => {
+		const onValueChange = vi.fn()
+
+		function Harness() {
+			const [editing, setEditing] = useState<Set<string | number>>(new Set())
+
+			return (
+				<>
+					<button type="button" onClick={() => setEditing(new Set([1]))}>
+						edit-1
+					</button>
+					<Grid
+						columns={columns}
+						rows={baseRows}
+						getKey={(row) => row.id}
+						editable={{ rows: editing, onRowsChange: setEditing, scope: 'cell', onValueChange }}
+					/>
+				</>
+			)
+		}
+
+		const view = renderUI(<Harness />)
+
+		fireEvent.click(view.getByRole('button', { name: 'edit-1' }))
+
+		// A manual entry names no cell, so the session lands on the first editable
+		// column — one editor, not a whole row of them.
+		expect(bySlot(view.container, 'grid-edit-input')).toBeInTheDocument()
+
+		expect(bySlot(view.container, 'grid-edit-number-input')).toBeNull()
+	})
+})
