@@ -73,4 +73,4 @@ Because each shared rule has exactly one definition, its `*.test.ts` suite is wh
 
 ---
 
-**See also:** [`__benchmarks__/browser/README.md`](../../__benchmarks__/browser/README.md) (the competitive suite and its methodology) · [`index.ts`](index.ts) (public surface) · [`../../docs/MODULES.md`](../../../docs/MODULES.md). Residual feature work — the editing increments, cell/range selection, nested grouping, variable-height virtualization — is retired from this tracker; the editing design persists in [`../../docs/2026-07-08-GRID-EDITING-PLAN.md`](../../../docs/2026-07-08-GRID-EDITING-PLAN.md).
+**See also:** [`__benchmarks__/browser/README.md`](../../__benchmarks__/browser/README.md) (the competitive suite and its methodology) · [`index.ts`](index.ts) (public surface) · [`../../docs/MODULES.md`](../../../docs/MODULES.md). Residual feature work — the editing increments, cell/range selection, nested grouping, variable-height virtualization — is retired from this tracker; the editing design persists in [`../../docs/plans/2026-07-08-GRID-EDITING-PLAN.md`](../../../docs/plans/2026-07-08-GRID-EDITING-PLAN.md).

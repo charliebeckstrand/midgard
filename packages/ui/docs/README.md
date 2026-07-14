@@ -2,9 +2,10 @@
 
 Documentation for the `ui` package. Authoring conventions live in the repo-root
 [`CONVENTIONS.md`](../../../CONVENTIONS.md); the package hub is
-[`../REFERENCE.md`](../REFERENCE.md). This folder holds two kinds of material:
+[`../REFERENCE.md`](../REFERENCE.md). This folder holds three kinds of material:
 **curated surface references** (the always-current, quick-glance inventory of
-the public API) and **audits** (point-in-time sweeps).
+the public API), **audits** (point-in-time sweeps), and **plans** (dated design
+records for in-flight or shipped work).
 
 ## Structure
 
@@ -20,11 +21,16 @@ the public API) and **audits** (point-in-time sweeps).
 - **`audits/`** — dated, full-surface sweeps of the package against a single
   lens (accessibility, correctness, API surface, documentation, …). Each audit is
   a standalone record of what was found and, where applicable, what was resolved.
+- **`plans/`** — dated design records: what a feature or module is trying to be,
+  what ships today, and the increments still ahead. A plan holds the design; the
+  owning `ROADMAP.md` tracks status. A plan stays as the historical record after
+  its work lands.
 
 New top-level subjects get their own folder here as they appear; keep
-single-lens, point-in-time sweeps under `audits/`.
+single-lens, point-in-time sweeps under `audits/` and design records under
+`plans/`.
 
-## Audit naming
+## Audit and plan naming
 
 Audit files are named `{date}-{LENS}-AUDIT.md`, where:
 
@@ -33,6 +39,11 @@ Audit files are named `{date}-{LENS}-AUDIT.md`, where:
   chronologically and lets a lens be re-audited later without overwriting the
   prior pass.
 - `{LENS}` is the upper-case subject of the sweep: `ARIA`, `BUG`, `PROP`, etc.
+
+Plan files follow the same convention as `{date}-{SUBJECT}-PLAN.md`: the
+`{date}` is the ISO date the plan was drafted, prefixed identically so `plans/`
+stays chronologically sorted, and `{SUBJECT}` is the upper-case feature or
+module the design covers (`GRID-EDITING`, `QUERY-MODULE`, …).
 
 An audit is a living record: as findings are resolved, mark the row or pattern
 resolved in place (with the resolving commit) rather than deleting it, so the

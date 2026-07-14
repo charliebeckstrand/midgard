@@ -1,6 +1,6 @@
 # Grid Inline Editing — Feature Plan — 2026-07-08
 
-What the `editable` feature is trying to be, what ships today, and the increments that take it the rest of the way. Companion to the [Grid roadmap](../src/modules/grid/ROADMAP.md) §Selection & editing, which tracks status; this doc holds the design.
+What the `editable` feature is trying to be, what ships today, and the increments that take it the rest of the way. Companion to the [Grid roadmap](../../src/modules/grid/ROADMAP.md) §Selection & editing, which tracks status; this doc holds the design.
 
 ## Thesis
 
@@ -70,4 +70,4 @@ Per CLAUDE.md §3.5: TSDoc on every `GridEditableConfig` addition in the same ch
 
 ---
 
-**See also:** [`ROADMAP.md`](../src/modules/grid/ROADMAP.md) · [`grid-editing-types.ts`](../src/modules/grid/grid-editing-types.ts) · [`2026-07-01-VIRTUALIZATION-KEYBOARD-PLAN.md`](2026-07-01-VIRTUALIZATION-KEYBOARD-PLAN.md) (plan-doc precedent).
+**See also:** [`ROADMAP.md`](../../src/modules/grid/ROADMAP.md) · [`grid-editing-types.ts`](../../src/modules/grid/grid-editing-types.ts) · [`2026-07-01-VIRTUALIZATION-KEYBOARD-PLAN.md`](../2026-07-01-VIRTUALIZATION-KEYBOARD-PLAN.md) (plan-doc precedent).
