@@ -1,6 +1,6 @@
 # Query Module — Design Plan — 2026-07-12
 
-What graduating `query` to a first-class module means, piece by piece. Companion to the module trackers ([grid](../src/modules/grid/ROADMAP.md), [chart](../src/modules/chart/ROADMAP.md), [map](../src/modules/map/ROADMAP.md)); this doc holds the design, and the query ROADMAP it proposes will track status once the extraction lands.
+What graduating `query` to a first-class module means, piece by piece. Companion to the module trackers ([grid](../../src/modules/grid/ROADMAP.md), [chart](../../src/modules/chart/ROADMAP.md), [map](../../src/modules/map/ROADMAP.md)); this doc holds the design, and the query ROADMAP it proposes will track status once the extraction lands.
 
 ## Thesis
 
@@ -101,4 +101,4 @@ Per CLAUDE.md §3.5 / CONVENTIONS.md §12: TSDoc travels with every moved symbol
 
 ---
 
-**See also:** [`MODULES.md`](MODULES.md) · [`../src/modules/query/index.ts`](../src/modules/query/index.ts) (the frozen surface) · [grid `ROADMAP.md` §Engine](../src/modules/grid/ROADMAP.md) (the invariants this adopts) · [`2026-07-08-GRID-EDITING-PLAN.md`](2026-07-08-GRID-EDITING-PLAN.md) (plan-doc precedent).
+**See also:** [`MODULES.md`](../MODULES.md) · [`../../src/modules/query/index.ts`](../../src/modules/query/index.ts) (the frozen surface) · [grid `ROADMAP.md` §Engine](../../src/modules/grid/ROADMAP.md) (the invariants this adopts) · [`2026-07-08-GRID-EDITING-PLAN.md`](2026-07-08-GRID-EDITING-PLAN.md) (plan-doc precedent).

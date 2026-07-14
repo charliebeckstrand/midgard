@@ -8,7 +8,7 @@ The engine extraction is done (this change). The Query domain — node and field
 
 The builder is now one view wired over that core. `useQueryTree` (module root) holds the controlled/uncontrolled root and the five referentially-stable edit actions; `useQueryBuilderTree` composes it with the builder's focus registry, wrapping `remove` to move focus to a surviving neighbour (WCAG 2.4.3). The focus ladder is the builder's own concern in [`query-builder/query-builder-focus.ts`](query-builder/query-builder-focus.ts), not the query's. Grid's filter path reads the same core: `grid/engine/grid-table/options.ts` evaluates a column's query tree through `engine/query-evaluate`, a pure-engine-to-pure-engine edge.
 
-The public surface is unchanged across the move — the barrel re-exports domain symbols from `./engine/*` and view symbols from `./query-builder`, so every consumer (grid, the docs demo, the a11y corpus, the boundary suite) compiles byte-unchanged. The design record for the extraction is [`docs/2026-07-12-QUERY-MODULE-PLAN.md`](../../../docs/2026-07-12-QUERY-MODULE-PLAN.md).
+The public surface is unchanged across the move — the barrel re-exports domain symbols from `./engine/*` and view symbols from `./query-builder`, so every consumer (grid, the docs demo, the a11y corpus, the boundary suite) compiles byte-unchanged. The design record for the extraction is [`docs/plans/2026-07-12-QUERY-MODULE-PLAN.md`](../../../docs/plans/2026-07-12-QUERY-MODULE-PLAN.md).
 
 ## Engine — the substrate
 
@@ -38,4 +38,4 @@ The [`module-filename-boundary.test.ts`](../../__tests__/boundary/module-filenam
 
 ---
 
-**See also:** [`index.ts`](index.ts) (the public surface) · [`docs/2026-07-12-QUERY-MODULE-PLAN.md`](../../../docs/2026-07-12-QUERY-MODULE-PLAN.md) (the design record) · [grid `ROADMAP.md` §Engine](../grid/ROADMAP.md) (the invariants this adopts) · [`docs/MODULES.md`](../../../docs/MODULES.md).
+**See also:** [`index.ts`](index.ts) (the public surface) · [`docs/plans/2026-07-12-QUERY-MODULE-PLAN.md`](../../../docs/plans/2026-07-12-QUERY-MODULE-PLAN.md) (the design record) · [grid `ROADMAP.md` §Engine](../grid/ROADMAP.md) (the invariants this adopts) · [`docs/MODULES.md`](../../../docs/MODULES.md).
