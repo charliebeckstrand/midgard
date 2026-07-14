@@ -22,7 +22,8 @@ const SPINNER_SVG = (
 /**
  * Indeterminate loading indicator rendered as a live `<output>` with an
  * `sr-only` `label`. Static leaf: renders in React Server Components. `size`
- * is explicit (recipe default `md`); inside a control affix slot the slot's
+ * is explicit (recipe default `md`); inside a host that projects onto the
+ * `loading-spinner` slot (a control affix slot or the button kata) the
  * projection owns it.
  */
 export function LoadingSpinner({

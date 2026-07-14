@@ -11,6 +11,38 @@ const { focus } = sen
 const { icon } = shaku
 const { spring } = ugoki
 
+// Size projection for the static loading leaves. `<LoadingSpinner>` /
+// `<LoadingDots>` read no context (static-component boundary), so — like
+// `shaku.icon` for `<Icon>` — the host sizes them via CSS: each step projects
+// the matching `kata/loading` diameter onto the slot so a spinner or dots
+// placed in a button (as `prefix`/`suffix` or the `loading` swap) tracks the
+// control size. The dots' diameter lands on `data-[slot=loading-dot]` to clear
+// the `sr-only` label span; the container gap rides `data-[slot=loading-dots]`.
+// Whole class literals are required — Tailwind's JIT can't interpolate them —
+// and mirror the `spinner`/`dot`/gap rows in `kata/loading`; edit together.
+const loading = {
+	xs: [
+		'*:data-[slot=loading-spinner]:size-3',
+		'*:data-[slot=loading-dots]:gap-0.5',
+		'*:data-[slot=loading-dots]:*:data-[slot=loading-dot]:size-1',
+	],
+	sm: [
+		'*:data-[slot=loading-spinner]:size-4',
+		'*:data-[slot=loading-dots]:gap-1',
+		'*:data-[slot=loading-dots]:*:data-[slot=loading-dot]:size-1.5',
+	],
+	md: [
+		'*:data-[slot=loading-spinner]:size-5',
+		'*:data-[slot=loading-dots]:gap-1.5',
+		'*:data-[slot=loading-dots]:*:data-[slot=loading-dot]:size-2',
+	],
+	lg: [
+		'*:data-[slot=loading-spinner]:size-6',
+		'*:data-[slot=loading-dots]:gap-2',
+		'*:data-[slot=loading-dots]:*:data-[slot=loading-dot]:size-2.5',
+	],
+} as const
+
 export const k = defineRecipe(
 	{
 		base: [
@@ -38,6 +70,7 @@ export const k = defineRecipe(
 			xs: [
 				size.xs,
 				icon.xs,
+				...loading.xs,
 				gap.g('0.75'),
 				padding.p('1.5'),
 				radius.r('1'),
@@ -46,6 +79,7 @@ export const k = defineRecipe(
 			sm: [
 				size.sm,
 				icon.sm,
+				...loading.sm,
 				gap.g('1'),
 				padding.p('2'),
 				radius.r('1.5'),
@@ -54,6 +88,7 @@ export const k = defineRecipe(
 			md: [
 				size.md,
 				icon.md,
+				...loading.md,
 				gap.g('1.25'),
 				padding.p('2.5'),
 				radius.r('2'),
@@ -62,6 +97,7 @@ export const k = defineRecipe(
 			lg: [
 				size.lg,
 				icon.lg,
+				...loading.lg,
 				gap.g('1.5'),
 				padding.p('3'),
 				radius.r('2.5'),

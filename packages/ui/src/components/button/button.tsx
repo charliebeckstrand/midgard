@@ -138,7 +138,9 @@ export function Button({
 
 	const content = (
 		<AffixContext value={resolvedSize}>
-			{/* LoadingSpinner reads no context; `loadingOptions.size` wins when set. */}
+			{/* The button recipe projects the control size onto the `loading-spinner`
+			    slot, so the spinner tracks the button; `loadingOptions` still
+			    forwards `color`/`label`. */}
 			{loading ? <LoadingSpinner size={resolvedSize} {...loadingOptions} /> : prefix}
 			{children}
 			{suffix}
