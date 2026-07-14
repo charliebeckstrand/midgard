@@ -60,4 +60,4 @@ CI never exercises any of this: `docs:build` is not a turbo task, benchmarks hav
 
 ---
 
-**See also:** [2026-07-07-DOCS-APP-CORRECTNESS-AUDIT.md](2026-07-07-DOCS-APP-CORRECTNESS-AUDIT.md) · [2026-07-01-PERFORMANCE-AUDIT.md](2026-07-01-PERFORMANCE-AUDIT.md) · [`src/__benchmarks__/docs/README.md`](../../src/__benchmarks__/docs/README.md).
+**See also:** [`src/__benchmarks__/docs/README.md`](../../src/__benchmarks__/docs/README.md).
