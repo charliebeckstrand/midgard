@@ -50,7 +50,12 @@ export function App() {
 
 		const cic = window.cancelIdleCallback ?? clearTimeout
 
-		const handle = ric(() => loadShiki()) as number
+		// A warm prefetch; a failed chunk fetch (offline, post-deploy 404) is
+		// harmless here — CodeBlock re-invokes loadShiki on render and shows its
+		// plain fallback — so swallow the rejection rather than leaking it.
+		const handle = ric(() => {
+			loadShiki().catch(() => {})
+		}) as number
 
 		return () => cic(handle)
 	}, [])
