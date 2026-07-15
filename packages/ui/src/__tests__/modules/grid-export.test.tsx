@@ -162,6 +162,16 @@ describe('Grid export', () => {
 
 	const openExportMenu = () => fireEvent.click(screen.getByRole('button', { name: 'Export' }))
 
+	// Spies the object-URL + anchor-click path a CSV download drives and returns
+	// the `createObjectURL` spy; the global `restoreMocks` reverts both per test.
+	const mockCsvDownload = () => {
+		const createObjectURL = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock')
+
+		vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+
+		return createObjectURL
+	}
+
 	it('omits every export item and the toolbar button when exportable is false', () => {
 		renderUI(<Grid exportable={false} columns={columns} rows={rows} getKey={getKey} />)
 
@@ -497,13 +507,7 @@ describe('Grid export', () => {
 	]
 
 	it('exports a synchronous exportRows list, not just the loaded page', async () => {
-		const createObjectURL = vi.fn().mockReturnValue('blob:mock')
-
-		URL.createObjectURL = createObjectURL
-
-		URL.revokeObjectURL = vi.fn()
-
-		const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+		const createObjectURL = mockCsvDownload()
 
 		renderUI(
 			<Grid
@@ -530,18 +534,10 @@ describe('Grid export', () => {
 		expect(text).toContain('Bob,Designer')
 
 		expect(text).toContain('Carol,Manager')
-
-		click.mockRestore()
 	})
 
 	it('awaits an async exportRows server function before downloading', async () => {
-		const createObjectURL = vi.fn().mockReturnValue('blob:mock')
-
-		URL.createObjectURL = createObjectURL
-
-		URL.revokeObjectURL = vi.fn()
-
-		const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+		const createObjectURL = mockCsvDownload()
 
 		const fetchAll = vi.fn().mockResolvedValue(fullList)
 
@@ -568,18 +564,10 @@ describe('Grid export', () => {
 		const blob = createObjectURL.mock.calls[0]?.[0] as Blob
 
 		expect(await blob.text()).toContain('Carol,Manager')
-
-		click.mockRestore()
 	})
 
 	it('lets exportRows win over an active selection', async () => {
-		const createObjectURL = vi.fn().mockReturnValue('blob:mock')
-
-		URL.createObjectURL = createObjectURL
-
-		URL.revokeObjectURL = vi.fn()
-
-		const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+		const createObjectURL = mockCsvDownload()
 
 		renderUI(
 			<Grid
@@ -606,8 +594,6 @@ describe('Grid export', () => {
 		expect(text).toContain('Bob,Designer')
 
 		expect(text).toContain('Carol,Manager')
-
-		click.mockRestore()
 	})
 
 	it('feeds the exportRows list into an onExport override', () => {
@@ -635,11 +621,7 @@ describe('Grid export', () => {
 	it('swallows a rejected exportRows with a dev-only warning, downloading nothing', async () => {
 		const error = vi.spyOn(console, 'error').mockImplementation(() => {})
 
-		const createObjectURL = vi.fn().mockReturnValue('blob:mock')
-
-		URL.createObjectURL = createObjectURL
-
-		URL.revokeObjectURL = vi.fn()
+		const createObjectURL = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock')
 
 		renderUI(
 			<Grid
@@ -658,7 +640,118 @@ describe('Grid export', () => {
 		await waitFor(() => expect(error).toHaveBeenCalled())
 
 		expect(createObjectURL).not.toHaveBeenCalled()
+	})
 
-		error.mockRestore()
+	it('swallows a synchronous exportRows throw with a dev-only warning, downloading nothing', () => {
+		const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		const createObjectURL = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock')
+
+		renderUI(
+			<Grid
+				exportable={['csv']}
+				columns={columns}
+				rows={pageRow}
+				getKey={getKey}
+				exportRows={() => {
+					throw new Error('params not ready')
+				}}
+			/>,
+		)
+
+		openExportMenu()
+
+		// A synchronous throw from exportRows fails safe like a rejected fetch —
+		// the click handler must not throw, and nothing downloads.
+		expect(() =>
+			fireEvent.click(screen.getByRole('menuitem', { name: 'Export to CSV' })),
+		).not.toThrow()
+
+		expect(error).toHaveBeenCalled()
+
+		expect(createObjectURL).not.toHaveBeenCalled()
+	})
+
+	it('spins the Export button and emits onExportPending across an async export', async () => {
+		const createObjectURL = mockCsvDownload()
+
+		const onExportPending = vi.fn()
+
+		let release: (rows: Row[]) => void = () => {}
+
+		const roundTrip = new Promise<Row[]>((resolve) => {
+			release = resolve
+		})
+
+		renderUI(
+			<Grid
+				exportable={['csv']}
+				columns={columns}
+				rows={pageRow}
+				getKey={getKey}
+				pagination={{ manual: true, rowCount: fullList.length }}
+				exportRows={() => roundTrip}
+				onExportPending={onExportPending}
+			/>,
+		)
+
+		// Hold the node: while loading its accessible name gains the spinner's
+		// "Loading" and no longer matches 'Export', but the DOM node itself persists.
+		const exportButton = screen.getByRole('button', { name: 'Export' })
+
+		openExportMenu()
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Export to CSV' }))
+
+		// Kicked off: button spins + disables, consumer told true, nothing downloaded yet.
+		expect(onExportPending).toHaveBeenCalledWith(true)
+
+		expect(exportButton).toBeDisabled()
+
+		expect(exportButton).toHaveAttribute('aria-busy', 'true')
+
+		expect(createObjectURL).not.toHaveBeenCalled()
+
+		release(fullList)
+
+		// Rows land: the download fires and the button falls back to idle.
+		await waitFor(() => expect(onExportPending).toHaveBeenLastCalledWith(false))
+
+		expect(createObjectURL).toHaveBeenCalledTimes(1)
+
+		expect(exportButton).not.toBeDisabled()
+
+		// Exactly one busy→idle cycle — no spurious toggles.
+		expect(onExportPending).toHaveBeenCalledTimes(2)
+	})
+
+	it('leaves onExportPending and the Export button untouched for a synchronous export', async () => {
+		const createObjectURL = mockCsvDownload()
+
+		const onExportPending = vi.fn()
+
+		renderUI(
+			<Grid
+				exportable={['csv']}
+				columns={columns}
+				rows={pageRow}
+				getKey={getKey}
+				exportRows={() => fullList}
+				onExportPending={onExportPending}
+			/>,
+		)
+
+		const exportButton = screen.getByRole('button', { name: 'Export' })
+
+		openExportMenu()
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Export to CSV' }))
+
+		await waitFor(() => expect(createObjectURL).toHaveBeenCalledTimes(1))
+
+		// A synchronous list downloads inside the click — no pending cycle at all.
+		expect(onExportPending).not.toHaveBeenCalled()
+
+		expect(exportButton).not.toBeDisabled()
 	})
 })

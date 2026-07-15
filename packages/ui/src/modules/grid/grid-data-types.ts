@@ -871,9 +871,23 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * downloading a partial file. Has no effect unless {@link GridDataProps.exportable}
 	 * is on.
 	 *
+	 * While a returned promise is in flight the toolbar's "Export" button shows a
+	 * spinner and disables; subscribe to {@link GridDataProps.onExportPending} to
+	 * mirror that state elsewhere.
+	 *
 	 * @see {@link GridExportRows}
 	 */
 	exportRows?: GridExportRows<T>
+
+	/**
+	 * Called when an async {@link GridDataProps.exportRows} export starts and
+	 * settles: `true` when the first round-trip begins, `false` once the last one
+	 * resolves or rejects. The grid already drives its own "Export" button's
+	 * loading state from this — use the callback only to reflect an export in
+	 * flight elsewhere (disable a related control, show a toast). Never fires for
+	 * a synchronous export, which completes inside the click.
+	 */
+	onExportPending?: (pending: boolean) => void
 
 	/**
 	 * Lets the user reorder columns by pointer or keyboard across every visible,

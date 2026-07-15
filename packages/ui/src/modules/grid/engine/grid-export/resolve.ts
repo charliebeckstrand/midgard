@@ -18,6 +18,7 @@ function buildAction<T>(
 	type: GridExportType,
 	onExport: ((context: GridExportContext<T>) => void) | undefined,
 	getContext: () => GridExportContext<T> | Promise<GridExportContext<T>>,
+	onAsync?: (pending: boolean) => void,
 ): GridExportAction | null {
 	const builtin = isBuiltinType(type) ? BUILTIN_EXPORTERS[type] : undefined
 
@@ -33,28 +34,46 @@ function buildAction<T>(
 
 	const label = isBuiltinType(type) ? BUILTIN_EXPORT_LABEL[type] : `Export to ${type}`
 
+	// Surfaces any export failure — a synchronous throw from consumer
+	// {@link GridDataProps.exportRows} code, a rejected server round-trip, or an
+	// exporter fault — as a dev-only warning rather than an uncaught error or
+	// unhandled rejection. A failed export downloads nothing.
+	const warn = (error: unknown) => {
+		if (process.env.NODE_ENV !== 'production') {
+			console.error(`Grid: export type "${type}" failed to resolve its rows.`, error)
+		}
+	}
+
 	return {
 		type,
 		label,
 		run: () => {
-			const context = getContext()
+			try {
+				const context = getContext()
 
-			// A synchronous context (the grid's own rows) runs the exporter inline,
-			// preserving the click-time download; a promised one (an
-			// {@link GridDataProps.exportRows} server round-trip) defers it until
-			// the rows land, surfacing a failed fetch as a dev-only warning rather
-			// than an unhandled rejection.
-			if (context instanceof Promise) {
-				void context.then(exporter).catch((error) => {
-					if (process.env.NODE_ENV !== 'production') {
-						console.error(`Grid: export type "${type}" failed to resolve its rows.`, error)
-					}
-				})
+				// A synchronous context (the grid's own rows) runs the exporter inline,
+				// preserving the click-time download; a promised one (an `exportRows`
+				// server round-trip) defers it until the rows land. `getContext` runs
+				// consumer `exportRows` code, so a synchronous throw lands in the
+				// `catch` below — the sync twin of the promise's `.catch`.
+				if (context instanceof Promise) {
+					// An async round-trip (an `exportRows` server fetch): flag pending so
+					// the toolbar's Export button can spin, clearing it once the rows land
+					// or fail. Sync exports skip this — they finish inside the click.
+					onAsync?.(true)
 
-				return
+					void context
+						.then(exporter)
+						.catch(warn)
+						.finally(() => onAsync?.(false))
+
+					return
+				}
+
+				exporter(context)
+			} catch (error) {
+				warn(error)
 			}
-
-			exporter(context)
 		},
 	}
 }
@@ -70,15 +89,16 @@ function buildAction<T>(
 function resolveEntry<T>(
 	entry: GridExportEntry<T>,
 	getContext: () => GridExportContext<T> | Promise<GridExportContext<T>>,
+	onAsync?: (pending: boolean) => void,
 ): GridExportAction[] {
 	if (typeof entry === 'string') {
-		const action = buildAction(entry, undefined, getContext)
+		const action = buildAction(entry, undefined, getContext, onAsync)
 
 		return action ? [action] : []
 	}
 
 	return (Object.keys(entry) as GridExportType[]).flatMap((type) => {
-		const action = buildAction(type, entry[type]?.onExport, getContext)
+		const action = buildAction(type, entry[type]?.onExport, getContext, onAsync)
 
 		return action ? [action] : []
 	})
@@ -96,15 +116,19 @@ function resolveEntry<T>(
  * @param exportable - The grid's `exportable` prop.
  * @param getContext - Builds the {@link GridExportContext} lazily, so it only
  * runs when an action actually fires.
+ * @param onAsync - Notified `true` when an action awaits a promised context (an
+ * `exportRows` round-trip) and `false` once it settles; never called for a
+ * synchronous export. Lets the grid drive the Export button's loading state.
  * @internal
  */
 export function resolveExportActions<T>(
 	exportable: boolean | GridExportEntry<T>[] | undefined,
 	getContext: () => GridExportContext<T> | Promise<GridExportContext<T>>,
+	onAsync?: (pending: boolean) => void,
 ): GridExportAction[] {
 	if (!exportable) return []
 
 	const entries = exportable === true ? DEFAULT_EXPORT_TYPES : exportable
 
-	return entries.flatMap((entry) => resolveEntry(entry, getContext))
+	return entries.flatMap((entry) => resolveEntry(entry, getContext, onAsync))
 }

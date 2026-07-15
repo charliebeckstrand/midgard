@@ -248,6 +248,7 @@ export function GridData<T>({
 	contextMenu,
 	exportable = DEFAULT_EXPORTABLE,
 	exportRows,
+	onExportPending,
 	reorder = false,
 	rowReorder: rowReorderConfig,
 	navigable = false,
@@ -753,8 +754,16 @@ export function GridData<T>({
 	// selection `Set` into its own state, so the selected subset keeps the
 	// displayed order. An `exportRows` source overrides both, supplying the rows
 	// the engine can't hold under server pagination. Shared by the toolbar's
-	// "Export" dropdown and both context menus.
-	const exportActions = useGridExport<T>({ exportable, columns: visibleColumns, table, exportRows })
+	// "Export" dropdown and both context menus. `exportPending` tracks an
+	// in-flight async `exportRows` round-trip so the toolbar's Export button can
+	// spin; `onExportPending` mirrors it to the consumer.
+	const { actions: exportActions, pending: exportPending } = useGridExport<T>({
+		exportable,
+		columns: visibleColumns,
+		table,
+		exportRows,
+		onPending: onExportPending,
+	})
 
 	// Fixed-layout column widths so a resize touches only its own column;
 	// `resizing` flags an in-flight drag so head/cells suppress their hover wash
@@ -1191,6 +1200,7 @@ export function GridData<T>({
 						columnManagerLabel={managerLabel}
 						onManageColumns={() => setColumnManagerOpen(true)}
 						exportActions={exportActions}
+						exportPending={exportPending}
 						columnFilters={filters}
 						batchActions={batchActions}
 						hasSelection={someSelected}

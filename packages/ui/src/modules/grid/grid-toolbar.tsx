@@ -32,6 +32,12 @@ type GridToolbarProps = {
 	 */
 	exportActions: GridExportAction[]
 	/**
+	 * Whether an async `exportRows` round-trip is in flight — spins the "Export"
+	 * trigger and disables it until the rows land. Always `false` for synchronous
+	 * exports, which finish inside the click.
+	 */
+	exportPending: boolean
+	/**
 	 * Per-column filter controls, or `null` when no column is filterable. Backs the
 	 * "Clear all filters" button, shown only while a filter constrains rows.
 	 */
@@ -70,6 +76,7 @@ export function GridToolbar({
 	columnManagerLabel,
 	onManageColumns,
 	exportActions,
+	exportPending,
 	columnFilters,
 	batchActions,
 	hasSelection,
@@ -124,7 +131,7 @@ export function GridToolbar({
 							{showExport && (
 								<Menu placement="bottom-start">
 									<MenuTrigger>
-										<Button type="button" variant="plain">
+										<Button type="button" variant="plain" loading={exportPending}>
 											<Icon icon={<Download />} />
 											Export
 										</Button>
