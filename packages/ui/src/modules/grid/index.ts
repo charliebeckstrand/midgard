@@ -4,6 +4,7 @@ export type {
 	GridExportAction,
 	GridExportContext,
 	GridExportEntry,
+	GridExportRows,
 	GridExportType,
 	GridExportTypeConfig,
 } from './engine/grid-export/types'

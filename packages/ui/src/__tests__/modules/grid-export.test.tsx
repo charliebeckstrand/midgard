@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { downloadCsv, rowsToCsv } from '../../modules/grid/engine/grid-export/csv'
-import { fireEvent, renderUI, screen, within } from '../helpers'
+import { fireEvent, renderUI, screen, waitFor, within } from '../helpers'
 
 describe('rowsToCsv', () => {
 	type Row = { id: number; name: string; role: string }
@@ -484,5 +484,181 @@ describe('Grid export', () => {
 		expect(warn).toHaveBeenCalled()
 
 		warn.mockRestore()
+	})
+
+	// A server-paginated grid holds only the page it was handed; `exportRows`
+	// supplies the full list the engine can't reach on its own.
+	const pageRow: Row[] = [{ id: 1, name: 'Alice', role: 'Developer' }]
+
+	const fullList: Row[] = [
+		{ id: 1, name: 'Alice', role: 'Developer' },
+		{ id: 2, name: 'Bob', role: 'Designer' },
+		{ id: 3, name: 'Carol', role: 'Manager' },
+	]
+
+	it('exports a synchronous exportRows list, not just the loaded page', async () => {
+		const createObjectURL = vi.fn().mockReturnValue('blob:mock')
+
+		URL.createObjectURL = createObjectURL
+
+		URL.revokeObjectURL = vi.fn()
+
+		const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+
+		renderUI(
+			<Grid
+				exportable={['csv']}
+				columns={columns}
+				rows={pageRow}
+				getKey={getKey}
+				pagination={{ manual: true, rowCount: fullList.length }}
+				exportRows={() => fullList}
+			/>,
+		)
+
+		openExportMenu()
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Export to CSV' }))
+
+		const blob = createObjectURL.mock.calls[0]?.[0] as Blob
+
+		const text = await blob.text()
+
+		// Off-page rows the engine never held still make the export.
+		expect(text).toContain('Alice,Developer')
+
+		expect(text).toContain('Bob,Designer')
+
+		expect(text).toContain('Carol,Manager')
+
+		click.mockRestore()
+	})
+
+	it('awaits an async exportRows server function before downloading', async () => {
+		const createObjectURL = vi.fn().mockReturnValue('blob:mock')
+
+		URL.createObjectURL = createObjectURL
+
+		URL.revokeObjectURL = vi.fn()
+
+		const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+
+		const fetchAll = vi.fn().mockResolvedValue(fullList)
+
+		renderUI(
+			<Grid
+				exportable={['csv']}
+				columns={columns}
+				rows={pageRow}
+				getKey={getKey}
+				pagination={{ manual: true, rowCount: fullList.length }}
+				exportRows={fetchAll}
+			/>,
+		)
+
+		openExportMenu()
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Export to CSV' }))
+
+		expect(fetchAll).toHaveBeenCalledTimes(1)
+
+		// The download waits for the fetch to resolve rather than firing on click.
+		await waitFor(() => expect(createObjectURL).toHaveBeenCalledTimes(1))
+
+		const blob = createObjectURL.mock.calls[0]?.[0] as Blob
+
+		expect(await blob.text()).toContain('Carol,Manager')
+
+		click.mockRestore()
+	})
+
+	it('lets exportRows win over an active selection', async () => {
+		const createObjectURL = vi.fn().mockReturnValue('blob:mock')
+
+		URL.createObjectURL = createObjectURL
+
+		URL.revokeObjectURL = vi.fn()
+
+		const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+
+		renderUI(
+			<Grid
+				exportable={['csv']}
+				columns={columns}
+				rows={pageRow}
+				getKey={getKey}
+				selection={{ defaultValue: new Set([1]) }}
+				exportRows={() => fullList}
+			/>,
+		)
+
+		openExportMenu()
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Export to CSV' }))
+
+		const blob = createObjectURL.mock.calls[0]?.[0] as Blob
+
+		const text = await blob.text()
+
+		// Selecting Alice does not narrow the export — exportRows supplies them all.
+		expect(text).toContain('Alice,Developer')
+
+		expect(text).toContain('Bob,Designer')
+
+		expect(text).toContain('Carol,Manager')
+
+		click.mockRestore()
+	})
+
+	it('feeds the exportRows list into an onExport override', () => {
+		const onExport = vi.fn()
+
+		renderUI(
+			<Grid
+				exportable={[{ csv: { onExport } }]}
+				columns={columns}
+				rows={pageRow}
+				getKey={getKey}
+				exportRows={() => fullList}
+			/>,
+		)
+
+		rightClickHeader('Name')
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Export to CSV' }))
+
+		expect(onExport).toHaveBeenCalledTimes(1)
+
+		expect(onExport.mock.calls[0]?.[0].rows).toEqual(fullList)
+	})
+
+	it('swallows a rejected exportRows with a dev-only warning, downloading nothing', async () => {
+		const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		const createObjectURL = vi.fn().mockReturnValue('blob:mock')
+
+		URL.createObjectURL = createObjectURL
+
+		URL.revokeObjectURL = vi.fn()
+
+		renderUI(
+			<Grid
+				exportable={['csv']}
+				columns={columns}
+				rows={pageRow}
+				getKey={getKey}
+				exportRows={() => Promise.reject(new Error('server down'))}
+			/>,
+		)
+
+		openExportMenu()
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Export to CSV' }))
+
+		await waitFor(() => expect(error).toHaveBeenCalled())
+
+		expect(createObjectURL).not.toHaveBeenCalled()
+
+		error.mockRestore()
 	})
 })

@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import type { TableElementProps, TableVariants } from '../../components/table'
 import type { DensityLevel } from '../../providers/density'
 import type { SortState } from './context'
-import type { GridExportEntry } from './engine/grid-export/types'
+import type { GridExportEntry, GridExportRows } from './engine/grid-export/types'
 import type { GridCellClick, GridRowClick } from './engine/grid-row/cell'
 import type { GridEditableConfig } from './grid-editing-types'
 import type { GridColumnGroups } from './grid-group-types'
@@ -844,6 +844,9 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 *
 	 * Every type exports the same rows: the filtered and sorted set (all pages),
 	 * or just the selected rows when a {@link GridDataProps.selection} is active.
+	 * Under server-side {@link GridDataProps.pagination | pagination} the grid
+	 * only holds the current page, so "all pages" narrows to what's loaded —
+	 * supply {@link GridDataProps.exportRows} to export the full list instead.
 	 * Each row reads a column's {@link GridColumn.value}, falling back to the row
 	 * field named by the column id; columns without either export an empty field.
 	 *
@@ -853,6 +856,24 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * @defaultValue `['csv', 'excel']`
 	 */
 	exportable?: boolean | GridExportEntry<T>[]
+
+	/**
+	 * Overrides the rows every export type serializes with a consumer-supplied
+	 * list, sidestepping the grid's own filtered/sorted set. Meant for
+	 * server-side {@link GridDataProps.pagination | pagination}, where the grid
+	 * holds only the current page: return the full dataset synchronously if it's
+	 * already in memory, or a promise for a server round-trip, and CSV, Excel,
+	 * and print all export the awaited list whole.
+	 *
+	 * When set it wins outright — any active {@link GridDataProps.selection} is
+	 * ignored, since off-page selections can't be reconciled with a server fetch.
+	 * A rejected promise is swallowed with a dev-only warning rather than
+	 * downloading a partial file. Has no effect unless {@link GridDataProps.exportable}
+	 * is on.
+	 *
+	 * @see {@link GridExportRows}
+	 */
+	exportRows?: GridExportRows<T>
 
 	/**
 	 * Lets the user reorder columns by pointer or keyboard across every visible,

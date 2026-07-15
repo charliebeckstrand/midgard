@@ -247,6 +247,7 @@ export function GridData<T>({
 	columnFilters: columnFiltersConfig,
 	contextMenu,
 	exportable = DEFAULT_EXPORTABLE,
+	exportRows,
 	reorder = false,
 	rowReorder: rowReorderConfig,
 	navigable = false,
@@ -750,9 +751,10 @@ export function GridData<T>({
 	// each reading the selected rows when a selection is active, else the full
 	// filtered + sorted set (all pages) — the engine mirrors the grid's
 	// selection `Set` into its own state, so the selected subset keeps the
-	// displayed order. Shared by the toolbar's "Export" dropdown and both
-	// context menus.
-	const exportActions = useGridExport<T>({ exportable, columns: visibleColumns, table })
+	// displayed order. An `exportRows` source overrides both, supplying the rows
+	// the engine can't hold under server pagination. Shared by the toolbar's
+	// "Export" dropdown and both context menus.
+	const exportActions = useGridExport<T>({ exportable, columns: visibleColumns, table, exportRows })
 
 	// Fixed-layout column widths so a resize touches only its own column;
 	// `resizing` flags an in-flight drag so head/cells suppress their hover wash
