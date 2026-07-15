@@ -12,8 +12,10 @@ export type GridExportType = 'csv' | 'excel' | 'print' | (string & {})
 
 /**
  * The data an export type serializes: the visible data columns and the rows to
- * export — the selected rows when a {@link GridDataProps.selection} is active,
- * else the grid's filtered/sorted set (all pages).
+ * export. The rows are the selected rows when a {@link GridDataProps.selection}
+ * is active, else the grid's filtered/sorted set (all pages) — unless
+ * {@link GridDataProps.exportRows} supplies its own set, which then wins
+ * outright (see there for the server-pagination case).
  *
  * @typeParam T - Shape of a single row.
  */
@@ -21,6 +23,17 @@ export type GridExportContext<T> = {
 	columns: GridColumn<T>[]
 	rows: T[]
 }
+
+/**
+ * A consumer-supplied source for the rows to export, overriding the grid's own
+ * filtered/sorted set. Returns the full list synchronously, or a promise of it
+ * for a server round-trip — the sole hook the export pipeline awaits before
+ * handing the rows to any exporter.
+ *
+ * @typeParam T - Shape of a single row.
+ * @see {@link GridDataProps.exportRows}
+ */
+export type GridExportRows<T> = () => T[] | Promise<T[]>
 
 /**
  * Per-type override for an entry in {@link GridExportEntry}. `onExport`

@@ -17,7 +17,7 @@ function isBuiltinType(type: GridExportType): type is keyof typeof BUILTIN_EXPOR
 function buildAction<T>(
 	type: GridExportType,
 	onExport: ((context: GridExportContext<T>) => void) | undefined,
-	getContext: () => GridExportContext<T>,
+	getContext: () => GridExportContext<T> | Promise<GridExportContext<T>>,
 ): GridExportAction | null {
 	const builtin = isBuiltinType(type) ? BUILTIN_EXPORTERS[type] : undefined
 
@@ -33,7 +33,30 @@ function buildAction<T>(
 
 	const label = isBuiltinType(type) ? BUILTIN_EXPORT_LABEL[type] : `Export to ${type}`
 
-	return { type, label, run: () => exporter(getContext()) }
+	return {
+		type,
+		label,
+		run: () => {
+			const context = getContext()
+
+			// A synchronous context (the grid's own rows) runs the exporter inline,
+			// preserving the click-time download; a promised one (an
+			// {@link GridDataProps.exportRows} server round-trip) defers it until
+			// the rows land, surfacing a failed fetch as a dev-only warning rather
+			// than an unhandled rejection.
+			if (context instanceof Promise) {
+				void context.then(exporter).catch((error) => {
+					if (process.env.NODE_ENV !== 'production') {
+						console.error(`Grid: export type "${type}" failed to resolve its rows.`, error)
+					}
+				})
+
+				return
+			}
+
+			exporter(context)
+		},
+	}
 }
 
 /**
@@ -46,7 +69,7 @@ function buildAction<T>(
  */
 function resolveEntry<T>(
 	entry: GridExportEntry<T>,
-	getContext: () => GridExportContext<T>,
+	getContext: () => GridExportContext<T> | Promise<GridExportContext<T>>,
 ): GridExportAction[] {
 	if (typeof entry === 'string') {
 		const action = buildAction(entry, undefined, getContext)
@@ -77,7 +100,7 @@ function resolveEntry<T>(
  */
 export function resolveExportActions<T>(
 	exportable: boolean | GridExportEntry<T>[] | undefined,
-	getContext: () => GridExportContext<T>,
+	getContext: () => GridExportContext<T> | Promise<GridExportContext<T>>,
 ): GridExportAction[] {
 	if (!exportable) return []
 
