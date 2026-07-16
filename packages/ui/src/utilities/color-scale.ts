@@ -78,11 +78,21 @@ export function valueExtent(
 ): [number, number] | null {
 	if (explicit) return explicit
 
-	const finite = values.filter((value) => Number.isFinite(value))
+	// A running scan, not `Math.min(...values)`: spreading a large array
+	// (a heatmap's flattened cells) overflows the engine's argument limit.
+	let min = Number.POSITIVE_INFINITY
 
-	if (finite.length === 0) return null
+	let max = Number.NEGATIVE_INFINITY
 
-	return [Math.min(...finite), Math.max(...finite)]
+	for (const value of values) {
+		if (!Number.isFinite(value)) continue
+
+		if (value < min) min = value
+
+		if (value > max) max = value
+	}
+
+	return min > max ? null : [min, max]
 }
 
 /**
@@ -161,15 +171,21 @@ function quantileAt(sorted: number[], p: number): number {
  * split that identical values can't honour.
  */
 export function quantileThresholds(values: number[], count: number): number[] {
-	const finite = values.filter((value) => Number.isFinite(value)).sort((a, b) => a - b)
+	return sortedThresholds(
+		values.filter((value) => Number.isFinite(value)).sort((a, b) => a - b),
+		count,
+	)
+}
 
-	const first = finite[0]
+/** {@link quantileThresholds} over an already-sorted ascending finite array. @internal */
+function sortedThresholds(sorted: number[], count: number): number[] {
+	const first = sorted[0]
 
-	const last = finite.at(-1)
+	const last = sorted.at(-1)
 
 	if (count < 2 || first === undefined || first === last) return []
 
-	return Array.from({ length: count - 1 }, (_, i) => quantileAt(finite, (i + 1) / count))
+	return Array.from({ length: count - 1 }, (_, i) => quantileAt(sorted, (i + 1) / count))
 }
 
 /**
@@ -204,15 +220,17 @@ export function resolveQuantileBins(
 	colorRange: string[],
 	bins?: number,
 ): { bins: ColorBin[]; thresholds: number[] } {
-	const finite = values.filter((value) => Number.isFinite(value))
+	// One filter + sort feeds the extent and the thresholds; the sorted ends
+	// replace a `Math.min(...)` spread, which overflows on large arrays.
+	const sorted = values.filter((value) => Number.isFinite(value)).sort((a, b) => a - b)
 
-	if (finite.length === 0) return { bins: [], thresholds: [] }
+	const min = sorted[0]
 
-	const min = Math.min(...finite)
+	if (min === undefined) return { bins: [], thresholds: [] }
 
-	const max = Math.max(...finite)
+	const max = sorted.at(-1) as number
 
-	const thresholds = quantileThresholds(finite, Math.max(1, bins ?? colorRange.length))
+	const thresholds = sortedThresholds(sorted, Math.max(1, bins ?? colorRange.length))
 
 	// The painted buckets are the edges the data actually produced: `min`, each
 	// threshold, `max` — a flat domain (no thresholds) is one bin, otherwise the
