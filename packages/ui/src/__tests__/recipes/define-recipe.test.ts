@@ -185,10 +185,15 @@ describe('defineRecipe', () => {
 	})
 
 	it('rejects a slot name that collides with a recipe property', () => {
-		// `name` sits on every function object; assigning the slot would throw an
-		// opaque strict-mode TypeError, and `config` would clobber introspection.
+		// Function built-ins (own like `name`, inherited like `call`) would be
+		// shadowed or throw an opaque strict-mode TypeError on assignment; the
+		// engine-attached `config` / `skeleton` would be silently clobbered.
 		expect(() => defineRecipe({ slots: { name: 'x' } })).toThrow(/slot name/)
 
+		expect(() => defineRecipe({ slots: { call: 'x' } })).toThrow(/slot name/)
+
 		expect(() => defineRecipe({ slots: { config: 'x' } })).toThrow(/slot name/)
+
+		expect(() => defineRecipe({ slots: { skeleton: 'x' } })).toThrow(/slot name/)
 	})
 })

@@ -14,7 +14,7 @@ import type { ClassValue } from 'clsx'
 import clsx from 'clsx'
 
 import { twMerge } from '../../tw-merge'
-import { expandPalette } from './palette'
+import { expandPalette, type PalettePairs } from './palette'
 import type {
 	CompoundRule,
 	ComputedProps,
@@ -35,20 +35,6 @@ const RESERVED: ReadonlySet<ReservedField> = new Set([
 ])
 
 /**
- * Slot names the engine rejects: `name` / `length` / `caller` / `arguments`
- * collide with function properties (strict-mode assignment throws an opaque
- * `TypeError`), and `config` would be silently clobbered by the recipe's own
- * introspection property.
- */
-const FORBIDDEN_SLOTS: ReadonlySet<string> = new Set([
-	'name',
-	'length',
-	'caller',
-	'arguments',
-	'config',
-])
-
-/**
  * Memo entries per recipe. Combinations of declared axis values stay far
  * below this; the cap only guards a caller feeding unbounded dynamic strings
  * into a variant prop, resetting the memo instead of growing it.
@@ -66,14 +52,28 @@ type Plan = {
 	base: ClassValue
 	/** `Object.entries(variants)`, hoisted out of the call path. */
 	variantEntries: [axis: string, axisMap: Record<string, ClassValue>][]
-	/** Palette pair rules folded to `variant → color → classes`, in rule order. */
-	palette: Map<string, Map<string, ClassValue[]>> | null
+	/** The palette's pair lookup from {@link expandPalette}; empty without a palette. */
+	palette: PalettePairs
 	/** User compound rules in declaration order, conditions pre-split. */
 	rules: CompiledRule[]
 	/** Defaults pre-coerced to their axis-lookup strings. */
 	defaults: Record<string, string | undefined>
 	/** Every key the output can depend on: axis names plus rule condition keys. */
 	relevantKeys: string[]
+	/** The constant key a no-props call resolves to, precomputed. */
+	defaultKey: string
+}
+
+/**
+ * What {@link expand} hands {@link compile}: the public resolved config plus
+ * the palette pair lookup and the user compound rules, pre-separated.
+ *
+ * @internal
+ */
+type Expansion = {
+	resolved: ResolvedConfig
+	palettePairs: PalettePairs
+	userCompound: CompoundRule[]
 }
 
 /**
@@ -93,8 +93,9 @@ type Plan = {
  * top-level field becomes a variant axis.
  * @param extras - Optional kata-shaped siblings (`motion`, sub-recipes,
  * fragment maps) attached as direct properties; the recipe stays callable.
- * @throws If a slot name collides with a recipe property (`name`, `length`,
- * `caller`, `arguments`, `config`).
+ * @throws If a slot name collides with a recipe property — a function
+ * built-in (`name`, `length`, `call`, …) or the engine-attached `config` /
+ * `skeleton`.
  * @see {@link expandPalette}
  */
 export function defineRecipe<C extends RecipeConfig>(config: C): Recipe<C>
@@ -106,26 +107,18 @@ export function defineRecipe<C extends RecipeConfig, X extends Record<string, un
 	config: C,
 	extras?: X,
 ): Recipe<C> | (Recipe<C> & X) {
-	const { resolved, paletteRuleCount } = expand(config)
+	const expansion = expand(config)
 
-	const plan = compile(resolved, paletteRuleCount)
+	const { resolved } = expansion
 
-	const slotCache: Record<string, string> = {}
-
-	for (const [slot, value] of Object.entries(resolved.slots)) {
-		if (FORBIDDEN_SLOTS.has(slot)) {
-			throw new Error(`defineRecipe: slot name "${slot}" collides with a recipe property`)
-		}
-
-		slotCache[slot] = twMerge(clsx(value))
-	}
+	const plan = compile(expansion)
 
 	const memo = new Map<string, string>()
 
 	function recipe(props?: ComputedProps<C>): string {
 		const raw = props as Record<string, unknown> | undefined
 
-		const key = memoKey(plan, raw)
+		const key = raw === undefined ? plan.defaultKey : memoKey(plan, raw)
 
 		const hit = memo.get(key)
 
@@ -138,6 +131,19 @@ export function defineRecipe<C extends RecipeConfig, X extends Record<string, un
 		memo.set(key, result)
 
 		return result
+	}
+
+	const slotCache: Record<string, string> = {}
+
+	for (const [slot, value] of Object.entries(resolved.slots)) {
+		// `in` sees the function built-ins (`name`, `length`, `call`, …) through
+		// the prototype chain before anything is assigned; `config` and
+		// `skeleton` are attached by the engine below.
+		if (slot in recipe || slot === 'config' || slot === 'skeleton') {
+			throw new Error(`defineRecipe: slot name "${slot}" collides with a recipe property`)
+		}
+
+		slotCache[slot] = twMerge(clsx(value))
 	}
 
 	Object.assign(recipe, slotCache)
@@ -164,7 +170,9 @@ function resolveValue(
 	props: Record<string, unknown> | undefined,
 	key: string,
 ): string | undefined {
-	const raw = props !== undefined && Object.hasOwn(props, key) ? props[key] : undefined
+	// A plain read: relevant keys are config-declared names, so an inherited
+	// `Object.prototype` member can never alias one.
+	const raw = props === undefined ? undefined : props[key]
 
 	return raw === undefined || raw === null ? plan.defaults[key] : String(raw)
 }
@@ -228,7 +236,7 @@ function collectRecipeClasses(
 		if (value !== undefined && value in axisMap) acc.push(axisMap[value])
 	}
 
-	if (plan.palette !== null && values.variant !== undefined && values.color !== undefined) {
+	if (values.variant !== undefined && values.color !== undefined) {
 		const paletteClasses = plan.palette.get(values.variant)?.get(values.color)
 
 		if (paletteClasses !== undefined) acc.push(paletteClasses)
@@ -242,58 +250,21 @@ function collectRecipeClasses(
 }
 
 /**
- * Folds the engine's palette pair rules — each an exact `variant` × `color`
- * pair — into a nested `variant → color → classes` lookup. A colour key can
- * carry both a matrix rule and an overlay rule; appending preserves their
- * relative order for the merge.
- *
- * @internal
- */
-function foldPaletteRules(pairRules: CompoundRule[]): NonNullable<Plan['palette']> {
-	const palette = new Map<string, Map<string, ClassValue[]>>()
-
-	for (const rule of pairRules) {
-		const variant = rule.variant as string
-
-		const color = rule.color as string
-
-		let colors = palette.get(variant)
-
-		if (colors === undefined) {
-			colors = new Map()
-
-			palette.set(variant, colors)
-		}
-
-		const classes = colors.get(color)
-
-		if (classes === undefined) colors.set(color, [rule.class])
-		else classes.push(rule.class)
-	}
-
-	return palette
-}
-
-/**
  * Derives the per-call execution plan once at creation: variant entries
- * hoisted, defaults pre-stringified, the engine's palette pair rules (the
- * first `paletteRuleCount` compounds) folded into an O(1) nested lookup via
- * {@link foldPaletteRules}, and user rules pre-split so matching allocates
+ * hoisted, defaults pre-stringified, the palette pair lookup taken straight
+ * from {@link expandPalette}, and user rules pre-split so matching allocates
  * nothing.
  *
  * @internal
  */
-function compile(resolved: ResolvedConfig, paletteRuleCount: number): Plan {
+function compile({ resolved, palettePairs, userCompound }: Expansion): Plan {
 	const defaults: Record<string, string | undefined> = {}
 
 	for (const [key, value] of Object.entries(resolved.defaults)) {
 		defaults[key] = value === undefined || value === null ? undefined : String(value)
 	}
 
-	const palette =
-		paletteRuleCount > 0 ? foldPaletteRules(resolved.compound.slice(0, paletteRuleCount)) : null
-
-	const rules: CompiledRule[] = resolved.compound.slice(paletteRuleCount).map((rule) => ({
+	const rules: CompiledRule[] = userCompound.map((rule) => ({
 		conditions: Object.entries(rule).filter(([key]) => key !== 'class'),
 		class: rule.class,
 	}))
@@ -302,28 +273,42 @@ function compile(resolved: ResolvedConfig, paletteRuleCount: number): Plan {
 
 	for (const rule of rules) for (const [key] of rule.conditions) relevant.add(key)
 
-	return {
+	// The palette lookup reads `variant` and `color`; declare that dependency
+	// here rather than leaning on the axis splice in `applyPaletteToVariants`.
+	if (palettePairs.size > 0) {
+		relevant.add('variant')
+
+		relevant.add('color')
+	}
+
+	const plan: Plan = {
 		base: resolved.base,
 		variantEntries: Object.entries(resolved.variants),
-		palette,
+		palette: palettePairs,
 		rules,
 		defaults,
 		relevantKeys: [...relevant],
+		defaultKey: '',
 	}
+
+	plan.defaultKey = memoKey(plan, undefined)
+
+	return plan
 }
 
 /**
  * Splices a palette into the `variant` and `color` axes (mutating `variants`)
- * and returns its compound rules. Palette-matrix variant keys absent from an
- * explicit `variant:` axis join it as empty entries — valid values with no
- * structural class; the `color` axis becomes the palette's colour scaffold.
+ * and returns its compound rules and pair lookup. Palette-matrix variant keys
+ * absent from an explicit `variant:` axis join it as empty entries — valid
+ * values with no structural class; the `color` axis becomes the palette's
+ * colour scaffold.
  *
  * @internal
  */
 function applyPaletteToVariants(
 	variants: Record<string, Record<string, ClassValue>>,
 	palette: NonNullable<RecipeConfig['palette']>,
-): CompoundRule[] {
+): { compound: CompoundRule[]; pairs: PalettePairs } {
 	const ex = expandPalette(palette)
 
 	const variantAxis = variants.variant ?? {}
@@ -336,19 +321,19 @@ function applyPaletteToVariants(
 
 	variants.color = ex.colorScaffold
 
-	return ex.compound
+	return { compound: ex.compound, pairs: ex.pairs }
 }
 
 /**
  * Collects each non-reserved top-level field as a variant axis, then splices
  * `palette` into the `variant` / `color` axes and compounds via
- * {@link applyPaletteToVariants}. Reports how many leading compound rules are
- * palette pairs, so {@link compile} folds exactly those into the pair lookup
- * and leaves user rules in declaration order.
+ * {@link applyPaletteToVariants}. Hands {@link compile} the palette pair
+ * lookup and the user rules pre-separated; the resolved config keeps the
+ * full flat rule list for `.config` introspection.
  *
  * @internal
  */
-function expand(config: RecipeConfig): { resolved: ResolvedConfig; paletteRuleCount: number } {
+function expand(config: RecipeConfig): Expansion {
 	const variants: Record<string, Record<string, ClassValue>> = {}
 
 	for (const [key, value] of Object.entries(config)) {
@@ -357,21 +342,22 @@ function expand(config: RecipeConfig): { resolved: ResolvedConfig; paletteRuleCo
 		variants[key] = { ...(value as VariantAxis) }
 	}
 
-	const compound = config.palette ? applyPaletteToVariants(variants, config.palette) : []
+	const paletteExpansion: { compound: CompoundRule[]; pairs: PalettePairs } = config.palette
+		? applyPaletteToVariants(variants, config.palette)
+		: { compound: [], pairs: new Map() }
 
-	const paletteRuleCount = compound.length
-
-	// User compounds follow palette compounds; later rules take precedence.
-	compound.push(...(config.compound ?? []))
+	const userCompound = config.compound ?? []
 
 	return {
 		resolved: {
 			base: config.base,
 			variants,
-			compound,
+			// User compounds follow palette compounds; later rules take precedence.
+			compound: [...paletteExpansion.compound, ...userCompound],
 			slots: config.slots ?? {},
 			defaults: config.defaults ?? {},
 		},
-		paletteRuleCount,
+		palettePairs: paletteExpansion.pairs,
+		userCompound,
 	}
 }
