@@ -22,6 +22,8 @@ export function useHash() {
 export function navigate(id: string) {
 	if (window.location.hash.slice(1) === id) return
 
+	// The null state is load-bearing: the host's preload-error recovery re-arms
+	// on entries whose history.state is not its reload marker (host.tsx).
 	history.pushState(null, '', `#${id}`)
 
 	window.dispatchEvent(new HashChangeEvent('hashchange'))
