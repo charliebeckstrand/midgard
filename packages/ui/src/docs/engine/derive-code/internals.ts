@@ -2,7 +2,7 @@ import * as React from 'react'
 import { Children, Fragment, isValidElement, type ReactElement, type ReactNode } from 'react'
 import * as ReactDOM from 'react-dom'
 import { IGNORED_PROPS } from '../reserved-props'
-import type { ComponentInfo, Context } from './types'
+import type { ComponentInfo, Context, ElementFact } from './types'
 
 /**
  * Fragment and intrinsic HTML elements are transparent: styling/grouping
@@ -124,21 +124,87 @@ export const INDENT = '  '
 // unrenderable child subtree, or a prop value like a Date or class instance.
 export const PLACEHOLDER = '...'
 
-export function formatProps(props: Record<string, unknown>, context: Context): string[] {
-	const parts: string[] = []
+/**
+ * Format an element's props in authored order. Live runtime values render as
+ * today; props with no live form (functions, class instances, nested configs)
+ * fall back to their authored source text when `fact` carries it, then to the
+ * historical behavior (functions drop, everything else placeholders).
+ *
+ * A second pass applies the consistency rule: a live primitive prop whose
+ * authored source is a bare identifier renders as that identifier once the
+ * identifier's declaration is already pulled into the preamble — so a
+ * controlled pair reads `value={value} onValueChange={setValue}` rather than
+ * mixing a frozen live value with source-form wiring.
+ */
+export function formatProps(
+	props: Record<string, unknown>,
+	context: Context,
+	indent = '',
+	fact?: ElementFact,
+): string[] {
+	type Slot = { key: string; text: string; live: boolean }
+
+	const slots: Slot[] = []
 
 	for (const [key, value] of Object.entries(props)) {
 		if (IGNORED_PROPS.has(key)) continue
 
-		const formatted = formatProp(key, value, context)
+		const live = formatLiveProp(key, value, context)
 
-		if (formatted !== null) parts.push(formatted)
+		if (live === null) continue
+
+		if (live !== undefined) {
+			slots.push({ key, text: live, live: true })
+
+			continue
+		}
+
+		const source = fact?.props[key]
+
+		if (source !== undefined) {
+			slots.push({
+				key,
+				text: `${key}={${reindent(registerFactText(source, context), indent + INDENT)}}`,
+				live: false,
+			})
+
+			continue
+		}
+
+		// Event handlers have no literal form, and an element whose type resolves
+		// to nothing could alias a demo-local stand-in; without authored source to
+		// fall back on, both drop as before.
+		if (typeof value === 'function' || isValidElement(value)) continue
+
+		// Present but unserializable: a Date, a class instance, a nested config
+		// object, an array of objects — and no authored source to fall back on.
+		slots.push({ key, text: `${key}={${PLACEHOLDER}}`, live: false })
 	}
 
-	return parts
+	for (const slot of slots) {
+		if (!slot.live) continue
+
+		const source = fact?.props[slot.key]
+
+		if (source === undefined || !IDENTIFIER_RE.test(source)) continue
+
+		const decl = context.facts?.bindings[source]
+
+		if (decl === undefined || !context.pulledDecls.has(decl)) continue
+
+		slot.text = `${slot.key}={${registerFactText(source, context)}}`
+	}
+
+	return slots.map((slot) => slot.text)
 }
 
-function formatProp(key: string, value: unknown, context: Context): string | null {
+/**
+ * Render a prop's live runtime value. Returns the formatted attribute, `null`
+ * when the prop is semantically absent (`undefined`/`null`/`false`), or
+ * `undefined` when the value is present but has no live form — the caller's
+ * cue to try authored source.
+ */
+function formatLiveProp(key: string, value: unknown, context: Context): string | null | undefined {
 	if (value === undefined || value === null || value === false) return null
 
 	if (value === true) return key
@@ -147,13 +213,12 @@ function formatProp(key: string, value: unknown, context: Context): string | nul
 
 	if (typeof value === 'number') return `${key}={${value}}`
 
-	// Event handlers and other callbacks have no literal form.
-	if (typeof value === 'function') return null
+	if (typeof value === 'function') return undefined
 
 	if (isValidElement(value)) {
 		const name = getElementName(value, context)
 
-		if (!name) return null
+		if (!name) return undefined
 
 		const childProps = formatProps(value.props as Record<string, unknown>, context)
 
@@ -175,11 +240,10 @@ function formatProp(key: string, value: unknown, context: Context): string | nul
 		if (literal !== null) return `${key}={${literal}}`
 	}
 
-	// Present but unserializable: a Date, a class instance, a nested config
-	// object, an array of objects. The source identifier (`min={min}`) is
-	// unavailable at render time; emit a placeholder.
-	return `${key}={${PLACEHOLDER}}`
+	return undefined
 }
+
+const IDENTIFIER_RE = /^[A-Za-z_$][\w$]*$/
 
 /**
  * A plain object literal (a responsive config like `{ initial: 1, sm: 2 }`),
@@ -281,12 +345,12 @@ export function addImport(context: Context, mod: string, name: string, external 
 }
 
 /**
- * Combine the imports accumulated on `context` with the rendered JSX into the
- * final code block. Sorts imports by module; `react` and external packages
- * keep their bare specifiers, everything else uses the documented library's
- * `<packageName>/*` layout.
+ * Combine the imports accumulated on `context` with the preamble declarations
+ * and the rendered JSX into the final code block. Sorts imports by module;
+ * `react` and external packages keep their bare specifiers, everything else
+ * uses the documented library's `<packageName>/*` layout.
  */
-export function assemble(context: Context, jsx: string): string {
+export function assemble(context: Context, jsx: string, preamble: string[] = []): string {
 	const imports = [...context.imports.entries()]
 		.sort(([a], [b]) => a.localeCompare(b))
 		.map(([mod, names]) => {
@@ -297,7 +361,131 @@ export function assemble(context: Context, jsx: string): string {
 		})
 		.join('\n')
 
-	return jsx ? `${imports}\n\n${jsx}` : imports
+	return [imports, ...preamble, jsx].filter(Boolean).join('\n\n')
+}
+
+/**
+ * Resolve the source fact for a rendered element. Candidates share the
+ * element's authored tag name and only claim props the runtime element
+ * actually carries; a single survivor wins outright, and multiple survivors
+ * reduce to their consensus — the props (and render-prop children) every
+ * candidate agrees on — so an ambiguous match degrades to today's behavior
+ * instead of attaching another element's source.
+ */
+export function matchElementFact(
+	name: string,
+	props: Record<string, unknown>,
+	context: Context,
+): ElementFact | undefined {
+	const facts = context.facts
+
+	if (!facts) return undefined
+
+	const candidates = facts.elements.filter(
+		(e) => e.name === name && Object.keys(e.props).every((key) => props[key] !== undefined),
+	)
+
+	const first = candidates[0]
+
+	if (!first) return undefined
+
+	if (candidates.length === 1) return first
+
+	const rest = candidates.slice(1)
+
+	const agreed: Record<string, string> = {}
+
+	for (const [key, source] of Object.entries(first.props)) {
+		if (rest.every((c) => c.props[key] === source)) agreed[key] = source
+	}
+
+	const children = rest.every((c) => c.children === first.children) ? first.children : undefined
+
+	return { name, props: agreed, children }
+}
+
+// `$` is the one regex metacharacter a JS identifier may contain.
+function bindingRe(name: string): RegExp {
+	return new RegExp(`\\b${name.replaceAll('$', '\\$')}\\b`)
+}
+
+/**
+ * Record an authored source snippet the walk emitted, marking any declaration
+ * it directly references as pulled — the signal `formatProps`' consistency
+ * pass keys on. Returns `text` so call sites can register inline.
+ */
+export function registerFactText(text: string, context: Context): string {
+	context.factTexts.push(text)
+
+	const facts = context.facts
+
+	if (!facts) return text
+
+	for (const [name, index] of Object.entries(facts.bindings)) {
+		if (!context.pulledDecls.has(index) && bindingRe(name).test(text)) {
+			context.pulledDecls.add(index)
+		}
+	}
+
+	return text
+}
+
+/**
+ * Close over the declarations the emitted source snippets reference — a
+ * snippet pulls its declarations, a pulled declaration's own source pulls
+ * more, to fixpoint — and register the imports everything mentions: component
+ * tags and hooks via {@link collectSnippetImports}, everything else via the
+ * facts' import table. Returns the pulled declarations dedented, in source
+ * order, ready to sit between the imports and the JSX.
+ *
+ * Like the build-time preamble matching, reference detection is a whole-word
+ * name scan, not a reference graph; a name inside a string literal counts.
+ */
+export function resolvePreamble(context: Context): string[] {
+	const facts = context.facts
+
+	if (!facts || context.factTexts.length === 0) return []
+
+	const texts = [
+		...context.factTexts,
+		...[...context.pulledDecls].map((index) => facts.declarations[index]?.code ?? ''),
+	]
+
+	let progress = true
+
+	while (progress) {
+		progress = false
+
+		for (const [name, index] of Object.entries(facts.bindings)) {
+			if (context.pulledDecls.has(index)) continue
+
+			const re = bindingRe(name)
+
+			if (!texts.some((text) => re.test(text))) continue
+
+			context.pulledDecls.add(index)
+
+			texts.push(facts.declarations[index]?.code ?? '')
+
+			progress = true
+		}
+	}
+
+	for (const text of texts) {
+		collectSnippetImports(text, context)
+
+		for (const [name, imp] of Object.entries(facts.imports)) {
+			if (bindingRe(name).test(text)) addImport(context, imp.module, name, imp.external ?? false)
+		}
+	}
+
+	return [...context.pulledDecls]
+		.sort((a, b) => a - b)
+		.flatMap((index) => {
+			const code = facts.declarations[index]?.code
+
+			return code ? [reindent(code, '')] : []
+		})
 }
 
 /**

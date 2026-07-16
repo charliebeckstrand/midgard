@@ -73,6 +73,27 @@ function isJsxReturningVariableStatement(
 	return stmt.declarationList.declarations.some((decl) => jsxHelperName(decl, sf, source) !== null)
 }
 
+/**
+ * Whether a top-level statement declares a JSX-returning helper component —
+ * a PascalCase function declaration or arrow/function-expression declarator
+ * whose body renders JSX. These belong to the `__code` pipeline, not to
+ * declaration preambles: pulling one into a snippet would duplicate a whole
+ * component the walker already renders.
+ */
+export function isJsxHelperStatement(
+	stmt: ts.Statement,
+	sf: ts.SourceFile,
+	source: string,
+): boolean {
+	if (ts.isFunctionDeclaration(stmt) && stmt.name && /^[A-Z]/.test(stmt.name.text) && stmt.body) {
+		return JSX_RETURN.test(source.slice(stmt.getStart(sf), stmt.getEnd()))
+	}
+
+	if (ts.isVariableStatement(stmt)) return isJsxReturningVariableStatement(stmt, sf, source)
+
+	return false
+}
+
 function collectPreambles(sf: ts.SourceFile, source: string): Preamble[] {
 	const preambles: Preamble[] = []
 
@@ -148,14 +169,10 @@ function prependReferencedPreamble(helperCode: string, preambles: Preamble[]): s
  * `const` declaration it references by name, producing a self-contained
  * snippet.
  */
-export function collectHelpers(source: string): Helper[] {
-	const sf = ts.createSourceFile(
-		'demo.tsx',
-		source,
-		ts.ScriptTarget.Latest,
-		true,
-		ts.ScriptKind.TSX,
-	)
+export function collectHelpers(source: string, sourceFile?: ts.SourceFile): Helper[] {
+	const sf =
+		sourceFile ??
+		ts.createSourceFile('demo.tsx', source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX)
 
 	const preambles = collectPreambles(sf, source)
 
