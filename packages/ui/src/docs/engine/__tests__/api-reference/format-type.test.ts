@@ -125,6 +125,14 @@ describe('formatPropType — strips `| undefined` from optional unions', () => {
 		expect(out).toContain('number')
 	})
 
+	it('parenthesizes a function arm when stripping `| undefined` from a union', () => {
+		const { type, checker, location } = typeOfPropValue({
+			'index.ts': `declare const value: (() => void) | null | undefined`,
+		})
+
+		expect(formatPropType(type, checker, location)).toBe('null | (() => void)')
+	})
+
 	it('collapses a `literal | (string & {})` autocomplete union to `string`', () => {
 		const { type, checker, location } = typeOfPropValue({
 			'index.ts': `declare const value: 'on' | 'off' | (string & {}) | undefined`,
@@ -244,5 +252,23 @@ describe('formatType — function types', () => {
 		const out = formatType(type, checker, location)
 
 		expect(out).toBe('(count: number) => string')
+	})
+
+	it('parenthesizes a union return so it reads as one arm', () => {
+		const { type, checker, location } = typeOfPropValue({
+			'index.ts': `declare const value: (x: number) => string | null`,
+		})
+
+		expect(formatType(type, checker, location)).toBe('(x: number) => (string | null)')
+	})
+
+	it('marks optional and rest parameters, stripping the optional `| undefined`', () => {
+		const { type, checker, location } = typeOfPropValue({
+			'index.ts': `declare const value: (a: string, b?: number, ...rest: string[]) => void`,
+		})
+
+		expect(formatType(type, checker, location)).toBe(
+			'(a: string, b?: number, ...rest: string[]) => void',
+		)
 	})
 })

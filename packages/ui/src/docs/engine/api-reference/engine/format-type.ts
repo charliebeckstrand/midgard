@@ -1,4 +1,5 @@
 import { ts } from 'ts-morph'
+import { isFunctionType } from './ts-utils'
 
 const TYPE_FORMAT_FLAGS =
 	ts.TypeFormatFlags.NoTruncation | ts.TypeFormatFlags.UseAliasDefinedOutsideCurrentScope
@@ -98,10 +99,26 @@ function formatUnionMembers(
 			continue
 		}
 
-		parts.push(formatType(member, checker, location))
+		parts.push(unionMember(member, checker, location))
 	}
 
 	return parts.join(' | ')
+}
+
+/**
+ * Format a union member, parenthesizing a bare function type so its `=>` (and
+ * any parenthesized union return) doesn't read as spanning the next arm:
+ * `(() => void) | null`, not `() => void | null`. A named function alias stays
+ * bare — it renders as its name, which needs no parentheses.
+ */
+function unionMember(
+	type: ts.Type,
+	checker: ts.TypeChecker,
+	location: ts.Node | undefined,
+): string {
+	const rendered = formatType(type, checker, location)
+
+	return isFunctionType(type) && rendered.includes('=>') ? `(${rendered})` : rendered
 }
 
 /**
@@ -262,18 +279,40 @@ function formatFunctionType(
 	if (!sig) return null
 
 	const params = sig.getParameters().map((p) => {
-		const decl = p.valueDeclaration ?? location
+		const param = p.valueDeclaration
+
+		const decl = param ?? location
 
 		const paramType = decl
 			? checker.getTypeOfSymbolAtLocation(p, decl)
 			: checker.getDeclaredTypeOfSymbol(p)
 
-		return `${p.getName()}: ${formatType(paramType, checker, location)}`
+		// `?` / `...` live on the parameter node, not its type; without them an
+		// optional or rest parameter renders as a plain positional `(a: T)`. An
+		// optional param's type carries `| undefined`, which `?` already conveys, so
+		// strip it the way an optional prop's does.
+		const isParam = param !== undefined && ts.isParameter(param)
+
+		const rest = isParam && param.dotDotDotToken ? '...' : ''
+
+		const optional = isParam && param.questionToken ? '?' : ''
+
+		const rendered = optional
+			? formatPropType(paramType, checker, location)
+			: formatType(paramType, checker, location)
+
+		return `${rest}${p.getName()}${optional}: ${rendered}`
 	})
 
-	const ret = formatType(sig.getReturnType(), checker, location)
+	const returnType = sig.getReturnType()
 
-	return `(${params.join(', ')}) => ${ret}`
+	const ret = formatType(returnType, checker, location)
+
+	// Parenthesize a union return so a downstream union splitter doesn't read its
+	// `|` as a top-level arm: `(x) => (A | B)`, not `(x) => A | B`.
+	const wrappedRet = returnType.isUnion() && ret.includes('|') ? `(${ret})` : ret
+
+	return `(${params.join(', ')}) => ${wrappedRet}`
 }
 
 /**

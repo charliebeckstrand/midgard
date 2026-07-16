@@ -4,7 +4,7 @@ import type { PropDef } from '../types'
 import { extractDocFromParts, type LinkResolver } from './extract-doc'
 import { extractReferences } from './extract-references'
 import { formatPropType, formatType } from './format-type'
-import { unaliasSymbol } from './ts-utils'
+import { isFunctionType, unaliasSymbol } from './ts-utils'
 
 type CollectedProp = { name: string; symbol: ts.Symbol; symbols: ts.Symbol[] }
 
@@ -242,11 +242,6 @@ function formatPropTypes(types: ts.Type[], location: ts.Node, checker: ts.TypeCh
 	}
 
 	return joinArms(rendered)
-}
-
-/** A single-signature function type — the shape that needs parentheses inside a union. */
-function isFunctionType(type: ts.Type): boolean {
-	return type.getCallSignatures().length > 0 && type.getProperties().length === 0
 }
 
 /**

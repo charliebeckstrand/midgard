@@ -37,9 +37,22 @@ export function DefaultValue({ value }: { value: string }) {
 			data-slot="default-value"
 			className={cn(kind && 'font-mono', kind ? KIND_COLOR[kind] : undefined)}
 		>
-			{kind ? literalText(value) : renderProse(value)}
+			{kind ? literalText(value) : renderDefault(value)}
 		</span>
 	)
+}
+
+/**
+ * A non-literal default. A JSX/element expression (`<TableEmptyAlert />`,
+ * `<ChevronRight />`) renders verbatim in monospace: the Markdown inline lexer
+ * reads an HTML-like tag as raw HTML and drops it, blanking the cell. Everything
+ * else — descriptive prose, `{@link}` references, backtick literals — renders
+ * through {@link renderProse}.
+ */
+function renderDefault(value: string): ReactNode {
+	if (/<[A-Za-z]/.test(value)) return <code className="font-mono">{value}</code>
+
+	return renderProse(value)
 }
 
 /** Split a descriptive default into prose runs, `{@link}` names, and coloured literal code spans. */
