@@ -68,9 +68,9 @@ function sizeClassFor(sizeMap: Record<string, ClassValue>, resolved: string): Cl
  * optional `size` prop. A base-only recipe (`{ base }`) has a fixed
  * silhouette and takes no `size` prop.
  *
- * Use only for skeletons whose entire body is that. Components that wrap the
- * placeholder (Avatar's `DensityScope`) or fold in extra state (Control's
- * join-aware classes) keep writing their skeleton inline.
+ * Use only for skeletons whose entire body is that. Components that compose
+ * more than a single placeholder — a count-keyed row (breadcrumb) — or fold in
+ * extra state (Control's join-aware classes) keep writing their skeleton inline.
  *
  * @param skeleton - The recipe's `skeleton` surface: `{ base, size }` for a
  *   sized silhouette or `{ base }` for a fixed one.
