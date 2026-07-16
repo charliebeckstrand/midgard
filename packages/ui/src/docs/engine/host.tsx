@@ -39,6 +39,10 @@ export function mount(loaders: DemoLoaders, rootEl?: HTMLElement | null) {
 	window.addEventListener('vite:preloadError', () => {
 		if (history.state === RELOADED) return
 
+		// An offline failure is transient, not a stale deploy — reloading would
+		// trade a degraded-but-working app for the browser's network-error page.
+		if (!navigator.onLine) return
+
 		history.replaceState(RELOADED, '')
 
 		window.location.reload()
