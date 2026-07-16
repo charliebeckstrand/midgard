@@ -185,17 +185,17 @@ export function relativeLuminance(color: ColorInput): number {
 	return 0.2126 * decodeGamma(r) + 0.7152 * decodeGamma(g) + 0.0722 * decodeGamma(b)
 }
 
+/** The WCAG ratio between two relative luminances, lighter over darker. @internal */
+function luminanceRatio(a: number, b: number): number {
+	return a > b ? (a + 0.05) / (b + 0.05) : (b + 0.05) / (a + 0.05)
+}
+
 /**
  * The WCAG contrast ratio between two colours, from `1` (identical) to `21`
  * (black on white). Order-independent.
  */
 export function contrastRatio(a: ColorInput, b: ColorInput): number {
-	const la = relativeLuminance(a)
-	const lb = relativeLuminance(b)
-
-	const [hi, lo] = la > lb ? [la, lb] : [lb, la]
-
-	return (hi + 0.05) / (lo + 0.05)
+	return luminanceRatio(relativeLuminance(a), relativeLuminance(b))
 }
 
 /**
@@ -231,11 +231,15 @@ export function readableInk<Ink extends ColorInput>(
 ): Ink {
 	const floor = contrastFloor(threshold)
 
+	// Parse and gamma-decode the background once; only the candidate varies
+	// per iteration.
+	const backgroundLuminance = relativeLuminance(background)
+
 	let best: Ink | undefined
 	let bestRatio = Number.NEGATIVE_INFINITY
 
 	for (const ink of inks) {
-		const ratio = contrastRatio(background, ink)
+		const ratio = luminanceRatio(backgroundLuminance, relativeLuminance(ink))
 
 		if (ratio >= floor) return ink
 
