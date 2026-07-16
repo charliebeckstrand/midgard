@@ -9,6 +9,7 @@ import { Icon } from '../../components/icon'
 import { Stack } from '../../components/stack'
 import { SidebarLayoutHeader } from '../../layouts'
 import { ApiReference } from './components/api-reference'
+import { DemoErrorBoundary } from './components/error-boundary'
 import type { Demo } from './registry'
 import { hasComponentApi, loadComponentApi, loadDemo } from './registry'
 
@@ -46,11 +47,16 @@ export function DemoPage({
 			<Stack gap="xl">
 				<Component />
 				{hasComponentApi(demo.id) && (
-					// Its own boundary so the demo paints immediately while the API
-					// data's chunk streams in, rather than suspending the whole route.
-					<Suspense fallback={null}>
-						<ApiReferenceSection id={demo.id} />
-					</Suspense>
+					// Its own suspense boundary so the demo paints immediately while the
+					// API data's chunk streams in, rather than suspending the whole route,
+					// and its own error boundary so a failed chunk degrades to nothing
+					// instead of replacing the already-rendered demo through the
+					// route-level boundary.
+					<DemoErrorBoundary fallback={() => null}>
+						<Suspense fallback={null}>
+							<ApiReferenceSection id={demo.id} />
+						</Suspense>
+					</DemoErrorBoundary>
 				)}
 			</Stack>
 		</Fragment>

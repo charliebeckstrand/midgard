@@ -181,6 +181,18 @@ export function initRegistry(loaders: DemoLoaders): { initialPreload: Promise<un
 	for (const [path, loader] of Object.entries(loaders)) {
 		const id = pathToId(path)
 
+		// A file and a same-named folder demo (`modules/grid.tsx` vs
+		// `modules/grid/index.tsx`) both normalize to one id. Keep the first and skip
+		// the rest: last-wins would still push a second `demos` entry under this id,
+		// rendering the duplicate React key the warning is meant to prevent.
+		if (loaderById.has(id)) {
+			console.warn(
+				`docs: duplicate demo id "${id}" (from ${path}); rename the colliding file or folder`,
+			)
+
+			continue
+		}
+
 		loaderById.set(id, loader)
 
 		const category = categoryOf(path)
