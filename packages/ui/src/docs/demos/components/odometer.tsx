@@ -4,7 +4,7 @@ import { Heading } from '../../../components/heading'
 import { Odometer } from '../../../components/odometer'
 import { Stack } from '../../../components/stack'
 import { useFormat } from '../../../providers/locale'
-import { code, Example } from '../../engine'
+import { Example } from '../../engine'
 
 function CounterExample() {
 	const [value, setValue] = useState(1284)
@@ -27,14 +27,7 @@ function CurrencyExample() {
 	const format = useFormat({ type: 'currency' })
 
 	return (
-		<Example
-			title="Currency"
-			code={code`
-				const format = useFormat({ type: 'currency' })
-
-				<Odometer value={value} format={format} />
-			`}
-		>
+		<Example title="Currency">
 			<Stack gap="md" align="start">
 				<Heading level={2}>
 					<Odometer value={value} format={format} />
