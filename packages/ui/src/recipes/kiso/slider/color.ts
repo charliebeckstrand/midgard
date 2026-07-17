@@ -2,7 +2,7 @@
  * Slider archetype: colour palette. The shared `--slider-fill` /
  * `--slider-track` CSS-variable bundle keyed by colour. `<Slider />`
  * paints via a webkit / moz gradient on the native input;
- * `<SliderRange />` paints a dedicated fill element. Both surfaces share
+ * `<RangeSlider />` paints a dedicated fill element. Both surfaces share
  * this table.
  *
  * Layer: kiso · Archetype: slider · Concern: color
