@@ -56,10 +56,11 @@ function clamp(value: number, low: number, high: number): number {
  * Projects `data` onto an SVG coordinate box, returning the line, area, and bar
  * marks a {@link Sparkline} draws.
  *
- * @remarks Non-finite entries are ignored when deriving the domain, so a stray
- * `NaN` doesn't collapse the whole series; a flat series (or one point) maps to
- * the vertical middle rather than dividing by a zero span. A single point draws
- * as a horizontal line across the box so it stays visible.
+ * @remarks Non-finite entries are ignored both when deriving the domain and when
+ * drawing the marks, so a stray `NaN` leaves a gap rather than collapsing the
+ * whole series into an invalid path; a flat series (or one point) maps to the
+ * vertical middle rather than dividing by a zero span. A single point draws as a
+ * horizontal line across the box so it stays visible.
  * @internal
  */
 export function sparklineGeometry(
@@ -105,31 +106,43 @@ export function sparklineGeometry(
 
 	const points = data.map((value, index) => ({ x: xAt(index), y: yAt(value) }))
 
+	// Draw only the finite marks. `points` stays index-aligned for callers, but a
+	// stray NaN mapped straight into the path emits an invalid token (`L 50 NaN`)
+	// that aborts the whole line/area in the browser — so the drawn marks skip it,
+	// leaving a gap rather than collapsing the series.
+	const drawn = points.filter((point) => Number.isFinite(point.y))
+
 	// One point can't form a segment; draw a flat line across the box so it reads.
 	const line =
-		points.length === 1
-			? `M ${padding} ${points[0]?.y} L ${width - padding} ${points[0]?.y}`
-			: `M ${points.map((point) => `${point.x} ${point.y}`).join(' L ')}`
+		drawn.length === 1
+			? `M ${padding} ${drawn[0]?.y} L ${width - padding} ${drawn[0]?.y}`
+			: `M ${drawn.map((point) => `${point.x} ${point.y}`).join(' L ')}`
 
-	const first = points[0] as SparklinePoint
+	const last = drawn.at(-1) ?? null
 
-	const last = (points.at(-1) ?? null) as SparklinePoint | null
+	// The drawn line always spans padding → width - padding (a lone point is forced
+	// full-width; multi-point endpoints already land there), so close the area on
+	// those edges rather than a point's own x — otherwise a single point fills as a
+	// triangle apexing at its centre instead of a band.
+	const area = `${line} L ${width - padding} ${baseline} L ${padding} ${baseline} Z`
 
-	const area = `${line} L ${last?.x ?? width - padding} ${baseline} L ${first.x} ${baseline} Z`
-
-	const slot = data.length === 0 ? 0 : innerWidth / data.length
+	const slot = innerWidth / data.length
 
 	const barWidth = Math.max(1, slot - barGap)
 
-	const bars: SparklineBar[] = data.map((value, index) => {
+	const bars: SparklineBar[] = data.flatMap((value, index) => {
+		if (!Number.isFinite(value)) return []
+
 		const barHeight = Math.max(minBarHeight, norm(value) * innerHeight)
 
-		return {
-			x: padding + index * slot + (slot - barWidth) / 2,
-			y: baseline - barHeight,
-			width: barWidth,
-			height: barHeight,
-		}
+		return [
+			{
+				x: padding + index * slot + (slot - barWidth) / 2,
+				y: baseline - barHeight,
+				width: barWidth,
+				height: barHeight,
+			},
+		]
 	})
 
 	return { points, line, area, bars, last, baseline }

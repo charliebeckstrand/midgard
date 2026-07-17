@@ -157,6 +157,26 @@ describe('sparklineGeometry', () => {
 		expect(geo.points[0]?.y).not.toBe(geo.points[2]?.y)
 	})
 
+	it('drops a non-finite vertex from the drawn marks instead of emitting an invalid path', () => {
+		const geo = sparklineGeometry([1, Number.NaN, 3], { ...box })
+
+		// The NaN vertex is skipped (not `L 50 NaN`), so the browser renders the
+		// finite endpoints instead of aborting the whole line, and no NaN bar emits.
+		expect(geo.line).not.toContain('NaN')
+
+		expect(geo.line).toBe('M 2 38 L 98 2')
+
+		expect(geo.bars).toHaveLength(2)
+	})
+
+	it('closes a single-point area as a full-width band, not a centre triangle', () => {
+		const geo = sparklineGeometry([7], { ...box })
+
+		// Closes on the track edges (2 → 98) to match the forced full-width line,
+		// rather than the point's centre x, which would fill as a triangle.
+		expect(geo.area).toBe('M 2 20 L 98 20 L 98 38 L 2 38 Z')
+	})
+
 	it('returns empty marks for an empty series', () => {
 		const geo = sparklineGeometry([], { ...box })
 
