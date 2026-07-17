@@ -133,7 +133,8 @@ export function SignaturePad({
 				ref={canvasRef}
 				data-slot="signature-pad-canvas"
 				// `role="img"` makes the `aria-label` perceivable; a bare `<canvas>`
-				// has no implicit role. State (empty/disabled) rides the name.
+				// has no implicit role. Empty state rides the name (`, empty`);
+				// disabled/read-only is conveyed via `aria-disabled` below.
 				role="img"
 				aria-label={empty ? `${ariaLabel}, empty` : ariaLabel}
 				aria-describedby={control?.describedBy}
