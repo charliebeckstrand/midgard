@@ -106,7 +106,11 @@ export function Message({
 		return registerMessage?.(id)
 	}, [rendersError, registerMessage, id])
 
-	if (isFormBoundError && (!issues || issues.length === 0)) return null
+	// The error severity renders only when it has something to say (form-bound
+	// with issues, or unbound with children); an empty one would leave a stray
+	// `role="alert"`. `rendersError` already encodes that; warning/success always
+	// render their children.
+	if (severity === 'error' && !rendersError) return null
 
 	const elementId = resolveMessageElementId(id, severity, control)
 
