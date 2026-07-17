@@ -85,8 +85,10 @@ export function Stepper({
 		itemSelector: 'button[data-slot="stepper-step"]:not(:disabled)',
 		orientation: resolvedOrientation,
 		// Step row is a single Tab stop (role="toolbar"); arrows move across steps,
-		// resting on the current step. A no-op for display-only steppers (no buttons).
-		manageTabIndex: true,
+		// resting on the current step. Gated to interactive steppers (matching the
+		// keydown below): a display-only stepper renders no step buttons, so the
+		// tab-stop effect — a focusin listener and MutationObserver — would only spin.
+		manageTabIndex: onValueChange !== undefined,
 		activeSelector: '[aria-current="step"]',
 	})
 
