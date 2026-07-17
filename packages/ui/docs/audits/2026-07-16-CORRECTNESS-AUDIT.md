@@ -22,7 +22,7 @@ doccomment) · **WATCH** (recorded so the next sweep doesn't relitigate).
 |---|---|---|
 | 1 | accordion, address-input, alert, aspect-ratio, avatar, badge, banner, box, breadcrumb, button | ✅ swept |
 | 2 | calendar, card, checkbox, code, collapse, color, combobox, command-palette, confirm, container | ✅ swept |
-| 3 | context-menu, control, copy-button, credit-card-input, currency-input, date-input, date-picker, dialog, divider, dl | ◯ pending |
+| 3 | context-menu, control, copy-button, credit-card-input, currency-input, date-input, date-picker, dialog, divider, dl | ✅ swept |
 | 4– | remaining 67 components, ten at a time | ◯ pending |
 
 ---
@@ -125,6 +125,64 @@ rounding, the picker reducer, and the a11y wiring — were traced and verified
 sound, as were the color drag/state hooks (`useColorDrag` pointer-capture
 lifecycle, `useColorState` reconcile) and the combobox open/close/highlight/
 selection machine and command-palette non-virtual path beyond the rows above.
+
+---
+
+## Batch 3 — context-menu · control · copy-button · credit-card-input · currency-input · date-input · date-picker · dialog · divider · dl
+
+### Executive summary
+
+Two real bugs, both again at the seam where a formatted input meets shared
+popover/caret machinery: the relative date-picker's custom mode had its
+Start/End fields' arrow keys stolen by the dialog's virtual-model focus
+reclaim, and the currency input turned a typed leading decimal (`.5`) into `5.`
+— ten times the intended value — because it lacked the type-at-end caret branch
+its date-input sibling documents for the identical pad hazard. One reuse
+consolidation: `resolveContextMenuEntries` re-implemented the exported
+`mergeContextMenuItems` primitive inline, leaving the primitive with zero real
+consumers. Three doccomment corrections rode along. Batch-2's open lead on
+DatePicker keyboard navigation resolved clean: every grid-highlight write is
+clamped into `[min, max]`, so arrow keys cannot park the highlight on a
+disabled date. Dialog, date-input, control's cascade, and the small leaves
+(copy-button, divider, dl) audited clean.
+
+### Findings
+
+| # | Verb | Surface | Site | Issue | Fix | Status |
+|---|---|---|---|---|---|---|
+| 1 | FIX (med-high) | DatePicker (relative custom) | date-picker-content.tsx:166 · use-date-picker-relative-state.ts:358 | The dialog keydown's `NAVIGATION_KEYS` focus-reclaim (`event.currentTarget.focus()`) runs for every content variant, but its rationale — a grid move can unmount the focused day button — applies only to the calendar variants. Custom mode passes `onKeyDown = undefined` and renders editable Start/End `<DatePicker input>` fields whose keydowns bubble unimpeded, so pressing ArrowLeft/Right to move the text caret yanked focus to the dialog container; caret arrows were unusable and the nested-picker roving broke after the first key. Untested path (custom-mode tests only type digits and click). | Gate the reclaim on `onKeyDown &&`: no virtual model, no reclaim — the presence-implies-control convention (props audit T5) already distinguishes the modes. | ◯ OPEN |
+| 2 | FIX (med-high) | CurrencyInput | currency-input.tsx:107 · currency-input-utilities.ts:56 | `onChange` always routed through `reformat`'s meaningful-count caret restore, but `formatEditing` pads a `0` before a bare decimal (`.` → `0.`); the restore counts that pad as the first meaningful char and pins the caret between `0` and `.`, so the next digit lands in the integer part: typing `.5` produced `5.` — `$5.00`, 10× off, wrong side of the decimal. Exactly the pad hazard `date-input.tsx:214-218` defends with its type-at-end branch; currency had no equivalent, and no test typed a leading decimal incrementally. | Mirror DateInput: when the caret is at the end, format without queuing the caret restore. New test pins `.5` → `0.5`. | ◯ OPEN |
+| 3 | SIMPLIFY | context-menu | context-menu-merge.ts:42-48 | `resolveContextMenuEntries` re-implemented `mergeContextMenuItems` inline — the same empty-group filtering and separator join, via two early returns plus a `GROUP_SEPARATOR` constant — while the exported primitive, billed by its own doc as "the building block a host uses," had zero non-test consumers repo-wide. | Route the resolver through `mergeContextMenuItems([a, b])`; delete the constant and early returns. Behavior-identical (tests assert separator shape and item identity, not the separator key). | ◯ OPEN |
+| 4 | DOC | Control | use-control-props.ts:46 | Doccomment described fields composing `size ?? control?.size` at the call site — a code path that exists nowhere; size resolves purely through `useControlSize`/`useDensity`, and the context's `size` only seeds the `<Density>` scope. The phrasing invites adding the exact read the architecture avoids. | Rewrite to describe the real resolution path. | ◯ OPEN |
+| 5 | DOC | CreditCardInput (+ Cvv) | credit-card-input.tsx:33 · credit-card-input-cvv.tsx:55 | "Emits the raw value" misdescribes `onValueChange` — it emits the formatted, spaced text (test-pinned), and in a masking component "raw" reads as the digit string it is not. Plus "defaults an 'Security code'" grammar. | "raw" → "formatted"; "an" → "a". | ◯ OPEN |
+
+### Minor / watch-list
+
+| Surface | Site | Note | Verb | Status |
+|---|---|---|---|---|
+| CurrencyInput | currency-input.tsx:84 | An external controlled-value change while `editingText` is non-null is shadowed until blur; date-input handles this with its `known`/`emitted` reconciliation (test-pinned). Real asymmetry with the sibling; may be an accepted simplification since currency has no calendar-like concurrent writer. | WATCH | ◯ OPEN |
+| CurrencyInput | currency-input.tsx:112 | `setNum` fires on every keystroke, so no-op edits (trailing `.`, digits past `precision`) re-emit the same value; the blur path guards (`parsed !== num`), onChange doesn't. | SIMPLIFY | ◯ OPEN |
+| CreditCardInputCvv | credit-card-input-cvv.tsx:94-114 | The `mountedRef` mount-skip effect self-defeats under StrictMode's setup→cleanup→setup (one spurious dev-only `onValidityChange`); the repo's convention elsewhere is StrictMode-resilient prev-value refs. | SIMPLIFY | ◯ OPEN |
+| CreditCardInput | credit-card-input.tsx:63 | Full `formatCardNumber` memo computed only to read `brand`; `detectCardBrand(masked.value)` is equivalent (card-validator strips separators) and skips the grouping work. | OPTIMIZE | ◯ OPEN |
+| CreditCardInputCvv | credit-card-input-cvv.tsx:25 · utilities:104 | The Amex-4/others-3 CVV rule is encoded three times (`CVV_LENGTHS`, `validateCardCvv`, card-validator's `code.size`); consistent only while Amex stays the sole 4-CVV brand. | WATCH | ◯ OPEN |
+| Control | control.tsx:35 | `autoComplete` is a declared, cascaded, context-carried prop the component doc omits from its broadcast list. | DOC | ◯ OPEN |
+| DateInput | date-input.tsx:152 | `activeMessage` (re-parses when text is complete) computes every render but is read only under `typedInvalid`; gate it. Negligible. | OPTIMIZE | ◯ OPEN |
+| ContextMenu | menu-content.tsx:96 · use-floating-ui.ts:200 | Standalone `<ContextMenu>` restores no focus on Escape/selection close (`returnFocusTo` never attaches — no persistent trigger); grid implements its own restore, signalling host-responsibility by design. | WATCH | ◯ OPEN |
+| DatePicker / ColorPicker | date-picker-content.tsx:174 · color-picker-content.tsx:66 | Verbatim-duplicated focus-holding `motion.div` surface (motion + Density + Box). A shared `PopoverSurface` would absorb ~6 lines while both keep their own focus-manager scaffolding — worth it at a third consumer, not two. | WATCH | ◯ OPEN |
+| DatePicker (relative) | use-date-picker-relative-state.ts:362 | `chips`/`selectedIds` memos read `nowRef.current` without depending on it: a value committed before midnight on a long-mounted page can show a stale preset match until the next interaction. Consistent with the one-`now`-per-interaction design. | WATCH | ◯ OPEN |
+| useFormattedInput | use-formatted-input.ts:10 | Padding formatters (currency's `.` → `0.`, date's `1/` → `01/`) violate the `meaningful` "preserved across format" contract, forcing type-at-end caret branches at two call sites. When a third padding consumer appears, absorb an at-end option into the hook (`atEnd: 'jump' \| 'restore'`) — masks must keep `'restore'` (caret before trailing separators is what makes backspace work). | WATCH | ◯ OPEN |
+
+### Audited clean (no findings)
+
+dialog (open/close, focus trap/restore, dismiss ordering, scroll lock, ARIA —
+all verified against the Overlay/panel primitives), date-input (the cap/carry
+mask, parse validation incl. leap years and the sub-100-year `setFullYear` fix,
+all three caret branches, the `known`/`emitted` reconciliation, commit guards),
+control (the id/disabled/severity/readOnly/variant/size cascade verified
+against its tests), copy-button (+ state hook), divider, dl (all three parts).
+Batch-2's calendar lead is closed: `moveGridDate`/`moveGridMonths`/
+`getInitialActiveDate` and the footer path all clamp into `[min, max]`, so the
+DatePicker keyboard path cannot highlight or select a disabled date.
 
 ---
 
