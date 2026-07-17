@@ -7,11 +7,6 @@ import type { ToastData, ToastPosition, ToastSeverity } from '../../providers/to
 import { k } from '../../recipes/kata/toast'
 import { Alert, type AlertVariants } from '../alert'
 
-/** Picks the slide-in motion preset matching the viewport edge. @internal */
-function getToastMotion(position: ToastPosition) {
-	return position.startsWith('top') ? k.motion.top : k.motion.bottom
-}
-
 /** Fade-out for a user dismissal; the height collapse is left to the neighbours' layout spring. @internal */
 const manualDismiss = { opacity: 0, transition: k.motion.dismiss }
 
@@ -75,14 +70,14 @@ export function ToastAlert({
 	onResume,
 	onReset,
 }: ToastAlertProps) {
-	const motionConfig = getToastMotion(position)
+	const positionTop = position.startsWith('top')
+
+	const motionConfig = positionTop ? k.motion.top : k.motion.bottom
 
 	const { variant, color } = severityAlertMap[t.severity ?? 'default']
 
 	// Warning/error interrupt (assertive); everything else queues politely.
 	const assertive = t.severity === 'warning' || t.severity === 'error'
-
-	const positionTop = position.startsWith('top')
 
 	const autoDismiss = positionTop ? autoDismissTop : autoDismissBottom
 
