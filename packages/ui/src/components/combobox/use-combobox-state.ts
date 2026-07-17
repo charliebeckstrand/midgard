@@ -63,14 +63,21 @@ export function useComboboxState<T>({
 
 	const [editing, setEditing] = useState(false)
 
-	const setQuery = useCallback(
-		(next: string) => {
-			setQueryInternal(next)
+	// Read `onQueryChange` through a ref so `setQuery` stays referentially stable
+	// across keystrokes. Carried as a dependency, an inline `onQueryChange` would
+	// give `setQuery` — and through it `close`, `select`, and the combobox context
+	// — a new identity each render, re-rendering every option on the typing path
+	// the refs below (and the deferred query) exist to keep cheap. Mirrors
+	// `useControllable`'s own `onValueChange` ref.
+	const onQueryChangeRef = useRef(onQueryChange)
 
-			onQueryChange?.(next)
-		},
-		[onQueryChange],
-	)
+	onQueryChangeRef.current = onQueryChange
+
+	const setQuery = useCallback((next: string) => {
+		setQueryInternal(next)
+
+		onQueryChangeRef.current?.(next)
+	}, [])
 
 	// Snapshot of the query the menu content filters on, frozen while the panel
 	// animates closed. Clearing `query` synchronously on close snaps
