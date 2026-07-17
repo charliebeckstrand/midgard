@@ -27,8 +27,8 @@ type KeyboardOptions = {
  * @returns A `keydown` handler for the inner text input.
  *
  * @remarks
- * Enter/comma and Backspace are all ignored mid-IME-composition so a
- * candidate-selection keystroke never commits a partial tag or deletes a tag.
+ * Every key is ignored mid-IME-composition (a single early return), so a
+ * candidate-selection keystroke never commits a partial tag or deletes one.
  * Backspace removes only when the draft is empty and at least one tag exists, so
  * it never competes with ordinary text deletion.
  *
@@ -42,7 +42,11 @@ export function useTagInputKeyboard({
 	tagCount,
 }: KeyboardOptions) {
 	return (event: KeyboardEvent<HTMLInputElement>) => {
-		if ((event.key === 'Enter' || event.key === ',') && !event.nativeEvent.isComposing) {
+		// A candidate-selection keystroke belongs to the IME, not the tag editor:
+		// ignore every key mid-composition so none commits or deletes a tag.
+		if (event.nativeEvent.isComposing) return
+
+		if (event.key === 'Enter' || event.key === ',') {
 			event.preventDefault()
 
 			if (addTag(inputValue)) {
@@ -50,12 +54,7 @@ export function useTagInputKeyboard({
 			}
 		}
 
-		if (
-			event.key === 'Backspace' &&
-			inputValue === '' &&
-			tagCount > 0 &&
-			!event.nativeEvent.isComposing
-		) {
+		if (event.key === 'Backspace' && inputValue === '' && tagCount > 0) {
 			removeTag(tagCount - 1)
 		}
 	}

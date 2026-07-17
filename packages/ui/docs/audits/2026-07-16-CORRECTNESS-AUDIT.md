@@ -749,3 +749,11 @@ width), so the current shipped look is "no header rule" — adding a width to re
 the intended rule is a visible design change, and dropping the token cements the
 current look, so which way to resolve it is a maintainer call. Types and the
 scoped Vitest suite (1271 tests across 75 files) ran green after the eight fixes.
+The four-angle simplify pass then found the batch reuse-, efficiency-, and
+altitude-clean (the tabs ref-count confirmed the correct primitive over a
+boolean or a shared registry, the stepper gate's listener/observer saving
+confirmed real) and landed one refinement: with both the Enter/comma and the new
+Backspace branch now guarding `isComposing`, and the handler acting on no other
+keys, the guard hoisted to a single top-of-handler early return — stating "ignore
+every key mid-composition" once instead of per branch. Behavior-identical; the
+existing suite stayed green.
