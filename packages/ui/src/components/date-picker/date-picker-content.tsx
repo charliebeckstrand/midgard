@@ -47,6 +47,11 @@ type DatePickerContentProps = {
 	 * lives on the trigger and, via this prop, on the dialog itself; initial
 	 * focus lands on the dialog, not its first tabbable button, and the model
 	 * keeps working once a real browser moves focus into the modal trap.
+	 *
+	 * Presence is the contract: passing a handler declares that the dialog owns
+	 * navigation keys, so the shell reclaims DOM focus on them. Omit it for a
+	 * variant whose content owns its own keyboard (the relative custom range's
+	 * editable fields), and the shell leaves focus alone.
 	 */
 	onKeyDown?: (event: KeyboardEvent<HTMLElement>) => void
 	/**
@@ -142,6 +147,13 @@ export function DatePickerContent({
 						// Composed through floating-ui; its own handlers merge
 						// rather than clobber.
 						onKeyDown: (event: KeyboardEvent<HTMLElement>) => {
+							// A content variant with no virtual model (the relative
+							// custom range's editable Start/End fields) owns its own
+							// caret/roving; every guard below exists only to route keys
+							// to the model, and the focus reclaim would steal focus
+							// from the field being typed in.
+							if (!onKeyDown) return
+
 							// Keys from portaled descendants (the month/year picker
 							// popover) bubble here through the React tree, not the
 							// DOM. That surface owns its keyboard; acting here would
@@ -167,7 +179,7 @@ export function DatePickerContent({
 								event.currentTarget.focus()
 							}
 
-							onKeyDown?.(event)
+							onKeyDown(event)
 						},
 					})}
 				>
