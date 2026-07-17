@@ -30,8 +30,8 @@ export type FieldProps = {
  * Wraps one form control and its satellites (`<Label>`, `<Description>`,
  * `<Message>`) in a `<div>`, provisioning a `<Control>` context so they share a
  * generated id and `aria-labelledby`/`aria-describedby` wiring. Inherits
- * autoComplete, invalid, readOnly, required, severity, size, and variant from
- * an enclosing Control, and merges `disabled` with the parent's.
+ * autoComplete, readOnly, required, severity, size, and variant from an
+ * enclosing Control, and merges `disabled` with the parent's.
  *
  * @remarks Supply `htmlFor` to pin the control id; otherwise one is generated.
  * Set `severity` to drive the control's validation chrome; nest a `<Message>`
