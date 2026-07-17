@@ -2,7 +2,7 @@ import { hiddenThumb, MIN_THUMB_SIZE, type ThumbState } from './scroll-area-cons
 
 /**
  * Computes thumb size and offset for one axis. Returns {@link hiddenThumb} when
- * content fits the viewport.
+ * content fits the viewport or the track has no size.
  *
  * @internal
  */
@@ -17,7 +17,10 @@ export function computeThumb(
 	const rawSize = (viewportSize / contentSize) * trackSize
 	const size = Math.max(rawSize, MIN_THUMB_SIZE)
 	const maxScroll = contentSize - viewportSize
-	const maxOffset = trackSize - size
+	// Clamp to 0: when the `MIN_THUMB_SIZE` floor exceeds the track, the thumb has
+	// no room to travel, so pin it at the origin rather than letting a negative
+	// offset invert the scroll direction and overflow the track.
+	const maxOffset = Math.max(trackSize - size, 0)
 	const offset = maxScroll > 0 ? (scrollPos / maxScroll) * maxOffset : 0
 
 	return { size, offset, visible: true }
