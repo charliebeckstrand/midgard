@@ -23,7 +23,8 @@ doccomment) · **WATCH** (recorded so the next sweep doesn't relitigate).
 | 1 | accordion, address-input, alert, aspect-ratio, avatar, badge, banner, box, breadcrumb, button | ✅ swept |
 | 2 | calendar, card, checkbox, code, collapse, color, combobox, command-palette, confirm, container | ✅ swept |
 | 3 | context-menu, control, copy-button, credit-card-input, currency-input, date-input, date-picker, dialog, divider, dl | ✅ swept |
-| 4– | remaining 67 components, ten at a time | ◯ pending |
+| 4 | drawer, fieldset, file-upload, filters, flex, form, group, heading, hold-button, icon | ✅ swept |
+| 5– | remaining 57 components, ten at a time | ◯ pending |
 
 ---
 
@@ -186,6 +187,56 @@ DatePicker keyboard path cannot highlight or select a disabled date.
 
 ---
 
+## Batch 4 — drawer · fieldset · file-upload · filters · flex · form · group · heading · hold-button · icon
+
+### Executive summary
+
+The two heavy subsystems are clean where it counts: form's `useSyncExternalStore`
+snapshot is a stable ref (no render loop), and file-upload's drag depth-counter,
+same-file input reset, and object-URL story (there are none to leak) all hold up.
+The one real bug is small and self-inflicted by a helper: `FiltersClear` guarded
+its child with `Children.only`, which throws on the bare-string child its own
+doc promises to wrap in a default Button — so the documented fallback was
+unreachable dead code and a string child crashed. Beyond that: one stale doc
+(Field claiming an `invalid` inheritance that doesn't exist), one empty-`role=
+alert` edge in Message, and a six-site `hasIssues` predicate begging to be one
+helper. drawer, group, heading, icon, flex/stack/spacer/split, and hold-button
+audited clean.
+
+### Findings
+
+| # | Verb | Surface | Site | Issue | Fix | Status |
+|---|---|---|---|---|---|---|
+| 1 | FIX (high) | FiltersClear | filters-clear.tsx:24 | `const child = Children.only(children)` throws for any non-single-element child — including the bare string (`<FiltersClear>Clear</FiltersClear>`) the doccomment says "fall back to a default `<Button>`". `Children.only` also guarantees an element on return, so the `isValidElement(child)` check is always true and the entire Button fallback (41-45) is unreachable dead code; every test passes a single `<Button>`, so the promised path was never exercised. | Test `isValidElement(children)` directly (drop `Children.only`): a single element clones, anything else renders the default Button. New test pins the string fallback. | ◯ OPEN |
+| 2 | DOC | Field | field.tsx:33 | The TSDoc lists `invalid` among the props Field inherits from an enclosing Control, but `ControlContextValue` has no `invalid` field — validation is carried solely by `severity` (Control's own doc correctly omits it). Stale doc on a public export invites a nonexistent read. | Drop `invalid` from the inherited list. | ◯ OPEN |
+| 3 | FIX (low) | Message | message.tsx:109 | The `return null` guard covered only the form-bound path, so an unbound `error` Message with no children (the default `severity`) rendered a stray empty `<p role="alert">` — contradicting the doc's "(unbound) given children". | Guard on the existing `rendersError` flag: `severity === 'error' && !rendersError`, which covers both the form-bound-no-issues and unbound-no-children cases (warning/success still render their children). | ◯ OPEN |
+| 4 | SIMPLIFY | form | form-reducer.ts:195 · use-form-reducer.ts:175,258 · use-form-{text,toggle,value}.ts | The "field is invalid" predicate `errors !== undefined && errors.length > 0` was inlined at six sites (two as `.some((issues) => …)` lambdas). | Extract `hasIssues(issues)` next to `normalizeIssues`; `.some(hasIssues)` at the reducer sites and `field && hasIssues(field.errors)` at the hooks — one definition of invalid. (The `field &&` guard stays: the hooks return `undefined` — not `false` — outside a Form, per §7.3.) | ◯ OPEN |
+
+### Minor / watch-list
+
+| Surface | Site | Note | Verb | Status |
+|---|---|---|---|---|
+| FileUpload | use-file-upload-handlers.ts:56 | `partitionFiles` filters only `maxSize`/`maxCount`; a drop doesn't re-enforce `accept`/`multiple` (the native input constrains only the OS picker). So a `multiple={false}` dropzone accepts N dropped files and `accept=".pdf"` accepts a dropped `.exe`. The `onReject` doc scopes rejection to size/count, so likely deliberate — confirm the boundary. | WATCH | ◯ OPEN |
+| FileUpload | use-file-upload-handlers.ts:110 | A pointer that leaves the window mid-drag without a final `dragleave`/`drop` leaves `dragDepth > 0` and the highlight stuck until the next enter. Inherent to the depth-counter pattern; no global `dragend` reset. | WATCH | ◯ OPEN |
+| Form | use-form-reducer.ts:275 | `onSettled` on success reports `valuesRef.current` (re-read after the async `onSubmit`), so a field edited mid-flight is reflected rather than the submitted snapshot. Likely intentional ("current values"). | WATCH | ◯ OPEN |
+| Filters | filters.tsx:14 | `isActive(false) === true`, so toggling a Checkbox/Switch filter off keeps `{name: false}` in the payload and counts it — against the "drops empty fields" contract and inflating the count announcement. Likely deliberate (explicit-false filters). | WATCH | ◯ OPEN |
+| Message | message.tsx:123 | The multi-error `<ul>` branch can't forward `{...props}` (the component types them as `<p>` attributes; spreading onto `<ul>` is a type error, so the single-error `<p>` branch and the `<ul>` diverge). Forwarding would need an unsafe cast; the real fix is a broader element typing, out of scope. | WATCH | ◯ OPEN |
+| HoldButton | hold-button.tsx:76 · use-hold-button-gesture.ts:110 | No `touch-action` (a finger-drift can let the browser claim the press as a scroll) and the completion timer closes over the reset-duration snapshot (a reduced-motion flip mid-press uses pre-flip timing). Both sub-frame/package-wide-uniform; `touch-action` appears nowhere in the package by choice. | WATCH | ◯ OPEN |
+
+### Audited clean (no findings)
+
+drawer (panel family, mirrors the verified Dialog), group (+ `useGroup`
+fragment-flattening position stamp), heading (+ its type-rung skeleton), icon,
+and flex/stack/spacer/split (the literal responsive maps are deliberate for
+Tailwind's scanner). hold-button verified against every failure mode — timer
+cleanup, guard add/remove pairing, no double/missed completion, reduced-motion
+parity, no pointer-capture mismanagement. form's core (snapshot stability,
+resolution order, submit-race token guarding, zod-resolver cache) and
+file-upload's core (drag counter, same-file reset, no object-URL leak) are
+sound beyond the rows above.
+
+---
+
 ## Reliability appendix
 
 Every row was traced to its definition and its consumption in source, then
@@ -209,3 +260,12 @@ case). Per CONVENTIONS.md §10.3 the two floating/virtualized bugs carry no new
 driven-lifecycle test; they rest on the
 precedent guards and the passing existing suites. The cross-cutting VirtualOptions
 row is recorded, not fixed: its resolution is a shared-primitive decision.
+
+Batch 4's `hasIssues` dedup was the instructive one: the first pass used
+`hasIssues(field?.errors)`, which collapsed the hooks' deliberate
+`undefined`-outside-a-Form return (§7.3 — no opinion, defers to context) into
+`false`. Three "outside a Form" tests caught it immediately; the landed form is
+`field && hasIssues(field.errors)`, exactly equivalent to the original. The
+Message `{...props}` inconsistency was left unfixed once the type checker showed
+it's forced by the component's `<p>` typing, not an oversight. The FiltersClear
+fix carries a new test that exercises the previously-dead string-fallback path.
