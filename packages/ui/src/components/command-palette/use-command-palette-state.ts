@@ -104,13 +104,22 @@ export function useCommandPaletteState({ open, onOpenChange }: CommandPaletteSta
 		)
 	}, [deferredQuery])
 
-	// Resets query when closed; done during render, not in an effect.
+	// Resets the query and the virtual-highlight index when closed; done during
+	// render, not in an effect. Clearing `activeIndexRef` stops a virtualized
+	// palette from resuming navigation at the prior session's index on reopen:
+	// the closed dialog unmounts its options, so there's no DOM `data-active` to
+	// read the index back off of, and a stale ref would make the first arrow land
+	// at `index + 1` instead of the first item (mirrors Combobox's close reset).
 	const prevOpenRef = useRef(open)
 
 	if (open !== prevOpenRef.current) {
 		prevOpenRef.current = open
 
-		if (!open) setQuery('')
+		if (!open) {
+			setQuery('')
+
+			activeIndexRef.current = -1
+		}
 	}
 
 	const close = useCallback(() => onOpenChange(false), [onOpenChange])
