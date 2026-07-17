@@ -40,6 +40,10 @@ export function ColorHexInput() {
 				{...draftProps('hex')}
 				id={id}
 				onChange={onChange}
+				// The popover content wrapper preventDefaults mousedown to hold focus
+				// for the area/slider drag (color-picker-content.tsx); stop it here so
+				// a click focuses the hex field. A no-op in the inline ColorPanel.
+				onMouseDown={(event) => event.stopPropagation()}
 				disabled={disabled}
 				size={size}
 				data-slot="color-hex-input"

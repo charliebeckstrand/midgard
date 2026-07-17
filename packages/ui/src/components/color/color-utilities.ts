@@ -43,9 +43,16 @@ export function equalHsva(a: Hsva, b: Hsva): boolean {
 
 	const hueMoot = (c: Hsva) => c.s === 0 || c.v === 0
 
+	// Saturation is invisible at zero value — every hue and saturation renders
+	// black — so two v=0 colours are the same colour whatever their saturation,
+	// the same way hue collapses above.
+	const satMoot = (c: Hsva) => c.v === 0
+
 	const sameHue = hueMoot(ca) && hueMoot(cb) ? true : ca.h === cb.h
 
-	return sameHue && ca.s === cb.s && ca.v === cb.v && Math.abs(ca.a - cb.a) < 0.005
+	const sameSat = satMoot(ca) && satMoot(cb) ? true : ca.s === cb.s
+
+	return sameHue && sameSat && ca.v === cb.v && Math.abs(ca.a - cb.a) < 0.005
 }
 
 /** Convert HSVA to RGBA; `r`/`g`/`b` round to integers `0-255`, alpha passes through clamped. */
