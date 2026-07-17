@@ -2,6 +2,7 @@
 
 import { type SetValue, useControllable } from '../../hooks/use-controllable'
 import { useFormField } from './context'
+import { hasIssues } from './form-reducer'
 
 type FormValueOptions<T> = {
 	/** Controlled value. Wins over the form field when both are present. */
@@ -65,6 +66,6 @@ export function useFormValue<T>(
 		value: current,
 		setValue: setCurrent,
 		setTouched: () => field?.setTouched(),
-		invalid: field && field.errors !== undefined && field.errors.length > 0,
+		invalid: field && hasIssues(field.errors),
 	}
 }

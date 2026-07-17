@@ -2,6 +2,7 @@
 
 import type { ChangeEvent, FocusEvent } from 'react'
 import { useFormField } from './context'
+import { hasIssues } from './form-reducer'
 
 /** DOM-event binding for a string-valued control: a coerced `value`, `onChange`/`onBlur` wired to the field, and an `invalid` flag derived from its errors. */
 export type FormTextBinding<E extends HTMLInputElement | HTMLTextAreaElement = HTMLInputElement> = {
@@ -51,6 +52,6 @@ export function useFormText<E extends HTMLInputElement | HTMLTextAreaElement = H
 			field.setTouched()
 			handlers?.onBlur?.(event)
 		},
-		invalid: field.errors !== undefined && field.errors.length > 0,
+		invalid: hasIssues(field.errors),
 	}
 }
