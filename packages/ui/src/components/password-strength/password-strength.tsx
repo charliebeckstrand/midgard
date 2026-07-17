@@ -12,7 +12,7 @@ import {
 	usePasswordStrength,
 } from './use-password-strength'
 
-export type { PasswordRule, PasswordStrengthChange } from './use-password-strength'
+export type { PasswordRule, PasswordStrengthChange, StrengthLevel } from './use-password-strength'
 
 /** Default rule set: at least 8 characters and at least one uppercase letter, digit, and symbol. */
 export const defaultPasswordRules: readonly PasswordRule[] = [
