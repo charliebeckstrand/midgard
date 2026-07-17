@@ -42,9 +42,10 @@ export type ControlPropsResult = {
  * `<Field>` context. `invalid` instead OR's the form-bound flag with the
  * context's.
  *
- * Does **not** resolve size; every field reads `useDensity()` directly
- * (input / textarea / switch / etc. compose `size ?? control?.size` against
- * the Density cascade at the call site).
+ * Does **not** resolve size; every field reads the Density cascade directly via
+ * `useControlSize(size)`/`useDensity()`, never off the Control context. The
+ * context's own `size` only seeds the `<Density>` scope a sized `<Control>`
+ * opens (plus nested-Control inheritance).
  *
  * @param input - Explicit control props from the field; each wins over the
  * context value of the same name, except `invalid` (OR-merged with `error`
