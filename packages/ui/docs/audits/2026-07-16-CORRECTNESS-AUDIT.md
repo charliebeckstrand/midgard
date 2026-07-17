@@ -26,7 +26,8 @@ doccomment) · **WATCH** (recorded so the next sweep doesn't relitigate).
 | 4 | drawer, fieldset, file-upload, filters, flex, form, group, heading, hold-button, icon | ✅ swept |
 | 5 | input, json-tree, kanban, kbd, link, list, listbox, loading, markdown, mask-input | ✅ swept |
 | 6 | menu, nav, number-input, odometer, pagination, password-confirm, password-input, password-strength, pdf-viewer, phone-input | ✅ swept |
-| 7– | remaining 37 components, ten at a time | ◯ pending |
+| 7 | pivot-table, placeholder, popover, progress, radio, resizable, scroll-area, search-input, segment, select | ✅ swept |
+| 8– | remaining 27 components, ten at a time | ◯ pending |
 
 ---
 
@@ -383,6 +384,78 @@ math, and print/download utilities were all traced sound beyond the rows above.
 
 ---
 
+## Batch 7 — pivot-table · placeholder · popover · progress · radio · resizable · scroll-area · search-input · segment · select
+
+### Executive summary
+
+Nine fixes, clustered in the three data/pointer-heavy subsystems; the rest of the
+batch — placeholder, popover, select, progress, segment, radio, search-input —
+is correct and well-tested, with several apparent divergences traced to
+deliberate house patterns (radio delegates single-select to native same-`name`
+grouping and so binds no Form field; segment delegates roving to Tabs; popover
+gates every dismiss path on `open` and mounts only while open, so it has none of
+the static-menu dismiss-layer hazard). The one real correctness bug with data
+consequences is in the pivot engine: `groupValues` coerced every value cell with
+`Number()`, which maps `null` / `''` / `false` / `[]` to a finite `0` — so a
+nullable numeric field counted its empty cells as real zeros and corrupted
+count / avg / min, while `undefined` was (asymmetrically) skipped. Two pointer
+subsystems each gave up a lower-severity fix: the resizable drag attached fresh
+document listeners without tearing down a still-active prior drag, so a
+re-entrant/multi-touch second drag orphaned the first's listeners past the
+unmount cleanup (a post-unmount `setSizes`); and `computeThumb` let a track
+shorter than the minimum thumb drive the offset negative, inverting the
+scrollbar. The remaining cleanups are concision: a dead per-colour `fill` slice
+(with three actively-wrong doccomments) in the progress kata, a redundant
+get-then-has map lookup, a duplicated normalize-to-100, an always-true guard, and
+a dead empty `grip.dragging` recipe variant.
+
+### Findings
+
+| # | Verb | Surface | Site | Issue | Fix | Status |
+|---|---|---|---|---|---|---|
+| 1 | FIX (med) | groupValues | pivot-table-pivot.ts:62 | `const value = typeof raw === 'number' ? raw : Number(raw)` gated by `Number.isFinite`: `Number(null)` / `Number('')` / `Number(false)` / `Number([])` are all a finite `0`, so a nullable value field bucketed its empty cells as real zeros — corrupting `count` (inflated), `avg` (pulled toward 0), and `min` (0) — while `undefined → NaN` was skipped. Asymmetric and unpinned (the test covered only number / numeric-string / `'not-a-number'`). | Accept only real numbers and non-empty numeric strings (`typeof === 'string' && trim() !== '' ? Number(raw) : NaN`), so all non-numeric cells drop out via the existing `isFinite` guard. New test pins null / `''` / `false` skipped. | ◯ OPEN |
+| 2 | FIX (low-med) | useResizablePanel | use-resizable-panel.ts:156 | `startDrag` attached fresh `document` pointer listeners and overwrote `cleanupRef.current` without tearing down a still-active prior drag. A re-entrant/multi-touch second drag (a second pointer on another handle before the first lifts) left the first drag's `onMove`/`onUp` attached while `cleanupRef` held only the second — so the unmount effect cleaned only the latest, and a later `pointermove` ran the orphaned `onMove` → `setSizes`/`onSizesChange` after unmount. The sibling `beginScrollbarDrag` guards this. | Call `cleanupRef.current?.()` at the top of `startDrag`, superseding any active drag before attaching new listeners. | ◯ OPEN |
+| 3 | FIX (low) | computeThumb | scroll-area-utilities.ts:20 | Guarded `trackSize <= 0` but not a positive track shorter than `MIN_THUMB_SIZE` (20): `maxOffset = trackSize - size` then went negative (e.g. `10 - 20 = -10`), so `offset` inverted — the thumb slid the wrong way and overflowed a sub-20px track. Asymmetric with the drag path, which guards `maxOffset > 0`. | `maxOffset = Math.max(trackSize - size, 0)` — pin the thumb at the origin when the min-size floor leaves no travel. | ◯ OPEN |
+| 4 | SIMPLIFY | groupValues | pivot-table-pivot.ts:66 | Redundant double map lookup per entry: `groups.get(r) ?? new Map()` then a separate `if (!groups.has(r)) groups.set(r, row)` (same `get`+`has` for the bucket). | Single lookup: `let row = groups.get(r); if (!row) { row = new Map(); groups.set(r, row) }` (and likewise for the bucket). Behavior-identical. | ◯ OPEN |
+| 5 | SIMPLIFY | useResizablePanel | use-resizable-panel.ts:95,115 | The normalize-to-100 arithmetic (`map(defaultSize)` → sum → `total > 0 ? map(s/total*100) : raw`) was duplicated verbatim between the `useState` initializer and the render-phase resync. | Extract a pure `normalizeSizes(configs)` and call it in both. (Orthogonal to the deliberate `prevCountRef` render-phase reset, which stays inline.) | ◯ OPEN |
+| 6 | SIMPLIFY | ResizableHandle | resizable-handle.tsx:98 · recipes/kata/resizable.ts:30 | `k.grip.dragging` is `''`, so `isDragging && k.grip.dragging` never contributes a class — the grip has no active-drag visual, only hover/focus. Dead. (`data-dragging` on the handle is live/tested and stays.) | Remove the empty `dragging` variant and the conditional term. | ◯ OPEN |
+| 7 | SIMPLIFY | usePivotTable (cells) | use-pivot-table.ts:98 | `if (values.length > 0) rowCells.set(...)` is always true — `groupValues` creates a bucket only at the moment it pushes a value, so no empty bucket can exist. Dead defensive guard. | Drop the condition; note the invariant in a comment. | ◯ OPEN |
+| 8 | SIMPLIFY + DOC | progress kata | recipes/kata/progress.ts:22 | Each colour entry carried a `fill` slice that nothing reads (the bar's `fill` recipe reads `bg`; the gauge ring reads `stroke`; track/label use fixed tokens), and two doccomments described the consumption wrongly ("the gauge reads all three", "`fill` on the indicator circle, `stroke` on the track, `bg` on the label"). | Delete the five `fill:` lines; rewrite both doccomments to the real `bg` (bar) / `stroke` (gauge ring) split. `ProgressColor` keys on colour names, so the type is unaffected. | ◯ OPEN |
+| 9 | DOC | usePivotTable | use-pivot-table.ts:63 | The `@remarks` said cells and totals "recompute only when `rows`, `keys`, or `aggregation` change", but `colTotals`/`rowTotals` read the resolved key arrays and so also recompute when `rowOrder`/`columnOrder` change. | State that the totals additionally recompute on axis-ordering changes. (Also softened `computeThumb`'s doc to mention the no-track early return, alongside finding 3.) | ◯ OPEN |
+
+### Minor / watch-list
+
+| Surface | Site | Note | Verb | Status |
+|---|---|---|---|---|
+| Popover | context.ts:11 · popover.tsx:62 | `setOpen`/`close` are published on `PopoverContextValue` and its memo but read by no consumer, and `PopoverContext` isn't exported. Left in place: `close` on a popover context reads as deliberate scaffolding for a conventional `PopoverClose` affordance — removal deferred pending that intent (mirrors the menu `useMenuContext` call). | SIMPLIFY | ◯ OPEN |
+| Popover / Tooltip | popover-trigger.tsx:29 | The 3-line `assignRef` writer is byte-identical in popover-trigger and tooltip-trigger. Hoisting to a shared util touches out-of-batch tooltip and is low-value (the surrounding `mergeRefs` deliberately diverges), so recorded, not applied. | SIMPLIFY | ◯ OPEN |
+| PivotTable | pivot-table-pivot.ts:117 | `aggregateRow`/`aggregateColumn` are near-identical (fix one axis, walk the other). Plausibly deliberate per §1.1 (row-vs-column are distinct boundaries, each body ~6 lines) — left as-is. | WATCH | ◯ OPEN |
+| ProgressGauge | progress-gauge.tsx:94 | The track `<circle>` carries `strokeLinecap="round"` but no `strokeDasharray`, so a closed circle has no sub-path ends for the cap to round — a no-op (only the dashed value arc needs it). | SIMPLIFY | ◯ OPEN |
+| ResizableHandle | resizable-handle.tsx:49 | `aria-valuemin`/`aria-valuemax` report the left panel's own `minSize`/`maxSize`, not the tighter range the adjacent panel's constraints also impose — so the announced range can exceed what a resize can actually reach. Own-bounds semantics are test-pinned, so likely by design. | WATCH | ◯ OPEN |
+| ScrollArea | use-scroll-area-scrollbar.ts:37 | `beginScrollbarDrag` has no `event.button` guard and no `contextmenu` teardown, unlike the resizable drag — a right/middle-click on the thumb starts a scroll-drag that persists while the context menu is open (it still ends on `pointerup`). Minor cross-engine inconsistency. | WATCH | ◯ OPEN |
+| Radio | radio.tsx:34 | Radio binds no Form field (only `useControlToggle`), unlike Checkbox/Switch — deliberate and documented (a radio group is one string value across N inputs, not per-input booleans, so a per-radio `useFormToggle` would be wrong). A consumer coming from Checkbox may expect symmetric auto-binding; a one-line TSDoc pointer showing the external-control pattern would help. | DOC | ◯ OPEN |
+| Radio (kiso) | kiso/kokkaku/radio.ts:2 | The silhouette comment says "Fixed 4.5-square circle" but `base` is `size-5` (20px). Stale, and in the kiso layer (adjacent to the component surface). | DOC | ◯ OPEN |
+
+### Audited clean (no findings)
+
+placeholder (static `aria-hidden` leaf, `sizeClassFor` clamp traced correct),
+popover (focus restore to the trigger, ARIA `haspopup`/`expanded`/`controls`,
+non-modal Tab-through — all test-pinned; no static-menu dismiss-layer hazard),
+select (a sound single-select narrowing of Listbox), progress bar + gauge
+(geometry hand-traced across 0/50/100/over-max/negative, determinate vs
+indeterminate routing, `progressbar` ARIA, skeletons), segment (thin Tabs
+delegation — roving/selection/active-indicator live in Tabs and are test-pinned),
+radio (native same-`name` single-select, only-checked-tabbable, skeletons
+mirroring Checkbox), and search-input (native-setter clear + focus return, single
+`onClear`, load-bearing `name` for Input's value resolution). The pivot
+aggregation math (empty-input, div-by-zero, min/max with negatives), totals
+computed from raw values (correct grand mean), key stringification consistency,
+and complete memo dep lists were traced sound beyond the rows above; the
+resizable `clampPair` redistribution and both drag engines' observer/rAF/pointer
+teardown, and the scroll-area observer lifecycle, are correct.
+
+---
+
 ## Reliability appendix
 
 Every row was traced to its definition and its consumption in source, then
@@ -467,3 +540,18 @@ refinement: `pageSize` memoizes only the caller dimensions and falls back with
 `??`, so a caller-dimensioned page keeps one identity across the natural-size
 measurement its image load triggers, rather than minting an identical object
 once post-load.
+
+Batch 7 ran as five parallel per-unit agents, every candidate re-verified against
+source and tests. The pivot coercion bug was the instructive one: the fix accepts
+only numbers and non-empty numeric strings, so it changes only the unpinned
+null / `''` / `false` cases (the existing number / numeric-string / `'not-a-number'`
+tests stay green) and carries a new test pinning those cells as dropped, not
+counted as `0`. The resizable drag-cleanup and scroll-thumb-clamp fixes each rest
+on a sibling precedent already in the same subsystem (`beginScrollbarDrag`'s
+supersede-guard; the drag path's `maxOffset > 0` clamp), so they align two engines
+rather than inventing a rule. Two findings were verified-then-declined: the
+popover `setOpen`/`close` context fields are dead but read as `PopoverClose`
+scaffolding, and the pivot `aggregateRow`/`aggregateColumn` near-duplication sits
+at a genuine row-vs-column boundary (§1.1) — both recorded, not churned. Types and
+the scoped Vitest suite (254 tests across 11 files, including the new pivot case)
+ran green after the nine fixes.
