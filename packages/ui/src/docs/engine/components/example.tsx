@@ -7,7 +7,7 @@ import { Flex } from '../../../components/flex'
 import { Heading } from '../../../components/heading'
 import { Stack } from '../../../components/stack'
 import { cn } from '../../../core'
-import { deriveCode } from '../derive-code'
+import { deriveCode, type SourceFacts } from '../derive-code'
 import {
 	ExampleResizeHandle,
 	maxDefined,
@@ -40,6 +40,7 @@ export function Example({
 	width: initialWidth,
 	minWidth,
 	resize,
+	__facts: facts,
 	children,
 }: {
 	title?: ReactNode
@@ -63,6 +64,14 @@ export function Example({
 	 * (both auto by default) and toggles `snap` (default off).
 	 */
 	resize?: ResizeProp
+	/**
+	 * Build-time source facts injected by the docs plugin's pre-transform —
+	 * never authored by hand. {@link deriveCode} reads them to render props and
+	 * render-prop children the runtime tree can't express.
+	 *
+	 * @internal
+	 */
+	__facts?: SourceFacts
 	children: ReactNode
 }) {
 	const [open, setOpen] = useState(false)
@@ -75,15 +84,15 @@ export function Example({
 	// the string only while the panel is open, caching the last one so it stays
 	// visible through the close animation (`AnimatePresence` keeps the panel
 	// mounted while it slides shut).
-	const [hasDerivedCode] = useState(() => !code && deriveCode(children) != null)
+	const [hasDerivedCode] = useState(() => !code && deriveCode(children, undefined, facts) != null)
 
 	const derivedRef = useRef<string | null>(null)
 
 	const derived = useMemo(() => {
-		if (!code && open) derivedRef.current = deriveCode(children)
+		if (!code && open) derivedRef.current = deriveCode(children, undefined, facts)
 
 		return derivedRef.current
-	}, [code, open, children])
+	}, [code, open, children, facts])
 
 	const resolvedCode = code ?? derived
 

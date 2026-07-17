@@ -6,6 +6,7 @@ import type { Plugin } from 'vite'
 import { type ApiExtractor, createApiExtractor } from '../api-reference'
 import { type DemoMeta, META_KEYS } from '../demo-meta'
 import { collectHelpers } from './collect-helpers'
+import { injectSourceFacts } from './source-facts'
 import { virtualJsonModules } from './virtual-json'
 
 // ---------------------------------------------------------------------------
@@ -412,7 +413,8 @@ function findSrcDir(root: string): string {
  *  - `virtual:demo-metas`: each demo's `{ name? }`
  *  - `virtual:component-modules`: `{ componentName → module }` for snippet imports
  *  - a transform tagging public index barrels with `__module` / `__name`
- *  - an `enforce: 'pre'` transform attaching helper `__code` to demo sources
+ *  - an `enforce: 'pre'` transform attaching helper `__code` and per-Example
+ *    `__facts` (source-facts synthesis) to demo sources
  *
  * Returns two plugin objects. Vite's `enforce` is plugin-wide; the `__code`
  * transform reads a demo's raw TSX before JSX lowering and lives in its own
@@ -524,8 +526,10 @@ export function docsPlugin({
 
 		enforce: 'pre',
 
-		// Attach each demo helper's full source as a `__code` static. Runs at
-		// `enforce: 'pre'` on raw TSX, before JSX lowering.
+		// Attach each demo helper's full source as a `__code` static, and inject
+		// per-Example `__facts` (authored prop sources, referenced declarations,
+		// import origins) for the walker's source-aware synthesis. Runs at
+		// `enforce: 'pre'` on raw TSX, before JSX lowering, over one shared parse.
 		transform(code, id) {
 			const cleanId = id.split('?')[0] ?? ''
 
@@ -533,15 +537,21 @@ export function docsPlugin({
 
 			if (!cleanId.endsWith('.tsx')) return
 
-			const helpers = collectHelpers(code)
+			const sf = ts.createSourceFile(cleanId, code, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX)
 
-			if (helpers.length === 0) return
+			const helpers = collectHelpers(code, sf)
+
+			const withFacts = injectSourceFacts(code, { filePath: cleanId, srcDir }, sf)
+
+			if (helpers.length === 0 && withFacts === null) return
 
 			const tail = helpers
 				.map(({ name, code }) => `;Object.assign(${name}, { __code: ${JSON.stringify(code)} });`)
 				.join('\n')
 
-			return { code: `${code}\n\n${tail}\n`, map: null }
+			const base = withFacts ?? code
+
+			return { code: tail ? `${base}\n\n${tail}\n` : base, map: null }
 		},
 	}
 

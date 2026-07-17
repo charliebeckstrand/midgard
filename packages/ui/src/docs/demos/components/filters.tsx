@@ -8,7 +8,7 @@ import { Input } from '../../../components/input'
 import { JsonTree } from '../../../components/json-tree'
 import { NumberInput } from '../../../components/number-input'
 import { Select, SelectLabel, SelectOption } from '../../../components/select'
-import { code, Example } from '../../engine'
+import { Example } from '../../engine'
 
 type BasicFilters = {
 	search: string | undefined
@@ -208,17 +208,7 @@ export function Demo() {
 				<DateExample />
 			</Example>
 
-			<Example
-				title="Render props"
-				code={code`<FiltersField name="minPrice">
-  {({ value, onValueChange }) => (
-    <>
-      <Label>Min Price</Label>
-      <NumberInput value={value as number | null} onValueChange={onValueChange} />
-    </>
-  )}
-</FiltersField>`}
-			>
+			<Example title="Render props">
 				<RenderPropsExample />
 			</Example>
 		</>
