@@ -88,7 +88,7 @@ export function TooltipTrigger({ children }: TooltipTriggerProps) {
 
 	return (
 		<div
-			ref={setReference}
+			ref={mergeRefs}
 			data-slot="tooltip-trigger"
 			className={triggerClassName}
 			{...(getReferenceProps() as HTMLAttributes<HTMLDivElement>)}

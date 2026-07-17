@@ -7,8 +7,8 @@ import { createContext } from '../../core'
  * The value shared through {@link TooltipContext}: the floating handles a
  * `<TooltipContent>` needs, plus the display flags (`interactive`, `enabled`)
  * its chrome reads. Built by `useTooltipState` for the DOM-anchored
- * `<Tooltip>` and by `usePointerTooltipState` for the point-anchored
- * `<PointerTooltip>`.
+ * `<Tooltip>` and by `useTooltipPointer` for the point-anchored
+ * `<TooltipPointer>`.
  */
 export type TooltipContextValue = {
 	open: boolean
