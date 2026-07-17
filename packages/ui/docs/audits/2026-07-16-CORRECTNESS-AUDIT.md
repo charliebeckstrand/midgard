@@ -28,7 +28,8 @@ doccomment) · **WATCH** (recorded so the next sweep doesn't relitigate).
 | 6 | menu, nav, number-input, odometer, pagination, password-confirm, password-input, password-strength, pdf-viewer, phone-input | ✅ swept |
 | 7 | pivot-table, placeholder, popover, progress, radio, resizable, scroll-area, search-input, segment, select | ✅ swept |
 | 8 | sheet, shiny-text, sidebar, signature-pad, slider, spacer, sparkline, split, stack, stat | ✅ swept |
-| 9– | remaining 17 components, ten at a time | ◯ pending |
+| 9 | status, stepper, swatch, switch, table, tabs, tag-input, text, textarea, time-ago | ✅ swept |
+| 10 | timeline, toast, toggle-icon-button, toolbar, tooltip, tree, zipcode-input | ◯ pending |
 
 ---
 
@@ -532,6 +533,74 @@ negative scaling, bar flooring) is sound beyond the rows above.
 
 ---
 
+## Batch 9 — status · stepper · swatch · switch · table · tabs · tag-input · text · textarea · time-ago
+
+### Executive summary
+
+Another quiet batch — the two big subsystems (stepper, tabs), the table family,
+and the well-engineered time-ago ticker are all correctness-clean where it
+counts: stepper's state derivation / reciprocal aria / roving, tabs' roving-focus
++ tab↔panel id pairing + observer-cleanup, table's `colSpan` spanning and `scope`
+semantics, and time-ago's timer teardown, cadence adaptation, formatting
+boundaries, and SSR determinism all hand-traced sound and test-pinned. Two real
+(both low-severity) bugs surfaced. The tag-input Backspace-removes-last-tag branch
+omitted the IME `isComposing` guard its sibling Enter/comma branch carries, so an
+IME user editing candidate text could silently delete a committed tag. And tabs
+tracked "an all-mounted TabContents is present" as a bare boolean, which a second
+`<TabContents>` unmounting would clear while the first still held panels in the
+DOM — dropping `aria-controls` from inactive tabs; fixed with a ref-count. The
+rest are concision and doc accuracy: a `manageTabIndex` left on for display-only
+steppers (spinning a focusin listener + MutationObserver for nothing), three
+inconsistent ways to clear the tag draft, a redundant `cursor-pointer`, a dead
+`aria-selected` coalesce, and two doccomments (a tab-list "exactly one tabbable"
+overstatement and a `Text` `size` axis the doc omitted).
+
+### Findings
+
+| # | Verb | Surface | Site | Issue | Fix | Status |
+|---|---|---|---|---|---|---|
+| 1 | FIX (low-med) | useTagInputKeyboard | use-tag-input-keyboard.ts:52 | The Backspace-removes-trailing-tag branch had no IME `isComposing` guard, unlike the Enter/comma commit branch one line above. An IME user backspacing to edit in-progress candidate text (committed `inputValue` still `''`) silently deleted the last tag. | Add `&& !event.nativeEvent.isComposing`, matching the commit branch; extend the `@remarks`. Test-safe (the key-event helper sets `isComposing: false`). | ◯ OPEN |
+| 2 | FIX (low) | Tabs (panelsMounted) | tabs.tsx:58 | `panelsMounted` was a bare boolean toggled by every `TabContents`; with two `<TabContents mount="always">` under one `<Tabs>`, one unmounting ran `setPanelsMounted(false)` while the other still held panels in the DOM — inactive tabs then lost `aria-controls` though their panels remained. Untested (all tests render a single `TabContents`). | Ref-count the registrants (`+1` on register, `-1` on cleanup); derive `panelsMounted = count > 0`. Single-`TabContents` behavior unchanged. | ◯ OPEN |
+| 3 | OPTIMIZE (low) | Stepper | stepper.tsx:89 | `useA11yRoving` was called with `manageTabIndex: true` even for a display-only stepper (no `onValueChange`), so its tab-stop effect attached a `focusin` listener and a `childList`/`subtree`/`attributes` MutationObserver that only ever no-op'd (steps render as `<div>`, never matching the `button` item selector). | Gate `manageTabIndex: onValueChange !== undefined`, mirroring the already-gated `onKeyDown`; the effect then returns immediately for display-only steppers. | ◯ OPEN |
+| 4 | SIMPLIFY | TagInput | tag-input.tsx:123,129 | Three ways to clear the draft: a stable `clearInput` callback passed to the keyboard hook, plus two inline `setInputValue('')` in `handleBlur`/`handleSubmit`. | Call `clearInput()` in both (adding it to their stable deps) — one clear path. | ◯ OPEN |
+| 5 | SIMPLIFY | StepperStep | stepper-step.tsx:136 | The button branch did `cn(classes, 'cursor-pointer')`, but `classes` already resolves `cursor-pointer` (the `k.step` base spreads `hannou.cursor`). The literal is a twMerge-deduped no-op. (The sibling `<div>`'s `cn(classes, 'cursor-default')` is *not* redundant — it overrides the inherited pointer — and stays.) | Drop the redundant literal: `className={classes}`. | ◯ OPEN |
+| 6 | SIMPLIFY | Tab | tab.tsx:175 | `aria-selected={current ?? false}` — `current` is typed and computed as `boolean` (never null/undefined), so the `?? false` is dead. | `aria-selected={current}`. | ◯ OPEN |
+| 7 | DOC | TabList | tab-list.tsx:20 | The doccomment said the MutationObserver "keeps exactly one tab tabbable", but it only guarantees *at least one* (it acts only when none is tabbable and never demotes extras — two `current` tabs legitimately yield two). The single Tab stop actually comes from each `<Tab>`'s roving `tabIndex`. | Reword to "at least one … as a floor" and attribute the single stop to `Tab`'s roving `tabIndex`. | ◯ OPEN |
+| 8 | DOC | Text | text.tsx:6,18 | Both doccomments named only the `severity`/`color` recipe axes, but `size` is a public `TextVariants` member, destructured/forwarded, and test-pinned (§3.5). | Add `size` to both doc strings. (COMPONENTS.md is a name-level index — no surface change.) | ◯ OPEN |
+
+### Minor / watch-list
+
+| Surface | Site | Note | Verb | Status |
+|---|---|---|---|---|
+| Table (recipe) | recipes/kata/table.ts:86 | `head: [text.muted, border.subtleColor]` puts a border *colour* on `<thead>` with no border *width*, so the header rule renders nothing (and the `text.muted` duplicates the `<th>` cells' own). Whether a header separator was intended (add a width — a visible rule appears, a design change) or the token is dead (drop it) is a design call. | FIX | ◯ OPEN |
+| Table | table.tsx:85 | The `overflow-x-auto` scroll wrapper isn't keyboard-focusable and has no accessible name, so a keyboard-only user can't scroll an overflowing table (WCAG 2.1.1). Modern Chromium auto-focuses overflow scrollers, but not universally. | WATCH | ◯ OPEN |
+| TableLoading | table-loading.tsx:19 | The loading body has no `aria-busy`/`role="status"` and its skeletons are `aria-hidden`, so AT perceives a table of empty cells with no "loading" signal. A consumer may own the live region. | WATCH | ◯ OPEN |
+| Stepper | stepper-indicator.tsx:42 | `data-display-state={state}` duplicates the parent step's `data-state` (which the recipe actually styles through) and has zero consumers — dead, or an undocumented styling hook. Recorded pending intent. | SIMPLIFY | ◯ OPEN |
+| TagInput | tag-input.tsx:178 | Paste-with-separators isn't implemented — only a live comma *keystroke* splits, so pasting `a,b,c` then Enter commits one tag. The TSDoc promises only Enter/comma, so it's a feature gap, not a broken contract. | WATCH | ◯ OPEN |
+| TabContent | tab-contents.tsx:71 | `useTabPanelTabIndex(ref)` is called unconditionally but applied only when `auto`; a value-less or outside-`<Tabs>` `TabContent` still spins up the panel MutationObserver to compute a discarded `tabIndex`. Near-zero cost (fires only on mutation). | OPTIMIZE | ◯ OPEN |
+| useTimeAgoRelativeTime | use-time-ago-relative-time.ts:113 | In `interval="auto"`, the first render (`now === null`) subscribes to the 5s bucket, then re-subscribes to the true cadence once `now` is set — one throwaway timer + bucket churn per mount for any timestamp ≥ ~60s old. Correctness-neutral; the deps-safe fix is fiddly. | OPTIMIZE | ◯ OPEN |
+| TimeAgo | time-ago.tsx:50 | `new Date(date)` on a timezone-less datetime string (`'2026-04-29T11:30:00'`, no `Z`) parses as local time, so `toISOString()` on the `dateTime` attr differs server (UTC) vs client (user tz) — a hydration mismatch. Inherent to JS `Date`; the doc could note inputs should carry an offset. | WATCH | ◯ OPEN |
+
+### Audited clean (no findings)
+
+status-dot and swatch (decorative-by-default, `role="img"`+`aria-label` only when
+`label` set; `swatch` uses `Object.hasOwn` and correct `style` precedence — all
+test-pinned), switch (controlled/uncontrolled/form-bound resolution, `role="switch"`
++ `aria-checked` winning over the spread, the uncontrolled-reset effect's
+listener + rAF cleanup), textarea (value-prop controlled coercion, Control/Form
+cascade; auto-resize is pure CSS `field-sizing-content`, no JS to leak), text (the
+polymorphic static leaf), and time-ago (ticker teardown — one shared interval per
+cadence, paused on `document.hidden`; adaptive cadence; formatting boundaries
+hand-traced; deterministic SSR with no live-clock read in render; `<time datetime>`
+UTC-stable; correctly no `aria-live`). Stepper's state derivation, panel
+visibility, reciprocal `aria-controls`/`aria-labelledby`, and roving; tabs'
+roving/manual-activation, tab↔panel id pairing, `aria-controls` mount gating, the
+scroll hook (no observer/listener leak), and the panel-tabindex hook; and table's
+`colSpan` spanning, `scope` semantics, and projection/spread-order policy were all
+traced sound beyond the rows above.
+
+---
+
 ## Reliability appendix
 
 Every row was traced to its definition and its consumption in source, then
@@ -666,3 +735,17 @@ a new test pins the `Infinity`-drop, and the "leaves a gap" wording was correcte
 to "bridges the dropped sample" (the path re-joins with `L`, it doesn't break).
 The Flex-vs-Stack identity tension the reword exposes is recorded for a maintainer
 call, not resolved here.
+
+Batch 9 ran as five parallel per-unit agents, every candidate re-verified against
+source and tests. Both real bugs came from a *sibling asymmetry* — the tag-input
+Backspace branch missing the `isComposing` guard the commit branch beside it
+carries, and the tabs boolean where a ref-count was needed — so each fix simply
+brings the outlier into line with its own established pattern. The tabs ref-count
+and the tag-input guard are both test-safe by construction (single-`TabContents`
+behavior is unchanged; the key-event helper sets `isComposing: false`), so the
+existing suites stayed green without new tests. The table `<thead>` border-colour
+finding was verified-then-recorded rather than fixed: the colour is inert (no
+width), so the current shipped look is "no header rule" — adding a width to render
+the intended rule is a visible design change, and dropping the token cements the
+current look, so which way to resolve it is a maintainer call. Types and the
+scoped Vitest suite (1271 tests across 75 files) ran green after the eight fixes.
