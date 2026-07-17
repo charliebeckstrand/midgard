@@ -25,7 +25,8 @@ doccomment) · **WATCH** (recorded so the next sweep doesn't relitigate).
 | 3 | context-menu, control, copy-button, credit-card-input, currency-input, date-input, date-picker, dialog, divider, dl | ✅ swept |
 | 4 | drawer, fieldset, file-upload, filters, flex, form, group, heading, hold-button, icon | ✅ swept |
 | 5 | input, json-tree, kanban, kbd, link, list, listbox, loading, markdown, mask-input | ✅ swept |
-| 6– | remaining 47 components, ten at a time | ◯ pending |
+| 6 | menu, nav, number-input, odometer, pagination, password-confirm, password-input, password-strength, pdf-viewer, phone-input | ✅ swept |
+| 7– | remaining 37 components, ten at a time | ◯ pending |
 
 ---
 
@@ -303,6 +304,85 @@ refocus) is sound.
 
 ---
 
+## Batch 6 — menu · nav · number-input · odometer · pagination · password-confirm · password-input · password-strength · pdf-viewer · phone-input
+
+### Executive summary
+
+The batch's weight is in its three subsystems — the menu state machine, the
+navigation family, and the 18-file pdf.js viewer — and that is where the nine
+fixes cluster; the leaves (number-input, odometer, phone-input, password-input,
+pagination) are correct and well-tested. The pdf-viewer async load lifecycle is
+genuinely robust (every await boundary cancels its render task, destroys the
+document, and revokes its blob URLs), but three subtler holes surfaced: a
+document swap reused the previous document's per-page rotation for one paint
+because the reset ran in an effect rather than in render (the page-size hook's
+own precedent); a null `canvas.toBlob` was misclassified as teardown and
+stranded `loading` at `true` forever; and the `PdfViewerContext` memo was
+quietly defeated — two plain-arrow callbacks and a fresh `pageSize` literal gave
+it a new identity every render, so its 18-entry dep array and its "identity
+stays stable" comment were both dead. Menu contributed two robustness fixes: a
+static inline menu still wired `onContextMenu` and so silently suppressed the
+native right-click menu, and `MenuItem` spread consumer props *after* its
+structural `role`/`tabIndex`/`type`, letting a caller drop a row out of roving.
+Password-confirm had a real idref bug (a falsy-but-non-null `warning` dangled
+the confirm field's `aria-describedby`), and password-strength shipped a public
+props type referencing an un-exported `StrengthLevel` union. Two cleanups (a
+dedup and a recipe-default/doc alignment) round it out. One real menu bug — a
+static menu running the shared disclosure's Escape layer, so Escape reports a
+false close and can swallow a Dialog's own dismiss — is recorded rather than
+fixed: the clean fix needs a `dismissable` knob on the shared
+`useFloatingDisclosure`, an architectural change to surface first.
+
+### Findings
+
+| # | Verb | Surface | Site | Issue | Fix | Status |
+|---|---|---|---|---|---|---|
+| 1 | FIX (med) | usePdfViewerPageRotation | use-pdf-viewer-page-rotation.ts:32 | Per-page rotations were cleared in a post-paint `useEffect` keyed on the `pages` array identity, so a document swap rendered the new document's page N once with the *previous* document's `rotations[N]` before the effect cleared it — a one-frame stale-rotation flash. The sibling page-size hook resets in render specifically to avoid this class (test-pinned). | Move the reset to render-phase (`if (prev !== key) { prev = key; setRotations({}) }`), mirroring `usePdfViewerPageSize`; drop the now-unused `useEffect`. | ◯ OPEN |
+| 2 | FIX (low) | usePdfViewerDocument | use-pdf-viewer-document.ts:110 | `if (!blob \|\| controller.cancelled) return 'cancelled'` conflated a failed rasterization with teardown: when `canvas.toBlob` yields `null` (oversized/tainted canvas, reachable at the ≤2 device-pixel scale on a large page) the caller ran `releasePdf` and returned without ever reaching `setLoading(false)`, so the viewport showed the loading placeholder forever with no error. | Split the checks: re-test `cancelled` (teardown) then `if (!blob) return 'ok'` — skip the page like the existing missing-2D-context branch and keep loading the rest. | ◯ OPEN |
+| 3 | OPTIMIZE (med) | usePdfViewer (context memo) | use-pdf-viewer.ts:150 · use-pdf-viewer-pagination.ts:45 · use-pdf-viewer-page-size.ts:41,46 | The `PdfViewerContext` memo's "identity stays stable" guarantee was defeated: `goToPage` and `onImageLoad` were plain arrows (new identity every render), and `pageSize` was a fresh `{ width, height }` literal whenever the active page carried explicit dimensions — which also churned the `scale` memo that feeds the context. The 18-entry dep array and the stability comment were both inert. | `useCallback` `goToPage` (`[total, setCurrentPage]`) and `onImageLoad` (`[]`); `useMemo` `pageSize` on the primitive `width`/`height`. The memo now delivers its documented guarantee. | ◯ OPEN |
+| 4 | FIX (low-med) | Menu (static) | menu.tsx:69 · use-menu-state.ts:93 | `onContextMenu` was wired whenever `!isDropdown`, which is also true for a static inline menu (`defaultOpen`, no `placement`). So right-clicking inside a static menu ran `handleContextMenu` → `preventDefault()`, silently killing the browser's native context menu for no benefit (the panel is already open; `setOpen(true)` is a no-op). | Compute `isContextMenu = !isDropdown && !isStatic` in `useMenuState` and gate the handler on it. | ◯ OPEN |
+| 5 | FIX (low) | MenuItem | menu-item.tsx:88,118 | Both the link and button branches spread `{...rest}` *after* `role="menuitem"`, `tabIndex={-1}`, `data-slot`, and `type="button"`, so a consumer passing any of those wins — overriding `role` drops the item out of the `MENUITEM_SELECTOR` roving, `tabIndex`/`type` break the tab model or make it a form-submit. Asymmetric with the component's own `onClick`/`onKeyDown`, deliberately composed after the spread. | Move `role`/`tabIndex`/`data-slot`/`type` after `{...rest}`, matching the handler ordering and `MenuTrigger`. | ◯ OPEN |
+| 6 | FIX (low) | PasswordConfirm | password-confirm.tsx:59 | `warningId` was assigned whenever `warning != null`, but the warning element renders only when `warning` is truthy — so a falsy-but-non-null `warning` (the `cond && 'text'` idiom with `cond` false) during a live mismatch pointed the confirm field's `aria-describedby` at an id no element carried (a WCAG idref violation). | Gate `warningId` on the same truthiness as the render: `warning ? generatedWarningId : undefined`. | ◯ OPEN |
+| 7 | FIX + DOC (low) | password-strength | password-strength.tsx:15 · index.ts · use-password-strength.ts:12 | `StrengthLevel` is referenced by two exported public types (`PasswordStrengthProps.labels`, `PasswordStrengthChange.level`) but was not itself re-exported — the sibling `export type { PasswordRule, PasswordStrengthChange }` omitted it — so a consumer handling `onStrengthChange` couldn't name the `level` union, and declaration emit referenced an un-exported alias. | Add `StrengthLevel` to the component re-export and the barrel; give it a TSDoc (it had none). | ◯ OPEN |
+| 8 | SIMPLIFY | password-confirm | password-confirm-utilities.ts:3 · use-password-confirm-state.ts:6 · context.ts:6 | `type LastEdited` was declared verbatim in two files and `Status` (`'idle' \| 'warning'`) was re-inlined at three sites. | Export both `@internal` from the utilities module (the folder's shared home per §3.5) and import them in the state hook and context. | ◯ OPEN |
+| 9 | DOC | nav (bar recipe) | recipes/kata/nav.ts:82,93,122 | The `bar` recipe declared `defaults: { variant: 'outline' }`, but `NavBar` ships `variant = 'solid'` and always passes it explicitly — the recipe default was unreachable and contradicted the effective ship default (a latent trap if the component default were ever dropped). Both variant doccomments also mislabeled the set as `outline` \| `plain`, omitting the shipped `solid`. | Align the recipe default to `solid`; correct the docs to `solid` \| `outline` \| `plain`. | ◯ OPEN |
+
+### Minor / watch-list
+
+| Surface | Site | Note | Verb | Status |
+|---|---|---|---|---|
+| Menu (static) | use-floating-disclosure.ts:125 · menu-content.tsx:56 | A static menu initializes `open: true`, so `useFloatingDisclosure`'s `useEscapeLayer` is active and registers it in the shared dismiss-layer stack — pressing Escape calls `close()` → `onOpenChange(false)` while the panel (gated on `isStatic`, not `open`) stays visible, contradicting MenuContent's "static renders inline" doc, and a static menu inside a Dialog swallows the first Escape meant for the Dialog. The clean fix needs a `dismissable: false` knob on the shared disclosure hook (used by dialog/listbox/menu) — architectural, to surface before applying. | FIX | ◯ OPEN |
+| MenuContent | menu-content.tsx:60,85 | `aria-label`/`aria-labelledby` are forwarded to `PopoverPanel` only in the static branch; the dropdown/context-menu branch drops them. A right-click context menu has no trigger to name it and equally can't be named. | WATCH | ◯ OPEN |
+| Menu | context.ts:66 | `useMenuContext` is exported with full TSDoc but has no production consumer (the barrel exports only `useMenuActions`; grep finds only its own test). Possibly dead, possibly deliberate advanced-composition surface — flagged tentatively, not treated as dead. | WATCH | ◯ OPEN |
+| Nav | nav-bar.tsx:15 · nav.tsx:21 | `NavBar` renders `<nav aria-label="Main">` and the value-binding `Nav` composition nests a second, unnamed `<nav>` inside it — two same-type landmarks, the inner unlabeled (discouraged by APG). The axe case and the demo's context tab both sidestep the nested path. Fix (emit a fragment from `Nav` inside a `NavBar`, or document `NavContext` for in-bar selection) is a design call. | WATCH | ◯ OPEN |
+| NavBar | nav-bar.tsx:22 | Opens an `ActiveIndicatorScope`, but the sole `ActiveIndicator` (`NavItem`, an `<li>`) always lives inside a `NavList`, which opens its own nearer scope — so `NavBar`'s scope resolves nothing in any valid composition (Pagination is the clean contrast: only its list opens a scope). Left as-is: the component doc explicitly claims it "establishes an active-indicator scope," so removing it is a doc-contradicting behavior change, not a pure cleanup. | WATCH | ◯ OPEN |
+| Nav | nav.test.tsx:186 · sidebar.test.tsx:378 | Test descriptions cite a `createNavItem` factory that doesn't exist (grep: only these two stale strings); `NavItem` renders the icon directly. Stale wording from a pre-`useNavItem` refactor. | DOC | ◯ OPEN |
+| PdfViewer (viewport) | pdf-viewer-viewport.tsx:50 · use-pdf-viewer-document.ts:189 | `loading` is document-level and flips false only after the whole render loop, yet pages `setPages` as they rasterize — so the main viewport shows the placeholder until the last page finishes even though the thumbnail rail streams pages in. Progressive infra exists but the main view is all-or-nothing; confirm intent for large PDFs. | WATCH | ◯ OPEN |
+| usePdfViewerViewportSize | use-pdf-viewer-viewport-size.ts:36 | `measure` unconditionally `setSize({ width, height })` with a fresh literal, so an unchanged content box still re-renders (and recomputes scale/context). An `Object.is` guard on width/height would drop the redundant updates. | OPTIMIZE | ◯ OPEN |
+| PdfViewer | pdf-viewer-toolbar.tsx:111 · pdf-viewer-viewport.tsx:46 | The toolbar's static page count and the viewport's `aria-live` "Page X of Y" announcer share `data-slot="pdf-viewer-page-status"`; `bySlot` returns the first, so tests pass, but the slot is ambiguous as a query/style anchor. | WATCH | ◯ OPEN |
+| PdfViewer (mobile) | pdf-viewer-toolbar.tsx:71 | The mobile thumbnail toggle carries `aria-expanded` and a fixed "Show thumbnails" label but only ever opens (`setThumbsOpen(true)`; the Sheet owns close) — the expanded+"Show"+no-collapse combination is mildly inconsistent for AT. Desktop a11y case doesn't exercise it. | WATCH | ◯ OPEN |
+| NumberInput | number-input.tsx:119 | The native `type="number"` has no `onWheel` guard, so a focused field increments/decrements on mouse-wheel scroll (the classic scroll-past-a-form footgun). Unoverridden native behavior; a `blur()`-on-wheel guard has its own downsides (interrupts wheel+keyboard users), so it's a genuine tradeoff, not an obvious fix. | WATCH | ◯ OPEN |
+| NumberInput | number-input.tsx:77 | From an empty field both Increase and Decrease seed to `clamp(0, min, max)` — decrease-from-empty lands on 0/min rather than `-step`. Deliberate and test-pinned for Increase (`'seeds the value to 0'`). | WATCH | ◯ OPEN |
+| Odometer | odometer.tsx:55 | `aria-label={format(value)}` recomputes every animation frame during a tween though `value` is constant across it; `format` defaults to a cached `Intl.NumberFormat`, so the cost is negligible. | OPTIMIZE | ◯ OPEN |
+| usePasswordStrength | use-password-strength.ts:108 | The effect dep array lists `passedCount`, which is exactly `passedIds.length` and only changes when `passedIds` identity changes — strictly redundant, harmless, arguably self-documenting. | WATCH | ◯ OPEN |
+
+### Audited clean (no findings)
+
+number-input (precision-derivation, clamp-after-round ordering, per-step
+rounding, empty/NaN, controlled/uncontrolled/Form cascade, spinbutton a11y),
+odometer (+ its rAF animated-value hook — mid-animation cancel, unmount cleanup,
+reduced-motion snap, no hydration mismatch), phone-input (the NANP/international
+formatters, the caret engine through `useMaskInput`/`useFormattedInput`, Form
+binding), password-input (APG show/hide toggle, disabled mirroring, re-mask on
+disable), and pagination (a consumer-driven compound family — no range algorithm
+to get wrong; list/landmark semantics, `aria-current`, tap-feedback, skeleton
+all correct). Menu's trigger activation-key handling, three-mode focus model,
+roving, and outside-press dismissal; nav's `useNavItem` selection/scroll wiring;
+and pdf-viewer's load lifecycle, ResizeObserver cleanup, zoom/scale/rotation
+math, and print/download utilities were all traced sound beyond the rows above.
+
+---
+
 ## Reliability appendix
 
 Every row was traced to its definition and its consumption in source, then
@@ -359,3 +439,23 @@ full-URL whitespace strip — was deferred rather than applied because the obvio
 scheme-bounded rewrite drops the leading-whitespace defense and readmits
 `" javascript:"`; the naive optimization is a security regression, so it is
 recorded as an OPEN optimize row instead.
+
+Batch 6 was the widest sweep — three real subsystems (menu, nav, the 18-file
+pdf.js viewer) plus five leaves — run as five parallel per-unit audit agents,
+every candidate then re-verified against source and tests before landing. Two
+verifications reshaped the plan. The pdf-viewer context-memo finding was
+confirmed by reading all three churn sources (the two plain-arrow callbacks and
+the `pageSize` literal); its fix honors the documented "stable identity" intent
+rather than deleting the memo, because the codebase clearly means the context to
+be stable — nothing downstream is memoized yet, but the design says it should
+be. The rotation-flash fix copies the page-size hook's own render-phase reset
+verbatim, so it rests on an already-test-pinned precedent. The menu static-Escape
+bug is the batch's deliberate non-fix: it is real (a static menu inside a Dialog
+swallows the Dialog's Escape), but the clean fix is a `dismissable` knob on the
+shared `useFloatingDisclosure` — used by dialog, listbox, and menu — so per
+§3.1 it is surfaced as a FIX-verb watch row rather than applied under a single
+batch. The nav `ActiveIndicatorScope` removal was likewise declined: the scope
+is dead in every shipped composition, but the component doc explicitly claims
+it, so dropping it is a doc-contradicting behavior change, not a cleanup. Types
+and the scoped Vitest suite (1210 tests across 71 files, including all menu,
+pdf-viewer, and password-confirm suites) ran green after the nine fixes.
