@@ -43,7 +43,8 @@ export function resolveAxis<T>(
 
 /**
  * Buckets each row's numeric `valueKey` into a `row → column → values` map,
- * skipping non-finite values.
+ * skipping any cell that isn't a finite number or a numeric string (`null`,
+ * `''`, and other non-numeric values are dropped, not counted as `0`).
  */
 export function groupValues<T>(
 	rows: readonly T[],
@@ -59,17 +60,33 @@ export function groupValues<T>(
 
 		const raw = entry[valueKey]
 
-		const value = typeof raw === 'number' ? raw : Number(raw)
+		// Only real numbers and non-empty numeric strings count. `Number()` maps
+		// null / '' / false / [] to a finite 0, so coercing unconditionally would
+		// bucket a nullable value cell as a real 0 and corrupt count / avg / min.
+		const value =
+			typeof raw === 'number'
+				? raw
+				: typeof raw === 'string' && raw.trim() !== ''
+					? Number(raw)
+					: Number.NaN
 
 		if (!Number.isFinite(value)) continue
 
-		const row = groups.get(r) ?? new Map<string, number[]>()
+		let row = groups.get(r)
 
-		if (!groups.has(r)) groups.set(r, row)
+		if (!row) {
+			row = new Map<string, number[]>()
 
-		const bucket = row.get(c) ?? []
+			groups.set(r, row)
+		}
 
-		if (!row.has(c)) row.set(c, bucket)
+		let bucket = row.get(c)
+
+		if (!bucket) {
+			bucket = []
+
+			row.set(c, bucket)
+		}
 
 		bucket.push(value)
 	}
