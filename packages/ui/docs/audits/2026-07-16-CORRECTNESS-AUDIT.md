@@ -510,6 +510,7 @@ type locked.
 | useSignaturePadState | use-signature-pad-state.ts:136 | `commit`/`clear` (and the `useImperativeHandle`) never stabilize because `setTouched` is a fresh arrow from `useFormValue` each render — ineffective local memoization. The real fix is upstream in `useFormValue` (a screened-out house pattern), so no correctness impact and nothing actionable in the pad. | WATCH | ◯ OPEN |
 | Sheet | sheet.tsx:76 · recipes/kata/sheet.ts:58 | Two shared-with-Drawer items: the panel `onClick` `@remarks` misattributes the mechanism (the backdrop is a sibling, so a panel click never reaches it regardless — the handler really swallows the portal synthetic-click to consumer ancestors), and the recipe's `close` slot classes are never consumed (`SheetClose` is a behavior-only `PanelClose` alias). Both are byte-identical in Drawer, so fixing one diverges the pair — recorded for a shared-panel decision. | DOC | ◯ OPEN |
 | Split | split.tsx:52 | `const resolvedGap = gap ?? 'lg'` is indirection its `orientation`/`ratio` siblings avoid with a destructure default; since `SplitGap` excludes null, `gap = 'lg'` in the destructure is equivalent. Possibly deliberate signalling (the test comment emphasises in-component resolution). | WATCH | ◯ OPEN |
+| Stack / Flex | stack.tsx:6 · flex.tsx:46 | Finding 10 reworded Stack's doc to "`direction` defaulting to `col` (overridable)", but Flex's own doc still says "Use Flex for rows, Stack for columns" — the codebase now asserts both. Whether Stack is strict-column (type-lock + migrate the eight row-usages) or a col-defaulted Flex is a deliberate identity call for the maintainer; recorded so the Flex doc, the Stack type, and the row-usages can be reconciled together. | WATCH | ◯ OPEN |
 
 ### Audited clean (no findings)
 
@@ -654,4 +655,14 @@ the sheet panel-`onClick` comment and unused `close` recipe slot are byte-identi
 in Drawer (fixing one diverges the pair), and the signature-pad ineffective-memo
 traces to the upstream `useFormValue` house pattern. Types and the scoped Vitest
 suite (319 tests across 16 files, including the two new sparkline cases) ran green
-after the nine fixes.
+after the nine fixes. The four-angle simplify pass then found the batch reuse-,
+efficiency-, and altitude-clean, and three of the four agents independently
+converged on one refinement of the sparkline fix: the line/area filtered the
+projected `point.y` while the bars filtered the raw `value`, which agreed for
+`NaN` but diverged for `±Infinity` (`norm` clamps it to a finite `y`, so the line
+drew a spurious edge-pinned vertex the bars dropped). Unified by guarding `yAt` to
+return `NaN` for any non-finite input, so all three marks key off one predicate;
+a new test pins the `Infinity`-drop, and the "leaves a gap" wording was corrected
+to "bridges the dropped sample" (the path re-joins with `L`, it doesn't break).
+The Flex-vs-Stack identity tension the reword exposes is recorded for a maintainer
+call, not resolved here.

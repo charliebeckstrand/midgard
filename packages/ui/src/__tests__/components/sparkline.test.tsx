@@ -169,6 +169,16 @@ describe('sparklineGeometry', () => {
 		expect(geo.bars).toHaveLength(2)
 	})
 
+	it('drops ±Infinity from the drawn marks instead of pinning a vertex to an edge', () => {
+		const geo = sparklineGeometry([1, Number.POSITIVE_INFINITY, 3], { ...box })
+
+		// Infinity is outside the finite domain; it must not clamp to the top and
+		// draw a spurious vertex — the line bridges across it, exactly like a NaN.
+		expect(geo.line).toBe('M 2 38 L 98 2')
+
+		expect(geo.bars).toHaveLength(2)
+	})
+
 	it('closes a single-point area as a full-width band, not a centre triangle', () => {
 		const geo = sparklineGeometry([7], { ...box })
 

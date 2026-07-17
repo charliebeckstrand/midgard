@@ -56,11 +56,12 @@ function clamp(value: number, low: number, high: number): number {
  * Projects `data` onto an SVG coordinate box, returning the line, area, and bar
  * marks a {@link Sparkline} draws.
  *
- * @remarks Non-finite entries are ignored both when deriving the domain and when
- * drawing the marks, so a stray `NaN` leaves a gap rather than collapsing the
- * whole series into an invalid path; a flat series (or one point) maps to the
- * vertical middle rather than dividing by a zero span. A single point draws as a
- * horizontal line across the box so it stays visible.
+ * @remarks Non-finite entries (`NaN`, `±Infinity`) are ignored both when deriving
+ * the domain and when drawing the marks: the line bridges across a dropped sample
+ * and its bar is omitted, rather than emitting an invalid path or a vertex clamped
+ * to an edge. A flat series (or one point) maps to the vertical middle rather than
+ * dividing by a zero span; a single point draws as a horizontal line across the
+ * box so it stays visible.
  * @internal
  */
 export function sparklineGeometry(
@@ -102,14 +103,19 @@ export function sparklineGeometry(
 			? padding + innerWidth / 2
 			: padding + (index / (data.length - 1)) * innerWidth
 
-	const yAt = (value: number) => padding + (1 - norm(value)) * innerHeight
+	// Non-finite input (NaN, ±Infinity) has no position on the scale — map it to
+	// NaN so it drops out of the drawn marks below, rather than emitting an invalid
+	// path token or (for ±Infinity, which `norm` would clamp) a vertex pinned to an
+	// edge.
+	const yAt = (value: number) =>
+		Number.isFinite(value) ? padding + (1 - norm(value)) * innerHeight : Number.NaN
 
 	const points = data.map((value, index) => ({ x: xAt(index), y: yAt(value) }))
 
 	// Draw only the finite marks. `points` stays index-aligned for callers, but a
-	// stray NaN mapped straight into the path emits an invalid token (`L 50 NaN`)
-	// that aborts the whole line/area in the browser — so the drawn marks skip it,
-	// leaving a gap rather than collapsing the series.
+	// non-finite datum is excluded here — matching the `bars` filter below — so the
+	// line/area can't emit an invalid `L x NaN` token or a spurious clamped vertex;
+	// the path bridges across the dropped sample.
 	const drawn = points.filter((point) => Number.isFinite(point.y))
 
 	// One point can't form a segment; draw a flat line across the box so it reads.
