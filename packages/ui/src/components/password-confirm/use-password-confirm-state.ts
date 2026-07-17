@@ -1,9 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { deriveStatus } from './password-confirm-utilities'
-
-type LastEdited = 'password' | 'confirm' | null
+import { deriveStatus, type LastEdited, type Status } from './password-confirm-utilities'
 
 type PasswordConfirmStateOptions = {
 	/**
@@ -18,7 +16,7 @@ type PasswordConfirmStateOptions = {
 type PasswordConfirmStateResult = {
 	password: string
 	confirm: string
-	status: 'idle' | 'warning'
+	status: Status
 	setPassword: (value: string) => void
 	setConfirm: (value: string) => void
 	setLastEdited: (which: LastEdited) => void
@@ -54,7 +52,7 @@ export function usePasswordConfirmState({
 		setLastEdited('confirm')
 	}, [])
 
-	const status: 'idle' | 'warning' = disabled ? 'idle' : deriveStatus(password, confirm, lastEdited)
+	const status: Status = disabled ? 'idle' : deriveStatus(password, confirm, lastEdited)
 
 	const onMatchChangeRef = useRef(onMatchChange)
 

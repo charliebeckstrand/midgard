@@ -1,7 +1,10 @@
 import type { SyntheticEvent } from 'react'
 
-type Status = 'idle' | 'warning'
-type LastEdited = 'password' | 'confirm' | null
+/** Mismatch status for the confirm coordinator: `warning` only once both fields are non-empty and unequal. @internal */
+export type Status = 'idle' | 'warning'
+
+/** Which field the user last edited, gating the still-typing grace period; `null` before either edit. @internal */
+export type LastEdited = 'password' | 'confirm' | null
 
 /**
  * Resolves the mismatch status from the two field values.
