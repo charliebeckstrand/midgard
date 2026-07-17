@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 
 /** Active-page rotation state returned by {@link usePdfViewerPageRotation}. @internal */
 type PageRotationResult = {
@@ -26,16 +26,16 @@ export function usePdfViewerPageRotation(page: number, documentKey?: unknown): P
 	const [rotations, setRotations] = useState<Record<number, number>>({})
 
 	// Per-page rotations belong to one document; clear them when the document
-	// changes.
+	// changes. Reset in render (not an effect) so a document swap's first paint
+	// doesn't briefly reuse the previous document's rotation for the same page
+	// index — matching the page-size reset.
 	const prevDocumentKeyRef = useRef(documentKey)
 
-	useEffect(() => {
-		if (prevDocumentKeyRef.current === documentKey) return
-
+	if (prevDocumentKeyRef.current !== documentKey) {
 		prevDocumentKeyRef.current = documentKey
 
 		setRotations({})
-	}, [documentKey])
+	}
 
 	const rotation = rotations[page] ?? 0
 
