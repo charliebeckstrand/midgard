@@ -27,7 +27,8 @@ doccomment) · **WATCH** (recorded so the next sweep doesn't relitigate).
 | 5 | input, json-tree, kanban, kbd, link, list, listbox, loading, markdown, mask-input | ✅ swept |
 | 6 | menu, nav, number-input, odometer, pagination, password-confirm, password-input, password-strength, pdf-viewer, phone-input | ✅ swept |
 | 7 | pivot-table, placeholder, popover, progress, radio, resizable, scroll-area, search-input, segment, select | ✅ swept |
-| 8– | remaining 27 components, ten at a time | ◯ pending |
+| 8 | sheet, shiny-text, sidebar, signature-pad, slider, spacer, sparkline, split, stack, stat | ✅ swept |
+| 9– | remaining 17 components, ten at a time | ◯ pending |
 
 ---
 
@@ -457,6 +458,79 @@ teardown, and the scroll-area observer lifecycle, are correct.
 
 ---
 
+## Batch 8 — sheet · shiny-text · sidebar · signature-pad · slider · spacer · sparkline · split · stack · stat
+
+### Executive summary
+
+A quieter batch: the two large subsystems (sidebar navigation, the slider +
+two-thumb range) and the canvas-heavy signature-pad are all correctness-clean at
+the interaction level — sidebar's collapse/`aria-current`/roving, the range's
+snap-then-clamp and thumb-crossing re-sort, and signature-pad's pointer/observer
+lifecycle all hand-traced sound and test-pinned. The one bug with visual
+consequence is in the sparkline: a stray non-finite value mapped straight into
+the SVG path (`L 50 NaN`), which browsers abort at, dropping the *entire* line
+and area — directly contradicting the geometry's own "a stray NaN doesn't
+collapse the whole series" doc; the `finite` filter only guarded domain
+derivation, not the marks. Fixed to skip non-finite vertices in the drawn marks
+(leaving a gap), which also let a single-point fill close as a band instead of a
+centre triangle and retired three now-dead defensive branches. Signature-pad gave
+up one real state inconsistency (pointerdown set the drawing flag before the
+2D-context null-check, so a context-less pad could `commit` a value while still
+reporting `empty`). The rest are concision and doc accuracy: a duplicated
+size-default the recipe already supplies, a double `getBoundingClientRect` on a
+range pointerdown, a colour-only `StatDelta` a11y note, and several stale
+comments. Stack's "fixed to `col`" doc was the instructive one — it's not fixed
+(eight demos pass `direction="row"`), so the doc was corrected rather than the
+type locked.
+
+### Findings
+
+| # | Verb | Surface | Site | Issue | Fix | Status |
+|---|---|---|---|---|---|---|
+| 1 | FIX (med) | sparklineGeometry | sparkline-geometry.ts:106,124 | `points`/`bars` mapped over raw `data`, so a non-finite entry produced `yAt(NaN) = NaN` in the path (`M 2 38 L 50 NaN L 98 2`) — browsers abort at the invalid token, dropping the whole line **and** the area under it; a bar got `Math.max(1, NaN) = NaN` and vanished. Contradicts the function's "a stray NaN doesn't collapse the whole series" doc; the `finite` filter guarded only domain derivation. Unpinned (the NaN test asserted only domain separation). | Keep `points` index-aligned for callers, but build the drawn line/area/bars from a finite-filtered subset (`bars` via `flatMap` skipping non-finite) so a NaN leaves a gap. New tests pin the NaN-skip and the single-point band. | ◯ OPEN |
+| 2 | FIX (low) | useSignaturePadDrawing | use-signature-pad-drawing.ts:67 | `handlePointerDown` set `drawingRef`/pointer-capture/`lastPointRef` **before** the `getContext('2d')` null-check, so on a context-less pad it returned with `drawingRef === true` while `empty` stayed `true` (the `setEmpty(false)` sits after the guard). A later `commit` then passed its `drawingRef` gate, `toDataURL`'d the unpainted canvas, and emitted a non-null value while `empty` — placeholder over a "signed" pad, clear button hidden, a `required` rule wrongly passing. | Acquire and null-check the context first, so a context-less pointerdown is a clean no-op (no capture, no drawing flag). Test-compatible (the null-context test asserts only no-throw). | ◯ OPEN |
+| 3 | FIX (low) | sparklineGeometry | sparkline-geometry.ts:118 | The single-point `line` is special-cased to span full width, but the `area` closed on `first.x`/`last.x`, which for one datum are both the point's centre x — so a single-point fill rendered as a triangle apexing at the centre, not a band down to the baseline. | Close the area on the track edges (`width - padding` / `padding`), which the drawn line always spans (single or multi point). New test pins the band. | ◯ OPEN |
+| 4 | SIMPLIFY | sparklineGeometry | sparkline-geometry.ts:116,118,120 | Dead defensive branches, unreachable past the `finite.length === 0` guard where `drawn.length >= 1`: `points.at(-1) ?? null` (never null at runtime), `last?.x ?? width - padding` (fallback never taken), and `data.length === 0 ? 0 : …` (ternary always else). | Retired by the finding-1/3 rewrite: `last = drawn.at(-1) ?? null` keeps the type-required coalescing; the area uses fixed edges; `slot = innerWidth / data.length`. | ◯ OPEN |
+| 5 | SIMPLIFY | StatValue / StatValueSkeleton | stat-value.tsx:19 · stat-value-skeleton.tsx:13 | `k.value({ size: size ?? 'md' })` and `k.skeleton.value({ size: size ?? 'md' })` duplicate the recipes' own `defaults: { size: 'md' }` — `k.value({ size: undefined })` already yields `md` (the engine seeds from defaults then skips `undefined` props). `StatDelta` does it right with bare `k.delta({ trend })`; two independent `md` defaults can drift. | Reduce both to `k.value({ size })`. | ◯ OPEN |
+| 6 | OPTIMIZE | useRangePointer | use-range-pointer.ts:107,153 | A non-stacked pointerdown computed `valueFromPointer(clientX)` for `raw`, then `closestThumb(clientX)` recomputed it internally — two `getBoundingClientRect()` (forced layout) per drag-start. | `closestThumb(raw)` takes the already-computed value; drops the second rect read and the `valueFromPointer` dep. | ◯ OPEN |
+| 7 | DOC | StatDelta | stat-delta.tsx:10 | `trend` maps only to colour (up→green, down→red, neutral→muted); direction is otherwise carried by whatever glyph/sign the consumer supplies, so a colour-only delta fails WCAG 1.4.1. The leaf can't guarantee a non-colour cue. | Add a TSDoc `@remarks` telling consumers to pair the tint with a textual sign/arrow in `children`. | ◯ OPEN |
+| 8 | DOC | useSignaturePadDrawing / SignaturePad | use-signature-pad-drawing.ts:36 · signature-pad.tsx:135 | Two stale comments: the `@remarks` said the state hook's effect skips its own "emission" (it skips a *repaint*, never emits), and the canvas comment said "State (empty/disabled) rides the name" (only `empty` rides `aria-label`; disabled is via `aria-disabled`). | Correct both. | ◯ OPEN |
+| 9 | DOC | useRangeUpdate / slider kata | use-range-update.ts:6 · recipes/kiso/slider/color.ts:5 | `useRangeUpdate` carried no TSDoc while its two sibling hooks have full blocks; and the kiso colour doccomment named `<SliderRange />`, but the exported component is `RangeSlider`. | Add a one-line TSDoc for the snap→clamp→sort setter; correct the component name. | ◯ OPEN |
+| 10 | DOC | Stack | stack.tsx:3 | The type and component docs said `direction` is "fixed to `col`", but it isn't — `direction="col"` is spread-overridable and eight demos pass `direction="row"` to lay Stack out horizontally. Locking the type would break those, so the doc over-claimed. | Reword to "defaulting to `col`" (a caller may still pass `direction="row"`). | ◯ OPEN |
+
+### Minor / watch-list
+
+| Surface | Site | Note | Verb | Status |
+|---|---|---|---|---|
+| SidebarItem | sidebar-item.tsx:115 | The non-mini item wraps its content in a `TouchTarget` inside a `Button` that already wraps its own — two overlapping invisible spans per item. Harmless (both bubble to the same host), and not simply removable: in mini mode the inner renders through `ButtonHeadless`, which drops the `TouchTarget`, so the item-level one is the hit-target floor there. A clean fix gates the wrapper on the mini/headless branch. | WATCH | ◯ OPEN |
+| Sidebar (recipe) | recipes/kata/sidebar.ts:132 | `k.section.label` (a `{sm,md,lg}` inset map) has no consumer — `SidebarSection` uses only `section.base`, and the docs engine reimplements the stops locally. Its comment frames it as scaffolding for a composed section label; recorded pending that intent (like the popover `close` / nav-scope calls). | SIMPLIFY | ◯ OPEN |
+| useRangeKeyboard | use-range-keyboard.ts:94 | `clamp(snapToStep(raw, min, step), min, max)` duplicates `useRangeUpdate`'s resolution, recomputed to decide focus before the async `setRange`. A shared `resolve(raw)` would dedup, but the keyboard path genuinely needs the value pre-commit, so it's partly inherent; low value, cross-hook. | SIMPLIFY | ◯ OPEN |
+| RangeSlider | range-slider.tsx:140 | Hand-built LTR-horizontal only (`left:${pct}%`, `clientX - rect.left`, no `dir`/orientation axis); the native single Slider's fill gradient is also authored `to_right`. No RTL/vertical test and neither is a stated feature — confirm the non-goal. | WATCH | ◯ OPEN |
+| useSignaturePadCanvasSizing | use-signature-pad-canvas-sizing.ts:58 | No `devicePixelRatio`-change listener — the canvas rescales only on container-size changes (`ResizeObserver`), so dragging the window to a different-DPR monitor softens existing strokes until the next resize. Would need a `matchMedia((resolution))` subscription. | WATCH | ◯ OPEN |
+| useSignaturePadState | use-signature-pad-state.ts:136 | `commit`/`clear` (and the `useImperativeHandle`) never stabilize because `setTouched` is a fresh arrow from `useFormValue` each render — ineffective local memoization. The real fix is upstream in `useFormValue` (a screened-out house pattern), so no correctness impact and nothing actionable in the pad. | WATCH | ◯ OPEN |
+| Sheet | sheet.tsx:76 · recipes/kata/sheet.ts:58 | Two shared-with-Drawer items: the panel `onClick` `@remarks` misattributes the mechanism (the backdrop is a sibling, so a panel click never reaches it regardless — the handler really swallows the portal synthetic-click to consumer ancestors), and the recipe's `close` slot classes are never consumed (`SheetClose` is a behavior-only `PanelClose` alias). Both are byte-identical in Drawer, so fixing one diverges the pair — recorded for a shared-panel decision. | DOC | ◯ OPEN |
+| Split | split.tsx:52 | `const resolvedGap = gap ?? 'lg'` is indirection its `orientation`/`ratio` siblings avoid with a destructure default; since `SplitGap` excludes null, `gap = 'lg'` in the destructure is equivalent. Possibly deliberate signalling (the test comment emphasises in-component resolution). | WATCH | ◯ OPEN |
+
+### Audited clean (no findings)
+
+spacer and shiny-text (reduced-motion parks the sweep before `animate`, effect
+cleanup stops the animation and nulls the ref — pinned), sheet (mirrors the
+already-audited Dialog/Overlay: controlled/uncontrolled, modal `aria-modal`,
+Title-registration label precedence, scroll-lock gating, focus trap/restore),
+sidebar (collapse `data-mini`/`resolvedMini` seam, `aria-current`, landmark/list
+semantics, the affix-as-sibling design keeping actions out of the button, roving
+single-tab-stop — all axe/test-pinned), signature-pad (ResizeObserver and pointer
+lifecycle with no leak, DPR/scale math, redraw-on-resize preserving strokes,
+value-sync `lastEmittedRef` coordination, controlled/uncontrolled + Form
+binding), slider + range (snap-then-clamp order, two-thumb crossing/re-sort, ARIA
+neighbour bounds, pointer nearest-thumb + stacked-deferral — all hand-traced and
+test-pinned), split (its `variants.ts` boundary is consistent, not bypassed — the
+`Ma` import is enforced single-site), and stat (skeleton typing, delta trend→colour
+mapping). The sparkline geometry core (spread, y-inversion, flat/single-point,
+negative scaling, bar flooring) is sound beyond the rows above.
+
+---
+
 ## Reliability appendix
 
 Every row was traced to its definition and its consumption in source, then
@@ -565,3 +639,19 @@ refinement: the `groupValues` numeric-parse ternary became a named file-local
 The reuse angle surfaced that this guard is now triplicated across pivot / map /
 chart — recorded as an OPEN reuse row, since deduping it into `utilities` reaches
 two out-of-batch modules.
+
+Batch 8 ran as five parallel per-unit agents, every candidate re-verified. The
+sparkline fix was shaped by the test: it accesses `points[2]` for `[1, NaN, 3]`,
+so `points` had to stay index-aligned (one entry per datum, NaN included) while
+only the *drawn* line/area/bars filter out non-finite — the fix carries two new
+tests (NaN-vertex skipped, single-point band). The Stack finding was the
+instructive reversal: the reflex fix (`Omit<FlexProps, 'direction'>`) type-checked
+green in the component but broke the docs-project build — eight demos pass
+`direction="row"` to Stack, so the "fixed to `col`" claim was the inaccuracy, not
+the type; the doc was corrected and the type left overridable. Two findings were
+recorded rather than churned for the same shared-surface reason as prior batches:
+the sheet panel-`onClick` comment and unused `close` recipe slot are byte-identical
+in Drawer (fixing one diverges the pair), and the signature-pad ineffective-memo
+traces to the upstream `useFormValue` house pattern. Types and the scoped Vitest
+suite (319 tests across 16 files, including the two new sparkline cases) ran green
+after the nine fixes.
