@@ -458,4 +458,12 @@ batch. The nav `ActiveIndicatorScope` removal was likewise declined: the scope
 is dead in every shipped composition, but the component doc explicitly claims
 it, so dropping it is a doc-contradicting behavior change, not a cleanup. Types
 and the scoped Vitest suite (1210 tests across 71 files, including all menu,
-pdf-viewer, and password-confirm suites) ran green after the nine fixes.
+pdf-viewer, and password-confirm suites) ran green after the nine fixes. The
+four-angle simplify pass then confirmed the batch clean on reuse, altitude, and
+efficiency — the render-phase reset is a deliberate inline idiom across 3+
+divergent sites so a shared `useResetOnChange` was declined, and the context
+memo now holds fully stable (`pageSize` was its linchpin) — and landed one
+refinement: `pageSize` memoizes only the caller dimensions and falls back with
+`??`, so a caller-dimensioned page keeps one identity across the natural-size
+measurement its image load triggers, rather than minting an identical object
+once post-load.

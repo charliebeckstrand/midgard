@@ -40,14 +40,18 @@ export function usePdfViewerPageSize(
 
 	// Stable identity on the primitive dimensions: `pageSize` flows through the
 	// page scale into the PdfViewerContext memo, so a fresh literal every render
-	// would defeat it. A caller page with explicit width/height no longer churns.
-	const pageSize = useMemo<Size | null>(
+	// would defeat it. Memoize only the caller size and fall back with `??`, so a
+	// caller-dimensioned page keeps one identity even across the natural-size
+	// measurement its `<img>` load triggers.
+	const callerSize = useMemo<Size | null>(
 		() =>
 			activePage?.width && activePage.height
 				? { width: activePage.width, height: activePage.height }
-				: naturalSize,
-		[activePage?.width, activePage?.height, naturalSize],
+				: null,
+		[activePage?.width, activePage?.height],
 	)
+
+	const pageSize = callerSize ?? naturalSize
 
 	const onImageLoad = useCallback((event: SyntheticEvent<HTMLImageElement>) => {
 		const img = event.currentTarget
