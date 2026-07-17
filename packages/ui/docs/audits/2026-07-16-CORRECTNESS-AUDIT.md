@@ -21,7 +21,7 @@ doccomment) · **WATCH** (recorded so the next sweep doesn't relitigate).
 | Batch | Components | Status |
 |---|---|---|
 | 1 | accordion, address-input, alert, aspect-ratio, avatar, badge, banner, box, breadcrumb, button | ✅ swept |
-| 2 | calendar, card, checkbox, code, collapse, color, combobox, command-palette, confirm, container | ◯ pending |
+| 2 | calendar, card, checkbox, code, collapse, color, combobox, command-palette, confirm, container | ✅ swept |
 | 3 | context-menu, control, copy-button, credit-card-input, currency-input, date-input, date-picker, dialog, divider, dl | ◯ pending |
 | 4– | remaining 67 components, ten at a time | ◯ pending |
 
@@ -69,6 +69,65 @@ read to verify the claims above and is sound.
 
 ---
 
+## Batch 2 — calendar · card · checkbox · code · collapse · color · combobox · command-palette · confirm · container
+
+### Executive summary
+
+Two real correctness bugs, one per-keystroke re-render hole, and one
+cross-cutting empty-state gap — all clustered where a popover or a virtualized
+list meets focus/highlight state; the leaves (card, checkbox, code, collapse,
+confirm, container) and the large date subsystem are otherwise clean. Calendar
+is exceptionally sound: the day-grid roving under a constant CSS column offset,
+the sub-100-year date math routed through `@internationalized/date`, and the
+render-phase re-anchor all hold up. The bugs: a virtualized command-palette
+resumed keyboard navigation from the prior session's highlight index on reopen;
+the popover color picker's hex/RGB inputs couldn't be focused by click; two
+black colours differing only in saturation compared unequal; and the combobox's
+`setQuery` reintroduced the per-keystroke option re-render its own `queryRef`
+machinery exists to prevent. All four are fixed. The remaining one — shared
+`VirtualOptions` keeping the listbox non-`:empty`, so the "No results" CSS state
+never fires under virtualization (both Combobox and CommandPalette) — is recorded
+for a shared-primitive decision rather than fixed autonomously.
+
+### Findings
+
+| # | Verb | Surface | Site | Issue | Fix | Status |
+|---|---|---|---|---|---|---|
+| 1 | FIX (high) | command-palette | use-command-palette-state.ts:60,108 | `activeIndexRef` is reset nowhere on close, so a virtualized palette reopens at the prior session's index: the close branch clears only the query, the seed effect early-returns on the unchanged empty `deferredQuery`, and the dialog unmounts its options (no DOM `data-active` to read the index back off). The first arrow then lands at `index+1`, not the first item — contra the seed doc. Combobox clears it via `clearVirtualActiveIndexed` on `!open`; the palette had no equivalent. | Reset `activeIndexRef.current = -1` in the render-phase close branch; the dialog's `PresencePortal` unmounts the options, so no DOM clear is needed. | ◯ OPEN |
+| 2 | FIX (high) | ColorPicker (popover) | color-picker-content.tsx:71 · color-hex-input.tsx · color-channel-inputs.tsx | The content wrapper's `onMouseDown={preventDefault}` (which holds focus for the area/slider drag model that self-focuses via `useColorDrag`) suppresses the native mousedown→focus for the hex and RGB(A) text inputs, so they can't be edited by mouse. DatePicker documents and guards the identical hazard per field (`date-picker-relative.tsx:152`, `stopPropagation`); the color inputs lacked it. Inline `ColorPanel` is unaffected (no wrapper). | `onMouseDown` stopPropagation on the hex and channel `<Input>`s (lands on the `<input>` via `…rest`; a no-op inline; mirrors DatePicker). | ◯ OPEN |
+| 3 | FIX (med) | equalHsva | color-utilities.ts:44 | Two colours that render identically as black (`v=0`) but differ in saturation compared unequal, contradicting the doccomment ("render identically"): `hueMoot` collapses hue at `v=0`/`s=0` but the return still required `s` equality, so the `#000000` swatch never showed active once the area was dragged to the bottom at `s>0`. | Add `satMoot` (`v=0`) mirroring `hueMoot`; a new synchronous `equalHsva` case pins it. | ◯ OPEN |
+| 4 | OPTIMIZE (med) | combobox | use-combobox-state.ts:66 | `setQuery`'s `[onQueryChange]` dependency reintroduces exactly the churn the file's `queryRef`/`deferredQueryRef` exist to prevent: an inline `onQueryChange` (a realistic consumer pattern) gives `setQuery` — and through it `close`, `select`, and the combobox context — a new identity every render, re-rendering every `ComboboxOption` on the typing path the deferred query keeps cheap (the memoized option can't bail; its `onSelect` changes). The `open` path avoids this because `useControllable` refs its callback. | Read `onQueryChange` through a ref (the `useControllable` pattern); `setQuery` becomes empty-dep and stable. | ◯ OPEN |
+| 5 | FIX (med, cross-cutting) | VirtualOptions | virtual-options.tsx:170 · combobox-panel.tsx · command-palette.tsx:166 | `VirtualOptions` always renders its `containerRef` wrapper `<div role="presentation">` inside the listbox — needed for scroll measurement even at zero items — so the listbox is never `:empty` and the `peer-empty` "No results" state can't fire under virtualization; a virtualized Combobox/CommandPalette filtered to zero shows a blank panel with no message. Reachable via the `VirtualizedPeople` demo. | Shared decision: signal emptiness from the primitive (or move the empty-state off CSS `:empty`) without dropping `containerRef` (a naive `return null` loses scroll measurement). Both consumers share the pattern. Recorded, not fixed. | ◯ OPEN |
+
+### Minor / watch-list
+
+| Surface | Site | Note | Verb | Status |
+|---|---|---|---|---|
+| combobox | use-combobox-input.ts:51,57 | Dead `selectionStart/End === null` guard + stale "a selectionless input type" comment after the `inputType` removal (#993): the input is always `type="text"`, so the selection is never null. | SIMPLIFY + DOC | ◯ OPEN |
+| combobox | use-combobox-state.ts:134 | `select` re-tests `shouldClose` in two separate `if` blocks; one `if/else` evaluates it once and reads cleaner. | SIMPLIFY | ◯ OPEN |
+| combobox | use-combobox-state.ts:101 | A purely external controlled `open={false}` routes through `setOpen` only, leaving `editing`/`query` unreset — the input shows stale query text until retype. Every in-component close path already reaches `close()`. | WATCH | ◯ OPEN |
+| color | color-utilities.ts:94 | `((G - B) / d) % 6` — the `% 6` is a dead no-op (`(G-B)/d ∈ [-1,1]`; the later `if (h < 0) h += 360` handles the wrap). Mirrors the textbook formula. | SIMPLIFY | ◯ OPEN |
+| color | color-swatches.tsx:20 | `hexToHsva(swatch)` re-parses ~20 preset hexes on every panel render (each drag frame included); a `useMemo` over `swatches` hoists it. Micro. | OPTIMIZE | ◯ OPEN |
+| color | color-eyedropper.tsx:63 | `disabled={disabled}` on the Button is dead: `ColorEyedropper` renders only under `!disabled` (color-panel.tsx:102). | SIMPLIFY | ◯ OPEN |
+| color | color-area.tsx:39,75 · color-slider.tsx:44,75 | Keyboard nudges derive the changed channel from the render snapshot, not the `setHsva` `prev`, so fast key-repeat before a commit can coalesce a step. Drag path (absolute) is immune. | WATCH | ◯ OPEN |
+| calendar | calendar-utilities.ts:114 | `getMonthLabels` uses raw `new Date(2021, i, 1)` — the lone bypass of the file's `CalendarDate` convention (year hardcoded safe, so cosmetic). | SIMPLIFY | ◯ OPEN |
+| calendar | use-calendar-picker.tsx:141 | `dispatch({ type: 'open', year })` duplicates the open effect's dispatch, but seeds the reducer pre-paint in the same click tick (a defensible stale-year guard). | WATCH | ◯ OPEN |
+| command-palette | command-palette.tsx:72 · use-command-palette-state.ts:32 | Docs cite type-ahead reaching windowed items, but the palette never enables roving `typeahead` — arrow-only. | DOC | ◯ OPEN |
+| command-palette | command-palette.tsx:166 | The "No results" `<output>` carries constant text toggled purely by CSS; announcement of a `display` toggle of unchanged text varies by screen reader (verify against a real SR). | WATCH | ◯ OPEN |
+| code | code-block.tsx:65 | The doc calls the cache "LRU" but eviction is FIFO (no recency bump on hit); immaterial for stable snippets. | DOC | ◯ OPEN |
+
+### Audited clean (no findings)
+
+card (frame + five slots), checkbox (root/field/group), code + code-block,
+collapse (root/trigger/panel/context), confirm, container. Calendar's fourteen
+files — day-grid roving under CSS offset, month/year date math, range-edge
+rounding, the picker reducer, and the a11y wiring — were traced and verified
+sound, as were the color drag/state hooks (`useColorDrag` pointer-capture
+lifecycle, `useColorState` reconcile) and the combobox open/close/highlight/
+selection machine and command-palette non-virtual path beyond the rows above.
+
+---
+
 ## Reliability appendix
 
 Every row was traced to its definition and its consumption in source, then
@@ -81,3 +140,14 @@ Findings marked SIMPLIFY change no behavior; the AvatarSkeleton conversion is
 the one row touching a public export, and it preserves the `AvatarSkeletonProps`
 surface (same `size` prop, same default) — its TSDoc and the `COMPONENTS.md`
 row need no change.
+
+Batch 2's two hardest calls were confirmed against the sibling precedents that
+guard the same hazard — combobox's `clearVirtualActiveIndexed` on close (the
+command-palette stale-index bug) and DatePicker's per-field `stopPropagation`
+(the color-input focus bug) — and the Dialog→Overlay `PresencePortal` unmount was
+verified to justify the ref-only palette fix. The four fixes ran the scoped suite
+green (command-palette, combobox, and color, plus a new synchronous `equalHsva`
+case). Per CONVENTIONS.md §10.3 the two floating/virtualized bugs carry no new
+driven-lifecycle test; they rest on the
+precedent guards and the passing existing suites. The cross-cutting VirtualOptions
+row is recorded, not fixed: its resolution is a shared-primitive decision.
