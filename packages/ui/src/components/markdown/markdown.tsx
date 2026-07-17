@@ -42,8 +42,9 @@ export type MarkdownProps = {
  *
  * Security: the source is walked token by token into elements this component
  * controls — raw HTML in the source is dropped, never injected — so untrusted
- * Markdown cannot reach the DOM as markup. (Untrusted input can still produce
- * surprising links or images; validate those at the call site if needed.)
+ * Markdown cannot reach the DOM as markup. Link and image URLs are scheme-checked:
+ * a `javascript:`, `data:text/html`, or `vbscript:` URL renders no `href`/`src`,
+ * so a crafted link cannot run script on click.
  *
  * Memoized on its (shallow-equal) props: re-lexing is wasted work when a
  * parent re-renders for unrelated reasons, e.g. a list of chat bubbles

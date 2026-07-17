@@ -107,6 +107,31 @@ describe('Markdown', () => {
 		expect(el?.querySelector('strong')?.textContent).toBe('text')
 	})
 
+	it('strips dangerous URL schemes from links and images', () => {
+		const { container } = renderUI(
+			<Markdown>{'[click](javascript:alert(1)) and ![x](vbscript:msgbox)'}</Markdown>,
+		)
+
+		const el = bySlot(container, 'markdown')
+
+		// A `javascript:` / `vbscript:` URL renders no href/src, so a click runs nothing.
+		expect(el?.querySelector('a')).not.toHaveAttribute('href')
+
+		expect(el?.querySelector('img')).not.toHaveAttribute('src')
+	})
+
+	it('keeps safe link URLs and data-URI images', () => {
+		const { container } = renderUI(
+			<Markdown>{'[ok](https://example.com) ![pic](data:image/png;base64,iVBORw0KGgo=)'}</Markdown>,
+		)
+
+		const el = bySlot(container, 'markdown')
+
+		expect(el?.querySelector('a')).toHaveAttribute('href', 'https://example.com')
+
+		expect(el?.querySelector('img')?.getAttribute('src')).toMatch(/^data:image\/png/)
+	})
+
 	it('renders inline code through the Code component', () => {
 		const { container } = renderUI(<Markdown>{'Some `code`.'}</Markdown>)
 
