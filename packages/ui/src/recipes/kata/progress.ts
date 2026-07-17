@@ -1,9 +1,9 @@
 /**
  * Progress kata: object-literal surface serving both the linear `<Progress>`
- * bar and the radial gauge. Carries a local per-colour `fill` / `bg` / `stroke`
- * table authored inline with `mode()` rather than the shared `iro.palette`,
- * since the SVG gauge needs `fill` / `stroke` variants the palette doesn't
- * provide; the bar reads the `bg` slice, the gauge reads all three.
+ * bar and the radial gauge. Carries a local per-colour `bg` / `stroke` table
+ * authored inline with `mode()` rather than the shared `iro.palette`, since the
+ * SVG gauge needs a `stroke` variant the palette doesn't provide; the bar reads
+ * the `bg` slice, the gauge reads the `stroke` slice.
  */
 import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
 import { iro, ji, kasane, kokkaku, narabi, ugoki } from '../kiso'
@@ -15,33 +15,28 @@ const { flex } = narabi
 const { spring } = ugoki
 
 /**
- * Per-colour fill / bg / stroke classes shared between bar and gauge. The
- * gauge reads all three (`fill` on the indicator circle, `stroke` on the
- * track, `bg` on the central label); `bar.fill` uses the `bg` slice.
+ * Per-colour bg / stroke classes shared between bar and gauge: the bar's `fill`
+ * recipe reads the `bg` slice, the gauge's indicator ring reads the `stroke`
+ * slice (its track and label use fixed tokens, not this table).
  */
 const color = {
 	zinc: {
-		fill: mode('fill-zinc-600', 'dark:fill-zinc-400'),
 		bg: mode('bg-zinc-600', 'dark:bg-zinc-400'),
 		stroke: mode('stroke-zinc-600', 'dark:stroke-zinc-400'),
 	},
 	red: {
-		fill: mode('fill-red-600', 'dark:fill-red-500'),
 		bg: mode('bg-red-600', 'dark:bg-red-500'),
 		stroke: mode('stroke-red-600', 'dark:stroke-red-500'),
 	},
 	amber: {
-		fill: mode('fill-amber-600', 'dark:fill-amber-500'),
 		bg: mode('bg-amber-600', 'dark:bg-amber-500'),
 		stroke: mode('stroke-amber-600', 'dark:stroke-amber-500'),
 	},
 	green: {
-		fill: mode('fill-green-600', 'dark:fill-green-500'),
 		bg: mode('bg-green-600', 'dark:bg-green-500'),
 		stroke: mode('stroke-green-600', 'dark:stroke-green-500'),
 	},
 	blue: {
-		fill: mode('fill-blue-600', 'dark:fill-blue-500'),
 		bg: mode('bg-blue-600', 'dark:bg-blue-500'),
 		stroke: mode('stroke-blue-600', 'dark:stroke-blue-500'),
 	},
