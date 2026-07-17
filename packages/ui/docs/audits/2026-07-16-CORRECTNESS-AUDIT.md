@@ -29,7 +29,7 @@ doccomment) · **WATCH** (recorded so the next sweep doesn't relitigate).
 | 7 | pivot-table, placeholder, popover, progress, radio, resizable, scroll-area, search-input, segment, select | ✅ swept |
 | 8 | sheet, shiny-text, sidebar, signature-pad, slider, spacer, sparkline, split, stack, stat | ✅ swept |
 | 9 | status, stepper, swatch, switch, table, tabs, tag-input, text, textarea, time-ago | ✅ swept |
-| 10 | timeline, toast, toggle-icon-button, toolbar, tooltip, tree, zipcode-input | ◯ pending |
+| 10 | timeline, toast, toggle-icon-button, toolbar, tooltip, tree, zipcode-input | ✅ swept |
 
 ---
 
@@ -601,6 +601,99 @@ traced sound beyond the rows above.
 
 ---
 
+## Batch 10 — timeline · toast · toggle-icon-button · toolbar · tooltip · tree · zipcode-input
+
+### Executive summary
+
+The final batch — the timeline family, the toast viewport and its alert, and the
+toggle-icon-button, toolbar, tooltip, tree, and zipcode-input leaves — closes the
+97-component sweep. Three real bugs surfaced, each a value reaching the wrong
+element. `TimelineMarker`'s `color` prop painted the wrapper `<span>` (a
+`currentColor` carrier with nothing of its own to fill) and *still* rendered a
+`<StatusDot>` underneath, whose own default `inactive` colour overrode the
+inherited hue — so every colour-only marker showed zinc, never the requested
+colour; `StatusDot` even `Omit`s `color`, so the hue could reach the dot no other
+way. Fixed by painting a decorative `<Swatch>` straight from the marker hue.
+`TreeItem` derived `hasChildren` from `children != null`, so a `children={false}`
+(a `{cond && <TreeItem/>}` that didn't render) or `children={[]}` (an empty
+branch) announced a leaf as a collapsed parent — chevron, `aria-expanded="false"`,
+and an empty `role="group"` on toggle; fixed with
+`Children.toArray(children).length > 0`. And `TooltipTrigger`'s `<div>`-fallback
+wired the floating ref with raw `setReference`, dropping the cleanup-returning
+`mergeRefs` the element path uses to suppress React 19's unmount
+`setReference(null)` cascade — the very asymmetry `popover-trigger` doesn't have.
+The rest are concision and doc accuracy: a dead empty `k.item.base` slot and its
+inert `className`, a redundant `TimelineVariants` type intersection, a
+twice-computed `position.startsWith('top')`, a never-read tooltip `portal` slot, a
+`self-stretch` the divider recipe already emits, and a tooltip-context doccomment
+naming two symbols that don't exist (`usePointerTooltipState` / `<PointerTooltip>`).
+The batch's one deferred bug is toast's — pause-on-hover/focus has no unmount
+release, so a toast dismissed under a stationary pointer strands the shared pause
+flag and silently disables auto-dismiss for every later toast — and its correct
+fix source-counts the pause in the shared provider timer, so per §3.1 it is
+surfaced rather than applied under a single batch.
+
+### Findings
+
+| # | Verb | Surface | Site | Issue | Fix | Status |
+|---|---|---|---|---|---|---|
+| 1 | FIX (medium) | TimelineMarker | timeline-marker.tsx:58 | A colour-only marker applied `k.marker.palette[color].dot` (an `iro.marker` `text-*` class) to the wrapper `<span>`, which has no `bg`/`border` to paint, then still rendered a `<StatusDot>` whose own default `inactive` colour (`bg-current` zinc) overrode the inherited hue. So `color="blue"` drew a zinc dot; `StatusDot` `Omit`s `color`, so the hue could never reach it. Hue was untested (the decorative test asserted only no role/label). | Render a decorative `<Swatch shape="circle" color={cn(k.marker.palette[color].dot)}>` for the colour case instead of `StatusDot`, and drop the inert wrapper colour class. New test pins `text-blue-600` on the dot. | ◯ OPEN |
+| 2 | FIX (medium) | TreeItem | tree-item.tsx:70 | `hasChildren = children != null` treats any non-null `children` as a branch, so `children={false}` (an unrendered `{cond && …}`) or `children={[]}` (an empty directory) renders a chevron, emits `aria-expanded="false"` (a leaf announced as a collapsed parent), and mounts an empty `role="group"` on toggle. Unpinned (every leaf test omits `children`). | `const hasChildren = Children.toArray(children).length > 0` — `toArray` strips `null`/`boolean`/empty; `Children.count` would miscount `false` as 1. | ◯ OPEN |
+| 3 | FIX (low-med) | TooltipTrigger | tooltip-trigger.tsx:91 | The non-element `<div>` fallback wired the floating ref with raw `ref={setReference}`, not the cleanup-returning `mergeRefs` the element path uses. React 19 calls a ref with `null` on unmount only when it returns no cleanup, so the fallback reintroduced the `setReference(null)` cascade `mergeRefs` exists to suppress. `popover-trigger` applies `mergeRefs` to both its clone and fallback — the tooltip fallback was the outlier. Untested (every trigger passes a valid element). | `ref={mergeRefs}` on the div; `childRef` is `undefined` there, so its `assignRef` is a no-op. | ◯ OPEN |
+| 4 | SIMPLIFY | TreeItem / tree kata | tree-item.tsx:73, kata/tree.ts:64 | `item.base` is `[]`, so `className={cn(depth === 0 && k.item.base)}` on the `tree-item` wrapper always resolves to `''` — inert dead code — and the recipe doccomment still listed `item.base` among the static slots. | Drop the `className` (and its now-orphaned `cn`/`k`/`depth`/context reads — the `depth+1` increment lives in `TreeItemChildren`), remove the empty slot, update the doccomment. | ◯ OPEN |
+| 5 | SIMPLIFY | Timeline | timeline.tsx:10 | `TimelineProps = TimelineVariants & { … }` intersected `VariantProps<typeof root>` (`orientation` + `variant`) then re-declared both explicitly with identical types, so the intersection contributed nothing. | Drop `TimelineVariants &` and its import; the explicit, TSDoc'd props stay, and `TimelineVariants` remains a standalone kata export. | ◯ OPEN |
+| 6 | SIMPLIFY | ToastAlert | toast-alert.tsx:11 | `getToastMotion(position)` computed `position.startsWith('top')`, and the body recomputed the same for `positionTop` one block down. | Compute `positionTop` once, derive `motionConfig = positionTop ? k.motion.top : k.motion.bottom`, drop the single-use helper. | ◯ OPEN |
+| 7 | SIMPLIFY | tooltip kata | kata/tooltip.ts:24 | `portal: 'z-100'` is never read — the two importers (`tooltip-trigger`, `tooltip-content`) use only `trigger`/`cursor`/`content`/`surface`/`motion`; the `k.portal` hits elsewhere belong to other katas. | Delete the member. | ◯ OPEN |
+| 8 | SIMPLIFY | ToolbarSeparator | toolbar-separator.tsx:26 | `cn(isHorizontal ? 'mx-1 self-stretch' : 'my-1', className)` re-adds `self-stretch`, but the horizontal toolbar's separator renders `<Divider orientation="vertical">`, whose recipe already emits `h-auto self-stretch border-l`. Only `mx-1` is unique. | `cn(isHorizontal ? 'mx-1' : 'my-1', className)`; tests stay green (the class still arrives via the recipe). | ◯ OPEN |
+| 9 | DOC | TooltipContext | context.ts:10 | The doccomment said the value is built by `usePointerTooltipState` for `<PointerTooltip>` — neither symbol exists (repo-wide grep finds only this comment). | Correct to `useTooltipPointer` / `<TooltipPointer>`. | ◯ OPEN |
+
+### Minor / watch-list
+
+| Surface | Site | Note | Verb | Status |
+|---|---|---|---|---|
+| ToastAlert / useToastTimer | toast-alert.tsx:120, use-toast-timer.ts:35 | Pause-on-hover/focus sets a single shared `pausedRef` released only by `onMouseLeave`/`onBlur` — DOM events that don't fire when the element is removed under a stationary pointer or held focus. A toast dismissed/evicted while hovered strands `pausedRef=true`, and the next toast's `startTimer()` early-returns, so it never auto-dismisses (self-heals only if the user later hovers a live toast and leaves). The correct fix source-counts the pause in the shared provider timer (multi-file); per §3.1 surfaced, not applied under a single batch. | FIX (medium) | ◯ OPEN |
+| ToastAlert | toast-alert.tsx:133 | `onBlur` resumes on `relatedTarget` alone, not whether the pointer is still inside (asymmetric with `onMouseLeave`'s focus guard), so Tab-out under a stationary pointer restarts auto-dismiss (WCAG 2.2.1 edge). Likely subsumed by the source-counted fix above. | WATCH | ◯ OPEN |
+| TreeItemContent | tree-item-content.tsx:92 | APG ArrowRight-on-open (→ first child) and ArrowLeft-on-leaf/closed (→ parent) focus moves are unimplemented; only the toggle halves exist, and the roving hook passes L/R through (vertical orientation, no `row` config). Documented as intended (tree-item.tsx:44-46) and not contradicted by tests — a scope decision to confirm. | WATCH | ◯ OPEN |
+| Tree | tree.tsx:38 | `useA11yRoving` is called without `typeahead: true`, so the APG-recommended first-letter jump for trees is absent though the hook supports it. No doc claims it — an enhancement. | WATCH | ◯ OPEN |
+| TreeItemChildren | tree-item-children.tsx:47 | The `collapse.fade` exit keeps a collapsing group mounted through its exit window while the roving query has no visibility filter, so ArrowDown mid-collapse can land focus on an item animating to `height:0`. Minor in production; moot under the test motion mock. | WATCH | ◯ OPEN |
+| TreeItemContent | tree-item-content.tsx:69 | `querySelector(PREFIX_INTERACTIVE_SELECTOR)?.click()` (leaf-forward) repeats verbatim in `handleClick` and `handleKeyDown`; extractable to a `forwardToPrefix` helper. Cosmetic. | SIMPLIFY | ◯ OPEN |
+| Tree | tree.tsx:73 | The mount-effect + `handleFocus` capture + `setActiveItem`/`ensureFirstItemActive` partly reimplement the hook's `manageTabIndex`, but not as a clean drop-in — `handleFocus` moves the stop onto the row even when an inner control is focused, which the hook's `manageTabIndex` (no `row` config) would not. Recorded as checked. | WATCH | ◯ OPEN |
+| TooltipContent | tooltip-content.tsx:55 | The inner `motion.div`'s `pointer-events-{auto,none}` duplicates the `pointerEvents` inline style on the `FloatingSurface` wrapper (an inherited property; the wrapper always gates the subtree). Defense-in-depth; tests pin only the wrapper style. | SIMPLIFY | ◯ OPEN |
+| ToolbarSeparator | toolbar-separator.tsx:17 | A separator inside an orientation-overridden `ToolbarGroup` still aligns to the toolbar axis — the group renders a bare `role="group"` div with no context provider. Relevant only if separators-inside-groups is a supported layout (then re-provide context with the group's orientation); else document that separators belong between groups. Primary path unaffected. | WATCH | ◯ OPEN |
+| TimelineTimestamp | timeline-timestamp.tsx:17 | `<TimelineTimestamp>Jan 2026</TimelineTimestamp>` with no `dateTime` emits `<time>Jan 2026</time>` — invalid HTML (a `<time>` without `datetime` requires machine-readable text). Component-correct (it exposes `dateTime`); a consumer/example concern the doc could note. | WATCH | ◯ OPEN |
+| Timeline (recipe) | kata/timeline.ts:53 | The `<ol>` root carries `list-none` without a re-added `role="list"`, so Safari/VoiceOver strips list semantics; the sibling `List` behaves identically, so this is a consistent house stance, not a timeline defect. | WATCH | ◯ OPEN |
+| TimelineMarker | timeline-marker.tsx:73 | The status label's `charAt(0).toUpperCase() + slice(1)` re-implements `capitalizeFirst` (primitives/select-trigger/capitalize.ts); a shared import crosses a boundary for one line — declined. | SIMPLIFY | ◯ OPEN |
+| ToggleIconButton | toggle-icon-button.tsx:53 | The `<Button>` prop block repeats across the two `animate` branches, but the children-vs-prefix delivery is a meaningful structural difference (Button's icon-slot projection sizes direct children only), so it stays explicit. | SIMPLIFY | ◯ OPEN |
+
+### Audited clean (no findings)
+
+zipcode-input (all four formatters traced — US nine digits → `12345-6789`, five
+bare, the tenth digit dropped by `slice(0,9)`, paste stripped to digits; caret
+preservation delegated to the shared formatted-input engine; form binding,
+`inputMode`, placeholder cascade, ref forwarding, and prop/`data-slot` override
+order all correct), toggle-icon-button (`aria-pressed` set after the spread so a
+consumer can't override it, `disabled` forwarded, both crossfade branches render
+an icon-only box, class mapping correct, skeleton reference resolves,
+`AccessibleName` enforced), the toast provider + viewport (post-mount hydration
+gate against SSR mismatch, portal fallback to `document.body`,
+`zIndex`/`flex-col-reverse` layout, no `aria-live` on the viewport, the mount-only
+announce effect that doesn't double-announce because the wrapped `Alert` gets no
+`severity`, safe onReset-vs-close ordering), tooltip (hover-delay/close/click/focus
+open-close wiring, `forceOpen` controlled handoff, the `enabled` render-phase reset
+and `:disabled` polling both real-browser-pinned, `aria-describedby`/`role`, the
+deliberately-unlayered Escape, the leak-free overlay-signal unsubscribe,
+element-path ref composition, and both memo dep lists — and there is no arrow
+element, "pointer" being the mouse client-point for chart/map readouts), toolbar
+(roving with disabled-skip and a single Tab stop, separator and groups both
+transparent to roving, `h-auto` correctly scoped per axis, `role="toolbar"` +
+explicit `aria-orientation`, no stale closures or dead code), and tree
+(context-stamped level/posinset/setsize math — 1-based and per-group, structural
+collapsed-subtree skipping with no flatten utility to audit, roving `tabIndex`
+surviving re-render, per-item controlled/uncontrolled open, inner-control key
+isolation) were traced sound beyond the rows above.
+
+---
+
 ## Reliability appendix
 
 Every row was traced to its definition and its consumption in source, then
@@ -757,3 +850,25 @@ Backspace branch now guarding `isComposing`, and the handler acting on no other
 keys, the guard hoisted to a single top-of-handler early return — stating "ignore
 every key mid-composition" once instead of per branch. Behavior-identical; the
 existing suite stayed green.
+
+Batch 10 ran as five parallel per-unit agents (an initial launch hit a transient
+529 and was re-run whole), every candidate re-verified against source and tests.
+The three bugs share a shape — a value reaching the wrong element: the timeline
+hue painted a carrier `<span>` while a `<StatusDot>` underneath repainted it zinc,
+the tree branch check read any non-null `children` as a parent, and the tooltip
+fallback ref skipped the unmount-safe merge its element path and its
+`popover-trigger` sibling both use. Each fix aligns the outlier with an in-repo
+precedent (`StatusDot`'s own `Swatch`, the sibling file's `Children.toArray`,
+`popover-trigger`'s `mergeRefs`) rather than inventing a mechanism. The timeline
+fix is the one that changed rendered output, so it carries the test change: the
+colour-only marker now emits a `data-slot="swatch"` dot, and the previously
+hue-blind test was retargeted and strengthened to assert `text-blue-600` — the
+assertion that would have caught the bug. Toast's pause-strand bug was
+verified-then-deferred: a single shared `pausedRef` can't tell which toast holds
+the pause, so the robust fix source-counts it in `use-toast-timer.ts`
+(multi-file) — surfaced per §3.1, like batch 6's menu static-Escape, rather than
+applied under a single batch; a single-file unmount-resume was rejected because a
+pointer on one toast and keyboard focus on another can both hold the boolean, and
+an unconditional release would re-arm the stack under a still-present cursor. Types
+and the scoped Vitest suite (1530 tests across 89 files, including the retargeted
+timeline case) ran green after the nine fixes.
