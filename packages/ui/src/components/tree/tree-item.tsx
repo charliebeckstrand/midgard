@@ -1,10 +1,7 @@
 'use client'
 
-import type { ReactElement, ReactNode } from 'react'
-import { cn } from '../../core'
+import { Children, type ReactElement, type ReactNode } from 'react'
 import { useControllable } from '../../hooks/use-controllable'
-import { k } from '../../recipes/kata/tree'
-import { useTreeContext } from './context'
 import { TreeItemChildren } from './tree-item-children'
 import { TreeItemContent } from './tree-item-content'
 
@@ -59,18 +56,20 @@ export function TreeItem({
 	children,
 	className,
 }: TreeItemProps) {
-	const { depth } = useTreeContext()
-
 	const [open = false, setOpen] = useControllable<boolean>({
 		value: controlledOpen,
 		defaultValue: defaultOpen,
 		onValueChange: (next) => onOpenChange?.(next ?? false),
 	})
 
-	const hasChildren = children != null
+	// `Children.toArray` drops `null`/`undefined`/`false` and empty arrays, so a
+	// falsy or empty `children` reads as a leaf — no chevron, `aria-expanded`
+	// stays off. A bare `!= null` check would announce `children={[]}` as a
+	// collapsed parent.
+	const hasChildren = Children.toArray(children).length > 0
 
 	return (
-		<div data-slot="tree-item" className={cn(depth === 0 && k.item.base)}>
+		<div data-slot="tree-item">
 			<TreeItemContent
 				label={label}
 				icon={icon}
