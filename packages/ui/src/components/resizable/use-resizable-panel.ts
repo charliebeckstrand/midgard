@@ -60,6 +60,15 @@ function clampPair(
 	return result
 }
 
+/** Panel default sizes as percentages summing to 100; identity is not preserved. @internal */
+function normalizeSizes(configs: PanelConfig[]): number[] {
+	const raw = configs.map((c) => c.defaultSize)
+
+	const total = raw.reduce((sum, s) => sum + s, 0)
+
+	return total > 0 ? raw.map((s) => (s / total) * 100) : raw
+}
+
 type PanelResize = {
 	groupRef: RefObject<HTMLDivElement | null>
 	orientation: ResizableOrientation
@@ -92,13 +101,7 @@ export function useResizablePanel({
 	constraintsRef.current = panelConfigs
 
 	// Initialize sizes from panel defaults, normalized to 100%.
-	const [sizes, setSizes] = useState(() => {
-		const raw = panelConfigs.map((c) => c.defaultSize)
-
-		const total = raw.reduce((sum, s) => sum + s, 0)
-
-		return total > 0 ? raw.map((s) => (s / total) * 100) : raw
-	})
+	const [sizes, setSizes] = useState(() => normalizeSizes(panelConfigs))
 
 	const sizesRef = useRef(sizes)
 
@@ -112,11 +115,7 @@ export function useResizablePanel({
 	if (prevCountRef.current !== panelConfigs.length) {
 		prevCountRef.current = panelConfigs.length
 
-		const raw = panelConfigs.map((c) => c.defaultSize)
-
-		const total = raw.reduce((sum, s) => sum + s, 0)
-
-		const normalized = total > 0 ? raw.map((s) => (s / total) * 100) : raw
+		const normalized = normalizeSizes(panelConfigs)
 
 		sizesRef.current = normalized
 
@@ -158,6 +157,12 @@ export function useResizablePanel({
 			const group = groupRef.current
 
 			if (!group || event.button !== 0) return
+
+			// A new drag supersedes any still-active one (a second pointer landing on
+			// another handle before the first lifts): tear down the prior drag's
+			// listeners first, or they outlive cleanupRef — which holds only the
+			// latest — and fire a post-unmount setSizes. Mirrors beginScrollbarDrag.
+			cleanupRef.current?.()
 
 			event.preventDefault()
 
