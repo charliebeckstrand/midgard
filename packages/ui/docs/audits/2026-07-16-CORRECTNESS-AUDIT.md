@@ -430,6 +430,7 @@ a dead empty `grip.dragging` recipe variant.
 | Popover | context.ts:11 · popover.tsx:62 | `setOpen`/`close` are published on `PopoverContextValue` and its memo but read by no consumer, and `PopoverContext` isn't exported. Left in place: `close` on a popover context reads as deliberate scaffolding for a conventional `PopoverClose` affordance — removal deferred pending that intent (mirrors the menu `useMenuContext` call). | SIMPLIFY | ◯ OPEN |
 | Popover / Tooltip | popover-trigger.tsx:29 | The 3-line `assignRef` writer is byte-identical in popover-trigger and tooltip-trigger. Hoisting to a shared util touches out-of-batch tooltip and is low-value (the surrounding `mergeRefs` deliberately diverges), so recorded, not applied. | SIMPLIFY | ◯ OPEN |
 | PivotTable | pivot-table-pivot.ts:117 | `aggregateRow`/`aggregateColumn` are near-identical (fix one axis, walk the other). Plausibly deliberate per §1.1 (row-vs-column are distinct boundaries, each body ~6 lines) — left as-is. | WATCH | ◯ OPEN |
+| PivotTable / map / chart | pivot-table-pivot.ts:57 · modules/map/map-value-scale.ts:35 · modules/chart/choropleth-chart/choropleth-chart.tsx:160 | The `toFiniteInput` numeric-coercion guard (number → non-empty-numeric-string → NaN, blanking `null`/`''`/`false` so `Number()` can't bucket them as `0`) is now the third byte-identical copy, alongside `toBinnableNumber` and `binnable`. All three are `@internal` module-private; no shared `utilities` coercion helper exists. Deduping means promoting one `toFiniteNumber` into `utilities` and rewiring two out-of-batch modules — cross-cutting work to surface, not fold into this sweep. | REUSE | ◯ OPEN |
 | ProgressGauge | progress-gauge.tsx:94 | The track `<circle>` carries `strokeLinecap="round"` but no `strokeDasharray`, so a closed circle has no sub-path ends for the cap to round — a no-op (only the dashed value arc needs it). | SIMPLIFY | ◯ OPEN |
 | ResizableHandle | resizable-handle.tsx:49 | `aria-valuemin`/`aria-valuemax` report the left panel's own `minSize`/`maxSize`, not the tighter range the adjacent panel's constraints also impose — so the announced range can exceed what a resize can actually reach. Own-bounds semantics are test-pinned, so likely by design. | WATCH | ◯ OPEN |
 | ScrollArea | use-scroll-area-scrollbar.ts:37 | `beginScrollbarDrag` has no `event.button` guard and no `contextmenu` teardown, unlike the resizable drag — a right/middle-click on the thumb starts a scroll-drag that persists while the context menu is open (it still ends on `pointerup`). Minor cross-engine inconsistency. | WATCH | ◯ OPEN |
@@ -554,4 +555,13 @@ popover `setOpen`/`close` context fields are dead but read as `PopoverClose`
 scaffolding, and the pivot `aggregateRow`/`aggregateColumn` near-duplication sits
 at a genuine row-vs-column boundary (§1.1) — both recorded, not churned. Types and
 the scoped Vitest suite (254 tests across 11 files, including the new pivot case)
-ran green after the nine fixes.
+ran green after the nine fixes. The four-angle simplify pass then found the batch
+efficiency- and altitude-clean (the `computeThumb` clamp was confirmed the
+right-altitude choice over an early-return-hidden, which would drop a grabbable
+scrollbar for a 1–19px overflowing track; the resizable drag-supersede is right
+inline, the two drag engines diverging past a 3-line lifecycle) and landed one
+refinement: the `groupValues` numeric-parse ternary became a named file-local
+`toFiniteInput` helper, matching the file's own `extremum`/`defaultFormat` habit.
+The reuse angle surfaced that this guard is now triplicated across pivot / map /
+chart — recorded as an OPEN reuse row, since deduping it into `utilities` reaches
+two out-of-batch modules.
