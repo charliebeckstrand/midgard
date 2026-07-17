@@ -285,6 +285,7 @@ family-level decision rather than reworked under a single component's sweep.
 | LoadingDots | loading-dots.tsx:37-39 | `k.dot({ size })` is re-evaluated once per dot inside the `.map`, though `size` is constant across the three; hoist to one `const dotClass` and `cn(dotClass, delay)`. Micro (three iterations). | OPTIMIZE | ◯ OPEN |
 | List | list.tsx:139 | The reorderable `<ul>` keeps its implicit `role="list"`; keyboard-reorder semantics (lift/move/drop) are announced through dnd-kit's live region on the items rather than an ARIA composite-widget role on the container. Consistent with the semantic-list-plus-live-announcement design; recorded, not reworked. | WATCH | ◯ OPEN |
 | MarkdownRenderer | markdown-renderer.tsx:22-31 | `safeUrl(url, true)` intentionally allows `data:` on `<img src>` (inline images are a legitimate Markdown use); only script-capable schemes are blocked. The `data:text/html` link vector is closed because links pass `allowData = false`. Design boundary, recorded alongside the fix. | WATCH | ◯ OPEN |
+| MarkdownRenderer | markdown-renderer.tsx:25 | `safeUrl` whitespace-strips the whole URL to read a ~4-char scheme — O(payload) for a large `data:` image URI. A scheme-bounded match (`^\s*([a-z][a-z0-9+.\s-]*):`) would cap the work, but the leading `\s*` is mandatory: an anchored `^[a-z]` form silently readmits `" javascript:"` (browsers trim leading space before resolving the scheme), so the naive optimization is a security regression. Deferred — the win is uncommon-path and the current tested form is correct. | OPTIMIZE | ◯ OPEN |
 
 ### Audited clean (no findings)
 
@@ -350,4 +351,11 @@ row is recorded rather than removed precisely because the batch-5 reuse attempt
 dropped it and `use-listbox-state.test.ts` went red on three assertions: the
 returned surface is the hook's tested contract, not the component's dead code.
 Types and the scoped Vitest suite (1498 tests across 72 files) ran green after
-the revert.
+the revert. The four-angle simplify pass (reuse, simplification, efficiency,
+altitude) found the batch already clean: `safeUrl` duplicates no existing helper
+and sits at the correct module-private altitude (Markdown is the only component
+parsing URLs from untrusted input), and its lone efficiency note — the
+full-URL whitespace strip — was deferred rather than applied because the obvious
+scheme-bounded rewrite drops the leading-whitespace defense and readmits
+`" javascript:"`; the naive optimization is a security regression, so it is
+recorded as an OPEN optimize row instead.
