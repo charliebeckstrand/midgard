@@ -14,11 +14,7 @@ export type StatValueProps = StatValueVariants & {
  */
 export function StatValue({ size, className, children, ...props }: StatValueProps) {
 	return (
-		<div
-			data-slot="stat-value"
-			className={cn(k.value({ size: size ?? 'md' }), className)}
-			{...props}
-		>
+		<div data-slot="stat-value" className={cn(k.value({ size }), className)} {...props}>
 			{children}
 		</div>
 	)
