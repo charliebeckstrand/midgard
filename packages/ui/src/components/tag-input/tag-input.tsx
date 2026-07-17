@@ -120,17 +120,17 @@ export function TagInput({
 		setTouched()
 
 		if (addTag(inputValue)) {
-			setInputValue('')
+			clearInput()
 		}
-	}, [addTag, inputValue, setTouched])
+	}, [addTag, inputValue, setTouched, clearInput])
 
 	const handleSubmit = useCallback(() => {
 		if (addTag(inputValue)) {
-			setInputValue('')
+			clearInput()
 
 			inputRef.current?.focus()
 		}
-	}, [addTag, inputValue])
+	}, [addTag, inputValue, clearInput])
 
 	// Duplicate controlled values ('a','a') collide on a bare value key;
 	// repeats get an occurrence suffix (the validate path dedupes, the
