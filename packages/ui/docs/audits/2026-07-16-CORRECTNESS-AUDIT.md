@@ -871,4 +871,14 @@ applied under a single batch; a single-file unmount-resume was rejected because 
 pointer on one toast and keyboard focus on another can both hold the boolean, and
 an unconditional release would re-arm the stack under a still-present cursor. Types
 and the scoped Vitest suite (1530 tests across 89 files, including the retargeted
-timeline case) ran green after the nine fixes.
+timeline case) ran green after the nine fixes. The four-angle simplify pass
+(reuse, simplification, efficiency, altitude) then found the batch reuse-,
+efficiency-, and altitude-clean — two agents confirmed the colour-only `<Swatch>`
+is the correct primitive-level fix rather than a `StatusDot` overload (whose type
+deliberately `Omit`s `color`) — and two independently flagged the one duplication
+the fix introduced: the inner-dot positioning `z-10 relative size-full`, now on
+both the `<Swatch>` and `<StatusDot>` branches, hoisted to a `k.marker.dot` kata
+token both read, where the marker's other layout classes already live. The
+`pulse`-via-status-kata coupling and the pre-existing inline `capitalizeFirst`
+were recorded and left — both agents judged them defensible or out of a simplify
+pass's scope.

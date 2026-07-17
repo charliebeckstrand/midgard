@@ -73,7 +73,7 @@ export function TimelineMarker({
 					shape="circle"
 					variant={variant}
 					color={cn(k.marker.palette[color].dot)}
-					className={cn('z-10 relative size-full', pulse && pulseAnimation)}
+					className={cn(k.marker.dot, pulse && pulseAnimation)}
 				/>
 			) : (
 				<StatusDot
@@ -82,7 +82,7 @@ export function TimelineMarker({
 					pulse={pulse}
 					// Names the dot when it carries a semantic status; a colour-only marker stays decorative.
 					label={status ? status.charAt(0).toUpperCase() + status.slice(1) : undefined}
-					className="z-10 relative size-full"
+					className={k.marker.dot}
 				/>
 			)}
 		</span>

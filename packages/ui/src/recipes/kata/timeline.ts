@@ -113,6 +113,9 @@ export const k = {
 			'[li:first-child_&]:before:hidden',
 			'[li:last-child_&]:after:hidden',
 		],
+		// The inner dot (a StatusDot or a decorative Swatch) fills the marker box
+		// and rides above the connector rails.
+		dot: 'z-10 relative size-full',
 		vertical: [
 			'col-start-1 row-start-1 self-center justify-self-center',
 			'before:bottom-full before:left-1/2 before:-translate-x-1/2',
