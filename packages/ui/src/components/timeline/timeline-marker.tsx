@@ -3,8 +3,10 @@
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
 import type { Color } from '../../recipes'
+import { pulse as pulseAnimation } from '../../recipes/kata/status'
 import { k } from '../../recipes/kata/timeline'
 import { StatusDot, type StatusDotProps } from '../status'
+import { Swatch } from '../swatch'
 import { useTimeline } from './context'
 
 /**
@@ -31,10 +33,10 @@ export type TimelineMarkerProps = TimelineMarkerConfig & {
 
 /**
  * Dot and connector lines for a timeline row. With no `children`, renders a
- * `<StatusDot>` driven by `status` (semantic, labelled) or `color`
- * (decorative), styled to the orientation and variant from context. Custom
- * `children` replace the dot entirely. ARIA stays on the parent `<li>`; the
- * marker itself is decorative.
+ * semantic, labelled `<StatusDot>` when `status` is set, or a decorative
+ * `<Swatch>` dot in the requested hue when `color` is set — both styled to the
+ * orientation and variant from context. Custom `children` replace the dot
+ * entirely. ARIA stays on the parent `<li>`; the marker itself is decorative.
  */
 export function TimelineMarker({
 	status,
@@ -55,7 +57,6 @@ export function TimelineMarker({
 			className={cn(
 				k.marker.base,
 				orientation === 'vertical' ? k.marker.vertical : k.marker.horizontal,
-				color && k.marker.palette[color].dot,
 				k.marker.palette[lineBefore ?? 'zinc'].line.before,
 				k.marker.palette[lineAfter ?? 'zinc'].line.after,
 				children != null && 'size-auto',
@@ -64,6 +65,16 @@ export function TimelineMarker({
 		>
 			{children != null ? (
 				children
+			) : color != null ? (
+				// A colour-only marker is decorative: paint the dot straight from the
+				// marker hue via <Swatch>. <StatusDot> forces its own status colour and
+				// omits `color`, so the requested hue can reach the dot only this way.
+				<Swatch
+					shape="circle"
+					variant={variant}
+					color={cn(k.marker.palette[color].dot)}
+					className={cn('z-10 relative size-full', pulse && pulseAnimation)}
+				/>
 			) : (
 				<StatusDot
 					variant={variant}

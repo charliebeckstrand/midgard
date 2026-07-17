@@ -132,7 +132,7 @@ describe('TimelineMarker', () => {
 			</Timeline>,
 		)
 
-		const dot = bySlot(container, 'status-dot')
+		const dot = bySlot(container, 'swatch')
 
 		expect(dot).not.toHaveAttribute('role')
 
@@ -158,7 +158,7 @@ describe('TimelineMarker', () => {
 		expect(marker?.className).toContain('after:bg-amber-600')
 	})
 
-	it('applies the color variant when no status is provided', () => {
+	it('paints a colour-only marker in the requested hue', () => {
 		const { container } = renderUI(
 			<Timeline>
 				<TimelineItem>
@@ -167,7 +167,10 @@ describe('TimelineMarker', () => {
 			</Timeline>,
 		)
 
-		expect(bySlot(container, 'timeline-marker')).toBeInTheDocument()
+		// The decorative dot paints the marker hue directly. Regression guard: it
+		// used to render a <StatusDot> whose default 'inactive' status colour
+		// overrode `color`, so every colour-only marker showed zinc.
+		expect(bySlot(container, 'swatch')?.className).toContain('text-blue-600')
 	})
 
 	it('renders the horizontal variant via Timeline orientation', () => {
