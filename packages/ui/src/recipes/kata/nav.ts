@@ -79,7 +79,7 @@ const bar = defineRecipe({
 		outline: [...border.defaultColor],
 		plain: [...border.transparent],
 	},
-	defaults: { variant: 'outline' },
+	defaults: { variant: 'solid' },
 })
 
 export const k = {
@@ -90,7 +90,7 @@ export const k = {
 			horizontal: ['flex-row', 'gap-1'],
 		},
 	},
-	/** The `<NavBar>` landmark frame; pass `variant` for the `outline` | `plain` border. */
+	/** The `<NavBar>` landmark frame; pass `variant` (`solid` | `outline` | `plain`) for the border style. */
 	bar,
 	item: {
 		/** The `<li>` wrapper; pass `affix` to take over the interaction chrome. */
@@ -119,5 +119,5 @@ export const k = {
 	},
 } as const
 
-/** Recipe variant props for {@link NavBar}: the `variant` style (`outline` | `plain`). */
+/** Recipe variant props for {@link NavBar}: the `variant` style (`solid` | `outline` | `plain`). */
 export type NavBarVariants = VariantProps<typeof k.bar>
