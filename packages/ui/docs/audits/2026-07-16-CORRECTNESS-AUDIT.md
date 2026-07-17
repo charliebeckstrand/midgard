@@ -24,7 +24,8 @@ doccomment) · **WATCH** (recorded so the next sweep doesn't relitigate).
 | 2 | calendar, card, checkbox, code, collapse, color, combobox, command-palette, confirm, container | ✅ swept |
 | 3 | context-menu, control, copy-button, credit-card-input, currency-input, date-input, date-picker, dialog, divider, dl | ✅ swept |
 | 4 | drawer, fieldset, file-upload, filters, flex, form, group, heading, hold-button, icon | ✅ swept |
-| 5– | remaining 57 components, ten at a time | ◯ pending |
+| 5 | input, json-tree, kanban, kbd, link, list, listbox, loading, markdown, mask-input | ✅ swept |
+| 6– | remaining 47 components, ten at a time | ◯ pending |
 
 ---
 
@@ -237,6 +238,70 @@ sound beyond the rows above.
 
 ---
 
+## Batch 5 — input · json-tree · kanban · kbd · link · list · listbox · loading · markdown · mask-input
+
+### Executive summary
+
+The audit's most severe finding lands here, and it is a real cross-site
+scripting hole: the Markdown renderer emitted `href`/`src` straight from
+`marked`'s lexed tokens, so untrusted Markdown carrying a `javascript:`,
+`data:text/html`, or `vbscript:` URL (including the tab-obfuscated
+`java&#9;script:` form) produced a live link/image that ran script on click —
+while the component's own doc billed raw-HTML stripping as the safety story. It
+is fixed with a scheme allowlist (`safeUrl`), whitespace-normalized before the
+scheme test, with two regression tests and a corrected security contract. Past
+it, the batch is quiet: a memory-leak fix in the kanban drag-overlay map (a
+mounted card's entry never got reclaimed), two concision tidies, and one
+doccomment correction. The four leaves — kbd, link, loading (dots + spinner),
+mask-input — audited clean. The two heavier subsystems, json-tree's virtualized
+flatten/search machinery and the listbox select-state machine, are behaviorally
+sound; what they surface (a bound-field `invalid` the select family discards,
+roving that can't cross the virtualization window in one key) is recorded for a
+family-level decision rather than reworked under a single component's sweep.
+
+### Findings
+
+| # | Verb | Surface | Site | Issue | Fix | Status |
+|---|---|---|---|---|---|---|
+| 1 | FIX (high · XSS) | MarkdownRenderer | markdown-renderer.tsx:104,115 | `link`/`image` tokens rendered `href={token.href}` / `src={token.href}` verbatim from the lexer, so `[x](javascript:alert(1))` — or a `data:text/html`, `vbscript:`, or whitespace-obfuscated `java\tscript:` URL — emitted a live `href`/`src` that executes script on click. The renderer's doc names raw-HTML stripping as the safety guarantee (`Raw HTML tokens render nothing`) but never scheme-checked URLs, so a link/image was the open vector. Most severe finding of the audit. | Add a `safeUrl` scheme allowlist — `http`/`https`/`mailto`/`tel`, plus `data:` for images only — that strips ASCII whitespace before matching the scheme (defeating `java\tscript:`) and passes relative/root-relative/anchor/protocol-relative URLs through unchanged; an unsafe scheme resolves to `undefined` so no attribute renders. `href={safeUrl(token.href)}`, `src={safeUrl(token.href, true)}`. Two tests pin dangerous-scheme stripping and safe-URL / data-image passthrough; the `Markdown` security doccomment now states the guarantee. | ◯ OPEN |
+| 2 | FIX (med) | KanbanCard | kanban-card.tsx:53-63 | The drag-overlay sync effect did `overlayMap.current.set(cardId, children)` on mount/update with no cleanup, so a card that unmounts (deleted, or the whole board torn down) left its entry in the shared `overlayMap` ref for the board's lifetime — an unbounded leak across a long-lived board that churns cards. | Effect returns `() => overlayMap.current.delete(cardId)`. Cleanup runs before setup within a flush, so a card moved across columns re-sets its own entry on remount and the overlay never sees a gap. | ◯ OPEN |
+| 3 | SIMPLIFY | Input | input.tsx:93 | A dead `const resolvedInvalid = invalid ?? sharedAttrs.invalid` was computed and never read; the validation ternary independently recomputed the invalid resolution. | Drop the variable; inline `invalidAttrs(invalid)` in the `invalid === undefined ? sharedAttrs.validation : …` ternary — one expression of the resolution. | ◯ OPEN |
+| 4 | SIMPLIFY | ListItem | list-item.tsx:107 | `{suffix && suffix}` — the `&&` short-circuit is a no-op (React renders `undefined`/`null`/`false` as nothing), so the guard only obscures that `suffix` renders itself. | `{suffix}`. | ◯ OPEN |
+| 5 | DOC | flattenTree | json-tree-utilities.tsx:239-250 | The doccomment claimed a filtered match-free branch collapses to a `branch-open` row with `open=false`, but the flatten pass reads `open` straight from `expanded` and never forces a branch closed — that behavior belongs to the recursive renderer, not this path. Stale on `@internal` machinery invites a wrong mental model of the filter/virtualize divergence. | Restate the real divergence: filter mode omits non-matching leaves and keeps only match-path children, but a branch's open state still follows `expanded` (unlike the recursive renderer, which forces match-free branches closed). | ◯ OPEN |
+
+### Minor / watch-list
+
+| Surface | Site | Note | Verb | Status |
+|---|---|---|---|---|
+| Listbox | listbox.tsx:200,370 · use-listbox-state.ts:56 | `useFormValue` returns the bound field's `invalid`, but Listbox destructures only `value`/`setValue`/`setTouched` (200) and the trigger's `invalid` derives solely from `control?.severity` (370) — so a Form-bound Listbox with a field error but no `<Control severity>` shows no invalid chrome, unlike Input which routes the field's `invalid`. Select-family pattern (Combobox mirrors it); a family-level decision, not a per-component fix. | WATCH | ◯ OPEN |
+| Listbox | listbox.tsx:210 · use-listbox-state.ts:32,56 | `useListboxState` returns `close`, and `use-listbox-state.test.ts` exercises it, but the Listbox consumer never destructures it — `select` calls `close` internally within the hook. Tested-in-isolation surface, not dead; recorded so a reuse pass doesn't drop it (which breaks the hook test, as the batch-5 attempt confirmed). | WATCH | ◯ OPEN |
+| VirtualOptions | virtual-options.tsx:170 | Empty-state gap first filed in batch 2 (the `containerRef` wrapper keeps the listbox non-`:empty`, so `peer-empty` "No results" never fires under virtualization). Still open; still a shared-primitive decision spanning Combobox + CommandPalette. | WATCH | ◯ OPEN |
+| Input | input-frame.tsx:60 | The prefix span carries `peer/prefix`, but no `peer-*/prefix` variant consumes it anywhere in the recipes or components, and the suffix span carries no matching marker — vestigial Tailwind peer metadata. Harmless; drop it or wire the intended `peer`-driven affix style. | SIMPLIFY | ◯ OPEN |
+| JsonTree | json-tree.tsx:69,74-91 · json-tree-utilities.tsx:251 | Under `virtualize`, `useA11yRoving`'s `[role="treeitem"]` selector sees only the rendered viewport slice, so arrow-key roving can't step past the window edge in one press (the next item isn't in the DOM until scroll). Inherent to windowing + DOM-roving; recorded, not a one-line fix. | WATCH | ◯ OPEN |
+| JsonTree | json-tree.tsx:67 | `searchIndex` memoizes on `[data, searchValue]`, so a new `data` identity with unchanged content rebuilds the whole index. Correct (content-equality would cost more than the rebuild); noted so it isn't re-flagged. | WATCH | ◯ OPEN |
+| JsonTree | json-tree-utilities.tsx:336 | `PrimitiveValue` prints a string as `` `"${value}"` `` without escaping embedded `"`, `\`, or control chars, so a value containing a quote renders visually ambiguous (not valid JSON text). Display-only — the tree is a viewer, not a serializer — but a `JSON.stringify(value)` per scalar would render faithfully. | WATCH | ◯ OPEN |
+| KanbanCard | kanban-card.tsx:36-63 | An inert (read-only) card still calls `useKanbanContext()` and subscribes to the full board context; `memo` can't stop a re-render when any board-level field changes, even though the inert path reads none of the interactive handlers. Splitting a card-facing slice is the deeper fix; the memo already covers the common pointer-drag case. | WATCH | ◯ OPEN |
+| Kbd | kbd.tsx:21-23 | Modifiers render command-then-control (`⌘⌃`), the reverse of the platform ordering convention (Control before Command, `⌃…⌘`). Cosmetic and possibly deliberate; flag for the props-audit modifier pass. | WATCH | ◯ OPEN |
+| LoadingDots | loading-dots.tsx:37-39 | `k.dot({ size })` is re-evaluated once per dot inside the `.map`, though `size` is constant across the three; hoist to one `const dotClass` and `cn(dotClass, delay)`. Micro (three iterations). | OPTIMIZE | ◯ OPEN |
+| List | list.tsx:139 | The reorderable `<ul>` keeps its implicit `role="list"`; keyboard-reorder semantics (lift/move/drop) are announced through dnd-kit's live region on the items rather than an ARIA composite-widget role on the container. Consistent with the semantic-list-plus-live-announcement design; recorded, not reworked. | WATCH | ◯ OPEN |
+| MarkdownRenderer | markdown-renderer.tsx:22-31 | `safeUrl(url, true)` intentionally allows `data:` on `<img src>` (inline images are a legitimate Markdown use); only script-capable schemes are blocked. The `data:text/html` link vector is closed because links pass `allowData = false`. Design boundary, recorded alongside the fix. | WATCH | ◯ OPEN |
+
+### Audited clean (no findings)
+
+kbd (pure server-renderable glyph leaf), link (defers to the `useLink`
+component; `rel` auto-defaults for `target="_blank"`), loading-dots and
+loading-spinner (static `<output>` live leaves with `sr-only` labels),
+mask-input (+ `useMaskInput` — caret-preserving reformat through
+`useFormattedInput`, Form binding through `useFormValue`, pre-formatted default
+seeding). json-tree's path-encoding / search-index / flatten machinery and the
+recursive-vs-virtualized renderers were traced beyond the rows above; the
+listbox open/close/selection state machine, the deferred-toggle commit, and the
+`readOnly` open-guard hold up. list's dnd-kit wiring (stable-key requirement,
+memoized `<ul>` isolating the overlay from item re-renders, keyboard-lift
+refocus) is sound.
+
+---
+
 ## Reliability appendix
 
 Every row was traced to its definition and its consumption in source, then
@@ -269,3 +334,20 @@ Batch 4's `hasIssues` dedup was the instructive one: the first pass used
 Message `{...props}` inconsistency was left unfixed once the type checker showed
 it's forced by the component's `<p>` typing, not an oversight. The FiltersClear
 fix carries a new test that exercises the previously-dead string-fallback path.
+
+Batch 5's headline is a genuine XSS vector, so it carries the batch's only new
+security tests: one asserting a `javascript:`/`data:text/html` link and image
+render no `href`/`src`, one asserting `http(s)`/`mailto` links and a `data:`
+image URI survive — the allowlist has to fail closed without breaking inline
+images. The whitespace strip in `safeUrl` is load-bearing, not cosmetic:
+browsers drop ASCII tab/newline when resolving a scheme, so `java&#9;script:`
+resolves to `javascript:` at click time; the regex `noControlCharactersInRegex`
+lint forced the `\s`-class form over a literal `[ - ]` range. The
+kanban leak fix was verified against the cross-column move it must not regress —
+cleanup-before-setup means a remounting card re-populates `overlayMap` in the
+same flush, so the drag overlay never reads an empty slot. The listbox `close`
+row is recorded rather than removed precisely because the batch-5 reuse attempt
+dropped it and `use-listbox-state.test.ts` went red on three assertions: the
+returned surface is the hook's tested contract, not the component's dead code.
+Types and the scoped Vitest suite (1498 tests across 72 files) ran green after
+the revert.
