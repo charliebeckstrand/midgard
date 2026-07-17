@@ -5,13 +5,19 @@ import { Example } from '../../engine'
 export function Demo() {
 	const [date, setDate] = useState<Date | undefined>(undefined)
 
-	const min = new Date()
+	// Freeze the ±30-day window at mount so it doesn't recompute on every render
+	// (including on each selection) — mirrors the demos' `useNow` freeze pattern.
+	const [{ min, max }] = useState(() => {
+		const start = new Date()
 
-	min.setDate(min.getDate() - 30)
+		start.setDate(start.getDate() - 30)
 
-	const max = new Date()
+		const end = new Date()
 
-	max.setDate(max.getDate() + 30)
+		end.setDate(end.getDate() + 30)
+
+		return { min: start, max: end }
+	})
 
 	return (
 		<>

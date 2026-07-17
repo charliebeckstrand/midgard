@@ -270,7 +270,11 @@ export function createApiExtractor(
 			const existing = proj.getSourceFile(file)
 
 			if (existing) {
-				existing.refreshFromFileSystem()
+				// Synchronous: `applyRefreshes` runs inside the synchronous `getAll`
+				// pass, so the async `refreshFromFileSystem` would resolve its read only
+				// after extraction had already run against the stale in-memory AST —
+				// serving pre-edit props and persisting them under the fresh content hash.
+				existing.refreshFromFileSystemSync()
 			} else if (fs.existsSync(file)) {
 				proj.addSourceFileAtPath(file)
 
@@ -311,6 +315,21 @@ export function createApiExtractor(
 		return result
 	}
 
+	// Re-list barrels against disk before a pass and reconcile the state map: a
+	// barrel added since the last pass has no state yet, so mark it dirty to
+	// extract it; one removed drops out of both `barrels` and `states`. Keeps a
+	// component scaffolded or deleted mid-session from being stranded until
+	// restart — `barrels` is otherwise fixed at the initial load.
+	function reconcileBarrels(): void {
+		barrels = listBarrels(srcDir)
+
+		const keys = new Set(barrels.map((b) => b.key))
+
+		for (const key of keys) if (!states.has(key)) dirty.add(key)
+
+		for (const key of states.keys()) if (!keys.has(key)) states.delete(key)
+	}
+
 	function initialLoad(): void {
 		barrels = listBarrels(srcDir)
 
@@ -338,6 +357,8 @@ export function createApiExtractor(
 
 	function incrementalRebuild(): void {
 		const proj = ensureProject()
+
+		reconcileBarrels()
 
 		applyRefreshes(proj)
 

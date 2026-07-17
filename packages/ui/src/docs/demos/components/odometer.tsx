@@ -57,7 +57,7 @@ export function Demo() {
 				<Heading level={2}>
 					<Odometer value={value} duration={0} />
 				</Heading>
-				<Button onClick={() => setValue(Math.random() * 100_000)}>Randomize</Button>
+				<Button onClick={() => setValue(Math.floor(Math.random() * 100_000))}>Randomize</Button>
 			</Example>
 		</>
 	)

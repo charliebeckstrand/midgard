@@ -12,6 +12,11 @@ export function unaliasSymbol(symbol: ts.Symbol, checker: ts.TypeChecker): ts.Sy
 	return symbol.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol
 }
 
+/** A single-signature function type — the shape that needs parentheses inside a union. */
+export function isFunctionType(type: ts.Type): boolean {
+	return type.getCallSignatures().length > 0 && type.getProperties().length === 0
+}
+
 /** RHS of `type X = …` for a type-name reference, or null if not an alias. */
 export function resolveTypeAliasTarget(
 	name: ts.EntityName,

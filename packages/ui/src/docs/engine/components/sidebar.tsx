@@ -1,7 +1,7 @@
 'use client'
 
 import { ArrowDownAZ, ArrowUpZA } from 'lucide-react'
-import { memo, use, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { memo, use, useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Button } from '../../../components/button'
 import { Combobox, ComboboxOption, useComboboxQuery } from '../../../components/combobox'
 import { Flex } from '../../../components/flex'
@@ -136,6 +136,11 @@ export function SidebarContent({ route }: { route: string }) {
 
 	const [searchLimit, setSearchLimit] = useState(SEARCH_PAGE_SIZE)
 
+	// Stable so SearchLoadMore's IntersectionObserver isn't torn down and re-observed
+	// on every SidebarContent render — a fresh closure re-fires load-more whenever the
+	// sentinel is in view (navigation, sort toggle, density change).
+	const loadMore = useCallback(() => setSearchLimit((l) => l + SEARCH_PAGE_SIZE), [])
+
 	const [direction, setDirection] = useState<SortDirection>('asc')
 
 	// `demos` is name-sorted ascending; 'asc' shows it as-is, 'desc' reverses.
@@ -152,17 +157,6 @@ export function SidebarContent({ route }: { route: string }) {
 			}))
 			.filter((section) => section.items.length > 0)
 	}, [direction])
-
-	// Scroll the active item into view when the mobile sidebar opens
-	useLayoutEffect(() => {
-		if (!offcanvas) return
-
-		const sheet = document.querySelector('[data-slot="sheet"]')
-
-		const current = sheet?.querySelector<HTMLElement>('[data-current]')
-
-		if (current) scrollWithin(current, { block: 'nearest' })
-	}, [offcanvas, scrollWithin])
 
 	return (
 		<Sidebar>
@@ -197,10 +191,7 @@ export function SidebarContent({ route }: { route: string }) {
 							offcanvas?.close()
 						}}
 					>
-						<SearchResults
-							limit={searchLimit}
-							onLoadMore={() => setSearchLimit((l) => l + SEARCH_PAGE_SIZE)}
-						/>
+						<SearchResults limit={searchLimit} onLoadMore={loadMore} />
 					</Combobox>
 				</div>
 				<Button

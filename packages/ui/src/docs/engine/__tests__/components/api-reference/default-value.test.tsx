@@ -64,6 +64,17 @@ describe('DefaultValue', () => {
 		expect(value).not.toHaveClass('text-rose-600')
 	})
 
+	it('renders a JSX/element default verbatim in monospace, not a blank cell', () => {
+		const { container } = renderUI(<DefaultValue value="<TableEmptyAlert />" />)
+
+		const value = bySlot(container, 'default-value')
+
+		// Inline Markdown reads the tag as raw HTML and drops it; it must survive.
+		expect(value).toHaveTextContent('<TableEmptyAlert />')
+
+		expect(value?.querySelector('code')).toBeInTheDocument()
+	})
+
 	it('renders a descriptive default as prose, colouring literals and resolving links', () => {
 		const { container } = renderUI(
 			<DefaultValue value="`'horizontal'` inside a {@link NavBar}, otherwise `'vertical'`" />,

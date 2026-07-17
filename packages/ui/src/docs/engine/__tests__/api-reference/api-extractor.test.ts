@@ -146,6 +146,64 @@ describe('createApiExtractor', () => {
 		expect(second.bar).toBe(first.bar)
 	})
 
+	it('reads fresh source for an in-session edit to an already-warmed barrel', () => {
+		const { srcDir } = fixture()
+
+		const fooPath = path.join(srcDir, 'components', 'foo', 'foo.tsx')
+
+		const extractor = createApiExtractor(srcDir, { cacheDir: null })
+
+		extractor.getAll()
+
+		// Retype Foo's prop on disk. The live project still holds the pre-edit AST,
+		// so the refresh must apply synchronously before the next extraction reads it.
+		fs.writeFileSync(
+			fooPath,
+			[
+				`/** A foo. */`,
+				`export function Foo(props: { label?: number }) {`,
+				`\treturn null`,
+				`}`,
+				'',
+			].join('\n'),
+		)
+
+		extractor.notifyChanged(fooPath)
+
+		expect(extractor.getAll().foo?.[0]?.props).toEqual([{ name: 'label', type: 'number' }])
+	})
+
+	it('surfaces a component barrel added after the initial load', () => {
+		const { srcDir } = fixture()
+
+		const extractor = createApiExtractor(srcDir, { cacheDir: null })
+
+		expect(Object.keys(extractor.getAll()).sort()).toEqual(['bar', 'foo'])
+
+		// Scaffold a new barrel mid-session; `barrels` must re-list so it isn't
+		// stranded until a restart.
+		const bazDir = path.join(srcDir, 'components', 'baz')
+
+		fs.mkdirSync(bazDir, { recursive: true })
+
+		fs.writeFileSync(path.join(bazDir, 'index.ts'), `export { Baz } from './baz'\n`)
+
+		fs.writeFileSync(
+			path.join(bazDir, 'baz.tsx'),
+			[
+				`/** A baz. */`,
+				`export function Baz(props: { open?: boolean }) {`,
+				`\treturn null`,
+				`}`,
+				'',
+			].join('\n'),
+		)
+
+		extractor.notifyChanged(path.join(bazDir, 'index.ts'))
+
+		expect(Object.keys(extractor.getAll()).sort()).toEqual(['bar', 'baz', 'foo'])
+	})
+
 	it('re-extracts a barrel when a cross-directory dependency it reads changes', () => {
 		const { srcDir } = fixture({ barDependsOnFoo: true })
 

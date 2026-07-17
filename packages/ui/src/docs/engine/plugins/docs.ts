@@ -48,22 +48,35 @@ function parseMeta(project: Project, fileName: string, source: string): DemoMeta
 	return meta
 }
 
-function generateDemoMetas(demosDir: string): Record<string, DemoMeta> {
-	if (!fs.existsSync(demosDir)) return {}
+/**
+ * Visit every demo `.tsx` under `demosDir` in a stable, sorted path order, so
+ * the virtual modules built from the walk (`demo-metas`, `component-modules`)
+ * serialize to identical bytes regardless of the filesystem's `readdir` order —
+ * a source laptop and CI otherwise produce different chunk content, defeating
+ * long-term caching.
+ */
+function forEachDemoFile(demosDir: string, visit: (fullPath: string) => void): void {
+	if (!fs.existsSync(demosDir)) return
 
+	const files = fs
+		.readdirSync(demosDir, { recursive: true, withFileTypes: true })
+		.filter((entry) => entry.isFile() && entry.name.endsWith('.tsx'))
+		.map((entry) => path.join(entry.parentPath, entry.name))
+		.sort()
+
+	for (const full of files) visit(full)
+}
+
+function generateDemoMetas(demosDir: string): Record<string, DemoMeta> {
 	const project = new Project({ useInMemoryFileSystem: true, skipLoadingLibFiles: true })
 
 	const result: Record<string, DemoMeta> = {}
 
-	for (const entry of fs.readdirSync(demosDir, { recursive: true, withFileTypes: true })) {
-		if (!entry.isFile() || !entry.name.endsWith('.tsx')) continue
-
-		const full = path.join(entry.parentPath, entry.name)
-
+	forEachDemoFile(demosDir, (full) => {
 		const rel = path.relative(demosDir, full).replaceAll(path.sep, '/')
 
 		result[`./demos/${rel}`] = parseMeta(project, full, fs.readFileSync(full, 'utf-8'))
-	}
+	})
 
 	return result
 }
@@ -109,6 +122,30 @@ export function parseReExports(source: string, fileName: string): ReExport[] {
 	}
 
 	return result
+}
+
+/**
+ * Whether the barrel carries an export form {@link parseReExports} doesn't model
+ * — a star re-export (`export * [as ns] from …`), a local `export {…}` without a
+ * module specifier, `export default`, or a local `export const`/`function`.
+ * {@link buildTaggedBarrel} regenerates the module from the parsed named
+ * re-exports alone, so any such form would be silently dropped; the caller
+ * leaves the barrel untagged instead of losing its exports.
+ */
+export function hasUnmodeledExports(source: string, fileName: string): boolean {
+	const sf = ts.createSourceFile(fileName, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS)
+
+	return sf.statements.some((stmt) => {
+		if (ts.isExportDeclaration(stmt)) {
+			return !stmt.moduleSpecifier || !stmt.exportClause || !ts.isNamedExports(stmt.exportClause)
+		}
+
+		if (ts.isExportAssignment(stmt)) return true
+
+		const modifiers = ts.canHaveModifiers(stmt) ? ts.getModifiers(stmt) : undefined
+
+		return modifiers?.some((m) => m.kind === ts.SyntaxKind.ExportKeyword) ?? false
+	})
 }
 
 function isPascalCase(name: string): boolean {
@@ -221,10 +258,14 @@ function collectDirNames(
 ): void {
 	if (!fs.existsSync(dir)) return
 
-	for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-		if (!entry.isDirectory()) continue
+	const dirs = fs
+		.readdirSync(dir, { withFileTypes: true })
+		.filter((entry) => entry.isDirectory())
+		.map((entry) => entry.name)
+		.sort()
 
-		collectIndexNames(result, path.join(dir, entry.name, 'index.ts'), moduleFor(entry.name))
+	for (const name of dirs) {
+		collectIndexNames(result, path.join(dir, name, 'index.ts'), moduleFor(name))
 	}
 }
 
@@ -235,17 +276,11 @@ function collectDirNames(
  * stays unresolvable rather than shadowing it.
  */
 function collectDemoExternals(result: Record<string, ModuleEntry>, demosDir: string): void {
-	if (!fs.existsSync(demosDir)) return
-
-	for (const entry of fs.readdirSync(demosDir, { recursive: true, withFileTypes: true })) {
-		if (!entry.isFile() || !entry.name.endsWith('.tsx')) continue
-
-		const full = path.join(entry.parentPath, entry.name)
-
+	forEachDemoFile(demosDir, (full) => {
 		for (const { name, specifier } of parseExternalImports(fs.readFileSync(full, 'utf-8'), full)) {
 			result[name] ??= { module: specifier, external: true }
 		}
-	}
+	})
 }
 
 /** The `virtual:component-modules` payload: the library's import prefix plus its name map. */
@@ -260,7 +295,7 @@ type ComponentModules = { packageName: string; names: Record<string, ModuleEntry
  * needs no extra configuration. `packageName` rides along: `assemble` reads it
  * to prefix derived imports (`<packageName>/button`).
  */
-function buildNameMap(srcDir: string, packageName: string): ComponentModules {
+function buildNameMap(srcDir: string, demosDir: string, packageName: string): ComponentModules {
 	const names: Record<string, ModuleEntry> = {}
 
 	collectDirNames(names, path.join(srcDir, 'components'), (name) => name)
@@ -271,7 +306,11 @@ function buildNameMap(srcDir: string, packageName: string): ComponentModules {
 
 	collectIndexNames(names, path.join(srcDir, 'layouts', 'index.ts'), 'layouts')
 
-	collectDemoExternals(names, path.join(srcDir, 'docs', 'demos'))
+	// `demosDir` is the plugin's resolved demos path, not `srcDir/docs/demos`: the
+	// two diverge when the `srcDir` option overrides source-root detection, and
+	// recomputing from `srcDir` there would read a non-existent directory and drop
+	// every external component from the name map.
+	collectDemoExternals(names, demosDir)
 
 	return { packageName, names }
 }
@@ -417,7 +456,13 @@ export function docsPlugin({
 
 		configResolved(config) {
 			srcDir = srcDirOption ?? findSrcDir(config.root)
-			demosDir = path.resolve(config.root, 'demos')
+
+			// Derive the demos dir from the resolved source root, not `config.root`:
+			// a docs build roots at `src/docs` (so `config.root/demos` happens to
+			// match), but a test run roots at the package dir, where only
+			// `srcDir/docs/demos` points at the real demos. One source keeps every
+			// consumer (metas, the name map, the `__code` transform) aligned.
+			demosDir = path.join(srcDir, 'docs', 'demos')
 		},
 
 		...virtualJsonModules([
@@ -435,11 +480,11 @@ export function docsPlugin({
 			{
 				id: 'virtual:demo-metas',
 				generate: () => (vitest ? {} : generateDemoMetas(demosDir)),
-				shouldInvalidate: (file) => file.startsWith(demosDir) && file.endsWith('.tsx'),
+				shouldInvalidate: (file) => file.startsWith(demosDir + path.sep) && file.endsWith('.tsx'),
 			},
 			{
 				id: 'virtual:component-modules',
-				generate: () => buildNameMap(srcDir, packageName),
+				generate: () => buildNameMap(srcDir, demosDir, packageName),
 				shouldInvalidate: (file) => file.startsWith(srcDir),
 			},
 		]),
@@ -452,6 +497,17 @@ export function docsPlugin({
 			const moduleName = moduleNameFor(cleanId, srcDir)
 
 			if (!moduleName) return
+
+			// Regenerating from the parsed named re-exports would drop any other
+			// export form; leave such a barrel untagged rather than silently losing
+			// its exports (a runtime break in dev and prod).
+			if (hasUnmodeledExports(code, cleanId)) {
+				console.warn(
+					`docs: ${cleanId} mixes non-re-export forms; skipping component tagging to preserve its exports`,
+				)
+
+				return
+			}
 
 			const tagged = buildTaggedBarrel(parseReExports(code, cleanId), moduleName)
 
