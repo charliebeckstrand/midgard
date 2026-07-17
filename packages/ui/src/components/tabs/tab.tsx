@@ -172,7 +172,7 @@ export function Tab({
 					data-current={dataAttr(current)}
 					role="tab"
 					id={tabId}
-					aria-selected={current ?? false}
+					aria-selected={current}
 					// Explicit-id panels stay mounted; `aria-controls` is always set.
 					// Auto panels unmount when inactive unless an all-mounted
 					// TabContents keeps them mounted (registered via context);
