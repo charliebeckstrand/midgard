@@ -1,5 +1,5 @@
 import { getOperators } from './query-operators'
-import type { QueryField, QueryGroup, QueryRule } from './types'
+import type { QueryField, QueryGroup, QueryOperator, QueryRule } from './types'
 
 /**
  * Whether a value counts as filled for an operator that needs one. Nullish,
@@ -22,17 +22,32 @@ export function isEmptyValue(value: unknown): boolean {
 }
 
 /**
- * Whether a rule constrains its result: a value-less operator (`is empty`,
- * `is true`) always does; any other operator needs a non-empty value. The
- * operator's `noValue` flag is resolved from the rule's field. Shared with the
- * summary so a rule the builder reads as inactive is the one the summary omits.
+ * Resolves a rule against the field set: the `field` it names and the
+ * `operator` from that field's set, each `undefined` when unresolved. The
+ * single place a rule is read into its field and operator — shared by the
+ * active judgement and the summary so both interpret a rule identically.
  *
  * @internal
  */
-export function isRuleActive(rule: QueryRule, fields: QueryField[]): boolean {
+export function resolveRule(
+	rule: QueryRule,
+	fields: QueryField[],
+): { field: QueryField | undefined; operator: QueryOperator | undefined } {
 	const field = fields.find((candidate) => candidate.name === rule.field)
 
 	const operator = field && getOperators(field).find((option) => option.value === rule.operator)
+
+	return { field, operator: operator || undefined }
+}
+
+/**
+ * Whether a rule constrains its result: a value-less operator (`is empty`, `is
+ * true`) always does; any other operator needs a non-empty value.
+ *
+ * @internal
+ */
+function isRuleActive(rule: QueryRule, fields: QueryField[]): boolean {
+	const { operator } = resolveRule(rule, fields)
 
 	if (operator?.noValue) return true
 

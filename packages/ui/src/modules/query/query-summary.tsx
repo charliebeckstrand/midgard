@@ -3,7 +3,7 @@
 import { Fragment } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/query-summary'
-import { type QuerySummaryToken, summarizeQuery } from './engine/query-summary'
+import { type QuerySummaryToken, spacedBefore, summarizeQuery } from './engine/query-summary'
 import type { QueryField, QueryGroup } from './engine/types'
 
 /** Props for {@link QuerySummary}: the query `root` to describe and the `fields` resolving each rule's labels. */
@@ -16,7 +16,7 @@ export type QuerySummaryProps = {
 /** Renders one summary token: a muted combinator or bracket, or a rule as field · operator · value. @internal */
 function SummaryToken({ token }: { token: QuerySummaryToken }) {
 	if (token.kind === 'combinator') {
-		return <span className={cn(k.combinator)}>{token.combinator === 'or' ? 'OR' : 'AND'}</span>
+		return <span className={cn(k.combinator)}>{token.label}</span>
 	}
 
 	if (token.kind === 'group-open') return <span className={cn(k.bracket)}>(</span>
@@ -56,18 +56,13 @@ export function QuerySummary({ root, fields, className }: QuerySummaryProps) {
 
 	return (
 		<span data-slot="query-summary" className={cn(k.base, className)}>
-			{tokens.map((token, index) => {
-				const spaced =
-					index > 0 && tokens[index - 1]?.kind !== 'group-open' && token.kind !== 'group-close'
-
-				return (
-					// biome-ignore lint/suspicious/noArrayIndexKey: positional projection re-derived wholesale; the index is the token's stable identity
-					<Fragment key={index}>
-						{spaced && ' '}
-						<SummaryToken token={token} />
-					</Fragment>
-				)
-			})}
+			{tokens.map((token, index) => (
+				// biome-ignore lint/suspicious/noArrayIndexKey: positional projection re-derived wholesale; the index is the token's stable identity
+				<Fragment key={index}>
+					{spacedBefore(tokens[index - 1], token) && ' '}
+					<SummaryToken token={token} />
+				</Fragment>
+			))}
 		</span>
 	)
 }

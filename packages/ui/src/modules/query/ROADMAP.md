@@ -10,7 +10,7 @@ The builder is now one view wired over that core. `useQueryTree` (module root) h
 
 The public surface was unchanged across the move — the barrel re-exports domain symbols from `./engine/*` and view symbols from `./query-builder`, so every consumer (grid, the docs demo, the a11y corpus, the boundary suite) compiled byte-unchanged. The design record for the extraction is [`docs/plans/2026-07-12-QUERY-MODULE-PLAN.md`](../../../docs/plans/2026-07-12-QUERY-MODULE-PLAN.md).
 
-The first read view has landed, proving the thesis. [`engine/query-summary.ts`](engine/query-summary.ts) turns a tree into an ordered token stream (`summarizeQuery`) or a plain line (`formatQuerySummary`), reading the same active/empty judgement the builder does (`isRuleActive`) so a blank rule drops out and an inactive query summarizes to nothing. [`QuerySummary`](query-summary.tsx) (module root) renders that stream beside the edit view — each active rule as `field operator value`, joined by AND/OR and bracketed per nested group — needing the core, not the builder. This is the read view the extraction existed to make cheap.
+The first read view has landed, proving the thesis. [`engine/query-summary.ts`](engine/query-summary.ts) turns a tree into an ordered token stream (`summarizeQuery`) or a plain line (`formatQuerySummary`), reading each rule through the same `resolveRule` seam the active/empty judgement uses, so a blank rule drops out and an inactive query summarizes to nothing. [`QuerySummary`](query-summary.tsx) (module root) renders that stream beside the edit view — each active rule as `field operator value`, joined by AND/OR and bracketed per nested group — needing the core, not the builder. This is the read view the extraction existed to make cheap.
 
 ## Engine — the substrate
 
@@ -30,7 +30,7 @@ The [`module-filename-boundary.test.ts`](../../__tests__/boundary/module-filenam
 
 - **Export `useQueryTree`.** The headless hook is internal today — the builder is its only view, and grid drives a controlled `QueryBuilder` without it. Export it from the barrel once a second consumer justifies the surface (CLAUDE.md §1.1).
 
-- **Chip-row summary.** A second rendering of the same `summarizeQuery` stream — each rule token a chip, combinators and brackets the separators between them — for a filter bar that shows and clears constraints individually. The token model already carries what a chip needs; this is a view over it, no engine change.
+- **Chip-row summary.** A second rendering of the same `summarizeQuery` stream — each rule token a chip, combinators and brackets the separators between them — as a filter bar over the active constraints. A read-only bar renders the display stream as-is; an interactive one (clear a chip, toggle a combinator) acts on the source node, so it adds the node ids the display stream omits.
 
 - **Serialization adapters.** URL-safe round-trip and server filter formats as `engine/` files (`query-serialize`), so a query survives a reload or reaches a backend without the builder in the loop.
 

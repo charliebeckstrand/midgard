@@ -1,6 +1,5 @@
-import { isEmptyValue, isRuleActive } from './query-active'
-import { getOperators } from './query-operators'
-import type { QueryCombinator, QueryField, QueryGroup, QueryOperator, QueryRule } from './types'
+import { isEmptyValue, resolveRule } from './query-active'
+import type { QueryField, QueryGroup, QueryOperator, QueryRule } from './types'
 
 /**
  * One active rule as three resolved, display-ready parts: the field and
@@ -17,14 +16,15 @@ export type QuerySummaryRuleToken = {
 
 /**
  * One element of a rendered query summary: an active {@link
- * QuerySummaryRuleToken}, the `and`/`or` `combinator` joining it to the
- * preceding sibling, or a `group-open`/`group-close` bracket around a nested
- * group. A flat, ordered stream — a sentence renderer joins it left-to-right; a
- * chip renderer draws each rule token as a chip and the rest as separators.
+ * QuerySummaryRuleToken}, the `AND`/`OR` `label` joining it to the preceding
+ * sibling, or a `group-open`/`group-close` bracket around a nested group. A
+ * flat, ordered stream of display-ready pieces — a sentence renderer joins it
+ * left-to-right; a chip renderer draws each rule token as a chip and the rest as
+ * separators.
  */
 export type QuerySummaryToken =
 	| QuerySummaryRuleToken
-	| { kind: 'combinator'; combinator: QueryCombinator }
+	| { kind: 'combinator'; label: string }
 	| { kind: 'group-open' }
 	| { kind: 'group-close' }
 
@@ -53,27 +53,27 @@ function describeRange(
 
 /** Resolves a rule's display value: a `select` maps to its option label, everything else stringifies. @internal */
 function describeValue(field: QueryField | undefined, value: unknown): string {
+	const raw = String(value ?? '')
+
 	if (field?.type === 'select') {
-		return field.options?.find((option) => option.value === value)?.label ?? String(value ?? '')
+		return field.options?.find((option) => option.value === value)?.label ?? raw
 	}
 
-	return String(value ?? '')
+	return raw
 }
 
 /**
- * Describes one rule as a token, or `null` when the rule imposes no constraint
- * (mirrors {@link isRuleActive}, so a half-built or cleared rule drops out).
- * Unresolved field/operator names render verbatim, since such a rule can still
- * constrain the result.
+ * Describes one rule as a token, or `null` when the rule imposes no constraint —
+ * a value-requiring operator with an empty value drops out, the same judgement
+ * the active check applies. Unresolved field/operator names render verbatim,
+ * since such a rule can still constrain the result.
  *
  * @internal
  */
 function describeRule(rule: QueryRule, fields: QueryField[]): QuerySummaryRuleToken | null {
-	if (!isRuleActive(rule, fields)) return null
+	const { field, operator } = resolveRule(rule, fields)
 
-	const field = fields.find((candidate) => candidate.name === rule.field)
-
-	const operator = field && getOperators(field).find((option) => option.value === rule.operator)
+	if (!operator?.noValue && isEmptyValue(rule.value)) return null
 
 	const label = field?.label ?? rule.field
 
@@ -89,9 +89,14 @@ function describeRule(rule: QueryRule, fields: QueryField[]): QuerySummaryRuleTo
 	}
 }
 
+/** Wraps a nullable rule token as a (possibly empty) token list. @internal */
+function toTokens(token: QuerySummaryRuleToken | null): QuerySummaryToken[] {
+	return token ? [token] : []
+}
+
 /**
  * Describes a group's active children in order, each joined to the previous by
- * its combinator; a nested group with any active child is wrapped in
+ * its `AND`/`OR` label; a nested group with any active child is wrapped in
  * brackets. Inactive rules and empty groups drop out, taking their leading
  * combinator with them.
  *
@@ -112,7 +117,9 @@ function describeGroup(
 
 		if (tokens.length === 0) continue
 
-		if (body.length > 0) body.push({ kind: 'combinator', combinator: child.combinator ?? 'and' })
+		if (body.length > 0) {
+			body.push({ kind: 'combinator', label: (child.combinator ?? 'and') === 'or' ? 'OR' : 'AND' })
+		}
 
 		body.push(...tokens)
 	}
@@ -120,11 +127,6 @@ function describeGroup(
 	if (nested && body.length > 0) return [{ kind: 'group-open' }, ...body, { kind: 'group-close' }]
 
 	return body
-}
-
-/** Wraps a nullable rule token as a (possibly empty) token list. @internal */
-function toTokens(token: QuerySummaryRuleToken | null): QuerySummaryToken[] {
-	return token ? [token] : []
 }
 
 /**
@@ -140,9 +142,24 @@ export function summarizeQuery(group: QueryGroup, fields: QueryField[]): QuerySu
 	return describeGroup(group, fields, false)
 }
 
+/**
+ * Whether a space precedes `token` in a rendered summary: not at the start, not
+ * after an opening bracket, and not before a closing one, so brackets hug their
+ * contents. Shared by the string and React renderers so their spacing can't
+ * drift.
+ *
+ * @internal
+ */
+export function spacedBefore(
+	previous: QuerySummaryToken | undefined,
+	token: QuerySummaryToken,
+): boolean {
+	return previous != null && previous.kind !== 'group-open' && token.kind !== 'group-close'
+}
+
 /** Renders one token as its sentence fragment. @internal */
 function renderToken(token: QuerySummaryToken): string {
-	if (token.kind === 'combinator') return token.combinator === 'or' ? 'OR' : 'AND'
+	if (token.kind === 'combinator') return token.label
 
 	if (token.kind === 'group-open') return '('
 
@@ -155,27 +172,17 @@ function renderToken(token: QuerySummaryToken): string {
 
 /**
  * Renders a query tree as a single human-readable line, e.g. `Status is Active
- * AND (Age ≥ 18 OR Name contains lee)`. Convenience over {@link
- * summarizeQuery} for a plain-text surface (a `title`, an aria-label, a log);
- * empty when the query imposes no constraint.
+ * AND (Age ≥ 18 OR Name contains lee)`. Convenience over {@link summarizeQuery}
+ * for a plain-text surface (a `title`, an aria-label, a log); empty when the
+ * query imposes no constraint.
  *
  * @param group - The query group (typically the root) to describe.
  * @param fields - Field definitions resolving each rule's labels, operators, and options.
  */
 export function formatQuerySummary(group: QueryGroup, fields: QueryField[]): string {
-	let line = ''
+	const tokens = summarizeQuery(group, fields)
 
-	let afterOpen = false
-
-	for (const token of summarizeQuery(group, fields)) {
-		const fragment = renderToken(token)
-
-		const joined = line === '' || afterOpen || token.kind === 'group-close'
-
-		line += joined ? fragment : ` ${fragment}`
-
-		afterOpen = token.kind === 'group-open'
-	}
-
-	return line
+	return tokens
+		.map((token, index) => (spacedBefore(tokens[index - 1], token) ? ' ' : '') + renderToken(token))
+		.join('')
 }
