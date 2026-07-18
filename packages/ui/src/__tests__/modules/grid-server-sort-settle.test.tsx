@@ -109,6 +109,55 @@ describe('Grid server-sort settle', () => {
 		expect(table().className).not.toContain(DIM)
 	})
 
+	it('lifts the wash when a rapid asc→desc→clear settles back to the shown rows', async () => {
+		// A server sort where an in-flight sort's reordered rows never arrive before
+		// the next click. Clearing returns to the server's default order — which,
+		// with nothing landed between the clicks, is the order already on screen, so
+		// the consumer hands back the same `rows` reference. The grid must still read
+		// the cleared sort as settled, not stay stuck mid-flight (the reported bug).
+		function RapidHarness() {
+			const [sort, setSort] = useState<SortState[]>([])
+
+			const [rows, setRows] = useState(initialRows)
+
+			const onValueChange = (next: SortState[]) => {
+				setSort(next)
+
+				// Non-empty sorts are in flight (their rows land later); clearing snaps
+				// back to the default set already shown — an unchanged `rows` reference.
+				if (next.length === 0) setRows(initialRows)
+			}
+
+			return (
+				<Grid
+					columns={columns}
+					rows={rows}
+					getKey={getKey}
+					sort={{ value: sort, onValueChange, manual: true }}
+				/>
+			)
+		}
+
+		renderUI(<RapidHarness />)
+
+		// asc, then desc — each a server sort with no rows yet, so the body settles.
+		sortByName()
+
+		await waitFor(() => expect(table().className).toContain(PULSE))
+
+		sortByName()
+
+		expect(table().className).toContain(PULSE)
+
+		// Clearing returns to unsorted, matching the rows already shown, so the wash
+		// lifts. Before the fix it latched — pulsing on with no sort in flight.
+		sortByName()
+
+		await waitFor(() => expect(table().className).not.toContain(PULSE))
+
+		expect(table().className).not.toContain(DIM)
+	})
+
 	it('leaves a client-sorted grid untouched', () => {
 		function ClientHarness() {
 			const [sort, setSort] = useState<SortState[]>([])
