@@ -231,6 +231,31 @@ describe('Grid per-column filters', () => {
 		expect(screen.getByRole('button', { name: /^Filter Name/ })).not.toHaveAttribute('data-active')
 	})
 
+	it('settles the draft when the query form is submitted, as Enter does in a rule input', () => {
+		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+
+		fireEvent.click(screen.getByRole('button', { name: /^Filter Name/ }))
+
+		const value = screen.getByRole('textbox', { name: 'Name value' })
+
+		fireEvent.change(value, { target: { value: 'Bob' } })
+
+		// Submitting the form — the Apply button is `type="submit"`, so Enter in a
+		// rule input reaches it — settles the draft without a mouse press on Apply.
+		const form = value.closest('form')
+
+		if (!form) throw new Error('expected the query builder to be wrapped in a form')
+
+		fireEvent.submit(form)
+
+		expect(screen.getByRole('button', { name: /^Filter Name/ })).toHaveAttribute('data-active')
+
+		// The applied query constrains the rows: Alice drops, Bob stays.
+		expect(screen.queryByText('Alice')).not.toBeInTheDocument()
+
+		expect(screen.getByText('Bob')).toBeInTheDocument()
+	})
+
 	it('turns the filter button into a menu only while a filter is applied', () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 

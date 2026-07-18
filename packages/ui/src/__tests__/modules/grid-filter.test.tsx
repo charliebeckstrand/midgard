@@ -59,6 +59,20 @@ describe('Grid search', () => {
 		})
 	})
 
+	it('flushes the pending query on Enter, before the debounce settles', async () => {
+		await withFakeTime(async (clock) => {
+			renderUI(<Grid columns={columns} rows={rows} getKey={getKey} search={{}} />)
+
+			// Submitting the field bypasses the debounce, so the rows filter without
+			// advancing time — Bob is gone the moment Enter lands.
+			await clock.user.type(screen.getByRole('searchbox'), 'Alice{Enter}')
+
+			expect(screen.getByText('Alice')).toBeInTheDocument()
+
+			expect(screen.queryByText('Bob')).not.toBeInTheDocument()
+		})
+	})
+
 	it('fires onValueChange with the settled query', async () => {
 		await withFakeTime(async (clock) => {
 			const onValueChange = vi.fn()
