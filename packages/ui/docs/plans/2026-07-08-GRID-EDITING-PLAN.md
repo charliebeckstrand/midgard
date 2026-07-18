@@ -70,4 +70,4 @@ Per CLAUDE.md §3.5: TSDoc on every `GridEditableConfig` addition in the same ch
 
 ---
 
-**See also:** [`ROADMAP.md`](../../src/modules/grid/ROADMAP.md) · [`grid-editing-types.ts`](../../src/modules/grid/grid-editing-types.ts) · [`2026-07-01-VIRTUALIZATION-KEYBOARD-PLAN.md`](../2026-07-01-VIRTUALIZATION-KEYBOARD-PLAN.md) (plan-doc precedent).
+**See also:** [`ROADMAP.md`](../../src/modules/grid/ROADMAP.md) · [`grid-editing-types.ts`](../../src/modules/grid/grid-editing-types.ts).
