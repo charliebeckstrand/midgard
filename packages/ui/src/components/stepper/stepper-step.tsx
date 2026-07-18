@@ -133,7 +133,7 @@ export function StepperStep({ value, disabled, className, children }: StepperSte
 				aria-controls={hasPanels && state === 'current' ? panelId : undefined}
 				disabled={isDisabled}
 				onClick={() => onValueChange(value)}
-				className={cn(classes, 'cursor-pointer')}
+				className={classes}
 			>
 				{inner}
 			</button>

@@ -60,7 +60,7 @@ export type PivotTableResult = {
  * @param keys - Fields naming the row, column, and value dimensions.
  * @param options - Aggregation and explicit axis ordering.
  * @returns The {@link PivotTableResult}: resolved axis keys plus cell, row-total, column-total, and grand-total lookups.
- * @remarks Cells and totals recompute only when `rows`, `keys`, or `aggregation` change; non-finite values are dropped during grouping.
+ * @remarks Cells recompute when `rows`, `keys`, or `aggregation` change; the row and column totals additionally recompute when the axis ordering (`rowOrder` / `columnOrder`) changes, since they read the resolved key arrays. Non-numeric cells are dropped during grouping.
  */
 export function usePivotTable<T>(
 	rows: readonly T[],
@@ -94,8 +94,10 @@ export function usePivotTable<T>(
 		for (const [row, columns] of groups) {
 			const rowCells = new Map<string, number>()
 
+			// Every bucket `groupValues` creates holds at least one value (it is
+			// created only when a value is pushed), so no empty-bucket guard is needed.
 			for (const [col, values] of columns) {
-				if (values.length > 0) rowCells.set(col, aggregate(values, aggregation))
+				rowCells.set(col, aggregate(values, aggregation))
 			}
 
 			matrix.set(row, rowCells)

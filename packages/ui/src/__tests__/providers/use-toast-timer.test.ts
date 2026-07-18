@@ -39,8 +39,8 @@ describe('useToastTimer', () => {
 		expect(start).toHaveBeenCalledOnce()
 	})
 
-	it('does not collapse the remaining time when paused twice (hover + focus)', () => {
-		// Guards the already-paused path: a second pause() call must not subtract
+	it('does not collapse the remaining time across paired holds (hover + focus)', () => {
+		// Guards the deepened-hold path: a second pause() must not subtract
 		// elapsed time again, which would collapse remaining time to ~0 and
 		// auto-dismiss the toast mid-interaction.
 		const { result, start } = setup(1000)
@@ -49,19 +49,50 @@ describe('useToastTimer', () => {
 
 		vi.advanceTimersByTime(300)
 
-		// Hover pause, then focus pause with no intervening resume.
+		// Hover hold, then focus hold with no intervening release.
 		act(() => result.current.pause())
 
 		act(() => result.current.pause())
 
+		// One release (focus leaves): the remaining hover hold keeps the timer frozen.
 		act(() => result.current.resume())
 
-		// 700ms should remain; a collapsed timer would have already fired.
+		vi.advanceTimersByTime(5000)
+
+		expect(start).not.toHaveBeenCalled()
+
+		// The final release re-arms with the un-collapsed 700ms remaining.
+		act(() => result.current.resume())
+
 		vi.advanceTimersByTime(699)
 
 		expect(start).not.toHaveBeenCalled()
 
 		vi.advanceTimersByTime(1)
+
+		expect(start).toHaveBeenCalledOnce()
+	})
+
+	it('ignores an unpaired resume (the hold count floors at zero)', () => {
+		const { result, start } = setup(1000)
+
+		// A stray release with nothing held must not push the count negative —
+		// that would swallow the next hold and let the timer run under it.
+		act(() => result.current.resume())
+
+		act(() => result.current.startTimer())
+
+		vi.advanceTimersByTime(300)
+
+		act(() => result.current.pause())
+
+		vi.advanceTimersByTime(5000)
+
+		expect(start).not.toHaveBeenCalled()
+
+		act(() => result.current.resume())
+
+		vi.advanceTimersByTime(700)
 
 		expect(start).toHaveBeenCalledOnce()
 	})

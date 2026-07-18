@@ -83,8 +83,11 @@ export function CurrencyInput({
 
 	const text = editingText ?? (num === undefined ? '' : displayFormatter.format(num))
 
+	// Shared by the hook and the type-at-end branch below, so the two can't drift.
+	const format = (raw: string) => formatEditing(raw, resolvedLocale, decimal, maxFractionDigits)
+
 	const { ref: setRefs, reformat } = useFormattedInput({
-		format: (raw) => formatEditing(raw, resolvedLocale, decimal, maxFractionDigits),
+		format,
 		meaningful: (c) => isMeaningful(c, decimal),
 		ref,
 	})
@@ -105,7 +108,14 @@ export function CurrencyInput({
 				if (event.key === 'Enter') event.currentTarget.blur()
 			})}
 			onChange={(event) => {
-				const formatted = reformat(event)
+				const raw = event.target.value
+
+				// Typing at the end: format without the meaningful-count caret
+				// restore, which would pin the caret before the leading `0` the
+				// formatter pads in (`.` → `0.`), landing the next digit in the
+				// integer part (`.5` → `5.`). Mirrors DateInput's type-at-end branch.
+				const formatted =
+					(event.target.selectionStart ?? raw.length) >= raw.length ? format(raw) : reformat(event)
 
 				setEditingText(formatted)
 

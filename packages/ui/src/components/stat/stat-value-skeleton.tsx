@@ -10,5 +10,5 @@ export type StatValueSkeletonProps = {
 
 /** Value-shaped placeholder; pair with the real `<StatValue size>`. */
 export function StatValueSkeleton({ size, className }: StatValueSkeletonProps) {
-	return <Placeholder className={cn(k.skeleton.value({ size: size ?? 'md' }), className)} />
+	return <Placeholder className={cn(k.skeleton.value({ size }), className)} />
 }

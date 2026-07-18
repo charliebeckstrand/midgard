@@ -1,6 +1,6 @@
 'use client'
 
-import { type SyntheticEvent, useRef, useState } from 'react'
+import { type SyntheticEvent, useCallback, useMemo, useRef, useState } from 'react'
 import type { PdfViewerPage } from './types'
 
 type Size = { width: number; height: number }
@@ -38,16 +38,26 @@ export function usePdfViewerPageSize(
 		setNaturalSize(null)
 	}
 
-	const pageSize =
-		activePage?.width && activePage.height
-			? { width: activePage.width, height: activePage.height }
-			: naturalSize
+	// Stable identity on the primitive dimensions: `pageSize` flows through the
+	// page scale into the PdfViewerContext memo, so a fresh literal every render
+	// would defeat it. Memoize only the caller size and fall back with `??`, so a
+	// caller-dimensioned page keeps one identity even across the natural-size
+	// measurement its `<img>` load triggers.
+	const callerSize = useMemo<Size | null>(
+		() =>
+			activePage?.width && activePage.height
+				? { width: activePage.width, height: activePage.height }
+				: null,
+		[activePage?.width, activePage?.height],
+	)
 
-	const onImageLoad = (event: SyntheticEvent<HTMLImageElement>) => {
+	const pageSize = callerSize ?? naturalSize
+
+	const onImageLoad = useCallback((event: SyntheticEvent<HTMLImageElement>) => {
 		const img = event.currentTarget
 
 		setNaturalSize({ width: img.naturalWidth, height: img.naturalHeight })
-	}
+	}, [])
 
 	return { pageSize, onImageLoad }
 }

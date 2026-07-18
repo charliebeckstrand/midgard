@@ -14,31 +14,13 @@ import {
 	quantileBinIndex,
 	resolveColorBins,
 	resolveQuantileBins,
+	toNumericCell,
 	valueExtent,
 } from '../../utilities'
 import type { MapCategoryMeta } from './map-categories'
 import type { DataKey } from './types'
 
 export { sampleRange } from '../../utilities'
-
-/**
- * Coerces a row's raw value to a number for binning, mapping the blanks a data
- * source uses for "no value" — `null`, `undefined`, and empty or whitespace-only
- * strings — to `NaN` rather than the `0` a bare {@link Number} yields for them. A
- * `0` would survive the finite filters as a real value: it drags the derived
- * domain's floor down and paints the row in the lowest bin, when the contract is
- * the neutral no-data fill. A finite number passes through; a numeric string
- * parses; anything else is non-finite and reads as no-data.
- *
- * @internal
- */
-function toBinnableNumber(value: unknown): number {
-	if (typeof value === 'number') return value
-
-	if (typeof value === 'string' && value.trim() !== '') return Number(value)
-
-	return Number.NaN
-}
 
 /** Options a choropleth resolves its bins with. @internal */
 export type ValueScaleOptions = {
@@ -80,7 +62,7 @@ export function resolveValueBins<T>(
 	/** Maps a raw value to its bin index; `null` is the no-data fill. */
 	assign: (value: number) => number | null
 } {
-	const values = data.map((datum) => toBinnableNumber(datum[valueKey]))
+	const values = data.map((datum) => toNumericCell(datum[valueKey]))
 
 	const resolved = valueExtent(values, domain)
 
@@ -156,7 +138,7 @@ export function regionValueJoin<T>(
 	for (const id of regionIds) {
 		const datum = byRegion.get(id)
 
-		const value = datum == null ? Number.NaN : toBinnableNumber(datum[valueKey])
+		const value = datum == null ? Number.NaN : toNumericCell(datum[valueKey])
 
 		const finite = Number.isFinite(value)
 

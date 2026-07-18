@@ -7,11 +7,6 @@ import type { ToastData, ToastPosition, ToastSeverity } from '../../providers/to
 import { k } from '../../recipes/kata/toast'
 import { Alert, type AlertVariants } from '../alert'
 
-/** Picks the slide-in motion preset matching the viewport edge. @internal */
-function getToastMotion(position: ToastPosition) {
-	return position.startsWith('top') ? k.motion.top : k.motion.bottom
-}
-
 /** Fade-out for a user dismissal; the height collapse is left to the neighbours' layout spring. @internal */
 const manualDismiss = { opacity: 0, transition: k.motion.dismiss }
 
@@ -62,7 +57,11 @@ type ToastAlertProps = {
  * insertion); other severities use `role="status"` and are mirrored through the
  * persistent announcer on mount, since screen readers can miss a live region
  * inserted with its text (WCAG 4.1.3). Auto-dismiss pauses while the pointer or
- * focus is inside the toast (WCAG 2.2.1). Not exported; rendered by {@link Toast}.
+ * focus is inside the toast (WCAG 2.2.1); hover and focus hold the shared timer
+ * independently (source-counted), and unmount releases this toast's holds — a
+ * node removed under a stationary pointer or held focus gets no
+ * `mouseleave`/`blur`, and an unreleased hold would freeze auto-dismiss for
+ * every later toast. Not exported; rendered by {@link Toast}.
  * @internal
  */
 export function ToastAlert({
@@ -75,14 +74,14 @@ export function ToastAlert({
 	onResume,
 	onReset,
 }: ToastAlertProps) {
-	const motionConfig = getToastMotion(position)
+	const positionTop = position.startsWith('top')
+
+	const motionConfig = positionTop ? k.motion.top : k.motion.bottom
 
 	const { variant, color } = severityAlertMap[t.severity ?? 'default']
 
 	// Warning/error interrupt (assertive); everything else queues politely.
 	const assertive = t.severity === 'warning' || t.severity === 'error'
-
-	const positionTop = position.startsWith('top')
 
 	const autoDismiss = positionTop ? autoDismissTop : autoDismissBottom
 
@@ -101,6 +100,69 @@ export function ToastAlert({
 		// Mount-only: each toast id mounts exactly once.
 	}, [assertive])
 
+	// Hover and focus each hold the timer's source-counted pause at most once;
+	// the flags keep every hold/release paired so the count balances.
+	const hoverHeldRef = useRef(false)
+
+	const focusHeldRef = useRef(false)
+
+	// Latest-ref: the unmount release must call the current resume without the
+	// effect keying on it — a dep change would release still-live holds mid-life.
+	const onResumeRef = useRef(onResume)
+
+	onResumeRef.current = onResume
+
+	// A toast removed while hovered or focused (close click, maxToasts eviction,
+	// programmatic dismiss) gets no mouseleave/blur, so release its holds here —
+	// otherwise the stuck count freezes auto-dismiss for every later toast.
+	useEffect(
+		() => () => {
+			if (hoverHeldRef.current) onResumeRef.current()
+
+			if (focusHeldRef.current) onResumeRef.current()
+
+			// Reset so a re-show under <Activity> (effect cleanup runs while the
+			// refs persist) starts unheld — a stale flag would swallow the next
+			// hold and let auto-dismiss run under the pointer.
+			hoverHeldRef.current = false
+
+			focusHeldRef.current = false
+		},
+		[],
+	)
+
+	function holdHover() {
+		if (hoverHeldRef.current) return
+
+		hoverHeldRef.current = true
+
+		onPause()
+	}
+
+	function releaseHover() {
+		if (!hoverHeldRef.current) return
+
+		hoverHeldRef.current = false
+
+		onResume()
+	}
+
+	function holdFocus() {
+		if (focusHeldRef.current) return
+
+		focusHeldRef.current = true
+
+		onPause()
+	}
+
+	function releaseFocus() {
+		if (!focusHeldRef.current) return
+
+		focusHeldRef.current = false
+
+		onResume()
+	}
+
 	return (
 		<motion.div
 			layout
@@ -117,21 +179,19 @@ export function ToastAlert({
 				transition={motionConfig.transition}
 				ref={contentRef}
 				role={assertive ? 'alert' : 'status'}
-				onMouseEnter={onPause}
-				onMouseLeave={(event) => {
-					// Don't resume while focus is still inside the toast (keyboard user);
-					// mirrors the onBlur guard. Auto-dismiss stays paused under focus
-					// (WCAG 2.2.1).
-					if (event.currentTarget.contains(document.activeElement)) return
-
-					onResume()
-				}}
-				// Pauses the auto-dismiss timer while focus is anywhere inside the toast
-				// (WCAG 2.2.1). `onFocus`/`onBlur` bubble (focusin/focusout); resumes
-				// only once focus leaves the subtree.
-				onFocus={onPause}
+				// Pointer and focus pause auto-dismiss independently (WCAG 2.2.1):
+				// with both holds counted, releasing one under the other — Tab out
+				// while hovered, mouse out while focused — keeps the timer paused.
+				onMouseEnter={holdHover}
+				onMouseLeave={releaseHover}
+				// `onFocus`/`onBlur` bubble (focusin/focusout); a move within the
+				// subtree re-fires them, so the held flag and the relatedTarget
+				// check make those no-ops. Release only when focus leaves the toast.
+				onFocus={holdFocus}
 				onBlur={(event) => {
-					if (!event.currentTarget.contains(event.relatedTarget as Node | null)) onResume()
+					if (event.currentTarget.contains(event.relatedTarget as Node | null)) return
+
+					releaseFocus()
 				}}
 				onClick={() => onReset(t.id)}
 			>

@@ -95,6 +95,14 @@ export function useCommandPaletteState({ open, onOpenChange }: CommandPaletteSta
 
 		lastDeferredRef.current = deferredQuery
 
+		// A closing palette resets its own highlight in the render-phase branch
+		// below. Don't re-seed on the close-time query→'' transition: the options
+		// are still mounted through the exit animation, so seeding would write the
+		// index back to 0 and reopen at the second item. `deferredQuery` lags
+		// `query`, so this transition's effect can run while `open` is already
+		// false; guard on it directly.
+		if (!open) return
+
 		seedVirtualTopMatch(
 			listRef.current,
 			ITEM_SELECTOR,
@@ -102,15 +110,24 @@ export function useCommandPaletteState({ open, onOpenChange }: CommandPaletteSta
 			activeIndexRef,
 			inputRef,
 		)
-	}, [deferredQuery])
+	}, [deferredQuery, open])
 
-	// Resets query when closed; done during render, not in an effect.
+	// Resets the query and the virtual-highlight index when closed; done during
+	// render, not in an effect. Clearing `activeIndexRef` stops a virtualized
+	// palette from resuming navigation at the prior session's index on reopen:
+	// the closed dialog unmounts its options, so there's no DOM `data-active` to
+	// read the index back off of, and a stale ref would make the first arrow land
+	// at `index + 1` instead of the first item (mirrors Combobox's close reset).
 	const prevOpenRef = useRef(open)
 
 	if (open !== prevOpenRef.current) {
 		prevOpenRef.current = open
 
-		if (!open) setQuery('')
+		if (!open) {
+			setQuery('')
+
+			activeIndexRef.current = -1
+		}
 	}
 
 	const close = useCallback(() => onOpenChange(false), [onOpenChange])

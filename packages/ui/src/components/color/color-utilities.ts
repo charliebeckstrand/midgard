@@ -36,16 +36,26 @@ function roundHsva({ h, s, v, a }: Hsva): Hsva {
 	}
 }
 
-/** True when two colours render identically; ignores hue where saturation or value collapse it. */
+/**
+ * True when two colours render identically: value and alpha must match, then
+ * hue and saturation are compared only where they show — both collapse at zero
+ * value (black), and hue additionally at zero saturation (grey).
+ */
 export function equalHsva(a: Hsva, b: Hsva): boolean {
 	const ca = roundHsva(a)
 	const cb = roundHsva(b)
 
-	const hueMoot = (c: Hsva) => c.s === 0 || c.v === 0
+	if (ca.v !== cb.v || Math.abs(ca.a - cb.a) >= 0.005) return false
 
-	const sameHue = hueMoot(ca) && hueMoot(cb) ? true : ca.h === cb.h
+	// Black: neither hue nor saturation is visible.
+	if (ca.v === 0) return true
 
-	return sameHue && ca.s === cb.s && ca.v === cb.v && Math.abs(ca.a - cb.a) < 0.005
+	if (ca.s !== cb.s) return false
+
+	// Grey: hue is not visible.
+	if (ca.s === 0) return true
+
+	return ca.h === cb.h
 }
 
 /** Convert HSVA to RGBA; `r`/`g`/`b` round to integers `0-255`, alpha passes through clamped. */

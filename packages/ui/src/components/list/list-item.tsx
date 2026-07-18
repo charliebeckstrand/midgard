@@ -104,7 +104,7 @@ export function ListItem<Fallback extends ElementType = 'div'>({
 			>
 				{children}
 			</Polymorphic>
-			{suffix && suffix}
+			{suffix}
 		</li>
 	)
 }

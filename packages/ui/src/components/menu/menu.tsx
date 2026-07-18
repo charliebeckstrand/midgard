@@ -46,7 +46,7 @@ export function Menu({
 	className,
 	children,
 }: MenuProps) {
-	const { state, actions, handleContextMenu, isDropdown } = useMenuState({
+	const { state, actions, handleContextMenu, isContextMenu } = useMenuState({
 		open,
 		defaultOpen,
 		onOpenChange,
@@ -66,7 +66,7 @@ export function Menu({
 					// No role: the wrapper holds arbitrary page content and implements no
 					// keyboard model of its own. Stamping role="application" here would
 					// suppress AT browse-mode for everything inside it, so it is omitted.
-					{...(!isDropdown && { onContextMenu: handleContextMenu })}
+					{...(isContextMenu && { onContextMenu: handleContextMenu })}
 				>
 					{children}
 				</div>

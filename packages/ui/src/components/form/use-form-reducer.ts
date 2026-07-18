@@ -16,6 +16,7 @@ import {
 	type FormAction,
 	type FormState,
 	formReducer,
+	hasIssues,
 	normalizeIssues,
 	runValidators,
 	type Touched,
@@ -171,10 +172,7 @@ export function useFormReducer<T extends Record<string, unknown>>({
 	// from `setErrors` or an `onSubmit` `{ fieldErrors }` return. The reducer
 	// keeps `errors` current per `validateOn`; this reads it directly rather
 	// than re-running validators.
-	const valid = useMemo(
-		() => !Object.values(errors).some((issues) => issues !== undefined && issues.length > 0),
-		[errors],
-	)
+	const valid = useMemo(() => !Object.values(errors).some(hasIssues), [errors])
 
 	const getValue = useCallback((name: string) => valuesRef.current[name as keyof T], [])
 
@@ -255,8 +253,7 @@ export function useFormReducer<T extends Record<string, unknown>>({
 
 			dispatch({ type: 'submit-validate', touched: allTouched, errors: submitErrors })
 
-			if (Object.values(submitErrors).some((issues) => issues !== undefined && issues.length > 0))
-				return
+			if (Object.values(submitErrors).some(hasIssues)) return
 
 			if (!onSubmit) return
 

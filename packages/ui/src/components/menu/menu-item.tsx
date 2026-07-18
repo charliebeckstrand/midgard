@@ -88,11 +88,13 @@ export function MenuItem(props: MenuItemProps) {
 		return (
 			<LinkComponent
 				id={id}
+				className={classes}
+				{...rest}
+				// After the spread, like the composed onClick below: a consumer prop
+				// must not drop the row out of roving (role) or the tab model (tabIndex).
 				role="menuitem"
 				tabIndex={-1}
 				data-slot="menu-item"
-				className={classes}
-				{...rest}
 				// Composed after the spread: runs the consumer onClick, then
 				// selection (onAction/close).
 				onClick={(event: MouseEvent<HTMLAnchorElement>) =>
@@ -118,14 +120,17 @@ export function MenuItem(props: MenuItemProps) {
 	return (
 		<button
 			id={id}
-			type="button"
-			role="menuitem"
-			tabIndex={-1}
 			aria-disabled={ariaAttr(disabled)}
-			data-slot="menu-item"
 			data-disabled={dataAttr(disabled)}
 			className={classes}
 			{...rest}
+			// After the spread, like the composed handlers below: a consumer prop
+			// must not drop the row out of roving (role), the tab model (tabIndex),
+			// or turn it into a form-submit (type).
+			type="button"
+			role="menuitem"
+			tabIndex={-1}
+			data-slot="menu-item"
 			// Composed after the spread: runs consumer handlers, then selection
 			// (onAction/close). The disabled guard precedes both so disabled
 			// items are inert on every input path.

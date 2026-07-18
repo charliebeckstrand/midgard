@@ -87,12 +87,10 @@ export function Input(props: InputProps) {
 
 	const scope = useIdScope({ id: sharedAttrs.id })
 
-	const resolvedInvalid = invalid ?? sharedAttrs.invalid
-
 	// An explicit `invalid` prop fully controls the validation chrome (forcing it
 	// on or off); otherwise reflect the Control cascade's resolved state, which
 	// includes a warning / success severity broadcast by <Field>.
-	const validation = invalid === undefined ? sharedAttrs.validation : invalidAttrs(resolvedInvalid)
+	const validation = invalid === undefined ? sharedAttrs.validation : invalidAttrs(invalid)
 
 	const resolvedVariant = variant ?? control?.variant ?? (glass ? 'glass' : undefined)
 

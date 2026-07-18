@@ -107,6 +107,43 @@ describe('Markdown', () => {
 		expect(el?.querySelector('strong')?.textContent).toBe('text')
 	})
 
+	it('strips dangerous URL schemes from links and images', () => {
+		const { container } = renderUI(
+			<Markdown>{'[click](javascript:alert(1)) and ![x](vbscript:msgbox)'}</Markdown>,
+		)
+
+		const el = bySlot(container, 'markdown')
+
+		// A `javascript:` / `vbscript:` URL renders no href/src, so a click runs nothing.
+		expect(el?.querySelector('a')).not.toHaveAttribute('href')
+
+		expect(el?.querySelector('img')).not.toHaveAttribute('src')
+	})
+
+	it('keeps safe link URLs and data-URI images', () => {
+		const { container } = renderUI(
+			<Markdown>{'[ok](https://example.com) ![pic](data:image/png;base64,iVBORw0KGgo=)'}</Markdown>,
+		)
+
+		const el = bySlot(container, 'markdown')
+
+		expect(el?.querySelector('a')).toHaveAttribute('href', 'https://example.com')
+
+		expect(el?.querySelector('img')?.getAttribute('src')).toMatch(/^data:image\/png/)
+	})
+
+	it('strips a scheme hidden behind a leading control character', () => {
+		// The URL parser trims leading C0 controls at click time, so
+		// `javascript:` resolves to `javascript:` and runs. marked preserves
+		// the byte in an angle-bracket destination; the scheme guard must drop the
+		// whole C0 range, not just `\s`, or this slips through with a live href.
+		const src = `[click](<${String.fromCharCode(1)}javascript:alert(1)>)`
+
+		const { container } = renderUI(<Markdown>{src}</Markdown>)
+
+		expect(bySlot(container, 'markdown')?.querySelector('a')).not.toHaveAttribute('href')
+	})
+
 	it('renders inline code through the Code component', () => {
 		const { container } = renderUI(<Markdown>{'Some `code`.'}</Markdown>)
 

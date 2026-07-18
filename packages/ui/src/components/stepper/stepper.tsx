@@ -4,13 +4,13 @@ import { Children, isValidElement, type ReactNode, useId, useMemo, useRef } from
 import { cn } from '../../core'
 import { useA11yRoving, useMinWidth } from '../../hooks'
 import { ActiveIndicatorScope } from '../../primitives/active-indicator'
-import { k, type StepperVariants } from '../../recipes/kata/stepper'
+import { k } from '../../recipes/kata/stepper'
 import { Stack } from '../stack'
 import { StepperContext, type StepperOrientation } from './context'
 import { StepperPanels } from './stepper-panels'
 
-/** Props for {@link Stepper}: the controlled `value`, its `onValueChange` handler, `linear`/`orientation` modifiers, recipe variants, and step children. */
-export type StepperProps = StepperVariants & {
+/** Props for {@link Stepper}: the controlled `value`, its `onValueChange` handler, `linear`/`orientation` modifiers, and step children. */
+export type StepperProps = {
 	value: number
 	onValueChange?: (value: number) => void
 	/**
@@ -85,8 +85,10 @@ export function Stepper({
 		itemSelector: 'button[data-slot="stepper-step"]:not(:disabled)',
 		orientation: resolvedOrientation,
 		// Step row is a single Tab stop (role="toolbar"); arrows move across steps,
-		// resting on the current step. A no-op for display-only steppers (no buttons).
-		manageTabIndex: true,
+		// resting on the current step. Gated to interactive steppers (matching the
+		// keydown below): a display-only stepper renders no step buttons, so the
+		// tab-stop effect — a focusin listener and MutationObserver — would only spin.
+		manageTabIndex: onValueChange !== undefined,
 		activeSelector: '[aria-current="step"]',
 	})
 

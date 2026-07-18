@@ -3,7 +3,7 @@
 import { type ReactElement, type ReactNode, type RefObject, useRef } from 'react'
 import { cn } from '../../../core'
 import type { AccessibleName } from '../../../types'
-import { once } from '../../../utilities'
+import { once, toNumericCell } from '../../../utilities'
 import {
 	type MapAspectRatio,
 	type MapFeature,
@@ -150,22 +150,6 @@ export type ChoroplethChartProps<T = never> = AccessibleName & {
 }
 
 /**
- * Coerces a row's raw value to a number for the CSV, mapping the blanks a data
- * source uses for "no value" — `null`, `undefined`, and empty strings — to `NaN`
- * so they read as no-data rather than the `0` a bare {@link Number} yields.
- * Mirrors the map scale's own coercion, so the CSV agrees with the tooltip.
- *
- * @internal
- */
-function binnable(value: unknown): number {
-	if (typeof value === 'number') return value
-
-	if (typeof value === 'string' && value.trim() !== '') return Number(value)
-
-	return Number.NaN
-}
-
-/**
  * The context menu's CSV / copy readout: one column of region ids against one
  * column of formatted values, built from the input `data` — a faithful export of
  * the rows the caller passed, keyed by the `idKey` they join on. Distinct from
@@ -192,7 +176,7 @@ function choroplethReadout<T>(
 				swatchClass: '',
 				swatch: 'rect',
 				values: data.map((row) => {
-					const value = binnable(row[colorKey])
+					const value = toNumericCell(row[colorKey])
 
 					return Number.isFinite(value) ? format(value) : READOUT_GAP
 				}),

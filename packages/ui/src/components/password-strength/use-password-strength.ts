@@ -9,6 +9,7 @@ export type PasswordRule = {
 	test: (value: string) => boolean
 }
 
+/** The reported strength tier: `empty` (no input), then `weak` → `strong` as the passing-rule ratio rises. */
 export type StrengthLevel = 'empty' | 'weak' | 'fair' | 'good' | 'strong'
 
 /** Strength snapshot reported on change: rules `passed` count (`score`) out of `max`, the derived `level`, and the passing rule ids. */

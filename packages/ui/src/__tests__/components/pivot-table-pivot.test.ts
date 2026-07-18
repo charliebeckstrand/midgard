@@ -68,6 +68,23 @@ describe('groupValues', () => {
 		// 'not-a-number' becomes NaN and is filtered before bucketing.
 		expect(groups.get('NA')?.get('2024')?.length).toBe(2)
 	})
+
+	it('drops null, empty-string, and other non-numeric cells instead of counting them as 0', () => {
+		type NullableRow = { region: string; year: string; amount: number | null | string | boolean }
+
+		const nullable: NullableRow[] = [
+			{ region: 'NA', year: '2024', amount: 10 },
+			{ region: 'NA', year: '2024', amount: null },
+			{ region: 'NA', year: '2024', amount: '' },
+			{ region: 'NA', year: '2024', amount: false },
+		]
+
+		const groups = groupValues(nullable, 'region', 'year', 'amount')
+
+		// Number(null) / Number('') / Number(false) are each a finite 0 but must not
+		// be bucketed; only the real 10 survives.
+		expect(groups.get('NA')?.get('2024')).toEqual([10])
+	})
 })
 
 describe('aggregate', () => {

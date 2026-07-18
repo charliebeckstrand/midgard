@@ -1,8 +1,5 @@
 import type { ContextMenuConfig, ContextMenuEntry, ContextMenuItem } from './types'
 
-/** The divider {@link resolveContextMenuEntries} drops between the default and custom groups. @internal */
-const GROUP_SEPARATOR: ContextMenuEntry = { key: 'context-menu-default-separator', separator: true }
-
 /**
  * Joins non-empty groups of entries with a separator between each, dropping
  * empty groups so no menu ever opens on a leading, trailing, or doubled rule.
@@ -39,11 +36,7 @@ export function resolveContextMenuEntries(
 
 	const shownDefaults = (config?.defaultItems ?? true) ? defaults : []
 
-	if (custom.length === 0) return shownDefaults
-
-	if (shownDefaults.length === 0) return custom
-
-	return (config?.position ?? 'after') === 'before'
-		? [...custom, GROUP_SEPARATOR, ...shownDefaults]
-		: [...shownDefaults, GROUP_SEPARATOR, ...custom]
+	return mergeContextMenuItems(
+		(config?.position ?? 'after') === 'before' ? [custom, shownDefaults] : [shownDefaults, custom],
+	)
 }

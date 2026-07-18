@@ -21,7 +21,6 @@ const content = defineRecipe({
 
 export const k = {
 	trigger: flex.inline,
-	portal: 'z-100',
 	cursor: 'cursor-help *:cursor-help',
 	content,
 	surface: {

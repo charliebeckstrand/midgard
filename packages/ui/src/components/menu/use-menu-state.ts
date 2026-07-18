@@ -92,6 +92,11 @@ export function useMenuState({
 
 	const isStatic = defaultOpen && !isDropdown
 
+	// Only a true right-click context menu wires `onContextMenu`. A static menu is
+	// also `!isDropdown`, but suppressing its native context menu (via
+	// `handleContextMenu`'s preventDefault) buys nothing — its panel is already open.
+	const isContextMenu = !isDropdown && !isStatic
+
 	// The trigger (`aria-haspopup="menu"`) and the panel (`role="menu"`) carry
 	// their own roles; `role: null` suppresses floating-ui's `useRole`, which
 	// double-stamps the positioning wrapper. `menuId` wires the trigger's
@@ -228,5 +233,5 @@ export function useMenuState({
 		],
 	)
 
-	return { state, actions, handleContextMenu, isDropdown }
+	return { state, actions, handleContextMenu, isContextMenu }
 }

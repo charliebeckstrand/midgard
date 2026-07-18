@@ -53,15 +53,19 @@ export function Tabs({
 
 	const baseId = useId()
 
-	// Tracks whether an all-mounted TabContents (`mount="always"`, every inactive
-	// panel held in the DOM) is rendered, so inactive tabs can keep aria-controls.
-	const [panelsMounted, setPanelsMounted] = useState(false)
+	// Ref-count all-mounted TabContents (`mount="always"`, every inactive panel
+	// held in the DOM) so inactive tabs keep aria-controls; a plain boolean would
+	// be cleared by a second registrant unmounting while the first still holds
+	// panels in the DOM.
+	const [mountedPanelCount, setMountedPanelCount] = useState(0)
 
 	const registerMountedPanels = useCallback(() => {
-		setPanelsMounted(true)
+		setMountedPanelCount((count) => count + 1)
 
-		return () => setPanelsMounted(false)
+		return () => setMountedPanelCount((count) => count - 1)
 	}, [])
+
+	const panelsMounted = mountedPanelCount > 0
 
 	const tabsContext = useMemo(
 		() => ({

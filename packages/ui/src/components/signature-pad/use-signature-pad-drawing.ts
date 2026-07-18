@@ -33,8 +33,8 @@ type SignatureDrawingOptions = {
  * @remarks
  * `handlePointerDown` ignores non-primary mouse buttons and captures the pointer
  * so a stroke continues past the canvas edge. `commit` writes the snapshot into
- * `lastEmittedRef` before `setCurrent`, letting the state hook's repaint effect
- * skip its own emission.
+ * `lastEmittedRef` before `setCurrent`, letting the state hook's value-sync effect
+ * skip its own repaint of a value it just drew.
  */
 export function useSignaturePadDrawing({
 	canvasRef,
@@ -60,6 +60,14 @@ export function useSignaturePadDrawing({
 
 		if (!point) return
 
+		// Acquire the context before capturing the pointer or marking a stroke
+		// active: on a context-less pad the pointerdown must be a clean no-op, or
+		// `commit` would later toDataURL an unpainted canvas and emit a value while
+		// `empty` stays true (placeholder over a "signed" pad, clear button hidden).
+		const context = canvasRef.current?.getContext('2d')
+
+		if (!context) return
+
 		event.preventDefault()
 
 		event.currentTarget.setPointerCapture?.(event.pointerId)
@@ -67,10 +75,6 @@ export function useSignaturePadDrawing({
 		drawingRef.current = true
 
 		lastPointRef.current = point
-
-		const context = canvasRef.current?.getContext('2d')
-
-		if (!context) return
 
 		context.beginPath()
 

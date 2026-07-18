@@ -7,6 +7,39 @@ import { Code, CodeBlock } from '../code'
 
 const HEADING_TAGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'] as const
 
+const SAFE_URL_SCHEMES = /^(?:https?|mailto|tel)$/i
+
+/**
+ * A lexed URL cleared to render as an `href`/`src`. Relative, root-relative,
+ * anchor, and protocol-relative URLs pass through; an absolute URL passes only
+ * on a known-safe scheme — http/https/mailto/tel, plus `data:` for images.
+ * Untrusted Markdown can carry `javascript:`, `data:text/html`, or `vbscript:`
+ * URLs that run script when the link is clicked, so those resolve to `undefined`
+ * and no `href`/`src` renders.
+ *
+ * @internal
+ */
+function safeUrl(url: string, allowData = false): string | undefined {
+	// The URL parser strips every leading C0 control and space (code point
+	// <= 0x20), plus tab/newline anywhere, when resolving a scheme — so
+	// `javascript:` and `java\tscript:` both become `javascript:` at click
+	// time. Drop that whole set before classifying the scheme: a `\s` strip
+	// misses the non-whitespace C0 controls (U+0000–U+0008, U+000E–U+001F)
+	// the browser still trims, so a leading control byte would hide a blocked
+	// scheme. The original `url` is what renders; this cleaned copy only
+	// classifies.
+	const scheme = [...url]
+		.filter((char) => char.charCodeAt(0) > 0x20)
+		.join('')
+		.match(/^([a-z][a-z0-9+.-]*):/i)?.[1]
+
+	if (scheme === undefined) return url
+
+	if (allowData && scheme.toLowerCase() === 'data') return url
+
+	return SAFE_URL_SCHEMES.test(scheme) ? url : undefined
+}
+
 /**
  * Render a flat list of marked tokens — block or inline — to React nodes,
  * recursing through each token's inline children.
@@ -75,7 +108,12 @@ function renderToken(token: Token, index: number): ReactNode {
 			)
 		case 'link':
 			return (
-				<a key={index} href={token.href} title={token.title ?? undefined} className={cn(k.link)}>
+				<a
+					key={index}
+					href={safeUrl(token.href)}
+					title={token.title ?? undefined}
+					className={cn(k.link)}
+				>
 					{renderChildren(token.tokens)}
 				</a>
 			)
@@ -83,7 +121,7 @@ function renderToken(token: Token, index: number): ReactNode {
 			return (
 				<img
 					key={index}
-					src={token.href}
+					src={safeUrl(token.href, true)}
 					alt={token.text}
 					title={token.title ?? undefined}
 					className={cn(k.img)}
