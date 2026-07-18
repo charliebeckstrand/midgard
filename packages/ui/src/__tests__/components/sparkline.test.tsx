@@ -187,6 +187,17 @@ describe('sparklineGeometry', () => {
 		expect(geo.area).toBe('M 2 20 L 98 20 L 98 38 L 2 38 Z')
 	})
 
+	it('closes a multi-point area on the outermost drawn points, not the box corner', () => {
+		// Trailing NaN: the drawn line stops at the last finite point (x=50), so
+		// the fill must close there — not run a wedge out to the right edge (x=98)
+		// with no line above it.
+		const geo = sparklineGeometry([1, 3, Number.NaN], { ...box })
+
+		expect(geo.area).toBe('M 2 38 L 50 2 L 50 38 L 2 38 Z')
+
+		expect(geo.area).not.toContain('98')
+	})
+
 	it('returns empty marks for an empty series', () => {
 		const geo = sparklineGeometry([], { ...box })
 

@@ -399,6 +399,46 @@ describe('Toast: useToast behavior', () => {
 		expect(screen.queryByText('Second')).not.toBeInTheDocument()
 	})
 
+	it('auto-dismisses later toasts after one is closed while keyboard-focused', () => {
+		let api: ReturnType<typeof useToast> | null = null
+
+		renderUI(
+			<ToastProvider duration={1000}>
+				<Trigger onReady={(context) => (api = context)} />
+				<Toast />
+			</ToastProvider>,
+		)
+
+		act(() => {
+			api?.toast({ title: 'First' })
+		})
+
+		// Focus lands inside the toast (keyboard user), pausing auto-dismiss; the
+		// Enter/click that closes it removes the node, so no blur fires. The unmount
+		// must release the focus hold or the stuck pause freezes every later toast.
+		fireEvent.focusIn(screen.getByText('First'))
+
+		act(() => {
+			fireEvent.click(screen.getByRole('button', { name: 'Dismiss' }))
+		})
+
+		act(() => {
+			vi.advanceTimersByTime(100)
+		})
+
+		expect(screen.queryByText('First')).not.toBeInTheDocument()
+
+		act(() => {
+			api?.toast({ title: 'Second' })
+		})
+
+		act(() => {
+			vi.advanceTimersByTime(2000)
+		})
+
+		expect(screen.queryByText('Second')).not.toBeInTheDocument()
+	})
+
 	it('keeps the timer paused when focus leaves while the pointer still hovers', () => {
 		let api: ReturnType<typeof useToast> | null = null
 

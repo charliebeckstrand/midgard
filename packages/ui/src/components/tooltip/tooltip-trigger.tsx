@@ -61,8 +61,8 @@ export function TooltipTrigger({ children }: TooltipTriggerProps) {
 	// cleanup. `setReference(null)` during deletion effects fires a state
 	// update that can cascade into a "Maximum update depth" error while
 	// ancestor state is in flux. The shared `useComposedRef` (floating-ui's
-	// `useMergeRefs`) returns no cleanup and so propagates that null — don't
-	// fold this onto it.
+	// `useMergeRefs`) still calls a cleanup-less ref like `setReference` with
+	// `null` on unmount, so folding this onto it would reintroduce the cascade.
 	const mergeRefs = useCallback(
 		(node: HTMLElement | null) => {
 			setReference(node)

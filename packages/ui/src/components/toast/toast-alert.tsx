@@ -120,6 +120,13 @@ export function ToastAlert({
 			if (hoverHeldRef.current) onResumeRef.current()
 
 			if (focusHeldRef.current) onResumeRef.current()
+
+			// Reset so a re-show under <Activity> (effect cleanup runs while the
+			// refs persist) starts unheld — a stale flag would swallow the next
+			// hold and let auto-dismiss run under the pointer.
+			hoverHeldRef.current = false
+
+			focusHeldRef.current = false
 		},
 		[],
 	)

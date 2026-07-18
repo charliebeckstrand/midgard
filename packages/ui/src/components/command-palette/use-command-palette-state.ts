@@ -95,6 +95,14 @@ export function useCommandPaletteState({ open, onOpenChange }: CommandPaletteSta
 
 		lastDeferredRef.current = deferredQuery
 
+		// A closing palette resets its own highlight in the render-phase branch
+		// below. Don't re-seed on the close-time query→'' transition: the options
+		// are still mounted through the exit animation, so seeding would write the
+		// index back to 0 and reopen at the second item. `deferredQuery` lags
+		// `query`, so this transition's effect can run while `open` is already
+		// false; guard on it directly.
+		if (!open) return
+
 		seedVirtualTopMatch(
 			listRef.current,
 			ITEM_SELECTOR,
@@ -102,7 +110,7 @@ export function useCommandPaletteState({ open, onOpenChange }: CommandPaletteSta
 			activeIndexRef,
 			inputRef,
 		)
-	}, [deferredQuery])
+	}, [deferredQuery, open])
 
 	// Resets the query and the virtual-highlight index when closed; done during
 	// render, not in an effect. Clearing `activeIndexRef` stops a virtualized

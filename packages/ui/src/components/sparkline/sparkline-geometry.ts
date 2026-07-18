@@ -124,13 +124,19 @@ export function sparklineGeometry(
 			? `M ${padding} ${drawn[0]?.y} L ${width - padding} ${drawn[0]?.y}`
 			: `M ${drawn.map((point) => `${point.x} ${point.y}`).join(' L ')}`
 
+	const first = drawn[0]
+
 	const last = drawn.at(-1) ?? null
 
-	// The drawn line always spans padding → width - padding (a lone point is forced
-	// full-width; multi-point endpoints already land there), so close the area on
-	// those edges rather than a point's own x — otherwise a single point fills as a
-	// triangle apexing at its centre instead of a band.
-	const area = `${line} L ${width - padding} ${baseline} L ${padding} ${baseline} Z`
+	// Close the fill on the outermost drawn points, not the box corners: when a
+	// boundary datum is non-finite the drawn line stops short of the edge, and
+	// closing on the corner would paint a wedge with no line above it. A lone
+	// drawn point is forced full-width (above), so it closes on the box edges to
+	// read as a band rather than collapsing to a vertical line at its centre.
+	const area =
+		first && last && drawn.length > 1
+			? `${line} L ${last.x} ${baseline} L ${first.x} ${baseline} Z`
+			: `${line} L ${width - padding} ${baseline} L ${padding} ${baseline} Z`
 
 	const slot = innerWidth / data.length
 

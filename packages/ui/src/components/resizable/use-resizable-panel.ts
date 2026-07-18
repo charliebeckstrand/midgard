@@ -158,12 +158,6 @@ export function useResizablePanel({
 
 			if (!group || event.button !== 0) return
 
-			// A new drag supersedes any still-active one (a second pointer landing on
-			// another handle before the first lifts): tear down the prior drag's
-			// listeners first, or they outlive cleanupRef — which holds only the
-			// latest — and fire a post-unmount setSizes. Mirrors beginScrollbarDrag.
-			cleanupRef.current?.()
-
 			event.preventDefault()
 
 			const orient = orientationRef.current
@@ -184,6 +178,14 @@ export function useResizablePanel({
 			const availableSize = totalSize - handleWidth
 
 			if (availableSize <= 0) return
+
+			// A new drag supersedes any still-active one (a second pointer landing on
+			// another handle before the first lifts): tear down the prior drag's
+			// listeners first, or they outlive cleanupRef — which holds only the
+			// latest — and fire a post-unmount setSizes. Mirrors beginScrollbarDrag.
+			// Placed after the guard so a pointerdown that can't start a drag (group
+			// collapsed to <= handle size) leaves the still-live drag intact.
+			cleanupRef.current?.()
 
 			const startPos = orient === 'horizontal' ? event.clientX : event.clientY
 
