@@ -651,8 +651,8 @@ surfaced rather than applied under a single batch.
 
 | Surface | Site | Note | Verb | Status |
 |---|---|---|---|---|
-| ToastAlert / useToastTimer | toast-alert.tsx:120, use-toast-timer.ts:35 | Pause-on-hover/focus sets a single shared `pausedRef` released only by `onMouseLeave`/`onBlur` — DOM events that don't fire when the element is removed under a stationary pointer or held focus. A toast dismissed/evicted while hovered strands `pausedRef=true`, and the next toast's `startTimer()` early-returns, so it never auto-dismisses (self-heals only if the user later hovers a live toast and leaves). The correct fix source-counts the pause in the shared provider timer (multi-file); per §3.1 surfaced, not applied under a single batch. | FIX (medium) | ◯ OPEN |
-| ToastAlert | toast-alert.tsx:133 | `onBlur` resumes on `relatedTarget` alone, not whether the pointer is still inside (asymmetric with `onMouseLeave`'s focus guard), so Tab-out under a stationary pointer restarts auto-dismiss (WCAG 2.2.1 edge). Likely subsumed by the source-counted fix above. | WATCH | ◯ OPEN |
+| ToastAlert / useToastTimer | toast-alert.tsx:120, use-toast-timer.ts:35 | Pause-on-hover/focus sets a single shared `pausedRef` released only by `onMouseLeave`/`onBlur` — DOM events that don't fire when the element is removed under a stationary pointer or held focus. A toast dismissed/evicted while hovered strands `pausedRef=true`, and the next toast's `startTimer()` early-returns, so it never auto-dismisses (self-heals only if the user later hovers a live toast and leaves). Resolved post-sweep on the maintainer's go-ahead: the timer's pause is now a source count (`pauseCountRef`), each `ToastAlert` holds hover and focus at most once via held flags and releases its holds on unmount, and two regression tests pin the close-under-pointer strand and the hold pairing. | FIX (medium) | ✅ RESOLVED |
+| ToastAlert | toast-alert.tsx:133 | `onBlur` resumed on `relatedTarget` alone, not whether the pointer was still inside (asymmetric with `onMouseLeave`'s focus guard), so Tab-out under a stationary pointer restarted auto-dismiss (WCAG 2.2.1 edge). Subsumed by the source-counted fix as predicted: hover and focus now hold independently, so releasing one under the other keeps the timer paused; test-pinned (focus-leaves-while-hovered case). | WATCH | ✅ RESOLVED |
 | TreeItemContent | tree-item-content.tsx:92 | APG ArrowRight-on-open (→ first child) and ArrowLeft-on-leaf/closed (→ parent) focus moves are unimplemented; only the toggle halves exist, and the roving hook passes L/R through (vertical orientation, no `row` config). Documented as intended (tree-item.tsx:44-46) and not contradicted by tests — a scope decision to confirm. | WATCH | ◯ OPEN |
 | Tree | tree.tsx:38 | `useA11yRoving` is called without `typeahead: true`, so the APG-recommended first-letter jump for trees is absent though the hook supports it. No doc claims it — an enhancement. | WATCH | ◯ OPEN |
 | TreeItemChildren | tree-item-children.tsx:47 | The `collapse.fade` exit keeps a collapsing group mounted through its exit window while the roving query has no visibility filter, so ArrowDown mid-collapse can land focus on an item animating to `height:0`. Minor in production; moot under the test motion mock. | WATCH | ◯ OPEN |
@@ -911,3 +911,19 @@ shave the clone but reads worse; cost justified), `safeUrl`'s whitespace strip
 (the anchored-regex "optimization" readmits `" javascript:"` — already an OPEN
 row), and the latest-ref idiom (13+ sites, house pattern). Verified green:
 biome, types, and 3138 scoped tests across 192 files.
+
+The batch-10 toast deferral landed last, on the maintainer's go-ahead. The
+shared timer's pause became a source count: each hold (a toast's hover, a
+toast's focus) pairs one `pause()` with one `resume()`, the timer runs only at
+zero, and `ToastAlert` tracks its own two holds through held flags — releasing
+them on unmount via a latest-ref cleanup, so a toast removed under a stationary
+pointer or held focus can no longer strand the pause and freeze every later
+toast. The counted model also subsumed the recorded `onBlur` asymmetry, as the
+batch-10 row predicted: hover and focus now hold independently, so Tab-out
+under the pointer keeps auto-dismiss paused instead of restarting it. One
+pre-existing timer unit test pinned the old boolean contract (two pauses, one
+resume, timer re-armed); its no-double-subtract intent was preserved and its
+pairing updated to the counted contract, alongside three new cases — the
+close-under-pointer strand end-to-end, focus-leaving-under-hover staying
+paused, and an unpaired release flooring at zero. Verified green: biome, types,
+and the toast-related suites (170 tests across 5 files).

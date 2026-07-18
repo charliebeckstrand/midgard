@@ -358,6 +358,87 @@ describe('Toast: useToast behavior', () => {
 		expect(screen.queryByText('Focusable')).not.toBeInTheDocument()
 	})
 
+	it('auto-dismisses later toasts after one is closed under a hovering pointer', () => {
+		let api: ReturnType<typeof useToast> | null = null
+
+		renderUI(
+			<ToastProvider duration={1000}>
+				<Trigger onReady={(context) => (api = context)} />
+				<Toast />
+			</ToastProvider>,
+		)
+
+		act(() => {
+			api?.toast({ title: 'First' })
+		})
+
+		// The pointer parks on the toast (pausing auto-dismiss) and never leaves;
+		// closing it removes the node, so its mouseleave never fires. The unmount
+		// must release the hold — a stuck pause would freeze every later toast.
+		fireEvent.mouseEnter(screen.getByText('First'))
+
+		act(() => {
+			fireEvent.click(screen.getByRole('button', { name: 'Dismiss' }))
+		})
+
+		// Drain the dismissed toast's removal (rAF) through the mocked exit.
+		act(() => {
+			vi.advanceTimersByTime(100)
+		})
+
+		expect(screen.queryByText('First')).not.toBeInTheDocument()
+
+		act(() => {
+			api?.toast({ title: 'Second' })
+		})
+
+		act(() => {
+			vi.advanceTimersByTime(2000)
+		})
+
+		expect(screen.queryByText('Second')).not.toBeInTheDocument()
+	})
+
+	it('keeps the timer paused when focus leaves while the pointer still hovers', () => {
+		let api: ReturnType<typeof useToast> | null = null
+
+		renderUI(
+			<ToastProvider duration={1000}>
+				<Trigger onReady={(context) => (api = context)} />
+				<Toast />
+			</ToastProvider>,
+		)
+
+		act(() => {
+			api?.toast({ title: 'Held' })
+		})
+
+		const title = screen.getByText('Held')
+
+		// Both sources hold: the pointer rests on the toast, focus tabs into it.
+		fireEvent.mouseEnter(title)
+
+		fireEvent.focusIn(title)
+
+		// Focus leaves; the hover hold alone must keep auto-dismiss paused
+		// (WCAG 2.2.1 — no live timer under the user's pointer).
+		fireEvent.focusOut(title)
+
+		act(() => {
+			vi.advanceTimersByTime(2000)
+		})
+
+		expect(screen.getByText('Held')).toBeInTheDocument()
+
+		fireEvent.mouseLeave(title)
+
+		act(() => {
+			vi.advanceTimersByTime(1000)
+		})
+
+		expect(screen.queryByText('Held')).not.toBeInTheDocument()
+	})
+
 	it('renders toasts with the configured position viewport class', () => {
 		renderUI(
 			<ToastProvider>

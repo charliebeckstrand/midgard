@@ -5,11 +5,20 @@ import type { ToastData } from './types'
 
 /**
  * Owns the auto-dismiss countdown for {@link ToastProvider}: arms a single
- * timer for the remaining duration, pauses it on pointer/focus (WCAG 2.2.1) and
- * resumes with the leftover time, and exposes reset hooks for re-armed toasts.
+ * timer for the remaining duration, pauses it while pointer/focus holds exist
+ * (WCAG 2.2.1) and resumes with the leftover time, and exposes reset hooks for
+ * re-armed toasts.
  *
  * @returns The timer controls (`startTimer`, `pause`, `resume`,
  * `resetRemaining`, `reset`) plus the `remainingRef` countdown.
+ *
+ * @remarks
+ * The pause is a source count, not a flag: each hold (a toast's hover, a
+ * toast's focus) pairs one `pause()` with one `resume()`, and the timer runs
+ * only at zero. A boolean can't survive a toast unmounting mid-hold — the
+ * releasing `mouseleave`/`blur` never fires for a removed node, and a single
+ * flag can't tell which holds remain — so each `ToastAlert` releases its own
+ * holds on unmount and the count settles back to running.
  * @internal
  */
 export function useToastTimer(
@@ -24,15 +33,15 @@ export function useToastTimer(
 
 	const startRef = useRef(0)
 
-	const pausedRef = useRef(false)
+	const pauseCountRef = useRef(0)
 
 	useEffect(() => () => clearTimeout(timerRef.current), [])
 
 	const startTimer = useCallback(() => {
-		// Don't arm while paused (pointer/focus on a live toast); `resume` clears
-		// the flag before restarting. WCAG 2.2.1: no live auto-dismiss timer under
+		// Don't arm while any hold remains (pointer/focus on a live toast); the
+		// final `resume` restarts. WCAG 2.2.1: no live auto-dismiss timer under
 		// the user's pointer/focus.
-		if (pausedRef.current) return
+		if (pauseCountRef.current > 0) return
 
 		clearTimeout(timerRef.current)
 
@@ -42,11 +51,10 @@ export function useToastTimer(
 	}, [start])
 
 	const pause = useCallback(() => {
-		// Hover and focus both pause (onMouseEnter + onFocus); the guard makes
-		// the second call a no-op.
-		if (pausedRef.current) return
+		pauseCountRef.current += 1
 
-		pausedRef.current = true
+		// Only the first hold freezes the countdown; further holds just deepen it.
+		if (pauseCountRef.current > 1) return
 
 		const elapsed = Date.now() - startRef.current
 
@@ -57,7 +65,11 @@ export function useToastTimer(
 	}, [stop])
 
 	const resume = useCallback(() => {
-		pausedRef.current = false
+		// Floored: an unpaired release must not push the count negative and
+		// swallow a later hold.
+		pauseCountRef.current = Math.max(pauseCountRef.current - 1, 0)
+
+		if (pauseCountRef.current > 0) return
 
 		if (toastsRef.current.length > 0) startTimer()
 	}, [toastsRef, startTimer])
@@ -69,13 +81,13 @@ export function useToastTimer(
 		[duration],
 	)
 
-	// Restores the full duration and restarts the timer. While paused, skips
-	// the restart; `resume()` picks up the new remaining when the pointer leaves.
+	// Restores the full duration and restarts the timer. While held, skips the
+	// restart; the final `resume()` picks up the new remaining on release.
 	const reset = useCallback(
 		(ms?: number) => {
 			remainingRef.current = ms ?? duration
 
-			if (pausedRef.current || toastsRef.current.length === 0) return
+			if (pauseCountRef.current > 0 || toastsRef.current.length === 0) return
 
 			startTimer()
 		},
