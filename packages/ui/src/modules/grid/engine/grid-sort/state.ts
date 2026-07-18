@@ -41,6 +41,27 @@ export function nextSort(
 }
 
 /**
+ * Value equality for two sort lists: the same columns in the same priority
+ * order, each at the same direction. Compares by value, not identity — the grid
+ * clears a sort to a shared `EMPTY_SORT` constant, so a caller can't lean on
+ * reference to tell "returned to the current order" from "a fresh sort", most
+ * visibly the unsorted `[]` a cleared sort resolves to.
+ *
+ * @internal
+ */
+export function sortsEqual(a: SortState[], b: SortState[]): boolean {
+	if (a === b) return true
+
+	if (a.length !== b.length) return false
+
+	return a.every((entry, index) => {
+		const other = b[index]
+
+		return entry.column === other?.column && entry.direction === other.direction
+	})
+}
+
+/**
  * A column's place in the priority-ordered sort: whether it sorts, its
  * direction, and its 1-based priority — surfaced only under a multi-column sort,
  * where the ranking is meaningful (a single sort needs no badge).

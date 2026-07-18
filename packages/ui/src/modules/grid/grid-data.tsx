@@ -36,6 +36,7 @@ import {
 	buildRovingCellActivate,
 	composeCellDoubleClick,
 } from './engine/grid-row/bridges'
+import { sortsEqual } from './engine/grid-sort/state'
 import {
 	condensedTableClass,
 	gridWrapperClass,
@@ -156,11 +157,17 @@ function useMaxHeightGuard(maxHeight: string | undefined): void {
  * Tracks whether a server-side (manual) sort is in flight — the interval between
  * the grid emitting a sort change and the consumer handing back the reordered
  * `rows` — so the body can dim its rows to a settle wash until the new order
- * lands (see `k.body.settling`). Enabled only under {@link GridSort.manual}: a
- * change to the sort with no new `rows` yet marks the grid settling; the next
- * `rows` reference (the fetched, reordered set) clears it. A consumer that swaps
- * `rows` in the same commit as the sort — a synchronous re-sort — settles at
- * once, so its rows never flash dim.
+ * lands (see `k.body.settling`). Enabled only under {@link GridSort.manual}.
+ *
+ * The grid settles while the live `sort` differs from the order the on-screen
+ * `rows` reflect — snapshotted whenever `rows` change, since they've then caught
+ * up to the sort that fetched them. The compare is by value, not identity: a
+ * rapid asc→desc→clear ends on a cleared sort whose rows are already shown (no
+ * fetch landed between the clicks), so the wash lifts rather than latching on —
+ * the reported stuck-pulse bug, which a reference-only "rows changed?" test left
+ * on because the consumer handed back the unchanged default set. A consumer that
+ * swaps `rows` in the same commit as the sort — a synchronous re-sort — snapshots
+ * the new order at once, so its rows never flash dim.
  *
  * @internal
  */
@@ -169,28 +176,21 @@ function useServerSortSettle<T>(args: { enabled: boolean; sort: SortState[]; row
 
 	const [settling, setSettling] = useState(false)
 
-	const prevSortRef = useRef(sort)
+	// The sort the on-screen rows reflect; re-snapshotted each time `rows` change.
+	const settledSortRef = useRef(sort)
 
 	const prevRowsRef = useRef(rows)
 
 	useEffect(() => {
-		const sortChanged = prevSortRef.current !== sort
-
 		const rowsChanged = prevRowsRef.current !== rows
-
-		prevSortRef.current = sort
 
 		prevRowsRef.current = rows
 
-		// New rows landed (or the mode is off): the sort has settled.
-		if (!enabled || rowsChanged) {
-			setSettling(false)
+		// Rows landed: they now reflect the live sort — take it as the settled order.
+		if (rowsChanged) settledSortRef.current = sort
 
-			return
-		}
-
-		// The sort changed but its reordered rows haven't arrived yet — in flight.
-		if (sortChanged) setSettling(true)
+		// In flight only while the live sort has moved off the settled order.
+		setSettling(enabled && !sortsEqual(settledSortRef.current, sort))
 	}, [enabled, sort, rows])
 
 	return enabled && settling
