@@ -20,9 +20,18 @@ const SAFE_URL_SCHEMES = /^(?:https?|mailto|tel)$/i
  * @internal
  */
 function safeUrl(url: string, allowData = false): string | undefined {
-	// Browsers strip ASCII tab and newline when resolving a scheme, so strip
-	// whitespace before testing — this defeats `java\tscript:`-style obfuscation.
-	const scheme = url.replace(/\s/g, '').match(/^([a-z][a-z0-9+.-]*):/i)?.[1]
+	// The URL parser strips every leading C0 control and space (code point
+	// <= 0x20), plus tab/newline anywhere, when resolving a scheme — so
+	// `javascript:` and `java\tscript:` both become `javascript:` at click
+	// time. Drop that whole set before classifying the scheme: a `\s` strip
+	// misses the non-whitespace C0 controls (U+0000–U+0008, U+000E–U+001F)
+	// the browser still trims, so a leading control byte would hide a blocked
+	// scheme. The original `url` is what renders; this cleaned copy only
+	// classifies.
+	const scheme = [...url]
+		.filter((char) => char.charCodeAt(0) > 0x20)
+		.join('')
+		.match(/^([a-z][a-z0-9+.-]*):/i)?.[1]
 
 	if (scheme === undefined) return url
 

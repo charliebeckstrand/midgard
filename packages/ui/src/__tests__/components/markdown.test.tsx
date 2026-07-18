@@ -132,6 +132,18 @@ describe('Markdown', () => {
 		expect(el?.querySelector('img')?.getAttribute('src')).toMatch(/^data:image\/png/)
 	})
 
+	it('strips a scheme hidden behind a leading control character', () => {
+		// The URL parser trims leading C0 controls at click time, so
+		// `javascript:` resolves to `javascript:` and runs. marked preserves
+		// the byte in an angle-bracket destination; the scheme guard must drop the
+		// whole C0 range, not just `\s`, or this slips through with a live href.
+		const src = `[click](<${String.fromCharCode(1)}javascript:alert(1)>)`
+
+		const { container } = renderUI(<Markdown>{src}</Markdown>)
+
+		expect(bySlot(container, 'markdown')?.querySelector('a')).not.toHaveAttribute('href')
+	})
+
 	it('renders inline code through the Code component', () => {
 		const { container } = renderUI(<Markdown>{'Some `code`.'}</Markdown>)
 
