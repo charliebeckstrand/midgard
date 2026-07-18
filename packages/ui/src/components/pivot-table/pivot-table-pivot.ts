@@ -1,4 +1,4 @@
-import { formatFraction, formatInteger } from '../../utilities'
+import { formatFraction, formatInteger, toNumericCell } from '../../utilities'
 import type { PivotAggregation } from './types'
 
 /** Formats a cell value: whole numbers as integers, the rest as fractions. */
@@ -42,22 +42,6 @@ export function resolveAxis<T>(
 }
 
 /**
- * Coerces a raw cell to a number for bucketing: real numbers pass through and
- * non-empty numeric strings parse; everything else — `null`, `''`, `false`, `[]`
- * — becomes `NaN`. A bare `Number()` maps those to a finite `0`, which would
- * bucket a blank cell as a real zero and corrupt count / avg / min.
- *
- * @internal
- */
-function toFiniteInput(raw: unknown): number {
-	if (typeof raw === 'number') return raw
-
-	if (typeof raw === 'string' && raw.trim() !== '') return Number(raw)
-
-	return Number.NaN
-}
-
-/**
  * Buckets each row's numeric `valueKey` into a `row → column → values` map,
  * skipping any cell that isn't a finite number or a numeric string (`null`,
  * `''`, and other non-numeric values are dropped, not counted as `0`).
@@ -74,7 +58,7 @@ export function groupValues<T>(
 		const r = String(entry[rowKey])
 		const c = String(entry[columnKey])
 
-		const value = toFiniteInput(entry[valueKey])
+		const value = toNumericCell(entry[valueKey])
 
 		if (!Number.isFinite(value)) continue
 

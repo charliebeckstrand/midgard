@@ -9,6 +9,7 @@
 | `clamp` | Constrains `value` to the inclusive range `[lo, hi]`. |
 | `pct` | Maps `value` to its percentage position within `[min, max]`; `0` when the range is empty. |
 | `digitsOnly` | Returns `value` with every non-digit character removed. |
+| `toNumericCell` | Coerces a raw data cell to a number — numbers pass through, non-blank numeric strings parse, blanks (`null`, `''`, whitespace) become `NaN` rather than `0`; callers finite-filter. |
 | `formatInteger` | Locale-formats `value` with no fraction digits (cached formatter). |
 | `formatFraction` | Locale-formats `value` with up to two fraction digits (cached formatter). |
 | `formatPercent` | Locale-formats a `0..1` share as a whole percent (cached formatter). |
