@@ -1,6 +1,6 @@
 'use client'
 
-import { type FormEvent, startTransition, useEffect, useRef, useState } from 'react'
+import { type SubmitEvent, startTransition, useEffect, useRef, useState } from 'react'
 import { SearchInput } from '../../components/search-input'
 import { GRID_SEARCH_DEBOUNCE_MS } from './engine/grid-constants'
 import type { GridGlobalFilterView } from './use-grid-table'
@@ -56,7 +56,7 @@ export function GridFilter({ filter }: GridFilterProps) {
 
 	// Enter submits the field: cancel the pending debounce and apply the typed
 	// text now, so a deliberate submit lands the query without the settle wait.
-	const submit = (event: FormEvent<HTMLFormElement>) => {
+	const submit = (event: SubmitEvent<HTMLFormElement>) => {
 		event.preventDefault()
 
 		clearTimeout(debounceTimer.current)

@@ -1,7 +1,7 @@
 'use client'
 
 import { ListFilter, ListFilterPlus } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { type SubmitEvent, useMemo, useState } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from '../../components/menu'
@@ -125,6 +125,15 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 		setOpen(false)
 	}
 
+	// The sheet body + footer form a `<form>`, so Enter in any rule input settles
+	// the draft — the same commit as the Apply submit button. preventDefault stops
+	// the browser's native navigation before applying.
+	function submit(event: SubmitEvent<HTMLFormElement>) {
+		event.preventDefault()
+
+		apply()
+	}
+
 	// Clear the applied filter outright — the one-press path to undo a filter,
 	// distinct from Apply's commit and Cancel's discard. Offered from the header
 	// menu the button becomes while a filter is applied (the sheet is closed then,
@@ -191,28 +200,34 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 			)}
 
 			<Sheet open={open} onOpenChange={handleOpenChange} aria-label={`Filter ${label}`}>
-				<SheetTitle>Filter {label}</SheetTitle>
+				{/* A `contents` form so Enter in a rule input submits (Apply) without
+				    imposing a box — the panel's `gap-4` slot rhythm survives the
+				    display:contents wrapper. It spans the title too so the body stays a
+				    non-first child, keeping its `first:` top padding off. */}
+				<form className="contents" onSubmit={submit}>
+					<SheetTitle>Filter {label}</SheetTitle>
 
-				<SheetBody>
-					<QueryBuilder
-						fields={fields}
-						hideFieldSelector
-						allowGroups={false}
-						requireRule
-						value={draft}
-						onValueChange={setDraft}
-					/>
-				</SheetBody>
+					<SheetBody>
+						<QueryBuilder
+							fields={fields}
+							hideFieldSelector
+							allowGroups={false}
+							requireRule
+							value={draft}
+							onValueChange={setDraft}
+						/>
+					</SheetBody>
 
-				<SheetFooter>
-					<Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
-						Cancel
-					</Button>
+					<SheetFooter>
+						<Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
+							Cancel
+						</Button>
 
-					<Button type="button" color="blue" onClick={apply}>
-						Apply
-					</Button>
-				</SheetFooter>
+						<Button type="submit" color="blue">
+							Apply
+						</Button>
+					</SheetFooter>
+				</form>
 			</Sheet>
 		</>
 	)
