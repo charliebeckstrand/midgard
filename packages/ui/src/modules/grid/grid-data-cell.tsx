@@ -4,12 +4,14 @@ import { type HTMLAttributes, memo, type ReactNode, useContext } from 'react'
 import { TableCell } from '../../components/table'
 import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/grid'
+import { useGridHighlight } from './context'
 import { isFrozen } from './engine/grid-pin/overrides'
 import { pinnedCellProps } from './engine/grid-pin/styles'
 import { columnShiftStyle } from './engine/grid-reorder-compute'
 import { type GridCellRovingActivate, resolveCellTooltip } from './engine/grid-row/cell'
 import { cellRovingAttrs } from './engine/grid-row/shell'
 import { GridCellContent } from './grid-cell-content'
+import { highlightMatches } from './grid-highlight-utilities'
 import { GridReorderContext } from './grid-reorder'
 import type { GridColumn } from './types'
 import type { GridColumnPinning } from './use-grid-table'
@@ -64,19 +66,30 @@ function GridDataCellImpl<T>({
 
 	const rovingClass = cellRoving ? k.cell.rovable : undefined
 
+	// The active highlight-search query, or `null` outside highlight mode; only a
+	// searched column (one declaring a `value`) marks its matches.
+	const highlightQuery = useGridHighlight()
+
 	// Render only columns that declare a `cell`; a bare accessor column stays
 	// empty rather than falling back to an engine default renderer.
 	const rawContent = col.cell ? (col.cell(row) ?? null) : null
 
+	// In highlight-search mode, mark the matched substring in this column's
+	// content — but only for the columns the search actually scans.
+	const marked =
+		highlightQuery != null && col.value != null && rawContent != null
+			? highlightMatches(rawContent, highlightQuery)
+			: rawContent
+
 	const content =
-		truncate && rawContent != null ? (
+		truncate && marked != null ? (
 			<GridCellContent
-				content={rawContent}
+				content={marked}
 				tooltip={resolveCellTooltip(col, row)}
 				resizeSettleKey={resizeSettleKey}
 			/>
 		) : (
-			rawContent
+			marked
 		)
 
 	if (reorderable && !isFrozen(col)) {

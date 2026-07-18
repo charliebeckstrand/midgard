@@ -8,7 +8,7 @@ import { useA11yAnnouncements, useControllable } from '../../hooks'
 import { useIsomorphicLayoutEffect } from '../../hooks/use-isomorphic-layout-effect'
 import { useDensityLevel } from '../../providers/density'
 import { isDataColumn } from '../../utilities'
-import { GridContext, GridResizingContext, type SortState } from './context'
+import { GridContext, GridHighlightContext, GridResizingContext, type SortState } from './context'
 import {
 	describeColumnVisibility,
 	describePin,
@@ -85,7 +85,7 @@ import { useColumnSettleWidths } from './grid-table-views'
 import { GridToolbar } from './grid-toolbar'
 import { GridGrandTotalBody, useGridGrandTotal } from './grid-total-row'
 import type { GridScrollRowIntoView } from './grid-virtualized-body'
-import type { GridColumn } from './types'
+import type { GridColumn, GridSearch } from './types'
 import { useGridColumns } from './use-grid-columns'
 import { useGridCursor } from './use-grid-cursor'
 import { useGridExpansion } from './use-grid-expansion'
@@ -98,7 +98,7 @@ import { useGridRowGrouping } from './use-grid-row-grouping'
 import { useGridRowManagerRegion } from './use-grid-row-manager'
 import { useGridRowReorder } from './use-grid-row-reorder'
 import { useGridSelectionActions, useGridSelectionState } from './use-grid-selection'
-import { useGridTable } from './use-grid-table'
+import { type GridGlobalFilterView, useGridTable } from './use-grid-table'
 
 /**
  * Whether the grid's current state permits a manual row drag-reorder. A manual
@@ -215,6 +215,25 @@ function useStableHandler<A extends unknown[]>(
 	const present = handler != null
 
 	return useMemo(() => (present ? (...args: A) => ref.current?.(...args) : undefined), [present])
+}
+
+/**
+ * The active highlight-search query: the debounced quick-search value when the
+ * search marks rather than prunes ({@link GridSearch.filter} `false`) and it holds
+ * a query, else `null`. Data cells read it through {@link GridHighlightContext} to
+ * mark their matches; `null` while the search filters, is empty, or is unset.
+ * Kept out of {@link GridData} for its cognitive-complexity budget.
+ *
+ * @internal
+ */
+function resolveHighlightQuery(
+	search: GridSearch | undefined,
+	globalFilter: GridGlobalFilterView | null,
+): string | null {
+	if (search?.filter !== false) return null
+
+	// `|| null` (not `??`) so an empty query collapses to null — no marking.
+	return globalFilter?.value || null
 }
 
 /**
@@ -1137,10 +1156,18 @@ export function GridData<T>({
 	// table when editable; a read-only grid returns it untouched.
 	const cursorContent = cursor.wrap(tableContent)
 
+	// Highlight-mode search (`search.filter === false`): every row stays and the
+	// matched substring is marked in each searched cell instead. The debounced query
+	// flows to the body cells through context (null while filtering, empty, or
+	// unsearched), so a query change re-marks only the cells that read it.
+	const highlightQuery = resolveHighlightQuery(searchConfig, globalFilter)
+
 	const tableRegion = (
-		<GridScrollRegion active={needsScrollWrapper} scrollRef={scrollRef} maxHeight={maxHeight}>
-			{cursorContent}
-		</GridScrollRegion>
+		<GridHighlightContext value={highlightQuery}>
+			<GridScrollRegion active={needsScrollWrapper} scrollRef={scrollRef} maxHeight={maxHeight}>
+				{cursorContent}
+			</GridScrollRegion>
+		</GridHighlightContext>
 	)
 
 	return (

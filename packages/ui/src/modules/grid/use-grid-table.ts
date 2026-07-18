@@ -661,13 +661,14 @@ export function useGridTable<T>({
 		[setColumnFiltersState],
 	)
 
-	const { clientSort, filterMode } = resolveTransformModes({
+	const { clientSort, filterMode, globalHighlights } = resolveTransformModes({
 		manualGrouped: manualGroupRow != null,
 		sortManual,
 		globalConfigured,
 		hasColumnFilters,
 		globalManual: globalFilterConfig?.manual,
 		columnManual: columnFiltersConfig?.manual,
+		globalFiltersRows: globalFilterConfig?.filter,
 	})
 
 	// The engine filters the global search and the column filters through one
@@ -746,6 +747,7 @@ export function useGridTable<T>({
 		...filterOptions<T>({
 			configured: filterMode.configured,
 			manual: filterMode.manual,
+			globalHighlight: globalHighlights,
 			onGlobalFilterChange: globalConfigured ? onGlobalFilterChange : undefined,
 			onColumnFiltersChange: hasColumnFilters ? onColumnFiltersChange : undefined,
 		}),
@@ -768,6 +770,7 @@ export function useGridTable<T>({
 		paginationManual: manual,
 		filterMode,
 		globalFilter: resolvedGlobalFilter,
+		globalHighlights,
 		columnFilters: resolvedColumnFilters,
 		grouped,
 	})
