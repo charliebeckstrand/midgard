@@ -870,10 +870,7 @@ export function Demo() {
 
 					<TabContent value="heatmap">
 						<Stack gap="xl">
-							<Example
-								title="Activity"
-								code={code`<HeatmapChart series={[{ xKey: 'hour', yKey: 'day', colorKey: 'commits', colorRange: greens }]} … />`}
-							>
+							<Example title="Activity">
 								<HeatmapChart
 									aria-label="Commits by weekday and hour"
 									data={activity}
@@ -894,10 +891,7 @@ export function Demo() {
 
 					<TabContent value="choropleth">
 						<Stack gap="xl">
-							<Example
-								title="Heatmap"
-								code={code`<ChoroplethChart legend="range" series={[{ …, colorRange: heat }]} … />`}
-							>
+							<Example title="Heatmap">
 								<ChoroplethChart
 									aria-label="Resident population by state, heatmap"
 									geography={states}
