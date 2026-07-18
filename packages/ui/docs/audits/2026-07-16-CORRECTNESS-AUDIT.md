@@ -694,6 +694,41 @@ isolation) were traced sound beyond the rows above.
 
 ---
 
+## Review pass — six-agent correctness review
+
+Before merge, the whole branch (`origin/main..HEAD`, 94 files) went through a
+six-agent adversarial correctness review, one agent per subsystem slice, each
+verifying every hunk against source + consumers + tests and cross-checking the
+audit's stated intent against the landed code. Every CONFIRMED behavioral
+finding was then reproduced independently. The branch held up broadly — the
+`hasIssues`/form-binding adoptions, the `toNumericCell` unification, the
+pdf-viewer memo chain, and the toast source-count all verified sound — but the
+review found one genuine security regression and a handful of smaller defects,
+fixed below.
+
+### Findings fixed
+
+| # | Verb | Surface | Site | Issue | Fix | Status |
+|---|---|---|---|---|---|---|
+| 1 | FIX (high) | Markdown (safeUrl) | markdown-renderer.tsx:22 | The batch-5 scheme guard stripped `\s`, which misses the non-whitespace C0 controls (U+0000–U+0008, U+000E–U+001F). `[x](<javascript:…>)` kept the leading byte through marked, failed the scheme match (so passed as "relative"), and the browser trimmed the byte at click time → `javascript:` ran. Reproduced against marked 18.0.5. | Classify the scheme off a copy with every code point ≤ U+0020 dropped (C0 controls + space), matching DOMPurify's `ATTR_WHITESPACE`. Regression test pins the control-char vector; safe schemes still pass. | ✅ RESOLVED |
+| 2 | FIX (med) | CommandPalette | use-command-palette-state.ts:93 | The close-reset (`activeIndexRef = -1`) was clobbered when closing with a non-empty query: `deferredQuery` transitions `'foo'→''`, firing the unguarded seed effect while the options are still mounted through the exit animation, which rewrote the index to 0 — reopen's first ArrowDown then landed on item 2. | Guard the seed effect on `open` (add it to the deps), so a closing transition doesn't re-seed. Mirrors Combobox's `if (!open)` guard. | ✅ RESOLVED |
+| 3 | FIX (low) | Sparkline | sparkline-geometry.ts:133 | The fixed-edge area closure painted a wedge to the box corner when a *boundary* datum was non-finite (`[1,3,NaN]` → fill runs to x=98 though the line stops at x=50), implying data that isn't there. | Close the fill on the outermost drawn points, keeping the full-width band only for the lone-point case. Regression test pins the trailing-NaN geometry. | ✅ RESOLVED |
+| 4 | FIX (low) | ToastAlert | toast-alert.tsx:118 | The unmount-release cleanup released the pause holds but left `hoverHeldRef`/`focusHeldRef` at `true`. Under `<Activity mode="hidden">` (effect cleanup runs while refs persist), a re-show would then swallow the next hold and run auto-dismiss under the pointer. | Reset both flags to `false` in the cleanup so it is idempotent. | ✅ RESOLVED |
+| 5 | FIX (low) | ResizablePanel | use-resizable-panel.ts:161 | The drag supersede (`cleanupRef.current?.()`) ran before the `availableSize <= 0` guard, so a second pointerdown while the group had collapsed to ≤ handle size tore down the live drag's listeners then bailed, stranding `dragging`. | Move the supersede below the guard, so a pointerdown that can't start a drag leaves the live one intact. | ✅ RESOLVED |
+| 6 | DOC | Markdown | markdown.tsx:43 | The security doccomment claimed `data:text/html` renders no `src`, but images allow any `data:` (intentional — inert on `<img>`), contradicting the code and `safeUrl`'s own doc. | Reword: links block `javascript:`/`data:`/`vbscript:`; images additionally allow `data:` (inert as an image source). | ✅ RESOLVED |
+| 7 | DOC | TooltipTrigger | tooltip-trigger.tsx:60 | The `mergeRefs` comment (added in the simplify pass) said floating-ui's `useMergeRefs` "returns no cleanup" — inaccurate for 0.27.19 (it returns one; the null still reaches `setReference` via a synthesized per-ref cleanup). | Restate the accurate mechanism; the conclusion (don't fold onto `useComposedRef`) is unchanged. | ✅ RESOLVED |
+
+### Recorded, not fixed (benign or latent)
+
+| Surface | Site | Note | Verb | Status |
+|---|---|---|---|---|
+| ToastAlert / useToastTimer | use-toast-timer.ts:38 | On whole-provider unmount, parent-first cleanup order re-arms a timer nothing clears; it fires `start` into detached refs and a no-op `setState`. No crash, no user-visible effect — a leaked callback during teardown. Guarding it adds a disposed-flag for zero user impact. | WATCH | ◯ OPEN |
+| ContextMenu | context-menu-merge.ts:39 | The resolver's separator key (`context-menu-group-1`) can collide with a host that pre-built `defaults` via the public `mergeContextMenuItems` and fed it back in — duplicate React keys. No in-repo consumer composes them; latent, not reachable today. | WATCH | ◯ OPEN |
+| PdfViewer | use-pdf-viewer-page-rotation.ts:34 | The render-phase reset writes a ref during render; loop-free and StrictMode-safe, but a discarded concurrent render keeps the ref mutation while losing the queued reset. Byte-for-byte the house idiom (page-size, resizable use it too); fixing here alone would diverge from the pattern. | WATCH | ◯ OPEN |
+| CommandPalette | command-palette.test | Finding 2's fix is verified by reproduction + reasoning but ships unpinned: a faithful regression test needs the virtualized-source + `useDeferredValue` harness that lives at the browser-test tier, not a jsdom mock. | WATCH | ◯ OPEN |
+
+---
+
 ## Reliability appendix
 
 Every row was traced to its definition and its consumption in source, then
@@ -927,3 +962,32 @@ pairing updated to the counted contract, alongside three new cases — the
 close-under-pointer strand end-to-end, focus-leaving-under-hover staying
 paused, and an unpaired release flooring at zero. Verified green: biome, types,
 and the toast-related suites (170 tests across 5 files).
+
+The pre-merge six-agent review closed the loop. Its headline was a live
+security regression: the batch-5 `safeUrl` fix stripped `\s`, which the browser
+strips too — but the browser *also* trims the non-whitespace C0 controls
+(U+0000–U+0008, U+000E–U+001F) from a URL at navigation time, and `\s` does not.
+A markdown angle-bracket destination `[x](<javascript:…>)` therefore
+survived the guard as a "relative" URL and executed on click. Reproduced
+against the repo's marked 18.0.5, then closed by classifying the scheme off a
+copy with every code point ≤ U+0020 dropped (the DOMPurify `ATTR_WHITESPACE`
+set) — a code-point filter rather than a control-char regex, so no
+`noControlCharactersInRegex` suppression is needed. The review also caught a
+command-palette reset that a non-empty-query close clobbered (the seed effect
+lacked the `open` guard its Combobox sibling carries), a sparkline area wedge on
+a boundary non-finite datum, a toast held-flag that survived an `<Activity>`
+hide, a resizable supersede that fired before its own guard, and two inaccurate
+doccomments (the markdown `data:` claim, the `mergeRefs`/`useComposedRef`
+mechanism). All six code fixes carry pinning tests except the command-palette
+one, whose faithful reproduction needs the browser-tier virtualized harness and
+is recorded OPEN. The pass also backfilled coverage the review found missing on
+already-landed fixes: a `toNumericCell` unit test (the branch's new helper
+shipped unpinned), the tag-input IME `isComposing` guard (the key-event helper
+hardcodes `isComposing: false`, so the batch-9 headline fix would have passed if
+reverted), and the toast focus-close release path. Four findings were
+verified-then-recorded rather than fixed — a benign teardown-timer leak, a
+latent context-menu key collision no consumer reaches, the concurrent-render
+window in the house render-phase-reset idiom, and the virtualized command-palette
+test — each a note, not a defect worth churning code for. Verified green after
+all fixes: biome, `check-types` across four packages, and 3180 scoped tests
+across 197 files.
