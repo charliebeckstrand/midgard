@@ -113,9 +113,9 @@ export function sparklineGeometry(
 	const points = data.map((value, index) => ({ x: xAt(index), y: yAt(value) }))
 
 	// Draw only the finite marks. `points` stays index-aligned for callers, but a
-	// non-finite datum is excluded here — matching the `bars` filter below — so the
-	// line/area can't emit an invalid `L x NaN` token or a spurious clamped vertex;
-	// the path bridges across the dropped sample.
+	// non-finite datum is excluded here — matching the non-finite skip in `bars`
+	// below — so the line/area can't emit an invalid `L x NaN` token or a spurious
+	// clamped vertex; the path bridges across the dropped sample.
 	const drawn = points.filter((point) => Number.isFinite(point.y))
 
 	// One point can't form a segment; draw a flat line across the box so it reads.
@@ -136,20 +136,24 @@ export function sparklineGeometry(
 
 	const barWidth = Math.max(1, slot - barGap)
 
-	const bars: SparklineBar[] = data.flatMap((value, index) => {
-		if (!Number.isFinite(value)) return []
+	// A plain loop: this runs on every render of a chart that lives in grid
+	// cells, and a flatMap would allocate a throwaway wrapper array per datum.
+	const bars: SparklineBar[] = []
+
+	for (let index = 0; index < data.length; index++) {
+		const value = data[index]
+
+		if (value === undefined || !Number.isFinite(value)) continue
 
 		const barHeight = Math.max(minBarHeight, norm(value) * innerHeight)
 
-		return [
-			{
-				x: padding + index * slot + (slot - barWidth) / 2,
-				y: baseline - barHeight,
-				width: barWidth,
-				height: barHeight,
-			},
-		]
-	})
+		bars.push({
+			x: padding + index * slot + (slot - barWidth) / 2,
+			y: baseline - barHeight,
+			width: barWidth,
+			height: barHeight,
+		})
+	}
 
 	return { points, line, area, bars, last, baseline }
 }

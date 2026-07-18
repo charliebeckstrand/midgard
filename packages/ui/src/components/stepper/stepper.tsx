@@ -4,13 +4,13 @@ import { Children, isValidElement, type ReactNode, useId, useMemo, useRef } from
 import { cn } from '../../core'
 import { useA11yRoving, useMinWidth } from '../../hooks'
 import { ActiveIndicatorScope } from '../../primitives/active-indicator'
-import { k, type StepperVariants } from '../../recipes/kata/stepper'
+import { k } from '../../recipes/kata/stepper'
 import { Stack } from '../stack'
 import { StepperContext, type StepperOrientation } from './context'
 import { StepperPanels } from './stepper-panels'
 
-/** Props for {@link Stepper}: the controlled `value`, its `onValueChange` handler, `linear`/`orientation` modifiers, recipe variants, and step children. */
-export type StepperProps = StepperVariants & {
+/** Props for {@link Stepper}: the controlled `value`, its `onValueChange` handler, `linear`/`orientation` modifiers, and step children. */
+export type StepperProps = {
 	value: number
 	onValueChange?: (value: number) => void
 	/**

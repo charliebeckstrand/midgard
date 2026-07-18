@@ -147,11 +147,9 @@ export function DatePickerContent({
 						// Composed through floating-ui; its own handlers merge
 						// rather than clobber.
 						onKeyDown: (event: KeyboardEvent<HTMLElement>) => {
-							// A content variant with no virtual model (the relative
-							// custom range's editable Start/End fields) owns its own
-							// caret/roving; every guard below exists only to route keys
-							// to the model, and the focus reclaim would steal focus
-							// from the field being typed in.
+							// No handler: this content owns its own keyboard (see the
+							// `onKeyDown` prop doc) — skip the routing guards and the
+							// focus reclaim, which would steal from the field typed in.
 							if (!onKeyDown) return
 
 							// Keys from portaled descendants (the month/year picker

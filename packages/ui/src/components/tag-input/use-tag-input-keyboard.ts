@@ -42,8 +42,6 @@ export function useTagInputKeyboard({
 	tagCount,
 }: KeyboardOptions) {
 	return (event: KeyboardEvent<HTMLInputElement>) => {
-		// A candidate-selection keystroke belongs to the IME, not the tag editor:
-		// ignore every key mid-composition so none commits or deletes a tag.
 		if (event.nativeEvent.isComposing) return
 
 		if (event.key === 'Enter' || event.key === ',') {

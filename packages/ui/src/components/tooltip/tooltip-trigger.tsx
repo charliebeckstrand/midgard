@@ -60,7 +60,9 @@ export function TooltipTrigger({ children }: TooltipTriggerProps) {
 	// React 19 skips the null call on unmount when the ref callback returns a
 	// cleanup. `setReference(null)` during deletion effects fires a state
 	// update that can cascade into a "Maximum update depth" error while
-	// ancestor state is in flux.
+	// ancestor state is in flux. The shared `useComposedRef` (floating-ui's
+	// `useMergeRefs`) returns no cleanup and so propagates that null — don't
+	// fold this onto it.
 	const mergeRefs = useCallback(
 		(node: HTMLElement | null) => {
 			setReference(node)

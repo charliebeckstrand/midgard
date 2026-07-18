@@ -7,6 +7,7 @@ import { k } from '../../recipes/kata/fieldset'
 import { keyByOccurrence } from '../../utilities'
 import { useControl } from '../control/context'
 import { useFormField } from '../form/context'
+import { hasIssues } from '../form/form-reducer'
 
 /** Tone of a `<Message>`: an assertive `error`, or a polite `warning` / `success`. */
 export type MessageSeverity = 'error' | 'warning' | 'success'
@@ -34,7 +35,7 @@ function shouldRenderError(
 ): boolean {
 	if (severity !== 'error') return false
 
-	return isFormBoundError ? (issues?.length ?? 0) > 0 : children != null
+	return isFormBoundError ? hasIssues(issues) : children != null
 }
 
 /**
