@@ -2,6 +2,12 @@ export { isQueryActive } from './engine/query-active'
 export { evaluateQuery, matchQueryRule } from './engine/query-evaluate'
 export { createGroup, createRule } from './engine/query-node'
 export { getOperators } from './engine/query-operators'
+export {
+	formatQuerySummary,
+	type QuerySummaryRuleToken,
+	type QuerySummaryToken,
+	summarizeQuery,
+} from './engine/query-summary'
 export { addChild, mapNode, removeChild } from './engine/query-tree'
 export type {
 	QueryCombinator,
@@ -24,3 +30,4 @@ export {
 	type QueryBuilderRuleValueProps,
 	useQueryBuilderContext,
 } from './query-builder'
+export { QuerySummary, type QuerySummaryProps } from './query-summary'

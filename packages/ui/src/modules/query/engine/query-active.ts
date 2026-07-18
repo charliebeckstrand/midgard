@@ -24,11 +24,12 @@ export function isEmptyValue(value: unknown): boolean {
 /**
  * Whether a rule constrains its result: a value-less operator (`is empty`,
  * `is true`) always does; any other operator needs a non-empty value. The
- * operator's `noValue` flag is resolved from the rule's field.
+ * operator's `noValue` flag is resolved from the rule's field. Shared with the
+ * summary so a rule the builder reads as inactive is the one the summary omits.
  *
  * @internal
  */
-function isRuleActive(rule: QueryRule, fields: QueryField[]): boolean {
+export function isRuleActive(rule: QueryRule, fields: QueryField[]): boolean {
 	const field = fields.find((candidate) => candidate.name === rule.field)
 
 	const operator = field && getOperators(field).find((option) => option.value === rule.operator)
