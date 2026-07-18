@@ -61,7 +61,7 @@ re-export layer that half its own consumer already bypasses.
 | Surface | Note | Status |
 |---|---|---|
 | useAccordionSelection | Wraps `props.onValueChange` in its own ref **and** memoizes `onControllableChange` (`useCallback([isMultiple])`) — but `useControllable` already reads its `onValueChange` off a ref behind a stable `setValue`, so an unstable inline callback would be handled. The ref+memo pair is belt-and-suspenders, not a correctness requirement; harmless, recorded so it isn't re-derived. | ◯ OPEN |
-| Leaf `data-slot` override policy | Static leaves split on whether a consumer can clobber the slot name: box/alert destructure `'data-slot'` with a default (stable identity); aspect-ratio/badge/banner spread `{...props}` last (overridable). No bug — the overridable ones aren't typed to accept `data-slot` from most call sites — but the split is worth one policy note. | ◯ OPEN |
+| Leaf `data-slot` override policy | Static leaves split on whether a consumer can clobber the slot name: box/alert destructure `'data-slot'` with a default (stable identity); aspect-ratio/badge/banner spread `{...props}` last (overridable). No bug — the overridable ones aren't typed to accept `data-slot` from most call sites — but the split is worth one policy note. Branch-wide view: the same question generalizes to structural attrs (`role`, `tabIndex`, `type`, widget ARIA state) — menu-item (batch 6), tab, and toggle-icon-button each answered it per-site by pinning them after the spread; CONVENTIONS.md carries no override-ordering policy. Widen the eventual policy note to structural attrs generally, with menu-item as the composite precedent. | ◯ OPEN |
 | Banner `position` · Box `m`/`mx`/`my` | Already filed by the [props audit](2026-07-13-PROPS-AUDIT.md) (`position` REMOVE; margins REMOVE). Not re-litigated here. | ↗ props audit |
 
 ### Audited clean (no findings)
@@ -430,9 +430,9 @@ a dead empty `grip.dragging` recipe variant.
 | Surface | Site | Note | Verb | Status |
 |---|---|---|---|---|
 | Popover | context.ts:11 · popover.tsx:62 | `setOpen`/`close` are published on `PopoverContextValue` and its memo but read by no consumer, and `PopoverContext` isn't exported. Left in place: `close` on a popover context reads as deliberate scaffolding for a conventional `PopoverClose` affordance — removal deferred pending that intent (mirrors the menu `useMenuContext` call). | SIMPLIFY | ◯ OPEN |
-| Popover / Tooltip | popover-trigger.tsx:29 | The 3-line `assignRef` writer is byte-identical in popover-trigger and tooltip-trigger. Hoisting to a shared util touches out-of-batch tooltip and is low-value (the surrounding `mergeRefs` deliberately diverges), so recorded, not applied. | SIMPLIFY | ◯ OPEN |
+| Popover / Tooltip | popover-trigger.tsx:29 | The 3-line `assignRef` writer is byte-identical in popover-trigger and tooltip-trigger. Hoisting to a shared util touches out-of-batch tooltip and is low-value (the surrounding `mergeRefs` deliberately diverges), so recorded, not applied. Reuse-pass trap, do not fold either `mergeRefs` onto the shared `useComposedRef`: floating-ui's `useMergeRefs` returns no cleanup, so React 19 calls it with `null` on unmount and the `setReference(null)` cascade these hand-rolls exist to suppress comes back. A shared suppress-null variant is warranted only at a third consumer (§1.1); tooltip-trigger's comment now states the constraint in place. | SIMPLIFY | ◯ OPEN |
 | PivotTable | pivot-table-pivot.ts:117 | `aggregateRow`/`aggregateColumn` are near-identical (fix one axis, walk the other). Plausibly deliberate per §1.1 (row-vs-column are distinct boundaries, each body ~6 lines) — left as-is. | WATCH | ◯ OPEN |
-| PivotTable / map / chart | pivot-table-pivot.ts:57 · modules/map/map-value-scale.ts:35 · modules/chart/choropleth-chart/choropleth-chart.tsx:160 | The `toFiniteInput` numeric-coercion guard (number → non-empty-numeric-string → NaN, blanking `null`/`''`/`false` so `Number()` can't bucket them as `0`) is now the third byte-identical copy, alongside `toBinnableNumber` and `binnable`. All three are `@internal` module-private; no shared `utilities` coercion helper exists. Deduping means promoting one `toFiniteNumber` into `utilities` and rewiring two out-of-batch modules — cross-cutting work to surface, not fold into this sweep. | REUSE | ◯ OPEN |
+| PivotTable / map / chart | utilities/to-numeric-cell.ts | The `toFiniteInput` numeric-coercion guard (number → non-empty-numeric-string → NaN, blanking `null`/`''`/`false` so `Number()` can't bucket them as `0`) was the third byte-identical copy, alongside `toBinnableNumber` and `binnable`. Resolved by the branch-wide simplify pass: unified as `toNumericCell` in `utilities` (UTILITIES.md row added), all three sites rewired — zero behavior change; the chart engine's bare-`Number()` read paths are a different documented contract (blank plots as `0`) and stay. Sparkline's `yAt` non-finite guard is *not* a fourth site — it coerces nothing, it maps already-numeric input. | REUSE | ✅ RESOLVED |
 | ProgressGauge | progress-gauge.tsx:94 | The track `<circle>` carries `strokeLinecap="round"` but no `strokeDasharray`, so a closed circle has no sub-path ends for the cap to round — a no-op (only the dashed value arc needs it). | SIMPLIFY | ◯ OPEN |
 | ResizableHandle | resizable-handle.tsx:49 | `aria-valuemin`/`aria-valuemax` report the left panel's own `minSize`/`maxSize`, not the tighter range the adjacent panel's constraints also impose — so the announced range can exceed what a resize can actually reach. Own-bounds semantics are test-pinned, so likely by design. | WATCH | ◯ OPEN |
 | ScrollArea | use-scroll-area-scrollbar.ts:37 | `beginScrollbarDrag` has no `event.button` guard and no `contextmenu` teardown, unlike the resizable drag — a right/middle-click on the thumb starts a scroll-drag that persists while the context menu is open (it still ends on `pointerup`). Minor cross-engine inconsistency. | WATCH | ◯ OPEN |
@@ -882,3 +882,32 @@ token both read, where the marker's other layout classes already live. The
 `pulse`-via-status-kata coupling and the pre-existing inline `capitalizeFirst`
 were recorded and left — both agents judged them defensible or out of a simplify
 pass's scope.
+
+After batch 10 closed the sweep, a branch-wide four-angle simplify ran over the
+whole diff (`origin/main..HEAD`, 85 code files) — the cross-batch view the
+per-batch passes structurally couldn't take. It confirmed the batches composed
+cleanly: no leftover scaffolding (every dropped kata token orphan-free), no
+later-fix remnants (the tag-input hoist and sparkline generalization fully
+absorbed their predecessors), every memo/callback the branch added verified
+load-bearing with minimal-complete deps, and the fix clusters (clamps,
+stable-callback consolidations, sibling-asymmetry alignments) each re-judged
+right-altitude. Seven refinements landed. The batch-7 coercion triplication was
+resolved — `toFiniteInput`/`toBinnableNumber`/`binnable` were byte-identical, so
+they unified as `utilities/toNumericCell` with all three sites rewired and the
+chart engine's bare-`Number()` paths deliberately excluded (blank-plots-as-zero
+is their documented contract). `message.tsx` adopted `hasIssues` — the one site
+still inlining the predicate the form batch had named "the single definition of
+a field being invalid" (an in-file import path already existed, unlike the
+declined `capitalizeFirst`). `StepperProps` dropped the same redundant
+`Variants &` intersection batch 10 removed from timeline (the only other
+in-diff instance; text/stat intersections verified load-bearing). Sparkline's
+bars swapped a wrapper-array `flatMap` for a plain loop (per-render hot in grid
+cells). Two same-commit doc duplications were trimmed (tag-input's IME remark,
+date-picker's presence-contract paragraph), and tooltip-trigger's `mergeRefs`
+comment now names `useComposedRef` as the rejected alternative — it propagates
+the unmount null — so a future reuse pass can't fold the suppression away. Left
+as-is with reasons: `Children.toArray` in tree-item (a `forEach`-counter would
+shave the clone but reads worse; cost justified), `safeUrl`'s whitespace strip
+(the anchored-regex "optimization" readmits `" javascript:"` — already an OPEN
+row), and the latest-ref idiom (13+ sites, house pattern). Verified green:
+biome, types, and 3138 scoped tests across 192 files.
