@@ -289,6 +289,14 @@ export const k = {
 		// One-line cell content that truncates to an ellipsis at the column width.
 		// `block` gives the span the cell's width so the fixed/auto column bounds it.
 		truncate: ['block', 'truncate'],
+		// The search-highlight wash behind a matched substring when `search.filter`
+		// is `false` (mark, don't prune). The same mode-aware amber the JsonTree's
+		// search highlight uses (`kata/json-tree` `highlight`), so a match reads the
+		// same across the system. `text-inherit` drops the browser's default
+		// yellow/black <mark> ink, and the wash carries no box metrics, so the marked
+		// run's width matches the plain text and the column autosizer still measures
+		// the intrinsic content width.
+		mark: [...mode('bg-amber-100/60', 'dark:bg-amber-500/15'), 'rounded-sm', 'text-inherit'],
 		// Truncation tooltip surface: cap the width and let long text wrap inside.
 		tooltip: ['max-w-xs', 'whitespace-normal', 'break-words'],
 		// A roving-focusable data cell (`onCellClick`/`onCellDoubleClick`): the

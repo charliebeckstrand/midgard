@@ -870,6 +870,26 @@ const SearchExample = () => {
 	)
 }
 
+const SearchHighlightExample = () => {
+	const [query, setQuery] = useState('')
+
+	return (
+		<Grid
+			columns={searchableColumns}
+			rows={people}
+			getKey={(row) => row.id}
+			// `filter: false` marks matches in place instead of pruning the non-matching
+			// rows, so the query reads as an emphasis rather than a filter.
+			search={{
+				value: query,
+				onValueChange: setQuery,
+				filter: false,
+				placeholder: 'Highlight people',
+			}}
+		/>
+	)
+}
+
 const ColumnFiltersExample = () => (
 	<Grid columns={filterableColumns} rows={people} getKey={(row) => row.id} />
 )
@@ -1540,6 +1560,13 @@ export function Demo() {
 					<Stack gap="xl">
 						<Example title="Search" code={code`<Grid search={{ value, onValueChange }} />`}>
 							<SearchExample />
+						</Example>
+
+						<Example
+							title="Search highlight"
+							code={code`<Grid search={{ value, onValueChange, filter: false }} />`}
+						>
+							<SearchHighlightExample />
 						</Example>
 
 						<Example

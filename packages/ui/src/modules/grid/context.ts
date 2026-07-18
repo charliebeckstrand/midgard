@@ -66,3 +66,19 @@ export const [GridContext, useGrid] = createContext<GridContextValue>('Grid')
 export const [GridResizingContext, useGridResizing] = createContext<boolean>('GridResizing', {
 	default: false,
 })
+
+/**
+ * The active quick-search query when the grid searches in highlight mode
+ * ({@link GridSearch.filter} `false`), or `null` when it filters, has no query, or
+ * has no search at all. Data cells read it to mark the matched substring in the
+ * columns the search scans; a query change re-renders only the cells that
+ * subscribe, so the default (filtering, or unsearched) grid pays nothing.
+ *
+ * @remarks A dedicated context, like {@link GridResizingContext}, so the marking
+ * subscribes to the query alone rather than the table-wide {@link GridContextValue}.
+ * Returns `null` outside a `<Grid>`.
+ */
+export const [GridHighlightContext, useGridHighlight] = createContext<string | null>(
+	'GridHighlight',
+	{ default: null },
+)

@@ -163,4 +163,95 @@ describe('Grid search', () => {
 			expect(screen.queryByText('Bob')).not.toBeInTheDocument()
 		})
 	})
+
+	describe('highlight mode (filter: false)', () => {
+		it('keeps every row and marks the match instead of pruning', async () => {
+			await withFakeTime(async (clock) => {
+				renderUI(<Grid columns={columns} rows={rows} getKey={getKey} search={{ filter: false }} />)
+
+				await clock.user.type(screen.getByRole('searchbox'), 'Ali')
+
+				await clock.advance(GRID_SEARCH_DEBOUNCE_MS)
+
+				// The non-matching row stays in place — the search marks, it doesn't prune.
+				expect(screen.getByText('Bob')).toBeInTheDocument()
+
+				// The match is wrapped in a <mark>, carrying only the matched substring.
+				const marks = document.querySelectorAll('mark')
+
+				expect(marks).toHaveLength(1)
+
+				expect(marks[0]).toHaveTextContent('Ali')
+			})
+		})
+
+		it('marks case-insensitively while preserving the matched casing', async () => {
+			await withFakeTime(async (clock) => {
+				renderUI(<Grid columns={columns} rows={rows} getKey={getKey} search={{ filter: false }} />)
+
+				await clock.user.type(screen.getByRole('searchbox'), 'ali')
+
+				await clock.advance(GRID_SEARCH_DEBOUNCE_MS)
+
+				// A lowercase query still matches 'Alice', and the mark keeps the original casing.
+				expect(document.querySelector('mark')).toHaveTextContent('Ali')
+			})
+		})
+
+		it('marks only columns the search scans (those with a value accessor)', async () => {
+			await withFakeTime(async (clock) => {
+				type NoteRow = Row & { note: string }
+
+				const withNote: GridColumn<NoteRow>[] = [
+					{ id: 'name', title: 'Name', cell: (row) => row.name, value: (row) => row.name },
+					{ id: 'note', title: 'Note', cell: (row) => row.note },
+				]
+
+				const noteRows: NoteRow[] = [
+					{ id: 1, name: 'Alice', role: 'Developer', note: 'Alice in note' },
+					{ id: 2, name: 'Bob', role: 'Designer', note: 'qqq' },
+				]
+
+				renderUI(
+					<Grid
+						columns={withNote}
+						rows={noteRows}
+						getKey={(row) => row.id}
+						search={{ filter: false }}
+					/>,
+				)
+
+				await clock.user.type(screen.getByRole('searchbox'), 'Alice')
+
+				await clock.advance(GRID_SEARCH_DEBOUNCE_MS)
+
+				// 'note' has no value accessor: its 'Alice' text is not scanned, so only the
+				// name cell's match is marked.
+				const marks = document.querySelectorAll('mark')
+
+				expect(marks).toHaveLength(1)
+
+				expect(screen.getByText('Alice in note')).toBeInTheDocument()
+			})
+		})
+
+		it('clears the marks when the query is cleared', async () => {
+			await withFakeTime(async (clock) => {
+				renderUI(<Grid columns={columns} rows={rows} getKey={getKey} search={{ filter: false }} />)
+
+				await clock.user.type(screen.getByRole('searchbox'), 'Ali')
+
+				await clock.advance(GRID_SEARCH_DEBOUNCE_MS)
+
+				expect(document.querySelector('mark')).toBeInTheDocument()
+
+				await clock.user.click(screen.getByRole('button', { name: 'Clear search' }))
+
+				// The whole value returns to a single unmarked text node.
+				expect(document.querySelector('mark')).not.toBeInTheDocument()
+
+				expect(screen.getByText('Alice')).toBeInTheDocument()
+			})
+		})
+	})
 })

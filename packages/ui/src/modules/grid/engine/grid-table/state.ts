@@ -69,7 +69,14 @@ export function resolveTransformModes(args: {
 	hasColumnFilters: boolean
 	globalManual: boolean | undefined
 	columnManual: boolean | undefined
-}): { clientSort: boolean; filterMode: { configured: boolean; manual: boolean } } {
+	/** The search's `filter` flag; `false` puts the global search in highlight (mark, don't prune) mode. */
+	globalFiltersRows: boolean | undefined
+}): {
+	clientSort: boolean
+	filterMode: { configured: boolean; manual: boolean }
+	/** Whether the global search marks matches instead of pruning rows (`search.filter === false`). */
+	globalHighlights: boolean
+} {
 	return {
 		clientSort: !args.sortManual && !args.manualGrouped,
 		filterMode: resolveFilterMode({
@@ -78,6 +85,7 @@ export function resolveTransformModes(args: {
 			globalManual: args.manualGrouped || args.globalManual,
 			columnManual: args.manualGrouped || args.columnManual,
 		}),
+		globalHighlights: args.globalConfigured && args.globalFiltersRows === false,
 	}
 }
 
@@ -100,10 +108,13 @@ export function resolveActiveEngineTransform(args: {
 	paginationManual: boolean
 	filterMode: { configured: boolean; manual: boolean }
 	globalFilter: string
+	/** Highlight mode: the search marks rather than prunes, so its query reshapes no rows and never forces the model. */
+	globalHighlights: boolean
 	columnFilters: ColumnFiltersState
 	grouped: boolean
 }): boolean {
-	const filtering = args.globalFilter !== '' || args.columnFilters.length > 0
+	const filtering =
+		(!args.globalHighlights && args.globalFilter !== '') || args.columnFilters.length > 0
 
 	return usesClientModel({
 		paginated: args.paginated,
