@@ -1,4 +1,4 @@
-import { isEmptyValue, resolveRule } from './query-active'
+import { imposesConstraint, isEmptyValue, resolveRule } from './query-active'
 import type { QueryField, QueryGroup, QueryOperator, QueryRule } from './types'
 
 /**
@@ -6,8 +6,10 @@ import type { QueryField, QueryGroup, QueryOperator, QueryRule } from './types'
  * operator labels and, unless the operator is value-less (`is empty`, `is
  * true`), its value. A `select` value resolves to its option label; a
  * one-sided range renders as a `≥`/`≤` bound.
+ *
+ * @internal
  */
-export type QuerySummaryRuleToken = {
+type QuerySummaryRuleToken = {
 	kind: 'rule'
 	field: string
 	operator: string
@@ -21,6 +23,8 @@ export type QuerySummaryRuleToken = {
  * flat, ordered stream of display-ready pieces — a sentence renderer joins it
  * left-to-right; a chip renderer draws each rule token as a chip and the rest as
  * separators.
+ *
+ * @internal
  */
 export type QuerySummaryToken =
 	| QuerySummaryRuleToken
@@ -63,17 +67,17 @@ function describeValue(field: QueryField | undefined, value: unknown): string {
 }
 
 /**
- * Describes one rule as a token, or `null` when the rule imposes no constraint —
- * a value-requiring operator with an empty value drops out, the same judgement
- * the active check applies. Unresolved field/operator names render verbatim,
- * since such a rule can still constrain the result.
+ * Describes one rule as a token, or `null` when the rule imposes no constraint
+ * ({@link imposesConstraint}), so a blank or half-built rule drops out.
+ * Unresolved field/operator names render verbatim, since such a rule can still
+ * constrain the result.
  *
  * @internal
  */
 function describeRule(rule: QueryRule, fields: QueryField[]): QuerySummaryRuleToken | null {
 	const { field, operator } = resolveRule(rule, fields)
 
-	if (!operator?.noValue && isEmptyValue(rule.value)) return null
+	if (!imposesConstraint(operator, rule.value)) return null
 
 	const label = field?.label ?? rule.field
 
@@ -135,6 +139,7 @@ function describeGroup(
  * query imposes no constraint (in step with {@link isQueryActive}), so a view
  * can render nothing rather than an empty sentence.
  *
+ * @internal
  * @param group - The query group (typically the root) to describe.
  * @param fields - Field definitions resolving each rule's labels, operators, and options.
  */

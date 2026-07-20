@@ -37,21 +37,31 @@ export function resolveRule(
 
 	const operator = field && getOperators(field).find((option) => option.value === rule.operator)
 
-	return { field, operator: operator || undefined }
+	return { field, operator }
 }
 
 /**
- * Whether a rule constrains its result: a value-less operator (`is empty`, `is
- * true`) always does; any other operator needs a non-empty value.
+ * Whether a resolved operator and value constrain the result: a value-less
+ * operator (`is empty`, `is true`) always does; any other needs a non-empty
+ * value. The one definition of "active", shared by the query judgement and the
+ * summary.
+ *
+ * @internal
+ */
+export function imposesConstraint(operator: QueryOperator | undefined, value: unknown): boolean {
+	return operator?.noValue ? true : !isEmptyValue(value)
+}
+
+/**
+ * Whether a rule constrains its result, resolving its operator from the field
+ * set and applying {@link imposesConstraint}.
  *
  * @internal
  */
 function isRuleActive(rule: QueryRule, fields: QueryField[]): boolean {
 	const { operator } = resolveRule(rule, fields)
 
-	if (operator?.noValue) return true
-
-	return !isEmptyValue(rule.value)
+	return imposesConstraint(operator, rule.value)
 }
 
 /**

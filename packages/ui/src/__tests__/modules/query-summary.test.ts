@@ -137,9 +137,9 @@ describe('formatQuerySummary', () => {
 	})
 
 	it('renders an unresolved field and operator verbatim', () => {
-		expect(
-			line([{ ...createRule(nameField), field: 'gone', operator: 'contains', value: 'x' }]),
-		).toBe('gone contains x')
+		expect(line([rule(nameField, { field: 'gone', operator: 'contains', value: 'x' })])).toBe(
+			'gone contains x',
+		)
 	})
 })
 
