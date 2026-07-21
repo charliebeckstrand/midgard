@@ -8,7 +8,9 @@ The engine extraction is done (this change). The Query domain — node and field
 
 The builder is now one view wired over that core. `useQueryTree` (module root) holds the controlled/uncontrolled root and the five referentially-stable edit actions; `useQueryBuilderTree` composes it with the builder's focus registry, wrapping `remove` to move focus to a surviving neighbour (WCAG 2.4.3). The focus ladder is the builder's own concern in [`query-builder/query-builder-focus.ts`](query-builder/query-builder-focus.ts), not the query's. Grid's filter path reads the same core: `grid/engine/grid-table/options.ts` evaluates a column's query tree through `engine/query-evaluate`, a pure-engine-to-pure-engine edge.
 
-The public surface is unchanged across the move — the barrel re-exports domain symbols from `./engine/*` and view symbols from `./query-builder`, so every consumer (grid, the docs demo, the a11y corpus, the boundary suite) compiles byte-unchanged. The design record for the extraction is [`docs/plans/2026-07-12-QUERY-MODULE-PLAN.md`](../../../docs/plans/2026-07-12-QUERY-MODULE-PLAN.md).
+The public surface was unchanged across the move — the barrel re-exports domain symbols from `./engine/*` and view symbols from `./query-builder`, so every consumer (grid, the docs demo, the a11y corpus, the boundary suite) compiled byte-unchanged. The design record for the extraction is [`docs/plans/2026-07-12-QUERY-MODULE-PLAN.md`](../../../docs/plans/2026-07-12-QUERY-MODULE-PLAN.md).
+
+The first read view has landed, proving the thesis. [`engine/query-summary.ts`](engine/query-summary.ts) turns a tree into an ordered token stream (`summarizeQuery`) or a plain line (`formatQuerySummary`), reading each rule through the same `resolveRule` seam the active/empty judgement uses, so a blank rule drops out and an inactive query summarizes to nothing. [`QuerySummary`](query-summary.tsx) (module root) renders that stream beside the edit view — each active rule as `field operator value`, joined by AND/OR and bracketed per nested group — needing the core, not the builder. This is the read view the extraction existed to make cheap. The barrel publishes the view and its plain-text form (`formatQuerySummary`); the token stream (`summarizeQuery`) stays engine-internal until a second renderer earns it, as `useQueryTree` does (CLAUDE.md §1.1).
 
 ## Engine — the substrate
 
@@ -28,7 +30,7 @@ The [`module-filename-boundary.test.ts`](../../__tests__/boundary/module-filenam
 
 - **Export `useQueryTree`.** The headless hook is internal today — the builder is its only view, and grid drives a controlled `QueryBuilder` without it. Export it from the barrel once a second consumer justifies the surface (CLAUDE.md §1.1).
 
-- **Query summary line.** A human-readable read view — a sentence or chip row over the same tree — beside the edit view. The piece the extraction exists to make cheap: it reads `engine/` and needs no builder, so it composes the core directly.
+- **Chip-row summary.** A second rendering of the same `summarizeQuery` stream — each rule token a chip, combinators and brackets the separators between them — as a filter bar over the active constraints. A read-only bar renders the display stream as-is; an interactive one (clear a chip, toggle a combinator) acts on the source node, so it adds the node ids the display stream omits.
 
 - **Serialization adapters.** URL-safe round-trip and server filter formats as `engine/` files (`query-serialize`), so a query survives a reload or reaches a backend without the builder in the loop.
 

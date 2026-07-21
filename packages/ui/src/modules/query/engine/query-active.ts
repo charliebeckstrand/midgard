@@ -1,5 +1,5 @@
 import { getOperators } from './query-operators'
-import type { QueryField, QueryGroup, QueryRule } from './types'
+import type { QueryField, QueryGroup, QueryOperator, QueryRule } from './types'
 
 /**
  * Whether a value counts as filled for an operator that needs one. Nullish,
@@ -22,20 +22,46 @@ export function isEmptyValue(value: unknown): boolean {
 }
 
 /**
- * Whether a rule constrains its result: a value-less operator (`is empty`,
- * `is true`) always does; any other operator needs a non-empty value. The
- * operator's `noValue` flag is resolved from the rule's field.
+ * Resolves a rule against the field set: the `field` it names and the
+ * `operator` from that field's set, each `undefined` when unresolved. The
+ * single place a rule is read into its field and operator — shared by the
+ * active judgement and the summary so both interpret a rule identically.
  *
  * @internal
  */
-function isRuleActive(rule: QueryRule, fields: QueryField[]): boolean {
+export function resolveRule(
+	rule: QueryRule,
+	fields: QueryField[],
+): { field: QueryField | undefined; operator: QueryOperator | undefined } {
 	const field = fields.find((candidate) => candidate.name === rule.field)
 
 	const operator = field && getOperators(field).find((option) => option.value === rule.operator)
 
-	if (operator?.noValue) return true
+	return { field, operator }
+}
 
-	return !isEmptyValue(rule.value)
+/**
+ * Whether a resolved operator and value constrain the result: a value-less
+ * operator (`is empty`, `is true`) always does; any other needs a non-empty
+ * value. The one definition of "active", shared by the query judgement and the
+ * summary.
+ *
+ * @internal
+ */
+export function imposesConstraint(operator: QueryOperator | undefined, value: unknown): boolean {
+	return operator?.noValue ? true : !isEmptyValue(value)
+}
+
+/**
+ * Whether a rule constrains its result, resolving its operator from the field
+ * set and applying {@link imposesConstraint}.
+ *
+ * @internal
+ */
+function isRuleActive(rule: QueryRule, fields: QueryField[]): boolean {
+	const { operator } = resolveRule(rule, fields)
+
+	return imposesConstraint(operator, rule.value)
 }
 
 /**
