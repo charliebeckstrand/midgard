@@ -19,7 +19,7 @@ export type ContextMenuItem = {
 	/** Leading icon element (e.g. a Lucide icon), rendered through `Icon`. */
 	icon?: ReactElement
 	/** Runs when the entry is chosen; the menu closes afterward. */
-	onSelect: () => void
+	onSelect?: () => void
 	/** Render the entry inert and dimmed. @defaultValue false */
 	disabled?: boolean
 }

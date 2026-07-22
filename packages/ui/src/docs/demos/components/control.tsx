@@ -8,6 +8,12 @@ import { Input } from '../../../components/input'
 import { Stack } from '../../../components/stack'
 import { Example } from '../../engine'
 
+const severities = [
+	{ severity: 'success', message: 'Looks good!' },
+	{ severity: 'warning', message: 'Be careful!' },
+	{ severity: 'error', message: 'Something went wrong.' },
+] as const
+
 function RequiredExample() {
 	const [submitting, setSubmitting] = useState(false)
 
@@ -46,12 +52,14 @@ export function Demo() {
 				</Control>
 			</Example>
 
-			<Example title="Invalid">
-				<Control severity="error">
-					<Label>Email</Label>
-					<Input type="email" />
-					<Message>Please enter a valid email.</Message>
-				</Control>
+			<Example title="Severity">
+				{severities.map(({ severity, message }) => (
+					<Control key={severity} severity={severity}>
+						<Label>Email</Label>
+						<Input type="email" />
+						<Message severity={severity}>{message}</Message>
+					</Control>
+				))}
 			</Example>
 
 			<Example title="Required">
