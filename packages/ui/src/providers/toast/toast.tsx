@@ -11,7 +11,8 @@ import type { ToastData, ToastInput } from './types'
 import { useToastQueue } from './use-toast-queue'
 import { useToastTimer } from './use-toast-timer'
 
-type ToastProviderProps = {
+/** Props for {@link ToastProvider}: the default `duration` and `maxToasts` cap, plus `children`. */
+export type ToastProviderProps = {
 	children: ReactNode
 	/**
 	 * Default lifetime (ms) for toasts that don't set `persist` or their own `duration`.

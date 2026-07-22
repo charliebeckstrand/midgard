@@ -1,2 +1,3 @@
 export { useToast } from './context'
-export { ToastProvider } from './toast'
+export { ToastProvider, type ToastProviderProps } from './toast'
+export type { ToastInput, ToastPosition, ToastSeverity } from './types'
