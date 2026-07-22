@@ -1,7 +1,7 @@
 'use client'
 
 import { type ComponentPropsWithoutRef, type ReactNode, useEffect } from 'react'
-import { cn } from '../../core'
+import { cn, type Severity } from '../../core'
 import { useDensity } from '../../primitives/density'
 import { k } from '../../recipes/kata/fieldset'
 import { keyByOccurrence } from '../../utilities'
@@ -9,8 +9,8 @@ import { useControl } from '../control/context'
 import { useFormField } from '../form/context'
 import { hasIssues } from '../form/form-reducer'
 
-/** Tone of a `<Message>`: an assertive `error`, or a polite `warning` / `success`. */
-export type MessageSeverity = 'error' | 'warning' | 'success'
+/** Tone of a `<Message>`: an assertive `error`, or a polite `warning` / `success`. Aliases the shared {@link Severity} so the validation vocabulary stays single-sourced. */
+export type MessageSeverity = Severity
 
 /** Props for {@link Message}: `severity`, optional form-field `name` binding, and the `all`-errors flag atop native `<p>` attributes. */
 export type MessageProps = {

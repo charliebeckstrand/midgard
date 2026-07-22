@@ -5,16 +5,15 @@ import { cn } from '../../core'
 import { ControlFrame } from '../../primitives/control'
 import { useControlSize } from '../../primitives/density'
 import { useGlass } from '../../providers/glass/context'
-import type { Step } from '../../recipes'
 import { k, type TextareaVariants } from '../../recipes/kata/textarea'
-import { useControl } from '../control/context'
+import { type ControlSize, type ControlVariant, useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
 import { useInputValue } from '../input/use-input-value'
 
 /** Props for {@link Textarea}: density `size`, `variant`, an `actions` slot, and the remaining `<textarea>` surface. */
 export type TextareaProps = Omit<TextareaVariants, 'size' | 'variant'> & {
-	size?: Step
-	variant?: 'default' | 'outline'
+	size?: ControlSize
+	variant?: ControlVariant
 	className?: string
 	/** Control slot rendered as a right-justified row below the field; its presence pins `resize: none` and a min-height floor. */
 	actions?: ReactNode

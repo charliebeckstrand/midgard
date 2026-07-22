@@ -6,17 +6,16 @@ import { useIdScope } from '../../hooks/use-id-scope'
 import { useControlSize } from '../../primitives/density'
 import { useGlass } from '../../providers/glass/context'
 import { useHeadless } from '../../providers/headless/context'
-import type { Step } from '../../recipes'
 import { type InputVariants, k } from '../../recipes/kata/input'
-import { useControl } from '../control/context'
+import { type ControlSize, type ControlVariant, useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
 import { InputFrame } from './input-frame'
 import { useInputValue } from './use-input-value'
 
 /** Props for {@link Input}: `size`/`variant`, `prefix`/`suffix` affixes, and `invalid` override atop native `<input>` attributes. */
 export type InputProps = Omit<InputVariants, 'size' | 'variant'> & {
-	size?: Step
-	variant?: 'default' | 'outline'
+	size?: ControlSize
+	variant?: ControlVariant
 	prefix?: ReactNode
 	suffix?: ReactNode
 	/** Forces the invalid state. When omitted, inherits from Control / Form context. */
