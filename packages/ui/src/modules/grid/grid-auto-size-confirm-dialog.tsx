@@ -27,7 +27,7 @@ export function GridAutoSizeConfirmDialog({
 	onConfirm,
 }: GridAutoSizeConfirmDialogProps) {
 	return (
-		<Dialog open={open} onOpenChange={onOpenChange} size="md">
+		<Dialog open={open} onOpenChange={onOpenChange} width="md">
 			<DialogTitle>Auto-size all columns?</DialogTitle>
 			<DialogBody>
 				<Text>

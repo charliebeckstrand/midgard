@@ -52,8 +52,8 @@ type ConfirmAction = {
 	disabled?: boolean
 }
 
-/** Props for {@link Confirm}: open-state control, message content, the two configurable actions, and dialog `size`. */
-export type ConfirmProps = Pick<DialogPanelVariants, 'size'> & {
+/** Props for {@link Confirm}: open-state control, message content, the two configurable actions, and dialog `width`. */
+export type ConfirmProps = Pick<DialogPanelVariants, 'width'> & {
 	open: boolean
 	onOpenChange: (open: boolean) => void
 	/** Fires when the confirm action is pressed; does not close the dialog (drive `open` from your handler). */
@@ -98,7 +98,7 @@ export function Confirm({
 	children,
 	confirm,
 	cancel,
-	size,
+	width,
 	className,
 }: ConfirmProps) {
 	const close = useCallback(() => onOpenChange(false), [onOpenChange])
@@ -109,7 +109,7 @@ export function Confirm({
 			onOpenChange={onOpenChange}
 			data-slot="confirm"
 			role="alertdialog"
-			size={size}
+			width={width}
 			className={className}
 		>
 			{(title || description) && (

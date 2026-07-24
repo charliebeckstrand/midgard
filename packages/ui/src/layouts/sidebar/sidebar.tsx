@@ -98,7 +98,7 @@ export function SidebarLayout({
 			{floating && (
 				<Sheet
 					side="left"
-					size="xs"
+					width="xs"
 					open={floatingOpen}
 					onOpenChange={setFloatingOpen}
 					modal={false}
