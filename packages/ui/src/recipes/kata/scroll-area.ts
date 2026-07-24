@@ -8,16 +8,16 @@ const { scrollArea } = shaku
 const { css } = ugoki
 
 type Orientation = ScrollOrientation
-type Size = keyof (typeof scrollArea)['vertical']
+type Extent = keyof (typeof scrollArea)['vertical']
 
 const orientations: Orientation[] = ['vertical', 'horizontal', 'both']
-const sizes = Object.keys(scrollArea.vertical) as Size[]
+const extents = Object.keys(scrollArea.vertical) as Extent[]
 
 const compound = orientations.flatMap((orientation) =>
-	sizes.map((size) => ({
+	extents.map((extent) => ({
 		orientation,
-		size,
-		class: scrollArea[orientation][size],
+		extent,
+		class: scrollArea[orientation][extent],
 	})),
 )
 
@@ -36,9 +36,9 @@ const wrapper = defineRecipe({
 		horizontal: '',
 		both: '',
 	},
-	size: Object.fromEntries(sizes.map((key) => [key, ''])) as Record<Size, string>,
+	extent: Object.fromEntries(extents.map((key) => [key, ''])) as Record<Extent, string>,
 	compound,
-	defaults: { rounded: false, bare: false, orientation: 'vertical', size: 'md' },
+	defaults: { rounded: false, bare: false, orientation: 'vertical', extent: 'md' },
 })
 
 const viewport = defineRecipe({
@@ -102,7 +102,7 @@ export const k = {
 	thumb,
 } as const
 
-/** Recipe variant props for the {@link ScrollArea} wrapper — its styling axes (`rounded`, `bare`, `orientation`, `size`), for consumers composing custom slots. */
+/** Recipe variant props for the {@link ScrollArea} wrapper — its styling axes (`rounded`, `bare`, `orientation`, `extent`), for consumers composing custom slots. */
 export type ScrollAreaWrapperVariants = VariantProps<typeof wrapper>
 /** Recipe variant props for the {@link ScrollArea} viewport — its styling axes (`orientation`, `bare`), for consumers composing custom slots. */
 export type ScrollAreaViewportVariants = VariantProps<typeof viewport>

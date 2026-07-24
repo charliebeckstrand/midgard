@@ -1,6 +1,6 @@
 /**
  * Shaku scroll-area: dimension scales for `<ScrollArea>`. Keyed by
- * orientation (vertical / horizontal / both) and size step. `dvh` /
+ * orientation (vertical / horizontal / both) and extent step. `dvh` /
  * `dvw` give the viewport-locked variants.
  *
  * Layer: kiso · Concern: scroll-area dimension
@@ -8,7 +8,7 @@
 
 import type { ScrollOrientation } from '../../../types'
 
-type Size = 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'dvh' | 'dvw'
+type Extent = 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'dvh' | 'dvw'
 
 export const scrollArea = {
 	vertical: {
@@ -38,4 +38,4 @@ export const scrollArea = {
 		dvh: 'h-[100dvh]',
 		dvw: 'w-[100dvw]',
 	},
-} satisfies Record<ScrollOrientation, Record<Size, string>>
+} satisfies Record<ScrollOrientation, Record<Extent, string>>

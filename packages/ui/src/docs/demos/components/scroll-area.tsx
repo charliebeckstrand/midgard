@@ -39,10 +39,10 @@ export function Demo() {
 	return (
 		<>
 			<Example
-				title="Vertical with size"
+				title="Vertical with extent"
 				actions={<SizeListbox sizes={sizes} value={verticalSize} onValueChange={setVerticalSize} />}
 			>
-				<ScrollArea size={verticalSize} rounded className="max-w-96">
+				<ScrollArea extent={verticalSize} rounded className="max-w-96">
 					<Stack gap="lg">
 						{paragraphs.map((p) => (
 							<Text key={p.id}>{p.text}</Text>
@@ -52,12 +52,12 @@ export function Demo() {
 			</Example>
 
 			<Example
-				title="Horizontal with size"
+				title="Horizontal with extent"
 				actions={
 					<SizeListbox sizes={sizes} value={horizontalSize} onValueChange={setHorizontalSize} />
 				}
 			>
-				<ScrollArea orientation="horizontal" size={horizontalSize} rounded>
+				<ScrollArea orientation="horizontal" extent={horizontalSize} rounded>
 					<Flex gap="sm" className="w-max">
 						{tags.map((tag) => (
 							<Badge key={tag}>{tag}</Badge>
@@ -70,7 +70,7 @@ export function Demo() {
 				title="Both axes"
 				actions={<SizeListbox sizes={sizes} value={bothSize} onValueChange={setBothSize} />}
 			>
-				<ScrollArea orientation="both" size={bothSize} rounded>
+				<ScrollArea orientation="both" extent={bothSize} rounded>
 					<Stack gap="lg" className="w-max">
 						{paragraphs.map((p) => (
 							<Text key={p.id} className="whitespace-nowrap">
@@ -82,7 +82,7 @@ export function Demo() {
 			</Example>
 
 			<Example title="Hidden scrollbar">
-				<ScrollArea size="md" scrollbar="hidden" rounded className="max-w-96">
+				<ScrollArea extent="md" scrollbar="hidden" rounded className="max-w-96">
 					<Stack gap="lg">
 						{paragraphs.map((p) => (
 							<Text key={p.id}>{p.text}</Text>
@@ -92,7 +92,7 @@ export function Demo() {
 			</Example>
 
 			<Example title="Visible scrollbar">
-				<ScrollArea size="md" scrollbar="visible" rounded className="max-w-96">
+				<ScrollArea extent="md" scrollbar="visible" rounded className="max-w-96">
 					<Stack gap="lg">
 						{paragraphs.map((p) => (
 							<Text key={p.id}>{p.text}</Text>
@@ -107,7 +107,7 @@ export function Demo() {
 						<CardTitle>Paragraphs</CardTitle>
 					</CardHeader>
 					<CardBody>
-						<ScrollArea bare size="md">
+						<ScrollArea bare extent="md">
 							<Stack gap="lg">
 								{paragraphs.map((p) => (
 									<Text key={p.id}>{p.text}</Text>

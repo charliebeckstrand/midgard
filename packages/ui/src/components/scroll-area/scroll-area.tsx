@@ -29,7 +29,7 @@ export type ScrollAreaProps = ScrollAreaWrapperVariants &
  */
 export function ScrollArea({
 	orientation = 'vertical',
-	size,
+	extent,
 	rounded,
 	scrollbar = 'auto',
 	bare,
@@ -59,7 +59,7 @@ export function ScrollArea({
 	return (
 		<div
 			data-slot="scroll-area"
-			className={cn(k.wrapper({ rounded, orientation, size, bare }), className)}
+			className={cn(k.wrapper({ rounded, orientation, extent, bare }), className)}
 		>
 			{/* Keyboard-focusable on any enabled axis (axe scrollable-region-focusable).
 			    tabIndex is omitted when no axis is enabled; consumers can override
