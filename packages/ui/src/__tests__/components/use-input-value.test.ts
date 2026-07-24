@@ -6,14 +6,12 @@ import { useInputValue } from '../../components/input/use-input-value'
 // hook normalises around. The Form-bound branch is covered by form.test.tsx.
 
 describe('useInputValue', () => {
-	it('returns the supplied value when hasValueProp is true', () => {
+	it('returns a supplied value controlled', () => {
 		const onChange = vi.fn()
 
 		const onBlur = vi.fn()
 
-		const { result } = renderHook(() =>
-			useInputValue({ hasValueProp: true, value: 'hello', onChange, onBlur }),
-		)
+		const { result } = renderHook(() => useInputValue({ value: 'hello', onChange, onBlur }))
 
 		expect(result.current.value).toBe('hello')
 
@@ -24,14 +22,14 @@ describe('useInputValue', () => {
 		expect(result.current.invalid).toBeUndefined()
 	})
 
-	it('coerces a nullish value to "" when hasValueProp is true', () => {
-		const { result } = renderHook(() => useInputValue({ hasValueProp: true, value: undefined }))
+	it('coerces a null value to "" and stays controlled (§7.3)', () => {
+		const { result } = renderHook(() => useInputValue({ value: null }))
 
 		expect(result.current.value).toBe('')
 	})
 
-	it('passes through an undefined value as-is when hasValueProp is false', () => {
-		const { result } = renderHook(() => useInputValue({ hasValueProp: false, value: undefined }))
+	it('leaves an undefined value uncontrolled (§7.3)', () => {
+		const { result } = renderHook(() => useInputValue({ value: undefined }))
 
 		expect(result.current.value).toBeUndefined()
 	})

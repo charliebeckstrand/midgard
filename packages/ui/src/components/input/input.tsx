@@ -32,8 +32,9 @@ export type InputProps = Omit<InputVariants, 'size' | 'variant'> & {
  * GlassProvider, and Density context, and drops to a bare `<input>` under
  * headless context.
  *
- * @remarks Stays controlled whenever a `value` prop is present, even `null` or
- * `undefined`; binds to the Form field named `name` otherwise. Value resolution
+ * @remarks Per CONVENTIONS §7.3, `value={undefined}` leaves the control
+ * uncontrolled (binding to the Form field named `name`), while `value={null}`
+ * keeps it controlled with no current value. Value resolution
  * (explicit prop > bound field > internal state) runs through
  * {@link useInputValue}, and `invalid` OR's the prop, the bound field, and any
  * ambient Control error. Under headless context the affix frame and recipe
@@ -41,8 +42,6 @@ export type InputProps = Omit<InputVariants, 'size' | 'variant'> & {
  * @see {@link InputFrame}
  */
 export function Input(props: InputProps) {
-	const hasValueProp = 'value' in props
-
 	const {
 		className,
 		type,
@@ -72,7 +71,7 @@ export function Input(props: InputProps) {
 	const headless = useHeadless()
 	const token = useControlSize(size)
 
-	const valueState = useInputValue({ hasValueProp, name, value, onChange, onBlur })
+	const valueState = useInputValue({ name, value, onChange, onBlur })
 
 	const sharedAttrs = useControlProps({
 		id,

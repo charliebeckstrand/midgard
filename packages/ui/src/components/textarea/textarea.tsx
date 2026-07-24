@@ -25,17 +25,14 @@ export type TextareaProps = Omit<TextareaVariants, 'size' | 'variant'> & {
  * Resolves variant, density, and binding from enclosing `<Form>`, `<Control>`,
  * `<GlassProvider>`, and Density contexts.
  *
- * @remarks Stays controlled when a `value` prop is present, even `null` or
- * `undefined`; binds to the Form field named `name` otherwise, sharing the
- * Input value cascade through {@link useInputValue}. With `actions`, the frame
+ * @remarks Per CONVENTIONS §7.3, `value={undefined}` leaves the control
+ * uncontrolled (binding to the Form field named `name`), while `value={null}`
+ * keeps it controlled with no current value; it shares the Input value cascade
+ * through {@link useInputValue}. With `actions`, the frame
  * stacks the field above a right-justified actions row and `field-sizing:
  * content` ignores `rows`, so `rows` becomes a min-height floor.
  */
 export function Textarea(props: TextareaProps) {
-	// A wrapper that passes value={null} or value={undefined} stays controlled;
-	// check for the prop's presence before destructuring.
-	const hasValueProp = 'value' in props
-
 	const {
 		className,
 		variant,
@@ -61,7 +58,6 @@ export function Textarea(props: TextareaProps) {
 	const glass = useGlass()
 	const control = useControl()
 	const valueState = useInputValue<HTMLTextAreaElement>({
-		hasValueProp,
 		name,
 		value,
 		onChange,

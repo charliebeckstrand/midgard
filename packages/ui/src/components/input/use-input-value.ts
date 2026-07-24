@@ -4,10 +4,8 @@ import type { ChangeEventHandler, FocusEventHandler, InputHTMLAttributes } from 
 import { useFormText } from '../form/use-form-text'
 
 type InputValueOptions<E extends HTMLInputElement | HTMLTextAreaElement> = {
-	/** Whether the consumer passed a `value` prop at all (`'value' in props`). */
-	hasValueProp: boolean
 	name?: string
-	value?: InputHTMLAttributes<HTMLInputElement>['value']
+	value?: InputHTMLAttributes<HTMLInputElement>['value'] | null
 	onChange?: ChangeEventHandler<E>
 	onBlur?: FocusEventHandler<E>
 }
@@ -25,18 +23,18 @@ type InputValueResult<E extends HTMLInputElement | HTMLTextAreaElement> = {
  * binding cascade. The Input/Textarea cascade hook; Textarea shares it via the
  * element type param.
  *
- * @param options - Caller props plus `hasValueProp`, the `'value' in props`
- * presence flag that distinguishes an absent prop from `value={undefined}`.
+ * @param options - Caller props: `name`, `value`, `onChange`, `onBlur`.
  * @returns The resolved `value`, `onChange`, `onBlur`, and the field's bound
  * `invalid` flag (to merge in `useControlProps`).
- * @remarks Resolution: an explicit `value`/`onChange` prop wins; the bound
- * field still supplies `invalid` but never overrides them; otherwise internal
- * state. A present `value` prop keeps the native control controlled even when
- * `null`/`undefined`, both of which coerce to `''`.
+ * @remarks Resolution follows CONVENTIONS §7.3: `value === undefined` leaves the
+ * control uncontrolled — it binds to the Form field named `name`, else falls
+ * back to native (`defaultValue`) state; `value === null` keeps it controlled
+ * with no current value (coerced to `''`); any other `value` is controlled. An
+ * explicit (non-`undefined`) `value` wins over the bound field, which still
+ * supplies `invalid`.
  * @see {@link useFormText}
  */
 export function useInputValue<E extends HTMLInputElement | HTMLTextAreaElement = HTMLInputElement>({
-	hasValueProp,
 	name,
 	value,
 	onChange,
@@ -44,9 +42,13 @@ export function useInputValue<E extends HTMLInputElement | HTMLTextAreaElement =
 }: InputValueOptions<E>): InputValueResult<E> {
 	const binding = useFormText<E>(name, { onChange, onBlur })
 
-	const bound = !hasValueProp && binding !== undefined
+	// §7.3: `undefined` is uncontrolled (binds to the Form field or native
+	// state); `null` is controlled with no value; anything else is controlled.
+	const isControlled = value !== undefined
 
-	const controlledValue = hasValueProp ? (value ?? '') : value
+	const bound = !isControlled && binding !== undefined
+
+	const controlledValue = isControlled ? (value ?? '') : undefined
 
 	return {
 		value: bound ? binding.value : controlledValue,
