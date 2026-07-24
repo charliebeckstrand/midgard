@@ -60,7 +60,6 @@ const root = defineRecipe({
 		sm: 'size-12',
 		md: 'size-16',
 		lg: 'size-20',
-		xl: 'size-24',
 	},
 	defaults: { size: 'md' },
 })
@@ -71,7 +70,6 @@ const label = defineRecipe({
 		sm: size.xs,
 		md: size.sm,
 		lg: size.md,
-		xl: size.lg,
 	},
 	defaults: { size: 'md' },
 })

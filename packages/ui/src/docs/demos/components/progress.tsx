@@ -16,7 +16,7 @@ const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
 
 const barSizes = ['sm', 'md', 'lg'] as const
 
-const gaugeSizes = ['sm', 'md', 'lg', 'xl'] as const
+const gaugeSizes = ['sm', 'md', 'lg'] as const
 
 export function Demo() {
 	const [barValue, setBarValue] = useState(50)
