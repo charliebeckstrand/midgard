@@ -1,7 +1,7 @@
 'use client'
 
 import { Download, SlidersHorizontal } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { type ReactNode, useState } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from '../../components/menu'
@@ -52,7 +52,8 @@ type GridToolbarProps = {
  * while a column filter constrains rows, by an amber "Clear all filters" button
  * that lifts them all — and a "Table tools" cluster at the end: the
  * column-manager trigger and, when any export type is active, an "Export"
- * dropdown listing one item per action; a second row hosts the batch actions
+ * dropdown listing one item per action — its trigger swaps the download icon
+ * for a spinner while an async export is in flight; a second row hosts the batch actions
  * while a row is selected, so the search stays reachable beside them. The tools
  * and batch actions are each their own
  * labelled {@link Toolbar} — "Table tools" and "Batch actions" — while the
@@ -77,6 +78,22 @@ export function GridToolbar({
 	setSelection,
 }: GridToolbarProps) {
 	const showExport = exportActions.length > 0
+
+	// Tracks an async export (an `exportRows` server round-trip) kicked off from
+	// the dropdown; a synchronous export downloads on the click itself, so it
+	// never flips this. While set, the trigger's `loading` swaps the download
+	// icon for the spinner and gates re-activation until the run settles.
+	const [exporting, setExporting] = useState(false)
+
+	const runExport = (action: GridExportAction) => {
+		const pending = action.run()
+
+		if (pending instanceof Promise) {
+			setExporting(true)
+
+			void pending.finally(() => setExporting(false))
+		}
+	}
 
 	const showTools = showColumnManager || showExport
 
@@ -124,14 +141,21 @@ export function GridToolbar({
 							{showExport && (
 								<Menu placement="bottom-start">
 									<MenuTrigger>
-										<Button type="button" variant="plain">
-											<Icon icon={<Download />} />
+										{/* The download icon rides the prefix slot so `loading`
+										    replaces it with the spinner rather than adding one
+										    beside it. */}
+										<Button
+											type="button"
+											variant="plain"
+											prefix={<Icon icon={<Download />} />}
+											loading={exporting}
+										>
 											Export
 										</Button>
 									</MenuTrigger>
 									<MenuContent>
 										{exportActions.map((action) => (
-											<MenuItem key={action.type} onAction={action.run}>
+											<MenuItem key={action.type} onAction={() => runExport(action)}>
 												<MenuLabel>{action.label}</MenuLabel>
 											</MenuItem>
 										))}

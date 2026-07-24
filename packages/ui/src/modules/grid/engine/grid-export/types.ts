@@ -64,9 +64,15 @@ export type GridExportEntry<T> =
  * context-menu builders render, and is handed to a `contextMenu.column` /
  * `contextMenu.cell` builder as {@link GridColumnMenuContext.exportActions} /
  * {@link GridCellMenuContext.exportActions}.
+ *
+ * `run` returns nothing for a synchronous export, or the in-flight promise
+ * when the rows come from an async {@link GridDataProps.exportRows} round-trip
+ * — settling once the export has fired (or its fetch failed), so a caller can
+ * reflect the pending state (the toolbar swaps its download icon for a
+ * spinner while it waits).
  */
 export type GridExportAction = {
 	type: GridExportType
 	label: ReactNode
-	run: () => void
+	run: () => void | Promise<void>
 }
