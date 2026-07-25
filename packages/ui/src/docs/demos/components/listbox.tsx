@@ -11,7 +11,7 @@ const statuses = [
 ]
 
 function SingleListboxExample() {
-	const [selected, setSelected] = useState<string | undefined>(undefined)
+	const [selected, setSelected] = useState<string | null>(null)
 
 	return (
 		<Field>

@@ -236,7 +236,9 @@ describe('Combobox', () => {
 
 		fireEvent.click(clear)
 
-		expect(onChange).toHaveBeenCalledWith(undefined)
+		// §7.3: a cleared single selection reports `null` (controlled with no
+		// value), not `undefined` (which would read as uncontrolled if echoed).
+		expect(onChange).toHaveBeenCalledWith(null)
 
 		expect(document.activeElement).toBe(bySlot(container, 'combobox-input'))
 	})
@@ -560,7 +562,7 @@ describe('Combobox active-descendant keyboard model', () => {
 		const user = userEvent.setup({ delay: null })
 
 		function ControlledNullable() {
-			const [selected, setSelected] = useState<string | undefined>(undefined)
+			const [selected, setSelected] = useState<string | null>(null)
 
 			return (
 				<Combobox<string>

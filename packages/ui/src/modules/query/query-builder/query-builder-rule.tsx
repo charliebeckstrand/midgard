@@ -44,7 +44,7 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 	const selectedOperator = operators.find((o) => o.value === rule.operator)
 
 	const onFieldChange = useCallback(
-		(nextFieldName: string | undefined) => {
+		(nextFieldName: string | null) => {
 			if (!nextFieldName) return
 
 			const nextField = fields.find((f) => f.name === nextFieldName)
@@ -61,7 +61,7 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 	)
 
 	const onOperatorChange = useCallback(
-		(v: string | undefined) => {
+		(v: string | null) => {
 			if (!v) return
 
 			// Switching between a scalar and a range operator changes the value's

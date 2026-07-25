@@ -13,14 +13,16 @@ describe('useSelectableValueChange', () => {
 		expect(onValueChange).toHaveBeenCalledWith('a')
 	})
 
-	it('forwards an explicit undefined when not in multi-select mode', () => {
+	it('reports a cleared single selection as null (§7.3)', () => {
+		// §7.3: `undefined` would read as uncontrolled if a controlled consumer
+		// echoed it back, so a cleared single selection surfaces as `null`.
 		const onValueChange = vi.fn()
 
 		const { result } = renderHook(() => useSelectableValueChange(onValueChange, false))
 
 		result.current(undefined)
 
-		expect(onValueChange).toHaveBeenCalledWith(undefined)
+		expect(onValueChange).toHaveBeenCalledWith(null)
 	})
 
 	it('suppresses the undefined "cleared" event in multi-select mode', () => {

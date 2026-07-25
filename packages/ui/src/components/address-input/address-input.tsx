@@ -104,7 +104,7 @@ export function AddressInput({
 			value={value}
 			defaultValue={defaultValue}
 			displayValue={(s) => s.label}
-			onValueChange={setSelected}
+			onValueChange={(next) => setSelected(next ?? undefined)}
 			className={cn(loading && 'animate-pulse', className)}
 			placeholder={placeholder}
 			aria-label={ariaLabel ?? placeholder}

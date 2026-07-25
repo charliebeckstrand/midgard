@@ -318,7 +318,9 @@ describe('Listbox', () => {
 
 		fireEvent.click(clear)
 
-		expect(onChange).toHaveBeenCalledWith(undefined)
+		// §7.3: a cleared single selection reports `null` (controlled with no
+		// value), not `undefined` (which would read as uncontrolled if echoed).
+		expect(onChange).toHaveBeenCalledWith(null)
 	})
 
 	it('returns focus to the trigger after clearing', () => {

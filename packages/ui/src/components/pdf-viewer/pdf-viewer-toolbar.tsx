@@ -91,7 +91,7 @@ export function PdfViewerToolbar() {
 								aria-label="Current page"
 								value={safePage}
 								onValueChange={(next) => {
-									if (next !== undefined) goToPage(next)
+									if (next !== null) goToPage(next)
 								}}
 								displayValue={(v) => String(v)}
 								disabled={loading}
