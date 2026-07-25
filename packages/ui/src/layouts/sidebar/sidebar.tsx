@@ -20,15 +20,16 @@ import { useScrollWithin } from '../../hooks'
 import { useOffcanvas } from '../../hooks/use-offcanvas'
 import { useDensity } from '../../primitives/density'
 import { OffcanvasContext } from '../../primitives/offcanvas'
+import type { Step } from '../../recipes'
 import { k } from './variants'
 
 const [SidebarLayoutContext, useSidebarLayoutContext] = createContext<{
 	actions?: ReactNode
-	size?: 'sm' | 'md' | 'lg'
+	size?: Step
 }>('SidebarLayout', { default: {} })
 
 /** Mobile navbar padding for a Density step: `sm` → `p-4`, `lg` → `p-8`, else `p-6`. @internal */
-function navbarPaddingForSize(size: 'sm' | 'md' | 'lg'): string {
+function navbarPaddingForSize(size: Step): string {
 	if (size === 'sm') return 'p-4'
 	if (size === 'lg') return 'p-8'
 

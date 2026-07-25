@@ -153,9 +153,9 @@ export function Listbox<T>({
 	displayValue,
 	onValueChange,
 	multiple = false,
-	// No seeded selection (neither an uncontrolled `undefined` nor a controlled
-	// `null`) means the consumer starts empty, so clearing stays available.
-	nullable = valueProp == null && defaultValue === undefined,
+	// Derived per render: while no value is held on either channel, clicking the
+	// selected option clears it.
+	nullable = valueProp == null && defaultValue == null,
 	placeholder = 'Select',
 	placement = 'bottom-start',
 	prefix,

@@ -17,44 +17,43 @@ export type TextareaProps = Omit<TextareaVariants, 'size' | 'variant'> & {
 	className?: string
 	/** Control slot rendered as a right-justified row below the field; its presence pins `resize: none` and a min-height floor. */
 	actions?: ReactNode
+	/** Controlled value. `undefined` leaves the textarea uncontrolled; `null` keeps it controlled with no current value (CONVENTIONS §7.3). */
+	value?: ComponentPropsWithoutRef<'textarea'>['value'] | null
 	ref?: Ref<HTMLTextAreaElement>
-} & Omit<ComponentPropsWithoutRef<'textarea'>, 'className' | 'size'>
+} & Omit<ComponentPropsWithoutRef<'textarea'>, 'className' | 'size' | 'value'>
 
 /**
  * Multi-line text control with optional `autoResize` and an `actions` slot.
  * Resolves variant, density, and binding from enclosing `<Form>`, `<Control>`,
  * `<GlassProvider>`, and Density contexts.
  *
- * @remarks Per CONVENTIONS §7.3, `value={undefined}` leaves the control
- * uncontrolled (binding to the Form field named `name`), while `value={null}`
- * keeps it controlled with no current value; it shares the Input value cascade
- * through {@link useInputValue}. With `actions`, the frame
+ * @remarks Shares the Input value cascade through {@link useInputValue},
+ * including the §7.3 value contract it owns. With `actions`, the frame
  * stacks the field above a right-justified actions row and `field-sizing:
  * content` ignores `rows`, so `rows` becomes a min-height floor.
  */
-export function Textarea(props: TextareaProps) {
-	const {
-		className,
-		variant,
-		size,
-		resize,
-		autoResize,
-		actions,
-		id,
-		autoComplete,
-		disabled,
-		required,
-		readOnly,
-		name,
-		value,
-		onChange,
-		onBlur,
-		rows = 3,
-		style,
-		ref,
-		'aria-describedby': ariaDescribedBy,
-		...rest
-	} = props
+export function Textarea({
+	className,
+	variant,
+	size,
+	resize,
+	autoResize,
+	actions,
+	id,
+	autoComplete,
+	disabled,
+	required,
+	readOnly,
+	name,
+	value,
+	onChange,
+	onBlur,
+	rows = 3,
+	style,
+	ref,
+	'aria-describedby': ariaDescribedBy,
+	...rest
+}: TextareaProps) {
 	const glass = useGlass()
 	const control = useControl()
 	const valueState = useInputValue<HTMLTextAreaElement>({

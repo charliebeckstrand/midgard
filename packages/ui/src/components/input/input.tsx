@@ -20,11 +20,13 @@ export type InputProps = Omit<InputVariants, 'size' | 'variant'> & {
 	suffix?: ReactNode
 	/** Forces the invalid state. When omitted, inherits from Control / Form context. */
 	invalid?: boolean
+	/** Controlled value. `undefined` leaves the input uncontrolled; `null` keeps it controlled with no current value (CONVENTIONS §7.3). */
+	value?: ComponentPropsWithoutRef<'input'>['value'] | null
 	ref?: Ref<HTMLInputElement>
 	className?: string
 	'data-group'?: string
 	'data-group-orientation'?: string
-} & Omit<ComponentPropsWithoutRef<'input'>, 'className' | 'size' | 'prefix'>
+} & Omit<ComponentPropsWithoutRef<'input'>, 'className' | 'size' | 'prefix' | 'value'>
 
 /**
  * Text input with optional `prefix`/`suffix` affixes.
@@ -32,40 +34,35 @@ export type InputProps = Omit<InputVariants, 'size' | 'variant'> & {
  * GlassProvider, and Density context, and drops to a bare `<input>` under
  * headless context.
  *
- * @remarks Per CONVENTIONS §7.3, `value={undefined}` leaves the control
- * uncontrolled (binding to the Form field named `name`), while `value={null}`
- * keeps it controlled with no current value. Value resolution
- * (explicit prop > bound field > internal state) runs through
- * {@link useInputValue}, and `invalid` OR's the prop, the bound field, and any
- * ambient Control error. Under headless context the affix frame and recipe
- * classes are all skipped.
+ * @remarks Follows the §7.3 value contract and the resolution order
+ * (explicit prop > bound field > internal state) owned by {@link useInputValue}.
+ * `invalid` OR's the prop, the bound field, and any ambient Control error.
+ * Under headless context the affix frame and recipe classes are all skipped.
  * @see {@link InputFrame}
  */
-export function Input(props: InputProps) {
-	const {
-		className,
-		type,
-		variant,
-		size,
-		prefix,
-		suffix,
-		id,
-		disabled,
-		required,
-		readOnly,
-		autoComplete,
-		invalid,
-		name,
-		value,
-		onChange,
-		onBlur,
-		ref,
-		'aria-describedby': ariaDescribedBy,
-		'data-group': dataGroup,
-		'data-group-orientation': dataGroupOrientation,
-		...rest
-	} = props
-
+export function Input({
+	className,
+	type,
+	variant,
+	size,
+	prefix,
+	suffix,
+	id,
+	disabled,
+	required,
+	readOnly,
+	autoComplete,
+	invalid,
+	name,
+	value,
+	onChange,
+	onBlur,
+	ref,
+	'aria-describedby': ariaDescribedBy,
+	'data-group': dataGroup,
+	'data-group-orientation': dataGroupOrientation,
+	...rest
+}: InputProps) {
 	const control = useControl()
 	const glass = useGlass()
 	const headless = useHeadless()

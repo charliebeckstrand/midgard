@@ -1,7 +1,7 @@
 'use client'
 
 import { MapPin } from 'lucide-react'
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks'
 import { Combobox, ComboboxDescription, ComboboxLabel, ComboboxOption } from '../combobox'
@@ -87,6 +87,14 @@ export function AddressInput({
 		onValueChange,
 	})
 
+	// Combobox reports a cleared selection as `null` (§7.3); the internal
+	// cascade stores `undefined`. Kept stable so the Combobox's own
+	// `useSelectableValueChange` memo keeps hitting.
+	const handleSelect = useCallback(
+		(next: AddressSuggestion | null) => setSelected(next ?? undefined),
+		[setSelected],
+	)
+
 	// Disabled suppresses the clear button; keep the pin rather than letting
 	// the slot fall back to the Combobox chevron.
 	const disabled = useControl()?.disabled
@@ -104,7 +112,7 @@ export function AddressInput({
 			value={value}
 			defaultValue={defaultValue}
 			displayValue={(s) => s.label}
-			onValueChange={(next) => setSelected(next ?? undefined)}
+			onValueChange={handleSelect}
 			className={cn(loading && 'animate-pulse', className)}
 			placeholder={placeholder}
 			aria-label={ariaLabel ?? placeholder}

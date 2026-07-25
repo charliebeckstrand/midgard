@@ -44,14 +44,12 @@ export function useInputValue<E extends HTMLInputElement | HTMLTextAreaElement =
 
 	// §7.3: `undefined` is uncontrolled (binds to the Form field or native
 	// state); `null` is controlled with no value; anything else is controlled.
-	const isControlled = value !== undefined
+	const bound = value === undefined && binding !== undefined
 
-	const bound = !isControlled && binding !== undefined
-
-	const controlledValue = isControlled ? (value ?? '') : undefined
+	const own = value === null ? '' : value
 
 	return {
-		value: bound ? binding.value : controlledValue,
+		value: bound ? binding.value : own,
 		onChange: bound ? binding.onChange : onChange,
 		onBlur: bound ? binding.onBlur : onBlur,
 		invalid: binding?.invalid,
