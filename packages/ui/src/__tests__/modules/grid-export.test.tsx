@@ -572,6 +572,67 @@ describe('Grid export', () => {
 		click.mockRestore()
 	})
 
+	it('swaps the download icon for a spinner while an async export is in flight', async () => {
+		const createObjectURL = vi.fn().mockReturnValue('blob:mock')
+
+		URL.createObjectURL = createObjectURL
+
+		URL.revokeObjectURL = vi.fn()
+
+		const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+
+		let release: (rows: Row[]) => void = () => {}
+
+		const fetchAll = () =>
+			new Promise<Row[]>((resolve) => {
+				release = resolve
+			})
+
+		renderUI(
+			<Grid
+				exportable={['csv']}
+				columns={columns}
+				rows={pageRow}
+				getKey={getKey}
+				exportRows={fetchAll}
+			/>,
+		)
+
+		const trigger = screen.getByRole('button', { name: 'Export' })
+
+		// At rest the trigger carries the download icon and no spinner.
+		expect(trigger.querySelector('svg.lucide-download')).not.toBeNull()
+
+		expect(trigger.querySelector('[data-slot="loading-spinner"]')).toBeNull()
+
+		openExportMenu()
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Export to CSV' }))
+
+		// While the fetch is pending the spinner replaces the icon — the two never
+		// render side by side — and the trigger gates re-activation.
+		await waitFor(() =>
+			expect(trigger.querySelector('[data-slot="loading-spinner"]')).not.toBeNull(),
+		)
+
+		expect(trigger.querySelector('svg.lucide-download')).toBeNull()
+
+		expect(trigger).toBeDisabled()
+
+		release(fullList)
+
+		// Settling restores the icon, drops the spinner, and re-enables the trigger.
+		await waitFor(() => expect(trigger.querySelector('[data-slot="loading-spinner"]')).toBeNull())
+
+		expect(trigger.querySelector('svg.lucide-download')).not.toBeNull()
+
+		expect(trigger).toBeEnabled()
+
+		expect(createObjectURL).toHaveBeenCalledTimes(1)
+
+		click.mockRestore()
+	})
+
 	it('lets exportRows win over an active selection', async () => {
 		const createObjectURL = vi.fn().mockReturnValue('blob:mock')
 
