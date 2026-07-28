@@ -2,13 +2,15 @@
 
 import { type ReactElement, type RefObject, useCallback, useEffect } from 'react'
 import { TableBody, TableCell } from '../../components/table'
-import { Text, TextSkeleton } from '../../components/text'
+import { Text } from '../../components/text'
 import { useVirtualWindow } from '../../hooks'
 import { ariaRowIndex } from './engine/grid-row/shell'
 import type { ResolvedInfiniteScroll } from './grid-data-resolvers'
+import { GridSkeletonCells } from './grid-loading-body'
 import { type GridRowsProps, renderGridRow } from './grid-row'
 import type { GridColumn } from './types'
 import { useGridInfiniteScroll } from './use-grid-infinite-scroll'
+import type { GridColumnPinning } from './use-grid-table'
 
 /** Scrolls the data row at `rowIndex` (cursor index space) into the rendered window. @internal */
 export type GridScrollRowIntoView = (rowIndex: number) => void
@@ -28,9 +30,12 @@ export type GridScrollRowIntoView = (rowIndex: number) => void
 function GridInfiniteScrollTrailer<T>({
 	infiniteScroll,
 	columns,
+	pinning,
 }: {
 	infiniteScroll: ResolvedInfiniteScroll
 	columns: GridColumn<T>[]
+	/** Frozen-column controls, so the pending row's skeleton cells stick like the loaded rows'. `null` when none. */
+	pinning: GridColumnPinning | null
 }): ReactElement | null {
 	const { error, loadingMore, showLoadingIndicator, hasMore, endMessage, loadingIndicator } =
 		infiniteScroll
@@ -54,11 +59,7 @@ function GridInfiniteScrollTrailer<T>({
 				{loadingIndicator ? (
 					<td colSpan={colSpan}>{loadingIndicator}</td>
 				) : (
-					columns.map((col) => (
-						<TableCell key={col.id}>
-							<TextSkeleton />
-						</TableCell>
-					))
+					<GridSkeletonCells columns={columns} pinning={pinning} />
 				)}
 			</tr>
 		)
@@ -175,7 +176,11 @@ export function GridVirtualizedBody<T>(props: GridVirtualizedBodyProps<T>) {
 			    terminal states — a failed load, an in-flight batch (opt-in), or the
 			    reached end — resolved in precedence order (see the trailer). */}
 			{infiniteScroll && (
-				<GridInfiniteScrollTrailer<T> infiniteScroll={infiniteScroll} columns={visibleColumns} />
+				<GridInfiniteScrollTrailer<T>
+					infiniteScroll={infiniteScroll}
+					columns={visibleColumns}
+					pinning={props.pinning}
+				/>
 			)}
 		</TableBody>
 	)

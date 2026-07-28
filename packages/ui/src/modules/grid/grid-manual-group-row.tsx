@@ -5,7 +5,6 @@ import type { ReactElement, ReactNode } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { TableCell, TableRow } from '../../components/table'
-import { TextSkeleton } from '../../components/text'
 import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/grid'
 import { aggregateLabelSpan, hasAggregation } from './engine/grid-aggregate'
@@ -13,7 +12,9 @@ import { groupValueLabel } from './engine/grid-column/label'
 import { MANUAL_GROUP_PLACEHOLDER_ROWS } from './engine/grid-constants'
 import { GridAggregateCells } from './grid-aggregate-cells'
 import type { GridGroupBy, GridGroupHeaderRow } from './grid-data-types'
+import { GridSkeletonCells } from './grid-loading-body'
 import type { GridColumn } from './types'
+import type { GridColumnPinning } from './use-grid-table'
 
 /** Props for {@link GridManualGroupRow}. @internal */
 type GridManualGroupRowProps<T> = {
@@ -105,25 +106,25 @@ export function GridManualGroupRow<T>({
 export function GridManualGroupPlaceholderRows<T>({
 	columns,
 	count,
+	pinning,
 }: {
 	/** The visible columns; each takes one skeleton cell per placeholder row. */
 	columns: GridColumn<T>[]
 	/** The group's backend child count; sets how many placeholders show (capped). */
 	count: number
+	/** Frozen-column controls, so a pinned column's placeholder sticks like its data cells. `null` when none. */
+	pinning: GridColumnPinning | null
 }): ReactElement[] {
 	const rows = Math.min(count, MANUAL_GROUP_PLACEHOLDER_ROWS)
 
 	return Array.from({ length: rows }, (_, rowIndex) => (
 		// biome-ignore lint/suspicious/noArrayIndexKey: a fixed-length skeleton run with no identity beyond position
 		<TableRow key={rowIndex} data-group-placeholder aria-hidden="true">
-			{columns.map((column, colIndex) => (
-				<TableCell
-					key={column.id}
-					className={cn(colIndex === 0 && k.rowGroup.rail.border, column.className)}
-				>
-					<TextSkeleton />
-				</TableCell>
-			))}
+			<GridSkeletonCells
+				columns={columns}
+				pinning={pinning}
+				leadingClassName={cn(k.rowGroup.rail.border)}
+			/>
 		</TableRow>
 	))
 }
