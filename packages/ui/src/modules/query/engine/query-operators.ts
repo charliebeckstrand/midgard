@@ -7,8 +7,10 @@ const defaultOperators = {
 		{ value: 'contains', label: 'contains' },
 		{ value: 'startsWith', label: 'starts with' },
 		{ value: 'endsWith', label: 'ends with' },
-		{ value: 'isEmpty', label: 'is empty', noValue: true },
-		{ value: 'isNotEmpty', label: 'is not empty', noValue: true },
+		// The emptiness check reads as "is Empty" / "is not Empty": the operator
+		// carries the relation, `valueLabel` the fixed subject it compares against.
+		{ value: 'isEmpty', label: 'is', valueLabel: 'Empty', noValue: true },
+		{ value: 'isNotEmpty', label: 'is not', valueLabel: 'Empty', noValue: true },
 	],
 	number: [
 		{ value: 'equals', label: '=' },

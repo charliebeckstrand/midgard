@@ -297,6 +297,24 @@ describe('QueryBuilder', () => {
 		expect(container.querySelector('input[type="text"]')).not.toBeInTheDocument()
 
 		expect(container.querySelectorAll('[data-slot="listbox-button"]')).toHaveLength(2)
+
+		// The operator's fixed value stands in for the omitted input, so the rule
+		// still reads "Name is Empty".
+		expect(screen.getByText('Empty')).toBeInTheDocument()
+	})
+
+	it('renders no value text for a noValue operator naming no value label', () => {
+		const booleanField: QueryField = { name: 'verified', label: 'Verified', type: 'boolean' }
+
+		// `isTrue` carries its whole meaning in the operator label; there is no
+		// fixed value to show beside it.
+		const tree = createGroup('and', [createRule(booleanField)])
+
+		const { container } = renderUI(<QueryBuilder fields={[booleanField]} value={tree} />)
+
+		// The field and operator selects carry the whole row; nothing stands in the
+		// value column. (The selects capitalize their displayed label.)
+		expect(bySlot(container, 'query-rule')).toHaveTextContent('VerifiedIs true')
 	})
 })
 
