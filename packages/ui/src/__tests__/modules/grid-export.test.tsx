@@ -162,6 +162,9 @@ describe('Grid export', () => {
 
 	const openExportMenu = () => fireEvent.click(screen.getByRole('button', { name: 'Export' }))
 
+	/** Opens the Export parent inside an open context menu (the toolbar's twin, one level in). */
+	const openExportSubmenu = () => fireEvent.click(screen.getByRole('menuitem', { name: 'Export' }))
+
 	it('omits every export item and the toolbar button when exportable is false', () => {
 		renderUI(<Grid exportable={false} columns={columns} rows={rows} getKey={getKey} />)
 
@@ -177,6 +180,8 @@ describe('Grid export', () => {
 
 		rightClickHeader('Name')
 
+		openExportSubmenu()
+
 		expect(screen.getByRole('menuitem', { name: 'Export to CSV' })).toBeInTheDocument()
 
 		expect(screen.getByRole('menuitem', { name: 'Export to Excel' })).toBeInTheDocument()
@@ -189,6 +194,8 @@ describe('Grid export', () => {
 		renderUI(<Grid exportable columns={columns} rows={rows} getKey={getKey} />)
 
 		rightClickHeader('Name')
+
+		openExportSubmenu()
 
 		expect(screen.getByRole('menuitem', { name: 'Export to CSV' })).toBeInTheDocument()
 
@@ -458,12 +465,16 @@ describe('Grid export', () => {
 
 		rightClickHeader('Name')
 
+		openExportSubmenu()
+
 		// Both keys resolve to their own action; the second is no longer dropped.
 		fireEvent.click(screen.getByRole('menuitem', { name: 'Export to CSV' }))
 
 		expect(csv).toHaveBeenCalledTimes(1)
 
 		rightClickHeader('Name')
+
+		openExportSubmenu()
 
 		fireEvent.click(screen.getByRole('menuitem', { name: 'Export to pdf' }))
 

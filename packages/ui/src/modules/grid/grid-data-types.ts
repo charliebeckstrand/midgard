@@ -817,11 +817,11 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	columnFilters?: GridColumnFilters
 
 	/**
-	 * Right-click context menus: a `column` menu on headers (Sort ascending /
-	 * descending, pin controls, Group by, Auto-size this column, then Auto-size
-	 * all columns, Manage columns, one item per active export type) and a `cell`
-	 * menu on body cells (Copy, one item per active export type). On by default;
-	 * pass `false` to disable. Each side takes the
+	 * Right-click context menus: a `column` menu on headers (the Sort, Pin, and
+	 * Auto-size menus plus Group by, then Manage columns and the Export menu) and
+	 * a `cell` menu on body cells (Copy, then the Export menu). Related actions
+	 * are consolidated into hover-opened submenus, so the menu opens one row per
+	 * concern. On by default; pass `false` to disable. Each side takes the
 	 * defaults (`true`) or a builder that reshapes them. "Manage columns" opens
 	 * the column manager, rendering its dialog even without the toolbar button —
 	 * unless {@link GridColumnManagerConfig.enabled} is `false`, which drops it.

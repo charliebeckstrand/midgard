@@ -2,6 +2,17 @@ import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { fireEvent, renderUI, waitFor } from '../helpers'
 
+/** Opens the header menu's Auto-size parent, which holds both fits. */
+const openAutoSizeMenu = () => {
+	const parent = Array.from(document.querySelectorAll('[role="menuitem"]')).find(
+		(el) => el.textContent?.trim() === 'Auto-size',
+	)
+
+	if (!parent) throw new Error('no Auto-size menu')
+
+	fireEvent.click(parent)
+}
+
 /**
  * Column resizing against a real layout engine: the handle's header height, the
  * always-visible grip, and its trailing-edge alignment only resolve in a browser
@@ -150,6 +161,8 @@ describe('grid column resizing (real browser)', () => {
 		expect(onValueChange).not.toHaveBeenCalled()
 
 		fireEvent.contextMenu(nameHeader(container))
+
+		openAutoSizeMenu()
 
 		const item = Array.from(document.querySelectorAll('[role="menuitem"]')).find((el) =>
 			el.textContent?.includes('Auto-size all columns'),
