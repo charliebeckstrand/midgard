@@ -4,12 +4,11 @@ import { fireEvent, renderUI, screen, waitFor } from '../../helpers'
 
 /**
  * Keyboard control of the grid context menu's submenus against the real
- * floating engine: ArrowRight opens the roved parent onto its first row,
- * ArrowLeft returns, roving on collapses what was left open, `Escape` closes
- * the submenu alone, and Tab is held inside the menu. Each hangs on real focus
- * crossing a portal boundary, which
- * the jsdom suite can't reproduce — it mocks `@floating-ui/react`, so the panels
- * render inline there and no crossing happens.
+ * floating engine: Enter opens the roved parent onto its first row, `Escape`
+ * closes the submenu alone, roving on collapses what was left open, and Tab is
+ * held inside the menu. Each hangs on real focus crossing a portal boundary,
+ * which the jsdom suite can't reproduce — it mocks `@floating-ui/react`, so the
+ * panels render inline there and no crossing happens.
  *
  * @remarks One case, walked end to end: a second `it` would open its menu while
  * the first's panels were still unmounting, and every `role="menu"` query would
@@ -30,7 +29,7 @@ describe('grid context menu submenus (real browser)', () => {
 	const gone = (name: string) =>
 		waitFor(() => expect(screen.queryByRole('menuitem', { name })).toBeNull())
 
-	it('opens, returns, collapses on rove-away and Escape, and holds Tab', async () => {
+	it('opens on Enter, collapses on Escape and rove-away, and holds Tab', async () => {
 		const { container } = renderUI(
 			<>
 				<button type="button">before</button>
@@ -61,44 +60,38 @@ describe('grid context menu submenus (real browser)', () => {
 
 		expect(item('Sort')).toHaveFocus()
 
-		// ArrowRight opens the roved parent onto its first row.
+		// Enter opens the roved parent onto its first row. No direction key does:
+		// the panel takes whichever side of the row has room.
 		fireEvent.keyDown(item('Sort'), { key: 'ArrowRight' })
+
+		expect(screen.queryByRole('menuitem', { name: 'Sort ascending' })).toBeNull()
+
+		fireEvent.keyDown(item('Sort'), { key: 'Enter' })
 
 		await waitFor(() => expect(item('Sort ascending')).toHaveFocus())
 
-		// ArrowLeft collapses it and hands the cursor back to the parent row.
-		fireEvent.keyDown(item('Sort ascending'), { key: 'ArrowLeft' })
+		// Escape collapses it and hands the cursor back to the parent row, stopping
+		// there — the menu it hangs off takes the next press, not this one.
+		fireEvent.keyDown(item('Sort ascending'), { key: 'Escape' })
 
 		await gone('Sort ascending')
+
+		expect(menu).toBeInTheDocument()
 
 		expect(item('Sort')).toHaveFocus()
 
 		// Re-opened, then roved away from: the submenu closes behind the cursor.
-		fireEvent.keyDown(item('Sort'), { key: 'ArrowRight' })
+		fireEvent.keyDown(item('Sort'), { key: 'Enter' })
 
 		await waitFor(() => expect(item('Sort ascending')).toHaveFocus())
 
-		fireEvent.keyDown(item('Sort ascending'), { key: 'ArrowLeft' })
+		fireEvent.keyDown(item('Sort ascending'), { key: 'Escape' })
 
 		fireEvent.keyDown(item('Sort'), { key: 'ArrowDown' })
 
 		expect(item('Pin')).toHaveFocus()
 
 		await gone('Sort ascending')
-
-		// Escape collapses an open submenu and stops there — the menu it hangs off
-		// takes the next press, not this one.
-		fireEvent.keyDown(item('Pin'), { key: 'ArrowRight' })
-
-		await waitFor(() => expect(item('Pin left')).toHaveFocus())
-
-		fireEvent.keyDown(item('Pin left'), { key: 'Escape' })
-
-		await gone('Pin left')
-
-		expect(menu).toBeInTheDocument()
-
-		expect(item('Pin')).toHaveFocus()
 
 		// More Tab presses than the menu has rows, so a leak would carry focus past
 		// the last one and out to the page's own buttons.

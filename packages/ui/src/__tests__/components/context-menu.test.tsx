@@ -8,7 +8,7 @@ import {
 	resolveContextMenuEntries,
 } from '../../components/context-menu'
 import { Menu, MenuContent } from '../../components/menu'
-import { bySlot, fireEvent, noop, renderUI, screen, withFakeTime } from '../helpers'
+import { act, bySlot, fireEvent, noop, renderUI, screen, withFakeTime } from '../helpers'
 
 const defaults: ContextMenuItem[] = [
 	{ key: 'a', label: 'Alpha', onSelect: noop },
@@ -235,28 +235,28 @@ describe('ContextMenuList submenus', () => {
 		})
 	})
 
-	it('opens on ArrowRight and seats focus on the first row', () => {
+	it('opens on Enter and seats focus on the first row', () => {
 		open(pinEntries())
 
-		const trigger = screen.getByRole('menuitem', { name: 'Pin' })
-
-		fireEvent.keyDown(trigger, { key: 'ArrowRight' })
+		fireEvent.keyDown(screen.getByRole('menuitem', { name: 'Pin' }), { key: 'Enter' })
 
 		expect(screen.getByRole('menuitem', { name: 'Pin left' })).toHaveFocus()
 	})
 
-	it('closes on ArrowLeft, returning focus to the parent row', () => {
+	it('leaves the direction keys alone — the panel picks its own side', () => {
 		open(pinEntries())
 
 		const trigger = screen.getByRole('menuitem', { name: 'Pin' })
 
 		fireEvent.keyDown(trigger, { key: 'ArrowRight' })
 
-		fireEvent.keyDown(screen.getByRole('menuitem', { name: 'Pin left' }), { key: 'ArrowLeft' })
-
 		expect(screen.queryByRole('menuitem', { name: 'Pin left' })).not.toBeInTheDocument()
 
-		expect(trigger).toHaveFocus()
+		fireEvent.keyDown(trigger, { key: ' ' })
+
+		fireEvent.keyDown(screen.getByRole('menuitem', { name: 'Pin left' }), { key: 'ArrowLeft' })
+
+		expect(screen.getByRole('menuitem', { name: 'Pin left' })).toBeInTheDocument()
 	})
 
 	it('closes when the roving cursor moves off the parent row', () => {
@@ -264,17 +264,18 @@ describe('ContextMenuList submenus', () => {
 
 		const trigger = screen.getByRole('menuitem', { name: 'Pin' })
 
-		fireEvent.keyDown(trigger, { key: 'ArrowRight' })
+		// Hover-opened, so the cursor is still on the parent row rather than inside
+		// the panel.
+		fireEvent.pointerEnter(trigger, { pointerType: 'mouse' })
+
+		act(() => trigger.focus())
 
 		expect(screen.getByRole('menuitem', { name: 'Pin left' })).toBeInTheDocument()
 
-		// ArrowLeft returns the cursor to the parent row; roving on from there
-		// collapses the submenu behind it.
-		fireEvent.keyDown(screen.getByRole('menuitem', { name: 'Pin left' }), { key: 'ArrowLeft' })
-
-		fireEvent.keyDown(trigger, { key: 'ArrowDown' })
-
-		expect(screen.getByRole('menuitem', { name: 'Copy' })).toHaveFocus()
+		// Roving on to the next row collapses the submenu behind it. Focus is moved
+		// directly rather than by arrow: the mocked floating engine renders the
+		// panel inline here, so the parent's roving would step into its rows.
+		act(() => screen.getByRole('menuitem', { name: 'Copy' }).focus())
 
 		expect(screen.queryByRole('menuitem', { name: 'Pin left' })).not.toBeInTheDocument()
 	})
@@ -328,7 +329,7 @@ describe('ContextMenuList submenus', () => {
 
 		const trigger = screen.getByRole('menuitem', { name: 'Pin' })
 
-		fireEvent.keyDown(trigger, { key: 'ArrowRight' })
+		fireEvent.keyDown(trigger, { key: 'Enter' })
 
 		fireEvent.keyDown(screen.getByRole('menuitem', { name: 'Pin left' }), { key: 'Tab' })
 
@@ -342,7 +343,7 @@ describe('ContextMenuList submenus', () => {
 	it('keeps arrow roving inside the submenu, off the parent menu', () => {
 		open([...pinEntries(), { key: 'copy', label: 'Copy', onSelect: noop }])
 
-		fireEvent.keyDown(screen.getByRole('menuitem', { name: 'Pin' }), { key: 'ArrowRight' })
+		fireEvent.keyDown(screen.getByRole('menuitem', { name: 'Pin' }), { key: 'Enter' })
 
 		// The panel portals out but stays a React child of its parent row, so its
 		// keystrokes must not reach the enclosing menu's roving.
@@ -356,7 +357,7 @@ describe('ContextMenuList submenus', () => {
 
 		const trigger = screen.getByRole('menuitem', { name: 'Pin' })
 
-		fireEvent.keyDown(trigger, { key: 'ArrowRight' })
+		fireEvent.keyDown(trigger, { key: 'Enter' })
 
 		fireEvent.keyDown(screen.getByRole('menuitem', { name: 'Pin left' }), { key: 'Escape' })
 
@@ -409,7 +410,7 @@ describe('ContextMenuList submenus', () => {
 
 		fireEvent.click(trigger)
 
-		fireEvent.keyDown(trigger, { key: 'ArrowRight' })
+		fireEvent.keyDown(trigger, { key: 'Enter' })
 
 		expect(screen.queryByRole('menuitem', { name: 'Pin left' })).not.toBeInTheDocument()
 	})

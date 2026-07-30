@@ -1,5 +1,6 @@
 'use client'
 
+import { autoPlacement, type Middleware, offset, shift } from '@floating-ui/react'
 import { ChevronRight } from 'lucide-react'
 import {
 	type FocusEvent,
@@ -34,8 +35,33 @@ import { MENUITEM_SELECTOR } from './use-menu-state'
  */
 const CLOSE_DELAY = 120
 
-/** Keys that open a submenu from its trigger: the APG submenu key plus the activation pair. @internal */
-const OPEN_KEYS = ['ArrowRight', 'Enter', ' ']
+/**
+ * Keys that open a submenu from its roved parent row. Direction keys are
+ * deliberately absent: the panel takes whichever side has room
+ * ({@link SUBMENU_MIDDLEWARE}), so ArrowRight would open a panel that lands on
+ * the left as often as not.
+ *
+ * @internal
+ */
+const OPEN_KEYS = ['Enter', ' ']
+
+/**
+ * Positions the panel beside its parent row on whichever side has the most
+ * room, rather than committing to one and flipping only once it overflows:
+ * `autoPlacement` measures both edges every reposition, so a menu opened near
+ * the right edge of the viewport opens leftward from the start instead of being
+ * clipped. Restricted to the horizontal sides — a submenu above or below its
+ * parent would cover the menu it came from — and top-aligned with the row it
+ * hangs off, with `shift` nudging it back into view when it runs past the
+ * bottom.
+ *
+ * @internal
+ */
+const SUBMENU_MIDDLEWARE: Middleware[] = [
+	offset(4),
+	autoPlacement({ allowedPlacements: ['right-start', 'left-start'] }),
+	shift({ padding: 8 }),
+]
 
 /** Props for {@link MenuSub}. */
 export type MenuSubProps = {
@@ -54,13 +80,15 @@ export type MenuSubProps = {
  * A menu row that opens a nested menu beside itself: a `role="menuitem"` parent
  * carrying `aria-haspopup="menu"` and a trailing chevron, plus the floating
  * panel its rows render in. Opens on hover, on click, and — while the row is
- * the roved one — on ArrowRight / Enter / Space; closes on ArrowLeft, `Escape`,
- * an outside press, the pointer leaving both surfaces, or the roving cursor
- * moving to another row. Selecting a row inside closes the whole menu, as any
- * {@link MenuItem} does.
+ * the roved one — on Enter / Space; closes on `Escape`, an outside press, the
+ * pointer leaving both surfaces, or the roving cursor moving to another row.
+ * Selecting a row inside closes the whole menu, as any {@link MenuItem} does.
  *
- * @remarks Hover never moves focus — only a keyboard or click open seats it on
- * the first row (APG). Tab is held inside the open panel, cycling its rows. The
+ * @remarks The panel takes whichever side of the row has room
+ * ({@link SUBMENU_MIDDLEWARE}), so it opens leftward near the viewport's right
+ * edge rather than being clipped — which is why no direction key opens or closes
+ * it. Hover never moves focus; only a keyboard or click open seats it on the
+ * first row (APG). Tab is held inside the open panel, cycling its rows. The
  * panel portals out of the enclosing {@link MenuContent}, so its height-capped,
  * scrolling viewport can't clip it. The keyboard model follows real focus, so it
  * is live in a right-click menu (focus sits in the panel) while a dropdown —
@@ -108,9 +136,10 @@ export function MenuSub({ label, icon, disabled = false, className, children }: 
 	const panelId = useId()
 
 	const { refs, floatingStyles, getReferenceProps, getFloatingProps } = useFloatingUI({
-		// Beside the parent row, top-aligned with it; `flip` sends it to the other
-		// side when the viewport edge is closer than the panel is wide.
+		// A starting point only: `SUBMENU_MIDDLEWARE`'s `autoPlacement` resolves the
+		// side on every reposition.
 		placement: 'right-start',
+		middleware: SUBMENU_MIDDLEWARE,
 		open,
 		onOpenChange: setOpen,
 		// The trigger (`role="menuitem"` + `aria-haspopup`) and the panel
@@ -190,11 +219,10 @@ export function MenuSub({ label, icon, disabled = false, className, children }: 
 				return
 			}
 
-			// ArrowLeft collapses an open submenu, the mirror of the ArrowRight that
-			// opened it; `Escape` does the same from here, and is consumed so the
-			// enclosing menu — which closes on any `Escape` reaching its panel —
-			// survives to take the next press.
-			if ((event.key === 'ArrowLeft' || event.key === 'Escape') && open) {
+			// `Escape` collapses an open submenu from its parent row, and is consumed
+			// so the enclosing menu — which closes on any `Escape` reaching its panel
+			// — survives to take the next press.
+			if (event.key === 'Escape' && open) {
 				event.preventDefault()
 
 				event.stopPropagation()
@@ -219,7 +247,7 @@ export function MenuSub({ label, icon, disabled = false, className, children }: 
 			// `Escape` is closed out below rather than left to that layer.
 			event.stopPropagation()
 
-			if (event.key !== 'ArrowLeft' && event.key !== 'Escape') return
+			if (event.key !== 'Escape') return
 
 			event.preventDefault()
 
@@ -320,7 +348,12 @@ export function MenuSub({ label, icon, disabled = false, className, children }: 
 					trapTab
 					typeahead
 					glass={glass}
-					className={k.content}
+					// `relative` puts the panel back in flow (its recipe base is
+					// `absolute`) so the positioning wrapper shrink-wraps to it. Without
+					// it the wrapper measures 0×0 and the engine has no width to place
+					// against — a left-side placement would land on top of the parent
+					// menu. {@link MenuContent} does the same for its floating panel.
+					className={cn('relative', k.content)}
 					onKeyDown={handlePanelKeyDown}
 				>
 					<div

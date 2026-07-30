@@ -109,6 +109,9 @@ const floatingUIMock = {
 
 		return node ? createPortal(children, node) : children
 	},
+	// Middleware are inert stubs: jsdom paints no layout, so there is nothing to
+	// measure and nowhere to place against.
+	autoPlacement: () => ({}),
 	flip: () => ({}),
 	offset: () => ({}),
 	shift: () => ({}),
