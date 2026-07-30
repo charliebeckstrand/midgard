@@ -407,6 +407,30 @@ describe('Grid column pinning', () => {
 		expect(screen.queryByRole('button', { name: 'Unpin Name' })).not.toBeInTheDocument()
 	})
 
+	it('freezes the loading placeholder cells of a pinned column', () => {
+		// The placeholders carry no `data-grid-col` (they stay out of the autosizer's
+		// body scan), so they're read positionally rather than through `dataCell`.
+		const columns: GridColumn<Row>[] = [
+			{ id: 'name', title: 'Name', cell: (row) => row.name },
+			{ id: 'email', title: 'Email', cell: (row) => row.email },
+			{ id: 'status', title: 'Status', cell: (row) => row.status, pinned: 'right' },
+		]
+
+		const { container } = renderUI(<Grid columns={columns} rows={rows} getKey={getKey} loading />)
+
+		const cells = container.querySelectorAll<HTMLElement>('tbody td')
+
+		expect(cells).toHaveLength(columns.length)
+
+		// The pinned column's placeholder carries the same sticky chrome and offset
+		// its header does, so the row lines up column for column.
+		expect(cells[2]?.className).toContain('sticky')
+
+		expect(cells[2]?.style.right).toBe(headCell(container, 'status')?.style.right)
+
+		expect(cells[0]?.className).not.toContain('sticky')
+	})
+
 	it('does not reorder or unpin a locked column from the header', () => {
 		const columns: GridColumn<Row>[] = [
 			{ id: 'name', title: 'Name', cell: (row) => row.name, locked: 'left' },

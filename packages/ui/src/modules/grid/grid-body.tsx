@@ -10,11 +10,10 @@ import {
 	type RefObject,
 } from 'react'
 import { Alert } from '../../components/alert'
-import { TableBody, TableEmpty, TableLoading } from '../../components/table'
+import { TableBody, TableEmpty } from '../../components/table'
 import type { PaletteColor } from '../../core/recipe'
 import type { DensityLevel } from '../../providers/density'
 import { hasAggregation } from './engine/grid-aggregate'
-import { GRID_LOADING_ROWS } from './engine/grid-constants'
 import {
 	type GridManualGroupSegment,
 	orderManualGroupSegments,
@@ -27,6 +26,7 @@ import { GridGroupLeafRow } from './grid-group-leaf-row'
 import { GridGroupRow } from './grid-group-row'
 import { GridManualGroupPlaceholderRows, GridManualGroupRow } from './grid-manual-group-row'
 import { type GridRowsProps, renderGridRow } from './grid-row'
+import { GridLoadingBody } from './grid-skeleton-cells'
 import { GridTotalRow } from './grid-total-row'
 import { type GridScrollRowIntoView, GridVirtualizedBody } from './grid-virtualized-body'
 import { applyRowKeyOrder, type GridRowGroupPresentation } from './use-grid-row-manager'
@@ -260,7 +260,11 @@ function renderManualSegment<T>(
 			    placeholders until they land. A group the backend reports empty
 			    (count 0) shows nothing. */}
 			{segment.info && open && segment.leaves.length === 0 && segment.info.count > 0 && (
-				<GridManualGroupPlaceholderRows columns={props.visibleColumns} count={segment.info.count} />
+				<GridManualGroupPlaceholderRows
+					columns={props.visibleColumns}
+					count={segment.info.count}
+					pinning={props.pinning}
+				/>
 			)}
 		</Fragment>
 	)
@@ -293,9 +297,10 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 		density,
 		rowGroupPresentation,
 		virtualize,
+		pinning,
 	} = props
 
-	if (loading) return <TableLoading columns={visibleColumns.length} rows={GRID_LOADING_ROWS} />
+	if (loading) return <GridLoadingBody columns={visibleColumns} pinning={pinning} />
 
 	// An error state pre-empts the empty slot: a failed fetch has no rows, but the
 	// cause isn't "no items". `true` renders a default error alert.
