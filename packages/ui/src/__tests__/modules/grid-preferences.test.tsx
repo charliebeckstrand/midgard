@@ -113,6 +113,9 @@ describe('Grid preferences', () => {
 
 		fireEvent.contextMenu(header)
 
+		// Both fits live under the menu's Auto-size parent.
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Auto-size' }))
+
 		fireEvent.click(screen.getByRole('menuitem', { name: 'Auto-size all columns' }))
 
 		// The action detours through the confirmation instead of running outright.
@@ -133,6 +136,9 @@ describe('Grid preferences', () => {
 		if (!header) throw new Error('no Name header')
 
 		fireEvent.contextMenu(header)
+
+		// Both fits live under the menu's Auto-size parent.
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Auto-size' }))
 
 		fireEvent.click(screen.getByRole('menuitem', { name: 'Auto-size all columns' }))
 

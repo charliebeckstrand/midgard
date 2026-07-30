@@ -10,9 +10,9 @@ import { ReducedMotion } from '../reduced-motion'
 
 /**
  * Animated listbox-style panel for floating dropdowns (Select, Combobox,
- * Menu). Wires up roving keyboard navigation, optional type-ahead, and
- * autofocus of the selected item — or the panel itself when nothing is
- * selected — on open.
+ * Menu). Wires up roving keyboard navigation, optional type-ahead and Tab
+ * containment, and autofocus of the selected item — or the panel itself when
+ * nothing is selected — on open.
  *
  * @remarks Defaults to `role="listbox"`; override `role` for menus and the
  * like. `aria-multiselectable` is honored only on listbox roles. Pass `glass`
@@ -26,6 +26,7 @@ export function PopoverPanel({
 	itemSelector = '[role="option"]:not([data-disabled])',
 	autoFocus = true,
 	typeahead = false,
+	trapTab = false,
 	glass = false,
 	multiselectable,
 	'aria-label': ariaLabel,
@@ -62,6 +63,15 @@ export function PopoverPanel({
 	 */
 	typeahead?: boolean
 	/**
+	 * Hold Tab inside the panel: Tab / Shift+Tab step through the rows and wrap
+	 * at the ends rather than carrying focus to whatever follows the portal.
+	 * For a panel the user leaves by dismissing it — a menu closed with `Escape`
+	 * or a selection — not one whose owner keeps focus and expects Tab to exit.
+	 *
+	 * @defaultValue false
+	 */
+	trapTab?: boolean
+	/**
 	 * Apply glass surface chrome instead of the default popover surface.
 	 *
 	 * @defaultValue false
@@ -76,7 +86,12 @@ export function PopoverPanel({
 }) {
 	const panelRef = useRef<HTMLDivElement>(null)
 
-	const handleKeyDown = useA11yRoving(panelRef, { itemSelector, focusOnEmpty: true, typeahead })
+	const handleKeyDown = useA11yRoving(panelRef, {
+		itemSelector,
+		focusOnEmpty: true,
+		typeahead,
+		trapTab,
+	})
 
 	const scrollWithin = useScrollWithin()
 

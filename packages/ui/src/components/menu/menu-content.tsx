@@ -94,6 +94,12 @@ export function MenuContent({
 					// context menu has no persistent trigger to hold focus, so it still
 					// pulls focus into the panel for keyboard navigation.
 					autoFocus={!isDropdown}
+					// Tab is held inside the panel wherever focus lives in it (a
+					// right-click context menu): the menu is left by dismissing it, and
+					// Tab walking off into the page behind an open overlay strands the
+					// user outside a surface still on screen. A dropdown is exempt — its
+					// focus stays on the trigger, where Tab out is the documented close.
+					trapTab={!isDropdown}
 					typeahead
 					glass={glass}
 					className={cn('relative', k.content, className)}

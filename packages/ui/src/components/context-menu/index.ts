@@ -7,4 +7,5 @@ export type {
 	ContextMenuItem,
 	ContextMenuPosition,
 	ContextMenuSeparator,
+	ContextMenuSubmenu,
 } from './types'

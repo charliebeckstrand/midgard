@@ -169,6 +169,18 @@ export function GridContextMenu<T>({
 
 	const [items, setItems] = useState<GridMenuItem[]>([])
 
+	// Bumped on every open so the rendered list remounts. Right-clicking a second
+	// header while the menu is still open swaps the items under it, and a submenu
+	// the previous column left open — same entry key, same component instance —
+	// would otherwise carry over, showing one column's rows under another's menu.
+	const [generation, setGeneration] = useState(0)
+
+	const commitItems = useCallback((next: GridMenuItem[]) => {
+		setItems(next)
+
+		setGeneration((value) => value + 1)
+	}, [])
+
 	// The grid to restore focus to when a keyboard-opened menu closes; set only on
 	// the keyboard path, so a pointer-opened menu leaves focus where the user left it.
 	const returnFocus = useRef<HTMLElement | null>(null)
@@ -320,14 +332,14 @@ export function GridContextMenu<T>({
 				resolveItems={resolveItems}
 				resolveGroupItems={resolveGroupItems}
 				resolveColumnGroupItems={resolveColumnGroupItems}
-				setItems={setItems}
+				setItems={commitItems}
 				returnFocus={returnFocus}
 			>
 				{children}
 			</GridContextMenuSurface>
 
 			<MenuContent>
-				<ContextMenuList entries={items} />
+				<ContextMenuList key={generation} entries={items} />
 			</MenuContent>
 		</Menu>
 	)
