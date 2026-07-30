@@ -351,6 +351,39 @@ describe('ContextMenuList submenus', () => {
 		expect(screen.getByRole('menuitem', { name: 'Pin right' })).toHaveFocus()
 	})
 
+	it('closes only the submenu on Escape, the menu behind it on the next press', () => {
+		open(pinEntries())
+
+		const trigger = screen.getByRole('menuitem', { name: 'Pin' })
+
+		fireEvent.keyDown(trigger, { key: 'ArrowRight' })
+
+		fireEvent.keyDown(screen.getByRole('menuitem', { name: 'Pin left' }), { key: 'Escape' })
+
+		expect(screen.queryByRole('menuitem', { name: 'Pin left' })).not.toBeInTheDocument()
+
+		// The menu it hangs off survives, with the cursor back on its parent row.
+		expect(trigger).toHaveFocus()
+
+		fireEvent.keyDown(trigger, { key: 'Escape' })
+
+		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+	})
+
+	it('closes a hover-opened submenu on Escape from its parent row', () => {
+		open(pinEntries())
+
+		const trigger = screen.getByRole('menuitem', { name: 'Pin' })
+
+		fireEvent.pointerEnter(trigger, { pointerType: 'mouse' })
+
+		fireEvent.keyDown(trigger, { key: 'Escape' })
+
+		expect(screen.queryByRole('menuitem', { name: 'Pin left' })).not.toBeInTheDocument()
+
+		expect(screen.getByRole('menu')).toBeInTheDocument()
+	})
+
 	it('nests a submenu within a submenu', () => {
 		open([
 			{

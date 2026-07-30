@@ -169,6 +169,15 @@ export function MenuSub({ label, icon, disabled = false, className, children }: 
 		[refs],
 	)
 
+	/** Collapses the submenu and hands the cursor back to its parent row. */
+	const collapse = useCallback(() => {
+		cancelClose()
+
+		setOpen(false)
+
+		triggerRef.current?.focus()
+	}, [cancelClose])
+
 	const handleTriggerKeyDown = useCallback(
 		(event: KeyboardEvent<HTMLButtonElement>) => {
 			if (disabled) return
@@ -181,17 +190,19 @@ export function MenuSub({ label, icon, disabled = false, className, children }: 
 				return
 			}
 
-			// ArrowLeft from the trigger of an open submenu collapses it, the mirror
-			// of the ArrowRight that opened it.
-			if (event.key === 'ArrowLeft' && open) {
+			// ArrowLeft collapses an open submenu, the mirror of the ArrowRight that
+			// opened it; `Escape` does the same from here, and is consumed so the
+			// enclosing menu — which closes on any `Escape` reaching its panel —
+			// survives to take the next press.
+			if ((event.key === 'ArrowLeft' || event.key === 'Escape') && open) {
 				event.preventDefault()
 
-				cancelClose()
+				event.stopPropagation()
 
-				setOpen(false)
+				collapse()
 			}
 		},
-		[disabled, open, openWithFocus, cancelClose],
+		[disabled, open, openWithFocus, collapse],
 	)
 
 	const handlePanelKeyDown = useCallback(
@@ -202,19 +213,19 @@ export function MenuSub({ label, icon, disabled = false, className, children }: 
 			// of mine focused" and yank focus to its own first item on the next
 			// arrow or Tab. The submenu owns its keyboard model; nothing escapes it.
 			// Runs after `PopoverPanel`'s own roving, which fires first.
+			//
+			// React's `stopPropagation` stops the native event too, so the
+			// document-level dismiss layer never sees a press from in here — hence
+			// `Escape` is closed out below rather than left to that layer.
 			event.stopPropagation()
 
-			if (event.key !== 'ArrowLeft') return
+			if (event.key !== 'ArrowLeft' && event.key !== 'Escape') return
 
 			event.preventDefault()
 
-			cancelClose()
-
-			setOpen(false)
-
-			triggerRef.current?.focus()
+			collapse()
 		},
-		[cancelClose],
+		[collapse],
 	)
 
 	// Roving off the parent row collapses its submenu, so at most one hangs open

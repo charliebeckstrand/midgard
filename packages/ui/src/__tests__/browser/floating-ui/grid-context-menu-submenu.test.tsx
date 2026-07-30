@@ -5,8 +5,9 @@ import { fireEvent, renderUI, screen, waitFor } from '../../helpers'
 /**
  * Keyboard control of the grid context menu's submenus against the real
  * floating engine: ArrowRight opens the roved parent onto its first row,
- * ArrowLeft returns, roving on collapses what was left open, and Tab is held
- * inside the menu. Each hangs on real focus crossing a portal boundary, which
+ * ArrowLeft returns, roving on collapses what was left open, `Escape` closes
+ * the submenu alone, and Tab is held inside the menu. Each hangs on real focus
+ * crossing a portal boundary, which
  * the jsdom suite can't reproduce — it mocks `@floating-ui/react`, so the panels
  * render inline there and no crossing happens.
  *
@@ -29,7 +30,7 @@ describe('grid context menu submenus (real browser)', () => {
 	const gone = (name: string) =>
 		waitFor(() => expect(screen.queryByRole('menuitem', { name })).toBeNull())
 
-	it('opens, returns, collapses on rove-away, and holds Tab', async () => {
+	it('opens, returns, collapses on rove-away and Escape, and holds Tab', async () => {
 		const { container } = renderUI(
 			<>
 				<button type="button">before</button>
@@ -84,6 +85,20 @@ describe('grid context menu submenus (real browser)', () => {
 		expect(item('Pin')).toHaveFocus()
 
 		await gone('Sort ascending')
+
+		// Escape collapses an open submenu and stops there — the menu it hangs off
+		// takes the next press, not this one.
+		fireEvent.keyDown(item('Pin'), { key: 'ArrowRight' })
+
+		await waitFor(() => expect(item('Pin left')).toHaveFocus())
+
+		fireEvent.keyDown(item('Pin left'), { key: 'Escape' })
+
+		await gone('Pin left')
+
+		expect(menu).toBeInTheDocument()
+
+		expect(item('Pin')).toHaveFocus()
 
 		// More Tab presses than the menu has rows, so a leak would carry focus past
 		// the last one and out to the page's own buttons.
