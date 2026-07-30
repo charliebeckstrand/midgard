@@ -259,6 +259,26 @@ describe('ContextMenuList submenus', () => {
 		expect(trigger).toHaveFocus()
 	})
 
+	it('closes when the roving cursor moves off the parent row', () => {
+		open([...pinEntries(), { key: 'copy', label: 'Copy', onSelect: noop }])
+
+		const trigger = screen.getByRole('menuitem', { name: 'Pin' })
+
+		fireEvent.keyDown(trigger, { key: 'ArrowRight' })
+
+		expect(screen.getByRole('menuitem', { name: 'Pin left' })).toBeInTheDocument()
+
+		// ArrowLeft returns the cursor to the parent row; roving on from there
+		// collapses the submenu behind it.
+		fireEvent.keyDown(screen.getByRole('menuitem', { name: 'Pin left' }), { key: 'ArrowLeft' })
+
+		fireEvent.keyDown(trigger, { key: 'ArrowDown' })
+
+		expect(screen.getByRole('menuitem', { name: 'Copy' })).toHaveFocus()
+
+		expect(screen.queryByRole('menuitem', { name: 'Pin left' })).not.toBeInTheDocument()
+	})
+
 	it('runs a submenu row and closes the whole menu', () => {
 		const onSelect = vi.fn()
 
@@ -272,6 +292,63 @@ describe('ContextMenuList submenus', () => {
 
 		// Selecting inside a submenu dismisses the menu it hangs off, not just itself.
 		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+	})
+
+	it('holds Tab inside the menu, cycling its rows', () => {
+		open([
+			{ key: 'copy', label: 'Copy', onSelect: noop },
+			{ key: 'paste', label: 'Paste', onSelect: noop },
+		])
+
+		const menu = screen.getByRole('menu')
+
+		fireEvent.keyDown(menu, { key: 'Tab' })
+
+		expect(screen.getByRole('menuitem', { name: 'Copy' })).toHaveFocus()
+
+		fireEvent.keyDown(screen.getByRole('menuitem', { name: 'Copy' }), { key: 'Tab' })
+
+		expect(screen.getByRole('menuitem', { name: 'Paste' })).toHaveFocus()
+
+		// Wraps at the end rather than carrying focus out to the page behind.
+		fireEvent.keyDown(screen.getByRole('menuitem', { name: 'Paste' }), { key: 'Tab' })
+
+		expect(screen.getByRole('menuitem', { name: 'Copy' })).toHaveFocus()
+
+		fireEvent.keyDown(screen.getByRole('menuitem', { name: 'Copy' }), {
+			key: 'Tab',
+			shiftKey: true,
+		})
+
+		expect(screen.getByRole('menuitem', { name: 'Paste' })).toHaveFocus()
+	})
+
+	it('holds Tab inside an open submenu, not spilling back to the parent menu', () => {
+		open(pinEntries())
+
+		const trigger = screen.getByRole('menuitem', { name: 'Pin' })
+
+		fireEvent.keyDown(trigger, { key: 'ArrowRight' })
+
+		fireEvent.keyDown(screen.getByRole('menuitem', { name: 'Pin left' }), { key: 'Tab' })
+
+		expect(screen.getByRole('menuitem', { name: 'Pin right' })).toHaveFocus()
+
+		fireEvent.keyDown(screen.getByRole('menuitem', { name: 'Pin right' }), { key: 'Tab' })
+
+		expect(screen.getByRole('menuitem', { name: 'Pin left' })).toHaveFocus()
+	})
+
+	it('keeps arrow roving inside the submenu, off the parent menu', () => {
+		open([...pinEntries(), { key: 'copy', label: 'Copy', onSelect: noop }])
+
+		fireEvent.keyDown(screen.getByRole('menuitem', { name: 'Pin' }), { key: 'ArrowRight' })
+
+		// The panel portals out but stays a React child of its parent row, so its
+		// keystrokes must not reach the enclosing menu's roving.
+		fireEvent.keyDown(screen.getByRole('menuitem', { name: 'Pin left' }), { key: 'ArrowDown' })
+
+		expect(screen.getByRole('menuitem', { name: 'Pin right' })).toHaveFocus()
 	})
 
 	it('nests a submenu within a submenu', () => {

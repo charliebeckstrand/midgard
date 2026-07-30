@@ -674,6 +674,41 @@ function handleTypeahead(
 	return true
 }
 
+/**
+ * Focus-mode Tab containment: Tab / Shift+Tab step to the next / previous item
+ * instead of leaving the widget, wrapping at both ends. With focus resting on
+ * the container rather than an item (`currentIndex` -1), Tab enters at the
+ * first item and Shift+Tab at the last. Virtual mode is out of scope — its
+ * focus sits on an owning input the user must be able to Tab away from.
+ *
+ * @returns True once the key is Tab and the trap is on, so the caller stops.
+ * @internal
+ */
+function handleTabTrap(
+	event: KeyboardEvent,
+	ctx: RovingKeyContext,
+	currentIndex: number,
+	trapTab: boolean,
+): boolean {
+	if (!trapTab || ctx.isVirtual || event.key !== 'Tab') return false
+
+	event.preventDefault()
+
+	if (ctx.items.length === 0) return true
+
+	// From nothing focused (the container holds it), Tab enters at the head and
+	// Shift+Tab at the tail.
+	if (currentIndex === -1) {
+		moveTo(event.shiftKey ? ctx.items.length - 1 : 0, ctx)
+
+		return true
+	}
+
+	moveTo(wrap(currentIndex + (event.shiftKey ? -1 : 1), ctx.items.length), ctx)
+
+	return true
+}
+
 /** Main-axis arrow / Home / End navigation, after the focus-empty guard. @internal */
 function handleMainAxisNav(
 	event: KeyboardEvent,
@@ -718,6 +753,14 @@ type RovingOptions = NavigationConfig & {
 	mode?: 'focus' | 'virtual'
 	/** Focus mode: move to the first / last item even when nothing in the container has focus. */
 	focusOnEmpty?: boolean
+	/**
+	 * Focus mode: hold Tab inside the widget — Tab / Shift+Tab step through the
+	 * items and wrap at the ends rather than carrying focus out. For a surface
+	 * the user leaves by dismissing it (a menu closed with `Escape` or a
+	 * selection), never for one embedded in the page's tab order.
+	 * @defaultValue false
+	 */
+	trapTab?: boolean
 	/**
 	 * Jump to the item whose label starts with recently typed characters
 	 * (WAI-ARIA type-ahead). Off by default; enable for menus and listboxes,
@@ -813,7 +856,8 @@ type RovingOptions = NavigationConfig & {
  *
  * @returns A stable `onKeyDown` handler to attach to the container; it reads
  * items from `containerRef` on each press, so the item set may change between
- * presses. The `tabIndex` ownership (focus mode + `manageTabIndex`) and the
+ * presses. With `trapTab`, Tab is consumed and rove the items rather than
+ * carrying focus out. The `tabIndex` ownership (focus mode + `manageTabIndex`) and the
  * `aria-activedescendant` mirroring run as an effect, independent of the
  * handler.
  */
@@ -825,6 +869,7 @@ export function useA11yRoving(
 		orientation,
 		mode = 'focus',
 		focusOnEmpty = false,
+		trapTab = false,
 		typeahead = false,
 		scrollIntoView = true,
 		activationKey = 'Enter',
@@ -951,6 +996,8 @@ export function useA11yRoving(
 
 			if (rowResult.handled) return
 
+			if (handleTabTrap(event, ctx, rowResult.currentIndex, trapTab)) return
+
 			if (handleActivationKey(event, ctx, rowResult.currentIndex, activationKey)) return
 
 			if (handleTypeahead(event, ctx, rowResult.currentIndex, typeaheadMatchers, typeahead)) return
@@ -964,6 +1011,7 @@ export function useA11yRoving(
 			cols,
 			orientation,
 			focusOnEmpty,
+			trapTab,
 			typeahead,
 			scrollIntoView,
 			activationKey,

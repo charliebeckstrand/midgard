@@ -2,6 +2,7 @@
 
 import { ChevronRight } from 'lucide-react'
 import {
+	type FocusEvent,
 	type KeyboardEvent,
 	type PointerEvent,
 	type ReactElement,
@@ -52,14 +53,19 @@ export type MenuSubProps = {
 /**
  * A menu row that opens a nested menu beside itself: a `role="menuitem"` parent
  * carrying `aria-haspopup="menu"` and a trailing chevron, plus the floating
- * panel its rows render in. Opens on hover, on click, and on ArrowRight / Enter
- * / Space; closes on ArrowLeft, `Escape`, an outside press, or the pointer
- * leaving both surfaces. Selecting a row inside closes the whole menu, as any
+ * panel its rows render in. Opens on hover, on click, and — while the row is
+ * the roved one — on ArrowRight / Enter / Space; closes on ArrowLeft, `Escape`,
+ * an outside press, the pointer leaving both surfaces, or the roving cursor
+ * moving to another row. Selecting a row inside closes the whole menu, as any
  * {@link MenuItem} does.
  *
  * @remarks Hover never moves focus — only a keyboard or click open seats it on
- * the first row (APG). The panel portals out of the enclosing {@link MenuContent},
- * so its height-capped, scrolling viewport can't clip it.
+ * the first row (APG). Tab is held inside the open panel, cycling its rows. The
+ * panel portals out of the enclosing {@link MenuContent}, so its height-capped,
+ * scrolling viewport can't clip it. The keyboard model follows real focus, so it
+ * is live in a right-click menu (focus sits in the panel) while a dropdown —
+ * which keeps focus on its trigger and roves by `aria-activedescendant` — opens
+ * a submenu by hover or click.
  * @see {@link MenuItem}
  */
 export function MenuSub({ label, icon, disabled = false, className, children }: MenuSubProps) {
@@ -190,6 +196,14 @@ export function MenuSub({ label, icon, disabled = false, className, children }: 
 
 	const handlePanelKeyDown = useCallback(
 		(event: KeyboardEvent) => {
+			// The panel is portaled out of the DOM but stays a React child of this
+			// row, so its keystrokes bubble back through the *enclosing* menu's
+			// roving handler — which would read the focused submenu row as "nothing
+			// of mine focused" and yank focus to its own first item on the next
+			// arrow or Tab. The submenu owns its keyboard model; nothing escapes it.
+			// Runs after `PopoverPanel`'s own roving, which fires first.
+			event.stopPropagation()
+
 			if (event.key !== 'ArrowLeft') return
 
 			event.preventDefault()
@@ -201,6 +215,22 @@ export function MenuSub({ label, icon, disabled = false, className, children }: 
 			triggerRef.current?.focus()
 		},
 		[cancelClose],
+	)
+
+	// Roving off the parent row collapses its submenu, so at most one hangs open
+	// and the arrow keys always act on the row the cursor is actually sitting on.
+	// Focus landing *inside* the panel is the open completing, not a rove away —
+	// tested against the row container, which is mounted by the time focus can
+	// reach a row (floating-ui's own floating ref settles a commit later).
+	const handleBlur = useCallback(
+		(event: FocusEvent<HTMLButtonElement>) => {
+			if (event.relatedTarget && rows?.contains(event.relatedTarget)) return
+
+			cancelClose()
+
+			setOpen(false)
+		},
+		[cancelClose, rows],
 	)
 
 	const handlePointerEnter = useCallback(
@@ -241,6 +271,7 @@ export function MenuSub({ label, icon, disabled = false, className, children }: 
 				{...getReferenceProps({
 					onPointerEnter: handlePointerEnter,
 					onPointerLeave: scheduleClose,
+					onBlur: handleBlur,
 					onKeyDown: handleTriggerKeyDown,
 					// Opens rather than toggles: a click landing on a row the pointer has
 					// already hovered open would otherwise shut the submenu the user is
@@ -273,6 +304,9 @@ export function MenuSub({ label, icon, disabled = false, className, children }: 
 					// Hover opens the panel without moving focus; the keyboard and click
 					// paths seat it on the first row themselves (see `seatFocus`).
 					autoFocus={false}
+					// Tab cycles the submenu's own rows; the parent menu is reached back
+					// through ArrowLeft or `Escape`, not by tabbing past the last row.
+					trapTab
 					typeahead
 					glass={glass}
 					className={k.content}
