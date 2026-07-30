@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest'
-import { Button } from '../../components/button'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { renderUI, waitFor } from '../helpers'
 
@@ -19,11 +18,13 @@ describe('grid loading row alignment (real browser)', () => {
 		{ id: 'customer', title: 'Customer', cell: (row) => row.customer },
 		{ id: 'origin', title: 'Origin', cell: (row) => row.origin },
 		{ id: 'destination', title: 'Destination', cell: (row) => row.destination },
-		{ id: 'actions', title: 'Actions', actions: () => <Button>Edit</Button>, pinned: 'right' },
+		{ id: 'actions', title: 'Actions', actions: () => 'Edit', pinned: 'right' },
 	]
 
-	// Controlled widths sum to 1080px against a 480px viewport, so the grid
-	// scrolls sideways and the right-pinned column has something to stick over.
+	// Controlled widths sum to 1080px against a 480px viewport and stand auto-fit
+	// down (which would otherwise shrink the columns to fit and remove the
+	// overflow), so the grid scrolls sideways and the right-pinned column has
+	// something to stick over.
 	const sizing = { value: { id: 120, customer: 320, origin: 280, destination: 240, actions: 120 } }
 
 	const rows: Row[] = Array.from({ length: 3 }, (_, i) => ({
@@ -33,6 +34,8 @@ describe('grid loading row alignment (real browser)', () => {
 		destination: `Destination ${i}`,
 	}))
 
+	const getKey = (row: Row) => row.id
+
 	function setup(loading: boolean) {
 		const { container } = renderUI(
 			<div style={{ width: '480px' }}>
@@ -41,7 +44,7 @@ describe('grid loading row alignment (real browser)', () => {
 					columns={columns}
 					columnSizing={sizing}
 					rows={rows}
-					getKey={(row: Row) => row.id}
+					getKey={getKey}
 					loading={loading}
 				/>
 			</div>,
@@ -51,7 +54,7 @@ describe('grid loading row alignment (real browser)', () => {
 
 		const cells = () => [...container.querySelectorAll<HTMLElement>('tbody tr:first-child td')]
 
-		return { container, headers, cells }
+		return { headers, cells }
 	}
 
 	it('lines every loading placeholder up with its column header', async () => {
@@ -62,16 +65,15 @@ describe('grid loading row alignment (real browser)', () => {
 		const head = headers()
 
 		cells().forEach((cell, index) => {
-			const column = head[index] as HTMLElement
+			const placeholder = cell.getBoundingClientRect()
+
+			const column = (head[index] as HTMLElement).getBoundingClientRect()
 
 			// Same left edge and same width as the header above it — including the
 			// right-pinned actions column, which sticks in both rows.
-			expect(cell.getBoundingClientRect().left).toBeCloseTo(column.getBoundingClientRect().left, 0)
+			expect(placeholder.left).toBeCloseTo(column.left, 0)
 
-			expect(cell.getBoundingClientRect().width).toBeCloseTo(
-				column.getBoundingClientRect().width,
-				0,
-			)
+			expect(placeholder.width).toBeCloseTo(column.width, 0)
 		})
 	})
 
@@ -88,9 +90,8 @@ describe('grid loading row alignment (real browser)', () => {
 
 		// The frozen column doesn't move between the loading and loaded bodies: the
 		// rows land where the placeholders were, with no sideways jump.
-		expect((loading.cells().at(-1) as HTMLElement).getBoundingClientRect().right).toBeCloseTo(
-			settled,
-			0,
-		)
+		const placeholder = (loading.cells().at(-1) as HTMLElement).getBoundingClientRect()
+
+		expect(placeholder.right).toBeCloseTo(settled, 0)
 	})
 })

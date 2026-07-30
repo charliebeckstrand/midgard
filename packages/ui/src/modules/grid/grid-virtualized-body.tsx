@@ -6,8 +6,8 @@ import { Text } from '../../components/text'
 import { useVirtualWindow } from '../../hooks'
 import { ariaRowIndex } from './engine/grid-row/shell'
 import type { ResolvedInfiniteScroll } from './grid-data-resolvers'
-import { GridSkeletonCells } from './grid-loading-body'
 import { type GridRowsProps, renderGridRow } from './grid-row'
+import { GridSkeletonCells } from './grid-skeleton-cells'
 import type { GridColumn } from './types'
 import { useGridInfiniteScroll } from './use-grid-infinite-scroll'
 import type { GridColumnPinning } from './use-grid-table'
@@ -100,7 +100,7 @@ type GridVirtualizedBodyProps<T> = GridRowsProps<T> & {
  * @internal
  */
 export function GridVirtualizedBody<T>(props: GridVirtualizedBodyProps<T>) {
-	const { scrollRef, rows, visibleColumns, estimateSize, overscan } = props
+	const { scrollRef, rows, visibleColumns, estimateSize, overscan, pinning } = props
 
 	// Stable getter for the scroll element; the ref object never changes.
 	const getScrollElement = useCallback(() => scrollRef.current, [scrollRef])
@@ -179,7 +179,7 @@ export function GridVirtualizedBody<T>(props: GridVirtualizedBodyProps<T>) {
 				<GridInfiniteScrollTrailer<T>
 					infiniteScroll={infiniteScroll}
 					columns={visibleColumns}
-					pinning={props.pinning}
+					pinning={pinning}
 				/>
 			)}
 		</TableBody>

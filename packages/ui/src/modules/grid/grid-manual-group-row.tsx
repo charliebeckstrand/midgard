@@ -7,12 +7,13 @@ import { Icon } from '../../components/icon'
 import { TableCell, TableRow } from '../../components/table'
 import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/grid'
+import { rangeKeys } from '../../utilities'
 import { aggregateLabelSpan, hasAggregation } from './engine/grid-aggregate'
 import { groupValueLabel } from './engine/grid-column/label'
 import { MANUAL_GROUP_PLACEHOLDER_ROWS } from './engine/grid-constants'
 import { GridAggregateCells } from './grid-aggregate-cells'
 import type { GridGroupBy, GridGroupHeaderRow } from './grid-data-types'
-import { GridSkeletonCells } from './grid-loading-body'
+import { GridSkeletonCells } from './grid-skeleton-cells'
 import type { GridColumn } from './types'
 import type { GridColumnPinning } from './use-grid-table'
 
@@ -93,9 +94,9 @@ export function GridManualGroupRow<T>({
  * Placeholder skeleton rows for an expanded manual group whose children are
  * still loading: the group opened the instant its header was toggled, and while
  * the consumer's {@link GridGroupBy.onGroupExpand} fetch is in flight these fill
- * the gap — one {@link TextSkeleton} per column, the same silhouette the
- * whole-grid loading body draws, so the children arrive in the shape they load
- * into. Rendered `min(count, cap)` deep (see {@link MANUAL_GROUP_PLACEHOLDER_ROWS})
+ * the gap — {@link GridSkeletonCells}, the same silhouette the whole-grid
+ * loading body draws, so the children arrive in the shape they load into.
+ * Rendered `min(count, cap)` deep (see {@link MANUAL_GROUP_PLACEHOLDER_ROWS})
  * so an enormous group shows a brief affordance rather than thousands of rows,
  * and `aria-hidden` as a transient filler (like the infinite-scroll pending
  * row) — the leading cell carries the group rail so the loading rows sit under
@@ -117,13 +118,12 @@ export function GridManualGroupPlaceholderRows<T>({
 }): ReactElement[] {
 	const rows = Math.min(count, MANUAL_GROUP_PLACEHOLDER_ROWS)
 
-	return Array.from({ length: rows }, (_, rowIndex) => (
-		// biome-ignore lint/suspicious/noArrayIndexKey: a fixed-length skeleton run with no identity beyond position
-		<TableRow key={rowIndex} data-group-placeholder aria-hidden="true">
+	return rangeKeys(rows, 'group-placeholder').map((rowKey) => (
+		<TableRow key={rowKey} data-group-placeholder aria-hidden="true">
 			<GridSkeletonCells
 				columns={columns}
 				pinning={pinning}
-				leadingClassName={cn(k.rowGroup.rail.border)}
+				leadingClassName={k.rowGroup.rail.border}
 			/>
 		</TableRow>
 	))

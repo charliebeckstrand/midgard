@@ -408,10 +408,8 @@ describe('Grid column pinning', () => {
 	})
 
 	it('freezes the loading placeholder cells of a pinned column', () => {
-		// Regression: the loading body drew generic skeleton cells with none of the
-		// column chrome, so a frozen column's placeholder scrolled while its header
-		// stayed stuck — the skeletons landed under the wrong columns and the frozen
-		// one read as pushed aside.
+		// The placeholders carry no `data-grid-col` (they stay out of the autosizer's
+		// body scan), so they're read positionally rather than through `dataCell`.
 		const columns: GridColumn<Row>[] = [
 			{ id: 'name', title: 'Name', cell: (row) => row.name },
 			{ id: 'email', title: 'Email', cell: (row) => row.email },

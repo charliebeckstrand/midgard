@@ -24,9 +24,9 @@ import type { ResolvedInfiniteScroll } from './grid-data-resolvers'
 import type { GridGroupBy, GridGroupHeaderRow } from './grid-data-types'
 import { GridGroupLeafRow } from './grid-group-leaf-row'
 import { GridGroupRow } from './grid-group-row'
-import { GridLoadingBody } from './grid-loading-body'
 import { GridManualGroupPlaceholderRows, GridManualGroupRow } from './grid-manual-group-row'
 import { type GridRowsProps, renderGridRow } from './grid-row'
+import { GridLoadingBody } from './grid-skeleton-cells'
 import { GridTotalRow } from './grid-total-row'
 import { type GridScrollRowIntoView, GridVirtualizedBody } from './grid-virtualized-body'
 import { applyRowKeyOrder, type GridRowGroupPresentation } from './use-grid-row-manager'
@@ -297,9 +297,10 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 		density,
 		rowGroupPresentation,
 		virtualize,
+		pinning,
 	} = props
 
-	if (loading) return <GridLoadingBody columns={visibleColumns} pinning={props.pinning} />
+	if (loading) return <GridLoadingBody columns={visibleColumns} pinning={pinning} />
 
 	// An error state pre-empts the empty slot: a failed fetch has no rows, but the
 	// cause isn't "no items". `true` renders a default error alert.
