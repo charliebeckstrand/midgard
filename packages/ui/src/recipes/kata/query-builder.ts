@@ -2,7 +2,8 @@
  * Query-builder kata: object-literal surface for the `<QueryBuilder>` rule
  * editor. No variants axis — flat slots for the `base` container, the
  * `group.base` and `group.nested` condition boxes, a `rule` row, its `remove`
- * control, the AND/OR `separator`, and the `actions` cluster.
+ * control, the fixed `value` text standing in for a value-less operator's input,
+ * the AND/OR `separator`, and the `actions` cluster.
  */
 import { mode } from '../../core/recipe'
 import { iro, ji, kasane, narabi, sen } from '../kiso'
@@ -21,6 +22,7 @@ export const k = {
 	},
 	rule: ['p-2.5', border.default, rounded.lg],
 	remove: 'flex-none',
+	value: ['px-3', size.sm, ...text.muted],
 	separator: [size.xs, weight.medium, ...text.muted, 'uppercase'],
 	actions: 'flex items-center gap-2',
 } as const

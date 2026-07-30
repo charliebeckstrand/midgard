@@ -31,8 +31,15 @@ export type QueryOperator = {
 	value: string
 	/** Human-readable label. */
 	label: string
-	/** When true, the rule omits its value input (e.g. "is empty"). */
+	/** When true, the rule omits its value input (e.g. "is Empty"). */
 	noValue?: boolean
+	/**
+	 * Fixed value text a `noValue` operator reads against, shown in place of the
+	 * omitted value input and as the summary's value (e.g. `Empty` for text's
+	 * "is"), so the rule still reads as a three-part sentence. Ignored unless
+	 * `noValue` is set.
+	 */
+	valueLabel?: string
 	/**
 	 * When true, the rule edits a two-bound `[min, max]` tuple (e.g. "between")
 	 * instead of a single value; either bound may be left blank for an open-ended
