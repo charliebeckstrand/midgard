@@ -64,7 +64,7 @@ export const zoneCategories: MapCategory[] = [
 	{ value: 'Pacific', color: 'blue' },
 	{ value: 'Mountain', color: 'orange' },
 	{ value: 'Central', color: 'green' },
-	{ value: 'Eastern', color: 'sky' },
+	{ value: 'Eastern', color: 'red' },
 ]
 
 /** Warehouse markers for the points example. */

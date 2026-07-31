@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { createGroup, createRule, type QueryField } from '../../modules/query'
+import { DensityProvider } from '../../providers/density'
 import { fireEvent, renderUI, screen } from '../helpers'
 
 describe('Grid per-column filters', () => {
@@ -114,6 +115,66 @@ describe('Grid per-column filters', () => {
 		)
 
 		expect(labels).not.toContain('Field')
+	})
+
+	// The filter surface is the one grid-spawned overlay whose trigger lives inside
+	// the table region, so it is the only one that can inherit the cell density
+	// cascade. It must not: a sheet is a dialog-sized surface, not a cell.
+	it("renders the filter sheet at the ambient density, not the grid's condensed step", () => {
+		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} condensed />)
+
+		fireEvent.click(screen.getByRole('button', { name: /^Filter Name/ }))
+
+		expect(screen.getByRole('button', { name: 'Apply' })).toHaveAttribute('data-size', 'md')
+
+		expect(screen.getByRole('button', { name: 'Cancel' })).toHaveAttribute('data-size', 'md')
+	})
+
+	it('follows a surrounding DensityProvider into the filter sheet', () => {
+		renderUI(
+			<DensityProvider density="loose">
+				<Grid columns={columns} rows={rows} getKey={getKey} condensed />
+			</DensityProvider>,
+		)
+
+		fireEvent.click(screen.getByRole('button', { name: /^Filter Name/ }))
+
+		expect(screen.getByRole('button', { name: 'Apply' })).toHaveAttribute('data-size', 'lg')
+	})
+
+	// The applied-state menu is the filter surface's other half, and it needs the same
+	// ambient density the sheet gets. Asserted differentially — the panel's class under
+	// a condensed grid must equal its class under a plain one — so it pins the property
+	// (density is not inherited from the cells) without hardcoding utility classes.
+	it("renders the filter menu at the ambient density, not the grid's condensed step", () => {
+		const menuViewportClass = (condensed: boolean) => {
+			const view = renderUI(
+				<Grid columns={columns} rows={rows} getKey={getKey} condensed={condensed} />,
+			)
+
+			// A filter has to be applied before the trigger becomes a menu.
+			fireEvent.click(screen.getByRole('button', { name: /^Filter Name/ }))
+
+			fireEvent.change(screen.getByRole('textbox', { name: 'Name value' }), {
+				target: { value: 'Bob' },
+			})
+
+			fireEvent.click(screen.getByRole('button', { name: 'Apply' }))
+
+			fireEvent.click(screen.getByRole('button', { name: /^Filter Name/ }))
+
+			const viewport = document.querySelector('[data-slot="menu-viewport"]')
+
+			if (!viewport) throw new Error('menu viewport did not render')
+
+			const className = viewport.className
+
+			view.unmount()
+
+			return className
+		}
+
+		expect(menuViewportClass(true)).toBe(menuViewportClass(false))
 	})
 
 	it('hides the remove control while a single rule remains, restoring it past one', () => {

@@ -74,12 +74,32 @@ function GridSkeletonCellsImpl<T>({
  */
 export const GridSkeletonCells = memo(GridSkeletonCellsImpl) as typeof GridSkeletonCellsImpl
 
-/** Props for {@link GridLoadingBody}. @internal */
-type GridLoadingBodyProps<T> = {
+/** Props for {@link GridSkeletonRows} and {@link GridLoadingBody}. @internal */
+type GridSkeletonRowsProps<T> = {
 	/** The visible columns, in render order. */
 	columns: GridColumn<T>[]
 	/** Frozen-column controls threaded to each placeholder cell; `null` when none. */
 	pinning: GridColumnPinning | null
+}
+
+/**
+ * The {@link GRID_LOADING_ROWS} placeholder rows {@link GridLoadingBody} draws,
+ * without its `<tbody>` — for a caller that owns the body and holds this
+ * silhouette in place of part of it (the windowed body, whose loading rows sit
+ * between its spacers and its trailing infinite-scroll states).
+ *
+ * @internal
+ */
+export function GridSkeletonRows<T>({ columns, pinning }: GridSkeletonRowsProps<T>): ReactElement {
+	return (
+		<>
+			{LOADING_ROW_KEYS.map((rowKey) => (
+				<TableRow key={rowKey}>
+					<GridSkeletonCells columns={columns} pinning={pinning} />
+				</TableRow>
+			))}
+		</>
+	)
 }
 
 /**
@@ -90,14 +110,10 @@ type GridLoadingBodyProps<T> = {
  *
  * @internal
  */
-export function GridLoadingBody<T>({ columns, pinning }: GridLoadingBodyProps<T>) {
+export function GridLoadingBody<T>({ columns, pinning }: GridSkeletonRowsProps<T>) {
 	return (
 		<TableBody>
-			{LOADING_ROW_KEYS.map((rowKey) => (
-				<TableRow key={rowKey}>
-					<GridSkeletonCells columns={columns} pinning={pinning} />
-				</TableRow>
-			))}
+			<GridSkeletonRows columns={columns} pinning={pinning} />
 		</TableBody>
 	)
 }
