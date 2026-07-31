@@ -92,4 +92,48 @@ describe('grid virtualized fill with async rows', () => {
 
 		await waitFor(() => expect(screen.getByText('Row 1')).toBeInTheDocument(), { timeout: 3000 })
 	})
+
+	/** Rows (data or skeleton) in the grid's data `<tbody>`, excluding the window's spacers. */
+	const bodyRows = (container: HTMLElement) =>
+		container.querySelectorAll('tbody[data-slot="table-body"] tr:not([data-slot="grid-spacer"])')
+			.length
+
+	const dataCells = (container: HTMLElement) =>
+		container.querySelectorAll('tbody[data-slot="table-body"] td[data-grid-col]').length
+
+	/**
+	 * The window is empty for the commit (or commits) before the virtualizer
+	 * resolves and measures its scroll element, and for as long as that element
+	 * measures zero. The body holds the loading skeleton across those frames rather
+	 * than rendering an empty `<tbody>`, which used to leave a headers-only, rowless
+	 * table on screen between the skeleton being dropped and the first rows landing.
+	 */
+	it('holds the loading skeleton until the window has rows', async () => {
+		const { container } = renderUI(
+			<div style={{ height: '400px', display: 'none' }}>
+				<Grid<Row>
+					maxHeight="fill"
+					columns={columns}
+					rows={Array.from({ length: 30 }, (_, i) => ({ id: i + 1, name: `Row ${i + 1}` }))}
+					getKey={(row) => row.id}
+					virtualize
+				/>
+			</div>,
+		)
+
+		// A hidden grid measures zero, so the window stays empty: the skeleton stands
+		// in, and no data row is rendered to size or read.
+		expect(bodyRows(container)).toBe(1)
+
+		expect(dataCells(container)).toBe(0)
+
+		expect(container.querySelectorAll('[data-slot="placeholder"]').length).toBeGreaterThan(0)
+
+		const wrapper = container.firstElementChild as HTMLElement
+
+		wrapper.style.display = 'block'
+
+		// Revealed, the container measures and the window fills with real rows.
+		await waitFor(() => expect(screen.getByText('Row 1')).toBeInTheDocument(), { timeout: 3000 })
+	})
 })

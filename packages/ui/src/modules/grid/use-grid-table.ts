@@ -184,6 +184,22 @@ type UseGridTableResult<T> = {
 	pagination: GridPaginationView | null
 	/** Column-resize controls, or `null` when `resizable` is off. */
 	resize: GridColumnResize | null
+	/**
+	 * Re-fits the columns when the body's rendered rows change and the last fit had
+	 * none to measure — the windowed body's case, whose rows land in a later commit
+	 * than the one that supplied them. Call from the body's layout effect, so the
+	 * fit precedes the rows' first paint; a no-op once a fit has read rows, and when
+	 * the autosizer stands down.
+	 */
+	fitRenderedRows: () => void
+	/**
+	 * Whether the first column-width pass has happened.
+	 *
+	 * `false` only between hydration and that pass, and only for a grid whose widths this
+	 * hook sizes. The table holds its paint until it flips, so a reload never shows the
+	 * declared widths and then replaces them with fitted ones — see `useGridColumnAutoSize`.
+	 */
+	widthsSettled: boolean
 	/** Global-filter view, or `null` when filtering is not configured. */
 	globalFilter: GridGlobalFilterView | null
 	/** Per-column filter controls, or `null` when no column is filterable. */
@@ -809,7 +825,13 @@ export function useGridTable<T>({
 
 	// Auto-size resizable columns to fill the container, unless widths are
 	// controlled; `sizeToFit` also backs the header "Auto-size all columns" action.
-	const { sizeToFit, resetColumn, holdManualWidths } = useGridColumnAutoSize<T>({
+	const {
+		sizeToFit,
+		resetColumn,
+		holdManualWidths,
+		fitRenderedRows,
+		settled: widthsSettled,
+	} = useGridColumnAutoSize<T>({
 		resizable,
 		controlled: columnSizingConfig?.value != null,
 		table,
@@ -888,6 +910,8 @@ export function useGridTable<T>({
 		manualRows,
 		pagination,
 		resize,
+		fitRenderedRows,
+		widthsSettled,
 		globalFilter,
 		filters,
 		pinning,
