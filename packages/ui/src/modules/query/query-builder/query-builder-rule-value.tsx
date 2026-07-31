@@ -95,7 +95,7 @@ export function QueryBuilderRuleValue({
 			<Select
 				value={(value as string | undefined) ?? ''}
 				displayValue={(v: string) => field.options?.find((o) => o.value === v)?.label ?? ''}
-				onValueChange={(v: string | undefined) => onValueChange(v ?? '')}
+				onValueChange={(v: string | null) => onValueChange(v ?? '')}
 				placeholder="Value"
 				aria-label={label}
 				className={className}

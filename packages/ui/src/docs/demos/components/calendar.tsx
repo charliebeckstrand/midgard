@@ -3,7 +3,7 @@ import { Calendar } from '../../../components/calendar'
 import { Example } from '../../engine'
 
 export function Demo() {
-	const [date, setDate] = useState<Date | undefined>(undefined)
+	const [date, setDate] = useState<Date | null>(null)
 
 	// Freeze the ±30-day window at mount so it doesn't recompute on every render
 	// (including on each selection) — mirrors the demos' `useNow` freeze pattern.

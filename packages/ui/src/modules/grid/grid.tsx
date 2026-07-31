@@ -52,7 +52,7 @@ export type GridProps<T> = GridDataProps<T>
  * mode at once — each editor inferred from the value's primitive type, or a
  * column's {@link GridColumn.editCell} slot. Edits stage live; removing the row
  * from the set saves its changed cells as one batch through
- * {@link GridEditableConfig.onValueChange} (Escape reverts a cell).
+ * {@link GridEditableConfig.onCommit} (Escape reverts a cell).
  *
  * Renders a loading skeleton (`aria-busy` with a polite status), an `empty` slot
  * when there are no rows, a sticky header, an optional `footer` summary bar (row

@@ -10,7 +10,7 @@ import { PanelProviders } from '../../primitives/panel'
 import { useResolvedSurface } from '../../providers/glass/context'
 import { k, type SheetPanelVariants } from '../../recipes/kata/sheet'
 
-/** Props for {@link Sheet}: open-state control, portal `container`, focus, modality, and panel `side`/`size` variants. */
+/** Props for {@link Sheet}: open-state control, portal `container`, focus, modality, and panel `side`/`width` variants. */
 export type SheetProps = Omit<SheetPanelVariants, 'surface'> & {
 	/** Controlled open state. Pair with `onOpenChange`. */
 	open?: boolean
@@ -82,7 +82,7 @@ export function Sheet({
 	defaultOpen,
 	onOpenChange,
 	side = 'right',
-	size,
+	width,
 	glass,
 	className,
 	children,
@@ -120,7 +120,7 @@ export function Sheet({
 				data-slot="sheet"
 				onClick={(event) => event.stopPropagation()}
 				className={cn(
-					k.panel({ side, size, surface: resolvedSurface }),
+					k.panel({ side, width, surface: resolvedSurface }),
 					// Non-modal overlays disable pointer events on the full-viewport
 					// wrapper so the page stays interactive; the panel re-enables its own.
 					modal === false && 'pointer-events-auto',

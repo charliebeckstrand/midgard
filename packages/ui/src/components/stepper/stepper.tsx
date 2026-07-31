@@ -3,6 +3,7 @@
 import { Children, isValidElement, type ReactNode, useId, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { useA11yRoving, useMinWidth } from '../../hooks'
+import { useControllable } from '../../hooks/use-controllable'
 import { ActiveIndicatorScope } from '../../primitives/active-indicator'
 import { k } from '../../recipes/kata/stepper'
 import { Stack } from '../stack'
@@ -11,7 +12,13 @@ import { StepperPanels } from './stepper-panels'
 
 /** Props for {@link Stepper}: the controlled `value`, its `onValueChange` handler, `linear`/`orientation` modifiers, and step children. */
 export type StepperProps = {
-	value: number
+	/** Controlled current step index. Pair with `onValueChange`. */
+	value?: number
+	/**
+	 * Initial step index when uncontrolled.
+	 * @defaultValue 0
+	 */
+	defaultValue?: number
 	onValueChange?: (value: number) => void
 	/**
 	 * Restricts navigation to completed and current steps.
@@ -60,12 +67,24 @@ function partitionStepperChildren(children: ReactNode): {
  */
 export function Stepper({
 	value,
+	defaultValue,
 	onValueChange,
 	linear = false,
 	orientation,
 	className,
 	children,
 }: StepperProps) {
+	const [current = 0, setCurrent] = useControllable<number>({
+		value,
+		defaultValue: defaultValue ?? 0,
+		onValueChange: (next) => onValueChange?.(next ?? 0),
+	})
+
+	// Steps become interactive when the flow can actually advance: an
+	// uncontrolled stepper owns its own index, while a controlled one needs a
+	// handler. A `value`-only stepper stays a display-only progress readout.
+	const interactive = onValueChange !== undefined || defaultValue !== undefined
+
 	const isDesktop = useMinWidth(640)
 
 	// Defaults to vertical on mobile (horizontal overflows narrow viewports).
@@ -88,7 +107,7 @@ export function Stepper({
 		// resting on the current step. Gated to interactive steppers (matching the
 		// keydown below): a display-only stepper renders no step buttons, so the
 		// tab-stop effect — a focusin listener and MutationObserver — would only spin.
-		manageTabIndex: onValueChange !== undefined,
+		manageTabIndex: interactive,
 		activeSelector: '[aria-current="step"]',
 	})
 
@@ -96,14 +115,14 @@ export function Stepper({
 
 	const contextValue = useMemo(
 		() => ({
-			value,
-			onValueChange,
+			value: current,
+			onValueChange: interactive ? setCurrent : undefined,
 			orientation: resolvedOrientation,
 			linear,
 			baseId,
 			hasPanels,
 		}),
-		[value, onValueChange, resolvedOrientation, linear, baseId, hasPanels],
+		[current, interactive, setCurrent, resolvedOrientation, linear, baseId, hasPanels],
 	)
 
 	const row = (
@@ -114,7 +133,7 @@ export function Stepper({
 			role="toolbar"
 			aria-label="Steps"
 			aria-orientation={resolvedOrientation}
-			onKeyDown={onValueChange !== undefined ? handleKeyDown : undefined}
+			onKeyDown={interactive ? handleKeyDown : undefined}
 			className={cn(k.root({ orientation: resolvedOrientation }), className)}
 		>
 			{rowChildren}

@@ -4,7 +4,7 @@ import { NumberInput } from '../../../components/number-input'
 import { Example } from '../../engine'
 
 function ControlledExample() {
-	const [value, setValue] = useState<number | undefined>(3)
+	const [value, setValue] = useState<number | null>(3)
 
 	return (
 		<Example title="Controlled">

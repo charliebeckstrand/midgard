@@ -34,7 +34,7 @@ type FileUploadSharedProps = {
 	className?: string
 	children?: ReactNode
 	/** Fires with the accepted files (after `maxSize`/`maxCount` filtering). */
-	onFiles?: (files: File[]) => void
+	onAccept?: (files: File[]) => void
 	/** Fires with files excluded by `maxSize`/`maxCount`, each tagged with its reason. */
 	onReject?: (rejected: FileRejection[]) => void
 }
@@ -119,14 +119,14 @@ type FileUploadRenderState = ReturnType<typeof useFileUploadHandlers> & {
  * @see {@link useFileUploadHandlers}
  */
 export function FileUpload(props: FileUploadProps) {
-	const { multiple, disabled, maxSize, maxCount, onFiles, onReject } = props
+	const { multiple, disabled, maxSize, maxCount, onAccept, onReject } = props
 
 	// Mirrors Control/Field invalid + required + error-message wiring onto the
 	// hidden `<input type="file">`, the real control in every variant. The
 	// input variant's visible `<Input>` self-resolves the same context.
 	const control = useControl()
 
-	const handlers = useFileUploadHandlers({ disabled, maxSize, maxCount, onFiles, onReject })
+	const handlers = useFileUploadHandlers({ disabled, maxSize, maxCount, onAccept, onReject })
 
 	const state: FileUploadRenderState = {
 		...handlers,

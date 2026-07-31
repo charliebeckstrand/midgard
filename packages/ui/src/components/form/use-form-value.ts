@@ -9,7 +9,8 @@ type FormValueOptions<T> = {
 	value?: T | null
 	/** Initial value when uncontrolled and not form-bound. */
 	defaultValue?: T | (() => T)
-	onValueChange?: (value: T | undefined) => void
+	/** Fires with the committed value, or `null` once it is cleared (CONVENTIONS §7.3). */
+	onValueChange?: (value: T | null) => void
 }
 
 /** Resolved value binding: the current `value`, a `setValue` accepting a value or updater, a `setTouched` for blur, and an `invalid` flag from any bound field's errors. */
@@ -56,7 +57,10 @@ export function useFormValue<T>(
 		defaultValue,
 		onValueChange: bound
 			? (v) => {
-					field.setValue(v)
+					// The store's "no value" is `undefined`; §7.3's `null` is a
+					// prop/callback contract, and writing it through would change
+					// submit payloads and reject `optional()` schema validators.
+					field.setValue(v ?? undefined)
 					onValueChange?.(v)
 				}
 			: onValueChange,

@@ -11,8 +11,8 @@ import { Menu, MenuContent } from '../../components/menu'
 import { act, bySlot, fireEvent, noop, renderUI, screen } from '../helpers'
 
 const defaults: ContextMenuItem[] = [
-	{ key: 'a', label: 'Alpha', onSelect: noop },
-	{ key: 'b', label: 'Bravo', onSelect: noop },
+	{ key: 'a', label: 'Alpha', onAction: noop },
+	{ key: 'b', label: 'Bravo', onAction: noop },
 ]
 
 /** The visible label of every open menu item, in DOM order. */
@@ -25,13 +25,13 @@ describe('resolveContextMenuEntries', () => {
 	})
 
 	it('drops the defaults when defaultItems is false', () => {
-		const items: ContextMenuItem[] = [{ key: 'c', label: 'Custom', onSelect: noop }]
+		const items: ContextMenuItem[] = [{ key: 'c', label: 'Custom', onAction: noop }]
 
 		expect(resolveContextMenuEntries({ items, defaultItems: false }, defaults)).toEqual(items)
 	})
 
 	it('places a separator between the defaults and custom items when both show', () => {
-		const items: ContextMenuItem[] = [{ key: 'c', label: 'Custom', onSelect: noop }]
+		const items: ContextMenuItem[] = [{ key: 'c', label: 'Custom', onAction: noop }]
 
 		const entries = resolveContextMenuEntries({ items }, defaults)
 
@@ -45,7 +45,7 @@ describe('resolveContextMenuEntries', () => {
 	})
 
 	it('orders the custom items before the defaults when position is "before"', () => {
-		const items: ContextMenuItem[] = [{ key: 'c', label: 'Custom', onSelect: noop }]
+		const items: ContextMenuItem[] = [{ key: 'c', label: 'Custom', onAction: noop }]
 
 		const entries = resolveContextMenuEntries({ items, position: 'before' }, defaults)
 
@@ -65,8 +65,8 @@ describe('resolveContextMenuEntries', () => {
 
 describe('mergeContextMenuItems', () => {
 	it('joins non-empty groups with a separator between each', () => {
-		const alpha: ContextMenuItem = { key: 'a', label: 'Alpha', onSelect: noop }
-		const bravo: ContextMenuItem = { key: 'b', label: 'Bravo', onSelect: noop }
+		const alpha: ContextMenuItem = { key: 'a', label: 'Alpha', onAction: noop }
+		const bravo: ContextMenuItem = { key: 'b', label: 'Bravo', onAction: noop }
 
 		const merged = mergeContextMenuItems([[alpha], [], [bravo]])
 
@@ -93,25 +93,25 @@ describe('ContextMenu', () => {
 		expect(screen.getByRole('menuitem', { name: 'Bravo' })).toBeInTheDocument()
 	})
 
-	it('runs an item onSelect and closes the menu', () => {
-		const onSelect = vi.fn()
+	it('runs an item onAction and closes the menu', () => {
+		const onAction = vi.fn()
 
 		renderUI(
-			<ContextMenu defaults={[{ key: 'a', label: 'Alpha', onSelect }]}>{surface}</ContextMenu>,
+			<ContextMenu defaults={[{ key: 'a', label: 'Alpha', onAction }]}>{surface}</ContextMenu>,
 		)
 
 		fireEvent.contextMenu(screen.getByTestId('surface'))
 
 		fireEvent.click(screen.getByRole('menuitem', { name: 'Alpha' }))
 
-		expect(onSelect).toHaveBeenCalledOnce()
+		expect(onAction).toHaveBeenCalledOnce()
 
 		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
 	})
 
 	it('merges custom items after the defaults with a separator between', () => {
 		renderUI(
-			<ContextMenu defaults={defaults} items={[{ key: 'c', label: 'Custom', onSelect: noop }]}>
+			<ContextMenu defaults={defaults} items={[{ key: 'c', label: 'Custom', onAction: noop }]}>
 				{surface}
 			</ContextMenu>,
 		)
@@ -127,7 +127,7 @@ describe('ContextMenu', () => {
 		renderUI(
 			<ContextMenu
 				defaults={defaults}
-				items={[{ key: 'c', label: 'Custom', onSelect: noop }]}
+				items={[{ key: 'c', label: 'Custom', onAction: noop }]}
 				defaultItems={false}
 			>
 				{surface}
@@ -178,13 +178,13 @@ describe('ContextMenuList submenus', () => {
 		fireEvent.contextMenu(screen.getByTestId('surface'))
 	}
 
-	const pinEntries = (onSelect = noop): ContextMenuEntry[] => [
+	const pinEntries = (onAction = noop): ContextMenuEntry[] => [
 		{
 			key: 'pin',
 			label: 'Pin',
 			items: [
-				{ key: 'pin-left', label: 'Pin left', onSelect },
-				{ key: 'pin-right', label: 'Pin right', onSelect: noop },
+				{ key: 'pin-left', label: 'Pin left', onAction },
+				{ key: 'pin-right', label: 'Pin right', onAction: noop },
 			],
 		},
 	]
@@ -205,7 +205,7 @@ describe('ContextMenuList submenus', () => {
 	})
 
 	it('carries the roving cursor with the pointer, one row lit at a time', () => {
-		open([...pinEntries(), { key: 'copy', label: 'Copy', onSelect: noop }])
+		open([...pinEntries(), { key: 'copy', label: 'Copy', onAction: noop }])
 
 		const copy = screen.getByRole('menuitem', { name: 'Copy' })
 
@@ -228,7 +228,7 @@ describe('ContextMenuList submenus', () => {
 		open([
 			...pinEntries(),
 			{ key: 'sort', label: 'Sort', items: [{ key: 'asc', label: 'Ascending' }] },
-			{ key: 'copy', label: 'Copy', onSelect: noop },
+			{ key: 'copy', label: 'Copy', onAction: noop },
 		])
 
 		settle(screen.getByRole('menuitem', { name: 'Pin' }))
@@ -273,7 +273,7 @@ describe('ContextMenuList submenus', () => {
 	})
 
 	it('closes when the roving cursor moves off the parent row', () => {
-		open([...pinEntries(), { key: 'copy', label: 'Copy', onSelect: noop }])
+		open([...pinEntries(), { key: 'copy', label: 'Copy', onAction: noop }])
 
 		// Hover-opened, so the cursor is still on the parent row rather than inside
 		// the panel.
@@ -290,15 +290,15 @@ describe('ContextMenuList submenus', () => {
 	})
 
 	it('runs a submenu row and closes the whole menu', () => {
-		const onSelect = vi.fn()
+		const onAction = vi.fn()
 
-		open(pinEntries(onSelect))
+		open(pinEntries(onAction))
 
 		fireEvent.click(screen.getByRole('menuitem', { name: 'Pin' }))
 
 		fireEvent.click(screen.getByRole('menuitem', { name: 'Pin left' }))
 
-		expect(onSelect).toHaveBeenCalledOnce()
+		expect(onAction).toHaveBeenCalledOnce()
 
 		// Selecting inside a submenu dismisses the menu it hangs off, not just itself.
 		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
@@ -306,8 +306,8 @@ describe('ContextMenuList submenus', () => {
 
 	it('holds Tab inside the menu, cycling its rows', () => {
 		open([
-			{ key: 'copy', label: 'Copy', onSelect: noop },
-			{ key: 'paste', label: 'Paste', onSelect: noop },
+			{ key: 'copy', label: 'Copy', onAction: noop },
+			{ key: 'paste', label: 'Paste', onAction: noop },
 		])
 
 		const menu = screen.getByRole('menu')
@@ -350,7 +350,7 @@ describe('ContextMenuList submenus', () => {
 	})
 
 	it('keeps arrow roving inside the submenu, off the parent menu', () => {
-		open([...pinEntries(), { key: 'copy', label: 'Copy', onSelect: noop }])
+		open([...pinEntries(), { key: 'copy', label: 'Copy', onAction: noop }])
 
 		fireEvent.keyDown(screen.getByRole('menuitem', { name: 'Pin' }), { key: 'Enter' })
 
@@ -362,7 +362,7 @@ describe('ContextMenuList submenus', () => {
 	})
 
 	it('hands the arrows to a hover-opened submenu, and Escape hands them back', () => {
-		open([...pinEntries(), { key: 'copy', label: 'Copy', onSelect: noop }])
+		open([...pinEntries(), { key: 'copy', label: 'Copy', onAction: noop }])
 
 		const trigger = screen.getByRole('menuitem', { name: 'Pin' })
 

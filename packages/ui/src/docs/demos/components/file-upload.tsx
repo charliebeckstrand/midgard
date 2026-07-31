@@ -64,7 +64,7 @@ function ButtonSingleExample() {
 	return (
 		<Sizer>
 			<Stack gap="md">
-				<FileUpload variant="button" onFiles={setFiles} />
+				<FileUpload variant="button" onAccept={setFiles} />
 				{files.length > 0 && <Text severity="muted">{formatFileNames(files)}</Text>}
 			</Stack>
 		</Sizer>
@@ -79,7 +79,7 @@ function ButtonMultipleExample() {
 	return (
 		<Sizer>
 			<Stack gap="md">
-				<FileUpload variant="button" multiple onFiles={setFiles} />
+				<FileUpload variant="button" multiple onAccept={setFiles} />
 				{files.length > 0 && (
 					<Tooltip enabled={manyFiles}>
 						<TooltipTrigger>
@@ -101,7 +101,7 @@ function ButtonAcceptExample() {
 	return (
 		<Sizer>
 			<Stack gap="md">
-				<FileUpload variant="button" accept="image/*" onFiles={setFiles} />
+				<FileUpload variant="button" accept="image/*" onAccept={setFiles} />
 				{files.length > 0 && <Text severity="muted">{formatFileNames(files)}</Text>}
 			</Stack>
 		</Sizer>

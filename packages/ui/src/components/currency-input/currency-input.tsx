@@ -16,7 +16,7 @@ export type CurrencyInputProps = Omit<
 > & {
 	value?: number | null
 	defaultValue?: number
-	onValueChange?: (value: number | undefined) => void
+	onValueChange?: (value: number | null) => void
 	/** ISO 4217 currency code. Falls back to `<LocaleProvider currency>`, then `USD`. */
 	currency?: string
 	/** BCP 47 locale tag. Falls back to `<LocaleProvider locale>`, then the runtime default. */

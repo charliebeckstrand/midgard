@@ -109,10 +109,12 @@ type ComboboxBaseProps<T> = {
 }
 
 type ComboboxSingleProps<T> = {
-	multiple?: false
-	value?: T
+	/** Controlled value. `undefined` leaves the combobox uncontrolled; `null` keeps it controlled with no selection (CONVENTIONS §7.3). */
+	value?: T | null
 	defaultValue?: T
-	onValueChange?: (value: T | undefined) => void
+	/** Fires with the new selection, or `null` when it is cleared. */
+	onValueChange?: (value: T | null) => void
+	multiple?: false
 }
 
 type ComboboxMultipleProps<T> = {
@@ -222,7 +224,9 @@ export function Combobox<T>({
 	disabled,
 	readOnly,
 	required,
-	nullable = valueProp === undefined && defaultValue === undefined,
+	// Derived per render: while no value is held on either channel, clicking the
+	// selected option clears it.
+	nullable = valueProp == null && defaultValue == null,
 	closeOnSelect,
 	clearOnEmpty = false,
 	clearable = false,
@@ -253,7 +257,7 @@ export function Combobox<T>({
 	const resolvedRequired = required ?? control?.required
 
 	const handleValueChange = useSelectableValueChange<T>(
-		onValueChange as ((value: T | T[] | undefined) => void) | undefined,
+		onValueChange as ((value: T | T[] | null) => void) | undefined,
 		multiple,
 	)
 

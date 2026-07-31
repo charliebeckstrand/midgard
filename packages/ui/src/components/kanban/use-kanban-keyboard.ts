@@ -174,18 +174,18 @@ function handleCardLiftedNav(cardId: string, event: KeyboardEvent, deps: KanbanK
  * board (APG grabbed-element pattern). Space lifts/drops a card with live-region
  * announcements; while lifted, arrows move it within and across columns; while
  * not lifted, arrows/Home/End move focus between cards. Emits the next columns
- * through `onValueChange`. Returns the lifted-card state and the card
+ * through `onReorder`. Returns the lifted-card state and the card
  * `keydown`/`blur` handlers.
  */
 export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 	columns,
 	getKey,
-	onValueChange,
+	onReorder,
 	containerRef,
 }: {
 	columns: C[]
 	getKey: (item: T) => string
-	onValueChange?: (next: C[]) => void
+	onReorder?: (next: C[]) => void
 	/** Board root; scopes card lookups so concurrent boards (and the drag overlay clone) don't cross-match. */
 	containerRef: RefObject<HTMLElement | null>
 }) {
@@ -253,7 +253,7 @@ export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 
 	const moveWithinColumn = useCallback(
 		(cardId: string, direction: -1 | 1) => {
-			if (!onValueChange) return
+			if (!onReorder) return
 
 			const col = findColumnByCardId(cardId)
 
@@ -267,7 +267,7 @@ export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 
 			const nextItems = arrayMove(col.items, idx, newIdx)
 
-			onValueChange(columns.map((c) => (c.id === col.id ? { ...c, items: nextItems } : c)) as C[])
+			onReorder(columns.map((c) => (c.id === col.id ? { ...c, items: nextItems } : c)) as C[])
 
 			announce(
 				`${cardName(containerRef.current, cardId)} moved to position ${newIdx + 1} of ${col.items.length} in ${columnName(containerRef.current, col.id)}.`,
@@ -276,12 +276,12 @@ export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 
 			refocusCard(cardId)
 		},
-		[columns, getKey, onValueChange, findColumnByCardId, refocusCard, containerRef],
+		[columns, getKey, onReorder, findColumnByCardId, refocusCard, containerRef],
 	)
 
 	const moveToColumn = useCallback(
 		(cardId: string, direction: -1 | 1) => {
-			if (!onValueChange) return
+			if (!onReorder) return
 
 			const col = findColumnByCardId(cardId)
 
@@ -313,7 +313,7 @@ export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 				return c
 			}) as C[]
 
-			onValueChange(next)
+			onReorder(next)
 
 			// The move appends the card to the end of the target column.
 			const position = targetCol.items.length + 1
@@ -325,7 +325,7 @@ export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 
 			refocusCard(cardId)
 		},
-		[columns, getKey, onValueChange, findColumnByCardId, refocusCard, containerRef],
+		[columns, getKey, onReorder, findColumnByCardId, refocusCard, containerRef],
 	)
 
 	const onCardKeyDown = useCallback(

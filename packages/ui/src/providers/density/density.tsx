@@ -2,7 +2,8 @@ import type { ReactNode } from 'react'
 import { Density as DensityPrimitive, useDensityNullable } from '../../primitives/density'
 import { type DensityLevel, densityToSize, sizeToDensityLevel } from './context'
 
-type DensityProviderProps = {
+/** Props for {@link DensityProvider}: the friendly `density` level to broadcast, and `children`. */
+export type DensityProviderProps = {
 	density: DensityLevel
 	children: ReactNode
 }

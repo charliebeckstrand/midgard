@@ -179,6 +179,23 @@ describe('Popover open/close control', () => {
 
 		expect(popoverContent()).toBeNull()
 	})
+
+	it('opens uncontrolled from defaultOpen, with the trigger reflecting it', () => {
+		renderUI(
+			<Popover defaultOpen>
+				<PopoverTrigger>
+					<button type="button">Open</button>
+				</PopoverTrigger>
+				<PopoverContent>panel</PopoverContent>
+			</Popover>,
+		)
+
+		// Uncontrolled: the panel starts open with no `open` prop, and the
+		// disclosure's state reaches the trigger's aria-expanded.
+		expect(popoverContent()).not.toBeNull()
+
+		expect(document.querySelector('button')).toHaveAttribute('aria-expanded', 'true')
+	})
 })
 
 describe('Popover non-modal semantics', () => {

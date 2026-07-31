@@ -6,7 +6,7 @@
  * transition.
  */
 import { defineRecipe, mode } from '../../core/recipe'
-import { hannou, iro, ji, kasane, narabi, sen, ugoki } from '../kiso'
+import { hannou, iro, ji, kasane, narabi, type Step, sen, ugoki } from '../kiso'
 
 const { cursor, fg } = hannou
 const { text } = iro
@@ -16,7 +16,7 @@ const { flex } = narabi
 const { focus } = sen
 const { css, collapse } = ugoki
 
-export type TreeSize = 'sm' | 'md' | 'lg'
+export type TreeSize = Step
 
 const itemContent = defineRecipe(
 	{

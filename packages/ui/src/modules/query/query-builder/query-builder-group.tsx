@@ -126,7 +126,7 @@ function QueryBuilderGroupImpl({ group, root, className }: QueryBuilderGroupProp
 									aria-label="Remove group"
 									disabled={disabled}
 									className={k.remove}
-									onComplete={() => remove(group.id)}
+									onHoldComplete={() => remove(group.id)}
 								>
 									Remove group
 								</HoldButton>

@@ -47,31 +47,31 @@ describe('useHoldButtonGesture', () => {
 		expect(onHoldStart).toHaveBeenCalledTimes(1)
 	})
 
-	it('fires onComplete after the configured duration', () => {
-		const onComplete = vi.fn()
+	it('fires onHoldComplete after the configured duration', () => {
+		const onHoldComplete = vi.fn()
 
-		const { result } = renderGesture({ duration: 500, disabled: false, onComplete })
+		const { result } = renderGesture({ duration: 500, disabled: false, onHoldComplete })
 
 		act(() => result.current.start())
 
-		expect(onComplete).not.toHaveBeenCalled()
+		expect(onHoldComplete).not.toHaveBeenCalled()
 
 		act(() => {
 			vi.advanceTimersByTime(500)
 		})
 
-		expect(onComplete).toHaveBeenCalledTimes(1)
+		expect(onHoldComplete).toHaveBeenCalledTimes(1)
 	})
 
-	it('does not fire onComplete when cancel runs before duration elapses', () => {
-		const onComplete = vi.fn()
+	it('does not fire onHoldComplete when cancel runs before duration elapses', () => {
+		const onHoldComplete = vi.fn()
 
 		const onHoldCancel = vi.fn()
 
 		const { result } = renderGesture({
 			duration: 500,
 			disabled: false,
-			onComplete,
+			onHoldComplete,
 			onHoldCancel,
 		})
 
@@ -87,7 +87,7 @@ describe('useHoldButtonGesture', () => {
 			vi.advanceTimersByTime(1000)
 		})
 
-		expect(onComplete).not.toHaveBeenCalled()
+		expect(onHoldComplete).not.toHaveBeenCalled()
 
 		expect(onHoldCancel).toHaveBeenCalledTimes(1)
 	})
@@ -95,13 +95,13 @@ describe('useHoldButtonGesture', () => {
 	it('ignores start when disabled is true', () => {
 		const onHoldStart = vi.fn()
 
-		const onComplete = vi.fn()
+		const onHoldComplete = vi.fn()
 
 		const { result } = renderGesture({
 			duration: 500,
 			disabled: true,
 			onHoldStart,
-			onComplete,
+			onHoldComplete,
 		})
 
 		act(() => result.current.start())
@@ -112,7 +112,7 @@ describe('useHoldButtonGesture', () => {
 
 		expect(onHoldStart).not.toHaveBeenCalled()
 
-		expect(onComplete).not.toHaveBeenCalled()
+		expect(onHoldComplete).not.toHaveBeenCalled()
 	})
 
 	it('ignores a second start while a hold is already in progress', () => {
@@ -140,19 +140,19 @@ describe('useHoldButtonGesture', () => {
 	it('auto-cancels a pending hold when disabled flips to true', () => {
 		const onHoldCancel = vi.fn()
 
-		const onComplete = vi.fn()
+		const onHoldComplete = vi.fn()
 
 		const { result, rerender } = renderGesture({
 			duration: 500,
 			disabled: false,
 			onHoldCancel,
-			onComplete,
+			onHoldComplete,
 		})
 
 		act(() => result.current.start())
 
 		act(() => {
-			rerender({ duration: 500, disabled: true, onHoldCancel, onComplete })
+			rerender({ duration: 500, disabled: true, onHoldCancel, onHoldComplete })
 		})
 
 		expect(onHoldCancel).toHaveBeenCalledTimes(1)
@@ -161,16 +161,16 @@ describe('useHoldButtonGesture', () => {
 			vi.advanceTimersByTime(500)
 		})
 
-		expect(onComplete).not.toHaveBeenCalled()
+		expect(onHoldComplete).not.toHaveBeenCalled()
 	})
 
-	it('clears the pending timer on unmount so onComplete never fires', () => {
-		const onComplete = vi.fn()
+	it('clears the pending timer on unmount so onHoldComplete never fires', () => {
+		const onHoldComplete = vi.fn()
 
 		const { result, unmount } = renderGesture({
 			duration: 500,
 			disabled: false,
-			onComplete,
+			onHoldComplete,
 		})
 
 		act(() => result.current.start())
@@ -181,7 +181,7 @@ describe('useHoldButtonGesture', () => {
 			vi.advanceTimersByTime(500)
 		})
 
-		expect(onComplete).not.toHaveBeenCalled()
+		expect(onHoldComplete).not.toHaveBeenCalled()
 	})
 
 	it('writes a scaleX(1) transition onto the fill ref when starting', () => {
@@ -209,13 +209,13 @@ describe('useHoldButtonGesture', () => {
 	it('allows a new hold to start after the previous one completed', () => {
 		const onHoldStart = vi.fn()
 
-		const onComplete = vi.fn()
+		const onHoldComplete = vi.fn()
 
 		const { result } = renderGesture({
 			duration: 500,
 			disabled: false,
 			onHoldStart,
-			onComplete,
+			onHoldComplete,
 		})
 
 		act(() => result.current.start())
@@ -228,6 +228,6 @@ describe('useHoldButtonGesture', () => {
 
 		expect(onHoldStart).toHaveBeenCalledTimes(2)
 
-		expect(onComplete).toHaveBeenCalledTimes(1)
+		expect(onHoldComplete).toHaveBeenCalledTimes(1)
 	})
 })

@@ -9,9 +9,9 @@ import { TabsContext, type TabsOrientation, type TabsSize, type TabsVariant } fr
 
 /** Props for {@link Tabs}: selection state plus the `variant`/`orientation`/`size` context broadcast to its list and panels. */
 export type TabsProps = ComponentPropsWithoutRef<'div'> & {
-	value?: string
+	value?: string | null
 	defaultValue?: string
-	onValueChange?: (value: string | undefined) => void
+	onValueChange?: (value: string | null) => void
 	/** @defaultValue 'tab' */
 	variant?: TabsVariant
 	/**

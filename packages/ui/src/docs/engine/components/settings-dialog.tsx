@@ -55,7 +55,7 @@ export function SettingsDialog({
 			<Button variant="bare" aria-label="Settings" onClick={() => setOpen(true)}>
 				<Icon icon={<Settings2 />} />
 			</Button>
-			<Dialog open={open} size="sm" onOpenChange={setOpen}>
+			<Dialog open={open} width="sm" onOpenChange={setOpen}>
 				<DialogHeader>
 					<DialogTitle>Settings</DialogTitle>
 				</DialogHeader>

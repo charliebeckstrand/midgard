@@ -3,7 +3,7 @@ import type { ReactNode } from 'react'
 /**
  * A single committed cell write: the new `value` for `columnId` on the row keyed
  * by `rowKey`. A saved row emits one per changed cell, batched into a single
- * {@link GridEditableConfig.onValueChange} call.
+ * {@link GridEditableConfig.onCommit} call.
  */
 export type CellChange = {
 	rowKey: string | number
@@ -57,7 +57,7 @@ export type GridEditCell<T> = (context: GridEditCellContext<T>) => ReactNode
  * mode and sinks their committed cell values. Setting it bakes per-row editing
  * into the grid — a row in the set puts all of its editable cells into edit mode
  * at once. Edits stage live; removing the row from the set saves its changed
- * cells as one batch through `onValueChange` (Escape reverts a cell).
+ * cells as one batch through `onCommit` (Escape reverts a cell).
  *
  * @remarks The editable-row set is a controllable `Set<key>`, mirroring
  * {@link GridSelection}: flip a row in (e.g. from a row-action pencil) to put it
@@ -93,5 +93,5 @@ export type GridEditableConfig = {
 	 * Unchanged and `validate`-failing cells are dropped. Apply each change to your
 	 * own row data and feed it back as `rows`.
 	 */
-	onValueChange: (changes: CellChange[]) => void
+	onCommit: (changes: CellChange[]) => void
 }

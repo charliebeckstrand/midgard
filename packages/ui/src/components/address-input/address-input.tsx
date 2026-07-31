@@ -15,9 +15,9 @@ import { useAddressInputSuggestions } from './use-address-input-suggestions'
 /** Props for {@link AddressInput}; selection is an {@link AddressSuggestion}, controlled via `value` or uncontrolled via `defaultValue`. */
 export type AddressInputProps = {
 	id?: string
-	value?: AddressSuggestion
+	value?: AddressSuggestion | null
 	defaultValue?: AddressSuggestion
-	onValueChange?: (value: AddressSuggestion | undefined) => void
+	onValueChange?: (value: AddressSuggestion | null) => void
 	/**
 	 * Geocoding strategy resolving the query to suggestions.
 	 * @defaultValue {@link photonProvider}

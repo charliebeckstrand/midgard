@@ -11,7 +11,7 @@ import { RESET_DURATION } from './hold-button-constants'
 export type HoldGestureOptions = {
 	duration: number
 	disabled: boolean | undefined
-	onComplete?: () => void
+	onHoldComplete?: () => void
 	onHoldStart?: () => void
 	onHoldCancel?: () => void
 }
@@ -35,7 +35,7 @@ export type HoldGestureOptions = {
 export function useHoldButtonGesture({
 	duration,
 	disabled,
-	onComplete,
+	onHoldComplete,
 	onHoldStart,
 	onHoldCancel,
 }: HoldGestureOptions) {
@@ -116,7 +116,7 @@ export function useHoldButtonGesture({
 
 			setFill(0, resetDuration)
 
-			onComplete?.()
+			onHoldComplete?.()
 		}, duration)
 
 		onHoldStart?.()

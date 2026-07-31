@@ -7,7 +7,7 @@ import { k } from '../../recipes/kata/select'
 import { AffixContext, affixStepDown } from '../affix'
 import { ControlFrame } from '../control'
 
-type SelectTriggerProps = {
+export type SelectTriggerProps = {
 	open: boolean
 	setReference: Ref<HTMLDivElement>
 	getReferenceProps: () => Record<string, unknown>

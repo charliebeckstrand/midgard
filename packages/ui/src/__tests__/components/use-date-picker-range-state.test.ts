@@ -163,7 +163,7 @@ describe('useDatePickerRangeState', () => {
 	})
 
 	describe('clear', () => {
-		it('commits an undefined value immediately and closes', () => {
+		it('commits a null value immediately and closes', () => {
 			const onChange = vi.fn()
 
 			const { result } = renderHook(() =>
@@ -180,7 +180,7 @@ describe('useDatePickerRangeState', () => {
 
 			expect(result.current.open).toBe(false)
 
-			expect(onChange).toHaveBeenCalledWith(undefined)
+			expect(onChange).toHaveBeenCalledWith(null)
 		})
 	})
 
@@ -342,7 +342,7 @@ describe('useDatePickerRangeState', () => {
 
 			expect(result.current.open).toBe(false)
 
-			expect(onChange).toHaveBeenCalledWith(undefined)
+			expect(onChange).toHaveBeenCalledWith(null)
 		})
 
 		it('is a no-op when footer keydown fires with no calendar handle mounted', () => {

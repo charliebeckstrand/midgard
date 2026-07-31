@@ -14,6 +14,7 @@ The single integration point an app mounts once at its root.
 | Export | Summary |
 |---|---|
 | `UIProvider` | App-root integration point registering the framework link component and default portal container. |
+| `UIProviderProps` *(type)* | Props for `UIProvider`. |
 | `useLink` | Reads the app-registered framework link component from `<UIProvider>`. |
 | `usePortalContainer` | Resolves a portal's container: explicit per-call value, then ambient `<UIProvider>` value, then `null`. |
 | `PortalContainer` *(type)* | DOM node to teleport portalled UI into, or `null` to defer to each portal's own fallback. |
@@ -25,6 +26,7 @@ Broadcasts ambient density to size-aware client components.
 | Export | Summary |
 |---|---|
 | `DensityProvider` | Friendly t-shirt-named (`compact` / `snug` / `loose`) wrapper that broadcasts ambient density to size-aware client components. |
+| `DensityProviderProps` *(type)* | Props for `DensityProvider`. |
 | `useDensityLevel` | Resolves `explicit ?? ambient ?? 'snug'` for a client component whose props speak `DensityLevel` (e.g. `Grid`) but that should still inherit an enclosing `DensityProvider`. |
 | `DensityLevel` *(type)* | Friendly density level a `<DensityProvider>` broadcasts; `'snug'` is the baseline. |
 | `densityLevels` | Selectable density levels with display labels, ordered loose → compact, for density pickers. |
@@ -61,6 +63,8 @@ Broadcasts i18n defaults; explicit component props still win.
 | Export | Summary |
 |---|---|
 | `LocaleProvider` | Broadcasts i18n defaults (locale, currency, number/date formatting, time zone); explicit component props still win. |
+| `LocaleProviderProps` *(type)* | Props for `LocaleProvider`. |
+| `LocaleConfig` *(type)* | Ambient i18n defaults a `<LocaleProvider>` broadcasts: `locale`, `currency`, `numberFormat`, `dateFormat`, `timeZone`. |
 | `useLocale` | Reads the ambient `LocaleConfig` from the nearest `<LocaleProvider>`; returns `{}` outside one. |
 | `useFormat` | Resolves a `FormatSpec` to a memoized `(value) => string` formatter, folding in the ambient locale / currency / number-format defaults. |
 | `FormatSpec` *(type)* | What `useFormat` formats a value as: a numeric `Intl` format (`number`/`integer`/`currency`/`percent`/`compact`) or a prefixed `id` (`INV-42`). |
@@ -72,7 +76,11 @@ App-root toast state; pairs with the `Toast` component which portals the queue.
 | Export | Summary |
 |---|---|
 | `ToastProvider` | App-root toast state: manages queue, timers, and pause/resume; exposes `useToast()` to descendants. |
+| `ToastProviderProps` *(type)* | Props for `ToastProvider`. |
 | `useToast` | Caller-facing toast API (`toast(data)` enqueues and returns id, `dismiss({ id })` removes); throws outside a provider. |
+| `ToastInput` *(type)* | A toast to enqueue via `useToast().toast(...)`: `title` plus optional `description` / `severity` / `actions` / `duration` / `id` / `closable` / `persist`. |
+| `ToastSeverity` *(type)* | Severity of a toast, mapped to the underlying `Alert` tone. |
+| `ToastPosition` *(type)* | Viewport corner the toast stack anchors to. |
 
 ---
 

@@ -86,7 +86,7 @@ export function useAccordionSelection(props: SingleProps | MultipleProps): Accor
 	onValueChangeRef.current = props.onValueChange
 
 	const onControllableChange = useCallback(
-		(next: string[] | undefined) => {
+		(next: string[] | null) => {
 			const resolved = next ?? []
 
 			const onValueChange = onValueChangeRef.current

@@ -130,7 +130,7 @@ export function ChartContextMenu({
 						key: 'fullscreen',
 						label: 'Fullscreen',
 						icon: <Maximize2 />,
-						onSelect: () => setOpen(true),
+						onAction: () => setOpen(true),
 					} satisfies ContextMenuItem,
 				]
 			: []),
@@ -138,13 +138,13 @@ export function ChartContextMenu({
 			key: 'download-png',
 			label: 'Download PNG',
 			icon: <ImageIcon />,
-			onSelect: () => void exportImage('image/png', 'png'),
+			onAction: () => void exportImage('image/png', 'png'),
 		},
 		{
 			key: 'download-jpg',
 			label: 'Download JPG',
 			icon: <ImageIcon />,
-			onSelect: () => void exportImage('image/jpeg', 'jpg'),
+			onAction: () => void exportImage('image/jpeg', 'jpg'),
 		},
 	]
 
@@ -162,13 +162,13 @@ export function ChartContextMenu({
 					key: 'download-csv',
 					label: 'Download CSV',
 					icon: <Download />,
-					onSelect: () => downloadText(exportCsv(readout), chartFileName(title, 'csv'), 'text/csv'),
+					onAction: () => downloadText(exportCsv(readout), chartFileName(title, 'csv'), 'text/csv'),
 				},
 				{
 					key: 'copy-data',
 					label: 'Copy data',
 					icon: <Clipboard />,
-					onSelect: () => copyText(exportCsv(readout)),
+					onAction: () => copyText(exportCsv(readout)),
 				},
 			]
 		: []

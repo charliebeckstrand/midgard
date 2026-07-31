@@ -10,7 +10,7 @@ import { PanelProviders } from '../../primitives/panel'
 import { useResolvedSurface } from '../../providers/glass/context'
 import { type DialogPanelVariants, k } from '../../recipes/kata/dialog'
 
-/** Props for {@link Dialog}: open-state control, sizing variant, placement, dismissal, and accessible naming. */
+/** Props for {@link Dialog}: open-state control, `width` variant, placement, dismissal, and accessible naming. */
 export type DialogProps = Omit<DialogPanelVariants, 'surface'> & {
 	/** Controlled open state. Pair with `onOpenChange`. */
 	open?: boolean
@@ -70,7 +70,7 @@ export function Dialog({
 	onOpenChange,
 	placement = 'center',
 	dismissOnBackdrop = true,
-	size,
+	width,
 	glass,
 	className,
 	children,
@@ -117,7 +117,7 @@ export function Dialog({
 					data-slot={slot}
 					className={cn(
 						'pointer-events-auto',
-						k.panel({ surface: resolvedSurface, size }),
+						k.panel({ surface: resolvedSurface, width }),
 						className,
 					)}
 				>

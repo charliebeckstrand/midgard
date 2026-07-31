@@ -32,11 +32,7 @@ const LARGE_COUNT = 5_000
 const ITEMS = Array.from({ length: LARGE_COUNT }, (_, i) => ({ id: i, label: `Item ${i}` }))
 
 describe('Combobox + VirtualOptions: arrow reaches an option outside the window', () => {
-	function LargeCombobox({
-		onValueChange,
-	}: {
-		onValueChange: (value: number | undefined) => void
-	}) {
+	function LargeCombobox({ onValueChange }: { onValueChange: (value: number | null) => void }) {
 		return (
 			<Combobox<number>
 				displayValue={(v) => `Item ${v}`}

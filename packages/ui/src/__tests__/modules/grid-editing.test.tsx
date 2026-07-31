@@ -7,7 +7,7 @@ import { bySlot, fireEvent, liveRegion, renderUI } from '../helpers'
  * Per-row inline editing baked into Grid: a row in the `editable` set puts all of
  * its editable cells into edit mode at once (the editor inferred from the value's
  * primitive type, or a column `editCell` slot). Edits stage live; removing the
- * row from the set saves its changed cells as one batch through `onValueChange`,
+ * row from the set saves its changed cells as one batch through `onCommit`,
  * and Escape reverts a cell.
  */
 describe('Grid per-row editing', () => {
@@ -25,7 +25,7 @@ describe('Grid per-row editing', () => {
 	]
 
 	function renderGrid(cols: GridColumn<Row>[] = columns) {
-		const onValueChange = vi.fn()
+		const onCommit = vi.fn()
 
 		function Harness() {
 			const [editing, setEditing] = useState<Set<string | number>>(new Set())
@@ -42,7 +42,7 @@ describe('Grid per-row editing', () => {
 						columns={cols}
 						rows={baseRows}
 						getKey={(row) => row.id}
-						editable={{ rows: editing, onRowsChange: setEditing, onValueChange }}
+						editable={{ rows: editing, onRowsChange: setEditing, onCommit }}
 					/>
 				</>
 			)
@@ -52,7 +52,7 @@ describe('Grid per-row editing', () => {
 
 		return {
 			...view,
-			onValueChange,
+			onCommit,
 			editRow1: () => fireEvent.click(view.getByRole('button', { name: 'edit-1' })),
 			save: () => fireEvent.click(view.getByRole('button', { name: 'save' })),
 		}
@@ -93,7 +93,7 @@ describe('Grid per-row editing', () => {
 	})
 
 	it('saves a row (removing it from the set) as one batch of its changed cells', () => {
-		const { container, editRow1, save, onValueChange } = renderGrid()
+		const { container, editRow1, save, onCommit } = renderGrid()
 
 		editRow1()
 
@@ -103,23 +103,23 @@ describe('Grid per-row editing', () => {
 
 		save()
 
-		expect(onValueChange).toHaveBeenCalledTimes(1)
+		expect(onCommit).toHaveBeenCalledTimes(1)
 
-		expect(onValueChange).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'name', value: 'Alicia' }])
+		expect(onCommit).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'name', value: 'Alicia' }])
 	})
 
 	it('emits nothing when the row is saved with no changes', () => {
-		const { editRow1, save, onValueChange } = renderGrid()
+		const { editRow1, save, onCommit } = renderGrid()
 
 		editRow1()
 
 		save()
 
-		expect(onValueChange).not.toHaveBeenCalled()
+		expect(onCommit).not.toHaveBeenCalled()
 	})
 
 	it('reverts a cell on Escape and does not save it', () => {
-		const { container, editRow1, save, onValueChange } = renderGrid()
+		const { container, editRow1, save, onCommit } = renderGrid()
 
 		editRow1()
 
@@ -134,7 +134,7 @@ describe('Grid per-row editing', () => {
 
 		save()
 
-		expect(onValueChange).not.toHaveBeenCalled()
+		expect(onCommit).not.toHaveBeenCalled()
 	})
 
 	it('uses a column editCell slot instead of the inferred editor', () => {
@@ -154,7 +154,7 @@ describe('Grid per-row editing', () => {
 			},
 		]
 
-		const { container, editRow1, save, onValueChange } = renderGrid(slotColumns)
+		const { container, editRow1, save, onCommit } = renderGrid(slotColumns)
 
 		editRow1()
 
@@ -168,7 +168,7 @@ describe('Grid per-row editing', () => {
 
 		save()
 
-		expect(onValueChange).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'name', value: 'Slotted' }])
+		expect(onCommit).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'name', value: 'Slotted' }])
 	})
 
 	it('shows a live validation error and skips an invalid cell on save', () => {
@@ -182,7 +182,7 @@ describe('Grid per-row editing', () => {
 			},
 		]
 
-		const { container, editRow1, save, onValueChange } = renderGrid(validatedColumns)
+		const { container, editRow1, save, onCommit } = renderGrid(validatedColumns)
 
 		editRow1()
 
@@ -195,7 +195,7 @@ describe('Grid per-row editing', () => {
 		save()
 
 		// The invalid cell is dropped, not emitted.
-		expect(onValueChange).not.toHaveBeenCalled()
+		expect(onCommit).not.toHaveBeenCalled()
 
 		// A valid value saves.
 		editRow1()
@@ -206,7 +206,7 @@ describe('Grid per-row editing', () => {
 
 		save()
 
-		expect(onValueChange).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'name', value: 'Fixed' }])
+		expect(onCommit).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'name', value: 'Fixed' }])
 	})
 
 	it('links the editor to its validation error for assistive tech', () => {
@@ -291,7 +291,7 @@ describe("Grid double-click-to-edit (trigger: 'doubleClick')", () => {
 	]
 
 	function renderTriggerGrid(cols: GridColumn<Row>[] = columns) {
-		const onValueChange = vi.fn()
+		const onCommit = vi.fn()
 
 		const onRowsChange = vi.fn()
 
@@ -300,13 +300,13 @@ describe("Grid double-click-to-edit (trigger: 'doubleClick')", () => {
 				columns={cols}
 				rows={baseRows}
 				getKey={(row) => row.id}
-				editable={{ trigger: 'doubleClick', onRowsChange, onValueChange }}
+				editable={{ trigger: 'doubleClick', onRowsChange, onCommit }}
 			/>,
 		)
 
 		return {
 			...view,
-			onValueChange,
+			onCommit,
 			onRowsChange,
 			cell: (col: string, rowIndex = 0) =>
 				view.container.querySelectorAll<HTMLElement>(`td[data-grid-col="${col}"]`)[
@@ -348,7 +348,7 @@ describe("Grid double-click-to-edit (trigger: 'doubleClick')", () => {
 	})
 
 	it('saves the row as one batch on Enter and returns focus to the grid', () => {
-		const { container, cell, onValueChange, getByRole } = renderTriggerGrid()
+		const { container, cell, onCommit, getByRole } = renderTriggerGrid()
 
 		fireEvent.doubleClick(cell('name'))
 
@@ -358,9 +358,9 @@ describe("Grid double-click-to-edit (trigger: 'doubleClick')", () => {
 
 		fireEvent.keyDown(input, { key: 'Enter' })
 
-		expect(onValueChange).toHaveBeenCalledTimes(1)
+		expect(onCommit).toHaveBeenCalledTimes(1)
 
-		expect(onValueChange).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'name', value: 'Alicia' }])
+		expect(onCommit).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'name', value: 'Alicia' }])
 
 		// The editors close and the keyboard lands back on the grid's tab stop.
 		expect(bySlot(container, 'grid-edit-input')).toBeNull()
@@ -369,7 +369,7 @@ describe("Grid double-click-to-edit (trigger: 'doubleClick')", () => {
 	})
 
 	it("abandons the row's staged edits on Escape without emitting", () => {
-		const { container, cell, onValueChange } = renderTriggerGrid()
+		const { container, cell, onCommit } = renderTriggerGrid()
 
 		fireEvent.doubleClick(cell('name'))
 
@@ -381,7 +381,7 @@ describe("Grid double-click-to-edit (trigger: 'doubleClick')", () => {
 
 		expect(bySlot(container, 'grid-edit-input')).toBeNull()
 
-		expect(onValueChange).not.toHaveBeenCalled()
+		expect(onCommit).not.toHaveBeenCalled()
 
 		// The drafts are dropped, not held: re-entering shows the row's value.
 		fireEvent.doubleClick(cell('name'))
@@ -403,7 +403,7 @@ describe("Grid double-click-to-edit (trigger: 'doubleClick')", () => {
 	})
 
 	it('abandons the session on Escape from any editor, not just the inferred inputs', () => {
-		const { container, cell, onValueChange } = renderTriggerGrid([
+		const { container, cell, onCommit } = renderTriggerGrid([
 			{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
 			{ id: 'done', title: 'Done', field: 'done', cell: (row) => (row.done ? 'Yes' : 'No') },
 		])
@@ -418,7 +418,7 @@ describe("Grid double-click-to-edit (trigger: 'doubleClick')", () => {
 
 		expect(bySlot(container, 'grid-edit-input')).toBeNull()
 
-		expect(onValueChange).not.toHaveBeenCalled()
+		expect(onCommit).not.toHaveBeenCalled()
 	})
 
 	it('defers Escape to an open floating surface inside the cell', () => {

@@ -6,26 +6,27 @@ import { useIdScope } from '../../hooks/use-id-scope'
 import { useControlSize } from '../../primitives/density'
 import { useGlass } from '../../providers/glass/context'
 import { useHeadless } from '../../providers/headless/context'
-import type { Step } from '../../recipes'
 import { type InputVariants, k } from '../../recipes/kata/input'
-import { useControl } from '../control/context'
+import { type ControlSize, type ControlVariant, useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
 import { InputFrame } from './input-frame'
 import { useInputValue } from './use-input-value'
 
 /** Props for {@link Input}: `size`/`variant`, `prefix`/`suffix` affixes, and `invalid` override atop native `<input>` attributes. */
 export type InputProps = Omit<InputVariants, 'size' | 'variant'> & {
-	size?: Step
-	variant?: 'default' | 'outline'
+	size?: ControlSize
+	variant?: ControlVariant
 	prefix?: ReactNode
 	suffix?: ReactNode
 	/** Forces the invalid state. When omitted, inherits from Control / Form context. */
 	invalid?: boolean
+	/** Controlled value. `undefined` leaves the input uncontrolled; `null` keeps it controlled with no current value (CONVENTIONS §7.3). */
+	value?: ComponentPropsWithoutRef<'input'>['value'] | null
 	ref?: Ref<HTMLInputElement>
 	className?: string
 	'data-group'?: string
 	'data-group-orientation'?: string
-} & Omit<ComponentPropsWithoutRef<'input'>, 'className' | 'size' | 'prefix'>
+} & Omit<ComponentPropsWithoutRef<'input'>, 'className' | 'size' | 'prefix' | 'value'>
 
 /**
  * Text input with optional `prefix`/`suffix` affixes.
@@ -33,47 +34,41 @@ export type InputProps = Omit<InputVariants, 'size' | 'variant'> & {
  * GlassProvider, and Density context, and drops to a bare `<input>` under
  * headless context.
  *
- * @remarks Stays controlled whenever a `value` prop is present, even `null` or
- * `undefined`; binds to the Form field named `name` otherwise. Value resolution
- * (explicit prop > bound field > internal state) runs through
- * {@link useInputValue}, and `invalid` OR's the prop, the bound field, and any
- * ambient Control error. Under headless context the affix frame and recipe
- * classes are all skipped.
+ * @remarks Follows the §7.3 value contract and the resolution order
+ * (explicit prop > bound field > internal state) owned by {@link useInputValue}.
+ * `invalid` OR's the prop, the bound field, and any ambient Control error.
+ * Under headless context the affix frame and recipe classes are all skipped.
  * @see {@link InputFrame}
  */
-export function Input(props: InputProps) {
-	const hasValueProp = 'value' in props
-
-	const {
-		className,
-		type,
-		variant,
-		size,
-		prefix,
-		suffix,
-		id,
-		disabled,
-		required,
-		readOnly,
-		autoComplete,
-		invalid,
-		name,
-		value,
-		onChange,
-		onBlur,
-		ref,
-		'aria-describedby': ariaDescribedBy,
-		'data-group': dataGroup,
-		'data-group-orientation': dataGroupOrientation,
-		...rest
-	} = props
-
+export function Input({
+	className,
+	type,
+	variant,
+	size,
+	prefix,
+	suffix,
+	id,
+	disabled,
+	required,
+	readOnly,
+	autoComplete,
+	invalid,
+	name,
+	value,
+	onChange,
+	onBlur,
+	ref,
+	'aria-describedby': ariaDescribedBy,
+	'data-group': dataGroup,
+	'data-group-orientation': dataGroupOrientation,
+	...rest
+}: InputProps) {
 	const control = useControl()
 	const glass = useGlass()
 	const headless = useHeadless()
 	const token = useControlSize(size)
 
-	const valueState = useInputValue({ hasValueProp, name, value, onChange, onBlur })
+	const valueState = useInputValue({ name, value, onChange, onBlur })
 
 	const sharedAttrs = useControlProps({
 		id,

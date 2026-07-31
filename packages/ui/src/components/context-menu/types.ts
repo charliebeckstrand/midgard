@@ -2,7 +2,7 @@ import type { ReactElement, ReactNode } from 'react'
 
 /**
  * One actionable entry in a {@link ContextMenu}: a label, an optional leading
- * icon, and the handler run when it is chosen. The menu closes after `onSelect`.
+ * icon, and the handler run when it is chosen. The menu closes after `onAction`.
  * This is the public shape a host's default actions and a caller's custom items
  * share, so a chart's built-in "Fullscreen" and an app's own "View details"
  * read as one list.
@@ -19,7 +19,7 @@ export type ContextMenuItem = {
 	/** Leading icon element (e.g. a Lucide icon), rendered through `Icon`. */
 	icon?: ReactElement
 	/** Runs when the entry is chosen; the menu closes afterward. */
-	onSelect?: () => void
+	onAction?: () => void
 	/** Render the entry inert and dimmed. @defaultValue false */
 	disabled?: boolean
 }

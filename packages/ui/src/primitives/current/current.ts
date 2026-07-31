@@ -7,7 +7,8 @@ import { useControllable } from '../../hooks'
 /** Value carried by `CurrentContext`: the active panel `value` and its change handler. */
 export type CurrentContextValue = {
 	value: string | undefined
-	onValueChange: ((value: string | undefined) => void) | undefined
+	/** Fires with the newly active value, or `null` once none is active (CONVENTIONS §7.3). */
+	onValueChange: ((value: string | null) => void) | undefined
 }
 
 /**
@@ -32,9 +33,10 @@ export const [CurrentContext, useCurrent] = createContext<CurrentContextValue | 
  * via `useControllable`.
  */
 export function useCurrentState(props: {
-	value?: string
+	/** Controlled active value. `undefined` leaves it uncontrolled; `null` keeps it controlled with none active (CONVENTIONS §7.3). */
+	value?: string | null
 	defaultValue?: string
-	onValueChange?: (value: string | undefined) => void
+	onValueChange?: (value: string | null) => void
 }): CurrentContextValue {
 	const [value, setValue] = useControllable({
 		value: props.value,

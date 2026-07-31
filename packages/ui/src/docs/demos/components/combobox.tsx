@@ -31,7 +31,7 @@ function FilteredPeople() {
 }
 
 function SingleComboboxExample() {
-	const [selected, setSelected] = useState<string | undefined>(undefined)
+	const [selected, setSelected] = useState<string | null>(null)
 
 	return (
 		<Field>
@@ -69,7 +69,7 @@ function MultiComboboxExample() {
 }
 
 function ClearableExample() {
-	const [selected, setSelected] = useState<string | undefined>('Tom Cook')
+	const [selected, setSelected] = useState<string | null>('Tom Cook')
 
 	return (
 		<Field>
@@ -125,7 +125,7 @@ function VirtualizedPeople() {
 }
 
 function VirtualizedComboboxExample() {
-	const [selected, setSelected] = useState<number | undefined>(undefined)
+	const [selected, setSelected] = useState<number | null>(null)
 
 	return (
 		<Field>

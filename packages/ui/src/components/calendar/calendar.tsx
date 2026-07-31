@@ -71,7 +71,7 @@ export type CalendarProps = {
 	name?: string
 	value?: Date | null
 	defaultValue?: Date
-	onValueChange?: (date: Date) => void
+	onValueChange?: (value: Date | null) => void
 	min?: Date
 	max?: Date
 	/** Externally-driven roving-focus cell, letting a parent (e.g. DatePicker) steer focus across the header, grid, and footer zones. */
@@ -153,13 +153,6 @@ export function Calendar({
 
 	const localeTag = resolveLocale(locale ?? ambient.locale)
 
-	const handleValueChange = useCallback(
-		(nextValue: Date | undefined) => {
-			if (nextValue) onValueChange?.(nextValue)
-		},
-		[onValueChange],
-	)
-
 	// Binds the selected date to an enclosing Form field by `name` (value-typed
 	// cascade); falls back to controlled/uncontrolled state. No invalid wiring:
 	// a bare Calendar has no Control/error surface (it gains one inside
@@ -167,7 +160,7 @@ export function Calendar({
 	const { value, setValue, setTouched } = useFormValue<Date>(name, {
 		value: valueProp,
 		defaultValue,
-		onValueChange: handleValueChange,
+		onValueChange,
 	})
 
 	// Populated after mount only; a server-rendered "today" can mismatch the

@@ -37,7 +37,7 @@ export function usePdfViewerPagination(input: PdfPaginationOptions): PdfPaginati
 		value: page,
 		defaultValue: defaultPage,
 		onValueChange: (next) => {
-			if (next !== undefined) onPageChange?.(next)
+			if (next != null) onPageChange?.(next)
 		},
 	})
 

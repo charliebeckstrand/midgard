@@ -19,8 +19,8 @@ import { useCommandPaletteState } from './use-command-palette-state'
 // Stable filter for `useKeybindings`; the shortcut fires even inside form fields.
 const IGNORE_NOTHING = () => false
 
-/** Props for {@link CommandPalette}; inherits the Dialog `size` variant. */
-export type CommandPaletteProps = Pick<DialogPanelVariants, 'size'> & {
+/** Props for {@link CommandPalette}; inherits the Dialog `width` variant. */
+export type CommandPaletteProps = Pick<DialogPanelVariants, 'width'> & {
 	open: boolean
 	onOpenChange: (open: boolean) => void
 	/**
@@ -77,7 +77,7 @@ export function CommandPalette({
 	onOpenChange,
 	placeholder = 'Type a command or search',
 	dismissOnBackdrop = true,
-	size = '2xl',
+	width = '2xl',
 	className,
 	triggerShortcut = DEFAULT_TRIGGER_SHORTCUT,
 	children,
@@ -119,7 +119,7 @@ export function CommandPalette({
 			onOpenChange={onOpenChange}
 			placement="top"
 			dismissOnBackdrop={dismissOnBackdrop}
-			size={size}
+			width={width}
 			className={className}
 			initialFocus={inputRef}
 			// Names the dialog directly; the palette has no visible heading.

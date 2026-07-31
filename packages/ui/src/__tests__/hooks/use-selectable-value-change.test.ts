@@ -13,22 +13,26 @@ describe('useSelectableValueChange', () => {
 		expect(onValueChange).toHaveBeenCalledWith('a')
 	})
 
-	it('forwards an explicit undefined when not in multi-select mode', () => {
+	it('forwards a cleared single selection through as null (§7.3)', () => {
+		// The value cascade already emits `null` on clear; single-select passes it
+		// straight to the consumer rather than converting here.
 		const onValueChange = vi.fn()
 
 		const { result } = renderHook(() => useSelectableValueChange(onValueChange, false))
 
-		result.current(undefined)
+		result.current(null)
 
-		expect(onValueChange).toHaveBeenCalledWith(undefined)
+		expect(onValueChange).toHaveBeenCalledWith(null)
 	})
 
-	it('suppresses the undefined "cleared" event in multi-select mode', () => {
+	it('suppresses the "cleared" event in multi-select mode', () => {
+		// Multi-select spells no selection as an empty array, so there is no
+		// cleared event to report.
 		const onValueChange = vi.fn()
 
 		const { result } = renderHook(() => useSelectableValueChange(onValueChange, true))
 
-		result.current(undefined)
+		result.current(null)
 
 		expect(onValueChange).not.toHaveBeenCalled()
 	})

@@ -11,7 +11,8 @@ import type { ToastData, ToastInput } from './types'
 import { useToastQueue } from './use-toast-queue'
 import { useToastTimer } from './use-toast-timer'
 
-type ToastProviderProps = {
+/** Props for {@link ToastProvider}: the default `duration` and `maxToasts` cap, plus `children`. */
+export type ToastProviderProps = {
 	children: ReactNode
 	/**
 	 * Default lifetime (ms) for toasts that don't set `persist` or their own `duration`.
@@ -129,10 +130,7 @@ export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: Toas
 		[reset],
 	)
 
-	const publicValue = useMemo<ToastContextValue>(
-		() => ({ toast, dismiss: ({ id }) => dismiss(id) }),
-		[toast, dismiss],
-	)
+	const publicValue = useMemo<ToastContextValue>(() => ({ toast, dismiss }), [toast, dismiss])
 
 	// Viewport value recomputes every render (toasts array); only the viewport
 	// consumes it and re-renders on each push.

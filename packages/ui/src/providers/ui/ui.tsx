@@ -7,7 +7,8 @@ import { type ReactNode, useMemo } from 'react'
 import { type LinkComponent, LinkContext, type LinkContextValue } from '../../primitives/link'
 import { type PortalContainer, PortalContext } from '../../primitives/portal'
 
-type UIProviderProps = {
+/** Props for {@link UIProvider}: the optional framework `link` component and default `portalContainer`, plus `children`. */
+export type UIProviderProps = {
 	/**
 	 * Framework-specific link component (e.g. `next/link`'s default export);
 	 * every `<Link>` and every link-emitting primitive routes through it. Omit

@@ -53,7 +53,7 @@ describe('Chart context menu', () => {
 				data={data}
 				series={[...series]}
 				contextMenu={{
-					items: [{ key: 'inspect', label: 'Inspect', onSelect: onInspect }],
+					items: [{ key: 'inspect', label: 'Inspect', onAction: onInspect }],
 					defaultItems: false,
 				}}
 			/>,

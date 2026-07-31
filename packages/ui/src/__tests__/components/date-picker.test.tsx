@@ -56,7 +56,7 @@ function CloseReasonHarness({ apiRef }: { apiRef: { current: DatePickerApi | nul
 // `value={undefined}` back. Asserts the field stays controlled on clear and
 // does not resurface the stale value.
 function ControlledDatePicker() {
-	const [date, setDate] = useState<Date | undefined>(undefined)
+	const [date, setDate] = useState<Date | null>(null)
 
 	return <DatePicker value={date} onValueChange={setDate} />
 }
@@ -207,7 +207,7 @@ describe('DatePicker', () => {
 
 		await user.click(footerClear())
 
-		expect(onChange).toHaveBeenCalledWith(undefined)
+		expect(onChange).toHaveBeenCalledWith(null)
 	})
 
 	it('clears a controlled value with a single click', async () => {
@@ -360,7 +360,7 @@ describe('DatePicker clearable', () => {
 
 		await user.click(screen.getByRole('button', { name: 'Clear selection' }))
 
-		expect(onChange).toHaveBeenCalledWith(undefined)
+		expect(onChange).toHaveBeenCalledWith(null)
 
 		// The clear button unmounts once empty; focus returns to the trigger
 		// instead of falling to <body> (WCAG 2.4.3), and the calendar stays closed.
@@ -396,7 +396,57 @@ describe('DatePicker clearable', () => {
 
 		await user.click(screen.getByRole('button', { name: 'Clear selection' }))
 
-		expect(onChange).toHaveBeenCalledWith(undefined)
+		expect(onChange).toHaveBeenCalledWith(null)
+	})
+})
+
+describe('DatePicker open state', () => {
+	it('opens uncontrolled from defaultOpen', () => {
+		renderUI(<DatePicker defaultOpen aria-label="Due date" />)
+
+		expect(screen.getByRole('dialog')).toBeInTheDocument()
+	})
+
+	it('reports open transitions through onOpenChange', async () => {
+		const user = userEvent.setup({ delay: null })
+
+		const onOpenChange = vi.fn()
+
+		const { container } = renderUI(<DatePicker onOpenChange={onOpenChange} aria-label="Due date" />)
+
+		await user.click(bySlot(container, 'datepicker-button') as HTMLButtonElement)
+
+		expect(onOpenChange).toHaveBeenCalledWith(true)
+	})
+
+	it('stays closed while controlled open=false', async () => {
+		const user = userEvent.setup({ delay: null })
+
+		const { container } = renderUI(
+			<DatePicker open={false} onOpenChange={() => {}} aria-label="Due date" />,
+		)
+
+		await user.click(bySlot(container, 'datepicker-button') as HTMLButtonElement)
+
+		expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+	})
+
+	it('readOnly blocks opening but keeps the trigger focusable', async () => {
+		const user = userEvent.setup({ delay: null })
+
+		const { container } = renderUI(<DatePicker readOnly aria-label="Due date" />)
+
+		const trigger = bySlot(container, 'datepicker-button') as HTMLButtonElement
+
+		await user.click(trigger)
+
+		expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+
+		// Unlike `disabled`, the trigger still takes focus so the value stays
+		// reachable and submittable.
+		trigger.focus()
+
+		expect(document.activeElement).toBe(trigger)
 	})
 })
 

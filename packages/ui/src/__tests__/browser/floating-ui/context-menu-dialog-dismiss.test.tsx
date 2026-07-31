@@ -18,7 +18,7 @@ describe('context menu dismiss inside a dialog (real browser)', () => {
 	it('closes on an outside press within the enclosing dialog', async () => {
 		renderUI(
 			<Dialog open aria-label="Report">
-				<ContextMenu defaults={[{ key: 'copy', label: 'Copy', onSelect: () => {} }]}>
+				<ContextMenu defaults={[{ key: 'copy', label: 'Copy', onAction: () => {} }]}>
 					<div data-testid="surface" style={{ width: 200, height: 200 }}>
 						Right-click me
 					</div>

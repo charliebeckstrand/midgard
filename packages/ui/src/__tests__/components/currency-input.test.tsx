@@ -155,7 +155,7 @@ describe('CurrencyInput', () => {
 		expect(input.value).toBe('0.5')
 	})
 
-	it('emits undefined when cleared', async () => {
+	it('emits null when cleared', async () => {
 		const onChange = vi.fn()
 
 		const { container } = renderUI(<CurrencyInput defaultValue={50} onValueChange={onChange} />)
@@ -170,7 +170,7 @@ describe('CurrencyInput', () => {
 
 		await user.tab()
 
-		expect(onChange).toHaveBeenLastCalledWith(undefined)
+		expect(onChange).toHaveBeenLastCalledWith(null)
 
 		expect(input.value).toBe('')
 	})

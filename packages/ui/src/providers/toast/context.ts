@@ -5,7 +5,7 @@ import type { ToastData, ToastInput } from './types'
 
 export type ToastContextValue = {
 	toast: (data: ToastInput) => string
-	dismiss: (target: { id: string }) => void
+	dismiss: (id: string) => void
 }
 
 export type ToastViewportContextValue = {
@@ -19,7 +19,7 @@ export type ToastViewportContextValue = {
 
 /**
  * Caller-facing toast API from the nearest `<ToastProvider>`: `toast(data)`
- * enqueues a toast and returns its id, `dismiss({ id })` removes it. Throws
+ * enqueues a toast and returns its id, `dismiss(id)` removes it. Throws
  * outside a provider.
  */
 export const [ToastContext, useToast] = createContext<ToastContextValue>('Toast')

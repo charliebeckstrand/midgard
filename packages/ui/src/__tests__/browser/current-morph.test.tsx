@@ -65,14 +65,14 @@ function GrowProbe() {
 
 /** The full container: a panel switch between a tall and a short panel. */
 function SwitchProbe() {
-	const [value, setValue] = useState<string | undefined>('tall')
+	const [value, setValue] = useState<string | null>('tall')
 
 	return (
 		<div style={{ width: 300 }}>
 			<button type="button" data-testid="switch" onClick={() => setValue('short')}>
 				switch
 			</button>
-			<CurrentContext value={{ value, onValueChange: setValue }}>
+			<CurrentContext value={{ value: value ?? undefined, onValueChange: setValue }}>
 				<CurrentContents slotPrefix="test" data-testid="box">
 					<CurrentContent slotPrefix="test" value="tall">
 						<div style={{ height: 240 }} />

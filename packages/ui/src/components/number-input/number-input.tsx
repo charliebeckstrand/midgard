@@ -18,7 +18,7 @@ export type NumberInputProps = Omit<
 	value?: number | null
 	defaultValue?: number
 	/** Fires with the parsed value, or `undefined` when the field is cleared. */
-	onValueChange?: (value: number | undefined) => void
+	onValueChange?: (value: number | null) => void
 	min?: number
 	max?: number
 	/**

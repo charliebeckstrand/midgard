@@ -4,7 +4,7 @@ import { Field, Label } from '../../../components/fieldset'
 import { Example } from '../../engine'
 
 function ControlledExample() {
-	const [value, setValue] = useState<number | undefined>(1234.56)
+	const [value, setValue] = useState<number | null>(1234.56)
 
 	return (
 		<Example title="Controlled">

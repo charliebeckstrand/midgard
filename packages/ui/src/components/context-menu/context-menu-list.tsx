@@ -16,7 +16,7 @@ export type ContextMenuListProps = {
  * the same.
  *
  * @remarks An entry's `key` identifies its row; absent, the render index stands
- * in — set keys on a list that reorders. An item's `onSelect` runs on selection,
+ * in — set keys on a list that reorders. An item's `onAction` runs on selection,
  * then the menu closes. A submenu entry recurses through this same renderer, so
  * its rows nest to any depth.
  */
@@ -37,7 +37,7 @@ export function ContextMenuList({ entries }: ContextMenuListProps) {
 				}
 
 				return (
-					<MenuItem key={key} onAction={entry.onSelect} disabled={entry.disabled}>
+					<MenuItem key={key} onAction={entry.onAction} disabled={entry.disabled}>
 						{entry.icon ? <Icon icon={entry.icon} /> : null}
 
 						<MenuLabel>{entry.label}</MenuLabel>

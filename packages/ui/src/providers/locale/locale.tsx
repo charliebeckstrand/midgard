@@ -3,7 +3,8 @@
 import { type ReactNode, useMemo } from 'react'
 import { type LocaleConfig, LocaleContext } from './context'
 
-type LocaleProviderProps = LocaleConfig & {
+/** Props for {@link LocaleProvider}: the {@link LocaleConfig} defaults to broadcast, plus `children`. */
+export type LocaleProviderProps = LocaleConfig & {
 	children: ReactNode
 }
 

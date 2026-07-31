@@ -85,10 +85,12 @@ type ListboxBaseProps = {
 }
 
 type ListboxSingleProps<T> = {
-	multiple?: false
-	value?: T
+	/** Controlled value. `undefined` leaves the listbox uncontrolled; `null` keeps it controlled with no selection (CONVENTIONS §7.3). */
+	value?: T | null
 	defaultValue?: T
-	onValueChange?: (value: T | undefined) => void
+	/** Fires with the new selection, or `null` when it is cleared. */
+	onValueChange?: (value: T | null) => void
+	multiple?: false
 }
 
 type ListboxMultipleProps<T> = {
@@ -151,7 +153,9 @@ export function Listbox<T>({
 	displayValue,
 	onValueChange,
 	multiple = false,
-	nullable = valueProp === undefined && defaultValue === undefined,
+	// Derived per render: while no value is held on either channel, clicking the
+	// selected option clears it.
+	nullable = valueProp == null && defaultValue == null,
 	placeholder = 'Select',
 	placement = 'bottom-start',
 	prefix,
@@ -193,7 +197,7 @@ export function Listbox<T>({
 	const resolvedSize = token.size
 
 	const handleValueChange = useSelectableValueChange<T>(
-		onValueChange as ((value: T | T[] | undefined) => void) | undefined,
+		onValueChange as ((value: T | T[] | null) => void) | undefined,
 		multiple,
 	)
 

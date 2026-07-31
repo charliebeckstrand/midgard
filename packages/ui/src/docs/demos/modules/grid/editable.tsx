@@ -31,7 +31,7 @@ import { useFormat } from '../../../../providers/locale'
 
 // Applies committed cell changes onto the row state: each change patches one
 // field on the row it keys. The grid emits these (as one batch per row) through
-// `editable.onValueChange` when an editing row is saved.
+// `editable.onCommit` when an editing row is saved.
 function applyChanges<T extends { id: number }>(rows: T[], changes: CellChange[]): T[] {
 	if (!changes.length) return rows
 
@@ -250,7 +250,7 @@ export function EditableExample() {
 					rows: editing,
 					onRowsChange: setEditing,
 					trigger: 'doubleClick',
-					onValueChange: (changes) => setPeople((prev) => applyChanges(prev, changes)),
+					onCommit: (changes) => setPeople((prev) => applyChanges(prev, changes)),
 				}}
 			/>
 		</>
@@ -341,7 +341,7 @@ export function EditorTypesExample() {
 				editable={{
 					rows: editing,
 					// Required sink; inert here because no row leaves the editable set.
-					onValueChange: () => {},
+					onCommit: () => {},
 				}}
 			/>
 		</>
