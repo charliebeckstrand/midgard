@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { ToggleIconButton, ToggleIconButtonSkeleton } from '../../components/toggle-icon-button'
-import { bySlot, fireEvent, renderUI, within } from '../helpers'
+import { bySlot, fireEvent, renderUI, screen, userEvent, within } from '../helpers'
 
 describe('ToggleIconButton', () => {
 	const icon = <svg data-testid="icon" />
@@ -132,5 +132,30 @@ describe('ToggleIconButton', () => {
 		const el = bySlot(container, 'toggle-icon-button') as HTMLElement
 
 		expect(el.querySelectorAll(':scope > [data-slot=icon]')).toHaveLength(2)
+	})
+
+	it('toggles uncontrolled from defaultPressed and reports through onPressedChange', async () => {
+		const user = userEvent.setup()
+
+		const onPressedChange = vi.fn()
+
+		renderUI(
+			<ToggleIconButton
+				defaultPressed
+				onPressedChange={onPressedChange}
+				icon={icon}
+				aria-label="Favourite"
+			/>,
+		)
+
+		const button = screen.getByRole('button', { name: 'Favourite' })
+
+		expect(button).toHaveAttribute('aria-pressed', 'true')
+
+		await user.click(button)
+
+		expect(onPressedChange).toHaveBeenCalledWith(false)
+
+		expect(button).toHaveAttribute('aria-pressed', 'false')
 	})
 })

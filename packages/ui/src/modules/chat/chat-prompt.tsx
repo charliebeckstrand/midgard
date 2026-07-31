@@ -11,7 +11,14 @@ import { Textarea } from '../../components/textarea'
 
 /** Props for {@link ChatPrompt}. */
 export type ChatPromptProps = {
-	/** Controlled value of the textarea. */
+	/**
+	 * Controlled value of the textarea.
+	 *
+	 * @remarks Deliberately controlled-only — unlike the rest of the library's
+	 * value controls there is no `defaultValue` arm, because {@link useChatDraft}
+	 * owns the draft (value, clear, submit, `canSubmit`) and an internal copy here
+	 * would be a second source of truth. Pair the two.
+	 */
 	value: string
 	/** Called with the next value as the user types. */
 	onValueChange: (value: string) => void

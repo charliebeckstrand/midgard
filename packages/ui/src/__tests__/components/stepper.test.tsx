@@ -334,4 +334,35 @@ describe('Stepper keyboard navigation', () => {
 		// value=3 → the third step is current and holds the only tab stop.
 		expect(steps.map((s) => s.tabIndex)).toEqual([-1, -1, 0])
 	})
+
+	it('navigates uncontrolled from defaultValue', async () => {
+		const user = userEvent.setup({ delay: null })
+
+		renderUI(
+			<Stepper defaultValue={0}>
+				<StepperStep value={0}>One</StepperStep>
+				<StepperStep value={1}>Two</StepperStep>
+			</Stepper>,
+		)
+
+		// Uncontrolled: no `value`/`onValueChange`, yet the steps are interactive
+		// and the stepper owns the index.
+		expect(screen.getByRole('button', { name: /One/ })).toHaveAttribute('aria-current', 'step')
+
+		await user.click(screen.getByRole('button', { name: /Two/ }))
+
+		expect(screen.getByRole('button', { name: /Two/ })).toHaveAttribute('aria-current', 'step')
+	})
+
+	it('stays a display-only readout with a value and no handler', () => {
+		renderUI(
+			<Stepper value={0}>
+				<StepperStep value={0}>One</StepperStep>
+				<StepperStep value={1}>Two</StepperStep>
+			</Stepper>,
+		)
+
+		// No way to advance, so steps render inert rather than as buttons.
+		expect(screen.queryByRole('button', { name: /Two/ })).not.toBeInTheDocument()
+	})
 })
