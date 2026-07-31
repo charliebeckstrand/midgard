@@ -400,6 +400,56 @@ describe('DatePicker clearable', () => {
 	})
 })
 
+describe('DatePicker open state', () => {
+	it('opens uncontrolled from defaultOpen', () => {
+		renderUI(<DatePicker defaultOpen aria-label="Due date" />)
+
+		expect(screen.getByRole('dialog')).toBeInTheDocument()
+	})
+
+	it('reports open transitions through onOpenChange', async () => {
+		const user = userEvent.setup({ delay: null })
+
+		const onOpenChange = vi.fn()
+
+		const { container } = renderUI(<DatePicker onOpenChange={onOpenChange} aria-label="Due date" />)
+
+		await user.click(bySlot(container, 'datepicker-button') as HTMLButtonElement)
+
+		expect(onOpenChange).toHaveBeenCalledWith(true)
+	})
+
+	it('stays closed while controlled open=false', async () => {
+		const user = userEvent.setup({ delay: null })
+
+		const { container } = renderUI(
+			<DatePicker open={false} onOpenChange={() => {}} aria-label="Due date" />,
+		)
+
+		await user.click(bySlot(container, 'datepicker-button') as HTMLButtonElement)
+
+		expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+	})
+
+	it('readOnly blocks opening but keeps the trigger focusable', async () => {
+		const user = userEvent.setup({ delay: null })
+
+		const { container } = renderUI(<DatePicker readOnly aria-label="Due date" />)
+
+		const trigger = bySlot(container, 'datepicker-button') as HTMLButtonElement
+
+		await user.click(trigger)
+
+		expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+
+		// Unlike `disabled`, the trigger still takes focus so the value stays
+		// reachable and submittable.
+		trigger.focus()
+
+		expect(document.activeElement).toBe(trigger)
+	})
+})
+
 describe('DatePicker footer', () => {
 	it('drops the Today button but keeps Clear with footer={{ today: false }}', async () => {
 		const user = userEvent.setup({ delay: null })

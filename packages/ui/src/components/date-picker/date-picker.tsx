@@ -148,6 +148,14 @@ export type DatePickerBaseProps = {
 	footer?: DatePickerFooterConfig
 	className?: string
 	disabled?: boolean
+	/** Keeps the trigger focusable and the value submitted, but blocks opening the calendar and changing the value. */
+	readOnly?: boolean
+	/** Controlled calendar open state. Pair with `onOpenChange`. */
+	open?: boolean
+	/** Initial calendar open state when uncontrolled. */
+	defaultOpen?: boolean
+	/** Fires when the calendar opens or closes (trigger, dismiss, Escape, selection). */
+	onOpenChange?: (open: boolean) => void
 	/** Accessible name for the trigger when no Field/Label wraps the picker. */
 	'aria-label'?: string
 	'data-group'?: string

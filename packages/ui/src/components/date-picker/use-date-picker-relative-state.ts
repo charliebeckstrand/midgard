@@ -3,7 +3,7 @@
 import type { OpenChangeReason } from '@floating-ui/react'
 import { type KeyboardEvent, useCallback, useMemo, useRef, useState } from 'react'
 
-import { useFloatingUI } from '../../hooks'
+import { useControllable, useFloatingUI } from '../../hooks'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { useControl } from '../control/context'
 import { useFormValue } from '../form/use-form-value'
@@ -68,12 +68,18 @@ export function useDatePickerRelativeState({
 	footer,
 	placement = 'bottom-start',
 	disabled = false,
+	readOnly = false,
+	open: openProp,
+	defaultOpen,
+	onOpenChange: onOpenChangeProp,
 }: DatePickerBaseProps & DatePickerRelativeProps) {
 	const control = useControl()
 
 	const scope = useIdScope({ id: control?.id })
 
 	const resolvedDisabled = disabled || control?.disabled === true
+
+	const resolvedReadOnly = readOnly || control?.readOnly === true
 
 	// Single-select unless `relative.multiple` opts in; drives the toggle behavior
 	// (replace vs. accumulate). The value is an array in both modes.
@@ -92,7 +98,23 @@ export function useDatePickerRelativeState({
 		onValueChange,
 	})
 
-	const [open, setOpen] = useState(false)
+	const [open = false, setOpenInner] = useControllable<boolean>({
+		value: openProp,
+		defaultValue: defaultOpen ?? false,
+		onValueChange: (next) => onOpenChangeProp?.(next ?? false),
+	})
+
+	// readOnly keeps the trigger focusable and the value submitted but blocks
+	// every open path; closing stays allowed so an externally-opened calendar
+	// can still dismiss (matching Listbox).
+	const setOpen = useCallback(
+		(next: boolean) => {
+			if (resolvedReadOnly && next) return
+
+			setOpenInner(next)
+		},
+		[resolvedReadOnly, setOpenInner],
+	)
 
 	const [mode, setMode] = useState<DatePickerRelativeMode>('list')
 
@@ -174,7 +196,7 @@ export function useDatePickerRelativeState({
 		setMode('list')
 
 		setOpen(true)
-	}, [])
+	}, [setOpen])
 
 	const closePicker = useCallback(() => {
 		setOpen(false)
@@ -182,7 +204,7 @@ export function useDatePickerRelativeState({
 		// Closing the popover is the field's "blur" — mark it touched so
 		// validateOn="touched" rules can fire.
 		setTouched()
-	}, [setTouched])
+	}, [setTouched, setOpen])
 
 	// Clears every span but keeps the popover open: a selection is still being
 	// edited after a reset, so the dialog stays put (dismiss closes it). Also wipes
