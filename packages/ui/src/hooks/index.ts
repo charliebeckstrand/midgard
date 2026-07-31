@@ -16,6 +16,7 @@ export {
 	useA11yAutoFocus,
 	useA11yControl,
 	useA11yDisclosure,
+	useA11yHasTabbable,
 	useA11yLiveRegion,
 	useA11yPanel,
 	useA11yRoving,

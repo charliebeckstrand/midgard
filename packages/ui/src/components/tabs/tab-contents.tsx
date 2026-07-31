@@ -1,6 +1,6 @@
 'use client'
 
-import { type ComponentPropsWithoutRef, useEffect, useRef } from 'react'
+import { type ComponentPropsWithoutRef, useEffect, useState } from 'react'
 import { cn } from '../../core'
 import { useA11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
 import { CurrentContent, CurrentContents, resolveMount } from '../../primitives/current'
@@ -65,14 +65,16 @@ export function TabContent({ value, className, ...props }: TabContentProps) {
 
 	const auto = value !== undefined && tabsContext?.baseId !== undefined
 
-	const ref = useRef<HTMLDivElement>(null)
+	// State, not a ref: the probe re-measures on the node React attaches, which
+	// a `mount` policy that swaps panels in and out recreates.
+	const [panel, setPanel] = useState<HTMLDivElement | null>(null)
 
 	// `0` only when the panel has no focusable child (APG).
-	const tabIndex = useTabPanelTabIndex(ref)
+	const tabIndex = useTabPanelTabIndex(panel)
 
 	return (
 		<CurrentContent
-			ref={ref}
+			ref={setPanel}
 			slotPrefix="tab"
 			value={value}
 			className={cn(k.panel, className)}

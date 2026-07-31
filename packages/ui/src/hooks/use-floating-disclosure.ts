@@ -122,18 +122,21 @@ export function useFloatingDisclosure({
 	// `pointerdown` listener `useFloatingUI` uses, sidestepping that hatch.
 	const dismiss = useDismiss(context, { escapeKey: false, outsidePress: false })
 
-	useEscapeLayer({
-		open,
-		layered: roleProp !== 'tooltip',
-		onDismiss: close,
-	})
-
 	// Dismissals route through `context.onOpenChange` rather than `setOpen`
 	// directly, so the close reason reaches `useFloatingPanel`'s focus-return
-	// effect.
+	// effect and floating-ui's own `openchange` listeners. `'escape-key'` is
+	// what arms `useFocus`'s re-open block: a surface that restores focus to
+	// its trigger on close (an interactive Tooltip's focus trap) would
+	// otherwise re-open on the focus its own dismissal caused.
 	const onOpenChangeRef = useRef(context.onOpenChange)
 
 	onOpenChangeRef.current = context.onOpenChange
+
+	useEscapeLayer({
+		open,
+		layered: roleProp !== 'tooltip',
+		onDismiss: (event) => onOpenChangeRef.current(false, event, 'escape-key'),
+	})
 
 	useEffect(() => {
 		if (!open) return

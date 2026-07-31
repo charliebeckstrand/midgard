@@ -9,6 +9,7 @@ export {
 	type A11yDisclosureOptions,
 	useA11yDisclosure,
 } from './use-a11y-disclosure'
+export { useA11yHasTabbable } from './use-a11y-has-tabbable'
 export {
 	type A11yLiveLevel,
 	type A11yLiveRegionOptions,

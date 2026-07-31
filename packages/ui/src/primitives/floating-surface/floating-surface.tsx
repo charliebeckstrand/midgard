@@ -1,6 +1,10 @@
 'use client'
 
-import { FloatingFocusManager, type FloatingRootContext } from '@floating-ui/react'
+import {
+	FloatingFocusManager,
+	type FloatingFocusManagerProps,
+	type FloatingRootContext,
+} from '@floating-ui/react'
 import { type CSSProperties, type HTMLAttributes, type ReactNode, useRef } from 'react'
 import { cn } from '../../core'
 import { useComposedRef } from '../../hooks'
@@ -23,6 +27,15 @@ export type FloatingSurfaceProps = {
 	 * traps Tab inside the surface while open.
 	 */
 	trapFocusContext?: FloatingRootContext
+	/**
+	 * Escape hatch: `FloatingFocusManager` props merged over the surface
+	 * defaults, read only alongside `trapFocusContext`. Gate a conditional trap
+	 * through `disabled` here rather than by dropping `trapFocusContext` — the
+	 * manager's presence decides the element type wrapping the surface, so
+	 * withdrawing it mid-open remounts the live panel; a `disabled` manager
+	 * renders neither guards nor listeners, leaving the DOM as it is untrapped.
+	 */
+	trapFocusProps?: Omit<FloatingFocusManagerProps, 'context' | 'children'>
 	onExitComplete?: () => void
 	className?: string
 	style?: CSSProperties
@@ -38,7 +51,8 @@ export type FloatingSurfaceProps = {
  *
  * @remarks Passing `trapFocusContext` wraps the open surface in a modal
  * `FloatingFocusManager` that traps Tab; it cedes initial focus and close-time
- * restore to the consuming panel hook.
+ * restore to the consuming panel hook, which `trapFocusProps` overrides
+ * per-surface.
  */
 export function FloatingSurface({
 	open,
@@ -46,6 +60,7 @@ export function FloatingSurface({
 	floatingStyles,
 	getFloatingProps,
 	trapFocusContext,
+	trapFocusProps,
 	onExitComplete,
 	className,
 	style,
@@ -93,12 +108,15 @@ export function FloatingSurface({
 				// `returnFocus={false}`: `useFloatingPanel`'s reason-aware effect owns
 				// the close restore, as in DatePickerContent. `initialFocus={-1}`: the
 				// surface owns initial focus (the month picker seats it on the selected
-				// cell), so the manager must not race it to the first tabbable.
+				// cell), so the manager must not race it to the first tabbable. A
+				// surface whose trap works the other way round — one that opens without
+				// taking focus, like an interactive Tooltip — overrides both.
 				<FloatingFocusManager
 					context={trapFocusContext}
 					modal
 					returnFocus={false}
 					initialFocus={-1}
+					{...trapFocusProps}
 				>
 					{surface}
 				</FloatingFocusManager>

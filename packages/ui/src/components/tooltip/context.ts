@@ -1,5 +1,6 @@
 'use client'
 
+import type { FloatingRootContext } from '@floating-ui/react'
 import type { CSSProperties } from 'react'
 import { createContext } from '../../core'
 
@@ -19,6 +20,12 @@ export type TooltipContextValue = {
 	floatingStyles: CSSProperties
 	getReferenceProps: (userProps?: object) => Record<string, unknown>
 	getFloatingProps: (userProps?: object) => Record<string, unknown>
+	/**
+	 * Floating-ui root context an interactive `<TooltipContent>`'s focus trap
+	 * mounts on. Absent for the point-anchored readout, which is never
+	 * `interactive` and so never traps.
+	 */
+	floatingContext?: FloatingRootContext
 }
 
 export const [TooltipContext, useTooltipContext] = createContext<TooltipContextValue>('Tooltip')

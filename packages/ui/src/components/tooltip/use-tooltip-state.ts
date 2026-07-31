@@ -42,7 +42,9 @@ function isReferenceDisabled(reference: unknown): boolean {
  * @remarks Hover on pointer devices, click on pointer-less ones, focus always.
  * Closes on the shared overlay-close signal and stays suppressed while the
  * reference (or a descendant) matches `:disabled`, re-opening on hover once the
- * disabled state clears.
+ * disabled state clears. Hands the floating root context out as
+ * `floatingContext`, which an `interactive` `<TooltipContent>` mounts its focus
+ * trap on.
  * @internal
  * @see {@link isReferenceDisabled}
  * @see {@link useFloatingDisclosure}
@@ -140,6 +142,7 @@ export function useTooltipState({
 			floatingStyles,
 			getReferenceProps,
 			getFloatingProps,
+			floatingContext: context,
 		}),
 		[
 			open,
@@ -150,6 +153,7 @@ export function useTooltipState({
 			floatingStyles,
 			getReferenceProps,
 			getFloatingProps,
+			context,
 		],
 	)
 }
