@@ -56,7 +56,11 @@ describe('grid context menu submenus (real browser)', () => {
 		// autofocus, which `grid-context-menu-keyboard` already covers.
 		menu.focus()
 
+		// Down past "Manage columns", which leads the menu, on to the first of the
+		// clicked column's own concerns.
 		fireEvent.keyDown(menu, { key: 'ArrowDown' })
+
+		fireEvent.keyDown(item('Manage columns'), { key: 'ArrowDown' })
 
 		expect(item('Sort')).toHaveFocus()
 

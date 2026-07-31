@@ -435,31 +435,26 @@ describe('Grid context menus', () => {
 		expect(screen.queryByRole('menuitem', { name: 'Auto-size' })).not.toBeInTheDocument()
 	})
 
-	it('keeps the Auto-size menu with the column actions above the divider', () => {
+	it('leads with "Manage columns" and rules off nothing', () => {
 		renderUI(<Grid resizable columns={columns} rows={rows} getKey={getKey} />)
 
 		rightClick('columnheader', 'Name')
 
 		const menu = screen.getByRole('menu')
 
-		// The menu rows and the lone divider (an <hr>) in render order.
+		// The menu rows and any divider (an <hr>) in render order.
 		const sequence = Array.from(menu.querySelectorAll('[role="menuitem"], hr'))
 
-		const dividerIndex = sequence.findIndex((node) => node.tagName === 'HR')
-
-		const autoSizeIndex = sequence.findIndex((node) => node.textContent?.trim() === 'Auto-size')
-
-		const manageIndex = sequence.findIndex((node) => node.textContent?.trim() === 'Manage columns')
-
-		// Auto-size closes out the clicked column's own actions; "Manage columns"
-		// leads the table-wide tools below the divider.
-		expect(dividerIndex).toBeGreaterThanOrEqual(0)
-
-		expect(autoSizeIndex).toBeGreaterThanOrEqual(0)
-
-		expect(autoSizeIndex).toBeLessThan(dividerIndex)
-
-		expect(manageIndex).toBeGreaterThan(dividerIndex)
+		// The table-wide manager reads first, then the clicked column's own
+		// concerns, and no rule divides the defaults — a separator in a grid's menu
+		// marks a host's custom items, nothing else.
+		expect(sequence.map((node) => node.textContent?.trim())).toEqual([
+			'Manage columns',
+			'Sort',
+			'Pin',
+			'Auto-size',
+			'Export',
+		])
 	})
 
 	it('places the Auto-size menu directly under "Group by {column}"', () => {

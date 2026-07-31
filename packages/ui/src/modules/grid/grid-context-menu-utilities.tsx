@@ -19,7 +19,6 @@ import {
 	Ungroup,
 } from 'lucide-react'
 import type { ReactElement, ReactNode } from 'react'
-import { mergeContextMenuItems } from '../../components/context-menu'
 import { isDataColumn } from '../../utilities'
 import { columnLabel } from './engine/grid-column/label'
 import type { GridExportAction } from './engine/grid-export/types'
@@ -261,16 +260,18 @@ export function pinChoiceIcon(key: PinMenuChoice['key']): ReactElement {
 
 /**
  * Default header-menu items, consolidated into hover-opened submenus so the
- * menu opens one row per concern rather than a dozen flat actions: Sort (the
- * sort controls, with "Clear sort" once the column is the sorted one), Pin (Pin
- * left / Pin right / Unpin), the group-by toggle — a single action, so it stays
- * a plain row — and Auto-size (this column, then all columns), then the
- * table-wide tools under a separator: "Manage columns" (when a manager is
- * reachable) and Export (one row per active export type).
+ * menu opens one row per concern rather than a dozen flat actions: "Manage
+ * columns" (when a manager is reachable) leads, then the clicked column's own
+ * concerns — Sort (the sort controls, with "Clear sort" once the column is the
+ * sorted one), Pin (Pin left / Pin right / Unpin), the group-by toggle, a single
+ * action so it stays a plain row, and Auto-size (this column, then all columns)
+ * — and Export (one row per active export type) closes them out.
  *
  * @remarks Each menu withholds itself when it has nothing to offer — a locked
  * column shows no Pin, an unsortable one no Sort — and collapses to a plain row
- * when it holds a single action, so no submenu ever opens onto one item.
+ * when it holds a single action, so no submenu ever opens onto one item. The
+ * defaults carry no rule of their own: the one separator a grid's menu shows
+ * marks where a host's custom items begin (`resolveContextMenuEntries`).
  * @internal
  */
 export function columnMenuDefaults<T>(args: ColumnMenuDefaultArgs<T>): GridMenuItem[] {
@@ -287,9 +288,22 @@ export function columnMenuDefaults<T>(args: ColumnMenuDefaultArgs<T>): GridMenuI
 		exportActions,
 	} = args
 
-	// The clicked column's own actions, in the order the header reads them:
+	const items: GridMenuItem[] = []
+
+	// The table-wide manager leads: the row that isn't about the clicked column at
+	// all reads first, before the column's own concerns.
+	if (chooseColumns) {
+		items.push({
+			key: 'choose-columns',
+			label: 'Manage columns',
+			icon: <Columns3 />,
+			onSelect: chooseColumns,
+		})
+	}
+
+	// Then the clicked column's own actions, in the order the header reads them:
 	// sort, pin, group, then the fit that closes them out.
-	const actions: GridMenuItem[] = [
+	items.push(
 		...submenuItems({
 			key: 'sort',
 			label: 'Sort',
@@ -309,22 +323,6 @@ export function columnMenuDefaults<T>(args: ColumnMenuDefaultArgs<T>): GridMenuI
 			icon: <StretchHorizontal />,
 			items: autoSizeMenuItems({ column, autoSizeColumn, autoSizeColumns }),
 		}),
-	]
-
-	// Table-wide tools sit under a separator, set off from the clicked column's
-	// own actions above.
-	const tools: GridMenuItem[] = []
-
-	if (chooseColumns) {
-		tools.push({
-			key: 'choose-columns',
-			label: 'Manage columns',
-			icon: <Columns3 />,
-			onSelect: chooseColumns,
-		})
-	}
-
-	tools.push(
 		...submenuItems({
 			key: 'export',
 			label: 'Export',
@@ -333,14 +331,14 @@ export function columnMenuDefaults<T>(args: ColumnMenuDefaultArgs<T>): GridMenuI
 		}),
 	)
 
-	return mergeContextMenuItems([actions, tools])
+	return items
 }
 
 /**
- * Default cell-menu items: Copy, then — when export is on — the Export submenu
- * under a separator. Copy acts on the right-clicked cell; export is a grid-wide
- * tool (scoped to the selection when rows are selected), so it sits apart below
- * the divider, mirroring the column menu's grouping of its table-wide tools.
+ * Default cell-menu items: Copy, acting on the right-clicked cell, then — when
+ * export is on — the Export submenu, a grid-wide tool scoped to the selection
+ * when rows are selected. Unruled, as the column menu's defaults are: a
+ * separator in a grid's menu marks a host's custom items, nothing else.
  *
  * @internal
  */
@@ -348,16 +346,15 @@ export function cellMenuDefaults(
 	copy: () => void,
 	exportActions: GridExportAction[],
 ): GridMenuItem[] {
-	const copyItem: GridMenuItem = { key: 'copy', label: 'Copy', icon: <Copy />, onSelect: copy }
-
-	const exports = submenuItems({
-		key: 'export',
-		label: 'Export',
-		icon: <Download />,
-		items: exportMenuItems(exportActions),
-	})
-
-	return mergeContextMenuItems([[copyItem], exports])
+	return [
+		{ key: 'copy', label: 'Copy', icon: <Copy />, onSelect: copy },
+		...submenuItems({
+			key: 'export',
+			label: 'Export',
+			icon: <Download />,
+			items: exportMenuItems(exportActions),
+		}),
+	]
 }
 
 /**
