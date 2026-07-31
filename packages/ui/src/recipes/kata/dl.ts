@@ -27,21 +27,10 @@ const root = defineRecipe({
  */
 const projection = {
 	horizontal: [
-		// dt: column one, top border between rows (none on the first), padding.
 		'[&>dt]:col-start-1',
-		'[&>dt]:border-t',
-		'[&>dt:first-child]:border-none',
-		'[&>dt]:border-zinc-950/5',
-		'dark:[&>dt]:border-white/5',
 		'[&>dt]:pt-2',
 		'[&>dt]:pr-2',
 		'sm:[&>dt]:py-2',
-		// dd: top border from the two-column breakpoint (none on the first
-		// pair's dd, the second child), padding.
-		'[&>dd]:border-zinc-950/5',
-		'dark:[&>dd]:border-white/5',
-		'sm:[&>dd]:border-t',
-		'sm:[&>dd:nth-child(2)]:border-none',
 		'[&>dd]:pb-2',
 		'sm:[&>dd]:py-2',
 	],
