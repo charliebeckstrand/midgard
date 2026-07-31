@@ -80,6 +80,49 @@ describe('Drawer', () => {
 	})
 })
 
+describe('Drawer enter animation', () => {
+	// The motion mock surfaces `initial.y` as `data-initial-y`, so the enter offset —
+	// the slide the panel starts from — is observable without an animation runtime.
+	const panel = () => present(bySlot(document.body, 'drawer'), 'drawer panel')
+
+	it('slides the panel up from the bottom edge on mount', () => {
+		renderUI(
+			<Drawer open onOpenChange={() => {}} aria-label="Resolve">
+				content
+			</Drawer>,
+		)
+
+		expect(panel()).toHaveAttribute('data-initial-y', '100%')
+	})
+
+	it('mounts an arriving drawer already in place when animateOnMount is false', () => {
+		renderUI(
+			<Drawer open animateOnMount={false} onOpenChange={() => {}} aria-label="Resolve">
+				content
+			</Drawer>,
+		)
+
+		expect(panel()).not.toHaveAttribute('data-initial-y')
+	})
+
+	it('slides on a reopen even while animateOnMount stays false', () => {
+		const drawer = (open: boolean) => (
+			<Drawer open={open} animateOnMount={false} onOpenChange={() => {}} aria-label="Resolve">
+				content
+			</Drawer>
+		)
+
+		const { rerender } = renderUI(drawer(true))
+
+		// Minimize, then maximize: the panel unmounts while closed, so the flag would
+		// otherwise suppress the slide on every trip back up for the life of the mount.
+		rerender(drawer(false))
+		rerender(drawer(true))
+
+		expect(panel()).toHaveAttribute('data-initial-y', '100%')
+	})
+})
+
 describe('DrawerTrigger', () => {
 	it('invokes the provided onClick when the child is clicked', () => {
 		const onClick = vi.fn()

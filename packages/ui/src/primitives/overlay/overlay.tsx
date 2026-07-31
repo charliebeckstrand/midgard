@@ -12,6 +12,7 @@ import {
 } from 'react'
 import { cn } from '../../core'
 import { useDismissable } from '../../hooks/use-dismissable'
+import { useEnterAnimation } from '../../hooks/use-enter-animation'
 import { useScrollLock } from '../../hooks/use-scroll-lock'
 import { k } from '../../recipes/kata/overlay'
 import { PresencePortal } from '../portal'
@@ -59,6 +60,20 @@ export type OverlayProps = {
 	 */
 	modal?: boolean
 	/**
+	 * Whether the backdrop plays its enter animation on mount.
+	 *
+	 * `false` mounts it already in place. For a surface that is open because the URL says
+	 * so — a restored route, a pasted deep link — the fade announces an opening the user
+	 * never performed, and on a route that remounts it replays on every arrival.
+	 *
+	 * It suppresses that arrival only. A surface that closes and opens again while still
+	 * mounted plays the enter every time, whatever this says: by then the open is the
+	 * user's own doing.
+	 *
+	 * @defaultValue true
+	 */
+	animateOnMount?: boolean
+	/**
 	 * Paint the dimming backdrop independently of modality. A non-modal surface
 	 * (e.g. a hover-revealed sheet) can opt in to blur and dim the page while
 	 * staying interactive: the backdrop inherits the wrapper's
@@ -93,9 +108,12 @@ export function Overlay({
 	initialFocus,
 	modal = true,
 	backdrop = modal,
+	animateOnMount = true,
 	...props
 }: OverlayProps) {
 	const { refs, context } = useFloating({ open, onOpenChange })
+
+	const animateEnter = useEnterAnimation(open, animateOnMount)
 
 	// `PresencePortal` owns the teleport and the mount-while-open lifecycle. An
 	// explicit `container` scopes the overlay to that element (`absolute`, no
@@ -134,6 +152,8 @@ export function Overlay({
 			{backdrop && (
 				<motion.div
 					{...k.motion}
+					// After the preset spread, so it overrides the preset's own `initial`.
+					initial={animateEnter ? k.motion.initial : false}
 					data-slot="overlay-backdrop"
 					className={
 						className ?? cn('absolute inset-0', glass ? k.backdrop.glass : k.backdrop.base)
