@@ -46,6 +46,7 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 | `useA11yDisclosure` | Non-modal trigger↔panel pairing: reciprocal `aria-controls`/`aria-labelledby` (+ optional `aria-expanded`). |
 | `useA11yRoving` | Arrow/Home/End roving over container items: focus or virtual mode, single-Tab-stop ownership, row cross-axis, or an indexed `VirtualItemSource` for windowed lists. |
 | `useA11yAutoFocus` | Moves focus to `ref.current` whenever `when` flips true; re-focuses on false→true. |
+| `useA11yHasTabbable` | Whether a node holds a tab-order descendant, re-measured as its subtree changes; gates a tabpanel's tab stop and an interactive Tooltip's focus trap. |
 | `useA11yLiveRegion` | Props for a consumer-filled live region: status/alert landmark with matching `aria-live`/`aria-atomic`. |
 | `useA11yAnnouncements` | Declaratively narrates a changing status string to the live-region announcer, skipping initial and dupes. |
 | `useAriaIds` | Composes the space-separated id list for `aria-labelledby`/`describedby`; falsy tokens drop, undefined if empty. |

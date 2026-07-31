@@ -40,6 +40,22 @@ export function Demo() {
 				</Tooltip>
 			</Example>
 
+			<Example title="Interactive with controls">
+				<Tooltip interactive>
+					<TooltipTrigger>
+						<Button variant="outline">Hover me</Button>
+					</TooltipTrigger>
+					<TooltipContent>
+						<Flex align="center" gap="sm">
+							Draft saved.
+							<Button size="sm" variant="outline">
+								Undo
+							</Button>
+						</Flex>
+					</TooltipContent>
+				</Tooltip>
+			</Example>
+
 			<Example title="Delay">
 				<Tooltip delay={1000}>
 					<TooltipTrigger>
