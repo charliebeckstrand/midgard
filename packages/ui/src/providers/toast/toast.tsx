@@ -130,10 +130,7 @@ export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: Toas
 		[reset],
 	)
 
-	const publicValue = useMemo<ToastContextValue>(
-		() => ({ toast, dismiss: ({ id }) => dismiss(id) }),
-		[toast, dismiss],
-	)
+	const publicValue = useMemo<ToastContextValue>(() => ({ toast, dismiss }), [toast, dismiss])
 
 	// Viewport value recomputes every render (toasts array); only the viewport
 	// consumes it and re-renders on each push.

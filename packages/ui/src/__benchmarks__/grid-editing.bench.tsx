@@ -26,7 +26,7 @@ const rows10k = makeShipments(10_000)
 // without mounting an editor per cell.
 const editableOf = (_rows: Shipment[]) => ({
 	rows: new Set<string | number>(),
-	onValueChange: noop,
+	onCommit: noop,
 })
 
 describe('Grid · editable initial render', () => {

@@ -263,15 +263,15 @@ describe('useKanbanKeyboard: focus navigation', () => {
 })
 
 describe('useKanbanKeyboard: reordering a lifted card', () => {
-	it('calls onValueChange to move the card down within its column on ArrowDown', () => {
-		const onValueChange = vi.fn()
+	it('calls onReorder to move the card down within its column on ArrowDown', () => {
+		const onReorder = vi.fn()
 
 		const { result } = renderHook(() =>
 			useKanbanKeyboard<Card, Column>({
 				containerRef,
 				columns: makeColumns(),
 				getKey: (i) => i.id,
-				onValueChange,
+				onReorder,
 			}),
 		)
 
@@ -283,22 +283,22 @@ describe('useKanbanKeyboard: reordering a lifted card', () => {
 			result.current.onCardKeyDown('a1', makeKeyEvent('ArrowDown'))
 		})
 
-		expect(onValueChange).toHaveBeenCalledOnce()
+		expect(onReorder).toHaveBeenCalledOnce()
 
-		const next = onValueChange.mock.calls[0]?.[0] as Column[]
+		const next = onReorder.mock.calls[0]?.[0] as Column[]
 
 		expect(next[0]?.items.map((i) => i.id)).toEqual(['a2', 'a1'])
 	})
 
-	it('does not call onValueChange when moving past the end of a column', () => {
-		const onValueChange = vi.fn()
+	it('does not call onReorder when moving past the end of a column', () => {
+		const onReorder = vi.fn()
 
 		const { result } = renderHook(() =>
 			useKanbanKeyboard<Card, Column>({
 				containerRef,
 				columns: makeColumns(),
 				getKey: (i) => i.id,
-				onValueChange,
+				onReorder,
 			}),
 		)
 
@@ -310,18 +310,18 @@ describe('useKanbanKeyboard: reordering a lifted card', () => {
 			result.current.onCardKeyDown('a2', makeKeyEvent('ArrowDown'))
 		})
 
-		expect(onValueChange).not.toHaveBeenCalled()
+		expect(onReorder).not.toHaveBeenCalled()
 	})
 
 	it('moves a card to the next column on ArrowRight when lifted', () => {
-		const onValueChange = vi.fn()
+		const onReorder = vi.fn()
 
 		const { result } = renderHook(() =>
 			useKanbanKeyboard<Card, Column>({
 				containerRef,
 				columns: makeColumns(),
 				getKey: (i) => i.id,
-				onValueChange,
+				onReorder,
 			}),
 		)
 
@@ -333,22 +333,22 @@ describe('useKanbanKeyboard: reordering a lifted card', () => {
 			result.current.onCardKeyDown('a1', makeKeyEvent('ArrowRight'))
 		})
 
-		const next = onValueChange.mock.calls[0]?.[0] as Column[]
+		const next = onReorder.mock.calls[0]?.[0] as Column[]
 
 		expect(next[0]?.items.map((i) => i.id)).toEqual(['a2'])
 
 		expect(next[1]?.items.map((i) => i.id)).toEqual(['b1', 'a1'])
 	})
 
-	it('does not call onValueChange when moving out of bounds between columns', () => {
-		const onValueChange = vi.fn()
+	it('does not call onReorder when moving out of bounds between columns', () => {
+		const onReorder = vi.fn()
 
 		const { result } = renderHook(() =>
 			useKanbanKeyboard<Card, Column>({
 				containerRef,
 				columns: makeColumns(),
 				getKey: (i) => i.id,
-				onValueChange,
+				onReorder,
 			}),
 		)
 
@@ -360,10 +360,10 @@ describe('useKanbanKeyboard: reordering a lifted card', () => {
 			result.current.onCardKeyDown('a1', makeKeyEvent('ArrowLeft'))
 		})
 
-		expect(onValueChange).not.toHaveBeenCalled()
+		expect(onReorder).not.toHaveBeenCalled()
 	})
 
-	it('is a no-op when onValueChange is not provided', () => {
+	it('is a no-op when onReorder is not provided', () => {
 		const { result } = renderHook(() =>
 			useKanbanKeyboard<Card, Column>({
 				containerRef,
@@ -384,14 +384,14 @@ describe('useKanbanKeyboard: reordering a lifted card', () => {
 	})
 
 	it('moves the card up within the column on ArrowUp when lifted', () => {
-		const onValueChange = vi.fn()
+		const onReorder = vi.fn()
 
 		const { result } = renderHook(() =>
 			useKanbanKeyboard<Card, Column>({
 				containerRef,
 				columns: makeColumns(),
 				getKey: (i) => i.id,
-				onValueChange,
+				onReorder,
 			}),
 		)
 
@@ -403,7 +403,7 @@ describe('useKanbanKeyboard: reordering a lifted card', () => {
 			result.current.onCardKeyDown('a2', makeKeyEvent('ArrowUp'))
 		})
 
-		const next = onValueChange.mock.calls[0]?.[0] as Column[]
+		const next = onReorder.mock.calls[0]?.[0] as Column[]
 
 		expect(next[0]?.items.map((i) => i.id)).toEqual(['a2', 'a1'])
 	})
@@ -431,14 +431,14 @@ describe('useKanbanKeyboard: reordering a lifted card', () => {
 	})
 
 	it('does not move when ArrowRight targets a column index past the last one', () => {
-		const onValueChange = vi.fn()
+		const onReorder = vi.fn()
 
 		const { result } = renderHook(() =>
 			useKanbanKeyboard<Card, Column>({
 				containerRef,
 				columns: makeColumns(),
 				getKey: (i) => i.id,
-				onValueChange,
+				onReorder,
 			}),
 		)
 
@@ -454,9 +454,9 @@ describe('useKanbanKeyboard: reordering a lifted card', () => {
 		})
 
 		// b1 moves to column c (empty before), so this DOES reorder; assert it.
-		expect(onValueChange).toHaveBeenCalled()
+		expect(onReorder).toHaveBeenCalled()
 
-		const next = onValueChange.mock.calls[0]?.[0] as Column[]
+		const next = onReorder.mock.calls[0]?.[0] as Column[]
 
 		expect(next[1]?.items).toEqual([])
 
@@ -464,14 +464,14 @@ describe('useKanbanKeyboard: reordering a lifted card', () => {
 	})
 
 	it('does not reorder when the lifted card id is unknown', () => {
-		const onValueChange = vi.fn()
+		const onReorder = vi.fn()
 
 		const { result } = renderHook(() =>
 			useKanbanKeyboard<Card, Column>({
 				containerRef,
 				columns: makeColumns(),
 				getKey: (i) => i.id,
-				onValueChange,
+				onReorder,
 			}),
 		)
 
@@ -483,6 +483,6 @@ describe('useKanbanKeyboard: reordering a lifted card', () => {
 			result.current.onCardKeyDown('ghost', makeKeyEvent('ArrowRight'))
 		})
 
-		expect(onValueChange).not.toHaveBeenCalled()
+		expect(onReorder).not.toHaveBeenCalled()
 	})
 })

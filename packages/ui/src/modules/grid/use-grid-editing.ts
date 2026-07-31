@@ -98,7 +98,7 @@ function flushRow<T>(args: {
 
 /**
  * Flushes every row that left the editable set since the last render: emits its
- * staged changes as one `onValueChange` batch, clears its drafts, and returns the
+ * staged changes as one `onCommit` batch, clears its drafts, and returns the
  * total cells saved across them (for the commit announcement). @internal
  */
 function flushExitedRows<T>(args: {
@@ -108,7 +108,7 @@ function flushExitedRows<T>(args: {
 	columns: GridColumn<T>[]
 	rows: T[]
 	rowKeys: (string | number)[]
-	onValueChange: ((changes: CellChange[]) => void) | undefined
+	onCommit: ((changes: CellChange[]) => void) | undefined
 }): number {
 	let saved = 0
 
@@ -131,7 +131,7 @@ function flushExitedRows<T>(args: {
 
 		if (!changes.length) continue
 
-		args.onValueChange?.(changes)
+		args.onCommit?.(changes)
 
 		saved += changes.length
 	}
@@ -146,7 +146,7 @@ function flushExitedRows<T>(args: {
  * stages into a grid-held ref (no per-keystroke grid render). When a row leaves
  * the set — the consumer's save action, or a grid-owned session exit under
  * `trigger: 'doubleClick'` (an editor's Enter saves, Escape abandons) — its
- * drafts flush as a single {@link CellChange} batch through `onValueChange`,
+ * drafts flush as a single {@link CellChange} batch through `onCommit`,
  * dropping unchanged and invalid cells. Inert when `enabled` is false, so a
  * read-only grid pays nothing.
  *
@@ -192,9 +192,9 @@ export function useGridEditing<T>({
 
 	editableRowsRef.current = editableRows
 
-	const onValueChangeRef = useRef(config?.onValueChange)
+	const onCommitRef = useRef(config?.onCommit)
 
-	onValueChangeRef.current = config?.onValueChange
+	onCommitRef.current = config?.onCommit
 
 	// Staged drafts per editing row, keyed rowKey → (columnId → value). Held in a
 	// ref so staging never re-renders the grid; read at flush time.
@@ -341,7 +341,7 @@ export function useGridEditing<T>({
 			columns: dataColumnsRef.current,
 			rows: rowsRef.current,
 			rowKeys: rowKeysRef.current,
-			onValueChange: onValueChangeRef.current,
+			onCommit: onCommitRef.current,
 		})
 
 		// Announce the commit politely, without moving focus (WCAG 4.1.3).

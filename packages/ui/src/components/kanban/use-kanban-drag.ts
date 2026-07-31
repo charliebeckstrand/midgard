@@ -7,7 +7,7 @@ import type { KanbanColumnBase } from './types'
 
 /** Dependencies threaded to {@link applyKanbanDragOver}. @internal */
 type KanbanDragDeps<T, C extends KanbanColumnBase<T>> = {
-	onValueChange: ((next: C[]) => void) | undefined
+	onReorder: ((next: C[]) => void) | undefined
 	columns: C[]
 	getKey: (item: T) => string
 	findColumnByCardId: (id: string) => C | undefined
@@ -24,9 +24,9 @@ function applyKanbanDragOver<T, C extends KanbanColumnBase<T>>(
 	event: DragOverEvent,
 	deps: KanbanDragDeps<T, C>,
 ): void {
-	const { onValueChange, columns, getKey, findColumnByCardId, findColumn } = deps
+	const { onReorder, columns, getKey, findColumnByCardId, findColumn } = deps
 
-	if (!onValueChange) return
+	if (!onReorder) return
 
 	const { active, over } = event
 
@@ -77,24 +77,24 @@ function applyKanbanDragOver<T, C extends KanbanColumnBase<T>>(
 		return col
 	}) as C[]
 
-	onValueChange(next)
+	onReorder(next)
 }
 
 /**
  * Pointer drag-and-drop for the {@link Kanban} board via `@dnd-kit`. Tracks the
  * `activeId` and overlay, applies cross-column moves live on drag-over and
  * commits same-column reorders on drag-end, emitting the next columns through
- * `onValueChange`. Returns the active id, overlay map, per-column item ids, and
+ * `onReorder`. Returns the active id, overlay map, per-column item ids, and
  * the dnd-kit drag handlers.
  */
 export function useKanbanDrag<T, C extends KanbanColumnBase<T>>({
 	columns,
 	getKey,
-	onValueChange,
+	onReorder,
 }: {
 	columns: C[]
 	getKey: (item: T) => string
-	onValueChange?: (next: C[]) => void
+	onReorder?: (next: C[]) => void
 }) {
 	const [activeId, setActiveId] = useState<string | null>(null)
 
@@ -134,13 +134,13 @@ export function useKanbanDrag<T, C extends KanbanColumnBase<T>>({
 	}
 
 	const handleDragOver = (event: DragOverEvent) => {
-		applyKanbanDragOver(event, { onValueChange, columns, getKey, findColumnByCardId, findColumn })
+		applyKanbanDragOver(event, { onReorder, columns, getKey, findColumnByCardId, findColumn })
 	}
 
 	const handleDragEnd = (event: DragEndEvent) => {
 		setActiveId(null)
 
-		if (!onValueChange) return
+		if (!onReorder) return
 
 		const { active, over } = event
 
@@ -172,7 +172,7 @@ export function useKanbanDrag<T, C extends KanbanColumnBase<T>>({
 		const next = columns.map((col) =>
 			col.id === activeCol.id ? { ...col, items: nextItems } : col,
 		) as C[]
-		onValueChange(next)
+		onReorder(next)
 	}
 
 	const handleDragCancel = () => setActiveId(null)

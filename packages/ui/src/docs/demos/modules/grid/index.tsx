@@ -1715,14 +1715,14 @@ export function Demo() {
 					<Stack gap="xl">
 						<Example
 							title="Editable"
-							code={code`<Grid editable={{ rows, onRowsChange, onValueChange }} />`}
+							code={code`<Grid editable={{ rows, onRowsChange, onCommit }} />`}
 						>
 							<EditableExample />
 						</Example>
 
 						<Example
 							title="Editor types"
-							code={code`<Grid columns={[{ ...col, field, editCell }]} editable={{ rows, onValueChange }} />`}
+							code={code`<Grid columns={[{ ...col, field, editCell }]} editable={{ rows, onCommit }} />`}
 						>
 							<EditorTypesExample />
 						</Example>
