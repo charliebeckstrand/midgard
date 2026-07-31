@@ -29,8 +29,10 @@ export type QueryBuilderRuleProps = {
 
 /**
  * Renders one query rule: field and operator {@link Select}s plus a type-aware
- * value input (suppressed for `noValue` operators) and, when `removable`, a
- * remove button. Changing the field resets the operator and value. Memoized.
+ * value input — replaced, for a `noValue` operator, by its fixed `valueLabel` as
+ * static text ("is" · "Empty") or by nothing when it names none — and, when
+ * `removable`, a remove button. Changing the field resets the operator and
+ * value. Memoized.
  */
 function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilderRuleProps) {
 	const { fields, getField, disabled, hideFieldSelector } = useQueryBuilderState()
@@ -142,6 +144,15 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 						className="w-full"
 					/>
 				)}
+
+				{/* A value-less operator naming a fixed subject ("is" · "Empty") shows it
+				    as static text in the value column, so the rule still reads as a
+				    sentence; there is nothing to edit, hence no control. */}
+				{selectedOperator?.noValue && selectedOperator.valueLabel && (
+					<Flex align="center" full className={cn(k.value)}>
+						{selectedOperator.valueLabel}
+					</Flex>
+				)}
 			</Flex>
 
 			{removable && (
@@ -164,7 +175,7 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 
 /**
  * Renders one query rule within a {@link QueryBuilderGroup}: field and operator
- * {@link Select}s plus a type-aware value input (suppressed for `noValue`
- * operators) and a remove button.
+ * {@link Select}s plus a type-aware value input (a `noValue` operator shows its
+ * fixed `valueLabel` as static text instead) and a remove button.
  */
 export const QueryBuilderRule = memo(QueryBuilderRuleImpl)

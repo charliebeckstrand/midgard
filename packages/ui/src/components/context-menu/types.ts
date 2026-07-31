@@ -19,7 +19,7 @@ export type ContextMenuItem = {
 	/** Leading icon element (e.g. a Lucide icon), rendered through `Icon`. */
 	icon?: ReactElement
 	/** Runs when the entry is chosen; the menu closes afterward. */
-	onSelect: () => void
+	onSelect?: () => void
 	/** Render the entry inert and dimmed. @defaultValue false */
 	disabled?: boolean
 }
@@ -35,8 +35,31 @@ export type ContextMenuSeparator = {
 	separator: true
 }
 
-/** One rendered row of a context menu: an actionable {@link ContextMenuItem} or a {@link ContextMenuSeparator}. */
-export type ContextMenuEntry = ContextMenuItem | ContextMenuSeparator
+/**
+ * A row that opens a nested menu beside itself rather than acting: the parent
+ * label a group of related entries collapses under (a column menu's Sort, Pin,
+ * or Export), revealed on hover or ArrowRight. Nests arbitrarily — a submenu's
+ * `items` may hold submenus of their own.
+ */
+export type ContextMenuSubmenu = {
+	/** Stable identity for the row, used as its React key. */
+	key?: string
+	/** The parent row's label. */
+	label: ReactNode
+	/** Leading icon element (e.g. a Lucide icon), rendered through `Icon`. */
+	icon?: ReactElement
+	/** Render the row inert and dimmed; the submenu never opens. @defaultValue false */
+	disabled?: boolean
+	/** The rows the submenu reveals, in order. */
+	items: ContextMenuEntry[]
+}
+
+/**
+ * One rendered row of a context menu: an actionable {@link ContextMenuItem}, a
+ * {@link ContextMenuSeparator}, or a {@link ContextMenuSubmenu} that opens a
+ * nested menu.
+ */
+export type ContextMenuEntry = ContextMenuItem | ContextMenuSeparator | ContextMenuSubmenu
 
 /** Where a caller's custom items sit relative to a host's default items. @see {@link ContextMenuConfig.position} */
 export type ContextMenuPosition = 'before' | 'after'

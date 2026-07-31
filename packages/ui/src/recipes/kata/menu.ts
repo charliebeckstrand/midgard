@@ -3,9 +3,10 @@
  * The `item` and `viewport` sub-recipes carry the density- and size-axed
  * option row and the capped scroll container; the rest are static slots —
  * `content` (the panel box), `section`, `heading`, `label`, `description`,
- * `shortcut`, and the `separator` divider.
+ * `shortcut`, the `subTrigger` wash on an open submenu parent, and the
+ * `separator` divider.
  */
-import { defineRecipe } from '../../core/recipe'
+import { defineRecipe, mode } from '../../core/recipe'
 import { hannou, iro, ji, narabi, sen } from '../kiso'
 
 const { text } = iro
@@ -61,6 +62,10 @@ const viewport = defineRecipe({
 
 export const k = {
 	content: 'min-w-48',
+	// A `MenuSub` parent keeps its wash while the panel is open (`data-open`), so
+	// the row the pointer travelled from still reads as the live trail back —
+	// `hannou.item`'s hover tint alone drops the moment the pointer leaves it.
+	subTrigger: mode('data-open:bg-zinc-950/5', 'dark:data-open:bg-white/5'),
 	viewport,
 	item,
 	section: 'first:pt-0 last:pb-0',

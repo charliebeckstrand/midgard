@@ -162,6 +162,9 @@ describe('Grid export', () => {
 
 	const openExportMenu = () => fireEvent.click(screen.getByRole('button', { name: 'Export' }))
 
+	/** Opens the Export parent inside an open context menu (the toolbar's twin, one level in). */
+	const openExportSubmenu = () => fireEvent.click(screen.getByRole('menuitem', { name: 'Export' }))
+
 	it('omits every export item and the toolbar button when exportable is false', () => {
 		renderUI(<Grid exportable={false} columns={columns} rows={rows} getKey={getKey} />)
 
@@ -177,6 +180,8 @@ describe('Grid export', () => {
 
 		rightClickHeader('Name')
 
+		openExportSubmenu()
+
 		expect(screen.getByRole('menuitem', { name: 'Export to CSV' })).toBeInTheDocument()
 
 		expect(screen.getByRole('menuitem', { name: 'Export to Excel' })).toBeInTheDocument()
@@ -189,6 +194,8 @@ describe('Grid export', () => {
 		renderUI(<Grid exportable columns={columns} rows={rows} getKey={getKey} />)
 
 		rightClickHeader('Name')
+
+		openExportSubmenu()
 
 		expect(screen.getByRole('menuitem', { name: 'Export to CSV' })).toBeInTheDocument()
 
@@ -458,12 +465,16 @@ describe('Grid export', () => {
 
 		rightClickHeader('Name')
 
+		openExportSubmenu()
+
 		// Both keys resolve to their own action; the second is no longer dropped.
 		fireEvent.click(screen.getByRole('menuitem', { name: 'Export to CSV' }))
 
 		expect(csv).toHaveBeenCalledTimes(1)
 
 		rightClickHeader('Name')
+
+		openExportSubmenu()
 
 		fireEvent.click(screen.getByRole('menuitem', { name: 'Export to pdf' }))
 
@@ -568,6 +579,67 @@ describe('Grid export', () => {
 		const blob = createObjectURL.mock.calls[0]?.[0] as Blob
 
 		expect(await blob.text()).toContain('Carol,Manager')
+
+		click.mockRestore()
+	})
+
+	it('swaps the download icon for a spinner while an async export is in flight', async () => {
+		const createObjectURL = vi.fn().mockReturnValue('blob:mock')
+
+		URL.createObjectURL = createObjectURL
+
+		URL.revokeObjectURL = vi.fn()
+
+		const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+
+		let release: (rows: Row[]) => void = () => {}
+
+		const fetchAll = () =>
+			new Promise<Row[]>((resolve) => {
+				release = resolve
+			})
+
+		renderUI(
+			<Grid
+				exportable={['csv']}
+				columns={columns}
+				rows={pageRow}
+				getKey={getKey}
+				exportRows={fetchAll}
+			/>,
+		)
+
+		const trigger = screen.getByRole('button', { name: 'Export' })
+
+		// At rest the trigger carries the download icon and no spinner.
+		expect(trigger.querySelector('svg.lucide-download')).not.toBeNull()
+
+		expect(trigger.querySelector('[data-slot="loading-spinner"]')).toBeNull()
+
+		openExportMenu()
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Export to CSV' }))
+
+		// While the fetch is pending the spinner replaces the icon — the two never
+		// render side by side — and the trigger gates re-activation.
+		await waitFor(() =>
+			expect(trigger.querySelector('[data-slot="loading-spinner"]')).not.toBeNull(),
+		)
+
+		expect(trigger.querySelector('svg.lucide-download')).toBeNull()
+
+		expect(trigger).toBeDisabled()
+
+		release(fullList)
+
+		// Settling restores the icon, drops the spinner, and re-enables the trigger.
+		await waitFor(() => expect(trigger.querySelector('[data-slot="loading-spinner"]')).toBeNull())
+
+		expect(trigger.querySelector('svg.lucide-download')).not.toBeNull()
+
+		expect(trigger).toBeEnabled()
+
+		expect(createObjectURL).toHaveBeenCalledTimes(1)
 
 		click.mockRestore()
 	})

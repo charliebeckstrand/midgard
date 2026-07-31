@@ -43,18 +43,17 @@ function buildAction<T>(
 			// preserving the click-time download; a promised one (an
 			// {@link GridDataProps.exportRows} server round-trip) defers it until
 			// the rows land, surfacing a failed fetch as a dev-only warning rather
-			// than an unhandled rejection.
+			// than an unhandled rejection. The chain is returned so a caller can
+			// track the in-flight export (see {@link GridExportAction.run}).
 			if (context instanceof Promise) {
-				void context.then(exporter).catch((error) => {
+				return context.then(exporter).catch((error) => {
 					if (process.env.NODE_ENV !== 'production') {
 						console.error(`Grid: export type "${type}" failed to resolve its rows.`, error)
 					}
 				})
-
-				return
 			}
 
-			exporter(context)
+			return exporter(context)
 		},
 	}
 }

@@ -3,6 +3,17 @@ import { Badge } from '../../components/badge'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { fireEvent, renderUI, waitFor } from '../helpers'
 
+/** Opens the header menu's Auto-size parent, which holds both fits. */
+const openAutoSizeMenu = () => {
+	const parent = Array.from(document.querySelectorAll('[role="menuitem"]')).find(
+		(el) => el.textContent?.trim() === 'Auto-size',
+	)
+
+	if (!parent) throw new Error('no Auto-size menu')
+
+	fireEvent.click(parent)
+}
+
 /**
  * Content-aware column auto-sizing against a real layout engine. The autosizer
  * reads the container width and the rendered cells' intrinsic widths, then writes
@@ -238,6 +249,8 @@ describe('grid column auto-sizing (real browser)', () => {
 
 		fireEvent.contextMenu(header('big'))
 
+		openAutoSizeMenu()
+
 		const item = Array.from(document.querySelectorAll('[role="menuitem"]')).find((el) =>
 			el.textContent?.includes('Auto-size all columns'),
 		)
@@ -263,6 +276,8 @@ describe('grid column auto-sizing (real browser)', () => {
 		await waitFor(() => expect(header('name').getBoundingClientRect().width).toBeGreaterThan(250))
 
 		fireEvent.contextMenu(header('name'))
+
+		openAutoSizeMenu()
 
 		const item = Array.from(document.querySelectorAll('[role="menuitem"]')).find((el) =>
 			el.textContent?.includes('Auto-size this column'),
@@ -301,6 +316,8 @@ describe('grid column auto-sizing (real browser)', () => {
 		await waitFor(() => expect(leaf().scrollWidth).toBeGreaterThan(leaf().clientWidth + 1))
 
 		fireEvent.contextMenu(header('big'))
+
+		openAutoSizeMenu()
 
 		const item = Array.from(document.querySelectorAll('[role="menuitem"]')).find((el) =>
 			el.textContent?.includes('Auto-size this column'),

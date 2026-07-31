@@ -72,6 +72,12 @@ describe('formatQuerySummary', () => {
 		expect(line([createRule(verifiedField)])).toBe('Verified is true')
 	})
 
+	it('renders a value-less operator’s fixed value label', () => {
+		expect(line([rule(nameField, { operator: 'isEmpty', value: '' })])).toBe('Name is Empty')
+
+		expect(line([rule(nameField, { operator: 'isNotEmpty', value: '' })])).toBe('Name is not Empty')
+	})
+
 	it('renders a number operator by its symbol', () => {
 		expect(line([rule(ageField, { operator: 'gt', value: 30 })])).toBe('Age > 30')
 	})
@@ -154,10 +160,16 @@ describe('summarizeQuery', () => {
 		>([{ kind: 'rule', field: 'Status', operator: 'is', value: 'Active' }])
 	})
 
-	it('omits the value key for a value-less operator', () => {
+	it('omits the value key for a value-less operator naming no value label', () => {
 		const [token] = stream([createRule(verifiedField)])
 
 		expect(token).toEqual({ kind: 'rule', field: 'Verified', operator: 'is true' })
+	})
+
+	it('carries a value-less operator’s value label as the token value', () => {
+		const [token] = stream([rule(nameField, { operator: 'isEmpty', value: '' })])
+
+		expect(token).toEqual({ kind: 'rule', field: 'Name', operator: 'is', value: 'Empty' })
 	})
 
 	it('resolves the combinator to its AND/OR label', () => {

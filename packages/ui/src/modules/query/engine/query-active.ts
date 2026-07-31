@@ -42,7 +42,7 @@ export function resolveRule(
 
 /**
  * Whether a resolved operator and value constrain the result: a value-less
- * operator (`is empty`, `is true`) always does; any other needs a non-empty
+ * operator (`is Empty`, `is true`) always does; any other needs a non-empty
  * value. The one definition of "active", shared by the query judgement and the
  * summary.
  *
@@ -67,7 +67,7 @@ function isRuleActive(rule: QueryRule, fields: QueryField[]): boolean {
 /**
  * Whether a query would actually constrain its result: true when any rule (at
  * any depth) carries a non-empty value or uses a value-less operator (`is
- * empty`, `is true`, …). A tree of only blank rules — what a freshly seeded or
+ * Empty`, `is true`, …). A tree of only blank rules — what a freshly seeded or
  * fully cleared builder leaves behind — reads as inactive, so a filter
  * affordance can reflect a real constraint rather than the mere presence of a
  * rule.

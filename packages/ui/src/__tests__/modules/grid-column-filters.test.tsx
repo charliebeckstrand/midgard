@@ -34,7 +34,7 @@ describe('Grid per-column filters', () => {
 	const blankRule = () =>
 		createGroup('and', [{ ...createRule(nameField), operator: 'contains', value: '' }])
 
-	/** A value-less "is empty" rule: a real constraint that carries no value. */
+	/** A value-less "is Empty" rule: a real constraint that carries no value. */
 	const nameIsEmpty = () =>
 		createGroup('and', [{ ...createRule(nameField), operator: 'isEmpty', value: '' }])
 
@@ -326,8 +326,8 @@ describe('Grid per-column filters', () => {
 		expect(screen.getByRole('textbox', { name: 'Name value' })).toHaveValue('')
 	})
 
-	it('accents the button for a value-less operator (is empty)', () => {
-		// "is empty" filters without a value; it is a real constraint, so the
+	it('accents the button for a value-less operator (is Empty)', () => {
+		// "is Empty" filters without a value; it is a real constraint, so the
 		// button reads as active even though the rule has no value.
 		renderUI(
 			<Grid

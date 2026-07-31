@@ -67,7 +67,7 @@ const matchers: Record<string, (fieldValue: unknown, ruleValue: unknown) => bool
  * Tests one operator against a field value and a rule value. Three cases pass as
  * "no constraint" so a half-built or cleared rule never hides rows: an unknown
  * operator, and a value-requiring operator whose value is empty (a blank text
- * box, a cleared date, an all-blank range). Value-less operators (`is empty`,
+ * box, a cleared date, an all-blank range). Value-less operators (`is Empty`,
  * `is true`, …) evaluate regardless.
  */
 export function matchQueryRule(operator: string, fieldValue: unknown, ruleValue: unknown): boolean {

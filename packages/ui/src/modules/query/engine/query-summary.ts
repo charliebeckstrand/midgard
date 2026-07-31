@@ -3,9 +3,10 @@ import type { QueryField, QueryGroup, QueryOperator, QueryRule } from './types'
 
 /**
  * One active rule as three resolved, display-ready parts: the field and
- * operator labels and, unless the operator is value-less (`is empty`, `is
- * true`), its value. A `select` value resolves to its option label; a
- * one-sided range renders as a `≥`/`≤` bound.
+ * operator labels and its value — the rule's own, the operator's fixed
+ * `valueLabel` (`is Empty`), or none at all for a value-less operator without
+ * one (`is true`). A `select` value resolves to its option label; a one-sided
+ * range renders as a `≥`/`≤` bound.
  *
  * @internal
  */
@@ -81,7 +82,16 @@ function describeRule(rule: QueryRule, fields: QueryField[]): QuerySummaryRuleTo
 
 	const label = field?.label ?? rule.field
 
-	if (operator?.noValue) return { kind: 'rule', field: label, operator: operator.label }
+	// A value-less operator carries no rule value; it renders its fixed
+	// `valueLabel` ("is Empty") when it names one, else operator alone ("is true").
+	if (operator?.noValue) {
+		return {
+			kind: 'rule',
+			field: label,
+			operator: operator.label,
+			...(operator.valueLabel ? { value: operator.valueLabel } : {}),
+		}
+	}
 
 	if (operator?.range) return describeRange(label, operator, rule.value)
 

@@ -3,7 +3,6 @@
 import { Calendar as CalendarIcon } from 'lucide-react'
 import { Button } from '../button'
 import { Icon } from '../icon'
-import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 
 /** Props for {@link DatePickerCalendarButton}. @internal */
 type DatePickerCalendarButtonProps = {
@@ -27,21 +26,16 @@ export function DatePickerCalendarButton({
 	const label = open ? 'Close calendar' : 'Open calendar'
 
 	return (
-		<Tooltip>
-			<TooltipTrigger>
-				<Button
-					type="button"
-					variant="bare"
-					aria-label={label}
-					aria-haspopup="dialog"
-					aria-expanded={open}
-					disabled={disabled}
-					onClick={onActivate}
-				>
-					<Icon icon={<CalendarIcon />} />
-				</Button>
-			</TooltipTrigger>
-			<TooltipContent>{label}</TooltipContent>
-		</Tooltip>
+		<Button
+			type="button"
+			variant="bare"
+			aria-label={label}
+			aria-haspopup="dialog"
+			aria-expanded={open}
+			disabled={disabled}
+			onClick={onActivate}
+		>
+			<Icon icon={<CalendarIcon />} />
+		</Button>
 	)
 }

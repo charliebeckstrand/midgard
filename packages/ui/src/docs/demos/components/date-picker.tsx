@@ -46,7 +46,7 @@ export function Demo() {
 
 			<Example title="Footer toggles">
 				<DatePicker
-					footer={{ clear: false }}
+					footer={{ clear: false, today: false }}
 					value={footerDate}
 					onValueChange={setFooterDate}
 					placeholder="No Clear button"

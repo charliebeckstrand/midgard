@@ -12,12 +12,14 @@ import {
 	Download,
 	Group,
 	MoveHorizontal,
+	Pin,
 	PinOff,
 	Printer,
 	StretchHorizontal,
 	Ungroup,
 } from 'lucide-react'
 import type { ReactElement, ReactNode } from 'react'
+import { mergeContextMenuItems } from '../../components/context-menu'
 import { isDataColumn } from '../../utilities'
 import { columnLabel } from './engine/grid-column/label'
 import type { GridExportAction } from './engine/grid-export/types'
@@ -35,7 +37,7 @@ function exportIcon(type: GridExportAction['type']): ReactElement {
 	return type === 'print' ? <Printer /> : <Download />
 }
 
-/** Maps active export actions to menu items — the shape the column and cell menus each append. @internal */
+/** Maps active export actions to menu items — the rows the Export submenu holds in the column and cell menus. @internal */
 function exportMenuItems(exportActions: GridExportAction[]): GridMenuItem[] {
 	return exportActions.map((action) => ({
 		key: `export-${action.type}`,
@@ -43,6 +45,112 @@ function exportMenuItems(exportActions: GridExportAction[]): GridMenuItem[] {
 		icon: exportIcon(action.type),
 		onSelect: action.run,
 	}))
+}
+
+/**
+ * Collapses a group of related rows under one parent that opens them on hover
+ * — the Sort / Pin / Export / Auto-size menus a grid's context menu is built
+ * from. A lone row needs no parent to disambiguate it and renders in place
+ * (a grid exporting one format offers "Export to CSV" outright, not an Export
+ * menu holding it); an empty group contributes nothing.
+ *
+ * @returns The rows to splice into the menu: one submenu entry, the lone item,
+ * or nothing.
+ * @internal
+ */
+function submenuItems(args: {
+	key: string
+	label: string
+	icon: ReactElement
+	items: GridMenuItem[]
+}): GridMenuItem[] {
+	const { key, label, icon, items } = args
+
+	if (items.length < 2) return items
+
+	return [{ key, label, icon, items }]
+}
+
+/**
+ * The sort rows for a column's menu: "Sort ascending" / "Sort descending", plus
+ * "Clear sort" once the column carries the active sort. Empty when the column
+ * doesn't sort, which withholds the Sort menu entirely.
+ *
+ * @internal
+ */
+function sortMenuItems<T>(args: {
+	column: GridColumn<T>
+	sortDirection: 'asc' | 'desc' | undefined
+	sortColumn: SortColumn
+	clearSort: () => void
+}): GridMenuItem[] {
+	const { column, sortDirection, sortColumn, clearSort } = args
+
+	if (column.sortable === false) return []
+
+	const items: GridMenuItem[] = [
+		{
+			key: 'sort-asc',
+			label: 'Sort ascending',
+			icon: <ArrowUp />,
+			onSelect: () => sortColumn(column.id, 'asc'),
+		},
+		{
+			key: 'sort-desc',
+			label: 'Sort descending',
+			icon: <ArrowDown />,
+			onSelect: () => sortColumn(column.id, 'desc'),
+		},
+	]
+
+	if (sortDirection) {
+		items.push({
+			key: 'clear-sort',
+			label: 'Clear sort',
+			icon: <ArrowUpDown />,
+			onSelect: clearSort,
+		})
+	}
+
+	return items
+}
+
+/**
+ * The auto-size rows for a column's menu: "Auto-size this column" — a
+ * per-column fit, offered only on a resizable data column, since a selection or
+ * actions column has no content to fit — then the grid-wide "Auto-size all
+ * columns". Empty when the grid is not resizable.
+ *
+ * @internal
+ */
+function autoSizeMenuItems<T>(args: {
+	column: GridColumn<T>
+	autoSizeColumn: ((column: string | number) => void) | null
+	autoSizeColumns: (() => void) | null
+}): GridMenuItem[] {
+	const { column, autoSizeColumn, autoSizeColumns } = args
+
+	const items: GridMenuItem[] = []
+
+	if (autoSizeColumn && isDataColumn(column)) {
+		items.push({
+			key: 'auto-size-column',
+			label: 'Auto-size this column',
+			icon: <MoveHorizontal />,
+			onSelect: () => autoSizeColumn(column.id),
+		})
+	}
+
+	if (autoSizeColumns) {
+		items.push({
+			key: 'auto-size',
+			label: 'Auto-size all columns',
+			icon: <StretchHorizontal />,
+			onSelect: autoSizeColumns,
+		})
+	}
+
+	return items
 }
 
 /** Sets the sort to a column in a fixed direction. @internal */
@@ -152,15 +260,17 @@ export function pinChoiceIcon(key: PinMenuChoice['key']): ReactElement {
 }
 
 /**
- * Default header-menu items: sort controls (when the column sorts) with a
- * "Clear sort" once it is the sorted column, the column's pin controls (Pin
- * left / Pin right / Unpin), the group-by toggle (when the column is groupable
- * and the group button is on), and "Auto-size this column" (when resizing is on
- * and the column carries data) closing out the column's own actions, then the
- * table-wide tools under a separator — "Auto-size all columns" (when resizing is
- * on), "Manage columns" (when a manager is reachable), and one item per active
- * export type (when export is on).
+ * Default header-menu items, consolidated into hover-opened submenus so the
+ * menu opens one row per concern rather than a dozen flat actions: Sort (the
+ * sort controls, with "Clear sort" once the column is the sorted one), Pin (Pin
+ * left / Pin right / Unpin), the group-by toggle — a single action, so it stays
+ * a plain row — and Auto-size (this column, then all columns), then the
+ * table-wide tools under a separator: "Manage columns" (when a manager is
+ * reachable) and Export (one row per active export type).
  *
+ * @remarks Each menu withholds itself when it has nothing to offer — a locked
+ * column shows no Pin, an unsortable one no Sort — and collapses to a plain row
+ * when it holds a single action, so no submenu ever opens onto one item.
  * @internal
  */
 export function columnMenuDefaults<T>(args: ColumnMenuDefaultArgs<T>): GridMenuItem[] {
@@ -177,67 +287,33 @@ export function columnMenuDefaults<T>(args: ColumnMenuDefaultArgs<T>): GridMenuI
 		exportActions,
 	} = args
 
-	const items: GridMenuItem[] = []
-
-	if (column.sortable !== false) {
-		items.push(
-			{
-				key: 'sort-asc',
-				label: 'Sort ascending',
-				icon: <ArrowUp />,
-				onSelect: () => sortColumn(column.id, 'asc'),
-			},
-			{
-				key: 'sort-desc',
-				label: 'Sort descending',
-				icon: <ArrowDown />,
-				onSelect: () => sortColumn(column.id, 'desc'),
-			},
-		)
-
-		if (sortDirection) {
-			items.push({
-				key: 'clear-sort',
-				label: 'Clear sort',
-				icon: <ArrowUpDown />,
-				onSelect: clearSort,
-			})
-		}
-	}
-
-	// Pin controls sit with the column's own actions, above the table-wide tools.
-	items.push(...pinMenuItems(column, pinColumn))
-
-	// Grouping follows the pin controls.
-	items.push(...groupMenuItems(column, groupBy))
-
-	// "Auto-size this column" closes out the column's own actions: a per-column
-	// fit sitting alongside sort, pin, and group, distinct from the grid-wide
-	// "Auto-size all columns" below the separator. Only a resizable data column
-	// offers it — a selection or actions column has no content to fit.
-	if (autoSizeColumn && isDataColumn(column)) {
-		items.push({
-			key: 'auto-size-column',
-			label: 'Auto-size this column',
-			icon: <MoveHorizontal />,
-			onSelect: () => autoSizeColumn(column.id),
-		})
-	}
+	// The clicked column's own actions, in the order the header reads them:
+	// sort, pin, group, then the fit that closes them out.
+	const actions: GridMenuItem[] = [
+		...submenuItems({
+			key: 'sort',
+			label: 'Sort',
+			icon: <ArrowUpDown />,
+			items: sortMenuItems({ column, sortDirection, sortColumn, clearSort }),
+		}),
+		...submenuItems({
+			key: 'pin',
+			label: 'Pin',
+			icon: <Pin />,
+			items: pinMenuItems(column, pinColumn),
+		}),
+		...groupMenuItems(column, groupBy),
+		...submenuItems({
+			key: 'auto-size-menu',
+			label: 'Auto-size',
+			icon: <StretchHorizontal />,
+			items: autoSizeMenuItems({ column, autoSizeColumn, autoSizeColumns }),
+		}),
+	]
 
 	// Table-wide tools sit under a separator, set off from the clicked column's
-	// own actions. "Auto-size all columns" leads them: it re-fits every column,
-	// not just the one clicked, so it belongs with the grid-wide tools rather
-	// than the column's actions above.
+	// own actions above.
 	const tools: GridMenuItem[] = []
-
-	if (autoSizeColumns) {
-		tools.push({
-			key: 'auto-size',
-			label: 'Auto-size all columns',
-			icon: <StretchHorizontal />,
-			onSelect: autoSizeColumns,
-		})
-	}
 
 	if (chooseColumns) {
 		tools.push({
@@ -248,23 +324,23 @@ export function columnMenuDefaults<T>(args: ColumnMenuDefaultArgs<T>): GridMenuI
 		})
 	}
 
-	tools.push(...exportMenuItems(exportActions))
+	tools.push(
+		...submenuItems({
+			key: 'export',
+			label: 'Export',
+			icon: <Download />,
+			items: exportMenuItems(exportActions),
+		}),
+	)
 
-	if (tools.length > 0) {
-		if (items.length > 0) items.push({ key: 'tools-separator', separator: true })
-
-		items.push(...tools)
-	}
-
-	return items
+	return mergeContextMenuItems([actions, tools])
 }
 
 /**
- * Default cell-menu items: Copy, then — when export is on — one item per
- * active export type under a separator. Copy acts on the right-clicked cell;
- * export is a grid-wide tool (scoped to the selection when rows are selected),
- * so it sits apart below the divider, mirroring the column menu's grouping of
- * its table-wide tools.
+ * Default cell-menu items: Copy, then — when export is on — the Export submenu
+ * under a separator. Copy acts on the right-clicked cell; export is a grid-wide
+ * tool (scoped to the selection when rows are selected), so it sits apart below
+ * the divider, mirroring the column menu's grouping of its table-wide tools.
  *
  * @internal
  */
@@ -272,13 +348,16 @@ export function cellMenuDefaults(
 	copy: () => void,
 	exportActions: GridExportAction[],
 ): GridMenuItem[] {
-	const items: GridMenuItem[] = [{ key: 'copy', label: 'Copy', icon: <Copy />, onSelect: copy }]
+	const copyItem: GridMenuItem = { key: 'copy', label: 'Copy', icon: <Copy />, onSelect: copy }
 
-	if (exportActions.length > 0) {
-		items.push({ key: 'export-separator', separator: true }, ...exportMenuItems(exportActions))
-	}
+	const exports = submenuItems({
+		key: 'export',
+		label: 'Export',
+		icon: <Download />,
+		items: exportMenuItems(exportActions),
+	})
 
-	return items
+	return mergeContextMenuItems([[copyItem], exports])
 }
 
 /**
