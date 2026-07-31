@@ -8,7 +8,7 @@ import {
 	resolveContextMenuEntries,
 } from '../../components/context-menu'
 import { Menu, MenuContent } from '../../components/menu'
-import { act, bySlot, fireEvent, noop, renderUI, screen, withFakeTime } from '../helpers'
+import { act, bySlot, fireEvent, noop, renderUI, screen } from '../helpers'
 
 const defaults: ContextMenuItem[] = [
 	{ key: 'a', label: 'Alpha', onSelect: noop },
@@ -189,6 +189,9 @@ describe('ContextMenuList submenus', () => {
 		},
 	]
 
+	/** The pointer settling on `row` — the arrival a menu reads its cursor off. */
+	const settle = (row: HTMLElement) => fireEvent.pointerMove(row, { pointerType: 'mouse' })
+
 	it('renders a submenu entry as one parent row, its own rows withheld until opened', () => {
 		open(pinEntries())
 
@@ -201,38 +204,62 @@ describe('ContextMenuList submenus', () => {
 		expect(screen.queryByRole('menuitem', { name: 'Pin left' })).not.toBeInTheDocument()
 	})
 
-	it('opens the submenu on hover without moving focus', () => {
+	it('opens the submenu the moment the pointer reaches its parent row', () => {
 		open(pinEntries())
 
 		const trigger = screen.getByRole('menuitem', { name: 'Pin' })
 
-		fireEvent.pointerEnter(trigger, { pointerType: 'mouse' })
+		// Nothing waits on a clock: the panel is up in the same frame the cursor
+		// lands on the row.
+		settle(trigger)
 
 		expect(screen.getByRole('menuitem', { name: 'Pin left' })).toBeInTheDocument()
 
-		// Hover is not a commitment: focus stays where the user left it.
-		expect(document.activeElement).not.toBe(screen.getByRole('menuitem', { name: 'Pin left' }))
+		// Hover is not a commitment: it leaves the cursor on the parent row rather
+		// than seating it inside the panel.
+		expect(trigger).toHaveFocus()
 	})
 
-	it('closes once the pointer leaves both the parent row and the panel', async () => {
-		await withFakeTime(async (clock) => {
-			open(pinEntries())
+	it('carries the roving cursor with the pointer, one row lit at a time', () => {
+		open([...pinEntries(), { key: 'copy', label: 'Copy', onSelect: noop }])
 
-			const trigger = screen.getByRole('menuitem', { name: 'Pin' })
+		const copy = screen.getByRole('menuitem', { name: 'Copy' })
 
-			fireEvent.pointerEnter(trigger, { pointerType: 'mouse' })
+		// No dwell on the cursor: the row under the pointer takes it outright, so a
+		// menu never shows a hover wash beside a stale focus ring.
+		settle(copy)
 
-			fireEvent.pointerLeave(trigger)
+		expect(copy).toHaveFocus()
 
-			// The grace period keeps it open for a diagonal sweep into the panel.
-			await clock.advance(50)
+		const trigger = screen.getByRole('menuitem', { name: 'Pin' })
 
-			expect(screen.getByRole('menuitem', { name: 'Pin left' })).toBeInTheDocument()
+		settle(trigger)
 
-			await clock.advance(200)
+		expect(trigger).toHaveFocus()
+	})
 
-			expect(screen.queryByRole('menuitem', { name: 'Pin left' })).not.toBeInTheDocument()
-		})
+	it('carries the open panel from row to row, and clears it on a plain one', () => {
+		open([
+			...pinEntries(),
+			{ key: 'sort', label: 'Sort', items: [{ key: 'asc', label: 'Ascending' }] },
+			{ key: 'copy', label: 'Copy', onSelect: noop },
+		])
+
+		settle(screen.getByRole('menuitem', { name: 'Pin' }))
+
+		expect(screen.getByRole('menuitem', { name: 'Pin left' })).toBeInTheDocument()
+
+		// One panel to a level, and it changes hands with the cursor.
+		settle(screen.getByRole('menuitem', { name: 'Sort' }))
+
+		expect(screen.queryByRole('menuitem', { name: 'Pin left' })).not.toBeInTheDocument()
+
+		expect(screen.getByRole('menuitem', { name: 'Ascending' })).toBeInTheDocument()
+
+		// A row with no submenu of its own leaves the level bare.
+		settle(screen.getByRole('menuitem', { name: 'Copy' }))
+
+		expect(screen.queryByRole('menuitem', { name: 'Ascending' })).not.toBeInTheDocument()
 	})
 
 	it('opens on Enter and seats focus on the first row', () => {
@@ -262,13 +289,9 @@ describe('ContextMenuList submenus', () => {
 	it('closes when the roving cursor moves off the parent row', () => {
 		open([...pinEntries(), { key: 'copy', label: 'Copy', onSelect: noop }])
 
-		const trigger = screen.getByRole('menuitem', { name: 'Pin' })
-
 		// Hover-opened, so the cursor is still on the parent row rather than inside
 		// the panel.
-		fireEvent.pointerEnter(trigger, { pointerType: 'mouse' })
-
-		act(() => trigger.focus())
+		settle(screen.getByRole('menuitem', { name: 'Pin' }))
 
 		expect(screen.getByRole('menuitem', { name: 'Pin left' })).toBeInTheDocument()
 
@@ -376,7 +399,7 @@ describe('ContextMenuList submenus', () => {
 
 		const trigger = screen.getByRole('menuitem', { name: 'Pin' })
 
-		fireEvent.pointerEnter(trigger, { pointerType: 'mouse' })
+		settle(trigger)
 
 		fireEvent.keyDown(trigger, { key: 'Escape' })
 

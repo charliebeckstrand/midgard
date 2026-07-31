@@ -1,13 +1,14 @@
 'use client'
 
 import { type KeyboardEvent, type MouseEvent, type ReactNode, useId } from 'react'
-import { ariaAttr, cn, dataAttr } from '../../core'
+import { ariaAttr, cn, composeEventHandlers, dataAttr } from '../../core'
 import { useDensity } from '../../primitives/density'
 import { useLink } from '../../primitives/link'
 import type { PolymorphicProps } from '../../primitives/polymorphic'
 import { k } from '../../recipes/kata/menu'
 import { useMenuActions } from './context'
 import { handleMenuItemClick, handleMenuItemKeyDown } from './menu-item-utilities'
+import { useMenuRowPointer } from './use-menu-pointer'
 
 type MenuItemBaseProps = {
 	disabled?: boolean
@@ -53,6 +54,11 @@ export function MenuItem(props: MenuItemProps) {
 		close()
 	}
 
+	// The pointer moves the same cursor the arrows do, so the menu carries one
+	// highlight rather than a hover wash beside a stale focus ring, and a rove
+	// picks up from the row the pointer left off on.
+	const handlePointerMove = useMenuRowPointer(disabled)
+
 	const classes = cn('group/option', k.item({ density: space, size }), className)
 
 	if (props.href !== undefined) {
@@ -82,6 +88,7 @@ export function MenuItem(props: MenuItemProps) {
 			children: _children,
 			onAction: _onAction,
 			onClick: consumerOnClick,
+			onPointerMove: consumerOnPointerMove,
 			...rest
 		} = props
 
@@ -100,6 +107,7 @@ export function MenuItem(props: MenuItemProps) {
 				onClick={(event: MouseEvent<HTMLAnchorElement>) =>
 					handleMenuItemClick(event, consumerOnClick, handleSelect)
 				}
+				onPointerMove={composeEventHandlers(consumerOnPointerMove, handlePointerMove)}
 			>
 				{children}
 			</LinkComponent>
@@ -114,6 +122,7 @@ export function MenuItem(props: MenuItemProps) {
 		onAction: _onAction,
 		onClick: consumerOnClick,
 		onKeyDown: consumerOnKeyDown,
+		onPointerMove: consumerOnPointerMove,
 		...rest
 	} = props
 
@@ -140,6 +149,7 @@ export function MenuItem(props: MenuItemProps) {
 			onKeyDown={(event: KeyboardEvent<HTMLButtonElement>) =>
 				handleMenuItemKeyDown(event, consumerOnKeyDown, handleSelect, disabled)
 			}
+			onPointerMove={composeEventHandlers(consumerOnPointerMove, handlePointerMove)}
 		>
 			{children}
 		</button>
