@@ -1,8 +1,17 @@
 'use client'
 
+import type { DraggableSyntheticListeners } from '@dnd-kit/core'
 import { useSortable } from '@dnd-kit/sortable'
 import { ArrowDown, ArrowUp, GripVertical, Pin } from 'lucide-react'
-import { memo, type ReactElement, type ReactNode, useCallback, useRef } from 'react'
+import {
+	memo,
+	type ReactElement,
+	type ReactNode,
+	type PointerEvent as ReactPointerEvent,
+	useCallback,
+	useMemo,
+	useRef,
+} from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { TableHeader } from '../../components/table'
@@ -24,6 +33,45 @@ import { useColumnReorderShift } from './grid-reorder'
 import type { GridColumn } from './types'
 import type { GridColumnFilter, GridColumnPinning, GridColumnResize } from './use-grid-table'
 import { useGridTruncation } from './use-grid-truncation'
+
+/**
+ * The handle-less header's drag activators, deaf to a press on a child that opens
+ * a surface.
+ *
+ * A `reorder={{ handle: false }}` header *is* its own activator, so every control
+ * inside it — the filter button, its applied-state menu — sits on the drag
+ * target. Pressing one arms the sensor; a few pixels of drift past the activation
+ * distance lifts the column, and then the surface that opens takes the `pointerup`
+ * with it, stranding the column as if it were still held. The user sees columns
+ * reordering under a pointer that is only moving toward the sheet they just
+ * opened. (Same shape as the macOS Ctrl-click case {@link PrimaryPointerSensor}
+ * filters: a press whose release never comes back.)
+ *
+ * `aria-haspopup` is the discriminator rather than a tag list, because it names
+ * exactly the property that matters — this control is about to open something.
+ * The sort control and the header's bare padding carry no popup and stay fully
+ * draggable, so the whole-header grab affordance is untouched.
+ *
+ * @internal
+ */
+function useSurfaceSafeActivators(
+	listeners: DraggableSyntheticListeners,
+): DraggableSyntheticListeners {
+	return useMemo(() => {
+		if (!listeners) return listeners
+
+		return Object.fromEntries(
+			Object.entries(listeners).map(([name, handler]) => [
+				name,
+				(event: ReactPointerEvent<HTMLElement>) => {
+					if ((event.target as HTMLElement).closest?.('[aria-haspopup]')) return
+
+					;(handler as (event: ReactPointerEvent<HTMLElement>) => void)(event)
+				},
+			]),
+		)
+	}, [listeners])
+}
 
 /**
  * Header cell for the row drag-handle column: an empty, grip-width `<th>` (the
@@ -412,6 +460,8 @@ export const GridReorderableColumnHeader = memo(function GridReorderableColumnHe
 	// full set onto its button, where `role="button"` is correct.
 	const { role: _role, ...cellActivatorAttributes } = attributes
 
+	const cellActivators = useSurfaceSafeActivators(listeners)
+
 	return (
 		<TableHeader
 			ref={setHeaderNodeRef}
@@ -438,7 +488,7 @@ export const GridReorderableColumnHeader = memo(function GridReorderableColumnHe
 			style={{ ...columnShiftStyle(columnIndex), ...(width != null ? { width } : null) }}
 			// The handle-less cell carries the drag activator; the gripped cell leaves
 			// it to the button below.
-			{...(handle ? undefined : { ...cellActivatorAttributes, ...listeners })}
+			{...(handle ? undefined : { ...cellActivatorAttributes, ...cellActivators })}
 		>
 			{/* `data-grid-header` marks the header's flex row for the autosizer (see the
 			    non-reorderable header above). */}
