@@ -81,7 +81,7 @@ function ButtonMultipleExample() {
 			<Stack gap="md">
 				<FileUpload variant="button" multiple onAccept={setFiles} />
 				{files.length > 0 && (
-					<Tooltip enabled={manyFiles}>
+					<Tooltip disabled={!manyFiles}>
 						<TooltipTrigger>
 							<Text severity="muted">
 								{manyFiles ? `${files.length} files` : formatFileNames(files)}

@@ -93,20 +93,22 @@ describe('ProgressGauge', () => {
 		expect(bySlot(container, 'progress-gauge')).toHaveAttribute('aria-valuenow', '100')
 	})
 
-	it('renders a numeric label when label is true', () => {
-		renderUI(<ProgressGauge value={42} label aria-label="Progress" />)
+	it('renders a numeric readout when centerLabel is true', () => {
+		renderUI(<ProgressGauge value={42} centerLabel aria-label="Progress" />)
 
 		expect(screen.getByText('42')).toBeInTheDocument()
 	})
 
 	it('renders a custom label node when provided', () => {
-		renderUI(<ProgressGauge value={75} label={<span>3 of 4</span>} aria-label="Progress" />)
+		renderUI(<ProgressGauge value={75} centerLabel={<span>3 of 4</span>} aria-label="Progress" />)
 
 		expect(screen.getByText('3 of 4')).toBeInTheDocument()
 	})
 
 	it('renders no label slot for label={false}', () => {
-		const { container } = renderUI(<ProgressGauge value={40} label={false} aria-label="Used" />)
+		const { container } = renderUI(
+			<ProgressGauge value={40} centerLabel={false} aria-label="Used" />,
+		)
 
 		// `false` renders no label span over the gauge.
 		expect(container.querySelector('[data-slot="progress-gauge"] span')).toBeNull()

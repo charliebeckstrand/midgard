@@ -27,11 +27,11 @@ export type TooltipProps = {
 	 * Whether the tooltip can open; false suppresses it and closes any open instance.
 	 * @defaultValue true
 	 */
-	enabled?: boolean
+	disabled?: boolean
 	/**
 	 * Hold the tooltip open regardless of pointer, for a trigger that can't take
 	 * hover — an SVG shape a roving keyboard cursor drives, say. Releasing it hands
-	 * control back to hover / focus / click; `enabled: false` still wins.
+	 * control back to hover / focus / click; `disabled` still wins.
 	 * @defaultValue false
 	 */
 	forceOpen?: boolean

@@ -56,7 +56,7 @@ const content = defineRecipe({
 		md: 'px-6 pb-6 lg:not-has-[[data-slot=header]]:pt-6',
 		lg: 'px-8 pb-8 lg:not-has-[[data-slot=header]]:pt-8',
 	},
-	stickyHeader: {
+	sticky: {
 		true: [
 			'**:data-[slot=header]:sticky',
 			'**:data-[slot=header]:top-0',
@@ -67,7 +67,7 @@ const content = defineRecipe({
 		],
 		false: '',
 	},
-	defaults: { size: 'md', stickyHeader: false },
+	defaults: { size: 'md', sticky: false },
 })
 
 const header = defineRecipe({

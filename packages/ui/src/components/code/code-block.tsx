@@ -140,7 +140,7 @@ export function CodeBlock({
 					</pre>
 				)}
 			</div>
-			{copy && <CopyButton value={code} size="sm" className={cn(k.copy)} />}
+			{copy && <CopyButton text={code} size="sm" className={cn(k.copy)} />}
 		</div>
 	)
 }

@@ -16,7 +16,7 @@ type TooltipStateOptions = {
 	placement?: Placement
 	delay?: number
 	interactive?: boolean
-	enabled?: boolean
+	disabled?: boolean
 	forceOpen?: boolean
 }
 
@@ -51,9 +51,11 @@ export function useTooltipState({
 	placement = 'top',
 	delay = 250,
 	interactive = false,
-	enabled = true,
+	disabled = false,
 	forceOpen = false,
 }: TooltipStateOptions) {
+	const enabled = !disabled
+
 	// `forceOpen` controls the disclosure open — a programmatic reveal that skips
 	// the pointer, for a tooltip whose trigger can't take hover (an SVG rule the
 	// keyboard drives). Left `undefined`, the disclosure stays uncontrolled and

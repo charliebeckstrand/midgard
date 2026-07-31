@@ -229,7 +229,7 @@ function GridHeaderTitle({ title }: { title: ReactNode }): ReactElement {
 		// `!resizing` holds the tooltip closed through a column drag-resize: the
 		// drag reflows the header, and the overflow tooltip would otherwise flash
 		// open over the content the resize is reshaping.
-		<Tooltip enabled={truncated && !resizing}>
+		<Tooltip disabled={!truncated || resizing}>
 			<TooltipTrigger>
 				{/* `data-grid-content` marks the title leaf so the autosizer reads its
 				    intrinsic width and decides the column's header-driven minimum. */}

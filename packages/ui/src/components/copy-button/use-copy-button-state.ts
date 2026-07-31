@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { announce } from '../../core'
 
 type CopyStateOptions = {
-	value: string
+	text: string
 	/**
 	 * Milliseconds before the "copied" flag resets.
 	 * @defaultValue 2000
@@ -19,7 +19,7 @@ type CopyStateResult = {
 }
 
 /**
- * Drives the transient copied state behind {@link CopyButton}: writes `value` to
+ * Drives the transient copied state behind {@link CopyButton}: writes `text` to
  * the clipboard, flags success for `timeout` ms, then reverts.
  *
  * @returns `{ copied, copy }` — `copied` is the current success flag; `copy`
@@ -34,7 +34,7 @@ type CopyStateResult = {
  * @internal
  */
 export function useCopyButtonState({
-	value,
+	text,
 	timeout = 2000,
 	onCopiedChange,
 }: CopyStateOptions): CopyStateResult {
@@ -48,7 +48,7 @@ export function useCopyButtonState({
 
 	const copy = useCallback(async () => {
 		try {
-			await navigator.clipboard.writeText(value)
+			await navigator.clipboard.writeText(text)
 
 			setCopied(true)
 
@@ -60,7 +60,7 @@ export function useCopyButtonState({
 			// Clipboard write failed (denied permission, insecure context, or missing API);
 			// `copied` stays false.
 		}
-	}, [value])
+	}, [text])
 
 	useEffect(() => {
 		if (!copied) return

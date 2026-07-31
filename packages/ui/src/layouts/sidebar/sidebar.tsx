@@ -40,7 +40,7 @@ type SidebarLayoutProps = PropsWithChildren<{
 	navbar?: ReactNode
 	sidebar: ReactNode
 	actions?: ReactNode
-	stickyHeader?: boolean
+	sticky?: boolean
 	floating?: boolean
 }>
 
@@ -58,7 +58,7 @@ export function SidebarLayout({
 	navbar,
 	sidebar,
 	actions,
-	stickyHeader,
+	sticky,
 	floating,
 	children,
 }: SidebarLayoutProps) {
@@ -164,7 +164,7 @@ export function SidebarLayout({
 			{/* Content */}
 			<SidebarLayoutContext value={layoutValue}>
 				<div className={k.contentWrapper({ floating })}>
-					<div className={k.content({ size, stickyHeader })}>{children}</div>
+					<div className={k.content({ size, sticky })}>{children}</div>
 				</div>
 			</SidebarLayoutContext>
 		</div>

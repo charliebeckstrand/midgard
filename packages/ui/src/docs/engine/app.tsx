@@ -63,7 +63,7 @@ export function App() {
 	return (
 		<DensityProvider density={density}>
 			<SidebarLayout
-				stickyHeader
+				sticky
 				floating={!locked}
 				actions={
 					<SettingsDialog

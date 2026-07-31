@@ -157,7 +157,7 @@ export function Demo() {
 								type="assistant"
 								actions={
 									<>
-										<CopyButton size="sm" value="Heading out now, ETA 3pm." />
+										<CopyButton size="sm" text="Heading out now, ETA 3pm." />
 										<ToggleIconButton
 											size="sm"
 											pressed={false}

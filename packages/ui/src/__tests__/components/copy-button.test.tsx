@@ -23,7 +23,7 @@ describe('CopyButton', () => {
 	})
 
 	it('renders a button', () => {
-		const { container } = renderUI(<CopyButton value="text" />)
+		const { container } = renderUI(<CopyButton text="text" />)
 
 		const el = container.querySelector('button')
 
@@ -31,7 +31,7 @@ describe('CopyButton', () => {
 	})
 
 	it('has an accessible label', () => {
-		const { container } = renderUI(<CopyButton value="text" />)
+		const { container } = renderUI(<CopyButton text="text" />)
 
 		const el = container.querySelector('button')
 
@@ -39,7 +39,7 @@ describe('CopyButton', () => {
 	})
 
 	it('lets a caller override the idle label', () => {
-		const { container } = renderUI(<CopyButton value="#6366F1" aria-label="Copy hex value" />)
+		const { container } = renderUI(<CopyButton text="#6366F1" aria-label="Copy hex value" />)
 
 		expect(container.querySelector('button')).toHaveAttribute('aria-label', 'Copy hex value')
 	})
@@ -50,7 +50,7 @@ describe('CopyButton', () => {
 		const restore = stubClipboard(writeText)
 
 		try {
-			const { container } = renderUI(<CopyButton value="hello" />)
+			const { container } = renderUI(<CopyButton text="hello" />)
 
 			const button = container.querySelector('button') as HTMLButtonElement
 
@@ -67,7 +67,7 @@ describe('CopyButton', () => {
 	it('does not fire onCopiedChange on mount', () => {
 		const onCopiedChange = vi.fn()
 
-		renderUI(<CopyButton value="hello" onCopiedChange={onCopiedChange} />)
+		renderUI(<CopyButton text="hello" onCopiedChange={onCopiedChange} />)
 
 		expect(onCopiedChange).not.toHaveBeenCalled()
 	})
@@ -77,9 +77,9 @@ describe('CopyButton', () => {
 
 		const second = vi.fn()
 
-		const { rerender } = renderUI(<CopyButton value="hello" onCopiedChange={first} />)
+		const { rerender } = renderUI(<CopyButton text="hello" onCopiedChange={first} />)
 
-		rerender(<CopyButton value="hello" onCopiedChange={second} />)
+		rerender(<CopyButton text="hello" onCopiedChange={second} />)
 
 		expect(first).not.toHaveBeenCalled()
 
@@ -97,7 +97,7 @@ describe('CopyButton', () => {
 
 		try {
 			const { container } = renderUI(
-				<CopyButton value="hello" timeout={2000} onCopiedChange={onCopiedChange} />,
+				<CopyButton text="hello" timeout={2000} onCopiedChange={onCopiedChange} />,
 			)
 
 			const button = container.querySelector('button') as HTMLButtonElement
@@ -130,7 +130,7 @@ describe('CopyButton', () => {
 		const restore = stubClipboard(writeText)
 
 		try {
-			const { container } = renderUI(<CopyButton value="hello" />)
+			const { container } = renderUI(<CopyButton text="hello" />)
 
 			const button = container.querySelector('button') as HTMLButtonElement
 
@@ -166,7 +166,7 @@ describe('CopyButton', () => {
 		const restore = stubClipboard(writeText)
 
 		try {
-			const { container } = renderUI(<CopyButton value="hello" onCopiedChange={onCopiedChange} />)
+			const { container } = renderUI(<CopyButton text="hello" onCopiedChange={onCopiedChange} />)
 
 			const button = container.querySelector('button') as HTMLButtonElement
 
@@ -188,7 +188,7 @@ describe('CopyButton', () => {
 		const restore = stubClipboard(writeText)
 
 		try {
-			const { container } = renderUI(<CopyButton value="hello" onClick={onClick} />)
+			const { container } = renderUI(<CopyButton text="hello" onClick={onClick} />)
 
 			const button = container.querySelector('button') as HTMLButtonElement
 
@@ -208,7 +208,7 @@ describe('CopyButton', () => {
 		const restore = stubClipboard(writeText)
 
 		try {
-			const { container } = renderUI(<CopyButton value="hello" />)
+			const { container } = renderUI(<CopyButton text="hello" />)
 
 			fireEvent.click(container.querySelector('button') as HTMLButtonElement)
 

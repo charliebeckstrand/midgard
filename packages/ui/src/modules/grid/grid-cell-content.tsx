@@ -75,7 +75,7 @@ export function GridCellContent({ content, tooltip, resizeSettleKey }: GridCellC
 		// `!resizing` holds the tooltip closed through a column drag-resize: the
 		// drag reflows the column, and the overflow tooltip would otherwise flash
 		// open over the content the resize is reshaping.
-		<Tooltip enabled={truncated && !resizing}>
+		<Tooltip disabled={!truncated || resizing}>
 			<TooltipTrigger>{span}</TooltipTrigger>
 
 			<TooltipContent className={TOOLTIP_CLASS}>{node}</TooltipContent>

@@ -12,7 +12,7 @@ import { useCopyButtonState } from './use-copy-button-state'
  */
 export type CopyButtonProps = {
 	/** Text written to the clipboard on activation. */
-	value: string
+	text: string
 	/**
 	 * Rest-state glyph.
 	 * @defaultValue a Clipboard icon
@@ -30,7 +30,7 @@ export type CopyButtonProps = {
 } & Omit<ComponentPropsWithoutRef<'button'>, 'children' | 'type' | 'color'>
 
 /**
- * Clipboard-copy control built on ToggleIconButton. Writes `value`, flips to a check glyph, and reverts after `timeout`.
+ * Clipboard-copy control built on ToggleIconButton. Writes `text`, flips to a check glyph, and reverts after `timeout`.
  *
  * @remarks
  * Stays enabled and keeps focus through the success window so keyboard focus
@@ -41,7 +41,7 @@ export type CopyButtonProps = {
  * @see {@link ToggleIconButton} for the underlying two-state icon control.
  */
 export function CopyButton({
-	value,
+	text,
 	icon,
 	size,
 	timeout = 2000,
@@ -52,7 +52,7 @@ export function CopyButton({
 	'aria-label': ariaLabel,
 	...props
 }: CopyButtonProps) {
-	const { copied, copy } = useCopyButtonState({ value, timeout, onCopiedChange })
+	const { copied, copy } = useCopyButtonState({ text, timeout, onCopiedChange })
 
 	// The button stays enabled and focused through the success window;
 	// disabling a focused control drops keyboard focus to <body> (WCAG 2.4.3).

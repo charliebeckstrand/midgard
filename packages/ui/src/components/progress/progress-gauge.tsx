@@ -24,8 +24,8 @@ export type ProgressGaugeProps = AccessibleName &
 		max?: number
 		/** @defaultValue 'zinc' */
 		color?: ProgressColor
-		/** Center label; pass `true` to render the rounded percentage, or a node for custom content. */
-		label?: ReactNode | boolean
+		/** Visible center readout; pass `true` to render the rounded percentage, or a node for custom content. `label` is reserved for the accessible name. */
+		centerLabel?: ReactNode | boolean
 		/**
 		 * Ring thickness in viewBox units.
 		 * @defaultValue 3.5
@@ -37,7 +37,7 @@ export type ProgressGaugeProps = AccessibleName &
 /**
  * Circular (radial) progress indicator rendered as a `role="progressbar"` over
  * an SVG ring whose arc animates to the clamped percentage, with an optional
- * center `label`. Resolves `size` against enclosing Density and respects
+ * center `centerLabel`. Resolves `size` against enclosing Density and respects
  * reduced-motion.
  *
  * @remarks
@@ -50,7 +50,7 @@ export function ProgressGauge({
 	max = 100,
 	size,
 	color = 'zinc',
-	label,
+	centerLabel,
 	strokeWidth = 3.5,
 	className,
 	...labelProps
@@ -65,7 +65,7 @@ export function ProgressGauge({
 
 	const offset = circumference - (percent / 100) * circumference
 
-	const resolvedLabel = label === true ? Math.round(percent) : label
+	const resolvedLabel = centerLabel === true ? Math.round(percent) : centerLabel
 
 	return (
 		<div

@@ -209,7 +209,7 @@ describe('Tooltip', () => {
 
 	it('yields forceOpen to enabled=false', () => {
 		renderUI(
-			<Tooltip forceOpen enabled={false}>
+			<Tooltip forceOpen disabled>
 				<TooltipTrigger>
 					<button type="button">Anchor</button>
 				</TooltipTrigger>

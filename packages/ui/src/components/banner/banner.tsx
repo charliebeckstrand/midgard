@@ -1,13 +1,14 @@
 import { cn } from '../../core'
 import { Alert, type AlertProps } from '../alert'
 
-/** Props for {@link Banner}; the full {@link AlertProps} surface minus `full` (always on), plus `position`. */
+/** Props for {@link Banner}; the full {@link AlertProps} surface minus `full` (always on), plus `sticky`. */
 export type BannerProps = Omit<AlertProps, 'full'> & {
 	/**
 	 * Pin the banner to the top of its scroll container.
 	 * @defaultValue 'static'
 	 */
-	position?: 'static' | 'sticky'
+	/** Pins the banner to the top of the viewport. @defaultValue false */
+	sticky?: boolean
 }
 
 /**
@@ -18,13 +19,13 @@ export type BannerProps = Omit<AlertProps, 'full'> & {
  *
  * @remarks Unlike Alert, `closable` defaults to `true`.
  */
-export function Banner({ position = 'static', closable = true, className, ...props }: BannerProps) {
+export function Banner({ sticky = false, closable = true, className, ...props }: BannerProps) {
 	return (
 		<Alert
 			full
 			data-slot="banner"
 			closable={closable}
-			className={cn('rounded-none', position === 'sticky' && 'sticky top-0 z-40', className)}
+			className={cn('rounded-none', sticky && 'sticky top-0 z-40', className)}
 			{...props}
 		/>
 	)

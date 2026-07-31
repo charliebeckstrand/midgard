@@ -136,7 +136,7 @@ export function DatePickerTrigger({
 						className={cn(k.button({ density: size, size }))}
 					>
 						{children ?? (
-							<Tooltip enabled={truncate && isTruncated && Boolean(displayValue)}>
+							<Tooltip disabled={!(truncate && isTruncated && Boolean(displayValue))}>
 								<TooltipTrigger>{valueNode}</TooltipTrigger>
 								<TooltipContent>{displayValue}</TooltipContent>
 							</Tooltip>

@@ -26,7 +26,7 @@ function ChartHeaderLine({ text, subtitle = false }: ChartHeaderLineProps) {
 	const [ref, truncated] = useTruncation<HTMLSpanElement>()
 
 	return (
-		<Tooltip enabled={truncated}>
+		<Tooltip disabled={!truncated}>
 			<TooltipTrigger>
 				<span
 					ref={ref}

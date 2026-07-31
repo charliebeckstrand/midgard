@@ -51,7 +51,7 @@ export function ColorHexInput() {
 				spellCheck={false}
 				autoComplete="off"
 				className="font-mono uppercase"
-				suffix={<CopyButton value={`#${hex}`} icon={<Copy />} aria-label="Copy hex value" />}
+				suffix={<CopyButton text={`#${hex}`} icon={<Copy />} aria-label="Copy hex value" />}
 			/>
 		</>
 	)
