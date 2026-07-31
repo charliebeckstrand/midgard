@@ -96,7 +96,7 @@ export function ChatPrompt({
 }: ChatPromptProps) {
 	const canSubmit = !disabled && value.trim().length > 0
 
-	const { inputRef, openPicker, handleChange } = useFileUploadHandlers({ onFiles: onAttach })
+	const { inputRef, openPicker, handleChange } = useFileUploadHandlers({ onAccept: onAttach })
 
 	// The composer always gets an accessible name (WCAG 3.3.2 / 4.1.2):
 	// aria-labelledby wins over aria-label; falls back to 'Message'.

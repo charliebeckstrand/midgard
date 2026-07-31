@@ -266,7 +266,7 @@ export type ChartBaseProps<T> = AccessibleName & {
 	 * The right-click context menu. By default a chart offers Fullscreen (a live,
 	 * interactive copy in a large dialog), image downloads (PNG / JPG, legend
 	 * included), and — where a data readout exists — Download CSV / Copy data. Pass
-	 * a config to add custom `items` (each a `{ label, icon, onSelect }`), place
+	 * a config to add custom `items` (each a `{ label, icon, onAction }`), place
 	 * them `'before'` or `'after'` the defaults, or drop the defaults with
 	 * `defaultItems: false`; a separator divides the two groups when both show. Set
 	 * `downloadLegend: false` to export images without the legend. `false` disables

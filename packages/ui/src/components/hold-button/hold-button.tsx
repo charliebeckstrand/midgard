@@ -14,12 +14,12 @@ export type HoldButtonProps = Omit<
 	'href' | 'onClick' | 'loading'
 > & {
 	/**
-	 * Press duration, in milliseconds, required to fire `onComplete`.
+	 * Press duration, in milliseconds, required to fire `onHoldComplete`.
 	 * @defaultValue 1000
 	 */
 	duration?: number
 	/** Fires once the press is held for the full `duration`. */
-	onComplete?: () => void
+	onHoldComplete?: () => void
 	/** Fires when a press begins (pointer down or Space/Enter keydown). */
 	onHoldStart?: () => void
 	/** Fires when a press is released or interrupted before `duration` elapses. */
@@ -27,7 +27,7 @@ export type HoldButtonProps = Omit<
 }
 
 /**
- * Button that fires `onComplete` only after a sustained press of `duration` ms.
+ * Button that fires `onHoldComplete` only after a sustained press of `duration` ms.
  * A fill overlay animates progress, and releasing early cancels. Responds to
  * both pointer hold and Space/Enter keydown.
  *
@@ -40,7 +40,7 @@ export type HoldButtonProps = Omit<
  */
 export function HoldButton({
 	duration = 1000,
-	onComplete,
+	onHoldComplete,
 	onHoldStart,
 	onHoldCancel,
 	disabled,
@@ -58,7 +58,7 @@ export function HoldButton({
 	const { fillRef, start, cancel } = useHoldButtonGesture({
 		duration,
 		disabled,
-		onComplete,
+		onHoldComplete,
 		onHoldStart,
 		onHoldCancel,
 	})

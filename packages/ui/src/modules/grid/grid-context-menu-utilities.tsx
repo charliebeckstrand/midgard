@@ -43,7 +43,7 @@ function exportMenuItems(exportActions: GridExportAction[]): GridMenuItem[] {
 		key: `export-${action.type}`,
 		label: action.label,
 		icon: exportIcon(action.type),
-		onSelect: action.run,
+		onAction: action.run,
 	}))
 }
 
@@ -93,13 +93,13 @@ function sortMenuItems<T>(args: {
 			key: 'sort-asc',
 			label: 'Sort ascending',
 			icon: <ArrowUp />,
-			onSelect: () => sortColumn(column.id, 'asc'),
+			onAction: () => sortColumn(column.id, 'asc'),
 		},
 		{
 			key: 'sort-desc',
 			label: 'Sort descending',
 			icon: <ArrowDown />,
-			onSelect: () => sortColumn(column.id, 'desc'),
+			onAction: () => sortColumn(column.id, 'desc'),
 		},
 	]
 
@@ -108,7 +108,7 @@ function sortMenuItems<T>(args: {
 			key: 'clear-sort',
 			label: 'Clear sort',
 			icon: <ArrowUpDown />,
-			onSelect: clearSort,
+			onAction: clearSort,
 		})
 	}
 
@@ -137,7 +137,7 @@ function autoSizeMenuItems<T>(args: {
 			key: 'auto-size-column',
 			label: 'Auto-size this column',
 			icon: <MoveHorizontal />,
-			onSelect: () => autoSizeColumn(column.id),
+			onAction: () => autoSizeColumn(column.id),
 		})
 	}
 
@@ -146,7 +146,7 @@ function autoSizeMenuItems<T>(args: {
 			key: 'auto-size',
 			label: 'Auto-size all columns',
 			icon: <StretchHorizontal />,
-			onSelect: autoSizeColumns,
+			onAction: autoSizeColumns,
 		})
 	}
 
@@ -218,7 +218,7 @@ function groupMenuItems<T>(column: GridColumn<T>, groupBy: GridGroupByMenu | nul
 				key: 'ungroup',
 				label: 'Ungroup',
 				icon: <Ungroup />,
-				onSelect: () => groupBy.setGrouping(null),
+				onAction: () => groupBy.setGrouping(null),
 			},
 		]
 	}
@@ -228,7 +228,7 @@ function groupMenuItems<T>(column: GridColumn<T>, groupBy: GridGroupByMenu | nul
 			key: 'group-by',
 			label: `Group by ${columnLabel(column)}`,
 			icon: <Group />,
-			onSelect: () => groupBy.setGrouping(column.id),
+			onAction: () => groupBy.setGrouping(column.id),
 		},
 	]
 }
@@ -248,7 +248,7 @@ function pinMenuItems<T>(column: GridColumn<T>, pinColumn: PinColumn): GridMenuI
 		key: choice.key,
 		label: choice.label,
 		icon: pinChoiceIcon(choice.key),
-		onSelect: () => pinColumn(column.id, choice.target),
+		onAction: () => pinColumn(column.id, choice.target),
 	}))
 }
 
@@ -320,7 +320,7 @@ export function columnMenuDefaults<T>(args: ColumnMenuDefaultArgs<T>): GridMenuI
 			key: 'choose-columns',
 			label: 'Manage columns',
 			icon: <Columns3 />,
-			onSelect: chooseColumns,
+			onAction: chooseColumns,
 		})
 	}
 
@@ -348,7 +348,7 @@ export function cellMenuDefaults(
 	copy: () => void,
 	exportActions: GridExportAction[],
 ): GridMenuItem[] {
-	const copyItem: GridMenuItem = { key: 'copy', label: 'Copy', icon: <Copy />, onSelect: copy }
+	const copyItem: GridMenuItem = { key: 'copy', label: 'Copy', icon: <Copy />, onAction: copy }
 
 	const exports = submenuItems({
 		key: 'export',
@@ -381,7 +381,7 @@ export function buildColumnGroupMenu(args: {
 			key: 'manage-columns',
 			label: args.manageLabel,
 			icon: <Columns3 />,
-			onSelect: args.chooseColumns,
+			onAction: args.chooseColumns,
 		})
 	}
 
@@ -393,7 +393,7 @@ export function buildColumnGroupMenu(args: {
 			key: 'clear-color',
 			label: 'Clear color',
 			icon: <Ban />,
-			onSelect: args.onClearColor,
+			onAction: args.onClearColor,
 		})
 	}
 

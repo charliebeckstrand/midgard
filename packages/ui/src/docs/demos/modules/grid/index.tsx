@@ -484,7 +484,7 @@ const BatchActionsExample = () => {
 						<HoldButton
 							color="red"
 							variant="soft"
-							onComplete={() => {
+							onHoldComplete={() => {
 								setRows((prev) => prev.filter((row) => !selection.has(row.id)))
 
 								setSelection(new Set())

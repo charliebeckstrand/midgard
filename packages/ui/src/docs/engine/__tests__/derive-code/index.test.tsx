@@ -219,7 +219,7 @@ describe('deriveCode + __code', () => {
 					'',
 					'\treturn (',
 					'\t\t<Stack>',
-					'\t\t\t<FileUpload accept="image/*" onFiles={setFiles} />',
+					'\t\t\t<FileUpload accept="image/*" onAccept={setFiles} />',
 					'\t\t</Stack>',
 					'\t)',
 					'}',
@@ -236,7 +236,7 @@ describe('deriveCode + __code', () => {
 			'function AreaDemo() {\n\tconst [files, setFiles] = useState<File[]>([])',
 		)
 
-		expect(result).toContain('<FileUpload accept="image/*" onFiles={setFiles} />')
+		expect(result).toContain('<FileUpload accept="image/*" onAccept={setFiles} />')
 
 		// Component imports inferred from JSX, under the library prefix.
 		expect(result).toMatch(/import \{.*Stack.*\} from 'ui\/stack'/)

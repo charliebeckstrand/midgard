@@ -215,7 +215,7 @@ describe('Grid context menus', () => {
 				contextMenu={{
 					cell: ({ row, value }, defaults) => [
 						...defaults,
-						{ key: 'flag', label: `Flag ${value}`, onSelect: () => onFlag(row) },
+						{ key: 'flag', label: `Flag ${value}`, onAction: () => onFlag(row) },
 					],
 				}}
 			/>,
@@ -662,7 +662,7 @@ describe('Grid context menus', () => {
 						{
 							key: 'custom',
 							label: pinned ? `Pinned ${pinned}` : 'Freeze right',
-							onSelect: pinRight,
+							onAction: pinRight,
 						},
 					],
 				}}

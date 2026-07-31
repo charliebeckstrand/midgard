@@ -28,10 +28,10 @@ describe('HoldButton', () => {
 	it('fires onHoldCancel on pointer up before completion', () => {
 		const onHoldCancel = vi.fn()
 
-		const onComplete = vi.fn()
+		const onHoldComplete = vi.fn()
 
 		const { container } = renderUI(
-			<HoldButton onHoldCancel={onHoldCancel} onComplete={onComplete}>
+			<HoldButton onHoldCancel={onHoldCancel} onHoldComplete={onHoldComplete}>
 				Hold
 			</HoldButton>,
 		)
@@ -44,7 +44,7 @@ describe('HoldButton', () => {
 
 		expect(onHoldCancel).toHaveBeenCalledOnce()
 
-		expect(onComplete).not.toHaveBeenCalled()
+		expect(onHoldComplete).not.toHaveBeenCalled()
 	})
 
 	it('cancels on pointer leave', () => {
@@ -65,12 +65,12 @@ describe('HoldButton', () => {
 		vi.useFakeTimers()
 
 		try {
-			const onComplete = vi.fn()
+			const onHoldComplete = vi.fn()
 
 			const onHoldCancel = vi.fn()
 
 			const { container } = renderUI(
-				<HoldButton duration={500} onComplete={onComplete} onHoldCancel={onHoldCancel}>
+				<HoldButton duration={500} onHoldComplete={onHoldComplete} onHoldCancel={onHoldCancel}>
 					Hold
 				</HoldButton>,
 			)
@@ -87,7 +87,7 @@ describe('HoldButton', () => {
 				vi.advanceTimersByTime(600)
 			})
 
-			expect(onComplete).not.toHaveBeenCalled()
+			expect(onHoldComplete).not.toHaveBeenCalled()
 
 			expect(onHoldCancel).toHaveBeenCalledOnce()
 		} finally {
@@ -99,10 +99,10 @@ describe('HoldButton', () => {
 		vi.useFakeTimers()
 
 		try {
-			const onComplete = vi.fn()
+			const onHoldComplete = vi.fn()
 
 			const { container } = renderUI(
-				<HoldButton duration={500} onComplete={onComplete}>
+				<HoldButton duration={500} onHoldComplete={onHoldComplete}>
 					Hold
 				</HoldButton>,
 			)
@@ -117,7 +117,7 @@ describe('HoldButton', () => {
 				vi.advanceTimersByTime(600)
 			})
 
-			expect(onComplete).not.toHaveBeenCalled()
+			expect(onHoldComplete).not.toHaveBeenCalled()
 		} finally {
 			vi.useRealTimers()
 		}
@@ -127,12 +127,12 @@ describe('HoldButton', () => {
 		vi.useFakeTimers()
 
 		try {
-			const onComplete = vi.fn()
+			const onHoldComplete = vi.fn()
 
 			const onHoldCancel = vi.fn()
 
 			const { container } = renderUI(
-				<HoldButton duration={500} onComplete={onComplete} onHoldCancel={onHoldCancel}>
+				<HoldButton duration={500} onHoldComplete={onHoldComplete} onHoldCancel={onHoldCancel}>
 					Hold
 				</HoldButton>,
 			)
@@ -152,7 +152,7 @@ describe('HoldButton', () => {
 				vi.advanceTimersByTime(600)
 			})
 
-			expect(onComplete).toHaveBeenCalledOnce()
+			expect(onHoldComplete).toHaveBeenCalledOnce()
 
 			// The initiating key's release after completion is a no-op.
 			fireEvent.keyUp(el, { key: ' ' })
@@ -318,11 +318,11 @@ describe('HoldButton', () => {
 			vi.useRealTimers()
 		})
 
-		it('fires onComplete after the hold duration elapses', () => {
-			const onComplete = vi.fn()
+		it('fires onHoldComplete after the hold duration elapses', () => {
+			const onHoldComplete = vi.fn()
 
 			const { container } = renderUI(
-				<HoldButton duration={1000} onComplete={onComplete}>
+				<HoldButton duration={1000} onHoldComplete={onHoldComplete}>
 					Hold
 				</HoldButton>,
 			)
@@ -335,16 +335,16 @@ describe('HoldButton', () => {
 				vi.advanceTimersByTime(1000)
 			})
 
-			expect(onComplete).toHaveBeenCalledOnce()
+			expect(onHoldComplete).toHaveBeenCalledOnce()
 		})
 
 		it('cancels an in-flight hold when disabled flips true mid-hold', () => {
-			const onComplete = vi.fn()
+			const onHoldComplete = vi.fn()
 
 			const onHoldCancel = vi.fn()
 
 			const { container, rerender } = renderUI(
-				<HoldButton duration={1000} onComplete={onComplete} onHoldCancel={onHoldCancel}>
+				<HoldButton duration={1000} onHoldComplete={onHoldComplete} onHoldCancel={onHoldCancel}>
 					Hold
 				</HoldButton>,
 			)
@@ -358,7 +358,12 @@ describe('HoldButton', () => {
 			})
 
 			rerender(
-				<HoldButton duration={1000} disabled onComplete={onComplete} onHoldCancel={onHoldCancel}>
+				<HoldButton
+					duration={1000}
+					disabled
+					onHoldComplete={onHoldComplete}
+					onHoldCancel={onHoldCancel}
+				>
 					Hold
 				</HoldButton>,
 			)
@@ -369,14 +374,14 @@ describe('HoldButton', () => {
 
 			expect(onHoldCancel).toHaveBeenCalledOnce()
 
-			expect(onComplete).not.toHaveBeenCalled()
+			expect(onHoldComplete).not.toHaveBeenCalled()
 		})
 
-		it('does not fire onComplete when released before duration elapses', () => {
-			const onComplete = vi.fn()
+		it('does not fire onHoldComplete when released before duration elapses', () => {
+			const onHoldComplete = vi.fn()
 
 			const { container } = renderUI(
-				<HoldButton duration={1000} onComplete={onComplete}>
+				<HoldButton duration={1000} onHoldComplete={onHoldComplete}>
 					Hold
 				</HoldButton>,
 			)
@@ -395,7 +400,7 @@ describe('HoldButton', () => {
 				vi.advanceTimersByTime(1000)
 			})
 
-			expect(onComplete).not.toHaveBeenCalled()
+			expect(onHoldComplete).not.toHaveBeenCalled()
 		})
 	})
 })

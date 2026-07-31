@@ -444,7 +444,7 @@ export type GridColumnFilters = {
 
 /**
  * One entry in a Grid context menu: an actionable {@link ContextMenuItem} (a
- * `{ label, icon, onSelect }`) or a {@link ContextMenuSeparator}. The defaults
+ * `{ label, icon, onAction }`) or a {@link ContextMenuSeparator}. The defaults
  * the grid supplies — and anything a {@link GridColumnMenu} / {@link GridCellMenu}
  * builder returns — render in order through the shared context-menu renderer,
  * the same schema a chart's menu uses.

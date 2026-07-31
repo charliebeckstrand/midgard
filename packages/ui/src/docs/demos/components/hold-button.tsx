@@ -23,7 +23,7 @@ function DestructiveHoldButtonExample() {
 			</Button>
 		</>
 	) : (
-		<HoldButton color="red" onComplete={() => setDeleted(true)} aria-label="Hold to delete">
+		<HoldButton color="red" onHoldComplete={() => setDeleted(true)} aria-label="Hold to delete">
 			<Icon icon={<Trash />} />
 			Hold to delete
 		</HoldButton>
@@ -44,7 +44,7 @@ export function Demo() {
 				actions={<VariantListbox variants={variants} value={variant} onValueChange={setVariant} />}
 			>
 				<Flex direction="col" gap="lg">
-					<HoldButton variant={variant} onComplete={() => setCount((c) => c + 1)}>
+					<HoldButton variant={variant} onHoldComplete={() => setCount((c) => c + 1)}>
 						Hold to confirm
 					</HoldButton>
 					<Text severity="muted">Confirmed {count} times</Text>
@@ -57,13 +57,13 @@ export function Demo() {
 
 			<Example title="Durations">
 				<Flex wrap gap="sm">
-					<HoldButton duration={500} onComplete={() => {}}>
+					<HoldButton duration={500} onHoldComplete={() => {}}>
 						Fast
 					</HoldButton>
-					<HoldButton duration={1000} onComplete={() => {}}>
+					<HoldButton duration={1000} onHoldComplete={() => {}}>
 						Default
 					</HoldButton>
-					<HoldButton duration={3000} onComplete={() => {}}>
+					<HoldButton duration={3000} onHoldComplete={() => {}}>
 						Slow
 					</HoldButton>
 				</Flex>
@@ -75,7 +75,7 @@ export function Demo() {
 						color="amber"
 						onHoldStart={() => setStatus('holding')}
 						onHoldCancel={() => setStatus('cancelled')}
-						onComplete={() => setStatus('confirmed')}
+						onHoldComplete={() => setStatus('confirmed')}
 					>
 						Hold me
 					</HoldButton>
@@ -84,7 +84,7 @@ export function Demo() {
 			</Example>
 
 			<Example title="Disabled">
-				<HoldButton disabled onComplete={() => {}}>
+				<HoldButton disabled onHoldComplete={() => {}}>
 					Cannot hold
 				</HoldButton>
 			</Example>
