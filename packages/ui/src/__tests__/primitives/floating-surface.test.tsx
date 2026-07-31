@@ -65,29 +65,17 @@ describe('FloatingSurface', () => {
 		expect(onKeyDown).toHaveBeenCalled()
 	})
 
-	it('leaves nothing on screen once it closes', () => {
-		const { rerender } = renderUI(
-			<FloatingSurface open {...baseProps} data-slot="exiting">
+	it('leaves an open surface free to take input', () => {
+		renderUI(
+			<FloatingSurface open {...baseProps} data-slot="live">
 				<span>panel</span>
 			</FloatingSurface>,
 		)
 
-		const el = document.querySelector<HTMLElement>('[data-slot="exiting"]')
-
-		expect(el?.style.pointerEvents).toBe('')
-
-		rerender(
-			<FloatingSurface open={false} {...baseProps} data-slot="exiting">
-				<span>panel</span>
-			</FloatingSurface>,
-		)
-
-		// Under jsdom the exit resolves in the same commit, so there is no surface
-		// left to take input. A browser animates that exit, and the wrapper is made
-		// inert for its duration — written to the node, since `AnimatePresence`
-		// renders the exiting subtree from the props it held while open, so a prop
-		// keyed on `open` never reaches it.
-		expect(el?.isConnected).toBe(false)
+		// The inert write that makes a *closing* surface stop swallowing hovers is
+		// a browser case: jsdom's mocked `AnimatePresence` drops the node in the
+		// same commit, so there is never an exiting surface to observe.
+		expect(document.querySelector<HTMLElement>('[data-slot="live"]')?.style.pointerEvents).toBe('')
 	})
 
 	it('merges caller style over floatingStyles on the positioned wrapper', () => {

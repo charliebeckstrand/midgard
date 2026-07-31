@@ -204,22 +204,6 @@ describe('ContextMenuList submenus', () => {
 		expect(screen.queryByRole('menuitem', { name: 'Pin left' })).not.toBeInTheDocument()
 	})
 
-	it('opens the submenu the moment the pointer reaches its parent row', () => {
-		open(pinEntries())
-
-		const trigger = screen.getByRole('menuitem', { name: 'Pin' })
-
-		// Nothing waits on a clock: the panel is up in the same frame the cursor
-		// lands on the row.
-		settle(trigger)
-
-		expect(screen.getByRole('menuitem', { name: 'Pin left' })).toBeInTheDocument()
-
-		// Hover is not a commitment: it leaves the cursor on the parent row rather
-		// than seating it inside the panel.
-		expect(trigger).toHaveFocus()
-	})
-
 	it('carries the roving cursor with the pointer, one row lit at a time', () => {
 		open([...pinEntries(), { key: 'copy', label: 'Copy', onSelect: noop }])
 
@@ -235,6 +219,8 @@ describe('ContextMenuList submenus', () => {
 
 		settle(trigger)
 
+		// Hover is not a commitment either: it leaves the cursor on the parent row
+		// rather than seating it inside the panel it just opened.
 		expect(trigger).toHaveFocus()
 	})
 
@@ -373,6 +359,63 @@ describe('ContextMenuList submenus', () => {
 		fireEvent.keyDown(screen.getByRole('menuitem', { name: 'Pin left' }), { key: 'ArrowDown' })
 
 		expect(screen.getByRole('menuitem', { name: 'Pin right' })).toHaveFocus()
+	})
+
+	it('hands the arrows to a hover-opened submenu, and Escape hands them back', () => {
+		open([...pinEntries(), { key: 'copy', label: 'Copy', onSelect: noop }])
+
+		const trigger = screen.getByRole('menuitem', { name: 'Pin' })
+
+		settle(trigger)
+
+		// Hover left the cursor on the parent row. The arrows still belong to the
+		// panel it opened: roving on through the menu would strand it open behind
+		// the cursor.
+		fireEvent.keyDown(trigger, { key: 'ArrowDown' })
+
+		expect(screen.getByRole('menuitem', { name: 'Pin left' })).toHaveFocus()
+
+		// And they stay there, wrapping the submenu's own rows rather than escaping
+		// into the menu below.
+		fireEvent.keyDown(screen.getByRole('menuitem', { name: 'Pin left' }), { key: 'ArrowUp' })
+
+		expect(screen.getByRole('menuitem', { name: 'Pin right' })).toHaveFocus()
+
+		// `Escape` is the way out: the submenu closes and the menu it hangs off
+		// takes the arrows back.
+		fireEvent.keyDown(screen.getByRole('menuitem', { name: 'Pin right' }), { key: 'Escape' })
+
+		expect(trigger).toHaveFocus()
+
+		fireEvent.keyDown(trigger, { key: 'ArrowDown' })
+
+		expect(screen.getByRole('menuitem', { name: 'Copy' })).toHaveFocus()
+	})
+
+	it('enters a hover-opened submenu at its last row on ArrowUp', () => {
+		open(pinEntries())
+
+		const trigger = screen.getByRole('menuitem', { name: 'Pin' })
+
+		settle(trigger)
+
+		fireEvent.keyDown(trigger, { key: 'ArrowUp' })
+
+		expect(screen.getByRole('menuitem', { name: 'Pin right' })).toHaveFocus()
+	})
+
+	it('seats focus on the first row when Enter lands on an already-open submenu', () => {
+		open(pinEntries())
+
+		const trigger = screen.getByRole('menuitem', { name: 'Pin' })
+
+		settle(trigger)
+
+		// The panel is already up, so there is no mount left to seat focus on —
+		// the open path has to take it now rather than arm a flag for the next one.
+		fireEvent.keyDown(trigger, { key: 'Enter' })
+
+		expect(screen.getByRole('menuitem', { name: 'Pin left' })).toHaveFocus()
 	})
 
 	it('closes only the submenu on Escape, the menu behind it on the next press', () => {

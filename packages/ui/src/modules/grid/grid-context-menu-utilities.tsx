@@ -19,6 +19,7 @@ import {
 	Ungroup,
 } from 'lucide-react'
 import type { ReactElement, ReactNode } from 'react'
+import { mergeContextMenuItems } from '../../components/context-menu'
 import { isDataColumn } from '../../utilities'
 import { columnLabel } from './engine/grid-column/label'
 import type { GridExportAction } from './engine/grid-export/types'
@@ -182,6 +183,20 @@ export function copyText(text: string): void {
 	navigator.clipboard?.writeText(text).catch(() => {})
 }
 
+/**
+ * The table-wide column manager as a menu row, or nothing when no manager is
+ * reachable — the same withhold-when-empty shape the column's own concerns take.
+ *
+ * @internal
+ */
+function manageColumnsItems(chooseColumns: (() => void) | null): GridMenuItem[] {
+	if (!chooseColumns) return []
+
+	return [
+		{ key: 'choose-columns', label: 'Manage columns', icon: <Columns3 />, onSelect: chooseColumns },
+	]
+}
+
 /** Inputs shaping the default header-menu items. @internal */
 type ColumnMenuDefaultArgs<T> = {
 	column: GridColumn<T>
@@ -270,8 +285,7 @@ export function pinChoiceIcon(key: PinMenuChoice['key']): ReactElement {
  * @remarks Each menu withholds itself when it has nothing to offer — a locked
  * column shows no Pin, an unsortable one no Sort — and collapses to a plain row
  * when it holds a single action, so no submenu ever opens onto one item. The
- * defaults carry no rule of their own: the one separator a grid's menu shows
- * marks where a host's custom items begin (`resolveContextMenuEntries`).
+ * defaults carry no rule of their own; a host's builder places any it wants.
  * @internal
  */
 export function columnMenuDefaults<T>(args: ColumnMenuDefaultArgs<T>): GridMenuItem[] {
@@ -288,22 +302,11 @@ export function columnMenuDefaults<T>(args: ColumnMenuDefaultArgs<T>): GridMenuI
 		exportActions,
 	} = args
 
-	const items: GridMenuItem[] = []
-
-	// The table-wide manager leads: the row that isn't about the clicked column at
-	// all reads first, before the column's own concerns.
-	if (chooseColumns) {
-		items.push({
-			key: 'choose-columns',
-			label: 'Manage columns',
-			icon: <Columns3 />,
-			onSelect: chooseColumns,
-		})
-	}
-
-	// Then the clicked column's own actions, in the order the header reads them:
-	// sort, pin, group, then the fit that closes them out.
-	items.push(
+	// The menu in order, each concern contributing its rows or none: the
+	// table-wide manager first — the one row that isn't about the clicked column
+	// at all — then that column's own, as the header reads them.
+	return [
+		...manageColumnsItems(chooseColumns),
 		...submenuItems({
 			key: 'sort',
 			label: 'Sort',
@@ -329,16 +332,14 @@ export function columnMenuDefaults<T>(args: ColumnMenuDefaultArgs<T>): GridMenuI
 			icon: <Download />,
 			items: exportMenuItems(exportActions),
 		}),
-	)
-
-	return items
+	]
 }
 
 /**
  * Default cell-menu items: Copy, acting on the right-clicked cell, then — when
  * export is on — the Export submenu, a grid-wide tool scoped to the selection
- * when rows are selected. Unruled, as the column menu's defaults are: a
- * separator in a grid's menu marks a host's custom items, nothing else.
+ * when rows are selected. Unruled, as the column menu's defaults are; a host's
+ * builder places any separator it wants.
  *
  * @internal
  */
@@ -371,28 +372,21 @@ export function buildColumnGroupMenu(args: {
 	chooseColumns: (() => void) | null
 	manageLabel: ReactNode
 }): GridMenuItem[] {
-	const items: GridMenuItem[] = []
-
-	if (args.chooseColumns) {
-		items.push({
-			key: 'manage-columns',
-			label: args.manageLabel,
-			icon: <Columns3 />,
-			onSelect: args.chooseColumns,
-		})
-	}
-
-	if (args.group.color) {
-		// Clear color sits at the bottom, set off by a separator from Manage columns.
-		if (items.length > 0) items.push({ key: 'color-separator', separator: true })
-
-		items.push({
-			key: 'clear-color',
-			label: 'Clear color',
-			icon: <Ban />,
-			onSelect: args.onClearColor,
-		})
-	}
-
-	return items
+	// Two groups, ruled apart only when both show — which is what
+	// `mergeContextMenuItems` is for, rather than counting rows by hand.
+	return mergeContextMenuItems([
+		args.chooseColumns
+			? [
+					{
+						key: 'manage-columns',
+						label: args.manageLabel,
+						icon: <Columns3 />,
+						onSelect: args.chooseColumns,
+					},
+				]
+			: [],
+		args.group.color
+			? [{ key: 'clear-color', label: 'Clear color', icon: <Ban />, onSelect: args.onClearColor }]
+			: [],
+	])
 }

@@ -4,10 +4,12 @@ import { fireEvent, renderUI, screen, waitFor } from '../../helpers'
 
 /**
  * Pointer control of the grid context menu's submenus against the real floating
- * engine. The cursor and the travel triangle are both geometry — where the panel
- * landed, and whether the pointer is heading into it — so neither means anything
- * under the jsdom suite's mocked engine, which renders panels inline and reports
- * every rect as zero.
+ * engine, through to the keyboard taking over. The cursor and the travel
+ * corridor are both geometry — where the panel landed, and whether the pointer
+ * is heading into it — so neither means anything under the jsdom suite's mocked
+ * engine, which renders panels inline and reports every rect as zero; the
+ * handoff to the arrows then turns on real focus crossing a portal boundary,
+ * which that suite can't reproduce either.
  *
  * @remarks One case, walked end to end: a second `it` would open its menu while
  * the first's panels were still unmounting, and every `role="menu"` query would
@@ -83,8 +85,6 @@ describe('grid context menu pointer travel (real browser)', () => {
 
 		const crossing = { x: from.x + (edge - from.x) * 0.8, y: centre(pin).y }
 
-		expect(crossing.y).toBeLessThan(rect.bottom)
-
 		settle(pin, crossing.x, crossing.y)
 
 		expect(item('Sort ascending')).toBeInTheDocument()
@@ -100,5 +100,29 @@ describe('grid context menu pointer travel (real browser)', () => {
 		expect(item('Pin left')).toBeInTheDocument()
 
 		expect(screen.queryByRole('menuitem', { name: 'Sort ascending' })).toBeNull()
+
+		// The panel Pin opened by hover owns the arrows from here: the first one
+		// carries the cursor across the portal boundary onto its top row.
+		fireEvent.keyDown(pin, { key: 'ArrowDown' })
+
+		expect(item('Pin left')).toHaveFocus()
+
+		// And they stay in it, wrapping its rows rather than roving on through the
+		// menu the row sits in.
+		fireEvent.keyDown(item('Pin left'), { key: 'ArrowUp' })
+
+		expect(item('Pin right')).toHaveFocus()
+
+		// `Escape` is the way back: the submenu closes, the menu behind it survives
+		// with the cursor on its parent row, and the arrows are the menu's again.
+		fireEvent.keyDown(item('Pin right'), { key: 'Escape' })
+
+		await waitFor(() => expect(screen.queryByRole('menuitem', { name: 'Pin left' })).toBeNull())
+
+		expect(pin).toHaveFocus()
+
+		fireEvent.keyDown(pin, { key: 'ArrowDown' })
+
+		expect(item('Auto-size')).toHaveFocus()
 	})
 })

@@ -1,6 +1,14 @@
 'use client'
 
-import { type PointerEvent, type RefObject, useCallback, useMemo, useRef, useState } from 'react'
+import {
+	type PointerEvent,
+	type ReactNode,
+	type RefObject,
+	useCallback,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import { createContext } from '../../core'
 import { queryItems, setVirtualActive } from '../../hooks/a11y/use-a11y-roving'
 import { MENUITEM_SELECTOR } from './use-menu-state'
@@ -15,6 +23,20 @@ import { MENUITEM_SELECTOR } from './use-menu-state'
 const TRAVEL_SLACK = 12
 
 type Point = { x: number; y: number }
+
+/**
+ * Which end of an open submenu each key seats the cursor on. Down and Home enter
+ * at the top, Up and End at the bottom — the same ends they would reach in the
+ * menu the row sits in, applied to the panel that has taken navigation over.
+ *
+ * @internal
+ */
+const SUBMENU_ENTRY: Record<string, 'first' | 'last' | undefined> = {
+	ArrowDown: 'first',
+	Home: 'first',
+	ArrowUp: 'last',
+	End: 'last',
+}
 
 /**
  * Whether `point` lies in the corridor a pointer travels from `from` — the row
@@ -66,6 +88,17 @@ export type MenuPointerValue = {
 	hoverRow: (row: HTMLElement, point: Point, subKey?: string) => void
 	/** Opens `subKey` at once, displacing whatever is open — the click and keyboard paths. */
 	openSubmenu: (subKey: string) => void
+	/**
+	 * Hands `key` to the submenu open at this level, seating the cursor on the row
+	 * it points at: `ArrowDown` / `Home` on the first, `ArrowUp` / `End` on the
+	 * last. An open submenu owns navigation for as long as it is up, so the arrows
+	 * work its rows rather than roving past it in the menu it hangs off; `Escape`
+	 * is the way back out ({@link MenuSub}).
+	 *
+	 * @returns Whether `key` was one of those and a submenu took it — `false`
+	 * leaves the caller's own roving to handle the press.
+	 */
+	enterSubmenu: (key: string) => boolean
 	/** Closes `subKey`, if it is the one open. */
 	closeSubmenu: (subKey: string) => void
 	/**
@@ -86,7 +119,7 @@ const [MenuPointerContext, useMenuPointer] = createContext<MenuPointerValue>('Me
  */
 const [MenuOpenSubContext, useMenuOpenSub] = createContext<string | null>('Menu')
 
-export { MenuOpenSubContext, MenuPointerContext, useMenuOpenSub, useMenuPointer }
+export { useMenuOpenSub, useMenuPointer }
 
 /**
  * The `pointermove` handler a menu row reports its arrivals through, for the
@@ -116,8 +149,8 @@ export function useMenuRowPointer(
 	)
 }
 
-/** Options for {@link useMenuPointerGroup}. */
-type MenuPointerGroupOptions = {
+/** Props for {@link MenuPointerLevel}. */
+export type MenuPointerLevelProps = {
 	/**
 	 * Rove by `data-active` and the owner's `aria-activedescendant` instead of
 	 * real focus — the dropdown model, where focus rests on the trigger.
@@ -126,12 +159,14 @@ type MenuPointerGroupOptions = {
 	virtual?: boolean
 	/** Virtual mode: the element carrying `aria-activedescendant` (a dropdown's trigger). */
 	owner?: RefObject<HTMLElement | null>
+	/** The level's rows, and any submenu panels hanging off them. */
+	children: ReactNode
 }
 
 /**
  * Owns one menu level's pointer cursor: the {@link MenuPointerValue} its rows
  * report arrivals through, plus the `openKey` naming the submenu those arrivals
- * have opened. The caller provides both to the level's rows.
+ * have opened.
  *
  * @remarks The pointer drives the same cursor the arrow keys do, so a menu
  * carries one highlight rather than a hover wash beside a stale focus ring, and
@@ -149,11 +184,13 @@ type MenuPointerGroupOptions = {
  * the panel's near edge ({@link inCorridor}), and arrivals inside it are the
  * sweep passing through, not a new destination. Geometry says what a timer would
  * have had to guess, and says it without holding anything up.
+ *
+ * The level provides both halves itself rather than handing them back, so no
+ * caller can wire one without the other, and `openKey` changing — which it does
+ * on every sweep — re-renders neither the menu nor the row that owns the panel's
+ * subtree, only the rows that read it.
  */
-export function useMenuPointerGroup({ virtual = false, owner }: MenuPointerGroupOptions = {}): {
-	openKey: string | null
-	pointer: MenuPointerValue
-} {
+export function MenuPointerLevel({ virtual = false, owner, children }: MenuPointerLevelProps) {
 	const [openKey, setOpenKey] = useState<string | null>(null)
 
 	// Read back inside the handlers below, which run between a set and the render
@@ -234,7 +271,8 @@ export function useMenuPointerGroup({ virtual = false, owner }: MenuPointerGroup
 			const open = openKeyRef.current
 
 			// Mid-sweep into the open panel: this row is being crossed, not chosen.
-			if (open !== null && subKey !== open && travelling(point)) return
+			// `travelling` reads the open key back itself, and says no when none is.
+			if (subKey !== open && travelling(point)) return
 
 			anchor.current = point
 
@@ -252,6 +290,30 @@ export function useMenuPointerGroup({ virtual = false, owner }: MenuPointerGroup
 		[moveCursor, setOpen, travelling],
 	)
 
+	const enterSubmenu = useCallback((key: string) => {
+		const edge = SUBMENU_ENTRY[key]
+
+		if (!edge) return false
+
+		const openSub = openKeyRef.current
+
+		const panel = openSub === null ? undefined : panels.current.get(openSub)
+
+		if (!panel) return false
+
+		const rows = queryItems(panel, MENUITEM_SELECTOR)
+
+		const row = edge === 'first' ? rows[0] : rows[rows.length - 1]
+
+		if (!row) return false
+
+		// No `preventScroll` here, unlike the pointer's cursor: the keyboard is
+		// reaching for a row it cannot see, so bringing it into view is the point.
+		row.focus()
+
+		return true
+	}, [])
+
 	const closeSubmenu = useCallback(
 		(subKey: string) => {
 			if (openKeyRef.current === subKey) setOpen(null)
@@ -267,9 +329,13 @@ export function useMenuPointerGroup({ virtual = false, owner }: MenuPointerGroup
 	// Every member is stable, so this identity never changes: a sweep re-renders
 	// only the rows that read `openKey`.
 	const pointer = useMemo(
-		() => ({ hoverRow, openSubmenu: setOpen, closeSubmenu, registerPanel }),
-		[hoverRow, setOpen, closeSubmenu, registerPanel],
+		() => ({ hoverRow, openSubmenu: setOpen, enterSubmenu, closeSubmenu, registerPanel }),
+		[hoverRow, setOpen, enterSubmenu, closeSubmenu, registerPanel],
 	)
 
-	return { openKey, pointer }
+	return (
+		<MenuPointerContext value={pointer}>
+			<MenuOpenSubContext value={openKey}>{children}</MenuOpenSubContext>
+		</MenuPointerContext>
+	)
 }
