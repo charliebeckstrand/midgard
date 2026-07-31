@@ -13,7 +13,7 @@ export type TableEmptyProps = {
 }
 
 /** @internal A default empty-state alert for {@link TableEmpty}. */
-const TableEmptyAlert = () => <Alert variant="soft" title="No items" block />
+const TableEmptyAlert = () => <Alert variant="soft" title="No items" full />
 
 /**
  * Empty-state body for a {@link Table}: a single row whose cell spans all

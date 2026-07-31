@@ -310,7 +310,7 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 		return (
 			<TableEmpty columns={visibleColumns.length}>
 				{error === true ? (
-					<Alert severity="error" variant="soft" title="Couldn't load data" block />
+					<Alert severity="error" variant="soft" title="Couldn't load data" full />
 				) : (
 					error
 				)}

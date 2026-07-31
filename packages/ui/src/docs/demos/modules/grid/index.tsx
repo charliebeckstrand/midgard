@@ -584,7 +584,7 @@ const ErrorExample = () => {
 			columns={columns}
 			rows={people}
 			getKey={(row) => row.id}
-			error={<Alert color="red" variant="soft" title="Couldn't load people" block />}
+			error={<Alert color="red" variant="soft" title="Couldn't load people" full />}
 		/>
 	)
 }
@@ -1226,7 +1226,7 @@ function sparklineColumns(sortKey: string): GridColumn<Metric>[] {
 				<Sparkline
 					key={sortKey}
 					data={row.trend}
-					variant="bar"
+					shape="bar"
 					color="green"
 					animate
 					aria-label={`${row.name} by period, last 12 periods`}

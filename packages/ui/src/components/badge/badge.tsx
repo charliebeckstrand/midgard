@@ -32,7 +32,7 @@ export function Badge({
 	variant = 'solid',
 	color,
 	size,
-	rounded,
+	radius,
 	className,
 	children,
 	href,
@@ -52,7 +52,7 @@ export function Badge({
 			data-has-suffix={dataAttr(!!suffix)}
 			href={href}
 			render={render}
-			className={cn(k({ variant, color, size: resolvedSize, rounded }), className)}
+			className={cn(k({ variant, color, size: resolvedSize, radius }), className)}
 			{...props}
 		>
 			{prefix}

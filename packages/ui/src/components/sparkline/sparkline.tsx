@@ -27,7 +27,7 @@ export type SparklineProps = AccessibleName & {
 	 * Draw the series as a connected line or as discrete bars.
 	 * @defaultValue 'line'
 	 */
-	variant?: 'line' | 'bar'
+	shape?: 'line' | 'bar'
 	/** @defaultValue 'zinc' */
 	color?: SparklineColor
 	/** Resolves against enclosing Density; sets the default drawing box and mark scale. */
@@ -38,13 +38,13 @@ export type SparklineProps = AccessibleName & {
 	height?: number
 	/**
 	 * Fill the region under the line with a translucent wash. Ignored for the
-	 * `bar` variant.
+	 * `bar` shape.
 	 * @defaultValue false
 	 */
 	fill?: boolean
 	/**
 	 * Mark the last point with a filled dot — the end-of-series value. Ignored for
-	 * the `bar` variant.
+	 * the `bar` shape.
 	 * @defaultValue false
 	 */
 	endPoint?: boolean
@@ -71,7 +71,7 @@ export type SparklineProps = AccessibleName & {
 
 /** Shared shape for the static and animated mark renderers. @internal */
 type SparklineMarksProps = {
-	variant: 'line' | 'bar'
+	shape: 'line' | 'bar'
 	geometry: SparklineGeometry
 	strokeWidth: number
 	fill: boolean
@@ -87,7 +87,7 @@ type SparklineMarksProps = {
  * no motion runtime. @internal
  */
 function SparklineMarks({
-	variant,
+	shape,
 	geometry,
 	strokeWidth,
 	fill,
@@ -97,7 +97,7 @@ function SparklineMarks({
 	strokeClass,
 	fillClass,
 }: SparklineMarksProps) {
-	if (variant === 'bar') {
+	if (shape === 'bar') {
 		return geometry.bars.map((bar) => (
 			<rect
 				key={bar.x}
@@ -146,7 +146,7 @@ function SparklineMarks({
  * reduced-motion preference settles them at their final state. @internal
  */
 function AnimatedSparklineMarks({
-	variant,
+	shape,
 	geometry,
 	strokeWidth,
 	fill,
@@ -156,7 +156,7 @@ function AnimatedSparklineMarks({
 	strokeClass,
 	fillClass,
 }: SparklineMarksProps) {
-	if (variant === 'bar') {
+	if (shape === 'bar') {
 		return geometry.bars.map((bar, index) => (
 			<motion.rect
 				key={bar.x}
@@ -230,7 +230,7 @@ function AnimatedSparklineMarks({
  */
 export function Sparkline({
 	data,
-	variant = 'line',
+	shape = 'line',
 	color = 'zinc',
 	size,
 	width,
@@ -253,7 +253,7 @@ export function Sparkline({
 	const boxHeight = height ?? metrics.height
 
 	// Inset enough to keep the stroke and the (optional) end-point marker inside
-	// the viewBox; the marker only applies to the line variant.
+	// the viewBox; the marker only applies to the line shape.
 	const padding = Math.max(strokeWidth / 2, endPoint ? metrics.pointRadius : 0) + 1
 
 	const geometry = sparklineGeometry(data, {
@@ -266,7 +266,7 @@ export function Sparkline({
 	})
 
 	const marksProps: SparklineMarksProps = {
-		variant,
+		shape,
 		geometry,
 		strokeWidth,
 		fill,

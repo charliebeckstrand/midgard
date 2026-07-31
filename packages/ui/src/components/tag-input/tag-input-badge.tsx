@@ -46,7 +46,7 @@ export function TagInputBadge({ label, color, disabled, onRemove }: TagInputBadg
 		<Badge
 			role="listitem"
 			variant="outline"
-			rounded="full"
+			radius="full"
 			color={color}
 			size={size}
 			className={cn(k.badge)}

@@ -114,7 +114,7 @@ function CommandResults() {
 
 	if (!results.length) {
 		return (
-			<Alert severity="warning" block>
+			<Alert severity="warning" full>
 				<AlertTitle>No commands found</AlertTitle>
 			</Alert>
 		)

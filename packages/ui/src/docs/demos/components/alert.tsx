@@ -47,7 +47,7 @@ function ClosableBlockExample() {
 
 	return (
 		<Alert
-			block
+			full
 			severity="info"
 			title="Full-width alert"
 			description="This alert stretches to fill its container."

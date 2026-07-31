@@ -10,7 +10,7 @@ import { k as tagInput } from '../../recipes/kata/tag-input'
 // `kata/tag-input.ts` pads a chip's leading side to the chip's `px` + the
 // remove button's `bare.p` so the label sits symmetric with the glyph
 // (rationale lives there). The chip is a rounded-full pill, so its `px` is the
-// base badge scale plus any `rounded-full` size compound (small pills get a
+// base badge scale plus any `radius: 'full'` size compound (small pills get a
 // bump). This pins that sum against the live recipes across the sizes a chip
 // takes (xs/sm/md); if the badge px, the pill bump, or the bare compound
 // drifts, the assertion fails with the computed pad and names the size.
@@ -52,12 +52,12 @@ function findBareCompoundP(size: Ma): number {
 }
 
 // The chip is a rounded-full pill: its px is the base size-row px unless a
-// `rounded-full` size compound overrides it (small pills get a bump).
+// `radius: 'full'` size compound overrides it (small pills get a bump).
 function findPillPx(size: Ma): number {
 	const rules = badge.config.compound as ReadonlyArray<Record<string, unknown>>
 
 	for (const rule of rules) {
-		if (rule.rounded !== 'full' || rule.size !== size) continue
+		if (rule.radius !== 'full' || rule.size !== size) continue
 
 		for (const cls of [rule.class].flat(Number.POSITIVE_INFINITY)) {
 			if (typeof cls !== 'string' || !cls.startsWith('px-')) continue

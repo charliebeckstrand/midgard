@@ -70,7 +70,7 @@ export type AlertProps = AlertVariants & {
 	description?: ReactNode
 	actions?: ReactNode
 	/** Stretch to fill the available inline width rather than shrink to content. */
-	block?: boolean
+	full?: boolean
 	closable?: boolean
 	/** Initial open state (uncontrolled). @defaultValue true */
 	defaultOpen?: boolean
@@ -166,7 +166,7 @@ export function Alert({
 	title,
 	description,
 	actions,
-	block,
+	full,
 	closable,
 	defaultOpen = true,
 	open: openProp,
@@ -235,7 +235,7 @@ export function Alert({
 			role={role}
 			className={cn(
 				k({ variant, color: resolvedColor }),
-				block && 'w-full',
+				full && 'w-full',
 				severity && !closable && 'pr-6',
 				className,
 			)}

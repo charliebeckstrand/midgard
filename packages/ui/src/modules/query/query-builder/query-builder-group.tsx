@@ -63,7 +63,7 @@ function QueryBuilderGroupImpl({ group, root, className }: QueryBuilderGroupProp
 		>
 			<div className={k.group.base}>
 				{group.children.length === 0 ? (
-					<Alert severity="warning" variant="soft" title="No rules added" block />
+					<Alert severity="warning" variant="soft" title="No rules added" full />
 				) : (
 					group.children.map((child, index) => (
 						<div key={child.id} className="flex flex-col gap-3">

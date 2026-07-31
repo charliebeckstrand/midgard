@@ -34,7 +34,7 @@ describe('Sparkline', () => {
 
 	it('draws one bar rect per datum in the bar variant', () => {
 		const { container } = renderUI(
-			<Sparkline data={[1, 4, 2, 8]} variant="bar" aria-label="By period" />,
+			<Sparkline data={[1, 4, 2, 8]} shape="bar" aria-label="By period" />,
 		)
 
 		expect(container.querySelectorAll('rect')).toHaveLength(4)
@@ -70,7 +70,7 @@ describe('Sparkline', () => {
 		expect(line.container.querySelector('circle')).toBeInTheDocument()
 
 		const bar = renderUI(
-			<Sparkline data={[1, 4, 2, 8]} animate variant="bar" aria-label="Animated bars" />,
+			<Sparkline data={[1, 4, 2, 8]} animate shape="bar" aria-label="Animated bars" />,
 		)
 
 		expect(bar.container.querySelectorAll('rect')).toHaveLength(4)
