@@ -5,7 +5,6 @@ import { ChevronRight } from 'lucide-react'
 import {
 	type FocusEvent,
 	type KeyboardEvent,
-	type PointerEvent,
 	type ReactElement,
 	type ReactNode,
 	useCallback,
@@ -15,7 +14,7 @@ import {
 	useState,
 } from 'react'
 import { ariaAttr, cn, dataAttr } from '../../core'
-import { useFloatingUI, useScrollOverflow } from '../../hooks'
+import { useComposedRef, useFloatingUI, useScrollOverflow } from '../../hooks'
 import { useDensity } from '../../primitives/density'
 import { FloatingSurface } from '../../primitives/floating-surface'
 import { PopoverPanel } from '../../primitives/popover'
@@ -23,17 +22,13 @@ import { useGlass } from '../../providers/glass/context'
 import { k } from '../../recipes/kata/menu'
 import { Icon } from '../icon'
 import { MenuLabel } from './slots'
+import {
+	MenuPointerLevel,
+	useMenuOpenSub,
+	useMenuPointer,
+	useMenuRowPointer,
+} from './use-menu-pointer'
 import { MENUITEM_SELECTOR } from './use-menu-state'
-
-/**
- * Grace period (ms) between the pointer leaving the trigger or the panel and
- * the submenu closing, so a diagonal sweep from the trigger to a row inside the
- * panel — which passes over the gap, and over the rows above or below — doesn't
- * shut it mid-travel.
- *
- * @internal
- */
-const CLOSE_DELAY = 120
 
 /**
  * Keys that open a submenu from its roved parent row. Direction keys are
@@ -80,20 +75,29 @@ export type MenuSubProps = {
  * A menu row that opens a nested menu beside itself: a `role="menuitem"` parent
  * carrying `aria-haspopup="menu"` and a trailing chevron, plus the floating
  * panel its rows render in. Opens on hover, on click, and — while the row is
- * the roved one — on Enter / Space; closes on `Escape`, an outside press, the
- * pointer leaving both surfaces, or the roving cursor moving to another row.
- * Selecting a row inside closes the whole menu, as any {@link MenuItem} does.
+ * the roved one — on Enter / Space; closes on `Escape`, an outside press, or the
+ * cursor settling on another row. Selecting a row inside closes the whole menu,
+ * as any {@link MenuItem} does.
  *
- * @remarks The panel takes whichever side of the row has room
+ * @remarks **An open submenu owns the arrows.** However it was opened, the
+ * navigation keys work its rows and wrap inside them rather than roving on
+ * through the menu the row sits in, which would leave the panel hanging open
+ * behind the cursor; `Escape` closes it and hands them back, cursor on the
+ * parent row. A hover open leaves focus on that row until the first such key —
+ * hover is not a commitment (APG) — while Enter, Space, and click seat it on the
+ * panel's first row outright.
+ *
+ * The panel takes whichever side of the row has room
  * ({@link SUBMENU_MIDDLEWARE}), so it opens leftward near the viewport's right
  * edge rather than being clipped — which is why no direction key opens or closes
- * it. Hover never moves focus; only a keyboard or click open seats it on the
- * first row (APG). Tab is held inside the open panel, cycling its rows. The
+ * it. Open state is the enclosing level's, not this row's
+ * ({@link MenuPointerLevel}), so one submenu hangs off a menu at a time and the
+ * pointer reads its course against that one panel; the row's own panel provides
+ * the next level down. Tab is held inside the open panel, cycling its rows. The
  * panel portals out of the enclosing {@link MenuContent}, so its height-capped,
- * scrolling viewport can't clip it. The keyboard model follows real focus, so it
- * is live in a right-click menu (focus sits in the panel) while a dropdown —
- * which keeps focus on its trigger and roves by `aria-activedescendant` — opens
- * a submenu by hover or click.
+ * scrolling viewport can't clip it. A dropdown keeps focus on its trigger and
+ * roves by `aria-activedescendant`, so the arrows for a submenu open under one
+ * arrive there instead; {@link MenuTrigger} hands them over the same way.
  * @see {@link MenuItem}
  */
 export function MenuSub({ label, icon, disabled = false, className, children }: MenuSubProps) {
@@ -101,16 +105,21 @@ export function MenuSub({ label, icon, disabled = false, className, children }: 
 
 	const glass = useGlass()
 
-	const [open, setOpen] = useState(false)
-
 	const triggerRef = useRef<HTMLButtonElement>(null)
+
+	const subKey = useId()
+
+	// The enclosing level's cursor: it holds which of its submenus is open, so
+	// arbitration between siblings — and the travel geometry the pointer paths
+	// read — lives in one place rather than in each row's own timers.
+	const { openSubmenu, enterSubmenu, closeSubmenu, registerPanel } = useMenuPointer()
+
+	const open = useMenuOpenSub() === subKey
 
 	// Whether the pending open should pull focus into the panel: set by the
 	// keyboard and click paths, left clear by hover so a pointer sweep across the
 	// menu doesn't yank focus off whatever the user is on.
 	const seatFocus = useRef(false)
-
-	const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
 	// The panel's rows scroll in the same capped, edge-faded viewport
 	// {@link MenuContent} gives the root menu, so a long submenu reads alike.
@@ -141,38 +150,24 @@ export function MenuSub({ label, icon, disabled = false, className, children }: 
 		placement: 'right-start',
 		middleware: SUBMENU_MIDDLEWARE,
 		open,
-		onOpenChange: setOpen,
+		// Only dismissals arrive here — the composed interactions are `useDismiss`
+		// and `useRole`, and neither ever reports an open.
+		onOpenChange: () => closeSubmenu(subKey),
 		// The trigger (`role="menuitem"` + `aria-haspopup`) and the panel
 		// (`role="menu"`) carry their own roles; a role here would stamp the
 		// positioning wrapper with a duplicate.
 		role: null,
-		returnFocusTo: triggerRef,
+		// No `returnFocusTo`: a close the pointer drove never held focus, and
+		// restoring it to this row would drag the cursor backwards onto a submenu
+		// the user has already left — and, worse, blur whichever row the pointer
+		// has since opened, closing it. The keyboard paths that *do* owe a return
+		// (`collapse`) seat it on the trigger themselves.
 	})
 
-	const cancelClose = useCallback(() => {
-		if (closeTimer.current === null) return
-
-		clearTimeout(closeTimer.current)
-
-		closeTimer.current = null
-	}, [])
-
-	const scheduleClose = useCallback(() => {
-		cancelClose()
-
-		closeTimer.current = setTimeout(() => {
-			closeTimer.current = null
-
-			setOpen(false)
-		}, CLOSE_DELAY)
-	}, [cancelClose])
-
-	// A close scheduled as the menu unmounts (the parent menu closing under the
-	// pointer) would otherwise fire into a torn-down component.
-	useEffect(() => cancelClose, [cancelClose])
-
 	// Seat focus on the first row of a keyboard- or click-opened submenu, once the
-	// panel's rows are in the DOM.
+	// panel's rows are in the DOM. Keyed on `open` as well as the container: a
+	// reopen inside the exit animation reuses the node it was already holding, so
+	// the container alone would not change and the seating would never run.
 	useEffect(() => {
 		if (!open || !rows || !seatFocus.current) return
 
@@ -182,30 +177,36 @@ export function MenuSub({ label, icon, disabled = false, className, children }: 
 	}, [open, rows])
 
 	const openWithFocus = useCallback(() => {
-		cancelClose()
+		// Already open, from a hover the pointer left standing: there is no mount
+		// coming to seat focus on, so take it now. Arming the flag instead would
+		// leave it set for whatever opens next.
+		if (open && enterSubmenu('ArrowDown')) return
 
 		seatFocus.current = true
 
-		setOpen(true)
-	}, [cancelClose])
+		openSubmenu(subKey)
+	}, [open, enterSubmenu, openSubmenu, subKey])
 
-	const setTrigger = useCallback(
-		(node: HTMLButtonElement | null) => {
-			triggerRef.current = node
+	const setTrigger = useComposedRef<HTMLButtonElement>(triggerRef, refs.setReference)
 
-			refs.setReference(node)
+	// The positioned wrapper doubles as the panel's rect for the level's travel
+	// triangle; it shrink-wraps the panel (see the `relative` note below), so the
+	// two measure alike.
+	const setPanel = useCallback(
+		(node: HTMLElement | null) => {
+			refs.setFloating(node)
+
+			registerPanel(subKey, node)
 		},
-		[refs],
+		[refs, registerPanel, subKey],
 	)
 
 	/** Collapses the submenu and hands the cursor back to its parent row. */
 	const collapse = useCallback(() => {
-		cancelClose()
-
-		setOpen(false)
+		closeSubmenu(subKey)
 
 		triggerRef.current?.focus()
-	}, [cancelClose])
+	}, [closeSubmenu, subKey])
 
 	const handleTriggerKeyDown = useCallback(
 		(event: KeyboardEvent<HTMLButtonElement>) => {
@@ -228,9 +229,21 @@ export function MenuSub({ label, icon, disabled = false, className, children }: 
 				event.stopPropagation()
 
 				collapse()
+
+				return
+			}
+
+			// An open submenu owns the arrows: they move within its rows rather than
+			// roving on through the menu this row sits in, which would leave the
+			// panel hanging open behind the cursor. Consumed here so the enclosing
+			// menu's roving never sees the press; `Escape` above is the way back out.
+			if (open && enterSubmenu(event.key)) {
+				event.preventDefault()
+
+				event.stopPropagation()
 			}
 		},
-		[disabled, open, openWithFocus, collapse],
+		[disabled, open, openWithFocus, collapse, enterSubmenu],
 	)
 
 	const handlePanelKeyDown = useCallback(
@@ -265,27 +278,15 @@ export function MenuSub({ label, icon, disabled = false, className, children }: 
 		(event: FocusEvent<HTMLButtonElement>) => {
 			if (event.relatedTarget && rows?.contains(event.relatedTarget)) return
 
-			cancelClose()
-
-			setOpen(false)
+			closeSubmenu(subKey)
 		},
-		[cancelClose, rows],
+		[closeSubmenu, rows, subKey],
 	)
 
-	const handlePointerEnter = useCallback(
-		(event: PointerEvent) => {
-			if (disabled) return
-
-			// Touch has no hover to express intent with: a tap fires `click`, which
-			// opens the submenu there.
-			if (event.pointerType === 'touch') return
-
-			cancelClose()
-
-			setOpen(true)
-		},
-		[disabled, cancelClose],
-	)
+	// The pointer settling on this row takes the level's cursor and opens this
+	// submenu — the level holds both, so a sweep across sibling rows resolves to
+	// one panel rather than a flash per row.
+	const handlePointerMove = useMenuRowPointer(disabled, subKey)
 
 	return (
 		<>
@@ -308,8 +309,7 @@ export function MenuSub({ label, icon, disabled = false, className, children }: 
 				data-open={dataAttr(open)}
 				className={cn('group/option', k.item({ density: space, size }), k.subTrigger, className)}
 				{...getReferenceProps({
-					onPointerEnter: handlePointerEnter,
-					onPointerLeave: scheduleClose,
+					onPointerMove: handlePointerMove,
 					onBlur: handleBlur,
 					onKeyDown: handleTriggerKeyDown,
 					// Opens rather than toggles: a click landing on a row the pointer has
@@ -327,44 +327,47 @@ export function MenuSub({ label, icon, disabled = false, className, children }: 
 				<Icon icon={<ChevronRight />} className="ml-auto" />
 			</button>
 
-			<FloatingSurface
-				open={open}
-				setFloating={refs.setFloating}
-				floatingStyles={floatingStyles}
-				getFloatingProps={getFloatingProps}
-				onPointerEnter={cancelClose}
-				onPointerLeave={scheduleClose}
-			>
-				<PopoverPanel
-					id={panelId}
-					role="menu"
-					aria-labelledby={triggerId}
-					itemSelector={MENUITEM_SELECTOR}
-					// Hover opens the panel without moving focus; the keyboard and click
-					// paths seat it on the first row themselves (see `seatFocus`).
-					autoFocus={false}
-					// Tab cycles the submenu's own rows; the parent menu is reached back
-					// through ArrowLeft or `Escape`, not by tabbing past the last row.
-					trapTab
-					typeahead
-					glass={glass}
-					// `relative` puts the panel back in flow (its recipe base is
-					// `absolute`) so the positioning wrapper shrink-wraps to it. Without
-					// it the wrapper measures 0×0 and the engine has no width to place
-					// against — a left-side placement would land on top of the parent
-					// menu. {@link MenuContent} does the same for its floating panel.
-					className={cn('relative', k.content)}
-					onKeyDown={handlePanelKeyDown}
+			{/* The level this row's own panel opens, wrapping the surface rather than
+			sitting inside it so it outlives each open — its rows rove by real focus,
+			whatever model the menu above them uses. */}
+			<MenuPointerLevel>
+				<FloatingSurface
+					open={open}
+					setFloating={setPanel}
+					floatingStyles={floatingStyles}
+					getFloatingProps={getFloatingProps}
 				>
-					<div
-						ref={setRowContainer}
-						data-slot="menu-viewport"
-						className={k.viewport({ density: space })}
+					<PopoverPanel
+						id={panelId}
+						role="menu"
+						aria-labelledby={triggerId}
+						itemSelector={MENUITEM_SELECTOR}
+						// Hover opens the panel without moving focus; the keyboard and click
+						// paths seat it on the first row themselves (see `seatFocus`).
+						autoFocus={false}
+						// Tab cycles the submenu's own rows; the parent menu is reached back
+						// through ArrowLeft or `Escape`, not by tabbing past the last row.
+						trapTab
+						typeahead
+						glass={glass}
+						// `relative` puts the panel back in flow (its recipe base is
+						// `absolute`) so the positioning wrapper shrink-wraps to it. Without
+						// it the wrapper measures 0×0 and the engine has no width to place
+						// against — a left-side placement would land on top of the parent
+						// menu. {@link MenuContent} does the same for its floating panel.
+						className={cn('relative', k.content)}
+						onKeyDown={handlePanelKeyDown}
 					>
-						{children}
-					</div>
-				</PopoverPanel>
-			</FloatingSurface>
+						<div
+							ref={setRowContainer}
+							data-slot="menu-viewport"
+							className={k.viewport({ density: space })}
+						>
+							{children}
+						</div>
+					</PopoverPanel>
+				</FloatingSurface>
+			</MenuPointerLevel>
 		</>
 	)
 }

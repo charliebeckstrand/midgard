@@ -65,6 +65,19 @@ describe('FloatingSurface', () => {
 		expect(onKeyDown).toHaveBeenCalled()
 	})
 
+	it('leaves an open surface free to take input', () => {
+		renderUI(
+			<FloatingSurface open {...baseProps} data-slot="live">
+				<span>panel</span>
+			</FloatingSurface>,
+		)
+
+		// The inert write that makes a *closing* surface stop swallowing hovers is
+		// a browser case: jsdom's mocked `AnimatePresence` drops the node in the
+		// same commit, so there is never an exiting surface to observe.
+		expect(document.querySelector<HTMLElement>('[data-slot="live"]')?.style.pointerEvents).toBe('')
+	})
+
 	it('merges caller style over floatingStyles on the positioned wrapper', () => {
 		renderUI(
 			<FloatingSurface

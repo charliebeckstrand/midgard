@@ -183,6 +183,20 @@ export function copyText(text: string): void {
 	navigator.clipboard?.writeText(text).catch(() => {})
 }
 
+/**
+ * The table-wide column manager as a menu row, or nothing when no manager is
+ * reachable — the same withhold-when-empty shape the column's own concerns take.
+ *
+ * @internal
+ */
+function manageColumnsItems(chooseColumns: (() => void) | null): GridMenuItem[] {
+	if (!chooseColumns) return []
+
+	return [
+		{ key: 'choose-columns', label: 'Manage columns', icon: <Columns3 />, onSelect: chooseColumns },
+	]
+}
+
 /** Inputs shaping the default header-menu items. @internal */
 type ColumnMenuDefaultArgs<T> = {
 	column: GridColumn<T>
@@ -261,16 +275,17 @@ export function pinChoiceIcon(key: PinMenuChoice['key']): ReactElement {
 
 /**
  * Default header-menu items, consolidated into hover-opened submenus so the
- * menu opens one row per concern rather than a dozen flat actions: Sort (the
- * sort controls, with "Clear sort" once the column is the sorted one), Pin (Pin
- * left / Pin right / Unpin), the group-by toggle — a single action, so it stays
- * a plain row — and Auto-size (this column, then all columns), then the
- * table-wide tools under a separator: "Manage columns" (when a manager is
- * reachable) and Export (one row per active export type).
+ * menu opens one row per concern rather than a dozen flat actions: "Manage
+ * columns" (when a manager is reachable) leads, then the clicked column's own
+ * concerns — Sort (the sort controls, with "Clear sort" once the column is the
+ * sorted one), Pin (Pin left / Pin right / Unpin), the group-by toggle, a single
+ * action so it stays a plain row, and Auto-size (this column, then all columns)
+ * — and Export (one row per active export type) closes them out.
  *
  * @remarks Each menu withholds itself when it has nothing to offer — a locked
  * column shows no Pin, an unsortable one no Sort — and collapses to a plain row
- * when it holds a single action, so no submenu ever opens onto one item.
+ * when it holds a single action, so no submenu ever opens onto one item. The
+ * defaults carry no rule of their own; a host's builder places any it wants.
  * @internal
  */
 export function columnMenuDefaults<T>(args: ColumnMenuDefaultArgs<T>): GridMenuItem[] {
@@ -287,9 +302,11 @@ export function columnMenuDefaults<T>(args: ColumnMenuDefaultArgs<T>): GridMenuI
 		exportActions,
 	} = args
 
-	// The clicked column's own actions, in the order the header reads them:
-	// sort, pin, group, then the fit that closes them out.
-	const actions: GridMenuItem[] = [
+	// The menu in order, each concern contributing its rows or none: the
+	// table-wide manager first — the one row that isn't about the clicked column
+	// at all — then that column's own, as the header reads them.
+	return [
+		...manageColumnsItems(chooseColumns),
 		...submenuItems({
 			key: 'sort',
 			label: 'Sort',
@@ -309,38 +326,20 @@ export function columnMenuDefaults<T>(args: ColumnMenuDefaultArgs<T>): GridMenuI
 			icon: <StretchHorizontal />,
 			items: autoSizeMenuItems({ column, autoSizeColumn, autoSizeColumns }),
 		}),
-	]
-
-	// Table-wide tools sit under a separator, set off from the clicked column's
-	// own actions above.
-	const tools: GridMenuItem[] = []
-
-	if (chooseColumns) {
-		tools.push({
-			key: 'choose-columns',
-			label: 'Manage columns',
-			icon: <Columns3 />,
-			onSelect: chooseColumns,
-		})
-	}
-
-	tools.push(
 		...submenuItems({
 			key: 'export',
 			label: 'Export',
 			icon: <Download />,
 			items: exportMenuItems(exportActions),
 		}),
-	)
-
-	return mergeContextMenuItems([actions, tools])
+	]
 }
 
 /**
- * Default cell-menu items: Copy, then — when export is on — the Export submenu
- * under a separator. Copy acts on the right-clicked cell; export is a grid-wide
- * tool (scoped to the selection when rows are selected), so it sits apart below
- * the divider, mirroring the column menu's grouping of its table-wide tools.
+ * Default cell-menu items: Copy, acting on the right-clicked cell, then — when
+ * export is on — the Export submenu, a grid-wide tool scoped to the selection
+ * when rows are selected. Unruled, as the column menu's defaults are; a host's
+ * builder places any separator it wants.
  *
  * @internal
  */
@@ -348,16 +347,15 @@ export function cellMenuDefaults(
 	copy: () => void,
 	exportActions: GridExportAction[],
 ): GridMenuItem[] {
-	const copyItem: GridMenuItem = { key: 'copy', label: 'Copy', icon: <Copy />, onSelect: copy }
-
-	const exports = submenuItems({
-		key: 'export',
-		label: 'Export',
-		icon: <Download />,
-		items: exportMenuItems(exportActions),
-	})
-
-	return mergeContextMenuItems([[copyItem], exports])
+	return [
+		{ key: 'copy', label: 'Copy', icon: <Copy />, onSelect: copy },
+		...submenuItems({
+			key: 'export',
+			label: 'Export',
+			icon: <Download />,
+			items: exportMenuItems(exportActions),
+		}),
+	]
 }
 
 /**
@@ -374,28 +372,21 @@ export function buildColumnGroupMenu(args: {
 	chooseColumns: (() => void) | null
 	manageLabel: ReactNode
 }): GridMenuItem[] {
-	const items: GridMenuItem[] = []
-
-	if (args.chooseColumns) {
-		items.push({
-			key: 'manage-columns',
-			label: args.manageLabel,
-			icon: <Columns3 />,
-			onSelect: args.chooseColumns,
-		})
-	}
-
-	if (args.group.color) {
-		// Clear color sits at the bottom, set off by a separator from Manage columns.
-		if (items.length > 0) items.push({ key: 'color-separator', separator: true })
-
-		items.push({
-			key: 'clear-color',
-			label: 'Clear color',
-			icon: <Ban />,
-			onSelect: args.onClearColor,
-		})
-	}
-
-	return items
+	// Two groups, ruled apart only when both show — which is what
+	// `mergeContextMenuItems` is for, rather than counting rows by hand.
+	return mergeContextMenuItems([
+		args.chooseColumns
+			? [
+					{
+						key: 'manage-columns',
+						label: args.manageLabel,
+						icon: <Columns3 />,
+						onSelect: args.chooseColumns,
+					},
+				]
+			: [],
+		args.group.color
+			? [{ key: 'clear-color', label: 'Clear color', icon: <Ban />, onSelect: args.onClearColor }]
+			: [],
+	])
 }
