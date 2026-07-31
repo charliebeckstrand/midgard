@@ -102,6 +102,8 @@ type GridBodyProps<T> = GridRowsProps<T> & {
 		scrollIntoViewRef: RefObject<GridScrollRowIntoView | null>
 		/** Infinite-scroll gates, or `null` when the windowed grid isn't infinite-scrolling. */
 		infiniteScroll: ResolvedInfiniteScroll | null
+		/** Re-fits the columns once the window's rows render, when the autosizer had none to measure. */
+		fitRenderedRows: () => void
 	} | null
 }
 
@@ -382,6 +384,9 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 		)
 	}
 
+	// The windowed body carries the loading skeleton on from the branch above while
+	// its window resolves, so `loading` clearing as the rows land doesn't flash a
+	// headers-only, rowless table (see `GridVirtualizedBody`).
 	if (virtualize) {
 		return <GridVirtualizedBody<T> {...props} {...virtualize} />
 	}

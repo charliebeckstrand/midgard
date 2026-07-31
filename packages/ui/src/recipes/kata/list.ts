@@ -66,7 +66,7 @@ const item = defineRecipe({
 // The `link` axis carries the `href`-driven treatment (cf. breadcrumb's
 // non-current link).
 const content = defineRecipe({
-	base: [flex.col, 'flex-1 min-w-0'],
+	base: [flex.col, 'flex-1 min-w-0', focus.ring],
 	link: {
 		true: [text.muted, fg.hover],
 		false: '',

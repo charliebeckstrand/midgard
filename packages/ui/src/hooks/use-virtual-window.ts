@@ -15,7 +15,13 @@ type VirtualWindowOptions = {
 }
 
 type VirtualWindow = {
-	/** The items currently in the viewport plus overscan, in order. */
+	/**
+	 * The items currently in the viewport plus overscan, in order. Empty until the
+	 * virtualizer has resolved *and* measured the scroll element — the commit the
+	 * re-sync guard below recovers, plus every commit while the element measures
+	 * zero (a `display: none` ancestor, a server render) — so a caller holding
+	 * items in hand must not read an empty window as "no items to show".
+	 */
 	virtualItems: VirtualItem[]
 	/** Pixel height of the spacer standing in for rows above the viewport. */
 	topSpacer: number

@@ -1,8 +1,10 @@
 'use client'
 
 import { FloatingFocusManager, type FloatingRootContext } from '@floating-ui/react'
-import type { CSSProperties, HTMLAttributes, ReactNode } from 'react'
+import { type CSSProperties, type HTMLAttributes, type ReactNode, useRef } from 'react'
 import { cn } from '../../core'
+import { useComposedRef } from '../../hooks'
+import { useIsomorphicLayoutEffect } from '../../hooks/use-isomorphic-layout-effect'
 import { k } from '../../recipes/kata/popover'
 import { PresencePortal } from '../portal'
 
@@ -50,9 +52,31 @@ export function FloatingSurface({
 	children,
 	...rest
 }: FloatingSurfaceProps) {
+	const wrapperRef = useRef<HTMLDivElement | null>(null)
+
+	const setWrapper = useComposedRef<HTMLDivElement>(wrapperRef, setFloating)
+
+	// A closed surface is still on screen through its exit animation, and one that
+	// closed before the engine could place it — a menu panel the pointer swept
+	// past — sits at the wrapper's unpositioned origin, over the surface it came
+	// from. Either way it must stop taking input the moment it stops being real,
+	// or it swallows the hovers and presses meant for what lies under it.
+	//
+	// Written to the node rather than rendered as a class: `AnimatePresence` holds
+	// the exiting subtree at the props it had when it was last open, so a prop
+	// keyed on `open` never reaches it. This effect runs on the parent's render,
+	// where the node is still there to write to.
+	useIsomorphicLayoutEffect(() => {
+		const node = wrapperRef.current
+
+		if (!node) return
+
+		node.style.pointerEvents = open ? (style?.pointerEvents ?? '') : 'none'
+	}, [open, style?.pointerEvents])
+
 	const surface = (
 		<div
-			ref={setFloating}
+			ref={setWrapper}
 			style={style ? { ...floatingStyles, ...style } : floatingStyles}
 			className={cn(k.portal, className)}
 			// Routed through getFloatingProps so consumer handlers compose

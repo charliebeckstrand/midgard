@@ -127,11 +127,14 @@ export type GridInfiniteScroll = {
 	 */
 	error?: ReactNode
 	/**
-	 * Freeze the auto-fit column widths at their initial measurement so an appended
-	 * batch never reflows the columns (later content wider than a column truncates
-	 * instead of widening it); a structural change — columns, density, or a
-	 * container resize — still re-fits. Builds on the default column auto-fit, so it
-	 * has no effect when `resizable` is off or `columnSizing` is controlled.
+	 * Freeze the auto-fit column widths at their first measurement of rendered rows
+	 * so an appended batch never reflows the columns (later content wider than a
+	 * column truncates instead of widening it); a structural change — columns,
+	 * density, or a container resize — still re-fits. Rows that arrive after mount
+	 * are the first measurement, not an append: a grid that mounts on a loading
+	 * skeleton fits to its data when the data renders, then freezes there. Builds on
+	 * the default column auto-fit, so it has no effect when `resizable` is off or
+	 * `columnSizing` is controlled.
 	 * @defaultValue false
 	 */
 	stableColumnWidths?: boolean

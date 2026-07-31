@@ -13,6 +13,7 @@ import {
 import { cn } from '../../core'
 import { useComposedRef } from '../../hooks'
 import { useMenuActions, useMenuState } from './context'
+import { useMenuPointer } from './use-menu-pointer'
 
 /** Props for {@link MenuTrigger}: either a single child element to clone or native `<button>` attributes. */
 export type MenuTriggerProps =
@@ -34,6 +35,8 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 	const { open, menuId, getReferenceProps } = useMenuState()
 
 	const { setOpen, dismissToTab, rovingKeyDown, triggerRef, setReference } = useMenuActions()
+
+	const { enterSubmenu } = useMenuPointer()
 
 	// Merge the child's own ref (React 19 ref-as-prop) with the floating
 	// reference so a consumer can register the trigger element (e.g. as a focus
@@ -70,6 +73,15 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 			} else {
 				activationHeldRef.current = true
 			}
+		}
+
+		// A submenu hovered open under this dropdown owns the arrows while it is up,
+		// the same as in a right-click menu — the difference being that focus rests
+		// here, so the press arrives on the trigger rather than on the parent row.
+		if (open && enterSubmenu(event.key)) {
+			event.preventDefault()
+
+			return
 		}
 
 		rovingKeyDown(event)
