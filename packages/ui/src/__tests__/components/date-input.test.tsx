@@ -8,7 +8,7 @@ import { bySlot, renderUI, screen, userEvent } from '../helpers'
 
 // Controlled usage with an external setter: the harness can move the value
 // while the input holds in-progress text.
-function ControlledDateInput({ onValueChange }: { onValueChange?: (v: Date | undefined) => void }) {
+function ControlledDateInput({ onValueChange }: { onValueChange?: (v: Date | null) => void }) {
 	const [date, setDate] = useState<Date | null>(null)
 
 	return (
@@ -103,7 +103,7 @@ describe('DateInput', () => {
 		expect(input).toHaveFocus()
 	})
 
-	it('clears a committed date from the clear button and emits undefined', async () => {
+	it('clears a committed date from the clear button and emits null', async () => {
 		const onChange = vi.fn()
 
 		const { container } = renderUI(
@@ -120,7 +120,7 @@ describe('DateInput', () => {
 
 		expect(input.value).toBe('')
 
-		expect(onChange).toHaveBeenLastCalledWith(undefined)
+		expect(onChange).toHaveBeenLastCalledWith(null)
 	})
 
 	it('omits the clear button with clearable={false}', () => {
@@ -214,7 +214,7 @@ describe('DateInput', () => {
 		expect(input.value).toBe('01/05/2026')
 	})
 
-	it('emits undefined when a complete date is edited back to partial', async () => {
+	it('emits null when a complete date is edited back to partial', async () => {
 		const onChange = vi.fn()
 
 		const { container } = renderUI(<DateInput onValueChange={onChange} />)
@@ -229,7 +229,7 @@ describe('DateInput', () => {
 
 		expect(input.value).toBe('12/25/202')
 
-		expect(onChange).toHaveBeenLastCalledWith(undefined)
+		expect(onChange).toHaveBeenLastCalledWith(null)
 	})
 
 	it('deletes the digit before a trailing separator on backspace', async () => {
@@ -518,7 +518,7 @@ describe('DateInput', () => {
 		// Retype the final digit: the text leaves and re-enters the held day.
 		await user.type(input, '{Backspace}')
 
-		expect(onChange).toHaveBeenLastCalledWith(undefined)
+		expect(onChange).toHaveBeenLastCalledWith(null)
 
 		const calls = onChange.mock.calls.length
 

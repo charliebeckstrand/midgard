@@ -14,7 +14,7 @@ type TagInputOptions = {
 	name?: string
 	value?: string[]
 	defaultValue?: string[]
-	onValueChange?: (value: string[] | undefined) => void
+	onValueChange?: (value: string[]) => void
 	/** Maximum number of tags. */
 	max?: number
 	/** Gates a trimmed, novel, within-limit tag before commit. Return `false` to reject. */
@@ -55,7 +55,8 @@ export function useTagInput({
 	} = useFormValue<string[]>(name, {
 		value,
 		defaultValue: defaultValue ?? [],
-		onValueChange,
+		// A tag list's empty state is `[]`, so a cleared value reports as one.
+		onValueChange: onValueChange && ((v) => onValueChange(v ?? [])),
 	})
 
 	const tags = current ?? []

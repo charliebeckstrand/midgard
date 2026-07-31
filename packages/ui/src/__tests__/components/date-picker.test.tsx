@@ -56,7 +56,7 @@ function CloseReasonHarness({ apiRef }: { apiRef: { current: DatePickerApi | nul
 // `value={undefined}` back. Asserts the field stays controlled on clear and
 // does not resurface the stale value.
 function ControlledDatePicker() {
-	const [date, setDate] = useState<Date | undefined>(undefined)
+	const [date, setDate] = useState<Date | null>(null)
 
 	return <DatePicker value={date} onValueChange={setDate} />
 }
@@ -207,7 +207,7 @@ describe('DatePicker', () => {
 
 		await user.click(footerClear())
 
-		expect(onChange).toHaveBeenCalledWith(undefined)
+		expect(onChange).toHaveBeenCalledWith(null)
 	})
 
 	it('clears a controlled value with a single click', async () => {
@@ -360,7 +360,7 @@ describe('DatePicker clearable', () => {
 
 		await user.click(screen.getByRole('button', { name: 'Clear selection' }))
 
-		expect(onChange).toHaveBeenCalledWith(undefined)
+		expect(onChange).toHaveBeenCalledWith(null)
 
 		// The clear button unmounts once empty; focus returns to the trigger
 		// instead of falling to <body> (WCAG 2.4.3), and the calendar stays closed.
@@ -396,7 +396,7 @@ describe('DatePicker clearable', () => {
 
 		await user.click(screen.getByRole('button', { name: 'Clear selection' }))
 
-		expect(onChange).toHaveBeenCalledWith(undefined)
+		expect(onChange).toHaveBeenCalledWith(null)
 	})
 })
 

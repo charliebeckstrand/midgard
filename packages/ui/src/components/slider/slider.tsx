@@ -71,7 +71,7 @@ export function Slider({
 		value,
 		defaultValue: defaultValue ?? min,
 		onValueChange: (next) => {
-			if (next !== undefined) onValueChange?.(next)
+			if (next != null) onValueChange?.(next)
 		},
 	})
 

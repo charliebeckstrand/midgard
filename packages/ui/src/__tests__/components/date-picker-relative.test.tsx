@@ -12,16 +12,16 @@ function ControlledRelativePicker({
 	multiple,
 }: {
 	initial?: DatePickerRelativeValue[]
-	onChange?: (value: DatePickerRelativeValue[] | undefined) => void
+	onChange?: (value: DatePickerRelativeValue[] | null) => void
 	multiple?: boolean
 }) {
-	const [value, setValue] = useState<DatePickerRelativeValue[] | undefined>(initial)
+	const [value, setValue] = useState<DatePickerRelativeValue[] | null>(initial ?? null)
 
 	return (
 		<DatePicker
 			relative={multiple ? { multiple: true } : true}
 			value={value}
-			onValueChange={(next: DatePickerRelativeValue[] | undefined) => {
+			onValueChange={(next: DatePickerRelativeValue[] | null) => {
 				setValue(next)
 
 				onChange?.(next)
@@ -136,7 +136,7 @@ describe('DatePicker (relative)', () => {
 		expect(trigger).toHaveTextContent('Last year')
 	})
 
-	it('reflects selection through aria-pressed and toggles back to undefined', async () => {
+	it('reflects selection through aria-pressed and toggles back to null', async () => {
 		const user = openPicker()
 
 		const onChange = vi.fn()
@@ -155,7 +155,7 @@ describe('DatePicker (relative)', () => {
 
 		await user.click(screen.getByRole('button', { name: 'Today' }))
 
-		expect(onChange).toHaveBeenLastCalledWith(undefined)
+		expect(onChange).toHaveBeenLastCalledWith(null)
 	})
 
 	it('labels a span collision by the picked preset, not the first list match', async () => {
@@ -167,7 +167,7 @@ describe('DatePicker (relative)', () => {
 		const fixed = new Date(2025, 0, 1)
 
 		function CollidingPicker() {
-			const [value, setValue] = useState<DatePickerRelativeValue[] | undefined>(undefined)
+			const [value, setValue] = useState<DatePickerRelativeValue[] | null>(null)
 
 			return (
 				<DatePicker
@@ -355,7 +355,7 @@ describe('DatePicker (relative)', () => {
 		// Clearing empties both inputs and the committed value, staying in custom mode.
 		await user.click(within(toolbar).getByRole('button', { name: 'Clear selection' }))
 
-		expect(onChange).toHaveBeenLastCalledWith(undefined)
+		expect(onChange).toHaveBeenLastCalledWith(null)
 
 		expect((screen.getByRole('textbox', { name: 'Start' }) as HTMLInputElement).value).toBe('')
 
@@ -434,7 +434,7 @@ describe('DatePicker (relative)', () => {
 			}),
 		)
 
-		expect(onChange).toHaveBeenLastCalledWith(undefined)
+		expect(onChange).toHaveBeenLastCalledWith(null)
 
 		expect(bySlot(container, 'datepicker-content')).toBeInTheDocument()
 	})

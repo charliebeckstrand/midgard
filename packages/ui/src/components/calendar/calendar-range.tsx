@@ -138,7 +138,7 @@ export function CalendarRange({
 			ref={ref}
 			value={undefined}
 			defaultValue={defaultValue}
-			onValueChange={onValueChange}
+			onValueChange={(date) => date && onValueChange?.(date)}
 			min={min}
 			max={max}
 			active={active}

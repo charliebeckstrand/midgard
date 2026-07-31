@@ -115,7 +115,9 @@ export function useDatePickerState({
 	}, [setTouched])
 
 	const handleSelect = useCallback(
-		(date: Date) => {
+		(date: Date | null) => {
+			if (date === null) return
+
 			setValue(date)
 
 			closeCalendar()

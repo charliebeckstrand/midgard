@@ -1,7 +1,7 @@
 'use client'
 
 import { MapPin } from 'lucide-react'
-import { useCallback, useState } from 'react'
+import { useState } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks'
 import { Combobox, ComboboxDescription, ComboboxLabel, ComboboxOption } from '../combobox'
@@ -15,9 +15,9 @@ import { useAddressInputSuggestions } from './use-address-input-suggestions'
 /** Props for {@link AddressInput}; selection is an {@link AddressSuggestion}, controlled via `value` or uncontrolled via `defaultValue`. */
 export type AddressInputProps = {
 	id?: string
-	value?: AddressSuggestion
+	value?: AddressSuggestion | null
 	defaultValue?: AddressSuggestion
-	onValueChange?: (value: AddressSuggestion | undefined) => void
+	onValueChange?: (value: AddressSuggestion | null) => void
 	/**
 	 * Geocoding strategy resolving the query to suggestions.
 	 * @defaultValue {@link photonProvider}
@@ -87,14 +87,6 @@ export function AddressInput({
 		onValueChange,
 	})
 
-	// Combobox reports a cleared selection as `null` (§7.3); the internal
-	// cascade stores `undefined`. Kept stable so the Combobox's own
-	// `useSelectableValueChange` memo keeps hitting.
-	const handleSelect = useCallback(
-		(next: AddressSuggestion | null) => setSelected(next ?? undefined),
-		[setSelected],
-	)
-
 	// Disabled suppresses the clear button; keep the pin rather than letting
 	// the slot fall back to the Combobox chevron.
 	const disabled = useControl()?.disabled
@@ -112,7 +104,7 @@ export function AddressInput({
 			value={value}
 			defaultValue={defaultValue}
 			displayValue={(s) => s.label}
-			onValueChange={handleSelect}
+			onValueChange={setSelected}
 			className={cn(loading && 'animate-pulse', className)}
 			placeholder={placeholder}
 			aria-label={ariaLabel ?? placeholder}

@@ -25,9 +25,9 @@ import { useDatePickerState } from './use-date-picker-state'
 export type DatePickerSingleProps = {
 	range?: false
 	relative?: false
-	value?: Date
+	value?: Date | null
 	defaultValue?: Date
-	onValueChange?: (value: Date | undefined) => void
+	onValueChange?: (value: Date | null) => void
 	/**
 	 * Renders a typed DateInput in place of the popover trigger. The calendar
 	 * icon becomes a labeled suffix button that opens the calendar, and a
@@ -48,9 +48,9 @@ export type DatePickerSingleProps = {
 export type DatePickerRangeProps = {
 	range: true
 	relative?: false
-	value?: [Date, Date]
+	value?: [Date, Date] | null
 	defaultValue?: [Date, Date]
-	onValueChange?: (value: [Date, Date] | undefined) => void
+	onValueChange?: (value: [Date, Date] | null) => void
 }
 
 /**
@@ -73,9 +73,9 @@ export type DatePickerRangeProps = {
 export type DatePickerRelativeProps = {
 	relative: true | DatePickerRelativeConfig
 	range?: false
-	value?: DatePickerRelativeValue[]
+	value?: DatePickerRelativeValue[] | null
 	defaultValue?: DatePickerRelativeValue[]
-	onValueChange?: (value: DatePickerRelativeValue[] | undefined) => void
+	onValueChange?: (value: DatePickerRelativeValue[] | null) => void
 }
 
 /**

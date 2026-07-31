@@ -263,12 +263,12 @@ export function useDatePickerRelativeState({
 	)
 
 	const setCustomStart = useCallback(
-		(date: Date | undefined) => applyDraft({ ...draftRef.current, from: date }),
+		(date: Date | null) => applyDraft({ ...draftRef.current, from: date ?? undefined }),
 		[applyDraft],
 	)
 
 	const setCustomEnd = useCallback(
-		(date: Date | undefined) => applyDraft({ ...draftRef.current, to: date }),
+		(date: Date | null) => applyDraft({ ...draftRef.current, to: date ?? undefined }),
 		[applyDraft],
 	)
 

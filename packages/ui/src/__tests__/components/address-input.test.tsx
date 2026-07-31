@@ -188,7 +188,7 @@ describe('AddressInput', () => {
 
 	it('stays empty on blur after clearing a controlled selection', async () => {
 		function Controlled() {
-			const [address, setAddress] = useState<AddressSuggestion | undefined>(undefined)
+			const [address, setAddress] = useState<AddressSuggestion | null>(null)
 
 			return (
 				<AddressInput
@@ -257,7 +257,7 @@ describe('AddressInput', () => {
 
 			fireEvent.click(clear)
 
-			expect(onValueChange).toHaveBeenLastCalledWith(undefined)
+			expect(onValueChange).toHaveBeenLastCalledWith(null)
 
 			expect(input.value).toBe('')
 

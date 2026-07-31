@@ -71,7 +71,7 @@ export function RangeSlider({
 		defaultValue: defaultValue ?? [min, max],
 		onValueChange: onValueChange
 			? (v) => {
-					if (v !== undefined) onValueChange(v)
+					if (v != null) onValueChange(v)
 				}
 			: undefined,
 	})

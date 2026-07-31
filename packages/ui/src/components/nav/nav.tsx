@@ -5,14 +5,14 @@ import { CurrentContext, type CurrentContextValue } from '../../primitives/curre
 
 /** Props for {@link Nav}: the active `value` and a change callback, plus native `<nav>` attributes (less `onChange`). */
 export type NavProps = Omit<ComponentPropsWithoutRef<'nav'>, 'onChange'> & {
-	value?: string
-	onValueChange?: (value: string | undefined) => void
+	value?: string | null
+	onValueChange?: (value: string | null) => void
 }
 
 /** Navigation landmark that broadcasts the active `value` to descendants via the current-item context. */
 export function Nav({ value, onValueChange, className, children, ...props }: NavProps) {
 	const context = useMemo<CurrentContextValue>(
-		() => ({ value, onValueChange }),
+		() => ({ value: value ?? undefined, onValueChange }),
 		[value, onValueChange],
 	)
 

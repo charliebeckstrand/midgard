@@ -34,7 +34,7 @@ export type TagInputProps = {
 	/** Initial tag values (uncontrolled). */
 	defaultValue?: string[]
 	/** Called when the tag list changes. */
-	onValueChange?: (value: string[] | undefined) => void
+	onValueChange?: (value: string[]) => void
 	/**
 	 * Placeholder shown while the tag list is empty; doubles as the input's
 	 * `aria-label`.

@@ -35,7 +35,7 @@ export type DateInputProps = Omit<
 	value?: Date | null
 	defaultValue?: Date
 	/** Fires with the parsed Date once the text is a complete in-range date; fires `undefined` when it stops being one. */
-	onValueChange?: (value: Date | undefined) => void
+	onValueChange?: (value: Date | null) => void
 	/**
 	 * Pattern that masks and parses the typed text.
 	 *

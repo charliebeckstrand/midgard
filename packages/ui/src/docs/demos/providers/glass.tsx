@@ -114,7 +114,7 @@ function SheetExample() {
 export function Demo() {
 	const [comboboxValue, setComboboxValue] = useState<string | null>(null)
 
-	const [date, setDate] = useState<Date | undefined>(undefined)
+	const [date, setDate] = useState<Date | null>(null)
 
 	return (
 		<>

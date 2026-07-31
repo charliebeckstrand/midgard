@@ -3,24 +3,23 @@
 import { useCallback } from 'react'
 
 /**
- * Adapts a select-like component's internal value cascade to its public
- * `onValueChange`. Multi-select represents no selection as an empty array, so
- * the internal "cleared to `undefined`" event is dropped there; single-select
- * reports a cleared selection as `null` per CONVENTIONS §7.3 — `undefined`
- * would read as *uncontrolled* if a controlled consumer echoed it back.
+ * Suppresses the "cleared" event for a select-like component in multi-select
+ * mode, where no selection is an empty array rather than a missing value.
+ * Single-select passes straight through, reporting a cleared selection as the
+ * `null` the value cascade already emits (CONVENTIONS §7.3).
  *
- * @returns A stable handler that forwards to `onValueChange`, mapping a cleared
- * single selection to `null` and dropping the call entirely when `multiple`.
+ * @returns A stable handler that forwards to `onValueChange`, dropping the call
+ * when the selection is cleared and `multiple` is true.
  */
 export function useSelectableValueChange<T>(
 	onValueChange: ((value: T | T[] | null) => void) | undefined,
 	multiple: boolean,
-): (nextValue: T | T[] | undefined) => void {
+): (nextValue: T | T[] | null) => void {
 	return useCallback(
-		(nextValue: T | T[] | undefined) => {
-			if (nextValue === undefined && multiple) return
+		(nextValue: T | T[] | null) => {
+			if (nextValue == null && multiple) return
 
-			onValueChange?.(nextValue ?? null)
+			onValueChange?.(nextValue)
 		},
 		[onValueChange, multiple],
 	)

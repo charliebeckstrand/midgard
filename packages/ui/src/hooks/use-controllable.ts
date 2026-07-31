@@ -2,15 +2,16 @@
 
 import { useCallback, useRef, useState } from 'react'
 
-/** Argument to {@link useControllable}'s setter: a next value, `undefined` to clear, or a functional updater over the previous value. */
-export type SetValue<T> = T | undefined | ((prev: T | undefined) => T | undefined)
+/** Argument to {@link useControllable}'s setter: a next value, `null`/`undefined` to clear, or a functional updater over the previous value. */
+export type SetValue<T> = T | null | undefined | ((prev: T | undefined) => T | null | undefined)
 
 type ControllableOptions<T> = {
 	/** Controlled value. `undefined` leaves the hook uncontrolled; pass `null` to stay controlled with no current value. */
 	value?: T | null
 	/** Initial value when uncontrolled. Pass a thunk for a lazy initializer, evaluated once on mount (mirrors `useState`). */
 	defaultValue?: T | (() => T)
-	onValueChange?: (value: T | undefined) => void
+	/** Fires with the committed value, or `null` once it is cleared (CONVENTIONS §7.3). */
+	onValueChange?: (value: T | null) => void
 }
 
 /**
@@ -46,18 +47,24 @@ export function useControllable<T>({
 	const setValue = useCallback((next: SetValue<T>) => {
 		const resolved =
 			typeof next === 'function'
-				? (next as (prev: T | undefined) => T | undefined)(valueRef.current)
+				? (next as (prev: T | undefined) => T | null | undefined)(valueRef.current)
 				: next
 
-		valueRef.current = resolved
+		// Internally "no value" is always `undefined`, so a `null` clear from a
+		// caller and an `undefined` one converge on one stored representation.
+		const normalized = resolved ?? undefined
+
+		valueRef.current = normalized
 
 		// Written even while controlled: `value !== undefined` decides
 		// controlled-ness per render, so a controlled consumer that clears to
 		// `undefined` flips the hook to uncontrolled; the shadow keeps that
 		// flip resolving to the last committed value instead of a stale one.
-		setInternalValue(resolved)
+		setInternalValue(normalized)
 
-		onValueChangeRef.current?.(resolved)
+		// §7.3: the public callback reports a cleared value as `null` — echoing
+		// `undefined` back into `value` would read as uncontrolled.
+		onValueChangeRef.current?.(normalized ?? null)
 	}, [])
 
 	return [currentValue, setValue]

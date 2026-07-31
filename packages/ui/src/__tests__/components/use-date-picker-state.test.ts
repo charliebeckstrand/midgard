@@ -79,7 +79,7 @@ describe('useDatePickerState', () => {
 			expect(result.current.open).toBe(false)
 		})
 
-		it('clear resets the value to undefined and closes', () => {
+		it('clear resets the value to null and closes', () => {
 			const onChange = vi.fn()
 
 			const { result } = renderHook(() =>
@@ -90,7 +90,7 @@ describe('useDatePickerState', () => {
 
 			act(() => result.current.footer.onClear())
 
-			expect(onChange).toHaveBeenCalledWith(undefined)
+			expect(onChange).toHaveBeenCalledWith(null)
 
 			expect(result.current.calendar.value).toBeNull()
 
