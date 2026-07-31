@@ -10,7 +10,7 @@ import { PanelProviders } from '../../primitives/panel'
 import { useResolvedSurface } from '../../providers/glass/context'
 import { type DialogPanelVariants, k } from '../../recipes/kata/dialog'
 
-/** Props for {@link Dialog}: open-state control, `width` variant, placement, dismissal, and accessible naming. */
+/** Props for {@link Dialog}: open-state control, `width` variant, `align`ment, dismissal, and accessible naming. */
 export type DialogProps = Omit<DialogPanelVariants, 'surface'> & {
 	/** Controlled open state. Pair with `onOpenChange`. */
 	open?: boolean
@@ -18,8 +18,8 @@ export type DialogProps = Omit<DialogPanelVariants, 'surface'> & {
 	defaultOpen?: boolean
 	/** Fires when the open state changes (backdrop dismiss, Escape, close button). */
 	onOpenChange?: (open: boolean) => void
-	/** Desktop vertical alignment of the panel within the viewport; mobile always docks to the bottom. @defaultValue 'center' */
-	placement?: 'center' | 'top'
+	/** Desktop vertical alignment of the panel within the viewport; mobile always docks to the bottom. `placement` is reserved for anchored floating surfaces (Popover, Tooltip, Menu). @defaultValue 'center' */
+	align?: 'center' | 'top'
 	/** Whether clicking the backdrop closes the dialog. @defaultValue true */
 	dismissOnBackdrop?: boolean
 	/** Opt into the glass surface treatment. */
@@ -46,7 +46,7 @@ export type DialogProps = Omit<DialogPanelVariants, 'surface'> & {
 	'data-slot'?: string
 }
 
-const placementClasses = {
+const alignClasses = {
 	center: 'sm:items-center',
 	top: 'sm:items-start',
 } as const
@@ -68,7 +68,7 @@ export function Dialog({
 	open,
 	defaultOpen,
 	onOpenChange,
-	placement = 'center',
+	align = 'center',
 	dismissOnBackdrop = true,
 	width,
 	glass,
@@ -107,7 +107,7 @@ export function Dialog({
 			<div
 				className={cn(
 					'pointer-events-none fixed inset-0 flex min-h-full items-end sm:justify-center sm:p-4',
-					placementClasses[placement],
+					alignClasses[align],
 				)}
 			>
 				<motion.div

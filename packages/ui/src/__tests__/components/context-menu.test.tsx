@@ -47,7 +47,7 @@ describe('resolveContextMenuEntries', () => {
 	it('orders the custom items before the defaults when position is "before"', () => {
 		const items: ContextMenuItem[] = [{ key: 'c', label: 'Custom', onAction: noop }]
 
-		const entries = resolveContextMenuEntries({ items, position: 'before' }, defaults)
+		const entries = resolveContextMenuEntries({ items, insert: 'before' }, defaults)
 
 		expect(entries[0]).toBe(items[0])
 		expect(entries[1]).toMatchObject({ separator: true })

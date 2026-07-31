@@ -62,8 +62,8 @@ export type ContextMenuSubmenu = {
  */
 export type ContextMenuEntry = ContextMenuItem | ContextMenuSeparator | ContextMenuSubmenu
 
-/** Where a caller's custom items sit relative to a host's default items. @see {@link ContextMenuConfig.position} */
-export type ContextMenuPosition = 'before' | 'after'
+/** Where a caller's custom items sit relative to a host's default items. @see {@link ContextMenuConfig.insert} */
+export type ContextMenuInsert = 'before' | 'after'
 
 /**
  * A host's right-click-menu configuration, exposed as a prop (a chart's
@@ -86,5 +86,5 @@ export type ContextMenuConfig = {
 	 * (the default) or `'before'` them.
 	 * @defaultValue 'after'
 	 */
-	position?: ContextMenuPosition
+	insert?: ContextMenuInsert
 }

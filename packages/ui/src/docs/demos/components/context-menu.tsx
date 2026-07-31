@@ -38,7 +38,7 @@ export function Demo() {
 			</Example>
 
 			<Example title="Custom items before the defaults">
-				<ContextMenu defaults={defaults} items={custom} position="before">
+				<ContextMenu defaults={defaults} items={custom} insert="before">
 					{surface}
 				</ContextMenu>
 			</Example>

@@ -21,7 +21,7 @@ export function mergeContextMenuItems(groups: ContextMenuEntry[][]): ContextMenu
  * Resolves a host's {@link ContextMenuConfig} against the default items it
  * supplies: the custom items in their array order, the defaults when
  * `defaultItems` is on, and a separator between the two groups when both show —
- * ordered by `position`. Either group empty, no separator renders; both empty,
+ * ordered by `insert`. Either group empty, no separator renders; both empty,
  * the result is empty and the host leaves the native menu alone.
  *
  * @param config - The caller's configuration, or `undefined` for all defaults.
@@ -37,6 +37,6 @@ export function resolveContextMenuEntries(
 	const shownDefaults = (config?.defaultItems ?? true) ? defaults : []
 
 	return mergeContextMenuItems(
-		(config?.position ?? 'after') === 'before' ? [custom, shownDefaults] : [shownDefaults, custom],
+		(config?.insert ?? 'after') === 'before' ? [custom, shownDefaults] : [shownDefaults, custom],
 	)
 }

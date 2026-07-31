@@ -4,8 +4,8 @@ export { mergeContextMenuItems, resolveContextMenuEntries } from './context-menu
 export type {
 	ContextMenuConfig,
 	ContextMenuEntry,
+	ContextMenuInsert,
 	ContextMenuItem,
-	ContextMenuPosition,
 	ContextMenuSeparator,
 	ContextMenuSubmenu,
 } from './types'

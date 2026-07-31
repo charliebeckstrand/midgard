@@ -117,7 +117,7 @@ export function CommandPalette({
 		<Dialog
 			open={open}
 			onOpenChange={onOpenChange}
-			placement="top"
+			align="top"
 			dismissOnBackdrop={dismissOnBackdrop}
 			width={width}
 			className={className}

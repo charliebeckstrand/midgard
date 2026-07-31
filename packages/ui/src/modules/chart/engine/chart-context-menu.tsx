@@ -31,7 +31,7 @@ import type { ChartReadoutSource } from './types'
 
 /**
  * A chart's right-click menu configuration: the shared {@link ContextMenuConfig}
- * (custom `items`, `defaultItems`, `position`) plus the chart's own export
+ * (custom `items`, `defaultItems`, `insert`) plus the chart's own export
  * options.
  */
 export type ChartContextMenuConfig = ContextMenuConfig & {
@@ -181,7 +181,7 @@ export function ChartContextMenu({
 				defaults={defaults}
 				items={contextMenu?.items}
 				defaultItems={contextMenu?.defaultItems}
-				position={contextMenu?.position}
+				insert={contextMenu?.insert}
 			>
 				{children}
 			</ContextMenu>
