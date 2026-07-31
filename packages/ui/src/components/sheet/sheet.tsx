@@ -20,6 +20,15 @@ export type SheetProps = Omit<SheetPanelVariants, 'surface'> & {
 	onOpenChange?: (open: boolean) => void
 	/** Opt the panel and backdrop into the translucent glass surface, resolved against the ambient Glass provider. */
 	glass?: boolean
+	/**
+	 * Drain the colour from whatever shows through the backdrop. Both scrims are
+	 * translucent, so the page behind stays legible while the sheet is up; this
+	 * renders it in grey, marking it as the inert surface rather than merely the
+	 * dimmed one. No effect where no backdrop renders (see `backdrop`).
+	 *
+	 * @defaultValue false
+	 */
+	desaturate?: boolean
 	className?: string
 	children: ReactNode
 	/**
@@ -84,6 +93,7 @@ export function Sheet({
 	side = 'right',
 	size,
 	glass,
+	desaturate,
 	className,
 	children,
 	container,
@@ -111,7 +121,7 @@ export function Sheet({
 			initialFocus={initialFocus}
 			modal={modal}
 			backdrop={backdrop}
-			className={k.backdrop({ surface: resolvedSurface })}
+			className={k.backdrop({ surface: resolvedSurface, desaturate })}
 		>
 			<motion.div
 				{...k.motion[side]}

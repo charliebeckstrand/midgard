@@ -28,6 +28,15 @@ export type DrawerProps = Omit<DrawerPanelVariants, 'surface'> & {
 	size?: Step
 	/** Opt the panel and backdrop into the translucent glass surface, resolved against the ambient Glass provider. */
 	glass?: boolean
+	/**
+	 * Drain the colour from whatever shows through the backdrop. Both scrims are
+	 * translucent, so the page behind stays legible while the drawer is up; this
+	 * renders it in grey, marking it as the inert surface rather than merely the
+	 * dimmed one.
+	 *
+	 * @defaultValue false
+	 */
+	desaturate?: boolean
 	className?: string
 	children: ReactNode
 	/**
@@ -63,6 +72,7 @@ export function Drawer({
 	onOpenChange,
 	size,
 	glass,
+	desaturate,
 	className,
 	children,
 	initialFocus,
@@ -88,7 +98,7 @@ export function Drawer({
 			open={resolvedOpen}
 			onOpenChange={setOpen}
 			initialFocus={initialFocus}
-			className={k.backdrop({ surface: resolvedSurface })}
+			className={k.backdrop({ surface: resolvedSurface, desaturate })}
 		>
 			<motion.div
 				{...k.motion}

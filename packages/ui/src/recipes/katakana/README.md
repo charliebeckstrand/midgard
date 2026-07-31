@@ -32,7 +32,7 @@ The barrel surfaces the `bridge` object only. Variant types resolve at the kata 
 | `popover`  | `kiso/popover`  | `trigger` / `portal` / `text` / `panel` bundle.                                          | `popover`                                     |
 | `segment`  | `kiso/segment`  | `control` / `item` recipes + `indicator` fragment.                                       | `segment`, `tabs`                             |
 | `panel`    | `kiso/panel`    | Caller `panel` / `backdrop` recipes + standard slot bundle.                              | `dialog`, `drawer`, `sheet`                   |
-| `backdrop` | `omote.backdrop`| Full-bleed scrim recipe with a `surface` axis (`flat` / `glass`). *Shared recipe, not an archetype.* | `drawer`, `sheet`                 |
+| `backdrop` | `omote.backdrop`| Full-bleed scrim recipe with a `surface` axis (`flat` / `glass`) and a `desaturate` axis (grey out what shows through). *Shared recipe, not an archetype.* | `drawer`, `sheet`                 |
 
 `backdrop` is a small shared recipe rather than an archetype: dialog has no scrim of this shape, so the two edge-panels build it directly (`bridge.backdrop(omote.backdrop)`) and hand the result to `bridge.panel(…, { backdrop })`.
 

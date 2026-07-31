@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import { Drawer, DrawerClose, DrawerTrigger } from '../../components/drawer'
 import { DensityProvider } from '../../providers/density'
-import { fireEvent, renderUI, screen } from '../helpers'
+import { bySlot, fireEvent, present, renderUI, screen } from '../helpers'
 
 describe('Drawer', () => {
 	it('renders children with role="dialog" when open', () => {
@@ -40,6 +40,30 @@ describe('Drawer', () => {
 		)
 
 		expect(screen.getByRole('dialog')).toHaveAccessibleName('Filters')
+	})
+
+	it('greys out what shows through the backdrop when desaturate is set', () => {
+		renderUI(
+			<Drawer open desaturate onOpenChange={() => {}} aria-label="Resolve">
+				content
+			</Drawer>,
+		)
+
+		expect(present(bySlot(document.body, 'overlay-backdrop'), 'backdrop')).toHaveClass(
+			'backdrop-grayscale',
+		)
+	})
+
+	it('leaves the backdrop in colour by default', () => {
+		renderUI(
+			<Drawer open onOpenChange={() => {}} aria-label="Resolve">
+				content
+			</Drawer>,
+		)
+
+		expect(present(bySlot(document.body, 'overlay-backdrop'), 'backdrop')).not.toHaveClass(
+			'backdrop-grayscale',
+		)
 	})
 
 	it('moves initial focus to the initialFocus element on open', () => {
