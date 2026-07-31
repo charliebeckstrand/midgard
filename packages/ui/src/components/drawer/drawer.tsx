@@ -5,6 +5,7 @@ import type { ReactNode, RefObject } from 'react'
 import { cn } from '../../core'
 import { useA11yPanel } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
+import { useEnterAnimation } from '../../hooks/use-enter-animation'
 import { Density, useDensity } from '../../primitives/density'
 import { Overlay } from '../../primitives/overlay'
 import { PanelProviders } from '../../primitives/panel'
@@ -28,7 +29,31 @@ export type DrawerProps = Omit<DrawerPanelVariants, 'surface'> & {
 	size?: Step
 	/** Opt the panel and backdrop into the translucent glass surface, resolved against the ambient Glass provider. */
 	glass?: boolean
+	/**
+	 * Drain the colour from whatever shows through the backdrop. Both scrims are
+	 * translucent, so the page behind stays legible while the drawer is up; this
+	 * renders it in grey, marking it as the inert surface rather than merely the
+	 * dimmed one.
+	 *
+	 * @defaultValue false
+	 */
+	desaturate?: boolean
 	className?: string
+	/**
+	 * Whether the panel plays its enter slide on mount.
+	 *
+	 * `false` mounts it already in place, backdrop included. The enter animation is keyed
+	 * to *mount*, not to the open transition, so a drawer whose open state comes from the
+	 * URL — a restored tab, a pasted deep link — slides up again every time its route
+	 * mounts, re-animating something the user never opened. Pass `false` for that case and
+	 * leave it alone for a drawer opened by a press.
+	 *
+	 * Only that arrival is suppressed. Once the drawer has closed, a reopen while it is
+	 * still mounted slides up regardless — the user asked for that one.
+	 *
+	 * @defaultValue true
+	 */
+	animateOnMount?: boolean
 	children: ReactNode
 	/**
 	 * Element to receive initial focus when the drawer opens.
@@ -63,7 +88,9 @@ export function Drawer({
 	onOpenChange,
 	size,
 	glass,
+	desaturate,
 	className,
+	animateOnMount = true,
 	children,
 	initialFocus,
 	'aria-label': ariaLabel,
@@ -77,6 +104,10 @@ export function Drawer({
 
 	const resolvedSurface = useResolvedSurface(glass)
 
+	// The panel unmounts while closed (`PresencePortal`), so the flag has to be scoped to
+	// this component's own mount or a minimize/maximize cycle would land in place.
+	const animateEnter = useEnterAnimation(resolvedOpen, animateOnMount)
+
 	const { ariaProps, a11y } = useA11yPanel()
 
 	const inherited = useDensity()
@@ -88,10 +119,13 @@ export function Drawer({
 			open={resolvedOpen}
 			onOpenChange={setOpen}
 			initialFocus={initialFocus}
-			className={k.backdrop({ surface: resolvedSurface })}
+			animateOnMount={animateOnMount}
+			className={k.backdrop({ surface: resolvedSurface, desaturate })}
 		>
 			<motion.div
 				{...k.motion}
+				// After the preset spread, so it overrides the preset's own `initial`.
+				initial={animateEnter ? k.motion.initial : false}
 				{...ariaProps}
 				aria-label={ariaProps['aria-labelledby'] ? undefined : ariaLabel}
 				data-slot="drawer"

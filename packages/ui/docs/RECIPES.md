@@ -55,7 +55,7 @@ Each bridge is a pure function `(<tokens>, overlay?) => k`, reached through the 
 | `popover` | `kiso/popover` | `trigger` / `portal` / `text` / `panel` bundle. | `popover` |
 | `segment` | `kiso/segment` | `control` / `item` recipes + `indicator` fragment. | `segment`, `tabs` |
 | `panel` | `kiso/panel` | Caller `panel` / `backdrop` recipes + standard slot bundle. | `dialog`, `drawer`, `sheet` |
-| `backdrop` | `omote.backdrop` | Full-bleed scrim recipe with a `surface` axis (`flat` / `glass`). *Shared recipe, not an archetype.* | `drawer`, `sheet` |
+| `backdrop` | `omote.backdrop` | Full-bleed scrim recipe with a `surface` axis (`flat` / `glass`) and a `desaturate` axis (grey out what shows through). *Shared recipe, not an archetype.* | `drawer`, `sheet` |
 
 ## Kata — shape
 
