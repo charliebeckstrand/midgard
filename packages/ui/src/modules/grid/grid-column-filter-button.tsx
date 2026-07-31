@@ -17,6 +17,7 @@ import {
 	type QueryGroupNode,
 } from '../query'
 import { columnLabel } from './engine/grid-column/label'
+import { GridOverlayDensity, useGridOverlayDensity } from './grid-region'
 import type { GridColumn } from './types'
 import type { GridColumnFilter } from './use-grid-table'
 
@@ -106,6 +107,10 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 
 	const [open, setOpen] = useState(false)
 
+	// The density this column's overlays render at — the grid's surroundings, not its
+	// cells (see `GridOverlayDensity`).
+	const overlayDensity = useGridOverlayDensity()
+
 	const [draft, setDraft] = useState<QueryGroupNode>(seeded)
 
 	// Seed the draft from the applied query each time the sheet opens, so editing
@@ -155,7 +160,13 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 				// An applied filter turns the trigger into a menu: edit the query in the
 				// sheet, or clear the filter without opening it. The trigger keeps the
 				// accent (`color`), the "+"-marked icon, and the applied-state name.
-				<Menu placement="bottom-end">
+				//
+				// `size` rather than wrapping the surface: `useMenuState` resolves the panel's
+				// density from `useDensity()` at this root, and `MenuContent` re-broadcasts
+				// that *inside* its own subtree — so a wrapper around `MenuContent` is
+				// overridden and does nothing. Passing the step here wins, and leaves the
+				// trigger below on the header's own cell cascade where it belongs.
+				<Menu placement="bottom-end" size={overlayDensity.size}>
 					<MenuTrigger>
 						<Button
 							type="button"
@@ -199,36 +210,38 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 				</Button>
 			)}
 
-			<Sheet open={open} onOpenChange={handleOpenChange} aria-label={`Filter ${label}`}>
-				{/* A `contents` form so Enter in a rule input submits (Apply) without
+			<GridOverlayDensity>
+				<Sheet open={open} onOpenChange={handleOpenChange} aria-label={`Filter ${label}`}>
+					{/* A `contents` form so Enter in a rule input submits (Apply) without
 				    imposing a box — the panel's `gap-4` slot rhythm survives the
 				    display:contents wrapper. It spans the title too so the body stays a
 				    non-first child, keeping its `first:` top padding off. */}
-				<form className="contents" onSubmit={submit}>
-					<SheetTitle>Filter {label}</SheetTitle>
+					<form className="contents" onSubmit={submit}>
+						<SheetTitle>Filter {label}</SheetTitle>
 
-					<SheetBody>
-						<QueryBuilder
-							fields={fields}
-							hideFieldSelector
-							allowGroups={false}
-							requireRule
-							value={draft}
-							onValueChange={setDraft}
-						/>
-					</SheetBody>
+						<SheetBody>
+							<QueryBuilder
+								fields={fields}
+								hideFieldSelector
+								allowGroups={false}
+								requireRule
+								value={draft}
+								onValueChange={setDraft}
+							/>
+						</SheetBody>
 
-					<SheetFooter>
-						<Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
-							Cancel
-						</Button>
+						<SheetFooter>
+							<Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
+								Cancel
+							</Button>
 
-						<Button type="submit" color="blue">
-							Apply
-						</Button>
-					</SheetFooter>
-				</form>
-			</Sheet>
+							<Button type="submit" color="blue">
+								Apply
+							</Button>
+						</SheetFooter>
+					</form>
+				</Sheet>
+			</GridOverlayDensity>
 		</>
 	)
 }
