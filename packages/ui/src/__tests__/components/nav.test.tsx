@@ -183,7 +183,7 @@ describe('NavItem', () => {
 		expect(onClick).toHaveBeenCalled()
 	})
 
-	it('renders the icon prop through the createNavItem icon slot', () => {
+	it('renders the icon prop through the NavItem icon slot', () => {
 		const { container } = renderUI(
 			<Nav>
 				<NavList>

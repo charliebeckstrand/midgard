@@ -375,7 +375,7 @@ describe('SidebarItem', () => {
 		expect(inner).toHaveAttribute('aria-current', 'page')
 	})
 
-	it('renders an icon prop through the createNavItem icon slot', () => {
+	it('renders an icon prop through the SidebarItem icon slot', () => {
 		const { container } = renderUI(
 			<Sidebar>
 				<SidebarItem icon={<svg data-testid="sidebar-icon" />}>Home</SidebarItem>

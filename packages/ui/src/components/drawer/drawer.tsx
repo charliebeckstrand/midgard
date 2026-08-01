@@ -78,9 +78,10 @@ export type DrawerProps = Omit<DrawerPanelVariants, 'surface'> & {
  *
  * @remarks
  * A registered `<DrawerTitle>` supplies `aria-labelledby` and takes precedence over the
- * `aria-label` fallback. The panel stops click propagation so taps inside it never reach the
- * backdrop dismiss handler, and shares a single open-state setter with its dismiss affordances
- * via `PanelProviders`.
+ * `aria-label` fallback. The panel stops click propagation to keep the portal's synthetic clicks
+ * off the consumer ancestors it renders under — the backdrop is a sibling, so a panel click never
+ * reaches its dismiss handler anyway — and shares a single open-state setter with its dismiss
+ * affordances via `PanelProviders`.
  */
 export function Drawer({
 	open,

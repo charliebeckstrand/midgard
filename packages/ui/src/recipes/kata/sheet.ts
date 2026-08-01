@@ -2,19 +2,16 @@
  * Sheet kata: object-literal surface for the `<Sheet>` edge drawer, built by
  * bridging the shared `panel` recipe. The `panel` sub-recipe axes on `side`,
  * `width`, and `surface`; `backdrop` mirrors the glass/flat surface, and the
- * bridged `title` / `description` / `body` / `footer` / `close` slots plus
- * `motion` complete the dialog chrome.
+ * bridged `title` / `description` / `body` / `footer` slots plus `motion`
+ * complete the dialog chrome.
  */
 import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { bridge } from '../katakana'
-import { iro, kasane, narabi, omote, sen, shaku, ugoki } from '../kiso'
+import { narabi, omote, shaku, ugoki } from '../kiso'
 import { panel } from '../kiso/panel'
 
-const { text } = iro
-const { rounded } = kasane
 const { flex, slide } = narabi
 const { glass, backdrop } = omote
-const { focus } = sen
 
 export const k = {
 	...bridge.panel(panel, {
@@ -55,9 +52,6 @@ export const k = {
 		description: { extra: 'px-6' },
 		footer: { extra: 'px-6 pb-6' },
 		body: { extra: [flex.fill, 'overflow-y-auto px-6 first:pt-6'] },
-		close: {
-			base: ['absolute right-5 top-5', 'p-1', ...text.muted, ...focus.inset, rounded.md],
-		},
 	}),
 	motion: ugoki.panel,
 }
