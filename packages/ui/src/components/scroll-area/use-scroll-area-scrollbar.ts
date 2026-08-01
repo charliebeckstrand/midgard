@@ -72,21 +72,25 @@ function beginScrollbarDrag(
 		else el.scrollLeft = next
 	}
 
+	// One controller for the drag's listener set, so the teardown cannot drift
+	// from the add list.
+	const controller = new AbortController()
+
+	const { signal } = controller
+
 	const cleanup = () => {
-		window.removeEventListener('pointermove', onMove)
-		window.removeEventListener('pointerup', onUp)
-		window.removeEventListener('pointercancel', onUp)
+		controller.abort()
 
 		ctx.dragCleanupRef.current = null
 	}
 
 	const onUp = () => cleanup()
 
-	window.addEventListener('pointermove', onMove)
-	window.addEventListener('pointerup', onUp)
+	window.addEventListener('pointermove', onMove, { signal })
+	window.addEventListener('pointerup', onUp, { signal })
 	// A cancelled pointer (OS gesture, pen leaving range) never fires pointerup;
 	// without this the drag keeps scrolling on buttonless moves.
-	window.addEventListener('pointercancel', onUp)
+	window.addEventListener('pointercancel', onUp, { signal })
 
 	ctx.dragCleanupRef.current = cleanup
 }

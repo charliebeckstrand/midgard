@@ -75,25 +75,31 @@ export function useHoldButtonGesture({
 	}
 
 	// Window-level guards for a keyboard hold: Alt-Tab or tab-away routes the
-	// keyup elsewhere, and the guards cancel the hold on focus loss. Stable
-	// identities; add/remove pair across the per-render `start`/`cancel` closures.
-	const guardsRef = useRef({
-		blur: () => cancelRef.current(),
-		visibility: () => {
-			if (document.hidden) cancelRef.current()
-		},
-	})
+	// keyup elsewhere, and the guards cancel the hold on focus loss. One
+	// controller per hold aborts both together, so handler identity is free to
+	// vary with the per-render `start`/`cancel` closures.
+	const guardsRef = useRef<AbortController | null>(null)
 
 	const attachGuards = () => {
-		window.addEventListener('blur', guardsRef.current.blur)
+		const controller = new AbortController()
 
-		document.addEventListener('visibilitychange', guardsRef.current.visibility)
+		guardsRef.current = controller
+
+		window.addEventListener('blur', () => cancelRef.current(), { signal: controller.signal })
+
+		document.addEventListener(
+			'visibilitychange',
+			() => {
+				if (document.hidden) cancelRef.current()
+			},
+			{ signal: controller.signal },
+		)
 	}
 
 	const detachGuards = () => {
-		window.removeEventListener('blur', guardsRef.current.blur)
+		guardsRef.current?.abort()
 
-		document.removeEventListener('visibilitychange', guardsRef.current.visibility)
+		guardsRef.current = null
 	}
 
 	const start = () => {
@@ -140,9 +146,7 @@ export function useHoldButtonGesture({
 		() => () => {
 			if (timerRef.current !== null) clearTimeout(timerRef.current)
 
-			window.removeEventListener('blur', guardsRef.current.blur)
-
-			document.removeEventListener('visibilitychange', guardsRef.current.visibility)
+			guardsRef.current?.abort()
 		},
 		[],
 	)
