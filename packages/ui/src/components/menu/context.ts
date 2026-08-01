@@ -62,7 +62,15 @@ export const [MenuStateContext, useMenuState] = createContext<MenuStateValue>('M
  */
 export const [MenuActionsContext, useMenuActions] = createContext<MenuActionsValue>('Menu')
 
-/** Returns combined state + actions. Prefer `useMenuActions` in leaves that only need `close`. */
+/**
+ * Returns combined state + actions. Prefer `useMenuActions` in leaves that only
+ * need `close`.
+ *
+ * @remarks
+ * No in-repo consumer: the barrel exports `useMenuActions` alone, and grep finds
+ * only this function's own test. Kept as the advanced-composition surface for a
+ * consumer that needs both halves, not treated as dead.
+ */
 export function useMenuContext(): MenuContextValue {
 	const state = useMenuState()
 	const actions = useMenuActions()

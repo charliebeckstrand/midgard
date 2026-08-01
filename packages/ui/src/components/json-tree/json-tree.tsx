@@ -68,6 +68,9 @@ export function JsonTree({
 
 	const { value: searchValue, filter } = normalizeSearch(search)
 
+	// Keyed on `data` identity, so a structurally identical value with a new
+	// identity rebuilds the whole index. Correct as written: a content equality
+	// walk would cost more than the rebuild it avoids.
 	const searchIndex = useMemo(() => buildSearchIndex(data, searchValue), [data, searchValue])
 
 	const handleKeyDown = useA11yRoving(ref, {

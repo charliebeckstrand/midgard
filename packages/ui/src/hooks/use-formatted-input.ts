@@ -14,6 +14,16 @@ type FormattedInputOptions = {
 	 * @defaultValue a predicate matching ASCII alphanumerics and `+`
 	 */
 	meaningful?: (char: string) => boolean
+	/**
+	 * @remarks
+	 * A padding formatter breaks this contract: CurrencyInput's `.` → `0.` and
+	 * DateInput's `1/` → `01/` insert a *meaningful* character, so the restore
+	 * counts the pad and pins the caret one place short. Both call sites answer it
+	 * with a type-at-end branch that formats without queueing a restore. At a
+	 * third padding consumer, absorb it here as an `atEnd: 'jump' | 'restore'`
+	 * option — masks must keep `'restore'`, since a caret before trailing
+	 * separators is what makes backspace work.
+	 */
 	/** External ref to compose with the engine's internal input ref. */
 	ref?: Ref<HTMLInputElement>
 }

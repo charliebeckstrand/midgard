@@ -82,6 +82,10 @@ export function Table({
 	const stripe = striped === true ? 'even' : striped
 
 	return (
+		// Known gap: the scroll container takes no `tabIndex` and carries no
+		// accessible name, so a keyboard-only user cannot scroll an overflowing
+		// table (WCAG 2.1.1). Modern Chromium focuses overflow scrollers on its
+		// own; other engines do not.
 		<div data-slot="table" className={cn('overflow-x-auto', bleed && '-mx-4 sm:-mx-6')}>
 			<table
 				{...tableProps}

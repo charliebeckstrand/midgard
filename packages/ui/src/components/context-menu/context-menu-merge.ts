@@ -36,6 +36,10 @@ export function resolveContextMenuEntries(
 
 	const shownDefaults = (config?.defaultItems ?? true) ? defaults : []
 
+	// Latent, unreachable today: the separator keys this mints can collide with a
+	// host that pre-built `defaults` through the public `mergeContextMenuItems`
+	// and fed the result back in, producing duplicate React keys. No in-repo
+	// consumer composes them that way.
 	return mergeContextMenuItems(
 		(config?.position ?? 'after') === 'before' ? [custom, shownDefaults] : [shownDefaults, custom],
 	)
