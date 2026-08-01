@@ -59,6 +59,7 @@
 		"bench:browser": "vitest bench --run --config vitest.bench.browser.config.ts",
 		"bench:docs": "vitest bench --run --config vitest.bench.docs.config.ts",
 		"bench:docs:vite": "tsx src/__benchmarks__/docs/vite-metrics.ts",
+		"bundle:budget": "tsx src/__benchmarks__/docs/bundle-budget.ts",
 		"check-types": "tsc --noEmit && tsc --noEmit -p tsconfig.scripts.json && tsc --noEmit -p tsconfig.docs.json",
 		"lint": "biome check --config-path=../.. .",
 		"lint:fix": "biome check --write --config-path=../.. ."

@@ -27,7 +27,11 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-turbo-
       - run: pnpm install --frozen-lockfile
-      - run: pnpm turbo run lint check-types test knip build
+      - run: pnpm turbo run lint check-types test knip build docs:build
         env:
           # Placeholder: only used to construct rewrite/fetch URLs, not reached at build time.
           BIFROST_URL: https://bifrost.invalid
+      # The docs bundle is otherwise unmeasured: nothing else in the gate fails
+      # when a stray eager import doubles the entry chunk. Asserts a ceiling on
+      # total gzip and on the eager entry, the two numbers a regression moves.
+      - run: pnpm --filter ui bundle:budget

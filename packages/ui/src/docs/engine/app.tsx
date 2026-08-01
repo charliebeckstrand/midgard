@@ -12,7 +12,7 @@ import { DemoPage } from './demo-page'
 import { useDensity } from './hooks/use-density'
 import { useHash } from './hooks/use-hash'
 import { useTheme } from './hooks/use-theme'
-import { demos } from './registry'
+import { demoById } from './registry'
 
 /**
  * Root of the docs site: a sidebar layout whose body is the hash-routed demo,
@@ -34,7 +34,7 @@ export function App() {
 
 	const toggleLocked = useCallback(() => setLocked((l) => !l), [])
 
-	const current = demos.find((d) => d.id === deferredRoute)
+	const current = demoById.get(deferredRoute)
 
 	const contentRef = useRef<HTMLDivElement>(null)
 

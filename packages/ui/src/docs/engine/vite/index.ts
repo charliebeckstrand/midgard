@@ -123,6 +123,27 @@ export function defineDocsConfig({
 		build: {
 			target: 'esnext',
 			sourcemap: analyze,
+			rolldownOptions: {
+				output: {
+					// A stable home for the vendors many chunks share. Without this the
+					// bundler places them by its own heuristics, so they migrate between
+					// chunks as demos change and a returning visitor re-downloads code
+					// that did not change — the cost is cache churn, not bytes.
+					//
+					// Deliberately only the four that are genuinely cross-cutting.
+					// Grouping a tree-shaken package like `lucide-react` would be a
+					// pessimization: a page needing one icon would fetch every icon the
+					// site uses.
+					advancedChunks: {
+						groups: [
+							{ name: 'vendor-react', test: /node_modules[\\/](react|react-dom|scheduler)[\\/]/ },
+							{ name: 'vendor-motion', test: /node_modules[\\/]motion[\\/]/ },
+							{ name: 'vendor-floating-ui', test: /node_modules[\\/]@floating-ui[\\/]/ },
+							{ name: 'vendor-tanstack', test: /node_modules[\\/]@tanstack[\\/]/ },
+						],
+					},
+				},
+			},
 		},
 		// Tailwind runs via `@tailwindcss/vite` above; the docs site never needs
 		// the root `postcss.config.mjs` (which targets Next.js apps). Skip the
