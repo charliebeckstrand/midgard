@@ -33,6 +33,11 @@ function safeUrl(url: string, allowData = false): string | undefined {
 		.join('')
 		.match(/^([a-z][a-z0-9+.-]*):/i)?.[1]
 
+	// The strip walks the whole URL to read a ~4-character scheme, which is
+	// O(payload) on a large `data:` image. Left alone deliberately: the obvious
+	// scheme-bounded rewrite drops the leading-whitespace defence and readmits
+	// `" javascript:"`, which browsers trim and run. A slow correct guard beats a
+	// fast porous one on an uncommon path.
 	if (scheme === undefined) return url
 
 	if (allowData && scheme.toLowerCase() === 'data') return url

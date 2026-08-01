@@ -1,13 +1,10 @@
 import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { bridge } from '../katakana'
-import { iro, kasane, narabi, omote, sen, ugoki } from '../kiso'
+import { narabi, omote, ugoki } from '../kiso'
 import { panel } from '../kiso/panel'
 
-const { text } = iro
-const { rounded } = kasane
 const { flex } = narabi
 const { glass, backdrop } = omote
-const { focus } = sen
 const { surface, layout } = panel
 
 export const k = {
@@ -32,9 +29,6 @@ export const k = {
 		description: { extra: 'px-6' },
 		footer: { extra: 'px-6 pb-6' },
 		body: { extra: [flex.fill, 'overflow-y-auto overscroll-y-contain', 'px-6 last:mb-6'] },
-		close: {
-			base: ['absolute right-4 top-4', 'p-1', ...text.muted, ...focus.inset, rounded.md],
-		},
 	}),
 	motion: ugoki.panel.bottom,
 }

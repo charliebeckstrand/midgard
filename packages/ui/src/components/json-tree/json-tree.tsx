@@ -62,8 +62,15 @@ export function JsonTree({
 }: JsonTreeProps) {
 	const ref = useRef<HTMLDivElement>(null)
 
+	// Outlives the nodes that write it, so a collapsed-then-reopened branch
+	// restores the expansions made inside it. See `JsonTreeContext.userOpen`.
+	const userOpen = useRef(new Map<string, boolean>())
+
 	const { value: searchValue, filter } = normalizeSearch(search)
 
+	// Keyed on `data` identity, so a structurally identical value with a new
+	// identity rebuilds the whole index. Correct as written: a content equality
+	// walk would cost more than the rebuild it avoids.
 	const searchIndex = useMemo(() => buildSearchIndex(data, searchValue), [data, searchValue])
 
 	const handleKeyDown = useA11yRoving(ref, {
@@ -102,6 +109,7 @@ export function JsonTree({
 				path: '',
 				expanded,
 				onExpandedChange,
+				userOpen,
 			}}
 		>
 			<div

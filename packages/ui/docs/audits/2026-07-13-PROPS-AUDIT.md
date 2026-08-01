@@ -169,6 +169,18 @@ The individual rows mostly instantiate eight repeated patterns; fixing a pattern
 
 DashboardLayout's aside/main region renders stacked where its contract says "beside" (`layouts/dashboard.tsx:34-46`) — likely a `Stack`-for-`Flex` slip. `Menu` silently drops `aria-label` (`grid-manager-color-menu.tsx:57` passes one today) and its `display:contents` root makes `className` a footgun worth a TSDoc warning; `Popover`'s root wrapper is *not* `display:contents`, introducing the layout box Menu's comment warns about. `[data-popover-ignore]` is honored but never stamped. ToggleIconButton's cross-fade recipe lacks a `motion-reduce:` guard. The heatmap's DOM leak-guard test asserts around a type problem `Omit` should solve. Focus-trap wiring is duplicated with different policies across `Overlay` and `FloatingSurface`.
 
+## Verification sweep — 2026-08-01
+
+Re-checked against source. Nothing was stale: every open REMOVE, MERGE, NARROW,
+and REPLACE row still names a prop that exists in the shape described. This file
+has been maintained as a living record — fifty rows already carry their
+resolution — so its open rows are genuinely open.
+
+Three rows read as resolved under a careless grep and are not: Listbox
+`capitalize` is still `SelectCapitalize` (`boolean | { displayValue?, options? }`),
+the grid `header` bag still holds its single `position` field, and Collapse's
+`animate` union still carries the `true` arm aliasing `'fade'`.
+
 ## Reliability appendix
 
 Every row above was traced to its definition and consumption in source, not name-matched; usage counts are JSX-attribute greps and carry false-positive risk only where noted by generic names. Deliberate architecture screened out before flagging: controlled/uncontrolled triads and `null` semantics (§7.3), `name` binding (§7.2), recipe variants (§5.2), static-tier explicit sizing and DOM projections (REFERENCE §2), polymorphism (`href`/`render`), a11y props, `data-slot` anchors, and §3.6's per-item render callbacks. Surfaces audited clean with no findings: currency/number/date/mask/search/zipcode-input, textarea, radio, switch, select, segment, slider, form, checkbox-/radio-group, placeholder, loading, status, and the Card slot family.

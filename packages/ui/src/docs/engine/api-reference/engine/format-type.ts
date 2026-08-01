@@ -5,6 +5,25 @@ const TYPE_FORMAT_FLAGS =
 	ts.TypeFormatFlags.NoTruncation | ts.TypeFormatFlags.UseAliasDefinedOutsideCurrentScope
 
 /**
+ * Recursion ceiling for {@link formatType}. A named type short-circuits, so a
+ * type that names itself terminates on its own; a structurally recursive
+ * *anonymous* type has nothing to stop it, and the walk descends through
+ * generic arguments, function signatures, array elements, and unions until the
+ * stack gives out. Twelve is far past any real prop type in the library — the
+ * deepest measured is under five — so the cap is a stability floor, not a
+ * formatting limit.
+ */
+const MAX_DEPTH = 12
+
+/**
+ * Current recursion depth. A module-level counter rather than a threaded
+ * parameter: seven call sites across four helpers recurse into `formatType`, and
+ * the counter guards them all without perturbing a hot path. The `finally` in
+ * `formatType` keeps it balanced even if the checker throws.
+ */
+let depth = 0
+
+/**
  * Format a `ts.Type` as a short, display-friendly string. Prefers named
  * aliases over expanded unions, and renders large unions in full rather than
  * truncating.
@@ -22,19 +41,27 @@ const TYPE_FORMAT_FLAGS =
  * which ts-morph doesn't surface as wrapped Types.
  */
 export function formatType(type: ts.Type, checker: ts.TypeChecker, location?: ts.Node): string {
-	const named = namedTypeShortName(type, checker, location)
+	if (depth >= MAX_DEPTH) return '…'
 
-	if (named) return named
+	depth++
 
-	const generic = typeParameterFallback(type, checker, location)
+	try {
+		const named = namedTypeShortName(type, checker, location)
 
-	if (generic) return generic
+		if (named) return named
 
-	const fn = formatFunctionType(type, checker, location)
+		const generic = typeParameterFallback(type, checker, location)
 
-	if (fn) return fn
+		if (generic) return generic
 
-	return toSingleQuotes(checker.typeToString(type, location, TYPE_FORMAT_FLAGS))
+		const fn = formatFunctionType(type, checker, location)
+
+		if (fn) return fn
+
+		return toSingleQuotes(checker.typeToString(type, location, TYPE_FORMAT_FLAGS))
+	} finally {
+		depth--
+	}
 }
 
 /**

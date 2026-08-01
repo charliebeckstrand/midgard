@@ -111,6 +111,11 @@ export function useMenuState({
 			role: null,
 			placement: placement ?? 'bottom-start',
 			matchReferenceWidth: isDropdown,
+			// A static menu renders inline and stays visible — `MenuContent` gates
+			// the panel on `isStatic`, not on `open`. Left dismissable it would take
+			// a slot on the shared Escape stack, report a close that changes nothing,
+			// and swallow the press meant for an enclosing Dialog.
+			dismissable: !isStatic,
 		})
 
 	// Tab off the trigger closes the menu (focus stays on the trigger while it is

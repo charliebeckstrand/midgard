@@ -74,6 +74,8 @@ export function NumberInput({
 	// Clamp AFTER rounding: `toFixed` rounds half-up, and rounding a clamped
 	// value can land past min/max (e.g. max 10.05 at precision 1 → 10.1).
 	const change = (delta: number) => {
+		// From an empty field both steppers seed to `clamp(0, …)`, so Decrease lands
+		// on 0 (or `min`) rather than `-step`. Deliberate and test-pinned.
 		const next = current === undefined ? clampValue(round(0)) : clampValue(round(current + delta))
 
 		setCurrent(next)

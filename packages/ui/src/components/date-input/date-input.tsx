@@ -149,6 +149,9 @@ export function DateInput({
 
 	const text = editingText ?? (date === undefined ? '' : formatDateValue(date, format))
 
+	// Resolved eagerly though only the `typedInvalid` branch renders it: gating it
+	// buys one skipped parse of a ≤10-character text and costs this component its
+	// cognitive-complexity budget.
 	const activeMessage = resolveInvalidMessage(text, format, invalidMessage, min, max)
 
 	const { ref: setRefs, reformat } = useFormattedInput({

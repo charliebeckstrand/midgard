@@ -11,6 +11,7 @@ import {
 import { cn } from '../../core'
 import { useA11yRoving } from '../../hooks'
 import { useDensity } from '../../primitives/density'
+import type { Mount } from '../../primitives/mount'
 import { k, type TreeSize } from '../../recipes/kata/tree'
 import type { AccessibleName } from '../../types'
 import { TreeContext } from './context'
@@ -27,12 +28,32 @@ export type TreeProps = AccessibleName & {
 	size?: TreeSize
 	/** Indent nested items so a child's chevron lines up under its parent's prefix slot. @defaultValue false */
 	indent?: boolean
+	/**
+	 * What happens to a branch's children while it is closed.
+	 *
+	 * Under the default `active` a closed branch unmounts its children, so every
+	 * expansion inside it is lost: reopening shows them collapsed again, because
+	 * an uncontrolled {@link TreeItem} keeps its own open state. `lazy` holds a
+	 * branch from its first open, preserving that state and any scroll position
+	 * or focus within it. `always` holds every branch from mount, which renders
+	 * the whole tree up front — appropriate only for a bounded one.
+	 *
+	 * @defaultValue 'active'
+	 */
+	mount?: Mount
 	children: ReactNode
 	className?: string
 }
 
 /** Root of a `role="tree"` with roving-tabindex keyboard navigation; keeps the first item tabbable across open/close and filtering, and shares depth, size, and `indent` to nested items via context. Requires `aria-label`/`aria-labelledby`. */
-export function Tree({ size, indent = false, children, className, ...labelProps }: TreeProps) {
+export function Tree({
+	size,
+	indent = false,
+	mount = 'active',
+	children,
+	className,
+	...labelProps
+}: TreeProps) {
 	const ref = useRef<HTMLDivElement>(null)
 
 	const rovingKeyDown = useA11yRoving(ref, {
@@ -64,8 +85,8 @@ export function Tree({ size, indent = false, children, className, ...labelProps 
 	const resolvedSize: TreeSize = size ?? inherited.size
 
 	const rootContextValue = useMemo(
-		() => ({ depth: 0, size: resolvedSize, indent }),
-		[resolvedSize, indent],
+		() => ({ depth: 0, size: resolvedSize, indent, mount }),
+		[resolvedSize, indent, mount],
 	)
 
 	// Keeps the first treeitem tabbable as the rendered set changes (open/close,

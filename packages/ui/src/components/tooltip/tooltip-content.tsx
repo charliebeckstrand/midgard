@@ -69,6 +69,8 @@ export function TooltipContent({ size, className, children }: TooltipContentProp
 			setFloating={setFloating}
 			floatingStyles={floatingStyles}
 			getFloatingProps={getFloatingProps}
+			// `pointer-events` is inherited, so gating it here gates the whole panel
+			// subtree; the inner surface carries no rule of its own.
 			style={{ pointerEvents: interactive ? 'auto' : 'none' }}
 			// Mounted for the whole open lifetime of an interactive tooltip and
 			// gated through `disabled`, so the probe finding a tabbable one commit
@@ -84,7 +86,6 @@ export function TooltipContent({ size, className, children }: TooltipContentProp
 				ref={setPanel}
 				className={cn(
 					k.content({ size: resolvedSize }),
-					interactive ? 'pointer-events-auto' : 'pointer-events-none',
 					k.surface[glass ? 'glass' : 'default'],
 					className,
 				)}

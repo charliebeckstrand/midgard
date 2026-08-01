@@ -17,13 +17,11 @@
 import { type ChildProcess, spawn } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
-import { gzipSync } from 'node:zlib'
+import { type BundleReport, readBundle } from './bundle-report'
 
 const pkgRoot = path.resolve(import.meta.dirname, '..', '..', '..')
 
 const viteBin = path.join(pkgRoot, 'node_modules', '.bin', 'vite')
-
-const distAssets = path.join(pkgRoot, 'src', 'docs', 'dist', 'assets')
 
 // A source file whose edit invalidates the api-reference family; touched (mtime
 // only, content untouched) to measure HMR re-extraction.
@@ -62,28 +60,10 @@ function parseArgs(rawArgv: string[]): Cli {
 // Prod build: wall time + bundle report
 // ---------------------------------------------------------------------------
 
-type ChunkEntry = { name: string; raw: number; gzip: number }
-
-type BundleReport = {
-	files: number
-	totalRaw: number
-	totalGzip: number
-	jsRaw: number
-	jsGzip: number
-	cssRaw: number
-	cssGzip: number
-	chunks: ChunkEntry[]
-}
-
 type Metrics = {
 	buildMs?: number[]
 	bundle?: BundleReport
 	dev?: DevMetrics[]
-}
-
-/** Strip the content hash so chunk names stay comparable across builds. */
-function stableName(file: string): string {
-	return file.replace(/-[\w-]{8,12}(?=\.[a-z]+$)/, '')
 }
 
 function runBuild(): Promise<number> {
@@ -103,64 +83,6 @@ function runBuild(): Promise<number> {
 			resolve(performance.now() - t0)
 		})
 	})
-}
-
-function readBundle(): BundleReport {
-	const report: BundleReport = {
-		files: 0,
-		totalRaw: 0,
-		totalGzip: 0,
-		jsRaw: 0,
-		jsGzip: 0,
-		cssRaw: 0,
-		cssGzip: 0,
-		chunks: [],
-	}
-
-	// Different chunks can share a hash-stripped name (a component chunk and a
-	// demo chunk with the same basename); aggregate so `--compare` matches
-	// stably instead of mislabeling the duplicate as added/removed.
-	const byName = new Map<string, ChunkEntry>()
-
-	for (const file of fs.readdirSync(distAssets)) {
-		const content = fs.readFileSync(path.join(distAssets, file))
-
-		const raw = content.length
-
-		const gzip = gzipSync(content).length
-
-		report.files++
-
-		report.totalRaw += raw
-
-		report.totalGzip += gzip
-
-		if (/\.(js|mjs)$/.test(file)) {
-			report.jsRaw += raw
-
-			report.jsGzip += gzip
-		} else if (file.endsWith('.css')) {
-			report.cssRaw += raw
-
-			report.cssGzip += gzip
-		}
-
-		const name = stableName(file)
-
-		const entry = byName.get(name)
-
-		if (entry) {
-			entry.raw += raw
-
-			entry.gzip += gzip
-		} else {
-			byName.set(name, { name, raw, gzip })
-		}
-	}
-
-	report.chunks = [...byName.values()].sort((a, b) => b.raw - a.raw)
-
-	return report
 }
 
 // ---------------------------------------------------------------------------

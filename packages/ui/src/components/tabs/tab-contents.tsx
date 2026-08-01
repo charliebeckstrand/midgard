@@ -30,6 +30,11 @@ export type TabContentProps = Omit<ComponentPropsWithoutRef<typeof CurrentConten
  * panels, and `mount="always"` keeps them all mounted. Held panels rest in
  * `<Activity mode="hidden">` (state preserved, effects paused); under `fade`
  * they wake for the opacity cross-fade and rest again once it lands.
+ *
+ * A held panel still renders, so holding warms render-phase work — a `lazy()`
+ * chunk, a `use()`d promise. It mounts no effects, so it does not warm
+ * effect-driven work; a `useQuery` in a held panel waits to be shown. Pair a
+ * mount policy with `Tab`'s `onPreload` to warm that half.
  */
 export function TabContents({ fade = true, mount, ...props }: TabContentsProps) {
 	const tabsContext = useTabsContext()

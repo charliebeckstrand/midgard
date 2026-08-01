@@ -69,8 +69,8 @@ const DEFAULT_TRIGGER_SHORTCUT = '$mod+KeyK'
  * options (`aria-required-children`), so the no-results message lives in a
  * sibling live `<output>` that announces when the filtered set empties. A
  * `VirtualOptions` inside `children` registers its windowed item source
- * automatically, so the highlight and type-ahead reach items outside the
- * rendered window.
+ * automatically, so the highlight reaches items outside the rendered window.
+ * Roving type-ahead stays off: the search input owns every printable key.
  */
 export function CommandPalette({
 	open,

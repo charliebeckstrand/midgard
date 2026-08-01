@@ -142,19 +142,19 @@ export function useComboboxState<T>({
 		(newValue: T) => {
 			if (shouldClose) {
 				commit(newValue)
-			} else {
-				toggle(newValue)
-			}
 
-			if (shouldClose) {
 				close()
-			} else {
-				setQuery('')
 
-				setEditing(false)
-
-				inputRef.current?.focus()
+				return
 			}
+
+			toggle(newValue)
+
+			setQuery('')
+
+			setEditing(false)
+
+			inputRef.current?.focus()
 		},
 		[shouldClose, toggle, commit, close, setQuery, inputRef],
 	)

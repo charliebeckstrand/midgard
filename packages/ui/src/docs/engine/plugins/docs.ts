@@ -68,16 +68,51 @@ function forEachDemoFile(demosDir: string, visit: (fullPath: string) => void): v
 	for (const full of files) visit(full)
 }
 
-function generateDemoMetas(demosDir: string): Record<string, DemoMeta> {
+/** Whether `file` is a demo source the demo-derived virtual modules read. */
+function isDemoFile(file: string, demosDir: string): boolean {
+	return file.startsWith(demosDir + path.sep) && file.endsWith('.tsx')
+}
+
+/** Last parsed meta for one demo, valid while its file keeps this mtime. */
+type DemoMetaCache = Map<string, { mtimeMs: number; meta: DemoMeta }>
+
+/**
+ * One demo edit invalidates the whole `demo-metas` module, and regenerating it
+ * would re-parse every demo — ~110 of them — to pick up the one that changed.
+ * `cache` carries the previous pass's parses; an unchanged mtime reuses one,
+ * which also skips reading the file. The directory walk still runs: it is a
+ * `readdir`, and it is what notices an added or deleted demo.
+ *
+ * The cache is rebuilt rather than pruned, so it tracks the directory
+ * structurally — a demo that disappears is simply not carried over.
+ */
+function generateDemoMetas(demosDir: string, cache: DemoMetaCache): Record<string, DemoMeta> {
 	const project = new Project({ useInMemoryFileSystem: true, skipLoadingLibFiles: true })
 
 	const result: Record<string, DemoMeta> = {}
 
+	const next: DemoMetaCache = new Map()
+
 	forEachDemoFile(demosDir, (full) => {
 		const rel = path.relative(demosDir, full).replaceAll(path.sep, '/')
 
-		result[`./demos/${rel}`] = parseMeta(project, full, fs.readFileSync(full, 'utf-8'))
+		const { mtimeMs } = fs.statSync(full)
+
+		const cached = cache.get(full)
+
+		const meta =
+			cached?.mtimeMs === mtimeMs
+				? cached.meta
+				: parseMeta(project, full, fs.readFileSync(full, 'utf-8'))
+
+		next.set(full, { mtimeMs, meta })
+
+		result[`./demos/${rel}`] = meta
 	})
+
+	cache.clear()
+
+	for (const [key, entry] of next) cache.set(key, entry)
 
 	return result
 }
@@ -442,6 +477,11 @@ export function docsPlugin({
 	let srcDir = srcDirOption ?? ''
 	let demosDir = ''
 
+	// Per plugin instance, not module-global: the prune is keyed on this
+	// instance's `demosDir`, so a second instance in one process would evict the
+	// first's entries on every regeneration.
+	const demoMetaCache: DemoMetaCache = new Map()
+
 	// Lazily created on first read so `vitest` builds never open a Project. One
 	// long-lived extractor per plugin: it reuses its scoped ts-morph Project and
 	// re-extracts only the barrels a changed file feeds.
@@ -481,13 +521,19 @@ export function docsPlugin({
 			},
 			{
 				id: 'virtual:demo-metas',
-				generate: () => (vitest ? {} : generateDemoMetas(demosDir)),
-				shouldInvalidate: (file) => file.startsWith(demosDir + path.sep) && file.endsWith('.tsx'),
+				generate: () => (vitest ? {} : generateDemoMetas(demosDir, demoMetaCache)),
+				shouldInvalidate: (file) => isDemoFile(file, demosDir),
 			},
 			{
 				id: 'virtual:component-modules',
 				generate: () => buildNameMap(srcDir, demosDir, packageName),
-				shouldInvalidate: (file) => file.startsWith(srcDir),
+				// Exactly what `buildNameMap` reads: the public barrels
+				// `moduleNameFor` recognizes, plus the demos it scans for external
+				// components. A test, a stylesheet, or a component body cannot change
+				// the map, and re-running it re-reads every barrel and re-parses every
+				// demo — so `srcDir` alone was far too wide a predicate.
+				shouldInvalidate: (file) =>
+					moduleNameFor(file, srcDir) !== null || isDemoFile(file, demosDir),
 			},
 		]),
 
@@ -533,9 +579,7 @@ export function docsPlugin({
 		transform(code, id) {
 			const cleanId = id.split('?')[0] ?? ''
 
-			if (!cleanId.startsWith(demosDir + path.sep)) return
-
-			if (!cleanId.endsWith('.tsx')) return
+			if (!isDemoFile(cleanId, demosDir)) return
 
 			const sf = ts.createSourceFile(cleanId, code, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX)
 

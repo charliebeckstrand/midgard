@@ -96,6 +96,17 @@ export function defineDocsConfig({
 				'motion',
 				'motion/react',
 				'shiki',
+				// Reached only through lazy demo chunks, so the scanner misses them and
+				// the first navigation to a map, date, markdown, payment, export, or
+				// shortcut demo triggers an optimizer re-run and the mid-session full
+				// reload this list exists to prevent.
+				'@internationalized/date',
+				'card-validator',
+				'd3-geo',
+				'fflate',
+				'marked',
+				'tinykeys',
+				'topojson-client',
 			],
 		},
 		resolve: {
@@ -112,6 +123,35 @@ export function defineDocsConfig({
 		build: {
 			target: 'esnext',
 			sourcemap: analyze,
+			rolldownOptions: {
+				output: {
+					// A stable home for the vendors many chunks share. Without this the
+					// bundler places them by its own heuristics, so they migrate between
+					// chunks as demos change and a returning visitor re-downloads code
+					// that did not change — the cost is cache churn, not bytes.
+					//
+					// Deliberately only the four that are genuinely cross-cutting.
+					// Grouping a tree-shaken package like `lucide-react` would be a
+					// pessimization: a page needing one icon would fetch every icon the
+					// site uses.
+					advancedChunks: {
+						groups: [
+							{ name: 'vendor-react', test: /node_modules[\\/](react|react-dom|scheduler)[\\/]/ },
+							// `motion` is a re-export shim; the runtime it forwards to lives in
+							// `framer-motion`, `motion-dom`, and `motion-utils`. Matching the
+							// shim alone leaves the runtime glued to whichever app chunk pulls
+							// it — which for this site is `primitives/mount`, so every edit
+							// there would re-hash all of framer-motion.
+							{
+								name: 'vendor-motion',
+								test: /node_modules[\\/](motion|motion-dom|motion-utils|framer-motion)[\\/]/,
+							},
+							{ name: 'vendor-floating-ui', test: /node_modules[\\/]@floating-ui[\\/]/ },
+							{ name: 'vendor-tanstack', test: /node_modules[\\/]@tanstack[\\/]/ },
+						],
+					},
+				},
+			},
 		},
 		// Tailwind runs via `@tailwindcss/vite` above; the docs site never needs
 		// the root `postcss.config.mjs` (which targets Next.js apps). Skip the

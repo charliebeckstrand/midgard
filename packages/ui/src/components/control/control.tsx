@@ -32,7 +32,7 @@ export type ControlProps = {
 
 /**
  * Form-field context provider: generates a stable id and broadcasts
- * `disabled`, `readOnly`, `required`, `severity`, `size`, and
+ * `autoComplete`, `disabled`, `readOnly`, `required`, `severity`, `size`, and
  * `variant` to control-aware descendants (input, textarea, switch, listbox,
  * combobox, datepicker, checkbox, radio). Nests: `disabled` / `readOnly`
  * cascade through inner Controls, `severity` / `size` / `variant` inherit

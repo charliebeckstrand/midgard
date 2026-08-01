@@ -7,7 +7,7 @@ import { Flex } from '../../../components/flex'
 import { Heading } from '../../../components/heading'
 import { Stack } from '../../../components/stack'
 import { cn } from '../../../core'
-import { deriveCode, type SourceFacts } from '../derive-code'
+import { deriveCode, hasDerivableCode, type SourceFacts } from '../derive-code'
 import {
 	ExampleResizeHandle,
 	maxDefined,
@@ -84,7 +84,11 @@ export function Example({
 	// the string only while the panel is open, caching the last one so it stays
 	// visible through the close animation (`AnimatePresence` keeps the panel
 	// mounted while it slides shut).
-	const [hasDerivedCode] = useState(() => !code && deriveCode(children, undefined, facts) != null)
+	//
+	// The mount probe asks `hasDerivableCode`, which stops at the first tagged
+	// element, rather than deriving the whole block to test it against `null`: a
+	// demo page mounts many Examples at once and none of them needs the string yet.
+	const [hasDerivedCode] = useState(() => !code && hasDerivableCode(children))
 
 	const derivedRef = useRef<string | null>(null)
 

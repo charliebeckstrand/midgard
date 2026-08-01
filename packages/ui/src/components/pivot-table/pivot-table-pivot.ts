@@ -120,7 +120,16 @@ export function aggregate(values: readonly number[], op: PivotAggregation): numb
 	}
 }
 
-/** Aggregates one row across `columnKeys`; `undefined` when the row holds no values. */
+/**
+ * Aggregates one row across `columnKeys`; `undefined` when the row holds no
+ * values.
+ *
+ * @remarks
+ * Near-identical to {@link aggregateColumn} — fix one axis, walk the other — and
+ * deliberately so: row and column are distinct boundaries and each body is about
+ * six lines, so a shared walk would cost more in indirection than it saves
+ * (CLAUDE.md 1.1).
+ */
 export function aggregateRow(
 	groups: Map<string, Map<string, number[]>>,
 	row: string,

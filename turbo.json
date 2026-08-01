@@ -23,6 +23,21 @@
       "cache": false,
       "persistent": true
     },
+    "docs:build": {
+      "dependsOn": ["^build"],
+      "inputs": [
+        "src/**",
+        "vite.docs.config.ts",
+        "tsconfig.json",
+        "tsconfig.docs.json",
+        "$TURBO_ROOT$/tsconfig.base.json"
+      ],
+      "outputs": ["src/docs/dist/**"]
+    },
+    "bundle:budget": {
+      "dependsOn": ["docs:build"],
+      "inputs": ["src/docs/dist/**", "src/__benchmarks__/docs/bundle-*.ts"]
+    },
     "lint": {
       "inputs": ["src/**", "app/**", "*.config.ts", "$TURBO_ROOT$/biome.json"]
     },

@@ -27,7 +27,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-turbo-
       - run: pnpm install --frozen-lockfile
-      - run: pnpm turbo run lint check-types test knip build
+      # `bundle:budget` depends on `docs:build` in turbo.json, so the graph
+      # orders them; see bundle-budget.ts for what it asserts and why.
+      - run: pnpm turbo run lint check-types test knip build bundle:budget
         env:
           # Placeholder: only used to construct rewrite/fetch URLs, not reached at build time.
           BIFROST_URL: https://bifrost.invalid

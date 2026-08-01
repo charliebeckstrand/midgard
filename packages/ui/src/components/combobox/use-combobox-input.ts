@@ -48,8 +48,13 @@ function isReservedTextboxKey(event: KeyboardEvent<HTMLInputElement>): boolean {
  * The menu opens only from the far edge of the text in the key's direction —
  * ArrowDown at the end, ArrowUp at the start — so a mid-value caret or a ranged
  * selection travels to that edge natively first, as in a plain textbox, and the
- * next press opens. With no caret to traverse — an empty value or a selectionless
- * input type — either key opens immediately.
+ * next press opens. With no caret to traverse — an empty value, or an element
+ * reporting a null selection — either key opens immediately.
+ *
+ * @remarks
+ * The null-selection arm is defensive rather than reachable: the combobox input
+ * is always `type="text"`, which always reports a selection. It is the hook's
+ * pinned contract (`use-combobox-input.test.ts`), so it stays.
  */
 function arrowOpensClosedMenu(event: KeyboardEvent<HTMLInputElement>): boolean {
 	const { selectionStart, selectionEnd, value } = event.currentTarget

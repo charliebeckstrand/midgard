@@ -33,10 +33,15 @@ export function usePdfViewerViewportSize(
 		const padX = Number.parseFloat(styles.paddingLeft) + Number.parseFloat(styles.paddingRight)
 		const padY = Number.parseFloat(styles.paddingTop) + Number.parseFloat(styles.paddingBottom)
 
-		setSize({
-			width: el.clientWidth - padX,
-			height: el.clientHeight - padY,
-		})
+		const width = el.clientWidth - padX
+		const height = el.clientHeight - padY
+
+		// Keep the prior object when the content box is unchanged: a ResizeObserver
+		// callback on an unrelated reflow would otherwise re-render the viewer and
+		// recompute scale and the shared context off an identical measurement.
+		setSize((prev) =>
+			prev && prev.width === width && prev.height === height ? prev : { width, height },
+		)
 	}, [ref])
 
 	useIsomorphicLayoutEffect(() => {

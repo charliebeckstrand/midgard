@@ -5,7 +5,7 @@
  * `item`, `label`, `description`, and `shortcut` for each result row.
  */
 import { mode } from '../../core/recipe'
-import { hannou, iro, ji, narabi } from '../kiso'
+import { hannou, iro, ji, kara, narabi } from '../kiso'
 
 const { text } = iro
 const { size, weight } = ji
@@ -13,11 +13,12 @@ const { flex, description } = narabi
 
 export const k = {
 	group: 'flex flex-col gap-0.5 first:pt-0 last:pb-0',
-	// Inner listbox: collapses when empty. `peer` drives the sibling `empty` slot below.
-	list: ['peer', 'empty:hidden'],
+	// Inner listbox: collapses when empty. `peer` drives the sibling `empty` slot
+	// below; `kara` adds the virtualized case, which `:empty` alone cannot see.
+	list: ['peer', 'empty:hidden', kara.list],
 	// Sibling no-results status: a persistent `<output>` (role=status) shown
-	// when the listbox peer is `:empty`, announcing zero-result queries.
-	empty: ['hidden peer-empty:block', 'p-2', size.sm, text.muted],
+	// when the listbox peer holds no options, announcing zero-result queries.
+	empty: ['hidden', 'peer-empty:block', kara.message, 'p-2', size.sm, text.muted],
 	title: ['p-2', size.xs, text.muted, weight.medium],
 	item: [
 		'group/option',

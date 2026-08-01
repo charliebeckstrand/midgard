@@ -82,9 +82,11 @@ export type SheetProps = Omit<SheetPanelVariants, 'surface'> & {
  * over the `aria-label` fallback. Modal sheets (the default) trap focus, lock
  * body scroll, and render a blocking backdrop; `modal={false}` keeps the page
  * interactive and disables the full-viewport wrapper's pointer events so only
- * the panel captures them. The panel stops click propagation so taps inside it
- * never reach the backdrop dismiss handler, and shares a single open-state
- * setter with its dismiss affordances via `PanelProviders`.
+ * the panel captures them. The panel stops click propagation to keep the portal's
+ * synthetic clicks off the consumer ancestors it renders under — the backdrop is
+ * a sibling, so a panel click never reaches its dismiss handler anyway — and
+ * shares a single open-state setter with its dismiss affordances via
+ * `PanelProviders`.
  */
 export function Sheet({
 	open,

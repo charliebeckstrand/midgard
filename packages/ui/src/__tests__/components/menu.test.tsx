@@ -221,6 +221,27 @@ describe('MenuContent', () => {
 		expect(screen.getByText('Item')).not.toHaveFocus()
 	})
 
+	it('leaves Escape alone when rendered as a static menu', async () => {
+		const onOpenChange = vi.fn()
+
+		const { container } = renderUI(
+			<Menu defaultOpen onOpenChange={onOpenChange}>
+				<MenuContent>
+					<MenuItem>Item</MenuItem>
+				</MenuContent>
+			</Menu>,
+		)
+
+		await userEvent.keyboard('{Escape}')
+
+		// A static menu is page furniture: it has no dismissed state, so it must
+		// not report a close, and must not claim the Escape press that an
+		// enclosing Dialog is waiting for.
+		expect(onOpenChange).not.toHaveBeenCalled()
+
+		expect(container.querySelector('[role="menu"]')).toBeInTheDocument()
+	})
+
 	it('renders portal content when placement is provided and menu is open', () => {
 		renderUI(
 			<Menu placement="bottom-start">

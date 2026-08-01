@@ -72,6 +72,7 @@ export const JsonTreeNode = memo(function JsonTreeNode({ keyName, value }: JsonN
 		path,
 		expanded,
 		onExpandedChange,
+		userOpen: userOpenMemory,
 	} = useJsonTreeContext()
 
 	const nodePath = path ? joinPath(path, keyName ?? '$') : encodePathSegment(keyName ?? '$')
@@ -87,7 +88,11 @@ export const JsonTreeNode = memo(function JsonTreeNode({ keyName, value }: JsonN
 	const hasMatch = branch && search ? searchIndex.get(value as object) === true : false
 
 	// Explicit user toggle; `undefined` defers to the default/search rules below.
-	const [userOpen, setUserOpen] = useState<boolean | undefined>(undefined)
+	// Seeded from the tree-level memory so a node that was toggled, unmounted by
+	// an ancestor collapsing, and remounted comes back the way the user left it.
+	const [userOpen, setUserOpenState] = useState<boolean | undefined>(() =>
+		userOpenMemory.current.get(nodePath),
+	)
 
 	const visibleEntries = useMemo(
 		() => (filter && search ? filterEntries(entries, search, searchIndex) : entries),
@@ -118,8 +123,19 @@ export const JsonTreeNode = memo(function JsonTreeNode({ keyName, value }: JsonN
 			path: nodePath,
 			expanded,
 			onExpandedChange,
+			userOpen: userOpenMemory,
 		}),
-		[depth, defaultExpandDepth, search, filter, searchIndex, nodePath, expanded, onExpandedChange],
+		[
+			depth,
+			defaultExpandDepth,
+			search,
+			filter,
+			searchIndex,
+			nodePath,
+			expanded,
+			onExpandedChange,
+			userOpenMemory,
+		],
 	)
 
 	if (filter && search && !branch && !highlighted) return null
@@ -141,7 +157,11 @@ export const JsonTreeNode = memo(function JsonTreeNode({ keyName, value }: JsonN
 			// if the consumer later dropped `expanded`.
 			if (onExpandedChange) toggleExpandedSet(expanded, nodePath, onExpandedChange)
 		} else {
-			setUserOpen(!open)
+			// Write through to the tree-level memory as well as local state: local
+			// state drives this render, the memory outlives an ancestor's collapse.
+			userOpenMemory.current.set(nodePath, !open)
+
+			setUserOpenState(!open)
 		}
 	}
 
