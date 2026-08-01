@@ -2,8 +2,10 @@ import { createRef, type ReactElement, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import { DateInput } from '../../components/date-input'
+import { localeDateInputFormat } from '../../components/date-input/date-input-utilities'
 import { Field, Label } from '../../components/fieldset'
 import { Form } from '../../components/form'
+import { LocaleProvider } from '../../providers/locale'
 import { bySlot, renderUI, screen, userEvent } from '../helpers'
 
 // Controlled usage with an external setter: the harness can move the value
@@ -562,5 +564,57 @@ describe('DateInput', () => {
 		expect(submitted.getMonth()).toBe(11)
 
 		expect(submitted.getDate()).toBe(25)
+	})
+})
+
+describe('DateInput locale-derived layout', () => {
+	it('derives the supported layout from the locale field order', () => {
+		expect(localeDateInputFormat('en-US')).toBe('MM/DD/YYYY')
+
+		expect(localeDateInputFormat('en-GB')).toBe('DD/MM/YYYY')
+
+		expect(localeDateInputFormat('de-DE')).toBe('DD/MM/YYYY')
+
+		expect(localeDateInputFormat('fr-FR')).toBe('DD/MM/YYYY')
+
+		expect(localeDateInputFormat('ja-JP')).toBe('YYYY-MM-DD')
+
+		expect(localeDateInputFormat('sv-SE')).toBe('YYYY-MM-DD')
+	})
+
+	it('masks a typed date day-first under a day-first locale', async () => {
+		const user = userEvent.setup({ delay: null })
+
+		const onValueChange = vi.fn()
+
+		const { container } = renderUI(
+			<LocaleProvider locale="en-GB">
+				<DateInput onValueChange={onValueChange} />
+			</LocaleProvider>,
+		)
+
+		const input = bySlot(container, 'date-input') as HTMLInputElement
+
+		await user.type(input, '10062026')
+
+		// Day-first: 10 June 2026, not 6 October. The field previously masked
+		// month-first whatever the locale, so this entry read as October.
+		expect(input.value).toBe('10/06/2026')
+
+		const emitted = onValueChange.mock.calls.at(-1)?.[0] as Date
+
+		expect(emitted.getMonth()).toBe(5)
+
+		expect(emitted.getDate()).toBe(10)
+	})
+
+	it('lets an explicit format prop override the locale', () => {
+		const { container } = renderUI(
+			<LocaleProvider locale="en-GB">
+				<DateInput format="MM/DD/YYYY" />
+			</LocaleProvider>,
+		)
+
+		expect((bySlot(container, 'date-input') as HTMLInputElement).placeholder).toBe('MM/DD/YYYY')
 	})
 })
