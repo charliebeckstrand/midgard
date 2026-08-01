@@ -827,10 +827,19 @@ export function GridData<T>({
 	// each reading the selected rows when a selection is active, else the full
 	// filtered + sorted set (all pages) — the engine mirrors the grid's
 	// selection `Set` into its own state, so the selected subset keeps the
-	// displayed order. An `exportRows` source overrides both, supplying the rows
-	// the engine can't hold under server pagination. Shared by the toolbar's
-	// "Export" dropdown and both context menus.
-	const exportActions = useGridExport<T>({ exportable, columns: visibleColumns, table, exportRows })
+	// displayed order. Both are taken over the leaf set, since under grouping the
+	// sorted model carries group headers rather than data rows. An `exportRows`
+	// source overrides both, supplying the rows the engine can't hold under
+	// server pagination. Shared by the toolbar's "Export" dropdown and both
+	// context menus.
+	const exportActions = useGridExport<T>({
+		exportable,
+		columns: visibleColumns,
+		table,
+		exportRows,
+		grouped: groupingActive,
+		manualGroupRow,
+	})
 
 	// Whether the table may paint yet; holds its first frame until the widths are
 	// settled (see `useTableRevealed`, and the width gate on the `<table>` below).
