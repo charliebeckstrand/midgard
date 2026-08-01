@@ -193,28 +193,65 @@ export function GridTotalRow<T>({
 }: GridTotalRowProps<T>) {
 	const span = aggregateLabelSpan(columns)
 
-	// Above the `grand` return so the hook order holds; a grand total never
-	// collapses, so its hold stays permanently visible and unused.
-	const reveal = useGridRevealHold(expanded)
-
-	if (variant === 'grand') {
+	// The two variants share the label span and nothing else — different trees,
+	// and only the group one collapses — so the group row is its own component
+	// rather than a branch whose hold the grand variant would have to carry.
+	if (variant === 'group') {
 		return (
-			<TableRow data-total-row="grand" aria-rowindex={ariaRowIndex}>
-				<TableCell colSpan={span} className={cn(k.aggregate.label)}>
-					{label}
-				</TableCell>
-
-				<GridAggregateCells columns={columns} rows={rows} from={span} />
-			</TableRow>
+			<GridGroupTotalRow<T>
+				columns={columns}
+				rows={rows}
+				span={span}
+				expanded={expanded}
+				label={label}
+				density={density}
+				color={color}
+			/>
 		)
 	}
+
+	return (
+		<TableRow data-total-row="grand" aria-rowindex={ariaRowIndex}>
+			<TableCell colSpan={span} className={cn(k.aggregate.label)}>
+				{label}
+			</TableCell>
+
+			<GridAggregateCells columns={columns} rows={rows} from={span} />
+		</TableRow>
+	)
+}
+
+/**
+ * A group's total row: it collapses with its group through the same CSS reveal
+ * the leaves ride, and rests alongside them once that reveal lands so its
+ * aggregates stop recomputing on every body render.
+ *
+ * @internal
+ */
+function GridGroupTotalRow<T>({
+	columns,
+	rows,
+	span,
+	expanded,
+	label,
+	density,
+	color,
+}: {
+	columns: GridColumn<T>[]
+	rows: T[]
+	/** Columns the leading label cell spans, resolved once by {@link GridTotalRow}. */
+	span: number
+	expanded: boolean
+	label: ReactNode
+	density: DensityLevel
+	color?: PaletteColor
+}) {
+	const reveal = useGridRevealHold(expanded)
 
 	const pad = k.rowGroup.reveal.pad({ density })
 
 	// A collapsed group's total is clipped to nothing with its leaves; take it out
-	// of the accessibility tree too, matching the leaf rows (WCAG 1.3.1), and rest
-	// it alongside them once the reveal lands so its aggregates stop recomputing
-	// on every body render.
+	// of the accessibility tree too, matching the leaf rows (WCAG 1.3.1).
 	return (
 		<Hold hold={reveal.hold} name="grid-total-row">
 			<TableRow

@@ -30,9 +30,21 @@ export type MountHold = {
 	hidden: boolean
 	/**
 	 * Latches a deferred hold to rest. Call it when the panel's close animation
-	 * lands; an undeferred hold hides on the `active` flip itself and ignores it.
+	 * lands — unconditionally is fine: it ignores a landing that arrives while the
+	 * panel is active (the entrance of a panel that just opened), and an
+	 * undeferred hold hides on the `active` flip itself and ignores it entirely.
 	 */
 	rest: () => void
+}
+
+/**
+ * Whether a policy guarantees every panel is in the DOM — the question a trigger
+ * asks before pointing `aria-controls` at a panel it doesn't render. Only
+ * `always` can answer yes: `lazy` mounts panels as they are visited, which no
+ * sibling trigger can observe, and `active` keeps just the one.
+ */
+export function mountsEveryPanel(mount: Mount): boolean {
+	return mount === 'always'
 }
 
 /**
@@ -55,10 +67,17 @@ export type MountHold = {
  *
  * @param active - Whether the panel is the one currently shown.
  * @param mount - The policy governing inactive panels.
- * @param defer - Whether hiding waits on {@link MountHold.rest}. Defaults to `false`.
+ * @param options - `defer`: whether hiding waits on {@link MountHold.rest} rather
+ * than following `active`. Defaults to `false`.
  * @returns The panel's resolved {@link MountHold}.
  */
-export function useMountHold(active: boolean, mount: Mount, defer = false): MountHold {
+export function useMountHold(
+	active: boolean,
+	mount: Mount,
+	options?: { defer?: boolean },
+): MountHold {
+	const defer = options?.defer ?? false
+
 	// Lazy latch: a panel that has ever been active stays mounted thereafter.
 	// Monotonic, so a re-run render is idempotent; becoming active is itself a
 	// re-render, so no commit is needed to flip it.
@@ -77,9 +96,12 @@ export function useMountHold(active: boolean, mount: Mount, defer = false): Moun
 	// no animation completion will arrive to do it.
 	if (rested && (active || !held || !defer)) setRested(false)
 
+	// Owns the "only a landing that closes counts" rule, so callers can hand every
+	// completion straight through instead of each restating the guard. An active
+	// panel's own entrance completes too, and must not rest it.
 	const rest = useCallback(() => {
-		if (defer) setRested(true)
-	}, [defer])
+		if (defer && !active) setRested(true)
+	}, [defer, active])
 
 	return {
 		present: mount === 'always' || active || (mount === 'lazy' && everActive.current),

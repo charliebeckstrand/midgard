@@ -32,7 +32,20 @@ export type CollapsePanelProps = {
 export function CollapsePanel({ children, className }: CollapsePanelProps) {
 	const { open, animate, mount, panelProps } = useCollapseContext()
 
-	const hold = useMountHold(open, mount, animate !== false)
+	const hold = useMountHold(open, mount, { defer: animate !== false })
+
+	// The panel's identity — element, a11y wiring, classes — is one shape across
+	// every branch below; only how it animates (or whether it does) differs.
+	const section = (motionProps: object) => (
+		<motion.section
+			{...panelProps}
+			data-slot="collapse-panel"
+			{...motionProps}
+			className={cn(k.panel, className)}
+		>
+			{children}
+		</motion.section>
+	)
 
 	if (animate === false) {
 		if (!hold.present) return null
@@ -48,22 +61,12 @@ export function CollapsePanel({ children, className }: CollapsePanelProps) {
 
 	const variant = animate === true || animate === 'fade' ? 'fade' : animate
 
-	// `active` unmounts the closed panel, so its exit rides `AnimatePresence`.
+	// `active` unmounts the closed panel, so its exit rides `AnimatePresence` and
+	// the recipe's enter/exit pair applies as written.
 	if (!hold.held) {
 		return (
 			<ReducedMotion>
-				<AnimatePresence initial={false}>
-					{open && (
-						<motion.section
-							{...panelProps}
-							data-slot="collapse-panel"
-							{...k.motion[variant]}
-							className={cn(k.panel, className)}
-						>
-							{children}
-						</motion.section>
-					)}
-				</AnimatePresence>
+				<AnimatePresence initial={false}>{open && section(k.motion[variant])}</AnimatePresence>
 			</ReducedMotion>
 		)
 	}
@@ -73,24 +76,19 @@ export function CollapsePanel({ children, className }: CollapsePanelProps) {
 	return (
 		<ReducedMotion>
 			<Hold hold={hold} name="collapse-panel">
-				<motion.section
-					{...panelProps}
-					data-slot="collapse-panel"
+				{section({
 					// A `lazy` panel mounts on its first open, so it enters from the
 					// closed state; an `always` panel is present from the start and
 					// takes its open-or-closed state without playing anything.
-					initial={mount === 'lazy' ? k.motion[variant].initial : false}
-					animate={open ? k.motion[variant].animate : k.motion[variant].exit}
-					transition={k.motion[variant].transition}
-					// Only a landed close rests the panel; opening completions arrive
-					// while open and pass through.
-					onAnimationComplete={() => {
-						if (!open) hold.rest()
-					}}
-					className={cn(k.panel, className)}
-				>
-					{children}
-				</motion.section>
+					initial: mount === 'lazy' ? k.motion[variant].initial : false,
+					// Held, so it animates between the two states in place rather than
+					// entering and exiting — no `exit`, which only `AnimatePresence` reads.
+					animate: open ? k.motion[variant].animate : k.motion[variant].exit,
+					transition: k.motion[variant].transition,
+					// `rest` ignores a landing that arrives while open, so the entrance
+					// passes through without a guard here.
+					onAnimationComplete: hold.rest,
+				})}
 			</Hold>
 		</ReducedMotion>
 	)

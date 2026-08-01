@@ -21,7 +21,7 @@ describe('useMountHold', () => {
 	}) {
 		const [active, setActive] = useState(false)
 
-		const hold = useMountHold(active, mount, defer)
+		const hold = useMountHold(active, mount, { defer })
 
 		return (
 			<>

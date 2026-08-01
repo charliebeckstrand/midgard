@@ -106,7 +106,7 @@ export function CurrentContent({
 	// disclosure and stepper panels. A fading container defers the hide to the
 	// rest latch, since `display: none` can't cross-fade; a non-fading one hides
 	// on the switch itself.
-	const hold = useMountHold(current, mount, fade)
+	const hold = useMountHold(current, mount, { defer: fade })
 
 	// Under a fading container, an `active`-mounted outgoing panel defers its
 	// unmount until the fade-out completes, so switching cross-fades instead of
@@ -155,6 +155,8 @@ export function CurrentContent({
 			onAnimationComplete={() => {
 				if (current) return
 
+				// `hold.rest` ignores a landing on an active panel, but the exit
+				// release does not, so the current-panel guard stays.
 				if (hold.held) hold.rest()
 				else releaseExit()
 			}}

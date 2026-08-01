@@ -8,6 +8,7 @@ import {
 	StepperStep,
 	StepperTitle,
 } from '../../components/stepper'
+import type { Mount } from '../../primitives/mount'
 import { act, allBySlot, bySlot, fireEvent, renderUI, screen, userEvent } from '../helpers'
 
 describe('Stepper', () => {
@@ -367,7 +368,7 @@ describe('Stepper keyboard navigation', () => {
 	})
 
 	describe('mount policy', () => {
-		function Flow({ mount }: { mount?: 'always' | 'lazy' | 'active' }) {
+		function Flow({ mount }: { mount?: Mount }) {
 			return (
 				<Stepper defaultValue={0} mount={mount}>
 					<StepperStep value={0}>

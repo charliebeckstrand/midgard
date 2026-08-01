@@ -6,6 +6,7 @@ import {
 	AccordionTrigger,
 	useAccordionItem,
 } from '../../components/accordion'
+import type { Mount } from '../../primitives/mount'
 import { act, fireEvent, renderUI, screen, userEvent } from '../helpers'
 
 describe('AccordionTrigger', () => {
@@ -325,7 +326,7 @@ describe('Accordion keyboard navigation', () => {
 })
 
 describe('Accordion mount policy', () => {
-	function Panels({ mount }: { mount?: 'always' | 'lazy' | 'active' }) {
+	function Panels({ mount }: { mount?: Mount }) {
 		return (
 			<Accordion type="single" collapsible mount={mount}>
 				<AccordionItem value="a">

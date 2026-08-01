@@ -24,11 +24,16 @@ Two consequences shape all of it. `display: none` cannot animate, so any hold on
 
   | | mean |
   |---|---|
-  | collapsed rows live (before) | 10.16ms |
-  | collapsed rows rested (after) | 0.38ms |
-  | all expanded (ceiling) | 10.70ms |
+  | collapsed rows live (before) | 11.7–12.8ms |
+  | collapsed rows rested (after) | 1.1–1.45ms |
+  | all expanded · live | 15.3ms |
+  | all expanded · rested | 15.7ms |
 
-  A 26× cut in visible-commit latency. The third bar is the finding in one number: `all expanded` and `collapsed rows live` are within noise of each other, so collapsing a group bought nothing before this. The landing arrives as a `transitionend` bubbling from the cells that animate; under `prefers-reduced-motion` the recipe drops the transition, so the row rests on the toggle itself.
+  Roughly a 9–11× cut in visible-commit latency, quoted as a range because the rested bars run at a few percent RME across runs. The two all-expanded bars are the finding stated twice over: against `collapsed rows live` they show that collapsing a group bought nothing before this, and against each other they price the wrapper on rows that can never use it at ~2% — within noise, so the hold costs a fully-expanded grid nothing worth reclaiming.
+
+  An earlier draft of this audit quoted 10.16ms → 0.38ms and a 26× cut. That bench wrapped a whole group at body level, which defers each row component entirely; the module wraps from inside each row, which defers only what is below the `<tr>`. The numbers above measure the shape actually shipped. Hoisting the boundary above the row body was tried and measured too — it lands within noise of the current placement (the extra fiber per row costs about what the deferred body saves), so the simpler placement stands.
+
+  The landing arrives as a `transitionend` bubbling from the cells that animate; under `prefers-reduced-motion` the recipe drops the transition, so the row rests on the toggle itself.
 
 - [x] **`components/pdf-viewer`** — the desktop sidebar's thumbnail rail kept rendering behind the closed panel; its contents now rest once the slide lands (`pdf-viewer-thumbnails.tsx:40-44,86-92`).
 

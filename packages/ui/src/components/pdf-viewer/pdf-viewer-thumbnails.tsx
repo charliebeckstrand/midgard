@@ -46,7 +46,7 @@ export function PdfViewerThumbnails() {
 
 	// The sidebar is always mounted; the hold only decides whether its contents
 	// are live, and defers to the slide so the rail doesn't blank mid-transition.
-	const sidebarHold = useMountHold(sidebarOpen, 'always', true)
+	const sidebarHold = useMountHold(sidebarOpen, 'always', { defer: true })
 
 	const sidebarRef = useRef<HTMLElement>(null)
 

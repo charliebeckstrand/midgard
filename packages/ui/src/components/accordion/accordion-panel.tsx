@@ -35,27 +35,27 @@ export function AccordionPanel({ className, children }: AccordionPanelProps) {
 
 	const { mount } = useAccordion()
 
-	const hold = useMountHold(open, mount, true)
+	const hold = useMountHold(open, mount, { defer: true })
 
-	const body = <div className={cn(k.body, className)}>{children}</div>
+	// One shape across every branch below; only how it animates differs.
+	const panel = (motionProps: object) => (
+		<motion.div
+			data-slot="accordion-panel"
+			{...panelProps}
+			role="region"
+			{...motionProps}
+			className={cn(k.panel)}
+		>
+			<div className={cn(k.body, className)}>{children}</div>
+		</motion.div>
+	)
 
-	// `active` unmounts the closed panel, so its exit rides `AnimatePresence`.
+	// `active` unmounts the closed panel, so its exit rides `AnimatePresence` and
+	// the recipe's enter/exit pair applies as written.
 	if (!hold.held) {
 		return (
 			<ReducedMotion>
-				<AnimatePresence initial={false}>
-					{open && (
-						<motion.div
-							data-slot="accordion-panel"
-							{...panelProps}
-							role="region"
-							{...k.motion}
-							className={cn(k.panel)}
-						>
-							{body}
-						</motion.div>
-					)}
-				</AnimatePresence>
+				<AnimatePresence initial={false}>{open && panel(k.motion)}</AnimatePresence>
 			</ReducedMotion>
 		)
 	}
@@ -65,25 +65,19 @@ export function AccordionPanel({ className, children }: AccordionPanelProps) {
 	return (
 		<ReducedMotion>
 			<Hold hold={hold} name="accordion-panel">
-				<motion.div
-					data-slot="accordion-panel"
-					{...panelProps}
-					role="region"
+				{panel({
 					// A `lazy` panel mounts on its first open, so it enters from the
 					// closed state; an `always` panel is present from the start and takes
 					// its open-or-closed state without playing anything.
-					initial={mount === 'lazy' ? k.motion.initial : false}
-					animate={open ? k.motion.animate : k.motion.exit}
-					transition={k.motion.transition}
-					// Only a landed close rests the panel; opening completions arrive
-					// while open and pass through.
-					onAnimationComplete={() => {
-						if (!open) hold.rest()
-					}}
-					className={cn(k.panel)}
-				>
-					{body}
-				</motion.div>
+					initial: mount === 'lazy' ? k.motion.initial : false,
+					// Held, so it animates between the two states in place rather than
+					// entering and exiting — no `exit`, which only `AnimatePresence` reads.
+					animate: open ? k.motion.animate : k.motion.exit,
+					transition: k.motion.transition,
+					// `rest` ignores a landing that arrives while open, so the entrance
+					// passes through without a guard here.
+					onAnimationComplete: hold.rest,
+				})}
 			</Hold>
 		</ReducedMotion>
 	)

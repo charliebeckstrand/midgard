@@ -3,7 +3,7 @@
 import { Children, isValidElement, type ReactNode, useMemo } from 'react'
 import { cn, dataAttr } from '../../core'
 import { useA11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
-import type { Mount } from '../../primitives/mount'
+import { mountsEveryPanel } from '../../primitives/mount'
 import { k } from '../../recipes/kata/stepper'
 import { StepperStepContext, type StepState, useStepper } from './context'
 import { StepperIndicator } from './stepper-indicator'
@@ -27,19 +27,6 @@ function computeState(stepValue: number, value: number): StepState {
 	if (stepValue === value) return 'current'
 
 	return 'upcoming'
-}
-
-/**
- * Whether a step may point `aria-controls` at its panel — true only where the
- * panel is certain to be in the DOM: the current step always, and every step
- * under `mount="always"`. `lazy` mounts panels as they are visited, which a step
- * cannot observe, so it keeps the current-step rule and simply omits the
- * reference on the rest.
- *
- * @internal
- */
-function controlsPanel(hasPanels: boolean, mount: Mount, state: StepState): boolean {
-	return hasPanels && (state === 'current' || mount === 'always')
 }
 
 /**
@@ -143,11 +130,12 @@ export function StepperStep({ value, disabled, className, children }: StepperSte
 				data-slot="stepper-step"
 				data-state={state}
 				aria-current={state === 'current' ? 'step' : undefined}
-				// aria-controls needs the panel id to actually be in the DOM. That is
-				// guaranteed for the current step, and under `mount="always"` for every
-				// step; `lazy` mounts panels as they are visited, which no step can
-				// read from here, so it stays on the current-step rule.
-				aria-controls={controlsPanel(hasPanels, mount, state) ? panelId : undefined}
+				// aria-controls needs the panel id to actually be in the DOM: guaranteed
+				// for the current step, and for every step under a policy that mounts
+				// them all.
+				aria-controls={
+					hasPanels && (state === 'current' || mountsEveryPanel(mount)) ? panelId : undefined
+				}
 				disabled={isDisabled}
 				onClick={() => onValueChange(value)}
 				className={classes}

@@ -1,7 +1,7 @@
 'use client'
 
-import { useReducedMotion } from 'motion/react'
 import type { TransitionEvent } from 'react'
+import { useMediaQuery } from '../../hooks/use-media-query'
 import { type MountHold, useMountHold } from '../../primitives/mount'
 
 /** The reveal's animated property; a `transitionend` for anything else is not the collapse landing. */
@@ -32,7 +32,11 @@ export type GridRevealHold = {
  * bubbling from the cells that animate — one per cell, but resting is
  * idempotent. Under `prefers-reduced-motion` the recipe drops the transition
  * (`motion-reduce:transition-none`), so no event is coming and the row rests on
- * the toggle itself, which is what an instant collapse wants anyway.
+ * the toggle itself, which is what an instant collapse wants anyway. That is
+ * read live rather than through motion's `useReducedMotion`, which samples the
+ * query once at mount: a session that turns reduced motion on afterwards would
+ * otherwise keep waiting for a landing the CSS had already stopped sending, and
+ * no row would ever rest again.
  *
  * Rows always exist here (`mount="always"`) — the module renders every leaf of
  * every group, and this changes only whether a collapsed one is live.
@@ -42,9 +46,9 @@ export type GridRevealHold = {
  * @internal
  */
 export function useGridRevealHold(expanded: boolean): GridRevealHold {
-	const reducedMotion = useReducedMotion()
+	const reducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
 
-	const hold = useMountHold(expanded, 'always', !reducedMotion)
+	const hold = useMountHold(expanded, 'always', { defer: !reducedMotion })
 
 	return {
 		hold,

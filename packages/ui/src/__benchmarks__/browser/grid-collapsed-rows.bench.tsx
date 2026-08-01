@@ -1,26 +1,33 @@
 /**
- * Bounds what resting a grouped grid's collapsed leaf rows in
- * `<Activity mode="hidden">` saves on the visible commit.
+ * What resting a grouped grid's collapsed leaf rows in `<Activity mode="hidden">`
+ * saves on the visible commit — and where the boundary has to sit for the saving
+ * to be real.
  *
  * A grouped body stands virtualization down, so every leaf of every group is
  * mounted whatever its group's expansion, and a body-wide update re-renders the
  * collapsed ones alongside the visible few. A hidden Activity does not delete
- * that work — its children still render and their DOM still catches up — but it
- * moves the work off the synchronous commit, so what the user waits on is the
- * expanded rows alone.
+ * that work — its children still render, at a lower priority, and their DOM
+ * still catches up — but it moves the work off the synchronous commit, so what
+ * the user waits on is the expanded rows alone.
  *
  * `flushSync` is therefore the measurement: it returns when the visible commit
- * lands, before React runs whatever it deferred. The two bars are the same tree
- * and the same update, differing only in whether the collapsed rows sit inside a
- * hidden Activity; their gap is the latency the change buys per update, and the
- * `all expanded` bar is the ceiling — the cost when nothing can be deferred.
+ * lands, before React runs whatever it deferred.
+ *
+ * The two rested bars differ only in where the boundary sits, which is the whole
+ * point. React defers what is *below* an Activity and nothing above it, so a row
+ * that wraps its own `<tr>` — `RowInside`, the shape a row component reaches for
+ * first — still runs its body on the visible commit: the props object, the class
+ * join, the per-column element map. Only its children's fibers are deferred.
+ * Hoisting the boundary above the row body — `RowAbove`, a hold shell around a
+ * separate body component — is what actually takes the row off the commit.
  *
  * Shaped after the module's grouped body rather than importing it: `Grid` owns
  * the engine, the column model, and the reveal recipe, none of which this
- * measures. The row and cell counts below track a realistic grouped page.
+ * measures. The per-row work below stands in for what a real leaf row does
+ * before it returns — enough of it that the two boundaries are distinguishable.
  */
 
-import { Activity, type ReactNode, useState } from 'react'
+import { Activity, Fragment, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { createRoot } from 'react-dom/client'
 import { bench, describe } from 'vitest'
@@ -53,9 +60,22 @@ function Cell({ tick, col }: { tick: number; col: string }) {
 	)
 }
 
-function Leaf({ tick }: { tick: number }) {
+/**
+ * The per-row work a real leaf row does before it returns: the shared row-shell
+ * props object, a class join, and one element per column.
+ */
+function rowBody(tick: number, expanded: boolean) {
+	const shell = {
+		'data-row': `r${tick}`,
+		'aria-hidden': expanded ? undefined : true,
+		inert: !expanded,
+		className: ['group/row', expanded && 'is-open', tick % 2 === 0 && 'even']
+			.filter(Boolean)
+			.join(' '),
+	}
+
 	return (
-		<tr>
+		<tr {...shell}>
 			{CELL_IDS.map((col) => (
 				<Cell key={col} tick={tick} col={col} />
 			))}
@@ -63,24 +83,40 @@ function Leaf({ tick }: { tick: number }) {
 	)
 }
 
-/** Wraps a collapsed group's leaves per the mode under test. */
-function Hold({ rested, children }: { rested: boolean; children: ReactNode }) {
-	if (!rested) return children
+/** Boundary inside the row: the body runs on the visible commit, only its children defer. */
+function RowInside({ tick, expanded, rest }: { tick: number; expanded: boolean; rest: boolean }) {
+	const row = rowBody(tick, expanded)
 
-	return <Activity mode="hidden">{children}</Activity>
+	if (!rest) return row
+
+	return <Activity mode={expanded ? 'visible' : 'hidden'}>{row}</Activity>
 }
 
-/**
- * One grouped body. `expandedGroups` groups are open and re-render visibly; the
- * rest are collapsed, and `rest` decides whether they are held in a hidden
- * Activity or left live the way the module renders them today.
- */
+/** The row body as its own component, so an Activity above it defers the body too. */
+function RowBody({ tick, expanded }: { tick: number; expanded: boolean }) {
+	return rowBody(tick, expanded)
+}
+
+/** Boundary above the row body: the hold shell renders, the body defers with its children. */
+function RowAbove({ tick, expanded, rest }: { tick: number; expanded: boolean; rest: boolean }) {
+	const body = <RowBody tick={tick} expanded={expanded} />
+
+	if (!rest) return body
+
+	return <Activity mode={expanded ? 'visible' : 'hidden'}>{body}</Activity>
+}
+
+type RowComponent = typeof RowInside
+
+/** One grouped body: `expandedGroups` groups are open, the rest collapsed. */
 function Body({
 	tick,
+	Row,
 	rest,
 	expandedGroups,
 }: {
 	tick: number
+	Row: RowComponent
 	rest: boolean
 	expandedGroups: number
 }) {
@@ -91,11 +127,11 @@ function Body({
 					const expanded = index < expandedGroups
 
 					return (
-						<Hold key={group} rested={rest && !expanded}>
+						<Fragment key={group}>
 							{LEAF_IDS.map((leaf) => (
-								<Leaf key={leaf} tick={tick} />
+								<Row key={leaf} tick={tick} expanded={expanded} rest={rest} />
 							))}
-						</Hold>
+						</Fragment>
 					)
 				})}
 			</tbody>
@@ -104,7 +140,7 @@ function Body({
 }
 
 /** Mounts one body and returns the driver that ticks it under `flushSync`. */
-function mount(rest: boolean, expandedGroups: number) {
+function mount(Row: RowComponent, rest: boolean, expandedGroups: number) {
 	const host = document.createElement('div')
 
 	document.body.append(host)
@@ -118,7 +154,7 @@ function mount(rest: boolean, expandedGroups: number) {
 
 		set = setTick
 
-		return <Body tick={tick} rest={rest} expandedGroups={expandedGroups} />
+		return <Body tick={tick} Row={Row} rest={rest} expandedGroups={expandedGroups} />
 	}
 
 	flushSync(() => root.render(<Probe />))
@@ -134,22 +170,33 @@ function mount(rest: boolean, expandedGroups: number) {
 
 const WINDOW = { time: 2_500 }
 
-const live = mount(false, 1)
+const live = mount(RowInside, false, 1)
 
-const rested = mount(true, 1)
+const restedInside = mount(RowInside, true, 1)
 
-const allExpanded = mount(false, GROUPS)
+const restedAbove = mount(RowAbove, true, 1)
+
+const allExpandedLive = mount(RowInside, false, GROUPS)
+
+const allExpandedRested = mount(RowInside, true, GROUPS)
 
 describe('grid · grouped body · collapsed-row update', () => {
-	// Today's shape: one group open, the other 19 collapsed but live, so all 500
-	// rows re-render on the synchronous commit.
+	// One group open, the other 19 collapsed but live: all 500 rows re-render on
+	// the synchronous commit, which is what the module did before the hold.
 	bench('collapsed rows live', () => live(), WINDOW)
 
-	// The same update with the 19 collapsed groups held in a hidden Activity: the
-	// commit carries the 25 visible rows and defers the other 475.
-	bench('collapsed rows rested', () => rested(), WINDOW)
+	// Held, but from inside the row — the 475 collapsed row bodies still run.
+	bench('rested · boundary inside the row', () => restedInside(), WINDOW)
 
-	// The ceiling: every group open, so nothing can be deferred. The gap between
-	// this and `collapsed rows live` is what the collapsed rows cost today.
-	bench('all expanded (ceiling)', () => allExpanded(), WINDOW)
+	// Held from above the row body, which is what actually defers it.
+	bench('rested · boundary above the row', () => restedAbove(), WINDOW)
+
+	// The ceiling: every group open, so nothing can be deferred. Against
+	// `collapsed rows live` it shows what collapsing bought before the hold —
+	// nothing, since a zero-height row still renders.
+	bench('all expanded · live', () => allExpandedLive(), WINDOW)
+
+	// The same fully-expanded body with every row carrying the wrapper it can
+	// never use: the price the hold charges a grid that collapses nothing.
+	bench('all expanded · rested', () => allExpandedRested(), WINDOW)
 })

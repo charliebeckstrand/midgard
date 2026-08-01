@@ -5,6 +5,7 @@ import {
 	CollapseTrigger,
 	useCollapseContext,
 } from '../../components/collapse'
+import type { Mount } from '../../primitives/mount'
 import { bySlot, fireEvent, renderUI, screen, userEvent } from '../helpers'
 
 describe('Collapse', () => {
@@ -138,7 +139,7 @@ describe('Collapse', () => {
 	})
 
 	describe('mount policy', () => {
-		function Panel({ mount }: { mount?: 'always' | 'lazy' | 'active' }) {
+		function Panel({ mount }: { mount?: Mount }) {
 			return (
 				<Collapse mount={mount}>
 					<CollapseTrigger>Toggle</CollapseTrigger>
