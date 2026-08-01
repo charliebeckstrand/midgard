@@ -2,11 +2,13 @@
 
 import { CreditCard } from 'lucide-react'
 import { type ReactNode, useMemo } from 'react'
+import { digitsOnly } from '../../utilities'
 import { Icon } from '../icon'
 import { Input, type InputProps } from '../input'
 import { useMaskInput } from '../mask-input/use-mask-input'
 import {
 	type CardValidity,
+	detectCardBrand,
 	formatCardNumber,
 	validateCardNumber,
 } from './credit-card-input-utilities'
@@ -60,7 +62,9 @@ export function CreditCardInput({
 		ref,
 	})
 
-	const { brand } = useMemo(() => formatCardNumber(masked.value), [masked.value])
+	// Brand only: `formatCardNumber` would re-run the whole grouping walk to
+	// return a `formatted` string the masked input already holds.
+	const brand = useMemo(() => detectCardBrand(digitsOnly(masked.value)), [masked.value])
 
 	return (
 		<Input

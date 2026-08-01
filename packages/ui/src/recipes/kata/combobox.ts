@@ -15,10 +15,25 @@ export const k = defineRecipe(
 		slots: {
 			options: 'max-h-60',
 			// Inner listbox: spaces its options and collapses when empty. `peer`
-			// drives the sibling `empty` slot below.
-			list: ['peer', 'space-y-0.5', 'empty:hidden'],
-			// Sibling empty-state message: shown when the listbox peer is `:empty`.
-			empty: ['hidden peer-empty:block', 'p-2', ji.size.md, text.muted],
+			// drives the sibling `empty` slot below. A virtualized listbox is never
+			// CSS `:empty` — `VirtualOptions` keeps a wrapper mounted for its
+			// scroll-ancestor walk — so both rules also read that wrapper's
+			// `data-empty` signal. Written as literals for Tailwind's scanner.
+			list: [
+				'peer',
+				'space-y-0.5',
+				'empty:hidden',
+				'has-[[data-slot=virtual-options][data-empty]]:hidden',
+			],
+			// Sibling empty-state message: shown when the listbox peer holds no options.
+			empty: [
+				'hidden',
+				'peer-empty:block',
+				'peer-has-[[data-slot=virtual-options][data-empty]]:block',
+				'p-2',
+				ji.size.md,
+				text.muted,
+			],
 		},
 		defaults: { density: 'md', size: 'md' },
 	},

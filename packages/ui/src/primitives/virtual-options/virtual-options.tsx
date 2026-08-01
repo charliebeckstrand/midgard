@@ -1,6 +1,7 @@
 'use client'
 
 import { type ReactNode, use, useCallback, useEffect, useMemo, useRef } from 'react'
+import { dataAttr } from '../../core'
 import { useVirtualWindow } from '../../hooks'
 import type { VirtualItemSource } from '../../hooks/a11y/use-a11y-roving'
 import { VirtualItemSourceContext } from './virtual-item-source-context'
@@ -167,7 +168,17 @@ export function VirtualOptions<T>({
 	return (
 		// role="presentation" flattens this wrapper and the spacers out of
 		// the a11y tree; the listbox ancestor owns the option rows directly.
-		<div ref={containerRef} role="presentation" data-slot="virtual-options">
+		//
+		// `data-empty` is the emptiness signal for the listbox ancestor. The
+		// wrapper mounts even at zero items, because the scroll-ancestor walk
+		// needs `containerRef`, so the listbox is never CSS `:empty` under
+		// virtualization and a bare `:empty` rule can never fire.
+		<div
+			ref={containerRef}
+			role="presentation"
+			data-slot="virtual-options"
+			data-empty={dataAttr(items.length === 0)}
+		>
 			{topSpacer > 0 && (
 				<div role="presentation" data-slot="virtual-options-spacer" style={{ height: topSpacer }} />
 			)}

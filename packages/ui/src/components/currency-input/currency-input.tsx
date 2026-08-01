@@ -119,7 +119,12 @@ export function CurrencyInput({
 
 				setEditingText(formatted)
 
-				setNum(parseEditing(formatted, group, decimal))
+				const parsed = parseEditing(formatted, group, decimal)
+
+				// Guard like the blur path: a keystroke that changes the text but
+				// not the number — a trailing separator, a digit past `precision` —
+				// must not re-emit the value it already holds.
+				if (parsed !== num) setNum(parsed)
 			}}
 			onBlur={(event) => {
 				if (editingText !== null) {

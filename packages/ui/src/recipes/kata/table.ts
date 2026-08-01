@@ -84,7 +84,10 @@ const projection = {
 
 export const k = {
 	base: 'w-full text-left text-base',
-	head: [text.muted, border.subtleColor],
+	// Colour only. A `border.subtleColor` sat here with no border *width*, so it
+	// painted nothing: the shipped header carries no rule. Restoring one is a
+	// visual change, not a cleanup — it needs a width and a design call.
+	head: [text.muted],
 	header,
 	row: [],
 	cell,

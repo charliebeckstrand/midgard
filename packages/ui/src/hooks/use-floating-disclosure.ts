@@ -38,6 +38,18 @@ type FloatingDisclosureOptions = Omit<
 	role: FloatingDisclosureRole | null
 	/** Vetoes an open-state transition when it returns `false`. */
 	gate?: FloatingDisclosureGate
+	/**
+	 * Whether the surface answers the shared dismiss affordances: Escape through
+	 * the dismiss-layer stack, and an outside pointer press.
+	 *
+	 * Pass `false` for a surface that is not really a disclosure — an inline
+	 * static menu renders open in the document flow and has no dismissed state.
+	 * Registered, it would claim a slot on the dismiss stack, report a close it
+	 * never performs, and swallow the Escape press meant for a Dialog above it.
+	 *
+	 * @defaultValue true
+	 */
+	dismissable?: boolean
 }
 
 // Explicit return type: `@floating-ui/react-dom` is a transitive dep TS
@@ -60,7 +72,8 @@ type FloatingDisclosureResult = {
  * dismiss + role interactions every floating overlay needs. Consumers
  * layer their own interaction hooks (hover, click, clientPoint, …) over
  * the returned `context` and combine them with `dismiss` + `role` via
- * `useInteractions`.
+ * `useInteractions`. A surface that renders inline rather than as a dismissable
+ * overlay opts out of both dismiss affordances with `dismissable: false`.
  *
  * @returns `{ open, setOpen, close, triggerRef, refs, floatingStyles, context,
  * dismiss, role }`: the resolved open flag and its gated setter / `close`
@@ -74,6 +87,7 @@ export function useFloatingDisclosure({
 	onOpenChange,
 	role: roleProp,
 	gate,
+	dismissable = true,
 	...panelOptions
 }: FloatingDisclosureOptions): FloatingDisclosureResult {
 	const [open = false, setOpenInner] = useControllable<boolean>({
@@ -134,12 +148,13 @@ export function useFloatingDisclosure({
 
 	useEscapeLayer({
 		open,
+		enabled: dismissable,
 		layered: roleProp !== 'tooltip',
 		onDismiss: (event) => onOpenChangeRef.current(false, event, 'escape-key'),
 	})
 
 	useEffect(() => {
-		if (!open) return
+		if (!open || !dismissable) return
 
 		const onPointerDown = (event: PointerEvent) => {
 			if (isFloatingOutsidePress(event, refs))
@@ -147,7 +162,7 @@ export function useFloatingDisclosure({
 		}
 
 		return subscribeDocumentEvent('pointerdown', onPointerDown)
-	}, [open, refs])
+	}, [open, dismissable, refs])
 
 	// `enabled: false` keeps the Hook call unconditional (rules of hooks) while
 	// emitting no role/aria props for a component that owns its roles.

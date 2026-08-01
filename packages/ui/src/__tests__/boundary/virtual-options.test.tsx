@@ -39,6 +39,22 @@ describe('VirtualOptions', () => {
 
 		expect(rendered.length).toBeLessThanOrEqual(items.length)
 	})
+
+	// The wrapper mounts even at zero items — the scroll-ancestor walk needs its
+	// ref — so the listbox is never CSS `:empty` under virtualization. Combobox
+	// and CommandPalette hang their "No results" rules off this attribute
+	// instead; without it a filtered-to-zero virtual list shows a blank panel.
+	it('stamps data-empty on the wrapper when the item list is empty', () => {
+		const { container } = renderUI(<TestPanel items={[]} />)
+
+		expect(bySlot(container, 'virtual-options')).toHaveAttribute('data-empty')
+	})
+
+	it('leaves data-empty off the wrapper when items are present', () => {
+		const { container } = renderUI(<TestPanel items={items} />)
+
+		expect(bySlot(container, 'virtual-options')).not.toHaveAttribute('data-empty')
+	})
 })
 
 // Registration doesn't depend on any row actually rendering — `VirtualOptions`
