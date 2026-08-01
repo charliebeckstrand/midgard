@@ -105,9 +105,9 @@
 		"@types/react": "^19.2.0",
 		"@types/react-dom": "^19.2.3",
 		"@vitejs/plugin-react": "^6.0.1",
-		"@vitest/browser": "4.1.8",
-		"@vitest/browser-playwright": "4.1.8",
-		"@vitest/coverage-v8": "^4.1.8",
+		"@vitest/browser": "4.1.10",
+		"@vitest/browser-playwright": "4.1.10",
+		"@vitest/coverage-v8": "^4.1.10",
 		"ag-charts-community": "^14.0.0",
 		"ag-grid-community": "^36.0.0",
 		"echarts": "^6.1.0",
@@ -125,6 +125,6 @@
 		"typescript": "^6.0.3",
 		"us-atlas": "^3.0.1",
 		"vite": "^8.0.16",
-		"vitest": "^4.1.8"
+		"vitest": "^4.1.10"
 	}
 }
