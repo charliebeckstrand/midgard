@@ -10,13 +10,16 @@ records for in-flight or shipped work).
 ## Structure
 
 - **Curated surface references** — one per public surface, kept current with the
-  code: [`COMPONENTS.md`](COMPONENTS.md), [`LAYOUTS.md`](LAYOUTS.md), [`HOOKS.md`](HOOKS.md),
+  code: [`COMPONENTS.md`](COMPONENTS.md), [`MODULES.md`](MODULES.md),
+  [`LAYOUTS.md`](LAYOUTS.md), [`HOOKS.md`](HOOKS.md),
   [`PRIMITIVES.md`](PRIMITIVES.md), [`PROVIDERS.md`](PROVIDERS.md),
-  [`RECIPES.md`](RECIPES.md), [`CORE.md`](CORE.md), [`UTILITIES.md`](UTILITIES.md).
-  Each lists its surface for quick glance; every category but components carries a
-  one-line summary per item. [`../REFERENCE.md`](../REFERENCE.md) is the hub that
-  maps to them. These are derived from the public API surface — when an export
-  is added, removed, or renamed, update the matching doc in the same change
+  [`RECIPES.md`](RECIPES.md), [`CORE.md`](CORE.md), [`TYPES.md`](TYPES.md),
+  [`UTILITIES.md`](UTILITIES.md).
+  Each lists its surface for quick glance; components and modules stay flat
+  inventories, and every other category carries a one-line summary per item.
+  [`../REFERENCE.md`](../REFERENCE.md) is the hub that maps to them. These are
+  derived from the public API surface — when an export is added, removed, or
+  renamed, update the matching doc in the same change
   ([`CONVENTIONS.md`](../../../CONVENTIONS.md) §12).
 - **`audits/`** — dated, full-surface sweeps of the package against a single
   lens (accessibility, correctness, API surface, documentation, …). Each audit is

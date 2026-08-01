@@ -36,19 +36,22 @@ No root barrel; the `exports` map exposes each component path.
 | Path | Contents |
 |---|---|
 | `src/components/<name>/` | Components, one directory per unit. |
+| `src/modules/<name>/` | Modules — multi-part compositions owning their own sub-components and hooks. |
 | `src/primitives/<name>/` | Composable building blocks. |
 | `src/hooks/` | Shared hooks. |
 | `src/providers/<name>/` | Context providers. |
 | `src/core/` | Recipe engine, `cn()`, utilities. |
+| `src/types/` | Shared prop vocabulary — accessible name, ARIA bag, axes, size scale, responsive values. |
+| `src/utilities/` | Internal pure helpers; reached by relative import, not a package export. |
 | `src/recipes/` | Layered variant system. |
 | `src/layouts/` | Layout primitives and their variants. |
 | `src/__tests__/` | Component, primitive, and boundary tests. |
-| `src/docs/` | The docs-site entry — demos, host, and Vite config wiring the shared [`docs`](../docs) engine to ui's source. |
+| `src/docs/` | The docs-site entry — demos, host, and Vite config wiring the shared [`docs`](src/docs/engine) engine to ui's source. |
 
 ## 4. Further reading
 
 - [`REFERENCE.md`](REFERENCE.md) — the package hub: surface map, the server/client boundary, and how to compose a new component.
-- [`docs/`](docs) — curated, quick-glance surface indices (components, layouts, hooks, primitives, providers, recipes, core, utilities).
+- [`docs/`](docs) — curated, quick-glance surface indices (components, modules, layouts, hooks, primitives, providers, recipes, core, types, utilities).
 - [`src/recipes/README.md`](src/recipes/README.md) — recipe-layer architecture.
 
 ---

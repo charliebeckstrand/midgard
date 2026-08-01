@@ -20,8 +20,9 @@
  * and `__tests__/boundary/primitive-recipe-boundary.test.ts`.
  *
  * This barrel is types-only. It re-exports the recipe-substrate types
- * (`Color`, `Ma`, `Step`, `GroupOrientation`, `GroupPosition`); consumers
- * derive prop unions from them without threading types through their kata.
+ * (`Color`, `ExtendedColor`, `PaletteColor`, `Ma`, `Step`, `GroupOrientation`,
+ * `GroupPosition`); consumers derive prop unions from them without threading
+ * types through their kata.
  * No runtime values pass through; values reach consumers through their kata
  * funnel. The types-only shape is pinned by
  * `__tests__/boundary/recipe-boundary.test.ts`.

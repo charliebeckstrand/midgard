@@ -84,6 +84,12 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 
 ## Exported types
 
+`useControllable` exports the argument shape of its setter:
+
+| Type | Summary |
+|---|---|
+| `SetValue` | Argument to `useControllable`'s setter: a next value, `null` / `undefined` to clear, or a functional updater over the previous value. |
+
 The a11y hooks export their option and return shapes for consumers that thread them:
 
 | Type | Summary |
@@ -95,6 +101,7 @@ The a11y hooks export their option and return shapes for consumers that thread t
 | `A11yDisclosure` / `A11yDisclosureOptions` | Return shape / options of `useA11yDisclosure` (trigger/panel ids and prop bags). |
 | `A11yLiveRegionProps` / `A11yLiveRegionOptions` / `A11yLiveLevel` | Live-region props, options, and urgency (`'polite' \| 'assertive'`). |
 | `A11yAnnouncementsOptions` | Options for `useA11yAnnouncements` (`assertive`, `enabled`). |
+| `VirtualItemSource` | Pluggable index-based item source for virtual roving: lets `useA11yRoving` navigate by index instead of querying the DOM, so arrow and type-ahead reach items outside a virtualized window. `VirtualOptions` builds one from its `items` and the `getOptionId` / `isDisabled` / `getTextValue` props. |
 
 `usePlotFrame` and the `resolveFrameSizing` function it resolves through export their sizing policy, resolved box shape, and measuring handle, shared with the chart and map modules' own frame-sizing helpers:
 
