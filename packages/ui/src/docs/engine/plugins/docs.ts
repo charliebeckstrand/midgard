@@ -68,16 +68,49 @@ function forEachDemoFile(demosDir: string, visit: (fullPath: string) => void): v
 	for (const full of files) visit(full)
 }
 
+/** Whether `file` is a demo source the demo-derived virtual modules read. */
+function isDemoFile(file: string, demosDir: string): boolean {
+	return file.startsWith(demosDir + path.sep) && file.endsWith('.tsx')
+}
+
+/**
+ * Last parsed meta per demo, keyed by absolute path and validated against the
+ * file's mtime. One demo edit invalidates the whole `demo-metas` module, and
+ * regenerating it re-parses every demo — ~110 of them — to pick up the one that
+ * changed. The directory walk still runs (it is a `readdir`, and it is what
+ * detects an added or deleted demo); only the ts-morph parse is reused.
+ */
+const demoMetaCache = new Map<string, { mtimeMs: number; meta: DemoMeta }>()
+
 function generateDemoMetas(demosDir: string): Record<string, DemoMeta> {
 	const project = new Project({ useInMemoryFileSystem: true, skipLoadingLibFiles: true })
 
 	const result: Record<string, DemoMeta> = {}
 
+	const seen = new Set<string>()
+
 	forEachDemoFile(demosDir, (full) => {
 		const rel = path.relative(demosDir, full).replaceAll(path.sep, '/')
 
-		result[`./demos/${rel}`] = parseMeta(project, full, fs.readFileSync(full, 'utf-8'))
+		seen.add(full)
+
+		const { mtimeMs } = fs.statSync(full)
+
+		const cached = demoMetaCache.get(full)
+
+		const meta =
+			cached?.mtimeMs === mtimeMs
+				? cached.meta
+				: parseMeta(project, full, fs.readFileSync(full, 'utf-8'))
+
+		demoMetaCache.set(full, { mtimeMs, meta })
+
+		result[`./demos/${rel}`] = meta
 	})
+
+	// Drop deleted demos so the cache tracks the directory rather than growing
+	// with every file the session has ever seen.
+	for (const key of demoMetaCache.keys()) if (!seen.has(key)) demoMetaCache.delete(key)
 
 	return result
 }
@@ -482,12 +515,18 @@ export function docsPlugin({
 			{
 				id: 'virtual:demo-metas',
 				generate: () => (vitest ? {} : generateDemoMetas(demosDir)),
-				shouldInvalidate: (file) => file.startsWith(demosDir + path.sep) && file.endsWith('.tsx'),
+				shouldInvalidate: (file) => isDemoFile(file, demosDir),
 			},
 			{
 				id: 'virtual:component-modules',
 				generate: () => buildNameMap(srcDir, demosDir, packageName),
-				shouldInvalidate: (file) => file.startsWith(srcDir),
+				// Exactly what `buildNameMap` reads: the public barrels
+				// `moduleNameFor` recognizes, plus the demos it scans for external
+				// components. A test, a stylesheet, or a component body cannot change
+				// the map, and re-running it re-reads every barrel and re-parses every
+				// demo — so `srcDir` alone was far too wide a predicate.
+				shouldInvalidate: (file) =>
+					moduleNameFor(file, srcDir) !== null || isDemoFile(file, demosDir),
 			},
 		]),
 

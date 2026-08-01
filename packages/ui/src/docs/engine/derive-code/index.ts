@@ -1,6 +1,6 @@
 'use client'
 
-import { Children, type ReactElement, type ReactNode } from 'react'
+import { Children, isValidElement, type ReactElement, type ReactNode } from 'react'
 import {
 	addImport,
 	assemble,
@@ -18,7 +18,7 @@ import {
 	resolvePreamble,
 	resolveType,
 } from './internals'
-import { defaultRegistry } from './registry'
+import { defaultRegistry, readTag } from './registry'
 import type { ComponentRegistry, Context, SourceFacts } from './types'
 
 export { defaultRegistry } from './registry'
@@ -88,6 +88,43 @@ export function deriveCode(
 	const preamble = resolvePreamble(context)
 
 	return assemble(context, jsx, preamble)
+}
+
+/**
+ * Whether {@link deriveCode} would produce anything for this subtree — that is,
+ * whether it holds at least one tagged component.
+ *
+ * `deriveCode` returns `null` exactly when its walk collected no imports, so
+ * finding one tagged element answers the question. This short-circuits there
+ * instead of rendering the whole JSX string, resolving a preamble, and possibly
+ * walking a second pass for the consistency rule.
+ *
+ * `Example` asks it once per mount to decide whether the code trigger renders at
+ * all, so on a page of many demos the difference is one cheap probe each against
+ * one full derivation each.
+ */
+export function hasDerivableCode(children: ReactNode): boolean {
+	const stack: ReactNode[] = [children]
+
+	while (stack.length > 0) {
+		const node = stack.pop()
+
+		if (Array.isArray(node)) {
+			stack.push(...node)
+
+			continue
+		}
+
+		if (!isValidElement(node)) continue
+
+		if (readTag(node.type) !== undefined) return true
+
+		const { children: nested } = node.props as { children?: ReactNode }
+
+		if (nested !== undefined) stack.push(nested)
+	}
+
+	return false
 }
 
 /**

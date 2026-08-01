@@ -96,6 +96,17 @@ export function defineDocsConfig({
 				'motion',
 				'motion/react',
 				'shiki',
+				// Reached only through lazy demo chunks, so the scanner misses them and
+				// the first navigation to a map, date, markdown, payment, export, or
+				// shortcut demo triggers an optimizer re-run and the mid-session full
+				// reload this list exists to prevent.
+				'@internationalized/date',
+				'card-validator',
+				'd3-geo',
+				'fflate',
+				'marked',
+				'tinykeys',
+				'topojson-client',
 			],
 		},
 		resolve: {

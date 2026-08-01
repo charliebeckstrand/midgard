@@ -12,19 +12,19 @@ Baselines (this machine, [`src/__benchmarks__/docs`](../../src/__benchmarks__/do
 
 - [x] **`src/docs/engine/api-reference/engine/find-components.ts:67-101`** — RESOLVED. — `resolveCallable` unwraps neither `as`-assertions nor identifier arguments, so `export const Grid = memo(GridImpl) as typeof GridImpl` (`src/modules/grid/grid.tsx:77`) yields no callable and the flagship Grid renders `props: []` in the live docs; 128 of 310 exported components extract zero props (some are legitimately prop-less subcomponents, but the shape above is silently dropped coverage, not perf). **Fix:** unwrap `AsExpression`/`ParenthesizedExpression` and follow identifier arguments to their declarations; then re-count the zero-prop set. Landed as `unwrapFunctionLike`, which peels `as`/`satisfies`/parentheses, recurses into call arguments, and resolves an identifier argument to its declaration — `memo(GridImpl) as typeof GridImpl` now yields its callable.
 
-- [ ] **`src/docs/engine/plugins/docs.ts:441-444`** — `virtual:component-modules` still invalidates on *any* file under `srcDir` (tests, css, benchmarks), re-running `buildNameMap` — which re-reads every barrel and re-parses every demo (`docs.ts:263-277`) — on edits that cannot change it; `virtual:demo-metas` re-parses **all** demos on any single demo edit (`docs.ts:51-69,438`). #1001 fixed exactly this class of problem for the api-reference family; these two predicates kept the old wholesale shape. **Fix:** narrow component-modules to barrels + demos and re-parse only the changed demo's meta, mirroring the extractor's per-file granularity.
+- [x] **`src/docs/engine/plugins/docs.ts:441-444`** — RESOLVED. — `virtual:component-modules` still invalidates on *any* file under `srcDir` (tests, css, benchmarks), re-running `buildNameMap` — which re-reads every barrel and re-parses every demo (`docs.ts:263-277`) — on edits that cannot change it; `virtual:demo-metas` re-parses **all** demos on any single demo edit (`docs.ts:51-69,438`). #1001 fixed exactly this class of problem for the api-reference family; these two predicates kept the old wholesale shape. **Fix:** narrow component-modules to barrels + demos and re-parse only the changed demo's meta, mirroring the extractor's per-file granularity. Landed: the predicate is now `moduleNameFor(file, srcDir) !== null || isDemoFile(file, demosDir)` — exactly what `buildNameMap` reads — and `generateDemoMetas` caches each demo's parse against its mtime, so a regeneration re-parses only what changed and drops deleted demos from the cache.
 
 ## Medium
 
 - [ ] **`src/docs/engine/api-reference/engine/build-api.ts:132-143`** — `openProject`'s barrel-scoped shape (#1001) still measures ~1.7s of the ~3.9s cold pass; the bench's glob-scoped variants run ~0.5s (`project-construction.bench.ts`), so up to ~1.2s of cold-pass headroom remains. The catch is correctness: `resolveSourceFileDependencies` is what lets the checker see the full graph, and #1001 verified its shape byte-identical — any tighter variant needs the same output diff before adoption. **Fix:** A/B `skipFileDependencyResolution` against the current shape with the bench, diff `buildApi` output, adopt if identical.
 
-- [ ] **`src/docs/engine/vite/index.ts:88-99`** — `optimizeDeps.include` omits deps statically imported by modules reached only through lazy demo chunks: `d3-geo` + `topojson-client` (map), `@internationalized/date` (date/calendar), `marked` (markdown), `card-validator`, `fflate`, `tinykeys`. First dev navigation to those demos triggers the optimizer re-run and the mid-session full reload the curated list exists to prevent (the browser-bench config already prebundles the map pair; the docs config lags it). **Fix:** add them to the include list; `vite-metrics.ts` dev mode catches the regression.
+- [x] **`src/docs/engine/vite/index.ts:88-99`** — RESOLVED. — `optimizeDeps.include` omits deps statically imported by modules reached only through lazy demo chunks: `d3-geo` + `topojson-client` (map), `@internationalized/date` (date/calendar), `marked` (markdown), `card-validator`, `fflate`, `tinykeys`. First dev navigation to those demos triggers the optimizer re-run and the mid-session full reload the curated list exists to prevent (the browser-bench config already prebundles the map pair; the docs config lags it). **Fix:** add them to the include list; `vite-metrics.ts` dev mode catches the regression. Landed — all seven added. A `test:browser` run had confirmed the row live, stopping mid-suite to optimize `d3-geo`, `topojson-client`, `fflate`, and `marked`.
 
-- [ ] **`src/docs/engine/components/example.tsx:78`** — the `hasDerivedCode` existence probe still runs a full `deriveCode` walk per Example at mount, so a demo page with many examples pays N tree walks before any panel opens; the open-gating from #995 covers only the string derivation at `:82-88`. **Fix:** defer the probe to first open or replace it with a cheap structural check (any tagged element in the subtree short-circuits).
+- [x] **`src/docs/engine/components/example.tsx:78`** — RESOLVED. — the `hasDerivedCode` existence probe still runs a full `deriveCode` walk per Example at mount, so a demo page with many examples pays N tree walks before any panel opens; the open-gating from #995 covers only the string derivation at `:82-88`. **Fix:** defer the probe to first open or replace it with a cheap structural check (any tagged element in the subtree short-circuits). Landed as the structural check: deferring to first open was not open to us, since `showCode` decides whether the trigger renders at all. `hasDerivableCode` stops at the first tagged element, and a test pins it against `deriveCode` on every case.
 
-- [ ] **`src/docs/engine/api-reference/engine/extract-props.ts:286`** (with `:202,213`) — `dropMergedArmUnions` renders every union arm through `formatType` solely to compare texts, then `formatPropTypes` re-renders the kept arms; multi-arm discriminated props format twice. **Fix:** render once into a keyed structure and reuse.
+- [ ] **`src/docs/engine/api-reference/engine/extract-props.ts:286`** (with `:202,213`) — `dropMergedArmUnions` renders every union arm to compare texts, then `formatPropTypes` renders the kept arms again; multi-arm discriminated props format twice. **Corrected 2026-08-01:** the two passes do not call the same function — `dropMergedArmUnions` uses `formatType`, `formatPropTypes` uses `formatPropType`, and the two diverge on a leaf function type (`formatType` routes it through `formatFunctionType`; `formatPropType` falls through to `typeToString`). So "render once and reuse" is not behaviour-neutral: it would change how function-typed discriminated arms display. **Fix:** align the two renderings deliberately, with a `buildApi` output diff, or accept the second pass; not the mechanical dedupe this row assumed.
 
-- [ ] **`src/docs/engine/api-reference/engine/format-type.ts:101,226,235,264-274`** — `formatType` recurses through generics, function signatures, arrays, and unions with no depth cap or visited set; named types short-circuit, but a structurally recursive anonymous type has nothing stopping it. Stability, not steady-state cost. **Fix:** a depth cap with a `…` fallback.
+- [x] **`src/docs/engine/api-reference/engine/format-type.ts:101,226,235,264-274`** — RESOLVED. — `formatType` recurses through generics, function signatures, arrays, and unions with no depth cap or visited set; named types short-circuit, but a structurally recursive anonymous type has nothing stopping it. Stability, not steady-state cost. **Fix:** a depth cap with a `…` fallback. Landed at 12 — the deepest real prop type measures under five — as a module-level counter with a `finally`, rather than a parameter threaded through seven recursion sites across four helpers.
 
 - [x] **`src/docs/engine/app.tsx:48-56`** — RESOLVED. — the idle `loadShiki()` warm call attaches no rejection handler, so a post-deploy 404 on the shiki chunk surfaces as an unhandled rejection (the CodeBlock path catches its own). **Fix:** `.catch(() => {})` to match `code-block.tsx:100-122`. Landed, with a comment stating why swallowing is correct here.
 
@@ -76,6 +76,25 @@ still no `docs:build` turbo task and no `manualChunks`.
 
 The baselines above predate those three High fixes and are stale as numbers; re-run
 `bench:docs` before costing what is left.
+
+## Second pass — 2026-08-01
+
+The last High row and three Medium ones landed, so the High tier is closed. One
+Medium row was corrected rather than fixed: its premise — that the two arm
+renderings are the same call — does not hold, and acting on it would change what
+the docs display.
+
+What remains is the Low tier, the Bundle tier, and Infrastructure. The Low rows
+are mostly conditional by their own wording ("fix only if a file with many
+defaults shows up in the bench", "only matters if cold-cache starts prove
+common", "worth a content-hash memo only if transform time ever registers") —
+they are decisions to revisit against a measurement, not queued work, and the
+measurement they wait on is the re-run the baselines already need. The Bundle
+tier is the real remaining value: the 1.90 MB variable font is 29% of the bundle
+and does not gzip, and there is still no `manualChunks`, so shared vendors
+re-shuffle across builds and defeat long-term caching. Infrastructure is
+unchanged — `docs:build` is still not a turbo task and no size budget exists, so
+every row here can still regress undetected.
 
 ---
 
