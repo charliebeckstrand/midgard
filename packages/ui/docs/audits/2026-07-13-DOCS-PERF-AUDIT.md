@@ -6,11 +6,11 @@ Baselines (this machine, [`src/__benchmarks__/docs`](../../src/__benchmarks__/do
 
 ## High
 
-- [ ] **`src/docs/engine/api-reference/engine/extract-props.ts:27-33,55-58`** — `collectAllProperties` calls `checker.getTypeOfSymbolAtLocation` for *every* property of the props type before the name filter runs, so a component spreading `ComponentPropsWithoutRef<'div'>` resolves ~250 inherited HTML/aria/event prop types that the `IGNORED_PROPS`/`projectNames` filter then discards. This now dominates the residual costs: it is paid inside the ~3.9s cold pass, the ~313ms incremental pass, and CI's cold-cache builds. **Fix:** hoist the name filter above the per-symbol type resolution (types are only needed for kept props); guard with `extraction.bench.ts`'s Heading fixture.
+- [x] **`src/docs/engine/api-reference/engine/extract-props.ts:27-33,55-58`** — RESOLVED. — `collectAllProperties` calls `checker.getTypeOfSymbolAtLocation` for *every* property of the props type before the name filter runs, so a component spreading `ComponentPropsWithoutRef<'div'>` resolves ~250 inherited HTML/aria/event prop types that the `IGNORED_PROPS`/`projectNames` filter then discards. This now dominates the residual costs: it is paid inside the ~3.9s cold pass, the ~313ms incremental pass, and CI's cold-cache builds. **Fix:** hoist the name filter above the per-symbol type resolution (types are only needed for kept props); guard with `extraction.bench.ts`'s Heading fixture. Landed: `collectAllProperties` gathers symbols only and defers each arm's type to `resolveArmTypes`, so the name/project filters discard a prop before its type is computed.
 
-- [ ] **`src/docs/engine/api-reference/engine/extract-references.ts:130-132`** — each queued type name runs `checker.getSymbolsInScope` (thousands of symbols) followed by a linear `.find`, per prop, per component, with no memoization of the scope list per location and no cross-prop cache of resolved alias definitions; a shared alias re-resolves for every prop that mentions it (`visited`/`refs` are per-call, `:57-95`). Measured 5.0ms per Button pass and 2.9ms per Combobox pass — the slowest per-component seam, ~2× its `extractProps`. **Fix:** cache the scope symbol table per location node and resolved `name → text` per file (both live naturally in #1001's extractor, scoped to one extraction pass); `extraction.bench.ts` isolates it.
+- [x] **`src/docs/engine/api-reference/engine/extract-references.ts:130-132`** — RESOLVED. — each queued type name runs `checker.getSymbolsInScope` (thousands of symbols) followed by a linear `.find`, per prop, per component, with no memoization of the scope list per location and no cross-prop cache of resolved alias definitions; a shared alias re-resolves for every prop that mentions it (`visited`/`refs` are per-call, `:57-95`). Measured 5.0ms per Button pass and 2.9ms per Combobox pass — the slowest per-component seam, ~2× its `extractProps`. **Fix:** cache the scope symbol table per location node and resolved `name → text` per file (both live naturally in #1001's extractor, scoped to one extraction pass); `extraction.bench.ts` isolates it. Landed as `scopeCache`, a `WeakMap` keyed by checker then node, holding a `name → symbol` map so each lookup is O(1).
 
-- [ ] **`src/docs/engine/api-reference/engine/find-components.ts:67-101`** — `resolveCallable` unwraps neither `as`-assertions nor identifier arguments, so `export const Grid = memo(GridImpl) as typeof GridImpl` (`src/modules/grid/grid.tsx:77`) yields no callable and the flagship Grid renders `props: []` in the live docs; 128 of 310 exported components extract zero props (some are legitimately prop-less subcomponents, but the shape above is silently dropped coverage, not perf). **Fix:** unwrap `AsExpression`/`ParenthesizedExpression` and follow identifier arguments to their declarations; then re-count the zero-prop set.
+- [x] **`src/docs/engine/api-reference/engine/find-components.ts:67-101`** — RESOLVED. — `resolveCallable` unwraps neither `as`-assertions nor identifier arguments, so `export const Grid = memo(GridImpl) as typeof GridImpl` (`src/modules/grid/grid.tsx:77`) yields no callable and the flagship Grid renders `props: []` in the live docs; 128 of 310 exported components extract zero props (some are legitimately prop-less subcomponents, but the shape above is silently dropped coverage, not perf). **Fix:** unwrap `AsExpression`/`ParenthesizedExpression` and follow identifier arguments to their declarations; then re-count the zero-prop set. Landed as `unwrapFunctionLike`, which peels `as`/`satisfies`/parentheses, recurses into call arguments, and resolves an identifier argument to its declaration — `memo(GridImpl) as typeof GridImpl` now yields its callable.
 
 - [ ] **`src/docs/engine/plugins/docs.ts:441-444`** — `virtual:component-modules` still invalidates on *any* file under `srcDir` (tests, css, benchmarks), re-running `buildNameMap` — which re-reads every barrel and re-parses every demo (`docs.ts:263-277`) — on edits that cannot change it; `virtual:demo-metas` re-parses **all** demos on any single demo edit (`docs.ts:51-69,438`). #1001 fixed exactly this class of problem for the api-reference family; these two predicates kept the old wholesale shape. **Fix:** narrow component-modules to barrels + demos and re-parse only the changed demo's meta, mirroring the extractor's per-file granularity.
 
@@ -26,7 +26,7 @@ Baselines (this machine, [`src/__benchmarks__/docs`](../../src/__benchmarks__/do
 
 - [ ] **`src/docs/engine/api-reference/engine/format-type.ts:101,226,235,264-274`** — `formatType` recurses through generics, function signatures, arrays, and unions with no depth cap or visited set; named types short-circuit, but a structurally recursive anonymous type has nothing stopping it. Stability, not steady-state cost. **Fix:** a depth cap with a `…` fallback.
 
-- [ ] **`src/docs/engine/app.tsx:48-56`** — the idle `loadShiki()` warm call attaches no rejection handler, so a post-deploy 404 on the shiki chunk surfaces as an unhandled rejection (the CodeBlock path catches its own). **Fix:** `.catch(() => {})` to match `code-block.tsx:100-122`.
+- [x] **`src/docs/engine/app.tsx:48-56`** — RESOLVED. — the idle `loadShiki()` warm call attaches no rejection handler, so a post-deploy 404 on the shiki chunk surfaces as an unhandled rejection (the CodeBlock path catches its own). **Fix:** `.catch(() => {})` to match `code-block.tsx:100-122`. Landed, with a comment stating why swallowing is correct here.
 
 ## Low
 
@@ -57,6 +57,25 @@ Measured from `pnpm bench:docs:vite --build`: 355 files, 6.65 MB raw / 3.31 MB g
 ## Infrastructure
 
 CI never exercises any of this: `docs:build` is not a turbo task, benchmarks have no CI wiring, and no size budget exists — extraction-time, cold-start, build-time, and bundle regressions all ship undetected; CI also always runs #1001's cold-cache path, so the ~3.9s full pass is what any docs build there would pay. The benchmark suites ([`src/__benchmarks__/docs`](../../src/__benchmarks__/docs/README.md): `bench:docs` for ts-morph and the extractor, `bench:docs:vite` for build/dev/bundle) make regressions measurable locally; wiring `docs:build` plus a size assertion into the CI gate is the follow-up once the High tier settles.
+
+## Verification sweep — 2026-08-01
+
+Re-checked against source. Three of the four High rows had already landed and are
+checked off above, including the extraction-coverage one — `unwrapFunctionLike`
+now peels `memo(GridImpl) as typeof GridImpl`, so the Grid renders its props. The
+Medium `loadShiki` rejection handler landed too.
+
+What remains is real and re-verified: the `virtual:component-modules` predicate is
+still `file.startsWith(srcDir)`, so a test or CSS edit re-parses every barrel and
+every demo; `optimizeDeps.include` still omits the lazy-demo dependencies, which a
+`test:browser` run confirms by stopping mid-suite to optimize `d3-geo`,
+`topojson-client`, `fflate`, and `marked`; the `hasDerivedCode` probe still walks
+at mount; `formatType` still has no depth cap; `dropMergedArmUnions` still renders
+each arm twice. The Low, Bundle, and Infrastructure tiers are untouched — there is
+still no `docs:build` turbo task and no `manualChunks`.
+
+The baselines above predate those three High fixes and are stale as numbers; re-run
+`bench:docs` before costing what is left.
 
 ---
 
