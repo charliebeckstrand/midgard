@@ -1,8 +1,15 @@
 'use client'
 
-import { type RefCallback, type RefObject, useCallback, useEffect, useRef, useState } from 'react'
+import {
+	type RefCallback,
+	type RefObject,
+	useCallback,
+	useEffect,
+	useLayoutEffect,
+	useRef,
+	useState,
+} from 'react'
 import { flushSync } from 'react-dom'
-import { useIsomorphicLayoutEffect } from './use-isomorphic-layout-effect'
 
 /**
  * Floating-point epsilon (px) on the `Range` overflow test. The single-line
@@ -206,7 +213,7 @@ export function useTruncation<E extends HTMLElement>(options?: {
 		if (node && bound.current) setNodeVersion((version) => version + 1)
 	}, [])
 
-	useIsomorphicLayoutEffect(measure)
+	useLayoutEffect(measure)
 
 	useEffect(() => {
 		// Read here so a node replacement (which bumps the version) re-runs the

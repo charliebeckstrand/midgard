@@ -1,11 +1,10 @@
 'use client'
 
 import { useReducedMotion } from 'motion/react'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Table } from '../../components/table'
 import { announce, cn, dataAttr } from '../../core'
 import { useA11yAnnouncements, useControllable } from '../../hooks'
-import { useIsomorphicLayoutEffect } from '../../hooks/use-isomorphic-layout-effect'
 import { useDensity } from '../../primitives/density'
 import { useDensityLevel } from '../../providers/density'
 import { isDataColumn } from '../../utilities'
@@ -779,7 +778,7 @@ export function GridData<T>({
 	// Re-clamp the cursor whenever the rendered bounds change (filter, paginate,
 	// hide a column), so its active cell and `aria-activedescendant` never dangle
 	// past the new extent; inert for a non-cursor grid (active stays unseated).
-	useIsomorphicLayoutEffect(() => {
+	useLayoutEffect(() => {
 		cursor.reconcile(renderRows.length, dataColumns.length)
 	}, [cursor.reconcile, renderRows.length, dataColumns.length])
 

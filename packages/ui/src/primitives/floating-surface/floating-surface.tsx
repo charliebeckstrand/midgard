@@ -5,10 +5,15 @@ import {
 	type FloatingFocusManagerProps,
 	type FloatingRootContext,
 } from '@floating-ui/react'
-import { type CSSProperties, type HTMLAttributes, type ReactNode, useRef } from 'react'
+import {
+	type CSSProperties,
+	type HTMLAttributes,
+	type ReactNode,
+	useLayoutEffect,
+	useRef,
+} from 'react'
 import { cn } from '../../core'
 import { useComposedRef } from '../../hooks'
-import { useIsomorphicLayoutEffect } from '../../hooks/use-isomorphic-layout-effect'
 import { k } from '../../recipes/kata/popover'
 import { PresencePortal } from '../portal'
 
@@ -81,7 +86,7 @@ export function FloatingSurface({
 	// the exiting subtree at the props it had when it was last open, so a prop
 	// keyed on `open` never reaches it. This effect runs on the parent's render,
 	// where the node is still there to write to.
-	useIsomorphicLayoutEffect(() => {
+	useLayoutEffect(() => {
 		const node = wrapperRef.current
 
 		if (!node) return

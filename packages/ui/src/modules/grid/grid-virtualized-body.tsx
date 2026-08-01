@@ -1,10 +1,9 @@
 'use client'
 
-import { type ReactElement, type RefObject, useCallback, useEffect } from 'react'
+import { type ReactElement, type RefObject, useCallback, useEffect, useLayoutEffect } from 'react'
 import { TableBody, TableCell } from '../../components/table'
 import { Text } from '../../components/text'
 import { useVirtualWindow } from '../../hooks'
-import { useIsomorphicLayoutEffect } from '../../hooks/use-isomorphic-layout-effect'
 import { ariaRowIndex } from './engine/grid-row/shell'
 import type { ResolvedInfiniteScroll } from './grid-data-resolvers'
 import { type GridRowsProps, renderGridRow } from './grid-row'
@@ -148,7 +147,7 @@ export function GridVirtualizedBody<T>(props: GridVirtualizedBodyProps<T>) {
 	// first frame carries content widths rather than the floor-only fit.
 	const { fitRenderedRows } = props
 
-	useIsomorphicLayoutEffect(() => {
+	useLayoutEffect(() => {
 		// Read so a landed (or re-windowed) row set re-runs this effect.
 		void virtualItems.length
 

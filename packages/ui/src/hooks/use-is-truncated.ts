@@ -1,7 +1,6 @@
 'use client'
 
-import { type RefObject, useState } from 'react'
-import { useIsomorphicLayoutEffect } from './use-isomorphic-layout-effect'
+import { type RefObject, useLayoutEffect, useState } from 'react'
 
 const HIDDEN_STYLES =
 	'position:absolute;left:-9999px;top:0;visibility:hidden;pointer-events:none;white-space:nowrap;width:auto;max-width:none;'
@@ -20,7 +19,7 @@ const HIDDEN_STYLES =
 export function useIsTruncated(ref: RefObject<HTMLElement | null>, text: string): boolean {
 	const [truncated, setTruncated] = useState(false)
 
-	useIsomorphicLayoutEffect(() => {
+	useLayoutEffect(() => {
 		const el = ref.current
 
 		if (!el || !text) {

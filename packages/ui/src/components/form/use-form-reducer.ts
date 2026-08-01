@@ -4,12 +4,12 @@ import {
 	type SyntheticEvent,
 	useCallback,
 	useEffect,
+	useLayoutEffect,
 	useMemo,
 	useReducer,
 	useRef,
 	useState,
 } from 'react'
-import { useIsomorphicLayoutEffect } from '../../hooks/use-isomorphic-layout-effect'
 import type { FormActions, FormStateValue, FormStore } from './context'
 import {
 	type Errors,
@@ -224,7 +224,7 @@ export function useFormReducer<T extends Record<string, unknown>>({
 
 	// Runs before paint (layout effect, not a passive side effect); a
 	// controlled-value change lands before the next frame renders.
-	useIsomorphicLayoutEffect(() => {
+	useLayoutEffect(() => {
 		if (controlledValues === lastSyncedValuesRef.current) return
 
 		const next = controlledValues ?? initialDefaultsRef.current
