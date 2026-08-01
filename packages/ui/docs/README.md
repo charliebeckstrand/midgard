@@ -13,7 +13,7 @@ records for in-flight or shipped work).
   code: [`COMPONENTS.md`](COMPONENTS.md), [`MODULES.md`](MODULES.md),
   [`LAYOUTS.md`](LAYOUTS.md), [`HOOKS.md`](HOOKS.md),
   [`PRIMITIVES.md`](PRIMITIVES.md), [`PROVIDERS.md`](PROVIDERS.md),
-  [`RECIPES.md`](RECIPES.md), [`CORE.md`](CORE.md), [`TYPES.md`](TYPES.md),
+  [`RECIPES.md`](RECIPES.md), [`CORE.md`](CORE.md),
   [`UTILITIES.md`](UTILITIES.md).
   Each lists its surface for quick glance; components and modules stay flat
   inventories, and every other category carries a one-line summary per item.
