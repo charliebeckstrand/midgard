@@ -5,6 +5,7 @@ import { cn } from '../../core'
 import { useA11yRoving, useMinWidth } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
 import { ActiveIndicatorScope } from '../../primitives/active-indicator'
+import type { Mount } from '../../primitives/mount'
 import { k } from '../../recipes/kata/stepper'
 import { Stack } from '../stack'
 import { StepperContext, type StepperOrientation } from './context'
@@ -26,6 +27,22 @@ export type StepperProps = {
 	 */
 	linear?: boolean
 	orientation?: StepperOrientation
+	/**
+	 * How {@link StepperPanel}s off the current step are held.
+	 *
+	 * @remarks
+	 * Defaults to `active` — only the current step's panel is mounted, so
+	 * stepping away discards whatever it held and stepping back rebuilds it
+	 * empty. A flow whose panels carry entry — a form split across steps — wants
+	 * `lazy`, which mounts each panel on its first visit and then holds it in
+	 * `<Activity mode="hidden">`, preserving its state (and its DOM, so scroll
+	 * position and uncontrolled inputs survive) while its effects stay torn down.
+	 * `always` mounts every panel up front, paying the whole flow's first render
+	 * before the first step is answered.
+	 *
+	 * @defaultValue 'active'
+	 */
+	mount?: Mount
 	className?: string
 	children?: ReactNode
 }
@@ -71,6 +88,7 @@ export function Stepper({
 	onValueChange,
 	linear = false,
 	orientation,
+	mount = 'active',
 	className,
 	children,
 }: StepperProps) {
@@ -121,8 +139,9 @@ export function Stepper({
 			linear,
 			baseId,
 			hasPanels,
+			mount,
 		}),
-		[current, interactive, setCurrent, resolvedOrientation, linear, baseId, hasPanels],
+		[current, interactive, setCurrent, resolvedOrientation, linear, baseId, hasPanels, mount],
 	)
 
 	const row = (

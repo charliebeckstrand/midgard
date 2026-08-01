@@ -5,7 +5,7 @@ import {
 	CollapseTrigger,
 	useCollapseContext,
 } from '../../components/collapse'
-import { bySlot, fireEvent, renderUI, screen } from '../helpers'
+import { bySlot, fireEvent, renderUI, screen, userEvent } from '../helpers'
 
 describe('Collapse', () => {
 	it('renders panel when open', () => {
@@ -135,6 +135,89 @@ describe('Collapse', () => {
 		)
 
 		expect(bySlot(container, 'collapse')).toBeInTheDocument()
+	})
+
+	describe('mount policy', () => {
+		function Panel({ mount }: { mount?: 'always' | 'lazy' | 'active' }) {
+			return (
+				<Collapse mount={mount}>
+					<CollapseTrigger>Toggle</CollapseTrigger>
+					<CollapsePanel>
+						<input data-testid="field" defaultValue="" />
+					</CollapsePanel>
+				</Collapse>
+			)
+		}
+
+		it('unmounts the closed panel by default, losing its state', async () => {
+			const user = userEvent.setup({ delay: null })
+
+			renderUI(<Panel />)
+
+			await user.click(screen.getByText('Toggle'))
+
+			await user.type(screen.getByTestId('field'), 'typed')
+
+			await user.click(screen.getByText('Toggle'))
+
+			expect(screen.queryByTestId('field')).not.toBeInTheDocument()
+
+			await user.click(screen.getByText('Toggle'))
+
+			expect(screen.getByTestId<HTMLInputElement>('field').value).toBe('')
+		})
+
+		it('mount="lazy" defers the panel, then holds its state across a close', async () => {
+			const user = userEvent.setup({ delay: null })
+
+			renderUI(<Panel mount="lazy" />)
+
+			// Never opened, so never mounted.
+			expect(screen.queryByTestId('field')).not.toBeInTheDocument()
+
+			await user.click(screen.getByText('Toggle'))
+
+			await user.type(screen.getByTestId('field'), 'typed')
+
+			await user.click(screen.getByText('Toggle'))
+
+			// Held, not unmounted — and hidden once the close animation lands.
+			expect(screen.getByTestId('field')).toBeInTheDocument()
+
+			expect(screen.getByTestId('field')).not.toBeVisible()
+
+			await user.click(screen.getByText('Toggle'))
+
+			expect(screen.getByTestId<HTMLInputElement>('field').value).toBe('typed')
+		})
+
+		it('mount="always" mounts the panel closed and hidden from the start', () => {
+			renderUI(<Panel mount="always" />)
+
+			expect(screen.getByTestId('field')).toBeInTheDocument()
+
+			expect(screen.getByTestId('field')).not.toBeVisible()
+		})
+
+		it('holds the panel without motion when animate is false', async () => {
+			const user = userEvent.setup({ delay: null })
+
+			renderUI(
+				<Collapse mount="always" animate={false}>
+					<CollapseTrigger>Toggle</CollapseTrigger>
+					<CollapsePanel>
+						<input data-testid="field" defaultValue="" />
+					</CollapsePanel>
+				</Collapse>,
+			)
+
+			// No transition to wait on, so the hold applies on the toggle itself.
+			expect(screen.getByTestId('field')).not.toBeVisible()
+
+			await user.click(screen.getByText('Toggle'))
+
+			expect(screen.getByTestId('field')).toBeVisible()
+		})
 	})
 })
 

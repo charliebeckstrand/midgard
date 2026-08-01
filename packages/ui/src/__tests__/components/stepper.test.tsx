@@ -365,4 +365,84 @@ describe('Stepper keyboard navigation', () => {
 		// No way to advance, so steps render inert rather than as buttons.
 		expect(screen.queryByRole('button', { name: /Two/ })).not.toBeInTheDocument()
 	})
+
+	describe('mount policy', () => {
+		function Flow({ mount }: { mount?: 'always' | 'lazy' | 'active' }) {
+			return (
+				<Stepper defaultValue={0} mount={mount}>
+					<StepperStep value={0}>
+						<StepperTitle>One</StepperTitle>
+					</StepperStep>
+					<StepperStep value={1}>
+						<StepperTitle>Two</StepperTitle>
+					</StepperStep>
+					<StepperPanels>
+						<StepperPanel value={0}>
+							<input data-testid="first" defaultValue="" />
+						</StepperPanel>
+						<StepperPanel value={1}>Second panel</StepperPanel>
+					</StepperPanels>
+				</Stepper>
+			)
+		}
+
+		const step = (name: string) => screen.getByRole('button', { name: new RegExp(name) })
+
+		it('discards the outgoing panel by default', async () => {
+			const user = userEvent.setup({ delay: null })
+
+			renderUI(<Flow />)
+
+			await user.type(screen.getByTestId('first'), 'typed')
+
+			await user.click(step('Two'))
+
+			expect(screen.queryByTestId('first')).not.toBeInTheDocument()
+
+			await user.click(step('One'))
+
+			expect(screen.getByTestId<HTMLInputElement>('first').value).toBe('')
+		})
+
+		it('mount="lazy" carries panel state back across a step change', async () => {
+			const user = userEvent.setup({ delay: null })
+
+			renderUI(<Flow mount="lazy" />)
+
+			// The second step has never been visited, so its panel is absent.
+			expect(screen.queryByText('Second panel')).not.toBeInTheDocument()
+
+			await user.type(screen.getByTestId('first'), 'typed')
+
+			await user.click(step('Two'))
+
+			// Held hidden rather than unmounted — the panel has no transition to
+			// wait on, so the hold applies on the step change itself.
+			expect(screen.getByTestId('first')).not.toBeVisible()
+
+			await user.click(step('One'))
+
+			expect(screen.getByTestId<HTMLInputElement>('first').value).toBe('typed')
+		})
+
+		it('mount="always" lets every step reference its panel', () => {
+			renderUI(<Flow mount="always" />)
+
+			// Every panel is in the DOM, so aria-controls resolves off the current
+			// step too — which it cannot under `active` or `lazy`.
+			for (const name of ['One', 'Two']) {
+				const controls = step(name).getAttribute('aria-controls')
+
+				expect(controls).toBeTruthy()
+
+				expect(document.getElementById(controls as string)).not.toBeNull()
+			}
+		})
+
+		it('mount="lazy" leaves an unvisited step without a dangling reference', () => {
+			renderUI(<Flow mount="lazy" />)
+
+			expect(step('Two')).not.toHaveAttribute('aria-controls')
+		})
+	})
 })
