@@ -242,6 +242,55 @@ function floatingReferenceElement(refs: FloatingOutsidePressRefs): Element | nul
 }
 
 /**
+ * Portal node → a getter for the reference element the surface inside it opened
+ * from. Published by every panel that shares {@link isFloatingOutsidePress}, and
+ * read there to tell a genuinely nested surface from an unrelated one.
+ *
+ * @remarks
+ * The DOM cannot answer this. `PresencePortal` passes an explicit `root` under a
+ * `<UIProvider>`, so every surface's portal is a sibling `<div>` under one node
+ * whatever opened it — ancestry carries no nesting information. A getter rather
+ * than an element because a panel's reference can change while it is open (a
+ * context menu re-anchoring to a new cursor point).
+ *
+ * @internal
+ */
+const portalReferences = new WeakMap<Element, () => Element | null>()
+
+/**
+ * Publishes this panel's reference against its portal node while it is open, so
+ * a sibling panel's outside-press test can recognise it.
+ *
+ * @internal
+ */
+export function useFloatingPortalReference(
+	open: boolean,
+	refs: FloatingOutsidePressRefs,
+	floatingElement: Element | null,
+): void {
+	useEffect(() => {
+		if (!open) return
+
+		// Keyed on the state-tracked floating element, not `refs.floating.current`:
+		// the panel mounts inside its portal a commit after `open` flips, so a
+		// ref read here would still be null and never re-run.
+		const portal = floatingElement?.closest('[data-floating-ui-portal]')
+
+		if (!portal) return
+
+		const getReference = () => floatingReferenceElement(refs)
+
+		portalReferences.set(portal, getReference)
+
+		// Guarded so a portal node reused by a later surface keeps that surface's
+		// entry rather than this one's teardown clearing it.
+		return () => {
+			if (portalReferences.get(portal) === getReference) portalReferences.delete(portal)
+		}
+	}, [open, refs, floatingElement])
+}
+
+/**
  * True when a document `pointerdown` at `event` falls outside the floating
  * panel described by `refs` — not inside the panel or its reference, not a
  * press on the panel's own scrollbar, and not inside a *nested* floating-ui
@@ -292,10 +341,20 @@ export function isFloatingOutsidePress(
 
 	const reference = floatingReferenceElement(refs)
 
+	const targetReference = targetPortal ? portalReferences.get(targetPortal)?.() : null
+
 	const insideNestedFloating =
 		!!targetPortal &&
 		targetPortal !== ownPortal &&
-		!(reference != null && targetPortal.contains(reference))
+		(targetReference
+			? // The target surface published where it opened from: it is a descendant
+				// only if that reference sits inside this panel. "Not an ancestor" would
+				// also spare an unrelated sibling, which is no descendant of anything
+				// here and must dismiss.
+				floating.contains(targetReference)
+			: // An unpublished portal — an `Overlay`, which dismisses through
+				// `useDismissable` rather than this predicate — keeps the ancestor test.
+				!(reference != null && targetPortal.contains(reference)))
 
 	return !insideFloating && !insideReference && !onScrollbar && !insideNestedFloating
 }
@@ -358,6 +417,8 @@ export function useFloatingUI({
 		open,
 		onDismiss: (event) => onOpenChangeRef.current(false, event, 'escape-key'),
 	})
+
+	useFloatingPortalReference(open, refs, context.elements.floating ?? null)
 
 	useEffect(() => {
 		if (!open) return

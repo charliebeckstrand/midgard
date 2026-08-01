@@ -16,6 +16,7 @@ import {
 	type FloatingPanelOptions,
 	isFloatingOutsidePress,
 	useFloatingPanel,
+	useFloatingPortalReference,
 } from './use-floating-ui'
 
 type FloatingDisclosureRole = 'dialog' | 'menu' | 'tooltip' | 'listbox'
@@ -152,6 +153,11 @@ export function useFloatingDisclosure({
 		layered: roleProp !== 'tooltip',
 		onDismiss: (event) => onOpenChangeRef.current(false, event, 'escape-key'),
 	})
+
+	// Published whether or not this panel dismisses on an outside press: a
+	// sibling's test reads it to tell a nested surface from an unrelated one, and
+	// a non-dismissing panel (a tooltip) can still be the surface pressed into.
+	useFloatingPortalReference(open, refs, context.elements.floating ?? null)
 
 	useEffect(() => {
 		if (!open || !dismissable) return
