@@ -3,6 +3,7 @@
 import { type RefObject, useMemo } from 'react'
 import { createContext } from '../../core'
 import { useControllable } from '../../hooks'
+import type { Mount } from '../mount'
 
 /** Value carried by `CurrentContext`: the active panel `value` and its change handler. */
 export type CurrentContextValue = {
@@ -87,7 +88,8 @@ export const [CurrentPanelActiveContext, useCurrentPanelActive] = createContext<
 )
 
 /**
- * Mount policy for {@link CurrentContent} panels:
+ * Mount policy for {@link CurrentContent} panels — the shared {@link Mount}
+ * vocabulary, named for this cascade:
  *
  * - `always` — every panel is mounted up front and inactive ones are held (state
  *   preserved, effects paused).
@@ -97,7 +99,7 @@ export const [CurrentPanelActiveContext, useCurrentPanelActive] = createContext<
  *   panel and resets its state — under a fading container, once its fade-out
  *   completes.
  */
-export type CurrentMount = 'always' | 'lazy' | 'active'
+export type CurrentMount = Mount
 
 /**
  * Resolves the effective {@link CurrentMount} for a {@link CurrentContents}: an

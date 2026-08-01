@@ -195,15 +195,21 @@ describe('grid column auto-sizing (real browser)', () => {
 		// the width the chips want; only the batched max-content pass can see their
 		// natural row. (A lone Badge inherits the leaf's nowrap and measures true even
 		// clipped; the wrapper is the case that breaks without the pass.)
+		//
+		// The chip labels are sized to land the natural row between the 240px frame
+		// below and `DEFAULT_CONTENT_MAX` (480px) above: wide enough that the column
+		// must overflow the frame to show them, narrow enough that the automatic
+		// pass's runaway-cell cap never binds. Lengthen them and this measures the
+		// cap instead — which the uncapped "Auto-size all columns" case covers.
 		const { container, table, scroll } = render(240, [
 			{
 				id: 'status',
 				title: 'Status',
 				cell: () => (
 					<div style={{ display: 'flex', gap: '4px' }}>
-						<Badge>Verification pending review</Badge>
+						<Badge>Pending review</Badge>
 
-						<Badge>Escalated to compliance team</Badge>
+						<Badge>Escalated to compliance</Badge>
 					</div>
 				),
 			},

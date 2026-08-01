@@ -1,18 +1,11 @@
 'use client'
 
 import { type HTMLMotionProps, motion } from 'motion/react'
-import {
-	Activity,
-	type ComponentPropsWithoutRef,
-	type Ref,
-	useCallback,
-	useRef,
-	useState,
-} from 'react'
+import { type ComponentPropsWithoutRef, type Ref, useCallback, useState } from 'react'
 import { dataAttr } from '../../core'
 import { k } from '../../recipes/kata/current'
+import { Hold, useMountHold } from '../mount'
 import {
-	type CurrentMount,
 	CurrentPanelActiveContext,
 	useCurrent,
 	useCurrentFade,
@@ -57,42 +50,6 @@ function useExitHold(current: boolean, hold: boolean): [boolean, () => void] {
 	const release = useCallback(() => setExiting(false), [])
 
 	return [exiting, release]
-}
-
-/**
- * Rest hold for a fade-held panel (`always`/`lazy` under a fading container):
- * latches while the panel sits inactive outside a crossfade, so it can drop
- * into a hidden Activity instead of staying live at opacity 0. Starts latched
- * for a panel mounting inactive, deferring its initial render cost; `rest`
- * latches it again when a fade-out lands. The clearing comparison runs in
- * render (React's adjust-state-during-render form) so a resting panel that
- * becomes current — or stops being held — wakes in the same pass its fade-in
- * starts.
- */
-function useRestHold(current: boolean, hold: boolean): [boolean, () => void] {
-	const [rested, setRested] = useState(!current && hold)
-
-	if (rested && (current || !hold)) setRested(false)
-
-	const rest = useCallback(() => setRested(true), [])
-
-	return [rested, rest]
-}
-
-/**
- * Lifecycle gate — which panels exist in the tree. `always` keeps all; `lazy`
- * waits for first activation; `active` keeps only the current panel, plus the
- * outgoing one while its fade-out plays.
- *
- * @internal
- */
-function isPresent(
-	mount: CurrentMount,
-	current: boolean,
-	hasBeenCurrent: boolean,
-	exiting: boolean,
-): boolean {
-	return mount === 'always' || current || (mount === 'lazy' && hasBeenCurrent) || exiting
 }
 
 /**
@@ -145,46 +102,37 @@ export function CurrentContent({
 	// one still reads as inactive.
 	const active = inheritedActive && current
 
-	// Lazy latch: a panel that has ever been current stays mounted thereafter.
-	// Monotonic, so a re-run render is idempotent; becoming current is itself a
-	// re-render, so no commit is needed to flip it.
-	const hasBeenCurrent = useRef(false)
-
-	if (current) hasBeenCurrent.current = true
+	// Presence, the lazy latch, and the Activity hold — shared with the
+	// disclosure and stepper panels. A fading container defers the hide to the
+	// rest latch, since `display: none` can't cross-fade; a non-fading one hides
+	// on the switch itself.
+	const hold = useMountHold(current, mount, { defer: fade })
 
 	// Under a fading container, an `active`-mounted outgoing panel defers its
 	// unmount until the fade-out completes, so switching cross-fades instead of
-	// snapping the outgoing panel away.
+	// snapping the outgoing panel away. Held panels take the rest latch instead;
+	// exactly one of the two applies per mount policy.
 	const [exiting, releaseExit] = useExitHold(current, fade && mount === 'active')
 
-	// A fade-held panel (`always`/`lazy`) instead rests in a hidden Activity
-	// between crossfades; exactly one of the two holds applies per mount policy.
-	const held = fade && mount !== 'active'
-
-	const [rested, rest] = useRestHold(current, held)
-
-	if (!isPresent(mount, current, hasBeenCurrent.current, exiting)) return null
+	if (!hold.present && !exiting) return null
 
 	if (!fade) {
-		const panel = (
-			<div
-				ref={ref}
-				data-slot={`${slotPrefix}-content`}
-				className={className}
-				style={style}
-				{...props}
-			>
-				<CurrentPanelActiveContext value={active}>{children}</CurrentPanelActiveContext>
-			</div>
+		// `Hold` wraps only when the policy holds inactive panels: `active` gets
+		// the bare div, `always`/`lazy` get it inside an Activity that preserves
+		// state while hidden but tears down effects and defers re-rendering.
+		return (
+			<Hold hold={hold} name={`${slotPrefix}-content`}>
+				<div
+					ref={ref}
+					data-slot={`${slotPrefix}-content`}
+					className={className}
+					style={style}
+					{...props}
+				>
+					<CurrentPanelActiveContext value={active}>{children}</CurrentPanelActiveContext>
+				</div>
+			</Hold>
 		)
-
-		// `active` never holds an inactive panel, so it needs no Activity wrapper.
-		if (mount === 'active') return panel
-
-		// `always`/`lazy`: hold the panel in the DOM. `Activity` preserves its
-		// state while hidden but tears down effects and defers re-rendering —
-		// the "mounted but not fully rendered" path.
-		return <Activity mode={current ? 'visible' : 'hidden'}>{panel}</Activity>
 	}
 
 	const panel = (
@@ -207,7 +155,9 @@ export function CurrentContent({
 			onAnimationComplete={() => {
 				if (current) return
 
-				if (held) rest()
+				// `hold.rest` ignores a landing on an active panel, but the exit
+				// release does not, so the current-panel guard stays.
+				if (hold.held) hold.rest()
 				else releaseExit()
 			}}
 			// Caller style is preserved under the positioning keys, matching the
@@ -224,9 +174,11 @@ export function CurrentContent({
 		</motion.div>
 	)
 
-	if (!held) return panel
-
 	// Held panels keep the Activity wrapper while visible too: adding it only
 	// at rest would change the tree shape and remount the subtree each switch.
-	return <Activity mode={rested ? 'hidden' : 'visible'}>{panel}</Activity>
+	return (
+		<Hold hold={hold} name={`${slotPrefix}-content`}>
+			{panel}
+		</Hold>
+	)
 }

@@ -3,6 +3,7 @@
 import { type ReactNode, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { useA11yRoving } from '../../hooks'
+import type { Mount } from '../../primitives/mount'
 import { type AccordionVariants, k } from '../../recipes/kata/accordion'
 import { AccordionContext } from './context'
 import {
@@ -18,6 +19,20 @@ import {
  */
 export type AccordionProps = (SingleProps | MultipleProps) &
 	AccordionVariants & {
+		/**
+		 * How item panels are held while closed.
+		 *
+		 * @remarks
+		 * Defaults to `active` — a closed panel is unmounted, so reopening it
+		 * resets whatever state it held. `always` mounts every panel up front and
+		 * `lazy` mounts each on its first open; either way a closed panel then
+		 * rests in `<Activity mode="hidden">` with its state preserved and effects
+		 * torn down. Prefer `lazy` over `always` for a long accordion: `always`
+		 * pays every panel's first render before any of them is opened.
+		 *
+		 * @defaultValue 'active'
+		 */
+		mount?: Mount
 		className?: string
 		children: ReactNode
 	}
@@ -38,13 +53,13 @@ export type AccordionProps = (SingleProps | MultipleProps) &
  * @see {@link AccordionPanel}
  */
 export function Accordion(props: AccordionProps) {
-	const { variant, className, children } = props
+	const { variant, mount = 'active', className, children } = props
 
 	const { isOpen, toggle } = useAccordionSelection(props)
 
 	const context = useMemo(
-		() => ({ variant: variant ?? 'separated', isOpen, toggle }),
-		[variant, isOpen, toggle],
+		() => ({ variant: variant ?? 'separated', mount, isOpen, toggle }),
+		[variant, mount, isOpen, toggle],
 	)
 
 	const ref = useRef<HTMLDivElement>(null)

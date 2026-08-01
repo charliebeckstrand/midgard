@@ -2,10 +2,12 @@
 
 import { createContext } from '../../core'
 import type { A11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
+import type { Mount } from '../../primitives/mount'
 import type { AccordionVariants } from '../../recipes/kata/accordion'
 
 type AccordionContextValue = {
 	variant: NonNullable<AccordionVariants['variant']>
+	mount: Mount
 	isOpen: (value: string) => boolean
 	toggle: (value: string) => void
 }

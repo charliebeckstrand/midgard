@@ -5,12 +5,14 @@ import { type ReactNode, useMemo } from 'react'
 import { TableBody, TableCell, TableRow } from '../../components/table'
 import { cn, dataAttr } from '../../core'
 import type { PaletteColor } from '../../core/recipe'
+import { Hold } from '../../primitives/mount'
 import type { DensityLevel } from '../../providers/density'
 import { k } from '../../recipes/kata/grid'
 import { aggregateLabelSpan, hasAggregation, renderAggregate } from './engine/grid-aggregate'
 import { NO_PADDING } from './engine/grid-constants'
 import { GridAggregateCells } from './grid-aggregate-cells'
 import type { GridColumn } from './types'
+import { useGridRevealHold } from './use-grid-reveal-hold'
 
 /** Stable empty row model read while the grand total is inactive, so its memo doesn't rebuild. @internal */
 const NO_ROWS: never[] = []
@@ -191,46 +193,96 @@ export function GridTotalRow<T>({
 }: GridTotalRowProps<T>) {
 	const span = aggregateLabelSpan(columns)
 
-	if (variant === 'grand') {
+	// The two variants share the label span and nothing else — different trees,
+	// and only the group one collapses — so the group row is its own component
+	// rather than a branch whose hold the grand variant would have to carry.
+	if (variant === 'group') {
 		return (
-			<TableRow data-total-row="grand" aria-rowindex={ariaRowIndex}>
-				<TableCell colSpan={span} className={cn(k.aggregate.label)}>
-					{label}
-				</TableCell>
-
-				<GridAggregateCells columns={columns} rows={rows} from={span} />
-			</TableRow>
+			<GridGroupTotalRow<T>
+				columns={columns}
+				rows={rows}
+				span={span}
+				expanded={expanded}
+				label={label}
+				density={density}
+				color={color}
+			/>
 		)
 	}
+
+	return (
+		<TableRow data-total-row="grand" aria-rowindex={ariaRowIndex}>
+			<TableCell colSpan={span} className={cn(k.aggregate.label)}>
+				{label}
+			</TableCell>
+
+			<GridAggregateCells columns={columns} rows={rows} from={span} />
+		</TableRow>
+	)
+}
+
+/**
+ * A group's total row: it collapses with its group through the same CSS reveal
+ * the leaves ride, and rests alongside them once that reveal lands so its
+ * aggregates stop recomputing on every body render.
+ *
+ * @internal
+ */
+function GridGroupTotalRow<T>({
+	columns,
+	rows,
+	span,
+	expanded,
+	label,
+	density,
+	color,
+}: {
+	columns: GridColumn<T>[]
+	rows: T[]
+	/** Columns the leading label cell spans, resolved once by {@link GridTotalRow}. */
+	span: number
+	expanded: boolean
+	label: ReactNode
+	density: DensityLevel
+	color?: PaletteColor
+}) {
+	const reveal = useGridRevealHold(expanded)
 
 	const pad = k.rowGroup.reveal.pad({ density })
 
 	// A collapsed group's total is clipped to nothing with its leaves; take it out
 	// of the accessibility tree too, matching the leaf rows (WCAG 1.3.1).
 	return (
-		<TableRow data-total-row="group" aria-hidden={expanded ? undefined : true} inert={!expanded}>
-			<GroupRevealCell
-				expanded={expanded}
-				pad={cn(pad, k.aggregate.label)}
-				rail
-				color={color}
-				colSpan={span}
+		<Hold hold={reveal.hold} name="grid-total-row">
+			<TableRow
+				data-total-row="group"
+				aria-hidden={expanded ? undefined : true}
+				inert={!expanded}
+				onTransitionEnd={reveal.onTransitionEnd}
 			>
-				{label}
-			</GroupRevealCell>
-
-			{columns.slice(span).map((column) => (
 				<GroupRevealCell
-					key={column.id}
 					expanded={expanded}
-					pad={cn(pad, k.aggregate.cell)}
+					pad={cn(pad, k.aggregate.label)}
+					rail
 					color={color}
-					colId={column.id}
-					className={column.className}
+					colSpan={span}
 				>
-					{renderAggregate(column, rows)}
+					{label}
 				</GroupRevealCell>
-			))}
-		</TableRow>
+
+				{columns.slice(span).map((column) => (
+					<GroupRevealCell
+						key={column.id}
+						expanded={expanded}
+						pad={cn(pad, k.aggregate.cell)}
+						color={color}
+						colId={column.id}
+						className={column.className}
+					>
+						{renderAggregate(column, rows)}
+					</GroupRevealCell>
+				))}
+			</TableRow>
+		</Hold>
 	)
 }

@@ -4,6 +4,7 @@ import { type ReactNode, useCallback, useMemo } from 'react'
 import { cn, dataAttr } from '../../core'
 import { useA11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
 import { useControllable } from '../../hooks/use-controllable'
+import type { Mount } from '../../primitives/mount'
 import { k } from '../../recipes/kata/collapse'
 import { CollapseContext } from './context'
 
@@ -19,6 +20,19 @@ export type CollapseProps = {
 	 * @defaultValue 'fade'
 	 */
 	animate?: boolean | 'fade' | 'slide'
+	/**
+	 * How the panel is held while closed.
+	 *
+	 * @remarks
+	 * Defaults to `active` — the panel is unmounted while closed, so reopening
+	 * resets whatever state it held. `always` mounts it up front and `lazy` on
+	 * first open; either way a closed panel then rests in
+	 * `<Activity mode="hidden">` with its state preserved and effects torn down,
+	 * dropping into the hold once the close animation lands.
+	 *
+	 * @defaultValue 'active'
+	 */
+	mount?: Mount
 	children: ReactNode
 	className?: string
 }
@@ -38,6 +52,7 @@ export function Collapse({
 	open: openProp,
 	onOpenChange,
 	animate: animateProp = 'fade',
+	mount = 'active',
 	children,
 	className,
 }: CollapseProps) {
@@ -54,8 +69,8 @@ export function Collapse({
 	const { triggerProps, panelProps } = useA11yDisclosure({ expanded: open })
 
 	const value = useMemo(
-		() => ({ open, toggle, animate: animateProp, triggerProps, panelProps }),
-		[open, toggle, animateProp, triggerProps, panelProps],
+		() => ({ open, toggle, animate: animateProp, mount, triggerProps, panelProps }),
+		[open, toggle, animateProp, mount, triggerProps, panelProps],
 	)
 
 	return (

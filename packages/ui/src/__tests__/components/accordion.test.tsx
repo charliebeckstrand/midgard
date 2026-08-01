@@ -6,6 +6,7 @@ import {
 	AccordionTrigger,
 	useAccordionItem,
 } from '../../components/accordion'
+import type { Mount } from '../../primitives/mount'
 import { act, fireEvent, renderUI, screen, userEvent } from '../helpers'
 
 describe('AccordionTrigger', () => {
@@ -321,5 +322,67 @@ describe('Accordion keyboard navigation', () => {
 		await user.keyboard('{ArrowUp}')
 
 		expect(trigger('First')).toHaveFocus()
+	})
+})
+
+describe('Accordion mount policy', () => {
+	function Panels({ mount }: { mount?: Mount }) {
+		return (
+			<Accordion type="single" collapsible mount={mount}>
+				<AccordionItem value="a">
+					<AccordionTrigger>First</AccordionTrigger>
+					<AccordionPanel>
+						<input data-testid="field" defaultValue="" />
+					</AccordionPanel>
+				</AccordionItem>
+				<AccordionItem value="b">
+					<AccordionTrigger>Second</AccordionTrigger>
+					<AccordionPanel>Second body</AccordionPanel>
+				</AccordionItem>
+			</Accordion>
+		)
+	}
+
+	it('unmounts a closed panel by default, losing its state', async () => {
+		const user = userEvent.setup({ delay: null })
+
+		renderUI(<Panels />)
+
+		await user.click(screen.getByText('First'))
+
+		await user.type(screen.getByTestId('field'), 'typed')
+
+		await user.click(screen.getByText('First'))
+
+		expect(screen.queryByTestId('field')).not.toBeInTheDocument()
+	})
+
+	it('mount="lazy" holds an opened panel and its state across a close', async () => {
+		const user = userEvent.setup({ delay: null })
+
+		renderUI(<Panels mount="lazy" />)
+
+		// Never opened, so never mounted.
+		expect(screen.queryByText('Second body')).not.toBeInTheDocument()
+
+		await user.click(screen.getByText('First'))
+
+		await user.type(screen.getByTestId('field'), 'typed')
+
+		await user.click(screen.getByText('First'))
+
+		expect(screen.getByTestId('field')).not.toBeVisible()
+
+		await user.click(screen.getByText('First'))
+
+		expect(screen.getByTestId<HTMLInputElement>('field').value).toBe('typed')
+	})
+
+	it('mount="always" mounts every panel closed and hidden', () => {
+		renderUI(<Panels mount="always" />)
+
+		expect(screen.getByText('Second body')).toBeInTheDocument()
+
+		expect(screen.getByText('Second body')).not.toBeVisible()
 	})
 })

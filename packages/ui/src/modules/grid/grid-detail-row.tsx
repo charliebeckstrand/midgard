@@ -5,8 +5,10 @@ import type { ReactNode } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { cn, dataAttr } from '../../core'
+import { Hold } from '../../primitives/mount'
 import { k } from '../../recipes/kata/grid'
 import { NO_PADDING } from './engine/grid-constants'
+import { useGridRevealHold } from './use-grid-reveal-hold'
 
 /** The DOM id of a row's detail panel, so the expander's `aria-controls` names it. @internal */
 export function detailPanelId(rowKey: string | number): string {
@@ -86,26 +88,34 @@ type GridDetailRowProps = {
  * transition — reliable in a `<table>`, where a JS height tween on a `<td>` is
  * not. It stays mounted whatever the expansion; a closed panel is `inert` and
  * hidden from assistive tech, and its `id` ties back to the expander's
- * `aria-controls`.
+ * `aria-controls`. Once the reveal has shrunk it rests in
+ * `<Activity mode="hidden">`, keeping its state but leaving the visible commit.
  *
  * @internal
  */
 export function GridDetailRow({ rowKey, colSpan, expanded, children }: GridDetailRowProps) {
+	// A detail panel holds whatever the caller put in it — a nested grid, a chart
+	// — so a closed one is the most expensive thing a grouped body keeps live.
+	const reveal = useGridRevealHold(expanded)
+
 	return (
-		<tr
-			data-detail-row={String(rowKey)}
-			aria-hidden={expanded ? undefined : true}
-			inert={!expanded}
-		>
-			<td colSpan={colSpan} style={NO_PADDING}>
-				<div className={cn(k.detail.reveal.track)} data-open={dataAttr(expanded)}>
-					<div className={cn(k.detail.reveal.clip)}>
-						<section id={detailPanelId(rowKey)} className={cn(k.detail.panel)}>
-							{children}
-						</section>
+		<Hold hold={reveal.hold} name="grid-detail-row">
+			<tr
+				data-detail-row={String(rowKey)}
+				aria-hidden={expanded ? undefined : true}
+				inert={!expanded}
+				onTransitionEnd={reveal.onTransitionEnd}
+			>
+				<td colSpan={colSpan} style={NO_PADDING}>
+					<div className={cn(k.detail.reveal.track)} data-open={dataAttr(expanded)}>
+						<div className={cn(k.detail.reveal.clip)}>
+							<section id={detailPanelId(rowKey)} className={cn(k.detail.panel)}>
+								{children}
+							</section>
+						</div>
 					</div>
-				</div>
-			</td>
-		</tr>
+				</td>
+			</tr>
+		</Hold>
 	)
 }
