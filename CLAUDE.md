@@ -18,6 +18,8 @@
 
 2.4 On correction, comply; don't apologize or relitigate decisions.
 
+2.5 Write every authored statement — chat, Markdown, TSDoc, commit bodies — in ASD-STE100 Simplified Technical English. For reference, see [STE.md](STE.md).
+
 ## 3. Workflow
 
 3.1 Before implementing multi-file or architectural work, surface the approach for assent.
