@@ -57,10 +57,9 @@ export function usePdfViewerViewportSize(
 		return () => observer.disconnect()
 	}, [ref, measure])
 
-	// Caller-driven invalidation: re-measure after commit, before paint.
-	// `measure` reads layout via getComputedStyle / clientWidth; this runs
-	// in useLayoutEffect. The lastInvalidationKey ref skips the
-	// redundant remeasure on mount.
+	// Caller-driven invalidation: re-measure after commit, before paint, since
+	// `measure` reads layout via getComputedStyle / clientWidth. The
+	// lastInvalidationKey ref skips the redundant remeasure on mount.
 	useLayoutEffect(() => {
 		if (lastInvalidationKeyRef.current === invalidationKey) return
 

@@ -1,6 +1,6 @@
 # Utilities
 
-> **Quick-glance index of `src/utilities/`.** Small, dependency-free pure helpers shared across the package — numeric clamping/formatting, WCAG colour-contrast maths, caret bookkeeping for formatted inputs, the Escape dismiss-layer stack, a shared document-event subscriber, and roving keyboard-navigation math. **Internal:** `utilities` is not a `package.json` export; reach it by relative import within the package (`from '../../utilities'`), not as `ui/utilities`.
+> **Quick-glance index of `src/utilities/`.** Small, dependency-free pure helpers shared across the package — numeric clamping/formatting, locale coalescing, WCAG colour-contrast maths, caret bookkeeping for formatted inputs, the Escape dismiss-layer stack, a shared document-event subscriber, and roving keyboard-navigation math. **Internal:** `utilities` is not a `package.json` export; reach it by relative import within the package (`from '../../utilities'`), not as `ui/utilities`.
 
 ## Numeric
 
@@ -15,6 +15,7 @@
 | `formatPercent` | Locale-formats a `0..1` share as a whole percent (cached formatter). |
 | `resolveFormat` | Resolves a `FormatSpec` to a cached `(value) => string` formatter — number, integer, currency, percent, compact, or prefixed id. |
 | `FormatSpec` *(type)* | What to format a value as: a numeric `Intl` format (`number`/`integer`/`currency`/`percent`/`compact`) or a prefixed `id`. |
+| `resolveLocale` | Coalesces an optional BCP 47 tag to a concrete one, falling back to the runtime locale — resolved once, since `Intl.DateTimeFormat` construction is uncached and the page's locale cannot change. |
 
 ## Colour & accessibility
 

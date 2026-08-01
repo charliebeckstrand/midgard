@@ -31,61 +31,39 @@ describe('MenuTrigger keyboard activation (real floating engine)', () => {
 		)
 	}
 
-	it('opens from Enter on a native button (the covered path)', async () => {
-		renderUI(
-			tree(
-				<button type="button" data-testid="trigger">
-					Open
-				</button>,
-			),
-		)
+	/** A trigger shape `cloneElement` accepts and the browser gives no synthesized click for. */
+	const nonButton = (
+		// biome-ignore lint/a11y/useSemanticElements: the non-semantic trigger is the subject under test
+		<div role="button" tabIndex={0} data-testid="trigger">
+			Open
+		</div>
+	)
 
-		const trigger = screen.getByTestId('trigger')
+	/** Focuses the rendered trigger, presses `key`, and resolves once the menu is up. */
+	async function opensFrom(trigger: React.ReactElement, key: string) {
+		renderUI(tree(trigger))
 
-		trigger.focus()
+		screen.getByTestId('trigger').focus()
 
-		await userEvent.keyboard('{Enter}')
+		await userEvent.keyboard(key)
 
 		await waitFor(() => expect(screen.getByRole('menu')).toBeInTheDocument())
+	}
+
+	it('opens from Enter on a native button (the covered path)', async () => {
+		await opensFrom(
+			<button type="button" data-testid="trigger">
+				Open
+			</button>,
+			'{Enter}',
+		)
 	})
 
 	it('opens from Enter on a focusable non-button child', async () => {
-		renderUI(
-			tree(
-				// A div carrying the button role and a tab stop: a trigger shape
-				// `cloneElement` accepts and the browser gives no synthesized click for.
-				// biome-ignore lint/a11y/useSemanticElements: the non-semantic trigger is the subject under test
-				<div role="button" tabIndex={0} data-testid="trigger">
-					Open
-				</div>,
-			),
-		)
-
-		const trigger = screen.getByTestId('trigger')
-
-		trigger.focus()
-
-		await userEvent.keyboard('{Enter}')
-
-		await waitFor(() => expect(screen.getByRole('menu')).toBeInTheDocument())
+		await opensFrom(nonButton, '{Enter}')
 	})
 
 	it('opens from Space on a focusable non-button child', async () => {
-		renderUI(
-			tree(
-				// biome-ignore lint/a11y/useSemanticElements: the non-semantic trigger is the subject under test
-				<div role="button" tabIndex={0} data-testid="trigger">
-					Open
-				</div>,
-			),
-		)
-
-		const trigger = screen.getByTestId('trigger')
-
-		trigger.focus()
-
-		await userEvent.keyboard(' ')
-
-		await waitFor(() => expect(screen.getByRole('menu')).toBeInTheDocument())
+		await opensFrom(nonButton, ' ')
 	})
 })

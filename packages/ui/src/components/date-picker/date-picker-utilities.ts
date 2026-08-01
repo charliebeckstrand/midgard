@@ -1,5 +1,6 @@
 import { endOfMonth as calendarEndOfMonth, DateFormatter } from '@internationalized/date'
-import { fromCalendarDate, resolveLocale, toCalendarDate } from '../calendar/calendar-utilities'
+import { resolveLocale } from '../../utilities'
+import { fromCalendarDate, toCalendarDate } from '../calendar/calendar-utilities'
 
 /**
  * Trigger label for a single date, in `locale` — the ambient `<LocaleProvider>`

@@ -5,7 +5,6 @@ import {
 	cloneElement,
 	isValidElement,
 	type KeyboardEvent,
-	type MouseEvent,
 	type ReactElement,
 	type Ref,
 	useRef,
@@ -102,12 +101,10 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 
 	// Consumer/child props route through `getReferenceProps`, which composes
 	// their event handlers with the floating interactions instead of clobbering
-	// them (the `TooltipTrigger`/`PopoverTrigger` pattern). The toggle composes
-	// with the consumer's own onClick: theirs runs first.
+	// them (the `TooltipTrigger`/`PopoverTrigger` pattern). The toggle itself is
+	// `useClick`'s, composed at the state level, so only the key handlers wrap.
 	if (isValidElement(children)) {
 		const child = children as ReactElement<Record<string, unknown>>
-
-		const childOnClick = child.props.onClick as ((event: MouseEvent) => void) | undefined
 
 		const childOnKeyDown = child.props.onKeyDown as ((event: KeyboardEvent) => void) | undefined
 
@@ -116,7 +113,6 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 		return cloneElement(child, {
 			...getReferenceProps({
 				...child.props,
-				onClick: childOnClick,
 				onKeyDown: (event: KeyboardEvent) => {
 					childOnKeyDown?.(event)
 					handleTriggerKeyDown(event)
@@ -136,7 +132,6 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 	}
 
 	const {
-		onClick: consumerOnClick,
 		onKeyDown: consumerOnKeyDown,
 		onKeyUp: consumerOnKeyUp,
 		...rest
@@ -153,7 +148,6 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 			className={cn(className)}
 			{...getReferenceProps({
 				...rest,
-				onClick: consumerOnClick,
 				onKeyDown: (event: KeyboardEvent<HTMLButtonElement>) => {
 					consumerOnKeyDown?.(event)
 					handleTriggerKeyDown(event)

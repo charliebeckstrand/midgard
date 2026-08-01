@@ -339,12 +339,10 @@ function useGridRowModel<T>(args: {
 	// Under manual grouping the display rows are the consumer's grouped sequence;
 	// the leaf set drops the group-header rows so selection identity and the data
 	// counts track the actual data rows.
-	const leafRows = useMemo<Row<T>[] | null>(() => {
-		if (displayRows && manualGroupRow)
-			return displayRows.filter((row) => !manualGroupRow(row.original))
-
-		return deriveLeafRows(displayRows, grouped)
-	}, [displayRows, grouped, manualGroupRow])
+	const leafRows = useMemo<Row<T>[] | null>(
+		() => deriveLeafRows(displayRows, grouped, manualGroupRow),
+		[displayRows, grouped, manualGroupRow],
+	)
 
 	// The top-level group-header rows, in display order. Each carries every one of
 	// its leaves on `subRows` (regardless of expansion), so the body can keep the

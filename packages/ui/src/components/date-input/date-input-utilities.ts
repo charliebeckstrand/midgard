@@ -1,5 +1,6 @@
 import { DateFormatter } from '@internationalized/date'
-import { resolveLocale } from '../calendar/calendar-utilities'
+import type { ReactNode } from 'react'
+import { resolveLocale } from '../../utilities'
 
 /**
  * Supported date layout for {@link DateInput}: month/day/year order and the
@@ -40,18 +41,30 @@ export function dateInputSeparator(format: DateInputFormat): string {
 const ORDER_REFERENCE = new Date(Date.UTC(2026, 0, 2))
 
 /**
+ * Locale tag → its layout. The answer has three possible values and depends on
+ * nothing else, while `DateInput` resolves it on every render — every keystroke,
+ * since it holds the editing text as state. @internal
+ */
+const layoutByLocale = new Map<string, DateInputFormat>()
+
+/**
  * Resolves {@link DateInput}'s layout and its default invalid message together:
  * an unset `format` follows the ambient locale, and the message quotes whichever
  * layout won. Only an absent message takes the default — `null` and `false`
  * suppress it, as the prop documents.
  *
+ * @remarks
+ * The two resolutions travel together because the message quotes the layout, so
+ * neither can be a default parameter once the layout depends on a hook. Kept out
+ * of `DateInput` for its cognitive-complexity budget.
+ *
  * @internal
  */
-export function resolveDateInputFormat<M>(
+export function resolveDateInputFormat(
 	format: DateInputFormat | undefined,
 	locale: string | undefined,
-	invalidMessage: M,
-): { format: DateInputFormat; invalidMessage: M | string } {
+	invalidMessage: ReactNode,
+): { format: DateInputFormat; invalidMessage: ReactNode } {
 	const resolved = format ?? localeDateInputFormat(locale)
 
 	// Only an absent message takes the default; `null`/`false` suppress it.
@@ -78,7 +91,13 @@ export function resolveDateInputFormat<M>(
  * @internal
  */
 export function localeDateInputFormat(locale?: string): DateInputFormat {
-	const parts = new DateFormatter(resolveLocale(locale), {
+	const tag = resolveLocale(locale)
+
+	const cached = layoutByLocale.get(tag)
+
+	if (cached) return cached
+
+	const parts = new DateFormatter(tag, {
 		year: 'numeric',
 		month: '2-digit',
 		day: '2-digit',
@@ -89,11 +108,16 @@ export function localeDateInputFormat(locale?: string): DateInputFormat {
 		.map((part) => part.type)
 		.join(' ')
 
-	if (order === 'year month day') return 'YYYY-MM-DD'
+	const layout: DateInputFormat =
+		order === 'year month day'
+			? 'YYYY-MM-DD'
+			: order === 'day month year'
+				? 'DD/MM/YYYY'
+				: 'MM/DD/YYYY'
 
-	if (order === 'day month year') return 'DD/MM/YYYY'
+	layoutByLocale.set(tag, layout)
 
-	return 'MM/DD/YYYY'
+	return layout
 }
 
 /** Running mask state: closed segments and the segment being typed. @internal */

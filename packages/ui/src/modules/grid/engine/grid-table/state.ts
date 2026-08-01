@@ -39,19 +39,31 @@ export function applyUpdater<S>(updater: Updater<S>, base: S): S {
 }
 
 /**
- * Collapses the engine's display rows to their flat leaf set. Under grouping the
- * display rows carry group headers and only the expanded leaves, so each group
- * expands to its full leaf set (whatever its expansion) to recover every data
- * row; ungrouped display rows are already the leaves, and `null` passes through.
+ * Collapses a row set to its flat leaf set — the data rows, whatever the
+ * grouping mode. Client grouping leaves group headers among only the expanded
+ * leaves, so each header expands to its full leaf set regardless of expansion;
+ * manual grouping keeps the engine ungrouped and hands its headers through as
+ * ordinary rows, so those drop by predicate. Ungrouped rows are already the
+ * leaves, and `null` passes through.
  *
+ * @param rows - The engine rows to collapse.
+ * @param grouped - Whether client grouping is active.
+ * @param manualGroupRow - Identifies a consumer-supplied header row under manual
+ * grouping; absent or `null` otherwise.
  * @internal
  */
-export function deriveLeafRows<T>(displayRows: Row<T>[] | null, grouped: boolean): Row<T>[] | null {
-	if (!displayRows) return null
+export function deriveLeafRows<T>(
+	rows: Row<T>[] | null,
+	grouped: boolean,
+	manualGroupRow?: ((row: T) => boolean) | null,
+): Row<T>[] | null {
+	if (!rows) return null
 
-	if (!grouped) return displayRows
+	if (manualGroupRow) return rows.filter((row) => !manualGroupRow(row.original))
 
-	return displayRows.flatMap((row) => (row.getIsGrouped() ? row.getLeafRows() : [row]))
+	if (!grouped) return rows
+
+	return rows.flatMap((row) => (row.getIsGrouped() ? row.getLeafRows() : [row]))
 }
 
 /**

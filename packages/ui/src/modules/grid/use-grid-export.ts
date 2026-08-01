@@ -63,12 +63,9 @@ export function useGridExport<T>(args: {
 
 				const sorted = table.getSortedRowModel().rows
 
-				// Manual grouping keeps the engine ungrouped, so its header rows
-				// arrive as ordinary rows and drop by predicate; client grouping
-				// expands each header back to its full leaf set.
-				const leaves: Row<T>[] = manualGroupRow
-					? sorted.filter((row) => !manualGroupRow(row.original))
-					: (deriveLeafRows(sorted, grouped) ?? [])
+				// `deriveLeafRows` owns both grouping modes; `sorted` is never null,
+				// so the coalesce only satisfies its nullable return.
+				const leaves: Row<T>[] = deriveLeafRows(sorted, grouped, manualGroupRow) ?? []
 
 				const selected = leaves.filter((row) => row.getIsSelected())
 

@@ -753,8 +753,6 @@ describe('Grid export under grouping', () => {
 
 	const getKey = (row: Row) => row.id
 
-	const openExportMenu = () => fireEvent.click(screen.getByRole('button', { name: 'Export' }))
-
 	/** Downloads a CSV through the toolbar and returns its text. */
 	const exportCsv = async (ui: Parameters<typeof renderUI>[0]): Promise<string> => {
 		const createObjectURL = vi.fn().mockReturnValue('blob:mock')
@@ -767,7 +765,7 @@ describe('Grid export under grouping', () => {
 
 		renderUI(ui)
 
-		openExportMenu()
+		fireEvent.click(screen.getByRole('button', { name: 'Export' }))
 
 		fireEvent.click(screen.getByRole('menuitem', { name: 'Export to CSV' }))
 

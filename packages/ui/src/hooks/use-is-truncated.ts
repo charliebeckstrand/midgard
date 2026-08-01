@@ -1,25 +1,27 @@
 'use client'
 
 import { type RefObject, useLayoutEffect, useState } from 'react'
+import { isOverflowing } from './use-truncation'
 
 /**
- * True when `text` overflows the element at `ref.current`. Measures the laid-out
- * contents with a `Range` and compares that against the element's content box,
- * so it detects ellipsis truncation at sub-pixel precision without reading
- * `scrollWidth`.
+ * True when `text` overflows the element at `ref.current`. Shares
+ * {@link useTruncation}'s overflow test — an integer `scrollWidth` read, falling
+ * back to a `Range` over the element's own contents for a sub-pixel clip — with
+ * its horizontal padding subtracted, since the elements this measures carry it.
  *
  * @remarks
  * The `Range` reads the element's own text where a mirror node would have to be
- * injected into it — so nothing is appended to a React-owned subtree, and the
- * text is never duplicated into the accessibility tree. A clipped overflow does
- * not shrink the measured range, which is what makes the comparison meaningful;
- * an element whose text wraps therefore reads as not truncated, since no
- * ellipsis is painted for a tooltip to reveal.
+ * injected into it, so nothing is appended to a React-owned subtree and the text
+ * is never duplicated into the accessibility tree. A clipped overflow does not
+ * shrink the measured range, which is what makes the comparison meaningful; an
+ * element whose text wraps therefore reads as not truncated, since no ellipsis is
+ * painted for a tooltip to reveal.
  *
  * Re-measures via a `ResizeObserver` and after `document.fonts.ready`, so it
- * stays accurate across resizes and late font loads. Layout-effect based; SSR
- * and layout-less environments (jsdom implements no `Range` geometry) yield
- * `false`.
+ * stays accurate across resizes and late font loads. One observer per element,
+ * unlike `useTruncation`'s shared one — this hook's callers mount a handful of
+ * elements, not a virtualized grid of them. Layout-effect based; SSR yields
+ * `false` until the first client measurement.
  * @returns `true` while the text is truncated, else `false`.
  */
 export function useIsTruncated(ref: RefObject<HTMLElement | null>, text: string): boolean {
@@ -34,29 +36,7 @@ export function useIsTruncated(ref: RefObject<HTMLElement | null>, text: string)
 			return
 		}
 
-		const check = () => {
-			const range = document.createRange()
-
-			range.selectNodeContents(el)
-
-			// Layout-less environments don't implement Range geometry; there is no
-			// width to compare, so nothing reads as truncated.
-			if (typeof range.getBoundingClientRect !== 'function') {
-				setTruncated(false)
-
-				return
-			}
-
-			const textWidth = range.getBoundingClientRect().width
-
-			const styles = getComputedStyle(el)
-
-			const paddingX = parseFloat(styles.paddingLeft) + parseFloat(styles.paddingRight)
-
-			const contentWidth = el.getBoundingClientRect().width - paddingX
-
-			setTruncated(textWidth > contentWidth)
-		}
+		const check = () => setTruncated(isOverflowing(el, true))
 
 		check()
 

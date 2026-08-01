@@ -17,6 +17,7 @@ import { Density, useDensity } from '../../primitives/density'
 import { useLocale } from '../../providers/locale'
 import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/calendar'
+import { resolveLocale } from '../../utilities'
 import type { ButtonVariants } from '../button'
 import { useFormValue } from '../form/use-form-value'
 import { CalendarGrid } from './calendar-grid'
@@ -27,7 +28,6 @@ import {
 	getMonthLabels,
 	getWeekdayLabels,
 	isBeforeDay,
-	resolveLocale,
 } from './calendar-utilities'
 import { useCalendarFocus } from './use-calendar-focus'
 import { useCalendarMonth } from './use-calendar-month'

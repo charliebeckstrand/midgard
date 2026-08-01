@@ -264,16 +264,19 @@ const portalReferences = new WeakMap<Element, () => Element | null>()
  * @internal
  */
 export function useFloatingPortalReference(
-	open: boolean,
+	context: FloatingRootContext,
 	refs: FloatingOutsidePressRefs,
-	floatingElement: Element | null,
 ): void {
+	const { open, elements } = context
+
+	// Keyed on the state-tracked floating element, not `refs.floating.current`:
+	// the panel mounts inside its portal a commit after `open` flips, so a ref
+	// read here would still be null and never re-run.
+	const floatingElement = elements.floating
+
 	useEffect(() => {
 		if (!open) return
 
-		// Keyed on the state-tracked floating element, not `refs.floating.current`:
-		// the panel mounts inside its portal a commit after `open` flips, so a
-		// ref read here would still be null and never re-run.
 		const portal = floatingElement?.closest('[data-floating-ui-portal]')
 
 		if (!portal) return
@@ -328,35 +331,50 @@ export function isFloatingOutsidePress(
 
 	if (!floating) return false
 
-	const insideFloating = floating.contains(target)
+	// Cheapest tests first, and both are the common case — a press inside the
+	// open panel or on its trigger. Returning here skips `isScrollbarPress`'s
+	// forced style recalc and two `closest` walks on every such press, per open
+	// panel.
+	if (floating.contains(target) || refs.domReference.current?.contains(target)) return false
 
-	const insideReference = !!refs.domReference.current?.contains(target)
+	if (target instanceof HTMLElement && isScrollbarPress(event, target)) return false
 
-	const onScrollbar = target instanceof HTMLElement && isScrollbarPress(event, target)
+	return !pressLandsInNestedSurface(floating, target, refs)
+}
 
+/**
+ * Whether `target` lies in a floating surface opened from *within* `floating` —
+ * a descendant, whose presses this panel must survive.
+ *
+ * @remarks
+ * A surface that published its reference is a descendant only when that
+ * reference sits inside this panel; publishing nothing but no reference (a
+ * context menu anchored at a bare coordinate) means no descendancy to claim, so
+ * the press dismisses. A portal that never registered at all — an `Overlay`,
+ * which dismisses through `useDismissable` rather than this predicate — keeps
+ * the older ancestor test, which is all that is knowable about it.
+ *
+ * @internal
+ */
+function pressLandsInNestedSurface(
+	floating: Element,
+	target: Node,
+	refs: FloatingOutsidePressRefs,
+): boolean {
 	const targetPortal =
 		target instanceof Element ? target.closest('[data-floating-ui-portal]') : null
 
-	const ownPortal = floating.closest('[data-floating-ui-portal]')
+	if (!targetPortal || targetPortal === floating.closest('[data-floating-ui-portal]')) return false
+
+	if (portalReferences.has(targetPortal)) {
+		const targetReference = portalReferences.get(targetPortal)?.()
+
+		return targetReference != null && floating.contains(targetReference)
+	}
 
 	const reference = floatingReferenceElement(refs)
 
-	const targetReference = targetPortal ? portalReferences.get(targetPortal)?.() : null
-
-	const insideNestedFloating =
-		!!targetPortal &&
-		targetPortal !== ownPortal &&
-		(targetReference
-			? // The target surface published where it opened from: it is a descendant
-				// only if that reference sits inside this panel. "Not an ancestor" would
-				// also spare an unrelated sibling, which is no descendant of anything
-				// here and must dismiss.
-				floating.contains(targetReference)
-			: // An unpublished portal — an `Overlay`, which dismisses through
-				// `useDismissable` rather than this predicate — keeps the ancestor test.
-				!(reference != null && targetPortal.contains(reference)))
-
-	return !insideFloating && !insideReference && !onScrollbar && !insideNestedFloating
+	return !(reference != null && targetPortal.contains(reference))
 }
 
 type FloatingUIOptions = FloatingPanelOptions & {
@@ -418,7 +436,7 @@ export function useFloatingUI({
 		onDismiss: (event) => onOpenChangeRef.current(false, event, 'escape-key'),
 	})
 
-	useFloatingPortalReference(open, refs, context.elements.floating ?? null)
+	useFloatingPortalReference(context, refs)
 
 	useEffect(() => {
 		if (!open) return
