@@ -53,6 +53,30 @@ describe('JsonTree', () => {
 		expect(screen.getByText('"value"')).toBeInTheDocument()
 	})
 
+	it('restores a descendant expansion after its ancestor is collapsed and reopened', () => {
+		renderUI(<JsonTree data={{ outer: { inner: { leaf: 1 } } }} defaultExpandDepth={2} />)
+
+		const inner = screen.getByText('"inner"').closest('button')
+
+		if (!inner) throw new Error('inner toggle not found')
+
+		fireEvent.click(inner)
+
+		expect(screen.getByText('"leaf"')).toBeInTheDocument()
+
+		const outer = screen.getByText('"outer"').closest('button')
+
+		if (!outer) throw new Error('outer toggle not found')
+
+		// Collapsing unmounts every descendant, so a node holding its expansion
+		// only in local state loses it. The tree-level memory outlives the unmount.
+		fireEvent.click(outer)
+
+		fireEvent.click(outer)
+
+		expect(screen.getByText('"leaf"')).toBeInTheDocument()
+	})
+
 	it('shows a summary when a branch is closed', () => {
 		renderUI(<JsonTree data={{ items: [1, 2, 3] }} defaultExpandDepth={1} />)
 

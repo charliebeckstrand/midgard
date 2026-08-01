@@ -30,6 +30,45 @@ describe('Tree', () => {
 		expect(b).toHaveAttribute('aria-setsize', '3')
 	})
 
+	it('drops a branch subtree while closed under the default mount policy', () => {
+		const { container } = renderUI(
+			<Tree aria-label="Files">
+				<TreeItem label="src" defaultOpen>
+					<TreeItem label="a.ts" />
+				</TreeItem>
+			</Tree>,
+		)
+
+		fireEvent.click(screen.getByText('src'))
+
+		expect(container.textContent).not.toContain('a.ts')
+	})
+
+	it('keeps a nested expansion across a parent collapse under mount="lazy"', () => {
+		renderUI(
+			<Tree aria-label="Files" mount="lazy">
+				<TreeItem label="src" defaultOpen>
+					<TreeItem label="nested">
+						<TreeItem label="deep.ts" />
+					</TreeItem>
+				</TreeItem>
+			</Tree>,
+		)
+
+		fireEvent.click(screen.getByText('nested'))
+
+		expect(screen.getByText('deep.ts')).toBeInTheDocument()
+
+		// Under `active` this collapse unmounts `nested`, taking its uncontrolled
+		// open state with it, and reopening `src` shows it closed again. Held, the
+		// subtree stays mounted and keeps that state.
+		fireEvent.click(screen.getByText('src'))
+
+		fireEvent.click(screen.getByText('src'))
+
+		expect(screen.getByText('deep.ts')).toBeInTheDocument()
+	})
+
 	it('renders with data-slot="tree", role="tree", and the required accessible name', () => {
 		const { container } = renderUI(
 			<Tree aria-label="Files">

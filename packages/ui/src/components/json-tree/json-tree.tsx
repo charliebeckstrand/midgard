@@ -62,6 +62,10 @@ export function JsonTree({
 }: JsonTreeProps) {
 	const ref = useRef<HTMLDivElement>(null)
 
+	// Outlives the nodes that write it, so a collapsed-then-reopened branch
+	// restores the expansions made inside it. See `JsonTreeContext.userOpen`.
+	const userOpen = useRef(new Map<string, boolean>())
+
 	const { value: searchValue, filter } = normalizeSearch(search)
 
 	const searchIndex = useMemo(() => buildSearchIndex(data, searchValue), [data, searchValue])
@@ -102,6 +106,7 @@ export function JsonTree({
 				path: '',
 				expanded,
 				onExpandedChange,
+				userOpen,
 			}}
 		>
 			<div

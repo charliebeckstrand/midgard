@@ -17,6 +17,11 @@
  * measured refit stays with {@link MapPlat}; it reprojects to constant-pixel
  * marks a beat after mount, landing after the first paint this canonical draw
  * already served.
+ *
+ * A mount policy that holds a hidden map is not a substitute. It removes the
+ * remount case above and nothing else — two plats drawing one atlas still need
+ * the shared result — so a hold shifts this cache's hit rate without retiring
+ * it.
  */
 
 import type { GeoProjection } from 'd3-geo'
