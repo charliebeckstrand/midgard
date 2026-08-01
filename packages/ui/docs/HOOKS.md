@@ -96,13 +96,12 @@ The a11y hooks export their option and return shapes for consumers that thread t
 | `A11yLiveRegionProps` / `A11yLiveRegionOptions` / `A11yLiveLevel` | Live-region props, options, and urgency (`'polite' \| 'assertive'`). |
 | `A11yAnnouncementsOptions` | Options for `useA11yAnnouncements` (`assertive`, `enabled`). |
 
-`usePlotFrame` and the `resolveFrameSizing` function it resolves through export their sizing policy, resolved box shape, and measuring handle, shared with the chart and map modules' own frame-sizing helpers:
+`usePlotFrame` exports the types its own signature names — the sizing policy it takes, the reserve it returns, and its measuring handle — shared with the chart and map modules' frame-sizing helpers. The resolver behind it (`resolveFrameSizing`) and that resolver's return shape stay module-private; reach them at `hooks/use-plot-frame` if you are working inside the package.
 
 | Type | Summary |
 |---|---|
 | `FrameSizing` | The frame's height policy: `fixed` (pixel height), `aspect` (ratio of width), `fill` (container height), or `content` (width minus a pair of margins). |
 | `FrameReserve` | How a width-derived frame reserves its height from its own width through CSS: an `aspect` ratio, or a `content` ratio shifted by a fixed pixel offset. |
-| `ResolvedFrameSizing` | A resolved frame box: the drawing height plus its `FrameReserve`, or `null` when the height is a fixed pixel value or fills the container. |
 | `PlotFrameRef` | The hook's measuring handle: a callback ref that re-targets the observer when React swaps the plot node, still readable through `.current`. |
 
 ---

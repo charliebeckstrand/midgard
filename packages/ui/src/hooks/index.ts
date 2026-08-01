@@ -48,8 +48,6 @@ export {
 	type FrameReserve,
 	type FrameSizing,
 	type PlotFrameRef,
-	type ResolvedFrameSizing,
-	resolveFrameSizing,
 	usePlotFrame,
 } from './use-plot-frame'
 export { useResizeObserver } from './use-resize-observer'
