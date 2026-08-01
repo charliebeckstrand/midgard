@@ -140,7 +140,7 @@ describe('useResizeObserver', () => {
 		expect(callback).toHaveBeenCalledTimes(1)
 	})
 
-	it('re-subscribes when the callback identity changes', () => {
+	it('keeps one subscription across a changing callback identity', () => {
 		const element = document.createElement('div')
 
 		const { rerender } = renderHook(
@@ -156,8 +156,40 @@ describe('useResizeObserver', () => {
 
 		rerender({ callback: () => {} })
 
-		expect(stub.instances).toHaveLength(2)
+		// An inline closure is safe: the effect event holds the identity steady, so
+		// the observer neither re-subscribes nor re-fires its attach callback.
+		expect(stub.instances).toHaveLength(1)
 
-		expect(stub.instances[0]?.disconnect).toHaveBeenCalledTimes(1)
+		expect(stub.instances[0]?.disconnect).not.toHaveBeenCalled()
+	})
+
+	it('raises the latest callback after the identity changes', () => {
+		const first = vi.fn()
+
+		const second = vi.fn()
+
+		const element = document.createElement('div')
+
+		const { rerender } = renderHook(
+			({ callback }: { callback: () => void }) => {
+				const ref = useRef<HTMLDivElement>(element)
+
+				useResizeObserver(ref, callback)
+			},
+			{ initialProps: { callback: first } },
+		)
+
+		expect(first).toHaveBeenCalledTimes(1)
+
+		rerender({ callback: second })
+
+		const instance = stub.instances[0]
+
+		instance?.callback([], instance as unknown as ResizeObserver)
+
+		// The resize reaches the current callback, not the one captured at attach.
+		expect(second).toHaveBeenCalledTimes(1)
+
+		expect(first).toHaveBeenCalledTimes(1)
 	})
 })
