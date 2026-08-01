@@ -26,10 +26,6 @@
 			"types": "./src/providers/*/index.ts",
 			"default": "./src/providers/*/index.ts"
 		},
-		"./types": {
-			"types": "./src/types/index.ts",
-			"default": "./src/types/index.ts"
-		},
 		"./modules/*": {
 			"types": "./src/modules/*/index.ts",
 			"default": "./src/modules/*/index.ts"

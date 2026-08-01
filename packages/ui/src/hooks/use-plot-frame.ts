@@ -29,8 +29,6 @@ import { useIsomorphicLayoutEffect } from './use-isomorphic-layout-effect'
  * `content` derives the height from the width and a pair of margins — for
  * content whose natural shape isn't a fixed ratio, like a circle boxed by an
  * asymmetric horizontal and vertical margin.
- *
- * @internal
  */
 export type FrameSizing =
 	| { mode: 'fixed'; height: number }
@@ -74,8 +72,6 @@ export type FrameSizing =
  * would otherwise go negative, so a narrow box holds that floor instead of
  * collapsing to nothing. A `fixed` or `fill` frame reserves nothing — its
  * height is a pixel value the box takes directly.
- *
- * @internal
  */
 export type FrameReserve =
 	| { mode: 'aspect'; ratio: number }
@@ -161,8 +157,6 @@ export function resolveFrameSizing(
  * attachment itself re-targets the hook's ResizeObserver whenever React swaps
  * the plot node, intersected with the object-ref view whose `.current` readers
  * of the live node — tooltip hit-testing, hover geometry — keep dereferencing.
- *
- * @internal
  */
 export type PlotFrameRef = RefCallback<HTMLDivElement> & RefObject<HTMLDivElement | null>
 
@@ -201,7 +195,6 @@ export type PlotFrameRef = RefCallback<HTMLDivElement> & RefObject<HTMLDivElemen
  * the resolved drawing box; an unmeasured `width` stays `0`, which renders the
  * frame shell without marks for that first paint (server and client agree, so
  * no hydration mismatch).
- * @internal
  */
 export function usePlotFrame(
 	width: number | undefined,
