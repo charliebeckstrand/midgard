@@ -34,7 +34,7 @@ export type MenuTriggerProps =
 export function MenuTrigger({ children, className, ...props }: MenuTriggerProps) {
 	const { open, menuId, getReferenceProps } = useMenuState()
 
-	const { setOpen, dismissToTab, rovingKeyDown, triggerRef, setReference } = useMenuActions()
+	const { dismissToTab, rovingKeyDown, triggerRef, setReference } = useMenuActions()
 
 	const { enterSubmenu } = useMenuPointer()
 
@@ -116,10 +116,7 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 		return cloneElement(child, {
 			...getReferenceProps({
 				...child.props,
-				onClick: (event: MouseEvent) => {
-					childOnClick?.(event)
-					setOpen(!open)
-				},
+				onClick: childOnClick,
 				onKeyDown: (event: KeyboardEvent) => {
 					childOnKeyDown?.(event)
 					handleTriggerKeyDown(event)
@@ -156,10 +153,7 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 			className={cn(className)}
 			{...getReferenceProps({
 				...rest,
-				onClick: (event: MouseEvent<HTMLButtonElement>) => {
-					consumerOnClick?.(event)
-					setOpen(!open)
-				},
+				onClick: consumerOnClick,
 				onKeyDown: (event: KeyboardEvent<HTMLButtonElement>) => {
 					consumerOnKeyDown?.(event)
 					handleTriggerKeyDown(event)

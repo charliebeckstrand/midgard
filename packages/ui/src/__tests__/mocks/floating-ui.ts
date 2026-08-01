@@ -1,4 +1,4 @@
-import { type ReactNode, type RefObject, useEffect } from 'react'
+import { type ReactNode, type RefObject, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { vi } from 'vitest'
 
@@ -12,7 +12,14 @@ const noop = () => {}
 
 const identity = <T>(x: T) => x
 
-type MockContext = { open?: boolean; onOpenChange?: (open: boolean) => void }
+type MockContext = {
+	open?: boolean
+	onOpenChange?: (open: boolean) => void
+	// The real context tracks the mounted reference/floating elements as state.
+	// Both stay null here — nothing mounts a real floating element — which is
+	// what consumers reading `context.elements.floating` expect off the browser.
+	elements?: { reference: Element | null; floating: HTMLElement | null }
+}
 
 type MockProps = Record<string, unknown>
 
@@ -117,10 +124,29 @@ const floatingUIMock = {
 	shift: () => ({}),
 	size: () => ({}),
 	safePolygon: () => () => {},
-	useClick: (context: MockContext, options?: MockEnabled): MockInteraction =>
-		options?.enabled === false
-			? {}
-			: { reference: { onClick: () => context?.onOpenChange?.(true) } },
+	// Toggles, as the real hook does under its default `toggle: true`, and holds
+	// its default `stickIfOpen: true` with it: a press closes the surface only
+	// when a press opened it, so clicking a tooltip that focus or hover already
+	// raised leaves it up rather than dismissing it.
+	useClick: (context: MockContext, options?: MockEnabled): MockInteraction => {
+		const openedByClick = useRef(false)
+
+		if (options?.enabled === false) return {}
+
+		return {
+			reference: {
+				onClick: () => {
+					if (context?.open && !openedByClick.current) return
+
+					const next = !context?.open
+
+					openedByClick.current = next
+
+					context?.onOpenChange?.(next)
+				},
+			},
+		}
+	},
 	useClientPoint: (): MockInteraction => ({}),
 	useDismiss: (): MockInteraction => ({}),
 	useFocus: (context: MockContext, options?: MockEnabled): MockInteraction =>
@@ -139,7 +165,11 @@ const floatingUIMock = {
 			domReference: { current: null },
 		},
 		floatingStyles: {},
-		context: { open: opts?.open, onOpenChange: opts?.onOpenChange } as MockContext,
+		context: {
+			open: opts?.open,
+			onOpenChange: opts?.onOpenChange,
+			elements: { reference: null, floating: null },
+		} as MockContext,
 		x: 0,
 		y: 0,
 		strategy: 'absolute',
