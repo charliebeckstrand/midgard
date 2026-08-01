@@ -67,10 +67,7 @@ export function SelectTrigger({
 					{...frameProps}
 				>
 					{prefix && (
-						<span
-							data-slot="prefix"
-							className={cn('peer/prefix', k.affix.base, k.affix.prefix[size])}
-						>
+						<span data-slot="prefix" className={cn(k.affix.base, k.affix.prefix[size])}>
 							{prefix}
 						</span>
 					)}

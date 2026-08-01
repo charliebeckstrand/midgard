@@ -91,7 +91,6 @@ export function ProgressGauge({
 						fill="none"
 						strokeWidth={strokeWidth}
 						className={cn(k.gauge.track)}
-						strokeLinecap="round"
 					/>
 
 					{/* Fill */}

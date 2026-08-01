@@ -65,7 +65,9 @@ function toArray(value: string | string[] | null | undefined): string[] {
 export function useAccordionSelection(props: SingleProps | MultipleProps): AccordionSelection {
 	const isMultiple = props.type === 'multiple'
 
-	const collapsible = isMultiple ? true : (props.collapsible ?? true)
+	// Single-mode state only: the multiple-mode `toggle` branch adds and removes
+	// unconditionally and returns before any read.
+	const collapsible = isMultiple ? undefined : (props.collapsible ?? true)
 
 	// The single-mode `toArray` wrap mints a new array each call; memoization
 	// keeps the context identity stable across controlled renders.

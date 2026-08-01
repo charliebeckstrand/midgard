@@ -55,6 +55,12 @@ export function TreeItemContent({
 		if (hasChildren) onOpenChange(!open)
 	}
 
+	// Leaf row: forwards the activation to the first interactive control in the
+	// prefix slot (e.g. a Checkbox); the label acts as its hit area.
+	const forwardToPrefix = (row: HTMLDivElement) => {
+		row.querySelector<HTMLElement>(PREFIX_INTERACTIVE_SELECTOR)?.click()
+	}
+
 	const handleClick = (event: MouseEvent<HTMLDivElement>) => {
 		if (event.target instanceof Element && event.target.closest(AFFIX_SELECTOR)) return
 
@@ -64,11 +70,7 @@ export function TreeItemContent({
 			return
 		}
 
-		// Leaf row: forwards the click to the first interactive control in the
-		// prefix slot (e.g. a Checkbox); the label acts as its hit area.
-		const target = event.currentTarget.querySelector<HTMLElement>(PREFIX_INTERACTIVE_SELECTOR)
-
-		target?.click()
+		forwardToPrefix(event.currentTarget)
 	}
 
 	const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
@@ -83,9 +85,7 @@ export function TreeItemContent({
 				return
 			}
 
-			const target = event.currentTarget.querySelector<HTMLElement>(PREFIX_INTERACTIVE_SELECTOR)
-
-			target?.click()
+			forwardToPrefix(event.currentTarget)
 
 			return
 		}

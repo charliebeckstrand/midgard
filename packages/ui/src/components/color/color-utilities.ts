@@ -101,7 +101,9 @@ export function rgbaToHsva({ r, g, b, a }: Rgba): Hsva {
 	let h = 0
 
 	if (d !== 0) {
-		if (max === R) h = ((G - B) / d) % 6
+		// No `% 6` wrap on the red arm: `(G - B) / d` is already within [-1, 1]
+		// there, and the negative half wraps below.
+		if (max === R) h = (G - B) / d
 		else if (max === G) h = (B - R) / d + 2
 		else h = (R - G) / d + 4
 

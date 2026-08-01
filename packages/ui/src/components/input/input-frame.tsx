@@ -57,7 +57,7 @@ export function InputFrame({
 					className={cn(k.inputControl({ variant }), hasAffix && k.frame)}
 				>
 					{hasPrefix && (
-						<span data-slot="prefix" className={cn('peer/prefix', k.affix, k.prefix[space])}>
+						<span data-slot="prefix" className={cn(k.affix, k.prefix[space])}>
 							{prefix}
 						</span>
 					)}
