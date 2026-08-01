@@ -164,28 +164,41 @@ describe('timeCategory', () => {
 })
 
 describe('dateCategoryFormat', () => {
-	it('labels a single-year span MM-DD, dropping the reference year', () => {
-		const format = dateCategoryFormat(['2026-06-10', '2026-07-04', '2026-12-31'], 2026)
+	it('labels a single-year span month/day, dropping the reference year', () => {
+		const format = dateCategoryFormat(['2026-06-10', '2026-07-04', '2026-12-31'], 2026, 'en-US')
 
 		expect(format).not.toBeNull()
 
-		expect(format?.('2026-06-10')).toBe('06-10')
+		expect(format?.('2026-06-10')).toBe('06/10')
 
-		expect(format?.('2026-12-31')).toBe('12-31')
+		expect(format?.('2026-12-31')).toBe('12/31')
 	})
 
-	it('keeps the year as MM-DD-YYYY once any value falls outside the reference year', () => {
-		const format = dateCategoryFormat(['2025-12-30', '2026-01-02'], 2026)
+	it('keeps the year once any value falls outside the reference year', () => {
+		const format = dateCategoryFormat(['2025-12-30', '2026-01-02'], 2026, 'en-US')
 
-		expect(format?.('2025-12-30')).toBe('12-30-2025')
+		expect(format?.('2025-12-30')).toBe('12/30/2025')
 
-		expect(format?.('2026-01-02')).toBe('01-02-2026')
+		expect(format?.('2026-01-02')).toBe('01/02/2026')
+	})
+
+	it("reads the locale's own field order, not a fixed month-first one", () => {
+		const single = dateCategoryFormat(['2026-06-10', '2026-07-04'], 2026, 'de-DE')
+
+		// de-DE writes day-first with a trailing separator; en-GB day-first with a slash.
+		expect(single?.('2026-06-10')).toBe('10.06.')
+
+		expect(dateCategoryFormat(['2026-06-10'], 2026, 'en-GB')?.('2026-06-10')).toBe('10/06')
+
+		const crossYear = dateCategoryFormat(['2025-12-30', '2026-01-02'], 2026, 'de-DE')
+
+		expect(crossYear?.('2025-12-30')).toBe('30.12.2025')
 	})
 
 	it('reads Dates and epoch numbers, not just ISO strings', () => {
-		const format = dateCategoryFormat([new Date(2026, 5, 10), new Date(2026, 6, 4)], 2026)
+		const format = dateCategoryFormat([new Date(2026, 5, 10), new Date(2026, 6, 4)], 2026, 'en-US')
 
-		expect(format?.(new Date(2026, 5, 10))).toBe('06-10')
+		expect(format?.(new Date(2026, 5, 10))).toBe('06/10')
 	})
 
 	it('returns null when any value is not a date, so a plain axis keeps its labels', () => {

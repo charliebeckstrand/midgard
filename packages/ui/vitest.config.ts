@@ -33,8 +33,11 @@ export default defineConfig({
 		hookTimeout: CI ? 15_000 : 10_000,
 		provide: { asyncUtilTimeout: CI ? 4_000 : 1_000 },
 		// Date/calendar tests construct local-time dates (`new Date(y, m, d)`);
-		// pin the zone so every machine renders the same wall-clock day.
-		env: { TZ: 'UTC' },
+		// pin the zone so every machine renders the same wall-clock day. `LANG`
+		// pins the runtime locale with it: `Intl` reads the OS default otherwise,
+		// so field order and separators in any unlocalized `Intl` assertion would
+		// track the machine rather than the test.
+		env: { TZ: 'UTC', LANG: 'en-US' },
 		sequence: { shuffle: true },
 		// Forks and threads reset the module graph per file; vmThreads does NOT —
 		// it shares evaluated modules across a worker's files (the price of its

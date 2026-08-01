@@ -5,6 +5,7 @@ import { type KeyboardEvent, useCallback, useMemo, useRef, useState } from 'reac
 
 import { useControllable, useFloatingUI } from '../../hooks'
 import { useIdScope } from '../../hooks/use-id-scope'
+import { useLocale } from '../../providers/locale'
 import { useControl } from '../control/context'
 import { useFormValue } from '../form/use-form-value'
 import type { DatePickerBaseProps, DatePickerRelativeProps } from './date-picker'
@@ -76,6 +77,9 @@ export function useDatePickerRelativeState({
 	const control = useControl()
 
 	const scope = useIdScope({ id: control?.id })
+
+	// Custom-range chip labels read the same ambient locale the Calendar does.
+	const ambient = useLocale()
 
 	const resolvedDisabled = disabled || control?.disabled === true
 
@@ -382,8 +386,9 @@ export function useDatePickerRelativeState({
 	// --- Display derivations ---
 
 	const chips = useMemo<RelativeChip[]>(
-		() => relativeChips(value, presets, nowRef.current, pickedIds),
-		[value, presets, pickedIds],
+		() =>
+			relativeChips(value, presets, nowRef.current, pickedIds, ambient.locale, ambient.dateFormat),
+		[value, presets, pickedIds, ambient.locale, ambient.dateFormat],
 	)
 
 	const selectedIds = useMemo(

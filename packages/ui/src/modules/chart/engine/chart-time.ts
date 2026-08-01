@@ -277,27 +277,26 @@ export function timeTicks(options: TimeTicksOptions): ChartAxisTick[] | null {
 	return ticks
 }
 
-/** A one-or-two-digit number zero-padded to two, for a numeric date field. @internal */
-function pad2(value: number): string {
-	return String(value).padStart(2, '0')
-}
-
 /**
  * A numeric date formatter for a plain category axis: when *every* category
- * value parses as a date, labels them `MM-DD` — or `MM-DD-YYYY` once any of
- * them falls outside `referenceYear` (the current year by default), so a
- * cross-year span keeps the year and a single-year one drops it. Returns `null`
- * when any value is not a date, leaving a non-date axis its raw labels; the
- * same formatter labels the axis ticks, tooltip, and data table.
+ * value parses as a date, labels them with the locale's own two-digit
+ * month/day order — gaining the year once any of them falls outside
+ * `referenceYear` (the current year by default), so a cross-year span keeps the
+ * year and a single-year one drops it. Returns `null` when any value is not a
+ * date, leaving a non-date axis its raw labels; the same formatter labels the
+ * axis ticks, tooltip, and data table.
  *
  * @param values - Each row's raw `xKey` value, in row order.
  * @param referenceYear - The year that reads without a suffix; defaults to the
  * current calendar year.
+ * @param locale - BCP 47 tag; defaults to the runtime locale, as
+ * {@link timeCategory} does.
  * @internal
  */
 export function dateCategoryFormat(
 	values: unknown[],
 	referenceYear: number = new Date().getFullYear(),
+	locale?: string,
 ): ((value: unknown) => string) | null {
 	if (values.length === 0) return null
 
@@ -315,16 +314,20 @@ export function dateCategoryFormat(
 		if (new Date(time).getFullYear() !== referenceYear) withYear = true
 	}
 
+	// One formatter across the rows, holding the locale's own field order —
+	// `MM/DD` in en-US, `DD.MM.` in de-DE — rather than a fixed month-first one.
+	const format = new DateFormatter(resolveLocale(locale), {
+		month: '2-digit',
+		day: '2-digit',
+		...(withYear && { year: 'numeric' }),
+	})
+
 	return (value) => {
 		const time = parseInstant(value)
 
 		if (time === null) return String(value)
 
-		const date = new Date(time)
-
-		const md = `${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`
-
-		return withYear ? `${md}-${date.getFullYear()}` : md
+		return format.format(new Date(time))
 	}
 }
 
