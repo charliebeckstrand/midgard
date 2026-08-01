@@ -2,7 +2,7 @@ import * as React from 'react'
 import { Children, Fragment, isValidElement, type ReactElement, type ReactNode } from 'react'
 import * as ReactDOM from 'react-dom'
 import { IGNORED_PROPS } from '../reserved-props'
-import type { ComponentInfo, Context, ElementFact } from './types'
+import type { ComponentInfo, ComponentRegistry, Context, ElementFact } from './types'
 
 /**
  * Fragment and intrinsic HTML elements are transparent: styling/grouping
@@ -87,7 +87,19 @@ export function collectChildItems(nodes: ReactNode[]): ChildItem[] {
  * demo-local stand-in.
  */
 export function resolveType(type: unknown, context: Context): ComponentInfo | undefined {
-	const info = context.registry.byType.get(type)
+	return resolveTypeIn(context.registry, type)
+}
+
+/**
+ * {@link resolveType} against a bare registry, for callers that have no
+ * {@link Context} to build — the emptiness probe answers the same "is this a
+ * component we document?" question and must answer it the same way.
+ */
+export function resolveTypeIn(
+	registry: ComponentRegistry,
+	type: unknown,
+): ComponentInfo | undefined {
+	const info = registry.byType.get(type)
 
 	if (info) return info
 
@@ -95,7 +107,7 @@ export function resolveType(type: unknown, context: Context): ComponentInfo | un
 
 	if (typeof displayName !== 'string') return undefined
 
-	const named = context.registry.byName.get(displayName)
+	const named = registry.byName.get(displayName)
 
 	return named?.external ? named : undefined
 }

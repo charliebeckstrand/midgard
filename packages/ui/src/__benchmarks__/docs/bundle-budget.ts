@@ -18,82 +18,57 @@
  * ```
  */
 
-import fs from 'node:fs'
-import path from 'node:path'
-import { gzipSync } from 'node:zlib'
+import { type BundleReport, readBundle, stableName } from './bundle-report'
 
-const distAssets = path.resolve(import.meta.dirname, '..', '..', 'docs', 'dist', 'assets')
+/** The app's eager entry chunk, named as `readBundle` reports it. */
+const ENTRY_CHUNK = stableName('index-00000000.js')
 
 /**
- * Measured 2026-08-01 at 1628 kB total gzip and 46 kB entry gzip, after the
+ * Measured 2026-08-01 at 1626 kB total gzip and 46 kB entry gzip, after the
  * vendor-chunk split. Headroom is ~20% on the total and ~40% on the entry, which
  * is where a stray eager import shows up first.
  */
-const BUDGET = {
-	totalGzipKb: 1950,
-	entryGzipKb: 65,
-}
+const BUDGETS = [
+	{ label: 'total gzip', budgetKb: 1950, of: (report: BundleReport) => report.totalGzip },
+	{
+		label: 'entry gzip',
+		budgetKb: 65,
+		// The app's own eager chunk — `stableName` has already stripped the content
+		// hash, so this is the same name `vite-metrics.ts` reports and compares.
+		of: (report: BundleReport) => report.chunks.find((c) => c.name === ENTRY_CHUNK)?.gzip,
+	},
+] as const
 
-type Measurement = { totalGzipKb: number; entryGzipKb: number; entryFile: string }
+const report = readBundle()
 
-function measure(): Measurement {
-	if (!fs.existsSync(distAssets)) {
-		throw new Error(`No build to measure at ${distAssets} — run \`pnpm docs:build\` first.`)
-	}
+const measurements = BUDGETS.map(({ label, budgetKb, of }) => {
+	const bytes = of(report)
 
-	let totalGzip = 0
+	if (bytes === undefined) throw new Error(`No ${label} measurement in the build output.`)
 
-	let entryGzip = 0
+	return { label, budgetKb, valueKb: Math.round(bytes / 1024) }
+})
 
-	let entryFile = ''
-
-	for (const file of fs.readdirSync(distAssets)) {
-		const gzip = gzipSync(fs.readFileSync(path.join(distAssets, file))).length
-
-		totalGzip += gzip
-
-		// The entry is the hashed `index-*.js`; the app's own eager chunk, and the
-		// one a mis-scoped import inflates.
-		if (/^index-[^.]+\.js$/.test(file)) {
-			entryGzip = gzip
-
-			entryFile = file
-		}
-	}
-
-	if (!entryFile) throw new Error('No index-*.js entry chunk found in the build output.')
-
-	return {
-		totalGzipKb: Math.round(totalGzip / 1024),
-		entryGzipKb: Math.round(entryGzip / 1024),
-		entryFile,
-	}
-}
-
-const measured = measure()
-
-const report = [
-	`total gzip:  ${measured.totalGzipKb} kB (budget ${BUDGET.totalGzipKb} kB)`,
-	`entry gzip:  ${measured.entryGzipKb} kB (budget ${BUDGET.entryGzipKb} kB, ${measured.entryFile})`,
-].join('\n')
+const summary = measurements
+	.map(({ label, valueKb, budgetKb }) => `${label}: ${valueKb} kB (budget ${budgetKb} kB)`)
+	.join('\n')
 
 if (process.argv.includes('--report')) {
-	console.log(report)
+	console.log(summary)
 
 	process.exit(0)
 }
 
-const failures = [
-	measured.totalGzipKb > BUDGET.totalGzipKb &&
-		`total gzip ${measured.totalGzipKb} kB exceeds the ${BUDGET.totalGzipKb} kB budget`,
-	measured.entryGzipKb > BUDGET.entryGzipKb &&
-		`entry gzip ${measured.entryGzipKb} kB exceeds the ${BUDGET.entryGzipKb} kB budget`,
-].filter((f): f is string => typeof f === 'string')
+const over = measurements.filter(({ valueKb, budgetKb }) => valueKb > budgetKb)
 
-if (failures.length > 0) {
-	console.error(`Docs bundle over budget:\n${failures.map((f) => `  - ${f}`).join('\n')}\n`)
+if (over.length > 0) {
+	const lines = over.map(
+		(m) => `  - ${m.label} ${m.valueKb} kB exceeds the ${m.budgetKb} kB budget`,
+	)
 
-	console.error(`${report}\n`)
+	console.error(`Docs bundle over budget:\n${lines.join('\n')}\n`)
+
+	console.error(`${summary}\n`)
 
 	console.error(
 		'Either trim the regression, or raise the ceiling in bundle-budget.ts in the same commit.',
@@ -102,4 +77,4 @@ if (failures.length > 0) {
 	process.exit(1)
 }
 
-console.log(`Docs bundle within budget.\n${report}`)
+console.log(`Docs bundle within budget.\n${summary}`)

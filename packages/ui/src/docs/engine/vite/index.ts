@@ -137,7 +137,15 @@ export function defineDocsConfig({
 					advancedChunks: {
 						groups: [
 							{ name: 'vendor-react', test: /node_modules[\\/](react|react-dom|scheduler)[\\/]/ },
-							{ name: 'vendor-motion', test: /node_modules[\\/]motion[\\/]/ },
+							// `motion` is a re-export shim; the runtime it forwards to lives in
+							// `framer-motion`, `motion-dom`, and `motion-utils`. Matching the
+							// shim alone leaves the runtime glued to whichever app chunk pulls
+							// it — which for this site is `primitives/mount`, so every edit
+							// there would re-hash all of framer-motion.
+							{
+								name: 'vendor-motion',
+								test: /node_modules[\\/](motion|motion-dom|motion-utils|framer-motion)[\\/]/,
+							},
 							{ name: 'vendor-floating-ui', test: /node_modules[\\/]@floating-ui[\\/]/ },
 							{ name: 'vendor-tanstack', test: /node_modules[\\/]@tanstack[\\/]/ },
 						],

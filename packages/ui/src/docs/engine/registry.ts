@@ -165,13 +165,6 @@ export function loadComponentApi(id: string): Promise<ComponentApi[]> {
 // chrome reads them at render time, after the consumer's entry has mounted.
 export let demos: Demo[] = []
 
-/**
- * The same demos keyed by id. The chrome resolves the current route on every
- * App render, which is a linear scan of ~110 entries against `demos`; this is
- * that lookup in one step. Rebuilt with `demos`, so the two cannot diverge.
- */
-export let demoById: ReadonlyMap<string, Demo> = new Map()
-
 export let defaultDemo = ''
 
 /**
@@ -216,8 +209,6 @@ export function initRegistry(loaders: DemoLoaders): { initialPreload: Promise<un
 	}
 
 	demos = list.sort((a, b) => a.name.localeCompare(b.name))
-
-	demoById = new Map(demos.map((demo) => [demo.id, demo]))
 
 	defaultDemo = demos[0]?.id || ''
 

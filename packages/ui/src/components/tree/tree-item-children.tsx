@@ -31,6 +31,9 @@ export function stampTreePositions(children: ReactNode): ReactNode {
 	})
 }
 
+/** Hoisted: `TreeItemChildren` renders once per branch, and this never varies. */
+const DEFER = { defer: true } as const
+
 type TreeItemChildrenProps = {
 	open: boolean
 	label: ReactNode
@@ -54,7 +57,7 @@ type TreeItemChildrenProps = {
 export function TreeItemChildren({ open, label, children }: TreeItemChildrenProps) {
 	const { depth, size, indent, mount } = useTreeContext()
 
-	const hold = useMountHold(open, mount, { defer: true })
+	const hold = useMountHold(open, mount, DEFER)
 
 	const childContextValue = useMemo(
 		() => ({ depth: depth + 1, size, indent, mount }),

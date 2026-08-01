@@ -17,8 +17,9 @@ import {
 	renderOpenTag,
 	resolvePreamble,
 	resolveType,
+	resolveTypeIn,
 } from './internals'
-import { defaultRegistry, readTag } from './registry'
+import { defaultRegistry } from './registry'
 import type { ComponentRegistry, Context, SourceFacts } from './types'
 
 export { defaultRegistry } from './registry'
@@ -92,32 +93,45 @@ export function deriveCode(
 
 /**
  * Whether {@link deriveCode} would produce anything for this subtree — that is,
- * whether it holds at least one tagged component.
+ * whether it holds at least one component the docs recognize.
  *
  * `deriveCode` returns `null` exactly when its walk collected no imports, so
- * finding one tagged element answers the question. This short-circuits there
- * instead of rendering the whole JSX string, resolving a preamble, and possibly
- * walking a second pass for the consistency rule.
+ * finding one recognized element answers the question. This short-circuits
+ * there instead of rendering the whole JSX string, resolving a preamble, and
+ * possibly walking a second pass for the consistency rule.
  *
- * `Example` asks it once per mount to decide whether the code trigger renders at
- * all, so on a page of many demos the difference is one cheap probe each against
- * one full derivation each.
+ * Resolution goes through the same {@link resolveTypeIn} the real walk uses, so
+ * a tagged library component and an external one matched by `displayName` (a
+ * lucide icon, say) both count — reading tags alone would hide the code trigger
+ * on an icons-only demo.
+ *
+ * @remarks
+ * Descends `children` only. `deriveCode` also collects imports from
+ * element-valued props and from `__code` snippets, so a demo whose *only*
+ * recognized component reaches it by one of those paths still reports `false`.
+ * Both are rare next to the walk this covers, and the failure is a hidden code
+ * block rather than a broken one.
  */
-export function hasDerivableCode(children: ReactNode): boolean {
+export function hasDerivableCode(
+	children: ReactNode,
+	registry: ComponentRegistry = defaultRegistry,
+): boolean {
 	const stack: ReactNode[] = [children]
 
 	while (stack.length > 0) {
 		const node = stack.pop()
 
 		if (Array.isArray(node)) {
-			stack.push(...node)
+			// Not `push(...node)`: a spread passes each entry as an argument and
+			// blows the call-argument ceiling on a large array.
+			for (const child of node) stack.push(child)
 
 			continue
 		}
 
 		if (!isValidElement(node)) continue
 
-		if (readTag(node.type) !== undefined) return true
+		if (resolveTypeIn(registry, node.type) !== undefined) return true
 
 		const { children: nested } = node.props as { children?: ReactNode }
 

@@ -73,44 +73,46 @@ function isDemoFile(file: string, demosDir: string): boolean {
 	return file.startsWith(demosDir + path.sep) && file.endsWith('.tsx')
 }
 
-/**
- * Last parsed meta per demo, keyed by absolute path and validated against the
- * file's mtime. One demo edit invalidates the whole `demo-metas` module, and
- * regenerating it re-parses every demo — ~110 of them — to pick up the one that
- * changed. The directory walk still runs (it is a `readdir`, and it is what
- * detects an added or deleted demo); only the ts-morph parse is reused.
- */
-const demoMetaCache = new Map<string, { mtimeMs: number; meta: DemoMeta }>()
+/** Last parsed meta for one demo, valid while its file keeps this mtime. */
+type DemoMetaCache = Map<string, { mtimeMs: number; meta: DemoMeta }>
 
-function generateDemoMetas(demosDir: string): Record<string, DemoMeta> {
+/**
+ * One demo edit invalidates the whole `demo-metas` module, and regenerating it
+ * would re-parse every demo — ~110 of them — to pick up the one that changed.
+ * `cache` carries the previous pass's parses; an unchanged mtime reuses one,
+ * which also skips reading the file. The directory walk still runs: it is a
+ * `readdir`, and it is what notices an added or deleted demo.
+ *
+ * The cache is rebuilt rather than pruned, so it tracks the directory
+ * structurally — a demo that disappears is simply not carried over.
+ */
+function generateDemoMetas(demosDir: string, cache: DemoMetaCache): Record<string, DemoMeta> {
 	const project = new Project({ useInMemoryFileSystem: true, skipLoadingLibFiles: true })
 
 	const result: Record<string, DemoMeta> = {}
 
-	const seen = new Set<string>()
+	const next: DemoMetaCache = new Map()
 
 	forEachDemoFile(demosDir, (full) => {
 		const rel = path.relative(demosDir, full).replaceAll(path.sep, '/')
 
-		seen.add(full)
-
 		const { mtimeMs } = fs.statSync(full)
 
-		const cached = demoMetaCache.get(full)
+		const cached = cache.get(full)
 
 		const meta =
 			cached?.mtimeMs === mtimeMs
 				? cached.meta
 				: parseMeta(project, full, fs.readFileSync(full, 'utf-8'))
 
-		demoMetaCache.set(full, { mtimeMs, meta })
+		next.set(full, { mtimeMs, meta })
 
 		result[`./demos/${rel}`] = meta
 	})
 
-	// Drop deleted demos so the cache tracks the directory rather than growing
-	// with every file the session has ever seen.
-	for (const key of demoMetaCache.keys()) if (!seen.has(key)) demoMetaCache.delete(key)
+	cache.clear()
+
+	for (const [key, entry] of next) cache.set(key, entry)
 
 	return result
 }
@@ -475,6 +477,11 @@ export function docsPlugin({
 	let srcDir = srcDirOption ?? ''
 	let demosDir = ''
 
+	// Per plugin instance, not module-global: the prune is keyed on this
+	// instance's `demosDir`, so a second instance in one process would evict the
+	// first's entries on every regeneration.
+	const demoMetaCache: DemoMetaCache = new Map()
+
 	// Lazily created on first read so `vitest` builds never open a Project. One
 	// long-lived extractor per plugin: it reuses its scoped ts-morph Project and
 	// re-extracts only the barrels a changed file feeds.
@@ -514,7 +521,7 @@ export function docsPlugin({
 			},
 			{
 				id: 'virtual:demo-metas',
-				generate: () => (vitest ? {} : generateDemoMetas(demosDir)),
+				generate: () => (vitest ? {} : generateDemoMetas(demosDir, demoMetaCache)),
 				shouldInvalidate: (file) => isDemoFile(file, demosDir),
 			},
 			{
@@ -572,9 +579,7 @@ export function docsPlugin({
 		transform(code, id) {
 			const cleanId = id.split('?')[0] ?? ''
 
-			if (!cleanId.startsWith(demosDir + path.sep)) return
-
-			if (!cleanId.endsWith('.tsx')) return
+			if (!isDemoFile(cleanId, demosDir)) return
 
 			const sf = ts.createSourceFile(cleanId, code, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX)
 

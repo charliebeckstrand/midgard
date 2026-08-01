@@ -34,6 +34,10 @@
       ],
       "outputs": ["src/docs/dist/**"]
     },
+    "bundle:budget": {
+      "dependsOn": ["docs:build"],
+      "inputs": ["src/docs/dist/**", "src/__benchmarks__/docs/bundle-*.ts"]
+    },
     "lint": {
       "inputs": ["src/**", "app/**", "*.config.ts", "$TURBO_ROOT$/biome.json"]
     },

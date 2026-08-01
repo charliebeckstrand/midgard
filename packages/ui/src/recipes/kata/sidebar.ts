@@ -125,9 +125,7 @@ export const k = {
 		prefix: itemPrefix,
 		suffix: itemSuffix,
 	},
-	section: {
-		base: [flex.col, 'gap-0.5'],
-	},
+	section: [flex.col, 'gap-0.5'],
 	list: [flex.col, 'gap-0.5'],
 	label: ['truncate', mini.srOnly],
 	header: [flex.row, 'gap-3'],

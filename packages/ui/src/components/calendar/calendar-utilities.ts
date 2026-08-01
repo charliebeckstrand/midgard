@@ -96,10 +96,6 @@ export function getFirstDayColumn(year: number, month: number, locale: string): 
 // deterministic across server and client renders.
 const WEEKDAY_REFERENCE = new CalendarDate(2021, 1, 3)
 
-// The same fixed-reference rule for month labels: January of the reference year,
-// walked forward a month at a time.
-const MONTH_REFERENCE = new CalendarDate(2021, 1, 1)
-
 /** Short weekday labels ordered by the locale's first day of the week. */
 export function getWeekdayLabels(locale: string): string[] {
 	const formatter = new Intl.DateTimeFormat(locale, { weekday: 'short' })
@@ -115,7 +111,7 @@ export function getWeekdayLabels(locale: string): string[] {
 export function getMonthLabels(locale: string): string[] {
 	const formatter = new Intl.DateTimeFormat(locale, { month: 'short' })
 
-	return Array.from({ length: 12 }, (_, index) =>
-		formatter.format(fromCalendarDate(MONTH_REFERENCE.add({ months: index }))),
-	)
+	// Same fixed-reference rule as the weekday labels, through the file's own
+	// month helper: output depends on the locale, never on the current date.
+	return Array.from({ length: 12 }, (_, index) => formatter.format(firstOfMonth(2021, index)))
 }

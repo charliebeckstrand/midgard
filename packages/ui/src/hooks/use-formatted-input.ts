@@ -12,9 +12,6 @@ type FormattedInputOptions = {
 	 * caret aligned with the typed character when format inserts or removes
 	 * separators.
 	 * @defaultValue a predicate matching ASCII alphanumerics and `+`
-	 */
-	meaningful?: (char: string) => boolean
-	/**
 	 * @remarks
 	 * A padding formatter breaks this contract: CurrencyInput's `.` → `0.` and
 	 * DateInput's `1/` → `01/` insert a *meaningful* character, so the restore
@@ -24,6 +21,7 @@ type FormattedInputOptions = {
 	 * option — masks must keep `'restore'`, since a caret before trailing
 	 * separators is what makes backspace work.
 	 */
+	meaningful?: (char: string) => boolean
 	/** External ref to compose with the engine's internal input ref. */
 	ref?: Ref<HTMLInputElement>
 }
