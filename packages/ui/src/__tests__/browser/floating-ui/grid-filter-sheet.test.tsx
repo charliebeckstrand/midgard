@@ -48,10 +48,13 @@ describe('grid column filter sheet (real browser)', () => {
 
 		await userEvent.click(operator)
 
-		await userEvent.click(await screen.findByRole('option', { name: 'starts with' }))
+		// "Starts with", not the operator's raw `starts with` label: the select
+		// family first-word-capitalizes option labels and the trigger's display
+		// string alike, so both surfaces read capitalized here.
+		await userEvent.click(await screen.findByRole('option', { name: 'Starts with' }))
 
 		// The sheet stands, and the pick committed to the draft's operator trigger.
-		await waitFor(() => expect(operator).toHaveTextContent('starts with'))
+		await waitFor(() => expect(operator).toHaveTextContent('Starts with'))
 
 		expect(screen.getByRole('button', { name: 'Add' })).toBeInTheDocument()
 	})

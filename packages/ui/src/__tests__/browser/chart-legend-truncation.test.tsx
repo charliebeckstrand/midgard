@@ -1,5 +1,5 @@
 import { beforeAll, describe, expect, it } from 'vitest'
-import { page } from 'vitest/browser'
+import { page, userEvent } from 'vitest/browser'
 import { PieChart } from '../../modules/chart/pie-chart'
 import { allBySlot, bySlot, renderUI, waitFor } from '../helpers'
 
@@ -93,12 +93,20 @@ describe('chart legend panel (real browser)', () => {
 		const long = entries[0] as HTMLElement
 		const short = entries[1] as HTMLElement
 
+		// The detector measures lazily — an entry the pointer never visits pays no
+		// layout read — so contact is what arms it. Nothing observes `truncated`
+		// before then, which is why hovering is a precondition here rather than
+		// part of the claim.
+		await userEvent.hover(long)
+
 		// The clipped entry arms the tooltip (cursor-help rides `enabled`, gated by
 		// the shared truncation detector)...
-		expect(long.className).toContain('cursor-help')
+		await waitFor(() => expect(long.className).toContain('cursor-help'))
 
-		// ...while the entry that fits neither clips nor arms.
+		// ...while the entry that fits neither clips nor arms, on the same contact.
 		expect(clip(short).scrollWidth).toBeLessThanOrEqual(clip(short).clientWidth)
+
+		await userEvent.hover(short)
 
 		expect(short.className).not.toContain('cursor-help')
 	})

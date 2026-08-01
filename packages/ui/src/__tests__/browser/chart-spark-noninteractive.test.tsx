@@ -151,16 +151,23 @@ describe('spark tier is non-interactive (real browser)', () => {
 	// only difference between the pair is the spark pointer veto.
 	const ONE_BAR = [{ month: 'January', revenue: 60_000 }]
 
+	// Left at the default tooltip, so the framed tier mounts the hit layer the
+	// lift rides; the spark tier stands that layer down whatever the prop says
+	// (asserted above), which is exactly what leaves its drawing inert.
 	const hoverBar = (width: number, height: number) => (
 		<BarChart
 			aria-label="Revenue"
 			data={ONE_BAR}
 			series={[{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' }]}
-			tooltip={false}
 			width={width}
 			height={height}
 		/>
 	)
+
+	/** The lift, as the marks draw it: the series path dims and the pointed bar re-draws lit over it. */
+	const lifted = (container: HTMLElement) =>
+		(bySlot(container, 'chart-bar')?.getAttribute('class') ?? '').includes('opacity-25') &&
+		allBySlot(container, 'chart-bar-spot').length === 1
 
 	it('a spark bar takes no hover styling — the drawing is pointer-inert', async () => {
 		const { container } = renderUI(hoverBar(140, 100))
@@ -184,15 +191,17 @@ describe('spark tier is non-interactive (real browser)', () => {
 
 		expect(box.bottom).toBeGreaterThan(point.y)
 
+		// Hovering the chart, not the mark: the drawing is pointer-inert here, so
+		// the mark could never take the pointer to begin with — which is the point.
 		await userEvent.hover(root)
 
 		// The pointer arrived — the root reads :hover — yet the inert mark never
-		// does, so its hover lift cannot engage.
+		// does, and with no hit layer to feed it, nothing lights the bar either.
 		await waitFor(() => expect(root.matches(':hover')).toBe(true))
 
 		expect(mark.matches(':hover')).toBe(false)
 
-		expect(getComputedStyle(mark).filter).toBe('none')
+		expect(lifted(container)).toBe(false)
 	})
 
 	it('a framed bar keeps its hover lift', async () => {
@@ -200,9 +209,25 @@ describe('spark tier is non-interactive (real browser)', () => {
 
 		const mark = bySlot(container, 'chart-bar') as HTMLElement
 
-		await userEvent.hover(mark)
+		const hit = bySlot(container, 'chart-hit') as HTMLElement
 
-		await waitFor(() => expect(getComputedStyle(mark).filter).toContain('brightness'))
+		expect(lifted(container)).toBe(false)
+
+		// The hit layer covers the plot and takes the pointer, so the hover goes
+		// through it — aimed at the bar's own centre, so that bar is the pointed
+		// datum rather than a neighbour.
+		const barBox = mark.getBoundingClientRect()
+
+		const hitBox = hit.getBoundingClientRect()
+
+		await userEvent.hover(hit, {
+			position: {
+				x: barBox.left + barBox.width / 2 - hitBox.left,
+				y: barBox.top + barBox.height / 2 - hitBox.top,
+			},
+		})
+
+		await waitFor(() => expect(lifted(container)).toBe(true))
 	})
 
 	// A mid-domain rule, so the dashed line crosses the chart's center row where
