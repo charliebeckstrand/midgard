@@ -3,6 +3,14 @@ import { docsPlugin } from './src/docs/engine/plugins'
 
 const CI = Boolean(process.env.CI)
 
+const SEED = process.env.VITEST_SEED
+
+// Every project spreads this and adds its own `groupOrder`. A project-level
+// `sequence` replaces the resolved object rather than merging into it, so a
+// project that set `groupOrder` alone would silently lose `shuffle` and `seed`
+// — the same wholesale replace that makes `--sequence.seed` unsafe.
+const sequence = { shuffle: true, ...(SEED ? { seed: Number(SEED) } : {}) }
+
 // Setup files for both jsdom projects (unit, integration).
 const setupFiles = [
 	'./src/__tests__/setup/index.ts',
@@ -39,22 +47,19 @@ export default defineConfig({
 		// would read as set and change nothing. The `test` scripts export `LANG`
 		// ahead of Node instead.
 		env: { TZ: 'UTC' },
-		// `shuffle` selects RandomSequencer, whose sort is only `shuffle(files,
-		// seed)` — it drops the project grouping BaseSequencer applies, so every
-		// project's files land in one interleaved queue. That matters because a
-		// pool hands a worker on to the next file only when the head of the queue
-		// belongs to the same project; otherwise it terminates the worker and the
-		// module graph `isolate: false` exists to keep. Interleaved, this suite
-		// crossed projects 75 times in one run. Each project therefore declares a
-		// `groupOrder` below, which restores the grouping — groups run lowest
-		// first, and the shuffle still applies within each one, so the seed still
-		// reorders siblings.
+		// `shuffle` selects RandomSequencer, which drops the project grouping
+		// BaseSequencer applies. Every project's files then land in one queue, and
+		// a worker is terminated at each crossing — along with the module graph
+		// `isolate: false` exists to keep. Each project below takes its
+		// `groupOrder` from its position in the array, which restores the
+		// grouping; the shuffle still applies inside each group.
 		//
-		// To replay a red run, set `seed` here rather than pass
-		// `--sequence.seed`: the flag replaces this whole object, which drops the
-		// per-project `groupOrder` with it and reorders the queue the failure came
+		// Replay a red run with `VITEST_SEED=<seed> pnpm test`, never with
+		// `--sequence.seed`: a CLI override is shallow-merged over each project's
+		// `test` block, so it replaces the resolved sequence object and drops
+		// `groupOrder` with it — which reorders the very queue the failure came
 		// from.
-		sequence: { shuffle: true },
+		sequence,
 		// Within a file a vi.spyOn or vi.stubGlobal outlives its test unless
 		// restored, and sequence.shuffle randomizes sibling order — so an
 		// unrestored spy or stub leaks into whichever test runs next. restoreMocks
@@ -105,8 +110,6 @@ export default defineConfig({
 				plugins: [docsPlugin({ vitest: true })],
 				test: {
 					name: 'unit',
-					// First, and by far the largest: 407 of the 444 files.
-					sequence: { groupOrder: 0 },
 					setupFiles,
 					pool: 'threads',
 					// `isolate: false` keeps the evaluated module graph across a
@@ -146,7 +149,6 @@ export default defineConfig({
 				// serializes into real wall clock on few-core CI agents.
 				test: {
 					name: 'boundary',
-					sequence: { groupOrder: 2 },
 					environment: 'node',
 					pool: 'threads',
 					isolate: false,
@@ -164,13 +166,15 @@ export default defineConfig({
 				// the fast shared-worker pool above.
 				test: {
 					name: 'integration',
-					sequence: { groupOrder: 1 },
 					setupFiles,
 					pool: 'forks',
 					include: ['src/__tests__/boundary/**/*.test.{ts,tsx}'],
 					exclude: [...configDefaults.exclude, '**/*-boundary.test.ts'],
 				},
 			},
-		],
+		].map((project, groupOrder) => ({
+			...project,
+			test: { ...project.test, sequence: { ...sequence, groupOrder } },
+		})),
 	},
 })

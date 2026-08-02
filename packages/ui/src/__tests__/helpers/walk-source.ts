@@ -11,7 +11,7 @@ import { join, relative } from 'node:path'
  */
 export const srcDir = join(__dirname, '..', '..')
 
-// Entries a scan of the shipped tree should not descend into: test and bench
+// Entries a scan of the shipped tree must not descend into: test and bench
 // trees, build output, and dot-directories. A caller that scans the test tree
 // hands in its root directly, which no entry filter can prune — see
 // test-isolation-boundary. data-slot-boundary keeps its own collector for the
@@ -24,7 +24,7 @@ const SKIP = new Set(['__tests__', '__benchmarks__', 'node_modules', 'dist'])
  * @remarks
  * Dot-entries, test and benchmark trees, and build output are skipped, plus
  * any caller-supplied `skip` entry names — pruned before the read, so an
- * excluded tree costs no I/O. `dir` itself is never pruned, so a caller may
+ * excluded tree costs no I/O. `dir` itself is never pruned, so a caller can
  * point this at a tree the default set excludes. Shared by the boundary tests,
  * which scan source layers for forbidden patterns.
  */
@@ -54,26 +54,18 @@ type PatternRule = { label: string; regex: RegExp }
  * `expect(violations, …).toEqual([])` assertion. `regex` rules must carry
  * the `g` flag. Files not matching `fileFilter` are skipped, and `skip` prunes
  * directory entries by name before the read; violation paths are reported
- * relative to `srcDir` (the package's `src/` by default). Set `stripComments`
- * when a rule bans a call rather than a token, so prose that names the call
- * does not read as a violation.
+ * relative to `srcDir`. Set `stripComments` when a rule bans a call rather than
+ * a token, so prose that names the call does not read as a violation; the strip
+ * is textual, so it also blanks a `//` inside a string literal.
  */
 export function collectPatternViolations(options: {
 	dir: string
-	srcDir?: string
 	patterns: readonly PatternRule[]
 	fileFilter?: RegExp
 	skip?: ReadonlySet<string>
 	stripComments?: boolean
 }): string[] {
-	const {
-		dir,
-		srcDir: root = srcDir,
-		patterns,
-		fileFilter = /\.(?:tsx?|mts|cts)$/,
-		skip,
-		stripComments = false,
-	} = options
+	const { dir, patterns, fileFilter = /\.(?:tsx?|mts|cts)$/, skip, stripComments = false } = options
 
 	const violations: string[] = []
 
@@ -82,7 +74,7 @@ export function collectPatternViolations(options: {
 		(file, content) => {
 			if (!fileFilter.test(file)) return
 
-			const rel = relative(root, file)
+			const rel = relative(srcDir, file)
 
 			const text = stripComments
 				? content.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '')

@@ -1,9 +1,10 @@
 import { strFromU8, unzipSync } from 'fflate'
-import { describe, expect, it, onTestFinished, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import type { GridColumn } from '../../modules/grid'
 import { downloadExcel, rowsToXlsx } from '../../modules/grid/engine/grid-export/excel'
 import { rowsToHtmlTable } from '../../modules/grid/engine/grid-export/html-table'
 import { printRows, rowsToPrintHtml } from '../../modules/grid/engine/grid-export/print'
+import { captureAppended } from '../helpers/capture-appended'
 
 type Row = { id: number; name: string; role: string }
 
@@ -132,48 +133,15 @@ describe('rowsToPrintHtml', () => {
 	})
 })
 
-/**
- * Run `printRows` and return the iframe it appended.
- *
- * `printRows` reclaims its iframe from an `afterprint` or window-`focus`
- * handler, and jsdom fires neither, so every call leaves the node attached.
- * Teardown dispatches the window `focus` a real browser would. That drives the
- * module's own `cleanup`, which removes the node and also releases the
- * `{ once: true }` listener that closes over the iframe and its print document
- * — a listener only the tests that dispatch `load` ever register.
- *
- * Teardown runs through `onTestFinished`, so it survives a throwing assertion
- * above it.
- */
-function printAndCapture(): HTMLIFrameElement {
-	const appendChild = vi.spyOn(document.body, 'appendChild')
-
-	printRows(columns, rows)
-
-	const iframe = appendChild.mock.calls.at(-1)?.[0] as HTMLIFrameElement
-
-	appendChild.mockRestore()
-
-	onTestFinished(() => {
-		window.dispatchEvent(new Event('focus'))
-
-		iframe.remove()
-	})
-
-	return iframe
-}
-
 describe('printRows', () => {
 	it('appends a hidden iframe carrying the printable document as srcdoc', () => {
-		const iframe = printAndCapture()
-
-		expect(iframe.tagName).toBe('IFRAME')
+		const iframe = captureAppended<HTMLIFrameElement>(() => printRows(columns, rows), 'IFRAME')
 
 		expect(iframe.srcdoc).toBe(rowsToPrintHtml(columns, rows))
 	})
 
 	it('cleans up the iframe on load when contentWindow is unavailable', () => {
-		const iframe = printAndCapture()
+		const iframe = captureAppended<HTMLIFrameElement>(() => printRows(columns, rows), 'IFRAME')
 
 		Object.defineProperty(iframe, 'contentWindow', { value: null, configurable: true })
 
@@ -183,7 +151,7 @@ describe('printRows', () => {
 	})
 
 	it('focuses and prints through the iframe window, deferring cleanup to afterprint', () => {
-		const iframe = printAndCapture()
+		const iframe = captureAppended<HTMLIFrameElement>(() => printRows(columns, rows), 'IFRAME')
 
 		const win = { addEventListener: vi.fn(), focus: vi.fn(), print: vi.fn() }
 
@@ -202,7 +170,7 @@ describe('printRows', () => {
 	})
 
 	it('reclaims the iframe when the window regains focus and afterprint never fires', () => {
-		const iframe = printAndCapture()
+		const iframe = captureAppended<HTMLIFrameElement>(() => printRows(columns, rows), 'IFRAME')
 
 		const win = { addEventListener: vi.fn(), focus: vi.fn(), print: vi.fn() }
 

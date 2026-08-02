@@ -10,9 +10,8 @@
  * code-block.test.tsx are the only shiki consumers and previously each declared
  * a divergent local `vi.mock('shiki')` (see setup/module-mocks.ts). Whichever
  * file loaded first won the shared module registry, so Markdown's `data-lang`
- * assertion intermittently saw
- * CodeBlock's attribute-less markup and timed out. One global factory both
- * agree on removes the order dependence.
+ * assertion intermittently saw CodeBlock's attribute-less markup and timed out.
+ * One global factory both agree on removes the order dependence.
  */
 
 import { vi } from 'vitest'

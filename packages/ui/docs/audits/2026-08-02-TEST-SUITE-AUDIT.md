@@ -2,19 +2,19 @@
 
 Survey of the `packages/ui` Vitest suite (2026-08-02) for speed, stability, and consolidation. The suite holds 524 test files. 444 of them run under `pnpm test`; the other 80 run in the browser suite. The jsdom suite runs 5643 tests.
 
-The method is the one the built-in adoption audit set: a claim is not a finding until somebody read, probed, or ran something. Three lenses swept the suite and a skeptic tried to refute each claim. 26 claims went in; 18 survived and 8 did not. The refuted claims are recorded under Ruled out, because they name ground that the next audit does not need to walk again.
+The method is the one the built-in adoption audit set: a claim is not a finding until somebody read, probed, or ran something. Three lenses swept the suite and a skeptic tried to refute each claim. Of 26 claims, 8 did not survive; they are recorded under Ruled out, because they name ground the next audit does not need to walk again.
 
-The headline is one config change. The suite spends 69% of its processor work on per-file fixed cost, not on test execution. One pool change removes most of that cost, and a sequencer fix recovers what the shuffle was giving back: together they take the suite from 143.4s to about 47s. The rest of this document is mostly about what that change makes unsafe, because a shared environment turns three latent leaks into real ones.
+The headline is one config change. The suite spends 69% of its processor work on per-file fixed cost, not on test execution. One pool change removes most of that cost, and a sequencer fix recovers what the shuffle was giving back: together they take the suite from 143.4s to about 47s. The rest of this document is about what a shared environment makes unsafe, and what it turned out not to.
 
 ## Measured
 
 All numbers come from an idle machine with 4 cores. Compare them only against each other. An earlier container ran about 40% slower, and that difference invalidated one inference (see Corrections).
 
-The committed configuration runs 444 files and 5643 tests in 143.3s. The three projects are not equal:
+The committed configuration ran 444 files and 5643 tests in 143.4s. The three projects were not equal:
 
 | project | pool | files | wall |
 |---|---|---|---|
-| `unit` | vmThreads, jsdom | 407 | 149.6s alone |
+| `unit` | vmThreads, jsdom | 407 | 134-150s alone |
 | `boundary` | threads, node, `isolate: false` | 20 | 4.0s |
 | `integration` | forks, jsdom | 17 | 24.0s |
 
@@ -26,13 +26,13 @@ The phase split explains where the time goes: transform 36.3s, setup 97.4s, impo
 
 | variant | wall | setup | import | tests |
 |---|---|---|---|---|
-| vmThreads + isolate (committed) | 134.3s | 123.7s | 163.0s | 166.4s |
+| vmThreads + isolate (then committed) | 134.3s | 123.7s | 163.0s | 166.4s |
 | threads + isolate | 290.5s | 140.0s | 166.5s | 187.5s |
 | threads + `isolate: false` | 51.0s | 6.5s | 37.9s | 141.4s |
 
 `isolate: false` keeps the evaluated module graph across a worker's files instead of rebuilding it for each one. Setup drops by a factor of 19. Import drops by a factor of 4.3. Vitest still invalidates the setup modules before every file, so their bodies re-run; what stops being rebuilt is everything they import.
 
-On the full three-project configuration the change takes the suite to about 95s. Twelve shuffle seeds passed, and all 5643 tests passed in each. The control passed twice, at 141.5s and 145.3s.
+On the full three-project configuration this alone took the suite to about 95s; the sequencer fix below took it to about 47s. Every seed run passed: twelve for the pool change, five more for the sequencer.
 
 The change also lowers memory. Peak resident set is 1485 MB against 2440 MB for the control, because vmThreads holds a VM context for each file. `vmMemoryLimit: '1GB'` is a cost of vmThreads, not a guard that the candidate lacks.
 
@@ -40,19 +40,19 @@ The precondition is already paid. A shared module registry breaks on a per-file 
 
 `setup/restore-prototype-focus.ts` keeps working under the change. It captures the pristine `HTMLElement.prototype.focus` and `blur` descriptors ahead of any `userEvent.setup()`, and its body re-runs per file, so each capture reads what the previous file's `afterEach` restored.
 
-## Prerequisites
+**`sequence.shuffle` was costing more than the pool change saved.** `shuffle` selects `RandomSequencer`, whose `sort` is only `shuffle(files, seed)`; it drops the project grouping `BaseSequencer` applies, so all three projects interleave into one queue. A pool passes a worker to the next file only when the queue head belongs to the same project. At every other crossing the shared module graph was thrown away, and one measured run held 75 of them. A `groupOrder` for each project restores the grouping and takes the suite from about 70s to about 47s, with the shuffle still live inside each group. Resolved in this branch.
 
-The change shares one jsdom window across the files that each worker runs. These leaks were invisible before it, because vmThreads discarded the window for each file.
+## Shared-window leaks
 
-**`printRows` leaves a live `<iframe>` in `document.body`.** Resolved in `5e3f9ac`. `modules/grid/engine/grid-export/print.ts:74` appends the iframe. `iframe.remove()` runs only from `cleanup` (`print.ts:49`), and `cleanup` runs only on `afterprint` or on a window `focus` event. jsdom fires neither, and `setup/jsdom-stubs.ts` stubs `window.focus` to a `vi.fn()`. The node therefore survives its own file. The a11y sweeps assert over `document.body`, so this iframe lands in the tree that they read.
+A shared jsdom window turns anything that outlives a file into a cross-file fault. vmThreads hid these by discarding the window for each file.
 
-**Some suites remove body nodes after the assertion, not in an `afterEach`.** A real failure then leaves the node behind. Today the window dies with the file. Afterwards, one root-cause failure becomes many failures in unrelated files, and the true cause is hard to find.
+**`printRows` left a live `<iframe>` in `document.body`.** Resolved in `5e3f9ac`. Its `cleanup` runs only on `afterprint` or a window `focus` event, and jsdom fires neither. The a11y sweeps assert over `document.body`, so the node landed in the tree they read.
 
-**Ref-counted DOM singletons hold process-global state.** `use-scroll-lock`, `use-grabbing-cursor`, and `dismiss-layers` balance a counter on mount and unmount. Four more modules keep module-scope mutable state and touch `document` or `window`: `utilities/media-query.ts:7`, `utilities/document-listener.ts:6`, the time-ago tickers, and `use-truncation`'s shared `ResizeObserver`. The last one is the worst, because it caches a global that a test installed and keeps it after the test restores it. Export a reset for each, and call it from the `afterEach` in `setup/index.ts`, beside `__resetAnnouncer` (`core/announcer.ts:67` is the precedent).
+**Two suites removed body nodes after the assertion rather than in teardown.** Resolved in `5e3f9ac` and `cecef01`, which route both through `onTestFinished`. A failing assertion used to skip the removal, so one root-cause failure became many in unrelated files.
 
-**Three hook test files call `vi.resetModules()` seven times.** Resolved in `5e3f9ac`, and `test-isolation-boundary.test.ts` now bars the call outright. `hooks/use-media-query.test.ts:13,25,41`, `hooks/use-min-width.test.ts:13,25`, and `hooks/use-has-hover.test.ts:15,27` each reset the graph and then re-import the hook. `vitest.config.ts:58` forbids exactly this and gives the reason. Today vmThreads already shares the graph, so the cost sits in both baselines. Afterwards each call invalidates a graph that the files behind it must rebuild. Delete them.
+**Three hook test files called `vi.resetModules()` seven times.** Resolved in `5e3f9ac`. The calls were vestigial, and `test-isolation-boundary.test.ts` now bars them outright.
 
-**Vitest 4.1.10 ships `--detectAsyncLeaks`, and nothing here uses it.** Run once, reported nothing actionable (see Corrections). Keep it as a diagnostic script, never as a default: it captures a stack for every async resource.
+**Ref-counted DOM singletons hold process-global state.** Open. `use-scroll-lock`, `use-grabbing-cursor`, and `dismiss-layers` balance a counter on mount and unmount; `utilities/media-query.ts`, `utilities/document-listener.ts`, the time-ago tickers, and `use-truncation`'s shared `ResizeObserver` keep module-scope state and touch `document` or `window`. The last is the worst: it caches a global a test installed and keeps it after the test restores it. Measure each before adding a reset — the one seam this audit proposed turned out to guard nothing (see Corrections).
 
 ## Open
 
@@ -69,8 +69,6 @@ The change shares one jsdom window across the files that each worker runs. These
 **The 42-file grid cluster has no shared fixture.** Each file rebuilds `Row`, the columns, the rows, and `getKey`. A change to `GridColumn`'s shape is a 37-file edit. This is a maintenance finding, not a speed one: the fixtures are cheap object literals.
 
 **`installResizeObserverStub` is copied into six files.** Extract one helper, and install it with `vi.stubGlobal` so that `unstubGlobals` is the backstop. Keep it out of `helpers/index.ts` for the reason at `helpers/index.ts:9`.
-
-**`sequence.shuffle` was costing more than the pool change saved.** `shuffle` selects `RandomSequencer`, whose `sort` is only `shuffle(files, seed)`; it drops the project grouping `BaseSequencer` applies, so all three projects interleave into one queue. A pool passes a worker to the next file only when the head of the queue belongs to the same project, so the shared module graph was thrown away at every crossing — 75 of them in one measured run. A `groupOrder` for each project restores the grouping and takes the suite from about 70s to about 47s, with the shuffle still live inside each group. Resolved in this branch.
 
 ## Corrections
 
@@ -124,7 +122,7 @@ The sequence matters, because some changes make others impossible to measure.
 
 ## State
 
-Steps 1 and 2 are complete, together with the browser-suite gate (`00f31fd`). The full jsdom suite now runs in about 47s against 143.4s before, with every test passing on twelve shuffle seeds for the pool change and five more for the sequencer change.
+Steps 1 and 2 are complete, together with the browser-suite gate (`00f31fd`). The full jsdom suite now runs in about 47s against 143.4s before.
 
 Steps 3 and 4 are open, and the Open section above lists what they cover. Nothing in them is a prerequisite for anything else.
 
