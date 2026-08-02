@@ -192,9 +192,15 @@ describe('grid header truncation tooltip (real browser)', () => {
 			/>,
 		)
 
-		// Hover the header's own span, not a text query: the parked pointer may have
-		// already opened the tooltip, whose content repeats the title.
-		await userEvent.hover(await settledSpan(container))
+		// The pointer parks wherever the probe loop above left it, so this fresh
+		// Grid can render straight under it and open the tooltip on its own. The
+		// tooltip repeats the title, and an element-derived locator resolves by
+		// text, so hovering while it is open matches both nodes and throws a strict
+		// mode violation. Hover only when nothing has opened yet; either route
+		// proves the same reveal.
+		if (!screen.queryByRole('tooltip')) {
+			await userEvent.hover(await settledSpan(container))
+		}
 
 		const tip = await screen.findByRole('tooltip')
 
