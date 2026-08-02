@@ -26,7 +26,7 @@ When a competitive scenario regresses or lags, the jsdom benches (`pnpm bench`) 
 
 Every scenario draws the same deterministic dataset ([`fixtures.ts`](fixtures.ts), LCG-seeded) into the same fixed 800×450 box with animations off, through each library's idiomatic API ([`contenders.tsx`](contenders.tsx)): the ui module renders through React (`createRoot` + `flushSync` — the synchronous commit a consumer pays), AG Charts and Highcharts through their vanilla factories, each with its own settle contract (AG awaits `waitForUpdate()`; Highcharts and the ui module draw synchronously).
 
-- [`chart-mount.bench.tsx`](chart-mount.bench.tsx) — full mount-to-painted-DOM plus teardown per iteration: line at 100 / 1k / 10k × 1 series and 1k × 5, bar at 50 / 500 × 2, scatter at 1k / 10k. Plus the line scenarios again over ISO-date categories (`makeDatedTrend`, 1k / 10k), the time-series dashboard shape: every contender must decide how to label a date axis, and the ui module's band axis probes whether all categories parse as dates before formatting them through `Intl` — a pass a plain-label axis exits on its first value. Held beside the plain scenario of the same size, the pair prices that probe end to end; `chart-layout` prices it in isolation.
+- [`chart-mount.bench.tsx`](chart-mount.bench.tsx) — full mount-to-painted-DOM plus teardown per iteration: line at 100 / 1k / 10k × 1 series and 1k × 5, bar at 50 / 500 × 2, scatter at 1k / 10k. Plus the line scenarios again over ISO-date categories (`makeDatedTrend`, 1k / 10k), the time-series dashboard shape: every contender must decide how to label a date axis, and the ui module's band axis probes whether all categories parse as dates before formatting them through `Intl` — a pass a plain-label axis exits on its first value. Held beside the plain scenario of the same size, the pair prices the date path end to end; `chart-layout` splits it into the probe and the per-row labelling that follows.
 
 - [`chart-update.bench.tsx`](chart-update.bench.tsx) — redraw on a live chart, alternating two same-shape datasets so no iteration bails on an equality guard: the ui module re-renders through its root, AG and Highcharts take their in-place data updates.
 
@@ -80,19 +80,22 @@ Each entry names the change and the scenarios it moved; the levers are ordered a
 
 9. **Early-exit date detection** ([`chart-time.ts`](../../modules/chart/chart-time.ts) `dateCategoryFormat`). The band axis's are-these-all-dates probe parsed every category (`Date.parse` per row) before answering; a non-date axis now fails on its first value, one parse instead of ten thousand. Worth ~11ms of the line 10k mount.
 
-Open: the scatter hover sweep still trails AG by a whisker (~18 vs ~17) — the residual is a React commit per pointer move against AG's vanilla redraw, closable only by moving the shared crosshair/tooltip tracking to imperative DOM writes. Everything else stands beaten or tied.
+Open: the scatter hover sweep still trails AG by a whisker (~18 vs ~17) — the residual is a React commit per pointer move against AG's vanilla redraw, closable only by moving the shared crosshair/tooltip tracking to imperative DOM writes. The ten-thousand-row date axis trails both rivals; see below. Every other scenario stands beaten or tied.
 
 #### Date-axis mounts (2026-08-02, this container)
 
-Added with the pure-core suite, so these carry no earlier baseline. Mean ms per iteration, measured against the plain-label scenario of the same size on the same run.
+Added with the pure-core suite, so these carry no earlier baseline. Mean ms per iteration, each rung the median of three runs, beside the plain-label scenario of the same size.
 
 | Scenario | ui | AG Charts | Highcharts |
 | --- | ---: | ---: | ---: |
-| mount · line · 1,000 × 1 | **7.6** | 28.4 | 22.5 |
-| mount · line · dated · 1,000 × 1 | **8.0** | 26.2 | 22.6 |
-| mount · line · dated · 10,000 × 1 | **49.1** | 57.1 | 65.6 |
+| mount · line · 1,000 × 1 | **8.6** | 30.2 | 22.0 |
+| mount · line · dated · 1,000 × 1 | **10.2** | 27.5 | 22.7 |
+| mount · line · 10,000 × 1 | **39.7** | 53.8 | 60.5 |
+| mount · line · dated · 10,000 × 1 | 60.3 | 55.4 | **55.0** |
 
-The module leads both rivals on a dated axis as it does on a plain one, and the date surcharge is small end to end: ~0.4ms at a thousand rows. `chart-layout` prices the probe alone at ~0.35ms per thousand categories and ~3.3ms at ten thousand — real work, but under a tenth of a 49ms mount, so the probe is a regression guard here rather than an open lever. The plain 10,000-row mount is not tabled: its sample carried a 380ms outlier on this run (±34% rme) and would misreport the comparison.
+A date axis costs the module ~1.6ms at a thousand rows and ~20ms at ten thousand, where it gives up a 1.35× lead and lands ~1.1× behind both rivals. Neither rival pays a comparable surcharge. The pure cores account for the whole 20ms: the are-these-dates probe parses every category (3.8ms at ten thousand, against ~0.0004ms for a non-date axis, which exits on its first value), and `resolveCategories` then labels every row through the resolved formatter — a second parse plus an `Intl` format apiece, 15.6ms at ten thousand.
+
+Open: the axis draws about a dozen labels whatever the row count, so most of that labelling is discarded. Formatting on demand does not reach it alone, because `verticalLayout` sizes the band gutter from the longest label and so measures every one; the whole array has to exist before the layout can run. Closing it means giving the gutter estimate a width it can reach without the labels — the two rungs above put ~20ms behind that change.
 
 ## Grids
 

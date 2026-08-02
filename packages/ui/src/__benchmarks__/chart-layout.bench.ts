@@ -146,6 +146,19 @@ describe('chart-time · dateCategoryFormat (the are-these-dates probe)', () => {
 		bench(`${count.toLocaleString()} categories · all dates (parses every one)`, () => {
 			dateCategoryFormat(allDates)
 		})
+
+		// What the probe answering "yes" commits the mount to. `resolveCategories`
+		// labels every row through the resolved formatter, and each call parses the
+		// value again and formats it through `Intl` — the axis then thins to a dozen
+		// labels, but the gutter estimate measures all of them, so the whole array
+		// is built. The probe above is the smaller half of a date axis's cost.
+		const format = dateCategoryFormat(allDates)
+
+		if (!format) throw new Error('fixture did not read as dates')
+
+		bench(`${count.toLocaleString()} categories · label every row (Intl per row)`, () => {
+			allDates.map(format)
+		})
 	}
 })
 
