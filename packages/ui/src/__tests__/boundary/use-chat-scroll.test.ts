@@ -4,9 +4,9 @@ import { useScrollWithin } from '../../hooks'
 import { useChatScroll } from '../../modules/chat/use-chat-scroll'
 
 // This file lives in the forks boundary project because the mock below only
-// intercepts if this file evaluates the hook fresh: vmThreads shares
-// evaluated source modules across a worker's files, so under the unit
-// project a prior chat-barrel import hands this file a use-chat-scroll
+// intercepts if this file evaluates the hook fresh: the unit project runs
+// `isolate: false` and shares evaluated source modules across a worker's
+// files, so there a prior chat-barrel import hands this file a use-chat-scroll
 // already bound to the real hooks barrel. Forks evaluate per file, keeping
 // the mock authoritative.
 vi.mock('../../hooks', () => ({

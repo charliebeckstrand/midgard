@@ -4,7 +4,7 @@ import { bySlot, renderUI, waitFor } from '../helpers'
 
 // `shiki` is mocked globally in setup/module-mocks.ts (its markup carries
 // `data-lang` from `options.lang`); a per-file mock here would bleed across the
-// vmThreads worker under shuffle.
+// worker's shared module registry under shuffle.
 
 describe('Markdown', () => {
 	it('renders parsed Markdown into a data-slot="markdown" div', () => {

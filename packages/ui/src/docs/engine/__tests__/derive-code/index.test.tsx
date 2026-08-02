@@ -10,8 +10,9 @@ import { tag } from './helpers'
 // real `byType` tag reader (so `tag()` stand-ins resolve) with a hand-built
 // `byName` map, and is injected into `deriveCode` per call. Injection rather
 // than `vi.mock`-ing `virtual:component-modules` on purpose: that module-level
-// mock bleeds across files under the shared-worker vmThreads pool and corrupts
-// the real-registry integration test (src/__tests__/docs/component-modules).
+// mock bleeds across files under the unit project's shared module registry
+// (`isolate: false`) and corrupts the real-registry integration test
+// (src/__tests__/docs/component-modules).
 // Real-library integration (the map populated from ui, real barrel tagging)
 // lives in ui.
 const registry: ComponentRegistry = {

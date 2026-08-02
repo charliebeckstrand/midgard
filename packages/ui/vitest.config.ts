@@ -13,14 +13,14 @@ const setupFiles = [
 export default defineConfig({
 	test: {
 		environment: 'jsdom',
-		// Vitest reserves a core for the main thread, so the vmThreads pool defaults
-		// to one fewer worker than the machine has cores — a jsdom suite this size
-		// leaves ~15-20% of local wall on the table. jsdom setup and module eval
-		// spend enough time in GC/async idle that scheduling a worker per core
-		// (not core-minus-one) fills it without CPU oversubscription: no extra
-		// vmMemoryLimit pressure, no per-worker slowdown toward the waitFor budget.
-		// CI keeps the default — its agents are shared and noisier, and the scaled
-		// timeouts above assume that slack — so this stays a local-only speedup.
+		// Vitest reserves a core for the main thread, so a pool defaults to one
+		// fewer worker than the machine has cores — a jsdom suite this size leaves
+		// ~15-20% of local wall on the table. jsdom setup and module eval spend
+		// enough time in GC/async idle that scheduling a worker per core (not
+		// core-minus-one) fills it without CPU oversubscription: no per-worker
+		// slowdown toward the waitFor budget. CI keeps the default — its agents are
+		// shared and noisier, and the scaled timeouts above assume that slack — so
+		// this stays a local-only speedup.
 		...(CI ? {} : { minWorkers: '100%', maxWorkers: '100%' }),
 		globals: true,
 		// Machine speed must change when a test passes, never whether it passes:
@@ -40,16 +40,17 @@ export default defineConfig({
 		// ahead of Node instead.
 		env: { TZ: 'UTC' },
 		sequence: { shuffle: true },
-		// Forks and threads reset the module graph per file; vmThreads does NOT —
-		// it shares evaluated modules across a worker's files (the price of its
-		// speed), so cross-file bleed is possible there. Within a file a vi.spyOn
-		// or vi.stubGlobal outlives its test unless restored, and sequence.shuffle
-		// randomizes sibling order — so an unrestored spy/stub leaks into
-		// whichever test runs next. restoreMocks runs vi.restoreAllMocks() before
-		// each test and unstubGlobals runs vi.unstubAllGlobals(), both ahead of
-		// beforeEach so beforeEach/test-body setup is reapplied untouched.
-		// mockRestore only reverts vi.spyOn() spies, so the plain vi.fn() and
-		// Object.defineProperty jsdom stubs in setup/ are left intact.
+		// The unit project runs `isolate: false`, so evaluated modules AND the jsdom
+		// window are shared across a worker's files — cross-file bleed is possible
+		// there, and these four options are what contain it. Within a file a
+		// vi.spyOn or vi.stubGlobal outlives its test unless restored, and
+		// sequence.shuffle randomizes sibling order — so an unrestored spy/stub
+		// leaks into whichever test runs next. restoreMocks runs
+		// vi.restoreAllMocks() before each test and unstubGlobals runs
+		// vi.unstubAllGlobals(), both ahead of beforeEach so beforeEach/test-body
+		// setup is reapplied untouched. mockRestore only reverts vi.spyOn() spies,
+		// so the plain vi.fn() and Object.defineProperty jsdom stubs in setup/ are
+		// left intact.
 		restoreMocks: true,
 		unstubGlobals: true,
 		// clearMocks resets call history (not implementation — mockClear, not
@@ -57,7 +58,7 @@ export default defineConfig({
 		// floating-ui, …) never carry call counts across tests. unstubEnvs mirrors
 		// unstubGlobals for vi.stubEnv. Deliberately NOT mockReset/resetModules:
 		// the former wipes the global mock implementations, the latter drops the
-		// vmThreads module cache other files depend on.
+		// shared module graph every later file in the worker would have to rebuild.
 		clearMocks: true,
 		unstubEnvs: true,
 		reporters: CI ? ['default', 'junit'] : ['default'],
@@ -93,14 +94,26 @@ export default defineConfig({
 				test: {
 					name: 'unit',
 					setupFiles,
-					pool: 'vmThreads',
-					// Recycle a worker before its heap grows enough to slow jsdom
-					// work into waitFor budgets — the vmThreads failure mode that
-					// only shows on loaded CI agents. 1GB rather than tighter: each
-					// recycle re-imports the worker's whole module graph, which
-					// dominates wall clock when a few-core agent runs the suite
-					// through a single worker.
-					vmMemoryLimit: '1GB',
+					pool: 'threads',
+					// `isolate: false` evaluates the setup files and the module graph
+					// once per worker instead of once per file, which is where this
+					// suite spent most of its time: measured over these 407 files,
+					// setup fell 123.7s -> 6.5s and import 163.0s -> 37.9s, taking the
+					// full three-project run from 143.4s to 97.7s. It also peaks lower
+					// (1485MB against vmThreads' 2440MB), because vmThreads holds a VM
+					// context per file — the reason that pool needed a vmMemoryLimit
+					// recycle valve and this one does not.
+					//
+					// The price is a shared module registry and a shared jsdom window
+					// across the ~100 files a worker runs. Two things pay for it. A
+					// per-file `vi.mock` cannot survive a shared registry, and this
+					// project has none — every one lives in `integration` below, which
+					// keeps process isolation on forks. And nothing outlives a file:
+					// `--detectAsyncLeaks` over the suite reported only RTL's own
+					// act-settle timer, jsdom's selectionchange timer, and 0ms library
+					// timers; a probe for surviving DOM singletons came back empty.
+					// Verified green on six shuffle seeds.
+					isolate: false,
 					include: [
 						'src/__tests__/**/*.test.{ts,tsx}',
 						'src/docs/engine/__tests__/**/*.test.{ts,tsx}',

@@ -22,8 +22,8 @@ describe('TimeAgo', () => {
 		// Unwind spies BEFORE uninstalling the clock — see
 		// use-time-ago-relative-time.test.ts for why the order matters (a
 		// setInterval spy taken under fake timers restores to a dead fake if
-		// useRealTimers runs first, and vmThreads shares that global with every
-		// later file in the worker).
+		// useRealTimers runs first, and `isolate: false` shares that global with
+		// every later file in the worker).
 		vi.restoreAllMocks()
 
 		vi.useRealTimers()

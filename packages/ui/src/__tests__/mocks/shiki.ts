@@ -8,9 +8,9 @@
  *
  * Global rather than per-file on purpose: markdown.test.tsx and
  * code-block.test.tsx are the only shiki consumers and previously each declared
- * a divergent local `vi.mock('shiki')`. Under the unit project's vmThreads pool
- * (shared module graph, `sequence.shuffle: true`) whichever file loaded first
- * won the module cache, so Markdown's `data-lang` assertion intermittently saw
+ * a divergent local `vi.mock('shiki')`. The unit project runs `isolate: false`
+ * with `sequence.shuffle: true`, so whichever file loaded first won the shared
+ * module registry, and Markdown's `data-lang` assertion intermittently saw
  * CodeBlock's attribute-less markup and timed out. One global factory both
  * agree on removes the order dependence.
  */

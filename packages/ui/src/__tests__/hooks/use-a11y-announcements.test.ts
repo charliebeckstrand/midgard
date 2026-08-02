@@ -4,9 +4,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import * as core from '../../core'
 import { useA11yAnnouncements } from '../../hooks/a11y/use-a11y-announcements'
 
-// vmThreads shares one module cache + VM context across files; spying the
-// live namespace binding the hook reads through patches the shared singleton
-// module object in place, independent of suite import order.
+// The unit project runs `isolate: false`, so one module registry serves every
+// file in the worker; spying the live namespace binding the hook reads through
+// patches the shared singleton module object in place, independent of suite
+// import order.
 describe('useA11yAnnouncements', () => {
 	let announce: ReturnType<typeof vi.spyOn>
 
