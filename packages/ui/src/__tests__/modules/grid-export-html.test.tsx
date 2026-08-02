@@ -135,13 +135,13 @@ describe('rowsToPrintHtml', () => {
 
 describe('printRows', () => {
 	it('appends a hidden iframe carrying the printable document as srcdoc', () => {
-		const iframe = captureAppended<HTMLIFrameElement>(() => printRows(columns, rows), 'IFRAME')
+		const iframe = captureAppended(() => printRows(columns, rows), 'iframe')
 
 		expect(iframe.srcdoc).toBe(rowsToPrintHtml(columns, rows))
 	})
 
 	it('cleans up the iframe on load when contentWindow is unavailable', () => {
-		const iframe = captureAppended<HTMLIFrameElement>(() => printRows(columns, rows), 'IFRAME')
+		const iframe = captureAppended(() => printRows(columns, rows), 'iframe')
 
 		Object.defineProperty(iframe, 'contentWindow', { value: null, configurable: true })
 
@@ -151,7 +151,7 @@ describe('printRows', () => {
 	})
 
 	it('focuses and prints through the iframe window, deferring cleanup to afterprint', () => {
-		const iframe = captureAppended<HTMLIFrameElement>(() => printRows(columns, rows), 'IFRAME')
+		const iframe = captureAppended(() => printRows(columns, rows), 'iframe')
 
 		const win = { addEventListener: vi.fn(), focus: vi.fn(), print: vi.fn() }
 
@@ -170,7 +170,7 @@ describe('printRows', () => {
 	})
 
 	it('reclaims the iframe when the window regains focus and afterprint never fires', () => {
-		const iframe = captureAppended<HTMLIFrameElement>(() => printRows(columns, rows), 'IFRAME')
+		const iframe = captureAppended(() => printRows(columns, rows), 'iframe')
 
 		const win = { addEventListener: vi.fn(), focus: vi.fn(), print: vi.fn() }
 

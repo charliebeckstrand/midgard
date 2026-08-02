@@ -59,12 +59,15 @@ describe('test isolation boundary', () => {
 		const shared = config
 			.split(/name: '/)
 			.slice(1)
-			.filter((block) => /\bisolate: false/.test(block))
+			// Anchored to the option, not to prose: the comment above `isolate` in
+			// each project names the option too, and an unanchored test matches it
+			// — which passes green with the option itself deleted.
+			.filter((block) => /^\s*isolate: false/m.test(block))
 			.map((block) => block.slice(0, block.indexOf("'")))
 
 		expect(
 			shared.sort(),
-			'a project changed its isolation — extend the scans above to cover its files, or drop it from them',
+			'a project changed its isolation, or vitest.config.ts no longer matches the text shape this gate parses — extend the scans above to cover its files, or drop it from them',
 		).toEqual(['boundary', 'unit'])
 	})
 })

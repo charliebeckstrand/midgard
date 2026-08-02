@@ -76,8 +76,13 @@ export function collectPatternViolations(options: {
 
 			const rel = relative(srcDir, file)
 
+			// Line comments go first: a `/*` inside one — `providers/*` in prose —
+			// would otherwise open a block match that runs to the next `*/`
+			// anywhere in the file and blanks every line between. Block comments
+			// are then stripped only where `/*` opens a line, so a `/*` inside a
+			// string cannot open one either.
 			const text = stripComments
-				? content.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '')
+				? content.replace(/\/\/.*$/gm, '').replace(/^[ \t]*\{?[ \t]*\/\*[\s\S]*?\*\//gm, '')
 				: content
 
 			for (const { label, regex } of patterns) {

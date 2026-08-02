@@ -134,11 +134,11 @@ describe('PdfViewer', () => {
 	})
 
 	it('triggers a download when the Download button is clicked', () => {
-		const anchor = captureAppended<HTMLAnchorElement>(() => {
+		const anchor = captureAppended(() => {
 			renderUI(<PdfViewer pages={pages} src="/sample.pdf" filename="doc.pdf" />)
 
 			fireEvent.click(screen.getByLabelText('Download'))
-		}, 'A')
+		}, 'a')
 
 		expect(anchor.href).toContain('/sample.pdf')
 
@@ -146,11 +146,11 @@ describe('PdfViewer', () => {
 	})
 
 	it('triggers a print iframe when the Print button is clicked', () => {
-		const iframe = captureAppended<HTMLIFrameElement>(() => {
+		const iframe = captureAppended(() => {
 			renderUI(<PdfViewer pages={pages} src="/sample.pdf" />)
 
 			fireEvent.click(screen.getByLabelText('Print'))
-		}, 'IFRAME')
+		}, 'iframe')
 
 		expect(iframe.src).toContain('/sample.pdf')
 	})
@@ -234,7 +234,7 @@ describe('downloadPdf', () => {
 	it('creates an anchor with the src, clicks it, and removes it', () => {
 		const createElement = vi.spyOn(document, 'createElement')
 
-		const anchor = captureAppended<HTMLAnchorElement>(() => downloadPdf('/doc.pdf', 'doc.pdf'), 'A')
+		const anchor = captureAppended(() => downloadPdf('/doc.pdf', 'doc.pdf'), 'a')
 
 		expect(createElement).toHaveBeenCalledWith('a')
 
@@ -250,7 +250,7 @@ describe('downloadPdf', () => {
 	})
 
 	it('defaults the download attribute to an empty string when no filename is provided', () => {
-		const anchor = captureAppended<HTMLAnchorElement>(() => downloadPdf('/doc.pdf'), 'A')
+		const anchor = captureAppended(() => downloadPdf('/doc.pdf'), 'a')
 
 		expect(anchor.download).toBe('')
 	})
@@ -258,7 +258,7 @@ describe('downloadPdf', () => {
 
 describe('printPdf', () => {
 	it('appends a hidden iframe pointing at the src', () => {
-		const iframe = captureAppended<HTMLIFrameElement>(() => printPdf('/doc.pdf'), 'IFRAME')
+		const iframe = captureAppended(() => printPdf('/doc.pdf'), 'iframe')
 
 		expect(iframe.src).toContain('/doc.pdf')
 
@@ -268,7 +268,7 @@ describe('printPdf', () => {
 	it('opens the pdf in a new tab when the iframe fails to load', () => {
 		const open = vi.spyOn(window, 'open').mockImplementation(() => null)
 
-		const iframe = captureAppended<HTMLIFrameElement>(() => printPdf('/fail.pdf'), 'IFRAME')
+		const iframe = captureAppended(() => printPdf('/fail.pdf'), 'iframe')
 
 		iframe.dispatchEvent(new Event('error'))
 
@@ -276,7 +276,7 @@ describe('printPdf', () => {
 	})
 
 	it('cleans up the iframe on load when contentWindow is unavailable', () => {
-		const iframe = captureAppended<HTMLIFrameElement>(() => printPdf('/doc.pdf'), 'IFRAME')
+		const iframe = captureAppended(() => printPdf('/doc.pdf'), 'iframe')
 
 		Object.defineProperty(iframe, 'contentWindow', { value: null, configurable: true })
 
@@ -286,7 +286,7 @@ describe('printPdf', () => {
 	})
 
 	it('focuses and prints through the iframe window, deferring cleanup to afterprint', () => {
-		const iframe = captureAppended<HTMLIFrameElement>(() => printPdf('/doc.pdf'), 'IFRAME')
+		const iframe = captureAppended(() => printPdf('/doc.pdf'), 'iframe')
 
 		const win = { addEventListener: vi.fn(), focus: vi.fn(), print: vi.fn() }
 
@@ -305,7 +305,7 @@ describe('printPdf', () => {
 	})
 
 	it('reclaims the iframe when the window regains focus and afterprint never fires', () => {
-		const iframe = captureAppended<HTMLIFrameElement>(() => printPdf('/doc.pdf'), 'IFRAME')
+		const iframe = captureAppended(() => printPdf('/doc.pdf'), 'iframe')
 
 		const win = { addEventListener: vi.fn(), focus: vi.fn(), print: vi.fn() }
 
@@ -324,7 +324,7 @@ describe('printPdf', () => {
 	it('falls back to a new tab and cleans up when printing through the iframe throws', () => {
 		const open = vi.spyOn(window, 'open').mockImplementation(() => null)
 
-		const iframe = captureAppended<HTMLIFrameElement>(() => printPdf('/doc.pdf'), 'IFRAME')
+		const iframe = captureAppended(() => printPdf('/doc.pdf'), 'iframe')
 
 		const win = {
 			addEventListener: vi.fn(),

@@ -57,7 +57,8 @@ jobs:
             ${{ runner.os }}-turbo-browser-
       - run: pnpm install --frozen-lockfile
       # Chromium only: vitest.browser.config.ts declares no other browser. The
-      # download is ~170MB, so cache it against the pinned playwright version.
+      # download is ~170MB, so cache it. The key is the lockfile, so a dependency
+      # bump re-downloads even when playwright itself did not move.
       # `install` is idempotent — on a hit it skips the download and installs
       # the system libraries alone.
       - uses: actions/cache@v4

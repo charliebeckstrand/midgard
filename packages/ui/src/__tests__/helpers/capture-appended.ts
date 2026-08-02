@@ -2,45 +2,57 @@ import { onTestFinished, vi } from 'vitest'
 
 /**
  * Run `run` and return the last `tagName` element it appended to
- * `document.body`.
+ * `document.body`, typed from the tag.
  *
  * @remarks
  * The print paths reclaim their iframe from an `afterprint` or window-`focus`
  * handler, and jsdom fires neither, so every call leaves the node attached.
  * Teardown dispatches the window `focus` a real browser fires when the print
- * dialog closes. That drives the module's own cleanup, which removes the node
- * and releases the `{ once: true }` listener that closes over the iframe and
- * its print document. Both steps are no-ops for a producer that already
- * cleaned up, such as the download anchor.
+ * dialog closes, which drives the module's own cleanup. Teardown runs through
+ * `onTestFinished`, so it survives a throwing assertion above it — and it is
+ * registered even when `run` throws, because a node appended before the throw
+ * is exactly what this helper exists to reclaim.
  *
- * Teardown runs through `onTestFinished`, so it survives a throwing assertion
- * above it. A node left behind outlives its test, and under the unit project's
- * shared jsdom window it outlives its file.
+ * Not re-exported from `helpers/index.ts`: two suites use it, and that barrel
+ * is on the path ~210 files evaluate.
  *
  * @param run - Call that appends the node.
- * @param tagName - Upper-case tag to match, so a render in the same `run` does
- * not shadow the node under test.
- *
- * @remarks
- * Kept out of `helpers/index.ts` for the reason recorded there: ~210 files
- * import that barrel, and each entry it gains they all evaluate.
+ * @param tagName - Tag to match, so a render in the same `run` does not shadow
+ * the node under test.
  */
-export function captureAppended<E extends HTMLElement>(run: () => void, tagName: string): E {
+export function captureAppended<K extends keyof HTMLElementTagNameMap>(
+	run: () => void,
+	tagName: K,
+): HTMLElementTagNameMap[K] {
 	const appendChild = vi.spyOn(document.body, 'appendChild')
 
-	run()
+	const captured = () => {
+		const node = appendChild.mock.calls.findLast(
+			(call) => (call[0] as Element).localName === tagName,
+		)?.[0] as HTMLElementTagNameMap[K] | undefined
 
-	const node = appendChild.mock.calls.findLast(
-		(call) => (call[0] as HTMLElement).tagName === tagName,
-	)?.[0] as E
+		appendChild.mockRestore()
 
-	appendChild.mockRestore()
+		if (node) {
+			onTestFinished(() => {
+				window.dispatchEvent(new Event('focus'))
 
-	onTestFinished(() => {
-		window.dispatchEvent(new Event('focus'))
+				node.remove()
+			})
+		}
 
-		node?.remove()
-	})
+		return node
+	}
+
+	let node: HTMLElementTagNameMap[K] | undefined
+
+	try {
+		run()
+	} finally {
+		node = captured()
+	}
+
+	if (!node) throw new Error(`captureAppended: no <${tagName}> appended to document.body`)
 
 	return node
 }

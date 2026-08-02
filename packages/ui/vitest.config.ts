@@ -5,10 +5,12 @@ const CI = Boolean(process.env.CI)
 
 const SEED = process.env.VITEST_SEED
 
-// Every project spreads this and adds its own `groupOrder`. A project-level
-// `sequence` replaces the resolved object rather than merging into it, so a
-// project that set `groupOrder` alone would silently lose `shuffle` and `seed`
-// — the same wholesale replace that makes `--sequence.seed` unsafe.
+if (SEED !== undefined && !Number.isFinite(Number(SEED))) {
+	throw new Error(
+		`VITEST_SEED must be a number; received ${SEED}. A NaN seed corrupts the shuffle.`,
+	)
+}
+
 const sequence = { shuffle: true, ...(SEED ? { seed: Number(SEED) } : {}) }
 
 // Setup files for both jsdom projects (unit, integration).
@@ -28,7 +30,7 @@ export default defineConfig({
 		// Measured at 4 cores, where the extra worker is clearly worth it. It buys
 		// less as the count rises: under `isolate: false` each worker pays for its
 		// own module graph, so the gain from one more shrinks while that cost stays
-		// flat. Re-measure before trusting this on a much larger machine.
+		// flat. Re-measure before you trust this on a much larger machine.
 		...(CI ? {} : { maxWorkers: '100%' }),
 		globals: true,
 		// Machine speed must change when a test passes, never whether it passes:
@@ -51,8 +53,12 @@ export default defineConfig({
 		// BaseSequencer applies. Every project's files then land in one queue, and
 		// a worker is terminated at each crossing — along with the module graph
 		// `isolate: false` exists to keep. Each project below takes its
-		// `groupOrder` from its position in the array, which restores the
-		// grouping; the shuffle still applies inside each group.
+		// `groupOrder` from its position in the array — unit, then boundary, then
+		// integration — which restores the grouping; the shuffle still applies
+		// inside each group. Deriving it means a new project can neither omit the
+		// field nor collide with a sibling, and a project that set it alone would
+		// replace the resolved sequence rather than extend it, losing `shuffle`
+		// and `seed`.
 		//
 		// Replay a red run with `VITEST_SEED=<seed> pnpm test`, never with
 		// `--sequence.seed`: a CLI override is shallow-merged over each project's
@@ -64,8 +70,8 @@ export default defineConfig({
 		// restored, and sequence.shuffle randomizes sibling order — so an
 		// unrestored spy or stub leaks into whichever test runs next. restoreMocks
 		// runs vi.restoreAllMocks() before each test and unstubGlobals runs
-		// vi.unstubAllGlobals(), both ahead of beforeEach so beforeEach and
-		// test-body setup is reapplied untouched. mockRestore only reverts
+		// vi.unstubAllGlobals(), both ahead of beforeEach so the setup in
+		// beforeEach and in the test body is reapplied untouched. mockRestore only reverts
 		// vi.spyOn() spies, so the plain vi.fn() and Object.defineProperty jsdom
 		// stubs in setup/ are left intact.
 		restoreMocks: true,
@@ -113,8 +119,8 @@ export default defineConfig({
 					setupFiles,
 					pool: 'threads',
 					// `isolate: false` keeps the evaluated module graph across a
-					// worker's files instead of rebuilding it for each one, which is
-					// where this suite spent most of its time.
+					// worker's files, and does not rebuild it for each one. That
+					// rebuild is where this suite spent most of its time.
 					//
 					// The price is a shared module registry and a shared jsdom window
 					// across the files a worker runs. No file here can declare a

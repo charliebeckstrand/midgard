@@ -283,9 +283,25 @@ describe('grid cell truncation tooltip (real browser)', () => {
 
 		const { container } = renderAt(deadZone)
 
-		await userEvent.hover(await settledSpan(container))
+		const span = await settledSpan(container)
+
+		// The parked pointer can open the tooltip on its own while `settledSpan`
+		// waits. Its content repeats the cell text, and an element-derived locator
+		// resolves by text, so hovering then matches both nodes and throws a strict
+		// mode violation. Read the state here, immediately before the hover.
+		if (!screen.queryByRole('tooltip')) {
+			await userEvent.hover(span)
+		}
 
 		const tip = await screen.findByRole('tooltip')
+
+		// Whichever route opened it, the tooltip must be the one this cell
+		// describes — otherwise a tooltip left over from an earlier width would
+		// satisfy the assertion and the detector would go untested. The attribute
+		// sits on the trigger, which is not always the measured span.
+		expect(container.querySelector('[aria-describedby]')?.getAttribute('aria-describedby')).toBe(
+			tip.id,
+		)
 
 		expect(tip).toHaveTextContent('Wade Cooper')
 	})

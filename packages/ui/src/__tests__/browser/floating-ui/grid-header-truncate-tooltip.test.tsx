@@ -192,17 +192,25 @@ describe('grid header truncation tooltip (real browser)', () => {
 			/>,
 		)
 
-		// The pointer parks wherever the probe loop above left it, so this fresh
-		// Grid can render straight under it and open the tooltip on its own. The
-		// tooltip repeats the title, and an element-derived locator resolves by
-		// text, so hovering while it is open matches both nodes and throws a strict
-		// mode violation. Hover only when nothing has opened yet; either route
-		// proves the same reveal.
+		const span = await settledSpan(container)
+
+		// The parked pointer can open the tooltip on its own while `settledSpan`
+		// waits. Its content repeats the title, and an element-derived locator
+		// resolves by text, so hovering then matches both nodes and throws a strict
+		// mode violation. Read the state here, immediately before the hover.
 		if (!screen.queryByRole('tooltip')) {
-			await userEvent.hover(await settledSpan(container))
+			await userEvent.hover(span)
 		}
 
 		const tip = await screen.findByRole('tooltip')
+
+		// Whichever route opened it, the tooltip must be the one this header
+		// describes — otherwise a tooltip left over from an earlier width would
+		// satisfy the assertion and the detector would go untested. The attribute
+		// sits on the trigger, which is not always the measured span.
+		expect(container.querySelector('[aria-describedby]')?.getAttribute('aria-describedby')).toBe(
+			tip.id,
+		)
 
 		expect(tip).toHaveTextContent(longTitle)
 	})
