@@ -70,8 +70,8 @@ export type ChartCategoryAxis = {
 	 * Format each row's category — the band-axis labels and the tooltip and data
 	 * table readout — from its raw `xKey` value. Overrides the default `String`
 	 * coercion and the automatic date normalization: with no formatter set, a band
-	 * axis whose every value parses as a date labels itself `MM-DD` (or
-	 * `MM-DD-YYYY` across years) on its own. Ignored on the ticks of a `type: 'time'`
+	 * axis whose every value parses as a date labels itself in the locale's own
+	 * numeric month/day order, gaining the year across years. Ignored on the ticks of a `type: 'time'`
 	 * axis, which places and labels its own calendar ticks, though it still formats
 	 * that axis's readout.
 	 */

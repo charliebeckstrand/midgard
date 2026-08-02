@@ -15,7 +15,12 @@
 | `formatPercent` | Locale-formats a `0..1` share as a whole percent (cached formatter). |
 | `resolveFormat` | Resolves a `FormatSpec` to a cached `(value) => string` formatter — number, integer, currency, percent, compact, or prefixed id. |
 | `FormatSpec` *(type)* | What to format a value as: a numeric `Intl` format (`number`/`integer`/`currency`/`percent`/`compact`) or a prefixed `id`. |
-| `resolveLocale` | Coalesces an optional BCP 47 tag to a concrete one, falling back to the runtime locale — resolved once, since `Intl.DateTimeFormat` construction is uncached and the page's locale cannot change. |
+
+## Locale
+
+| Export | Summary |
+|---|---|
+| `resolveLocale` | Coalesces an optional BCP 47 tag to a concrete one, falling back to the runtime locale — resolved once, since `Intl.DateTimeFormat` construction is uncached and the process locale cannot change. |
 
 ## Colour & accessibility
 

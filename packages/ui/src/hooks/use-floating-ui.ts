@@ -296,21 +296,11 @@ export function useFloatingPortalReference(
 /**
  * True when a document `pointerdown` at `event` falls outside the floating
  * panel described by `refs` — not inside the panel or its reference, not a
- * press on the panel's own scrollbar, and not inside a *nested* floating-ui
- * portal (e.g. a Select listbox opened from within this panel). A press
- * inside a *different* floating-ui portal than this panel's own is spared
- * only when that portal is a nested overlay opened from WITHIN this panel —
- * a descendant (e.g. the calendar's month/year picker popover inside the
- * DatePicker dialog). Those portals teleport outside this panel's DOM
- * subtree, so the plain containment checks above miss them; floating-ui's
- * native outsidePress spares them via its node tree, which this check stands
- * in for. A target portal that *contains* this panel's own reference — e.g.
- * the enclosing Dialog/Sheet a bare `FloatingPortal` nests inside by default —
- * is instead an ANCESTOR portal: genuinely outside, so a press there must
- * still dismiss. That reference is the panel's `domReference`, or — for a
- * context menu anchored at a cursor point, whose `domReference` is null — its
- * position reference's `contextElement`, so a menu opened inside a Dialog still
- * reads the Dialog as its ancestor rather than a nested descendant.
+ * press on the panel's own scrollbar, and not inside a floating surface opened
+ * from within this panel (e.g. a Select listbox, or the calendar's month/year
+ * popover inside a DatePicker dialog). Those surfaces teleport outside this
+ * panel's DOM subtree, so the containment checks miss them;
+ * {@link pressLandsInNestedSurface} owns that relation and the rule it applies.
  *
  * @see {@link useFloatingUI} and `useFloatingDisclosure`, the two document
  * `pointerdown` listeners that share this predicate instead of floating-ui's
@@ -337,9 +327,14 @@ export function isFloatingOutsidePress(
 	// panel.
 	if (floating.contains(target) || refs.domReference.current?.contains(target)) return false
 
-	if (target instanceof HTMLElement && isScrollbarPress(event, target)) return false
-
-	return !pressLandsInNestedSurface(floating, target, refs)
+	// `pressLandsInNestedSurface` is pure DOM ancestry; `isScrollbarPress` forces
+	// a style recalc and four layout reads. Same verdict either way, so the cheap
+	// one decides first — a press into a nested surface, which is what this
+	// predicate exists for, never reaches the recalc.
+	return !(
+		pressLandsInNestedSurface(floating, target, refs) ||
+		(target instanceof HTMLElement && isScrollbarPress(event, target))
+	)
 }
 
 /**

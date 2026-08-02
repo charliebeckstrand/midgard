@@ -41,17 +41,6 @@ const MAX_TICKS = 100
 /** Roughly the widest tick label ("Jan 26", "Jan 5") in characters, for the fit estimate. @internal */
 const LABEL_CHARS = 7
 
-/** A one-or-two-digit number zero-padded to two, for a numeric date field. @internal */
-function pad2(value: number): string {
-	return String(value).padStart(2, '0')
-}
-
-/**
- * Fixed reference instant for reading a locale's numeric-date token order. Any
- * date answers the question; a constant one keeps the read deterministic. @internal
- */
-const ORDER_REFERENCE = new Date(Date.UTC(2026, 0, 2))
-
 /**
  * Parses a raw category value to an epoch-millisecond instant: a `Date`, a
  * number (already epoch ms), or a string. A bare `YYYY-MM-DD` becomes local
@@ -316,33 +305,29 @@ export function dateCategoryFormat(
 		if (new Date(time).getFullYear() !== referenceYear) withYear = true
 	}
 
-	// A numeric date takes only field order and separators from its locale, and
-	// both are fixed for the whole axis — so read the token sequence once and
-	// assemble each label from it. `format()` per value measures ~5x the cost of
-	// this concat, on a path that runs per row per render.
-	const tokens = new DateFormatter(resolveLocale(locale), {
+	// One formatter across the rows, holding the locale's own field order —
+	// `MM/DD` in en-US, `DD.MM.` in de-DE — rather than a fixed month-first one.
+	//
+	// `format()` per value, not a hand-assembly from `formatToParts`: reading the
+	// token sequence once and filling it from a `Date` takes only field order and
+	// separators from the locale, and silently drops the rest. It emits ASCII
+	// digits for the Arabic-Indic and Bengali numbering systems, and Gregorian
+	// fields under the Persian, Buddhist, and Japanese calendars — all of them
+	// defaults for their locale, reachable from a browser language setting with
+	// no `-u-` extension. The per-row cost belongs to `resolveCategories`, which
+	// memoizes this whole derivation.
+	const format = new DateFormatter(resolveLocale(locale), {
 		month: '2-digit',
 		day: '2-digit',
 		...(withYear && { year: 'numeric' }),
-	}).formatToParts(ORDER_REFERENCE)
+	})
 
 	return (value) => {
 		const time = parseInstant(value)
 
 		if (time === null) return String(value)
 
-		const date = new Date(time)
-
-		let label = ''
-
-		for (const token of tokens) {
-			if (token.type === 'month') label += pad2(date.getMonth() + 1)
-			else if (token.type === 'day') label += pad2(date.getDate())
-			else if (token.type === 'year') label += String(date.getFullYear())
-			else label += token.value
-		}
-
-		return label
+		return format.format(new Date(time))
 	}
 }
 

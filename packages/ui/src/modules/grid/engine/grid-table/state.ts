@@ -49,7 +49,8 @@ export function applyUpdater<S>(updater: Updater<S>, base: S): S {
  * @param rows - The engine rows to collapse.
  * @param grouped - Whether client grouping is active.
  * @param manualGroupRow - Identifies a consumer-supplied header row under manual
- * grouping; absent or `null` otherwise.
+ * grouping; absent or `null` otherwise. Wins outright — `grouped` is not
+ * consulted under it, since manual grouping keeps the engine ungrouped.
  * @internal
  */
 export function deriveLeafRows<T>(

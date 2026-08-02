@@ -103,17 +103,14 @@ export function localeDateInputFormat(locale?: string): DateInputFormat {
 		day: '2-digit',
 	}).formatToParts(ORDER_REFERENCE)
 
-	const order = parts
-		.filter((part) => part.type === 'year' || part.type === 'month' || part.type === 'day')
-		.map((part) => part.type)
-		.join(' ')
+	// Which field leads settles it: the three supported layouts are year-, day-,
+	// and month-first, so nothing after the first field discriminates.
+	const first = parts.find(
+		(part) => part.type === 'year' || part.type === 'month' || part.type === 'day',
+	)?.type
 
 	const layout: DateInputFormat =
-		order === 'year month day'
-			? 'YYYY-MM-DD'
-			: order === 'day month year'
-				? 'DD/MM/YYYY'
-				: 'MM/DD/YYYY'
+		first === 'year' ? 'YYYY-MM-DD' : first === 'day' ? 'DD/MM/YYYY' : 'MM/DD/YYYY'
 
 	layoutByLocale.set(tag, layout)
 
