@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { PdfViewer, type PdfViewerPage } from '../../components/pdf-viewer'
 import { downloadPdf, printPdf } from '../../components/pdf-viewer/pdf-viewer-utilities'
 import { PdfViewerZoomControls } from '../../components/pdf-viewer/pdf-viewer-zoom-controls'
@@ -13,20 +13,13 @@ import {
 	stubMatchMedia,
 	userEvent,
 } from '../helpers'
+import { captureAppended } from '../helpers/capture-appended'
 
 beforeEach(() => {
-	// Defaults to desktop so the thumbnail sidebar renders. Drives isDesktop via
-	// matchMedia (the real useMinWidth path), not a per-file vi.mock of the
-	// shared `../../hooks` barrel; a mock would poison the vmThreads module cache
-	// for files that import the barrel unmocked (e.g. a11y/baseline.test.tsx
-	// renders the real PdfViewer). See src/__tests__/setup/module-mocks.ts.
+	// Defaults to desktop so the thumbnail sidebar renders, and drives isDesktop
+	// through matchMedia because the real useMinWidth path is the behaviour under
+	// test.
 	stubMatchMedia((query) => query === '(min-width: 1024px)')
-})
-
-afterEach(() => {
-	vi.unstubAllGlobals()
-
-	vi.restoreAllMocks()
 })
 
 const pages: PdfViewerPage[] = [
@@ -141,39 +134,25 @@ describe('PdfViewer', () => {
 	})
 
 	it('triggers a download when the Download button is clicked', () => {
-		const appendChild = vi.spyOn(document.body, 'appendChild')
+		const anchor = captureAppended(() => {
+			renderUI(<PdfViewer pages={pages} src="/sample.pdf" filename="doc.pdf" />)
 
-		renderUI(<PdfViewer pages={pages} src="/sample.pdf" filename="doc.pdf" />)
+			fireEvent.click(screen.getByLabelText('Download'))
+		}, 'a')
 
-		fireEvent.click(screen.getByLabelText('Download'))
+		expect(anchor.href).toContain('/sample.pdf')
 
-		const anchor = appendChild.mock.calls.find((c) => (c[0] as HTMLElement).tagName === 'A')?.[0] as
-			| HTMLAnchorElement
-			| undefined
-
-		expect(anchor?.href).toContain('/sample.pdf')
-
-		expect(anchor?.download).toBe('doc.pdf')
-
-		appendChild.mockRestore()
+		expect(anchor.download).toBe('doc.pdf')
 	})
 
 	it('triggers a print iframe when the Print button is clicked', () => {
-		const appendChild = vi.spyOn(document.body, 'appendChild')
+		const iframe = captureAppended(() => {
+			renderUI(<PdfViewer pages={pages} src="/sample.pdf" />)
 
-		renderUI(<PdfViewer pages={pages} src="/sample.pdf" />)
+			fireEvent.click(screen.getByLabelText('Print'))
+		}, 'iframe')
 
-		fireEvent.click(screen.getByLabelText('Print'))
-
-		const iframe = appendChild.mock.calls.find(
-			(c) => (c[0] as HTMLElement).tagName === 'IFRAME',
-		)?.[0] as HTMLIFrameElement | undefined
-
-		expect(iframe?.src).toContain('/sample.pdf')
-
-		iframe?.remove()
-
-		appendChild.mockRestore()
+		expect(iframe.src).toContain('/sample.pdf')
 	})
 
 	it('renders an empty state when there are no pages', () => {
@@ -255,13 +234,9 @@ describe('downloadPdf', () => {
 	it('creates an anchor with the src, clicks it, and removes it', () => {
 		const createElement = vi.spyOn(document, 'createElement')
 
-		const appendChild = vi.spyOn(document.body, 'appendChild')
-
-		downloadPdf('/doc.pdf', 'doc.pdf')
+		const anchor = captureAppended(() => downloadPdf('/doc.pdf', 'doc.pdf'), 'a')
 
 		expect(createElement).toHaveBeenCalledWith('a')
-
-		const anchor = appendChild.mock.calls.at(-1)?.[0] as HTMLAnchorElement
 
 		expect(anchor.href).toContain('/doc.pdf')
 
@@ -272,84 +247,46 @@ describe('downloadPdf', () => {
 		expect(anchor.target).toBe('_blank')
 
 		expect(anchor.parentNode).toBeNull()
-
-		createElement.mockRestore()
-
-		appendChild.mockRestore()
 	})
 
 	it('defaults the download attribute to an empty string when no filename is provided', () => {
-		const appendChild = vi.spyOn(document.body, 'appendChild')
-
-		downloadPdf('/doc.pdf')
-
-		const anchor = appendChild.mock.calls.at(-1)?.[0] as HTMLAnchorElement
+		const anchor = captureAppended(() => downloadPdf('/doc.pdf'), 'a')
 
 		expect(anchor.download).toBe('')
-
-		appendChild.mockRestore()
 	})
 })
 
 describe('printPdf', () => {
 	it('appends a hidden iframe pointing at the src', () => {
-		const appendChild = vi.spyOn(document.body, 'appendChild')
-
-		printPdf('/doc.pdf')
-
-		const iframe = appendChild.mock.calls.at(-1)?.[0] as HTMLIFrameElement
-
-		expect(iframe.tagName).toBe('IFRAME')
+		const iframe = captureAppended(() => printPdf('/doc.pdf'), 'iframe')
 
 		expect(iframe.src).toContain('/doc.pdf')
 
 		expect(iframe.getAttribute('aria-hidden')).toBe('true')
-
-		iframe.remove()
-
-		appendChild.mockRestore()
 	})
 
 	it('opens the pdf in a new tab when the iframe fails to load', () => {
 		const open = vi.spyOn(window, 'open').mockImplementation(() => null)
 
-		const appendChild = vi.spyOn(document.body, 'appendChild')
-
-		printPdf('/fail.pdf')
-
-		const iframe = appendChild.mock.calls.at(-1)?.[0] as HTMLIFrameElement
+		const iframe = captureAppended(() => printPdf('/fail.pdf'), 'iframe')
 
 		iframe.dispatchEvent(new Event('error'))
 
 		expect(open).toHaveBeenCalledWith('/fail.pdf', '_blank', 'noopener,noreferrer')
-
-		open.mockRestore()
-
-		appendChild.mockRestore()
 	})
 
 	it('cleans up the iframe on load when contentWindow is unavailable', () => {
-		const appendChild = vi.spyOn(document.body, 'appendChild')
-
-		printPdf('/doc.pdf')
-
-		const iframe = appendChild.mock.calls.at(-1)?.[0] as HTMLIFrameElement
+		const iframe = captureAppended(() => printPdf('/doc.pdf'), 'iframe')
 
 		Object.defineProperty(iframe, 'contentWindow', { value: null, configurable: true })
 
 		iframe.dispatchEvent(new Event('load'))
 
 		expect(iframe.parentNode).toBeNull()
-
-		appendChild.mockRestore()
 	})
 
 	it('focuses and prints through the iframe window, deferring cleanup to afterprint', () => {
-		const appendChild = vi.spyOn(document.body, 'appendChild')
-
-		printPdf('/doc.pdf')
-
-		const iframe = appendChild.mock.calls.at(-1)?.[0] as HTMLIFrameElement
+		const iframe = captureAppended(() => printPdf('/doc.pdf'), 'iframe')
 
 		const win = { addEventListener: vi.fn(), focus: vi.fn(), print: vi.fn() }
 
@@ -365,18 +302,10 @@ describe('printPdf', () => {
 
 		// Cleanup is deferred to the afterprint event, so the iframe is still attached.
 		expect(iframe.parentNode).not.toBeNull()
-
-		iframe.remove()
-
-		appendChild.mockRestore()
 	})
 
 	it('reclaims the iframe when the window regains focus and afterprint never fires', () => {
-		const appendChild = vi.spyOn(document.body, 'appendChild')
-
-		printPdf('/doc.pdf')
-
-		const iframe = appendChild.mock.calls.at(-1)?.[0] as HTMLIFrameElement
+		const iframe = captureAppended(() => printPdf('/doc.pdf'), 'iframe')
 
 		const win = { addEventListener: vi.fn(), focus: vi.fn(), print: vi.fn() }
 
@@ -390,18 +319,12 @@ describe('printPdf', () => {
 		window.dispatchEvent(new Event('focus'))
 
 		expect(iframe.parentNode).toBeNull()
-
-		appendChild.mockRestore()
 	})
 
 	it('falls back to a new tab and cleans up when printing through the iframe throws', () => {
 		const open = vi.spyOn(window, 'open').mockImplementation(() => null)
 
-		const appendChild = vi.spyOn(document.body, 'appendChild')
-
-		printPdf('/doc.pdf')
-
-		const iframe = appendChild.mock.calls.at(-1)?.[0] as HTMLIFrameElement
+		const iframe = captureAppended(() => printPdf('/doc.pdf'), 'iframe')
 
 		const win = {
 			addEventListener: vi.fn(),
@@ -418,10 +341,6 @@ describe('printPdf', () => {
 		expect(open).toHaveBeenCalledWith('/doc.pdf', '_blank', 'noopener,noreferrer')
 
 		expect(iframe.parentNode).toBeNull()
-
-		open.mockRestore()
-
-		appendChild.mockRestore()
 	})
 })
 

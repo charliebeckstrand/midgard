@@ -3,9 +3,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ShinyText, ShinyTextSkeleton } from '../../components/shiny-text'
 import { bySlot, renderUI, stubMatchMedia, userEvent } from '../helpers'
 
-// `animate` is the imperative sweep, stubbed globally in setup/module-mocks.ts
-// (a per-file vi.mock('motion') resolves inconsistently under the vmThreads
-// pool). The gate watches whether a sweep starts (animate) and hover
+// `animate` is the imperative sweep, stubbed globally in setup/module-mocks.ts,
+// which is also why this file drives that mock with spies rather than declaring
+// its own. The gate watches whether a sweep starts (animate) and hover
 // pause/resume (pause/playSpy).
 const pauseSpy = vi.fn()
 

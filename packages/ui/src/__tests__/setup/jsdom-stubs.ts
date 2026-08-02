@@ -102,8 +102,8 @@ if (contentWindowDescriptor?.get) {
 // jsdom implements neither URL.createObjectURL nor URL.revokeObjectURL; the
 // blob-download paths (CSV/HTML export, PDF viewer) call them. Stub as no-ops so
 // the properties exist and tests can wrap them with vi.spyOn (auto-restored by
-// restoreMocks) — never a raw reassignment, which would leak across the shared
-// vmThreads worker.
+// restoreMocks) — never a raw reassignment, which would leak across the
+// worker's shared window.
 if (typeof URL.createObjectURL !== 'function') {
 	URL.createObjectURL = vi.fn(() => 'blob:stub')
 }

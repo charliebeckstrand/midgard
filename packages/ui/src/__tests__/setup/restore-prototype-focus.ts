@@ -2,11 +2,13 @@ import { afterEach } from 'vitest'
 
 // @testing-library/user-event's `userEvent.setup()` calls patchFocus(), which
 // replaces HTMLElement.prototype.focus/blur with getter-only accessors and
-// never restores them. Under the vmThreads pool the prototype is shared across
-// every test file in the worker, so the getter-only `focus` leaks: later files
-// that assign `el.focus = vi.fn()` throw "Cannot set property focus ... which
-// has only a getter". Capture the pristine native methods now (before any
-// userEvent.setup runs) and reinstate them after each test.
+// never restores them. The unit project runs `isolate: false`, so the prototype
+// is shared across every test file in the worker and the getter-only `focus`
+// leaks: later files that assign `el.focus = vi.fn()` throw "Cannot set property
+// focus ... which has only a getter". Capture the pristine native methods now
+// (before any userEvent.setup runs) and reinstate them after each test. Vitest
+// invalidates a setup module before every test file, so this body re-runs per
+// file and the capture reads whatever the previous file's afterEach restored.
 
 const pristine: Array<[object, string, PropertyDescriptor]> = []
 

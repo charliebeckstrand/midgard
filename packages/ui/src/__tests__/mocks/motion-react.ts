@@ -185,9 +185,8 @@ function useTransform<I, O>(source: { get: () => I } | (() => O), transform?: (v
 // Reads the reduced-motion preference from `window.matchMedia`, mirroring the
 // real hook. Defaults to `false` via the jsdom matchMedia stub; a test forces
 // the reduced path with `stubMatchMedia` + `vi.unstubAllGlobals()` in
-// afterEach. No per-file `vi.mock` (which races the global mock under the
-// shared vmThreads module cache) and no module-level state to leak between
-// files.
+// afterEach. No per-file `vi.mock` (see setup/module-mocks.ts) and no
+// module-level state to leak between files.
 function useReducedMotion(): boolean {
 	return typeof window !== 'undefined' && typeof window.matchMedia === 'function'
 		? window.matchMedia('(prefers-reduced-motion: reduce)').matches

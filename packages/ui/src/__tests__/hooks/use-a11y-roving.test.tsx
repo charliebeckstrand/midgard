@@ -14,8 +14,9 @@ import { makeKeyEvent } from '../helpers'
 
 // Containers are appended to document.body for real focus/roving; RTL cleanup()
 // only unmounts React roots, not these manual nodes. Track and remove them so a
-// leftover option list can't contaminate a later test's DOM queries under the
-// shuffled vmThreads worker.
+// leftover option list can't contaminate a later test's DOM queries. The unit
+// project runs `isolate: false`, so document.body is shared with every later
+// file in the worker, not just with later tests in this one.
 const appendedContainers: HTMLElement[] = []
 
 afterEach(() => {

@@ -102,8 +102,7 @@ function mergeProps(list: (MockProps | undefined)[]): MockProps {
  *     any user-supplied props) via `mergeProps`, chaining handlers.
  *
  * Everything else (positioning, hover, dismiss, portals) is a noop or identity
- * passthrough. Applied globally for module-graph consistency across the
- * vmThreads pool.
+ * passthrough. Applied globally — see setup/module-mocks.ts.
  */
 const floatingUIMock = {
 	autoUpdate: noop,
