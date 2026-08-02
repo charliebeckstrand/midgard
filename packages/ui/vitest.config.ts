@@ -21,14 +21,14 @@ const setupFiles = [
 export default defineConfig({
 	test: {
 		environment: 'jsdom',
-		// Vitest reserves a core for the main thread, so a pool defaults to one
-		// fewer worker than the machine has cores — a jsdom suite this size leaves
-		// ~15-20% of local wall on the table. Rendering React trees into jsdom
-		// spends enough time in GC and async idle that scheduling a worker per core
-		// (not core-minus-one) fills it without CPU oversubscription: no per-worker
-		// slowdown toward the waitFor budget. CI keeps the default — its agents are
-		// shared and noisier, and the scaled timeouts below assume that slack — so
-		// this stays a local-only speedup.
+		// Vitest caps a pool at one fewer worker than the machine has cores. Local
+		// runs lift the cap to one per core; CI keeps the default, because its
+		// agents are shared and the scaled timeouts below assume that slack.
+		//
+		// Measured at 4 cores, where the extra worker is clearly worth it. It buys
+		// less as the count rises: under `isolate: false` each worker pays for its
+		// own module graph, so the gain from one more shrinks while that cost stays
+		// flat. Re-measure before trusting this on a much larger machine.
 		...(CI ? {} : { maxWorkers: '100%' }),
 		globals: true,
 		// Machine speed must change when a test passes, never whether it passes:
@@ -102,7 +102,7 @@ export default defineConfig({
 		},
 		projects: [
 			{
-				extends: true,
+				extends: true as const,
 				// The docs engine, pointed at ui, backs the `docs/*` integration
 				// tests under src/__tests__/docs/ (the real component-modules map +
 				// barrel tagging) and runs its own suite under
@@ -141,7 +141,7 @@ export default defineConfig({
 				},
 			},
 			{
-				extends: true,
+				extends: true as const,
 				// Architectural boundary suites (*-boundary.test.ts): node:fs walks
 				// over source text — no DOM, no React, no mocks. A plain node
 				// environment on one shared worker strips the per-file fork + jsdom
@@ -156,7 +156,7 @@ export default defineConfig({
 				},
 			},
 			{
-				extends: true,
+				extends: true as const,
 				// Integration suites: virtualizer, canvas, PDF, map — integrations
 				// that schedule work past a test's lifetime or lean on jsdom's
 				// edges — plus suites that vi.mock a shared source module

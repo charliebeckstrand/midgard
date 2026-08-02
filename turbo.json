@@ -48,7 +48,9 @@
         "app/**",
         "vitest.config.ts",
         "tsconfig.json",
-        "$TURBO_ROOT$/tsconfig.base.json"
+        "$TURBO_ROOT$/tsconfig.base.json",
+        "docs/*.md",
+        "package.json"
       ]
     },
     "test:browser": {
