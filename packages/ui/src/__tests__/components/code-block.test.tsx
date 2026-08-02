@@ -3,8 +3,7 @@ import { CodeBlock } from '../../components/code/code-block'
 import { bySlot, renderUI, screen, waitFor } from '../helpers'
 
 // `shiki` is mocked globally in setup/module-mocks.ts; a per-file mock here
-// would bleed across the worker's shared module registry under shuffle (see
-// markdown.test.tsx).
+// would bleed across files (see markdown.test.tsx for the failure it caused).
 
 describe('CodeBlock', () => {
 	it('renders with data-slot="code-block"', async () => {

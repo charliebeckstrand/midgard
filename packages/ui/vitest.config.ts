@@ -15,11 +15,11 @@ export default defineConfig({
 		environment: 'jsdom',
 		// Vitest reserves a core for the main thread, so a pool defaults to one
 		// fewer worker than the machine has cores — a jsdom suite this size leaves
-		// ~15-20% of local wall on the table. jsdom setup and module eval spend
-		// enough time in GC/async idle that scheduling a worker per core (not
-		// core-minus-one) fills it without CPU oversubscription: no per-worker
+		// ~15-20% of local wall on the table. Rendering React trees into jsdom
+		// spends enough time in GC and async idle that scheduling a worker per core
+		// (not core-minus-one) fills it without CPU oversubscription: no per-worker
 		// slowdown toward the waitFor budget. CI keeps the default — its agents are
-		// shared and noisier, and the scaled timeouts above assume that slack — so
+		// shared and noisier, and the scaled timeouts below assume that slack — so
 		// this stays a local-only speedup.
 		...(CI ? {} : { minWorkers: '100%', maxWorkers: '100%' }),
 		globals: true,
@@ -40,10 +40,8 @@ export default defineConfig({
 		// ahead of Node instead.
 		env: { TZ: 'UTC' },
 		sequence: { shuffle: true },
-		// The unit project runs `isolate: false`, so evaluated modules AND the jsdom
-		// window are shared across a worker's files — cross-file bleed is possible
-		// there, and these four options are what contain it. Within a file a
-		// vi.spyOn or vi.stubGlobal outlives its test unless restored, and
+		// Within a file a vi.spyOn or vi.stubGlobal outlives its test unless
+		// restored, and
 		// sequence.shuffle randomizes sibling order — so an unrestored spy/stub
 		// leaks into whichever test runs next. restoreMocks runs
 		// vi.restoreAllMocks() before each test and unstubGlobals runs
@@ -95,24 +93,23 @@ export default defineConfig({
 					name: 'unit',
 					setupFiles,
 					pool: 'threads',
-					// `isolate: false` evaluates the setup files and the module graph
-					// once per worker instead of once per file, which is where this
-					// suite spent most of its time: measured over these 407 files,
-					// setup fell 123.7s -> 6.5s and import 163.0s -> 37.9s, taking the
-					// full three-project run from 143.4s to 97.7s. It also peaks lower
-					// (1485MB against vmThreads' 2440MB), because vmThreads holds a VM
-					// context per file — the reason that pool needed a vmMemoryLimit
-					// recycle valve and this one does not.
+					// `isolate: false` keeps the evaluated module graph across a
+					// worker's files instead of rebuilding it for each one, which is
+					// where this suite spent most of its time. (Vitest still
+					// invalidates the setup modules themselves before every file, so
+					// their bodies re-run; what stops being re-evaluated is everything
+					// they import.) It also peaks lower than vmThreads, which holds a
+					// VM context per file — the reason that pool needed a
+					// vmMemoryLimit recycle valve and this one does not.
 					//
 					// The price is a shared module registry and a shared jsdom window
-					// across the ~100 files a worker runs. Two things pay for it. A
-					// per-file `vi.mock` cannot survive a shared registry, and this
-					// project has none — every one lives in `integration` below, which
-					// keeps process isolation on forks. And nothing outlives a file:
-					// `--detectAsyncLeaks` over the suite reported only RTL's own
-					// act-settle timer, jsdom's selectionchange timer, and 0ms library
-					// timers; a probe for surviving DOM singletons came back empty.
-					// Verified green on six shuffle seeds.
+					// across the files a worker runs, so no file in this project may
+					// declare a per-file `vi.mock` — see src/__tests__/setup/
+					// module-mocks.ts, and test-isolation-boundary.test.ts, which
+					// enforces it. The suites that need one live in `integration`
+					// below, which keeps process isolation on forks.
+					//
+					// Measurements: docs/audits/2026-08-02-TEST-SUITE-AUDIT.md.
 					isolate: false,
 					include: [
 						'src/__tests__/**/*.test.{ts,tsx}',

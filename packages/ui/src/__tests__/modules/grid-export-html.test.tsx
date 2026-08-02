@@ -137,11 +137,16 @@ describe('rowsToPrintHtml', () => {
  *
  * `printRows` reclaims its iframe from an `afterprint` or window-`focus`
  * handler, and jsdom fires neither — so in this environment every call leaves
- * the node attached to `document.body`. Removal is registered through
- * `onTestFinished` rather than written at the end of the test body, so it also
- * runs when an assertion above it throws; a node left behind outlives the file
- * under the unit project's shared jsdom window and surfaces as a failure in an
- * unrelated file.
+ * the node attached to `document.body`. Teardown dispatches the window `focus`
+ * the real browser would, which drives the module's own `cleanup`: that both
+ * removes the node and releases the `{ once: true }` listener closing over the
+ * iframe and its print document. Detaching the node alone would leave that
+ * closure on the shared window holding both.
+ *
+ * Teardown runs through `onTestFinished` rather than at the end of the test
+ * body, so it also runs when an assertion above it throws. Anything left behind
+ * outlives the file under the unit project's shared jsdom window and surfaces
+ * as a failure in an unrelated file.
  */
 function printAndCapture(): HTMLIFrameElement {
 	const appendChild = vi.spyOn(document.body, 'appendChild')
@@ -153,6 +158,8 @@ function printAndCapture(): HTMLIFrameElement {
 	appendChild.mockRestore()
 
 	onTestFinished(() => {
+		window.dispatchEvent(new Event('focus'))
+
 		iframe.remove()
 	})
 

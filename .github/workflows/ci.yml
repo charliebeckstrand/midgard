@@ -23,9 +23,9 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: .turbo
-          key: ${{ runner.os }}-turbo-${{ github.sha }}
+          key: ${{ runner.os }}-turbo-gate-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-turbo-
+            ${{ runner.os }}-turbo-gate-
       - run: pnpm install --frozen-lockfile
       # `bundle:budget` depends on `docs:build` in turbo.json, so the graph
       # orders them; see bundle-budget.ts for what it asserts and why.
@@ -52,10 +52,26 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: .turbo
+          # Disjoint from `gate`'s namespace, not nested under it. A restore key
+          # matches by prefix, so a plain `turbo-` prefix on either job would
+          # match the other job's entries and hand it a `.turbo` holding the
+          # wrong task's artifacts. The two share nothing worth pooling: `ui`
+          # declares no workspace dependency, so `^build` resolves to an empty
+          # task set here.
           key: ${{ runner.os }}-turbo-browser-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-turbo-browser-
       - run: pnpm install --frozen-lockfile
-      # Chromium only: vitest.browser.config.ts declares no other browser.
-      - run: pnpm --filter ui exec playwright install --with-deps chromium
+      # Chromium only: vitest.browser.config.ts declares no other browser. The
+      # download is ~170MB and playwright is pinned exactly, so cache it against
+      # the lockfile and reinstall only the system libraries on a hit.
+      - uses: actions/cache@v4
+        id: playwright
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('pnpm-lock.yaml') }}
+      - if: steps.playwright.outputs.cache-hit != 'true'
+        run: pnpm --filter ui exec playwright install --with-deps chromium
+      - if: steps.playwright.outputs.cache-hit == 'true'
+        run: pnpm --filter ui exec playwright install-deps chromium
       - run: pnpm turbo run test:browser

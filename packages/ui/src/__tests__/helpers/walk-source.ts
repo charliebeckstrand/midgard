@@ -49,30 +49,36 @@ type PatternRule = { label: string; regex: RegExp }
  * Scan a source layer for forbidden patterns and return human-readable
  * violation lines (`relative/path → label (match)`), ready for an
  * `expect(violations, …).toEqual([])` assertion. `regex` rules must carry
- * the `g` flag. Files not matching `fileFilter` are skipped; violation paths
- * are reported relative to `srcDir` (the package's `src/` by default).
+ * the `g` flag. Files not matching `fileFilter` are skipped, and `skip` prunes
+ * directory entries by name before the read; violation paths are reported
+ * relative to `srcDir` (the package's `src/` by default).
  */
 export function collectPatternViolations(options: {
 	dir: string
 	srcDir?: string
 	patterns: readonly PatternRule[]
 	fileFilter?: RegExp
+	skip?: ReadonlySet<string>
 }): string[] {
-	const { dir, srcDir: root = srcDir, patterns, fileFilter = /\.(?:tsx?|mts|cts)$/ } = options
+	const { dir, srcDir: root = srcDir, patterns, fileFilter = /\.(?:tsx?|mts|cts)$/, skip } = options
 
 	const violations: string[] = []
 
-	walkSource(dir, (file, content) => {
-		if (!fileFilter.test(file)) return
+	walkSource(
+		dir,
+		(file, content) => {
+			if (!fileFilter.test(file)) return
 
-		const rel = relative(root, file)
+			const rel = relative(root, file)
 
-		for (const { label, regex } of patterns) {
-			for (const match of content.matchAll(regex)) {
-				violations.push(`${rel} → ${label} (${match[0]})`)
+			for (const { label, regex } of patterns) {
+				for (const match of content.matchAll(regex)) {
+					violations.push(`${rel} → ${label} (${match[0]})`)
+				}
 			}
-		}
-	})
+		},
+		skip,
+	)
 
 	return violations
 }

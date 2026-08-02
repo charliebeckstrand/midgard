@@ -8,10 +8,9 @@ import { vi } from 'vitest'
  * Odometer's RAF tween genuine; ShinyText stubs the return via
  * `vi.mocked(animate)` to observe the sweep without running it.
  *
- * Global, not per-file: the unit project runs `isolate: false`, so one module
- * registry serves every file in the worker. A per-file `vi.mock('motion')` would
- * reach whichever files `sequence.shuffle` schedules after it, intermittently
- * leaving `animate` un-wrapped.
+ * Global, not per-file (see setup/module-mocks.ts): a per-file
+ * `vi.mock('motion')` would reach whichever files `sequence.shuffle` schedules
+ * after it, intermittently leaving `animate` un-wrapped.
  */
 const actual = await vi.importActual<typeof import('motion')>('motion')
 

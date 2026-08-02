@@ -6,10 +6,9 @@ import { afterEach } from 'vitest'
 // is shared across every test file in the worker and the getter-only `focus`
 // leaks: later files that assign `el.focus = vi.fn()` throw "Cannot set property
 // focus ... which has only a getter". Capture the pristine native methods now
-// and reinstate them after each test. Under `isolate: false` this module
-// evaluates once per worker, ahead of every test file, so the capture is
-// guaranteed to precede the first userEvent.setup rather than merely happening
-// to.
+// (before any userEvent.setup runs) and reinstate them after each test. Vitest
+// invalidates a setup module before every test file, so this body re-runs per
+// file and the capture reads whatever the previous file's afterEach restored.
 
 const pristine: Array<[object, string, PropertyDescriptor]> = []
 
