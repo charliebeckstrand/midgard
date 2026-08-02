@@ -28,9 +28,8 @@
  */
 
 import { Activity, Fragment, useState } from 'react'
-import { flushSync } from 'react-dom'
-import { createRoot } from 'react-dom/client'
 import { bench, describe } from 'vitest'
+import { reactHost, WINDOW } from './harness'
 
 const GROUPS = 20
 
@@ -139,13 +138,9 @@ function Body({
 	)
 }
 
-/** Mounts one body and returns the driver that ticks it under `flushSync`. */
+/** Mounts one body and returns the driver that ticks it on the visible commit. */
 function mount(Row: RowComponent, rest: boolean, expandedGroups: number) {
-	const host = document.createElement('div')
-
-	document.body.append(host)
-
-	const root = createRoot(host)
+	const mounted = reactHost()
 
 	let set: (tick: number) => void = () => {}
 
@@ -157,18 +152,16 @@ function mount(Row: RowComponent, rest: boolean, expandedGroups: number) {
 		return <Body tick={tick} Row={Row} rest={rest} expandedGroups={expandedGroups} />
 	}
 
-	flushSync(() => root.render(<Probe />))
+	mounted.render(<Probe />)
 
 	let tick = 0
 
 	return () => {
 		tick += 1
 
-		flushSync(() => set(tick))
+		mounted.flush(() => set(tick))
 	}
 }
-
-const WINDOW = { time: 2_500 }
 
 const live = mount(RowInside, false, 1)
 
@@ -183,20 +176,20 @@ const allExpandedRested = mount(RowInside, true, GROUPS)
 describe('grid · grouped body · collapsed-row update', () => {
 	// One group open, the other 19 collapsed but live: all 500 rows re-render on
 	// the synchronous commit, which is what the module did before the hold.
-	bench('collapsed rows live', () => live(), WINDOW)
+	bench('collapsed rows live', () => live(), WINDOW.settled)
 
 	// Held, but from inside the row — the 475 collapsed row bodies still run.
-	bench('rested · boundary inside the row', () => restedInside(), WINDOW)
+	bench('rested · boundary inside the row', () => restedInside(), WINDOW.settled)
 
 	// Held from above the row body, which is what actually defers it.
-	bench('rested · boundary above the row', () => restedAbove(), WINDOW)
+	bench('rested · boundary above the row', () => restedAbove(), WINDOW.settled)
 
 	// The ceiling: every group open, so nothing can be deferred. Against
 	// `collapsed rows live` it shows what collapsing bought before the hold —
 	// nothing, since a zero-height row still renders.
-	bench('all expanded · live', () => allExpandedLive(), WINDOW)
+	bench('all expanded · live', () => allExpandedLive(), WINDOW.settled)
 
 	// The same fully-expanded body with every row carrying the wrapper it can
 	// never use: the price the hold charges a grid that collapses nothing.
-	bench('all expanded · rested', () => allExpandedRested(), WINDOW)
+	bench('all expanded · rested', () => allExpandedRested(), WINDOW.settled)
 })

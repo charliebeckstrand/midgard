@@ -1,8 +1,20 @@
 import type { ReactNode } from 'react'
 import { vi } from 'vitest'
 
-// motion/react shim: strips animation props; components mount without a
-// full animation runtime.
+// motion/react shim: strips animation props; components mount without a full
+// animation runtime.
+//
+// Deliberately not `__tests__/mocks/motion-react.ts`, which the three test
+// setups share. That one models animations as instant so lifecycle gated on
+// completion resolves — a `useRef` + `useEffect` + an `animate` comparison per
+// motion element per render — and surfaces `data-layout` / `data-initial-*` for
+// tests to assert. Both are per-element work the shipped path never does, so a
+// bench mounting them would time the mock. This shim keeps only the stripping.
+//
+// The cost of the split is that it must track the same API surface: every
+// export the package imports from `motion/react` needs an entry here *and*
+// there, and a missing one fails at import of whichever bench renders it. Keep
+// the two in step.
 vi.mock('motion/react', async () => {
 	const { createElement, forwardRef } = await import('react')
 
@@ -36,21 +48,26 @@ vi.mock('motion/react', async () => {
 	// One component per tag, cached: a fresh identity per `motion.<tag>` access
 	// would change the element type on every re-render, silently remounting the
 	// subtree under it and corrupting any bench that re-renders a mounted tree.
-	const components = new Map<string, unknown>()
+	const components = new Map<unknown, unknown>()
+
+	/** Wraps a tag or component so it renders without the animation props. */
+	function wrap(type: unknown) {
+		if (!components.has(type)) {
+			components.set(
+				type,
+				forwardRef((props: Record<string, unknown>, ref: unknown) =>
+					createElement(type as string, { ref, ...stripMotionProps(props) }),
+				),
+			)
+		}
+
+		return components.get(type)
+	}
 
 	const handler: ProxyHandler<object> = {
-		get(_, tag: string) {
-			if (!components.has(tag)) {
-				components.set(
-					tag,
-					forwardRef((props: Record<string, unknown>, ref: unknown) =>
-						createElement(tag, { ref, ...stripMotionProps(props) }),
-					),
-				)
-			}
-
-			return components.get(tag)
-		},
+		// `motion.create(Component)` wraps a custom component (the grid's animated
+		// row wraps `TableRow` that way); every other key is a tag.
+		get: (_, key: string) => (key === 'create' ? wrap : wrap(key)),
 	}
 
 	const motion = new Proxy({}, handler)
@@ -82,7 +99,28 @@ vi.mock('motion/react', async () => {
 		}
 	}
 
-	return { motion, AnimatePresence, LayoutGroup, MotionConfig, useAnimate, useMotionValue }
+	/** A derived value that reads through the source on demand, as the real one does. */
+	function useTransform<T, R>(source: { get: () => T }, map: (value: T) => R) {
+		return { get: () => map(source.get()), set: () => {}, on: () => () => {} }
+	}
+
+	// The benches measure the shipped animated path, so the shim answers as a
+	// machine with motion enabled — reporting a reduced-motion preference would
+	// let components take their static branch and score work they don't do.
+	function useReducedMotion() {
+		return false
+	}
+
+	return {
+		motion,
+		AnimatePresence,
+		LayoutGroup,
+		MotionConfig,
+		useAnimate,
+		useMotionValue,
+		useReducedMotion,
+		useTransform,
+	}
 })
 
 // Browser shims, installed only in jsdom runs. Pure-logic benchmark files

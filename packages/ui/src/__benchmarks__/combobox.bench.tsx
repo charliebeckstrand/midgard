@@ -1,123 +1,88 @@
-import { cleanup, render } from '@testing-library/react'
-import { bench, describe } from 'vitest'
+/**
+ * Combobox mounts its options behind an `open` gate, so the closed rungs
+ * measure the trigger and the query plumbing alone — what a page pays for a
+ * combobox nobody has touched — and the open rungs add the rendered options.
+ * The virtualized pair at the same counts is what windowing buys once the
+ * panel is open.
+ */
+
+import { describe } from 'vitest'
 import { Combobox } from '../components/combobox/combobox'
 import { ComboboxLabel, ComboboxOption } from '../components/combobox/combobox-option'
 import { useComboboxQuery } from '../components/combobox/use-combobox-query'
 import { VirtualOptions } from '../primitives/virtual-options'
-import { makeComboboxOptions } from './fixtures'
+import { comboboxOptions, type Option } from './fixtures'
+import { mountBenches } from './harness'
 
-const options100 = makeComboboxOptions(100)
-const options500 = makeComboboxOptions(500)
-const options2k = makeComboboxOptions(2_000)
-
-function OptionsFor({ options }: { options: { value: string; label: string }[] }) {
+/** The query filter a consumer writes, reading the combobox's own deferred query. */
+function useFiltered(all: Option[]): Option[] {
 	const { deferredQuery } = useComboboxQuery()
 
-	const q = deferredQuery.toLowerCase()
+	const query = deferredQuery.toLowerCase()
 
-	const filtered = q ? options.filter((o) => o.label.toLowerCase().includes(q)) : options
+	return query ? all.filter((option) => option.label.toLowerCase().includes(query)) : all
+}
+
+function OptionsFor({ options: all }: { options: Option[] }) {
+	const filtered = useFiltered(all)
 
 	return (
 		<>
-			{filtered.map((o) => (
-				<ComboboxOption key={o.value} value={o.value}>
-					<ComboboxLabel>{o.label}</ComboboxLabel>
+			{filtered.map((option) => (
+				<ComboboxOption key={option.value} value={option.value}>
+					<ComboboxLabel>{option.label}</ComboboxLabel>
 				</ComboboxOption>
 			))}
 		</>
 	)
 }
 
+function VirtualOptionsFor({ options: all }: { options: Option[] }) {
+	const filtered = useFiltered(all)
+
+	return (
+		<VirtualOptions items={filtered} estimateSize={36}>
+			{(option) => (
+				<ComboboxOption key={option.value} value={option.value}>
+					<ComboboxLabel>{option.label}</ComboboxLabel>
+				</ComboboxOption>
+			)}
+		</VirtualOptions>
+	)
+}
+
 describe('Combobox · closed (options not rendered)', () => {
-	bench('100 options', () => {
-		render(
+	mountBenches(
+		[100, 2_000],
+		(count) => `${count.toLocaleString()} options`,
+		(count) => (
 			<Combobox<string>>
-				<OptionsFor options={options100} />
-			</Combobox>,
-		)
-
-		cleanup()
-	})
-
-	bench('2,000 options', () => {
-		render(
-			<Combobox<string>>
-				<OptionsFor options={options2k} />
-			</Combobox>,
-		)
-
-		cleanup()
-	})
+				<OptionsFor options={comboboxOptions(count)} />
+			</Combobox>
+		),
+	)
 })
 
 describe('Combobox · open (options rendered)', () => {
-	bench('100 options · open · empty query', () => {
-		render(
+	mountBenches(
+		[100, 500, 2_000],
+		(count) => `${count.toLocaleString()} options · open · empty query`,
+		(count) => (
 			<Combobox<string> open>
-				<OptionsFor options={options100} />
-			</Combobox>,
-		)
-
-		cleanup()
-	})
-
-	bench('500 options · open · empty query', () => {
-		render(
-			<Combobox<string> open>
-				<OptionsFor options={options500} />
-			</Combobox>,
-		)
-
-		cleanup()
-	})
-
-	bench('2,000 options · open · empty query', () => {
-		render(
-			<Combobox<string> open>
-				<OptionsFor options={options2k} />
-			</Combobox>,
-		)
-
-		cleanup()
-	})
+				<OptionsFor options={comboboxOptions(count)} />
+			</Combobox>
+		),
+	)
 })
 
 describe('Combobox · open · virtualized', () => {
-	function VirtualOptionsFor({ options }: { options: { value: string; label: string }[] }) {
-		const { deferredQuery } = useComboboxQuery()
-
-		const q = deferredQuery.toLowerCase()
-
-		const filtered = q ? options.filter((o) => o.label.toLowerCase().includes(q)) : options
-
-		return (
-			<VirtualOptions items={filtered} estimateSize={36}>
-				{(o) => (
-					<ComboboxOption key={o.value} value={o.value}>
-						<ComboboxLabel>{o.label}</ComboboxLabel>
-					</ComboboxOption>
-				)}
-			</VirtualOptions>
-		)
-	}
-
-	function virtRender(opts: { value: string; label: string }[]) {
-		return (
+	mountBenches(
+		[500, 2_000],
+		(count) => `${count.toLocaleString()} options · virtualized`,
+		(count) => (
 			<Combobox<string> open>
-				<VirtualOptionsFor options={opts} />
+				<VirtualOptionsFor options={comboboxOptions(count)} />
 			</Combobox>
-		)
-	}
-
-	bench('500 options · virtualized', () => {
-		render(virtRender(options500))
-
-		cleanup()
-	})
-
-	bench('2,000 options · virtualized', () => {
-		render(virtRender(options2k))
-
-		cleanup()
-	})
+		),
+	)
 })
