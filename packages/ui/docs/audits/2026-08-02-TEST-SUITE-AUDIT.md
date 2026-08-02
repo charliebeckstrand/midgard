@@ -50,11 +50,9 @@ The change shares one jsdom window across the ~100 files that each worker runs. 
 
 **Ref-counted DOM singletons hold process-global state.** `use-scroll-lock`, `use-grabbing-cursor`, and `dismiss-layers` balance a counter on mount and unmount. Four more modules keep module-scope mutable state and touch `document` or `window`: `utilities/media-query.ts:7`, `utilities/document-listener.ts:6`, the time-ago tickers, and `use-truncation`'s shared `ResizeObserver`. The last one is the worst, because it caches a global that a test installed and keeps it after the test restores it. Export a reset for each, and call it from the `afterEach` in `setup/index.ts`, beside `__resetAnnouncer` (`core/announcer.ts:67` is the precedent).
 
-**Three hook test files call `vi.resetModules()` seven times.** `hooks/use-media-query.test.ts:13,25,41`, `hooks/use-min-width.test.ts:13,25`, and `hooks/use-has-hover.test.ts:15,27` each reset the graph and then re-import the hook. `vitest.config.ts:58` forbids exactly this and gives the reason. Today vmThreads already shares the graph, so the cost sits in both baselines. Afterwards each call invalidates a graph that the files behind it must rebuild. Replace them with an explicit reset seam on `utilities/media-query.ts`.
+**Three hook test files call `vi.resetModules()` seven times.** `hooks/use-media-query.test.ts:13,25,41`, `hooks/use-min-width.test.ts:13,25`, and `hooks/use-has-hover.test.ts:15,27` each reset the graph and then re-import the hook. `vitest.config.ts:58` forbids exactly this and gives the reason. Today vmThreads already shares the graph, so the cost sits in both baselines. Afterwards each call invalidates a graph that the files behind it must rebuild. Delete them.
 
-**Vitest 4.1.10 ships `--detectAsyncLeaks`, and nothing here uses it.** Run the unit project with it once under the current configuration and fix what it names. It reports async resources that outlive their file. After the pool change a leaked timer fires inside a sibling file and the trail is gone. Keep it as a diagnostic script, never as a default: it captures a stack for every async resource.
-
-**Add a leak probe.** One cheap check for each test converts a mysterious failure 40 files later into a failure in the file that caused it. Assert that the reset seams are at rest and that `document.body` is empty. This is the change that makes the pool change safe instead of lucky.
+**Vitest 4.1.10 ships `--detectAsyncLeaks`, and nothing here uses it.** Run it once and fix what it names. Keep it as a diagnostic script, never as a default: it captures a stack for every async resource.
 
 ## Open
 
@@ -75,6 +73,14 @@ The change shares one jsdom window across the ~100 files that each worker runs. 
 **80 browser test files (234 tests) run under no gate.** `.github/workflows/ci.yml:32` is the whole gate, and it never runs `test:browser`. `turbo.json` declares no such task. `CONVENTIONS.md:108` routes every layout, colour, target-size, and focus-trap assertion into that suite, so this is the largest coverage hole found. Either gate it in a separate CI job, or record in `vitest.browser.config.ts` that it is manual. The current state cannot be told apart from an oversight.
 
 ## Corrections
+
+**A reset seam for the media-query registries fixes nothing.** The prerequisite list first asked for `__resetMediaQueryRegistries`, on the theory that a registry survives its test and reaches the next file. It does not. The registry drops itself when the last subscriber unsubscribes, and RTL's `cleanup` unmounts every subscriber. A probe that failed any test which left a live registry ran over the whole unit project — 407 files, 5167 tests — and found none. The seven `vi.resetModules()` calls were therefore vestigial, and the three suites now import their hooks directly with no replacement machinery. The same reasoning is what the remaining singletons must be measured against, not assumed into.
+
+**`--detectAsyncLeaks` does not have to run before the pool change.** The first version of this document said `isolate: true` is what attributes a leak to the file that created it. That is wrong. `base.B6Opl8PE.js` constructs the hook for each file inside the run loop, before the file's tests and independent of `config.isolate`; the flag governs the module-graph reset alone. Attribution survives the change.
+
+**Do not run `--detectAsyncLeaks` under vmThreads.** The detector identifies a resource by building an `Error` stack and testing `stack.includes(testFile)`, and its `catch { return }` drops any resource whose stack throws — which its own comment attributes to "VitestModuleEvaluator's async wrapper of node:vm". A clean result on that pool is not evidence. Run it on `threads`.
+
+**The suite has no async leak.** Under the target configuration the detector reports 914 resources, and effectively all are instrument noise: it collects one `setImmediate` after the file ends, so anything pending at that instant counts. 482 are TickObjects and 253 are microtasks. Of the 157 timers, 88 are RTL's own act-settle `setTimeout(resolve, 0)` and 50 are the `selectionchange` timeout jsdom arms on every `focus()`. The only application timers are `grid-export/download.ts:29`, which revokes an object URL that `setup/jsdom-stubs.ts` has replaced with a `vi.fn()`, and `hooks/a11y/use-typeahead.ts:44`, which clears a string on per-instance state. Nothing here needs fixing, and no probe was added: there is no leak for it to catch.
 
 **The `boundary` and `integration` projects do not carry half the wall clock.** An earlier claim compared a 201.7s full run against a 105.3s `unit` run measured on a slower container. Measured side by side, `boundary` is 4.0s and `integration` is 24.0s against `unit`'s 149.6s. The `unit` project is nearly the whole suite.
 
@@ -108,13 +114,19 @@ Eight claims did not survive. They are recorded so that nobody re-opens them.
 
 The sequence matters, because some changes make others impossible to measure.
 
-1. Fix the leaks and add the probe, while `isolate: true` still names the guilty file. Run `--detectAsyncLeaks` first and fix what it reports.
+1. Fix the DOM residue that a shared window makes visible. Done in `5e3f9ac`.
 
-2. Change the pool alone. Put nothing else in that commit, or the 143.4s to 97.7s attribution is lost. Record the seed that the reporter prints.
+2. Change the pool alone. Put nothing else in that commit, or the attribution is lost. Done in `19149a8`: 143.4s to 94.5s over six seeds, on top of six more on the candidate configuration.
 
 3. Measure `noLib` and `resultTypes` before and after, from the per-file report at `--maxWorkers=1`. Wall clock over 4 workers divides the signal into noise.
 
 4. Consolidate last, and on the maintenance argument only.
+
+## State
+
+Steps 1 and 2 are complete, together with the browser-suite gate (`00f31fd`). The full jsdom suite now runs in about 94.5s against 143.4s before, with all 5643 tests passing on twelve shuffle seeds.
+
+Steps 3 and 4 are open, and the Open section above lists what they cover. Nothing in them is a prerequisite for anything else.
 
 ---
 
