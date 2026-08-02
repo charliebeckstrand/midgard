@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef } from 'react'
+import { useLayoutEffect, useRef } from 'react'
 import {
 	Pagination,
 	PaginationGap,
@@ -11,7 +11,6 @@ import {
 } from '../../components/pagination'
 import { Select, SelectLabel, SelectOption } from '../../components/select'
 import { cn } from '../../core'
-import { useIsomorphicLayoutEffect } from '../../hooks/use-isomorphic-layout-effect'
 import { k } from '../../recipes/kata/grid'
 import { getVisiblePages } from './engine/grid-pagination-utilities'
 import type { GridPaginationView } from './use-grid-table'
@@ -103,7 +102,7 @@ export function GridPagination({ pagination }: GridPaginationProps) {
 		setPageIndex(index)
 	}
 
-	useIsomorphicLayoutEffect(() => {
+	useLayoutEffect(() => {
 		// Re-run on each page change so a restore can follow the control that moved.
 		void pageIndex
 

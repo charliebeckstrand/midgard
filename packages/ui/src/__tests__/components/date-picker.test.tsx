@@ -5,6 +5,7 @@ import { Control } from '../../components/control'
 import { DatePicker } from '../../components/date-picker'
 import { useDatePickerState } from '../../components/date-picker/use-date-picker-state'
 import { Form } from '../../components/form'
+import { LocaleProvider } from '../../providers/locale'
 import {
 	act,
 	bySlot,
@@ -132,6 +133,22 @@ describe('DatePicker', () => {
 		const { container } = renderUI(<DatePicker value={date} />)
 
 		expect(container.textContent).toContain('1/15/2025')
+	})
+
+	it('reads the ambient locale for the trigger label, as the calendar does', () => {
+		const date = new Date(2025, 0, 15)
+
+		const { container } = renderUI(
+			<LocaleProvider locale="de-DE">
+				<DatePicker value={date} />
+			</LocaleProvider>,
+		)
+
+		// de-DE writes day-first with dot separators; the trigger followed the
+		// runtime default rather than the provider before.
+		expect(container.textContent).toContain('15.1.2025')
+
+		expect(container.textContent).not.toContain('1/15/2025')
 	})
 
 	it('opens the calendar content when the trigger is clicked', async () => {

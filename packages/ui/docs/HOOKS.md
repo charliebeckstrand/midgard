@@ -57,11 +57,11 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 
 | Hook | Summary |
 |---|---|
-| `useResizeObserver` | Observes size changes on `ref.current`, invoking `callback` per change plus once on attach. |
+| `useResizeObserver` | Observes size changes on `ref.current`, invoking `callback` per change plus once on attach; the callback rides an effect event, so a fresh closure each render neither re-subscribes nor re-fires. |
 | `usePlotFrame` | Resolves a chart/map frame's drawing box from a `FrameSizing` policy — fixed, aspect-derived, container-filling, or content-fit — measuring only the axes the policy consumes; resize notifications commit as transitions, so the frame tracks its container live while a burst coalesces to the sizes the machine can afford. A notification for a node the commit already detached is skipped, so a mid-swap measurement never commits a zero size. |
 | `useMediaQuery` | True when `query` matches the viewport; true during SSR. |
 | `useMinWidth` | True when the viewport is at least `px` wide; true during SSR. |
-| `useIsTruncated` | True when text overflows the element, measured via an off-screen mirror span (not `scrollWidth`). |
+| `useIsTruncated` | True when text overflows the element, measured with a `Range` over its own contents (not `scrollWidth`, and injecting nothing). |
 | `useScrollOverflow` | Callback ref stamping `data-overflow-above`/`-below` on a scroll container while content extends past an edge, for CSS scroll affordances. |
 | `useScrollWithin` | Returns a scroll-into-view fn scoped to the nearest scrollable ancestor, stopping at clipping boundaries. |
 | `useVirtualWindow` | Drives a vertical windowed list off `@tanstack/react-virtual`: visible items plus top/bottom spacer heights. |

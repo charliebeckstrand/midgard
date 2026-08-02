@@ -1,7 +1,6 @@
 'use client'
 
-import { type RefObject, useCallback, useRef, useState } from 'react'
-import { useIsomorphicLayoutEffect } from '../../hooks/use-isomorphic-layout-effect'
+import { type RefObject, useCallback, useLayoutEffect, useRef, useState } from 'react'
 
 type ViewportSize = { width: number; height: number }
 
@@ -44,7 +43,7 @@ export function usePdfViewerViewportSize(
 		)
 	}, [ref])
 
-	useIsomorphicLayoutEffect(() => {
+	useLayoutEffect(() => {
 		const el = ref.current
 
 		if (!el) return
@@ -58,11 +57,10 @@ export function usePdfViewerViewportSize(
 		return () => observer.disconnect()
 	}, [ref, measure])
 
-	// Caller-driven invalidation: re-measure after commit, before paint.
-	// `measure` reads layout via getComputedStyle / clientWidth; this runs
-	// in useIsomorphicLayoutEffect. The lastInvalidationKey ref skips the
-	// redundant remeasure on mount.
-	useIsomorphicLayoutEffect(() => {
+	// Caller-driven invalidation: re-measure after commit, before paint, since
+	// `measure` reads layout via getComputedStyle / clientWidth. The
+	// lastInvalidationKey ref skips the redundant remeasure on mount.
+	useLayoutEffect(() => {
 		if (lastInvalidationKeyRef.current === invalidationKey) return
 
 		lastInvalidationKeyRef.current = invalidationKey

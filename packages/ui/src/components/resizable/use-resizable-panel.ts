@@ -260,29 +260,31 @@ export function useResizablePanel({
 
 				commitPending()
 
-				document.removeEventListener('pointermove', onMove)
-				document.removeEventListener('pointerup', onUp)
-				document.removeEventListener('pointercancel', onUp)
-				document.removeEventListener('contextmenu', onUp)
+				controller.abort()
 
 				cleanupRef.current = null
 			}
 
-			document.addEventListener('pointermove', onMove)
-			document.addEventListener('pointerup', onUp)
+			// One controller for the drag's whole listener set: `onUp` and the
+			// supersede path in `cleanupRef` tear down the same four listeners, and
+			// a single `abort()` cannot drift from the add list the way two hand-kept
+			// removal lists can.
+			const controller = new AbortController()
+
+			const { signal } = controller
+
+			document.addEventListener('pointermove', onMove, { signal })
+			document.addEventListener('pointerup', onUp, { signal })
 			// A cancelled pointer (OS gesture, pen leaving range) never fires
 			// pointerup; without this the drag flag stays set and buttonless
 			// movement keeps resizing.
-			document.addEventListener('pointercancel', onUp)
-			document.addEventListener('contextmenu', onUp)
+			document.addEventListener('pointercancel', onUp, { signal })
+			document.addEventListener('contextmenu', onUp, { signal })
 
 			cleanupRef.current = () => {
 				if (frame !== null) cancelAnimationFrame(frame)
 
-				document.removeEventListener('pointermove', onMove)
-				document.removeEventListener('pointerup', onUp)
-				document.removeEventListener('pointercancel', onUp)
-				document.removeEventListener('contextmenu', onUp)
+				controller.abort()
 			}
 		},
 		[groupRef],

@@ -1,15 +1,8 @@
+import { arrayMove } from '@dnd-kit/sortable'
+
 import type { PaletteColor } from '../../../../core/recipe'
 import type { GridColumnGroup } from '../../grid-group-types'
 import { applyColumnReorder } from '../grid-reorder-compute'
-
-/** Moves an array item from one index to another, immutably (the dnd-kit `arrayMove` contract, without the dependency). @internal */
-function moveItem<T>(items: T[], from: number, to: number): T[] {
-	const next = [...items]
-
-	next.splice(to, 0, ...next.splice(from, 1))
-
-	return next
-}
 
 /** Sentinel zone id for the ungrouped column pool. @internal */
 export const UNGROUPED = '__grid_ungrouped__'
@@ -51,7 +44,7 @@ export function reorderGroups(
 
 	if (from === -1 || to === -1 || from === to) return groups
 
-	return moveItem(groups, from, to)
+	return arrayMove(groups, from, to)
 }
 
 /**
@@ -233,7 +226,7 @@ export function settleDragEnd(map: ZoneMap, activeStr: string, overStr: string):
 
 	if (oldIndex === -1 || newIndex === -1 || oldIndex === newIndex) return map
 
-	return { ...map, [from]: moveItem(ids, oldIndex, newIndex) }
+	return { ...map, [from]: arrayMove(ids, oldIndex, newIndex) }
 }
 
 /**

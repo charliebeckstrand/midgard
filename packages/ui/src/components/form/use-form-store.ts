@@ -1,7 +1,6 @@
 'use client'
 
-import { useRef } from 'react'
-import { useIsomorphicLayoutEffect } from '../../hooks/use-isomorphic-layout-effect'
+import { useLayoutEffect, useRef } from 'react'
 import type { FormStateValue, FormStore } from './context'
 
 /**
@@ -32,7 +31,7 @@ export function useFormStore(formState: FormStateValue): FormStore {
 
 	const internal = internalRef.current
 
-	useIsomorphicLayoutEffect(() => {
+	useLayoutEffect(() => {
 		internal.state = formState
 
 		for (const listener of internal.listeners) listener()

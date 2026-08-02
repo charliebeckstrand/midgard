@@ -37,11 +37,6 @@ describe('FileUpload drop variant selection', () => {
 		expect(screen.getByText('Drop files here or click to browse')).toBeInTheDocument()
 	})
 
-	// The truncation-tooltip label mirrors its text into an off-screen,
-	// aria-hidden span (useIsTruncated); ignore it so the visible label is the
-	// single match.
-	const IGNORE_MIRROR = { ignore: 'script, style, [aria-hidden="true"]' }
-
 	it('replaces the prompt with the filename and a Reset button once a file is selected', () => {
 		const { container } = renderUI(<FileUpload />)
 
@@ -49,7 +44,7 @@ describe('FileUpload drop variant selection', () => {
 
 		expect(screen.queryByText('Drop files here or click to browse')).not.toBeInTheDocument()
 
-		expect(screen.getByText('resume.pdf', IGNORE_MIRROR)).toBeInTheDocument()
+		expect(screen.getByText('resume.pdf')).toBeInTheDocument()
 
 		expect(screen.getByRole('button', { name: 'Reset' })).toBeInTheDocument()
 	})
@@ -73,7 +68,7 @@ describe('FileUpload drop variant selection', () => {
 
 		selectFiles(container, [new File(['a'], 'a.png'), new File(['b'], 'b.png')])
 
-		expect(screen.getByText('2 files selected', IGNORE_MIRROR)).toBeInTheDocument()
+		expect(screen.getByText('2 files selected')).toBeInTheDocument()
 	})
 
 	it('clears the selection and restores the drop prompt when Reset is clicked', () => {

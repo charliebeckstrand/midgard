@@ -75,12 +75,6 @@ export function getCalendarDays(year: number, month: number): Date[] {
 	return days
 }
 
-/** Coalesces an optional locale to a concrete BCP 47 tag, falling back to the
- *  runtime default. The lib's locale-aware helpers require a string. @internal */
-export function resolveLocale(locale?: string): string {
-	return locale ?? new Intl.DateTimeFormat().resolvedOptions().locale
-}
-
 /**
  * 1-based grid column of the 1st of `year`/`month`, honoring the locale's
  * first day of the week (Sunday in `en-US`, Monday in most of Europe).

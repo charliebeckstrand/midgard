@@ -1,11 +1,10 @@
 'use client'
 
 import { useReducedMotion } from 'motion/react'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Table } from '../../components/table'
 import { announce, cn, dataAttr } from '../../core'
 import { useA11yAnnouncements, useControllable } from '../../hooks'
-import { useIsomorphicLayoutEffect } from '../../hooks/use-isomorphic-layout-effect'
 import { useDensity } from '../../primitives/density'
 import { useDensityLevel } from '../../providers/density'
 import { isDataColumn } from '../../utilities'
@@ -779,7 +778,7 @@ export function GridData<T>({
 	// Re-clamp the cursor whenever the rendered bounds change (filter, paginate,
 	// hide a column), so its active cell and `aria-activedescendant` never dangle
 	// past the new extent; inert for a non-cursor grid (active stays unseated).
-	useIsomorphicLayoutEffect(() => {
+	useLayoutEffect(() => {
 		cursor.reconcile(renderRows.length, dataColumns.length)
 	}, [cursor.reconcile, renderRows.length, dataColumns.length])
 
@@ -828,10 +827,19 @@ export function GridData<T>({
 	// each reading the selected rows when a selection is active, else the full
 	// filtered + sorted set (all pages) — the engine mirrors the grid's
 	// selection `Set` into its own state, so the selected subset keeps the
-	// displayed order. An `exportRows` source overrides both, supplying the rows
-	// the engine can't hold under server pagination. Shared by the toolbar's
-	// "Export" dropdown and both context menus.
-	const exportActions = useGridExport<T>({ exportable, columns: visibleColumns, table, exportRows })
+	// displayed order. Both are taken over the leaf set, since under grouping the
+	// sorted model carries group headers rather than data rows. An `exportRows`
+	// source overrides both, supplying the rows the engine can't hold under
+	// server pagination. Shared by the toolbar's "Export" dropdown and both
+	// context menus.
+	const exportActions = useGridExport<T>({
+		exportable,
+		columns: visibleColumns,
+		table,
+		exportRows,
+		grouped: groupingActive,
+		manualGroupRow,
+	})
 
 	// Whether the table may paint yet; holds its first frame until the widths are
 	// settled (see `useTableRevealed`, and the width gate on the `<table>` below).

@@ -27,14 +27,7 @@
 		"rules": {
 			"preset": "recommended",
 			"correctness": {
-				"useExhaustiveDependencies": {
-					"level": "error",
-					"options": {
-						"hooks": [
-							{ "name": "useIsomorphicLayoutEffect", "closureIndex": 0, "dependenciesIndex": 1 }
-						]
-					}
-				}
+				"useExhaustiveDependencies": "error"
 			},
 			"performance": {
 				"noImgElement": "off"

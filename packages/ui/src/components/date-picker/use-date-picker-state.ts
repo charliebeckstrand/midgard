@@ -5,6 +5,7 @@ import { type KeyboardEvent, useCallback, useId, useMemo, useRef, useState } fro
 
 import { useControllable, useFloatingUI } from '../../hooks'
 import { useIdScope } from '../../hooks/use-id-scope'
+import { useLocale } from '../../providers/locale'
 import type { CalendarActive, CalendarHandle } from '../calendar'
 import { useControl } from '../control/context'
 import { useFormValue } from '../form/use-form-value'
@@ -44,6 +45,9 @@ export function useDatePickerState({
 	const control = useControl()
 
 	const scope = useIdScope({ id: control?.id })
+
+	// The trigger label reads the same ambient locale the Calendar beside it does.
+	const ambient = useLocale()
 
 	// `input` mode keeps DOM focus on the DateInput and drives the calendar via
 	// the active-descendant pattern: the input's `aria-controls` points at the
@@ -265,7 +269,7 @@ export function useDatePickerState({
 		setValue,
 		hasValue: value != null,
 		onClear: handleClear,
-		displayValue: value ? formatDate(value) : '',
+		displayValue: value ? formatDate(value, ambient.locale, ambient.dateFormat) : '',
 		open,
 		onOpenChange,
 		onTriggerKeyDown,

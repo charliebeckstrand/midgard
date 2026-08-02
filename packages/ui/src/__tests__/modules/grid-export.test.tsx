@@ -734,3 +734,107 @@ describe('Grid export', () => {
 		error.mockRestore()
 	})
 })
+
+describe('Grid export under grouping', () => {
+	type Row = { id: number; name: string; role: string }
+
+	const columns: GridColumn<Row>[] = [
+		{ id: 'select', selectable: true },
+		{ id: 'name', title: 'Name', cell: (row) => row.name, value: (row) => row.name },
+		{ id: 'role', title: 'Role', cell: (row) => row.role, value: (row) => row.role },
+	]
+
+	const people: Row[] = [
+		{ id: 1, name: 'Alice', role: 'Developer' },
+		{ id: 2, name: 'Bob', role: 'Designer' },
+		{ id: 3, name: 'Carol', role: 'Developer' },
+		{ id: 4, name: 'Dave', role: 'Designer' },
+	]
+
+	const getKey = (row: Row) => row.id
+
+	/** Downloads a CSV through the toolbar and returns its text. */
+	const exportCsv = async (ui: Parameters<typeof renderUI>[0]): Promise<string> => {
+		const createObjectURL = vi.fn().mockReturnValue('blob:mock')
+
+		URL.createObjectURL = createObjectURL
+
+		URL.revokeObjectURL = vi.fn()
+
+		const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+
+		renderUI(ui)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Export' }))
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Export to CSV' }))
+
+		const blob = createObjectURL.mock.calls[0]?.[0] as Blob
+
+		click.mockRestore()
+
+		return blob.text()
+	}
+
+	it('exports every leaf, not one row per group', async () => {
+		// Client grouping runs before sorting, so the sorted row model is the
+		// group-header rows and each header's `original` is its first leaf's
+		// datum. Walking that model exported "Alice" and "Bob" alone.
+		const text = await exportCsv(
+			<Grid
+				exportable={['csv']}
+				columns={columns}
+				rows={people}
+				getKey={getKey}
+				groupBy={{ value: 'role' }}
+			/>,
+		)
+
+		expect(text).toContain('Developer,Alice')
+
+		expect(text).toContain('Designer,Bob')
+
+		expect(text).toContain('Developer,Carol')
+
+		expect(text).toContain('Designer,Dave')
+	})
+
+	it('exports the leaves of a collapsed group, whatever its expansion', async () => {
+		const text = await exportCsv(
+			<Grid
+				exportable={['csv']}
+				columns={columns}
+				rows={people}
+				getKey={getKey}
+				groupBy={{ value: 'role', defaultExpanded: false }}
+			/>,
+		)
+
+		expect(text).toContain('Developer,Carol')
+
+		expect(text).toContain('Designer,Dave')
+	})
+
+	it('honors an active selection under grouping', async () => {
+		// Group-header ids never appear in the mirrored selection state, so the
+		// selection read as empty and silently fell back to the full set.
+		const text = await exportCsv(
+			<Grid
+				exportable={['csv']}
+				columns={columns}
+				rows={people}
+				getKey={getKey}
+				groupBy={{ value: 'role' }}
+				selection={{ defaultValue: new Set([3]) }}
+			/>,
+		)
+
+		expect(text).toContain('Developer,Carol')
+
+		expect(text).not.toContain('Developer,Alice')
+
+		expect(text).not.toContain('Designer,Bob')
+
+		expect(text).not.toContain('Designer,Dave')
+	})
+})

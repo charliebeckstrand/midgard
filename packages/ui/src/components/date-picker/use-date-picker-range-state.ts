@@ -5,6 +5,7 @@ import { type KeyboardEvent, useCallback, useMemo, useReducer, useRef } from 're
 
 import { useControllable, useFloatingUI } from '../../hooks'
 import { useIdScope } from '../../hooks/use-id-scope'
+import { useLocale } from '../../providers/locale'
 import type { CalendarActive, CalendarHandle } from '../calendar'
 import { useControl } from '../control/context'
 import { useFormValue } from '../form/use-form-value'
@@ -51,6 +52,9 @@ export function useDatePickerRangeState({
 	const control = useControl()
 
 	const scope = useIdScope({ id: control?.id })
+
+	// The trigger label reads the same ambient locale the Calendar beside it does.
+	const ambient = useLocale()
 
 	const resolvedDisabled = disabled || control?.disabled === true
 
@@ -260,7 +264,7 @@ export function useDatePickerRangeState({
 		invalid: control?.severity === 'error' || fieldInvalid,
 		hasValue: value != null,
 		onClear: handleClear,
-		displayValue: value ? formatRange(value[0], value[1]) : '',
+		displayValue: value ? formatRange(value[0], value[1], ambient.locale, ambient.dateFormat) : '',
 		open,
 		onOpenChange,
 		onTriggerKeyDown,

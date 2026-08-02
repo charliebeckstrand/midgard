@@ -1,6 +1,6 @@
 'use client'
 
-import { type Placement, useInteractions } from '@floating-ui/react'
+import { type Placement, useClick, useInteractions } from '@floating-ui/react'
 import { type MouseEvent, useCallback, useEffect, useId, useMemo } from 'react'
 import { useFloatingDisclosure } from '../../hooks'
 import { clearVirtualActive, useA11yRoving } from '../../hooks/a11y/use-a11y-roving'
@@ -151,7 +151,13 @@ export function useMenuState({
 		if (!open) clearVirtualActive(triggerRef)
 	}, [open, triggerRef])
 
-	const { getReferenceProps, getFloatingProps } = useInteractions([dismiss, role])
+	// Toggling the menu is floating-ui's, not the trigger's: `useClick` supplies
+	// the keyboard activation a cloned non-button child never gets from the
+	// browser, plus the main-button guard and `stickIfOpen`. `MenuTrigger` keeps
+	// its own auto-repeat guard, which `useClick` has no equivalent for.
+	const click = useClick(context)
+
+	const { getReferenceProps, getFloatingProps } = useInteractions([click, dismiss, role])
 
 	// Anchor the menu at a point while tracking `element` as it (or a scroll
 	// container) scrolls — but as the *position* reference only, never floating-ui's

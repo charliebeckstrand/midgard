@@ -33,7 +33,11 @@ export default defineConfig({
 		hookTimeout: CI ? 15_000 : 10_000,
 		provide: { asyncUtilTimeout: CI ? 4_000 : 1_000 },
 		// Date/calendar tests construct local-time dates (`new Date(y, m, d)`);
-		// pin the zone so every machine renders the same wall-clock day.
+		// pin the zone so every machine renders the same wall-clock day. The
+		// runtime *locale* cannot be pinned here — Node resolves ICU's default at
+		// process start and `test.env` lands inside the worker afterwards, so it
+		// would read as set and change nothing. The `test` scripts export `LANG`
+		// ahead of Node instead.
 		env: { TZ: 'UTC' },
 		sequence: { shuffle: true },
 		// Forks and threads reset the module graph per file; vmThreads does NOT —

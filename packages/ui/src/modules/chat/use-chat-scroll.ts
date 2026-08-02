@@ -1,8 +1,7 @@
 'use client'
 
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef } from 'react'
 import { useScrollWithin } from '../../hooks'
-import { useIsomorphicLayoutEffect } from '../../hooks/use-isomorphic-layout-effect'
 
 /**
  * Keeps a scroll container pinned to its newest content.
@@ -36,7 +35,7 @@ export function useChatScroll<T>(dependency?: T) {
 	}, [scrollWithin])
 
 	// Runs before paint so the initial position is the bottom, not a glide toward it.
-	useIsomorphicLayoutEffect(() => {
+	useLayoutEffect(() => {
 		scrollWithin(ref.current, { block: 'end', behavior: 'auto' })
 	}, [scrollWithin])
 

@@ -267,6 +267,8 @@ export function relativeChips(
 	presets: DatePickerRelativePreset[],
 	now: Date,
 	preferredIds?: ReadonlySet<string>,
+	locale?: string,
+	dateFormat?: Intl.DateTimeFormatOptions,
 ): RelativeChip[] {
 	if (value === undefined) return []
 
@@ -275,6 +277,6 @@ export function relativeChips(
 
 		if (preset) return { key: `preset-${preset.id}`, label: preset.label }
 
-		return { key: `custom-${index}`, label: formatRange(span.from, span.to) }
+		return { key: `custom-${index}`, label: formatRange(span.from, span.to, locale, dateFormat) }
 	})
 }

@@ -1,8 +1,15 @@
 'use client'
 
-import { type RefCallback, type RefObject, useCallback, useEffect, useRef, useState } from 'react'
+import {
+	type RefCallback,
+	type RefObject,
+	useCallback,
+	useEffect,
+	useLayoutEffect,
+	useRef,
+	useState,
+} from 'react'
 import { flushSync } from 'react-dom'
-import { useIsomorphicLayoutEffect } from './use-isomorphic-layout-effect'
 
 /**
  * Floating-point epsilon (px) on the `Range` overflow test. The single-line
@@ -28,13 +35,16 @@ const OVERFLOW_SLACK = 0.01
  * never dips below `clientWidth` for fitting content). Below a pixel those round
  * the gap away — a `clientWidth` rounded up to meet `scrollWidth` reads as a fit
  * while the ellipsis is already painted — so a `Range` over the contents supplies
- * the true sub-pixel width, unaffected by the overflow clip. The truncating
- * element must carry no padding or border for its bounding width to be its
- * content box.
+ * the true sub-pixel width, unaffected by the overflow clip.
  *
+ * @param el - The single-line element to measure.
+ * @param padded - Subtract the element's horizontal padding from its box before
+ * comparing. Off by default, since a truncating element must carry no padding or
+ * border for its bounding width to *be* its content box; {@link useIsTruncated}
+ * measures elements that do carry it.
  * @internal
  */
-function isOverflowing(el: HTMLElement): boolean {
+export function isOverflowing(el: HTMLElement, padded = false): boolean {
 	if (el.scrollWidth > el.clientWidth) return true
 
 	const range = document.createRange()
@@ -45,7 +55,16 @@ function isOverflowing(el: HTMLElement): boolean {
 	// comparison above is the only signal there.
 	if (typeof range.getBoundingClientRect !== 'function') return false
 
-	return range.getBoundingClientRect().width - el.getBoundingClientRect().width > OVERFLOW_SLACK
+	const boxWidth = el.getBoundingClientRect().width - (padded ? horizontalPadding(el) : 0)
+
+	return range.getBoundingClientRect().width - boxWidth > OVERFLOW_SLACK
+}
+
+/** An element's left plus right computed padding, in px. @internal */
+function horizontalPadding(el: HTMLElement): number {
+	const styles = getComputedStyle(el)
+
+	return parseFloat(styles.paddingLeft) + parseFloat(styles.paddingRight)
 }
 
 /**
@@ -206,7 +225,7 @@ export function useTruncation<E extends HTMLElement>(options?: {
 		if (node && bound.current) setNodeVersion((version) => version + 1)
 	}, [])
 
-	useIsomorphicLayoutEffect(measure)
+	useLayoutEffect(measure)
 
 	useEffect(() => {
 		// Read here so a node replacement (which bumps the version) re-runs the
