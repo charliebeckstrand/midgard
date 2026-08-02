@@ -108,8 +108,6 @@ export default defineConfig({
 					// module-mocks.ts, and test-isolation-boundary.test.ts, which
 					// enforces it. The suites that need one live in `integration`
 					// below, which keeps process isolation on forks.
-					//
-					// Measurements: docs/audits/2026-08-02-TEST-SUITE-AUDIT.md.
 					isolate: false,
 					include: [
 						'src/__tests__/**/*.test.{ts,tsx}',
