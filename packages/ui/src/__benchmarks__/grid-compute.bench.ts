@@ -9,8 +9,9 @@ import { applyPinOverrides, type PinOverrides } from '../modules/grid/engine/gri
 import {
 	makeColumnSizeProfiles,
 	makeEscapeHeavyRows,
-	makeShipments,
+	SHIPMENT_FIELDS,
 	type Shipment,
+	shipments,
 } from './fixtures'
 
 // Pure grid compute that runs on the render hot path (column allocation, pin
@@ -44,16 +45,7 @@ describe('grid-layout · allocateColumnWidths', () => {
 	}
 })
 
-const CSV_COLUMNS: GridColumn<Shipment>[] = [
-	{ id: 'id', title: 'ID' },
-	{ id: 'reference', title: 'Reference' },
-	{ id: 'origin', title: 'Origin' },
-	{ id: 'destination', title: 'Destination' },
-	{ id: 'status', title: 'Status' },
-	{ id: 'carrier', title: 'Carrier' },
-	{ id: 'loads', title: 'Loads' },
-	{ id: 'weight', title: 'Weight' },
-]
+const CSV_COLUMNS: GridColumn<Shipment>[] = SHIPMENT_FIELDS.map(([id, title]) => ({ id, title }))
 
 const NOISY_COLUMNS: GridColumn<Record<string, string>>[] = (
 	['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'] as const
@@ -64,7 +56,7 @@ describe('grid-export · rowsToCsv', () => {
 	// RFC-4180 escape branch; `escape-heavy` forces it on every cell (a comma,
 	// quote, and newline in each), the worst case.
 	for (const n of [10, 50, 1_000]) {
-		const plain = makeShipments(n)
+		const plain = shipments(n)
 
 		const noisy = makeEscapeHeavyRows(n)
 
@@ -82,7 +74,7 @@ describe('grid-export · rowsToHtmlTable', () => {
 	// Same shape as rowsToCsv (backs the Excel and print exporters); `escape-heavy`
 	// forces `&<>` entity encoding on every cell.
 	for (const n of [10, 50, 1_000]) {
-		const plain = makeShipments(n)
+		const plain = shipments(n)
 
 		const noisy = makeEscapeHeavyRows(n)
 

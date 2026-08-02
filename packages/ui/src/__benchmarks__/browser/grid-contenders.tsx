@@ -22,12 +22,17 @@
  * page-shaped.
  */
 
-import { DataGrid, type GridColDef, type GridSortModel } from '@mui/x-data-grid'
+import {
+	DataGrid,
+	type GridColDef,
+	type GridFilterModel,
+	type GridSortModel,
+} from '@mui/x-data-grid'
 import { AllCommunityModule, createGrid, type GridApi, ModuleRegistry } from 'ag-grid-community'
 import { flushSync } from 'react-dom'
 import { createRoot } from 'react-dom/client'
 import { Grid, type GridColumn, type SortState } from '../../modules/grid'
-import type { Shipment } from '../fixtures'
+import { SHIPMENT_FIELDS, type Shipment, shipmentKey } from '../fixtures'
 
 // AG Grid draws nothing until its feature modules register; the community
 // bundle is the library's own quick-start baseline.
@@ -46,6 +51,8 @@ export type MountedGrid = {
 	update: (rows: Shipment[]) => void
 	/** Applies a whole-column sort on `id` through the library's sort state. */
 	sort: (direction: SortDirection) => void
+	/** Applies a quick filter across every column; `''` clears it. */
+	search: (query: string) => void
 	/** The vertical scroll element, or `null` where the tier cannot scroll the full set (MUI's MIT pagination). */
 	scroller: () => HTMLElement | null
 	destroy: () => void
@@ -76,18 +83,7 @@ export async function painted(host: HTMLElement, markers: string[]): Promise<voi
 	throw new Error(`grid bench never painted: ${markers.join(', ')}`)
 }
 
-const COLUMN_FIELDS = [
-	['id', 'ID'],
-	['reference', 'Reference'],
-	['origin', 'Origin'],
-	['destination', 'Destination'],
-	['status', 'Status'],
-	['carrier', 'Carrier'],
-	['loads', 'Loads'],
-	['weight', 'Weight'],
-] as const
-
-const UI_COLUMNS: GridColumn<Shipment>[] = COLUMN_FIELDS.map(([id, title]) => ({
+const UI_COLUMNS: GridColumn<Shipment>[] = SHIPMENT_FIELDS.map(([id, title]) => ({
 	id,
 	title,
 	sortable: true,
@@ -95,17 +91,19 @@ const UI_COLUMNS: GridColumn<Shipment>[] = COLUMN_FIELDS.map(([id, title]) => ({
 	// A ui column renders nothing without a `cell`; the competitors bind
 	// their `field` automatically, so this is the same accessor spelled out.
 	cell: (row) => row[id],
+	// The quick search scans the columns declaring a `value`; AG's quick filter
+	// and MUI's `quickFilterValues` scan every bound field by default, so every
+	// column declares one and all three search the same eight.
+	value: (row) => row[id],
 }))
 
-const AG_COLUMNS = COLUMN_FIELDS.map(([field, headerName]) => ({ field, headerName, width: 120 }))
+const AG_COLUMNS = SHIPMENT_FIELDS.map(([field, headerName]) => ({ field, headerName, width: 120 }))
 
-const MUI_COLUMNS: GridColDef<Shipment>[] = COLUMN_FIELDS.map(([field, headerName]) => ({
+const MUI_COLUMNS: GridColDef<Shipment>[] = SHIPMENT_FIELDS.map(([field, headerName]) => ({
 	field,
 	headerName,
 	width: 120,
 }))
-
-const getKey = (row: Shipment) => row.id
 
 /** A scrollable contender's scroll element; throws rather than letting a renamed class silently drop the contender from the sweep. */
 function mustFind(box: HTMLElement, selector: string): HTMLElement {
@@ -140,16 +138,19 @@ function uiContender(): GridContender {
 
 			let sort: SortState[] = []
 
+			let search = ''
+
 			const draw = () =>
 				flushSync(() =>
 					root.render(
 						<Grid
 							columns={UI_COLUMNS}
 							rows={current}
-							getKey={getKey}
+							getKey={shipmentKey}
 							virtualize
 							maxHeight={`${GRID_HEIGHT}px`}
 							sort={{ value: sort }}
+							search={{ value: search }}
 						/>,
 					),
 				)
@@ -164,6 +165,11 @@ function uiContender(): GridContender {
 				},
 				sort(direction) {
 					sort = [{ column: 'id', direction }]
+
+					draw()
+				},
+				search(query) {
+					search = query
 
 					draw()
 				},
@@ -200,6 +206,7 @@ function agContender(): GridContender {
 						defaultState: { sort: null },
 					})
 				},
+				search: (query) => api.setGridOption('quickFilterText', query),
 				scroller: () => mustFind(box, '.ag-grid-viewport'),
 				destroy: () => {
 					api.destroy()
@@ -224,9 +231,18 @@ function muiContender(): GridContender {
 
 			let sortModel: GridSortModel = []
 
+			let filterModel: GridFilterModel = { items: [] }
+
 			const draw = () =>
 				flushSync(() =>
-					root.render(<DataGrid columns={MUI_COLUMNS} rows={current} sortModel={sortModel} />),
+					root.render(
+						<DataGrid
+							columns={MUI_COLUMNS}
+							rows={current}
+							sortModel={sortModel}
+							filterModel={filterModel}
+						/>,
+					),
 				)
 
 			draw()
@@ -239,6 +255,14 @@ function muiContender(): GridContender {
 				},
 				sort(direction) {
 					sortModel = [{ field: 'id', sort: direction }]
+
+					draw()
+				},
+				search(query) {
+					// MUI's quick filter is its filter model's `quickFilterValues`,
+					// which ANDs the terms across every bound field — the same scan
+					// AG's `quickFilterText` and the ui grid's `search` run.
+					filterModel = { items: [], quickFilterValues: query ? [query] : [] }
 
 					draw()
 				},

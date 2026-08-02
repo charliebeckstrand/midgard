@@ -1,104 +1,78 @@
-import { cleanup, render } from '@testing-library/react'
-import { bench, describe } from 'vitest'
-import { Grid, type GridColumn } from '../modules/grid'
-import { makeShipments, type Shipment } from './fixtures'
+/**
+ * The at-rest editable grid: no row is in edit mode, so every scenario
+ * measures the editing augmentation's per-cell overhead — each cell wired for
+ * editing — without mounting an editor per cell. Against the same rungs in
+ * `grid.bench.tsx`, the difference is what `editable` costs a grid nobody is
+ * editing.
+ */
 
-const COLUMNS: GridColumn<Shipment>[] = [
-	{ id: 'id', title: 'ID', cell: (row) => String(row.id), readOnly: true },
-	{ id: 'reference', title: 'Reference', field: 'reference', cell: (row) => row.reference },
-	{ id: 'origin', title: 'Origin', field: 'origin', cell: (row) => row.origin },
-	{ id: 'destination', title: 'Destination', field: 'destination', cell: (row) => row.destination },
-	{ id: 'status', title: 'Status', field: 'status', cell: (row) => row.status },
-	{ id: 'carrier', title: 'Carrier', field: 'carrier', cell: (row) => row.carrier },
-	{ id: 'loads', title: 'Loads', field: 'loads', cell: (row) => String(row.loads) },
-	{ id: 'weight', title: 'Weight', field: 'weight', cell: (row) => String(row.weight) },
+import { describe } from 'vitest'
+import { Grid, type GridColumn } from '../modules/grid'
+import { SHIPMENT_FIELDS, type Shipment, shipmentKey, shipments } from './fixtures'
+import { mountBench, mountBenches, noop } from './harness'
+
+const COLUMNS: GridColumn<Shipment>[] = SHIPMENT_FIELDS.map(([id, title]) =>
+	// The identity column stays read-only; every other column binds its field so
+	// the editing augmentation has a target to wire.
+	id === 'id'
+		? { id, title, cell: (row) => String(row.id), readOnly: true }
+		: { id, title, field: id, cell: (row) => String(row[id]) },
+)
+
+/** The same set fronted by a selection checkbox column. */
+const SELECTABLE: GridColumn<Shipment>[] = [
+	{ id: '__select', title: '', selectable: true },
+	...COLUMNS,
 ]
 
-const getKey = (row: Shipment) => row.id
+/** No row in edit mode — the augmentation is armed, no editor is mounted. */
+const EDITABLE = { rows: new Set<string | number>(), onCommit: noop }
 
-const rows100 = makeShipments(100)
-const rows500 = makeShipments(500)
-const rows1k = makeShipments(1_000)
-const rows10k = makeShipments(10_000)
+// Built at collection time: only the render belongs inside the timed region.
+const SIZES = [100, 500, 1_000].map((count) => ({ count, rows: shipments(count) }))
 
-// The at-rest editable grid: no row is in edit mode, so the benchmark measures
-// the editing augmentation's per-cell overhead (each cell wired for editing)
-// without mounting an editor per cell.
-const editableOf = (_rows: Shipment[]) => ({
-	rows: new Set<string | number>(),
-	onCommit: noop,
-})
+const rows1k = shipments(1_000)
+
+const rows10k = shipments(10_000)
 
 describe('Grid · editable initial render', () => {
-	bench('100 rows × 8 cols', () => {
-		render(<Grid columns={COLUMNS} rows={rows100} getKey={getKey} editable={editableOf(rows100)} />)
-
-		cleanup()
-	})
-
-	bench('500 rows × 8 cols', () => {
-		render(<Grid columns={COLUMNS} rows={rows500} getKey={getKey} editable={editableOf(rows500)} />)
-
-		cleanup()
-	})
-
-	bench('1,000 rows × 8 cols', () => {
-		render(<Grid columns={COLUMNS} rows={rows1k} getKey={getKey} editable={editableOf(rows1k)} />)
-
-		cleanup()
-	})
+	mountBenches(
+		SIZES,
+		({ count }) => `${count.toLocaleString()} rows × 8 cols`,
+		({ rows }) => <Grid columns={COLUMNS} rows={rows} getKey={shipmentKey} editable={EDITABLE} />,
+	)
 })
 
 describe('Grid · editable with selection', () => {
-	const cols: GridColumn<Shipment>[] = [{ id: '__select', title: '', selectable: true }, ...COLUMNS]
+	const selection = new Set(rows1k.filter((_, index) => index % 10 === 0).map(shipmentKey))
 
-	bench('1,000 rows · 10% selected', () => {
-		const selection = new Set(rows1k.filter((_, i) => i % 10 === 0).map(getKey))
-
-		render(
-			<Grid
-				columns={cols}
-				rows={rows1k}
-				getKey={getKey}
-				editable={editableOf(rows1k)}
-				selection={{ value: selection }}
-			/>,
-		)
-
-		cleanup()
-	})
+	mountBench('1,000 rows · 10% selected', () => (
+		<Grid
+			columns={SELECTABLE}
+			rows={rows1k}
+			getKey={shipmentKey}
+			editable={EDITABLE}
+			selection={{ value: selection }}
+		/>
+	))
 })
 
 describe('Grid · editable virtualized initial render', () => {
-	bench('1,000 rows × 8 cols · virtualize', () => {
-		render(
+	mountBenches(
+		[
+			{ count: 1_000, rows: rows1k },
+			{ count: 10_000, rows: rows10k },
+		],
+		({ count }) => `${count.toLocaleString()} rows × 8 cols · virtualize`,
+		({ rows }) => (
 			<Grid
 				columns={COLUMNS}
-				rows={rows1k}
-				getKey={getKey}
-				editable={editableOf(rows1k)}
+				rows={rows}
+				getKey={shipmentKey}
+				editable={EDITABLE}
 				virtualize
 				maxHeight="600px"
-			/>,
-		)
-
-		cleanup()
-	})
-
-	bench('10,000 rows × 8 cols · virtualize', () => {
-		render(
-			<Grid
-				columns={COLUMNS}
-				rows={rows10k}
-				getKey={getKey}
-				editable={editableOf(rows10k)}
-				virtualize
-				maxHeight="600px"
-			/>,
-		)
-
-		cleanup()
-	})
+			/>
+		),
+	)
 })
-
-function noop() {}

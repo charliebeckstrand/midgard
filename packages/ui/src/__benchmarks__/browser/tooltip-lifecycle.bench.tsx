@@ -22,56 +22,25 @@
  * regression guard on the mount path.
  */
 
-import { useState } from 'react'
-import { flushSync } from 'react-dom'
-import { createRoot } from 'react-dom/client'
 import { bench, describe } from 'vitest'
-import { TooltipPointer } from '../../components/tooltip/tooltip-pointer'
+import { reactHost, WINDOW } from './harness'
+import { type Driver, Probe } from './tooltip-probe'
 
-/** Hands the bench a `move` it can call to reposition the mounted tooltip. */
-type Driver = { move: (x: number, y: number) => void }
-
-/** One mounted, open tooltip whose anchor point the bench drives. */
-function Probe({ register }: { register: (driver: Driver) => void }) {
-	const [point, setPoint] = useState<{ x: number; y: number }>({ x: 100, y: 100 })
-
-	register({ move: (x, y) => setPoint({ x, y }) })
-
-	return (
-		<TooltipPointer open point={point} size="sm">
-			<div aria-hidden="true">readout</div>
-		</TooltipPointer>
-	)
-}
-
-/** A throwaway host + root; the caller renders into it and tears it down. */
-function makeHost() {
-	const host = document.createElement('div')
-
-	document.body.append(host)
-
-	return { host, root: createRoot(host) }
-}
-
-// A persistent open tooltip for the steady-state reposition bar: built once,
-// its anchor driven each iteration so nothing mounts or unmounts in the timed run.
-const mounted = makeHost()
+// A persistent open tooltip for the steady-state reposition bar: built once, its
+// anchor driven each iteration so nothing mounts or unmounts in the timed run.
+const mounted = reactHost()
 
 let move: Driver['move'] = () => {}
 
-flushSync(() => {
-	mounted.root.render(
-		<Probe
-			register={(driver) => {
-				move = driver.move
-			}}
-		/>,
-	)
-})
+mounted.render(
+	<Probe
+		register={(driver) => {
+			move = driver.move
+		}}
+	/>,
+)
 
 let tick = 0
-
-const WINDOW = { time: 2_500 }
 
 describe('tooltip · point-anchored · lifecycle', () => {
 	// React root create + render + unmount with a trivial child: the overhead to
@@ -79,15 +48,13 @@ describe('tooltip · point-anchored · lifecycle', () => {
 	bench(
 		'react root baseline (no surface)',
 		() => {
-			const { host, root } = makeHost()
+			const bare = reactHost()
 
-			flushSync(() => root.render(<div />))
+			bare.render(<div />)
 
-			root.unmount()
-
-			host.remove()
+			bare.destroy()
 		},
-		WINDOW,
+		WINDOW.settled,
 	)
 
 	// Full build + teardown of the tooltip surface (portal + motion + content):
@@ -95,15 +62,13 @@ describe('tooltip · point-anchored · lifecycle', () => {
 	bench(
 		'mount + unmount surface',
 		() => {
-			const { host, root } = makeHost()
+			const surface = reactHost()
 
-			flushSync(() => root.render(<Probe register={() => {}} />))
+			surface.render(<Probe register={() => {}} />)
 
-			root.unmount()
-
-			host.remove()
+			surface.destroy()
 		},
-		WINDOW,
+		WINDOW.settled,
 	)
 
 	// Steady-state: repositioning an already-mounted tooltip, the cost that stays
@@ -113,8 +78,8 @@ describe('tooltip · point-anchored · lifecycle', () => {
 		() => {
 			tick += 1
 
-			flushSync(() => move(100 + (tick % 40), 100 + (tick % 24)))
+			mounted.flush(() => move(100 + (tick % 40), 100 + (tick % 24)))
 		},
-		WINDOW,
+		WINDOW.settled,
 	)
 })

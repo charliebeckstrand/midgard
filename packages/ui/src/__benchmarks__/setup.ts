@@ -36,21 +36,26 @@ vi.mock('motion/react', async () => {
 	// One component per tag, cached: a fresh identity per `motion.<tag>` access
 	// would change the element type on every re-render, silently remounting the
 	// subtree under it and corrupting any bench that re-renders a mounted tree.
-	const components = new Map<string, unknown>()
+	const components = new Map<unknown, unknown>()
+
+	/** Wraps a tag or component so it renders without the animation props. */
+	function wrap(type: unknown) {
+		if (!components.has(type)) {
+			components.set(
+				type,
+				forwardRef((props: Record<string, unknown>, ref: unknown) =>
+					createElement(type as string, { ref, ...stripMotionProps(props) }),
+				),
+			)
+		}
+
+		return components.get(type)
+	}
 
 	const handler: ProxyHandler<object> = {
-		get(_, tag: string) {
-			if (!components.has(tag)) {
-				components.set(
-					tag,
-					forwardRef((props: Record<string, unknown>, ref: unknown) =>
-						createElement(tag, { ref, ...stripMotionProps(props) }),
-					),
-				)
-			}
-
-			return components.get(tag)
-		},
+		// `motion.create(Component)` wraps a custom component (the grid's animated
+		// row wraps `TableRow` that way); every other key is a tag.
+		get: (_, key: string) => (key === 'create' ? wrap : wrap(key)),
 	}
 
 	const motion = new Proxy({}, handler)
@@ -82,7 +87,28 @@ vi.mock('motion/react', async () => {
 		}
 	}
 
-	return { motion, AnimatePresence, LayoutGroup, MotionConfig, useAnimate, useMotionValue }
+	/** A derived value that reads through the source on demand, as the real one does. */
+	function useTransform<T, R>(source: { get: () => T }, map: (value: T) => R) {
+		return { get: () => map(source.get()), set: () => {}, on: () => () => {} }
+	}
+
+	// The benches measure the shipped animated path, so the shim answers as a
+	// machine with motion enabled — reporting a reduced-motion preference would
+	// let components take their static branch and score work they don't do.
+	function useReducedMotion() {
+		return false
+	}
+
+	return {
+		motion,
+		AnimatePresence,
+		LayoutGroup,
+		MotionConfig,
+		useAnimate,
+		useMotionValue,
+		useReducedMotion,
+		useTransform,
+	}
 })
 
 // Browser shims, installed only in jsdom runs. Pure-logic benchmark files

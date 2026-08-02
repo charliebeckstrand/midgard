@@ -1,94 +1,47 @@
-import { cleanup, render } from '@testing-library/react'
-import { bench, describe } from 'vitest'
+/**
+ * PivotTable's cost comes from `groupValues` (O(n) over the source data) and
+ * the nested aggregation pass over rows × columns, so the scenarios vary both
+ * the source row count and the resulting pivot dimensions. The aggregation
+ * sweep holds the data fixed and varies only the reducer, isolating what each
+ * one costs over the same grouping.
+ */
+
+import { describe } from 'vitest'
 import { PivotTable } from '../components/pivot-table'
-import { makeShipments } from './fixtures'
+import { shipments } from './fixtures'
+import { mountBenches } from './harness'
 
-// Pivot table's cost comes from groupValues (O(n) over data) and the nested
-// aggregation pass over rows × columns. Benchmarks vary both source row count
-// and the resulting pivot dimensions.
+const LANE_BY_PERIOD = { row: 'lane', column: 'period', value: 'loads' } as const
 
-const rows1k = makeShipments(1_000)
-const rows10k = makeShipments(10_000)
-const rows50k = makeShipments(50_000)
+const CARRIER_BY_DESTINATION = { row: 'carrier', column: 'destination', value: 'weight' } as const
+
+// Built at collection time: only the render belongs inside the timed region.
+const SIZES = [1_000, 10_000, 50_000].map((count) => ({ count, rows: shipments(count) }))
+
+const rows10k = shipments(10_000)
 
 describe('PivotTable · lane × period (10 × 12 cells)', () => {
-	bench('1,000 source rows', () => {
-		render(
-			<PivotTable
-				rows={rows1k}
-				keys={{ row: 'lane', column: 'period', value: 'loads' }}
-				aggregation="sum"
-			/>,
-		)
-
-		cleanup()
-	})
-
-	bench('10,000 source rows', () => {
-		render(
-			<PivotTable
-				rows={rows10k}
-				keys={{ row: 'lane', column: 'period', value: 'loads' }}
-				aggregation="sum"
-			/>,
-		)
-
-		cleanup()
-	})
-
-	bench('50,000 source rows', () => {
-		render(
-			<PivotTable
-				rows={rows50k}
-				keys={{ row: 'lane', column: 'period', value: 'loads' }}
-				aggregation="sum"
-			/>,
-		)
-
-		cleanup()
-	})
+	mountBenches(
+		SIZES,
+		({ count }) => `${count.toLocaleString()} source rows`,
+		({ rows }) => <PivotTable rows={rows} keys={LANE_BY_PERIOD} aggregation="sum" />,
+	)
 })
 
 describe('PivotTable · carrier × destination × totals', () => {
-	bench('10,000 rows · totals="both"', () => {
-		render(
-			<PivotTable
-				rows={rows10k}
-				keys={{ row: 'carrier', column: 'destination', value: 'weight' }}
-				aggregation="avg"
-				totals="both"
-			/>,
-		)
-
-		cleanup()
-	})
-
-	bench('10,000 rows · totals="none"', () => {
-		render(
-			<PivotTable
-				rows={rows10k}
-				keys={{ row: 'carrier', column: 'destination', value: 'weight' }}
-				aggregation="avg"
-				totals="none"
-			/>,
-		)
-
-		cleanup()
-	})
+	mountBenches(
+		['both', 'none'] as const,
+		(totals) => `10,000 rows · totals="${totals}"`,
+		(totals) => (
+			<PivotTable rows={rows10k} keys={CARRIER_BY_DESTINATION} aggregation="avg" totals={totals} />
+		),
+	)
 })
 
 describe('PivotTable · aggregation comparison (10k rows)', () => {
-	for (const aggregation of ['sum', 'count', 'avg', 'min', 'max'] as const) {
-		bench(`aggregation="${aggregation}"`, () => {
-			render(
-				<PivotTable
-					rows={rows10k}
-					keys={{ row: 'lane', column: 'period', value: 'loads' }}
-					aggregation={aggregation}
-				/>,
-			)
-
-			cleanup()
-		})
-	}
+	mountBenches(
+		['sum', 'count', 'avg', 'min', 'max'] as const,
+		(aggregation) => `aggregation="${aggregation}"`,
+		(aggregation) => <PivotTable rows={rows10k} keys={LANE_BY_PERIOD} aggregation={aggregation} />,
+	)
 })

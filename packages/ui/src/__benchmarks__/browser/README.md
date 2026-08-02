@@ -18,7 +18,7 @@ pnpm bench:browser -- --outputJson bench-baseline.json
 pnpm bench:browser -- --compare bench-baseline.json
 ```
 
-When a competitive scenario regresses or lags, the jsdom benches (`pnpm bench`) and the pure cores (`chart-scale`, `chart-layout`, per-chart `*-geometry`; `map-render`'s cold/warm geometry split) are the ladder down to the responsible layer.
+When a competitive scenario regresses or lags, the jsdom benches (`pnpm bench`) are the ladder down to the responsible layer. Their pure cores sit directly under these scenarios, drawing the same fixtures with no React and no DOM: `chart-scale` and per-chart `*-geometry` for the numbers going in and the paths coming out, `chart-layout` for the axis/tick/date/hit-test pass between them, `map-compute` for the projection fit and the region joins (with `map-render`'s cold/warm split for the geometry cache), `grid-compute` and `grid-sorting` for column allocation, export, and sort, `grid-group` for grouping and aggregation, `query-evaluate` for the filter walk, and `recipe` for the style resolution every one of them pays per element.
 
 ## Charts
 
@@ -26,7 +26,7 @@ When a competitive scenario regresses or lags, the jsdom benches (`pnpm bench`) 
 
 Every scenario draws the same deterministic dataset ([`fixtures.ts`](fixtures.ts), LCG-seeded) into the same fixed 800×450 box with animations off, through each library's idiomatic API ([`contenders.tsx`](contenders.tsx)): the ui module renders through React (`createRoot` + `flushSync` — the synchronous commit a consumer pays), AG Charts and Highcharts through their vanilla factories, each with its own settle contract (AG awaits `waitForUpdate()`; Highcharts and the ui module draw synchronously).
 
-- [`chart-mount.bench.tsx`](chart-mount.bench.tsx) — full mount-to-painted-DOM plus teardown per iteration: line at 100 / 1k / 10k × 1 series and 1k × 5, bar at 50 / 500 × 2, scatter at 1k / 10k.
+- [`chart-mount.bench.tsx`](chart-mount.bench.tsx) — full mount-to-painted-DOM plus teardown per iteration: line at 100 / 1k / 10k × 1 series and 1k × 5, bar at 50 / 500 × 2, scatter at 1k / 10k. Plus the line scenarios again over ISO-date categories (`makeDatedTrend`, 1k / 10k), the time-series dashboard shape: every contender must decide how to label a date axis, and the ui module's band axis probes whether all categories parse as dates before formatting them through `Intl` — a pass a plain-label axis exits on its first value. Held beside the plain scenario of the same size, the pair prices that probe end to end; `chart-layout` prices it in isolation.
 
 - [`chart-update.bench.tsx`](chart-update.bench.tsx) — redraw on a live chart, alternating two same-shape datasets so no iteration bails on an equality guard: the ui module re-renders through its root, AG and Highcharts take their in-place data updates.
 
@@ -82,6 +82,18 @@ Each entry names the change and the scenarios it moved; the levers are ordered a
 
 Open: the scatter hover sweep still trails AG by a whisker (~18 vs ~17) — the residual is a React commit per pointer move against AG's vanilla redraw, closable only by moving the shared crosshair/tooltip tracking to imperative DOM writes. Everything else stands beaten or tied.
 
+#### Date-axis mounts (2026-08-02, this container)
+
+Added with the pure-core suite, so these carry no earlier baseline. Mean ms per iteration, measured against the plain-label scenario of the same size on the same run.
+
+| Scenario | ui | AG Charts | Highcharts |
+| --- | ---: | ---: | ---: |
+| mount · line · 1,000 × 1 | **7.6** | 28.4 | 22.5 |
+| mount · line · dated · 1,000 × 1 | **8.0** | 26.2 | 22.6 |
+| mount · line · dated · 10,000 × 1 | **49.1** | 57.1 | 65.6 |
+
+The module leads both rivals on a dated axis as it does on a plain one, and the date surcharge is small end to end: ~0.4ms at a thousand rows. `chart-layout` prices the probe alone at ~0.35ms per thousand categories and ~3.3ms at ten thousand — real work, but under a tenth of a 49ms mount, so the probe is a regression guard here rather than an open lever. The plain 10,000-row mount is not tabled: its sample carried a 380ms outlier on this run (±34% rme) and would misreport the comparison.
+
 ## Grids
 
 ### Methodology
@@ -95,6 +107,8 @@ Every scenario drives the same deterministic shipment rows (`makeShipments` in [
 - [`grid-sort.bench.tsx`](grid-sort.bench.tsx) — an asc/desc sort flip on `id` through each library's programmatic sort state, so the engine re-sorts the full dataset and repaints the window, at 10k / 100k.
 
 - [`grid-scroll.bench.tsx`](grid-scroll.bench.tsx) — a top-to-bottom-and-back sweep in 12 even jumps, one settled frame per step plus a fully-painted probe at each end — the virtualization stress, at 10k / 100k.
+
+- [`grid-filter.bench.tsx`](grid-filter.bench.tsx) — a quick-filter term applied and then cleared, settled on painted survivors at each end, so one sample covers the narrowing a keystroke produces and the widening a backspace does, at 10k / 100k. Each library takes its own quick filter (the ui module's `search` binding, AG's `quickFilterText`, MUI's `filterModel.quickFilterValues`) and all three scan the same eight columns — the ui grid searches the columns declaring a `value` accessor, so every bench column declares one.
 
 Fairness notes, both directions: the ui grid keeps its built-in chrome (toolbar with export, accessible announcements) that the competitors' defaults don't carry; each library runs its own defaults otherwise (AG's community module set, MUI's MIT tier). MUI's MIT tier hard-caps `pageSize` at 100 and always paginates — full-set scrolling is Pro-licensed — so MUI runs mount/update/sort in its shipped paginated shape (the full dataset still flows through its client-side model) and sits out the scroll sweep. React runs in production mode for the same reason as the charts (see above); it covers MUI symmetrically.
 
@@ -115,6 +129,17 @@ Absolute numbers move with hardware — this table was re-measured on a faster m
 | scroll · 100,000 · round trip | 218 | **206.7** | 246.3 | — |
 
 The structural row-model lever landed, and the board turned over: the ui grid now beats **both** competitors on every mount and every update — the 100k mount ~3× under AG (16 vs 50) and the 100k update over 4× under it (12 vs 54). The whole linear term is gone from the untransformed paths, so mount and update barely move from 1k to 100k (5 → 16ms, 3 → 12ms) where the competitors climb. Scroll is unchanged here — that win landed earlier (#954's lazy truncation) and still beats AG; this PR left it flat, as the before/after shows.
+
+#### Quick filter (2026-08-02, this container)
+
+Added with the pure-core suite, so it carries no earlier baseline. Mean ms per iteration for one apply-and-clear cycle.
+
+| Scenario | ui | AG Grid | MUI X |
+| --- | ---: | ---: | ---: |
+| filter · 10,000 · apply + clear | 51.1 | 65.6 | 46.9 |
+| filter · 100,000 · apply + clear | 211.9 | 204.9 | 173.5 |
+
+The suite's second open scenario, and the only one besides sort where the module does not lead: MUI takes both sizes (1.09× at 10k, 1.22× at 100k) and AG draws level at 100k. Filtering is the one path that still forces the engine's row model — `resolveActiveEngineTransform` counts a non-empty query as an active transform, so a filtered grid materializes a `Row` per datum, exactly the linear term levers 5–8 took off mount, update, and sort. The same off-engine treatment applies: a sole-filter grid can scan `rows` directly through the shared `columnAccessor`, as `sortRowsSmart` does. Below that sits the decode — a quick filter reads every searchable cell of every row on every keystroke — which is the same cached-`SortKey` lever sort is waiting on, over the same values.
 
 Sort took the off-engine path too and closed most of its gap — 100k sort fell from 162 to 40ms (from 7× behind AG to 1.7×, from 5× behind MUI to 1.3×), and 10k from 25 to 9.5ms (now edging AG, still behind MUI's 6.5). A sort that is the grid's only transform now orders `rows` directly, off the engine, like mount and update — but it still trails both rivals at 100k, the suite's one open scenario. The 40-vs-23 residual is the decode: an asc↔desc flip re-derives every row's `SortKey` (the `parseNumeric` regex work) even though only the direction changed. The next lever is caching the decoded keys per (rows, column) so a flip re-sorts without re-decoding — a `WeakMap` keyed on the `rows` array, no manual invalidation — which should close the AG gap. Below that, the per-cell render is the last rung — a cell-tree diet (`GridDataCell` → `TableCell` → span) for the residual per-row constant.
 

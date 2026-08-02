@@ -4,16 +4,10 @@
  * run-to-run variance reflects the library under test, not the data.
  */
 
-/** The shared LCG behind every generator here and in `map-fixtures.ts`. */
-export function rng(seed = 1) {
-	let state = seed >>> 0
+import { rng } from '../fixtures'
 
-	return () => {
-		state = (state * 1664525 + 1013904223) >>> 0
-
-		return state / 0x100000000
-	}
-}
+/** The shared LCG, re-exported so `map-fixtures.ts` draws from one generator. */
+export { rng }
 
 /** One categorical row: a `label` plus one numeric field per series (`s1`, `s2`, …). */
 export type TrendRow = Record<string, string | number>
@@ -59,6 +53,32 @@ export function makeTrend(count: number, seriesCount: number, seed = 1): TrendDa
 	})
 
 	return { rows, categories, values }
+}
+
+/** The first day the dated fixture walks from; every row is one day past the last. */
+const DATE_ORIGIN = Date.UTC(2020, 0, 1)
+
+const DAY_MS = 86_400_000
+
+/**
+ * {@link makeTrend} with ISO-date categories in place of the opaque `P00001`
+ * labels — the shape a time-series dashboard actually holds, and the one that
+ * puts every contender's date handling on the clock: the ui module's band axis
+ * probes whether all categories parse as dates (and formats them through
+ * `Intl` when they do), where a non-date axis exits on its first value. Same
+ * values, same seed, so it differs from the plain trend in labels alone.
+ */
+export function makeDatedTrend(count: number, seriesCount: number, seed = 1): TrendData {
+	const plain = makeTrend(count, seriesCount, seed)
+
+	const categories = Array.from(
+		{ length: count },
+		(_, i) => new Date(DATE_ORIGIN + i * DAY_MS).toISOString().slice(0, 10) as string,
+	)
+
+	const rows = plain.rows.map((row, i) => ({ ...row, label: categories[i] as string }))
+
+	return { rows, categories, values: plain.values }
 }
 
 /** One scatter point row; `pairs` mirrors it in Highcharts' `[x, y]` form. */

@@ -18,59 +18,60 @@ import { makeJsonTree } from './fixtures'
 // huge    (d=6, b=4)   = ~4,096 branches
 
 const small = makeJsonTree(3, 5)
+
 const medium = makeJsonTree(4, 5)
+
 const large = makeJsonTree(5, 5)
+
 const huge = makeJsonTree(6, 4)
 
-describe('json-tree: buildSearchIndex', () => {
-	bench('small (d3×b5) · hit', () => {
-		buildSearchIndex(small, 'value-root')
-	})
+/** A term every leaf path carries, and one no tree holds — the hit and miss ends. */
+const HIT = 'value-root'
 
-	bench('medium (d4×b5) · hit', () => {
-		buildSearchIndex(medium, 'value-root')
-	})
+const MISS = '__absent__'
 
-	bench('large (d5×b5) · hit', () => {
-		buildSearchIndex(large, 'value-root')
-	})
-
-	bench('huge (d6×b4) · hit', () => {
-		buildSearchIndex(huge, 'value-root')
-	})
+describe('json-tree · buildSearchIndex', () => {
+	for (const [label, tree] of [
+		['small (d3×b5)', small],
+		['medium (d4×b5)', medium],
+		['large (d5×b5)', large],
+		['huge (d6×b4)', huge],
+	] as const) {
+		bench(`${label} · hit`, () => {
+			buildSearchIndex(tree, HIT)
+		})
+	}
 
 	bench('large (d5×b5) · miss', () => {
-		buildSearchIndex(large, '__absent__')
+		buildSearchIndex(large, MISS)
 	})
 })
 
-describe('json-tree: treeContainsMatch', () => {
+describe('json-tree · treeContainsMatch', () => {
 	bench('large (d5×b5) · hit', () => {
-		treeContainsMatch(large, 'value-root')
+		treeContainsMatch(large, HIT)
 	})
 
 	bench('large (d5×b5) · miss', () => {
-		treeContainsMatch(large, '__absent__')
+		treeContainsMatch(large, MISS)
 	})
 })
 
-describe('json-tree: filterEntries (with index)', () => {
-	const term = 'value-root'
-
-	const index = buildSearchIndex(large, term)
+describe('json-tree · filterEntries (with index)', () => {
+	const index = buildSearchIndex(large, HIT)
 
 	const rootEntries = getEntries(large)
 
 	bench('root entries @ large', () => {
-		filterEntries(rootEntries, term, index)
+		filterEntries(rootEntries, HIT, index)
 	})
 
 	bench('root entries @ large · no index (walks each)', () => {
-		filterEntries(rootEntries, term)
+		filterEntries(rootEntries, HIT)
 	})
 })
 
-describe('json-tree: collectPaths', () => {
+describe('json-tree · collectPaths', () => {
 	bench('large (d5×b5) · no maxDepth', () => {
 		collectPaths(large, '$')
 	})
@@ -84,7 +85,7 @@ describe('json-tree: collectPaths', () => {
 	})
 })
 
-describe('json-tree: getEntries', () => {
+describe('json-tree · getEntries', () => {
 	const obj = large as { [key: string]: JsonValue }
 
 	const arr: JsonValue[] = Object.values(obj)

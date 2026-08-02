@@ -1,96 +1,73 @@
-import { cleanup, render } from '@testing-library/react'
-import { bench, describe } from 'vitest'
+/**
+ * Listbox opens on user click and exposes no direct `open` prop (Combobox
+ * does), so these benches measure the closed Listbox at several option counts
+ * — everything below the trigger still mounts — plus two stand-ins that reach
+ * the panel the real component gates: bare `role="option"` divs, the floor a
+ * rendered option cannot beat, and the virtualized wrapper, which should hold
+ * flat as the option count grows.
+ */
+
+import { describe } from 'vitest'
 import { Listbox, ListboxLabel, ListboxOption } from '../components/listbox'
 import { VirtualOptions } from '../primitives/virtual-options'
-import { makeComboboxOptions } from './fixtures'
+import { makeComboboxOptions, type Option } from './fixtures'
+import { mountBenches } from './harness'
 
-// Listbox opens on user click and exposes no direct `open` prop (Combobox
-// does). These benches measure the closed Listbox at several option counts
-// (everything below the trigger still mounts) and the virtualized wrapper
-// rendered inside a stand-in role="listbox" container.
+// Built at collection time: only the render belongs inside the timed region.
+const options = new Map([100, 500, 2_000].map((count) => [count, makeComboboxOptions(count)]))
 
-const options100 = makeComboboxOptions(100)
-const options500 = makeComboboxOptions(500)
-const options2k = makeComboboxOptions(2_000)
+const at = (count: number) => options.get(count) as Option[]
+
+const PANEL = { maxHeight: '400px', overflow: 'auto' } as const
 
 describe('Listbox · closed (options provided as children)', () => {
-	function renderClosed(opts: { value: string; label: string }[]) {
-		return (
+	mountBenches(
+		[100, 2_000],
+		(count) => `${count.toLocaleString()} options`,
+		(count) => (
 			<Listbox<string>>
-				{opts.map((o) => (
-					<ListboxOption key={o.value} value={o.value}>
-						<ListboxLabel>{o.label}</ListboxLabel>
+				{at(count).map((option) => (
+					<ListboxOption key={option.value} value={option.value}>
+						<ListboxLabel>{option.label}</ListboxLabel>
 					</ListboxOption>
 				))}
 			</Listbox>
-		)
-	}
-
-	bench('100 options', () => {
-		render(renderClosed(options100))
-
-		cleanup()
-	})
-
-	bench('2,000 options', () => {
-		render(renderClosed(options2k))
-
-		cleanup()
-	})
+		),
+	)
 })
 
 describe('Listbox · options inside a stand-in listbox panel', () => {
 	// Bypass the real Listbox open/close state by rendering options inside a
 	// matching role="listbox" container; isolates per-option rendering cost.
-	function renderPanel(opts: { value: string; label: string }[]) {
-		return (
-			<div role="listbox" style={{ maxHeight: '400px', overflow: 'auto' }}>
-				{opts.map((o) => (
-					<div key={o.value} role="option" tabIndex={-1} data-value={o.value}>
-						{o.label}
+	mountBenches(
+		[500, 2_000],
+		(count) => `${count.toLocaleString()} options`,
+		(count) => (
+			<div role="listbox" style={PANEL}>
+				{at(count).map((option) => (
+					<div key={option.value} role="option" tabIndex={-1} data-value={option.value}>
+						{option.label}
 					</div>
 				))}
 			</div>
-		)
-	}
-
-	bench('500 options', () => {
-		render(renderPanel(options500))
-
-		cleanup()
-	})
-
-	bench('2,000 options', () => {
-		render(renderPanel(options2k))
-
-		cleanup()
-	})
+		),
+	)
 })
 
 describe('Listbox · virtualized', () => {
-	function renderVirt(opts: { value: string; label: string }[]) {
-		return (
-			<div role="listbox" style={{ maxHeight: '400px', overflow: 'auto' }}>
-				<VirtualOptions items={opts} estimateSize={36}>
-					{(o) => (
-						<ListboxOption key={o.value} value={o.value}>
-							<ListboxLabel>{o.label}</ListboxLabel>
+	mountBenches(
+		[500, 2_000],
+		(count) => `${count.toLocaleString()} options · virtualized`,
+		(count) => (
+			<div role="listbox" style={PANEL}>
+				<VirtualOptions items={at(count)} estimateSize={36}>
+					{(option) => (
+						<ListboxOption key={option.value} value={option.value}>
+							<ListboxLabel>{option.label}</ListboxLabel>
 						</ListboxOption>
 					)}
 				</VirtualOptions>
 			</div>
-		)
-	}
-
-	bench('500 options · virtualized', () => {
-		render(renderVirt(options500))
-
-		cleanup()
-	})
-
-	bench('2,000 options · virtualized', () => {
-		render(renderVirt(options2k))
-
-		cleanup()
-	})
+		),
+	)
 })

@@ -1,20 +1,24 @@
-import { cleanup, render } from '@testing-library/react'
+/**
+ * Tree is recursive, so its cost grows with total node count and depth: each
+ * `TreeItem` computes a fresh `childContextValue` memo and renders a button
+ * with depth-based padding. The collapsed rung is the same node count with
+ * only the top level rendered — what a closed branch actually saves.
+ */
+
 import type { ReactNode } from 'react'
-import { bench, describe } from 'vitest'
+import { describe } from 'vitest'
 import { Tree, TreeItem } from '../components/tree'
+import { mountBench, mountBenches } from './harness'
 
-// Tree is a recursive component; cost grows with total node count and depth.
-// Each TreeItem computes a new `childContextValue` memo and renders a button
-// with depth-based padding.
-
+/** A balanced tree of `branching^depth` items, every branch open or every branch closed. */
 function buildTreeNodes(depth: number, branching: number, open: boolean): ReactNode {
 	if (depth === 0) return null
 
 	const nodes: ReactNode[] = []
 
-	for (let i = 0; i < branching; i++) {
+	for (let index = 0; index < branching; index++) {
 		nodes.push(
-			<TreeItem key={`d${depth}-i${i}`} label={`Node ${depth}.${i}`} defaultOpen={open}>
+			<TreeItem key={`d${depth}-i${index}`} label={`Node ${depth}.${index}`} defaultOpen={open}>
 				{buildTreeNodes(depth - 1, branching, open)}
 			</TreeItem>,
 		)
@@ -24,29 +28,19 @@ function buildTreeNodes(depth: number, branching: number, open: boolean): ReactN
 }
 
 describe('Tree · render (all open)', () => {
-	bench('100 nodes (d3×b5, open)', () => {
-		render(<Tree aria-label="Files">{buildTreeNodes(3, 5, true)}</Tree>)
-
-		cleanup()
-	})
-
-	bench('~1k nodes (d4×b5, open)', () => {
-		render(<Tree aria-label="Files">{buildTreeNodes(4, 5, true)}</Tree>)
-
-		cleanup()
-	})
-
-	bench('~5k nodes (d5×b5, open)', () => {
-		render(<Tree aria-label="Files">{buildTreeNodes(5, 5, true)}</Tree>)
-
-		cleanup()
-	})
+	mountBenches(
+		[
+			{ depth: 3, nodes: '100' },
+			{ depth: 4, nodes: '~1k' },
+			{ depth: 5, nodes: '~5k' },
+		],
+		({ depth, nodes }) => `${nodes} nodes (d${depth}×b5, open)`,
+		({ depth }) => <Tree aria-label="Files">{buildTreeNodes(depth, 5, true)}</Tree>,
+	)
 })
 
 describe('Tree · render (all collapsed)', () => {
-	bench('~5k nodes (d5×b5, collapsed) — only top level rendered', () => {
-		render(<Tree aria-label="Files">{buildTreeNodes(5, 5, false)}</Tree>)
-
-		cleanup()
-	})
+	mountBench('~5k nodes (d5×b5, collapsed) — only top level rendered', () => (
+		<Tree aria-label="Files">{buildTreeNodes(5, 5, false)}</Tree>
+	))
 })

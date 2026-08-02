@@ -3,8 +3,8 @@
 import { bench, describe } from 'vitest'
 import { createRule } from '../modules/query/engine/query-node'
 import { addChild, mapNode, removeChild } from '../modules/query/engine/query-tree'
-import type { QueryGroup, QueryNode } from '../modules/query/engine/types'
-import { makeQueryTree, QUERY_FIELDS } from './fixtures'
+import type { QueryGroup } from '../modules/query/engine/types'
+import { collectRuleIds, makeQueryTree, QUERY_FIELDS } from './fixtures'
 
 // Tree sizes (depth × branching): total rules ≈ branching^(depth+1)
 // shallow-wide  (d=1, b=20)  =  20 rules
@@ -12,31 +12,18 @@ import { makeQueryTree, QUERY_FIELDS } from './fixtures'
 // deep-wide     (d=4, b=4)   = 1024 rules
 
 const shallowWide = makeQueryTree(1, 20)
+
 const balanced = makeQueryTree(3, 4)
+
 const deepWide = makeQueryTree(4, 4)
 
-/** Collect every rule id in a tree, in walk order. */
-function collectRuleIds(group: QueryGroup): string[] {
-	const ids: string[] = []
-
-	function walk(nodes: QueryNode[]) {
-		for (const n of nodes) {
-			if (n.type === 'rule') ids.push(n.id)
-			else walk(n.children)
-		}
-	}
-
-	walk(group.children)
-
-	return ids
-}
-
 const balancedIds = collectRuleIds(balanced)
+
 const deepWideIds = collectRuleIds(deepWide)
 
 const shallowWideFirstId = shallowWide.children[0]?.id ?? ''
 
-describe('query-builder: mapNode (update root-level rule)', () => {
+describe('query-builder · mapNode (update root-level rule)', () => {
 	bench('shallow-wide · first child', () => {
 		mapNode(shallowWide, shallowWideFirstId, (n) => ({ ...n }))
 	})
@@ -58,7 +45,7 @@ describe('query-builder: mapNode (update root-level rule)', () => {
 	})
 })
 
-describe('query-builder: mapNode (miss — walks entire tree)', () => {
+describe('query-builder · mapNode (miss — walks entire tree)', () => {
 	bench('balanced · miss', () => {
 		mapNode(balanced, '__absent__', (n) => ({ ...n }))
 	})
@@ -68,7 +55,7 @@ describe('query-builder: mapNode (miss — walks entire tree)', () => {
 	})
 })
 
-describe('query-builder: addChild', () => {
+describe('query-builder · addChild', () => {
 	const rule = createRule(QUERY_FIELDS[0])
 
 	bench('balanced · at root', () => {
@@ -82,7 +69,7 @@ describe('query-builder: addChild', () => {
 	})
 })
 
-describe('query-builder: removeChild', () => {
+describe('query-builder · removeChild', () => {
 	bench('balanced · first leaf', () => {
 		removeChild(balanced, balancedIds[0] as string)
 	})
@@ -92,7 +79,7 @@ describe('query-builder: removeChild', () => {
 	})
 })
 
-describe('query-builder: mapNode · 100 sequential updates (realistic flow)', () => {
+describe('query-builder · mapNode · 100 sequential updates (realistic flow)', () => {
 	const ids = balancedIds.slice(0, 100)
 
 	bench('balanced', () => {

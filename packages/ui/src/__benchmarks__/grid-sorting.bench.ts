@@ -12,7 +12,7 @@ import {
 	sortRowsSmart,
 	toSortKey,
 } from '../modules/grid/engine/grid-sort/utilities'
-import { makeShipments, type Shipment } from './fixtures'
+import { type Shipment, shipments } from './fixtures'
 
 // The grid's client sort runs these comparators O(n log n) times per sorted
 // column, over regex-heavy numeric parsing and a locale-aware string fallback —
@@ -21,17 +21,17 @@ import { makeShipments, type Shipment } from './fixtures'
 // not the data. The barrel does not re-export the utilities, so import by path
 // (as json-tree.bench.ts does).
 
-const shipments10k = makeShipments(10_000)
+const pool10k = shipments(10_000)
 
 // Column projections exercise the comparator's distinct leaves: `origin` is the
 // locale-aware string fallback (the meaningful stress), `weight` is the cheap
 // numeric subtract (the floor), `createdAt` is an ISO string that never parses
 // as a number (worst case — full decorate, then string compare).
-const strings = (n: number) => shipments10k.slice(0, n).map((r) => r.origin)
+const strings = (n: number) => pool10k.slice(0, n).map((r) => r.origin)
 
-const numbers = (n: number) => shipments10k.slice(0, n).map((r) => r.weight)
+const numbers = (n: number) => pool10k.slice(0, n).map((r) => r.weight)
 
-const dates = (n: number) => shipments10k.slice(0, n).map((r) => r.createdAt)
+const dates = (n: number) => pool10k.slice(0, n).map((r) => r.createdAt)
 
 describe('grid-sort · compareSmart (raw, un-decorated)', () => {
 	// The full decorate-and-compare cost per pair: compareSmart re-decorates both
@@ -131,7 +131,7 @@ const numberField: SmartSortField<Shipment> = {
 
 describe('grid-sort · sortRowsSmart split (compute vs materialize)', () => {
 	for (const n of [10_000, 100_000]) {
-		const rows = makeShipments(n)
+		const rows = shipments(n)
 
 		// The permutation of a pre-sorted set, so `materializeSort` is benched over a
 		// real order rather than the identity — the exact array the cache hands it.
