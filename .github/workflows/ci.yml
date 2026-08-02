@@ -33,3 +33,29 @@ jobs:
         env:
           # Placeholder: only used to construct rewrite/fetch URLs, not reached at build time.
           BIFROST_URL: https://bifrost.invalid
+
+  # The browser suite is a separate job, not a step in `gate`: it needs a
+  # Chromium download that the jsdom gate does not, and that provisioning would
+  # otherwise serialize into every gate run. It asserts what jsdom cannot see —
+  # layout, computed colour, target size, and real focus traps — which
+  # CONVENTIONS.md §10.5 routes here rather than into the jsdom suite.
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-browser-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-browser-
+      - run: pnpm install --frozen-lockfile
+      # Chromium only: vitest.browser.config.ts declares no other browser.
+      - run: pnpm --filter ui exec playwright install --with-deps chromium
+      - run: pnpm turbo run test:browser

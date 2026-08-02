@@ -51,6 +51,15 @@
         "$TURBO_ROOT$/tsconfig.base.json"
       ]
     },
+    "test:browser": {
+      "dependsOn": ["^build"],
+      "inputs": [
+        "src/**",
+        "vitest.browser.config.ts",
+        "tsconfig.json",
+        "$TURBO_ROOT$/tsconfig.base.json"
+      ]
+    },
     "test:changed": {
       "dependsOn": ["^build"],
       "cache": false
