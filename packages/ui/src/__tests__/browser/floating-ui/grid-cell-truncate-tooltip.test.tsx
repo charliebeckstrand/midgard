@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { describe, expect, it } from 'vitest'
-import { userEvent } from 'vitest/browser'
+import { page, userEvent } from 'vitest/browser'
 import { Grid, type GridColumn } from '../../../modules/grid'
 import { fireEvent, renderUI, screen, waitFor } from '../../helpers'
 
@@ -283,15 +283,15 @@ describe('grid cell truncation tooltip (real browser)', () => {
 
 		const { container } = renderAt(deadZone)
 
-		const span = await settledSpan(container)
+		await settledSpan(container)
 
-		// The parked pointer can open the tooltip on its own while `settledSpan`
-		// waits. Its content repeats the cell text, and an element-derived locator
-		// resolves by text, so hovering then matches both nodes and throws a strict
-		// mode violation. Read the state here, immediately before the hover.
-		if (!screen.queryByRole('tooltip')) {
-			await userEvent.hover(span)
-		}
+		// Hover a locator under the cell scope, not the span. An element gives the
+		// driver a text selector, and the driver derives that selector from the DOM
+		// as it stands. The parked pointer can open the tooltip before the selector
+		// resolves, and the tooltip content repeats the cell text. One selector then
+		// matches two nodes, which is a strict mode violation. The scope holds the
+		// portaled tooltip out, so the match stays single.
+		await page.getByRole('cell').getByText('Wade Cooper').hover()
 
 		const tip = await screen.findByRole('tooltip')
 
