@@ -19,9 +19,11 @@ import { k as button } from '../recipes/kata/button'
  * into a string, then read a Map — so it scales with the recipe's *axis count*,
  * not with its class payload. A **memo miss** composes the class list and runs
  * it through `clsx` + `tailwind-merge`, which is one to two orders of magnitude
- * dearer and scales with the payload. **`cn`** is the unmemoized merge a call
- * site adds on top of the recipe's output, once per element, every render — the
- * one part of the path no cache covers.
+ * dearer and scales with the payload. **`cn`** is the merge a call site adds on
+ * top of the recipe's output, once per element, every render — memoised on its
+ * arguments in its own right (`core/cn.ts`), so these bars read its hit path;
+ * the bars that first justified that memo are one rung down in the diff that
+ * added it, not here.
  *
  * `Button` stands in for a real kata throughout: three axes, an eight-colour
  * palette, four compound rules, and a base of a dozen classes.
@@ -111,11 +113,11 @@ describe('recipe · compose (twMerge ∘ clsx, what a miss runs)', () => {
 	})
 })
 
-describe('recipe · cn (unmemoized, once per element per render)', () => {
-	// The recipe's output is cached; the `cn` that merges it with the call site's
-	// own classes is not. Every rung is a real call shape: a leaf with nothing but
-	// the recipe, a leaf with a caller override, a composite folding in state and
-	// layout.
+describe('recipe · cn (once per element per render)', () => {
+	// Every rung is a real call shape at its memo hit — the steady state of a
+	// mounted tree, where the arguments are the same objects render after render:
+	// a leaf with nothing but the recipe, a leaf with a caller override, a
+	// composite folding in state and layout.
 	const recipeOutput = button({ variant: 'solid', color: 'zinc', size: 'md' })
 
 	bench('recipe output only', () => {

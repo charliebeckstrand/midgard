@@ -2,10 +2,15 @@
 
 import { bench, describe } from 'vitest'
 import { regionCategoryIndexes, resolveCategories } from '../modules/map/map-categories'
-import { geographyFeatures } from '../modules/map/map-geometry'
 import { canonicalFit, mapAutoAspect, scaleCanonicalFit } from '../modules/map/map-projection'
 import { regionValueJoin, resolveValueBins } from '../modules/map/map-value-scale'
-import { countiesAtlas, makeValues, makeZones, statesAtlas } from './browser/map-fixtures'
+import {
+	countiesAtlas,
+	makeValues,
+	makeZones,
+	statesAtlas,
+	VALUE_RAMP,
+} from './browser/map-fixtures'
 
 /**
  * The map's pure compute: the projection fit, and the joins that decide every
@@ -21,13 +26,26 @@ import { countiesAtlas, makeValues, makeZones, statesAtlas } from './browser/map
  * scenarios.
  */
 
-const states = geographyFeatures(statesAtlas.topology, 'states')
-
-const counties = geographyFeatures(countiesAtlas.topology, 'counties')
-
+// Each atlas already carries its decoded features (`prepareAtlas` in
+// `browser/map-fixtures.ts`); decoding them again here would re-walk every arc
+// of the 3,108 counties at collection for no new data. Its datasets are built
+// once too — a counties `makeZones` allocates four 3,108-element arrays, and
+// three describes below want the same one.
 const ATLASES = [
-	{ label: 'states (49 regions)', atlas: statesAtlas, features: states },
-	{ label: 'counties (3,108 regions)', atlas: countiesAtlas, features: counties },
+	{
+		label: 'states (49 regions)',
+		atlas: statesAtlas,
+		features: statesAtlas.geoJson.features,
+		zones: makeZones(statesAtlas),
+		values: makeValues(statesAtlas),
+	},
+	{
+		label: 'counties (3,108 regions)',
+		atlas: countiesAtlas,
+		features: countiesAtlas.geoJson.features,
+		zones: makeZones(countiesAtlas),
+		values: makeValues(countiesAtlas),
+	},
 ] as const
 
 describe('map-projection · canonicalFit (the uncached fit)', () => {
@@ -72,22 +90,23 @@ describe('map-categories · resolveCategories (derive + paint)', () => {
 	// One pass to dedupe the dataset's categories in first-appearance order, then
 	// one paint lookup per category. Linear in the rows; the category count stays
 	// small, so this is the rows' term of a categorical mount.
-	for (const { label, atlas } of ATLASES) {
-		const { rows } = makeZones(atlas)
-
+	for (const { label, zones } of ATLASES) {
 		bench(`${label} · derived (no explicit list)`, () => {
-			resolveCategories(rows, 'zone')
+			resolveCategories(zones.rows, 'zone')
 		})
 	}
 
 	// An explicit category list skips the derive pass entirely — the difference
 	// is what a consumer buys by declaring its categories up front.
-	const { rows } = makeZones(countiesAtlas)
+	const counties = ATLASES[1]
 
-	const explicit = resolveCategories(rows, 'zone').map(({ value, label }) => ({ value, label }))
+	const explicit = resolveCategories(counties.zones.rows, 'zone').map(({ value, label }) => ({
+		value,
+		label,
+	}))
 
-	bench('counties (3,108 regions) · explicit list', () => {
-		resolveCategories(rows, 'zone', explicit)
+	bench(`${counties.label} · explicit list`, () => {
+		resolveCategories(counties.zones.rows, 'zone', explicit)
 	})
 })
 
@@ -95,20 +114,18 @@ describe('map-categories · regionCategoryIndexes (the categorical join)', () =>
 	// Builds a region → row Map and a category → index Map, then walks the
 	// regions. Two allocations plus a lookup per region, on every mount and
 	// every data update — the pass that turns rows into fills.
-	for (const { label, atlas } of ATLASES) {
-		const { rows } = makeZones(atlas)
-
-		const categories = resolveCategories(rows, 'zone')
+	for (const { label, atlas, zones } of ATLASES) {
+		const categories = resolveCategories(zones.rows, 'zone')
 
 		bench(label, () => {
-			regionCategoryIndexes(atlas.ids, rows, 'fips', 'zone', categories)
+			regionCategoryIndexes(atlas.ids, zones.rows, 'fips', 'zone', categories)
 		})
 	}
 })
 
 /** The choropleth scale options both value benches resolve through. */
 const SCALE = {
-	colorRange: ['#eff6ff', '#bfdbfe', '#60a5fa', '#2563eb', '#1e3a8a'],
+	colorRange: VALUE_RAMP,
 	format: (value: number) => value.toFixed(0),
 }
 
@@ -117,16 +134,12 @@ describe('map-value-scale · resolveValueBins (linear vs quantile)', () => {
 	// the values to cut by rank, so it carries an O(n log n) term the linear mode
 	// does not. The gap is what a consumer pays for the reading that suits
 	// skewed data.
-	for (const { label, atlas } of ATLASES) {
-		const { rows } = makeValues(atlas)
-
-		bench(`${label} · linear`, () => {
-			resolveValueBins(rows, 'value', { ...SCALE, binning: 'linear' })
-		})
-
-		bench(`${label} · quantile`, () => {
-			resolveValueBins(rows, 'value', { ...SCALE, binning: 'quantile' })
-		})
+	for (const { label, values } of ATLASES) {
+		for (const binning of ['linear', 'quantile'] as const) {
+			bench(`${label} · ${binning}`, () => {
+				resolveValueBins(values.rows, 'value', { ...SCALE, binning })
+			})
+		}
 	}
 })
 
@@ -135,19 +148,22 @@ describe('map-value-scale · regionValueJoin (the numeric join)', () => {
 	// string, and the raw number, for every region. The format call allocates a
 	// string per region whether or not a tooltip ever shows it — 3,108 of them on
 	// a counties mount, and again on every data update.
-	for (const { label, atlas } of ATLASES) {
-		const { rows } = makeValues(atlas)
+	// Both formatters are hoisted, so the pair differs only in the formatter's own
+	// cost — a closure rebuilt per iteration on one bar would tilt the comparison.
+	const intl = new Intl.NumberFormat('en-US')
 
-		const { assign } = resolveValueBins(rows, 'value', SCALE)
+	const intlFormat = (value: number) => intl.format(value)
 
-		const intl = new Intl.NumberFormat('en-US')
+	for (const { label, atlas, values } of ATLASES) {
+		const { assign } = resolveValueBins(values.rows, 'value', SCALE)
 
-		bench(`${label} · toFixed readout`, () => {
-			regionValueJoin(atlas.ids, rows, 'fips', 'value', assign, SCALE.format)
-		})
-
-		bench(`${label} · Intl readout`, () => {
-			regionValueJoin(atlas.ids, rows, 'fips', 'value', assign, (value) => intl.format(value))
-		})
+		for (const [readout, format] of [
+			['toFixed', SCALE.format],
+			['Intl', intlFormat],
+		] as const) {
+			bench(`${label} · ${readout} readout`, () => {
+				regionValueJoin(atlas.ids, values.rows, 'fips', 'value', assign, format)
+			})
+		}
 	}
 })

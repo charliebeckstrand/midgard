@@ -8,7 +8,7 @@
  * emphasis reads as re-render cost alone.
  */
 
-import { fireEvent, render } from '@testing-library/react'
+import { fireEvent } from '@testing-library/react'
 import type { ReactElement } from 'react'
 import counties from 'us-atlas/counties-10m.json'
 import states from 'us-atlas/states-10m.json'
@@ -17,6 +17,7 @@ import { type MapGeography, MapPlat, type MapTopology } from '../modules/map'
 import { defaultRegionId } from '../modules/map/map-categories'
 import { geographyFeatures } from '../modules/map/map-geometry'
 import { computeStaticMapGeometry, staticMapGeometry } from '../modules/map/map-geometry-cache'
+import { mountBench, persistentTree } from './harness'
 
 const statesTopo = states as unknown as MapTopology
 
@@ -57,24 +58,6 @@ function countiesPlat() {
 	return <MapPlat aria-label="Counties" geography={countiesGeo} width={800} />
 }
 
-/**
- * One mount-plus-teardown bench, tearing down only its own tree.
- *
- * @remarks Deliberately not the shared `mountBench`: that one ends on
- * `cleanup()`, which unmounts *every* tree the testing library holds — and the
- * cascade scenarios below mount their plats at collection time and drive them
- * for the whole run. A tree-local `unmount` leaves those standing.
- */
-function mountBench(name: string, element: () => ReactElement) {
-	bench(name, () => {
-		const { unmount, container } = render(element())
-
-		unmount()
-
-		container.remove()
-	})
-}
-
 describe('MapPlat · mount', () => {
 	mountBench('states-10m topology (52 regions, 4 categories)', statesPlat)
 
@@ -101,9 +84,13 @@ describe('static geometry · cold vs warm (states-10m)', () => {
 /** Pointer moves per iteration — enough that per-move cascade work accumulates. */
 const MOVES = 10
 
-/** Mounts a plat and hands back the elements the cascade scenarios drive. */
-function cascade(node: ReturnType<typeof statesPlat>) {
-	const { container } = render(node)
+/**
+ * Mounts a plat for the whole run and hands back the elements the cascade
+ * scenarios drive. Held outside the testing library's registry so the mount
+ * benches above — which end on `cleanup()` — cannot tear it down mid-run.
+ */
+function cascade(node: ReactElement) {
+	const container = persistentTree(node)
 
 	return {
 		region: container.querySelector('[data-region-index]') as Element,

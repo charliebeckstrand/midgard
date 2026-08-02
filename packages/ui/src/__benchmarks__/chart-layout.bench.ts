@@ -13,7 +13,7 @@ import {
 } from '../modules/chart/engine/chart-layout'
 import { bandScale, linearScale } from '../modules/chart/engine/chart-scale'
 import { dateCategoryFormat, parseInstant, timeTicks } from '../modules/chart/engine/chart-time'
-import { makeTrend } from './browser/fixtures'
+import { makeDatedTrend, makeTrend } from './browser/fixtures'
 
 /**
  * The chart layer between the scales and the marks: axis layout, tick
@@ -110,12 +110,16 @@ describe('chart-layout · valueTicksOf (Intl format per tick)', () => {
 
 	const intl = new Intl.NumberFormat('en-US', { notation: 'compact' })
 
+	// Hoisted like `plain`: a closure rebuilt per iteration on one bar only would
+	// tilt the pair it is meant to compare.
+	const compact = (value: number) => intl.format(value)
+
 	bench('toFixed formatter', () => {
 		valueTicksOf(scale, plain)
 	})
 
 	bench('Intl.NumberFormat formatter', () => {
-		valueTicksOf(scale, (value) => intl.format(value))
+		valueTicksOf(scale, compact)
 	})
 })
 
@@ -126,9 +130,9 @@ describe('chart-time · dateCategoryFormat (the are-these-dates probe)', () => {
 	// is what a date-keyed chart still pays, unmeasured until now.
 	const labels = makeTrend(10_000, 1).categories
 
-	const dates = Array.from({ length: 10_000 }, (_, index) =>
-		new Date(2024, 0, 1 + (index % 365)).toISOString(),
-	)
+	// The same ISO categories the competitive dated-mount scenario draws, so the
+	// core number and the end-to-end number describe one workload.
+	const dates = makeDatedTrend(10_000, 1).categories
 
 	for (const count of [1_000, 10_000]) {
 		const nonDates = labels.slice(0, count)

@@ -5,7 +5,7 @@ import { isQueryActive } from '../modules/query/engine/query-active'
 import { evaluateQuery, matchQueryRule } from '../modules/query/engine/query-evaluate'
 import { formatQuerySummary, summarizeQuery } from '../modules/query/engine/query-summary'
 import type { QueryGroup, QueryNode } from '../modules/query/engine/types'
-import { makeQueryTree, QUERY_FIELDS, type Shipment, shipments } from './fixtures'
+import { QUERY_FIELDS, QUERY_TREES, type Shipment, shipments } from './fixtures'
 
 /**
  * What a built query costs to *use*, where `query-builder.bench.ts` measures
@@ -18,23 +18,6 @@ import { makeQueryTree, QUERY_FIELDS, type Shipment, shipments } from './fixture
  * Node env, no DOM. Tree sizes match the builder bench's, so the two read
  * against each other.
  */
-
-// Tree sizes (depth × branching): total rules ≈ branching^(depth+1)
-// shallow-wide  (d=1, b=20)  =  20 rules
-// balanced      (d=3, b=4)   = 256 rules
-// deep-wide     (d=4, b=4)   = 1024 rules
-
-const shallowWide = makeQueryTree(1, 20)
-
-const balanced = makeQueryTree(3, 4)
-
-const deepWide = makeQueryTree(4, 4)
-
-const TREES = [
-	{ label: 'shallow-wide (20 rules)', tree: shallowWide },
-	{ label: 'balanced (256 rules)', tree: balanced },
-	{ label: 'deep-wide (1,024 rules)', tree: deepWide },
-] as const
 
 /** Rewrites every combinator in a tree, so the two folds can be compared. */
 function withCombinator(group: QueryGroup, combinator: 'and' | 'or'): QueryGroup {
@@ -76,7 +59,7 @@ describe('query-evaluate · evaluateQuery (once per row)', () => {
 	// finding these bars record — a fold that called the evaluator lazily would
 	// let a failed `and` (or a satisfied `or`) stop at the first decisive rule,
 	// which on a large tree is most of the walk.
-	for (const { label, tree } of TREES) {
+	for (const { label, tree } of QUERY_TREES) {
 		const conjunction = withCombinator(tree, 'and')
 
 		const disjunction = withCombinator(tree, 'or')
@@ -96,7 +79,7 @@ describe('query-evaluate · a client-side filter pass (1,000 rows)', () => {
 	// rows runs this on every keystroke that edits the query, and again on every
 	// dataset refresh — so the per-row walk is charged a thousand times here, and
 	// a hundred thousand times on a dashboard-sized set.
-	for (const { label, tree } of TREES.slice(0, 2)) {
+	for (const { label, tree } of QUERY_TREES.slice(0, 2)) {
 		const disjunction = withCombinator(tree, 'or')
 
 		bench(`${label} · 1,000 rows`, () => {
@@ -138,7 +121,7 @@ describe('query-active · isQueryActive (per render of the affordance)', () => {
 	// flat in the tree size, while an inactive one — every rule blank, what a
 	// freshly seeded or fully cleared builder holds — walks to the last node. The
 	// blank bar is therefore both the common resting state and the worst case.
-	for (const { label, tree } of TREES) {
+	for (const { label, tree } of QUERY_TREES) {
 		const blank = blanked(tree)
 
 		bench(`${label} · active (exits on the first rule)`, () => {
@@ -157,7 +140,7 @@ describe('query-summary · summarize and render', () => {
 	// Both run per render, and both are linear in the rule count — a thousand-rule
 	// tree is not a realistic filter chip, but it bounds what a summary costs
 	// before a consumer needs to truncate it.
-	for (const { label, tree } of TREES) {
+	for (const { label, tree } of QUERY_TREES) {
 		bench(`${label} · summarizeQuery (tokens)`, () => {
 			summarizeQuery(tree, QUERY_FIELDS)
 		})

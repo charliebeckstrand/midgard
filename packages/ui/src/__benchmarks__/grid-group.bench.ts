@@ -43,6 +43,13 @@ const numeric = (aggFunc: (typeof AGG_FUNCS)[number]): GridColumn<Shipment> => (
 	aggFunc,
 })
 
+/** The eight shipment columns, undecorated — the set every scenario here starts from. */
+const COLUMNS: GridColumn<Shipment>[] = SHIPMENT_FIELDS.map(([id, title]) => ({ id, title }))
+
+/** The same eight, each reducing through `aggFunc`. */
+const aggregating = (aggFunc: (typeof AGG_FUNCS)[number]): GridColumn<Shipment>[] =>
+	COLUMNS.map((column) => ({ ...column, aggFunc }))
+
 describe('grid-aggregate · aggregateColumn (per group, per column, per render)', () => {
 	// The decode-and-reduce pass. `count` short-circuits to `rows.length` and is
 	// the floor; every numeric reducer walks the rows through `parseNumeric`
@@ -77,42 +84,32 @@ describe('grid-aggregate · a grouped body (20 groups × 8 columns)', () => {
 		data.slice((index * total) / groups, ((index + 1) * total) / groups),
 	)
 
-	const columns: GridColumn<Shipment>[] = SHIPMENT_FIELDS.map(([id, title]) => ({
-		id,
-		title,
-		aggFunc: 'count',
-	}))
+	const counting = aggregating('count')
 
-	const numericColumns: GridColumn<Shipment>[] = SHIPMENT_FIELDS.map(([id, title]) => ({
-		id,
-		title,
-		aggFunc: 'sum',
-	}))
+	const summing = aggregating('sum')
 
 	bench('one sum over 10,000 rows (the floor)', () => {
 		aggregateColumn(numeric('sum'), data)
 	})
 
 	bench('20 groups × 8 count columns', () => {
-		for (const slice of slices) for (const column of columns) aggregateColumn(column, slice)
+		for (const slice of slices) for (const column of counting) aggregateColumn(column, slice)
 	})
 
 	bench('20 groups × 8 sum columns', () => {
-		for (const slice of slices) for (const column of numericColumns) aggregateColumn(column, slice)
+		for (const slice of slices) for (const column of summing) aggregateColumn(column, slice)
 	})
 })
 
 describe('grid-aggregate · gates and formatting', () => {
-	const columns: GridColumn<Shipment>[] = SHIPMENT_FIELDS.map(([id, title]) => ({ id, title }))
-
-	const aggregated: GridColumn<Shipment>[] = columns.map((column, index) =>
-		index === columns.length - 1 ? { ...column, aggFunc: 'sum' } : column,
+	const aggregated: GridColumn<Shipment>[] = COLUMNS.map((column, index) =>
+		index === COLUMNS.length - 1 ? { ...column, aggFunc: 'sum' } : column,
 	)
 
 	// The one gate for the aggregate rows, run per render. `some` exits on the
 	// first hit, so a grid whose *last* column aggregates is the worst case.
 	bench('hasAggregation · 8 cols · none', () => {
-		hasAggregation(columns)
+		hasAggregation(COLUMNS)
 	})
 
 	bench('hasAggregation · 8 cols · last aggregates', () => {
@@ -158,10 +155,8 @@ describe('grid-row · cellValue (per cell, per render)', () => {
 	// per-render cell resolution a scroll frame repeats.
 	const window = shipments(20)
 
-	const columns: GridColumn<Shipment>[] = SHIPMENT_FIELDS.map(([id, title]) => ({ id, title }))
-
 	bench('20 rows × 8 cols · one window', () => {
-		for (const windowRow of window) for (const column of columns) cellValue(column, windowRow)
+		for (const windowRow of window) for (const column of COLUMNS) cellValue(column, windowRow)
 	})
 })
 

@@ -10,13 +10,8 @@
 import { describe } from 'vitest'
 import { Listbox, ListboxLabel, ListboxOption } from '../components/listbox'
 import { VirtualOptions } from '../primitives/virtual-options'
-import { makeComboboxOptions, type Option } from './fixtures'
+import { comboboxOptions } from './fixtures'
 import { mountBenches } from './harness'
-
-// Built at collection time: only the render belongs inside the timed region.
-const options = new Map([100, 500, 2_000].map((count) => [count, makeComboboxOptions(count)]))
-
-const at = (count: number) => options.get(count) as Option[]
 
 const PANEL = { maxHeight: '400px', overflow: 'auto' } as const
 
@@ -26,7 +21,7 @@ describe('Listbox · closed (options provided as children)', () => {
 		(count) => `${count.toLocaleString()} options`,
 		(count) => (
 			<Listbox<string>>
-				{at(count).map((option) => (
+				{comboboxOptions(count).map((option) => (
 					<ListboxOption key={option.value} value={option.value}>
 						<ListboxLabel>{option.label}</ListboxLabel>
 					</ListboxOption>
@@ -44,7 +39,7 @@ describe('Listbox · options inside a stand-in listbox panel', () => {
 		(count) => `${count.toLocaleString()} options`,
 		(count) => (
 			<div role="listbox" style={PANEL}>
-				{at(count).map((option) => (
+				{comboboxOptions(count).map((option) => (
 					<div key={option.value} role="option" tabIndex={-1} data-value={option.value}>
 						{option.label}
 					</div>
@@ -60,7 +55,7 @@ describe('Listbox · virtualized', () => {
 		(count) => `${count.toLocaleString()} options · virtualized`,
 		(count) => (
 			<div role="listbox" style={PANEL}>
-				<VirtualOptions items={at(count)} estimateSize={36}>
+				<VirtualOptions items={comboboxOptions(count)} estimateSize={36}>
 					{(option) => (
 						<ListboxOption key={option.value} value={option.value}>
 							<ListboxLabel>{option.label}</ListboxLabel>

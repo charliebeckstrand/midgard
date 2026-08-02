@@ -14,10 +14,22 @@ import type { ReactNode } from 'react'
 import { flushSync } from 'react-dom'
 import { createRoot } from 'react-dom/client'
 import { type BenchOptions, bench } from 'vitest'
-import { WINDOW } from '../windows'
 import type { Contender } from './contenders'
 
-export { WINDOW }
+/**
+ * Sample windows for scenarios whose iterations outrun Vitest's 500ms default.
+ * A window that takes only ten-odd samples swings run to run — enough to read a
+ * genuine tie as a loss — so the heavy scenarios widen it to buy the sample
+ * count their iteration cost denies them. The jsdom suite needs none of this:
+ * its benches take the default window, so the two windows live here rather than
+ * at the shared root.
+ */
+export const WINDOW = {
+	/** Heavy single-shot iterations — mounts, updates, sorts, resizes. */
+	slow: { time: 2_000 },
+	/** Many-frame settled iterations — pointer sweeps, emphasis flips, scroll round trips. */
+	settled: { time: 2_500 },
+} as const
 
 /** One prepared contender: the report name and the timed run. */
 export type Prepared = { name: string; run: () => void | Promise<void> }
@@ -55,7 +67,6 @@ export function reactHost(size?: { width?: number; height?: number }) {
 	const root = createRoot(box)
 
 	return {
-		box,
 		render: (ui: ReactNode) => flushSync(() => root.render(ui)),
 		/** Commits a state update the mounted tree owns, synchronously. */
 		flush: (update: () => void) => flushSync(update),
@@ -122,7 +133,7 @@ export const SWEEP = 20
  * The {@link SWEEP} x positions across `rect`, inset from both edges so the
  * sweep stays inside the plot rather than skimming its border.
  */
-export function sweepXs(rect: DOMRect): number[] {
+function sweepXs(rect: DOMRect): number[] {
 	return Array.from(
 		{ length: SWEEP },
 		(_, step) => rect.left + 40 + ((rect.width - 60) * step) / (SWEEP - 1),
@@ -134,7 +145,7 @@ export function sweepXs(rect: DOMRect): number[] {
  * listens for one of the two and ignores the other, so sending both keeps the
  * dispatch overhead symmetric across their differing interaction stacks.
  */
-export function pointerAt(target: Element, x: number, y: number) {
+function pointerAt(target: Element, x: number, y: number) {
 	const at = { bubbles: true, clientX: x, clientY: y }
 
 	target.dispatchEvent(new PointerEvent('pointermove', { ...at, pointerType: 'mouse' }))

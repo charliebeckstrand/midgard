@@ -203,6 +203,19 @@ export function makeQueryTree(depth: number, branching: number): QueryGroup {
 	return build(depth)
 }
 
+/**
+ * The query trees both query benches run — `query-builder` edits them,
+ * `query-evaluate` reads them, and the two only read against each other while
+ * the sizes match, so they are declared once here.
+ *
+ * Total rules ≈ `branching^(depth+1)`.
+ */
+export const QUERY_TREES = [
+	{ label: 'shallow-wide (20 rules)', tree: makeQueryTree(1, 20) },
+	{ label: 'balanced (256 rules)', tree: makeQueryTree(3, 4) },
+	{ label: 'deep-wide (1,024 rules)', tree: makeQueryTree(4, 4) },
+] as const
+
 /** Every rule id in a query tree, in walk order — the ids a scenario targets. */
 export function collectRuleIds(group: QueryGroup): string[] {
 	const ids: string[] = []
@@ -255,6 +268,25 @@ export function makeComboboxOptions(count: number): Option[] {
 	const options: Option[] = new Array(count)
 
 	for (let i = 0; i < count; i++) options[i] = { value: `opt-${i}`, label: `Option ${i}` }
+
+	return options
+}
+
+const optionCache = new Map<number, Option[]>()
+
+/**
+ * {@link makeComboboxOptions}, memoised per `count`. The option benches draw
+ * the same pools and must build them outside the timed region; caching here
+ * keeps that concern in one place rather than a private `Map` per bench file.
+ */
+export function comboboxOptions(count: number): Option[] {
+	const hit = optionCache.get(count)
+
+	if (hit) return hit
+
+	const options = makeComboboxOptions(count)
+
+	optionCache.set(count, options)
 
 	return options
 }

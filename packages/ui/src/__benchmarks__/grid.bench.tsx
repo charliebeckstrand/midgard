@@ -52,18 +52,24 @@ describe('Grid · initial render (un-windowed)', () => {
 describe('Grid · with selection column', () => {
 	const rows = shipments(1_000)
 
+	// The selection sets are built here, not in the element factory: the factory
+	// runs inside the timed region, so an `all selected` rung would rebuild a
+	// thousand-entry Set on every sample and charge the grid for it.
 	mountBenches(
 		[
-			{ label: '10% pre-selected', keys: rows.filter((_, index) => index % 10 === 0) },
-			{ label: 'all selected', keys: rows },
+			{
+				label: '10% pre-selected',
+				selection: new Set(rows.filter((_, index) => index % 10 === 0).map(shipmentKey)),
+			},
+			{ label: 'all selected', selection: new Set(rows.map(shipmentKey)) },
 		],
 		({ label }) => `1,000 rows · ${label}`,
-		({ keys }) => (
+		({ selection }) => (
 			<Grid
 				columns={SELECTABLE}
 				rows={rows}
 				getKey={shipmentKey}
-				selection={{ value: new Set(keys.map(shipmentKey)) }}
+				selection={{ value: selection }}
 			/>
 		),
 	)

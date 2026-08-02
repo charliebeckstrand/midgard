@@ -11,13 +11,8 @@ import { Combobox } from '../components/combobox/combobox'
 import { ComboboxLabel, ComboboxOption } from '../components/combobox/combobox-option'
 import { useComboboxQuery } from '../components/combobox/use-combobox-query'
 import { VirtualOptions } from '../primitives/virtual-options'
-import { makeComboboxOptions, type Option } from './fixtures'
+import { comboboxOptions, type Option } from './fixtures'
 import { mountBenches } from './harness'
-
-// Built at collection time: only the render belongs inside the timed region.
-const options = new Map([100, 500, 2_000].map((count) => [count, makeComboboxOptions(count)]))
-
-const at = (count: number) => options.get(count) as Option[]
 
 /** The query filter a consumer writes, reading the combobox's own deferred query. */
 function useFiltered(all: Option[]): Option[] {
@@ -62,7 +57,7 @@ describe('Combobox · closed (options not rendered)', () => {
 		(count) => `${count.toLocaleString()} options`,
 		(count) => (
 			<Combobox<string>>
-				<OptionsFor options={at(count)} />
+				<OptionsFor options={comboboxOptions(count)} />
 			</Combobox>
 		),
 	)
@@ -74,7 +69,7 @@ describe('Combobox · open (options rendered)', () => {
 		(count) => `${count.toLocaleString()} options · open · empty query`,
 		(count) => (
 			<Combobox<string> open>
-				<OptionsFor options={at(count)} />
+				<OptionsFor options={comboboxOptions(count)} />
 			</Combobox>
 		),
 	)
@@ -86,7 +81,7 @@ describe('Combobox · open · virtualized', () => {
 		(count) => `${count.toLocaleString()} options · virtualized`,
 		(count) => (
 			<Combobox<string> open>
-				<VirtualOptionsFor options={at(count)} />
+				<VirtualOptionsFor options={comboboxOptions(count)} />
 			</Combobox>
 		),
 	)

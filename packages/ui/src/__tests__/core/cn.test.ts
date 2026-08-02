@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { cn } from '../../core/cn'
+import { cn, cnMemoNodes } from '../../core/cn'
 
 describe('cn', () => {
 	it('merges multiple class strings', () => {
@@ -89,6 +89,38 @@ describe('cn', () => {
 			expect(cn('px-4', { 'px-2': true, 'px-8': false })).toBe('px-2')
 
 			expect(cn('px-4', 0, 'px-2')).toBe('px-2')
+		})
+
+		it('records nothing for a call it cannot key', () => {
+			// The memo must decide it cannot key the call *before* it branches on any
+			// leading argument. Branching as it walked would strand nodes on a path
+			// no call can ever complete, so a call site pairing a dynamic class with
+			// an object would grow the memo for every distinct class it renders.
+			const before = cnMemoNodes()
+
+			for (let index = 0; index < 500; index++) {
+				expect(cn(`w-[${index}px]`, { active: true })).toContain(`w-[${index}px]`)
+			}
+
+			expect(cnMemoNodes()).toBe(before)
+		})
+
+		it('stops growing at the cap and keeps answering', () => {
+			// A call site interpolating a value renders unboundedly many distinct
+			// class lists. The memo has to stop recording rather than clear — every
+			// answer stays correct past the cap, and the node count settles.
+			for (let index = 0; index < 12_000; index++) cn(`h-[${index}px]`, 'shrink-0')
+
+			const settled = cnMemoNodes()
+
+			for (let index = 12_000; index < 24_000; index++) cn(`h-[${index}px]`, 'shrink-0')
+
+			expect(cnMemoNodes()).toBe(settled)
+
+			// Past the cap the merge still resolves conflicts, memo or no memo.
+			expect(cn('px-4', 'px-2')).toBe('px-2')
+
+			expect(cn(`h-[99999px]`, 'shrink-0')).toBe('h-[99999px] shrink-0')
 		})
 
 		it('answers a string built fresh at the call site', () => {

@@ -8,8 +8,9 @@
 import { describe } from 'vitest'
 import { List } from '../components/list'
 import { ListItem } from '../components/list/list-item'
+import { noop } from '../utilities/noop'
 import { makeListItems } from './fixtures'
-import { mountBench, mountBenches, noop } from './harness'
+import { mountBench, mountBenches } from './harness'
 
 const getKey = (item: { id: string }) => item.id
 

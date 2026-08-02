@@ -4,18 +4,15 @@ import { bench, describe } from 'vitest'
 import { createRule } from '../modules/query/engine/query-node'
 import { addChild, mapNode, removeChild } from '../modules/query/engine/query-tree'
 import type { QueryGroup } from '../modules/query/engine/types'
-import { collectRuleIds, makeQueryTree, QUERY_FIELDS } from './fixtures'
+import { collectRuleIds, QUERY_FIELDS, QUERY_TREES } from './fixtures'
 
-// Tree sizes (depth × branching): total rules ≈ branching^(depth+1)
-// shallow-wide  (d=1, b=20)  =  20 rules
-// balanced      (d=3, b=4)   = 256 rules
-// deep-wide     (d=4, b=4)   = 1024 rules
-
-const shallowWide = makeQueryTree(1, 20)
-
-const balanced = makeQueryTree(3, 4)
-
-const deepWide = makeQueryTree(4, 4)
+// The three trees `query-evaluate.bench.ts` reads against, declared once in
+// `fixtures.ts` so the two benches cannot drift apart on size.
+const [shallowWide, balanced, deepWide] = [
+	QUERY_TREES[0].tree,
+	QUERY_TREES[1].tree,
+	QUERY_TREES[2].tree,
+]
 
 const balancedIds = collectRuleIds(balanced)
 

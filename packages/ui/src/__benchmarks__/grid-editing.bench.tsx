@@ -8,8 +8,9 @@
 
 import { describe } from 'vitest'
 import { Grid, type GridColumn } from '../modules/grid'
+import { noop } from '../utilities/noop'
 import { SHIPMENT_FIELDS, type Shipment, shipmentKey, shipments } from './fixtures'
-import { mountBench, mountBenches, noop } from './harness'
+import { mountBench, mountBenches } from './harness'
 
 const COLUMNS: GridColumn<Shipment>[] = SHIPMENT_FIELDS.map(([id, title]) =>
 	// The identity column stays read-only; every other column binds its field so

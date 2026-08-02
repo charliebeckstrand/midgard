@@ -14,8 +14,9 @@ import {
 	KanbanColumnHeader,
 	KanbanColumnTitle,
 } from '../components/kanban'
+import { noop } from '../utilities/noop'
 import { type KanbanItem, makeKanbanColumns } from './fixtures'
-import { mountBenches, noop } from './harness'
+import { mountBenches } from './harness'
 
 const getKey = (item: KanbanItem) => item.id
 

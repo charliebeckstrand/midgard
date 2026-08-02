@@ -7,26 +7,48 @@
  *
  * Every mount bench builds its element inside the timed region, the way a
  * consumer's render does, so `createElement` cost sits where React pays it.
+ * Everything else a scenario needs — the fixtures, the columns, the sets —
+ * belongs outside it.
  */
 
-import { cleanup, render } from '@testing-library/react'
+import { act, cleanup, render } from '@testing-library/react'
 import type { ReactElement } from 'react'
-import { type BenchOptions, bench } from 'vitest'
+import { createRoot } from 'react-dom/client'
+import { bench } from 'vitest'
 
 /** Re-renders a mounted tree in place; what {@link rerenderBench} hands its step. */
 export type Rerender = (ui: ReactElement) => void
 
-/** Registers one full mount-plus-teardown bench — the jsdom initial-render cost. */
-export function mountBench(name: string, element: () => ReactElement, options?: BenchOptions) {
-	bench(
-		name,
-		() => {
-			render(element())
+/**
+ * Mounts a tree that stands for the whole run, and returns its container.
+ *
+ * @remarks Deliberately outside the testing library's registry. A scenario that
+ * drives one mounted tree across every iteration — a hover cascade, a resize
+ * burst — has to coexist with the mount benches beside it, and those end on
+ * `cleanup()`, which unmounts *every* tree the library holds. Mounting here
+ * through a bare root keeps the two lifetimes from reaching each other, so a
+ * file can hold a persistent tree and still register mount benches through
+ * {@link mountBench}.
+ */
+export function persistentTree(element: ReactElement): HTMLElement {
+	const container = document.createElement('div')
 
-			cleanup()
-		},
-		options,
-	)
+	document.body.append(container)
+
+	act(() => {
+		createRoot(container).render(element)
+	})
+
+	return container
+}
+
+/** Registers one full mount-plus-teardown bench — the jsdom initial-render cost. */
+export function mountBench(name: string, element: () => ReactElement) {
+	bench(name, () => {
+		render(element())
+
+		cleanup()
+	})
 }
 
 /**
@@ -38,10 +60,9 @@ export function mountBenches<C>(
 	cases: readonly C[],
 	name: (subject: C) => string,
 	element: (subject: C) => ReactElement,
-	options?: BenchOptions,
 ) {
 	for (const subject of cases) {
-		mountBench(name(subject), () => element(subject), options)
+		mountBench(name(subject), () => element(subject))
 	}
 }
 
@@ -58,14 +79,12 @@ export function rerenderBench(
 	name: string,
 	initial: () => ReactElement,
 	step: (rerender: Rerender, iteration: number) => void,
-	options?: BenchOptions,
 ) {
 	let rerender: Rerender = () => {}
 
 	let iteration = 0
 
 	bench(name, () => step(rerender, iteration++), {
-		...options,
 		setup() {
 			iteration = 0
 
@@ -76,6 +95,3 @@ export function rerenderBench(
 		},
 	})
 }
-
-/** A callback a scenario must supply but never fires — an opt-in flag, spelled honestly. */
-export function noop() {}

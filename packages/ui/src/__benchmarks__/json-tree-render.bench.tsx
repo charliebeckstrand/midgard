@@ -9,8 +9,9 @@
 import { describe } from 'vitest'
 import { JsonTree } from '../components/json-tree'
 import { collectPaths } from '../components/json-tree/json-tree-utilities'
+import { noop } from '../utilities/noop'
 import { makeJsonTree } from './fixtures'
-import { mountBenches, noop, rerenderBench } from './harness'
+import { mountBenches, rerenderBench } from './harness'
 
 const small = makeJsonTree(3, 5)
 

@@ -1,8 +1,20 @@
 import type { ReactNode } from 'react'
 import { vi } from 'vitest'
 
-// motion/react shim: strips animation props; components mount without a
-// full animation runtime.
+// motion/react shim: strips animation props; components mount without a full
+// animation runtime.
+//
+// Deliberately not `__tests__/mocks/motion-react.ts`, which the three test
+// setups share. That one models animations as instant so lifecycle gated on
+// completion resolves — a `useRef` + `useEffect` + an `animate` comparison per
+// motion element per render — and surfaces `data-layout` / `data-initial-*` for
+// tests to assert. Both are per-element work the shipped path never does, so a
+// bench mounting them would time the mock. This shim keeps only the stripping.
+//
+// The cost of the split is that it must track the same API surface: every
+// export the package imports from `motion/react` needs an entry here *and*
+// there, and a missing one fails at import of whichever bench renders it. Keep
+// the two in step.
 vi.mock('motion/react', async () => {
 	const { createElement, forwardRef } = await import('react')
 

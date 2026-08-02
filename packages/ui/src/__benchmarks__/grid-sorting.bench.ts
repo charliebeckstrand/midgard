@@ -12,7 +12,7 @@ import {
 	sortRowsSmart,
 	toSortKey,
 } from '../modules/grid/engine/grid-sort/utilities'
-import { type Shipment, shipments } from './fixtures'
+import { type Shipment, shipmentKey, shipments } from './fixtures'
 
 // The grid's client sort runs these comparators O(n log n) times per sorted
 // column, over regex-heavy numeric parsing and a locale-aware string fallback —
@@ -115,8 +115,6 @@ describe('grid-sort · parseNumeric (per-value)', () => {
 // permutation cache trades on — a flip skips the former and pays only the latter —
 // so a regression that inflates `materializeSort` (or shrinks the gap) is a
 // regression in the cache's value, caught here before the browser suite feels it.
-const getShipmentKey = (r: Shipment) => r.id
-
 const stringField: SmartSortField<Shipment> = {
 	descending: false,
 	accessor: (r) => r.origin,
@@ -146,11 +144,11 @@ describe('grid-sort · sortRowsSmart split (compute vs materialize)', () => {
 		})
 
 		bench(`${n.toLocaleString()} · materializeSort (paid every flip)`, () => {
-			materializeSort(rows, order, getShipmentKey)
+			materializeSort(rows, order, shipmentKey)
 		})
 
 		bench(`${n.toLocaleString()} · sortRowsSmart · string column (compute + materialize)`, () => {
-			sortRowsSmart(rows, getShipmentKey, [stringField])
+			sortRowsSmart(rows, shipmentKey, [stringField])
 		})
 	}
 })
