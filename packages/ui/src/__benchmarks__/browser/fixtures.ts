@@ -53,7 +53,7 @@ function rowsFrom(categories: string[], values: number[][]): TrendRow[] {
 
 const trendCache = new Map<string, TrendData>()
 
-/** Memoises a trend per `(kind, count, seriesCount, seed)`. */
+/** Memoizes a trend per `(kind, count, seriesCount, seed)`. */
 function trend(
 	kind: string,
 	count: number,
@@ -78,7 +78,7 @@ function trend(
  * `count` categories × `seriesCount` series of bounded random walks — the
  * plausible dashboard shape, no flat lines and no degenerate domain.
  *
- * @remarks Memoised per parameter set. Several benches draw the same trend, and
+ * @remarks Memoized per parameter set. Several benches draw the same trend, and
  * the ten-thousand-row rungs allocate a row object apiece, so building each one
  * once keeps collection off the clock. Nothing mutates a trend, so the shared
  * object is safe to hand out.

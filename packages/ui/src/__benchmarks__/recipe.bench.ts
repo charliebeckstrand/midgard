@@ -20,7 +20,7 @@ import { k as button } from '../recipes/kata/button'
  * not with its class payload. A **memo miss** composes the class list and runs
  * it through `clsx` + `tailwind-merge`, which is one to two orders of magnitude
  * dearer and scales with the payload. **`cn`** is the merge a call site adds on
- * top of the recipe's output, once per element, every render — memoised on its
+ * top of the recipe's output, once per element, every render — memoized on its
  * arguments in its own right (`core/cn.ts`), so these bars read its hit path;
  * the bars that first justified that memo are one rung down in the diff that
  * added it, not here.

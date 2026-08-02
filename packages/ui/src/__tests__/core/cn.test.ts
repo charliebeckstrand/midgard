@@ -42,9 +42,9 @@ describe('cn', () => {
 
 	// The argument memo (`core/cn.ts`) answers a repeat call without merging, so
 	// these pin the cases where keying on arguments could diverge from merging
-	// them. Each asserts the memoised answer against the same call made cold, so
+	// them. Each asserts the memoized answer against the same call made cold, so
 	// a regression shows as a wrong string rather than a slow one.
-	describe('memoised on its arguments', () => {
+	describe('memoized on its arguments', () => {
 		it('repeats an answer for the same arguments', () => {
 			expect(cn('px-4', 'px-2')).toBe(cn('px-4', 'px-2'))
 		})

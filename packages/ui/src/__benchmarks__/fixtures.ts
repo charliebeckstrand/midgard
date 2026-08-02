@@ -83,7 +83,7 @@ export function makeShipments(count: number, seed = 1): Shipment[] {
 const shipmentCache = new Map<string, Shipment[]>()
 
 /**
- * {@link makeShipments}, memoised per `(count, seed)`. Several files draw the
+ * {@link makeShipments}, memoized per `(count, seed)`. Several files draw the
  * same rows and the large rungs run to a hundred thousand, so generating them
  * once per parameter pair keeps collection off the clock; nothing mutates the
  * rows, so the shared array is safe to hand out.
@@ -275,7 +275,7 @@ export function makeComboboxOptions(count: number): Option[] {
 const optionCache = new Map<number, Option[]>()
 
 /**
- * {@link makeComboboxOptions}, memoised per `count`. The option benches draw
+ * {@link makeComboboxOptions}, memoized per `count`. The option benches draw
  * the same pools and must build them outside the timed region; caching here
  * keeps that concern in one place rather than a private `Map` per bench file.
  */

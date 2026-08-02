@@ -8,7 +8,7 @@ import { cn, createContext, createSlot, announce } from 'ui/core'
 
 | Export | Summary |
 |---|---|
-| `cn` | Class composer: `clsx` plus `tailwind-merge` extended with the project's named spacing scale, memoised on its arguments. |
+| `cn` | Class composer: `clsx` plus `tailwind-merge` extended with the project's named spacing scale, memoized on its arguments. |
 | `createContext` | Creates a typed React 19 context and its consumer hook; throws, defaults, or custom-errors outside a provider. |
 | `createSlot` | Builds a thin slot component rendering an intrinsic element with `data-slot`, composed classes, and prop spread. |
 | `querySlot` | Finds the `data-slot` / `data-<attr>=id` element within a container, scoped to avoid cross-instance matches. |

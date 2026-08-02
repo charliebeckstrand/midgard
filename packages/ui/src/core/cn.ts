@@ -63,17 +63,17 @@ function keyable(inputs: ClassValue[]): boolean {
  * class overrides them.
  *
  * @remarks
- * Memoised on its arguments, which is what makes it cheap enough to call once
+ * Memoized on its arguments, which is what makes it cheap enough to call once
  * per element per render. `tailwind-merge` caches too, but on the *joined*
  * class string — and `clsx` builds that string fresh on every call, so the
  * lookup has to internalise a new key before it can read the cache, costing
  * more than the merge it was meant to skip. Branching on the arguments
  * sidesteps the join: a call site hands down the same string objects render
- * after render (a recipe's memoised output, a literal `className`), so a repeat
- * call is a couple of `Map` reads. Measured at ~20× the un-memoised call, and
+ * after render (a recipe's memoized output, a literal `className`), so a repeat
+ * call is a couple of `Map` reads. Measured at ~20× the un-memoized call, and
  * ~13% off a ten-thousand-row grid mount.
  *
- * Only string, boolean, and nullish arguments are memoised; arrays, objects,
+ * Only string, boolean, and nullish arguments are memoized; arrays, objects,
  * and numbers take the plain merge, carrying no stable identity to branch on.
  *
  * The memo is resident for the process lifetime and never invalidates, which is
