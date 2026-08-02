@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { userEvent } from 'vitest/browser'
+import { page, userEvent } from 'vitest/browser'
 import { Grid } from '../../../modules/grid'
 import { fireEvent, renderUI, screen, waitFor } from '../../helpers'
 
@@ -192,15 +192,15 @@ describe('grid header truncation tooltip (real browser)', () => {
 			/>,
 		)
 
-		const span = await settledSpan(container)
+		await settledSpan(container)
 
-		// The parked pointer can open the tooltip on its own while `settledSpan`
-		// waits. Its content repeats the title, and an element-derived locator
-		// resolves by text, so hovering then matches both nodes and throws a strict
-		// mode violation. Read the state here, immediately before the hover.
-		if (!screen.queryByRole('tooltip')) {
-			await userEvent.hover(span)
-		}
+		// Hover a locator under the column-header scope, not the span. An element
+		// gives the driver a text selector, and the driver derives that selector
+		// from the DOM as it stands. The parked pointer can open the tooltip before
+		// the selector resolves, and the tooltip content repeats the title. One
+		// selector then matches two nodes, which is a strict mode violation. The
+		// scope holds the portaled tooltip out, so the match stays single.
+		await page.getByRole('columnheader').getByText(longTitle).hover()
 
 		const tip = await screen.findByRole('tooltip')
 
