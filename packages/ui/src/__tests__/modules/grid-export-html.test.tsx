@@ -1,5 +1,5 @@
 import { strFromU8, unzipSync } from 'fflate'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import type { GridColumn } from '../../modules/grid'
 import { downloadExcel, rowsToXlsx } from '../../modules/grid/engine/grid-export/excel'
 import { rowsToHtmlTable } from '../../modules/grid/engine/grid-export/html-table'
@@ -132,43 +132,54 @@ describe('rowsToPrintHtml', () => {
 	})
 })
 
+/**
+ * Runs `printRows` and returns the iframe it appended.
+ *
+ * `printRows` reclaims its iframe from an `afterprint` or window-`focus`
+ * handler, and jsdom fires neither — so in this environment every call leaves
+ * the node attached to `document.body`. Removal is registered through
+ * `onTestFinished` rather than written at the end of the test body, so it also
+ * runs when an assertion above it throws; a node left behind outlives the file
+ * under the unit project's shared jsdom window and surfaces as a failure in an
+ * unrelated file.
+ */
+function printAndCapture(): HTMLIFrameElement {
+	const appendChild = vi.spyOn(document.body, 'appendChild')
+
+	printRows(columns, rows)
+
+	const iframe = appendChild.mock.calls.at(-1)?.[0] as HTMLIFrameElement
+
+	appendChild.mockRestore()
+
+	onTestFinished(() => {
+		iframe.remove()
+	})
+
+	return iframe
+}
+
 describe('printRows', () => {
 	it('appends a hidden iframe carrying the printable document as srcdoc', () => {
-		const appendChild = vi.spyOn(document.body, 'appendChild')
-
-		printRows(columns, rows)
-
-		const iframe = appendChild.mock.calls.at(-1)?.[0] as HTMLIFrameElement
+		const iframe = printAndCapture()
 
 		expect(iframe.tagName).toBe('IFRAME')
 
 		expect(iframe.srcdoc).toBe(rowsToPrintHtml(columns, rows))
-
-		appendChild.mockRestore()
 	})
 
 	it('cleans up the iframe on load when contentWindow is unavailable', () => {
-		const appendChild = vi.spyOn(document.body, 'appendChild')
-
-		printRows(columns, rows)
-
-		const iframe = appendChild.mock.calls.at(-1)?.[0] as HTMLIFrameElement
+		const iframe = printAndCapture()
 
 		Object.defineProperty(iframe, 'contentWindow', { value: null, configurable: true })
 
 		iframe.dispatchEvent(new Event('load'))
 
 		expect(iframe.parentNode).toBeNull()
-
-		appendChild.mockRestore()
 	})
 
 	it('focuses and prints through the iframe window, deferring cleanup to afterprint', () => {
-		const appendChild = vi.spyOn(document.body, 'appendChild')
-
-		printRows(columns, rows)
-
-		const iframe = appendChild.mock.calls.at(-1)?.[0] as HTMLIFrameElement
+		const iframe = printAndCapture()
 
 		const win = { addEventListener: vi.fn(), focus: vi.fn(), print: vi.fn() }
 
@@ -184,18 +195,10 @@ describe('printRows', () => {
 
 		// Cleanup is deferred to the afterprint event, so the iframe is still attached.
 		expect(iframe.parentNode).not.toBeNull()
-
-		iframe.remove()
-
-		appendChild.mockRestore()
 	})
 
 	it('reclaims the iframe when the window regains focus and afterprint never fires', () => {
-		const appendChild = vi.spyOn(document.body, 'appendChild')
-
-		printRows(columns, rows)
-
-		const iframe = appendChild.mock.calls.at(-1)?.[0] as HTMLIFrameElement
+		const iframe = printAndCapture()
 
 		const win = { addEventListener: vi.fn(), focus: vi.fn(), print: vi.fn() }
 
@@ -209,7 +212,5 @@ describe('printRows', () => {
 		window.dispatchEvent(new Event('focus'))
 
 		expect(iframe.parentNode).toBeNull()
-
-		appendChild.mockRestore()
 	})
 })
