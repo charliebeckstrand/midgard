@@ -34,11 +34,9 @@ jobs:
           # Placeholder: only used to construct rewrite/fetch URLs, not reached at build time.
           BIFROST_URL: https://bifrost.invalid
 
-  # The browser suite is a separate job, not a step in `gate`: it needs a
-  # Chromium download that the jsdom gate does not, and that provisioning would
-  # otherwise serialize into every gate run. It asserts what jsdom cannot see —
-  # layout, computed colour, target size, and real focus traps — which
-  # CONVENTIONS.md §10.5 routes here rather than into the jsdom suite.
+  # A separate job, not a step in `gate`: the browser suite needs a Chromium
+  # download that would otherwise serialize into every gate run. What it covers
+  # is CONVENTIONS.md §10.5.
   browser:
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -52,26 +50,19 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: .turbo
-          # Disjoint from `gate`'s namespace, not nested under it. A restore key
-          # matches by prefix, so a plain `turbo-` prefix on either job would
-          # match the other job's entries and hand it a `.turbo` holding the
-          # wrong task's artifacts. The two share nothing worth pooling: `ui`
-          # declares no workspace dependency, so `^build` resolves to an empty
-          # task set here.
+          # Namespaced per job. A restore key matches by prefix, so a shared
+          # `turbo-` prefix hands one job the other job's artifacts.
           key: ${{ runner.os }}-turbo-browser-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-turbo-browser-
       - run: pnpm install --frozen-lockfile
       # Chromium only: vitest.browser.config.ts declares no other browser. The
-      # download is ~170MB and playwright is pinned exactly, so cache it against
-      # the lockfile and reinstall only the system libraries on a hit.
+      # download is ~170MB, so cache it against the pinned playwright version.
+      # `install` is idempotent — on a hit it skips the download and installs
+      # the system libraries alone.
       - uses: actions/cache@v4
-        id: playwright
         with:
           path: ~/.cache/ms-playwright
           key: ${{ runner.os }}-playwright-${{ hashFiles('pnpm-lock.yaml') }}
-      - if: steps.playwright.outputs.cache-hit != 'true'
-        run: pnpm --filter ui exec playwright install --with-deps chromium
-      - if: steps.playwright.outputs.cache-hit == 'true'
-        run: pnpm --filter ui exec playwright install-deps chromium
+      - run: pnpm --filter ui exec playwright install --with-deps chromium
       - run: pnpm turbo run test:browser

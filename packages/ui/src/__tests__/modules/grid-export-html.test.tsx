@@ -133,20 +133,17 @@ describe('rowsToPrintHtml', () => {
 })
 
 /**
- * Runs `printRows` and returns the iframe it appended.
+ * Run `printRows` and return the iframe it appended.
  *
  * `printRows` reclaims its iframe from an `afterprint` or window-`focus`
- * handler, and jsdom fires neither — so in this environment every call leaves
- * the node attached to `document.body`. Teardown dispatches the window `focus`
- * the real browser would, which drives the module's own `cleanup`: that both
- * removes the node and releases the `{ once: true }` listener closing over the
- * iframe and its print document. Detaching the node alone would leave that
- * closure on the shared window holding both.
+ * handler, and jsdom fires neither, so every call leaves the node attached.
+ * Teardown dispatches the window `focus` a real browser would. That drives the
+ * module's own `cleanup`, which removes the node and also releases the
+ * `{ once: true }` listener that closes over the iframe and its print document
+ * — a listener only the tests that dispatch `load` ever register.
  *
- * Teardown runs through `onTestFinished` rather than at the end of the test
- * body, so it also runs when an assertion above it throws. Anything left behind
- * outlives the file under the unit project's shared jsdom window and surfaces
- * as a failure in an unrelated file.
+ * Teardown runs through `onTestFinished`, so it survives a throwing assertion
+ * above it.
  */
 function printAndCapture(): HTMLIFrameElement {
 	const appendChild = vi.spyOn(document.body, 'appendChild')

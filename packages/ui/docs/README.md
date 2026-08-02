@@ -20,8 +20,8 @@ records for in-flight or shipped work).
   ([`CONVENTIONS.md`](../../../CONVENTIONS.md) §12).
 - **`audits/`** — dated, full-surface sweeps of the package against a single
   lens (accessibility, correctness, API surface, documentation, …). Each audit
-  records what the sweep found and how each finding closed. An audit lasts only
-  as long as it holds an open finding.
+  records what the sweep found and how each finding closed, and is deleted once
+  the last one does ([`CONVENTIONS.md`](../../../CONVENTIONS.md) §12.4).
 - **`plans/`** — dated design records: what a feature or module is trying to be,
   what ships today, and the increments still ahead. A plan holds the design; the
   owning `ROADMAP.md` tracks status. A plan stays as the historical record after
@@ -46,12 +46,5 @@ Plan files follow the same convention as `{date}-{SUBJECT}-PLAN.md`: the
 stays chronologically sorted, and `{SUBJECT}` is the upper-case feature or
 module the design covers (`GRID-EDITING`, `QUERY-MODULE`, …).
 
-An audit is a living record while it holds an open finding: as each one is
-resolved, mark the row or pattern resolved in place, against the resolving
-commit. Delete the file once every finding is resolved. The commits it names
-hold the history, and an audit that stays after its last finding closes reads as
-open work.
-
-An audit is therefore temporary, where a plan is not. Do not name an audit from
-code, from a comment, or from a document that outlives it: the reference dangles
-when the audit goes.
+An audit is temporary and a plan is permanent; [`CONVENTIONS.md`](../../../CONVENTIONS.md)
+§12.4 carries the lifecycle rule and its consequence for inbound references.

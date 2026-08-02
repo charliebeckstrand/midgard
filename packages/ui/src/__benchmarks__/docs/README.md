@@ -1,6 +1,6 @@
 # Docs benchmarks
 
-Measurement seams for the docs app's two cost centers: the ts-morph API extraction (`src/docs/engine/api-reference`) and the Vite build/dev pipeline. Baselines from 2026-07-13, after #1001's incremental disk-cached extractor: cold full pass ≈ 3.9s (barrel-scoped Project ≈ 1.7s of it; the pre-#1001 tsconfig shape measured 9.8s), disk-cache restore ≈ 30ms, per-barrel incremental edit ≈ 313ms, prod build ≈ 3s wall on a warm cache, for 310 components / 1132 props. These suites guard the findings of the docs performance sweep that #1001 closed out.
+Measurement seams for the docs app's two cost centers: the ts-morph API extraction (`src/docs/engine/api-reference`) and the Vite build/dev pipeline. Baselines from 2026-07-13, after #1001's incremental disk-cached extractor: cold full pass ≈ 3.9s (barrel-scoped Project ≈ 1.7s of it; the pre-#1001 tsconfig shape measured 9.8s), disk-cache restore ≈ 30ms, per-barrel incremental edit ≈ 313ms, prod build ≈ 3s wall on a warm cache, for 310 components / 1132 props. These suites guard the findings of the docs performance sweep.
 
 ## ts-morph suite — `pnpm bench:docs`
 

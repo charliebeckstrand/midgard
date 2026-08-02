@@ -21,7 +21,7 @@ export default defineConfig({
 		// slowdown toward the waitFor budget. CI keeps the default — its agents are
 		// shared and noisier, and the scaled timeouts below assume that slack — so
 		// this stays a local-only speedup.
-		...(CI ? {} : { minWorkers: '100%', maxWorkers: '100%' }),
+		...(CI ? {} : { maxWorkers: '100%' }),
 		globals: true,
 		// Machine speed must change when a test passes, never whether it passes:
 		// CI agents are slower and noisier than dev machines, so wall-clock
@@ -39,24 +39,38 @@ export default defineConfig({
 		// would read as set and change nothing. The `test` scripts export `LANG`
 		// ahead of Node instead.
 		env: { TZ: 'UTC' },
+		// `shuffle` selects RandomSequencer, whose sort is only `shuffle(files,
+		// seed)` — it drops the project grouping BaseSequencer applies, so every
+		// project's files land in one interleaved queue. That matters because a
+		// pool hands a worker on to the next file only when the head of the queue
+		// belongs to the same project; otherwise it terminates the worker and the
+		// module graph `isolate: false` exists to keep. Interleaved, this suite
+		// crossed projects 75 times in one run. Each project therefore declares a
+		// `groupOrder` below, which restores the grouping — groups run lowest
+		// first, and the shuffle still applies within each one, so the seed still
+		// reorders siblings.
+		//
+		// To replay a red run, set `seed` here rather than pass
+		// `--sequence.seed`: the flag replaces this whole object, which drops the
+		// per-project `groupOrder` with it and reorders the queue the failure came
+		// from.
 		sequence: { shuffle: true },
 		// Within a file a vi.spyOn or vi.stubGlobal outlives its test unless
-		// restored, and
-		// sequence.shuffle randomizes sibling order — so an unrestored spy/stub
-		// leaks into whichever test runs next. restoreMocks runs
-		// vi.restoreAllMocks() before each test and unstubGlobals runs
-		// vi.unstubAllGlobals(), both ahead of beforeEach so beforeEach/test-body
-		// setup is reapplied untouched. mockRestore only reverts vi.spyOn() spies,
-		// so the plain vi.fn() and Object.defineProperty jsdom stubs in setup/ are
-		// left intact.
+		// restored, and sequence.shuffle randomizes sibling order — so an
+		// unrestored spy or stub leaks into whichever test runs next. restoreMocks
+		// runs vi.restoreAllMocks() before each test and unstubGlobals runs
+		// vi.unstubAllGlobals(), both ahead of beforeEach so beforeEach and
+		// test-body setup is reapplied untouched. mockRestore only reverts
+		// vi.spyOn() spies, so the plain vi.fn() and Object.defineProperty jsdom
+		// stubs in setup/ are left intact.
 		restoreMocks: true,
 		unstubGlobals: true,
 		// clearMocks resets call history (not implementation — mockClear, not
 		// mockReset) before each test, so the shared global mocks (motion, shiki,
 		// floating-ui, …) never carry call counts across tests. unstubEnvs mirrors
-		// unstubGlobals for vi.stubEnv. Deliberately NOT mockReset/resetModules:
-		// the former wipes the global mock implementations, the latter drops the
-		// shared module graph every later file in the worker would have to rebuild.
+		// unstubGlobals for vi.stubEnv. Deliberately NOT mockReset/resetModules —
+		// the former wipes the global mock implementations, and the latter is
+		// barred outright; see the unit project below.
 		clearMocks: true,
 		unstubEnvs: true,
 		reporters: CI ? ['default', 'junit'] : ['default'],
@@ -91,23 +105,21 @@ export default defineConfig({
 				plugins: [docsPlugin({ vitest: true })],
 				test: {
 					name: 'unit',
+					// First, and by far the largest: 407 of the 444 files.
+					sequence: { groupOrder: 0 },
 					setupFiles,
 					pool: 'threads',
 					// `isolate: false` keeps the evaluated module graph across a
 					// worker's files instead of rebuilding it for each one, which is
-					// where this suite spent most of its time. (Vitest still
-					// invalidates the setup modules themselves before every file, so
-					// their bodies re-run; what stops being re-evaluated is everything
-					// they import.) It also peaks lower than vmThreads, which holds a
-					// VM context per file — the reason that pool needed a
-					// vmMemoryLimit recycle valve and this one does not.
+					// where this suite spent most of its time.
 					//
 					// The price is a shared module registry and a shared jsdom window
-					// across the files a worker runs, so no file in this project may
-					// declare a per-file `vi.mock` — see src/__tests__/setup/
-					// module-mocks.ts, and test-isolation-boundary.test.ts, which
-					// enforces it. The suites that need one live in `integration`
-					// below, which keeps process isolation on forks.
+					// across the files a worker runs. No file here can declare a
+					// per-file `vi.mock` or call `vi.resetModules()`: see
+					// `src/__tests__/setup/module-mocks.ts` for the global doubles it
+					// replaces, and `test-isolation-boundary.test.ts`, which enforces
+					// the rule. The suites that need their own mock live in
+					// `integration` below, which keeps process isolation on forks.
 					isolate: false,
 					include: [
 						'src/__tests__/**/*.test.{ts,tsx}',
@@ -134,6 +146,7 @@ export default defineConfig({
 				// serializes into real wall clock on few-core CI agents.
 				test: {
 					name: 'boundary',
+					sequence: { groupOrder: 2 },
 					environment: 'node',
 					pool: 'threads',
 					isolate: false,
@@ -151,6 +164,7 @@ export default defineConfig({
 				// the fast shared-worker pool above.
 				test: {
 					name: 'integration',
+					sequence: { groupOrder: 1 },
 					setupFiles,
 					pool: 'forks',
 					include: ['src/__tests__/boundary/**/*.test.{ts,tsx}'],

@@ -5,10 +5,11 @@ import { vi } from 'vitest'
  *
  * These must be global. The unit project runs `isolate: false`, so one module
  * registry serves every file a worker runs: a per-file `vi.mock` of the same
- * module would reach the files scheduled after it, and `sequence.shuffle`
- * decides which those are. No file in that project declares one, and none may.
- * A suite that needs a different double drives the global mock instead — with a
- * spy, or through a stub the mock already reads (see `components/shiny-text` and
+ * module reaches the files scheduled after it, and `sequence.shuffle` decides
+ * which those are. No file in that project declares one, and none can —
+ * `test-isolation-boundary.test.ts` enforces it. A suite that needs a different
+ * double drives the global mock instead, with a spy or through a stub the mock
+ * already reads (see `components/shiny-text` and
  * `components/use-hold-button-gesture-reduced-motion`).
  *
  * The `integration` project keeps `forks`, so the suites that genuinely need a

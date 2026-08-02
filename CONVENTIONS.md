@@ -119,7 +119,9 @@ From packages/ui, import per-component entries (`ui/button`, `ui/dialog`) plus `
 
 12.2 The curated surface docs in [`packages/ui/docs/`](packages/ui/docs) — `COMPONENTS` · `HOOKS` · `PRIMITIVES` · `PROVIDERS` · `RECIPES` · `CORE` · `UTILITIES` — are the quick-glance index of the public surface. Adding, removing, or renaming a public export updates the matching doc in the same change: a new component lands in `COMPONENTS.md` under its domain bucket; a new hook / primitive / provider / core / utility lands in its doc with a one-line summary. [`REFERENCE.md`](packages/ui/REFERENCE.md) is the hub — keep its surface map and the §2 boundary current.
 
-12.3 Audits under [`packages/ui/docs/audits/`](packages/ui/docs/audits) are point-in-time, single-lens sweeps named `{date}-{LENS}-AUDIT.md`. An audit is a living record while it holds an open finding: resolve each row in place, against the commit that closed it. Delete the file when every finding is resolved; the commits it names hold the history, and a fully resolved audit that stays reads as open work. Do not name an audit from code or from a document that outlives it — the reference dangles when the audit goes. A documentation sweep is a `{date}-DOC-AUDIT.md`.
+12.3 Audits under [`packages/ui/docs/audits/`](packages/ui/docs/audits) are point-in-time, single-lens sweeps named `{date}-{LENS}-AUDIT.md`; a documentation sweep is a `{date}-DOC-AUDIT.md`.
+
+12.4 An audit is a living record while it holds an open finding: resolve each row in place, against the commit that closed it. Delete the file once every finding is resolved, because the commits it names hold the history. Never name an audit from code, or from a document that outlives it; the reference dangles when the audit goes.
 
 ---
 

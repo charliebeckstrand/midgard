@@ -4,7 +4,7 @@ Survey of the `packages/ui` Vitest suite (2026-08-02) for speed, stability, and 
 
 The method is the one the built-in adoption audit set: a claim is not a finding until somebody read, probed, or ran something. Three lenses swept the suite and a skeptic tried to refute each claim. 26 claims went in; 18 survived and 8 did not. The refuted claims are recorded under Ruled out, because they name ground that the next audit does not need to walk again.
 
-The headline is one config change. The suite spends 69% of its processor work on per-file fixed cost, not on test execution. One pool change removes most of that cost and takes the suite from 143.4s to 97.7s. The rest of this document is mostly about what that change makes unsafe, because a shared environment turns three latent leaks into real ones.
+The headline is one config change. The suite spends 69% of its processor work on per-file fixed cost, not on test execution. One pool change removes most of that cost, and a sequencer fix recovers what the shuffle was giving back: together they take the suite from 143.4s to about 47s. The rest of this document is mostly about what that change makes unsafe, because a shared environment turns three latent leaks into real ones.
 
 ## Measured
 
@@ -30,29 +30,29 @@ The phase split explains where the time goes: transform 36.3s, setup 97.4s, impo
 | threads + isolate | 290.5s | 140.0s | 166.5s | 187.5s |
 | threads + `isolate: false` | 51.0s | 6.5s | 37.9s | 141.4s |
 
-`isolate: false` evaluates the setup files and the module graph once for each worker, not once for each file. Setup drops by a factor of 19. Import drops by a factor of 4.3.
+`isolate: false` keeps the evaluated module graph across a worker's files instead of rebuilding it for each one. Setup drops by a factor of 19. Import drops by a factor of 4.3. Vitest still invalidates the setup modules before every file, so their bodies re-run; what stops being rebuilt is everything they import.
 
-On the full three-project configuration the change takes the suite from 143.4s to 97.7s. Six shuffle seeds passed, and all 5643 tests passed in each. The control passed twice at 141.5s and 145.3s.
+On the full three-project configuration the change takes the suite to about 95s. Twelve shuffle seeds passed, and all 5643 tests passed in each. The control passed twice, at 141.5s and 145.3s.
 
 The change also lowers memory. Peak resident set is 1485 MB against 2440 MB for the control, because vmThreads holds a VM context for each file. `vmMemoryLimit: '1GB'` is a cost of vmThreads, not a guard that the candidate lacks.
 
-The precondition is already paid. A shared module registry breaks on a per-file `vi.mock`, and the `unit` project has none. All three live in `integration`, which keeps the `forks` pool: `boundary/query-builder.test.tsx:17`, `boundary/use-chat-scroll.test.ts:12`, and `boundary/use-pdf-viewer-document.test.ts:5`. Two `unit` files name `vi.mock` in a comment only, and both say they use the global mock and spies instead, because a per-file mock "races the global mock under the shared vmThreads module cache" (`components/shiny-text.test.tsx:7`, `components/use-hold-button-gesture-reduced-motion.test.ts:33`).
+The precondition is already paid. A shared module registry breaks on a per-file `vi.mock`, and the `unit` project has none. All three live in `integration`, which keeps the `forks` pool: `boundary/query-builder.test.tsx:17`, `boundary/use-chat-scroll.test.ts:12`, and `boundary/use-pdf-viewer-document.test.ts:5`. Two `unit` files name `vi.mock` in a comment only, and both say they use the global mock and spies instead (`components/shiny-text.test.tsx`, `components/use-hold-button-gesture-reduced-motion.test.ts`).
 
-`setup/restore-prototype-focus.ts` improves under the change. It captures the pristine `HTMLElement.prototype.focus` and `blur` descriptors once at worker start, ahead of any `userEvent.setup()`. That is what its comment asks for.
+`setup/restore-prototype-focus.ts` keeps working under the change. It captures the pristine `HTMLElement.prototype.focus` and `blur` descriptors ahead of any `userEvent.setup()`, and its body re-runs per file, so each capture reads what the previous file's `afterEach` restored.
 
 ## Prerequisites
 
-The change shares one jsdom window across the ~100 files that each worker runs. Three leaks are invisible today only because vmThreads discards the window for each file. Fix them first, while `isolate: true` still attributes a leak to the file that caused it.
+The change shares one jsdom window across the files that each worker runs. These leaks were invisible before it, because vmThreads discarded the window for each file.
 
-**`printRows` leaves a live `<iframe>` in `document.body`.** `modules/grid/engine/grid-export/print.ts:74` appends the iframe. `iframe.remove()` runs only from `cleanup` (`print.ts:49`), and `cleanup` runs only on `afterprint` or on a window `focus` event. jsdom fires neither, and `setup/jsdom-stubs.ts` stubs `window.focus` to a `vi.fn()`. The node therefore survives its own file. The a11y sweeps assert over `document.body`, so this iframe lands in the tree that they read.
+**`printRows` leaves a live `<iframe>` in `document.body`.** Resolved in `5e3f9ac`. `modules/grid/engine/grid-export/print.ts:74` appends the iframe. `iframe.remove()` runs only from `cleanup` (`print.ts:49`), and `cleanup` runs only on `afterprint` or on a window `focus` event. jsdom fires neither, and `setup/jsdom-stubs.ts` stubs `window.focus` to a `vi.fn()`. The node therefore survives its own file. The a11y sweeps assert over `document.body`, so this iframe lands in the tree that they read.
 
 **Some suites remove body nodes after the assertion, not in an `afterEach`.** A real failure then leaves the node behind. Today the window dies with the file. Afterwards, one root-cause failure becomes many failures in unrelated files, and the true cause is hard to find.
 
 **Ref-counted DOM singletons hold process-global state.** `use-scroll-lock`, `use-grabbing-cursor`, and `dismiss-layers` balance a counter on mount and unmount. Four more modules keep module-scope mutable state and touch `document` or `window`: `utilities/media-query.ts:7`, `utilities/document-listener.ts:6`, the time-ago tickers, and `use-truncation`'s shared `ResizeObserver`. The last one is the worst, because it caches a global that a test installed and keeps it after the test restores it. Export a reset for each, and call it from the `afterEach` in `setup/index.ts`, beside `__resetAnnouncer` (`core/announcer.ts:67` is the precedent).
 
-**Three hook test files call `vi.resetModules()` seven times.** `hooks/use-media-query.test.ts:13,25,41`, `hooks/use-min-width.test.ts:13,25`, and `hooks/use-has-hover.test.ts:15,27` each reset the graph and then re-import the hook. `vitest.config.ts:58` forbids exactly this and gives the reason. Today vmThreads already shares the graph, so the cost sits in both baselines. Afterwards each call invalidates a graph that the files behind it must rebuild. Delete them.
+**Three hook test files call `vi.resetModules()` seven times.** Resolved in `5e3f9ac`, and `test-isolation-boundary.test.ts` now bars the call outright. `hooks/use-media-query.test.ts:13,25,41`, `hooks/use-min-width.test.ts:13,25`, and `hooks/use-has-hover.test.ts:15,27` each reset the graph and then re-import the hook. `vitest.config.ts:58` forbids exactly this and gives the reason. Today vmThreads already shares the graph, so the cost sits in both baselines. Afterwards each call invalidates a graph that the files behind it must rebuild. Delete them.
 
-**Vitest 4.1.10 ships `--detectAsyncLeaks`, and nothing here uses it.** Run it once and fix what it names. Keep it as a diagnostic script, never as a default: it captures a stack for every async resource.
+**Vitest 4.1.10 ships `--detectAsyncLeaks`, and nothing here uses it.** Run once, reported nothing actionable (see Corrections). Keep it as a diagnostic script, never as a default: it captures a stack for every async resource.
 
 ## Open
 
@@ -70,7 +70,7 @@ The change shares one jsdom window across the ~100 files that each worker runs. 
 
 **`installResizeObserverStub` is copied into six files.** Extract one helper, and install it with `vi.stubGlobal` so that `unstubGlobals` is the backstop. Keep it out of `helpers/index.ts` for the reason at `helpers/index.ts:9`.
 
-**80 browser test files (234 tests) run under no gate.** `.github/workflows/ci.yml:32` is the whole gate, and it never runs `test:browser`. `turbo.json` declares no such task. `CONVENTIONS.md:108` routes every layout, colour, target-size, and focus-trap assertion into that suite, so this is the largest coverage hole found. Either gate it in a separate CI job, or record in `vitest.browser.config.ts` that it is manual. The current state cannot be told apart from an oversight.
+**`sequence.shuffle` was costing more than the pool change saved.** `shuffle` selects `RandomSequencer`, whose `sort` is only `shuffle(files, seed)`; it drops the project grouping `BaseSequencer` applies, so all three projects interleave into one queue. A pool passes a worker to the next file only when the head of the queue belongs to the same project, so the shared module graph was thrown away at every crossing — 75 of them in one measured run. A `groupOrder` for each project restores the grouping and takes the suite from about 70s to about 47s, with the shuffle still live inside each group. Resolved in this branch.
 
 ## Corrections
 
@@ -104,7 +104,7 @@ Eight claims did not survive. They are recorded so that nobody re-opens them.
 
 **`CodeBlock`'s html cache cannot flip its assertion.** The two files do share a cache key, but on a cache hit the component paints the same result that the assertion expects.
 
-**`sequence.shuffle` does not make a red run unreproducible.** The reporter prints the seed on every run, and `--sequence.seed` replays it.
+**`sequence.shuffle` does not make a red run unreproducible.** The reporter prints the seed on every run. Replay it by setting `sequence.seed` in the config, not with `--sequence.seed`: the flag replaces the resolved sequence object and drops the per-project `groupOrder` with it, which reorders the queue the failure came from.
 
 **`onUnhandledError` cannot be scoped per project.** Vitest resolves it once from the root config. The proposed change would remove the protection that the comment exists for.
 
@@ -124,7 +124,7 @@ The sequence matters, because some changes make others impossible to measure.
 
 ## State
 
-Steps 1 and 2 are complete, together with the browser-suite gate (`00f31fd`). The full jsdom suite now runs in about 94.5s against 143.4s before, with all 5643 tests passing on twelve shuffle seeds.
+Steps 1 and 2 are complete, together with the browser-suite gate (`00f31fd`). The full jsdom suite now runs in about 47s against 143.4s before, with every test passing on twelve shuffle seeds for the pool change and five more for the sequencer change.
 
 Steps 3 and 4 are open, and the Open section above lists what they cover. Nothing in them is a prerequisite for anything else.
 
