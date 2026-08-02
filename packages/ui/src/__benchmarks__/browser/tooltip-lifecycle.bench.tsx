@@ -24,18 +24,18 @@
 
 import { bench, describe } from 'vitest'
 import { reactHost, WINDOW } from './harness'
-import { type Driver, Probe } from './tooltip-probe'
+import { type Move, Probe } from './tooltip-probe'
 
 // A persistent open tooltip for the steady-state reposition bar: built once, its
 // anchor driven each iteration so nothing mounts or unmounts in the timed run.
 const mounted = reactHost()
 
-let move: Driver['move'] = () => {}
+let move: Move = () => {}
 
 mounted.render(
 	<Probe
-		register={(driver) => {
-			move = driver.move
+		register={(next) => {
+			move = next
 		}}
 	/>,
 )

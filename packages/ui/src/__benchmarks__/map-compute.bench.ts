@@ -35,14 +35,12 @@ const ATLASES = [
 	{
 		label: 'states (49 regions)',
 		atlas: statesAtlas,
-		features: statesAtlas.geoJson.features,
 		zones: makeZones(statesAtlas),
 		values: makeValues(statesAtlas),
 	},
 	{
 		label: 'counties (3,108 regions)',
 		atlas: countiesAtlas,
-		features: countiesAtlas.geoJson.features,
 		zones: makeZones(countiesAtlas),
 		values: makeValues(countiesAtlas),
 	},
@@ -53,9 +51,9 @@ describe('map-projection · canonicalFit (the uncached fit)', () => {
 	// bounds. Paid once per atlas per projection and then held by the
 	// static-geometry cache — but a cache miss pays it on the mount critical
 	// path, and the counties atlas is where that hurts.
-	for (const { label, features } of ATLASES) {
+	for (const { label, atlas } of ATLASES) {
 		bench(`${label} · albers-usa`, () => {
-			canonicalFit('albers-usa', features)
+			canonicalFit('albers-usa', atlas.geoJson.features)
 		})
 	}
 })
@@ -65,8 +63,8 @@ describe('map-projection · scaleCanonicalFit (every resize frame)', () => {
 	// parameters, deliberately avoiding the bounds pass `canonicalFit` above
 	// takes. Against that bar it is the whole point of the canonical cache, and
 	// it must stay flat in the region count — it never touches a coordinate.
-	for (const { label, features } of ATLASES) {
-		const canonical = canonicalFit('albers-usa', features)
+	for (const { label, atlas } of ATLASES) {
+		const canonical = canonicalFit('albers-usa', atlas.geoJson.features)
 
 		if (!canonical) throw new Error('fixture yielded no fit')
 
@@ -79,9 +77,9 @@ describe('map-projection · scaleCanonicalFit (every resize frame)', () => {
 describe('map-projection · mapAutoAspect (the CSS reservation)', () => {
 	// Resolved before the first paint so the figure reserves its box without a
 	// measurement — on the mount critical path, ahead of everything else here.
-	for (const { label, features } of ATLASES) {
+	for (const { label, atlas } of ATLASES) {
 		bench(`${label} · albers-usa`, () => {
-			mapAutoAspect('albers-usa', features)
+			mapAutoAspect('albers-usa', atlas.geoJson.features)
 		})
 	}
 })

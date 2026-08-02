@@ -20,17 +20,11 @@ import { benches, frame, WINDOW } from './harness'
 
 const STEPS = 12
 
-/** Steps a scroller from one end of its range to the other, one settled frame per jump. */
-async function jump(scroller: HTMLElement, from: number, to: number) {
-	const max = scroller.scrollHeight - scroller.clientHeight
+/** Puts the scroller at step `step` of `STEPS` and settles one frame. */
+async function jump(scroller: HTMLElement, step: number) {
+	scroller.scrollTop = ((scroller.scrollHeight - scroller.clientHeight) * step) / STEPS
 
-	const direction = to > from ? 1 : -1
-
-	for (let step = from + direction; step !== to + direction; step += direction) {
-		scroller.scrollTop = (max * step) / STEPS
-
-		await frame()
-	}
+	await frame()
 }
 
 /** Mounts every scrollable contender and closes each over a full round trip. */
@@ -45,11 +39,11 @@ function roundTrip(rows: Shipment[]) {
 		if (!scroller) return null
 
 		return async () => {
-			await jump(scroller, 0, STEPS)
+			for (let step = 1; step <= STEPS; step++) await jump(scroller, step)
 
 			await painted(box, bottom)
 
-			await jump(scroller, STEPS, 0)
+			for (let step = STEPS - 1; step >= 0; step--) await jump(scroller, step)
 
 			await painted(box, top)
 		}

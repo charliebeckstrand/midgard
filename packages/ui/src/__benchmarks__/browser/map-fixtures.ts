@@ -10,7 +10,7 @@ import countiesRaw from 'us-atlas/counties-10m.json'
 import statesRaw from 'us-atlas/states-10m.json'
 import { geographyFeatures } from '../../modules/map/map-geometry'
 import type { MapFeatureCollection, MapTopology } from '../../modules/map/types'
-import { rng } from './fixtures'
+import { rng } from '../fixtures'
 
 /** One prepared atlas: the same geometry in every contender's natural form. */
 export type MapAtlas = {

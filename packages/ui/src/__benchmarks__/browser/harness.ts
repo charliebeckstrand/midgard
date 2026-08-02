@@ -61,8 +61,8 @@ export function host(size?: { width?: number; height?: number }): HTMLElement {
  * unmounts then removes the host — a hard teardown, so an exit animation never
  * holds cleanup open past the timed region.
  */
-export function reactHost(size?: { width?: number; height?: number }) {
-	const box = host(size)
+export function reactHost() {
+	const box = host()
 
 	const root = createRoot(box)
 

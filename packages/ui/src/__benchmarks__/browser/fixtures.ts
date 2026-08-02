@@ -6,9 +6,6 @@
 
 import { rng } from '../fixtures'
 
-/** The shared LCG, re-exported so `map-fixtures.ts` draws from one generator. */
-export { rng }
-
 /** One categorical row: a `label` plus one numeric field per series (`s1`, `s2`, …). */
 export type TrendRow = Record<string, string | number>
 
@@ -38,36 +35,45 @@ function walks(count: number, seriesCount: number, seed: number): number[][] {
 	})
 }
 
-/** The row view of a trend: one row per category, one numeric field per series. */
-function rowsFrom(categories: string[], values: number[][]): TrendRow[] {
-	return categories.map((label, i) => {
-		const row: TrendRow = { label }
-
-		for (const [s, series] of values.entries()) {
-			row[`s${s + 1}`] = series[i] ?? 0
-		}
-
-		return row
-	})
-}
-
 const trendCache = new Map<string, TrendData>()
 
-/** Memoizes a trend per `(kind, count, seriesCount, seed)`. */
+/**
+ * One trend in all three contender shapes, memoized per label kind and
+ * parameters. The two exported generators differ only in how a category reads,
+ * so `label` is the whole difference between them.
+ *
+ * @remarks Several benches draw the same trend and the ten-thousand-row rungs
+ * allocate a row object apiece, so building each one once keeps collection off
+ * the clock. Nothing mutates a trend, so the shared object is safe to hand out.
+ */
 function trend(
 	kind: string,
 	count: number,
 	seriesCount: number,
 	seed: number,
-	build: () => TrendData,
-) {
+	label: (index: number) => string,
+): TrendData {
 	const key = `${kind}:${count}:${seriesCount}:${seed}`
 
 	const hit = trendCache.get(key)
 
 	if (hit) return hit
 
-	const built = build()
+	const categories = Array.from({ length: count }, (_, index) => label(index))
+
+	const values = walks(count, seriesCount, seed)
+
+	const rows = categories.map((category, index) => {
+		const row: TrendRow = { label: category }
+
+		for (const [series, numbers] of values.entries()) {
+			row[`s${series + 1}`] = numbers[index] ?? 0
+		}
+
+		return row
+	})
+
+	const built: TrendData = { rows, categories, values }
 
 	trendCache.set(key, built)
 
@@ -77,20 +83,9 @@ function trend(
 /**
  * `count` categories × `seriesCount` series of bounded random walks — the
  * plausible dashboard shape, no flat lines and no degenerate domain.
- *
- * @remarks Memoized per parameter set. Several benches draw the same trend, and
- * the ten-thousand-row rungs allocate a row object apiece, so building each one
- * once keeps collection off the clock. Nothing mutates a trend, so the shared
- * object is safe to hand out.
  */
 export function makeTrend(count: number, seriesCount: number, seed = 1): TrendData {
-	return trend('plain', count, seriesCount, seed, () => {
-		const categories = Array.from({ length: count }, (_, i) => `P${String(i + 1).padStart(5, '0')}`)
-
-		const values = walks(count, seriesCount, seed)
-
-		return { rows: rowsFrom(categories, values), categories, values }
-	})
+	return trend('plain', count, seriesCount, seed, (i) => `P${String(i + 1).padStart(5, '0')}`)
 }
 
 /** The first day the dated fixture walks from; every row is one day past the last. */
@@ -105,21 +100,11 @@ const DAY_MS = 86_400_000
  * probes whether all categories parse as dates (and formats them through
  * `Intl` when they do), where a non-date axis exits on its first value. Same
  * values, same seed, so it differs from the plain trend in labels alone.
- *
- * @remarks Builds its rows against the dated categories directly rather than
- * re-labelling the plain trend's, which would allocate a whole row set only to
- * spread it away.
  */
 export function makeDatedTrend(count: number, seriesCount: number, seed = 1): TrendData {
-	return trend('dated', count, seriesCount, seed, () => {
-		const categories = Array.from({ length: count }, (_, i) =>
-			new Date(DATE_ORIGIN + i * DAY_MS).toISOString().slice(0, 10),
-		)
-
-		const values = walks(count, seriesCount, seed)
-
-		return { rows: rowsFrom(categories, values), categories, values }
-	})
+	return trend('dated', count, seriesCount, seed, (i) =>
+		new Date(DATE_ORIGIN + i * DAY_MS).toISOString().slice(0, 10),
+	)
 }
 
 /** One scatter point row; `pairs` mirrors it in Highcharts' `[x, y]` form. */

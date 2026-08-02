@@ -1,9 +1,10 @@
-import { act, render } from '@testing-library/react'
+import { act } from '@testing-library/react'
 import type { ReactElement } from 'react'
 import { bench, describe } from 'vitest'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../components/tabs'
 import { BarChart } from '../modules/chart/bar-chart'
 import { PieChart } from '../modules/chart/pie-chart'
+import { persistentTree } from './harness'
 
 /**
  * Resize cost for the chart module. A window drag delivers one
@@ -60,7 +61,10 @@ window.ResizeObserver = class CapturingResizeObserver {
 function mountScenario(node: ReactElement) {
 	const from = observers.length
 
-	const { container } = render(node)
+	// Through the harness, so the tree is one this file owns rather than one the
+	// testing library holds: every describe's tree stays up for the whole run,
+	// and a `mountBench` added beside them must not be able to reach it.
+	const container = persistentTree(node)
 
 	const mine = observers.slice(from)
 

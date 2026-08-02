@@ -16,7 +16,7 @@
 
 import { bench, describe } from 'vitest'
 import { reactHost, WINDOW } from './harness'
-import { type Driver, Probe, type Track } from './tooltip-probe'
+import { type Move, Probe, type Track } from './tooltip-probe'
 
 /** Moves per iteration — enough that any per-move observer work accumulates. */
 const MOVES = 8
@@ -25,19 +25,19 @@ const MOVES = 8
 function cycle(track: Track) {
 	const mounted = reactHost()
 
-	let driver: Driver | null = null
+	let move: Move = () => {}
 
 	mounted.render(
 		<Probe
 			track={track}
 			register={(next) => {
-				driver = next
+				move = next
 			}}
 		/>,
 	)
 
-	for (let move = 0; move < MOVES; move++) {
-		mounted.flush(() => driver?.move(100 + move * 6, 100 + move * 4))
+	for (let step = 0; step < MOVES; step++) {
+		mounted.flush(() => move(100 + step * 6, 100 + step * 4))
 	}
 
 	mounted.destroy()

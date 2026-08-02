@@ -19,15 +19,15 @@ function renderItem(item: { title: string }) {
 }
 
 // Built at collection time: only the render belongs inside the timed region.
-const SIZES = [100, 500, 1_000].map((count) => ({ count, items: makeListItems(count) }))
+const SIZES = [100, 500, 1_000].map((count) => makeListItems(count))
 
-const items1k = makeListItems(1_000)
+const items1k = SIZES[2] as { id: string; title: string }[]
 
 describe('List · reorderable (onReorder provided)', () => {
 	mountBenches(
 		SIZES,
-		({ count }) => `${count.toLocaleString()} items`,
-		({ items }) => (
+		(items) => `${items.length.toLocaleString()} items`,
+		(items) => (
 			<List items={items} getKey={getKey} onReorder={noop}>
 				{renderItem}
 			</List>

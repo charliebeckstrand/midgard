@@ -31,15 +31,16 @@ const stateRows = geographyFeatures(statesTopo).map((feature, index) => ({
 	zone: ZONES[index % ZONES.length] as string,
 }))
 
-const countyRows = geographyFeatures(countiesTopo).map((feature, index) => ({
+// Decoded once: `geographyFeatures` re-walks every arc of the atlas per call,
+// and both the rows and the pre-decoded collection below want the same features.
+const countyFeatures = geographyFeatures(countiesTopo)
+
+const countyRows = countyFeatures.map((feature, index) => ({
 	county: defaultRegionId(feature),
 	zone: ZONES[index % ZONES.length] as string,
 }))
 
-const countiesGeo: MapGeography = {
-	type: 'FeatureCollection',
-	features: geographyFeatures(countiesTopo),
-}
+const countiesGeo: MapGeography = { type: 'FeatureCollection', features: countyFeatures }
 
 function statesPlat() {
 	return (
@@ -84,11 +85,7 @@ describe('static geometry · cold vs warm (states-10m)', () => {
 /** Pointer moves per iteration — enough that per-move cascade work accumulates. */
 const MOVES = 10
 
-/**
- * Mounts a plat for the whole run and hands back the elements the cascade
- * scenarios drive. Held outside the testing library's registry so the mount
- * benches above — which end on `cleanup()` — cannot tear it down mid-run.
- */
+/** Mounts a plat for the whole run and hands back the elements the cascade scenarios drive. */
 function cascade(node: ReactElement) {
 	const container = persistentTree(node)
 

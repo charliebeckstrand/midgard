@@ -9,7 +9,7 @@ import {
 	getEntries,
 	treeContainsMatch,
 } from '../components/json-tree/json-tree-utilities'
-import { makeJsonTree } from './fixtures'
+import { JSON_HIT, JSON_MISS, JSON_TREES, makeJsonTree } from './fixtures'
 
 // Tree sizes (branch count grows exponentially):
 // small   (d=3, b=5)   = ~125 branches
@@ -17,18 +17,10 @@ import { makeJsonTree } from './fixtures'
 // large   (d=5, b=5)   = ~3,125 branches
 // huge    (d=6, b=4)   = ~4,096 branches
 
-const small = makeJsonTree(3, 5)
+const { small, medium, large } = JSON_TREES
 
-const medium = makeJsonTree(4, 5)
-
-const large = makeJsonTree(5, 5)
-
+/** This file's own rung: wider still, and only the pure utilities can afford it. */
 const huge = makeJsonTree(6, 4)
-
-/** A term every leaf path carries, and one no tree holds — the hit and miss ends. */
-const HIT = 'value-root'
-
-const MISS = '__absent__'
 
 describe('json-tree · buildSearchIndex', () => {
 	for (const [label, tree] of [
@@ -38,36 +30,36 @@ describe('json-tree · buildSearchIndex', () => {
 		['huge (d6×b4)', huge],
 	] as const) {
 		bench(`${label} · hit`, () => {
-			buildSearchIndex(tree, HIT)
+			buildSearchIndex(tree, JSON_HIT)
 		})
 	}
 
 	bench('large (d5×b5) · miss', () => {
-		buildSearchIndex(large, MISS)
+		buildSearchIndex(large, JSON_MISS)
 	})
 })
 
 describe('json-tree · treeContainsMatch', () => {
 	bench('large (d5×b5) · hit', () => {
-		treeContainsMatch(large, HIT)
+		treeContainsMatch(large, JSON_HIT)
 	})
 
 	bench('large (d5×b5) · miss', () => {
-		treeContainsMatch(large, MISS)
+		treeContainsMatch(large, JSON_MISS)
 	})
 })
 
 describe('json-tree · filterEntries (with index)', () => {
-	const index = buildSearchIndex(large, HIT)
+	const index = buildSearchIndex(large, JSON_HIT)
 
 	const rootEntries = getEntries(large)
 
 	bench('root entries @ large', () => {
-		filterEntries(rootEntries, HIT, index)
+		filterEntries(rootEntries, JSON_HIT, index)
 	})
 
 	bench('root entries @ large · no index (walks each)', () => {
-		filterEntries(rootEntries, HIT)
+		filterEntries(rootEntries, JSON_HIT)
 	})
 })
 

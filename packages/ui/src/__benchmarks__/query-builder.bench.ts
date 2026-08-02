@@ -8,11 +8,11 @@ import { collectRuleIds, QUERY_FIELDS, QUERY_TREES } from './fixtures'
 
 // The three trees `query-evaluate.bench.ts` reads against, declared once in
 // `fixtures.ts` so the two benches cannot drift apart on size.
-const [shallowWide, balanced, deepWide] = [
-	QUERY_TREES[0].tree,
-	QUERY_TREES[1].tree,
-	QUERY_TREES[2].tree,
-]
+const shallowWide = QUERY_TREES[0].tree
+
+const balanced = QUERY_TREES[1].tree
+
+const deepWide = QUERY_TREES[2].tree
 
 const balancedIds = collectRuleIds(balanced)
 

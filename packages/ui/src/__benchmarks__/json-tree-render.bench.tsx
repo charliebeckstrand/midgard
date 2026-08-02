@@ -10,14 +10,10 @@ import { describe } from 'vitest'
 import { JsonTree } from '../components/json-tree'
 import { collectPaths } from '../components/json-tree/json-tree-utilities'
 import { noop } from '../utilities/noop'
-import { makeJsonTree } from './fixtures'
+import { JSON_TREES } from './fixtures'
 import { mountBenches, rerenderBench } from './harness'
 
-const small = makeJsonTree(3, 5)
-
-const medium = makeJsonTree(4, 5)
-
-const large = makeJsonTree(5, 5)
+const { small, medium, large } = JSON_TREES
 
 const DEEP = Number.POSITIVE_INFINITY
 

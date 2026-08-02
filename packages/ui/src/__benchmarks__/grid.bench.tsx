@@ -1,7 +1,7 @@
 /**
  * The dashboard grid profile: large row counts, virtualization, and the
  * feature columns a data table wears — the sizes `grid-inline.bench.tsx`
- * deliberately does not cover. Mount scenarios time `render` + `cleanup` per
+ * deliberately does not cover. Mount scenarios time one mount plus teardown per
  * iteration; the toggle scenarios re-render a mounted grid, so a regression
  * there is reconciliation, not mount.
  */
@@ -26,10 +26,8 @@ const SELECTABLE: GridColumn<Shipment>[] = [
 /** Toggles per re-render iteration — enough that per-toggle work outruns the harness. */
 const TOGGLES = 5
 
-// Built at collection time: only the render belongs inside the timed region.
-const rows1k = shipments(1_000)
-
-const rows10k = shipments(10_000)
+// `shipments` is memoized per (count, seed), so every call below hands back the
+// same array — no aliasing needed to keep the fixture out of the timed region.
 
 describe('Grid · initial render (un-windowed)', () => {
 	// Stops at a thousand rows on purpose. An un-windowed grid mounts every row,
@@ -40,12 +38,9 @@ describe('Grid · initial render (un-windowed)', () => {
 	// sizes for 1.5 seconds. What is left here is the range a grid genuinely
 	// renders un-windowed.
 	mountBenches(
-		[
-			{ count: 100, rows: shipments(100) },
-			{ count: 1_000, rows: rows1k },
-		],
-		({ count }) => `${count.toLocaleString()} rows × 8 cols`,
-		({ rows }) => <Grid columns={COLUMNS} rows={rows} getKey={shipmentKey} />,
+		[shipments(100), shipments(1_000)],
+		(rows) => `${rows.length.toLocaleString()} rows × 8 cols`,
+		(rows) => <Grid columns={COLUMNS} rows={rows} getKey={shipmentKey} />,
 	)
 })
 
@@ -106,12 +101,9 @@ describe('Grid · virtualized initial render', () => {
 	// whatever the dataset, so these two rungs cover 1k and 10k for a fraction
 	// of what the un-windowed mounts above would charge for the same sizes.
 	mountBenches(
-		[
-			{ count: 1_000, rows: rows1k },
-			{ count: 10_000, rows: rows10k },
-		],
-		({ count }) => `${count.toLocaleString()} rows × 8 cols · virtualize`,
-		({ rows }) => (
+		[shipments(1_000), shipments(10_000)],
+		(rows) => `${rows.length.toLocaleString()} rows × 8 cols · virtualize`,
+		(rows) => (
 			<Grid columns={COLUMNS} rows={rows} getKey={shipmentKey} virtualize maxHeight="600px" />
 		),
 	)

@@ -30,27 +30,27 @@ const SELECTABLE: GridColumn<Shipment>[] = [
 const EDITABLE = { rows: new Set<string | number>(), onCommit: noop }
 
 // Built at collection time: only the render belongs inside the timed region.
-const SIZES = [100, 500, 1_000].map((count) => ({ count, rows: shipments(count) }))
-
-const rows1k = shipments(1_000)
-
-const rows10k = shipments(10_000)
+const SIZES = [100, 500, 1_000].map((count) => shipments(count))
 
 describe('Grid · editable initial render', () => {
 	mountBenches(
 		SIZES,
-		({ count }) => `${count.toLocaleString()} rows × 8 cols`,
-		({ rows }) => <Grid columns={COLUMNS} rows={rows} getKey={shipmentKey} editable={EDITABLE} />,
+		(rows) => `${rows.length.toLocaleString()} rows × 8 cols`,
+		(rows) => <Grid columns={COLUMNS} rows={rows} getKey={shipmentKey} editable={EDITABLE} />,
 	)
 })
 
 describe('Grid · editable with selection', () => {
-	const selection = new Set(rows1k.filter((_, index) => index % 10 === 0).map(shipmentKey))
+	const selection = new Set(
+		shipments(1_000)
+			.filter((_, index) => index % 10 === 0)
+			.map(shipmentKey),
+	)
 
 	mountBench('1,000 rows · 10% selected', () => (
 		<Grid
 			columns={SELECTABLE}
-			rows={rows1k}
+			rows={shipments(1_000)}
 			getKey={shipmentKey}
 			editable={EDITABLE}
 			selection={{ value: selection }}
@@ -60,12 +60,9 @@ describe('Grid · editable with selection', () => {
 
 describe('Grid · editable virtualized initial render', () => {
 	mountBenches(
-		[
-			{ count: 1_000, rows: rows1k },
-			{ count: 10_000, rows: rows10k },
-		],
-		({ count }) => `${count.toLocaleString()} rows × 8 cols · virtualize`,
-		({ rows }) => (
+		[shipments(1_000), shipments(10_000)],
+		(rows) => `${rows.length.toLocaleString()} rows × 8 cols · virtualize`,
+		(rows) => (
 			<Grid
 				columns={COLUMNS}
 				rows={rows}

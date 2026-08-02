@@ -29,7 +29,7 @@ const COLUMNS_6: GridColumn<Shipment>[] = [
 const STREAM_ROWS = 50
 
 // Built at collection time: only the render belongs inside the timed region.
-const SIZES = [5, 10, 20, 50].map((count) => ({ count, rows: shipments(count) }))
+const SIZES = [5, 10, 20, 50].map((count) => shipments(count))
 
 const rows10 = shipments(10)
 
@@ -43,8 +43,8 @@ describe('Grid · inline mount (small)', () => {
 	// the 100→10k sweep. This is the headline inline number.
 	mountBenches(
 		SIZES,
-		({ count }) => `${count} rows × 4 cols`,
-		({ rows }) => <Grid columns={COLUMNS} rows={rows} getKey={shipmentKey} />,
+		(rows) => `${rows.length} rows × 4 cols`,
+		(rows) => <Grid columns={COLUMNS} rows={rows} getKey={shipmentKey} />,
 	)
 })
 
@@ -64,12 +64,11 @@ describe('Grid · inline mount — resizable on/off', () => {
 	// body cell synchronously before paint (O(rows × cols)). `resizable={false}`
 	// stands the autosizer down; the gap is its pre-paint cost.
 	mountBenches(
-		[50, 200].flatMap((count) => [
-			{ count, resizable: true, rows: shipments(count) },
-			{ count, resizable: false, rows: shipments(count) },
-		]),
-		({ count, resizable }) =>
-			`${count} × 6 · ${resizable ? 'resizable (default)' : 'resizable=false'}`,
+		[50, 200].flatMap((count) =>
+			[true, false].map((resizable) => ({ resizable, rows: shipments(count) })),
+		),
+		({ rows, resizable }) =>
+			`${rows.length} × 6 · ${resizable ? 'resizable (default)' : 'resizable=false'}`,
 		({ rows, resizable }) => (
 			<Grid columns={COLUMNS_6} rows={rows} getKey={shipmentKey} resizable={resizable} />
 		),

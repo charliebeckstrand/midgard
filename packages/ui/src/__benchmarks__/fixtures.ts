@@ -53,7 +53,7 @@ const CITIES = [
 
 const PERIODS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
-export function makeShipments(count: number, seed = 1): Shipment[] {
+function buildShipments(count: number, seed = 1): Shipment[] {
 	const rand = rng(seed)
 
 	const out: Shipment[] = new Array(count)
@@ -95,7 +95,7 @@ export function shipments(count: number, seed = 1): Shipment[] {
 
 	if (hit) return hit
 
-	const rows = makeShipments(count, seed)
+	const rows = buildShipments(count, seed)
 
 	shipmentCache.set(key, rows)
 
@@ -204,6 +204,23 @@ export function makeQueryTree(depth: number, branching: number): QueryGroup {
 }
 
 /**
+ * The JSON trees both json-tree benches run — `json-tree` measures the pure
+ * utilities over them, `json-tree-render` the component that walks them, and
+ * the two only compare while the sizes match. Branch count grows
+ * exponentially: `branching^depth`.
+ */
+export const JSON_TREES = {
+	small: makeJsonTree(3, 5),
+	medium: makeJsonTree(4, 5),
+	large: makeJsonTree(5, 5),
+} as const
+
+/** A term every leaf path carries, and one no tree holds — the hit and miss ends. */
+export const JSON_HIT = 'value-root'
+
+export const JSON_MISS = '__absent__'
+
+/**
  * The query trees both query benches run — `query-builder` edits them,
  * `query-evaluate` reads them, and the two only read against each other while
  * the sizes match, so they are declared once here.
@@ -264,7 +281,7 @@ export function makeListItems(count: number): { id: string; title: string }[] {
 /** One selectable option, the shape Combobox, Listbox, and `VirtualOptions` all read. */
 export type Option = { value: string; label: string }
 
-export function makeComboboxOptions(count: number): Option[] {
+function buildOptions(count: number): Option[] {
 	const options: Option[] = new Array(count)
 
 	for (let i = 0; i < count; i++) options[i] = { value: `opt-${i}`, label: `Option ${i}` }
@@ -275,16 +292,16 @@ export function makeComboboxOptions(count: number): Option[] {
 const optionCache = new Map<number, Option[]>()
 
 /**
- * {@link makeComboboxOptions}, memoized per `count`. The option benches draw
- * the same pools and must build them outside the timed region; caching here
- * keeps that concern in one place rather than a private `Map` per bench file.
+ * Selectable options, memoized per `count`. The option benches draw the same
+ * pools and must build them outside the timed region, so the cache is the only
+ * door here too.
  */
 export function comboboxOptions(count: number): Option[] {
 	const hit = optionCache.get(count)
 
 	if (hit) return hit
 
-	const options = makeComboboxOptions(count)
+	const options = buildOptions(count)
 
 	optionCache.set(count, options)
 
