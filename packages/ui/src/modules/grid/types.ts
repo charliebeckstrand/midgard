@@ -590,4 +590,13 @@ export type GridCellMenu<T> =
 export type GridContextMenu<T> = {
 	column?: GridColumnMenu<T>
 	cell?: GridCellMenu<T>
+	/**
+	 * Cap the menus at their density height, scrolling past it. Set `false` to let
+	 * them grow to their content — the grid's built-in rows are a short, fixed set,
+	 * so the cap can read as truncation, while a `column` / `cell` builder that
+	 * adds many rows still wants it. Applies to the column and cell menus alike,
+	 * and to their submenus.
+	 * @defaultValue true
+	 */
+	capped?: boolean
 }

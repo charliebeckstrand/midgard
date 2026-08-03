@@ -36,10 +36,19 @@ const item = defineRecipe({
 	defaults: { density: 'md', size: 'md' },
 })
 
-// The scrollable item region inside the panel. The max height is tuned per
-// density to cut the last visible row roughly in half (assuming plain items on
-// the diagonal density/size axis), so a clipped row — not just the edge fade —
-// signals more content below.
+/**
+ * The panel's height cap per density, tuned to cut the last visible row roughly
+ * in half (assuming plain items on the diagonal density/size axis), so a clipped
+ * row — not just the edge fade — signals more content below. Applied through
+ * `compound` so a panel that opts out carries no `max-h` at all.
+ */
+const MENU_CAPS = [
+	['sm', 'max-h-48'],
+	['md', 'max-h-52'],
+	['lg', 'max-h-56'],
+] as const
+
+// The scrollable item region inside the panel.
 const viewport = defineRecipe({
 	base: [
 		'space-y-0.5',
@@ -52,12 +61,18 @@ const viewport = defineRecipe({
 		'data-overflow-above:[--menu-fade-above:1.5rem]',
 		'data-overflow-below:[--menu-fade-below:1.5rem]',
 	],
-	density: {
-		sm: 'max-h-48',
-		md: 'max-h-52',
-		lg: 'max-h-56',
-	},
-	defaults: { density: 'md' },
+	density: { sm: '', md: '', lg: '' },
+	// `false` lets the panel grow to its content — for a short, fixed item set
+	// where the scroll region reads as truncation rather than as more content
+	// below. The scroll container stays either way, so an overlong panel can
+	// still reach its end.
+	capped: { true: '', false: '' },
+	// The cap is emitted only while capped, rather than emitted and then
+	// overridden. tailwind-merge does not carry `none` in its `max-h` group, so an
+	// overriding class would ride *alongside* the density cap and leave
+	// stylesheet order to decide the height; emitting nothing depends on neither.
+	compound: MENU_CAPS.map(([density, cap]) => ({ density, capped: 'true', class: cap })),
+	defaults: { density: 'md', capped: true },
 })
 
 export const k = {

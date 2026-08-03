@@ -344,7 +344,7 @@ export function GridContextMenu<T>({
 	}, [])
 
 	return (
-		<Menu open={open} onOpenChange={handleOpenChange}>
+		<Menu open={open} onOpenChange={handleOpenChange} capped={config.capped}>
 			<GridContextMenuSurface
 				resolveItems={resolveItems}
 				resolveGroupItems={resolveGroupItems}

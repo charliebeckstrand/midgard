@@ -40,6 +40,7 @@ export function ContextMenu({
 	items,
 	defaultItems,
 	position,
+	capped,
 	disabled = false,
 	className,
 	children,
@@ -52,7 +53,7 @@ export function ContextMenu({
 	if (disabled || entries.length === 0) return <>{children}</>
 
 	return (
-		<Menu className={className}>
+		<Menu className={className} capped={capped}>
 			{children}
 
 			<MenuContent>

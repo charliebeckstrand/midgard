@@ -87,4 +87,12 @@ export type ContextMenuConfig = {
 	 * @defaultValue 'after'
 	 */
 	position?: ContextMenuPosition
+	/**
+	 * Cap the menu at its density height, scrolling past it. Set `false` to let it
+	 * grow to its content — for a short, fixed item set where the scroll region
+	 * reads as truncation rather than as more content below. Applies to any
+	 * submenu too; the scroll container stays either way.
+	 * @defaultValue true
+	 */
+	capped?: boolean
 }

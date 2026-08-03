@@ -9,6 +9,7 @@ import {
 	MenuLabel,
 	MenuSection,
 	MenuSeparator,
+	MenuSub,
 	MenuTrigger,
 } from '../../components/menu'
 import { useMenuContext } from '../../components/menu/context'
@@ -421,6 +422,67 @@ describe('MenuContent', () => {
 		// jsdom reports zero scroll extent, so the content never overflows and
 		// neither edge attribute may be stamped.
 		expect(viewport).not.toHaveAttribute('data-overflow-below')
+	})
+
+	describe('capped', () => {
+		/** The menu's scroll viewport, opened `static` so no pointer work is needed. */
+		const viewportFor = (capped?: boolean) => {
+			const { container } = renderUI(
+				<Menu defaultOpen capped={capped}>
+					<MenuContent>
+						<MenuItem>Item</MenuItem>
+					</MenuContent>
+				</Menu>,
+			)
+
+			const viewport = bySlot(container, 'menu-viewport')
+
+			if (!viewport) throw new Error('no menu viewport')
+
+			return viewport
+		}
+
+		it('caps the panel at the density height by default', () => {
+			expect(viewportFor()).toHaveClass('max-h-52')
+		})
+
+		it('emits no height cap at all when opted out', () => {
+			// Not "emits an overriding class": tailwind-merge leaves `max-h-none`
+			// beside `max-h-52`, so the recipe withholds the cap instead. Asserting
+			// the absence of *any* max-height pins that, and can't pass on a class
+			// that merely competes with the cap.
+			expect(viewportFor(false).className).not.toMatch(/(^|\s)max-h-/)
+		})
+
+		it('keeps the scroll container either way, so an overlong menu still reaches its end', () => {
+			for (const viewport of [viewportFor(), viewportFor(false)]) {
+				expect(viewport).toHaveClass('overflow-y-auto')
+			}
+		})
+
+		it('carries the policy into a submenu panel, which portals out of the viewport', () => {
+			renderUI(
+				<Menu defaultOpen capped={false}>
+					<MenuContent>
+						<MenuSub label="More">
+							<MenuItem>Nested</MenuItem>
+						</MenuSub>
+					</MenuContent>
+				</Menu>,
+			)
+
+			fireEvent.click(screen.getByRole('menuitem', { name: /More/ }))
+
+			// The submenu renders its own viewport in a portal, so it reads the
+			// policy from context rather than inheriting the parent panel's classes.
+			const panels = Array.from(document.querySelectorAll('[data-slot="menu-viewport"]'))
+
+			expect(panels.length).toBeGreaterThan(1)
+
+			for (const panel of panels) {
+				expect(panel.className).not.toMatch(/(^|\s)max-h-/)
+			}
+		})
 	})
 
 	it('closes the menu when Escape is pressed on the menu panel', () => {
