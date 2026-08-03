@@ -135,7 +135,29 @@ describe('ListItem', () => {
 		expect(cls).toContain('dark:hover:not-disabled:text-white')
 	})
 
-	it('keeps non-linked content on the inherited item color', () => {
+	it('gives clickable content the same treatment as a link, plus the pointer', () => {
+		const { container } = renderUI(
+			<List items={items.slice(0, 1)} getKey={(i) => i.id}>
+				{(item) => (
+					<ListItem as="button" onClick={vi.fn()}>
+						{item.label}
+					</ListItem>
+				)}
+			</List>,
+		)
+
+		const cls = bySlot(container, 'list-item-content')?.className ?? ''
+
+		expect(cls).toMatch(/(^|\s)text-zinc-500(\s|$)/)
+
+		expect(cls).toContain('hover:not-disabled:text-zinc-950')
+
+		expect(cls).toContain('dark:hover:not-disabled:text-white')
+
+		expect(cls).toContain('cursor-pointer')
+	})
+
+	it('keeps inert content on the inherited item color', () => {
 		const { container } = renderUI(
 			<List items={items.slice(0, 1)} getKey={(i) => i.id}>
 				{(item) => <ListItem>{item.label}</ListItem>}
