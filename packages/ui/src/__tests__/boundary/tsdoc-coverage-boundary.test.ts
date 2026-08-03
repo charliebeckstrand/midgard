@@ -49,6 +49,7 @@ function barrelFiles(): string[] {
 
 		if (!nested) {
 			files.push(join(root, 'index.ts'))
+
 			continue
 		}
 
@@ -79,6 +80,7 @@ function aliasChain(checker: ts.TypeChecker, symbol: ts.Symbol): ts.Symbol[] {
 		if (!next || chain.includes(next)) break
 
 		chain.push(next)
+
 		cursor = next
 	}
 
@@ -150,6 +152,7 @@ describe('TSDoc coverage boundary', () => {
 
 			if (!source) {
 				violations.push(`${relative(srcDir, barrel)} → unparsed`)
+
 				continue
 			}
 
