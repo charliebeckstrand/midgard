@@ -591,12 +591,12 @@ export type GridContextMenu<T> = {
 	column?: GridColumnMenu<T>
 	cell?: GridCellMenu<T>
 	/**
-	 * Cap the menus at their density height, scrolling past it. Set `false` to let
-	 * them grow to their content — the grid's built-in rows are a short, fixed set,
-	 * so the cap can read as truncation, while a `column` / `cell` builder that
-	 * adds many rows still wants it. Applies to the column and cell menus alike,
-	 * and to their submenus.
-	 * @defaultValue true
+	 * Cap the menus at their density height, scrolling past it. Off by default —
+	 * the grid's built-in rows are a short, fixed set, so a cap clips the last one
+	 * and reads as truncation. Turn it on for a `column` / `cell` builder that adds
+	 * enough rows to run past the viewport. Applies to the column and cell menus
+	 * alike, and to their submenus.
+	 * @defaultValue false
 	 */
 	capped?: boolean
 }

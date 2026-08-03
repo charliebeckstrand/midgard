@@ -29,11 +29,12 @@ export type MenuProps = {
 	 */
 	size?: Step
 	/**
-	 * Cap the panel at its density height, scrolling past it. Set `false` to let
-	 * the panel grow to its content — for a short, fixed item set where the scroll
-	 * region reads as truncation rather than as more content below. Applies to the
-	 * panel and to every submenu under it; the scroll container stays either way.
-	 * @defaultValue true
+	 * Cap the panel at its density height, scrolling past it. Off by default: a
+	 * menu is normally a short, fixed item set, where a cap clips the last row and
+	 * reads as truncation rather than as more content below. Turn it on for a menu
+	 * long enough to run past the viewport — the panel then scrolls inside the cap
+	 * instead of growing. Applies to the panel and to every submenu under it.
+	 * @defaultValue false
 	 */
 	capped?: boolean
 	className?: string
@@ -56,7 +57,7 @@ export function Menu({
 	onOpenChange,
 	placement,
 	size,
-	capped = true,
+	capped = false,
 	className,
 	children,
 }: MenuProps) {
