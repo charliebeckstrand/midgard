@@ -789,3 +789,55 @@ describe('MapPlat region click', () => {
 		expect(container.querySelector('[data-region-index][tabindex]')).toBeNull()
 	})
 })
+
+describe('MapPlat controlled emphasis', () => {
+	it('dims every group outside a controlled emphasis, with no legend of its own', () => {
+		// One legend outside several plats drives them all through this prop, so the
+		// emphasis has to land without the plat's own legend being involved.
+		const { container } = renderUI(plat({ legend: false, emphasis: 'category:East' }))
+
+		expect(bySlot(container, 'map-legend')).toBeNull()
+
+		expect(bySlot(container, 'map-regions-recede')?.getAttribute('class')).toContain('opacity-25')
+
+		// Alpha is the East region: its lit copy holds at full strength above the
+		// receded layer.
+		const lit = bySlot(container, 'map-regions-lit')
+
+		expect(lit?.querySelectorAll('path')).toHaveLength(1)
+
+		expect(lit?.querySelector('path')?.getAttribute('d')).toBe(
+			allRegions(container)[0]?.getAttribute('d'),
+		)
+	})
+
+	it('treats a controlled null as "no emphasis", not as uncontrolled', () => {
+		const { container } = renderUI(plat({ legend: false, emphasis: null }))
+
+		expect(bySlot(container, 'map-regions-recede')?.getAttribute('class')).not.toContain(
+			'opacity-25',
+		)
+
+		expect(bySlot(container, 'map-regions-lit')).toBeNull()
+	})
+
+	it('ignores an emphasis naming a group this plat has no marks for', () => {
+		// Sharing one legend across plats means an id can arrive that this plat's data
+		// never produced; dimming the whole map against nothing would read as broken.
+		const { container } = renderUI(plat({ legend: false, emphasis: 'category:Nowhere' }))
+
+		expect(bySlot(container, 'map-regions-recede')?.getAttribute('class')).not.toContain(
+			'opacity-25',
+		)
+	})
+
+	it('lets its own legend drive the emphasis when the prop is omitted', () => {
+		const { container } = renderUI(plat())
+
+		const [east] = allBySlot(container, 'map-legend-item')
+
+		fireEvent.pointerEnter(east as HTMLButtonElement)
+
+		expect(bySlot(container, 'map-regions-recede')?.getAttribute('class')).toContain('opacity-25')
+	})
+})

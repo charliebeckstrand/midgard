@@ -54,6 +54,19 @@ export function categoryLegendId(value: string): string {
 }
 
 /**
+ * The emphasis id a numeric bin answers to — what a range legend's `onProbe` bin
+ * index means to {@link MapPlatProps.emphasis}.
+ *
+ * Public because a legend rendered OUTSIDE the plats it drives (one bar standing
+ * for several maps) has to name the bin itself, and the id scheme is this module's
+ * to keep. A numeric bin's category value is its index, so this is
+ * {@link categoryLegendId} over that.
+ */
+export function binEmphasisId(bin: number): string {
+	return categoryLegendId(String(bin))
+}
+
+/**
  * The legend id a region's toggle and emphasis key on — its category's stable
  * {@link categoryLegendId} — or `null` for a no-data region outside every
  * group. One resolution shared by the region fill and the plat's pointed-mark

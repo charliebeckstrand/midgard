@@ -258,6 +258,22 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 * clickable map still owes its users.
 		 */
 		onRegionClick?: (id: string, index: number) => void
+		/**
+		 * Controlled legend emphasis: the legend id whose marks hold while every
+		 * other group dims — what hovering a legend entry sets on its own.
+		 *
+		 * Passing it hands that state to the caller, so ONE legend rendered outside
+		 * the plat can emphasise across SEVERAL of them at once: give each plat
+		 * `legend={false}` and this prop, and render a single {@link RangeLegend}
+		 * whose `onFocus` drives it. The ids only line up across plats when the bins
+		 * do, which for the numeric mode means the same `colorRange`, `bins`, and an
+		 * explicit `domain` — without the last one each plat bins to its own extent
+		 * and an id from one means nothing to another.
+		 *
+		 * Omitted, the plat owns the state and its own legend drives it. A `null`
+		 * keeps it controlled with no emphasis (CONVENTIONS §7.3).
+		 */
+		emphasis?: string | null
 		/** Overlay marks: {@link MapRoute}, {@link MapPoint}, {@link MapMarker}. */
 		children?: ReactNode
 	}
@@ -1035,6 +1051,7 @@ export function MapPlat<T = never>({
 	tooltip = true,
 	animate = false,
 	onRegionClick,
+	emphasis: controlledEmphasis,
 	className,
 	children,
 	...name
@@ -1136,7 +1153,13 @@ export function MapPlat<T = never>({
 		[categoryMetas, entries],
 	)
 
-	const emphasis = activeFocus !== null && legendIds.has(activeFocus) ? activeFocus : null
+	// A controlled `emphasis` wins over this plat's own legend focus, so several
+	// plats can share one legend rendered outside them all. The live-id gate below
+	// applies either way: an id this plat has no group for would dim the whole map
+	// against nothing.
+	const focused = controlledEmphasis === undefined ? activeFocus : controlledEmphasis
+
+	const emphasis = focused !== null && legendIds.has(focused) ? focused : null
 
 	// The hover provider's pointed-emphasis gate: a region takes the emphasis
 	// only while its category is matched and shown, resolved through the same
