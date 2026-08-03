@@ -66,14 +66,14 @@ export type FrameSizing =
 
 /**
  * How a width-derived frame reserves its drawing height from its own width
- * through CSS. The reservation holds the box steady before the measurement of
- * the width, and across every animation replay.
+ * through CSS. The reservation holds the box steady before the width is known,
+ * and across every animation replay.
  *
  * `aspect` reserves a `width / height` ratio (CSS `aspect-ratio`). `content`
  * reserves the affine `max(min, width + offset)` that a bare ratio cannot
  * express: `offset` shifts an `aspect-ratio` of 1, and `min` floors the height
  * where the width-bound radius would otherwise go negative. A narrow box then
- * holds that floor instead of a collapse to nothing. A `fixed` or `fill` frame
+ * holds that floor and does not collapse. A `fixed` or `fill` frame
  * reserves nothing, because its height is a pixel value the box takes
  * directly.
  */

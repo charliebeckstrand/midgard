@@ -33,15 +33,11 @@ type BaseListProps<T> = {
 	'aria-label'?: string
 }
 
-// Reorderable configurations require `getKey`: the index fallback produces
-// positional keys that change on reorder, remounting items mid-drag and
-// breaking keyboard-move refocus.
 /**
- * Props for {@link List}: the base list surface plus the reorder surface. A
- * reorderable list requires `getKey`, because the index fallback remounts an
- * item mid-drag.
+ * Props for {@link List}: the base list surface plus the reorder surface.
  *
  * @typeParam T - Shape of a single item.
+ * @see {@link List} for the `getKey` requirement on a reorderable list.
  */
 export type ListProps<T> = BaseListProps<T> &
 	(

@@ -1,9 +1,9 @@
 import type { ReactNode } from 'react'
 
-/** Severity tier that selects a toast's icon and accent color. */
+/** Severity of a toast, mapped to the underlying `Alert` tone. */
 export type ToastSeverity = 'default' | 'secondary' | 'success' | 'warning' | 'error'
 
-/** Viewport corner the toast stack occupies. */
+/** Viewport corner the toast stack anchors to. */
 export type ToastPosition = 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left'
 
 export type ToastData = {

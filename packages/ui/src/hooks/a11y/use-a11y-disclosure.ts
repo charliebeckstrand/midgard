@@ -4,10 +4,7 @@ import { useMemo } from 'react'
 import type { AriaProps } from '../../types'
 import { useIdScope } from '../use-id-scope'
 
-/**
- * Options for {@link useA11yDisclosure}: the scope base `id`, the per-pair
- * `key` discriminator, and the `expanded` state the trigger reports.
- */
+/** Options for {@link useA11yDisclosure}. */
 export type A11yDisclosureOptions = {
 	/**
 	 * Scope base id; falls back to a generated one. Pass a shared base when a
@@ -24,10 +21,7 @@ export type A11yDisclosureOptions = {
 	expanded?: boolean
 }
 
-/**
- * An {@link useA11yDisclosure} result: the matched `triggerId` / `panelId` and
- * a `triggerProps` / `panelProps` bag to spread onto each side of the pair.
- */
+/** Return shape of {@link useA11yDisclosure}: the matched id pair and a prop bag for each side. */
 export type A11yDisclosure = {
 	/** Id the trigger renders with: the panel's `aria-labelledby` target. */
 	triggerId: string

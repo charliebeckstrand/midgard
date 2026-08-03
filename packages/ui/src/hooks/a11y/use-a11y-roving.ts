@@ -173,8 +173,8 @@ function applyVirtualActiveDom(
 /**
  * The in-flight mount watcher per container. Each navigation owns at most one;
  * {@link setVirtualActiveIndexed} disconnects the previous one up front, so a
- * superseded watcher doesn't linger (or stack) waiting for a mutation that can
- * never come.
+ * superseded watcher doesn't linger (or stack) waiting for a mutation that
+ * never comes.
  *
  * @internal
  */
@@ -376,8 +376,8 @@ type RovingKeyContext = {
  * empty in DOM mode, `itemSource.count` is 0 in indexed mode). Indexed mode
  * (a virtual `itemSource` paired with `activeIndexRef`) reads the current
  * index off `activeIndexRef` — clamped to the source's live `count`, since a
- * filter can shrink it between keystrokes — instead of a scan of the DOM,
- * which can hold no mounted active row.
+ * filter can shrink it between keystrokes — instead of a DOM scan, which
+ * cannot see an active row that is not mounted.
  *
  * @internal
  */

@@ -8,8 +8,8 @@
  * writes — `#rrggbb`, `rgb(…)`, and the OKLCH of the Tailwind theme
  * (`oklch(…)`) — or from an {@link Srgb} triple.
  *
- * Every colour is opaque here, and the parser drops an alpha channel. Composite
- * a translucent wash over its surface before you measure it.
+ * The maths treats every colour as opaque and ignores its alpha channel.
+ * Composite a translucent wash over its surface before you measure it.
  */
 
 /** An sRGB colour as three gamma-encoded channels in `[0, 1]` — the space CSS colours live in. */
@@ -216,8 +216,7 @@ export function meetsContrast(
  * Pick the readable ink for a `background` from an ordered list of candidates.
  * The first candidate that clears the `threshold` against the background wins.
  * Lead the list with the preferred ink (white, say) to get it wherever the ink
- * stays legible. When no candidate clears the threshold, the function returns
- * the highest-contrast one as the best available fallback.
+ * stays legible. When none clears it, the highest-contrast candidate wins.
  *
  * @param threshold - A named {@link ContrastLevel} or a raw ratio an ink must clear to win outright.
  * @defaultValue `'AA'` (4.5:1)

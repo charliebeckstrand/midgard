@@ -188,8 +188,8 @@ export type GridGroupHeaderContext = {
  * as a group header. It carries the group's stable `key` — the identity the
  * expanded set and {@link GridGroupBy.onGroupExpand} speak — plus the grouped
  * column's shared `value`, which is the default header label. The backend also
- * supplies the group's child `count`, because the grid can hold none of the
- * children.
+ * supplies the group's child `count`, because the grid holds no child row of a
+ * collapsed group.
  */
 export type GridGroupHeaderRow = {
 	/** Stable group identity; keys the expanded set and the lazy-load callback. */

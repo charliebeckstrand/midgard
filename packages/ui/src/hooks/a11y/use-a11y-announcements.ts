@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react'
 import { announce } from '../../core'
 
-/** Options for {@link useA11yAnnouncements}: the `assertive` urgency flag and the `enabled` gate. */
+/** Options for {@link useA11yAnnouncements}. */
 export type A11yAnnouncementsOptions = {
 	/** Announce assertively (interrupts the user) rather than politely. @defaultValue false */
 	assertive?: boolean

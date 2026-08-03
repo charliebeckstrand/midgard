@@ -12,7 +12,8 @@ already shipped.
 ## Structure
 
 - **Curated surface references** — one per public surface, kept current with the
-  code: [`COMPONENTS.md`](COMPONENTS.md), [`LAYOUTS.md`](LAYOUTS.md), [`HOOKS.md`](HOOKS.md),
+  code: [`COMPONENTS.md`](COMPONENTS.md), [`MODULES.md`](MODULES.md),
+  [`LAYOUTS.md`](LAYOUTS.md), [`HOOKS.md`](HOOKS.md),
   [`PRIMITIVES.md`](PRIMITIVES.md), [`PROVIDERS.md`](PROVIDERS.md),
   [`RECIPES.md`](RECIPES.md), [`CORE.md`](CORE.md), [`UTILITIES.md`](UTILITIES.md).
   Each lists its surface for quick glance; every category but components carries a
@@ -38,9 +39,8 @@ single-lens, point-in-time sweeps under `audits/` and design records under
 An audit file takes the name `{date}-{LENS}-AUDIT.md`, where:
 
 - `{date}` is the ISO date (`YYYY-MM-DD`) of the sweep — the same date in the
-  document's header. The prefix keeps the directory in chronological order. It
-  also lets a later pass re-audit one lens without an overwrite of the prior
-  one.
+  document's header. The prefix keeps the directory in chronological order, and
+  lets a later pass re-audit one lens; the prior pass stays.
 - `{LENS}` is the upper-case subject of the sweep: `ARIA`, `BUG`, `PROP`, etc.
 
 A plan file follows the same convention as `{date}-{SUBJECT}-PLAN.md`. The

@@ -8,10 +8,7 @@ import { useIdScope } from '../use-id-scope'
 /** Which ARIA relation a registered slot's id contributes to. */
 export type A11yRelation = 'labelledby' | 'describedby'
 
-/**
- * Options for {@link useA11yScope}: an explicit scope `id` and the named
- * `slots` the scope derives an id for.
- */
+/** Options for {@link useA11yScope}. */
 export type A11yScopeOptions<Slot extends string = never> = {
 	/** Explicit scope id; falls back to a generated one. */
 	id?: string
@@ -24,8 +21,7 @@ export type A11yScopeOptions<Slot extends string = never> = {
 }
 
 /**
- * An {@link useA11yScope} result: the scope `id`, the `sub` deriver, the
- * per-slot `ids` / `register` / `registered` maps, and the composed `ariaProps`.
+ * Return shape of {@link useA11yScope}.
  *
  * @typeParam Slot - Union of the slot names the scope declares.
  */

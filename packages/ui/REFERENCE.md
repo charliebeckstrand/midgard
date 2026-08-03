@@ -1,6 +1,6 @@
 # REFERENCE.md
 
-> **Scope:** the hub for the `ui` package surface. The per-category inventories live as curated, quick-glance docs under [`docs/`](docs), and this file maps to them. It also keeps the cross-cutting architecture — the server/client boundary, and how to compose a new component — that belongs to no single category. Authoring conventions live in [`../../CONVENTIONS.md`](../../CONVENTIONS.md).
+> **Scope:** the hub for the `ui` package surface. The per-category inventories live as curated, quick-glance docs under [`docs/`](docs). This file maps to them and keeps the cross-cutting architecture that no single category owns: the server/client boundary, and how to compose a new component. Authoring conventions live in [`../../CONVENTIONS.md`](../../CONVENTIONS.md).
 
 ## 1. Surface map
 
@@ -25,16 +25,16 @@ The library splits into two tiers. **Static components** carry no `'use client'`
 The boundary rule: ambient styling state crosses the server/client boundary through the DOM, never through React context. Context cannot reach a server-rendered child passed through a client parent; data attributes and CSS can. Concretely:
 
 - Hosts size their slot indicators with recipe projections: `shaku.icon` rows on Button/Badge/Sidebar, stepped-down icon and spinner rows on the control affix slots (`kiso/control/affix`). A projection owns its slot; an explicit `size` on a slot icon or spinner does not override it.
-- Card projects non-md section padding onto direct `data-slot=card-*` children, and AvatarGroup projects descendant avatar sizes. Table projects density, outline, and stripes onto descendant cells; DescriptionList projects orientation layout onto its `dt`/`dd` children. Direct-child and exact-depth selectors keep nested instances independent.
+- Card projects non-md section padding onto direct `data-slot=card-*` children; AvatarGroup projects descendant avatar sizes. Table projects density, outline, and stripes onto descendant cells; DescriptionList projects orientation layout onto its `dt`/`dd` children. Direct-child and exact-depth selectors keep nested instances independent.
 - `AffixContext` remains for client slot children (a Button inside an Input affix still steps down); static leaves never read it.
 - `DensityProvider` reaches client components only (Input, Button, Tabs, Menu, …). Static atoms ignore it; pass `size`/`space`/`gap` explicitly. A Badge in a control affix slot takes `size` one step below the control: the affix compensation constants assume the stepped-down chip.
-- A static host can *open* a density scope without reading one. An explicitly sized Card wraps its children in the `Density` client component, so client children inherit the step. The Card itself stays directive-free and server-renderable. This is client-to-client context — it never crosses the server/client boundary — and static children still ignore it. To read the cascade (`useDensity` and friends) stays banned in the static tier.
+- A static host can *open* a density scope without reading one. An explicitly sized Card wraps its children in the `Density` client component, so client children inherit the step. The Card itself stays directive-free and server-renderable. This is client-to-client context — it never crosses the server/client boundary — and static children still ignore it. The static tier must not read the cascade (`useDensity` and friends).
 - A caller composes loading UI explicitly from the `<Name>Skeleton` variants ([CONVENTIONS.md](../../CONVENTIONS.md) §3.7); the variants are themselves static.
 - Static leaves that link route through `PolymorphicStatic`: `href` renders a plain anchor, `render={<Link />}` composes the app router link per call site. Client components keep `Polymorphic`, which resolves the `<UIProvider>`-registered link from context.
 
 `static-component-boundary.test.ts` pins the contract: it scans every listed source file (the list lives in that test) for directives, hook calls, and ambient imports. The scan is source-level only; a transitive client-only pull through a new dependency surfaces at the consuming app's `next build`, not here.
 
-Two follow-up candidates still read ambient context for styling or formatting only. `locale` needs an API decision — explicit props or app wrappers — because formats cannot move to CSS. `glass` is worth a move once a static surface grows a glass variant; today every reader is a client component by necessity.
+Two follow-up candidates still read ambient context for styling or formatting only. `locale` needs an API decision — explicit props or app wrappers — because formats cannot move to CSS. `glass` can move once a static surface grows a glass variant; today every reader is a client component by necessity.
 
 ## 3. Composing a new component
 

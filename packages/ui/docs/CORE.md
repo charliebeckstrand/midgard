@@ -1,6 +1,6 @@
 # Core
 
-> **Quick-glance index of `ui/core`.** The small, framework-level toolkit every component leans on. It holds class composition, typed context creation, slot factories, the invalid-state attribute pair, slot queries, accessible-name resolution, and the imperative screen-reader announcer. The recipe **engine** also lives under `core/recipe/`, but it is internal and only the recipe layer reaches it — see [`RECIPES.md`](RECIPES.md).
+> **Quick-glance index of `ui/core`.** The small, framework-level toolkit every component leans on: class composition, typed context creation, slot factories, the invalid-state attribute pair, slot queries, and the screen-reader announcer. The recipe **engine** also lives under `core/recipe/`, but it is internal and only the recipe layer reaches it — see [`RECIPES.md`](RECIPES.md).
 
 ```ts
 import { cn, createContext, createSlot, announce } from 'ui/core'

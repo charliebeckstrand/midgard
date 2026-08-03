@@ -86,7 +86,7 @@ The substrate the bridge and kata call, in [`src/core/recipe/`](../src/core/reci
 
 ## Barrel surface
 
-The `recipes` barrel is types-only, pinned by `__tests__/boundary/recipe-boundary.test.ts`. It re-exports the substrate types so a consumer derives a prop union without a path through its kata.
+The barrel re-exports the substrate types, so a consumer derives a prop union without reaching through its kata. It also re-exports `Color` / `ExtendedColor` / `PaletteColor` from the engine table above.
 
 | Type | Summary |
 |---|---|
@@ -94,7 +94,6 @@ The `recipes` barrel is types-only, pinned by `__tests__/boundary/recipe-boundar
 | `Step` | Size step in the `sun` scale (`sm` / `md` / `lg`), which Density resolves against. |
 | `GroupPosition` | Where a member sits in a joined group, which selects the corners it rounds. |
 | `GroupOrientation` | Axis a joined group runs along. |
-| `Color` / `ExtendedColor` / `PaletteColor` | The palette colour sets, re-exported from the recipe engine above. |
 
 ## Boundary
 

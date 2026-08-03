@@ -27,8 +27,10 @@ export type ListContextValue = {
 }
 
 /**
- * Reads the enclosing {@link List} context: the `sortable` flag plus the
- * item keyboard and blur handlers. Throws outside a list.
+ * Item-facing list cascade. Provided by `<List>`; read by descendant items.
+ *
+ * @returns The enclosing {@link ListContextValue}.
+ * @throws When no `<List>` is mounted above the caller.
  */
 export const [ListContext, useListContext] = createContext<ListContextValue>('List')
 
@@ -50,7 +52,9 @@ export type ListItemContextValue = {
 }
 
 /**
- * Reads the enclosing {@link ListItem} context: the drag `listeners`, the
- * composed `style`, and the `dragging` flag. Throws outside an item.
+ * Drag-state cascade for one row. Provided by `<ListItem>`; read by its handle.
+ *
+ * @returns The enclosing {@link ListItemContextValue}.
+ * @throws When no `<ListItem>` is mounted above the caller.
  */
 export const [ListItemContext, useListItemContext] = createContext<ListItemContextValue>('ListItem')

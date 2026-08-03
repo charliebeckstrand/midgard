@@ -1,6 +1,6 @@
 # Utilities
 
-> **Quick-glance index of `src/utilities/`.** Small, dependency-free pure helpers shared across the package. They cover numeric clamping and formatting, locale coalescing, and WCAG colour-contrast maths. They also hold caret bookkeeping for formatted inputs, the Escape dismiss-layer stack, a shared document-event subscriber, and roving keyboard-navigation math. **Internal:** `utilities` is not a `package.json` export. Reach it by relative import within the package (`from '../../utilities'`), not as `ui/utilities`.
+> **Quick-glance index of `src/utilities/`.** Small, dependency-free pure helpers shared across the package: numeric clamping and formatting, locale coalescing, and WCAG colour-contrast maths. They also cover caret bookkeeping for formatted inputs, the Escape dismiss-layer stack, a shared document-event subscriber, and roving keyboard-navigation math. **Internal:** `utilities` is not a `package.json` export. Reach it by relative import within the package (`from '../../utilities'`), not as `ui/utilities`.
 
 ## Numeric
 
