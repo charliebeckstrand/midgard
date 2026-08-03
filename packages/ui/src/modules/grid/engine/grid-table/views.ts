@@ -3,7 +3,7 @@ import { isQueryActive } from '../../../query/engine/query-active'
 import type { QueryField, QueryGroup as QueryGroupNode } from '../../../query/engine/types'
 import type { GridColumn, GridPagination } from '../../types'
 import { DEFAULT_COLUMN_SIZE, DEFAULT_MIN_COLUMN_SIZE } from '../grid-constants'
-import type { FrozenLayout } from '../grid-pin/layout'
+import type { FrozenColumn, FrozenLayout } from '../grid-pin/layout'
 import { frozenSide } from '../grid-pin/overrides'
 
 /**
@@ -37,23 +37,19 @@ export type GridColumnResize = {
 }
 
 /**
- * Frozen-column controls over the engine's column-pinning state: which edge a
- * column is pinned to, its sticky offset from that edge, and whether it sits at
- * the inner boundary of its frozen group (where the separating shadow draws).
+ * Frozen-column controls: one lookup from a column id to the chrome it draws.
+ *
+ * @remarks Unlike its two siblings here, this one reads a resolved
+ * {@link FrozenLayout} snapshot rather than the engine. The pinned chrome rides
+ * `memo` boundaries, so a cell that holds on its props sees a frozen-layout
+ * change only through this object's identity — which a snapshot changes and a
+ * live reader does not.
  *
  * @internal
  */
 export type GridColumnPinning = {
-	/** The column's frozen edge, or `undefined` when it scrolls. */
-	side: (id: string | number) => 'left' | 'right' | undefined
-	/** Sticky offset (px) from the left edge — the summed width of the columns pinned left before it. */
-	leftOffset: (id: string | number) => number
-	/** Sticky offset (px) from the right edge — the summed width of the columns pinned right after it. */
-	rightOffset: (id: string | number) => number
-	/** Whether the column is the innermost left-pinned one (its right edge borders the scroll area). */
-	isLastLeft: (id: string | number) => boolean
-	/** Whether the column is the innermost right-pinned one (its left edge borders the scroll area). */
-	isFirstRight: (id: string | number) => boolean
+	/** The column's frozen chrome — edge, sticky offset, and boundary — or `undefined` when it scrolls. */
+	column: (id: string | number) => FrozenColumn | undefined
 }
 
 /**
@@ -265,45 +261,9 @@ export function buildColumnResize<T>(
 	}
 }
 
-/**
- * Assembles the {@link GridColumnPinning} controls over a resolved
- * {@link FrozenLayout}: each column's frozen side, its sticky offset from that
- * edge, and whether it sits at the inner boundary (where the edge rule and the
- * separating shadow draw).
- *
- * @remarks Every method reads the snapshot, never the engine. The pinned chrome
- * rides `memo` boundaries, so a cell that holds on its props must be able to see
- * a frozen-layout change through the controls' own identity — which a snapshot
- * gives it and a live reader does not.
- *
- * @internal
- */
+/** Assembles the {@link GridColumnPinning} lookup over a resolved {@link FrozenLayout}. @internal */
 export function buildColumnPinning(layout: FrozenLayout): GridColumnPinning {
-	const at = (id: string | number) => layout.get(String(id))
-
-	return {
-		side: (id) => at(id)?.side,
-		leftOffset: (id) => {
-			const entry = at(id)
-
-			return entry?.side === 'left' ? entry.offset : 0
-		},
-		rightOffset: (id) => {
-			const entry = at(id)
-
-			return entry?.side === 'right' ? entry.offset : 0
-		},
-		isLastLeft: (id) => {
-			const entry = at(id)
-
-			return entry?.side === 'left' && entry.boundary
-		},
-		isFirstRight: (id) => {
-			const entry = at(id)
-
-			return entry?.side === 'right' && entry.boundary
-		},
-	}
+	return { column: (id) => layout.get(String(id)) }
 }
 
 /**

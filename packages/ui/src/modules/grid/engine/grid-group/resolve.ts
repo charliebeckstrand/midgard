@@ -210,7 +210,7 @@ export function resolveGroupHeaderRow<T>(
 
 	const header = group.resolveHeader(
 		visibleColumns.map((c) => c.id),
-		(id) => pinning?.side(id),
+		(id) => pinning?.column(id)?.side,
 	)
 
 	return { header, hasGroupRow: header.spans.some((span) => span.kind === 'group') }

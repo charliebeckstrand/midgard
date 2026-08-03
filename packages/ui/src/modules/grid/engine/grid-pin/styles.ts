@@ -15,13 +15,11 @@ export function pinnedOffsetStyle(
 	pinning: GridColumnPinning | null,
 	id: string | number,
 ): CSSProperties | undefined {
-	if (!pinning) return undefined
+	const frozen = pinning?.column(id)
 
-	const side = pinning.side(id)
+	if (!frozen) return undefined
 
-	if (!side) return undefined
-
-	return side === 'left' ? { left: pinning.leftOffset(id) } : { right: pinning.rightOffset(id) }
+	return frozen.side === 'left' ? { left: frozen.offset } : { right: frozen.offset }
 }
 
 /**
@@ -40,17 +38,15 @@ export function pinnedClassName(
 	id: string | number,
 	options: { header?: boolean } = {},
 ): string {
-	if (!pinning) return ''
+	const frozen = pinning?.column(id)
 
-	const side = pinning.side(id)
+	if (!frozen) return ''
 
-	if (!side) return ''
+	const { side, boundary } = frozen
 
-	const atBoundary = side === 'left' ? pinning.isLastLeft(id) : pinning.isFirstRight(id)
+	const sideBorder = boundary && (side === 'left' ? k.pinned.border.right : k.pinned.border.left)
 
-	const sideBorder = atBoundary && (side === 'left' ? k.pinned.border.right : k.pinned.border.left)
-
-	const edge = atBoundary && (side === 'left' ? k.pinned.edge.left : k.pinned.edge.right)
+	const edge = boundary && (side === 'left' ? k.pinned.edge.left : k.pinned.edge.right)
 
 	return cn(options.header ? k.pinned.head : k.pinned.cell, sideBorder, edge)
 }

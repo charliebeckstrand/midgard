@@ -6,25 +6,24 @@ import type { FrozenOffsets } from '../../modules/grid/engine/grid-pin/measure'
 import { buildColumnPinning } from '../../modules/grid/engine/grid-table/views'
 import { useFrozenLayout } from '../../modules/grid/grid-table-views'
 
-/** One frozen column as the engine reports it: its offset from its edge, and whether it is the group's innermost. */
-type Pin = { id: string; offset: number; boundary?: boolean }
+/** One frozen column as the engine reports it: its id and its offset from its edge. */
+type Pin = { id: string; offset: number }
 
 /**
- * A table stub over the two frozen sections the layout reads, plus the per-column
- * offset and boundary each column answers with.
+ * A table stub over the two frozen sections the layout reads. The boundary is not
+ * stubbed: it falls out of each column's place in its section, which is the
+ * derivation under test.
  */
 function makeTable(left: Pin[], right: Pin[] = []): Table<{ id: number }> {
-	const column = (pin: Pin, side: 'left' | 'right') => ({
+	const column = (pin: Pin) => ({
 		id: pin.id,
-		getStart: () => (side === 'left' ? pin.offset : 0),
-		getAfter: () => (side === 'right' ? pin.offset : 0),
-		getIsLastColumn: () => side === 'left' && !!pin.boundary,
-		getIsFirstColumn: () => side === 'right' && !!pin.boundary,
+		getStart: () => pin.offset,
+		getAfter: () => pin.offset,
 	})
 
 	return {
-		getLeftVisibleLeafColumns: () => left.map((pin) => column(pin, 'left')),
-		getRightVisibleLeafColumns: () => right.map((pin) => column(pin, 'right')),
+		getLeftVisibleLeafColumns: () => left.map(column),
+		getRightVisibleLeafColumns: () => right.map(column),
 	} as unknown as Table<{ id: number }>
 }
 
@@ -34,16 +33,18 @@ function makeTable(left: Pin[], right: Pin[] = []): Table<{ id: number }> {
  * or a drag moving a width reaches them only through this value's identity.
  */
 describe('frozen column layout', () => {
-	// Name and Email freeze left with Email at the boundary; Status holds the right edge.
+	// Name and Email freeze left, Status holds the right edge.
 	const stacked = makeTable(
 		[
 			{ id: 'name', offset: 0 },
-			{ id: 'email', offset: 160, boundary: true },
+			{ id: 'email', offset: 160 },
 		],
-		[{ id: 'status', offset: 0, boundary: true }],
+		[{ id: 'status', offset: 0 }],
 	)
 
 	it("resolves both of the engine's frozen sections, in edge order", () => {
+		// The boundary lands on each group's innermost column: the last of the left
+		// section, the first of the right one.
 		expect([...frozenLayout(stacked, null)]).toEqual([
 			['name', { side: 'left', offset: 0, boundary: false }],
 			['email', { side: 'left', offset: 160, boundary: true }],
@@ -78,18 +79,15 @@ describe('frozen column layout', () => {
 		const dragged = makeTable(
 			[
 				{ id: 'name', offset: 0 },
-				{ id: 'email', offset: 250, boundary: true },
+				{ id: 'email', offset: 250 },
 			],
-			[{ id: 'status', offset: 0, boundary: true }],
+			[{ id: 'status', offset: 0 }],
 		)
 
 		expect(sameFrozenLayout(layout, frozenLayout(dragged, null))).toBe(false)
 
 		// An unpin puts the boundary — and the edge rule with it — on another column.
-		const repinned = makeTable(
-			[{ id: 'name', offset: 0, boundary: true }],
-			[{ id: 'status', offset: 0, boundary: true }],
-		)
+		const repinned = makeTable([{ id: 'name', offset: 0 }], [{ id: 'status', offset: 0 }])
 
 		expect(sameFrozenLayout(layout, frozenLayout(repinned, null))).toBe(false)
 	})
@@ -102,7 +100,7 @@ describe('frozen column layout', () => {
  * them moves.
  */
 describe('useFrozenLayout', () => {
-	const oneFrozen = makeTable([{ id: 'name', offset: 0, boundary: true }])
+	const oneFrozen = makeTable([{ id: 'name', offset: 0 }])
 
 	it('holds its reference while the frozen columns are unchanged', () => {
 		const { result, rerender } = renderHook(({ table }) => useFrozenLayout(true, table, null), {
@@ -113,7 +111,7 @@ describe('useFrozenLayout', () => {
 
 		// A re-render for another reason — a scrolling column's drag frame, say —
 		// resolves the same layout and must not churn the rows.
-		rerender({ table: makeTable([{ id: 'name', offset: 0, boundary: true }]) })
+		rerender({ table: makeTable([{ id: 'name', offset: 0 }]) })
 
 		expect(result.current).toBe(first)
 	})
@@ -128,7 +126,7 @@ describe('useFrozenLayout', () => {
 		rerender({
 			table: makeTable([
 				{ id: 'name', offset: 0 },
-				{ id: 'email', offset: 160, boundary: true },
+				{ id: 'email', offset: 160 },
 			]),
 		})
 
@@ -137,11 +135,9 @@ describe('useFrozenLayout', () => {
 		const pinning = buildColumnPinning(result.current)
 
 		// The rule follows the boundary onto the joining column, off the one it displaced.
-		expect(pinning.isLastLeft('email')).toBe(true)
+		expect(pinning.column('email')).toEqual({ side: 'left', offset: 160, boundary: true })
 
-		expect(pinning.isLastLeft('name')).toBe(false)
-
-		expect(pinning.leftOffset('email')).toBe(160)
+		expect(pinning.column('name')?.boundary).toBe(false)
 	})
 
 	it('resolves nothing for a grid with no frozen column', () => {
@@ -149,12 +145,6 @@ describe('useFrozenLayout', () => {
 
 		expect(result.current.size).toBe(0)
 
-		const pinning = buildColumnPinning(result.current)
-
-		expect(pinning.side('name')).toBeUndefined()
-
-		expect(pinning.leftOffset('name')).toBe(0)
-
-		expect(pinning.isLastLeft('name')).toBe(false)
+		expect(buildColumnPinning(result.current).column('name')).toBeUndefined()
 	})
 })

@@ -909,18 +909,15 @@ export function useGridTable<T>({
 		containerRef,
 	})
 
-	// Resolve the frozen columns to a snapshot — each one's edge, sticky offset,
-	// and whether it holds the group's boundary — rather than let the controls
-	// below read the engine at call time. The header cells and the body rows are
-	// memoized on those controls, so they see a frozen-layout change only through
-	// that object's identity: read live, the boundary rule would stay on the column
-	// a new pin displaced, and a sticky offset would hold its pre-drag pixels until
-	// the drag settled.
-	const frozenLayout = useFrozenLayout(hasPinned, table, pinnedOffsets)
+	// Resolve the frozen columns to a snapshot — each one's edge, sticky offset, and
+	// whether it holds the group's boundary — rather than let the controls below
+	// read the engine at call time, which the memoized header cells and body rows
+	// cannot see through (see `FrozenLayout`).
+	const frozen = useFrozenLayout(hasPinned, table, pinnedOffsets)
 
 	const pinning = useMemo<GridColumnPinning | null>(
-		() => (hasPinned ? buildColumnPinning(frozenLayout) : null),
-		[hasPinned, frozenLayout],
+		() => (hasPinned ? buildColumnPinning(frozen) : null),
+		[hasPinned, frozen],
 	)
 
 	return {

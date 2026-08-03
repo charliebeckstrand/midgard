@@ -2,7 +2,14 @@ import type { Table } from '@tanstack/react-table'
 import type { FrozenOffsets } from './measure'
 import type { PinSide } from './overrides'
 
-/** A column's frozen edge as the engine resolves it, or `undefined` when it scrolls. @internal */
+/**
+ * A column's frozen edge as the engine resolves it, or `undefined` when it
+ * scrolls. The one live read this module keeps: its caller runs in a layout
+ * effect, outside render, where the staleness {@link FrozenLayout} guards against
+ * cannot arise.
+ *
+ * @internal
+ */
 export function columnPinSide<T>(table: Table<T>, id: string | number): PinSide | undefined {
 	return table.getColumn(String(id))?.getIsPinned() || undefined
 }
@@ -59,21 +66,27 @@ export const EMPTY_FROZEN_LAYOUT: FrozenLayout = new Map<string, FrozenColumn>()
 export function frozenLayout<T>(table: Table<T>, measured: FrozenOffsets | null): FrozenLayout {
 	const layout = new Map<string, FrozenColumn>()
 
-	for (const column of table.getLeftVisibleLeafColumns()) {
+	// The boundary reads off the section itself — a left group's innermost column is
+	// its last, a right group's its first — which is what the engine's own
+	// `getIsLastColumn` / `getIsFirstColumn` re-derive by re-resolving this very
+	// array per column.
+	const left = table.getLeftVisibleLeafColumns()
+
+	left.forEach((column, index) => {
 		layout.set(column.id, {
 			side: 'left',
 			offset: measured?.left.get(column.id) ?? column.getStart('left'),
-			boundary: column.getIsLastColumn('left'),
+			boundary: index === left.length - 1,
 		})
-	}
+	})
 
-	for (const column of table.getRightVisibleLeafColumns()) {
+	table.getRightVisibleLeafColumns().forEach((column, index) => {
 		layout.set(column.id, {
 			side: 'right',
 			offset: measured?.right.get(column.id) ?? column.getAfter('right'),
-			boundary: column.getIsFirstColumn('right'),
+			boundary: index === 0,
 		})
-	}
+	})
 
 	return layout
 }
@@ -94,13 +107,14 @@ export function sameFrozenLayout(a: FrozenLayout, b: FrozenLayout): boolean {
 	for (const [id, entry] of a) {
 		const other = b.get(id)
 
-		if (!other) return false
-
-		if (other.side !== entry.side) return false
-
-		if (other.offset !== entry.offset) return false
-
-		if (other.boundary !== entry.boundary) return false
+		if (
+			!other ||
+			other.side !== entry.side ||
+			other.offset !== entry.offset ||
+			other.boundary !== entry.boundary
+		) {
+			return false
+		}
 	}
 
 	return true

@@ -338,10 +338,10 @@ export const GridColumnHeader = memo(function GridColumnHeader({
 }: GridColumnHeaderProps) {
 	const canResize = (resize?.canResize(column.id) ?? false) && interactive
 
-	// This column's frozen edge (read live from the engine), or `undefined` when it
-	// scrolls. A pinned header leads its title with an unpin button; a locked one
-	// shows no indicator (its frozen edge reads from the boundary border).
-	const pinnedSide = pinning?.side(column.id)
+	// This column's frozen edge, or `undefined` when it scrolls. A pinned header
+	// leads its title with an unpin button; a locked one shows no indicator (its
+	// frozen edge reads from the boundary border).
+	const pinnedSide = pinning?.column(column.id)?.side
 
 	const label = (
 		<ColumnHeaderLabel

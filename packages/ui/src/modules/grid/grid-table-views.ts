@@ -18,6 +18,24 @@ import {
 import type { GridColumn } from './types'
 
 /**
+ * Holds a re-derived value at its previous reference while `same` reports the two
+ * equal, so a render that resolved the same facts hands the memos below it the
+ * identity they already hold. The shape the snapshots in this file share: each
+ * reads the engine live every render, and republishes only on a real change.
+ *
+ * @internal
+ */
+function useStableValue<T>(candidate: T, same: (previous: T, next: T) => boolean): T {
+	const ref = useRef(candidate)
+
+	const stable = same(ref.current, candidate) ? ref.current : candidate
+
+	ref.current = stable
+
+	return stable
+}
+
+/**
  * The engine-resolved {@link deriveVisibleColumns} list, recomputed each render
  * (the leaf columns read live engine state) but held at a stable reference while
  * its contents are element-wise unchanged — so the header and the memos keyed on
@@ -26,15 +44,7 @@ import type { GridColumn } from './types'
  * @internal
  */
 export function useVisibleColumns<T>(table: Table<T>): GridColumn<T>[] {
-	const candidate = deriveVisibleColumns(table)
-
-	const ref = useRef(candidate)
-
-	const stable = sameElements(ref.current, candidate) ? ref.current : candidate
-
-	ref.current = stable
-
-	return stable
+	return useStableValue(deriveVisibleColumns(table), sameElements)
 }
 
 /**
@@ -54,25 +64,20 @@ export function useColumnSettleWidths<T>(
 	resize: GridColumnResize | null,
 	resizing: boolean,
 ): (number | undefined)[] {
-	const candidate = columns.map((col) =>
-		resize && !resizing && isDataColumn(col) ? resize.getSize(col.id) : undefined,
+	return useStableValue(
+		columns.map((col) =>
+			resize && !resizing && isDataColumn(col) ? resize.getSize(col.id) : undefined,
+		),
+		sameElements,
 	)
-
-	const ref = useRef(candidate)
-
-	const stable = sameElements(ref.current, candidate) ? ref.current : candidate
-
-	ref.current = stable
-
-	return stable
 }
 
 /**
  * The frozen columns' resolved chrome ({@link frozenLayout}), recomputed each
  * render — the engine's pin state and column sizes both read live — but held at a
  * stable reference while every frozen column keeps its edge, its offset, and the
- * boundary. The pinned chrome rides `memo` boundaries, so this reference is what
- * carries a frozen-layout change to the header cells and the body rows: pin a
+ * boundary. This reference is what carries a frozen-layout change across the
+ * memo boundaries the pinned chrome rides (see {@link FrozenLayout}): pin a
  * second column and the boundary rule moves off the first, drag a frozen column
  * wider and the ones behind it track it frame by frame instead of settling at the
  * end of the drag.
@@ -89,13 +94,8 @@ export function useFrozenLayout<T>(
 	table: Table<T>,
 	measured: FrozenOffsets | null,
 ): FrozenLayout {
-	const candidate = frozen ? frozenLayout(table, measured) : EMPTY_FROZEN_LAYOUT
-
-	const ref = useRef(candidate)
-
-	const stable = sameFrozenLayout(ref.current, candidate) ? ref.current : candidate
-
-	ref.current = stable
-
-	return stable
+	return useStableValue(
+		frozen ? frozenLayout(table, measured) : EMPTY_FROZEN_LAYOUT,
+		sameFrozenLayout,
+	)
 }
