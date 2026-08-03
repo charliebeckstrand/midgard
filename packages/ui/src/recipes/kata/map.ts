@@ -41,6 +41,13 @@ export const k = {
 		 * pointer-events-none copy.
 		 */
 		pointed: 'brightness-110',
+		/**
+		 * The selected region's outline. Foreground ink, not a palette slot: a
+		 * ring in one of the eight categorical hues would read as a ninth
+		 * category over the region it marks, and the neutral holds its contrast
+		 * over every slot and over the no-data fill alike.
+		 */
+		selected: mode('stroke-zinc-900', 'dark:stroke-white'),
 	},
 	/**
 	 * A mark group's response to emphasis — the legend's focused group, or the

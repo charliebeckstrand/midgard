@@ -789,3 +789,114 @@ describe('MapPlat region click', () => {
 		expect(container.querySelector('[data-region-index][tabindex]')).toBeNull()
 	})
 })
+
+describe('MapPlat selected region', () => {
+	it('rings the selected region by the identity a click reports', () => {
+		const { container, rerender } = renderUI(plat({ selectedRegion: 'B' }))
+
+		const ring = bySlot(container, 'map-region-selected')?.querySelector('path')
+
+		// The ring traces the selected region's own geometry, so the two can never
+		// name different regions.
+		expect(ring?.getAttribute('d')).toBe(allRegions(container)[1]?.getAttribute('d'))
+
+		// It marks the region rather than repainting it: the fill reads through, so
+		// a selected region still shows its category colour.
+		expect(ring).toHaveAttribute('fill', 'none')
+
+		rerender(plat({ selectedRegion: 'C' }))
+
+		expect(bySlot(container, 'map-region-selected')?.querySelector('path')?.getAttribute('d')).toBe(
+			allRegions(container)[2]?.getAttribute('d'),
+		)
+	})
+
+	it('rings the region a regionId accessor names, not the atlas id', () => {
+		const { container } = renderUI(
+			plat({
+				geography: FIXTURE_TOPOLOGY,
+				regionId: (feature) => String(feature.properties?.name),
+				selectedRegion: 'Alpha',
+			}),
+		)
+
+		expect(bySlot(container, 'map-region-selected')?.querySelector('path')?.getAttribute('d')).toBe(
+			allRegions(container)[0]?.getAttribute('d'),
+		)
+	})
+
+	it('rings nothing unset, cleared, or named by an id no region carries', () => {
+		const { container, rerender } = renderUI(plat())
+
+		expect(bySlot(container, 'map-region-selected')).toBeNull()
+
+		// A stale id — a pick outliving the geography it was made against — must
+		// ring nothing rather than falling to region 0, the miss `indexOf` reports
+		// as -1.
+		rerender(plat({ selectedRegion: 'Z' }))
+
+		expect(bySlot(container, 'map-region-selected')).toBeNull()
+
+		rerender(plat({ selectedRegion: 'A' }))
+
+		expect(bySlot(container, 'map-region-selected')).toBeInTheDocument()
+
+		rerender(plat({ selectedRegion: null }))
+
+		expect(bySlot(container, 'map-region-selected')).toBeNull()
+	})
+
+	it('stands the ring above the layer, outside the recede and off the hit path', () => {
+		const { container } = renderUI(plat({ selectedRegion: 'B' }))
+
+		const ring = bySlot(container, 'map-region-selected')
+
+		// Outside the recede group, so a pointed mark elsewhere dims the region
+		// under the ring but never the ring: a standing pick outlasts a passing
+		// hover.
+		expect(bySlot(container, 'map-regions-recede')?.contains(ring)).toBe(false)
+
+		expect(ring).toHaveClass('pointer-events-none')
+
+		// No region anchor on the copy: the base path stays the sole hit target, so
+		// the hover resolve never reads the same region twice.
+		expect(ring?.querySelector('[data-region-index]')).toBeNull()
+
+		expect(allRegions(container)).toHaveLength(3)
+	})
+
+	it('takes no pointer affordance from a selection alone', () => {
+		// A map showing a pick made elsewhere — a Select, a route parameter — is a
+		// readout, not a picker: without `onRegionClick` there is no click to
+		// promise.
+		const { container } = renderUI(plat({ selectedRegion: 'B' }))
+
+		expect(bySlot(container, 'map-regions')?.getAttribute('class')).not.toContain('cursor-pointer')
+	})
+
+	it('reads the selected region as current in the visually-hidden table', () => {
+		const { container, rerender } = renderUI(plat({ selectedRegion: 'B' }))
+
+		const rowNames = () =>
+			Array.from(bySlot(container, 'map-table')?.querySelectorAll('tbody th') ?? []).map((cell) => [
+				cell.textContent,
+				cell.getAttribute('aria-current'),
+			])
+
+		// Value parity for the pick: assistive tech reads the selection off the
+		// table, never off the ring alone.
+		expect(rowNames()).toEqual([
+			['Alpha', null],
+			['Beta', 'true'],
+			['Gamma', null],
+		])
+
+		rerender(plat({ selectedRegion: null }))
+
+		expect(rowNames()).toEqual([
+			['Alpha', null],
+			['Beta', null],
+			['Gamma', null],
+		])
+	})
+})

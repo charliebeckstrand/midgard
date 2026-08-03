@@ -17,17 +17,21 @@ export type MapTableProps = {
 	categories: MapCategoryMeta[]
 	/** Registered overlays, appended as their own rows. */
 	entries: MapOverlayEntry[]
+	/** The selected region's feature index, `null` when nothing is picked; its row reads as the current one. */
+	selected?: number | null
 }
 
 /**
  * The map's visually-hidden data table: every region with its category, and
  * every overlay with its detail, in plain markup outside the `role="img"`
  * region. Assistive tech gets full value parity without the pointer, so the
- * tooltip stays an enhancement.
+ * tooltip stays an enhancement — and the selected region's row carries
+ * `aria-current`, so a pick shows in the readout and not in the ring alone.
  *
  * Memoised so it repaints only when the readout changes, not on legend
  * emphasis or toggling — it reads neither, so a legend hover need never
- * re-map thousands of rows on a county atlas.
+ * re-map thousands of rows on a county atlas. A selection does re-map them,
+ * which is why the plat defers this table off the urgent render.
  * @internal
  */
 export const MapTable = memo(function MapTable({
@@ -37,6 +41,7 @@ export const MapTable = memo(function MapTable({
 	regionValues,
 	categories,
 	entries,
+	selected,
 }: MapTableProps) {
 	return (
 		// The hiding lives on a wrapper: width/height on a `display: table` box
@@ -59,7 +64,12 @@ export const MapTable = memo(function MapTable({
 
 						return (
 							<tr key={key}>
-								<th scope="row">{regionNames[index]}</th>
+								{/* `aria-current` on the row header, not the row: it is the
+								    name that announces, and support for the attribute on a
+								    plain `tr` is uneven. */}
+								<th scope="row" aria-current={index === selected ? 'true' : undefined}>
+									{regionNames[index]}
+								</th>
 
 								<td>
 									{regionValues[index] ??

@@ -130,8 +130,10 @@ function RoutedMarker({ label, start, end }: { label: string; start: LngLat; end
 }
 
 /**
- * `onRegionClick` in full: clicking a state picks it, and the Select beside the
- * map picks the same one. Both halves are the contract — the region paths are
+ * `onRegionClick` and `selectedRegion` in full: clicking a state picks it, the
+ * Select beside the map picks the same one, and the map rings whichever is
+ * picked. One `picked` state drives both halves, so neither can disagree about
+ * what is selected. Both halves are the contract — the region paths are
  * presentational inside the plot's `role="img"`, so the pointer affordance on
  * the map is an enhancement over a control that carries the keyboard.
  */
@@ -139,6 +141,11 @@ function ClickableStates({ geography }: { geography: MapGeography | null }) {
 	const [picked, setPicked] = useState<string | null>(null)
 
 	const zone = timezones.find((row) => row.state === picked)?.zone
+
+	// Clicking the ringed state clears it. The map holds no selection of its
+	// own, so the toggle policy is the consumer's: a picker that can only ever
+	// move its pick leaves a pointer user no way back out of one.
+	const pick = (state: string) => setPicked((prev) => (prev === state ? null : state))
 
 	return (
 		<Stack gap="md">
@@ -169,7 +176,8 @@ function ClickableStates({ geography }: { geography: MapGeography | null }) {
 				categoryKey="zone"
 				categories={zoneCategories}
 				regionId={stateName}
-				onRegionClick={setPicked}
+				onRegionClick={pick}
+				selectedRegion={picked}
 				legend="right"
 			/>
 		</Stack>

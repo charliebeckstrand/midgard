@@ -13,7 +13,7 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
 import { type MapHoverTarget, regionIndexAt, useMapHoverSet, useMapPointedMark } from './context'
 import { categoryLegendId, type MapCategoryMeta } from './map-categories'
-import { REGION_STROKE_WIDTH } from './map-constants'
+import { REGION_SELECTED_STROKE_WIDTH, REGION_STROKE_WIDTH } from './map-constants'
 import { REGION_FADE, REGION_STAGGER, REGION_STAGGER_MAX } from './map-motion'
 
 /** Props for {@link MapRegions}. @internal */
@@ -45,6 +45,14 @@ export type MapRegionsProps = {
 	 * picker), which the map's data table then reads for value parity.
 	 */
 	onRegionClick?: (index: number) => void
+	/**
+	 * The selected region's feature index, `null` when nothing is picked —
+	 * {@link MapPlat} resolves it from the public identity. It only rings the
+	 * region; the layer's clickability rides {@link onRegionClick} alone, so a
+	 * map showing a pick made elsewhere takes no pointer affordance it can't
+	 * honour.
+	 */
+	selected?: number | null
 }
 
 /** The colour wash's transition classes under `animate`; static maps colour without one. */
@@ -343,6 +351,37 @@ function MapRegionsLit({ pointed, emphasis, paths, regionCategory, paints }: Map
 }
 
 /**
+ * The selected region's outline — the standing pick, where the pointed
+ * emphasis is a passing one. It draws above both region layers and outside
+ * the recede group, so the ring holds at full strength while a pointed mark
+ * isolates something else: a selection made before the pointer arrived must
+ * not vanish under it.
+ *
+ * The ring marks the region rather than repainting it — `fill="none"` leaves
+ * the region's own colour (and whatever dim it carries) reading through — and
+ * `pointer-events-none` keeps the base path the hit target, the same discipline
+ * the lit copies keep.
+ *
+ * @internal
+ */
+function MapRegionSelected({ d }: { d: string }) {
+	return (
+		<g data-slot="map-region-selected" className="pointer-events-none">
+			<path
+				d={d}
+				fill="none"
+				strokeWidth={REGION_SELECTED_STROKE_WIDTH}
+				// Device pixels, not viewBox units — the region seam's discipline: a
+				// refit landing a beat behind a resize must sharpen the ring, never
+				// fatten it.
+				vectorEffect="non-scaling-stroke"
+				className={cn(k.region.selected)}
+			/>
+		</g>
+	)
+}
+
+/**
  * The region paths — every feature filled by its category's slot colour, the
  * neutral no-data fill where nothing matches (or the category is toggled
  * off — a hole in a map reads broken, unlike a missing bar). Regions are
@@ -353,7 +392,9 @@ function MapRegionsLit({ pointed, emphasis, paths, regionCategory, paints }: Map
  * isolates itself, else the legend's focused group holds — and the
  * emphasised marks redraw lit above it ({@link MapRegionsLit}). One element
  * fades where thousands of per-path transitions once ran, and the base tree
- * holds its render through the whole interaction.
+ * holds its render through the whole interaction. The selected region rings
+ * above both ({@link MapRegionSelected}), outside the recede: the standing
+ * pick outlasts every passing emphasis.
  *
  * @remarks Under `animate` the geography paints solid at once and only the
  * category colour washes in: each region's fill crossfades from the neutral
@@ -378,6 +419,7 @@ export const MapRegions = memo(function MapRegions({
 	emphasis,
 	animate,
 	onRegionClick,
+	selected,
 }: MapRegionsProps) {
 	const set = useMapHoverSet()
 
@@ -409,6 +451,10 @@ export const MapRegions = memo(function MapRegions({
 	)
 
 	const receded = pointed !== null || emphasis !== null
+
+	// A selection naming no drawn region rings nothing: the id may match no
+	// feature, and a region the geometry dropped has a `null` path.
+	const selectedPath = selected == null ? null : (paths[selected] ?? null)
 
 	return (
 		// biome-ignore lint/a11y/noStaticElementInteractions: a pointer delegation surface, not an interactive control — the SVG is aria-hidden under the plot's role="img", so the click's keyboard counterpart is a control the consumer supplies (see MapRegionsProps.onRegionClick)
@@ -449,6 +495,8 @@ export const MapRegions = memo(function MapRegions({
 					paints={paints}
 				/>
 			)}
+
+			{selectedPath !== null && <MapRegionSelected d={selectedPath} />}
 		</g>
 	)
 })
