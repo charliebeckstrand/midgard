@@ -13,6 +13,12 @@ describe('Kbd', () => {
 		expect(el?.tagName).toBe('KBD')
 	})
 
+	it('holds its glyph width instead of stretching in a flex parent', () => {
+		const { container } = renderUI(<Kbd>K</Kbd>)
+
+		expect(bySlot(container, 'kbd')).toHaveClass('w-fit')
+	})
+
 	it('renders command modifier glyph when command is set', () => {
 		renderUI(<Kbd command>K</Kbd>)
 
