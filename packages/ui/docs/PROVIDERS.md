@@ -1,6 +1,6 @@
 # Providers
 
-> **Quick-glance index of `ui/providers/*`.** Providers configure the **client** tier — they broadcast ambient state (density, glass, locale, motion, toasts, link/portal integration) through React context to descendant client components. Static (server-renderable) components ignore context and take explicit props; see [`../REFERENCE.md`](../REFERENCE.md) §2 for the server/client boundary.
+> **Quick-glance index of `ui/providers/*`.** Providers configure the **client** tier. They broadcast ambient state — density, glass, locale, motion, toasts, and link/portal integration — through React context to descendant client components. A static (server-renderable) component ignores context and takes explicit props; see [`../REFERENCE.md`](../REFERENCE.md) §2 for the server/client boundary.
 
 ```ts
 import { DensityProvider } from 'ui/providers/density'
@@ -27,7 +27,7 @@ Broadcasts ambient density to size-aware client components.
 |---|---|
 | `DensityProvider` | Friendly t-shirt-named (`compact` / `snug` / `loose`) wrapper that broadcasts ambient density to size-aware client components. |
 | `DensityProviderProps` *(type)* | Props for `DensityProvider`. |
-| `useDensityLevel` | Resolves `explicit ?? ambient ?? 'snug'` for a client component whose props speak `DensityLevel` (e.g. `Grid`) but that should still inherit an enclosing `DensityProvider`. |
+| `useDensityLevel` | Resolves `explicit ?? ambient ?? 'snug'` for a client component whose props speak `DensityLevel` (e.g. `Grid`) but that must still inherit an enclosing `DensityProvider`. |
 | `DensityLevel` *(type)* | Friendly density level a `<DensityProvider>` broadcasts; `'snug'` is the baseline. |
 | `densityLevels` | Selectable density levels with display labels, ordered loose → compact, for density pickers. |
 | `densityToSize` | Maps each friendly density level to the `Step` carried by the Density primitive (loose→lg, snug→md, compact→sm). |

@@ -4,12 +4,12 @@
  *
  * The maths is WCAG 2.1 (1.4.3): a colour's relative luminance from its
  * gamma-decoded sRGB channels, then the `(L₁ + 0.05) / (L₂ + 0.05)` ratio of
- * the lighter over the darker. Inputs parse from the forms the design system
- * writes — `#rrggbb`, `rgb(…)`, and the OKLCH the Tailwind theme is authored in
- * (`oklch(…)`) — or an {@link Srgb} triple.
+ * the lighter over the darker. An input parses from the forms the design system
+ * writes — `#rrggbb`, `rgb(…)`, and the OKLCH of the Tailwind theme
+ * (`oklch(…)`) — or from an {@link Srgb} triple.
  *
- * Colours are treated as opaque: an alpha channel is ignored, so composite a
- * translucent wash over its surface before measuring it.
+ * The maths treats every colour as opaque and ignores its alpha channel.
+ * Composite a translucent wash over its surface before you measure it.
  */
 
 /** An sRGB colour as three gamma-encoded channels in `[0, 1]` — the space CSS colours live in. */
@@ -213,11 +213,10 @@ export function meetsContrast(
 }
 
 /**
- * Pick the readable ink for a `background` from an ordered list of candidates:
- * the first that clears the `threshold` against the background, so leading the
- * list with the preferred ink (say white) yields it wherever it stays legible.
- * When none clears, the highest-contrast candidate is returned as the best
- * available fallback.
+ * Pick the readable ink for a `background` from an ordered list of candidates.
+ * The first candidate that clears the `threshold` against the background wins.
+ * Lead the list with the preferred ink (white, say) to get it wherever the ink
+ * stays legible. When none clears it, the highest-contrast candidate wins.
  *
  * @param threshold - A named {@link ContrastLevel} or a raw ratio an ink must clear to win outright.
  * @defaultValue `'AA'` (4.5:1)

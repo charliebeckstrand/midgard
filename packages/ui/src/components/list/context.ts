@@ -26,6 +26,12 @@ export type ListContextValue = {
 	onItemBlur: () => void
 }
 
+/**
+ * Item-facing list cascade. Provided by `<List>`; read by descendant items.
+ *
+ * @returns The enclosing {@link ListContextValue}.
+ * @throws When no `<List>` is mounted above the caller.
+ */
 export const [ListContext, useListContext] = createContext<ListContextValue>('List')
 
 /** Per-item drag bindings shared with an item and its handle: the item `id`, sortable refs/attributes/listeners, transform `style`, and the `dragging` flag. */
@@ -45,4 +51,10 @@ export type ListItemContextValue = {
 	dragging: boolean
 }
 
+/**
+ * Drag-state cascade for one row. Provided by `<ListItem>`; read by its handle.
+ *
+ * @returns The enclosing {@link ListItemContextValue}.
+ * @throws When no `<ListItem>` is mounted above the caller.
+ */
 export const [ListItemContext, useListItemContext] = createContext<ListItemContextValue>('ListItem')

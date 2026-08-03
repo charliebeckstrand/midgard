@@ -112,8 +112,8 @@ export function aggregateLabelSpan<T>(columns: GridColumn<T>[]): number {
  * value over `rows`; manual (server) grouping passes the group-header row as
  * `headerRow` instead, reading the backend figure off the row itself — through
  * {@link columnAccessor}, the same `value`-accessor-else-field path every
- * client aggregate reads — with `rows` empty by contract (the children may not
- * be loaded).
+ * client aggregate reads — with `rows` empty by contract (the children are not
+ * loaded).
  *
  * @internal
  */

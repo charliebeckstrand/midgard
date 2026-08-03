@@ -63,7 +63,7 @@ export const DEFAULT_CONTENT_MAX = 480
 /**
  * Text room (px) the autosizer reserves beyond a header's affordance icons for a
  * multi-word or non-string title — enough for a few characters and the ellipsis,
- * so such a header may truncate. A single-word title instead reserves its full
+ * so such a header can truncate. A single-word title instead reserves its full
  * width (it never truncates); see the column measurer. @internal
  */
 export const HEADER_TRUNCATE_ALLOWANCE = 24

@@ -98,7 +98,7 @@ export function diameterRange(size?: number, maxSize?: number): [number, number]
  * A point's radius: bubbles interpolate on the square root of the size — area,
  * not diameter, carries the quantity — between the diameter range's ends over
  * the series' own size extent. A sizeless point (or series) takes the plain
- * marker radius; a degenerate extent reads mid-range, since equal sizes should
+ * marker radius; a degenerate extent reads mid-range, because equal sizes must
  * read equal, not minimal.
  *
  * @internal

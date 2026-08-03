@@ -8,6 +8,10 @@ import { MenuActionsContext, MenuStateContext } from './context'
 import { MenuPointerLevel } from './use-menu-pointer'
 import { useMenuState } from './use-menu-state'
 
+/**
+ * Props for {@link Menu}: the `open` / `defaultOpen` / `onOpenChange` state
+ * surface, the `placement` that selects dropdown mode, and a density-resolved `size`.
+ */
 export type MenuProps = {
 	open?: boolean
 	defaultOpen?: boolean

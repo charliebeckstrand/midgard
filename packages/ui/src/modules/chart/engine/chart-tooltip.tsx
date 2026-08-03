@@ -86,7 +86,7 @@ export type ChartTooltipProps = {
 	 */
 	orientation?: ChartOrientation
 	/**
-	 * The series indices, in the order the rows should read — the marks' own
+	 * The series indices, in the order the rows must read — the marks' own
 	 * visible top-to-bottom order, so a stacked column reads its top segment first
 	 * and overlapping lines read in their drawn value order. Omitted, the rows keep
 	 * the readout's series order. The readout itself is untouched, so the

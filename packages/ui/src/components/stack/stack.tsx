@@ -5,7 +5,7 @@ export type StackProps = FlexProps
 
 /**
  * Vertical flex container: Flex with `direction` defaulting to `col` (a caller
- * may still pass `direction="row"` to lay out horizontally). Children stretch
+ * can still pass `direction="row"` to lay out horizontally). Children stretch
  * across the inline axis and `gap` is explicit, matching Flex. Static leaf:
  * renders in React Server Components.
  *
@@ -14,7 +14,7 @@ export type StackProps = FlexProps
  * for rows, Stack for columns", while `direction` here stays overridable and
  * eight demos pass `direction="row"`. Either Stack is a strict column — type-lock
  * `direction` and migrate those demos — or it is a col-defaulted Flex and the
- * Flex doc should say so. Settle the two together, not one at a time.
+ * Flex doc must say so. Settle the two together, not one at a time.
  */
 export function Stack(props: StackProps) {
 	return <Flex data-slot="stack" direction="col" {...props} />

@@ -9,7 +9,7 @@
  * exposing CSS-variable bundles per colour.
  *
  * Authoring style: the dark string carries its own `dark:` prefix, one per
- * class; a single entry may bundle several variable-setters. Use `shades()`
+ * class; a single entry can bundle several variable-setters. Use `shades()`
  * from `./shades` for the per-`Color` form; both helpers expect the dark
  * class to ship its prefix, and Tailwind detects only full class literals.
  */

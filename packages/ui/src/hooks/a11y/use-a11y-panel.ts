@@ -9,8 +9,13 @@ const PANEL_SLOTS = {
 	description: 'describedby',
 } as const satisfies Record<string, A11yRelation>
 
+/** Dialog-root role. */
 export type A11yPanelRole = 'dialog' | 'alertdialog'
 
+/**
+ * Title / Description ids and registrars that {@link useA11yPanel} hands to
+ * `PanelProviders`, so each slot adopts its derived id on mount.
+ */
 export type A11yPanelProviderValue = {
 	titleId: string
 	descriptionId: string
@@ -18,6 +23,7 @@ export type A11yPanelProviderValue = {
 	registerDescription: (renderedId?: string) => () => void
 }
 
+/** Return shape of {@link useA11yPanel}. */
 export type A11yPanel = {
 	/** Spread onto the panel root: role, `aria-modal`, and the labelling refs. */
 	ariaProps: AriaProps

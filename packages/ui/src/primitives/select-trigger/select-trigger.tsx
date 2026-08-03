@@ -7,6 +7,11 @@ import { k } from '../../recipes/kata/select'
 import { AffixContext, affixStepDown } from '../affix'
 import { ControlFrame } from '../control'
 
+/**
+ * Props for {@link SelectTrigger}: the floating-reference wiring the caller
+ * owns (`open`, `setReference`, `getReferenceProps`), the `glass` / `size`
+ * presentation, and the prefix / suffix slot content.
+ */
 export type SelectTriggerProps = {
 	open: boolean
 	setReference: Ref<HTMLDivElement>

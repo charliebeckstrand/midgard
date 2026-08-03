@@ -14,7 +14,7 @@ export type TimelineProps = {
 	 */
 	orientation?: TimelineOrientation
 	/**
-	 * Marker/line treatment shared with descendant items; `<TimelineItem>` may override per row.
+	 * Marker/line treatment shared with descendant items; `<TimelineItem>` can override per row.
 	 * @defaultValue 'solid'
 	 */
 	variant?: TimelineVariant

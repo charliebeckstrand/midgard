@@ -2,9 +2,9 @@
 
 > **Quick-glance index of every `ui` module** — the complex, multi-part compositions that bundle their own sub-components, hooks, types, and docs. Per-symbol behavior, props, and defaults live in each module's TSDoc and the docs site (`pnpm docs`). For the atomic components a module composes from, see [`COMPONENTS.md`](COMPONENTS.md).
 
-A module is larger than a component: it owns a family of sub-components and hooks behind one entry point, ships its own demo, and earns its own surface entry here. Modules build on the atomic `ui` components and primitives rather than living beside them.
+A module is larger than a component. It owns a family of sub-components and hooks behind one entry point, ships its own demo, and earns its own surface entry here. A module builds on the atomic `ui` components and primitives; it does not sit beside them.
 
-Each module is its own entry point under `ui/modules/*`. The bare `ui/<name>` shorthand resolves to the same barrel — module and component names never collide — so both specifiers work; canonical docs and snippets use the nested path:
+Each module is its own entry point under `ui/modules/*`. The bare `ui/<name>` shorthand resolves to the same barrel, because a module name and a component name never collide. Both specifiers work; canonical docs and snippets use the nested path:
 
 ```ts
 import { MapPlat } from 'ui/modules/map' // or the 'ui/map' shorthand

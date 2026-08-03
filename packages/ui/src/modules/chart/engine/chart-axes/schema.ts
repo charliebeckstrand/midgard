@@ -36,7 +36,7 @@ export type ChartValueAxis = {
 	title?: string
 	/**
 	 * Draw this axis's ticks as the chart's grid. On a cartesian chart one axis
-	 * should carry them — two independent tick sets rarely align, and doubled
+	 * normally carries them — two independent tick sets rarely align, and doubled
 	 * hairlines read as noise — so `y` defaults on and `y2` off, standing in
 	 * only when no `y`-bound series resolves a scale; a point chart's grid
 	 * reads both ways, so both its axes default on. Set an axis's `grid` false to

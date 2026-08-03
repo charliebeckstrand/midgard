@@ -88,7 +88,7 @@ export function recolorGroupIn(
  * Moves a column into a group, or out to the ungrouped pool. The column is first
  * pulled from every group it currently sits in (so it lives in one group at
  * most), then appended to the target group's members unless `groupId` is `null`.
- * Empty groups after the pull are kept — the user may still be filling them.
+ * Empty groups after the pull are kept — the user can still add members to them.
  * Backs the accessible "Move to" menu (the drag path commits through
  * {@link zoneMapToStores}).
  *

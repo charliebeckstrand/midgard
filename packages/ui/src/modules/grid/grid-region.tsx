@@ -227,7 +227,7 @@ export function DensityCascade({ level, children }: { level: DensityLevel; child
 
 /**
  * The density surrounding the grid, captured above {@link DensityCascade} — what
- * an overlay the grid spawns should render at, rather than the tightened step its
+ * an overlay the grid spawns must render at, rather than the tightened step its
  * cells use. Defaults to the `md` baseline for a grid outside any provider.
  *
  * @internal

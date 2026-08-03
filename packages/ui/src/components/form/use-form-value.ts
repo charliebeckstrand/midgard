@@ -31,7 +31,7 @@ export type FormValueResult<T> = {
  * @param name - Field key to bind; undefined leaves the hook unbound (plain
  * controlled/uncontrolled state).
  * @param options - `value` (controlled), `defaultValue` (uncontrolled seed,
- * may be a lazy initializer), and `onValueChange`.
+ * can be a lazy initializer), and `onValueChange`.
  * @returns A {@link FormValueResult} with `value`, `setValue`, `setTouched`,
  * and `invalid`.
  * @typeParam T - The control's value type.

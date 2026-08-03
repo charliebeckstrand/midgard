@@ -283,7 +283,7 @@ type MeasureOptions<T> = {
 }
 
 /**
- * A data column's hard floor (px): the narrowest it may be sized — by the
+ * A data column's hard floor (px): the narrowest it can be sized — by the
  * allocator or a drag-resize — before its header can't show. A single-word title
  * reserves its full width, so the column is at least that wide and the header
  * never truncates; a multi-word or non-string title reserves only its affordance

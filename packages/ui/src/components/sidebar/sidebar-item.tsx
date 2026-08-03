@@ -16,6 +16,7 @@ import { useInSidebarList, useSidebarMini } from './context'
 import { SidebarItemActions } from './sidebar-item-actions'
 import { SidebarLabel } from './sidebar-label'
 
+/** Props for {@link SidebarItem}: the `NavItem` surface plus a density-resolved `size`. */
 export type SidebarItemProps = NavItemProps & {
 	/** Size step. Resolves through `explicit ?? Density ?? 'md'`. */
 	size?: Step

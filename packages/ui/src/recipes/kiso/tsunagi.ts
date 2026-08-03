@@ -33,8 +33,10 @@
 
 import type { Orientation } from '../../types'
 
+/** Where a member sits in a joined group, which selects the corners it rounds. */
 export type GroupPosition = 'start' | 'middle' | 'end' | 'only'
 
+/** Axis a joined group runs along. */
 export type GroupOrientation = Orientation
 
 // Literal class strings: Tailwind's source scanner can't see selectors built
