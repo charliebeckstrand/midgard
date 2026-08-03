@@ -30,7 +30,8 @@ export type ListItemProps<Fallback extends ElementType = 'div'> = {
 	 */
 	as?: Fallback
 	// The content area is the link switch: with `href` set it renders the
-	// app-registered router link, the `as` element otherwise. `prefix` is a
+	// app-registered router link, the `as` element otherwise. An `onClick` here
+	// lands on that content area and marks the row interactive. `prefix` is a
 	// string-typed RDFa global we repurpose as a slot; `ref` is owned by the
 	// dnd-kit `<li>`.
 } & PolymorphicProps<Fallback, 'prefix' | 'ref'>
@@ -38,10 +39,11 @@ export type ListItemProps<Fallback extends ElementType = 'div'> = {
 /**
  * A row within a {@link List}, rendered as `<li>` with `prefix`/`suffix` slots
  * around a polymorphic content area that switches to the app's router link when
- * `href` is set and otherwise renders the `as` element (`'div'` by default). In
- * an interactive list it wires the drag/keyboard reorder bindings and
- * auto-inserts a {@link ListHandle} as the prefix unless one is supplied.
- * Density-scaled.
+ * `href` is set and otherwise renders the `as` element (`'div'` by default). A
+ * content area that acts on activation — `href` or `onClick` — counts as
+ * interactive and takes the muted text plus hover and pointer treatment. In a
+ * reorderable list it wires the drag/keyboard bindings and auto-inserts a
+ * {@link ListHandle} as the prefix unless one is supplied. Density-scaled.
  *
  * @typeParam Fallback - Element the content area renders when no `href` is
  *   given; selected via `as`.
@@ -60,11 +62,26 @@ export function ListItem<Fallback extends ElementType = 'div'>({
 }: ListItemProps<Fallback>) {
 	const { id, setNodeRef, attributes, style, dragging } = useListItemContext()
 
-	const { variant, sortable, interactive, liftedId, onItemKeyDown, onItemBlur } = useListContext()
+	// The list's own `interactive` is the reorder wiring; the row's is the
+	// content area's activation treatment. Alias the former to keep them apart.
+	const {
+		variant,
+		sortable,
+		interactive: reorderable,
+		liftedId,
+		onItemKeyDown,
+		onItemBlur,
+	} = useListContext()
 
 	const { space } = useDensity()
 
 	const lifted = liftedId === id
+
+	// A row that navigates and a row that fires a handler read the same to the
+	// user, so both take the content area's interactive treatment. Read the
+	// handler's value, not its key: `onClick={enabled ? open : undefined}` leaves
+	// the key on an inert row, which `in` would still count as interactive.
+	const interactive = href !== undefined || (props as { onClick?: unknown }).onClick !== undefined
 
 	// dnd-kit's attributes set role="button", overriding the <li> semantics.
 	// Drop the role; keep the focus/aria hints.
@@ -74,9 +91,9 @@ export function ListItem<Fallback extends ElementType = 'div'>({
 		<li
 			ref={setNodeRef}
 			style={style}
-			tabIndex={interactive ? (tabIndex ?? 0) : undefined}
+			tabIndex={reorderable ? (tabIndex ?? 0) : undefined}
 			onKeyDown={
-				interactive
+				reorderable
 					? (event: KeyboardEvent) => {
 							// Keys bubbling from focusable descendants (buttons, inputs)
 							// belong to them, not the reorder gestures.
@@ -86,8 +103,8 @@ export function ListItem<Fallback extends ElementType = 'div'>({
 						}
 					: undefined
 			}
-			onBlur={interactive ? onItemBlur : undefined}
-			{...(interactive ? dragAttrs : {})}
+			onBlur={reorderable ? onItemBlur : undefined}
+			{...(reorderable ? dragAttrs : {})}
 			data-slot="list-item"
 			data-item-id={id}
 			data-active={dataAttr(dragging)}
@@ -99,7 +116,7 @@ export function ListItem<Fallback extends ElementType = 'div'>({
 				as={as}
 				href={href}
 				data-slot="list-item-content"
-				className={k.content(href)}
+				className={k.content(interactive)}
 				{...props}
 			>
 				{children}

@@ -11,7 +11,7 @@ import { Text } from '../../components/text'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
 import { useMapPointedMark } from './context'
-import { categoryLegendId } from './map-categories'
+import { binEmphasisId } from './map-categories'
 
 /**
  * Which way a range legend and its glyph lay out: `'vertical'` stands the scale
@@ -592,7 +592,7 @@ export function MapRangeLegend({
 				label={label}
 				bins={bins}
 				orientation={orientation}
-				onProbe={(bin) => onFocus(bin === null ? null : categoryLegendId(String(bin)))}
+				onProbe={(bin) => onFocus(bin === null ? null : binEmphasisId(bin))}
 				arrow={
 					<RangeHoverArrow
 						regionNumbers={regionNumbers}
