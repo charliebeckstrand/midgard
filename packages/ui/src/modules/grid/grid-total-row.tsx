@@ -129,7 +129,7 @@ type GridTotalRowProps<T> = {
 
 /** A group total cell's collapsible body: the same CSS-grid reveal the group's leaf cells ride. @internal */
 function GroupRevealCell({
-	expanded,
+	open,
 	pad,
 	rail,
 	color,
@@ -138,7 +138,8 @@ function GroupRevealCell({
 	className,
 	children,
 }: {
-	expanded: boolean
+	/** Whether the reveal renders open — the row's reveal hold, not `expanded`. */
+	open: boolean
 	pad: string
 	rail?: boolean
 	/** The group's overlay color: tints the cell fill, and colors the leading rail when `rail` is set. */
@@ -163,7 +164,7 @@ function GroupRevealCell({
 			)}
 			style={NO_PADDING}
 		>
-			<div className={cn(k.rowGroup.reveal.track)} data-open={dataAttr(expanded)}>
+			<div className={cn(k.rowGroup.reveal.track)} data-open={dataAttr(open)}>
 				<div className={cn(k.rowGroup.reveal.clip)}>
 					<div className={cn(pad)}>{children}</div>
 				</div>
@@ -261,7 +262,7 @@ function GridGroupTotalRow<T>({
 				onTransitionEnd={reveal.onTransitionEnd}
 			>
 				<GroupRevealCell
-					expanded={expanded}
+					open={reveal.open}
 					pad={cn(pad, k.aggregate.label)}
 					rail
 					color={color}
@@ -273,7 +274,7 @@ function GridGroupTotalRow<T>({
 				{columns.slice(span).map((column) => (
 					<GroupRevealCell
 						key={column.id}
-						expanded={expanded}
+						open={reveal.open}
 						pad={cn(pad, k.aggregate.cell)}
 						color={color}
 						colId={column.id}
