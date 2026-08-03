@@ -30,6 +30,12 @@ export const k = {
 		/** Pointer emphasis on the hovered region. */
 		hover: 'hover:brightness-110',
 		/**
+		 * The pointer affordance on a clickable map's region layer — every
+		 * region is a target, so it rides the group and inherits down rather
+		 * than repeating on thousands of paths.
+		 */
+		clickable: 'cursor-pointer',
+		/**
 		 * The pointed region's lit copy carries the hover emphasis statically:
 		 * it is the hovered region by definition, and `:hover` can't reach the
 		 * pointer-events-none copy.

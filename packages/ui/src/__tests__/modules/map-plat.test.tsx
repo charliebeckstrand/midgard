@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { MapPlat } from '../../modules/map'
 import { allBySlot, allRegions, bySlot, fireEvent, firstRegion, renderUI } from '../helpers'
 import { FIXTURE_GEOJSON, FIXTURE_ROWS, FIXTURE_TOPOLOGY } from '../helpers/map-geography'
@@ -701,5 +701,91 @@ describe('MapPlat legend orientation', () => {
 		expect(bySlot(below.container, 'map-legend')?.getAttribute('aria-orientation')).toBe(
 			'horizontal',
 		)
+	})
+})
+
+describe('MapPlat region click', () => {
+	it('reports the clicked region by identity and feature index, matched or not', () => {
+		const onRegionClick = vi.fn()
+
+		const { container } = renderUI(plat({ onRegionClick }))
+
+		const [, beta, gamma] = allRegions(container)
+
+		fireEvent.click(beta as Element)
+
+		expect(onRegionClick).toHaveBeenLastCalledWith('B', 1)
+
+		// Gamma matches no row: an unmatched region is still a target, so selection
+		// can reach a state with nothing to show rather than reading as inert.
+		fireEvent.click(gamma as Element)
+
+		expect(onRegionClick).toHaveBeenLastCalledWith('C', 2)
+
+		expect(onRegionClick).toHaveBeenCalledTimes(2)
+	})
+
+	it('reports identity through a regionId accessor, so a click keys the caller data', () => {
+		const onRegionClick = vi.fn()
+
+		// The id a TopoJSON consumer would otherwise re-decode the topology to
+		// recover — here the feature's name rather than its id.
+		const { container } = renderUI(
+			plat({
+				geography: FIXTURE_TOPOLOGY,
+				regionId: (feature) => String(feature.properties?.name),
+				onRegionClick,
+			}),
+		)
+
+		fireEvent.click(allRegions(container)[0] as Element)
+
+		expect(onRegionClick).toHaveBeenCalledWith('Alpha', 0)
+	})
+
+	it('ignores a click that lands on the layer but outside every region', () => {
+		const onRegionClick = vi.fn()
+
+		const { container } = renderUI(plat({ onRegionClick }))
+
+		// The gap between regions carries no `data-region-index` anchor. A miss must
+		// report nothing — never coerce the absent attribute to region 0.
+		fireEvent.click(bySlot(container, 'map-regions') as Element)
+
+		expect(onRegionClick).not.toHaveBeenCalled()
+	})
+
+	it('takes the pointer cursor and hovers every region only when clickable', () => {
+		const plain = renderUI(plat())
+
+		expect(bySlot(plain.container, 'map-regions')?.getAttribute('class')).not.toContain(
+			'cursor-pointer',
+		)
+
+		// Gamma is unmatched, so on a non-clickable layer it carries no hover emphasis.
+		expect(allRegions(plain.container)[2]?.getAttribute('class')).not.toContain('hover:')
+
+		const clickable = renderUI(plat({ onRegionClick: () => {} }))
+
+		expect(bySlot(clickable.container, 'map-regions')?.getAttribute('class')).toContain(
+			'cursor-pointer',
+		)
+
+		expect(allRegions(clickable.container)[2]?.getAttribute('class')).toContain(
+			'hover:brightness-110',
+		)
+	})
+
+	it('leaves the plot a role="img" leaf — the click is a pointer enhancement', () => {
+		const { container } = renderUI(plat({ onRegionClick: () => {} }))
+
+		// The keyboard and assistive path is a control the consumer supplies beside
+		// the map; the paths stay presentational, so nothing focusable hides in the
+		// sr-only readout.
+		expect(bySlot(container, 'map-plot')).toHaveAttribute('role', 'img')
+
+		expect(container.querySelector('svg')).toHaveAttribute('aria-hidden', 'true')
+
+		expect(container.querySelector('[data-region-index][tabindex]')).toBeNull()
 	})
 })
