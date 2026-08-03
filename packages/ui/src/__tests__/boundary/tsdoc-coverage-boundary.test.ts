@@ -22,26 +22,27 @@ import { srcDir } from '../helpers/walk-source'
 // this test walks the real export chain with the compiler API and accepts a
 // doccomment at any hop, which is what a consumer's editor resolves.
 //
-// The `getTypeChecker` call makes this the one boundary test that type-checks
-// its inputs, so it is slower than its siblings. It stays in the boundary
-// project because it pins a convention, not a behaviour.
+// Building that program makes this the slowest test in its project by a wide
+// margin, so it reads no more than it resolves — see `packageHost`. It stays in
+// the boundary project because it pins a convention, not a behaviour.
 
 /**
  * Wall-clock budget for the one test below, in place of the suite default.
  *
- * @remarks Resolving the export chains means building a TypeScript program over
- * every barrel, which pulls the whole source tree in: ~1,650 files, ~2.6s on an
- * idle machine, against a 36x faster median of 72ms across the rest of this
- * project. The suite default (5s locally) is sized for that median and for RTL
- * waits, and left this test barely two times its own cost — which the pre-push
- * gate then spends, running the suite beside `build` and `check-types` under
- * `turbo`. It timed out there on load alone, which is the one thing a budget
- * must never encode (see the `testTimeout` note in `vitest.config.ts`).
+ * @remarks Even reduced, this test builds a TypeScript program: ~1.2s of
+ * binding on an idle machine, against a 72ms median across the rest of this
+ * project. The suite default is sized for that median and for RTL waits, and the
+ * margin it leaves is what the pre-push gate spends — it runs the suite beside
+ * `build` and `check-types` under `turbo`, and the contention roughly doubles
+ * every figure here. At the former ~2.6s the test crossed the 5s default and
+ * failed on load alone, which is the one thing a budget must never encode (see
+ * the `testTimeout` note in `vitest.config.ts`).
  *
- * Held flat rather than scaled for CI: the contention this covers is heaviest
- * on a developer's machine, not on an agent. The figure is a hang stop, not a
- * performance bound — a program build that has not finished by here is stuck,
- * not slow.
+ * So: an explicit budget, at ~10x the worst contended run measured here (2.7s)
+ * rather than the ~2x a shared default happens to leave. Held flat rather than
+ * scaled for CI, because the contention it covers is heaviest on a developer's
+ * machine. It bounds a slow run, not a hung one — the work is synchronous, so a
+ * program build that never returns blocks the runner's timer with it.
  */
 const PROGRAM_BUDGET_MS = 30_000
 
@@ -80,6 +81,60 @@ function barrelFiles(): string[] {
 	}
 
 	return files.filter((file) => ts.sys.fileExists(file))
+}
+
+/** Compiler options the program builds under; shared with {@link packageHost}. */
+const PROGRAM_OPTIONS: ts.CompilerOptions = {
+	target: ts.ScriptTarget.ESNext,
+	module: ts.ModuleKind.ESNext,
+	moduleResolution: ts.ModuleResolutionKind.Bundler,
+	jsx: ts.JsxEmit.Preserve,
+	skipLibCheck: true,
+}
+
+/**
+ * A compiler host that resolves every import but parses only the sources this
+ * test can read a doccomment out of, handing back an empty file for the rest.
+ *
+ * @remarks The barrels reach the whole dependency graph, and parsing it is most
+ * of the run: two thirds of the text the program would hold is third-party
+ * `.d.ts` (7.6MB against the package's own 3.7MB), and dropping it halves the
+ * test. Nothing is lost, because the walk only ever reads declarations the
+ * package itself wrote — measured across all 1,236 barrel exports, no hop of any
+ * alias chain lands in a dependency, and the verdicts are identical either way.
+ *
+ * Resolution is untouched, so a re-export *through* a dependency still resolves;
+ * only the file's text is withheld. Were the package to start re-exporting a
+ * third-party symbol, that symbol would carry no readable doccomment here and
+ * the test would report it as a gap — a loud failure, not a silent pass.
+ *
+ * Sibling workspace packages resolve to their real paths (pnpm symlinks
+ * notwithstanding), so they parse normally and stay readable.
+ */
+function packageHost(): ts.CompilerHost {
+	const host = ts.createCompilerHost(PROGRAM_OPTIONS, true)
+
+	const read = host.getSourceFile.bind(host)
+
+	const stubs = new Map<string, ts.SourceFile>()
+
+	host.getSourceFile = (fileName, languageVersion, onError, shouldCreate) => {
+		if (!fileName.includes('/node_modules/')) {
+			return read(fileName, languageVersion, onError, shouldCreate)
+		}
+
+		const cached = stubs.get(fileName)
+
+		if (cached) return cached
+
+		const stub = ts.createSourceFile(fileName, '', languageVersion, true)
+
+		stubs.set(fileName, stub)
+
+		return stub
+	}
+
+	return host
 }
 
 /**
@@ -154,13 +209,7 @@ describe('TSDoc coverage boundary', () => {
 	it('every barrel-exported symbol carries a doccomment', { timeout: PROGRAM_BUDGET_MS }, () => {
 		const barrels = barrelFiles()
 
-		const program = ts.createProgram(barrels, {
-			target: ts.ScriptTarget.ESNext,
-			module: ts.ModuleKind.ESNext,
-			moduleResolution: ts.ModuleResolutionKind.Bundler,
-			jsx: ts.JsxEmit.Preserve,
-			skipLibCheck: true,
-		})
+		const program = ts.createProgram(barrels, PROGRAM_OPTIONS, packageHost())
 
 		const checker = program.getTypeChecker()
 
