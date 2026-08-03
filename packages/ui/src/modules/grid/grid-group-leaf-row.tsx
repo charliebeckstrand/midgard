@@ -132,11 +132,7 @@ type GridGroupLeafCellProps<T> = {
 	leading: boolean
 	/** The group's overlay color, coloring the leading rail; `undefined` keeps it neutral. */
 	color?: PaletteColor
-	/**
-	 * Whether the cell's height reveal renders open. It comes from the row's
-	 * reveal hold, not from the group's `expanded`, so a leaf that wakes out of
-	 * the hold opens over the transition rather than in a snap.
-	 */
+	/** Whether the cell's height reveal renders open — the row's reveal hold, not `expanded`. */
 	open: boolean
 	/** Density padding class for the innermost content wrapper. */
 	pad: string

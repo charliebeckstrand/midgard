@@ -54,7 +54,8 @@ export type GridRevealHold = {
  * and the row would snap. The wake therefore takes two commits — the row comes
  * back on screen at the closed track, a forced style flush records that, and
  * only then does the track open. A collapse keeps its single commit, since the
- * row it starts from is on screen already.
+ * row it starts from is on screen already, and so does an open under reduced
+ * motion, which has no transition to prime.
  *
  * @param expanded - Whether the row's group is open.
  * @returns The row's {@link GridRevealHold}.
@@ -72,6 +73,11 @@ export function useGridRevealHold(expanded: boolean): GridRevealHold {
 	// `aria-hidden` and `inert` take. Adjusted during render, so no commit passes
 	// with the row closed and its track still open.
 	if (!expanded && open) setOpen(false)
+
+	// An open takes that single commit too when the recipe carries no transition
+	// to prime. Without this, a reduced-motion session pays the wake below — a
+	// reflow and a second pass over the group — for a cue that never animates.
+	if (expanded && !open && reducedMotion) setOpen(true)
 
 	const opening = expanded && !open
 

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { bySlot, renderUI, screen, userEvent, within } from '../helpers'
+import { bySlot, renderUI, screen, stubMatchMedia, userEvent, within } from '../helpers'
 
 type Person = { id: number; name: string; role: string }
 
@@ -140,6 +140,31 @@ describe('Grid master-detail', () => {
 		expect(screen.queryByRole('button', { name: /details for row 3/ })).toBeNull()
 
 		expect(screen.getByRole('button', { name: 'Expand details for row 1' })).toBeInTheDocument()
+	})
+
+	it('opens the panel on the toggle itself under reduced motion', async () => {
+		stubMatchMedia((query) => query === '(prefers-reduced-motion: reduce)')
+
+		const user = userEvent.setup()
+
+		const { container } = renderUI(
+			<Grid columns={columns} rows={people} getKey={getKey} expandable={{ render: detail }} />,
+		)
+
+		// The reveal track under the panel's cell; `data-open` drives its height tween.
+		const track = () => detailRow(container, 1)?.querySelector('td > div')
+
+		expect(track()).not.toHaveAttribute('data-open')
+
+		await user.click(screen.getByRole('button', { name: 'Expand details for row 1' }))
+
+		// Reduced motion drops the transition, so the track has nothing to prime and
+		// opens in the commit the toggle lands in — no wake, no second pass.
+		expect(track()).toHaveAttribute('data-open')
+
+		await user.click(screen.getByRole('button', { name: 'Collapse details for row 1' }))
+
+		expect(track()).not.toHaveAttribute('data-open')
 	})
 
 	it('stands the navigable cursor down while expandable (its own body)', () => {

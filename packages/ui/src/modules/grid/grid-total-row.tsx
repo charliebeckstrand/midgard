@@ -138,11 +138,7 @@ function GroupRevealCell({
 	className,
 	children,
 }: {
-	/**
-	 * Whether the reveal renders open. It comes from the row's reveal hold, not
-	 * from the group's `expanded`, so a total that wakes out of the hold opens
-	 * over the transition rather than in a snap.
-	 */
+	/** Whether the reveal renders open — the row's reveal hold, not `expanded`. */
 	open: boolean
 	pad: string
 	rail?: boolean
