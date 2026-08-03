@@ -21,6 +21,7 @@ import { PopoverPanel } from '../../primitives/popover'
 import { useGlass } from '../../providers/glass/context'
 import { k } from '../../recipes/kata/menu'
 import { Icon } from '../icon'
+import { useMenuCapped } from './context'
 import { MenuLabel } from './slots'
 import {
 	MenuPointerLevel,
@@ -102,6 +103,10 @@ export type MenuSubProps = {
  */
 export function MenuSub({ label, icon, disabled = false, className, children }: MenuSubProps) {
 	const { space, size } = useDensity()
+
+	// The parent menu's height policy, so a submenu panel caps (or doesn't) the
+	// same way the menu it hangs off does.
+	const capped = useMenuCapped()
 
 	const glass = useGlass()
 
@@ -361,7 +366,7 @@ export function MenuSub({ label, icon, disabled = false, className, children }: 
 						<div
 							ref={setRowContainer}
 							data-slot="menu-viewport"
-							className={k.viewport({ density: space })}
+							className={k.viewport({ density: space, capped })}
 						>
 							{children}
 						</div>

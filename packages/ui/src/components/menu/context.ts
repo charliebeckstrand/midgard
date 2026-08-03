@@ -63,6 +63,19 @@ export const [MenuStateContext, useMenuState] = createContext<MenuStateValue>('M
 export const [MenuActionsContext, useMenuActions] = createContext<MenuActionsValue>('Menu')
 
 /**
+ * Whether the enclosing {@link Menu}'s panels cap at their density height, read
+ * by the content viewport and by every submenu panel under it so one menu's
+ * panels agree with each other.
+ *
+ * Split from {@link MenuStateContext} for the reason the open-submenu key is:
+ * that value re-identifies on every reposition while the panel is open, and a
+ * `MenuSub` subscribing to it for one static boolean would re-render on each.
+ * Defaulted rather than required, so a panel composed outside a `Menu` still
+ * caps the way an enclosed one does.
+ */
+export const [MenuCappedContext, useMenuCapped] = createContext<boolean>('Menu', { default: true })
+
+/**
  * Returns combined state + actions. Prefer `useMenuActions` in leaves that only
  * need `close`.
  *

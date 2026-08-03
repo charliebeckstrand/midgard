@@ -182,6 +182,7 @@ export function ChartContextMenu({
 				items={contextMenu?.items}
 				defaultItems={contextMenu?.defaultItems}
 				position={contextMenu?.position}
+				capped={contextMenu?.capped}
 			>
 				{children}
 			</ContextMenu>

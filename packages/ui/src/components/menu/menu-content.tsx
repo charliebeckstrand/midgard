@@ -8,7 +8,7 @@ import { FloatingSurface } from '../../primitives/floating-surface'
 import { PopoverPanel } from '../../primitives/popover'
 import { useGlass } from '../../providers/glass/context'
 import { k } from '../../recipes/kata/menu'
-import { useMenuActions, useMenuState } from './context'
+import { useMenuActions, useMenuCapped, useMenuState } from './context'
 import { MENUITEM_SELECTOR } from './use-menu-state'
 
 /** Props for {@link MenuContent}: an optional accessible name for `static` menus. */
@@ -40,6 +40,7 @@ export function MenuContent({
 	const { open, menuId, isDropdown, floatingStyles, getFloatingProps, density, size } =
 		useMenuState()
 	const { close, static: isStatic, setFloating } = useMenuActions()
+	const capped = useMenuCapped()
 	const glass = useGlass()
 
 	// The mask fading the scroll edges lives on this inner viewport, not the
@@ -48,7 +49,11 @@ export function MenuContent({
 	const scrollOverflowRef = useScrollOverflow()
 
 	const viewport = (
-		<div ref={scrollOverflowRef} data-slot="menu-viewport" className={k.viewport({ density })}>
+		<div
+			ref={scrollOverflowRef}
+			data-slot="menu-viewport"
+			className={k.viewport({ density, capped })}
+		>
 			{children}
 		</div>
 	)
