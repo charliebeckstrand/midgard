@@ -71,7 +71,7 @@ import {
 	type GridPaginationView,
 	toColumnPinningState,
 } from './engine/grid-table/views'
-import { useVisibleColumns } from './grid-table-views'
+import { useFrozenLayout, useVisibleColumns } from './grid-table-views'
 import type {
 	GridColumn,
 	GridColumnFilters,
@@ -909,9 +909,15 @@ export function useGridTable<T>({
 		containerRef,
 	})
 
+	// Resolve the frozen columns to a snapshot — each one's edge, sticky offset, and
+	// whether it holds the group's boundary — rather than let the controls below
+	// read the engine at call time, which the memoized header cells and body rows
+	// cannot see through (see `FrozenLayout`).
+	const frozen = useFrozenLayout(hasPinned, table, pinnedOffsets)
+
 	const pinning = useMemo<GridColumnPinning | null>(
-		() => (hasPinned ? buildColumnPinning(table, pinnedOffsets) : null),
-		[hasPinned, table, pinnedOffsets],
+		() => (hasPinned ? buildColumnPinning(frozen) : null),
+		[hasPinned, frozen],
 	)
 
 	return {

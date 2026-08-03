@@ -22,9 +22,11 @@ import { srcDir } from '../helpers/walk-source'
 // this test walks the real export chain with the compiler API and accepts a
 // doccomment at any hop, which is what a consumer's editor resolves.
 //
-// The `getTypeChecker` call makes this the one boundary test that type-checks
-// its inputs, so it is slower than its siblings. It stays in the boundary
-// project because it pins a convention, not a behaviour.
+// Building that program makes this the slowest test in its project by a wide
+// margin — ~1.4s against a 72ms median — so it reads no more than it resolves
+// (see `packageHost`), and the project's own `testTimeout` in `vitest.config.ts`
+// is sized for it. It stays in the boundary project because it pins a
+// convention, not a behaviour.
 
 /** Barrel globs that form the package's public surface, per `package.json` `exports`. */
 const BARREL_PATTERNS: readonly (readonly [dir: string, nested: boolean])[] = [
@@ -61,6 +63,62 @@ function barrelFiles(): string[] {
 	}
 
 	return files.filter((file) => ts.sys.fileExists(file))
+}
+
+/**
+ * Compiler options the program builds under; shared with {@link packageHost}.
+ *
+ * @remarks `noLib` drops the standard library, which is 93 files and 3MB of the
+ * text the program would otherwise parse — the single largest share, and read by
+ * nothing here (see {@link packageHost}). It is stated rather than left to the
+ * path rule below, which would catch `lib.*.d.ts` only for as long as the
+ * `typescript` package keeps resolving under a `node_modules` segment.
+ */
+const PROGRAM_OPTIONS: ts.CompilerOptions = {
+	target: ts.ScriptTarget.ESNext,
+	module: ts.ModuleKind.ESNext,
+	moduleResolution: ts.ModuleResolutionKind.Bundler,
+	jsx: ts.JsxEmit.Preserve,
+	skipLibCheck: true,
+	noLib: true,
+}
+
+/**
+ * A compiler host that resolves every import but parses only the sources this
+ * test can read a doccomment out of, handing back an empty file for the rest.
+ *
+ * @remarks The barrels reach the whole dependency graph, and parsing it is where
+ * the run goes — 70% of it, against 2% for the walk. Withholding the text of
+ * every dependency, on top of the library `PROGRAM_OPTIONS` drops, takes the
+ * program from 1,642 files and 11.2MB to 1,232 and 3.7MB, and the build behind
+ * this test from ~2.1s to ~1.2s.
+ *
+ * None of it is read. The walk reports only on declarations this package wrote,
+ * and across all 1,236 barrel exports no hop of any alias chain lands in a
+ * dependency — verified by diffing the per-export verdicts against the full
+ * program. Resolution itself is untouched, so a re-export *through* a dependency
+ * still resolves; only the file's text is withheld. Were the package to start
+ * re-exporting a third-party symbol, that symbol would carry no readable
+ * doccomment here and the test would report it as a gap — a loud failure rather
+ * than a silent pass.
+ *
+ * The standing precondition, since both cuts land on the same side of it: no
+ * type in this program resolves. Only declaration nodes and comment trivia are
+ * valid to read from it, which is all {@link hasDoc} asks for.
+ */
+function packageHost(): ts.CompilerHost {
+	const host = ts.createCompilerHost(PROGRAM_OPTIONS)
+
+	const read = host.getSourceFile.bind(host)
+
+	// One call per path — the program dedupes before reaching the host — so the
+	// empty files are built on demand and never cached.
+	host.getSourceFile = (fileName, languageVersion, onError, shouldCreate) =>
+		fileName.includes('/node_modules/')
+			? ts.createSourceFile(fileName, '', languageVersion)
+			: read(fileName, languageVersion, onError, shouldCreate)
+
+	return host
 }
 
 /**
@@ -135,13 +193,7 @@ describe('TSDoc coverage boundary', () => {
 	it('every barrel-exported symbol carries a doccomment', () => {
 		const barrels = barrelFiles()
 
-		const program = ts.createProgram(barrels, {
-			target: ts.ScriptTarget.ESNext,
-			module: ts.ModuleKind.ESNext,
-			moduleResolution: ts.ModuleResolutionKind.Bundler,
-			jsx: ts.JsxEmit.Preserve,
-			skipLibCheck: true,
-		})
+		const program = ts.createProgram(barrels, PROGRAM_OPTIONS, packageHost())
 
 		const checker = program.getTypeChecker()
 

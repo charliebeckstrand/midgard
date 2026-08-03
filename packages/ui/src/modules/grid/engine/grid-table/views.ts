@@ -3,8 +3,8 @@ import { isQueryActive } from '../../../query/engine/query-active'
 import type { QueryField, QueryGroup as QueryGroupNode } from '../../../query/engine/types'
 import type { GridColumn, GridPagination } from '../../types'
 import { DEFAULT_COLUMN_SIZE, DEFAULT_MIN_COLUMN_SIZE } from '../grid-constants'
-import type { FrozenOffsets } from '../grid-pin/measure'
-import { frozenSide, type PinSide } from '../grid-pin/overrides'
+import type { FrozenColumn, FrozenLayout } from '../grid-pin/layout'
+import { frozenSide } from '../grid-pin/overrides'
 
 /**
  * Column-resize controls the header renders from: the live width, drag/keyboard
@@ -37,23 +37,19 @@ export type GridColumnResize = {
 }
 
 /**
- * Frozen-column controls over the engine's column-pinning state: which edge a
- * column is pinned to, its sticky offset from that edge, and whether it sits at
- * the inner boundary of its frozen group (where the separating shadow draws).
+ * Frozen-column controls: one lookup from a column id to the chrome it draws.
+ *
+ * @remarks Unlike its two siblings here, this one reads a resolved
+ * {@link FrozenLayout} snapshot rather than the engine. The pinned chrome rides
+ * `memo` boundaries, so a cell that holds on its props sees a frozen-layout
+ * change only through this object's identity — which a snapshot changes and a
+ * live reader does not.
  *
  * @internal
  */
 export type GridColumnPinning = {
-	/** The column's frozen edge, or `undefined` when it scrolls. */
-	side: (id: string | number) => 'left' | 'right' | undefined
-	/** Sticky offset (px) from the left edge — the summed width of the columns pinned left before it. */
-	leftOffset: (id: string | number) => number
-	/** Sticky offset (px) from the right edge — the summed width of the columns pinned right after it. */
-	rightOffset: (id: string | number) => number
-	/** Whether the column is the innermost left-pinned one (its right edge borders the scroll area). */
-	isLastLeft: (id: string | number) => boolean
-	/** Whether the column is the innermost right-pinned one (its left edge borders the scroll area). */
-	isFirstRight: (id: string | number) => boolean
+	/** The column's frozen chrome — edge, sticky offset, and boundary — or `undefined` when it scrolls. */
+	column: (id: string | number) => FrozenColumn | undefined
 }
 
 /**
@@ -265,39 +261,9 @@ export function buildColumnResize<T>(
 	}
 }
 
-/** A column's frozen edge as the engine resolves it, or `undefined` when it scrolls. @internal */
-export function columnPinSide<T>(table: Table<T>, id: string | number): PinSide | undefined {
-	return table.getColumn(String(id))?.getIsPinned() || undefined
-}
-
-/**
- * Assembles the {@link GridColumnPinning} controls over a table instance:
- * each column's frozen side, its sticky offset from that edge, and whether it
- * sits at the inner boundary (for the separating shadow). Methods read the
- * engine live.
- *
- * `measured` carries the offsets read from the rendered header, and wins where
- * it has an entry. The engine's own offsets sum its column sizes, which are the
- * rendered widths only under the fixed layout a resizable grid sets from them;
- * an auto-layout grid sizes each column to its content, so its frozen columns
- * are measured instead (see {@link FrozenOffsets}). `null` — the resizable case,
- * and every render before the first measurement — leaves the engine's sums.
- *
- * @internal
- */
-export function buildColumnPinning<T>(
-	table: Table<T>,
-	measured: FrozenOffsets | null,
-): GridColumnPinning {
-	return {
-		side: (id) => columnPinSide(table, id),
-		leftOffset: (id) =>
-			measured?.left.get(String(id)) ?? table.getColumn(String(id))?.getStart('left') ?? 0,
-		rightOffset: (id) =>
-			measured?.right.get(String(id)) ?? table.getColumn(String(id))?.getAfter('right') ?? 0,
-		isLastLeft: (id) => table.getColumn(String(id))?.getIsLastColumn('left') ?? false,
-		isFirstRight: (id) => table.getColumn(String(id))?.getIsFirstColumn('right') ?? false,
-	}
+/** Assembles the {@link GridColumnPinning} lookup over a resolved {@link FrozenLayout}. @internal */
+export function buildColumnPinning(layout: FrozenLayout): GridColumnPinning {
+	return { column: (id) => layout.get(String(id)) }
 }
 
 /**
