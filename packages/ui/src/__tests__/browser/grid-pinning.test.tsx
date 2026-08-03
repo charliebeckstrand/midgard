@@ -136,3 +136,101 @@ describe('grid column pinning (real browser)', () => {
 		)
 	})
 })
+
+/**
+ * A stack of frozen columns must sit flush — every one against the next, with no
+ * gap for the scrolling columns to show through. The offsets sum the frozen
+ * columns' widths, and only a resizable grid's fixed-layout `<colgroup>` makes
+ * the engine's column sizes those widths; a non-resizable grid lays out `auto`
+ * and sizes each column to its content, so its offsets are measured from the
+ * rendered header. Only a real layout engine can tell the two apart.
+ */
+describe('stacked frozen columns under auto layout (real browser)', () => {
+	type Row = { id: number; name: string; code: string; a: string; b: string; c: string; d: string }
+
+	const rows: Row[] = Array.from({ length: 4 }, (_, i) => ({
+		id: i + 1,
+		name: `A much wider name ${i + 1}`,
+		code: `C-${i + 1}`,
+		a: `A${i}`,
+		b: `B${i}`,
+		c: `C${i}`,
+		d: `D${i}`,
+	}))
+
+	// Two frozen columns per edge, one pinned and one locked, behind the selection
+	// column the left edge always leads with — so the group spans every kind of
+	// freeze the engine stacks.
+	const columns: GridColumn<Row>[] = [
+		{ id: 'select', selectable: true },
+		{ id: 'name', title: 'Name', cell: (row) => row.name, pinned: 'left' },
+		{ id: 'code', title: 'Code', cell: (row) => row.code, locked: 'left' },
+		{ id: 'a', title: 'A', cell: (row) => row.a },
+		{ id: 'b', title: 'B', cell: (row) => row.b },
+		{ id: 'c', title: 'C', cell: (row) => row.c, pinned: 'right' },
+		{ id: 'd', title: 'D', cell: (row) => row.d, locked: 'right' },
+	]
+
+	const getKey = (row: Row) => row.id
+
+	const cell = (root: HTMLElement, id: string) =>
+		root.querySelector<HTMLElement>(`td[data-grid-col="${id}"]`)
+
+	// The grid is forced narrower than its columns so it scrolls sideways.
+	async function setup(resizable: boolean) {
+		const { container } = renderUI(
+			<div style={{ width: '420px' }}>
+				<Grid
+					resizable={resizable}
+					maxHeight="240px"
+					columns={columns}
+					rows={rows}
+					getKey={getKey}
+					selection={{ defaultValue: new Set<number>() }}
+				/>
+			</div>,
+		)
+
+		await waitFor(() => expect(cell(container, 'name')).not.toBeNull())
+
+		return container
+	}
+
+	// Each frozen column's left edge lands on its neighbour's right edge.
+	async function expectFlush(container: HTMLElement) {
+		const edges = (id: string) => (cell(container, id) as HTMLElement).getBoundingClientRect()
+
+		// The selection column leads the left edge; it carries no `data-grid-col`.
+		const select = (container.querySelector('tbody td') as HTMLElement).getBoundingClientRect()
+
+		await waitFor(() => expect(edges('name').left).toBeCloseTo(select.right, 0))
+
+		expect(edges('code').left).toBeCloseTo(edges('name').right, 0)
+
+		expect(edges('d').left).toBeCloseTo(edges('c').right, 0)
+	}
+
+	it('stacks the frozen columns flush in a non-resizable grid', async () => {
+		await expectFlush(await setup(false))
+	})
+
+	it('stacks the frozen columns flush in a resizable grid', async () => {
+		await expectFlush(await setup(true))
+	})
+
+	it('holds the stack flush once the body scrolls', async () => {
+		const container = await setup(false)
+
+		await expectFlush(container)
+
+		const scroller = container.querySelector<HTMLElement>('[data-slot="table"]')
+
+		if (!scroller) throw new Error('scroll container not found')
+
+		scroller.scrollLeft = 150
+
+		scroller.dispatchEvent(new Event('scroll'))
+
+		await expectFlush(container)
+	})
+})
