@@ -258,6 +258,26 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 * clickable map still owes its users.
 		 */
 		onRegionClick?: (id: string, index: number) => void
+		/**
+		 * The selected region, by the identity {@link onRegionClick} reports — the
+		 * `regionId` value, so the pick a click hands the caller comes straight back
+		 * as the pick to draw. The map paints it and holds no selection state of its
+		 * own: whatever owns the value (the click, a Select beside the map, a route
+		 * parameter) stays the single source of truth, and the two halves of a
+		 * clickable map can't disagree about what is picked.
+		 *
+		 * The selected region takes a foreground-ink outline above the region
+		 * layers, so it survives the hover recede — a pick made before the pointer
+		 * arrived is still marked while the pointer isolates elsewhere — and it
+		 * never dims the rest of the map, which would read as broken for as long as
+		 * the pick stood. Overlay children still draw over it, as they do over every
+		 * region. The region's row in the data table reads as the current one, so
+		 * the selection is in the accessible readout, not the pixels alone.
+		 *
+		 * An id matching no region draws no ring; `null` (or omitting the prop)
+		 * selects nothing.
+		 */
+		selectedRegion?: string | null
 		/** Overlay marks: {@link MapRoute}, {@link MapPoint}, {@link MapMarker}. */
 		children?: ReactNode
 	}
@@ -999,8 +1019,8 @@ function valueColumnHeader(
  * coloured by category from typed rows, one merged legend where pointing an
  * entry dims everything outside its group and clicking toggles it off,
  * pointing a region or overlay on the map isolating it behind the same
- * recede, a pointer-anchored Tooltip readout, and a visually-hidden data
- * table.
+ * recede, a pointer-anchored Tooltip readout, a ring on the region the
+ * consumer holds selected, and a visually-hidden data table.
  * Geometry is prop-supplied TopoJSON / GeoJSON; {@link MapRoute},
  * {@link MapPoint}, and {@link MapMarker} children draw over the geography
  * and register their own legend entries.
@@ -1035,6 +1055,7 @@ export function MapPlat<T = never>({
 	tooltip = true,
 	animate = false,
 	onRegionClick,
+	selectedRegion,
 	className,
 	children,
 	...name
@@ -1115,6 +1136,14 @@ export function MapPlat<T = never>({
 			}),
 		[onRegionClick, regionIds],
 	)
+
+	// The selection resolved to the index the layers draw by, against the same
+	// ids a click reports — so the pick a consumer echoes back always rings the
+	// region that produced it. An id naming no feature resolves to nothing
+	// rather than to region 0, the miss `indexOf` would otherwise report as -1.
+	const selectedIndex = selectedRegion == null ? -1 : regionIds.indexOf(selectedRegion)
+
+	const selected = selectedIndex === -1 ? null : selectedIndex
 
 	// Registration ordinal per entry, so a staggered reveal can key off it.
 	const order = useMemo<ReadonlyMap<string, number>>(
@@ -1232,6 +1261,7 @@ export function MapPlat<T = never>({
 						emphasis={emphasis}
 						animate={animate}
 						onRegionClick={clickRegion}
+						selected={selected}
 					/>
 
 					{children}
@@ -1268,6 +1298,7 @@ export function MapPlat<T = never>({
 					regionValues={regionValues}
 					categories={categoryMetas}
 					entries={entries}
+					selected={selected}
 				/>
 			) : null,
 		[
@@ -1281,6 +1312,7 @@ export function MapPlat<T = never>({
 			regionValues,
 			categoryMetas,
 			entries,
+			selected,
 		],
 	)
 

@@ -13,7 +13,7 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
 import { type MapHoverTarget, regionIndexAt, useMapHoverSet, useMapPointedMark } from './context'
 import { categoryLegendId, type MapCategoryMeta } from './map-categories'
-import { REGION_STROKE_WIDTH } from './map-constants'
+import { REGION_SELECTED_STROKE_WIDTH, REGION_STROKE_WIDTH } from './map-constants'
 import { REGION_FADE, REGION_STAGGER, REGION_STAGGER_MAX } from './map-motion'
 
 /** Props for {@link MapRegions}. @internal */
@@ -45,6 +45,14 @@ export type MapRegionsProps = {
 	 * picker), which the map's data table then reads for value parity.
 	 */
 	onRegionClick?: (index: number) => void
+	/**
+	 * The selected region's feature index, `null` when nothing is picked —
+	 * {@link MapPlat} resolves it from the public identity. It only rings the
+	 * region; the layer's clickability rides {@link onRegionClick} alone, so a
+	 * map showing a pick made elsewhere takes no pointer affordance it can't
+	 * honour.
+	 */
+	selected: number | null
 }
 
 /** The colour wash's transition classes under `animate`; static maps colour without one. */
@@ -353,7 +361,12 @@ function MapRegionsLit({ pointed, emphasis, paths, regionCategory, paints }: Map
  * isolates itself, else the legend's focused group holds — and the
  * emphasised marks redraw lit above it ({@link MapRegionsLit}). One element
  * fades where thousands of per-path transitions once ran, and the base tree
- * holds its render through the whole interaction.
+ * holds its render through the whole interaction. The selected region rings
+ * above both and outside the recede, so the standing pick outlasts every
+ * passing emphasis: a selection made before the pointer arrived must not
+ * vanish under it. That ring marks the region rather than repainting it —
+ * `fill="none"` leaves the region's own colour, and whatever dim it carries,
+ * reading through.
  *
  * @remarks Under `animate` the geography paints solid at once and only the
  * category colour washes in: each region's fill crossfades from the neutral
@@ -378,6 +391,7 @@ export const MapRegions = memo(function MapRegions({
 	emphasis,
 	animate,
 	onRegionClick,
+	selected,
 }: MapRegionsProps) {
 	const set = useMapHoverSet()
 
@@ -409,6 +423,10 @@ export const MapRegions = memo(function MapRegions({
 	)
 
 	const receded = pointed !== null || emphasis !== null
+
+	// A selection naming no drawn region rings nothing: the id may match no
+	// feature, and a region the geometry dropped has a `null` path.
+	const selectedPath = selected === null ? null : (paths[selected] ?? null)
 
 	return (
 		// biome-ignore lint/a11y/noStaticElementInteractions: a pointer delegation surface, not an interactive control — the SVG is aria-hidden under the plot's role="img", so the click's keyboard counterpart is a control the consumer supplies (see MapRegionsProps.onRegionClick)
@@ -447,6 +465,19 @@ export const MapRegions = memo(function MapRegions({
 					paths={paths}
 					regionCategory={regionCategory}
 					paints={paints}
+				/>
+			)}
+
+			{selectedPath !== null && (
+				<path
+					data-slot="map-region-selected"
+					d={selectedPath}
+					fill="none"
+					strokeWidth={REGION_SELECTED_STROKE_WIDTH}
+					vectorEffect="non-scaling-stroke"
+					// No region anchor and no pointer events: the base path stays the
+					// sole hit target, the discipline the lit copies keep.
+					className={cn('pointer-events-none', k.region.selected)}
 				/>
 			)}
 		</g>

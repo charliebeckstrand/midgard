@@ -10,6 +10,13 @@
 export const REGION_STROKE_WIDTH = 1
 
 /**
+ * The selected region's outline width — a step over the boundary seam, so the
+ * ring reads as a mark on the region rather than a heavier shared border.
+ * @internal
+ */
+export const REGION_SELECTED_STROKE_WIDTH = 2.5
+
+/**
  * Decimal places kept in a region path's `d` string. Region geometry draws in
  * frame units (canonical 1000-wide or measured px), where one decimal is
  * sub-pixel — d3-geo's default of three serialises detail no display resolves.
