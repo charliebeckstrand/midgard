@@ -1,7 +1,7 @@
 import { defineRecipe, mode } from '../../core/recipe'
 import { hannou, iro, ji, kasane, ma, narabi, omote, sen } from '../kiso'
 
-const { disabled, fg } = hannou
+const { cursor, disabled, fg } = hannou
 const { text } = iro
 const { size } = ji
 const { rounded } = kasane
@@ -63,15 +63,21 @@ const item = defineRecipe({
 	defaults: { variant: 'separated', density: 'md', active: false, lifted: false },
 })
 
-// The `link` axis carries the `href`-driven treatment (cf. breadcrumb's
+// The `interactive` axis carries the treatment for a content area that acts on
+// activation — navigate (`href`) or fire an `onClick` (cf. breadcrumb's
 // non-current link).
 const content = defineRecipe({
-	base: [flex.col, 'flex-1 min-w-0', focus.ring],
-	link: {
-		true: [text.muted, fg.hover],
+	// `text-left` is for the `as="button"` content area: the UA centres button
+	// text, and a row's label/description column never wants that. `focus.ring`
+	// paints the only keyboard-focus indicator a row can get — in a non-sortable
+	// list the `<li>` takes no `tabIndex`, so its own `focus.inset` never fires and
+	// this content area is the sole focus target.
+	base: [flex.col, 'flex-1 min-w-0 text-left', focus.ring],
+	interactive: {
+		true: [text.muted, fg.hover, ...cursor],
 		false: '',
 	},
-	defaults: { link: false },
+	defaults: { interactive: false },
 })
 
 export const k = {
@@ -89,8 +95,8 @@ export const k = {
 		),
 		...disabled,
 	],
-	/** Content column. Pass the item's `href`; its presence flips the link treatment. */
-	content: (href?: string) => content({ link: href !== undefined }),
+	/** Content column. Pass whether the row acts on activation (`href` or `onClick`). */
+	content: (interactive?: boolean) => content({ interactive }),
 	label: 'min-w-0 truncate',
 	description: ['min-w-0 truncate', size.sm, text.muted],
 } as const
