@@ -74,4 +74,8 @@ function GridImpl<T>(props: GridProps<T>) {
 	return <GridData<T> {...props} />
 }
 
+/**
+ * Data grid entry point. See {@link GridImpl}. Memoized on its shallow-equal
+ * props, so an embedded grid rests while its host re-renders around it.
+ */
 export const Grid = memo(GridImpl) as typeof GridImpl

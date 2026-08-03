@@ -30,7 +30,7 @@ type GridColumnAutoSizeOptions<T> = {
 	/**
 	 * Fingerprint of the rendered rows (count and end keys), supplied by the
 	 * caller from data it already holds: a page turn, filter, or sort that
-	 * changes the visible rows re-measures (new content may be wider), without
+	 * changes the visible rows re-measures (new content can be wider), without
 	 * this hook forcing the engine's Row-per-datum model just to fingerprint a
 	 * measurement.
 	 */
@@ -152,7 +152,7 @@ function sizingMoved(prev: Record<string, number>, next: Record<string, number>)
  * their content, a column whose data would truncate gains room while columns that
  * don't need it settle at a shared width, and when the content can't fit the
  * table overflows horizontally rather than shrinking below it. A single-word
- * header never truncates; a multi-word one may.
+ * header never truncates; a multi-word one can.
  *
  * Runs synchronously before paint (so the first frame carries real widths, not
  * the engine's default), again on container resize (`ResizeObserver`), when the

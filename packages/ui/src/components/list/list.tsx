@@ -36,6 +36,13 @@ type BaseListProps<T> = {
 // Reorderable configurations require `getKey`: the index fallback produces
 // positional keys that change on reorder, remounting items mid-drag and
 // breaking keyboard-move refocus.
+/**
+ * Props for {@link List}: the base list surface plus the reorder surface. A
+ * reorderable list requires `getKey`, because the index fallback remounts an
+ * item mid-drag.
+ *
+ * @typeParam T - Shape of a single item.
+ */
 export type ListProps<T> = BaseListProps<T> &
 	(
 		| {

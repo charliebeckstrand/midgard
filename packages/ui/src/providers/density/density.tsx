@@ -37,7 +37,7 @@ export function DensityProvider({ density, children }: DensityProviderProps) {
  * Resolves a friendly `DensityLevel`: `explicit ?? ambient ?? 'snug'`. For a
  * client component whose prop surface speaks `DensityLevel` rather than the
  * primitive `Step` (e.g. {@link Grid}, which projects density onto a `Table`
- * that itself reads no context — REFERENCE.md §2) but that should still
+ * that itself reads no context — REFERENCE.md §2) but that must still
  * inherit an enclosing `<DensityProvider>` when the prop is omitted.
  *
  * Reads the ambient token's `space` axis (the padding/gap dimension density

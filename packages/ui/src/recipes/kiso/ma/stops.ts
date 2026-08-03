@@ -15,4 +15,5 @@ export const stops = {
 	xl: '6',
 } as const
 
+/** Name of a spacing stop in the `ma` scale. */
 export type Ma = keyof typeof stops

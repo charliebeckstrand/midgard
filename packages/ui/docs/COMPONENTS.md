@@ -1,6 +1,6 @@
 # Components
 
-> **Quick-glance index of every `ui` component**, grouped by domain. This is a flat inventory for orientation — per-component behavior, props, and defaults live in each component's TSDoc (the `<Name>` doccomment and its `<Name>Props` type) and in the docs site (`pnpm docs`). For hooks, primitives, providers, the recipe layer, core, and utilities, see the sibling docs.
+> **Quick-glance index of every `ui` component**, grouped by domain. This is a flat inventory for orientation. Per-component behavior, props, and defaults live in each component's TSDoc — the `<Name>` doccomment and its `<Name>Props` type — and in the docs site (`pnpm docs`). For hooks, primitives, providers, the recipe layer, core, and utilities, see the sibling docs.
 
 Each component is its own entry point — there is no root barrel:
 
@@ -19,7 +19,7 @@ Components split into a **static** (server-renderable) tier and a **client** tie
 
 `form` · `fieldset` · `control`
 
-> `control` provides the `Field` / `Label` / `Description` / `Message` family; `Field` takes `severity` (`error` / `warning` / `success`) + `message` (or a form-bound `name`) to broadcast validation state to the nested control and auto-render the matching `Message`. `fieldset` provides `Legend`.
+> `control` provides the `Field` / `Label` / `Description` / `Message` family. `Field` takes `severity` (`error` / `warning` / `success`) plus `message`, or a form-bound `name`. It broadcasts validation state to the nested control and renders the matching `Message`. `fieldset` provides `Legend`.
 
 ## Buttons & actions
 

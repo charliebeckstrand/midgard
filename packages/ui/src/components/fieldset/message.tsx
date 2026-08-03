@@ -22,7 +22,7 @@ export type MessageProps = {
 } & Omit<ComponentPropsWithoutRef<'p'>, 'className' | 'name'>
 
 /**
- * True when the error severity should auto-render: form-bound with errors, or
+ * True when the error severity auto-renders: form-bound with errors, or
  * (unbound) given children. Other severities render their children verbatim.
  *
  * @internal

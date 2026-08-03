@@ -102,7 +102,7 @@ export type PieChartSeries<T> = Omit<ChartSeries<T>, 'color' | 'axis' | 'dashed'
  * One scatter series: numeric fields on both axes, each row one point. Unlike
  * the band-axis charts the x field is read as a number and positioned on a
  * linear scale, so rows need no shared category set, arrive in any order, and
- * may repeat an x value. An optional `sizeKey` adds the bubble encoding.
+ * can repeat an x value. An optional `sizeKey` adds the bubble encoding.
  *
  * @remarks Both fields are read as `Number(datum[key])`; a non-finite result
  * on either drops the point — never the scale — so agent-generated or
@@ -381,7 +381,7 @@ export type ChartReadout = {
  * A chart's readout as a cached thunk ({@link once}), not a value: building
  * one formats every category × series cell through `Intl`, which at dense
  * sizes costs more than drawing the marks — so nothing on the mount-critical
- * render may materialize it. The first consumer that needs the values — a
+ * render can materialize it. The first consumer that needs the values — a
  * hover's tooltip, the deferred data table, a CSV export — calls the thunk
  * off that path and every later reader shares the cache. A chart that can
  * cheaply tell it has no readout passes `null` in its place, so presence

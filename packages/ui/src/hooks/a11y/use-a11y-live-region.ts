@@ -3,8 +3,10 @@
 import { useMemo } from 'react'
 import { cn } from '../../core'
 
+/** Announcement urgency: `'assertive'` interrupts the screen reader, `'polite'` waits. */
 export type A11yLiveLevel = 'polite' | 'assertive'
 
+/** Options for {@link useA11yLiveRegion}: the urgency `level` and the region's `atomic` / `srOnly` / `className` presentation. */
 export type A11yLiveRegionOptions = {
 	/** Announcement urgency. `'assertive'` interrupts; `'polite'` waits. @defaultValue 'polite' */
 	level?: A11yLiveLevel
@@ -16,6 +18,7 @@ export type A11yLiveRegionOptions = {
 	className?: string
 }
 
+/** An {@link useA11yLiveRegion} result: the `role` / `aria-live` / `aria-atomic` / `className` bag to spread onto the region element. */
 export type A11yLiveRegionProps = {
 	role: 'status' | 'alert'
 	'aria-live': A11yLiveLevel

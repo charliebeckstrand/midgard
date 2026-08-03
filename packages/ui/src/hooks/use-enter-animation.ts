@@ -5,7 +5,7 @@ import { useRef } from 'react'
 /**
  * Resolves an `animateOnMount` flag for a surface whose animated element mounts and
  * unmounts with its open state (`PresencePortal`), returning whether *this* mount
- * should play the enter animation.
+ * plays the enter animation.
  *
  * `animateOnMount={false}` describes the arrival — the surface was already open before
  * the user did anything, so playing the enter replays an opening they never performed.

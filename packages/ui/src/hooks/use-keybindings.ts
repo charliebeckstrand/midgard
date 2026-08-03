@@ -29,7 +29,7 @@ type KeybindingsOptions = {
  *
  * @param bindings - tinykeys map of key/chord pattern (e.g. `'$mod+k'`) to
  * handler. Only the set of keys is tracked for re-subscription; handler
- * identity may change freely between renders.
+ * identity can change freely between renders.
  * @remarks SSR-safe: the subscription effect no-ops when `window` is absent.
  */
 export function useKeybindings(bindings: KeybindingsMap, options: KeybindingsOptions = {}): void {

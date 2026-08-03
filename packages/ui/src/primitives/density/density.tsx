@@ -133,7 +133,7 @@ export type DensityProps = DensityInput & { children: ReactNode }
  * `space` from the surrounding context.
  *
  * @remarks
- * Client-tier context: only client descendants read it. A static host may open
+ * Client-tier context: only client descendants read it. A static host can open
  * a scope without reading one (an explicitly sized Card wraps its children in
  * `<Density>`), but static children still ignore it (REFERENCE §2).
  */

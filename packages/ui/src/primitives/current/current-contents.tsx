@@ -12,6 +12,7 @@ import {
 } from './current'
 import { useCurrentContentsMorph } from './use-current-contents-morph'
 
+/** Props for {@link CurrentContents}: the `slotPrefix` stamp, the `fade` height animation, and the inactive-panel `mount` policy, over `<div>` attributes. */
 export type CurrentContentsProps = ComponentPropsWithoutRef<'div'> & {
 	/** Slot prefix stamped as `data-slot="<slotPrefix>-contents"`; pairs with `CurrentContent` siblings. */
 	slotPrefix: string

@@ -220,7 +220,7 @@ function routeResult(json: OsrmPayload): MapRouteResult | null {
 /**
  * Fetch a routed leg through OSRM: the street-following polyline plus its
  * distance and duration. Returns `null` if there are fewer than 2 waypoints
- * or the request fails; callers should fall back to straight-line segments
+ * or the request fails; callers must fall back to straight-line segments
  * (an overlay with no `path` already draws them).
  */
 export async function fetchOsrmRoute(
@@ -255,7 +255,7 @@ export async function fetchOsrmRoute(
 /**
  * Fetch a routed leg through Valhalla (OSRM-compatible response mode). Same
  * semantics as {@link fetchOsrmRoute}: `null` on fewer than 2 waypoints or
- * any error; callers should fall back to straight-line segments.
+ * any error; callers must fall back to straight-line segments.
  */
 export async function fetchValhallaRoute(
 	waypoints: LngLat[],

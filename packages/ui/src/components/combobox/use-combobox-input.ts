@@ -44,7 +44,7 @@ function isReservedTextboxKey(event: KeyboardEvent<HTMLInputElement>): boolean {
 }
 
 /**
- * Whether an arrow key should open the closed menu rather than move the caret.
+ * Whether an arrow key opens the closed menu rather than moves the caret.
  * The menu opens only from the far edge of the text in the key's direction —
  * ArrowDown at the end, ArrowUp at the start — so a mid-value caret or a ranged
  * selection travels to that edge natively first, as in a plain textbox, and the

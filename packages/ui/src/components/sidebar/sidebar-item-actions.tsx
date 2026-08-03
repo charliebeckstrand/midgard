@@ -1,6 +1,7 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
 
+/** Props for {@link SidebarItemActions} (`<div>` attributes). */
 export type SidebarItemActionsProps = ComponentPropsWithoutRef<'div'>
 
 /**

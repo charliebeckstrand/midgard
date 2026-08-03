@@ -238,7 +238,7 @@ function resolveHighlightQuery(
 }
 
 /**
- * Whether the table may paint — latched on, once.
+ * Whether the table can paint — latched on, once.
  *
  * A reload paints the server's HTML first, and the server cannot have measured anything,
  * so its colgroup carries the declared widths and the fit that runs at hydration replaces

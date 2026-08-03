@@ -137,7 +137,7 @@ export const k = {
 	/**
 	 * The drawing SVG's pointer posture at the resolved tier: at spark the whole
 	 * drawing goes inert — a sparkline is read-only, so no mark hover styling,
-	 * cursor, or hit target may engage. The descendant rule is the load-bearing
+	 * cursor, or hit target can engage. The descendant rule is the load-bearing
 	 * half: the hit layers re-enable themselves through `pointerEvents="all"` /
 	 * `"stroke"` presentation attributes, which win over an inherited
 	 * `pointer-events: none` but lose to any author CSS rule. Wider tiers add

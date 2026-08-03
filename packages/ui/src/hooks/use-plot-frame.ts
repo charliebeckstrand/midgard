@@ -20,15 +20,16 @@ import {
  */
 
 /**
- * How a frame's drawing height comes to be — the single value that drives
- * measurement, observation, and height resolution, so no two places can
- * disagree about what the frame needs. `fixed` is an explicit pixel height,
- * `aspect` derives the height from the drawing width by a constant ratio,
- * `fill` takes the container's measured height (the free-form case — the
- * only one where the container height is worth measuring at all), and
- * `content` derives the height from the width and a pair of margins — for
- * content whose natural shape isn't a fixed ratio, like a circle boxed by an
- * asymmetric horizontal and vertical margin.
+ * How a frame's drawing height comes to be. One value drives measurement,
+ * observation, and height resolution, so no two places disagree about what the
+ * frame needs.
+ *
+ * `fixed` is an explicit pixel height. `aspect` derives the height from the
+ * drawing width by a constant ratio. `fill` takes the container's measured
+ * height — the free-form case, and the only one where the container height is
+ * worth a measurement. `content` derives the height from the width and a pair
+ * of margins, for content whose natural shape is not a fixed ratio: a circle
+ * boxed by an asymmetric horizontal and vertical margin.
  */
 export type FrameSizing =
 	| { mode: 'fixed'; height: number }
@@ -36,13 +37,14 @@ export type FrameSizing =
 	| {
 			/**
 			 * The ratio governs the whole figure — plot and legend together — through a
-			 * CSS `aspect-ratio` the figure wrapper carries, and the plot measures the
-			 * height that leaves so the drawing fills it. It falls back to the full
-			 * `width / ratio` until that measurement lands, so a server render, an
-			 * explicit `width`, or a test frame still resolves a deterministic height
-			 * from the width alone — the browser then refines it to the legend-adjusted
-			 * remainder. The whole-chart ratio a legend shares, the width-driven twin of
-			 * `fill`'s container-height measurement.
+			 * CSS `aspect-ratio` the figure wrapper carries. The plot measures the
+			 * height that leaves, so the drawing fills it.
+			 *
+			 * Until that measurement lands it falls back to the full `width / ratio`.
+			 * A server render, an explicit `width`, or a test frame therefore resolves
+			 * a deterministic height from the width alone. The browser then refines it
+			 * to the legend-adjusted remainder. This is the whole-chart ratio a legend
+			 * shares — the width-driven twin of `fill`'s container-height measurement.
 			 */
 			mode: 'aspect-fill'
 			ratio: number
@@ -53,25 +55,27 @@ export type FrameSizing =
 			hMargin: number
 			vMargin: number
 			/**
-			 * Tight radius override once the real `width` is known, replacing the
-			 * flat `width / 2 - hMargin` subtraction — a pie's asymmetric callout
-			 * fit, whose margin isn't the same constant on both sides. `hMargin`
+			 * Tight radius override once the real `width` is known. It replaces the
+			 * flat `width / 2 - hMargin` subtraction for a pie's asymmetric callout
+			 * fit, whose margin is not the same constant on both sides. `hMargin`
 			 * still sizes the CSS pre-measurement reserve, an approximation this
-			 * only refines after the first real measurement.
+			 * refines only after the first real measurement.
 			 */
 			radius?: (width: number) => number
 	  }
 
 /**
  * How a width-derived frame reserves its drawing height from its own width
- * through CSS — the reservation that holds the box steady before the width is
- * measured and across every animation replay. `aspect` reserves a
- * `width / height` ratio (CSS `aspect-ratio`); `content` reserves the affine
- * `max(min, width + offset)` a bare ratio can't express — `offset` shifts an
- * `aspect-ratio` of 1, and `min` floors the height where the width-bound radius
- * would otherwise go negative, so a narrow box holds that floor instead of
- * collapsing to nothing. A `fixed` or `fill` frame reserves nothing — its
- * height is a pixel value the box takes directly.
+ * through CSS. The reservation holds the box steady before the measurement of
+ * the width, and across every animation replay.
+ *
+ * `aspect` reserves a `width / height` ratio (CSS `aspect-ratio`). `content`
+ * reserves the affine `max(min, width + offset)` that a bare ratio cannot
+ * express: `offset` shifts an `aspect-ratio` of 1, and `min` floors the height
+ * where the width-bound radius would otherwise go negative. A narrow box then
+ * holds that floor instead of a collapse to nothing. A `fixed` or `fill` frame
+ * reserves nothing, because its height is a pixel value the box takes
+ * directly.
  */
 export type FrameReserve =
 	| { mode: 'aspect'; ratio: number }

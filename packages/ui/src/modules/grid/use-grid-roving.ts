@@ -43,7 +43,7 @@ const CELL_ITEM_SELECTOR = 'tr[data-grid-row]:not([inert]) td[data-roving]'
  *
  * @returns The resolved {@link GridRovingMode} and the `onKeyDown` to attach to
  * the `<table>` (undefined when inactive), which reads items from `tableRef` on
- * each press so the row/cell set may change between presses.
+ * each press so the row/cell set can change between presses.
  * @internal
  */
 export function useGridRoving({

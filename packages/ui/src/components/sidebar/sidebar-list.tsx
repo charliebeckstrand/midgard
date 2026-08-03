@@ -5,6 +5,7 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/sidebar'
 import { SidebarListContext } from './context'
 
+/** Props for {@link SidebarList} (`<ul>` attributes). */
 export type SidebarListProps = ComponentPropsWithoutRef<'ul'>
 
 /**

@@ -64,7 +64,7 @@ export type ChartPolicy = {
 	/** Whether the hairline gridlines draw. */
 	grid: boolean
 	/**
-	 * How many rows a stacked (top / bottom) legend band may take before the rest
+	 * How many rows a stacked (top / bottom) legend band can take before the rest
 	 * collapse into a `+N` overflow chip: two where the frame is tall and wide,
 	 * one in a narrow or short frame, none at spark (the legend is gone with the
 	 * chrome). The cap bounds what the band takes from the aspect box, so the plot

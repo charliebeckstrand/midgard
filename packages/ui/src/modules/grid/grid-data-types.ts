@@ -99,7 +99,7 @@ export type GridInfiniteScroll = {
 	 */
 	loadingMore?: boolean
 	/**
-	 * How many rows from the end of the loaded set the scroll may come within
+	 * How many rows from the end of the loaded set the scroll can come within
 	 * before `onLoadMore` fires, so the next batch is requested ahead of the
 	 * viewport reaching the last row.
 	 * @defaultValue The grid's virtualization `overscan`.
@@ -185,10 +185,11 @@ export type GridGroupHeaderContext = {
 
 /**
  * What a manual-mode {@link GridGroupBy.groupRow} resolver returns to mark a row
- * as a group header: the group's stable `key` (the identity the expanded set and
- * {@link GridGroupBy.onGroupExpand} speak), the grouped column's shared `value`
- * (the default header label), and the group's child `count` — supplied by the
- * backend, since the grid may hold none of the children.
+ * as a group header. It carries the group's stable `key` — the identity the
+ * expanded set and {@link GridGroupBy.onGroupExpand} speak — plus the grouped
+ * column's shared `value`, which is the default header label. The backend also
+ * supplies the group's child `count`, because the grid can hold none of the
+ * children.
  */
 export type GridGroupHeaderRow = {
 	/** Stable group identity; keys the expanded set and the lazy-load callback. */
@@ -201,25 +202,29 @@ export type GridGroupHeaderRow = {
 
 /**
  * Controlled/uncontrolled row-grouping binding for {@link GridProps.groupBy}:
- * the id of the single column the rows are grouped by (or `null` for no
- * grouping). Grouping collects rows sharing that column's value under an
- * expandable group-header row that shows the value and a row count, backed by
- * the engine's grouped/expanded row models.
+ * the id of the single column that groups the rows, or `null` for no grouping.
+ * A group collects the rows that share that column's value under an expandable
+ * group-header row, which shows the value and a row count. The engine's grouped
+ * and expanded row models back it.
  *
- * @remarks Two modes, selected by {@link GridGroupBy.manual} — the same split
- * as the pagination/sort/filter bindings. In client mode (the default) the
- * engine computes the groups from the in-memory `rows`. In manual (server)
- * mode the grid computes nothing: the consumer's backend groups, and `rows` is
- * fed back as the rendered sequence — group-header rows (marked by
- * {@link GridGroupBy.groupRow}) each followed by their child rows. Either way
- * grouping renders its own body, so it takes precedence over — and stands
- * down — {@link GridProps.virtualize} and the {@link GridProps.navigable}
- * cursor while active; sorting, filtering, search, selection, resizing, and
- * pinning still apply. Client grouping also stands
- * {@link GridProps.pagination} down; manual grouping composes with *manual*
- * pagination (the backend pages the grouped sequence) and forces the sort /
- * search / column-filter bindings to their manual mode, since a client
- * transform would tear child rows from their group headers.
+ * @remarks {@link GridGroupBy.manual} selects one of two modes — the same split
+ * as the pagination, sort, and filter bindings. In client mode (the default)
+ * the engine computes the groups from the in-memory `rows`. In manual (server)
+ * mode the grid computes nothing: the consumer's backend groups the data and
+ * supplies `rows` as the rendered sequence. That sequence interleaves the
+ * group-header rows (marked by {@link GridGroupBy.groupRow}) with their child
+ * rows.
+ *
+ * Either mode renders its own body, so grouping takes precedence over
+ * {@link GridProps.virtualize} and the {@link GridProps.navigable} cursor and
+ * stands both down while active. Sorting, filtering, search, selection,
+ * resizing, and pinning still apply.
+ *
+ * Client grouping also stands {@link GridProps.pagination} down. Manual
+ * grouping composes with *manual* pagination, where the backend pages the
+ * grouped sequence. It also forces the sort, search, and column-filter bindings
+ * to their manual mode, because a client transform tears child rows from their
+ * group headers.
  *
  * @typeParam T - Shape of a single row; defaulted for the client mode, which
  * never reads the rows through this binding.
@@ -552,9 +557,9 @@ export type GridColumnManagerConfig = {
 }
 
 /**
- * Header configuration for {@link GridDataProps.header}. Carries the header
- * row's positioning today; further header options attach here as the surface
- * grows, so the grid takes one `header` binding rather than a prop per setting.
+ * Header configuration for {@link GridDataProps.header}. It carries the header
+ * row's positioning today. Further header options attach here as the surface
+ * grows, so the grid takes one `header` binding, not a prop per setting.
  */
 export type GridHeader = {
 	/**

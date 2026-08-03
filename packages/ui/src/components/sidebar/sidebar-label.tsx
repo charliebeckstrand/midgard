@@ -2,6 +2,7 @@ import { createSlot } from '../../core'
 import type { SlotProps } from '../../core/create-slot'
 import { k } from '../../recipes/kata/sidebar'
 
+/** Props for {@link SidebarLabel} (`<span>` attributes). */
 export type SidebarLabelProps = SlotProps<'span'>
 
 /**

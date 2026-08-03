@@ -9,6 +9,10 @@ const CONTROL_SLOTS = {
 	error: 'describedby',
 } as const satisfies Record<string, A11yRelation>
 
+/**
+ * A {@link useA11yControl} result: the composed `describedBy` / `labelledBy`
+ * references, the derived slot ids, and the three slot registrars.
+ */
 export type A11yControl = {
 	/** Composed `aria-describedby`: registered slot ids only, or undefined when none are rendered. */
 	describedBy: string | undefined

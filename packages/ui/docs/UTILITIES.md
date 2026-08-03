@@ -1,6 +1,6 @@
 # Utilities
 
-> **Quick-glance index of `src/utilities/`.** Small, dependency-free pure helpers shared across the package — numeric clamping/formatting, locale coalescing, WCAG colour-contrast maths, caret bookkeeping for formatted inputs, the Escape dismiss-layer stack, a shared document-event subscriber, and roving keyboard-navigation math. **Internal:** `utilities` is not a `package.json` export; reach it by relative import within the package (`from '../../utilities'`), not as `ui/utilities`.
+> **Quick-glance index of `src/utilities/`.** Small, dependency-free pure helpers shared across the package. They cover numeric clamping and formatting, locale coalescing, and WCAG colour-contrast maths. They also hold caret bookkeeping for formatted inputs, the Escape dismiss-layer stack, a shared document-event subscriber, and roving keyboard-navigation math. **Internal:** `utilities` is not a `package.json` export. Reach it by relative import within the package (`from '../../utilities'`), not as `ui/utilities`.
 
 ## Numeric
 
@@ -9,7 +9,7 @@
 | `clamp` | Constrains `value` to the inclusive range `[lo, hi]`. |
 | `pct` | Maps `value` to its percentage position within `[min, max]`; `0` when the range is empty. |
 | `digitsOnly` | Returns `value` with every non-digit character removed. |
-| `toNumericCell` | Coerces a raw data cell to a number — numbers pass through, non-blank numeric strings parse, blanks (`null`, `''`, whitespace) become `NaN` rather than `0`; callers finite-filter. |
+| `toNumericCell` | Coerces a raw data cell to a number. Numbers pass through and non-blank numeric strings parse. A blank (`null`, `''`, whitespace) becomes `NaN`, not `0`; callers finite-filter. |
 | `formatInteger` | Locale-formats `value` with no fraction digits (cached formatter). |
 | `formatFraction` | Locale-formats `value` with up to two fraction digits (cached formatter). |
 | `formatPercent` | Locale-formats a `0..1` share as a whole percent (cached formatter). |
@@ -20,7 +20,7 @@
 
 | Export | Summary |
 |---|---|
-| `resolveLocale` | Coalesces an optional BCP 47 tag to a concrete one, falling back to the runtime locale — resolved once, since `Intl.DateTimeFormat` construction is uncached and the process locale cannot change. |
+| `resolveLocale` | Coalesces an optional BCP 47 tag to a concrete one, with the runtime locale as the fallback. Resolved once, because `Intl.DateTimeFormat` construction has no cache and the process locale cannot change. |
 
 ## Colour & accessibility
 
@@ -93,7 +93,7 @@ The sequential-scale primitives the data-driven colour charts share — the chor
 | `rangeKeys` | Builds `count` stable `${prefix}-${index}` keys for fixed-length placeholder loops (skeletons). |
 | `isDataColumn` | True for content columns; false for the selection-checkbox and row-actions columns. |
 | `noop` | No-op function. |
-| `once` | Wraps a thunk so it computes at most once, later calls returning the cached first result — the lazy seam behind deferred derivations like the charts' readout. |
+| `once` | Wraps a thunk so it computes at most once; a later call returns the cached first result. This is the lazy seam behind a deferred derivation like the charts' readout. |
 
 ---
 

@@ -42,7 +42,7 @@ export type QueryOperator = {
 	valueLabel?: string
 	/**
 	 * When true, the rule edits a two-bound `[min, max]` tuple (e.g. "between")
-	 * instead of a single value; either bound may be left blank for an open-ended
+	 * instead of a single value; either bound can be left blank for an open-ended
 	 * range.
 	 */
 	range?: boolean

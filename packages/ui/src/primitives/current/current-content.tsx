@@ -14,6 +14,7 @@ import {
 	useCurrentSettled,
 } from './current'
 
+/** Props for {@link CurrentContent}: the `slotPrefix` stamp, the `value` to match, and a `ref`, over `<div>` attributes. */
 export type CurrentContentProps = ComponentPropsWithoutRef<'div'> & {
 	/** Slot prefix stamped as `data-slot="<slotPrefix>-content"`. */
 	slotPrefix: string

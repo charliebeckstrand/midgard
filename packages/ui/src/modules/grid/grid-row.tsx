@@ -295,7 +295,7 @@ type GridRowProps<T> = {
 	 */
 	expanded?: boolean
 	/**
-	 * Whether this row may expand — a grid with an `expandable` binding and a row
+	 * Whether this row can expand — a grid with an `expandable` binding and a row
 	 * the binding accepts. An expander cell on a row this rejects stays a quiet
 	 * rail. Passed as a primitive (not an object) so the memoized row holds.
 	 * @defaultValue false

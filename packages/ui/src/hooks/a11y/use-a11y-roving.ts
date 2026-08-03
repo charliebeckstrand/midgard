@@ -173,7 +173,7 @@ function applyVirtualActiveDom(
 /**
  * The in-flight mount watcher per container. Each navigation owns at most one;
  * {@link setVirtualActiveIndexed} disconnects the previous one up front, so a
- * superseded watcher doesn't linger (or stack) waiting for a mutation that may
+ * superseded watcher doesn't linger (or stack) waiting for a mutation that can
  * never come.
  *
  * @internal
@@ -376,8 +376,8 @@ type RovingKeyContext = {
  * empty in DOM mode, `itemSource.count` is 0 in indexed mode). Indexed mode
  * (a virtual `itemSource` paired with `activeIndexRef`) reads the current
  * index off `activeIndexRef` — clamped to the source's live `count`, since a
- * filter can shrink it between keystrokes — instead of scanning the DOM,
- * which may not have the active row mounted.
+ * filter can shrink it between keystrokes — instead of a scan of the DOM,
+ * which can hold no mounted active row.
  *
  * @internal
  */
@@ -855,7 +855,7 @@ type RovingOptions = NavigationConfig & {
  * items the DOM query can't see.
  *
  * @returns A stable `onKeyDown` handler to attach to the container; it reads
- * items from `containerRef` on each press, so the item set may change between
+ * items from `containerRef` on each press, so the item set can change between
  * presses. With `trapTab`, Tab is consumed and rove the items rather than
  * carrying focus out. The `tabIndex` ownership (focus mode + `manageTabIndex`) and the
  * `aria-activedescendant` mirroring run as an effect, independent of the

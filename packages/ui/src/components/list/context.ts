@@ -26,6 +26,10 @@ export type ListContextValue = {
 	onItemBlur: () => void
 }
 
+/**
+ * Reads the enclosing {@link List} context: the `sortable` flag plus the
+ * item keyboard and blur handlers. Throws outside a list.
+ */
 export const [ListContext, useListContext] = createContext<ListContextValue>('List')
 
 /** Per-item drag bindings shared with an item and its handle: the item `id`, sortable refs/attributes/listeners, transform `style`, and the `dragging` flag. */
@@ -45,4 +49,8 @@ export type ListItemContextValue = {
 	dragging: boolean
 }
 
+/**
+ * Reads the enclosing {@link ListItem} context: the drag `listeners`, the
+ * composed `style`, and the `dragging` flag. Throws outside an item.
+ */
 export const [ListItemContext, useListItemContext] = createContext<ListItemContextValue>('ListItem')

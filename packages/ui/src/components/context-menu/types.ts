@@ -27,7 +27,7 @@ export type ContextMenuItem = {
 /**
  * A divider between groups of {@link ContextMenuItem}s — the rule
  * {@link resolveContextMenuEntries} inserts between a host's defaults and a
- * caller's custom items, and that a host may place between its own groups.
+ * caller's custom items, and that a host can place between its own groups.
  */
 export type ContextMenuSeparator = {
 	/** Stable identity for the separator, used as its React key. */
@@ -40,7 +40,7 @@ export type ContextMenuSeparator = {
  * label a group of related entries collapses under (a column menu's Sort, Pin,
  * or Export), revealed on hover, on click, or on Enter / Space. Once open it
  * owns the arrows until `Escape` closes it. Nests arbitrarily — a submenu's
- * `items` may hold submenus of their own.
+ * `items` can hold submenus of their own.
  */
 export type ContextMenuSubmenu = {
 	/** Stable identity for the row, used as its React key. */

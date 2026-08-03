@@ -73,20 +73,32 @@ The substrate the bridge and kata call, in [`src/core/recipe/`](../src/core/reci
 
 | Export | Summary |
 |---|---|
-| `defineRecipe` | The recipe primitive. Builds a callable recipe from a `RecipeConfig` — `base` → `variants` → `compound` → `defaults` per call (clsx + tailwind-merge); `slots` pre-merge and attach as properties; `palette` expands into an implicit `color` axis; `extras` attach arbitrary siblings (`motion`, sub-recipes). |
-| `definePalette` | Declares a recipe's colour × variant matrix (single or merged per-colour records, plus per-colour overlays); lives on `RecipeConfig.palette`, separate from the variant scaffold. The engine derives the `color` axis from the matrix's own keys, so a kata handed the wide `iro.spectrum` bundle gains the extended colours with no engine change. |
-| `applyRecipe` | Merge helper a bridge calls to fold a kata's per-call overlay over an archetype's standard config / extras, preserving key-type inference, then hands the result to `defineRecipe`. |
+| `defineRecipe` | The recipe primitive. It builds a callable recipe from a `RecipeConfig`, applying `base` → `variants` → `compound` → `defaults` per call (clsx + tailwind-merge). `slots` pre-merge and attach as properties. `palette` expands into an implicit `color` axis, and `extras` attach arbitrary siblings (`motion`, sub-recipes). |
+| `definePalette` | Declares a recipe's colour × variant matrix (single or merged per-colour records, plus per-colour overlays); lives on `RecipeConfig.palette`, separate from the variant scaffold. The engine derives the `color` axis from the matrix's own keys. A kata that takes the wide `iro.spectrum` bundle gains the extended colours with no engine change. |
+| `applyRecipe` | Merge helper a bridge calls to fold a kata's per-call overlay over an archetype's standard config and extras. It preserves key-type inference, then hands the result to `defineRecipe`. |
 | `merge` | Concatenates per-key class records into one — pre-merged variant × colour bundles outside the engine's compound expansion. |
-| `mode` / `defineColors` | Fuse colocated light (`hiru`) / dark (`yoru`) values into the flat `string[]` the engine consumes — `mode` for a scalar pair, `defineColors` across a multi-key map. The dark class carries its own `dark:` prefix. |
+| `mode` / `defineColors` | Fuse colocated light (`hiru`) and dark (`yoru`) values into the flat `string[]` the engine consumes. `mode` takes a scalar pair; `defineColors` works across a multi-key map. The dark class carries its own `dark:` prefix. |
 | `shades` | Builds a `Record<C, string[]>` from per-colour light/dark shade pairs; generic over the colour set, defaulting to `Color` and widening to the extended set in `iro/spectrum`. |
 | `RecipeConfig` *(type)* | The shape a kata declares: reserved fields (`base`, `palette`, `compound`, `slots`, `defaults`, `skeleton`) plus any number of variant axes. |
 | `VariantProps` *(type)* | Extracts the prop shape from a recipe or config; used to type the consumer-facing `<Name>Variants` export. |
 | `Color` *(type)* | The standard palette colour set — `zinc` · `red` · `amber` · `green` · `blue`. |
-| `ExtendedColor` / `PaletteColor` *(types)* | The opt-in extended set — `mist` · `rose` · `violet` · `sky` — and the union of standard + extended a kata surfaces by reading `iro.spectrum`. |
+| `ExtendedColor` / `PaletteColor` *(types)* | The opt-in extended set — `mist` · `rose` · `violet` · `sky` — and the union of standard plus extended. A kata surfaces the union when it reads `iro.spectrum`. |
+
+## Barrel surface
+
+The `recipes` barrel is types-only, pinned by `__tests__/boundary/recipe-boundary.test.ts`. It re-exports the substrate types so a consumer derives a prop union without a path through its kata.
+
+| Type | Summary |
+|---|---|
+| `Ma` | Name of a spacing stop in the `ma` scale. |
+| `Step` | Size step in the `sun` scale (`sm` / `md` / `lg`), which Density resolves against. |
+| `GroupPosition` | Where a member sits in a joined group, which selects the corners it rounds. |
+| `GroupOrientation` | Axis a joined group runs along. |
+| `Color` / `ExtendedColor` / `PaletteColor` | The palette colour sets, re-exported from the recipe engine above. |
 
 ## Boundary
 
-Cross-layer value imports are forbidden and pinned by tests (`recipe-boundary`, `kiso-boundary`, `katakana-purity-boundary`, `kata-boundary`, and the component/primitive recipe-boundary tests). The full list lives in [`src/recipes/README.md`](../src/recipes/README.md#3-boundary).
+Cross-layer value imports are illegal. Tests pin the rule: `recipe-boundary`, `kiso-boundary`, `katakana-purity-boundary`, `kata-boundary`, and the component/primitive recipe-boundary tests. The full list lives in [`src/recipes/README.md`](../src/recipes/README.md#3-boundary).
 
 ---
 

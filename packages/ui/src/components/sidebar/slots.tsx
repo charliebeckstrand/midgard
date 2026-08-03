@@ -9,10 +9,13 @@ import { k } from '../../recipes/kata/sidebar'
 import { Button } from '../button'
 import { Icon } from '../icon'
 
+/** Props for {@link SidebarHeader} (`<div>` attributes). */
 export type SidebarHeaderProps = SlotProps<'div'>
 
+/** Props for {@link SidebarBody} (`<div>` attributes). */
 export type SidebarBodyProps = SlotProps<'div'>
 
+/** Props for {@link SidebarFooter} (`<div>` attributes). */
 export type SidebarFooterProps = SlotProps<'div'>
 
 /**

@@ -12,6 +12,7 @@
 
 export const steps = ['sm', 'md', 'lg'] as const
 
+/** Size step in the `sun` scale, which Density resolves against. */
 export type Step = (typeof steps)[number]
 
 type SunStep = {
