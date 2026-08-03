@@ -3,6 +3,7 @@
 import type { Table } from '@tanstack/react-table'
 import { type RefObject, useCallback, useLayoutEffect, useRef, useState } from 'react'
 import {
+	type FrozenCell,
 	type FrozenOffsets,
 	frozenHeaderCells,
 	frozenOffsets,
@@ -73,9 +74,7 @@ export function useGridPinnedOffsets<T>({
 		return frozenHeaderCells(container, columns, (id) => columnPinSide(table, id))
 	}, [enabled, table, columns, containerRef])
 
-	const measure = useCallback(() => {
-		const scan = cells()
-
+	const publish = useCallback((scan: FrozenCell[]) => {
 		// No frozen cell resolved: the header hasn't rendered, or its row is mid column
 		// change. Hold the last measurement rather than dropping back to the engine's
 		// sums, which would jump the frozen columns for a frame.
@@ -88,25 +87,29 @@ export function useGridPinnedOffsets<T>({
 		publishedRef.current = next
 
 		setOffsets(next)
-	}, [cells])
+	}, [])
 
 	useLayoutEffect(() => {
 		if (!enabled) return
 
-		// Measure synchronously, before paint, so the first frame carries the rendered
-		// offsets rather than the engine's.
-		measure()
+		// One scan serves both the measurement and the observer: measure synchronously,
+		// before paint, so the first frame carries the rendered offsets rather than the
+		// engine's, then observe the very cells it just read.
+		const scan = cells()
+
+		publish(scan)
 
 		if (typeof ResizeObserver === 'undefined') return
 
 		// A frozen column's width is the only input to the offsets, so observing the
-		// frozen header cells is the whole trigger set.
-		const observer = new ResizeObserver(measure)
+		// frozen header cells is the whole trigger set. Each tick re-scans, since a
+		// column change can have replaced the cells since this ran.
+		const observer = new ResizeObserver(() => publish(cells()))
 
-		for (const { cell } of cells()) observer.observe(cell)
+		for (const { cell } of scan) observer.observe(cell)
 
 		return () => observer.disconnect()
-	}, [enabled, measure, cells])
+	}, [enabled, publish, cells])
 
 	// Gated on the way out rather than cleared in the effect above, so a grid that
 	// releases its last frozen column (or turns resizable) falls back to the engine
