@@ -159,6 +159,20 @@ export default defineConfig({
 					pool: 'threads',
 					isolate: false,
 					include: ['src/__tests__/boundary/*-boundary.test.ts'],
+					// These suites run no setupFiles, so the shared budget above governs
+					// them by a rationale they never inherit: it is sized against
+					// `asyncUtilTimeout`, and nothing here awaits anything. Every body in
+					// the project is synchronous, which also means the budget cannot
+					// interrupt one — a scan that never returns holds the runner's timer
+					// with it. What it can do is fail a slow run, and the pre-push gate
+					// makes runs slow: `lefthook` drives `check-types` and `test:changed`
+					// through `turbo` at once, so a `tsc` pass competes with these for the
+					// same cores. `tsdoc-coverage-boundary` builds a TypeScript program
+					// and crossed the 5s default there on contention alone, which the
+					// note above says a budget must never encode. Flat and wide, then:
+					// the project's median is 72ms, so a budget this size fails only work
+					// that has genuinely stopped moving.
+					testTimeout: 30_000,
 				},
 			},
 			{

@@ -23,28 +23,10 @@ import { srcDir } from '../helpers/walk-source'
 // doccomment at any hop, which is what a consumer's editor resolves.
 //
 // Building that program makes this the slowest test in its project by a wide
-// margin, so it reads no more than it resolves — see `packageHost`. It stays in
-// the boundary project because it pins a convention, not a behaviour.
-
-/**
- * Wall-clock budget for the one test below, in place of the suite default.
- *
- * @remarks Even reduced, this test builds a TypeScript program: ~1.2s of
- * binding on an idle machine, against a 72ms median across the rest of this
- * project. The suite default is sized for that median and for RTL waits, and the
- * margin it leaves is what the pre-push gate spends — it runs the suite beside
- * `build` and `check-types` under `turbo`, and the contention roughly doubles
- * every figure here. At the former ~2.6s the test crossed the 5s default and
- * failed on load alone, which is the one thing a budget must never encode (see
- * the `testTimeout` note in `vitest.config.ts`).
- *
- * So: an explicit budget, at ~10x the worst contended run measured here (2.7s)
- * rather than the ~2x a shared default happens to leave. Held flat rather than
- * scaled for CI, because the contention it covers is heaviest on a developer's
- * machine. It bounds a slow run, not a hung one — the work is synchronous, so a
- * program build that never returns blocks the runner's timer with it.
- */
-const PROGRAM_BUDGET_MS = 30_000
+// margin — ~1.4s against a 72ms median — so it reads no more than it resolves
+// (see `packageHost`), and the project's own `testTimeout` in `vitest.config.ts`
+// is sized for it. It stays in the boundary project because it pins a
+// convention, not a behaviour.
 
 /** Barrel globs that form the package's public surface, per `package.json` `exports`. */
 const BARREL_PATTERNS: readonly (readonly [dir: string, nested: boolean])[] = [
@@ -83,56 +65,58 @@ function barrelFiles(): string[] {
 	return files.filter((file) => ts.sys.fileExists(file))
 }
 
-/** Compiler options the program builds under; shared with {@link packageHost}. */
+/**
+ * Compiler options the program builds under; shared with {@link packageHost}.
+ *
+ * @remarks `noLib` drops the standard library, which is 93 files and 3MB of the
+ * text the program would otherwise parse — the single largest share, and read by
+ * nothing here (see {@link packageHost}). It is stated rather than left to the
+ * path rule below, which would catch `lib.*.d.ts` only for as long as the
+ * `typescript` package keeps resolving under a `node_modules` segment.
+ */
 const PROGRAM_OPTIONS: ts.CompilerOptions = {
 	target: ts.ScriptTarget.ESNext,
 	module: ts.ModuleKind.ESNext,
 	moduleResolution: ts.ModuleResolutionKind.Bundler,
 	jsx: ts.JsxEmit.Preserve,
 	skipLibCheck: true,
+	noLib: true,
 }
 
 /**
  * A compiler host that resolves every import but parses only the sources this
  * test can read a doccomment out of, handing back an empty file for the rest.
  *
- * @remarks The barrels reach the whole dependency graph, and parsing it is most
- * of the run: two thirds of the text the program would hold is third-party
- * `.d.ts` (7.6MB against the package's own 3.7MB), and dropping it halves the
- * test. Nothing is lost, because the walk only ever reads declarations the
- * package itself wrote — measured across all 1,236 barrel exports, no hop of any
- * alias chain lands in a dependency, and the verdicts are identical either way.
+ * @remarks The barrels reach the whole dependency graph, and parsing it is where
+ * the run goes — 70% of it, against 2% for the walk. Withholding the text of
+ * every dependency, on top of the library `PROGRAM_OPTIONS` drops, takes the
+ * program from 1,642 files and 11.2MB to 1,232 and 3.7MB, and the build behind
+ * this test from ~2.1s to ~1.2s.
  *
- * Resolution is untouched, so a re-export *through* a dependency still resolves;
- * only the file's text is withheld. Were the package to start re-exporting a
- * third-party symbol, that symbol would carry no readable doccomment here and
- * the test would report it as a gap — a loud failure, not a silent pass.
+ * None of it is read. The walk reports only on declarations this package wrote,
+ * and across all 1,236 barrel exports no hop of any alias chain lands in a
+ * dependency — verified by diffing the per-export verdicts against the full
+ * program. Resolution itself is untouched, so a re-export *through* a dependency
+ * still resolves; only the file's text is withheld. Were the package to start
+ * re-exporting a third-party symbol, that symbol would carry no readable
+ * doccomment here and the test would report it as a gap — a loud failure rather
+ * than a silent pass.
  *
- * Sibling workspace packages resolve to their real paths (pnpm symlinks
- * notwithstanding), so they parse normally and stay readable.
+ * The standing precondition, since both cuts land on the same side of it: no
+ * type in this program resolves. Only declaration nodes and comment trivia are
+ * valid to read from it, which is all {@link hasDoc} asks for.
  */
 function packageHost(): ts.CompilerHost {
-	const host = ts.createCompilerHost(PROGRAM_OPTIONS, true)
+	const host = ts.createCompilerHost(PROGRAM_OPTIONS)
 
 	const read = host.getSourceFile.bind(host)
 
-	const stubs = new Map<string, ts.SourceFile>()
-
-	host.getSourceFile = (fileName, languageVersion, onError, shouldCreate) => {
-		if (!fileName.includes('/node_modules/')) {
-			return read(fileName, languageVersion, onError, shouldCreate)
-		}
-
-		const cached = stubs.get(fileName)
-
-		if (cached) return cached
-
-		const stub = ts.createSourceFile(fileName, '', languageVersion, true)
-
-		stubs.set(fileName, stub)
-
-		return stub
-	}
+	// One call per path — the program dedupes before reaching the host — so the
+	// empty files are built on demand and never cached.
+	host.getSourceFile = (fileName, languageVersion, onError, shouldCreate) =>
+		fileName.includes('/node_modules/')
+			? ts.createSourceFile(fileName, '', languageVersion)
+			: read(fileName, languageVersion, onError, shouldCreate)
 
 	return host
 }
@@ -206,7 +190,7 @@ function hasDoc(chain: readonly ts.Symbol[]): boolean {
 }
 
 describe('TSDoc coverage boundary', () => {
-	it('every barrel-exported symbol carries a doccomment', { timeout: PROGRAM_BUDGET_MS }, () => {
+	it('every barrel-exported symbol carries a doccomment', () => {
 		const barrels = barrelFiles()
 
 		const program = ts.createProgram(barrels, PROGRAM_OPTIONS, packageHost())
