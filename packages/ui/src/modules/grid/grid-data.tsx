@@ -358,6 +358,10 @@ export function GridData<T>({
 
 	const columnSizingConfig = seedColumnSizing(columnSizingConfigProp, preferences)
 
+	// `columnManager={false}` is the feature's off switch: no dialog, no button,
+	// no menu item, and none of the visibility bindings the config would carry.
+	const columnManagerEnabled = columnManagerConfigProp !== false
+
 	const columnManagerConfig = seedColumnManager(columnManagerConfigProp, preferences)
 
 	// Up-front invariants for the mutually-dependent props (virtualize/maxHeight,
@@ -830,8 +834,8 @@ export function GridData<T>({
 	// displayed order. Both are taken over the leaf set, since under grouping the
 	// sorted model carries group headers rather than data rows. An `exportRows`
 	// source overrides both, supplying the rows the engine can't hold under
-	// server pagination. Shared by the toolbar's "Export" dropdown and both
-	// context menus.
+	// server pagination. Split by surface: the toolbar's "Export" dropdown and
+	// both context menus each take the set their own switch opens.
 	const exportActions = useGridExport<T>({
 		exportable,
 		columns: visibleColumns,
@@ -920,6 +924,7 @@ export function GridData<T>({
 	} = useGridMenuActions<T>({
 		contextMenu,
 		columnManagerConfig,
+		columnManagerEnabled,
 		resize,
 		setSort,
 		hasData,
@@ -1289,7 +1294,7 @@ export function GridData<T>({
 							showColumnManager={showButton}
 							columnManagerLabel={managerLabel}
 							onManageColumns={() => setColumnManagerOpen(true)}
-							exportActions={exportActions}
+							exportActions={exportActions.toolbar}
 							columnFilters={filters}
 							batchActions={batchActions}
 							hasSelection={someSelected}
@@ -1317,7 +1322,7 @@ export function GridData<T>({
 								autoSizeColumns={autoSizeColumns}
 								autoSizeColumn={autoSizeColumn}
 								chooseColumns={chooseColumns}
-								exportActions={exportActions}
+								exportActions={exportActions.contextMenu}
 								rowGroupMenu={rowManager.rowGroupMenu}
 								columnGroupMenu={columnGroupMenu}
 							>

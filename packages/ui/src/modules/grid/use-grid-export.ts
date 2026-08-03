@@ -2,20 +2,37 @@
 
 import type { Row, Table } from '@tanstack/react-table'
 import { useMemo } from 'react'
-import { resolveExportActions } from './engine/grid-export/resolve'
-import type { GridExportAction, GridExportEntry, GridExportRows } from './engine/grid-export/types'
+import { resolveExportActions, resolveExportSurfaces } from './engine/grid-export/resolve'
+import type { GridExportAction, GridExportable, GridExportRows } from './engine/grid-export/types'
 import { deriveLeafRows } from './engine/grid-table/state'
 import type { GridColumn } from './types'
 
 export type { GridExportAction } from './engine/grid-export/types'
 
+/** A surface offering no export actions. A fixed identity, so an off surface never re-renders its menu. @internal */
+const NO_ACTIONS: GridExportAction[] = []
+
+/**
+ * The export actions each surface offers, empty where the surface is off.
+ *
+ * @internal
+ */
+export type GridExportSurfaceActions = {
+	/** The toolbar's "Export" dropdown. */
+	toolbar: GridExportAction[]
+	/** The header and cell right-click menus, and the builder contexts they hand out. */
+	contextMenu: GridExportAction[]
+}
+
 /**
  * Resolves the `exportable` prop (see {@link GridDataProps.exportable}) into
  * the export actions the toolbar dropdown and context menus render — one per
- * configured type, via {@link resolveExportActions}. Each action's context
- * builds lazily at run time, so it always reflects the grid's current state
- * rather than the state at the last render that changed `exportable`,
- * `columns`, `table`, or `exportRows`.
+ * configured type, via {@link resolveExportActions}, split by the surfaces the
+ * prop opens (see {@link resolveExportSurfaces}), so a grid can carry the
+ * "Export" dropdown, the menu items, or both. Each action's context builds
+ * lazily at run time, so it always reflects the grid's current state rather than
+ * the state at the last render that changed `exportable`, `columns`, `table`, or
+ * `exportRows`.
  *
  * Without `exportRows` the rows come from the engine's sorted row model, first
  * collapsed to its leaf set — the selected rows when a selection is active, else
@@ -36,7 +53,7 @@ export type { GridExportAction } from './engine/grid-export/types'
  * @internal
  */
 export function useGridExport<T>(args: {
-	exportable: boolean | GridExportEntry<T>[] | undefined
+	exportable: GridExportable<T> | undefined
 	columns: GridColumn<T>[]
 	table: Table<T>
 	exportRows?: GridExportRows<T>
@@ -44,10 +61,10 @@ export function useGridExport<T>(args: {
 	grouped: boolean
 	/** Identifies a consumer-supplied group-header row under manual grouping; `null` otherwise. */
 	manualGroupRow: ((row: T) => boolean) | null
-}): GridExportAction[] {
+}): GridExportSurfaceActions {
 	const { exportable, columns, table, exportRows, grouped, manualGroupRow } = args
 
-	return useMemo(
+	const actions = useMemo(
 		() =>
 			resolveExportActions(exportable, () => {
 				if (exportRows) {
@@ -74,5 +91,17 @@ export function useGridExport<T>(args: {
 				return { columns, rows }
 			}),
 		[exportable, columns, table, exportRows, grouped, manualGroupRow],
+	)
+
+	const surfaces = resolveExportSurfaces(exportable)
+
+	// An off surface takes the fixed empty set rather than a fresh one, so it
+	// contributes nothing to the menu resolvers' dependencies.
+	return useMemo(
+		() => ({
+			toolbar: surfaces.toolbar ? actions : NO_ACTIONS,
+			contextMenu: surfaces.contextMenu ? actions : NO_ACTIONS,
+		}),
+		[actions, surfaces.toolbar, surfaces.contextMenu],
 	)
 }

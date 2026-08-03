@@ -824,7 +824,7 @@ const LockedLeftExample = () => (
 		columns={lockedLeftColumns}
 		rows={employees}
 		getKey={(row) => row.id}
-		columnManager={{ toolbarButton: true }}
+		columnManager={{ toolbar: true }}
 	/>
 )
 
@@ -839,7 +839,7 @@ const LockedWithPinnedExample = () => (
 		columns={lockedMixedColumns}
 		rows={employees}
 		getKey={(row) => row.id}
-		columnManager={{ toolbarButton: true }}
+		columnManager={{ toolbar: true }}
 	/>
 )
 
@@ -853,7 +853,7 @@ const LockedBothEdgesExample = () => (
 		columns={lockedBothColumns}
 		rows={employees}
 		getKey={(row) => row.id}
-		columnManager={{ toolbarButton: true }}
+		columnManager={{ toolbar: true }}
 	/>
 )
 
@@ -900,19 +900,20 @@ const DateBooleanFilterExample = () => (
 
 const ColumnManagerExample = () => {
 	// Column management is on by default (the header right-click menu's "Manage
-	// columns" opens the dialog); `toolbarButton` adds the standalone button
-	// shown here. Toggle a column's checkbox to hide it, or use a row's pin control
-	// to freeze it left/right (left columns sort to the top of the list, right
-	// columns to the bottom). Drag-to-reorder in the manager follows `reorder`, so
-	// it's set here to enable the handles. Pass `columnManager={{ enabled: false }}`
-	// to turn management off entirely.
+	// columns" opens the dialog); `toolbar` adds the standalone button shown here,
+	// and `contextMenu: false` drops the menu item — the same two switches
+	// `exportable` takes. Toggle a column's checkbox to hide it, or use a row's pin
+	// control to freeze it left/right (left columns sort to the top of the list,
+	// right columns to the bottom). Drag-to-reorder in the manager follows
+	// `reorder`, so it's set here to enable the handles. Pass
+	// `columnManager={false}` to turn management off entirely.
 	return (
 		<Grid
 			reorder
 			columns={columns}
 			rows={people}
 			getKey={(row) => row.id}
-			columnManager={{ toolbarButton: true }}
+			columnManager={{ toolbar: true }}
 		/>
 	)
 }
@@ -967,20 +968,36 @@ const GroupManagerExample = () => {
 			rows={people}
 			getKey={(row) => row.id}
 			groups={{ value: groups, onValueChange: setGroups }}
-			columnManager={{ toolbarButton: true }}
+			columnManager={{ toolbar: true }}
 		/>
 	)
 }
 
 // `exportable` adds one item per export type to the header and cell right-click
-// menus, plus an "Export" toolbar dropdown listing them; each downloads (or, for
-// `print`, opens the print dialog over) the filtered/sorted rows — or just the
-// selected rows when a selection is active — every column read through its
-// `value`. `true` enables the full default set (CSV, Excel, print); an explicit
-// array picks a subset instead.
+// menus; each downloads (or, for `print`, opens the print dialog over) the
+// filtered/sorted rows — or just the selected rows when a selection is active —
+// every column read through its `value`. `true` enables the full default set
+// (CSV, Excel, print); an explicit array picks a subset instead. The object form
+// takes that same list under `types`, plus the two surface switches: `toolbar`
+// adds the "Export" dropdown shown here (opt-in, like the column manager's
+// button), and `contextMenu: false` would leave the dropdown as the only way in.
 const ExportExample = () => (
 	<Grid
-		exportable={['csv', 'excel']}
+		exportable={{ types: ['csv', 'excel'], toolbar: true }}
+		columns={filterableColumns}
+		rows={people}
+		getKey={(row) => row.id}
+	/>
+)
+
+// Each surface stands on its own: this grid carries the "Export" dropdown alone,
+// so a right-click on a header or cell offers everything but export. Flip the two
+// switches to place export wherever it belongs — the column manager takes the
+// same pair.
+const ExportSurfacesExample = () => (
+	<Grid
+		exportable={{ types: ['csv', 'excel'], toolbar: true, contextMenu: false }}
+		columnManager={{ toolbar: true, contextMenu: false }}
 		columns={filterableColumns}
 		rows={people}
 		getKey={(row) => row.id}
@@ -996,7 +1013,7 @@ const ExportWithSelectionExample = () => {
 
 	return (
 		<Grid
-			exportable={['csv', 'excel']}
+			exportable={{ types: ['csv', 'excel'], toolbar: true }}
 			columns={[{ id: 'select', selectable: true }, ...filterableColumns]}
 			rows={people}
 			getKey={(row) => row.id}
@@ -1463,7 +1480,7 @@ export function Demo() {
 
 									<Example
 										title="Group editor"
-										code={code`<Grid groups={{ value, onValueChange }} columnManager={{ toolbarButton: true }} />`}
+										code={code`<Grid groups={{ value, onValueChange }} columnManager={{ toolbar: true }} />`}
 									>
 										<GroupManagerExample />
 									</Example>
@@ -1627,15 +1644,25 @@ export function Demo() {
 
 				<TabContent value="Export">
 					<Stack gap="xl">
-						<Example title="Export" code={code`<Grid exportable={['csv', 'excel']} />`}>
+						<Example
+							title="Export"
+							code={code`<Grid exportable={{ types: ['csv', 'excel'], toolbar: true }} />`}
+						>
 							<ExportExample />
 						</Example>
 
 						<Example
 							title="Export with selection"
-							code={code`<Grid exportable={['csv', 'excel']} selection={{ value, onValueChange }} />`}
+							code={code`<Grid exportable={{ types: ['csv', 'excel'], toolbar: true }} selection={{ value, onValueChange }} />`}
 						>
 							<ExportWithSelectionExample />
+						</Example>
+
+						<Example
+							title="Toolbar only"
+							code={code`<Grid exportable={{ toolbar: true, contextMenu: false }} columnManager={{ toolbar: true, contextMenu: false }} />`}
+						>
+							<ExportSurfacesExample />
 						</Example>
 					</Stack>
 				</TabContent>

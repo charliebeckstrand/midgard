@@ -2,6 +2,8 @@ export { type GridContextValue, type SortState, useGrid } from './context'
 export { downloadExcel, rowsToXlsx } from './engine/grid-export/excel'
 export type {
 	GridExportAction,
+	GridExportable,
+	GridExportConfig,
 	GridExportContext,
 	GridExportEntry,
 	GridExportRows,
@@ -65,4 +67,5 @@ export type {
 	GridPagination,
 	GridPaginationState,
 	GridSearch,
+	GridToolSurfaces,
 } from './types'

@@ -260,7 +260,7 @@ describe('Grid column-group editor', () => {
 				rows={rows}
 				getKey={(row) => row.id}
 				groups={{ value: groups, onValueChange: setGroups }}
-				columnManager={{ toolbarButton: true, defaultOpen: true }}
+				columnManager={{ toolbar: true, defaultOpen: true }}
 			/>
 		)
 	}
@@ -348,7 +348,7 @@ describe('Grid column-group editor', () => {
 					rows={rows}
 					getKey={(row) => row.id}
 					groups={{ value: groups, onValueChange: setGroups }}
-					columnManager={{ toolbarButton: true, defaultOpen: true }}
+					columnManager={{ toolbar: true, defaultOpen: true }}
 				/>
 			)
 		}

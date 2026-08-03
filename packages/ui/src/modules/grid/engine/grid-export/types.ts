@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import type { GridColumn } from '../../types'
+import type { GridColumn, GridToolSurfaces } from '../../types'
 
 /**
  * An export format's identifier: one of the built-ins shipped in this folder
@@ -57,6 +57,33 @@ export type GridExportTypeConfig<T> = {
 export type GridExportEntry<T> =
 	| GridExportType
 	| Partial<Record<GridExportType, GridExportTypeConfig<T>>>
+
+/**
+ * The object form of {@link GridDataProps.exportable}: the types to offer, plus
+ * the surfaces that offer them. Reach for it to split the two apart — an
+ * "Export" toolbar dropdown with no menu items, or the reverse; the array and
+ * boolean forms take the {@link GridToolSurfaces} defaults.
+ *
+ * @typeParam T - Shape of a single row.
+ */
+export type GridExportConfig<T> = GridToolSurfaces & {
+	/**
+	 * The export types to offer, in order — the same entry list the array form
+	 * takes.
+	 * @defaultValue `['csv', 'excel']`
+	 */
+	types?: GridExportEntry<T>[]
+}
+
+/**
+ * Every form {@link GridDataProps.exportable} accepts: `false` to disable
+ * export, `true` for the full built-in set, an entry array to pick the types, or
+ * a {@link GridExportConfig} to pick the types *and* the surfaces they appear
+ * on.
+ *
+ * @typeParam T - Shape of a single row.
+ */
+export type GridExportable<T> = boolean | GridExportEntry<T>[] | GridExportConfig<T>
 
 /**
  * A resolved, ready-to-run export action — one per configured

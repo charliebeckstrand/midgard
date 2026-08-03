@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import type { TableElementProps, TableVariants } from '../../components/table'
 import type { DensityLevel } from '../../providers/density'
 import type { SortState } from './context'
-import type { GridExportEntry, GridExportRows } from './engine/grid-export/types'
+import type { GridExportable, GridExportRows } from './engine/grid-export/types'
 import type { GridCellClick, GridRowClick } from './engine/grid-row/cell'
 import type { GridEditableConfig } from './grid-editing-types'
 import type { GridColumnGroups } from './grid-group-types'
@@ -15,6 +15,7 @@ import type {
 	GridContextMenu as GridContextMenuConfig,
 	GridPagination,
 	GridSearch,
+	GridToolSurfaces,
 } from './types'
 
 /**
@@ -508,26 +509,14 @@ export type GridSelection = {
 }
 
 /**
- * Column-manager binding for {@link GridProps.columnManager}: gates column
- * management, optionally adds a toolbar button, and holds
+ * Column-manager binding for {@link GridProps.columnManager}: places the manager
+ * on the {@link GridToolSurfaces | surfaces} that open it, and holds
  * controlled/uncontrolled column-visibility state. Column order lives on the
  * top-level {@link GridProps.columnOrder} binding, which the manager dialog
- * reads and writes.
+ * reads and writes. `columnManager={false}` is the off switch — no menu item, no
+ * button, and the dialog stays out of the tree.
  */
-export type GridColumnManagerConfig = {
-	/**
-	 * Whether column management is available: the "Manage columns" header
-	 * context-menu item and the manager dialog it opens. Set `false` to drop the
-	 * item and keep the dialog out of the tree entirely.
-	 * @defaultValue true
-	 */
-	enabled?: boolean
-	/**
-	 * Also render a button in the grid's toolbar that opens the manager dialog,
-	 * alongside the context-menu item. Has no effect when `enabled` is `false`.
-	 * @defaultValue false
-	 */
-	toolbarButton?: boolean
+export type GridColumnManagerConfig = GridToolSurfaces & {
 	/**
 	 * Label on the toolbar button and the dialog title.
 	 * @defaultValue 'Manage columns'
@@ -751,7 +740,16 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 */
 	pinning?: GridPinning
 
-	columnManager?: GridColumnManagerConfig
+	/**
+	 * Column management: the "Manage columns" dialog over column visibility,
+	 * order, pinning, and groups. On by default through the header context menu;
+	 * `toolbar: true` adds the toolbar button beside it, and
+	 * `columnManager={false}` drops the feature outright.
+	 *
+	 * @see {@link GridColumnManagerConfig}
+	 * @defaultValue `{ toolbar: false, contextMenu: true }`
+	 */
+	columnManager?: GridColumnManagerConfig | false
 
 	/**
 	 * Column groups: a colored, labeled band drawn above a contiguous run of
@@ -832,8 +830,10 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * concern. On by default; pass `false` to disable. Each side takes the
 	 * defaults (`true`) or a builder that reshapes them. "Manage columns" opens
 	 * the column manager, rendering its dialog even without the toolbar button —
-	 * unless {@link GridColumnManagerConfig.enabled} is `false`, which drops it.
-	 * The export items appear only when {@link GridDataProps.exportable} is on.
+	 * unless `columnManager={false}` drops it, or its own
+	 * {@link GridToolSurfaces.contextMenu} switch keeps it to the toolbar. The
+	 * export items answer to the same switch on
+	 * {@link GridDataProps.exportable | exportable}.
 	 *
 	 * @see {@link GridContextMenu}
 	 * @defaultValue `{ column: true, cell: true }`
@@ -841,14 +841,22 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	contextMenu?: GridContextMenuConfig<T> | false
 
 	/**
-	 * Enables export of the grid's rows. The shorthand `true` enables the
-	 * default set — CSV, Excel, and print — each surfaced as an item in the
-	 * header and cell context menus and in a toolbar "Export" dropdown. Pass an
-	 * explicit {@link GridExportEntry} array to choose a subset, reorder them, or
-	 * override a type's behavior: a bare type (`'csv'`) runs its built-in
-	 * exporter, while an object entry (`{ csv: { onExport } }`) replaces it —
-	 * required for any type beyond the three built-ins, which have no default to
-	 * fall back to.
+	 * Enables export of the grid's rows, in one of four forms. The shorthand
+	 * `true` enables the default set — CSV, Excel, and print; an explicit
+	 * {@link GridExportEntry} array chooses a subset, reorders it, or overrides a
+	 * type's behavior — a bare type (`'csv'`) runs its built-in exporter, while an
+	 * object entry (`{ csv: { onExport } }`) replaces it, required for any type
+	 * beyond the three built-ins, which have no default to fall back to; a
+	 * {@link GridExportConfig} names those same types under `types` *and* the
+	 * surfaces they appear on; and `false` disables export outright.
+	 *
+	 * The header and cell context menus carry the export items by default, and the
+	 * toolbar's "Export" dropdown is opt-in — `exportable={{ toolbar: true }}` —
+	 * matching the column manager's own button. Set either
+	 * {@link GridToolSurfaces | surface} to keep export to the other:
+	 * `{ types: ['csv'], toolbar: true, contextMenu: false }` is a toolbar-only
+	 * CSV export. A `contextMenu` builder sees exactly what its menu offers, so an
+	 * export held back from the menus reaches no builder either.
 	 *
 	 * Every type exports the same rows: the filtered and sorted set (all pages),
 	 * or just the selected rows when a {@link GridDataProps.selection} is active.
@@ -858,12 +866,14 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * Each row reads a column's {@link GridColumn.value}, falling back to the row
 	 * field named by the column id; columns without either export an empty field.
 	 *
-	 * CSV and Excel are on by default; pass `false` to disable export entirely, or
-	 * `true` to add print to the set. Print stays opt-in because it opens the
-	 * browser print dialog rather than downloading a file.
+	 * An omitted prop and a config carrying no `types` both land on CSV + Excel.
+	 * Only the `true` shorthand adds print, which stays opt-in because it opens
+	 * the browser print dialog rather than downloading a file.
+	 *
+	 * @see {@link GridExportConfig}
 	 * @defaultValue `['csv', 'excel']`
 	 */
-	exportable?: boolean | GridExportEntry<T>[]
+	exportable?: GridExportable<T>
 
 	/**
 	 * Overrides the rows every export type serializes with a consumer-supplied

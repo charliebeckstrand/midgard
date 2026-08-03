@@ -452,6 +452,33 @@ export type GridColumnFilters = {
 export type GridMenuItem = ContextMenuEntry
 
 /**
+ * The surfaces a grid tool offers itself on: a button in the toolbar's "Table
+ * tools" cluster, an item in the right-click menus, or both. Export
+ * ({@link GridExportConfig}) and the column manager
+ * ({@link GridColumnManagerConfig}) take the same pair, defaulted the same way —
+ * the menus carry the tool, the toolbar button is opt-in — so one idiom places
+ * every tool.
+ *
+ * @remarks Both `false` leaves the tool no chrome of its own: the column manager
+ * still answers its `open` binding, which is how a host drives the dialog from
+ * its own controls, while export contributes nothing — turn it off with
+ * `exportable={false}` instead, and keep the intent legible.
+ */
+export type GridToolSurfaces = {
+	/**
+	 * Render the tool's button in the toolbar's "Table tools" cluster.
+	 * @defaultValue false
+	 */
+	toolbar?: boolean
+	/**
+	 * Offer the tool in the grid's right-click menus. Silent while the menu that
+	 * would carry it is off (see {@link GridProps.contextMenu}).
+	 * @defaultValue true
+	 */
+	contextMenu?: boolean
+}
+
+/**
  * Context for a {@link GridContextMenu.column} builder: the right-clicked column
  * and the actions its default items invoke.
  *
@@ -491,7 +518,7 @@ export type GridColumnMenuContext<T> = {
 	autoSizeColumn: (() => void) | undefined
 	/** Opens the column-manager dialog ("Manage columns"). */
 	chooseColumns: () => void
-	/** One action per configured export type (see {@link GridProps.exportable}); empty when export is off. */
+	/** One action per configured export type (see {@link GridProps.exportable}); empty when export is off, or held back from the menus by its {@link GridToolSurfaces.contextMenu} switch. */
 	exportActions: GridExportAction[]
 }
 
@@ -527,7 +554,7 @@ export type GridCellMenuContext<T> = {
 	value: unknown
 	/** Copies the cell value to the clipboard. */
 	copy: () => void
-	/** One action per configured export type (see {@link GridProps.exportable}); empty when export is off. */
+	/** One action per configured export type (see {@link GridProps.exportable}); empty when export is off, or held back from the menus by its {@link GridToolSurfaces.contextMenu} switch. */
 	exportActions: GridExportAction[]
 }
 

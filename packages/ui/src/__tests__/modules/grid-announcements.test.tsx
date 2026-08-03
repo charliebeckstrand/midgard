@@ -127,12 +127,7 @@ describe('Grid announcements', () => {
 		const user = userEvent.setup()
 
 		renderUI(
-			<Grid
-				columns={columns}
-				rows={rows}
-				getKey={getKey}
-				columnManager={{ toolbarButton: true }}
-			/>,
+			<Grid columns={columns} rows={rows} getKey={getKey} columnManager={{ toolbar: true }} />,
 		)
 
 		await user.click(screen.getByRole('button', { name: 'Manage columns' }))
