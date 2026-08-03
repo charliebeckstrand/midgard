@@ -4,6 +4,13 @@ import type { Table } from '@tanstack/react-table'
 import { useRef } from 'react'
 import { isDataColumn } from '../../utilities'
 import {
+	EMPTY_FROZEN_LAYOUT,
+	type FrozenLayout,
+	frozenLayout,
+	sameFrozenLayout,
+} from './engine/grid-pin/layout'
+import type { FrozenOffsets } from './engine/grid-pin/measure'
+import {
 	deriveVisibleColumns,
 	type GridColumnResize,
 	sameElements,
@@ -54,6 +61,39 @@ export function useColumnSettleWidths<T>(
 	const ref = useRef(candidate)
 
 	const stable = sameElements(ref.current, candidate) ? ref.current : candidate
+
+	ref.current = stable
+
+	return stable
+}
+
+/**
+ * The frozen columns' resolved chrome ({@link frozenLayout}), recomputed each
+ * render — the engine's pin state and column sizes both read live — but held at a
+ * stable reference while every frozen column keeps its edge, its offset, and the
+ * boundary. The pinned chrome rides `memo` boundaries, so this reference is what
+ * carries a frozen-layout change to the header cells and the body rows: pin a
+ * second column and the boundary rule moves off the first, drag a frozen column
+ * wider and the ones behind it track it frame by frame instead of settling at the
+ * end of the drag.
+ *
+ * The hold keeps that cost to the frames that earn it. A drag on a scrolling
+ * column moves no frozen offset, so the layout compares equal and no row
+ * re-renders; only a drag that shifts the frozen stack re-renders it.
+ *
+ * @param frozen - Whether any column is frozen; an unfrozen grid resolves nothing.
+ * @internal
+ */
+export function useFrozenLayout<T>(
+	frozen: boolean,
+	table: Table<T>,
+	measured: FrozenOffsets | null,
+): FrozenLayout {
+	const candidate = frozen ? frozenLayout(table, measured) : EMPTY_FROZEN_LAYOUT
+
+	const ref = useRef(candidate)
+
+	const stable = sameFrozenLayout(ref.current, candidate) ? ref.current : candidate
 
 	ref.current = stable
 

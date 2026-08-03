@@ -2,6 +2,7 @@
 
 import type { Table } from '@tanstack/react-table'
 import { type RefObject, useCallback, useLayoutEffect, useRef, useState } from 'react'
+import { columnPinSide } from './engine/grid-pin/layout'
 import {
 	type FrozenCell,
 	type FrozenOffsets,
@@ -9,7 +10,6 @@ import {
 	frozenOffsets,
 	sameFrozenOffsets,
 } from './engine/grid-pin/measure'
-import { columnPinSide } from './engine/grid-table/views'
 import type { GridColumn } from './types'
 
 /** Options for {@link useGridPinnedOffsets}. @internal */

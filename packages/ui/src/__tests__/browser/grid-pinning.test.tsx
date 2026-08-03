@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { renderUI, waitFor } from '../helpers'
+import { fireEvent, renderUI, waitFor } from '../helpers'
 
 /**
  * Column pinning against a real layout engine: sticky positioning only resolves
@@ -232,5 +232,155 @@ describe('stacked frozen columns under auto layout (real browser)', () => {
 		scroller.dispatchEvent(new Event('scroll'))
 
 		await expectFlush(container)
+	})
+})
+
+/**
+ * The frozen group's chrome tracks the live layout, not the layout its cells last
+ * rendered under. Rows, cells, and headers all hold on `memo`, so a change none
+ * of their own props carries — a column joining the group, a width moving under a
+ * drag — reaches them only through the pinning controls' identity. Both cases
+ * need a real engine: the boundary rule is a painted `::after`, and the sticky
+ * offsets take effect only once the body scrolls.
+ */
+describe('frozen chrome tracks live pin and size changes (real browser)', () => {
+	type Row = { id: number; name: string; email: string; a: string; b: string; c: string }
+
+	const rows: Row[] = Array.from({ length: 4 }, (_, i) => ({
+		id: i + 1,
+		name: `Name ${i + 1}`,
+		email: `person${i + 1}@example.com`,
+		a: `A${i}`,
+		b: `B${i}`,
+		c: `C${i}`,
+	}))
+
+	const columns: GridColumn<Row>[] = [
+		{ id: 'name', title: 'Name', cell: (row) => row.name, pinned: 'left' },
+		{ id: 'email', title: 'Email', cell: (row) => row.email },
+		{ id: 'a', title: 'A', cell: (row) => row.a },
+		{ id: 'b', title: 'B', cell: (row) => row.b },
+		{ id: 'c', title: 'C', cell: (row) => row.c },
+	]
+
+	const getKey = (row: Row) => row.id
+
+	const cell = (root: HTMLElement, id: string) =>
+		root.querySelector<HTMLElement>(`td[data-grid-col="${id}"]`) as HTMLElement
+
+	const head = (root: HTMLElement, id: string) =>
+		root.querySelector<HTMLElement>(`th[data-grid-col="${id}"]`) as HTMLElement
+
+	// The boundary rule is drawn as an `::after` overlay, so "carries the rule"
+	// reads off the painted pseudo-element rather than the class list.
+	const hasBoundaryRule = (element: HTMLElement) =>
+		getComputedStyle(element, '::after').content !== 'none'
+
+	// Seeded widths overflow the 420px frame, so the grid scrolls sideways and the
+	// frozen columns actually stick; `defaultValue` leaves a drag free to move them.
+	const sizing = { defaultValue: { name: 160, email: 220, a: 200, b: 200, c: 200 } }
+
+	function setup(pinning: Record<string, 'left' | 'right' | 'none'>) {
+		const view = (value: Record<string, 'left' | 'right' | 'none'>) => (
+			<div style={{ width: '420px' }}>
+				<Grid
+					resizable
+					header={{ position: 'sticky' }}
+					maxHeight="240px"
+					columns={columns}
+					columnSizing={sizing}
+					pinning={{ value, onValueChange: () => {} }}
+					rows={rows}
+					getKey={getKey}
+				/>
+			</div>
+		)
+
+		const { container, rerender } = renderUI(view(pinning))
+
+		return {
+			container,
+			repin: (next: Record<string, 'left' | 'right' | 'none'>) => rerender(view(next)),
+		}
+	}
+
+	it('moves the boundary rule onto a column that joins the frozen group', async () => {
+		const { container, repin } = setup({})
+
+		await waitFor(() => expect(cell(container, 'name')).not.toBeNull())
+
+		// One frozen column: it is the group's scroll-facing boundary and carries the rule.
+		await waitFor(() => expect(hasBoundaryRule(cell(container, 'name'))).toBe(true))
+
+		repin({ email: 'left' })
+
+		// Email joins the group behind Name, so the boundary — and the single rule —
+		// moves to it. Name keeps only the sticky surface.
+		await waitFor(() => expect(hasBoundaryRule(cell(container, 'email'))).toBe(true))
+
+		expect(hasBoundaryRule(cell(container, 'name'))).toBe(false)
+
+		expect(hasBoundaryRule(head(container, 'email'))).toBe(true)
+
+		expect(hasBoundaryRule(head(container, 'name'))).toBe(false)
+	})
+
+	it('holds the stack flush through a drag-resize, not only once it settles', async () => {
+		const { container } = setup({ email: 'left' })
+
+		await waitFor(() => expect(cell(container, 'email')).not.toBeNull())
+
+		const scroller = container.querySelector<HTMLElement>('.overflow-auto')
+
+		if (!scroller) throw new Error('scroll container not found')
+
+		// Scroll the body so the frozen columns leave the flow and hold at their
+		// sticky offsets — the only state in which a stale offset shows.
+		scroller.scrollLeft = 240
+
+		scroller.dispatchEvent(new Event('scroll'))
+
+		expect(scroller.scrollLeft).toBeGreaterThan(0)
+
+		await waitFor(() =>
+			expect(cell(container, 'email').getBoundingClientRect().left).toBeCloseTo(
+				cell(container, 'name').getBoundingClientRect().right,
+				0,
+			),
+		)
+
+		const handle = container.querySelector<HTMLElement>(
+			'[role="separator"][aria-label="Resize Name"]',
+		)
+
+		if (!handle) throw new Error('resize handle not found')
+
+		const rect = handle.getBoundingClientRect()
+
+		const startX = rect.left + rect.width / 2
+
+		const y = rect.top + rect.height / 2
+
+		// Hold the drag open: mousedown and a move, with no mouseup to settle it.
+		fireEvent.mouseDown(handle, { clientX: startX, clientY: y })
+
+		fireEvent.mouseMove(document, { clientX: startX + 90, clientY: y })
+
+		await waitFor(() =>
+			expect(cell(container, 'name').getBoundingClientRect().width).toBeGreaterThan(200),
+		)
+
+		// Mid-drag, the column behind the widened one has moved with it.
+		expect(cell(container, 'email').getBoundingClientRect().left).toBeCloseTo(
+			cell(container, 'name').getBoundingClientRect().right,
+			0,
+		)
+
+		expect(head(container, 'email').getBoundingClientRect().left).toBeCloseTo(
+			head(container, 'name').getBoundingClientRect().right,
+			0,
+		)
+
+		fireEvent.mouseUp(document, { clientX: startX + 90, clientY: y })
 	})
 })
