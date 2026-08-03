@@ -31,6 +31,7 @@ import {
 	MapPlatContext,
 	type MapPlatContextValue,
 	MapPointedMarkContext,
+	regionIndexAt,
 	sameTarget,
 } from './context'
 import {
@@ -243,6 +244,20 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 */
 		animate?: boolean
 		className?: string
+		/**
+		 * Fires when a click lands on a region — the whole shape is the target, the
+		 * same hit the tooltip reads — with the region's identity and its feature
+		 * index. Identity is the `regionId` value the rows match against, so a
+		 * click keys straight into the caller's own data; it is also what a
+		 * TopoJSON consumer would otherwise re-decode the topology to recover. The
+		 * cross-filter hook the charts' `onCategoryClick` is, and the same shape.
+		 *
+		 * Set, the region layer carries a pointer cursor and every region answers a
+		 * click, unmatched ones included. A pointer enhancement by design; see
+		 * {@link MapRegionsProps.onRegionClick} for the keyboard control a
+		 * clickable map still owes its users.
+		 */
+		onRegionClick?: (id: string, index: number) => void
 		/** Overlay marks: {@link MapRoute}, {@link MapPoint}, {@link MapMarker}. */
 		children?: ReactNode
 	}
@@ -399,11 +414,10 @@ function useMapRegionReadout<T>(
 		domain,
 		valueFormat,
 	}: MapRegionData<T>,
-	regionId: ((feature: MapFeature) => string) | undefined,
+	/** Region identities, resolved by the caller — the join key every branch below matches rows on. */
+	regionIds: string[],
 	regionLabel: ((feature: MapFeature) => string) | undefined,
 ): MapRegionReadout {
-	const regionIds = useMemo(() => features.map(regionId ?? defaultRegionId), [features, regionId])
-
 	const regionNames = useMemo(
 		() => features.map(regionLabel ?? defaultRegionLabel),
 		[features, regionLabel],
@@ -815,10 +829,10 @@ function MapHoverProvider({
 
 			const point = { x: clientX, y: clientY }
 
-			const region = under.closest('[data-region-index]')
+			const region = regionIndexAt(under)
 
 			if (region !== null) {
-				set({ kind: 'region', index: Number(region.getAttribute('data-region-index')) }, point)
+				set({ kind: 'region', index: region }, point)
 
 				return
 			}
@@ -1020,6 +1034,7 @@ export function MapPlat<T = never>({
 	legend,
 	tooltip = true,
 	animate = false,
+	onRegionClick,
 	className,
 	children,
 	...name
@@ -1032,6 +1047,14 @@ export function MapPlat<T = never>({
 		height,
 		aspectRatio,
 		deferPaint,
+	)
+
+	// Region identity, resolved off the geography alone — a property of the
+	// geometry, not of the data. Both the readout (which joins rows on it) and a
+	// click (which reports it) read this one resolution.
+	const regionIds = useMemo(
+		() => shape.features.map(regionId ?? defaultRegionId),
+		[shape.features, regionId],
 	)
 
 	const {
@@ -1055,7 +1078,7 @@ export function MapPlat<T = never>({
 			domain,
 			valueFormat,
 		} as MapRegionData<T>,
-		regionId,
+		regionIds,
 		regionLabel,
 	)
 
@@ -1074,6 +1097,23 @@ export function MapPlat<T = never>({
 				]),
 			),
 		[entries, categoryMetas.length],
+	)
+
+	// The region layer reports the index it resolved off the clicked path's anchor;
+	// the prop reports identity. Bridge them here, memoised like this component's
+	// sibling derivations so the memoised region layer holds across the legend and
+	// resize commits. `noUncheckedIndexedAccess` types the lookup as optional, and
+	// an index outside the ids would be a layer/geometry disagreement, so it
+	// reports nothing rather than an empty selection.
+	const clickRegion = useMemo(
+		() =>
+			onRegionClick &&
+			((index: number) => {
+				const id = regionIds[index]
+
+				if (id !== undefined) onRegionClick(id, index)
+			}),
+		[onRegionClick, regionIds],
 	)
 
 	// Registration ordinal per entry, so a staggered reveal can key off it.
@@ -1191,6 +1231,7 @@ export function MapPlat<T = never>({
 						hidden={hidden}
 						emphasis={emphasis}
 						animate={animate}
+						onRegionClick={clickRegion}
 					/>
 
 					{children}

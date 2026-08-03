@@ -11,7 +11,7 @@ import {
 } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
-import { type MapHoverTarget, useMapHoverSet, useMapPointedMark } from './context'
+import { type MapHoverTarget, regionIndexAt, useMapHoverSet, useMapPointedMark } from './context'
 import { categoryLegendId, type MapCategoryMeta } from './map-categories'
 import { REGION_STROKE_WIDTH } from './map-constants'
 import { REGION_FADE, REGION_STAGGER, REGION_STAGGER_MAX } from './map-motion'
@@ -28,6 +28,23 @@ export type MapRegionsProps = {
 	/** The emphasised legend id; regions outside its category recede. */
 	emphasis: string | null
 	animate: boolean
+	/**
+	 * Reports the region under a click, resolved by {@link regionIndexAt}
+	 * delegation on the layer group — so the memoised per-region paths take no
+	 * handler prop, and this handler's identity (the one input here a consumer
+	 * controls) never reaches the layer the county atlas depends on. Set, it also
+	 * turns on the pointer cursor and lifts the hover emphasis to every region,
+	 * no-data ones included: under a click each is a target, not just the matched
+	 * ones.
+	 *
+	 * A pointer affordance, deliberately: the plot is a `role="img"` leaf over an
+	 * `aria-hidden` SVG, so these paths are presentational to assistive tech and
+	 * a focusable one would be both unreachable and — inside the `sr-only` readout
+	 * — an invisible focus stop. A clickable map owes its keyboard users a
+	 * visible control of their own beside it (the region list the click drives, a
+	 * picker), which the map's data table then reads for value parity.
+	 */
+	onRegionClick?: (index: number) => void
 }
 
 /** The colour wash's transition classes under `animate`; static maps colour without one. */
@@ -84,6 +101,7 @@ function categoryPaint(
 	hidden: ReadonlySet<string>,
 	revealed: boolean,
 	animate: boolean,
+	clickable: boolean,
 ): RegionPaint {
 	const id = meta === null ? null : categoryLegendId(meta.value)
 
@@ -97,7 +115,15 @@ function categoryPaint(
 	return {
 		groupId: active ? id : null,
 		fillColor: applied?.kind === 'value' ? applied.color : undefined,
-		className: cn(fillClass, k.region.border, active && k.region.hover, animate && WASH),
+		// The hover emphasis normally marks a region carrying data. On a clickable
+		// layer every region answers a click — a no-data one included — so it reads
+		// as the target it is.
+		className: cn(
+			fillClass,
+			k.region.border,
+			(active || clickable) && k.region.hover,
+			animate && WASH,
+		),
 	}
 }
 
@@ -114,10 +140,11 @@ function resolveRegionPaints(
 	hidden: ReadonlySet<string>,
 	revealed: boolean,
 	animate: boolean,
+	clickable: boolean,
 ): ResolvedRegionPaints {
 	return {
-		byCategory: categories.map((meta) => categoryPaint(meta, hidden, revealed, animate)),
-		none: categoryPaint(null, hidden, revealed, animate),
+		byCategory: categories.map((meta) => categoryPaint(meta, hidden, revealed, animate, clickable)),
+		none: categoryPaint(null, hidden, revealed, animate, clickable),
 	}
 }
 
@@ -350,6 +377,7 @@ export const MapRegions = memo(function MapRegions({
 	hidden,
 	emphasis,
 	animate,
+	onRegionClick,
 }: MapRegionsProps) {
 	const set = useMapHoverSet()
 
@@ -368,20 +396,41 @@ export const MapRegions = memo(function MapRegions({
 		if (animate && paths.length > 0) setRevealed(true)
 	}, [animate, paths.length])
 
+	const clickable = onRegionClick !== undefined
+
 	// One paint table for both layers: the memo's identity holds across the
 	// pointed-mark re-renders this component takes per crossing, so the base
 	// layer's memo still compares equal — and the lit overlay, which mounts and
 	// unmounts with the emphasis, reads the cached table instead of resolving
 	// its own from cold on every hover-in.
 	const paints = useMemo(
-		() => resolveRegionPaints(categories, hidden, revealed, animate),
-		[categories, hidden, revealed, animate],
+		() => resolveRegionPaints(categories, hidden, revealed, animate, clickable),
+		[categories, hidden, revealed, animate, clickable],
 	)
 
 	const receded = pointed !== null || emphasis !== null
 
 	return (
-		<g data-slot="map-regions" onPointerLeave={() => set(null, null)}>
+		// biome-ignore lint/a11y/noStaticElementInteractions: a pointer delegation surface, not an interactive control — the SVG is aria-hidden under the plot's role="img", so the click's keyboard counterpart is a control the consumer supplies (see MapRegionsProps.onRegionClick)
+		<g
+			data-slot="map-regions"
+			// The cursor rides the group and inherits down, so thousands of paths carry
+			// no per-region class.
+			className={cn(clickable && k.region.clickable)}
+			onPointerLeave={() => set(null, null)}
+			// Delegated, so the click handler stays off `Region`'s memo comparison —
+			// a prop across thousands of instances, and the one input here whose
+			// identity a consumer controls.
+			onClick={
+				onRegionClick
+					? (event) => {
+							const index = regionIndexAt(event.target)
+
+							if (index !== null) onRegionClick(index)
+						}
+					: undefined
+			}
+		>
 			<g data-slot="map-regions-recede" className={cn(k.group(receded))}>
 				<MapRegionsBase
 					paths={paths}

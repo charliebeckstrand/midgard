@@ -45,6 +45,34 @@ export const [MapHoverStateContext, useMapHoverState] =
 
 export const [MapHoverSetContext, useMapHoverSet] = createContext<MapHoverSet>('MapHoverSet')
 
+/**
+ * The region index under a DOM node, resolved from the `data-region-index`
+ * anchor the region paths carry — the one place that reads that anchor, shared
+ * by the hover provider's scroll-settle resolve and the region layer's own
+ * delegated handlers, so the contract can't drift between them.
+ *
+ * `null` whenever the node is outside every region, or the anchor doesn't read
+ * as an index: a missing attribute must never coerce to region 0 — `Number(null)`
+ * is `0` — and a malformed one must never report `NaN` as a target.
+ *
+ * @internal
+ */
+export function regionIndexAt(node: EventTarget | Element | null): number | null {
+	if (!(node instanceof Element)) return null
+
+	const anchor = node.closest('[data-region-index]')
+
+	if (anchor === null) return null
+
+	const raw = anchor.getAttribute('data-region-index')
+
+	if (raw === null) return null
+
+	const index = Number(raw)
+
+	return Number.isInteger(index) && index >= 0 ? index : null
+}
+
 /** Whether two hover targets name the same mark, so a redundant write can bail. @internal */
 export function sameTarget(a: MapHoverTarget | null, b: MapHoverTarget | null): boolean {
 	if (a === b) return true

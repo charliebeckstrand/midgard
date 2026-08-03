@@ -1,11 +1,14 @@
 import { QueryClient, QueryClientProvider, useQuery, useQueryClient } from '@tanstack/react-query'
 import { type ComponentProps, useState } from 'react'
 import statesUrl from 'us-atlas/states-10m.json?url'
+import { Select, SelectLabel, SelectOption } from '../../../../components/select'
 import { Stack } from '../../../../components/stack'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../../components/tabs'
+import { Text } from '../../../../components/text'
 import {
 	fetchOsrmRoute,
 	type LngLat,
+	type MapFeature,
 	type MapGeography,
 	MapMarker,
 	MapPlat,
@@ -32,6 +35,13 @@ import {
 function Example(props: ComponentProps<typeof ExampleFrame>) {
 	return <ExampleFrame width={720} minWidth={480} resize {...props} />
 }
+
+// The timezone rows key by state name, so region identity is the name rather
+// than the atlas's own numeric id. Module scope, not an inline arrow: it closes
+// over nothing, and a fresh identity each render would re-resolve every
+// region's id — and, on the clickable map below, re-render the region layer on
+// each pick.
+const stateName = (feature: MapFeature) => String(feature.properties?.name)
 
 // Atlas data stays out of the package (and the docs bundle): the demos fetch
 // the TopoJSON from us-atlas as a static asset and cache it with react-query,
@@ -118,6 +128,51 @@ function RoutedMarker({ label, start, end }: { label: string; start: LngLat; end
 	)
 }
 
+/**
+ * `onRegionClick` in full: clicking a state picks it, and the Select beside the
+ * map picks the same one. Both halves are the contract — the region paths are
+ * presentational inside the plot's `role="img"`, so the pointer affordance on
+ * the map is an enhancement over a control that carries the keyboard.
+ */
+function ClickableStates({ geography }: { geography: MapGeography | null }) {
+	const [picked, setPicked] = useState<string | null>(null)
+
+	const zone = timezones.find((row) => row.state === picked)?.zone
+
+	return (
+		<Stack gap="md">
+			<Select<string>
+				aria-label="State"
+				placeholder="No state picked"
+				value={picked}
+				onValueChange={setPicked}
+				displayValue={(state: string) => state}
+			>
+				{timezones.map((row) => (
+					<SelectOption key={row.state} value={row.state}>
+						<SelectLabel>{row.state}</SelectLabel>
+					</SelectOption>
+				))}
+			</Select>
+
+			<Text>{picked === null ? 'Pick a state.' : `${picked} — ${zone} time.`}</Text>
+
+			<MapPlat
+				aria-label="Timezones across America"
+				geography={geography}
+				projection="albers-usa"
+				data={timezones}
+				regionKey="state"
+				categoryKey="zone"
+				categories={zoneCategories}
+				regionId={stateName}
+				onRegionClick={setPicked}
+				legend="right"
+			/>
+		</Stack>
+	)
+}
+
 function MapDemo() {
 	const states = useGeography(statesUrl)
 
@@ -166,10 +221,14 @@ function MapDemo() {
 									regionKey="state"
 									categoryKey="zone"
 									categories={zoneCategories}
-									regionId={(feature) => String(feature.properties?.name)}
+									regionId={stateName}
 									animate
 									legend="right"
 								/>
+							</Example>
+
+							<Example title="Pick a state">
+								<ClickableStates geography={states} />
 							</Example>
 						</Stack>
 					</TabContent>
