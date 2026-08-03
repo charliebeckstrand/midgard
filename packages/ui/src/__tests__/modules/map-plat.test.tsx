@@ -776,6 +776,30 @@ describe('MapPlat region click', () => {
 		)
 	})
 
+	it('reports the right-clicked region, and nothing when the right-click misses one', () => {
+		const onRegionContextMenu = vi.fn()
+
+		const { container } = renderUI(plat({ onRegionContextMenu }))
+
+		fireEvent.contextMenu(allRegions(container)[1] as Element)
+
+		expect(onRegionContextMenu).toHaveBeenLastCalledWith('B', 1)
+
+		// The gap between regions carries no `data-region-index` anchor: a wrapping
+		// menu still opens, but over no region in particular.
+		fireEvent.contextMenu(bySlot(container, 'map-regions') as Element)
+
+		expect(onRegionContextMenu).toHaveBeenCalledTimes(1)
+	})
+
+	it('takes no pointer affordance for a right-click alone', () => {
+		// A right-click is not advertised by a cursor — only `onRegionClick` earns
+		// one, so a map that merely names its right-clicked region reads as inert.
+		const { container } = renderUI(plat({ onRegionContextMenu: () => {} }))
+
+		expect(bySlot(container, 'map-regions')?.getAttribute('class')).not.toContain('cursor-pointer')
+	})
+
 	it('leaves the plot a role="img" leaf — the click is a pointer enhancement', () => {
 		const { container } = renderUI(plat({ onRegionClick: () => {} }))
 

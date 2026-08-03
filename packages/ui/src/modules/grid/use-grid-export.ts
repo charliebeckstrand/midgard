@@ -2,7 +2,11 @@
 
 import type { Row, Table } from '@tanstack/react-table'
 import { useMemo } from 'react'
-import { resolveExportActions, resolveExportSurfaces } from './engine/grid-export/resolve'
+import {
+	exportRowsContext,
+	resolveExportActions,
+	resolveExportSurfaces,
+} from './engine/grid-export/resolve'
 import type { GridExportAction, GridExportable, GridExportRows } from './engine/grid-export/types'
 import { deriveLeafRows } from './engine/grid-table/state'
 import type { GridColumn } from './types'
@@ -67,16 +71,7 @@ export function useGridExport<T>(args: {
 	const actions = useMemo(
 		() =>
 			resolveExportActions(exportable, () => {
-				if (exportRows) {
-					const rows = exportRows()
-
-					// Stay synchronous for an in-memory full list; await only a
-					// genuine server round-trip, so the sync download path is
-					// untouched when `exportRows` returns an array outright.
-					return rows instanceof Promise
-						? rows.then((resolved) => ({ columns, rows: resolved }))
-						: { columns, rows }
-				}
+				if (exportRows) return exportRowsContext(exportRows, columns)
 
 				const sorted = table.getSortedRowModel().rows
 

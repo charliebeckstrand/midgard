@@ -11,6 +11,7 @@ import {
 	Copy,
 	Download,
 	Group,
+	ListFilter,
 	MoveHorizontal,
 	Pin,
 	PinOff,
@@ -37,8 +38,13 @@ function exportIcon(type: GridExportAction['type']): ReactElement {
 	return type === 'print' ? <Printer /> : <Download />
 }
 
-/** Maps active export actions to menu items — the rows the Export submenu holds in the column and cell menus. @internal */
-function exportMenuItems(exportActions: GridExportAction[]): GridMenuItem[] {
+/**
+ * Maps active export actions to menu items — the rows the Export submenu holds
+ * in the column and cell menus, and the same rows a menu hosted *outside* the
+ * grid renders from {@link useGridExportActions}, so every route to export reads
+ * the same.
+ */
+export function gridExportMenuItems(exportActions: GridExportAction[]): GridMenuItem[] {
 	return exportActions.map((action) => ({
 		key: `export-${action.type}`,
 		label: action.label,
@@ -197,6 +203,20 @@ function manageColumnsItems(chooseColumns: (() => void) | null): GridMenuItem[] 
 	]
 }
 
+/**
+ * The column's filter affordance for its menu: whether it can filter, the grid's
+ * filter affordance, and the open action. `null` when the grid has no column
+ * filters. Backs the "Filter …" item — present only in the `'menu'` affordance
+ * (in `'header'` the column's funnel already offers it).
+ *
+ * @internal
+ */
+export type ColumnMenuFilter = {
+	canFilter: boolean
+	affordance: 'header' | 'menu'
+	openFilter: () => void
+}
+
 /** Inputs shaping the default header-menu items. @internal */
 type ColumnMenuDefaultArgs<T> = {
 	column: GridColumn<T>
@@ -212,6 +232,33 @@ type ColumnMenuDefaultArgs<T> = {
 	autoSizeColumn: ((column: string | number) => void) | null
 	chooseColumns: (() => void) | null
 	exportActions: GridExportAction[]
+	/** The column's filter affordance, or `null` when the grid has no column filters. */
+	filter: ColumnMenuFilter | null
+}
+
+/**
+ * The filter row for a column's menu: "Filter {column}", present only where the
+ * grid surfaces filtering through the menu (the `'menu'` affordance) — the
+ * primary way to filter a column whose header carries no resting funnel. In the
+ * `'header'` affordance the funnel already offers it, so this contributes
+ * nothing.
+ *
+ * @internal
+ */
+function filterMenuItems<T>(
+	column: GridColumn<T>,
+	filter: ColumnMenuFilter | null,
+): GridMenuItem[] {
+	if (filter?.affordance !== 'menu' || !filter.canFilter) return []
+
+	return [
+		{
+			key: 'filter-column',
+			label: `Filter ${columnLabel(column)}`,
+			icon: <ListFilter />,
+			onAction: filter.openFilter,
+		},
+	]
 }
 
 /**
@@ -300,13 +347,17 @@ export function columnMenuDefaults<T>(args: ColumnMenuDefaultArgs<T>): GridMenuI
 		autoSizeColumn,
 		chooseColumns,
 		exportActions,
+		filter,
 	} = args
 
 	// The menu in order, each concern contributing its rows or none: the
 	// table-wide manager first — the one row that isn't about the clicked column
-	// at all — then that column's own, as the header reads them.
+	// at all — then that column's own, as the header reads them. Filter leads
+	// those: under the `'menu'` affordance it is the only route to the column's
+	// filter, the header having no funnel to click.
 	return [
 		...manageColumnsItems(chooseColumns),
+		...filterMenuItems(column, filter),
 		...submenuItems({
 			key: 'sort',
 			label: 'Sort',
@@ -330,7 +381,7 @@ export function columnMenuDefaults<T>(args: ColumnMenuDefaultArgs<T>): GridMenuI
 			key: 'export',
 			label: 'Export',
 			icon: <Download />,
-			items: exportMenuItems(exportActions),
+			items: gridExportMenuItems(exportActions),
 		}),
 	]
 }
@@ -353,7 +404,7 @@ export function cellMenuDefaults(
 			key: 'export',
 			label: 'Export',
 			icon: <Download />,
-			items: exportMenuItems(exportActions),
+			items: gridExportMenuItems(exportActions),
 		}),
 	]
 }

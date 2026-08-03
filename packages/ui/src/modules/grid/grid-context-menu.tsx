@@ -39,6 +39,7 @@ import type {
 	GridContextMenu as GridContextMenuConfig,
 	GridMenuItem,
 } from './types'
+import type { GridColumnFilter } from './use-grid-table'
 
 /** Props for {@link GridContextMenu}. @internal */
 type GridContextMenuProps<T> = {
@@ -90,6 +91,11 @@ type GridContextMenuProps<T> = {
 	 * Clear color / Manage columns items.
 	 */
 	columnGroupMenu: ((id: string) => GridMenuItem[] | null) | null
+	/**
+	 * The grid's column-filter model, or `null` when it has none. Backs the column
+	 * menu's "Filter …" item under the `'menu'` filter affordance.
+	 */
+	columnFilter: GridColumnFilter | null
 	children: ReactNode
 }
 
@@ -163,6 +169,7 @@ export function GridContextMenu<T>({
 	exportActions,
 	rowGroupMenu,
 	columnGroupMenu,
+	columnFilter,
 	children,
 }: GridContextMenuProps<T>) {
 	const [open, setOpen] = useState(false)
@@ -205,6 +212,14 @@ export function GridContextMenu<T>({
 
 			const sortDirection = sort.find((entry) => entry.column === column.id)?.direction
 
+			const filter = columnFilter
+				? {
+						canFilter: columnFilter.canFilter(column.id),
+						affordance: columnFilter.affordance,
+						openFilter: () => columnFilter.requestOpen(column.id),
+					}
+				: null
+
 			const defaults = columnMenuDefaults({
 				column,
 				sortDirection,
@@ -216,6 +231,7 @@ export function GridContextMenu<T>({
 				autoSizeColumn,
 				chooseColumns,
 				exportActions,
+				filter,
 			})
 
 			// A boolean `column` opt-in takes the defaults untouched; only a builder
@@ -254,6 +270,7 @@ export function GridContextMenu<T>({
 			autoSizeColumn,
 			chooseColumns,
 			exportActions,
+			columnFilter,
 		],
 	)
 

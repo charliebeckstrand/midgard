@@ -21,6 +21,7 @@ import { GridReorderContext } from './grid-reorder'
 import { GridRowManagerDialog } from './grid-row-manager-dialog'
 import type { GridColumn, GridContextMenu as GridContextMenuConfig, GridMenuItem } from './types'
 import type { GridRowManagerRegionResult } from './use-grid-row-manager'
+import type { GridColumnFilter } from './use-grid-table'
 
 /**
  * Locks column drags to the x-axis and bounds them to the scroll container, so
@@ -77,6 +78,8 @@ type GridRegionProps<T> = {
 	rowGroupMenu: ((key: string) => GridMenuItem[] | null) | null
 	/** Resolves the column-group band menu for a right-clicked group by id. */
 	columnGroupMenu: ((id: string) => GridMenuItem[] | null) | null
+	/** The grid's column-filter model, or `null` when it has none; backs the column menu's "Filter …" item. */
+	columnFilter: GridColumnFilter | null
 	children: ReactNode
 }
 
@@ -110,6 +113,7 @@ export function GridRegion<T>({
 	exportActions,
 	rowGroupMenu,
 	columnGroupMenu,
+	columnFilter,
 	children,
 }: GridRegionProps<T>) {
 	const reordered = canReorder ? (
@@ -142,6 +146,7 @@ export function GridRegion<T>({
 			exportActions={exportActions}
 			rowGroupMenu={rowGroupMenu}
 			columnGroupMenu={columnGroupMenu}
+			columnFilter={columnFilter}
 		>
 			{reordered}
 		</GridContextMenu>

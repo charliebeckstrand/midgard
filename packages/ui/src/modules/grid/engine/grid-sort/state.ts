@@ -7,8 +7,10 @@ const EMPTY_SORT: SortState[] = []
  * Next sort list after cycling `column`. A Shift-click (`additive`) folds the
  * column into the existing sort, preserving the others and their priority order:
  * appending it ascending, flipping it to descending, then dropping it. A plain
- * click collapses the sort to this column alone, cycling ascending → descending →
- * unsorted (so a lone sorted column clears on its third click).
+ * click collapses the sort to this column alone and cycles it per `cycle`:
+ * `'tri-state'` (the default) runs ascending → descending → unsorted, so a lone
+ * sorted column clears on its third click; `'toggle'` flips ascending ↔
+ * descending and never clears (see `GridSort.cycle`).
  *
  * @internal
  */
@@ -16,6 +18,7 @@ export function nextSort(
 	current: SortState[],
 	column: string | number,
 	additive: boolean,
+	cycle: 'tri-state' | 'toggle' = 'tri-state',
 ): SortState[] {
 	const existing = current.find((entry) => entry.column === column)
 
@@ -31,10 +34,15 @@ export function nextSort(
 		return current.filter((entry) => entry.column !== column)
 	}
 
-	// Tri-state only when this column is already the sole sort; otherwise a plain
-	// click on any other (or additional) column resets to just this one, ascending.
+	// Cycling applies only when this column is already the sole sort; otherwise a
+	// plain click on any other (or additional) column resets to just this one,
+	// ascending. Under 'toggle' the descending click wraps back to ascending
+	// instead of clearing to unsorted.
 	if (current.length === 1 && existing) {
-		return existing.direction === 'asc' ? [{ column, direction: 'desc' }] : EMPTY_SORT
+		if (existing.direction === 'asc') return [{ column, direction: 'desc' }]
+
+		// Descending: tri-state clears, toggle falls through to the ascending reset.
+		if (cycle === 'tri-state') return EMPTY_SORT
 	}
 
 	return [{ column, direction: 'asc' }]

@@ -189,4 +189,50 @@ describe('Chart context menu', () => {
 
 		expect(screen.getByRole('menu')).toBeInTheDocument()
 	})
+
+	describe('function-form items (the right-clicked mark)', () => {
+		it('builds the items from the mark under the pointer', () => {
+			const items = vi.fn(({ index }: { index: number | null }) =>
+				index === null ? [] : [{ key: 'drill', label: `Drill ${index}`, onAction: () => {} }],
+			)
+
+			const { container } = renderUI(
+				<BarChart
+					aria-label="Revenue by quarter"
+					data={data}
+					series={[...series]}
+					contextMenu={{ items }}
+				/>,
+			)
+
+			const root = bySlot(container, 'chart')
+
+			if (!root) throw new Error('no chart root')
+
+			// The frame snapshots the hovered index on the contextmenu capture phase;
+			// with no mark hovered that snapshot is null, so a per-mark item is withheld.
+			fireEvent.contextMenu(root)
+
+			expect(items).toHaveBeenCalledWith({ index: null })
+
+			expect(screen.queryByRole('menuitem', { name: /^Drill/ })).not.toBeInTheDocument()
+		})
+
+		it('still merges an array-form items block with the defaults', () => {
+			const { container } = renderUI(
+				<BarChart
+					aria-label="Revenue by quarter"
+					data={data}
+					series={[...series]}
+					contextMenu={{ items: [{ key: 'inspect', label: 'Inspect', onAction: () => {} }] }}
+				/>,
+			)
+
+			openChartMenu(container)
+
+			expect(screen.getByRole('menuitem', { name: 'Inspect' })).toBeInTheDocument()
+
+			expect(screen.getByRole('menuitem', { name: 'Download PNG' })).toBeInTheDocument()
+		})
+	})
 })

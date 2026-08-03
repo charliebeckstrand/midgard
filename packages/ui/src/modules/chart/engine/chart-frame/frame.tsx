@@ -14,7 +14,7 @@ import { cn } from '../../../../core'
 import type { FrameReserve } from '../../../../hooks'
 import { k } from '../../../../recipes/kata/chart'
 import type { AccessibleName } from '../../../../types'
-import type { ChartContextMenuConfig } from '../chart-context-menu'
+import type { ChartContextMenuConfig, ChartContextMenuTarget } from '../chart-context-menu'
 import { ChartContextMenu } from '../chart-context-menu'
 import { ChartHeader } from '../chart-header'
 import { type ChartLegendPlacement, legendAside } from '../chart-legend/schema'
@@ -293,6 +293,17 @@ export function ChartFrame({
 		onData: boolean
 	}>({ index: null, point: null, onData: false })
 
+	// The mark under the pointer at the moment the right-click landed — snapshotted on the contextmenu
+	// event, NOT read live from `pointed`. The open menu overlays the plot, so moving the pointer toward a
+	// menu item immediately leaves the plot and clears the hover; a live read would recompute the items
+	// mid-interaction and drop the per-mark entry the user is about to click.
+	//
+	// Held as the bare index so React can bail on a repeat right-click over the same mark (or on plot
+	// padding twice, where it stays null); the wrapper object is built below, memoised on it.
+	const [menuIndex, setMenuIndex] = useState<number | null>(null)
+
+	const menuTarget = useMemo<ChartContextMenuTarget>(() => ({ index: menuIndex }), [menuIndex])
+
 	// The visually-hidden data table holds one row per datum, so at large row
 	// counts materializing and committing it dominates — yet nothing visual waits
 	// on it and assistive tech reads it from the settled DOM, not the first frame.
@@ -459,6 +470,9 @@ export function ChartFrame({
 			ref={rootRef}
 			data-slot="chart"
 			data-tier={tier}
+			// Capture phase, so the snapshot lands before the menu's own handler opens it — the menu then
+			// renders from a target that stays put however the pointer travels while it is open.
+			onContextMenuCapture={() => setMenuIndex(pointed.index)}
 			className={cn(
 				// A query container so the legend lays out against the chart's own width,
 				// not the viewport — a chart in a narrow column stacks its legend even on
@@ -510,6 +524,9 @@ export function ChartFrame({
 			readout={readout}
 			title={title}
 			fullscreen={fullscreen}
+			// The frame owns the hover index, and this wrapper sits outside `ChartHoverContext` (it wraps
+			// the provider), so the right-clicked mark travels down as a prop for a per-mark menu item.
+			target={menuTarget}
 		>
 			{chartRoot}
 		</ChartContextMenu>

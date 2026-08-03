@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
-import { Grid, type GridColumn } from '../../modules/grid'
+import { Grid, type GridColumn, useGridExportActions } from '../../modules/grid'
 import { downloadCsv, rowsToCsv } from '../../modules/grid/engine/grid-export/csv'
+import type { GridExportRows } from '../../modules/grid/engine/grid-export/types'
 import { fireEvent, renderUI, screen, waitFor, within } from '../helpers'
 
 describe('rowsToCsv', () => {
@@ -922,5 +923,92 @@ describe('Grid export under grouping', () => {
 		expect(text).not.toContain('Designer,Bob')
 
 		expect(text).not.toContain('Designer,Dave')
+	})
+})
+
+describe('useGridExportActions', () => {
+	type Row = { id: number; name: string }
+
+	const columns: GridColumn<Row>[] = [
+		{ id: 'name', title: 'Name', cell: (row) => row.name, value: (row) => row.name },
+	]
+
+	const rows: Row[] = [
+		{ id: 1, name: 'Alice' },
+		{ id: 2, name: 'Bob' },
+	]
+
+	/**
+	 * Renders the hook's result — the labels it resolved and its pending flag —
+	 * and exposes the actions for a test to run. A probe component rather than
+	 * `renderHook`, matching how the rest of this suite drives hooks.
+	 */
+	function Probe(props: {
+		exportRows: GridExportRows<Row>
+		onExport: (context: { rows: Row[] }) => void
+	}) {
+		const { actions, pending } = useGridExportActions<Row>({
+			columns,
+			exportRows: props.exportRows,
+			exportable: [{ csv: { onExport: props.onExport } }],
+		})
+
+		return (
+			<div>
+				<span data-testid="pending">{String(pending)}</span>
+
+				{actions.map((action) => (
+					<button key={action.type} type="button" onClick={() => void action.run()}>
+						{action.label}
+					</button>
+				))}
+			</div>
+		)
+	}
+
+	it('resolves one action per configured type, labelled as the grid labels its own', () => {
+		const onExport = vi.fn()
+
+		renderUI(<Probe exportRows={() => rows} onExport={onExport} />)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Export to CSV' }))
+
+		// The caller's rows reach the exporter through the same context the grid builds.
+		expect(onExport).toHaveBeenCalledWith(expect.objectContaining({ rows, columns }))
+	})
+
+	it('stays settled through a synchronous export — there is nothing to wait on', () => {
+		renderUI(<Probe exportRows={() => rows} onExport={() => {}} />)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Export to CSV' }))
+
+		expect(screen.getByTestId('pending')).toHaveTextContent('false')
+	})
+
+	it('reports pending across an async round-trip, settling once it resolves', async () => {
+		let release: ((value: Row[]) => void) | undefined
+
+		const onExport = vi.fn()
+
+		renderUI(
+			<Probe
+				exportRows={() =>
+					new Promise<Row[]>((resolve) => {
+						release = resolve
+					})
+				}
+				onExport={onExport}
+			/>,
+		)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Export to CSV' }))
+
+		await waitFor(() => expect(screen.getByTestId('pending')).toHaveTextContent('true'))
+
+		release?.(rows)
+
+		await waitFor(() => expect(screen.getByTestId('pending')).toHaveTextContent('false'))
+
+		expect(onExport).toHaveBeenCalledWith(expect.objectContaining({ rows }))
 	})
 })

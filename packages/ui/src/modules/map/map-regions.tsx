@@ -46,6 +46,19 @@ export type MapRegionsProps = {
 	 */
 	onRegionClick?: (index: number) => void
 	/**
+	 * Reports the region under a right-click, resolved by the same
+	 * {@link regionIndexAt} delegation {@link onRegionClick} uses — the hover
+	 * provider deliberately isolates its state, so a context menu wrapping the map
+	 * from outside cannot read it and the clicked region must be reported outward
+	 * instead.
+	 *
+	 * Unlike {@link onRegionClick} this takes no pointer affordance: a right-click
+	 * is not advertised by a cursor, and the wrapping menu — not the region layer
+	 * — carries the keyboard model. Never prevents default, so that menu still
+	 * opens; this only names WHICH region it opened over.
+	 */
+	onRegionContextMenu?: (index: number) => void
+	/**
 	 * The selected region's feature index, `null` when nothing is picked —
 	 * {@link MapPlat} resolves it from the public identity. It only rings the
 	 * region; the layer's clickability rides {@link onRegionClick} alone, so a
@@ -53,6 +66,30 @@ export type MapRegionsProps = {
 	 * honour.
 	 */
 	selected: number | null
+}
+
+/**
+ * A delegated pointer handler for the region layer: resolves the region under
+ * the event through {@link regionIndexAt} and reports its index, or nothing when
+ * the event landed off every region. `undefined` for an absent reporter, so the
+ * layer group takes no handler it would only no-op in.
+ *
+ * One resolver for the click and the right-click, so the two can't drift on what
+ * counts as a hit — and delegated here rather than per path, keeping the handler
+ * off `Region`'s memo comparison across thousands of instances.
+ *
+ * @internal
+ */
+function regionDelegate(
+	report: ((index: number) => void) | undefined,
+): ((event: { target: EventTarget }) => void) | undefined {
+	if (report === undefined) return undefined
+
+	return (event) => {
+		const index = regionIndexAt(event.target)
+
+		if (index !== null) report(index)
+	}
 }
 
 /** The colour wash's transition classes under `animate`; static maps colour without one. */
@@ -391,6 +428,7 @@ export const MapRegions = memo(function MapRegions({
 	emphasis,
 	animate,
 	onRegionClick,
+	onRegionContextMenu,
 	selected,
 }: MapRegionsProps) {
 	const set = useMapHoverSet()
@@ -439,15 +477,11 @@ export const MapRegions = memo(function MapRegions({
 			// Delegated, so the click handler stays off `Region`'s memo comparison —
 			// a prop across thousands of instances, and the one input here whose
 			// identity a consumer controls.
-			onClick={
-				onRegionClick
-					? (event) => {
-							const index = regionIndexAt(event.target)
-
-							if (index !== null) onRegionClick(index)
-						}
-					: undefined
-			}
+			onClick={regionDelegate(onRegionClick)}
+			// Same delegation, for the region a right-click landed on. Bubbles: a
+			// wrapping menu's own capture-phase reset runs first, so an off-region
+			// right-click leaves its target cleared and this only fires to overwrite it.
+			onContextMenu={regionDelegate(onRegionContextMenu)}
 		>
 			<g data-slot="map-regions-recede" className={cn(k.group(receded))}>
 				<MapRegionsBase

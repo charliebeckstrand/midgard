@@ -1,6 +1,14 @@
 'use client'
 
-import { type ReactElement, type ReactNode, type RefObject, useRef } from 'react'
+import {
+	type ReactElement,
+	type ReactNode,
+	type RefObject,
+	useCallback,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import { cn } from '../../../core'
 import type { AccessibleName } from '../../../types'
 import { once, toNumericCell } from '../../../utilities'
@@ -12,7 +20,7 @@ import {
 	MapPlat,
 	type MapProjection,
 } from '../../map'
-import type { ChartContextMenuConfig } from '../engine/chart-context-menu'
+import type { ChartContextMenuConfig, ChartContextMenuTarget } from '../engine/chart-context-menu'
 import { ChartContextMenu } from '../engine/chart-context-menu'
 import type { ChartRangeLegendConfig } from '../engine/chart-legend/range'
 import { formatChartValue, READOUT_GAP } from '../engine/chart-series'
@@ -211,6 +219,20 @@ export function ChoroplethChart<T = never>(props: ChoroplethChartProps<T>) {
 	// rasterised wrapper, then handed back to MapPlat below.
 	const { series, formatValue, contextMenu, title, className, width, ...map } = props
 
+	// The right-clicked region, reported outward by the map (its hover state is provider-isolated, so the
+	// menu cannot read it). Set once per right-click — never per hover — so the map's render isolation
+	// holds; the wrapping div's capture-phase reset clears it first, so an off-region right-click offers
+	// the whole-widget items alone.
+	const [menuRegion, setMenuRegion] = useState<number | null>(null)
+
+	// Identity is the map's to report, but the menu target is positional — a
+	// consumer reads the underlying row out of its own data by index.
+	const onRegionContextMenu = useCallback((_id: string, index: number) => setMenuRegion(index), [])
+
+	// Memoised so the menu's own items memo can key on the object; a fresh literal
+	// per render would defeat it.
+	const menuTarget = useMemo<ChartContextMenuTarget>(() => ({ index: menuRegion }), [menuRegion])
+
 	const [primary] = series
 
 	const format = formatValue ?? formatChartValue
@@ -253,6 +275,7 @@ export function ChoroplethChart<T = never>(props: ChoroplethChartProps<T>) {
 			rootRef={rootRef}
 			readout={readout}
 			title={title}
+			target={menuTarget}
 			self={<ChoroplethChart {...props} />}
 		>
 			<div
@@ -260,8 +283,11 @@ export function ChoroplethChart<T = never>(props: ChoroplethChartProps<T>) {
 				data-slot="choropleth"
 				className={cn(width === undefined && 'w-full', className)}
 				style={width === undefined ? undefined : { width }}
+				// Capture runs before the region layer's bubbled report: an off-region
+				// right-click stays null, an on-region one overwrites with its index.
+				onContextMenuCapture={() => setMenuRegion(null)}
 			>
-				<MapPlat<T> {...mapProps} />
+				<MapPlat<T> {...mapProps} onRegionContextMenu={onRegionContextMenu} />
 			</div>
 		</ChoroplethContextFrame>
 	)
@@ -272,6 +298,8 @@ type ChoroplethContextFrameProps = {
 	contextMenu: ChartContextMenuConfig | false | undefined
 	rootRef: RefObject<HTMLDivElement | null>
 	readout: ChartReadoutSource | null
+	/** The right-clicked region, snapshotted before the menu opens (see {@link ChartContextMenuProps.target}). */
+	target?: ChartContextMenuTarget
 	title?: string
 	/** A fresh copy of the choropleth for the menu's fullscreen re-mount. */
 	self: ReactElement
@@ -290,6 +318,7 @@ function ChoroplethContextFrame({
 	contextMenu,
 	rootRef,
 	readout,
+	target,
 	title,
 	self,
 	children,
@@ -301,6 +330,7 @@ function ChoroplethContextFrame({
 			contextMenu={contextMenu}
 			rootRef={rootRef}
 			readout={readout}
+			target={target}
 			title={title}
 			fullscreen={self}
 		>

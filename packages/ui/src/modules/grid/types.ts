@@ -440,6 +440,15 @@ export type GridColumnFilters = {
 	 * @defaultValue false
 	 */
 	manual?: boolean
+	/**
+	 * How each filterable column surfaces its filter. `'header'` (default) shows the
+	 * funnel button in every filterable column header. `'menu'` drops the resting
+	 * funnel — so it never takes header width — and offers the filter from the
+	 * column's right-click menu instead; the funnel returns only once a filter is
+	 * applied, as the edit/clear affordance.
+	 * @defaultValue 'header'
+	 */
+	affordance?: 'header' | 'menu'
 }
 
 /**

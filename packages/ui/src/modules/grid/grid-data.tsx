@@ -1322,6 +1322,7 @@ export function GridData<T>({
 								exportActions={exportActions.contextMenu}
 								rowGroupMenu={rowManager.rowGroupMenu}
 								columnGroupMenu={columnGroupMenu}
+								columnFilter={filters}
 							>
 								<GridRowReorderRegion
 									active={rowReorderActive}

@@ -19,7 +19,15 @@ import {
 	useReactTable,
 	type VisibilityState,
 } from '@tanstack/react-table'
-import { type ReactNode, type RefObject, useCallback, useEffect, useMemo, useRef } from 'react'
+import {
+	type ReactNode,
+	type RefObject,
+	useCallback,
+	useEffect,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import { useControllable } from '../../hooks'
 import type { DensityLevel } from '../../providers/density/context'
 import type { SortState } from './context'
@@ -668,6 +676,10 @@ export function useGridTable<T>({
 		onValueChange: (next) => columnFiltersConfig?.onValueChange?.(next ?? []),
 	})
 
+	// Which column's filter sheet the right-click menu asked to open (the `'menu'`
+	// affordance), or `null`. Lives here because a table instance holds no such state.
+	const [openFilterColumn, setOpenFilterColumn] = useState<string | number | null>(null)
+
 	const resolvedColumnFilters = columnFiltersState ?? EMPTY_COLUMN_FILTERS
 
 	const onColumnFiltersChange = useCallback<OnChangeFn<ColumnFiltersState>>(
@@ -890,8 +902,16 @@ export function useGridTable<T>({
 	)
 
 	const filters = useMemo<GridColumnFilter | null>(
-		() => (hasColumnFilters ? buildColumnFilters(table) : null),
-		[hasColumnFilters, table],
+		() =>
+			hasColumnFilters
+				? {
+						...buildColumnFilters(table),
+						affordance: columnFiltersConfig?.affordance ?? 'header',
+						openColumn: openFilterColumn,
+						requestOpen: setOpenFilterColumn,
+					}
+				: null,
+		[hasColumnFilters, table, columnFiltersConfig?.affordance, openFilterColumn],
 	)
 
 	// A frozen column sticks at the summed width of the frozen columns ahead of it,

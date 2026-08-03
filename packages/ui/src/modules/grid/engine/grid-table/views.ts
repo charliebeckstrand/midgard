@@ -53,8 +53,10 @@ export type GridColumnPinning = {
 }
 
 /**
- * Per-column filter controls the header filter sheets render from. Methods
- * read the engine live, so the object itself is stable across renders.
+ * Per-column filter controls the header filter sheets render from. The engine
+ * methods read the table live; the {@link GridColumnFilterEngine} half is
+ * therefore stable across renders, while the affordance and open-request ride
+ * React state and re-identify the composed object when either changes.
  *
  * @internal
  */
@@ -80,6 +82,18 @@ export type GridColumnFilter = {
 	hasActive: () => boolean
 	/** Lift every column's applied filter at once, recovering all hidden rows. */
 	clear: () => void
+	/**
+	 * How a filterable column surfaces its filter. `'header'` (default) shows the
+	 * funnel button in every filterable column header. `'menu'` drops the resting
+	 * funnel — reclaiming the header width — and offers the filter from the column's
+	 * right-click menu instead; the funnel returns only once a filter is applied, as
+	 * the edit/clear affordance.
+	 */
+	affordance: 'header' | 'menu'
+	/** The column whose filter sheet was asked to open (from the menu), or `null`. */
+	openColumn: string | number | null
+	/** Ask a column's filter sheet to open (or clear the request with `null`). */
+	requestOpen: (id: string | number | null) => void
 }
 
 /**
@@ -281,8 +295,20 @@ function activeFilterField<T>(id: string, table: Table<T>): QueryField {
 	return { name: id, label: id, type: gridColumn?.filterType ?? 'text' }
 }
 
-/** Assembles the {@link GridColumnFilter} controls over a table instance; methods read it live. @internal */
-export function buildColumnFilters<T>(table: Table<T>): GridColumnFilter {
+/**
+ * The half of {@link GridColumnFilter} a table instance can answer on its own —
+ * everything but the affordance and the open-request, which are React state the
+ * hook owns. Split out so that default is spelled once, at the hook.
+ *
+ * @internal
+ */
+export type GridColumnFilterEngine = Omit<
+	GridColumnFilter,
+	'affordance' | 'openColumn' | 'requestOpen'
+>
+
+/** Assembles the engine-backed {@link GridColumnFilter} controls over a table instance; methods read it live. @internal */
+export function buildColumnFilters<T>(table: Table<T>): GridColumnFilterEngine {
 	return {
 		canFilter: (id) => table.getColumn(String(id))?.getCanFilter() ?? false,
 		getQuery: (id) => {
