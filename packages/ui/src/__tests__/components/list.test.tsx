@@ -157,6 +157,26 @@ describe('ListItem', () => {
 		expect(cls).toContain('cursor-pointer')
 	})
 
+	it('reads a conditional handler by its value, not by the key it leaves behind', () => {
+		// `onClick={enabled ? open : undefined}` keeps the key on an inert row, so a
+		// key-presence test would promise a pointer the row never honours.
+		const { container } = renderUI(
+			<List items={items.slice(0, 1)} getKey={(i) => i.id}>
+				{(item) => (
+					<ListItem as="button" onClick={undefined}>
+						{item.label}
+					</ListItem>
+				)}
+			</List>,
+		)
+
+		const cls = bySlot(container, 'list-item-content')?.className ?? ''
+
+		expect(cls).not.toContain('text-zinc-500')
+
+		expect(cls).not.toContain('cursor-pointer')
+	})
+
 	it('keeps inert content on the inherited item color', () => {
 		const { container } = renderUI(
 			<List items={items.slice(0, 1)} getKey={(i) => i.id}>

@@ -78,8 +78,10 @@ export function ListItem<Fallback extends ElementType = 'div'>({
 	const lifted = liftedId === id
 
 	// A row that navigates and a row that fires a handler read the same to the
-	// user, so both take the content area's interactive treatment.
-	const interactive = href !== undefined || 'onClick' in props
+	// user, so both take the content area's interactive treatment. Read the
+	// handler's value, not its key: `onClick={enabled ? open : undefined}` leaves
+	// the key on an inert row, which `in` would still count as interactive.
+	const interactive = href !== undefined || (props as { onClick?: unknown }).onClick !== undefined
 
 	// dnd-kit's attributes set role="button", overriding the <li> semantics.
 	// Drop the role; keep the focus/aria hints.
