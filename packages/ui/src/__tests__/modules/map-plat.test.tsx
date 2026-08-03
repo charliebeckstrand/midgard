@@ -794,7 +794,7 @@ describe('MapPlat selected region', () => {
 	it('rings the selected region by the identity a click reports', () => {
 		const { container, rerender } = renderUI(plat({ selectedRegion: 'B' }))
 
-		const ring = bySlot(container, 'map-region-selected')?.querySelector('path')
+		const ring = bySlot(container, 'map-region-selected')
 
 		// The ring traces the selected region's own geometry, so the two can never
 		// name different regions.
@@ -806,7 +806,7 @@ describe('MapPlat selected region', () => {
 
 		rerender(plat({ selectedRegion: 'C' }))
 
-		expect(bySlot(container, 'map-region-selected')?.querySelector('path')?.getAttribute('d')).toBe(
+		expect(bySlot(container, 'map-region-selected')?.getAttribute('d')).toBe(
 			allRegions(container)[2]?.getAttribute('d'),
 		)
 	})
@@ -820,7 +820,7 @@ describe('MapPlat selected region', () => {
 			}),
 		)
 
-		expect(bySlot(container, 'map-region-selected')?.querySelector('path')?.getAttribute('d')).toBe(
+		expect(bySlot(container, 'map-region-selected')?.getAttribute('d')).toBe(
 			allRegions(container)[0]?.getAttribute('d'),
 		)
 	})
@@ -860,7 +860,7 @@ describe('MapPlat selected region', () => {
 
 		// No region anchor on the copy: the base path stays the sole hit target, so
 		// the hover resolve never reads the same region twice.
-		expect(ring?.querySelector('[data-region-index]')).toBeNull()
+		expect(ring).not.toHaveAttribute('data-region-index')
 
 		expect(allRegions(container)).toHaveLength(3)
 	})

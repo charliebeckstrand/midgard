@@ -266,12 +266,13 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 * parameter) stays the single source of truth, and the two halves of a
 		 * clickable map can't disagree about what is picked.
 		 *
-		 * The selected region takes a foreground-ink outline above every other
-		 * layer, so it survives the hover recede — a pick made before the pointer
+		 * The selected region takes a foreground-ink outline above the region
+		 * layers, so it survives the hover recede — a pick made before the pointer
 		 * arrived is still marked while the pointer isolates elsewhere — and it
 		 * never dims the rest of the map, which would read as broken for as long as
-		 * the pick stood. The region's row in the data table reads as the current
-		 * one, so the selection is in the accessible readout, not the pixels alone.
+		 * the pick stood. Overlay children still draw over it, as they do over every
+		 * region. The region's row in the data table reads as the current one, so
+		 * the selection is in the accessible readout, not the pixels alone.
 		 *
 		 * An id matching no region draws no ring; `null` (or omitting the prop)
 		 * selects nothing.
@@ -1140,13 +1141,9 @@ export function MapPlat<T = never>({
 	// ids a click reports — so the pick a consumer echoes back always rings the
 	// region that produced it. An id naming no feature resolves to nothing
 	// rather than to region 0, the miss `indexOf` would otherwise report as -1.
-	const selected = useMemo(() => {
-		if (selectedRegion == null) return null
+	const selectedIndex = selectedRegion == null ? -1 : regionIds.indexOf(selectedRegion)
 
-		const index = regionIds.indexOf(selectedRegion)
-
-		return index === -1 ? null : index
-	}, [regionIds, selectedRegion])
+	const selected = selectedIndex === -1 ? null : selectedIndex
 
 	// Registration ordinal per entry, so a staggered reveal can key off it.
 	const order = useMemo<ReadonlyMap<string, number>>(

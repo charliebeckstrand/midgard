@@ -1,4 +1,5 @@
-import { memo } from 'react'
+import { memo, useMemo } from 'react'
+import { ariaAttr } from '../../core'
 import { rangeKeys } from '../../utilities'
 import { type MapCategoryMeta, READOUT_GAP } from './map-categories'
 import type { MapOverlayEntry } from './use-map-legend-registry'
@@ -17,9 +18,38 @@ export type MapTableProps = {
 	categories: MapCategoryMeta[]
 	/** Registered overlays, appended as their own rows. */
 	entries: MapOverlayEntry[]
-	/** The selected region's feature index, `null` when nothing is picked; its row reads as the current one. */
-	selected?: number | null
+	/** The selected region's feature index, `null` when nothing is picked. */
+	selected: number | null
 }
+
+/** Props for {@link MapTableRow}: one row's resolved text, and whether it is the picked one. @internal */
+type MapTableRowProps = {
+	name: string | undefined
+	value: string
+	/** Whether this row is the selected region's — it reads as the current one. */
+	current: boolean
+}
+
+/**
+ * One readout row. Memoised on its resolved primitives, the treatment the
+ * region paths take: a selection moves `current` on two rows, so a pick
+ * reconciles those two instead of re-creating every cell on a county atlas.
+ *
+ * @internal
+ */
+const MapTableRow = memo(function MapTableRow({ name, value, current }: MapTableRowProps) {
+	return (
+		<tr>
+			{/* `aria-current` on the row header, not the row: it is the name that
+			    announces, and support for the attribute on a plain `tr` is uneven. */}
+			<th scope="row" aria-current={ariaAttr(current)}>
+				{name}
+			</th>
+
+			<td>{value}</td>
+		</tr>
+	)
+})
 
 /**
  * The map's visually-hidden data table: every region with its category, and
@@ -30,8 +60,7 @@ export type MapTableProps = {
  *
  * Memoised so it repaints only when the readout changes, not on legend
  * emphasis or toggling — it reads neither, so a legend hover need never
- * re-map thousands of rows on a county atlas. A selection does re-map them,
- * which is why the plat defers this table off the urgent render.
+ * re-map thousands of rows on a county atlas.
  * @internal
  */
 export const MapTable = memo(function MapTable({
@@ -43,6 +72,11 @@ export const MapTable = memo(function MapTable({
 	entries,
 	selected,
 }: MapTableProps) {
+	// The row keys, held across the re-maps a selection costs: the array depends
+	// on the row count alone, where rebuilding it would allocate one string per
+	// region on every pick.
+	const keys = useMemo(() => rangeKeys(regionNames.length, 'region'), [regionNames.length])
+
 	return (
 		// The hiding lives on a wrapper: width/height on a `display: table` box
 		// are minimums, so `sr-only` on the table itself leaves it laid out at
@@ -59,23 +93,19 @@ export const MapTable = memo(function MapTable({
 				</thead>
 
 				<tbody>
-					{rangeKeys(regionNames.length, 'region').map((key, index) => {
+					{keys.map((key, index) => {
 						const category = regionCategory[index]
 
 						return (
-							<tr key={key}>
-								{/* `aria-current` on the row header, not the row: it is the
-								    name that announces, and support for the attribute on a
-								    plain `tr` is uneven. */}
-								<th scope="row" aria-current={index === selected ? 'true' : undefined}>
-									{regionNames[index]}
-								</th>
-
-								<td>
-									{regionValues[index] ??
-										(category == null ? READOUT_GAP : (categories[category]?.label ?? READOUT_GAP))}
-								</td>
-							</tr>
+							<MapTableRow
+								key={key}
+								name={regionNames[index]}
+								value={
+									regionValues[index] ??
+									(category == null ? READOUT_GAP : (categories[category]?.label ?? READOUT_GAP))
+								}
+								current={index === selected}
+							/>
 						)
 					})}
 

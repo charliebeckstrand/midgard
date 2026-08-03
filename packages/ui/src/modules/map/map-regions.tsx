@@ -52,7 +52,7 @@ export type MapRegionsProps = {
 	 * map showing a pick made elsewhere takes no pointer affordance it can't
 	 * honour.
 	 */
-	selected?: number | null
+	selected: number | null
 }
 
 /** The colour wash's transition classes under `animate`; static maps colour without one. */
@@ -351,37 +351,6 @@ function MapRegionsLit({ pointed, emphasis, paths, regionCategory, paints }: Map
 }
 
 /**
- * The selected region's outline — the standing pick, where the pointed
- * emphasis is a passing one. It draws above both region layers and outside
- * the recede group, so the ring holds at full strength while a pointed mark
- * isolates something else: a selection made before the pointer arrived must
- * not vanish under it.
- *
- * The ring marks the region rather than repainting it — `fill="none"` leaves
- * the region's own colour (and whatever dim it carries) reading through — and
- * `pointer-events-none` keeps the base path the hit target, the same discipline
- * the lit copies keep.
- *
- * @internal
- */
-function MapRegionSelected({ d }: { d: string }) {
-	return (
-		<g data-slot="map-region-selected" className="pointer-events-none">
-			<path
-				d={d}
-				fill="none"
-				strokeWidth={REGION_SELECTED_STROKE_WIDTH}
-				// Device pixels, not viewBox units — the region seam's discipline: a
-				// refit landing a beat behind a resize must sharpen the ring, never
-				// fatten it.
-				vectorEffect="non-scaling-stroke"
-				className={cn(k.region.selected)}
-			/>
-		</g>
-	)
-}
-
-/**
  * The region paths — every feature filled by its category's slot colour, the
  * neutral no-data fill where nothing matches (or the category is toggled
  * off — a hole in a map reads broken, unlike a missing bar). Regions are
@@ -393,8 +362,11 @@ function MapRegionSelected({ d }: { d: string }) {
  * emphasised marks redraw lit above it ({@link MapRegionsLit}). One element
  * fades where thousands of per-path transitions once ran, and the base tree
  * holds its render through the whole interaction. The selected region rings
- * above both ({@link MapRegionSelected}), outside the recede: the standing
- * pick outlasts every passing emphasis.
+ * above both and outside the recede, so the standing pick outlasts every
+ * passing emphasis: a selection made before the pointer arrived must not
+ * vanish under it. That ring marks the region rather than repainting it —
+ * `fill="none"` leaves the region's own colour, and whatever dim it carries,
+ * reading through.
  *
  * @remarks Under `animate` the geography paints solid at once and only the
  * category colour washes in: each region's fill crossfades from the neutral
@@ -454,7 +426,7 @@ export const MapRegions = memo(function MapRegions({
 
 	// A selection naming no drawn region rings nothing: the id may match no
 	// feature, and a region the geometry dropped has a `null` path.
-	const selectedPath = selected == null ? null : (paths[selected] ?? null)
+	const selectedPath = selected === null ? null : (paths[selected] ?? null)
 
 	return (
 		// biome-ignore lint/a11y/noStaticElementInteractions: a pointer delegation surface, not an interactive control — the SVG is aria-hidden under the plot's role="img", so the click's keyboard counterpart is a control the consumer supplies (see MapRegionsProps.onRegionClick)
@@ -496,7 +468,18 @@ export const MapRegions = memo(function MapRegions({
 				/>
 			)}
 
-			{selectedPath !== null && <MapRegionSelected d={selectedPath} />}
+			{selectedPath !== null && (
+				<path
+					data-slot="map-region-selected"
+					d={selectedPath}
+					fill="none"
+					strokeWidth={REGION_SELECTED_STROKE_WIDTH}
+					vectorEffect="non-scaling-stroke"
+					// No region anchor and no pointer events: the base path stays the
+					// sole hit target, the discipline the lit copies keep.
+					className={cn('pointer-events-none', k.region.selected)}
+				/>
+			)}
 		</g>
 	)
 })

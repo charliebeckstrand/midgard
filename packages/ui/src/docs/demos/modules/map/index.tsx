@@ -142,9 +142,8 @@ function ClickableStates({ geography }: { geography: MapGeography | null }) {
 
 	const zone = timezones.find((row) => row.state === picked)?.zone
 
-	// Clicking the ringed state clears it. The map holds no selection of its
-	// own, so the toggle policy is the consumer's: a picker that can only ever
-	// move its pick leaves a pointer user no way back out of one.
+	// Clicking the ringed state clears it: a picker that can only ever move its
+	// pick leaves a pointer user no way back out of one.
 	const pick = (state: string) => setPicked((prev) => (prev === state ? null : state))
 
 	return (
