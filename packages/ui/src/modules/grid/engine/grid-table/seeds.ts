@@ -47,16 +47,29 @@ export function seedColumnSizing(
 	return { ...config, defaultValue: sizing }
 }
 
-/** Seeds {@link GridColumnManagerConfig.defaultHidden} from `preferences.hidden`, unless the consumer bound visibility. @internal */
+/**
+ * Seeds {@link GridColumnManagerConfig.defaultHidden} from `preferences.hidden`,
+ * unless the consumer bound visibility. Flattens the `columnManager={false}` off
+ * switch to `undefined` on the way through — a manager that isn't there carries
+ * no bindings to seed.
+ *
+ * @internal
+ */
 export function seedColumnManager(
-	config: GridColumnManagerConfig | undefined,
+	config: GridColumnManagerConfig | false | undefined,
 	preferences: GridPreferences | undefined,
 ): GridColumnManagerConfig | undefined {
+	const manager = config || undefined
+
 	const hidden = preferences?.hidden
 
-	if (hidden === undefined || config?.hidden !== undefined || config?.defaultHidden !== undefined) {
-		return config
+	if (
+		hidden === undefined ||
+		manager?.hidden !== undefined ||
+		manager?.defaultHidden !== undefined
+	) {
+		return manager
 	}
 
-	return { ...config, defaultHidden: new Set(hidden) }
+	return { ...manager, defaultHidden: new Set(hidden) }
 }

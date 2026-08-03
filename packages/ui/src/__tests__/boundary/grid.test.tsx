@@ -693,14 +693,9 @@ describe('Grid', () => {
 	})
 
 	describe('column manager', () => {
-		it('renders the toolbar button when toolbarButton is set', () => {
+		it('renders the toolbar button when toolbar is set', () => {
 			renderUI(
-				<Grid
-					columns={columns}
-					rows={rows}
-					getKey={getKey}
-					columnManager={{ toolbarButton: true }}
-				/>,
+				<Grid columns={columns} rows={rows} getKey={getKey} columnManager={{ toolbar: true }} />,
 			)
 
 			expect(screen.getByRole('button', { name: 'Manage columns' })).toBeInTheDocument()
@@ -712,18 +707,47 @@ describe('Grid', () => {
 			expect(screen.queryByRole('button', { name: 'Manage columns' })).not.toBeInTheDocument()
 		})
 
-		it('hides the toolbar button when the manager is disabled', () => {
+		it('hides the toolbar button when the manager is off', () => {
+			renderUI(<Grid columns={columns} rows={rows} getKey={getKey} columnManager={false} />)
+
+			// `columnManager={false}` is the master switch — no button, no menu item.
+			expect(screen.queryByRole('button', { name: 'Manage columns' })).not.toBeInTheDocument()
+		})
+
+		it('keeps the manager to the toolbar when its context-menu surface is off', () => {
 			renderUI(
 				<Grid
 					columns={columns}
 					rows={rows}
 					getKey={getKey}
-					columnManager={{ enabled: false, toolbarButton: true }}
+					columnManager={{ toolbar: true, contextMenu: false }}
 				/>,
 			)
 
-			// `enabled: false` is the master switch; the button opt-in can't override it.
-			expect(screen.queryByRole('button', { name: 'Manage columns' })).not.toBeInTheDocument()
+			expect(screen.getByRole('button', { name: 'Manage columns' })).toBeInTheDocument()
+
+			const header = screen.getAllByRole('columnheader')[0]
+
+			if (!header) throw new Error('no column header')
+
+			fireEvent.contextMenu(header)
+
+			expect(screen.queryByRole('menuitem', { name: 'Manage columns' })).not.toBeInTheDocument()
+		})
+
+		it('mounts the dialog for a bound open state with both surfaces off', () => {
+			renderUI(
+				<Grid
+					columns={columns}
+					rows={rows}
+					getKey={getKey}
+					columnManager={{ contextMenu: false, open: true }}
+				/>,
+			)
+
+			// Neither surface offers the manager, so the `open` binding is the only
+			// way in — the dialog has to mount for it, or the binding is inert.
+			expect(screen.getByRole('button', { name: 'Done' })).toBeInTheDocument()
 		})
 
 		it('honors a custom label on the toolbar button', () => {
@@ -732,7 +756,7 @@ describe('Grid', () => {
 					columns={columns}
 					rows={rows}
 					getKey={getKey}
-					columnManager={{ toolbarButton: true, label: 'Manage' }}
+					columnManager={{ toolbar: true, label: 'Manage' }}
 				/>,
 			)
 
@@ -837,7 +861,7 @@ describe('Grid', () => {
 					rows={rows}
 					getKey={getKey}
 					columnOrder={{ onValueChange }}
-					columnManager={{ toolbarButton: true, onHiddenChange }}
+					columnManager={{ toolbar: true, onHiddenChange }}
 				/>,
 			)
 

@@ -1,5 +1,55 @@
-import { BUILTIN_EXPORT_LABEL, BUILTIN_EXPORTERS, DEFAULT_EXPORT_TYPES } from './registry'
-import type { GridExportAction, GridExportContext, GridExportEntry, GridExportType } from './types'
+import type { GridToolSurfaces } from '../../types'
+import { DEFAULT_SURFACES, resolveToolSurfaces, SURFACES_OFF } from '../grid-tools'
+import {
+	BUILTIN_EXPORT_LABEL,
+	BUILTIN_EXPORTERS,
+	DEFAULT_EXPORT_TYPES,
+	DEFAULT_EXPORTABLE,
+} from './registry'
+import type {
+	GridExportAction,
+	GridExportable,
+	GridExportContext,
+	GridExportEntry,
+	GridExportType,
+} from './types'
+
+/**
+ * The entries `exportable` names: none when off, the full built-in set for the
+ * `true` shorthand, the array itself, or a config's `types` — which falls back
+ * to the same CSV + Excel set an omitted prop takes, so adding a surface switch
+ * never quietly adds print.
+ *
+ * @internal
+ */
+function resolveEntries<T>(exportable: GridExportable<T> | undefined): GridExportEntry<T>[] {
+	if (!exportable) return []
+
+	if (exportable === true) return DEFAULT_EXPORT_TYPES
+
+	if (Array.isArray(exportable)) return exportable
+
+	return exportable.types ?? DEFAULT_EXPORTABLE
+}
+
+/**
+ * The surfaces `exportable` offers its actions on: none when off, the tool
+ * {@link DEFAULT_SURFACES} for the boolean and array forms, and only the config
+ * form naming its own. Reads the union exactly as {@link resolveEntries} does,
+ * so a fifth form is taught to both the same way.
+ *
+ * @typeParam T - Shape of a single row.
+ * @internal
+ */
+export function resolveExportSurfaces<T>(
+	exportable: GridExportable<T> | undefined,
+): Required<GridToolSurfaces> {
+	if (!exportable) return SURFACES_OFF
+
+	if (exportable === true || Array.isArray(exportable)) return DEFAULT_SURFACES
+
+	return resolveToolSurfaces(exportable)
+}
 
 /** Whether `type` names one of the shipped exporters (has a built-in and a default label). @internal */
 function isBuiltinType(type: GridExportType): type is keyof typeof BUILTIN_EXPORTERS {
@@ -85,11 +135,13 @@ function resolveEntry<T>(
 
 /**
  * Normalizes the `exportable` prop — `false`/`undefined` (off), `true` (the
- * default `csv` + `excel` + `print` set), or an explicit {@link GridExportEntry}
- * array — into one ready-to-run action per entry, in order. Each action's `run`
- * calls the entry's `onExport` override when given, else the built-in exporter
- * for a shipped type; an entry naming neither (an unknown type with no
- * `onExport`) is dropped (see {@link resolveAction}).
+ * default `csv` + `excel` + `print` set), an explicit {@link GridExportEntry}
+ * array, or a {@link GridExportConfig} naming its own `types` — into one
+ * ready-to-run action per entry, in order. Each action's `run` calls the entry's
+ * `onExport` override when given, else the built-in exporter for a shipped type;
+ * an entry naming neither (an unknown type with no `onExport`) is dropped (see
+ * {@link resolveAction}). Which surfaces offer these actions is a separate
+ * question — see {@link resolveExportSurfaces}.
  *
  * @typeParam T - Shape of a single row.
  * @param exportable - The grid's `exportable` prop.
@@ -98,12 +150,8 @@ function resolveEntry<T>(
  * @internal
  */
 export function resolveExportActions<T>(
-	exportable: boolean | GridExportEntry<T>[] | undefined,
+	exportable: GridExportable<T> | undefined,
 	getContext: () => GridExportContext<T> | Promise<GridExportContext<T>>,
 ): GridExportAction[] {
-	if (!exportable) return []
-
-	const entries = exportable === true ? DEFAULT_EXPORT_TYPES : exportable
-
-	return entries.flatMap((entry) => resolveEntry(entry, getContext))
+	return resolveEntries(exportable).flatMap((entry) => resolveEntry(entry, getContext))
 }

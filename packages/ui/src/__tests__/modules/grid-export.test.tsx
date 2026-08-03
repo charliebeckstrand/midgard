@@ -190,6 +190,78 @@ describe('Grid export', () => {
 		expect(screen.queryByRole('menuitem', { name: 'Print' })).toBeNull()
 	})
 
+	it('keeps the toolbar dropdown out until the toolbar surface is opted in', () => {
+		renderUI(<Grid exportable={['csv']} columns={columns} rows={rows} getKey={getKey} />)
+
+		// The menus carry export by default; the toolbar button is the opt-in half.
+		expect(screen.queryByRole('button', { name: 'Export' })).toBeNull()
+
+		rightClickHeader('Name')
+
+		expect(screen.getByRole('menuitem', { name: 'Export to CSV' })).toBeInTheDocument()
+	})
+
+	it('renders the toolbar dropdown alone when the context-menu surface is off', () => {
+		renderUI(
+			<Grid
+				exportable={{ types: ['csv'], toolbar: true, contextMenu: false }}
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+			/>,
+		)
+
+		expect(screen.getByRole('button', { name: 'Export' })).toBeInTheDocument()
+
+		rightClickHeader('Name')
+
+		// The header menu still opens its own controls; only export is held back.
+		expect(screen.getByRole('menuitem', { name: 'Sort' })).toBeInTheDocument()
+
+		expect(screen.queryByRole('menuitem', { name: 'Export to CSV' })).toBeNull()
+	})
+
+	it('hands a contextMenu builder no export actions once that surface is off', () => {
+		const seen: number[] = []
+
+		renderUI(
+			<Grid
+				exportable={{ types: ['csv'], toolbar: true, contextMenu: false }}
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				contextMenu={{
+					column: (context, defaults) => {
+						seen.push(context.exportActions.length)
+
+						return defaults
+					},
+				}}
+			/>,
+		)
+
+		rightClickHeader('Name')
+
+		// The builder sees exactly what its menu offers, so it can't re-place an
+		// export the surface switch held back.
+		expect(seen).not.toHaveLength(0)
+
+		expect(seen.every((count) => count === 0)).toBe(true)
+	})
+
+	it('takes the CSV + Excel default when the config names no types', () => {
+		renderUI(<Grid exportable={{ toolbar: true }} columns={columns} rows={rows} getKey={getKey} />)
+
+		openExportMenu()
+
+		expect(screen.getByRole('menuitem', { name: 'Export to CSV' })).toBeInTheDocument()
+
+		expect(screen.getByRole('menuitem', { name: 'Export to Excel' })).toBeInTheDocument()
+
+		// Only the `true` shorthand adds print; a surface switch never does.
+		expect(screen.queryByRole('menuitem', { name: 'Print' })).toBeNull()
+	})
+
 	it('enables the default CSV + Excel + print set for the boolean shorthand', () => {
 		renderUI(<Grid exportable columns={columns} rows={rows} getKey={getKey} />)
 
@@ -205,7 +277,14 @@ describe('Grid export', () => {
 	})
 
 	it('lists one item per action in the toolbar Export dropdown', () => {
-		renderUI(<Grid exportable columns={columns} rows={rows} getKey={getKey} />)
+		renderUI(
+			<Grid
+				exportable={{ types: ['csv', 'excel', 'print'], toolbar: true }}
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+			/>,
+		)
 
 		openExportMenu()
 
@@ -269,7 +348,14 @@ describe('Grid export', () => {
 
 		const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
 
-		renderUI(<Grid exportable={['csv']} columns={columns} rows={rows} getKey={getKey} />)
+		renderUI(
+			<Grid
+				exportable={{ types: ['csv'], toolbar: true }}
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+			/>,
+		)
 
 		openExportMenu()
 
@@ -287,8 +373,8 @@ describe('Grid export', () => {
 	it('shares one tools toolbar with the column-manager button', () => {
 		renderUI(
 			<Grid
-				columnManager={{ toolbarButton: true }}
-				exportable
+				columnManager={{ toolbar: true }}
+				exportable={{ toolbar: true }}
 				columns={columns}
 				rows={rows}
 				getKey={getKey}
@@ -313,7 +399,7 @@ describe('Grid export', () => {
 
 		renderUI(
 			<Grid
-				exportable={['csv']}
+				exportable={{ types: ['csv'], toolbar: true }}
 				columns={columns}
 				rows={rows}
 				getKey={getKey}
@@ -390,7 +476,7 @@ describe('Grid export', () => {
 
 		renderUI(
 			<Grid
-				exportable={['csv']}
+				exportable={{ types: ['csv'], toolbar: true }}
 				columns={columns}
 				rows={rows}
 				getKey={getKey}
@@ -518,7 +604,7 @@ describe('Grid export', () => {
 
 		renderUI(
 			<Grid
-				exportable={['csv']}
+				exportable={{ types: ['csv'], toolbar: true }}
 				columns={columns}
 				rows={pageRow}
 				getKey={getKey}
@@ -558,7 +644,7 @@ describe('Grid export', () => {
 
 		renderUI(
 			<Grid
-				exportable={['csv']}
+				exportable={{ types: ['csv'], toolbar: true }}
 				columns={columns}
 				rows={pageRow}
 				getKey={getKey}
@@ -601,7 +687,7 @@ describe('Grid export', () => {
 
 		renderUI(
 			<Grid
-				exportable={['csv']}
+				exportable={{ types: ['csv'], toolbar: true }}
 				columns={columns}
 				rows={pageRow}
 				getKey={getKey}
@@ -655,7 +741,7 @@ describe('Grid export', () => {
 
 		renderUI(
 			<Grid
-				exportable={['csv']}
+				exportable={{ types: ['csv'], toolbar: true }}
 				columns={columns}
 				rows={pageRow}
 				getKey={getKey}
@@ -715,7 +801,7 @@ describe('Grid export', () => {
 
 		renderUI(
 			<Grid
-				exportable={['csv']}
+				exportable={{ types: ['csv'], toolbar: true }}
 				columns={columns}
 				rows={pageRow}
 				getKey={getKey}
@@ -782,7 +868,7 @@ describe('Grid export under grouping', () => {
 		// datum. Walking that model exported "Alice" and "Bob" alone.
 		const text = await exportCsv(
 			<Grid
-				exportable={['csv']}
+				exportable={{ types: ['csv'], toolbar: true }}
 				columns={columns}
 				rows={people}
 				getKey={getKey}
@@ -802,7 +888,7 @@ describe('Grid export under grouping', () => {
 	it('exports the leaves of a collapsed group, whatever its expansion', async () => {
 		const text = await exportCsv(
 			<Grid
-				exportable={['csv']}
+				exportable={{ types: ['csv'], toolbar: true }}
 				columns={columns}
 				rows={people}
 				getKey={getKey}
@@ -820,7 +906,7 @@ describe('Grid export under grouping', () => {
 		// selection read as empty and silently fell back to the full set.
 		const text = await exportCsv(
 			<Grid
-				exportable={['csv']}
+				exportable={{ types: ['csv'], toolbar: true }}
 				columns={columns}
 				rows={people}
 				getKey={getKey}

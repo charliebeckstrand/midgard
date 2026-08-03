@@ -229,15 +229,7 @@ describe('Grid context menus', () => {
 	})
 
 	it('opens the column manager from the "Manage columns" item', () => {
-		renderUI(
-			<Grid
-				columns={columns}
-				rows={rows}
-				getKey={getKey}
-				columnManager={{ enabled: true }}
-				contextMenu={{ column: true }}
-			/>,
-		)
+		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} contextMenu={{ column: true }} />)
 
 		rightClick('columnheader', 'Name')
 
@@ -246,13 +238,13 @@ describe('Grid context menus', () => {
 		expect(screen.getByRole('button', { name: 'Done' })).toBeInTheDocument()
 	})
 
-	it('omits "Manage columns" when the column manager is disabled', () => {
+	it('omits "Manage columns" when the column manager is off', () => {
 		renderUI(
 			<Grid
 				columns={columns}
 				rows={rows}
 				getKey={getKey}
-				columnManager={{ enabled: false }}
+				columnManager={false}
 				contextMenu={{ column: true }}
 			/>,
 		)
