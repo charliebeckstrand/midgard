@@ -82,6 +82,10 @@ function submenuItems(args: {
  * "Clear sort" once the column carries the active sort. Empty when the column
  * doesn't sort, which withholds the Sort menu entirely.
  *
+ * @remarks The direction the column already carries is withheld — a column
+ * sorted ascending offers "Sort descending" and "Clear sort" only — so every row
+ * in the menu changes the sort rather than repeating it. Two rows either way, so
+ * the Sort parent stays a submenu.
  * @internal
  */
 function sortMenuItems<T>(args: {
@@ -94,20 +98,25 @@ function sortMenuItems<T>(args: {
 
 	if (column.sortable === false) return []
 
-	const items: GridMenuItem[] = [
-		{
+	const items: GridMenuItem[] = []
+
+	if (sortDirection !== 'asc') {
+		items.push({
 			key: 'sort-asc',
 			label: 'Sort ascending',
 			icon: <ArrowUp />,
 			onAction: () => sortColumn(column.id, 'asc'),
-		},
-		{
+		})
+	}
+
+	if (sortDirection !== 'desc') {
+		items.push({
 			key: 'sort-desc',
 			label: 'Sort descending',
 			icon: <ArrowDown />,
 			onAction: () => sortColumn(column.id, 'desc'),
-		},
-	]
+		})
+	}
 
 	if (sortDirection) {
 		items.push({
@@ -324,8 +333,9 @@ export function pinChoiceIcon(key: PinMenuChoice['key']): ReactElement {
  * Default header-menu items, consolidated into hover-opened submenus so the
  * menu opens one row per concern rather than a dozen flat actions: "Manage
  * columns" (when a manager is reachable) leads, then the clicked column's own
- * concerns — Sort (the sort controls, with "Clear sort" once the column is the
- * sorted one), Pin (Pin left / Pin right / Unpin), the group-by toggle, a single
+ * concerns — Sort (the directions the column doesn't already carry, with "Clear
+ * sort" once it is the sorted one), Pin (Pin left / Pin right / Unpin), the
+ * group-by toggle, a single
  * action so it stays a plain row, and Auto-size (this column, then all columns)
  * — and Export (one row per active export type) closes them out.
  *

@@ -533,8 +533,9 @@ export type GridColumnMenuContext<T> = {
 
 /**
  * Header context-menu config: `true` (or omit) for the default items — the
- * Sort menu (Sort ascending / Sort descending, plus Clear sort once the column
- * is sorted), the Pin menu (Pin left / Pin right / Unpin), Group by … (when
+ * Sort menu (Sort ascending / Sort descending, less the direction the column
+ * already carries, plus Clear sort once the column is sorted), the Pin menu
+ * (Pin left / Pin right / Unpin), Group by … (when
  * groupable), and the Auto-size menu (this column, then all columns; when
  * resizing is on), then Manage columns and the Export menu under a separator —
  * or a builder receiving the {@link GridColumnMenuContext} and those defaults,

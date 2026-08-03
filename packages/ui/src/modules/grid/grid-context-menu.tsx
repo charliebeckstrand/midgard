@@ -58,7 +58,7 @@ type GridContextMenuProps<T> = {
 	/** Rendered rows, parallel to `rowKeys`, for resolving a cell to its row. */
 	rows: T[]
 	rowKeys: (string | number)[]
-	/** Active sort columns in priority order, so a sorted column's menu offers "Clear sort". */
+	/** Active sort columns in priority order, so a sorted column's menu offers "Clear sort" and withholds the direction it already carries. */
 	sort: SortState[]
 	sortColumn: SortColumn
 	/** Clears the grid's active sort. */

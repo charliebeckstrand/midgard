@@ -385,6 +385,47 @@ describe('Grid context menus', () => {
 		expect(screen.queryByRole('menuitem', { name: 'Clear sort' })).not.toBeInTheDocument()
 	})
 
+	it('withholds the direction a sorted column already carries', () => {
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				sort={{ defaultValue: [{ column: 'name', direction: 'asc' }] }}
+			/>,
+		)
+
+		rightClick('columnheader', 'Name')
+
+		openSubmenu('Sort')
+
+		// Sorted ascending: the row that would repeat that sort stays out, leaving
+		// the other direction and Clear sort.
+		expect(screen.queryByRole('menuitem', { name: 'Sort ascending' })).not.toBeInTheDocument()
+
+		expect(screen.getByRole('menuitem', { name: 'Sort descending' })).toBeInTheDocument()
+
+		// Sorting it the other way flips which row the menu withholds.
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Sort descending' }))
+
+		rightClick('columnheader', 'Name')
+
+		openSubmenu('Sort')
+
+		expect(screen.getByRole('menuitem', { name: 'Sort ascending' })).toBeInTheDocument()
+
+		expect(screen.queryByRole('menuitem', { name: 'Sort descending' })).not.toBeInTheDocument()
+
+		// An unsorted column's menu still offers both.
+		rightClick('columnheader', 'Role')
+
+		openSubmenu('Sort')
+
+		expect(screen.getByRole('menuitem', { name: 'Sort ascending' })).toBeInTheDocument()
+
+		expect(screen.getByRole('menuitem', { name: 'Sort descending' })).toBeInTheDocument()
+	})
+
 	it('clears the active sort when "Clear sort" is chosen', () => {
 		const onValueChange = vi.fn()
 

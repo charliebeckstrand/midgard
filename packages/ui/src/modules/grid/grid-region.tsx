@@ -60,7 +60,7 @@ type GridRegionProps<T> = {
 	columns: GridColumn<T>[]
 	rows: T[]
 	rowKeys: (string | number)[]
-	/** Active sort columns in priority order, so the header menu can offer "Clear sort" for a sorted column. */
+	/** Active sort columns in priority order, so the header menu can offer "Clear sort" for a sorted column and withhold the direction it already carries. */
 	sort: SortState[]
 	sortColumn: (column: string | number, direction: 'asc' | 'desc') => void
 	clearSort: () => void
