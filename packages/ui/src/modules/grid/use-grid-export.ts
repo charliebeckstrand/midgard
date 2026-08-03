@@ -95,13 +95,12 @@ export function useGridExport<T>(args: {
 
 	const surfaces = resolveExportSurfaces(exportable)
 
-	// An off surface takes the fixed empty set rather than a fresh one, so it
-	// contributes nothing to the menu resolvers' dependencies.
-	return useMemo(
-		() => ({
-			toolbar: surfaces.toolbar ? actions : NO_ACTIONS,
-			contextMenu: surfaces.contextMenu ? actions : NO_ACTIONS,
-		}),
-		[actions, surfaces.toolbar, surfaces.contextMenu],
-	)
+	// The pair is read field by field at the call site, so only the arrays' own
+	// identities matter — both are already stable, and an off surface takes the
+	// fixed empty set rather than a fresh one, contributing nothing to the menu
+	// resolvers' dependencies.
+	return {
+		toolbar: surfaces.toolbar ? actions : NO_ACTIONS,
+		contextMenu: surfaces.contextMenu ? actions : NO_ACTIONS,
+	}
 }

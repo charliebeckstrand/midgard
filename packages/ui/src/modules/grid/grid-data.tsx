@@ -358,10 +358,8 @@ export function GridData<T>({
 
 	const columnSizingConfig = seedColumnSizing(columnSizingConfigProp, preferences)
 
-	// `columnManager={false}` is the feature's off switch: no dialog, no button,
-	// no menu item, and none of the visibility bindings the config would carry.
-	const columnManagerEnabled = columnManagerConfigProp !== false
-
+	// `columnManager={false}` is the feature's off switch: the seed flattens it to
+	// no bindings at all, and the menu actions read the switch off the raw prop.
 	const columnManagerConfig = seedColumnManager(columnManagerConfigProp, preferences)
 
 	// Up-front invariants for the mutually-dependent props (virtualize/maxHeight,
@@ -923,8 +921,7 @@ export function GridData<T>({
 		chooseColumns,
 	} = useGridMenuActions<T>({
 		contextMenu,
-		columnManagerConfig,
-		columnManagerEnabled,
+		columnManager: columnManagerConfigProp,
 		resize,
 		setSort,
 		hasData,

@@ -866,7 +866,6 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * Each row reads a column's {@link GridColumn.value}, falling back to the row
 	 * field named by the column id; columns without either export an empty field.
 	 *
-	 * An omitted prop and a config carrying no `types` both land on CSV + Excel.
 	 * Only the `true` shorthand adds print, which stays opt-in because it opens
 	 * the browser print dialog rather than downloading a file.
 	 *

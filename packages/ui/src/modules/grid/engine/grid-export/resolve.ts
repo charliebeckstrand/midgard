@@ -1,4 +1,5 @@
 import type { GridToolSurfaces } from '../../types'
+import { DEFAULT_SURFACES, resolveToolSurfaces, SURFACES_OFF } from '../grid-tools'
 import {
 	BUILTIN_EXPORT_LABEL,
 	BUILTIN_EXPORTERS,
@@ -8,25 +9,10 @@ import {
 import type {
 	GridExportAction,
 	GridExportable,
-	GridExportConfig,
 	GridExportContext,
 	GridExportEntry,
 	GridExportType,
 } from './types'
-
-/**
- * The tool-surface defaults every grid tool takes: the right-click menus carry
- * it, the toolbar button is opt-in — toolbar chrome stays out of a grid that
- * never asked for it.
- *
- * @internal
- */
-const DEFAULT_SURFACES: Required<GridToolSurfaces> = { toolbar: false, contextMenu: true }
-
-/** Whether `exportable` is its {@link GridExportConfig} form rather than a boolean or an entry array. @internal */
-function isExportConfig<T>(exportable: GridExportable<T>): exportable is GridExportConfig<T> {
-	return typeof exportable === 'object' && !Array.isArray(exportable)
-}
 
 /**
  * The entries `exportable` names: none when off, the full built-in set for the
@@ -47,9 +33,10 @@ function resolveEntries<T>(exportable: GridExportable<T> | undefined): GridExpor
 }
 
 /**
- * The surfaces `exportable` offers its actions on. Only the config form names
- * them; the boolean and array forms take the {@link DEFAULT_SURFACES}, and a
- * disabled export reaches nothing.
+ * The surfaces `exportable` offers its actions on: none when off, the tool
+ * {@link DEFAULT_SURFACES} for the boolean and array forms, and only the config
+ * form naming its own. Reads the union exactly as {@link resolveEntries} does,
+ * so a fifth form is taught to both the same way.
  *
  * @typeParam T - Shape of a single row.
  * @internal
@@ -57,14 +44,11 @@ function resolveEntries<T>(exportable: GridExportable<T> | undefined): GridExpor
 export function resolveExportSurfaces<T>(
 	exportable: GridExportable<T> | undefined,
 ): Required<GridToolSurfaces> {
-	if (!exportable) return { toolbar: false, contextMenu: false }
+	if (!exportable) return SURFACES_OFF
 
-	if (!isExportConfig(exportable)) return DEFAULT_SURFACES
+	if (exportable === true || Array.isArray(exportable)) return DEFAULT_SURFACES
 
-	return {
-		toolbar: exportable.toolbar ?? DEFAULT_SURFACES.toolbar,
-		contextMenu: exportable.contextMenu ?? DEFAULT_SURFACES.contextMenu,
-	}
+	return resolveToolSurfaces(exportable)
 }
 
 /** Whether `type` names one of the shipped exporters (has a built-in and a default label). @internal */
