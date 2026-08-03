@@ -82,6 +82,7 @@ import type {
 	GridSearch,
 } from './types'
 import { useGridColumnAutoSize } from './use-grid-column-auto-size'
+import { useGridPinnedOffsets } from './use-grid-pinned-offsets'
 
 export type {
 	GridColumnFilter,
@@ -893,9 +894,24 @@ export function useGridTable<T>({
 		[hasColumnFilters, table],
 	)
 
+	// A frozen column sticks at the summed width of the frozen columns ahead of it,
+	// which the engine can supply only while it also sets those widths — through the
+	// fixed-layout colgroup a resizable grid lays out from its size model. A
+	// non-resizable grid lays out `auto` and sizes each column to its content, so
+	// there the offsets are measured from the rendered header instead; without that
+	// a stack of frozen columns spreads apart by the difference and the scrolling
+	// columns show through the gaps.
+	const pinnedOffsets = useGridPinnedOffsets({
+		frozen: hasPinned,
+		engineSized: resizable,
+		table,
+		columns: visibleColumns,
+		containerRef,
+	})
+
 	const pinning = useMemo<GridColumnPinning | null>(
-		() => (hasPinned ? buildColumnPinning(table) : null),
-		[hasPinned, table],
+		() => (hasPinned ? buildColumnPinning(table, pinnedOffsets) : null),
+		[hasPinned, table, pinnedOffsets],
 	)
 
 	return {

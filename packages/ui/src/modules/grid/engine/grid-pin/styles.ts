@@ -5,9 +5,9 @@ import type { GridColumnPinning } from '../../use-grid-table'
 
 /**
  * Inline sticky offset for a pinned cell — `left` for a left-pinned column,
- * `right` for a right-pinned one, each summed from the engine — or `undefined`
- * when the column scrolls. Pairs with {@link pinnedClassName}, which carries the
- * `position: sticky` itself.
+ * `right` for a right-pinned one, each the summed width of the frozen columns
+ * between it and that edge — or `undefined` when the column scrolls. Pairs with
+ * {@link pinnedClassName}, which carries the `position: sticky` itself.
  *
  * @internal
  */

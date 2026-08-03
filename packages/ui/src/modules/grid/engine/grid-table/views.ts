@@ -3,7 +3,8 @@ import { isQueryActive } from '../../../query/engine/query-active'
 import type { QueryField, QueryGroup as QueryGroupNode } from '../../../query/engine/types'
 import type { GridColumn, GridPagination } from '../../types'
 import { DEFAULT_COLUMN_SIZE, DEFAULT_MIN_COLUMN_SIZE } from '../grid-constants'
-import { frozenSide } from '../grid-pin/overrides'
+import type { FrozenOffsets } from '../grid-pin/measure'
+import { frozenSide, type PinSide } from '../grid-pin/overrides'
 
 /**
  * Column-resize controls the header renders from: the live width, drag/keyboard
@@ -264,19 +265,36 @@ export function buildColumnResize<T>(
 	}
 }
 
+/** A column's frozen edge as the engine resolves it, or `undefined` when it scrolls. @internal */
+export function columnPinSide<T>(table: Table<T>, id: string | number): PinSide | undefined {
+	return table.getColumn(String(id))?.getIsPinned() || undefined
+}
+
 /**
  * Assembles the {@link GridColumnPinning} controls over a table instance:
- * each column's frozen side, its sticky offset from that edge (summed from the
- * sizes of the columns pinned before it), and whether it sits at the inner
- * boundary (for the separating shadow). Methods read the engine live.
+ * each column's frozen side, its sticky offset from that edge, and whether it
+ * sits at the inner boundary (for the separating shadow). Methods read the
+ * engine live.
+ *
+ * `measured` carries the offsets read from the rendered header, and wins where
+ * it has an entry. The engine's own offsets sum its column sizes, which are the
+ * rendered widths only under the fixed layout a resizable grid sets from them;
+ * an auto-layout grid sizes each column to its content, so its frozen columns
+ * are measured instead (see {@link FrozenOffsets}). `null` — the resizable case,
+ * and every render before the first measurement — leaves the engine's sums.
  *
  * @internal
  */
-export function buildColumnPinning<T>(table: Table<T>): GridColumnPinning {
+export function buildColumnPinning<T>(
+	table: Table<T>,
+	measured: FrozenOffsets | null,
+): GridColumnPinning {
 	return {
-		side: (id) => table.getColumn(String(id))?.getIsPinned() || undefined,
-		leftOffset: (id) => table.getColumn(String(id))?.getStart('left') ?? 0,
-		rightOffset: (id) => table.getColumn(String(id))?.getAfter('right') ?? 0,
+		side: (id) => columnPinSide(table, id),
+		leftOffset: (id) =>
+			measured?.left.get(String(id)) ?? table.getColumn(String(id))?.getStart('left') ?? 0,
+		rightOffset: (id) =>
+			measured?.right.get(String(id)) ?? table.getColumn(String(id))?.getAfter('right') ?? 0,
 		isLastLeft: (id) => table.getColumn(String(id))?.getIsLastColumn('left') ?? false,
 		isFirstRight: (id) => table.getColumn(String(id))?.getIsFirstColumn('right') ?? false,
 	}
