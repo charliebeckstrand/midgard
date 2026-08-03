@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider, useQuery, useQueryClient } from '@tanstack/react-query'
 import { type ComponentProps, useState } from 'react'
 import statesUrl from 'us-atlas/states-10m.json?url'
+import { Flex } from '../../../../components/flex'
 import { Select, SelectLabel, SelectOption } from '../../../../components/select'
 import { Stack } from '../../../../components/stack'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../../components/tabs'
@@ -141,19 +142,21 @@ function ClickableStates({ geography }: { geography: MapGeography | null }) {
 
 	return (
 		<Stack gap="md">
-			<Select<string>
-				aria-label="State"
-				placeholder="No state picked"
-				value={picked}
-				onValueChange={setPicked}
-				displayValue={(state: string) => state}
-			>
-				{timezones.map((row) => (
-					<SelectOption key={row.state} value={row.state}>
-						<SelectLabel>{row.state}</SelectLabel>
-					</SelectOption>
-				))}
-			</Select>
+			<Flex>
+				<Select<string>
+					aria-label="State"
+					placeholder="No state picked"
+					value={picked}
+					onValueChange={setPicked}
+					displayValue={(state: string) => state}
+				>
+					{timezones.map((row) => (
+						<SelectOption key={row.state} value={row.state}>
+							<SelectLabel>{row.state}</SelectLabel>
+						</SelectOption>
+					))}
+				</Select>
+			</Flex>
 
 			<Text>{picked === null ? 'Pick a state.' : `${picked} — ${zone} time.`}</Text>
 
