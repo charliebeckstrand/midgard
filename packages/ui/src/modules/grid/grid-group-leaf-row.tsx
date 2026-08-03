@@ -132,8 +132,12 @@ type GridGroupLeafCellProps<T> = {
 	leading: boolean
 	/** The group's overlay color, coloring the leading rail; `undefined` keeps it neutral. */
 	color?: PaletteColor
-	/** Whether the group is open, driving the cell's height reveal. */
-	expanded: boolean
+	/**
+	 * Whether the cell's height reveal renders open. It comes from the row's
+	 * reveal hold, not from the group's `expanded`, so a leaf that wakes out of
+	 * the hold opens over the transition rather than in a snap.
+	 */
+	open: boolean
 	/** Density padding class for the innermost content wrapper. */
 	pad: string
 	/** Whether this data cell is a roving-tabindex item (cell-mode keyboard nav). @defaultValue false */
@@ -165,7 +169,7 @@ function GridGroupLeafCell<T>({
 	pinning,
 	leading,
 	color,
-	expanded,
+	open,
 	pad,
 	cellRoving = false,
 	cellActivate,
@@ -202,7 +206,7 @@ function GridGroupLeafCell<T>({
 			)}
 			style={{ ...NO_PADDING, ...pinned.style }}
 		>
-			<div className={cn(k.rowGroup.reveal.track)} data-open={dataAttr(expanded)}>
+			<div className={cn(k.rowGroup.reveal.track)} data-open={dataAttr(open)}>
 				<div className={cn(k.rowGroup.reveal.clip)}>
 					<div className={cn(pad, chrome.inner)}>
 						{leafCellInner({
@@ -322,7 +326,7 @@ export function GridGroupLeafRow<T>({
 							pinning={pinning}
 							leading={colIdx === 0}
 							color={color}
-							expanded={expanded}
+							open={reveal.open}
 							pad={pad}
 							cellRoving={cellRoving}
 							cellActivate={cellActivate}

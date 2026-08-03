@@ -90,6 +90,8 @@ type GridDetailRowProps = {
  * hidden from assistive tech, and its `id` ties back to the expander's
  * `aria-controls`. Once the reveal has shrunk it rests in
  * `<Activity mode="hidden">`, keeping its state but leaving the visible commit.
+ * The track opens on the reveal's own flag rather than on `expanded`, which is
+ * what carries a panel out of that rest over the transition and not in a snap.
  *
  * @internal
  */
@@ -107,7 +109,7 @@ export function GridDetailRow({ rowKey, colSpan, expanded, children }: GridDetai
 				onTransitionEnd={reveal.onTransitionEnd}
 			>
 				<td colSpan={colSpan} style={NO_PADDING}>
-					<div className={cn(k.detail.reveal.track)} data-open={dataAttr(expanded)}>
+					<div className={cn(k.detail.reveal.track)} data-open={dataAttr(reveal.open)}>
 						<div className={cn(k.detail.reveal.clip)}>
 							<section id={detailPanelId(rowKey)} className={cn(k.detail.panel)}>
 								{children}
