@@ -169,6 +169,16 @@ export type GridSort = {
 	 * @defaultValue false
 	 */
 	animate?: boolean
+	/**
+	 * How a plain header click cycles the sole sorted column. `'tri-state'`
+	 * cycles ascending → descending → unsorted; `'toggle'` flips asc ↔ desc on
+	 * the sorted column instead of clearing to unsorted — for grids whose empty
+	 * sort state re-applies a server default, where the tri-state third click
+	 * reads as a dead click. Additive (Shift-click) multi-column semantics are
+	 * unchanged under either cycle.
+	 * @defaultValue 'tri-state'
+	 */
+	cycle?: 'tri-state' | 'toggle'
 }
 
 /**

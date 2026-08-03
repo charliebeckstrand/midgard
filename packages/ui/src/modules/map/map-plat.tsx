@@ -259,6 +259,19 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 */
 		onRegionClick?: (id: string, index: number) => void
 		/**
+		 * Fires when a right-click lands on a region, with the same identity and
+		 * feature index {@link onRegionClick} reports — for a context menu wrapping
+		 * the map that needs to name the region it opened over. The map's hover state
+		 * is provider-isolated so a pointer move repaints only the tooltip, which
+		 * means a menu outside that provider cannot read the pointed region and must
+		 * be told instead.
+		 *
+		 * Takes no pointer affordance and never prevents default: the menu still
+		 * opens, and the cursor stays as {@link onRegionClick} left it. See
+		 * {@link MapRegionsProps.onRegionContextMenu}.
+		 */
+		onRegionContextMenu?: (id: string, index: number) => void
+		/**
 		 * The selected region, by the identity {@link onRegionClick} reports — the
 		 * `regionId` value, so the pick a click hands the caller comes straight back
 		 * as the pick to draw. The map paints it and holds no selection state of its
@@ -1031,6 +1044,30 @@ function valueColumnHeader(
 }
 
 /**
+ * Adapts a public region handler — which reports identity beside the index — to
+ * the index-only shape {@link MapRegions} delegates in, so the click and
+ * right-click reporters resolve identity the one way.
+ *
+ * `noUncheckedIndexedAccess` types the lookup as optional, and an index outside
+ * the ids would be a layer/geometry disagreement, so it reports nothing rather
+ * than an empty identity.
+ *
+ * @internal
+ */
+function bridgeRegionIdentity(
+	report: ((id: string, index: number) => void) | undefined,
+	regionIds: string[],
+): ((index: number) => void) | undefined {
+	if (report === undefined) return undefined
+
+	return (index: number) => {
+		const id = regionIds[index]
+
+		if (id !== undefined) report(id, index)
+	}
+}
+
+/**
  * An SVG geography map on the chart module's interaction grammar: regions
  * coloured by category from typed rows, one merged legend where pointing an
  * entry dims everything outside its group and clicking toggles it off,
@@ -1071,6 +1108,7 @@ export function MapPlat<T = never>({
 	tooltip = true,
 	animate = false,
 	onRegionClick,
+	onRegionContextMenu,
 	selectedRegion,
 	emphasis: controlledEmphasis,
 	className,
@@ -1137,21 +1175,18 @@ export function MapPlat<T = never>({
 		[entries, categoryMetas.length],
 	)
 
-	// The region layer reports the index it resolved off the clicked path's anchor;
-	// the prop reports identity. Bridge them here, memoised like this component's
+	// The region layer reports the index it resolved off the pointed path's anchor;
+	// the props report identity. Bridge them here, memoised like this component's
 	// sibling derivations so the memoised region layer holds across the legend and
-	// resize commits. `noUncheckedIndexedAccess` types the lookup as optional, and
-	// an index outside the ids would be a layer/geometry disagreement, so it
-	// reports nothing rather than an empty selection.
+	// resize commits.
 	const clickRegion = useMemo(
-		() =>
-			onRegionClick &&
-			((index: number) => {
-				const id = regionIds[index]
-
-				if (id !== undefined) onRegionClick(id, index)
-			}),
+		() => bridgeRegionIdentity(onRegionClick, regionIds),
 		[onRegionClick, regionIds],
+	)
+
+	const contextMenuRegion = useMemo(
+		() => bridgeRegionIdentity(onRegionContextMenu, regionIds),
+		[onRegionContextMenu, regionIds],
 	)
 
 	// The selection resolved to the index the layers draw by, against the same
@@ -1284,6 +1319,7 @@ export function MapPlat<T = never>({
 						emphasis={emphasis}
 						animate={animate}
 						onRegionClick={clickRegion}
+						onRegionContextMenu={contextMenuRegion}
 						selected={selected}
 					/>
 

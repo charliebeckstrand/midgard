@@ -30,6 +30,37 @@ describe('nextSort', () => {
 		})
 	})
 
+	describe("plain click under cycle: 'toggle'", () => {
+		it('flips a lone sorted column ascending ↔ descending without ever clearing', () => {
+			const asc = nextSort([], 'a', false, 'toggle')
+
+			expect(asc).toEqual([{ column: 'a', direction: 'asc' }])
+
+			const desc = nextSort(asc, 'a', false, 'toggle')
+
+			expect(desc).toEqual([{ column: 'a', direction: 'desc' }])
+
+			// The tri-state third click clears; toggle wraps back to ascending.
+			expect(nextSort(desc, 'a', false, 'toggle')).toEqual([{ column: 'a', direction: 'asc' }])
+		})
+
+		it('still collapses a multi-column sort to the clicked column ascending', () => {
+			const multi: SortState[] = [
+				{ column: 'a', direction: 'asc' },
+				{ column: 'b', direction: 'desc' },
+			]
+
+			expect(nextSort(multi, 'b', false, 'toggle')).toEqual([{ column: 'b', direction: 'asc' }])
+		})
+
+		it("explicit 'tri-state' matches the default and clears on the third click", () => {
+			const desc: SortState[] = [{ column: 'a', direction: 'desc' }]
+
+			expect(nextSort(desc, 'a', false, 'tri-state')).toEqual([])
+			expect(nextSort(desc, 'a', false)).toEqual([])
+		})
+	})
+
 	describe('shift click (additive)', () => {
 		it('appends a new column ascending, keeping the others in priority order', () => {
 			const base: SortState[] = [{ column: 'a', direction: 'asc' }]
@@ -59,6 +90,22 @@ describe('nextSort', () => {
 			]
 
 			expect(nextSort(base, 'b', true)).toEqual([{ column: 'a', direction: 'asc' }])
+		})
+
+		it("keeps additive semantics — including the drop — under cycle: 'toggle'", () => {
+			const base: SortState[] = [{ column: 'a', direction: 'asc' }]
+
+			expect(nextSort(base, 'b', true, 'toggle')).toEqual([
+				{ column: 'a', direction: 'asc' },
+				{ column: 'b', direction: 'asc' },
+			])
+
+			const desc: SortState[] = [
+				{ column: 'a', direction: 'asc' },
+				{ column: 'b', direction: 'desc' },
+			]
+
+			expect(nextSort(desc, 'b', true, 'toggle')).toEqual([{ column: 'a', direction: 'asc' }])
 		})
 	})
 })

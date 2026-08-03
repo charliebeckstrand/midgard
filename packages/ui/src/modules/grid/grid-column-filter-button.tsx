@@ -1,7 +1,7 @@
 'use client'
 
 import { ListFilter, ListFilterPlus } from 'lucide-react'
-import { type SubmitEvent, useMemo, useState } from 'react'
+import { type SubmitEvent, useEffect, useMemo, useState } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from '../../components/menu'
@@ -113,13 +113,36 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 
 	const [draft, setDraft] = useState<QueryGroupNode>(seeded)
 
+	// Close the sheet and, if it was opened from the right-click menu (the `'menu'`
+	// affordance), consume that request so it doesn't immediately reopen.
+	function closeSheet() {
+		setOpen(false)
+
+		if (filter.openColumn === column.id) filter.requestOpen(null)
+	}
+
 	// Seed the draft from the applied query each time the sheet opens, so editing
 	// always resumes from what's in effect; an unapplied draft is dropped on close.
 	function handleOpenChange(next: boolean) {
-		if (next) setDraft(query ?? seeded)
-
-		setOpen(next)
+		if (next) {
+			setDraft(query ?? seeded)
+			setOpen(true)
+		} else {
+			closeSheet()
+		}
 	}
+
+	// The `'menu'` affordance opens this column's sheet from the context menu (there
+	// is no resting header funnel to click): open + seed when the grid requests this
+	// column. Guarded to this column so re-renders from query/seeded churn can't
+	// clobber an in-progress edit.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: opens only on a fresh open-request for this column; re-seeding on query/seeded changes would discard edits in flight
+	useEffect(() => {
+		if (filter.openColumn !== column.id) return
+
+		setDraft(query ?? seeded)
+		setOpen(true)
+	}, [filter.openColumn, column.id])
 
 	// Settle the draft onto the engine and close. A draft of only blank rules
 	// applies as "no constraint" (the evaluator skips value-less rules), so Apply
@@ -127,7 +150,7 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 	function apply() {
 		filter.setQuery(column.id, draft)
 
-		setOpen(false)
+		closeSheet()
 	}
 
 	// The sheet body + footer form a `<form>`, so Enter in any rule input settles
@@ -151,6 +174,13 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 	// real value, or a value-less operator like "is Empty" — not merely because a
 	// rule exists (a freshly seeded, added-then-emptied, or all-cleared query).
 	const active = query != null && isQueryActive(query, fields)
+
+	// In the `'menu'` affordance the resting funnel is dropped — the filter lives in
+	// the column's right-click menu, so the header keeps its full width. `'header'`
+	// always shows it. Read only where no filter is applied: an active filter turns
+	// the trigger into the edit/clear menu below either way, and the sheet renders
+	// regardless, so the menu can open it under both affordances.
+	const showRestingFunnel = filter.affordance !== 'menu'
 
 	const label = columnLabel(column)
 
@@ -195,7 +225,7 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 						</MenuItem>
 					</MenuContent>
 				</Menu>
-			) : (
+			) : showRestingFunnel ? (
 				<Button
 					type="button"
 					variant="bare"
@@ -208,7 +238,7 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 				>
 					<Icon icon={<ListFilter />} />
 				</Button>
-			)}
+			) : null}
 
 			<GridOverlayDensity>
 				<Sheet open={open} onOpenChange={handleOpenChange} aria-label={`Filter ${label}`}>

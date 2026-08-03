@@ -30,10 +30,12 @@ export function useGridSort(config: GridSort | undefined): {
 		onValueChange: (next) => config?.onValueChange?.(next ?? EMPTY_SORT),
 	})
 
+	const cycle = config?.cycle
+
 	const toggleSort = useCallback(
 		(column: string | number, additive: boolean) =>
-			setSortState((prev) => nextSort(prev ?? EMPTY_SORT, column, additive)),
-		[setSortState],
+			setSortState((prev) => nextSort(prev ?? EMPTY_SORT, column, additive, cycle)),
+		[setSortState, cycle],
 	)
 
 	return { sort: sortState ?? EMPTY_SORT, setSort: setSortState, toggleSort }

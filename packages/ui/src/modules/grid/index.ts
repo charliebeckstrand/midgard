@@ -39,6 +39,7 @@ export {
 	GridColumnManager,
 	type GridColumnManagerProps,
 } from './grid-column-manager'
+export { gridExportMenuItems } from './grid-context-menu-utilities'
 export type {
 	CellChange,
 	GridEditableConfig,
@@ -69,3 +70,4 @@ export type {
 	GridSearch,
 	GridToolSurfaces,
 } from './types'
+export { useGridExportActions } from './use-grid-export-actions'

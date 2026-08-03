@@ -512,6 +512,82 @@ describe('Grid per-column filters', () => {
 
 		expect(screen.queryByRole('button', { name: 'Clear all filters' })).toBeNull()
 	})
+	describe("affordance: 'menu'", () => {
+		/** The Name header, found by text — its accessible name carries the sort/filter chrome too. */
+		const nameHeader = () => {
+			const header = screen
+				.getAllByRole('columnheader')
+				.find((element) => element.textContent?.includes('Name'))
+
+			if (!header) throw new Error('no Name columnheader')
+
+			return header
+		}
+
+		it('drops the resting header funnel, so the column keeps its full width', () => {
+			renderUI(
+				<Grid
+					columns={columns}
+					rows={rows}
+					getKey={getKey}
+					columnFilters={{ affordance: 'menu' }}
+				/>,
+			)
+
+			expect(screen.queryByRole('button', { name: 'Filter Name' })).toBeNull()
+		})
+
+		it("keeps the funnel under the default 'header' affordance", () => {
+			renderUI(<Grid columns={columns} rows={rows} getKey={getKey} columnFilters={{}} />)
+
+			expect(screen.getByRole('button', { name: 'Filter Name' })).toBeInTheDocument()
+		})
+
+		it('returns the funnel once a filter is applied, as the edit/clear affordance', () => {
+			renderUI(
+				<Grid
+					columns={columns}
+					rows={rows}
+					getKey={getKey}
+					columnFilters={{
+						affordance: 'menu',
+						value: [{ id: 'name', value: nameContains('Ali') }],
+					}}
+				/>,
+			)
+
+			expect(screen.getByRole('button', { name: 'Filter Name, active' })).toBeInTheDocument()
+		})
+
+		it("offers the filter from the column's right-click menu instead", () => {
+			renderUI(
+				<Grid
+					columns={columns}
+					rows={rows}
+					getKey={getKey}
+					contextMenu={{ column: true }}
+					columnFilters={{ affordance: 'menu' }}
+				/>,
+			)
+
+			fireEvent.contextMenu(nameHeader())
+
+			expect(screen.getByRole('menuitem', { name: 'Filter Name' })).toBeInTheDocument()
+
+			// Role declares no `filterable`, so its menu offers no filter row.
+			expect(screen.queryByRole('menuitem', { name: 'Filter Role' })).toBeNull()
+		})
+
+		it("withholds the menu row under the 'header' affordance, where the funnel already offers it", () => {
+			renderUI(
+				<Grid columns={columns} rows={rows} getKey={getKey} contextMenu={{ column: true }} />,
+			)
+
+			fireEvent.contextMenu(nameHeader())
+
+			expect(screen.queryByRole('menuitem', { name: 'Filter Name' })).toBeNull()
+		})
+	})
 })
 
 describe('Grid date and boolean filters', () => {

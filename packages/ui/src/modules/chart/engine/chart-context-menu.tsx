@@ -7,6 +7,7 @@ import {
 	type ReactElement,
 	type ReactNode,
 	type RefObject,
+	useMemo,
 	useRef,
 	useState,
 } from 'react'
@@ -30,11 +31,31 @@ import { ChartFullscreenContext } from './context'
 import type { ChartReadoutSource } from './types'
 
 /**
+ * The mark the pointer was over when the right-click landed, so a menu item can act on that mark rather
+ * than the chart as a whole. `index` is the datum's index within the chart's categories — the same index
+ * {@link ChartCartesianProps.onCategoryClick} reports — or `null` when the click landed off any mark
+ * (plot padding, the legend, the header).
+ *
+ * An index rather than a label on purpose: labels are formatted for display (the sector charts run period
+ * keys through a formatter), so a consumer that needs the underlying value must look it up in its own data
+ * by position.
+ */
+export type ChartContextMenuTarget = { index: number | null }
+
+/**
  * A chart's right-click menu configuration: the shared {@link ContextMenuConfig}
  * (custom `items`, `defaultItems`, `position`) plus the chart's own export
  * options.
  */
-export type ChartContextMenuConfig = ContextMenuConfig & {
+export type ChartContextMenuConfig = Omit<ContextMenuConfig, 'items'> & {
+	/**
+	 * Custom entries to add to the menu, rendered in array order.
+	 *
+	 * Pass a function to build them from the mark under the pointer — the hook for a per-mark action
+	 * ("View the shipments behind this bar"), whose label can name the mark it will act on. It is called
+	 * with `index: null` when the right-click missed every mark, so an item that needs one can be omitted.
+	 */
+	items?: ContextMenuItem[] | ((target: ChartContextMenuTarget) => ContextMenuItem[])
 	/**
 	 * Include the legend in the downloaded PNG / JPG. Off exports the plot and
 	 * header alone, the chart reflowing to fill the space the legend leaves.
@@ -66,6 +87,13 @@ export type ChartContextMenuProps = {
 	 * dialog size rather than scaling a still. Absent, the Fullscreen item drops.
 	 */
 	fullscreen?: ReactElement
+	/**
+	 * The mark under the pointer, handed to a function-form `items` so a menu entry can act on it. The
+	 * frame owns the hover state and passes it down, because this wrapper sits outside
+	 * `ChartHoverContext` (it wraps the provider) and so cannot read it itself.
+	 * @internal
+	 */
+	target?: ChartContextMenuTarget
 	/** The chart, wrapped as the right-click surface. */
 	children: ReactNode
 }
@@ -94,6 +122,7 @@ export function ChartContextMenu({
 	readout,
 	title,
 	fullscreen,
+	target,
 	children,
 }: ChartContextMenuProps) {
 	const [open, setOpen] = useState(false)
@@ -104,6 +133,18 @@ export function ChartContextMenu({
 	// dismissal. Seat initial focus on Close instead, so the dialog opens with a
 	// neutral tab stop focused and Escape shuts it.
 	const closeRef = useRef<HTMLButtonElement>(null)
+
+	const items = contextMenu === false ? undefined : contextMenu?.items
+
+	// Keyed on the target's index, not the target object: the frame hands down a
+	// fresh `{ index }` each render, and this component re-renders on every pointer
+	// move across the plot (the frame's hover state). Without the memo a
+	// function-form `items` — and the icon elements it builds — would be rebuilt
+	// ~60×/s while the pointer sweeps, all of it discarded.
+	const customItems = useMemo(
+		() => (typeof items === 'function' ? items({ index: target?.index ?? null }) : items),
+		[items, target?.index],
+	)
 
 	if (contextMenu === false) return <>{children}</>
 
@@ -179,7 +220,7 @@ export function ChartContextMenu({
 		<>
 			<ContextMenu
 				defaults={defaults}
-				items={contextMenu?.items}
+				items={customItems}
 				defaultItems={contextMenu?.defaultItems}
 				position={contextMenu?.position}
 			>

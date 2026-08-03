@@ -1,4 +1,4 @@
-import type { GridToolSurfaces } from '../../types'
+import type { GridColumn, GridToolSurfaces } from '../../types'
 import { DEFAULT_SURFACES, resolveToolSurfaces, SURFACES_OFF } from '../grid-tools'
 import {
 	BUILTIN_EXPORT_LABEL,
@@ -11,6 +11,7 @@ import type {
 	GridExportable,
 	GridExportContext,
 	GridExportEntry,
+	GridExportRows,
 	GridExportType,
 } from './types'
 
@@ -131,6 +132,28 @@ function resolveEntry<T>(
 
 		return action ? [action] : []
 	})
+}
+
+/**
+ * Builds the {@link GridExportContext} from a consumer-supplied
+ * {@link GridExportRows}: the one reading of the sync-or-async rule. Stays
+ * synchronous for an in-memory full list and awaits only a genuine server
+ * round-trip, so a caller returning an array outright keeps the sync download
+ * path. The grid's own export and the out-of-grid `useGridExportActions` both
+ * resolve it here, so the two can't drift.
+ *
+ * @typeParam T - Shape of a single row.
+ * @internal
+ */
+export function exportRowsContext<T>(
+	exportRows: GridExportRows<T>,
+	columns: GridColumn<T>[],
+): GridExportContext<T> | Promise<GridExportContext<T>> {
+	const rows = exportRows()
+
+	return rows instanceof Promise
+		? rows.then((resolved) => ({ columns, rows: resolved }))
+		: { columns, rows }
 }
 
 /**
