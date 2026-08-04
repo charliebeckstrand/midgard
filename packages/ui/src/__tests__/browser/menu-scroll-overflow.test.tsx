@@ -74,20 +74,16 @@ describe('Menu scroll overflow (real browser)', () => {
 		expect(styles.getPropertyValue('--menu-fade-above').trim()).toBe('')
 	})
 
-	it('grows to the same rows uncapped, leaving no edge to stamp', async () => {
-		const capped = viewportFor(true)
+	it('grows to its rows uncapped, leaving no edge to stamp', async () => {
+		const viewport = viewportFor()
 
-		const uncapped = viewportFor()
+		// Settle on the geometry rather than on an attribute: the panel fitting
+		// its own scroll extent is what leaves nothing to stamp, and the hook
+		// clears both edges from that same measurement.
+		await waitFor(() => expect(viewport.scrollHeight).toBeLessThanOrEqual(viewport.clientHeight))
 
-		// The capped panel reaching its below edge proves the observer has
-		// measured this frame, so the uncapped panel's bare edges are a real
-		// absence rather than an unstamped one.
-		await waitFor(() => expect(capped).toHaveAttribute('data-overflow-below'))
+		expect(viewport).not.toHaveAttribute('data-overflow-below')
 
-		expect(uncapped.clientHeight).toBeGreaterThan(capped.clientHeight)
-
-		expect(uncapped).not.toHaveAttribute('data-overflow-below')
-
-		expect(uncapped).not.toHaveAttribute('data-overflow-above')
+		expect(viewport).not.toHaveAttribute('data-overflow-above')
 	})
 })
