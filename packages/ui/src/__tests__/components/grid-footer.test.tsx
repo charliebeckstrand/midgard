@@ -58,6 +58,43 @@ describe('Grid footer', () => {
 		expect(bySlot(none.container, 'grid-footer')?.textContent).toContain('No rows')
 	})
 
+	it('withholds the bar entirely while the grid is loading', () => {
+		// The rows have not arrived, so every count the bar could name is the empty
+		// set: it would read "No rows" of a grid that is still fetching, then correct
+		// itself. Absent until the data lands, it only ever states the truth once.
+		const { container } = renderUI(
+			<Grid columns={columns} rows={[]} getKey={getKey} footer={{ rowTotal: true }} loading />,
+		)
+
+		expect(bySlot(container, 'grid-footer')).toBeNull()
+	})
+
+	it('withholds a custom content slot while loading too, not just the count', () => {
+		const { container } = renderUI(
+			<Grid
+				columns={columns}
+				rows={[]}
+				getKey={getKey}
+				footer={{ content: () => 'Total spend $0' }}
+				loading
+			/>,
+		)
+
+		// The trailing slot reads the same empty stats, so a caller's own summary
+		// would be as wrong as the count.
+		expect(bySlot(container, 'grid-footer')).toBeNull()
+	})
+
+	it('shows the bar once loading ends on a genuinely empty set', () => {
+		// The distinction that makes the withhold safe: "No rows" is withheld while
+		// it means "not yet", and kept once it means "none".
+		const { container } = renderUI(
+			<Grid columns={columns} rows={[]} getKey={getKey} footer={{ rowTotal: true }} />,
+		)
+
+		expect(bySlot(container, 'grid-footer')?.textContent).toContain('No rows')
+	})
+
 	it('reads "N of M rows" while a client search narrows the set', () => {
 		const { container } = renderUI(
 			<Grid

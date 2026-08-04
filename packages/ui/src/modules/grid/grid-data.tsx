@@ -246,12 +246,21 @@ function resolveHighlightQuery(
  * exists, so rather than paint a width that is about to change, paint none (see
  * {@link widthGateClass}).
  *
- * `settled` waits for a width pass that read real body cells, so a grid whose result is
- * legitimately empty would never satisfy it; hence the second clause. Once the consumer
- * has stopped loading and there are no rows, the header and the empty state are all there
- * is to show, so show them. It is true from the first frame for any grid the autosizer
- * does not size — not resizable, sizing controlled by the consumer, or no
- * `ResizeObserver` (SSR and jsdom) — so those paint immediately and nothing regresses.
+ * `settled` waits for a width pass that read real body cells, so a grid with nothing to
+ * measure would never satisfy it; hence the other two clauses. With no rows the header and
+ * the empty state are all there is to show, so show them. And a `loading` grid shows its
+ * skeleton: that run is the whole loading affordance, and withholding it left a page with
+ * a footer over blank space where columns and placeholder rows used to be.
+ *
+ * Revealing on `loading` accepts the narrower jump it was hiding. The repaint this guards
+ * is the server's declared widths giving way to the first real fit, and a grid still
+ * fetching has no server rows to have declared any — only a skeleton, fitted client-side
+ * to its floors. So the cost is the skeleton's floor widths re-fitting once real rows
+ * land, not the reload jump; the SSR path is untouched, since `loading` is false there.
+ *
+ * It is true from the first frame for any grid the autosizer does not size — not
+ * resizable, sizing controlled by the consumer, or no `ResizeObserver` (SSR and jsdom) —
+ * so those paint immediately and nothing regresses.
  *
  * Latched because the reveal is a one-way door: `loading` goes true again on page two, a
  * filter, a re-sort, and blanking a table the user is already reading would be far worse
@@ -264,7 +273,7 @@ function resolveHighlightQuery(
 function useTableRevealed(settled: boolean, loading: boolean, rowCount: number): boolean {
 	const revealed = useRef(false)
 
-	if (settled || (!loading && rowCount === 0)) revealed.current = true
+	if (settled || loading || rowCount === 0) revealed.current = true
 
 	return revealed.current
 }
@@ -1333,7 +1342,7 @@ export function GridData<T>({
 							</GridRegion>
 						</GridGroupByContext>
 
-						<GridFooterBar config={footer} stats={footerStats} />
+						<GridFooterBar config={footer} stats={footerStats} loading={loading} />
 
 						{pagination && <GridPaginationFooter pagination={pagination} />}
 					</div>

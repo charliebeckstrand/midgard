@@ -10,6 +10,13 @@ type GridFooterProps = {
 	config: GridFooterConfig | undefined
 	/** Live row counts, or `null` when there is no configured footer to feed. */
 	stats: GridFooterStats | null
+	/**
+	 * Whether the grid is showing its loading skeleton. The bar withholds itself
+	 * while it is, since the counts it would name are the empty set the rows have
+	 * not arrived into yet — "No rows" flipping to "47 rows" reads as a result,
+	 * not as a wait.
+	 */
+	loading: boolean
 }
 
 /**
@@ -50,13 +57,18 @@ function selectedLabel({ rows, selected }: GridFooterStats): string {
  * the total would otherwise show. Any custom {@link GridFooterConfig.content} is
  * pushed to the trailing edge. Renders nothing when no setting yields output, so
  * an enabled `footer` with, say, `selectedTotal` alone stays invisible until a
- * row is selected. The count is a polite live region so a filter or selection
- * change is announced without moving focus (WCAG 4.1.3).
+ * row is selected — and nothing at all while the grid is `loading`, so no count
+ * names the empty set the rows have not arrived into yet. The count is a polite
+ * live region so a filter or selection change is announced without moving focus
+ * (WCAG 4.1.3); arriving with the rows, it announces once rather than twice.
  *
  * @internal
  */
-export function GridFooter({ config, stats }: GridFooterProps) {
-	if (!config || !stats) return null
+export function GridFooter({ config, stats, loading }: GridFooterProps) {
+	// Withheld outright while the skeleton is up: every count here would be drawn
+	// from the empty set, so the bar would claim "No rows" of a grid that is still
+	// fetching and then correct itself once they land.
+	if (!config || !stats || loading) return null
 
 	const showSelected = config.selectedTotal === true && stats.selected > 0
 
