@@ -442,27 +442,27 @@ describe('MenuContent', () => {
 			return viewport
 		}
 
-		it('caps the panel at the density height by default', () => {
-			expect(viewportFor()).toHaveClass('max-h-52')
-		})
-
-		it('emits no height cap at all when opted out', () => {
+		it('emits no height cap by default, so the panel grows to its content', () => {
 			// Not "emits an overriding class": tailwind-merge leaves `max-h-none`
 			// beside `max-h-52`, so the recipe withholds the cap instead. Asserting
 			// the absence of *any* max-height pins that, and can't pass on a class
 			// that merely competes with the cap.
-			expect(viewportFor(false).className).not.toMatch(/(^|\s)max-h-/)
+			expect(viewportFor().className).not.toMatch(/(^|\s)max-h-/)
 		})
 
-		it('keeps the scroll container either way, so an overlong menu still reaches its end', () => {
-			for (const viewport of [viewportFor(), viewportFor(false)]) {
+		it('caps at the density height when opted in', () => {
+			expect(viewportFor(true)).toHaveClass('max-h-52')
+		})
+
+		it('keeps the scroll container either way, so a capped menu still reaches its end', () => {
+			for (const viewport of [viewportFor(), viewportFor(true)]) {
 				expect(viewport).toHaveClass('overflow-y-auto')
 			}
 		})
 
 		it('carries the policy into a submenu panel, which portals out of the viewport', () => {
 			renderUI(
-				<Menu defaultOpen capped={false}>
+				<Menu defaultOpen capped>
 					<MenuContent>
 						<MenuSub label="More">
 							<MenuItem>Nested</MenuItem>
@@ -480,7 +480,7 @@ describe('MenuContent', () => {
 			expect(panels.length).toBeGreaterThan(1)
 
 			for (const panel of panels) {
-				expect(panel.className).not.toMatch(/(^|\s)max-h-/)
+				expect(panel.className).toMatch(/(^|\s)max-h-/)
 			}
 		})
 	})

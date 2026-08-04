@@ -62,17 +62,17 @@ const viewport = defineRecipe({
 		'data-overflow-below:[--menu-fade-below:1.5rem]',
 	],
 	density: { sm: '', md: '', lg: '' },
-	// `false` lets the panel grow to its content — for a short, fixed item set
-	// where the scroll region reads as truncation rather than as more content
-	// below. The scroll container stays either way, so an overlong panel can
-	// still reach its end.
+	// Off by default: a menu is normally a short, fixed item set, where a cap
+	// clips the last row and reads as truncation rather than as more content
+	// below. `true` caps a panel long enough to run past the viewport. The scroll
+	// container stays either way, so a capped panel can still reach its end.
 	capped: { true: '', false: '' },
 	// The cap is emitted only while capped, rather than emitted and then
 	// overridden. tailwind-merge does not carry `none` in its `max-h` group, so an
 	// overriding class would ride *alongside* the density cap and leave
 	// stylesheet order to decide the height; emitting nothing depends on neither.
 	compound: MENU_CAPS.map(([density, cap]) => ({ density, capped: 'true', class: cap })),
-	defaults: { density: 'md', capped: true },
+	defaults: { density: 'md', capped: false },
 })
 
 export const k = {

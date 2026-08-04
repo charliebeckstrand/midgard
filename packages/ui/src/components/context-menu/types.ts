@@ -88,11 +88,11 @@ export type ContextMenuConfig = {
 	 */
 	position?: ContextMenuPosition
 	/**
-	 * Cap the menu at its density height, scrolling past it. Set `false` to let it
-	 * grow to its content — for a short, fixed item set where the scroll region
-	 * reads as truncation rather than as more content below. Applies to any
-	 * submenu too; the scroll container stays either way.
-	 * @defaultValue true
+	 * Cap the menu at its density height, scrolling past it. Off by default, since
+	 * a right-click menu is normally a short, fixed item set where a cap clips the
+	 * last row and reads as truncation. Turn it on for a menu long enough to run
+	 * past the viewport. Applies to any submenu too.
+	 * @defaultValue false
 	 */
 	capped?: boolean
 }
