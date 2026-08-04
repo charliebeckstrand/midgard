@@ -913,6 +913,11 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * downloading a partial file. Has no effect unless {@link GridDataProps.exportable}
 	 * is on.
 	 *
+	 * A promise is also what puts the grid's "Exporting" overlay up: the wait is
+	 * covered whichever surface the export ran from, and it lifts when the promise
+	 * settles either way. Return the rows synchronously and there is no wait to
+	 * cover, so nothing appears.
+	 *
 	 * @see {@link GridExportRows}
 	 */
 	exportRows?: GridExportRows<T>

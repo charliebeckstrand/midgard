@@ -157,6 +157,35 @@ export function exportRowsContext<T>(
 }
 
 /**
+ * Wraps an action's `run` so an async export flips a pending counter around the
+ * promise it returns. A counter rather than a boolean so overlapping exports
+ * don't clear each other early.
+ *
+ * Wrapping the action rather than each call site is what makes the pending state
+ * whole: the toolbar dropdown, the header and cell menus, and a `contextMenu`
+ * builder that re-places an action all call the same wrapped `run`, so none of
+ * them can fire an export the grid doesn't know is running.
+ *
+ * @internal
+ */
+export function trackPending(
+	run: GridExportAction['run'],
+	setCount: (next: (count: number) => number) => void,
+): GridExportAction['run'] {
+	return () => {
+		const pending = run()
+
+		// A synchronous export has already downloaded by here — only a genuine
+		// round-trip has anything to wait on.
+		if (!(pending instanceof Promise)) return pending
+
+		setCount((count) => count + 1)
+
+		return pending.finally(() => setCount((count) => count - 1))
+	}
+}
+
+/**
  * Normalizes the `exportable` prop — `false`/`undefined` (off), `true` (the
  * default `csv` + `excel` + `print` set), an explicit {@link GridExportEntry}
  * array, or a {@link GridExportConfig} naming its own `types` — into one

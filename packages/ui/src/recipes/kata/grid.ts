@@ -7,13 +7,14 @@
  */
 import { defineRecipe, mode, type PaletteColor } from '../../core/recipe'
 import { hannou, iro, ji, kasane, narabi, omote, sen, ugoki } from '../kiso'
+import { panel } from '../kiso/panel'
 
 const { cursor, fg } = hannou
 const { text } = iro
 const { size, weight } = ji
 const { rounded } = kasane
 const { flex } = narabi
-const { bg } = omote
+const { backdrop, bg } = omote
 const { border, focus } = sen
 const { css, spring } = ugoki
 
@@ -718,6 +719,32 @@ export const k = {
 		// those.
 		clickable: ['cursor-pointer', focus.inset],
 		loading: [css.pulse, 'opacity-50'],
+	},
+	// The "Exporting" overlay: a scrim over the whole grid while an async export
+	// resolves its rows, with a centred label.
+	//
+	// It covers the grid wrapper rather than the table alone, so the search,
+	// filters, and sort that decide *what* is being exported can't be changed out
+	// from under a file mid-write. `k.wrapper` already carries `relative isolate`,
+	// so the scrim needs no positioning host of its own and its z-index is scoped
+	// to the grid's own stacking context — above the frozen header's `z-20`, and
+	// still under page chrome outside the grid.
+	exporting: {
+		scrim: ['absolute inset-0 z-30', flex.row, 'justify-center', ...backdrop.base],
+		// Reads as lifted off the scrim: the same fill + ring + shadow a floating
+		// panel takes, so the label belongs to the library's raised surfaces rather
+		// than being a bare string over a blur.
+		label: [
+			// `flex.row` centres its items already; only the gap and box are ours.
+			flex.row,
+			'gap-2',
+			'px-3 py-2',
+			rounded.md,
+			'shadow-md',
+			...panel.surface.base,
+			size.sm,
+			weight.medium,
+		],
 	},
 	// Framer transition configs (spread/passed to a `motion` element, never to
 	// `cn`). Unlike the CSS `grid-template-rows` reveals the group and detail rows

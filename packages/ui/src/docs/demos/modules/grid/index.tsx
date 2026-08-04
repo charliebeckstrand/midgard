@@ -984,6 +984,10 @@ const GroupManagerExample = () => {
 // takes that same list under `types`, plus the two surface switches: `toolbar`
 // adds the "Export" dropdown shown here (opt-in, like the column manager's
 // button), and `contextMenu: false` would leave the dropdown as the only way in.
+//
+// These rows are already in hand, so each export downloads on the click. Where
+// the rows come from an async `exportRows` instead, the grid covers itself with
+// an "Exporting" overlay until they land — whichever surface ran the export.
 const ExportExample = () => (
 	<Grid
 		exportable={{ types: ['csv', 'excel'], toolbar: true }}

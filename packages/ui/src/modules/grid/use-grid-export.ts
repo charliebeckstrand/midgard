@@ -1,11 +1,12 @@
 'use client'
 
 import type { Row, Table } from '@tanstack/react-table'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import {
 	exportRowsContext,
 	resolveExportActions,
 	resolveExportSurfaces,
+	trackPending,
 } from './engine/grid-export/resolve'
 import type { GridExportAction, GridExportable, GridExportRows } from './engine/grid-export/types'
 import { deriveLeafRows } from './engine/grid-table/state'
@@ -26,6 +27,12 @@ export type GridExportSurfaceActions = {
 	toolbar: GridExportAction[]
 	/** The header and cell right-click menus, and the builder contexts they hand out. */
 	contextMenu: GridExportAction[]
+	/**
+	 * Whether an async export is in flight, whichever surface started it — the
+	 * grid's "Exporting" overlay and the toolbar trigger's spinner both read this
+	 * one fact, so the two can't disagree about whether the grid is busy.
+	 */
+	pending: boolean
 }
 
 /**
@@ -68,6 +75,10 @@ export function useGridExport<T>(args: {
 }): GridExportSurfaceActions {
 	const { exportable, columns, table, exportRows, grouped, manualGroupRow } = args
 
+	// Counted, not flagged: two exports fired from different surfaces must both
+	// settle before the grid stops reading as busy.
+	const [pendingCount, setPendingCount] = useState(0)
+
 	const actions = useMemo(
 		() =>
 			resolveExportActions(exportable, () => {
@@ -84,18 +95,19 @@ export function useGridExport<T>(args: {
 				const rows = (selected.length > 0 ? selected : leaves).map((row) => row.original)
 
 				return { columns, rows }
-			}),
+			}).map((action) => ({ ...action, run: trackPending(action.run, setPendingCount) })),
 		[exportable, columns, table, exportRows, grouped, manualGroupRow],
 	)
 
 	const surfaces = resolveExportSurfaces(exportable)
 
-	// The pair is read field by field at the call site, so only the arrays' own
-	// identities matter — both are already stable, and an off surface takes the
-	// fixed empty set rather than a fresh one, contributing nothing to the menu
-	// resolvers' dependencies.
+	// Read field by field at the call site, so only the arrays' own identities
+	// matter — both are already stable, and an off surface takes the fixed empty
+	// set rather than a fresh one, contributing nothing to the menu resolvers'
+	// dependencies.
 	return {
 		toolbar: surfaces.toolbar ? actions : NO_ACTIONS,
 		contextMenu: surfaces.contextMenu ? actions : NO_ACTIONS,
+		pending: pendingCount > 0,
 	}
 }

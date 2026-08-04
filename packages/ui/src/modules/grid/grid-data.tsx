@@ -70,6 +70,7 @@ import {
 	resolveVirtualization,
 } from './grid-data-resolvers'
 import type { GridDataProps, GridPinningState } from './grid-data-types'
+import { GridExportOverlay } from './grid-export-overlay'
 import { GridFooter as GridFooterBar } from './grid-footer'
 import { GridGroupByContext } from './grid-group-by-button'
 import { GridHead } from './grid-head'
@@ -1269,6 +1270,10 @@ export function GridData<T>({
 					>
 						<GridBusyStatus loading={loading} rowCount={dataRowCount} />
 
+						{/* Covers the grid — toolbar included — while an async export resolves
+						    its rows, whichever surface started it. */}
+						<GridExportOverlay active={exportActions.pending} />
+
 						{renderDialog && (
 							<GridColumnManagerDialog
 								open={columnManagerOpen}
@@ -1304,6 +1309,7 @@ export function GridData<T>({
 							columnManagerLabel={managerLabel}
 							onManageColumns={() => setColumnManagerOpen(true)}
 							exportActions={exportActions.toolbar}
+							exporting={exportActions.pending}
 							columnFilters={filters}
 							batchActions={batchActions}
 							hasSelection={someSelected}
