@@ -534,13 +534,12 @@ export type GridColumnMenuContext<T> = {
 /**
  * Header context-menu config: `true` (or omit) for the default items — the
  * Sort menu (Sort ascending / Sort descending, less the direction the column
- * already carries, plus Clear sort once the column is sorted), the Pin menu
- * (Pin left / Pin right / Unpin), Group by … (when
- * groupable), and the Auto-size menu (this column, then all columns; when
- * resizing is on), then Manage columns and the Export menu under a separator —
- * or a builder receiving the {@link GridColumnMenuContext} and those defaults,
- * returning the final list to extend, reorder, or replace them. `false` omits
- * the header menu entirely.
+ * already holds, plus Clear sort once the column is sorted), the Pin menu (Pin
+ * left / Pin right / Unpin), Group by … (when groupable), and the Auto-size
+ * menu (this column, then all columns; when resizing is on), then Manage
+ * columns and the Export menu under a separator — or a builder receiving the
+ * {@link GridColumnMenuContext} and those defaults, returning the final list to
+ * extend, reorder, or replace them. `false` omits the header menu entirely.
  *
  * @remarks Each of those menus is a hover-opened submenu holding its actions;
  * one that would hold a single action renders as that action instead.

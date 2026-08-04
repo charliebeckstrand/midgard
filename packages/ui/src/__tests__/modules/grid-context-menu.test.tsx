@@ -415,15 +415,34 @@ describe('Grid context menus', () => {
 		expect(screen.getByRole('menuitem', { name: 'Sort ascending' })).toBeInTheDocument()
 
 		expect(screen.queryByRole('menuitem', { name: 'Sort descending' })).not.toBeInTheDocument()
+	})
 
-		// An unsorted column's menu still offers both.
+	it('keeps both directions for a column sorted within a multi-column sort', () => {
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				sort={{
+					defaultValue: [
+						{ column: 'name', direction: 'asc' },
+						{ column: 'role', direction: 'asc' },
+					],
+				}}
+			/>,
+		)
+
 		rightClick('columnheader', 'Role')
 
 		openSubmenu('Sort')
 
+		// Role sorts ascending, but each row collapses the sort onto Role alone —
+		// neither repeats the two-column sort, so neither is withheld.
 		expect(screen.getByRole('menuitem', { name: 'Sort ascending' })).toBeInTheDocument()
 
 		expect(screen.getByRole('menuitem', { name: 'Sort descending' })).toBeInTheDocument()
+
+		expect(screen.getByRole('menuitem', { name: 'Clear sort' })).toBeInTheDocument()
 	})
 
 	it('clears the active sort when "Clear sort" is chosen', () => {
