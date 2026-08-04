@@ -460,11 +460,11 @@ describe('Grid per-column filters', () => {
 		expect(screen.getByText('Alice')).toBeInTheDocument()
 	})
 
-	it('shows an amber "Clear all filters" toolbar button only while a filter constrains rows', () => {
+	it('shows an amber "Clear filters" toolbar button only while a filter constrains rows', () => {
 		const { rerender } = renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 
 		// No active filter — no toolbar clear affordance.
-		expect(screen.queryByRole('button', { name: 'Clear all filters' })).toBeNull()
+		expect(screen.queryByRole('button', { name: 'Clear filters' })).toBeNull()
 
 		// A seeded-but-blank rule constrains nothing, so the button stays hidden —
 		// the same active test the header accent reads.
@@ -477,7 +477,7 @@ describe('Grid per-column filters', () => {
 			/>,
 		)
 
-		expect(screen.queryByRole('button', { name: 'Clear all filters' })).toBeNull()
+		expect(screen.queryByRole('button', { name: 'Clear filters' })).toBeNull()
 
 		// A real constraint surfaces it, in the amber soft palette.
 		rerender(
@@ -489,7 +489,7 @@ describe('Grid per-column filters', () => {
 			/>,
 		)
 
-		expect(screen.getByRole('button', { name: 'Clear all filters' }).className).toMatch(/amber/)
+		expect(screen.getByRole('button', { name: 'Clear filters' }).className).toMatch(/amber/)
 	})
 
 	it('clears every active filter from the toolbar button, restoring hidden rows', () => {
@@ -505,12 +505,12 @@ describe('Grid per-column filters', () => {
 		// The filter hides Alice.
 		expect(screen.queryByText('Alice')).not.toBeInTheDocument()
 
-		fireEvent.click(screen.getByRole('button', { name: 'Clear all filters' }))
+		fireEvent.click(screen.getByRole('button', { name: 'Clear filters' }))
 
 		// Every filter lifts: the hidden row returns and the button drops.
 		expect(screen.getByText('Alice')).toBeInTheDocument()
 
-		expect(screen.queryByRole('button', { name: 'Clear all filters' })).toBeNull()
+		expect(screen.queryByRole('button', { name: 'Clear filters' })).toBeNull()
 	})
 	describe("affordance: 'menu'", () => {
 		/** The Name header, found by text — its accessible name carries the sort/filter chrome too. */
@@ -586,6 +586,54 @@ describe('Grid per-column filters', () => {
 			fireEvent.contextMenu(nameHeader())
 
 			expect(screen.queryByRole('menuitem', { name: 'Filter Name' })).toBeNull()
+		})
+	})
+	describe('a server-side filter that empties the grid', () => {
+		/**
+		 * What a `manual` consumer hands back once its rule matches nothing: the
+		 * filtered set, which is empty. The rule the user has to reach to recover the
+		 * rows is in the header, so the header can't stand down here — under client
+		 * filtering `rows` still held the source, so this case never arose.
+		 */
+		const emptied = (
+			<Grid
+				columns={columns}
+				rows={[]}
+				getKey={getKey}
+				columnFilters={{ manual: true, value: [{ id: 'name', value: nameContains('zzz') }] }}
+			/>
+		)
+
+		it('keeps the filtered column’s funnel, as the edit and clear affordance', () => {
+			renderUI(emptied)
+
+			expect(screen.getByRole('button', { name: /^Filter Name/ })).toBeInTheDocument()
+		})
+
+		it('keeps the header sortable, so the view is still steerable', () => {
+			renderUI(emptied)
+
+			// The title is a sort button only while the header is interactive; standing it
+			// down left an empty grid the user could neither re-sort nor unfilter.
+			expect(screen.getByRole('button', { name: 'Sort by Name' })).toBeInTheDocument()
+		})
+
+		it('keeps the header’s right-click menu reachable', () => {
+			renderUI(emptied)
+
+			fireEvent.contextMenu(screen.getByRole('columnheader', { name: /Name/ }))
+
+			expect(screen.getByRole('menu')).toBeInTheDocument()
+		})
+
+		it('still stands the header down when the grid is simply empty', () => {
+			// No filter, no search: nothing to recover, so there is nothing for the
+			// header's affordances to act on.
+			renderUI(<Grid columns={columns} rows={[]} getKey={getKey} />)
+
+			fireEvent.contextMenu(screen.getByRole('columnheader', { name: /Name/ }))
+
+			expect(screen.queryByRole('menu')).toBeNull()
 		})
 	})
 })

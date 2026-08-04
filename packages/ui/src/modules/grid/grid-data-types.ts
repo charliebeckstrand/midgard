@@ -533,6 +533,14 @@ export type GridColumnManagerConfig = GridToolSurfaces & {
 	 */
 	label?: ReactNode
 
+	/**
+	 * Whether the dialog heads its manager with a filter field that narrows the
+	 * list to the columns whose label matches the typed text. `false` drops it —
+	 * worth doing on a grid with few enough columns that the field is only noise.
+	 * @defaultValue true
+	 */
+	filterable?: boolean
+
 	/** Controlled set of hidden column ids; pair with {@link GridColumnManagerConfig.onHiddenChange}. */
 	hidden?: Set<string | number>
 
@@ -599,11 +607,14 @@ export type GridFooterStats = {
  */
 export type GridFooter = {
 	/**
-	 * Show the total row count: `'47 rows'`, `'12 of 47 rows visible'` while a
-	 * client-side search or filter narrows the set, or `'No rows'` when empty.
-	 * Counts the full filtered extent across all pages, not just the rendered
-	 * window. An active {@link GridFooter.selectedTotal} replaces this count in
-	 * place rather than sitting beside it.
+	 * Show the total row count: `'47 rows'`, or `'12 of 47 rows visible'` while a
+	 * client-side search or filter narrows the set. Counts the full filtered extent
+	 * across all pages, not just the rendered window. An active
+	 * {@link GridFooter.selectedTotal} replaces this count in place rather than
+	 * sitting beside it.
+	 *
+	 * Withheld on an empty set, where the body's own empty state already says there
+	 * are no rows and a count would only restate it.
 	 * @defaultValue false
 	 */
 	rowTotal?: boolean
@@ -620,6 +631,10 @@ export type GridFooter = {
 	 * Custom content rendered at the footer's trailing edge, receiving the live
 	 * {@link GridFooterStats}. Use for a summary line, a column aggregate, or a
 	 * footer action; return `null` to render nothing.
+	 *
+	 * @remarks The slot can shrink past its content, so content that opts into
+	 * `truncate` clips to an ellipsis against the bar. Give a truncating label a
+	 * full-text tooltip, and any wrapper around it `min-w-0`.
 	 */
 	content?: (stats: GridFooterStats) => ReactNode
 }
@@ -897,6 +912,11 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * A rejected promise is swallowed with a dev-only warning rather than
 	 * downloading a partial file. Has no effect unless {@link GridDataProps.exportable}
 	 * is on.
+	 *
+	 * A promise is also what puts the grid's "Exporting" overlay up: the wait is
+	 * covered whichever surface the export ran from, and it lifts when the promise
+	 * settles either way. Return the rows synchronously and there is no wait to
+	 * cover, so nothing appears.
 	 *
 	 * @see {@link GridExportRows}
 	 */

@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import {
 	Combobox,
+	ComboboxCreateOption,
 	ComboboxLabel,
 	ComboboxOption,
 	useComboboxQuery,
@@ -87,6 +88,28 @@ function ClearableExample() {
 	)
 }
 
+function CreatableExample() {
+	const [selected, setSelected] = useState<string | null>(null)
+
+	return (
+		<Field>
+			<Label>Assignee</Label>
+			<Combobox
+				value={selected}
+				onValueChange={setSelected}
+				displayValue={(v: string) => v}
+				placeholder="Choose or name someone"
+			>
+				<FilteredPeople />
+				{/* Last, after the matches: they answer the query first, and creating is
+				    what is left when none of them do. `taken` withdraws the row for a name
+				    the list already holds. */}
+				<ComboboxCreateOption taken={people} />
+			</Combobox>
+		</Field>
+	)
+}
+
 // 5,000 options — the DOM-query roving `useA11yRoving` falls back to would
 // never reach most of these; `VirtualOptions` with `getOptionId` registers a
 // keyboard-navigable index-based source instead, so arrow keys still traverse
@@ -154,6 +177,9 @@ export function Demo() {
 			</Example>
 			<Example title="Clearable">
 				<ClearableExample />
+			</Example>
+			<Example title="Creatable">
+				<CreatableExample />
 			</Example>
 			<Example title="Virtualized">
 				<VirtualizedComboboxExample />

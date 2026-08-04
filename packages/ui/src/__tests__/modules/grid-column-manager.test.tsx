@@ -424,6 +424,157 @@ describe('GridColumnManager pinning', () => {
 	})
 })
 
+describe('GridColumnManager filtering', () => {
+	// Four orderable columns, two of them ('Beta', 'Delta') matching 'ta' — enough
+	// to reorder one match past another with non-matching columns on both sides.
+	const greek: GridColumnManagerItem[] = [
+		{ id: 'alpha', title: 'Alpha' },
+		{ id: 'beta', title: 'Beta' },
+		{ id: 'gamma', title: 'Gamma' },
+		{ id: 'delta', title: 'Delta' },
+	]
+
+	const field = () => screen.getByRole('searchbox', { name: 'Filter columns' })
+
+	it('heads the manager with a filter field by default', () => {
+		const { container } = renderUI(<GridColumnManager columns={columns} />)
+
+		expect(container.querySelector('[data-slot="search-input"]')).not.toBeNull()
+	})
+
+	it('drops the filter field when filterable is false', () => {
+		const { container } = renderUI(<GridColumnManager columns={columns} filterable={false} />)
+
+		expect(container.querySelector('[data-slot="search-input"]')).toBeNull()
+
+		expect(allBySlot(container, 'list-item')).toHaveLength(3)
+	})
+
+	it('honors a custom filterPlaceholder', () => {
+		renderUI(<GridColumnManager columns={columns} filterPlaceholder="Find a column" />)
+
+		expect(screen.getByRole('searchbox', { name: 'Find a column' })).toBeInTheDocument()
+	})
+
+	it('narrows every group to the columns matching the query', async () => {
+		const user = userEvent.setup()
+
+		const { container } = renderUI(<GridColumnManager columns={columns} />)
+
+		await user.type(field(), 'ema')
+
+		expect(allBySlot(container, 'list-item')).toHaveLength(1)
+
+		expect(screen.getByRole('checkbox', { name: 'Show Email' })).toBeInTheDocument()
+
+		// The pinned group goes with its only column, rather than standing empty.
+		expect(screen.queryByRole('checkbox', { name: /Name \(pinned\)/ })).not.toBeInTheDocument()
+	})
+
+	it('matches column labels case-insensitively', async () => {
+		const user = userEvent.setup()
+
+		renderUI(<GridColumnManager columns={columns} />)
+
+		await user.type(field(), 'ROLE')
+
+		expect(screen.getByRole('checkbox', { name: 'Show Role' })).toBeInTheDocument()
+
+		expect(screen.queryByRole('checkbox', { name: 'Show Email' })).not.toBeInTheDocument()
+	})
+
+	it('stands one no-results status in for the lists when nothing matches', async () => {
+		const user = userEvent.setup()
+
+		renderUI(<GridColumnManager columns={columns} />)
+
+		await user.type(field(), 'zzz')
+
+		expect(screen.getByText('No results')).toBeInTheDocument()
+
+		expect(screen.queryAllByRole('checkbox')).toHaveLength(0)
+	})
+
+	it('stands the status in for the scrolling list alone when only a frozen row matches', async () => {
+		const user = userEvent.setup()
+
+		const { container } = renderUI(<GridColumnManager columns={columns} />)
+
+		// 'nam' matches the left-pinned Name and nothing that scrolls, so the frozen
+		// group still lists while the orderable region has nothing to show.
+		await user.type(field(), 'nam')
+
+		expect(screen.getByRole('checkbox', { name: /Name \(pinned\)/ })).toBeInTheDocument()
+
+		expect(screen.getByText('No results')).toBeInTheDocument()
+
+		expect(allBySlot(container, 'list-item')).toHaveLength(1)
+	})
+
+	it('holds every filtered-out column in its slot when a match is reordered', async () => {
+		const onOrderChange = vi.fn()
+
+		const user = userEvent.setup()
+
+		const { container } = renderUI(
+			<GridColumnManager columns={greek} onOrderChange={onOrderChange} />,
+		)
+
+		await user.type(field(), 'ta')
+
+		const items = allBySlot(container, 'list-item')
+
+		expect(items).toHaveLength(2)
+
+		const beta = items[0] as HTMLElement
+
+		beta.focus()
+
+		// Space lifts, ArrowDown drops Beta past Delta — the only other row on
+		// screen. Alpha and Gamma never moved, so they keep their own slots and only
+		// the two matching ones swap.
+		fireEvent.keyDown(beta, { key: ' ' })
+
+		fireEvent.keyDown(beta, { key: 'ArrowDown' })
+
+		expect(onOrderChange).toHaveBeenCalledWith(['alpha', 'delta', 'gamma', 'beta'])
+	})
+
+	it('still toggles visibility while a query is active', async () => {
+		const onHiddenChange = vi.fn()
+
+		const user = userEvent.setup()
+
+		renderUI(
+			<GridColumnManager
+				columns={columns}
+				defaultHidden={new Set()}
+				onHiddenChange={onHiddenChange}
+			/>,
+		)
+
+		await user.type(field(), 'ema')
+
+		await user.click(screen.getByRole('checkbox', { name: 'Show Email' }))
+
+		expect(onHiddenChange).toHaveBeenCalledWith(new Set(['email']))
+	})
+
+	it('restores every column when the query is cleared', async () => {
+		const user = userEvent.setup()
+
+		const { container } = renderUI(<GridColumnManager columns={columns} />)
+
+		await user.type(field(), 'ema')
+
+		expect(allBySlot(container, 'list-item')).toHaveLength(1)
+
+		await user.click(screen.getByRole('button', { name: 'Clear search' }))
+
+		expect(allBySlot(container, 'list-item')).toHaveLength(3)
+	})
+})
+
 describe('GridColumnManagerDialog', () => {
 	// The dialog is purely controlled; its trigger lives in `GridToolbar` (covered
 	// through `<Grid>`). The harness drives `open` itself to exercise the dialog.

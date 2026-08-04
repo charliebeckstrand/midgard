@@ -77,7 +77,7 @@ export type GridColumnFilter = {
 	 * Whether any column carries a filter that actually constrains rows — the same
 	 * row-constraining test the header buttons read for their active accent (a
 	 * real value or a value-less operator, not a merely-seeded rule). Drives the
-	 * toolbar's "Clear all filters" affordance.
+	 * toolbar's "Clear filters" affordance.
 	 */
 	hasActive: () => boolean
 	/** Lift every column's applied filter at once, recovering all hidden rows. */

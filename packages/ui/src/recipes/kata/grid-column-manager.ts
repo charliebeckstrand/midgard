@@ -19,5 +19,7 @@ export const k = {
 	// row when the manager has no pin handler. Muted, matching the resting tint of
 	// the interactive control.
 	icon: [flex.inline, 'shrink-0', text.muted],
+	// Stands in for the lists when the filter matches no column in any group.
+	empty: [text.muted, 'py-1'],
 	footer: [flex.row, 'justify-end', 'gap-1', 'pt-2', ...divider.top],
 } as const
