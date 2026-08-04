@@ -385,6 +385,66 @@ describe('Grid context menus', () => {
 		expect(screen.queryByRole('menuitem', { name: 'Clear sort' })).not.toBeInTheDocument()
 	})
 
+	it('withholds the direction a sorted column already carries', () => {
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				sort={{ defaultValue: [{ column: 'name', direction: 'asc' }] }}
+			/>,
+		)
+
+		rightClick('columnheader', 'Name')
+
+		openSubmenu('Sort')
+
+		// Sorted ascending: the row that would repeat that sort stays out, leaving
+		// the other direction and Clear sort.
+		expect(screen.queryByRole('menuitem', { name: 'Sort ascending' })).not.toBeInTheDocument()
+
+		expect(screen.getByRole('menuitem', { name: 'Sort descending' })).toBeInTheDocument()
+
+		// Sorting it the other way flips which row the menu withholds.
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Sort descending' }))
+
+		rightClick('columnheader', 'Name')
+
+		openSubmenu('Sort')
+
+		expect(screen.getByRole('menuitem', { name: 'Sort ascending' })).toBeInTheDocument()
+
+		expect(screen.queryByRole('menuitem', { name: 'Sort descending' })).not.toBeInTheDocument()
+	})
+
+	it('keeps both directions for a column sorted within a multi-column sort', () => {
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				sort={{
+					defaultValue: [
+						{ column: 'name', direction: 'asc' },
+						{ column: 'role', direction: 'asc' },
+					],
+				}}
+			/>,
+		)
+
+		rightClick('columnheader', 'Role')
+
+		openSubmenu('Sort')
+
+		// Role sorts ascending, but each row collapses the sort onto Role alone —
+		// neither repeats the two-column sort, so neither is withheld.
+		expect(screen.getByRole('menuitem', { name: 'Sort ascending' })).toBeInTheDocument()
+
+		expect(screen.getByRole('menuitem', { name: 'Sort descending' })).toBeInTheDocument()
+
+		expect(screen.getByRole('menuitem', { name: 'Clear sort' })).toBeInTheDocument()
+	})
+
 	it('clears the active sort when "Clear sort" is chosen', () => {
 		const onValueChange = vi.fn()
 

@@ -22,6 +22,7 @@ import {
 import type { ReactElement, ReactNode } from 'react'
 import { mergeContextMenuItems } from '../../components/context-menu'
 import { isDataColumn } from '../../utilities'
+import type { SortState } from './context'
 import { columnLabel } from './engine/grid-column/label'
 import type { GridExportAction } from './engine/grid-export/types'
 import {
@@ -30,6 +31,7 @@ import {
 	type PinMenuChoice,
 	pinMenuChoices,
 } from './engine/grid-pin/overrides'
+import { sortsEqual } from './engine/grid-sort/state'
 import type { GridColumnGroup } from './grid-group-types'
 import type { GridColumn, GridMenuItem } from './types'
 
@@ -78,36 +80,51 @@ function submenuItems(args: {
 }
 
 /**
- * The sort rows for a column's menu: "Sort ascending" / "Sort descending", plus
- * "Clear sort" once the column carries the active sort. Empty when the column
- * doesn't sort, which withholds the Sort menu entirely.
+ * The sort rows for a column's menu: the directions it doesn't already hold —
+ * sorted ascending, it offers "Sort descending" — plus "Clear sort" once it
+ * carries the active sort, so every row changes the sort rather than repeating
+ * it. Empty when the column doesn't sort, which withholds the Sort menu
+ * entirely.
  *
+ * @remarks A direction is withheld only where choosing it would be a no-op.
+ * These rows commit a single-column sort wholesale, so that means the grid
+ * already sorts by this column alone at that direction; under a multi-column
+ * sort either direction still collapses the sort onto this column, and both
+ * stay on offer. Two rows at least, so the Sort parent never collapses to a
+ * plain action.
  * @internal
  */
 function sortMenuItems<T>(args: {
 	column: GridColumn<T>
+	/** The active sort, to tell a direction that changes it from one that repeats it. */
+	sort: SortState[]
 	sortDirection: 'asc' | 'desc' | undefined
 	sortColumn: SortColumn
 	clearSort: () => void
 }): GridMenuItem[] {
-	const { column, sortDirection, sortColumn, clearSort } = args
+	const { column, sort, sortDirection, sortColumn, clearSort } = args
 
 	if (column.sortable === false) return []
 
-	const items: GridMenuItem[] = [
-		{
+	const items: GridMenuItem[] = []
+
+	if (!sortsEqual(sort, [{ column: column.id, direction: 'asc' }])) {
+		items.push({
 			key: 'sort-asc',
 			label: 'Sort ascending',
 			icon: <ArrowUp />,
 			onAction: () => sortColumn(column.id, 'asc'),
-		},
-		{
+		})
+	}
+
+	if (!sortsEqual(sort, [{ column: column.id, direction: 'desc' }])) {
+		items.push({
 			key: 'sort-desc',
 			label: 'Sort descending',
 			icon: <ArrowDown />,
 			onAction: () => sortColumn(column.id, 'desc'),
-		},
-	]
+		})
+	}
 
 	if (sortDirection) {
 		items.push({
@@ -220,6 +237,8 @@ export type ColumnMenuFilter = {
 /** Inputs shaping the default header-menu items. @internal */
 type ColumnMenuDefaultArgs<T> = {
 	column: GridColumn<T>
+	/** The active sort in priority order, so a direction that would only repeat it stays off the menu. */
+	sort: SortState[]
 	/** This column's active sort direction, or `undefined` when it is not the sorted column. */
 	sortDirection: 'asc' | 'desc' | undefined
 	sortColumn: SortColumn
@@ -324,10 +343,11 @@ export function pinChoiceIcon(key: PinMenuChoice['key']): ReactElement {
  * Default header-menu items, consolidated into hover-opened submenus so the
  * menu opens one row per concern rather than a dozen flat actions: "Manage
  * columns" (when a manager is reachable) leads, then the clicked column's own
- * concerns — Sort (the sort controls, with "Clear sort" once the column is the
- * sorted one), Pin (Pin left / Pin right / Unpin), the group-by toggle, a single
- * action so it stays a plain row, and Auto-size (this column, then all columns)
- * — and Export (one row per active export type) closes them out.
+ * concerns — Sort (the directions the column doesn't already hold, with "Clear
+ * sort" once it is the sorted one), Pin (Pin left / Pin right / Unpin), the
+ * group-by toggle, a single action so it stays a plain row, and Auto-size (this
+ * column, then all columns) — and Export (one row per active export type)
+ * closes them out.
  *
  * @remarks Each menu withholds itself when it has nothing to offer — a locked
  * column shows no Pin, an unsortable one no Sort — and collapses to a plain row
@@ -338,6 +358,7 @@ export function pinChoiceIcon(key: PinMenuChoice['key']): ReactElement {
 export function columnMenuDefaults<T>(args: ColumnMenuDefaultArgs<T>): GridMenuItem[] {
 	const {
 		column,
+		sort,
 		sortDirection,
 		sortColumn,
 		clearSort,
@@ -362,7 +383,7 @@ export function columnMenuDefaults<T>(args: ColumnMenuDefaultArgs<T>): GridMenuI
 			key: 'sort',
 			label: 'Sort',
 			icon: <ArrowUpDown />,
-			items: sortMenuItems({ column, sortDirection, sortColumn, clearSort }),
+			items: sortMenuItems({ column, sort, sortDirection, sortColumn, clearSort }),
 		}),
 		...submenuItems({
 			key: 'pin',
