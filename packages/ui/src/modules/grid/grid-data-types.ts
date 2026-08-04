@@ -1060,12 +1060,16 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	/**
 	 * Caps the table height behind a scroll wrapper; required by
 	 * {@link GridDataProps.virtualize}. A fixed CSS length (`'320px'`,
-	 * `'50vh'`), or `'fill'` to take the consumer's box: the grid stretches to
-	 * its parent's height and the scroll region flexes to the remainder under
-	 * the toolbar, so the grid sizes correctly inside any CSS-sized parent.
+	 * `'50vh'`), or `'fill'` to cap at the consumer's box: the grid grows with
+	 * its rows up to the parent's height and no further, so a grid with few rows
+	 * keeps its footer directly under them rather than at the bottom of an empty
+	 * box, and one with many scrolls inside the parent.
+	 *
 	 * A *percentage* can't bind — the grid's own wrapper is auto-height, so
 	 * `'100%'` resolves to no constraint, virtualization silently degrades to
 	 * rendering every row, and the grid warns in dev; use `'fill'` instead.
+	 * `'fill'` needs a parent with a definite height for the same reason: inside
+	 * an auto-height parent its cap resolves to nothing.
 	 */
 	maxHeight?: string
 

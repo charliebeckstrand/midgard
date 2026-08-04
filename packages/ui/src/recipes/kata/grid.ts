@@ -144,14 +144,20 @@ export const k = {
 	// which paints the resize cursor grid-wide; head and cells read the matching
 	// `resizing` context flag to drop their hover wash and truncation tooltips.
 	wrapper: ['relative', 'isolate', flex.col, 'gap-2', 'data-[resizing]:cursor-col-resize'],
-	// `maxHeight="fill"`: the grid takes its parent's box instead of a fixed cap —
-	// the wrapper stretches to the parent's height and the scroll region flexes to
-	// the remainder under the toolbar/footer (`min-h-0` lets each shrink below its
-	// content, which a flex child otherwise refuses), so the windowed scroll
-	// container binds inside any CSS-sized parent.
+	// `maxHeight="fill"`: the parent's box is the grid's *cap*, not its height —
+	// the wrapper grows with its rows up to the parent and no further, so a grid
+	// with few rows sits its footer directly under them instead of stranding it at
+	// the bottom of an empty box.
+	//
+	// The scroll region is left a default flex item (grow 0, shrink 1, basis auto):
+	// it takes its content's height while there is room, then shrinks — not the
+	// toolbar or footer around it — once `max-h-full` binds. `flex-1` here would
+	// force it to the remainder and reinstate the empty box. `min-h-0` on both lets
+	// them shrink below their content, which a flex child otherwise refuses, so the
+	// windowed scroll container still binds inside any CSS-sized parent.
 	fill: {
-		wrapper: 'h-full min-h-0',
-		scroll: 'min-h-0 flex-1',
+		wrapper: 'max-h-full min-h-0',
+		scroll: 'min-h-0',
 	},
 	sticky: {
 		// `scrollbar-gutter: stable` reserves the scrollbar's track up front, so the

@@ -271,10 +271,11 @@ type GridScrollRegionProps = {
 
 /**
  * The sticky/virtualized scroll container around the table, or the table
- * untouched when no scroll wrapper is needed. `maxHeight="fill"` sizes by
- * flexing into the parent's box (see `k.fill`) rather than an inline cap; any
- * other value caps the wrapper directly. Split out of {@link GridData} so the
- * branching stays off its complexity budget. @internal
+ * untouched when no scroll wrapper is needed. `maxHeight="fill"` caps against
+ * the parent's box through classes (see `k.fill`), so the region stays as short
+ * as its rows; any other value caps the wrapper directly with an inline
+ * max-height. Split out of {@link GridData} so the branching stays off its
+ * complexity budget. @internal
  */
 export function GridScrollRegion({
 	active,

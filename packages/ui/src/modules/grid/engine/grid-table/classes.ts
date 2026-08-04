@@ -55,8 +55,8 @@ export function stripedForOutline(
 
 /**
  * Wrapper class for the grid's outer `data-slot="grid"` element: the base
- * chrome, plus — under `maxHeight="fill"` — the stretch that hands the
- * consumer's box to the flexing scroll region (see `k.fill`). Kept off
+ * chrome, plus — under `maxHeight="fill"` — the cap that bounds the grid at the
+ * consumer's box while letting it stay shorter (see `k.fill`). Kept off
  * {@link GridData}'s complexity budget. @internal
  */
 export function gridWrapperClass(fill: boolean): string {

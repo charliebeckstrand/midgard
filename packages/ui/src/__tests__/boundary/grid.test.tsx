@@ -1460,14 +1460,22 @@ describe('Grid', () => {
 
 			const scroll = bySlot(container, 'grid-scroll')
 
-			// Fill mode carries no inline max-height cap — the scroll region flexes
-			// into the parent's box instead (jsdom does no layout; the class-level
+			// Fill mode carries no inline max-height cap — it caps through classes
+			// against the parent's box instead (jsdom does no layout; the class-level
 			// behavior is exercised in the browser project).
 			expect(scroll?.style.maxHeight).toBe('')
 
-			expect(scroll?.className).toContain('flex-1')
+			// The parent's box is a cap, not a height: the wrapper bounds at
+			// `max-h-full` and the scroll region stays a default flex item, so a grid
+			// shorter than its parent keeps its footer under the rows. `flex-1` would
+			// stretch it back out.
+			expect(bySlot(container, 'grid')?.className).toContain('max-h-full')
 
-			expect(bySlot(container, 'grid')?.className).toContain('h-full')
+			// Boundary-matched: `max-h-full` contains `h-full` as a substring, so a
+			// plain `not.toContain` would fail on the very class we want.
+			expect(bySlot(container, 'grid')?.className).not.toMatch(/(^|\s)h-full(\s|$)/)
+
+			expect(scroll?.className).not.toMatch(/(^|\s)flex-1(\s|$)/)
 		})
 	})
 
