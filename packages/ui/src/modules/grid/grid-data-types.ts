@@ -533,6 +533,14 @@ export type GridColumnManagerConfig = GridToolSurfaces & {
 	 */
 	label?: ReactNode
 
+	/**
+	 * Whether the dialog heads its manager with a filter field that narrows the
+	 * list to the columns whose label matches the typed text. `false` drops it —
+	 * worth doing on a grid with few enough columns that the field is only noise.
+	 * @defaultValue true
+	 */
+	filterable?: boolean
+
 	/** Controlled set of hidden column ids; pair with {@link GridColumnManagerConfig.onHiddenChange}. */
 	hidden?: Set<string | number>
 

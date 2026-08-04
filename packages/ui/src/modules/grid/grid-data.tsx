@@ -1264,6 +1264,7 @@ export function GridData<T>({
 								onOpenChange={setColumnManagerOpen}
 								label={managerLabel}
 								columns={managerItems}
+								filterable={columnManagerConfig?.filterable}
 								order={columnOrder}
 								onOrderChange={setColumnOrder}
 								reorderable={reorderEnabled}

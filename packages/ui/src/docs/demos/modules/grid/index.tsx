@@ -905,8 +905,11 @@ const ColumnManagerExample = () => {
 	// `exportable` takes. Toggle a column's checkbox to hide it, or use a row's pin
 	// control to freeze it left/right (left columns sort to the top of the list,
 	// right columns to the bottom). Drag-to-reorder in the manager follows
-	// `reorder`, so it's set here to enable the handles. Pass
-	// `columnManager={false}` to turn management off entirely.
+	// `reorder`, so it's set here to enable the handles. The dialog's filter field
+	// narrows the list to the columns matching what's typed, and only narrows what
+	// renders — hiding, pinning, and reordering under a query commit as they would
+	// unfiltered — with `filterable: false` to drop it. Pass `columnManager={false}`
+	// to turn management off entirely.
 	return (
 		<Grid
 			reorder

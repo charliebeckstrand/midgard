@@ -14,6 +14,8 @@ type GridColumnManagerDialogProps = {
 	onOpenChange: (open: boolean) => void
 	label: ReactNode
 	columns: GridColumnManagerItem[]
+	/** Whether the manager heads its list with a filter field; forwards the grid's `columnManager.filterable` flag. */
+	filterable?: boolean
 	order: (string | number)[]
 	onOrderChange: (order: (string | number)[]) => void
 	/** Whether the manager may reorder columns; forwards the grid's `reorder` flag. */
@@ -42,6 +44,7 @@ export function GridColumnManagerDialog({
 	onOpenChange,
 	label,
 	columns,
+	filterable,
 	order,
 	onOrderChange,
 	reorderable,
@@ -58,6 +61,7 @@ export function GridColumnManagerDialog({
 			<DialogBody>
 				<GridColumnManager
 					columns={columns}
+					filterable={filterable}
 					order={order}
 					onOrderChange={onOrderChange}
 					reorderable={reorderable}
