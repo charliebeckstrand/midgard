@@ -44,6 +44,14 @@ function assignRef<T>(ref: Ref<T> | undefined, node: T | null) {
  * The child's own ref merges with the floating ref. The non-element fallback
  * renders a plain `<div>`; a `<button>` fallback nested inside interactive
  * content is invalid markup.
+ *
+ * @remarks The clone also stamps `k.trigger` (`inline-flex`) on the child, ahead
+ * of the child's own `className` — so a child that needs a different display box
+ * restates it and wins the merge. A truncating child needs exactly that: an
+ * ellipsis paints against a block box, not a flex container, which is why every
+ * truncating trigger in the library carries `block` (`k.cell.truncate`,
+ * `k.head.title`, the date-picker `value` recipe, the chart header and legend).
+ * Reversing the merge order would silently drop the ellipsis at all of them.
  */
 export function TooltipTrigger({ children }: TooltipTriggerProps) {
 	const { setReference, getReferenceProps, enabled } = useTooltipContext()
