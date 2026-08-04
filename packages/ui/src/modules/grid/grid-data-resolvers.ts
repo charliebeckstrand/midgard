@@ -25,7 +25,12 @@ import type {
 } from './grid-data-types'
 import type { GridColumn } from './types'
 import type { GridNavTableProps } from './use-grid-navigation'
-import type { GridColumnResize, GridPaginationView } from './use-grid-table'
+import type {
+	GridColumnFilter,
+	GridColumnResize,
+	GridGlobalFilterView,
+	GridPaginationView,
+} from './use-grid-table'
 
 /**
  * Defaults each data column's {@link GridColumn.sortable} to `true` when it
@@ -364,4 +369,33 @@ export function resolveResizeLayout<T>(args: {
 		tableWidth: resize.totalSize(),
 		resizing: resize.isResizingAny(),
 	}
+}
+
+/**
+ * What the grid's actions may act on: `hasRows`, the plain fact that source rows
+ * exist, and `hasData`, the gate the header's own affordances read.
+ *
+ * The two differ on one case — a view emptied by a filter or a search. That is not
+ * a grid with nothing to act on: the rule that emptied it lives in the header, so
+ * the header's affordances (sort toggles, funnels, the right-click menu) are the
+ * only way back to the rows and have to stay live. Client-side, `rows` still holds
+ * the source and the case never arose. Server-side ({@link GridColumnFilters.manual}),
+ * the consumer feeds back the *filtered* set, so an over-narrow rule leaves zero
+ * rows here — and standing the header down then strands the user in a view they
+ * cannot undo. Row-level actions still read `hasRows`: dragging a row needs a row.
+ *
+ * @internal
+ */
+export function resolveActionable(args: {
+	sourceCount: number
+	/** Whether the error slot has pre-empted the body. */
+	showingError: boolean
+	filters: GridColumnFilter | null
+	globalFilter: GridGlobalFilterView | null
+}): { hasRows: boolean; hasData: boolean } {
+	const hasRows = args.sourceCount > 0 && !args.showingError
+
+	const narrowed = (args.filters?.hasActive() ?? false) || (args.globalFilter?.value ?? '') !== ''
+
+	return { hasRows, hasData: hasRows || (narrowed && !args.showingError) }
 }

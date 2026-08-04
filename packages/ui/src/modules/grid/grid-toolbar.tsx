@@ -33,7 +33,7 @@ type GridToolbarProps = {
 	exportActions: GridExportAction[]
 	/**
 	 * Per-column filter controls, or `null` when no column is filterable. Backs the
-	 * "Clear all filters" button, shown only while a filter constrains rows.
+	 * "Clear filters" button, shown only while a filter constrains rows.
 	 */
 	columnFilters: GridColumnFilter | null
 	/** Batch-action builder; its controls fill the second row while a row is selected. */
@@ -49,7 +49,7 @@ type GridToolbarProps = {
 /**
  * The Grid's toolbar region: the single place its above-table controls are
  * assembled. The top row carries the quick-search field at the start — joined,
- * while a column filter constrains rows, by an amber "Clear all filters" button
+ * while a column filter constrains rows, by an amber "Clear filters" button
  * that lifts them all — and a "Table tools" cluster at the end: the
  * column-manager trigger and, when any export type is active, an "Export"
  * dropdown listing one item per action — its trigger swaps the download icon
@@ -120,7 +120,7 @@ export function GridToolbar({
 							color="amber"
 							onClick={() => columnFilters?.clear()}
 						>
-							Clear all filters
+							Clear filters
 						</Button>
 					)}
 
