@@ -599,11 +599,14 @@ export type GridFooterStats = {
  */
 export type GridFooter = {
 	/**
-	 * Show the total row count: `'47 rows'`, `'12 of 47 rows visible'` while a
-	 * client-side search or filter narrows the set, or `'No rows'` when empty.
-	 * Counts the full filtered extent across all pages, not just the rendered
-	 * window. An active {@link GridFooter.selectedTotal} replaces this count in
-	 * place rather than sitting beside it.
+	 * Show the total row count: `'47 rows'`, or `'12 of 47 rows visible'` while a
+	 * client-side search or filter narrows the set. Counts the full filtered extent
+	 * across all pages, not just the rendered window. An active
+	 * {@link GridFooter.selectedTotal} replaces this count in place rather than
+	 * sitting beside it.
+	 *
+	 * Withheld on an empty set, where the body's own empty state already says there
+	 * are no rows and a count would only restate it.
 	 * @defaultValue false
 	 */
 	rowTotal?: boolean
@@ -620,6 +623,10 @@ export type GridFooter = {
 	 * Custom content rendered at the footer's trailing edge, receiving the live
 	 * {@link GridFooterStats}. Use for a summary line, a column aggregate, or a
 	 * footer action; return `null` to render nothing.
+	 *
+	 * @remarks The slot can shrink past its content, so content that opts into
+	 * `truncate` clips to an ellipsis against the bar. Give a truncating label a
+	 * full-text tooltip, and any wrapper around it `min-w-0`.
 	 */
 	content?: (stats: GridFooterStats) => ReactNode
 }

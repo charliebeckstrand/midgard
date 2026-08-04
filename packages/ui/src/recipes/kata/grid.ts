@@ -684,7 +684,10 @@ export const k = {
 	// content is pushed to the far edge by `ml-auto` in the trailing cluster.
 	summary: {
 		bar: ['flex', 'flex-wrap', 'items-center', 'gap-x-4', 'gap-y-1', size.md, text.muted],
-		trailing: ['flex', 'flex-wrap', 'items-center', 'gap-x-4', 'gap-y-1', 'ml-auto'],
+		// `min-w-0` so the cluster can shrink past its content: a flex item's automatic
+		// minimum is its content width, which pinned this slot to the intrinsic width of
+		// whatever the consumer rendered, overflowing the bar instead of clipping inside it.
+		trailing: ['flex', 'flex-wrap', 'items-center', 'gap-x-4', 'gap-y-1', 'ml-auto', 'min-w-0'],
 		item: 'whitespace-nowrap',
 	},
 	// Data-body state washes projected from the `<table>` onto its data `<tbody>`
