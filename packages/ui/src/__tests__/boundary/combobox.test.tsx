@@ -6,7 +6,7 @@ import { Control } from '../../components/control'
 import { Description, Field, Label, Message } from '../../components/fieldset'
 import { Form, useFormField } from '../../components/form'
 import { VirtualOptions } from '../../primitives/virtual-options'
-import { bySlot, fireEvent, renderUI, screen, userEvent, waitFor, within } from '../helpers'
+import { act, bySlot, fireEvent, renderUI, screen, userEvent, waitFor, within } from '../helpers'
 
 describe('Combobox', () => {
 	it('renders input with combobox role', () => {
@@ -241,6 +241,48 @@ describe('Combobox', () => {
 		expect(onChange).toHaveBeenCalledWith(null)
 
 		expect(document.activeElement).toBe(bySlot(container, 'combobox-input'))
+	})
+
+	it('hands onClear the input instead of refocusing it', () => {
+		const onClear = vi.fn<(input: HTMLInputElement | null) => void>()
+
+		// The one-liner the prop exists for: leave the field, so the clear doesn't
+		// reopen the list it just emptied.
+		const { container } = renderUI(
+			<Combobox<string>
+				clearable
+				value="v1"
+				displayValue={(v) => v}
+				onClear={(input) => {
+					onClear(input)
+
+					input?.blur()
+				}}
+			>
+				<ComboboxOption value="v1">One</ComboboxOption>
+			</Combobox>,
+		)
+
+		const input = bySlot(container, 'combobox-input')
+
+		// Focused first, as a user who typed or tabbed into the field would be. Wrapped,
+		// because focus opens the menu — the state update the clear is about to undo.
+		act(() => {
+			input?.focus()
+		})
+
+		fireEvent.mouseDown(screen.getByRole('button', { name: 'Clear selection' }))
+
+		fireEvent.click(screen.getByRole('button', { name: 'Clear selection' }))
+
+		// The combobox's own input, so a consumer needs no ref of its own.
+		expect(onClear).toHaveBeenCalledWith(input)
+
+		expect(document.activeElement).not.toBe(input)
+
+		expect(input).toHaveAttribute('aria-expanded', 'false')
+
+		expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
 	})
 
 	it('clears a multiple selection to an empty array', () => {

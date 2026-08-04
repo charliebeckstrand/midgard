@@ -83,6 +83,28 @@ type ComboboxBaseProps<T> = {
 	/** Show a clear button in place of the chevron when a value is selected. */
 	clearable?: boolean
 	/**
+	 * Runs when the clear button empties the selection, with the combobox's own
+	 * input — and *instead of* the default's return-focus, so the handler owns
+	 * where focus lands after a clear.
+	 *
+	 * With no handler, focus returns to the input, because the clear button
+	 * unmounts along with the value it cleared and focus would otherwise be lost.
+	 * The input opens the menu on focus, though, so that reopens the list the clear
+	 * just emptied. Passing the input makes the alternatives one-liners:
+	 *
+	 * ```tsx
+	 * <Combobox clearable onClear={(input) => input?.blur()} />   // leave the field
+	 * <Combobox clearable onClear={(input) => input?.focus()} />  // the default, kept
+	 * ```
+	 *
+	 * Leaving the field costs the focus the default was protecting: a clear from
+	 * the keyboard lands on `<body>`, so a keyboard user loses their place in the
+	 * page (WCAG 2.4.3) — prefer it where clearing is a pointer affordance. The
+	 * cleared value itself still reports through `onValueChange`; this hook is
+	 * about what happens next, not about the value.
+	 */
+	onClear?: (input: HTMLInputElement | null) => void
+	/**
 	 * Capitalizes the first letter (first word only) of the input's resolved
 	 * `displayValue` and of each option's string label; custom label nodes
 	 * render as authored. Pass an object to target each surface independently.
@@ -230,6 +252,7 @@ export function Combobox<T>({
 	closeOnSelect,
 	clearOnEmpty = false,
 	clearable = false,
+	onClear,
 	capitalize = true,
 	open: openProp,
 	onOpenChange,
@@ -509,6 +532,17 @@ export function Combobox<T>({
 
 				setValue(multiple ? ([] as T[]) : undefined)
 
+				// A handler owns the focus follow-up, so the default doesn't run first: the
+				// input opens the menu on focus, and focusing only to be blurred back out
+				// would flash the list open on the way past.
+				if (onClear) {
+					onClear(inputRef.current)
+
+					return
+				}
+
+				// Nothing else can hold it: this button unmounts with the value it just
+				// cleared, so without this focus falls to the body.
 				inputRef.current?.focus()
 			}}
 		>
