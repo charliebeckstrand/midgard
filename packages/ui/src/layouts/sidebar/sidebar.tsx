@@ -95,7 +95,12 @@ export function SidebarLayout({
 
 			{/* Sidebar on desktop: sheet when floating. Non-modal so the hover-revealed
 			    peek doesn't steal focus or lock body scroll, but `backdrop` still
-			    blurs and dims the page behind it. */}
+			    blurs and dims the page behind it.
+
+			    `elevated` because this sheet *is* the navigation. An app that lifts chrome
+			    of its own over the overlay root — anything declaring itself `reachable` to a
+			    panel — would otherwise have that chrome painted across the sidebar, which
+			    covers the very control the user reached for. */}
 			{floating && (
 				<Sheet
 					side="left"
@@ -104,6 +109,7 @@ export function SidebarLayout({
 					onOpenChange={setFloatingOpen}
 					modal={false}
 					backdrop
+					elevated
 					className="sm:top-0 sm:left-0 sm:bottom-0 sm:rounded-l-none"
 				>
 					<div
@@ -130,8 +136,10 @@ export function SidebarLayout({
 					document.body,
 				)}
 
-			{/* Sidebar on mobile */}
-			<Drawer open={open} onOpenChange={setOpen}>
+			{/* Sidebar on mobile. `elevated` for the same reason as the floating sheet above:
+			    this is the navigation, so nothing the app lifted over the overlay root should
+			    paint across it. */}
+			<Drawer open={open} onOpenChange={setOpen} elevated>
 				<OffcanvasContext value={offcanvasValue}>
 					<div
 						ref={(node) => {

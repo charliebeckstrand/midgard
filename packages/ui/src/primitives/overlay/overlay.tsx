@@ -19,9 +19,15 @@ import { PresencePortal } from '../portal'
 import { notifyOverlaySignal } from './overlay-signal'
 
 /**
+ * One `reachable` target: a ref to the element, or a CSS selector that the
+ * overlay matches against the document.
+ */
+export type OverlayReach = RefObject<HTMLElement | null> | string
+
+/**
  * Props for {@link Overlay}: the `open` / `onOpenChange` pair, the `modal` and
- * `backdrop` behavior flags, and the optional portal `container` and
- * `initialFocus` target.
+ * `backdrop` behavior flags, and the optional portal `container`,
+ * `initialFocus`, and `reachable` targets.
  */
 export type OverlayProps = {
 	open: boolean
@@ -82,6 +88,64 @@ export type OverlayProps = {
 	 * @defaultValue `modal`
 	 */
 	backdrop?: boolean
+	/**
+	 * DOM outside the panel that keeps its place in the focus order while modal.
+	 *
+	 * A modal surface seals the page behind it. That fits a transaction to
+	 * complete. It does not fit a long-lived work surface inside persistent app
+	 * chrome — a maximized drawer whose state lives in a tab's href — because the
+	 * trap leaves the user no exit but to dismantle the surface. Name the chrome
+	 * here. It then keeps its tab stop, its place in the accessibility tree, and
+	 * its pointer events (WCAG 2.1.1 / 2.4.3), and the rest of the page stays
+	 * sealed.
+	 *
+	 * Pass a ref, a CSS selector, or an array of both. A selector contributes
+	 * every match in the document, so one selector covers a region with more than
+	 * one root. Prefer a ref when the chrome is in reach. Use a selector when the
+	 * chrome is app-level and the panel is a route far below it, which is the
+	 * common case.
+	 *
+	 * @remarks Modality holds. Focus still moves into the panel on open and
+	 * returns on close, the body stays scroll-locked, and the scrim still
+	 * dismisses on a press. Only the enforcement changes: undeclared outside
+	 * content becomes `inert` rather than `aria-hidden`, so it also loses its
+	 * pointer events, and the tab order runs in DOM order out of the panel,
+	 * through the declared region, and back — what a native `<dialog>` does.
+	 * Declare every other outside region that must stay live, such as a toast
+	 * viewport that holds only `role="alert"` toasts.
+	 *
+	 * The targets resolve once, at the moment the overlay marks the page. Chrome
+	 * that mounts after that is not exempt, so this prop suits chrome that
+	 * outlives the surface. A browser with no `inert` support keeps the strict
+	 * trap; there, only the accessibility-tree and pointer exemptions apply.
+	 *
+	 * The consumer owns the stacking order. The declared region must sit above
+	 * the overlay root's `z-99`, or the scrim covers what this prop made
+	 * reachable.
+	 *
+	 * @defaultValue undefined — the panel is fully modal
+	 */
+	reachable?: OverlayReach | readonly OverlayReach[]
+	/**
+	 * Paint above app chrome that outranks the overlay root, rather than under it.
+	 *
+	 * The inverse of {@link OverlayProps.reachable}, and the other half of the same
+	 * decision. `reachable` is for chrome a *panel* must not seal off, which obliges the
+	 * consumer to lift that chrome above the root's `z-99`. Once it has, every overlay is
+	 * under it — including the ones that are themselves that app's navigation, and which
+	 * therefore have to cover it.
+	 *
+	 * Set it on a surface whose whole purpose is to sit over the application, such as a
+	 * navigation sidebar revealed as a sheet. Leave it off for a surface the user is
+	 * working *inside*, where lifted chrome is the way out.
+	 *
+	 * @remarks Stacking only — modality, focus and dismissal are untouched. Two elevated
+	 * overlays land on one level and fall back to DOM order, so this is not a way to rank
+	 * overlays against each other; it ranks an overlay against the chrome above the root.
+	 *
+	 * @defaultValue false — the root's ordinary `z-99`
+	 */
+	elevated?: boolean
 } & Omit<HTMLAttributes<HTMLDivElement>, 'className' | 'children'>
 
 /**
@@ -94,8 +158,9 @@ export type OverlayProps = {
  * `document.body`. A `container` scopes the overlay to that element
  * (`absolute`, no scroll lock); for transient pointer-driven surfaces
  * `modal={false}` drops focus management, scroll lock, and the backdrop (unless
- * `backdrop` is set). Fires the overlay signal on open so non-modal floats
- * (tooltips) dismiss.
+ * `backdrop` is set), and `reachable` keeps named outside chrome in the focus
+ * order without giving up modality. Fires the overlay signal on open so
+ * non-modal floats (tooltips) dismiss.
  */
 export function Overlay({
 	open,
@@ -109,6 +174,8 @@ export function Overlay({
 	modal = true,
 	backdrop = modal,
 	animateOnMount = true,
+	reachable,
+	elevated = false,
 	...props
 }: OverlayProps) {
 	const { refs, context } = useFloating({ open, onOpenChange })
@@ -146,7 +213,14 @@ export function Overlay({
 				containerRef.current = node
 			}}
 			data-slot="overlay"
-			className={cn('inset-0 z-99', scoped ? 'absolute' : 'fixed', !modal && 'pointer-events-none')}
+			className={cn(
+				'inset-0',
+				// One step over the root, which is all `reachable` chrome is expected to
+				// need — see {@link OverlayProps.elevated}.
+				elevated ? 'z-101' : 'z-99',
+				scoped ? 'absolute' : 'fixed',
+				!modal && 'pointer-events-none',
+			)}
 			{...props}
 		>
 			{backdrop && (
@@ -168,17 +242,66 @@ export function Overlay({
 
 	return (
 		<PresencePortal open={open} container={container}>
-			<OverlayFocus modal={modal} context={context} initialFocus={initialFocus}>
+			<OverlayFocus
+				modal={modal}
+				context={context}
+				initialFocus={initialFocus}
+				reachable={reachable}
+			>
 				{panel}
 			</OverlayFocus>
 		</PresencePortal>
 	)
 }
 
+/** The shared empty target list, so the undeclared case allocates nothing. @internal */
+const NO_REACH: readonly OverlayReach[] = []
+
+/**
+ * Normalizes `reachable` to a target list. An absent declaration and an empty
+ * array both give `[]`, so a degenerate `reachable={[]}` reads as no declaration
+ * rather than as a sealed page with no way out of it.
+ *
+ * @internal
+ */
+function reachTargets(
+	reachable: OverlayReach | readonly OverlayReach[] | undefined,
+): readonly OverlayReach[] {
+	if (reachable == null) return NO_REACH
+
+	// One level of `flat` accepts the singular and the array form alike;
+	// `Array.isArray` narrows to `any[]`, which leaves a readonly array behind in
+	// its false branch.
+	return [reachable].flat()
+}
+
+/**
+ * Resolves the targets to the live elements floating-ui must count as part of
+ * the panel. A ref contributes its current node, a selector contributes every
+ * match in the document, and absent nodes drop out.
+ *
+ * @internal
+ */
+function resolveReach(targets: readonly OverlayReach[]): Element[] {
+	const elements: Element[] = []
+
+	for (const target of targets) {
+		if (typeof target === 'string') {
+			elements.push(...document.querySelectorAll(target))
+		} else if (target.current) {
+			elements.push(target.current)
+		}
+	}
+
+	return elements
+}
+
 /**
  * Wraps the overlay panel in a modal `FloatingFocusManager` (trap focus, move it
  * in on open, restore on close), or renders it bare for a non-modal surface — no
- * trap, no initial-focus steal, no focus return; focus stays where it is.
+ * trap, no initial-focus steal, no focus return; focus stays where it is. A
+ * `reachable` declaration relaxes how the trap is enforced without relaxing
+ * modality.
  *
  * @internal
  */
@@ -186,17 +309,39 @@ function OverlayFocus({
 	modal,
 	context,
 	initialFocus,
+	reachable,
 	children,
 }: {
 	modal: boolean
 	context: ReturnType<typeof useFloating>['context']
 	initialFocus: RefObject<HTMLElement | null> | undefined
+	reachable: OverlayReach | readonly OverlayReach[] | undefined
 	children: ReactElement
 }) {
 	if (!modal) return children
 
+	const targets = reachTargets(reachable)
+
+	// Two halves enforce the trap, and a declaration has to relax both. The focus
+	// guards bounce a Tab that reaches the panel's edge back inside, so
+	// `guards={false}` retires them, and `outsideElementsInert` then marks
+	// undeclared outside content `inert` rather than `aria-hidden` — which is what
+	// holds the tab order off the sealed page once no guard is left to do it.
+	// `getInsideElements` exempts the declared region from that marking.
+	const declared = targets.length > 0
+
+	// `guards={false}` alone already forces the `inert` marking in 0.27, so this
+	// states the intent through the prop that documents it rather than resting on
+	// the other one's side effect, which no version promises to keep.
 	return (
-		<FloatingFocusManager context={context} modal initialFocus={initialFocus ?? undefined}>
+		<FloatingFocusManager
+			context={context}
+			modal
+			initialFocus={initialFocus ?? undefined}
+			guards={!declared}
+			outsideElementsInert={declared}
+			getInsideElements={() => resolveReach(targets)}
+		>
 			{children}
 		</FloatingFocusManager>
 	)

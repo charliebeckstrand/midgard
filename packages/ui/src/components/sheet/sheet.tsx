@@ -62,6 +62,12 @@ export type SheetProps = Omit<SheetPanelVariants, 'surface'> & {
 	 */
 	backdrop?: boolean
 	/**
+	 * Paint above app chrome lifted over the overlay root. For a sheet that *is* the
+	 * application's navigation; see `Overlay`'s `elevated`.
+	 * @defaultValue false
+	 */
+	elevated?: boolean
+	/**
 	 * Accessible name for sheets without a visible `SheetTitle`. Ignored once a
 	 * `SheetTitle` registers.
 	 */
@@ -102,6 +108,7 @@ export function Sheet({
 	initialFocus,
 	modal,
 	backdrop,
+	elevated,
 	'aria-label': ariaLabel,
 }: SheetProps) {
 	// Controlled when `open` is passed; otherwise uncontrolled from `defaultOpen`.
@@ -123,6 +130,7 @@ export function Sheet({
 			initialFocus={initialFocus}
 			modal={modal}
 			backdrop={backdrop}
+			elevated={elevated}
 			className={k.backdrop({ surface: resolvedSurface, desaturate })}
 		>
 			<motion.div

@@ -240,6 +240,38 @@ describe('Overlay', () => {
 		expect(onOpenChange).toHaveBeenCalledWith(false)
 	})
 
+	// `reachable` relaxes how the trap is enforced, not modality itself. The
+	// enforcement is the focus engine's, and this suite mocks the engine away —
+	// browser/floating-ui/overlay-reachable.test.tsx asserts the focus order and
+	// the page marking. These pin what a declaration must leave alone.
+	it('still locks body scroll with a reachable declaration', () => {
+		renderUI(
+			<Overlay open reachable="[data-test-chrome]" onOpenChange={() => {}}>
+				<span>content</span>
+			</Overlay>,
+		)
+
+		expect(document.body.style.overflow).toBe('hidden')
+	})
+
+	it('still closes on backdrop click with a reachable declaration', () => {
+		const onOpenChange = vi.fn()
+
+		renderUI(
+			<Overlay open reachable="[data-test-chrome]" onOpenChange={onOpenChange}>
+				<span>content</span>
+			</Overlay>,
+		)
+
+		const backdrop = document.querySelector<HTMLElement>('[data-slot="overlay-backdrop"]')
+
+		expect(backdrop).not.toBeNull()
+
+		fireEvent.click(backdrop as HTMLElement)
+
+		expect(onOpenChange).toHaveBeenCalledWith(false)
+	})
+
 	it('renders into a scoped container when one is provided', () => {
 		const host = document.createElement('div')
 
