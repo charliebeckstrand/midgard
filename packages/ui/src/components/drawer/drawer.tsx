@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'motion/react'
-import type { ReactNode, RefObject } from 'react'
+import { type ReactNode, type RefObject, useCallback, useEffect, useRef } from 'react'
 import { cn } from '../../core'
 import { useA11yPanel } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
@@ -21,6 +21,24 @@ export type DrawerProps = Omit<DrawerPanelVariants, 'surface'> & {
 	defaultOpen?: boolean
 	/** Fires when the open state changes (backdrop dismiss, Escape, close button). */
 	onOpenChange?: (open: boolean) => void
+	/**
+	 * Fires once the panel has finished arriving — it is docked, at rest, and covering
+	 * whatever it covers.
+	 *
+	 * The counterpart to `onOpenChange`, which reports the state being *asked for*: this
+	 * one reports it having *landed*. Use it for anything that has to hold until the panel
+	 * is actually up, rather than guessing at the slide with a matching delay.
+	 *
+	 * Deliberately named for the open, not for the animation. It fires whether or not the
+	 * panel animated: on the enter slide's landing, and on the mount itself for a panel that
+	 * arrives in place (`animateOnMount={false}`) with no slide to land. A slide the user's
+	 * reduced-motion preference collapses still resolves, and so still reports — the same
+	 * property the accordion's hold relies on to unmount a closed panel.
+	 *
+	 * Once per arrival, and never for a close. `PresencePortal`, under the `Overlay` this
+	 * renders in, has `onExitComplete` for the leaving side of the same idea.
+	 */
+	onOpenComplete?: () => void
 	/**
 	 * Size step that propagates to descendants via the Density context.
 	 * Resolution order: explicit prop, then enclosing Density size, then `'md'`.
@@ -87,6 +105,7 @@ export function Drawer({
 	open,
 	defaultOpen,
 	onOpenChange,
+	onOpenComplete,
 	size,
 	glass,
 	desaturate,
@@ -109,6 +128,41 @@ export function Drawer({
 	// this component's own mount or a minimize/maximize cycle would land in place.
 	const animateEnter = useEnterAnimation(resolvedOpen, animateOnMount)
 
+	/*
+	 * One report per arrival.
+	 *
+	 * Reset while closed rather than on report, so a reopen reports again while a second
+	 * landing inside one arrival does not. Adjusted during render because that is the
+	 * cheapest place for it — unlike `useEnterAnimation` above, nothing in this render reads
+	 * it, so an effect would do as well.
+	 */
+	const reportedRef = useRef(false)
+
+	if (!resolvedOpen) reportedRef.current = false
+
+	/*
+	 * The callback through a ref, so reporting keeps one identity and the effect below runs
+	 * once per arrival instead of once per render. A consumer passing an inline function is
+	 * the common case, and a library component is in no position to assume otherwise.
+	 */
+	const completeRef = useRef(onOpenComplete)
+
+	completeRef.current = onOpenComplete
+
+	const reportOpen = useCallback(() => {
+		if (reportedRef.current) return
+
+		reportedRef.current = true
+
+		completeRef.current?.()
+	}, [])
+
+	// A panel that arrives in place plays no enter, so there is no landing to report from —
+	// it is already up, and says so from here instead.
+	useEffect(() => {
+		if (resolvedOpen && !animateEnter) reportOpen()
+	}, [resolvedOpen, animateEnter, reportOpen])
+
 	const { ariaProps, a11y } = useA11yPanel()
 
 	const inherited = useDensity()
@@ -127,6 +181,13 @@ export function Drawer({
 				{...k.motion}
 				// After the preset spread, so it overrides the preset's own `initial`.
 				initial={animateEnter ? k.motion.initial : false}
+				onAnimationComplete={(definition) => {
+					// The exit lands here too, and the leaving subtree keeps the props from the
+					// render where the drawer was still open — so `resolvedOpen` cannot tell the
+					// two apart. What framer hands back can: the preset's own `animate` object on
+					// the way in, its `exit` on the way out.
+					if (definition === k.motion.animate) reportOpen()
+				}}
 				{...ariaProps}
 				aria-label={ariaProps['aria-labelledby'] ? undefined : ariaLabel}
 				data-slot="drawer"
