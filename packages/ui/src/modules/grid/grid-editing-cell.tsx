@@ -3,7 +3,7 @@
 import { type ReactNode, useEffect, useId, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/grid'
-import { inferEditorKind, isColumnEditable } from './engine/grid-editing-utilities'
+import { inferEditorKind, isCellEditing, isColumnEditable } from './engine/grid-editing-utilities'
 import { GridEditInputs } from './grid-edit-inputs'
 import { type GridRowEditing, useGridRowEditing } from './grid-editing-context'
 import type { GridColumn } from './types'
@@ -156,14 +156,10 @@ export function GridEditingCell<T>({
 	const { editableRows, activeEdit, stageDraft, unstageDraft, commitRowEdit, cancelRowEdit } =
 		useGridRowEditing()
 
-	// `activeEdit` is set only by a cell-scoped session, so row scope keeps the
-	// plain has-rowKey test and cell scope narrows it to the one named cell.
-	const editing =
-		editableRows.has(rowKey) &&
+	if (
 		isColumnEditable(column) &&
-		(activeEdit === null || (activeEdit.rowKey === rowKey && activeEdit.columnId === column.id))
-
-	if (editing) {
+		isCellEditing({ rowKey, columnId: column.id, editableRows, activeEdit })
+	) {
 		return (
 			<GridCellEditor
 				rowIdx={rowIdx}

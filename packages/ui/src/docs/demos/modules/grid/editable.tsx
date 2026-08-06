@@ -155,6 +155,39 @@ const roleOptions = ['Developer', 'Designer', 'Manager', 'Analyst'].map((role) =
 	value: role,
 }))
 
+// The data columns both scope examples show, so the pair reads as one grid under
+// two settings rather than two grids that drifted apart. `name`/`email` infer a
+// text editor and `active` a yes/no listbox from their value type; `role`
+// overrides with a listbox slot. Module-level because nothing here closes over
+// component state — a fresh array each render would rebuild every column and
+// re-render every cell.
+const personColumns: GridColumn<Person>[] = [
+	{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
+	{ id: 'email', title: 'Email', field: 'email', cell: (row) => row.email },
+	{
+		id: 'role',
+		title: 'Role',
+		field: 'role',
+		cell: (row) => row.role,
+		editCell: (ctx) => (
+			<CellListbox
+				value={String(ctx.value ?? '')}
+				options={roleOptions}
+				onValueUpdate={ctx.onValueUpdate}
+				ariaLabel={ctx.ariaLabel}
+			/>
+		),
+	},
+	{
+		id: 'active',
+		title: 'Active',
+		field: 'active',
+		cell: (row) => (
+			<Badge color={row.active ? 'green' : 'zinc'}>{row.active ? 'Active' : 'Inactive'}</Badge>
+		),
+	},
+]
+
 export function EditableExample() {
 	const [people, setPeople] = useState<Person[]>(initialPeople)
 
@@ -169,38 +202,13 @@ export function EditableExample() {
 			return next
 		})
 
-	// `name`/`email` infer a text editor and `active` a yes/no listbox from their
-	// value type; `role` overrides with a listbox slot. The pencil swaps the whole
-	// row into edit mode (every cell becomes an editor); the check saves the row's
-	// edits together. `trigger: 'doubleClick'` adds the grid-owned session over
-	// the same binding: double-click a cell (or press Enter on the cursor's active
-	// cell) to start editing its row, Enter in an editor to save, Escape to
-	// discard.
+	// The pencil swaps the whole row into edit mode (every cell becomes an editor);
+	// the check saves the row's edits together. `trigger: 'doubleClick'` adds the
+	// grid-owned session over the same binding: double-click a cell (or press Enter
+	// on the cursor's active cell) to start editing its row, Enter in an editor to
+	// save, Escape to discard.
 	const columns: GridColumn<Person>[] = [
-		{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
-		{ id: 'email', title: 'Email', field: 'email', cell: (row) => row.email },
-		{
-			id: 'role',
-			title: 'Role',
-			field: 'role',
-			cell: (row) => row.role,
-			editCell: (ctx) => (
-				<CellListbox
-					value={String(ctx.value ?? '')}
-					options={roleOptions}
-					onValueUpdate={ctx.onValueUpdate}
-					ariaLabel={ctx.ariaLabel}
-				/>
-			),
-		},
-		{
-			id: 'active',
-			title: 'Active',
-			field: 'active',
-			cell: (row) => (
-				<Badge color={row.active ? 'green' : 'zinc'}>{row.active ? 'Active' : 'Inactive'}</Badge>
-			),
-		},
+		...personColumns,
 		{
 			id: 'actions',
 			actions: (row) =>
@@ -262,35 +270,8 @@ export function CellScopeExample() {
 
 	// `scope: 'cell'` narrows the grid-owned session to the cell the user entered:
 	// one editor at a time, the cell committing as the session moves on. The
-	// binding is the one the row-scoped example uses — the same editable-row set
-	// and the same batch sink — so only the reach of a session changes.
-	const columns: GridColumn<Person>[] = [
-		{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
-		{ id: 'email', title: 'Email', field: 'email', cell: (row) => row.email },
-		{
-			id: 'role',
-			title: 'Role',
-			field: 'role',
-			cell: (row) => row.role,
-			editCell: (ctx) => (
-				<CellListbox
-					value={String(ctx.value ?? '')}
-					options={roleOptions}
-					onValueUpdate={ctx.onValueUpdate}
-					ariaLabel={ctx.ariaLabel}
-				/>
-			),
-		},
-		{
-			id: 'active',
-			title: 'Active',
-			field: 'active',
-			cell: (row) => (
-				<Badge color={row.active ? 'green' : 'zinc'}>{row.active ? 'Active' : 'Inactive'}</Badge>
-			),
-		},
-	]
-
+	// columns are the ones the row-scoped example shows, over the same batch sink,
+	// so only the reach of a session changes.
 	return (
 		<>
 			<EditHelp label="Editing help">
@@ -299,7 +280,7 @@ export function CellScopeExample() {
 				cell you are in — the cells you already left stay saved.
 			</EditHelp>
 			<Grid
-				columns={columns}
+				columns={personColumns}
 				rows={people}
 				getKey={(row) => row.id}
 				editable={{

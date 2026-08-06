@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { Grid, type GridColumn } from '../../modules/grid'
+import { Grid, type GridColumn, type GridEditableConfig } from '../../modules/grid'
 import { bySlot, fireEvent, liveRegion, renderUI } from '../helpers'
 
 /**
@@ -277,46 +277,54 @@ describe('Grid per-row editing', () => {
  * to the grid's tab stop either way. Entry and exit flow through the same
  * controllable set, so `onRowsChange` reports every transition.
  */
-describe("Grid double-click-to-edit (trigger: 'doubleClick')", () => {
-	type Row = { id: number; name: string; count: number; done: boolean }
+type SessionRow = { id: number; name: string; count: number; done: boolean }
 
-	const baseRows: Row[] = [
-		{ id: 1, name: 'Alice', count: 2, done: false },
-		{ id: 2, name: 'Bob', count: 5, done: true },
-	]
+const sessionRows: SessionRow[] = [
+	{ id: 1, name: 'Alice', count: 2, done: false },
+	{ id: 2, name: 'Bob', count: 5, done: true },
+]
 
-	const columns: GridColumn<Row>[] = [
-		{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
-		{ id: 'count', title: 'Count', field: 'count', cell: (row) => String(row.count) },
-	]
+const sessionColumns: GridColumn<SessionRow>[] = [
+	{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
+	{ id: 'count', title: 'Count', field: 'count', cell: (row) => String(row.count) },
+]
 
-	function renderTriggerGrid(cols: GridColumn<Row>[] = columns) {
-		const onCommit = vi.fn()
+/**
+ * Renders a grid whose edit sessions the grid owns, over the spies both
+ * grid-owned suites assert on. `editable` takes the scope under test and any
+ * per-case binding; `cols` takes the column shape a case needs.
+ */
+function renderSessionGrid(
+	editable: Partial<GridEditableConfig> = {},
+	cols: GridColumn<SessionRow>[] = sessionColumns,
+) {
+	const onCommit = vi.fn()
 
-		const onRowsChange = vi.fn()
+	const onRowsChange = vi.fn()
 
-		const view = renderUI(
-			<Grid
-				columns={cols}
-				rows={baseRows}
-				getKey={(row) => row.id}
-				editable={{ trigger: 'doubleClick', onRowsChange, onCommit }}
-			/>,
-		)
+	const view = renderUI(
+		<Grid
+			columns={cols}
+			rows={sessionRows}
+			getKey={(row) => row.id}
+			editable={{ trigger: 'doubleClick', onRowsChange, onCommit, ...editable }}
+		/>,
+	)
 
-		return {
-			...view,
-			onCommit,
-			onRowsChange,
-			cell: (col: string, rowIndex = 0) =>
-				view.container.querySelectorAll<HTMLElement>(`td[data-grid-col="${col}"]`)[
-					rowIndex
-				] as HTMLElement,
-		}
+	return {
+		...view,
+		onCommit,
+		onRowsChange,
+		cell: (col: string, rowIndex = 0) =>
+			view.container.querySelectorAll<HTMLElement>(`td[data-grid-col="${col}"]`)[
+				rowIndex
+			] as HTMLElement,
 	}
+}
 
+describe("Grid double-click-to-edit (trigger: 'doubleClick')", () => {
 	it("puts the row into edit mode on an editable cell double-click and focuses that cell's editor", () => {
-		const { container, cell, onRowsChange } = renderTriggerGrid()
+		const { container, cell, onRowsChange } = renderSessionGrid()
 
 		fireEvent.doubleClick(cell('name'))
 
@@ -331,7 +339,7 @@ describe("Grid double-click-to-edit (trigger: 'doubleClick')", () => {
 	})
 
 	it('ignores a double-click on a readOnly column', () => {
-		const { container, cell } = renderTriggerGrid([
+		const { container, cell } = renderSessionGrid({}, [
 			{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
 			{
 				id: 'count',
@@ -348,7 +356,7 @@ describe("Grid double-click-to-edit (trigger: 'doubleClick')", () => {
 	})
 
 	it('saves the row as one batch on Enter and returns focus to the grid', () => {
-		const { container, cell, onCommit, getByRole } = renderTriggerGrid()
+		const { container, cell, onCommit, getByRole } = renderSessionGrid()
 
 		fireEvent.doubleClick(cell('name'))
 
@@ -369,7 +377,7 @@ describe("Grid double-click-to-edit (trigger: 'doubleClick')", () => {
 	})
 
 	it("abandons the row's staged edits on Escape without emitting", () => {
-		const { container, cell, onCommit } = renderTriggerGrid()
+		const { container, cell, onCommit } = renderSessionGrid()
 
 		fireEvent.doubleClick(cell('name'))
 
@@ -390,7 +398,7 @@ describe("Grid double-click-to-edit (trigger: 'doubleClick')", () => {
 	})
 
 	it("discards a number editor's value on Escape, past the stage its exit blur takes", () => {
-		const { container, cell, onCommit } = renderTriggerGrid()
+		const { container, cell, onCommit } = renderSessionGrid()
 
 		fireEvent.doubleClick(cell('count'))
 
@@ -406,7 +414,7 @@ describe("Grid double-click-to-edit (trigger: 'doubleClick')", () => {
 	})
 
 	it("enters edit mode from the keyboard: Enter on the cursor's active cell", () => {
-		const { container, getByRole } = renderTriggerGrid()
+		const { container, getByRole } = renderSessionGrid()
 
 		const grid = getByRole('grid')
 
@@ -419,7 +427,7 @@ describe("Grid double-click-to-edit (trigger: 'doubleClick')", () => {
 	})
 
 	it('abandons the session on Escape from any editor, not just the inferred inputs', () => {
-		const { container, cell, onCommit } = renderTriggerGrid([
+		const { container, cell, onCommit } = renderSessionGrid({}, [
 			{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
 			{ id: 'done', title: 'Done', field: 'done', cell: (row) => (row.done ? 'Yes' : 'No') },
 		])
@@ -438,7 +446,7 @@ describe("Grid double-click-to-edit (trigger: 'doubleClick')", () => {
 	})
 
 	it('defers Escape to an open floating surface inside the cell', () => {
-		const { container, cell } = renderTriggerGrid([
+		const { container, cell } = renderSessionGrid({}, [
 			{
 				id: 'name',
 				title: 'Name',
@@ -470,42 +478,7 @@ describe("Grid double-click-to-edit (trigger: 'doubleClick')", () => {
  * sink stay the model, so a consumer binding reads the same as under row scope.
  */
 describe("Grid cell-scoped editing (scope: 'cell')", () => {
-	type Row = { id: number; name: string; count: number }
-
-	const baseRows: Row[] = [
-		{ id: 1, name: 'Alice', count: 2 },
-		{ id: 2, name: 'Bob', count: 5 },
-	]
-
-	const columns: GridColumn<Row>[] = [
-		{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
-		{ id: 'count', title: 'Count', field: 'count', cell: (row) => String(row.count) },
-	]
-
-	function renderCellGrid() {
-		const onCommit = vi.fn()
-
-		const onRowsChange = vi.fn()
-
-		const view = renderUI(
-			<Grid
-				columns={columns}
-				rows={baseRows}
-				getKey={(row) => row.id}
-				editable={{ trigger: 'doubleClick', scope: 'cell', onRowsChange, onCommit }}
-			/>,
-		)
-
-		return {
-			...view,
-			onCommit,
-			onRowsChange,
-			cell: (col: string, rowIndex = 0) =>
-				view.container.querySelectorAll<HTMLElement>(`td[data-grid-col="${col}"]`)[
-					rowIndex
-				] as HTMLElement,
-		}
-	}
+	const renderCellGrid = () => renderSessionGrid({ scope: 'cell' })
 
 	it('mounts an editor in the entered cell alone, leaving the row it sits in reading', () => {
 		const { container, cell } = renderCellGrid()
@@ -559,6 +532,23 @@ describe("Grid cell-scoped editing (scope: 'cell')", () => {
 		expect(onCommit).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'name', value: 'Alicia' }])
 
 		expect(bySlot(container, 'grid-edit-input')).toBeNull()
+
+		expect(bySlot(container, 'grid-edit-number-input')).toHaveFocus()
+	})
+
+	it('leaves the row binding alone while the session moves along one row', () => {
+		const { container, cell, onRowsChange } = renderCellGrid()
+
+		fireEvent.doubleClick(cell('name'))
+
+		expect(onRowsChange).toHaveBeenCalledTimes(1)
+
+		fireEvent.doubleClick(cell('count'))
+
+		// The set already holds the row, and the controllable emits on every write
+		// — equal or not — so writing it again would report a transition that never
+		// happened and re-render a controlled consumer for nothing.
+		expect(onRowsChange).toHaveBeenCalledTimes(1)
 
 		expect(bySlot(container, 'grid-edit-number-input')).toHaveFocus()
 	})
@@ -626,8 +616,8 @@ describe("Grid cell-scoped editing (scope: 'cell')", () => {
 		// row and the grid never learns a cell, so the row's editors all mount.
 		const { container } = renderUI(
 			<Grid
-				columns={columns}
-				rows={baseRows}
+				columns={sessionColumns}
+				rows={sessionRows}
 				getKey={(row) => row.id}
 				editable={{ scope: 'cell', rows: new Set([1]), onCommit: vi.fn() }}
 			/>,

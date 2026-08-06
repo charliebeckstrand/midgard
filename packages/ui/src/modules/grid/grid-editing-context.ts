@@ -1,6 +1,7 @@
 'use client'
 
 import { createContext } from '../../core'
+import type { GridActiveEdit } from './engine/grid-editing-utilities'
 
 /**
  * Row-level editing state shared with the data cells. An editable grid puts a
@@ -14,11 +15,6 @@ import { createContext } from '../../core'
  *
  * @internal
  */
-export type GridActiveEdit = {
-	rowKey: string | number
-	columnId: string | number
-}
-
 export type GridRowEditing = {
 	/** Row keys currently in edit mode; a cell whose row key is here renders its editor. */
 	editableRows: Set<string | number>
