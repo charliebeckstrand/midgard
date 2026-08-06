@@ -25,6 +25,24 @@ import { notifyOverlaySignal } from './overlay-signal'
 export type OverlayReach = RefObject<HTMLElement | null> | string
 
 /**
+ * The stacking rung a {@link OverlayProps.reachable} declaration obliges its chrome
+ * to occupy: above a sealing overlay, below every float and toast.
+ *
+ * Naming chrome `reachable` keeps it in the focus order, but the scrim still paints
+ * over it unless the consumer lifts it — and the consumer must, since only they can
+ * see whether an ancestor establishes a stacking context. Apply this class to the
+ * declared region rather than hardcoding a `z-*`, and the rung moves when the
+ * library's ladder does.
+ *
+ * @example
+ * ```tsx
+ * <header className={cn('sticky top-0', overlayReachLayer)} data-app-chrome>…</header>
+ * <Drawer open={open} onOpenChange={setOpen} reachable="[data-app-chrome]">…</Drawer>
+ * ```
+ */
+export const overlayReachLayer = k.chrome
+
+/**
  * Props for {@link Overlay}: the `open` / `onOpenChange` pair, the `modal` and
  * `backdrop` behavior flags, and the optional portal `container`,
  * `initialFocus`, and `reachable` targets.
@@ -119,9 +137,9 @@ export type OverlayProps = {
 	 * outlives the surface. A browser with no `inert` support keeps the strict
 	 * trap; there, only the accessibility-tree and pointer exemptions apply.
 	 *
-	 * The consumer owns the stacking order. The declared region must sit on the
-	 * `sou` ladder's `chrome` rung, above the overlay root, or the scrim covers
-	 * what this prop made reachable.
+	 * The consumer owns the stacking order — only they can see whether an ancestor
+	 * of the chrome establishes a stacking context. Put the declared region on
+	 * {@link overlayReachLayer}, or the scrim covers what this prop made reachable.
 	 *
 	 * @defaultValue undefined — the panel is fully modal
 	 */
@@ -131,9 +149,9 @@ export type OverlayProps = {
 	 *
 	 * The inverse of {@link OverlayProps.reachable}, and the other half of the same
 	 * decision. `reachable` is for chrome a *panel* must not seal off, which obliges the
-	 * consumer to lift that chrome onto the `chrome` rung. Once it has, every overlay is
-	 * under it — including the ones that are themselves that app's navigation, and which
-	 * therefore have to cover it.
+	 * consumer to lift that chrome onto {@link overlayReachLayer}. Once it has, every
+	 * overlay is under it — including the ones that are themselves that app's navigation,
+	 * and which therefore have to cover it.
 	 *
 	 * Set it on a surface whose whole purpose is to sit over the application, such as a
 	 * navigation sidebar revealed as a sheet. Leave it off for a surface the user is
@@ -142,7 +160,7 @@ export type OverlayProps = {
 	 * @remarks Stacking only — modality, focus and dismissal are untouched. Two elevated
 	 * overlays land on one level and fall back to DOM order, so this is not a way to rank
 	 * overlays against each other; it ranks an overlay against the chrome above the root.
-	 * Floats and toasts stay above either way — see the `sou` ladder.
+	 * Floats and toasts stay above either way.
 	 *
 	 * @defaultValue false — the root's ordinary rung
 	 */
@@ -215,8 +233,7 @@ export function Overlay({
 			}}
 			data-slot="overlay"
 			className={cn(
-				'inset-0',
-				elevated ? k.root.elevated : k.root.base,
+				k.root({ elevated }),
 				scoped ? 'absolute' : 'fixed',
 				!modal && 'pointer-events-none',
 			)}
@@ -277,9 +294,7 @@ function resolveReach(targets: readonly OverlayReach[]): Element[] {
 /**
  * Wraps the overlay panel in a modal `FloatingFocusManager` (trap focus, move it
  * in on open, restore on close), or renders it bare for a non-modal surface — no
- * trap, no initial-focus steal, no focus return; focus stays where it is. A
- * `reachable` declaration relaxes how the trap is enforced without relaxing
- * modality.
+ * trap, no initial-focus steal, no focus return; focus stays where it is.
  *
  * @internal
  */

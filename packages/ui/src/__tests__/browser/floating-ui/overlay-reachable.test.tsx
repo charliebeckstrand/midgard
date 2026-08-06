@@ -1,4 +1,4 @@
-import { type ReactNode, type RefObject, useRef } from 'react'
+import { createRef, type ReactNode, type RefObject } from 'react'
 import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Button } from '../../../components/button'
@@ -67,13 +67,6 @@ function Surface({
 	)
 }
 
-/** {@link Surface}, with the declaration as a ref rather than a selector. @internal */
-function RefSurface() {
-	const chrome = useRef<HTMLDivElement>(null)
-
-	return <Surface reachable={chrome} chromeRef={chrome} />
-}
-
 /**
  * The chrome's tab stop, by text rather than by role: an undeclared page is
  * marked away from AT, which empties the computed accessible name, and the
@@ -115,7 +108,9 @@ describe('a11y focus order (real browser): Overlay reachable', () => {
 	})
 
 	it('accepts a ref as well as a selector', async () => {
-		renderUI(<RefSurface />)
+		const chrome = createRef<HTMLDivElement>()
+
+		renderUI(<Surface reachable={chrome} chromeRef={chrome} />)
 
 		const first = screen.getByRole('button', { name: 'Panel first' })
 

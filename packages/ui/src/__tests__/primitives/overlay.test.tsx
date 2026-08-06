@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { Overlay } from '../../primitives/overlay'
+import { Overlay, overlayReachLayer } from '../../primitives/overlay'
 import { fireEvent, renderUI, screen } from '../helpers'
 
 describe('Overlay', () => {
@@ -244,17 +244,34 @@ describe('Overlay', () => {
 	// enforcement is the focus engine's, and this suite mocks the engine away —
 	// browser/floating-ui/overlay-reachable.test.tsx asserts the focus order and
 	// the page marking. These pin what a declaration must leave alone.
-	it('still locks body scroll with a reachable declaration', () => {
+	// `elevated` ranks the root against chrome the app lifted onto `overlayReachLayer`,
+	// so the two have to stay on distinct rungs and the exported class has to be the one
+	// a consumer lifts onto — a ladder that renumbers without these moving together puts
+	// the scrim back over the chrome `reachable` just exempted.
+	it.each([
+		['seals the page on the default rung', undefined],
+		['clears lifted chrome when elevated', true],
+	] as const)('%s', (_label, elevated) => {
 		renderUI(
-			<Overlay open reachable="[data-test-chrome]" onOpenChange={() => {}}>
+			<Overlay open elevated={elevated} onOpenChange={() => {}}>
 				<span>content</span>
 			</Overlay>,
 		)
 
-		expect(document.body.style.overflow).toBe('hidden')
+		const root = document.querySelector<HTMLElement>('[data-slot="overlay"]')
+
+		expect(root).not.toBeNull()
+
+		expect(root?.className).toContain(elevated ? 'z-101' : 'z-99')
+
+		expect(root?.className).not.toContain(overlayReachLayer)
 	})
 
-	it('still closes on backdrop click with a reachable declaration', () => {
+	it('puts declared chrome above the overlay but below floats', () => {
+		expect(overlayReachLayer).toBe('z-100')
+	})
+
+	it('leaves scroll lock and backdrop dismiss alone with a reachable declaration', () => {
 		const onOpenChange = vi.fn()
 
 		renderUI(
@@ -263,11 +280,11 @@ describe('Overlay', () => {
 			</Overlay>,
 		)
 
-		const backdrop = document.querySelector<HTMLElement>('[data-slot="overlay-backdrop"]')
+		expect(document.body.style.overflow).toBe('hidden')
 
-		expect(backdrop).not.toBeNull()
-
-		fireEvent.click(backdrop as HTMLElement)
+		fireEvent.click(
+			document.querySelector<HTMLElement>('[data-slot="overlay-backdrop"]') as HTMLElement,
+		)
 
 		expect(onOpenChange).toHaveBeenCalledWith(false)
 	})

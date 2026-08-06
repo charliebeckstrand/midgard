@@ -35,8 +35,7 @@ export type DrawerProps = Omit<DrawerPanelVariants, 'surface'> & {
 	 * reduced-motion preference collapses still resolves, and so still reports — the same
 	 * property the accordion's hold relies on to unmount a closed panel.
 	 *
-	 * Once per arrival, and never for a close. `PresencePortal`, under the `Overlay` this
-	 * renders in, has `onExitComplete` for the leaving side of the same idea.
+	 * Once per arrival, and never for a close.
 	 */
 	onOpenComplete?: () => void
 	/**
@@ -154,17 +153,16 @@ export function Drawer({
 	const animateEnter = useEnterAnimation(resolvedOpen, animateOnMount)
 
 	/*
-	 * One report per arrival.
-	 *
-	 * Reset while closed rather than on report, so a reopen reports again while a second
-	 * landing inside one arrival does not. Adjusted during render because that is the
-	 * cheapest place for it — unlike `useEnterAnimation` above, nothing in this render reads
-	 * it, so an effect would do as well.
+	 * One report per arrival. Reset while closed rather than on report, so a reopen reports
+	 * again while a second landing inside one arrival does not — adjusted during render, in
+	 * step with `useEnterAnimation` above.
 	 */
 	const reportedRef = useRef(false)
 
 	if (!resolvedOpen) reportedRef.current = false
 
+	// Memoized because the arrival effect below depends on it; a bare function would change
+	// identity every render, which `useExhaustiveDependencies` rejects outright.
 	const reportOpen = useCallback(() => {
 		if (reportedRef.current) return
 

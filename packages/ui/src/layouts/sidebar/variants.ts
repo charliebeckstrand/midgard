@@ -34,9 +34,10 @@ const floatingHotZone = defineRecipe({
 	base: ['absolute inset-y-0 left-0 z-30 w-2 max-lg:hidden'],
 })
 
-// Portalled to the body, so it ranks against other surfaces rather than inside
-// the layout's own stacking context — hence a `sou` rung and not a local `z-30`
-// like the hot zone above. It abuts the floating sidebar without overlapping it.
+// Portalled to the body, so it escapes the layout's stacking context and needs a
+// ladder rung rather than a local `z-30` like the hot zone above. `chrome` clears
+// the page without reaching for the sidebar's own `elevated` rung: the strip abuts
+// the sheet rather than overlapping it, so the two never contend.
 const floatingBuffer = defineRecipe({
 	base: [sou.chrome, 'fixed top-0 bottom-0 left-80 w-10 max-lg:hidden'],
 })

@@ -144,18 +144,12 @@ describe('Drawer onOpenComplete', () => {
 		</Drawer>
 	)
 
-	it('reports a panel that arrives already in place', () => {
-		const onOpenComplete = vi.fn()
-
-		renderUI(drawer({ open: true, animateOnMount: false, onOpenComplete }))
-
-		expect(onOpenComplete).toHaveBeenCalledOnce()
-	})
-
-	it('reports once per arrival, not once per render', () => {
+	it('reports a panel that arrives already in place, once per arrival not once per render', () => {
 		const onOpenComplete = vi.fn()
 
 		const { rerender } = renderUI(drawer({ open: true, animateOnMount: false, onOpenComplete }))
+
+		expect(onOpenComplete).toHaveBeenCalledOnce()
 
 		rerender(drawer({ open: true, animateOnMount: false, onOpenComplete }))
 

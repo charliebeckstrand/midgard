@@ -6,7 +6,7 @@
 
 | Layer | Role | What |
 |---|---|---|
-| [Kiso 基礎 — Tokens](./kiso/README.md) | Data | Two tiers of design tokens: **primitive** atoms (`iro` · `ji` · `ma` · `narabi` · `omote` · `hannou` · `sen` · `shaku` · `sun` · `tsunagi` · `ugoki` · `kokkaku` · `kasane`) and **semantic** archetype bundles (`control` · `popover` · `segment` · `panel` · `slider`) composed from them. |
+| [Kiso 基礎 — Tokens](./kiso/README.md) | Data | Two tiers of design tokens: **primitive** atoms (`iro` · `ji` · `ma` · `narabi` · `omote` · `hannou` · `sen` · `shaku` · `sou` · `sun` · `tsunagi` · `ugoki` · `kokkaku` · `kasane`) and **semantic** archetype bundles (`control` · `popover` · `segment` · `panel` · `slider`) composed from them. |
 | [Katakana 片仮名 — Bridge](./katakana/README.md) | Structure | Pure functions that receive a kiso token bundle and wire it into a recipe surface. Imports only the recipe engine — **never kiso values**. |
 | [Kata 型 — Form](./kata/README.md) | Application | Per-unit recipes — the funnel for components and primitives, and **the only layer that touches kiso**. |
 
