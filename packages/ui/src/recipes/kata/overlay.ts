@@ -1,4 +1,4 @@
-import { omote, ugoki } from '../kiso'
+import { omote, sou, ugoki } from '../kiso'
 
 const { backdrop } = omote
 const { overlay } = ugoki
@@ -7,13 +7,12 @@ export const k = {
 	motion: overlay,
 	backdrop,
 	/**
-	 * Root stacking levels. `base` is the ordinary overlay layer, under the
-	 * `z-100` the popover portal and the toast viewport take. `elevated` clears
-	 * chrome a consumer lifted over the root to keep it reachable, and so also
-	 * clears both of those.
+	 * Root stacking levels, from the `sou` ladder. `base` seals the page for a
+	 * transaction; `elevated` clears the chrome a consumer lifted over it to stay
+	 * `reachable`. Floats and toasts sit above both.
 	 */
 	root: {
-		base: 'z-99',
-		elevated: 'z-101',
+		base: sou.overlay,
+		elevated: sou.elevated,
 	},
 }

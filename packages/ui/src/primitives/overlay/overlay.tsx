@@ -119,9 +119,9 @@ export type OverlayProps = {
 	 * outlives the surface. A browser with no `inert` support keeps the strict
 	 * trap; there, only the accessibility-tree and pointer exemptions apply.
 	 *
-	 * The consumer owns the stacking order. The declared region must sit above
-	 * the overlay root's `z-99`, or the scrim covers what this prop made
-	 * reachable.
+	 * The consumer owns the stacking order. The declared region must sit on the
+	 * `sou` ladder's `chrome` rung, above the overlay root, or the scrim covers
+	 * what this prop made reachable.
 	 *
 	 * @defaultValue undefined — the panel is fully modal
 	 */
@@ -131,7 +131,7 @@ export type OverlayProps = {
 	 *
 	 * The inverse of {@link OverlayProps.reachable}, and the other half of the same
 	 * decision. `reachable` is for chrome a *panel* must not seal off, which obliges the
-	 * consumer to lift that chrome above the root's `z-99`. Once it has, every overlay is
+	 * consumer to lift that chrome onto the `chrome` rung. Once it has, every overlay is
 	 * under it — including the ones that are themselves that app's navigation, and which
 	 * therefore have to cover it.
 	 *
@@ -142,8 +142,9 @@ export type OverlayProps = {
 	 * @remarks Stacking only — modality, focus and dismissal are untouched. Two elevated
 	 * overlays land on one level and fall back to DOM order, so this is not a way to rank
 	 * overlays against each other; it ranks an overlay against the chrome above the root.
+	 * Floats and toasts stay above either way — see the `sou` ladder.
 	 *
-	 * @defaultValue false — the root's ordinary `z-99`
+	 * @defaultValue false — the root's ordinary rung
 	 */
 	elevated?: boolean
 } & Omit<HTMLAttributes<HTMLDivElement>, 'className' | 'children'>
