@@ -7,12 +7,13 @@ import {
 	useEffect,
 	useMemo,
 	useRef,
+	useState,
 } from 'react'
 import { announce } from '../../core'
 import { useControllable } from '../../hooks'
 import { focusWithoutReveal } from '../../hooks/use-truncation'
 import { EMPTY_SET } from './engine/grid-constants'
-import type { GridRowEditing } from './grid-editing-context'
+import type { GridActiveEdit, GridRowEditing } from './grid-editing-context'
 import type { CellChange, GridEditableConfig } from './grid-editing-types'
 import type { GridColumn } from './types'
 import type { Coord } from './use-grid-navigation'
@@ -23,10 +24,12 @@ export type GridEditingApi = {
 	/**
 	 * Puts a row into edit mode through the controllable set (so `onRowsChange`
 	 * fires) and, once its editors mount, focuses the editor in the cell at
-	 * `coord` — the grid-owned entry behind `trigger: 'doubleClick'`. A no-op for
-	 * a row already editing.
+	 * `coord` — the grid-owned entry behind `trigger: 'doubleClick'`. Under row
+	 * scope it is a no-op for a row already editing. Under `scope: 'cell'` it
+	 * re-points the session at `columnId` instead: the cell it leaves commits,
+	 * and a previous row leaves the set.
 	 */
-	enterRowEdit: (rowKey: string | number, coord: Coord) => void
+	enterRowEdit: (rowKey: string | number, columnId: string | number, coord: Coord) => void
 	/**
 	 * Abandons an editing row's session when an Escape bubbles up from one of its
 	 * editors — layered onto the grid `<table>`'s key handler by
@@ -140,6 +143,51 @@ function flushExitedRows<T>(args: {
 }
 
 /**
+ * Flushes the single cell a cell-scoped session left while its row stayed in the
+ * editable set — the move from one cell of a row to another. Emits that cell's
+ * change as its own `onCommit` batch and drops the draft, so the row's later exit
+ * finds nothing to re-emit and every cell-scoped commit carries one change.
+ * Returns the cells saved (0 or 1). @internal
+ */
+function flushLeftCell<T>(args: {
+	cell: GridActiveEdit
+	drafts: Map<string | number, RowDrafts>
+	columns: GridColumn<T>[]
+	rows: T[]
+	rowKeys: (string | number)[]
+	onCommit: ((changes: CellChange[]) => void) | undefined
+}): number {
+	const rowDrafts = args.drafts.get(args.cell.rowKey)
+
+	if (!rowDrafts?.has(args.cell.columnId)) return 0
+
+	const one: RowDrafts = new Map([[args.cell.columnId, rowDrafts.get(args.cell.columnId)]])
+
+	rowDrafts.delete(args.cell.columnId)
+
+	const changes = flushRow({
+		rowKey: args.cell.rowKey,
+		drafts: one,
+		columns: args.columns,
+		rows: args.rows,
+		rowKeys: args.rowKeys,
+	})
+
+	if (!changes.length) return 0
+
+	args.onCommit?.(changes)
+
+	return changes.length
+}
+
+/** Whether two active-edit coords name the same cell. @internal */
+function isSameCell(a: GridActiveEdit | null, b: GridActiveEdit | null): boolean {
+	if (a === null || b === null) return a === b
+
+	return a.rowKey === b.rowKey && a.columnId === b.columnId
+}
+
+/**
  * Owns per-row inline editing: the editable rows (a controllable `Set<key>`,
  * consumer-driven by default) and the staged drafts of cells in those rows. A
  * row in the set renders all its editable cells as editors at once; each edit
@@ -149,6 +197,11 @@ function flushExitedRows<T>(args: {
  * drafts flush as a single {@link CellChange} batch through `onCommit`,
  * dropping unchanged and invalid cells. Inert when `enabled` is false, so a
  * read-only grid pays nothing.
+ *
+ * A grid-owned session under `scope: 'cell'` narrows to one cell: the row still
+ * enters the set, but only the active cell mounts an editor, and the session
+ * re-points as the user enters another cell — flushing the cell it leaves, so
+ * each batch carries one change.
  *
  * @typeParam T - Shape of a single row.
  * @internal
@@ -187,10 +240,32 @@ export function useGridEditing<T>({
 	// the consumer.
 	const sessionOwned = enabled && config?.trigger === 'doubleClick'
 
+	// Cell scope narrows a grid-owned session to the entered cell. It needs that
+	// session: under 'manual' the consumer names a row and never a cell, so there
+	// is no cell to narrow to and the row's editors all mount.
+	const cellScoped = sessionOwned && config?.scope === 'cell'
+
+	// The cell a cell-scoped session edits; null under row scope. Held as state
+	// because it gates which cell mounts an editor.
+	const [activeEditRaw, setActiveEdit] = useState<GridActiveEdit | null>(null)
+
+	// A controlled binding can decline an entry (the row never joins the set), and
+	// a consumer save can drop an editing row from under the session. Deriving the
+	// live coord from the set covers both without an effect to resynchronize.
+	const activeEdit = activeEditRaw && editableRows.has(activeEditRaw.rowKey) ? activeEditRaw : null
+
 	// Read by the [] -stable session callbacks at event time.
 	const editableRowsRef = useRef(editableRows)
 
 	editableRowsRef.current = editableRows
+
+	const activeEditRef = useRef(activeEdit)
+
+	activeEditRef.current = activeEdit
+
+	const cellScopedRef = useRef(cellScoped)
+
+	cellScopedRef.current = cellScoped
 
 	const onCommitRef = useRef(config?.onCommit)
 
@@ -222,15 +297,34 @@ export function useGridEditing<T>({
 	// The cell whose editor takes focus once its row's editors mount — set by
 	// `enterRowEdit`, resolved by the effect below after the render that mounts
 	// them (the controlled binding may take an extra consumer round-trip).
-	const pendingFocusRef = useRef<{ rowKey: string | number; coord: Coord } | null>(null)
+	const pendingFocusRef = useRef<(GridActiveEdit & { coord: Coord }) | null>(null)
 
 	const enterRowEdit = useCallback(
-		(rowKey: string | number, coord: Coord) => {
-			if (editableRowsRef.current.has(rowKey)) return
+		(rowKey: string | number, columnId: string | number, coord: Coord) => {
+			const active = activeEditRef.current
 
-			pendingFocusRef.current = { rowKey, coord }
+			// Row scope holds one session per row, so a row already editing takes no
+			// second entry; cell scope re-points at the entered cell instead, and only
+			// the cell it already sits on is the no-op.
+			if (cellScopedRef.current) {
+				if (isSameCell(active, { rowKey, columnId })) return
+			} else if (editableRowsRef.current.has(rowKey)) return
 
-			setEditableRows((prev) => new Set(prev ?? EMPTY_SET).add(rowKey))
+			pendingFocusRef.current = { rowKey, columnId, coord }
+
+			if (cellScopedRef.current) setActiveEdit({ rowKey, columnId })
+
+			setEditableRows((prev) => {
+				const next = new Set(prev ?? EMPTY_SET)
+
+				// A cell-scoped session holds one row at a time: the row it leaves exits
+				// the set, flushing whatever the session staged there.
+				if (cellScopedRef.current && active && active.rowKey !== rowKey) {
+					next.delete(active.rowKey)
+				}
+
+				return next.add(rowKey)
+			})
 		},
 		[setEditableRows],
 	)
@@ -248,6 +342,10 @@ export function useGridEditing<T>({
 
 		if (!editableRows.has(pending.rowKey)) return
 
+		// A cell-scoped session mounts one editor, so the focus waits until the
+		// session points at the entered cell — never at the cell it left.
+		if (activeEdit !== null && !isSameCell(activeEdit, pending)) return
+
 		const editor = document
 			.getElementById(cellId(pending.coord.row, pending.coord.col))
 			?.querySelector<HTMLElement>(EDITOR_FOCUSABLE)
@@ -257,7 +355,7 @@ export function useGridEditing<T>({
 		// the arm's synchronous `flushSync` cannot flush and warns — route the focus
 		// through the helper so the arm takes its no-flush path.
 		if (editor) focusWithoutReveal(editor)
-	}, [editableRows, cellId])
+	}, [editableRows, activeEdit, cellId])
 
 	// Grid-owned exits: both reseat focus on the grid's tab stop before the
 	// editors unmount, then remove the row from the set — the same flush path a
@@ -268,6 +366,8 @@ export function useGridEditing<T>({
 			if (!editableRowsRef.current.has(rowKey)) return
 
 			restoreGridFocus()
+
+			if (activeEditRef.current?.rowKey === rowKey) setActiveEdit(null)
 
 			setEditableRows((prev) => {
 				const next = new Set(prev ?? EMPTY_SET)
@@ -282,7 +382,24 @@ export function useGridEditing<T>({
 
 	const cancelRowEdit = useCallback(
 		(rowKey: string | number) => {
-			draftsRef.current.delete(rowKey)
+			if (!editableRowsRef.current.has(rowKey)) return
+
+			// Reseat focus before the drafts go, not after: an editor blurred on the
+			// way out can stage one last value (`NumberInput` commits its typed text
+			// there), and that write must not outlive the discard. `exitRowEdit`
+			// reseats again, which lands on the tab stop it already holds.
+			restoreGridFocus()
+
+			const active = activeEditRef.current
+
+			// A cell-scoped session abandons the cell it sits on; the cells it visited
+			// before that one committed as it left them, so their values are not the
+			// session's to discard. Row scope drops the whole row's drafts.
+			if (active?.rowKey === rowKey) {
+				draftsRef.current.get(rowKey)?.delete(active.columnId)
+			} else {
+				draftsRef.current.delete(rowKey)
+			}
 
 			exitRowEdit(rowKey)
 		},
@@ -329,12 +446,34 @@ export function useGridEditing<T>({
 	// have unmounted, but the drafts persist in the ref until flushed here.
 	const prevRowsRef = useRef<Set<string | number>>(EMPTY_SET)
 
+	const prevActiveRef = useRef<GridActiveEdit | null>(null)
+
 	useEffect(() => {
 		const prev = prevRowsRef.current
 
+		const prevActive = prevActiveRef.current
+
 		prevRowsRef.current = editableRows
 
-		const saved = flushExitedRows({
+		prevActiveRef.current = activeEdit
+
+		let saved = 0
+
+		// A cell-scoped session that moved to another cell of the same row commits
+		// the cell it left. A move that also left the row needs nothing here: the
+		// row-exit flush below finds the same drafts and emits them.
+		if (prevActive && !isSameCell(prevActive, activeEdit) && editableRows.has(prevActive.rowKey)) {
+			saved += flushLeftCell({
+				cell: prevActive,
+				drafts: draftsRef.current,
+				columns: dataColumnsRef.current,
+				rows: rowsRef.current,
+				rowKeys: rowKeysRef.current,
+				onCommit: onCommitRef.current,
+			})
+		}
+
+		saved += flushExitedRows({
 			prev,
 			next: editableRows,
 			drafts: draftsRef.current,
@@ -346,17 +485,18 @@ export function useGridEditing<T>({
 
 		// Announce the commit politely, without moving focus (WCAG 4.1.3).
 		if (saved > 0) announce(`${saved} ${saved === 1 ? 'cell' : 'cells'} updated`)
-	}, [editableRows, dataColumnsRef, rowsRef, rowKeysRef])
+	}, [editableRows, activeEdit, dataColumnsRef, rowsRef, rowKeysRef])
 
 	const rowEditing = useMemo<GridRowEditing>(
 		() => ({
 			editableRows,
+			activeEdit,
 			stageDraft,
 			unstageDraft,
 			commitRowEdit: sessionOwned ? exitRowEdit : undefined,
 			cancelRowEdit: sessionOwned ? cancelRowEdit : undefined,
 		}),
-		[editableRows, stageDraft, unstageDraft, sessionOwned, exitRowEdit, cancelRowEdit],
+		[editableRows, activeEdit, stageDraft, unstageDraft, sessionOwned, exitRowEdit, cancelRowEdit],
 	)
 
 	return { rowEditing, enterRowEdit, sessionEscape: sessionOwned ? sessionEscape : undefined }

@@ -59,6 +59,11 @@ export type GridEditCell<T> = (context: GridEditCellContext<T>) => ReactNode
  * at once. Edits stage live; removing the row from the set saves its changed
  * cells as one batch through `onCommit` (Escape reverts a cell).
  *
+ * A grid-owned session ({@link GridEditableConfig.trigger} `'doubleClick'`) can
+ * narrow to the entered cell instead of its whole row through {@link
+ * GridEditableConfig.scope}; the set and the batch sink stay the model either
+ * way.
+ *
  * @remarks The editable-row set is a controllable `Set<key>`, mirroring
  * {@link GridSelection}: flip a row in (e.g. from a row-action pencil) to put it
  * into edit mode, out (a save action's check) to settle and commit it. Selection
@@ -87,6 +92,20 @@ export type GridEditableConfig = {
 	 * @defaultValue 'manual'
 	 */
 	trigger?: 'manual' | 'doubleClick'
+	/**
+	 * How much of a grid-owned session enters edit mode. `'row'` — the default —
+	 * mounts an editor in every editable cell of the entered row at once, the
+	 * shape a form-like "edit this record" grid wants. `'cell'` narrows the
+	 * session to the entered cell alone: only that cell mounts an editor, and
+	 * moving to another cell commits the one it leaves, so each commit carries a
+	 * single {@link CellChange} — the spreadsheet shape. Escape under `'cell'`
+	 * drops the active cell's draft alone, because the cells before it already
+	 * committed. The setting needs a grid-owned session ({@link
+	 * GridEditableConfig.trigger} `'doubleClick'`); under `'manual'` the consumer
+	 * names a row, never a cell, so the row's editors all mount as under `'row'`.
+	 * @defaultValue 'row'
+	 */
+	scope?: 'row' | 'cell'
 	/**
 	 * Called when an editing row is saved (removed from the set), with one
 	 * {@link CellChange} per changed cell in that row, batched into a single call.

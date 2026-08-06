@@ -139,8 +139,9 @@ function GridCellEditor<T>({
  * One data cell of an editable grid. When its row key is in the editable set and
  * the column binds an editor, it mounts {@link GridCellEditor}; otherwise it
  * renders the column's display content through {@link GridNavCell} (which carries
- * the active-cursor ring). The editable set flips only on a row toggle, so cells
- * don't re-render as the user types.
+ * the active-cursor ring). A cell-scoped session (`scope: 'cell'`) narrows that
+ * to the one cell it names. The editable set and the active cell flip only on a
+ * session transition, so cells don't re-render as the user types.
  *
  * @internal
  */
@@ -152,10 +153,17 @@ export function GridEditingCell<T>({
 	column,
 	render,
 }: GridEditingCellProps<T>) {
-	const { editableRows, stageDraft, unstageDraft, commitRowEdit, cancelRowEdit } =
+	const { editableRows, activeEdit, stageDraft, unstageDraft, commitRowEdit, cancelRowEdit } =
 		useGridRowEditing()
 
-	if (editableRows.has(rowKey) && isColumnEditable(column)) {
+	// `activeEdit` is set only by a cell-scoped session, so row scope keeps the
+	// plain has-rowKey test and cell scope narrows it to the one named cell.
+	const editing =
+		editableRows.has(rowKey) &&
+		isColumnEditable(column) &&
+		(activeEdit === null || (activeEdit.rowKey === rowKey && activeEdit.columnId === column.id))
+
+	if (editing) {
 		return (
 			<GridCellEditor
 				rowIdx={rowIdx}

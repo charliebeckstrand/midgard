@@ -389,6 +389,22 @@ describe("Grid double-click-to-edit (trigger: 'doubleClick')", () => {
 		expect((bySlot(container, 'grid-edit-input') as HTMLInputElement).value).toBe('Alice')
 	})
 
+	it("discards a number editor's value on Escape, past the stage its exit blur takes", () => {
+		const { container, cell, onCommit } = renderTriggerGrid()
+
+		fireEvent.doubleClick(cell('count'))
+
+		const number = bySlot(container, 'grid-edit-number-input') as HTMLInputElement
+
+		fireEvent.change(number, { target: { value: '42' } })
+
+		fireEvent.keyDown(number, { key: 'Escape' })
+
+		// The exit reseats focus on the grid, and `NumberInput` commits its typed
+		// text on that blur; the discard has to outlast that last stage.
+		expect(onCommit).not.toHaveBeenCalled()
+	})
+
 	it("enters edit mode from the keyboard: Enter on the cursor's active cell", () => {
 		const { container, getByRole } = renderTriggerGrid()
 
@@ -443,5 +459,182 @@ describe("Grid double-click-to-edit (trigger: 'doubleClick')", () => {
 		fireEvent.keyDown(bySlot(container, 'open-disclosure') as HTMLElement, { key: 'Escape' })
 
 		expect(bySlot(container, 'open-disclosure')).toBeInTheDocument()
+	})
+})
+
+/**
+ * Cell-scoped sessions (`editable.scope: 'cell'`): a grid-owned session edits the
+ * entered cell alone rather than its whole row. Moving to another cell commits
+ * the one it leaves, so each `onCommit` carries a single change, and Escape
+ * discards only the cell the session sits on. The editable-row set and the batch
+ * sink stay the model, so a consumer binding reads the same as under row scope.
+ */
+describe("Grid cell-scoped editing (scope: 'cell')", () => {
+	type Row = { id: number; name: string; count: number }
+
+	const baseRows: Row[] = [
+		{ id: 1, name: 'Alice', count: 2 },
+		{ id: 2, name: 'Bob', count: 5 },
+	]
+
+	const columns: GridColumn<Row>[] = [
+		{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
+		{ id: 'count', title: 'Count', field: 'count', cell: (row) => String(row.count) },
+	]
+
+	function renderCellGrid() {
+		const onCommit = vi.fn()
+
+		const onRowsChange = vi.fn()
+
+		const view = renderUI(
+			<Grid
+				columns={columns}
+				rows={baseRows}
+				getKey={(row) => row.id}
+				editable={{ trigger: 'doubleClick', scope: 'cell', onRowsChange, onCommit }}
+			/>,
+		)
+
+		return {
+			...view,
+			onCommit,
+			onRowsChange,
+			cell: (col: string, rowIndex = 0) =>
+				view.container.querySelectorAll<HTMLElement>(`td[data-grid-col="${col}"]`)[
+					rowIndex
+				] as HTMLElement,
+		}
+	}
+
+	it('mounts an editor in the entered cell alone, leaving the row it sits in reading', () => {
+		const { container, cell } = renderCellGrid()
+
+		fireEvent.doubleClick(cell('name'))
+
+		expect(bySlot(container, 'grid-edit-input')).toHaveFocus()
+
+		// The sibling cell of the same row keeps its display content — the one
+		// difference from row scope, which mounts both editors at once.
+		expect(bySlot(container, 'grid-edit-number-input')).toBeNull()
+	})
+
+	it('saves the entered cell as a one-change batch on Enter', async () => {
+		const { container, cell, onCommit, getByRole } = renderCellGrid()
+
+		fireEvent.doubleClick(cell('name'))
+
+		const input = bySlot(container, 'grid-edit-input') as HTMLInputElement
+
+		fireEvent.change(input, { target: { value: 'Alicia' } })
+
+		fireEvent.keyDown(input, { key: 'Enter' })
+
+		expect(onCommit).toHaveBeenCalledTimes(1)
+
+		expect(onCommit).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'name', value: 'Alicia' }])
+
+		expect(getByRole('grid')).toHaveFocus()
+
+		await Promise.resolve()
+
+		expect(liveRegion()).toHaveTextContent('1 cell updated')
+	})
+
+	it('commits the cell it leaves when the session moves along the row', () => {
+		const { container, cell, onCommit } = renderCellGrid()
+
+		fireEvent.doubleClick(cell('name'))
+
+		fireEvent.change(bySlot(container, 'grid-edit-input') as HTMLInputElement, {
+			target: { value: 'Alicia' },
+		})
+
+		// The row never leaves the set, so the cell's own departure is what commits
+		// it — the property that keeps a cell-scoped batch one change long.
+		fireEvent.doubleClick(cell('count'))
+
+		expect(onCommit).toHaveBeenCalledTimes(1)
+
+		expect(onCommit).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'name', value: 'Alicia' }])
+
+		expect(bySlot(container, 'grid-edit-input')).toBeNull()
+
+		expect(bySlot(container, 'grid-edit-number-input')).toHaveFocus()
+	})
+
+	it('holds one row in the set, committing the row the session leaves', () => {
+		const { container, cell, onCommit, onRowsChange } = renderCellGrid()
+
+		fireEvent.doubleClick(cell('name'))
+
+		fireEvent.change(bySlot(container, 'grid-edit-input') as HTMLInputElement, {
+			target: { value: 'Alicia' },
+		})
+
+		fireEvent.doubleClick(cell('name', 1))
+
+		expect(onCommit).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'name', value: 'Alicia' }])
+
+		// The first row leaves as the second enters, so the binding never carries a
+		// row whose cells no longer edit.
+		expect(onRowsChange).toHaveBeenLastCalledWith(new Set([2]))
+	})
+
+	it('abandons the active cell on Escape, keeping the cells committed before it', () => {
+		const { container, cell, onCommit } = renderCellGrid()
+
+		fireEvent.doubleClick(cell('name'))
+
+		fireEvent.change(bySlot(container, 'grid-edit-input') as HTMLInputElement, {
+			target: { value: 'Alicia' },
+		})
+
+		fireEvent.doubleClick(cell('count'))
+
+		const number = bySlot(container, 'grid-edit-number-input') as HTMLInputElement
+
+		fireEvent.change(number, { target: { value: '99' } })
+
+		fireEvent.keyDown(number, { key: 'Escape' })
+
+		// The name cell committed when the session left it; only the count cell —
+		// the one Escape was pressed in — is discarded.
+		expect(onCommit).toHaveBeenCalledTimes(1)
+
+		expect(onCommit).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'name', value: 'Alicia' }])
+
+		expect(bySlot(container, 'grid-edit-number-input')).toBeNull()
+	})
+
+	it("enters one cell from the keyboard: Enter on the cursor's active cell", () => {
+		const { container, getByRole } = renderCellGrid()
+
+		const grid = getByRole('grid')
+
+		fireEvent.focus(grid)
+
+		fireEvent.keyDown(grid, { key: 'Enter' })
+
+		expect(bySlot(container, 'grid-edit-input')).toHaveFocus()
+
+		expect(bySlot(container, 'grid-edit-number-input')).toBeNull()
+	})
+
+	it('falls back to the row under a consumer-owned session, which names no cell', () => {
+		// `scope` narrows a grid-owned session. Under 'manual' the consumer flips a
+		// row and the grid never learns a cell, so the row's editors all mount.
+		const { container } = renderUI(
+			<Grid
+				columns={columns}
+				rows={baseRows}
+				getKey={(row) => row.id}
+				editable={{ scope: 'cell', rows: new Set([1]), onCommit: vi.fn() }}
+			/>,
+		)
+
+		expect(bySlot(container, 'grid-edit-input')).toBeInTheDocument()
+
+		expect(bySlot(container, 'grid-edit-number-input')).toBeInTheDocument()
 	})
 })

@@ -148,7 +148,7 @@ export function useGridCursor<T>({
 
 			if (rowKey === undefined || !col || !isColumnEditable(col)) return
 
-			editing.enterRowEdit(rowKey, { row: rowIdx, col: colIdx })
+			editing.enterRowEdit(rowKey, col.id, { row: rowIdx, col: colIdx })
 		},
 		[editing.enterRowEdit, rowKeysRef, dataColumnsRef],
 	)

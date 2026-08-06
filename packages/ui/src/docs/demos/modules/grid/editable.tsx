@@ -257,6 +257,61 @@ export function EditableExample() {
 	)
 }
 
+export function CellScopeExample() {
+	const [people, setPeople] = useState<Person[]>(initialPeople)
+
+	// `scope: 'cell'` narrows the grid-owned session to the cell the user entered:
+	// one editor at a time, the cell committing as the session moves on. The
+	// binding is the one the row-scoped example uses — the same editable-row set
+	// and the same batch sink — so only the reach of a session changes.
+	const columns: GridColumn<Person>[] = [
+		{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
+		{ id: 'email', title: 'Email', field: 'email', cell: (row) => row.email },
+		{
+			id: 'role',
+			title: 'Role',
+			field: 'role',
+			cell: (row) => row.role,
+			editCell: (ctx) => (
+				<CellListbox
+					value={String(ctx.value ?? '')}
+					options={roleOptions}
+					onValueUpdate={ctx.onValueUpdate}
+					ariaLabel={ctx.ariaLabel}
+				/>
+			),
+		},
+		{
+			id: 'active',
+			title: 'Active',
+			field: 'active',
+			cell: (row) => (
+				<Badge color={row.active ? 'green' : 'zinc'}>{row.active ? 'Active' : 'Inactive'}</Badge>
+			),
+		},
+	]
+
+	return (
+		<>
+			<EditHelp label="Editing help">
+				Double-click a cell (or press Enter on the cursor's cell) to edit that cell alone. Enter
+				saves it, double-clicking another cell saves it and moves along, and Escape discards the
+				cell you are in — the cells you already left stay saved.
+			</EditHelp>
+			<Grid
+				columns={columns}
+				rows={people}
+				getKey={(row) => row.id}
+				editable={{
+					trigger: 'doubleClick',
+					scope: 'cell',
+					onCommit: (changes) => setPeople((prev) => applyChanges(prev, changes)),
+				}}
+			/>
+		</>
+	)
+}
+
 type Task = {
 	id: number
 	title: string
