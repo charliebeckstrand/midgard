@@ -2,6 +2,7 @@ import { memo, useMemo } from 'react'
 import { ariaAttr } from '../../core'
 import { rangeKeys } from '../../utilities'
 import { type MapCategoryMeta, READOUT_GAP } from './map-categories'
+import { markRows } from './map-readout'
 import type { MapOverlayEntry } from './use-map-legend-registry'
 
 /** Props for {@link MapTable}. @internal */
@@ -109,11 +110,13 @@ export const MapTable = memo(function MapTable({
 						)
 					})}
 
-					{entries.map((entry) => (
-						<tr key={entry.id}>
-							<th scope="row">{entry.label}</th>
+					{/* One row per dot, so the table carries what the tooltip gives the
+					    pointer — through the one resolver both surfaces read. */}
+					{entries.flatMap(markRows).map((row) => (
+						<tr key={row.key}>
+							<th scope="row">{row.name}</th>
 
-							<td>{entry.detail ?? entry.kind}</td>
+							<td>{row.detail}</td>
 						</tr>
 					))}
 				</tbody>

@@ -4,6 +4,7 @@ import { ALBERS_USA_ASPECT } from '../../modules/map/map-constants'
 import {
 	canonicalFit,
 	fitMapProjection,
+	frameToClient,
 	mapAutoAspect,
 	mapFrameSizing,
 	measuredMapFit,
@@ -264,5 +265,37 @@ describe('mapFrameSizing', () => {
 		// The `${number}/${number}` type admits a signed numerator, so a negative
 		// ratio must fall through to fill, not produce an invalid CSS aspect-ratio.
 		expect(mapFrameSizing(undefined, '-4/3', null)).toEqual({ mode: 'fill' })
+	})
+})
+
+describe('frameToClient', () => {
+	const box = { left: 100, top: 50, width: 400, height: 200 }
+
+	it('maps a frame point through a box the view frame fills exactly', () => {
+		// Measured state: the viewBox matches the box, so the scale is 1 and only
+		// the box's own offset applies.
+		expect(frameToClient({ x: 10, y: 20 }, box, 400, 200)).toEqual({ x: 110, y: 70 })
+	})
+
+	it('scales when the view frame is a different size than the box', () => {
+		expect(frameToClient({ x: 100, y: 50 }, box, 800, 400)).toEqual({ x: 150, y: 75 })
+	})
+
+	it('centres the letterbox, the SVG default preserveAspectRatio', () => {
+		// Canonical state: a 400x100 view frame inside a 400x200 box fits at scale
+		// 1 and centres, leaving 50px of gap above it.
+		expect(frameToClient({ x: 0, y: 0 }, box, 400, 100)).toEqual({ x: 100, y: 100 })
+
+		// A frame narrower than the box fits on its height (scale 1, not 4) and
+		// centres horizontally, leaving 150px of gap either side.
+		expect(frameToClient({ x: 0, y: 0 }, box, 100, 200)).toEqual({ x: 250, y: 50 })
+	})
+
+	it('reports nothing for a box or a view frame with no area', () => {
+		expect(frameToClient({ x: 0, y: 0 }, { ...box, width: 0 }, 400, 200)).toBeNull()
+
+		expect(frameToClient({ x: 0, y: 0 }, box, 0, 200)).toBeNull()
+
+		expect(frameToClient({ x: 0, y: 0 }, box, 400, 0)).toBeNull()
 	})
 })

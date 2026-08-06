@@ -13,7 +13,18 @@ import type { MapOverlayEntry } from './use-map-legend-registry'
  *
  * @internal
  */
-export type MapHoverTarget = { kind: 'region'; index: number } | { kind: 'entry'; id: string }
+export type MapHoverTarget =
+	| { kind: 'region'; index: number }
+	| {
+			kind: 'entry'
+			id: string
+			/**
+			 * Which of the mark's stops, for a mark that draws more than one — a
+			 * {@link MapPoints} dot. A singular mark carries `0`, so an entry target
+			 * always has a stop and no reader tests for its absence.
+			 */
+			stop: number
+	  }
 
 /**
  * The live hover readout the tooltip anchors to: the pointed target and the
@@ -68,13 +79,67 @@ export function regionIndexAt(node: EventTarget | Element | null): number | null
 
 	if (raw === null) return null
 
-	const index = Number(raw)
+	return wholeNumber(raw)
+}
 
-	return Number.isInteger(index) && index >= 0 ? index : null
+/**
+ * The overlay mark under a DOM node: its id, and which of its stops the node
+ * covers. The twin of {@link regionIndexAt} over the `data-entry-id` /
+ * `data-entry-stop` pair the hit shapes carry, and the one place that reads
+ * them — the hover provider's scroll-settle resolve and the marks' own pointer
+ * handlers must never disagree about which dot is under the pointer.
+ *
+ * A stop that does not read as a whole number falls back to `0` rather than
+ * `NaN`: the mark itself is what the anchor found, so its first stop is the
+ * honest answer where the ordinal is missing or malformed.
+ *
+ * @internal
+ */
+export function markAnchorAt(
+	node: EventTarget | Element | null,
+): { id: string; stop: number } | null {
+	if (!(node instanceof Element)) return null
+
+	const anchor = node.closest('[data-entry-id]')
+
+	const id = anchor?.getAttribute('data-entry-id') ?? null
+
+	if (id === null) return null
+
+	return { id, stop: wholeNumber(anchor?.getAttribute('data-entry-stop') ?? null) ?? 0 }
+}
+
+/** A DOM anchor's value as a whole number, or `null` where it is missing or malformed. */
+function wholeNumber(raw: string | null): number | null {
+	if (raw === null) return null
+
+	const value = Number(raw)
+
+	return Number.isInteger(value) && value >= 0 ? value : null
 }
 
 /** Whether two hover targets name the same mark, so a redundant write can bail. @internal */
 export function sameTarget(a: MapHoverTarget | null, b: MapHoverTarget | null): boolean {
+	if (a === b) return true
+
+	if (a === null || b === null || a.kind !== b.kind) return false
+
+	return sameMark(a, b) && (a.kind === 'region' || a.stop === (b as { stop: number }).stop)
+}
+
+/**
+ * Whether two targets name the same *mark*, ignoring which of its stops. The
+ * whole of a plural mark reads as one thing to the emphasis — pointing one dot
+ * of a {@link MapPoints} lights the group, not that dot alone — which is what
+ * lets the group draw under a single wrapper and a single dim class where two
+ * hundred dots would otherwise need two hundred.
+ *
+ * {@link sameTarget} is this plus the stop, so a third target kind is added
+ * here once rather than in two comparisons that must agree.
+ *
+ * @internal
+ */
+export function sameMark(a: MapHoverTarget | null, b: MapHoverTarget | null): boolean {
 	if (a === b) return true
 
 	if (a === null || b === null || a.kind !== b.kind) return false
@@ -117,7 +182,10 @@ export function mapMarkDimmed(
 	emphasis: string | null,
 	groupId: string | null,
 ): boolean {
-	if (pointed !== null) return !sameTarget(pointed, self)
+	// Compared by mark, not by stop: a plural mark draws under one wrapper, so
+	// pointing one of its dots must light the whole group rather than dim the rest
+	// of itself.
+	if (pointed !== null) return !sameMark(pointed, self)
 
 	return emphasis !== null && emphasis !== groupId
 }

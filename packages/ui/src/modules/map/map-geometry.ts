@@ -5,7 +5,13 @@
  * unit-testable in isolation.
  */
 
-import { type GeoPermissibleObjects, type GeoProjection, geoArea, geoPath } from 'd3-geo'
+import {
+	type GeoPermissibleObjects,
+	type GeoProjection,
+	geoArea,
+	geoCentroid,
+	geoPath,
+} from 'd3-geo'
 import { feature } from 'topojson-client'
 import { REGION_PATH_DIGITS } from './map-constants'
 import type { LngLat, MapFeature, MapGeography } from './types'
@@ -209,6 +215,33 @@ export function regionPaths(features: MapFeature[], projection: GeoProjection): 
 }
 
 /**
+ * Each region's spherical centroid as `[lon, lat]`, index-aligned with the
+ * features; `null` where a feature carries no geometry, or where its rings
+ * cancel to no centre. The keyboard cursor anchors its readout to these, and
+ * steps by the compass bearing between them.
+ *
+ * Deliberately in lon/lat, not in frame units: a centroid is a property of the
+ * geography, so one pass per atlas serves every fit and a resize re-projects the
+ * result instead of measuring the rings again. `geoCentroid` is spherical, so a
+ * region that crosses the antimeridian centres correctly where a mean of its
+ * projected coordinates would not.
+ *
+ * @internal
+ */
+export function regionCentroids(features: MapFeature[]): (LngLat | null)[] {
+	return features.map((entry) => {
+		if (entry.geometry === null) return null
+
+		const [lon, lat] = geoCentroid(entry as GeoPermissibleObjects)
+
+		// A degenerate feature — empty rings, or rings that cancel — centres on
+		// NaN; drop it rather than let the cursor step onto a point that projects
+		// nowhere.
+		return Number.isFinite(lon) && Number.isFinite(lat) ? [lon, lat] : null
+	})
+}
+
+/**
  * Projects one lon/lat to frame coordinates, or `null` where the projection
  * has no image for it — the US composite drops points outside its insets.
  *
@@ -243,6 +276,41 @@ export function linePath(
 	return projected
 		.map((at, index) => `${index === 0 ? 'M' : 'L'}${round(at.x)},${round(at.y)}`)
 		.join('')
+}
+
+/**
+ * The geographic middle of a line of points, as the stop list a line-shaped mark
+ * registers: the cursor lands on the mark rather than at one end, where several
+ * routes out of one depot would stack on the shared origin. A list, and empty
+ * where the line has no points, so a caller passes the result straight through.
+ *
+ * An odd count takes its middle point; an even one takes the midpoint of the two
+ * middle points, so the common two-point line (a `MapMarker` with no routed
+ * path, a two-stop `MapRoute`) anchors between its ends rather than on one of
+ * them. Interpolated in lon/lat rather than on the projected plane: the anchor
+ * only has to sit on the mark, and this way it needs no projection to compute
+ * and survives every refit.
+ *
+ * @internal
+ */
+export function lineAnchor(points: LngLat[]): LngLat[] {
+	const half = points.length / 2
+
+	if (points.length === 0) return []
+
+	if (points.length % 2 === 1) {
+		const middle = points[Math.floor(half)]
+
+		return middle === undefined ? [] : [middle]
+	}
+
+	const before = points[half - 1]
+
+	const after = points[half]
+
+	if (before === undefined || after === undefined) return []
+
+	return [[(before[0] + after[0]) / 2, (before[1] + after[1]) / 2]]
 }
 
 /**

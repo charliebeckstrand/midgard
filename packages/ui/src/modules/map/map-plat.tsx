@@ -28,10 +28,13 @@ import {
 	MapHoverSetContext,
 	type MapHoverState,
 	MapHoverStateContext,
+	type MapHoverTarget,
 	MapPlatContext,
 	type MapPlatContextValue,
 	MapPointedMarkContext,
+	markAnchorAt,
 	regionIndexAt,
+	sameMark,
 	sameTarget,
 } from './context'
 import {
@@ -45,7 +48,8 @@ import {
 	slotColor,
 } from './map-categories'
 import { type MapPoint2D, projectPoint } from './map-geometry'
-import { measuredRegionPaths, staticMapGeometry } from './map-geometry-cache'
+import { cachedRegionCentroids, measuredRegionPaths, staticMapGeometry } from './map-geometry-cache'
+import { mapStops } from './map-keyboard'
 import { MapLegend, type MapLegendItem } from './map-legend'
 import { mapFrameSizing, measuredMapFit, projectionFallbackAspect } from './map-projection'
 import { MapRangeLegend, type MapRangeLegendProps } from './map-range-legend'
@@ -63,6 +67,7 @@ import type {
 	MapLegendPlacement,
 	MapProjection,
 } from './types'
+import { type MapKeyboardOptions, useMapKeyboard } from './use-map-keyboard'
 import type { MapOverlayEntry } from './use-map-legend-registry'
 import { useMapLegendRegistry } from './use-map-legend-registry'
 import { useMapToggle } from './use-map-toggle'
@@ -228,7 +233,10 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 */
 		legend?: MapLegendInput
 		/**
-		 * Show the hover tooltip naming the pointed region or overlay.
+		 * Show the readout naming the pointed region or overlay. It also gates
+		 * keyboard navigation, which the readout is the whole output of: turned
+		 * off, the plot region takes no tab stop and stays a plain `role="img"`
+		 * leaf, and the data table carries the values alone.
 		 * @defaultValue true
 		 */
 		tooltip?: boolean
@@ -253,9 +261,10 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 * cross-filter hook the charts' `onCategoryClick` is, and the same shape.
 		 *
 		 * Set, the region layer carries a pointer cursor and every region answers a
-		 * click, unmatched ones included. A pointer enhancement by design; see
-		 * {@link MapRegionsProps.onRegionClick} for the keyboard control a
-		 * clickable map still owes its users.
+		 * click, unmatched ones included. The keyboard reports through the same
+		 * handler: the plot region is one tab stop, and Enter or Space picks the
+		 * region its arrow cursor sits on, so a pick carries the same identity
+		 * whichever input made it.
 		 */
 		onRegionClick?: (id: string, index: number) => void
 		/**
@@ -852,11 +861,23 @@ function MapHoverProvider({
 	// broken map, the way a chart never dims against a hidden series.
 	const target = state.target
 
-	const pointed = useMemo(
-		() =>
-			target !== null && target.kind === 'region' && !regionActive(target.index) ? null : target,
-		[target, regionActive],
-	)
+	// Pinned at mark granularity, the way the chart frame pins its own pointed
+	// mark: this value names the mark, never the stop within it, and every mark on
+	// the map reads it. Sweeping between the dots of one plural mark would
+	// otherwise republish on each crossing and re-render every mark — the regions,
+	// the range legend, all the overlays — for the answer each already held.
+	const pinned = useRef<MapHoverTarget | null>(null)
+
+	const pointed = useMemo(() => {
+		const next =
+			target !== null && target.kind === 'region' && !regionActive(target.index) ? null : target
+
+		if (sameMark(pinned.current, next)) return pinned.current
+
+		pinned.current = next
+
+		return next
+	}, [target, regionActive])
 
 	const clear = useCallback(() => set(null, null), [set])
 
@@ -886,10 +907,12 @@ function MapHoverProvider({
 				return
 			}
 
-			const entry = under.closest('[data-entry-id]')
+			// Resolved through the shared anchor reader, so a plural mark re-settles
+			// on the dot the pointer is actually over rather than on the mark's first.
+			const mark = markAnchorAt(under)
 
-			if (entry !== null) {
-				set({ kind: 'entry', id: entry.getAttribute('data-entry-id') ?? '' }, point)
+			if (mark !== null) {
+				set({ kind: 'entry', ...mark }, point)
 
 				return
 			}
@@ -998,23 +1021,45 @@ type MapPlotRegionProps = AccessibleName & {
 	shape: MapShape
 	aside: boolean
 	tooltip: ReactNode
+	/** What the keyboard cursor needs; the plat resolves it, this element hosts it. */
+	keyboard: MapKeyboardOptions
 	children: ReactNode
 }
 
-/** The `role="img"` plot box: the aspect-reserved SVG with the tooltip beside it. @internal */
-function MapPlotRegion({ shape, aside, tooltip, children, ...name }: MapPlotRegionProps) {
+/**
+ * The `role="img"` plot box: the aspect-reserved SVG with the tooltip beside it.
+ * It owns the keyboard tab stop, because the cursor writes to the hover context
+ * this element renders inside — {@link MapPlat} sits above the provider and
+ * could not reach it.
+ *
+ * @internal
+ */
+function MapPlotRegion({
+	shape,
+	aside,
+	tooltip,
+	keyboard: options,
+	children,
+	...name
+}: MapPlotRegionProps) {
+	const keyboard = useMapKeyboard(options)
+
 	return (
 		<div
 			ref={shape.ref}
 			data-slot="map-plot"
 			role="img"
 			{...name}
+			{...keyboard}
 			// A side legend takes the width remainder (`min-w-0 flex-1`); a free-form
 			// `fill` map instead grows into the height its region already holds — a
 			// `flex-1 min-h-0` child of the `h-full` frame — so the box measures a real
 			// height rather than the zero its own reserve would feed back.
 			className={cn(
 				'relative',
+				// The focus ring only rides a region that can take focus; a rounded
+				// corner comes with it, so the outline follows the box it rings.
+				keyboard && ['rounded-sm', k.focus],
 				aside && 'min-w-0',
 				(aside || shape.fill) && 'flex-1',
 				shape.fill && 'min-h-0',
@@ -1252,11 +1297,67 @@ export function MapPlat<T = never>({
 						swatch: entry.swatch,
 						swatchClass: cn(k.series[colors.get(entry.id) ?? 'blue'].text),
 						detail: entry.detail,
+						kind: entry.kind,
+						stopRows: entry.stopRows,
 					},
 				]),
 			),
 		[entries, colors],
 	)
+
+	const svgRef = useRef<SVGSVGElement>(null)
+
+	// The keyboard cursor's stops, handed over as a closure rather than built
+	// here: every region at its centroid, then every registered overlay at its
+	// own anchor, each projected through the live fit so a refit carries them with
+	// the geography. Regions lead, so Home and End read as the geography's own
+	// ends and the marks drawn over it follow.
+	//
+	// Deliberately unresolved on the render path — the `geoCentroid` pass behind
+	// the region half measures every ring in the atlas (~30 ms across 3,000
+	// counties, against a ~70 ms mount), and neither the mount nor a resize may
+	// pay that for a cursor most maps never carry. The hook calls this on the
+	// first navigation key instead. A stop whose position the projection drops
+	// (the US composite discards points outside its insets) is left out, so the
+	// cursor never lands somewhere the map does not draw.
+	const resolveStops = useCallback(
+		() => mapStops(cachedRegionCentroids(shape.features), entries, hidden, shape.project),
+		[shape.features, shape.project, entries, hidden],
+	)
+
+	// Picks the mark the cursor sits on: a region through the caller's own
+	// reporter, an overlay through the activation it registered — so the plat
+	// dispatches a keyboard pick without knowing what kind of mark it landed on.
+	const activateTarget = useCallback(
+		(target: MapHoverTarget) => {
+			if (target.kind === 'region') {
+				clickRegion?.(target.index)
+
+				return
+			}
+
+			entries.find((entry) => entry.id === target.id)?.activate?.(target.stop)
+		},
+		[clickRegion, entries],
+	)
+
+	// The cursor earns a tab stop from either of its two outputs. Gating on the
+	// readout alone would leave `tooltip={false}` with `onRegionClick` — a
+	// supported pairing — a picker no keyboard can reach. Without the readout the
+	// cursor still isolates the region it sits on, which the pointed-mark context
+	// drives independently, so navigation stays legible.
+	//
+	// An overlay's own `onClick` counts too: a `tooltip={false}` plat whose only
+	// pick is a clickable `MapPoint` is still a picker, and gating on the region
+	// half alone would leave it unreachable.
+	//
+	// The drawn-frame test is what keeps a map with nothing to navigate — no
+	// geography yet, or a `deferPaint` frame still holding — from offering a stop
+	// that answers no key. It reads the frame rather than the stops themselves,
+	// so the gate stays O(1) and the centroids stay unresolved.
+	const pickable = onRegionClick !== undefined || entries.some((entry) => entry.activate)
+
+	const navigable = (tooltip || pickable) && shape.viewWidth > 0
 
 	const numeric = valueKey !== undefined
 
@@ -1305,6 +1406,7 @@ export function MapPlat<T = never>({
 	// geography paints on the first commit without waiting to be measured.
 	const svg = shape.viewWidth > 0 && shape.viewHeight > 0 && (
 		<svg
+			ref={svgRef}
 			aria-hidden="true"
 			className="block size-full"
 			viewBox={`0 0 ${shape.viewWidth} ${shape.viewHeight}`}
@@ -1396,6 +1498,13 @@ export function MapPlat<T = never>({
 					{...name}
 					shape={shape}
 					aside={aside}
+					keyboard={{
+						enabled: navigable,
+						activate: activateTarget,
+						resolveStops,
+						view: { width: shape.viewWidth, height: shape.viewHeight },
+						svgRef,
+					}}
 					tooltip={
 						tooltip ? (
 							<MapTooltip

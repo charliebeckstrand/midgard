@@ -25,9 +25,9 @@
  */
 
 import type { GeoProjection } from 'd3-geo'
-import { geographyFeatures, regionPaths, rewindFeatures } from './map-geometry'
+import { geographyFeatures, regionCentroids, regionPaths, rewindFeatures } from './map-geometry'
 import { canonicalFit, type MapCanonicalFit } from './map-projection'
-import type { MapFeature, MapGeography, MapProjection } from './types'
+import type { LngLat, MapFeature, MapGeography, MapProjection } from './types'
 
 /**
  * The mount-critical geometry a {@link MapPlat} draws from on its first,
@@ -134,6 +134,34 @@ const measuredPaths = new WeakMap<
 	StaticMapGeometry,
 	{ width: number; height: number; paths: (string | null)[] }
 >()
+
+// Region centroids per decoded feature list. Held apart from the mount-critical
+// trio above because nothing on the mount path reads them: only the keyboard
+// cursor does, and only once a reader tabs in. Computing them beside the paths
+// would put a per-region `geoCentroid` pass — thousands of rings on a county
+// atlas — on every mount, for a cursor most mounts never carry. The features
+// array keys it, so the result outlives every refit: a centroid is geographic,
+// not projected, and a resize re-projects it rather than measure it again.
+const centroids = new WeakMap<MapFeature[], (LngLat | null)[]>()
+
+/**
+ * The regions' lon/lat centroids, memoised on the decoded feature list and
+ * computed on the first read. Callers gate that read on keyboard navigation
+ * being live, so a map nobody tabs into never pays the pass.
+ *
+ * @internal
+ */
+export function cachedRegionCentroids(features: MapFeature[]): (LngLat | null)[] {
+	const hit = centroids.get(features)
+
+	if (hit !== undefined) return hit
+
+	const computed = regionCentroids(features)
+
+	centroids.set(features, computed)
+
+	return computed
+}
 
 /**
  * Region paths under a measured fit, memoised on the shared

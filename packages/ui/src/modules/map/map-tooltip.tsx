@@ -6,6 +6,8 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
 import { type MapHoverTarget, useMapHoverState } from './context'
 import { categoryLegendId, type MapCategoryMeta } from './map-categories'
+import { markReadout } from './map-readout'
+import type { MapStopRow } from './use-map-legend-registry'
 
 /** One resolved overlay entry the tooltip can read. @internal */
 export type MapTooltipEntry = {
@@ -14,6 +16,10 @@ export type MapTooltipEntry = {
 	/** currentColor class carrying the entry's colour. */
 	swatchClass: string
 	detail?: string
+	/** The mark kind, the value a mark with no detail anywhere falls back to. */
+	kind: string
+	/** Per-dot readouts for a plural mark; absent on a singular one. */
+	stopRows?: MapStopRow[]
 }
 
 /** Props for {@link MapTooltip}. @internal */
@@ -62,10 +68,14 @@ function resolve(
 
 		if (entry === undefined) return null
 
+		// The one readout rule, shared with the table: the pointer and a screen
+		// reader must never disagree about the same dot.
+		const readout = markReadout(entry, target.stop)
+
 		return {
-			title: entry.label,
-			row: entry.detail
-				? { swatch: entry.swatch, swatchClass: entry.swatchClass, text: entry.detail }
+			title: readout.name,
+			row: readout.detail
+				? { swatch: entry.swatch, swatchClass: entry.swatchClass, text: readout.detail }
 				: undefined,
 		}
 	}
@@ -98,10 +108,12 @@ function resolve(
  * pointer client point, so the map's readout wears exactly the Tooltip chrome,
  * motion, and glass adoption, flipping and shifting at the viewport edges.
  *
- * @remarks A pointer enhancement by design: the same values ship in the
- * visually-hidden table, so nothing is gated behind hover. Regions with no
- * matching datum — and targets whose legend entry is toggled off — read
- * nothing, matching the charts' off-the-marks silence.
+ * @remarks An enhancement, never the only channel: the same values ship in the
+ * visually-hidden table, so nothing is gated behind a readout. The keyboard
+ * cursor raises it as the pointer does, anchoring at the pointed region's
+ * projected centroid (`use-map-keyboard`). Regions with no matching datum — and
+ * targets whose legend entry is toggled off — read nothing, matching the
+ * charts' off-the-marks silence.
  * @internal
  */
 export function MapTooltip(props: MapTooltipProps) {

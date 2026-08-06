@@ -31,6 +31,18 @@ export const POINT_STAGGER = 0.08
 /** Ceiling on the point stagger — a large cluster must not draw out the reveal. @internal */
 export const POINT_STAGGER_MAX = 0.6
 
+/**
+ * A dot's pop, delayed by its ordinal so a set of them reveals in sequence, and
+ * capped so a long set does not trail. Built per call rather than held in a
+ * table: the cap admits only a handful of distinct delays, but `POINT_POP` is
+ * frozen and the spread is one small object on the mount path alone.
+ *
+ * @internal
+ */
+export function pointPop(ordinal: number) {
+	return { ...POINT_POP, delay: Math.min(ordinal * POINT_STAGGER, POINT_STAGGER_MAX) } as const
+}
+
 /** A marker's connector draw, held until the start pin (a `POINT_POP`) has popped. @internal */
 export const MARKER_DRAW = { ...ROUTE_DRAW, delay: POINT_POP.duration } as const
 

@@ -1,19 +1,17 @@
 'use client'
 
 import { motion } from 'motion/react'
-import { type PointerEvent, useEffect, useId, useMemo } from 'react'
+import { useMemo } from 'react'
 import { cn } from '../../core'
-import { k, type MapSeriesColor } from '../../recipes/kata/map'
-import { mapMarkDimmed, useMapHoverSet, useMapPlat, useMapPointedMark } from './context'
+import { k } from '../../recipes/kata/map'
 import { ROUTE_HIT_WIDTH, ROUTE_STROKE_WIDTH } from './map-constants'
-import { linePath } from './map-geometry'
+import { lineAnchor, linePath } from './map-geometry'
 import { ROUTE_DRAW } from './map-motion'
 import type { LngLat } from './types'
+import { type MapOverlayProps, useMapOverlay } from './use-map-overlay'
 
 /** Props for {@link MapRoute}. */
-export type MapRouteProps = {
-	/** Legend and tooltip name; one entry per route. */
-	label: string
+export type MapRouteProps = MapOverlayProps & {
 	/**
 	 * Waypoints in travel order, drawn as straight segments. Optional when a
 	 * `path` is supplied — a routed leg already carries its geometry.
@@ -26,10 +24,6 @@ export type MapRouteProps = {
 	 * an empty `path` (a totals-only routed leg) falls back to `stops`.
 	 */
 	path?: LngLat[]
-	/** Named mark colour override; defaults to the next slot after the region categories. */
-	color?: MapSeriesColor
-	/** A trailing readout in the legend and tooltip — `'312 mi'`, `'4 h 50 m'`. */
-	detail?: string
 }
 
 /**
@@ -38,7 +32,9 @@ export type MapRouteProps = {
  * legend as its own toggleable, focusable entry. Hovering the line raises
  * the tooltip with the route's name and detail and isolates the route —
  * every other mark recedes, as under its legend entry's focus; a wide
- * invisible hit stroke keeps the thin line aimable.
+ * invisible hit stroke keeps the thin line aimable. With `onClick` set, that
+ * stroke answers a click and the keyboard cursor picks the route with Enter
+ * or Space.
  *
  * @remarks Renders only inside {@link MapPlat}. The line's width rides
  * device pixels (a non-scaling stroke), so a resize scales the geography
@@ -46,42 +42,29 @@ export type MapRouteProps = {
  * draws itself in (`pathLength` 0 → 1), the same self-drawing reveal as the
  * chart module's lines.
  */
-export function MapRoute({ label, stops, path, color, detail }: MapRouteProps) {
-	const id = useId()
+export function MapRoute({ stops, path, ...shared }: MapRouteProps) {
+	// The drawn geometry: a routed `path` with coordinates wins; an empty one — a
+	// `false`-overview leg carries totals but no line — falls back to the stops.
+	const points = path && path.length > 0 ? path : (stops ?? [])
 
-	const { project, register, colors, hidden, emphasis, animate } = useMapPlat()
-
-	const set = useMapHoverSet()
-
-	const pointed = useMapPointedMark()
-
-	useEffect(
-		() => register({ id, label, kind: 'route', swatch: 'line', color, detail }),
-		[register, id, label, color, detail],
-	)
-
-	const slot = colors.get(id)
+	const { slot, hidden, project, animate, dim, onPointerLeave, hit } = useMapOverlay({
+		...shared,
+		kind: 'route',
+		swatch: 'line',
+		stops: () => lineAnchor(points),
+	})
 
 	// Memoised so a hover-driven re-render (the plat's pointer state churns the
 	// hover context) doesn't re-project and re-stringify the whole polyline;
 	// `project` identity holds until the measured refit, and `path` / `stops`
-	// are the caller's stable refs. A routed `path` with geometry wins; an empty
-	// one — a `false`-overview leg carries totals but no line — falls back to the
-	// straight stops.
-	const d = useMemo(
-		() => linePath(path && path.length > 0 ? path : (stops ?? []), project),
-		[path, stops, project],
-	)
+	// are the caller's stable refs.
+	const d = useMemo(() => linePath(points, project), [points, project])
 
-	if (slot === undefined || hidden.has(id) || d === '') return null
+	if (slot === undefined || hidden || d === '') return null
 
 	const paint = k.series[slot]
 
-	const track = (event: PointerEvent<SVGPathElement>) => {
-		set({ kind: 'entry', id }, { x: event.clientX, y: event.clientY })
-	}
-
-	const shared = {
+	const shape = {
 		'data-slot': 'map-route',
 		d,
 		fill: 'none',
@@ -95,31 +78,26 @@ export function MapRoute({ label, stops, path, color, detail }: MapRouteProps) {
 	}
 
 	return (
-		<g
-			className={cn(k.group(mapMarkDimmed(pointed, { kind: 'entry', id }, emphasis, id)))}
-			onPointerLeave={() => set(null, null)}
-		>
+		<g className={dim} onPointerLeave={onPointerLeave}>
 			{animate ? (
 				<motion.path
-					{...shared}
+					{...shape}
 					initial={{ pathLength: 0 }}
 					animate={{ pathLength: 1 }}
 					transition={ROUTE_DRAW}
 				/>
 			) : (
-				<path {...shared} />
+				<path {...shape} />
 			)}
 
 			<path
 				data-slot="map-route-hit"
-				data-entry-id={id}
 				d={d}
 				fill="none"
 				stroke="transparent"
 				strokeWidth={ROUTE_HIT_WIDTH}
 				pointerEvents="stroke"
-				onPointerEnter={track}
-				onPointerMove={track}
+				{...hit()}
 			/>
 		</g>
 	)
