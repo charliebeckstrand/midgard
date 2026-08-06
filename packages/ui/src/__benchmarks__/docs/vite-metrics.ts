@@ -18,8 +18,7 @@ import { type ChildProcess, spawn } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
 import { type BundleReport, readBundle } from './bundle-report'
-
-const pkgRoot = path.resolve(import.meta.dirname, '..', '..', '..')
+import { pkgRoot } from './paths'
 
 const viteBin = path.join(pkgRoot, 'node_modules', '.bin', 'vite')
 

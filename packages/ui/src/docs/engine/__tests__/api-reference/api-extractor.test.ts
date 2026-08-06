@@ -2,26 +2,76 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { createApiExtractor } from '../../api-reference'
+import { buildApi, createApiExtractor } from '../../api-reference'
 import { aggregateHash } from '../../api-reference/engine/api-extractor'
 
 /**
- * Lay down a throwaway package the extractor can open: a `tsconfig.json` one
- * level above `src` (what {@link openProject} resolves) and two component
- * barrels. `barDependsOnFoo` routes a type Bar documents through Foo's
- * directory, so an edit to Foo must re-extract Bar even though no directory
- * ownership links them.
+ * Foo's source with the given props signature. {@link BASE} and {@link writeFoo}
+ * both build from here, so one template defines the component every test edits.
  */
-function writeFixture(root: string, { barDependsOnFoo = false } = {}): string {
+function fooSource(props: string): string {
+	return [
+		`/** A foo. */`,
+		`export function Foo(props: { ${props} }) {`,
+		`\treturn null`,
+		`}`,
+		'',
+	].join('\n')
+}
+
+/** The two component barrels every fixture starts from, keyed by path under `src`. */
+const BASE: Record<string, string> = {
+	'components/foo/index.ts': `export { Foo } from './foo'\n`,
+	'components/foo/foo.tsx': fooSource('label?: string'),
+	'components/bar/index.ts': `export { Bar } from './bar'\n`,
+	'components/bar/bar.tsx': [
+		`/** A bar. */`,
+		`export function Bar(props: { count?: number }) {`,
+		`\treturn null`,
+		`}`,
+		'',
+	].join('\n'),
+}
+
+/**
+ * Route a type Bar documents through Foo's directory, so an edit to Foo must
+ * re-extract Bar even though no directory ownership links them.
+ */
+const BAR_DEPENDS_ON_FOO: Record<string, string> = {
+	'components/foo/shared.ts': `export type Tone = 'a' | 'b'\n`,
+	'components/bar/bar.tsx': [
+		`import type { Tone } from '../foo/shared'`,
+		`/** A bar. */`,
+		`export function Bar(props: { tone?: Tone }) {`,
+		`\treturn props.tone ?? null`,
+		`}`,
+		'',
+	].join('\n'),
+}
+
+/** Put Foo's `{@link}` target under `src/primitives`, outside the roots `openProject` seeds. */
+const FOO_LINKS_OUTSIDE_ROOTS: Record<string, string> = {
+	'primitives/tone/tone.ts': [`/** A tone. */`, `export type Tone = 'a' | 'b'`, ''].join('\n'),
+	'components/foo/foo.tsx': [
+		`import type { Tone } from '../../primitives/tone/tone'`,
+		`/** A foo. */`,
+		`export function Foo(props: {`,
+		`\t/** Its tone, per {@link Tone}. */`,
+		`\ttone?: Tone`,
+		`}) {`,
+		`\treturn props.tone ?? null`,
+		`}`,
+		'',
+	].join('\n'),
+}
+
+/**
+ * Lay down a throwaway package the extractor can open: a `tsconfig.json` one
+ * level above `src` (what {@link openProject} resolves), then {@link BASE} with
+ * `extra` merged over it. A variant that replaces a base file lists it again.
+ */
+function writeFixture(root: string, extra: Record<string, string> = {}): string {
 	const src = path.join(root, 'src')
-
-	const write = (rel: string, text: string) => {
-		const full = path.join(src, rel)
-
-		fs.mkdirSync(path.dirname(full), { recursive: true })
-
-		fs.writeFileSync(full, text)
-	}
 
 	fs.writeFileSync(
 		path.join(root, 'tsconfig.json'),
@@ -36,60 +86,25 @@ function writeFixture(root: string, { barDependsOnFoo = false } = {}): string {
 		}),
 	)
 
-	write('components/foo/index.ts', `export { Foo } from './foo'\n`)
+	for (const [rel, text] of Object.entries({ ...BASE, ...extra })) {
+		const full = path.join(src, rel)
 
-	writeFoo(src, 'label?: string')
+		fs.mkdirSync(path.dirname(full), { recursive: true })
 
-	if (barDependsOnFoo) {
-		write('components/foo/shared.ts', `export type Tone = 'a' | 'b'\n`)
-
-		write('components/bar/index.ts', `export { Bar } from './bar'\n`)
-
-		write(
-			'components/bar/bar.tsx',
-			[
-				`import type { Tone } from '../foo/shared'`,
-				`/** A bar. */`,
-				`export function Bar(props: { tone?: Tone }) {`,
-				`\treturn props.tone ?? null`,
-				`}`,
-				'',
-			].join('\n'),
-		)
-	} else {
-		write('components/bar/index.ts', `export { Bar } from './bar'\n`)
-
-		write(
-			'components/bar/bar.tsx',
-			[
-				`/** A bar. */`,
-				`export function Bar(props: { count?: number }) {`,
-				`\treturn null`,
-				`}`,
-				'',
-			].join('\n'),
-		)
+		fs.writeFileSync(full, text)
 	}
 
 	return src
 }
 
 /**
- * Write Foo's source with the given props signature, and return the file's path.
- * Every write of the fixture component goes through here, so one template
- * defines its shape and an edit reports the path it wrote.
+ * Retype Foo on disk, over the copy {@link writeFixture} laid down, and return
+ * the file's path — so an edit reports the file it changed.
  */
 function writeFoo(srcDir: string, props: string): string {
 	const file = path.join(srcDir, 'components', 'foo', 'foo.tsx')
 
-	fs.mkdirSync(path.dirname(file), { recursive: true })
-
-	fs.writeFileSync(
-		file,
-		[`/** A foo. */`, `export function Foo(props: { ${props} }) {`, `\treturn null`, `}`, ''].join(
-			'\n',
-		),
-	)
+	fs.writeFileSync(file, fooSource(props))
 
 	return file
 }
@@ -106,12 +121,12 @@ function cacheKey(cacheDir: string): string {
 
 const roots: string[] = []
 
-function fixture(opts?: { barDependsOnFoo?: boolean }): { srcDir: string; cacheDir: string } {
+function fixture(extra?: Record<string, string>): { srcDir: string; cacheDir: string } {
 	const root = fs.mkdtempSync(path.join(os.tmpdir(), 'api-extractor-'))
 
 	roots.push(root)
 
-	return { srcDir: writeFixture(root, opts), cacheDir: path.join(root, '.cache') }
+	return { srcDir: writeFixture(root, extra), cacheDir: path.join(root, '.cache') }
 }
 
 afterEach(() => {
@@ -214,7 +229,7 @@ describe('createApiExtractor', () => {
 	})
 
 	it('re-extracts a barrel when a cross-directory dependency it reads changes', () => {
-		const { srcDir } = fixture({ barDependsOnFoo: true })
+		const { srcDir } = fixture(BAR_DEPENDS_ON_FOO)
 
 		const extractor = createApiExtractor(srcDir, { cacheDir: null })
 
@@ -318,5 +333,17 @@ describe('createApiExtractor', () => {
 		const restart = createApiExtractor(srcDir, { cacheDir }).getAll()
 
 		expect(restart.foo?.[0]?.props).toEqual([{ name: 'label', type: 'number' }])
+	})
+})
+
+describe('buildApi', () => {
+	// Pins `openProject`'s `resolveSourceFileDependencies` call, which is what
+	// puts a link target outside the seeded roots into the index. See its TSDoc.
+	it('resolves a link to a target outside the seeded roots', () => {
+		const { srcDir } = fixture(FOO_LINKS_OUTSIDE_ROOTS)
+
+		expect(buildApi(srcDir).foo?.[0]?.props[0]?.links).toEqual({
+			Tone: { signature: 'type Tone', summary: 'A tone.' },
+		})
 	})
 })
