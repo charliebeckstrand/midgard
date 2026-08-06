@@ -17,8 +17,12 @@ type BaseSkeletonRecipe = {
 }
 
 type SizedSkeletonRecipe<S extends ResolvableSize> = BaseSkeletonRecipe & {
-	/** Per-size shape classes, keyed by the resolved size. */
-	size: Record<S, ClassValue>
+	/**
+	 * Per-size shape classes, keyed by the resolved size. `md` is required
+	 * because it is the default an omitted `size` prop resolves to, so a map
+	 * without it would render a silhouette carrying no size class.
+	 */
+	size: Record<S, ClassValue> & Record<'md', ClassValue>
 }
 
 /**
@@ -66,8 +70,7 @@ export function createSkeleton<S extends ResolvableSize>(
 	function Skeleton({ size, className }: { size?: S; className?: string }) {
 		const resolvedSize = size ?? 'md'
 
-		const sizeClass =
-			'size' in skeleton ? (skeleton.size as Record<string, ClassValue>)[resolvedSize] : undefined
+		const sizeClass = 'size' in skeleton ? skeleton.size[resolvedSize] : undefined
 
 		return createElement(Placeholder, {
 			className: cn(skeleton.base, sizeClass, className),

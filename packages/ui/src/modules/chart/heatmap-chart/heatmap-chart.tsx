@@ -24,7 +24,7 @@ import {
 	LABEL_CHAR_WIDTH,
 	TICK_CHAR_WIDTH,
 } from '../engine/chart-constants'
-import { ChartMenuFrame } from '../engine/chart-context-menu'
+import { ChartContextMenu } from '../engine/chart-context-menu'
 import { cellAt, heatmapCells } from '../engine/chart-geometry/heatmap'
 import { chartFrameSizing, type PlotRect, plotRect, thinned } from '../engine/chart-layout'
 import { resolveRangeLegend } from '../engine/chart-legend/range'
@@ -831,14 +831,14 @@ export function HeatmapChart<T>(props: HeatmapChartProps<T>) {
 	)
 
 	return (
-		<ChartMenuFrame
+		<ChartContextMenu
 			contextMenu={contextMenu}
 			rootRef={containerRef}
 			readout={readout}
 			title={title}
-			self={<HeatmapChart {...props} />}
+			fullscreen={<HeatmapChart {...props} />}
 		>
 			{heatmapRoot}
-		</ChartMenuFrame>
+		</ChartContextMenu>
 	)
 }

@@ -1,19 +1,9 @@
 /**
- * Ma stops: the raw `--spacing` numerals shared by every spacing axis.
- * `padding`, `margin`, and `gap` compose finished utilities by indexing
- * into this label set. Consumers that need bare tokens for arbitrary-value
- * construction reach this directly.
+ * Ma stops: the names of the spacing scale. `padding`, `margin`, and `gap` each
+ * key their finished Tailwind utilities by this label set.
  *
  * Layer: kiso · Concern: spacing scale
  */
 
-export const stops = {
-	xs: '1',
-	sm: '2',
-	md: '3',
-	lg: '4',
-	xl: '6',
-} as const
-
 /** Name of a spacing stop in the `ma` scale. */
-export type Ma = keyof typeof stops
+export type Ma = 'xs' | 'sm' | 'md' | 'lg' | 'xl'

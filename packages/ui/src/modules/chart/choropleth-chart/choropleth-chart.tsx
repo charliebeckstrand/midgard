@@ -13,7 +13,7 @@ import {
 	type MapProjection,
 } from '../../map'
 import type { ChartContextMenuConfig, ChartContextMenuTarget } from '../engine/chart-context-menu'
-import { ChartMenuFrame } from '../engine/chart-context-menu'
+import { ChartContextMenu } from '../engine/chart-context-menu'
 import type { ChartRangeLegendConfig } from '../engine/chart-legend/range'
 import { formatChartValue, READOUT_GAP } from '../engine/chart-series'
 import type { ChartReadout, DataKey } from '../engine/types'
@@ -261,13 +261,13 @@ export function ChoroplethChart<T = never>(props: ChoroplethChartProps<T>) {
 	} as Parameters<typeof MapPlat<T>>[0]
 
 	return (
-		<ChartMenuFrame
+		<ChartContextMenu
 			contextMenu={contextMenu}
 			rootRef={rootRef}
 			readout={readout}
 			title={title}
 			target={menuTarget}
-			self={<ChoroplethChart {...props} />}
+			fullscreen={<ChoroplethChart {...props} />}
 		>
 			<div
 				ref={rootRef}
@@ -280,6 +280,6 @@ export function ChoroplethChart<T = never>(props: ChoroplethChartProps<T>) {
 			>
 				<MapPlat<T> {...mapProps} onRegionContextMenu={onRegionContextMenu} />
 			</div>
-		</ChartMenuFrame>
+		</ChartContextMenu>
 	)
 }

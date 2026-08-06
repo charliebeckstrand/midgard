@@ -134,6 +134,8 @@ export function ChartContextMenu({
 	// neutral tab stop focused and Escape shuts it.
 	const closeRef = useRef<HTMLButtonElement>(null)
 
+	const isFullscreen = useChartFullscreen()
+
 	const items = contextMenu === false ? undefined : contextMenu?.items
 
 	// Keyed on the target's index, not the target object: the frame hands down a
@@ -147,6 +149,12 @@ export function ChartContextMenu({
 	)
 
 	if (contextMenu === false) return <>{children}</>
+
+	// A chart rendered inside the fullscreen dialog is this menu's own re-mounted
+	// copy. It renders bare, so the enlarged chart never nests a second menu or
+	// recurses. The rule lives here because this component provides
+	// `ChartFullscreenContext` — a caller cannot forget to apply it.
+	if (isFullscreen) return <>{children}</>
 
 	const includeLegend = contextMenu?.downloadLegend ?? true
 
@@ -266,52 +274,5 @@ export function ChartContextMenu({
 				</DialogFooter>
 			</Dialog>
 		</>
-	)
-}
-
-/** Props for {@link ChartMenuFrame}. @internal */
-export type ChartMenuFrameProps = {
-	contextMenu: ChartContextMenuConfig | false | undefined
-	rootRef: RefObject<HTMLDivElement | null>
-	readout: ChartReadoutSource | null
-	/** The right-clicked mark, snapshotted before the menu opens (see {@link ChartContextMenuProps.target}). */
-	target?: ChartContextMenuTarget
-	title?: string
-	/** A fresh copy of the chart for the menu's fullscreen re-mount. */
-	self: ReactElement
-	children: ReactNode
-}
-
-/**
- * Wraps a chart's root in its {@link ChartContextMenu} — or returns it bare when
- * the chart is itself the menu's re-mounted fullscreen copy, so the enlarged
- * chart never nests a second menu. Shared by the chart types that own their root
- * rather than routing through {@link ChartFrame}; split out so the fullscreen
- * gate stays off each component's own complexity budget.
- *
- * @internal
- */
-export function ChartMenuFrame({
-	contextMenu,
-	rootRef,
-	readout,
-	target,
-	title,
-	self,
-	children,
-}: ChartMenuFrameProps) {
-	if (useChartFullscreen()) return <>{children}</>
-
-	return (
-		<ChartContextMenu
-			contextMenu={contextMenu}
-			rootRef={rootRef}
-			readout={readout}
-			target={target}
-			title={title}
-			fullscreen={self}
-		>
-			{children}
-		</ChartContextMenu>
 	)
 }

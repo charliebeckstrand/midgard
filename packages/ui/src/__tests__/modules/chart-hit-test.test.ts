@@ -16,7 +16,7 @@ const bar = (x: number, x1: number, top: number, bottom: number): BarMark => ({
 	positive: true,
 })
 
-describe('barMarkAt hit gate', () => {
+describe('barMarkAt', () => {
 	it('hits inside a bar and misses the air beside and above it', () => {
 		const marks = [[bar(10, 30, 50, 100), null]]
 
@@ -26,23 +26,6 @@ describe('barMarkAt hit gate', () => {
 		expect(barMarkAt(marks, 31, 75)).toBeNull()
 
 		expect(barMarkAt(marks, 20, 49)).toBeNull()
-	})
-
-	it('bridges the gap between grouped bars when given the gap slack', () => {
-		// Two series' bars 2px apart in one group: |10..30| gap |32..52|.
-		const group = [[bar(10, 30, 50, 100)], [bar(32, 52, 50, 100)]]
-
-		// x=31 falls in the 2px gap — a miss without slack, flickering the tooltip.
-		expect(barMarkAt(group, 31, 75)).toBeNull()
-
-		// The inter-bar slack closes it, so a sweep across the group never drops.
-		expect(barMarkAt(group, 31, 75, 2)).not.toBeNull()
-
-		// The slack still ends at the group: the wider space beyond stays a miss.
-		expect(barMarkAt(group, 60, 75, 2)).toBeNull()
-
-		// And it never reaches above the bars.
-		expect(barMarkAt(group, 31, 40, 2)).toBeNull()
 	})
 
 	it('applies the gap slack down y for a horizontal chart', () => {
@@ -59,9 +42,7 @@ describe('barMarkAt hit gate', () => {
 		// Off the value end (past x=30) stays a miss however wide the band slack.
 		expect(barMarkAt(group, 40, 60, 2, 'horizontal')).toBeNull()
 	})
-})
 
-describe('barMarkAt', () => {
 	it('returns the series and datum of the bar under the pointer', () => {
 		const marks = [[bar(10, 30, 50, 100), bar(40, 60, 50, 100)]]
 
@@ -86,6 +67,12 @@ describe('barMarkAt', () => {
 
 		// The widened pass reaches it, resolving to the nearer-first series.
 		expect(barMarkAt(group, 31, 75, 2)).toEqual({ series: 0, datum: 0 })
+
+		// The slack still ends at the group: the wider space beyond stays a miss.
+		expect(barMarkAt(group, 60, 75, 2)).toBeNull()
+
+		// And it never reaches above the bars.
+		expect(barMarkAt(group, 31, 40, 2)).toBeNull()
 	})
 })
 
@@ -145,38 +132,7 @@ describe('nearestSeriesLine', () => {
 
 		expect(nearestSeriesLine(close, 50, 102, undefined, 1)).toBe(0)
 	})
-})
 
-describe('nearestSeriesArea', () => {
-	// Two stacked ribbons' top edges: series 0 higher (y=60), series 1 below (y=120).
-	const stack = [
-		[
-			[
-				{ x: 0, y: 60 },
-				{ x: 100, y: 60 },
-			],
-		],
-		[
-			[
-				{ x: 0, y: 120 },
-				{ x: 100, y: 120 },
-			],
-		],
-	]
-
-	it('picks the ribbon whose top edge sits nearest above the pointer', () => {
-		// Below both tops: the lower ribbon (top 120) is the one the pointer sits in.
-		expect(nearestSeriesArea(stack, 200, 50, 150)).toBe(1)
-
-		// Between the tops: only the upper ribbon covers here.
-		expect(nearestSeriesArea(stack, 200, 50, 90)).toBe(0)
-
-		// Above every top (past the edge slack): inside no fill.
-		expect(nearestSeriesArea(stack, 200, 50, 30)).toBeNull()
-	})
-})
-
-describe('nearestSeriesLine hit gate', () => {
 	const runs = [
 		[
 			[
@@ -215,7 +171,34 @@ describe('nearestSeriesLine hit gate', () => {
 	})
 })
 
-describe('nearestSeriesArea hit gate', () => {
+describe('nearestSeriesArea', () => {
+	// Two stacked ribbons' top edges: series 0 higher (y=60), series 1 below (y=120).
+	const stack = [
+		[
+			[
+				{ x: 0, y: 60 },
+				{ x: 100, y: 60 },
+			],
+		],
+		[
+			[
+				{ x: 0, y: 120 },
+				{ x: 100, y: 120 },
+			],
+		],
+	]
+
+	it('picks the ribbon whose top edge sits nearest above the pointer', () => {
+		// Below both tops: the lower ribbon (top 120) is the one the pointer sits in.
+		expect(nearestSeriesArea(stack, 200, 50, 150)).toBe(1)
+
+		// Between the tops: only the upper ribbon covers here.
+		expect(nearestSeriesArea(stack, 200, 50, 90)).toBe(0)
+
+		// Above every top (past the edge slack): inside no fill.
+		expect(nearestSeriesArea(stack, 200, 50, 30)).toBeNull()
+	})
+
 	const runs = [
 		[
 			[

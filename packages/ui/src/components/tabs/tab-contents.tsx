@@ -35,7 +35,7 @@ export type TabContentProps = Omit<ComponentPropsWithoutRef<typeof CurrentConten
  * effect-driven work; a `useQuery` in a held panel waits to be shown. Pair a
  * mount policy with `Tab`'s `onPreload` to warm that half.
  */
-export function TabContents({ fade = true, mount, ...props }: TabContentsProps) {
+export function TabContents({ mount, ...props }: TabContentsProps) {
 	const tabsContext = useTabsContext()
 
 	const registerMountedPanels = tabsContext?.registerMountedPanels
@@ -52,7 +52,7 @@ export function TabContents({ fade = true, mount, ...props }: TabContentsProps) 
 		return registerMountedPanels?.()
 	}, [allMounted, registerMountedPanels])
 
-	return <CurrentContents slotPrefix="tab" fade={fade} mount={mount} {...props} />
+	return <CurrentContents slotPrefix="tab" mount={mount} {...props} />
 }
 
 /**

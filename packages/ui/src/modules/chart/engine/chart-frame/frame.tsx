@@ -35,7 +35,6 @@ import {
 	ChartTierContext,
 	chartMarkEmphasis,
 	sameMark,
-	useChartFullscreen,
 } from '../context'
 import type { ChartReadoutSource } from '../types'
 import {
@@ -283,10 +282,6 @@ export function ChartFrame({
 	// image export.
 	const rootRef = useRef<HTMLDivElement>(null)
 
-	// A frame rendered inside the fullscreen dialog is the menu's own re-mounted
-	// copy: it skips its context menu, so it never nests a second menu or recurses.
-	const isFullscreen = useChartFullscreen()
-
 	const [pointed, setPointed] = useState<{
 		index: number | null
 		point: ChartPoint | null
@@ -512,10 +507,6 @@ export function ChartFrame({
 			{annotations}
 		</div>
 	)
-
-	// Inside the fullscreen dialog the frame is the menu's own re-mounted copy:
-	// render the plain chart, with no nested context menu.
-	if (isFullscreen) return chartRoot
 
 	return (
 		<ChartContextMenu

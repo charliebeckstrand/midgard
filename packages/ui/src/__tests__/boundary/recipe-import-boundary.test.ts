@@ -9,11 +9,14 @@ import { srcDir, walkSource } from '../helpers/walk-source'
 // from the barrel are fine; the barrel surfaces `Step` / `Ma` / `Color` /
 // `Ji` / `GroupOrientation` / `GroupPosition` for prop-union derivation.
 //
-// One scan over every consuming layer: components, modules, and primitives hold
+// One scan over the three layers that reach recipes through a kata. They hold
 // the same contract, so a single sanction list keeps them from drifting apart.
+// `layouts` is deliberately absent: `layouts/sidebar/variants.ts` value-imports
+// kiso, which `kata-boundary.test.ts` sanctions, so sweeping it here would fire
+// a false violation.
 
-/** The layers that consume recipes, keyed by the noun a failure reports. */
-const LAYERS = { components: 'components', modules: 'modules', primitives: 'primitives' } as const
+/** The layers that consume recipes through their owning kata. */
+const LAYERS = ['components', 'modules', 'primitives'] as const
 
 const IMPORT_RE = /^(import(?:\s+type)?\s+(?:[^'"]+from\s+)?)['"]([^'"]+)['"]/gm
 
@@ -21,8 +24,8 @@ describe('recipe-import boundary', () => {
 	it('consuming layers import recipe values only via recipes/kata/<name>', () => {
 		const violations: string[] = []
 
-		for (const [layer, dirName] of Object.entries(LAYERS))
-			walkSource(join(srcDir, dirName), (file, content) => {
+		for (const layer of LAYERS)
+			walkSource(join(srcDir, layer), (file, content) => {
 				if (!/\.(?:tsx?|mts|cts)$/.test(file)) return
 
 				const rel = relative(srcDir, file)
@@ -46,13 +49,13 @@ describe('recipe-import boundary', () => {
 					if (isBarrel && isTypeOnly) continue
 
 					if (isBarrel) {
-						violations.push(`${layer} — ${rel}: value import from recipes barrel — ${match[0]}`)
+						violations.push(`${rel}: value import from recipes barrel — ${match[0]}`)
 
 						continue
 					}
 
 					if (isInternalLayer) {
-						violations.push(`${layer} — ${rel}: forbidden import from ${path} — ${match[0]}`)
+						violations.push(`${rel}: forbidden import from ${path} — ${match[0]}`)
 					}
 				}
 			})
