@@ -1,6 +1,6 @@
 import { Project } from 'ts-morph'
 import { describe, expect, it } from 'vitest'
-import { createLinkResolver } from '../../api-reference/engine/link-resolver'
+import { createLinkIndex } from '../../api-reference/engine/link-resolver'
 
 /**
  * A ts-morph project spanning several files, mirroring the package's
@@ -16,11 +16,11 @@ function project(files: Record<string, string>): Project {
 	return project
 }
 
-describe('createLinkResolver', () => {
+describe('createLinkIndex', () => {
 	it('resolves a target defined in another file with no import between them', () => {
 		// `slots.ts` never imports `CommandPaletteItem`; TSDoc links cross files
 		// regardless, so the resolver must too.
-		const resolve = createLinkResolver(
+		const { resolve } = createLinkIndex(
 			project({
 				'item.ts': [
 					`/** Selectable palette entry. */`,
@@ -38,7 +38,7 @@ describe('createLinkResolver', () => {
 	})
 
 	it('resolves a type alias to its keyword signature header', () => {
-		const resolve = createLinkResolver(
+		const { resolve } = createLinkIndex(
 			project({
 				'kbd.ts': [
 					`/** Props for the kbd component. */`,
@@ -54,7 +54,7 @@ describe('createLinkResolver', () => {
 	})
 
 	it('flattens nested `{@link}` tokens inside a resolved summary', () => {
-		const resolve = createLinkResolver(
+		const { resolve } = createLinkIndex(
 			project({
 				'a.ts': [
 					`/** Same as {@link KbdProps}. */`,
@@ -67,7 +67,7 @@ describe('createLinkResolver', () => {
 	})
 
 	it('returns null for an unknown target and memoizes the miss', () => {
-		const resolve = createLinkResolver(project({ 'a.ts': `export const x = 1` }))
+		const { resolve } = createLinkIndex(project({ 'a.ts': `export const x = 1` }))
 
 		expect(resolve('Nope')).toBeNull()
 
@@ -75,10 +75,25 @@ describe('createLinkResolver', () => {
 	})
 
 	it('skips lowercase top-level declarations', () => {
-		const resolve = createLinkResolver(
+		const { resolve } = createLinkIndex(
 			project({ 'a.ts': `/** helper */ export function helper() {}` }),
 		)
 
 		expect(resolve('helper')).toBeNull()
+	})
+
+	it('maps each indexed name to the file that declares it', () => {
+		// The incremental extractor keys a barrel's cache on these paths, so a
+		// cross-file link target it misses leaves that barrel's summaries stale.
+		const { targetFiles } = createLinkIndex(
+			project({
+				'item.ts': `export type KbdProps = { keys: string }`,
+				'slots.ts': `/** helper */ export function helper() {}`,
+			}),
+		)
+
+		expect(targetFiles.get('KbdProps')).toBe('/item.ts')
+
+		expect(targetFiles.has('helper')).toBe(false)
 	})
 })

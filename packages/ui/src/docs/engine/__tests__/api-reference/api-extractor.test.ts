@@ -9,9 +9,13 @@ import { createApiExtractor } from '../../api-reference'
  * level above `src` (what {@link openProject} resolves) and two component
  * barrels. `barDependsOnFoo` routes a type Bar documents through Foo's
  * directory, so an edit to Foo must re-extract Bar even though no directory
- * ownership links them.
+ * ownership links them. `fooLinksOutsideRoots` puts Foo's link target under
+ * `src/primitives`, outside the roots `openProject` seeds.
  */
-function writeFixture(root: string, { barDependsOnFoo = false } = {}): string {
+function writeFixture(
+	root: string,
+	{ barDependsOnFoo = false, fooLinksOutsideRoots = false } = {},
+): string {
 	const src = path.join(root, 'src')
 
 	const write = (rel: string, text: string) => {
@@ -37,16 +41,38 @@ function writeFixture(root: string, { barDependsOnFoo = false } = {}): string {
 
 	write('components/foo/index.ts', `export { Foo } from './foo'\n`)
 
-	write(
-		'components/foo/foo.tsx',
-		[
-			`/** A foo. */`,
-			`export function Foo(props: { label?: string }) {`,
-			`\treturn props.label ?? null`,
-			`}`,
-			'',
-		].join('\n'),
-	)
+	if (fooLinksOutsideRoots) {
+		write(
+			'primitives/tone/tone.ts',
+			[`/** A tone. */`, `export type Tone = 'a' | 'b'`, ''].join('\n'),
+		)
+
+		write(
+			'components/foo/foo.tsx',
+			[
+				`import type { Tone } from '../../primitives/tone/tone'`,
+				`/** A foo. */`,
+				`export function Foo(props: {`,
+				`\t/** Its tone, per {@link Tone}. */`,
+				`\ttone?: Tone`,
+				`}) {`,
+				`\treturn props.tone ?? null`,
+				`}`,
+				'',
+			].join('\n'),
+		)
+	} else {
+		write(
+			'components/foo/foo.tsx',
+			[
+				`/** A foo. */`,
+				`export function Foo(props: { label?: string }) {`,
+				`\treturn props.label ?? null`,
+				`}`,
+				'',
+			].join('\n'),
+		)
+	}
 
 	if (barDependsOnFoo) {
 		write('components/foo/shared.ts', `export type Tone = 'a' | 'b'\n`)
@@ -84,7 +110,10 @@ function writeFixture(root: string, { barDependsOnFoo = false } = {}): string {
 
 const roots: string[] = []
 
-function fixture(opts?: { barDependsOnFoo?: boolean }): { srcDir: string; cacheDir: string } {
+function fixture(opts?: { barDependsOnFoo?: boolean; fooLinksOutsideRoots?: boolean }): {
+	srcDir: string
+	cacheDir: string
+} {
 	const root = fs.mkdtempSync(path.join(os.tmpdir(), 'api-extractor-'))
 
 	roots.push(root)
@@ -109,6 +138,23 @@ describe('createApiExtractor', () => {
 		])
 
 		expect(result.bar?.[0]?.props).toEqual([{ name: 'count', type: 'number' }])
+	})
+
+	// `openProject` seeds its Project with `components/**` and `modules/**`, then
+	// calls `resolveSourceFileDependencies` to reach everything those import.
+	// Only that second step puts `primitives`, `hooks`, and `core` into
+	// `project.getSourceFiles()`, which is what the link index walks. Narrowing
+	// the project — dropping the resolve step, or scoping the index to the seeded
+	// roots — costs every cross-root TSDoc link its hover card, and does it
+	// silently: the prose keeps the `{@link}` and only the resolved entry goes.
+	it('resolves a link to a target outside the seeded roots', () => {
+		const { srcDir } = fixture({ fooLinksOutsideRoots: true })
+
+		const foo = createApiExtractor(srcDir, { cacheDir: null }).getAll().foo?.[0]
+
+		expect(foo?.props[0]?.links).toEqual({
+			Tone: { signature: 'type Tone', summary: 'A tone.' },
+		})
 	})
 
 	it('ignores non-source, docs, and test files', () => {

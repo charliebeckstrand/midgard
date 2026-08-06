@@ -4,7 +4,7 @@ import path from 'node:path'
 import type { Project } from 'ts-morph'
 import type { ComponentApi } from '../types'
 import { type Barrel, extractBarrel, listBarrels, openProject } from './build-api'
-import { buildLinkTargetFiles, createLinkResolver } from './link-resolver'
+import { createLinkIndex } from './link-resolver'
 
 /**
  * An incremental, disk-cached driver over {@link extractBarrel}. The docs plugin
@@ -166,15 +166,19 @@ export function createApiExtractor(
 
 	// The checker and link machinery are recreated per extraction pass: refreshing
 	// a source file rebuilds the underlying program, so a cached checker or link
-	// index would read stale types.
+	// index would read stale types. One `createLinkIndex` call serves both link
+	// consumers — the index walk is a pass's largest fixed cost, and a pass is
+	// the longest either consumer can share one.
 	function extractionContext() {
 		const proj = ensureProject()
+
+		const { resolve, targetFiles } = createLinkIndex(proj)
 
 		return {
 			proj,
 			checker: proj.getTypeChecker().compilerObject,
-			resolveLink: createLinkResolver(proj),
-			linkTargetFiles: buildLinkTargetFiles(proj),
+			resolveLink: resolve,
+			linkTargetFiles: targetFiles,
 		}
 	}
 
@@ -373,6 +377,13 @@ export function createApiExtractor(
 		} else {
 			// First in-process pass (the disk cache served the initial load): warm the
 			// checker with a full canonical pass so ordering matches the stored record.
+			//
+			// The cost is a once-per-session stall on the first edit — measured at
+			// ~4.4s, because a cache-replayed state carries empty `inputs` and a
+			// per-barrel subset pass is only ordering-stable against a canonically
+			// warmed checker. Left as designed. If the stall ever reads as a defect,
+			// warm proactively — kick the full pass on server idle after a
+			// disk-served load — rather than weaken the ordering rule.
 			fullPass()
 		}
 

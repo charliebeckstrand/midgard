@@ -1,12 +1,16 @@
 # Docs benchmarks
 
-Measurement seams for the docs app's two cost centers: the ts-morph API extraction (`src/docs/engine/api-reference`) and the Vite build/dev pipeline. Baselines from 2026-07-13, after #1001's incremental disk-cached extractor: cold full pass ≈ 3.9s (barrel-scoped Project ≈ 1.7s of it; the pre-#1001 tsconfig shape measured 9.8s), disk-cache restore ≈ 30ms, per-barrel incremental edit ≈ 313ms, prod build ≈ 3s wall on a warm cache, for 310 components / 1132 props. These suites guard the findings of the docs performance sweep.
+Measurement seams for the docs app's two cost centers: the ts-morph API extraction (`src/docs/engine/api-reference`) and the Vite build/dev pipeline.
+
+Run them on demand, to measure a change or to drive one. They are deliberately not wired into CI: every number here is wall clock, a shared agent moves it by more than most real regressions, and a suite that cries wolf gets ignored. What CI does hold is the correctness a past optimization traded against — `api-extractor.test.ts` pins the cross-root link resolution that project scoping must preserve.
+
+Baselines on a 4-core machine, for 313 components / 1223 props: cold full pass ≈ 4.8s (project construction ≈ 1.9s of it; the pre-#1001 tsconfig shape measures ≈ 5.4-6.9s), disk-cache restore ≈ 32ms, per-barrel incremental edit ≈ 182ms, link index ≈ 44ms, prod build ≈ 3s wall on a warm cache. Compare these only against each other, and only from the same machine.
 
 ## ts-morph suite — `pnpm bench:docs`
 
 Runs under `vitest.bench.docs.config.ts` (node environment), split from `pnpm bench` because every file pays a multi-second Project setup.
 
-[`project-construction.bench.ts`](project-construction.bench.ts) A/Bs the `openProject` hypotheses — the current barrel-scoped shape (#1001) against the pre-#1001 tsconfig include, `skipFileDependencyResolution`, and glob-scoped file sets — each including checker creation, the cost every cold extraction pays before touching a component; variants that shrink the file set must diff extraction output before adoption.
+[`project-construction.bench.ts`](project-construction.bench.ts) A/Bs the `openProject` hypotheses — the current barrel-scoped shape (#1001) against the pre-#1001 tsconfig include, `skipFileDependencyResolution`, and glob-scoped file sets — each including checker creation, the cost every cold extraction pays before touching a component. A variant that shrinks the file set must diff extraction output before adoption, and the two fast ones fail that diff: they drop every file outside the seed from the link index, so cross-root TSDoc links resolve to nothing. Hold dependency resolution fixed and the seed no longer moves the number.
 
 [`extraction.bench.ts`](extraction.bench.ts) isolates the per-component extractors (`extractProps`, `extractReferences`, `formatPropType`, annotation extractors, the link-resolver index) on one shared Project, against three fixtures: `Button` (typical), `Heading` (HTML-attribute spread, the `collectAllProperties` worst case), and `Combobox` (widest extractable surface).
 

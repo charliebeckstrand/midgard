@@ -5,20 +5,47 @@ import type { LinkResolver } from './extract-doc'
 import { unaliasSymbol } from './ts-utils'
 
 /**
- * A package-wide index of declarations a `{@link}` can target, keyed by name.
- * TSDoc links resolve across files without an import, so resolution can't lean
- * on lexical scope; this maps every PascalCase top-level declaration in project
- * source to its symbol, which the returned resolver turns into hover detail
- * (signature + summary) on demand. Results are memoized, including misses.
+ * One extraction pass's link index: the on-demand resolver, and the map from
+ * each indexed name to the file that declares it.
  */
-export function createLinkResolver(project: Project): LinkResolver {
+export type LinkIndex = {
+	/** Turn a TSDoc link target name into its hover card, or `null` when nothing indexes it. */
+	resolve: LinkResolver
+	/**
+	 * Every indexed name against the source file that declares it. The
+	 * incremental extractor keys each barrel's cache on the files its resolved
+	 * links point at, so an edit to a linked target re-extracts the barrels that
+	 * link to it — cross-file links carry no import edge, so directory ownership
+	 * alone would leave those summaries stale.
+	 */
+	targetFiles: Map<string, string>
+}
+
+/**
+ * Index every declaration a `{@link}` can target, keyed by name. TSDoc links
+ * resolve across files without an import, so resolution can't lean on lexical
+ * scope; this maps every PascalCase top-level declaration in project source to
+ * its symbol, which `resolve` turns into hover detail (signature + summary) on
+ * demand. Results are memoized, including misses.
+ *
+ * Both consumers come from one build, because the walk covers every file in
+ * the program and measures ~44 ms. Building it once for each consumer cost the
+ * incremental pass 25 ms of 208 ms — about 12%. One build is also the most a
+ * pass can share: refreshing a source file rebuilds the program, so an index
+ * held across passes reads stale types.
+ */
+export function createLinkIndex(project: Project): LinkIndex {
 	const checker = project.getTypeChecker().compilerObject
 
 	const index = buildIndex(project)
 
 	const cache = new Map<string, DocLink | null>()
 
-	return (name) => {
+	const targetFiles = new Map<string, string>()
+
+	for (const [name, { file }] of index) targetFiles.set(name, file)
+
+	const resolve: LinkResolver = (name) => {
 		const cached = cache.get(name)
 
 		if (cached !== undefined) return cached
@@ -31,6 +58,8 @@ export function createLinkResolver(project: Project): LinkResolver {
 
 		return link
 	}
+
+	return { resolve, targetFiles }
 }
 
 /** One indexed link target: its resolved symbol and the source file that declares it. */
@@ -69,21 +98,6 @@ function buildIndex(project: Project): Map<string, IndexedTarget> {
 	}
 
 	return index
-}
-
-/**
- * Map every `{@link}`-addressable PascalCase declaration name to the source file
- * that declares it. The incremental extractor keys each barrel's cache on the
- * files its resolved links point at, so editing a linked target's source
- * re-extracts the barrels that link to it — cross-file links carry no import
- * edge, so directory ownership alone would leave those summaries stale.
- */
-export function buildLinkTargetFiles(project: Project): Map<string, string> {
-	const files = new Map<string, string>()
-
-	for (const [name, { file }] of buildIndex(project)) files.set(name, file)
-
-	return files
 }
 
 /** Turn an indexed symbol into the hover card's signature header and summary. */

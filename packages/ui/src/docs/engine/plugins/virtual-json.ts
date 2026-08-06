@@ -82,6 +82,14 @@ export function virtualJsonModules(specs: (VirtualJsonSpec | VirtualJsonFamilySp
 
 	// Serialize the manifest's key thunks. Each specifier is a string literal, so
 	// Rollup code-splits `${prefix}${key}` into its own chunk.
+	//
+	// The manifest needs the whole record to name its keys, so a cold or
+	// invalidated api-reference cache blocks dev first paint on a full extraction
+	// pass (~4.75s) that the open page may never read. The disk cache makes that
+	// rare — a warm restore measures ~32ms — so the residual fix stays unwritten:
+	// key the manifest off `listBarrels` alone and defer extraction to each key
+	// read. Take it only if cold-cache starts prove common, as they would on
+	// fresh clones or CI previews.
 	function renderManifest(fam: FamilyEntry): string {
 		fam.record ??= fam.spec.generate()
 

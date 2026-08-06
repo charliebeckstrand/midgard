@@ -14,7 +14,7 @@ import {
 	unwrapFunctionLike,
 } from '../../docs/engine/api-reference/engine/find-components'
 import { formatPropType } from '../../docs/engine/api-reference/engine/format-type'
-import { createLinkResolver } from '../../docs/engine/api-reference/engine/link-resolver'
+import { createLinkIndex } from '../../docs/engine/api-reference/engine/link-resolver'
 
 // Micro-benchmarks for the per-component extraction seams `buildComponent`
 // (`build-api.ts`) fans out to, on one shared Project so setup cost is paid
@@ -28,7 +28,7 @@ const project = new Project({ tsConfigFilePath: path.resolve(srcDir, '..', 'tsco
 
 const checker = project.getTypeChecker().compilerObject
 
-const resolveLink = createLinkResolver(project)
+const { resolve: resolveLink } = createLinkIndex(project)
 
 /**
  * Everything `buildComponent` derives before calling the extractors, resolved
@@ -66,8 +66,7 @@ function componentSeam(indexRelPath: string, name: string): Seam {
 // Button: a typical annotated component. Heading: spreads
 // `ComponentPropsWithoutRef`, the shape that inflates `collectAllProperties`
 // with ~250 inherited HTML props. Combobox: the widest extractable surface
-// (24 props). Grid itself doesn't resolve — `memo(GridImpl) as typeof
-// GridImpl` defeats `findComponent`; see the 2026-07-13 docs perf audit.
+// (24 props).
 const button = componentSeam('components/button/index.ts', 'Button')
 
 const heading = componentSeam('components/heading/index.ts', 'Heading')
@@ -133,11 +132,13 @@ describe('docs: annotation extractors', () => {
 })
 
 describe('docs: link resolver', () => {
-	// Index construction iterates every program file; low fixed iterations.
+	// Index construction iterates every program file; low fixed iterations. One
+	// build serves both the resolver and the target-file map, so this is the whole
+	// per-pass link cost, not half of it.
 	bench(
-		'createLinkResolver (index build)',
+		'createLinkIndex (index build)',
 		() => {
-			createLinkResolver(project)
+			createLinkIndex(project)
 		},
 		{ warmupIterations: 1, warmupTime: 0, iterations: 5, time: 0 },
 	)

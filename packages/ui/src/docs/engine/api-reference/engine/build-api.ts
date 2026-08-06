@@ -14,7 +14,7 @@ import {
 	readPublicExports,
 	unwrapFunctionLike,
 } from './find-components'
-import { createLinkResolver } from './link-resolver'
+import { createLinkIndex } from './link-resolver'
 
 /**
  * The two documented roots and the key prefix each barrel takes. Components key
@@ -106,7 +106,7 @@ export function buildApi(srcDir: string): Record<string, ComponentApi[]> {
 
 	const checker = project.getTypeChecker().compilerObject
 
-	const resolveLink = createLinkResolver(project)
+	const { resolve: resolveLink } = createLinkIndex(project)
 
 	const result: Record<string, ComponentApi[]> = {}
 
@@ -128,6 +128,15 @@ export function buildApi(srcDir: string): Record<string, ComponentApi[]> {
  * dependencies pulls in exactly the project source the extractor and the
  * package-wide link index read, cutting the checker's eager work roughly in
  * half with byte-identical output.
+ *
+ * `resolveSourceFileDependencies` is the expensive half and reads like the next
+ * thing to cut. It is not available. It alone pulls `primitives`, `hooks`, and
+ * `core` into the project, and the link index walks `project.getSourceFiles()`,
+ * so dropping it costs every cross-root TSDoc link its hover card — silently,
+ * because the prose keeps the `{@link}` and only the resolved entry goes.
+ * `api-extractor.test.ts` pins that. Widening the seed to every file under the
+ * documented roots does not help either: measured over five alternating cold
+ * processes, it is noise (2688 ms against 2629 ms).
  */
 export function openProject(srcDir: string): Project {
 	const project = new Project({
