@@ -129,14 +129,12 @@ export function buildApi(srcDir: string): Record<string, ComponentApi[]> {
  * package-wide link index read, cutting the checker's eager work roughly in
  * half with byte-identical output.
  *
- * `resolveSourceFileDependencies` is the expensive half and reads like the next
- * thing to cut. It is not available. It alone pulls `primitives`, `hooks`, and
- * `core` into the project, and the link index walks `project.getSourceFiles()`,
- * so dropping it costs every cross-root TSDoc link its hover card — silently,
- * because the prose keeps the `{@link}` and only the resolved entry goes.
- * `api-extractor.test.ts` pins that. Widening the seed to every file under the
- * documented roots does not help either: measured over five alternating cold
- * processes, it is noise (2688 ms against 2629 ms).
+ * `resolveSourceFileDependencies` is the expensive half and looks like the next
+ * thing to cut. Do not cut it. It alone pulls `primitives`, `hooks`, and `core`
+ * into the project, and the link index walks `project.getSourceFiles()`, so
+ * every cross-root TSDoc link loses its hover card without it. A wider seed is
+ * no help either — measured over alternating cold processes, the two are within
+ * noise. See `project-construction.bench.ts`.
  */
 export function openProject(srcDir: string): Project {
 	const project = new Project({

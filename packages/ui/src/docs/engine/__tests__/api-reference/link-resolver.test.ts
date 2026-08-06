@@ -82,18 +82,18 @@ describe('createLinkIndex', () => {
 		expect(resolve('helper')).toBeNull()
 	})
 
-	it('maps each indexed name to the file that declares it', () => {
+	it('reports the file that declares an indexed name', () => {
 		// The incremental extractor keys a barrel's cache on these paths, so a
 		// cross-file link target it misses leaves that barrel's summaries stale.
-		const { targetFiles } = createLinkIndex(
+		const { targetFile } = createLinkIndex(
 			project({
 				'item.ts': `export type KbdProps = { keys: string }`,
 				'slots.ts': `/** helper */ export function helper() {}`,
 			}),
 		)
 
-		expect(targetFiles.get('KbdProps')).toBe('/item.ts')
+		expect(targetFile('KbdProps')).toBe('/item.ts')
 
-		expect(targetFiles.has('helper')).toBe(false)
+		expect(targetFile('helper')).toBeUndefined()
 	})
 })

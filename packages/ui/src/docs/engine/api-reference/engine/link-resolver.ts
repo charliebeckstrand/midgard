@@ -4,21 +4,12 @@ import type { DocLink } from '../types'
 import type { LinkResolver } from './extract-doc'
 import { unaliasSymbol } from './ts-utils'
 
-/**
- * One extraction pass's link index: the on-demand resolver, and the map from
- * each indexed name to the file that declares it.
- */
+/** One extraction pass's link index: two lookups over one walk of the program. */
 export type LinkIndex = {
-	/** Turn a TSDoc link target name into its hover card, or `null` when nothing indexes it. */
+	/** A name's hover card, or `null` when nothing indexes it. Memoized, misses included. */
 	resolve: LinkResolver
-	/**
-	 * Every indexed name against the source file that declares it. The
-	 * incremental extractor keys each barrel's cache on the files its resolved
-	 * links point at, so an edit to a linked target re-extracts the barrels that
-	 * link to it — cross-file links carry no import edge, so directory ownership
-	 * alone would leave those summaries stale.
-	 */
-	targetFiles: Map<string, string>
+	/** The source file that declares a name, or `undefined` when nothing indexes it. */
+	targetFile: (name: string) => string | undefined
 }
 
 /**
@@ -26,13 +17,14 @@ export type LinkIndex = {
  * resolve across files without an import, so resolution can't lean on lexical
  * scope; this maps every PascalCase top-level declaration in project source to
  * its symbol, which `resolve` turns into hover detail (signature + summary) on
- * demand. Results are memoized, including misses.
+ * demand.
  *
- * Both consumers come from one build, because the walk covers every file in
- * the program and measures ~44 ms. Building it once for each consumer cost the
- * incremental pass 25 ms of 208 ms — about 12%. One build is also the most a
- * pass can share: refreshing a source file rebuilds the program, so an index
- * held across passes reads stale types.
+ * One build serves both lookups. The walk covers every file in the program and
+ * measures 13-25 ms warm, against an incremental pass of about 200 ms — time
+ * the callers used to pay twice. Measure it directly if you touch it: the
+ * pass-level benchmark varies by more than the walk costs. One pass is also the
+ * longest a build survives, because refreshing a source file rebuilds the
+ * program and an index held across passes then reads stale types.
  */
 export function createLinkIndex(project: Project): LinkIndex {
 	const checker = project.getTypeChecker().compilerObject
@@ -40,10 +32,6 @@ export function createLinkIndex(project: Project): LinkIndex {
 	const index = buildIndex(project)
 
 	const cache = new Map<string, DocLink | null>()
-
-	const targetFiles = new Map<string, string>()
-
-	for (const [name, { file }] of index) targetFiles.set(name, file)
 
 	const resolve: LinkResolver = (name) => {
 		const cached = cache.get(name)
@@ -59,7 +47,7 @@ export function createLinkIndex(project: Project): LinkIndex {
 		return link
 	}
 
-	return { resolve, targetFiles }
+	return { resolve, targetFile: (name) => index.get(name)?.file }
 }
 
 /** One indexed link target: its resolved symbol and the source file that declares it. */
@@ -69,12 +57,15 @@ type IndexedTarget = { symbol: ts.Symbol; file: string }
 function buildIndex(project: Project): Map<string, IndexedTarget> {
 	const index = new Map<string, IndexedTarget>()
 
-	const add = (name: string | undefined, node: Node) => {
+	// `file` comes from the loop rather than `node.getSourceFile()`: every
+	// declaration in a file shares it, and re-deriving it per name costs the walk
+	// about 7%.
+	const add = (name: string | undefined, node: Node, file: string) => {
 		if (!name || !/^[A-Z]/.test(name) || index.has(name)) return
 
 		const symbol = node.getSymbol()?.compilerSymbol
 
-		if (symbol) index.set(name, { symbol, file: node.getSourceFile().getFilePath() })
+		if (symbol) index.set(name, { symbol, file })
 	}
 
 	for (const sf of project.getSourceFiles()) {
@@ -90,9 +81,9 @@ function buildIndex(project: Project): Map<string, IndexedTarget> {
 				Node.isInterfaceDeclaration(node) ||
 				Node.isEnumDeclaration(node)
 			) {
-				add(node.getName(), node)
+				add(node.getName(), node, file)
 			} else if (Node.isVariableStatement(node) && node.isExported()) {
-				for (const decl of node.getDeclarations()) add(decl.getName(), decl)
+				for (const decl of node.getDeclarations()) add(decl.getName(), decl, file)
 			}
 		}
 	}

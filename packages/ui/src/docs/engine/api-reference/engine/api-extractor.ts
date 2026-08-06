@@ -172,13 +172,13 @@ export function createApiExtractor(
 	function extractionContext() {
 		const proj = ensureProject()
 
-		const { resolve, targetFiles } = createLinkIndex(proj)
+		const { resolve, targetFile } = createLinkIndex(proj)
 
 		return {
 			proj,
 			checker: proj.getTypeChecker().compilerObject,
 			resolveLink: resolve,
-			linkTargetFiles: targetFiles,
+			targetFile,
 		}
 	}
 
@@ -189,7 +189,7 @@ export function createApiExtractor(
 		proj: Project,
 		barrel: Barrel,
 		api: ComponentApi[] | null,
-		linkTargetFiles: Map<string, string>,
+		targetFile: (name: string) => string | undefined,
 		directRefs: Map<string, string[]>,
 	): Set<string> {
 		const inputs = new Set<string>([barrel.indexPath])
@@ -226,7 +226,7 @@ export function createApiExtractor(
 		// `{@link}` targets resolve by name across the package with no import edge,
 		// so their source files must be tracked explicitly.
 		for (const name of linkNames(api)) {
-			const target = linkTargetFiles.get(name)
+			const target = targetFile(name)
 
 			if (target && isInputFile(target)) inputs.add(target)
 		}
@@ -246,7 +246,7 @@ export function createApiExtractor(
 
 		const api = extractBarrel(ctx.proj, ctx.checker, ctx.resolveLink, barrel.indexPath)
 
-		const inputs = inputsFor(ctx.proj, barrel, api, ctx.linkTargetFiles, directRefs)
+		const inputs = inputsFor(ctx.proj, barrel, api, ctx.targetFile, directRefs)
 
 		states.set(key, { api, inputs })
 	}
@@ -378,12 +378,10 @@ export function createApiExtractor(
 			// First in-process pass (the disk cache served the initial load): warm the
 			// checker with a full canonical pass so ordering matches the stored record.
 			//
-			// The cost is a once-per-session stall on the first edit — measured at
-			// ~4.4s, because a cache-replayed state carries empty `inputs` and a
-			// per-barrel subset pass is only ordering-stable against a canonically
-			// warmed checker. Left as designed. If the stall ever reads as a defect,
-			// warm proactively — kick the full pass on server idle after a
-			// disk-served load — rather than weaken the ordering rule.
+			// A cache-replayed state carries empty `inputs`, so this costs a
+			// once-per-session stall on the first edit. To remove it, warm
+			// proactively on server idle after a disk-served load; do not relax the
+			// ordering rule, which is what makes a subset pass safe at all.
 			fullPass()
 		}
 

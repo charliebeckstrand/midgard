@@ -294,15 +294,11 @@ function joinArms(arms: { text: string; fn: boolean }[]): string {
  * of — the arm slices; a narrower arm whose members aren't covered elsewhere is
  * always kept.
  *
- * The comparison above renders each member through `formatType`, and
- * `formatPropTypes` then renders the kept arms again through `formatPropType`.
- * A multi-arm prop therefore formats twice. That is deliberate, not a missed
- * dedupe: the two functions diverge on a leaf function type, which `formatType`
- * routes through `formatFunctionType` and `formatPropType` hands to
- * `typeToString`. One shared rendering would change how function-typed
- * discriminated arms display. The second pass is cheap besides — 75 of 1223
- * props reach it, for 328 extra member renderings against a ~4.75s cold pass —
- * so a merge needs a `buildApi` output diff and a reason beyond speed.
+ * The comparison here renders each member through `formatType`, and
+ * `formatPropTypes` renders the kept arms again through `formatPropType`, so a
+ * multi-arm prop formats twice. That is deliberate, not a missed dedupe: the
+ * two diverge on a leaf function type, so one shared rendering would change how
+ * function-typed arms display. See `formatPropType`.
  */
 function dropMergedArmUnions(
 	types: ts.Type[],

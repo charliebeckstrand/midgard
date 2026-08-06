@@ -2,7 +2,7 @@
 
 Measurement seams for the docs app's two cost centers: the ts-morph API extraction (`src/docs/engine/api-reference`) and the Vite build/dev pipeline.
 
-Run them on demand, to measure a change or to drive one. They are deliberately not wired into CI: every number here is wall clock, a shared agent moves it by more than most real regressions, and a suite that cries wolf gets ignored. What CI does hold is the correctness a past optimization traded against — `api-extractor.test.ts` pins the cross-root link resolution that project scoping must preserve.
+Run them on demand, to measure a change or to drive one. They are deliberately not wired into CI: every number here is wall clock, and a shared agent moves it further than most real regressions do. CI holds the correctness instead — `api-extractor.test.ts` pins the cross-root link resolution that project scoping must preserve.
 
 Baselines on a 4-core machine, for 313 components / 1223 props: cold full pass ≈ 4.8s (project construction ≈ 1.9s of it; the pre-#1001 tsconfig shape measures ≈ 5.4-6.9s), disk-cache restore ≈ 32ms, per-barrel incremental edit ≈ 182ms, link index ≈ 44ms, prod build ≈ 3s wall on a warm cache. Compare these only against each other, and only from the same machine.
 

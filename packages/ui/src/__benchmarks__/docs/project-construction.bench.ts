@@ -3,18 +3,19 @@
 import path from 'node:path'
 import { Project } from 'ts-morph'
 import { bench, describe } from 'vitest'
-import { openProject } from '../../docs/engine/api-reference/engine/build-api'
+import { DOCUMENTED_ROOTS, openProject } from '../../docs/engine/api-reference/engine/build-api'
 
 // Hypothesis suite for `openProject` (`build-api.ts`): project construction is
 // most of what a cold extraction pays before it reaches a component, so each
 // bench builds a Project a different way and includes checker creation.
 //
-// Read the two `skipFileDependencyResolution` rows as a ceiling, not as
-// headroom. They are fast because they leave every file outside the seed out of
-// `project.getSourceFiles()`, and the link index walks exactly that list, so a
-// cross-root TSDoc link resolves to nothing — diffed against `buildApi` output,
-// which loses `Sparkline.animate`'s `ReducedMotion` card.
-// `api-extractor.test.ts` pins the mechanism.
+// Read the last row as a ceiling, not as headroom. It is fast because a
+// glob seed plus `skipFileDependencyResolution` leaves `primitives`, `hooks`,
+// and `core` out of `project.getSourceFiles()`, which is the list the link
+// index walks — diffed against `buildApi` output, it loses
+// `Sparkline.animate`'s `ReducedMotion` card. `api-extractor.test.ts` pins the
+// mechanism. The tsconfig row above it keeps those files, because the tsconfig
+// includes `src` itself.
 //
 // Hold dependency resolution fixed and the seed stops mattering: the barrel
 // indices and the wider documented-root globs measure the same, within noise,
@@ -31,7 +32,7 @@ const srcDir = path.resolve(import.meta.dirname, '..', '..')
 
 const tsConfigFilePath = path.resolve(srcDir, '..', 'tsconfig.json')
 
-const componentGlobs = [`${srcDir}/components/**/*.{ts,tsx}`, `${srcDir}/modules/**/*.{ts,tsx}`]
+const rootGlobs = DOCUMENTED_ROOTS.map(([root]) => `${srcDir}/${root}/**/*.{ts,tsx}`)
 
 describe('docs: ts-morph project construction', () => {
 	bench(
@@ -47,7 +48,7 @@ describe('docs: ts-morph project construction', () => {
 		() => {
 			const project = new Project({ tsConfigFilePath, skipAddingFilesFromTsConfig: true })
 
-			project.addSourceFilesAtPaths(componentGlobs)
+			project.addSourceFilesAtPaths(rootGlobs)
 
 			project.resolveSourceFileDependencies()
 
@@ -85,7 +86,7 @@ describe('docs: ts-morph project construction', () => {
 				skipFileDependencyResolution: true,
 			})
 
-			project.addSourceFilesAtPaths(componentGlobs)
+			project.addSourceFilesAtPaths(rootGlobs)
 
 			project.getTypeChecker()
 		},
