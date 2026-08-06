@@ -45,7 +45,7 @@ describe('overlay identity and click', () => {
 
 		fireEvent.click(bySlot(container, 'map-point-hit') as Element)
 
-		expect(onClick).toHaveBeenCalledWith('depot')
+		expect(onClick).toHaveBeenCalledWith('depot', 0)
 	})
 
 	it('reports it from a route and from a marker too', () => {
@@ -65,11 +65,11 @@ describe('overlay identity and click', () => {
 
 		fireEvent.click(bySlot(container, 'map-route-hit') as Element)
 
-		expect(onRoute).toHaveBeenCalledWith('leg')
+		expect(onRoute).toHaveBeenCalledWith('leg', 0)
 
 		fireEvent.click(bySlot(container, 'map-marker-hit') as Element)
 
-		expect(onMarker).toHaveBeenCalledWith('run')
+		expect(onMarker).toHaveBeenCalledWith('run', 0)
 	})
 
 	it('reports a right-click through its own handler', () => {
@@ -81,7 +81,7 @@ describe('overlay identity and click', () => {
 
 		fireEvent.contextMenu(bySlot(container, 'map-point-hit') as Element)
 
-		expect(onContextMenu).toHaveBeenCalledWith('depot')
+		expect(onContextMenu).toHaveBeenCalledWith('depot', 0)
 	})
 
 	it('carries a pointer affordance only where a click is answered', () => {
@@ -123,7 +123,7 @@ describe('overlay identity and click', () => {
 
 		expect(onClick).toHaveBeenCalledTimes(3)
 
-		expect(onClick).toHaveBeenLastCalledWith('run')
+		expect(onClick).toHaveBeenLastCalledWith('run', 0)
 	})
 
 	it('keeps an inline handler from churning the legend', () => {
@@ -158,7 +158,7 @@ describe('overlay keyboard reach', () => {
 
 		fireEvent.keyDown(plot, { key: 'Enter' })
 
-		expect(onClick).toHaveBeenCalledWith('yard')
+		expect(onClick).toHaveBeenCalledWith('yard', 0)
 	})
 
 	it('reads the overlay out as the cursor lands on it', () => {
@@ -199,7 +199,7 @@ describe('overlay keyboard reach', () => {
 
 		fireEvent.keyDown(plot, { key: 'Enter' })
 
-		expect(onClick).toHaveBeenCalledWith('yard')
+		expect(onClick).toHaveBeenCalledWith('yard', 0)
 	})
 
 	it('takes no tab stop for a mark that answers nothing', () => {

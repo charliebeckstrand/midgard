@@ -896,7 +896,16 @@ function MapHoverProvider({
 			const entry = under.closest('[data-entry-id]')
 
 			if (entry !== null) {
-				set({ kind: 'entry', id: entry.getAttribute('data-entry-id') ?? '' }, point)
+				// The stop rides the same shape, so a plural mark re-resolves to the
+				// dot the pointer is actually over rather than to the mark's first.
+				set(
+					{
+						kind: 'entry',
+						id: entry.getAttribute('data-entry-id') ?? '',
+						stop: Number(entry.getAttribute('data-entry-stop') ?? 0),
+					},
+					point,
+				)
 
 				return
 			}
@@ -1281,6 +1290,7 @@ export function MapPlat<T = never>({
 						swatch: entry.swatch,
 						swatchClass: cn(k.series[colors.get(entry.id) ?? 'blue'].text),
 						detail: entry.detail,
+						stopReadout: entry.stopReadout,
 					},
 				]),
 			),
@@ -1318,7 +1328,7 @@ export function MapPlat<T = never>({
 				return
 			}
 
-			entries.find((entry) => entry.id === target.id)?.activate?.()
+			entries.find((entry) => entry.id === target.id)?.activate?.(target.stop)
 		},
 		[clickRegion, entries],
 	)

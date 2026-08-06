@@ -3,6 +3,7 @@ export { binEmphasisId } from './map-categories'
 export { MapMarker, type MapMarkerProps } from './map-marker'
 export { MapPlat, type MapPlatProps } from './map-plat'
 export { MapPoint, type MapPointProps } from './map-point'
+export { type MapPointDatum, MapPoints, type MapPointsProps } from './map-points'
 export {
 	RangeArrow,
 	type RangeArrowProps,

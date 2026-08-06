@@ -31,8 +31,8 @@ export type MapStop = {
 	at: MapPoint2D
 }
 
-/** As much of a registered mark as a stop needs. @internal */
-type MapAnchoredEntry = Pick<MapOverlayEntry, 'id' | 'anchorAt'>
+/** As much of a registered mark as its stops need. @internal */
+type MapAnchoredEntry = Pick<MapOverlayEntry, 'id' | 'stopsAt'>
 
 /**
  * The cursor's stop list: every region at its centroid, then every registered
@@ -66,11 +66,14 @@ export function mapStops(
 	for (const entry of entries) {
 		if (hidden.has(entry.id)) continue
 
-		const at = entry.anchorAt?.() ?? null
+		// A mark holds one stop, or one per dot where it is plural — and the stop
+		// keeps its own ordinal even when an earlier one drops off the projection,
+		// so the index the cursor reports always names the caller's own point.
+		for (const [stop, at] of (entry.stopsAt?.() ?? []).entries()) {
+			const point = project(at)
 
-		const point = at === null ? null : project(at)
-
-		if (point !== null) stops.push({ target: { kind: 'entry', id: entry.id }, at: point })
+			if (point !== null) stops.push({ target: { kind: 'entry', id: entry.id, stop }, at: point })
+		}
 	}
 
 	return stops

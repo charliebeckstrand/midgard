@@ -14,6 +14,12 @@ export type MapTooltipEntry = {
 	/** currentColor class carrying the entry's colour. */
 	swatchClass: string
 	detail?: string
+	/**
+	 * What one of the mark's stops reads out, where that differs from the mark's
+	 * own label and detail — a plural mark's dots, each naming its own stop.
+	 * `undefined` falls back to the mark, which is what every singular mark does.
+	 */
+	stopReadout?: (stop: number) => { label: string; detail?: string } | undefined
 }
 
 /** Props for {@link MapTooltip}. @internal */
@@ -50,25 +56,41 @@ const SWATCH_SHAPE = { rect: 'square', line: 'line', dot: 'circle' } as const sa
 	NonNullable<SwatchProps['shape']>
 >
 
+/**
+ * The tooltip content for an overlay mark's stop. A plural mark's dot names
+ * itself; a singular mark, and a dot that carries no name of its own, reads the
+ * mark's. A dot that names itself but carries no detail shows no detail row
+ * either — the mark's would belong to the group, not to this dot.
+ */
+function resolveEntry(
+	target: { id: string; stop: number },
+	entries: MapTooltipProps['entries'],
+	hidden: MapTooltipProps['hidden'],
+): MapTooltipContent | null {
+	if (hidden.has(target.id)) return null
+
+	const entry = entries.get(target.id)
+
+	if (entry === undefined) return null
+
+	const stop = entry.stopReadout?.(target.stop)
+
+	const detail = stop === undefined ? entry.detail : stop.detail
+
+	return {
+		title: stop?.label ?? entry.label,
+		row: detail
+			? { swatch: entry.swatch, swatchClass: entry.swatchClass, text: detail }
+			: undefined,
+	}
+}
+
 /** Resolves the tooltip content for a hover target, or `null` to stay away. @internal */
 function resolve(
 	target: MapHoverTarget,
 	{ regionNames, regionCategory, regionValues, categories, entries, hidden }: MapTooltipProps,
 ): MapTooltipContent | null {
-	if (target.kind === 'entry') {
-		if (hidden.has(target.id)) return null
-
-		const entry = entries.get(target.id)
-
-		if (entry === undefined) return null
-
-		return {
-			title: entry.label,
-			row: entry.detail
-				? { swatch: entry.swatch, swatchClass: entry.swatchClass, text: entry.detail }
-				: undefined,
-		}
-	}
+	if (target.kind === 'entry') return resolveEntry(target, entries, hidden)
 
 	const category = regionCategory[target.index]
 

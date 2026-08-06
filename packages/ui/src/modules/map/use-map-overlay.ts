@@ -10,8 +10,8 @@ import type { MapOverlayKind } from './use-map-legend-registry'
 
 /**
  * The props every overlay mark shares: its identity, its legend text and paint,
- * and the pointer reporters. {@link MapRoute}, {@link MapPoint}, and
- * {@link MapMarker} each add their own geometry to these.
+ * and the pointer reporters. {@link MapRoute}, {@link MapPoint},
+ * {@link MapMarker}, and {@link MapPoints} each add their own geometry to these.
  */
 export type MapOverlayProps = {
 	/**
@@ -26,7 +26,7 @@ export type MapOverlayProps = {
 	 * for the mount.
 	 */
 	id?: string
-	/** Legend and tooltip name; one entry per mark. */
+	/** Legend and tooltip name; one entry per mark, however many shapes it draws. */
 	label: string
 	/** Named mark colour override; defaults to the next slot after the region categories. */
 	color?: MapSeriesColor
@@ -41,6 +41,10 @@ export type MapOverlayProps = {
 	 * Set, the mark carries a pointer cursor. The keyboard reaches it through the
 	 * plot region's own cursor, which visits every overlay alongside the regions
 	 * and activates the one it sits on with Enter or Space.
+	 *
+	 * A singular mark holds one stop, so it is called with a trailing `0` its type
+	 * omits — the plural {@link MapPoints} passes the dot's index there. A handler
+	 * declared as this type never sees the argument.
 	 */
 	onClick?: (id: string) => void
 	/**
@@ -52,18 +56,33 @@ export type MapOverlayProps = {
 	onContextMenu?: (id: string) => void
 }
 
-/** What an overlay hands {@link useMapOverlay} beyond its shared props. @internal */
-type MapOverlayConfig = MapOverlayProps & {
-	kind: MapOverlayKind
-	/** Swatch shape, mirroring the mark: `line` for routes and markers, `dot` for points. */
-	swatch: 'line' | 'dot'
-	/**
-	 * Where the keyboard cursor anchors on this mark, in lon/lat — a point's own
-	 * position, a route's middle stop, a marker's origin. `null` while the mark
-	 * has no geometry yet.
-	 */
-	anchor: LngLat | null
+/**
+ * The reporters as the hook takes them, naming the stop as well as the mark. A
+ * singular mark's public `(id) => void` is assignable to this, so it passes its
+ * own prop straight through and never sees the stop it does not have.
+ *
+ * @internal
+ */
+type MapOverlayReporters = {
+	onClick?: (id: string, stop: number) => void
+	onContextMenu?: (id: string, stop: number) => void
 }
+
+/** What an overlay hands {@link useMapOverlay} beyond its shared props. @internal */
+type MapOverlayConfig = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> &
+	MapOverlayReporters & {
+		kind: MapOverlayKind
+		/** Swatch shape, mirroring the mark: `line` for routes and markers, `dot` for points. */
+		swatch: 'line' | 'dot'
+		/**
+		 * Where the keyboard cursor can stand on this mark, in lon/lat — a point's
+		 * own position, a route's middle stop, every dot of a plural mark. Empty
+		 * while the mark has no geometry yet.
+		 */
+		stops: LngLat[]
+		/** What one stop reads out, where it differs from the mark's own label and detail. */
+		stopReadout?: (stop: number) => { label: string; detail?: string } | undefined
+	}
 
 /** The resolved plat state and DOM props an overlay draws itself from. @internal */
 export type MapOverlay = {
@@ -82,12 +101,14 @@ export type MapOverlay = {
 	/** Clears the hover as the pointer leaves the mark's group. */
 	onPointerLeave: () => void
 	/**
-	 * Spread onto every invisible hit shape the mark draws: the entry anchor the
-	 * scroll-settle resolve reads, the hover tracker, and the click reporters with
-	 * their cursor affordance.
+	 * Props for one invisible hit shape, named by which of the mark's stops it
+	 * covers — `0` for a singular mark. Carries the anchor the scroll-settle
+	 * resolve reads, the hover tracker, and the click reporters with their cursor
+	 * affordance.
 	 */
-	hit: {
+	hit: (stop: number) => {
 		'data-entry-id': string
+		'data-entry-stop': number
 		className: string | undefined
 		onPointerEnter: (event: PointerEvent<SVGElement>) => void
 		onPointerMove: (event: PointerEvent<SVGElement>) => void
@@ -101,10 +122,15 @@ export type MapOverlay = {
  * resolved paint and toggle state, the hover tracker, and the click reporters.
  * Each overlay keeps only its own geometry and its own drawn shapes.
  *
- * The mark registers its keyboard anchor and its activation alongside its legend
+ * The mark registers its keyboard stops and its activation alongside its legend
  * entry, so the plat's cursor can step onto it and Enter can pick it without the
- * plat knowing what kind of mark it is. Both ride stable getters over a ref, so
- * a moving mark — or an inline `at={[lon, lat]}` — never re-registers.
+ * plat knowing what kind of mark it is. A mark may hold more than one stop —
+ * every dot of a {@link MapPoints} — and the cursor, the tooltip, and the click
+ * all name the stop, while the legend, the toggle, and the emphasis stay with
+ * the mark as a whole.
+ *
+ * The stops and the reporters ride stable getters over a ref, so a moving mark —
+ * or an inline handler — never re-registers.
  *
  * @internal
  */
@@ -117,7 +143,8 @@ export function useMapOverlay({
 	onContextMenu,
 	kind,
 	swatch,
-	anchor,
+	stops,
+	stopReadout,
 }: MapOverlayConfig): MapOverlay {
 	const generated = useId()
 
@@ -129,17 +156,19 @@ export function useMapOverlay({
 
 	const pointed = useMapPointedMark()
 
-	// The live anchor and reporters, read at fire time rather than captured in the
+	// The live stops and reporters, read at fire time rather than captured in the
 	// registration: a consumer's inline handler is a fresh identity every render,
-	// and a mark's position changes as its geometry lands — neither may churn the
-	// ledger, whose every write re-sorts it and re-renders the legend.
-	const live = useRef({ anchor, onClick })
+	// and a mark's geometry changes as it lands — neither may churn the ledger,
+	// whose every write re-sorts it and re-renders the legend.
+	const live = useRef({ stops, onClick, stopReadout })
 
-	live.current = { anchor, onClick }
+	live.current = { stops, onClick, stopReadout }
 
-	const anchorAt = useCallback(() => live.current.anchor, [])
+	const stopsAt = useCallback(() => live.current.stops, [])
 
-	const pick = useCallback(() => live.current.onClick?.(id), [id])
+	const readout = useCallback((stop: number) => live.current.stopReadout?.(stop), [])
+
+	const pick = useCallback((stop: number) => live.current.onClick?.(id, stop), [id])
 
 	// Registered only where the mark answers a pick, so its presence is the
 	// question the plat's tab-stop gate asks. The handler itself still rides the
@@ -150,13 +179,10 @@ export function useMapOverlay({
 	const activate = pickable ? pick : undefined
 
 	useEffect(
-		() => register({ id, label, kind, swatch, color, detail, anchorAt, activate }),
-		[register, id, label, kind, swatch, color, detail, anchorAt, activate],
+		() =>
+			register({ id, label, kind, swatch, color, detail, stopsAt, stopReadout: readout, activate }),
+		[register, id, label, kind, swatch, color, detail, stopsAt, readout, activate],
 	)
-
-	const track = (event: PointerEvent<SVGElement>) => {
-		set({ kind: 'entry', id }, { x: event.clientX, y: event.clientY })
-	}
 
 	return {
 		slot: colors.get(id),
@@ -164,17 +190,24 @@ export function useMapOverlay({
 		project,
 		animate,
 		order: order.get(id) ?? 0,
-		dim: cn(k.group(mapMarkDimmed(pointed, { kind: 'entry', id }, emphasis, id))),
+		dim: cn(k.group(mapMarkDimmed(pointed, { kind: 'entry', id, stop: 0 }, emphasis, id))),
 		onPointerLeave: () => set(null, null),
-		hit: {
-			'data-entry-id': id,
-			className: pickable ? k.clickable : undefined,
-			onPointerEnter: track,
-			onPointerMove: track,
-			onClick: onClick === undefined ? undefined : () => onClick(id),
-			// Bubbles, and never prevents default: a wrapping menu still opens, and
-			// this only names which mark it opened over.
-			onContextMenu: onContextMenu === undefined ? undefined : () => onContextMenu(id),
+		hit: (stop: number) => {
+			const track = (event: PointerEvent<SVGElement>) => {
+				set({ kind: 'entry', id, stop }, { x: event.clientX, y: event.clientY })
+			}
+
+			return {
+				'data-entry-id': id,
+				'data-entry-stop': stop,
+				className: pickable ? k.clickable : undefined,
+				onPointerEnter: track,
+				onPointerMove: track,
+				onClick: pickable ? () => onClick?.(id, stop) : undefined,
+				// Bubbles, and never prevents default: a wrapping menu still opens, and
+				// this only names which mark it opened over.
+				onContextMenu: onContextMenu === undefined ? undefined : () => onContextMenu(id, stop),
+			}
 		},
 	}
 }

@@ -13,7 +13,18 @@ import type { MapOverlayEntry } from './use-map-legend-registry'
  *
  * @internal
  */
-export type MapHoverTarget = { kind: 'region'; index: number } | { kind: 'entry'; id: string }
+export type MapHoverTarget =
+	| { kind: 'region'; index: number }
+	| {
+			kind: 'entry'
+			id: string
+			/**
+			 * Which of the mark's stops, for a mark that draws more than one — a
+			 * {@link MapPoints} dot. A singular mark carries `0`, so an entry target
+			 * always has a stop and no reader tests for its absence.
+			 */
+			stop: number
+	  }
 
 /**
  * The live hover readout the tooltip anchors to: the pointed target and the
@@ -79,6 +90,29 @@ export function sameTarget(a: MapHoverTarget | null, b: MapHoverTarget | null): 
 
 	if (a === null || b === null || a.kind !== b.kind) return false
 
+	if (a.kind === 'region') return a.index === (b as { index: number }).index
+
+	const other = b as { id: string; stop: number }
+
+	return a.id === other.id && a.stop === other.stop
+}
+
+/**
+ * Whether two targets name the same *mark*, ignoring which of its stops. The
+ * whole of a plural mark reads as one thing to the emphasis — pointing one dot
+ * of a {@link MapPoints} lights the group, not that dot alone — which is what
+ * lets the group draw under a single wrapper and a single dim class where two
+ * hundred dots would otherwise need two hundred.
+ *
+ * File-private: only {@link mapMarkDimmed} compares this way, and the chart
+ * engine exports a `sameMark` of its own over its own mark refs — two modules
+ * should not answer one name across a grep.
+ */
+function sameMark(a: MapHoverTarget | null, b: MapHoverTarget | null): boolean {
+	if (a === b) return true
+
+	if (a === null || b === null || a.kind !== b.kind) return false
+
 	return a.kind === 'region'
 		? a.index === (b as { index: number }).index
 		: a.id === (b as { id: string }).id
@@ -117,7 +151,10 @@ export function mapMarkDimmed(
 	emphasis: string | null,
 	groupId: string | null,
 ): boolean {
-	if (pointed !== null) return !sameTarget(pointed, self)
+	// Compared by mark, not by stop: a plural mark draws under one wrapper, so
+	// pointing one of its dots must light the whole group rather than dim the rest
+	// of itself.
+	if (pointed !== null) return !sameMark(pointed, self)
 
 	return emphasis !== null && emphasis !== groupId
 }

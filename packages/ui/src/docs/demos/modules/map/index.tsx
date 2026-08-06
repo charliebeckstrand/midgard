@@ -14,12 +14,14 @@ import {
 	MapMarker,
 	MapPlat,
 	MapPoint,
+	MapPoints,
 	MapRoute,
 	type MapRouteResult,
 } from '../../../../modules/map'
 import { Example as ExampleFrame } from '../../../engine'
 import {
 	corridors,
+	deliveryStops,
 	ikeaDestinations,
 	ikeaHub,
 	laToChicago,
@@ -244,24 +246,41 @@ function MapDemo() {
 					</TabContent>
 
 					<TabContent value="point">
-						<Example title="Warehouses">
-							<MapPlat
-								aria-label="Warehouse network"
-								geography={states}
-								projection="albers-usa"
-								animate
-								legend="right"
-							>
-								{warehouses.map((warehouse) => (
-									<MapPoint
-										key={warehouse.city}
-										label={warehouse.city}
-										at={warehouse.at}
-										detail={warehouse.detail}
-									/>
-								))}
-							</MapPlat>
-						</Example>
+						<Stack gap="xl">
+							<Example title="Warehouses">
+								<MapPlat
+									aria-label="Warehouse network"
+									geography={states}
+									projection="albers-usa"
+									animate
+									legend="right"
+								>
+									{warehouses.map((warehouse) => (
+										<MapPoint
+											key={warehouse.city}
+											label={warehouse.city}
+											at={warehouse.at}
+											detail={warehouse.detail}
+										/>
+									))}
+								</MapPlat>
+							</Example>
+
+							{/* One entry for the whole round, where a MapPoint each would
+							    claim a legend row each and run past the eight-slot palette.
+							    Every dot still names itself in the readout. */}
+							<Example title="Delivery round">
+								<MapPlat
+									aria-label="Delivery round"
+									geography={states}
+									projection="albers-usa"
+									animate
+									legend="right"
+								>
+									<MapPoints label="Stops" points={deliveryStops} detail="10 stops" />
+								</MapPlat>
+							</Example>
+						</Stack>
 					</TabContent>
 
 					<TabContent value="marker">

@@ -76,6 +76,24 @@ export const warehouses: { city: string; abbreviation: string; at: LngLat; detai
 	{ city: 'Atlanta', abbreviation: 'ATL', at: [-84.39, 33.75], detail: '11 loads' },
 ]
 
+/**
+ * One day's delivery stops out of the Dallas warehouse, for the plural-point
+ * example. Enough of them that a `MapPoint` each would claim a legend row each
+ * and exhaust the eight-slot palette — which is the case `MapPoints` exists for.
+ */
+export const deliveryStops: { at: LngLat; label: string; detail: string }[] = [
+	{ at: [-96.8, 32.78], label: 'Dallas depot', detail: 'Origin' },
+	{ at: [-96.67, 33.02], label: 'Plano', detail: '6 parcels' },
+	{ at: [-97.14, 32.75], label: 'Arlington', detail: '9 parcels' },
+	{ at: [-97.33, 32.76], label: 'Fort Worth', detail: '14 parcels' },
+	{ at: [-96.61, 32.9], label: 'Garland', detail: '4 parcels' },
+	{ at: [-96.99, 32.61], label: 'Cedar Hill', detail: '7 parcels' },
+	{ at: [-96.45, 32.75], label: 'Mesquite', detail: '5 parcels' },
+	{ at: [-97.07, 33.15], label: 'Denton', detail: '11 parcels' },
+	{ at: [-96.55, 33.19], label: 'McKinney', detail: '8 parcels' },
+	{ at: [-97.19, 32.99], label: 'Grapevine', detail: '3 parcels' },
+]
+
 // The routed examples below carry only origin and destination coordinates.
 // The demo fetches the road route between them from the OSRM demo server at
 // render time (see `useRoute` in index.tsx), so the line follows the streets

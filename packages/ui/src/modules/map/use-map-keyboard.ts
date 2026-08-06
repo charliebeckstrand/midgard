@@ -7,9 +7,16 @@ import type { MapPoint2D } from './map-geometry'
 import { isMapActivateKey, type MapStop, moveMapCursor } from './map-keyboard'
 import { frameToClient } from './map-projection'
 
-/** A stop's mark as one string, so the cursor's position resolves through a map rather than a scan. @internal */
+/**
+ * A stop as one string, so the cursor's position resolves through a map rather
+ * than a scan. Keyed by the stop and not only by the mark: a plural mark holds
+ * one key per dot, and collapsing them would point the cursor at whichever dot
+ * registered last.
+ *
+ * @internal
+ */
 function stopKey(target: MapHoverTarget): string {
-	return target.kind === 'region' ? `r${target.index}` : `e${target.id}`
+	return target.kind === 'region' ? `r${target.index}` : `e${target.id}:${target.stop}`
 }
 
 /** The handlers {@link useMapKeyboard} spreads onto the plot region to make it a navigable tab stop. @internal */

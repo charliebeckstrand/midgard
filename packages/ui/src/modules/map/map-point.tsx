@@ -35,7 +35,7 @@ export function MapPoint({ at, ...shared }: MapPointProps) {
 		...shared,
 		kind: 'point',
 		swatch: 'dot',
-		anchor: at,
+		stops: [at],
 	})
 
 	const position = project(at)
@@ -62,7 +62,7 @@ export function MapPoint({ at, ...shared }: MapPointProps) {
 				cy={position.y}
 				r={POINT_HIT_RADIUS}
 				fill="transparent"
-				{...hit}
+				{...hit(0)}
 			/>
 		</g>
 	)

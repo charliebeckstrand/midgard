@@ -14,8 +14,8 @@ function region(index: number, x: number, y: number): MapStop {
 }
 
 /** An overlay stop at a frame position. */
-function entry(id: string, x: number, y: number): MapStop {
-	return { target: { kind: 'entry', id }, at: { x, y } }
+function entry(id: string, x: number, y: number, stop = 0): MapStop {
+	return { target: { kind: 'entry', id, stop }, at: { x, y } }
 }
 
 /** Three stops in a west-to-east row, the shape the module's own fixture projects to. */
@@ -49,7 +49,7 @@ describe('mapStops', () => {
 				[0, 0],
 				[10, 0],
 			],
-			[{ id: 'depot', anchorAt: () => [5, 5] }],
+			[{ id: 'depot', stopsAt: () => [[5, 5]] }],
 			NONE,
 			project,
 		)
@@ -57,7 +57,7 @@ describe('mapStops', () => {
 		expect(stops.map((stop) => stop.target)).toEqual([
 			{ kind: 'region', index: 0 },
 			{ kind: 'region', index: 1 },
-			{ kind: 'entry', id: 'depot' },
+			{ kind: 'entry', id: 'depot', stop: 0 },
 		])
 
 		expect(stops[2]?.at).toEqual({ x: 5, y: 5 })
@@ -78,7 +78,7 @@ describe('mapStops', () => {
 		// land where the map draws nothing.
 		const dropped = mapStops(
 			[[0, 0]],
-			[{ id: 'far', anchorAt: () => [99, 99] }],
+			[{ id: 'far', stopsAt: () => [[99, 99]] }],
 			NONE,
 			(at: LngLat) => (at[0] > 50 ? null : { x: at[0], y: at[1] }),
 		)
@@ -88,10 +88,34 @@ describe('mapStops', () => {
 		expect(dropped[0]?.target).toEqual({ kind: 'region', index: 0 })
 	})
 
-	it('leaves out an overlay that has registered no anchor yet', () => {
+	it('leaves out an overlay that has registered no stop yet', () => {
 		expect(
-			mapStops([], [{ id: 'pending' }, { id: 'empty', anchorAt: () => null }], NONE, project),
+			mapStops([], [{ id: 'pending' }, { id: 'empty', stopsAt: () => [] }], NONE, project),
 		).toEqual([])
+	})
+
+	it('keeps a stop ordinal aligned with the caller when an earlier one drops', () => {
+		// A plural mark's dot that the projection cannot place draws nothing, but
+		// the dots after it must still report the caller's own index — that ordinal
+		// is what a click and the cursor hand back.
+		const stops = mapStops(
+			[],
+			[
+				{
+					id: 'fleet',
+					stopsAt: () => [
+						[99, 99],
+						[10, 0],
+					],
+				},
+			],
+			NONE,
+			(at: LngLat) => (at[0] > 50 ? null : { x: at[0], y: at[1] }),
+		)
+
+		expect(stops).toHaveLength(1)
+
+		expect(stops[0]?.target).toEqual({ kind: 'entry', id: 'fleet', stop: 1 })
 	})
 
 	it('leaves out a mark the legend has toggled off', () => {
@@ -102,8 +126,8 @@ describe('mapStops', () => {
 		const stops = mapStops(
 			[[0, 0]],
 			[
-				{ id: 'shown', anchorAt: () => [5, 5] },
-				{ id: 'off', anchorAt: () => [8, 8] },
+				{ id: 'shown', stopsAt: () => [[5, 5]] },
+				{ id: 'off', stopsAt: () => [[8, 8]] },
 			],
 			new Set(['off']),
 			project,
@@ -111,18 +135,18 @@ describe('mapStops', () => {
 
 		expect(stops.map((stop) => stop.target)).toEqual([
 			{ kind: 'region', index: 0 },
-			{ kind: 'entry', id: 'shown' },
+			{ kind: 'entry', id: 'shown', stop: 0 },
 		])
 	})
 
-	it('reads each anchor fresh, so a mark that moves needs no re-registration', () => {
-		const anchorAt = vi.fn<() => LngLat | null>(() => [1, 1])
+	it('reads the stops fresh, so a mark that moves needs no re-registration', () => {
+		const stopsAt = vi.fn<() => LngLat[]>(() => [[1, 1]])
 
-		mapStops([], [{ id: 'route', anchorAt }], NONE, project)
+		mapStops([], [{ id: 'route', stopsAt }], NONE, project)
 
-		anchorAt.mockReturnValue([2, 2])
+		stopsAt.mockReturnValue([[2, 2]])
 
-		expect(mapStops([], [{ id: 'route', anchorAt }], NONE, project)[0]?.at).toEqual({ x: 2, y: 2 })
+		expect(mapStops([], [{ id: 'route', stopsAt }], NONE, project)[0]?.at).toEqual({ x: 2, y: 2 })
 	})
 })
 
