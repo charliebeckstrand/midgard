@@ -7,6 +7,64 @@
  */
 
 import type { MapPoint2D } from './map-geometry'
+import type { LngLat } from './types'
+
+/**
+ * One place the keyboard cursor can stand, in frame coordinates: a region at its
+ * centroid, or an overlay mark at its own anchor. The list is flat and already
+ * filtered — a region the geometry dropped, or a mark the projection has no
+ * image for, never becomes a stop — so the cursor steps geography and overlays
+ * as one field, the way the pointer crosses them.
+ *
+ * @internal
+ */
+export type MapStop = {
+	/** What the stop reports as the hover target — the plat resolves what to do with it. */
+	target: { kind: 'region'; index: number } | { kind: 'entry'; id: string }
+	at: MapPoint2D
+}
+
+/** As much of a registered overlay as a stop needs: its identity and its anchor. @internal */
+type MapAnchoredEntry = {
+	id: string
+	anchorAt?: () => LngLat | null
+}
+
+/**
+ * The cursor's stop list: every region at its centroid, then every registered
+ * overlay at its own anchor, each projected to frame coordinates. Regions lead,
+ * so Home and End read as the geography's own ends and the marks drawn over it
+ * follow.
+ *
+ * A stop the projection has no image for is left out — the US composite drops
+ * points outside its insets — so the cursor never lands where the map draws
+ * nothing, and the list needs no sparse slots.
+ *
+ * @internal
+ */
+export function mapStops(
+	centroids: (LngLat | null)[],
+	entries: readonly MapAnchoredEntry[],
+	project: (position: LngLat) => MapPoint2D | null,
+): MapStop[] {
+	const stops: MapStop[] = []
+
+	for (const [index, at] of centroids.entries()) {
+		const point = at === null ? null : project(at)
+
+		if (point !== null) stops.push({ target: { kind: 'region', index }, at: point })
+	}
+
+	for (const entry of entries) {
+		const at = entry.anchorAt?.() ?? null
+
+		const point = at === null ? null : project(at)
+
+		if (point !== null) stops.push({ target: { kind: 'entry', id: entry.id }, at: point })
+	}
+
+	return stops
+}
 
 /** A compass step — the four directions an arrow key reads as. @internal */
 type MapCompassAction = 'north' | 'south' | 'east' | 'west'
@@ -69,36 +127,16 @@ function bears(dx: number, dy: number, action: MapCompassAction): boolean {
 	}
 }
 
-/** The first region carrying a centroid, or `null` when none does. */
-function firstRegion(centroids: (MapPoint2D | null)[]): number | null {
-	for (const [index, centroid] of centroids.entries()) if (centroid) return index
-
-	return null
-}
-
-/** The last region carrying a centroid, or `null` when none does. */
-function lastRegion(centroids: (MapPoint2D | null)[]): number | null {
-	for (let index = centroids.length - 1; index >= 0; index--) {
-		if (centroids[index]) return index
-	}
-
-	return null
-}
-
 /**
- * The nearest region bearing `action` from `from`, or `null` when the wedge in
+ * The nearest stop bearing `action` from `from`, or `null` when the wedge in
  * that direction is empty — the edge of the map, where the cursor holds rather
  * than wraps, the clamp a chart's category step keeps. Distance is compared
  * squared, so the scan takes no square root.
  *
  * @internal
  */
-export function stepRegion(
-	centroids: (MapPoint2D | null)[],
-	from: number,
-	action: MapCompassAction,
-): number | null {
-	const origin = centroids[from]
+export function stepStop(stops: MapStop[], from: number, action: MapCompassAction): number | null {
+	const origin = stops[from]
 
 	if (!origin) return null
 
@@ -106,12 +144,12 @@ export function stepRegion(
 
 	let bestDistance = Number.POSITIVE_INFINITY
 
-	for (const [index, centroid] of centroids.entries()) {
-		if (!centroid || index === from) continue
+	for (const [index, stop] of stops.entries()) {
+		if (index === from) continue
 
-		const dx = centroid.x - origin.x
+		const dx = stop.at.x - origin.at.x
 
-		const dy = centroid.y - origin.y
+		const dy = stop.at.y - origin.at.y
 
 		if (!bears(dx, dy, action)) continue
 
@@ -127,43 +165,46 @@ export function stepRegion(
 	return best
 }
 
-/** The outcome of a keypress: whether it drove the cursor, and where the cursor lands. @internal */
+/** The outcome of a keypress: whether it drove the cursor, and which stop it lands on. @internal */
 export type MapCursorMove = {
 	/** True when the key drove navigation, so the caller suppresses the browser default. */
 	handled: boolean
-	/** The next cursor, or `null` to clear it. */
-	cursor: number | null
+	/** Index into the stop list, or `null` to clear the cursor. */
+	stop: number | null
+}
+
+/** The first stop, or `null` when there is nothing to navigate. */
+function edge(stops: MapStop[], dir: 1 | -1): number | null {
+	if (stops.length === 0) return null
+
+	return dir === 1 ? 0 : stops.length - 1
 }
 
 /**
- * Resolves a keypress to the next cursor. An arrow from rest — or off a region
- * the geometry has since dropped — enters at the first drawn region rather than
- * stepping past it, the way a chart's first arrow enters at its first point;
- * from there each arrow moves to the nearest region bearing that way, and holds
- * at the edge rather than wrapping to the far side, which would read as a jump.
- * Home and End go to the ends of the atlas's own order. Unhandled keys pass
+ * Resolves a keypress to the next stop. An arrow from rest — or off a stop the
+ * list no longer holds — enters at the first one rather than stepping past it,
+ * the way a chart's first arrow enters at its first point; from there each arrow
+ * moves to the nearest stop bearing that way, and holds at the edge rather than
+ * wrapping to the far side, which would read as a jump. Home and End go to the
+ * ends of the list, which the plat orders geography-first. Unhandled keys pass
  * through untouched.
  *
  * @internal
  */
-export function moveMapCursor(
-	cursor: number | null,
-	key: string,
-	centroids: (MapPoint2D | null)[],
-): MapCursorMove {
+export function moveMapCursor(cursor: number | null, key: string, stops: MapStop[]): MapCursorMove {
 	const action = keyAction(key)
 
-	if (action === null) return { handled: false, cursor }
+	if (action === null) return { handled: false, stop: cursor }
 
-	if (action === 'clear') return { handled: true, cursor: null }
+	if (action === 'clear') return { handled: true, stop: null }
 
-	if (action === 'first') return { handled: true, cursor: firstRegion(centroids) }
+	if (action === 'first') return { handled: true, stop: edge(stops, 1) }
 
-	if (action === 'last') return { handled: true, cursor: lastRegion(centroids) }
+	if (action === 'last') return { handled: true, stop: edge(stops, -1) }
 
-	const base = cursor !== null && centroids[cursor] ? cursor : null
+	const base = cursor !== null && stops[cursor] ? cursor : null
 
-	if (base === null) return { handled: true, cursor: firstRegion(centroids) }
+	if (base === null) return { handled: true, stop: edge(stops, 1) }
 
-	return { handled: true, cursor: stepRegion(centroids, base, action) ?? base }
+	return { handled: true, stop: stepStop(stops, base, action) ?? base }
 }

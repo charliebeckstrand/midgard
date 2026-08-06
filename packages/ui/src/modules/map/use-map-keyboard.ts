@@ -2,9 +2,9 @@
 
 import { type KeyboardEvent, type RefObject, useEffect, useRef, useState } from 'react'
 import { usePlotTabStop } from '../../hooks/use-plot-tab-stop'
-import { useMapHoverSet } from './context'
+import { type MapHoverTarget, sameTarget, useMapHoverSet } from './context'
 import type { MapPoint2D } from './map-geometry'
-import { isMapActivateKey, moveMapCursor } from './map-keyboard'
+import { isMapActivateKey, type MapStop, moveMapCursor } from './map-keyboard'
 import { frameToClient } from './map-projection'
 
 /** The handlers {@link useMapKeyboard} spreads onto the plot region to make it a navigable tab stop. @internal */
@@ -19,19 +19,21 @@ export type MapKeyboardOptions = {
 	/** Whether the cursor has an output — a readout, a pick, or both; `false` leaves the region unfocusable. */
 	enabled: boolean
 	/**
-	 * Each region's frame-unit centroid, resolved on demand. A closure, not an
-	 * array: the `geoCentroid` pass behind it measures every ring in the atlas
+	 * Every place the cursor can stand — the regions at their centroids, then the
+	 * overlay marks at theirs — resolved on demand. A closure, not an array: the
+	 * `geoCentroid` pass behind the region half measures every ring in the atlas
 	 * (~30 ms across 3,000 counties, against a ~70 ms mount), so it must never run
 	 * on the mount or the resize path for a cursor most maps never carry. This is
-	 * called on the first navigation key and not again until a refit replaces it.
+	 * called on the first navigation key and not again until a refit, a resize, or
+	 * an overlay registration replaces it.
 	 */
-	resolveCentroids: () => (MapPoint2D | null)[]
+	resolveStops: () => MapStop[]
 	/** The active viewBox width and height, for the frame-to-client conversion. */
 	view: { width: number; height: number }
-	/** The plot's SVG, whose box places a centroid in the viewport. */
+	/** The plot's SVG, whose box places a stop in the viewport. */
 	svgRef: RefObject<SVGSVGElement | null>
-	/** Reports the region Enter or Space picks; omitted, those keys pass through. */
-	activate: ((index: number) => void) | undefined
+	/** Picks the stop under the cursor — a region by index, an overlay through its own reporter. */
+	activate: (target: MapHoverTarget) => void
 }
 
 /**
@@ -41,13 +43,13 @@ export type MapKeyboardOptions = {
  * (`use-chart-keyboard`), over a geography's own axes.
  *
  * Focus alone only rings the region: a click focuses it too, and to seize the
- * readout from the pointer would jar. The first arrow enters at the first drawn
- * region; from there each arrow steps to the nearest region bearing that way,
- * Home and End jump to the ends of the atlas's own order, Enter or Space picks
- * the region under the cursor, and Escape leaves through the shared
- * {@link usePlotTabStop} exit.
+ * readout from the pointer would jar. The first arrow enters at the first stop;
+ * from there each arrow steps to the nearest stop bearing that way — regions and
+ * overlay marks in one field, as the pointer crosses them — Home and End jump to
+ * the ends of the list, Enter or Space picks the stop under the cursor, and
+ * Escape leaves through the shared {@link usePlotTabStop} exit.
  *
- * No region path is focusable. The plot is a `role="img"` leaf over an
+ * No drawn mark is focusable. The plot is a `role="img"` leaf over an
  * `aria-hidden` SVG, so a focusable path would be unreachable to assistive tech
  * and, at a county atlas's scale, thousands of invisible stops; the region
  * values ship in the visually-hidden table instead, and this drives the same
@@ -66,28 +68,38 @@ export type MapKeyboardOptions = {
  */
 export function useMapKeyboard({
 	enabled,
-	resolveCentroids,
+	resolveStops,
 	view,
 	svgRef,
 	activate,
 }: MapKeyboardOptions): MapKeyboardProps | null {
 	const set = useMapHoverSet()
 
-	const [cursor, setCursor] = useState<number | null>(null)
+	// The cursor holds the mark it sits on, not its position in the stop list: an
+	// overlay that registers or unmounts re-orders that list, and an index would
+	// silently re-point at a different mark.
+	const [cursor, setCursor] = useState<MapHoverTarget | null>(null)
 
-	// The resolver's last result, held until a refit hands over a new resolver.
-	// Keyed on the resolver's own identity, so a resize invalidates it without a
-	// second dependency to keep in step.
-	const stops = useRef<{ from: () => (MapPoint2D | null)[]; value: (MapPoint2D | null)[] } | null>(
-		null,
-	)
+	// The resolver's last result, held until a refit or a registration hands over
+	// a new resolver. Keyed on the resolver's own identity, so there is no second
+	// dependency to keep in step.
+	const held = useRef<{ from: () => MapStop[]; value: MapStop[] } | null>(null)
 
-	const centroids = (): (MapPoint2D | null)[] => {
-		if (stops.current?.from !== resolveCentroids) {
-			stops.current = { from: resolveCentroids, value: resolveCentroids() }
+	const stops = (): MapStop[] => {
+		if (held.current?.from !== resolveStops) {
+			held.current = { from: resolveStops, value: resolveStops() }
 		}
 
-		return stops.current.value
+		return held.current.value
+	}
+
+	/** Where `cursor` stands in the current stop list, or `null` once it has left it. */
+	const at = (list: MapStop[]): number | null => {
+		if (cursor === null) return null
+
+		const index = list.findIndex((stop) => sameTarget(stop.target, cursor))
+
+		return index === -1 ? null : index
 	}
 
 	// The frame point the readout last anchored to. A keypress anchors directly,
@@ -96,27 +108,23 @@ export function useMapKeyboard({
 	// read forcing a layout recalc over the whole region tree.
 	const anchored = useRef<MapPoint2D | null>(null)
 
-	const show = (next: number | null) => {
-		setCursor(next)
-
-		const centroid = next === null ? null : (centroids()[next] ?? null)
+	const show = (stop: MapStop | null) => {
+		setCursor(stop?.target ?? null)
 
 		const svg = svgRef.current
 
 		const point =
-			centroid === null || svg === null
+			stop === undefined || stop === null || svg === null
 				? null
-				: frameToClient(centroid, svg.getBoundingClientRect(), view.width, view.height)
+				: frameToClient(stop.at, svg.getBoundingClientRect(), view.width, view.height)
 
-		anchored.current = centroid
+		anchored.current = stop?.at ?? null
 
-		if (next === null || point === null) set(null, null)
-		else set({ kind: 'region', index: next }, point)
+		if (stop === null || point === null) set(null, null)
+		else set(stop.target, point)
 	}
 
-	const clear = () => show(null)
-
-	const { exit, onBlur } = usePlotTabStop(cursor !== null, clear)
+	const { exit, onBlur } = usePlotTabStop(cursor !== null, () => show(null))
 
 	// Release what the cursor held once navigation switches off — the readout
 	// unmounted, the pick removed — so no stale emphasis lingers with no way to
@@ -129,28 +137,28 @@ export function useMapKeyboard({
 		}
 	}, [enabled, cursor, set])
 
-	// A refit reprojects every centroid, so the readout would otherwise sit at the
+	// A refit reprojects every stop, so the readout would otherwise sit at the
 	// pre-resize position until the next keypress. Watched through the cursor's
-	// own centroid, and only where it actually moved.
-	const centroid = cursor === null ? null : (centroids()[cursor] ?? null)
+	// own stop, and only where it actually moved.
+	const current = cursor === null ? null : (stops()[at(stops()) ?? -1] ?? null)
 
 	const moved =
-		centroid !== null &&
+		current !== null &&
 		(anchored.current === null ||
-			anchored.current.x !== centroid.x ||
-			anchored.current.y !== centroid.y)
+			anchored.current.x !== current.at.x ||
+			anchored.current.y !== current.at.y)
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: re-anchors when the cursor's projected centroid moves; the reader is read fresh at fire time
+	// biome-ignore lint/correctness/useExhaustiveDependencies: re-anchors when the cursor's projected stop moves; the reader is read fresh at fire time
 	useEffect(() => {
-		if (cursor !== null && moved) show(cursor)
+		if (current !== null && moved) show(current)
 	}, [moved])
 
 	const onKeyDown = (event: KeyboardEvent<HTMLElement>) => {
-		// Enter and Space pick the region under the cursor — the click's keyboard
+		// Enter and Space pick the mark under the cursor — the click's keyboard
 		// counterpart, and half the reason the map is navigable. Space would
 		// otherwise scroll the page out from under the reader.
 		if (isMapActivateKey(event.key)) {
-			if (cursor === null || activate === undefined) return
+			if (cursor === null) return
 
 			event.preventDefault()
 
@@ -159,15 +167,17 @@ export function useMapKeyboard({
 			return
 		}
 
-		const move = moveMapCursor(cursor, event.key, centroids())
+		const list = stops()
+
+		const move = moveMapCursor(at(list), event.key, list)
 
 		if (!move.handled) return
 
 		event.preventDefault()
 
-		show(move.cursor)
+		show(move.stop === null ? null : (list[move.stop] ?? null))
 
-		if (move.cursor === null) exit(event.currentTarget)
+		if (move.stop === null) exit(event.currentTarget)
 	}
 
 	return enabled ? { tabIndex: 0, onKeyDown, onBlur } : null

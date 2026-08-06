@@ -28,6 +28,7 @@ import {
 	MapHoverSetContext,
 	type MapHoverState,
 	MapHoverStateContext,
+	type MapHoverTarget,
 	MapPlatContext,
 	type MapPlatContextValue,
 	MapPointedMarkContext,
@@ -46,6 +47,7 @@ import {
 } from './map-categories'
 import { type MapPoint2D, projectPoint } from './map-geometry'
 import { cachedRegionCentroids, measuredRegionPaths, staticMapGeometry } from './map-geometry-cache'
+import { mapStops } from './map-keyboard'
 import { MapLegend, type MapLegendItem } from './map-legend'
 import { mapFrameSizing, measuredMapFit, projectionFallbackAspect } from './map-projection'
 import { MapRangeLegend, type MapRangeLegendProps } from './map-range-legend'
@@ -1288,16 +1290,37 @@ export function MapPlat<T = never>({
 	const svgRef = useRef<SVGSVGElement>(null)
 
 	// The keyboard cursor's stops, handed over as a closure rather than built
-	// here: each region's centroid, projected through the live fit so a refit
-	// carries them with the geography. Deliberately unresolved on the render path
-	// — the `geoCentroid` pass behind it measures every ring in the atlas (~30 ms
-	// across 3,000 counties, against a ~70 ms mount), and neither the mount nor a
-	// resize may pay that for a cursor most maps never carry. The hook calls this
-	// on the first navigation key instead.
-	const resolveCentroids = useCallback(
-		() =>
-			cachedRegionCentroids(shape.features).map((at) => (at === null ? null : shape.project(at))),
-		[shape.features, shape.project],
+	// here: every region at its centroid, then every registered overlay at its
+	// own anchor, each projected through the live fit so a refit carries them with
+	// the geography. Regions lead, so Home and End read as the geography's own
+	// ends and the marks drawn over it follow.
+	//
+	// Deliberately unresolved on the render path — the `geoCentroid` pass behind
+	// the region half measures every ring in the atlas (~30 ms across 3,000
+	// counties, against a ~70 ms mount), and neither the mount nor a resize may
+	// pay that for a cursor most maps never carry. The hook calls this on the
+	// first navigation key instead. A stop whose position the projection drops
+	// (the US composite discards points outside its insets) is left out, so the
+	// cursor never lands somewhere the map does not draw.
+	const resolveStops = useCallback(
+		() => mapStops(cachedRegionCentroids(shape.features), entries, shape.project),
+		[shape.features, shape.project, entries],
+	)
+
+	// Picks the mark the cursor sits on: a region through the caller's own
+	// reporter, an overlay through the activation it registered — so the plat
+	// dispatches a keyboard pick without knowing what kind of mark it landed on.
+	const activateTarget = useCallback(
+		(target: MapHoverTarget) => {
+			if (target.kind === 'region') {
+				clickRegion?.(target.index)
+
+				return
+			}
+
+			entries.find((entry) => entry.id === target.id)?.activate?.()
+		},
+		[clickRegion, entries],
 	)
 
 	// The cursor earns a tab stop from either of its two outputs. Gating on the
@@ -1453,10 +1476,10 @@ export function MapPlat<T = never>({
 					aside={aside}
 					keyboard={{
 						enabled: navigable,
-						resolveCentroids,
+						activate: activateTarget,
+						resolveStops,
 						view: { width: shape.viewWidth, height: shape.viewHeight },
 						svgRef,
-						activate: clickRegion,
 					}}
 					tooltip={
 						tooltip ? (

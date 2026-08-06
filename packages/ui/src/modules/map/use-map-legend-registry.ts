@@ -2,6 +2,7 @@
 
 import { useCallback, useRef, useState } from 'react'
 import type { MapSeriesColor } from '../../recipes/kata/map'
+import type { LngLat } from './types'
 
 /** The overlay kinds that register legend entries. @internal */
 export type MapOverlayKind = 'route' | 'point' | 'marker'
@@ -25,6 +26,18 @@ export type MapOverlayEntry = {
 	color?: MapSeriesColor
 	/** A trailing readout — a route's mileage, a point's value. */
 	detail?: string
+	/**
+	 * The mark's keyboard anchor in lon/lat, or `null` where it has none. A getter
+	 * rather than a value, and stable across renders, so a mark that moves — a
+	 * route whose geometry lands from the network — needs no re-registration, and
+	 * an inline `at={[lon, lat]}` never churns the ledger.
+	 */
+	anchorAt?: () => LngLat | null
+	/**
+	 * Activates the mark: what Enter or Space calls with the keyboard cursor on it.
+	 * Stable like {@link anchorAt}, and a no-op on a mark with no `onClick`.
+	 */
+	activate?: () => void
 }
 
 /**
