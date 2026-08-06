@@ -164,8 +164,9 @@ function ClickableStates({ geography }: { geography: MapGeography | null }) {
 
 	const zone = timezones.find((row) => row.state === picked)?.zone
 
-	// Clicking the ringed state clears it: a picker that can only ever move its
-	// pick leaves a pointer user no way back out of one.
+	// Clicking the ringed state clears it, and the Select's clear button does the
+	// same from the keyboard: a picker that can only ever move its pick leaves no
+	// way back out of one.
 	const pick = (state: string) => setPicked((prev) => (prev === state ? null : state))
 
 	return (
@@ -177,6 +178,7 @@ function ClickableStates({ geography }: { geography: MapGeography | null }) {
 					value={picked}
 					onValueChange={setPicked}
 					displayValue={(state: string) => state}
+					clearable
 				>
 					{timezones.map((row) => (
 						<SelectOption key={row.state} value={row.state}>
