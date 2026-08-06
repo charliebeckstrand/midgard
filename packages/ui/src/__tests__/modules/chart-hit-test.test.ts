@@ -133,14 +133,8 @@ describe('nearestSeriesLine', () => {
 		expect(nearestSeriesLine(close, 50, 102, undefined, 1)).toBe(0)
 	})
 
-	const runs = [
-		[
-			[
-				{ x: 0, y: 100 },
-				{ x: 100, y: 100 },
-			],
-		],
-	]
+	// The same single flat run as `two`'s first series.
+	const runs = two.slice(0, 1)
 
 	it('hits within the generous tolerance of a segment and misses beyond it', () => {
 		// Comfortably on the line.

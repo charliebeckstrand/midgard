@@ -9,14 +9,11 @@ import { srcDir, walkSource } from '../helpers/walk-source'
 // from the barrel are fine; the barrel surfaces `Step` / `Ma` / `Color` /
 // `Ji` / `GroupOrientation` / `GroupPosition` for prop-union derivation.
 //
-// One scan over the three layers that reach recipes through a kata. They hold
-// the same contract, so a single sanction list keeps them from drifting apart.
 // `layouts` is deliberately absent: `layouts/sidebar/variants.ts` value-imports
 // kiso, which `kata-boundary.test.ts` sanctions, so sweeping it here would fire
-// a false violation.
-
-/** The layers that consume recipes through their owning kata. */
-const LAYERS = ['components', 'modules', 'primitives'] as const
+// a false violation. Named for the contract rather than `LAYERS`, which
+// `internal-barrel-boundary.test.ts` already uses for a different set.
+const RECIPE_CONSUMERS = ['components', 'modules', 'primitives'] as const
 
 const IMPORT_RE = /^(import(?:\s+type)?\s+(?:[^'"]+from\s+)?)['"]([^'"]+)['"]/gm
 
@@ -24,7 +21,7 @@ describe('recipe-import boundary', () => {
 	it('consuming layers import recipe values only via recipes/kata/<name>', () => {
 		const violations: string[] = []
 
-		for (const layer of LAYERS)
+		for (const layer of RECIPE_CONSUMERS)
 			walkSource(join(srcDir, layer), (file, content) => {
 				if (!/\.(?:tsx?|mts|cts)$/.test(file)) return
 

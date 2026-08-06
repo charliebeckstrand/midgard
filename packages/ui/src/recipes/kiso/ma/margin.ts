@@ -5,7 +5,7 @@
  * Layer: kiso · Concern: margin utilities
  */
 
-import type { Ma } from './stops'
+import type { Ma } from './scale'
 
 export const m = {
 	xs: 'm-1',

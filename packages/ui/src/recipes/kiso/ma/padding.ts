@@ -5,7 +5,7 @@
  * Layer: kiso · Concern: padding utilities
  */
 
-import type { Ma } from './stops'
+import type { Ma } from './scale'
 
 export const p = {
 	xs: 'p-1',

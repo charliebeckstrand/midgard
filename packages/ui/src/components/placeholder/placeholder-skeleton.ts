@@ -3,7 +3,11 @@ import { createElement, type ReactElement } from 'react'
 import { cn } from '../../core'
 import { Placeholder } from './placeholder'
 
-// The `Ma` scale, which components must not import from the recipes barrel.
+// Spelled out rather than imported as `Ma`. This is a component file, and
+// `component-ma-boundary.test.ts` admits that import in `variants.ts` alone —
+// the spacing axis reaching a sizing axis is the drift it guards. Keep the two
+// unions in step by hand; the gate is what stops the shortcut.
+//
 // Call sites pin `S` to their kata's `VariantProps['size']`, so the `size` prop
 // only ever carries a key the recipe's own `size` map defines. Skeletons are
 // static leaves: size comes from the explicit prop (default `md`), never from
@@ -22,7 +26,7 @@ type SizedSkeletonRecipe<S extends ResolvableSize> = BaseSkeletonRecipe & {
 	 * because it is the default an omitted `size` prop resolves to, so a map
 	 * without it would render a silhouette carrying no size class.
 	 */
-	size: Record<S, ClassValue> & Record<'md', ClassValue>
+	size: Record<S | 'md', ClassValue>
 }
 
 /**

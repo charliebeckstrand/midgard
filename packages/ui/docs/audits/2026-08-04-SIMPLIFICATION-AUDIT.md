@@ -98,10 +98,15 @@ Behaviour-neutral. Each removes a file, an export, or a layer.
   same component in two directories: the same props bag, the same `if (useChartFullscreen()) return
   <>{children}</>` gate (`:877` and `:326`), and the same `ChartContextMenu` wrap. Only the choropleth
   forwards `target`, which is already optional at `chart-context-menu.tsx:96` and read as `target?.index
-  ?? null` at `:145`, so the heatmap loses nothing. Add `ChartMenuFrame` beside `ChartContextMenu` in
-  `engine/chart-context-menu.tsx`, which already imports `./context` for the fullscreen hook, and point
-  both charts at it. Neither local frame is exported. `ChartFrame` performs the same gate a third time
-  inline (`frame.tsx:288,:518`) and can adopt the part later. Saving: 48 lines.
+  ?? null` at `:145`, so the heatmap loses nothing. Neither local frame is exported. `ChartFrame`
+  performs the same gate a third time inline (`frame.tsx:288,:518`). Saving: 48 lines.
+
+  Resolved deeper than proposed. The audit asked for a `ChartMenuFrame` part beside `ChartContextMenu`,
+  which would have left the `ChartFrame` copy standing. A `/simplify` pass found that, and the gate moved
+  into `ChartContextMenu` itself — the component that provides `ChartFullscreenContext`, so a host cannot
+  forget to apply it. All three copies go, `ChartFrame` included, and no `ChartMenuFrame` exists. The
+  invariant is now pinned on the shared component (`chart-context-menu.test.ts`) rather than in one chart
+  type's suite; disabling the gate turns both that test and the choropleth one red.
 
 - [x] **Delete the three unused chart hit-test predicates.** `withinBarMarks`
   (`chart-hit-test.ts:96-111`), `nearSeriesLines` (`:208-222`), and `withinSeriesAreas` (`:277-291`) each

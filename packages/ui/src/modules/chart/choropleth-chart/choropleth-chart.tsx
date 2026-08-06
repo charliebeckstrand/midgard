@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { cn } from '../../../core'
 import type { AccessibleName } from '../../../types'
 import { once, toNumericCell } from '../../../utilities'
@@ -220,16 +220,16 @@ export function ChoroplethChart<T = never>(props: ChoroplethChartProps<T>) {
 	// consumer reads the underlying row out of its own data by index.
 	const onRegionContextMenu = useCallback((_id: string, index: number) => setMenuRegion(index), [])
 
-	// Memoised so the menu's own items memo can key on the object; a fresh literal
-	// per render would defeat it.
-	const menuTarget = useMemo<ChartContextMenuTarget>(() => ({ index: menuRegion }), [menuRegion])
+	// A plain literal: `ChartContextMenu` keys its own items memo on `target.index`,
+	// not on the object, so identity here buys nothing.
+	const menuTarget: ChartContextMenuTarget = { index: menuRegion }
 
 	const [primary] = series
 
 	const format = formatValue ?? formatChartValue
 
 	// Built from the input rows for the menu's CSV / copy actions; drops them when
-	// there is nothing to export. A cached thunk ({@link ChartReadoutSource}), so
+	// there is nothing to export. A cached thunk (`ChartReadoutSource`), so
 	// only a selected action materializes it.
 	const readout = once(() => choroplethReadout(props.data, primary, format))
 

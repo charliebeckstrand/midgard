@@ -21,7 +21,6 @@ export type ControlFieldProps = {
  *
  * The broadcast value inherits the parent control cascade and spreads the
  * `useA11yControl` bundle (label / description / error slots) off the field id.
- * The shape is identical across all three field types.
  *
  * @internal Not on the barrel — used by the field wrappers, not consumers.
  */

@@ -114,6 +114,12 @@ const FULLSCREEN_CHART_CLASS = 'w-full max-h-[calc(100dvh-9rem)]'
  * bitmap carries its colours. `contextMenu={false}` renders the chart untouched,
  * leaving the browser's native menu.
  *
+ * Two bails render the children bare. `contextMenu={false}` is the caller's opt
+ * out. The second is structural: inside the fullscreen dialog this component is
+ * its own re-mounted copy, so it refuses to wrap itself and the enlarged chart
+ * never nests a second menu. The rule lives here rather than in each host
+ * because this component provides {@link ChartFullscreenContext}.
+ *
  * @internal
  */
 export function ChartContextMenu({

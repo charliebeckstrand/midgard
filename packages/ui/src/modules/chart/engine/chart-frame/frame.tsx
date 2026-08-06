@@ -294,10 +294,11 @@ export function ChartFrame({
 	// mid-interaction and drop the per-mark entry the user is about to click.
 	//
 	// Held as the bare index so React can bail on a repeat right-click over the same mark (or on plot
-	// padding twice, where it stays null); the wrapper object is built below, memoised on it.
+	// padding twice, where it stays null). The wrapper below is a plain literal: `ChartContextMenu` keys
+	// its own items memo on `target.index`, not on the object.
 	const [menuIndex, setMenuIndex] = useState<number | null>(null)
 
-	const menuTarget = useMemo<ChartContextMenuTarget>(() => ({ index: menuIndex }), [menuIndex])
+	const menuTarget: ChartContextMenuTarget = { index: menuIndex }
 
 	// The visually-hidden data table holds one row per datum, so at large row
 	// counts materializing and committing it dominates — yet nothing visual waits

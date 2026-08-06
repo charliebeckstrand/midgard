@@ -13,7 +13,7 @@ import { gap } from './gap'
 import { m, mx, my } from './margin'
 import { p, px, py } from './padding'
 
-export type { Ma } from './stops'
+export type { Ma } from './scale'
 
 export const ma = {
 	p,

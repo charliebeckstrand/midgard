@@ -15,11 +15,8 @@ type GridManagerDialogProps = {
 
 /**
  * Controlled {@link Dialog} shell shared by the grid's manager surfaces: a title,
- * the manager itself, and a Done button that closes. {@link Grid} mounts one
- * around {@link GridColumnManager} whenever the column-manager trigger or the
- * "Manage columns" header menu item can reach it, and one around
- * {@link GridRowManager} whenever client grouping and the "Manage rows" group
- * menu item are both live.
+ * the manager itself, and a Done button that closes. Each call site owns when it
+ * mounts.
  *
  * The shell takes its manager as `children` rather than forwarding each
  * manager's props, so a new prop on either editor reaches it from the call site
