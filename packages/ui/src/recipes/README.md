@@ -10,7 +10,7 @@
 | [Katakana 片仮名 — Bridge](./katakana/README.md) | Structure | Pure functions that receive a kiso token bundle and wire it into a recipe surface. Imports only the recipe engine — **never kiso values**. |
 | [Kata 型 — Form](./kata/README.md) | Application | Per-unit recipes — the funnel for components and primitives, and **the only layer that touches kiso**. |
 
-The recipe engine (`defineRecipe`, `definePalette`, `merge`), the colour axis (`colors`, `Color`), the `mode` / `shades` authoring helpers, and the bridge helpers (`applyRecipe`, `ApplicatorReturn`) live in [`core/recipe/`](../core/recipe). Files in `katakana`, `kata`, and `layouts/*/variants.ts` import them directly.
+The recipe engine (`defineRecipe`, `definePalette`), the colour axis (`colors`, `Color`), the `mode` / `shades` authoring helpers, and the bridge helpers (`applyRecipe`, `ApplicatorReturn`) live in [`core/recipe/`](../core/recipe). Files in `katakana`, `kata`, and `layouts/*/variants.ts` import them directly.
 
 ## 2. Direction
 

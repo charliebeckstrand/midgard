@@ -4,7 +4,6 @@ import { type ComponentPropsWithoutRef, useEffect, useState } from 'react'
 import { cn } from '../../core'
 import { useA11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
 import { CurrentContent, CurrentContents } from '../../primitives/current'
-import { resolveMount } from '../../primitives/current/current'
 import { k } from '../../recipes/kata/tabs'
 import { useTabsContext } from './context'
 import { useTabPanelTabIndex } from './use-tab-panel-tab-index'
@@ -45,7 +44,7 @@ export function TabContents({ fade = true, mount, ...props }: TabContentsProps) 
 	// DOM, which is guaranteed only when every inactive panel is held — mount
 	// `always`. Register that with the Tabs context; `lazy`/`active` leave an
 	// inactive tab without the reference until (or unless) its panel mounts.
-	const allMounted = resolveMount(fade, mount) === 'always'
+	const allMounted = mount === 'always'
 
 	useEffect(() => {
 		if (!allMounted) return

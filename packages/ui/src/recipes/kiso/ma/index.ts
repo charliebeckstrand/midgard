@@ -10,27 +10,17 @@
  */
 
 import { gap } from './gap'
-import { m, mb, ml, mr, mt, mx, my } from './margin'
-import { p, pb, pl, pr, pt, px, py } from './padding'
-import { stops } from './stops'
+import { m, mx, my } from './margin'
+import { p, px, py } from './padding'
 
 export type { Ma } from './stops'
 
 export const ma = {
-	stops,
 	p,
 	px,
 	py,
-	pl,
-	pr,
-	pt,
-	pb,
 	m,
 	mx,
 	my,
-	ml,
-	mr,
-	mt,
-	mb,
 	gap,
 } as const
