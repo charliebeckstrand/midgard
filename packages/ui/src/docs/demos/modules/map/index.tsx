@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider, useQuery, useQueryClient } from '@tanstack/react-query'
-import { type GeoPermissibleObjects, geoContains } from 'd3-geo'
+import { type GeoPermissibleObjects, geoBounds, geoContains } from 'd3-geo'
 import { type ComponentProps, useMemo, useState } from 'react'
 import { feature } from 'topojson-client'
 import statesUrl from 'us-atlas/states-10m.json?url'
@@ -50,9 +50,11 @@ function Example(props: ComponentProps<typeof ExampleFrame>) {
 const stateName = (feature: MapFeature) => String(feature.properties?.name)
 
 // Atlas data stays out of the package (and the docs bundle): the demos fetch
-// the TopoJSON from us-atlas as a static asset and cache it with react-query,
-// standing a MapSkeleton in while it loads — the same shape a consumer's
-// lazily-loaded geography takes.
+// the TopoJSON from us-atlas as a static asset, decode it once, and cache the
+// result with react-query, standing a MapSkeleton in while it loads — the same
+// shape a consumer's lazily-loaded geography takes. The plat draws a topology
+// just as readily; these demos decode because one of them reads a single state
+// out of the atlas.
 //
 // Fetching runs through react-query so a result outlives the tab that asked for
 // it: switching away and back reads the cache instead of refetching, and a tab
@@ -62,11 +64,26 @@ const stateName = (feature: MapFeature) => String(feature.properties?.name)
 // itself never fetches; this is the geocode → route → draw flow a consumer runs,
 // and where they would point react-query at their own data.
 
-/** The us-atlas TopoJSON, fetched once and cached (static, so it never restales). */
+/**
+ * The us-atlas states, fetched once and cached (static, so it never restales).
+ * Decoded here rather than handed to the plat as a topology: the delivery
+ * example picks one state out of the atlas to draw on its own, and the plat
+ * takes either form — so one decode, inside the query, serves both and outlives
+ * every tab switch.
+ */
 function geographyQuery(url: string) {
 	return {
 		queryKey: ['us-atlas', url] as const,
-		queryFn: () => fetch(url).then((response) => response.json() as Promise<MapGeography>),
+		queryFn: async (): Promise<MapFeatureCollection> => {
+			const atlas = (await fetch(url).then((response) => response.json())) as Parameters<
+				typeof feature
+			>[0]
+
+			return feature(
+				atlas,
+				atlas.objects.states as Parameters<typeof feature>[1],
+			) as unknown as MapFeatureCollection
+		},
 	}
 }
 
@@ -87,7 +104,7 @@ function routeQuery(start: LngLat, end: LngLat) {
 }
 
 /** The atlas for the plats; `null` while it loads, so the frame holds its skeleton. */
-function useGeography(url: string): MapGeography | null {
+function useGeography(url: string): MapFeatureCollection | null {
 	return useQuery(geographyQuery(url)).data ?? null
 }
 
@@ -188,47 +205,49 @@ function ClickableStates({ geography }: { geography: MapGeography | null }) {
 	)
 }
 
-/**
- * The atlas decoded to its own features. The plat draws either form, so this is
- * the same data it already holds — decoded here because it is the example, not
- * the plat, that picks one state out of the atlas and hands it back as the
- * geography to fit.
- */
-function useStateFeatures(geography: MapGeography | null): MapFeature[] {
-	return useMemo(() => {
-		if (geography === null) return []
+/** One state as the stop lookup below reads it: its name, its lon/lat box, and its rings. */
+type StateBounds = { name: string; box: [LngLat, LngLat]; shape: GeoPermissibleObjects }
 
-		if (geography.type === 'FeatureCollection') return geography.features
+/** Each state with the box around it, measured once for the whole lookup. */
+function stateBounds(features: MapFeature[]): StateBounds[] {
+	return features.map((state) => {
+		const shape = state as unknown as GeoPermissibleObjects
 
-		const object = geography.objects.states
+		return { name: stateName(state), box: geoBounds(shape), shape }
+	})
+}
 
-		if (object === undefined) return []
+/** Whether a position sits in a `geoBounds` box, which reads west past east where it wraps the antimeridian. */
+function withinBox([[west, south], [east, north]]: [LngLat, LngLat], [lon, lat]: LngLat): boolean {
+	const inLongitude = west <= east ? lon >= west && lon <= east : lon >= west || lon <= east
 
-		const decoded = feature(
-			geography as unknown as Parameters<typeof feature>[0],
-			object as Parameters<typeof feature>[1],
-		)
-
-		return (decoded.type === 'FeatureCollection'
-			? decoded.features
-			: [decoded]) as unknown as MapFeature[]
-	}, [geography])
+	return inLongitude && lat >= south && lat <= north
 }
 
 /**
  * Which state holds each stop, index-aligned with `deliveryStops`. Read off the
- * atlas with `geoContains`, so no row of the data names a state the geometry
- * already knows — and the picker below can offer exactly the states that hold
- * one.
+ * atlas, so no row of the data names a state the geometry already knows — and
+ * the picker below offers exactly the states that hold one.
+ *
+ * The box test comes first because `geoContains` streams every vertex of a
+ * multipolygon and this atlas carries thousands per state: on these stops it
+ * takes the pass from ~85 ms to ~25 ms, which a demo panel pays on mount.
  */
-function stopStates(features: MapFeature[]): (string | null)[] {
+function stopStates(bounds: StateBounds[]): (string | null)[] {
 	return deliveryStops.map((stop) => {
-		const holder = features.find((state) =>
-			geoContains(state as unknown as GeoPermissibleObjects, stop.at),
-		)
+		for (const state of bounds) {
+			if (!withinBox(state.box, stop.at)) continue
 
-		return holder === undefined ? null : stateName(holder)
+			if (geoContains(state.shape, stop.at)) return state.name
+		}
+
+		return null
 	})
+}
+
+/** A summary's readout: how many stops it stands for, and how far they spread. */
+function roundSummary(count: number, span: number): string {
+	return `${count} stops · ${miles(span)} across`
 }
 
 /**
@@ -239,12 +258,16 @@ function stopStates(features: MapFeature[]): (string | null)[] {
  * every geography, no zoom layer — and drops clustering, so its stops draw one
  * for one.
  */
-function DeliveryRounds({ geography }: { geography: MapGeography | null }) {
+function DeliveryRounds({ geography }: { geography: MapFeatureCollection | null }) {
 	const [picked, setPicked] = useState<string | null>(null)
 
-	const features = useStateFeatures(geography)
+	// Held across renders: an empty fallback rebuilt each render would re-measure
+	// every state's box on every pick.
+	const features = useMemo(() => geography?.features ?? [], [geography])
 
-	const holders = useMemo(() => stopStates(features), [features])
+	const bounds = useMemo(() => stateBounds(features), [features])
+
+	const holders = useMemo(() => stopStates(bounds), [bounds])
 
 	const selectable = useMemo(
 		() => [...new Set(holders.filter((state) => state !== null))].sort(),
@@ -312,7 +335,7 @@ function DeliveryRounds({ geography }: { geography: MapGeography | null }) {
 					points={stops}
 					detail={`${stops.length} stops`}
 					cluster={picked === null}
-					clusterDetail={(count, span) => `${count} stops · ${miles(span)} across`}
+					clusterDetail={roundSummary}
 					// The index names a row of `deliveryStops` only while every stop is
 					// drawn; the state view draws a filtered set, and has nothing left to
 					// drill into anyway.

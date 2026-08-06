@@ -5,7 +5,7 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
 import { rangeKeys } from '../../utilities'
 import { useMapPlat } from './context'
-import { clusterPoints, clusterRadius } from './map-cluster'
+import { clusterAnchor, clusterPoints, clusterRadius, clusterSpan } from './map-cluster'
 import { POINT_CLUSTER_DISTANCE, POINT_HIT_RADIUS } from './map-constants'
 import { MapDot, MapDotCount } from './map-dot'
 import { pointPop } from './map-motion'
@@ -123,14 +123,11 @@ export function MapPoints({
 
 	const distance = clusterDistance(cluster)
 
+	const positions = useMemo(() => points.map((point) => point.at), [points])
+
 	const groups = useMemo(
-		() =>
-			clusterPoints(
-				points.map((point) => point.at),
-				project,
-				distance,
-			),
-		[points, project, distance],
+		() => clusterPoints(positions, project, distance),
+		[positions, project, distance],
 	)
 
 	// A lone dot reads out as itself, so an ungrouped set reads exactly as the
@@ -138,21 +135,32 @@ export function MapPoints({
 	// the whole group and no one of its stops names it.
 	const rows = useMemo<MapStopRow[]>(
 		() =>
-			groups.map((group) => {
-				const count = group.members.length
+			groups.map(({ members }) => {
+				const count = members.length
 
-				const first = group.members[0]
+				const first = members[0]
 
 				const lone = first === undefined ? undefined : points[first]
 
-				if (count === 1 && lone !== undefined) return { label: lone.label, detail: lone.detail }
+				// Numbered by the caller's own index, never the group's: a click on this
+				// dot reports that index, and a readout counting in another space would
+				// name a row the caller cannot find — and would renumber itself as the
+				// frame regrouped around it.
+				if (count === 1 && first !== undefined && lone !== undefined) {
+					return { label: lone.label ?? `${shared.label} ${first + 1}`, detail: lone.detail }
+				}
 
 				return {
 					label: shared.label,
-					detail: clusterDetail?.(count, group.span) ?? String(count),
+					// The spread costs a spherical pass per group, so only a caller that
+					// reads it pays for it.
+					detail:
+						clusterDetail === undefined
+							? String(count)
+							: clusterDetail(count, clusterSpan(members, positions)),
 				}
 			}),
-		[groups, points, shared.label, clusterDetail],
+		[groups, points, positions, shared.label, clusterDetail],
 	)
 
 	// The caller counts in points; everything inside this mark counts in drawn
@@ -172,8 +180,9 @@ export function MapPoints({
 		...shared,
 		kind: 'point',
 		swatch: 'dot',
-		// A thunk, so the O(N) build lands on the one keypress that reads it.
-		stops: () => groups.map((group) => group.anchor),
+		// A thunk, so the O(N) build — and the spherical centroid behind every
+		// summary's anchor — lands on the one keypress that reads it.
+		stops: () => groups.map((group) => clusterAnchor(group.members, positions)),
 		stopRows: rows,
 		onClick: report(onClick),
 		onContextMenu: report(onContextMenu),
@@ -200,6 +209,9 @@ export function MapPoints({
 
 				const radius = clusterRadius(count)
 
+				// One timing for the pair: the count fades in with the dot it sits in.
+				const pop = pointPop(index)
+
 				return (
 					// A Fragment, not a group: the wrapper would carry nothing — the dim
 					// class and the pointer-leave sit on the outer group — and two hundred
@@ -213,7 +225,7 @@ export function MapPoints({
 							radius={radius}
 							className={paint}
 							animate={animate}
-							transition={pointPop(index)}
+							transition={pop}
 						/>
 
 						{count > 1 && (
@@ -222,7 +234,7 @@ export function MapPoints({
 								count={count}
 								className={countInk}
 								animate={animate}
-								transition={pointPop(index)}
+								transition={pop}
 							/>
 						)}
 

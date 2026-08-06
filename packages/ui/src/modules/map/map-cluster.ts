@@ -11,9 +11,14 @@ import type { MapPoint2D } from './map-geometry'
 import type { LngLat } from './types'
 
 /**
- * One drawn group: the dots it stands for, where it draws, and how far they
- * spread. A group of one is an ordinary dot, so a mark draws its summaries and
- * its single dots through one path.
+ * One drawn group: the dots it stands for, and where it draws. A group of one is
+ * an ordinary dot, so a mark draws its summaries and its single dots through one
+ * path.
+ *
+ * It carries frame arithmetic alone. What a group reads out — its anchor and its
+ * spread — is spherical, costs a `d3-geo` pass per group, and is wanted by one
+ * caller each, so {@link clusterAnchor} and {@link clusterSpan} resolve it where
+ * it is read rather than on every pass.
  *
  * @internal
  */
@@ -27,16 +32,6 @@ export type MapPointCluster = {
 	 * keeps its readout.
 	 */
 	at: MapPoint2D | null
-	/**
-	 * The group's own position in lon/lat: a lone dot's own, or its members'
-	 * spherical centroid. The keyboard cursor stands here.
-	 */
-	anchor: LngLat
-	/**
-	 * How far the group spreads, in metres: the diameter of the circle about
-	 * {@link anchor} that holds every member. `0` for a lone dot.
-	 */
-	span: number
 }
 
 /** A group under construction: the seed the distance test measures from, and the running sum of its members. @internal */
@@ -47,6 +42,9 @@ type MapClusterSeed = {
 	sumX: number
 	sumY: number
 }
+
+/** A group the grid holds: a dot with no image on the frame joins nothing, so it never reaches one. @internal */
+type MapSeededCluster = MapClusterSeed & { seed: MapPoint2D }
 
 /**
  * Groups the dots a frame draws too close together to tell apart, in one pass.
@@ -77,14 +75,27 @@ export function clusterPoints(
 	// distance of a dot can only sit in the dot's own cell or one of the eight
 	// around it, so each dot reads nine buckets rather than every group built so
 	// far — a linear pass where the naive scan is quadratic.
-	const cells = new Map<string, MapClusterSeed[]>()
+	const cells = new Map<number, MapSeededCluster[]>()
 
 	for (const [index, position] of positions.entries()) {
 		const at = project(position)
 
-		const nearest = at === null || distance <= 0 ? null : nearestSeed(cells, at, distance)
+		// A dot the projection drops joins nothing and is joined by nothing, and an
+		// off grouping leaves every dot alone: both stay off the grid, so neither
+		// can be found as a merge candidate.
+		if (at === null || distance <= 0) {
+			groups.push({ members: [index], seed: at, sumX: at?.x ?? 0, sumY: at?.y ?? 0 })
 
-		if (nearest !== null && at !== null) {
+			continue
+		}
+
+		const cx = Math.floor(at.x / distance)
+
+		const cy = Math.floor(at.y / distance)
+
+		const nearest = nearestSeed(cells, at, cx, cy, distance)
+
+		if (nearest !== null) {
 			nearest.members.push(index)
 
 			nearest.sumX += at.x
@@ -94,32 +105,35 @@ export function clusterPoints(
 			continue
 		}
 
-		const group: MapClusterSeed = { members: [index], seed: at, sumX: at?.x ?? 0, sumY: at?.y ?? 0 }
+		const group: MapSeededCluster = { members: [index], seed: at, sumX: at.x, sumY: at.y }
 
 		groups.push(group)
 
-		// A dot the projection drops joins nothing and is joined by nothing: it
-		// holds its own group, off the grid, so it keeps a readout where the map
-		// draws it nowhere. An off grouping (`distance` of `0` or less) leaves every
-		// group off the grid the same way.
-		if (at !== null && distance > 0) bucket(cells, cellKey(at, distance)).push(group)
+		bucket(cells, cellKey(cx, cy)).push(group)
 	}
 
-	return groups.map((group) => summarise(group, positions))
+	return groups.map(summarise)
 }
 
-/** The grid key a frame position falls under, at one cell per merge distance. @internal */
-function cellKey(at: MapPoint2D, distance: number): string {
-	return `${Math.floor(at.x / distance)}:${Math.floor(at.y / distance)}`
+/**
+ * The grid key for one cell. Packed into a number rather than a string: the scan
+ * below reads nine cells per dot, and building nine strings each would allocate
+ * by the thousand across a set of hundreds. Cell indices are frame coordinates
+ * over the merge distance, so they sit far inside the ±32,768 the packing holds.
+ *
+ * @internal
+ */
+function cellKey(cx: number, cy: number): number {
+	return cx * 65536 + cy
 }
 
 /** The seed bucket for a cell, created empty on first use. @internal */
-function bucket(cells: Map<string, MapClusterSeed[]>, key: string): MapClusterSeed[] {
+function bucket(cells: Map<number, MapSeededCluster[]>, key: number): MapSeededCluster[] {
 	const held = cells.get(key)
 
 	if (held !== undefined) return held
 
-	const fresh: MapClusterSeed[] = []
+	const fresh: MapSeededCluster[] = []
 
 	cells.set(key, fresh)
 
@@ -128,61 +142,61 @@ function bucket(cells: Map<string, MapClusterSeed[]>, key: string): MapClusterSe
 
 /**
  * The nearest group whose seed lies within `distance` of `at`, or `null` where
- * the dot stands alone. Distance is compared squared, so the scan takes no
- * square root, and a tie keeps the earlier group — the grouping then reads the
- * same on every pass over the same input.
+ * the dot stands alone. It reads the dot's own cell and the eight around it,
+ * which at one cell per merge distance is every cell a seed in reach can be in.
+ * Distance is compared squared, so the scan takes no square root, and a tie keeps
+ * the earlier group — the grouping then reads the same on every pass over the
+ * same input.
  *
  * @internal
  */
 function nearestSeed(
-	cells: Map<string, MapClusterSeed[]>,
+	cells: Map<number, MapSeededCluster[]>,
 	at: MapPoint2D,
+	cx: number,
+	cy: number,
 	distance: number,
-): MapClusterSeed | null {
+): MapSeededCluster | null {
 	const limit = distance * distance
 
-	let nearest: MapClusterSeed | null = null
+	let nearest: MapSeededCluster | null = null
 
 	let best = Number.POSITIVE_INFINITY
 
-	for (const group of neighbourhood(cells, at, distance)) {
-		if (group.seed === null) continue
+	for (let cell = 0; cell < 9; cell++) {
+		const held = cells.get(cellKey(cx + ((cell % 3) - 1), cy + (Math.floor(cell / 3) - 1)))
 
-		const dx = group.seed.x - at.x
+		if (held === undefined) continue
 
-		const dy = group.seed.y - at.y
+		for (const group of held) {
+			const dx = group.seed.x - at.x
 
-		const spread = dx * dx + dy * dy
+			const dy = group.seed.y - at.y
 
-		if (spread > limit || spread >= best) continue
+			const spread = dx * dx + dy * dy
 
-		best = spread
+			if (spread > limit || spread >= best) continue
 
-		nearest = group
+			best = spread
+
+			nearest = group
+		}
 	}
 
 	return nearest
 }
 
-/** Every seed in the dot's own cell and the eight around it — the whole field a merge can reach. @internal */
-function neighbourhood(
-	cells: Map<string, MapClusterSeed[]>,
-	at: MapPoint2D,
-	distance: number,
-): MapClusterSeed[] {
-	const cx = Math.floor(at.x / distance)
-
-	const cy = Math.floor(at.y / distance)
-
-	const near: MapClusterSeed[] = []
-
-	for (let x = cx - 1; x <= cx + 1; x++) {
-		for (let y = cy - 1; y <= cy + 1; y++) {
-			near.push(...(cells.get(`${x}:${y}`) ?? []))
-		}
+/** Resolves a built group to the dots it holds and the point it draws at. @internal */
+function summarise({ members, seed, sumX, sumY }: MapClusterSeed): MapPointCluster {
+	return {
+		members,
+		at: seed === null ? null : { x: sumX / members.length, y: sumY / members.length },
 	}
+}
 
-	return near
+/** The members' own coordinates. Every index came from `positions`, so the read holds no gaps. @internal */
+function clusterCoordinates(members: readonly number[], positions: readonly LngLat[]): LngLat[] {
+	return members.map((index) => positions[index] as LngLat)
 }
 
 /**
@@ -192,10 +206,10 @@ function neighbourhood(
  *
  * @internal
  */
-function clusterAnchor(coordinates: LngLat[]): LngLat {
-	const [first] = coordinates
+export function clusterAnchor(members: readonly number[], positions: readonly LngLat[]): LngLat {
+	const coordinates = clusterCoordinates(members, positions)
 
-	if (first === undefined) return [0, 0]
+	const first = coordinates[0] as LngLat
 
 	if (coordinates.length === 1) return first
 
@@ -208,37 +222,25 @@ function clusterAnchor(coordinates: LngLat[]): LngLat {
 	return Number.isFinite(lon) && Number.isFinite(lat) ? [lon, lat] : first
 }
 
-/** The diameter, in metres, of the circle about `anchor` that holds every member. @internal */
-function clusterSpan(anchor: LngLat, coordinates: LngLat[]): number {
+/**
+ * How far a group spreads, in metres: the diameter of the circle about its
+ * {@link clusterAnchor} that holds every member. `0` for a lone dot, which
+ * spreads over nothing and must not pay a spherical pass to say so.
+ *
+ * @internal
+ */
+export function clusterSpan(members: readonly number[], positions: readonly LngLat[]): number {
+	if (members.length === 1) return 0
+
+	const anchor = clusterAnchor(members, positions)
+
 	let radians = 0
 
-	for (const position of coordinates) radians = Math.max(radians, geoDistance(anchor, position))
+	for (const position of clusterCoordinates(members, positions)) {
+		radians = Math.max(radians, geoDistance(anchor, position))
+	}
 
 	return 2 * radians * EARTH_RADIUS_METERS
-}
-
-/** Resolves a built group to where it draws, where it anchors, and how far it spreads. @internal */
-function summarise(group: MapClusterSeed, positions: readonly LngLat[]): MapPointCluster {
-	const { members, seed, sumX, sumY } = group
-
-	const coordinates: LngLat[] = []
-
-	for (const index of members) {
-		const position = positions[index]
-
-		if (position !== undefined) coordinates.push(position)
-	}
-
-	const anchor = clusterAnchor(coordinates)
-
-	return {
-		members,
-		at: seed === null ? null : { x: sumX / members.length, y: sumY / members.length },
-		anchor,
-		// A lone dot spans nothing, and the measure costs a call per member — so
-		// the common group of one never pays for it.
-		span: members.length === 1 ? 0 : clusterSpan(anchor, coordinates),
-	}
 }
 
 /**
@@ -250,9 +252,5 @@ function summarise(group: MapClusterSeed, positions: readonly LngLat[]): MapPoin
  * @internal
  */
 export function clusterRadius(count: number): number {
-	let radius: number = POINT_RADIUS
-
-	for (const step of CLUSTER_RADIUS_STEPS) if (count >= step.from) radius = step.radius
-
-	return radius
+	return CLUSTER_RADIUS_STEPS.findLast((step) => count >= step.from)?.radius ?? POINT_RADIUS
 }

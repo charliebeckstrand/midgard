@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { clusterPoints, clusterRadius } from '../../modules/map/map-cluster'
+import {
+	clusterAnchor,
+	clusterPoints,
+	clusterRadius,
+	clusterSpan,
+} from '../../modules/map/map-cluster'
 import { POINT_RADIUS } from '../../modules/map/map-constants'
 import type { MapPoint2D } from '../../modules/map/map-geometry'
 import type { LngLat } from '../../modules/map/types'
@@ -57,33 +62,6 @@ describe('clusterPoints', () => {
 		expect(group?.at).toEqual({ x: 1, y: 1 })
 	})
 
-	it('anchors a group at its centroid and measures how far it spreads', () => {
-		const [group] = clusterPoints(
-			[
-				[0, 0],
-				[1, 0],
-			],
-			flat,
-			5,
-		)
-
-		expect(group?.anchor[0]).toBeCloseTo(0.5, 6)
-
-		// A degree of longitude at the equator is ~111 km, and the span is the
-		// diameter about the anchor — so the pair spans the degree between them.
-		expect(group?.span).toBeGreaterThan(111_000)
-
-		expect(group?.span).toBeLessThan(111_400)
-	})
-
-	it('leaves a lone dot its own position and no spread at all', () => {
-		const [group] = clusterPoints([[7, 3]], flat, 5)
-
-		expect(group?.anchor).toEqual([7, 3])
-
-		expect(group?.span).toBe(0)
-	})
-
 	it('holds every point one per group with the grouping off', () => {
 		const positions: LngLat[] = [
 			[0, 0],
@@ -128,6 +106,40 @@ describe('clusterPoints', () => {
 		)
 
 		expect(groups).toHaveLength(1)
+	})
+})
+
+describe('clusterAnchor', () => {
+	it('centres a group on its members', () => {
+		const pair: LngLat[] = [
+			[0, 0],
+			[1, 0],
+		]
+
+		expect(clusterAnchor([0, 1], pair)[0]).toBeCloseTo(0.5, 6)
+	})
+
+	it('leaves a lone dot its own position', () => {
+		expect(clusterAnchor([0], [[7, 3]])).toEqual([7, 3])
+	})
+})
+
+describe('clusterSpan', () => {
+	it('measures the diameter about the anchor', () => {
+		const pair: LngLat[] = [
+			[0, 0],
+			[1, 0],
+		]
+
+		// A degree of longitude at the equator is ~111 km, and the span is the
+		// diameter about the anchor — so the pair spans the degree between them.
+		expect(clusterSpan([0, 1], pair)).toBeGreaterThan(111_000)
+
+		expect(clusterSpan([0, 1], pair)).toBeLessThan(111_400)
+	})
+
+	it('spreads a lone dot over nothing, without a spherical pass', () => {
+		expect(clusterSpan([0], [[7, 3]])).toBe(0)
 	})
 })
 

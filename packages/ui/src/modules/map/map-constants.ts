@@ -44,7 +44,15 @@ export const POINT_HIT_RADIUS = 22
  * is a pixel distance: one round summarises as the map shrinks and separates as
  * it grows, which is what makes the grouping a reading of how far out the map
  * sits rather than of the data. Set above the `POINT_RADIUS * 2` at which two
- * dots begin to overlap, so a pair that merely touches summarises too. @internal
+ * dots begin to overlap, so a pair that merely touches summarises too.
+ *
+ * The measurement-free canonical frame is the one stage where the two units
+ * part: it is a fixed {@link MAP_CANONICAL_WIDTH}-wide viewBox, so this reads as
+ * a fraction of the frame's width there and the grouping loosens in a box
+ * narrower than that. The measurement lands in a layout effect, before the first
+ * paint, so no reader sees it — but a viewBox transform (the roadmap's zoom)
+ * would part them for good, and would owe this constant a units-per-pixel scale
+ * off the plat. @internal
  */
 export const POINT_CLUSTER_DISTANCE = 14
 
