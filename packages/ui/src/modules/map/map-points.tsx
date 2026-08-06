@@ -6,7 +6,7 @@ import { k } from '../../recipes/kata/map'
 import { rangeKeys } from '../../utilities'
 import { useMapPlat } from './context'
 import { clusterAnchor, clusterPoints, clusterRadius, clusterSpan } from './map-cluster'
-import { POINT_CLUSTER_DISTANCE, POINT_HIT_RADIUS } from './map-constants'
+import { POINT_CLUSTER_GAP, POINT_HIT_RADIUS } from './map-constants'
 import { MapDot, MapDotCount } from './map-dot'
 import { pointPop } from './map-motion'
 import type { LngLat } from './types'
@@ -38,12 +38,11 @@ export type MapPointsProps = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> 
 	/**
 	 * Draw dots the frame puts too close together to tell apart as one summary
 	 * dot, whose size grades with how many stops it holds and whose label carries
-	 * the count. A number sets the centre-to-centre gap, in device pixels, at
-	 * which two dots merge; `true` takes the gap at which they begin to overlap.
-	 *
-	 * The gap is a floor. Marks that would draw over one another merge whatever
-	 * it says, because a summary grows with what it holds — so a gap under the
-	 * marks' own width would ask for the overlap this exists to remove.
+	 * the count. A number sets the clear space, in device pixels, two marks keep
+	 * between their edges before they merge — edge to edge, so the one number
+	 * holds however wide a summary grows, and `0` lets marks touch but never
+	 * overlap. A negative gap would ask for the overlap this exists to remove, so
+	 * it reads as `0`.
 	 *
 	 * Grouping reads the drawn frame, not the data, so it answers the scale the
 	 * map is at: a national frame summarises a metro round to one mark, and the
@@ -79,11 +78,11 @@ export type MapPointsProps = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> 
 	onContextMenu?: (id: string, index: number) => void
 }
 
-/** The merge gap a `cluster` prop asks for, in frame units; `0` where it is off. @internal */
-function clusterDistance(cluster: boolean | number): number {
-	if (cluster === true) return POINT_CLUSTER_DISTANCE
+/** The edge-to-edge gap a `cluster` prop asks for, in frame units; `null` where it is off. @internal */
+function clusterGap(cluster: boolean | number): number | null {
+	if (cluster === true) return POINT_CLUSTER_GAP
 
-	return cluster === false ? 0 : cluster
+	return cluster === false ? null : Math.max(0, cluster)
 }
 
 /**
@@ -125,14 +124,11 @@ export function MapPoints({
 	// the mark registers, not after.
 	const { project } = useMapPlat()
 
-	const distance = clusterDistance(cluster)
+	const gap = clusterGap(cluster)
 
 	const positions = useMemo(() => points.map((point) => point.at), [points])
 
-	const groups = useMemo(
-		() => clusterPoints(positions, project, distance),
-		[positions, project, distance],
-	)
+	const groups = useMemo(() => clusterPoints(positions, project, gap), [positions, project, gap])
 
 	// A lone dot reads out as itself, so an ungrouped set reads exactly as the
 	// points the caller passed. A summary reads as the mark, since it stands for

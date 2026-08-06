@@ -9,14 +9,30 @@ import { POINT_RADIUS } from '../../modules/map/map-constants'
 import type { MapPoint2D } from '../../modules/map/map-geometry'
 import type { LngLat } from '../../modules/map/types'
 
-/** One frame unit per degree, so a merge distance reads straight off the coordinates. */
+/** One frame unit per degree, so a reach reads straight off the coordinates. */
 const flat = (position: LngLat): MapPoint2D => ({ x: position[0], y: position[1] })
 
 /** The projection has no image past this meridian — the insets a US composite drops. */
 const clipped = (position: LngLat): MapPoint2D | null => (position[0] > 100 ? null : flat(position))
 
+/** The clear space between mark edges these fixtures group by. */
+const GAP = 9
+
+/** Two dots merge under their own widths plus the gap. */
+const DOT_REACH = POINT_RADIUS * 2 + GAP
+
+/** Ten dots in a row from `at`, enough of them to grade the mark up. */
+const bunch = (at: number): LngLat[] =>
+	Array.from({ length: 10 }, (_, step): LngLat => [at + step, 0])
+
+/** Every drawn mark, with the radius it paints. */
+const marksOf = (positions: LngLat[], gap: number | null) =>
+	clusterPoints(positions, flat, gap).flatMap((group) =>
+		group.at === null ? [] : [{ at: group.at, radius: clusterRadius(group.members.length) }],
+	)
+
 describe('clusterPoints', () => {
-	it('groups the dots inside the merge distance and leaves the rest apart', () => {
+	it('groups the dots inside the reach and leaves the rest apart', () => {
 		const groups = clusterPoints(
 			[
 				[0, 0],
@@ -25,24 +41,25 @@ describe('clusterPoints', () => {
 				[400, 0],
 			],
 			flat,
-			20,
+			GAP,
 		)
 
 		expect(groups.map((group) => group.members)).toEqual([[0, 1, 2], [3]])
 	})
 
-	it('measures each dot from the seed of a group, never from a moving mean', () => {
-		// A chain of dots one merge distance apart. Measured from the mean the
-		// group would creep along the chain and swallow it; measured from the seed
-		// the third dot is two distances out and starts its own.
+	it('measures each dot from the first member of a group, never from a moving mean', () => {
+		// A chain of dots one reach apart. Measured from the mean the broad phase
+		// would creep along the chain; measured from the first member the third dot
+		// is two reaches out and starts its own — and stays its own, because the
+		// marks that result still stand clear of one another.
 		const groups = clusterPoints(
 			[
 				[0, 0],
-				[20, 0],
-				[40, 0],
+				[DOT_REACH, 0],
+				[DOT_REACH * 2, 0],
 			],
 			flat,
-			20,
+			GAP,
 		)
 
 		expect(groups.map((group) => group.members)).toEqual([[0, 1], [2]])
@@ -56,7 +73,7 @@ describe('clusterPoints', () => {
 				[4, 12],
 			],
 			flat,
-			20,
+			GAP,
 		)
 
 		expect(group?.at).toEqual({ x: 4, y: 4 })
@@ -71,7 +88,7 @@ describe('clusterPoints', () => {
 			[2, 0],
 		]
 
-		const groups = clusterPoints(positions, flat, 0)
+		const groups = clusterPoints(positions, flat, null)
 
 		expect(groups.map((group) => group.members)).toEqual([[0], [1], [2]])
 	})
@@ -87,7 +104,7 @@ describe('clusterPoints', () => {
 				[10, 0],
 			],
 			clipped,
-			20,
+			GAP,
 		)
 
 		expect(groups.map((group) => group.members)).toEqual([[0, 2], [1]])
@@ -95,40 +112,43 @@ describe('clusterPoints', () => {
 		expect(groups[1]?.at).toBeNull()
 	})
 
-	it('groups the same way across a cell boundary as within one', () => {
-		// The grid buckets by merge distance and reads the nine cells around a
-		// dot, so a pair straddling a boundary must group as one all the same.
-		const groups = clusterPoints(
-			[
-				[19.9, 19.9],
-				[20.1, 20.1],
-			],
-			flat,
-			20,
-		)
-
-		expect(groups).toHaveLength(1)
-	})
-
 	it('merges the summaries whose marks would cover one another', () => {
-		// Two bunches the seed rule keeps apart — their seeds stand 25 units off,
-		// past the merge distance — but ten stops each grade the marks up until
-		// they draw over the gap between them.
-		const bunched: LngLat[] = [
-			...Array.from({ length: 10 }, (_, step): LngLat => [step, 0]),
-			...Array.from({ length: 10 }, (_, step): LngLat => [25 + step, 0]),
-		]
+		// Two bunches the broad phase keeps apart — their first members stand well
+		// past a dot's reach — until ten stops each grade the marks up to where they
+		// draw over the space between them.
+		const reach = clusterRadius(10) * 2 + GAP
 
-		expect(clusterPoints(bunched, flat, 20)).toHaveLength(1)
+		expect(clusterPoints([...bunch(0), ...bunch(reach - 1)], flat, GAP)).toHaveLength(1)
 	})
 
-	it('leaves the summaries that clear one another alone', () => {
-		const apart: LngLat[] = [
-			...Array.from({ length: 10 }, (_, step): LngLat => [step, 0]),
-			...Array.from({ length: 10 }, (_, step): LngLat => [45 + step, 0]),
-		]
+	it('leaves the summaries that stand clear of one another alone', () => {
+		const reach = clusterRadius(10) * 2 + GAP
 
-		expect(clusterPoints(apart, flat, 20)).toHaveLength(2)
+		expect(clusterPoints([...bunch(0), ...bunch(reach + 1)], flat, GAP)).toHaveLength(2)
+	})
+
+	it('leaves no two marks drawing over one another, however the merging chains', () => {
+		// The rule the whole pass exists for, on a field dense enough to chain:
+		// merging moves a centre and grades its mark up, which can then reach a
+		// neighbour the broad phase left alone. However that settles, no pair of the
+		// marks it draws may come within the gap of one another.
+		const field: LngLat[] = []
+
+		for (let x = 0; x < 10; x++) {
+			for (let y = 0; y < 10; y++) field.push([x * 18, y * 18])
+		}
+
+		const marks = marksOf(field, GAP)
+
+		expect(marks.length).toBeGreaterThan(1)
+
+		for (const [index, mark] of marks.entries()) {
+			for (const other of marks.slice(index + 1)) {
+				const span = Math.hypot(mark.at.x - other.at.x, mark.at.y - other.at.y)
+
+				expect(span).toBeGreaterThanOrEqual(mark.radius + other.radius + GAP)
+			}
+		}
 	})
 })
 

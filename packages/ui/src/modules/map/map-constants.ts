@@ -39,22 +39,26 @@ export const POINT_RADIUS = 5.5
 export const POINT_HIT_RADIUS = 22
 
 /**
- * The centre-to-centre gap, in frame units, below which two dots draw as one
- * summary. Frame units are device pixels wherever the frame is measured, so this
- * is a pixel distance: one round summarises as the map shrinks and separates as
- * it grows, which is what makes the grouping a reading of how far out the map
- * sits rather than of the data. Set above the `POINT_RADIUS * 2` at which two
- * dots begin to overlap, so a pair that merely touches summarises too.
+ * The clear space, in frame units, two point marks keep between their edges
+ * before they draw as one. Measured edge to edge rather than centre to centre,
+ * so one number holds however wide the marks grow: two dots merge under
+ * `POINT_RADIUS * 2 + this`, two summaries under their own radii plus it.
+ *
+ * Frame units are device pixels wherever the frame is measured, so this is a
+ * pixel distance: one round summarises as the map shrinks and separates as it
+ * grows, which is what makes the grouping a reading of how far out the map sits
+ * rather than of the data.
  *
  * The measurement-free canonical frame is the one stage where the two units
- * part: it is a fixed {@link MAP_CANONICAL_WIDTH}-wide viewBox, so this reads as
- * a fraction of the frame's width there and the grouping loosens in a box
- * narrower than that. The measurement lands in a layout effect, before the first
- * paint, so no reader sees it — but a viewBox transform (the roadmap's zoom)
- * would part them for good, and would owe this constant a units-per-pixel scale
- * off the plat. @internal
+ * part: it is a fixed {@link MAP_CANONICAL_WIDTH}-wide viewBox, so the reach
+ * reads as a fraction of the frame's width there and the grouping loosens in a
+ * box narrower than that. The measurement lands in a layout effect, before the
+ * first paint, so no reader sees it — but a viewBox transform (the roadmap's
+ * zoom) would part them for good. The whole reach is then one multiply by a
+ * units-per-pixel scale off the plat, which is why the marks' own radii sit
+ * inside that reach rather than beside it. @internal
  */
-export const POINT_CLUSTER_DISTANCE = 14
+export const POINT_CLUSTER_GAP = 3
 
 /**
  * A summary dot's radius by how many stops it holds — the size grade. A lone dot
