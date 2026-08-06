@@ -495,6 +495,29 @@ describe('Grid per-row editing', () => {
 		expect(bySlot(view.container, 'editing-flag')).toHaveTextContent('false')
 	})
 
+	it('leaves Enter alone under a consumer-owned session, where Escape reverts a cell', () => {
+		const { container, editRow1, save, onCommit } = renderGrid()
+
+		editRow1()
+
+		const input = bySlot(container, 'grid-edit-input') as HTMLInputElement
+
+		fireEvent.change(input, { target: { value: 'Alicia' } })
+
+		fireEvent.keyDown(input, { key: 'Enter' })
+
+		// Enter belongs to a grid-owned session and to nothing else. Here the
+		// consumer owns entry and exit, so the row stays open and nothing commits
+		// until they say so — and Escape still reverts the cell rather than the row.
+		expect(bySlot(container, 'grid-edit-input')).toBeInTheDocument()
+
+		expect(onCommit).not.toHaveBeenCalled()
+
+		save()
+
+		expect(onCommit).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'name', value: 'Alicia' }])
+	})
+
 	it('does not enter edit mode on a cell double-click in the default manual mode', () => {
 		const { container } = renderGrid()
 
