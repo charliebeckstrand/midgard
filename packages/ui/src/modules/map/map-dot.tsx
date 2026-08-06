@@ -53,3 +53,52 @@ export function MapDot({ slot, at, radius, className, animate, transition }: Map
 		/>
 	)
 }
+
+/** Props for {@link MapDotCount}. @internal */
+type MapDotCountProps = {
+	/** The dot's projected frame position; the count centres on it. */
+	at: MapPoint2D
+	/** How many stops the dot stands for. */
+	count: number
+	/** The label ink — the slot's `onFill`, the one place text sits on a mark's own colour. */
+	className: string
+	animate: boolean
+	/** The fade-in timing under `animate`, shared with the dot the count sits in. */
+	transition: { duration: number; delay?: number }
+}
+
+/**
+ * The count inside a summary dot. Text sizes in user units, so it scales with
+ * the viewBox where the dot beneath it rides device pixels — the two agree
+ * wherever the frame is measured, which every settled frame is.
+ *
+ * @remarks Never a pointer target: the mark's own hit circle draws over it and
+ * carries the readout, and a label that answered the pointer would report no
+ * mark at all.
+ *
+ * @internal
+ */
+export function MapDotCount({ at, count, className, animate, transition }: MapDotCountProps) {
+	const shared = {
+		'data-slot': 'map-points-count',
+		x: at.x,
+		y: at.y,
+		textAnchor: 'middle' as const,
+		dominantBaseline: 'central' as const,
+		pointerEvents: 'none' as const,
+		className,
+	}
+
+	if (!animate) return <text {...shared}>{count}</text>
+
+	return (
+		<motion.text
+			{...shared}
+			initial={{ opacity: 0 }}
+			animate={{ opacity: 1 }}
+			transition={transition}
+		>
+			{count}
+		</motion.text>
+	)
+}

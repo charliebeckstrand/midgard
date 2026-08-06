@@ -38,6 +38,44 @@ export const POINT_RADIUS = 5.5
 /** Invisible hit-circle radius over a point (and a marker pin) — a ~44px finger target. @internal */
 export const POINT_HIT_RADIUS = 22
 
+/**
+ * The clear space, in frame units, two point marks keep between their edges
+ * before they draw as one. Measured edge to edge rather than centre to centre,
+ * so one number holds however wide the marks grow: two dots merge under
+ * `POINT_RADIUS * 2 + this`, two summaries under their own radii plus it.
+ *
+ * Frame units are device pixels wherever the frame is measured, so this is a
+ * pixel distance: one round summarises as the map shrinks and separates as it
+ * grows, which is what makes the grouping a reading of how far out the map sits
+ * rather than of the data.
+ *
+ * The measurement-free canonical frame is the one stage where the two units
+ * part: it is a fixed {@link MAP_CANONICAL_WIDTH}-wide viewBox, so the reach
+ * reads as a fraction of the frame's width there and the grouping loosens in a
+ * box narrower than that. The measurement lands in a layout effect, before the
+ * first paint, so no reader sees it — but a viewBox transform (the roadmap's
+ * zoom) would part them for good. The whole reach is then one multiply by a
+ * units-per-pixel scale off the plat, which is why the marks' own radii sit
+ * inside that reach rather than beside it. @internal
+ */
+export const POINT_CLUSTER_GAP = 3
+
+/**
+ * A summary dot's radius by how many stops it holds — the size grade. A lone dot
+ * keeps {@link POINT_RADIUS}; each step is one grade up, so the mark carries the
+ * magnitude and the count inside it carries the number. Read ascending: the last
+ * step the count reaches wins. @internal
+ */
+export const CLUSTER_RADIUS_STEPS = [
+	{ from: 2, radius: 9 },
+	{ from: 5, radius: 11 },
+	{ from: 10, radius: 13 },
+	{ from: 25, radius: 15 },
+] as const
+
+/** Mean Earth radius in metres — turns a summary's spherical spread into a distance. @internal */
+export const EARTH_RADIUS_METERS = 6371008.8
+
 /** A marker pin's radius — larger than a point, it anchors a route's ends. @internal */
 export const PIN_RADIUS = 5.5
 

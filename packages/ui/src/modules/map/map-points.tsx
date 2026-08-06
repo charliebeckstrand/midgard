@@ -4,10 +4,13 @@ import { Fragment, useMemo } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
 import { rangeKeys } from '../../utilities'
-import { POINT_HIT_RADIUS, POINT_RADIUS } from './map-constants'
-import { MapDot } from './map-dot'
+import { useMapPlat } from './context'
+import { clusterAnchor, clusterPoints, clusterRadius, clusterSpan } from './map-cluster'
+import { POINT_CLUSTER_GAP, POINT_HIT_RADIUS } from './map-constants'
+import { MapDot, MapDotCount } from './map-dot'
 import { pointPop } from './map-motion'
 import type { LngLat } from './types'
+import type { MapStopRow } from './use-map-legend-registry'
 import { type MapOverlayProps, useMapOverlay } from './use-map-overlay'
 
 /** One dot of a {@link MapPoints}. */
@@ -33,8 +36,39 @@ export type MapPointsProps = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> 
 	/** The dots, in the order they draw and the order the cursor walks them. */
 	points: MapPointDatum[]
 	/**
+	 * Draw dots the frame puts too close together to tell apart as one summary
+	 * dot, whose size grades with how many stops it holds and whose label carries
+	 * the count. A number sets the clear space, in device pixels, two marks keep
+	 * between their edges before they merge — edge to edge, so the one number
+	 * holds however wide a summary grows, and `0` lets marks touch but never
+	 * overlap. A negative gap would ask for the overlap this exists to remove, so
+	 * it reads as `0`.
+	 *
+	 * Grouping reads the drawn frame, not the data, so it answers the scale the
+	 * map is at: a national frame summarises a metro round to one mark, and the
+	 * same round separates into its own dots as the frame narrows to the state.
+	 * A summary is one mark to everything downstream — one tooltip, one keyboard
+	 * stop, one table row, one pick — so the picture, the readout, and the cursor
+	 * can never disagree about what is on the map.
+	 *
+	 * `false` draws every dot, however they stack.
+	 * @defaultValue true
+	 */
+	cluster?: boolean | number
+	/**
+	 * The trailing readout a summary dot carries, from the stops it holds and how
+	 * far they spread — the diameter, in metres, of the circle about the group
+	 * that holds every one of them. The module formats no distances of its own, so
+	 * a caller that wants the spread in the readout states the units it works in:
+	 * `` (count, span) => `${count} stops · ${miles(span)} across` ``.
+	 * @defaultValue the count alone
+	 */
+	clusterDetail?: (count: number, span: number) => string
+	/**
 	 * Fires when a click lands on a dot, with the group's `id` and the dot's index
 	 * in {@link points} — so a click keys straight back into the caller's own row.
+	 * A summary dot reports the first of the stops it holds, so a pick always
+	 * names a real point.
 	 *
 	 * Set, every dot carries a pointer cursor, and the keyboard cursor picks the
 	 * dot it stands on with Enter or Space.
@@ -44,11 +78,22 @@ export type MapPointsProps = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> 
 	onContextMenu?: (id: string, index: number) => void
 }
 
+/** The edge-to-edge gap a `cluster` prop asks for, in frame units; `null` where it is off. @internal */
+function clusterGap(cluster: boolean | number): number | null {
+	if (cluster === true) return POINT_CLUSTER_GAP
+
+	return cluster === false ? null : Math.max(0, cluster)
+}
+
 /**
  * A set of dots under one legend entry — a fleet's stops, a chain's branches,
  * a survey's sites — filled in one slot colour and toggled as one. The group is
  * the mark: it registers once, draws one legend row, and takes the emphasis
  * whole, so hovering any dot isolates the set rather than the dot.
+ *
+ * Dots the frame draws on top of one another summarise into a single graded
+ * mark carrying their count, and separate back into themselves as the frame
+ * widens on them — see {@link MapPointsProps.cluster}.
  *
  * Each dot keeps its own readout and its own pick. Hovering one raises the
  * tooltip with that dot's name and detail, falling back to the group's; the
@@ -61,34 +106,111 @@ export type MapPointsProps = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> 
  * hundred legend rows against an eight-slot palette. This costs one of each.
  *
  * A dot whose position the projection has no image for is omitted — the US
- * composite drops points outside its insets — and the rest keep their indices,
+ * composite drops points outside its insets — and the rest keep their readouts,
  * so the index a click reports always names the caller's own point. Under the
  * plat's `animate` the dots pop in staggered, so the set reveals in sequence.
  */
-export function MapPoints({ points, ...shared }: MapPointsProps) {
-	const { slot, hidden, project, animate, dim, onPointerLeave, hit } = useMapOverlay({
+export function MapPoints({
+	points,
+	cluster = true,
+	clusterDetail,
+	onClick,
+	onContextMenu,
+	...shared
+}: MapPointsProps) {
+	// The projector, read here rather than off the registration below: the stops
+	// and the readouts this mark registers are the summarised ones, and a summary
+	// is a fact about the projected frame — so the grouping has to resolve before
+	// the mark registers, not after.
+	const { project } = useMapPlat()
+
+	const gap = clusterGap(cluster)
+
+	const positions = useMemo(() => points.map((point) => point.at), [points])
+
+	const groups = useMemo(() => clusterPoints(positions, project, gap), [positions, project, gap])
+
+	// A lone dot reads out as itself, so an ungrouped set reads exactly as the
+	// points the caller passed. A summary reads as the mark, since it stands for
+	// the whole group and no one of its stops names it.
+	const rows = useMemo<MapStopRow[]>(
+		() =>
+			groups.map(({ members }) => {
+				const count = members.length
+
+				const first = members[0]
+
+				const lone = first === undefined ? undefined : points[first]
+
+				// Numbered by the caller's own index, never the group's: a click on this
+				// dot reports that index, and a readout counting in another space would
+				// name a row the caller cannot find — and would renumber itself as the
+				// frame regrouped around it.
+				if (count === 1 && first !== undefined && lone !== undefined) {
+					return { label: lone.label ?? `${shared.label} ${first + 1}`, detail: lone.detail }
+				}
+
+				return {
+					label: shared.label,
+					// The spread costs a spherical pass per group, so only a caller that
+					// reads it pays for it.
+					detail:
+						clusterDetail === undefined
+							? String(count)
+							: clusterDetail(count, clusterSpan(members, positions)),
+				}
+			}),
+		[groups, points, positions, shared.label, clusterDetail],
+	)
+
+	// The caller counts in points; everything inside this mark counts in drawn
+	// groups. A summary hands back the first stop it holds, so a pick names a row
+	// the caller owns rather than a grouping it never asked for.
+	const report = (handler: ((id: string, index: number) => void) | undefined) => {
+		if (handler === undefined) return undefined
+
+		return (id: string, group: number) => {
+			const first = groups[group]?.members[0]
+
+			if (first !== undefined) handler(id, first)
+		}
+	}
+
+	const { slot, hidden, animate, dim, onPointerLeave, hit } = useMapOverlay({
 		...shared,
 		kind: 'point',
 		swatch: 'dot',
-		// A thunk, so the O(N) build lands on the one keypress that reads it.
-		stops: () => points.map((point) => point.at),
-		stopRows: points,
+		// A thunk, so the O(N) build — and the spherical centroid behind every
+		// summary's anchor — lands on the one keypress that reads it.
+		stops: () => groups.map((group) => clusterAnchor(group.members, positions)),
+		stopRows: rows,
+		onClick: report(onClick),
+		onContextMenu: report(onContextMenu),
 	})
 
 	// Held across re-renders: rebuilding them would allocate one string per dot
 	// every time, which is the cost this mark exists to remove.
-	const keys = useMemo(() => rangeKeys(points.length, 'dot'), [points.length])
+	const keys = useMemo(() => rangeKeys(groups.length, 'dot'), [groups.length])
 
 	if (slot === undefined || hidden) return null
 
 	const paint = cn(k.series[slot].stroke)
 
+	const countInk = cn('text-xs font-semibold tabular-nums', k.series[slot].onFill)
+
 	return (
 		<g data-slot="map-points" className={dim} onPointerLeave={onPointerLeave}>
-			{points.map((point, index) => {
-				const position = project(point.at)
+			{groups.map((group, index) => {
+				const position = group.at
 
 				if (position === null) return null
+
+				const count = group.members.length
+
+				const radius = clusterRadius(count)
+
+				// One timing for the pair: the count fades in with the dot it sits in.
+				const pop = pointPop(index)
 
 				return (
 					// A Fragment, not a group: the wrapper would carry nothing — the dim
@@ -98,13 +220,23 @@ export function MapPoints({ points, ...shared }: MapPointsProps) {
 					// the cursor and to `onClick`.
 					<Fragment key={keys[index]}>
 						<MapDot
-							slot="map-points-dot"
+							slot={count === 1 ? 'map-points-dot' : 'map-points-cluster'}
 							at={position}
-							radius={POINT_RADIUS}
+							radius={radius}
 							className={paint}
 							animate={animate}
-							transition={pointPop(index)}
+							transition={pop}
 						/>
+
+						{count > 1 && (
+							<MapDotCount
+								at={position}
+								count={count}
+								className={countInk}
+								animate={animate}
+								transition={pop}
+							/>
+						)}
 
 						<circle
 							data-slot="map-points-hit"
