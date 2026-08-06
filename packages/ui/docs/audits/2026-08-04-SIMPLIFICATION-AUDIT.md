@@ -42,7 +42,7 @@ application consumer.
 
 Behaviour-neutral. Each removes a file, an export, or a layer.
 
-- [ ] **Collapse the two grid manager dialogs into one shell.** `GridColumnManagerDialog`
+- [x] **Collapse the two grid manager dialogs into one shell.** `GridColumnManagerDialog`
   (`grid-column-manager-dialog.tsx`, 79 lines) declares 13 props and forwards 10 of them unchanged to
   `GridColumnManager`. Its `Dialog` / `DialogTitle` / `DialogBody` / `DialogFooter`-with-"Done" shell
   matches `GridRowManagerDialog` (`grid-row-manager-dialog.tsx`, 48 lines) line for line. Two files hold
@@ -54,7 +54,7 @@ Behaviour-neutral. Each removes a file, an export, or a layer.
   directly today. Neither symbol is on `modules/grid/index.ts`, and the rendered tree does not change.
   Saving: 75 lines.
 
-- [ ] **Delete the nine unread `ma` spacing axes.** The `ma` bundle publishes 16 keys. `stops`, `pl`,
+- [x] **Delete the nine unread `ma` spacing axes.** The `ma` bundle publishes 16 keys. `stops`, `pl`,
   `pr`, `pt`, `pb`, `ml`, `mr`, `mt`, and `mb` have no reader in the monorepo; a grep for each returns
   zero. Every use resolves to `p`, `px`, `py`, `m`, `mx`, `my`, or `gap` through `kata/box.ts:9-14`,
   `kata/list.ts:8`, `kata/flex.ts:1`, and `kata/split.ts:1`. Delete `padding.ts:34-65` and
@@ -64,7 +64,7 @@ Behaviour-neutral. Each removes a file, an export, or a layer.
   advertises the raw `--spacing` numerals. `kiso` is internal and `./recipes` is absent from the
   package.json `exports`. Saving: 74 lines.
 
-- [ ] **Fold `primitive-recipe-boundary.test.ts` into `component-recipe-boundary.test.ts`.** The two
+- [x] **Fold `primitive-recipe-boundary.test.ts` into `component-recipe-boundary.test.ts`.** The two
   boundary tests run the same scan for the same rule over different directories. `IMPORT_RE`
   (`component-recipe-boundary.test.ts:16` against `primitive-recipe-boundary.test.ts:15`) and the
   `isAllTypeNamed` helper are identical; only the header comment, the test titles, one indent level, and
@@ -74,7 +74,7 @@ Behaviour-neutral. Each removes a file, an export, or a layer.
   `recipes/README.md:43-44`, `recipes/kata/README.md:7`, and `docs/RECIPES.md:100` in the same change.
   Nothing imports either file. Saving: 70 lines.
 
-- [ ] **Delete `core/recipe/merge`.** `merge` (`core/recipe/merge.ts:12-20`) folds per-key class records
+- [x] **Delete `core/recipe/merge`.** `merge` (`core/recipe/merge.ts:12-20`) folds per-key class records
   into pre-merged variant-by-colour bundles. No production file calls it. The only importer is the barrel
   re-export at `core/recipe/index.ts:9`, plus its own test at `__tests__/recipes/merge.test.ts:2` —
   confirmed by grep. The use its doccomment names does not exist: `recipes/kata/calendar.ts:73-77`
@@ -84,7 +84,7 @@ Behaviour-neutral. Each removes a file, an export, or a layer.
   package.json `exports` has no `./recipes` entry, which `recipe-boundary.test.ts:21-30` pins. Saving:
   62 lines.
 
-- [ ] **Delete the duplicate `useComboboxTrigger` suite.** The 12-line hook has two full harnesses.
+- [x] **Delete the duplicate `useComboboxTrigger` suite.** The 12-line hook has two full harnesses.
   `combobox-utilities.test.ts:111-169` is a second `describe('useComboboxTrigger')` with its own
   `setupHook`. `use-combobox-trigger.test.ts:6-60` covers the same two cases with a strict superset of
   assertions: it also asserts that `preventDefault` ran (`:47`) and that `close` did not (`:59`). The
@@ -93,7 +93,7 @@ Behaviour-neutral. Each removes a file, an export, or a layer.
   1 to `renderHook`. The file then tests only `combobox-utilities.ts`, which is its subject. Coverage
   after the change is larger, not smaller. Saving: 61 lines.
 
-- [ ] **Merge the heatmap and choropleth context frames into one engine part.** `HeatmapContextFrame`
+- [x] **Merge the heatmap and choropleth context frames into one engine part.** `HeatmapContextFrame`
   (`heatmap-chart.tsx:850-890`) and `ChoroplethContextFrame` (`choropleth-chart.tsx:296-340`) are the
   same component in two directories: the same props bag, the same `if (useChartFullscreen()) return
   <>{children}</>` gate (`:877` and `:326`), and the same `ChartContextMenu` wrap. Only the choropleth
@@ -103,7 +103,7 @@ Behaviour-neutral. Each removes a file, an export, or a layer.
   both charts at it. Neither local frame is exported. `ChartFrame` performs the same gate a third time
   inline (`frame.tsx:288,:518`) and can adopt the part later. Saving: 48 lines.
 
-- [ ] **Delete the three unused chart hit-test predicates.** `withinBarMarks`
+- [x] **Delete the three unused chart hit-test predicates.** `withinBarMarks`
   (`chart-hit-test.ts:96-111`), `nearSeriesLines` (`:208-222`), and `withinSeriesAreas` (`:277-291`) each
   wrap `!== null` around the function beside them. No chart calls any of the three; the charts reach the
   underlying functions directly at `bar-chart.tsx:266`, `combo-chart.tsx:124-132`,
@@ -113,7 +113,7 @@ Behaviour-neutral. Each removes a file, an export, or a layer.
   rewrite the three wrapper blocks at `:22`, `:182`, and `:221` as `!== null` assertions, and drop the
   stale mention at `chart-geometry/bar.ts:86`. None of the three is on a barrel. Saving: 46 lines.
 
-- [ ] **Delete `createSkeleton`'s unreachable size clamp.** `sizeClassFor`
+- [x] **Delete `createSkeleton`'s unreachable size clamp.** `sizeClassFor`
   (`placeholder-skeleton.ts:37-60`) clamps a sub-step size to the nearest key a recipe defines, but no
   call site can reach the clamp. `SizedSkeletonRecipe<S>` infers `S` from the recipe's own `size` record,
   so the component accepts only keys the map already holds, and `resolved in sizeMap` at `:43`
@@ -135,7 +135,7 @@ Behaviour-neutral. Each removes a file, an export, or a layer.
   (`tooltip-trigger.tsx:78-88`), so the tree and every `data-slot` stay the same, and `pdf-viewer.test.tsx`
   queries only accessible names (`:97,:103,:115,:131`) and `aria-expanded` (`:199`). Saving: 30 lines.
 
-- [ ] **Fold `useControlFieldContext` into `ControlField`.** The hook is a 36-line `@internal` file that
+- [x] **Fold `useControlFieldContext` into `ControlField`.** The hook is a 36-line `@internal` file that
   builds one `useMemo` for one 30-line component, and its own TSDoc admits the arrangement ("Not on the
   barrel — backs `ControlField`"). `control-field.tsx:27` is its only caller; no test and no docs page
   names it. Move the `useControl()` plus `useA11yControl(scope.id)` plus `useMemo<ControlContextValue>`
@@ -146,7 +146,7 @@ Behaviour-neutral. Each removes a file, an export, or a layer.
   `components/control/index.ts`, so `internal-barrel-boundary`, `hook-type-name-boundary`, and
   `component-filename-boundary` are unaffected. Saving: 18 lines.
 
-- [ ] **Inline `resolveMount`.** `resolveMount(_fade, mount)` returns `mount ?? 'active'`
+- [x] **Inline `resolveMount`.** `resolveMount(_fade, mount)` returns `mount ?? 'active'`
   (`current.ts:114-116`). The `fade` parameter is unused, and the doccomment keeps it only in case the two
   axes ever re-couple. Both call sites are safe to inline: `current-contents.tsx:64` already destructures
   `mount = 'active'`, so `:73` is the identity function and `CurrentMountContext` at `:88` and `:99`
@@ -155,7 +155,7 @@ Behaviour-neutral. Each removes a file, an export, or a layer.
   `current.ts:115` and `current-contents.tsx:64`, so the helper adds drift risk instead of removing it.
   The symbol is `@internal`, on no barrel, and 13 of its 18 lines are doccomment. Saving: 18 lines.
 
-- [ ] **Replace Listbox's `resolveControlState` with `useControlProps`.** `listbox.tsx:127-132` returns
+- [x] **Replace Listbox's `resolveControlState` with `useControlProps`.** `listbox.tsx:127-132` returns
   `overrides.x ?? control?.x` for id, disabled, readOnly, and required, which `use-control-props.ts:89-93`
   already returns. `listbox.tsx:195` repeats `use-control-props.ts:73` character for character, and the
   `severity === 'error' || undefined` check at `:374` yields the same value as `:80` when no `invalid` is
@@ -405,6 +405,27 @@ scaffold and the constraint does not bite.
 files whose bodies are 14 and 12 lines under their TSDoc, and the new column filter resolves one
 `matches` predicate in `GridColumnManager` and threads it to `GridGroupManager` as a prop instead of
 writing the machinery twice.
+
+## Landed
+
+Eleven of the twelve Ready findings are done, in three commits on `claude/ui-cleanup-audit-pxryra`.
+Replace this note with the pull-request citations on merge, per
+[CONVENTIONS.md](../../../../CONVENTIONS.md) §12.4; the checked rows above carry the detail.
+
+The count came in at 601 removed lines against the 550 the tier estimated, because the `ma` and grid
+findings each gave more than the audit counted. Every commit was proved against the full jsdom suite
+(447 files, 5,734 tests) and `tsc --noEmit`; the boundary gate and the browser suite (83 files, 475
+tests) ran on the commits that touched what they cover.
+
+Two checks are worth recording because they could have gone the other way. The merged recipe-import
+scanner was probed with a real `kiso` import planted in `primitives/`, and it failed with the layer
+named — so folding the two scanners did not silently drop the primitive half. Every sized skeleton map
+was read before the clamp came out: all sit inside the `Ma` scale and all define `md`, including
+`shaku.avatar`, which the recipe reaches indirectly.
+
+`Collapse the eight pdf-viewer toolbar icon-buttons` is the one Ready finding left. It is the tier's
+worst ratio — 30 lines across eight sites in three files, plus the a11y case surface — so it is better
+done beside other pdf-viewer work than on its own.
 
 ## Totals
 
