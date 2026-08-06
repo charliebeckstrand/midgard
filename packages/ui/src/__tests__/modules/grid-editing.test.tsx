@@ -534,6 +534,29 @@ describe("Grid double-click-to-edit (trigger: 'doubleClick')", () => {
 		expect(onCommit).not.toHaveBeenCalled()
 	})
 
+	it('abandons the session on Escape from anywhere in the grid, not only the editor', () => {
+		const { container, cell, getByRole, onCommit } = renderSessionGrid()
+
+		fireEvent.doubleClick(cell('name'))
+
+		fireEvent.change(bySlot(container, 'grid-edit-input') as HTMLInputElement, {
+			target: { value: 'Discarded' },
+		})
+
+		// Focus can leave the editor while its session runs — a Tab out and back, a
+		// header control, a click on a row that is not editing. Escape has to reach
+		// the session from there too, or it reads as dead while a draft stands.
+		const grid = getByRole('grid')
+
+		grid.focus()
+
+		fireEvent.keyDown(grid, { key: 'Escape' })
+
+		expect(bySlot(container, 'grid-edit-input')).toBeNull()
+
+		expect(onCommit).not.toHaveBeenCalled()
+	})
+
 	it('defers Escape to an open floating surface inside the cell', () => {
 		const { container, cell } = renderSessionGrid({
 			cols: [

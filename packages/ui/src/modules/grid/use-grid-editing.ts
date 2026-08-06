@@ -329,6 +329,11 @@ export function useGridEditing<T>({
 		null,
 	)
 
+	// The row the grid-owned session last opened. `activeEdit` names it under cell
+	// scope, but row scope holds no coord, and Escape has to reach the session
+	// from anywhere in the grid under both.
+	const enteredRowRef = useRef<string | number | null>(null)
+
 	const enterEdit = useCallback(
 		(rowKey: string | number, columnId: string | number) => {
 			const active = activeEditRef.current
@@ -350,6 +355,8 @@ export function useGridEditing<T>({
 			if (entering ? isSameCell(active, entering) : editableRows.has(rowKey)) return
 
 			pendingFocusRef.current = { rowKey, columnId }
+
+			enteredRowRef.current = rowKey
 
 			setActiveEdit(entering)
 
@@ -438,6 +445,8 @@ export function useGridEditing<T>({
 				else draftsRef.current.delete(rowKey)
 			}
 
+			if (enteredRowRef.current === rowKey) enteredRowRef.current = null
+
 			// Two things end a session, and each clears the coord its own way. This
 			// exit is one. The other is a consumer withdrawing the row from under it,
 			// which the derivation above catches: a coord off the set reads as no
@@ -475,13 +484,20 @@ export function useGridEditing<T>({
 
 			if (event.target.closest('[aria-expanded="true"]')) return
 
+			// The press names its row when it came from inside one, which is what picks
+			// the right row while several edit at once. Elsewhere in the grid — the
+			// tab stop after a Tab back, a header control, a cell of a row that is not
+			// editing — it names none, and the session the grid opened is the one to
+			// end. Without that fallback Escape reads as dead everywhere but the
+			// editor, while the draft stays staged with nothing to say so.
 			const rowIndex = event.target.closest('tr[data-row-index]')?.getAttribute('data-row-index')
 
-			if (rowIndex == null) return
+			const rowKey =
+				rowIndex === null || rowIndex === undefined
+					? enteredRowRef.current
+					: rowKeysRef.current[Number(rowIndex)]
 
-			const rowKey = rowKeysRef.current[Number(rowIndex)]
-
-			if (rowKey === undefined || !editableRowsRef.current.has(rowKey)) return
+			if (rowKey == null || !editableRowsRef.current.has(rowKey)) return
 
 			event.preventDefault()
 
