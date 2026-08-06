@@ -123,8 +123,10 @@ function flushRow<T>(args: {
  * event seen from the cell. A consumer's save and a grid-owned exit close a whole
  * row's editors; a cell-scoped session moving on closes exactly one. Reading the
  * open state, rather than diffing against the last render, is what lets the two
- * share a path. It is also why a cell-scoped batch carries one change with no
- * arithmetic saying so: only one of its cells was ever open to close.
+ * share a path. It is also why a cell-scoped batch usually carries one change
+ * with no arithmetic saying so: one cell was open, so one closes. A session that
+ * narrowed an already-open row is the exception, and it needs no special case
+ * either — the editors it closed commit together, per row, like any other.
  *
  * The take stays here rather than inside {@link flushRow}, which walks `columns`
  * instead: a draft staged for a hidden column, or for a row that has since gone,

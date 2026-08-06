@@ -4,7 +4,9 @@ import type { ReactNode } from 'react'
  * A single committed cell write: the new `value` for `columnId` on the row keyed
  * by `rowKey`. Cells commit when their editor closes, batched per row into a
  * single {@link GridEditableConfig.onCommit} call. A saved row therefore emits
- * one per changed cell; a cell-scoped session emits one.
+ * one per changed cell. A cell-scoped session emits one per move, because it
+ * holds one editor open — unless it narrowed a row that was already open, where
+ * the editors it closes emit together.
  */
 export type CellChange = {
 	rowKey: string | number
@@ -101,8 +103,10 @@ export type GridEditableConfig = {
 	 * mounts an editor in every editable cell of the entered row at once. That is
 	 * the shape a form-like "edit this record" grid wants. `'cell'` narrows the
 	 * session to the entered cell alone. Only that cell mounts an editor, and
-	 * moving to another cell commits the one it leaves. Each commit therefore
-	 * carries a single {@link CellChange}, the spreadsheet shape. Escape under
+	 * moving to another cell commits the one it leaves, so a session that opened
+	 * its own row commits one {@link CellChange} at a time — the spreadsheet
+	 * shape. Narrowing a row the consumer had already opened is the exception: the
+	 * editors that close with the narrowing commit together, in one batch. Escape under
 	 * `'cell'` drops the active cell's draft alone, because the cells before it
 	 * already committed. The setting needs a grid-owned session ({@link
 	 * GridEditableConfig.trigger} `'doubleClick'`). Under `'manual'` the consumer
@@ -120,9 +124,12 @@ export type GridEditableConfig = {
 	 * Called when staged cells commit, with one {@link CellChange} per changed cell
 	 * of a row, batched into a single call. Cells commit when their editor closes.
 	 * Saving a row — removing it from the set — closes all of them at once; a
-	 * cell-scoped session closes one as it moves on, so each call carries one
-	 * change. Unchanged and `validate`-failing cells are dropped. Apply each change
-	 * to your own row data and feed it back as `rows`.
+	 * cell-scoped session usually closes one as it moves on. Read the batch rather
+	 * than its first entry: a session narrowing an already-open row closes several
+	 * at once. Three kinds of cell are dropped: unchanged ones, ones whose
+	 * {@link GridColumn.validate} rejects the value, and ones whose column stopped
+	 * being editable while the editor was open. Apply each change to your own row
+	 * data and feed it back as `rows`.
 	 */
 	onCommit: (changes: CellChange[]) => void
 }

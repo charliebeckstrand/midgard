@@ -15,7 +15,7 @@ const sessionColumns: GridColumn<SessionRow>[] = [
 	{ id: 'count', title: 'Count', field: 'count', cell: (row) => String(row.count) },
 ]
 
-/** Every inferred editor mounted in the grid, across both editable columns. */
+/** The text and number editors mounted in the grid; the fixtures mount no other. */
 function editorsIn(container: HTMLElement) {
 	return [
 		...allBySlot(container, 'grid-edit-input'),
@@ -24,9 +24,11 @@ function editorsIn(container: HTMLElement) {
 }
 
 /**
- * Renders a grid whose edit sessions the grid owns, over the spies both
- * grid-owned suites assert on. `editable` takes the scope under test and any
- * per-case binding; `cols` takes the column shape a case needs.
+ * Renders a grid over the spies the grid-owned suites assert on. `editable`
+ * takes the scope under test and any per-case binding, and spreads last, so a
+ * case can hand back the session by passing `trigger: 'manual'`. `cols` takes
+ * the column shape a case needs. `rows` stays uncontrolled unless a case binds
+ * it, so `onRowsChange` here reports the grid's own writes.
  */
 function renderSessionGrid({
 	editable,
@@ -567,7 +569,8 @@ describe("Grid double-click-to-edit (trigger: 'doubleClick')", () => {
  * sink stay the model, so a consumer binding reads the same as under row scope.
  */
 describe("Grid cell-scoped editing (scope: 'cell')", () => {
-	const renderCellGrid = () => renderSessionGrid({ editable: { scope: 'cell' } })
+	const renderCellGrid = (editable: Partial<GridEditableConfig> = {}) =>
+		renderSessionGrid({ editable: { scope: 'cell', ...editable } })
 
 	it('mounts an editor in the entered cell alone, leaving the row it sits in reading', () => {
 		const { container, cell } = renderCellGrid()
@@ -581,7 +584,7 @@ describe("Grid cell-scoped editing (scope: 'cell')", () => {
 		expect(bySlot(container, 'grid-edit-number-input')).toBeNull()
 	})
 
-	it('saves the entered cell as a one-change batch on Enter', async () => {
+	it('saves the entered cell on Enter, leaving its sibling unstaged and uncommitted', async () => {
 		const { container, cell, onCommit, getByRole } = renderCellGrid()
 
 		fireEvent.doubleClick(cell('name'))
@@ -589,6 +592,11 @@ describe("Grid cell-scoped editing (scope: 'cell')", () => {
 		const input = bySlot(container, 'grid-edit-input') as HTMLInputElement
 
 		fireEvent.change(input, { target: { value: 'Alicia' } })
+
+		// The sibling cell has no editor to stage through, which is what makes this
+		// batch one change. Under row scope it would have one, so a `scope` that
+		// went unread could not pass here.
+		expect(bySlot(container, 'grid-edit-number-input')).toBeNull()
 
 		fireEvent.keyDown(input, { key: 'Enter' })
 
@@ -599,6 +607,28 @@ describe("Grid cell-scoped editing (scope: 'cell')", () => {
 		expect(getByRole('grid')).toHaveFocus()
 
 		await expectAnnouncement('1 cell updated')
+	})
+
+	it('commits the editors a narrowing closes together, in one batch', () => {
+		const { container, cell, onCommit } = renderCellGrid({ defaultRows: new Set([1]) })
+
+		// The row opened row-shaped, so both cells staged before any session ran.
+		fireEvent.change(bySlot(container, 'grid-edit-input') as HTMLInputElement, {
+			target: { value: 'Alicia' },
+		})
+
+		fireEvent.change(bySlot(container, 'grid-edit-number-input') as HTMLInputElement, {
+			target: { value: '9' },
+		})
+
+		fireEvent.doubleClick(cell('name'))
+
+		// Narrowing closes the count editor, so its value commits with the batch
+		// rather than one change at a time. The docs promise the batch, not its
+		// first entry.
+		expect(onCommit).toHaveBeenCalledTimes(1)
+
+		expect(onCommit).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'count', value: 9 }])
 	})
 
 	it('commits the cell it leaves when the session moves along the row', () => {
