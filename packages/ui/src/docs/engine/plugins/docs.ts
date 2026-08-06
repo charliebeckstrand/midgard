@@ -509,14 +509,11 @@ export function docsPlugin({
 
 		...virtualJsonModules([
 			{
-				// `generate` runs whole on the first manifest read, because the manifest
-				// names every key. A cold or invalidated cache therefore blocks dev
-				// first paint on a full extraction pass the open page can never read.
-				// The disk cache makes that rare — a warm restore is two orders of
-				// magnitude cheaper. To remove the residual, key the manifest off
-				// `listBarrels` alone and defer extraction to each key read; take that
-				// only once cold-cache starts prove common, as on fresh clones or CI
-				// previews.
+				// A cold or invalidated cache blocks dev first paint on a full
+				// extraction pass the open page can never read. The disk cache makes
+				// that rare, so the fix stays unwritten. To take it, key the manifest
+				// off `listBarrels` alone and defer extraction to each key read. Do
+				// that only once cold-cache starts prove common, as on fresh clones.
 				prefix: 'virtual:api-reference/',
 				manifestId: 'virtual:api-reference-manifest',
 				generate: () => (vitest ? {} : apiExtractor().getAll()),

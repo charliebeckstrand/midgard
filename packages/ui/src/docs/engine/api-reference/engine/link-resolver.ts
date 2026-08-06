@@ -19,12 +19,10 @@ export type LinkIndex = {
  * its symbol, which `resolve` turns into hover detail (signature + summary) on
  * demand.
  *
- * One build serves both lookups. The walk covers every file in the program and
- * measures 13-25 ms warm, against an incremental pass of about 200 ms — time
- * the callers used to pay twice. Measure it directly if you touch it: the
- * pass-level benchmark varies by more than the walk costs. One pass is also the
- * longest a build survives, because refreshing a source file rebuilds the
- * program and an index held across passes then reads stale types.
+ * One build serves both lookups, because the walk covers every file in the
+ * program. `extraction.bench.ts` measures it; measure there rather than through
+ * a pass, which varies by more than the walk costs. `extractionContext` owns
+ * how long a build lives.
  */
 export function createLinkIndex(project: Project): LinkIndex {
 	const checker = project.getTypeChecker().compilerObject
@@ -57,9 +55,8 @@ type IndexedTarget = { symbol: ts.Symbol; file: string }
 function buildIndex(project: Project): Map<string, IndexedTarget> {
 	const index = new Map<string, IndexedTarget>()
 
-	// `file` comes from the loop rather than `node.getSourceFile()`: every
-	// declaration in a file shares it, and re-deriving it per name costs the walk
-	// about 7%.
+	// `file` is loop-invariant across a source file's declarations, so it comes
+	// from the loop rather than a `node.getSourceFile()` call for each name.
 	const add = (name: string | undefined, node: Node, file: string) => {
 		if (!name || !/^[A-Z]/.test(name) || index.has(name)) return
 

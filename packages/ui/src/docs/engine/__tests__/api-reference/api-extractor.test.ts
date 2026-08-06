@@ -261,12 +261,8 @@ describe('createApiExtractor', () => {
 })
 
 describe('buildApi', () => {
-	// `openProject` seeds its Project from the barrel indices, then calls
-	// `resolveSourceFileDependencies` to reach everything they import. Only that
-	// second step puts `primitives`, `hooks`, and `core` into
-	// `project.getSourceFiles()`, which is the list the link index walks. Scope
-	// the project any tighter and every cross-root TSDoc link loses its hover
-	// card silently — the prose keeps the `{@link}`, only the resolved entry goes.
+	// Pins `openProject`'s `resolveSourceFileDependencies` call, which is what
+	// puts a link target outside the seeded roots into the index. See its TSDoc.
 	it('resolves a link to a target outside the seeded roots', () => {
 		const { srcDir } = fixture(FOO_LINKS_OUTSIDE_ROOTS)
 

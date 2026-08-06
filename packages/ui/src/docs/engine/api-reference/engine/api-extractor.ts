@@ -164,11 +164,10 @@ export function createApiExtractor(
 		return project
 	}
 
-	// The checker and link machinery are recreated per extraction pass: refreshing
-	// a source file rebuilds the underlying program, so a cached checker or link
-	// index would read stale types. One `createLinkIndex` call serves both link
-	// consumers — the index walk is a pass's largest fixed cost, and a pass is
-	// the longest either consumer can share one.
+	// The checker and link machinery are recreated per extraction pass: a
+	// refreshed source file rebuilds the underlying program, so a cached checker
+	// or link index reads stale types. One `createLinkIndex` call serves both
+	// link consumers, because the index walk is a pass's largest fixed cost.
 	function extractionContext() {
 		const proj = ensureProject()
 
@@ -379,9 +378,9 @@ export function createApiExtractor(
 			// checker with a full canonical pass so ordering matches the stored record.
 			//
 			// A cache-replayed state carries empty `inputs`, so this costs a
-			// once-per-session stall on the first edit. To remove it, warm
-			// proactively on server idle after a disk-served load; do not relax the
-			// ordering rule, which is what makes a subset pass safe at all.
+			// once-per-session stall on the first edit. Do not relax the ordering
+			// rule to remove it; that rule is what makes a subset pass safe. Warm
+			// proactively instead, from the dev server in `plugins/docs.ts`.
 			fullPass()
 		}
 

@@ -9,18 +9,11 @@ import { DOCUMENTED_ROOTS, openProject } from '../../docs/engine/api-reference/e
 // most of what a cold extraction pays before it reaches a component, so each
 // bench builds a Project a different way and includes checker creation.
 //
-// Read the last row as a ceiling, not as headroom. It is fast because a
-// glob seed plus `skipFileDependencyResolution` leaves `primitives`, `hooks`,
-// and `core` out of `project.getSourceFiles()`, which is the list the link
-// index walks — diffed against `buildApi` output, it loses
-// `Sparkline.animate`'s `ReducedMotion` card. `api-extractor.test.ts` pins the
-// mechanism. The tsconfig row above it keeps those files, because the tsconfig
-// includes `src` itself.
-//
-// Hold dependency resolution fixed and the seed stops mattering: the barrel
-// indices and the wider documented-root globs measure the same, within noise,
-// over alternating cold processes. A variant that shrinks the file set must
-// diff `buildApi` output before anyone adopts it.
+// Read the last row as a ceiling, not as headroom. A glob seed plus
+// `skipFileDependencyResolution` makes it fast by dropping cross-root link
+// targets, which fails a `buildApi` output diff; `openProject` states the rule.
+// The tsconfig row above it keeps those files, because the tsconfig includes
+// `src` itself.
 //
 // Constructions run for seconds; fixed low iteration counts replace time-boxed
 // sampling. Wall clock here carries ±15-30% run to run — compare medians across

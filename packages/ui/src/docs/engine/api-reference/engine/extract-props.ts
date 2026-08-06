@@ -294,11 +294,8 @@ function joinArms(arms: { text: string; fn: boolean }[]): string {
  * of — the arm slices; a narrower arm whose members aren't covered elsewhere is
  * always kept.
  *
- * The comparison here renders each member through `formatType`, and
- * `formatPropTypes` renders the kept arms again through `formatPropType`, so a
- * multi-arm prop formats twice. That is deliberate, not a missed dedupe: the
- * two diverge on a leaf function type, so one shared rendering would change how
- * function-typed arms display. See `formatPropType`.
+ * A multi-arm prop therefore formats twice, deliberately: the two renderings
+ * are not interchangeable. See `formatPropType`.
  */
 function dropMergedArmUnions(
 	types: ts.Type[],
