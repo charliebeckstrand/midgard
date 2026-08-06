@@ -272,7 +272,7 @@ Worth doing, but a consumer notices.
   must change both its import and its JSX. `engine/README.md:13` describes the kit generically, so it
   needs no edit. Saving: 27 lines.
 
-- [ ] **Prune six hook options that no call site passes.** `useA11yRoving.scrollIntoView`,
+- [ ] **Prune five hook options that no call site passes.** `useA11yRoving.scrollIntoView`,
   `useSortableSensors.activationDistance`, and `useKeybindings.event`, `capture`, and `timeout` are each
   declared, documented, defaulted, and threaded through a context object or a dependency array, and no
   caller in `packages` or `apps` passes one. `scrollIntoView` appears only inside `use-a11y-roving.ts`,
@@ -285,8 +285,9 @@ Worth doing, but a consumer notices.
   `RovingKeyContext`, `resolveRovingContext`, the ctx literal and the dependency array, unwrap the guard
   in `moveTo`, replace `activationDistance` with a module constant at `use-sortable-sensors.ts:76`, and
   shrink the keybindings destructure, options literal, and dependency array. Each option is a documented,
-  defaulted field on a barrel-exported hook, so the removal is a public signature change and the matching
-  docs surface index changes with it. Saving: 17 lines.
+  defaulted field on a barrel-exported hook, so the removal is a public signature change. No docs surface
+  index moves with it: `docs/HOOKS.md` carries one row per hook and does not enumerate options, so the
+  change is TSDoc only. Saving: 17 lines.
 
 ## Ruled out
 
@@ -381,6 +382,29 @@ lines once each file pays back a new import, and the second site is not a verbat
 a real dead prop, but the deletion is 3 lines: the four transition edits are one-line-for-one-line. The
 three Stat skeletons rebuilt on `createSkeleton` save 15 lines and keep every file, export, and prop
 type.
+
+## Re-verified against main
+
+Re-checked on 2026-08-06 against `origin/main` at 6cf95b6 (#1058, grid and combobox refinements,
++1,371 / −144 across 32 files), merged into this branch at dbb246e. All 20 findings stand. Line numbers
+in the sections above are from base a238968 and have drifted where #1058 touched a file.
+
+Three corrections came out of the re-check. The hook-option finding names five options, not six, and its
+title is fixed above. That finding moves no docs surface index: `docs/HOOKS.md` carries one row per hook
+and does not enumerate options, so it is a TSDoc-only change. The grid manager dialog finding grew:
+`grid-column-manager-dialog.tsx` is now 83 lines rather than 79, and its call sites moved to
+`grid-data.tsx:1278` and `grid-column-manager.test.tsx:590`.
+
+One new constraint applies to the pdf-viewer toolbar finding. #1058 added an `@remarks` block to
+`tooltip-trigger.tsx` recording that the clone stamps `k.trigger` (`inline-flex`) ahead of the child's
+own `className`, so a child that needs a different display box must restate it. All eight toolbar
+buttons were read in the merged tree and none sets `className`, so the shared button stays a pure
+scaffold and the constraint does not bite.
+
+#1058 itself introduced no new finding. `ComboboxCreateOption` and `GridExportOverlay` are single-purpose
+files whose bodies are 14 and 12 lines under their TSDoc, and the new column filter resolves one
+`matches` predicate in `GridColumnManager` and threads it to `GridGroupManager` as a prop instead of
+writing the machinery twice.
 
 ## Totals
 
