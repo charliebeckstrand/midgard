@@ -40,8 +40,7 @@ The contract is pinned by:
 - `__tests__/boundary/kiso-boundary.test.ts` — kiso never reaches upward into katakana, kata, components, primitives, layouts, hooks, or providers.
 - `__tests__/boundary/katakana-purity-boundary.test.ts` — katakana imports nothing from kiso (neither values nor types).
 - `__tests__/boundary/kata-boundary.test.ts` — `defineRecipe` is invoked only in `recipes/kata/*`, `recipes/katakana/*`, and `layouts/*/variants.ts`.
-- `__tests__/boundary/component-recipe-boundary.test.ts` — components import values only via `recipes/kata/<name>`.
-- `__tests__/boundary/primitive-recipe-boundary.test.ts` — primitives import values only via `recipes/kata/<name>`.
+- `__tests__/boundary/recipe-import-boundary.test.ts` — components, modules, and primitives import values only via `recipes/kata/<name>`.
 
 ---
 

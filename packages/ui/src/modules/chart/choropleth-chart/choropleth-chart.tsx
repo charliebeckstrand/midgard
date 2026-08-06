@@ -1,14 +1,6 @@
 'use client'
 
-import {
-	type ReactElement,
-	type ReactNode,
-	type RefObject,
-	useCallback,
-	useMemo,
-	useRef,
-	useState,
-} from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import { cn } from '../../../core'
 import type { AccessibleName } from '../../../types'
 import { once, toNumericCell } from '../../../utilities'
@@ -21,11 +13,10 @@ import {
 	type MapProjection,
 } from '../../map'
 import type { ChartContextMenuConfig, ChartContextMenuTarget } from '../engine/chart-context-menu'
-import { ChartContextMenu } from '../engine/chart-context-menu'
+import { ChartMenuFrame } from '../engine/chart-context-menu'
 import type { ChartRangeLegendConfig } from '../engine/chart-legend/range'
 import { formatChartValue, READOUT_GAP } from '../engine/chart-series'
-import { useChartFullscreen } from '../engine/context'
-import type { ChartReadout, ChartReadoutSource, DataKey } from '../engine/types'
+import type { ChartReadout, DataKey } from '../engine/types'
 
 /**
  * The one series a choropleth shades regions with: the id and value fields to
@@ -270,7 +261,7 @@ export function ChoroplethChart<T = never>(props: ChoroplethChartProps<T>) {
 	} as Parameters<typeof MapPlat<T>>[0]
 
 	return (
-		<ChoroplethContextFrame
+		<ChartMenuFrame
 			contextMenu={contextMenu}
 			rootRef={rootRef}
 			readout={readout}
@@ -289,52 +280,6 @@ export function ChoroplethChart<T = never>(props: ChoroplethChartProps<T>) {
 			>
 				<MapPlat<T> {...mapProps} onRegionContextMenu={onRegionContextMenu} />
 			</div>
-		</ChoroplethContextFrame>
-	)
-}
-
-/** Props for {@link ChoroplethContextFrame}. @internal */
-type ChoroplethContextFrameProps = {
-	contextMenu: ChartContextMenuConfig | false | undefined
-	rootRef: RefObject<HTMLDivElement | null>
-	readout: ChartReadoutSource | null
-	/** The right-clicked region, snapshotted before the menu opens (see {@link ChartContextMenuProps.target}). */
-	target?: ChartContextMenuTarget
-	title?: string
-	/** A fresh copy of the choropleth for the menu's fullscreen re-mount. */
-	self: ReactElement
-	children: ReactNode
-}
-
-/**
- * Wraps a choropleth's root in its {@link ChartContextMenu} — or returns it bare
- * when the choropleth is itself the menu's re-mounted fullscreen copy, so the
- * enlarged map never nests a second menu. The heatmap's frame, keyed to the map;
- * split from {@link ChoroplethChart} so that fullscreen gate stays off its render.
- *
- * @internal
- */
-function ChoroplethContextFrame({
-	contextMenu,
-	rootRef,
-	readout,
-	target,
-	title,
-	self,
-	children,
-}: ChoroplethContextFrameProps) {
-	if (useChartFullscreen()) return <>{children}</>
-
-	return (
-		<ChartContextMenu
-			contextMenu={contextMenu}
-			rootRef={rootRef}
-			readout={readout}
-			target={target}
-			title={title}
-			fullscreen={self}
-		>
-			{children}
-		</ChartContextMenu>
+		</ChartMenuFrame>
 	)
 }

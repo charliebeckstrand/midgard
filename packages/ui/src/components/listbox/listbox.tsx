@@ -11,7 +11,7 @@ import {
 	useMemo,
 	useRef,
 } from 'react'
-import { useAriaIds, useFloatingUI, useSelectableValueChange } from '../../hooks'
+import { useFloatingUI, useSelectableValueChange } from '../../hooks'
 import { useControlSize } from '../../primitives/density'
 import { SelectTrigger } from '../../primitives/select-trigger'
 import {
@@ -22,6 +22,7 @@ import {
 import { useGlass } from '../../providers/glass/context'
 import { Button } from '../button'
 import { type ControlSize, useControl } from '../control/context'
+import { useControlProps } from '../control/use-control-props'
 import { useFormValue } from '../form/use-form-value'
 import { Icon } from '../icon'
 import { ListboxContext } from './context'
@@ -111,27 +112,6 @@ export type ListboxProps<T> = ListboxBaseProps & {
 	displayValue?: (value: T) => string
 } & (ListboxSingleProps<T> | ListboxMultipleProps<T>)
 
-/** Resolves field-level state from explicit props, falling back to an enclosing `<Control>`. @internal */
-function resolveControlState(
-	control:
-		| { id?: string; disabled?: boolean; readOnly?: boolean; required?: boolean }
-		| null
-		| undefined,
-	overrides: { id?: string; disabled?: boolean; readOnly?: boolean; required?: boolean },
-): {
-	id: string | undefined
-	disabled: boolean | undefined
-	readOnly: boolean | undefined
-	required: boolean | undefined
-} {
-	return {
-		id: overrides.id ?? control?.id,
-		disabled: overrides.disabled ?? control?.disabled,
-		readOnly: overrides.readOnly ?? control?.readOnly,
-		required: overrides.required ?? control?.required,
-	}
-}
-
 /** True when the listbox holds a selection: a non-empty array in `multiple` mode, else a defined scalar. @internal */
 function hasListboxValue<T>(value: T | T[] | undefined, multiple: boolean): boolean {
 	return multiple
@@ -183,16 +163,24 @@ export function Listbox<T>({
 	const control = useControl()
 	const token = useControlSize(size)
 
+	// The shared control cascade: explicit props win, then the enclosing
+	// `<Control>`. It also merges the consumer `aria-describedby` with the field's
+	// registered ids and resolves `invalid` off the ambient severity, matching
+	// Input/Textarea/Slider.
 	const {
 		id: resolvedId,
 		disabled: resolvedDisabled,
 		readOnly: resolvedReadOnly,
 		required: resolvedRequired,
-	} = resolveControlState(control, { id, disabled, readOnly, required })
-
-	// Merges a consumer aria-describedby with the field's registered ids,
-	// matching Input/Textarea/Checkbox.
-	const describedBy = useAriaIds(ariaDescribedBy, control?.describedBy)
+		invalid: resolvedInvalid,
+		'aria-describedby': describedBy,
+	} = useControlProps({
+		id,
+		disabled,
+		readOnly,
+		required,
+		'aria-describedby': ariaDescribedBy,
+	})
 
 	const resolvedSize = token.size
 
@@ -371,7 +359,7 @@ export function Listbox<T>({
 						disabled={resolvedDisabled}
 						readOnly={resolvedReadOnly}
 						required={resolvedRequired}
-						invalid={control?.severity === 'error' || undefined}
+						invalid={resolvedInvalid}
 						label={label}
 						onBlur={handleTriggerBlur}
 						placeholder={placeholder}

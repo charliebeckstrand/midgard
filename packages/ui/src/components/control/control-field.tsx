@@ -1,9 +1,9 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import { type ReactNode, useMemo } from 'react'
+import { useA11yControl } from '../../hooks'
 import { useIdScope } from '../../hooks/use-id-scope'
-import { ControlContext } from './context'
-import { useControlFieldContext } from './use-control-field-context'
+import { ControlContext, type ControlContextValue, useControl } from './context'
 
 /** Props for {@link ControlField}: the optional `htmlFor` id pin plus the wrapped control. @internal */
 export type ControlFieldProps = {
@@ -19,12 +19,33 @@ export type ControlFieldProps = {
  * auto-wire without the consumer setting `id` / `htmlFor`. This owns only the
  * id + context wiring; each field renders its own slot element as the child.
  *
+ * The broadcast value inherits the parent control cascade and spreads the
+ * `useA11yControl` bundle (label / description / error slots) off the field id.
+ * The shape is identical across all three field types.
+ *
  * @internal Not on the barrel — used by the field wrappers, not consumers.
  */
 export function ControlField({ htmlFor, children }: ControlFieldProps) {
 	const scope = useIdScope({ id: htmlFor })
 
-	const value = useControlFieldContext(scope.id)
+	const parent = useControl()
+
+	const a11y = useA11yControl(scope.id)
+
+	const value = useMemo<ControlContextValue>(
+		() => ({
+			id: scope.id,
+			autoComplete: parent?.autoComplete,
+			disabled: parent?.disabled,
+			readOnly: parent?.readOnly,
+			required: parent?.required,
+			severity: parent?.severity,
+			size: parent?.size,
+			variant: parent?.variant,
+			...a11y,
+		}),
+		[scope.id, parent, a11y],
+	)
 
 	return <ControlContext value={value}>{children}</ControlContext>
 }
