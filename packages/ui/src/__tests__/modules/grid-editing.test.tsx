@@ -780,6 +780,52 @@ describe("Grid cell-scoped editing (scope: 'cell')", () => {
 		expect(editorsIn(view.container)).toHaveLength(2)
 	})
 
+	it('hands back a row it borrowed, and closes one it acquired', () => {
+		function Harness({ open }: { open: number[] }) {
+			const [editing, setEditing] = useState<Set<string | number>>(new Set(open))
+
+			return (
+				<Grid
+					columns={sessionColumns}
+					rows={sessionRows}
+					getKey={(row) => row.id}
+					editable={{
+						trigger: 'doubleClick',
+						scope: 'cell',
+						rows: editing,
+						onRowsChange: setEditing,
+						onCommit: vi.fn(),
+					}}
+				/>
+			)
+		}
+
+		// Row 1 was the consumer's before any session touched it. Narrowing borrows
+		// it; moving to row 2 gives it back row-shaped rather than closing it.
+		const borrowed = renderUI(<Harness open={[1]} />)
+
+		const borrowedCells = borrowed.container.querySelectorAll('td[data-grid-col="name"]')
+
+		fireEvent.doubleClick(borrowedCells[0] as HTMLElement)
+
+		fireEvent.doubleClick(borrowedCells[1] as HTMLElement)
+
+		expect(allBySlot(borrowed.container, 'grid-edit-input')).toHaveLength(2)
+
+		borrowed.unmount()
+
+		// A row the session put in the set itself is the session's to close.
+		const acquired = renderUI(<Harness open={[]} />)
+
+		const acquiredCells = acquired.container.querySelectorAll('td[data-grid-col="name"]')
+
+		fireEvent.doubleClick(acquiredCells[0] as HTMLElement)
+
+		fireEvent.doubleClick(acquiredCells[1] as HTMLElement)
+
+		expect(allBySlot(acquired.container, 'grid-edit-input')).toHaveLength(1)
+	})
+
 	it('does not revive a session the consumer ended from under it', () => {
 		function Harness() {
 			const [editing, setEditing] = useState<Set<string | number>>(new Set())

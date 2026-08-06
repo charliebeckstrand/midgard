@@ -323,7 +323,9 @@ export function useGridEditing<T>({
 	// The cell whose editor takes focus once it mounts, set by `enterEdit`. The
 	// effect below resolves it after the render that mounts the editor, which a
 	// controlled binding can delay by a consumer round-trip.
-	const pendingFocusRef = useRef<GridActiveEdit | null>(null)
+	const pendingFocusRef = useRef<{ rowKey: string | number; columnId: string | number } | null>(
+		null,
+	)
 
 	const enterEdit = useCallback(
 		(rowKey: string | number, columnId: string | number) => {
@@ -332,8 +334,10 @@ export function useGridEditing<T>({
 			const editableRows = editableRowsRef.current
 
 			// A cell-scoped session names one cell and holds one row; row scope names
-			// no cell and leaves the rows the consumer put in the set alone.
-			const entering = cellScoped ? { rowKey, columnId } : null
+			// no cell and leaves the rows the consumer put in the set alone. A row
+			// already in the set was the consumer's, so the session borrows it and
+			// gives it back on the way out.
+			const entering = cellScoped ? { rowKey, columnId, acquired: !editableRows.has(rowKey) } : null
 
 			// Entering changes nothing when the session already sits where it points:
 			// this cell under cell scope, this row under row scope, where the whole
@@ -347,11 +351,15 @@ export function useGridEditing<T>({
 
 			setActiveEdit(entering)
 
-			const leaving = entering && active && active.rowKey !== rowKey ? active.rowKey : null
+			// Only a row the session acquired leaves the set with it. One it borrowed
+			// stays, and drops back to the row-shaped state the consumer asked for.
+			const leaving =
+				entering && active && active.rowKey !== rowKey && active.acquired ? active.rowKey : null
 
-			// The set is unchanged when the session moves along one row. Writing it
-			// anyway would announce a transition that never happened, because the
-			// controllable emits `onRowsChange` on every write, equal or not.
+			// The set is unchanged when the session moves along one row, or moves off a
+			// borrowed row onto one already in the set. Writing it anyway would
+			// announce a transition that never happened, because the controllable
+			// emits `onRowsChange` on every write, equal or not.
 			if (leaving === null && editableRows.has(rowKey)) return
 
 			setEditableRows((prev) => {
