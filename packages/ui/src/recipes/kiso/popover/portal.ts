@@ -1,8 +1,11 @@
 /**
- * Popover archetype: portal container. Z-stacked above page chrome;
- * floating panels render over headers and sidebars.
+ * Popover archetype: portal container. Rides the `float` rung, which clears
+ * every overlay rung as well as page chrome — a float is routinely raised
+ * from inside a modal panel, and must render over it.
  *
  * Layer: kiso · Archetype: popover · Concern: portal
  */
 
-export const portal = 'z-100'
+import { sou } from '../sou'
+
+export const portal = sou.float

@@ -15,12 +15,13 @@ import { useDismissable } from '../../hooks/use-dismissable'
 import { useEnterAnimation } from '../../hooks/use-enter-animation'
 import { useScrollLock } from '../../hooks/use-scroll-lock'
 import { k } from '../../recipes/kata/overlay'
+import { chromeRegions } from '../chrome'
 import { PresencePortal } from '../portal'
 import { notifyOverlaySignal } from './overlay-signal'
 
 /**
  * Props for {@link Overlay}: the `open` / `onOpenChange` pair, the `modal` and
- * `backdrop` behavior flags, and the optional portal `container` and
+ * `backdrop` behavior flags, and the optional portal `container`,
  * `initialFocus` target.
  */
 export type OverlayProps = {
@@ -94,8 +95,9 @@ export type OverlayProps = {
  * `document.body`. A `container` scopes the overlay to that element
  * (`absolute`, no scroll lock); for transient pointer-driven surfaces
  * `modal={false}` drops focus management, scroll lock, and the backdrop (unless
- * `backdrop` is set). Fires the overlay signal on open so non-modal floats
- * (tooltips) dismiss.
+ * `backdrop` is set). Any `PersistentChrome` region stays reachable through the
+ * trap without modality being given up. Fires the overlay signal on open so
+ * non-modal floats (tooltips) dismiss.
  */
 export function Overlay({
 	open,
@@ -146,7 +148,7 @@ export function Overlay({
 				containerRef.current = node
 			}}
 			data-slot="overlay"
-			className={cn('inset-0 z-99', scoped ? 'absolute' : 'fixed', !modal && 'pointer-events-none')}
+			className={cn(k.root, scoped ? 'absolute' : 'fixed', !modal && 'pointer-events-none')}
 			{...props}
 		>
 			{backdrop && (
@@ -195,8 +197,29 @@ function OverlayFocus({
 }) {
 	if (!modal) return children
 
+	// Two halves enforce the trap, and a registered region has to relax both. The
+	// focus guards bounce a Tab that reaches the panel's edge back inside, so
+	// `guards={false}` retires them, and `outsideElementsInert` then marks sealed
+	// content `inert` rather than `aria-hidden` — which is what holds the tab order
+	// off the sealed page once no guard is left to do it. `getInsideElements` hands
+	// the registered regions through as part of the surface, exempting them.
+	//
+	// Read at render rather than hoisted: with nothing registered the trap stays
+	// strict, which is the whole behaviour on a page that declares no chrome.
+	const chrome = chromeRegions()
+
+	// `guards={false}` alone already forces the `inert` marking in 0.27, so this
+	// states the intent through the prop that documents it rather than resting on
+	// the other one's side effect, which no version promises to keep.
 	return (
-		<FloatingFocusManager context={context} modal initialFocus={initialFocus ?? undefined}>
+		<FloatingFocusManager
+			context={context}
+			modal
+			initialFocus={initialFocus ?? undefined}
+			guards={chrome.length === 0}
+			outsideElementsInert={chrome.length > 0}
+			getInsideElements={chromeRegions}
+		>
 			{children}
 		</FloatingFocusManager>
 	)

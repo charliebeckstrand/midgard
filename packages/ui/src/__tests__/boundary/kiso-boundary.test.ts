@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { collectPatternViolations, srcDir } from '../helpers/walk-source'
 
 // kiso/ holds the design-system tokens: both the primitive atomic concerns
-// (iro, ji, ma, sun, sen, omote, hannou, narabi, kasane, tsunagi, ugoki,
+// (iro, ji, ma, sou, sun, sen, omote, hannou, narabi, kasane, tsunagi, ugoki,
 // shaku, kokkaku) and the semantic archetype bundles (control, popover,
 // segment, panel, slider) composed from them. kiso sits at the bottom of the
 // recipe stack: kiso modules may compose siblings within kiso, but importing

@@ -123,7 +123,7 @@ export function SidebarLayout({
 				createPortal(
 					<div
 						aria-hidden
-						className="fixed top-0 bottom-0 left-80 w-10 z-100 max-lg:hidden"
+						className={k.floatingBuffer()}
 						onPointerEnter={() => setFloatingOpen(true)}
 						onPointerLeave={() => setFloatingOpen(false)}
 					/>,

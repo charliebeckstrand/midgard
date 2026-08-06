@@ -1,5 +1,5 @@
 import { defineRecipe } from '../../core/recipe'
-import { omote, sen } from '../../recipes/kiso'
+import { omote, sen, sou } from '../../recipes/kiso'
 
 const { focus } = sen
 
@@ -32,6 +32,13 @@ const panel = defineRecipe({
 
 const floatingHotZone = defineRecipe({
 	base: ['absolute inset-y-0 left-0 z-30 w-2 max-lg:hidden'],
+})
+
+// Portalled to the body, so it escapes the layout's stacking context and needs a
+// ladder rung rather than a local `z-30` like the hot zone above. It is the
+// sidebar's own furniture, which is the `chrome` rung's other inhabitant.
+const floatingBuffer = defineRecipe({
+	base: [sou.chrome, 'fixed top-0 bottom-0 left-80 w-10 max-lg:hidden'],
 })
 
 const contentWrapper = defineRecipe({
@@ -90,6 +97,7 @@ export const k = {
 	layout,
 	panel,
 	floatingHotZone,
+	floatingBuffer,
 	contentWrapper,
 	content,
 	header,

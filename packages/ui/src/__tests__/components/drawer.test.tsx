@@ -123,6 +123,60 @@ describe('Drawer enter animation', () => {
 	})
 })
 
+/*
+ * `onOpenComplete` says the panel is up, not that an animation ran — so the arrival that
+ * plays no slide has to report too, and that is the arrival these cases hold: the motion
+ * mock models animations as instant but deliberately does not fire a mount's, the way the
+ * library behaves under `initial={false}`.
+ *
+ * The slide's own landing rides on `onAnimationComplete`, and no suite exercises it. The
+ * mock is global in jsdom and both browser instances keep it, so no real animation ever
+ * resolves anywhere in the library's coverage.
+ */
+describe('Drawer onOpenComplete', () => {
+	const drawer = (props: {
+		open: boolean
+		animateOnMount?: boolean
+		onOpenComplete: () => void
+	}) => (
+		<Drawer {...props} onOpenChange={() => {}} aria-label="Resolve">
+			content
+		</Drawer>
+	)
+
+	it('reports a panel that arrives already in place, once per arrival not once per render', () => {
+		const onOpenComplete = vi.fn()
+
+		const { rerender } = renderUI(drawer({ open: true, animateOnMount: false, onOpenComplete }))
+
+		expect(onOpenComplete).toHaveBeenCalledOnce()
+
+		rerender(drawer({ open: true, animateOnMount: false, onOpenComplete }))
+
+		expect(onOpenComplete).toHaveBeenCalledOnce()
+	})
+
+	it('says nothing while the drawer is closed', () => {
+		const onOpenComplete = vi.fn()
+
+		renderUI(drawer({ open: false, animateOnMount: false, onOpenComplete }))
+
+		expect(onOpenComplete).not.toHaveBeenCalled()
+	})
+
+	it('says nothing on the way out', () => {
+		const onOpenComplete = vi.fn()
+
+		const { rerender } = renderUI(drawer({ open: true, animateOnMount: false, onOpenComplete }))
+
+		rerender(drawer({ open: false, animateOnMount: false, onOpenComplete }))
+
+		// Leaving is not arriving. A reopen reports again — but it slides to get there, and
+		// that landing is uncovered (see this block's note).
+		expect(onOpenComplete).toHaveBeenCalledOnce()
+	})
+})
+
 describe('DrawerTrigger', () => {
 	it('invokes the provided onClick when the child is clicked', () => {
 		const onClick = vi.fn()
