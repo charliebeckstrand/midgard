@@ -29,6 +29,7 @@ export type {
 	MapGeography,
 	MapLegendPlacement,
 	MapNamedProjection,
+	MapOverlaySelection,
 	MapProjection,
 	MapTopology,
 } from './types'

@@ -250,17 +250,40 @@ function roundSummary(count: number, span: number): string {
 	return `${count} stops · ${miles(span)} across`
 }
 
+/** The picked stop, named for the line of text beside the map; empty where none is picked. */
+function stopLabel(stops: { label: string }[], picked: number | null): string {
+	const held = picked === null ? undefined : stops[picked]
+
+	return held === undefined ? '' : `, ${held.label} picked`
+}
+
 /**
- * Clustering and a state pick, together. Zoomed out to the nation the rounds
- * bunch past telling apart, so `MapPoints` draws each bunch as one summary
- * graded by how many stops it holds; picking a state hands the plat that state's
- * own geometry, which refits the projection to it — the fit the plat runs on
- * every geography, no zoom layer — and the stops that fitted frame has room for
- * separate into themselves. Clustering stays on at either scale, because which
- * marks would cover one another is a question only the drawn frame answers.
+ * Clustering, a state pick, and a picked stop, together. Zoomed out to the
+ * nation the rounds bunch past telling apart, so `MapPoints` draws each bunch as
+ * one summary graded by how many stops it holds; picking a state hands the plat
+ * that state's own geometry, which refits the projection to it — the fit the
+ * plat runs on every geography, no zoom layer — and the stops that fitted frame
+ * has room for separate into themselves. Clustering stays on at either scale,
+ * because which marks would cover one another is a question only the drawn frame
+ * answers.
+ *
+ * Inside a state a click picks the stop instead of drilling further, and
+ * `selectedOverlay` haloes it: the pick the click reports is the pick the map
+ * draws, so the line of text, the halo, and the table can never disagree about
+ * which stop is held.
  */
 function DeliveryRounds({ geography }: { geography: MapFeatureCollection | null }) {
 	const [picked, setPicked] = useState<string | null>(null)
+
+	// The picked stop, by its index in the drawn set. Cleared with the state below,
+	// since the set it counts in is the one that state holds.
+	const [stop, setStop] = useState<number | null>(null)
+
+	const pickState = (state: string | null) => {
+		setPicked(state)
+
+		setStop(null)
+	}
 
 	// Held across renders: an empty fallback rebuilt each render would re-measure
 	// every state's box on every pick.
@@ -304,7 +327,7 @@ function DeliveryRounds({ geography }: { geography: MapFeatureCollection | null 
 					aria-label="State"
 					placeholder="Every round"
 					value={picked}
-					onValueChange={setPicked}
+					onValueChange={pickState}
 					displayValue={(state: string) => state}
 					clearable
 				>
@@ -319,7 +342,7 @@ function DeliveryRounds({ geography }: { geography: MapFeatureCollection | null 
 			<Text>
 				{picked === null
 					? 'Every round, summarised wherever the stops bunch. Pick a state, or click a summary.'
-					: `${picked} — ${stops.length} stops.`}
+					: `${picked} — ${stops.length} stops${stopLabel(stops, stop)}.`}
 			</Text>
 
 			<MapPlat
@@ -328,16 +351,26 @@ function DeliveryRounds({ geography }: { geography: MapFeatureCollection | null 
 				projection="albers-usa"
 				animate
 				legend="right"
+				// The pick the click below reports, handed straight back: the halo, the
+				// readout above, and the table all read the one state.
+				selectedOverlay={stop === null ? null : { id: 'round', index: stop }}
 			>
 				<MapPoints
+					id="round"
 					label="Stops"
 					points={stops}
 					detail={`${stops.length} stops`}
 					clusterDetail={roundSummary}
-					// The index names a row of `deliveryStops` only while every stop is
-					// drawn; the state view draws a filtered set, and has nothing left to
-					// drill into anyway.
-					onClick={picked === null ? (_, index) => setPicked(holders[index] ?? null) : undefined}
+					// One click, two readings of it, by how far out the map sits: across
+					// the nation it drills into the state under the summary, and inside a
+					// state — where the stops stand apart — it picks the stop itself.
+					// Picking the picked one clears it, so a pointer user has a way back
+					// out.
+					onClick={
+						picked === null
+							? (_, index) => pickState(holders[index] ?? null)
+							: (_, index) => setStop((prev) => (prev === index ? null : index))
+					}
 				/>
 			</MapPlat>
 		</Stack>

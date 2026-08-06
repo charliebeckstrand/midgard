@@ -40,6 +40,20 @@ export type MapPointCluster = {
 	at: MapPoint2D | null
 }
 
+/**
+ * Which group holds one of the caller's dots, by the index the mark reports —
+ * the resolution a pick needs, since a click names a point the caller passed
+ * while the mark draws the groups those points merged into. `null` where no
+ * group holds it: an index past the points, or one dropped while its pick stood.
+ *
+ * @internal
+ */
+export function groupOfMember(groups: readonly MapPointCluster[], member: number): number | null {
+	const index = groups.findIndex((group) => group.members.includes(member))
+
+	return index === -1 ? null : index
+}
+
 /** A group under construction: where the broad phase measures from, and the running sum of its members. @internal */
 type MapClusterSeed = {
 	members: number[]

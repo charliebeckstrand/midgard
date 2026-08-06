@@ -54,6 +54,7 @@ import { MapLegend, type MapLegendItem } from './map-legend'
 import { mapFrameSizing, measuredMapFit, projectionFallbackAspect } from './map-projection'
 import { MapRangeLegend, type MapRangeLegendProps } from './map-range-legend'
 import { MapRegions } from './map-regions'
+import { type MapMarkSelection, selectedMarkRow } from './map-selection'
 import { MapTable } from './map-table'
 import { MapTooltip, type MapTooltipEntry } from './map-tooltip'
 import { type RegionValueJoin, regionValueJoin, resolveValueBins } from './map-value-scale'
@@ -65,6 +66,7 @@ import type {
 	MapFeature,
 	MapGeography,
 	MapLegendPlacement,
+	MapOverlaySelection,
 	MapProjection,
 } from './types'
 import { type MapKeyboardOptions, useMapKeyboard } from './use-map-keyboard'
@@ -300,6 +302,29 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 * selects nothing.
 		 */
 		selectedRegion?: string | null
+		/**
+		 * The selected overlay mark, in the pair its reporters hand back — a
+		 * {@link MapRoute}, {@link MapPoint}, or {@link MapMarker} `id`, or a
+		 * {@link MapPoints} `id` with the dot's index. `selectedRegion` for the marks
+		 * drawn over the geography, on the same terms: the map paints the pick and
+		 * holds no selection state of its own, so whatever owns the value stays the
+		 * single source of truth.
+		 *
+		 * The picked mark takes a foreground-ink halo behind it, outside the hover
+		 * recede, so a pick made before the pointer arrived is still marked while the
+		 * pointer isolates elsewhere. Behind rather than over: the mark's own colour
+		 * reads through, as a ringed region keeps its fill. The stop's row in the
+		 * data table reads as the current one, so the selection is in the accessible
+		 * readout and not the pixels alone.
+		 *
+		 * The index counts in the points a `MapPoints` was given, never in the dots
+		 * it draws, so a pick that merged into a summary haloes that summary and
+		 * separates onto its own dot as the frame widens around it. Omitting the
+		 * index names the mark's first stop, which is the whole of a singular mark;
+		 * an id no mark registered, or an index the named mark has no stop for,
+		 * haloes nothing. `null` (or omitting the prop) selects nothing.
+		 */
+		selectedOverlay?: MapOverlaySelection | null
 		/**
 		 * Controlled legend emphasis: the legend id whose marks hold while every
 		 * other group dims — what hovering a legend entry sets on its own.
@@ -1113,12 +1138,35 @@ function bridgeRegionIdentity(
 }
 
 /**
+ * The overlay pick, normalised to the `{ id, stop }` shape every mark reads: the
+ * caller's optional index becomes the mark's first stop, so no reader downstream
+ * tests for an absent ordinal.
+ *
+ * Held on its primitives rather than on the prop's identity, because a consumer
+ * writing the pair inline hands a fresh object every render — and this value
+ * rides the plat context, so its identity churning would re-render every mark on
+ * the map for a pick that never moved.
+ *
+ * @internal
+ */
+function useMarkSelection(
+	selection: MapOverlaySelection | null | undefined,
+): MapMarkSelection | null {
+	const id = selection?.id ?? null
+
+	const stop = selection?.index ?? 0
+
+	return useMemo(() => (id === null ? null : { id, stop }), [id, stop])
+}
+
+/**
  * An SVG geography map on the chart module's interaction grammar: regions
  * coloured by category from typed rows, one merged legend where pointing an
  * entry dims everything outside its group and clicking toggles it off,
  * pointing a region or overlay on the map isolating it behind the same
- * recede, a pointer-anchored Tooltip readout, a ring on the region the
- * consumer holds selected, and a visually-hidden data table.
+ * recede, a pointer-anchored Tooltip readout, a ring on the region and a halo
+ * on the overlay mark the consumer holds selected, and a visually-hidden data
+ * table.
  * Geometry is prop-supplied TopoJSON / GeoJSON; {@link MapRoute},
  * {@link MapPoint}, and {@link MapMarker} children draw over the geography
  * and register their own legend entries.
@@ -1155,6 +1203,7 @@ export function MapPlat<T = never>({
 	onRegionClick,
 	onRegionContextMenu,
 	selectedRegion,
+	selectedOverlay,
 	emphasis: controlledEmphasis,
 	className,
 	children,
@@ -1242,6 +1291,8 @@ export function MapPlat<T = never>({
 
 	const selected = selectedIndex === -1 ? null : selectedIndex
 
+	const markSelection = useMarkSelection(selectedOverlay)
+
 	// Registration ordinal per entry, so a staggered reveal can key off it.
 	const order = useMemo<ReadonlyMap<string, number>>(
 		() => new Map(entries.map((entry, index) => [entry.id, index])),
@@ -1283,8 +1334,17 @@ export function MapPlat<T = never>({
 	)
 
 	const plat = useMemo<MapPlatContextValue>(
-		() => ({ project: shape.project, register, colors, order, hidden, emphasis, animate }),
-		[shape.project, register, colors, order, hidden, emphasis, animate],
+		() => ({
+			project: shape.project,
+			register,
+			colors,
+			order,
+			hidden,
+			emphasis,
+			animate,
+			selected: markSelection,
+		}),
+		[shape.project, register, colors, order, hidden, emphasis, animate, markSelection],
 	)
 
 	const tooltipEntries = useMemo(
@@ -1460,6 +1520,10 @@ export function MapPlat<T = never>({
 					categories={categoryMetas}
 					entries={entries}
 					selected={selected}
+					// Resolved here rather than in the table: the mapping from a reported
+					// index to a drawn stop lives on the mark's own registration, which is
+					// the ledger this side of the memo holds.
+					selectedMark={selectedMarkRow(entries, markSelection)}
 				/>
 			) : null,
 		[
@@ -1474,6 +1538,7 @@ export function MapPlat<T = never>({
 			categoryMetas,
 			entries,
 			selected,
+			markSelection,
 		],
 	)
 

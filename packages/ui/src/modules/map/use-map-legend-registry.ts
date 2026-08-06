@@ -69,6 +69,18 @@ export type MapOverlayEntry = {
 	 * question the plat's tab-stop gate asks.
 	 */
 	activate?: (stop: number) => void
+	/**
+	 * Which drawn stop holds an index the mark reported — the two part on a
+	 * {@link MapPoints}, whose clicks name a dot in the caller's own points while
+	 * its stops are the drawn groups those dots merged into. `null` where the mark
+	 * has no stop for that index.
+	 *
+	 * Absent on a mark that reports the stops it draws, whose index is its stop.
+	 * Stable like {@link stopsAt}, so a regrouping never re-registers; the plat
+	 * reads it to mark the picked stop's table row, and the mark itself resolves
+	 * off the live grouping it holds.
+	 */
+	stopOf?: (index: number) => number | null
 }
 
 /**

@@ -53,15 +53,26 @@ export type MapMarkRow = MapMarkReadout & {
 }
 
 /**
+ * One stop's row key: the mark and the stop ordinal, which is the dot's identity
+ * everywhere else in the module. The one place the pair is spelled, so the rows
+ * the table draws and the row a selection marks are keyed the same way.
+ *
+ * @internal
+ */
+export function markRowKey(id: string, stop: number): string {
+	return `${id}:${stop}`
+}
+
+/**
  * Every row a mark contributes to the data table: one for a singular mark, one
  * per dot for a plural one, so a reader gets the per-dot readout the pointer
  * gets from the tooltip.
  *
  * A mark with no detail anywhere falls back to its kind — `route`, `point` — so
- * the value column is never empty. Each row carries its own key, built from the
- * mark and the stop ordinal, which is the dot's identity everywhere else in the
- * module: the caller then needs no index of its own to key by. The tooltip needs
- * no key, so only this half of the pair asks for the mark's id.
+ * the value column is never empty. Each row carries its own {@link markRowKey}:
+ * the caller then needs no index of its own to key by, and a selection names the
+ * row it marks by the same key. The tooltip needs no key, so only this half of
+ * the pair asks for the mark's id.
  *
  * @internal
  */
@@ -71,6 +82,10 @@ export function markRows(mark: MapReadableMark & { id: string }): MapMarkRow[] {
 	return Array.from({ length: Math.max(count, 1) }, (_, stop) => {
 		const readout = markReadout(mark, stop)
 
-		return { key: `${mark.id}:${stop}`, name: readout.name, detail: readout.detail ?? mark.kind }
+		return {
+			key: markRowKey(mark.id, stop),
+			name: readout.name,
+			detail: readout.detail ?? mark.kind,
+		}
 	})
 }

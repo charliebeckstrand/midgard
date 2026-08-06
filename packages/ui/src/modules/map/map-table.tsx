@@ -21,20 +21,27 @@ export type MapTableProps = {
 	entries: MapOverlayEntry[]
 	/** The selected region's feature index, `null` when nothing is picked. */
 	selected: number | null
+	/**
+	 * The selected overlay stop's row key, `null` when no mark is picked — the key
+	 * {@link markRows} builds, resolved by {@link selectedMarkRow} so the row that
+	 * reads as current is the one the halo sits on.
+	 */
+	selectedMark: string | null
 }
 
 /** Props for {@link MapTableRow}: one row's resolved text, and whether it is the picked one. @internal */
 type MapTableRowProps = {
 	name: string | undefined
 	value: string
-	/** Whether this row is the selected region's — it reads as the current one. */
+	/** Whether this row carries the pick — a region's or a mark's; it reads as the current one. */
 	current: boolean
 }
 
 /**
- * One readout row. Memoised on its resolved primitives, the treatment the
- * region paths take: a selection moves `current` on two rows, so a pick
- * reconciles those two instead of re-creating every cell on a county atlas.
+ * One readout row, a region's or an overlay stop's. Memoised on its resolved
+ * primitives, the treatment the region paths take: a selection moves `current`
+ * on two rows, so a pick reconciles those two instead of re-creating every cell
+ * on a county atlas.
  *
  * @internal
  */
@@ -56,8 +63,9 @@ const MapTableRow = memo(function MapTableRow({ name, value, current }: MapTable
  * The map's visually-hidden data table: every region with its category, and
  * every overlay with its detail, in plain markup outside the `role="img"`
  * region. Assistive tech gets full value parity without the pointer, so the
- * tooltip stays an enhancement — and the selected region's row carries
- * `aria-current`, so a pick shows in the readout and not in the ring alone.
+ * tooltip stays an enhancement — and the picked row carries `aria-current`,
+ * whether a region or an overlay stop holds the pick, so a selection shows in
+ * the readout and not in the ring or the halo alone.
  *
  * Memoised so it repaints only when the readout changes, not on legend
  * emphasis or toggling — it reads neither, so a legend hover need never
@@ -72,6 +80,7 @@ export const MapTable = memo(function MapTable({
 	categories,
 	entries,
 	selected,
+	selectedMark,
 }: MapTableProps) {
 	// The row keys, held across the re-maps a selection costs: the array depends
 	// on the row count alone, where rebuilding it would allocate one string per
@@ -113,11 +122,12 @@ export const MapTable = memo(function MapTable({
 					{/* One row per dot, so the table carries what the tooltip gives the
 					    pointer — through the one resolver both surfaces read. */}
 					{entries.flatMap(markRows).map((row) => (
-						<tr key={row.key}>
-							<th scope="row">{row.name}</th>
-
-							<td>{row.detail}</td>
-						</tr>
+						<MapTableRow
+							key={row.key}
+							name={row.name}
+							value={row.detail ?? READOUT_GAP}
+							current={row.key === selectedMark}
+						/>
 					))}
 				</tbody>
 			</table>

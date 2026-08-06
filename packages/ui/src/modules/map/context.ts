@@ -3,6 +3,7 @@
 import { createContext } from '../../core'
 import type { MapSeriesColor } from '../../recipes/kata/map'
 import type { MapPoint2D } from './map-geometry'
+import type { MapMarkSelection } from './map-selection'
 import type { LngLat } from './types'
 import type { MapOverlayEntry } from './use-map-legend-registry'
 
@@ -193,9 +194,9 @@ export function mapMarkDimmed(
 /**
  * What {@link MapPlat} provides its overlay children: the fitted projection
  * as a closure, legend registration, the resolved slot colour per registered
- * entry, and the legend's toggle / emphasis state. An overlay renders
- * nothing until its id gains a colour — the beat after its registration
- * effect runs.
+ * entry, the legend's toggle / emphasis state, and the standing pick. An
+ * overlay renders nothing until its id gains a colour — the beat after its
+ * registration effect runs.
  *
  * @internal
  */
@@ -212,6 +213,8 @@ export type MapPlatContextValue = {
 	hidden: ReadonlySet<string>
 	/** The legend id under emphasis; marks outside its group dim. */
 	emphasis: string | null
+	/** The picked mark, `null` when nothing is picked; the named mark haloes its stop. */
+	selected: MapMarkSelection | null
 	/** Whether the plat animates; overlays pick their motion renderers off it. */
 	animate: boolean
 }

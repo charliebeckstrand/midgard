@@ -7,6 +7,7 @@ import { k } from '../../recipes/kata/map'
 import { PIN_RADIUS, POINT_HIT_RADIUS, ROUTE_HIT_WIDTH, ROUTE_STROKE_WIDTH } from './map-constants'
 import { MapDot } from './map-dot'
 import { lineAnchor, linePath } from './map-geometry'
+import { MapDotHalo, MapHalo } from './map-halo'
 import { MARKER_DRAW, MARKER_END_POP, POINT_POP } from './map-motion'
 import type { LngLat } from './types'
 import { type MapOverlayProps, useMapOverlay } from './use-map-overlay'
@@ -32,7 +33,9 @@ export type MapMarkerProps = MapOverlayProps & {
  * colour; hovering any part raises the tooltip with the marker's name and
  * detail and isolates the pair — every other mark recedes, as under its
  * legend entry's focus. With `onClick` set, every part answers a click and the
- * keyboard cursor picks the marker with Enter or Space.
+ * keyboard cursor picks the marker with Enter or Space; the plat's
+ * `selectedOverlay` haloes both pins and the leg between them for as long as it
+ * names this mark.
  *
  * @remarks Renders only inside {@link MapPlat}. Pins and connector ride
  * device pixels (non-scaling strokes), so a resize scales the geography under
@@ -50,7 +53,7 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 	// crossing.
 	const points = useMemo(() => (path && path.length > 0 ? path : [start, end]), [path, start, end])
 
-	const { slot, hidden, project, animate, dim, onPointerLeave, hit } = useMapOverlay({
+	const { slot, hidden, project, animate, dim, selected, onPointerLeave, hit } = useMapOverlay({
 		...shared,
 		kind: 'marker',
 		swatch: 'line',
@@ -85,74 +88,89 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 	}
 
 	return (
-		<g data-slot="map-marker" className={dim} onPointerLeave={onPointerLeave}>
-			{connector &&
-				(animate ? (
-					<motion.path
-						{...connector}
-						initial={{ pathLength: 0 }}
-						animate={{ pathLength: 1 }}
-						transition={MARKER_DRAW}
+		<>
+			{/* One pick, three shapes: a marker is its pair of pins and the leg
+			    between them, so the halo marks all of what the mark draws rather
+			    than the one anchor its stop sits at. */}
+			{selected !== null && (
+				<>
+					{d !== '' && <MapHalo slot="map-marker-selected" d={d} width={ROUTE_STROKE_WIDTH} />}
+
+					{from && <MapDotHalo slot="map-marker-start-selected" at={from} radius={PIN_RADIUS} />}
+
+					{to && <MapDotHalo slot="map-marker-end-selected" at={to} radius={PIN_RADIUS} />}
+				</>
+			)}
+
+			<g data-slot="map-marker" className={dim} onPointerLeave={onPointerLeave}>
+				{connector &&
+					(animate ? (
+						<motion.path
+							{...connector}
+							initial={{ pathLength: 0 }}
+							animate={{ pathLength: 1 }}
+							transition={MARKER_DRAW}
+						/>
+					) : (
+						<path {...connector} />
+					))}
+
+				{from && (
+					<MapDot
+						slot="map-marker-start"
+						at={from}
+						radius={PIN_RADIUS}
+						className={cn(paint.stroke)}
+						animate={animate}
+						transition={POINT_POP}
 					/>
-				) : (
-					<path {...connector} />
-				))}
+				)}
 
-			{from && (
-				<MapDot
-					slot="map-marker-start"
-					at={from}
-					radius={PIN_RADIUS}
-					className={cn(paint.stroke)}
-					animate={animate}
-					transition={POINT_POP}
-				/>
-			)}
+				{to && (
+					<MapDot
+						slot="map-marker-end"
+						at={to}
+						radius={PIN_RADIUS}
+						className={cn(paint.stroke)}
+						animate={animate}
+						transition={MARKER_END_POP}
+					/>
+				)}
 
-			{to && (
-				<MapDot
-					slot="map-marker-end"
-					at={to}
-					radius={PIN_RADIUS}
-					className={cn(paint.stroke)}
-					animate={animate}
-					transition={MARKER_END_POP}
-				/>
-			)}
+				{d !== '' && (
+					<path
+						data-slot="map-marker-hit"
+						d={d}
+						fill="none"
+						stroke="transparent"
+						strokeWidth={ROUTE_HIT_WIDTH}
+						pointerEvents="stroke"
+						{...hit()}
+					/>
+				)}
 
-			{d !== '' && (
-				<path
-					data-slot="map-marker-hit"
-					d={d}
-					fill="none"
-					stroke="transparent"
-					strokeWidth={ROUTE_HIT_WIDTH}
-					pointerEvents="stroke"
-					{...hit()}
-				/>
-			)}
+				{from && (
+					<circle
+						data-slot="map-marker-start-hit"
+						cx={from.x}
+						cy={from.y}
+						r={POINT_HIT_RADIUS}
+						fill="transparent"
+						{...hit()}
+					/>
+				)}
 
-			{from && (
-				<circle
-					data-slot="map-marker-start-hit"
-					cx={from.x}
-					cy={from.y}
-					r={POINT_HIT_RADIUS}
-					fill="transparent"
-					{...hit()}
-				/>
-			)}
-
-			{to && (
-				<circle
-					data-slot="map-marker-end-hit"
-					cx={to.x}
-					cy={to.y}
-					r={POINT_HIT_RADIUS}
-					fill="transparent"
-					{...hit()}
-				/>
-			)}
-		</g>
+				{to && (
+					<circle
+						data-slot="map-marker-end-hit"
+						cx={to.x}
+						cy={to.y}
+						r={POINT_HIT_RADIUS}
+						fill="transparent"
+						{...hit()}
+					/>
+				)}
+			</g>
+		</>
 	)
 }
