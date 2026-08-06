@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { MapOverlaySelection } from '../../modules/map'
 import { MapMarker, MapPlat, MapPoint, MapPoints, MapRoute } from '../../modules/map'
-import { allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
+import { allBySlot, bySlot, fireEvent, renderUI, tableRows } from '../helpers'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 
 /** The fixture spans lon 0–30, lat 0–10; these all project inside the frame. */
@@ -30,13 +30,6 @@ function plat(children: React.ReactNode, selectedOverlay?: MapOverlaySelection |
 		>
 			{children}
 		</MapPlat>
-	)
-}
-
-/** Each table row as a name / `aria-current` pair, in the order a reader meets them. */
-function rows(container: HTMLElement) {
-	return Array.from(bySlot(container, 'map-table')?.querySelectorAll('tbody th') ?? []).map(
-		(cell) => [cell.textContent, cell.getAttribute('aria-current')],
 	)
 }
 
@@ -167,7 +160,7 @@ describe('MapPlat selected overlay', () => {
 
 		// Value parity for the pick: assistive tech reads it off the table, never
 		// off the halo alone — and exactly one row carries it.
-		expect(rows(container)).toEqual([
+		expect(tableRows(container)).toEqual([
 			['Depot', null],
 			['Leg', 'true'],
 		])
@@ -183,7 +176,7 @@ describe('MapPlat selected overlay', () => {
 			),
 		)
 
-		expect(rows(container)).toEqual([
+		expect(tableRows(container)).toEqual([
 			['Depot', null],
 			['Leg', null],
 		])
@@ -248,7 +241,7 @@ describe('MapPoints selected dot', () => {
 		// One row per drawn dot, and the current one is the summary the pick fell
 		// into — the row the halo sits on, resolved through the one mapper both
 		// surfaces read.
-		expect(rows(container)).toEqual([
+		expect(tableRows(container)).toEqual([
 			['Stops', 'true'],
 			['Yard', null],
 		])

@@ -47,9 +47,16 @@ export function markReadout(mark: MapReadableMark, stop: number): MapMarkReadout
 	return { name: row.label ?? `${mark.label} ${stop + 1}`, detail: row.detail }
 }
 
-/** One table row: a readout, and the key identifying which stop it came from. @internal */
+/**
+ * One table row: a readout, and the key identifying which stop it came from. The
+ * detail is resolved rather than optional — a row's value cell always reads
+ * something, where a tooltip may show none.
+ *
+ * @internal
+ */
 export type MapMarkRow = MapMarkReadout & {
 	key: string
+	detail: string
 }
 
 /**

@@ -3,8 +3,7 @@
 import { createContext } from '../../core'
 import type { MapSeriesColor } from '../../recipes/kata/map'
 import type { MapPoint2D } from './map-geometry'
-import type { MapMarkSelection } from './map-selection'
-import type { LngLat } from './types'
+import type { LngLat, MapOverlaySelection } from './types'
 import type { MapOverlayEntry } from './use-map-legend-registry'
 
 /**
@@ -213,8 +212,8 @@ export type MapPlatContextValue = {
 	hidden: ReadonlySet<string>
 	/** The legend id under emphasis; marks outside its group dim. */
 	emphasis: string | null
-	/** The picked mark, `null` when nothing is picked; the named mark haloes its stop. */
-	selected: MapMarkSelection | null
+	/** The picked mark, `null` when nothing is picked; the named mark haloes the stop it resolves to. */
+	selected: MapOverlaySelection | null
 	/** Whether the plat animates; overlays pick their motion renderers off it. */
 	animate: boolean
 }

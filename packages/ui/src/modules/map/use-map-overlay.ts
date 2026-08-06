@@ -11,7 +11,7 @@ import {
 	useMapPointedMark,
 } from './context'
 import type { MapPoint2D } from './map-geometry'
-import { markStop } from './map-selection'
+import { ownStop, pickedStop } from './map-selection'
 import type { LngLat } from './types'
 import type { MapOverlayKind, MapStopRow } from './use-map-legend-registry'
 
@@ -207,7 +207,7 @@ export function useMapOverlay({
 
 	const stopsAt = useCallback(() => live.current.stops(), [])
 
-	const stopAt = useCallback((index: number) => live.current.stopOf?.(index) ?? null, [])
+	const stopAt = useCallback((index: number) => (live.current.stopOf ?? ownStop)(index), [])
 
 	const pick = useCallback((stop: number) => live.current.onClick?.(id, stop), [id])
 
@@ -219,20 +219,11 @@ export function useMapOverlay({
 
 	const activate = pickable ? pick : undefined
 
-	// Registered only where the mark counts its clicks in another space than its
-	// stops, so the plat's table resolve can ask whether it needs one — and, like
-	// `activate`, this dep is a boolean the consumer's prop shape decides rather
-	// than an identity that churns per render.
-	const mapsStops = stopOf !== undefined
-
-	const stopOfIndex = mapsStops ? stopAt : undefined
-
 	// The standing pick, resolved off the live mapper rather than the ref the
 	// ledger rides: a refit that regroups a plural mark moves the picked dot, and
 	// the halo has to move with it on that same render. The plat resolves the
 	// picked row through the same rule, so the halo and that row can't disagree.
-	const selected =
-		selection === null || selection.id !== id ? null : markStop(stopOf, selection.stop)
+	const selected = pickedStop(selection, id, stopOf ?? ownStop)
 
 	// The readout text is the one registered field the table draws, so it has to
 	// reach the ledger to reach the screen. Keyed by content rather than by the
@@ -255,9 +246,9 @@ export function useMapOverlay({
 				stopsAt,
 				stopRows,
 				activate,
-				stopOf: stopOfIndex,
+				stopOf: stopAt,
 			}),
-		[register, id, label, kind, swatch, color, detail, stopsAt, rowsKey, activate, stopOfIndex],
+		[register, id, label, kind, swatch, color, detail, stopsAt, rowsKey, activate, stopAt],
 	)
 
 	// One handler set per mark, not one per hit shape: each reads its own stop

@@ -1,9 +1,15 @@
 import { describe, expect, it } from 'vitest'
-import { markStop, selectedMarkRow } from '../../modules/map/map-selection'
+import { ownStop, pickedStop, selectedMarkRow } from '../../modules/map/map-selection'
 import type { MapOverlayEntry } from '../../modules/map/use-map-legend-registry'
 
-/** A singular mark: one stop, its own, and no mapper. */
-const ROUTE: MapOverlayEntry = { id: 'leg', label: 'Leg', kind: 'route', swatch: 'line' }
+/** A singular mark: one stop, its own. */
+const ROUTE: MapOverlayEntry = {
+	id: 'leg',
+	label: 'Leg',
+	kind: 'route',
+	swatch: 'line',
+	stopOf: ownStop,
+}
 
 /**
  * A plural mark whose first two points draw as one summary: point 0 and point 1
@@ -18,47 +24,52 @@ const FLEET: MapOverlayEntry = {
 	stopOf: (index) => [0, 0, 1][index] ?? null,
 }
 
-describe('markStop', () => {
+describe('pickedStop', () => {
 	it('maps a reported index through the mark that counts in another space', () => {
-		expect(markStop(FLEET.stopOf, 1)).toBe(0)
+		expect(pickedStop({ id: 'fleet', index: 1 }, 'fleet', FLEET.stopOf)).toBe(0)
 
-		expect(markStop(FLEET.stopOf, 2)).toBe(1)
+		expect(pickedStop({ id: 'fleet', index: 2 }, 'fleet', FLEET.stopOf)).toBe(1)
 	})
 
-	it('names nothing where the mapper holds no stop for the index', () => {
-		expect(markStop(FLEET.stopOf, 9)).toBeNull()
+	it('reads an absent index as the first stop of the mark it names', () => {
+		expect(pickedStop({ id: 'leg' }, 'leg', ROUTE.stopOf)).toBe(0)
 	})
 
-	it('names the one stop a mark without a mapper draws', () => {
-		expect(markStop(undefined, 0)).toBe(0)
+	it('names nothing where the pick names another mark, or nothing at all', () => {
+		expect(pickedStop({ id: 'fleet', index: 0 }, 'leg', ROUTE.stopOf)).toBeNull()
+
+		expect(pickedStop(null, 'leg', ROUTE.stopOf)).toBeNull()
 	})
 
-	it('names nothing past that one stop', () => {
-		// The silence a `selectedRegion` naming no region keeps, rather than a halo
-		// on the mark's own stop whatever index was asked for.
-		expect(markStop(undefined, 3)).toBeNull()
+	it('names nothing where the mark holds no stop for the index', () => {
+		expect(pickedStop({ id: 'fleet', index: 9 }, 'fleet', FLEET.stopOf)).toBeNull()
+
+		// A mark that draws the stops it reports holds one, its own: the silence a
+		// `selectedRegion` naming no region keeps, rather than a halo on that stop
+		// whatever index was asked for.
+		expect(pickedStop({ id: 'leg', index: 3 }, 'leg', ROUTE.stopOf)).toBeNull()
 	})
 })
 
 describe('selectedMarkRow', () => {
 	it('keys the row on the stop the mark draws, not the index reported', () => {
-		expect(selectedMarkRow([ROUTE, FLEET], { id: 'fleet', stop: 1 })).toBe('fleet:0')
+		expect(selectedMarkRow([ROUTE, FLEET], { id: 'fleet', index: 1 })).toBe('fleet:0')
 	})
 
 	it('keys a singular mark on its own stop', () => {
-		expect(selectedMarkRow([ROUTE, FLEET], { id: 'leg', stop: 0 })).toBe('leg:0')
+		expect(selectedMarkRow([ROUTE, FLEET], { id: 'leg' })).toBe('leg:0')
 	})
 
 	it('marks no row where nothing is picked, or where the pick names no mark', () => {
 		expect(selectedMarkRow([ROUTE, FLEET], null)).toBeNull()
 
 		// A pick outliving the mark it was made against.
-		expect(selectedMarkRow([ROUTE], { id: 'fleet', stop: 0 })).toBeNull()
+		expect(selectedMarkRow([ROUTE], { id: 'fleet' })).toBeNull()
 	})
 
 	it('marks no row for a stop the named mark does not draw', () => {
-		expect(selectedMarkRow([ROUTE, FLEET], { id: 'fleet', stop: 9 })).toBeNull()
+		expect(selectedMarkRow([ROUTE, FLEET], { id: 'fleet', index: 9 })).toBeNull()
 
-		expect(selectedMarkRow([ROUTE, FLEET], { id: 'leg', stop: 1 })).toBeNull()
+		expect(selectedMarkRow([ROUTE, FLEET], { id: 'leg', index: 1 })).toBeNull()
 	})
 })

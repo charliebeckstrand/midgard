@@ -9,7 +9,8 @@
  * One shape serves a line and a dot alike, because a dot is a zero-length
  * round-capped stroke here: both take the mark's own width plus the clear space,
  * so the band reads the same behind a route and behind a summary graded four
- * steps up.
+ * steps up. The whole of it rides device pixels, like every other mark spec, so
+ * a resize whose refit lands a beat late never fattens a halo past its mark.
  *
  * A halo draws outside its mark's dim wrapper, so a pick made before the pointer
  * arrived still marks its mark while the pointer isolates elsewhere, and it never
@@ -32,16 +33,7 @@ type MapHaloProps = {
 	width: number
 }
 
-/**
- * A picked mark's halo — a route, a marker's connector, a dot through
- * {@link MapDotHalo}.
- *
- * @remarks The width rides device pixels like every other mark spec, so a resize
- * whose refit lands a beat late never fattens a halo past the mark it sits
- * behind.
- *
- * @internal
- */
+/** A picked mark's halo — a route, a marker's connector, a dot through {@link MapDotHalo}. @internal */
 export function MapHalo({ slot, d, width }: MapHaloProps) {
 	return (
 		<path
@@ -68,13 +60,7 @@ type MapDotHaloProps = {
 	radius: number
 }
 
-/**
- * A picked dot's halo — a point, a marker pin, one of a `MapPoints` set. Drawn
- * from the same zero-length round-capped stroke `MapDot` draws, so the radius
- * holds at device-pixel size where a `<circle>`'s would scale with the viewBox.
- *
- * @internal
- */
+/** A picked dot's halo — a point, a marker pin, one of a `MapPoints` set. @internal */
 export function MapDotHalo({ slot, at, radius }: MapDotHaloProps) {
 	return <MapHalo slot={slot} d={dotPath(at)} width={radius * 2} />
 }

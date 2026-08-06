@@ -10,7 +10,7 @@ import {
 	clusterPoints,
 	clusterRadius,
 	clusterSpan,
-	groupOfMember,
+	groupsByMember,
 } from './map-cluster'
 import { POINT_CLUSTER_GAP, POINT_HIT_RADIUS } from './map-constants'
 import { MapDot, MapDotCount } from './map-dot'
@@ -172,6 +172,11 @@ export function MapPoints({
 		[groups, points, positions, shared.label, clusterDetail],
 	)
 
+	// Which drawn dot each point landed in, held across the renders a pointed-mark
+	// crossing costs: the pick below reads it on every one of them, and only a
+	// regrouping can change the answer.
+	const held = useMemo(() => groupsByMember(groups), [groups])
+
 	// The caller counts in points; everything inside this mark counts in drawn
 	// groups. A summary hands back the first stop it holds, so a pick names a row
 	// the caller owns rather than a grouping it never asked for.
@@ -197,7 +202,7 @@ export function MapPoints({
 		// this reads back which drawn dot holds it — so the halo and the picked row
 		// answer the grouping the frame currently draws, not the one the pick was
 		// made against.
-		stopOf: (index) => groupOfMember(groups, index),
+		stopOf: (index) => held.get(index) ?? null,
 		onClick: report(onClick),
 		onContextMenu: report(onContextMenu),
 	})

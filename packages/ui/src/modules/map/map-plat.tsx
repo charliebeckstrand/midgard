@@ -54,7 +54,7 @@ import { MapLegend, type MapLegendItem } from './map-legend'
 import { mapFrameSizing, measuredMapFit, projectionFallbackAspect } from './map-projection'
 import { MapRangeLegend, type MapRangeLegendProps } from './map-range-legend'
 import { MapRegions } from './map-regions'
-import { type MapMarkSelection, selectedMarkRow } from './map-selection'
+import { selectedMarkRow } from './map-selection'
 import { MapTable } from './map-table'
 import { MapTooltip, type MapTooltipEntry } from './map-tooltip'
 import { type RegionValueJoin, regionValueJoin, resolveValueBins } from './map-value-scale'
@@ -303,12 +303,11 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 */
 		selectedRegion?: string | null
 		/**
-		 * The selected overlay mark, in the pair its reporters hand back — a
-		 * {@link MapRoute}, {@link MapPoint}, or {@link MapMarker} `id`, or a
-		 * {@link MapPoints} `id` with the dot's index. `selectedRegion` for the marks
-		 * drawn over the geography, on the same terms: the map paints the pick and
-		 * holds no selection state of its own, so whatever owns the value stays the
-		 * single source of truth.
+		 * The selected overlay mark, in the pair its reporters hand back — see
+		 * {@link MapOverlaySelection} for how the pair reads. `selectedRegion` for
+		 * the marks drawn over the geography, on the same terms: the map paints the
+		 * pick and holds no selection state of its own, so whatever owns the value
+		 * stays the single source of truth.
 		 *
 		 * The picked mark takes a foreground-ink halo behind it, outside the hover
 		 * recede, so a pick made before the pointer arrived is still marked while the
@@ -317,12 +316,8 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 * data table reads as the current one, so the selection is in the accessible
 		 * readout and not the pixels alone.
 		 *
-		 * The index counts in the points a `MapPoints` was given, never in the dots
-		 * it draws, so a pick that merged into a summary haloes that summary and
-		 * separates onto its own dot as the frame widens around it. Omitting the
-		 * index names the mark's first stop, which is the whole of a singular mark;
-		 * an id no mark registered, or an index the named mark has no stop for,
-		 * haloes nothing. `null` (or omitting the prop) selects nothing.
+		 * A pair naming no drawn stop haloes nothing; `null` (or omitting the prop)
+		 * selects nothing.
 		 */
 		selectedOverlay?: MapOverlaySelection | null
 		/**
@@ -1138,25 +1133,21 @@ function bridgeRegionIdentity(
 }
 
 /**
- * The overlay pick, normalised to the `{ id, stop }` shape every mark reads: the
- * caller's optional index becomes the mark's first stop, so no reader downstream
- * tests for an absent ordinal.
- *
- * Held on its primitives rather than on the prop's identity, because a consumer
- * writing the pair inline hands a fresh object every render — and this value
- * rides the plat context, so its identity churning would re-render every mark on
- * the map for a pick that never moved.
+ * The overlay pick, held on its primitives rather than on the prop's identity: a
+ * consumer writing the pair inline hands a fresh object every render, and this
+ * value rides the plat context, so its identity churning would re-render every
+ * mark on the map for a pick that never moved.
  *
  * @internal
  */
 function useMarkSelection(
 	selection: MapOverlaySelection | null | undefined,
-): MapMarkSelection | null {
+): MapOverlaySelection | null {
 	const id = selection?.id ?? null
 
-	const stop = selection?.index ?? 0
+	const index = selection?.index
 
-	return useMemo(() => (id === null ? null : { id, stop }), [id, stop])
+	return useMemo(() => (id === null ? null : { id, index }), [id, index])
 }
 
 /**

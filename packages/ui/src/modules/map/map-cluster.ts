@@ -41,17 +41,25 @@ export type MapPointCluster = {
 }
 
 /**
- * Which group holds one of the caller's dots, by the index the mark reports —
+ * Which group holds each of the caller's dots, by the index the mark reports —
  * the resolution a pick needs, since a click names a point the caller passed
- * while the mark draws the groups those points merged into. `null` where no
- * group holds it: an index past the points, or one dropped while its pick stood.
+ * while the mark draws the groups those points merged into.
+ *
+ * Built as a whole rather than searched per lookup: a pick is read on every
+ * render of the mark it names, and every hover crossing on the map re-renders
+ * every mark — so a scan per read would walk the set hundreds of times over one
+ * pointer sweep, where this walks it once per regrouping.
  *
  * @internal
  */
-export function groupOfMember(groups: readonly MapPointCluster[], member: number): number | null {
-	const index = groups.findIndex((group) => group.members.includes(member))
+export function groupsByMember(groups: readonly MapPointCluster[]): ReadonlyMap<number, number> {
+	const held = new Map<number, number>()
 
-	return index === -1 ? null : index
+	for (const [index, group] of groups.entries()) {
+		for (const member of group.members) held.set(member, index)
+	}
+
+	return held
 }
 
 /** A group under construction: where the broad phase measures from, and the running sum of its members. @internal */

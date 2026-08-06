@@ -87,6 +87,46 @@ export const MapTable = memo(function MapTable({
 	// region on every pick.
 	const keys = useMemo(() => rangeKeys(regionNames.length, 'region'), [regionNames.length])
 
+	// The two halves are held apart, each on its own inputs: a pick moves one of
+	// them, and re-mapping a county atlas's three thousand region rows because a
+	// dot on top of it was picked is work no reader would ever see.
+	const regionRows = useMemo(
+		() =>
+			keys.map((key, index) => {
+				const category = regionCategory[index]
+
+				return (
+					<MapTableRow
+						key={key}
+						name={regionNames[index]}
+						value={
+							regionValues[index] ??
+							(category == null ? READOUT_GAP : (categories[category]?.label ?? READOUT_GAP))
+						}
+						current={index === selected}
+					/>
+				)
+			}),
+		[keys, regionNames, regionCategory, regionValues, categories, selected],
+	)
+
+	// One row per dot, so the table carries what the tooltip gives the pointer —
+	// through the one resolver both surfaces read.
+	const markRowsView = useMemo(
+		() =>
+			entries
+				.flatMap(markRows)
+				.map((row) => (
+					<MapTableRow
+						key={row.key}
+						name={row.name}
+						value={row.detail}
+						current={row.key === selectedMark}
+					/>
+				)),
+		[entries, selectedMark],
+	)
+
 	return (
 		// The hiding lives on a wrapper: width/height on a `display: table` box
 		// are minimums, so `sr-only` on the table itself leaves it laid out at
@@ -103,32 +143,9 @@ export const MapTable = memo(function MapTable({
 				</thead>
 
 				<tbody>
-					{keys.map((key, index) => {
-						const category = regionCategory[index]
+					{regionRows}
 
-						return (
-							<MapTableRow
-								key={key}
-								name={regionNames[index]}
-								value={
-									regionValues[index] ??
-									(category == null ? READOUT_GAP : (categories[category]?.label ?? READOUT_GAP))
-								}
-								current={index === selected}
-							/>
-						)
-					})}
-
-					{/* One row per dot, so the table carries what the tooltip gives the
-					    pointer — through the one resolver both surfaces read. */}
-					{entries.flatMap(markRows).map((row) => (
-						<MapTableRow
-							key={row.key}
-							name={row.name}
-							value={row.detail ?? READOUT_GAP}
-							current={row.key === selectedMark}
-						/>
-					))}
+					{markRowsView}
 				</tbody>
 			</table>
 		</div>

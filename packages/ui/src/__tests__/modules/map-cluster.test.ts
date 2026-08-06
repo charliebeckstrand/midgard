@@ -4,7 +4,7 @@ import {
 	clusterPoints,
 	clusterRadius,
 	clusterSpan,
-	groupOfMember,
+	groupsByMember,
 } from '../../modules/map/map-cluster'
 import { POINT_RADIUS } from '../../modules/map/map-constants'
 import type { MapPoint2D } from '../../modules/map/map-geometry'
@@ -203,7 +203,7 @@ describe('clusterRadius', () => {
 	})
 })
 
-describe('groupOfMember', () => {
+describe('groupsByMember', () => {
 	// Two dots inside the reach and one clear of them: groups [0, 1] and [2].
 	const groups = clusterPoints(
 		[
@@ -215,17 +215,17 @@ describe('groupOfMember', () => {
 		GAP,
 	)
 
-	it('reads back which drawn mark holds a dot', () => {
+	it('reads back which drawn mark holds each dot', () => {
 		// The resolution a pick needs: a click names the point a caller passed, and
 		// the summary it merged into is what the map draws.
-		expect(groupOfMember(groups, 0)).toBe(0)
-
-		expect(groupOfMember(groups, 1)).toBe(0)
-
-		expect(groupOfMember(groups, 2)).toBe(1)
+		expect([...groupsByMember(groups)]).toEqual([
+			[0, 0],
+			[1, 0],
+			[2, 1],
+		])
 	})
 
 	it('holds no dot the set never had', () => {
-		expect(groupOfMember(groups, 9)).toBeNull()
+		expect(groupsByMember(groups).get(9)).toBeUndefined()
 	})
 })

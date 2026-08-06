@@ -75,12 +75,12 @@ export type MapOverlayEntry = {
 	 * its stops are the drawn groups those dots merged into. `null` where the mark
 	 * has no stop for that index.
 	 *
-	 * Absent on a mark that reports the stops it draws, whose index is its stop.
-	 * Stable like {@link stopsAt}, so a regrouping never re-registers; the plat
-	 * reads it to mark the picked stop's table row, and the mark itself resolves
-	 * off the live grouping it holds.
+	 * Every mark registers one, `ownStop` where it draws the stops it reports, so
+	 * the plat asks one question of every entry to mark the picked stop's table
+	 * row. Stable like {@link stopsAt}, so a regrouping never re-registers; the
+	 * mark itself resolves off the live grouping it holds.
 	 */
-	stopOf?: (index: number) => number | null
+	stopOf: (index: number) => number | null
 }
 
 /**
