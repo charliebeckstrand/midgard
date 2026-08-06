@@ -39,11 +39,11 @@ export type GridActiveEdit = {
  * cell-scoped session names one cell, that cell is this one. A null `activeEdit`
  * is row scope, where every cell of a set row qualifies.
  *
- * @remarks This is the module's one definition of "editing here", and three
- * questions read it: which cell mounts an editor, which entry is the no-op of
- * re-entering the cell already open, and which staged drafts a commit sweep must
- * flush (the cells this no longer holds for). Answering them from one predicate
- * is what keeps an editor's lifetime and its value's commit in step. @internal
+ * @remarks This is the module's one definition of "editing here". Three
+ * questions read it. Which cell mounts an editor. Which entry is the no-op of
+ * re-entering the cell already open. Which staged drafts a commit sweep must
+ * flush — the cells this stops holding for. One predicate answering all three
+ * keeps an editor's lifetime and its value's commit in step. @internal
  */
 export function isCellEditing(args: {
 	rowKey: string | number

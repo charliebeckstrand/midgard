@@ -101,10 +101,9 @@ function flushRow<T>(args: {
 }
 
 /**
- * Takes the drafts of a row whose editors have closed — the cells
- * {@link isCellEditing} no longer holds for — out of the staging map and returns
- * them. Leaves a still-open cell's draft staged, and drops the row's map once
- * nothing is left in it. @internal
+ * Takes a row's closed-editor drafts out of the staging map and returns them —
+ * the cells {@link isCellEditing} stops holding for. A still-open cell's draft
+ * stays staged, and the row's map goes once nothing is left in it. @internal
  */
 function takeClosedDrafts(args: {
 	rowKey: string | number
@@ -133,11 +132,11 @@ function takeClosedDrafts(args: {
  * row, and returns the cells saved across them (for the commit announcement).
  *
  * @remarks One rule covers every way a session ends, because each is the same
- * event seen from the cell: a consumer's save and a grid-owned exit close a whole
- * row's editors, and a cell-scoped session moving on closes exactly one. Reading
- * the open state rather than diffing against the last render is what lets the two
- * share a path — and is why a cell-scoped batch carries one change without
- * arithmetic saying so, since only one of its cells was ever open to close.
+ * event seen from the cell. A consumer's save and a grid-owned exit close a whole
+ * row's editors; a cell-scoped session moving on closes exactly one. Reading the
+ * open state, rather than diffing against the last render, is what lets the two
+ * share a path. It is also why a cell-scoped batch carries one change with no
+ * arithmetic saying so: only one of its cells was ever open to close.
  * @internal
  */
 function flushClosedCells<T>(args: {
@@ -185,12 +184,11 @@ function flushClosedCells<T>(args: {
  * dropping unchanged and invalid cells. Inert when `enabled` is false, so a
  * read-only grid pays nothing.
  *
- * A grid-owned session under `scope: 'cell'` narrows to one cell: the row still
- * enters the set, but only the active cell mounts an editor, and the session
- * re-points as the user enters another cell — flushing the cell it leaves, so
- * each batch carries one change. Both scopes read one predicate,
- * {@link isCellEditing}, for what is open, and the flush sweep commits whatever
- * it stops holding for.
+ * A grid-owned session under `scope: 'cell'` narrows to one cell. The row still
+ * enters the set, but only the active cell mounts an editor. Entering another
+ * cell re-points the session and flushes the cell it leaves, so each batch
+ * carries one change. Both scopes read one predicate for what is open,
+ * {@link isCellEditing}; the flush sweep commits whatever it stops holding for.
  *
  * @typeParam T - Shape of a single row.
  * @internal
@@ -238,9 +236,10 @@ export function useGridEditing<T>({
 	// because it gates which cell mounts an editor.
 	const [activeEditRaw, setActiveEdit] = useState<GridActiveEdit | null>(null)
 
-	// A controlled binding can decline an entry (the row never joins the set), and
-	// a consumer save can drop an editing row from under the session. Deriving the
-	// live coord from the set covers both without an effect to resynchronize.
+	// Two things strand the raw coord. A controlled binding can decline an entry,
+	// so the row never joins the set; a consumer save can drop an editing row from
+	// under the session. Deriving the live coord covers both, with no effect to
+	// resynchronize.
 	const activeEdit = activeEditRaw && editableRows.has(activeEditRaw.rowKey) ? activeEditRaw : null
 
 	// Read by the [] -stable session callbacks at event time.
@@ -306,8 +305,8 @@ export function useGridEditing<T>({
 			// leaves exits the set, and the flush sweep commits what it staged there.
 			setActiveEdit({ rowKey, columnId })
 
-			// The set is unchanged when the session moves along one row, and writing
-			// it anyway would announce a transition that never happened — the
+			// The set is unchanged when the session moves along one row. Writing it
+			// anyway would announce a transition that never happened, because the
 			// controllable emits `onRowsChange` on every write, equal or not.
 			if (active?.rowKey === rowKey) return
 
@@ -360,9 +359,9 @@ export function useGridEditing<T>({
 
 			const active = activeEditRef.current
 
-			// Reseat focus ahead of the discard, not after: an editor blurred on the
-			// way out can stage one last value (`NumberInput` commits its typed text
-			// there), and that write must not outlive the values it is dropping.
+			// Reseat focus ahead of the discard, not after. An editor blurred on the
+			// way out can stage one last value; `NumberInput` commits its typed text
+			// there. That write must not outlive the values being dropped.
 			restoreGridFocus()
 
 			// A cell-scoped session abandons the cell it sits on; the cells it visited
@@ -373,9 +372,9 @@ export function useGridEditing<T>({
 				else draftsRef.current.delete(rowKey)
 			}
 
-			// Two things end a session, and each clears the coord its own way: this
-			// exit, and a consumer withdrawing the row from under it — which the
-			// derivation above catches, because a coord off the set reads as no
+			// Two things end a session, and each clears the coord its own way. This
+			// exit is one. The other is a consumer withdrawing the row from under it,
+			// which the derivation above catches: a coord off the set reads as no
 			// session at all.
 			if (active?.rowKey === rowKey) setActiveEdit(null)
 
