@@ -1,4 +1,4 @@
-import { Check, Info, Pencil, Trash2 } from 'lucide-react'
+import { Check, Info, Pencil, Trash2, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Alert } from '../../../../components/alert'
 import { Badge } from '../../../../components/badge'
@@ -211,16 +211,20 @@ export function EditableExample() {
 		...personColumns,
 		{
 			id: 'actions',
-			actions: (row) =>
-				editing.has(row.id) ? (
-					<Button
-						variant="bare"
-						color="green"
-						aria-label="Save row"
-						onClick={() => setRowEditing(row.id, false)}
-					>
-						<Icon icon={<Check />} />
-					</Button>
+			// The slot's context carries the row's editing state and both ways out.
+			// `discard` is the one a consumer cannot drive through `rows`: removing a
+			// row from the set is what commits it, so dropping a row's edits has to
+			// come from here.
+			actions: (row, { editing: rowEditing, save, discard }) =>
+				rowEditing ? (
+					<Flex gap="sm">
+						<Button variant="bare" color="green" aria-label="Save row" onClick={save}>
+							<Icon icon={<Check />} />
+						</Button>
+						<Button variant="bare" color="red" aria-label="Discard row edits" onClick={discard}>
+							<Icon icon={<X />} />
+						</Button>
+					</Flex>
 				) : (
 					<Flex gap="sm">
 						<Button

@@ -45,6 +45,7 @@ export type {
 	GridEditableConfig,
 	GridEditCell,
 	GridEditCellContext,
+	GridRowActionsContext,
 } from './grid-editing-types'
 export type { GridColumnGroup, GridColumnGroups } from './grid-group-types'
 export type { GridRowGroup, GridRowGroups } from './grid-row-group-types'

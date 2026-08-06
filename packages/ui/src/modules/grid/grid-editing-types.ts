@@ -56,6 +56,25 @@ export type GridEditCellContext<T> = {
 export type GridEditCell<T> = (context: GridEditCellContext<T>) => ReactNode
 
 /**
+ * What a row's {@link GridColumn.actions} slot is told about editing, and what it
+ * can do about it. Every grid passes one; a grid with no `editable` binding
+ * reports `editing: false` and its callbacks do nothing, so an actions column
+ * needs no guard of its own.
+ *
+ * @remarks `discard` is the one transition a consumer cannot drive through
+ * `rows`. Removing a row from the set is a save — that is what flushes its
+ * staged cells — so closing a row and dropping its edits has to come from here.
+ */
+export type GridRowActionsContext = {
+	/** Whether this row is in edit mode. */
+	editing: boolean
+	/** Close the row, committing its changed cells through `onCommit`. */
+	save: () => void
+	/** Close the row, dropping its staged cells. Nothing reaches `onCommit`. */
+	discard: () => void
+}
+
+/**
  * Editing binding for {@link GridProps.editable}: marks which rows are in edit
  * mode and sinks their committed cell values. Setting it bakes per-row editing
  * into the grid — a row in the set puts all of its editable cells into edit mode

@@ -31,7 +31,7 @@ type GridEditingCellProps<T> = {
 
 /** Props for the mounted editor: the cell plus the session's staging and exit callbacks. @internal */
 type GridCellEditorProps<T> = Omit<GridEditingCellProps<T>, 'render' | 'colIdx'> &
-	Pick<GridEditingSession, 'stageDraft' | 'unstageDraft' | 'endSession'> & {
+	Pick<GridEditingSession, 'stageDraft' | 'unstageDraft' | 'endSession' | 'sessionOwned'> & {
 		/** Whether a cell-scoped session holds this cell; shows the settle pair. */
 		held: boolean
 	}
@@ -96,6 +96,7 @@ function GridCellEditor<T>({
 	stageDraft,
 	unstageDraft,
 	endSession,
+	sessionOwned,
 	held,
 }: GridCellEditorProps<T>) {
 	const seed = column.field != null ? row[column.field] : undefined
@@ -118,7 +119,11 @@ function GridCellEditor<T>({
 	// `undefined` under a consumer-owned session, standing the session keys down.
 	// There is no matching abandon here: Escape reaches the session through the
 	// grid table's key surface, which every editor inherits without wiring.
-	const commitRow = endSession && (() => endSession(rowKey, 'save'))
+	// Gated on who owns the session, not on `endSession` being defined — the grid
+	// can always end a session, but only a grid-owned one claims Enter. Under a
+	// consumer-owned session Enter belongs to nobody here and Escape reverts the
+	// cell, which is what the absent callback tells the editor.
+	const commitRow = sessionOwned ? () => endSession(rowKey, 'save') : undefined
 
 	// Names the cell for every control in it, so the editor and the settle pair
 	// read as one thing to a screen reader rather than unrelated widgets.
@@ -181,7 +186,7 @@ function GridCellEditor<T>({
 		<span className={cn(k.edit.host, error && k.edit.errorRing)}>
 			{body}
 
-			{held && endSession && (
+			{held && (
 				<GridSettleControls label={label} settle={(outcome) => endSession(rowKey, outcome)} />
 			)}
 
@@ -212,7 +217,8 @@ export function GridEditingCell<T>({
 	column,
 	render,
 }: GridEditingCellProps<T>) {
-	const { editableRows, activeEdit, stageDraft, unstageDraft, endSession } = useGridEditingSession()
+	const { editableRows, activeEdit, stageDraft, unstageDraft, endSession, sessionOwned } =
+		useGridEditingSession()
 
 	// `isCellEditing` leads because it bails on the editable-set lookup. A cell of
 	// a row nobody is editing — every cell, most of the time — costs one probe.
@@ -229,6 +235,7 @@ export function GridEditingCell<T>({
 				stageDraft={stageDraft}
 				unstageDraft={unstageDraft}
 				endSession={endSession}
+				sessionOwned={sessionOwned}
 				held={isSameCell(activeEdit, { rowKey, columnId: column.id })}
 			/>
 		)

@@ -17,6 +17,7 @@ import type { GridCellClick, GridCellRovingActivate, GridRowClick } from './engi
 import { resolveCellTooltip } from './engine/grid-row/cell'
 import { cellRovingAttrs, rowClickableClass, rowShellProps } from './engine/grid-row/shell'
 import { GridCellContent } from './grid-cell-content'
+import { GridRowActions } from './grid-row-actions'
 import type { GridColumn } from './types'
 import { useGridRevealHold } from './use-grid-reveal-hold'
 import type { GridColumnPinning } from './use-grid-table'
@@ -99,7 +100,7 @@ function leafCellInner<T>(args: {
 		)
 	}
 
-	if (col.actions) return col.actions(row)
+	if (col.actions) return <GridRowActions render={col.actions} row={row} rowKey={rowKey} />
 
 	const raw = col.cell ? flexRender(cell.column.columnDef.cell, cell.getContext()) : null
 

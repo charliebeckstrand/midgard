@@ -389,6 +389,112 @@ describe('Grid per-row editing', () => {
 		expect(liveRegion()?.textContent ?? '').not.toContain('cell updated')
 	})
 
+	it('lets a row action discard a row without committing it', () => {
+		const onCommit = vi.fn()
+
+		function Harness() {
+			const [editing, setEditing] = useState<Set<string | number>>(new Set([1]))
+
+			return (
+				<Grid
+					columns={[
+						...sessionColumns,
+						{
+							id: 'actions',
+							actions: (_row, ctx) => (
+								<>
+									<button type="button" onClick={ctx.save}>
+										save-row
+									</button>
+									<button type="button" onClick={ctx.discard}>
+										discard-row
+									</button>
+									<span data-slot="editing-flag">{String(ctx.editing)}</span>
+								</>
+							),
+						},
+					]}
+					rows={sessionRows}
+					getKey={(row) => row.id}
+					editable={{ rows: editing, onRowsChange: setEditing, onCommit }}
+				/>
+			)
+		}
+
+		const view = renderUI(<Harness />)
+
+		// The slot is told which rows edit, so it needs no state of its own.
+		expect(bySlot(view.container, 'editing-flag')).toHaveTextContent('true')
+
+		fireEvent.change(bySlot(view.container, 'grid-edit-input') as HTMLInputElement, {
+			target: { value: 'Discarded' },
+		})
+
+		fireEvent.click(view.getAllByRole('button', { name: 'discard-row' })[0] as HTMLElement)
+
+		// Removing a row from the set is a save, so this transition has no
+		// consumer-driven equivalent — it is the whole reason the slot has it.
+		expect(onCommit).not.toHaveBeenCalled()
+
+		expect(bySlot(view.container, 'grid-edit-input')).toBeNull()
+	})
+
+	it('lets a row action save the row it acts on', () => {
+		const onCommit = vi.fn()
+
+		function Harness() {
+			const [editing, setEditing] = useState<Set<string | number>>(new Set([1]))
+
+			return (
+				<Grid
+					columns={[
+						...sessionColumns,
+						{
+							id: 'actions',
+							actions: (_row, ctx) => (
+								<button type="button" onClick={ctx.save}>
+									save-row
+								</button>
+							),
+						},
+					]}
+					rows={sessionRows}
+					getKey={(row) => row.id}
+					editable={{ rows: editing, onRowsChange: setEditing, onCommit }}
+				/>
+			)
+		}
+
+		const view = renderUI(<Harness />)
+
+		fireEvent.change(bySlot(view.container, 'grid-edit-input') as HTMLInputElement, {
+			target: { value: 'Alicia' },
+		})
+
+		fireEvent.click(view.getAllByRole('button', { name: 'save-row' })[0] as HTMLElement)
+
+		expect(onCommit).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'name', value: 'Alicia' }])
+	})
+
+	it('reports no editing to an actions column on a grid with no editable binding', () => {
+		const view = renderUI(
+			<Grid
+				columns={[
+					...sessionColumns,
+					{
+						id: 'actions',
+						actions: (_row, ctx) => <span data-slot="editing-flag">{String(ctx.editing)}</span>,
+					},
+				]}
+				rows={sessionRows}
+				getKey={(row) => row.id}
+			/>,
+		)
+
+		// The slot renders in every grid, so it must be answerable without one.
+		expect(bySlot(view.container, 'editing-flag')).toHaveTextContent('false')
+	})
+
 	it('does not enter edit mode on a cell double-click in the default manual mode', () => {
 		const { container } = renderGrid()
 

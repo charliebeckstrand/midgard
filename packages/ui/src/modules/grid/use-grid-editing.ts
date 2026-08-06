@@ -537,7 +537,8 @@ export function useGridEditing<T>({
 			activeEdit,
 			stageDraft,
 			unstageDraft,
-			endSession: sessionOwned ? endSession : undefined,
+			endSession,
+			sessionOwned,
 		}),
 		[editableRows, activeEdit, stageDraft, unstageDraft, sessionOwned, endSession],
 	)

@@ -32,11 +32,35 @@ export type GridEditingSession = {
 	 * `'save'` on an editor's Enter, `'discard'` on Escape. A discard drops the
 	 * staged values the session owns: under cell scope that is the active cell
 	 * alone, because the cells it visited before that one already committed.
-	 * Absent when the consumer owns the session, whose save is removing the row
-	 * from the set and whose Escape reverts one cell.
+	 * A save is removing the row from the set, which is also the consumer's own
+	 * save; a discard has no consumer-driven equivalent, and is what
+	 * {@link GridRowActionsContext.discard} hands them.
 	 */
-	endSession?: (rowKey: string | number, outcome: 'save' | 'discard') => void
+	endSession: (rowKey: string | number, outcome: 'save' | 'discard') => void
+	/** Whether the grid owns entry and the session keys (`trigger: 'doubleClick'`). */
+	sessionOwned: boolean
 }
 
-export const [GridEditingSessionContext, useGridEditingSession] =
-	createContext<GridEditingSession>('GridEditingSession')
+const [GridEditingSessionContext, useSession] = createContext<GridEditingSession | null>(
+	'GridEditingSession',
+	{ default: null },
+)
+
+export { GridEditingSessionContext }
+
+/** The editing session. Throws outside an editable grid, where there is none. @internal */
+export function useGridEditingSession(): GridEditingSession {
+	const session = useSession()
+
+	if (session === null)
+		throw new Error('useGridEditingSession must be used within an editable Grid')
+
+	return session
+}
+
+/**
+ * The editing session, or `null` when the grid is not editable. For the surfaces
+ * every grid renders — the row actions column — which must ask rather than
+ * assume. @internal
+ */
+export const useGridEditingSessionOrNull = useSession
