@@ -17,6 +17,17 @@ const STOPS = [
 	{ at: SITE },
 ]
 
+/**
+ * Two stops a fraction of a degree apart and one across the frame. The fixture
+ * spans 30° over a 400px frame, so the pair lands ~4px apart — inside the merge
+ * distance — and the third stands 260px clear of them.
+ */
+const BUNCHED = [
+	{ at: DEPOT, label: 'Depot', detail: '12 pallets' },
+	{ at: [5.3, 5] as [number, number], label: 'Annex' },
+	{ at: SITE, label: 'Site' },
+]
+
 function plat(children: React.ReactNode) {
 	return (
 		<MapPlat aria-label="Fleet" geography={FIXTURE_GEOJSON} width={400}>
@@ -207,5 +218,86 @@ describe('MapPoints', () => {
 		expect(allBySlot(container, 'map-points-dot')).toHaveLength(0)
 
 		expect(allBySlot(container, 'map-legend-item')).toHaveLength(1)
+	})
+
+	it('summarises the dots the frame draws on top of one another', () => {
+		const { container } = renderUI(plat(<MapPoints id="fleet" label="Stops" points={BUNCHED} />))
+
+		// The pair reads as one graded mark carrying its count; the far dot keeps
+		// drawing as itself.
+		expect(allBySlot(container, 'map-points-cluster')).toHaveLength(1)
+
+		expect(allBySlot(container, 'map-points-dot')).toHaveLength(1)
+
+		expect(bySlot(container, 'map-points-count')?.textContent).toBe('2')
+	})
+
+	it('draws every dot where the grouping is off', () => {
+		const { container } = renderUI(
+			plat(<MapPoints id="fleet" label="Stops" points={BUNCHED} cluster={false} />),
+		)
+
+		expect(allBySlot(container, 'map-points-dot')).toHaveLength(3)
+
+		expect(allBySlot(container, 'map-points-cluster')).toHaveLength(0)
+	})
+
+	it('reports the first stop a summary holds, so a pick names a real point', () => {
+		const onClick = vi.fn()
+
+		const { container } = renderUI(
+			plat(<MapPoints id="fleet" label="Stops" points={BUNCHED} onClick={onClick} />),
+		)
+
+		fireEvent.click(allBySlot(container, 'map-points-hit')[0] as Element)
+
+		expect(onClick).toHaveBeenCalledWith('fleet', 0)
+
+		// The far dot still reports its own index, though a group ahead of it holds
+		// two stops — the caller counts in points, never in groups.
+		fireEvent.click(allBySlot(container, 'map-points-hit')[1] as Element)
+
+		expect(onClick).toHaveBeenLastCalledWith('fleet', 2)
+	})
+
+	it('reads a summary out as the group, by the count and the spread it holds', () => {
+		const { container } = renderUI(
+			plat(
+				<MapPoints
+					id="fleet"
+					label="Stops"
+					points={BUNCHED}
+					clusterDetail={(count, span) => `${count} stops across ${Math.round(span / 1000)} km`}
+				/>,
+			),
+		)
+
+		fireEvent.pointerEnter(allBySlot(container, 'map-points-hit')[0] as Element, {
+			clientX: 10,
+			clientY: 10,
+		})
+
+		const readout = bySlot(container, 'tooltip-content')?.textContent ?? ''
+
+		// The set's name, never one member's: no one stop of a summary names it.
+		expect(readout).toContain('Stops')
+
+		expect(readout).not.toContain('Depot')
+
+		expect(readout).toContain('2 stops across 33 km')
+	})
+
+	it('gives the hidden table the summary the map draws, not the dots inside it', () => {
+		// The table and the tooltip read one resolver, so what a reader gets is
+		// what the pointer gets: the mark that is on the map.
+		const { container } = renderUI(plat(<MapPoints id="fleet" label="Stops" points={BUNCHED} />))
+
+		const text = [...container.querySelectorAll('table tbody tr')].map(
+			(row) => row.textContent ?? '',
+		)
+
+		expect(text.some((row) => row.includes('Stops') && row.includes('2'))).toBe(true)
+
+		expect(text.some((row) => row.includes('Site'))).toBe(true)
 	})
 })

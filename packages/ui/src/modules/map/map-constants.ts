@@ -38,6 +38,32 @@ export const POINT_RADIUS = 5.5
 /** Invisible hit-circle radius over a point (and a marker pin) — a ~44px finger target. @internal */
 export const POINT_HIT_RADIUS = 22
 
+/**
+ * The centre-to-centre gap, in frame units, below which two dots draw as one
+ * summary. Frame units are device pixels wherever the frame is measured, so this
+ * is a pixel distance: one round summarises as the map shrinks and separates as
+ * it grows, which is what makes the grouping a reading of how far out the map
+ * sits rather than of the data. Set above the `POINT_RADIUS * 2` at which two
+ * dots begin to overlap, so a pair that merely touches summarises too. @internal
+ */
+export const POINT_CLUSTER_DISTANCE = 14
+
+/**
+ * A summary dot's radius by how many stops it holds — the size grade. A lone dot
+ * keeps {@link POINT_RADIUS}; each step is one grade up, so the mark carries the
+ * magnitude and the count inside it carries the number. Read ascending: the last
+ * step the count reaches wins. @internal
+ */
+export const CLUSTER_RADIUS_STEPS = [
+	{ from: 2, radius: 9 },
+	{ from: 5, radius: 11 },
+	{ from: 10, radius: 13 },
+	{ from: 25, radius: 15 },
+] as const
+
+/** Mean Earth radius in metres — turns a summary's spherical spread into a distance. @internal */
+export const EARTH_RADIUS_METERS = 6371008.8
+
 /** A marker pin's radius — larger than a point, it anchors a route's ends. @internal */
 export const PIN_RADIUS = 5.5
 

@@ -77,21 +77,45 @@ export const warehouses: { city: string; abbreviation: string; at: LngLat; detai
 ]
 
 /**
- * One day's delivery stops out of the Dallas warehouse, for the plural-point
+ * One day's delivery stops across four state rounds, for the plural-point
  * example. Enough of them that a `MapPoint` each would claim a legend row each
- * and exhaust the eight-slot palette — which is the case `MapPoints` exists for.
+ * and exhaust the eight-slot palette — which is the case `MapPoints` exists
+ * for — and clustered around each round's depot, so a national frame draws each
+ * bunch as one graded summary while a frame fitted to one state draws its own
+ * stops apart.
+ *
+ * No row names its state: the example reads that off the atlas with
+ * `geoContains`, so the picker beside the map offers exactly the states that
+ * hold a stop.
  */
 export const deliveryStops: { at: LngLat; label: string; detail: string }[] = [
 	{ at: [-96.8, 32.78], label: 'Dallas depot', detail: 'Origin' },
-	{ at: [-96.67, 33.02], label: 'Plano', detail: '6 parcels' },
-	{ at: [-97.14, 32.75], label: 'Arlington', detail: '9 parcels' },
+	{ at: [-96.7, 33.02], label: 'Plano', detail: '6 parcels' },
+	{ at: [-97.11, 32.74], label: 'Arlington', detail: '9 parcels' },
 	{ at: [-97.33, 32.76], label: 'Fort Worth', detail: '14 parcels' },
-	{ at: [-96.61, 32.9], label: 'Garland', detail: '4 parcels' },
-	{ at: [-96.99, 32.61], label: 'Cedar Hill', detail: '7 parcels' },
-	{ at: [-96.45, 32.75], label: 'Mesquite', detail: '5 parcels' },
-	{ at: [-97.07, 33.15], label: 'Denton', detail: '11 parcels' },
-	{ at: [-96.55, 33.19], label: 'McKinney', detail: '8 parcels' },
-	{ at: [-97.19, 32.99], label: 'Grapevine', detail: '3 parcels' },
+	{ at: [-97.13, 33.21], label: 'Denton', detail: '11 parcels' },
+	{ at: [-97.15, 31.55], label: 'Waco', detail: '7 parcels' },
+	{ at: [-97.74, 30.27], label: 'Austin', detail: '12 parcels' },
+	{ at: [-98.49, 29.42], label: 'San Antonio', detail: '10 parcels' },
+	{ at: [-95.37, 29.76], label: 'Houston', detail: '18 parcels' },
+	{ at: [-106.49, 31.76], label: 'El Paso', detail: '4 parcels' },
+	{ at: [-118.24, 34.05], label: 'Los Angeles depot', detail: 'Origin' },
+	{ at: [-118.19, 33.77], label: 'Long Beach', detail: '8 parcels' },
+	{ at: [-117.91, 33.84], label: 'Anaheim', detail: '5 parcels' },
+	{ at: [-117.38, 33.95], label: 'Riverside', detail: '9 parcels' },
+	{ at: [-117.16, 32.72], label: 'San Diego', detail: '13 parcels' },
+	{ at: [-119.79, 36.74], label: 'Fresno', detail: '6 parcels' },
+	{ at: [-122.42, 37.77], label: 'San Francisco', detail: '15 parcels' },
+	{ at: [-121.49, 38.58], label: 'Sacramento', detail: '7 parcels' },
+	{ at: [-87.63, 41.88], label: 'Chicago depot', detail: 'Origin' },
+	{ at: [-88.15, 41.79], label: 'Naperville', detail: '5 parcels' },
+	{ at: [-88.08, 41.53], label: 'Joliet', detail: '7 parcels' },
+	{ at: [-89.09, 42.27], label: 'Rockford', detail: '4 parcels' },
+	{ at: [-89.65, 39.8], label: 'Springfield', detail: '9 parcels' },
+	{ at: [-84.39, 33.75], label: 'Atlanta depot', detail: 'Origin' },
+	{ at: [-84.55, 33.95], label: 'Marietta', detail: '6 parcels' },
+	{ at: [-83.63, 32.84], label: 'Macon', detail: '8 parcels' },
+	{ at: [-81.1, 32.08], label: 'Savannah', detail: '11 parcels' },
 ]
 
 // The routed examples below carry only origin and destination coordinates.

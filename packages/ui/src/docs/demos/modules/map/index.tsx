@@ -1,5 +1,7 @@
 import { QueryClient, QueryClientProvider, useQuery, useQueryClient } from '@tanstack/react-query'
-import { type ComponentProps, useState } from 'react'
+import { type GeoPermissibleObjects, geoContains } from 'd3-geo'
+import { type ComponentProps, useMemo, useState } from 'react'
+import { feature } from 'topojson-client'
 import statesUrl from 'us-atlas/states-10m.json?url'
 import { Flex } from '../../../../components/flex'
 import { Select, SelectLabel, SelectOption } from '../../../../components/select'
@@ -10,6 +12,7 @@ import {
 	fetchOsrmRoute,
 	type LngLat,
 	type MapFeature,
+	type MapFeatureCollection,
 	type MapGeography,
 	MapMarker,
 	MapPlat,
@@ -185,6 +188,141 @@ function ClickableStates({ geography }: { geography: MapGeography | null }) {
 	)
 }
 
+/**
+ * The atlas decoded to its own features. The plat draws either form, so this is
+ * the same data it already holds — decoded here because it is the example, not
+ * the plat, that picks one state out of the atlas and hands it back as the
+ * geography to fit.
+ */
+function useStateFeatures(geography: MapGeography | null): MapFeature[] {
+	return useMemo(() => {
+		if (geography === null) return []
+
+		if (geography.type === 'FeatureCollection') return geography.features
+
+		const object = geography.objects.states
+
+		if (object === undefined) return []
+
+		const decoded = feature(
+			geography as unknown as Parameters<typeof feature>[0],
+			object as Parameters<typeof feature>[1],
+		)
+
+		return (decoded.type === 'FeatureCollection'
+			? decoded.features
+			: [decoded]) as unknown as MapFeature[]
+	}, [geography])
+}
+
+/**
+ * Which state holds each stop, index-aligned with `deliveryStops`. Read off the
+ * atlas with `geoContains`, so no row of the data names a state the geometry
+ * already knows — and the picker below can offer exactly the states that hold
+ * one.
+ */
+function stopStates(features: MapFeature[]): (string | null)[] {
+	return deliveryStops.map((stop) => {
+		const holder = features.find((state) =>
+			geoContains(state as unknown as GeoPermissibleObjects, stop.at),
+		)
+
+		return holder === undefined ? null : stateName(holder)
+	})
+}
+
+/**
+ * Clustering and a state pick, together. Zoomed out to the nation the rounds
+ * bunch past telling apart, so `MapPoints` draws each bunch as one summary
+ * graded by how many stops it holds; picking a state hands the plat that state's
+ * own geometry, which refits the projection to it — the fit the plat runs on
+ * every geography, no zoom layer — and drops clustering, so its stops draw one
+ * for one.
+ */
+function DeliveryRounds({ geography }: { geography: MapGeography | null }) {
+	const [picked, setPicked] = useState<string | null>(null)
+
+	const features = useStateFeatures(geography)
+
+	const holders = useMemo(() => stopStates(features), [features])
+
+	const selectable = useMemo(
+		() => [...new Set(holders.filter((state) => state !== null))].sort(),
+		[holders],
+	)
+
+	// The picked state's own geometry, or the whole atlas. Memoised on the pick:
+	// the plat caches its decode and its fit against the geography's identity, so
+	// a fresh collection each render would re-fit the map on every keystroke
+	// elsewhere on the page.
+	const frame = useMemo<MapGeography | null>(() => {
+		if (picked === null) return geography
+
+		const held = features.find((state) => stateName(state) === picked)
+
+		return held === undefined
+			? geography
+			: ({ type: 'FeatureCollection', features: [held] } satisfies MapFeatureCollection)
+	}, [picked, geography, features])
+
+	const stops = useMemo(
+		() =>
+			picked === null
+				? deliveryStops
+				: deliveryStops.filter((_, index) => holders[index] === picked),
+		[picked, holders],
+	)
+
+	return (
+		<Stack gap="md">
+			<Flex>
+				<Select<string>
+					aria-label="State"
+					placeholder="Every round"
+					value={picked}
+					onValueChange={setPicked}
+					displayValue={(state: string) => state}
+				>
+					{selectable.map((state) => (
+						<SelectOption key={state} value={state}>
+							<SelectLabel>{state}</SelectLabel>
+						</SelectOption>
+					))}
+				</Select>
+			</Flex>
+
+			<Text>
+				{picked === null
+					? 'Every round. Pick a state, or click a summary, to draw its stops one for one.'
+					: `${picked} — ${stops.length} stops. Click the state to go back.`}
+			</Text>
+
+			<MapPlat
+				aria-label="Delivery rounds"
+				geography={frame}
+				projection="albers-usa"
+				animate
+				legend="right"
+				// Only ever the picked state to click: the whole map is that one state,
+				// so the pointer affordance the region layer takes is honest.
+				onRegionClick={picked === null ? undefined : () => setPicked(null)}
+			>
+				<MapPoints
+					label="Stops"
+					points={stops}
+					detail={`${stops.length} stops`}
+					cluster={picked === null}
+					clusterDetail={(count, span) => `${count} stops · ${miles(span)} across`}
+					// The index names a row of `deliveryStops` only while every stop is
+					// drawn; the state view draws a filtered set, and has nothing left to
+					// drill into anyway.
+					onClick={picked === null ? (_, index) => setPicked(holders[index] ?? null) : undefined}
+				/>
+			</MapPlat>
+		</Stack>
+	)
+}
+
 function MapDemo() {
 	const states = useGeography(statesUrl)
 
@@ -266,19 +404,12 @@ function MapDemo() {
 								</MapPlat>
 							</Example>
 
-							{/* One entry for the whole round, where a MapPoint each would
-							    claim a legend row each and run past the eight-slot palette.
-							    Every dot still names itself in the readout. */}
-							<Example title="Delivery round">
-								<MapPlat
-									aria-label="Delivery round"
-									geography={states}
-									projection="albers-usa"
-									animate
-									legend="right"
-								>
-									<MapPoints label="Stops" points={deliveryStops} detail="10 stops" />
-								</MapPlat>
+							{/* One entry for every round, where a MapPoint each would claim a
+							    legend row each and run past the eight-slot palette. Every dot
+							    still names itself in the readout — and every summary names how
+							    many it stands for. */}
+							<Example title="Delivery rounds">
+								<DeliveryRounds geography={states} />
 							</Example>
 						</Stack>
 					</TabContent>
