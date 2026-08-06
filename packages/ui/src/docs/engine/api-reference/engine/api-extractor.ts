@@ -4,7 +4,7 @@ import path from 'node:path'
 import type { Project } from 'ts-morph'
 import type { ComponentApi } from '../types'
 import { type Barrel, extractBarrel, listBarrels, openProject } from './build-api'
-import { buildLinkTargetFiles, createLinkResolver } from './link-resolver'
+import { createLinkIndex } from './link-resolver'
 
 /**
  * An incremental, disk-cached driver over {@link extractBarrel}. The docs plugin
@@ -164,17 +164,20 @@ export function createApiExtractor(
 		return project
 	}
 
-	// The checker and link machinery are recreated per extraction pass: refreshing
-	// a source file rebuilds the underlying program, so a cached checker or link
-	// index would read stale types.
+	// The checker and link machinery are recreated per extraction pass: a
+	// refreshed source file rebuilds the underlying program, so a cached checker
+	// or link index reads stale types. One `createLinkIndex` call serves both
+	// link consumers, because the index walk is a pass's largest fixed cost.
 	function extractionContext() {
 		const proj = ensureProject()
+
+		const { resolve, targetFile } = createLinkIndex(proj)
 
 		return {
 			proj,
 			checker: proj.getTypeChecker().compilerObject,
-			resolveLink: createLinkResolver(proj),
-			linkTargetFiles: buildLinkTargetFiles(proj),
+			resolveLink: resolve,
+			targetFile,
 		}
 	}
 
@@ -185,7 +188,7 @@ export function createApiExtractor(
 		proj: Project,
 		barrel: Barrel,
 		api: ComponentApi[] | null,
-		linkTargetFiles: Map<string, string>,
+		targetFile: (name: string) => string | undefined,
 		directRefs: Map<string, string[]>,
 	): Set<string> {
 		const inputs = new Set<string>([barrel.indexPath])
@@ -222,7 +225,7 @@ export function createApiExtractor(
 		// `{@link}` targets resolve by name across the package with no import edge,
 		// so their source files must be tracked explicitly.
 		for (const name of linkNames(api)) {
-			const target = linkTargetFiles.get(name)
+			const target = targetFile(name)
 
 			if (target && isInputFile(target)) inputs.add(target)
 		}
@@ -242,7 +245,7 @@ export function createApiExtractor(
 
 		const api = extractBarrel(ctx.proj, ctx.checker, ctx.resolveLink, barrel.indexPath)
 
-		const inputs = inputsFor(ctx.proj, barrel, api, ctx.linkTargetFiles, directRefs)
+		const inputs = inputsFor(ctx.proj, barrel, api, ctx.targetFile, directRefs)
 
 		states.set(key, { api, inputs })
 	}
@@ -373,6 +376,11 @@ export function createApiExtractor(
 		} else {
 			// First in-process pass (the disk cache served the initial load): warm the
 			// checker with a full canonical pass so ordering matches the stored record.
+			//
+			// A cache-replayed state carries empty `inputs`, so this costs a
+			// once-per-session stall on the first edit. Do not relax the ordering
+			// rule to remove it; that rule is what makes a subset pass safe. Warm
+			// proactively instead, from the dev server in `plugins/docs.ts`.
 			fullPass()
 		}
 

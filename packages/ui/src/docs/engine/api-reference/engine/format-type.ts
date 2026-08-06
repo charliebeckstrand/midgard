@@ -65,7 +65,10 @@ export function formatType(type: ts.Type, checker: ts.TypeChecker, location?: ts
 }
 
 /**
- * Same as `formatType`, but strips `| undefined` from optional unions.
+ * Same as `formatType`, but strips `| undefined` from optional unions. The two
+ * are not interchangeable: this one hands a leaf function type to
+ * `typeToString`, where `formatType` routes it through `formatFunctionType`.
+ * Merging them changes how function-typed props render.
  */
 export function formatPropType(type: ts.Type, checker: ts.TypeChecker, location?: ts.Node): string {
 	const named = namedTypeShortName(type, checker, location)

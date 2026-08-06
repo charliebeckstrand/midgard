@@ -12,8 +12,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { gzipSync } from 'node:zlib'
-
-const pkgRoot = path.resolve(import.meta.dirname, '..', '..', '..')
+import { pkgRoot } from './paths'
 
 /** Where the docs build emits its hashed chunks and assets. */
 export const distAssets = path.join(pkgRoot, 'src', 'docs', 'dist', 'assets')

@@ -293,6 +293,9 @@ function joinArms(arms: { text: string; fn: boolean }[]): string {
  * collected first, so it is the one evaluated against — and dropped in favour
  * of — the arm slices; a narrower arm whose members aren't covered elsewhere is
  * always kept.
+ *
+ * A multi-arm prop therefore formats twice, deliberately: the two renderings
+ * are not interchangeable. See `formatPropType`.
  */
 function dropMergedArmUnions(
 	types: ts.Type[],

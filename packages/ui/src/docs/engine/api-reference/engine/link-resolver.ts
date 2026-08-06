@@ -4,21 +4,34 @@ import type { DocLink } from '../types'
 import type { LinkResolver } from './extract-doc'
 import { unaliasSymbol } from './ts-utils'
 
+/** One extraction pass's link index: two lookups over one walk of the program. */
+export type LinkIndex = {
+	/** A name's hover card, or `null` when nothing indexes it. Memoized, misses included. */
+	resolve: LinkResolver
+	/** The source file that declares a name, or `undefined` when nothing indexes it. */
+	targetFile: (name: string) => string | undefined
+}
+
 /**
- * A package-wide index of declarations a `{@link}` can target, keyed by name.
- * TSDoc links resolve across files without an import, so resolution can't lean
- * on lexical scope; this maps every PascalCase top-level declaration in project
- * source to its symbol, which the returned resolver turns into hover detail
- * (signature + summary) on demand. Results are memoized, including misses.
+ * Index every declaration a `{@link}` can target, keyed by name. TSDoc links
+ * resolve across files without an import, so resolution can't lean on lexical
+ * scope; this maps every PascalCase top-level declaration in project source to
+ * its symbol, which `resolve` turns into hover detail (signature + summary) on
+ * demand.
+ *
+ * One build serves both lookups, because the walk covers every file in the
+ * program. `extraction.bench.ts` measures it; measure there rather than through
+ * a pass, which varies by more than the walk costs. `extractionContext` owns
+ * how long a build lives.
  */
-export function createLinkResolver(project: Project): LinkResolver {
+export function createLinkIndex(project: Project): LinkIndex {
 	const checker = project.getTypeChecker().compilerObject
 
 	const index = buildIndex(project)
 
 	const cache = new Map<string, DocLink | null>()
 
-	return (name) => {
+	const resolve: LinkResolver = (name) => {
 		const cached = cache.get(name)
 
 		if (cached !== undefined) return cached
@@ -31,6 +44,8 @@ export function createLinkResolver(project: Project): LinkResolver {
 
 		return link
 	}
+
+	return { resolve, targetFile: (name) => index.get(name)?.file }
 }
 
 /** One indexed link target: its resolved symbol and the source file that declares it. */
@@ -40,12 +55,14 @@ type IndexedTarget = { symbol: ts.Symbol; file: string }
 function buildIndex(project: Project): Map<string, IndexedTarget> {
 	const index = new Map<string, IndexedTarget>()
 
-	const add = (name: string | undefined, node: Node) => {
+	// `file` is loop-invariant across a source file's declarations, so it comes
+	// from the loop rather than a `node.getSourceFile()` call for each name.
+	const add = (name: string | undefined, node: Node, file: string) => {
 		if (!name || !/^[A-Z]/.test(name) || index.has(name)) return
 
 		const symbol = node.getSymbol()?.compilerSymbol
 
-		if (symbol) index.set(name, { symbol, file: node.getSourceFile().getFilePath() })
+		if (symbol) index.set(name, { symbol, file })
 	}
 
 	for (const sf of project.getSourceFiles()) {
@@ -61,29 +78,14 @@ function buildIndex(project: Project): Map<string, IndexedTarget> {
 				Node.isInterfaceDeclaration(node) ||
 				Node.isEnumDeclaration(node)
 			) {
-				add(node.getName(), node)
+				add(node.getName(), node, file)
 			} else if (Node.isVariableStatement(node) && node.isExported()) {
-				for (const decl of node.getDeclarations()) add(decl.getName(), decl)
+				for (const decl of node.getDeclarations()) add(decl.getName(), decl, file)
 			}
 		}
 	}
 
 	return index
-}
-
-/**
- * Map every `{@link}`-addressable PascalCase declaration name to the source file
- * that declares it. The incremental extractor keys each barrel's cache on the
- * files its resolved links point at, so editing a linked target's source
- * re-extracts the barrels that link to it — cross-file links carry no import
- * edge, so directory ownership alone would leave those summaries stale.
- */
-export function buildLinkTargetFiles(project: Project): Map<string, string> {
-	const files = new Map<string, string>()
-
-	for (const [name, { file }] of buildIndex(project)) files.set(name, file)
-
-	return files
 }
 
 /** Turn an indexed symbol into the hover card's signature header and summary. */

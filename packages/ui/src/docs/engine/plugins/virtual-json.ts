@@ -81,7 +81,9 @@ export function virtualJsonModules(specs: (VirtualJsonSpec | VirtualJsonFamilySp
 	const fixedByResolved = new Map(fixed.map((e) => [e.resolved, e]))
 
 	// Serialize the manifest's key thunks. Each specifier is a string literal, so
-	// Rollup code-splits `${prefix}${key}` into its own chunk.
+	// Rollup code-splits `${prefix}${key}` into its own chunk. Naming the keys
+	// needs the whole record, so a family whose `generate` is expensive pays it in
+	// full on the first manifest read.
 	function renderManifest(fam: FamilyEntry): string {
 		fam.record ??= fam.spec.generate()
 

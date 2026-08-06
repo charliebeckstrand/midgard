@@ -14,7 +14,7 @@ import {
 	readPublicExports,
 	unwrapFunctionLike,
 } from './find-components'
-import { createLinkResolver } from './link-resolver'
+import { createLinkIndex } from './link-resolver'
 
 /**
  * The two documented roots and the key prefix each barrel takes. Components key
@@ -25,6 +25,15 @@ export const DOCUMENTED_ROOTS = [
 	['components', ''],
 	['modules', 'modules-'],
 ] as const
+
+/**
+ * The `tsconfig.json` a Project for `srcDir` opens, one level above it. The
+ * docs benchmarks A/B alternative constructions against {@link openProject},
+ * and that comparison only holds while both sides open the same config.
+ */
+export function tsConfigPathFor(srcDir: string): string {
+	return path.resolve(srcDir, '..', 'tsconfig.json')
+}
 
 /** One documentable barrel: its result key and the `index.ts` that exports it. */
 export type Barrel = { key: string; indexPath: string }
@@ -106,7 +115,7 @@ export function buildApi(srcDir: string): Record<string, ComponentApi[]> {
 
 	const checker = project.getTypeChecker().compilerObject
 
-	const resolveLink = createLinkResolver(project)
+	const { resolve: resolveLink } = createLinkIndex(project)
 
 	const result: Record<string, ComponentApi[]> = {}
 
@@ -128,10 +137,17 @@ export function buildApi(srcDir: string): Record<string, ComponentApi[]> {
  * dependencies pulls in exactly the project source the extractor and the
  * package-wide link index read, cutting the checker's eager work roughly in
  * half with byte-identical output.
+ *
+ * `resolveSourceFileDependencies` is the expensive half and looks like the next
+ * thing to cut. Do not cut it. It alone pulls `primitives`, `hooks`, and `core`
+ * into the project, and the link index walks `project.getSourceFiles()`, so
+ * every cross-root TSDoc link loses its hover card without it. A wider seed is
+ * no help either — measured over alternating cold processes, the two are within
+ * noise. See `project-construction.bench.ts`.
  */
 export function openProject(srcDir: string): Project {
 	const project = new Project({
-		tsConfigFilePath: path.resolve(srcDir, '..', 'tsconfig.json'),
+		tsConfigFilePath: tsConfigPathFor(srcDir),
 		skipAddingFilesFromTsConfig: true,
 	})
 

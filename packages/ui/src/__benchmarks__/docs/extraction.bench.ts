@@ -1,8 +1,9 @@
 // @vitest-environment node
 
 import path from 'node:path'
-import { Project, type ts } from 'ts-morph'
+import type { ts } from 'ts-morph'
 import { bench, describe } from 'vitest'
+import { openProject } from '../../docs/engine/api-reference/engine/build-api'
 import { extractDefaults } from '../../docs/engine/api-reference/engine/extract-defaults'
 import { extractPassThrough } from '../../docs/engine/api-reference/engine/extract-passthrough'
 import { extractProjectPropNames } from '../../docs/engine/api-reference/engine/extract-project-props'
@@ -14,7 +15,8 @@ import {
 	unwrapFunctionLike,
 } from '../../docs/engine/api-reference/engine/find-components'
 import { formatPropType } from '../../docs/engine/api-reference/engine/format-type'
-import { createLinkResolver } from '../../docs/engine/api-reference/engine/link-resolver'
+import { createLinkIndex } from '../../docs/engine/api-reference/engine/link-resolver'
+import { srcDir } from './paths'
 
 // Micro-benchmarks for the per-component extraction seams `buildComponent`
 // (`build-api.ts`) fans out to, on one shared Project so setup cost is paid
@@ -22,13 +24,15 @@ import { createLinkResolver } from '../../docs/engine/api-reference/engine/link-
 // checker's caches for it — the numbers isolate extractor cost, not
 // first-resolution cost, which `build-api.bench.ts` covers end to end.
 
-const srcDir = path.resolve(import.meta.dirname, '..', '..')
-
-const project = new Project({ tsConfigFilePath: path.resolve(srcDir, '..', 'tsconfig.json') })
+// `openProject`, not a tsconfig-wide Project: the tsconfig include resolves
+// 1864 files against production's 1197, and the link-index walk is proportional
+// to `project.getSourceFiles()`. Measuring it on the wider project overstates
+// the one quantity this file is cited for.
+const project = openProject(srcDir)
 
 const checker = project.getTypeChecker().compilerObject
 
-const resolveLink = createLinkResolver(project)
+const { resolve: resolveLink } = createLinkIndex(project)
 
 /**
  * Everything `buildComponent` derives before calling the extractors, resolved
@@ -66,8 +70,7 @@ function componentSeam(indexRelPath: string, name: string): Seam {
 // Button: a typical annotated component. Heading: spreads
 // `ComponentPropsWithoutRef`, the shape that inflates `collectAllProperties`
 // with ~250 inherited HTML props. Combobox: the widest extractable surface
-// (24 props). Grid itself doesn't resolve — `memo(GridImpl) as typeof
-// GridImpl` defeats `findComponent`; see the 2026-07-13 docs perf audit.
+// (24 props).
 const button = componentSeam('components/button/index.ts', 'Button')
 
 const heading = componentSeam('components/heading/index.ts', 'Heading')
@@ -133,12 +136,16 @@ describe('docs: annotation extractors', () => {
 })
 
 describe('docs: link resolver', () => {
-	// Index construction iterates every program file; low fixed iterations.
+	// Index construction iterates every program file; low fixed iterations. One
+	// build serves both the resolver and the target-file map, so this is the whole
+	// per-pass link cost, not half of it. ts-morph caches statement wrappers on
+	// the Project, so the first calls run hot — warm up past them or the number
+	// reads high.
 	bench(
-		'createLinkResolver (index build)',
+		'createLinkIndex (index build)',
 		() => {
-			createLinkResolver(project)
+			createLinkIndex(project)
 		},
-		{ warmupIterations: 1, warmupTime: 0, iterations: 5, time: 0 },
+		{ warmupIterations: 3, warmupTime: 0, iterations: 5, time: 0 },
 	)
 })
