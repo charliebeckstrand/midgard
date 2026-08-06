@@ -116,7 +116,11 @@ export type GridEditableConfig = {
 	 * session that closes the rest. A session narrows the one row it sits on, so a
 	 * row opened beside it stays whole. It also gives that row back when it moves
 	 * on: a row the session found in `rows` returns to its row-shaped state, and
-	 * only a row the session added to `rows` itself leaves with it.
+	 * only a row the session added to `rows` itself leaves with it. The held cell
+	 * carries a save and a discard control beside its editor, because the grid
+	 * owns this session and nothing else on screen ends it. Row scope shows none:
+	 * its settle control is the consumer's own row action, at the granularity that
+	 * matches.
 	 * @defaultValue 'row'
 	 */
 	scope?: 'row' | 'cell'

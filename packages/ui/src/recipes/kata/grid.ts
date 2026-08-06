@@ -784,6 +784,10 @@ export const k = {
 		host: 'relative flex w-full items-center',
 		// The in-cell control fills the cell width.
 		input: 'w-full',
+		// The settle pair a cell-scoped session shows beside its editor: save and
+		// discard, sized to sit inside the cell without pushing the control narrow.
+		settle: 'ml-1 flex shrink-0 items-center gap-0.5',
+		settleButton: 'p-0.5',
 		// A failed validation rings the editor and anchors a small message below it.
 		errorRing: ['ring-2 ring-inset', ...mode('ring-red-600', 'dark:ring-red-500'), 'rounded-md'],
 		error: [

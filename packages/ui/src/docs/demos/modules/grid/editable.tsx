@@ -275,11 +275,10 @@ export function CellScopeExample() {
 	return (
 		<>
 			<EditHelp label="Editing help">
-				Double-click a cell (or press Enter on the cursor's cell) to edit that cell alone.
-				Double-clicking another cell saves the one you leave and moves along, and Escape discards
-				the cell you are in — the cells you already left stay saved. Enter saves a text or number
-				cell. Role and Active keep Enter for their own listbox menus, so those save by moving along
-				to another cell.
+				Double-click a cell (or press Enter on the cursor's cell) to edit that cell alone. The check
+				and cross beside the editor settle it either way, and Tab reaches them. Enter also saves a
+				text or number cell, and Escape discards from anywhere in the grid. Role and Active keep
+				Enter for their own listbox menus, so the check is their save.
 			</EditHelp>
 			<Grid
 				columns={personColumns}

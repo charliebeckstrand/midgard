@@ -1,9 +1,17 @@
 'use client'
 
+import { Check, X } from 'lucide-react'
 import { type ReactNode, useEffect, useId, useRef, useState } from 'react'
+import { Button } from '../../components/button'
+import { Icon } from '../../components/icon'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/grid'
-import { inferEditorKind, isCellEditing, isColumnEditable } from './engine/grid-editing-utilities'
+import {
+	inferEditorKind,
+	isCellEditing,
+	isColumnEditable,
+	isSameCell,
+} from './engine/grid-editing-utilities'
 import { GridEditInputs } from './grid-edit-inputs'
 import { type GridEditingSession, useGridEditingSession } from './grid-editing-context'
 import type { GridColumn } from './types'
@@ -22,7 +30,10 @@ type GridEditingCellProps<T> = {
 
 /** Props for the mounted editor: the cell plus the session's staging and exit callbacks. @internal */
 type GridCellEditorProps<T> = Omit<GridEditingCellProps<T>, 'render'> &
-	Pick<GridEditingSession, 'stageDraft' | 'unstageDraft' | 'endSession'>
+	Pick<GridEditingSession, 'stageDraft' | 'unstageDraft' | 'endSession'> & {
+		/** Whether this cell is the one a cell-scoped session holds; shows the settle pair. */
+		settling: boolean
+	}
 
 /**
  * A cell's in-place editor while its row is in edit mode. Owns its live display
@@ -43,6 +54,7 @@ function GridCellEditor<T>({
 	stageDraft,
 	unstageDraft,
 	endSession,
+	settling,
 }: GridCellEditorProps<T>) {
 	const seed = column.field != null ? row[column.field] : undefined
 
@@ -66,10 +78,14 @@ function GridCellEditor<T>({
 	// grid table's key surface, which every editor inherits without wiring.
 	const commitRow = endSession && (() => endSession(rowKey, 'save'))
 
-	const ariaLabel =
+	// Names the cell for every control in it, so the editor and the settle pair
+	// read as one thing to a screen reader rather than three unrelated widgets.
+	const label =
 		typeof column.title === 'string'
-			? `Edit ${column.title}, row ${rowIdx + 1}`
-			: `Edit row ${rowIdx + 1} column ${colIdx + 1}`
+			? `${column.title}, row ${rowIdx + 1}`
+			: `row ${rowIdx + 1} column ${colIdx + 1}`
+
+	const ariaLabel = `Edit ${label}`
 
 	const error = column.validate ? column.validate(draft, row) : null
 
@@ -88,6 +104,38 @@ function GridCellEditor<T>({
 	useEffect(() => {
 		if (hasError) messageRef.current?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
 	}, [hasError])
+
+	// The settle pair, shown on the one cell a cell-scoped session holds. Row
+	// scope leaves it off: the whole row edits at once there, and its settle
+	// control is the consumer's own row action, at the granularity that matches.
+	// Here the grid owns the session and nothing else on screen ends it, so this
+	// is the only visible way out — and the only keyboard commit an editor that
+	// spends its own Enter can have (WCAG 2.1.1), the listbox being the one that
+	// does.
+	const settle = settling && endSession && (
+		<span className={cn(k.edit.settle)}>
+			<Button
+				type="button"
+				variant="bare"
+				color="green"
+				aria-label={`Save ${label}`}
+				className={cn(k.edit.settleButton)}
+				onClick={() => endSession(rowKey, 'save')}
+			>
+				<Icon icon={<Check />} />
+			</Button>
+			<Button
+				type="button"
+				variant="bare"
+				color="red"
+				aria-label={`Discard ${label}`}
+				className={cn(k.edit.settleButton)}
+				onClick={() => endSession(rowKey, 'discard')}
+			>
+				<Icon icon={<X />} />
+			</Button>
+		</span>
+	)
 
 	const body = column.editCell ? (
 		column.editCell({
@@ -123,6 +171,8 @@ function GridCellEditor<T>({
 	return (
 		<span className={cn(k.edit.host, error && k.edit.errorRing)}>
 			{body}
+
+			{settle}
 
 			{error && (
 				<span ref={messageRef} id={errorId} role="alert" className={cn(k.edit.error)}>
@@ -169,6 +219,7 @@ export function GridEditingCell<T>({
 				stageDraft={stageDraft}
 				unstageDraft={unstageDraft}
 				endSession={endSession}
+				settling={isSameCell(activeEdit, { rowKey, columnId: column.id })}
 			/>
 		)
 	}

@@ -879,6 +879,48 @@ describe("Grid cell-scoped editing (scope: 'cell')", () => {
 		expect(allBySlot(acquired.container, 'grid-edit-input')).toHaveLength(1)
 	})
 
+	it('shows a settle pair on the cell it holds, and saves from it', () => {
+		const { container, cell, getByRole, onCommit } = renderCellGrid()
+
+		fireEvent.doubleClick(cell('name'))
+
+		fireEvent.change(bySlot(container, 'grid-edit-input') as HTMLInputElement, {
+			target: { value: 'Alicia' },
+		})
+
+		fireEvent.click(getByRole('button', { name: 'Save Name, row 1' }))
+
+		expect(onCommit).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'name', value: 'Alicia' }])
+
+		expect(bySlot(container, 'grid-edit-input')).toBeNull()
+	})
+
+	it('discards from the settle pair without committing', () => {
+		const { container, cell, getByRole, onCommit } = renderCellGrid()
+
+		fireEvent.doubleClick(cell('name'))
+
+		fireEvent.change(bySlot(container, 'grid-edit-input') as HTMLInputElement, {
+			target: { value: 'Discarded' },
+		})
+
+		fireEvent.click(getByRole('button', { name: 'Discard Name, row 1' }))
+
+		expect(onCommit).not.toHaveBeenCalled()
+
+		expect(bySlot(container, 'grid-edit-input')).toBeNull()
+	})
+
+	it('leaves the settle pair off row scope, whose row action settles instead', () => {
+		const { cell, queryByRole } = renderSessionGrid()
+
+		fireEvent.doubleClick(cell('name'))
+
+		// Row scope opens every cell at once, and its settle control is the
+		// consumer's row action. A pair per cell would compete with it.
+		expect(queryByRole('button', { name: 'Save Name, row 1' })).toBeNull()
+	})
+
 	it('does not revive a session the consumer ended from under it', () => {
 		function Harness() {
 			const [editing, setEditing] = useState<Set<string | number>>(new Set())

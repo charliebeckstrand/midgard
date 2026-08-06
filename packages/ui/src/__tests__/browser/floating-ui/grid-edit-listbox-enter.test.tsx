@@ -50,4 +50,34 @@ describe('listbox editor and Enter (real floating engine)', () => {
 		// And with Enter spent on opening, nothing has committed.
 		expect(onCommit).not.toHaveBeenCalled()
 	})
+
+	it('reaches the settle control by keyboard, which is the commit Enter cannot be', async () => {
+		const onCommit = vi.fn()
+
+		const view = renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={(r) => r.id}
+				editable={{ trigger: 'doubleClick', scope: 'cell', onCommit }}
+			/>,
+		)
+
+		await userEvent.dblClick(
+			view.container.querySelector('td[data-grid-col="done"]') as HTMLElement,
+		)
+
+		const trigger = await screen.findByRole('combobox')
+
+		trigger.focus()
+
+		// Tab walks forward out of the editor into the pair, in real tab order.
+		await userEvent.tab()
+
+		expect(screen.getByRole('button', { name: 'Save Done, row 1' })).toHaveFocus()
+
+		await userEvent.keyboard('{Enter}')
+
+		expect(view.container.querySelector('[data-slot="grid-edit-boolean-input"]')).toBeNull()
+	})
 })
