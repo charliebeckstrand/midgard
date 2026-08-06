@@ -3,6 +3,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 import { createApiExtractor } from '../../api-reference'
+import { aggregateHash } from '../../api-reference/engine/api-extractor'
 
 /**
  * Lay down a throwaway package the extractor can open: a `tsconfig.json` one
@@ -250,6 +251,23 @@ describe('createApiExtractor', () => {
 		const result = createApiExtractor(srcDir, { cacheDir }).getAll()
 
 		expect(result.foo?.[0]?.props.map((p) => p.name)).toEqual(['label', 'hidden'])
+	})
+
+	it('leaves the cache key alone when a file under __tests__ changes', () => {
+		const { srcDir } = fixture()
+
+		const before = aggregateHash(srcDir, new Map())
+
+		// A plain source name, so the directory alone excludes it. The walk prunes
+		// `__tests__` rather than descending and discarding, and the two rules must
+		// agree that nothing under there feeds a barrel.
+		const testsDir = path.join(srcDir, 'components', 'foo', '__tests__')
+
+		fs.mkdirSync(testsDir, { recursive: true })
+
+		fs.writeFileSync(path.join(testsDir, 'helpers.ts'), `export const helper = 1\n`)
+
+		expect(aggregateHash(srcDir, new Map())).toBe(before)
 	})
 
 	it('moves the disk cache key when notifyChanged reports a same-session edit', () => {

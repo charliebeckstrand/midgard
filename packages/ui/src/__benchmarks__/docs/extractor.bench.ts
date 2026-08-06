@@ -34,8 +34,13 @@ const cacheDir = mkdtempSync(path.join(tmpdir(), 'api-bench-'))
 createApiExtractor(srcDir, { cacheDir }).getAll()
 
 // A warmed extractor whose Project stays alive, for the per-barrel incremental
-// path a live dev session hits.
-const warm = createApiExtractor(srcDir, { cacheDir: null })
+// path a live dev session hits. It gets a cache dir of its own, empty, so this
+// first pass misses and extracts in full — and so every later pass persists,
+// which is what the docs plugin pays. With `cacheDir: null` the extractor skips
+// the key and the snapshot, and the incremental figure below reads low.
+const warmCacheDir = mkdtempSync(path.join(tmpdir(), 'api-bench-warm-'))
+
+const warm = createApiExtractor(srcDir, { cacheDir: warmCacheDir })
 warm.getAll()
 
 describe('docs: buildApi extraction', () => {
@@ -93,6 +98,8 @@ describe('docs: aggregateHash (disk cache key)', () => {
 	)
 })
 
-// Vitest tears the worker down after the run; the temp cache dir goes with it,
-// but drop it eagerly when the process cooperates.
-process.on('exit', () => rmSync(cacheDir, { recursive: true, force: true }))
+// Vitest tears the worker down after the run; the temp cache dirs go with it,
+// but drop them eagerly when the process cooperates.
+process.on('exit', () => {
+	for (const dir of [cacheDir, warmCacheDir]) rmSync(dir, { recursive: true, force: true })
+})

@@ -63,6 +63,13 @@ const CACHE_VERSION = 4
 const CACHE_FILE = 'api.json'
 
 /**
+ * Directories that hold no barrel input. {@link isInputFile} rejects every path
+ * under them, so the walk prunes them instead of descending and discarding —
+ * they hold about a third of the files under this package's `src`.
+ */
+const SKIPPED_DIRS = new Set(['node_modules', 'docs', '__tests__', '__benchmarks__'])
+
+/**
  * A file that can feed a barrel's output: project source, never `node_modules`,
  * the docs site, or test/bench fixtures — production barrels never import those,
  * so tracking them would re-extract on every unrelated test edit.
@@ -77,7 +84,7 @@ function isInputFile(file: string): boolean {
 	return !/\.(test|bench|stories)\.tsx?$/.test(file)
 }
 
-/** Recursively collect every {@link isInputFile} path under `dir`. */
+/** Recursively collect every {@link isInputFile} path under `dir`, past {@link SKIPPED_DIRS}. */
 function collectInputFiles(dir: string, out: string[] = []): string[] {
 	let entries: fs.Dirent[]
 
@@ -91,7 +98,7 @@ function collectInputFiles(dir: string, out: string[] = []): string[] {
 		const full = path.join(dir, entry.name)
 
 		if (entry.isDirectory()) {
-			if (entry.name !== 'node_modules' && entry.name !== 'docs') collectInputFiles(full, out)
+			if (!SKIPPED_DIRS.has(entry.name)) collectInputFiles(full, out)
 		} else if (entry.isFile() && isInputFile(full)) {
 			out.push(full)
 		}
@@ -418,7 +425,10 @@ export function createApiExtractor(
 	}
 
 	function persist(): void {
-		writeDisk(cacheDir, aggregateHash(srcDir, hashes), snapshot())
+		// Gate the arguments, not the write: both are whole-tree work — the key
+		// walks and hashes every input file, and the snapshot copies every barrel —
+		// and `writeDisk` would discard them.
+		if (cacheDir) writeDisk(cacheDir, aggregateHash(srcDir, hashes), snapshot())
 	}
 
 	return {
@@ -486,13 +496,7 @@ function readDisk(cacheDir: string | null): DiskCache | null {
 	}
 }
 
-function writeDisk(
-	cacheDir: string | null,
-	hash: string,
-	record: Record<string, ComponentApi[]>,
-): void {
-	if (!cacheDir) return
-
+function writeDisk(cacheDir: string, hash: string, record: Record<string, ComponentApi[]>): void {
 	const payload: DiskCache = { version: CACHE_VERSION, hash, record }
 
 	try {
