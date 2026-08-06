@@ -309,6 +309,84 @@ describe('Grid per-row editing', () => {
 		expect(liveRegion()).toHaveTextContent('1 cell updated')
 	})
 
+	it('drops a staged value for a column that locked while its editor was open', () => {
+		const onCommit = vi.fn()
+
+		function Harness() {
+			const [locked, setLocked] = useState(false)
+
+			const [editing, setEditing] = useState<Set<string | number>>(new Set([1]))
+
+			return (
+				<>
+					<button type="button" onClick={() => setLocked(true)}>
+						lock
+					</button>
+					<button type="button" onClick={() => setEditing(new Set())}>
+						save
+					</button>
+					<Grid
+						columns={[
+							{ ...sessionColumns[0], readOnly: locked } as GridColumn<SessionRow>,
+							sessionColumns[1] as GridColumn<SessionRow>,
+						]}
+						rows={sessionRows}
+						getKey={(row) => row.id}
+						editable={{ rows: editing, onRowsChange: setEditing, onCommit }}
+					/>
+				</>
+			)
+		}
+
+		const view = renderUI(<Harness />)
+
+		fireEvent.change(bySlot(view.container, 'grid-edit-input') as HTMLInputElement, {
+			target: { value: 'Alicia' },
+		})
+
+		fireEvent.click(view.getByRole('button', { name: 'lock' }))
+
+		fireEvent.click(view.getByRole('button', { name: 'save' }))
+
+		// Locking closes the editor, so the value it held must not write either.
+		// The mount gate and the commit gate answer to the same `readOnly`.
+		expect(onCommit).not.toHaveBeenCalled()
+	})
+
+	it('announces nothing when the editing binding goes away with drafts staged', async () => {
+		function Harness() {
+			const [on, setOn] = useState(true)
+
+			return (
+				<>
+					<button type="button" onClick={() => setOn(false)}>
+						off
+					</button>
+					<Grid
+						columns={sessionColumns}
+						rows={sessionRows}
+						getKey={(row) => row.id}
+						editable={on ? { rows: new Set([1]), onCommit: vi.fn() } : undefined}
+					/>
+				</>
+			)
+		}
+
+		const view = renderUI(<Harness />)
+
+		fireEvent.change(bySlot(view.container, 'grid-edit-input') as HTMLInputElement, {
+			target: { value: 'Alicia' },
+		})
+
+		fireEvent.click(view.getByRole('button', { name: 'off' }))
+
+		await Promise.resolve()
+
+		// The sink went with the binding, so nothing committed. Announcing a save
+		// here would tell assistive tech something that did not happen.
+		expect(liveRegion()?.textContent ?? '').not.toContain('cell updated')
+	})
+
 	it('does not enter edit mode on a cell double-click in the default manual mode', () => {
 		const { container } = renderGrid()
 

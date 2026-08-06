@@ -71,6 +71,20 @@ Per CLAUDE.md §3.5: TSDoc on every `GridEditableConfig` addition in the same ch
 | 7 | Range + fill + paste (separate plan) | L |
 | 8 | New-row editor row | M |
 
+## Open correctness cluster — a draft can outlive its editor
+
+Found by an adversarial state-machine sweep during increment 2 and reproduced, but **not** introduced by it: each predates the trigger increment, and each needs a decision rather than an edit. They share one cause. A cell's draft is staged against `rowKey` and `columnId`, and the commit sweep asks whether the session still holds that cell — but an editor also unmounts for reasons the session knows nothing about.
+
+**A draft survives its editor and re-commits behind the next one.** Page away from an editing row and back, or let a consumer drop the row from `rows` and re-add it, and the editor re-seeds from the row while the draft is still staged. Saving then writes the old draft over a cell the user last saw holding the original value. This is the sharpest of the four, because the user reads one value and commits another.
+
+**A draft is dropped when its row leaves the render.** `flushRow` resolves the row through `rowKeys.indexOf` and returns nothing when it cannot, but the sweep has already taken the draft out of staging, so the value is consumed and discarded on the same pass. Paginate away from an editing row and save, and the edit is gone with no commit and no announcement.
+
+**A draft is dropped when its column leaves the render.** `flushRow` walks the visible data columns, so hiding a column mid-edit sweeps its draft without emitting it. The column axis of the row case above.
+
+**A declined entry keeps its pending focus.** The focus intent clears inside an effect keyed on the session, so a controlled binding that refuses a grid entry — a permission or dirty guard — changes neither dep, the effect never runs, and the intent survives to steal focus at the next unrelated open. The comment at that effect promises the opposite.
+
+The decision the first three need: the sweep treats a closed editor as a commit, which is right when the session closed it and wrong when the render did. Virtualization already relies on the current behaviour — a row scrolled out of the window unmounts its editors and must *not* commit — so "editor unmounted" cannot become the trigger. What is missing is a way to tell the two apart, and where a draft belongs when its cell is no longer on screen. That question wants settling before increment 5's async commit, which adds a third state (in flight) over the same drafts.
+
 ## Open API questions — surfaced, not decided
 
 Two shapes on the public surface are worth settling before increment 3, and both are a maintainer's call rather than a refactor.

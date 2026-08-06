@@ -14,7 +14,12 @@ import { useControllable } from '../../hooks'
 import { focusWithoutReveal } from '../../hooks/use-truncation'
 import { describeCommit } from './engine/grid-announcements'
 import { EMPTY_SET } from './engine/grid-constants'
-import { type GridActiveEdit, isCellEditing, isSameCell } from './engine/grid-editing-utilities'
+import {
+	type GridActiveEdit,
+	isCellEditing,
+	isColumnEditable,
+	isSameCell,
+} from './engine/grid-editing-utilities'
 import type { GridEditingSession } from './grid-editing-context'
 import type { CellChange, GridEditableConfig } from './grid-editing-types'
 import type { GridColumn } from './types'
@@ -87,6 +92,11 @@ function flushRow<T>(args: {
 	for (const col of args.columns) {
 		if (!args.drafts.has(col.id)) continue
 
+		// A column can lock while its editor is open. The mount predicate closes
+		// that editor on the next render, so the staged value must not write either
+		// — the two gates answer to the same `readOnly`.
+		if (!isColumnEditable(col)) continue
+
 		const value = args.drafts.get(col.id)
 
 		const original = col.field != null ? row[col.field] : undefined
@@ -104,6 +114,8 @@ function flushRow<T>(args: {
 /**
  * Commits every staged cell whose editor has closed, one `onCommit` batch per
  * row, and returns the cells saved across them (for the commit announcement).
+ * A row with no sink to reach counts nothing, so the announcement never speaks a
+ * commit that did not happen.
  * Takes each committed draft out of the staging map on the way, and drops a row's
  * map once nothing is left in it; a still-open cell's draft stays staged.
  *
@@ -161,9 +173,9 @@ function flushClosedCells<T>(args: {
 			rowKeys: args.rowKeys,
 		})
 
-		if (!changes.length) continue
+		if (!changes.length || !args.onCommit) continue
 
-		args.onCommit?.(changes)
+		args.onCommit(changes)
 
 		saved += changes.length
 	}
