@@ -6,9 +6,8 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
 import { PIN_RADIUS, POINT_HIT_RADIUS, ROUTE_HIT_WIDTH, ROUTE_STROKE_WIDTH } from './map-constants'
 import { MapDot } from './map-dot'
-import { linePath } from './map-geometry'
+import { lineAnchor, linePath } from './map-geometry'
 import { MARKER_DRAW, MARKER_END_POP, POINT_POP } from './map-motion'
-import { lineAnchor } from './map-route'
 import type { LngLat } from './types'
 import { type MapOverlayProps, useMapOverlay } from './use-map-overlay'
 
@@ -44,7 +43,12 @@ export type MapMarkerProps = MapOverlayProps & {
  * omitted; the connector still draws through the surviving geometry.
  */
 export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
-	const points = path && path.length > 0 ? path : [start, end]
+	// Memoised on the caller's own refs: the straight start→end fallback is a
+	// fresh array on every render, and this feeds the projection memo below as a
+	// dependency — built inline, that memo would never hold, and a marker with no
+	// routed path would re-project and re-stringify on every pointed-mark
+	// crossing.
+	const points = useMemo(() => (path && path.length > 0 ? path : [start, end]), [path, start, end])
 
 	const { slot, hidden, project, animate, dim, onPointerLeave, hit } = useMapOverlay({
 		...shared,

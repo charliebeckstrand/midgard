@@ -13,7 +13,17 @@ import { type ChartColorSlot, k as chart } from './chart'
 /** A named map mark colour: the chart module's eight categorical slots plus `zinc`. */
 export type MapSeriesColor = ChartColorSlot
 
+/** The map's one pointer affordance, shared by the region layer and the overlay marks. */
+const CLICKABLE = 'cursor-pointer'
+
 export const k = {
+	/**
+	 * The pointer affordance on a mark that answers a click: an overlay's hit
+	 * shape, which carries it per shape because a mark draws at most three, where
+	 * the region layer rides one group over thousands of paths (`region.clickable`,
+	 * the same token).
+	 */
+	clickable: CLICKABLE,
 	/** Shared data-viz palette: same slots, same order, same validation as `kata/chart`. */
 	series: chart.series,
 	order: chart.order,
@@ -32,9 +42,11 @@ export const k = {
 		/**
 		 * The pointer affordance on a clickable map's region layer — every
 		 * region is a target, so it rides the group and inherits down rather
-		 * than repeating on thousands of paths.
+		 * than repeating on thousands of paths. The same token as the shared
+		 * {@link k.clickable} an overlay mark carries; kept here so the region
+		 * layer reads its affordance beside its other paint.
 		 */
-		clickable: 'cursor-pointer',
+		clickable: CLICKABLE,
 		/**
 		 * The pointed region's lit copy carries the hover emphasis statically:
 		 * it is the hovered region by definition, and `:hover` can't reach the

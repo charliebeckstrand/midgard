@@ -177,6 +177,73 @@ describe('overlay keyboard reach', () => {
 		expect(tooltip?.textContent).toContain('12')
 	})
 
+	it('takes a tab stop for a clickable mark even with no readout', () => {
+		// tooltip={false} with an overlay onClick and no onRegionClick is still a
+		// picker. Gating the tab stop on the region half alone would leave it
+		// unreachable by keyboard.
+		const onClick = vi.fn()
+
+		const { container } = renderUI(
+			<MapPlat aria-label="Fleet" geography={FIXTURE_GEOJSON} width={400} tooltip={false}>
+				<MapPoint id="yard" label="Yard" at={YARD} onClick={onClick} />
+			</MapPlat>,
+		)
+
+		boxed(container)
+
+		const plot = bySlot(container, 'map-plot') as Element
+
+		expect(plot).toHaveAttribute('tabindex', '0')
+
+		fireEvent.keyDown(plot, { key: 'End' })
+
+		fireEvent.keyDown(plot, { key: 'Enter' })
+
+		expect(onClick).toHaveBeenCalledWith('yard')
+	})
+
+	it('takes no tab stop for a mark that answers nothing', () => {
+		const { container } = renderUI(
+			<MapPlat aria-label="Fleet" geography={FIXTURE_GEOJSON} width={400} tooltip={false}>
+				<MapPoint id="yard" label="Yard" at={YARD} />
+			</MapPlat>,
+		)
+
+		expect(bySlot(container, 'map-plot')).not.toHaveAttribute('tabindex')
+	})
+
+	it('skips a mark the legend has toggled off', () => {
+		// A hidden overlay unmounts its shapes but keeps its registration. Without
+		// the gate the cursor would stand on a mark that draws nothing, read it
+		// out, and pick it.
+		const onClick = vi.fn()
+
+		const { container } = renderUI(
+			plat(<MapPoint id="yard" label="Yard" at={YARD} onClick={onClick} />),
+		)
+
+		boxed(container)
+
+		const plot = bySlot(container, 'map-plot') as Element
+
+		fireEvent.keyDown(plot, { key: 'End' })
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Yard')
+
+		// Toggle the entry off through its legend button, then re-enter the map.
+		fireEvent.click(bySlot(container, 'map-legend-item') as Element)
+
+		fireEvent.keyDown(plot, { key: 'Escape' })
+
+		fireEvent.keyDown(plot, { key: 'End' })
+
+		fireEvent.keyDown(plot, { key: 'Enter' })
+
+		expect(onClick).not.toHaveBeenCalled()
+
+		expect(bySlot(container, 'tooltip-content')?.textContent ?? '').not.toContain('Yard')
+	})
+
 	it('picks nothing on a mark that answers no click', () => {
 		const { container } = renderUI(plat(<MapPoint id="yard" label="Yard" at={YARD} />))
 

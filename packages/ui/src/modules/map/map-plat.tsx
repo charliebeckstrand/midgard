@@ -1303,8 +1303,8 @@ export function MapPlat<T = never>({
 	// (the US composite discards points outside its insets) is left out, so the
 	// cursor never lands somewhere the map does not draw.
 	const resolveStops = useCallback(
-		() => mapStops(cachedRegionCentroids(shape.features), entries, shape.project),
-		[shape.features, shape.project, entries],
+		() => mapStops(cachedRegionCentroids(shape.features), entries, hidden, shape.project),
+		[shape.features, shape.project, entries, hidden],
 	)
 
 	// Picks the mark the cursor sits on: a region through the caller's own
@@ -1329,11 +1329,17 @@ export function MapPlat<T = never>({
 	// cursor still isolates the region it sits on, which the pointed-mark context
 	// drives independently, so navigation stays legible.
 	//
+	// An overlay's own `onClick` counts too: a `tooltip={false}` plat whose only
+	// pick is a clickable `MapPoint` is still a picker, and gating on the region
+	// half alone would leave it unreachable.
+	//
 	// The drawn-frame test is what keeps a map with nothing to navigate — no
 	// geography yet, or a `deferPaint` frame still holding — from offering a stop
 	// that answers no key. It reads the frame rather than the stops themselves,
 	// so the gate stays O(1) and the centroids stay unresolved.
-	const navigable = (tooltip || onRegionClick !== undefined) && shape.viewWidth > 0
+	const pickable = onRegionClick !== undefined || entries.some((entry) => entry.activate)
+
+	const navigable = (tooltip || pickable) && shape.viewWidth > 0
 
 	const numeric = valueKey !== undefined
 

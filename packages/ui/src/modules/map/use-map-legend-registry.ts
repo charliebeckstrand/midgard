@@ -8,14 +8,18 @@ import type { LngLat } from './types'
 export type MapOverlayKind = 'route' | 'point' | 'marker'
 
 /**
- * One overlay's legend registration: its identity, name, swatch shape, and
- * optional colour override and trailing detail. The surface resolves slot
- * colours across the registered order, after the region categories.
+ * One overlay mark's registration: what the legend draws for it, and what the
+ * keyboard cursor needs to stand on it. The plat resolves slot colours across
+ * the registered order, after the region categories.
+ *
+ * The ledger is one list rather than two. A second registry for the cursor would
+ * double the state commits per mark and split one identity across two lists that
+ * must hold the same order — so the legend and the cursor read the same entry.
  *
  * @internal
  */
 export type MapOverlayEntry = {
-	/** Stable per-instance id (`useId`-derived); re-registering replaces in place. */
+	/** The mark's identity: its caller-supplied `id`, else a generated one. Re-registering replaces in place. */
 	id: string
 	/** Legend and tooltip name. */
 	label: string

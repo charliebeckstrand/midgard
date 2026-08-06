@@ -279,6 +279,36 @@ export function linePath(
 }
 
 /**
+ * The geographic middle of a line of points — where a line-shaped mark anchors
+ * its keyboard stop, so the cursor lands on the mark rather than at one end,
+ * where several routes out of one depot would stack on the shared origin.
+ *
+ * An odd count takes its middle point; an even one takes the midpoint of the two
+ * middle points, so the common two-point line (a `MapMarker` with no routed
+ * path, a two-stop `MapRoute`) anchors between its ends rather than on one of
+ * them. Interpolated in lon/lat rather than on the projected plane: the anchor
+ * only has to sit on the mark, and this way it needs no projection to compute
+ * and survives every refit.
+ *
+ * @internal
+ */
+export function lineAnchor(points: LngLat[]): LngLat | null {
+	const half = points.length / 2
+
+	if (points.length === 0) return null
+
+	if (points.length % 2 === 1) return points[Math.floor(half)] ?? null
+
+	const before = points[half - 1]
+
+	const after = points[half]
+
+	if (before === undefined || after === undefined) return null
+
+	return [(before[0] + after[0]) / 2, (before[1] + after[1]) / 2]
+}
+
+/**
  * A dot's SVG path: a zero-length segment whose round cap paints the circle.
  * Drawn as a stroke — not a `<circle>` — because only stroke width can ride
  * device pixels (`vector-effect="non-scaling-stroke"`); a radius scales with

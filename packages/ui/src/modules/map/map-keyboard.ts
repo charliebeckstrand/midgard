@@ -1,34 +1,38 @@
 /**
- * Pure cursor math for the map module's keyboard navigation: the compass step
- * over projected region centroids. Kept React-free beside `map-geometry.ts` and
- * `map-projection.ts`, so the math is unit-testable in isolation. The
- * frame-to-client conversion the cursor anchors through is projection math, and
- * lives with the rest of it in `map-projection.ts`.
+ * Pure cursor math for the map module's keyboard navigation: the stop list the
+ * cursor walks, and the compass step across it. Kept React-free beside
+ * `map-geometry.ts` and `map-projection.ts`, so the math is unit-testable in
+ * isolation. The frame-to-client conversion the cursor anchors through is
+ * projection math, and lives with the rest of it in `map-projection.ts`.
  */
 
+import type { MapHoverTarget } from './context'
 import type { MapPoint2D } from './map-geometry'
 import type { LngLat } from './types'
+import type { MapOverlayEntry } from './use-map-legend-registry'
 
 /**
  * One place the keyboard cursor can stand, in frame coordinates: a region at its
  * centroid, or an overlay mark at its own anchor. The list is flat and already
- * filtered — a region the geometry dropped, or a mark the projection has no
- * image for, never becomes a stop — so the cursor steps geography and overlays
- * as one field, the way the pointer crosses them.
+ * filtered — a region the geometry dropped, a mark the projection has no image
+ * for, and a mark the legend has toggled off never become stops — so the cursor
+ * steps geography and overlays as one field, the way the pointer crosses them,
+ * and only ever stands where the map draws.
+ *
+ * The target is {@link MapHoverTarget} itself, not a copy of its shape: the hook
+ * hands it straight to the hover context, so a third mark kind must reach both
+ * or neither. The import is type-only, so it costs this module's React-free rule
+ * nothing.
  *
  * @internal
  */
 export type MapStop = {
-	/** What the stop reports as the hover target — the plat resolves what to do with it. */
-	target: { kind: 'region'; index: number } | { kind: 'entry'; id: string }
+	target: MapHoverTarget
 	at: MapPoint2D
 }
 
-/** As much of a registered overlay as a stop needs: its identity and its anchor. @internal */
-type MapAnchoredEntry = {
-	id: string
-	anchorAt?: () => LngLat | null
-}
+/** As much of a registered mark as a stop needs. @internal */
+type MapAnchoredEntry = Pick<MapOverlayEntry, 'id' | 'anchorAt'>
 
 /**
  * The cursor's stop list: every region at its centroid, then every registered
@@ -36,15 +40,19 @@ type MapAnchoredEntry = {
  * so Home and End read as the geography's own ends and the marks drawn over it
  * follow.
  *
- * A stop the projection has no image for is left out — the US composite drops
- * points outside its insets — so the cursor never lands where the map draws
- * nothing, and the list needs no sparse slots.
+ * Three things keep a stop out, and each is a place the map draws nothing: a
+ * region whose geometry carries no centroid, a mark the projection has no image
+ * for (the US composite drops points outside its insets), and a mark the legend
+ * has toggled off, which unmounts its shapes while its registration stands. A
+ * toggled-off region is not one of them — it still paints, in the neutral
+ * fill — so the geography stays whole under the cursor.
  *
  * @internal
  */
 export function mapStops(
 	centroids: (LngLat | null)[],
 	entries: readonly MapAnchoredEntry[],
+	hidden: ReadonlySet<string>,
 	project: (position: LngLat) => MapPoint2D | null,
 ): MapStop[] {
 	const stops: MapStop[] = []
@@ -56,6 +64,8 @@ export function mapStops(
 	}
 
 	for (const entry of entries) {
+		if (hidden.has(entry.id)) continue
+
 		const at = entry.anchorAt?.() ?? null
 
 		const point = at === null ? null : project(at)
@@ -135,7 +145,11 @@ function bears(dx: number, dy: number, action: MapCompassAction): boolean {
  *
  * @internal
  */
-export function stepStop(stops: MapStop[], from: number, action: MapCompassAction): number | null {
+export function stepNearest(
+	stops: MapStop[],
+	from: number,
+	action: MapCompassAction,
+): number | null {
 	const origin = stops[from]
 
 	if (!origin) return null
@@ -169,15 +183,8 @@ export function stepStop(stops: MapStop[], from: number, action: MapCompassActio
 export type MapCursorMove = {
 	/** True when the key drove navigation, so the caller suppresses the browser default. */
 	handled: boolean
-	/** Index into the stop list, or `null` to clear the cursor. */
-	stop: number | null
-}
-
-/** The first stop, or `null` when there is nothing to navigate. */
-function edge(stops: MapStop[], dir: 1 | -1): number | null {
-	if (stops.length === 0) return null
-
-	return dir === 1 ? 0 : stops.length - 1
+	/** The stop the cursor lands on, or `null` to clear it. Meaningless unless `handled`. */
+	stop: MapStop | null
 }
 
 /**
@@ -189,22 +196,28 @@ function edge(stops: MapStop[], dir: 1 | -1): number | null {
  * ends of the list, which the plat orders geography-first. Unhandled keys pass
  * through untouched.
  *
+ * Takes the cursor's position in the list and hands back the stop itself, so no
+ * caller converts between the two: the index is this module's own coordinate
+ * system, and it does not leak.
+ *
  * @internal
  */
 export function moveMapCursor(cursor: number | null, key: string, stops: MapStop[]): MapCursorMove {
 	const action = keyAction(key)
 
-	if (action === null) return { handled: false, stop: cursor }
+	if (action === null) return { handled: false, stop: null }
+
+	const at = (index: number | null) => (index === null ? null : (stops[index] ?? null))
 
 	if (action === 'clear') return { handled: true, stop: null }
 
-	if (action === 'first') return { handled: true, stop: edge(stops, 1) }
+	if (action === 'first') return { handled: true, stop: at(0) }
 
-	if (action === 'last') return { handled: true, stop: edge(stops, -1) }
+	if (action === 'last') return { handled: true, stop: at(stops.length - 1) }
 
 	const base = cursor !== null && stops[cursor] ? cursor : null
 
-	if (base === null) return { handled: true, stop: edge(stops, 1) }
+	if (base === null) return { handled: true, stop: at(0) }
 
-	return { handled: true, stop: stepStop(stops, base, action) ?? base }
+	return { handled: true, stop: at(stepNearest(stops, base, action) ?? base) }
 }

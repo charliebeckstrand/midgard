@@ -7,6 +7,11 @@ import type { MapPoint2D } from './map-geometry'
 import { isMapActivateKey, type MapStop, moveMapCursor } from './map-keyboard'
 import { frameToClient } from './map-projection'
 
+/** A stop's mark as one string, so the cursor's position resolves through a map rather than a scan. @internal */
+function stopKey(target: MapHoverTarget): string {
+	return target.kind === 'region' ? `r${target.index}` : `e${target.id}`
+}
+
 /** The handlers {@link useMapKeyboard} spreads onto the plot region to make it a navigable tab stop. @internal */
 export type MapKeyboardProps = {
 	tabIndex: 0
@@ -82,24 +87,30 @@ export function useMapKeyboard({
 
 	// The resolver's last result, held until a refit or a registration hands over
 	// a new resolver. Keyed on the resolver's own identity, so there is no second
-	// dependency to keep in step.
-	const held = useRef<{ from: () => MapStop[]; value: MapStop[] } | null>(null)
+	// dependency to keep in step. The index beside it turns the cursor's mark back
+	// into its position in O(1): a county atlas holds three thousand stops, and
+	// this is read on every render while a cursor is live.
+	const held = useRef<{ from: () => MapStop[]; value: MapStop[]; where: Map<string, number> }>(null)
 
 	const stops = (): MapStop[] => {
 		if (held.current?.from !== resolveStops) {
-			held.current = { from: resolveStops, value: resolveStops() }
+			const value = resolveStops()
+
+			const where = new Map(value.map((stop, index) => [stopKey(stop.target), index]))
+
+			held.current = { from: resolveStops, value, where }
 		}
 
 		return held.current.value
 	}
 
 	/** Where `cursor` stands in the current stop list, or `null` once it has left it. */
-	const at = (list: MapStop[]): number | null => {
+	const at = (): number | null => {
 		if (cursor === null) return null
 
-		const index = list.findIndex((stop) => sameTarget(stop.target, cursor))
+		stops()
 
-		return index === -1 ? null : index
+		return held.current?.where.get(stopKey(cursor)) ?? null
 	}
 
 	// The frame point the readout last anchored to. A keypress anchors directly,
@@ -109,12 +120,16 @@ export function useMapKeyboard({
 	const anchored = useRef<MapPoint2D | null>(null)
 
 	const show = (stop: MapStop | null) => {
-		setCursor(stop?.target ?? null)
+		// Every resolve mints fresh target objects, so hold the previous one where
+		// it names the same mark: the cursor is a dependency of the effects below,
+		// and a refit frame would otherwise re-run them all for a mark that has not
+		// moved.
+		setCursor((prev) => (sameTarget(prev, stop?.target ?? null) ? prev : (stop?.target ?? null)))
 
 		const svg = svgRef.current
 
 		const point =
-			stop === undefined || stop === null || svg === null
+			stop === null || svg === null
 				? null
 				: frameToClient(stop.at, svg.getBoundingClientRect(), view.width, view.height)
 
@@ -140,7 +155,9 @@ export function useMapKeyboard({
 	// A refit reprojects every stop, so the readout would otherwise sit at the
 	// pre-resize position until the next keypress. Watched through the cursor's
 	// own stop, and only where it actually moved.
-	const current = cursor === null ? null : (stops()[at(stops()) ?? -1] ?? null)
+	const index = at()
+
+	const current = index === null ? null : (stops()[index] ?? null)
 
 	const moved =
 		current !== null &&
@@ -167,15 +184,13 @@ export function useMapKeyboard({
 			return
 		}
 
-		const list = stops()
-
-		const move = moveMapCursor(at(list), event.key, list)
+		const move = moveMapCursor(at(), event.key, stops())
 
 		if (!move.handled) return
 
 		event.preventDefault()
 
-		show(move.stop === null ? null : (list[move.stop] ?? null))
+		show(move.stop)
 
 		if (move.stop === null) exit(event.currentTarget)
 	}

@@ -67,8 +67,6 @@ type MapOverlayConfig = MapOverlayProps & {
 
 /** The resolved plat state and DOM props an overlay draws itself from. @internal */
 export type MapOverlay = {
-	/** The resolved identity: the caller's `id`, else this mark's generated one. */
-	id: string
 	/** The slot colour, `undefined` until registration lands — the mark renders nothing meanwhile. */
 	slot: MapSeriesColor | undefined
 	/** Whether the legend has toggled this mark off. */
@@ -141,7 +139,15 @@ export function useMapOverlay({
 
 	const anchorAt = useCallback(() => live.current.anchor, [])
 
-	const activate = useCallback(() => live.current.onClick?.(id), [id])
+	const pick = useCallback(() => live.current.onClick?.(id), [id])
+
+	// Registered only where the mark answers a pick, so its presence is the
+	// question the plat's tab-stop gate asks. The handler itself still rides the
+	// ref — this depends on whether there is one, a boolean that changes only when
+	// a consumer adds or drops the prop.
+	const pickable = onClick !== undefined
+
+	const activate = pickable ? pick : undefined
 
 	useEffect(
 		() => register({ id, label, kind, swatch, color, detail, anchorAt, activate }),
@@ -153,7 +159,6 @@ export function useMapOverlay({
 	}
 
 	return {
-		id,
 		slot: colors.get(id),
 		hidden: hidden.has(id),
 		project,
@@ -163,7 +168,7 @@ export function useMapOverlay({
 		onPointerLeave: () => set(null, null),
 		hit: {
 			'data-entry-id': id,
-			className: onClick === undefined ? undefined : cn(k.region.clickable),
+			className: pickable ? k.clickable : undefined,
 			onPointerEnter: track,
 			onPointerMove: track,
 			onClick: onClick === undefined ? undefined : () => onClick(id),

@@ -24,6 +24,8 @@ Three optimisations hold the mount cost down, and four browser benches gate them
 
 In priority order. Each entry names the gap, the shape of the fix, and where it lands.
 
+- **An overlay pick in the readout.** `selectedRegion` rings a region and marks its table row `aria-current`, so a region pick reaches a screen reader. An overlay pick reaches nothing: `MapTableProps.selected` is a region index, and the plat has no selected-overlay concept. Now that a mark answers a click and the cursor can pick one, the table is the parity surface that has to show it. Two smaller divergences travel with it — the table lists marks the cursor cannot reach (no anchor, off-projection, toggled off), and a detail-less mark's value cell prints its kind (`point`) rather than what the readout says.
+
 - **A plural point overlay.** `useMapLegendRegistry` appends and re-sorts on each registration, and each overlay claims one legend entry. Two hundred stops therefore cost two hundred state commits, two hundred sorts, and two hundred legend rows against an eight-slot palette. Add `MapPoints`, which takes an array of positions under one entry and one registration.
 
 - **A numeric demo.** The map demo shows the categorical map, the routes, the points, the markers, the picker, and `animate`. It passes no `valueKey`, so `MapPlat`'s own numeric mode, its range legend, and `binning: 'quantile'` have no demo. Only the chart demo shows a choropleth, and it goes through `ChoroplethChart`.

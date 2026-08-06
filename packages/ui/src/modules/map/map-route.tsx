@@ -5,7 +5,7 @@ import { useMemo } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
 import { ROUTE_HIT_WIDTH, ROUTE_STROKE_WIDTH } from './map-constants'
-import { linePath } from './map-geometry'
+import { lineAnchor, linePath } from './map-geometry'
 import { ROUTE_DRAW } from './map-motion'
 import type { LngLat } from './types'
 import { type MapOverlayProps, useMapOverlay } from './use-map-overlay'
@@ -24,17 +24,6 @@ export type MapRouteProps = MapOverlayProps & {
 	 * an empty `path` (a totals-only routed leg) falls back to `stops`.
 	 */
 	path?: LngLat[]
-}
-
-/**
- * The geographic point a line-shaped mark anchors its keyboard stop to: the
- * middle of the drawn geometry, so the cursor lands on the route rather than at
- * one end, where a shared origin would stack several routes on one spot.
- *
- * @internal
- */
-export function lineAnchor(points: LngLat[]): LngLat | null {
-	return points[Math.floor(points.length / 2)] ?? null
 }
 
 /**
