@@ -52,7 +52,7 @@ Behaviour-neutral. Each removes a file, an export, or a layer.
   `grid-region.tsx:198`, `grid-column-manager.test.tsx:439`, and
   `browser/floating-ui/grid-column-manager-menu-dismiss.test.tsx:25` — all four render the dialog
   directly today. Neither symbol is on `modules/grid/index.ts`, and the rendered tree does not change.
-  Saving: 75 lines.
+  Saving: 75 lines. Resolved in #1061.
 
 - [x] **Delete the nine unread `ma` spacing axes.** The `ma` bundle publishes 16 keys. `stops`, `pl`,
   `pr`, `pt`, `pb`, `ml`, `mr`, `mt`, and `mb` have no reader in the monorepo; a grep for each returns
@@ -62,7 +62,7 @@ Behaviour-neutral. Each removes a file, an export, or a layer.
   Keep the module: `padding`, `margin`, and `gap` import the `Ma` type from it, and
   `recipes/index.ts:31` re-exports that type. Update the `ma` row at `docs/RECIPES.md:23`, which still
   advertises the raw `--spacing` numerals. `kiso` is internal and `./recipes` is absent from the
-  package.json `exports`. Saving: 74 lines.
+  package.json `exports`. Saving: 74 lines. Resolved in #1061.
 
 - [x] **Fold `primitive-recipe-boundary.test.ts` into `component-recipe-boundary.test.ts`.** The two
   boundary tests run the same scan for the same rule over different directories. `IMPORT_RE`
@@ -72,7 +72,7 @@ Behaviour-neutral. Each removes a file, an export, or a layer.
   `component-recipe-boundary.test.ts:22`, make the failure message name the offending path's layer, and
   delete the 76-line primitive file. Reword the four references at `recipes/index.ts:19-20`,
   `recipes/README.md:43-44`, `recipes/kata/README.md:7`, and `docs/RECIPES.md:100` in the same change.
-  Nothing imports either file. Saving: 70 lines.
+  Nothing imports either file. Saving: 70 lines. Resolved in #1061.
 
 - [x] **Delete `core/recipe/merge`.** `merge` (`core/recipe/merge.ts:12-20`) folds per-key class records
   into pre-merged variant-by-colour bundles. No production file calls it. The only importer is the barrel
@@ -82,7 +82,7 @@ Behaviour-neutral. Each removes a file, an export, or a layer.
   Delete `merge.ts`, the re-export, the 39-line test, the row at `docs/RECIPES.md:79`, and the mention at
   `recipes/README.md:13`. Nothing public moves: `core/index.ts` does not re-export `./recipe`, and
   package.json `exports` has no `./recipes` entry, which `recipe-boundary.test.ts:21-30` pins. Saving:
-  62 lines.
+  62 lines. Resolved in #1061.
 
 - [x] **Delete the duplicate `useComboboxTrigger` suite.** The 12-line hook has two full harnesses.
   `combobox-utilities.test.ts:111-169` is a second `describe('useComboboxTrigger')` with its own
@@ -91,7 +91,7 @@ Behaviour-neutral. Each removes a file, an export, or a layer.
   remaining differences are inert stubs and one needless `act`. Delete
   `combobox-utilities.test.ts:110-169` and the dead `useComboboxTrigger` import at `:4`, then narrow line
   1 to `renderHook`. The file then tests only `combobox-utilities.ts`, which is its subject. Coverage
-  after the change is larger, not smaller. Saving: 61 lines.
+  after the change is larger, not smaller. Saving: 61 lines. Resolved in #1061.
 
 - [x] **Merge the heatmap and choropleth context frames into one engine part.** `HeatmapContextFrame`
   (`heatmap-chart.tsx:850-890`) and `ChoroplethContextFrame` (`choropleth-chart.tsx:296-340`) are the
@@ -106,7 +106,7 @@ Behaviour-neutral. Each removes a file, an export, or a layer.
   into `ChartContextMenu` itself — the component that provides `ChartFullscreenContext`, so a host cannot
   forget to apply it. All three copies go, `ChartFrame` included, and no `ChartMenuFrame` exists. The
   invariant is now pinned on the shared component (`chart-context-menu.test.ts`) rather than in one chart
-  type's suite; disabling the gate turns both that test and the choropleth one red.
+  type's suite; disabling the gate turns both that test and the choropleth one red. Resolved in #1061.
 
 - [x] **Delete the three unused chart hit-test predicates.** `withinBarMarks`
   (`chart-hit-test.ts:96-111`), `nearSeriesLines` (`:208-222`), and `withinSeriesAreas` (`:277-291`) each
@@ -116,7 +116,7 @@ Behaviour-neutral. Each removes a file, an export, or a layer.
   test blocks, and `barMarkAt`, `nearestSeriesLine`, and `nearestSeriesArea` each already own a block in
   the same file (`chart-hit-test.test.ts:67,:95,:153`). Delete the three functions with their TSDoc,
   rewrite the three wrapper blocks at `:22`, `:182`, and `:221` as `!== null` assertions, and drop the
-  stale mention at `chart-geometry/bar.ts:86`. None of the three is on a barrel. Saving: 46 lines.
+  stale mention at `chart-geometry/bar.ts:86`. None of the three is on a barrel. Saving: 46 lines. Resolved in #1061.
 
 - [x] **Delete `createSkeleton`'s unreachable size clamp.** `sizeClassFor`
   (`placeholder-skeleton.ts:37-60`) clamps a sub-step size to the nearest key a recipe defines, but no
@@ -127,7 +127,7 @@ Behaviour-neutral. Each removes a file, an export, or a layer.
   `MA_ORDER` const with its comment (`:6-11`), replace the const with a plain `ResolvableSize` union, and
   collapse `:99-102` to one indexed read. `MA_ORDER` mirrors a spacing scale, not a component size axis,
   so no `size` prop can carry `xl`. The public `createSkeleton` signature does not change. Saving: 32
-  lines.
+  lines. Resolved in #1061.
 
 - [ ] **Collapse the eight pdf-viewer toolbar icon-buttons.** The toolbar family writes the same
   Tooltip / Trigger / Button / Icon scaffold eight times across 114 lines
@@ -158,7 +158,7 @@ Behaviour-neutral. Each removes a file, an export, or a layer.
   copy-plus-copy. `use-control-field-context.ts` is back, taking `autoComplete`, `disabled`, and
   `severity` as optional overrides: `ControlField` passes none, `Field` passes its three. `Control` stays
   out — its `required` takes the own prop with no parent fallback, so folding it too would change a
-  nested control. The saving is negative against this row and positive against the tree.
+  nested control. The saving is negative against this row and positive against the tree. Resolved in #1061.
 
 - [x] **Inline `resolveMount`.** `resolveMount(_fade, mount)` returns `mount ?? 'active'`
   (`current.ts:114-116`). The `fade` parameter is unused, and the doccomment keeps it only in case the two
@@ -167,7 +167,7 @@ Behaviour-neutral. Each removes a file, an export, or a layer.
   receives `mount` itself; `tab-contents.tsx:39` leaves `mount` undefaulted, so `:48` becomes `mount ===
   'always'`. Delete `current.ts:104-116` and both imports. The `'active'` default is already stated at
   `current.ts:115` and `current-contents.tsx:64`, so the helper adds drift risk instead of removing it.
-  The symbol is `@internal`, on no barrel, and 13 of its 18 lines are doccomment. Saving: 18 lines.
+  The symbol is `@internal`, on no barrel, and 13 of its 18 lines are doccomment. Saving: 18 lines. Resolved in #1061.
 
 - [x] **Replace Listbox's `resolveControlState` with `useControlProps`.** `listbox.tsx:127-132` returns
   `overrides.x ?? control?.x` for id, disabled, readOnly, and required, which `use-control-props.ts:89-93`
@@ -177,7 +177,7 @@ Behaviour-neutral. Each removes a file, an export, or a layer.
   with one `useControlProps` call that also yields `invalid` and the merged `aria-describedby`, pass that
   `invalid` at `:374`, keep `useControl()` for `control?.labelledBy` at `:394`, and drop `useAriaIds`
   from the import at `:14`. The cross-barrel import follows `input.tsx:11`, `textarea.tsx:10`, and
-  `slider.tsx:9`. Neither symbol is barrel-exported and nothing rendered changes. Saving: 16 lines.
+  `slider.tsx:9`. Neither symbol is barrel-exported and nothing rendered changes. Saving: 16 lines. Resolved in #1061.
 
 ## Needs care
 
@@ -422,9 +422,9 @@ writing the machinery twice.
 
 ## Landed
 
-Eleven of the twelve Ready findings are done, in six commits on `claude/ui-cleanup-audit-pxryra`.
-Replace this note with the pull-request citations on merge, per
-[CONVENTIONS.md](../../../../CONVENTIONS.md) §12.4; the checked rows above carry the detail.
+Eleven of the twelve Ready findings are done, in [#1061](https://github.com/charliebeckstrand/midgard/pull/1061).
+Each checked row above cites it and carries its own detail. Delete this file once the last row closes, per
+[CONVENTIONS.md](../../../../CONVENTIONS.md) §12.4 — the pull request holds the history.
 
 The branch removes 912 lines from `packages/ui/src` and adds 339, a net 573, against the 550 the tier
 estimated. Three of the six commits are `/simplify` passes over the branch's own diff rather than audit
