@@ -15,6 +15,14 @@ const sessionColumns: GridColumn<SessionRow>[] = [
 	{ id: 'count', title: 'Count', field: 'count', cell: (row) => String(row.count) },
 ]
 
+/** Every inferred editor mounted in the grid, across both editable columns. */
+function editorsIn(container: HTMLElement) {
+	return [
+		...allBySlot(container, 'grid-edit-input'),
+		...allBySlot(container, 'grid-edit-number-input'),
+	]
+}
+
 /**
  * Renders a grid whose edit sessions the grid owns, over the spies both
  * grid-owned suites assert on. `editable` takes the scope under test and any
@@ -618,6 +626,80 @@ describe("Grid cell-scoped editing (scope: 'cell')", () => {
 		expect(bySlot(container, 'grid-edit-input')).toHaveFocus()
 
 		expect(bySlot(container, 'grid-edit-number-input')).toBeNull()
+	})
+
+	it('narrows its own row only, leaving a consumer-opened sibling whole', () => {
+		function Harness() {
+			const [editing, setEditing] = useState<Set<string | number>>(new Set())
+
+			return (
+				<>
+					<button type="button" onClick={() => setEditing((prev) => new Set(prev).add(2))}>
+						edit-2
+					</button>
+					<Grid
+						columns={sessionColumns}
+						rows={sessionRows}
+						getKey={(row) => row.id}
+						editable={{
+							trigger: 'doubleClick',
+							scope: 'cell',
+							rows: editing,
+							onRowsChange: setEditing,
+							onCommit: vi.fn(),
+						}}
+					/>
+				</>
+			)
+		}
+
+		const view = renderUI(<Harness />)
+
+		fireEvent.doubleClick(
+			view.container.querySelectorAll('td[data-grid-col="name"]')[0] as HTMLElement,
+		)
+
+		expect(editorsIn(view.container)).toHaveLength(1)
+
+		fireEvent.click(view.getByRole('button', { name: 'edit-2' }))
+
+		// The session holds row 1 and narrows that row alone. Row 2 came from the
+		// consumer's binding, which names rows and never cells, so it opens whole.
+		expect(editorsIn(view.container)).toHaveLength(3)
+	})
+
+	it('widens the narrowed row when scope leaves cell mid-session', () => {
+		function Harness() {
+			const [scope, setScope] = useState<'row' | 'cell'>('cell')
+
+			return (
+				<>
+					<button type="button" onClick={() => setScope('row')}>
+						widen
+					</button>
+					<Grid
+						columns={sessionColumns}
+						rows={sessionRows}
+						getKey={(row) => row.id}
+						editable={{ trigger: 'doubleClick', scope, onCommit: vi.fn() }}
+					/>
+				</>
+			)
+		}
+
+		const view = renderUI(<Harness />)
+
+		fireEvent.doubleClick(
+			view.container.querySelectorAll('td[data-grid-col="name"]')[0] as HTMLElement,
+		)
+
+		expect(editorsIn(view.container)).toHaveLength(1)
+
+		fireEvent.click(view.getByRole('button', { name: 'widen' }))
+
+		// The coord was written under a scope that no longer holds, so it strands
+		// with the config. Outliving it would pin the row at one cell.
+		expect(editorsIn(view.container)).toHaveLength(2)
 	})
 
 	it('does not revive a session the consumer ended from under it', () => {

@@ -256,10 +256,12 @@ export function useGridEditing<T>({
 	// because it gates which cell mounts an editor.
 	const [activeEditRaw, setActiveEdit] = useState<GridActiveEdit | null>(null)
 
-	// Two things strand the raw coord. A controlled binding can decline an entry,
+	// Three things strand the raw coord. A controlled binding can decline an entry,
 	// so the row never joins the set; a consumer save can drop an editing row from
-	// under the session.
-	const stranded = activeEditRaw !== null && !editableRows.has(activeEditRaw.rowKey)
+	// under the session; and `scope` or `trigger` can change under a live session,
+	// which leaves a coord the current config would never have written.
+	const stranded =
+		activeEditRaw !== null && (!cellScoped || !editableRows.has(activeEditRaw.rowKey))
 
 	// Drop a stranded coord rather than only read past it. Masking alone survives
 	// as state, so the same row re-entering the set later would revive a cell

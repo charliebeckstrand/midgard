@@ -44,8 +44,10 @@ export function isSameCell(
 
 /**
  * Whether a cell's editor is open: its row is in the editable set and, when a
- * cell-scoped session names one cell, that cell is this one. A null `activeEdit`
- * is row scope, where every cell of a set row qualifies.
+ * cell-scoped session holds that row, the session's cell is this one. A session
+ * narrows the one row it sits on and no other. A row the consumer opens beside
+ * it reads row-shaped, every editable cell at once, as does every row while no
+ * session runs.
  *
  * @remarks This is the module's one definition of "editing here". Three
  * questions read it. Which cell mounts an editor. Which entry is the no-op of
@@ -61,5 +63,11 @@ export function isCellEditing(args: {
 }): boolean {
 	if (!args.editableRows.has(args.rowKey)) return false
 
-	return args.activeEdit === null || isSameCell(args.activeEdit, args)
+	const active = args.activeEdit
+
+	// A session narrows its own row. Any other row in the set belongs to the
+	// consumer's binding, which names rows and never cells, so it stays whole.
+	if (active === null || active.rowKey !== args.rowKey) return true
+
+	return isSameCell(active, args)
 }

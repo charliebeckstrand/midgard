@@ -109,7 +109,8 @@ export type GridEditableConfig = {
 	 * names a row, never a cell, so the row's editors all mount as under `'row'`.
 	 * A row the consumer opens through `rows` reads the same way until the grid
 	 * narrows it: its editors all mount, and entering one of its cells starts the
-	 * session that closes the rest.
+	 * session that closes the rest. A session narrows the one row it sits on, so a
+	 * row opened beside it stays whole.
 	 * @defaultValue 'row'
 	 */
 	scope?: 'row' | 'cell'
