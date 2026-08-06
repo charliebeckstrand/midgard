@@ -66,7 +66,7 @@ A shared jsdom window turns anything that outlives a file into a cross-file faul
 
 **Five repeated test shapes belong in the shared corpus.** `CONVENTIONS.md` §10.5 already routes them there. The density triad appears in 10 files (28 tests). "passes through HTML attributes" appears 30 times in 27 files. 21 skeleton-pairing tests are identical, while 2 of 30 skeleton components have no render test at all. The text-input triad repeats across 13 components. "renders as a link when href is provided" appears 9 times. Build **one** component registry with optional columns, and derive each sweep from it. Four separate tables would mean four edits for each new component.
 
-**The 42-file grid cluster has no shared fixture.** Each file rebuilds `Row`, the columns, the rows, and `getKey`. A change to `GridColumn`'s shape is a 37-file edit. This is a maintenance finding, not a speed one: the fixtures are cheap object literals.
+**The 42-file grid cluster has no shared fixture.** Each file rebuilds `Row`, the columns, the rows, and `getKey`. A change to `GridColumn`'s shape is a 37-file edit. This is a maintenance finding, not a speed one: the fixtures are cheap object literals. Still open across the cluster. One file has been done and shows the shape the rest would take. `grid-editing.test.tsx` held three copies of the row type, the rows, and a render helper, one per suite. It now holds one of each at module scope, behind a `renderSessionGrid({ editable, cols })` its two grid-owned suites share.
 
 **`installResizeObserverStub` is copied into six files.** Extract one helper, and install it with `vi.stubGlobal` so that `unstubGlobals` is the backstop. Keep it out of `helpers/index.ts` for the reason at `helpers/index.ts:9`.
 
