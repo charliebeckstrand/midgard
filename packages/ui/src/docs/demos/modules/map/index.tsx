@@ -255,8 +255,9 @@ function roundSummary(count: number, span: number): string {
  * bunch past telling apart, so `MapPoints` draws each bunch as one summary
  * graded by how many stops it holds; picking a state hands the plat that state's
  * own geometry, which refits the projection to it — the fit the plat runs on
- * every geography, no zoom layer — and drops clustering, so its stops draw one
- * for one.
+ * every geography, no zoom layer — and the stops that fitted frame has room for
+ * separate into themselves. Clustering stays on at either scale, because which
+ * marks would cover one another is a question only the drawn frame answers.
  */
 function DeliveryRounds({ geography }: { geography: MapFeatureCollection | null }) {
 	const [picked, setPicked] = useState<string | null>(null)
@@ -305,6 +306,7 @@ function DeliveryRounds({ geography }: { geography: MapFeatureCollection | null 
 					value={picked}
 					onValueChange={setPicked}
 					displayValue={(state: string) => state}
+					clearable
 				>
 					{selectable.map((state) => (
 						<SelectOption key={state} value={state}>
@@ -316,8 +318,8 @@ function DeliveryRounds({ geography }: { geography: MapFeatureCollection | null 
 
 			<Text>
 				{picked === null
-					? 'Every round. Pick a state, or click a summary, to draw its stops one for one.'
-					: `${picked} — ${stops.length} stops. Click the state to go back.`}
+					? 'Every round, summarised wherever the stops bunch. Pick a state, or click a summary.'
+					: `${picked} — ${stops.length} stops.`}
 			</Text>
 
 			<MapPlat
@@ -326,15 +328,11 @@ function DeliveryRounds({ geography }: { geography: MapFeatureCollection | null 
 				projection="albers-usa"
 				animate
 				legend="right"
-				// Only ever the picked state to click: the whole map is that one state,
-				// so the pointer affordance the region layer takes is honest.
-				onRegionClick={picked === null ? undefined : () => setPicked(null)}
 			>
 				<MapPoints
 					label="Stops"
 					points={stops}
 					detail={`${stops.length} stops`}
-					cluster={picked === null}
 					clusterDetail={roundSummary}
 					// The index names a row of `deliveryStops` only while every stop is
 					// drawn; the state view draws a filtered set, and has nothing left to

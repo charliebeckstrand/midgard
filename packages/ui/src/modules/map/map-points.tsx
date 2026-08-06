@@ -41,6 +41,10 @@ export type MapPointsProps = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> 
 	 * the count. A number sets the centre-to-centre gap, in device pixels, at
 	 * which two dots merge; `true` takes the gap at which they begin to overlap.
 	 *
+	 * The gap is a floor. Marks that would draw over one another merge whatever
+	 * it says, because a summary grows with what it holds — so a gap under the
+	 * marks' own width would ask for the overlap this exists to remove.
+	 *
 	 * Grouping reads the drawn frame, not the data, so it answers the scale the
 	 * map is at: a national frame summarises a metro round to one mark, and the
 	 * same round separates into its own dots as the frame narrows to the state.

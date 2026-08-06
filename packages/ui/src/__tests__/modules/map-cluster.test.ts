@@ -20,12 +20,12 @@ describe('clusterPoints', () => {
 		const groups = clusterPoints(
 			[
 				[0, 0],
-				[1, 0],
-				[2, 0],
-				[40, 0],
+				[10, 0],
+				[20, 0],
+				[400, 0],
 			],
 			flat,
-			5,
+			20,
 		)
 
 		expect(groups.map((group) => group.members)).toEqual([[0, 1, 2], [3]])
@@ -38,11 +38,11 @@ describe('clusterPoints', () => {
 		const groups = clusterPoints(
 			[
 				[0, 0],
-				[5, 0],
-				[10, 0],
+				[20, 0],
+				[40, 0],
 			],
 			flat,
-			5,
+			20,
 		)
 
 		expect(groups.map((group) => group.members)).toEqual([[0, 1], [2]])
@@ -52,17 +52,19 @@ describe('clusterPoints', () => {
 		const [group] = clusterPoints(
 			[
 				[0, 0],
-				[2, 0],
-				[1, 3],
+				[8, 0],
+				[4, 12],
 			],
 			flat,
-			5,
+			20,
 		)
 
-		expect(group?.at).toEqual({ x: 1, y: 1 })
+		expect(group?.at).toEqual({ x: 4, y: 4 })
 	})
 
 	it('holds every point one per group with the grouping off', () => {
+		// Off, two dots that plainly cover one another still draw as two: the
+		// caller asked for every dot, and nothing may merge behind that.
 		const positions: LngLat[] = [
 			[0, 0],
 			[1, 0],
@@ -82,10 +84,10 @@ describe('clusterPoints', () => {
 			[
 				[0, 0],
 				[200, 0],
-				[1, 0],
+				[10, 0],
 			],
 			clipped,
-			5,
+			20,
 		)
 
 		expect(groups.map((group) => group.members)).toEqual([[0, 2], [1]])
@@ -98,14 +100,35 @@ describe('clusterPoints', () => {
 		// dot, so a pair straddling a boundary must group as one all the same.
 		const groups = clusterPoints(
 			[
-				[4.9, 4.9],
-				[5.1, 5.1],
+				[19.9, 19.9],
+				[20.1, 20.1],
 			],
 			flat,
-			5,
+			20,
 		)
 
 		expect(groups).toHaveLength(1)
+	})
+
+	it('merges the summaries whose marks would cover one another', () => {
+		// Two bunches the seed rule keeps apart — their seeds stand 25 units off,
+		// past the merge distance — but ten stops each grade the marks up until
+		// they draw over the gap between them.
+		const bunched: LngLat[] = [
+			...Array.from({ length: 10 }, (_, step): LngLat => [step, 0]),
+			...Array.from({ length: 10 }, (_, step): LngLat => [25 + step, 0]),
+		]
+
+		expect(clusterPoints(bunched, flat, 20)).toHaveLength(1)
+	})
+
+	it('leaves the summaries that clear one another alone', () => {
+		const apart: LngLat[] = [
+			...Array.from({ length: 10 }, (_, step): LngLat => [step, 0]),
+			...Array.from({ length: 10 }, (_, step): LngLat => [45 + step, 0]),
+		]
+
+		expect(clusterPoints(apart, flat, 20)).toHaveLength(2)
 	})
 })
 

@@ -112,7 +112,96 @@ export function clusterPoints(
 		bucket(cells, cellKey(cx, cy)).push(group)
 	}
 
-	return groups.map(summarise)
+	// Grouping by seed leaves marks that can still cover one another, because a
+	// summary draws larger the more it holds. Off, nothing merges at all, and two
+	// dots the caller asked to keep apart must stay apart.
+	return (distance > 0 ? consolidate(groups, distance) : groups).map(summarise)
+}
+
+/**
+ * Merges the groups whose drawn marks would cover one another, until none do.
+ *
+ * The pass above measures dots, which are all one size. What it draws are marks
+ * graded by what they hold, so two groups it left a clear gap between can still
+ * overlap once drawn — and a set of dots the seed rule split across two groups
+ * reads as one bunch to the eye either way. Each round folds every overlapping
+ * group into the first it meets, so the count strictly falls and the rounds run
+ * out; in practice one settles it.
+ *
+ * @internal
+ */
+function consolidate(groups: MapClusterSeed[], distance: number): MapClusterSeed[] {
+	let held = groups
+
+	let merging = true
+
+	while (merging) {
+		const next = mergeRound(held, distance)
+
+		merging = next.length < held.length
+
+		held = next
+	}
+
+	return held
+}
+
+/** One pass of {@link consolidate}: every group folded into the first it overlaps. @internal */
+function mergeRound(groups: MapClusterSeed[], distance: number): MapClusterSeed[] {
+	const next: MapClusterSeed[] = []
+
+	for (const group of groups) {
+		const host = next.find((other) => marksOverlap(other, group, distance))
+
+		if (host === undefined) {
+			next.push(group)
+
+			continue
+		}
+
+		// Sorted, so the group still reports the caller's lowest index first — the
+		// stop a pick names, and the ordinal an unnamed dot reads out by.
+		host.members = [...host.members, ...group.members].sort((a, b) => a - b)
+
+		host.sumX += group.sumX
+
+		host.sumY += group.sumY
+	}
+
+	return next
+}
+
+/**
+ * Whether two groups draw over one another: their centres closer than the marks
+ * they paint, or than the caller's own merge gap where that is wider. The gap is
+ * a floor, not a ceiling — a gap under the marks' own width would ask for dots
+ * that overlap, which is the one thing this mark exists to prevent.
+ *
+ * @internal
+ */
+function marksOverlap(a: MapClusterSeed, b: MapClusterSeed, distance: number): boolean {
+	const at = centre(a)
+
+	const bt = centre(b)
+
+	// A group the projection dropped draws nothing, so it covers nothing.
+	if (at === null || bt === null) return false
+
+	const reach = Math.max(
+		distance,
+		clusterRadius(a.members.length) + clusterRadius(b.members.length),
+	)
+
+	const dx = at.x - bt.x
+
+	const dy = at.y - bt.y
+
+	return dx * dx + dy * dy < reach * reach
+}
+
+/** Where a group draws: the mean of its members' projected positions. @internal */
+function centre({ members, seed, sumX, sumY }: MapClusterSeed): MapPoint2D | null {
+	return seed === null ? null : { x: sumX / members.length, y: sumY / members.length }
 }
 
 /**
@@ -187,11 +276,8 @@ function nearestSeed(
 }
 
 /** Resolves a built group to the dots it holds and the point it draws at. @internal */
-function summarise({ members, seed, sumX, sumY }: MapClusterSeed): MapPointCluster {
-	return {
-		members,
-		at: seed === null ? null : { x: sumX / members.length, y: sumY / members.length },
-	}
+function summarise(group: MapClusterSeed): MapPointCluster {
+	return { members: group.members, at: centre(group) }
 }
 
 /** The members' own coordinates. Every index came from `positions`, so the read holds no gaps. @internal */
