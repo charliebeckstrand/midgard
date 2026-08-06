@@ -4,9 +4,6 @@ import {
 	barMarkAt,
 	nearestSeriesArea,
 	nearestSeriesLine,
-	nearSeriesLines,
-	withinBarMarks,
-	withinSeriesAreas,
 } from '../../modules/chart/engine/chart-hit-test'
 
 const bar = (x: number, x1: number, top: number, bottom: number): BarMark => ({
@@ -19,33 +16,16 @@ const bar = (x: number, x1: number, top: number, bottom: number): BarMark => ({
 	positive: true,
 })
 
-describe('withinBarMarks', () => {
+describe('barMarkAt', () => {
 	it('hits inside a bar and misses the air beside and above it', () => {
 		const marks = [[bar(10, 30, 50, 100), null]]
 
-		expect(withinBarMarks(marks, 20, 75)).toBe(true)
+		expect(barMarkAt(marks, 20, 75)).not.toBeNull()
 
 		// Just past the right edge, and above the top.
-		expect(withinBarMarks(marks, 31, 75)).toBe(false)
+		expect(barMarkAt(marks, 31, 75)).toBeNull()
 
-		expect(withinBarMarks(marks, 20, 49)).toBe(false)
-	})
-
-	it('bridges the gap between grouped bars when given the gap slack', () => {
-		// Two series' bars 2px apart in one group: |10..30| gap |32..52|.
-		const group = [[bar(10, 30, 50, 100)], [bar(32, 52, 50, 100)]]
-
-		// x=31 falls in the 2px gap — a miss without slack, flickering the tooltip.
-		expect(withinBarMarks(group, 31, 75)).toBe(false)
-
-		// The inter-bar slack closes it, so a sweep across the group never drops.
-		expect(withinBarMarks(group, 31, 75, 2)).toBe(true)
-
-		// The slack still ends at the group: the wider space beyond stays a miss.
-		expect(withinBarMarks(group, 60, 75, 2)).toBe(false)
-
-		// And it never reaches above the bars.
-		expect(withinBarMarks(group, 31, 40, 2)).toBe(false)
+		expect(barMarkAt(marks, 20, 49)).toBeNull()
 	})
 
 	it('applies the gap slack down y for a horizontal chart', () => {
@@ -54,17 +34,15 @@ describe('withinBarMarks', () => {
 		const group = [[bar(10, 30, 50, 70)], [bar(10, 30, 72, 92)]]
 
 		// y=71 falls in the vertical gap — a miss without slack.
-		expect(withinBarMarks(group, 20, 71, 0, 'horizontal')).toBe(false)
+		expect(barMarkAt(group, 20, 71, 0, 'horizontal')).toBeNull()
 
 		// The slack closes it along y, not x.
-		expect(withinBarMarks(group, 20, 71, 2, 'horizontal')).toBe(true)
+		expect(barMarkAt(group, 20, 71, 2, 'horizontal')).not.toBeNull()
 
 		// Off the value end (past x=30) stays a miss however wide the band slack.
-		expect(withinBarMarks(group, 40, 60, 2, 'horizontal')).toBe(false)
+		expect(barMarkAt(group, 40, 60, 2, 'horizontal')).toBeNull()
 	})
-})
 
-describe('barMarkAt', () => {
 	it('returns the series and datum of the bar under the pointer', () => {
 		const marks = [[bar(10, 30, 50, 100), bar(40, 60, 50, 100)]]
 
@@ -89,6 +67,12 @@ describe('barMarkAt', () => {
 
 		// The widened pass reaches it, resolving to the nearer-first series.
 		expect(barMarkAt(group, 31, 75, 2)).toEqual({ series: 0, datum: 0 })
+
+		// The slack still ends at the group: the wider space beyond stays a miss.
+		expect(barMarkAt(group, 60, 75, 2)).toBeNull()
+
+		// And it never reaches above the bars.
+		expect(barMarkAt(group, 31, 40, 2)).toBeNull()
 	})
 })
 
@@ -148,6 +132,37 @@ describe('nearestSeriesLine', () => {
 
 		expect(nearestSeriesLine(close, 50, 102, undefined, 1)).toBe(0)
 	})
+
+	// The same single flat run as `two`'s first series.
+	const runs = two.slice(0, 1)
+
+	it('hits within the generous tolerance of a segment and misses beyond it', () => {
+		// Comfortably on the line.
+		expect(nearestSeriesLine(runs, 50, 106)).not.toBeNull()
+
+		// 12px off — inside the widened catch the tooltip and isolation lean on.
+		expect(nearestSeriesLine(runs, 50, 112)).not.toBeNull()
+
+		// Past the tolerance.
+		expect(nearestSeriesLine(runs, 50, 120)).toBeNull()
+	})
+
+	it('never bridges the gap between runs, but hits a lone point', () => {
+		const gappy = [
+			[
+				[
+					{ x: 0, y: 100 },
+					{ x: 40, y: 100 },
+				],
+				[{ x: 120, y: 100 }],
+			],
+		]
+
+		// Between the runs, on the imaginary bridge.
+		expect(nearestSeriesLine(gappy, 80, 100)).toBeNull()
+
+		expect(nearestSeriesLine(gappy, 122, 102)).not.toBeNull()
+	})
 })
 
 describe('nearestSeriesArea', () => {
@@ -177,48 +192,7 @@ describe('nearestSeriesArea', () => {
 		// Above every top (past the edge slack): inside no fill.
 		expect(nearestSeriesArea(stack, 200, 50, 30)).toBeNull()
 	})
-})
 
-describe('nearSeriesLines', () => {
-	const runs = [
-		[
-			[
-				{ x: 0, y: 100 },
-				{ x: 100, y: 100 },
-			],
-		],
-	]
-
-	it('hits within the generous tolerance of a segment and misses beyond it', () => {
-		// Comfortably on the line.
-		expect(nearSeriesLines(runs, 50, 106)).toBe(true)
-
-		// 12px off — inside the widened catch the tooltip and isolation lean on.
-		expect(nearSeriesLines(runs, 50, 112)).toBe(true)
-
-		// Past the tolerance.
-		expect(nearSeriesLines(runs, 50, 120)).toBe(false)
-	})
-
-	it('never bridges the gap between runs, but hits a lone point', () => {
-		const gappy = [
-			[
-				[
-					{ x: 0, y: 100 },
-					{ x: 40, y: 100 },
-				],
-				[{ x: 120, y: 100 }],
-			],
-		]
-
-		// Between the runs, on the imaginary bridge.
-		expect(nearSeriesLines(gappy, 80, 100)).toBe(false)
-
-		expect(nearSeriesLines(gappy, 122, 102)).toBe(true)
-	})
-})
-
-describe('withinSeriesAreas', () => {
 	const runs = [
 		[
 			[
@@ -229,17 +203,17 @@ describe('withinSeriesAreas', () => {
 	]
 
 	it('hits between the top edge and the baseline, with edge slack', () => {
-		expect(withinSeriesAreas(runs, 200, 50, 120)).toBe(true)
+		expect(nearestSeriesArea(runs, 200, 50, 120)).not.toBeNull()
 
 		// The stroke itself, just above the interpolated edge at x=50 (y=50).
-		expect(withinSeriesAreas(runs, 200, 50, 47)).toBe(true)
+		expect(nearestSeriesArea(runs, 200, 50, 47)).not.toBeNull()
 
-		expect(withinSeriesAreas(runs, 200, 50, 40)).toBe(false)
+		expect(nearestSeriesArea(runs, 200, 50, 40)).toBeNull()
 
-		expect(withinSeriesAreas(runs, 200, 50, 201)).toBe(false)
+		expect(nearestSeriesArea(runs, 200, 50, 201)).toBeNull()
 	})
 
 	it('misses x outside the run', () => {
-		expect(withinSeriesAreas(runs, 200, 120, 120)).toBe(false)
+		expect(nearestSeriesArea(runs, 200, 120, 120)).toBeNull()
 	})
 })

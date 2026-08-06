@@ -8,7 +8,6 @@ import {
 	type CurrentMount,
 	CurrentMountContext,
 	CurrentSettledContext,
-	resolveMount,
 } from './current'
 import { useCurrentContentsMorph } from './use-current-contents-morph'
 
@@ -70,8 +69,6 @@ export function CurrentContents({
 
 	useCurrentContentsMorph(containerRef, fade)
 
-	const resolvedMount = resolveMount(fade, mount)
-
 	// Post-mount latch for entrance choreography: panels in this first commit
 	// read false and skip their entrance; panels mounting on a later value
 	// change read true and fade in from transparent.
@@ -86,7 +83,7 @@ export function CurrentContents({
 			// Re-scope the fade signal off, so panels of a non-fading container
 			// nested inside a fading one render the plain branch.
 			<CurrentFadeContext value={false}>
-				<CurrentMountContext value={resolvedMount}>
+				<CurrentMountContext value={mount}>
 					<div data-slot={`${slotPrefix}-contents`} className={className} {...props}>
 						{children}
 					</div>
@@ -97,7 +94,7 @@ export function CurrentContents({
 
 	return (
 		<CurrentFadeContext value>
-			<CurrentMountContext value={resolvedMount}>
+			<CurrentMountContext value={mount}>
 				<CurrentSettledContext value={settledRef}>
 					<ReducedMotion>
 						{/* A plain div: the morph hook pins and tweens the inline height

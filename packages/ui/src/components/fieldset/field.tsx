@@ -1,16 +1,11 @@
 'use client'
 
-import { type ComponentPropsWithoutRef, useMemo } from 'react'
+import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { useA11yControl } from '../../hooks'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { k } from '../../recipes/kata/fieldset'
-import {
-	ControlContext,
-	type ControlContextValue,
-	type ControlSeverity,
-	useControl,
-} from '../control/context'
+import { ControlContext, type ControlSeverity } from '../control/context'
+import { useControlFieldContext } from '../control/use-control-field-context'
 
 /**
  * Props for {@link Field}: the `htmlFor` id pin, the `autoComplete`/`disabled`
@@ -46,34 +41,15 @@ export function Field({
 	children,
 	...props
 }: FieldProps) {
-	const parent = useControl()
-
 	const scope = useIdScope({ id: htmlFor })
 
-	const a11y = useA11yControl(scope.id)
-
-	const resolvedSeverity = severity ?? parent?.severity
-
-	const value = useMemo<ControlContextValue>(
-		() => ({
-			id: scope.id,
-			autoComplete: autoComplete ?? parent?.autoComplete,
-			disabled: disabled || parent?.disabled,
-			readOnly: parent?.readOnly,
-			required: parent?.required,
-			severity: resolvedSeverity,
-			size: parent?.size,
-			variant: parent?.variant,
-			...a11y,
-		}),
-		[scope.id, autoComplete, disabled, parent, resolvedSeverity, a11y],
-	)
+	const value = useControlFieldContext(scope.id, { autoComplete, disabled, severity })
 
 	return (
 		<ControlContext value={value}>
 			<div
 				data-slot="field"
-				{...(disabled || parent?.disabled ? { 'data-disabled': true } : {})}
+				{...(value.disabled ? { 'data-disabled': true } : {})}
 				className={cn(k.field, className)}
 				{...props}
 			>

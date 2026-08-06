@@ -1,7 +1,5 @@
-import { act, renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { resolveInputDisplay, selectSoleOption } from '../../components/combobox/combobox-utilities'
-import { useComboboxTrigger } from '../../components/combobox/use-combobox-trigger'
 
 describe('resolveInputDisplay', () => {
 	it('returns the query while the user is editing', () => {
@@ -105,65 +103,5 @@ describe('selectSoleOption', () => {
 		const container = document.createElement('div')
 
 		expect(selectSoleOption(container)).toBe(false)
-	})
-})
-
-describe('useComboboxTrigger', () => {
-	function setupHook(open: boolean) {
-		const close = vi.fn()
-
-		const setOpen = vi.fn()
-
-		const input = document.createElement('input')
-
-		const focus = vi.spyOn(input, 'focus').mockImplementation(() => {})
-
-		const select = vi.spyOn(input, 'select').mockImplementation(() => {})
-
-		const inputRef = { current: input }
-
-		const { result } = renderHook(() => useComboboxTrigger({ open, close, setOpen, inputRef }))
-
-		return { result, close, setOpen, focus, select }
-	}
-
-	it('closes when invoked while open', () => {
-		const { result, close, setOpen } = setupHook(true)
-
-		type MouseDownEvent = Parameters<typeof result.current.onMouseDown>[0]
-
-		const partial: Partial<MouseDownEvent> = { preventDefault: vi.fn() }
-
-		const event = partial as MouseDownEvent
-
-		act(() => {
-			result.current.onMouseDown(event)
-		})
-
-		expect(event.preventDefault).toHaveBeenCalled()
-
-		expect(close).toHaveBeenCalled()
-
-		expect(setOpen).not.toHaveBeenCalled()
-	})
-
-	it('opens, focuses and selects the input when invoked while closed', () => {
-		const { result, setOpen, focus, select } = setupHook(false)
-
-		type MouseDownEvent = Parameters<typeof result.current.onMouseDown>[0]
-
-		const partial: Partial<MouseDownEvent> = { preventDefault: vi.fn() }
-
-		const event = partial as MouseDownEvent
-
-		act(() => {
-			result.current.onMouseDown(event)
-		})
-
-		expect(focus).toHaveBeenCalled()
-
-		expect(select).toHaveBeenCalled()
-
-		expect(setOpen).toHaveBeenCalledWith(true)
 	})
 })

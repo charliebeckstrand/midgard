@@ -102,20 +102,6 @@ export const [CurrentPanelActiveContext, useCurrentPanelActive] = createContext<
 export type CurrentMount = Mount
 
 /**
- * Resolves the effective {@link CurrentMount} for a {@link CurrentContents}: an
- * explicit `mount` wins, otherwise panels mount `active`-only — only the active
- * panel sits in the DOM. `fade` drives the height animation independently, so a
- * container that keeps inactive panels mounted opts in with `mount="always"`
- * (or `"lazy"`). Kept a function, and still taking `fade`, so the mount and
- * fade axes can re-couple in one place if that policy ever changes.
- *
- * @internal
- */
-export function resolveMount(_fade: boolean, mount: CurrentMount | undefined): CurrentMount {
-	return mount ?? 'active'
-}
-
-/**
  * Mount policy broadcast from {@link CurrentContents} to its {@link CurrentContent}
  * children. Defaults to `always` outside a container, so an ungrouped panel is
  * never unmounted.

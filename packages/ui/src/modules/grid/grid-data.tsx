@@ -55,7 +55,7 @@ import {
 import { GridAutoSizeConfirmDialog } from './grid-auto-size-confirm-dialog'
 import { GridBody } from './grid-body'
 import { GridBusyStatus } from './grid-busy-status'
-import { GridColumnManagerDialog } from './grid-column-manager-dialog'
+import { GridColumnManager } from './grid-column-manager'
 import { useColumnGroupMenu } from './grid-context-menu'
 import {
 	resolveActionable,
@@ -74,6 +74,7 @@ import { GridExportOverlay } from './grid-export-overlay'
 import { GridFooter as GridFooterBar } from './grid-footer'
 import { GridGroupByContext } from './grid-group-by-button'
 import { GridHead } from './grid-head'
+import { GridManagerDialog } from './grid-manager-dialog'
 import { useGridMenuActions } from './grid-menu-actions'
 import { GridPagination as GridPaginationFooter } from './grid-pagination'
 import {
@@ -1275,22 +1276,25 @@ export function GridData<T>({
 						<GridExportOverlay active={exportActions.pending} />
 
 						{renderDialog && (
-							<GridColumnManagerDialog
+							<GridManagerDialog
 								open={columnManagerOpen}
 								onOpenChange={setColumnManagerOpen}
 								label={managerLabel}
-								columns={managerItems}
-								filterable={columnManagerConfig?.filterable}
-								order={columnOrder}
-								onOrderChange={setColumnOrder}
-								reorderable={reorderEnabled}
-								hidden={hiddenColumns}
-								onHiddenChange={handleHiddenChange}
-								onPinChange={pinColumn}
-								groups={group.editorGroups}
-								onGroupsChange={group.editorSetGroups}
-								onSavePreset={columnManagerConfig?.onSavePreset}
-							/>
+							>
+								<GridColumnManager
+									columns={managerItems}
+									filterable={columnManagerConfig?.filterable}
+									order={columnOrder}
+									onOrderChange={setColumnOrder}
+									reorderable={reorderEnabled}
+									hidden={hiddenColumns}
+									onHiddenChange={handleHiddenChange}
+									onPinChange={pinColumn}
+									groups={group.editorGroups}
+									onGroupsChange={group.editorSetGroups}
+									onSavePreset={columnManagerConfig?.onSavePreset}
+								/>
+							</GridManagerDialog>
 						)}
 
 						<GridRowManagerRegionDialog region={rowManager} />

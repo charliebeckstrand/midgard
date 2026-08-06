@@ -235,4 +235,29 @@ describe('Chart context menu', () => {
 			expect(screen.getByRole('menuitem', { name: 'Download PNG' })).toBeInTheDocument()
 		})
 	})
+
+	// `ChartContextMenu` owns this rule for every host: it reads
+	// `ChartFullscreenContext` and renders its children bare inside the dialog it
+	// opened. Pinned here, on the `ChartFrame` path that the cartesian and sector
+	// charts share, rather than in one chart type's own suite.
+	it('opens a live fullscreen copy that does not nest a second menu', () => {
+		const { container } = renderUI(
+			<BarChart aria-label="Revenue by quarter" title="Revenue" data={data} series={[...series]} />,
+		)
+
+		openChartMenu(container)
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Fullscreen' }))
+
+		const dialog = screen.getByRole('dialog')
+
+		// The re-mounted copy renders bare, so a right-click inside it opens nothing.
+		const inner = dialog.querySelector<HTMLElement>('[data-slot="chart"]')
+
+		expect(inner).not.toBeNull()
+
+		if (inner) fireEvent.contextMenu(inner)
+
+		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+	})
 })

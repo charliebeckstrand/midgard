@@ -8,7 +8,7 @@ import { srcDir, walkSource } from '../helpers/walk-source'
 // to the package and documents itself as such, while an `@internal` symbol is
 // reached at its module path. Both halves drifted before this test existed —
 // the `usePlotFrame` family carried the tag while riding `ui/hooks` and holding
-// rows in HOOKS.md, and `resolveMount` did the same on `ui/primitives/current`.
+// rows in HOOKS.md.
 //
 // This test pins the internal-surface contract in two places:
 //

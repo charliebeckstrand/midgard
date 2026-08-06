@@ -27,7 +27,7 @@ import {
 	rasterizeChartImage,
 	readoutToCsv,
 } from './chart-export'
-import { ChartFullscreenContext } from './context'
+import { ChartFullscreenContext, useChartFullscreen } from './context'
 import type { ChartReadoutSource } from './types'
 
 /**
@@ -88,12 +88,13 @@ export type ChartContextMenuProps = {
 	 */
 	fullscreen?: ReactElement
 	/**
-	 * The mark under the pointer, handed to a function-form `items` so a menu entry can act on it. The
-	 * frame owns the hover state and passes it down, because this wrapper sits outside
-	 * `ChartHoverContext` (it wraps the provider) and so cannot read it itself.
+	 * Index of the mark under the pointer, or `null` off any mark. Reaches a
+	 * function-form `items` as the {@link ChartContextMenuTarget} it builds. The
+	 * host owns the hover state and passes it down, because this wrapper sits
+	 * outside `ChartHoverContext` — it wraps the provider — and cannot read it.
 	 * @internal
 	 */
-	target?: ChartContextMenuTarget
+	targetIndex?: number | null
 	/** The chart, wrapped as the right-click surface. */
 	children: ReactNode
 }
@@ -112,7 +113,10 @@ const FULLSCREEN_CHART_CLASS = 'w-full max-h-[calc(100dvh-9rem)]'
  * @remarks Image export draws the chart through an SVG `foreignObject` so its
  * HTML chrome and SVG marks capture together, inlining computed styles so the
  * bitmap carries its colours. `contextMenu={false}` renders the chart untouched,
- * leaving the browser's native menu.
+ * leaving the browser's native menu. Inside the fullscreen dialog it renders
+ * the chart untouched for a structural reason instead: there it is its own
+ * re-mounted copy, so it refuses to wrap itself and no chart nests a second
+ * menu.
  *
  * @internal
  */
@@ -122,7 +126,7 @@ export function ChartContextMenu({
 	readout,
 	title,
 	fullscreen,
-	target,
+	targetIndex,
 	children,
 }: ChartContextMenuProps) {
 	const [open, setOpen] = useState(false)
@@ -134,19 +138,27 @@ export function ChartContextMenu({
 	// neutral tab stop focused and Escape shuts it.
 	const closeRef = useRef<HTMLButtonElement>(null)
 
+	const isFullscreen = useChartFullscreen()
+
 	const items = contextMenu === false ? undefined : contextMenu?.items
 
-	// Keyed on the target's index, not the target object: the frame hands down a
-	// fresh `{ index }` each render, and this component re-renders on every pointer
-	// move across the plot (the frame's hover state). Without the memo a
-	// function-form `items` — and the icon elements it builds — would be rebuilt
-	// ~60×/s while the pointer sweeps, all of it discarded.
+	// This component re-renders on every pointer move across the plot (the host's
+	// hover state). Without the memo a function-form `items` — and the icon
+	// elements it builds — would be rebuilt ~60×/s while the pointer sweeps, all
+	// of it discarded. The target object is minted here, so the memo keys on the
+	// index the host actually holds.
 	const customItems = useMemo(
-		() => (typeof items === 'function' ? items({ index: target?.index ?? null }) : items),
-		[items, target?.index],
+		() => (typeof items === 'function' ? items({ index: targetIndex ?? null }) : items),
+		[items, targetIndex],
 	)
 
 	if (contextMenu === false) return <>{children}</>
+
+	// A chart rendered inside the fullscreen dialog is this menu's own re-mounted
+	// copy. It renders bare, so the enlarged chart never nests a second menu or
+	// recurses. The rule lives here because this component provides
+	// `ChartFullscreenContext` — a caller cannot forget to apply it.
+	if (isFullscreen) return <>{children}</>
 
 	const includeLegend = contextMenu?.downloadLegend ?? true
 

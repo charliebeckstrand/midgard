@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { GridColumnManager, type GridColumnManagerItem } from '../../modules/grid'
-import { GridColumnManagerDialog } from '../../modules/grid/grid-column-manager-dialog'
+import { GridManagerDialog } from '../../modules/grid/grid-manager-dialog'
 import { allBySlot, fireEvent, renderUI, screen, userEvent } from '../helpers'
 
 const columns: GridColumnManagerItem[] = [
@@ -575,7 +575,7 @@ describe('GridColumnManager filtering', () => {
 	})
 })
 
-describe('GridColumnManagerDialog', () => {
+describe('GridManagerDialog', () => {
 	// The dialog is purely controlled; its trigger lives in `GridToolbar` (covered
 	// through `<Grid>`). The harness drives `open` itself to exercise the dialog.
 	function Harness() {
@@ -587,17 +587,16 @@ describe('GridColumnManagerDialog', () => {
 					Open
 				</button>
 
-				<GridColumnManagerDialog
-					open={open}
-					onOpenChange={setOpen}
-					label="Manage columns"
-					columns={columns}
-					order={['name', 'email', 'role']}
-					onOrderChange={() => {}}
-					hidden={new Set()}
-					onHiddenChange={() => {}}
-					onPinChange={() => {}}
-				/>
+				<GridManagerDialog open={open} onOpenChange={setOpen} label="Manage columns">
+					<GridColumnManager
+						columns={columns}
+						order={['name', 'email', 'role']}
+						onOrderChange={() => {}}
+						hidden={new Set()}
+						onHiddenChange={() => {}}
+						onPinChange={() => {}}
+					/>
+				</GridManagerDialog>
 			</>
 		)
 	}

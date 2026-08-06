@@ -83,7 +83,7 @@ function horizontalBarPath(y0: number, y1: number, valueX: number, baseline: num
  * A bar's hit-span fields — everything but the drawn path — from its value-axis
  * span (`baseline`→`valuePos`) and band-axis slot (`c0`→`c1`). Vertical runs the
  * span up y with the slot across x; horizontal transposes both, so
- * `withinBarMarks` reads either the same way. Split from {@link barSpan} so a
+ * `barMarkAt` reads either the same way. Split from {@link barSpan} so a
  * stacked segment, which paints its own square path, skips building the rounded
  * one it would only discard.
  *

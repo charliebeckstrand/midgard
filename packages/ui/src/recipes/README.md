@@ -10,7 +10,7 @@
 | [Katakana 片仮名 — Bridge](./katakana/README.md) | Structure | Pure functions that receive a kiso token bundle and wire it into a recipe surface. Imports only the recipe engine — **never kiso values**. |
 | [Kata 型 — Form](./kata/README.md) | Application | Per-unit recipes — the funnel for components and primitives, and **the only layer that touches kiso**. |
 
-The recipe engine (`defineRecipe`, `definePalette`, `merge`), the colour axis (`colors`, `Color`), the `mode` / `shades` authoring helpers, and the bridge helpers (`applyRecipe`, `ApplicatorReturn`) live in [`core/recipe/`](../core/recipe). Files in `katakana`, `kata`, and `layouts/*/variants.ts` import them directly.
+The recipe engine (`defineRecipe`, `definePalette`), the colour axis (`colors`, `Color`), the `mode` / `shades` authoring helpers, and the bridge helpers (`applyRecipe`, `ApplicatorReturn`) live in [`core/recipe/`](../core/recipe). Files in `katakana`, `kata`, and `layouts/*/variants.ts` import them directly.
 
 ## 2. Direction
 
@@ -40,8 +40,7 @@ The contract is pinned by:
 - `__tests__/boundary/kiso-boundary.test.ts` — kiso never reaches upward into katakana, kata, components, primitives, layouts, hooks, or providers.
 - `__tests__/boundary/katakana-purity-boundary.test.ts` — katakana imports nothing from kiso (neither values nor types).
 - `__tests__/boundary/kata-boundary.test.ts` — `defineRecipe` is invoked only in `recipes/kata/*`, `recipes/katakana/*`, and `layouts/*/variants.ts`.
-- `__tests__/boundary/component-recipe-boundary.test.ts` — components import values only via `recipes/kata/<name>`.
-- `__tests__/boundary/primitive-recipe-boundary.test.ts` — primitives import values only via `recipes/kata/<name>`.
+- `__tests__/boundary/recipe-import-boundary.test.ts` — components, modules, and primitives import values only via `recipes/kata/<name>`.
 
 ---
 

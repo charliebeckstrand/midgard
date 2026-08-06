@@ -4,9 +4,7 @@ import {
 	Fragment,
 	type MouseEvent,
 	type PointerEvent,
-	type ReactElement,
 	type ReactNode,
-	type RefObject,
 	startTransition,
 	useCallback,
 	useMemo,
@@ -26,7 +24,6 @@ import {
 	LABEL_CHAR_WIDTH,
 	TICK_CHAR_WIDTH,
 } from '../engine/chart-constants'
-import type { ChartContextMenuConfig } from '../engine/chart-context-menu'
 import { ChartContextMenu } from '../engine/chart-context-menu'
 import { cellAt, heatmapCells } from '../engine/chart-geometry/heatmap'
 import { chartFrameSizing, type PlotRect, plotRect, thinned } from '../engine/chart-layout'
@@ -39,7 +36,6 @@ import { formatChartValue, READOUT_GAP } from '../engine/chart-series'
 import { ChartTable } from '../engine/chart-table'
 import { isSparkBox } from '../engine/chart-tier'
 import { type ChartTooltipTrigger, resolveTooltip } from '../engine/chart-tooltip'
-import { useChartFullscreen } from '../engine/context'
 import type { ChartReadout, ChartReadoutSource } from '../engine/types'
 import {
 	type HeatmapChartProps,
@@ -835,56 +831,14 @@ export function HeatmapChart<T>(props: HeatmapChartProps<T>) {
 	)
 
 	return (
-		<HeatmapContextFrame
+		<ChartContextMenu
 			contextMenu={contextMenu}
 			rootRef={containerRef}
 			readout={readout}
 			title={title}
-			self={<HeatmapChart {...props} />}
+			fullscreen={<HeatmapChart {...props} />}
 		>
 			{heatmapRoot}
-		</HeatmapContextFrame>
-	)
-}
-
-/** Props for {@link HeatmapContextFrame}. @internal */
-type HeatmapContextFrameProps = {
-	contextMenu: ChartContextMenuConfig | false | undefined
-	rootRef: RefObject<HTMLDivElement | null>
-	readout: ChartReadoutSource | null
-	title?: string
-	/** A fresh copy of the heatmap for the menu's fullscreen re-mount. */
-	self: ReactElement
-	children: ReactNode
-}
-
-/**
- * Wraps a heatmap's root in its {@link ChartContextMenu} — or returns it bare
- * when the heatmap is itself the menu's re-mounted fullscreen copy, so the
- * enlarged chart never nests a second menu. Split from {@link HeatmapChart} so
- * that gate stays off the component's own complexity budget.
- *
- * @internal
- */
-function HeatmapContextFrame({
-	contextMenu,
-	rootRef,
-	readout,
-	title,
-	self,
-	children,
-}: HeatmapContextFrameProps) {
-	if (useChartFullscreen()) return <>{children}</>
-
-	return (
-		<ChartContextMenu
-			contextMenu={contextMenu}
-			rootRef={rootRef}
-			readout={readout}
-			title={title}
-			fullscreen={self}
-		>
-			{children}
 		</ChartContextMenu>
 	)
 }

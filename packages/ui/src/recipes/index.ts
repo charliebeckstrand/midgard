@@ -14,10 +14,9 @@
  *               The only layer that touches kiso; drives the bridge.
  *               Consumed by components and primitives.
  *
- * Components and primitives reach the recipe layer through their owning
- * kata (`from '../../recipes/kata/<name>'`). Cross-layer value imports are
- * pinned by `__tests__/boundary/component-recipe-boundary.test.ts`
- * and `__tests__/boundary/primitive-recipe-boundary.test.ts`.
+ * Components, modules, and primitives reach the recipe layer through their
+ * owning kata (`from '../../recipes/kata/<name>'`). Cross-layer value imports
+ * are pinned by `__tests__/boundary/recipe-import-boundary.test.ts`.
  *
  * This barrel is types-only. It re-exports the recipe-substrate types
  * (`Color`, `Ma`, `Step`, `GroupOrientation`, `GroupPosition`); consumers

@@ -17,8 +17,9 @@ import {
 } from './engine/grid-reorder-compute'
 import { GridContextMenu } from './grid-context-menu'
 import type { GridGroupByContextValue } from './grid-group-by-button'
+import { GridManagerDialog } from './grid-manager-dialog'
 import { GridReorderContext } from './grid-reorder'
-import { GridRowManagerDialog } from './grid-row-manager-dialog'
+import { GridRowManager } from './grid-row-manager'
 import type { GridColumn, GridContextMenu as GridContextMenuConfig, GridMenuItem } from './types'
 import type { GridRowManagerRegionResult } from './use-grid-row-manager'
 import type { GridColumnFilter } from './use-grid-table'
@@ -195,14 +196,13 @@ export function GridRowManagerRegionDialog({ region }: { region: GridRowManagerR
 	if (!region.reachable) return null
 
 	return (
-		<GridRowManagerDialog
-			open={region.open}
-			onOpenChange={region.setOpen}
-			label="Manage rows"
-			groups={region.managerGroups}
-			onRecolor={region.recolor}
-			onReorderGroups={region.reorderGroups}
-		/>
+		<GridManagerDialog open={region.open} onOpenChange={region.setOpen} label="Manage rows">
+			<GridRowManager
+				groups={region.managerGroups}
+				onRecolor={region.recolor}
+				onReorderGroups={region.reorderGroups}
+			/>
+		</GridManagerDialog>
 	)
 }
 

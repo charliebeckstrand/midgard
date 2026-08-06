@@ -145,10 +145,13 @@ export const [ChartEmphasisContext, useChartEmphasis] =
 
 /**
  * Whether the chart is rendering inside the fullscreen dialog. The chart the
- * menu re-mounts there is a live, interactive copy — its frame reads this to
- * skip its own context menu, so the enlarged chart is a child of the menu, not
- * another menu host (which would recurse). Default `false` for a chart in the
- * page.
+ * menu re-mounts there is a live, interactive copy, so {@link ChartContextMenu}
+ * reads this and renders its children bare — the enlarged chart is a child of
+ * the menu, never another menu host, which would recurse. Default `false` for a
+ * chart in the page.
+ *
+ * `SectorChart` reads it for a different reason: a pie takes the dialog's wider
+ * aspect ratio rather than its free-form square.
  *
  * @internal
  */
