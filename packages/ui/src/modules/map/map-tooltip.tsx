@@ -98,10 +98,12 @@ function resolve(
  * pointer client point, so the map's readout wears exactly the Tooltip chrome,
  * motion, and glass adoption, flipping and shifting at the viewport edges.
  *
- * @remarks A pointer enhancement by design: the same values ship in the
- * visually-hidden table, so nothing is gated behind hover. Regions with no
- * matching datum — and targets whose legend entry is toggled off — read
- * nothing, matching the charts' off-the-marks silence.
+ * @remarks An enhancement, never the only channel: the same values ship in the
+ * visually-hidden table, so nothing is gated behind a readout. The keyboard
+ * cursor raises it as the pointer does, anchoring at the pointed region's
+ * projected centroid (`use-map-keyboard`). Regions with no matching datum — and
+ * targets whose legend entry is toggled off — read nothing, matching the
+ * charts' off-the-marks silence.
  * @internal
  */
 export function MapTooltip(props: MapTooltipProps) {

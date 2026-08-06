@@ -59,7 +59,7 @@ export const k = {
 	 * milliseconds of per-frame compositing.
 	 */
 	group: (dimmed: boolean) => ['transition-opacity', dimmed ? 'opacity-25' : ''],
-	/** Keyboard focus ring for the range legend's scale-bar slider — the shared accent outline. */
+	/** Keyboard focus ring — the shared accent outline, on the navigable plot region and the range legend's scale-bar slider. */
 	focus: sen.focus.ring,
 	/** The range legend's hover arrow: foreground ink (via `currentColor`), so the bin glyph reads over the panel. */
 	arrow: iro.text.default,

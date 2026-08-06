@@ -37,12 +37,13 @@ export type MapRegionsProps = {
 	 * no-data ones included: under a click each is a target, not just the matched
 	 * ones.
 	 *
-	 * A pointer affordance, deliberately: the plot is a `role="img"` leaf over an
-	 * `aria-hidden` SVG, so these paths are presentational to assistive tech and
-	 * a focusable one would be both unreachable and — inside the `sr-only` readout
-	 * — an invisible focus stop. A clickable map owes its keyboard users a
-	 * visible control of their own beside it (the region list the click drives, a
-	 * picker), which the map's data table then reads for value parity.
+	 * The paths themselves stay presentational: the plot is a `role="img"` leaf
+	 * over an `aria-hidden` SVG, so a focusable path would be unreachable to
+	 * assistive tech and, at a county atlas's scale, thousands of invisible
+	 * stops. The keyboard reaches this click through the plot region instead —
+	 * one tab stop whose cursor Enter and Space activate (`use-map-keyboard`) —
+	 * so the same report answers both inputs and the region values stay in the
+	 * data table for parity.
 	 */
 	onRegionClick?: (index: number) => void
 	/**
@@ -467,7 +468,7 @@ export const MapRegions = memo(function MapRegions({
 	const selectedPath = selected === null ? null : (paths[selected] ?? null)
 
 	return (
-		// biome-ignore lint/a11y/noStaticElementInteractions: a pointer delegation surface, not an interactive control — the SVG is aria-hidden under the plot's role="img", so the click's keyboard counterpart is a control the consumer supplies (see MapRegionsProps.onRegionClick)
+		// biome-ignore lint/a11y/noStaticElementInteractions: a pointer delegation surface, not an interactive control — the SVG is aria-hidden under the plot's role="img", which is itself the tab stop that carries the click's keyboard counterpart (see use-map-keyboard)
 		<g
 			data-slot="map-regions"
 			// The cursor rides the group and inherits down, so thousands of paths carry
