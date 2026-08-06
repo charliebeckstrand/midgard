@@ -82,6 +82,27 @@ function writeFixture(root: string, { barDependsOnFoo = false } = {}): string {
 	return src
 }
 
+/** Retype Foo's prop on disk, so the file's content hash moves. */
+function editFoo(srcDir: string, propType: string): void {
+	fs.writeFileSync(
+		path.join(srcDir, 'components', 'foo', 'foo.tsx'),
+		[
+			`/** A foo. */`,
+			`export function Foo(props: { label?: ${propType} }) {`,
+			`\treturn null`,
+			`}`,
+			'',
+		].join('\n'),
+	)
+}
+
+/** The hash a persisted cache carries — the key `aggregateHash` produced for it. */
+function cacheKey(cacheDir: string): string {
+	const raw = fs.readFileSync(path.join(cacheDir, 'api.json'), 'utf-8')
+
+	return (JSON.parse(raw) as { hash: string }).hash
+}
+
 const roots: string[] = []
 
 function fixture(opts?: { barDependsOnFoo?: boolean }): { srcDir: string; cacheDir: string } {
@@ -157,16 +178,7 @@ describe('createApiExtractor', () => {
 
 		// Retype Foo's prop on disk. The live project still holds the pre-edit AST,
 		// so the refresh must apply synchronously before the next extraction reads it.
-		fs.writeFileSync(
-			fooPath,
-			[
-				`/** A foo. */`,
-				`export function Foo(props: { label?: number }) {`,
-				`\treturn null`,
-				`}`,
-				'',
-			].join('\n'),
-		)
+		editFoo(srcDir, 'number')
 
 		extractor.notifyChanged(fooPath)
 
@@ -251,5 +263,56 @@ describe('createApiExtractor', () => {
 		const result = createApiExtractor(srcDir, { cacheDir }).getAll()
 
 		expect(result.foo?.[0]?.props.map((p) => p.name)).toEqual(['label', 'hidden'])
+	})
+
+	it('moves the disk cache key when notifyChanged reports a same-session edit', () => {
+		const { srcDir, cacheDir } = fixture()
+
+		const extractor = createApiExtractor(srcDir, { cacheDir })
+
+		extractor.getAll()
+
+		const before = cacheKey(cacheDir)
+
+		// The content-hash memo outlives the pass, so a reported path must drop out
+		// of it; a retained entry holds the key still forever.
+		editFoo(srcDir, 'number')
+
+		extractor.notifyChanged(path.join(srcDir, 'components', 'foo', 'foo.tsx'))
+
+		extractor.getAll()
+
+		expect(cacheKey(cacheDir)).not.toBe(before)
+	})
+
+	it('holds the disk cache key when an edit skips notifyChanged, and recovers on the next start', () => {
+		const { srcDir, cacheDir } = fixture()
+
+		const extractor = createApiExtractor(srcDir, { cacheDir })
+
+		extractor.getAll()
+
+		const before = cacheKey(cacheDir)
+
+		// Edit Foo behind the extractor's back — a watcher miss, or a write from
+		// outside the dev server. Report Bar instead, so a pass runs and persists.
+		editFoo(srcDir, 'number')
+
+		extractor.notifyChanged(path.join(srcDir, 'components', 'bar', 'bar.tsx'))
+
+		const second = extractor.getAll()
+
+		// The record misses the edit, because `applyRefreshes` reads reported paths
+		// alone. The retained memo holds the key to the tree that record describes,
+		// so the pair stays consistent rather than validating a stale record.
+		expect(second.foo?.[0]?.props).toEqual([{ name: 'label', type: 'string' }])
+
+		expect(cacheKey(cacheDir)).toBe(before)
+
+		// A fresh extractor starts with an empty memo, so it hashes the real content
+		// on disk, the stale key fails, and the missed edit lands.
+		const restart = createApiExtractor(srcDir, { cacheDir }).getAll()
+
+		expect(restart.foo?.[0]?.props).toEqual([{ name: 'label', type: 'number' }])
 	})
 })

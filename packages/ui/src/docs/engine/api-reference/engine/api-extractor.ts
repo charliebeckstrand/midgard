@@ -23,7 +23,14 @@ import { buildLinkTargetFiles, createLinkResolver } from './link-resolver'
 export type ApiExtractor = {
 	/** The full API-reference record, built (or incrementally refreshed) on demand. */
 	getAll: () => Record<string, ComponentApi[]>
-	/** Note a changed/added/removed file; returns whether it feeds any barrel (so the caller can bust its virtual module). */
+	/**
+	 * Note a changed/added/removed file; returns whether it feeds any barrel (so
+	 * the caller can bust its virtual module).
+	 *
+	 * @remarks
+	 * The report also drops the file from the content-hash memo, which keeps the
+	 * disk cache's key current; see {@link aggregateHash}.
+	 */
 	notifyChanged: (file: string) => boolean
 }
 
@@ -93,6 +100,60 @@ function collectInputFiles(dir: string, out: string[] = []): string[] {
 	return out
 }
 
+/**
+ * Hash one input file's content, and record it in `hashes`. Returns `null` when
+ * the read fails — a deleted file, which stays out of the memo so a later add
+ * reads it again.
+ */
+function hashFile(file: string, hashes: Map<string, string>): string | null {
+	const cached = hashes.get(file)
+
+	if (cached !== undefined) return cached
+
+	let hash: string | null
+
+	try {
+		hash = createHash('sha1').update(fs.readFileSync(file)).digest('hex')
+	} catch {
+		hash = null
+	}
+
+	if (hash !== null) hashes.set(file, hash)
+
+	return hash
+}
+
+/**
+ * A digest over every input file's path and content — the disk cache's validity
+ * key. The walk runs on every call, so an added or a deleted file moves the key.
+ * Content comes from the `hashes` memo, which this function fills in place.
+ *
+ * @remarks
+ * The memo makes the key blind to an edit that never reaches
+ * {@link ApiExtractor.notifyChanged} — a watcher miss, or a write from outside
+ * the dev server. That is deliberate. The extractor refreshes its project from
+ * the same reports, so an edit that skips one is already absent from the record
+ * this key labels. The memo gives the key the same blind spot, so the key and
+ * the record agree.
+ *
+ * A key that reads disk on every call is worse. It can validate a record that
+ * the same missed edit made stale, and that pair survives every restart. A key
+ * that agrees with its record instead fails the check on the next start. A fresh
+ * extractor starts with an empty memo, so it reads the real content on disk.
+ *
+ * @internal
+ */
+export function aggregateHash(srcDir: string, hashes: Map<string, string>): string {
+	const files = collectInputFiles(srcDir).sort()
+
+	const digest = createHash('sha1')
+
+	for (const file of files)
+		digest.update(path.relative(srcDir, file)).update(hashFile(file, hashes) ?? '')
+
+	return digest.digest('hex')
+}
+
 /** Create an incremental extractor for the package rooted at `srcDir`. */
 export function createApiExtractor(
 	srcDir: string,
@@ -104,8 +165,9 @@ export function createApiExtractor(
 			: (options.cacheDir ??
 				path.resolve(srcDir, '..', 'node_modules', '.cache', 'docs-api-reference'))
 
-	// Content-hash memo, valid only within a single getAll pass; cleared before
-	// each so a rebuild re-reads changed files from disk.
+	// Content-hash memo for `aggregateHash`. It lives as long as the extractor:
+	// each pass drops only the paths `notifyChanged` reported, so a rebuild
+	// re-hashes those files rather than the whole tree.
 	const hashes = new Map<string, string>()
 
 	const states = new Map<string, BarrelState>()
@@ -127,36 +189,6 @@ export function createApiExtractor(
 	// True once a full in-project extraction has warmed the checker in canonical
 	// order this process; only then is a per-barrel subset re-extraction stable.
 	let warmed = false
-
-	function hashFile(file: string): string | null {
-		const cached = hashes.get(file)
-
-		if (cached !== undefined) return cached
-
-		let hash: string | null
-
-		try {
-			hash = createHash('sha1').update(fs.readFileSync(file)).digest('hex')
-		} catch {
-			hash = null
-		}
-
-		if (hash !== null) hashes.set(file, hash)
-
-		return hash
-	}
-
-	/** A digest over every input file's path and content — the disk cache's validity key. */
-	function aggregateHash(): string {
-		const files = collectInputFiles(srcDir).sort()
-
-		const digest = createHash('sha1')
-
-		for (const file of files)
-			digest.update(path.relative(srcDir, file)).update(hashFile(file) ?? '')
-
-		return digest.digest('hex')
-	}
 
 	function ensureProject(): Project {
 		if (!project) project = openProject(srcDir)
@@ -335,7 +367,7 @@ export function createApiExtractor(
 
 		const disk = readDisk(cacheDir)
 
-		if (disk && disk.hash === aggregateHash()) {
+		if (disk && disk.hash === aggregateHash(srcDir, hashes)) {
 			// Byte-identical source: replay the stored record. No project is opened,
 			// so `inputs` stay empty until the first edit forces a warming pass.
 			for (const [key, api] of Object.entries(disk.record))
@@ -382,12 +414,14 @@ export function createApiExtractor(
 	}
 
 	function persist(): void {
-		writeDisk(cacheDir, aggregateHash(), snapshot())
+		writeDisk(cacheDir, aggregateHash(srcDir, hashes), snapshot())
 	}
 
 	return {
 		getAll() {
-			hashes.clear()
+			// Drop the memo entries this pass re-reads. `applyRefreshes` empties
+			// `pendingRefresh` further down, so the drop must come first.
+			for (const file of pendingRefresh) hashes.delete(file)
 
 			if (!loaded) initialLoad()
 			else if (dirty.size > 0 || pendingRefresh.size > 0) incrementalRebuild()

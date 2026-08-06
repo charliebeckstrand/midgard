@@ -6,6 +6,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { bench, describe } from 'vitest'
 import { createApiExtractor } from '../../docs/engine/api-reference'
+import { aggregateHash } from '../../docs/engine/api-reference/engine/api-extractor'
 import { buildApi } from '../../docs/engine/api-reference/engine/build-api'
 
 // The benchmarks run against the package's own source tree, the workload the
@@ -59,6 +60,34 @@ describe('docs: buildApi extraction', () => {
 			warm.getAll()
 		},
 		{ iterations: 10, warmupIterations: 2, time: 0, warmupTime: 0 },
+	)
+})
+
+// `persist` calls `aggregateHash` once per pass, and the incremental figure
+// above varies by more than the memo saves — so measure the key on its own. Both
+// paths pay the same readdirSync walk; the pair isolates the SHA-1 reads a warm
+// memo drops.
+const warmHashes = new Map<string, string>()
+
+aggregateHash(srcDir, warmHashes)
+
+const hashRuns = { iterations: 20, warmupIterations: 3, time: 0, warmupTime: 0 }
+
+describe('docs: aggregateHash (disk cache key)', () => {
+	// Every pass paid this before the memo outlived it: the walk, then a read and
+	// a hash of all ~1.2k input files.
+	bench('aggregateHash (cold memo)', () => void aggregateHash(srcDir, new Map()), hashRuns)
+
+	// The steady state: one edited path drops out, so the walk stays and the
+	// digest reads one file.
+	bench(
+		'aggregateHash (warm memo, one path dropped)',
+		() => {
+			warmHashes.delete(editedFile)
+
+			aggregateHash(srcDir, warmHashes)
+		},
+		hashRuns,
 	)
 })
 

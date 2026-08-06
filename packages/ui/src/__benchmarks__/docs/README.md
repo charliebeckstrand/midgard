@@ -10,7 +10,7 @@ Runs under `vitest.bench.docs.config.ts` (node environment), split from `pnpm be
 
 [`extraction.bench.ts`](extraction.bench.ts) isolates the per-component extractors (`extractProps`, `extractReferences`, `formatPropType`, annotation extractors, the link-resolver index) on one shared Project, against three fixtures: `Button` (typical), `Heading` (HTML-attribute spread, the `collectAllProperties` worst case), and `Combobox` (widest extractable surface).
 
-[`extractor.bench.ts`](extractor.bench.ts) covers the end-to-end paths through `createApiExtractor` (#1001): cold whole-project `buildApi`, extractor cold, disk-cache restore, and the per-barrel incremental edit a live dev session pays — the same costs the `apiManifestMs` / `apiReextractMs` metrics below observe from outside.
+[`extractor.bench.ts`](extractor.bench.ts) covers the end-to-end paths through `createApiExtractor` (#1001): cold whole-project `buildApi`, extractor cold, disk-cache restore, and the per-barrel incremental edit a live dev session pays — the same costs the `apiManifestMs` / `apiReextractMs` metrics below observe from outside. It also measures `aggregateHash` on its own, because the incremental figure varies by more than the content-hash memo saves. A cold memo reads and hashes all ~1.2k input files; a warm memo re-reads only the paths `notifyChanged` reported. Both pay the `readdirSync` walk, which catches an added or a deleted file.
 
 ## Vite harness — `pnpm bench:docs:vite`
 
