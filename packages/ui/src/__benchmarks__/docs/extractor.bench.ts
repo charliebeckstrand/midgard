@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { bench, describe } from 'vitest'
 import { createApiExtractor } from '../../docs/engine/api-reference'
+import { aggregateHash } from '../../docs/engine/api-reference/engine/api-extractor'
 import { buildApi } from '../../docs/engine/api-reference/engine/build-api'
 import { srcDir } from './paths'
 
@@ -20,14 +21,23 @@ const editedFile = path.join(srcDir, 'components', 'button', 'button.tsx')
 // projects in memory.
 const once = { iterations: 1, warmupIterations: 0, time: 0, warmupTime: 0 }
 
+// Light passes open no Project, so they can afford a sample wide enough to show
+// their spread.
+const sampled = { iterations: 20, warmupIterations: 3, time: 0, warmupTime: 0 }
+
 const cacheDir = mkdtempSync(path.join(tmpdir(), 'api-bench-'))
 
 // Prime the disk cache once so the restore benchmark measures a warm cache.
 createApiExtractor(srcDir, { cacheDir }).getAll()
 
 // A warmed extractor whose Project stays alive, for the per-barrel incremental
-// path a live dev session hits.
-const warm = createApiExtractor(srcDir, { cacheDir: null })
+// path a live dev session hits. It gets a cache dir of its own, empty, so this
+// first pass misses and extracts in full — and so every later pass persists,
+// which is what the docs plugin pays. With `cacheDir: null` the extractor skips
+// the key and the snapshot, and the incremental figure below reads low.
+const warmCacheDir = mkdtempSync(path.join(tmpdir(), 'api-bench-warm-'))
+
+const warm = createApiExtractor(srcDir, { cacheDir: warmCacheDir })
 warm.getAll()
 
 describe('docs: buildApi extraction', () => {
@@ -44,7 +54,7 @@ describe('docs: buildApi extraction', () => {
 	bench(
 		'extractor disk restore (no change)',
 		() => void createApiExtractor(srcDir, { cacheDir }).getAll(),
-		{ iterations: 20, warmupIterations: 3, time: 0, warmupTime: 0 },
+		sampled,
 	)
 
 	// A single-component edit in a live session: refresh one file, re-extract only
@@ -59,6 +69,34 @@ describe('docs: buildApi extraction', () => {
 	)
 })
 
-// Vitest tears the worker down after the run; the temp cache dir goes with it,
-// but drop it eagerly when the process cooperates.
-process.on('exit', () => rmSync(cacheDir, { recursive: true, force: true }))
+// `persist` calls `aggregateHash` once per pass, and the incremental figure
+// above varies by more than the memo saves — so measure the key on its own.
+// Primed here rather than left to the warmup, so the warm case measures a full
+// memo whatever the runner does with `warmupIterations`.
+const warmHashes = new Map<string, string>()
+
+aggregateHash(srcDir, warmHashes)
+
+describe('docs: aggregateHash (disk cache key)', () => {
+	// Every pass paid this before the memo outlived it: the walk, then a read and
+	// a hash of all ~1.2k input files.
+	bench('aggregateHash (cold memo)', () => void aggregateHash(srcDir, new Map()), sampled)
+
+	// The steady state: one edited path drops out, so the walk stays and the
+	// digest reads one file.
+	bench(
+		'aggregateHash (warm memo, one path dropped)',
+		() => {
+			warmHashes.delete(editedFile)
+
+			aggregateHash(srcDir, warmHashes)
+		},
+		sampled,
+	)
+})
+
+// Vitest tears the worker down after the run; the temp cache dirs go with it,
+// but drop them eagerly when the process cooperates.
+process.on('exit', () => {
+	for (const dir of [cacheDir, warmCacheDir]) rmSync(dir, { recursive: true, force: true })
+})

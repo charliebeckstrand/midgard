@@ -23,7 +23,14 @@ import { createLinkIndex } from './link-resolver'
 export type ApiExtractor = {
 	/** The full API-reference record, built (or incrementally refreshed) on demand. */
 	getAll: () => Record<string, ComponentApi[]>
-	/** Note a changed/added/removed file; returns whether it feeds any barrel (so the caller can bust its virtual module). */
+	/**
+	 * Note a changed/added/removed file; returns whether it feeds any barrel (so
+	 * the caller can bust its virtual module).
+	 *
+	 * @remarks
+	 * The report also drops the file from the content-hash memo, which keeps the
+	 * disk cache's key current; see {@link aggregateHash}.
+	 */
 	notifyChanged: (file: string) => boolean
 }
 
@@ -56,6 +63,13 @@ const CACHE_VERSION = 4
 const CACHE_FILE = 'api.json'
 
 /**
+ * Directories that hold no barrel input. {@link isInputFile} rejects every path
+ * under them, so the walk prunes them instead of descending and discarding —
+ * they hold about a third of the files under this package's `src`.
+ */
+const SKIPPED_DIRS = new Set(['node_modules', 'docs', '__tests__', '__benchmarks__'])
+
+/**
  * A file that can feed a barrel's output: project source, never `node_modules`,
  * the docs site, or test/bench fixtures — production barrels never import those,
  * so tracking them would re-extract on every unrelated test edit.
@@ -70,7 +84,7 @@ function isInputFile(file: string): boolean {
 	return !/\.(test|bench|stories)\.tsx?$/.test(file)
 }
 
-/** Recursively collect every {@link isInputFile} path under `dir`. */
+/** Recursively collect every {@link isInputFile} path under `dir`, past {@link SKIPPED_DIRS}. */
 function collectInputFiles(dir: string, out: string[] = []): string[] {
 	let entries: fs.Dirent[]
 
@@ -84,13 +98,71 @@ function collectInputFiles(dir: string, out: string[] = []): string[] {
 		const full = path.join(dir, entry.name)
 
 		if (entry.isDirectory()) {
-			if (entry.name !== 'node_modules' && entry.name !== 'docs') collectInputFiles(full, out)
+			if (!SKIPPED_DIRS.has(entry.name)) collectInputFiles(full, out)
 		} else if (entry.isFile() && isInputFile(full)) {
 			out.push(full)
 		}
 	}
 
 	return out
+}
+
+/**
+ * Hash one input file's content, and record it in `hashes`. Returns `null` when
+ * the read fails — a deleted file, which stays out of the memo so a later add
+ * reads it again.
+ */
+function hashFile(file: string, hashes: Map<string, string>): string | null {
+	const cached = hashes.get(file)
+
+	if (cached !== undefined) return cached
+
+	let hash: string | null
+
+	try {
+		hash = createHash('sha1').update(fs.readFileSync(file)).digest('hex')
+	} catch {
+		hash = null
+	}
+
+	if (hash !== null) hashes.set(file, hash)
+
+	return hash
+}
+
+/**
+ * A digest over every input file's path and content — the disk cache's validity
+ * key. The walk runs on every call, so an added or a deleted file moves the key.
+ * Content comes from the `hashes` memo, which this function fills in place.
+ *
+ * @remarks
+ * The memo makes the key blind to an edit that never reaches
+ * {@link ApiExtractor.notifyChanged} — a watcher miss, or a write from outside
+ * the dev server. That is deliberate. The extractor refreshes its project from
+ * the same reports, so an edit that skips one is already absent from the record
+ * this key labels. The memo gives the key the same blind spot, so the key and
+ * the record agree.
+ *
+ * A key that reads disk on every call is worse: it can validate a record that
+ * the same missed edit made stale, and that pair survives every restart. A key
+ * that agrees with its record fails the check on the next start instead,
+ * because a fresh extractor starts with an empty memo.
+ *
+ * @internal
+ */
+export function aggregateHash(srcDir: string, hashes: Map<string, string>): string {
+	const files = collectInputFiles(srcDir).sort()
+
+	// The walk joins every path onto `srcDir`, so a slice yields what
+	// `path.relative` yields and saves about a quarter of the warm cost here.
+	const rootLength = srcDir.endsWith(path.sep) ? srcDir.length : srcDir.length + 1
+
+	const digest = createHash('sha1')
+
+	for (const file of files)
+		digest.update(file.slice(rootLength)).update(hashFile(file, hashes) ?? '')
+
+	return digest.digest('hex')
 }
 
 /** Create an incremental extractor for the package rooted at `srcDir`. */
@@ -104,8 +176,9 @@ export function createApiExtractor(
 			: (options.cacheDir ??
 				path.resolve(srcDir, '..', 'node_modules', '.cache', 'docs-api-reference'))
 
-	// Content-hash memo, valid only within a single getAll pass; cleared before
-	// each so a rebuild re-reads changed files from disk.
+	// Content-hash memo for `aggregateHash`. It lives as long as the extractor:
+	// `notifyChanged` drops the path it reports, so a rebuild re-hashes those
+	// files rather than the whole tree.
 	const hashes = new Map<string, string>()
 
 	const states = new Map<string, BarrelState>()
@@ -127,36 +200,6 @@ export function createApiExtractor(
 	// True once a full in-project extraction has warmed the checker in canonical
 	// order this process; only then is a per-barrel subset re-extraction stable.
 	let warmed = false
-
-	function hashFile(file: string): string | null {
-		const cached = hashes.get(file)
-
-		if (cached !== undefined) return cached
-
-		let hash: string | null
-
-		try {
-			hash = createHash('sha1').update(fs.readFileSync(file)).digest('hex')
-		} catch {
-			hash = null
-		}
-
-		if (hash !== null) hashes.set(file, hash)
-
-		return hash
-	}
-
-	/** A digest over every input file's path and content — the disk cache's validity key. */
-	function aggregateHash(): string {
-		const files = collectInputFiles(srcDir).sort()
-
-		const digest = createHash('sha1')
-
-		for (const file of files)
-			digest.update(path.relative(srcDir, file)).update(hashFile(file) ?? '')
-
-		return digest.digest('hex')
-	}
 
 	function ensureProject(): Project {
 		if (!project) project = openProject(srcDir)
@@ -338,7 +381,7 @@ export function createApiExtractor(
 
 		const disk = readDisk(cacheDir)
 
-		if (disk && disk.hash === aggregateHash()) {
+		if (disk && disk.hash === aggregateHash(srcDir, hashes)) {
 			// Byte-identical source: replay the stored record. No project is opened,
 			// so `inputs` stay empty until the first edit forces a warming pass.
 			for (const [key, api] of Object.entries(disk.record))
@@ -390,13 +433,14 @@ export function createApiExtractor(
 	}
 
 	function persist(): void {
-		writeDisk(cacheDir, aggregateHash(), snapshot())
+		// Gate the arguments, not the write: both are whole-tree work — the key
+		// walks and hashes every input file, and the snapshot copies every barrel —
+		// and `writeDisk` would discard them.
+		if (cacheDir) writeDisk(cacheDir, aggregateHash(srcDir, hashes), snapshot())
 	}
 
 	return {
 		getAll() {
-			hashes.clear()
-
 			if (!loaded) initialLoad()
 			else if (dirty.size > 0 || pendingRefresh.size > 0) incrementalRebuild()
 
@@ -406,7 +450,11 @@ export function createApiExtractor(
 		notifyChanged(file) {
 			if (!isInputFile(file)) return false
 
+			// One report drops both views of the file — the project's AST and the
+			// memo's hash — so the key and the record lag disk by the same set.
 			pendingRefresh.add(file)
+
+			hashes.delete(file)
 
 			const affected = fileToBarrels.get(file)
 
@@ -456,13 +504,7 @@ function readDisk(cacheDir: string | null): DiskCache | null {
 	}
 }
 
-function writeDisk(
-	cacheDir: string | null,
-	hash: string,
-	record: Record<string, ComponentApi[]>,
-): void {
-	if (!cacheDir) return
-
+function writeDisk(cacheDir: string, hash: string, record: Record<string, ComponentApi[]>): void {
 	const payload: DiskCache = { version: CACHE_VERSION, hash, record }
 
 	try {
