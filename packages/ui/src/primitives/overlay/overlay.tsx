@@ -215,9 +215,7 @@ export function Overlay({
 			data-slot="overlay"
 			className={cn(
 				'inset-0',
-				// One step over the root, which is all `reachable` chrome is expected to
-				// need — see {@link OverlayProps.elevated}.
-				elevated ? 'z-101' : 'z-99',
+				elevated ? k.root.elevated : k.root.base,
 				scoped ? 'absolute' : 'fixed',
 				!modal && 'pointer-events-none',
 			)}
@@ -252,27 +250,6 @@ export function Overlay({
 			</OverlayFocus>
 		</PresencePortal>
 	)
-}
-
-/** The shared empty target list, so the undeclared case allocates nothing. @internal */
-const NO_REACH: readonly OverlayReach[] = []
-
-/**
- * Normalizes `reachable` to a target list. An absent declaration and an empty
- * array both give `[]`, so a degenerate `reachable={[]}` reads as no declaration
- * rather than as a sealed page with no way out of it.
- *
- * @internal
- */
-function reachTargets(
-	reachable: OverlayReach | readonly OverlayReach[] | undefined,
-): readonly OverlayReach[] {
-	if (reachable == null) return NO_REACH
-
-	// One level of `flat` accepts the singular and the array form alike;
-	// `Array.isArray` narrows to `any[]`, which leaves a readonly array behind in
-	// its false branch.
-	return [reachable].flat()
 }
 
 /**
@@ -320,7 +297,10 @@ function OverlayFocus({
 }) {
 	if (!modal) return children
 
-	const targets = reachTargets(reachable)
+	// One level of `flat` accepts the singular and the array form alike. An absent
+	// declaration and an empty array both give `[]`, so a degenerate `reachable={[]}`
+	// reads as no declaration rather than as a sealed page with no way out of it.
+	const targets = [reachable ?? []].flat()
 
 	// Two halves enforce the trap, and a declaration has to relax both. The focus
 	// guards bounce a Tab that reaches the panel's edge back inside, so

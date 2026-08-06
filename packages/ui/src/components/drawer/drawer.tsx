@@ -94,7 +94,10 @@ export type DrawerProps = Omit<DrawerPanelVariants, 'surface'> & {
 	reachable?: OverlayReach | readonly OverlayReach[]
 	/**
 	 * Paint above app chrome lifted over the overlay root. For a drawer that *is* the
-	 * application's navigation; see `Overlay`'s `elevated`.
+	 * application's navigation.
+	 *
+	 * @see {@link Overlay} — its own `elevated` documents what the level ranks against.
+	 *
 	 * @defaultValue false
 	 */
 	elevated?: boolean
@@ -162,22 +165,13 @@ export function Drawer({
 
 	if (!resolvedOpen) reportedRef.current = false
 
-	/*
-	 * The callback through a ref, so reporting keeps one identity and the effect below runs
-	 * once per arrival instead of once per render. A consumer passing an inline function is
-	 * the common case, and a library component is in no position to assume otherwise.
-	 */
-	const completeRef = useRef(onOpenComplete)
-
-	completeRef.current = onOpenComplete
-
 	const reportOpen = useCallback(() => {
 		if (reportedRef.current) return
 
 		reportedRef.current = true
 
-		completeRef.current?.()
-	}, [])
+		onOpenComplete?.()
+	}, [onOpenComplete])
 
 	// A panel that arrives in place plays no enter, so there is no landing to report from —
 	// it is already up, and says so from here instead.

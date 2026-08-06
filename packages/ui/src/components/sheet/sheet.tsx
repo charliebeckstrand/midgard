@@ -63,7 +63,10 @@ export type SheetProps = Omit<SheetPanelVariants, 'surface'> & {
 	backdrop?: boolean
 	/**
 	 * Paint above app chrome lifted over the overlay root. For a sheet that *is* the
-	 * application's navigation; see `Overlay`'s `elevated`.
+	 * application's navigation.
+	 *
+	 * @see {@link Overlay} — its own `elevated` documents what the level ranks against.
+	 *
 	 * @defaultValue false
 	 */
 	elevated?: boolean
