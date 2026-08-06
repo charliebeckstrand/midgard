@@ -26,6 +26,15 @@ export const DOCUMENTED_ROOTS = [
 	['modules', 'modules-'],
 ] as const
 
+/**
+ * The `tsconfig.json` a Project for `srcDir` opens, one level above it. The
+ * docs benchmarks A/B alternative constructions against {@link openProject},
+ * and that comparison only holds while both sides open the same config.
+ */
+export function tsConfigPathFor(srcDir: string): string {
+	return path.resolve(srcDir, '..', 'tsconfig.json')
+}
+
 /** One documentable barrel: its result key and the `index.ts` that exports it. */
 export type Barrel = { key: string; indexPath: string }
 
@@ -138,7 +147,7 @@ export function buildApi(srcDir: string): Record<string, ComponentApi[]> {
  */
 export function openProject(srcDir: string): Project {
 	const project = new Project({
-		tsConfigFilePath: path.resolve(srcDir, '..', 'tsconfig.json'),
+		tsConfigFilePath: tsConfigPathFor(srcDir),
 		skipAddingFilesFromTsConfig: true,
 	})
 

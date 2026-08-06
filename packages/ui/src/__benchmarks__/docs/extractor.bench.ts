@@ -9,9 +9,8 @@ import { buildApi } from '../../docs/engine/api-reference/engine/build-api'
 import { srcDir } from './paths'
 
 // The benchmarks run against the package's own source tree, the workload the
-// docs plugin actually extracts (~100 barrels over ~1.2k reachable files). The
-// benchDir sits at `src/__benchmarks__/docs`, so the source root is two levels
-// up.
+// docs plugin actually extracts (~100 barrels over ~1.2k reachable files).
+
 // A component source edited between incremental passes. Only the barrels that
 // reach it re-extract.
 const editedFile = path.join(srcDir, 'components', 'button', 'button.tsx')

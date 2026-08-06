@@ -1,12 +1,15 @@
 import path from 'node:path'
 
-// Every docs benchmark measures one tree: this package's `src`, and the
-// tsconfig that `openProject` resolves beside it. They live here so a suite
-// cannot drift onto a different root, and so adding a suite needs no path
-// arithmetic of its own.
+// Every docs benchmark and reporter anchors to the same two directories. They
+// resolve here once, so no suite repeats the path arithmetic, and no suite
+// drifts onto a different root.
+//
+// This module stays free of engine imports. `bundle-budget.ts` runs in CI and
+// only walks the built assets; an import of the extraction engine would load
+// ts-morph and cost that run about 2.4 seconds for a directory string.
 
 /** The package's `src`, two levels above `src/__benchmarks__/docs`. */
 export const srcDir = path.resolve(import.meta.dirname, '..', '..')
 
-/** The `tsconfig.json` a ts-morph Project opens, one level above {@link srcDir}. */
-export const tsConfigFilePath = path.resolve(srcDir, '..', 'tsconfig.json')
+/** The package root, which holds `package.json`, the tsconfigs, and `node_modules`. */
+export const pkgRoot = path.resolve(srcDir, '..')
