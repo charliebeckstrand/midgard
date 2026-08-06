@@ -59,7 +59,7 @@ Behaviour-neutral. Each removes a file, an export, or a layer.
   zero. Every use resolves to `p`, `px`, `py`, `m`, `mx`, `my`, or `gap` through `kata/box.ts:9-14`,
   `kata/list.ts:8`, `kata/flex.ts:1`, and `kata/split.ts:1`. Delete `padding.ts:34-65` and
   `margin.ts:34-65`, then trim the import lists and the nine barrel keys at `ma/index.ts:13-15,19-35`.
-  Keep `stops.ts` as a module: `padding`, `margin`, and `gap` import the `Ma` type from it, and
+  Keep the module: `padding`, `margin`, and `gap` import the `Ma` type from it, and
   `recipes/index.ts:31` re-exports that type. Update the `ma` row at `docs/RECIPES.md:23`, which still
   advertises the raw `--spacing` numerals. `kiso` is internal and `./recipes` is absent from the
   package.json `exports`. Saving: 74 lines.
@@ -150,6 +150,15 @@ Behaviour-neutral. Each removes a file, an export, or a layer.
   consumers in `checkbox-field.tsx`, `radio-field.tsx`, and `switch-field.tsx`, and stays off
   `components/control/index.ts`, so `internal-barrel-boundary`, `hook-type-name-boundary`, and
   `component-filename-boundary` are unaffected. Saving: 18 lines.
+
+  Resolved against this row, not by it. The fold landed and a later `/simplify` pass reversed it. The
+  row counted one caller and never looked at `Field` (`fieldset/field.tsx`), which builds the same value
+  inline one directory away — the same `useIdScope` / `useControl` / `useA11yControl` / `useMemo`, five of
+  eight keys character for character. Folding the hook away turned a hook-plus-copy into a
+  copy-plus-copy. `use-control-field-context.ts` is back, taking `autoComplete`, `disabled`, and
+  `severity` as optional overrides: `ControlField` passes none, `Field` passes its three. `Control` stays
+  out — its `required` takes the own prop with no parent fallback, so folding it too would change a
+  nested control. The saving is negative against this row and positive against the tree.
 
 - [x] **Inline `resolveMount`.** `resolveMount(_fade, mount)` returns `mount ?? 'active'`
   (`current.ts:114-116`). The `fade` parameter is unused, and the doccomment keeps it only in case the two
@@ -413,20 +422,25 @@ writing the machinery twice.
 
 ## Landed
 
-Eleven of the twelve Ready findings are done, in three commits on `claude/ui-cleanup-audit-pxryra`.
+Eleven of the twelve Ready findings are done, in six commits on `claude/ui-cleanup-audit-pxryra`.
 Replace this note with the pull-request citations on merge, per
 [CONVENTIONS.md](../../../../CONVENTIONS.md) §12.4; the checked rows above carry the detail.
 
-The count came in at 601 removed lines against the 550 the tier estimated, because the `ma` and grid
-findings each gave more than the audit counted. Every commit was proved against the full jsdom suite
-(447 files, 5,734 tests) and `tsc --noEmit`; the boundary gate and the browser suite (83 files, 475
-tests) ran on the commits that touched what they cover.
+The branch removes 912 lines from `packages/ui/src` and adds 339, a net 573, against the 550 the tier
+estimated. Three of the six commits are `/simplify` passes over the branch's own diff rather than audit
+rows: they moved the chart fullscreen gate into the component that provides its context, corrected the
+comments and records the earlier commits left stale, and reversed one fold this audit got wrong. Every
+commit was proved against the full jsdom suite (447 files, 5,734 tests) and `tsc --noEmit`; the browser
+suite (83 files, 475 tests) ran on the commits that touched what it covers.
 
-Two checks are worth recording because they could have gone the other way. The merged recipe-import
+Four checks are worth recording because they could have gone the other way. The merged recipe-import
 scanner was probed with a real `kiso` import planted in `primitives/`, and it failed with the layer
 named — so folding the two scanners did not silently drop the primitive half. Every sized skeleton map
 was read before the clamp came out: all sit inside the `Ma` scale and all define `md`, including
-`shaku.avatar`, which the recipe reaches indirectly.
+`shaku.avatar`, which the recipe reaches indirectly. The no-nested-menu test was proved by disabling the
+gate, which turned it and the choropleth one red together. And three review agents proposed replacing the
+skeleton's hand-written size union with `import type { Ma }`; running `component-ma-boundary.test.ts`
+against that import named the offending file, so the union stays and its comment now names the gate.
 
 `Collapse the eight pdf-viewer toolbar icon-buttons` is the one Ready finding left. It is the tier's
 worst ratio — 30 lines across eight sites in three files, plus the a11y case surface — so it is better
