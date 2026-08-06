@@ -28,8 +28,8 @@ type GridCursorRefs<T> = {
 
 /**
  * The cursor + editing layer for {@link GridData}, gathering the keyboard cursor
- * ({@link useGridNavigation}) and — when `editable` is set — the per-row editing
- * session ({@link useGridEditing}) behind one surface. Resolves the column
+ * ({@link useGridNavigation}) and — when `editable` is set — the editing session
+ * ({@link useGridEditing}) behind one surface. Resolves the column
  * augmentation (cursor-only vs. editing-aware), the `<table>` cursor props (with
  * the editing key handler layered on), the cursor store provider, and a `wrap`
  * that mounts the editing contexts around the table. Pulled out of

@@ -19,16 +19,17 @@ import type { GridEditingSession } from './grid-editing-context'
 import type { CellChange, GridEditableConfig } from './grid-editing-types'
 import type { GridColumn } from './types'
 
-/** The per-row editing layer's surface, consumed by {@link useGridCursor}. @internal */
+/** The editing layer's surface, consumed by {@link useGridCursor}. @internal */
 export type GridEditingApi = {
 	session: GridEditingSession
 	/**
-	 * Opens the named cell for editing through the controllable set, so
-	 * `onRowsChange` fires, and focuses its editor once that mounts. This is the
-	 * grid-owned entry behind `trigger: 'doubleClick'`. Under row scope the cell
-	 * names the row to open and is otherwise a no-op for a row already editing.
-	 * Under `scope: 'cell'` it re-points the session: the cell it leaves commits,
-	 * and a previous row leaves the set.
+	 * Opens the named cell for editing and focuses its editor once that mounts —
+	 * the grid-owned entry behind `trigger: 'doubleClick'`. Under row scope the
+	 * cell names the row to open, and re-entering a row already editing is a
+	 * no-op. Under `scope: 'cell'` it re-points the session: the cell it leaves
+	 * commits, and a previous row leaves the set. A transition that changes which
+	 * rows edit goes through the controllable set, so `onRowsChange` reports it; a
+	 * move between cells of one row leaves that set alone.
 	 */
 	enterEdit: (rowKey: string | number, columnId: string | number) => void
 	/**
@@ -173,8 +174,8 @@ function flushClosedCells<T>(args: {
 /**
  * Warns in development when `scope: 'cell'` is set without the grid-owned session
  * it narrows, matching the module's other config-mismatch warnings. The pair is
- * inert rather than wrong — the row's editors mount as under row scope — so it
- * fails silently, which is what the warning is for. @internal
+ * inert rather than wrong, because the row's editors mount as under row scope.
+ * It therefore fails silently, which is what the warning is for. @internal
  */
 function useCellScopeWithoutSessionWarning(scoped: boolean, sessionOwned: boolean): void {
 	useEffect(() => {
@@ -257,9 +258,17 @@ export function useGridEditing<T>({
 
 	// Two things strand the raw coord. A controlled binding can decline an entry,
 	// so the row never joins the set; a consumer save can drop an editing row from
-	// under the session. Deriving the live coord covers both, with no effect to
-	// resynchronize.
-	const activeEdit = activeEditRaw && editableRows.has(activeEditRaw.rowKey) ? activeEditRaw : null
+	// under the session.
+	const stranded = activeEditRaw !== null && !editableRows.has(activeEditRaw.rowKey)
+
+	// Drop a stranded coord rather than only read past it. Masking alone survives
+	// as state, so the same row re-entering the set later would revive a cell
+	// nobody opened and mount its editor alone. Adjusting the state here is
+	// React's answer to a value gone stale against its input, and it beats an
+	// effect that resynchronizes a render late.
+	if (stranded) setActiveEdit(null)
+
+	const activeEdit = stranded ? null : activeEditRaw
 
 	// Read by the [] -stable session callbacks at event time.
 	const editableRowsRef = useRef(editableRows)
@@ -297,9 +306,9 @@ export function useGridEditing<T>({
 		draftsRef.current.get(rowKey)?.delete(columnId)
 	}, [])
 
-	// The cell whose editor takes focus once it mounts — set by `enterEdit`,
-	// resolved by the effect below after the render that mounts it (the controlled
-	// binding may take an extra consumer round-trip).
+	// The cell whose editor takes focus once it mounts, set by `enterEdit`. The
+	// effect below resolves it after the render that mounts the editor, which a
+	// controlled binding can delay by a consumer round-trip.
 	const pendingFocusRef = useRef<GridActiveEdit | null>(null)
 
 	const enterEdit = useCallback(

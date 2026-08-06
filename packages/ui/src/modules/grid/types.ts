@@ -108,7 +108,7 @@ export type GridColumn<T> = {
 	 * data column with a `field` (or an {@link GridColumn.editCell} slot) is
 	 * editable; the editor the grid mounts is inferred from the field value's
 	 * primitive type (string → text, number → number, boolean → yes/no listbox),
-	 * and the committed value flows out through {@link GridEditableConfig.onValueChange}.
+	 * and the committed value flows out through {@link GridEditableConfig.onCommit}.
 	 */
 	field?: keyof T
 	/**

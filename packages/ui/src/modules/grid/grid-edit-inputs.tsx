@@ -26,35 +26,30 @@ export type GridEditInputProps = {
 	errorId?: string
 	/** Marks the editor `aria-required` (the programmatic cue; enforcement stays with `validate`). */
 	required?: boolean
-	/** Saves the edit session (Enter) when the grid owns it (`trigger: 'doubleClick'`); absent under a consumer-owned session. */
-	commitRow?: () => void
 	/**
-	 * Present when the grid owns the edit session: Escape then belongs to the grid
-	 * table's key surface, which abandons what the session owns — the whole row, or
-	 * the active cell under `scope: 'cell'` — so the editor's per-cell revert stands
-	 * down and the key bubbles. Absent under a consumer-owned session, where Escape
-	 * reverts this cell.
+	 * Saves the edit session (Enter), present exactly when the grid owns it
+	 * (`trigger: 'doubleClick'`). Its presence is also what stands the editor's own
+	 * Escape down. A grid-owned session abandons on the grid table's key surface,
+	 * which drops what the session owns: the whole row, or the active cell under
+	 * `scope: 'cell'`. The key therefore bubbles past this editor. Absent under a
+	 * consumer-owned session, where Escape reverts this cell and nothing saves it.
 	 */
-	cancelRow?: () => void
+	commitRow?: () => void
 }
 
 /**
  * Enter saves the session when the grid owns it (`trigger: 'doubleClick'`);
  * Escape reverts the cell under a consumer-owned session. A grid-owned session's
- * Escape abandons the session instead, handled once on the grid `<table>`'s key
- * surface (see `useGridEditing`'s `sessionEscape`) so every editor — these
- * inferred inputs, the listbox, an `editCell` slot — inherits it; the key bubbles
- * past the editor here. Staging is live, so there is no per-cell commit key.
- * @internal
+ * Escape abandons the session instead. That press is handled once on the grid
+ * `<table>`'s key surface (see `useGridEditing`'s `sessionEscape`), so every
+ * editor inherits it: these inferred inputs, the listbox, an `editCell` slot.
+ * The key therefore bubbles past the editor here. Staging is live, so there is
+ * no per-cell commit key. @internal
  */
 const editorKeys =
-	({
-		cancel,
-		commitRow,
-		cancelRow,
-	}: Pick<GridEditInputProps, 'cancel' | 'commitRow' | 'cancelRow'>) =>
+	({ cancel, commitRow }: Pick<GridEditInputProps, 'cancel' | 'commitRow'>) =>
 	(event: KeyboardEvent<HTMLElement>) => {
-		if (event.key === 'Escape' && !cancelRow) {
+		if (event.key === 'Escape' && !commitRow) {
 			event.preventDefault()
 
 			cancel()
@@ -75,7 +70,6 @@ function GridTextEditInput({
 	errorId,
 	required,
 	commitRow,
-	cancelRow,
 }: GridEditInputProps) {
 	const value = typeof draft === 'string' ? draft : draft == null ? '' : String(draft)
 
@@ -89,7 +83,7 @@ function GridTextEditInput({
 			className={k.edit.input}
 			value={value}
 			onChange={(event) => onValueUpdate(event.target.value)}
-			onKeyDown={editorKeys({ cancel, commitRow, cancelRow })}
+			onKeyDown={editorKeys({ cancel, commitRow })}
 		/>
 	)
 }
@@ -104,7 +98,6 @@ function GridNumberEditInput({
 	errorId,
 	required,
 	commitRow,
-	cancelRow,
 }: GridEditInputProps) {
 	return (
 		<NumberInput
@@ -116,7 +109,7 @@ function GridNumberEditInput({
 			className={k.edit.input}
 			value={typeof draft === 'number' ? draft : null}
 			onValueChange={(next) => onValueUpdate(next ?? undefined)}
-			onKeyDown={editorKeys({ cancel, commitRow, cancelRow })}
+			onKeyDown={editorKeys({ cancel, commitRow })}
 		/>
 	)
 }
@@ -130,7 +123,9 @@ const BOOLEAN_OPTIONS = [
  * Boolean editor for true/false cells, a yes/no `Listbox`. The commit key stays
  * off it — Enter belongs to the listbox's own open/select interaction — so a
  * grid-owned session saves from a sibling text/number editor or the consumer's
- * save affordance. A cell-scoped session on this column saves the same ways. Escape still abandons the session through the grid table's
+ * save affordance. Under `scope: 'cell'` there is no sibling, because the
+ * session mounts this editor alone: the value commits when the session moves to
+ * another cell, or through the consumer's own save. Escape still discards it. Escape still abandons the session through the grid table's
  * key surface (deferring to the open panel), like every editor. @internal
  */
 function GridBooleanEditInput({ draft, onValueUpdate, ariaLabel, required }: GridEditInputProps) {

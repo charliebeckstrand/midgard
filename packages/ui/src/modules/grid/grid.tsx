@@ -47,12 +47,14 @@ export type GridProps<T> = GridDataProps<T>
  * `condensed` steps the whole grid down a notch — padding, cell font, header
  * chrome, and a compact cascade over client cell content.
  *
- * Pass `editable` (a {@link GridEditableConfig}) to bake in per-row inline
- * editing: a row in the editable set puts all of its editable cells into edit
- * mode at once — each editor inferred from the value's primitive type, or a
- * column's {@link GridColumn.editCell} slot. Edits stage live; removing the row
- * from the set saves its changed cells as one batch through
- * {@link GridEditableConfig.onCommit} (Escape reverts a cell).
+ * Pass `editable` (a {@link GridEditableConfig}) to bake in inline editing. A
+ * row in the editable set puts all of its editable cells into edit mode at once.
+ * Each editor is inferred from the value's primitive type, or comes from a
+ * column's {@link GridColumn.editCell} slot. Edits stage live; removing the row from the
+ * set saves its changed cells as one batch through
+ * {@link GridEditableConfig.onCommit} (Escape reverts a cell). A grid-owned
+ * session ({@link GridEditableConfig.trigger}) can narrow to one cell instead
+ * through {@link GridEditableConfig.scope}.
  *
  * Renders a loading skeleton (`aria-busy` with a polite status), an `empty` slot
  * when there are no rows, a sticky header, an optional `footer` summary bar (row

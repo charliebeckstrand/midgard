@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn, type GridEditableConfig } from '../../modules/grid'
-import { bySlot, expectAnnouncement, fireEvent, liveRegion, renderUI } from '../helpers'
+import { allBySlot, bySlot, expectAnnouncement, fireEvent, liveRegion, renderUI } from '../helpers'
 
 type SessionRow = { id: number; name: string; count: number; done: boolean }
 
@@ -476,8 +476,8 @@ describe("Grid double-click-to-edit (trigger: 'doubleClick')", () => {
 /**
  * Cell-scoped sessions (`editable.scope: 'cell'`): a grid-owned session edits the
  * entered cell alone rather than its whole row. Moving to another cell commits
- * the one it leaves, so each `onCommit` carries a single change, and Escape
- * discards only the cell the session sits on. The editable-row set and the batch
+ * the one it leaves, so each `onCommit` carries a single change. Escape discards
+ * only the cell the session sits on. The editable-row set and the batch
  * sink stay the model, so a consumer binding reads the same as under row scope.
  */
 describe("Grid cell-scoped editing (scope: 'cell')", () => {
@@ -527,16 +527,16 @@ describe("Grid cell-scoped editing (scope: 'cell')", () => {
 		})
 
 		// The row never leaves the set, so the cell's own departure is what commits
-		// it — the property that keeps a cell-scoped batch one change long.
+		// it. That is the property keeping a cell-scoped batch one change long.
 		fireEvent.doubleClick(cell('count'))
 
 		expect(onCommit).toHaveBeenCalledTimes(1)
 
 		expect(onCommit).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'name', value: 'Alicia' }])
 
-		// The set already holds the row, and the controllable emits on every write —
-		// equal or not — so writing it again would report a transition that never
-		// happened and re-render a controlled consumer for nothing.
+		// The set already holds the row, and the controllable emits on every write,
+		// equal or not. Writing it again would report a transition that never
+		// happened, and re-render a controlled consumer for nothing.
 		expect(onRowsChange).toHaveBeenCalledTimes(1)
 
 		expect(bySlot(container, 'grid-edit-input')).toBeNull()
@@ -600,6 +600,53 @@ describe("Grid cell-scoped editing (scope: 'cell')", () => {
 		expect(bySlot(container, 'grid-edit-input')).toHaveFocus()
 
 		expect(bySlot(container, 'grid-edit-number-input')).toBeNull()
+	})
+
+	it('does not revive a session the consumer ended from under it', () => {
+		function Harness() {
+			const [editing, setEditing] = useState<Set<string | number>>(new Set())
+
+			return (
+				<>
+					<button type="button" onClick={() => setEditing(new Set())}>
+						withdraw
+					</button>
+					<button type="button" onClick={() => setEditing(new Set([1]))}>
+						re-add
+					</button>
+					<Grid
+						columns={sessionColumns}
+						rows={sessionRows}
+						getKey={(row) => row.id}
+						editable={{
+							trigger: 'doubleClick',
+							scope: 'cell',
+							rows: editing,
+							onRowsChange: setEditing,
+							onCommit: vi.fn(),
+						}}
+					/>
+				</>
+			)
+		}
+
+		const view = renderUI(<Harness />)
+
+		fireEvent.doubleClick(view.container.querySelector('td[data-grid-col="name"]') as HTMLElement)
+
+		expect(bySlot(view.container, 'grid-edit-input')).toBeInTheDocument()
+
+		fireEvent.click(view.getByRole('button', { name: 'withdraw' }))
+
+		fireEvent.click(view.getByRole('button', { name: 're-add' }))
+
+		// Nobody entered a cell this time, so the re-added row is a plain
+		// consumer-driven edit and every editable cell mounts. A session coord kept
+		// past its row would revive here and open one cell instead.
+		expect([
+			...allBySlot(view.container, 'grid-edit-input'),
+			...allBySlot(view.container, 'grid-edit-number-input'),
+		]).toHaveLength(2)
 	})
 
 	it('falls back to the row under a consumer-owned session, which names no cell', () => {

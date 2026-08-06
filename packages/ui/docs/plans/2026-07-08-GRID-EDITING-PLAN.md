@@ -1,6 +1,6 @@
 # Grid Inline Editing — Feature Plan — 2026-07-08
 
-What the `editable` feature is trying to be, what ships today, and the increments that take it the rest of the way. Companion to the [Grid roadmap](../../src/modules/grid/ROADMAP.md) §Selection & editing, which tracks status; this doc holds the design.
+What the `editable` feature is trying to be, what ships today, and the increments that take it the rest of the way. The [Grid roadmap](../../src/modules/grid/ROADMAP.md) retired editing from its tracker and named this doc the successor, so status lives here alongside the design.
 
 ## Thesis
 
@@ -56,7 +56,7 @@ Every increment keeps the established invariants: editors carry `aria-label` ("E
 
 ## Docs surface
 
-Per CLAUDE.md §3.5: TSDoc on every `GridEditableConfig` addition in the same change; the grid ROADMAP §Selection & editing row tracks status; demos in `src/docs/demos/modules/grid/editable.tsx` grow one example per user-visible behavior (the double-click trigger rides the first example; cell scope takes its own, `CellScopeExample`, because the two scopes read as different grids). No new exports, so the MODULES.md index is untouched.
+Per CLAUDE.md §3.5: TSDoc on every `GridEditableConfig` addition in the same change; the Current state section above tracks status; demos in `src/docs/demos/modules/grid/editable.tsx` grow one example per user-visible behavior (the double-click trigger rides the first example; cell scope takes its own, `CellScopeExample`, because the two scopes read as different grids). No new exports, so the MODULES.md index is untouched.
 
 ## Suggested PR slicing
 

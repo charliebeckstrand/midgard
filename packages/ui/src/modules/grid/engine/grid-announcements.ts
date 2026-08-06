@@ -42,19 +42,6 @@ export function describeSort<T>(sort: SortState[], columns: GridColumn<T>[]): st
  *
  * @internal
  */
-/**
- * The polite announcement for an inline-edit commit, narrated when staged cells
- * reach the sink (WCAG 4.1.3): the count of cells saved across the batches of
- * one session transition (`3 cells updated`). A cell-scoped session saves one
- * cell at a time, so it usually speaks the singular. The caller gates on a
- * non-zero count, so a session that changed nothing stays silent.
- *
- * @internal
- */
-export function describeCommit(cells: number): string {
-	return `${cells} ${cells === 1 ? 'cell' : 'cells'} updated`
-}
-
 export function describeSelection(size: number, allSelected: boolean, onPage: boolean): string {
 	if (allSelected) return onPage ? 'All rows on this page selected' : 'All rows selected'
 
@@ -104,4 +91,17 @@ export function describeColumnVisibility(label: string, hidden: boolean): string
  */
 export function describeResize(label: string, width: number): string {
 	return `${label} column ${Math.round(width)} pixels`
+}
+
+/**
+ * The polite announcement for an inline-edit commit, narrated when staged cells
+ * reach the sink (WCAG 4.1.3): the count of cells saved across the batches of
+ * one session transition (`3 cells updated`). A cell-scoped session saves one
+ * cell at a time, so it usually speaks the singular. The caller gates on a
+ * non-zero count, so a session that changed nothing stays silent.
+ *
+ * @internal
+ */
+export function describeCommit(cells: number): string {
+	return `${cells} ${cells === 1 ? 'cell' : 'cells'} updated`
 }

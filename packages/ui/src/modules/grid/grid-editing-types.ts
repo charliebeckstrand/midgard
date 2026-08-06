@@ -100,9 +100,9 @@ export type GridEditableConfig = {
 	 * How much of a grid-owned session enters edit mode. `'row'` — the default —
 	 * mounts an editor in every editable cell of the entered row at once. That is
 	 * the shape a form-like "edit this record" grid wants. `'cell'` narrows the
-	 * session to the entered cell alone: only that cell mounts an editor, and
+	 * session to the entered cell alone. Only that cell mounts an editor, and
 	 * moving to another cell commits the one it leaves. Each commit therefore
-	 * carries a single {@link CellChange} — the spreadsheet shape. Escape under
+	 * carries a single {@link CellChange}, the spreadsheet shape. Escape under
 	 * `'cell'` drops the active cell's draft alone, because the cells before it
 	 * already committed. The setting needs a grid-owned session ({@link
 	 * GridEditableConfig.trigger} `'doubleClick'`). Under `'manual'` the consumer

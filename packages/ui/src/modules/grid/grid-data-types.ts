@@ -1159,15 +1159,17 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	/**
 	 * Bakes per-row inline editing into the grid. Supply an
 	 * {@link GridEditableConfig}: which rows are editable and a commit sink. A row
-	 * in the editable set puts all of its editable cells into edit mode at once;
-	 * edits stage live, and removing the row from the set saves its changed cells
+	 * in the editable set puts all of its editable cells into edit mode at once.
+	 * Edits stage live, and removing the row from the set saves its changed cells
 	 * as one batch. A column binds to a row property via {@link GridColumn.field},
 	 * and the editor is inferred from the value's primitive type unless the column
 	 * supplies an {@link GridColumn.editCell} slot. Set
 	 * {@link GridEditableConfig.trigger} to `'doubleClick'` for grid-owned edit
 	 * sessions: double-clicking an editable cell (or Enter on the keyboard
 	 * cursor's active cell) starts its row's edit, an editor's Enter saves the
-	 * row, and Escape abandons it. Omit for a read-only grid.
+	 * row, and Escape abandons it. Such a session can narrow to the entered cell
+	 * rather than its whole row through {@link GridEditableConfig.scope}. Omit for
+	 * a read-only grid.
 	 */
 	editable?: GridEditableConfig
 

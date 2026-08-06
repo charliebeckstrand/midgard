@@ -20,7 +20,7 @@ type GridEditingCellProps<T> = {
 	render: ((row: T) => ReactNode) | undefined
 }
 
-/** Props for the mounted editor: the cell plus the row-editing staging and session callbacks. @internal */
+/** Props for the mounted editor: the cell plus the session's staging and exit callbacks. @internal */
 type GridCellEditorProps<T> = Omit<GridEditingCellProps<T>, 'render'> &
 	Pick<GridEditingSession, 'stageDraft' | 'unstageDraft' | 'endSession'>
 
@@ -60,11 +60,11 @@ function GridCellEditor<T>({
 		unstageDraft(rowKey, column.id)
 	}
 
-	// Grid-owned session exits (`trigger: 'doubleClick'`), bound to this row;
+	// The grid-owned save (`trigger: 'doubleClick'`), bound to this row;
 	// `undefined` under a consumer-owned session, standing the session keys down.
+	// There is no matching abandon here: Escape reaches the session through the
+	// grid table's key surface, which every editor inherits without wiring.
 	const commitRow = endSession && (() => endSession(rowKey, 'save'))
-
-	const cancelRow = endSession && (() => endSession(rowKey, 'discard'))
 
 	const ariaLabel =
 		typeof column.title === 'string'
@@ -117,7 +117,6 @@ function GridCellEditor<T>({
 			errorId={errorId}
 			required={column.required}
 			commitRow={commitRow}
-			cancelRow={cancelRow}
 		/>
 	)
 
@@ -154,8 +153,8 @@ export function GridEditingCell<T>({
 }: GridEditingCellProps<T>) {
 	const { editableRows, activeEdit, stageDraft, unstageDraft, endSession } = useGridEditingSession()
 
-	// `isCellEditing` leads: it bails on the editable-set lookup, so a cell of a
-	// row nobody is editing — every cell, most of the time — costs one probe.
+	// `isCellEditing` leads because it bails on the editable-set lookup. A cell of
+	// a row nobody is editing — every cell, most of the time — costs one probe.
 	if (
 		isCellEditing({ rowKey, columnId: column.id, editableRows, activeEdit }) &&
 		isColumnEditable(column)
