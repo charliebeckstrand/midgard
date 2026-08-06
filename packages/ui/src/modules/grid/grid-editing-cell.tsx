@@ -6,6 +6,7 @@ import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/grid'
+import { columnLabel } from './engine/grid-column/label'
 import {
 	inferEditorKind,
 	isCellEditing,
@@ -29,11 +30,53 @@ type GridEditingCellProps<T> = {
 }
 
 /** Props for the mounted editor: the cell plus the session's staging and exit callbacks. @internal */
-type GridCellEditorProps<T> = Omit<GridEditingCellProps<T>, 'render'> &
+type GridCellEditorProps<T> = Omit<GridEditingCellProps<T>, 'render' | 'colIdx'> &
 	Pick<GridEditingSession, 'stageDraft' | 'unstageDraft' | 'endSession'> & {
-		/** Whether this cell is the one a cell-scoped session holds; shows the settle pair. */
-		settling: boolean
+		/** Whether a cell-scoped session holds this cell; shows the settle pair. */
+		held: boolean
 	}
+
+/** The two ways a cell-scoped session ends, as the controls that end it. @internal */
+const SETTLE_ACTIONS = [
+	{ outcome: 'save', verb: 'Save', color: 'green', icon: <Check /> },
+	{ outcome: 'discard', verb: 'Discard', color: 'red', icon: <X /> },
+] as const
+
+/**
+ * The save and discard pair beside the editor on the cell a cell-scoped session
+ * holds. Row scope shows none: its whole row edits at once, and the settle
+ * control there is the consumer's own row action, at the granularity that
+ * matches. Here the grid owns the session and nothing else on screen ends it, so
+ * this is the only visible way out — and the only keyboard commit available to
+ * an editor that spends its own Enter, which the inline listbox does.
+ *
+ * @internal
+ */
+function GridSettleControls({
+	label,
+	settle,
+}: {
+	/** Names the cell, so each control reads as belonging to the editor beside it. */
+	label: string
+	settle: (outcome: 'save' | 'discard') => void
+}) {
+	return (
+		<span className={cn(k.edit.settle)}>
+			{SETTLE_ACTIONS.map((action) => (
+				<Button
+					key={action.outcome}
+					type="button"
+					variant="bare"
+					color={action.color}
+					aria-label={`${action.verb} ${label}`}
+					onClick={() => settle(action.outcome)}
+				>
+					<Icon icon={action.icon} />
+				</Button>
+			))}
+		</span>
+	)
+}
 
 /**
  * A cell's in-place editor while its row is in edit mode. Owns its live display
@@ -47,14 +90,13 @@ type GridCellEditorProps<T> = Omit<GridEditingCellProps<T>, 'render'> &
  */
 function GridCellEditor<T>({
 	rowIdx,
-	colIdx,
 	rowKey,
 	row,
 	column,
 	stageDraft,
 	unstageDraft,
 	endSession,
-	settling,
+	held,
 }: GridCellEditorProps<T>) {
 	const seed = column.field != null ? row[column.field] : undefined
 
@@ -79,11 +121,10 @@ function GridCellEditor<T>({
 	const commitRow = endSession && (() => endSession(rowKey, 'save'))
 
 	// Names the cell for every control in it, so the editor and the settle pair
-	// read as one thing to a screen reader rather than three unrelated widgets.
-	const label =
-		typeof column.title === 'string'
-			? `${column.title}, row ${rowIdx + 1}`
-			: `row ${rowIdx + 1} column ${colIdx + 1}`
+	// read as one thing to a screen reader rather than unrelated widgets.
+	// `columnLabel` is the module's one column-naming rule, and it degrades to the
+	// column id rather than to a position that shifts as columns move.
+	const label = `${columnLabel(column)}, row ${rowIdx + 1}`
 
 	const ariaLabel = `Edit ${label}`
 
@@ -104,38 +145,6 @@ function GridCellEditor<T>({
 	useEffect(() => {
 		if (hasError) messageRef.current?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
 	}, [hasError])
-
-	// The settle pair, shown on the one cell a cell-scoped session holds. Row
-	// scope leaves it off: the whole row edits at once there, and its settle
-	// control is the consumer's own row action, at the granularity that matches.
-	// Here the grid owns the session and nothing else on screen ends it, so this
-	// is the only visible way out — and the only keyboard commit an editor that
-	// spends its own Enter can have (WCAG 2.1.1), the listbox being the one that
-	// does.
-	const settle = settling && endSession && (
-		<span className={cn(k.edit.settle)}>
-			<Button
-				type="button"
-				variant="bare"
-				color="green"
-				aria-label={`Save ${label}`}
-				className={cn(k.edit.settleButton)}
-				onClick={() => endSession(rowKey, 'save')}
-			>
-				<Icon icon={<Check />} />
-			</Button>
-			<Button
-				type="button"
-				variant="bare"
-				color="red"
-				aria-label={`Discard ${label}`}
-				className={cn(k.edit.settleButton)}
-				onClick={() => endSession(rowKey, 'discard')}
-			>
-				<Icon icon={<X />} />
-			</Button>
-		</span>
-	)
 
 	const body = column.editCell ? (
 		column.editCell({
@@ -172,7 +181,9 @@ function GridCellEditor<T>({
 		<span className={cn(k.edit.host, error && k.edit.errorRing)}>
 			{body}
 
-			{settle}
+			{held && endSession && (
+				<GridSettleControls label={label} settle={(outcome) => endSession(rowKey, outcome)} />
+			)}
 
 			{error && (
 				<span ref={messageRef} id={errorId} role="alert" className={cn(k.edit.error)}>
@@ -212,14 +223,13 @@ export function GridEditingCell<T>({
 		return (
 			<GridCellEditor
 				rowIdx={rowIdx}
-				colIdx={colIdx}
 				rowKey={rowKey}
 				row={row}
 				column={column}
 				stageDraft={stageDraft}
 				unstageDraft={unstageDraft}
 				endSession={endSession}
-				settling={isSameCell(activeEdit, { rowKey, columnId: column.id })}
+				held={isSameCell(activeEdit, { rowKey, columnId: column.id })}
 			/>
 		)
 	}

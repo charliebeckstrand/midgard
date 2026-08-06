@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Grid, type GridColumn } from '../../../modules/grid'
-import { renderUI, screen, waitFor } from '../../helpers'
+import { bySlot, renderUI, screen, waitFor } from '../../helpers'
 
 /**
  * A grid edit session's Escape against this library's own `Listbox` (real
@@ -53,6 +53,6 @@ describe('grid edit session Escape vs an open listbox (real floating engine)', (
 		// First Escape belongs to the panel; the editor must survive it.
 		await waitFor(() => expect(screen.queryByRole('option', { name: 'Yes' })).toBeNull())
 
-		expect(view.container.querySelector('[data-slot="grid-edit-boolean-input"]')).not.toBeNull()
+		expect(bySlot(view.container, 'grid-edit-boolean-input')).not.toBeNull()
 	})
 })

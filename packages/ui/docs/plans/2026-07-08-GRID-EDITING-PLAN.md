@@ -87,6 +87,18 @@ A WCAG 2.2 AA review of increment 2 found five, ranked. The first two should gat
 
 The a11y corpus holds one editable grid, row-scoped and at rest, so axe never sees a narrowed row or a mounted editor. A `scope: 'cell'` case with a session open is cheap and would cover the fourth finding.
 
+## Carried into increment 3
+
+Three things the settle pair leaves for the increment that adds commit-and-move keys, all cheaper to decide there than to retrofit.
+
+**Increment 3 claims Tab, and Tab is how the settle pair is reached.** The pair closes the listbox's WCAG 2.1.1 gap on the strength of native tab order, asserted in the browser project. Increment 3 gives Tab and Shift+Tab to commit-and-move across a row's editable cells, hoisted to the table's key surface and prevented in the same shape as `sessionEscape` — which would take the only keyboard route to the one control the listbox editor has. Decide there which surface owns reaching the pair, rather than letting tab order decide by default, or the increment reopens the finding this one closed and the guarding test reads as stale rather than broken.
+
+**The session is two records, and the keys will want one.** `activeEdit` names the held cell under cell scope; `sessionRowRef` names the held row and how the session came by it, under both. That split is honest — provenance belongs to the row, identity to the cell — but every key increment 3 adds asks the same question `sessionEscape` already asks, resolving an event to the live session through a DOM walk with a ref fallback. Write that resolver once when the second caller arrives.
+
+**Whether a session shows a settle control is decided in the leaf.** `GridEditingCell` derives it from `isSameCell(activeEdit, cell)`, which is today's only policy rather than the policy itself. Increment 4's `commitOn` makes the pair conditional (a blur-committing session needs discard, not save), and increment 8's pinned new-row editor wants a pair while holding no `activeEdit` coord at all — `isSameCell` can never say yes for it. A session field naming the cell that shows the control keeps both edits in the hook.
+
+Also open: the settle pair is grid chrome the consumer can neither replace nor suppress, and for a cell-scoped `editCell` column it renders beside a slot whose `ctx.commit` and `ctx.cancel` are the designed settle route — so a slot that renders its own save shows two at the same scope. And the editing benches cannot see any of this: `grid-editing.bench.tsx` sets no `trigger`, no `scope`, and no editing row, so no session ever opens and every path this work added is unreachable from the suite. A scenario that opens a session and moves it is what would catch a regression in the pair's mount cost, measured at about +0.8 ms against a session move already dominated by whole-grid context fanout.
+
 ## Open correctness cluster — a draft can outlive its editor
 
 Found by an adversarial state-machine sweep during increment 2 and reproduced, but **not** introduced by it: each predates the trigger increment, and each needs a decision rather than an edit. They share one cause. A cell's draft is staged against `rowKey` and `columnId`, and the commit sweep asks whether the session still holds that cell — but an editor also unmounts for reasons the session knows nothing about.

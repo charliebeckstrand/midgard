@@ -325,14 +325,16 @@ export function useGridEditing<T>({
 	// The cell whose editor takes focus once it mounts, set by `enterEdit`. The
 	// effect below resolves it after the render that mounts the editor, which a
 	// controlled binding can delay by a consumer round-trip.
-	const pendingFocusRef = useRef<{ rowKey: string | number; columnId: string | number } | null>(
-		null,
-	)
+	const pendingFocusRef = useRef<GridActiveEdit | null>(null)
 
-	// The row the grid-owned session last opened. `activeEdit` names it under cell
-	// scope, but row scope holds no coord, and Escape has to reach the session
-	// from anywhere in the grid under both.
-	const enteredRowRef = useRef<string | number | null>(null)
+	// The row the grid-owned session holds, with how it came by it. Row scope
+	// keeps no coord, and Escape has to reach the session from anywhere in the
+	// grid under both scopes, so the row is recorded here rather than read off
+	// `activeEdit`. Provenance rides the row because the row is its subject: read
+	// off the cell it would be recomputed on every move, and a move within an
+	// acquired row would find that row already in the set and forget the session
+	// had put it there.
+	const sessionRowRef = useRef<{ rowKey: string | number; acquired: boolean } | null>(null)
 
 	const enterEdit = useCallback(
 		(rowKey: string | number, columnId: string | number) => {
@@ -341,10 +343,8 @@ export function useGridEditing<T>({
 			const editableRows = editableRowsRef.current
 
 			// A cell-scoped session names one cell and holds one row; row scope names
-			// no cell and leaves the rows the consumer put in the set alone. A row
-			// already in the set was the consumer's, so the session borrows it and
-			// gives it back on the way out.
-			const entering = cellScoped ? { rowKey, columnId, acquired: !editableRows.has(rowKey) } : null
+			// no cell and leaves the rows the consumer put in the set alone.
+			const entering = cellScoped ? { rowKey, columnId } : null
 
 			// Entering changes nothing when the session already sits where it points:
 			// this cell under cell scope, this row under row scope, where the whole
@@ -356,14 +356,20 @@ export function useGridEditing<T>({
 
 			pendingFocusRef.current = { rowKey, columnId }
 
-			enteredRowRef.current = rowKey
-
-			setActiveEdit(entering)
+			const held = sessionRowRef.current
 
 			// Only a row the session acquired leaves the set with it. One it borrowed
 			// stays, and drops back to the row-shaped state the consumer asked for.
 			const leaving =
-				entering && active && active.rowKey !== rowKey && active.acquired ? active.rowKey : null
+				entering && held && held.rowKey !== rowKey && held.acquired ? held.rowKey : null
+
+			// A move within the held row keeps that row's provenance; a move onto
+			// another records how this one was come by, once, before the set is
+			// written and can no longer answer the question.
+			sessionRowRef.current =
+				held?.rowKey === rowKey ? held : { rowKey, acquired: !editableRows.has(rowKey) }
+
+			setActiveEdit(entering)
 
 			// The set is unchanged when the session moves along one row, or moves off a
 			// borrowed row onto one already in the set. Writing it anyway would
@@ -445,7 +451,7 @@ export function useGridEditing<T>({
 				else draftsRef.current.delete(rowKey)
 			}
 
-			if (enteredRowRef.current === rowKey) enteredRowRef.current = null
+			if (sessionRowRef.current?.rowKey === rowKey) sessionRowRef.current = null
 
 			// Two things end a session, and each clears the coord its own way. This
 			// exit is one. The other is a consumer withdrawing the row from under it,
@@ -494,7 +500,7 @@ export function useGridEditing<T>({
 
 			const rowKey =
 				rowIndex === null || rowIndex === undefined
-					? enteredRowRef.current
+					? sessionRowRef.current?.rowKey
 					: rowKeysRef.current[Number(rowIndex)]
 
 			if (rowKey == null || !editableRowsRef.current.has(rowKey)) return

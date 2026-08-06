@@ -32,19 +32,10 @@ export function isColumnEditable(col: {
 export type GridActiveEdit = {
 	rowKey: string | number
 	columnId: string | number
-	/**
-	 * Whether the session put this row in the editable set, rather than finding it
-	 * there. A session releases only what it acquired, so leaving a row the
-	 * consumer opened narrows it back to row-shaped instead of closing it.
-	 */
-	acquired: boolean
 }
 
 /** Whether a coord names this cell; a null coord names none. @internal */
-export function isSameCell(
-	coord: GridActiveEdit | null,
-	cell: { rowKey: string | number; columnId: string | number },
-): boolean {
+export function isSameCell(coord: GridActiveEdit | null, cell: GridActiveEdit): boolean {
 	return coord !== null && coord.rowKey === cell.rowKey && coord.columnId === cell.columnId
 }
 

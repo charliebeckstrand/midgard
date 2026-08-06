@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Grid, type GridColumn } from '../../../modules/grid'
-import { renderUI, screen } from '../../helpers'
+import { bySlot, renderUI, screen } from '../../helpers'
 
 /**
  * Why the inline listbox editor has no Enter-to-commit, recorded as a test
@@ -78,6 +78,6 @@ describe('listbox editor and Enter (real floating engine)', () => {
 
 		await userEvent.keyboard('{Enter}')
 
-		expect(view.container.querySelector('[data-slot="grid-edit-boolean-input"]')).toBeNull()
+		expect(bySlot(view.container, 'grid-edit-boolean-input')).toBeNull()
 	})
 })

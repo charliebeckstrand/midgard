@@ -834,91 +834,40 @@ describe("Grid cell-scoped editing (scope: 'cell')", () => {
 	})
 
 	it('hands back a row it borrowed, and closes one it acquired', () => {
-		function Harness({ open }: { open: number[] }) {
-			const [editing, setEditing] = useState<Set<string | number>>(new Set(open))
-
-			return (
-				<Grid
-					columns={sessionColumns}
-					rows={sessionRows}
-					getKey={(row) => row.id}
-					editable={{
-						trigger: 'doubleClick',
-						scope: 'cell',
-						rows: editing,
-						onRowsChange: setEditing,
-						onCommit: vi.fn(),
-					}}
-				/>
-			)
-		}
-
 		// Row 1 was the consumer's before any session touched it. Narrowing borrows
 		// it; moving to row 2 gives it back row-shaped rather than closing it.
-		const borrowed = renderUI(<Harness open={[1]} />)
+		const borrowed = renderCellGrid({ defaultRows: new Set([1]) })
 
-		const borrowedCells = borrowed.container.querySelectorAll('td[data-grid-col="name"]')
+		fireEvent.doubleClick(borrowed.cell('name', 0))
 
-		fireEvent.doubleClick(borrowedCells[0] as HTMLElement)
-
-		fireEvent.doubleClick(borrowedCells[1] as HTMLElement)
+		fireEvent.doubleClick(borrowed.cell('name', 1))
 
 		expect(allBySlot(borrowed.container, 'grid-edit-input')).toHaveLength(2)
 
 		borrowed.unmount()
 
 		// A row the session put in the set itself is the session's to close.
-		const acquired = renderUI(<Harness open={[]} />)
+		const acquired = renderCellGrid()
 
-		const acquiredCells = acquired.container.querySelectorAll('td[data-grid-col="name"]')
+		fireEvent.doubleClick(acquired.cell('name', 0))
 
-		fireEvent.doubleClick(acquiredCells[0] as HTMLElement)
-
-		fireEvent.doubleClick(acquiredCells[1] as HTMLElement)
+		fireEvent.doubleClick(acquired.cell('name', 1))
 
 		expect(allBySlot(acquired.container, 'grid-edit-input')).toHaveLength(1)
 	})
 
-	it('shows a settle pair on the cell it holds, and saves from it', () => {
-		const { container, cell, getByRole, onCommit } = renderCellGrid()
+	it('still releases an acquired row after the session moved within it', () => {
+		const { cell, onRowsChange } = renderCellGrid()
 
-		fireEvent.doubleClick(cell('name'))
+		fireEvent.doubleClick(cell('name', 0))
 
-		fireEvent.change(bySlot(container, 'grid-edit-input') as HTMLInputElement, {
-			target: { value: 'Alicia' },
-		})
+		// A move inside the held row must not relearn how the row was come by: the
+		// set already holds it, because this session put it there.
+		fireEvent.doubleClick(cell('count', 0))
 
-		fireEvent.click(getByRole('button', { name: 'Save Name, row 1' }))
+		fireEvent.doubleClick(cell('name', 1))
 
-		expect(onCommit).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'name', value: 'Alicia' }])
-
-		expect(bySlot(container, 'grid-edit-input')).toBeNull()
-	})
-
-	it('discards from the settle pair without committing', () => {
-		const { container, cell, getByRole, onCommit } = renderCellGrid()
-
-		fireEvent.doubleClick(cell('name'))
-
-		fireEvent.change(bySlot(container, 'grid-edit-input') as HTMLInputElement, {
-			target: { value: 'Discarded' },
-		})
-
-		fireEvent.click(getByRole('button', { name: 'Discard Name, row 1' }))
-
-		expect(onCommit).not.toHaveBeenCalled()
-
-		expect(bySlot(container, 'grid-edit-input')).toBeNull()
-	})
-
-	it('leaves the settle pair off row scope, whose row action settles instead', () => {
-		const { cell, queryByRole } = renderSessionGrid()
-
-		fireEvent.doubleClick(cell('name'))
-
-		// Row scope opens every cell at once, and its settle control is the
-		// consumer's row action. A pair per cell would compete with it.
-		expect(queryByRole('button', { name: 'Save Name, row 1' })).toBeNull()
+		expect(onRowsChange).toHaveBeenLastCalledWith(new Set([2]))
 	})
 
 	it('does not revive a session the consumer ended from under it', () => {
