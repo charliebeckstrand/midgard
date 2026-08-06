@@ -279,9 +279,10 @@ export function linePath(
 }
 
 /**
- * The geographic middle of a line of points — where a line-shaped mark anchors
- * its keyboard stop, so the cursor lands on the mark rather than at one end,
- * where several routes out of one depot would stack on the shared origin.
+ * The geographic middle of a line of points, as the stop list a line-shaped mark
+ * registers: the cursor lands on the mark rather than at one end, where several
+ * routes out of one depot would stack on the shared origin. A list, and empty
+ * where the line has no points, so a caller passes the result straight through.
  *
  * An odd count takes its middle point; an even one takes the midpoint of the two
  * middle points, so the common two-point line (a `MapMarker` with no routed
@@ -292,20 +293,24 @@ export function linePath(
  *
  * @internal
  */
-export function lineAnchor(points: LngLat[]): LngLat | null {
+export function lineAnchor(points: LngLat[]): LngLat[] {
 	const half = points.length / 2
 
-	if (points.length === 0) return null
+	if (points.length === 0) return []
 
-	if (points.length % 2 === 1) return points[Math.floor(half)] ?? null
+	if (points.length % 2 === 1) {
+		const middle = points[Math.floor(half)]
+
+		return middle === undefined ? [] : [middle]
+	}
 
 	const before = points[half - 1]
 
 	const after = points[half]
 
-	if (before === undefined || after === undefined) return null
+	if (before === undefined || after === undefined) return []
 
-	return [(before[0] + after[0]) / 2, (before[1] + after[1]) / 2]
+	return [[(before[0] + after[0]) / 2, (before[1] + after[1]) / 2]]
 }
 
 /**

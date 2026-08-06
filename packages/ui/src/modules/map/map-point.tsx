@@ -4,7 +4,7 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
 import { POINT_HIT_RADIUS, POINT_RADIUS } from './map-constants'
 import { MapDot } from './map-dot'
-import { POINT_POP, POINT_STAGGER, POINT_STAGGER_MAX } from './map-motion'
+import { pointPop } from './map-motion'
 import type { LngLat } from './types'
 import { type MapOverlayProps, useMapOverlay } from './use-map-overlay'
 
@@ -35,7 +35,7 @@ export function MapPoint({ at, ...shared }: MapPointProps) {
 		...shared,
 		kind: 'point',
 		swatch: 'dot',
-		stops: [at],
+		stops: () => [at],
 	})
 
 	const position = project(at)
@@ -50,10 +50,7 @@ export function MapPoint({ at, ...shared }: MapPointProps) {
 				radius={POINT_RADIUS}
 				className={cn(k.series[slot].stroke)}
 				animate={animate}
-				transition={{
-					...POINT_POP,
-					delay: Math.min(order * POINT_STAGGER, POINT_STAGGER_MAX),
-				}}
+				transition={pointPop(order)}
 			/>
 
 			<circle
@@ -62,7 +59,7 @@ export function MapPoint({ at, ...shared }: MapPointProps) {
 				cy={position.y}
 				r={POINT_HIT_RADIUS}
 				fill="transparent"
-				{...hit(0)}
+				{...hit()}
 			/>
 		</g>
 	)

@@ -32,7 +32,9 @@ import {
 	MapPlatContext,
 	type MapPlatContextValue,
 	MapPointedMarkContext,
+	markAnchorAt,
 	regionIndexAt,
+	sameMark,
 	sameTarget,
 } from './context'
 import {
@@ -859,11 +861,23 @@ function MapHoverProvider({
 	// broken map, the way a chart never dims against a hidden series.
 	const target = state.target
 
-	const pointed = useMemo(
-		() =>
-			target !== null && target.kind === 'region' && !regionActive(target.index) ? null : target,
-		[target, regionActive],
-	)
+	// Pinned at mark granularity, the way the chart frame pins its own pointed
+	// mark: this value names the mark, never the stop within it, and every mark on
+	// the map reads it. Sweeping between the dots of one plural mark would
+	// otherwise republish on each crossing and re-render every mark — the regions,
+	// the range legend, all the overlays — for the answer each already held.
+	const pinned = useRef<MapHoverTarget | null>(null)
+
+	const pointed = useMemo(() => {
+		const next =
+			target !== null && target.kind === 'region' && !regionActive(target.index) ? null : target
+
+		if (sameMark(pinned.current, next)) return pinned.current
+
+		pinned.current = next
+
+		return next
+	}, [target, regionActive])
 
 	const clear = useCallback(() => set(null, null), [set])
 
@@ -893,19 +907,12 @@ function MapHoverProvider({
 				return
 			}
 
-			const entry = under.closest('[data-entry-id]')
+			// Resolved through the shared anchor reader, so a plural mark re-settles
+			// on the dot the pointer is actually over rather than on the mark's first.
+			const mark = markAnchorAt(under)
 
-			if (entry !== null) {
-				// The stop rides the same shape, so a plural mark re-resolves to the
-				// dot the pointer is actually over rather than to the mark's first.
-				set(
-					{
-						kind: 'entry',
-						id: entry.getAttribute('data-entry-id') ?? '',
-						stop: Number(entry.getAttribute('data-entry-stop') ?? 0),
-					},
-					point,
-				)
+			if (mark !== null) {
+				set({ kind: 'entry', ...mark }, point)
 
 				return
 			}
@@ -1290,7 +1297,8 @@ export function MapPlat<T = never>({
 						swatch: entry.swatch,
 						swatchClass: cn(k.series[colors.get(entry.id) ?? 'blue'].text),
 						detail: entry.detail,
-						stopReadout: entry.stopReadout,
+						kind: entry.kind,
+						stopRows: entry.stopRows,
 					},
 				]),
 			),

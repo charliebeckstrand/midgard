@@ -47,15 +47,11 @@ export function MapRoute({ stops, path, ...shared }: MapRouteProps) {
 	// `false`-overview leg carries totals but no line — falls back to the stops.
 	const points = path && path.length > 0 ? path : (stops ?? [])
 
-	const anchor = lineAnchor(points)
-
 	const { slot, hidden, project, animate, dim, onPointerLeave, hit } = useMapOverlay({
 		...shared,
 		kind: 'route',
 		swatch: 'line',
-		// Read through a ref at keypress time, never a dependency, so building it
-		// fresh each render costs nothing.
-		stops: anchor === null ? [] : [anchor],
+		stops: () => lineAnchor(points),
 	})
 
 	// Memoised so a hover-driven re-render (the plat's pointer state churns the
@@ -101,7 +97,7 @@ export function MapRoute({ stops, path, ...shared }: MapRouteProps) {
 				stroke="transparent"
 				strokeWidth={ROUTE_HIT_WIDTH}
 				pointerEvents="stroke"
-				{...hit(0)}
+				{...hit()}
 			/>
 		</g>
 	)

@@ -2,6 +2,7 @@ import { memo, useMemo } from 'react'
 import { ariaAttr } from '../../core'
 import { rangeKeys } from '../../utilities'
 import { type MapCategoryMeta, READOUT_GAP } from './map-categories'
+import { markRows } from './map-readout'
 import type { MapOverlayEntry } from './use-map-legend-registry'
 
 /** Props for {@link MapTable}. @internal */
@@ -50,29 +51,6 @@ const MapTableRow = memo(function MapTableRow({ name, value, current }: MapTable
 		</tr>
 	)
 })
-
-/**
- * A mark's rows: one for a singular mark, one per dot for a plural one, so the
- * table carries the same readout the tooltip gives the pointer. A dot with no
- * name of its own is numbered within its group, since a screen reader has no
- * position to tell two unnamed dots apart by.
- */
-function overlayRows(entry: MapOverlayEntry): { key: string; name: string; value: string }[] {
-	const stops = entry.stopsAt?.() ?? []
-
-	if (stops.length < 2)
-		return [{ key: entry.id, name: entry.label, value: entry.detail ?? entry.kind }]
-
-	return stops.map((_, stop) => {
-		const readout = entry.stopReadout?.(stop)
-
-		return {
-			key: `${entry.id}:${stop}`,
-			name: readout?.label ?? `${entry.label} ${stop + 1}`,
-			value: readout?.detail ?? entry.detail ?? entry.kind,
-		}
-	})
-}
 
 /**
  * The map's visually-hidden data table: every region with its category, and
@@ -132,15 +110,15 @@ export const MapTable = memo(function MapTable({
 						)
 					})}
 
-					{entries.flatMap((entry) =>
-						overlayRows(entry).map((row) => (
-							<tr key={row.key}>
-								<th scope="row">{row.name}</th>
+					{/* One row per dot, so the table carries what the tooltip gives the
+					    pointer — through the one resolver both surfaces read. */}
+					{entries.flatMap(markRows).map((row) => (
+						<tr key={row.key}>
+							<th scope="row">{row.name}</th>
 
-								<td>{row.value}</td>
-							</tr>
-						)),
-					)}
+							<td>{row.detail}</td>
+						</tr>
+					))}
 				</tbody>
 			</table>
 		</div>

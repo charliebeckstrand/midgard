@@ -1,12 +1,18 @@
 'use client'
 
-import { type PointerEvent, useCallback, useEffect, useId, useRef } from 'react'
+import { type MouseEvent, type PointerEvent, useCallback, useEffect, useId, useRef } from 'react'
 import { cn } from '../../core'
 import { k, type MapSeriesColor } from '../../recipes/kata/map'
-import { mapMarkDimmed, useMapHoverSet, useMapPlat, useMapPointedMark } from './context'
+import {
+	mapMarkDimmed,
+	markAnchorAt,
+	useMapHoverSet,
+	useMapPlat,
+	useMapPointedMark,
+} from './context'
 import type { MapPoint2D } from './map-geometry'
 import type { LngLat } from './types'
-import type { MapOverlayKind } from './use-map-legend-registry'
+import type { MapOverlayKind, MapStopRow } from './use-map-legend-registry'
 
 /**
  * The props every overlay mark shares: its identity, its legend text and paint,
@@ -78,10 +84,17 @@ type MapOverlayConfig = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> &
 		 * Where the keyboard cursor can stand on this mark, in lon/lat — a point's
 		 * own position, a route's middle stop, every dot of a plural mark. Empty
 		 * while the mark has no geometry yet.
+		 *
+		 * A thunk, so a plural mark's O(N) build lands on the one keypress that
+		 * reads it rather than on every render.
 		 */
-		stops: LngLat[]
-		/** What one stop reads out, where it differs from the mark's own label and detail. */
-		stopReadout?: (stop: number) => { label: string; detail?: string } | undefined
+		stops: () => LngLat[]
+		/**
+		 * Per-dot readouts for a plural mark, absent on a singular one. Plain data,
+		 * because the table draws it — see {@link MapOverlayEntry.stopRows}. Keyed
+		 * by content below, so an inline `points` never loops the ledger.
+		 */
+		stopRows?: MapStopRow[]
 	}
 
 /** The resolved plat state and DOM props an overlay draws itself from. @internal */
@@ -106,14 +119,14 @@ export type MapOverlay = {
 	 * resolve reads, the hover tracker, and the click reporters with their cursor
 	 * affordance.
 	 */
-	hit: (stop: number) => {
+	hit: (stop?: number) => {
 		'data-entry-id': string
 		'data-entry-stop': number
 		className: string | undefined
 		onPointerEnter: (event: PointerEvent<SVGElement>) => void
 		onPointerMove: (event: PointerEvent<SVGElement>) => void
-		onClick: (() => void) | undefined
-		onContextMenu: (() => void) | undefined
+		onClick: ((event: MouseEvent<SVGElement>) => void) | undefined
+		onContextMenu: ((event: MouseEvent<SVGElement>) => void) | undefined
 	}
 }
 
@@ -144,7 +157,7 @@ export function useMapOverlay({
 	kind,
 	swatch,
 	stops,
-	stopReadout,
+	stopRows,
 }: MapOverlayConfig): MapOverlay {
 	const generated = useId()
 
@@ -160,13 +173,11 @@ export function useMapOverlay({
 	// registration: a consumer's inline handler is a fresh identity every render,
 	// and a mark's geometry changes as it lands — neither may churn the ledger,
 	// whose every write re-sorts it and re-renders the legend.
-	const live = useRef({ stops, onClick, stopReadout })
+	const live = useRef({ stops, onClick, stopRows })
 
-	live.current = { stops, onClick, stopReadout }
+	live.current = { stops, onClick, stopRows }
 
-	const stopsAt = useCallback(() => live.current.stops, [])
-
-	const readout = useCallback((stop: number) => live.current.stopReadout?.(stop), [])
+	const stopsAt = useCallback(() => live.current.stops(), [])
 
 	const pick = useCallback((stop: number) => live.current.onClick?.(id, stop), [id])
 
@@ -178,11 +189,41 @@ export function useMapOverlay({
 
 	const activate = pickable ? pick : undefined
 
+	// The readout text is the one registered field the table draws, so it has to
+	// reach the ledger to reach the screen. Keyed by content rather than by the
+	// array's identity: an inline `points` would otherwise re-register on every
+	// render, and each registration re-renders this mark — a loop.
+	const rowsKey = stopRows
+		?.map((row) => `${row.label ?? ''}\u001f${row.detail ?? ''}`)
+		.join('\u001e')
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: `stopRows` is keyed by `rowsKey`, its content
 	useEffect(
-		() =>
-			register({ id, label, kind, swatch, color, detail, stopsAt, stopReadout: readout, activate }),
-		[register, id, label, kind, swatch, color, detail, stopsAt, readout, activate],
+		() => register({ id, label, kind, swatch, color, detail, stopsAt, stopRows, activate }),
+		[register, id, label, kind, swatch, color, detail, stopsAt, rowsKey, activate],
 	)
+
+	// One handler set per mark, not one per hit shape: each reads its own stop
+	// back off the element it fired on, through the same anchor the scroll-settle
+	// resolve reads. A plural mark draws one shape per dot, so building these per
+	// shape would allocate them by the hundred on every render.
+	const stopOf = (event: { currentTarget: Element }) => markAnchorAt(event.currentTarget)?.stop ?? 0
+
+	const track = (event: PointerEvent<SVGElement>) => {
+		set({ kind: 'entry', id, stop: stopOf(event) }, { x: event.clientX, y: event.clientY })
+	}
+
+	const handlers = {
+		onPointerEnter: track,
+		onPointerMove: track,
+		onClick: pickable ? (event: MouseEvent<SVGElement>) => onClick?.(id, stopOf(event)) : undefined,
+		// Bubbles, and never prevents default: a wrapping menu still opens, and this
+		// only names which mark it opened over.
+		onContextMenu:
+			onContextMenu === undefined
+				? undefined
+				: (event: MouseEvent<SVGElement>) => onContextMenu(id, stopOf(event)),
+	}
 
 	return {
 		slot: colors.get(id),
@@ -192,22 +233,11 @@ export function useMapOverlay({
 		order: order.get(id) ?? 0,
 		dim: cn(k.group(mapMarkDimmed(pointed, { kind: 'entry', id, stop: 0 }, emphasis, id))),
 		onPointerLeave: () => set(null, null),
-		hit: (stop: number) => {
-			const track = (event: PointerEvent<SVGElement>) => {
-				set({ kind: 'entry', id, stop }, { x: event.clientX, y: event.clientY })
-			}
-
-			return {
-				'data-entry-id': id,
-				'data-entry-stop': stop,
-				className: pickable ? k.clickable : undefined,
-				onPointerEnter: track,
-				onPointerMove: track,
-				onClick: pickable ? () => onClick?.(id, stop) : undefined,
-				// Bubbles, and never prevents default: a wrapping menu still opens, and
-				// this only names which mark it opened over.
-				onContextMenu: onContextMenu === undefined ? undefined : () => onContextMenu(id, stop),
-			}
-		},
+		hit: (stop = 0) => ({
+			'data-entry-id': id,
+			'data-entry-stop': stop,
+			className: pickable ? k.clickable : undefined,
+			...handlers,
+		}),
 	}
 }

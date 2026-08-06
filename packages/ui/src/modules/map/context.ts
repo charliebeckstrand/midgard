@@ -79,9 +79,43 @@ export function regionIndexAt(node: EventTarget | Element | null): number | null
 
 	if (raw === null) return null
 
-	const index = Number(raw)
+	return wholeNumber(raw)
+}
 
-	return Number.isInteger(index) && index >= 0 ? index : null
+/**
+ * The overlay mark under a DOM node: its id, and which of its stops the node
+ * covers. The twin of {@link regionIndexAt} over the `data-entry-id` /
+ * `data-entry-stop` pair the hit shapes carry, and the one place that reads
+ * them — the hover provider's scroll-settle resolve and the marks' own pointer
+ * handlers must never disagree about which dot is under the pointer.
+ *
+ * A stop that does not read as a whole number falls back to `0` rather than
+ * `NaN`: the mark itself is what the anchor found, so its first stop is the
+ * honest answer where the ordinal is missing or malformed.
+ *
+ * @internal
+ */
+export function markAnchorAt(
+	node: EventTarget | Element | null,
+): { id: string; stop: number } | null {
+	if (!(node instanceof Element)) return null
+
+	const anchor = node.closest('[data-entry-id]')
+
+	const id = anchor?.getAttribute('data-entry-id') ?? null
+
+	if (id === null) return null
+
+	return { id, stop: wholeNumber(anchor?.getAttribute('data-entry-stop') ?? null) ?? 0 }
+}
+
+/** A DOM anchor's value as a whole number, or `null` where it is missing or malformed. */
+function wholeNumber(raw: string | null): number | null {
+	if (raw === null) return null
+
+	const value = Number(raw)
+
+	return Number.isInteger(value) && value >= 0 ? value : null
 }
 
 /** Whether two hover targets name the same mark, so a redundant write can bail. @internal */
@@ -90,11 +124,7 @@ export function sameTarget(a: MapHoverTarget | null, b: MapHoverTarget | null): 
 
 	if (a === null || b === null || a.kind !== b.kind) return false
 
-	if (a.kind === 'region') return a.index === (b as { index: number }).index
-
-	const other = b as { id: string; stop: number }
-
-	return a.id === other.id && a.stop === other.stop
+	return sameMark(a, b) && (a.kind === 'region' || a.stop === (b as { stop: number }).stop)
 }
 
 /**
@@ -104,11 +134,12 @@ export function sameTarget(a: MapHoverTarget | null, b: MapHoverTarget | null): 
  * lets the group draw under a single wrapper and a single dim class where two
  * hundred dots would otherwise need two hundred.
  *
- * File-private: only {@link mapMarkDimmed} compares this way, and the chart
- * engine exports a `sameMark` of its own over its own mark refs — two modules
- * should not answer one name across a grep.
+ * {@link sameTarget} is this plus the stop, so a third target kind is added
+ * here once rather than in two comparisons that must agree.
+ *
+ * @internal
  */
-function sameMark(a: MapHoverTarget | null, b: MapHoverTarget | null): boolean {
+export function sameMark(a: MapHoverTarget | null, b: MapHoverTarget | null): boolean {
 	if (a === b) return true
 
 	if (a === null || b === null || a.kind !== b.kind) return false

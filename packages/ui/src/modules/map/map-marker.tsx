@@ -50,15 +50,11 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 	// crossing.
 	const points = useMemo(() => (path && path.length > 0 ? path : [start, end]), [path, start, end])
 
-	const anchor = lineAnchor(points)
-
 	const { slot, hidden, project, animate, dim, onPointerLeave, hit } = useMapOverlay({
 		...shared,
 		kind: 'marker',
 		swatch: 'line',
-		// Read through a ref at keypress time, never a dependency, so building it
-		// fresh each render costs nothing.
-		stops: anchor === null ? [] : [anchor],
+		stops: () => lineAnchor(points),
 	})
 
 	// Memoised so a hover-driven re-render (the plat's pointer state churns the
@@ -132,7 +128,7 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 					stroke="transparent"
 					strokeWidth={ROUTE_HIT_WIDTH}
 					pointerEvents="stroke"
-					{...hit(0)}
+					{...hit()}
 				/>
 			)}
 
@@ -143,7 +139,7 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 					cy={from.y}
 					r={POINT_HIT_RADIUS}
 					fill="transparent"
-					{...hit(0)}
+					{...hit()}
 				/>
 			)}
 
@@ -154,7 +150,7 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 					cy={to.y}
 					r={POINT_HIT_RADIUS}
 					fill="transparent"
-					{...hit(0)}
+					{...hit()}
 				/>
 			)}
 		</g>

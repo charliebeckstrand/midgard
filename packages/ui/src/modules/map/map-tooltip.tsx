@@ -6,6 +6,8 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
 import { type MapHoverTarget, useMapHoverState } from './context'
 import { categoryLegendId, type MapCategoryMeta } from './map-categories'
+import { markReadout } from './map-readout'
+import type { MapStopRow } from './use-map-legend-registry'
 
 /** One resolved overlay entry the tooltip can read. @internal */
 export type MapTooltipEntry = {
@@ -14,12 +16,10 @@ export type MapTooltipEntry = {
 	/** currentColor class carrying the entry's colour. */
 	swatchClass: string
 	detail?: string
-	/**
-	 * What one of the mark's stops reads out, where that differs from the mark's
-	 * own label and detail — a plural mark's dots, each naming its own stop.
-	 * `undefined` falls back to the mark, which is what every singular mark does.
-	 */
-	stopReadout?: (stop: number) => { label: string; detail?: string } | undefined
+	/** The mark kind, the value a mark with no detail anywhere falls back to. */
+	kind: string
+	/** Per-dot readouts for a plural mark; absent on a singular one. */
+	stopRows?: MapStopRow[]
 }
 
 /** Props for {@link MapTooltip}. @internal */
@@ -56,41 +56,29 @@ const SWATCH_SHAPE = { rect: 'square', line: 'line', dot: 'circle' } as const sa
 	NonNullable<SwatchProps['shape']>
 >
 
-/**
- * The tooltip content for an overlay mark's stop. A plural mark's dot names
- * itself; a singular mark, and a dot that carries no name of its own, reads the
- * mark's. A dot that names itself but carries no detail shows no detail row
- * either — the mark's would belong to the group, not to this dot.
- */
-function resolveEntry(
-	target: { id: string; stop: number },
-	entries: MapTooltipProps['entries'],
-	hidden: MapTooltipProps['hidden'],
-): MapTooltipContent | null {
-	if (hidden.has(target.id)) return null
-
-	const entry = entries.get(target.id)
-
-	if (entry === undefined) return null
-
-	const stop = entry.stopReadout?.(target.stop)
-
-	const detail = stop === undefined ? entry.detail : stop.detail
-
-	return {
-		title: stop?.label ?? entry.label,
-		row: detail
-			? { swatch: entry.swatch, swatchClass: entry.swatchClass, text: detail }
-			: undefined,
-	}
-}
-
 /** Resolves the tooltip content for a hover target, or `null` to stay away. @internal */
 function resolve(
 	target: MapHoverTarget,
 	{ regionNames, regionCategory, regionValues, categories, entries, hidden }: MapTooltipProps,
 ): MapTooltipContent | null {
-	if (target.kind === 'entry') return resolveEntry(target, entries, hidden)
+	if (target.kind === 'entry') {
+		if (hidden.has(target.id)) return null
+
+		const entry = entries.get(target.id)
+
+		if (entry === undefined) return null
+
+		// The one readout rule, shared with the table: the pointer and a screen
+		// reader must never disagree about the same dot.
+		const readout = markReadout(entry, target.stop)
+
+		return {
+			title: readout.name,
+			row: readout.detail
+				? { swatch: entry.swatch, swatchClass: entry.swatchClass, text: readout.detail }
+				: undefined,
+		}
+	}
 
 	const category = regionCategory[target.index]
 

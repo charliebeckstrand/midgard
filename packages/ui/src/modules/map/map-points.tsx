@@ -1,11 +1,12 @@
 'use client'
 
-import { useCallback } from 'react'
+import { Fragment, useMemo } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
+import { rangeKeys } from '../../utilities'
 import { POINT_HIT_RADIUS, POINT_RADIUS } from './map-constants'
 import { MapDot } from './map-dot'
-import { POINT_POP, POINT_STAGGER, POINT_STAGGER_MAX } from './map-motion'
+import { pointPop } from './map-motion'
 import type { LngLat } from './types'
 import { type MapOverlayProps, useMapOverlay } from './use-map-overlay'
 
@@ -13,11 +14,16 @@ import { type MapOverlayProps, useMapOverlay } from './use-map-overlay'
 export type MapPointDatum = {
 	/** The dot's geographic position. */
 	at: LngLat
-	/** This dot's tooltip name; falls back to the group's `label`. */
+	/**
+	 * This dot's tooltip and table name. Omitted, the dot is numbered within its
+	 * group — `Stops 3` — since a reader has no position to tell two unnamed dots
+	 * apart by.
+	 */
 	label?: string
 	/**
-	 * This dot's trailing readout. A dot that names itself shows no detail unless
-	 * it carries its own — the group's would describe the set, not the dot.
+	 * This dot's trailing readout, independent of {@link label}. It never falls
+	 * back to the group's `detail`: that describes the set, so a dot with no count
+	 * of its own would misreport itself as the whole round.
 	 */
 	detail?: string
 }
@@ -60,25 +66,18 @@ export type MapPointsProps = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> 
  * plat's `animate` the dots pop in staggered, so the set reveals in sequence.
  */
 export function MapPoints({ points, ...shared }: MapPointsProps) {
-	// Read through a ref at fire time, so an inline `points` never re-registers.
-	const stopReadout = useCallback(
-		(stop: number) => {
-			const point = points[stop]
-
-			if (point?.label === undefined) return undefined
-
-			return { label: point.label, detail: point.detail }
-		},
-		[points],
-	)
-
 	const { slot, hidden, project, animate, dim, onPointerLeave, hit } = useMapOverlay({
 		...shared,
 		kind: 'point',
 		swatch: 'dot',
-		stops: points.map((point) => point.at),
-		stopReadout,
+		// A thunk, so the O(N) build lands on the one keypress that reads it.
+		stops: () => points.map((point) => point.at),
+		stopRows: points,
 	})
+
+	// Held across re-renders: rebuilding them would allocate one string per dot
+	// every time, which is the cost this mark exists to remove.
+	const keys = useMemo(() => rangeKeys(points.length, 'dot'), [points.length])
 
 	if (slot === undefined || hidden) return null
 
@@ -92,20 +91,19 @@ export function MapPoints({ points, ...shared }: MapPointsProps) {
 				if (position === null) return null
 
 				return (
-					// The index keys the dot because it is also the dot's identity to the
-					// cursor and to `onClick` — the caller's own row number.
-					// biome-ignore lint/suspicious/noArrayIndexKey: the index is the dot's reported identity
-					<g key={index}>
+					// A Fragment, not a group: the wrapper would carry nothing — the dim
+					// class and the pointer-leave sit on the outer group — and two hundred
+					// dead containers is what this mark exists to avoid. Keyed on the
+					// module's own row keys, since the index is also the dot's identity to
+					// the cursor and to `onClick`.
+					<Fragment key={keys[index]}>
 						<MapDot
 							slot="map-points-dot"
 							at={position}
 							radius={POINT_RADIUS}
 							className={paint}
 							animate={animate}
-							transition={{
-								...POINT_POP,
-								delay: Math.min(index * POINT_STAGGER, POINT_STAGGER_MAX),
-							}}
+							transition={pointPop(index)}
 						/>
 
 						<circle
@@ -116,7 +114,7 @@ export function MapPoints({ points, ...shared }: MapPointsProps) {
 							fill="transparent"
 							{...hit(index)}
 						/>
-					</g>
+					</Fragment>
 				)
 			})}
 		</g>

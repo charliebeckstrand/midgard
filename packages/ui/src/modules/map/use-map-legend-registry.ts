@@ -8,6 +8,17 @@ import type { LngLat } from './types'
 export type MapOverlayKind = 'route' | 'point' | 'marker'
 
 /**
+ * One stop's own readout. Either field may stand alone: a dot that carries a
+ * count but no name of its own is as ordinary as one that carries a name.
+ *
+ * @internal
+ */
+export type MapStopRow = {
+	label?: string
+	detail?: string
+}
+
+/**
  * One overlay mark's registration: what the legend draws for it, and what the
  * keyboard cursor needs to stand on it. The plat resolves slot colours across
  * the registered order, after the region categories.
@@ -41,11 +52,16 @@ export type MapOverlayEntry = {
 	 */
 	stopsAt?: () => LngLat[]
 	/**
-	 * What one of this mark's stops reads out, where that differs from the mark's
+	 * What each of this mark's stops reads out, where that differs from the mark's
 	 * own `label` and `detail` — a plural mark's dots, each naming its own stop.
-	 * `undefined` falls back to the mark, which is what every singular mark does.
+	 * Absent on every singular mark, whose one stop reads the mark.
+	 *
+	 * Plain data, not a getter like {@link stopsAt}: the table draws this during
+	 * its own render, so it has to change the ledger to reach the screen. The
+	 * positions can stay behind a getter because nothing draws them — the cursor
+	 * reads them on a keypress.
 	 */
-	stopReadout?: (stop: number) => { label: string; detail?: string } | undefined
+	stopRows?: MapStopRow[]
 	/**
 	 * Picks one of the mark's stops: what Enter or Space calls with the keyboard
 	 * cursor on it, and what a click reports. Stable like {@link stopsAt}, and
