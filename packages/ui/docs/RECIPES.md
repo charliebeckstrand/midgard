@@ -29,7 +29,7 @@ Atomic concerns, one sub-folder each; `index.ts` assembles the named bundle. Ful
 | `ugoki` 動き | Motion — tempo primitives, the spring vocabulary, the data-viz mark family, CSS transitions, and Framer Motion enter/exit configs. |
 | `kasane` 重ね | The signature 4-layer chrome stack plus ring-compensated padding / radius / rounded / gap helpers. |
 | `kokkaku` 骨格 | Skeleton placeholder dimensions per component — chrome-, variant-, and colour-stripped. |
-| `sou` 層 | App-level stacking order — the ordered rung ladder (`overlay` / `chrome` / `elevated` / `float` / `toast`) every portalled surface lands on. |
+| `sou` 層 | App-level stacking order — the ordered rung ladder (`overlay` / `chrome` / `float` / `toast`) every portalled surface lands on. |
 | `sun` 寸 | Named density steps (`sm` / `md` / `lg`) and the per-step token table. |
 | `tsunagi` 繋ぎ | Group-join class fragments — dormant until the parent stamps `data-group` at runtime. |
 

@@ -5,7 +5,7 @@ import type { ReactNode, RefObject } from 'react'
 import { cn } from '../../core'
 import { useA11yPanel } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
-import { Overlay, type OverlayReach } from '../../primitives/overlay'
+import { Overlay } from '../../primitives/overlay'
 import { PanelProviders } from '../../primitives/panel'
 import { useResolvedSurface } from '../../providers/glass/context'
 import { k, type SheetPanelVariants } from '../../recipes/kata/sheet'
@@ -62,29 +62,6 @@ export type SheetProps = Omit<SheetPanelVariants, 'surface'> & {
 	 */
 	backdrop?: boolean
 	/**
-	 * DOM outside the sheet that keeps its place in the focus order while the sheet
-	 * is up.
-	 *
-	 * A sheet the user opens to finish one thing wants the trap whole. A sheet
-	 * holding a long-lived work surface beside persistent chrome does not, because
-	 * the trap makes that chrome unreachable and leaves no exit but to dismiss the
-	 * work. Name the chrome here instead of reaching for `modal={false}`, which
-	 * surrenders the scroll lock and outside-press dismissal along with the trap.
-	 *
-	 * @see {@link Overlay} — its own `reachable` documents the accepted shapes, the
-	 * caveats, and the stacking rung the consumer owns.
-	 */
-	reachable?: OverlayReach | readonly OverlayReach[]
-	/**
-	 * Paint above app chrome lifted over the overlay root. For a sheet that *is* the
-	 * application's navigation.
-	 *
-	 * @see {@link Overlay} — its own `elevated` documents what the level ranks against.
-	 *
-	 * @defaultValue false
-	 */
-	elevated?: boolean
-	/**
 	 * Accessible name for sheets without a visible `SheetTitle`. Ignored once a
 	 * `SheetTitle` registers.
 	 */
@@ -125,8 +102,6 @@ export function Sheet({
 	initialFocus,
 	modal,
 	backdrop,
-	reachable,
-	elevated,
 	'aria-label': ariaLabel,
 }: SheetProps) {
 	// Controlled when `open` is passed; otherwise uncontrolled from `defaultOpen`.
@@ -148,8 +123,6 @@ export function Sheet({
 			initialFocus={initialFocus}
 			modal={modal}
 			backdrop={backdrop}
-			reachable={reachable}
-			elevated={elevated}
 			className={k.backdrop({ surface: resolvedSurface, desaturate })}
 		>
 			<motion.div

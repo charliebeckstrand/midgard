@@ -7,7 +7,7 @@ import { useA11yPanel } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
 import { useEnterAnimation } from '../../hooks/use-enter-animation'
 import { Density, useDensity } from '../../primitives/density'
-import { Overlay, type OverlayReach } from '../../primitives/overlay'
+import { Overlay } from '../../primitives/overlay'
 import { PanelProviders } from '../../primitives/panel'
 import { useResolvedSurface } from '../../providers/glass/context'
 import type { Step } from '../../recipes'
@@ -78,29 +78,6 @@ export type DrawerProps = Omit<DrawerPanelVariants, 'surface'> & {
 	 */
 	initialFocus?: RefObject<HTMLElement | null>
 	/**
-	 * DOM outside the drawer that keeps its place in the focus order while the
-	 * drawer is up.
-	 *
-	 * A drawer the user opens to finish one thing wants the trap whole. A drawer
-	 * that holds a work surface — maximized, its state in a tab's href, open
-	 * across many visits — does not, because the trap makes the tab strip that
-	 * raised it unreachable. Name that strip here and the user can leave by
-	 * keyboard without dismantling the work.
-	 *
-	 * @see {@link Overlay} — its own `reachable` documents the accepted shapes,
-	 * the caveats, and the stacking order the consumer owns.
-	 */
-	reachable?: OverlayReach | readonly OverlayReach[]
-	/**
-	 * Paint above app chrome lifted over the overlay root. For a drawer that *is* the
-	 * application's navigation.
-	 *
-	 * @see {@link Overlay} — its own `elevated` documents what the level ranks against.
-	 *
-	 * @defaultValue false
-	 */
-	elevated?: boolean
-	/**
 	 * Accessible name for drawers without a visible `DrawerTitle`. Ignored once a
 	 * `DrawerTitle` registers.
 	 */
@@ -135,8 +112,6 @@ export function Drawer({
 	animateOnMount = true,
 	children,
 	initialFocus,
-	reachable,
-	elevated,
 	'aria-label': ariaLabel,
 }: DrawerProps) {
 	// Controlled when `open` is passed; otherwise uncontrolled from `defaultOpen`.
@@ -188,8 +163,6 @@ export function Drawer({
 			open={resolvedOpen}
 			onOpenChange={setOpen}
 			initialFocus={initialFocus}
-			reachable={reachable}
-			elevated={elevated}
 			animateOnMount={animateOnMount}
 			className={k.backdrop({ surface: resolvedSurface, desaturate })}
 		>
