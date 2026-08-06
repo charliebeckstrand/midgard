@@ -4,7 +4,7 @@ Measurement seams for the docs app's two cost centers: the ts-morph API extracti
 
 Run the timing suites on demand, to measure a change or to drive one. They stay out of CI by decision: every number in them is wall clock. A shared agent moves that further than most real regressions do. [`bundle-budget.ts`](bundle-budget.ts) is the exception, because it asserts size rather than time; CI runs it after `docs:build`. Tests hold the correctness instead — `api-extractor.test.ts` pins the cross-root link resolution that project scoping must preserve.
 
-Baselines on a 4-core machine, for 313 components / 1223 props: cold full pass ≈ 4.8s (project construction ≈ 1.9s of it; the pre-#1001 tsconfig shape measures ≈ 5.4-6.9s), disk-cache restore ≈ 32ms, per-barrel incremental edit ≈ 182ms, link index ≈ 44ms, prod build ≈ 3s wall on a warm cache. Compare these only against each other, and only from the same machine.
+Baselines on a 4-core machine, for 313 components / 1223 props: cold full pass ≈ 4.8s (project construction ≈ 1.9s of it; the pre-#1001 tsconfig shape measures ≈ 5.4-6.9s), disk-cache restore ≈ 32ms, per-barrel incremental edit ≈ 182ms, link index ≈ 28ms, prod build ≈ 3s wall on a warm cache. Compare these only against each other, and only from the same machine.
 
 ## ts-morph suite — `pnpm bench:docs`
 
