@@ -136,20 +136,24 @@ function hashFile(file: string, hashes: Map<string, string>): string | null {
  * this key labels. The memo gives the key the same blind spot, so the key and
  * the record agree.
  *
- * A key that reads disk on every call is worse. It can validate a record that
+ * A key that reads disk on every call is worse: it can validate a record that
  * the same missed edit made stale, and that pair survives every restart. A key
- * that agrees with its record instead fails the check on the next start. A fresh
- * extractor starts with an empty memo, so it reads the real content on disk.
+ * that agrees with its record fails the check on the next start instead,
+ * because a fresh extractor starts with an empty memo.
  *
  * @internal
  */
 export function aggregateHash(srcDir: string, hashes: Map<string, string>): string {
 	const files = collectInputFiles(srcDir).sort()
 
+	// The walk joins every path onto `srcDir`, so a slice yields what
+	// `path.relative` yields and saves about a quarter of the warm cost here.
+	const rootLength = srcDir.endsWith(path.sep) ? srcDir.length : srcDir.length + 1
+
 	const digest = createHash('sha1')
 
 	for (const file of files)
-		digest.update(path.relative(srcDir, file)).update(hashFile(file, hashes) ?? '')
+		digest.update(file.slice(rootLength)).update(hashFile(file, hashes) ?? '')
 
 	return digest.digest('hex')
 }
@@ -166,8 +170,8 @@ export function createApiExtractor(
 				path.resolve(srcDir, '..', 'node_modules', '.cache', 'docs-api-reference'))
 
 	// Content-hash memo for `aggregateHash`. It lives as long as the extractor:
-	// each pass drops only the paths `notifyChanged` reported, so a rebuild
-	// re-hashes those files rather than the whole tree.
+	// `notifyChanged` drops the path it reports, so a rebuild re-hashes those
+	// files rather than the whole tree.
 	const hashes = new Map<string, string>()
 
 	const states = new Map<string, BarrelState>()
@@ -419,10 +423,6 @@ export function createApiExtractor(
 
 	return {
 		getAll() {
-			// Drop the memo entries this pass re-reads. `applyRefreshes` empties
-			// `pendingRefresh` further down, so the drop must come first.
-			for (const file of pendingRefresh) hashes.delete(file)
-
 			if (!loaded) initialLoad()
 			else if (dirty.size > 0 || pendingRefresh.size > 0) incrementalRebuild()
 
@@ -432,7 +432,11 @@ export function createApiExtractor(
 		notifyChanged(file) {
 			if (!isInputFile(file)) return false
 
+			// One report drops both views of the file — the project's AST and the
+			// memo's hash — so the key and the record lag disk by the same set.
 			pendingRefresh.add(file)
+
+			hashes.delete(file)
 
 			const affected = fileToBarrels.get(file)
 

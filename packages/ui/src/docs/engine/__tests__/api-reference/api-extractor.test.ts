@@ -37,16 +37,7 @@ function writeFixture(root: string, { barDependsOnFoo = false } = {}): string {
 
 	write('components/foo/index.ts', `export { Foo } from './foo'\n`)
 
-	write(
-		'components/foo/foo.tsx',
-		[
-			`/** A foo. */`,
-			`export function Foo(props: { label?: string }) {`,
-			`\treturn props.label ?? null`,
-			`}`,
-			'',
-		].join('\n'),
-	)
+	writeFoo(src, 'label?: string')
 
 	if (barDependsOnFoo) {
 		write('components/foo/shared.ts', `export type Tone = 'a' | 'b'\n`)
@@ -82,23 +73,32 @@ function writeFixture(root: string, { barDependsOnFoo = false } = {}): string {
 	return src
 }
 
-/** Retype Foo's prop on disk, so the file's content hash moves. */
-function editFoo(srcDir: string, propType: string): void {
+/**
+ * Write Foo's source with the given props signature, and return the file's path.
+ * Every write of the fixture component goes through here, so one template
+ * defines its shape and an edit reports the path it wrote.
+ */
+function writeFoo(srcDir: string, props: string): string {
+	const file = path.join(srcDir, 'components', 'foo', 'foo.tsx')
+
+	fs.mkdirSync(path.dirname(file), { recursive: true })
+
 	fs.writeFileSync(
-		path.join(srcDir, 'components', 'foo', 'foo.tsx'),
-		[
-			`/** A foo. */`,
-			`export function Foo(props: { label?: ${propType} }) {`,
-			`\treturn null`,
-			`}`,
-			'',
-		].join('\n'),
+		file,
+		[`/** A foo. */`, `export function Foo(props: { ${props} }) {`, `\treturn null`, `}`, ''].join(
+			'\n',
+		),
 	)
+
+	return file
 }
+
+/** The extractor's persisted cache file, inside the cache dir it was given. */
+const CACHE_FILE = 'api.json'
 
 /** The hash a persisted cache carries — the key `aggregateHash` produced for it. */
 function cacheKey(cacheDir: string): string {
-	const raw = fs.readFileSync(path.join(cacheDir, 'api.json'), 'utf-8')
+	const raw = fs.readFileSync(path.join(cacheDir, CACHE_FILE), 'utf-8')
 
 	return (JSON.parse(raw) as { hash: string }).hash
 }
@@ -170,17 +170,13 @@ describe('createApiExtractor', () => {
 	it('reads fresh source for an in-session edit to an already-warmed barrel', () => {
 		const { srcDir } = fixture()
 
-		const fooPath = path.join(srcDir, 'components', 'foo', 'foo.tsx')
-
 		const extractor = createApiExtractor(srcDir, { cacheDir: null })
 
 		extractor.getAll()
 
 		// Retype Foo's prop on disk. The live project still holds the pre-edit AST,
 		// so the refresh must apply synchronously before the next extraction reads it.
-		editFoo(srcDir, 'number')
-
-		extractor.notifyChanged(fooPath)
+		extractor.notifyChanged(writeFoo(srcDir, 'label?: number'))
 
 		expect(extractor.getAll().foo?.[0]?.props).toEqual([{ name: 'label', type: 'number' }])
 	})
@@ -237,7 +233,7 @@ describe('createApiExtractor', () => {
 
 		const first = createApiExtractor(srcDir, { cacheDir }).getAll()
 
-		expect(fs.existsSync(path.join(cacheDir, 'api.json'))).toBe(true)
+		expect(fs.existsSync(path.join(cacheDir, CACHE_FILE))).toBe(true)
 
 		const replay = createApiExtractor(srcDir, { cacheDir }).getAll()
 
@@ -249,16 +245,7 @@ describe('createApiExtractor', () => {
 
 		createApiExtractor(srcDir, { cacheDir }).getAll()
 
-		fs.writeFileSync(
-			path.join(srcDir, 'components', 'foo', 'foo.tsx'),
-			[
-				`/** A foo. */`,
-				`export function Foo(props: { label?: string; hidden?: boolean }) {`,
-				`\treturn props.label ?? null`,
-				`}`,
-				'',
-			].join('\n'),
-		)
+		writeFoo(srcDir, 'label?: string; hidden?: boolean')
 
 		const result = createApiExtractor(srcDir, { cacheDir }).getAll()
 
@@ -275,10 +262,8 @@ describe('createApiExtractor', () => {
 		const before = cacheKey(cacheDir)
 
 		// The content-hash memo outlives the pass, so a reported path must drop out
-		// of it; a retained entry holds the key still forever.
-		editFoo(srcDir, 'number')
-
-		extractor.notifyChanged(path.join(srcDir, 'components', 'foo', 'foo.tsx'))
+		// of it; a retained entry freezes the key.
+		extractor.notifyChanged(writeFoo(srcDir, 'label?: number'))
 
 		extractor.getAll()
 
@@ -295,8 +280,9 @@ describe('createApiExtractor', () => {
 		const before = cacheKey(cacheDir)
 
 		// Edit Foo behind the extractor's back — a watcher miss, or a write from
-		// outside the dev server. Report Bar instead, so a pass runs and persists.
-		editFoo(srcDir, 'number')
+		// outside the dev server. The report names Bar, not the file that changed,
+		// so a pass runs and persists while Foo's edit stays unreported.
+		writeFoo(srcDir, 'label?: number')
 
 		extractor.notifyChanged(path.join(srcDir, 'components', 'bar', 'bar.tsx'))
 
@@ -304,7 +290,7 @@ describe('createApiExtractor', () => {
 
 		// The record misses the edit, because `applyRefreshes` reads reported paths
 		// alone. The retained memo holds the key to the tree that record describes,
-		// so the pair stays consistent rather than validating a stale record.
+		// so the pair stays consistent and does not validate a stale record.
 		expect(second.foo?.[0]?.props).toEqual([{ name: 'label', type: 'string' }])
 
 		expect(cacheKey(cacheDir)).toBe(before)
