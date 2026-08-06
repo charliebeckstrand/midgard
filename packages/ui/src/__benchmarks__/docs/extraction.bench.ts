@@ -16,14 +16,13 @@ import {
 } from '../../docs/engine/api-reference/engine/find-components'
 import { formatPropType } from '../../docs/engine/api-reference/engine/format-type'
 import { createLinkIndex } from '../../docs/engine/api-reference/engine/link-resolver'
+import { srcDir } from './paths'
 
 // Micro-benchmarks for the per-component extraction seams `buildComponent`
 // (`build-api.ts`) fans out to, on one shared Project so setup cost is paid
 // once. Setup resolves each fixture's props type up front, warming the
 // checker's caches for it — the numbers isolate extractor cost, not
 // first-resolution cost, which `build-api.bench.ts` covers end to end.
-
-const srcDir = path.resolve(import.meta.dirname, '..', '..')
 
 // `openProject`, not a tsconfig-wide Project: the tsconfig include resolves
 // 1864 files against production's 1197, and the link-index walk is proportional

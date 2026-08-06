@@ -1,9 +1,9 @@
 // @vitest-environment node
 
-import path from 'node:path'
 import { Project } from 'ts-morph'
 import { bench, describe } from 'vitest'
 import { DOCUMENTED_ROOTS, openProject } from '../../docs/engine/api-reference/engine/build-api'
+import { srcDir, tsConfigFilePath } from './paths'
 
 // Hypothesis suite for `openProject` (`build-api.ts`): project construction is
 // most of what a cold extraction pays before it reaches a component, so each
@@ -20,10 +20,6 @@ import { DOCUMENTED_ROOTS, openProject } from '../../docs/engine/api-reference/e
 // separate processes before you believe a difference.
 
 const OPTS = { warmupIterations: 1, warmupTime: 0, iterations: 3, time: 0 }
-
-const srcDir = path.resolve(import.meta.dirname, '..', '..')
-
-const tsConfigFilePath = path.resolve(srcDir, '..', 'tsconfig.json')
 
 const rootGlobs = DOCUMENTED_ROOTS.map(([root]) => `${srcDir}/${root}/**/*.{ts,tsx}`)
 
