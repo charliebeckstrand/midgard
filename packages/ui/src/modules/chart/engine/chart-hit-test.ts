@@ -1,7 +1,8 @@
 /**
- * Pure pointer hit tests for the cartesian marks: whether the pointer sits on
- * a bar, near a line, or inside an area fill. The hit layer feeds them into
- * the hover context so the tooltip shows only over data, while the hover
+ * Pure pointer hit tests for the cartesian marks: which bar the pointer covers,
+ * which series' line it is nearest, and which series' fill it sits inside. Each
+ * resolves to the mark or series, or `null` for a miss. The hit layer feeds them
+ * into the hover context so the tooltip shows only over data, while the hover
  * index — and any crosshair riding it — keeps tracking the whole plot.
  */
 

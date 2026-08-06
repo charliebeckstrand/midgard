@@ -14,7 +14,7 @@ import { cn } from '../../../../core'
 import type { FrameReserve } from '../../../../hooks'
 import { k } from '../../../../recipes/kata/chart'
 import type { AccessibleName } from '../../../../types'
-import type { ChartContextMenuConfig, ChartContextMenuTarget } from '../chart-context-menu'
+import type { ChartContextMenuConfig } from '../chart-context-menu'
 import { ChartContextMenu } from '../chart-context-menu'
 import { ChartHeader } from '../chart-header'
 import { type ChartLegendPlacement, legendAside } from '../chart-legend/schema'
@@ -294,11 +294,9 @@ export function ChartFrame({
 	// mid-interaction and drop the per-mark entry the user is about to click.
 	//
 	// Held as the bare index so React can bail on a repeat right-click over the same mark (or on plot
-	// padding twice, where it stays null). The wrapper below is a plain literal: `ChartContextMenu` keys
-	// its own items memo on `target.index`, not on the object.
+	// padding twice, where it stays null). `ChartContextMenu` takes the index and mints the target
+	// object a function-form `items` receives.
 	const [menuIndex, setMenuIndex] = useState<number | null>(null)
-
-	const menuTarget: ChartContextMenuTarget = { index: menuIndex }
 
 	// The visually-hidden data table holds one row per datum, so at large row
 	// counts materializing and committing it dominates — yet nothing visual waits
@@ -518,7 +516,7 @@ export function ChartFrame({
 			fullscreen={fullscreen}
 			// The frame owns the hover index, and this wrapper sits outside `ChartHoverContext` (it wraps
 			// the provider), so the right-clicked mark travels down as a prop for a per-mark menu item.
-			target={menuTarget}
+			targetIndex={menuIndex}
 		>
 			{chartRoot}
 		</ChartContextMenu>

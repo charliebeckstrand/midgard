@@ -12,7 +12,7 @@ import {
 	MapPlat,
 	type MapProjection,
 } from '../../map'
-import type { ChartContextMenuConfig, ChartContextMenuTarget } from '../engine/chart-context-menu'
+import type { ChartContextMenuConfig } from '../engine/chart-context-menu'
 import { ChartContextMenu } from '../engine/chart-context-menu'
 import type { ChartRangeLegendConfig } from '../engine/chart-legend/range'
 import { formatChartValue, READOUT_GAP } from '../engine/chart-series'
@@ -220,10 +220,6 @@ export function ChoroplethChart<T = never>(props: ChoroplethChartProps<T>) {
 	// consumer reads the underlying row out of its own data by index.
 	const onRegionContextMenu = useCallback((_id: string, index: number) => setMenuRegion(index), [])
 
-	// A plain literal: `ChartContextMenu` keys its own items memo on `target.index`,
-	// not on the object, so identity here buys nothing.
-	const menuTarget: ChartContextMenuTarget = { index: menuRegion }
-
 	const [primary] = series
 
 	const format = formatValue ?? formatChartValue
@@ -266,7 +262,7 @@ export function ChoroplethChart<T = never>(props: ChoroplethChartProps<T>) {
 			rootRef={rootRef}
 			readout={readout}
 			title={title}
-			target={menuTarget}
+			targetIndex={menuRegion}
 			fullscreen={<ChoroplethChart {...props} />}
 		>
 			<div

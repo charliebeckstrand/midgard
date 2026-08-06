@@ -102,7 +102,7 @@ The architecture is in good shape where it is centralized: polymorphism runs thr
 | L9 | `ref` parity arbitrary across static leaves (T7) | `box.tsx:45` (yes) vs `flex.tsx:40`, `container.tsx:27` (no) | React-19 `ref` on every static leaf | ◯ OPEN |
 | L10 | Zero-spacing spelled `0` (Flex), `'none'` (Container), absent (Split/Box) | `flex/variants.ts:6`, `recipes/kata/container.ts:14`, `split/variants.ts:12` | One `0` stop on the Ma scale | ◯ OPEN |
 | L11 | Sparkline `variant: 'line'\|'bar'` is mark geometry — Swatch calls that `shape` | `sparkline.tsx:30` vs `recipes/kata/swatch.ts:23-27` | `shape` | ◯ OPEN |
-| L12 | Container `padding` duplicates Box `px` under a different name and silently different scale | `recipes/kata/container.ts:16` vs `recipes/kiso/ma/stops.ts:10-16` | Rename `px`, re-key onto Ma | ◯ OPEN |
+| L12 | Container `padding` duplicates Box `px` under a different name and silently different scale | `recipes/kata/container.ts:16` vs `recipes/kiso/ma/padding.ts:10-16` | Rename `px`, re-key onto Ma | ◯ OPEN |
 | L13 | `data-orientation` stamped by Dl/List/Resizable, differently by Group, not at all by Divider/ScrollArea | `description-list.tsx:38`, `group.tsx:69`, `divider.tsx:23-25` | Stamp uniformly | ◯ OPEN |
 | L14 | Layout slot surfaces drift: SidebarLayoutFooter takes no `className`, Body slots get `ref` while Header/Footer don't | `layouts/sidebar/sidebar.tsx:204` vs `stacked.tsx:56` | Uniform `className`/`ref` on slots; rule: wrapping regions compound, off-tree panels props | ◯ OPEN |
 | L15 | Banner `position: 'static'\|'sticky'` vs SidebarLayout `stickyHeader: boolean` (T5) | `banner.tsx:10`, `layouts/sidebar/sidebar.tsx:42` | Boolean `sticky` both | ◯ OPEN |
