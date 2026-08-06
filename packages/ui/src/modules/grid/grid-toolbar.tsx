@@ -1,7 +1,7 @@
 'use client'
 
 import { Download, SlidersHorizontal } from 'lucide-react'
-import { type ReactNode, useState } from 'react'
+import type { ReactNode } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from '../../components/menu'
@@ -32,8 +32,15 @@ type GridToolbarProps = {
 	 */
 	exportActions: GridExportAction[]
 	/**
+	 * Whether an async export is in flight — from this dropdown or from a right-click
+	 * menu, since the grid counts them in one place (see {@link useGridExport}). Swaps
+	 * the trigger's download icon for a spinner and gates re-activation until it
+	 * settles; the grid's own "Exporting" overlay reads the same fact.
+	 */
+	exporting: boolean
+	/**
 	 * Per-column filter controls, or `null` when no column is filterable. Backs the
-	 * "Clear all filters" button, shown only while a filter constrains rows.
+	 * "Clear filters" button, shown only while a filter constrains rows.
 	 */
 	columnFilters: GridColumnFilter | null
 	/** Batch-action builder; its controls fill the second row while a row is selected. */
@@ -49,11 +56,12 @@ type GridToolbarProps = {
 /**
  * The Grid's toolbar region: the single place its above-table controls are
  * assembled. The top row carries the quick-search field at the start — joined,
- * while a column filter constrains rows, by an amber "Clear all filters" button
+ * while a column filter constrains rows, by an amber "Clear filters" button
  * that lifts them all — and a "Table tools" cluster at the end: the
  * column-manager trigger and, when any export type is active, an "Export"
  * dropdown listing one item per action — its trigger swaps the download icon
- * for a spinner while an async export is in flight; a second row hosts the batch actions
+ * for a spinner while an async export is in flight, from this dropdown or from a
+ * right-click menu; a second row hosts the batch actions
  * while a row is selected, so the search stays reachable beside them. The tools
  * and batch actions are each their own
  * labelled {@link Toolbar} — "Table tools" and "Batch actions" — while the
@@ -71,6 +79,7 @@ export function GridToolbar({
 	columnManagerLabel,
 	onManageColumns,
 	exportActions,
+	exporting,
 	columnFilters,
 	batchActions,
 	hasSelection,
@@ -78,22 +87,6 @@ export function GridToolbar({
 	setSelection,
 }: GridToolbarProps) {
 	const showExport = exportActions.length > 0
-
-	// Tracks an async export (an `exportRows` server round-trip) kicked off from
-	// the dropdown; a synchronous export downloads on the click itself, so it
-	// never flips this. While set, the trigger's `loading` swaps the download
-	// icon for the spinner and gates re-activation until the run settles.
-	const [exporting, setExporting] = useState(false)
-
-	const runExport = (action: GridExportAction) => {
-		const pending = action.run()
-
-		if (pending instanceof Promise) {
-			setExporting(true)
-
-			void pending.finally(() => setExporting(false))
-		}
-	}
 
 	const showTools = showColumnManager || showExport
 
@@ -120,7 +113,7 @@ export function GridToolbar({
 							color="amber"
 							onClick={() => columnFilters?.clear()}
 						>
-							Clear all filters
+							Clear filters
 						</Button>
 					)}
 
@@ -155,7 +148,10 @@ export function GridToolbar({
 									</MenuTrigger>
 									<MenuContent>
 										{exportActions.map((action) => (
-											<MenuItem key={action.type} onAction={() => runExport(action)}>
+											// The action carries its own pending tracking, so firing it is all
+											// this item does — the trigger's spinner and the grid's overlay both
+											// follow from the count it flips.
+											<MenuItem key={action.type} onAction={action.run}>
 												<MenuLabel>{action.label}</MenuLabel>
 											</MenuItem>
 										))}

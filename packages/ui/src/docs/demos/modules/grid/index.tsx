@@ -905,8 +905,11 @@ const ColumnManagerExample = () => {
 	// `exportable` takes. Toggle a column's checkbox to hide it, or use a row's pin
 	// control to freeze it left/right (left columns sort to the top of the list,
 	// right columns to the bottom). Drag-to-reorder in the manager follows
-	// `reorder`, so it's set here to enable the handles. Pass
-	// `columnManager={false}` to turn management off entirely.
+	// `reorder`, so it's set here to enable the handles. The dialog's filter field
+	// narrows the list to the columns matching what's typed, and only narrows what
+	// renders — hiding, pinning, and reordering under a query commit as they would
+	// unfiltered — with `filterable: false` to drop it. Pass `columnManager={false}`
+	// to turn management off entirely.
 	return (
 		<Grid
 			reorder
@@ -981,6 +984,10 @@ const GroupManagerExample = () => {
 // takes that same list under `types`, plus the two surface switches: `toolbar`
 // adds the "Export" dropdown shown here (opt-in, like the column manager's
 // button), and `contextMenu: false` would leave the dropdown as the only way in.
+//
+// These rows are already in hand, so each export downloads on the click. Where
+// the rows come from an async `exportRows` instead, the grid covers itself with
+// an "Exporting" overlay until they land — whichever surface ran the export.
 const ExportExample = () => (
 	<Grid
 		exportable={{ types: ['csv', 'excel'], toolbar: true }}

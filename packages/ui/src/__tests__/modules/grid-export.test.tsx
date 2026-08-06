@@ -820,6 +820,164 @@ describe('Grid export', () => {
 
 		error.mockRestore()
 	})
+
+	// The "Exporting" overlay: the indicator for an async export, and the only one a
+	// grid without the opt-in toolbar dropdown has.
+
+	const overlay = () => document.querySelector('[data-slot="grid-export-overlay"]')
+
+	it('covers the grid with an Exporting overlay while a menu-fired export is in flight', async () => {
+		const createObjectURL = vi.fn().mockReturnValue('blob:mock')
+
+		URL.createObjectURL = createObjectURL
+
+		URL.revokeObjectURL = vi.fn()
+
+		const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+
+		let release: (rows: Row[]) => void = () => {}
+
+		renderUI(
+			<Grid
+				// Menus only — no toolbar trigger to spin, which is the case the overlay exists for.
+				exportable={['csv']}
+				columns={columns}
+				rows={pageRow}
+				getKey={getKey}
+				exportRows={() =>
+					new Promise<Row[]>((resolve) => {
+						release = resolve
+					})
+				}
+			/>,
+		)
+
+		expect(overlay()).toBeNull()
+
+		rightClickHeader('Name')
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Export to CSV' }))
+
+		await waitFor(() => expect(overlay()).not.toBeNull())
+
+		// The spinner's own live region announces the wait; the visible text repeats it
+		// for sighted users without doubling the announcement.
+		expect(overlay()?.querySelector('[data-slot="loading-spinner"]')).not.toBeNull()
+
+		expect(overlay()?.textContent).toContain('Exporting')
+
+		release(fullList)
+
+		await waitFor(() => expect(overlay()).toBeNull())
+
+		expect(createObjectURL).toHaveBeenCalledTimes(1)
+
+		click.mockRestore()
+	})
+
+	it('lifts the overlay when an export fails, rather than covering the grid for good', async () => {
+		const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		let reject: (reason: Error) => void = () => {}
+
+		renderUI(
+			<Grid
+				exportable={['csv']}
+				columns={columns}
+				rows={pageRow}
+				getKey={getKey}
+				exportRows={() =>
+					new Promise<Row[]>((_, fail) => {
+						reject = fail
+					})
+				}
+			/>,
+		)
+
+		rightClickHeader('Name')
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Export to CSV' }))
+
+		await waitFor(() => expect(overlay()).not.toBeNull())
+
+		reject(new Error('server down'))
+
+		await waitFor(() => expect(overlay()).toBeNull())
+
+		error.mockRestore()
+	})
+
+	it('leaves a synchronous export uncovered — there is no wait to report', () => {
+		const createObjectURL = vi.fn().mockReturnValue('blob:mock')
+
+		URL.createObjectURL = createObjectURL
+
+		URL.revokeObjectURL = vi.fn()
+
+		const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+
+		renderUI(<Grid exportable={['csv']} columns={columns} rows={rows} getKey={getKey} />)
+
+		rightClickHeader('Name')
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Export to CSV' }))
+
+		expect(createObjectURL).toHaveBeenCalledTimes(1)
+
+		expect(overlay()).toBeNull()
+
+		click.mockRestore()
+	})
+
+	it('spins the toolbar trigger for an export fired from a right-click menu', async () => {
+		const createObjectURL = vi.fn().mockReturnValue('blob:mock')
+
+		URL.createObjectURL = createObjectURL
+
+		URL.revokeObjectURL = vi.fn()
+
+		const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+
+		let release: (rows: Row[]) => void = () => {}
+
+		renderUI(
+			<Grid
+				exportable={{ types: ['csv'], toolbar: true }}
+				columns={columns}
+				rows={pageRow}
+				getKey={getKey}
+				exportRows={() =>
+					new Promise<Row[]>((resolve) => {
+						release = resolve
+					})
+				}
+			/>,
+		)
+
+		// Held before the run: while loading, the spinner's label joins the trigger's
+		// accessible name, so the by-name query no longer finds it.
+		const trigger = screen.getByRole('button', { name: 'Export' })
+
+		rightClickHeader('Name')
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Export to CSV' }))
+
+		// One pending count feeds both indicators, so the trigger reflects an export it
+		// didn't start rather than sitting idle beside the overlay.
+		await waitFor(() =>
+			expect(trigger.querySelector('[data-slot="loading-spinner"]')).not.toBeNull(),
+		)
+
+		expect(overlay()).not.toBeNull()
+
+		release(fullList)
+
+		await waitFor(() => expect(overlay()).toBeNull())
+
+		expect(trigger.querySelector('svg.lucide-download')).not.toBeNull()
+
+		click.mockRestore()
+	})
 })
 
 describe('Grid export under grouping', () => {

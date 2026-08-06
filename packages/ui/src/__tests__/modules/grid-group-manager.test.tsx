@@ -265,7 +265,8 @@ describe('Grid column-group editor', () => {
 		)
 	}
 
-	const band = (root: HTMLElement) => root.querySelector('thead th[scope="colgroup"]')
+	const band = (root: HTMLElement) =>
+		root.querySelector<HTMLTableCellElement>('thead th[scope="colgroup"]')
 
 	it('creates a group, moves a column into it, and renames it — updating the band', () => {
 		const { container } = renderUI(<Harness />)
@@ -289,6 +290,40 @@ describe('Grid column-group editor', () => {
 		fireEvent.change(nameInput, { target: { value: 'Identity' } })
 
 		expect(band(container)?.textContent).toContain('Identity')
+	})
+
+	it('narrows a zone to its matching members without touching membership', () => {
+		const { container } = renderUI(<Harness />)
+
+		fireEvent.click(screen.getByRole('button', { name: 'New group' }))
+
+		// First and Last into the group; Email stays in the ungrouped pool.
+		fireEvent.click(screen.getByRole('button', { name: 'Move First' }))
+
+		fireEvent.click(screen.getByText('Move to New group'))
+
+		fireEvent.click(screen.getByRole('button', { name: 'Move Last' }))
+
+		fireEvent.click(screen.getByText('Move to New group'))
+
+		fireEvent.change(screen.getByRole('searchbox', { name: 'Filter columns' }), {
+			target: { value: 'la' },
+		})
+
+		// Only the matching member of the group renders...
+		expect(screen.getByRole('checkbox', { name: 'Show Last' })).toBeInTheDocument()
+
+		expect(screen.queryByRole('checkbox', { name: 'Show First' })).toBeNull()
+
+		// ...and a zone whose members all filter out reads as a search result, not as
+		// an empty pool.
+		expect(screen.getByText('No results')).toBeInTheDocument()
+
+		expect(screen.queryByText('No ungrouped columns')).toBeNull()
+
+		// The band still spans both members: filtering renders fewer rows, it never
+		// commits a membership change.
+		expect(band(container)?.colSpan).toBe(2)
 	})
 
 	it('seeds collapse from a controlled group’s defaultCollapsed on mount', () => {

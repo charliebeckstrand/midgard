@@ -95,8 +95,15 @@ export type GridExportable<T> = boolean | GridExportEntry<T>[] | GridExportConfi
  * `run` returns nothing for a synchronous export, or the in-flight promise
  * when the rows come from an async {@link GridDataProps.exportRows} round-trip
  * — settling once the export has fired (or its fetch failed), so a caller can
- * reflect the pending state (the toolbar swaps its download icon for a
- * spinner while it waits).
+ * reflect the pending state.
+ *
+ * Inside a grid it already is reflected: the grid counts its own in-flight
+ * exports around every action, whichever surface ran it, and shows an
+ * "Exporting" overlay for the wait (the toolbar trigger, when there is one,
+ * swaps its download icon for a spinner from the same count). A builder handed
+ * these actions can call `run` and leave the feedback to the grid; only an
+ * out-of-grid caller — see {@link useGridExportActions}, which reports the same
+ * state as `pending` — has to render its own.
  */
 export type GridExportAction = {
 	type: GridExportType

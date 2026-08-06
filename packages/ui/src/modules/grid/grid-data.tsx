@@ -58,6 +58,7 @@ import { GridBusyStatus } from './grid-busy-status'
 import { GridColumnManagerDialog } from './grid-column-manager-dialog'
 import { useColumnGroupMenu } from './grid-context-menu'
 import {
+	resolveActionable,
 	resolveAriaRowCount,
 	resolveFooterStats,
 	resolveGridSemantics,
@@ -69,6 +70,7 @@ import {
 	resolveVirtualization,
 } from './grid-data-resolvers'
 import type { GridDataProps, GridPinningState } from './grid-data-types'
+import { GridExportOverlay } from './grid-export-overlay'
 import { GridFooter as GridFooterBar } from './grid-footer'
 import { GridGroupByContext } from './grid-group-by-button'
 import { GridHead } from './grid-head'
@@ -115,7 +117,8 @@ import { type GridGlobalFilterView, useGridTable } from './use-grid-table'
  */
 function rowReorderPermitted(args: {
 	loading: boolean
-	hasData: boolean
+	/** Whether there are source rows to drag at all. */
+	hasRows: boolean
 	paginated: boolean
 	virtualized: boolean
 	grouped: boolean
@@ -125,7 +128,7 @@ function rowReorderPermitted(args: {
 }): boolean {
 	return (
 		!args.loading &&
-		args.hasData &&
+		args.hasRows &&
 		!args.paginated &&
 		!args.virtualized &&
 		!args.grouped &&
@@ -787,15 +790,22 @@ export function GridData<T>({
 	// Visible rows drive the select-all checkbox.
 	const hasRows = renderRows.length > 0
 
-	// Column interactions stand down when there's no *source* data to act on
-	// (incl. while loading), or when an error has pre-empted the body — mirroring
-	// the empty state, since both replace the rows there's nothing to act on. They
-	// stay live when a filter or search merely empties the view, so the user can
-	// clear it and recover the rows. `showingError` tracks the body's own error
-	// branch (see `GridBody`), which loading takes precedence over.
+	// Column interactions stand down when there's no data to act on (incl. while
+	// loading), or when an error has pre-empted the body — mirroring the empty
+	// state, since both replace the rows there's nothing to act on. `showingError`
+	// tracks the body's own error branch (see `GridBody`), which loading takes
+	// precedence over.
 	const showingError = !loading && error != null && error !== false
 
-	const hasData = rows.length > 0 && !showingError
+	// `hasRowsToActOn` is the plain row-presence fact; `hasData` also holds when a
+	// filter or search is what emptied the view, so the header stays live and the rule
+	// that emptied it can be cleared (see `resolveActionable`).
+	const { hasRows: hasRowsToActOn, hasData } = resolveActionable({
+		sourceCount: rows.length,
+		showingError,
+		filters,
+		globalFilter,
+	})
 
 	// A selection column makes rows selectable, so each row exposes `aria-selected`
 	// and a true grid advertises `aria-multiselectable` (see `resolveTableProps`).
@@ -973,7 +983,9 @@ export function GridData<T>({
 		rowReorder: rowReorderConfig,
 		enabled: rowReorderPermitted({
 			loading,
-			hasData,
+			// Rows, not the header's interactivity: dragging one needs a row to drag,
+			// which an emptied-by-a-filter grid hasn't got.
+			hasRows: hasRowsToActOn,
 			paginated: paginationConfig != null,
 			virtualized: virtualizeEnabled,
 			// Either grouping mode renders its own body; both stand reordering down.
@@ -1258,12 +1270,17 @@ export function GridData<T>({
 					>
 						<GridBusyStatus loading={loading} rowCount={dataRowCount} />
 
+						{/* Covers the grid — toolbar included — while an async export resolves
+						    its rows, whichever surface started it. */}
+						<GridExportOverlay active={exportActions.pending} />
+
 						{renderDialog && (
 							<GridColumnManagerDialog
 								open={columnManagerOpen}
 								onOpenChange={setColumnManagerOpen}
 								label={managerLabel}
 								columns={managerItems}
+								filterable={columnManagerConfig?.filterable}
 								order={columnOrder}
 								onOrderChange={setColumnOrder}
 								reorderable={reorderEnabled}
@@ -1292,6 +1309,7 @@ export function GridData<T>({
 							columnManagerLabel={managerLabel}
 							onManageColumns={() => setColumnManagerOpen(true)}
 							exportActions={exportActions.toolbar}
+							exporting={exportActions.pending}
 							columnFilters={filters}
 							batchActions={batchActions}
 							hasSelection={someSelected}

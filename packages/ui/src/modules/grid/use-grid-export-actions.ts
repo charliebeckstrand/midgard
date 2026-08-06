@@ -2,33 +2,9 @@
 
 import { useMemo, useState } from 'react'
 import { DEFAULT_EXPORTABLE } from './engine/grid-export/registry'
-import { exportRowsContext, resolveExportActions } from './engine/grid-export/resolve'
+import { exportRowsContext, resolveExportActions, trackPending } from './engine/grid-export/resolve'
 import type { GridExportAction, GridExportable, GridExportRows } from './engine/grid-export/types'
 import type { GridColumn } from './types'
-
-/**
- * Wraps an action's `run` so an async export flips a pending counter around the
- * promise it returns. A counter rather than a boolean so overlapping exports
- * don't clear each other early.
- *
- * @internal
- */
-function trackPending(
-	run: GridExportAction['run'],
-	setCount: (next: (count: number) => number) => void,
-): GridExportAction['run'] {
-	return () => {
-		const pending = run()
-
-		// A synchronous export has already downloaded by here — only a genuine
-		// round-trip has anything to wait on.
-		if (!(pending instanceof Promise)) return pending
-
-		setCount((count) => count + 1)
-
-		return pending.finally(() => setCount((count) => count - 1))
-	}
-}
 
 /**
  * The export actions for a grid whose export control lives *outside* it — a page
