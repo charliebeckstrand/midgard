@@ -1,7 +1,55 @@
 import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn, type GridEditableConfig } from '../../modules/grid'
-import { bySlot, fireEvent, liveRegion, renderUI } from '../helpers'
+import { bySlot, expectAnnouncement, fireEvent, liveRegion, renderUI } from '../helpers'
+
+type SessionRow = { id: number; name: string; count: number; done: boolean }
+
+const sessionRows: SessionRow[] = [
+	{ id: 1, name: 'Alice', count: 2, done: false },
+	{ id: 2, name: 'Bob', count: 5, done: true },
+]
+
+const sessionColumns: GridColumn<SessionRow>[] = [
+	{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
+	{ id: 'count', title: 'Count', field: 'count', cell: (row) => String(row.count) },
+]
+
+/**
+ * Renders a grid whose edit sessions the grid owns, over the spies both
+ * grid-owned suites assert on. `editable` takes the scope under test and any
+ * per-case binding; `cols` takes the column shape a case needs.
+ */
+function renderSessionGrid({
+	editable,
+	cols = sessionColumns,
+}: {
+	editable?: Partial<GridEditableConfig>
+	cols?: GridColumn<SessionRow>[]
+} = {}) {
+	const onCommit = vi.fn()
+
+	const onRowsChange = vi.fn()
+
+	const view = renderUI(
+		<Grid
+			columns={cols}
+			rows={sessionRows}
+			getKey={(row) => row.id}
+			editable={{ trigger: 'doubleClick', onRowsChange, onCommit, ...editable }}
+		/>,
+	)
+
+	return {
+		...view,
+		onCommit,
+		onRowsChange,
+		cell: (col: string, rowIndex = 0) =>
+			view.container.querySelectorAll<HTMLElement>(`td[data-grid-col="${col}"]`)[
+				rowIndex
+			] as HTMLElement,
+	}
+}
 
 /**
  * Per-row inline editing baked into Grid: a row in the `editable` set puts all of
@@ -11,20 +59,14 @@ import { bySlot, fireEvent, liveRegion, renderUI } from '../helpers'
  * and Escape reverts a cell.
  */
 describe('Grid per-row editing', () => {
-	type Row = { id: number; name: string; count: number; done: boolean }
-
-	const baseRows: Row[] = [
-		{ id: 1, name: 'Alice', count: 2, done: false },
-		{ id: 2, name: 'Bob', count: 5, done: true },
-	]
-
-	const columns: GridColumn<Row>[] = [
-		{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
-		{ id: 'count', title: 'Count', field: 'count', cell: (row) => String(row.count) },
+	// The `done` column adds the boolean editor this suite exercises; the two
+	// data columns and the rows are the file's shared fixtures.
+	const columns: GridColumn<SessionRow>[] = [
+		...sessionColumns,
 		{ id: 'done', title: 'Done', field: 'done', cell: (row) => (row.done ? 'Yes' : 'No') },
 	]
 
-	function renderGrid(cols: GridColumn<Row>[] = columns) {
+	function renderGrid(cols: GridColumn<SessionRow>[] = columns) {
 		const onCommit = vi.fn()
 
 		function Harness() {
@@ -40,7 +82,7 @@ describe('Grid per-row editing', () => {
 					</button>
 					<Grid
 						columns={cols}
-						rows={baseRows}
+						rows={sessionRows}
 						getKey={(row) => row.id}
 						editable={{ rows: editing, onRowsChange: setEditing, onCommit }}
 					/>
@@ -138,7 +180,7 @@ describe('Grid per-row editing', () => {
 	})
 
 	it('uses a column editCell slot instead of the inferred editor', () => {
-		const slotColumns: GridColumn<Row>[] = [
+		const slotColumns: GridColumn<SessionRow>[] = [
 			{
 				id: 'name',
 				title: 'Name',
@@ -172,7 +214,7 @@ describe('Grid per-row editing', () => {
 	})
 
 	it('shows a live validation error and skips an invalid cell on save', () => {
-		const validatedColumns: GridColumn<Row>[] = [
+		const validatedColumns: GridColumn<SessionRow>[] = [
 			{
 				id: 'name',
 				title: 'Name',
@@ -210,7 +252,7 @@ describe('Grid per-row editing', () => {
 	})
 
 	it('links the editor to its validation error for assistive tech', () => {
-		const validatedColumns: GridColumn<Row>[] = [
+		const validatedColumns: GridColumn<SessionRow>[] = [
 			{
 				id: 'name',
 				title: 'Name',
@@ -277,51 +319,6 @@ describe('Grid per-row editing', () => {
  * to the grid's tab stop either way. Entry and exit flow through the same
  * controllable set, so `onRowsChange` reports every transition.
  */
-type SessionRow = { id: number; name: string; count: number; done: boolean }
-
-const sessionRows: SessionRow[] = [
-	{ id: 1, name: 'Alice', count: 2, done: false },
-	{ id: 2, name: 'Bob', count: 5, done: true },
-]
-
-const sessionColumns: GridColumn<SessionRow>[] = [
-	{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
-	{ id: 'count', title: 'Count', field: 'count', cell: (row) => String(row.count) },
-]
-
-/**
- * Renders a grid whose edit sessions the grid owns, over the spies both
- * grid-owned suites assert on. `editable` takes the scope under test and any
- * per-case binding; `cols` takes the column shape a case needs.
- */
-function renderSessionGrid(
-	editable: Partial<GridEditableConfig> = {},
-	cols: GridColumn<SessionRow>[] = sessionColumns,
-) {
-	const onCommit = vi.fn()
-
-	const onRowsChange = vi.fn()
-
-	const view = renderUI(
-		<Grid
-			columns={cols}
-			rows={sessionRows}
-			getKey={(row) => row.id}
-			editable={{ trigger: 'doubleClick', onRowsChange, onCommit, ...editable }}
-		/>,
-	)
-
-	return {
-		...view,
-		onCommit,
-		onRowsChange,
-		cell: (col: string, rowIndex = 0) =>
-			view.container.querySelectorAll<HTMLElement>(`td[data-grid-col="${col}"]`)[
-				rowIndex
-			] as HTMLElement,
-	}
-}
-
 describe("Grid double-click-to-edit (trigger: 'doubleClick')", () => {
 	it("puts the row into edit mode on an editable cell double-click and focuses that cell's editor", () => {
 		const { container, cell, onRowsChange } = renderSessionGrid()
@@ -339,16 +336,18 @@ describe("Grid double-click-to-edit (trigger: 'doubleClick')", () => {
 	})
 
 	it('ignores a double-click on a readOnly column', () => {
-		const { container, cell } = renderSessionGrid({}, [
-			{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
-			{
-				id: 'count',
-				title: 'Count',
-				field: 'count',
-				cell: (row) => String(row.count),
-				readOnly: true,
-			},
-		])
+		const { container, cell } = renderSessionGrid({
+			cols: [
+				{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
+				{
+					id: 'count',
+					title: 'Count',
+					field: 'count',
+					cell: (row) => String(row.count),
+					readOnly: true,
+				},
+			],
+		})
 
 		fireEvent.doubleClick(cell('count'))
 
@@ -427,10 +426,12 @@ describe("Grid double-click-to-edit (trigger: 'doubleClick')", () => {
 	})
 
 	it('abandons the session on Escape from any editor, not just the inferred inputs', () => {
-		const { container, cell, onCommit } = renderSessionGrid({}, [
-			{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
-			{ id: 'done', title: 'Done', field: 'done', cell: (row) => (row.done ? 'Yes' : 'No') },
-		])
+		const { container, cell, onCommit } = renderSessionGrid({
+			cols: [
+				{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
+				{ id: 'done', title: 'Done', field: 'done', cell: (row) => (row.done ? 'Yes' : 'No') },
+			],
+		})
 
 		fireEvent.doubleClick(cell('name'))
 
@@ -446,19 +447,21 @@ describe("Grid double-click-to-edit (trigger: 'doubleClick')", () => {
 	})
 
 	it('defers Escape to an open floating surface inside the cell', () => {
-		const { container, cell } = renderSessionGrid({}, [
-			{
-				id: 'name',
-				title: 'Name',
-				field: 'name',
-				cell: (row) => row.name,
-				editCell: () => (
-					<button type="button" data-slot="open-disclosure" aria-expanded="true">
-						open
-					</button>
-				),
-			},
-		])
+		const { container, cell } = renderSessionGrid({
+			cols: [
+				{
+					id: 'name',
+					title: 'Name',
+					field: 'name',
+					cell: (row) => row.name,
+					editCell: () => (
+						<button type="button" data-slot="open-disclosure" aria-expanded="true">
+							open
+						</button>
+					),
+				},
+			],
+		})
 
 		fireEvent.doubleClick(cell('name'))
 
@@ -478,7 +481,7 @@ describe("Grid double-click-to-edit (trigger: 'doubleClick')", () => {
  * sink stay the model, so a consumer binding reads the same as under row scope.
  */
 describe("Grid cell-scoped editing (scope: 'cell')", () => {
-	const renderCellGrid = () => renderSessionGrid({ scope: 'cell' })
+	const renderCellGrid = () => renderSessionGrid({ editable: { scope: 'cell' } })
 
 	it('mounts an editor in the entered cell alone, leaving the row it sits in reading', () => {
 		const { container, cell } = renderCellGrid()
@@ -509,15 +512,15 @@ describe("Grid cell-scoped editing (scope: 'cell')", () => {
 
 		expect(getByRole('grid')).toHaveFocus()
 
-		await Promise.resolve()
-
-		expect(liveRegion()).toHaveTextContent('1 cell updated')
+		await expectAnnouncement('1 cell updated')
 	})
 
 	it('commits the cell it leaves when the session moves along the row', () => {
-		const { container, cell, onCommit } = renderCellGrid()
+		const { container, cell, onCommit, onRowsChange } = renderCellGrid()
 
 		fireEvent.doubleClick(cell('name'))
+
+		expect(onRowsChange).toHaveBeenCalledTimes(1)
 
 		fireEvent.change(bySlot(container, 'grid-edit-input') as HTMLInputElement, {
 			target: { value: 'Alicia' },
@@ -531,24 +534,12 @@ describe("Grid cell-scoped editing (scope: 'cell')", () => {
 
 		expect(onCommit).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'name', value: 'Alicia' }])
 
-		expect(bySlot(container, 'grid-edit-input')).toBeNull()
-
-		expect(bySlot(container, 'grid-edit-number-input')).toHaveFocus()
-	})
-
-	it('leaves the row binding alone while the session moves along one row', () => {
-		const { container, cell, onRowsChange } = renderCellGrid()
-
-		fireEvent.doubleClick(cell('name'))
-
-		expect(onRowsChange).toHaveBeenCalledTimes(1)
-
-		fireEvent.doubleClick(cell('count'))
-
-		// The set already holds the row, and the controllable emits on every write
-		// — equal or not — so writing it again would report a transition that never
+		// The set already holds the row, and the controllable emits on every write —
+		// equal or not — so writing it again would report a transition that never
 		// happened and re-render a controlled consumer for nothing.
 		expect(onRowsChange).toHaveBeenCalledTimes(1)
+
+		expect(bySlot(container, 'grid-edit-input')).toBeNull()
 
 		expect(bySlot(container, 'grid-edit-number-input')).toHaveFocus()
 	})
@@ -612,19 +603,20 @@ describe("Grid cell-scoped editing (scope: 'cell')", () => {
 	})
 
 	it('falls back to the row under a consumer-owned session, which names no cell', () => {
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
 		// `scope` narrows a grid-owned session. Under 'manual' the consumer flips a
 		// row and the grid never learns a cell, so the row's editors all mount.
-		const { container } = renderUI(
-			<Grid
-				columns={sessionColumns}
-				rows={sessionRows}
-				getKey={(row) => row.id}
-				editable={{ scope: 'cell', rows: new Set([1]), onCommit: vi.fn() }}
-			/>,
-		)
+		const { container } = renderSessionGrid({
+			editable: { trigger: 'manual', scope: 'cell', rows: new Set([1]) },
+		})
 
 		expect(bySlot(container, 'grid-edit-input')).toBeInTheDocument()
 
 		expect(bySlot(container, 'grid-edit-number-input')).toBeInTheDocument()
+
+		// Inert rather than wrong, so it fails silently — which is what the
+		// development warning is for.
+		expect(warn).toHaveBeenCalledWith(expect.stringContaining("editable.scope: 'cell'"))
 	})
 })

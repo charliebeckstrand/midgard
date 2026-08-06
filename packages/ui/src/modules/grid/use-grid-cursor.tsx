@@ -3,7 +3,7 @@
 import { type ReactNode, type RefObject, useCallback, useMemo, useRef } from 'react'
 import { isColumnEditable } from './engine/grid-editing-utilities'
 import type { GridCellClick } from './engine/grid-row/cell'
-import { GridRowEditingContext } from './grid-editing-context'
+import { GridEditingSessionContext } from './grid-editing-context'
 import type { GridEditableConfig } from './grid-editing-types'
 import type { GridColumn } from './types'
 import { useGridEditing } from './use-grid-editing'
@@ -97,10 +97,10 @@ export function useGridCursor<T>({
 
 	const { rowsRef, colCountRef, rowIndexMapRef, colIndexMapRef, rowKeysRef, dataColumnsRef } = refs
 
-	// Enter on the cursor's active cell begins the row's edit session — the
-	// keyboard peer of the pointer double-click. The entry resolver needs the
-	// editing hook (which in turn needs the cursor's `cellId`), so the wrapper
-	// reads it through a ref assigned below.
+	// Enter on the cursor's active cell begins the edit session — the keyboard
+	// peer of the pointer double-click. The entry resolver needs the editing hook
+	// (which in turn needs the cursor's `cellId`), so the wrapper reads it through
+	// a ref assigned below.
 	const enterEditAtRef = useRef<(rowIdx: number, colIdx: number) => void>(() => {})
 
 	const onCellActivateWithEdit = useMemo<GridCellActivate | undefined>(() => {
@@ -136,40 +136,45 @@ export function useGridCursor<T>({
 		cellId: nav.cellId,
 	})
 
-	// Begins the edit session for the cell at a cursor coord: resolves its row
-	// key and column from the live display maps, gates on an editable column
-	// (a `readOnly` or slotless/fieldless one never enters), and hands the
-	// coord to the editing layer to focus that cell's editor once it mounts.
+	// Begins the edit session on a named cell, gating on an editable column: a
+	// `readOnly` or slotless/fieldless one never enters. The editing layer focuses
+	// the cell's editor once that mounts.
+	const enterEditAtCell = useCallback(
+		(rowKey: string | number, columnId: string | number) => {
+			const col = dataColumnsRef.current.find((candidate) => candidate.id === columnId)
+
+			if (!col || !isColumnEditable(col)) return
+
+			editing.enterEdit(rowKey, columnId)
+		},
+		[editing.enterEdit, dataColumnsRef],
+	)
+
+	// The keyboard entry starts from cursor indices, so it resolves them to the
+	// cell's identity first — the one place that conversion belongs.
 	const enterEditAt = useCallback(
 		(rowIdx: number, colIdx: number) => {
 			const rowKey = rowKeysRef.current[rowIdx]
 
 			const col = dataColumnsRef.current[colIdx]
 
-			if (rowKey === undefined || !col || !isColumnEditable(col)) return
+			if (rowKey === undefined || !col) return
 
-			editing.enterRowEdit(rowKey, col.id, { row: rowIdx, col: colIdx })
+			enterEditAtCell(rowKey, col.id)
 		},
-		[editing.enterRowEdit, rowKeysRef, dataColumnsRef],
+		[enterEditAtCell, rowKeysRef, dataColumnsRef],
 	)
 
 	enterEditAtRef.current = enterEditAt
 
-	// The pointer entry, fired through the grid's built-in cell double-click
-	// event (so the interactive-content guard and data-cell resolution apply).
+	// The pointer entry, fired through the grid's built-in cell double-click event
+	// (so the interactive-content guard and data-cell resolution apply). The event
+	// already names the cell, so this path never touches display indices.
 	const editOnCellDoubleClick = useMemo<GridCellClick<T> | undefined>(() => {
 		if (!sessionOwned) return undefined
 
-		return (cell) => {
-			const rowIdx = rowKeysRef.current.indexOf(cell.rowKey)
-
-			const colIdx = colIndexMapRef.current.get(cell.columnId)
-
-			if (rowIdx < 0 || colIdx === undefined) return
-
-			enterEditAt(rowIdx, colIdx)
-		}
-	}, [sessionOwned, enterEditAt, rowKeysRef, colIndexMapRef])
+		return (cell) => enterEditAtCell(cell.rowKey, cell.columnId)
+	}, [sessionOwned, enterEditAtCell])
 
 	// Cursor-only augmentation for a plain navigable grid; editing-aware
 	// augmentation (which mounts the editors) for an editable one.
@@ -192,7 +197,7 @@ export function useGridCursor<T>({
 		moveTo: nav.moveTo,
 	})
 
-	const { rowEditing } = editing
+	const { session } = editing
 
 	// The `<table>` cursor props, with the session's Escape layered ahead of
 	// navigation when the grid owns the edit session: the table (the cursor's
@@ -220,10 +225,10 @@ export function useGridCursor<T>({
 		() =>
 			editingEnabled
 				? (children: ReactNode) => (
-						<GridRowEditingContext value={rowEditing}>{children}</GridRowEditingContext>
+						<GridEditingSessionContext value={session}>{children}</GridEditingSessionContext>
 					)
 				: (children: ReactNode) => children,
-		[editingEnabled, rowEditing],
+		[editingEnabled, session],
 	)
 
 	return {

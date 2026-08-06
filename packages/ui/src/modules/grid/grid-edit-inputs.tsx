@@ -9,9 +9,10 @@ import type { EditorKind } from './engine/grid-editing-utilities'
 
 /**
  * Shared props for an internal inline editor: the typed `draft`, the staging and
- * cancel callbacks, and the accessible label. The whole editable row mounts its
- * editors at once, so none of them grabs focus on mount — the user clicks or tabs
- * into the cell to edit it. @internal
+ * cancel callbacks, and the accessible label. None of these grabs focus on mount:
+ * under row scope a whole row's editors mount at once, and the user clicks or
+ * tabs into the cell to edit it. A cell-scoped session mounts the one editor it
+ * entered and focuses it from the editing layer, not from here. @internal
  */
 export type GridEditInputProps = {
 	draft: unknown
@@ -25,25 +26,26 @@ export type GridEditInputProps = {
 	errorId?: string
 	/** Marks the editor `aria-required` (the programmatic cue; enforcement stays with `validate`). */
 	required?: boolean
-	/** Saves the row's edit session (Enter) when the grid owns it (`trigger: 'doubleClick'`); absent under a consumer-owned session. */
+	/** Saves the edit session (Enter) when the grid owns it (`trigger: 'doubleClick'`); absent under a consumer-owned session. */
 	commitRow?: () => void
 	/**
-	 * Present when the grid owns the row's edit session: Escape then belongs to
-	 * the grid table's key surface, which abandons the whole row, so the editor's
-	 * per-cell revert stands down and the key bubbles. Absent under a
-	 * consumer-owned session, where Escape reverts this cell.
+	 * Present when the grid owns the edit session: Escape then belongs to the grid
+	 * table's key surface, which abandons what the session owns — the whole row, or
+	 * the active cell under `scope: 'cell'` — so the editor's per-cell revert stands
+	 * down and the key bubbles. Absent under a consumer-owned session, where Escape
+	 * reverts this cell.
 	 */
 	cancelRow?: () => void
 }
 
 /**
- * Enter saves the row when the grid owns the session (`trigger:
- * 'doubleClick'`); Escape reverts the cell under a consumer-owned session. A
- * grid-owned session's Escape abandons the whole row instead, handled once on
- * the grid `<table>`'s key surface (see `useGridEditing`'s `sessionEscape`) so
- * every editor — these inferred inputs, the listbox, an `editCell` slot —
- * inherits it; the key bubbles past the editor here. Staging is live, so there
- * is no per-cell commit key. @internal
+ * Enter saves the session when the grid owns it (`trigger: 'doubleClick'`);
+ * Escape reverts the cell under a consumer-owned session. A grid-owned session's
+ * Escape abandons the session instead, handled once on the grid `<table>`'s key
+ * surface (see `useGridEditing`'s `sessionEscape`) so every editor — these
+ * inferred inputs, the listbox, an `editCell` slot — inherits it; the key bubbles
+ * past the editor here. Staging is live, so there is no per-cell commit key.
+ * @internal
  */
 const editorKeys =
 	({
@@ -128,7 +130,7 @@ const BOOLEAN_OPTIONS = [
  * Boolean editor for true/false cells, a yes/no `Listbox`. The commit key stays
  * off it — Enter belongs to the listbox's own open/select interaction — so a
  * grid-owned session saves from a sibling text/number editor or the consumer's
- * save affordance. Escape still abandons the session through the grid table's
+ * save affordance. A cell-scoped session on this column saves the same ways. Escape still abandons the session through the grid table's
  * key surface (deferring to the open panel), like every editor. @internal
  */
 function GridBooleanEditInput({ draft, onValueUpdate, ariaLabel, required }: GridEditInputProps) {

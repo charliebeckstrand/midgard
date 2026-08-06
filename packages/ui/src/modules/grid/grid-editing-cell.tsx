@@ -5,7 +5,7 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/grid'
 import { inferEditorKind, isCellEditing, isColumnEditable } from './engine/grid-editing-utilities'
 import { GridEditInputs } from './grid-edit-inputs'
-import { type GridRowEditing, useGridRowEditing } from './grid-editing-context'
+import { type GridEditingSession, useGridEditingSession } from './grid-editing-context'
 import type { GridColumn } from './types'
 import { GridNavCell } from './use-grid-navigation-columns'
 
@@ -22,7 +22,7 @@ type GridEditingCellProps<T> = {
 
 /** Props for the mounted editor: the cell plus the row-editing staging and session callbacks. @internal */
 type GridCellEditorProps<T> = Omit<GridEditingCellProps<T>, 'render'> &
-	Pick<GridRowEditing, 'stageDraft' | 'unstageDraft' | 'commitRowEdit' | 'cancelRowEdit'>
+	Pick<GridEditingSession, 'stageDraft' | 'unstageDraft' | 'endSession'>
 
 /**
  * A cell's in-place editor while its row is in edit mode. Owns its live display
@@ -42,8 +42,7 @@ function GridCellEditor<T>({
 	column,
 	stageDraft,
 	unstageDraft,
-	commitRowEdit,
-	cancelRowEdit,
+	endSession,
 }: GridCellEditorProps<T>) {
 	const seed = column.field != null ? row[column.field] : undefined
 
@@ -63,9 +62,9 @@ function GridCellEditor<T>({
 
 	// Grid-owned session exits (`trigger: 'doubleClick'`), bound to this row;
 	// `undefined` under a consumer-owned session, standing the session keys down.
-	const commitRow = commitRowEdit ? () => commitRowEdit(rowKey) : undefined
+	const commitRow = endSession && (() => endSession(rowKey, 'save'))
 
-	const cancelRow = cancelRowEdit ? () => cancelRowEdit(rowKey) : undefined
+	const cancelRow = endSession && (() => endSession(rowKey, 'discard'))
 
 	const ariaLabel =
 		typeof column.title === 'string'
@@ -153,12 +152,13 @@ export function GridEditingCell<T>({
 	column,
 	render,
 }: GridEditingCellProps<T>) {
-	const { editableRows, activeEdit, stageDraft, unstageDraft, commitRowEdit, cancelRowEdit } =
-		useGridRowEditing()
+	const { editableRows, activeEdit, stageDraft, unstageDraft, endSession } = useGridEditingSession()
 
+	// `isCellEditing` leads: it bails on the editable-set lookup, so a cell of a
+	// row nobody is editing — every cell, most of the time — costs one probe.
 	if (
-		isColumnEditable(column) &&
-		isCellEditing({ rowKey, columnId: column.id, editableRows, activeEdit })
+		isCellEditing({ rowKey, columnId: column.id, editableRows, activeEdit }) &&
+		isColumnEditable(column)
 	) {
 		return (
 			<GridCellEditor
@@ -169,8 +169,7 @@ export function GridEditingCell<T>({
 				column={column}
 				stageDraft={stageDraft}
 				unstageDraft={unstageDraft}
-				commitRowEdit={commitRowEdit}
-				cancelRowEdit={cancelRowEdit}
+				endSession={endSession}
 			/>
 		)
 	}

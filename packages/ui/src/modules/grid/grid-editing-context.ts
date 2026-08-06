@@ -4,18 +4,17 @@ import { createContext } from '../../core'
 import type { GridActiveEdit } from './engine/grid-editing-utilities'
 
 /**
- * Row-level editing state shared with the data cells. An editable grid puts a
- * whole row into edit mode at once — every editable cell in a row whose key is in
- * `editableRows` renders its editor. Each editor stages its pending value through
- * `stageDraft` (held in the grid, not re-rendering it); the staged values flush
- * as one batch when the row leaves the set. `editableRows` flips only when a row
- * is added or removed, so cells read it without churning as the user types. A
- * cell-scoped session (`scope: 'cell'`) narrows that to `activeEdit`: the row
- * still enters the set, but only the named cell mounts an editor.
+ * The editing session shared with the data cells. A row in `editableRows` puts
+ * every editable cell of that row into edit mode at once; a cell-scoped session
+ * (`scope: 'cell'`) narrows that to `activeEdit`, where the row still enters the
+ * set but only the named cell mounts an editor. Each editor stages its pending
+ * value through `stageDraft`, held in the grid rather than re-rendering it, and
+ * the staged values commit when their editor closes. Both fields flip only on a
+ * session transition, so cells read them without churning as the user types.
  *
  * @internal
  */
-export type GridRowEditing = {
+export type GridEditingSession = {
 	/** Row keys currently in edit mode; a cell whose row key is here renders its editor. */
 	editableRows: Set<string | number>
 	/**
@@ -24,25 +23,20 @@ export type GridRowEditing = {
 	 * editable cell of a set row mounts its editor.
 	 */
 	activeEdit: GridActiveEdit | null
-	/** Stage a cell's pending value (held until the row's edits flush on exit). */
+	/** Stage a cell's pending value (held until its editor closes and the value commits). */
 	stageDraft: (rowKey: string | number, columnId: string | number, value: unknown) => void
 	/** Drop a cell's pending value — Escape reverts it to the row's current value. */
 	unstageDraft: (rowKey: string | number, columnId: string | number) => void
 	/**
-	 * Ends a row's edit session, saving its staged changes — the grid-owned exit
-	 * (an editor's Enter) under `trigger: 'doubleClick'`. Absent when the
-	 * consumer owns the session, whose save is removing the row from the set.
+	 * Ends the grid-owned session on a row under `trigger: 'doubleClick'` —
+	 * `'save'` on an editor's Enter, `'discard'` on Escape. A discard drops the
+	 * staged values the session owns: under cell scope that is the active cell
+	 * alone, because the cells it visited before that one already committed.
+	 * Absent when the consumer owns the session, whose save is removing the row
+	 * from the set and whose Escape reverts one cell.
 	 */
-	commitRowEdit?: (rowKey: string | number) => void
-	/**
-	 * Ends a row's edit session, discarding every staged draft — the grid-owned
-	 * abandon (an editor's Escape) under `trigger: 'doubleClick'`. A cell-scoped
-	 * session discards the active cell's draft alone, because the cells it
-	 * visited before that one already committed. Absent when the consumer owns
-	 * the session, where Escape reverts one cell instead.
-	 */
-	cancelRowEdit?: (rowKey: string | number) => void
+	endSession?: (rowKey: string | number, outcome: 'save' | 'discard') => void
 }
 
-export const [GridRowEditingContext, useGridRowEditing] =
-	createContext<GridRowEditing>('GridRowEditing')
+export const [GridEditingSessionContext, useGridEditingSession] =
+	createContext<GridEditingSession>('GridEditingSession')
