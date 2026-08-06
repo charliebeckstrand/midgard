@@ -34,6 +34,14 @@ export type GridActiveEdit = {
 	columnId: string | number
 }
 
+/** Whether a coord names this cell; a null coord names none. @internal */
+export function isSameCell(
+	coord: GridActiveEdit | null,
+	cell: { rowKey: string | number; columnId: string | number },
+): boolean {
+	return coord !== null && coord.rowKey === cell.rowKey && coord.columnId === cell.columnId
+}
+
 /**
  * Whether a cell's editor is open: its row is in the editable set and, when a
  * cell-scoped session names one cell, that cell is this one. A null `activeEdit`
@@ -53,7 +61,5 @@ export function isCellEditing(args: {
 }): boolean {
 	if (!args.editableRows.has(args.rowKey)) return false
 
-	const active = args.activeEdit
-
-	return active === null || (active.rowKey === args.rowKey && active.columnId === args.columnId)
+	return args.activeEdit === null || isSameCell(args.activeEdit, args)
 }

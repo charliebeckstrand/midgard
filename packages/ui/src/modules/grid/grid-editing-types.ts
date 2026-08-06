@@ -107,6 +107,9 @@ export type GridEditableConfig = {
 	 * already committed. The setting needs a grid-owned session ({@link
 	 * GridEditableConfig.trigger} `'doubleClick'`). Under `'manual'` the consumer
 	 * names a row, never a cell, so the row's editors all mount as under `'row'`.
+	 * A row the consumer opens through `rows` reads the same way until the grid
+	 * narrows it: its editors all mount, and entering one of its cells starts the
+	 * session that closes the rest.
 	 * @defaultValue 'row'
 	 */
 	scope?: 'row' | 'cell'

@@ -125,8 +125,9 @@ const BOOLEAN_OPTIONS = [
  * grid-owned session saves from a sibling text/number editor or the consumer's
  * save affordance. Under `scope: 'cell'` there is no sibling, because the
  * session mounts this editor alone: the value commits when the session moves to
- * another cell, or through the consumer's own save. Escape still discards it. Escape still abandons the session through the grid table's
- * key surface (deferring to the open panel), like every editor. @internal
+ * another cell, or through the consumer's own save. Escape reaches this editor
+ * the way it reaches every other, through the grid table's key surface. That
+ * surface defers to the listbox's own panel while it is open. @internal
  */
 function GridBooleanEditInput({ draft, onValueUpdate, ariaLabel, required }: GridEditInputProps) {
 	return (

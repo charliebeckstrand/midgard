@@ -602,6 +602,24 @@ describe("Grid cell-scoped editing (scope: 'cell')", () => {
 		expect(bySlot(container, 'grid-edit-number-input')).toBeNull()
 	})
 
+	it('narrows a row the consumer opened, rather than declining the entry', () => {
+		const { container, cell } = renderSessionGrid({
+			editable: { scope: 'cell', rows: new Set([1]) },
+		})
+
+		// The consumer's own binding opens the row, so its cells all mount — the
+		// row-shaped state a session has not narrowed yet.
+		expect(bySlot(container, 'grid-edit-number-input')).toBeInTheDocument()
+
+		fireEvent.doubleClick(cell('name'))
+
+		// Entering is not a no-op just because that row already edits: no session
+		// held this cell, so the double-click starts one and narrows to it.
+		expect(bySlot(container, 'grid-edit-input')).toHaveFocus()
+
+		expect(bySlot(container, 'grid-edit-number-input')).toBeNull()
+	})
+
 	it('does not revive a session the consumer ended from under it', () => {
 		function Harness() {
 			const [editing, setEditing] = useState<Set<string | number>>(new Set())

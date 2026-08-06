@@ -14,7 +14,7 @@ import { useControllable } from '../../hooks'
 import { focusWithoutReveal } from '../../hooks/use-truncation'
 import { describeCommit } from './engine/grid-announcements'
 import { EMPTY_SET } from './engine/grid-constants'
-import { type GridActiveEdit, isCellEditing } from './engine/grid-editing-utilities'
+import { type GridActiveEdit, isCellEditing, isSameCell } from './engine/grid-editing-utilities'
 import type { GridEditingSession } from './grid-editing-context'
 import type { CellChange, GridEditableConfig } from './grid-editing-types'
 import type { GridColumn } from './types'
@@ -317,15 +317,19 @@ export function useGridEditing<T>({
 
 			const editableRows = editableRowsRef.current
 
-			// Re-entering the cell already open is the no-op — which under row scope,
-			// where the whole row is open, means re-entering the row.
-			if (isCellEditing({ rowKey, columnId, editableRows, activeEdit: active })) return
-
-			pendingFocusRef.current = { rowKey, columnId }
-
 			// A cell-scoped session names one cell and holds one row; row scope names
 			// no cell and leaves the rows the consumer put in the set alone.
 			const entering = cellScoped ? { rowKey, columnId } : null
+
+			// Entering changes nothing when the session already sits where it points:
+			// this cell under cell scope, this row under row scope, where the whole
+			// row opens at once. `isCellEditing` cannot answer this, because it is the
+			// mount question: it holds for every cell of a row the consumer opened,
+			// so it would refuse to narrow one. A session that has not started is not
+			// a reason to decline starting it.
+			if (entering ? isSameCell(active, entering) : editableRows.has(rowKey)) return
+
+			pendingFocusRef.current = { rowKey, columnId }
 
 			setActiveEdit(entering)
 
