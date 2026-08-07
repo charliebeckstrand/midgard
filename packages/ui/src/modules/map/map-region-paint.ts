@@ -1,9 +1,11 @@
 /**
- * The region layer's paint table: what colour, class, and wash timing each
- * category resolves to. A county atlas shares a handful of paints across
- * thousands of regions, so this runs per category and the layers read it per
- * region — the resolution both the base tree and the lit copies above it read,
- * so the two can never paint the same category differently.
+ * The region layer's paint table — what colour, class, and wash timing each
+ * category resolves to — and the input shape every layer draws it through. A
+ * county atlas shares a handful of paints across thousands of regions, so this
+ * runs per category and the layers read it per region; both the base tree and
+ * the lit copies above it read this one resolution, so the two can never paint
+ * the same category differently. {@link MapRegionLayer} is here for the same
+ * reason: it is what those layers hold in common, so it has one author.
  *
  * React-free, so the paint rules are testable without mounting a layer.
  */
@@ -52,7 +54,7 @@ type RegionPaint = {
 }
 
 /** Every category's paint plus the no-data neutral. @internal */
-export type ResolvedRegionPaints = { byCategory: RegionPaint[]; none: RegionPaint }
+type ResolvedRegionPaints = { byCategory: RegionPaint[]; none: RegionPaint }
 
 /**
  * What either region layer draws from: the geometry, each region's category,

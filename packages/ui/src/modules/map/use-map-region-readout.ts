@@ -8,7 +8,12 @@ import {
 	resolveCategories,
 } from './map-categories'
 import type { MapRegionData } from './map-region-data'
-import { type RegionValueJoin, regionValueJoin, resolveValueBins } from './map-value-scale'
+import {
+	type RegionValueJoin,
+	regionValueJoin,
+	resolveValueBins,
+	resolveValueFormat,
+} from './map-value-scale'
 import type { MapFeature } from './types'
 
 /** The resolved categorical or numeric readout behind the regions. @internal */
@@ -71,18 +76,20 @@ export function useMapRegionReadout<T>(
 		// serves them all.
 		const noValues = regionIds.map(() => null)
 
-		if (data === undefined || regionKey === undefined) {
-			return {
-				categoryMetas: [],
-				regionCategory: noValues,
-				regionValues: noValues,
-				regionNumbers: noValues,
-				domain: null,
-			}
+		// Every region on the neutral fill: what a data-less map reads, and what
+		// data carrying neither a value nor a category key falls through to.
+		const neutral = {
+			categoryMetas: [],
+			regionCategory: noValues,
+			regionValues: noValues,
+			regionNumbers: noValues,
+			domain: null,
 		}
 
+		if (data === undefined || regionKey === undefined) return neutral
+
 		if (valueKey !== undefined && colorRange !== undefined) {
-			const format = valueFormat ?? ((value) => String(value))
+			const format = resolveValueFormat(valueFormat)
 
 			const {
 				metas,
@@ -119,13 +126,7 @@ export function useMapRegionReadout<T>(
 			}
 		}
 
-		return {
-			categoryMetas: [],
-			regionCategory: noValues,
-			regionValues: noValues,
-			regionNumbers: noValues,
-			domain: null,
-		}
+		return neutral
 	}, [
 		data,
 		regionKey,

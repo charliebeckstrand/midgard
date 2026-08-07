@@ -1,5 +1,14 @@
 'use client'
 
+/**
+ * The continuous colour-scale bar both colour-scaled charts read: the heatmap
+ * directly, the choropleth through the map module's `MapRangeLegend` wrapper.
+ * The engine grammar wants a short kind name here, which would be `range.tsx` —
+ * `range.ts` beside it already holds the placement resolution, so this file
+ * carries the compound name rather than the pair splitting across two spellings
+ * of one word.
+ */
+
 import {
 	type CSSProperties,
 	type KeyboardEvent,
@@ -67,7 +76,7 @@ export function RangeArrow({
 					'absolute bottom-full mb-1 h-1.5 w-2.5 -translate-x-1/2 transition-[left] duration-150 ease-out',
 					k.arrow,
 				)}
-				style={{ left: `${probePercent(value, domain, true)}%` }}
+				style={{ left: `${probePercent(value, domain, orientation)}%` }}
 				fill="currentColor"
 			>
 				<path d="M0 0 10 0 5 6Z" />
@@ -84,7 +93,7 @@ export function RangeArrow({
 				'absolute right-full mr-1 h-2.5 w-1.5 -translate-y-1/2 transition-[top] duration-150 ease-out',
 				k.arrow,
 			)}
-			style={{ top: `${probePercent(value, domain, false)}%` }}
+			style={{ top: `${probePercent(value, domain, orientation)}%` }}
 			fill="currentColor"
 		>
 			<path d="M0 0 0 10 6 5Z" />
@@ -92,8 +101,15 @@ export function RangeArrow({
 	)
 }
 
-/** Props for {@link RangeLegend}. @internal */
-export type RangeLegendProps = {
+/**
+ * The scale a range bar paints: the ramp, the extent it spans, and how its
+ * labels read. Named apart from {@link RangeLegendProps} because every host
+ * wrapper passes exactly this through — the choropleth's and the heatmap's
+ * alike — so the pass-through has one definition rather than one per host.
+ *
+ * @internal
+ */
+export type RangeScale = {
 	/** The ordered CSS colour stops the scale bar paints, low → high. */
 	colorRange: string[]
 	/** The value extent the bar spans, `[low, high]`. */
@@ -104,6 +120,10 @@ export type RangeLegendProps = {
 	label?: string
 	/** The bin count; the bar snaps its classes to these bands. */
 	bins: number
+}
+
+/** Props for {@link RangeLegend}. @internal */
+export type RangeLegendProps = RangeScale & {
 	/**
 	 * The `data-slot` prefix each host stamps its parts with, so their hooks and
 	 * tests key off distinct names (`map-range-track`, `heatmap-range-track`).
@@ -241,7 +261,11 @@ function RangeScaleLabels({
  *
  * @internal
  */
-function probePercent(probe: number | null, domain: [number, number], horizontal: boolean): number {
+function probePercent(
+	probe: number | null,
+	domain: [number, number],
+	orientation: RangeOrientation,
+): number {
 	const [min, max] = domain
 
 	const span = max - min
@@ -250,7 +274,7 @@ function probePercent(probe: number | null, domain: [number, number], horizontal
 
 	const fraction = (probe - min) / span
 
-	return (horizontal ? fraction : 1 - fraction) * 100
+	return (orientation === 'horizontal' ? fraction : 1 - fraction) * 100
 }
 
 /** Props for {@link RangeTrack}. @internal */
@@ -259,10 +283,8 @@ type RangeTrackProps = {
 	slot: string
 	/** The accessible name and the `role="slider"` label. */
 	label?: string
-	/** The axis the bar runs along, announced through `aria-orientation`. */
+	/** The axis the bar runs along: it lays out along that axis, and announces it through `aria-orientation`. */
 	orientation: RangeOrientation
-	/** The bar runs horizontally, so it lays flat and its thumb tracks `left`. */
-	horizontal: boolean
 	/** The ordered CSS colour stops the gradient paints, low → high. */
 	colorRange: string[]
 	/** The `[low, high]` value extent — the slider's `aria-valuemin` / `aria-valuemax`. */
@@ -295,7 +317,6 @@ function RangeTrack({
 	slot,
 	label,
 	orientation,
-	horizontal,
 	colorRange,
 	domain: [min, max],
 	probe,
@@ -308,6 +329,8 @@ function RangeTrack({
 	onBlur,
 	onKeyDown,
 }: RangeTrackProps) {
+	const horizontal = orientation === 'horizontal'
+
 	// Paint the bar with the raw stops — CSS interpolates a smooth ramp: low at
 	// the bottom of a vertical bar, at the left of a horizontal one; high at the
 	// far end either way. A single stop degrades to a flat fill.
@@ -458,7 +481,7 @@ export function RangeLegend({
 		event.preventDefault()
 	}
 
-	const probeOffset = probePercent(probe, domain, horizontal)
+	const probeOffset = probePercent(probe, domain, orientation)
 
 	return (
 		<div data-slot={`${slot}-legend`} className="flex flex-col gap-1.5">
@@ -473,7 +496,6 @@ export function RangeLegend({
 					slot={slot}
 					label={label}
 					orientation={orientation}
-					horizontal={horizontal}
 					colorRange={colorRange}
 					domain={domain}
 					probe={probe}

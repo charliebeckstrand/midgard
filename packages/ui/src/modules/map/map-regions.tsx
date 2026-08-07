@@ -17,12 +17,14 @@ import { REGION_SELECTED_STROKE_WIDTH, REGION_STROKE_WIDTH } from './map-constan
 import { type MapRegionLayer, paintAt, resolveRegionPaints, washStyle } from './map-region-paint'
 import { MapRegionsLit } from './map-regions-lit'
 
-/** Props for {@link MapRegions}. @internal */
-export type MapRegionsProps = {
-	/** Region path ds, index-aligned with the features; `null` draws nothing. */
-	paths: (string | null)[]
-	/** Each region's category index, `null` for the neutral no-data fill. */
-	regionCategory: (number | null)[]
+/**
+ * Props for {@link MapRegions}: what both layers draw from, minus the paint
+ * table — this component resolves that itself, from the categories and the
+ * toggles below.
+ *
+ * @internal
+ */
+export type MapRegionsProps = Omit<MapRegionLayer, 'paints'> & {
 	categories: MapCategoryMeta[]
 	/** Toggled-off legend ids; a hidden category's regions fall back to neutral. */
 	hidden: ReadonlySet<string>

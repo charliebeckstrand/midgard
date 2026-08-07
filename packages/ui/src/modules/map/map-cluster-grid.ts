@@ -12,16 +12,24 @@
 import type { MapPoint2D } from './map-geometry'
 
 /**
+ * The stride one cell index carries in a packed key, which bounds the other to
+ * the ±32,768 either side of it. Cell indices are frame coordinates over the
+ * reach, so they sit far inside that.
+ *
+ * @internal
+ */
+const CELL_STRIDE = 65_536
+
+/**
  * The grid key for one cell. Packed into a number rather than a string:
  * {@link walkNear} reads nine cells per mark, and building nine strings each
- * would allocate by the thousand across a set of hundreds. Cell indices are
- * frame coordinates over the reach, so they sit far inside the ±32,768 the
- * packing holds.
+ * would allocate by the thousand across a set of hundreds. See
+ * {@link CELL_STRIDE} for the range the packing holds.
  *
  * @internal
  */
 function cellKey(cx: number, cy: number): number {
-	return cx * 65536 + cy
+	return cx * CELL_STRIDE + cy
 }
 
 /** The cell key a frame position falls under. @internal */

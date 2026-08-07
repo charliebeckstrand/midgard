@@ -22,6 +22,21 @@ import type { DataKey } from './types'
 
 export { sampleRange } from '../../utilities'
 
+/**
+ * A map's `valueFormat`, or the plain-string fallback where it has none. The
+ * readout and the range legend resolve it through here rather than each
+ * defaulting for itself: a map without the prop would otherwise format its
+ * tooltip and table by one rule and its bar's endpoints by another, with
+ * nothing to catch the drift.
+ *
+ * @internal
+ */
+export function resolveValueFormat(
+	valueFormat: ((value: number) => string) | undefined,
+): (value: number) => string {
+	return valueFormat ?? ((value) => String(value))
+}
+
 /** Options a choropleth resolves its bins with. @internal */
 export type ValueScaleOptions = {
 	/** The ordered CSS colour stops the bins sample, low → high. */

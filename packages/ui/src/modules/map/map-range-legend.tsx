@@ -4,23 +4,14 @@ import { cn } from '../../core'
 import {
 	RangeArrow,
 	RangeLegend,
-	type RangeLegendProps,
 	type RangeOrientation,
+	type RangeScale,
 } from '../chart/engine/chart-legend/range-legend'
 import { useMapPointedMark } from './context'
 import { binEmphasisId } from './map-categories'
 
-/**
- * Props for {@link MapRangeLegend}: the scale the shared bar paints, taken
- * straight off its own props so the two can't drift, plus what the map wires
- * into it.
- *
- * @internal
- */
-export type MapRangeLegendProps = Pick<
-	RangeLegendProps,
-	'colorRange' | 'domain' | 'format' | 'label' | 'bins'
-> & {
+/** Props for {@link MapRangeLegend}: the shared bar's own scale, plus what the map wires into it. @internal */
+export type MapRangeLegendProps = RangeScale & {
 	/** Each region's raw value (`null` = no data), feature-index aligned — the arrow marks the hovered region's. */
 	regionNumbers: (number | null)[]
 	/** Emphasises a bin's regions (`null` clears); other regions dim while set — the filter. */

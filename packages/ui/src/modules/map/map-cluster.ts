@@ -123,10 +123,10 @@ export function clusterPoints(
  *
  * Measuring from a fixed first member rather than from the group's moving mean
  * is what makes the `map-cluster-grid` lookup exact — a mean that drifted as
- * members landed could leave the cell its own key names. It also merges strictly less than
- * the overlap rule does, since two dots inside `reach` are two marks inside
- * their own: this pass can only take work off {@link consolidate}, never decide
- * against it.
+ * members landed could leave a group in a different cell from the one its own
+ * lookup keys name. It also merges strictly less than the overlap rule does,
+ * since two dots inside `reach` are two marks inside their own: this pass can
+ * only take work off {@link consolidate}, never decide against it.
  *
  * @internal
  */
@@ -137,8 +137,7 @@ function seedGroups(
 ): MapClusterSeed[] {
 	const groups: MapClusterSeed[] = []
 
-	// Seeds bucketed by grid cell, one cell per reach, so each dot reads nine
-	// buckets rather than every group built so far (`map-cluster-grid`).
+	// Seeds filed into the shared grid (`map-cluster-grid`), at one cell per reach.
 	const cells = new Map<number, MapSeededCluster[]>()
 
 	for (const [index, position] of positions.entries()) {
