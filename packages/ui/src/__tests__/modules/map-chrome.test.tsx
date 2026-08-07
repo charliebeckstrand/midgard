@@ -5,25 +5,26 @@ import {
 	GRATICULE_MIN_STEP_DEGREES,
 	GRATICULE_STEP_DEGREES,
 } from '../../modules/map/engine/map-constants'
-import { cachedChromePaths, staticMapGeometry } from '../../modules/map/engine/map-geometry/cache'
+import { cachedChromePaths } from '../../modules/map/engine/map-geometry/cache'
 import {
+	chromePaths,
 	EMPTY_CHROME,
-	framePath,
-	graticulePath,
 	graticuleStep,
 } from '../../modules/map/engine/map-geometry/chrome'
 import { fitMapProjection } from '../../modules/map/engine/map-projection/resolve'
 import { allRegions, bySlot, renderUI } from '../helpers'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 
-/** A mercator fit to the fixture squares — the fit the plat draws chrome under. */
-function fitted() {
-	return fitMapProjection('mercator', FIXTURE_GEOJSON.features, 400, 200)
-}
+/**
+ * A mercator fit to the fixture squares — the fit the plat draws chrome under.
+ * Held once: nothing here mutates a projection, and the cache keys on this
+ * instance, so a fresh fit per call would test a different memo each time.
+ */
+const FITTED = fitMapProjection('mercator', FIXTURE_GEOJSON.features, 400, 200)
 
 /** How many separate lines a path holds: one `M` opens each. */
-function lines(d: string): number {
-	return d.split('M').length - 1
+function lines(d: string | null | undefined): number {
+	return (d ?? '').split('M').length - 1
 }
 
 /** A data-less plat over the fixture squares; the chrome props are the whole variable. */
@@ -33,8 +34,6 @@ function plat(extra?: { graticule?: boolean | number; sphere?: boolean }) {
 
 describe('graticuleStep', () => {
 	it('reads the prop as off, the default step, or a given one', () => {
-		expect(graticuleStep(undefined)).toBeNull()
-
 		expect(graticuleStep(false)).toBeNull()
 
 		expect(graticuleStep(true)).toBe(GRATICULE_STEP_DEGREES)
@@ -55,31 +54,29 @@ describe('graticuleStep', () => {
 	})
 })
 
-describe('graticulePath', () => {
+describe('chromePaths', () => {
 	it('draws the meridians and parallels as one multi-line path', () => {
-		const d = graticulePath(fitted(), GRATICULE_STEP_DEGREES)
-
-		expect(d).toMatch(/^M/)
-
-		expect(lines(d ?? '')).toBeGreaterThan(1)
+		expect(lines(chromePaths(FITTED, GRATICULE_STEP_DEGREES).graticule)).toBeGreaterThan(1)
 	})
 
 	it('draws fewer lines as the step widens', () => {
-		const fine = graticulePath(fitted(), 10)
-
-		const coarse = graticulePath(fitted(), 30)
-
-		expect(lines(coarse ?? '')).toBeLessThan(lines(fine ?? ''))
+		expect(lines(chromePaths(FITTED, 30).graticule)).toBeLessThan(
+			lines(chromePaths(FITTED, 10).graticule),
+		)
 	})
-})
 
-describe('framePath', () => {
+	it('draws the frame with the graticule off, since it still bounds one', () => {
+		const { graticule, frame } = chromePaths(FITTED, null)
+
+		expect(graticule).toBeNull()
+
+		expect(frame).toMatch(/^M/)
+	})
+
 	it("outlines the globe's edge under a whole-world projection", () => {
-		// A mercator fit to the sphere itself: the outline is the world's own edge,
-		// so it closes the frame it was fitted to rather than running past it.
-		const d = framePath(geoMercator().fitWidth(400, { type: 'Sphere' })) ?? ''
-
-		expect(d).toMatch(/^M/)
+		// A mercator fit to the sphere itself: the frame is the world's own edge, so
+		// it closes the frame it was fitted to rather than running past it.
+		const d = chromePaths(geoMercator().fitWidth(400, { type: 'Sphere' }), null).frame ?? ''
 
 		const xs = Array.from(d.matchAll(/(-?[\d.]+),-?[\d.]+/g), ([, x]) => Number(x))
 
@@ -92,46 +89,41 @@ describe('framePath', () => {
 		// albers-usa has no single globe edge — it draws the lower-48 box and the
 		// two inset boxes. The graticule's clip reads those two as holes in the
 		// first, which is what keeps the insets clear of stray lines.
-		const d = framePath(geoAlbersUsa())
-
-		expect(d?.match(/Z/g)).toHaveLength(3)
+		expect(chromePaths(geoAlbersUsa(), null).frame?.match(/Z/g)).toHaveLength(3)
 	})
 })
 
 describe('cachedChromePaths', () => {
-	const geometry = staticMapGeometry(FIXTURE_GEOJSON, undefined, 'mercator')
-
 	it('holds the paths across a repeat read at one box', () => {
-		const first = cachedChromePaths(geometry, fitted(), 400, 200, 10, true)
+		const first = cachedChromePaths(FITTED, 400, 200, 10, true)
 
-		const second = cachedChromePaths(geometry, fitted(), 400, 200, 10, true)
+		const second = cachedChromePaths(FITTED, 400, 200, 10, true)
 
 		expect(second).toBe(first)
 
 		expect(second.graticule).not.toBeNull()
 
 		expect(second.frame).not.toBeNull()
-
-		expect(second.outline).toBe(true)
 	})
 
-	it('redraws on a resize and on a changed request', () => {
-		const held = cachedChromePaths(geometry, fitted(), 400, 200, 10, true)
+	it('redraws on a resize and on a changed step', () => {
+		const held = cachedChromePaths(FITTED, 400, 200, 10, true)
 
-		expect(cachedChromePaths(geometry, fitted(), 800, 400, 10, true)).not.toBe(held)
+		expect(cachedChromePaths(FITTED, 800, 400, 10, true)).not.toBe(held)
 
-		expect(cachedChromePaths(geometry, fitted(), 400, 200, 30, true)).not.toBe(held)
+		expect(cachedChromePaths(FITTED, 400, 200, 30, true)).not.toBe(held)
+	})
 
-		// The frame still resolves with the outline off: it bounds the graticule.
-		const bound = cachedChromePaths(geometry, fitted(), 400, 200, 10, false)
+	it('holds them across a sphere toggle, which moves no line', () => {
+		// The outline is the view's business: flipping it must not evict the
+		// graticule pass the memo exists to hold.
+		const outlined = cachedChromePaths(FITTED, 400, 200, 10, true)
 
-		expect(bound.outline).toBe(false)
-
-		expect(bound.frame).not.toBeNull()
+		expect(cachedChromePaths(FITTED, 400, 200, 10, false)).toBe(outlined)
 	})
 
 	it('draws nothing, and takes no slot, while the chrome is off', () => {
-		expect(cachedChromePaths(geometry, fitted(), 400, 200, null, false)).toBe(EMPTY_CHROME)
+		expect(cachedChromePaths(FITTED, 400, 200, null, false)).toBe(EMPTY_CHROME)
 	})
 })
 
@@ -172,7 +164,7 @@ describe('MapPlat chrome', () => {
 		const { container: coarse } = renderUI(plat({ graticule: 30 }))
 
 		const step = (container: HTMLElement) =>
-			lines(bySlot(container, 'map-graticule')?.getAttribute('d') ?? '')
+			lines(bySlot(container, 'map-graticule')?.getAttribute('d'))
 
 		expect(step(coarse)).toBeLessThan(step(fine))
 	})
@@ -198,19 +190,19 @@ describe('MapPlat chrome', () => {
 	it('draws both parts together, off one frame path', () => {
 		const { container } = renderUI(plat({ graticule: true, sphere: true }))
 
-		const clip = container.querySelector('clipPath path')
-
 		expect(bySlot(container, 'map-graticule')).toBeInTheDocument()
 
 		// One path resolves the bound and the outline, so the two can never
 		// disagree about where the projection draws.
-		expect(bySlot(container, 'map-sphere')?.getAttribute('d')).toBe(clip?.getAttribute('d'))
+		expect(bySlot(container, 'map-sphere')?.getAttribute('d')).toBe(
+			bySlot(container, 'map-chrome-clip')?.firstElementChild?.getAttribute('d'),
+		)
 	})
 
 	it('bounds the graticule by the frame the projection draws', () => {
 		const { container } = renderUI(plat({ graticule: true }))
 
-		const clip = container.querySelector('clipPath')
+		const clip = bySlot(container, 'map-chrome-clip')
 
 		const id = clip?.getAttribute('id') ?? ''
 
@@ -221,9 +213,6 @@ describe('MapPlat chrome', () => {
 		// sub-projection would otherwise fill them with.
 		expect(clip?.querySelector('path')).toHaveAttribute('clip-rule', 'evenodd')
 
-		expect(bySlot(container, 'map-graticule')?.parentElement).toHaveAttribute(
-			'clip-path',
-			`url(#${id})`,
-		)
+		expect(bySlot(container, 'map-graticule')).toHaveAttribute('clip-path', `url(#${id})`)
 	})
 })

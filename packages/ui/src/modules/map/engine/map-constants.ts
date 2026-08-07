@@ -117,8 +117,9 @@ export const GRATICULE_STEP_DEGREES = 10
 export const GRATICULE_MIN_STEP_DEGREES = 1
 
 /**
- * Graticule and sphere stroke width — the chart gridline's hairline, so a
- * dashboard's charts and maps rule their frames alike. @internal
+ * Graticule and sphere stroke width — a hairline, the width the chart rules its
+ * own gridlines and axis baseline at, so a dashboard's charts and maps frame
+ * alike. @internal
  */
 export const CHROME_STROKE_WIDTH = 1
 

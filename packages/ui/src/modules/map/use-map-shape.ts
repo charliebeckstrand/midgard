@@ -40,6 +40,28 @@ export type MapShape = {
 }
 
 /**
+ * What {@link useMapShape} reads: the geometry, the frame policy, and the
+ * chrome request. An object rather than a parameter list — the frame props
+ * alone run to seven, four of them `boolean | number | undefined`, where a
+ * transposition would type-check and draw a wrong map.
+ *
+ * @internal
+ */
+export type MapShapeOptions = {
+	geography: MapGeography | null | undefined
+	geographyObject: string | undefined
+	projection: MapProjection
+	width: number | undefined
+	height: number | undefined
+	aspectRatio: MapAspectRatio
+	deferPaint: boolean
+	/** The graticule's degree step, `null` where it is off. */
+	graticule: number | null
+	/** Whether the sphere outline draws; the frame path resolves for either part. */
+	sphere: boolean
+}
+
+/**
  * Resolves the geometry the map draws, decoupled from measurement so the
  * neutral geography paints on the first commit. A single canonical fit (fixed
  * frame, no container read) reserves the CSS box through its aspect and paints
@@ -56,17 +78,17 @@ export type MapShape = {
  *
  * @internal
  */
-export function useMapShape(
-	geography: MapGeography | null | undefined,
-	geographyObject: string | undefined,
-	projection: MapProjection,
-	width: number | undefined,
-	height: number | undefined,
-	aspectRatio: MapAspectRatio,
-	deferPaint: boolean,
-	graticule: number | null,
-	sphere: boolean,
-): MapShape {
+export function useMapShape({
+	geography,
+	geographyObject,
+	projection,
+	width,
+	height,
+	aspectRatio,
+	deferPaint,
+	graticule,
+	sphere,
+}: MapShapeOptions): MapShape {
 	// The mount-critical geometry — decode, the measurement-free canonical fit,
 	// and its region paths — memoised across instances and mounts (see
 	// `engine/map-geometry/cache`), so a tab switch, a second plat on the same
@@ -133,16 +155,17 @@ export function useMapShape(
 	}, [projection, statics, frameWidth, frameHeight, deferPaint])
 
 	// The chrome, resolved beside the geography rather than inside it: it reads
-	// the same fit, but a map that toggles its graticule must not reproject every
-	// region path to draw one. Off, this costs a comparison and the shared empty
-	// value; on, the cross-instance memo (`cachedChromePaths`) holds the pass
-	// across a remount at one box, as the region paths' does.
+	// the same fit, but a chrome toggle must not rebuild the view — that would
+	// hand the context a fresh `project` identity and recompute every overlay
+	// mark on the map to draw a hairline. Off, this costs a comparison and the
+	// shared empty value; on, the memo on the fit itself (`cachedChromePaths`)
+	// holds the canonical stage across instances and mounts.
 	const chrome = useMemo(
 		() =>
 			view.fit === null
 				? EMPTY_CHROME
-				: cachedChromePaths(statics, view.fit, view.viewWidth, view.viewHeight, graticule, sphere),
-		[statics, view, graticule, sphere],
+				: cachedChromePaths(view.fit, view.viewWidth, view.viewHeight, graticule, sphere),
+		[view, graticule, sphere],
 	)
 
 	const { viewWidth, viewHeight, paths, project } = view

@@ -27,7 +27,7 @@
 import type { GeoProjection } from 'd3-geo'
 import { canonicalFit, type MapCanonicalFit } from '../map-projection/fit'
 import type { LngLat, MapFeature, MapGeography, MapProjection } from '../types'
-import { EMPTY_CHROME, framePath, graticulePath, type MapChromePaths } from './chrome'
+import { chromePaths, EMPTY_CHROME, type MapChromePaths } from './chrome'
 import { regionCentroids, regionPaths } from './region'
 import { geographyFeatures } from './topology'
 import { rewindFeatures } from './winding'
@@ -166,26 +166,34 @@ export function cachedRegionCentroids(features: MapFeature[]): (LngLat | null)[]
 	return computed
 }
 
-// The last chrome paths per shared geometry, on the same one-slot-per-geometry
-// rule the measured paths keep. The graticule spans the globe whatever the
-// geography frames, so its pass prices the same on a single state as on a world
-// map (~5 ms at the default step on a 1000-wide frame) — worth holding across a
-// remount at one box, and worth never paying at all while the chrome is off.
+// The last chrome paths per fitted projection. Keyed on the fit rather than on
+// the geometry, because a map draws chrome under two fits in one mount — the
+// canonical one on the first commit, the measured one a beat later — and a
+// geometry-keyed slot would have them evict each other, so every mount paid the
+// pass twice and no remount ever hit. The canonical projection is itself shared
+// across instances and mounts (`staticMapGeometry`), so its chrome is drawn once
+// per atlas and step for good; a measured fit is a fresh instance per box, and
+// its entry falls with it. The box stays in the slot for the one projection that
+// keeps its identity across fits — a passed d3 instance, which `fitSize` mutates
+// in place — so a resize can never read a stale path off one.
 const chrome = new WeakMap<
-	StaticMapGeometry,
-	{ width: number; height: number; step: number | null; sphere: boolean; paths: MapChromePaths }
+	GeoProjection,
+	{ width: number; height: number; step: number | null; paths: MapChromePaths }
 >()
 
 /**
- * The graticule and sphere paths under a fit, memoised on the shared
- * {@link StaticMapGeometry} entry by frame box and chrome request. Chrome off
- * yields {@link EMPTY_CHROME} without touching the cache, so the default map
- * pays neither the pass nor a slot.
+ * The chrome paths under a fit, memoised on the fitted projection by frame box
+ * and graticule step. Chrome off yields {@link EMPTY_CHROME} without touching
+ * the cache, so the default map pays neither the pass nor a slot.
+ *
+ * `sphere` only gates that early return: the frame path resolves for either part
+ * — drawn it is the sphere outline, unstroked it bounds the graticule — so it
+ * stays out of the key, and toggling the outline re-renders rather than
+ * redrawing the graticule.
  *
  * @internal
  */
 export function cachedChromePaths(
-	geometry: StaticMapGeometry,
 	fitted: GeoProjection,
 	width: number,
 	height: number,
@@ -194,28 +202,15 @@ export function cachedChromePaths(
 ): MapChromePaths {
 	if (step === null && !sphere) return EMPTY_CHROME
 
-	const hit = chrome.get(geometry)
+	const hit = chrome.get(fitted)
 
-	if (
-		hit !== undefined &&
-		hit.width === width &&
-		hit.height === height &&
-		hit.step === step &&
-		hit.sphere === sphere
-	) {
+	if (hit !== undefined && hit.width === width && hit.height === height && hit.step === step) {
 		return hit.paths
 	}
 
-	// The frame resolves for either part: drawn it is the sphere outline, and
-	// undrawn it still bounds the graticule. It is a handful of points against
-	// the graticule's thousands, so resolving it unasked costs nothing measurable.
-	const paths: MapChromePaths = {
-		graticule: step === null ? null : graticulePath(fitted, step),
-		frame: framePath(fitted),
-		outline: sphere,
-	}
+	const paths = chromePaths(fitted, step)
 
-	chrome.set(geometry, { width, height, step, sphere, paths })
+	chrome.set(fitted, { width, height, step, paths })
 
 	return paths
 }

@@ -369,7 +369,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		height,
 		aspectRatio = 'auto',
 		deferPaint = false,
-		graticule,
+		graticule = false,
 		sphere = false,
 		legend,
 		tooltip = true,
@@ -394,7 +394,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		...name
 	} = props
 
-	const shape = useMapShape(
+	const shape = useMapShape({
 		geography,
 		geographyObject,
 		projection,
@@ -402,9 +402,9 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		height,
 		aspectRatio,
 		deferPaint,
-		graticuleStep(graticule),
+		graticule: graticuleStep(graticule),
 		sphere,
-	)
+	})
 
 	// Region identity, resolved off the geography alone — a property of the
 	// geometry, not of the data. Both the readout (which joins rows on it) and a
@@ -651,7 +651,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		>
 			{/* Under the marks layer rather than inside it: chrome is frame, not data,
 			    so it never animates on and never joins a motion group. */}
-			<MapChrome paths={shape.chrome} />
+			<MapChrome paths={shape.chrome} sphere={sphere} />
 
 			<MapPlatContext value={plat}>
 				<MapMarksLayer animate={animate}>

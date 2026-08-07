@@ -22,23 +22,26 @@
  * under it should have had.
  */
 
-import { useId } from 'react'
+import { memo, useId } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
 import { CHROME_STROKE_WIDTH } from './engine/map-constants'
 import type { MapChromePaths } from './engine/map-geometry/chrome'
 
-/** Props for {@link MapChrome}: the paths the active fit resolved. @internal */
+/** Props for {@link MapChrome}: the paths the active fit resolved, and whether the frame is drawn. @internal */
 type MapChromeProps = {
 	paths: MapChromePaths
+	/** Stroke the frame as the sphere outline; unset it still bounds the graticule. */
+	sphere: boolean
 }
 
-/** Props for {@link ChromeLine}: one chrome path and the ink it takes. @internal */
+/** Props for {@link ChromeLine}: which part of the chrome to draw, and its path. @internal */
 type ChromeLineProps = {
-	/** The line's `data-slot` name, naming which part of the chrome it is. */
-	slot: string
+	/** The part names both the `data-slot` and the ink, so the two can never be paired wrong. */
+	part: 'graticule' | 'sphere'
 	d: string
-	className: string
+	/** The clip bounding the line, for the part that takes one. */
+	clip?: string
 }
 
 /**
@@ -48,18 +51,19 @@ type ChromeLineProps = {
  *
  * @internal
  */
-function ChromeLine({ slot, d, className }: ChromeLineProps) {
+function ChromeLine({ part, d, clip }: ChromeLineProps) {
 	return (
 		<path
-			data-slot={slot}
+			data-slot={`map-${part}`}
 			d={d}
+			clipPath={clip}
 			fill="none"
 			strokeWidth={CHROME_STROKE_WIDTH}
 			// Device pixels, not viewBox units — the region border's discipline: a
 			// resize whose refit lands a beat late scales the geometry crisply and
 			// must not fatten a hairline with it.
 			vectorEffect="non-scaling-stroke"
-			className={className}
+			className={cn(k.chrome[part])}
 		/>
 	)
 }
@@ -71,17 +75,20 @@ function ChromeLine({ slot, d, className }: ChromeLineProps) {
  * The graticule draws under the sphere outline, so the globe's edge reads as
  * the frame's own line over the hairlines that meet it.
  *
+ * Memoised like the region layer beside it: the plat re-renders on every legend
+ * focus, toggle, overlay registration, and resize commit, in none of which the
+ * two paths move. Both props hold their identity across those — the paths come
+ * from the cross-instance memo, and the shared empty value stands in while the
+ * chrome is off — so the memo bails rather than rebuilding the subtree.
+ *
  * @internal
  */
-export function MapChrome({ paths }: MapChromeProps) {
-	const { graticule, frame, outline } = paths
+export const MapChrome = memo(function MapChrome({ paths, sphere }: MapChromeProps) {
+	const { graticule, frame } = paths
 
-	// React's useId carries colons — safe as an attribute, but not inside the
-	// url() the clip reference reads — so strip them, as the chart's pattern defs
-	// do for theirs.
-	const clipId = `map-chrome-clip-${useId().replace(/:/g, '')}`
+	const clipId = `map-chrome-clip-${useId()}`
 
-	if (graticule === null && !outline) return null
+	if (graticule === null && !sphere) return null
 
 	// A projection that draws no frame (a passed instance with nothing to
 	// outline) bounds nothing: the graticule then draws whole rather than
@@ -94,7 +101,7 @@ export function MapChrome({ paths }: MapChromeProps) {
 		<g data-slot="map-chrome" className="pointer-events-none">
 			{bounded && (
 				<defs>
-					<clipPath id={clipId}>
+					<clipPath id={clipId} data-slot="map-chrome-clip">
 						{/* The even-odd rule is the whole of the composite fix: it reads the
 						    inset boxes as holes in the outer frame rather than as part of it. */}
 						<path d={frame} clipRule="evenodd" />
@@ -103,14 +110,10 @@ export function MapChrome({ paths }: MapChromeProps) {
 			)}
 
 			{graticule !== null && (
-				<g clipPath={bounded ? `url(#${clipId})` : undefined}>
-					<ChromeLine slot="map-graticule" d={graticule} className={cn(k.chrome.graticule)} />
-				</g>
+				<ChromeLine part="graticule" d={graticule} clip={bounded ? `url(#${clipId})` : undefined} />
 			)}
 
-			{outline && frame !== null && (
-				<ChromeLine slot="map-sphere" d={frame} className={cn(k.chrome.sphere)} />
-			)}
+			{sphere && frame !== null && <ChromeLine part="sphere" d={frame} />}
 		</g>
 	)
-}
+})
