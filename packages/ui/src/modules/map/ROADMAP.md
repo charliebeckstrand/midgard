@@ -36,7 +36,7 @@ Every framework-free rule the map holds lives in [`engine/`](engine), a d3-shape
 
 Two files split by layer rather than by concept, so the engine owns its own vocabulary. `context.ts` kept the React contexts and gave up the target comparisons and the anchor readers, which need no React; `use-map-legend-registry.ts` kept the hook and gave up the `MapOverlayEntry` shape its ledger holds. The cursor, the readout, and the selection resolve against those without reaching back at the module root.
 
-The layering invariant is grid's, verbatim — no `'use client'`, no runtime `react` / `motion` imports, no runtime imports from the module root, no `index` barrel (the engine is imported file-by-file).
+The layering invariant is grid's, verbatim — no `'use client'`, no runtime `react` / `motion` / `@dnd-kit` / `@floating-ui` imports, no runtime imports from the module root, no `index` barrel (the engine is imported file-by-file).
 
 No reach outward stands: the engine names nothing from the module root, at runtime or in a type. The range bar's shape is the engine's own (`map-legend/plan.ts`'s `MapLegendRange`), which [`map-range-legend.tsx`](map-range-legend.tsx) takes as its props, so the arrow runs view → engine.
 

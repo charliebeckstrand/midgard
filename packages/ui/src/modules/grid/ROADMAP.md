@@ -61,7 +61,7 @@ Every avenue lands in [`engine/`](engine), the module's pure functional core: a 
 
 [`engine-purity-boundary.test.ts`](../../__tests__/boundary/engine-purity-boundary.test.ts) gates the framework, module-root, and barrel rules for this engine, the query engine, and the map engine together — one assertion in code where three ROADMAPs each carried the same paragraph of prose and a copy of the same greps.
 
-The `@dnd-kit` / `@floating-ui` clause is this engine's alone and stays prose for now, because the engine does not satisfy it: [`grid-zone/map.ts`](engine/grid-zone/map.ts) runtime-imports `arrayMove` from `@dnd-kit/sortable`. The greps this section used to carry would have caught it; nobody ran them, which is the argument for the gate. Inlining that helper (it reorders one array) or moving its two callers would close the clause and let it join the shared test.
+The `@dnd-kit` / `@floating-ui` clause is now part of that gate. It stayed prose while [`grid-zone/map.ts`](engine/grid-zone/map.ts) runtime-imported `arrayMove` from `@dnd-kit/sortable`; a private `moveItem` holds that reorder now. The greps this section used to carry would have caught the import; nobody ran them, which is the argument for the gate. The type-only `@dnd-kit/core` imports in [`grid-reorder-compute.ts`](engine/grid-reorder-compute.ts) stay legal: a type import erases, and a self-check pins that.
 
 Because each shared rule has exactly one definition, its `*.test.ts` suite is where an optimization is proven safe before it is proven fast: the comparator lives once in `grid-sort/utilities`, the allocator once in `grid-column/allocate`, so a rewrite that holds the tests holds the module.
 

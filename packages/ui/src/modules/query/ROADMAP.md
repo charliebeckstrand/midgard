@@ -14,7 +14,7 @@ The first read view has landed, proving the thesis. [`engine/query-summary.ts`](
 
 ## Engine — the substrate
 
-Every domain concept lands in [`engine/`](engine), the module's pure functional core: no `'use client'`, no runtime `react` / `motion` imports, no `index` barrel (the engine is imported file-by-file), no runtime imports from the module root.
+Every domain concept lands in [`engine/`](engine), the module's pure functional core: no `'use client'`, no runtime `react` / `motion` / `@dnd-kit` / `@floating-ui` imports, no `index` barrel (the engine is imported file-by-file), no runtime imports from the module root.
 
 [`engine-purity-boundary.test.ts`](../../__tests__/boundary/engine-purity-boundary.test.ts) holds that invariant for this engine, the grid engine, and the map engine together, so it is a gate rather than a paragraph three modules re-assert.
 

@@ -69,6 +69,19 @@ describe('group manager reducers', () => {
 		expect(reorderGroups(groups, 'missing', 'g1')).toBe(groups)
 	})
 
+	it('reorders in either direction, taking the target’s index after the pull', () => {
+		// Three groups separate a remove-then-insert from an insert-then-remove;
+		// two cannot. This is the `arrayMove` contract the engine now inlines.
+		const three: GridColumnGroup[] = [...groups, { id: 'g3', title: 'Three', columns: [] }]
+
+		expect(reorderGroups(three, 'g1', 'g3').map((g) => g.id)).toEqual(['g2', 'g3', 'g1'])
+
+		expect(reorderGroups(three, 'g3', 'g1').map((g) => g.id)).toEqual(['g3', 'g1', 'g2'])
+
+		// The source array is never mutated.
+		expect(three.map((g) => g.id)).toEqual(['g1', 'g2', 'g3'])
+	})
+
 	it('partitions orderable columns into group zones and an ungrouped pool', () => {
 		const zones = buildManagerZones(groups, ['a', 'b', 'c', 'd'])
 
@@ -127,6 +140,9 @@ describe('group manager drag helpers', () => {
 
 		// Cross-zone (already applied live in onDragOver) → unchanged.
 		expect(settleDragEnd(map, 'a', 'c')).toBe(map)
+
+		// A two-column zone cannot separate "to the end" from "swap with the last".
+		expect(settleDragEnd({ g: ['a', 'b', 'c'] }, 'a', 'g')).toEqual({ g: ['b', 'c', 'a'] })
 	})
 })
 

@@ -11,8 +11,9 @@ import { srcDir, walkSource } from '../helpers/walk-source'
 // shell in behind it. Four rules carry that:
 //
 //   - no `'use client'` — the engine is not a client boundary
-//   - no runtime `react` / `react-dom` / `motion` import (a type-only import is
-//     fine: `CSSProperties` and `ReactNode` describe data the shell will render)
+//   - no runtime `react` / `react-dom` / `motion` / `@dnd-kit` / `@floating-ui`
+//     import (a type-only import is fine: `CSSProperties`, `ReactNode`, and
+//     dnd-kit's `ClientRect` describe data the shell renders or hands back)
 //   - no runtime import from the module root — the arrow runs shell → engine,
 //     never back, so the engine stands alone
 //   - no `index` barrel — the engine is imported file-by-file, so a consumer
@@ -67,11 +68,37 @@ function isRuntimeClause(clause: string): boolean {
 		.some((part) => !part.startsWith('type '))
 }
 
+/** Whether a runtime import of `specifier` costs an engine its independence. */
+function isFrameworkSpecifier(specifier: string): boolean {
+	return (
+		/^(react|react-dom)$/.test(specifier) ||
+		/^(motion|framer-motion)\b/.test(specifier) ||
+		/^@(dnd-kit|floating-ui)\//.test(specifier)
+	)
+}
+
 function importsOf(content: string): ImportRef[] {
 	return [...content.matchAll(IMPORT)].map((match) => ({
 		specifier: match[2] as string,
 		runtime: isRuntimeClause(match[1] as string),
 	}))
+}
+
+/**
+ * Every framework reach in one file: a client-boundary directive, and each
+ * runtime import of a framework package. Empty for a pure file. The rule and
+ * its self-check both read this, so neither can drift from the other.
+ */
+function frameworkReaches(content: string): string[] {
+	const found: string[] = []
+
+	if (/^\s*['"]use client['"]/m.test(content)) found.push("'use client'")
+
+	for (const { specifier, runtime } of importsOf(content)) {
+		if (runtime && isFrameworkSpecifier(specifier)) found.push(`runtime import of '${specifier}'`)
+	}
+
+	return found
 }
 
 /** Every source file under an engine, with its path relative to `srcDir`. */
@@ -103,24 +130,9 @@ describe('engine purity boundary', () => {
 		})
 
 		it(`${module}/engine imports no framework at runtime and declares no client boundary`, () => {
-			const violations = files.flatMap(({ rel, content }) => {
-				const found: string[] = []
-
-				if (/^\s*['"]use client['"]/m.test(content)) found.push(`${rel} → 'use client'`)
-
-				for (const { specifier, runtime } of importsOf(content)) {
-					if (!runtime) continue
-
-					if (
-						/^(react|react-dom)$/.test(specifier) ||
-						/^(motion|framer-motion)\b/.test(specifier)
-					) {
-						found.push(`${rel} → runtime import of '${specifier}'`)
-					}
-				}
-
-				return found
-			})
+			const violations = files.flatMap(({ rel, content }) =>
+				frameworkReaches(content).map((reach) => `${rel} → ${reach}`),
+			)
 
 			expect(
 				violations,
@@ -164,18 +176,16 @@ describe('engine purity boundary · self-check', () => {
 		{ label: 'runtime react', content: "import { useMemo } from 'react'\n" },
 		{ label: 'mixed type/value clause', content: "import { type A, b } from 'react'\n" },
 		{ label: 'runtime motion', content: "import { motion } from 'motion/react'\n" },
+		{ label: 'runtime @dnd-kit', content: "import { arrayMove } from '@dnd-kit/sortable'\n" },
+		{
+			label: 'runtime @floating-ui',
+			content: "import { useFloating } from '@floating-ui/react'\n",
+		},
 	]
 
 	for (const { label, content } of cases) {
 		it(`detects ${label}`, () => {
-			const offends =
-				/^\s*['"]use client['"]/m.test(content) ||
-				importsOf(content).some(
-					({ specifier, runtime }) =>
-						runtime && (/^(react|react-dom)$/.test(specifier) || /^motion\b/.test(specifier)),
-				)
-
-			expect(offends).toBe(true)
+			expect(frameworkReaches(content)).not.toEqual([])
 		})
 	}
 
@@ -183,6 +193,17 @@ describe('engine purity boundary · self-check', () => {
 		const refs = importsOf("import type { CSSProperties } from 'react'\n")
 
 		expect(refs).toEqual([{ specifier: 'react', runtime: false }])
+	})
+
+	it('spares a type-only import of a banned package', () => {
+		// `grid-reorder-compute.ts` describes its modifiers with dnd-kit's own
+		// `ClientRect` / `Transform` / `Modifier`. The specifier is banned and the
+		// clause erases, so only the rule's runtime half can spare it.
+		const content = "import type { ClientRect, Modifier } from '@dnd-kit/core'\n"
+
+		expect(isFrameworkSpecifier('@dnd-kit/core')).toBe(true)
+
+		expect(frameworkReaches(content)).toEqual([])
 	})
 
 	it('allows a clause whose every binding is type-qualified', () => {
