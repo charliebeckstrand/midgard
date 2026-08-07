@@ -182,32 +182,30 @@ export function useMapOverlay({
 
 	const id = given ?? generated
 
-	const {
-		project,
-		register,
-		colors,
-		order,
-		hidden,
-		emphasis,
-		animate,
-		selected: selection,
-	} = useMapPlat()
+	const { project, register, colors, order, hidden, emphasis, animate, selectedOverlay } =
+		useMapPlat()
 
 	const set = useMapHoverSet()
 
 	const pointed = useMapPointedMark()
 
+	// The mark's own stop resolution, defaulted once: a mark that draws the stops
+	// it reports holds one, its own. Spelling the fallback here rather than at each
+	// reader is what makes the halo below and the plat's picked row the same
+	// question — the drift `map-selection.ts` exists to prevent.
+	const resolveStop = stopOf ?? ownStop
+
 	// The live stops and reporters, read at fire time rather than captured in the
 	// registration: a consumer's inline handler is a fresh identity every render,
 	// and a mark's geometry changes as it lands — neither may churn the ledger,
 	// whose every write re-sorts it and re-renders the legend.
-	const live = useRef({ stops, onClick, stopRows, stopOf })
+	const live = useRef({ stops, onClick, stopRows, resolveStop })
 
-	live.current = { stops, onClick, stopRows, stopOf }
+	live.current = { stops, onClick, stopRows, resolveStop }
 
 	const stopsAt = useCallback(() => live.current.stops(), [])
 
-	const stopAt = useCallback((index: number) => (live.current.stopOf ?? ownStop)(index), [])
+	const stopAt = useCallback((index: number) => live.current.resolveStop(index), [])
 
 	const pick = useCallback((stop: number) => live.current.onClick?.(id, stop), [id])
 
@@ -221,9 +219,9 @@ export function useMapOverlay({
 
 	// The standing pick, resolved off the live mapper rather than the ref the
 	// ledger rides: a refit that regroups a plural mark moves the picked dot, and
-	// the halo has to move with it on that same render. The plat resolves the
-	// picked row through the same rule, so the halo and that row can't disagree.
-	const selected = pickedStop(selection, id, stopOf ?? ownStop)
+	// the halo has to move with it on that same render. The table resolves the
+	// picked row through this same mapper, so the halo and that row can't disagree.
+	const selected = pickedStop(selectedOverlay, id, resolveStop)
 
 	// The readout text is the one registered field the table draws, so it has to
 	// reach the ledger to reach the screen. Keyed by content rather than by the

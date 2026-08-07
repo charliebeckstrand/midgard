@@ -54,7 +54,6 @@ import { MapLegend, type MapLegendItem } from './map-legend'
 import { mapFrameSizing, measuredMapFit, projectionFallbackAspect } from './map-projection'
 import { MapRangeLegend, type MapRangeLegendProps } from './map-range-legend'
 import { MapRegions } from './map-regions'
-import { selectedMarkRow } from './map-selection'
 import { MapTable } from './map-table'
 import { MapTooltip, type MapTooltipEntry } from './map-tooltip'
 import { type RegionValueJoin, regionValueJoin, resolveValueBins } from './map-value-scale'
@@ -1333,7 +1332,7 @@ export function MapPlat<T = never>({
 			hidden,
 			emphasis,
 			animate,
-			selected: markSelection,
+			selectedOverlay: markSelection,
 		}),
 		[shape.project, register, colors, order, hidden, emphasis, animate, markSelection],
 	)
@@ -1511,10 +1510,7 @@ export function MapPlat<T = never>({
 					categories={categoryMetas}
 					entries={entries}
 					selected={selected}
-					// Resolved here rather than in the table: the mapping from a reported
-					// index to a drawn stop lives on the mark's own registration, which is
-					// the ledger this side of the memo holds.
-					selectedMark={selectedMarkRow(entries, markSelection)}
+					selectedOverlay={markSelection}
 				/>
 			) : null,
 		[

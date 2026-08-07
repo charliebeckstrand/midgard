@@ -215,17 +215,14 @@ describe('groupsByMember', () => {
 		GAP,
 	)
 
-	it('reads back which drawn mark holds each dot', () => {
+	it('reads back which drawn mark holds each dot, and holds none it never had', () => {
 		// The resolution a pick needs: a click names the point a caller passed, and
-		// the summary it merged into is what the map draws.
+		// the summary it merged into is what the map draws. Asserted whole, so the
+		// entries it does not hold are proved by the same expectation.
 		expect([...groupsByMember(groups)]).toEqual([
 			[0, 0],
 			[1, 0],
 			[2, 1],
 		])
-	})
-
-	it('holds no dot the set never had', () => {
-		expect(groupsByMember(groups).get(9)).toBeUndefined()
 	})
 })

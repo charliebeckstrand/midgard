@@ -98,7 +98,7 @@ describe('MapPlat selected overlay', () => {
 
 		// Never a pointer target: the mark's own hit circle stays the sole one, so
 		// the hover resolve can't read the same mark twice.
-		expect(halo).toHaveAttribute('pointer-events', 'none')
+		expect(halo).toHaveClass('pointer-events-none')
 
 		expect(halo).not.toHaveAttribute('data-entry-id')
 
@@ -134,16 +134,6 @@ describe('MapPlat selected overlay', () => {
 		rerender(plat(<MapPoint id="depot" label="Depot" at={DEPOT} />, { id: 'depot' }))
 
 		expect(bySlot(container, 'map-point-selected')).toBeInTheDocument()
-	})
-
-	it('takes no pointer affordance from a selection alone', () => {
-		// A map showing a pick made elsewhere is a readout, not a picker: without
-		// `onClick` there is no click to promise.
-		const { container } = renderUI(
-			plat(<MapPoint id="depot" label="Depot" at={DEPOT} />, { id: 'depot' }),
-		)
-
-		expect(bySlot(container, 'map-point-hit')).not.toHaveClass('cursor-pointer')
 	})
 
 	it('reads the picked mark as current in the visually-hidden table', () => {

@@ -3,6 +3,8 @@ import { ariaAttr } from '../../core'
 import { rangeKeys } from '../../utilities'
 import { type MapCategoryMeta, READOUT_GAP } from './map-categories'
 import { markRows } from './map-readout'
+import { selectedMarkRow } from './map-selection'
+import type { MapOverlaySelection } from './types'
 import type { MapOverlayEntry } from './use-map-legend-registry'
 
 /** Props for {@link MapTable}. @internal */
@@ -22,11 +24,11 @@ export type MapTableProps = {
 	/** The selected region's feature index, `null` when nothing is picked. */
 	selected: number | null
 	/**
-	 * The selected overlay stop's row key, `null` when no mark is picked — the key
-	 * {@link markRows} builds, resolved by {@link selectedMarkRow} so the row that
-	 * reads as current is the one the halo sits on.
+	 * The picked overlay mark, resolved to a row here through the same mapper the
+	 * mark's halo reads — so the row that carries the pick is the one the halo sits
+	 * on.
 	 */
-	selectedMark: string | null
+	selectedOverlay: MapOverlaySelection | null
 }
 
 /** Props for {@link MapTableRow}: one row's resolved text, and whether it is the picked one. @internal */
@@ -80,7 +82,7 @@ export const MapTable = memo(function MapTable({
 	categories,
 	entries,
 	selected,
-	selectedMark,
+	selectedOverlay,
 }: MapTableProps) {
 	// The row keys, held across the re-maps a selection costs: the array depends
 	// on the row count alone, where rebuilding it would allocate one string per
@@ -111,20 +113,28 @@ export const MapTable = memo(function MapTable({
 	)
 
 	// One row per dot, so the table carries what the tooltip gives the pointer —
-	// through the one resolver both surfaces read.
+	// through the one resolver both surfaces read. The readout is built off the
+	// ledger alone: a pick moves which row reads as current, never what any row
+	// says, and a two-hundred-dot set would otherwise re-resolve every readout to
+	// move one attribute.
+	const rows = useMemo(() => entries.flatMap(markRows), [entries])
+
+	const pickedRow = useMemo(
+		() => selectedMarkRow(entries, selectedOverlay),
+		[entries, selectedOverlay],
+	)
+
 	const markRowsView = useMemo(
 		() =>
-			entries
-				.flatMap(markRows)
-				.map((row) => (
-					<MapTableRow
-						key={row.key}
-						name={row.name}
-						value={row.detail}
-						current={row.key === selectedMark}
-					/>
-				)),
-		[entries, selectedMark],
+			rows.map((row) => (
+				<MapTableRow
+					key={row.key}
+					name={row.name}
+					value={row.detail}
+					current={row.key === pickedRow}
+				/>
+			)),
+		[rows, pickedRow],
 	)
 
 	return (

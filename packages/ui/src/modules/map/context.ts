@@ -212,8 +212,8 @@ export type MapPlatContextValue = {
 	hidden: ReadonlySet<string>
 	/** The legend id under emphasis; marks outside its group dim. */
 	emphasis: string | null
-	/** The picked mark, `null` when nothing is picked; the named mark haloes the stop it resolves to. */
-	selected: MapOverlaySelection | null
+	/** The picked mark, by the plat's own prop name; the named mark haloes the stop it resolves to. */
+	selectedOverlay: MapOverlaySelection | null
 	/** Whether the plat animates; overlays pick their motion renderers off it. */
 	animate: boolean
 }

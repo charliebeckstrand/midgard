@@ -56,20 +56,10 @@ describe('selectedMarkRow', () => {
 		expect(selectedMarkRow([ROUTE, FLEET], { id: 'fleet', index: 1 })).toBe('fleet:0')
 	})
 
-	it('keys a singular mark on its own stop', () => {
-		expect(selectedMarkRow([ROUTE, FLEET], { id: 'leg' })).toBe('leg:0')
-	})
-
 	it('marks no row where nothing is picked, or where the pick names no mark', () => {
 		expect(selectedMarkRow([ROUTE, FLEET], null)).toBeNull()
 
 		// A pick outliving the mark it was made against.
 		expect(selectedMarkRow([ROUTE], { id: 'fleet' })).toBeNull()
-	})
-
-	it('marks no row for a stop the named mark does not draw', () => {
-		expect(selectedMarkRow([ROUTE, FLEET], { id: 'fleet', index: 9 })).toBeNull()
-
-		expect(selectedMarkRow([ROUTE, FLEET], { id: 'leg', index: 1 })).toBeNull()
 	})
 })

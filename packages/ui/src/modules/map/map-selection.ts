@@ -56,13 +56,14 @@ export function selectedMarkRow(
 	entries: readonly MapOverlayEntry[],
 	selection: MapOverlaySelection | null,
 ): string | null {
-	if (selection === null) return null
+	// Filtered by the same resolution that answers the halo, rather than by an id
+	// match beside it: one comparison decides which mark the pick names, so the
+	// two readers cannot part over what "names" means.
+	for (const entry of entries) {
+		const stop = pickedStop(selection, entry.id, entry.stopOf)
 
-	const entry = entries.find((candidate) => candidate.id === selection.id)
+		if (stop !== null) return markRowKey(entry.id, stop)
+	}
 
-	if (entry === undefined) return null
-
-	const stop = pickedStop(selection, entry.id, entry.stopOf)
-
-	return stop === null ? null : markRowKey(entry.id, stop)
+	return null
 }
