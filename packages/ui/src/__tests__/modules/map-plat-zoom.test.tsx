@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { type MapFeatureCollection, MapPlat } from '../../modules/map'
-import { act, bySlot, fireEvent, renderUI } from '../helpers'
+import { act, bySlot, fireEvent, renderUI, withFakeTime } from '../helpers'
 import { FIXTURE_GEOJSON, FIXTURE_ROWS } from '../helpers/map-geography'
 
 /**
@@ -81,9 +81,16 @@ function scaleOf(container: HTMLElement): number {
 function wheel(
 	svg: SVGSVGElement,
 	deltaY: number,
-	at = { clientX: 200, clientY: 100 },
+	init: { clientX?: number; clientY?: number; shiftKey?: boolean } = {},
 ): WheelEvent {
-	const event = new WheelEvent('wheel', { bubbles: true, cancelable: true, deltaY, ...at })
+	const event = new WheelEvent('wheel', {
+		bubbles: true,
+		cancelable: true,
+		deltaY,
+		clientX: 200,
+		clientY: 100,
+		...init,
+	})
 
 	act(() => {
 		svg.dispatchEvent(event)
@@ -92,9 +99,42 @@ function wheel(
 	return event
 }
 
+/** Whether the layer currently answers the pointer, which a gesture in flight suspends. */
+function answersPointer(container: HTMLElement): boolean {
+	return bySlot(container, 'map-zoom')?.getAttribute('pointer-events') !== 'none'
+}
+
+/** Presses two touch pointers, moves them to new places, and releases both. */
+function twoFinger(
+	plot: HTMLElement,
+	from: [{ x: number; y: number }, { x: number; y: number }],
+	to: [{ x: number; y: number }, { x: number; y: number }],
+) {
+	for (const [index, at] of from.entries()) {
+		fireEvent.pointerDown(plot, {
+			pointerId: index + 1,
+			pointerType: 'touch',
+			clientX: at.x,
+			clientY: at.y,
+		})
+	}
+
+	for (const [index, at] of to.entries()) {
+		fireEvent.pointerMove(plot, { pointerId: index + 1, clientX: at.x, clientY: at.y })
+	}
+
+	for (const index of [0, 1]) fireEvent.pointerUp(plot, { pointerId: index + 1 })
+}
+
 /** Presses, drags, and releases one pointer across the plot region. */
 function drag(plot: HTMLElement, from: { x: number; y: number }, to: { x: number; y: number }) {
-	fireEvent.pointerDown(plot, { pointerId: 1, button: 0, clientX: from.x, clientY: from.y })
+	fireEvent.pointerDown(plot, {
+		pointerId: 1,
+		button: 0,
+		pointerType: 'mouse',
+		clientX: from.x,
+		clientY: from.y,
+	})
 
 	fireEvent.pointerMove(plot, { pointerId: 1, clientX: to.x, clientY: to.y })
 
@@ -118,6 +158,230 @@ describe('MapPlat zoom layer', () => {
 		expect(renderZoomable().plot).toHaveClass('touch-none')
 
 		expect(renderZoomable({ zoom: undefined }).plot).not.toHaveClass('touch-none')
+	})
+
+	it('leaves the page its touch scrolling under a modifier, and takes only its pinch', () => {
+		// The bargain the key buys on the wheel, kept on touch: one finger scrolls
+		// the page, two pan and pinch — so the browser keeps `pan-x pan-y` and
+		// loses only the pinch that would page-zoom over the map.
+		const { plot } = renderZoomable({ zoom: { modifier: 'shift' } })
+
+		expect(plot).not.toHaveClass('touch-none')
+
+		expect(plot).toHaveClass('[touch-action:pan-x_pan-y]')
+	})
+
+	it('reads a ceiling at the fit as no zoom at all', () => {
+		const { container, plot } = renderZoomable({ zoom: 1 })
+
+		expect(bySlot(container, 'map-zoom')).toBeNull()
+
+		expect(plot).not.toHaveClass('touch-none')
+	})
+})
+
+describe('MapPlat gesture suspends the readout', () => {
+	it('stops the drawing answering the pointer while a wheel zoom runs, and gives it back once it settles', async () => {
+		await withFakeTime(async (clock) => {
+			const { container, svg } = renderZoomable()
+
+			expect(answersPointer(container)).toBe(true)
+
+			wheel(svg, -200)
+
+			// A scaling frame sweeps the geography under a stationary pointer, so
+			// every dot it crosses would raise its own readout. The layer goes inert
+			// for the gesture instead.
+			expect(answersPointer(container)).toBe(false)
+
+			await clock.advance(60)
+
+			// A wheel reports no end, so the gesture is still live inside the window.
+			expect(answersPointer(container)).toBe(false)
+
+			wheel(svg, -200)
+
+			await clock.advance(60)
+
+			// The second notch re-armed it, so the two read as one gesture.
+			expect(answersPointer(container)).toBe(false)
+
+			await clock.advance(200)
+
+			expect(answersPointer(container)).toBe(true)
+		})
+	})
+
+	it('stops it while a pan runs, and gives it back on release', () => {
+		const { container, plot } = renderZoomable()
+
+		// Zoomed from the keyboard rather than the wheel, so no settle window is
+		// open and the release is the only thing that can end the gesture.
+		fireEvent.keyDown(plot, { key: '+' })
+
+		fireEvent.pointerDown(plot, { pointerId: 1, button: 0, clientX: 200, clientY: 100 })
+
+		fireEvent.pointerMove(plot, { pointerId: 1, clientX: 140, clientY: 60 })
+
+		expect(answersPointer(container)).toBe(false)
+
+		fireEvent.pointerUp(plot, { pointerId: 1 })
+
+		expect(answersPointer(container)).toBe(true)
+	})
+
+	it('holds the drawing inert while a wheel settles under a live pan', async () => {
+		await withFakeTime(async (clock) => {
+			const { container, plot, svg } = renderZoomable()
+
+			wheel(svg, -400)
+
+			fireEvent.pointerDown(plot, { pointerId: 1, button: 0, clientX: 200, clientY: 100 })
+
+			fireEvent.pointerMove(plot, { pointerId: 1, clientX: 140, clientY: 60 })
+
+			// The wheel's window closes while the pointer is still down; the pan is
+			// the live gesture now, so neither release lets go on its own.
+			await clock.advance(400)
+
+			expect(answersPointer(container)).toBe(false)
+
+			fireEvent.pointerUp(plot, { pointerId: 1 })
+
+			expect(answersPointer(container)).toBe(true)
+		})
+	})
+})
+
+describe('MapPlat shift-to-zoom', () => {
+	it('hands a plain wheel back to the page untouched', () => {
+		const { container, svg } = renderZoomable({ zoom: { modifier: 'shift' } })
+
+		const event = wheel(svg, -200)
+
+		expect(scaleOf(container)).toBe(1)
+
+		expect(event.defaultPrevented).toBe(false)
+	})
+
+	it('zooms while the key is held', () => {
+		const { container, svg } = renderZoomable({ zoom: { modifier: 'shift' } })
+
+		const event = wheel(svg, -200, { shiftKey: true })
+
+		expect(scaleOf(container)).toBeGreaterThan(1)
+
+		expect(event.defaultPrevented).toBe(true)
+	})
+
+	it('traps the scroll while the key is held, even where the view cannot move', () => {
+		const { container, svg } = renderZoomable({ zoom: { modifier: 'shift' } })
+
+		// At the fit there is nothing to zoom out to, but the reader aimed the
+		// gesture at the map by holding the key — so it never reaches the page,
+		// where a shift-wheel would scroll it sideways.
+		const event = wheel(svg, 200, { shiftKey: true })
+
+		expect(scaleOf(container)).toBe(1)
+
+		expect(event.defaultPrevented).toBe(true)
+	})
+
+	it('still steps the scale from the keyboard', () => {
+		const { container, plot } = renderZoomable({ zoom: { modifier: 'shift' } })
+
+		fireEvent.keyDown(plot, { key: '+' })
+
+		expect(scaleOf(container)).toBeGreaterThan(1)
+	})
+})
+
+describe('MapPlat two-finger gestures', () => {
+	it("pans by the pair's travel, so a two-finger drag moves the map", () => {
+		const { container, plot, svg } = renderZoomable()
+
+		wheel(svg, -400)
+
+		const before = transformOf(container)
+
+		// The spread holds and the pair travels, so this is a pan and not a pinch.
+		twoFinger(
+			plot,
+			[
+				{ x: 180, y: 100 },
+				{ x: 220, y: 100 },
+			],
+			[
+				{ x: 140, y: 70 },
+				{ x: 180, y: 70 },
+			],
+		)
+
+		expect(transformOf(container)).not.toBe(before)
+
+		expect(scaleOf(container)).toBeCloseTo(scaleOf(container), 6)
+	})
+
+	it("scales by the pair's spread", () => {
+		const { container, plot } = renderZoomable()
+
+		twoFinger(
+			plot,
+			[
+				{ x: 190, y: 100 },
+				{ x: 210, y: 100 },
+			],
+			[
+				{ x: 140, y: 100 },
+				{ x: 260, y: 100 },
+			],
+		)
+
+		expect(scaleOf(container)).toBeGreaterThan(1)
+	})
+
+	it('pans a lone finger on a map that claims touch', () => {
+		const { container, plot } = renderZoomable()
+
+		fireEvent.keyDown(plot, { key: '+' })
+
+		const before = transformOf(container)
+
+		fireEvent.pointerDown(plot, { pointerId: 1, pointerType: 'touch', clientX: 200, clientY: 100 })
+
+		fireEvent.pointerMove(plot, { pointerId: 1, clientX: 140, clientY: 60 })
+
+		fireEvent.pointerUp(plot, { pointerId: 1 })
+
+		expect(transformOf(container)).not.toBe(before)
+	})
+
+	it('leaves a lone finger to the page under a modifier', () => {
+		const { container, plot, svg } = renderZoomable({ zoom: { modifier: 'shift' } })
+
+		wheel(svg, -400, { shiftKey: true })
+
+		const before = transformOf(container)
+
+		fireEvent.pointerDown(plot, { pointerId: 1, pointerType: 'touch', clientX: 200, clientY: 100 })
+
+		fireEvent.pointerMove(plot, { pointerId: 1, clientX: 140, clientY: 60 })
+
+		fireEvent.pointerUp(plot, { pointerId: 1 })
+
+		expect(transformOf(container)).toBe(before)
+	})
+
+	it('still pans a lone mouse under a modifier, which has no scroll to give up', () => {
+		const { container, plot, svg } = renderZoomable({ zoom: { modifier: 'shift' } })
+
+		wheel(svg, -400, { shiftKey: true })
+
+		const before = transformOf(container)
+
+		drag(plot, { x: 200, y: 100 }, { x: 140, y: 60 })
+
+		expect(transformOf(container)).not.toBe(before)
 	})
 })
 

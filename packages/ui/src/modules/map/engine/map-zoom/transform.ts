@@ -8,7 +8,7 @@
  */
 
 import { clamp } from '../../../../utilities'
-import { MAP_ZOOM_FIT, MAP_ZOOM_MAX } from '../map-constants'
+import { MAP_ZOOM_FIT } from '../map-constants'
 import type { MapPoint2D } from '../types'
 
 /**
@@ -162,24 +162,6 @@ export function showTransform(
 		clamp(drawn.y, margin, view.height - margin) - drawn.y,
 		view,
 	)
-}
-
-/**
- * The ceiling a `zoom` prop asks for, or `null` where the map does not zoom. The
- * one reading of the public prop, held beside the transform it bounds so the
- * plat can gate on it without holding any view state.
- *
- * A ceiling at or under the fit is no zoom at all: the fit is the floor, so such
- * a map could never move.
- *
- * @internal
- */
-export function mapZoomCeiling(zoom: boolean | number | undefined): number | null {
-	if (zoom === true) return MAP_ZOOM_MAX
-
-	if (typeof zoom !== 'number' || zoom <= MAP_ZOOM_FIT) return null
-
-	return zoom
 }
 
 /** The scale held between the fit and the ceiling — the one place that rule is written. */

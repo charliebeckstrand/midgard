@@ -9,15 +9,15 @@ import {
 	useRef,
 	useState,
 } from 'react'
-import { MAP_PAN_THRESHOLD } from './engine/map-constants'
+import { MAP_PAN_THRESHOLD, MAP_WHEEL_SETTLE_MS } from './engine/map-constants'
 import { clientToFrame, frameScale, type MapClientBox } from './engine/map-projection/frame'
 import { pointerGap, pointerMidpoint, wheelZoomFactor } from './engine/map-zoom/gesture'
+import { type MapZoomInput, type MapZoomSettings, mapZoomSettings } from './engine/map-zoom/input'
 import {
 	constrainTransform,
 	MAP_FIT_TRANSFORM,
 	type MapTransform,
 	type MapViewFrame,
-	mapZoomCeiling,
 	panTransform,
 	sameTransform,
 	showTransform,
@@ -69,16 +69,23 @@ export type MapZoom = {
 	transform: MapTransform
 	/** Frame units per device pixel — `1 / k`, the marks' one reading of the zoom. */
 	unitsPerPixel: number
-	/** Whether a pan is in flight; the layer stops answering the pointer while one is. */
-	panning: boolean
+	/**
+	 * Whether a view gesture is in flight — a pan, a pinch, or a wheel that has
+	 * not settled. The layer stops answering the pointer while one is, so the
+	 * marks travelling under a held pointer raise no readout and fire no
+	 * crossing.
+	 */
+	gesturing: boolean
+	/** The key that arms the wheel, or `null` where a plain wheel zooms. */
+	modifier: MapZoomSettings['modifier']
 	surface: MapZoomSurface
 	cursor: MapZoomCursor
 }
 
 /** What {@link useMapZoom} needs from the plat. @internal */
 export type MapZoomOptions = {
-	/** The public prop: off, on at the default ceiling, or on at a named one. */
-	zoom: boolean | number | undefined
+	/** The public prop, in any of its forms. */
+	zoom: MapZoomInput | undefined
 	/** The active viewBox frame, which the pan constraint is measured against. */
 	view: MapViewFrame
 	/** The plot's SVG, whose box converts a pointer's viewport position to frame units. */
@@ -124,9 +131,14 @@ type MapPress = {
  * @internal
  */
 export function useMapZoom({ zoom, view, svgRef, subject }: MapZoomOptions): MapZoom | null {
-	const ceiling = mapZoomCeiling(zoom)
+	const settings = mapZoomSettings(zoom)
 
-	const max = ceiling ?? 0
+	const max = settings?.max ?? 0
+
+	// Read off the settings rather than passed around as one: the reader is a
+	// fresh object every render, and the wheel's listener keys its binding on
+	// this — an object there would re-bind it on every gesture commit.
+	const modifier = settings?.modifier ?? null
 
 	// The subject rides with the transform rather than beside it, so a geography
 	// swap and the view it invalidates land in one write — and the reset happens
@@ -134,14 +146,14 @@ export function useMapZoom({ zoom, view, svgRef, subject }: MapZoomOptions): Map
 	// a map that does not zoom never takes the extra render-phase pass.
 	const [held, setHeld] = useState({ subject, transform: MAP_FIT_TRANSFORM })
 
-	if (ceiling !== null && held.subject !== subject) {
+	if (settings !== null && held.subject !== subject) {
 		setHeld({ subject, transform: MAP_FIT_TRANSFORM })
 	}
 
 	const transform =
-		ceiling === null ? MAP_FIT_TRANSFORM : constrainTransform(held.transform, view, max)
+		settings === null ? MAP_FIT_TRANSFORM : constrainTransform(held.transform, view, max)
 
-	const [panning, setPanning] = useState(false)
+	const [gesturing, setGesturing] = useState(false)
 
 	// The gesture handlers read the view through this rather than through their
 	// own closure: the wheel listener is attached once per frame size, and a
@@ -169,8 +181,40 @@ export function useMapZoom({ zoom, view, svgRef, subject }: MapZoomOptions): Map
 	/** The pinch's last measured spread, so a move reads the factor it asks for. */
 	const spread = useRef<number | null>(null)
 
-	/** Whether the gesture just ended was a pan, so the click it produced is swallowed. */
+	/** The pinch's last midpoint, so a move reads how far the pair travelled. */
+	const midpoint = useRef<MapPoint2D | null>(null)
+
+	/** Whether the gesture just ended moved the view, so the click it produced is swallowed. */
 	const panned = useRef(false)
+
+	// A wheel reports no end, so the gesture's is read from a gap: each notch
+	// re-arms this, and the marks answer the pointer again once it fires. A
+	// pointer gesture ends on its own release, and either can be live while the
+	// other settles — so both check the other before letting the drawing go.
+	const wheelSettle = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+	const settleGesture = useCallback(() => {
+		if (pointers.current.size === 0 && wheelSettle.current === null) setGesturing(false)
+	}, [])
+
+	const holdGesture = useCallback(() => {
+		setGesturing(true)
+
+		if (wheelSettle.current !== null) clearTimeout(wheelSettle.current)
+
+		wheelSettle.current = setTimeout(() => {
+			wheelSettle.current = null
+
+			settleGesture()
+		}, MAP_WHEEL_SETTLE_MS)
+	}, [settleGesture])
+
+	useEffect(
+		() => () => {
+			if (wheelSettle.current !== null) clearTimeout(wheelSettle.current)
+		},
+		[],
+	)
 
 	// The SVG's box, read once when the gesture starts and held for its length.
 	// Reading it per move would force a layout pass over the whole region tree on
@@ -180,19 +224,23 @@ export function useMapZoom({ zoom, view, svgRef, subject }: MapZoomOptions): Map
 	// and the plot claims its own touch scrolling.
 	const gestureBox = useRef<MapClientBox | null>(null)
 
-	useMapWheelZoom(ceiling !== null, svgRef, view, commit, live)
+	useMapWheelZoom(settings !== null, modifier, svgRef, view, commit, holdGesture, live)
 
 	function release(event: PointerEvent<HTMLElement>) {
 		pointers.current.delete(event.pointerId)
 
-		if (pointers.current.size < 2) spread.current = null
+		if (pointers.current.size < 2) {
+			spread.current = null
+
+			midpoint.current = null
+		}
 
 		if (pointers.current.size === 0) {
 			press.current = null
 
 			gestureBox.current = null
 
-			setPanning(false)
+			settleGesture()
 		}
 
 		if (event.currentTarget.hasPointerCapture(event.pointerId)) {
@@ -215,39 +263,71 @@ export function useMapZoom({ zoom, view, svgRef, subject }: MapZoomOptions): Map
 
 		gestureBox.current ??= svgRef.current?.getBoundingClientRect() ?? null
 
+		// In modifier mode the page keeps one-finger touch, so a lone touch never
+		// starts a pan and the browser scrolls with it; two fingers still pan and
+		// pinch. A mouse or a pen has no such conflict and drags as it always does.
 		if (pointers.current.size === 1) {
-			press.current = { from: at, moved: false }
+			const owned = modifier === null || event.pointerType !== 'touch'
+
+			press.current = owned ? { from: at, moved: false } : null
 
 			return
 		}
 
 		const [first, second] = [...pointers.current.values()]
 
-		if (first !== undefined && second !== undefined) spread.current = pointerGap(first, second)
+		if (first !== undefined && second !== undefined) {
+			spread.current = pointerGap(first, second)
+
+			midpoint.current = pointerMidpoint(first, second)
+		}
 	}
 
-	/** Scales the view by how much the two pointers' spread changed, about their midpoint. */
+	/**
+	 * Moves the view by what two pointers did: the midpoint's travel pans, and the
+	 * change in their spread scales about where the midpoint now sits. Both halves
+	 * matter — a two-finger drag at a constant spread is a pan, which on a map
+	 * that leaves one-finger touch to the page is the only pan touch has.
+	 */
 	function pinch(first: MapPoint2D, second: MapPoint2D) {
 		const { transform: from, view: frame, max: limit } = live.current
+
+		const middle = pointerMidpoint(first, second)
 
 		const gap = pointerGap(first, second)
 
 		const before = spread.current
 
+		const previous = midpoint.current
+
 		spread.current = gap
+
+		midpoint.current = middle
 
 		const box = gestureBox.current
 
-		const focus =
-			box === null
-				? null
-				: clientToFrame(pointerMidpoint(first, second), box, frame.width, frame.height)
+		const scale = box === null ? 0 : frameScale(box, frame.width, frame.height)
 
-		if (before === null || before === 0 || focus === null) return
+		const focus = box === null ? null : clientToFrame(middle, box, frame.width, frame.height)
+
+		if (before === null || before === 0 || previous === null || focus === null || scale === 0) {
+			return
+		}
 
 		panned.current = true
 
-		commit(zoomTransform(from, focus, gap / before, frame, limit))
+		setGesturing(true)
+
+		// Panned first, then scaled about where the midpoint now sits, so the ground
+		// under the fingers stays under them however the pair moves and spreads.
+		const travelled = panTransform(
+			from,
+			(middle.x - previous.x) / scale,
+			(middle.y - previous.y) / scale,
+			frame,
+		)
+
+		commit(zoomTransform(travelled, focus, gap / before, frame, limit))
 	}
 
 	/** Moves the view by one pointer's travel, once the press has become a pan. */
@@ -266,7 +346,7 @@ export function useMapZoom({ zoom, view, svgRef, subject }: MapZoomOptions): Map
 
 			panned.current = true
 
-			setPanning(true)
+			setGesturing(true)
 		}
 
 		const { transform: from, view: frame } = live.current
@@ -337,12 +417,13 @@ export function useMapZoom({ zoom, view, svgRef, subject }: MapZoomOptions): Map
 		return next
 	}
 
-	if (ceiling === null) return null
+	if (settings === null) return null
 
 	return {
 		transform,
 		unitsPerPixel: 1 / transform.k,
-		panning,
+		gesturing,
+		modifier: settings.modifier,
 		surface: {
 			onPointerDown,
 			onPointerMove,
@@ -373,9 +454,11 @@ export function useMapZoom({ zoom, view, svgRef, subject }: MapZoomOptions): Map
  */
 function useMapWheelZoom(
 	enabled: boolean,
+	modifier: MapZoomSettings['modifier'],
 	svgRef: RefObject<SVGSVGElement | null>,
 	view: MapViewFrame,
 	commit: (next: MapTransform) => void,
+	hold: () => void,
 	live: RefObject<{ transform: MapTransform; view: MapViewFrame; max: number }>,
 ) {
 	useEffect(() => {
@@ -387,6 +470,10 @@ function useMapWheelZoom(
 		if (!enabled || svg === null || view.width <= 0 || view.height <= 0) return
 
 		const onWheel = (event: WheelEvent) => {
+			// A modifier map hands every plain wheel back to the page untouched: that
+			// is the whole bargain the key buys.
+			if (modifier === 'shift' && !event.shiftKey) return
+
 			const { transform: from, view: frame, max } = live.current
 
 			// Read fresh per event, unlike a pointer gesture's: a wheel has no press
@@ -408,11 +495,16 @@ function useMapWheelZoom(
 				max,
 			)
 
-			// At the fit and at the ceiling the gesture moves nothing, so it stays
-			// the page's: a reader who has zoomed out is never held on the map.
-			if (sameTransform(next, from)) return
+			// Without a modifier the map takes the gesture only where it can use it:
+			// at the fit and at the ceiling nothing moves, so the wheel stays the
+			// page's and a reader is never held on the map. Holding the key says the
+			// opposite — the reader aimed this at the map — so it is taken either
+			// way, and a shift-wheel never scrolls the page sideways under them.
+			if (modifier === null && sameTransform(next, from)) return
 
 			event.preventDefault()
+
+			hold()
 
 			commit(next)
 		}
@@ -422,5 +514,5 @@ function useMapWheelZoom(
 		return () => {
 			svg.removeEventListener('wheel', onWheel)
 		}
-	}, [enabled, svgRef, commit, live, view.width, view.height])
+	}, [enabled, modifier, svgRef, commit, hold, live, view.width, view.height])
 }

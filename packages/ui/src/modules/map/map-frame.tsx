@@ -155,9 +155,12 @@ export function MapPlotRegion({
 				// corner comes with it, so the outline follows the box it rings.
 				keyboard && ['rounded-sm', k.focus],
 				// A zooming plot claims its own touch gestures: one finger pans and two
-				// pinch, so neither can reach the page's scroller. Every other map
-				// leaves touch alone, so a finger dragged over it still scrolls the page.
-				zoom && 'touch-none',
+				// pinch, so neither reaches the page's scroller. A modifier map makes
+				// the same bargain touch that it makes the wheel — one finger scrolls
+				// the page, two pan and pinch — so it keeps the browser's scrolling and
+				// takes only its pinch, which would otherwise zoom the page over the
+				// map. Every other map leaves touch alone entirely.
+				zoom && (zoom.modifier === null ? 'touch-none' : '[touch-action:pan-x_pan-y]'),
 				aside && 'min-w-0',
 				(aside || shape.fill) && 'flex-1',
 				shape.fill && 'min-h-0',

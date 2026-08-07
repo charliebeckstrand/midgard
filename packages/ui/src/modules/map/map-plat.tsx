@@ -29,7 +29,9 @@ import { type MapLegendInput, planMapLegend } from './engine/map-legend/plan'
 import { categoryLegendId, regionGroupId, slotColor } from './engine/map-region/category'
 import type { MapRegionData } from './engine/map-region/data'
 import { defaultRegionId } from './engine/map-region/identity'
-import { mapZoomCeiling, transformAttribute } from './engine/map-zoom/transform'
+import type { MapZoomInput } from './engine/map-zoom/input'
+import { mapZoomSettings } from './engine/map-zoom/input'
+import { transformAttribute } from './engine/map-zoom/transform'
 import type {
 	MapAspectRatio,
 	MapFeature,
@@ -138,10 +140,10 @@ export type MapPlatProps<T = never> = AccessibleName &
 		tooltip?: boolean
 		/**
 		 * Let the reader zoom and pan the drawn geography. A wheel over the plot
-		 * zooms about the pointer, a drag pans, two touches pinch, and the plot's
-		 * own tab stop takes `+`, `-`, and `0` — so the keyboard reaches every scale
-		 * the pointer does. A number sets how far in it goes; `true` takes the
-		 * default ceiling.
+		 * zooms about the pointer, a drag pans, two touches pan and pinch, and the
+		 * plot's own tab stop takes `+`, `-`, and `0` — so the keyboard reaches
+		 * every scale the pointer does. `true` takes the default ceiling, a number
+		 * sets its own, and the object form adds `modifier` (below).
 		 *
 		 * It is a transform over the fitted geography, not a refit: the projection
 		 * places the regions once and the layer moves what it placed, so a gesture
@@ -157,14 +159,23 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 * geography frames itself. Zooming out never goes past that fit, and a pan
 		 * never carries the geography off the frame.
 		 *
+		 * Nothing on the map answers the pointer for the length of a gesture. A
+		 * scaling frame sweeps the geography under a stationary pointer, so without
+		 * that a wheel would drag the readout across every region and dot it
+		 * crossed. A wheel reports no end, so it is read from a gap in the notches.
+		 *
 		 * @defaultValue false
-		 * @remarks A wheel takes the gesture from the page only where it moves the
-		 * view, so a reader at the fit — or at the ceiling — scrolls the page as
-		 * they would over anything else. Touch is the exception a map cannot avoid:
-		 * the plot claims its own touch gestures while this is on, so a one-finger
-		 * drag over the map pans it rather than scrolling the page.
+		 * @remarks How the map and the page share the wheel is the `modifier`
+		 * choice. Without one, a plain wheel over the plot zooms, and the map takes
+		 * the gesture only where the view can still move — so a reader at the fit or
+		 * at the ceiling scrolls the page through it and is never trapped; the plot
+		 * also claims touch outright, so a one-finger drag pans rather than
+		 * scrolling. With `{ modifier: 'shift' }` the page keeps every plain wheel
+		 * and every one-finger touch, and a held key both zooms and stops the page
+		 * scrolling — two fingers pan and pinch. Pick the modifier for a map inside
+		 * a long scrolling page, and the plain form for one that owns its screen.
 		 */
-		zoom?: boolean | number
+		zoom?: MapZoomInput
 		/**
 		 * Animate the map in on mount: the neutral geography paints at once, then
 		 * category colour washes in region by region, routes draw themselves, and
@@ -296,9 +307,11 @@ function MapMarksLayer({ animate, children }: { animate: boolean; children: Reac
  * Mounting the provider here rather than over the whole plat keeps both halves
  * of the zoom's contribution to the tree behind one condition.
  *
- * It stops answering the pointer while a pan is in flight, so the marks
- * travelling under a held pointer raise no readout and fire no crossing: a
- * drag moves the map, and nothing else.
+ * It stops answering the pointer for the length of any view gesture — a pan, a
+ * pinch, or a wheel that has not settled — so the geography travelling under a
+ * held pointer raises no readout and fires no crossing. A gesture moves the
+ * map, and nothing else: without this a wheel would drag a tooltip across every
+ * dot the scaling frame swept past the pointer.
  *
  * @internal
  */
@@ -312,7 +325,7 @@ function MapZoomLayer({ children }: { children: ReactNode }) {
 			<g
 				data-slot="map-zoom"
 				transform={transformAttribute(zoom.transform)}
-				pointerEvents={zoom.panning ? 'none' : undefined}
+				pointerEvents={zoom.gesturing ? 'none' : undefined}
 			>
 				{children}
 			</g>
@@ -580,7 +593,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// itself lives in `MapZoomProvider`, below this component and around the plot,
 	// so a wheel notch never re-renders the plat — but the tab-stop gate below
 	// needs the bit, and the bit is a pure function of the prop.
-	const zoomable = mapZoomCeiling(zoomInput) !== null
+	const zoomable = mapZoomSettings(zoomInput) !== null
 
 	// The keyboard cursor's stops, handed over as a closure rather than built
 	// here: every region at its centroid, then every registered overlay at its

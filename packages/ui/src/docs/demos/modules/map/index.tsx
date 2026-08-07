@@ -7,6 +7,7 @@ import { Flex } from '../../../../components/flex'
 import { Kbd } from '../../../../components/kbd'
 import { Select, SelectLabel, SelectOption } from '../../../../components/select'
 import { Stack } from '../../../../components/stack'
+import { Switch } from '../../../../components/switch'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../../components/tabs'
 import { Text } from '../../../../components/text'
 import {
@@ -388,13 +389,28 @@ function DeliveryRounds({ geography }: { geography: MapFeatureCollection | null 
  * that summarise at the national frame separate into their own stops as the view
  * closes on them, because a merge distance is a pixel distance and the transform
  * spreads the dots across those pixels.
+ *
+ * `modifier` picks how the map and the page share the wheel, which is the one
+ * choice a zooming map has to make. This demo sits in a long scrolling page, so
+ * both readings are worth trying here.
  */
 function ZoomableRounds({ geography }: { geography: MapFeatureCollection | null }) {
+	const [modifier, setModifier] = useState(false)
+
 	return (
 		<Stack gap="md">
+			<Flex>
+				<Switch checked={modifier} onChange={(event) => setModifier(event.target.checked)}>
+					Hold shift to zoom
+				</Switch>
+			</Flex>
+
 			<Text>
-				Wheel or pinch to zoom, drag to pan. From the keyboard, Tab to the map, then <Kbd>+</Kbd>,{' '}
-				<Kbd>-</Kbd>, and <Kbd>0</Kbd>; the arrows walk the stops and take the view with them.
+				{modifier
+					? 'The page keeps a plain wheel; hold shift to zoom, and the scroll stays on the map while you do.'
+					: 'Wheel to zoom, drag to pan. At the fit the wheel goes back to the page, so the scroll is never trapped.'}{' '}
+				From the keyboard, Tab to the map, then <Kbd>+</Kbd>, <Kbd>-</Kbd>, and <Kbd>0</Kbd>; the
+				arrows walk the stops and take the view with them.
 			</Text>
 
 			<MapPlat
@@ -402,7 +418,7 @@ function ZoomableRounds({ geography }: { geography: MapFeatureCollection | null 
 				geography={geography}
 				projection="albers-usa"
 				legend="right"
-				zoom
+				zoom={modifier ? { modifier: 'shift' } : true}
 			>
 				<MapPoints
 					id="round"

@@ -9,6 +9,7 @@ import {
 	wheelZoomFactor,
 	zoomKeyFactor,
 } from '../../modules/map/engine/map-zoom/gesture'
+import { mapZoomSettings } from '../../modules/map/engine/map-zoom/input'
 import {
 	applyTransform,
 	constrainTransform,
@@ -35,6 +36,31 @@ const MAX = 8
 
 /** The plot SVG's box, as `getBoundingClientRect` reports it for a measured frame. */
 const BOX = { left: 0, top: 0, width: 400, height: 200 }
+
+describe('mapZoomSettings', () => {
+	it("reads the prop's three on-forms to one ceiling", () => {
+		expect(mapZoomSettings(true)).toEqual({ max: 8, modifier: null })
+
+		expect(mapZoomSettings(12)).toEqual({ max: 12, modifier: null })
+
+		expect(mapZoomSettings({ max: 12 })).toEqual({ max: 12, modifier: null })
+
+		expect(mapZoomSettings({})).toEqual({ max: 8, modifier: null })
+	})
+
+	it('carries the modifier the object form names', () => {
+		expect(mapZoomSettings({ modifier: 'shift' })).toEqual({ max: 8, modifier: 'shift' })
+	})
+
+	it('reads every off-form, and a ceiling the fit already reaches, as no zoom', () => {
+		// A ceiling at or under the fit could never move, and such a map must take
+		// none of what a zoom costs — no tab stop it cannot answer, no claim on
+		// touch, and no layer.
+		for (const off of [false, undefined, 0, 1, -4, { max: 1 }, { max: 0.5, modifier: 'shift' }]) {
+			expect(mapZoomSettings(off as Parameters<typeof mapZoomSettings>[0])).toBeNull()
+		}
+	})
+})
 
 describe('constrainTransform', () => {
 	it('holds the fit as the floor, so the geography never draws smaller than the projection framed it', () => {

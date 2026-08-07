@@ -120,6 +120,16 @@ export const MAP_ZOOM_STEP = 1.6
 export const MAP_PAN_THRESHOLD = 4
 
 /**
+ * How long, in milliseconds, a wheel gesture is held live after its last event.
+ * A wheel reports no end, so the map reads one from a gap: below this the marks
+ * stay inert and the notches read as one gesture, and past it the pointer gets
+ * the drawing back. Long enough to bridge the gaps in a trackpad's momentum,
+ * short enough that a reader who stops never waits to point at anything.
+ * @internal
+ */
+export const MAP_WHEEL_SETTLE_MS = 120
+
+/**
  * The clear space, in frame units, the keyboard cursor keeps between its stop
  * and the frame edge when it pans a zoomed view to show it. A stop pinned to the
  * edge would anchor its readout half off the plot. @internal
