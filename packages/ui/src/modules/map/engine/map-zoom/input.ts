@@ -17,7 +17,7 @@ export type MapZoomModifier = 'shift'
 
 /**
  * What `MapPlat`'s `zoom` prop takes: off, on at the default ceiling, a ceiling
- * of its own, or the object form that also names a modifier.
+ * of its own, or the object form that also names how the wheel is armed.
  */
 export type MapZoomInput =
 	| boolean
@@ -29,26 +29,37 @@ export type MapZoomInput =
 			 */
 			max?: number
 			/**
-			 * Hand the wheel to the map only while this key is held. Without it a
-			 * plain wheel over the plot zooms, and a reader at the fit or at the
-			 * ceiling scrolls the page through it; with it the page keeps every plain
-			 * wheel, and a held key both zooms and stops the page scrolling — so the
-			 * two never both answer one gesture. Touch follows the same bargain: one
-			 * finger scrolls the page and two pan and pinch, where a modifier-less map
-			 * claims touch outright.
+			 * Which key hands the wheel to the map. Held, it both zooms and stops the
+			 * page scrolling; unheld, every wheel over the plot is the page's — so a
+			 * map inside a scrolling page never swallows a scroll the reader meant for
+			 * the page. Touch keeps the same bargain: one finger scrolls, two pan and
+			 * pinch.
+			 *
+			 * `false` arms the wheel outright: a plain wheel zooms, the map hands the
+			 * gesture back only where the view can no longer move, and the plot claims
+			 * touch so one finger pans. It is the right choice for a map that owns its
+			 * screen and the wrong one for almost anything else, which is why it must
+			 * be asked for.
+			 *
+			 * @defaultValue 'shift'
 			 */
-			modifier?: MapZoomModifier
+			modifier?: MapZoomModifier | false
 	  }
 
 /** What a `zoom` prop resolved to: the ceiling, and the key that arms the wheel. @internal */
 export type MapZoomSettings = {
 	max: number
-	/** `null` where a plain wheel zooms and the map claims touch. */
+	/** `null` where the wheel is armed outright and the map claims touch. */
 	modifier: MapZoomModifier | null
 }
 
 /**
  * What a `zoom` prop asks for, or `null` where the map does not zoom.
+ *
+ * The modifier defaults to the shift key, so a map added to a page is safe to
+ * scroll past before anyone thinks about it — the failure of the other default
+ * is silent and lands on the reader, who finds the page stuck under their
+ * pointer. Only `modifier: false` arms the wheel outright.
  *
  * A ceiling at or under the fit is no zoom at all: the fit is the floor, so such
  * a map could never move, and it must take none of what a zoom costs — no tab
@@ -57,15 +68,20 @@ export type MapZoomSettings = {
  * @internal
  */
 export function mapZoomSettings(zoom: MapZoomInput | undefined): MapZoomSettings | null {
-	if (zoom === true) return { max: MAP_ZOOM_MAX, modifier: null }
+	if (zoom === true) return { max: MAP_ZOOM_MAX, modifier: DEFAULT_MODIFIER }
 
 	if (typeof zoom === 'number') {
-		return zoom > MAP_ZOOM_FIT ? { max: zoom, modifier: null } : null
+		return zoom > MAP_ZOOM_FIT ? { max: zoom, modifier: DEFAULT_MODIFIER } : null
 	}
 
 	if (zoom === false || zoom === undefined) return null
 
 	const max = zoom.max ?? MAP_ZOOM_MAX
 
-	return max > MAP_ZOOM_FIT ? { max, modifier: zoom.modifier ?? null } : null
+	const modifier = zoom.modifier ?? DEFAULT_MODIFIER
+
+	return max > MAP_ZOOM_FIT ? { max, modifier: modifier === false ? null : modifier } : null
 }
+
+/** The key a map arms its wheel with unless it says otherwise. */
+const DEFAULT_MODIFIER: MapZoomModifier = 'shift'

@@ -99,6 +99,18 @@ function wheel(
 	return event
 }
 
+/**
+ * A wheel with the key held — the gesture a default map answers. Most of these
+ * only need the map zoomed to assert something else, so they take the armed
+ * form and leave the bare {@link wheel} to the tests about who owns a gesture.
+ */
+function zoomWheel(svg: SVGSVGElement, deltaY: number): WheelEvent {
+	return wheel(svg, deltaY, { shiftKey: true })
+}
+
+/** A map whose wheel is armed outright — the opt-out, and rare on purpose. */
+const DIRECT = { zoom: { modifier: false } } as const
+
 /** Whether the layer currently answers the pointer, which a gesture in flight suspends. */
 function answersPointer(container: HTMLElement): boolean {
 	return bySlot(container, 'map-zoom')?.getAttribute('pointer-events') !== 'none'
@@ -154,21 +166,21 @@ describe('MapPlat zoom layer', () => {
 		expect(transformOf(container)).toBe('translate(0 0) scale(1)')
 	})
 
-	it('claims touch gestures only while it zooms', () => {
-		expect(renderZoomable().plot).toHaveClass('touch-none')
-
-		expect(renderZoomable({ zoom: undefined }).plot).not.toHaveClass('touch-none')
-	})
-
-	it('leaves the page its touch scrolling under a modifier, and takes only its pinch', () => {
+	it('leaves the page its touch scrolling by default, and takes only its pinch', () => {
 		// The bargain the key buys on the wheel, kept on touch: one finger scrolls
 		// the page, two pan and pinch — so the browser keeps `pan-x pan-y` and
 		// loses only the pinch that would page-zoom over the map.
-		const { plot } = renderZoomable({ zoom: { modifier: 'shift' } })
+		const { plot } = renderZoomable()
 
 		expect(plot).not.toHaveClass('touch-none')
 
 		expect(plot).toHaveClass('[touch-action:pan-x_pan-y]')
+	})
+
+	it('claims touch outright only where the wheel is armed outright', () => {
+		expect(renderZoomable(DIRECT).plot).toHaveClass('touch-none')
+
+		expect(renderZoomable({ zoom: undefined }).plot).not.toHaveClass('touch-none')
 	})
 
 	it('reads a ceiling at the fit as no zoom at all', () => {
@@ -187,7 +199,7 @@ describe('MapPlat gesture suspends the readout', () => {
 
 			expect(answersPointer(container)).toBe(true)
 
-			wheel(svg, -200)
+			zoomWheel(svg, -200)
 
 			// A scaling frame sweeps the geography under a stationary pointer, so
 			// every dot it crosses would raise its own readout. The layer goes inert
@@ -199,7 +211,7 @@ describe('MapPlat gesture suspends the readout', () => {
 			// A wheel reports no end, so the gesture is still live inside the window.
 			expect(answersPointer(container)).toBe(false)
 
-			wheel(svg, -200)
+			zoomWheel(svg, -200)
 
 			await clock.advance(60)
 
@@ -234,7 +246,7 @@ describe('MapPlat gesture suspends the readout', () => {
 		await withFakeTime(async (clock) => {
 			const { container, plot, svg } = renderZoomable()
 
-			wheel(svg, -400)
+			zoomWheel(svg, -400)
 
 			fireEvent.pointerDown(plot, { pointerId: 1, button: 0, clientX: 200, clientY: 100 })
 
@@ -253,9 +265,11 @@ describe('MapPlat gesture suspends the readout', () => {
 	})
 })
 
-describe('MapPlat shift-to-zoom', () => {
+describe('MapPlat wheel, armed by the shift key', () => {
 	it('hands a plain wheel back to the page untouched', () => {
-		const { container, svg } = renderZoomable({ zoom: { modifier: 'shift' } })
+		// The default, and the reason it is the default: a map dropped into a page
+		// cannot swallow a scroll the reader meant for the page.
+		const { container, svg } = renderZoomable()
 
 		const event = wheel(svg, -200)
 
@@ -264,10 +278,10 @@ describe('MapPlat shift-to-zoom', () => {
 		expect(event.defaultPrevented).toBe(false)
 	})
 
-	it('zooms while the key is held', () => {
-		const { container, svg } = renderZoomable({ zoom: { modifier: 'shift' } })
+	it('zooms while the key is held, and takes the gesture with it', () => {
+		const { container, svg } = renderZoomable()
 
-		const event = wheel(svg, -200, { shiftKey: true })
+		const event = zoomWheel(svg, -200)
 
 		expect(scaleOf(container)).toBeGreaterThan(1)
 
@@ -275,20 +289,20 @@ describe('MapPlat shift-to-zoom', () => {
 	})
 
 	it('traps the scroll while the key is held, even where the view cannot move', () => {
-		const { container, svg } = renderZoomable({ zoom: { modifier: 'shift' } })
+		const { container, svg } = renderZoomable()
 
 		// At the fit there is nothing to zoom out to, but the reader aimed the
 		// gesture at the map by holding the key — so it never reaches the page,
 		// where a shift-wheel would scroll it sideways.
-		const event = wheel(svg, 200, { shiftKey: true })
+		const event = zoomWheel(svg, 200)
 
 		expect(scaleOf(container)).toBe(1)
 
 		expect(event.defaultPrevented).toBe(true)
 	})
 
-	it('still steps the scale from the keyboard', () => {
-		const { container, plot } = renderZoomable({ zoom: { modifier: 'shift' } })
+	it('still steps the scale from the keyboard, which needs no modifier', () => {
+		const { container, plot } = renderZoomable()
 
 		fireEvent.keyDown(plot, { key: '+' })
 
@@ -296,11 +310,35 @@ describe('MapPlat shift-to-zoom', () => {
 	})
 })
 
+describe('MapPlat wheel, armed outright', () => {
+	it('zooms on a plain wheel', () => {
+		const { container, svg } = renderZoomable(DIRECT)
+
+		const event = wheel(svg, -200)
+
+		expect(scaleOf(container)).toBeGreaterThan(1)
+
+		expect(event.defaultPrevented).toBe(true)
+	})
+
+	it('leaves the page its scroll where the gesture moves nothing', () => {
+		const { container, svg } = renderZoomable(DIRECT)
+
+		// Zooming out at the fit is a no-op, so a reader who has zoomed out is
+		// never held on the map: the wheel falls through and the page scrolls.
+		const event = wheel(svg, 200)
+
+		expect(scaleOf(container)).toBe(1)
+
+		expect(event.defaultPrevented).toBe(false)
+	})
+})
+
 describe('MapPlat two-finger gestures', () => {
 	it("pans by the pair's travel, so a two-finger drag moves the map", () => {
 		const { container, plot, svg } = renderZoomable()
 
-		wheel(svg, -400)
+		zoomWheel(svg, -400)
 
 		const before = transformOf(container)
 
@@ -340,8 +378,8 @@ describe('MapPlat two-finger gestures', () => {
 		expect(scaleOf(container)).toBeGreaterThan(1)
 	})
 
-	it('pans a lone finger on a map that claims touch', () => {
-		const { container, plot } = renderZoomable()
+	it('pans a lone finger on a map that claims touch outright', () => {
+		const { container, plot } = renderZoomable(DIRECT)
 
 		fireEvent.keyDown(plot, { key: '+' })
 
@@ -356,10 +394,10 @@ describe('MapPlat two-finger gestures', () => {
 		expect(transformOf(container)).not.toBe(before)
 	})
 
-	it('leaves a lone finger to the page under a modifier', () => {
-		const { container, plot, svg } = renderZoomable({ zoom: { modifier: 'shift' } })
+	it('leaves a lone finger to the page by default', () => {
+		const { container, plot, svg } = renderZoomable()
 
-		wheel(svg, -400, { shiftKey: true })
+		zoomWheel(svg, -400)
 
 		const before = transformOf(container)
 
@@ -372,10 +410,10 @@ describe('MapPlat two-finger gestures', () => {
 		expect(transformOf(container)).toBe(before)
 	})
 
-	it('still pans a lone mouse under a modifier, which has no scroll to give up', () => {
-		const { container, plot, svg } = renderZoomable({ zoom: { modifier: 'shift' } })
+	it('still pans a lone mouse, which has no scroll to give up', () => {
+		const { container, plot, svg } = renderZoomable()
 
-		wheel(svg, -400, { shiftKey: true })
+		zoomWheel(svg, -400)
 
 		const before = transformOf(container)
 
@@ -386,32 +424,10 @@ describe('MapPlat two-finger gestures', () => {
 })
 
 describe('MapPlat wheel zoom', () => {
-	it('zooms in and takes the gesture from the page', () => {
-		const { container, svg } = renderZoomable()
-
-		const event = wheel(svg, -200)
-
-		expect(scaleOf(container)).toBeGreaterThan(1)
-
-		expect(event.defaultPrevented).toBe(true)
-	})
-
-	it('leaves the page its scroll where the gesture moves nothing', () => {
-		const { container, svg } = renderZoomable()
-
-		// Zooming out at the fit is a no-op, so the reader is never trapped on the
-		// map: the wheel falls through and the page scrolls.
-		const event = wheel(svg, 200)
-
-		expect(scaleOf(container)).toBe(1)
-
-		expect(event.defaultPrevented).toBe(false)
-	})
-
 	it('stops at the ceiling the prop names', () => {
 		const { container, svg } = renderZoomable({ zoom: 2 })
 
-		wheel(svg, -2000)
+		zoomWheel(svg, -2000)
 
 		expect(scaleOf(container)).toBe(2)
 	})
@@ -423,7 +439,7 @@ describe('MapPlat wheel zoom', () => {
 			path.getAttribute('d'),
 		)
 
-		wheel(svg, -200)
+		zoomWheel(svg, -200)
 
 		const after = [...container.querySelectorAll('[data-region-index]')].map((path) =>
 			path.getAttribute('d'),
@@ -435,7 +451,7 @@ describe('MapPlat wheel zoom', () => {
 	it('holds every stroke at a hairline through the transform', () => {
 		const { container, svg } = renderZoomable()
 
-		wheel(svg, -200)
+		zoomWheel(svg, -200)
 
 		const region = container.querySelector('[data-region-index]')
 
@@ -447,7 +463,7 @@ describe('MapPlat pan', () => {
 	it('moves the view on a drag once it passes the threshold', () => {
 		const { container, plot, svg } = renderZoomable()
 
-		wheel(svg, -400)
+		zoomWheel(svg, -400)
 
 		const before = transformOf(container)
 
@@ -459,7 +475,7 @@ describe('MapPlat pan', () => {
 	it('holds the view for a press that never travels', () => {
 		const { container, plot, svg } = renderZoomable()
 
-		wheel(svg, -400)
+		zoomWheel(svg, -400)
 
 		const before = transformOf(container)
 
@@ -541,7 +557,7 @@ describe('MapPlat zoom across a geography change', () => {
 	it('returns to the fit, because the new geography frames itself', () => {
 		const { container, svg, rerender } = renderZoomable()
 
-		wheel(svg, -400)
+		zoomWheel(svg, -400)
 
 		expect(scaleOf(container)).toBeGreaterThan(1)
 

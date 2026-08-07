@@ -3,12 +3,10 @@ import { type GeoPermissibleObjects, geoBounds, geoContains } from 'd3-geo'
 import { type ComponentProps, useMemo, useState } from 'react'
 import { feature } from 'topojson-client'
 import statesUrl from 'us-atlas/states-10m.json?url'
-import { Label } from '../../../../components/fieldset'
 import { Flex } from '../../../../components/flex'
 import { Kbd } from '../../../../components/kbd'
 import { Select, SelectLabel, SelectOption } from '../../../../components/select'
 import { Stack } from '../../../../components/stack'
-import { Switch, SwitchField } from '../../../../components/switch'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../../components/tabs'
 import { Text } from '../../../../components/text'
 import {
@@ -391,27 +389,18 @@ function DeliveryRounds({ geography }: { geography: MapFeatureCollection | null 
  * closes on them, because a merge distance is a pixel distance and the transform
  * spreads the dots across those pixels.
  *
- * `modifier` picks how the map and the page share the wheel, which is the one
- * choice a zooming map has to make. This demo sits in a long scrolling page, so
- * both readings are worth trying here.
+ * The wheel is armed by the shift key, which is the default and what this page
+ * needs: the demo sits in a long scrolling page, and a map that took every wheel
+ * over it would stop the reader scrolling past.
  */
 function ZoomableRounds({ geography }: { geography: MapFeatureCollection | null }) {
-	const [modifier, setModifier] = useState(false)
-
 	return (
 		<Stack gap="md">
-			<SwitchField>
-				<Label>Hold shift to zoom</Label>
-
-				<Switch checked={modifier} onChange={(event) => setModifier(event.target.checked)} />
-			</SwitchField>
-
 			<Text>
-				{modifier
-					? 'The page keeps a plain wheel; hold shift to zoom, and the scroll stays on the map while you do.'
-					: 'Wheel to zoom, drag to pan. At the fit the wheel goes back to the page, so the scroll is never trapped.'}{' '}
-				From the keyboard, Tab to the map, then <Kbd>+</Kbd>, <Kbd>-</Kbd>, and <Kbd>0</Kbd>; the
-				arrows walk the stops and take the view with them.
+				Hold <Kbd>shift</Kbd> and scroll to zoom — the page stays put while you do, and keeps every
+				wheel you do not aim at the map. Drag to pan. From the keyboard, Tab to the map, then{' '}
+				<Kbd>+</Kbd>, <Kbd>-</Kbd>, and <Kbd>0</Kbd>; the arrows walk the stops and take the view
+				with them.
 			</Text>
 
 			<MapPlat
@@ -419,7 +408,7 @@ function ZoomableRounds({ geography }: { geography: MapFeatureCollection | null 
 				geography={geography}
 				projection="albers-usa"
 				legend="right"
-				zoom={modifier ? { modifier: 'shift' } : true}
+				zoom
 			>
 				<MapPoints
 					id="round"

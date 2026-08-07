@@ -139,11 +139,11 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 */
 		tooltip?: boolean
 		/**
-		 * Let the reader zoom and pan the drawn geography. A wheel over the plot
-		 * zooms about the pointer, a drag pans, two touches pan and pinch, and the
-		 * plot's own tab stop takes `+`, `-`, and `0` — so the keyboard reaches
-		 * every scale the pointer does. `true` takes the default ceiling, a number
-		 * sets its own, and the object form adds `modifier` (below).
+		 * Let the reader zoom and pan the drawn geography. Shift and a wheel zoom
+		 * about the pointer, a drag pans, two touches pan and pinch, and the plot's
+		 * own tab stop takes `+`, `-`, and `0` — so the keyboard reaches every scale
+		 * the pointer does. `true` takes the default ceiling, a number sets its own,
+		 * and the object form adds `modifier` (below).
 		 *
 		 * It is a transform over the fitted geography, not a refit: the projection
 		 * places the regions once and the layer moves what it placed, so a gesture
@@ -165,15 +165,17 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 * crossed. A wheel reports no end, so it is read from a gap in the notches.
 		 *
 		 * @defaultValue false
-		 * @remarks How the map and the page share the wheel is the `modifier`
-		 * choice. Without one, a plain wheel over the plot zooms, and the map takes
-		 * the gesture only where the view can still move — so a reader at the fit or
-		 * at the ceiling scrolls the page through it and is never trapped; the plot
-		 * also claims touch outright, so a one-finger drag pans rather than
-		 * scrolling. With `{ modifier: 'shift' }` the page keeps every plain wheel
-		 * and every one-finger touch, and a held key both zooms and stops the page
-		 * scrolling — two fingers pan and pinch. Pick the modifier for a map inside
-		 * a long scrolling page, and the plain form for one that owns its screen.
+		 * @remarks The page keeps every wheel the reader does not aim at the map.
+		 * Shift arms it — held, the wheel zooms and the page stays put; unheld, the
+		 * plot scrolls past like anything else — and touch keeps the same bargain,
+		 * one finger scrolling and two panning and pinching. That way a map dropped
+		 * into a page cannot swallow a scroll, which is the failure worth defaulting
+		 * against: it is silent, and it strands the reader rather than the author.
+		 *
+		 * `{ modifier: false }` arms the wheel outright, for a map that owns its
+		 * screen — a plain wheel zooms, the gesture goes back to the page only where
+		 * the view can no longer move, and the plot claims touch so one finger pans.
+		 * Reach for it rarely.
 		 */
 		zoom?: MapZoomInput
 		/**

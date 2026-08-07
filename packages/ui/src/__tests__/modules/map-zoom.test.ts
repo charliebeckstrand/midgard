@@ -39,25 +39,31 @@ const MAX = 8
 const BOX = { left: 0, top: 0, width: 400, height: 200 }
 
 describe('mapZoomSettings', () => {
-	it("reads the prop's three on-forms to one ceiling", () => {
-		expect(mapZoomSettings(true)).toEqual({ max: 8, modifier: null })
+	it("reads the prop's three on-forms to one ceiling, armed by the shift key", () => {
+		// The default the other way round would let a map dropped into a page
+		// swallow a scroll, which fails silently and strands the reader.
+		expect(mapZoomSettings(true)).toEqual({ max: 8, modifier: 'shift' })
 
-		expect(mapZoomSettings(12)).toEqual({ max: 12, modifier: null })
+		expect(mapZoomSettings(12)).toEqual({ max: 12, modifier: 'shift' })
 
-		expect(mapZoomSettings({ max: 12 })).toEqual({ max: 12, modifier: null })
+		expect(mapZoomSettings({ max: 12 })).toEqual({ max: 12, modifier: 'shift' })
 
-		expect(mapZoomSettings({})).toEqual({ max: 8, modifier: null })
+		expect(mapZoomSettings({})).toEqual({ max: 8, modifier: 'shift' })
+
+		expect(mapZoomSettings({ modifier: 'shift' })).toEqual({ max: 8, modifier: 'shift' })
 	})
 
-	it('carries the modifier the object form names', () => {
-		expect(mapZoomSettings({ modifier: 'shift' })).toEqual({ max: 8, modifier: 'shift' })
+	it('arms the wheel outright only where the prop asks it to', () => {
+		expect(mapZoomSettings({ modifier: false })).toEqual({ max: 8, modifier: null })
+
+		expect(mapZoomSettings({ max: 4, modifier: false })).toEqual({ max: 4, modifier: null })
 	})
 
 	it('reads every off-form, and a ceiling the fit already reaches, as no zoom', () => {
 		// A ceiling at or under the fit could never move, and such a map must take
 		// none of what a zoom costs — no tab stop it cannot answer, no claim on
 		// touch, and no layer.
-		for (const off of [false, undefined, 0, 1, -4, { max: 1 }, { max: 0.5, modifier: 'shift' }]) {
+		for (const off of [false, undefined, 0, 1, -4, { max: 1 }, { max: 0.5, modifier: false }]) {
 			expect(mapZoomSettings(off as Parameters<typeof mapZoomSettings>[0])).toBeNull()
 		}
 	})
