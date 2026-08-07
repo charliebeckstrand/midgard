@@ -8,7 +8,7 @@ import { markAnchorAt } from './engine/map-hover/anchor'
 import { mapMarkDimmed } from './engine/map-hover/target'
 import type { MapOverlayKind, MapStopRow } from './engine/map-overlay/entry'
 import { ownStop, pickedStop } from './engine/map-overlay/selection'
-import type { LngLat, MapPoint2D } from './engine/types'
+import type { LngLat, MapPoint2D, MapSwatchShape } from './engine/types'
 
 /**
  * The props every overlay mark shares: its identity, its legend text and paint,
@@ -77,8 +77,7 @@ type MapOverlayReporters = {
 type MapOverlayConfig = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> &
 	MapOverlayReporters & {
 		kind: MapOverlayKind
-		/** Swatch shape, mirroring the mark: `line` for routes and markers, `dot` for points. */
-		swatch: 'line' | 'dot'
+		swatch: MapSwatchShape
 		/**
 		 * Where the keyboard cursor can stand on this mark, in lon/lat — a point's
 		 * own position, a route's middle stop, every dot of a plural mark. Empty

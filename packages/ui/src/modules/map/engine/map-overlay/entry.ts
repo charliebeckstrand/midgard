@@ -7,10 +7,10 @@
  */
 
 import type { MapSeriesColor } from '../../../../recipes/kata/map'
-import type { LngLat } from '../types'
+import type { LngLat, MapSwatchShape } from '../types'
 
 /** The overlay kinds that register legend entries. @internal */
-export type MapOverlayKind = 'route' | 'point' | 'marker'
+export type MapOverlayKind = 'route' | 'point' | 'marker' | 'geofence'
 
 /**
  * One stop's own readout. Either field may stand alone: a dot that carries a
@@ -40,8 +40,7 @@ export type MapOverlayEntry = {
 	/** Legend and tooltip name. */
 	label: string
 	kind: MapOverlayKind
-	/** Swatch shape, mirroring the mark: `line` for routes and markers, `dot` for points. */
-	swatch: 'line' | 'dot'
+	swatch: MapSwatchShape
 	/** Named mark colour override; defaults to the next slot after the categories. */
 	color?: MapSeriesColor
 	/** A trailing readout — a route's mileage, a point's value. */

@@ -9,11 +9,12 @@ import type { MapHoverTarget } from './engine/map-hover/target'
 import type { MapStopRow } from './engine/map-overlay/entry'
 import { markReadout } from './engine/map-overlay/readout'
 import { categoryLegendId, type MapCategoryMeta } from './engine/map-region/category'
+import type { MapSwatchShape } from './engine/types'
 
 /** One resolved overlay entry the tooltip can read. @internal */
 export type MapTooltipEntry = {
 	label: string
-	swatch: 'line' | 'dot'
+	swatch: MapSwatchShape
 	/** currentColor class carrying the entry's colour. */
 	swatchClass: string
 	detail?: string
@@ -44,7 +45,7 @@ type MapTooltipContent = {
 	title: string
 	/** The swatch reads a currentColor class (`swatchClass`) or an inline CSS colour (`swatchColor`, numeric bins). */
 	row?: {
-		swatch: 'rect' | 'line' | 'dot'
+		swatch: MapSwatchShape
 		swatchClass?: string
 		swatchColor?: string
 		text: string
@@ -53,7 +54,7 @@ type MapTooltipContent = {
 
 /** Maps a mark shape to its {@link Swatch} shape. */
 const SWATCH_SHAPE = { rect: 'square', line: 'line', dot: 'circle' } as const satisfies Record<
-	'rect' | 'line' | 'dot',
+	MapSwatchShape,
 	NonNullable<SwatchProps['shape']>
 >
 

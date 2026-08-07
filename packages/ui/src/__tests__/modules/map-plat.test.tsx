@@ -239,15 +239,14 @@ describe('MapPlat', () => {
 
 		expect(alpha?.getAttribute('class')).toContain('fill-zinc-200')
 
-		// The label is the third span — the Button's hit-target sibling and the
-		// swatch lead it.
-		expect(east?.querySelector('span:nth-child(3)')?.getAttribute('class')).toContain(
+		expect(bySlot(east as HTMLElement, 'map-legend-label')?.getAttribute('class')).toContain(
 			'line-through',
 		)
 	})
 
 	it('keeps a toggled-off category tied to its value when the data reorders', () => {
-		const labelOf = (el: Element) => el.querySelector('span:nth-child(3)')?.textContent ?? ''
+		const labelOf = (el: Element) =>
+			bySlot(el as HTMLElement, 'map-legend-label')?.textContent ?? ''
 
 		const pressedByLabel = (root: HTMLElement) =>
 			Object.fromEntries(

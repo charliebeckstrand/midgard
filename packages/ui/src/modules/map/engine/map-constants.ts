@@ -38,14 +38,63 @@ export const MARK_SELECTED_HALO = 3
 /** Route polyline stroke width — a step over the chart line, to hold over busy region fills. @internal */
 export const ROUTE_STROKE_WIDTH = 2.5
 
-/** Invisible hit-stroke width over a route — a finger-wide band so the thin line stays aimable on touch. @internal */
+/**
+ * Invisible hit-stroke width over a thin line — a route, a marker's connector, a
+ * geofence boundary. WCAG 2.5.8's 24px minimum, and the same band whatever is
+ * pointing: a line declines the 44px a dot takes on a coarse pointer
+ * ({@link POINT_HIT_RADIUS}), because a dot is an isolated island where a band
+ * that wide would swallow a parallel leg, the marks along a zone's edge, and the
+ * other end of a hairpin. @internal
+ */
 export const ROUTE_HIT_WIDTH = 24
+
+/**
+ * Geofence boundary stroke width — a step over the region seam and under the
+ * route line, so a zone reads as the context behind the marks it holds rather
+ * than as another route drawn around them. @internal
+ */
+export const GEOFENCE_STROKE_WIDTH = 1.5
+
+/**
+ * The geofence wash's opacity, sitting the fill inside its boundary without
+ * muddying the geography under it — the chart module's area wash
+ * (`AREA_FILL_OPACITY`), because the two draw the same thing. @internal
+ */
+export const GEOFENCE_FILL_OPACITY = 0.16
+
+/**
+ * How many segments a circular geofence's ring holds. The marks project point by
+ * point and draw each edge straight, so the count is what makes a circle read
+ * round: at 64 the widest gap between the ring and the true circle is under
+ * 0.13% of the radius, which no frame this module draws can resolve. @internal
+ */
+export const GEOFENCE_CIRCLE_STEPS = 64
 
 /** Point-marker radius (≥ 5.5 so the dot stays legible). @internal */
 export const POINT_RADIUS = 5.5
 
-/** Invisible hit-circle radius over a point (and a marker pin) — a ~44px finger target. @internal */
+/**
+ * Invisible hit-circle radius over a point (and a marker pin), for a coarse
+ * pointer: a 44px finger target, WCAG 2.5.5's enhanced floor — the same figure
+ * the `TouchTarget` primitive holds for a coarse pointer.
+ * @internal
+ */
 export const POINT_HIT_RADIUS = 22
+
+/**
+ * The same target for a fine pointer: 24px, WCAG 2.5.8's minimum, which is what
+ * `TouchTarget` floors a mouse at. A mouse is precise enough not to need the
+ * finger's reach, and holding it to that reach is what makes a dot swallow the
+ * marks around it — a `MapGeofence` drawn small around a `MapPoint` sits
+ * entirely inside a 44px circle, so the zone can never be pointed at while the
+ * dot standing in it claims that whole area.
+ *
+ * Applied through `kata/map`'s `hitFine` class rather than the `r` attribute,
+ * since only CSS can answer the modality; the attribute carries the coarse
+ * radius, so a browser that resolves no `r` in CSS keeps the larger target.
+ * @internal
+ */
+export const POINT_HIT_RADIUS_FINE = 12
 
 /**
  * The clear space, in frame units, two point marks keep between their edges

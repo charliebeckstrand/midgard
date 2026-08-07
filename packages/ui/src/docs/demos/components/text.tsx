@@ -3,7 +3,7 @@ import { Example } from '../../engine'
 
 const severities = ['default', 'primary', 'success', 'warning', 'error', 'muted'] as const
 
-const sizes = ['sm', 'md', 'lg'] as const
+const sizes = ['xs', 'sm', 'md', 'lg'] as const
 
 export function Demo() {
 	return (
