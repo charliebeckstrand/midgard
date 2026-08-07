@@ -8,7 +8,7 @@ import { PIN_RADIUS, ROUTE_HIT_WIDTH, ROUTE_STROKE_WIDTH } from './engine/map-co
 import { lineAnchor, linePath } from './engine/map-geometry/mark'
 import { MARKER_DRAW, MARKER_END_POP, POINT_POP } from './engine/map-motion'
 import type { LngLat } from './engine/types'
-import { MapDot, MapDotHit } from './map-dot'
+import { dotHitProps, MapDot } from './map-dot'
 import { MapDotHalo, MapHalo } from './map-halo'
 import { type MapOverlayProps, useMapOverlay } from './use-map-overlay'
 
@@ -149,9 +149,9 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 					/>
 				)}
 
-				{from && <MapDotHit slot="map-marker-start-hit" at={from} {...hit()} />}
+				{from && <circle {...dotHitProps('map-marker-start-hit', from, hit())} />}
 
-				{to && <MapDotHit slot="map-marker-end-hit" at={to} {...hit()} />}
+				{to && <circle {...dotHitProps('map-marker-end-hit', to, hit())} />}
 			</g>
 		</>
 	)

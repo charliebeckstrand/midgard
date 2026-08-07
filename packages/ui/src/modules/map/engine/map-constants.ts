@@ -40,8 +40,11 @@ export const ROUTE_STROKE_WIDTH = 2.5
 
 /**
  * Invisible hit-stroke width over a thin line — a route, a marker's connector, a
- * geofence boundary. A finger-wide band, so the line stays aimable on touch.
- * @internal
+ * geofence boundary. WCAG 2.5.8's 24px minimum, and the same band whatever is
+ * pointing: a line declines the 44px a dot takes on a coarse pointer
+ * ({@link POINT_HIT_RADIUS}), because a dot is an isolated island where a band
+ * that wide would swallow a parallel leg, the marks along a zone's edge, and the
+ * other end of a hairpin. @internal
  */
 export const ROUTE_HIT_WIDTH = 24
 

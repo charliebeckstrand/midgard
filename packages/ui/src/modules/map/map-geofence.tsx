@@ -74,8 +74,8 @@ export type MapGeofenceProps = MapOverlayProps & (MapGeofenceCircle | MapGeofenc
  * projection keeps fewer than three of its points — the US composite drops
  * points outside its insets.
  *
- * The whole face is the target, plus a finger-wide band around the boundary so
- * the edge stays aimable on touch. Marks the zone encloses keep their own hits
+ * The whole face is the target, plus a 24px band around the boundary (WCAG
+ * 2.5.8's minimum) so the edge stays aimable where the fill ends. Marks the zone encloses keep their own hits
  * as long as they are drawn after it — the topmost shape at a point wins — so
  * order the children with the zone first, which also keeps the wash behind the
  * marks rather than over them. A region under the zone does not: the zone is
@@ -174,8 +174,8 @@ export function MapGeofence({ at, radius, boundary, ...shared }: MapGeofenceProp
 					<path {...edge} />
 				)}
 
-				{/* The whole zone answers the pointer — its face, and a finger-wide band
-				    around the boundary so the edge stays aimable on touch. `all` rather
+				{/* The whole zone answers the pointer — its face, and a 24px band around
+				    the boundary so the edge stays aimable where the fill ends. `all` rather
 				    than the painted default, so the transparent fill counts as a target.
 				    Marks inside the zone still take their own hits: they draw after it,
 				    and the topmost shape at a point wins. */}

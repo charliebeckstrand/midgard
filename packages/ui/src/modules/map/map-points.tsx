@@ -8,11 +8,10 @@ import { useMapPlat } from './context'
 import { clusterAnchor, clusterSpan } from './engine/map-cluster/geo'
 import { clusterGap, clusterPoints, groupsByMember } from './engine/map-cluster/group'
 import { clusterRadius } from './engine/map-cluster/radius'
-
 import { pointPop } from './engine/map-motion'
 import type { MapStopRow } from './engine/map-overlay/entry'
 import type { LngLat } from './engine/types'
-import { MapDot, MapDotCount, MapDotHit } from './map-dot'
+import { dotHitProps, MapDot, MapDotCount } from './map-dot'
 import { MapDotHalo } from './map-halo'
 import { type MapOverlayProps, useMapOverlay } from './use-map-overlay'
 
@@ -269,7 +268,7 @@ export function MapPoints({
 								/>
 							)}
 
-							<MapDotHit slot="map-points-hit" at={position} {...hit(index)} />
+							<circle {...dotHitProps('map-points-hit', position, hit(index))} />
 						</Fragment>
 					)
 				})}

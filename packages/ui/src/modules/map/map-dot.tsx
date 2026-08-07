@@ -1,12 +1,19 @@
 'use client'
 
 import { motion } from 'motion/react'
-import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
 import { POINT_HIT_RADIUS } from './engine/map-constants'
 import { dotPath } from './engine/map-geometry/mark'
 import type { MapPoint2D } from './engine/types'
+import type { MapOverlay } from './use-map-overlay'
+
+/**
+ * The hit props a mark hands in — `useMapOverlay`'s own `hit()` return, named
+ * here so the factory below takes exactly what a mark produces and nothing a
+ * caller could use to widen the target. @internal
+ */
+type MapOverlayHit = ReturnType<MapOverlay['hit']>
 
 /** Props for {@link MapDot}. @internal */
 type MapDotProps = {
@@ -113,18 +120,10 @@ export function MapDotCount({ at, count, className, animate, transition }: MapDo
 	)
 }
 
-/** Props for {@link MapDotHit}: the hit props {@link useMapOverlay} builds, plus where the target sits. @internal */
-type MapDotHitProps = ComponentProps<'circle'> & {
-	/** The mark's `data-slot` name. */
-	slot: string
-	/** The dot's projected frame position. */
-	at: MapPoint2D
-}
-
 /**
- * The invisible circle that answers the pointer over a dot-shaped mark — a
- * point, a marker pin, one dot of a set. One component for all of them, because
- * the target's size is a rule about the input device rather than about the mark:
+ * Every attribute of the invisible circle that answers the pointer over a
+ * dot-shaped mark — a point, a marker pin, one dot of a set. One rule for all of
+ * them, because the target's size answers the input device rather than the mark:
  * the `r` attribute carries the coarse-pointer reach (WCAG 2.5.5's 44px) and
  * `k.hitFine` takes it to the fine-pointer floor (2.5.8's 24px), so a mouse gets
  * precision where a finger gets reach.
@@ -133,18 +132,26 @@ type MapDotHitProps = ComponentProps<'circle'> & {
  * it: a `MapGeofence` drawn tight around a `MapPoint` fits inside the finger
  * target, and would otherwise never answer a mouse.
  *
+ * A props factory rather than a component, because a `MapPoints` draws one of
+ * these per dot: a component's own fiber priced 200 of them at ~1 µs each, +14%
+ * on every re-render of the set — and the set re-renders on each pointed-mark
+ * crossing, each legend emphasis, and each refit. The rule stays in one place
+ * either way; only the fiber goes.
+ *
+ * The mark's own hit props go in rather than over: `r` and `fill` are not the
+ * caller's to set, and the mark's `className` composes with the floor instead of
+ * replacing it.
+ *
  * @internal
  */
-export function MapDotHit({ slot, at, className, ...hit }: MapDotHitProps) {
-	return (
-		<circle
-			data-slot={slot}
-			cx={at.x}
-			cy={at.y}
-			r={POINT_HIT_RADIUS}
-			fill="transparent"
-			{...hit}
-			className={cn(k.hitFine, className)}
-		/>
-	)
+export function dotHitProps(slot: string, at: MapPoint2D, hit: MapOverlayHit) {
+	return {
+		'data-slot': slot,
+		cx: at.x,
+		cy: at.y,
+		r: POINT_HIT_RADIUS,
+		fill: 'transparent',
+		...hit,
+		className: cn(k.hitFine, hit.className),
+	}
 }

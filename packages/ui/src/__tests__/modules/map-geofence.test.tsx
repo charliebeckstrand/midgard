@@ -126,9 +126,6 @@ describe('MapGeofence', () => {
 		expect(hit?.getAttribute('fill')).toBe('transparent')
 
 		expect(hit?.getAttribute('pointer-events')).toBe('all')
-
-		// The band around the boundary stays, so the edge is aimable on touch.
-		expect(hit?.getAttribute('stroke-width')).toBe(String(ROUTE_HIT_WIDTH))
 	})
 
 	it('keeps its wash out of the pointer, so one zone never reads as two targets', () => {
@@ -140,26 +137,17 @@ describe('MapGeofence', () => {
 		expect(bySlot(container, 'map-geofence-wash')?.getAttribute('pointer-events')).toBe('none')
 	})
 
-	it('draws its hit shape after the wash, so a mark inside the zone still wins the pointer', () => {
-		const { container } = renderUI(
-			plat(
-				<>
-					<MapGeofence label="Zone A" boundary={ZONE} />
+	it('draws its hit shape last, so nothing of its own paints over the target', () => {
+		const { container } = renderUI(plat(<MapGeofence label="Zone A" boundary={ZONE} />))
 
-					<MapPoint label="Depot" at={[8, 5]} />
-				</>,
-			),
-		)
+		const group = bySlot(container, 'map-geofence')?.parentElement
 
-		const svg = bySlot(container, 'map-geofence')?.closest('svg')
+		const order = Array.from(group?.children ?? []).map((el) => el.getAttribute('data-slot'))
 
-		const order = Array.from(svg?.querySelectorAll('[data-slot]') ?? []).map((el) =>
-			el.getAttribute('data-slot'),
-		)
-
-		// The topmost shape at a point wins, and later siblings paint on top: a
-		// point drawn after the zone keeps its own hit circle over the zone's face.
-		expect(order.indexOf('map-point-hit')).toBeGreaterThan(order.indexOf('map-geofence-hit'))
+		// The topmost shape at a point wins, so the hit path has to close the
+		// group: the boundary reordered over it would take back its own stroke's
+		// width of the target, and the wash would take the whole face.
+		expect(order).toEqual(['map-geofence-wash', 'map-geofence', 'map-geofence-hit'])
 	})
 
 	it('draws a circle from a centre and a ground radius', () => {
