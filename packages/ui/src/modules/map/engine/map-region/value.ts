@@ -1,10 +1,10 @@
 /**
  * Map-shaped adapters over the shared sequential colour scale
- * ({@link ../../utilities/color-scale}): quantise a `valueKey` into
+ * ({@link ../../../../utilities/color-scale}): quantise a `valueKey` into
  * equal-interval or equal-count (quantile) bins and emit them as the map's
  * {@link MapCategoryMeta} shape (a `value`-kind paint) so the region fills,
  * legend, tooltip, and table read them the way they read categorical slots. The
- * numeric analogue of `map-categories`. The colour maths itself — sampling the
+ * numeric analogue of `category.ts`. The colour maths itself — sampling the
  * ramp, binning the domain — lives in the shared utility, so the choropleth and
  * the heatmap share one scale.
  */
@@ -16,11 +16,9 @@ import {
 	resolveQuantileBins,
 	toNumericCell,
 	valueExtent,
-} from '../../utilities'
-import type { MapCategoryMeta } from './map-categories'
-import type { DataKey } from './types'
-
-export { sampleRange } from '../../utilities'
+} from '../../../../utilities'
+import type { DataKey } from '../types'
+import type { MapCategoryMeta } from './category'
 
 /**
  * A map's `valueFormat`, or the plain-string fallback where it has none. The

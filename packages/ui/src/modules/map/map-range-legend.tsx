@@ -5,24 +5,19 @@ import {
 	RangeArrow,
 	RangeLegend,
 	type RangeOrientation,
-	type RangeScale,
 } from '../chart/engine/chart-legend/range-legend'
 import { useMapPointedMark } from './context'
-import { binEmphasisId } from './map-categories'
+import type { MapLegendRange } from './engine/map-legend/plan'
+import { binEmphasisId } from './engine/map-region/category'
 
-/** Props for {@link MapRangeLegend}: the shared bar's own scale, plus what the map wires into it. @internal */
-export type MapRangeLegendProps = RangeScale & {
-	/** Each region's raw value (`null` = no data), feature-index aligned — the arrow marks the hovered region's. */
-	regionNumbers: (number | null)[]
-	/** Emphasises a bin's regions (`null` clears); other regions dim while set — the filter. */
-	onFocus: (id: string | null) => void
-	/**
-	 * Which way the bar runs — vertical beside the plot, horizontal above or
-	 * below it. Follows the resolved placement.
-	 * @defaultValue 'vertical'
-	 */
-	orientation?: RangeOrientation
-}
+/**
+ * Props for {@link MapRangeLegend}: the bar the legend plan resolved. The shape
+ * is the engine's ({@link MapLegendRange}), so the plan builds and this renders
+ * one declaration — the dependency runs view → engine, never back.
+ *
+ * @internal
+ */
+export type MapRangeLegendProps = MapLegendRange
 
 /**
  * The hover arrow: a glyph on the scale bar's edge marking the exact value of

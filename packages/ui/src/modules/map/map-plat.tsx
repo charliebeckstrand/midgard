@@ -15,24 +15,27 @@ import { ReducedMotion } from '../../primitives/reduced-motion'
 import { k, type MapSeriesColor } from '../../recipes/kata/map'
 import type { AccessibleName } from '../../types'
 import { legendAside } from '../chart/engine/chart-legend/schema'
-import { type MapHoverTarget, MapPlatContext, type MapPlatContextValue } from './context'
-import { categoryLegendId, defaultRegionId, regionGroupId, slotColor } from './map-categories'
-import { MapFrame, MapPlotRegion } from './map-frame'
-import { cachedRegionCentroids } from './map-geometry-cache'
-import { mapStops } from './map-keyboard'
-import { legendItems, type MapLegendInput, planMapLegend } from './map-legend-plan'
-import { MapLegendRegion } from './map-legend-region'
-import type { MapRegionData } from './map-region-data'
-import { MapRegions } from './map-regions'
-import { MapTable } from './map-table'
-import { MapTooltip, type MapTooltipEntry } from './map-tooltip'
+import { MapPlatContext, type MapPlatContextValue } from './context'
+import { cachedRegionCentroids } from './engine/map-geometry/cache'
+import type { MapHoverTarget } from './engine/map-hover/target'
+import { mapStops } from './engine/map-keyboard/stops'
+import { legendItems } from './engine/map-legend/items'
+import { type MapLegendInput, planMapLegend } from './engine/map-legend/plan'
+import { categoryLegendId, regionGroupId, slotColor } from './engine/map-region/category'
+import type { MapRegionData } from './engine/map-region/data'
+import { defaultRegionId } from './engine/map-region/identity'
 import type {
 	MapAspectRatio,
 	MapFeature,
 	MapGeography,
 	MapOverlaySelection,
 	MapProjection,
-} from './types'
+} from './engine/types'
+import { MapFrame, MapPlotRegion } from './map-frame'
+import { MapLegendRegion } from './map-legend-region'
+import { MapRegions } from './map-regions'
+import { MapTable } from './map-table'
+import { MapTooltip, type MapTooltipEntry } from './map-tooltip'
 import { useMapLegendRegistry } from './use-map-legend-registry'
 import { useMapRegionReadout } from './use-map-region-readout'
 import { useMapShape } from './use-map-shape'
@@ -594,7 +597,11 @@ export function MapPlat<T = never>({
 		legend,
 		numeric,
 		{ width: containerWidth, height: shape.boxHeight },
-		{ categoryCount: categoryMetas.length, entryCount: entries.length, children },
+		{
+			categoryCount: categoryMetas.length,
+			entryCount: entries.length,
+			hasOverlayChildren: children != null,
+		},
 		{ colorRange, valueExtent, valueFormat, valueName, regionNumbers, onFocus: setFocus },
 	)
 

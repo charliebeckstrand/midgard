@@ -2,29 +2,9 @@
 
 import { createContext } from '../../core'
 import type { MapSeriesColor } from '../../recipes/kata/map'
-import type { MapPoint2D } from './map-geometry'
-import type { LngLat, MapOverlaySelection } from './types'
-import type { MapOverlayEntry } from './use-map-legend-registry'
-
-/**
- * What the pointer is on: a region by feature index, or an overlay (route /
- * point / marker) by its registered legend id — the map's hover targets are
- * heterogeneous where a chart's are one category axis.
- *
- * @internal
- */
-export type MapHoverTarget =
-	| { kind: 'region'; index: number }
-	| {
-			kind: 'entry'
-			id: string
-			/**
-			 * Which of the mark's stops, for a mark that draws more than one — a
-			 * {@link MapPoints} dot. A singular mark carries `0`, so an entry target
-			 * always has a stop and no reader tests for its absence.
-			 */
-			stop: number
-	  }
+import type { MapHoverTarget } from './engine/map-hover/target'
+import type { MapOverlayEntry } from './engine/map-overlay/entry'
+import type { LngLat, MapOverlaySelection, MapPoint2D } from './engine/types'
 
 /**
  * The live hover readout the tooltip anchors to: the pointed target and the
@@ -57,99 +37,6 @@ export const [MapHoverStateContext, useMapHoverState] =
 export const [MapHoverSetContext, useMapHoverSet] = createContext<MapHoverSet>('MapHoverSet')
 
 /**
- * The region index under a DOM node, resolved from the `data-region-index`
- * anchor the region paths carry — the one place that reads that anchor, shared
- * by the hover provider's scroll-settle resolve and the region layer's own
- * delegated handlers, so the contract can't drift between them.
- *
- * `null` whenever the node is outside every region, or the anchor doesn't read
- * as an index: a missing attribute must never coerce to region 0 — `Number(null)`
- * is `0` — and a malformed one must never report `NaN` as a target.
- *
- * @internal
- */
-export function regionIndexAt(node: EventTarget | Element | null): number | null {
-	if (!(node instanceof Element)) return null
-
-	const anchor = node.closest('[data-region-index]')
-
-	if (anchor === null) return null
-
-	const raw = anchor.getAttribute('data-region-index')
-
-	if (raw === null) return null
-
-	return wholeNumber(raw)
-}
-
-/**
- * The overlay mark under a DOM node: its id, and which of its stops the node
- * covers. The twin of {@link regionIndexAt} over the `data-entry-id` /
- * `data-entry-stop` pair the hit shapes carry, and the one place that reads
- * them — the hover provider's scroll-settle resolve and the marks' own pointer
- * handlers must never disagree about which dot is under the pointer.
- *
- * A stop that does not read as a whole number falls back to `0` rather than
- * `NaN`: the mark itself is what the anchor found, so its first stop is the
- * honest answer where the ordinal is missing or malformed.
- *
- * @internal
- */
-export function markAnchorAt(
-	node: EventTarget | Element | null,
-): { id: string; stop: number } | null {
-	if (!(node instanceof Element)) return null
-
-	const anchor = node.closest('[data-entry-id]')
-
-	const id = anchor?.getAttribute('data-entry-id') ?? null
-
-	if (id === null) return null
-
-	return { id, stop: wholeNumber(anchor?.getAttribute('data-entry-stop') ?? null) ?? 0 }
-}
-
-/** A DOM anchor's value as a whole number, or `null` where it is missing or malformed. */
-function wholeNumber(raw: string | null): number | null {
-	if (raw === null) return null
-
-	const value = Number(raw)
-
-	return Number.isInteger(value) && value >= 0 ? value : null
-}
-
-/** Whether two hover targets name the same mark, so a redundant write can bail. @internal */
-export function sameTarget(a: MapHoverTarget | null, b: MapHoverTarget | null): boolean {
-	if (a === b) return true
-
-	if (a === null || b === null || a.kind !== b.kind) return false
-
-	return sameMark(a, b) && (a.kind === 'region' || a.stop === (b as { stop: number }).stop)
-}
-
-/**
- * Whether two targets name the same *mark*, ignoring which of its stops. The
- * whole of a plural mark reads as one thing to the emphasis — pointing one dot
- * of a {@link MapPoints} lights the group, not that dot alone — which is what
- * lets the group draw under a single wrapper and a single dim class where two
- * hundred dots would otherwise need two hundred.
- *
- * {@link sameTarget} is this plus the stop, so a third target kind is added
- * here once rather than in two comparisons that must agree.
- *
- * @internal
- */
-export function sameMark(a: MapHoverTarget | null, b: MapHoverTarget | null): boolean {
-	if (a === b) return true
-
-	if (a === null || b === null || a.kind !== b.kind) return false
-
-	return a.kind === 'region'
-		? a.index === (b as { index: number }).index
-		: a.id === (b as { id: string }).id
-}
-
-/**
  * The mark the pointer sits on — a region or an overlay entry — taking the
  * emphasis, so everything else on the map recedes behind it: the map's twin of
  * the chart's pointed-mark emphasis. Derived from the hover target but held
@@ -166,29 +53,6 @@ export const [MapPointedMarkContext, useMapPointedMark] = createContext<MapHover
 	'MapPointedMark',
 	{ default: null },
 )
-
-/**
- * Whether a mark reads dimmed under the shared emphasis: the pointed mark
- * recedes everything but itself, else the legend's focused id dims marks
- * outside its group (`groupId` — an overlay's own entry id, a region's
- * category id), else nothing dims. The pointed mark winning over a still-held
- * legend focus mirrors the chart's mark-emphasis resolution.
- *
- * @internal
- */
-export function mapMarkDimmed(
-	pointed: MapHoverTarget | null,
-	self: MapHoverTarget,
-	emphasis: string | null,
-	groupId: string | null,
-): boolean {
-	// Compared by mark, not by stop: a plural mark draws under one wrapper, so
-	// pointing one of its dots must light the whole group rather than dim the rest
-	// of itself.
-	if (pointed !== null) return !sameMark(pointed, self)
-
-	return emphasis !== null && emphasis !== groupId
-}
 
 /**
  * What {@link MapPlat} provides its overlay children: the fitted projection

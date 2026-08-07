@@ -2,11 +2,11 @@
 
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
-import { POINT_HIT_RADIUS, POINT_RADIUS } from './map-constants'
+import { POINT_HIT_RADIUS, POINT_RADIUS } from './engine/map-constants'
+import { pointPop } from './engine/map-motion'
+import type { LngLat } from './engine/types'
 import { MapDot } from './map-dot'
 import { MapDotHalo } from './map-halo'
-import { pointPop } from './map-motion'
-import type { LngLat } from './types'
 import { type MapOverlayProps, useMapOverlay } from './use-map-overlay'
 
 /** Props for {@link MapPoint}. */

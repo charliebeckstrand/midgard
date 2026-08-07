@@ -1,12 +1,11 @@
 import { describe, expect, it, vi } from 'vitest'
 import {
 	isMapActivateKey,
-	type MapStop,
-	mapStops,
 	moveMapCursor,
 	stepNearest,
-} from '../../modules/map/map-keyboard'
-import type { LngLat } from '../../modules/map/types'
+} from '../../modules/map/engine/map-keyboard/cursor'
+import { type MapStop, mapStops } from '../../modules/map/engine/map-keyboard/stops'
+import type { LngLat } from '../../modules/map/engine/types'
 
 /** A region stop at a frame position, the shape the plat assembles. */
 function region(index: number, x: number, y: number): MapStop {

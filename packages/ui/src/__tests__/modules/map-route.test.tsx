@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { describe, expect, it } from 'vitest'
 import type { LngLat } from '../../modules/map'
 import { MapPlat, MapRoute } from '../../modules/map'
-import { ROUTE_HIT_WIDTH } from '../../modules/map/map-constants'
+import { ROUTE_HIT_WIDTH } from '../../modules/map/engine/map-constants'
 import { allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 

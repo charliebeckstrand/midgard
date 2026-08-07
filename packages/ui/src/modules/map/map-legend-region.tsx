@@ -2,7 +2,8 @@
 
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
-import { MapLegend, type MapLegendItem } from './map-legend'
+import type { MapLegendItem } from './engine/map-legend/items'
+import { MapLegend } from './map-legend'
 import { MapRangeLegend, type MapRangeLegendProps } from './map-range-legend'
 
 /** Props for {@link MapLegendSlot}: the reserved box and the toolbar it holds. @internal */

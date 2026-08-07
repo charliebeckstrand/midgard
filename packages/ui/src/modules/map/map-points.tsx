@@ -5,14 +5,15 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
 import { rangeKeys } from '../../utilities'
 import { useMapPlat } from './context'
-import { clusterPoints, clusterRadius, groupsByMember } from './map-cluster'
-import { clusterAnchor, clusterSpan } from './map-cluster-geo'
-import { POINT_CLUSTER_GAP, POINT_HIT_RADIUS } from './map-constants'
+import { clusterAnchor, clusterSpan } from './engine/map-cluster/geo'
+import { clusterGap, clusterPoints, groupsByMember } from './engine/map-cluster/group'
+import { clusterRadius } from './engine/map-cluster/radius'
+import { POINT_HIT_RADIUS } from './engine/map-constants'
+import { pointPop } from './engine/map-motion'
+import type { MapStopRow } from './engine/map-overlay/entry'
+import type { LngLat } from './engine/types'
 import { MapDot, MapDotCount } from './map-dot'
 import { MapDotHalo } from './map-halo'
-import { pointPop } from './map-motion'
-import type { LngLat } from './types'
-import type { MapStopRow } from './use-map-legend-registry'
 import { type MapOverlayProps, useMapOverlay } from './use-map-overlay'
 
 /** One dot of a {@link MapPoints}. */
@@ -78,13 +79,6 @@ export type MapPointsProps = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> 
 	onClick?: (id: string, index: number) => void
 	/** Fires on a right-click, with the same pair {@link onClick} reports. */
 	onContextMenu?: (id: string, index: number) => void
-}
-
-/** The edge-to-edge gap a `cluster` prop asks for, in frame units; `null` where it is off. @internal */
-function clusterGap(cluster: boolean | number): number | null {
-	if (cluster === true) return POINT_CLUSTER_GAP
-
-	return cluster === false ? null : Math.max(0, cluster)
 }
 
 /**

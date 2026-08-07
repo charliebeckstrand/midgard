@@ -9,7 +9,7 @@
  * without mounting either surface.
  */
 
-import type { MapStopRow } from './use-map-legend-registry'
+import type { MapStopRow } from './entry'
 
 /** As much of a registered mark as its readout needs. @internal */
 type MapReadableMark = {

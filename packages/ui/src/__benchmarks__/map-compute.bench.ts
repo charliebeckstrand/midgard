@@ -1,9 +1,13 @@
 // @vitest-environment node
 
 import { bench, describe } from 'vitest'
-import { regionCategoryIndexes, resolveCategories } from '../modules/map/map-categories'
-import { canonicalFit, mapAutoAspect, scaleCanonicalFit } from '../modules/map/map-projection'
-import { regionValueJoin, resolveValueBins } from '../modules/map/map-value-scale'
+import {
+	canonicalFit,
+	mapAutoAspect,
+	scaleCanonicalFit,
+} from '../modules/map/engine/map-projection/fit'
+import { regionCategoryIndexes, resolveCategories } from '../modules/map/engine/map-region/category'
+import { regionValueJoin, resolveValueBins } from '../modules/map/engine/map-region/value'
 import {
 	countiesAtlas,
 	makeValues,
@@ -84,7 +88,7 @@ describe('map-projection · mapAutoAspect (the CSS reservation)', () => {
 	}
 })
 
-describe('map-categories · resolveCategories (derive + paint)', () => {
+describe('map-region/category · resolveCategories (derive + paint)', () => {
 	// One pass to dedupe the dataset's categories in first-appearance order, then
 	// one paint lookup per category. Linear in the rows; the category count stays
 	// small, so this is the rows' term of a categorical mount.
@@ -108,7 +112,7 @@ describe('map-categories · resolveCategories (derive + paint)', () => {
 	})
 })
 
-describe('map-categories · regionCategoryIndexes (the categorical join)', () => {
+describe('map-region/category · regionCategoryIndexes (the categorical join)', () => {
 	// Builds a region → row Map and a category → index Map, then walks the
 	// regions. Two allocations plus a lookup per region, on every mount and
 	// every data update — the pass that turns rows into fills.
@@ -127,7 +131,7 @@ const SCALE = {
 	format: (value: number) => value.toFixed(0),
 }
 
-describe('map-value-scale · resolveValueBins (linear vs quantile)', () => {
+describe('map-region/value · resolveValueBins (linear vs quantile)', () => {
 	// Equal-interval binning reads the extent in one pass; quantile binning sorts
 	// the values to cut by rank, so it carries an O(n log n) term the linear mode
 	// does not. The gap is what a consumer pays for the reading that suits
@@ -141,7 +145,7 @@ describe('map-value-scale · resolveValueBins (linear vs quantile)', () => {
 	}
 })
 
-describe('map-value-scale · regionValueJoin (the numeric join)', () => {
+describe('map-region/value · regionValueJoin (the numeric join)', () => {
 	// The choropleth's per-region pass: bin assignment, a formatted readout
 	// string, and the raw number, for every region. The format call allocates a
 	// string per region whether or not a tooltip ever shows it — 3,108 of them on

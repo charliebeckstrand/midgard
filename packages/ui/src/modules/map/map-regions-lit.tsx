@@ -2,9 +2,9 @@
 
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
-import type { MapHoverTarget } from './context'
-import { REGION_STROKE_WIDTH } from './map-constants'
-import { type MapRegionLayer, paintAt } from './map-region-paint'
+import { REGION_STROKE_WIDTH } from './engine/map-constants'
+import type { MapHoverTarget } from './engine/map-hover/target'
+import { type MapRegionLayer, paintAt } from './engine/map-region/paint'
 
 /** Props for {@link MapRegionsLit}: what the emphasis holds lit above the receded layer. @internal */
 type MapRegionsLitProps = MapRegionLayer & {

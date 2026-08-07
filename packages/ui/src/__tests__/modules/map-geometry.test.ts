@@ -1,15 +1,11 @@
 import { geoArea } from 'd3-geo'
 import { describe, expect, it } from 'vitest'
-import {
-	dotPath,
-	geographyFeatures,
-	linePath,
-	projectPoint,
-	regionPaths,
-	rewindFeatures,
-} from '../../modules/map/map-geometry'
-import { fitMapProjection } from '../../modules/map/map-projection'
-import type { MapFeature } from '../../modules/map/types'
+import { dotPath, linePath, projectPoint } from '../../modules/map/engine/map-geometry/mark'
+import { regionPaths } from '../../modules/map/engine/map-geometry/region'
+import { geographyFeatures } from '../../modules/map/engine/map-geometry/topology'
+import { rewindFeatures } from '../../modules/map/engine/map-geometry/winding'
+import { fitMapProjection } from '../../modules/map/engine/map-projection/resolve'
+import type { MapFeature } from '../../modules/map/engine/types'
 import { FIXTURE_GEOJSON, FIXTURE_TOPOLOGY } from '../helpers/map-geography'
 
 /** Half the sphere in steradians: an exterior ring's area stays under this once rewound. */

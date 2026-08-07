@@ -14,15 +14,9 @@ The first read view has landed, proving the thesis. [`engine/query-summary.ts`](
 
 ## Engine — the substrate
 
-Every domain concept lands in [`engine/`](engine), the module's pure functional core: no `'use client'`, no runtime `react` / `motion` imports, no `index` barrel (the engine is imported file-by-file), no runtime imports from the module root. The greps below all print nothing:
+Every domain concept lands in [`engine/`](engine), the module's pure functional core: no `'use client'`, no runtime `react` / `motion` imports, no `index` barrel (the engine is imported file-by-file), no runtime imports from the module root.
 
-```bash
-rg -nP "^\s*import\s+(?!type\b)[^;]*from\s+'(react|react-dom|motion|framer-motion)" packages/ui/src/modules/query/engine
-
-rg -l "'use client'" packages/ui/src/modules/query/engine
-
-find packages/ui/src/modules/query/engine -name 'index.*'
-```
+[`engine-purity-boundary.test.ts`](../../__tests__/boundary/engine-purity-boundary.test.ts) holds that invariant for this engine, the grid engine, and the map engine together, so it is a gate rather than a paragraph three modules re-assert.
 
 The [`module-filename-boundary.test.ts`](../../__tests__/boundary/module-filename-boundary.test.ts) suite already enforces the engine's `query-*` filename layout and the `types.ts` exemption, so the folder shape is a gate, not a convention.
 

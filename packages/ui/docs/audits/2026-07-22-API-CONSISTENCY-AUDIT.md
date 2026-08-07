@@ -129,12 +129,12 @@ The architecture is in good shape where it is centralized: polymorphism runs thr
 | # | Finding | Evidence | Fix | Status |
 |---|---|---|---|---|
 | C1 | Documented legend form `{ type: 'range' }` doesn't typecheck | TSDoc ×4 (`heatmap-chart-schema.ts:68` et al.) vs `chart-legend/range.ts:24-31` | Add `type?: 'range'` | ◯ OPEN |
-| C2 | Choropleth→MapPlat seam renames five of six shared fields, both public | `choropleth-chart.tsx:30-42,240-247` vs `map-region-data.ts:44-69` | Align MapPlat on the chart spelling (`formatValue`, `colorDomain`, `colorName`) | ◯ OPEN |
+| C2 | Choropleth→MapPlat seam renames five of six shared fields, both public | `choropleth-chart.tsx:30-42,240-247` vs `engine/map-region/data.ts:44-69` | Align MapPlat on the chart spelling (`formatValue`, `colorDomain`, `colorName`) | ◯ OPEN |
 | C3 | `tooltip` narrowed to bare `boolean` on Choropleth/MapPlat — click-pin unavailable on maps | `engine/types.ts:233` vs `choropleth-chart.tsx:126`, `map-plat.tsx:129` | Widen to the union | ◯ OPEN |
 | C4 | Single-series modeled three ways: tuple (pie) vs array-ignore (heatmap) vs array-first (choropleth) | `sector-chart.tsx:66`, `heatmap-chart-schema.ts:62-63`, `choropleth-chart.tsx:68-69` | Tuple everywhere | ◯ OPEN |
 | C5 | Unsupported base props accept-and-ignored instead of Omitted (T8) | `heatmap-chart.tsx:672-675`, `scatter-chart.tsx:554-555` vs `types.ts:99` | Extend the Omits | ◯ OPEN |
 | C6 | Scatter/bubble series `color` slot-only; cartesian takes slot-or-raw | `types.ts:125` vs `types.ts:59` | Widen to `ChartSeriesColor` | ◯ OPEN |
-| C7 | `binning` on choropleth/MapPlat, missing on heatmap despite claimed parity | `map-region-data.ts:62` vs `heatmap-chart-schema.ts:43-47,5-7` | Add | ◯ OPEN |
+| C7 | `binning` on choropleth/MapPlat, missing on heatmap despite claimed parity | `engine/map-region/data.ts:62` vs `heatmap-chart-schema.ts:43-47,5-7` | Add | ◯ OPEN |
 | C8 | `onCategoryClick` redeclared not shared; no click hook on scatter/heatmap/choropleth/map | `types.ts:325` + `sector-chart.tsx:89` | Shared handler type; add `onRegionClick`-shaped hooks | ◯ OPEN |
 | C9 | Three private spellings of `Orientation`, two of legend placement (T9) | `chart-orientation.ts:22`, `chart-legend/range-legend.tsx:21`, `map/types.ts:85` | Alias the shared types | ◯ OPEN |
 | C10 | `points` default `false` (Line/Area) vs `true` (Combo) | `line-chart.tsx:40-44` vs `combo-chart.tsx:51-54` | `false` everywhere | ◯ OPEN |

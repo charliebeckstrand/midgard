@@ -25,9 +25,11 @@
  */
 
 import type { GeoProjection } from 'd3-geo'
-import { geographyFeatures, regionCentroids, regionPaths, rewindFeatures } from './map-geometry'
-import { canonicalFit, type MapCanonicalFit } from './map-projection'
-import type { LngLat, MapFeature, MapGeography, MapProjection } from './types'
+import { canonicalFit, type MapCanonicalFit } from '../map-projection/fit'
+import type { LngLat, MapFeature, MapGeography, MapProjection } from '../types'
+import { regionCentroids, regionPaths } from './region'
+import { geographyFeatures } from './topology'
+import { rewindFeatures } from './winding'
 
 /**
  * The mount-critical geometry a {@link MapPlat} draws from on its first,

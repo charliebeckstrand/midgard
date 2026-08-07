@@ -14,9 +14,12 @@ import counties from 'us-atlas/counties-10m.json'
 import states from 'us-atlas/states-10m.json'
 import { bench, describe } from 'vitest'
 import { type MapGeography, MapPlat, type MapTopology } from '../modules/map'
-import { defaultRegionId } from '../modules/map/map-categories'
-import { geographyFeatures } from '../modules/map/map-geometry'
-import { computeStaticMapGeometry, staticMapGeometry } from '../modules/map/map-geometry-cache'
+import {
+	computeStaticMapGeometry,
+	staticMapGeometry,
+} from '../modules/map/engine/map-geometry/cache'
+import { geographyFeatures } from '../modules/map/engine/map-geometry/topology'
+import { defaultRegionId } from '../modules/map/engine/map-region/identity'
 import { mountBench, persistentTree } from './harness'
 
 const statesTopo = states as unknown as MapTopology

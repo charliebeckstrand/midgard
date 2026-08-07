@@ -1,22 +1,22 @@
 /**
  * Pure clustering math for the map module: which dots fall close enough on the
- * frame to draw as one summary, and where that summary sits. Kept React-free
- * beside `map-geometry.ts` and `map-projection.ts`, so the grouping is
- * unit-testable without a frame. The spatial index both passes bucket into is
- * `map-cluster-grid.ts`; what a group reads out on the ground is
- * `map-cluster-geo.ts`.
+ * frame to draw as one summary, and where that summary sits. React-free like
+ * the rest of the engine, so the grouping is unit-testable without a frame. The
+ * spatial index both passes bucket into is `grid.ts`, the size a summary draws
+ * at is `radius.ts`, and what a group reads out on the ground is `geo.ts`.
  *
  * One rule decides the output: no two marks draw within `gap` of one another
  * ({@link marksOverlap}). {@link seedGroups} is a broad phase under it — a
  * linear pass that can only merge dots the rule would merge anyway, so it takes
  * the count down cheaply before the rule runs, and never decides the result on
- * its own.
+ * its own. Both phases live here with the rule they serve: they share the seed
+ * algebra below, and a reader following one clustering pass reads one file.
  */
 
-import { bucket, cellOf, walkNear } from './map-cluster-grid'
-import { CLUSTER_RADIUS_STEPS, POINT_RADIUS } from './map-constants'
-import type { MapPoint2D } from './map-geometry'
-import type { LngLat } from './types'
+import { POINT_CLUSTER_GAP, POINT_RADIUS } from '../map-constants'
+import type { LngLat, MapPoint2D } from '../types'
+import { bucket, cellOf, walkNear } from './grid'
+import { clusterRadius, MAX_CLUSTER_RADIUS } from './radius'
 
 /**
  * One drawn group: the dots it stands for, and where it draws. A group of one is
@@ -25,8 +25,8 @@ import type { LngLat } from './types'
  *
  * It carries frame arithmetic alone. What a group reads out — its anchor and its
  * spread — is spherical, costs a `d3-geo` pass per group, and is wanted by one
- * caller each, so `map-cluster-geo.ts` resolves it where it is read rather than
- * on every pass.
+ * caller each, so `geo.ts` resolves it where it is read rather than on every
+ * pass.
  *
  * @internal
  */
@@ -40,6 +40,19 @@ export type MapPointCluster = {
 	 * keeps its readout.
 	 */
 	at: MapPoint2D | null
+}
+
+/**
+ * The edge-to-edge gap a `cluster` prop asks for, in frame units; `null` where
+ * it is off. The one reading of the public prop, held beside the pass it feeds
+ * so the contract is testable without rendering a mark.
+ *
+ * @internal
+ */
+export function clusterGap(cluster: boolean | number): number | null {
+	if (cluster === true) return POINT_CLUSTER_GAP
+
+	return cluster === false ? null : Math.max(0, cluster)
 }
 
 /**
@@ -82,9 +95,6 @@ type MapClusterMark = {
 	radius: number
 }
 
-/** The widest a summary ever draws, so no pair beyond twice it plus the gap can meet. @internal */
-const MAX_CLUSTER_RADIUS: number = CLUSTER_RADIUS_STEPS.at(-1)?.radius ?? POINT_RADIUS
-
 /**
  * Groups the dots a frame draws too close together to tell apart.
  *
@@ -122,11 +132,11 @@ export function clusterPoints(
  * every other dot starts its own.
  *
  * Measuring from a fixed first member rather than from the group's moving mean
- * is what makes the `map-cluster-grid` lookup exact — a mean that drifted as
- * members landed could leave a group in a different cell from the one its own
- * lookup keys name. It also merges strictly less than the overlap rule does,
- * since two dots inside `reach` are two marks inside their own: this pass can
- * only take work off {@link consolidate}, never decide against it.
+ * is what makes the `grid.ts` lookup exact — a mean that drifted as members
+ * landed could leave a group in a different cell from the one its own lookup
+ * keys name. It also merges strictly less than the overlap rule does, since two
+ * dots inside `reach` are two marks inside their own: this pass can only take
+ * work off {@link consolidate}, never decide against it.
  *
  * @internal
  */
@@ -137,7 +147,7 @@ function seedGroups(
 ): MapClusterSeed[] {
 	const groups: MapClusterSeed[] = []
 
-	// Seeds filed into the shared grid (`map-cluster-grid`), at one cell per reach.
+	// Seeds filed into the shared grid (`grid.ts`), at one cell per reach.
 	const cells = new Map<number, MapSeededCluster[]>()
 
 	for (const [index, position] of positions.entries()) {
@@ -359,16 +369,4 @@ function centre({ members, seed, sumX, sumY }: MapClusterSeed): MapPoint2D | nul
 /** Resolves a built group to the dots it holds and the point it draws at. @internal */
 function summarise(group: MapClusterSeed): MapPointCluster {
 	return { members: group.members, at: centre(group) }
-}
-
-/**
- * The radius a group draws at: {@link POINT_RADIUS} for a lone dot, then one
- * step up per grade of {@link CLUSTER_RADIUS_STEPS}. The size carries the
- * magnitude, so a reader grades a summary against its neighbours before reading
- * the count inside it.
- *
- * @internal
- */
-export function clusterRadius(count: number): number {
-	return CLUSTER_RADIUS_STEPS.findLast((step) => count >= step.from)?.radius ?? POINT_RADIUS
 }

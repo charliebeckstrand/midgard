@@ -1,18 +1,22 @@
 import { geoMercator, geoPath } from 'd3-geo'
 import { describe, expect, it } from 'vitest'
-import { ALBERS_USA_ASPECT } from '../../modules/map/map-constants'
+import { ALBERS_USA_ASPECT } from '../../modules/map/engine/map-constants'
+import {
+	mapFrameSizing,
+	projectionFallbackAspect,
+} from '../../modules/map/engine/map-projection/aspect'
 import {
 	canonicalFit,
-	fitMapProjection,
-	frameToClient,
 	mapAutoAspect,
-	mapFrameSizing,
 	measuredMapFit,
-	projectionFallbackAspect,
-	resolveMapProjection,
 	scaleCanonicalFit,
-} from '../../modules/map/map-projection'
-import type { MapFeature } from '../../modules/map/types'
+} from '../../modules/map/engine/map-projection/fit'
+import { frameToClient } from '../../modules/map/engine/map-projection/frame'
+import {
+	fitMapProjection,
+	resolveMapProjection,
+} from '../../modules/map/engine/map-projection/resolve'
+import type { MapFeature } from '../../modules/map/engine/types'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 
 const FEATURES = FIXTURE_GEOJSON.features

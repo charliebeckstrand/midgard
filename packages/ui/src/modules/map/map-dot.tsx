@@ -1,7 +1,8 @@
 'use client'
 
 import { motion } from 'motion/react'
-import { dotPath, type MapPoint2D } from './map-geometry'
+import { dotPath } from './engine/map-geometry/mark'
+import type { MapPoint2D } from './engine/types'
 
 /** Props for {@link MapDot}. @internal */
 type MapDotProps = {

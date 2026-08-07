@@ -7,14 +7,11 @@ import {
 	MapHoverSetContext,
 	type MapHoverState,
 	MapHoverStateContext,
-	type MapHoverTarget,
 	MapPointedMarkContext,
-	markAnchorAt,
-	regionIndexAt,
-	sameMark,
-	sameTarget,
 } from './context'
-import type { MapPoint2D } from './map-geometry'
+import { markAnchorAt, regionIndexAt } from './engine/map-hover/anchor'
+import { type MapHoverTarget, sameMark, sameTarget } from './engine/map-hover/target'
+import type { MapPoint2D } from './engine/types'
 
 /** Props for {@link MapHoverProvider}. @internal */
 type MapHoverProviderProps = {

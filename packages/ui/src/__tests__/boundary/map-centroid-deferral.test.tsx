@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { MapPlat } from '../../modules/map'
-import { cachedRegionCentroids } from '../../modules/map/map-geometry-cache'
+import { cachedRegionCentroids } from '../../modules/map/engine/map-geometry/cache'
 import { bySlot, fireEvent, renderUI } from '../helpers'
 import { FIXTURE_GEOJSON, FIXTURE_ROWS } from '../helpers/map-geography'
 
@@ -18,8 +18,8 @@ import { FIXTURE_GEOJSON, FIXTURE_ROWS } from '../helpers/map-geography'
  * suite lives in `boundary/`, which runs on forks, rather than in the
  * shared-registry `unit` project (see `test-isolation-boundary`).
  */
-vi.mock('../../modules/map/map-geometry-cache', async (importActual) => {
-	const actual = await importActual<typeof import('../../modules/map/map-geometry-cache')>()
+vi.mock('../../modules/map/engine/map-geometry/cache', async (importActual) => {
+	const actual = await importActual<typeof import('../../modules/map/engine/map-geometry/cache')>()
 
 	// Wraps the real implementation, so behaviour is unchanged and only the call
 	// count is observable.

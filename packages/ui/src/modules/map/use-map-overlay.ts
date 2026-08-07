@@ -3,17 +3,12 @@
 import { type MouseEvent, type PointerEvent, useCallback, useEffect, useId, useRef } from 'react'
 import { cn } from '../../core'
 import { k, type MapSeriesColor } from '../../recipes/kata/map'
-import {
-	mapMarkDimmed,
-	markAnchorAt,
-	useMapHoverSet,
-	useMapPlat,
-	useMapPointedMark,
-} from './context'
-import type { MapPoint2D } from './map-geometry'
-import { ownStop, pickedStop } from './map-selection'
-import type { LngLat } from './types'
-import type { MapOverlayKind, MapStopRow } from './use-map-legend-registry'
+import { useMapHoverSet, useMapPlat, useMapPointedMark } from './context'
+import { markAnchorAt } from './engine/map-hover/anchor'
+import { mapMarkDimmed } from './engine/map-hover/target'
+import type { MapOverlayKind, MapStopRow } from './engine/map-overlay/entry'
+import { ownStop, pickedStop } from './engine/map-overlay/selection'
+import type { LngLat, MapPoint2D } from './engine/types'
 
 /**
  * The props every overlay mark shares: its identity, its legend text and paint,
@@ -192,7 +187,7 @@ export function useMapOverlay({
 	// The mark's own stop resolution, defaulted once: a mark that draws the stops
 	// it reports holds one, its own. Spelling the fallback here rather than at each
 	// reader is what makes the halo below and the plat's picked row the same
-	// question — the drift `map-selection.ts` exists to prevent.
+	// question — the drift `engine/map-overlay/selection.ts` exists to prevent.
 	const resolveStop = stopOf ?? ownStop
 
 	// The live stops and reporters, read at fire time rather than captured in the

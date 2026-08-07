@@ -2,10 +2,12 @@
 
 import { type KeyboardEvent, type RefObject, useEffect, useRef, useState } from 'react'
 import { usePlotTabStop } from '../../hooks/use-plot-tab-stop'
-import { type MapHoverTarget, sameTarget, useMapHoverSet } from './context'
-import type { MapPoint2D } from './map-geometry'
-import { isMapActivateKey, type MapStop, moveMapCursor } from './map-keyboard'
-import { frameToClient } from './map-projection'
+import { useMapHoverSet } from './context'
+import { type MapHoverTarget, sameTarget } from './engine/map-hover/target'
+import { isMapActivateKey, moveMapCursor } from './engine/map-keyboard/cursor'
+import type { MapStop } from './engine/map-keyboard/stops'
+import { frameToClient } from './engine/map-projection/frame'
+import type { MapPoint2D } from './engine/types'
 
 /**
  * A stop as one string, so the cursor's position resolves through a map rather

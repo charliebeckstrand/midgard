@@ -1,21 +1,15 @@
 /**
  * The map's legend resolution, kept off {@link MapPlat} so the component stays
- * a thin assembly: whether the legend shows, where it sits, whether the binned
- * switchboard or the continuous range bar paints it, and what entries it holds.
- * Pure — every input arrives resolved, so the rules are testable without a
- * frame.
+ * a thin assembly: whether the legend shows, where it sits, and whether the
+ * binned switchboard or the continuous range bar paints it. Pure — every input
+ * arrives resolved, so the rules are testable without a frame.
  */
 
-import type { ReactNode } from 'react'
-import { cn } from '../../core'
-import { k, type MapSeriesColor } from '../../recipes/kata/map'
-import type { ChartRangeLegendConfig } from '../chart/engine/chart-legend/range'
-import { resolveRangeLegend } from '../chart/engine/chart-legend/range'
-import { categoryLegendId, type MapCategoryMeta } from './map-categories'
-import type { MapLegendItem } from './map-legend'
-import type { MapRangeLegendProps } from './map-range-legend'
-import type { MapLegendPlacement } from './types'
-import type { MapOverlayEntry } from './use-map-legend-registry'
+import type { ChartRangeLegendConfig } from '../../../chart/engine/chart-legend/range'
+import { resolveRangeLegend } from '../../../chart/engine/chart-legend/range'
+import type { RangeOrientation, RangeScale } from '../../../chart/engine/chart-legend/range-legend'
+import { resolveValueFormat } from '../map-region/value'
+import type { MapLegendPlacement } from '../types'
 
 /**
  * The map's `legend` prop: the switchboard's boolean / placement, the `'range'`
@@ -47,11 +41,11 @@ function legendCanShow(
 	legend: MapLegendInput | undefined,
 	categoryCount: number,
 	entryCount: number,
-	children: ReactNode,
+	hasOverlayChildren: boolean,
 ): boolean {
 	if (legend !== undefined) return legend !== false
 
-	return categoryCount > 1 || entryCount > 0 || children != null
+	return categoryCount > 1 || entryCount > 0 || hasOverlayChildren
 }
 
 /**
@@ -82,12 +76,33 @@ type MapRangeScale = {
 	onFocus: (id: string | null) => void
 }
 
-/** What the map draws for its legend: whether it shows, where it sits, and the range bar's props in range mode. @internal */
+/**
+ * The resolved range bar: the shared scale the chart's slider takes, plus what
+ * the map wires into it. Declared here rather than on the component, so the
+ * engine owns the shape it builds and the view reads it — {@link MapRangeLegend}
+ * takes this as its props.
+ *
+ * @internal
+ */
+export type MapLegendRange = RangeScale & {
+	/** Each region's raw value (`null` = no data), feature-index aligned — the arrow marks the hovered region's. */
+	regionNumbers: (number | null)[]
+	/** Emphasises a bin's regions (`null` clears); other regions dim while set — the filter. */
+	onFocus: (id: string | null) => void
+	/**
+	 * Which way the bar runs — vertical beside the plot, horizontal above or
+	 * below it. Follows the resolved placement.
+	 * @defaultValue 'vertical'
+	 */
+	orientation?: RangeOrientation
+}
+
+/** What the map draws for its legend: whether it shows, where it sits, and the range bar in range mode. @internal */
 type MapLegendPlan = {
 	show: boolean
 	placement: MapLegendPlacement
-	/** The continuous scale bar's props, or `null` for the binned switchboard. */
-	range: MapRangeLegendProps | null
+	/** The continuous scale bar's resolved shape, or `null` for the binned switchboard. */
+	range: MapLegendRange | null
 }
 
 /**
@@ -104,7 +119,7 @@ export function planMapLegend(
 	legend: MapLegendInput | undefined,
 	numeric: boolean,
 	box: { width: number; height: number },
-	switchboard: { categoryCount: number; entryCount: number; children: ReactNode },
+	switchboard: { categoryCount: number; entryCount: number; hasOverlayChildren: boolean },
 	scale: MapRangeScale,
 ): MapLegendPlan {
 	if (!(numeric && isRangeLegend(legend))) {
@@ -113,7 +128,7 @@ export function planMapLegend(
 				legend,
 				switchboard.categoryCount,
 				switchboard.entryCount,
-				switchboard.children,
+				switchboard.hasOverlayChildren,
 			),
 			placement: resolveLegendPlacement(legend, numeric),
 			range: null,
@@ -128,12 +143,15 @@ export function planMapLegend(
 
 	// The direct value checks (not a precomputed boolean) narrow `colorRange` and
 	// `valueExtent` inside the branch, so the range props type without an assertion.
-	const range: MapRangeLegendProps | null =
+	const range: MapLegendRange | null =
 		resolved.show && scale.colorRange !== undefined && scale.valueExtent !== null
 			? {
 					colorRange: scale.colorRange,
 					domain: scale.valueExtent,
-					format: scale.valueFormat ?? ((value) => String(value)),
+					// Through the shared resolver, not a second inline fallback: a map with
+					// no `valueFormat` would otherwise format its bar's endpoints by one
+					// rule and its tooltip and table by another.
+					format: resolveValueFormat(scale.valueFormat),
 					label: scale.valueName,
 					bins: switchboard.categoryCount,
 					regionNumbers: scale.regionNumbers,
@@ -143,40 +161,4 @@ export function planMapLegend(
 			: null
 
 	return { show: range !== null, placement: resolved.placement, range }
-}
-
-/**
- * The legend entries: the region categories, then every registered overlay.
- * A numeric choropleth lists its bins largest-first (descending), matching the
- * range bar's high-at-top scale; the bin ids stay bound to their value order.
- *
- * @internal
- */
-export function legendItems(
-	categories: MapCategoryMeta[],
-	entries: MapOverlayEntry[],
-	colors: ReadonlyMap<string, MapSeriesColor>,
-	descending: boolean,
-): MapLegendItem[] {
-	const categoryItems = categories.map((meta) => ({
-		id: categoryLegendId(meta.value),
-		label: meta.label,
-		// A categorical slot carries a currentColor class; a numeric bin an inline value.
-		...(meta.paint.kind === 'value'
-			? { swatchColor: meta.paint.color }
-			: { swatchClass: cn(meta.paint.text) }),
-		swatch: 'rect' as const,
-	}))
-
-	if (descending) categoryItems.reverse()
-
-	const entryItems = entries.map((entry) => ({
-		id: entry.id,
-		label: entry.label,
-		swatchClass: cn(k.series[colors.get(entry.id) ?? 'blue'].text),
-		swatch: entry.swatch,
-		detail: entry.detail,
-	}))
-
-	return [...categoryItems, ...entryItems]
 }

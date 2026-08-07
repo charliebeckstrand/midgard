@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { clusterPoints, clusterRadius, groupsByMember } from '../../modules/map/map-cluster'
-import { clusterAnchor, clusterSpan } from '../../modules/map/map-cluster-geo'
-import { POINT_RADIUS } from '../../modules/map/map-constants'
-import type { MapPoint2D } from '../../modules/map/map-geometry'
-import type { LngLat } from '../../modules/map/types'
+import { clusterAnchor, clusterSpan } from '../../modules/map/engine/map-cluster/geo'
+import { clusterPoints, groupsByMember } from '../../modules/map/engine/map-cluster/group'
+import { clusterRadius } from '../../modules/map/engine/map-cluster/radius'
+import { POINT_RADIUS } from '../../modules/map/engine/map-constants'
+import type { LngLat, MapPoint2D } from '../../modules/map/engine/types'
 
 /** One frame unit per degree, so a reach reads straight off the coordinates. */
 const flat = (position: LngLat): MapPoint2D => ({ x: position[0], y: position[1] })

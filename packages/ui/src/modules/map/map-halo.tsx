@@ -17,9 +17,9 @@
 
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
-import { MARK_SELECTED_HALO } from './map-constants'
+import { MARK_SELECTED_HALO } from './engine/map-constants'
+import type { MapPoint2D } from './engine/types'
 import { MapDot } from './map-dot'
-import type { MapPoint2D } from './map-geometry'
 
 /** The selection ink, off the pointer — one treatment for both halo shapes. @internal */
 const HALO = cn('pointer-events-none', k.selected)
