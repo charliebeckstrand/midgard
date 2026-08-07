@@ -3,8 +3,8 @@
  * palette, legend chrome, and readout inks come straight from `kata/chart` —
  * the two data-viz modules read as one colour system, and the CVD-validated
  * slot order must never fork — with the map's own region tokens beside them:
- * the no-data fill, the surface-colour boundary seam, and the hover and
- * de-emphasis treatments.
+ * the no-data fill, the surface-colour boundary seam, the frame chrome, and the
+ * hover and de-emphasis treatments.
  */
 import { mode } from '../../core/recipe'
 import { kokkaku, sen } from '../kiso'
@@ -72,6 +72,19 @@ export const k = {
 		 * kept here so the region layer reads its selection beside its other paint.
 		 */
 		selected: SELECTED,
+	},
+	/**
+	 * The frame chrome, on the chart's own chrome inks: the graticule takes the
+	 * gridline hairline and the sphere outline the axis baseline — a step firmer,
+	 * the relation the two hold on every chart — so a dashboard's charts and maps
+	 * rule their frames in one ink. Both are recessive under the marks, and both
+	 * draw beneath the regions.
+	 */
+	chrome: {
+		/** Meridian and parallel hairlines: the chart gridline. */
+		graticule: chart.grid,
+		/** The globe's own edge: the chart's axis baseline. */
+		sphere: chart.axis.line,
 	},
 	/**
 	 * A mark group's response to emphasis — the legend's focused group, or the

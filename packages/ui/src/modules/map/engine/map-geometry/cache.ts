@@ -27,6 +27,7 @@
 import type { GeoProjection } from 'd3-geo'
 import { canonicalFit, type MapCanonicalFit } from '../map-projection/fit'
 import type { LngLat, MapFeature, MapGeography, MapProjection } from '../types'
+import { EMPTY_CHROME, graticulePath, type MapChromePaths, spherePath } from './chrome'
 import { regionCentroids, regionPaths } from './region'
 import { geographyFeatures } from './topology'
 import { rewindFeatures } from './winding'
@@ -163,6 +164,56 @@ export function cachedRegionCentroids(features: MapFeature[]): (LngLat | null)[]
 	centroids.set(features, computed)
 
 	return computed
+}
+
+// The last chrome paths per shared geometry, on the same one-slot-per-geometry
+// rule the measured paths keep. The graticule spans the globe whatever the
+// geography frames, so its pass prices the same on a single state as on a world
+// map (~5 ms at the default step on a 1000-wide frame) — worth holding across a
+// remount at one box, and worth never paying at all while the chrome is off.
+const chrome = new WeakMap<
+	StaticMapGeometry,
+	{ width: number; height: number; step: number | null; sphere: boolean; paths: MapChromePaths }
+>()
+
+/**
+ * The graticule and sphere paths under a fit, memoised on the shared
+ * {@link StaticMapGeometry} entry by frame box and chrome request. Chrome off
+ * yields {@link EMPTY_CHROME} without touching the cache, so the default map
+ * pays neither the pass nor a slot.
+ *
+ * @internal
+ */
+export function cachedChromePaths(
+	geometry: StaticMapGeometry,
+	fitted: GeoProjection,
+	width: number,
+	height: number,
+	step: number | null,
+	sphere: boolean,
+): MapChromePaths {
+	if (step === null && !sphere) return EMPTY_CHROME
+
+	const hit = chrome.get(geometry)
+
+	if (
+		hit !== undefined &&
+		hit.width === width &&
+		hit.height === height &&
+		hit.step === step &&
+		hit.sphere === sphere
+	) {
+		return hit.paths
+	}
+
+	const paths: MapChromePaths = {
+		graticule: step === null ? null : graticulePath(fitted, step),
+		sphere: sphere ? spherePath(fitted) : null,
+	}
+
+	chrome.set(geometry, { width, height, step, sphere, paths })
+
+	return paths
 }
 
 /**

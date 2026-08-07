@@ -17,6 +17,7 @@ import type { AccessibleName } from '../../types'
 import { legendAside } from '../chart/engine/chart-legend/schema'
 import { MapPlatContext, type MapPlatContextValue } from './context'
 import { cachedRegionCentroids } from './engine/map-geometry/cache'
+import { graticuleStep } from './engine/map-geometry/chrome'
 import type { MapHoverTarget } from './engine/map-hover/target'
 import { mapStops } from './engine/map-keyboard/stops'
 import { legendItems } from './engine/map-legend/items'
@@ -31,6 +32,7 @@ import type {
 	MapOverlaySelection,
 	MapProjection,
 } from './engine/types'
+import { MapChrome } from './map-chrome'
 import { MapFrame, MapPlotRegion } from './map-frame'
 import { MapLegendRegion } from './map-legend-region'
 import { MapRegions } from './map-regions'
@@ -104,6 +106,32 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 * @defaultValue false
 		 */
 		deferPaint?: boolean
+		/**
+		 * Rule meridian and parallel hairlines under the geography, on the chart's
+		 * gridline ink: `true` takes d3-geo's ten-degree step, and a number sets
+		 * that step in degrees. The lines draw beneath every region — a region fill
+		 * covers the ones crossing it, so the graticule reads around the geography
+		 * and not across it — and answer no pointer.
+		 *
+		 * The lines cover the globe whatever the geography frames, and the frame
+		 * clips the rest, so a regional map's graticule costs what a world map's
+		 * does. A step under one degree is floored there: below it the pass draws
+		 * millions of points the frame would only clip away.
+		 *
+		 * Chrome rides the fit the geography sets, so it appears with the geography:
+		 * a plat still waiting for its atlas rules nothing.
+		 * @defaultValue false
+		 */
+		graticule?: boolean | number
+		/**
+		 * Outline the globe's own edge, on the chart's axis-baseline ink — the frame
+		 * a whole-world map closes itself with, under `'mercator'` or
+		 * `'equal-earth'`. A composite projection has no single edge, so
+		 * `'albers-usa'` outlines its own clip frames instead: the lower-48 box and
+		 * the two inset boxes.
+		 * @defaultValue false
+		 */
+		sphere?: boolean
 		/**
 		 * Show the legend. Defaults to on when there are two or more categories
 		 * or any registered overlay — the identity channel colour alone must
@@ -309,7 +337,7 @@ function useMarkSelection(
  * pointing a region or overlay on the map isolating it behind the same
  * recede, a pointer-anchored Tooltip readout, a ring on the region and a halo
  * on the overlay mark the consumer holds selected, and a visually-hidden data
- * table.
+ * table. Optional graticule and sphere chrome rules the frame beneath it all.
  * Geometry is prop-supplied TopoJSON / GeoJSON; {@link MapRoute},
  * {@link MapPoint}, and {@link MapMarker} children draw over the geography
  * and register their own legend entries.
@@ -336,6 +364,8 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		height,
 		aspectRatio = 'auto',
 		deferPaint = false,
+		graticule,
+		sphere = false,
 		legend,
 		tooltip = true,
 		animate = false,
@@ -367,6 +397,8 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		height,
 		aspectRatio,
 		deferPaint,
+		graticuleStep(graticule),
+		sphere,
 	)
 
 	// Region identity, resolved off the geography alone — a property of the
@@ -612,6 +644,10 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 			className="block size-full"
 			viewBox={`0 0 ${shape.viewWidth} ${shape.viewHeight}`}
 		>
+			{/* Under the marks layer rather than inside it: chrome is frame, not data,
+			    so it never animates on and never joins a motion group. */}
+			<MapChrome paths={shape.chrome} />
+
 			<MapPlatContext value={plat}>
 				<MapMarksLayer animate={animate}>
 					<MapRegions

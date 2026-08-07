@@ -2,7 +2,12 @@
 
 import { type RefObject, useMemo } from 'react'
 import { type FrameReserve, usePlotFrame } from '../../hooks'
-import { measuredRegionPaths, staticMapGeometry } from './engine/map-geometry/cache'
+import {
+	cachedChromePaths,
+	measuredRegionPaths,
+	staticMapGeometry,
+} from './engine/map-geometry/cache'
+import { EMPTY_CHROME, type MapChromePaths } from './engine/map-geometry/chrome'
 import { projectPoint } from './engine/map-geometry/mark'
 import { mapFrameSizing, projectionFallbackAspect } from './engine/map-projection/aspect'
 import { measuredMapFit } from './engine/map-projection/fit'
@@ -28,6 +33,8 @@ export type MapShape = {
 	viewHeight: number
 	/** Region path ds, index-aligned with the features; empty until fitted. */
 	paths: (string | null)[]
+	/** The graticule and sphere `d`s under the active fit; both `null` where the chrome is off. */
+	chrome: MapChromePaths
 	features: MapFeature[]
 	project: (position: LngLat) => ReturnType<typeof projectPoint>
 }
@@ -43,6 +50,10 @@ export type MapShape = {
  * across instances by {@link staticMapGeometry}, so remounting the same atlas
  * (a tab switch, a second plat) reuses it rather than recomputing on mount.
  *
+ * The frame chrome rides the same fit: `graticule` (a degree step, `null` off)
+ * and `sphere` resolve to their two paths beside the region paths, and cost
+ * nothing while both are off.
+ *
  * @internal
  */
 export function useMapShape(
@@ -53,6 +64,8 @@ export function useMapShape(
 	height: number | undefined,
 	aspectRatio: MapAspectRatio,
 	deferPaint: boolean,
+	graticule: number | null,
+	sphere: boolean,
 ): MapShape {
 	// The mount-critical geometry — decode, the measurement-free canonical fit,
 	// and its region paths — memoised across instances and mounts (see
@@ -101,7 +114,7 @@ export function useMapShape(
 		// with the legend already resolved rather than flashing the canonical fit and
 		// refitting. The `viewWidth` 0 keeps the SVG unmounted meanwhile.
 		if (!measured && deferPaint) {
-			return { viewWidth: 0, viewHeight: 0, paths: canonicalPaths, project: () => null }
+			return { viewWidth: 0, viewHeight: 0, paths: canonicalPaths, fit: null, project: () => null }
 		}
 
 		// Draw from the measured fit once it lands, the canonical fit until then, so
@@ -114,9 +127,23 @@ export function useMapShape(
 			paths: measured
 				? measuredRegionPaths(statics, measured, frameWidth, frameHeight)
 				: canonicalPaths,
+			fit: fitted,
 			project: (position: LngLat) => (fitted === null ? null : projectPoint(fitted, position)),
 		}
 	}, [projection, statics, frameWidth, frameHeight, deferPaint])
+
+	// The chrome, resolved beside the geography rather than inside it: it reads
+	// the same fit, but a map that toggles its graticule must not reproject every
+	// region path to draw one. Off, this costs a comparison and the shared empty
+	// value; on, the cross-instance memo (`cachedChromePaths`) holds the pass
+	// across a remount at one box, as the region paths' does.
+	const chrome = useMemo(
+		() =>
+			view.fit === null
+				? EMPTY_CHROME
+				: cachedChromePaths(statics, view.fit, view.viewWidth, view.viewHeight, graticule, sphere),
+		[statics, view, graticule, sphere],
+	)
 
 	const { viewWidth, viewHeight, paths, project } = view
 
@@ -128,6 +155,7 @@ export function useMapShape(
 		viewWidth,
 		viewHeight,
 		paths,
+		chrome,
 		features: statics.features,
 		project,
 	}

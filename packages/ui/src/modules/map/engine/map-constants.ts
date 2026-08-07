@@ -102,6 +102,27 @@ export const DEFAULT_MAP_ASPECT = 16 / 9
 export const ALBERS_USA_ASPECT = 1.709
 
 /**
+ * The graticule's degree step when it is turned on without one — d3-geo's own
+ * default, and the step a world map is read at: meridians and parallels every
+ * ten degrees. @internal
+ */
+export const GRATICULE_STEP_DEGREES = 10
+
+/**
+ * The finest graticule step a caller can ask for. The lines cover the whole
+ * globe whatever the geography frames, so the point count grows as the square
+ * of the step going down: a tenth-degree step draws millions of points the
+ * frame then clips away. @internal
+ */
+export const GRATICULE_MIN_STEP_DEGREES = 1
+
+/**
+ * Graticule and sphere stroke width — the chart gridline's hairline, so a
+ * dashboard's charts and maps rule their frames alike. @internal
+ */
+export const CHROME_STROKE_WIDTH = 1
+
+/**
  * The width, in frame units, the projection fits to for the canonical
  * (measurement-free) draw. Fitting once to a fixed frame yields both the
  * geography's aspect ratio and a projection the neutral geography paints from

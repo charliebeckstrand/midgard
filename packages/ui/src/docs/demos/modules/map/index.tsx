@@ -418,6 +418,10 @@ function MapDemo() {
 				<TabContents fade={false}>
 					<TabContent value="plat">
 						<Stack gap="xl">
+							{/* The graticule earns its place here: zones are drawn on meridians,
+							    so the hairlines under the geography are the very lines the
+							    categories follow. They rule beneath the states, so only the frame
+							    around the country carries them. */}
 							<Example title="Timezones across America">
 								<MapPlat
 									aria-label="Timezones across America"
@@ -428,6 +432,7 @@ function MapDemo() {
 									categoryKey="zone"
 									categories={zoneCategories}
 									regionId={stateName}
+									graticule
 									animate
 									legend="right"
 								/>
