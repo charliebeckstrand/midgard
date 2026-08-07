@@ -1,21 +1,15 @@
 /**
  * The map's legend resolution, kept off {@link MapPlat} so the component stays
- * a thin assembly: whether the legend shows, where it sits, whether the binned
- * switchboard or the continuous range bar paints it, and what entries it holds.
- * Pure — every input arrives resolved, so the rules are testable without a
- * frame.
+ * a thin assembly: whether the legend shows, where it sits, and whether the
+ * binned switchboard or the continuous range bar paints it. Pure — every input
+ * arrives resolved, so the rules are testable without a frame.
  */
 
 import type { ReactNode } from 'react'
-import { cn } from '../../core'
-import { k, type MapSeriesColor } from '../../recipes/kata/map'
-import type { ChartRangeLegendConfig } from '../chart/engine/chart-legend/range'
-import { resolveRangeLegend } from '../chart/engine/chart-legend/range'
-import { categoryLegendId, type MapCategoryMeta } from './map-categories'
-import type { MapLegendItem } from './map-legend'
-import type { MapRangeLegendProps } from './map-range-legend'
-import type { MapLegendPlacement } from './types'
-import type { MapOverlayEntry } from './use-map-legend-registry'
+import type { ChartRangeLegendConfig } from '../../../chart/engine/chart-legend/range'
+import { resolveRangeLegend } from '../../../chart/engine/chart-legend/range'
+import type { MapRangeLegendProps } from '../../map-range-legend'
+import type { MapLegendPlacement } from '../types'
 
 /**
  * The map's `legend` prop: the switchboard's boolean / placement, the `'range'`
@@ -143,40 +137,4 @@ export function planMapLegend(
 			: null
 
 	return { show: range !== null, placement: resolved.placement, range }
-}
-
-/**
- * The legend entries: the region categories, then every registered overlay.
- * A numeric choropleth lists its bins largest-first (descending), matching the
- * range bar's high-at-top scale; the bin ids stay bound to their value order.
- *
- * @internal
- */
-export function legendItems(
-	categories: MapCategoryMeta[],
-	entries: MapOverlayEntry[],
-	colors: ReadonlyMap<string, MapSeriesColor>,
-	descending: boolean,
-): MapLegendItem[] {
-	const categoryItems = categories.map((meta) => ({
-		id: categoryLegendId(meta.value),
-		label: meta.label,
-		// A categorical slot carries a currentColor class; a numeric bin an inline value.
-		...(meta.paint.kind === 'value'
-			? { swatchColor: meta.paint.color }
-			: { swatchClass: cn(meta.paint.text) }),
-		swatch: 'rect' as const,
-	}))
-
-	if (descending) categoryItems.reverse()
-
-	const entryItems = entries.map((entry) => ({
-		id: entry.id,
-		label: entry.label,
-		swatchClass: cn(k.series[colors.get(entry.id) ?? 'blue'].text),
-		swatch: entry.swatch,
-		detail: entry.detail,
-	}))
-
-	return [...categoryItems, ...entryItems]
 }

@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { ownStop, pickedStop, selectedMarkRow } from '../../modules/map/map-selection'
-import type { MapOverlayEntry } from '../../modules/map/use-map-legend-registry'
+import type { MapOverlayEntry } from '../../modules/map/engine/map-overlay/entry'
+import {
+	ownStop,
+	pickedStop,
+	selectedMarkRow,
+} from '../../modules/map/engine/map-overlay/selection'
 
 /** A singular mark: one stop, its own. */
 const ROUTE: MapOverlayEntry = {

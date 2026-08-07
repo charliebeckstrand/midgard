@@ -4,10 +4,11 @@ import { Swatch, type SwatchProps } from '../../components/swatch'
 import { TooltipPointer } from '../../components/tooltip/tooltip-pointer'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
-import { type MapHoverTarget, useMapHoverState } from './context'
-import { categoryLegendId, type MapCategoryMeta } from './map-categories'
-import { markReadout } from './map-readout'
-import type { MapStopRow } from './use-map-legend-registry'
+import { useMapHoverState } from './context'
+import type { MapHoverTarget } from './engine/map-hover/target'
+import type { MapStopRow } from './engine/map-overlay/entry'
+import { markReadout } from './engine/map-overlay/readout'
+import { categoryLegendId, type MapCategoryMeta } from './engine/map-region/category'
 
 /** One resolved overlay entry the tooltip can read. @internal */
 export type MapTooltipEntry = {

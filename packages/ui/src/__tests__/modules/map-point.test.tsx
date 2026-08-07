@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { describe, expect, it } from 'vitest'
 import { MapPlat, MapPoint } from '../../modules/map'
-import { POINT_HIT_RADIUS, POINT_RADIUS } from '../../modules/map/map-constants'
+import { POINT_HIT_RADIUS, POINT_RADIUS } from '../../modules/map/engine/map-constants'
 import { allBySlot, allRegions, bySlot, fireEvent, renderUI } from '../helpers'
 import { FIXTURE_GEOJSON, FIXTURE_ROWS } from '../helpers/map-geography'
 

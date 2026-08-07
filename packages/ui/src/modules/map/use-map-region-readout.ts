@@ -2,19 +2,19 @@
 
 import { useMemo } from 'react'
 import {
-	defaultRegionLabel,
 	type MapCategoryMeta,
 	regionCategoryIndexes,
 	resolveCategories,
-} from './map-categories'
-import type { MapRegionData } from './map-region-data'
+} from './engine/map-region/category'
+import type { MapRegionData } from './engine/map-region/data'
+import { defaultRegionLabel } from './engine/map-region/identity'
 import {
 	type RegionValueJoin,
 	regionValueJoin,
 	resolveValueBins,
 	resolveValueFormat,
-} from './map-value-scale'
-import type { MapFeature } from './types'
+} from './engine/map-region/value'
+import type { MapFeature } from './engine/types'
 
 /** The resolved categorical or numeric readout behind the regions. @internal */
 type MapRegionReadout = {

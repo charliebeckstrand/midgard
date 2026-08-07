@@ -1,14 +1,14 @@
 /**
  * What a cluster reads out on the ground: where the group sits in lon/lat, and
- * how far its stops spread in metres. Held apart from `map-cluster`, which
+ * how far its stops spread in metres. Held apart from `group.ts`, which
  * carries frame arithmetic alone — this half is spherical, costs a `d3-geo`
  * pass per group, and is wanted by one caller each, so it resolves where it is
  * read rather than on every grouping pass.
  */
 
 import { geoCentroid, geoDistance } from 'd3-geo'
-import { EARTH_RADIUS_METERS } from './map-constants'
-import type { LngLat } from './types'
+import { EARTH_RADIUS_METERS } from '../map-constants'
+import type { LngLat } from '../types'
 
 /** The members' own coordinates. Every index came from `positions`, so the read holds no gaps. @internal */
 function clusterCoordinates(members: readonly number[], positions: readonly LngLat[]): LngLat[] {

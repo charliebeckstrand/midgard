@@ -2,14 +2,13 @@
  * Pure category plumbing for the map module: deriving the categorical series
  * from the rows, resolving slot paints in the fixed order, and matching each
  * region to its row's category. The map's analogue of the chart module's
- * series resolution.
+ * series resolution, and the shape its numeric twin (`value.ts`) emits too, so
+ * the regions, the legend, the tooltip, and the table read either mode
+ * unchanged.
  */
 
-import { k, type MapSeriesColor } from '../../recipes/kata/map'
-import type { DataKey, MapCategory, MapFeature } from './types'
-
-/** The em-dash the readout shows for a region with no matching datum. @internal */
-export const READOUT_GAP = '—'
+import { k, type MapSeriesColor } from '../../../../recipes/kata/map'
+import type { DataKey, MapCategory } from '../types'
 
 /**
  * How a resolved category or bin paints its region and legend swatch. A
@@ -139,16 +138,6 @@ function deriveCategories<T>(data: T[], categoryKey: DataKey<T>): MapCategory[] 
 	}
 
 	return derived
-}
-
-/** The default region identity: the feature `id`, else its `name` property. @internal */
-export function defaultRegionId(feature: MapFeature): string {
-	return String(feature.id ?? feature.properties?.name ?? '')
-}
-
-/** The default region display name: the `name` property, else the feature `id`. @internal */
-export function defaultRegionLabel(feature: MapFeature): string {
-	return String(feature.properties?.name ?? feature.id ?? '')
 }
 
 /**

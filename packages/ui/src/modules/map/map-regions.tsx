@@ -11,10 +11,16 @@ import {
 } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
-import { regionIndexAt, useMapHoverSet, useMapPointedMark } from './context'
-import type { MapCategoryMeta } from './map-categories'
-import { REGION_SELECTED_STROKE_WIDTH, REGION_STROKE_WIDTH } from './map-constants'
-import { type MapRegionLayer, paintAt, resolveRegionPaints, washStyle } from './map-region-paint'
+import { useMapHoverSet, useMapPointedMark } from './context'
+import { REGION_SELECTED_STROKE_WIDTH, REGION_STROKE_WIDTH } from './engine/map-constants'
+import { regionIndexAt } from './engine/map-hover/anchor'
+import type { MapCategoryMeta } from './engine/map-region/category'
+import {
+	type MapRegionLayer,
+	paintAt,
+	resolveRegionPaints,
+	washStyle,
+} from './engine/map-region/paint'
 import { MapRegionsLit } from './map-regions-lit'
 
 /**

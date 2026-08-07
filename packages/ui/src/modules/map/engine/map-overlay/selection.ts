@@ -9,9 +9,9 @@
  * without mounting a map.
  */
 
-import { markRowKey } from './map-readout'
-import type { MapOverlaySelection } from './types'
-import type { MapOverlayEntry } from './use-map-legend-registry'
+import type { MapOverlaySelection } from '../types'
+import type { MapOverlayEntry } from './entry'
+import { markRowKey } from './readout'
 
 /**
  * The stop mapper a mark registers when it draws the stops it reports: its one

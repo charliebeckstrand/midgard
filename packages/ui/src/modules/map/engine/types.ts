@@ -1,8 +1,20 @@
 import type { GeoProjection } from 'd3-geo'
-import type { MapSeriesColor } from '../../recipes/kata/map'
+import type { MapSeriesColor } from '../../../recipes/kata/map'
 
 /** `[longitude, latitude]`: GeoJSON order, opposite of the idiomatic "lat / lng". */
 export type LngLat = [number, number]
+
+/**
+ * A projected frame point: where a {@link LngLat} lands once the fitted
+ * projection has drawn it. The engine's other coordinate — geography arrives in
+ * lon/lat and every drawn thing is measured here.
+ *
+ * @internal
+ */
+export type MapPoint2D = {
+	x: number
+	y: number
+}
 
 /** A key of `T` naming the field the map reads from each datum. */
 export type DataKey<T> = keyof T & string

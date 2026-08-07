@@ -6,7 +6,7 @@
  * constants stay an import-free leaf for the geometry and projection modules.
  */
 
-import { k } from '../../recipes/kata/map'
+import { k } from '../../../recipes/kata/map'
 
 const { duration, ease, mark } = k.motion
 

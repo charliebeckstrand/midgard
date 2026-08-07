@@ -11,10 +11,10 @@
  */
 
 import type { CSSProperties } from 'react'
-import { cn } from '../../core'
-import { k } from '../../recipes/kata/map'
-import { categoryLegendId, type MapCategoryMeta } from './map-categories'
-import { REGION_FADE, REGION_STAGGER, REGION_STAGGER_MAX } from './map-motion'
+import { cn } from '../../../../core'
+import { k } from '../../../../recipes/kata/map'
+import { REGION_FADE, REGION_STAGGER, REGION_STAGGER_MAX } from '../map-motion'
+import { categoryLegendId, type MapCategoryMeta } from './category'
 
 /** The colour wash's transition classes under `animate`; static maps colour without one. */
 const WASH = 'transition-colors ease-out motion-reduce:transition-none'

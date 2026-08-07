@@ -6,21 +6,7 @@ import { Swatch, type SwatchProps } from '../../components/swatch'
 import { Text } from '../../components/text'
 import { cn } from '../../core'
 import { useA11yRoving } from '../../hooks/a11y'
-
-/** One legend entry: a category or overlay named by its mark-mirroring swatch. @internal */
-export type MapLegendItem = {
-	/** The toggle / emphasis key: `category:<value>` or a registered overlay id. */
-	id: string
-	label: string
-	/** currentColor class carrying the entry's colour (categorical slots and overlays). */
-	swatchClass?: string
-	/** Inline CSS colour carrying the entry's colour (numeric choropleth bins). */
-	swatchColor?: string
-	/** Swatch shape, mirroring the mark: `rect` for regions, `line` for routes and markers, `dot` for points. */
-	swatch: 'rect' | 'line' | 'dot'
-	/** A trailing readout — a route's mileage, a point's value. */
-	detail?: string
-}
+import type { MapLegendItem } from './engine/map-legend/items'
 
 /** Props for {@link MapLegend}. @internal */
 export type MapLegendProps = {

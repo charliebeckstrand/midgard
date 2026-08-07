@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { fetchOsrmRoute, fetchValhallaRoute } from '../../modules/map/map-routing'
-import type { LngLat } from '../../modules/map/types'
+import { fetchOsrmRoute } from '../../modules/map/engine/map-routing/osrm'
+import { fetchValhallaRoute } from '../../modules/map/engine/map-routing/valhalla'
+import type { LngLat } from '../../modules/map/engine/types'
 
 const WAYPOINTS: LngLat[] = [
 	[-118.24, 34.05],

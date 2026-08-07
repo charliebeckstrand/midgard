@@ -1,5 +1,5 @@
 /**
- * The uniform grid both of `map-cluster`'s passes bucket into, at one cell per
+ * The uniform grid both clustering passes bucket into, at one cell per
  * reach: an entry within reach of a point can only sit in that point's own cell
  * or one of the eight around it, so each mark reads nine buckets rather than
  * every group built before it — a linear pass where the naive scan is quadratic.
@@ -9,7 +9,7 @@
  * shape.
  */
 
-import type { MapPoint2D } from './map-geometry'
+import type { MapPoint2D } from '../types'
 
 /**
  * The stride one cell index carries in a packed key, which bounds the other to

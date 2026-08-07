@@ -8,7 +8,7 @@ import {
 	type RangeScale,
 } from '../chart/engine/chart-legend/range-legend'
 import { useMapPointedMark } from './context'
-import { binEmphasisId } from './map-categories'
+import { binEmphasisId } from './engine/map-region/category'
 
 /** Props for {@link MapRangeLegend}: the shared bar's own scale, plus what the map wires into it. @internal */
 export type MapRangeLegendProps = RangeScale & {

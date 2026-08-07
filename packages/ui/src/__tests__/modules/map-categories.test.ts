@@ -3,7 +3,7 @@ import {
 	regionCategoryIndexes,
 	resolveCategories,
 	slotColor,
-} from '../../modules/map/map-categories'
+} from '../../modules/map/engine/map-region/category'
 import { FIXTURE_ROWS } from '../helpers/map-geography'
 
 describe('slotColor', () => {

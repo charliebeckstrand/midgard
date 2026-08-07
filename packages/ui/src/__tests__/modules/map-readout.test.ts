@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { markReadout, markRows } from '../../modules/map/map-readout'
+import { markReadout, markRows } from '../../modules/map/engine/map-overlay/readout'
 
 /** A singular mark: one stop, no rows of its own. */
 const ROUTE = { id: 'leg', label: 'Leg', detail: '312 mi', kind: 'route' }

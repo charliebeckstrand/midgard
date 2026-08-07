@@ -2,10 +2,17 @@
 
 import { type RefObject, useMemo } from 'react'
 import { type FrameReserve, usePlotFrame } from '../../hooks'
-import { projectPoint } from './map-geometry'
-import { measuredRegionPaths, staticMapGeometry } from './map-geometry-cache'
-import { mapFrameSizing, measuredMapFit, projectionFallbackAspect } from './map-projection'
-import type { LngLat, MapAspectRatio, MapFeature, MapGeography, MapProjection } from './types'
+import { measuredRegionPaths, staticMapGeometry } from './engine/map-geometry/cache'
+import { projectPoint } from './engine/map-geometry/mark'
+import { mapFrameSizing, projectionFallbackAspect } from './engine/map-projection/aspect'
+import { measuredMapFit } from './engine/map-projection/fit'
+import type {
+	LngLat,
+	MapAspectRatio,
+	MapFeature,
+	MapGeography,
+	MapProjection,
+} from './engine/types'
 
 /** What {@link useMapShape} resolves: the reserved box, the active draw frame, and its geometry. @internal */
 export type MapShape = {
@@ -49,8 +56,8 @@ export function useMapShape(
 ): MapShape {
 	// The mount-critical geometry — decode, the measurement-free canonical fit,
 	// and its region paths — memoised across instances and mounts (see
-	// `map-geometry-cache`), so a tab switch, a second plat on the same atlas, or
-	// a route revisit paints on the first commit instead of re-paying the fit.
+	// `engine/map-geometry/cache`), so a tab switch, a second plat on the same
+	// atlas, or a route revisit paints on the first commit instead of re-paying it.
 	// Canonical output is deterministic, so the server and the first client
 	// render agree. The per-size measured refit below stays per-instance; it
 	// reprojects to constant-pixel marks a beat after this canonical draw.

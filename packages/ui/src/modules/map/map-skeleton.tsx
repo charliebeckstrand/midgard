@@ -2,9 +2,9 @@ import { AspectRatio } from '../../components/aspect-ratio'
 import { Placeholder } from '../../components/placeholder'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
-import { DEFAULT_MAP_ASPECT } from './map-constants'
-import { ratioValue } from './map-projection'
-import type { MapAspectRatio } from './types'
+import { DEFAULT_MAP_ASPECT } from './engine/map-constants'
+import { ratioValue } from './engine/map-projection/aspect'
+import type { MapAspectRatio } from './engine/types'
 
 /** Props for {@link MapSkeleton}. */
 export type MapSkeletonProps = {

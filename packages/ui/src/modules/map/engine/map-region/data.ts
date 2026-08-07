@@ -6,7 +6,7 @@
  * has to have one definition.
  */
 
-import type { DataKey, MapCategory } from './types'
+import type { DataKey, MapCategory } from '../types'
 
 /** The rows and the field that matches each to a region; shared by both colour modes. @internal */
 type MapRegionRows<T> = {
