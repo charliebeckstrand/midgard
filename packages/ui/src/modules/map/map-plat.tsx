@@ -319,39 +319,46 @@ function useMarkSelection(
  * {@link fetchOsrmRoute} / {@link fetchValhallaRoute} — the plat itself
  * never calls the network.
  */
-export function MapPlat<T = never>({
-	geography,
-	geographyObject,
-	projection = 'mercator',
-	data,
-	regionKey,
-	categoryKey,
-	categories,
-	valueKey,
-	colorRange,
-	bins,
-	binning,
-	domain,
-	valueFormat,
-	valueName,
-	regionId,
-	regionLabel,
-	width,
-	height,
-	aspectRatio = 'auto',
-	deferPaint = false,
-	legend,
-	tooltip = true,
-	animate = false,
-	onRegionClick,
-	onRegionContextMenu,
-	selectedRegion,
-	selectedOverlay,
-	emphasis: controlledEmphasis,
-	className,
-	children,
-	...name
-}: MapPlatProps<T>) {
+export function MapPlat<T = never>(props: MapPlatProps<T>) {
+	const {
+		geography,
+		geographyObject,
+		projection = 'mercator',
+		data,
+		categoryKey,
+		valueKey,
+		colorRange,
+		valueFormat,
+		valueName,
+		regionId,
+		regionLabel,
+		width,
+		height,
+		aspectRatio = 'auto',
+		deferPaint = false,
+		legend,
+		tooltip = true,
+		animate = false,
+		onRegionClick,
+		onRegionContextMenu,
+		selectedRegion,
+		selectedOverlay,
+		emphasis: controlledEmphasis,
+		className,
+		children,
+		// Destructured off so the region-data fields nothing else here reads never
+		// fall into `...name` and spread onto the plot element as invalid DOM
+		// attributes. The readout takes them off `props` below, so a value bound
+		// here could only shadow it — a default written on one would never reach
+		// the join.
+		regionKey: _regionKey,
+		categories: _categories,
+		bins: _bins,
+		binning: _binning,
+		domain: _domain,
+		...name
+	} = props
+
 	const shape = useMapShape(
 		geography,
 		geographyObject,
@@ -370,6 +377,9 @@ export function MapPlat<T = never>({
 		[shape.features, regionId],
 	)
 
+	// The props go in whole: the region-data union's branches are exclusive only
+	// while the object holds together, so an object rebuilt from the bindings
+	// above matches no branch and needs a cast to pass.
 	const {
 		categoryMetas,
 		regionNames,
@@ -377,23 +387,7 @@ export function MapPlat<T = never>({
 		regionValues,
 		regionNumbers,
 		domain: valueExtent,
-	} = useMapRegionReadout(
-		shape.features,
-		{
-			data,
-			regionKey,
-			categoryKey,
-			categories,
-			valueKey,
-			colorRange,
-			bins,
-			binning,
-			domain,
-			valueFormat,
-		} as MapRegionData<T>,
-		regionIds,
-		regionLabel,
-	)
+	} = useMapRegionReadout(shape.features, props, regionIds, regionLabel)
 
 	const { hidden, toggle, setFocus, emphasis: activeFocus } = useMapToggle()
 

@@ -34,7 +34,16 @@ type MapRegionReadout = {
 	domain: [number, number] | null
 }
 
-/** Resolves the categories or choropleth bins and matches each region to its bin. @internal */
+/**
+ * Resolves the categories or choropleth bins and matches each region to its bin.
+ *
+ * @remarks Takes the region data whole, because the union's branches are
+ * exclusive only while the object holds together — `MapPlat` hands it its own
+ * props, whose identity React mints fresh on every render. So the fields come
+ * apart in the signature and the memo below depends on each one; never depend on
+ * the object itself, which would re-join every region on every render.
+ * @internal
+ */
 export function useMapRegionReadout<T>(
 	features: MapFeature[],
 	{
