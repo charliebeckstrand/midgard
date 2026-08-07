@@ -382,7 +382,7 @@ into the engine.
 **The container-width measurement in MapPlat and HeatmapChart is not the duplicate it looks like.** The
 proposed destination, `engine/chart-legend/range.ts:1-10`, opens by stating it is kept React-free so the
 breakpoint maths stays unit-testable. Both hosts also already call `usePlotFrame`
-(`map-plat.tsx:377`, `heatmap-chart.tsx:499`), so the package's measured-size hook is in use and the
+(`use-map-shape.ts:73`, `heatmap-chart.tsx:499`), so the package's measured-size hook is in use and the
 second measurement answers a different question.
 
 **`useGridSelection`'s composition is load-bearing for a boundary test.** `filename-rules.ts:79-101`

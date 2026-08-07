@@ -4,14 +4,10 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
 import type { MapHoverTarget } from './context'
 import { REGION_STROKE_WIDTH } from './map-constants'
-import { paintAt, type ResolvedRegionPaints } from './map-region-paint'
+import { type MapRegionLayer, paintAt } from './map-region-paint'
 
 /** Props for {@link MapRegionsLit}: what the emphasis holds lit above the receded layer. @internal */
-type MapRegionsLitProps = {
-	paths: (string | null)[]
-	regionCategory: (number | null)[]
-	/** The paint table {@link MapRegions} resolves once for this overlay and the base layer. */
-	paints: ResolvedRegionPaints
+type MapRegionsLitProps = MapRegionLayer & {
 	pointed: MapHoverTarget | null
 	emphasis: string | null
 }

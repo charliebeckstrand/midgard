@@ -14,6 +14,7 @@ import { useResizeObserver } from '../../hooks'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { k, type MapSeriesColor } from '../../recipes/kata/map'
 import type { AccessibleName } from '../../types'
+import { legendAside } from '../chart/engine/chart-legend/schema'
 import { type MapHoverTarget, MapPlatContext, type MapPlatContextValue } from './context'
 import { categoryLegendId, defaultRegionId, regionGroupId, slotColor } from './map-categories'
 import { MapFrame, MapPlotRegion } from './map-frame'
@@ -210,11 +211,12 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 *
 		 * Passing it hands that state to the caller, so ONE legend rendered outside
 		 * the plat can emphasise across SEVERAL of them at once: give each plat
-		 * `legend={false}` and this prop, and render a single {@link RangeLegend}
-		 * whose `onProbe` drives it. The ids only line up across plats when the bins
-		 * do, which for the numeric mode means the same `colorRange`, `bins`, and an
-		 * explicit `domain` — without the last one each plat bins to its own extent
-		 * and an id from one means nothing to another.
+		 * `legend={false}` and this prop, and drive it from whatever holds the
+		 * shared legend — a `ChoroplethChart`'s own range bar, or any control that
+		 * emits a bin id ({@link binEmphasisId}). The ids only line up across plats
+		 * when the bins do, which for the numeric mode means the same `colorRange`,
+		 * `bins`, and an explicit `domain` — without the last one each plat bins to
+		 * its own extent and an id from one means nothing to another.
 		 *
 		 * Omitted, the plat owns the state and its own legend drives it. A `null`
 		 * keeps it controlled with no emphasis (CONVENTIONS §7.3).
@@ -596,7 +598,7 @@ export function MapPlat<T = never>({
 		{ colorRange, valueExtent, valueFormat, valueName, regionNumbers, onFocus: setFocus },
 	)
 
-	const aside = legendPlacement === 'left' || legendPlacement === 'right'
+	const aside = legendAside(legendPlacement)
 
 	// The SVG fills its box through the viewBox rather than pixel dimensions, so
 	// the box — not the marks — owns the size. The view frame is the canonical

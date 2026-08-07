@@ -4,6 +4,7 @@ import type { ReactNode, RefObject } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
 import type { AccessibleName } from '../../types'
+import { legendAside } from '../chart/engine/chart-legend/schema'
 import { ChartPlotBox } from '../chart/engine/chart-plot-box'
 import { MapHoverProvider } from './map-hover-provider'
 import type { MapLegendPlacement } from './types'
@@ -44,7 +45,7 @@ export function MapFrame({
 	fill,
 	className,
 }: MapFrameProps) {
-	const aside = legendPlacement === 'left' || legendPlacement === 'right'
+	const aside = legendAside(legendPlacement)
 
 	return (
 		<div

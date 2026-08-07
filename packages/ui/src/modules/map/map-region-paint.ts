@@ -55,6 +55,23 @@ type RegionPaint = {
 export type ResolvedRegionPaints = { byCategory: RegionPaint[]; none: RegionPaint }
 
 /**
+ * What either region layer draws from: the geometry, each region's category,
+ * and the table those two resolve a paint through. Held here rather than on
+ * one layer, because the base tree and the lit copies above it draw the same
+ * regions from the same table and their inputs must not drift apart.
+ *
+ * @internal
+ */
+export type MapRegionLayer = {
+	/** Region path ds, index-aligned with the features; `null` draws nothing. */
+	paths: (string | null)[]
+	/** Each region's category index, `null` for the neutral no-data fill. */
+	regionCategory: (number | null)[]
+	/** The paint table {@link MapRegions} resolves once for both layers. */
+	paints: ResolvedRegionPaints
+}
+
+/**
  * One category's paint: the toggle / emphasis key is the category's stable
  * value ({@link categoryLegendId}), not its index, so a reorder or removal
  * can't re-point a hidden or emphasised entry at a different category. The

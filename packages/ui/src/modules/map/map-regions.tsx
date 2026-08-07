@@ -14,12 +14,7 @@ import { k } from '../../recipes/kata/map'
 import { regionIndexAt, useMapHoverSet, useMapPointedMark } from './context'
 import type { MapCategoryMeta } from './map-categories'
 import { REGION_SELECTED_STROKE_WIDTH, REGION_STROKE_WIDTH } from './map-constants'
-import {
-	paintAt,
-	type ResolvedRegionPaints,
-	resolveRegionPaints,
-	washStyle,
-} from './map-region-paint'
+import { type MapRegionLayer, paintAt, resolveRegionPaints, washStyle } from './map-region-paint'
 import { MapRegionsLit } from './map-regions-lit'
 
 /** Props for {@link MapRegions}. @internal */
@@ -162,13 +157,7 @@ const Region = memo(function Region({
 })
 
 /** Props for {@link MapRegionsBase}: the layer's own inputs, none of the shared emphasis. @internal */
-type MapRegionsBaseProps = {
-	paths: (string | null)[]
-	regionCategory: (number | null)[]
-	/** The paint table {@link MapRegions} resolves once for this layer and the lit overlay. */
-	paints: ResolvedRegionPaints
-	animate: boolean
-}
+type MapRegionsBaseProps = MapRegionLayer & { animate: boolean }
 
 /**
  * Every region path, painted by category. Deliberately blind to the shared

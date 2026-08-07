@@ -4,23 +4,23 @@ import { cn } from '../../core'
 import {
 	RangeArrow,
 	RangeLegend,
+	type RangeLegendProps,
 	type RangeOrientation,
 } from '../chart/engine/chart-legend/range-legend'
 import { useMapPointedMark } from './context'
 import { binEmphasisId } from './map-categories'
 
-/** Props for {@link MapRangeLegend}. @internal */
-export type MapRangeLegendProps = {
-	/** The ordered CSS colour stops the scale bar paints, low → high. */
-	colorRange: string[]
-	/** The value extent the bar spans, `[low, high]`. */
-	domain: [number, number]
-	/** Formats the endpoint and bin labels. */
-	format: (value: number) => string
-	/** Optional caption above the bar — the value's name. */
-	label?: string
-	/** The bin count; the bar snaps to these bands. */
-	bins: number
+/**
+ * Props for {@link MapRangeLegend}: the scale the shared bar paints, taken
+ * straight off its own props so the two can't drift, plus what the map wires
+ * into it.
+ *
+ * @internal
+ */
+export type MapRangeLegendProps = Pick<
+	RangeLegendProps,
+	'colorRange' | 'domain' | 'format' | 'label' | 'bins'
+> & {
 	/** Each region's raw value (`null` = no data), feature-index aligned — the arrow marks the hovered region's. */
 	regionNumbers: (number | null)[]
 	/** Emphasises a bin's regions (`null` clears); other regions dim while set — the filter. */

@@ -21,7 +21,7 @@ import { k } from '../../../../recipes/kata/chart'
 export type RangeOrientation = 'horizontal' | 'vertical'
 
 /** Props for {@link RangeArrow}. @internal */
-export type RangeArrowProps = {
+type RangeArrowProps = {
 	/** The exact value the glyph marks along the bar. */
 	value: number
 	/** The bar's `[low, high]` extent — the axis its endpoints label. */
