@@ -5,13 +5,8 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
 import { rangeKeys } from '../../utilities'
 import { useMapPlat } from './context'
-import {
-	clusterAnchor,
-	clusterPoints,
-	clusterRadius,
-	clusterSpan,
-	groupsByMember,
-} from './map-cluster'
+import { clusterPoints, clusterRadius, groupsByMember } from './map-cluster'
+import { clusterAnchor, clusterSpan } from './map-cluster-geo'
 import { POINT_CLUSTER_GAP, POINT_HIT_RADIUS } from './map-constants'
 import { MapDot, MapDotCount } from './map-dot'
 import { MapDotHalo } from './map-halo'

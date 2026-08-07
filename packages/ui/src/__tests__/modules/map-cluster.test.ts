@@ -1,11 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import {
-	clusterAnchor,
-	clusterPoints,
-	clusterRadius,
-	clusterSpan,
-	groupsByMember,
-} from '../../modules/map/map-cluster'
+import { clusterPoints, clusterRadius, groupsByMember } from '../../modules/map/map-cluster'
+import { clusterAnchor, clusterSpan } from '../../modules/map/map-cluster-geo'
 import { POINT_RADIUS } from '../../modules/map/map-constants'
 import type { MapPoint2D } from '../../modules/map/map-geometry'
 import type { LngLat } from '../../modules/map/types'

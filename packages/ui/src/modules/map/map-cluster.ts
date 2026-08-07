@@ -1,8 +1,10 @@
 /**
  * Pure clustering math for the map module: which dots fall close enough on the
- * frame to draw as one summary, where that summary sits, and how far its stops
- * spread on the ground. Kept React-free beside `map-geometry.ts` and
- * `map-projection.ts`, so the grouping is unit-testable without a frame.
+ * frame to draw as one summary, and where that summary sits. Kept React-free
+ * beside `map-geometry.ts` and `map-projection.ts`, so the grouping is
+ * unit-testable without a frame. The spatial index both passes bucket into is
+ * `map-cluster-grid.ts`; what a group reads out on the ground is
+ * `map-cluster-geo.ts`.
  *
  * One rule decides the output: no two marks draw within `gap` of one another
  * ({@link marksOverlap}). {@link seedGroups} is a broad phase under it — a
@@ -11,8 +13,8 @@
  * its own.
  */
 
-import { geoCentroid, geoDistance } from 'd3-geo'
-import { CLUSTER_RADIUS_STEPS, EARTH_RADIUS_METERS, POINT_RADIUS } from './map-constants'
+import { bucket, cellOf, walkNear } from './map-cluster-grid'
+import { CLUSTER_RADIUS_STEPS, POINT_RADIUS } from './map-constants'
 import type { MapPoint2D } from './map-geometry'
 import type { LngLat } from './types'
 
@@ -23,8 +25,8 @@ import type { LngLat } from './types'
  *
  * It carries frame arithmetic alone. What a group reads out — its anchor and its
  * spread — is spherical, costs a `d3-geo` pass per group, and is wanted by one
- * caller each, so {@link clusterAnchor} and {@link clusterSpan} resolve it where
- * it is read rather than on every pass.
+ * caller each, so `map-cluster-geo.ts` resolves it where it is read rather than
+ * on every pass.
  *
  * @internal
  */
@@ -323,67 +325,6 @@ function nearestSeed(
 	return nearest
 }
 
-/**
- * Walks every entry indexed in the nine cells around a point — at one cell per
- * reach, the whole field a merge can cross — and stops as soon as `visit`
- * answers `true`.
- *
- * A walk rather than a returned list: both passes run this per mark across sets
- * of hundreds, and a list would allocate one array each — the cost the numeric
- * cell key below exists to avoid.
- *
- * @internal
- */
-function walkNear<T>(
-	cells: Map<number, T[]>,
-	at: MapPoint2D,
-	reach: number,
-	visit: (entry: T) => boolean,
-): void {
-	const cx = Math.floor(at.x / reach)
-
-	const cy = Math.floor(at.y / reach)
-
-	for (let step = 0; step < 9; step++) {
-		const held = cells.get(cellKey(cx + ((step % 3) - 1), cy + (Math.floor(step / 3) - 1)))
-
-		if (held === undefined) continue
-
-		for (const entry of held) if (visit(entry)) return
-	}
-}
-
-/**
- * The grid key for one cell. Packed into a number rather than a string: the
- * walks above read nine cells per mark, and building nine strings each would
- * allocate by the thousand across a set of hundreds. Cell indices are frame
- * coordinates over the reach, so they sit far inside the ±32,768 the packing
- * holds.
- *
- * @internal
- */
-function cellKey(cx: number, cy: number): number {
-	return cx * 65536 + cy
-}
-
-/** The cell key a frame position falls under. @internal */
-function cellOf(at: MapPoint2D, reach: number): number {
-	return cellKey(Math.floor(at.x / reach), Math.floor(at.y / reach))
-}
-
-/** The bucket for a cell, created empty on first use. @internal */
-function bucket<T>(cells: Map<number, T[]>, key: number): T[] {
-	const held = cells.get(key)
-
-	if (held !== undefined) return held
-
-	const fresh: T[] = []
-
-	cells.set(key, fresh)
-
-	return fresh
-}
-
 /** The squared distance between two frame points, so a comparison takes no square root. @internal */
 function squared(a: MapPoint2D, b: MapPoint2D): number {
 	const dx = a.x - b.x
@@ -421,55 +362,6 @@ function centre({ members, seed, sumX, sumY }: MapClusterSeed): MapPoint2D | nul
 /** Resolves a built group to the dots it holds and the point it draws at. @internal */
 function summarise(group: MapClusterSeed): MapPointCluster {
 	return { members: group.members, at: centre(group) }
-}
-
-/** The members' own coordinates. Every index came from `positions`, so the read holds no gaps. @internal */
-function clusterCoordinates(members: readonly number[], positions: readonly LngLat[]): LngLat[] {
-	return members.map((index) => positions[index] as LngLat)
-}
-
-/**
- * A group's own lon/lat: a lone dot's position, or its members' spherical
- * centroid — which a set spanning the antimeridian needs, where a mean of
- * longitudes would land on the far side of the world.
- *
- * @internal
- */
-export function clusterAnchor(members: readonly number[], positions: readonly LngLat[]): LngLat {
-	const coordinates = clusterCoordinates(members, positions)
-
-	const first = coordinates[0] as LngLat
-
-	if (coordinates.length === 1) return first
-
-	const [lon, lat] = geoCentroid({ type: 'MultiPoint', coordinates } as unknown as Parameters<
-		typeof geoCentroid
-	>[0])
-
-	// Antipodal members cancel to no centre. The first member anchors the group
-	// instead, which is a position the projection can draw.
-	return Number.isFinite(lon) && Number.isFinite(lat) ? [lon, lat] : first
-}
-
-/**
- * How far a group spreads, in metres: the diameter of the circle about its
- * {@link clusterAnchor} that holds every member. `0` for a lone dot, which
- * spreads over nothing and must not pay a spherical pass to say so.
- *
- * @internal
- */
-export function clusterSpan(members: readonly number[], positions: readonly LngLat[]): number {
-	if (members.length === 1) return 0
-
-	const anchor = clusterAnchor(members, positions)
-
-	let radians = 0
-
-	for (const position of clusterCoordinates(members, positions)) {
-		radians = Math.max(radians, geoDistance(anchor, position))
-	}
-
-	return 2 * radians * EARTH_RADIUS_METERS
 }
 
 /**
