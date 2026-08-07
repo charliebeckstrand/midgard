@@ -60,6 +60,18 @@ export type MapCategory = {
 	color?: MapSeriesColor
 }
 
+/**
+ * A picked overlay mark, in the pair its reporters hand back: the mark's `id`,
+ * and which of its stops — a `MapPoints` dot's index in the points the caller
+ * passed. Omitting the index names the mark's first stop, which is the whole of
+ * a singular mark; an index the mark has no stop for picks nothing, the same
+ * silence an id naming no mark keeps.
+ */
+export type MapOverlaySelection = {
+	id: string
+	index?: number
+}
+
 /** A built-in projection name; the US composite places Alaska and Hawaii as insets. */
 export type MapNamedProjection = 'mercator' | 'albers-usa' | 'equal-earth'
 

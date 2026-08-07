@@ -6,6 +6,7 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
 import { ROUTE_HIT_WIDTH, ROUTE_STROKE_WIDTH } from './map-constants'
 import { lineAnchor, linePath } from './map-geometry'
+import { MapHalo } from './map-halo'
 import { ROUTE_DRAW } from './map-motion'
 import type { LngLat } from './types'
 import { type MapOverlayProps, useMapOverlay } from './use-map-overlay'
@@ -34,7 +35,8 @@ export type MapRouteProps = MapOverlayProps & {
  * every other mark recedes, as under its legend entry's focus; a wide
  * invisible hit stroke keeps the thin line aimable. With `onClick` set, that
  * stroke answers a click and the keyboard cursor picks the route with Enter
- * or Space.
+ * or Space; the plat's `selectedOverlay` haloes the whole line for as long as
+ * it names this mark.
  *
  * @remarks Renders only inside {@link MapPlat}. The line's width rides
  * device pixels (a non-scaling stroke), so a resize scales the geography
@@ -47,7 +49,7 @@ export function MapRoute({ stops, path, ...shared }: MapRouteProps) {
 	// `false`-overview leg carries totals but no line — falls back to the stops.
 	const points = path && path.length > 0 ? path : (stops ?? [])
 
-	const { slot, hidden, project, animate, dim, onPointerLeave, hit } = useMapOverlay({
+	const { slot, hidden, project, animate, dim, selected, onPointerLeave, hit } = useMapOverlay({
 		...shared,
 		kind: 'route',
 		swatch: 'line',
@@ -78,27 +80,31 @@ export function MapRoute({ stops, path, ...shared }: MapRouteProps) {
 	}
 
 	return (
-		<g className={dim} onPointerLeave={onPointerLeave}>
-			{animate ? (
-				<motion.path
-					{...shape}
-					initial={{ pathLength: 0 }}
-					animate={{ pathLength: 1 }}
-					transition={ROUTE_DRAW}
-				/>
-			) : (
-				<path {...shape} />
-			)}
+		<>
+			{selected !== null && <MapHalo slot="map-route-selected" d={d} width={ROUTE_STROKE_WIDTH} />}
 
-			<path
-				data-slot="map-route-hit"
-				d={d}
-				fill="none"
-				stroke="transparent"
-				strokeWidth={ROUTE_HIT_WIDTH}
-				pointerEvents="stroke"
-				{...hit()}
-			/>
-		</g>
+			<g className={dim} onPointerLeave={onPointerLeave}>
+				{animate ? (
+					<motion.path
+						{...shape}
+						initial={{ pathLength: 0 }}
+						animate={{ pathLength: 1 }}
+						transition={ROUTE_DRAW}
+					/>
+				) : (
+					<path {...shape} />
+				)}
+
+				<path
+					data-slot="map-route-hit"
+					d={d}
+					fill="none"
+					stroke="transparent"
+					strokeWidth={ROUTE_HIT_WIDTH}
+					pointerEvents="stroke"
+					{...hit()}
+				/>
+			</g>
+		</>
 	)
 }

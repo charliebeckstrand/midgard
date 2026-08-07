@@ -3,6 +3,8 @@ import { ariaAttr } from '../../core'
 import { rangeKeys } from '../../utilities'
 import { type MapCategoryMeta, READOUT_GAP } from './map-categories'
 import { markRows } from './map-readout'
+import { selectedMarkRow } from './map-selection'
+import type { MapOverlaySelection } from './types'
 import type { MapOverlayEntry } from './use-map-legend-registry'
 
 /** Props for {@link MapTable}. @internal */
@@ -21,20 +23,27 @@ export type MapTableProps = {
 	entries: MapOverlayEntry[]
 	/** The selected region's feature index, `null` when nothing is picked. */
 	selected: number | null
+	/**
+	 * The picked overlay mark, resolved to a row here through the same mapper the
+	 * mark's halo reads — so the row that carries the pick is the one the halo sits
+	 * on.
+	 */
+	selectedOverlay: MapOverlaySelection | null
 }
 
 /** Props for {@link MapTableRow}: one row's resolved text, and whether it is the picked one. @internal */
 type MapTableRowProps = {
 	name: string | undefined
 	value: string
-	/** Whether this row is the selected region's — it reads as the current one. */
+	/** Whether this row carries the pick — a region's or a mark's; it reads as the current one. */
 	current: boolean
 }
 
 /**
- * One readout row. Memoised on its resolved primitives, the treatment the
- * region paths take: a selection moves `current` on two rows, so a pick
- * reconciles those two instead of re-creating every cell on a county atlas.
+ * One readout row, a region's or an overlay stop's. Memoised on its resolved
+ * primitives, the treatment the region paths take: a selection moves `current`
+ * on two rows, so a pick reconciles those two instead of re-creating every cell
+ * on a county atlas.
  *
  * @internal
  */
@@ -56,8 +65,9 @@ const MapTableRow = memo(function MapTableRow({ name, value, current }: MapTable
  * The map's visually-hidden data table: every region with its category, and
  * every overlay with its detail, in plain markup outside the `role="img"`
  * region. Assistive tech gets full value parity without the pointer, so the
- * tooltip stays an enhancement — and the selected region's row carries
- * `aria-current`, so a pick shows in the readout and not in the ring alone.
+ * tooltip stays an enhancement — and the picked row carries `aria-current`,
+ * whether a region or an overlay stop holds the pick, so a selection shows in
+ * the readout and not in the ring or the halo alone.
  *
  * Memoised so it repaints only when the readout changes, not on legend
  * emphasis or toggling — it reads neither, so a legend hover need never
@@ -72,11 +82,60 @@ export const MapTable = memo(function MapTable({
 	categories,
 	entries,
 	selected,
+	selectedOverlay,
 }: MapTableProps) {
 	// The row keys, held across the re-maps a selection costs: the array depends
 	// on the row count alone, where rebuilding it would allocate one string per
 	// region on every pick.
 	const keys = useMemo(() => rangeKeys(regionNames.length, 'region'), [regionNames.length])
+
+	// The two halves are held apart, each on its own inputs: a pick moves one of
+	// them, and re-mapping a county atlas's three thousand region rows because a
+	// dot on top of it was picked is work no reader would ever see.
+	const regionRows = useMemo(
+		() =>
+			keys.map((key, index) => {
+				const category = regionCategory[index]
+
+				return (
+					<MapTableRow
+						key={key}
+						name={regionNames[index]}
+						value={
+							regionValues[index] ??
+							(category == null ? READOUT_GAP : (categories[category]?.label ?? READOUT_GAP))
+						}
+						current={index === selected}
+					/>
+				)
+			}),
+		[keys, regionNames, regionCategory, regionValues, categories, selected],
+	)
+
+	// One row per dot, so the table carries what the tooltip gives the pointer —
+	// through the one resolver both surfaces read. The readout is built off the
+	// ledger alone: a pick moves which row reads as current, never what any row
+	// says, and a two-hundred-dot set would otherwise re-resolve every readout to
+	// move one attribute.
+	const rows = useMemo(() => entries.flatMap(markRows), [entries])
+
+	const pickedRow = useMemo(
+		() => selectedMarkRow(entries, selectedOverlay),
+		[entries, selectedOverlay],
+	)
+
+	const markRowsView = useMemo(
+		() =>
+			rows.map((row) => (
+				<MapTableRow
+					key={row.key}
+					name={row.name}
+					value={row.detail}
+					current={row.key === pickedRow}
+				/>
+			)),
+		[rows, pickedRow],
+	)
 
 	return (
 		// The hiding lives on a wrapper: width/height on a `display: table` box
@@ -94,31 +153,9 @@ export const MapTable = memo(function MapTable({
 				</thead>
 
 				<tbody>
-					{keys.map((key, index) => {
-						const category = regionCategory[index]
+					{regionRows}
 
-						return (
-							<MapTableRow
-								key={key}
-								name={regionNames[index]}
-								value={
-									regionValues[index] ??
-									(category == null ? READOUT_GAP : (categories[category]?.label ?? READOUT_GAP))
-								}
-								current={index === selected}
-							/>
-						)
-					})}
-
-					{/* One row per dot, so the table carries what the tooltip gives the
-					    pointer — through the one resolver both surfaces read. */}
-					{entries.flatMap(markRows).map((row) => (
-						<tr key={row.key}>
-							<th scope="row">{row.name}</th>
-
-							<td>{row.detail}</td>
-						</tr>
-					))}
+					{markRowsView}
 				</tbody>
 			</table>
 		</div>

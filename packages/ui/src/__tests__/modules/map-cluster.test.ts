@@ -4,6 +4,7 @@ import {
 	clusterPoints,
 	clusterRadius,
 	clusterSpan,
+	groupsByMember,
 } from '../../modules/map/map-cluster'
 import { POINT_RADIUS } from '../../modules/map/map-constants'
 import type { MapPoint2D } from '../../modules/map/map-geometry'
@@ -199,5 +200,29 @@ describe('clusterRadius', () => {
 
 	it('holds the top grade past the last step', () => {
 		expect(clusterRadius(4_000)).toBe(clusterRadius(25))
+	})
+})
+
+describe('groupsByMember', () => {
+	// Two dots inside the reach and one clear of them: groups [0, 1] and [2].
+	const groups = clusterPoints(
+		[
+			[0, 0],
+			[1, 0],
+			[100, 0],
+		],
+		flat,
+		GAP,
+	)
+
+	it('reads back which drawn mark holds each dot, and holds none it never had', () => {
+		// The resolution a pick needs: a click names the point a caller passed, and
+		// the summary it merged into is what the map draws. Asserted whole, so the
+		// entries it does not hold are proved by the same expectation.
+		expect([...groupsByMember(groups)]).toEqual([
+			[0, 0],
+			[1, 0],
+			[2, 1],
+		])
 	})
 })

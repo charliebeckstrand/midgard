@@ -11,6 +11,7 @@ import {
 	useMapPointedMark,
 } from './context'
 import type { MapPoint2D } from './map-geometry'
+import { ownStop, pickedStop } from './map-selection'
 import type { LngLat } from './types'
 import type { MapOverlayKind, MapStopRow } from './use-map-legend-registry'
 
@@ -51,6 +52,9 @@ export type MapOverlayProps = {
 	 * A singular mark holds one stop, so it is called with a trailing `0` its type
 	 * omits — the plural {@link MapPoints} passes the dot's index there. A handler
 	 * declared as this type never sees the argument.
+	 *
+	 * Handing the reported pair back as `MapPlat`'s `selectedOverlay` haloes the
+	 * pick, the way `selectedRegion` rings a picked region.
 	 */
 	onClick?: (id: string) => void
 	/**
@@ -95,6 +99,14 @@ type MapOverlayConfig = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> &
 		 * by content below, so an inline `points` never loops the ledger.
 		 */
 		stopRows?: MapStopRow[]
+		/**
+		 * Which drawn stop holds a reported index, where the mark's clicks count in
+		 * another space than its stops — see {@link MapOverlayEntry.stopOf}. Passed
+		 * live rather than through the ref the registration rides, because the
+		 * grouping behind it answers the drawn frame: a refit that regroups must
+		 * move the halo with it.
+		 */
+		stopOf?: (index: number) => number | null
 	}
 
 /** The resolved plat state and DOM props an overlay draws itself from. @internal */
@@ -111,6 +123,12 @@ export type MapOverlay = {
 	order: number
 	/** The dim class for the mark's group, under the shared emphasis. */
 	dim: string
+	/**
+	 * Which of the mark's drawn stops the plat holds selected, `null` when the
+	 * pick names another mark — or a stop this one does not draw. A singular mark
+	 * reads it as a flag; a plural one haloes the dot it names.
+	 */
+	selected: number | null
 	/** Clears the hover as the pointer leaves the mark's group. */
 	onPointerLeave: () => void
 	/**
@@ -158,26 +176,36 @@ export function useMapOverlay({
 	swatch,
 	stops,
 	stopRows,
+	stopOf,
 }: MapOverlayConfig): MapOverlay {
 	const generated = useId()
 
 	const id = given ?? generated
 
-	const { project, register, colors, order, hidden, emphasis, animate } = useMapPlat()
+	const { project, register, colors, order, hidden, emphasis, animate, selectedOverlay } =
+		useMapPlat()
 
 	const set = useMapHoverSet()
 
 	const pointed = useMapPointedMark()
 
+	// The mark's own stop resolution, defaulted once: a mark that draws the stops
+	// it reports holds one, its own. Spelling the fallback here rather than at each
+	// reader is what makes the halo below and the plat's picked row the same
+	// question — the drift `map-selection.ts` exists to prevent.
+	const resolveStop = stopOf ?? ownStop
+
 	// The live stops and reporters, read at fire time rather than captured in the
 	// registration: a consumer's inline handler is a fresh identity every render,
 	// and a mark's geometry changes as it lands — neither may churn the ledger,
 	// whose every write re-sorts it and re-renders the legend.
-	const live = useRef({ stops, onClick, stopRows })
+	const live = useRef({ stops, onClick, stopRows, resolveStop })
 
-	live.current = { stops, onClick, stopRows }
+	live.current = { stops, onClick, stopRows, resolveStop }
 
 	const stopsAt = useCallback(() => live.current.stops(), [])
+
+	const stopAt = useCallback((index: number) => live.current.resolveStop(index), [])
 
 	const pick = useCallback((stop: number) => live.current.onClick?.(id, stop), [id])
 
@@ -189,6 +217,12 @@ export function useMapOverlay({
 
 	const activate = pickable ? pick : undefined
 
+	// The standing pick, resolved off the live mapper rather than the ref the
+	// ledger rides: a refit that regroups a plural mark moves the picked dot, and
+	// the halo has to move with it on that same render. The table resolves the
+	// picked row through this same mapper, so the halo and that row can't disagree.
+	const selected = pickedStop(selectedOverlay, id, resolveStop)
+
 	// The readout text is the one registered field the table draws, so it has to
 	// reach the ledger to reach the screen. Keyed by content rather than by the
 	// array's identity: an inline `points` would otherwise re-register on every
@@ -199,30 +233,45 @@ export function useMapOverlay({
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: `stopRows` is keyed by `rowsKey`, its content
 	useEffect(
-		() => register({ id, label, kind, swatch, color, detail, stopsAt, stopRows, activate }),
-		[register, id, label, kind, swatch, color, detail, stopsAt, rowsKey, activate],
+		() =>
+			register({
+				id,
+				label,
+				kind,
+				swatch,
+				color,
+				detail,
+				stopsAt,
+				stopRows,
+				activate,
+				stopOf: stopAt,
+			}),
+		[register, id, label, kind, swatch, color, detail, stopsAt, rowsKey, activate, stopAt],
 	)
 
 	// One handler set per mark, not one per hit shape: each reads its own stop
 	// back off the element it fired on, through the same anchor the scroll-settle
 	// resolve reads. A plural mark draws one shape per dot, so building these per
 	// shape would allocate them by the hundred on every render.
-	const stopOf = (event: { currentTarget: Element }) => markAnchorAt(event.currentTarget)?.stop ?? 0
+	const stopFrom = (event: { currentTarget: Element }) =>
+		markAnchorAt(event.currentTarget)?.stop ?? 0
 
 	const track = (event: PointerEvent<SVGElement>) => {
-		set({ kind: 'entry', id, stop: stopOf(event) }, { x: event.clientX, y: event.clientY })
+		set({ kind: 'entry', id, stop: stopFrom(event) }, { x: event.clientX, y: event.clientY })
 	}
 
 	const handlers = {
 		onPointerEnter: track,
 		onPointerMove: track,
-		onClick: pickable ? (event: MouseEvent<SVGElement>) => onClick?.(id, stopOf(event)) : undefined,
+		onClick: pickable
+			? (event: MouseEvent<SVGElement>) => onClick?.(id, stopFrom(event))
+			: undefined,
 		// Bubbles, and never prevents default: a wrapping menu still opens, and this
 		// only names which mark it opened over.
 		onContextMenu:
 			onContextMenu === undefined
 				? undefined
-				: (event: MouseEvent<SVGElement>) => onContextMenu(id, stopOf(event)),
+				: (event: MouseEvent<SVGElement>) => onContextMenu(id, stopFrom(event)),
 	}
 
 	return {
@@ -232,6 +281,7 @@ export function useMapOverlay({
 		animate,
 		order: order.get(id) ?? 0,
 		dim: cn(k.group(mapMarkDimmed(pointed, { kind: 'entry', id, stop: 0 }, emphasis, id))),
+		selected,
 		onPointerLeave: () => set(null, null),
 		hit: (stop = 0) => ({
 			'data-entry-id': id,

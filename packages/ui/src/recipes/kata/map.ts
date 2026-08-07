@@ -16,6 +16,14 @@ export type MapSeriesColor = ChartColorSlot
 /** The map's one pointer affordance, shared by the region layer and the overlay marks. */
 const CLICKABLE = 'cursor-pointer'
 
+/**
+ * The map's one selection ink. Foreground ink, not a palette slot: a mark in one
+ * of the eight categorical hues would read as a ninth category, and the neutral
+ * holds its contrast over every slot, over the no-data fill, and over the
+ * geography an overlay draws across alike.
+ */
+const SELECTED = mode('stroke-zinc-900', 'dark:stroke-white')
+
 export const k = {
 	/**
 	 * The pointer affordance on a mark that answers a click: an overlay's hit
@@ -24,6 +32,12 @@ export const k = {
 	 * the same token).
 	 */
 	clickable: CLICKABLE,
+	/**
+	 * The standing pick's ink, on an overlay mark's halo — the same token the
+	 * region ring takes (`region.selected`), so one map never marks its geography
+	 * and its overlays in two different colours.
+	 */
+	selected: SELECTED,
 	/** Shared data-viz palette: same slots, same order, same validation as `kata/chart`. */
 	series: chart.series,
 	order: chart.order,
@@ -54,12 +68,10 @@ export const k = {
 		 */
 		pointed: 'brightness-110',
 		/**
-		 * The selected region's outline. Foreground ink, not a palette slot: a
-		 * ring in one of the eight categorical hues would read as a ninth
-		 * category over the region it marks, and the neutral holds its contrast
-		 * over every slot and over the no-data fill alike.
+		 * The selected region's outline — the map's shared {@link k.selected} ink,
+		 * kept here so the region layer reads its selection beside its other paint.
 		 */
-		selected: mode('stroke-zinc-900', 'dark:stroke-white'),
+		selected: SELECTED,
 	},
 	/**
 	 * A mark group's response to emphasis — the legend's focused group, or the

@@ -14,3 +14,19 @@ export function allRegions(container: HTMLElement) {
 export function firstRegion(container: HTMLElement) {
 	return container.querySelector<SVGPathElement>('[data-region-index]')
 }
+
+/**
+ * Each row of the visually-hidden data table as a name / `aria-current` pair, in
+ * the order a reader meets them — regions first, then one row per overlay stop.
+ *
+ * Read off the row header rather than the `tr`: the table puts `aria-current`
+ * there deliberately (support for the attribute on a plain `tr` is uneven), so
+ * the region pick and the overlay pick assert that one contract through one
+ * reader.
+ */
+export function tableRows(container: HTMLElement) {
+	return Array.from(container.querySelectorAll('[data-slot="map-table"] tbody th')).map((cell) => [
+		cell.textContent,
+		cell.getAttribute('aria-current'),
+	])
+}

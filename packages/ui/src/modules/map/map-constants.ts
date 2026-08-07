@@ -26,6 +26,15 @@ export const REGION_SELECTED_STROKE_WIDTH = 2.5
  */
 export const REGION_PATH_DIGITS = 1
 
+/**
+ * The clear space, in device pixels, a selected overlay's halo shows around the
+ * mark it marks. Measured edge to edge like {@link POINT_CLUSTER_GAP}, so one
+ * number holds across every mark the halo sits behind: a dot's halo takes the
+ * dot's own radius plus this, a line's takes its stroke plus twice it.
+ * @internal
+ */
+export const MARK_SELECTED_HALO = 3
+
 /** Route polyline stroke width — a step over the chart line, to hold over busy region fills. @internal */
 export const ROUTE_STROKE_WIDTH = 2.5
 

@@ -1,6 +1,14 @@
 import { describe, expect, it, vi } from 'vitest'
 import { MapPlat } from '../../modules/map'
-import { allBySlot, allRegions, bySlot, fireEvent, firstRegion, renderUI } from '../helpers'
+import {
+	allBySlot,
+	allRegions,
+	bySlot,
+	fireEvent,
+	firstRegion,
+	renderUI,
+	tableRows,
+} from '../helpers'
 import { FIXTURE_GEOJSON, FIXTURE_ROWS, FIXTURE_TOPOLOGY } from '../helpers/map-geography'
 
 type Row = (typeof FIXTURE_ROWS)[number]
@@ -901,15 +909,9 @@ describe('MapPlat selected region', () => {
 	it('reads the selected region as current in the visually-hidden table', () => {
 		const { container, rerender } = renderUI(plat({ selectedRegion: 'B' }))
 
-		const rowNames = () =>
-			Array.from(bySlot(container, 'map-table')?.querySelectorAll('tbody th') ?? []).map((cell) => [
-				cell.textContent,
-				cell.getAttribute('aria-current'),
-			])
-
 		// Value parity for the pick: assistive tech reads the selection off the
 		// table, never off the ring alone.
-		expect(rowNames()).toEqual([
+		expect(tableRows(container)).toEqual([
 			['Alpha', null],
 			['Beta', 'true'],
 			['Gamma', null],
@@ -917,7 +919,7 @@ describe('MapPlat selected region', () => {
 
 		rerender(plat({ selectedRegion: null }))
 
-		expect(rowNames()).toEqual([
+		expect(tableRows(container)).toEqual([
 			['Alpha', null],
 			['Beta', null],
 			['Gamma', null],

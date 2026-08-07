@@ -5,9 +5,16 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
 import { rangeKeys } from '../../utilities'
 import { useMapPlat } from './context'
-import { clusterAnchor, clusterPoints, clusterRadius, clusterSpan } from './map-cluster'
+import {
+	clusterAnchor,
+	clusterPoints,
+	clusterRadius,
+	clusterSpan,
+	groupsByMember,
+} from './map-cluster'
 import { POINT_CLUSTER_GAP, POINT_HIT_RADIUS } from './map-constants'
 import { MapDot, MapDotCount } from './map-dot'
+import { MapDotHalo } from './map-halo'
 import { pointPop } from './map-motion'
 import type { LngLat } from './types'
 import type { MapStopRow } from './use-map-legend-registry'
@@ -98,7 +105,9 @@ function clusterGap(cluster: boolean | number): number | null {
  * Each dot keeps its own readout and its own pick. Hovering one raises the
  * tooltip with that dot's name and detail, falling back to the group's; the
  * keyboard cursor walks the dots one at a time, and `onClick` reports which was
- * picked. An invisible hit circle per dot keeps each aimable.
+ * picked. An invisible hit circle per dot keeps each aimable. The plat's
+ * `selectedOverlay` haloes the dot holding the picked point — the summary it
+ * merged into where the frame draws one.
  *
  * @remarks Renders only inside {@link MapPlat}. Prefer this to a `MapPoint` per
  * position past a handful: `MapPoint` registers its own legend entry, so two
@@ -163,6 +172,20 @@ export function MapPoints({
 		[groups, points, positions, shared.label, clusterDetail],
 	)
 
+	// Which drawn dot each point landed in, built on the first read and held from
+	// there: the pick reads it on every render a pointed-mark crossing costs, and
+	// only a regrouping can change the answer — but a map with no pick never reads
+	// it at all, and must not pay a lookup per dot to draw one.
+	const stopOf = useMemo(() => {
+		let held: ReadonlyMap<number, number> | null = null
+
+		return (index: number) => {
+			if (held === null) held = groupsByMember(groups)
+
+			return held.get(index) ?? null
+		}
+	}, [groups])
+
 	// The caller counts in points; everything inside this mark counts in drawn
 	// groups. A summary hands back the first stop it holds, so a pick names a row
 	// the caller owns rather than a grouping it never asked for.
@@ -176,7 +199,7 @@ export function MapPoints({
 		}
 	}
 
-	const { slot, hidden, animate, dim, onPointerLeave, hit } = useMapOverlay({
+	const { slot, hidden, animate, dim, selected, onPointerLeave, hit } = useMapOverlay({
 		...shared,
 		kind: 'point',
 		swatch: 'dot',
@@ -184,9 +207,19 @@ export function MapPoints({
 		// summary's anchor — lands on the one keypress that reads it.
 		stops: () => groups.map((group) => clusterAnchor(group.members, positions)),
 		stopRows: rows,
+		// The inverse of `report` above: a pick names the caller's own point, and
+		// this reads back which drawn dot holds it — so the halo and the picked row
+		// answer the grouping the frame currently draws, not the one the pick was
+		// made against.
+		stopOf,
 		onClick: report(onClick),
 		onContextMenu: report(onContextMenu),
 	})
+
+	// The picked dot itself, off that same grouping: a pick that merged into a
+	// summary haloes the summary, and separates onto its own dot as the frame
+	// widens around it.
+	const picked = selected === null ? null : groups[selected]
 
 	// Held across re-renders: rebuilding them would allocate one string per dot
 	// every time, which is the cost this mark exists to remove.
@@ -199,56 +232,66 @@ export function MapPoints({
 	const countInk = cn('text-xs font-semibold tabular-nums', k.series[slot].onFill)
 
 	return (
-		<g data-slot="map-points" className={dim} onPointerLeave={onPointerLeave}>
-			{groups.map((group, index) => {
-				const position = group.at
+		<>
+			{picked?.at != null && (
+				<MapDotHalo
+					slot="map-points-selected"
+					at={picked.at}
+					radius={clusterRadius(picked.members.length)}
+				/>
+			)}
 
-				if (position === null) return null
+			<g data-slot="map-points" className={dim} onPointerLeave={onPointerLeave}>
+				{groups.map((group, index) => {
+					const position = group.at
 
-				const count = group.members.length
+					if (position === null) return null
 
-				const radius = clusterRadius(count)
+					const count = group.members.length
 
-				// One timing for the pair: the count fades in with the dot it sits in.
-				const pop = pointPop(index)
+					const radius = clusterRadius(count)
 
-				return (
-					// A Fragment, not a group: the wrapper would carry nothing — the dim
-					// class and the pointer-leave sit on the outer group — and two hundred
-					// dead containers is what this mark exists to avoid. Keyed on the
-					// module's own row keys, since the index is also the dot's identity to
-					// the cursor and to `onClick`.
-					<Fragment key={keys[index]}>
-						<MapDot
-							slot={count === 1 ? 'map-points-dot' : 'map-points-cluster'}
-							at={position}
-							radius={radius}
-							className={paint}
-							animate={animate}
-							transition={pop}
-						/>
+					// One timing for the pair: the count fades in with the dot it sits in.
+					const pop = pointPop(index)
 
-						{count > 1 && (
-							<MapDotCount
+					return (
+						// A Fragment, not a group: the wrapper would carry nothing — the dim
+						// class and the pointer-leave sit on the outer group — and two hundred
+						// dead containers is what this mark exists to avoid. Keyed on the
+						// module's own row keys, since the index is also the dot's identity to
+						// the cursor and to `onClick`.
+						<Fragment key={keys[index]}>
+							<MapDot
+								slot={count === 1 ? 'map-points-dot' : 'map-points-cluster'}
 								at={position}
-								count={count}
-								className={countInk}
+								radius={radius}
+								className={paint}
 								animate={animate}
 								transition={pop}
 							/>
-						)}
 
-						<circle
-							data-slot="map-points-hit"
-							cx={position.x}
-							cy={position.y}
-							r={POINT_HIT_RADIUS}
-							fill="transparent"
-							{...hit(index)}
-						/>
-					</Fragment>
-				)
-			})}
-		</g>
+							{count > 1 && (
+								<MapDotCount
+									at={position}
+									count={count}
+									className={countInk}
+									animate={animate}
+									transition={pop}
+								/>
+							)}
+
+							<circle
+								data-slot="map-points-hit"
+								cx={position.x}
+								cy={position.y}
+								r={POINT_HIT_RADIUS}
+								fill="transparent"
+								{...hit(index)}
+							/>
+						</Fragment>
+					)
+				})}
+			</g>
+		</>
 	)
 }

@@ -13,9 +13,14 @@ type MapDotProps = {
 	radius: number
 	/** The slot's stroke paint class — the cap is stroke-painted, so `stroke-*` carries the colour. */
 	className: string
-	animate: boolean
-	/** The pop-in timing under `animate`. */
-	transition: { duration: number; delay?: number }
+	/**
+	 * Whether the dot pops in. Omitted, it paints at once — a dot that stands for a
+	 * state rather than a datum (a selection halo) has nothing to reveal.
+	 * @defaultValue false
+	 */
+	animate?: boolean
+	/** The pop-in timing; read only under {@link animate}. */
+	transition?: { duration: number; delay?: number }
 }
 
 /**
@@ -31,7 +36,7 @@ type MapDotProps = {
  *
  * @internal
  */
-export function MapDot({ slot, at, radius, className, animate, transition }: MapDotProps) {
+export function MapDot({ slot, at, radius, className, animate = false, transition }: MapDotProps) {
 	const shared = {
 		'data-slot': slot,
 		d: dotPath(at),
