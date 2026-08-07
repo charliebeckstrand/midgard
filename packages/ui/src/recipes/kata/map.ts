@@ -7,7 +7,7 @@
  * de-emphasis treatments.
  */
 import { mode } from '../../core/recipe'
-import { iro, kokkaku, sen } from '../kiso'
+import { kokkaku, sen } from '../kiso'
 import { type ChartColorSlot, k as chart } from './chart'
 
 /** A named map mark colour: the chart module's eight categorical slots plus `zinc`. */
@@ -83,10 +83,8 @@ export const k = {
 	 * milliseconds of per-frame compositing.
 	 */
 	group: (dimmed: boolean) => ['transition-opacity', dimmed ? 'opacity-25' : ''],
-	/** Keyboard focus ring — the shared accent outline, on the navigable plot region and the range legend's scale-bar slider. */
+	/** Keyboard focus ring — the shared accent outline, on the navigable plot region. */
 	focus: sen.focus.ring,
-	/** The range legend's hover arrow: foreground ink (via `currentColor`), so the bin glyph reads over the panel. */
-	arrow: iro.text.default,
 	/**
 	 * The legend's reserved box, mounted before any button registers so the
 	 * frame never shifts as entries land: the `row` placements (top / bottom,

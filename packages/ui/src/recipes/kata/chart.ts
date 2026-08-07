@@ -132,8 +132,10 @@ export const k = {
 	label: ['text-sm text-left', 'leading-tight', ...text.muted],
 	/** Tooltip value ink: the strong element, values lead. */
 	value: ['text-xs', 'tabular-nums', 'font-medium', ...text.default],
-	/** The keyboard focus ring on the plot region when arrow-key navigation is enabled. */
+	/** The keyboard focus ring on the plot region when arrow-key navigation is enabled, and on the range legend's scale-bar slider. */
 	focusRing: sen.focus.ring,
+	/** The range legend's hover arrow: foreground ink (via `currentColor`), so the class glyph reads over the panel. */
+	arrow: text.default,
 	/**
 	 * The drawing SVG's pointer posture at the resolved tier: at spark the whole
 	 * drawing goes inert — a sparkline is read-only, so no mark hover styling,
