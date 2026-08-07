@@ -6,6 +6,7 @@ import {
 	mapZoomKey,
 	pointerGap,
 	pointerMidpoint,
+	wheelTravel,
 	wheelZoomFactor,
 	zoomKeyFactor,
 } from '../../modules/map/engine/map-zoom/gesture'
@@ -228,6 +229,26 @@ describe('wheelZoomFactor', () => {
 
 	it('reads a line-mode delta as more travel than a pixel-mode one', () => {
 		expect(wheelZoomFactor(-1, 1)).toBeGreaterThan(wheelZoomFactor(-1, 0))
+	})
+})
+
+describe('wheelTravel', () => {
+	it('reads the vertical axis, which is where a plain wheel arrives', () => {
+		expect(wheelTravel(-120, 0, false)).toBe(-120)
+	})
+
+	it('falls back to the horizontal axis for a held modifier, where the browser moves the gesture', () => {
+		// Chromium and Firefox report a shift-held wheel on `deltaX` and leave
+		// `deltaY` at zero — the same gesture, on the other axis.
+		expect(wheelTravel(0, -120, true)).toBe(-120)
+	})
+
+	it("never falls back without the key, since a sideways scroll is the page's", () => {
+		expect(wheelTravel(0, -120, false)).toBe(0)
+	})
+
+	it('keeps a vertical delta even with the key held, for a device that reports one', () => {
+		expect(wheelTravel(-120, 40, true)).toBe(-120)
 	})
 })
 

@@ -3,11 +3,12 @@ import { type GeoPermissibleObjects, geoBounds, geoContains } from 'd3-geo'
 import { type ComponentProps, useMemo, useState } from 'react'
 import { feature } from 'topojson-client'
 import statesUrl from 'us-atlas/states-10m.json?url'
+import { Label } from '../../../../components/fieldset'
 import { Flex } from '../../../../components/flex'
 import { Kbd } from '../../../../components/kbd'
 import { Select, SelectLabel, SelectOption } from '../../../../components/select'
 import { Stack } from '../../../../components/stack'
-import { Switch } from '../../../../components/switch'
+import { Switch, SwitchField } from '../../../../components/switch'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../../components/tabs'
 import { Text } from '../../../../components/text'
 import {
@@ -399,11 +400,11 @@ function ZoomableRounds({ geography }: { geography: MapFeatureCollection | null 
 
 	return (
 		<Stack gap="md">
-			<Flex>
-				<Switch checked={modifier} onChange={(event) => setModifier(event.target.checked)}>
-					Hold shift to zoom
-				</Switch>
-			</Flex>
+			<SwitchField>
+				<Label>Hold shift to zoom</Label>
+
+				<Switch checked={modifier} onChange={(event) => setModifier(event.target.checked)} />
+			</SwitchField>
 
 			<Text>
 				{modifier

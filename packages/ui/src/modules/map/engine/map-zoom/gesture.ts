@@ -28,6 +28,21 @@ export function wheelZoomFactor(deltaY: number, deltaMode: number): number {
 	return Math.exp(-deltaY * (WHEEL_DELTA_PIXELS[deltaMode] ?? 1) * MAP_WHEEL_ZOOM_RATE)
 }
 
+/**
+ * The travel a wheel event carries toward the zoom.
+ *
+ * A browser moves a shift-held wheel onto the horizontal axis — the same
+ * gesture the reader made, reported on `deltaX` with `deltaY` left at zero — so
+ * a map whose modifier is that key has to read it there. `swapped` says the key
+ * is held; without it the fallback never runs, because a horizontal delta with
+ * no key behind it is a sideways scroll and belongs to the page.
+ *
+ * @internal
+ */
+export function wheelTravel(deltaY: number, deltaX: number, swapped: boolean): number {
+	return swapped && deltaY === 0 ? deltaX : deltaY
+}
+
 /** The distance between two pointers — a pinch's own measure. @internal */
 export function pointerGap(a: MapPoint2D, b: MapPoint2D): number {
 	return Math.hypot(a.x - b.x, a.y - b.y)

@@ -11,7 +11,12 @@ import {
 } from 'react'
 import { MAP_PAN_THRESHOLD, MAP_WHEEL_SETTLE_MS } from './engine/map-constants'
 import { clientToFrame, frameScale, type MapClientBox } from './engine/map-projection/frame'
-import { pointerGap, pointerMidpoint, wheelZoomFactor } from './engine/map-zoom/gesture'
+import {
+	pointerGap,
+	pointerMidpoint,
+	wheelTravel,
+	wheelZoomFactor,
+} from './engine/map-zoom/gesture'
 import { type MapZoomInput, type MapZoomSettings, mapZoomSettings } from './engine/map-zoom/input'
 import {
 	constrainTransform,
@@ -470,9 +475,11 @@ function useMapWheelZoom(
 		if (!enabled || svg === null || view.width <= 0 || view.height <= 0) return
 
 		const onWheel = (event: WheelEvent) => {
+			const armed = modifier === 'shift' && event.shiftKey
+
 			// A modifier map hands every plain wheel back to the page untouched: that
 			// is the whole bargain the key buys.
-			if (modifier === 'shift' && !event.shiftKey) return
+			if (modifier === 'shift' && !armed) return
 
 			const { transform: from, view: frame, max } = live.current
 
@@ -487,13 +494,9 @@ function useMapWheelZoom(
 
 			if (focus === null) return
 
-			const next = zoomTransform(
-				from,
-				focus,
-				wheelZoomFactor(event.deltaY, event.deltaMode),
-				frame,
-				max,
-			)
+			const travel = wheelTravel(event.deltaY, event.deltaX, armed)
+
+			const next = zoomTransform(from, focus, wheelZoomFactor(travel, event.deltaMode), frame, max)
 
 			// Without a modifier the map takes the gesture only where it can use it:
 			// at the fit and at the ceiling nothing moves, so the wheel stays the
