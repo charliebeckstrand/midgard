@@ -1,8 +1,19 @@
 'use client'
 
 import { motion } from 'motion/react'
+import { cn } from '../../core'
+import { k } from '../../recipes/kata/map'
+import { POINT_HIT_RADIUS } from './engine/map-constants'
 import { dotPath } from './engine/map-geometry/mark'
 import type { MapPoint2D } from './engine/types'
+import type { MapOverlay } from './use-map-overlay'
+
+/**
+ * The hit props a mark hands in — `useMapOverlay`'s own `hit()` return, named
+ * here so the factory below takes exactly what a mark produces and nothing a
+ * caller could use to widen the target. @internal
+ */
+type MapOverlayHit = ReturnType<MapOverlay['hit']>
 
 /** Props for {@link MapDot}. @internal */
 type MapDotProps = {
@@ -107,4 +118,40 @@ export function MapDotCount({ at, count, className, animate, transition }: MapDo
 			{count}
 		</motion.text>
 	)
+}
+
+/**
+ * Every attribute of the invisible circle that answers the pointer over a
+ * dot-shaped mark — a point, a marker pin, one dot of a set. One rule for all of
+ * them, because the target's size answers the input device rather than the mark:
+ * the `r` attribute carries the coarse-pointer reach (WCAG 2.5.5's 44px) and
+ * `k.hitFine` takes it to the fine-pointer floor (2.5.8's 24px), so a mouse gets
+ * precision where a finger gets reach.
+ *
+ * That precision is what lets a small mark be aimed at through a dot standing in
+ * it: a `MapGeofence` drawn tight around a `MapPoint` fits inside the finger
+ * target, and would otherwise never answer a mouse.
+ *
+ * A props factory rather than a component, because a `MapPoints` draws one of
+ * these per dot: a component's own fiber priced 200 of them at ~1 µs each, +14%
+ * on every re-render of the set — and the set re-renders on each pointed-mark
+ * crossing, each legend emphasis, and each refit. The rule stays in one place
+ * either way; only the fiber goes.
+ *
+ * The mark's own hit props go in rather than over: `r` and `fill` are not the
+ * caller's to set, and the mark's `className` composes with the floor instead of
+ * replacing it.
+ *
+ * @internal
+ */
+export function dotHitProps(slot: string, at: MapPoint2D, hit: MapOverlayHit) {
+	return {
+		'data-slot': slot,
+		cx: at.x,
+		cy: at.y,
+		r: POINT_HIT_RADIUS,
+		fill: 'transparent',
+		...hit,
+		className: cn(k.hitFine, hit.className),
+	}
 }

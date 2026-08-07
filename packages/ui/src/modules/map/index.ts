@@ -17,6 +17,7 @@ export type {
 	MapProjection,
 	MapTopology,
 } from './engine/types'
+export { MapGeofence, type MapGeofenceProps } from './map-geofence'
 export { MapMarker, type MapMarkerProps } from './map-marker'
 export { MapPlat, type MapPlatProps } from './map-plat'
 export { MapPoint, type MapPointProps } from './map-point'

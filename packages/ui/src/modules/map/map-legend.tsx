@@ -103,28 +103,36 @@ export function MapLegend({ items, hidden, onToggle, onFocus, panel = false }: M
 							className={cn(off && 'opacity-40')}
 						/>
 
-						<Text
-							as="span"
-							severity="muted"
-							size="sm"
-							className={cn('text-left leading-tight', off && 'line-through opacity-60')}
-						>
-							{item.label}
-						</Text>
-
-						{item.detail && (
+						{/* Label over detail, not beside it: the two share the entry's width,
+						    so a readout no longer squeezes the name into a wrap — which the
+						    side panel's fixed column reaches first, and which turned a
+						    one-line entry into two for the sake of a trailing count. */}
+						<span className="flex flex-col items-start gap-0.5">
 							<Text
 								as="span"
+								data-slot="map-legend-label"
 								severity="muted"
 								size="sm"
-								className={cn(
-									'text-left leading-tight whitespace-nowrap tabular-nums',
-									off && 'opacity-60',
-								)}
+								className={cn('text-left leading-tight', off && 'line-through opacity-60')}
 							>
-								{item.detail}
+								{item.label}
 							</Text>
-						)}
+
+							{item.detail && (
+								// A step under the label, so the readout reads as subordinate to
+								// the name it trails rather than as a second name.
+								<Text
+									as="span"
+									severity="muted"
+									className={cn(
+										'text-left leading-tight whitespace-nowrap tabular-nums font-normal',
+										off && 'opacity-60',
+									)}
+								>
+									{item.detail}
+								</Text>
+							)}
+						</span>
 					</Button>
 				)
 			})}
