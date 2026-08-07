@@ -8,6 +8,7 @@
 |---|---|
 | `clamp` | Constrains `value` to the inclusive range `[lo, hi]`. |
 | `pct` | Maps `value` to its percentage position within `[min, max]`; `0` when the range is empty. |
+| `parseAspectRatio` | Parses a chart or map `aspectRatio` to its numeric `width / height`; `null` when the ratio is off or unparseable, which leaves the frame free-form. Both terms must be positive, so a signed `'-4/3'` falls through the same way its numeric twin does. |
 | `digitsOnly` | Returns `value` with every non-digit character removed. |
 | `toNumericCell` | Coerces a raw data cell to a number. Numbers pass through and non-blank numeric strings parse. A blank (`null`, `''`, whitespace) becomes `NaN`, not `0`; callers finite-filter. |
 | `formatInteger` | Locale-formats `value` with no fraction digits (cached formatter). |

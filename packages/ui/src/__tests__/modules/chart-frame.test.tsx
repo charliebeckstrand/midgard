@@ -11,6 +11,7 @@ import {
 import { ChartFrame } from '../../modules/chart/engine/chart-frame/frame'
 import {
 	type CartesianLayoutInput,
+	chartFrameLayout,
 	chartFrameSizing,
 	horizontalLayout,
 	plotRect,
@@ -164,6 +165,44 @@ describe('chartFrameSizing', () => {
 		expect(chartFrameSizing(undefined, false)).toEqual({ mode: 'fill' })
 
 		expect(chartFrameSizing(undefined, 0)).toEqual({ mode: 'fill' })
+	})
+
+	it('rejects a negative "w/h" ratio, filling rather than reserving a negative box', () => {
+		// The `${number}/${number}` type admits a signed term, so `'-4/3'` is a
+		// well-typed prop value. It must fall through to fill the way its numeric
+		// twin does, rather than reach the frame as a negative ratio.
+		expect(chartFrameSizing(undefined, '-4/3')).toEqual({ mode: 'fill' })
+
+		expect(chartFrameSizing(undefined, -4 / 3)).toEqual({ mode: 'fill' })
+	})
+})
+
+describe('chartFrameLayout', () => {
+	it('carries a live ratio on the figure, and on the plot box beside a legend', () => {
+		expect(chartFrameLayout(undefined, '16/9', false)).toEqual({
+			sizing: { mode: 'aspect-fill', ratio: 16 / 9 },
+			outerAspect: 16 / 9,
+		})
+
+		expect(chartFrameLayout(undefined, '16/9', true)).toEqual({
+			sizing: { mode: 'aspect', ratio: 16 / 9 },
+			outerAspect: null,
+		})
+	})
+
+	// The figure carries `outerAspect` as a CSS `aspect-ratio` and the plot
+	// resolves its height from the ratio, so a negative one would both drop the
+	// declaration and give the drawing a negative `viewBox` height.
+	it('rejects a negative "w/h" ratio on both the figure and the plot box', () => {
+		expect(chartFrameLayout(undefined, '-4/3', false)).toEqual({
+			sizing: { mode: 'fill' },
+			outerAspect: null,
+		})
+
+		expect(chartFrameLayout(undefined, '-4/3', true)).toEqual({
+			sizing: { mode: 'fill' },
+			outerAspect: null,
+		})
 	})
 })
 

@@ -1,3 +1,4 @@
+export { parseAspectRatio } from './aspect-ratio'
 export { countMeaningful, cursorForCount } from './caret'
 export { clamp } from './clamp'
 export {
