@@ -3,7 +3,7 @@
 import { type MouseEvent, type PointerEvent, useCallback, useEffect, useId, useRef } from 'react'
 import { cn } from '../../core'
 import { k, type MapSeriesColor } from '../../recipes/kata/map'
-import { useMapHoverSet, useMapPlat, useMapPointedMark } from './context'
+import { useMapHoverSet, useMapPlat, useMapPointedMark, useMapZoomScale } from './context'
 import { markAnchorAt } from './engine/map-hover/anchor'
 import { mapMarkDimmed } from './engine/map-hover/target'
 import type { MapOverlayKind, MapStopRow } from './engine/map-overlay/entry'
@@ -111,6 +111,14 @@ export type MapOverlay = {
 	hidden: boolean
 	/** Projects lon/lat to frame coordinates; `null` off the projection. */
 	project: (position: LngLat) => MapPoint2D | null
+	/**
+	 * What one device pixel spans in frame units under the plat's zoom — `1` at
+	 * rest. Every pixel spec a mark draws in frame units rather than in a
+	 * non-scaling stroke multiplies by it: the hit circles, and a summary's count.
+	 * Published here so a mark reads the rule off the seam it already consumes,
+	 * rather than each one remembering to reach for the scale itself.
+	 */
+	unitsPerPixel: number
 	/** Whether the plat animates; the mark picks its motion renderers off it. */
 	animate: boolean
 	/** Registration ordinal, so a mount reveal can stagger by it. */
@@ -182,6 +190,8 @@ export function useMapOverlay({
 	const set = useMapHoverSet()
 
 	const pointed = useMapPointedMark()
+
+	const unitsPerPixel = useMapZoomScale()
 
 	// The mark's own stop resolution, defaulted once: a mark that draws the stops
 	// it reports holds one, its own. Spelling the fallback here rather than at each
@@ -272,6 +282,7 @@ export function useMapOverlay({
 		slot: colors.get(id),
 		hidden: hidden.has(id),
 		project,
+		unitsPerPixel,
 		animate,
 		order: order.get(id) ?? 0,
 		dim: cn(k.group(mapMarkDimmed(pointed, { kind: 'entry', id, stop: 0 }, emphasis, id))),

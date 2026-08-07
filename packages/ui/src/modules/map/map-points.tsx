@@ -4,7 +4,7 @@ import { Fragment, useMemo } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
 import { rangeKeys } from '../../utilities'
-import { useMapPlat } from './context'
+import { useMapPlat, useMapZoomScale } from './context'
 import { clusterAnchor, clusterSpan } from './engine/map-cluster/geo'
 import { clusterGap, clusterPoints, groupsByMember } from './engine/map-cluster/group'
 import { clusterRadius } from './engine/map-cluster/radius'
@@ -121,11 +121,23 @@ export function MapPoints({
 	// the mark registers, not after.
 	const { project } = useMapPlat()
 
+	// What one device pixel spans in the drawn frame. Read here rather than off
+	// `useMapOverlay` below for the same reason `project` is: the grouping decides
+	// what this mark registers, so it has to resolve before the registration does.
+	// The merge distance is a pixel distance, so a zoom that spreads the dots on
+	// screen has to loosen the reach they are measured against — otherwise the
+	// summaries a national frame drew would stay merged however far the view
+	// closed on them.
+	const unitsPerPixel = useMapZoomScale()
+
 	const gap = clusterGap(cluster)
 
 	const positions = useMemo(() => points.map((point) => point.at), [points])
 
-	const groups = useMemo(() => clusterPoints(positions, project, gap), [positions, project, gap])
+	const groups = useMemo(
+		() => clusterPoints(positions, project, gap, unitsPerPixel),
+		[positions, project, gap, unitsPerPixel],
+	)
 
 	// A lone dot reads out as itself, so an ungrouped set reads exactly as the
 	// points the caller passed. A summary reads as the mark, since it stands for
@@ -263,12 +275,13 @@ export function MapPoints({
 									at={position}
 									count={count}
 									className={countInk}
+									scale={unitsPerPixel}
 									animate={animate}
 									transition={pop}
 								/>
 							)}
 
-							<circle {...dotHitProps('map-points-hit', position, hit(index))} />
+							<circle {...dotHitProps('map-points-hit', position, hit(index), unitsPerPixel)} />
 						</Fragment>
 					)
 				})}

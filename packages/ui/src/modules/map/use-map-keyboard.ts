@@ -3,11 +3,15 @@
 import { type KeyboardEvent, type RefObject, useEffect, useRef, useState } from 'react'
 import { usePlotTabStop } from '../../hooks/use-plot-tab-stop'
 import { useMapHoverSet } from './context'
+import { MAP_CURSOR_INSET } from './engine/map-constants'
 import { type MapHoverTarget, sameTarget } from './engine/map-hover/target'
 import { isMapActivateKey, moveMapCursor } from './engine/map-keyboard/cursor'
 import type { MapStop } from './engine/map-keyboard/stops'
 import { frameToClient } from './engine/map-projection/frame'
+import { mapZoomKey, zoomKeyFactor } from './engine/map-zoom/gesture'
+import { applyTransform, MAP_FIT_TRANSFORM, type MapTransform } from './engine/map-zoom/transform'
 import type { MapPoint2D } from './engine/types'
+import type { MapZoomCursor } from './use-map-zoom'
 
 /**
  * A stop as one string, so the cursor's position resolves through a map rather
@@ -48,6 +52,13 @@ export type MapKeyboardOptions = {
 	svgRef: RefObject<SVGSVGElement | null>
 	/** Picks the stop under the cursor — a region by index, an overlay through its own reporter. */
 	activate: (target: MapHoverTarget) => void
+	/**
+	 * The view the zoom layer draws through, or `null` on a map that does not
+	 * zoom. The cursor reads it to anchor its readout where the map draws the
+	 * stop, and drives it two ways: `+`, `-`, and `0` step and reset the scale,
+	 * and a step onto a stop the zoom put off-frame pans the view to it.
+	 */
+	zoom: MapZoomCursor | null
 }
 
 /**
@@ -62,6 +73,12 @@ export type MapKeyboardOptions = {
  * overlay marks in one field, as the pointer crosses them — Home and End jump to
  * the ends of the list, Enter or Space picks the stop under the cursor, and
  * Escape leaves through the shared {@link usePlotTabStop} exit.
+ *
+ * A zooming map answers three more keys on that one stop — `+` and `-` step the
+ * scale about the frame's centre, `0` returns to the fit — and the cursor takes
+ * the view with it: a step onto a stop the zoom put off-frame pans the map to
+ * show it, so navigation never points a reader at something the plot does not
+ * draw.
  *
  * No drawn mark is focusable. The plot is a `role="img"` leaf over an
  * `aria-hidden` SVG, so a focusable path would be unreachable to assistive tech
@@ -86,6 +103,7 @@ export function useMapKeyboard({
 	view,
 	svgRef,
 	activate,
+	zoom,
 }: MapKeyboardOptions): MapKeyboardProps | null {
 	const set = useMapHoverSet()
 
@@ -122,13 +140,22 @@ export function useMapKeyboard({
 		return held.current?.where.get(stopKey(cursor)) ?? null
 	}
 
-	// The frame point the readout last anchored to. A keypress anchors directly,
-	// so the re-anchor effect below must fire only for the refit case it exists
+	const transform = zoom?.transform ?? MAP_FIT_TRANSFORM
+
+	// The drawn point the readout last anchored to. A keypress anchors directly,
+	// so the re-anchor effect below must fire only for the cases it exists
 	// for — otherwise every keypress would read the SVG's box twice, the second
-	// read forcing a layout recalc over the whole region tree.
+	// read forcing a layout recalc over the whole region tree. Held after the
+	// transform rather than before it, so a pan or a zoom re-anchors the readout
+	// the same way a refit does.
 	const anchored = useRef<MapPoint2D | null>(null)
 
-	const show = (stop: MapStop | null) => {
+	/**
+	 * Puts the readout on a stop where the layer draws it, through the transform
+	 * it is given. It moves nothing: a pointer gesture and a refit both land here
+	 * to re-place a readout the reader did not ask to move.
+	 */
+	const anchor = (stop: MapStop | null, through: MapTransform) => {
 		// Every resolve mints fresh target objects, so hold the previous one where
 		// it names the same mark: the cursor is a dependency of the effects below,
 		// and a refit frame would otherwise re-run them all for a mark that has not
@@ -137,15 +164,31 @@ export function useMapKeyboard({
 
 		const svg = svgRef.current
 
-		const point =
-			stop === null || svg === null
-				? null
-				: frameToClient(stop.at, svg.getBoundingClientRect(), view.width, view.height)
+		const drawn = stop === null ? null : applyTransform(stop.at, through)
 
-		anchored.current = stop?.at ?? null
+		const point =
+			drawn === null || svg === null
+				? null
+				: frameToClient(drawn, svg.getBoundingClientRect(), view.width, view.height)
+
+		anchored.current = drawn
 
 		if (stop === null || point === null) set(null, null)
 		else set(stop.target, point)
+	}
+
+	/**
+	 * Steps the cursor onto a stop, taking the view with it: a zoomed map pans
+	 * until the stop draws inside the frame, so navigation never points a reader
+	 * at something the plot does not draw. The pan's result is taken back rather
+	 * than waited for, so the readout anchors on the same beat as the step.
+	 *
+	 * Only a keypress calls this. A pointer gesture or a refit re-anchors through
+	 * {@link anchor} alone — driving the view from there would fight the gesture,
+	 * and commit a second transform for every one the reader made.
+	 */
+	const show = (stop: MapStop | null) => {
+		anchor(stop, stop === null || zoom === null ? transform : zoom.show(stop.at, MAP_CURSOR_INSET))
 	}
 
 	const { exit, onBlur } = usePlotTabStop(cursor !== null, () => show(null))
@@ -161,25 +204,43 @@ export function useMapKeyboard({
 		}
 	}, [enabled, cursor, set])
 
-	// A refit reprojects every stop, so the readout would otherwise sit at the
-	// pre-resize position until the next keypress. Watched through the cursor's
-	// own stop, and only where it actually moved.
+	// A refit reprojects every stop, and a zoom redraws it somewhere else, so the
+	// readout would otherwise sit at the pre-resize (or pre-zoom) position until
+	// the next keypress. Watched through where the cursor's own stop draws, so
+	// both causes reach it through one comparison.
 	const index = at()
 
 	const current = index === null ? null : (stops()[index] ?? null)
 
+	const drawn = current === null ? null : applyTransform(current.at, transform)
+
 	const moved =
-		current !== null &&
-		(anchored.current === null ||
-			anchored.current.x !== current.at.x ||
-			anchored.current.y !== current.at.y)
+		drawn !== null &&
+		(anchored.current === null || anchored.current.x !== drawn.x || anchored.current.y !== drawn.y)
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: re-anchors when the cursor's projected stop moves; the reader is read fresh at fire time
 	useEffect(() => {
-		if (current !== null && moved) show(current)
+		if (current !== null && moved) anchor(current, transform)
 	}, [moved])
 
 	const onKeyDown = (event: KeyboardEvent<HTMLElement>) => {
+		// The zoom keys, read first because they claim keys the cursor does not: a
+		// reader who can only point with a keyboard still reaches every scale the
+		// wheel does, and `0` is the way back to the whole geography. The readout
+		// re-anchors through the effect above, which the moved transform trips.
+		if (zoom !== null) {
+			const scale = mapZoomKey(event.key)
+
+			if (scale !== null) {
+				event.preventDefault()
+
+				if (scale === 'fit') zoom.fit()
+				else zoom.stepZoom(zoomKeyFactor(scale))
+
+				return
+			}
+		}
+
 		// Enter and Space pick the mark under the cursor — the click's keyboard
 		// counterpart, and half the reason the map is navigable. Space would
 		// otherwise scroll the page out from under the reader.

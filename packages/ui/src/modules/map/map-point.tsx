@@ -33,13 +33,23 @@ export type MapPointProps = MapOverlayProps & {
  * so a cluster of points reveals in sequence.
  */
 export function MapPoint({ at, ...shared }: MapPointProps) {
-	const { slot, hidden, project, animate, order, dim, selected, onPointerLeave, hit } =
-		useMapOverlay({
-			...shared,
-			kind: 'point',
-			swatch: 'dot',
-			stops: () => [at],
-		})
+	const {
+		slot,
+		hidden,
+		project,
+		unitsPerPixel,
+		animate,
+		order,
+		dim,
+		selected,
+		onPointerLeave,
+		hit,
+	} = useMapOverlay({
+		...shared,
+		kind: 'point',
+		swatch: 'dot',
+		stops: () => [at],
+	})
 
 	const position = project(at)
 
@@ -61,7 +71,7 @@ export function MapPoint({ at, ...shared }: MapPointProps) {
 					transition={pointPop(order)}
 				/>
 
-				<circle {...dotHitProps('map-point-hit', position, hit())} />
+				<circle {...dotHitProps('map-point-hit', position, hit(), unitsPerPixel)} />
 			</g>
 		</>
 	)

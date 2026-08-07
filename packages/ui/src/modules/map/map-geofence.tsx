@@ -185,6 +185,10 @@ export function MapGeofence({ at, radius, boundary, ...shared }: MapGeofenceProp
 					fill="transparent"
 					stroke="transparent"
 					strokeWidth={ROUTE_HIT_WIDTH}
+					// The band is a finger's width in device pixels, so it rides the same
+					// non-scaling stroke the boundary does: a zoom widens the ground the
+					// zone covers, never the target around its edge.
+					vectorEffect="non-scaling-stroke"
 					pointerEvents="all"
 					{...hit()}
 				/>
