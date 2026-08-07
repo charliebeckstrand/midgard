@@ -107,7 +107,7 @@ export function MapLegend({ items, hidden, onToggle, onFocus, panel = false }: M
 						    so a readout no longer squeezes the name into a wrap — which the
 						    side panel's fixed column reaches first, and which turned a
 						    one-line entry into two for the sake of a trailing count. */}
-						<span className="flex min-w-0 flex-col items-start">
+						<span className="flex min-w-0 flex-col items-start gap-0.5">
 							<Text
 								as="span"
 								data-slot="map-legend-label"
