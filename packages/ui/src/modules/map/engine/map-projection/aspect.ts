@@ -1,11 +1,12 @@
 /**
  * How much room the map reserves before it draws: the geography's own projected
  * ratio a fixed-subject projection knows before its atlas loads, and the
- * frame-sizing policy it feeds. Dependency-free arithmetic — the loading
- * placeholder reads it without pulling `d3-geo` in behind it.
+ * frame-sizing policy it feeds. Dependency-free arithmetic — the frame reserves
+ * its box without pulling `d3-geo` in behind it.
  */
 
 import type { FrameSizing } from '../../../../hooks'
+import { parseAspectRatio } from '../../../../utilities/aspect-ratio'
 import { ALBERS_USA_ASPECT, DEFAULT_MAP_ASPECT } from '../map-constants'
 import type { MapAspectRatio, MapProjection } from '../types'
 
@@ -21,20 +22,6 @@ import type { MapAspectRatio, MapProjection } from '../types'
  */
 export function projectionFallbackAspect(spec: MapProjection): number | null {
 	return spec === 'albers-usa' ? ALBERS_USA_ASPECT : null
-}
-
-/** Parses a {@link MapAspectRatio} to its numeric `width / height`, or `null` when free-form. @internal */
-export function ratioValue(ratio: number | `${number}/${number}` | false): number | null {
-	if (ratio === false) return null
-
-	if (typeof ratio === 'number') return ratio > 0 ? ratio : null
-
-	const [w, h] = ratio.split('/').map(Number)
-
-	// Both terms must be present and positive: the type admits a signed
-	// `${number}`, so `"-4/3"` would otherwise yield a negative ratio — an invalid
-	// CSS `aspect-ratio` — where the numeric branch rejects the same value.
-	return w !== undefined && h !== undefined && w > 0 && h > 0 ? w / h : null
 }
 
 /**
@@ -55,7 +42,7 @@ export function mapFrameSizing(
 	if (height !== undefined) return { mode: 'fixed', height }
 
 	const ratio =
-		aspectRatio === 'auto' ? (autoAspect ?? DEFAULT_MAP_ASPECT) : ratioValue(aspectRatio)
+		aspectRatio === 'auto' ? (autoAspect ?? DEFAULT_MAP_ASPECT) : parseAspectRatio(aspectRatio)
 
 	return ratio === null ? { mode: 'fill' } : { mode: 'aspect', ratio }
 }
