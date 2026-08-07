@@ -3,12 +3,13 @@
 import { type KeyboardEvent, type RefObject, useEffect, useRef, useState } from 'react'
 import { usePlotTabStop } from '../../hooks/use-plot-tab-stop'
 import { useMapHoverSet } from './context'
+import { MAP_CURSOR_INSET } from './engine/map-constants'
 import { type MapHoverTarget, sameTarget } from './engine/map-hover/target'
 import { isMapActivateKey, moveMapCursor } from './engine/map-keyboard/cursor'
 import type { MapStop } from './engine/map-keyboard/stops'
 import { frameToClient } from './engine/map-projection/frame'
 import { mapZoomKey, zoomKeyFactor } from './engine/map-zoom/gesture'
-import { applyTransform, MAP_FIT_TRANSFORM } from './engine/map-zoom/transform'
+import { applyTransform, MAP_FIT_TRANSFORM, type MapTransform } from './engine/map-zoom/transform'
 import type { MapPoint2D } from './engine/types'
 import type { MapZoomCursor } from './use-map-zoom'
 
@@ -149,22 +150,21 @@ export function useMapKeyboard({
 	// the same way a refit does.
 	const anchored = useRef<MapPoint2D | null>(null)
 
-	const show = (stop: MapStop | null) => {
+	/**
+	 * Puts the readout on a stop where the layer draws it, through the transform
+	 * it is given. It moves nothing: a pointer gesture and a refit both land here
+	 * to re-place a readout the reader did not ask to move.
+	 */
+	const anchor = (stop: MapStop | null, through: MapTransform) => {
 		// Every resolve mints fresh target objects, so hold the previous one where
 		// it names the same mark: the cursor is a dependency of the effects below,
 		// and a refit frame would otherwise re-run them all for a mark that has not
 		// moved.
 		setCursor((prev) => (sameTarget(prev, stop?.target ?? null) ? prev : (stop?.target ?? null)))
 
-		// A zoomed view follows the cursor: a stop the transform put off-frame pans
-		// into view before it is anchored, so the readout never leaves the plot.
-		// The pan's own result is taken back here rather than waited for, so the
-		// anchor lands on the same beat as the step that caused it.
-		const moved = stop === null || zoom === null ? transform : zoom.show(stop.at)
-
 		const svg = svgRef.current
 
-		const drawn = stop === null ? null : applyTransform(stop.at, moved)
+		const drawn = stop === null ? null : applyTransform(stop.at, through)
 
 		const point =
 			drawn === null || svg === null
@@ -175,6 +175,20 @@ export function useMapKeyboard({
 
 		if (stop === null || point === null) set(null, null)
 		else set(stop.target, point)
+	}
+
+	/**
+	 * Steps the cursor onto a stop, taking the view with it: a zoomed map pans
+	 * until the stop draws inside the frame, so navigation never points a reader
+	 * at something the plot does not draw. The pan's result is taken back rather
+	 * than waited for, so the readout anchors on the same beat as the step.
+	 *
+	 * Only a keypress calls this. A pointer gesture or a refit re-anchors through
+	 * {@link anchor} alone — driving the view from there would fight the gesture,
+	 * and commit a second transform for every one the reader made.
+	 */
+	const show = (stop: MapStop | null) => {
+		anchor(stop, stop === null || zoom === null ? transform : zoom.show(stop.at, MAP_CURSOR_INSET))
 	}
 
 	const { exit, onBlur } = usePlotTabStop(cursor !== null, () => show(null))
@@ -206,7 +220,7 @@ export function useMapKeyboard({
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: re-anchors when the cursor's projected stop moves; the reader is read fresh at fire time
 	useEffect(() => {
-		if (current !== null && moved) show(current)
+		if (current !== null && moved) anchor(current, transform)
 	}, [moved])
 
 	const onKeyDown = (event: KeyboardEvent<HTMLElement>) => {
@@ -214,15 +228,17 @@ export function useMapKeyboard({
 		// reader who can only point with a keyboard still reaches every scale the
 		// wheel does, and `0` is the way back to the whole geography. The readout
 		// re-anchors through the effect above, which the moved transform trips.
-		const scale = zoom === null ? null : mapZoomKey(event.key)
+		if (zoom !== null) {
+			const scale = mapZoomKey(event.key)
 
-		if (scale !== null && zoom !== null) {
-			event.preventDefault()
+			if (scale !== null) {
+				event.preventDefault()
 
-			if (scale === 'fit') zoom.fit()
-			else zoom.stepZoom(zoomKeyFactor(scale))
+				if (scale === 'fit') zoom.fit()
+				else zoom.stepZoom(zoomKeyFactor(scale))
 
-			return
+				return
+			}
 		}
 
 		// Enter and Space pick the mark under the cursor — the click's keyboard

@@ -122,10 +122,13 @@ export function MapPoints({
 	// the mark registers, not after.
 	const { project } = useMapPlat()
 
-	// What one device pixel spans in the drawn frame. The merge distance is a
-	// pixel distance, so a zoom that spreads the dots on screen has to loosen the
-	// reach they are measured against — otherwise the summaries a national frame
-	// drew would stay merged however far the view closed on them.
+	// What one device pixel spans in the drawn frame. Read here rather than off
+	// `useMapOverlay` below for the same reason `project` is: the grouping decides
+	// what this mark registers, so it has to resolve before the registration does.
+	// The merge distance is a pixel distance, so a zoom that spreads the dots on
+	// screen has to loosen the reach they are measured against — otherwise the
+	// summaries a national frame drew would stay merged however far the view
+	// closed on them.
 	const unitsPerPixel = useMapZoomScale()
 
 	const gap = clusterGap(cluster)

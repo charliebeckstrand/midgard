@@ -9,19 +9,15 @@ import {
 	useRef,
 	useState,
 } from 'react'
-import {
-	MAP_CURSOR_INSET,
-	MAP_PAN_THRESHOLD,
-	MAP_ZOOM_FIT,
-	MAP_ZOOM_MAX,
-} from './engine/map-constants'
-import { clientToFrame, frameScale } from './engine/map-projection/frame'
+import { MAP_PAN_THRESHOLD } from './engine/map-constants'
+import { clientToFrame, frameScale, type MapClientBox } from './engine/map-projection/frame'
 import { pointerGap, pointerMidpoint, wheelZoomFactor } from './engine/map-zoom/gesture'
 import {
 	constrainTransform,
 	MAP_FIT_TRANSFORM,
 	type MapTransform,
 	type MapViewFrame,
+	mapZoomCeiling,
 	panTransform,
 	sameTransform,
 	showTransform,
@@ -49,27 +45,34 @@ export type MapZoomSurface = {
 export type MapZoomCursor = {
 	/** The live transform, so the cursor anchors its readout where the map draws its stop. */
 	transform: MapTransform
-	/** Steps the scale about the frame's centre; returns where the view landed. */
-	stepZoom: (factor: number) => MapTransform
-	/** Returns the view to the fit; returns that transform. */
-	fit: () => MapTransform
-	/** Pans so a frame point draws inside the frame; returns where the view landed. */
-	show: (at: MapPoint2D) => MapTransform
+	/** Steps the scale about the frame's centre. */
+	stepZoom: (factor: number) => void
+	/** Returns the view to the fit. */
+	fit: () => void
+	/**
+	 * Pans so a frame point draws inside the frame, `inset` clear of every edge,
+	 * and returns where the view landed — the caller anchors through the result
+	 * rather than waiting a render for it. The margin is the cursor's own, since
+	 * the rule it serves is the cursor's.
+	 */
+	show: (at: MapPoint2D, inset: number) => MapTransform
 }
 
-/** What {@link useMapZoom} resolves for the plat. @internal */
+/**
+ * What {@link useMapZoom} resolves, or `null` on a map that does not zoom — one
+ * encoding of that bit, which every consumer tests the same way.
+ *
+ * @internal
+ */
 export type MapZoom = {
-	enabled: boolean
 	/** The view transform the zoom layer draws through. */
 	transform: MapTransform
 	/** Frame units per device pixel — `1 / k`, the marks' one reading of the zoom. */
 	unitsPerPixel: number
 	/** Whether a pan is in flight; the layer stops answering the pointer while one is. */
 	panning: boolean
-	/** The plot region's pointer bindings, `null` on a map that does not zoom. */
-	surface: MapZoomSurface | null
-	/** The keyboard cursor's handle on the view, `null` on a map that does not zoom. */
-	cursor: MapZoomCursor | null
+	surface: MapZoomSurface
+	cursor: MapZoomCursor
 }
 
 /** What {@link useMapZoom} needs from the plat. @internal */
@@ -113,23 +116,30 @@ type MapPress = {
  * a gesture writes it: a resize changes the pan limits, and re-constraining here
  * keeps the view inside them without an effect chasing the box.
  *
+ * @remarks Hosted by {@link MapZoomProvider}, below the plat and around the plot
+ * alone, for the reason {@link MapHoverProvider} is: a gesture writes on every
+ * wheel notch and every tracked pointer move, and held any higher each of those
+ * would re-render the plat and re-plan its legend.
+ *
  * @internal
  */
-export function useMapZoom({ zoom, view, svgRef, subject }: MapZoomOptions): MapZoom {
-	const max = Math.max(MAP_ZOOM_FIT, typeof zoom === 'number' ? zoom : MAP_ZOOM_MAX)
+export function useMapZoom({ zoom, view, svgRef, subject }: MapZoomOptions): MapZoom | null {
+	const ceiling = mapZoomCeiling(zoom)
 
-	// A ceiling at or under the fit is no zoom at all, so the plat takes none of
-	// what one costs: no tab stop it cannot answer, and no claim on touch.
-	const enabled = zoom === true || (typeof zoom === 'number' && max > MAP_ZOOM_FIT)
+	const max = ceiling ?? 0
 
 	// The subject rides with the transform rather than beside it, so a geography
 	// swap and the view it invalidates land in one write — and the reset happens
-	// during render, before the stale transform can paint.
+	// during render, before the stale transform can paint. Gated on the zoom, so
+	// a map that does not zoom never takes the extra render-phase pass.
 	const [held, setHeld] = useState({ subject, transform: MAP_FIT_TRANSFORM })
 
-	if (held.subject !== subject) setHeld({ subject, transform: MAP_FIT_TRANSFORM })
+	if (ceiling !== null && held.subject !== subject) {
+		setHeld({ subject, transform: MAP_FIT_TRANSFORM })
+	}
 
-	const transform = enabled ? constrainTransform(held.transform, view, max) : MAP_FIT_TRANSFORM
+	const transform =
+		ceiling === null ? MAP_FIT_TRANSFORM : constrainTransform(held.transform, view, max)
 
 	const [panning, setPanning] = useState(false)
 
@@ -140,6 +150,9 @@ export function useMapZoom({ zoom, view, svgRef, subject }: MapZoomOptions): Map
 
 	live.current = { transform, view, max }
 
+	// Memoised because the wheel effect below depends on it; every other handler
+	// here lands on a freshly built object each render and feeds no dependency
+	// array, so memoising those would buy nothing.
 	const commit = useCallback((next: MapTransform) => {
 		setHeld((prev) =>
 			sameTransform(prev.transform, next) ? prev : { subject: prev.subject, transform: next },
@@ -159,25 +172,212 @@ export function useMapZoom({ zoom, view, svgRef, subject }: MapZoomOptions): Map
 	/** Whether the gesture just ended was a pan, so the click it produced is swallowed. */
 	const panned = useRef(false)
 
-	/** The SVG's box, or `null` before it draws — every conversion below reads it. */
-	const svgBox = useCallback(() => svgRef.current?.getBoundingClientRect() ?? null, [svgRef])
+	// The SVG's box, read once when the gesture starts and held for its length.
+	// Reading it per move would force a layout pass over the whole region tree on
+	// every tracked pointer event, since the move before it just wrote the
+	// layer's transform — the same second-read hazard `use-map-keyboard`
+	// documents. Nothing can move the box mid-gesture: the pointer is captured
+	// and the plot claims its own touch scrolling.
+	const gestureBox = useRef<MapClientBox | null>(null)
 
-	/** A viewport point in the frame coordinates the transform moves. */
-	const focusOf = useCallback(
-		(at: MapPoint2D): MapPoint2D | null => {
-			const box = svgBox()
+	useMapWheelZoom(ceiling !== null, svgRef, view, commit, live)
 
-			const { view: frame } = live.current
+	function release(event: PointerEvent<HTMLElement>) {
+		pointers.current.delete(event.pointerId)
 
-			return box === null ? null : clientToFrame(at, box, frame.width, frame.height)
+		if (pointers.current.size < 2) spread.current = null
+
+		if (pointers.current.size === 0) {
+			press.current = null
+
+			gestureBox.current = null
+
+			setPanning(false)
+		}
+
+		if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+			event.currentTarget.releasePointerCapture(event.pointerId)
+		}
+	}
+
+	function onPointerDown(event: PointerEvent<HTMLElement>) {
+		// A right-click opens the region menu the plat reports for; only the
+		// primary button drives the view.
+		if (event.pointerType === 'mouse' && event.button !== 0) return
+
+		const at = { x: event.clientX, y: event.clientY }
+
+		pointers.current.set(event.pointerId, at)
+
+		event.currentTarget.setPointerCapture(event.pointerId)
+
+		panned.current = false
+
+		gestureBox.current ??= svgRef.current?.getBoundingClientRect() ?? null
+
+		if (pointers.current.size === 1) {
+			press.current = { from: at, moved: false }
+
+			return
+		}
+
+		const [first, second] = [...pointers.current.values()]
+
+		if (first !== undefined && second !== undefined) spread.current = pointerGap(first, second)
+	}
+
+	/** Scales the view by how much the two pointers' spread changed, about their midpoint. */
+	function pinch(first: MapPoint2D, second: MapPoint2D) {
+		const { transform: from, view: frame, max: limit } = live.current
+
+		const gap = pointerGap(first, second)
+
+		const before = spread.current
+
+		spread.current = gap
+
+		const box = gestureBox.current
+
+		const focus =
+			box === null
+				? null
+				: clientToFrame(pointerMidpoint(first, second), box, frame.width, frame.height)
+
+		if (before === null || before === 0 || focus === null) return
+
+		panned.current = true
+
+		commit(zoomTransform(from, focus, gap / before, frame, limit))
+	}
+
+	/** Moves the view by one pointer's travel, once the press has become a pan. */
+	function drag(previous: MapPoint2D, at: MapPoint2D) {
+		const gesture = press.current
+
+		if (gesture === null) return
+
+		// Under the threshold the press is still a click, so the view holds: a hand
+		// that shakes on the way to picking a region must not shift the map out
+		// from under the pick.
+		if (!gesture.moved) {
+			if (pointerGap(gesture.from, at) <= MAP_PAN_THRESHOLD) return
+
+			gesture.moved = true
+
+			panned.current = true
+
+			setPanning(true)
+		}
+
+		const { transform: from, view: frame } = live.current
+
+		const box = gestureBox.current
+
+		const scale = box === null ? 0 : frameScale(box, frame.width, frame.height)
+
+		if (scale === 0) return
+
+		// The drag is measured in viewport pixels and the view moves in frame
+		// units, so the offset converts through the same letterboxing the readout
+		// anchors by.
+		commit(panTransform(from, (at.x - previous.x) / scale, (at.y - previous.y) / scale, frame))
+	}
+
+	function onPointerMove(event: PointerEvent<HTMLElement>) {
+		const previous = pointers.current.get(event.pointerId)
+
+		if (previous === undefined) return
+
+		const at = { x: event.clientX, y: event.clientY }
+
+		pointers.current.set(event.pointerId, at)
+
+		// One pointer pans, so the common case reads the map's size and never
+		// materialises its values; two pinch, and a second finger landing mid-drag
+		// takes the gesture over rather than the two fighting for the view.
+		if (pointers.current.size < 2) {
+			drag(previous, at)
+
+			return
+		}
+
+		const [first, second] = [...pointers.current.values()]
+
+		if (first !== undefined && second !== undefined) pinch(first, second)
+	}
+
+	// A drag ends over whatever region it happens to land on, and the click that
+	// follows would report that region as a pick. Swallowed in the capture phase,
+	// so it never reaches the region layer's own delegated handler or a mark's.
+	function onClickCapture(event: MouseEvent<HTMLElement>) {
+		if (!panned.current) return
+
+		panned.current = false
+
+		event.stopPropagation()
+	}
+
+	function stepZoom(factor: number) {
+		const { transform: from, view: frame, max: limit } = live.current
+
+		commit(zoomTransform(from, { x: frame.width / 2, y: frame.height / 2 }, factor, frame, limit))
+	}
+
+	function fit() {
+		commit(MAP_FIT_TRANSFORM)
+	}
+
+	function show(at: MapPoint2D, inset: number) {
+		const { transform: from, view: frame } = live.current
+
+		const next = showTransform(from, at, frame, inset)
+
+		commit(next)
+
+		return next
+	}
+
+	if (ceiling === null) return null
+
+	return {
+		transform,
+		unitsPerPixel: 1 / transform.k,
+		panning,
+		surface: {
+			onPointerDown,
+			onPointerMove,
+			onPointerUp: release,
+			onPointerCancel: release,
+			// The authoritative reset: it fires on release, on a browser-claimed
+			// gesture, and on the node leaving the tree mid-drag alike. The other two
+			// stand beside it because a test environment dispatches neither capture
+			// nor its loss — the discipline `useColorDrag` keeps.
+			onLostPointerCapture: release,
+			onClickCapture,
 		},
-		[svgBox],
-	)
+		cursor: { transform, stepZoom, fit, show },
+	}
+}
 
-	// The wheel is a native non-passive listener: React registers `onWheel`
-	// passively at the root, so a React handler could never take the gesture from
-	// the page. Re-attached when the frame resolves, which is also when the SVG
-	// this binds to first mounts.
+/**
+ * Binds the wheel as a native non-passive listener on the plot's SVG. React
+ * registers `onWheel` passively at the root, so a React handler could never call
+ * `preventDefault` and the page would scroll out from under every zoom.
+ *
+ * Split out because it is the one part of the gesture set that carries a
+ * dependency array — which is why `commit` above is the hook's one memoised
+ * callback. Everything it reads per event comes off `live`, so the listener
+ * binds once per frame size rather than once per gesture.
+ *
+ * @internal
+ */
+function useMapWheelZoom(
+	enabled: boolean,
+	svgRef: RefObject<SVGSVGElement | null>,
+	view: MapViewFrame,
+	commit: (next: MapTransform) => void,
+	live: RefObject<{ transform: MapTransform; view: MapViewFrame; max: number }>,
+) {
 	useEffect(() => {
 		const svg = svgRef.current
 
@@ -187,15 +387,26 @@ export function useMapZoom({ zoom, view, svgRef, subject }: MapZoomOptions): Map
 		if (!enabled || svg === null || view.width <= 0 || view.height <= 0) return
 
 		const onWheel = (event: WheelEvent) => {
-			const { transform: from, view: frame, max: ceiling } = live.current
+			const { transform: from, view: frame, max } = live.current
 
-			const focus = focusOf({ x: event.clientX, y: event.clientY })
+			// Read fresh per event, unlike a pointer gesture's: a wheel has no press
+			// to measure at, and the page may have scrolled between two of them.
+			const focus = clientToFrame(
+				{ x: event.clientX, y: event.clientY },
+				svg.getBoundingClientRect(),
+				frame.width,
+				frame.height,
+			)
 
 			if (focus === null) return
 
-			const factor = wheelZoomFactor(event.deltaY, event.deltaMode)
-
-			const next = zoomTransform(from, focus, factor, frame, ceiling)
+			const next = zoomTransform(
+				from,
+				focus,
+				wheelZoomFactor(event.deltaY, event.deltaMode),
+				frame,
+				max,
+			)
 
 			// At the fit and at the ceiling the gesture moves nothing, so it stays
 			// the page's: a reader who has zoomed out is never held on the map.
@@ -211,200 +422,5 @@ export function useMapZoom({ zoom, view, svgRef, subject }: MapZoomOptions): Map
 		return () => {
 			svg.removeEventListener('wheel', onWheel)
 		}
-	}, [enabled, svgRef, focusOf, commit, view.width, view.height])
-
-	const release = useCallback((event: PointerEvent<HTMLElement>) => {
-		pointers.current.delete(event.pointerId)
-
-		if (pointers.current.size < 2) spread.current = null
-
-		if (pointers.current.size === 0) {
-			press.current = null
-
-			setPanning(false)
-		}
-
-		if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-			event.currentTarget.releasePointerCapture(event.pointerId)
-		}
-	}, [])
-
-	const onPointerDown = useCallback((event: PointerEvent<HTMLElement>) => {
-		// A right-click opens the region menu the plat reports for; only the
-		// primary button drives the view.
-		if (event.pointerType === 'mouse' && event.button !== 0) return
-
-		const at = { x: event.clientX, y: event.clientY }
-
-		pointers.current.set(event.pointerId, at)
-
-		event.currentTarget.setPointerCapture(event.pointerId)
-
-		panned.current = false
-
-		if (pointers.current.size === 1) {
-			press.current = { from: at, moved: false }
-
-			return
-		}
-
-		const [first, second] = [...pointers.current.values()]
-
-		if (first !== undefined && second !== undefined) spread.current = pointerGap(first, second)
-	}, [])
-
-	/** Scales the view by how much the two pointers' spread changed, about their midpoint. */
-	const pinch = useCallback(
-		(first: MapPoint2D, second: MapPoint2D) => {
-			const { transform: from, view: frame, max: ceiling } = live.current
-
-			const gap = pointerGap(first, second)
-
-			const before = spread.current
-
-			spread.current = gap
-
-			const focus = focusOf(pointerMidpoint(first, second))
-
-			if (before === null || before === 0 || focus === null) return
-
-			panned.current = true
-
-			commit(zoomTransform(from, focus, gap / before, frame, ceiling))
-		},
-		[commit, focusOf],
-	)
-
-	/** Moves the view by one pointer's travel, once the press has become a pan. */
-	const drag = useCallback(
-		(previous: MapPoint2D, at: MapPoint2D) => {
-			const held = press.current
-
-			if (held === null) return
-
-			// Under the threshold the press is still a click, so the view holds: a
-			// hand that shakes on the way to picking a region must not shift the map
-			// out from under the pick.
-			if (!held.moved) {
-				if (pointerGap(held.from, at) <= MAP_PAN_THRESHOLD) return
-
-				held.moved = true
-
-				panned.current = true
-
-				setPanning(true)
-			}
-
-			const { transform: from, view: frame, max: ceiling } = live.current
-
-			const box = svgBox()
-
-			const scale = box === null ? 0 : frameScale(box, frame.width, frame.height)
-
-			if (scale === 0) return
-
-			// The drag is measured in viewport pixels and the view moves in frame
-			// units, so the offset converts through the same letterboxing the readout
-			// anchors by.
-			commit(
-				panTransform(
-					from,
-					(at.x - previous.x) / scale,
-					(at.y - previous.y) / scale,
-					frame,
-					ceiling,
-				),
-			)
-		},
-		[commit, svgBox],
-	)
-
-	const onPointerMove = useCallback(
-		(event: PointerEvent<HTMLElement>) => {
-			const previous = pointers.current.get(event.pointerId)
-
-			if (previous === undefined) return
-
-			const at = { x: event.clientX, y: event.clientY }
-
-			pointers.current.set(event.pointerId, at)
-
-			const [first, second] = [...pointers.current.values()]
-
-			// Two pointers pinch and one pans, so a second finger landing mid-drag
-			// takes the gesture over rather than the two fighting for the view.
-			if (first !== undefined && second !== undefined) pinch(first, second)
-			else drag(previous, at)
-		},
-		[pinch, drag],
-	)
-
-	// A drag ends over whatever region it happens to land on, and the click that
-	// follows would report that region as a pick. Swallowed in the capture phase,
-	// so it never reaches the region layer's own delegated handler or a mark's.
-	const onClickCapture = useCallback((event: MouseEvent<HTMLElement>) => {
-		if (!panned.current) return
-
-		panned.current = false
-
-		event.stopPropagation()
-	}, [])
-
-	const stepZoom = useCallback(
-		(factor: number) => {
-			const { transform: from, view: frame, max: ceiling } = live.current
-
-			const next = zoomTransform(
-				from,
-				{ x: frame.width / 2, y: frame.height / 2 },
-				factor,
-				frame,
-				ceiling,
-			)
-
-			commit(next)
-
-			return next
-		},
-		[commit],
-	)
-
-	const fit = useCallback(() => {
-		commit(MAP_FIT_TRANSFORM)
-
-		return MAP_FIT_TRANSFORM
-	}, [commit])
-
-	const show = useCallback(
-		(at: MapPoint2D) => {
-			const { transform: from, view: frame, max: ceiling } = live.current
-
-			const next = showTransform(from, at, frame, ceiling, MAP_CURSOR_INSET)
-
-			commit(next)
-
-			return next
-		},
-		[commit],
-	)
-
-	return {
-		enabled,
-		transform,
-		unitsPerPixel: 1 / transform.k,
-		panning: panning && enabled,
-		surface: enabled
-			? {
-					onPointerDown,
-					onPointerMove,
-					onPointerUp: release,
-					onPointerCancel: release,
-					// The authoritative reset: it fires on release, on a browser-claimed
-					// gesture, and on the node leaving the tree mid-drag alike.
-					onLostPointerCapture: release,
-					onClickCapture,
-				}
-			: null,
-		cursor: enabled ? { transform, stepZoom, fit, show } : null,
-	}
+	}, [enabled, svgRef, commit, live, view.width, view.height])
 }

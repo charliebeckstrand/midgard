@@ -15,7 +15,12 @@ import { ReducedMotion } from '../../primitives/reduced-motion'
 import { k, type MapSeriesColor } from '../../recipes/kata/map'
 import type { AccessibleName } from '../../types'
 import { legendAside } from '../chart/engine/chart-legend/schema'
-import { MapPlatContext, type MapPlatContextValue, MapZoomScaleContext } from './context'
+import {
+	MapPlatContext,
+	type MapPlatContextValue,
+	MapZoomScaleContext,
+	useMapZoomView,
+} from './context'
 import { cachedRegionCentroids } from './engine/map-geometry/cache'
 import type { MapHoverTarget } from './engine/map-hover/target'
 import { mapStops } from './engine/map-keyboard/stops'
@@ -24,7 +29,7 @@ import { type MapLegendInput, planMapLegend } from './engine/map-legend/plan'
 import { categoryLegendId, regionGroupId, slotColor } from './engine/map-region/category'
 import type { MapRegionData } from './engine/map-region/data'
 import { defaultRegionId } from './engine/map-region/identity'
-import { transformAttribute } from './engine/map-zoom/transform'
+import { mapZoomCeiling, transformAttribute } from './engine/map-zoom/transform'
 import type {
 	MapAspectRatio,
 	MapFeature,
@@ -41,7 +46,6 @@ import { useMapLegendRegistry } from './use-map-legend-registry'
 import { useMapRegionReadout } from './use-map-region-readout'
 import { useMapShape } from './use-map-shape'
 import { useMapToggle } from './use-map-toggle'
-import { type MapZoom, useMapZoom } from './use-map-zoom'
 
 /**
  * Props for {@link MapPlat}. Requires an accessible name — the plot is
@@ -287,23 +291,32 @@ function MapMarksLayer({ animate, children }: { animate: boolean; children: Reac
  * frame units already, so the regions, the marks, and their hit shapes all
  * inherit the transform and none of them is reprojected.
  *
+ * It publishes the scale beside the transform, because the two are one fact:
+ * what the layer stretches, a mark divides back out ({@link MapZoomScaleContext}).
+ * Mounting the provider here rather than over the whole plat keeps both halves
+ * of the zoom's contribution to the tree behind one condition.
+ *
  * It stops answering the pointer while a pan is in flight, so the marks
  * travelling under a held pointer raise no readout and fire no crossing: a
  * drag moves the map, and nothing else.
  *
  * @internal
  */
-function MapZoomLayer({ zoom, children }: { zoom: MapZoom; children: ReactNode }) {
-	if (!zoom.enabled) return <>{children}</>
+function MapZoomLayer({ children }: { children: ReactNode }) {
+	const zoom = useMapZoomView()
+
+	if (zoom === null) return <>{children}</>
 
 	return (
-		<g
-			data-slot="map-zoom"
-			transform={transformAttribute(zoom.transform)}
-			pointerEvents={zoom.panning ? 'none' : undefined}
-		>
-			{children}
-		</g>
+		<MapZoomScaleContext value={zoom.unitsPerPixel}>
+			<g
+				data-slot="map-zoom"
+				transform={transformAttribute(zoom.transform)}
+				pointerEvents={zoom.panning ? 'none' : undefined}
+			>
+				{children}
+			</g>
+		</MapZoomScaleContext>
 	)
 }
 
@@ -563,16 +576,11 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 
 	const svgRef = useRef<SVGSVGElement>(null)
 
-	// The view transform, keyed on the drawn geography: a plat handed another
-	// atlas fits that one, so a transform made against the last has nothing left
-	// to mean. `shape.features` is the decode's own memoised identity, so it
-	// changes exactly when the geography does and never on a resize.
-	const zoom = useMapZoom({
-		zoom: zoomInput,
-		view: { width: shape.viewWidth, height: shape.viewHeight },
-		svgRef,
-		subject: shape.features,
-	})
+	// Whether the map zooms at all, read off the prop alone. The view state
+	// itself lives in `MapZoomProvider`, below this component and around the plot,
+	// so a wheel notch never re-renders the plat — but the tab-stop gate below
+	// needs the bit, and the bit is a pure function of the prop.
+	const zoomable = mapZoomCeiling(zoomInput) !== null
 
 	// The keyboard cursor's stops, handed over as a closure rather than built
 	// here: every region at its centroid, then every registered overlay at its
@@ -627,7 +635,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// A zooming map earns the stop on its own: the wheel and the drag are pointer
 	// gestures, so without it the scale would be out of a keyboard reader's reach
 	// on a plat that carries neither a readout nor a pick.
-	const navigable = (tooltip || pickable || zoom.enabled) && shape.viewWidth > 0
+	const navigable = (tooltip || pickable || zoomable) && shape.viewWidth > 0
 
 	const numeric = valueKey !== undefined
 
@@ -686,25 +694,23 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 			viewBox={`0 0 ${shape.viewWidth} ${shape.viewHeight}`}
 		>
 			<MapPlatContext value={plat}>
-				<MapZoomScaleContext value={zoom.unitsPerPixel}>
-					<MapZoomLayer zoom={zoom}>
-						<MapMarksLayer animate={animate}>
-							<MapRegions
-								paths={shape.paths}
-								regionCategory={regionCategory}
-								categories={categoryMetas}
-								hidden={hidden}
-								emphasis={emphasis}
-								animate={animate}
-								onRegionClick={clickRegion}
-								onRegionContextMenu={contextMenuRegion}
-								selected={selected}
-							/>
+				<MapZoomLayer>
+					<MapMarksLayer animate={animate}>
+						<MapRegions
+							paths={shape.paths}
+							regionCategory={regionCategory}
+							categories={categoryMetas}
+							hidden={hidden}
+							emphasis={emphasis}
+							animate={animate}
+							onRegionClick={clickRegion}
+							onRegionContextMenu={contextMenuRegion}
+							selected={selected}
+						/>
 
-							{children}
-						</MapMarksLayer>
-					</MapZoomLayer>
-				</MapZoomScaleContext>
+						{children}
+					</MapMarksLayer>
+				</MapZoomLayer>
 			</MapPlatContext>
 		</svg>
 	)
@@ -784,9 +790,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 						resolveStops,
 						view: { width: shape.viewWidth, height: shape.viewHeight },
 						svgRef,
-						zoom: zoom.cursor,
 					}}
-					zoom={zoom.surface}
 					tooltip={
 						tooltip ? (
 							<MapTooltip
@@ -804,6 +808,16 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 				</MapPlotRegion>
 			}
 			plotRef={shape.ref}
+			zoom={{
+				zoom: zoomInput,
+				view: { width: shape.viewWidth, height: shape.viewHeight },
+				svgRef,
+				// A plat handed another atlas fits that one, so a transform made
+				// against the last has nothing left to mean. `shape.features` is the
+				// decode's own memoised identity, so it changes exactly when the
+				// geography does and never on a resize.
+				subject: shape.features,
+			}}
 			containerRef={containerRef}
 			tooltip={tooltip}
 			regionActive={regionActive}

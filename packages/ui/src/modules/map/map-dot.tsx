@@ -2,6 +2,7 @@
 
 import { motion } from 'motion/react'
 import { dotPath } from './engine/map-geometry/mark'
+import { transformAttribute } from './engine/map-zoom/transform'
 import type { MapPoint2D } from './engine/types'
 
 /** Props for {@link MapDot}. @internal */
@@ -90,7 +91,9 @@ type MapDotCountProps = {
 function countPlacement(at: MapPoint2D, scale: number) {
 	if (scale === 1) return { x: at.x, y: at.y }
 
-	return { transform: `translate(${at.x} ${at.y}) scale(${scale})` }
+	// The layer's own transform writer, so the count and the group above it round
+	// the same way and can never drift on the attribute's format.
+	return { transform: transformAttribute({ x: at.x, y: at.y, k: scale }) }
 }
 
 /**

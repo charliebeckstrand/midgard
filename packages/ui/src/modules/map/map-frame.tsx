@@ -6,11 +6,13 @@ import { k } from '../../recipes/kata/map'
 import type { AccessibleName } from '../../types'
 import { legendAside } from '../chart/engine/chart-legend/schema'
 import { ChartPlotBox } from '../chart/engine/chart-plot-box'
+import { useMapZoomView } from './context'
 import type { MapLegendPlacement } from './engine/types'
 import { MapHoverProvider } from './map-hover-provider'
+import { MapZoomProvider } from './map-zoom-provider'
 import { type MapKeyboardOptions, useMapKeyboard } from './use-map-keyboard'
 import type { MapShape } from './use-map-shape'
-import type { MapZoomSurface } from './use-map-zoom'
+import type { MapZoomOptions } from './use-map-zoom'
 
 /** Props for {@link MapFrame}: the assembled parts laid out around the plot. @internal */
 type MapFrameProps = {
@@ -21,6 +23,8 @@ type MapFrameProps = {
 	plotRef: RefObject<HTMLDivElement | null>
 	/** The frame's outer box; its measured width drives the range bar's tier-aware placement. */
 	containerRef: RefObject<HTMLDivElement | null>
+	/** What the view transform needs; the provider mounts around the plot alone. */
+	zoom: MapZoomOptions
 	/** Whether the tooltip is on; gates the hover provider's scroll listener. */
 	tooltip: boolean
 	/** Whether a region's category is matched and shown; the hover provider's pointed-emphasis gate. */
@@ -39,6 +43,7 @@ export function MapFrame({
 	plotRegion,
 	plotRef,
 	containerRef,
+	zoom,
 	tooltip,
 	regionActive,
 	table,
@@ -47,6 +52,11 @@ export function MapFrame({
 	className,
 }: MapFrameProps) {
 	const aside = legendAside(legendPlacement)
+
+	// The plot alone sits under the view transform's provider. The legend answers
+	// the toggles and the emphasis, never the view, so keeping it outside is what
+	// stops a wheel notch from re-planning it.
+	const plot = <MapZoomProvider {...zoom}>{plotRegion}</MapZoomProvider>
 
 	return (
 		<div
@@ -74,7 +84,7 @@ export function MapFrame({
 							legendPlacement === 'left' ? 'flex-row-reverse' : 'flex-row',
 						)}
 					>
-						{plotRegion}
+						{plot}
 
 						{legendNode}
 					</div>
@@ -82,7 +92,7 @@ export function MapFrame({
 					<>
 						{legendPlacement === 'top' && legendNode}
 
-						{plotRegion}
+						{plot}
 
 						{legendPlacement === 'bottom' && legendNode}
 					</>
@@ -100,9 +110,7 @@ type MapPlotRegionProps = AccessibleName & {
 	aside: boolean
 	tooltip: ReactNode
 	/** What the keyboard cursor needs; the plat resolves it, this element hosts it. */
-	keyboard: MapKeyboardOptions
-	/** The zoom gestures' bindings, `null` on a map that does not zoom. */
-	zoom: MapZoomSurface | null
+	keyboard: Omit<MapKeyboardOptions, 'zoom'>
 	children: ReactNode
 }
 
@@ -119,11 +127,15 @@ export function MapPlotRegion({
 	aside,
 	tooltip,
 	keyboard: options,
-	zoom,
 	children,
 	...name
 }: MapPlotRegionProps) {
-	const keyboard = useMapKeyboard(options)
+	// Read here rather than passed down: this element is inside the provider and
+	// the plat is above it, which is the whole point of holding the view state
+	// below the plat.
+	const zoom = useMapZoomView()
+
+	const keyboard = useMapKeyboard({ ...options, zoom: zoom?.cursor ?? null })
 
 	return (
 		<div
@@ -132,7 +144,7 @@ export function MapPlotRegion({
 			role="img"
 			{...name}
 			{...keyboard}
-			{...(zoom ?? {})}
+			{...(zoom?.surface ?? {})}
 			// A side legend takes the width remainder (`min-w-0 flex-1`); a free-form
 			// `fill` map instead grows into the height its region already holds — a
 			// `flex-1 min-h-0` child of the `h-full` frame — so the box measures a real

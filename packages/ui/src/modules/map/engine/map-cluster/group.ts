@@ -43,7 +43,7 @@ export type MapPointCluster = {
 }
 
 /**
- * The edge-to-edge gap a `cluster` prop asks for, in frame units; `null` where
+ * The edge-to-edge gap a `cluster` prop asks for, in device pixels; `null` where
  * it is off. The one reading of the public prop, held beside the pass it feeds
  * so the contract is testable without rendering a mark.
  *
@@ -89,7 +89,7 @@ type MapClusterSeed = {
 /** A group with a position on the frame — the only kind either index holds. @internal */
 type MapSeededCluster = MapClusterSeed & { seed: MapPoint2D }
 
-/** Where a group draws and how wide it paints: what the overlap rule reads. @internal */
+/** Where a group draws and how wide it paints, both in frame units: what the overlap rule reads. @internal */
 type MapClusterMark = {
 	at: MapPoint2D
 	radius: number
@@ -105,10 +105,11 @@ type MapClusterMark = {
  *
  * `unitsPerPixel` is what one device pixel spans in frame units — `1` at rest,
  * and `1 / k` under the zoom layer's transform, which scales the drawn frame
- * without refitting the projection. The marks' own radii ride device pixels
- * (non-scaling strokes), so they sit inside the reach beside the gap rather
- * than beside it: the whole reach then takes one multiply, and a zoom that
- * spreads the dots apart on screen separates them here on the same beat.
+ * without refitting the projection. The gap and the marks' own radii are both
+ * pixel measures (the marks paint as non-scaling strokes), so this converts
+ * them once on the way in and every comparison below reads frame units alone. A
+ * zoom that spreads the dots apart on screen therefore separates them here on
+ * the same beat.
  *
  * Grouping runs on the projected frame rather than on lon/lat, because overlap
  * is a property of the drawn picture: the same round summarises in a small frame
@@ -132,9 +133,12 @@ export function clusterPoints(
 		return positions.map((position, index) => ({ members: [index], at: project(position) }))
 	}
 
+	// Both phases measure in frame units: the broad phase takes a whole dot-to-dot
+	// reach, and the rule below takes the gap alone with `markOf` converting each
+	// mark's radius to match.
 	const seeds = seedGroups(positions, project, (POINT_RADIUS * 2 + gap) * unitsPerPixel)
 
-	return consolidate(seeds, gap, unitsPerPixel).map(summarise)
+	return consolidate(seeds, gap * unitsPerPixel, unitsPerPixel).map(summarise)
 }
 
 /**
@@ -241,12 +245,12 @@ function mergeRound(
 	// One cell per widest possible reach, so a mark this one could draw over can
 	// only sit in the nine cells around it — the bound the broad phase runs on,
 	// held here against the marks rather than the dots.
-	const reach = (MAX_CLUSTER_RADIUS * 2 + gap) * unitsPerPixel
+	const reach = MAX_CLUSTER_RADIUS * 2 * unitsPerPixel + gap
 
 	for (const group of groups) {
-		const mark = markOf(group)
+		const mark = markOf(group, unitsPerPixel)
 
-		const host = mark === null ? -1 : hostFor(cells, marks, mark, gap, reach, unitsPerPixel)
+		const host = mark === null ? -1 : hostFor(cells, marks, mark, gap, reach)
 
 		if (host === -1) {
 			if (mark !== null) bucket(cells, cellOf(mark.at, reach)).push(next.length)
@@ -262,7 +266,7 @@ function mergeRound(
 
 		next[host] = merged
 
-		const grown = markOf(merged)
+		const grown = markOf(merged, unitsPerPixel)
 
 		marks[host] = grown
 
@@ -300,14 +304,13 @@ function hostFor(
 	mark: MapClusterMark,
 	gap: number,
 	reach: number,
-	unitsPerPixel: number,
 ): number {
 	let host = -1
 
 	walkNear(cells, mark.at, reach, (slot) => {
 		const other = marks[slot]
 
-		if (other == null || !marksOverlap(other, mark, gap, unitsPerPixel)) return false
+		if (other == null || !marksOverlap(other, mark, gap)) return false
 
 		host = slot
 
@@ -360,11 +363,17 @@ function squared(a: MapPoint2D, b: MapPoint2D): number {
 	return dx * dx + dy * dy
 }
 
-/** A group's drawn mark, or `null` where the projection has no image for it. @internal */
-function markOf(group: MapClusterSeed): MapClusterMark | null {
+/**
+ * A group's drawn mark, or `null` where the projection has no image for it. The
+ * size grade is a device-pixel radius, so it converts to frame units here — the
+ * one place a mark's width enters the pass.
+ *
+ * @internal
+ */
+function markOf(group: MapClusterSeed, unitsPerPixel: number): MapClusterMark | null {
 	const at = centre(group)
 
-	return at === null ? null : { at, radius: clusterRadius(group.members.length) }
+	return at === null ? null : { at, radius: clusterRadius(group.members.length) * unitsPerPixel }
 }
 
 /**
@@ -372,18 +381,13 @@ function markOf(group: MapClusterSeed): MapClusterMark | null {
  * The one rule the output obeys — everything above it only decides how few pairs
  * have to be asked.
  *
- * Both radii and the gap are device pixels, and the positions are frame units,
- * so the whole reach takes the one multiply the zoom's scale asks for.
+ * Every term is frame units by the time it reaches here — `clusterPoints` scaled
+ * the gap and `markOf` scaled the radii — so the rule reads in one unit.
  *
  * @internal
  */
-function marksOverlap(
-	a: MapClusterMark,
-	b: MapClusterMark,
-	gap: number,
-	unitsPerPixel: number,
-): boolean {
-	const reach = (a.radius + b.radius + gap) * unitsPerPixel
+function marksOverlap(a: MapClusterMark, b: MapClusterMark, gap: number): boolean {
+	const reach = a.radius + b.radius + gap
 
 	return squared(a.at, b.at) < reach * reach
 }

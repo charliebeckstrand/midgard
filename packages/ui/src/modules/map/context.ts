@@ -5,6 +5,7 @@ import type { MapSeriesColor } from '../../recipes/kata/map'
 import type { MapHoverTarget } from './engine/map-hover/target'
 import type { MapOverlayEntry } from './engine/map-overlay/entry'
 import type { LngLat, MapOverlaySelection, MapPoint2D } from './engine/types'
+import type { MapZoom } from './use-map-zoom'
 
 /**
  * The live hover readout the tooltip anchors to: the pointed target and the
@@ -53,6 +54,18 @@ export const [MapPointedMarkContext, useMapPointedMark] = createContext<MapHover
 	'MapPointedMark',
 	{ default: null },
 )
+
+/**
+ * The view transform and its gestures, or `null` on a map that does not zoom —
+ * one encoding of that bit, which the layer, the plot region, and the keyboard
+ * cursor all test the same way. Provided by {@link MapZoomProvider}, which sits
+ * below the plat so a gesture never re-renders it.
+ *
+ * @internal
+ */
+export const [MapZoomContext, useMapZoomView] = createContext<MapZoom | null>('MapZoom', {
+	default: null,
+})
 
 /**
  * What one device pixel spans in frame units under the plat's zoom: `1` at the

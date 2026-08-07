@@ -116,13 +116,13 @@ describe('panTransform', () => {
 	it('moves the view by the offset it is given', () => {
 		const at = zoomTransform(MAP_FIT_TRANSFORM, { x: 200, y: 100 }, 2, VIEW, MAX)
 
-		expect(panTransform(at, -30, -10, VIEW, MAX)).toEqual({ x: at.x - 30, y: at.y - 10, k: 2 })
+		expect(panTransform(at, -30, -10, VIEW)).toEqual({ x: at.x - 30, y: at.y - 10, k: 2 })
 	})
 
 	it('stops at the edge rather than past it', () => {
 		const at = zoomTransform(MAP_FIT_TRANSFORM, { x: 200, y: 100 }, 2, VIEW, MAX)
 
-		expect(panTransform(at, 9999, 9999, VIEW, MAX)).toEqual({ x: 0, y: 0, k: 2 })
+		expect(panTransform(at, 9999, 9999, VIEW)).toEqual({ x: 0, y: 0, k: 2 })
 	})
 })
 
@@ -136,7 +136,7 @@ describe('showTransform', () => {
 		// from every edge, so there is nothing for the follow to do.
 		expect(applyTransform({ x: 150, y: 75 }, at)).toEqual({ x: 100, y: 50 })
 
-		expect(showTransform(at, { x: 150, y: 75 }, VIEW, MAX, INSET)).toEqual(at)
+		expect(showTransform(at, { x: 150, y: 75 }, VIEW, INSET)).toEqual(at)
 	})
 
 	it('pans until an off-frame point draws inside, clear of the edge', () => {
@@ -148,7 +148,7 @@ describe('showTransform', () => {
 
 		expect(applyTransform(corner, at).x).toBeGreaterThan(VIEW.width)
 
-		const out = showTransform(at, corner, VIEW, MAX, INSET)
+		const out = showTransform(at, corner, VIEW, INSET)
 
 		const drawn = applyTransform(corner, out)
 
@@ -163,7 +163,7 @@ describe('showTransform', () => {
 		// The frame's own corner cannot be brought a margin clear of the edge — the
 		// constraint wins, and the view stops at the boundary rather than exposing
 		// ground the fit never framed.
-		const out = showTransform(at, { x: 0, y: 0 }, VIEW, MAX, INSET)
+		const out = showTransform(at, { x: 0, y: 0 }, VIEW, INSET)
 
 		expect(out.x).toBe(0)
 

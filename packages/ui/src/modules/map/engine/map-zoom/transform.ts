@@ -8,7 +8,7 @@
  */
 
 import { clamp } from '../../../../utilities'
-import { MAP_ZOOM_FIT } from '../map-constants'
+import { MAP_ZOOM_FIT, MAP_ZOOM_MAX } from '../map-constants'
 import type { MapPoint2D } from '../types'
 
 /**
@@ -73,7 +73,7 @@ export function constrainTransform(
 	view: MapViewFrame,
 	max: number,
 ): MapTransform {
-	const k = clamp(transform.k, MAP_ZOOM_FIT, Math.max(MAP_ZOOM_FIT, max))
+	const k = clampScale(transform.k, max)
 
 	return {
 		k,
@@ -98,7 +98,7 @@ export function zoomTransform(
 	view: MapViewFrame,
 	max: number,
 ): MapTransform {
-	const k = clamp(transform.k * factor, MAP_ZOOM_FIT, Math.max(MAP_ZOOM_FIT, max))
+	const k = clampScale(transform.k * factor, max)
 
 	// The clamp above can shorten the step, so the ratio is measured against
 	// where the scale landed rather than against what was asked for; taking the
@@ -116,15 +116,23 @@ export function zoomTransform(
 	)
 }
 
-/** Moves the view by a frame-unit offset. @internal */
+/**
+ * Moves the view by a frame-unit offset. A pan never changes the scale, so its
+ * own scale is the ceiling it constrains against and no caller passes one.
+ *
+ * @internal
+ */
 export function panTransform(
 	transform: MapTransform,
 	dx: number,
 	dy: number,
 	view: MapViewFrame,
-	max: number,
 ): MapTransform {
-	return constrainTransform({ ...transform, x: transform.x + dx, y: transform.y + dy }, view, max)
+	return constrainTransform(
+		{ ...transform, x: transform.x + dx, y: transform.y + dy },
+		view,
+		transform.k,
+	)
 }
 
 /**
@@ -139,29 +147,44 @@ export function showTransform(
 	transform: MapTransform,
 	at: MapPoint2D,
 	view: MapViewFrame,
-	max: number,
 	inset: number,
 ): MapTransform {
 	const drawn = applyTransform(at, transform)
 
 	// A frame narrower than two insets has no interior to aim at, so the margin
 	// gives way to the frame rather than the two ends fighting over the point.
+	// That floor is also what keeps each clamp below well ordered.
 	const margin = Math.min(inset, view.width / 2, view.height / 2)
 
 	return panTransform(
 		transform,
-		shift(drawn.x, view.width, margin),
-		shift(drawn.y, view.height, margin),
+		clamp(drawn.x, margin, view.width - margin) - drawn.x,
+		clamp(drawn.y, margin, view.height - margin) - drawn.y,
 		view,
-		max,
 	)
 }
 
-/** How far one axis must move to bring `at` inside its span, `margin` clear of both ends. */
-function shift(at: number, span: number, margin: number): number {
-	if (at < margin) return margin - at
+/**
+ * The ceiling a `zoom` prop asks for, or `null` where the map does not zoom. The
+ * one reading of the public prop, held beside the transform it bounds so the
+ * plat can gate on it without holding any view state.
+ *
+ * A ceiling at or under the fit is no zoom at all: the fit is the floor, so such
+ * a map could never move.
+ *
+ * @internal
+ */
+export function mapZoomCeiling(zoom: boolean | number | undefined): number | null {
+	if (zoom === true) return MAP_ZOOM_MAX
 
-	return at > span - margin ? span - margin - at : 0
+	if (typeof zoom !== 'number' || zoom <= MAP_ZOOM_FIT) return null
+
+	return zoom
+}
+
+/** The scale held between the fit and the ceiling — the one place that rule is written. */
+function clampScale(k: number, max: number): number {
+	return clamp(k, MAP_ZOOM_FIT, Math.max(MAP_ZOOM_FIT, max))
 }
 
 /** Three decimals, so the attribute stays short at every scale the map reaches. */
