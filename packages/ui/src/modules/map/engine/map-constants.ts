@@ -38,8 +38,34 @@ export const MARK_SELECTED_HALO = 3
 /** Route polyline stroke width — a step over the chart line, to hold over busy region fills. @internal */
 export const ROUTE_STROKE_WIDTH = 2.5
 
-/** Invisible hit-stroke width over a route — a finger-wide band so the thin line stays aimable on touch. @internal */
+/**
+ * Invisible hit-stroke width over a thin line — a route, a marker's connector, a
+ * geofence boundary. A finger-wide band, so the line stays aimable on touch.
+ * @internal
+ */
 export const ROUTE_HIT_WIDTH = 24
+
+/**
+ * Geofence boundary stroke width — a step over the region seam and under the
+ * route line, so a zone reads as the context behind the marks it holds rather
+ * than as another route drawn around them. @internal
+ */
+export const GEOFENCE_STROKE_WIDTH = 1.5
+
+/**
+ * The geofence wash's opacity, sitting the fill inside its boundary without
+ * muddying the geography under it — the chart module's area wash
+ * (`AREA_FILL_OPACITY`), because the two draw the same thing. @internal
+ */
+export const GEOFENCE_FILL_OPACITY = 0.16
+
+/**
+ * How many segments a circular geofence's ring holds. The marks project point by
+ * point and draw each edge straight, so the count is what makes a circle read
+ * round: at 64 the widest gap between the ring and the true circle is under
+ * 0.13% of the radius, which no frame this module draws can resolve. @internal
+ */
+export const GEOFENCE_CIRCLE_STEPS = 64
 
 /** Point-marker radius (≥ 5.5 so the dot stays legible). @internal */
 export const POINT_RADIUS = 5.5

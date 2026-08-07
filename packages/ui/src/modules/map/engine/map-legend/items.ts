@@ -7,7 +7,7 @@
 
 import { cn } from '../../../../core'
 import { k, type MapSeriesColor } from '../../../../recipes/kata/map'
-import type { MapOverlayEntry } from '../map-overlay/entry'
+import type { MapOverlayEntry, MapOverlaySwatch } from '../map-overlay/entry'
 import { categoryLegendId, type MapCategoryMeta } from '../map-region/category'
 
 /** One legend entry: a category or overlay named by its mark-mirroring swatch. @internal */
@@ -19,8 +19,8 @@ export type MapLegendItem = {
 	swatchClass?: string
 	/** Inline CSS colour carrying the entry's colour (numeric choropleth bins). */
 	swatchColor?: string
-	/** Swatch shape, mirroring the mark: `rect` for regions, `line` for routes and markers, `dot` for points. */
-	swatch: 'rect' | 'line' | 'dot'
+	/** Swatch shape, mirroring the mark — a region takes the geofence's `rect`, being an area too. */
+	swatch: MapOverlaySwatch
 	/** A trailing readout — a route's mileage, a point's value. */
 	detail?: string
 }

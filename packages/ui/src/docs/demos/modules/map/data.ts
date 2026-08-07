@@ -1,4 +1,4 @@
-import type { LngLat, MapCategory } from '../../../../modules/map'
+import type { LngLat, MapCategory, MapSeriesColor } from '../../../../modules/map'
 
 /** One row per state, keyed by the state's display name. */
 export type StateZone = { state: string; zone: string }
@@ -158,4 +158,49 @@ export const ikeaDestinations: { city: string; abbreviation: string; at: LngLat 
 	{ city: 'Seattle', abbreviation: 'SEA', at: [-122.33, 47.61] },
 	{ city: 'New York', abbreviation: 'NYC', at: [-74.0, 40.71] },
 	{ city: 'Atlanta', abbreviation: 'ATL', at: [-84.39, 33.75] },
+]
+
+/**
+ * Depot catchments for the geofence example: a next-day service radius around
+ * each of three warehouses, as a distance across the ground in metres. The radii
+ * differ by depot, so the circles read as data rather than as chrome, and each
+ * carries its own slot colour so a zone and the marks inside it read as a pair.
+ */
+export const serviceAreas: {
+	city: string
+	at: LngLat
+	radius: number
+	color: MapSeriesColor
+	detail: string
+}[] = [
+	{ city: 'Dallas', at: [-96.8, 32.78], radius: 240_000, color: 'blue', detail: 'Next day' },
+	{ city: 'Chicago', at: [-87.63, 41.88], radius: 190_000, color: 'violet', detail: 'Next day' },
+	{
+		city: 'Los Angeles',
+		at: [-118.24, 34.05],
+		radius: 150_000,
+		color: 'amber',
+		detail: 'Same day',
+	},
+]
+
+/**
+ * The Texas Triangle as a drawn zone: the metro corridor running Dallas →
+ * Houston → San Antonio → Austin. A polygon geofence takes its own ring, so a
+ * territory that follows no radius — a district, a franchise area, a tariff
+ * band — draws exactly as its boundary states.
+ */
+export const texasTriangle: LngLat[] = [
+	[-96.8, 32.78],
+	[-95.37, 29.76],
+	[-98.49, 29.42],
+	[-97.74, 30.27],
+]
+
+/** The four metros the {@link texasTriangle} corridor holds, drawn inside it. */
+export const texasMetros: { at: LngLat; label: string; detail: string }[] = [
+	{ at: [-96.8, 32.78], label: 'Dallas', detail: '18 loads' },
+	{ at: [-95.37, 29.76], label: 'Houston', detail: '22 loads' },
+	{ at: [-98.49, 29.42], label: 'San Antonio', detail: '9 loads' },
+	{ at: [-97.74, 30.27], label: 'Austin', detail: '12 loads' },
 ]

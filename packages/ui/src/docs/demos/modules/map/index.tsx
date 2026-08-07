@@ -13,6 +13,7 @@ import {
 	type LngLat,
 	type MapFeature,
 	type MapFeatureCollection,
+	MapGeofence,
 	type MapGeography,
 	MapMarker,
 	MapPlat,
@@ -28,6 +29,9 @@ import {
 	ikeaDestinations,
 	ikeaHub,
 	laToChicago,
+	serviceAreas,
+	texasMetros,
+	texasTriangle,
 	timezones,
 	warehouses,
 	zoneCategories,
@@ -379,6 +383,45 @@ function DeliveryRounds({ geography }: { geography: MapFeatureCollection | null 
 	)
 }
 
+/**
+ * A zone that answers no radius, drawn from its own ring. The plat fits whatever
+ * geography it is handed, so passing Texas alone frames the corridor — the
+ * drill-down `DeliveryRounds` runs on a pick, here fixed to one state.
+ *
+ * The metros inside stay pointable: a geofence answers the pointer along its
+ * boundary and never over its fill, so a zone never swallows the marks it holds.
+ */
+function TexasTriangle({ geography }: { geography: MapFeatureCollection | null }) {
+	// Memoised on the atlas: the plat caches its decode and its fit against the
+	// geography's identity, so a fresh collection each render would refit the map.
+	const frame = useMemo<MapGeography | null>(() => {
+		const held = geography?.features.find((state) => stateName(state) === 'Texas')
+
+		return held === undefined
+			? geography
+			: ({ type: 'FeatureCollection', features: [held] } satisfies MapFeatureCollection)
+	}, [geography])
+
+	return (
+		<MapPlat
+			aria-label="Texas Triangle corridor"
+			geography={frame}
+			projection="albers-usa"
+			animate
+			legend="right"
+		>
+			<MapGeofence
+				label="Texas Triangle"
+				boundary={texasTriangle}
+				color="green"
+				detail="4 metros"
+			/>
+
+			<MapPoints id="metro" label="Metros" points={texasMetros} color="rose" />
+		</MapPlat>
+	)
+}
+
 function MapDemo() {
 	const states = useGeography(statesUrl)
 
@@ -413,6 +456,7 @@ function MapDemo() {
 					>
 						Route
 					</Tab>
+					<Tab value="geofence">Geofence</Tab>
 				</TabList>
 
 				<TabContents fade={false}>
@@ -522,6 +566,48 @@ function MapDemo() {
 										/>
 									))}
 								</MapPlat>
+							</Example>
+						</Stack>
+					</TabContent>
+
+					<TabContent value="geofence">
+						<Stack gap="xl">
+							{/* Each catchment draws before the depot it holds, so the dot sits
+							    over its own wash rather than under it — and each pair shares a
+							    slot colour, so the legend reads zone-and-depot as one thing. */}
+							<Example title="Depot catchments">
+								<MapPlat
+									aria-label="Depot catchments"
+									geography={states}
+									projection="albers-usa"
+									animate
+									legend="right"
+								>
+									{serviceAreas.map((area) => (
+										<MapGeofence
+											key={area.city}
+											label={`${area.city} catchment`}
+											at={area.at}
+											radius={area.radius}
+											color={area.color}
+											detail={area.detail}
+										/>
+									))}
+
+									{serviceAreas.map((area) => (
+										<MapPoint
+											key={area.city}
+											label={area.city}
+											at={area.at}
+											color={area.color}
+											detail="Depot"
+										/>
+									))}
+								</MapPlat>
+							</Example>
+
+							<Example title="Texas Triangle">
+								<TexasTriangle geography={states} />
 							</Example>
 						</Stack>
 					</TabContent>
