@@ -35,17 +35,15 @@ const HALF_SPHERE_DEGREES = 180
  *
  * @param at - The circle's centre.
  * @param radius - The ground radius, in metres.
- * @param steps - How many segments the ring holds. More segments read rounder
- * and cost more to project.
  * @returns The ring, or an empty list where the arguments describe no circle —
- * a radius at or below zero, a radius that wraps the sphere, or fewer than three
- * segments. The mark draws nothing from an empty ring, which is the silence a
- * `MapRoute` with no stops keeps.
+ * a radius at or below zero, or one that wraps the sphere. The mark draws
+ * nothing from an empty ring, which is the silence a `MapRoute` with no stops
+ * keeps.
  *
  * @internal
  */
-export function circleRing(at: LngLat, radius: number, steps = GEOFENCE_CIRCLE_STEPS): LngLat[] {
-	if (!(radius > 0) || steps < 3) return []
+export function circleRing(at: LngLat, radius: number): LngLat[] {
+	if (!(radius > 0)) return []
 
 	const degrees = (radius / EARTH_RADIUS_METERS) * DEGREES_PER_RADIAN
 
@@ -56,7 +54,7 @@ export function circleRing(at: LngLat, radius: number, steps = GEOFENCE_CIRCLE_S
 		.radius(degrees)
 		// The step between adjacent ring points, in degrees of rotation about the
 		// centre — so the count holds whatever the radius is.
-		.precision(360 / steps)()
+		.precision(360 / GEOFENCE_CIRCLE_STEPS)()
 
 	// GeoJSON positions are `number[]` to the types, and a lon/lat pair in fact;
 	// `geoCircle` writes one ring, so the first is the whole shape.

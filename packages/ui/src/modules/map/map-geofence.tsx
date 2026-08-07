@@ -42,6 +42,11 @@ type MapGeofencePolygon = {
 	 * Each edge draws straight in the frame, so a ring wider than a hemisphere —
 	 * one that would need the sphere's own resampling — is outside what this
 	 * draws. A zone over a metro, a state, or a country reads exactly.
+	 *
+	 * Hold the array itself steady across renders — a module constant, a `useMemo`,
+	 * a query result. The projected path is memoised on this reference, so a ring
+	 * built inline re-projects on every pointer crossing of the map, which a long
+	 * boundary pays for in full.
 	 */
 	boundary: LngLat[]
 	at?: undefined
@@ -90,7 +95,7 @@ export function MapGeofence({ at, radius, boundary, ...shared }: MapGeofenceProp
 	const ring = useMemo(() => {
 		if (boundary !== undefined) return boundary
 
-		if (lon === undefined || lat === undefined || radius === undefined) return []
+		if (lon === undefined || lat === undefined) return []
 
 		return circleRing([lon, lat], radius)
 	}, [boundary, lon, lat, radius])
@@ -106,7 +111,8 @@ export function MapGeofence({ at, radius, boundary, ...shared }: MapGeofenceProp
 
 	// Memoised so a hover-driven re-render (the plat's pointer state churns the
 	// hover context) doesn't re-project and re-stringify the whole ring;
-	// `project` identity holds until the measured refit.
+	// `project` identity holds until the measured refit, a circle's `ring` holds on
+	// the primitives above, and a `boundary` is the caller's own stable ref.
 	const d = useMemo(() => ringPath(ring, project), [ring, project])
 
 	if (slot === undefined || hidden || d === '') return null
@@ -119,10 +125,11 @@ export function MapGeofence({ at, radius, boundary, ...shared }: MapGeofenceProp
 		stroke: 'none',
 		fillOpacity: GEOFENCE_FILL_OPACITY,
 		// The one drawn shape in the module with an area, and so the one that would
-		// answer the pointer where it is painted. Off it, as every other drawn shape
-		// is (`MapDot`, the halo, the lit region copies): the hit stroke below is the
-		// mark's sole target, and the regions the zone covers keep their own hover
-		// and their own clicks.
+		// answer the pointer across its whole face rather than along a stroke the hit
+		// shape already covers. Off it, as the module's other uncovered marks are
+		// (`MapDotCount`, the halo, the lit region copies): the hit stroke below is
+		// this mark's sole target, and the regions the zone covers keep their own
+		// hover and their own clicks.
 		pointerEvents: 'none' as const,
 		className: cn(paint.fill),
 	}

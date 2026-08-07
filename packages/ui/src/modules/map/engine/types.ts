@@ -20,6 +20,20 @@ export type MapPoint2D = {
 export type DataKey<T> = keyof T & string
 
 /**
+ * A swatch shape, mirroring the mark it stands for: `rect` for the two things
+ * that draw an area — a region and a geofence — `line` for a route and a marker,
+ * `dot` for a point.
+ *
+ * Module vocabulary rather than an overlay's own, because a region is not an
+ * overlay and `rect` is its shape first. One definition, because the legend and
+ * the tooltip each key a {@link Swatch} shape off it, and a new mark shape must
+ * reach both or neither.
+ *
+ * @internal
+ */
+export type MapSwatchShape = 'rect' | 'line' | 'dot'
+
+/**
  * A GeoJSON feature, structurally: enough shape for region identity and
  * drawing without pulling `@types/geojson` into consumer graphs. Atlas data
  * (`us-atlas`, `world-atlas`) and Photon results satisfy it as-is.

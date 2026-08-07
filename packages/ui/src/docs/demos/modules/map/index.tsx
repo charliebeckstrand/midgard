@@ -53,6 +53,23 @@ function Example(props: ComponentProps<typeof ExampleFrame>) {
 // each pick.
 const stateName = (feature: MapFeature) => String(feature.properties?.name)
 
+/**
+ * One state's own geometry, or the whole atlas where no state is named. Handing
+ * the plat a single feature refits the projection to it — the fit it runs on
+ * every geography, no zoom layer — which is the drill-down both examples below
+ * frame their maps with.
+ */
+function stateFrame(
+	geography: MapFeatureCollection | null,
+	name: string | null,
+): MapGeography | null {
+	const held = name === null ? undefined : geography?.features.find((s) => stateName(s) === name)
+
+	return held === undefined
+		? geography
+		: ({ type: 'FeatureCollection', features: [held] } satisfies MapFeatureCollection)
+}
+
 // Atlas data stays out of the package (and the docs bundle): the demos fetch
 // the TopoJSON from us-atlas as a static asset, decode it once, and cache the
 // result with react-query, standing a MapSkeleton in while it loads — the same
@@ -304,19 +321,10 @@ function DeliveryRounds({ geography }: { geography: MapFeatureCollection | null 
 		[holders],
 	)
 
-	// The picked state's own geometry, or the whole atlas. Memoised on the pick:
-	// the plat caches its decode and its fit against the geography's identity, so
-	// a fresh collection each render would re-fit the map on every keystroke
-	// elsewhere on the page.
-	const frame = useMemo<MapGeography | null>(() => {
-		if (picked === null) return geography
-
-		const held = features.find((state) => stateName(state) === picked)
-
-		return held === undefined
-			? geography
-			: ({ type: 'FeatureCollection', features: [held] } satisfies MapFeatureCollection)
-	}, [picked, geography, features])
+	// Memoised on the pick: the plat caches its decode and its fit against the
+	// geography's identity, so a fresh collection each render would re-fit the map
+	// on every keystroke elsewhere on the page.
+	const frame = useMemo(() => stateFrame(geography, picked), [geography, picked])
 
 	const stops = useMemo(
 		() =>
@@ -394,13 +402,7 @@ function DeliveryRounds({ geography }: { geography: MapFeatureCollection | null 
 function TexasTriangle({ geography }: { geography: MapFeatureCollection | null }) {
 	// Memoised on the atlas: the plat caches its decode and its fit against the
 	// geography's identity, so a fresh collection each render would refit the map.
-	const frame = useMemo<MapGeography | null>(() => {
-		const held = geography?.features.find((state) => stateName(state) === 'Texas')
-
-		return held === undefined
-			? geography
-			: ({ type: 'FeatureCollection', features: [held] } satisfies MapFeatureCollection)
-	}, [geography])
+	const frame = useMemo(() => stateFrame(geography, 'Texas'), [geography])
 
 	return (
 		<MapPlat

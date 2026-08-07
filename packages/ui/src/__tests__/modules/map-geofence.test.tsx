@@ -1,3 +1,4 @@
+import { geoDistance } from 'd3-geo'
 import type { ReactNode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import type { LngLat } from '../../modules/map'
@@ -28,15 +29,13 @@ function plat(children: ReactNode) {
 	)
 }
 
-/** The great-circle distance between two positions, in metres. */
-function groundDistance([aLon, aLat]: LngLat, [bLon, bLat]: LngLat): number {
-	const radians = Math.PI / 180
-
-	const cosine =
-		Math.sin(aLat * radians) * Math.sin(bLat * radians) +
-		Math.cos(aLat * radians) * Math.cos(bLat * radians) * Math.cos((bLon - aLon) * radians)
-
-	return Math.acos(Math.min(1, Math.max(-1, cosine))) * EARTH_RADIUS_METERS
+/**
+ * The great-circle distance between two positions, in metres — measured the way
+ * the module measures a cluster's own spread (`clusterSpan`), so the assertions
+ * below read `circleRing` against the sphere the map already works on.
+ */
+function groundDistance(a: LngLat, b: LngLat): number {
+	return geoDistance(a, b) * EARTH_RADIUS_METERS
 }
 
 describe('circleRing', () => {
@@ -76,10 +75,6 @@ describe('circleRing', () => {
 		expect(Math.max(...spread) - Math.min(...spread)).toBeLessThan(1)
 	})
 
-	it('takes an explicit segment count', () => {
-		expect(circleRing([0, 0], 100_000, 8)).toHaveLength(9)
-	})
-
 	it('describes no circle for a radius at or below zero', () => {
 		expect(circleRing([0, 0], 0)).toEqual([])
 
@@ -90,10 +85,6 @@ describe('circleRing', () => {
 
 	it('describes no circle for a radius wrapping the sphere, which has no boundary', () => {
 		expect(circleRing([0, 0], EARTH_RADIUS_METERS * Math.PI)).toEqual([])
-	})
-
-	it('describes no circle for fewer than three segments', () => {
-		expect(circleRing([0, 0], 100_000, 2)).toEqual([])
 	})
 })
 

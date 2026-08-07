@@ -358,13 +358,16 @@ describe('ringPath', () => {
 })
 
 describe('ringAnchor', () => {
+	/** An open square about [5, 5] — the same ring every case below reads. */
+	const RING: [number, number][] = [
+		[0, 0],
+		[0, 10],
+		[10, 10],
+		[10, 0],
+	]
+
 	it('centres on the middle of the ring', () => {
-		const [anchor] = ringAnchor([
-			[0, 0],
-			[0, 10],
-			[10, 10],
-			[10, 0],
-		])
+		const [anchor] = ringAnchor(RING)
 
 		expect(anchor?.[0]).toBeCloseTo(5, 5)
 
@@ -374,31 +377,23 @@ describe('ringAnchor', () => {
 	})
 
 	it('drops the closing repeat, so one side never weighs twice', () => {
-		const open: [number, number][] = [
-			[0, 0],
-			[0, 10],
-			[10, 10],
-			[10, 0],
-		]
-
-		expect(ringAnchor([...open, open[0] as [number, number]])).toEqual(ringAnchor(open))
+		expect(ringAnchor([...RING, RING[0] as [number, number]])).toEqual(ringAnchor(RING))
 	})
 
 	it('drops a repeat that closes to rounding rather than exactly', () => {
 		// A traced ring — `circleRing`'s — lands its last position a rounding step
 		// off its first. Read as a fresh vertex, it would weigh that corner twice.
-		const open: [number, number][] = [
-			[0, 0],
-			[0, 10],
-			[10, 10],
-			[10, 0],
-		]
-
-		expect(ringAnchor([...open, [4e-15, -4e-15]])).toEqual(ringAnchor(open))
+		expect(ringAnchor([...RING, [4e-15, -4e-15]])).toEqual(ringAnchor(RING))
 	})
 
 	it('is empty for a ring with no points, so a caller passes it straight through', () => {
 		expect(ringAnchor([])).toEqual([])
+	})
+
+	it('anchors a lone position on itself, exactly', () => {
+		// It reads as its own closing repeat, so the centroid pass sees nothing and
+		// the fallback returns the position untouched — no round trip to drift on.
+		expect(ringAnchor([[5, 5]])).toEqual([[5, 5]])
 	})
 
 	it('stands the first vertex in where the points cancel to no centre', () => {

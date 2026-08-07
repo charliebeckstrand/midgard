@@ -184,23 +184,21 @@ export const serviceAreas: {
 	},
 ]
 
-/**
- * The Texas Triangle as a drawn zone: the metro corridor running Dallas →
- * Houston → San Antonio → Austin. A polygon geofence takes its own ring, so a
- * territory that follows no radius — a district, a franchise area, a tariff
- * band — draws exactly as its boundary states.
- */
-export const texasTriangle: LngLat[] = [
-	[-96.8, 32.78],
-	[-95.37, 29.76],
-	[-98.49, 29.42],
-	[-97.74, 30.27],
-]
-
-/** The four metros the {@link texasTriangle} corridor holds, drawn inside it. */
+/** The four metros the {@link texasTriangle} corridor runs between, drawn inside it. */
 export const texasMetros: { at: LngLat; label: string; detail: string }[] = [
 	{ at: [-96.8, 32.78], label: 'Dallas', detail: '18 loads' },
 	{ at: [-95.37, 29.76], label: 'Houston', detail: '22 loads' },
 	{ at: [-98.49, 29.42], label: 'San Antonio', detail: '9 loads' },
 	{ at: [-97.74, 30.27], label: 'Austin', detail: '12 loads' },
 ]
+
+/**
+ * The Texas Triangle as a drawn zone: the metro corridor running Dallas →
+ * Houston → San Antonio → Austin. A polygon geofence takes its own ring, so a
+ * territory that follows no radius — a district, a franchise area, a tariff
+ * band — draws exactly as its boundary states.
+ *
+ * Read off {@link texasMetros} rather than restated, so the corridor keeps its
+ * corners on the metros the example draws inside it.
+ */
+export const texasTriangle: LngLat[] = texasMetros.map((metro) => metro.at)

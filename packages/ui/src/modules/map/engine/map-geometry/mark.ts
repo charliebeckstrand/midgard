@@ -1,9 +1,9 @@
 /**
- * What the overlay marks draw: one lon/lat projected to the frame, and the path
- * strings a dot, a polyline, and a closed ring paint from it. Held apart from
- * `region.ts` because the marks project point by point through a closure the
- * plat hands down, where the region layer projects whole features through
- * `d3-geo`'s own path generator.
+ * What the overlay marks draw: one lon/lat projected to the frame, the path
+ * strings a dot, a polyline, and a closed ring paint from it, and the anchor
+ * each shape offers the keyboard cursor. Held apart from `region.ts` because the
+ * marks project point by point through a closure the plat hands down, where the
+ * region layer projects whole features through `d3-geo`'s own path generator.
  *
  * That point-by-point walk is what bounds the ring: it draws each edge straight
  * in the frame, where `geoPath` would resample the edge along the sphere and
@@ -151,7 +151,9 @@ const SAME_POSITION_EPSILON = 1e-9
  *
  * The closing repeat is dropped first, or it would weight that one side twice.
  * Vertices that cancel — a ring about a pole — leave no centre, and the first
- * vertex stands in, which is a position the projection can draw.
+ * vertex stands in, which is a position the projection can draw. A lone point
+ * reads as its own repeat and falls through that same door, so it anchors on
+ * itself exactly rather than on a centroid round trip.
  *
  * @internal
  */
@@ -164,15 +166,12 @@ export function ringAnchor(ring: LngLat[]): LngLat[] {
 
 	const closed =
 		last !== undefined &&
-		ring.length > 1 &&
 		Math.abs(last[0] - first[0]) < SAME_POSITION_EPSILON &&
 		Math.abs(last[1] - first[1]) < SAME_POSITION_EPSILON
 
 	const coordinates = closed ? ring.slice(0, -1) : ring
 
-	const [lon, lat] = geoCentroid({ type: 'MultiPoint', coordinates } as unknown as Parameters<
-		typeof geoCentroid
-	>[0])
+	const [lon, lat] = geoCentroid({ type: 'MultiPoint', coordinates })
 
 	return Number.isFinite(lon) && Number.isFinite(lat) ? [[lon, lat]] : [first]
 }
