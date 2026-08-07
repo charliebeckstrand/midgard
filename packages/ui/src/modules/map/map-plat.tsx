@@ -319,39 +319,46 @@ function useMarkSelection(
  * {@link fetchOsrmRoute} / {@link fetchValhallaRoute} — the plat itself
  * never calls the network.
  */
-export function MapPlat<T = never>({
-	geography,
-	geographyObject,
-	projection = 'mercator',
-	data,
-	regionKey,
-	categoryKey,
-	categories,
-	valueKey,
-	colorRange,
-	bins,
-	binning,
-	domain,
-	valueFormat,
-	valueName,
-	regionId,
-	regionLabel,
-	width,
-	height,
-	aspectRatio = 'auto',
-	deferPaint = false,
-	legend,
-	tooltip = true,
-	animate = false,
-	onRegionClick,
-	onRegionContextMenu,
-	selectedRegion,
-	selectedOverlay,
-	emphasis: controlledEmphasis,
-	className,
-	children,
-	...name
-}: MapPlatProps<T>) {
+export function MapPlat<T = never>(props: MapPlatProps<T>) {
+	// Taken apart here, not in the parameter list, because the readout below reads
+	// the props whole: destructuring widens each region-data field to what all
+	// three branches allow, so an object rebuilt from the parts matches no one
+	// branch. Every prop comes out, read or not — the rest lands on the plot
+	// region's div, where a field left in would draw as an attribute.
+	const {
+		geography,
+		geographyObject,
+		projection = 'mercator',
+		data,
+		regionKey,
+		categoryKey,
+		categories,
+		valueKey,
+		colorRange,
+		bins,
+		binning,
+		domain,
+		valueFormat,
+		valueName,
+		regionId,
+		regionLabel,
+		width,
+		height,
+		aspectRatio = 'auto',
+		deferPaint = false,
+		legend,
+		tooltip = true,
+		animate = false,
+		onRegionClick,
+		onRegionContextMenu,
+		selectedRegion,
+		selectedOverlay,
+		emphasis: controlledEmphasis,
+		className,
+		children,
+		...name
+	} = props
+
 	const shape = useMapShape(
 		geography,
 		geographyObject,
@@ -377,23 +384,7 @@ export function MapPlat<T = never>({
 		regionValues,
 		regionNumbers,
 		domain: valueExtent,
-	} = useMapRegionReadout(
-		shape.features,
-		{
-			data,
-			regionKey,
-			categoryKey,
-			categories,
-			valueKey,
-			colorRange,
-			bins,
-			binning,
-			domain,
-			valueFormat,
-		} as MapRegionData<T>,
-		regionIds,
-		regionLabel,
-	)
+	} = useMapRegionReadout(shape.features, props, regionIds, regionLabel)
 
 	const { hidden, toggle, setFocus, emphasis: activeFocus } = useMapToggle()
 
