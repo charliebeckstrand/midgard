@@ -26,12 +26,11 @@ export function groupIdFromDragId(id: string): string {
 
 /**
  * Moves the item at `from` to index `to` in a copy of `items`. Each caller
- * rejects an absent index and a no-op move first. This holds the happy path
- * alone: remove the item, then insert it into the shortened array.
+ * rejects an absent index and a no-op move first, so this holds the happy path
+ * alone.
  *
- * The result matches the dnd-kit `arrayMove` contract for a non-negative `to`.
- * The engine holds its own copy, so it carries no runtime `@dnd-kit` import.
- * The two differ on a negative `to`, which a guarded `findIndex` cannot return.
+ * Matches dnd-kit's `arrayMove` for the non-negative `to` a guarded `findIndex`
+ * returns, without the runtime `@dnd-kit` import a pure engine cannot carry.
  *
  * @internal
  */

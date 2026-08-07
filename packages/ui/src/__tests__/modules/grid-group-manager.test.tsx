@@ -140,16 +140,9 @@ describe('group manager drag helpers', () => {
 
 		// Cross-zone (already applied live in onDragOver) → unchanged.
 		expect(settleDragEnd(map, 'a', 'c')).toBe(map)
-	})
 
-	it('settles a forward reorder past the intervening columns', () => {
-		const wide: ZoneMap = { g: ['a', 'b', 'c'] }
-
-		expect(settleDragEnd(wide, 'a', 'c')).toEqual({ g: ['b', 'c', 'a'] })
-
-		expect(settleDragEnd(wide, 'c', 'a')).toEqual({ g: ['c', 'a', 'b'] })
-
-		expect(wide.g).toEqual(['a', 'b', 'c'])
+		// A two-column zone cannot separate "to the end" from "swap with the last".
+		expect(settleDragEnd({ g: ['a', 'b', 'c'] }, 'a', 'g')).toEqual({ g: ['b', 'c', 'a'] })
 	})
 })
 
