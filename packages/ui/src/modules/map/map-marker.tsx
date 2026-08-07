@@ -4,16 +4,11 @@ import { motion } from 'motion/react'
 import { useMemo } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
-import {
-	PIN_RADIUS,
-	POINT_HIT_RADIUS,
-	ROUTE_HIT_WIDTH,
-	ROUTE_STROKE_WIDTH,
-} from './engine/map-constants'
+import { PIN_RADIUS, ROUTE_HIT_WIDTH, ROUTE_STROKE_WIDTH } from './engine/map-constants'
 import { lineAnchor, linePath } from './engine/map-geometry/mark'
 import { MARKER_DRAW, MARKER_END_POP, POINT_POP } from './engine/map-motion'
 import type { LngLat } from './engine/types'
-import { MapDot } from './map-dot'
+import { dotHitProps, MapDot } from './map-dot'
 import { MapDotHalo, MapHalo } from './map-halo'
 import { type MapOverlayProps, useMapOverlay } from './use-map-overlay'
 
@@ -159,29 +154,9 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 					/>
 				)}
 
-				{from && (
-					<circle
-						data-slot="map-marker-start-hit"
-						cx={from.x}
-						cy={from.y}
-						// A finger target is a pixel measure, so the radius converts
-						// through the zoom the way the pin's own stroke does.
-						r={POINT_HIT_RADIUS * unitsPerPixel}
-						fill="transparent"
-						{...hit()}
-					/>
-				)}
+				{from && <circle {...dotHitProps('map-marker-start-hit', from, hit(), unitsPerPixel)} />}
 
-				{to && (
-					<circle
-						data-slot="map-marker-end-hit"
-						cx={to.x}
-						cy={to.y}
-						r={POINT_HIT_RADIUS * unitsPerPixel}
-						fill="transparent"
-						{...hit()}
-					/>
-				)}
+				{to && <circle {...dotHitProps('map-marker-end-hit', to, hit(), unitsPerPixel)} />}
 			</g>
 		</>
 	)

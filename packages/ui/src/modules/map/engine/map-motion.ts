@@ -19,7 +19,10 @@ export const REGION_STAGGER = 0.01
 /** Ceiling on the region stagger — a many-region atlas must not draw out the reveal. @internal */
 export const REGION_STAGGER_MAX = 0.3
 
-/** Route-draw stroke reveal (`pathLength` 0 → 1), matching the chart's line draw. @internal */
+/**
+ * Stroke reveal (`pathLength` 0 → 1), matching the chart's line draw: a route's
+ * line, and a geofence boundary, which lands the way a line does. @internal
+ */
 export const ROUTE_DRAW = mark.draw
 
 /** A point's scale-and-fade pop-in — the chart's pop tempo, staggered instead of held. @internal */
@@ -42,6 +45,14 @@ export const POINT_STAGGER_MAX = 0.6
 export function pointPop(ordinal: number) {
 	return { ...POINT_POP, delay: Math.min(ordinal * POINT_STAGGER, POINT_STAGGER_MAX) } as const
 }
+
+/**
+ * A geofence's wash, held until its boundary has drawn: the outline traces the
+ * zone, then the fill settles inside it, so the shape reads before the colour
+ * does. The region fade's tempo, because the wash is the same kind of
+ * fill-in. @internal
+ */
+export const GEOFENCE_WASH = { ...REGION_FADE, delay: ROUTE_DRAW.duration } as const
 
 /** A marker's connector draw, held until the start pin (a `POINT_POP`) has popped. @internal */
 export const MARKER_DRAW = { ...ROUTE_DRAW, delay: POINT_POP.duration } as const

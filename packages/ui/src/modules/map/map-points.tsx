@@ -8,11 +8,10 @@ import { useMapPlat, useMapZoomScale } from './context'
 import { clusterAnchor, clusterSpan } from './engine/map-cluster/geo'
 import { clusterGap, clusterPoints, groupsByMember } from './engine/map-cluster/group'
 import { clusterRadius } from './engine/map-cluster/radius'
-import { POINT_HIT_RADIUS } from './engine/map-constants'
 import { pointPop } from './engine/map-motion'
 import type { MapStopRow } from './engine/map-overlay/entry'
 import type { LngLat } from './engine/types'
-import { MapDot, MapDotCount } from './map-dot'
+import { dotHitProps, MapDot, MapDotCount } from './map-dot'
 import { MapDotHalo } from './map-halo'
 import { type MapOverlayProps, useMapOverlay } from './use-map-overlay'
 
@@ -282,17 +281,7 @@ export function MapPoints({
 								/>
 							)}
 
-							<circle
-								data-slot="map-points-hit"
-								cx={position.x}
-								cy={position.y}
-								// A finger target is a pixel measure, so the radius converts
-								// through the zoom: left in frame units it would grow with the
-								// scale and answer for ground the dot is nowhere near.
-								r={POINT_HIT_RADIUS * unitsPerPixel}
-								fill="transparent"
-								{...hit(index)}
-							/>
+							<circle {...dotHitProps('map-points-hit', position, hit(index), unitsPerPixel)} />
 						</Fragment>
 					)
 				})}

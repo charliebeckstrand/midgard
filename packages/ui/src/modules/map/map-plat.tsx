@@ -273,7 +273,11 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 * keeps it controlled with no emphasis (CONVENTIONS §7.3).
 		 */
 		emphasis?: string | null
-		/** Overlay marks: {@link MapRoute}, {@link MapPoint}, {@link MapMarker}. */
+		/**
+		 * Overlay marks: {@link MapRoute}, {@link MapPoint}, {@link MapPoints},
+		 * {@link MapMarker}, {@link MapGeofence}. They draw in the order they are
+		 * given, so a zone drawn before the marks it holds sits behind them.
+		 */
 		children?: ReactNode
 	}
 
@@ -397,8 +401,8 @@ function useMarkSelection(
  * on the overlay mark the consumer holds selected, and a visually-hidden data
  * table.
  * Geometry is prop-supplied TopoJSON / GeoJSON; {@link MapRoute},
- * {@link MapPoint}, and {@link MapMarker} children draw over the geography
- * and register their own legend entries.
+ * {@link MapPoint}, {@link MapMarker}, and {@link MapGeofence} children draw
+ * over the geography and register their own legend entries.
  *
  * @remarks Consumers geocode addresses to coordinates through `AddressInput`
  * (or any provider) and fetch street-following paths through

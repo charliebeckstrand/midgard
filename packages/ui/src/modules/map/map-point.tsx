@@ -2,10 +2,10 @@
 
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
-import { POINT_HIT_RADIUS, POINT_RADIUS } from './engine/map-constants'
+import { POINT_RADIUS } from './engine/map-constants'
 import { pointPop } from './engine/map-motion'
 import type { LngLat } from './engine/types'
-import { MapDot } from './map-dot'
+import { dotHitProps, MapDot } from './map-dot'
 import { MapDotHalo } from './map-halo'
 import { type MapOverlayProps, useMapOverlay } from './use-map-overlay'
 
@@ -71,16 +71,7 @@ export function MapPoint({ at, ...shared }: MapPointProps) {
 					transition={pointPop(order)}
 				/>
 
-				<circle
-					data-slot="map-point-hit"
-					cx={position.x}
-					cy={position.y}
-					// A finger target is a pixel measure, so the radius converts through
-					// the zoom the way the dot's own non-scaling stroke does.
-					r={POINT_HIT_RADIUS * unitsPerPixel}
-					fill="transparent"
-					{...hit()}
-				/>
+				<circle {...dotHitProps('map-point-hit', position, hit(), unitsPerPixel)} />
 			</g>
 		</>
 	)
