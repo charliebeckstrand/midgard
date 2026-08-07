@@ -4,6 +4,7 @@ import { type ComponentProps, useMemo, useState } from 'react'
 import { feature } from 'topojson-client'
 import statesUrl from 'us-atlas/states-10m.json?url'
 import { Flex } from '../../../../components/flex'
+import { Kbd } from '../../../../components/kbd'
 import { Select, SelectLabel, SelectOption } from '../../../../components/select'
 import { Stack } from '../../../../components/stack'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../../components/tabs'
@@ -379,6 +380,42 @@ function DeliveryRounds({ geography }: { geography: MapFeatureCollection | null 
 	)
 }
 
+/**
+ * Zoom and pan over one fitted geography — the drill-down above read the other
+ * way. That one hands the plat another geography and the fit reframes; this one
+ * leaves the fit alone and moves a transform over what the projection already
+ * placed, so no path is reprojected and every mark holds its size. The rounds
+ * that summarise at the national frame separate into their own stops as the view
+ * closes on them, because a merge distance is a pixel distance and the transform
+ * spreads the dots across those pixels.
+ */
+function ZoomableRounds({ geography }: { geography: MapFeatureCollection | null }) {
+	return (
+		<Stack gap="md">
+			<Text>
+				Wheel or pinch to zoom, drag to pan. From the keyboard, Tab to the map, then <Kbd>+</Kbd>,{' '}
+				<Kbd>-</Kbd>, and <Kbd>0</Kbd>; the arrows walk the stops and take the view with them.
+			</Text>
+
+			<MapPlat
+				aria-label="Delivery rounds, zoomable"
+				geography={geography}
+				projection="albers-usa"
+				legend="right"
+				zoom
+			>
+				<MapPoints
+					id="round"
+					label="Stops"
+					points={deliveryStops}
+					detail={`${deliveryStops.length} stops`}
+					clusterDetail={roundSummary}
+				/>
+			</MapPlat>
+		</Stack>
+	)
+}
+
 function MapDemo() {
 	const states = useGeography(statesUrl)
 
@@ -466,6 +503,13 @@ function MapDemo() {
 							    many it stands for. */}
 							<Example title="Delivery rounds">
 								<DeliveryRounds geography={states} />
+							</Example>
+
+							{/* The same rounds under a view transform rather than a refit: the
+							    summaries break apart as the frame closes on them, and every dot,
+							    hit target, and count holds its size through the whole gesture. */}
+							<Example title="Zoom into the rounds">
+								<ZoomableRounds geography={states} />
 							</Example>
 						</Stack>
 					</TabContent>

@@ -10,6 +10,7 @@ import type { MapLegendPlacement } from './engine/types'
 import { MapHoverProvider } from './map-hover-provider'
 import { type MapKeyboardOptions, useMapKeyboard } from './use-map-keyboard'
 import type { MapShape } from './use-map-shape'
+import type { MapZoomSurface } from './use-map-zoom'
 
 /** Props for {@link MapFrame}: the assembled parts laid out around the plot. @internal */
 type MapFrameProps = {
@@ -100,6 +101,8 @@ type MapPlotRegionProps = AccessibleName & {
 	tooltip: ReactNode
 	/** What the keyboard cursor needs; the plat resolves it, this element hosts it. */
 	keyboard: MapKeyboardOptions
+	/** The zoom gestures' bindings, `null` on a map that does not zoom. */
+	zoom: MapZoomSurface | null
 	children: ReactNode
 }
 
@@ -116,6 +119,7 @@ export function MapPlotRegion({
 	aside,
 	tooltip,
 	keyboard: options,
+	zoom,
 	children,
 	...name
 }: MapPlotRegionProps) {
@@ -128,6 +132,7 @@ export function MapPlotRegion({
 			role="img"
 			{...name}
 			{...keyboard}
+			{...(zoom ?? {})}
 			// A side legend takes the width remainder (`min-w-0 flex-1`); a free-form
 			// `fill` map instead grows into the height its region already holds — a
 			// `flex-1 min-h-0` child of the `h-full` frame — so the box measures a real
@@ -137,6 +142,10 @@ export function MapPlotRegion({
 				// The focus ring only rides a region that can take focus; a rounded
 				// corner comes with it, so the outline follows the box it rings.
 				keyboard && ['rounded-sm', k.focus],
+				// A zooming plot claims its own touch gestures: one finger pans and two
+				// pinch, so neither can reach the page's scroller. Every other map
+				// leaves touch alone, so a finger dragged over it still scrolls the page.
+				zoom && 'touch-none',
 				aside && 'min-w-0',
 				(aside || shape.fill) && 'flex-1',
 				shape.fill && 'min-h-0',

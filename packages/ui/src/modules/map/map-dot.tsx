@@ -68,15 +68,34 @@ type MapDotCountProps = {
 	count: number
 	/** The label ink — the slot's `onFill`, the one place text sits on a mark's own colour. */
 	className: string
+	/** Frame units per device pixel; the count counter-scales by it to hold its size. */
+	scale: number
 	animate: boolean
 	/** The fade-in timing under `animate`, shared with the dot the count sits in. */
 	transition: { duration: number; delay?: number }
 }
 
 /**
- * The count inside a summary dot. Text sizes in user units, so it scales with
- * the viewBox where the dot beneath it rides device pixels — the two agree
- * wherever the frame is measured, which every settled frame is.
+ * Where the count sits: its own coordinates at rest, and a counter-scaled frame
+ * of its own under a zoom. Text sizes in user units, so a transform that scales
+ * the frame would grow the number while the dot beneath it — a non-scaling
+ * stroke — held its size, and the count would climb out of the mark it belongs
+ * to. Scaling the frame back by the same factor pins the two together.
+ *
+ * The rest case keeps the plain `x` / `y` pair rather than an identity
+ * transform, so an unzoomed map draws the attributes it always drew.
+ *
+ * @internal
+ */
+function countPlacement(at: MapPoint2D, scale: number) {
+	if (scale === 1) return { x: at.x, y: at.y }
+
+	return { transform: `translate(${at.x} ${at.y}) scale(${scale})` }
+}
+
+/**
+ * The count inside a summary dot, held at the dot's own size through every
+ * scale the frame takes — see {@link countPlacement}.
  *
  * @remarks Never a pointer target: the mark's own hit circle draws over it and
  * carries the readout, and a label that answered the pointer would report no
@@ -84,11 +103,17 @@ type MapDotCountProps = {
  *
  * @internal
  */
-export function MapDotCount({ at, count, className, animate, transition }: MapDotCountProps) {
+export function MapDotCount({
+	at,
+	count,
+	className,
+	scale,
+	animate,
+	transition,
+}: MapDotCountProps) {
 	const shared = {
 		'data-slot': 'map-points-count',
-		x: at.x,
-		y: at.y,
+		...countPlacement(at, scale),
 		textAnchor: 'middle' as const,
 		dominantBaseline: 'central' as const,
 		pointerEvents: 'none' as const,

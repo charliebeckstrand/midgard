@@ -55,6 +55,25 @@ export const [MapPointedMarkContext, useMapPointedMark] = createContext<MapHover
 )
 
 /**
+ * What one device pixel spans in frame units under the plat's zoom: `1` at the
+ * fit, and `1 / k` under a transform. It is the marks' one reading of the zoom,
+ * and the whole of it — a mark converts a pixel spec to frame units by one
+ * multiply and never asks what the transform is.
+ *
+ * Held apart from {@link MapPlatContextValue} because a zoom step churns this
+ * value on every wheel notch: the marks that answer it (the dots' hit circles,
+ * their cluster reach, and the count inside a summary) re-render per notch, and
+ * the region layer, the legend, and the plat above them all hold. Defaults to
+ * `1`, so a mark rendered outside a zooming plat reads the frame as device
+ * pixels — which every settled unzoomed frame is.
+ *
+ * @internal
+ */
+export const [MapZoomScaleContext, useMapZoomScale] = createContext<number>('MapZoomScale', {
+	default: 1,
+})
+
+/**
  * What {@link MapPlat} provides its overlay children: the fitted projection
  * as a closure, legend registration, the resolved slot colour per registered
  * entry, the legend's toggle / emphasis state, and the standing pick. An

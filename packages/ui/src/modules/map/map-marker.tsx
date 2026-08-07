@@ -4,6 +4,7 @@ import { motion } from 'motion/react'
 import { useMemo } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
+import { useMapZoomScale } from './context'
 import {
 	PIN_RADIUS,
 	POINT_HIT_RADIUS,
@@ -57,6 +58,10 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 	// routed path would re-project and re-stringify on every pointed-mark
 	// crossing.
 	const points = useMemo(() => (path && path.length > 0 ? path : [start, end]), [path, start, end])
+
+	// A finger target is a pixel measure, so the pins' hit radii convert through
+	// the zoom the way their own non-scaling strokes do.
+	const unitsPerPixel = useMapZoomScale()
 
 	const { slot, hidden, project, animate, dim, selected, onPointerLeave, hit } = useMapOverlay({
 		...shared,
@@ -149,6 +154,10 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 						fill="none"
 						stroke="transparent"
 						strokeWidth={ROUTE_HIT_WIDTH}
+						// The band is a finger's width in device pixels, so it rides the
+						// same non-scaling stroke the connector does: a zoom must widen the
+						// ground it covers, never the target itself.
+						vectorEffect="non-scaling-stroke"
 						pointerEvents="stroke"
 						{...hit()}
 					/>
@@ -159,7 +168,7 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 						data-slot="map-marker-start-hit"
 						cx={from.x}
 						cy={from.y}
-						r={POINT_HIT_RADIUS}
+						r={POINT_HIT_RADIUS * unitsPerPixel}
 						fill="transparent"
 						{...hit()}
 					/>
@@ -170,7 +179,7 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 						data-slot="map-marker-end-hit"
 						cx={to.x}
 						cy={to.y}
-						r={POINT_HIT_RADIUS}
+						r={POINT_HIT_RADIUS * unitsPerPixel}
 						fill="transparent"
 						{...hit()}
 					/>

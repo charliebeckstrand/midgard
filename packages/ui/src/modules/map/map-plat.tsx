@@ -15,7 +15,7 @@ import { ReducedMotion } from '../../primitives/reduced-motion'
 import { k, type MapSeriesColor } from '../../recipes/kata/map'
 import type { AccessibleName } from '../../types'
 import { legendAside } from '../chart/engine/chart-legend/schema'
-import { MapPlatContext, type MapPlatContextValue } from './context'
+import { MapPlatContext, type MapPlatContextValue, MapZoomScaleContext } from './context'
 import { cachedRegionCentroids } from './engine/map-geometry/cache'
 import type { MapHoverTarget } from './engine/map-hover/target'
 import { mapStops } from './engine/map-keyboard/stops'
@@ -24,6 +24,7 @@ import { type MapLegendInput, planMapLegend } from './engine/map-legend/plan'
 import { categoryLegendId, regionGroupId, slotColor } from './engine/map-region/category'
 import type { MapRegionData } from './engine/map-region/data'
 import { defaultRegionId } from './engine/map-region/identity'
+import { transformAttribute } from './engine/map-zoom/transform'
 import type {
 	MapAspectRatio,
 	MapFeature,
@@ -40,6 +41,7 @@ import { useMapLegendRegistry } from './use-map-legend-registry'
 import { useMapRegionReadout } from './use-map-region-readout'
 import { useMapShape } from './use-map-shape'
 import { useMapToggle } from './use-map-toggle'
+import { type MapZoom, useMapZoom } from './use-map-zoom'
 
 /**
  * Props for {@link MapPlat}. Requires an accessible name — the plot is
@@ -130,6 +132,35 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 * @defaultValue true
 		 */
 		tooltip?: boolean
+		/**
+		 * Let the reader zoom and pan the drawn geography. A wheel over the plot
+		 * zooms about the pointer, a drag pans, two touches pinch, and the plot's
+		 * own tab stop takes `+`, `-`, and `0` — so the keyboard reaches every scale
+		 * the pointer does. A number sets how far in it goes; `true` takes the
+		 * default ceiling.
+		 *
+		 * It is a transform over the fitted geography, not a refit: the projection
+		 * places the regions once and the layer moves what it placed, so a gesture
+		 * costs one attribute write rather than reprojecting every path. Every mark
+		 * spec rides device pixels through it — region seams and route lines stay
+		 * hairlines, dots and their hit targets keep their size, and a summary's
+		 * count stays inside the dot it sits in — so zooming in shows more ground
+		 * rather than a bigger picture of the same. `MapPoints` regroups as it goes,
+		 * because a merge distance is a pixel distance: the rounds a national frame
+		 * summarises separate into their own dots as the view closes on them.
+		 *
+		 * The view returns to the fit whenever the geography changes, since a new
+		 * geography frames itself. Zooming out never goes past that fit, and a pan
+		 * never carries the geography off the frame.
+		 *
+		 * @defaultValue false
+		 * @remarks A wheel takes the gesture from the page only where it moves the
+		 * view, so a reader at the fit — or at the ceiling — scrolls the page as
+		 * they would over anything else. Touch is the exception a map cannot avoid:
+		 * the plot claims its own touch gestures while this is on, so a one-finger
+		 * drag over the map pans it rather than scrolling the page.
+		 */
+		zoom?: boolean | number
 		/**
 		 * Animate the map in on mount: the neutral geography paints at once, then
 		 * category colour washes in region by region, routes draw themselves, and
@@ -249,6 +280,33 @@ function MapMarksLayer({ animate, children }: { animate: boolean; children: Reac
 	)
 }
 
+/**
+ * The zoom layer: one transformed group over the whole drawing, mounted only
+ * where the plat zooms — a static map keeps the plain-SVG tree it had, the way
+ * it keeps one without {@link MapMarksLayer}. Everything under it draws in
+ * frame units already, so the regions, the marks, and their hit shapes all
+ * inherit the transform and none of them is reprojected.
+ *
+ * It stops answering the pointer while a pan is in flight, so the marks
+ * travelling under a held pointer raise no readout and fire no crossing: a
+ * drag moves the map, and nothing else.
+ *
+ * @internal
+ */
+function MapZoomLayer({ zoom, children }: { zoom: MapZoom; children: ReactNode }) {
+	if (!zoom.enabled) return <>{children}</>
+
+	return (
+		<g
+			data-slot="map-zoom"
+			transform={transformAttribute(zoom.transform)}
+			pointerEvents={zoom.panning ? 'none' : undefined}
+		>
+			{children}
+		</g>
+	)
+}
+
 /** The data table's value-column header: the value's name in numeric mode, else the category field. @internal */
 function valueColumnHeader(
 	categoryKey: string | undefined,
@@ -338,6 +396,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		deferPaint = false,
 		legend,
 		tooltip = true,
+		zoom: zoomInput,
 		animate = false,
 		onRegionClick,
 		onRegionContextMenu,
@@ -504,6 +563,17 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 
 	const svgRef = useRef<SVGSVGElement>(null)
 
+	// The view transform, keyed on the drawn geography: a plat handed another
+	// atlas fits that one, so a transform made against the last has nothing left
+	// to mean. `shape.features` is the decode's own memoised identity, so it
+	// changes exactly when the geography does and never on a resize.
+	const zoom = useMapZoom({
+		zoom: zoomInput,
+		view: { width: shape.viewWidth, height: shape.viewHeight },
+		svgRef,
+		subject: shape.features,
+	})
+
 	// The keyboard cursor's stops, handed over as a closure rather than built
 	// here: every region at its centroid, then every registered overlay at its
 	// own anchor, each projected through the live fit so a refit carries them with
@@ -554,7 +624,10 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// so the gate stays O(1) and the centroids stay unresolved.
 	const pickable = onRegionClick !== undefined || entries.some((entry) => entry.activate)
 
-	const navigable = (tooltip || pickable) && shape.viewWidth > 0
+	// A zooming map earns the stop on its own: the wheel and the drag are pointer
+	// gestures, so without it the scale would be out of a keyboard reader's reach
+	// on a plat that carries neither a readout nor a pick.
+	const navigable = (tooltip || pickable || zoom.enabled) && shape.viewWidth > 0
 
 	const numeric = valueKey !== undefined
 
@@ -613,21 +686,25 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 			viewBox={`0 0 ${shape.viewWidth} ${shape.viewHeight}`}
 		>
 			<MapPlatContext value={plat}>
-				<MapMarksLayer animate={animate}>
-					<MapRegions
-						paths={shape.paths}
-						regionCategory={regionCategory}
-						categories={categoryMetas}
-						hidden={hidden}
-						emphasis={emphasis}
-						animate={animate}
-						onRegionClick={clickRegion}
-						onRegionContextMenu={contextMenuRegion}
-						selected={selected}
-					/>
+				<MapZoomScaleContext value={zoom.unitsPerPixel}>
+					<MapZoomLayer zoom={zoom}>
+						<MapMarksLayer animate={animate}>
+							<MapRegions
+								paths={shape.paths}
+								regionCategory={regionCategory}
+								categories={categoryMetas}
+								hidden={hidden}
+								emphasis={emphasis}
+								animate={animate}
+								onRegionClick={clickRegion}
+								onRegionContextMenu={contextMenuRegion}
+								selected={selected}
+							/>
 
-					{children}
-				</MapMarksLayer>
+							{children}
+						</MapMarksLayer>
+					</MapZoomLayer>
+				</MapZoomScaleContext>
 			</MapPlatContext>
 		</svg>
 	)
@@ -707,7 +784,9 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 						resolveStops,
 						view: { width: shape.viewWidth, height: shape.viewHeight },
 						svgRef,
+						zoom: zoom.cursor,
 					}}
+					zoom={zoom.surface}
 					tooltip={
 						tooltip ? (
 							<MapTooltip

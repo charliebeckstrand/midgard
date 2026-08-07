@@ -2,6 +2,7 @@
 
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
+import { useMapZoomScale } from './context'
 import { POINT_HIT_RADIUS, POINT_RADIUS } from './engine/map-constants'
 import { pointPop } from './engine/map-motion'
 import type { LngLat } from './engine/types'
@@ -33,6 +34,10 @@ export type MapPointProps = MapOverlayProps & {
  * so a cluster of points reveals in sequence.
  */
 export function MapPoint({ at, ...shared }: MapPointProps) {
+	// A finger target is a pixel measure, so the hit radius converts through the
+	// zoom the way the dot's own non-scaling stroke does.
+	const unitsPerPixel = useMapZoomScale()
+
 	const { slot, hidden, project, animate, order, dim, selected, onPointerLeave, hit } =
 		useMapOverlay({
 			...shared,
@@ -65,7 +70,7 @@ export function MapPoint({ at, ...shared }: MapPointProps) {
 					data-slot="map-point-hit"
 					cx={position.x}
 					cy={position.y}
-					r={POINT_HIT_RADIUS}
+					r={POINT_HIT_RADIUS * unitsPerPixel}
 					fill="transparent"
 					{...hit()}
 				/>

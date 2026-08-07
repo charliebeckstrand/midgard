@@ -58,14 +58,15 @@ export const POINT_HIT_RADIUS = 22
  * grows, which is what makes the grouping a reading of how far out the map sits
  * rather than of the data.
  *
- * The measurement-free canonical frame is the one stage where the two units
- * part: it is a fixed {@link MAP_CANONICAL_WIDTH}-wide viewBox, so the reach
- * reads as a fraction of the frame's width there and the grouping loosens in a
- * box narrower than that. The measurement lands in a layout effect, before the
- * first paint, so no reader sees it — but a viewBox transform (the roadmap's
- * zoom) would part them for good. The whole reach is then one multiply by a
- * units-per-pixel scale off the plat, which is why the marks' own radii sit
- * inside that reach rather than beside it. @internal
+ * Two stages part the two units. The measurement-free canonical frame is a
+ * fixed {@link MAP_CANONICAL_WIDTH}-wide viewBox, so the reach reads as a
+ * fraction of the frame's width there and the grouping loosens in a box
+ * narrower than that; the measurement lands in a layout effect, before the
+ * first paint, so no reader sees it. The zoom layer's transform parts them for
+ * as long as it holds, and the grouping answers it: the whole reach takes one
+ * multiply by the units-per-pixel scale the plat publishes
+ * (`MapZoomScaleContext`), which is why the marks' own radii sit inside that
+ * reach rather than beside it. @internal
  */
 export const POINT_CLUSTER_GAP = 3
 
@@ -84,6 +85,46 @@ export const CLUSTER_RADIUS_STEPS = [
 
 /** Mean Earth radius in metres — turns a summary's spherical spread into a distance. @internal */
 export const EARTH_RADIUS_METERS = 6371008.8
+
+/**
+ * The scale a fitted map sits at, and the floor every zoom clamps to. The fit
+ * already frames the geography to the frame, so zooming out past it would only
+ * letterbox what the projection placed — the fitted view is the widest the map
+ * ever draws, and the transform's own identity. @internal
+ */
+export const MAP_ZOOM_FIT = 1
+
+/**
+ * How far a map zooms in before it stops, unless `zoom` names another ceiling.
+ * Eight takes a national frame down to one metro area, which is the depth a
+ * stop-level map reads at. @internal
+ */
+export const MAP_ZOOM_MAX = 8
+
+/**
+ * Scale change per pixel of wheel travel, taken through `Math.exp` so the zoom
+ * is geometric: one notch out undoes one notch in, wherever the scale stands.
+ * @internal
+ */
+export const MAP_WHEEL_ZOOM_RATE = 0.002
+
+/** The factor one zoom keypress steps the scale by. @internal */
+export const MAP_ZOOM_STEP = 1.6
+
+/**
+ * How far a press must travel, in device pixels, before it reads as a pan. Under
+ * it the press still picks the mark it landed on; past it the map pans and the
+ * click that follows is swallowed, so a drag across a clickable map never
+ * reports a pick the reader never made. @internal
+ */
+export const MAP_PAN_THRESHOLD = 4
+
+/**
+ * The clear space, in frame units, the keyboard cursor keeps between its stop
+ * and the frame edge when it pans a zoomed view to show it. A stop pinned to the
+ * edge would anchor its readout half off the plot. @internal
+ */
+export const MAP_CURSOR_INSET = 32
 
 /** A marker pin's radius — larger than a point, it anchors a route's ends. @internal */
 export const PIN_RADIUS = 5.5
