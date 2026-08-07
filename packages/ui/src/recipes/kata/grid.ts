@@ -784,6 +784,11 @@ export const k = {
 		host: 'relative flex w-full items-center',
 		// The in-cell control fills the cell width.
 		input: 'w-full',
+		// The settle pair a cell-scoped session shows beside its editor. No padding
+		// of its own: `Button`'s bare icon-only floor is sized per density, and
+		// overriding it here would drop the pair under the 24x24 target minimum
+		// (WCAG 2.5.8) at every density, worst in a condensed grid.
+		settle: [flex.row, 'ml-1 shrink-0 gap-0.5'],
 		// A failed validation rings the editor and anchors a small message below it.
 		errorRing: ['ring-2 ring-inset', ...mode('ring-red-600', 'dark:ring-red-500'), 'rounded-md'],
 		error: [

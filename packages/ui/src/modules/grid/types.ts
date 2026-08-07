@@ -1,7 +1,7 @@
 import type { HTMLAttributes, ReactNode } from 'react'
 import type { ContextMenuEntry } from '../../components/context-menu'
 import type { GridExportAction } from './engine/grid-export/types'
-import type { GridEditCell } from './grid-editing-types'
+import type { GridEditCell, GridRowActionsContext } from './grid-editing-types'
 
 /** The built-in per-column aggregation names. @see {@link GridColumn.aggFunc} */
 export type GridAggFuncName = 'sum' | 'avg' | 'min' | 'max' | 'count'
@@ -78,8 +78,12 @@ export type GridColumn<T> = {
 	 * column.
 	 */
 	selectable?: boolean
-	/** Renders per-row action controls (e.g. a menu) in this column's cell. */
-	actions?: (row: T) => ReactNode
+	/**
+	 * Renders per-row action controls (e.g. a menu) in this column's cell. The
+	 * second argument carries the row's editing state and the two ways to end it,
+	 * so a save and a discard control can live beside the row they act on.
+	 */
+	actions?: (row: T, context: GridRowActionsContext) => ReactNode
 	/**
 	 * Marks this as the row drag-handle column: renders a grip that drags its row
 	 * to reorder it, rather than a cell value. Effective only while the grid is
@@ -108,7 +112,7 @@ export type GridColumn<T> = {
 	 * data column with a `field` (or an {@link GridColumn.editCell} slot) is
 	 * editable; the editor the grid mounts is inferred from the field value's
 	 * primitive type (string → text, number → number, boolean → yes/no listbox),
-	 * and the committed value flows out through {@link GridEditableConfig.onValueChange}.
+	 * and the committed value flows out through {@link GridEditableConfig.onCommit}.
 	 */
 	field?: keyof T
 	/**

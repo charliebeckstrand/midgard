@@ -17,6 +17,7 @@ import { rowClickableClass, rowShellProps } from './engine/grid-row/shell'
 import { GridCellContent } from './grid-cell-content'
 import { GridDataCell } from './grid-data-cell'
 import { GridDetailRow, GridExpandToggle } from './grid-detail-row'
+import { GridRowActions } from './grid-row-actions'
 import type { GridColumn } from './types'
 import type { GridColumnPinning } from './use-grid-table'
 
@@ -474,7 +475,7 @@ function GridRowImpl<T>({
 							className={cn(k.cell.actions, pinned.className)}
 							style={pinned.style}
 						>
-							{col.actions(row)}
+							<GridRowActions render={col.actions} row={row} rowKey={rowKey} />
 						</TableCell>
 					)
 				}
