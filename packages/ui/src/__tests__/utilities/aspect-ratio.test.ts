@@ -24,10 +24,8 @@ describe('parseAspectRatio', () => {
 		expect(parseAspectRatio(Number.NaN)).toBeNull()
 	})
 
-	// The `${number}/${number}` type admits a sign on either term, so these are
-	// well-typed prop values. A negative ratio is an invalid CSS `aspect-ratio`
-	// and a negative `viewBox` height, so it must fall through the same way its
-	// numeric twin does rather than reach the frame.
+	// Signed terms are well-typed prop values, so they reach here; see the
+	// function's `@remarks` for what a negative ratio does to a frame.
 	it('rejects a signed "w/h" string on either term', () => {
 		expect(parseAspectRatio('-4/3')).toBeNull()
 

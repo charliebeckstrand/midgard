@@ -2,7 +2,7 @@ import { AspectRatio } from '../../components/aspect-ratio'
 import { Placeholder } from '../../components/placeholder'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
-import { parseAspectRatio } from '../../utilities'
+import { parseAspectRatio } from '../../utilities/aspect-ratio'
 import { DEFAULT_MAP_ASPECT } from './engine/map-constants'
 import type { MapAspectRatio } from './engine/types'
 

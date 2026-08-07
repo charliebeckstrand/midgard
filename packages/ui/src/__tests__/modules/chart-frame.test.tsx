@@ -168,9 +168,8 @@ describe('chartFrameSizing', () => {
 	})
 
 	it('rejects a negative "w/h" ratio, filling rather than reserving a negative box', () => {
-		// The `${number}/${number}` type admits a signed term, so `'-4/3'` is a
-		// well-typed prop value. It must fall through to fill the way its numeric
-		// twin does, rather than reach the frame as a negative ratio.
+		// `'-4/3'` is a well-typed prop value, so it must fall through to fill the
+		// way its numeric twin does.
 		expect(chartFrameSizing(undefined, '-4/3')).toEqual({ mode: 'fill' })
 
 		expect(chartFrameSizing(undefined, -4 / 3)).toEqual({ mode: 'fill' })

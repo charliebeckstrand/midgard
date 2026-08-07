@@ -6,7 +6,7 @@
  */
 
 import type { FrameSizing } from '../../../../hooks'
-import { parseAspectRatio } from '../../../../utilities'
+import { parseAspectRatio } from '../../../../utilities/aspect-ratio'
 import { ALBERS_USA_ASPECT, DEFAULT_MAP_ASPECT } from '../map-constants'
 import type { MapAspectRatio, MapProjection } from '../types'
 
