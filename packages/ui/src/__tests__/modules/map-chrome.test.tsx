@@ -28,7 +28,7 @@ function lines(d: string | null | undefined): number {
 }
 
 /** A data-less plat over the fixture squares; the chrome props are the whole variable. */
-function plat(extra?: { graticule?: boolean | number; sphere?: boolean }) {
+function plat(extra?: { graticule?: boolean | number; sphere?: boolean; zoom?: boolean }) {
 	return <MapPlat aria-label="Atlas" geography={FIXTURE_GEOJSON} width={400} {...extra} />
 }
 
@@ -196,6 +196,22 @@ describe('MapPlat chrome', () => {
 		// disagree about where the projection draws.
 		expect(bySlot(container, 'map-sphere')?.getAttribute('d')).toBe(
 			bySlot(container, 'map-chrome-clip')?.firstElementChild?.getAttribute('d'),
+		)
+	})
+
+	it('rides the view transform, so a zoom carries the lines with the geography', () => {
+		// A meridian is a position on the globe like every region: it draws in frame
+		// units, so it must travel and scale under the zoom group rather than hang
+		// over a map moving beneath it.
+		const { container } = renderUI(plat({ graticule: true, sphere: true, zoom: true }))
+
+		expect(bySlot(container, 'map-chrome')?.closest('[data-slot="map-zoom"]')).toBeInTheDocument()
+
+		// Still above the marks, so a region fill covers the lines that cross it.
+		const chrome = bySlot(container, 'map-chrome')
+
+		expect(chrome?.compareDocumentPosition(bySlot(container, 'map-regions') as Node)).toBe(
+			Node.DOCUMENT_POSITION_FOLLOWING,
 		)
 	})
 

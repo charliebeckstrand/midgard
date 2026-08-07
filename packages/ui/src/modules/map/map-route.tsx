@@ -101,6 +101,10 @@ export function MapRoute({ stops, path, ...shared }: MapRouteProps) {
 					fill="none"
 					stroke="transparent"
 					strokeWidth={ROUTE_HIT_WIDTH}
+					// The band is a finger's width in device pixels, so it rides the same
+					// non-scaling stroke the line does: a zoom must widen the ground it
+					// covers, never the target itself.
+					vectorEffect="non-scaling-stroke"
 					pointerEvents="stroke"
 					{...hit()}
 				/>

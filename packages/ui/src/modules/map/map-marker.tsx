@@ -53,12 +53,13 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 	// crossing.
 	const points = useMemo(() => (path && path.length > 0 ? path : [start, end]), [path, start, end])
 
-	const { slot, hidden, project, animate, dim, selected, onPointerLeave, hit } = useMapOverlay({
-		...shared,
-		kind: 'marker',
-		swatch: 'line',
-		stops: () => lineAnchor(points),
-	})
+	const { slot, hidden, project, unitsPerPixel, animate, dim, selected, onPointerLeave, hit } =
+		useMapOverlay({
+			...shared,
+			kind: 'marker',
+			swatch: 'line',
+			stops: () => lineAnchor(points),
+		})
 
 	// Memoised so a hover-driven re-render (the plat's pointer state churns the
 	// hover context) doesn't re-project and re-stringify the whole connector;
@@ -144,14 +145,18 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 						fill="none"
 						stroke="transparent"
 						strokeWidth={ROUTE_HIT_WIDTH}
+						// The band is a finger's width in device pixels, so it rides the
+						// same non-scaling stroke the connector does: a zoom must widen the
+						// ground it covers, never the target itself.
+						vectorEffect="non-scaling-stroke"
 						pointerEvents="stroke"
 						{...hit()}
 					/>
 				)}
 
-				{from && <circle {...dotHitProps('map-marker-start-hit', from, hit())} />}
+				{from && <circle {...dotHitProps('map-marker-start-hit', from, hit(), unitsPerPixel)} />}
 
-				{to && <circle {...dotHitProps('map-marker-end-hit', to, hit())} />}
+				{to && <circle {...dotHitProps('map-marker-end-hit', to, hit(), unitsPerPixel)} />}
 			</g>
 		</>
 	)
