@@ -27,6 +27,7 @@
 import type { GeoProjection } from 'd3-geo'
 import { canonicalFit, type MapCanonicalFit } from '../map-projection/fit'
 import type { LngLat, MapFeature, MapGeography, MapProjection } from '../types'
+import { chromePaths, EMPTY_CHROME, type MapChromePaths } from './chrome'
 import { regionCentroids, regionPaths } from './region'
 import { geographyFeatures } from './topology'
 import { rewindFeatures } from './winding'
@@ -163,6 +164,55 @@ export function cachedRegionCentroids(features: MapFeature[]): (LngLat | null)[]
 	centroids.set(features, computed)
 
 	return computed
+}
+
+// The last chrome paths per fitted projection. Keyed on the fit rather than on
+// the geometry, because a map draws chrome under two fits in one mount — the
+// canonical one on the first commit, the measured one a beat later — and a
+// geometry-keyed slot would have them evict each other, so every mount paid the
+// pass twice and no remount ever hit. The canonical projection is itself shared
+// across instances and mounts (`staticMapGeometry`), so its chrome is drawn once
+// per atlas and step for good; a measured fit is a fresh instance per box, and
+// its entry falls with it. The box stays in the slot for the one projection that
+// keeps its identity across fits — a passed d3 instance, which `fitSize` mutates
+// in place — so a resize can never read a stale path off one.
+const chrome = new WeakMap<
+	GeoProjection,
+	{ width: number; height: number; step: number | null; paths: MapChromePaths }
+>()
+
+/**
+ * The chrome paths under a fit, memoised on the fitted projection by frame box
+ * and graticule step. Chrome off yields {@link EMPTY_CHROME} without touching
+ * the cache, so the default map pays neither the pass nor a slot.
+ *
+ * `sphere` only gates that early return: the frame path resolves for either part
+ * — drawn it is the sphere outline, unstroked it bounds the graticule — so it
+ * stays out of the key, and toggling the outline re-renders rather than
+ * redrawing the graticule.
+ *
+ * @internal
+ */
+export function cachedChromePaths(
+	fitted: GeoProjection,
+	width: number,
+	height: number,
+	step: number | null,
+	sphere: boolean,
+): MapChromePaths {
+	if (step === null && !sphere) return EMPTY_CHROME
+
+	const hit = chrome.get(fitted)
+
+	if (hit !== undefined && hit.width === width && hit.height === height && hit.step === step) {
+		return hit.paths
+	}
+
+	const paths = chromePaths(fitted, step)
+
+	chrome.set(fitted, { width, height, step, paths })
+
+	return paths
 }
 
 /**
