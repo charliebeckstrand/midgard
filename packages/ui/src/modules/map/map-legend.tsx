@@ -124,9 +124,8 @@ export function MapLegend({ items, hidden, onToggle, onFocus, panel = false }: M
 								<Text
 									as="span"
 									severity="muted"
-									size="xs"
 									className={cn(
-										'text-left leading-tight whitespace-nowrap tabular-nums',
+										'text-left leading-tight whitespace-nowrap tabular-nums font-normal',
 										off && 'opacity-60',
 									)}
 								>
