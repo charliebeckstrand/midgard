@@ -6,6 +6,8 @@ import {
 	mapZoomKey,
 	pointerGap,
 	pointerMidpoint,
+	wheelDecays,
+	wheelPush,
 	wheelTravel,
 	wheelZoomFactor,
 	zoomKeyFactor,
@@ -255,6 +257,45 @@ describe('wheelTravel', () => {
 
 	it('keeps a vertical delta even with the key held, for a device that reports one', () => {
 		expect(wheelTravel(-120, 40, true)).toBe(-120)
+	})
+})
+
+describe('wheelPush', () => {
+	it('measures a push whichever axis carries it, since a released key moves the stream', () => {
+		// The browser reports the key-held half of the gesture on `deltaX` and the
+		// rest of it on `deltaY`; the push is the same push either way.
+		expect(wheelPush(0, -40)).toBe(40)
+
+		expect(wheelPush(-40, 0)).toBe(40)
+	})
+
+	it('takes both axes together, for a device that reports a diagonal', () => {
+		expect(wheelPush(3, 4)).toBe(5)
+	})
+})
+
+describe('wheelDecays', () => {
+	it('reads a smaller push as the stream running down', () => {
+		expect(wheelDecays(30, 40, false)).toBe(true)
+	})
+
+	it('reads a growing push as a hand back on the trackpad', () => {
+		expect(wheelDecays(50, 40, false)).toBe(false)
+
+		expect(wheelDecays(50, 40, true)).toBe(false)
+	})
+
+	it('takes a steady push for a wheel still being turned until the stream has run down', () => {
+		// A mouse notch reports a fixed delta, so an unchanged push is a hand on the
+		// wheel — and a reader who let the key go and kept scrolling must not find
+		// the page held under them.
+		expect(wheelDecays(40, 40, false)).toBe(false)
+	})
+
+	it('takes the same push for momentum once the stream is coasting, since a decay plateaus', () => {
+		// By the time momentum repeats a figure it has rounded down to a pixel or
+		// two, which is exactly the travel the page must not be given.
+		expect(wheelDecays(40, 40, true)).toBe(true)
 	})
 })
 

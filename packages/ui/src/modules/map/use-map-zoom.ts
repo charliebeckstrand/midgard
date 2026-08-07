@@ -14,6 +14,8 @@ import { clientToFrame, frameScale, type MapClientBox } from './engine/map-proje
 import {
 	pointerGap,
 	pointerMidpoint,
+	wheelDecays,
+	wheelPush,
 	wheelTravel,
 	wheelZoomFactor,
 } from './engine/map-zoom/gesture'
@@ -108,6 +110,17 @@ type MapPress = {
 	moved: boolean
 }
 
+/** A wheel stream in flight: what it last pushed, and whether it has been seen running down. */
+type MapWheelStream = {
+	push: number
+	/**
+	 * Whether one push has already come in smaller than the one before it, which
+	 * is the only sign a wheel gives that a device is coasting rather than being
+	 * turned. Until it does, the map claims no tail off the stream.
+	 */
+	coasting: boolean
+}
+
 /**
  * Zoom and pan over the fitted geography, as a transform rather than a refit.
  * The projection places the geography once and this moves what it placed, so a
@@ -198,21 +211,41 @@ export function useMapZoom({ zoom, view, svgRef, subject }: MapZoomOptions): Map
 	// other settles — so both check the other before letting the drawing go.
 	const wheelSettle = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+	// The live wheel stream, or `null` between streams. A trackpad keeps sending
+	// after the fingers leave, so a stream outlives the key that armed it, and the
+	// listener reads this to tell that tail from a wheel a hand is still turning.
+	// Only a modifier map ever reads it — an armed-outright wheel has no key to
+	// let go of — but it is written on every claim either way, since the hold
+	// below is what writes it and the hold is the gesture's, not the key's.
+	const wheelStream = useRef<MapWheelStream | null>(null)
+
 	const settleGesture = useCallback(() => {
 		if (pointers.current.size === 0 && wheelSettle.current === null) setGesturing(false)
 	}, [])
 
-	const holdGesture = useCallback(() => {
-		setGesturing(true)
+	// Claims one wheel event for the map: what it pushed, whether the stream it
+	// belongs to is running down, and the window that outlives it. All of it is set
+	// together and cleared together, so the stream can never stand past the settle
+	// that was meant to end it. A key held says nothing about the device, so an
+	// armed notch always leaves the stream unproven; only a tail claims otherwise.
+	const holdGesture = useCallback(
+		(push: number, coasting: boolean) => {
+			setGesturing(true)
 
-		if (wheelSettle.current !== null) clearTimeout(wheelSettle.current)
+			wheelStream.current = { push, coasting }
 
-		wheelSettle.current = setTimeout(() => {
-			wheelSettle.current = null
+			if (wheelSettle.current !== null) clearTimeout(wheelSettle.current)
 
-			settleGesture()
-		}, MAP_WHEEL_SETTLE_MS)
-	}, [settleGesture])
+			wheelSettle.current = setTimeout(() => {
+				wheelSettle.current = null
+
+				wheelStream.current = null
+
+				settleGesture()
+			}, MAP_WHEEL_SETTLE_MS)
+		},
+		[settleGesture],
+	)
 
 	useEffect(
 		() => () => {
@@ -229,7 +262,7 @@ export function useMapZoom({ zoom, view, svgRef, subject }: MapZoomOptions): Map
 	// and the plot claims its own touch scrolling.
 	const gestureBox = useRef<MapClientBox | null>(null)
 
-	useMapWheelZoom(settings !== null, modifier, svgRef, view, commit, holdGesture, live)
+	useMapWheelZoom(settings !== null, modifier, svgRef, view, commit, holdGesture, live, wheelStream)
 
 	function release(event: PointerEvent<HTMLElement>) {
 		pointers.current.delete(event.pointerId)
@@ -450,6 +483,9 @@ export function useMapZoom({ zoom, view, svgRef, subject }: MapZoomOptions): Map
  * registers `onWheel` passively at the root, so a React handler could never call
  * `preventDefault` and the page would scroll out from under every zoom.
  *
+ * A modifier map holds the stream it takes until the stream itself ends rather
+ * than until the key is let go, which is what {@link takeWheelTail} answers.
+ *
  * Split out because it is the one part of the gesture set that carries a
  * dependency array — which is why `commit` above is the hook's one memoised
  * callback. Everything it reads per event comes off `live`, so the listener
@@ -463,8 +499,9 @@ function useMapWheelZoom(
 	svgRef: RefObject<SVGSVGElement | null>,
 	view: MapViewFrame,
 	commit: (next: MapTransform) => void,
-	hold: () => void,
+	hold: (push: number, coasting: boolean) => void,
 	live: RefObject<{ transform: MapTransform; view: MapViewFrame; max: number }>,
+	stream: RefObject<MapWheelStream | null>,
 ) {
 	useEffect(() => {
 		const svg = svgRef.current
@@ -477,9 +514,17 @@ function useMapWheelZoom(
 		const onWheel = (event: WheelEvent) => {
 			const armed = modifier === 'shift' && event.shiftKey
 
+			const push = wheelPush(event.deltaY, event.deltaX)
+
 			// A modifier map hands every plain wheel back to the page untouched: that
-			// is the whole bargain the key buys.
-			if (modifier === 'shift' && !armed) return
+			// is the whole bargain the key buys. What the key already armed is not a
+			// plain wheel, though, so the tail of that stream goes to `takeWheelTail`
+			// rather than to the page.
+			if (modifier === 'shift' && !armed) {
+				takeWheelTail(event, push, stream, hold)
+
+				return
+			}
 
 			const { transform: from, view: frame, max } = live.current
 
@@ -507,7 +552,7 @@ function useMapWheelZoom(
 
 			event.preventDefault()
 
-			hold()
+			hold(push, false)
 
 			commit(next)
 		}
@@ -517,5 +562,42 @@ function useMapWheelZoom(
 		return () => {
 			svg.removeEventListener('wheel', onWheel)
 		}
-	}, [enabled, modifier, svgRef, commit, hold, live, view.width, view.height])
+	}, [enabled, modifier, svgRef, commit, hold, live, stream, view.width, view.height])
+}
+
+/**
+ * Answers a wheel event that arrives with the modifier let go: the tail of a
+ * stream the key armed, or a scroll the page is owed.
+ *
+ * A trackpad keeps sending after the fingers leave, and the key can go before
+ * that stream does. Handing the rest of it back would scroll the page a little
+ * under a reader who only meant to stop zooming, so the map swallows it — and
+ * only swallows it, since the release is what stops the zoom. It is the tail and
+ * never a fresh gesture, because momentum only decays: a push that grew is a
+ * hand back on the trackpad, and that ends the map's claim rather than extending
+ * it.
+ *
+ * @internal
+ */
+function takeWheelTail(
+	event: WheelEvent,
+	push: number,
+	stream: RefObject<MapWheelStream | null>,
+	hold: (push: number, coasting: boolean) => void,
+) {
+	const held = stream.current
+
+	if (held === null || !wheelDecays(push, held.push, held.coasting)) {
+		stream.current = null
+
+		return
+	}
+
+	event.preventDefault()
+
+	// Claimed on the tail as on a notch, so the stream stays live across the gaps
+	// in it — the settle that ends the gesture is the same one that ends this. The
+	// stream is running down by the time it gets here, and says so, so the rest of
+	// it is held through the plateau the decay ends on.
+	hold(push, true)
 }

@@ -81,7 +81,7 @@ function scaleOf(container: HTMLElement): number {
 function wheel(
 	svg: SVGSVGElement,
 	deltaY: number,
-	init: { clientX?: number; clientY?: number; shiftKey?: boolean } = {},
+	init: { clientX?: number; clientY?: number; deltaX?: number; shiftKey?: boolean } = {},
 ): WheelEvent {
 	const event = new WheelEvent('wheel', {
 		bubbles: true,
@@ -307,6 +307,93 @@ describe('MapPlat wheel, armed by the shift key', () => {
 		fireEvent.keyDown(plot, { key: '+' })
 
 		expect(scaleOf(container)).toBeGreaterThan(1)
+	})
+})
+
+describe('MapPlat wheel after the shift key is let go', () => {
+	it("swallows the trackpad's momentum, so the page never scrolls a little on release", () => {
+		const { container, svg } = renderZoomable()
+
+		zoomWheel(svg, -40)
+
+		const zoomed = scaleOf(container)
+
+		// The fingers have left and the key with them, but the trackpad is still
+		// sending: each event pushes less than the one before it.
+		for (const delta of [-30, -18, -9, -3]) {
+			expect(wheel(svg, delta).defaultPrevented).toBe(true)
+		}
+
+		// Taken from the page and given to nothing: the release is what stops the
+		// zoom, so the tail leaves the view exactly where the key left it.
+		expect(scaleOf(container)).toBe(zoomed)
+	})
+
+	it('keeps holding it once it has run down to a plateau, where the decay ends', () => {
+		const { svg } = renderZoomable()
+
+		zoomWheel(svg, -40)
+
+		// The stream shows it is running down, and then rounds to a figure it
+		// repeats — the last pixels of a decay, and still not the page's.
+		for (const delta of [-12, -2, -2, -2]) {
+			expect(wheel(svg, delta).defaultPrevented).toBe(true)
+		}
+	})
+
+	it('never holds a wheel that has not run down, since a mouse notch is a fixed delta', () => {
+		const { svg } = renderZoomable()
+
+		zoomWheel(svg, -100)
+
+		// A mouse has no momentum to coast on: every notch reports the same delta,
+		// so a reader who let the key go and kept scrolling is still scrolling the
+		// page, and must never find it held under them.
+		for (const _ of [1, 2, 3]) {
+			expect(wheel(svg, -100).defaultPrevented).toBe(false)
+		}
+	})
+
+	it('hands the stream back where the push grows, since that is a hand back on the trackpad', () => {
+		const { container, svg } = renderZoomable()
+
+		zoomWheel(svg, -40)
+
+		expect(wheel(svg, -30).defaultPrevented).toBe(true)
+
+		// A reader who pushes harder through the tail is scrolling the page, not
+		// coasting out of a zoom — so the map lets go, and stays let go.
+		expect(wheel(svg, -90).defaultPrevented).toBe(false)
+
+		expect(wheel(svg, -20).defaultPrevented).toBe(false)
+
+		expect(scaleOf(container)).toBeGreaterThan(1)
+	})
+
+	it('holds the stream across the axis the key was moving it onto', () => {
+		const { container, svg } = renderZoomable()
+
+		// The browser reports the held gesture on `deltaX`, and the tail after the
+		// release on `deltaY` — one stream, measured the same on either axis.
+		wheel(svg, 0, { deltaX: -40, shiftKey: true })
+
+		expect(scaleOf(container)).toBeGreaterThan(1)
+
+		expect(wheel(svg, -30).defaultPrevented).toBe(true)
+	})
+
+	it('lets the page have a wheel that arrives after the stream settles', async () => {
+		await withFakeTime(async (clock) => {
+			const { svg } = renderZoomable()
+
+			zoomWheel(svg, -40)
+
+			await clock.advance(400)
+
+			// Past the settle gap there is no stream left to continue, so this is a
+			// plain wheel and the map never sees a claim on it.
+			expect(wheel(svg, -30).defaultPrevented).toBe(false)
+		})
 	})
 })
 

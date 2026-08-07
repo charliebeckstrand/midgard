@@ -43,6 +43,43 @@ export function wheelTravel(deltaY: number, deltaX: number, swapped: boolean): n
 	return swapped && deltaY === 0 ? deltaX : deltaY
 }
 
+/**
+ * How hard one wheel event pushes, taking both axes at once.
+ *
+ * A browser moves a shift-held wheel onto the horizontal axis, so a stream the
+ * key armed changes axis the moment the key goes. Only a reading that ignores
+ * the axis measures the one stream across that break.
+ *
+ * @internal
+ */
+export function wheelPush(deltaY: number, deltaX: number): number {
+	return Math.hypot(deltaX, deltaY)
+}
+
+/**
+ * Whether a wheel event continues the stream the map already holds. `last` is
+ * what that stream last pushed, and `coasting` says the stream has already been
+ * seen running down.
+ *
+ * A trackpad keeps sending after the fingers leave, and what it sends decays. So
+ * a push that grows is a hand back on the trackpad — a new gesture, which the
+ * map holds no claim on.
+ *
+ * That decay is the only sign a wheel gives that anything is coasting at all, so
+ * a stream has to show it before the map keeps a tail off it: the first push
+ * after the modifier goes must be strictly smaller. A mouse notch reports a
+ * fixed delta whatever the hand does, so an unchanged push is a wheel still
+ * being turned, and holding those would strand a reader who let the key go and
+ * kept scrolling. Once a stream is running down it may plateau — the decay
+ * rounds to a pixel or two long before it stops — and by then it is momentum the
+ * page must not be given.
+ *
+ * @internal
+ */
+export function wheelDecays(push: number, last: number, coasting: boolean): boolean {
+	return coasting ? push <= last : push < last
+}
+
 /** The distance between two pointers — a pinch's own measure. @internal */
 export function pointerGap(a: MapPoint2D, b: MapPoint2D): number {
 	return Math.hypot(a.x - b.x, a.y - b.y)
