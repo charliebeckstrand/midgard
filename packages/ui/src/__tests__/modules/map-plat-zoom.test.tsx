@@ -329,6 +329,31 @@ describe('MapPlat wheel after the shift key is let go', () => {
 		expect(scaleOf(container)).toBe(zoomed)
 	})
 
+	it('keeps holding it once it has run down to a plateau, where the decay ends', () => {
+		const { svg } = renderZoomable()
+
+		zoomWheel(svg, -40)
+
+		// The stream shows it is running down, and then rounds to a figure it
+		// repeats — the last pixels of a decay, and still not the page's.
+		for (const delta of [-12, -2, -2, -2]) {
+			expect(wheel(svg, delta).defaultPrevented).toBe(true)
+		}
+	})
+
+	it('never holds a wheel that has not run down, since a mouse notch is a fixed delta', () => {
+		const { svg } = renderZoomable()
+
+		zoomWheel(svg, -100)
+
+		// A mouse has no momentum to coast on: every notch reports the same delta,
+		// so a reader who let the key go and kept scrolling is still scrolling the
+		// page, and must never find it held under them.
+		for (const _ of [1, 2, 3]) {
+			expect(wheel(svg, -100).defaultPrevented).toBe(false)
+		}
+	})
+
 	it('hands the stream back where the push grows, since that is a hand back on the trackpad', () => {
 		const { container, svg } = renderZoomable()
 

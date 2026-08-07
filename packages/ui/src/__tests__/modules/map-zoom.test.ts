@@ -276,19 +276,26 @@ describe('wheelPush', () => {
 
 describe('wheelDecays', () => {
 	it('reads a smaller push as the stream running down', () => {
-		expect(wheelDecays(30, 40)).toBe(true)
-	})
-
-	it('reads a steady push as the same stream, since momentum plateaus', () => {
-		expect(wheelDecays(40, 40)).toBe(true)
+		expect(wheelDecays(30, 40, false)).toBe(true)
 	})
 
 	it('reads a growing push as a hand back on the trackpad', () => {
-		expect(wheelDecays(50, 40)).toBe(false)
+		expect(wheelDecays(50, 40, false)).toBe(false)
+
+		expect(wheelDecays(50, 40, true)).toBe(false)
 	})
 
-	it("holds no stream between gestures, so a wheel out of nowhere is the page's", () => {
-		expect(wheelDecays(40, null)).toBe(false)
+	it('takes a steady push for a wheel still being turned until the stream has run down', () => {
+		// A mouse notch reports a fixed delta, so an unchanged push is a hand on the
+		// wheel — and a reader who let the key go and kept scrolling must not find
+		// the page held under them.
+		expect(wheelDecays(40, 40, false)).toBe(false)
+	})
+
+	it('takes the same push for momentum once the stream is coasting, since a decay plateaus', () => {
+		// By the time momentum repeats a figure it has rounded down to a pixel or
+		// two, which is exactly the travel the page must not be given.
+		expect(wheelDecays(40, 40, true)).toBe(true)
 	})
 })
 

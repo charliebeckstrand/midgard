@@ -110,6 +110,17 @@ type MapPress = {
 	moved: boolean
 }
 
+/** A wheel stream in flight: what it last pushed, and whether it has been seen running down. */
+type MapWheelStream = {
+	push: number
+	/**
+	 * Whether one push has already come in smaller than the one before it, which
+	 * is the only sign a wheel gives that a device is coasting rather than being
+	 * turned. Until it does, the map claims no tail off the stream.
+	 */
+	coasting: boolean
+}
+
 /**
  * Zoom and pan over the fitted geography, as a transform rather than a refit.
  * The projection places the geography once and this moves what it placed, so a
@@ -200,26 +211,28 @@ export function useMapZoom({ zoom, view, svgRef, subject }: MapZoomOptions): Map
 	// other settles — so both check the other before letting the drawing go.
 	const wheelSettle = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-	// What the live wheel stream last pushed, or `null` between streams. A
-	// trackpad keeps sending after the fingers leave, so a stream outlives the key
-	// that armed it, and the listener reads this to tell that tail from a fresh
-	// push. Only a modifier map ever reads it — an armed-outright wheel has no key
-	// to let go of — but it is written on every claim either way, since the hold
+	// The live wheel stream, or `null` between streams. A trackpad keeps sending
+	// after the fingers leave, so a stream outlives the key that armed it, and the
+	// listener reads this to tell that tail from a wheel a hand is still turning.
+	// Only a modifier map ever reads it — an armed-outright wheel has no key to
+	// let go of — but it is written on every claim either way, since the hold
 	// below is what writes it and the hold is the gesture's, not the key's.
-	const wheelStream = useRef<number | null>(null)
+	const wheelStream = useRef<MapWheelStream | null>(null)
 
 	const settleGesture = useCallback(() => {
 		if (pointers.current.size === 0 && wheelSettle.current === null) setGesturing(false)
 	}, [])
 
-	// Claims one wheel event for the map: what it pushed, and the window that
-	// outlives it. The two are set together and cleared together, so the stream can
-	// never stand past the settle that was meant to end it.
+	// Claims one wheel event for the map: what it pushed, whether the stream it
+	// belongs to is running down, and the window that outlives it. All of it is set
+	// together and cleared together, so the stream can never stand past the settle
+	// that was meant to end it. A key held says nothing about the device, so an
+	// armed notch always leaves the stream unproven; only a tail claims otherwise.
 	const holdGesture = useCallback(
-		(push: number) => {
+		(push: number, coasting: boolean) => {
 			setGesturing(true)
 
-			wheelStream.current = push
+			wheelStream.current = { push, coasting }
 
 			if (wheelSettle.current !== null) clearTimeout(wheelSettle.current)
 
@@ -486,9 +499,9 @@ function useMapWheelZoom(
 	svgRef: RefObject<SVGSVGElement | null>,
 	view: MapViewFrame,
 	commit: (next: MapTransform) => void,
-	hold: (push: number) => void,
+	hold: (push: number, coasting: boolean) => void,
 	live: RefObject<{ transform: MapTransform; view: MapViewFrame; max: number }>,
-	stream: RefObject<number | null>,
+	stream: RefObject<MapWheelStream | null>,
 ) {
 	useEffect(() => {
 		const svg = svgRef.current
@@ -539,7 +552,7 @@ function useMapWheelZoom(
 
 			event.preventDefault()
 
-			hold(push)
+			hold(push, false)
 
 			commit(next)
 		}
@@ -569,10 +582,12 @@ function useMapWheelZoom(
 function takeWheelTail(
 	event: WheelEvent,
 	push: number,
-	stream: RefObject<number | null>,
-	hold: (push: number) => void,
+	stream: RefObject<MapWheelStream | null>,
+	hold: (push: number, coasting: boolean) => void,
 ) {
-	if (!wheelDecays(push, stream.current)) {
+	const held = stream.current
+
+	if (held === null || !wheelDecays(push, held.push, held.coasting)) {
 		stream.current = null
 
 		return
@@ -581,6 +596,8 @@ function takeWheelTail(
 	event.preventDefault()
 
 	// Claimed on the tail as on a notch, so the stream stays live across the gaps
-	// in it — the settle that ends the gesture is the same one that ends this.
-	hold(push)
+	// in it — the settle that ends the gesture is the same one that ends this. The
+	// stream is running down by the time it gets here, and says so, so the rest of
+	// it is held through the plateau the decay ends on.
+	hold(push, true)
 }
