@@ -2,10 +2,10 @@
 
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
-import { POINT_HIT_RADIUS, POINT_RADIUS } from './engine/map-constants'
+import { POINT_RADIUS } from './engine/map-constants'
 import { pointPop } from './engine/map-motion'
 import type { LngLat } from './engine/types'
-import { MapDot } from './map-dot'
+import { MapDot, MapDotHit } from './map-dot'
 import { MapDotHalo } from './map-halo'
 import { type MapOverlayProps, useMapOverlay } from './use-map-overlay'
 
@@ -61,14 +61,7 @@ export function MapPoint({ at, ...shared }: MapPointProps) {
 					transition={pointPop(order)}
 				/>
 
-				<circle
-					data-slot="map-point-hit"
-					cx={position.x}
-					cy={position.y}
-					r={POINT_HIT_RADIUS}
-					fill="transparent"
-					{...hit()}
-				/>
+				<MapDotHit slot="map-point-hit" at={position} {...hit()} />
 			</g>
 		</>
 	)

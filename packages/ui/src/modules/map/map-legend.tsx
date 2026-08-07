@@ -119,10 +119,12 @@ export function MapLegend({ items, hidden, onToggle, onFocus, panel = false }: M
 							</Text>
 
 							{item.detail && (
+								// A step under the label, so the readout reads as subordinate to
+								// the name it trails rather than as a second name.
 								<Text
 									as="span"
 									severity="muted"
-									size="sm"
+									size="xs"
 									className={cn(
 										'text-left leading-tight whitespace-nowrap tabular-nums',
 										off && 'opacity-60',

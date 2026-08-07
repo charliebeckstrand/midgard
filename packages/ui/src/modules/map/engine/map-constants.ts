@@ -70,8 +70,28 @@ export const GEOFENCE_CIRCLE_STEPS = 64
 /** Point-marker radius (≥ 5.5 so the dot stays legible). @internal */
 export const POINT_RADIUS = 5.5
 
-/** Invisible hit-circle radius over a point (and a marker pin) — a ~44px finger target. @internal */
+/**
+ * Invisible hit-circle radius over a point (and a marker pin), for a coarse
+ * pointer: a 44px finger target, WCAG 2.5.5's enhanced floor — the same figure
+ * the `TouchTarget` primitive holds for a coarse pointer.
+ * @internal
+ */
 export const POINT_HIT_RADIUS = 22
+
+/**
+ * The same target for a fine pointer: 24px, WCAG 2.5.8's minimum, which is what
+ * `TouchTarget` floors a mouse at. A mouse is precise enough not to need the
+ * finger's reach, and holding it to that reach is what makes a dot swallow the
+ * marks around it — a `MapGeofence` drawn small around a `MapPoint` sits
+ * entirely inside a 44px circle, so the zone can never be pointed at while the
+ * dot standing in it claims that whole area.
+ *
+ * Applied through `kata/map`'s `hitFine` class rather than the `r` attribute,
+ * since only CSS can answer the modality; the attribute carries the coarse
+ * radius, so a browser that resolves no `r` in CSS keeps the larger target.
+ * @internal
+ */
+export const POINT_HIT_RADIUS_FINE = 12
 
 /**
  * The clear space, in frame units, two point marks keep between their edges

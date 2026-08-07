@@ -1,6 +1,10 @@
 'use client'
 
 import { motion } from 'motion/react'
+import type { ComponentProps } from 'react'
+import { cn } from '../../core'
+import { k } from '../../recipes/kata/map'
+import { POINT_HIT_RADIUS } from './engine/map-constants'
 import { dotPath } from './engine/map-geometry/mark'
 import type { MapPoint2D } from './engine/types'
 
@@ -106,5 +110,41 @@ export function MapDotCount({ at, count, className, animate, transition }: MapDo
 		>
 			{count}
 		</motion.text>
+	)
+}
+
+/** Props for {@link MapDotHit}: the hit props {@link useMapOverlay} builds, plus where the target sits. @internal */
+type MapDotHitProps = ComponentProps<'circle'> & {
+	/** The mark's `data-slot` name. */
+	slot: string
+	/** The dot's projected frame position. */
+	at: MapPoint2D
+}
+
+/**
+ * The invisible circle that answers the pointer over a dot-shaped mark — a
+ * point, a marker pin, one dot of a set. One component for all of them, because
+ * the target's size is a rule about the input device rather than about the mark:
+ * the `r` attribute carries the coarse-pointer reach (WCAG 2.5.5's 44px) and
+ * `k.hitFine` takes it to the fine-pointer floor (2.5.8's 24px), so a mouse gets
+ * precision where a finger gets reach.
+ *
+ * That precision is what lets a small mark be aimed at through a dot standing in
+ * it: a `MapGeofence` drawn tight around a `MapPoint` fits inside the finger
+ * target, and would otherwise never answer a mouse.
+ *
+ * @internal
+ */
+export function MapDotHit({ slot, at, className, ...hit }: MapDotHitProps) {
+	return (
+		<circle
+			data-slot={slot}
+			cx={at.x}
+			cy={at.y}
+			r={POINT_HIT_RADIUS}
+			fill="transparent"
+			{...hit}
+			className={cn(k.hitFine, className)}
+		/>
 	)
 }
