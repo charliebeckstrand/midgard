@@ -1,5 +1,3 @@
-import { arrayMove } from '@dnd-kit/sortable'
-
 import type { PaletteColor } from '../../../../core/recipe'
 import type { GridColumnGroup } from '../../grid-group-types'
 import { applyColumnReorder } from '../grid-reorder-compute'
@@ -27,6 +25,25 @@ export function groupIdFromDragId(id: string): string {
 }
 
 /**
+ * Moves the item at `from` to index `to` in a copy of `items`. Each caller
+ * rejects an absent index and a no-op move first. This holds the happy path
+ * alone: remove the item, then insert it into the shortened array.
+ *
+ * The result matches the dnd-kit `arrayMove` contract for a non-negative `to`.
+ * The engine holds its own copy, so it carries no runtime `@dnd-kit` import.
+ * The two differ on a negative `to`, which a guarded `findIndex` cannot return.
+ *
+ * @internal
+ */
+function moveItem<T>(items: T[], from: number, to: number): T[] {
+	const next = items.slice()
+
+	next.splice(to, 0, ...next.splice(from, 1))
+
+	return next
+}
+
+/**
  * Reorders the `groups` array, moving the group with `activeGroupId` to
  * `overGroupId`'s slot. Returns the array unchanged when either is missing or the
  * move is a no-op. Ids are compared stringified (dnd ids are strings).
@@ -44,7 +61,7 @@ export function reorderGroups(
 
 	if (from === -1 || to === -1 || from === to) return groups
 
-	return arrayMove(groups, from, to)
+	return moveItem(groups, from, to)
 }
 
 /**
@@ -226,7 +243,7 @@ export function settleDragEnd(map: ZoneMap, activeStr: string, overStr: string):
 
 	if (oldIndex === -1 || newIndex === -1 || oldIndex === newIndex) return map
 
-	return { ...map, [from]: arrayMove(ids, oldIndex, newIndex) }
+	return { ...map, [from]: moveItem(ids, oldIndex, newIndex) }
 }
 
 /**
