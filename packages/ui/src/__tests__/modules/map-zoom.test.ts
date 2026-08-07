@@ -6,6 +6,8 @@ import {
 	mapZoomKey,
 	pointerGap,
 	pointerMidpoint,
+	wheelDecays,
+	wheelPush,
 	wheelTravel,
 	wheelZoomFactor,
 	zoomKeyFactor,
@@ -255,6 +257,38 @@ describe('wheelTravel', () => {
 
 	it('keeps a vertical delta even with the key held, for a device that reports one', () => {
 		expect(wheelTravel(-120, 40, true)).toBe(-120)
+	})
+})
+
+describe('wheelPush', () => {
+	it('measures a push whichever axis carries it, since a released key moves the stream', () => {
+		// The browser reports the key-held half of the gesture on `deltaX` and the
+		// rest of it on `deltaY`; the push is the same push either way.
+		expect(wheelPush(0, -40)).toBe(40)
+
+		expect(wheelPush(-40, 0)).toBe(40)
+	})
+
+	it('takes both axes together, for a device that reports a diagonal', () => {
+		expect(wheelPush(3, 4)).toBe(5)
+	})
+})
+
+describe('wheelDecays', () => {
+	it('reads a smaller push as the stream running down', () => {
+		expect(wheelDecays(30, 40)).toBe(true)
+	})
+
+	it('reads a steady push as the same stream, since momentum plateaus', () => {
+		expect(wheelDecays(40, 40)).toBe(true)
+	})
+
+	it('reads a growing push as a hand back on the trackpad', () => {
+		expect(wheelDecays(50, 40)).toBe(false)
+	})
+
+	it("holds no stream between gestures, so a wheel out of nowhere is the page's", () => {
+		expect(wheelDecays(40, null)).toBe(false)
 	})
 })
 

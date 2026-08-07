@@ -310,6 +310,79 @@ describe('MapPlat wheel, armed by the shift key', () => {
 	})
 })
 
+describe('MapPlat wheel after the shift key is let go', () => {
+	it("swallows the trackpad's momentum, so the page never scrolls a little on release", () => {
+		const { container, svg } = renderZoomable()
+
+		zoomWheel(svg, -40)
+
+		const zoomed = scaleOf(container)
+
+		// The fingers have left and the key with them, but the trackpad is still
+		// sending: each event pushes less than the one before it.
+		for (const delta of [-30, -18, -9, -3]) {
+			expect(wheel(svg, delta).defaultPrevented).toBe(true)
+		}
+
+		// Taken from the page and given to nothing: the release is what stops the
+		// zoom, so the tail leaves the view exactly where the key left it.
+		expect(scaleOf(container)).toBe(zoomed)
+	})
+
+	it('hands the stream back where the push grows, since that is a hand back on the trackpad', () => {
+		const { container, svg } = renderZoomable()
+
+		zoomWheel(svg, -40)
+
+		expect(wheel(svg, -30).defaultPrevented).toBe(true)
+
+		// A reader who pushes harder through the tail is scrolling the page, not
+		// coasting out of a zoom — so the map lets go, and stays let go.
+		expect(wheel(svg, -90).defaultPrevented).toBe(false)
+
+		expect(wheel(svg, -20).defaultPrevented).toBe(false)
+
+		expect(scaleOf(container)).toBeGreaterThan(1)
+	})
+
+	it('holds the stream across the axis the key was moving it onto', () => {
+		const { container, svg } = renderZoomable()
+
+		// The browser reports the held gesture on `deltaX`, and the tail after the
+		// release on `deltaY` — one stream, measured the same on either axis.
+		const armed = new WheelEvent('wheel', {
+			bubbles: true,
+			cancelable: true,
+			deltaX: -40,
+			clientX: 200,
+			clientY: 100,
+			shiftKey: true,
+		})
+
+		act(() => {
+			svg.dispatchEvent(armed)
+		})
+
+		expect(scaleOf(container)).toBeGreaterThan(1)
+
+		expect(wheel(svg, -30).defaultPrevented).toBe(true)
+	})
+
+	it('lets the page have a wheel that arrives after the stream settles', async () => {
+		await withFakeTime(async (clock) => {
+			const { svg } = renderZoomable()
+
+			zoomWheel(svg, -40)
+
+			await clock.advance(400)
+
+			// Past the settle gap there is no stream left to continue, so this is a
+			// plain wheel and the map never sees a claim on it.
+			expect(wheel(svg, -30).defaultPrevented).toBe(false)
+		})
+	})
+})
+
 describe('MapPlat wheel, armed outright', () => {
 	it('zooms on a plain wheel', () => {
 		const { container, svg } = renderZoomable(DIRECT)

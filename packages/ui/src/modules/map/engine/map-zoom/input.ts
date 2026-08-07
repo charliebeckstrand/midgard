@@ -35,6 +35,12 @@ export type MapZoomInput =
 			 * the page. Touch keeps the same bargain: one finger scrolls, two pan and
 			 * pinch.
 			 *
+			 * The key arms the wheel but does not end it: a trackpad keeps sending
+			 * after the fingers leave, so what the key armed is swallowed to the end of
+			 * its own momentum rather than scrolling the page the moment the key goes.
+			 * The zoom still stops with the key; only the leftover travel is absorbed,
+			 * and a fresh push through it goes to the page as it always would.
+			 *
 			 * `false` arms the wheel outright: a plain wheel zooms, the map hands the
 			 * gesture back only where the view can no longer move, and the plot claims
 			 * touch so one finger pans. It is the right choice for a map that owns its

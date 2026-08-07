@@ -43,6 +43,33 @@ export function wheelTravel(deltaY: number, deltaX: number, swapped: boolean): n
 	return swapped && deltaY === 0 ? deltaX : deltaY
 }
 
+/**
+ * How hard one wheel event pushes, taking both axes at once.
+ *
+ * A browser moves a shift-held wheel onto the horizontal axis, so a stream the
+ * key armed changes axis the moment the key goes. Only a reading that ignores
+ * the axis measures the one stream across that break.
+ *
+ * @internal
+ */
+export function wheelPush(deltaY: number, deltaX: number): number {
+	return Math.hypot(deltaX, deltaY)
+}
+
+/**
+ * Whether a wheel event continues the stream the map already holds. `last` is
+ * what that stream last pushed, or `null` between streams.
+ *
+ * A trackpad keeps sending after the fingers leave, and what it sends decays:
+ * each event pushes no harder than the one before it. So a push that grows is a
+ * hand back on the trackpad — a new gesture, which the map holds no claim on.
+ *
+ * @internal
+ */
+export function wheelDecays(push: number, last: number | null): boolean {
+	return last !== null && push <= last
+}
+
 /** The distance between two pointers — a pinch's own measure. @internal */
 export function pointerGap(a: MapPoint2D, b: MapPoint2D): number {
 	return Math.hypot(a.x - b.x, a.y - b.y)
