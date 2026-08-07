@@ -320,24 +320,14 @@ function useMarkSelection(
  * never calls the network.
  */
 export function MapPlat<T = never>(props: MapPlatProps<T>) {
-	// Taken apart here, not in the parameter list, because the readout below reads
-	// the props whole: destructuring widens each region-data field to what all
-	// three branches allow, so an object rebuilt from the parts matches no one
-	// branch. Every prop comes out, read or not — the rest lands on the plot
-	// region's div, where a field left in would draw as an attribute.
 	const {
 		geography,
 		geographyObject,
 		projection = 'mercator',
 		data,
-		regionKey,
 		categoryKey,
-		categories,
 		valueKey,
 		colorRange,
-		bins,
-		binning,
-		domain,
 		valueFormat,
 		valueName,
 		regionId,
@@ -356,6 +346,16 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		emphasis: controlledEmphasis,
 		className,
 		children,
+		// Destructured off so the region-data fields nothing else here reads never
+		// fall into `...name` and spread onto the plot element as invalid DOM
+		// attributes. The readout takes them off `props` below, so a value bound
+		// here could only shadow it — a default written on one would never reach
+		// the join.
+		regionKey: _regionKey,
+		categories: _categories,
+		bins: _bins,
+		binning: _binning,
+		domain: _domain,
 		...name
 	} = props
 
@@ -377,6 +377,9 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		[shape.features, regionId],
 	)
 
+	// The props go in whole: the region-data union's branches are exclusive only
+	// while the object holds together, so an object rebuilt from the bindings
+	// above matches no branch and needs a cast to pass.
 	const {
 		categoryMetas,
 		regionNames,
