@@ -8,9 +8,9 @@ import {
 import { cachedChromePaths, staticMapGeometry } from '../../modules/map/engine/map-geometry/cache'
 import {
 	EMPTY_CHROME,
+	framePath,
 	graticulePath,
 	graticuleStep,
-	spherePath,
 } from '../../modules/map/engine/map-geometry/chrome'
 import { fitMapProjection } from '../../modules/map/engine/map-projection/resolve'
 import { allRegions, bySlot, renderUI } from '../helpers'
@@ -73,11 +73,11 @@ describe('graticulePath', () => {
 	})
 })
 
-describe('spherePath', () => {
+describe('framePath', () => {
 	it("outlines the globe's edge under a whole-world projection", () => {
 		// A mercator fit to the sphere itself: the outline is the world's own edge,
 		// so it closes the frame it was fitted to rather than running past it.
-		const d = spherePath(geoMercator().fitWidth(400, { type: 'Sphere' })) ?? ''
+		const d = framePath(geoMercator().fitWidth(400, { type: 'Sphere' })) ?? ''
 
 		expect(d).toMatch(/^M/)
 
@@ -90,8 +90,9 @@ describe('spherePath', () => {
 
 	it("outlines the composite projection's own clip frames", () => {
 		// albers-usa has no single globe edge — it draws the lower-48 box and the
-		// two inset boxes, which is what the prop's doccomment promises.
-		const d = spherePath(geoAlbersUsa())
+		// two inset boxes. The graticule's clip reads those two as holes in the
+		// first, which is what keeps the insets clear of stray lines.
+		const d = framePath(geoAlbersUsa())
 
 		expect(d?.match(/Z/g)).toHaveLength(3)
 	})
@@ -109,7 +110,9 @@ describe('cachedChromePaths', () => {
 
 		expect(second.graticule).not.toBeNull()
 
-		expect(second.sphere).not.toBeNull()
+		expect(second.frame).not.toBeNull()
+
+		expect(second.outline).toBe(true)
 	})
 
 	it('redraws on a resize and on a changed request', () => {
@@ -119,7 +122,12 @@ describe('cachedChromePaths', () => {
 
 		expect(cachedChromePaths(geometry, fitted(), 400, 200, 30, true)).not.toBe(held)
 
-		expect(cachedChromePaths(geometry, fitted(), 400, 200, 10, false).sphere).toBeNull()
+		// The frame still resolves with the outline off: it bounds the graticule.
+		const bound = cachedChromePaths(geometry, fitted(), 400, 200, 10, false)
+
+		expect(bound.outline).toBe(false)
+
+		expect(bound.frame).not.toBeNull()
 	})
 
 	it('draws nothing, and takes no slot, while the chrome is off', () => {
@@ -187,11 +195,35 @@ describe('MapPlat chrome', () => {
 		)
 	})
 
-	it('draws both parts together', () => {
+	it('draws both parts together, off one frame path', () => {
 		const { container } = renderUI(plat({ graticule: true, sphere: true }))
+
+		const clip = container.querySelector('clipPath path')
 
 		expect(bySlot(container, 'map-graticule')).toBeInTheDocument()
 
-		expect(bySlot(container, 'map-sphere')).toBeInTheDocument()
+		// One path resolves the bound and the outline, so the two can never
+		// disagree about where the projection draws.
+		expect(bySlot(container, 'map-sphere')?.getAttribute('d')).toBe(clip?.getAttribute('d'))
+	})
+
+	it('bounds the graticule by the frame the projection draws', () => {
+		const { container } = renderUI(plat({ graticule: true }))
+
+		const clip = container.querySelector('clipPath')
+
+		const id = clip?.getAttribute('id') ?? ''
+
+		expect(id).not.toBe('')
+
+		// The even-odd rule is what reads a composite's inset boxes as holes rather
+		// than as frame, so the insets stay clear of the fragments each
+		// sub-projection would otherwise fill them with.
+		expect(clip?.querySelector('path')).toHaveAttribute('clip-rule', 'evenodd')
+
+		expect(bySlot(container, 'map-graticule')?.parentElement).toHaveAttribute(
+			'clip-path',
+			`url(#${id})`,
+		)
 	})
 })

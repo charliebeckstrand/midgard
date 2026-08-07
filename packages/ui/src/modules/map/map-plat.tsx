@@ -113,6 +113,11 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 * covers the ones crossing it, so the graticule reads around the geography
 		 * and not across it — and answer no pointer.
 		 *
+		 * The lines are bounded by the projection's own frame, so a composite draws
+		 * one graticule rather than three: `'albers-usa'` rules the main map and
+		 * leaves the Alaska and Hawaii insets clear, where each would otherwise fill
+		 * with fragments at its own angle.
+		 *
 		 * The lines cover the globe whatever the geography frames, and the frame
 		 * clips the rest, so a regional map's graticule costs what a world map's
 		 * does. A step under one degree is floored there: below it the pass draws

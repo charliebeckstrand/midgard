@@ -1,7 +1,8 @@
 /**
  * The map's frame chrome: the graticule's meridians and parallels, and the
- * sphere outline a whole-globe map closes its frame with. Both read the fitted
- * projection alone — no atlas feature reaches them — so one fit draws the pair,
+ * frame the projection itself draws — the globe's edge, which doubles as the
+ * bound the graticule is clipped to. Both read the fitted projection alone — no
+ * atlas feature reaches them — so one fit draws the pair,
  * and both cost the same whatever the geography frames: the lines span the
  * globe and the frame clips what falls outside it. Held apart from `region.ts`
  * for that reason, and memoised a layer above (`cache.ts`) like the region
@@ -23,7 +24,14 @@ import {
  */
 export type MapChromePaths = {
 	graticule: string | null
-	sphere: string | null
+	/**
+	 * The projection's own drawing frame — the globe's edge, or a composite's
+	 * three clip boxes. It bounds the graticule whether or not it is drawn, so it
+	 * resolves whenever either part is on.
+	 */
+	frame: string | null
+	/** Whether the frame draws as the sphere outline, or only bounds the graticule. */
+	outline: boolean
 }
 
 /**
@@ -32,7 +40,7 @@ export type MapChromePaths = {
  *
  * @internal
  */
-export const EMPTY_CHROME: MapChromePaths = { graticule: null, sphere: null }
+export const EMPTY_CHROME: MapChromePaths = { graticule: null, frame: null, outline: false }
 
 /** The globe itself: the shape a projection outlines its own edge from. @internal */
 const SPHERE: GeoGeometryObjects = { type: 'Sphere' }
@@ -66,14 +74,22 @@ export function graticulePath(projection: GeoProjection, step: number): string |
 }
 
 /**
- * The sphere outline under the fitted projection: the globe's own edge, which a
- * whole-world map rules to close its frame. A composite projection has no
- * single edge, so `albers-usa` outlines its own clip frames instead — the
- * lower-48 box and the two inset boxes.
+ * The projection's own drawing frame, from the globe itself: the sphere's edge
+ * where the projection has one, and a composite's three clip boxes where it has
+ * none — under `albers-usa` the lower-48 box and the two inset boxes, in that
+ * order.
+ *
+ * It serves twice. Stroked, it is the sphere outline a whole-world map closes
+ * its frame with. Unstroked, it bounds the graticule: the composite streams the
+ * lines through all three of its sub-projections, so each inset fills with
+ * fragments at its own angle, and clipping to this path under the even-odd rule
+ * — where the inset boxes read as holes in the outer one — leaves the main map
+ * ruled and every inset clear. One path, so the bound and the outline can never
+ * disagree about where the projection draws.
  *
  * @internal
  */
-export function spherePath(projection: GeoProjection): string | null {
+export function framePath(projection: GeoProjection): string | null {
 	return chromePath(projection, SPHERE)
 }
 

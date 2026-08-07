@@ -27,7 +27,7 @@
 import type { GeoProjection } from 'd3-geo'
 import { canonicalFit, type MapCanonicalFit } from '../map-projection/fit'
 import type { LngLat, MapFeature, MapGeography, MapProjection } from '../types'
-import { EMPTY_CHROME, graticulePath, type MapChromePaths, spherePath } from './chrome'
+import { EMPTY_CHROME, framePath, graticulePath, type MapChromePaths } from './chrome'
 import { regionCentroids, regionPaths } from './region'
 import { geographyFeatures } from './topology'
 import { rewindFeatures } from './winding'
@@ -206,9 +206,13 @@ export function cachedChromePaths(
 		return hit.paths
 	}
 
+	// The frame resolves for either part: drawn it is the sphere outline, and
+	// undrawn it still bounds the graticule. It is a handful of points against
+	// the graticule's thousands, so resolving it unasked costs nothing measurable.
 	const paths: MapChromePaths = {
 		graticule: step === null ? null : graticulePath(fitted, step),
-		sphere: sphere ? spherePath(fitted) : null,
+		frame: framePath(fitted),
+		outline: sphere,
 	}
 
 	chrome.set(geometry, { width, height, step, sphere, paths })
