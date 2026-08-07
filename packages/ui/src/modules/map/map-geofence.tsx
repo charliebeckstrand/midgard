@@ -64,21 +64,23 @@ export type MapGeofenceProps = MapOverlayProps & (MapGeofenceCircle | MapGeofenc
  * restricted district — as a washed area under its own boundary, registered in
  * the plat's legend as its own toggleable, focusable entry. Give it a centre and
  * a ground radius for a circle, or a ring of coordinates for any other shape.
- * Hovering the boundary raises the tooltip with the zone's name and detail and
+ * Hovering anywhere in the zone raises the tooltip with its name and detail and
  * isolates the zone — every other mark recedes, as under its legend entry's
- * focus. With `onClick` set, the boundary answers a click and the keyboard
- * cursor picks the zone with Enter or Space; the plat's `selectedOverlay` haloes
- * the outline for as long as it names this mark.
+ * focus. With `onClick` set, the zone answers a click and the keyboard cursor
+ * picks it with Enter or Space; the plat's `selectedOverlay` haloes the outline
+ * for as long as it names this mark.
  *
  * @remarks Renders only inside {@link MapPlat}, and draws nothing where the
  * projection keeps fewer than three of its points — the US composite drops
- * points outside its insets. Draw it before the marks it encloses, so those
- * marks sit over the wash rather than under it.
+ * points outside its insets.
  *
- * The boundary alone answers the pointer. A zone whose interior took the hits
- * would swallow every mark inside it — the marks the zone exists to enclose —
- * and pointing a stop within it would isolate the zone instead of the stop, so
- * the fence is aimable at its edge the way a {@link MapRoute} is along its line.
+ * The whole face is the target, plus a finger-wide band around the boundary so
+ * the edge stays aimable on touch. Marks the zone encloses keep their own hits
+ * as long as they are drawn after it — the topmost shape at a point wins — so
+ * order the children with the zone first, which also keeps the wash behind the
+ * marks rather than over them. A region under the zone does not: the zone is
+ * what the pointer is on there, so a clickable map's regions answer outside its
+ * zones and the zones answer within them.
  *
  * The boundary rides device pixels (a non-scaling stroke), so a resize scales
  * the geography under it without thickening the outline. Under the plat's
@@ -124,12 +126,9 @@ export function MapGeofence({ at, radius, boundary, ...shared }: MapGeofenceProp
 		d,
 		stroke: 'none',
 		fillOpacity: GEOFENCE_FILL_OPACITY,
-		// The one drawn shape in the module with an area, and so the one that would
-		// answer the pointer across its whole face rather than along a stroke the hit
-		// shape already covers. Off it, as the module's other uncovered marks are
-		// (`MapDotCount`, the halo, the lit region copies): the hit stroke below is
-		// this mark's sole target, and the regions the zone covers keep their own
-		// hover and their own clicks.
+		// Off the pointer, as every other drawn shape in the module is
+		// (`MapDotCount`, the halo, the lit region copies): the hit shape below is
+		// this mark's sole target, so the hover resolve can never read one zone twice.
 		pointerEvents: 'none' as const,
 		className: cn(paint.fill),
 	}
@@ -175,13 +174,18 @@ export function MapGeofence({ at, radius, boundary, ...shared }: MapGeofenceProp
 					<path {...edge} />
 				)}
 
+				{/* The whole zone answers the pointer — its face, and a finger-wide band
+				    around the boundary so the edge stays aimable on touch. `all` rather
+				    than the painted default, so the transparent fill counts as a target.
+				    Marks inside the zone still take their own hits: they draw after it,
+				    and the topmost shape at a point wins. */}
 				<path
 					data-slot="map-geofence-hit"
 					d={d}
-					fill="none"
+					fill="transparent"
 					stroke="transparent"
 					strokeWidth={ROUTE_HIT_WIDTH}
-					pointerEvents="stroke"
+					pointerEvents="all"
 					{...hit()}
 				/>
 			</g>

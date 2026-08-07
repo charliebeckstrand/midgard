@@ -115,25 +115,51 @@ describe('MapGeofence', () => {
 		expect(hit?.getAttribute('d')).toBe(edge?.getAttribute('d'))
 	})
 
-	it('answers the pointer on its edge alone, so marks inside it stay reachable', () => {
+	it('answers the pointer across its whole face, not along its boundary alone', () => {
 		const { container } = renderUI(plat(<MapGeofence label="Zone A" boundary={ZONE} />))
 
 		const hit = bySlot(container, 'map-geofence-hit')
 
-		// A filled hit target would swallow every mark the zone encloses.
-		expect(hit?.getAttribute('fill')).toBe('none')
+		// A transparent fill is not a painted one, so the hit shape has to opt in
+		// explicitly — `stroke` or the painted default would leave the zone's own
+		// interior dead and only its edge live.
+		expect(hit?.getAttribute('fill')).toBe('transparent')
 
-		expect(hit?.getAttribute('pointer-events')).toBe('stroke')
+		expect(hit?.getAttribute('pointer-events')).toBe('all')
+
+		// The band around the boundary stays, so the edge is aimable on touch.
+		expect(hit?.getAttribute('stroke-width')).toBe(String(ROUTE_HIT_WIDTH))
 	})
 
-	it('keeps its wash out of the pointer, so the regions under it stay live', () => {
+	it('keeps its wash out of the pointer, so one zone never reads as two targets', () => {
 		const { container } = renderUI(plat(<MapGeofence label="Zone A" boundary={ZONE} />))
 
-		// The wash is the module's one drawn shape with an area. Left hittable it
-		// answers the pointer across the whole zone — stealing the hover and the
-		// click from every region the zone covers, and from any mark it encloses
-		// that draws beneath it.
+		// The hit shape above covers the same face. Left hittable too, the wash
+		// would be a second target for one mark, which is the drawn/hit split every
+		// other mark in the module keeps.
 		expect(bySlot(container, 'map-geofence-wash')?.getAttribute('pointer-events')).toBe('none')
+	})
+
+	it('draws its hit shape after the wash, so a mark inside the zone still wins the pointer', () => {
+		const { container } = renderUI(
+			plat(
+				<>
+					<MapGeofence label="Zone A" boundary={ZONE} />
+
+					<MapPoint label="Depot" at={[8, 5]} />
+				</>,
+			),
+		)
+
+		const svg = bySlot(container, 'map-geofence')?.closest('svg')
+
+		const order = Array.from(svg?.querySelectorAll('[data-slot]') ?? []).map((el) =>
+			el.getAttribute('data-slot'),
+		)
+
+		// The topmost shape at a point wins, and later siblings paint on top: a
+		// point drawn after the zone keeps its own hit circle over the zone's face.
+		expect(order.indexOf('map-point-hit')).toBeGreaterThan(order.indexOf('map-geofence-hit'))
 	})
 
 	it('draws a circle from a centre and a ground radius', () => {
