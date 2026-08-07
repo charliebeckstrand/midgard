@@ -20,8 +20,6 @@ import {
 import type { DataKey } from '../types'
 import type { MapCategoryMeta } from './category'
 
-export { sampleRange } from '../../../../utilities'
-
 /**
  * A map's `valueFormat`, or the plain-string fallback where it has none. The
  * readout and the range legend resolve it through here rather than each

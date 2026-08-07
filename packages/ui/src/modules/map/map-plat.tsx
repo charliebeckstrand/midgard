@@ -597,7 +597,11 @@ export function MapPlat<T = never>({
 		legend,
 		numeric,
 		{ width: containerWidth, height: shape.boxHeight },
-		{ categoryCount: categoryMetas.length, entryCount: entries.length, children },
+		{
+			categoryCount: categoryMetas.length,
+			entryCount: entries.length,
+			hasOverlayChildren: children != null,
+		},
 		{ colorRange, valueExtent, valueFormat, valueName, regionNumbers, onFocus: setFocus },
 	)
 

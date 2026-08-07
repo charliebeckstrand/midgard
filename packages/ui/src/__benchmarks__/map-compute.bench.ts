@@ -1,8 +1,11 @@
 // @vitest-environment node
 
 import { bench, describe } from 'vitest'
-import { mapAutoAspect } from '../modules/map/engine/map-projection/aspect'
-import { canonicalFit, scaleCanonicalFit } from '../modules/map/engine/map-projection/fit'
+import {
+	canonicalFit,
+	mapAutoAspect,
+	scaleCanonicalFit,
+} from '../modules/map/engine/map-projection/fit'
 import { regionCategoryIndexes, resolveCategories } from '../modules/map/engine/map-region/category'
 import { regionValueJoin, resolveValueBins } from '../modules/map/engine/map-region/value'
 import {

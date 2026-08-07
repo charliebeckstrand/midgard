@@ -30,7 +30,7 @@ export type FetchValhallaRouteOptions = {
 
 /**
  * Fetch a routed leg through Valhalla (OSRM-compatible response mode). Same
- * semantics as {@link fetchOsrmRoute}: `null` on fewer than 2 waypoints or
+ * semantics as `fetchOsrmRoute` (`osrm.ts`): `null` on fewer than 2 waypoints or
  * any error. A caller then falls back to straight-line segments.
  */
 export async function fetchValhallaRoute(

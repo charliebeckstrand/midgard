@@ -15,7 +15,7 @@ import type { MapPoint2D } from '../types'
  *
  * This reproduces the SVG default `preserveAspectRatio="xMidYMid meet"`: the
  * view frame scales to fit inside the box and centres in the remainder — the
- * fit-and-centre {@link scaleCanonicalFit} applies to a projection's scale and
+ * fit-and-centre `scaleCanonicalFit` (`fit.ts`) applies to a projection's scale and
  * translate, here applied to one point. It is arithmetic rather than a
  * `getScreenCTM` read because the two frame states differ (a measured frame
  * matches its box exactly, a canonical one is letterboxed until the container is

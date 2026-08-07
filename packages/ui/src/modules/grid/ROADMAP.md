@@ -57,17 +57,11 @@ The loop is the one the benchmark README documents: snapshot, optimize, compare.
 
 ## Engine — the substrate the optimization rides
 
-Every avenue lands in [`engine/`](engine), the module's pure functional core: a d3-style library of framework-free functions each feature slice consumes, all callable and benchable outside React, which is why the sort and allocation costs above are measurable as pure functions before they are measured as renders. The layering invariant is what keeps them optimizable in isolation — no `'use client'`, no runtime `react` / `motion` / `@dnd-kit` / `@floating-ui` imports, no runtime imports from the module root (one documented exception: `engine/grid-table/options.ts` re-exporting the TanStack row-model factories) — enforced by the greps below, all of which must print nothing:
+Every avenue lands in [`engine/`](engine), the module's pure functional core: a d3-style library of framework-free functions each feature slice consumes, all callable and benchable outside React, which is why the sort and allocation costs above are measurable as pure functions before they are measured as renders. The layering invariant is what keeps them optimizable in isolation — no `'use client'`, no runtime `react` / `motion` / `@dnd-kit` / `@floating-ui` imports, no runtime imports from the module root (one documented exception: `engine/grid-table/options.ts` re-exporting the TanStack row-model factories), no `index` barrel.
 
-```bash
-rg -nP "^\s*import\s+(?!type\b)[^;]*from\s+'(react|react-dom|motion|framer-motion|@dnd-kit|@floating-ui)" packages/ui/src/modules/grid/engine
+[`engine-purity-boundary.test.ts`](../../__tests__/boundary/engine-purity-boundary.test.ts) gates the framework, module-root, and barrel rules for this engine, the query engine, and the map engine together — one assertion in code where three ROADMAPs each carried the same paragraph of prose and a copy of the same greps.
 
-rg -nP "^\s*import\s+(?!type\b)[^;]*from\s+'@tanstack" packages/ui/src/modules/grid/engine | rg -v "grid-table/options.ts"
-
-rg -l "'use client'" packages/ui/src/modules/grid/engine
-
-find packages/ui/src/modules/grid/engine -name 'index.*'
-```
+The `@dnd-kit` / `@floating-ui` clause is this engine's alone and stays prose for now, because the engine does not satisfy it: [`grid-zone/map.ts`](engine/grid-zone/map.ts) runtime-imports `arrayMove` from `@dnd-kit/sortable`. The greps this section used to carry would have caught it; nobody ran them, which is the argument for the gate. Inlining that helper (it reorders one array) or moving its two callers would close the clause and let it join the shared test.
 
 Because each shared rule has exactly one definition, its `*.test.ts` suite is where an optimization is proven safe before it is proven fast: the comparator lives once in `grid-sort/utilities`, the allocator once in `grid-column/allocate`, so a rewrite that holds the tests holds the module.
 

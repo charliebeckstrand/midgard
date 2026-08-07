@@ -1,11 +1,11 @@
 import { memo, useMemo } from 'react'
 import { ariaAttr } from '../../core'
 import { rangeKeys } from '../../utilities'
+import { READOUT_GAP } from '../chart/engine/chart-series'
 import type { MapOverlayEntry } from './engine/map-overlay/entry'
 import { markRows } from './engine/map-overlay/readout'
 import { selectedMarkRow } from './engine/map-overlay/selection'
 import type { MapCategoryMeta } from './engine/map-region/category'
-import { READOUT_GAP } from './engine/map-region/identity'
 import type { MapOverlaySelection } from './engine/types'
 
 /** Props for {@link MapTable}. @internal */

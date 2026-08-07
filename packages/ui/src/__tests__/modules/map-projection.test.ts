@@ -2,12 +2,12 @@ import { geoMercator, geoPath } from 'd3-geo'
 import { describe, expect, it } from 'vitest'
 import { ALBERS_USA_ASPECT } from '../../modules/map/engine/map-constants'
 import {
-	mapAutoAspect,
 	mapFrameSizing,
 	projectionFallbackAspect,
 } from '../../modules/map/engine/map-projection/aspect'
 import {
 	canonicalFit,
+	mapAutoAspect,
 	measuredMapFit,
 	scaleCanonicalFit,
 } from '../../modules/map/engine/map-projection/fit'

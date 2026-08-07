@@ -1,9 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import {
-	regionValueJoin,
-	resolveValueBins,
-	sampleRange,
-} from '../../modules/map/engine/map-region/value'
+import { regionValueJoin, resolveValueBins } from '../../modules/map/engine/map-region/value'
+import { sampleRange } from '../../utilities'
 
 type Row = { id: string; v: number }
 

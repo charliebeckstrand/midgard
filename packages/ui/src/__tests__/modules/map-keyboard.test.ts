@@ -1,7 +1,9 @@
 import { describe, expect, it, vi } from 'vitest'
-import { moveMapCursor } from '../../modules/map/engine/map-keyboard/cursor'
-import { isMapActivateKey } from '../../modules/map/engine/map-keyboard/keys'
-import { stepNearest } from '../../modules/map/engine/map-keyboard/step'
+import {
+	isMapActivateKey,
+	moveMapCursor,
+	stepNearest,
+} from '../../modules/map/engine/map-keyboard/cursor'
 import { type MapStop, mapStops } from '../../modules/map/engine/map-keyboard/stops'
 import type { LngLat } from '../../modules/map/engine/types'
 

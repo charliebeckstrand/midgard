@@ -1,27 +1,13 @@
 /**
  * How much room the map reserves before it draws: the geography's own projected
- * ratio, the ratio a fixed-subject projection knows before its atlas loads, and
- * the frame-sizing policy those two feed. Every answer here is available without
- * measuring the container, which is what lets the CSS box be reserved on the
- * first commit.
+ * ratio a fixed-subject projection knows before its atlas loads, and the
+ * frame-sizing policy it feeds. Dependency-free arithmetic — the loading
+ * placeholder reads it without pulling `d3-geo` in behind it.
  */
 
 import type { FrameSizing } from '../../../../hooks'
 import { ALBERS_USA_ASPECT, DEFAULT_MAP_ASPECT } from '../map-constants'
-import type { MapAspectRatio, MapFeature, MapProjection } from '../types'
-import { canonicalFit } from './fit'
-
-/**
- * The geography's own projected aspect ratio (`width / height`), for
- * `aspectRatio: 'auto'`: the {@link canonicalFit}'s fitted bounds. Pure and
- * synchronous, so the CSS aspect box is reservable before the frame's width is;
- * `null` with nothing to measure.
- *
- * @internal
- */
-export function mapAutoAspect(spec: MapProjection, features: MapFeature[]): number | null {
-	return canonicalFit(spec, features)?.aspect ?? null
-}
+import type { MapAspectRatio, MapProjection } from '../types'
 
 /**
  * The aspect a named projection reserves before its geography loads, for a
@@ -55,7 +41,7 @@ export function ratioValue(ratio: number | `${number}/${number}` | false): numbe
  * Resolves the map frame's sizing policy, the chart contract with an `'auto'`
  * branch: an explicit `height` always wins as a fixed pixel box; `'auto'`
  * derives from the geography's own projected ratio (from
- * {@link mapAutoAspect}, with a wide fallback when there is nothing to
+ * `mapAutoAspect` (`fit.ts`), with a wide fallback when there is nothing to
  * measure), so it never falls through to `fill`; a numeric or `"w/h"` ratio
  * reserves that; `false` leaves the frame free-form to fill its container.
  *

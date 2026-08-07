@@ -5,10 +5,10 @@
  * arrives resolved, so the rules are testable without a frame.
  */
 
-import type { ReactNode } from 'react'
 import type { ChartRangeLegendConfig } from '../../../chart/engine/chart-legend/range'
 import { resolveRangeLegend } from '../../../chart/engine/chart-legend/range'
-import type { MapRangeLegendProps } from '../../map-range-legend'
+import type { RangeOrientation, RangeScale } from '../../../chart/engine/chart-legend/range-legend'
+import { resolveValueFormat } from '../map-region/value'
 import type { MapLegendPlacement } from '../types'
 
 /**
@@ -41,11 +41,11 @@ function legendCanShow(
 	legend: MapLegendInput | undefined,
 	categoryCount: number,
 	entryCount: number,
-	children: ReactNode,
+	hasOverlayChildren: boolean,
 ): boolean {
 	if (legend !== undefined) return legend !== false
 
-	return categoryCount > 1 || entryCount > 0 || children != null
+	return categoryCount > 1 || entryCount > 0 || hasOverlayChildren
 }
 
 /**
@@ -76,12 +76,33 @@ type MapRangeScale = {
 	onFocus: (id: string | null) => void
 }
 
-/** What the map draws for its legend: whether it shows, where it sits, and the range bar's props in range mode. @internal */
+/**
+ * The resolved range bar: the shared scale the chart's slider takes, plus what
+ * the map wires into it. Declared here rather than on the component, so the
+ * engine owns the shape it builds and the view reads it — {@link MapRangeLegend}
+ * takes this as its props.
+ *
+ * @internal
+ */
+export type MapLegendRange = RangeScale & {
+	/** Each region's raw value (`null` = no data), feature-index aligned — the arrow marks the hovered region's. */
+	regionNumbers: (number | null)[]
+	/** Emphasises a bin's regions (`null` clears); other regions dim while set — the filter. */
+	onFocus: (id: string | null) => void
+	/**
+	 * Which way the bar runs — vertical beside the plot, horizontal above or
+	 * below it. Follows the resolved placement.
+	 * @defaultValue 'vertical'
+	 */
+	orientation?: RangeOrientation
+}
+
+/** What the map draws for its legend: whether it shows, where it sits, and the range bar in range mode. @internal */
 type MapLegendPlan = {
 	show: boolean
 	placement: MapLegendPlacement
-	/** The continuous scale bar's props, or `null` for the binned switchboard. */
-	range: MapRangeLegendProps | null
+	/** The continuous scale bar's resolved shape, or `null` for the binned switchboard. */
+	range: MapLegendRange | null
 }
 
 /**
@@ -98,7 +119,7 @@ export function planMapLegend(
 	legend: MapLegendInput | undefined,
 	numeric: boolean,
 	box: { width: number; height: number },
-	switchboard: { categoryCount: number; entryCount: number; children: ReactNode },
+	switchboard: { categoryCount: number; entryCount: number; hasOverlayChildren: boolean },
 	scale: MapRangeScale,
 ): MapLegendPlan {
 	if (!(numeric && isRangeLegend(legend))) {
@@ -107,7 +128,7 @@ export function planMapLegend(
 				legend,
 				switchboard.categoryCount,
 				switchboard.entryCount,
-				switchboard.children,
+				switchboard.hasOverlayChildren,
 			),
 			placement: resolveLegendPlacement(legend, numeric),
 			range: null,
@@ -122,12 +143,15 @@ export function planMapLegend(
 
 	// The direct value checks (not a precomputed boolean) narrow `colorRange` and
 	// `valueExtent` inside the branch, so the range props type without an assertion.
-	const range: MapRangeLegendProps | null =
+	const range: MapLegendRange | null =
 		resolved.show && scale.colorRange !== undefined && scale.valueExtent !== null
 			? {
 					colorRange: scale.colorRange,
 					domain: scale.valueExtent,
-					format: scale.valueFormat ?? ((value) => String(value)),
+					// Through the shared resolver, not a second inline fallback: a map with
+					// no `valueFormat` would otherwise format its bar's endpoints by one
+					// rule and its tooltip and table by another.
+					format: resolveValueFormat(scale.valueFormat),
 					label: scale.valueName,
 					bins: switchboard.categoryCount,
 					regionNumbers: scale.regionNumbers,
