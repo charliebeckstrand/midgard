@@ -432,7 +432,6 @@ function MapDemo() {
 									categoryKey="zone"
 									categories={zoneCategories}
 									regionId={stateName}
-									graticule
 									animate
 									legend="right"
 								/>
