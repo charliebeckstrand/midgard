@@ -253,13 +253,6 @@ function roundSummary(count: number, span: number): string {
 	return `${count} stops · ${miles(span)} across`
 }
 
-/** The picked stop, named for the line of text beside the map; empty where none is picked. */
-function stopLabel(stops: { label: string }[], picked: number | null): string {
-	const held = picked === null ? undefined : stops[picked]
-
-	return held === undefined ? '' : `, ${held.label} picked`
-}
-
 /**
  * Clustering, a state pick, and a picked stop, together. Zoomed out to the
  * nation the rounds bunch past telling apart, so `MapPoints` draws each bunch as
@@ -342,12 +335,6 @@ function DeliveryRounds({ geography }: { geography: MapFeatureCollection | null 
 				</Select>
 			</Flex>
 
-			<Text>
-				{picked === null
-					? 'Every round, summarised wherever the stops bunch. Pick a state, or click a summary.'
-					: `${picked} — ${stops.length} stops${stopLabel(stops, stop)}.`}
-			</Text>
-
 			<MapPlat
 				aria-label="Delivery rounds"
 				geography={frame}
@@ -397,10 +384,7 @@ function ZoomableRounds({ geography }: { geography: MapFeatureCollection | null 
 	return (
 		<Stack gap="md">
 			<Text>
-				Hold <Kbd>shift</Kbd> and scroll to zoom — the page stays put while you do, and keeps every
-				wheel you do not aim at the map. Drag to pan. From the keyboard, Tab to the map, then{' '}
-				<Kbd>+</Kbd>, <Kbd>-</Kbd>, and <Kbd>0</Kbd>; the arrows walk the stops and take the view
-				with them.
+				Hold <Kbd>shift</Kbd> and scroll to zoom. Drag to pan.
 			</Text>
 
 			<MapPlat
