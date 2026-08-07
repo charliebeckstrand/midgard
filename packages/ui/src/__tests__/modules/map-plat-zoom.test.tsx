@@ -81,7 +81,7 @@ function scaleOf(container: HTMLElement): number {
 function wheel(
 	svg: SVGSVGElement,
 	deltaY: number,
-	init: { clientX?: number; clientY?: number; shiftKey?: boolean } = {},
+	init: { clientX?: number; clientY?: number; deltaX?: number; shiftKey?: boolean } = {},
 ): WheelEvent {
 	const event = new WheelEvent('wheel', {
 		bubbles: true,
@@ -350,18 +350,7 @@ describe('MapPlat wheel after the shift key is let go', () => {
 
 		// The browser reports the held gesture on `deltaX`, and the tail after the
 		// release on `deltaY` — one stream, measured the same on either axis.
-		const armed = new WheelEvent('wheel', {
-			bubbles: true,
-			cancelable: true,
-			deltaX: -40,
-			clientX: 200,
-			clientY: 100,
-			shiftKey: true,
-		})
-
-		act(() => {
-			svg.dispatchEvent(armed)
-		})
+		wheel(svg, 0, { deltaX: -40, shiftKey: true })
 
 		expect(scaleOf(container)).toBeGreaterThan(1)
 
