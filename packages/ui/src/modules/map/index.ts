@@ -4,12 +4,6 @@ export { MapMarker, type MapMarkerProps } from './map-marker'
 export { MapPlat, type MapPlatProps } from './map-plat'
 export { MapPoint, type MapPointProps } from './map-point'
 export { type MapPointDatum, MapPoints, type MapPointsProps } from './map-points'
-export {
-	RangeArrow,
-	type RangeArrowProps,
-	RangeLegend,
-	type RangeLegendProps,
-} from './map-range-legend'
 export { MapRoute, type MapRouteProps } from './map-route'
 export {
 	type FetchOsrmRouteOptions,

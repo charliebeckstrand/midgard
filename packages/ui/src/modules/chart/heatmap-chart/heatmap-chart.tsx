@@ -16,7 +16,6 @@ import { cn, createContext } from '../../../core'
 import { usePlotFrame, useResizeObserver } from '../../../hooks'
 import { k } from '../../../recipes/kata/chart'
 import { binIndex, type ColorBin, once, resolveColorBins, valueExtent } from '../../../utilities'
-import { RangeArrow, RangeLegend } from '../../map'
 import { ChartAxis, type ChartAxisTick } from '../engine/chart-axes/axis'
 import {
 	BAND_LABEL_HEIGHT,
@@ -28,6 +27,7 @@ import { ChartContextMenu } from '../engine/chart-context-menu'
 import { cellAt, heatmapCells } from '../engine/chart-geometry/heatmap'
 import { chartFrameSizing, type PlotRect, plotRect, thinned } from '../engine/chart-layout'
 import { resolveRangeLegend } from '../engine/chart-legend/range'
+import { RangeArrow, RangeLegend, type RangeScale } from '../engine/chart-legend/range-legend'
 import { type ChartLegendPlacement, legendAside } from '../engine/chart-legend/schema'
 import type { ChartOrientation } from '../engine/chart-orientation'
 import { ChartPlotBox } from '../engine/chart-plot-box'
@@ -193,12 +193,7 @@ function HeatmapRangeArrow({
 }
 
 /** Props for {@link HeatmapRangeLegend}: the scale the shared bar paints and the values its arrow reads. @internal */
-type HeatmapRangeLegendProps = {
-	colorRange: string[]
-	domain: [number, number]
-	format: (value: number) => string
-	label?: string
-	bins: number
+type HeatmapRangeLegendProps = RangeScale & {
 	values: (number | null)[][]
 	/** Which way the bar runs — vertical beside the plot, horizontal above or below it. */
 	orientation: ChartOrientation

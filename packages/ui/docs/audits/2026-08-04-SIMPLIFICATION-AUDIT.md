@@ -24,9 +24,10 @@ the Vitest suite is 96,275 in 555; the docs engine and demos are 27,555 in 206; 
 requires.
 
 The weight is in `modules/`: 49,356 lines in 249 files, of which `grid` is 22,899 and `chart` is 18,625.
-`components/` is 38,692 lines across 97 directories. The largest files are `modules/map/map-plat.tsx`
-(1,425), `modules/grid/grid-data.tsx` (1,344), `modules/chart/engine/chart-layout.ts` (1,191), and
-`hooks/a11y/use-a11y-roving.ts` (1,029).
+`components/` is 38,692 lines across 97 directories. The largest files are `modules/grid/grid-data.tsx`
+(1,344), `modules/chart/engine/chart-layout.ts` (1,191), and `hooks/a11y/use-a11y-roving.ts` (1,029).
+`modules/map/map-plat.tsx` led this list at 1,425 until it was split across eight modules; it no longer
+reaches it.
 
 Three mechanical checks came back empty and set the audit's direction. `knip` reports no unused file, no
 unused export, and no unused dependency across the repo. A token-level duplicate-block scan of
@@ -382,7 +383,7 @@ into the engine.
 **The container-width measurement in MapPlat and HeatmapChart is not the duplicate it looks like.** The
 proposed destination, `engine/chart-legend/range.ts:1-10`, opens by stating it is kept React-free so the
 breakpoint maths stays unit-testable. Both hosts also already call `usePlotFrame`
-(`map-plat.tsx:377`, `heatmap-chart.tsx:499`), so the package's measured-size hook is in use and the
+(`use-map-shape.ts:73`, `heatmap-chart.tsx:499`), so the package's measured-size hook is in use and the
 second measurement answers a different question.
 
 **`useGridSelection`'s composition is load-bearing for a boundary test.** `filename-rules.ts:79-101`
