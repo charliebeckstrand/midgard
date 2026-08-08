@@ -19,42 +19,31 @@ describe('numericRegionData', () => {
 	})
 
 	it('carries the branch’s optional fields through untouched', () => {
-		const valueFormat = (value: number) => `${value}%`
-
-		expect(
-			numericRegionData<Row>({
-				...WHOLE,
-				bins: 5,
-				binning: 'quantile',
-				domain: [0, 100],
-				valueName: 'Population',
-				valueFormat,
-			}),
-		).toEqual({
+		const dressed = {
 			...WHOLE,
 			bins: 5,
-			binning: 'quantile',
-			domain: [0, 100],
+			binning: 'quantile' as const,
+			domain: [0, 100] as [number, number],
 			valueName: 'Population',
-			valueFormat,
-		})
+			valueFormat: (value: number) => `${value}%`,
+		}
+
+		expect(numericRegionData<Row>(dressed)).toEqual(dressed)
 	})
 
-	// Each of the four alone decides the branch: without any one of them there is
-	// no scale to shade by, so the map falls to its neutral fill.
+	// Each of the four required fields alone decides the branch: without any one
+	// of them there is no scale to shade by, so the map falls to its neutral
+	// fill. `toEqual({})` is what the assertion turns on — the rows go back with
+	// the rest, which is the guarantee the choropleth's spread rests on. A caller
+	// spreads the result over its own props, so a branch that handed `data` back
+	// would leave a data-less map holding rows it has no key to join.
 	it.each([
 		['rows', { ...WHOLE, data: undefined }],
 		['join key', { ...WHOLE, regionKey: undefined }],
 		['value key', { ...WHOLE, valueKey: undefined }],
 		['ramp', { ...WHOLE, colorRange: undefined }],
+		['series at all, rows alone', { data: ROWS }],
 	])('returns the data-less map with no %s', (_missing, fields) => {
 		expect(numericRegionData<Row>(fields)).toEqual({})
-	})
-
-	it('drops the rows it was given on the data-less branch', () => {
-		// The guarantee the choropleth's spread rests on: a caller spreads the
-		// result over its own props, so a branch that returned `data` back would
-		// leave a data-less map holding rows it has no key to join.
-		expect(numericRegionData<Row>({ data: ROWS })).not.toHaveProperty('data')
 	})
 })
