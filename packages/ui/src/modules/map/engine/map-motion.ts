@@ -20,6 +20,12 @@ export const REGION_STAGGER = 0.01
 export const REGION_STAGGER_MAX = 0.3
 
 /**
+ * How long the mount reveal takes end to end: the slowest region's delay, plus
+ * the fade it then runs. What the stagger retires after (`MapWash`). @internal
+ */
+export const REGION_WASH_SETTLE = REGION_STAGGER_MAX + REGION_FADE.duration
+
+/**
  * Stroke reveal (`pathLength` 0 → 1), matching the chart's line draw: a route's
  * line, and a geofence boundary, which lands the way a line does. @internal
  */

@@ -1,13 +1,20 @@
 import { describe, expect, it, vi } from 'vitest'
 import { MapPlat } from '../../modules/map'
 import {
+	REGION_FADE,
+	REGION_STAGGER,
+	REGION_WASH_SETTLE,
+} from '../../modules/map/engine/map-motion'
+import {
 	allBySlot,
 	allRegions,
 	bySlot,
 	fireEvent,
 	firstRegion,
 	renderUI,
+	stubMatchMedia,
 	tableRows,
+	withFakeTime,
 } from '../helpers'
 import { FIXTURE_GEOJSON, FIXTURE_ROWS, FIXTURE_TOPOLOGY } from '../helpers/map-geography'
 
@@ -132,6 +139,29 @@ describe('MapPlat', () => {
 
 		// The category colour resolves once the reveal flag flips post-mount.
 		expect(alpha?.getAttribute('class')).toContain('fill-blue-600')
+	})
+
+	it('retires the reveal stagger, so a later toggle repaints without waiting one out', async () => {
+		await withFakeTime(async (clock) => {
+			const { container } = renderUI(plat({ animate: true }))
+
+			const region = () => allRegions(container)[2]?.getAttribute('style') ?? ''
+
+			// The reveal washes the geography on region by region, so each region
+			// holds its own delay while it runs.
+			expect(region()).toContain(`transition-delay: ${REGION_STAGGER * 2 * 1000}ms`)
+
+			await clock.advance(REGION_WASH_SETTLE * 1000)
+
+			// Past the reveal the stagger is gone. Left standing it delays every later
+			// fill change, and on an atlas of any size nearly every region sits at the
+			// cap — so a legend toggle would pay that beat before its colour so much as
+			// began to move.
+			expect(region()).not.toContain('transition-delay')
+
+			// The fade itself stands; only the delay retires.
+			expect(region()).toContain(`transition-duration: ${REGION_FADE.duration * 1000}ms`)
+		})
 	})
 
 	it('colours matched regions by category slot and leaves the rest neutral', () => {
@@ -311,6 +341,85 @@ describe('MapPlat', () => {
 		)
 
 		expect(bySlot(container, 'map-regions-lit')).toBeNull()
+	})
+
+	it('holds the emphasis off while a toggled-on category washes back in', async () => {
+		await withFakeTime(async (clock) => {
+			const { container } = renderUI(plat({ animate: true }))
+
+			const lit = () => bySlot(container, 'map-regions-lit')
+
+			const recede = () => bySlot(container, 'map-regions-recede')?.getAttribute('class') ?? ''
+
+			const [east] = allBySlot(container, 'map-legend-item')
+
+			await clock.advance(REGION_WASH_SETTLE * 1000)
+
+			// The click that toggles an entry is also what puts the pointer on it, so
+			// the emphasis is live across both halves of the round trip.
+			fireEvent.pointerEnter(east as HTMLButtonElement)
+
+			fireEvent.click(east as HTMLButtonElement)
+
+			// Hiding drops the emphasis outright — a hidden entry can't hold one — so
+			// the wash out has always played in the open.
+			expect(lit()).toBeNull()
+
+			await clock.advance(REGION_FADE.duration * 1000)
+
+			fireEvent.click(east as HTMLButtonElement)
+
+			// The colour is restored and washing back in. The emphasis waits it out:
+			// a lit copy mounted now would paint the category's landed colour over the
+			// very wash bringing it there, and the reader would never see it move.
+			expect(allRegions(container)[0]?.getAttribute('class')).toContain('fill-blue-600')
+
+			expect(lit()).toBeNull()
+
+			expect(recede()).not.toContain('opacity-25')
+
+			await clock.advance(REGION_FADE.duration * 1000)
+
+			// The wash has landed, so the emphasis takes over: the map dims around a
+			// category that has finished arriving.
+			expect(lit()?.querySelectorAll('path')).toHaveLength(1)
+
+			expect(recede()).toContain('opacity-25')
+		})
+	})
+
+	/** Toggles a category off and straight back on with the pointer held on its chip. */
+	function roundTrip(container: HTMLElement) {
+		const [east] = allBySlot(container, 'map-legend-item')
+
+		fireEvent.pointerEnter(east as HTMLButtonElement)
+
+		fireEvent.click(east as HTMLButtonElement)
+
+		fireEvent.click(east as HTMLButtonElement)
+	}
+
+	it('emphasises a toggled-on category at once on a static map', () => {
+		// `animate` is what arms the transition, so a static map paints the colour
+		// outright and the hold above would be dead time.
+		const { container } = renderUI(plat())
+
+		roundTrip(container)
+
+		expect(bySlot(container, 'map-regions-lit')?.querySelectorAll('path')).toHaveLength(1)
+	})
+
+	it('emphasises a toggled-on category at once for a reduced-motion reader', () => {
+		// `motion-reduce` drops the transition, so an animated plat has no wash to
+		// protect either. The preference is read live, so a session that turns it on
+		// mid-flight takes it on the next toggle.
+		stubMatchMedia((query) => query === '(prefers-reduced-motion: reduce)')
+
+		const { container } = renderUI(plat({ animate: true }))
+
+		roundTrip(container)
+
+		expect(bySlot(container, 'map-regions-lit')?.querySelectorAll('path')).toHaveLength(1)
 	})
 
 	it('isolates the pointed region, dimming every other region', () => {

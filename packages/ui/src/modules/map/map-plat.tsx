@@ -517,7 +517,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		domain: valueExtent,
 	} = useMapRegionReadout(shape.features, props, regionIds, regionLabel)
 
-	const { hidden, toggle, setFocus, emphasis: activeFocus } = useMapToggle()
+	const { hidden, toggle, setFocus, emphasis: activeFocus } = useMapToggle(animate)
 
 	const { entries, register } = useMapLegendRegistry()
 
