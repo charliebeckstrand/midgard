@@ -126,6 +126,7 @@
 		"typescript": "^6.0.3",
 		"us-atlas": "^3.0.1",
 		"vite": "^8.0.16",
-		"vitest": "^4.1.10"
+		"vitest": "^4.1.10",
+		"world-atlas": "^2.0.2"
 	}
 }

@@ -169,6 +169,11 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 * off, the plot region takes no tab stop and stays a plain `role="img"`
 		 * leaf, and the data table carries the values alone.
 		 * @defaultValue true
+		 * @remarks It asks for a readout rather than asserting one. A map no row
+		 * matches and no mark draws on has nothing to name — an unmatched region
+		 * raises no tooltip, takes no emphasis, and fills no table row — so it
+		 * takes no tab stop whatever this prop says. A pick or a zoom still earns
+		 * one, because each is an output of its own.
 		 */
 		tooltip?: boolean
 		/**
@@ -672,6 +677,19 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		[clickRegion, entries],
 	)
 
+	// Whether anything can read out: a region the rows matched, or a registered
+	// overlay. It reads the join rather than the presence of a `data` array,
+	// because rows that match no region leave exactly the silence no rows do —
+	// the tooltip resolves nothing for an unmatched region, and the
+	// pointed-emphasis gate above lights nothing there either. Toggled-off
+	// categories still count: a legend toggle must not take the table or the tab
+	// stop away under the reader. Memoised on the join, so the scan a map with no
+	// match pays in full runs once per readout rather than once per render.
+	const hasReadout = useMemo(
+		() => regionCategory.some((category) => category !== null) || entries.length > 0,
+		[regionCategory, entries],
+	)
+
 	// The cursor earns a tab stop from either of its two outputs. Gating on the
 	// readout alone would leave `tooltip={false}` with `onRegionClick` — a
 	// supported pairing — a picker no keyboard can reach. Without the readout the
@@ -691,7 +709,12 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// A zooming map earns the stop on its own: the wheel and the drag are pointer
 	// gestures, so without it the scale would be out of a keyboard reader's reach
 	// on a plat that carries neither a readout nor a pick.
-	const navigable = (tooltip || pickable || zoomable) && shape.viewWidth > 0
+	//
+	// The readout half asks whether one exists, not whether the prop asked for
+	// one. `tooltip` is a request, and a map with nothing to read out silences on
+	// all three channels — no tooltip, no emphasis, no table — so the prop alone
+	// would hand a backdrop map a stop that answers every key with nothing.
+	const navigable = ((tooltip && hasReadout) || pickable || zoomable) && shape.viewWidth > 0
 
 	const numeric = valueKey !== undefined
 
@@ -780,8 +803,6 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 			</MapPlatContext>
 		</svg>
 	)
-
-	const hasReadout = (data !== undefined && regionNames.length > 0) || entries.length > 0
 
 	// Memoised like the sibling derivations (`colors`, `tooltipEntries`, the
 	// table): the plat re-renders per legend focus, toggle, and resize commit,
