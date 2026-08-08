@@ -8,6 +8,7 @@ import { Control } from '../../components/control'
 import { useFileUploadHandlers } from '../../components/file-upload'
 import { Icon } from '../../components/icon'
 import { Textarea } from '../../components/textarea'
+import { canSubmitDraft } from './engine/chat-draft'
 
 /** Props for {@link ChatPrompt}. */
 export type ChatPromptProps = {
@@ -94,7 +95,7 @@ export function ChatPrompt({
 	'aria-label': ariaLabel,
 	'aria-labelledby': ariaLabelledBy,
 }: ChatPromptProps) {
-	const canSubmit = !disabled && value.trim().length > 0
+	const canSubmit = !disabled && canSubmitDraft(value)
 
 	const { inputRef, openPicker, handleChange } = useFileUploadHandlers({ onAccept: onAttach })
 

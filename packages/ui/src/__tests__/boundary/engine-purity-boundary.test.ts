@@ -2,8 +2,8 @@ import { join, relative } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { srcDir, walkSource } from '../helpers/walk-source'
 
-// The pure-core invariant the grid, query, and map ROADMAPs each assert in
-// prose, enforced once here instead of three times in three documents whose
+// The pure-core invariant the grid, query, map, and chat ROADMAPs each assert
+// in prose, enforced once here instead of four times in four documents whose
 // greps only run when somebody reads them.
 //
 // A pure engine is a d3-style functional core: framework-free, callable and
@@ -23,7 +23,7 @@ import { srcDir, walkSource } from '../helpers/walk-source'
 // rather than a pure core — it holds `.tsx` components and hooks by design — so
 // the list is explicit rather than a `modules/*/engine` glob, and a new pure
 // engine opts in by joining it.
-const PURE_ENGINES = ['grid', 'map', 'query'] as const
+const PURE_ENGINES = ['chat', 'grid', 'map', 'query'] as const
 
 const enginePath = (module: string) => join(srcDir, 'modules', module, 'engine')
 

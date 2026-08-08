@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useState } from 'react'
+import { canSubmitDraft, draftContent } from './engine/chat-draft'
 
 /** Options for {@link useChatDraft}. */
 export type UseChatDraftOptions = {
@@ -44,7 +45,7 @@ export function useChatDraft({
 	const clear = useCallback(() => setValue(''), [])
 
 	const submit = useCallback(() => {
-		const content = value.trim()
+		const content = draftContent(value)
 
 		if (!content) return
 
@@ -53,5 +54,5 @@ export function useChatDraft({
 		setValue('')
 	}, [value, onSubmit])
 
-	return { value, setValue, clear, submit, canSubmit: value.trim().length > 0 }
+	return { value, setValue, clear, submit, canSubmit: canSubmitDraft(value) }
 }

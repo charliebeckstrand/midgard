@@ -1,6 +1,17 @@
 'use client'
 
 import { useCallback, useRef, useState } from 'react'
+import { draftContent } from './engine/chat-draft'
+import {
+	appendUserMessage,
+	applyReplySnapshot,
+	dropEmptyReply,
+	lastUserMessage,
+	openReply,
+	truncateToEditedMessage,
+	truncateToLastUserMessage,
+	userMessage,
+} from './engine/chat-transcript'
 import type { ChatContent } from './types'
 
 /**
@@ -114,16 +125,13 @@ export function useChatSend({
 
 			controllerRef.current = controller
 
-			// Hoisted so the catch can target this exact bubble by id rather than
-			// matching on empty content (which would also hit unrelated messages).
-			let agentId: string | undefined
+			// Minted before the try, so the catch can name this send's own bubble.
+			const replyId = crypto.randomUUID()
 
 			try {
 				const stream = await transport(text, controller.signal)
 
-				agentId = crypto.randomUUID()
-
-				setMessages((prev) => [...prev, { id: agentId, role: 'agent', content: '' }])
+				setMessages((prev) => openReply(prev, replyId))
 
 				for await (const snapshot of stream) {
 					// Checked first so a stop mid-stream leaves the bubble at its last
@@ -131,12 +139,7 @@ export function useChatSend({
 					// so a well-behaved transport's cleanup (e.g. releasing a reader) runs.
 					if (controller.signal.aborted) break
 
-					// Snapshots are cumulative, so each replaces the bubble's text.
-					setMessages((prev) =>
-						prev.map((message) =>
-							message.id === agentId ? { ...message, content: snapshot } : message,
-						),
-					)
+					setMessages((prev) => applyReplySnapshot(prev, replyId, snapshot))
 				}
 
 				if (!controller.signal.aborted) onSent?.(text)
@@ -144,11 +147,7 @@ export function useChatSend({
 				// A stop-induced rejection isn't a failure: no rollback, no onError.
 				if (controller.signal.aborted) return
 
-				// Drop this send's agent placeholder if it never received content, so no
-				// blank bubble lingers; the user's message and any partial reply stay.
-				setMessages((prev) =>
-					prev.filter((message) => !(message.id === agentId && message.content === '')),
-				)
+				setMessages((prev) => dropEmptyReply(prev, replyId))
 
 				onError?.(error)
 			} finally {
@@ -168,11 +167,14 @@ export function useChatSend({
 		async (content: string) => {
 			if (sending) return
 
-			const text = content.trim()
+			const text = draftContent(content)
 
 			if (!text) return
 
-			setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: 'user', content: text }])
+			// Minted outside the updater, which React can run more than once.
+			const userId = crypto.randomUUID()
+
+			setMessages((prev) => appendUserMessage(prev, userId, text))
 
 			await runTransport(text)
 		},
@@ -182,15 +184,11 @@ export function useChatSend({
 	const retry = useCallback(async () => {
 		if (sending) return
 
-		const lastUser = [...messages].reverse().find((message) => message.role === 'user')
+		const lastUser = lastUserMessage(messages)
 
 		if (!lastUser) return
 
-		setMessages((prev) => {
-			const index = prev.findIndex((message) => message.id === lastUser.id)
-
-			return index === -1 ? prev : prev.slice(0, index + 1)
-		})
+		setMessages((prev) => truncateToLastUserMessage(prev))
 
 		await runTransport(lastUser.content)
 	}, [sending, messages, runTransport])
@@ -199,23 +197,13 @@ export function useChatSend({
 		async (id: string, content: string) => {
 			if (sending) return
 
-			const text = content.trim()
+			const text = draftContent(content)
 
 			if (!text) return
 
-			const target = messages.find((message) => message.id === id && message.role === 'user')
+			if (!userMessage(messages, id)) return
 
-			if (!target) return
-
-			setMessages((prev) => {
-				const index = prev.findIndex((message) => message.id === id)
-
-				const current = index === -1 ? undefined : prev[index]
-
-				if (!current) return prev
-
-				return [...prev.slice(0, index), { ...current, content: text }]
-			})
+			setMessages((prev) => truncateToEditedMessage(prev, id, text))
 
 			await runTransport(text)
 		},
