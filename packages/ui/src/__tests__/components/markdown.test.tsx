@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Markdown } from '../../components/markdown'
+import { k } from '../../recipes/kata/markdown'
 import { bySlot, renderUI, waitFor } from '../helpers'
 
 // `shiki` is mocked globally in setup/module-mocks.ts (its markup carries
@@ -167,4 +168,27 @@ describe('Markdown', () => {
 			expect(container.querySelector('pre.shiki')).toHaveAttribute('data-lang', 'text'),
 		)
 	})
+
+	// The renderer calls `cn` once for each element, and `cn` branches its memo
+	// on a string argument only — an array slot takes the plain merge for every
+	// heading, link, row, and cell in the document (`core/cn.ts`).
+	it('holds every slot as a string, so cn can memoise it', () => {
+		expect(nonStringSlots(k)).toEqual([])
+	})
 })
+
+/** Dotted paths of the leaves under `value` that are not a string. */
+function nonStringSlots(value: unknown, path = ''): string[] {
+	if (typeof value === 'string') return []
+
+	// An array reads as an object below, so reject it before the recursion does.
+	if (Array.isArray(value)) return [path]
+
+	if (value !== null && typeof value === 'object') {
+		return Object.entries(value).flatMap(([key, leaf]) =>
+			nonStringSlots(leaf, path ? `${path}.${key}` : key),
+		)
+	}
+
+	return [path]
+}
