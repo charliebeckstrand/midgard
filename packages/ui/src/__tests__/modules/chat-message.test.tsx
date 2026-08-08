@@ -2,6 +2,11 @@ import { describe, expect, it } from 'vitest'
 import { ChatMessage } from '../../modules/chat'
 import { bySlot, renderUI, screen } from '../helpers'
 
+// The rendered pulse class, motion-safe gated per the package's animation
+// policy (WCAG 2.3.3). Spelled out rather than imported from the kata, so the
+// assertion states the class the reader gets.
+const PULSE = 'motion-safe:animate-pulse'
+
 describe('ChatMessage', () => {
 	it('renders children inside the bubble slot', () => {
 		const { container } = renderUI(<ChatMessage>Hello</ChatMessage>)
@@ -11,7 +16,7 @@ describe('ChatMessage', () => {
 		expect(bySlot(container, 'chat-message-bubble')).toBeInTheDocument()
 	})
 
-	it('defaults to an assistant message with no timestamp and no streaming pulse', () => {
+	it('defaults to a settled assistant message: no timestamp, no pulse, no progress cursor', () => {
 		const { container } = renderUI(<ChatMessage>content</ChatMessage>)
 
 		const el = bySlot(container, 'chat-message')
@@ -20,7 +25,9 @@ describe('ChatMessage', () => {
 
 		expect(bySlot(container, 'chat-message-timestamp')).not.toBeInTheDocument()
 
-		expect(bySlot(container, 'markdown')).not.toHaveClass('animate-pulse')
+		expect(bySlot(container, 'markdown')).not.toHaveClass(PULSE)
+
+		expect(bySlot(container, 'chat-message-bubble')).not.toHaveClass('cursor-progress')
 	})
 
 	it('reflects the role prop on data-role', () => {
@@ -41,29 +48,19 @@ describe('ChatMessage', () => {
 		expect(timestamp).toHaveTextContent('11:12 AM')
 	})
 
-	it('pulses the bubble content while streaming', () => {
+	it('pulses the content and shows the progress cursor while streaming', () => {
 		const { container } = renderUI(<ChatMessage streaming>content</ChatMessage>)
 
 		const markdown = bySlot(container, 'markdown')
 
-		expect(markdown).toHaveClass('animate-pulse')
+		// The pulse is motion-safe gated, so a reduced-motion reader keeps the
+		// cursor as the signal. The cursor rides the bubble, not the whole
+		// message, so an actions-rail control keeps its own.
+		expect(markdown).toHaveClass(PULSE)
 
 		expect(markdown).toHaveTextContent('content')
-	})
 
-	it('shows the progress cursor on the bubble while streaming', () => {
-		const { container } = renderUI(<ChatMessage streaming>content</ChatMessage>)
-
-		// The pointer reports the same wait the pulse reports to the eye. It rides
-		// the bubble rather than the whole message, so an actions-rail control
-		// keeps its own cursor.
 		expect(bySlot(container, 'chat-message-bubble')).toHaveClass('cursor-progress')
-	})
-
-	it('leaves the settled bubble with no progress cursor', () => {
-		const { container } = renderUI(<ChatMessage>content</ChatMessage>)
-
-		expect(bySlot(container, 'chat-message-bubble')).not.toHaveClass('cursor-progress')
 	})
 
 	it('renders the actions slot when provided', () => {
@@ -89,7 +86,7 @@ describe('ChatMessage', () => {
 	it('renders streaming content as Markdown, pulsing while it arrives', () => {
 		const { container } = renderUI(<ChatMessage streaming>Some **bold** text</ChatMessage>)
 
-		expect(bySlot(container, 'markdown')).toHaveClass('animate-pulse')
+		expect(bySlot(container, 'markdown')).toHaveClass(PULSE)
 
 		expect(container.querySelector('strong')?.textContent).toBe('bold')
 	})

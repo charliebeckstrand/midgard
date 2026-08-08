@@ -1,9 +1,19 @@
 import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
-import { iro, ji, narabi } from '../kiso'
+import { iro, ji, narabi, ugoki } from '../kiso'
 
 const { text } = iro
 const { size } = ji
 const { flex } = narabi
+const { css } = ugoki
+
+/**
+ * The streaming pulse, applied to the bubble's content while a reply arrives.
+ * It rides the content rather than the bubble, so it cannot join the bubble's
+ * `streaming` axis. `css.pulse` carries the `motion-safe:` gate every animated
+ * fragment in the package carries, so a reader who asked for reduced motion
+ * gets the still bubble and keeps the progress cursor as the signal.
+ */
+export const pulse = css.pulse
 
 const bubble = defineRecipe({
 	base: [
@@ -22,8 +32,9 @@ const bubble = defineRecipe({
 		system: [size.md, ...text.muted, 'bg-transparent px-0'],
 	},
 	// The pointer reports the same wait the pulse reports to the eye: the reply
-	// is still arriving, and the bubble under the pointer is still changing.
-	// `progress` rather than `wait`, because the rest of the page stays live.
+	// is still arriving. `progress` rather than `wait`, because the rest of the
+	// page stays live — the composer still takes a draft, and `stop` still
+	// aborts. It rides the bubble, so an actions-rail control keeps its own.
 	streaming: {
 		true: 'cursor-progress',
 		false: '',

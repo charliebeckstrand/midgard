@@ -9,7 +9,7 @@ export { ChatMessage, type ChatMessageProps } from './chat-message'
 export { ChatPrompt, type ChatPromptProps } from './chat-prompt'
 export { ChatTranscript, type ChatTranscriptProps } from './chat-transcript'
 export { useInChatList } from './context'
-export type { ChatContent } from './types'
+export type { ChatContent } from './engine/types'
 export { type UseChatDraft, type UseChatDraftOptions, useChatDraft } from './use-chat-draft'
 export { useChatScroll } from './use-chat-scroll'
 export {

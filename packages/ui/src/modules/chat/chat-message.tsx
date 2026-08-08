@@ -1,13 +1,17 @@
 import { memo, type ReactNode } from 'react'
 import { Markdown } from '../../components/markdown'
 import { cn } from '../../core'
-import { type ChatMessageVariants, k } from '../../recipes/kata/chat-message'
+import {
+	type ChatMessageVariants,
+	k,
+	pulse as pulseAnimation,
+} from '../../recipes/kata/chat-message'
 
 /** Props for {@link ChatMessage}. */
 export type ChatMessageProps = ChatMessageVariants & {
 	/** Wall-clock label shown below the bubble. */
 	timestamp?: ReactNode
-	/** Pulses the bubble content and shows the progress cursor over the bubble while a response streams in. */
+	/** Pulses the bubble content and shows the progress cursor, while a response streams in. */
 	streaming?: boolean
 	/** Action rail below the bubble (copy, retry, edit, …). */
 	actions?: ReactNode
@@ -35,15 +39,8 @@ export type ChatMessageProps = ChatMessageVariants & {
  * so the prose inherits the bubble's foreground for free — white on the user
  * bubble's blue fill, the default tone on the assistant bubble, muted on the
  * system bubble — in both light and dark mode. While `streaming`, the content
- * pulses (`animate-pulse`) to signal the response is still arriving, settling
- * to a steady bubble the moment streaming ends.
- *
- * The pointer reports that same wait: the bubble takes `cursor-progress` while
- * `streaming`, so a reader whose pointer rests on a reply sees it is still
- * being written. `progress` rather than `wait`, because the rest of the page
- * stays interactive — the composer still takes a draft, and `stop` still
- * aborts. The cursor rides the bubble alone, so a control in the `actions` rail
- * keeps its own.
+ * pulses and the bubble takes the progress cursor, settling to a steady bubble
+ * the moment streaming ends. The kata holds why each one is shaped as it is.
  *
  * Memoized on its (shallow-equal) props, so a transcript's settled bubbles skip
  * re-rendering — and re-lexing their Markdown — while only the streaming
@@ -71,7 +68,7 @@ export const ChatMessage = memo(function ChatMessage({
 				<span data-slot="chat-message-author" className="sr-only">
 					{author}:{' '}
 				</span>
-				<Markdown className={streaming ? 'animate-pulse' : ''}>{children}</Markdown>
+				<Markdown className={cn(streaming && pulseAnimation)}>{children}</Markdown>
 			</div>
 			{timestamp !== undefined && (
 				<div data-slot="chat-message-timestamp" className={cn(k.timestamp)}>

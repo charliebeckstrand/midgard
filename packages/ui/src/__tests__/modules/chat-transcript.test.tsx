@@ -47,7 +47,7 @@ describe('ChatTranscript', () => {
 		const { container } = renderUI(<ChatTranscript messages={messages} streaming />)
 
 		const pulsing = allBySlot(container, 'markdown').filter((el) =>
-			el.classList.contains('animate-pulse'),
+			el.classList.contains('motion-safe:animate-pulse'),
 		)
 
 		expect(pulsing).toHaveLength(1)

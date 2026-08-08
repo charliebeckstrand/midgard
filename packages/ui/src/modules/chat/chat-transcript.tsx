@@ -3,7 +3,7 @@
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/chat-transcript'
 import { ChatMessage } from './chat-message'
-import type { ChatContent } from './types'
+import type { ChatContent } from './engine/types'
 import { useChatScroll } from './use-chat-scroll'
 
 /** Props for {@link ChatTranscript}. */

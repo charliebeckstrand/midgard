@@ -31,14 +31,6 @@
 			},
 			"performance": {
 				"noImgElement": "off"
-			},
-			"a11y": {
-				"useValidAriaRole": {
-					"level": "error",
-					"options": {
-						"ignoreNonDom": true
-					}
-				}
 			}
 		}
 	},
@@ -56,6 +48,26 @@
 				"rules": {
 					"complexity": {
 						"noExcessiveCognitiveComplexity": "error"
+					}
+				}
+			}
+		},
+		{
+			"includes": [
+				"packages/ui/src/modules/chat/**",
+				"packages/ui/src/docs/demos/modules/chat.tsx",
+				"packages/ui/src/__tests__/modules/chat-*",
+				"packages/ui/src/__tests__/a11y/cases/specialized.tsx"
+			],
+			"linter": {
+				"rules": {
+					"a11y": {
+						"useValidAriaRole": {
+							"level": "error",
+							"options": {
+								"allowInvalidRoles": ["user", "assistant", "system"]
+							}
+						}
 					}
 				}
 			}

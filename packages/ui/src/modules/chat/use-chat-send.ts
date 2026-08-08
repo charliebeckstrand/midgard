@@ -12,7 +12,7 @@ import {
 	truncateToLastUserMessage,
 	userMessage,
 } from './engine/chat-transcript'
-import type { ChatContent } from './types'
+import type { ChatContent } from './engine/types'
 
 /**
  * Produces an assistant reply for a sent message as a stream of cumulative snapshots.
@@ -60,7 +60,7 @@ export type UseChatSendOptions = {
 export type UseChatSend = {
 	/** The live message list (optimistic user message + streamed assistant reply). */
 	messages: ChatContent[]
-	/** True while a reply is in flight. Spelled as `ChatPrompt` and `ChatTranscript` spell it, so it feeds either one directly. */
+	/** True while a reply is in flight; feeds `ChatPrompt` and `ChatTranscript`, which spell it the same way. */
 	streaming: boolean
 	/** Optimistically appends the user message and streams the reply via the transport. No-ops on empty input. */
 	send: (content: string) => Promise<void>
