@@ -8,7 +8,7 @@ type VirtualWindowOptions = {
 	count: number
 	/** Returns the scroll container, or null before it mounts. */
 	getScrollElement: () => HTMLElement | null
-	/** Estimated row height in pixels. Assumes uniform heights. */
+	/** Estimated row height in pixels. Every row must match it — see the hook's remarks. */
 	estimateSize: number
 	/** Rows to render outside the viewport on each side. */
 	overscan: number
@@ -37,6 +37,18 @@ type VirtualWindow = {
  * outside the viewport. Callers render their own row and spacer elements
  * (table rows, list divs); this owns only the virtualizer wiring and the
  * spacer math.
+ *
+ * @remarks Uniform heights only. The wrapper passes react-virtual no
+ * `measureElement` and no `getItemKey`, so every row must measure
+ * `estimateSize`; a row that does not misplaces the window below it. The limit
+ * is this wrapper's, not the library's — react-virtual measures dynamic rows —
+ * and it is what costs the grid two features their virtualization:
+ * `resolveGroupingGates` stands virtualization down whenever grouping or
+ * master-detail is active, because each renders its own body of mixed-height
+ * rows. Lifting it is more than passing the two options. `measureElement` on a
+ * `<tr>` in a fixed-layout table with spacer rows is unverified, and the group
+ * collapse animation needs its leaves mounted across the `1fr`↔`0fr`
+ * transition, which a measured window would unmount.
  */
 export function useVirtualWindow({
 	count,

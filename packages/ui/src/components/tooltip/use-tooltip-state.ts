@@ -117,6 +117,12 @@ export function useTooltipState({
 	const hover = useHover(context, {
 		enabled: enabled && hasHover,
 		delay: { open: delay, close: 100 },
+		// A bare `safePolygon()` takes floating-ui's defaults, and `requireIntent`
+		// is one of them. It reads cursor speed: a traverse slower than 0.1 px/ms
+		// reads as unintentional and closes the tooltip on a 40 ms timer — the one
+		// case an interactive tooltip most wants to survive. The dial, if a careful
+		// cursor ever reads as closing, is `{ requireIntent: false, buffer: 2 }`;
+		// `buffer` defaults to 0.5.
 		...(interactive && { handleClose: safePolygon() }),
 	})
 

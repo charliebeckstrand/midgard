@@ -32,6 +32,8 @@ The [`module-filename-boundary.test.ts`](../../__tests__/boundary/module-filenam
 
 - **Rule reordering.** Drag or keyboard reorder of a group's children, over the same immutable `engine/query-tree` edits.
 
+- **Bounds from the column's own span.** A `between` rule edits two free-form bounds, so nothing tells the user what range the data holds, and nothing stops a pair that selects no rows. TanStack Table's `getFacetedMinMaxValues` derives `[min, max]` per column and is imported nowhere today, while its sibling `getFacetedUniqueValues` is already wired in [`grid/engine/grid-table/options.ts`](../grid/engine/grid-table/options.ts) and read by [`grid-table/views.ts`](../grid/engine/grid-table/views.ts) to fill a `select` rule's options. The same edge carries the span: wire the second facet, surface it beside the unique values, and let the range editor in [`query-builder-rule-value.tsx`](query-builder/query-builder-rule-value.tsx) clamp and placeholder against it. An addition rather than a replacement, and it only pays where the query has a grid behind it — a standalone `QueryBuilder` has no facets to read.
+
 ---
 
 **See also:** [`index.ts`](index.ts) (the public surface) · [`docs/plans/2026-07-12-QUERY-MODULE-PLAN.md`](../../../docs/plans/2026-07-12-QUERY-MODULE-PLAN.md) (the design record) · [grid `ROADMAP.md` §Engine](../grid/ROADMAP.md) (the invariants this adopts) · [`docs/MODULES.md`](../../../docs/MODULES.md).
