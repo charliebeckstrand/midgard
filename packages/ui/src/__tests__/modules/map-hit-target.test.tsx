@@ -33,7 +33,13 @@ describe('dot hit targets', () => {
 	it('spells the same fine radius in the class as the constant names', () => {
 		// Tailwind scans source for whole class strings, so the radius cannot be
 		// interpolated from the constant. This is what keeps the two in step.
-		expect(k.hitFine).toBe(`pointer-fine:[r:${POINT_HIT_RADIUS_FINE}px]`)
+		expect(k.hitFine).toBe(`pointer-fine:[r:calc(${POINT_HIT_RADIUS_FINE}px*var(${k.hitScale},1))]`)
+	})
+
+	it('falls the counter-scale back to one, so a static map needs no declaration', () => {
+		// Only a zoom layer sets the property. Without that fallback every dot on
+		// every unzoomable map would resolve `r` to nothing and take no fine target.
+		expect(k.hitFine).toContain(`var(${k.hitScale},1)`)
 	})
 
 	it('holds the coarse floor, and keeps the fine target off the marks around it', () => {

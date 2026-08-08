@@ -104,6 +104,11 @@ export const POINT_HIT_RADIUS = 22
  * radius, so a browser that resolves no `r` in CSS keeps the larger target. A
  * mark drawn wider than this keeps that coarse radius instead — see
  * `dotHitProps`.
+ *
+ * A CSS length on an SVG shape is a user unit, so the class counter-scales this
+ * by the zoom layer's units-per-pixel to hold it at a device-pixel size — the
+ * division `dotHitProps` performs for the coarse radius, in the one place a CSS
+ * value can reach.
  * @internal
  */
 export const POINT_HIT_RADIUS_FINE = 5.5

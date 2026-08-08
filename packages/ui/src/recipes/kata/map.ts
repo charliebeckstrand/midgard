@@ -44,11 +44,31 @@ export const k = {
 	 * mouse figure sits under WCAG 2.5.8's 24px minimum deliberately, and
 	 * `POINT_HIT_RADIUS_FINE` states why.
 	 *
+	 * The radius counter-scales through {@link k.hitScale}, because a CSS length on
+	 * an SVG shape is a user unit: the zoom layer's transform would otherwise
+	 * multiply this target by the view's scale, where the coarse radius on the `r`
+	 * attribute divides the scale back out in `dotHitProps`. Unmultiplied, the
+	 * target grew to 88px at the map's 8× ceiling — past 4× a mouse claimed more
+	 * ground than a finger, and two stops that a zoom had just separated overlapped
+	 * so far that only one of them answered at all.
+	 *
 	 * The radius is spelled out here rather than read from
 	 * `POINT_HIT_RADIUS_FINE`, because Tailwind scans source for whole class
 	 * strings; `map-hit-target.test.tsx` pins the two together.
 	 */
-	hitFine: 'pointer-fine:[r:5.5px]',
+	hitFine: 'pointer-fine:[r:calc(5.5px*var(--map-upp,1))]',
+	/**
+	 * The custom property {@link k.hitFine} counter-scales through: what one device
+	 * pixel spans under the plat's zoom. `MapPlat` sets it once on the transformed
+	 * group, and every hit shape below inherits it — one declaration for a set that
+	 * draws hundreds of them, where a style per dot would allocate on the render
+	 * path `dotHitProps` exists to keep cheap.
+	 *
+	 * Named here beside the class that reads it, so the setter and the reader hold
+	 * one spelling. The fallback in that class is `1`, so a plat with no zoom layer
+	 * resolves the target to the drawn radius and needs no declaration at all.
+	 */
+	hitScale: '--map-upp',
 	/**
 	 * The standing pick's ink, on an overlay mark's halo — the same token the
 	 * region ring takes (`region.selected`), so one map never marks its geography

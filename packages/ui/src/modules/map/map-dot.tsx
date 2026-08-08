@@ -178,10 +178,15 @@ export function MapDotCount({
  * either way; only the fiber goes.
  *
  * Both reaches are pixel measures and the radius is drawn in frame units, so
- * `scale` — what one device pixel spans under the plat's zoom — converts them
- * here. Doing it in the factory rather than at each mark is what keeps a target
- * from ballooning with the view: the rule has one home, and a mark added later
- * gets it by construction.
+ * `scale` — what one device pixel spans under the plat's zoom — converts the
+ * coarse one here. Doing it in the factory rather than at each mark is what keeps
+ * a target from ballooning with the view: the rule has one home, and a mark added
+ * later gets it by construction.
+ *
+ * The fine reach cannot convert here, because it reaches the shape as a CSS
+ * length and CSS wins over the attribute. It counter-scales through the custom
+ * property the zoom layer publishes instead (`k.hitScale`), which is the same
+ * division in the one place that can reach it.
  *
  * The mark's own hit props go in rather than over: `r` and `fill` are not the
  * caller's to set, and the mark's `className` composes with the floor instead of
