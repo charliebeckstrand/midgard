@@ -42,14 +42,7 @@ export function PopoverTrigger({ children, className }: PopoverTriggerProps) {
 	// reference; both receive the node.
 	const childRef = (child?.props as { ref?: Ref<HTMLElement> } | undefined)?.ref
 
-	// The cloned child is any element, so the node is an `HTMLElement`. The
-	// context types `triggerRef` as a button — true of the fallback `<button>`
-	// only — and the cast keeps that narrower declaration.
-	const mergeRefs = useFloatingReference<HTMLElement>(
-		setReference,
-		triggerRef as Ref<HTMLElement>,
-		childRef,
-	)
+	const mergeRefs = useFloatingReference<HTMLElement>(setReference, triggerRef, childRef)
 
 	const shouldIgnore = useCallback((event: SyntheticEvent<HTMLElement>): boolean => {
 		return event.target instanceof Element && event.target.closest('[data-popover-ignore]') !== null

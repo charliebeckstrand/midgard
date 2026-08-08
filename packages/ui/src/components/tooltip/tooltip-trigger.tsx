@@ -55,7 +55,9 @@ export function TooltipTrigger({ children }: TooltipTriggerProps) {
 
 	const childRef = (child?.props as { ref?: Ref<HTMLElement> } | undefined)?.ref
 
-	const mergeRefs = useFloatingReference<HTMLElement>(setReference, childRef)
+	// No trigger ref of its own: the tooltip reads its reference through
+	// floating-ui alone.
+	const mergeRefs = useFloatingReference<HTMLElement>(setReference, undefined, childRef)
 
 	const triggerClassName = cn(k.trigger, enabled && k.cursor)
 

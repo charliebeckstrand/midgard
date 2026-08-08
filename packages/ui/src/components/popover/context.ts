@@ -16,7 +16,7 @@ type PopoverContextValue = {
 	 * affordance would use.
 	 */
 	close: () => void
-	triggerRef: RefObject<HTMLButtonElement | null>
+	triggerRef: RefObject<HTMLElement | null>
 	setReference: (node: HTMLElement | null) => void
 	setFloating: (node: HTMLElement | null) => void
 	floatingStyles: CSSProperties

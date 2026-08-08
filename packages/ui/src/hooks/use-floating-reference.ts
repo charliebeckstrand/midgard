@@ -19,20 +19,20 @@ import { useComposedRef } from './use-composed-ref'
  * `useMergeRefs` returns no cleanup of its own, so React calls it with `null` on
  * unmount and it nulls every input ref alike.
  *
- * Give the same count of `refs` on every render. They become the dependency
- * array of the composed ref, which React rejects if its length changes — pass an
- * absent ref as `undefined` rather than dropping the argument.
- *
  * @param setReference - The floating element's reference setter.
- * @param refs - The trigger's own refs, each safe to null on unmount.
+ * @param triggerRef - The trigger's own ref, or `undefined` where it keeps none.
+ * @param childRef - A cloned child's `ref`, or `undefined` where there is no child.
  * @returns One callback ref for the trigger node.
  * @internal
  */
 export function useFloatingReference<T extends HTMLElement>(
 	setReference: (node: HTMLElement | null) => void,
-	...refs: (Ref<T> | undefined)[]
+	triggerRef: Ref<T> | undefined,
+	childRef: Ref<T> | undefined,
 ): RefCallback<T> {
-	const setOwnRefs = useComposedRef<T>(...refs)
+	// Fixed arity, because these two reach the dependency array of the composed
+	// ref and React rejects an array whose length changes between renders.
+	const setOwnRefs = useComposedRef<T>(triggerRef, childRef)
 
 	return useCallback(
 		(node: T | null) => {
