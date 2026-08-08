@@ -33,37 +33,30 @@ export const k = {
 	 */
 	clickable: CLICKABLE,
 	/**
-	 * Takes a mark's hit circle down to the fine-pointer target, over the coarse
-	 * radius its `r` attribute carries — 44px for a finger (WCAG 2.5.5's enhanced
-	 * target), 11px for a mouse, which is the drawn dot and no more — in the one
-	 * form an SVG shape allows, since only CSS can read the input modality.
+	 * Takes a mark's hit circle from the coarse reach its `r` attribute carries —
+	 * 44px for a finger, WCAG 2.5.5's enhanced target — down to the fine-pointer
+	 * one, in the one form an SVG shape allows: only CSS can read the input
+	 * modality. `dotHitProps` sets the radius itself on {@link k.hitRadius}.
 	 *
 	 * It is what lets a small area mark be pointed at: a `MapGeofence` drawn tight
 	 * around a `MapPoint` sits wholly inside a finger-sized circle, so without this
 	 * the dot claims the zone's whole face and the two can never be told apart. The
-	 * mouse figure sits under WCAG 2.5.8's 24px minimum deliberately, and
+	 * mouse target sits under WCAG 2.5.8's 24px minimum deliberately, and
 	 * `POINT_HIT_RADIUS_FINE` states why.
 	 *
-	 * The radius itself arrives on {@link k.hitRadius}, which `dotHitProps` sets per
-	 * shape: the target must cover the mark, and a summary dot draws wider than this
-	 * reach. That factory holds the arithmetic for the coarse radius already, so the
-	 * fine one is resolved beside it rather than in CSS — the class answers the
-	 * modality, which is the one thing an attribute cannot.
-	 *
-	 * The fallback is spelled out here rather than read from
-	 * `POINT_HIT_RADIUS_FINE`, because Tailwind scans source for whole class
-	 * strings; `map-hit-target.test.tsx` pins the two together.
+	 * The fallback is spelled out rather than read from that constant, because
+	 * Tailwind scans source for whole class strings; `map-hit-target.test.tsx` pins
+	 * the two together. It is the radius a dot of the default size draws at, which
+	 * is what an unzoomed plat resolves to.
 	 */
-	hitFine: 'pointer-fine:[r:var(--map-hit-r,5.5px)]',
+	hitFine: 'pointer-fine:[r:var(--map-hit-radius,5.5px)]',
 	/**
-	 * The custom property {@link k.hitFine} reads its radius from — the fine reach,
-	 * widened to cover a mark drawn past it and divided by the plat's zoom scale, so
-	 * the target holds one device-pixel size at every scale.
-	 *
-	 * Named here beside the class that reads it, so the setter and the reader hold
-	 * one spelling.
+	 * The custom property {@link k.hitFine} reads its radius from: the dot the
+	 * target covers, divided by the plat's zoom scale so the target holds one
+	 * device-pixel size at every scale. Named here beside the class that reads it,
+	 * so the setter and the reader hold one spelling.
 	 */
-	hitRadius: '--map-hit-r',
+	hitRadius: '--map-hit-radius',
 	/**
 	 * The standing pick's ink, on an overlay mark's halo — the same token the
 	 * region ring takes (`region.selected`), so one map never marks its geography

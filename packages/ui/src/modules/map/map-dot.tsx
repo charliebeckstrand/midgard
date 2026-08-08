@@ -4,7 +4,7 @@ import { motion } from 'motion/react'
 import type { CSSProperties } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
-import { POINT_HIT_RADIUS, POINT_HIT_RADIUS_FINE } from './engine/map-constants'
+import { POINT_HIT_RADIUS } from './engine/map-constants'
 import { dotPath } from './engine/map-geometry/mark'
 import { transformAttribute } from './engine/map-zoom/transform'
 import type { MapPoint2D } from './engine/types'
@@ -16,6 +16,20 @@ import type { MapOverlay } from './use-map-overlay'
  * caller could use to widen the target. @internal
  */
 type MapOverlayHit = ReturnType<MapOverlay['hit']>
+
+/** What {@link dotHitProps} covers: one dot, at one size, under one view. @internal */
+type MapDotHitSpec = {
+	/** The shape's `data-slot` name. */
+	slot: string
+	/** The dot's projected frame position; the target centres on it. */
+	at: MapPoint2D
+	/** The mark's own hit props — `useMapOverlay`'s `hit()` return. */
+	hit: MapOverlayHit
+	/** Frame units per device pixel under the plat's zoom; both reaches divide by it. */
+	scale: number
+	/** The radius the dot draws at, in device pixels. The fine target covers exactly it. */
+	radius: number
+}
 
 /** Props for {@link MapDot}. @internal */
 type MapDotProps = {
@@ -152,21 +166,11 @@ export function MapDotCount({
 /**
  * Every attribute of the invisible circle that answers the pointer over a
  * dot-shaped mark — a point, a marker pin, one dot of a set. One rule for all of
- * them, because the target's size answers the input device rather than the mark:
- * the `r` attribute carries the coarse-pointer reach (WCAG 2.5.5's 44px) and
- * `k.hitFine` takes it to the fine-pointer target (a 5.5px radius, the drawn dot
- * and no more), so a mouse gets precision where a finger gets reach.
- *
- * That precision is what lets a small mark be aimed at through a dot standing in
- * it: a `MapGeofence` drawn tight around a `MapPoint` fits inside the finger
- * target, and a depot at a catchment's centre would otherwise claim the middle of
- * its own zone.
- *
- * `radius` is the dot the target covers, and the fine reach widens to it: a
- * target narrower than its own mark would leave the mark a dead rim, so a summary
- * dot grown past the reach — the `CLUSTER_RADIUS_STEPS` grades — is covered by
- * its own radius rather than by the reach. The `TouchTarget` primitive floors an
- * interactive host the same way, at `max(100%, …)`.
+ * them: a finger gets reach and a mouse gets precision, so the `r` attribute
+ * carries WCAG 2.5.5's 44px and `k.hitFine` takes it down to the dot the mark
+ * draws. The mouse target is the mark itself — everywhere it paints, nowhere it
+ * does not — which is what lets a `MapGeofence` drawn tight around a `MapPoint`
+ * still answer, and what keeps a depot off the middle of its own catchment.
  *
  * A props factory rather than a component, because a `MapPoints` draws one of
  * these per dot: a component's own fiber priced 200 of them at ~1 µs each, +14%
@@ -176,40 +180,31 @@ export function MapDotCount({
  *
  * Both reaches are pixel measures and the shape draws in frame units, so `scale`
  * — what one device pixel spans under the plat's zoom — divides both here. The
- * coarse one rides the `r` attribute and the fine one a custom property the class
- * reads (`k.hitRadius`), because only CSS can answer the modality; a CSS length on
- * an SVG shape is a user unit, so it takes the same division. Resolving both in
- * the factory is what keeps a target from ballooning with the view: the rule has
- * one home, and a mark added later gets it by construction.
+ * coarse one rides the `r` attribute. The fine one rides a custom property the
+ * class reads (`k.hitRadius`), because only CSS can answer the modality and a CSS
+ * length on an SVG shape is a user unit like any other. Resolving both here is
+ * what keeps a target from ballooning with the view: the rule has one home, and a
+ * mark added later gets it by construction.
  *
- * The property rides each shape rather than the zoom layer above them all. It
- * would inherit from there and cost one declaration instead of hundreds — but an
- * inherited custom property on the ancestor of the whole atlas recomputes style
- * for every region path under it on each notch of a gesture, which is the work
- * the layer's own memoisation exists to avoid.
+ * That property rides each shape rather than the zoom layer over them all, where
+ * one declaration would serve every dot. An inherited custom property on the
+ * atlas's own ancestor recomputes style for every region path beneath it, on each
+ * notch of a gesture — the work that layer's memoisation exists to prevent.
  *
  * The mark's own hit props go in rather than over: `r` and `fill` are not the
- * caller's to set, and the mark's `className` composes with the floor instead of
- * replacing it.
+ * caller's to set, and the mark's `className` composes with the target class
+ * instead of replacing it.
  *
  * @internal
  */
-export function dotHitProps(
-	slot: string,
-	at: MapPoint2D,
-	hit: MapOverlayHit,
-	scale: number,
-	radius: number,
-) {
+export function dotHitProps({ slot, at, hit, scale, radius }: MapDotHitSpec) {
 	return {
 		'data-slot': slot,
 		cx: at.x,
 		cy: at.y,
 		r: POINT_HIT_RADIUS * scale,
 		fill: 'transparent',
-		style: {
-			[k.hitRadius]: `${Math.max(POINT_HIT_RADIUS_FINE, radius) * scale}px`,
-		} as CSSProperties,
+		style: { [k.hitRadius]: `${radius * scale}px` } as CSSProperties,
 		...hit,
 		className: cn(k.hitFine, hit.className),
 	}

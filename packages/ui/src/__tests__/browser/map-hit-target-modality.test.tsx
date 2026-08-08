@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { MapGeofence, MapPlat, MapPoint, MapPoints } from '../../modules/map'
+import { clusterRadius } from '../../modules/map/engine/map-cluster/radius'
 import {
-	CLUSTER_RADIUS_STEPS,
 	MAP_ZOOM_MAX,
 	MAP_ZOOM_STEP,
 	POINT_HIT_RADIUS,
@@ -48,12 +48,12 @@ function zoomToCeiling(plot: Element, onStep?: () => void) {
  * back to the finger-sized target, and a `MapGeofence` drawn tight around a
  * `MapPoint` would stop answering the mouse.
  *
- * So the second case probes what the pointer actually lands on rather than what
- * the target computes to, the way `grid-target-size` does: a real layout engine
- * is the only thing that can resolve one target through another.
+ * Some cases probe what the pointer actually lands on rather than what the target
+ * computes to, the way `grid-target-size` does: a real layout engine is the only
+ * thing that can resolve one target through another.
  *
  * The relations between the two radii are pinned in jsdom
- * (`modules/map-hit-target`); these are the two things only a browser can say.
+ * (`modules/map-hit-target`); this file says what only a browser can.
  */
 describe('dot hit target by pointer modality', () => {
 	it('resolves to the fine target while the coarse reach stays on the attribute', () => {
@@ -99,10 +99,10 @@ describe('dot hit target by pointer modality', () => {
 			expect(document.elementFromPoint(cx, cy + offset)).toBe(dot)
 		}
 
-		// And gives back the rest of the zone's middle. At the old 24px target every
-		// one of these probes answered the depot, so the catchment's own centre could
-		// not be pointed at with a mouse.
-		for (const offset of [8, 12, 16, 20]) {
+		// And gives back the rest of the zone's middle. Both of these answered the
+		// depot at the old 12px radius, so the catchment's own centre could not be
+		// pointed at with a mouse.
+		for (const offset of [8, 12]) {
 			expect(document.elementFromPoint(cx + offset, cy)).toBe(zone)
 
 			expect(document.elementFromPoint(cx, cy + offset)).toBe(zone)
@@ -119,11 +119,9 @@ describe('dot hit target by pointer modality', () => {
 
 		const summary = present(bySlot(container, 'map-points-hit'), 'summary hit target')
 
-		// The grade it draws at, not the fine reach under it and not the 22px coarse
-		// reach over it: a summary took the whole finger target while the class was
-		// withheld from anything wider than the reach, which is four times the ground
-		// an 18px dot paints.
-		expect(radiusOf(summary)).toBeCloseTo(CLUSTER_RADIUS_STEPS[0].radius, 0)
+		// The grade it draws at, not the 22px coarse reach the attribute carries: a
+		// summary took that whole finger target while one figure served every dot.
+		expect(radiusOf(summary)).toBeCloseTo(clusterRadius(2), 0)
 	})
 
 	it('holds that target at one size through every scale the view takes', () => {
@@ -142,8 +140,8 @@ describe('dot hit target by pointer modality', () => {
 		zoomToCeiling(plot, () => radii.push(radiusOf(dot)))
 
 		// A CSS length on an SVG shape is a user unit, so an uncorrected target rode
-		// the transform: 5.5px at rest and 43.8px at the ceiling, eight times the dot
-		// a reader can see. The spread is the rounding in the transform attribute.
+		// the transform: a 5.5px radius at rest and 43.8px at the ceiling, eight times
+		// the dot a reader sees. The spread is the transform attribute's rounding.
 		expect(Math.max(...radii) - Math.min(...radii)).toBeLessThan(0.1)
 
 		// Measured rather than assumed constant: a target pinned at the wrong size

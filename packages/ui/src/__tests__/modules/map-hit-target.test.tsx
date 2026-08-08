@@ -1,14 +1,14 @@
 import type { ReactNode } from 'react'
 import { describe, expect, it } from 'vitest'
 import { MapMarker, MapPlat, MapPoint, MapPoints } from '../../modules/map'
+import { clusterRadius } from '../../modules/map/engine/map-cluster/radius'
 import {
-	CLUSTER_RADIUS_STEPS,
 	POINT_HIT_RADIUS,
 	POINT_HIT_RADIUS_FINE,
 	POINT_RADIUS,
 } from '../../modules/map/engine/map-constants'
 import { k } from '../../recipes/kata/map'
-import { allBySlot, bySlot, renderUI } from '../helpers'
+import { allBySlot, bySlot, present, renderUI } from '../helpers'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 
 function plat(children: ReactNode) {
@@ -23,8 +23,8 @@ function plat(children: ReactNode) {
  * The pointer target on the dot-shaped marks. The size is a rule about the input
  * device, not about the mark, so every dot target reads one rule: the `r`
  * attribute carries the coarse reach, and the class reads the fine one off a
- * custom property the factory sets — widened to cover a mark drawn past the reach,
- * since a target narrower than its own dot would leave the dot a dead rim.
+ * custom property the factory sets to the dot's own drawn radius — a target
+ * narrower than its own dot would leave the dot a dead rim.
  *
  * The class only resolves in a real browser, so `browser/map-hit-target-modality`
  * gates what it computes to; these cases gate what is rendered and how the two
@@ -38,7 +38,7 @@ describe('dot hit targets', () => {
 		expect(k.hitFine).toBe(`pointer-fine:[r:var(${k.hitRadius},${POINT_HIT_RADIUS_FINE}px)]`)
 	})
 
-	it('holds the coarse floor, and keeps the fine target off the marks around it', () => {
+	it('holds the coarse reach, and pins the fine target to the drawn dot', () => {
 		// WCAG 2.5.5 (enhanced) for a coarse pointer — what `TouchTarget` floors a
 		// finger at, and the reach a finger genuinely needs.
 		expect(POINT_HIT_RADIUS * 2).toBe(44)
@@ -48,11 +48,9 @@ describe('dot hit targets', () => {
 		expect(POINT_HIT_RADIUS_FINE * 2).toBe(11)
 
 		// The drawn dot exactly — no reach past what the mark paints, and no dead
-		// rim inside it.
+		// rim inside it. This is the class's fallback; `dotHitProps` sets each
+		// shape's own radius, so a summary is covered by the grade it draws at.
 		expect(POINT_HIT_RADIUS_FINE).toBe(POINT_RADIUS)
-
-		// And a quarter of the coarse reach, which is the relation the two hold.
-		expect(POINT_HIT_RADIUS_FINE * 4).toBe(POINT_HIT_RADIUS)
 	})
 
 	it('applies one rule to every dot-shaped target', () => {
@@ -86,10 +84,10 @@ describe('dot hit targets', () => {
 		}
 	})
 
-	it('widens the fine target to a summary dot the reach would cut inside', () => {
+	it('carries a summary’s own radius on the property the target reads', () => {
 		const { container } = renderUI(
 			// Two stops ~4px apart in a 400px frame, so they merge into one summary —
-			// drawn at the first `CLUSTER_RADIUS_STEPS` grade, wider than the fine reach.
+			// drawn at the first cluster grade, wider than the dot a lone stop draws.
 			plat(<MapPoints label="Stops" points={[{ at: [8, 5] }, { at: [8.3, 5] }]} />),
 		)
 
@@ -100,9 +98,10 @@ describe('dot hit targets', () => {
 		expect(targets).toHaveLength(1)
 
 		// A 5.5px target inside a 9px dot would leave the dot a dead rim, so the
-		// property carries the grade the summary draws at rather than the reach.
-		expect(targets[0]?.getAttribute('style')).toBe(
-			`${k.hitRadius}: ${CLUSTER_RADIUS_STEPS[0].radius}px;`,
+		// property carries the grade the summary draws at rather than one figure for
+		// every dot. `clusterRadius` is what the mark itself passes.
+		expect(present(targets[0], 'summary hit target').style.getPropertyValue(k.hitRadius)).toBe(
+			`${clusterRadius(2)}px`,
 		)
 	})
 
@@ -112,12 +111,12 @@ describe('dot hit targets', () => {
 		expect(bySlot(container, 'map-point-hit')?.getAttribute('fill')).toBe('transparent')
 	})
 
-	it('composes the mark’s own hit class with the floor rather than replacing it', () => {
+	it('composes the mark’s own hit class with the target class rather than replacing it', () => {
 		const { container } = renderUI(plat(<MapPoint label="Depot" at={[8, 5]} onClick={() => {}} />))
 
 		const className = bySlot(container, 'map-point-hit')?.getAttribute('class') ?? ''
 
-		// A clickable mark carries the pointer affordance; the floor rides beside it.
+		// A clickable mark carries the pointer affordance; the target rides beside it.
 		expect(className).toContain(k.hitFine)
 
 		expect(className).toContain(k.clickable)
