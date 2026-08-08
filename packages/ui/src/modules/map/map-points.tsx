@@ -281,7 +281,15 @@ export function MapPoints({
 								/>
 							)}
 
-							<circle {...dotHitProps('map-points-hit', position, hit(index), unitsPerPixel)} />
+							<circle
+								{...dotHitProps({
+									slot: 'map-points-hit',
+									at: position,
+									hit: hit(index),
+									scale: unitsPerPixel,
+									radius,
+								})}
+							/>
 						</Fragment>
 					)
 				})}
