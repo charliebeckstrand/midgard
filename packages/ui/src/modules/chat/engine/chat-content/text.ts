@@ -1,0 +1,42 @@
+import type { ChatPart } from './types'
+
+/** Markdown separates two blocks with a blank line, and so does a projection of two parts. @internal */
+const BLOCK_SEPARATOR = '\n\n'
+
+/**
+ * One part as plain text. The switch holds every kind. A kind added later
+ * returns nothing here, and the compiler reports it, so a new kind cannot join
+ * the projection as silence.
+ *
+ * @internal
+ */
+function partText(part: ChatPart): string {
+	switch (part.kind) {
+		case 'text':
+			return part.text
+	}
+}
+
+/**
+ * A part list as one plain-text string. Copy, conversation search, and the
+ * screen-reader announcement each read a message this way. The projection is
+ * therefore one named function, rather than a `map` and a `join` at three call
+ * sites.
+ *
+ * Each part projects to its own text, and a blank line joins the results.
+ * Markdown puts the same blank line between two blocks. A part that projects to
+ * nothing drops out first, so it leaves no blank gap.
+ *
+ * One part alone projects to its own text and nothing else. That holds the
+ * round trip: a string normalizes to one text part, and the part projects back
+ * to the same bytes.
+ *
+ * @internal
+ * @param parts - The message's parts, in the order the transcript draws them.
+ */
+export function chatPartsText(parts: ChatPart[]): string {
+	return parts
+		.map(partText)
+		.filter((text) => text !== '')
+		.join(BLOCK_SEPARATOR)
+}
