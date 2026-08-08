@@ -86,3 +86,45 @@ type MapNoData = MapNumericAbsent & {
  * @internal
  */
 export type MapRegionData<T> = MapCategoricalData<T> | MapNumericData<T> | MapNoData
+
+/**
+ * The numeric branch's own shape with every field optional — the choropleth
+ * fields as a caller holds them before it knows it has a scale to shade by.
+ *
+ * @internal
+ */
+type MapNumericInput<T> = Partial<MapNumericData<T>>
+
+/**
+ * Narrows loose choropleth fields onto one branch of {@link MapRegionData}: the
+ * numeric branch when the rows, the join key, the value key, and the ramp are
+ * all present, the data-less map when any one of them is missing.
+ *
+ * @remarks A caller that reads its scale out of an optional series holds no
+ * whole branch to hand on. `ChoroplethChart` takes `series[0]`, which
+ * `noUncheckedIndexedAccess` types as possibly absent, so each field it reads
+ * widens by `undefined` and the object it assembles matches no branch — the
+ * reason that call site asserted its props rather than checking them. The four
+ * fields the branch requires are tested together here, once, so the object
+ * comes out of the test as a branch the union already accepts.
+ * @internal
+ */
+export function numericRegionData<T>(fields: MapNumericInput<T>): MapRegionData<T> {
+	const { data, regionKey, valueKey, colorRange } = fields
+
+	// Any one of the four missing and there is no scale, so the map draws its
+	// geography in the neutral fill. The empty branch goes back rather than the
+	// fields that came in, because a partial numeric object is exactly what the
+	// union exists to refuse; nothing reads differently for it, since rows with
+	// no `regionKey` to join on already resolve neutral (`useMapRegionReadout`).
+	if (
+		data === undefined ||
+		regionKey === undefined ||
+		valueKey === undefined ||
+		colorRange === undefined
+	) {
+		return {}
+	}
+
+	return { ...fields, data, regionKey, valueKey, colorRange }
+}
