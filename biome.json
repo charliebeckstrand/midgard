@@ -54,10 +54,10 @@
 		},
 		{
 			"includes": [
-				"packages/ui/src/modules/chat/**",
-				"packages/ui/src/docs/demos/modules/chat.tsx",
-				"packages/ui/src/__tests__/modules/chat-*",
-				"packages/ui/src/__tests__/a11y/cases/specialized.tsx"
+				"**/src/modules/chat/**",
+				"**/src/docs/demos/modules/chat.tsx",
+				"**/src/__tests__/modules/chat-*",
+				"**/src/__tests__/a11y/cases/specialized.tsx"
 			],
 			"linter": {
 				"rules": {
