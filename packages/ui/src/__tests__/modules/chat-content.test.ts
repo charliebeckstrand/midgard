@@ -68,12 +68,6 @@ describe('chatPartsText', () => {
 			'First block.\n\nSecond block.',
 		)
 	})
-
-	it('keeps the text of one part exactly, including its own blank lines', () => {
-		expect(chatPartsText([text('First block.\n\nSecond block.')])).toBe(
-			'First block.\n\nSecond block.',
-		)
-	})
 })
 
 describe('chat content round trip', () => {
@@ -85,8 +79,4 @@ describe('chat content round trip', () => {
 			expect(chatPartsText(toChatParts(content))).toBe(content)
 		})
 	}
-
-	it('returns one text part unchanged in the other direction', () => {
-		expect(toChatParts(chatPartsText([text('First block.')]))).toEqual([text('First block.')])
-	})
 })

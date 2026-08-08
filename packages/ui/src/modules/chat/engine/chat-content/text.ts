@@ -18,10 +18,10 @@ function partText(part: ChatPart): string {
 }
 
 /**
- * A part list as one plain-text string. Copy, conversation search, and the
- * screen-reader announcement each read a message this way. The projection is
- * therefore one named function, rather than a `map` and a `join` at three call
- * sites.
+ * A part list as one plain-text string. The roadmap names three readers of a
+ * message in this form: copy, conversation search, and the screen-reader
+ * announcement. The projection is therefore one named function, and not a
+ * `map` and a `join` at each of the three call sites.
  *
  * Each part projects to its own text, and a blank line joins the results.
  * Markdown puts the same blank line between two blocks. A part that projects to
