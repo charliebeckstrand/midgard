@@ -1,6 +1,7 @@
 'use client'
 
 import { motion } from 'motion/react'
+import type { CSSProperties } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
 import { POINT_HIT_RADIUS, POINT_HIT_RADIUS_FINE } from './engine/map-constants'
@@ -153,23 +154,19 @@ export function MapDotCount({
  * dot-shaped mark — a point, a marker pin, one dot of a set. One rule for all of
  * them, because the target's size answers the input device rather than the mark:
  * the `r` attribute carries the coarse-pointer reach (WCAG 2.5.5's 44px) and
- * `k.hitFine` takes it to the fine-pointer target (11px, the drawn dot and no
- * more), so a mouse gets precision where a finger gets reach.
+ * `k.hitFine` takes it to the fine-pointer target (a 5.5px radius, the drawn dot
+ * and no more), so a mouse gets precision where a finger gets reach.
  *
  * That precision is what lets a small mark be aimed at through a dot standing in
  * it: a `MapGeofence` drawn tight around a `MapPoint` fits inside the finger
  * target, and a depot at a catchment's centre would otherwise claim the middle of
  * its own zone.
  *
- * `radius` is the dot the target covers, and it gates that precision: a target
- * narrower than its own mark leaves the mark a dead rim, so a summary dot grown
- * past the fine reach — the `CLUSTER_RADIUS_STEPS` grades — keeps the coarse
- * radius, the narrowest circle here that still holds all of it. The `TouchTarget`
- * primitive floors an interactive host the same way, at `max(100%, …)`.
- *
- * The comparison includes the fine reach, because a point and a marker pin draw
- * at exactly it: excluding it would drop every singular mark back to the finger
- * target and undo the precision the gate exists to protect.
+ * `radius` is the dot the target covers, and the fine reach widens to it: a
+ * target narrower than its own mark would leave the mark a dead rim, so a summary
+ * dot grown past the reach — the `CLUSTER_RADIUS_STEPS` grades — is covered by
+ * its own radius rather than by the reach. The `TouchTarget` primitive floors an
+ * interactive host the same way, at `max(100%, …)`.
  *
  * A props factory rather than a component, because a `MapPoints` draws one of
  * these per dot: a component's own fiber priced 200 of them at ~1 µs each, +14%
@@ -177,16 +174,19 @@ export function MapDotCount({
  * crossing, each legend emphasis, and each refit. The rule stays in one place
  * either way; only the fiber goes.
  *
- * Both reaches are pixel measures and the radius is drawn in frame units, so
- * `scale` — what one device pixel spans under the plat's zoom — converts the
- * coarse one here. Doing it in the factory rather than at each mark is what keeps
- * a target from ballooning with the view: the rule has one home, and a mark added
- * later gets it by construction.
+ * Both reaches are pixel measures and the shape draws in frame units, so `scale`
+ * — what one device pixel spans under the plat's zoom — divides both here. The
+ * coarse one rides the `r` attribute and the fine one a custom property the class
+ * reads (`k.hitRadius`), because only CSS can answer the modality; a CSS length on
+ * an SVG shape is a user unit, so it takes the same division. Resolving both in
+ * the factory is what keeps a target from ballooning with the view: the rule has
+ * one home, and a mark added later gets it by construction.
  *
- * The fine reach cannot convert here, because it reaches the shape as a CSS
- * length and CSS wins over the attribute. It counter-scales through the custom
- * property the zoom layer publishes instead (`k.hitScale`), which is the same
- * division in the one place that can reach it.
+ * The property rides each shape rather than the zoom layer above them all. It
+ * would inherit from there and cost one declaration instead of hundreds — but an
+ * inherited custom property on the ancestor of the whole atlas recomputes style
+ * for every region path under it on each notch of a gesture, which is the work
+ * the layer's own memoisation exists to avoid.
  *
  * The mark's own hit props go in rather than over: `r` and `fill` are not the
  * caller's to set, and the mark's `className` composes with the floor instead of
@@ -207,7 +207,10 @@ export function dotHitProps(
 		cy: at.y,
 		r: POINT_HIT_RADIUS * scale,
 		fill: 'transparent',
+		style: {
+			[k.hitRadius]: `${Math.max(POINT_HIT_RADIUS_FINE, radius) * scale}px`,
+		} as CSSProperties,
 		...hit,
-		className: cn(radius <= POINT_HIT_RADIUS_FINE ? k.hitFine : undefined, hit.className),
+		className: cn(k.hitFine, hit.className),
 	}
 }

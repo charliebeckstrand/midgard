@@ -1,7 +1,6 @@
 'use client'
 
 import {
-	type CSSProperties,
 	type ReactNode,
 	startTransition,
 	useCallback,
@@ -352,14 +351,6 @@ function MapMarksLayer({ animate, children }: { animate: boolean; children: Reac
  * Mounting the provider here rather than over the whole plat keeps both halves
  * of the zoom's contribution to the tree behind one condition.
  *
- * The scale also rides a custom property (`k.hitScale`) for the one spec CSS
- * owns rather than an attribute: the dots' fine-pointer target, which reads a
- * media query no attribute can answer. A CSS length on an SVG shape is a user
- * unit, so the transform would multiply that target by the view's scale. The
- * property sits here rather than on each hit shape because custom properties
- * inherit — a set drawing hundreds of dots pays one declaration, and a mark
- * added later counter-scales without knowing this layer exists.
- *
  * It stops answering the pointer for the length of any view gesture — a pan, a
  * pinch, or a wheel that has not settled — so the geography travelling under a
  * held pointer raises no readout and fires no crossing. A gesture moves the
@@ -379,7 +370,6 @@ function MapZoomLayer({ children }: { children: ReactNode }) {
 				data-slot="map-zoom"
 				transform={transformAttribute(zoom.transform)}
 				pointerEvents={zoom.gesturing ? 'none' : undefined}
-				style={{ [k.hitScale]: zoom.unitsPerPixel } as CSSProperties}
 			>
 				{children}
 			</g>

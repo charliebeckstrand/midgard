@@ -1,14 +1,40 @@
 import { describe, expect, it } from 'vitest'
 import { MapGeofence, MapPlat, MapPoint, MapPoints } from '../../modules/map'
-import { POINT_HIT_RADIUS, POINT_HIT_RADIUS_FINE } from '../../modules/map/engine/map-constants'
-import { allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
+import {
+	CLUSTER_RADIUS_STEPS,
+	MAP_ZOOM_MAX,
+	MAP_ZOOM_STEP,
+	POINT_HIT_RADIUS,
+	POINT_HIT_RADIUS_FINE,
+} from '../../modules/map/engine/map-constants'
+import { allBySlot, bySlot, fireEvent, present, renderUI } from '../helpers'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 
 /** The centre of an element's box, in client coordinates. */
 function centreOf(element: Element) {
 	const box = element.getBoundingClientRect()
 
-	return { x: box.left + box.width / 2, y: box.top + box.height / 2, radius: box.width / 2 }
+	return { x: box.left + box.width / 2, y: box.top + box.height / 2 }
+}
+
+/** The drawn radius of a hit circle, which its box is twice. */
+function radiusOf(element: Element) {
+	return element.getBoundingClientRect().width / 2
+}
+
+/**
+ * How many `+` presses reach the zoom ceiling, derived rather than counted, so a
+ * softer step or a higher ceiling still sweeps the whole range these cases claim.
+ */
+const CEILING_PRESSES = Math.ceil(Math.log(MAP_ZOOM_MAX) / Math.log(MAP_ZOOM_STEP))
+
+/** Zooms a plat to its ceiling from the keyboard. */
+function zoomToCeiling(plot: Element, onStep?: () => void) {
+	for (let press = 0; press < CEILING_PRESSES; press += 1) {
+		fireEvent.keyDown(plot, { key: '+' })
+
+		onStep?.()
+	}
 }
 
 /**
@@ -37,7 +63,7 @@ describe('dot hit target by pointer modality', () => {
 			</MapPlat>,
 		)
 
-		const hit = bySlot(document.body, 'map-point-hit') as Element
+		const hit = present(bySlot(document.body, 'map-point-hit'), 'point hit target')
 
 		// The attribute is the fallback a browser without CSS `r` keeps.
 		expect(hit.getAttribute('r')).toBe(String(POINT_HIT_RADIUS))
@@ -58,9 +84,9 @@ describe('dot hit target by pointer modality', () => {
 			</MapPlat>,
 		)
 
-		const dot = bySlot(document.body, 'map-point-hit') as Element
+		const dot = present(bySlot(document.body, 'map-point-hit'), 'point hit target')
 
-		const zone = bySlot(document.body, 'map-geofence-hit') as Element
+		const zone = present(bySlot(document.body, 'map-geofence-hit'), 'geofence hit target')
 
 		const { x: cx, y: cy } = centreOf(dot)
 
@@ -83,6 +109,23 @@ describe('dot hit target by pointer modality', () => {
 		}
 	})
 
+	it('sizes a summary’s target to the summary rather than to the reach', () => {
+		const { container } = renderUI(
+			// Two stops ~4px apart, so they merge into one summary at the first grade.
+			<MapPlat aria-label="Test map" geography={FIXTURE_GEOJSON} width={400}>
+				<MapPoints label="Stops" points={[{ at: [8, 5] }, { at: [8.3, 5] }]} />
+			</MapPlat>,
+		)
+
+		const summary = present(bySlot(container, 'map-points-hit'), 'summary hit target')
+
+		// The grade it draws at, not the fine reach under it and not the 22px coarse
+		// reach over it: a summary took the whole finger target while the class was
+		// withheld from anything wider than the reach, which is four times the ground
+		// an 18px dot paints.
+		expect(radiusOf(summary)).toBeCloseTo(CLUSTER_RADIUS_STEPS[0].radius, 0)
+	})
+
 	it('holds that target at one size through every scale the view takes', () => {
 		const { container } = renderUI(
 			<MapPlat aria-label="Test map" geography={FIXTURE_GEOJSON} width={400} zoom>
@@ -90,18 +133,13 @@ describe('dot hit target by pointer modality', () => {
 			</MapPlat>,
 		)
 
-		const plot = bySlot(container, 'map-plot') as Element
+		const plot = present(bySlot(container, 'map-plot'), 'plot region')
 
-		const dot = bySlot(container, 'map-point-hit') as Element
+		const dot = present(bySlot(container, 'map-point-hit'), 'point hit target')
 
-		const radii = [centreOf(dot).radius]
+		const radii = [radiusOf(dot)]
 
-		// Six steps of 1.6 reach the 8× ceiling, so this sweeps the whole range.
-		for (let press = 0; press < 6; press += 1) {
-			fireEvent.keyDown(plot, { key: '+' })
-
-			radii.push(centreOf(dot).radius)
-		}
+		zoomToCeiling(plot, () => radii.push(radiusOf(dot)))
 
 		// A CSS length on an SVG shape is a user unit, so an uncorrected target rode
 		// the transform: 5.5px at rest and 43.8px at the ceiling, eight times the dot
@@ -123,11 +161,11 @@ describe('dot hit target by pointer modality', () => {
 			</MapPlat>,
 		)
 
-		const plot = bySlot(container, 'map-plot') as Element
+		const plot = present(bySlot(container, 'map-plot'), 'plot region')
 
-		for (let press = 0; press < 6; press += 1) fireEvent.keyDown(plot, { key: '+' })
+		zoomToCeiling(plot)
 
-		const targets = [...allBySlot(container, 'map-points-hit')]
+		const targets = allBySlot(container, 'map-points-hit')
 
 		// The pair has to have parted, or the case below asserts nothing.
 		expect(targets).toHaveLength(2)

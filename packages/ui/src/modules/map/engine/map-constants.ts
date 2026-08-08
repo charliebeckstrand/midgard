@@ -95,20 +95,11 @@ export const POINT_HIT_RADIUS = 22
  * — so the dot is never the only route to it. The zone under the dot has no such
  * second route, so the dot keeps the pixels it paints and gives back the rest.
  *
- * Sitting on the drawn radius rather than over it is the whole extent of the
- * target: the dot answers everywhere it paints and nowhere it does not, so it
- * takes no ground from the mark beneath it.
- *
  * Applied through `kata/map`'s `hitFine` class rather than the `r` attribute,
  * since only CSS can answer the modality; the attribute carries the coarse
- * radius, so a browser that resolves no `r` in CSS keeps the larger target. A
- * mark drawn wider than this keeps that coarse radius instead — see
- * `dotHitProps`.
- *
- * A CSS length on an SVG shape is a user unit, so the class counter-scales this
- * by the zoom layer's units-per-pixel to hold it at a device-pixel size — the
- * division `dotHitProps` performs for the coarse radius, in the one place a CSS
- * value can reach.
+ * radius, so a browser that resolves no `r` in CSS keeps the larger target. This
+ * is a floor rather than the whole rule: `dotHitProps` widens it to cover a mark
+ * drawn past it, and divides it by the plat's zoom scale.
  * @internal
  */
 export const POINT_HIT_RADIUS_FINE = 5.5

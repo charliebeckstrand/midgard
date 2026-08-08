@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { describe, expect, it } from 'vitest'
 import { MapMarker, MapPlat, MapPoint, MapPoints } from '../../modules/map'
 import {
+	CLUSTER_RADIUS_STEPS,
 	POINT_HIT_RADIUS,
 	POINT_HIT_RADIUS_FINE,
 	POINT_RADIUS,
@@ -21,9 +22,9 @@ function plat(children: ReactNode) {
 /**
  * The pointer target on the dot-shaped marks. The size is a rule about the input
  * device, not about the mark, so every dot target reads one rule: the `r`
- * attribute carries the coarse reach and the class takes it to the fine target.
- * The mark's own size gates that one step, since a target narrower than the dot
- * it covers would leave the dot a dead rim.
+ * attribute carries the coarse reach, and the class reads the fine one off a
+ * custom property the factory sets — widened to cover a mark drawn past the reach,
+ * since a target narrower than its own dot would leave the dot a dead rim.
  *
  * The class only resolves in a real browser, so `browser/map-hit-target-modality`
  * gates what it computes to; these cases gate what is rendered and how the two
@@ -32,14 +33,9 @@ function plat(children: ReactNode) {
 describe('dot hit targets', () => {
 	it('spells the same fine radius in the class as the constant names', () => {
 		// Tailwind scans source for whole class strings, so the radius cannot be
-		// interpolated from the constant. This is what keeps the two in step.
-		expect(k.hitFine).toBe(`pointer-fine:[r:calc(${POINT_HIT_RADIUS_FINE}px*var(${k.hitScale},1))]`)
-	})
-
-	it('falls the counter-scale back to one, so a static map needs no declaration', () => {
-		// Only a zoom layer sets the property. Without that fallback every dot on
-		// every unzoomable map would resolve `r` to nothing and take no fine target.
-		expect(k.hitFine).toContain(`var(${k.hitScale},1)`)
+		// interpolated from the constant. This is what keeps the two in step. The
+		// fallback is what a shape with no property of its own resolves to.
+		expect(k.hitFine).toBe(`pointer-fine:[r:var(${k.hitRadius},${POINT_HIT_RADIUS_FINE}px)]`)
 	})
 
 	it('holds the coarse floor, and keeps the fine target off the marks around it', () => {
@@ -52,15 +48,14 @@ describe('dot hit targets', () => {
 		expect(POINT_HIT_RADIUS_FINE * 2).toBe(11)
 
 		// The drawn dot exactly — no reach past what the mark paints, and no dead
-		// rim inside it. `dotHitProps` compares inclusively for this reason: a
-		// singular mark sits on the reach rather than under it.
+		// rim inside it.
 		expect(POINT_HIT_RADIUS_FINE).toBe(POINT_RADIUS)
 
 		// And a quarter of the coarse reach, which is the relation the two hold.
 		expect(POINT_HIT_RADIUS_FINE * 4).toBe(POINT_HIT_RADIUS)
 	})
 
-	it('applies one rule to every dot-shaped target the fine reach covers', () => {
+	it('applies one rule to every dot-shaped target', () => {
 		const { container } = renderUI(
 			plat(
 				<>
@@ -91,7 +86,7 @@ describe('dot hit targets', () => {
 		}
 	})
 
-	it('keeps the coarse radius on a summary dot the fine target would cut inside', () => {
+	it('widens the fine target to a summary dot the reach would cut inside', () => {
 		const { container } = renderUI(
 			// Two stops ~4px apart in a 400px frame, so they merge into one summary —
 			// drawn at the first `CLUSTER_RADIUS_STEPS` grade, wider than the fine reach.
@@ -104,11 +99,11 @@ describe('dot hit targets', () => {
 
 		expect(targets).toHaveLength(1)
 
-		// A 12px target inside an 18px dot would leave the dot a dead rim, so the
-		// summary holds the coarse radius its `r` attribute already carries.
-		expect(targets[0]?.getAttribute('class') ?? '').not.toContain(k.hitFine)
-
-		expect(targets[0]?.getAttribute('r')).toBe(String(POINT_HIT_RADIUS))
+		// A 5.5px target inside a 9px dot would leave the dot a dead rim, so the
+		// property carries the grade the summary draws at rather than the reach.
+		expect(targets[0]?.getAttribute('style')).toBe(
+			`${k.hitRadius}: ${CLUSTER_RADIUS_STEPS[0].radius}px;`,
+		)
 	})
 
 	it('keeps the hit target a transparent fill, so it answers where the dot does not paint', () => {
