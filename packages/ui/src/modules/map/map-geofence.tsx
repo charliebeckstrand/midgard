@@ -12,7 +12,7 @@ import {
 import { circleRing } from './engine/map-geofence'
 import { areaAnchor, areaPath } from './engine/map-geometry/mark'
 import { GEOFENCE_WASH, ROUTE_DRAW } from './engine/map-motion'
-import type { LngLat } from './engine/types'
+import type { LngLat, MapPolygons } from './engine/types'
 import { MapHalo } from './map-halo'
 import { type MapOverlayProps, useMapOverlay } from './use-map-overlay'
 
@@ -71,7 +71,7 @@ type MapGeofenceArea = {
 	 *
 	 * Hold the array steady across renders, for the reason `boundary` names.
 	 */
-	area: LngLat[][][]
+	area: MapPolygons
 	at?: undefined
 	radius?: undefined
 	boundary?: undefined
@@ -160,10 +160,8 @@ export function MapGeofence({ at, radius, boundary, area, ...shared }: MapGeofen
 		'data-slot': 'map-geofence-wash',
 		d,
 		stroke: 'none',
-		// Even-odd, so a ring inside another ring reads as a hole whichever way
-		// either one winds — which is what lets a dissolved territory draw in the
-		// winding its source gave it. A single-ring zone fills the same under both
-		// rules, so the circle and the lone boundary are unaffected.
+		// See `areaPath` for why even-odd; a single-ring zone fills the same under
+		// both rules, so the circle and the lone boundary are unaffected.
 		fillRule: 'evenodd' as const,
 		fillOpacity: GEOFENCE_FILL_OPACITY,
 		// Off the pointer, as every other drawn shape in the module is

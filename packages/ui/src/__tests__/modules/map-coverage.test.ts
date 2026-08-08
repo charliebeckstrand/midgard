@@ -140,6 +140,40 @@ describe('useMapCoverage', () => {
 		expect(result.current.area).toBe(first.area)
 	})
 
+	it('holds the frame across a keystroke that does not change the states', () => {
+		const { result, rerender } = renderHook(
+			({ coverage }: { coverage: string }) => useMapCoverage({ coverage, zips, regions: counties }),
+			{ initialProps: { coverage: '60601' } },
+		)
+
+		const first = result.current.geography
+
+		// A different territory over the same state. `MapPlat` keys its decode, its
+		// canonical fit, its region paths, and its chrome on this object's identity,
+		// so a fresh one here would re-project the whole county atlas twice on every
+		// character typed into a coverage field.
+		rerender({ coverage: '606' })
+
+		expect(result.current.codes).toEqual(['60601', '60602'])
+
+		expect(result.current.geography).toBe(first)
+	})
+
+	it('rebuilds the frame when the states actually change', () => {
+		const { result, rerender } = renderHook(
+			({ coverage }: { coverage: string }) => useMapCoverage({ coverage, zips, regions: counties }),
+			{ initialProps: { coverage: '60601' } },
+		)
+
+		const first = result.current.geography
+
+		rerender({ coverage: '60601, 46001' })
+
+		expect(result.current.geography).not.toBe(first)
+
+		expect(framed(result.current.geography)).toEqual(['17001', '17002', '18001', '18002'])
+	})
+
 	it('holds its result when the territory is restated as a list', () => {
 		const { result, rerender } = renderHook(
 			({ coverage }: { coverage: string | string[] }) =>

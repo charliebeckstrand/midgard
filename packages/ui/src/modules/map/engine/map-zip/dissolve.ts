@@ -19,19 +19,8 @@
  */
 
 import { feature, merge } from 'topojson-client'
-import type { LngLat, MapFeature, MapGeography, MapTopology } from '../types'
-
-/**
- * The identity fields a ZIP shape carries, in either form: a TopoJSON geometry
- * object and a GeoJSON feature both hold an `id` and `properties`, which is what
- * lets one reader name a code before the topology is decoded.
- *
- * @internal
- */
-type ZipShape = {
-	id?: string | number
-	properties?: Record<string, unknown> | null
-}
+import { decodedFeatures, topologyObject } from '../map-geometry/topology'
+import type { MapFeature, MapGeography, MapPolygons, MapShape, MapTopology } from '../types'
 
 /**
  * The property names a ZCTA source names its code in, in the order they are
@@ -60,7 +49,7 @@ const ZIP_PROPERTY_NAMES = [
  *
  * @internal
  */
-export function defaultZipId(shape: ZipShape): string {
+export function defaultZipId(shape: MapShape): string {
 	if (shape.id !== undefined && shape.id !== null) return String(shape.id)
 
 	const { properties } = shape
@@ -99,7 +88,7 @@ export type MapZipArea = {
 	 */
 	features: MapFeature[]
 	/** The rings: polygon, then ring, then position. Empty where nothing matched. */
-	polygons: LngLat[][][]
+	polygons: MapPolygons
 	/**
 	 * Whether the rings dissolved exactly. False for a feature collection, where
 	 * the interior seams between neighbouring codes stay drawn.
@@ -110,27 +99,27 @@ export type MapZipArea = {
 /** Nothing matched — the shared empty territory, so a miss allocates nothing. @internal */
 const NO_AREA: MapZipArea = { codes: [], features: [], polygons: [], dissolved: false }
 
-/** Whether a geometry is one this pass can draw; `merge` takes areas alone. @internal */
-function isArea(geometry: { type?: unknown } | null | undefined): boolean {
-	return geometry?.type === 'Polygon' || geometry?.type === 'MultiPolygon'
+/** Whether a shape is one this pass can draw; `merge` takes areas alone. @internal */
+function isArea(shape: MapShape): boolean {
+	return shape.type === 'Polygon' || shape.type === 'MultiPolygon'
 }
 
 /** A feature's rings, in the polygon-then-ring shape both geometry kinds flatten to. @internal */
-function featureRings(shape: MapFeature): LngLat[][][] {
+function featureRings(shape: MapFeature): MapPolygons {
 	const geometry = shape.geometry as { type?: string; coordinates?: unknown } | null
 
-	if (geometry?.type === 'Polygon') return [geometry.coordinates as LngLat[][]]
+	if (geometry?.type === 'Polygon') return [geometry.coordinates as MapPolygons[number]]
 
-	if (geometry?.type === 'MultiPolygon') return geometry.coordinates as LngLat[][][]
+	if (geometry?.type === 'MultiPolygon') return geometry.coordinates as MapPolygons
 
 	return []
 }
 
 /** The geometries a topology object holds, whether it collects them or is one itself. @internal */
-function topologyGeometries(object: object): ZipShape[] {
-	const collection = object as { geometries?: ZipShape[] }
+function topologyGeometries(object: object): MapShape[] {
+	const collection = object as { geometries?: MapShape[] }
 
-	return collection.geometries ?? [collection as ZipShape]
+	return collection.geometries ?? [collection as MapShape]
 }
 
 /**
@@ -144,16 +133,14 @@ function dissolveTopology(
 	topology: MapTopology,
 	objectName: string | undefined,
 	matches: (code: string) => boolean,
-	zipId: (shape: ZipShape) => string,
+	zipId: (shape: MapShape) => string,
 ): MapZipArea {
-	const name = objectName ?? Object.keys(topology.objects)[0]
-
-	const object = name === undefined ? undefined : topology.objects[name]
+	const object = topologyObject(topology, objectName)
 
 	if (!object) return NO_AREA
 
 	const matched = topologyGeometries(object).filter(
-		(geometry) => isArea(geometry as { type?: unknown }) && matches(zipId(geometry)),
+		(geometry) => isArea(geometry) && matches(zipId(geometry)),
 	)
 
 	if (matched.length === 0) return NO_AREA
@@ -161,17 +148,15 @@ function dissolveTopology(
 	// One decode over the matched geometries alone, not over the atlas: a
 	// territory is tens or hundreds of codes against tens of thousands in the
 	// file, so this never approaches the cost of drawing the atlas itself.
-	const decoded = feature(
-		topology as unknown as Parameters<typeof feature>[0],
-		{
-			type: 'GeometryCollection',
-			geometries: matched,
-		} as unknown as Parameters<typeof feature>[1],
+	const features = decodedFeatures(
+		feature(
+			topology as unknown as Parameters<typeof feature>[0],
+			{
+				type: 'GeometryCollection',
+				geometries: matched,
+			} as unknown as Parameters<typeof feature>[1],
+		),
 	)
-
-	const features = (decoded.type === 'FeatureCollection'
-		? decoded.features
-		: [decoded]) as unknown as MapFeature[]
 
 	const merged = merge(
 		topology as unknown as Parameters<typeof merge>[0],
@@ -181,7 +166,7 @@ function dissolveTopology(
 	return {
 		codes: matched.map(zipId),
 		features,
-		polygons: merged.coordinates as LngLat[][][],
+		polygons: merged.coordinates as MapPolygons,
 		dissolved: true,
 	}
 }
@@ -195,7 +180,7 @@ function dissolveTopology(
 function gatherFeatures(
 	features: MapFeature[],
 	matches: (code: string) => boolean,
-	zipId: (shape: ZipShape) => string,
+	zipId: (shape: MapShape) => string,
 ): MapZipArea {
 	const matched = features.filter((shape) => matches(zipId(shape)))
 
@@ -226,7 +211,7 @@ export function zipArea(
 	geography: MapGeography | null | undefined,
 	objectName: string | undefined,
 	matches: (code: string) => boolean,
-	zipId: (shape: ZipShape) => string = defaultZipId,
+	zipId: (shape: MapShape) => string = defaultZipId,
 ): MapZipArea {
 	if (geography == null) return NO_AREA
 

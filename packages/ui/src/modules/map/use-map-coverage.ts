@@ -2,11 +2,23 @@
 
 import { useMemo } from 'react'
 import { cachedGeographyFeatures } from './engine/map-geometry/cache'
+import { cachedRegionIndex } from './engine/map-geometry/locate'
+import { defaultRegionGroup } from './engine/map-region/identity'
 import { defaultZipId, zipArea } from './engine/map-zip/dissolve'
-import { coverageGroups, defaultRegionGroup, groupFrame } from './engine/map-zip/frame'
-import { cachedRegionIndex } from './engine/map-zip/locate'
-import { type MapZipSelection, parseZipSelection, zipMatcher } from './engine/map-zip/selection'
-import type { LngLat, MapFeature, MapFeatureCollection, MapGeography } from './engine/types'
+import { coverageGroups, groupFrame } from './engine/map-zip/frame'
+import {
+	type MapZipSelection,
+	parseZipSelection,
+	zipMatcher,
+	zipSelectionText,
+} from './engine/map-zip/selection'
+import type {
+	MapFeature,
+	MapFeatureCollection,
+	MapGeography,
+	MapPolygons,
+	MapShape,
+} from './engine/types'
 
 /**
  * What {@link useMapCoverage} reads: the territory, the ZIP geometry it is drawn
@@ -44,7 +56,7 @@ export type MapCoverageOptions = {
 	 * @defaultValue the shape's `id`, else the first Census ZCTA property it
 	 * carries (`ZCTA5CE20`, `ZCTA5CE10`, `GEOID20`, and the rest)
 	 */
-	zipId?: (shape: { id?: string | number; properties?: Record<string, unknown> | null }) => string
+	zipId?: (shape: MapShape) => string
 	/**
 	 * The region geometry the map is split by — a county atlas. The hook returns
 	 * the subset the territory lands in, ready to hand to `MapPlat` as its
@@ -74,7 +86,7 @@ export type MapCoverage = {
 	 */
 	geography: MapFeatureCollection | null
 	/** The territory's rings, to hand `MapGeofence` as its `area`. */
-	area: LngLat[][][]
+	area: MapPolygons
 	/** The codes the territory matched, in the atlas's own order. */
 	codes: string[]
 	/** The groups the territory reached — the state ids `geography` was cut to. */
@@ -85,8 +97,13 @@ export type MapCoverage = {
 	dissolved: boolean
 }
 
-/** Nothing placed — the shared empty result, so an idle map allocates nothing. @internal */
-const NO_GROUPS: { geography: null; groups: string[] } = { geography: null, groups: [] }
+/**
+ * Nothing placed. Shared so the groups below keep one identity across every
+ * render that places nothing, which is what holds the frame's own memo.
+ *
+ * @internal
+ */
+const NO_PLACEMENT: { features: MapFeature[]; groups: string[] } = { features: [], groups: [] }
 
 /**
  * Resolves a ZIP-code territory into the two things a map draws it with: the
@@ -139,7 +156,7 @@ export function useMapCoverage({
 	// The territory keyed by its own text rather than by the prop's identity: a
 	// caller's `['606', '610']` is a fresh array every render, and every stage
 	// below hangs off this. One join is cheaper than re-cutting an atlas.
-	const stated = typeof coverage === 'string' ? coverage : coverage.join(',')
+	const stated = zipSelectionText(coverage)
 
 	const rules = useMemo(() => parseZipSelection(stated), [stated])
 
@@ -151,29 +168,43 @@ export function useMapCoverage({
 		[zips, zipsObject, rules, zipId],
 	)
 
-	const regionFeatures = useMemo(
-		() => (regions == null ? [] : cachedGeographyFeatures(regions, regionsObject)),
-		[regions, regionsObject],
+	// The placement, which decodes the region atlas only once a territory has
+	// something to place. A map mounted beside an empty coverage field would
+	// otherwise decode and rewind a whole county atlas — tens of milliseconds
+	// inside the consumer's render — for a result the frame below discards.
+	const placed = useMemo(() => {
+		if (area.features.length === 0) return NO_PLACEMENT
+
+		const features = cachedGeographyFeatures(regions, regionsObject)
+
+		if (features.length === 0) return NO_PLACEMENT
+
+		const groups = coverageGroups(features, cachedRegionIndex(features), area.features, regionGroup)
+
+		// Sorted so the key below reads the set and not the order the codes reached
+		// it: two territories over one state must key alike whichever code placed first.
+		return { features, groups: [...groups].sort() }
+	}, [regions, regionsObject, area, regionGroup])
+
+	// The groups by content, which is what the frame actually answers. Every stage
+	// above re-runs on each keystroke and hands this one fresh objects, but the
+	// states a territory lands in rarely change while it is typed.
+	const groupKey = placed.groups.join(',')
+
+	// Held on that key, so a frame keeps its identity across a keystroke that did
+	// not change the states. `MapPlat` keys its decode, its canonical fit, its
+	// region paths, and its chrome on this object — all in weak maps — so a fresh
+	// one on every keystroke would re-project the whole county atlas twice per
+	// character and never once hit the caches built to prevent exactly that.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: `placed.groups` is keyed by `groupKey`, its content
+	const geography = useMemo(
+		() => groupFrame(placed.features, new Set(placed.groups), regionGroup),
+		[placed.features, groupKey, regionGroup],
 	)
 
-	// The placement and the frame, resolved as one unit: the groups are what the
-	// frame filters by, and nothing else reads them apart.
-	const framed = useMemo(() => {
-		if (regionFeatures.length === 0 || area.features.length === 0) return NO_GROUPS
-
-		const groups = coverageGroups(
-			regionFeatures,
-			cachedRegionIndex(regionFeatures),
-			area.features,
-			regionGroup,
-		)
-
-		return { geography: groupFrame(regionFeatures, groups, regionGroup), groups: [...groups] }
-	}, [regionFeatures, area, regionGroup])
-
 	return {
-		geography: framed.geography,
-		groups: framed.groups,
+		geography,
+		groups: placed.groups,
 		area: area.polygons,
 		codes: area.codes,
 		dissolved: area.dissolved,

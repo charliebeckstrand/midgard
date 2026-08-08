@@ -30,24 +30,14 @@
  */
 
 import { geoCentroid } from 'd3-geo'
+import {
+	featureBounds,
+	type MapRegionIndex,
+	regionAt,
+	regionsMeeting,
+} from '../map-geometry/locate'
 import { rewindFeatures } from '../map-geometry/winding'
 import type { LngLat, MapFeature, MapFeatureCollection } from '../types'
-import { featureBounds, type MapRegionIndex, regionAt, regionsMeeting } from './locate'
-
-/** How many leading characters of a county id name its state. @internal */
-const STATE_FIPS_LENGTH = 2
-
-/**
- * The default group a region belongs to: the first two characters of its id.
- * That is exactly the state FIPS code in every US county atlas, where a county
- * id is the five-digit `SSCCC` — `06037` is Los Angeles County in state `06`,
- * California. Any other atlas takes the `regionGroup` override.
- *
- * @internal
- */
-export function defaultRegionGroup(feature: MapFeature): string {
-	return String(feature.id ?? '').slice(0, STATE_FIPS_LENGTH)
-}
 
 /**
  * The groups a territory lands in — the states a set of covered codes covers.

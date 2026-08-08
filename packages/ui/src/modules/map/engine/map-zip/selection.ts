@@ -7,9 +7,15 @@
  *
  * The matcher compiles rather than walks. A territory runs to tens of rules and
  * an atlas runs to tens of thousands of codes, so a rule-by-rule test would be
- * the whole cost of the pass: a set of codes, one set per prefix length, and a
- * sorted range list answer each code in four lookups and one binary search,
- * however many rules stand behind them.
+ * the whole cost of the pass: a set of whole codes and a sorted list of merged
+ * spans answer each code in one lookup and one bisect, however many rules stand
+ * behind them.
+ *
+ * A prefix is a span, and compiles to one. `606` is every code from `60600` to
+ * `60699`, which is what {@link lowest} and {@link highest} already widen a
+ * stated range's ends to — so the two forms differ in how they are written and
+ * not in what they mean, and a territory stating both merges them into one list
+ * rather than holding two unrelated structures.
  *
  * Codes are compared as their five-digit strings rather than as numbers. Every
  * ZIP is five digits with its leading zeros kept — `01001` is Agawam,
@@ -21,9 +27,6 @@ import { digitsOnly } from '../../../../utilities'
 
 /** How many digits a ZIP code holds; a ZCTA identity is exactly this wide. @internal */
 const ZIP_LENGTH = 5
-
-/** The longest prefix that is still a prefix — five digits is a whole code. @internal */
-const MAX_PREFIX_LENGTH = ZIP_LENGTH - 1
 
 /**
  * An inclusive span, stated at any width: `60601-60640` between two codes, and
@@ -91,8 +94,16 @@ export type MapZipRules = {
  */
 export type MapZipSelection = string | readonly string[]
 
-/** A territory with no rules at all — what an empty selection parses to. @internal */
-const NO_RULES: MapZipRules = { include: [], exclude: [], invalid: [] }
+/**
+ * A stated territory as one string, whichever form it arrived in. The one place
+ * a list becomes text, so a caller keying work on a territory's content and the
+ * parser reading that territory can never disagree about what a list means.
+ *
+ * @internal
+ */
+export function zipSelectionText(selection: MapZipSelection): string {
+	return typeof selection === 'string' ? selection : selection.join(',')
+}
 
 /** The lowest code a term of any width covers — `606` starts at `60600`. @internal */
 function lowest(term: string): string {
@@ -150,11 +161,10 @@ function readRule(term: string): MapZipRule | null {
  * @internal
  */
 export function parseZipSelection(selection: MapZipSelection): MapZipRules {
-	const text = typeof selection === 'string' ? selection : selection.join(',')
-
-	const terms = text.replace(RANGE_SPACING, '-').split(TERM_SEPARATOR).filter(Boolean)
-
-	if (terms.length === 0) return NO_RULES
+	const terms = zipSelectionText(selection)
+		.replace(RANGE_SPACING, '-')
+		.split(TERM_SEPARATOR)
+		.filter(Boolean)
 
 	const rules: MapZipRules = { include: [], exclude: [], invalid: [] }
 
@@ -174,12 +184,8 @@ export function parseZipSelection(selection: MapZipSelection): MapZipRules {
 /** A compiled half of a territory — the include side or the exclude side. @internal */
 type ZipIndex = {
 	codes: Set<string>
-	/** Prefix length → the prefixes of that length, so a code tests at most four. */
-	prefixes: Map<number, Set<string>>
-	/** Ranges sorted by their low end and merged, so a binary search decides one. */
+	/** Spans sorted by their low end and merged, so a bisect decides one. */
 	ranges: { from: string; to: string }[]
-	/** Whether the side holds no rule at all; an empty include side covers nothing. */
-	empty: boolean
 }
 
 /**
@@ -211,42 +217,25 @@ function mergeSpans(spans: { from: string; to: string }[]): { from: string; to: 
 }
 
 /**
- * Compiles one side's rules into the three lookups a match reads. Ranges sort
- * and merge here rather than at each test, so the pass pays that once for a
- * territory rather than once for every code in the atlas.
+ * Compiles one side's rules into the two lookups a match reads. A prefix widens
+ * to the span it names, so it joins the spans rather than needing an index of
+ * its own. The spans sort and merge here rather than at each test, so the pass
+ * pays that once for a territory rather than once for every code in the atlas.
  *
  * @internal
  */
 function compile(rules: MapZipRule[]): ZipIndex {
 	const codes = new Set<string>()
 
-	const prefixes = new Map<number, Set<string>>()
-
 	const spans: { from: string; to: string }[] = []
 
 	for (const rule of rules) {
 		if (rule.kind === 'code') codes.add(rule.code)
 		else if (rule.kind === 'range') spans.push(rule)
-		// A prefix longer than four digits cannot exist — the parser will not read
-		// one — but the guard keeps a hand-built rule from indexing a length no
-		// code can ever slice to, which would silently match nothing.
-		else if (rule.prefix.length <= MAX_PREFIX_LENGTH) {
-			const set = prefixes.get(rule.prefix.length) ?? new Set<string>()
-
-			set.add(rule.prefix)
-
-			prefixes.set(rule.prefix.length, set)
-		}
+		else spans.push({ from: lowest(rule.prefix), to: highest(rule.prefix) })
 	}
 
-	const ranges = mergeSpans(spans)
-
-	return {
-		codes,
-		prefixes,
-		ranges,
-		empty: codes.size === 0 && prefixes.size === 0 && ranges.length === 0,
-	}
+	return { codes, ranges: mergeSpans(spans) }
 }
 
 /** Whether any range holds the code, by bisect over the sorted merged spans. @internal */
@@ -274,13 +263,7 @@ function inRanges(ranges: { from: string; to: string }[], code: string): boolean
 
 /** Whether the compiled side holds the code. @internal */
 function holds(index: ZipIndex, code: string): boolean {
-	if (index.codes.has(code)) return true
-
-	for (const [length, set] of index.prefixes) {
-		if (set.has(code.slice(0, length))) return true
-	}
-
-	return inRanges(index.ranges, code)
+	return index.codes.has(code) || inRanges(index.ranges, code)
 }
 
 /**
@@ -290,7 +273,7 @@ function holds(index: ZipIndex, code: string): boolean {
  *
  * @internal
  */
-export function normalizeZip(value: string): string | null {
+function normalizeZip(value: string): string | null {
 	const digits = digitsOnly(value)
 
 	return digits.length < ZIP_LENGTH ? null : digits.slice(0, ZIP_LENGTH)
@@ -314,15 +297,16 @@ export function normalizeZip(value: string): string | null {
 export function zipMatcher(rules: MapZipRules): (zip: string) => boolean {
 	const include = compile(rules.include)
 
-	if (include.empty) return () => false
+	if (include.codes.size === 0 && include.ranges.length === 0) return () => false
 
 	const exclude = compile(rules.exclude)
 
+	// `holds` on an empty side is already false — an empty Set misses, and the
+	// bisect exits before its first compare — so the exclude side needs no guard
+	// of its own.
 	return (zip: string) => {
 		const code = normalizeZip(zip)
 
-		if (code === null) return false
-
-		return holds(include, code) && !(!exclude.empty && holds(exclude, code))
+		return code !== null && holds(include, code) && !holds(exclude, code)
 	}
 }

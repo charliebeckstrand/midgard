@@ -13,7 +13,7 @@
  */
 
 import { type GeoProjection, geoArea, geoCentroid } from 'd3-geo'
-import type { LngLat, MapPoint2D } from '../types'
+import type { LngLat, MapPoint2D, MapPolygons } from '../types'
 
 /**
  * Projects one lon/lat to frame coordinates, or `null` where the projection
@@ -195,7 +195,7 @@ export function ringAnchor(ring: LngLat[]): LngLat[] {
  * @internal
  */
 export function areaPath(
-	polygons: LngLat[][][],
+	polygons: MapPolygons,
 	project: (position: LngLat) => MapPoint2D | null,
 ): string {
 	let path = ''
@@ -206,6 +206,9 @@ export function areaPath(
 
 	return path
 }
+
+/** The sphere's whole area in steradians — what a backwards ring measures against. @internal */
+const WHOLE_SPHERE_STERADIANS = 4 * Math.PI
 
 /**
  * The middle of an area's largest polygon, as the stop list a multi-part mark
@@ -221,7 +224,12 @@ export function areaPath(
  *
  * @internal
  */
-export function areaAnchor(polygons: LngLat[][][]): LngLat[] {
+export function areaAnchor(polygons: MapPolygons): LngLat[] {
+	// One part has nothing to be measured against, and every circle and lone
+	// boundary in the module arrives here as one. Measuring anyway would put a
+	// spherical area pass in front of a case that had never paid one.
+	if (polygons.length <= 1) return ringAnchor(polygons[0]?.[0] ?? [])
+
 	let widest: LngLat[] | undefined
 
 	let widestArea = -1
@@ -244,9 +252,6 @@ export function areaAnchor(polygons: LngLat[][][]): LngLat[] {
 
 	return widest === undefined ? [] : ringAnchor(widest)
 }
-
-/** The sphere's whole area in steradians — what a backwards ring measures against. @internal */
-const WHOLE_SPHERE_STERADIANS = 4 * Math.PI
 
 /**
  * A dot's SVG path: a zero-length segment whose round cap paints the circle.

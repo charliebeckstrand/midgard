@@ -1,12 +1,9 @@
 import { describe, expect, it } from 'vitest'
+import { regionAt, regionIndex } from '../../modules/map/engine/map-geometry/locate'
 import { rewindFeatures } from '../../modules/map/engine/map-geometry/winding'
+import { defaultRegionGroup } from '../../modules/map/engine/map-region/identity'
 import { defaultZipId, zipArea } from '../../modules/map/engine/map-zip/dissolve'
-import {
-	coverageGroups,
-	defaultRegionGroup,
-	groupFrame,
-} from '../../modules/map/engine/map-zip/frame'
-import { regionAt, regionIndex } from '../../modules/map/engine/map-zip/locate'
+import { coverageGroups, groupFrame } from '../../modules/map/engine/map-zip/frame'
 import {
 	type MapZipSelection,
 	parseZipSelection,

@@ -1,8 +1,8 @@
 /**
  * Which region a position lands in, over a grid that keeps the question cheap.
- * The coverage pass asks it once for every code in a territory, and the atlas
- * behind it is a county one — thousands of rings — so a walk of the features
- * would cost thousands of `geoContains` calls for each code.
+ * A caller asks it once per thing it places, and the atlas behind it is a county
+ * one — thousands of rings — so a walk of the features would cost thousands of
+ * `geoContains` calls for each.
  *
  * The grid holds bounding boxes rather than geometry. A box is a conservative
  * test: a position outside it is outside the region for certain, and a position
@@ -16,16 +16,18 @@
  * the antimeridian — an Alaska borough — reads as spanning every longitude under
  * that walk, which is too wide rather than too narrow, so it stays correct and
  * merely joins the oversized list below.
+ *
+ * Geometry rather than any one consumer's concern: the coverage frame places a
+ * ZIP code, and placing a geocoded result or rolling a measure up by region is
+ * the same question asked by something else.
  */
 
 import { geoContains } from 'd3-geo'
+import { bucket, cellKey } from '../map-cluster/grid'
 import type { LngLat, MapFeature } from '../types'
 
 /** A conservative lon/lat box around a shape. @internal */
 export type MapBounds = { west: number; south: number; east: number; north: number }
-
-/** The internal spelling, so the walk below reads without the exported name. @internal */
-type Bounds = MapBounds
 
 /**
  * The grid's cell size in degrees. A US county mostly fits inside one cell, so a
@@ -47,15 +49,6 @@ const CELL_DEGREES = 1
  */
 const MAX_CELLS_PER_REGION = 64
 
-/** Degrees of longitude west of Greenwich, so a cell column is never negative. @internal */
-const LONGITUDE_ORIGIN = 180
-
-/** Degrees of latitude south of the equator, so a cell row is never negative. @internal */
-const LATITUDE_ORIGIN = 90
-
-/** How many cell columns cover the sphere; the stride between one row and the next. @internal */
-const GRID_COLUMNS = Math.ceil((LONGITUDE_ORIGIN * 2) / CELL_DEGREES)
-
 /**
  * A spatial index over a feature list: the regions whose box covers each grid
  * cell, the regions too wide to bucket, and every box for the exact test to
@@ -66,11 +59,11 @@ const GRID_COLUMNS = Math.ceil((LONGITUDE_ORIGIN * 2) / CELL_DEGREES)
 export type MapRegionIndex = {
 	cells: Map<number, number[]>
 	oversized: number[]
-	bounds: (Bounds | null)[]
+	bounds: (MapBounds | null)[]
 }
 
 /** Widens a box to hold one position. @internal */
-function extend(box: Bounds, lon: number, lat: number): void {
+function extend(box: MapBounds, lon: number, lat: number): void {
 	if (lon < box.west) box.west = lon
 
 	if (lon > box.east) box.east = lon
@@ -88,7 +81,7 @@ function extend(box: Bounds, lon: number, lat: number): void {
  *
  * @internal
  */
-function walk(node: unknown, box: Bounds): void {
+function walk(node: unknown, box: MapBounds): void {
 	if (!Array.isArray(node)) return
 
 	if (typeof node[0] === 'number') {
@@ -109,12 +102,12 @@ function walk(node: unknown, box: Bounds): void {
  *
  * @internal
  */
-export function featureBounds(shape: MapFeature): Bounds | null {
+export function featureBounds(shape: MapFeature): MapBounds | null {
 	const geometry = shape.geometry as { coordinates?: unknown } | null
 
 	if (geometry?.coordinates === undefined) return null
 
-	const box: Bounds = {
+	const box: MapBounds = {
 		west: Number.POSITIVE_INFINITY,
 		south: Number.POSITIVE_INFINITY,
 		east: Number.NEGATIVE_INFINITY,
@@ -128,17 +121,12 @@ export function featureBounds(shape: MapFeature): Bounds | null {
 
 /** The grid column a longitude falls in. @internal */
 function columnAt(lon: number): number {
-	return Math.floor((lon + LONGITUDE_ORIGIN) / CELL_DEGREES)
+	return Math.floor(lon / CELL_DEGREES)
 }
 
 /** The grid row a latitude falls in. @internal */
 function rowAt(lat: number): number {
-	return Math.floor((lat + LATITUDE_ORIGIN) / CELL_DEGREES)
-}
-
-/** The cell a lon/lat falls in, as one number so the map keys without a string. @internal */
-function cellAt(lon: number, lat: number): number {
-	return rowAt(lat) * GRID_COLUMNS + columnAt(lon)
+	return Math.floor(lat / CELL_DEGREES)
 }
 
 /**
@@ -177,12 +165,7 @@ export function regionIndex(features: MapFeature[]): MapRegionIndex {
 
 		for (let row = firstRow; row <= lastRow; row++) {
 			for (let column = firstColumn; column <= lastColumn; column++) {
-				const key = row * GRID_COLUMNS + column
-
-				const held = cells.get(key)
-
-				if (held === undefined) cells.set(key, [region])
-				else held.push(region)
+				bucket(cells, cellKey(column, row)).push(region)
 			}
 		}
 	})
@@ -195,12 +178,15 @@ export function regionIndex(features: MapFeature[]): MapRegionIndex {
 // second map over the same atlas — or a remount of the first — must not pay it
 // again. The feature list keys it, so the entry outlives every refit: a bounding
 // box is geographic, not projected.
+//
+// Beside `cachedRegionCentroids` in `cache.ts` by rights, and here instead so
+// that `cache.ts` does not have to import this file to hold one memo for it.
 const indexes = new WeakMap<MapFeature[], MapRegionIndex>()
 
 /**
  * The index over a feature list, memoised on the list and built on the first
- * read. Nothing on the map's own mount path reads it — only a coverage pass
- * does — so a map that draws no territory never builds one.
+ * read. Nothing on the map's own mount path reads it, so a map that places
+ * nothing never builds one.
  *
  * @internal
  */
@@ -217,8 +203,19 @@ export function cachedRegionIndex(features: MapFeature[]): MapRegionIndex {
 }
 
 /** Whether a box holds a position — the cheap test before the exact one. @internal */
-function within(box: Bounds | null, [lon, lat]: LngLat): boolean {
+function within(box: MapBounds | null, [lon, lat]: LngLat): boolean {
 	return box !== null && lon >= box.west && lon <= box.east && lat >= box.south && lat <= box.north
+}
+
+/** Whether two boxes meet — the cheap test the query below filters its cells with. @internal */
+function overlaps(box: MapBounds | null, other: MapBounds): boolean {
+	return (
+		box !== null &&
+		box.west <= other.east &&
+		box.east >= other.west &&
+		box.south <= other.north &&
+		box.north >= other.south
+	)
 }
 
 /**
@@ -233,56 +230,6 @@ function within(box: Bounds | null, [lon, lat]: LngLat): boolean {
  *
  * @internal
  */
-/**
- * Every region whose box meets a box, as indices into the feature list. A
- * conservative answer over conservative boxes: it can name a region the shape
- * does not touch, and never miss one it does.
- *
- * That one-sided error is what makes it useful. A caller cannot conclude from
- * this that a region holds a shape, but it can conclude that no region outside
- * the result does — so where every named region agrees on something, the exact
- * test can only agree with them, and never has to run.
- *
- * @internal
- */
-export function regionsMeeting(index: MapRegionIndex, box: MapBounds): Set<number> {
-	const met = new Set<number>()
-
-	const keep = (candidates: Iterable<number>) => {
-		for (const region of candidates) {
-			if (overlaps(index.bounds[region] ?? null, box)) met.add(region)
-		}
-	}
-
-	// The wide regions face the same box test as the bucketed ones. Kept
-	// unfiltered they would join every result, and a caller reading the result for
-	// agreement would never find any.
-	keep(index.oversized)
-
-	const lastRow = rowAt(box.north)
-
-	const lastColumn = columnAt(box.east)
-
-	for (let row = rowAt(box.south); row <= lastRow; row++) {
-		for (let column = columnAt(box.west); column <= lastColumn; column++) {
-			keep(index.cells.get(row * GRID_COLUMNS + column) ?? [])
-		}
-	}
-
-	return met
-}
-
-/** Whether two boxes meet — the cheap test the query above filters its cells with. @internal */
-function overlaps(box: Bounds | null, other: MapBounds): boolean {
-	return (
-		box !== null &&
-		box.west <= other.east &&
-		box.east >= other.west &&
-		box.south <= other.north &&
-		box.north >= other.south
-	)
-}
-
 export function regionAt(index: MapRegionIndex, features: MapFeature[], at: LngLat): number {
 	const holder = (candidates: number[]): number => {
 		for (const region of candidates) {
@@ -294,7 +241,52 @@ export function regionAt(index: MapRegionIndex, features: MapFeature[], at: LngL
 		return -1
 	}
 
-	const cell = holder(index.cells.get(cellAt(at[0], at[1])) ?? [])
+	const cell = holder(index.cells.get(cellKey(columnAt(at[0]), rowAt(at[1]))) ?? [])
 
 	return cell === -1 ? holder(index.oversized) : cell
+}
+
+/**
+ * Every region whose box meets a box, as indices into the feature list. A
+ * conservative answer over conservative boxes: it can name a region the shape
+ * does not touch, and never miss one it does.
+ *
+ * That one-sided error is what makes it useful. A caller cannot conclude from
+ * this that a region holds a shape, but it can conclude that no region outside
+ * the result does — so where every named region agrees on something, the exact
+ * test can only agree with them, and never has to run.
+ *
+ * Yielded rather than collected, because the caller that reads it for agreement
+ * stops at the first disagreement: a set would test and hold every candidate
+ * before that caller looked at two of them. A region can be yielded twice, where
+ * its box covers two of the cells the query walks — which costs a reader looking
+ * for agreement nothing, since a repeat agrees with itself. Wrap in a `Set` if
+ * you need each once.
+ *
+ * @internal
+ */
+export function* regionsMeeting(index: MapRegionIndex, box: MapBounds): Generator<number> {
+	// The wide regions face the same box test as the bucketed ones. Yielded
+	// unfiltered they would join every result, and a caller reading the result for
+	// agreement would never find any.
+	yield* meeting(index, index.oversized, box)
+
+	const firstColumn = columnAt(box.west)
+
+	const lastColumn = columnAt(box.east)
+
+	const lastRow = rowAt(box.north)
+
+	for (let row = rowAt(box.south); row <= lastRow; row++) {
+		for (let column = firstColumn; column <= lastColumn; column++) {
+			yield* meeting(index, index.cells.get(cellKey(column, row)) ?? [], box)
+		}
+	}
+}
+
+/** The candidates whose own box meets the query box. @internal */
+function* meeting(index: MapRegionIndex, candidates: number[], box: MapBounds): Generator<number> {
+	for (const region of candidates) {
+		if (overlaps(index.bounds[region] ?? null, box)) yield region
+	}
 }

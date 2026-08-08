@@ -1,14 +1,21 @@
 /**
- * Cross-instance memo for the mount-critical map geometry: decoding the
- * geography, fitting the measurement-free canonical projection, and
- * stringifying its region paths. This trio is a pure function of the atlas, its
- * object name, and the projection, yet every {@link MapPlat} mount pays it
- * afresh on the render path before the geography can paint — tens of
- * milliseconds on a US states atlas, more on a county one. Two plats drawing
- * one atlas (the docs' Route tab renders two; a dashboard's small multiples)
- * and a remount of the same map (a tab switch under `mount="active"`, a route
- * revisit) reuse the first mount's result instead of recomputing it, so the
- * geography paints on the first commit without re-paying the fit.
+ * The map's cross-instance memos, over results that are pure functions of an
+ * atlas and cost tens of milliseconds to rebuild.
+ *
+ * The mount-critical trio leads: decoding the geography, fitting the
+ * measurement-free canonical projection, and stringifying its region paths.
+ * Every {@link MapPlat} mount pays that trio afresh on the render path before
+ * the geography can paint — tens of milliseconds on a US states atlas, more on
+ * a county one. Two plats drawing one atlas (the docs' Route tab renders two; a
+ * dashboard's small multiples) and a remount of the same map (a tab switch
+ * under `mount="active"`, a route revisit) reuse the first mount's result
+ * instead of recomputing it, so the geography paints on the first commit
+ * without re-paying the fit.
+ *
+ * The rest are deliberately off that path and resolve on their first read: the
+ * decode alone, which the coverage hook wants without a fit; the region
+ * centroids, which only a keyboard cursor reads; and the chrome paths. Each
+ * says in its own doccomment why it is not paid at mount.
  *
  * The atlas keys a {@link WeakMap} by identity, so the cache never pins one in
  * memory and a freshly fetched atlas misses. Only named projections cache: a
@@ -67,14 +74,21 @@ const decoded = new WeakMap<MapGeography, Map<string | undefined, MapFeature[]>>
  * convention reads as the region's complement. That floods the frame when it is
  * fit, and swallows the globe when a position is tested against it.
  *
+ * Absent geography yields the shared empty list, as {@link staticMapGeometry}
+ * yields the empty geometry — so a caller waiting on a fetched atlas neither
+ * guards nor mints an empty array whose fresh identity would defeat the memo
+ * below it.
+ *
  * Shared, so treat the result as read-only.
  *
  * @internal
  */
 export function cachedGeographyFeatures(
-	geography: MapGeography,
+	geography: MapGeography | null | undefined,
 	objectName: string | undefined,
 ): MapFeature[] {
+	if (geography == null) return EMPTY.features
+
 	let byName = decoded.get(geography)
 
 	if (byName === undefined) {
