@@ -3,6 +3,7 @@
 import { useMemo } from 'react'
 import { type FrameReserve, usePlotFrame } from '../../../hooks'
 import { useResolvedSize } from '../../../primitives/density'
+import { useLocale } from '../../../providers/locale'
 import type { Step } from '../../../recipes'
 import { once } from '../../../utilities'
 import type { ChartAxisTick } from './chart-axes/axis'
@@ -573,6 +574,8 @@ type ResolvedCategories = {
  * decision — the date normalization's year elision — reads the same for every
  * label.
  *
+ * @param locale - BCP 47 tag from `<LocaleProvider>`; `undefined` falls back to
+ * the runtime locale, which is what a chart outside a provider gets.
  * @internal
  */
 function resolveCategories<T>(
@@ -580,11 +583,13 @@ function resolveCategories<T>(
 	xKey: (keyof T & string) | undefined,
 	timeAxis: boolean,
 	formatCategory: ((value: unknown) => string) | undefined,
+	locale: string | undefined,
 ): ResolvedCategories {
 	const rawValues = xKey ? data.map((datum) => datum[xKey]) : []
 
 	const categoryFormat =
-		formatCategory ?? (timeAxis ? undefined : (dateCategoryFormat(rawValues) ?? undefined))
+		formatCategory ??
+		(timeAxis ? undefined : (dateCategoryFormat(rawValues, undefined, locale) ?? undefined))
 
 	const rawCategories = rawValues.map(String)
 
@@ -592,7 +597,7 @@ function resolveCategories<T>(
 		// Without a formatter the labels *are* the raw categories; one pass, one array.
 		categories: categoryFormat ? rawValues.map(categoryFormat) : rawCategories,
 		rawCategories,
-		readoutCategory: categoryFormat ?? (timeAxis ? timeCategory() : undefined),
+		readoutCategory: categoryFormat ?? (timeAxis ? timeCategory(locale) : undefined),
 	}
 }
 
@@ -799,6 +804,12 @@ export function useChartCartesian<T>(
 
 	const resolvedSize = useResolvedSize(size)
 
+	// The band axis writes dates in the ambient locale's field order, and a time
+	// axis floors its week ticks on that locale's first weekday. Outside a
+	// `<LocaleProvider>` this is `undefined`, which both fall back to the runtime
+	// locale on.
+	const { locale } = useLocale()
+
 	const metrics = CHART_METRICS[resolvedSize as Step] ?? CHART_METRICS.md
 
 	// A live ratio carries on the figure so a definite-height parent clamps the
@@ -860,8 +871,8 @@ export function useChartCartesian<T>(
 	// memoized rather than re-run on every render — a hover, a legend toggle, or
 	// a resize commit does not change any of its inputs.
 	const { categories, rawCategories, readoutCategory } = useMemo(
-		() => resolveCategories(data, xKey, timeAxis, axes.x?.format),
-		[data, xKey, timeAxis, axes.x?.format],
+		() => resolveCategories(data, xKey, timeAxis, axes.x?.format, locale),
+		[data, xKey, timeAxis, axes.x?.format, locale],
 	)
 
 	// The public category-activation callback resolved to the hit layer's
@@ -889,6 +900,7 @@ export function useChartCartesian<T>(
 		bandAxis: policy.bandAxis,
 		tickRotation: categoryTickRotation(props.axes),
 		times,
+		locale,
 		count: data.length,
 		markInset: config.markInset,
 		valueHeadroom: config.valueHeadroom,
