@@ -484,9 +484,8 @@ function TexasTriangle({ geography }: { geography: MapFeatureCollection | null }
  * the meridians and parallels, and `sphere` outlines the globe's own edge — the
  * frame a world map closes itself with, and the chrome `albers-usa` has no
  * single edge to draw. Chrome names no place and carries no value, so it takes
- * no legend row and answers no pointer. These two maps carry no rows and no
- * marks, so they pass `tooltip={false}`. A map with nothing to name must not
- * hold a tab stop that answers a key with silence.
+ * no legend row and answers no pointer. Neither map carries rows or marks, so
+ * neither takes a tab stop: the plat withholds one where nothing can read out.
  *
  * Each map frames at a ratio of its own, because the globe stands outside the
  * box the fit maps onto the frame. Mercator takes 9/10, taller than the land's
@@ -516,7 +515,6 @@ function WorldMaps() {
 					aspectRatio="5/2"
 					graticule
 					sphere
-					tooltip={false}
 				/>
 			</Example>
 
@@ -529,7 +527,6 @@ function WorldMaps() {
 					aspectRatio="9/10"
 					graticule
 					sphere
-					tooltip={false}
 				/>
 			</Example>
 		</Stack>

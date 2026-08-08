@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { MapPlat } from '../../modules/map'
-import { bySlot, fireEvent, renderUI } from '../helpers'
+import { allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
 import { FIXTURE_GEOJSON, FIXTURE_ROWS } from '../helpers/map-geography'
 
 type Row = (typeof FIXTURE_ROWS)[number]
@@ -191,13 +191,49 @@ describe('MapPlat keyboard navigation', () => {
 	})
 
 	it('takes no tab stop before the geography lands', () => {
-		const { container, rerender } = renderUI(
-			<MapPlat aria-label="Backdrop" geography={null} width={400} />,
+		const { container, rerender } = renderUI(plat({ geography: null }))
+
+		expect(bySlot(container, 'map-plot')).not.toHaveAttribute('tabindex')
+
+		rerender(plat())
+
+		expect(bySlot(container, 'map-plot')).toHaveAttribute('tabindex', '0')
+	})
+
+	it('takes no tab stop on a map with nothing to read out', () => {
+		// A backdrop: geography, no rows, no marks. `tooltip` asks for a readout
+		// rather than asserting one, and all three channels are silent here — an
+		// unmatched region raises no tooltip, takes no emphasis, and fills no table
+		// row — so the stop would answer every key with nothing.
+		const { container } = renderUI(
+			<MapPlat aria-label="Backdrop" geography={FIXTURE_GEOJSON} width={400} />,
 		)
 
 		expect(bySlot(container, 'map-plot')).not.toHaveAttribute('tabindex')
 
-		rerender(<MapPlat aria-label="Backdrop" geography={FIXTURE_GEOJSON} width={400} />)
+		expect(bySlot(container, 'map-table')).toBeNull()
+	})
+
+	it('takes no tab stop when the rows match no region the map draws', () => {
+		// Rows that join to nothing leave the same silence no rows do, so the gate
+		// reads the join rather than the presence of a `data` array.
+		const { container } = renderUI(plat({ data: [{ state: 'Z', zone: 'East' }] }))
+
+		expect(bySlot(container, 'map-plot')).not.toHaveAttribute('tabindex')
+
+		expect(bySlot(container, 'map-table')).toBeNull()
+	})
+
+	it('keeps the stop while the legend holds every category off', () => {
+		// A toggle is transient: it silences the readout for as long as it holds,
+		// and to take the tab stop away with it would move focus under the reader.
+		const { container } = renderNavigable()
+
+		const toggles = allBySlot(container, 'map-legend-item')
+
+		expect(toggles).toHaveLength(2)
+
+		for (const toggle of toggles) fireEvent.click(toggle)
 
 		expect(bySlot(container, 'map-plot')).toHaveAttribute('tabindex', '0')
 	})
