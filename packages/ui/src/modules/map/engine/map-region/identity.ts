@@ -15,3 +15,22 @@ export function defaultRegionId(feature: MapFeature): string {
 export function defaultRegionLabel(feature: MapFeature): string {
 	return String(feature.properties?.name ?? feature.id ?? '')
 }
+
+/** How many leading characters of a US county id name its state. @internal */
+const STATE_FIPS_LENGTH = 2
+
+/**
+ * The default group a region belongs to: the first two characters of its
+ * identity. That is exactly the state FIPS code in every US county atlas, where
+ * a county id is the five-digit `SSCCC` — `06037` is Los Angeles County in state
+ * `06`, California. Any other atlas takes the `regionGroup` override.
+ *
+ * Read through {@link defaultRegionId} rather than off `feature.id` directly, so
+ * one rule decides how a region names itself and a grouping can never see an
+ * identity the plat's own join does not.
+ *
+ * @internal
+ */
+export function defaultRegionGroup(feature: MapFeature): string {
+	return defaultRegionId(feature).slice(0, STATE_FIPS_LENGTH)
+}

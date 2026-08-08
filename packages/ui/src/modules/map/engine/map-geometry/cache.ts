@@ -1,14 +1,21 @@
 /**
- * Cross-instance memo for the mount-critical map geometry: decoding the
- * geography, fitting the measurement-free canonical projection, and
- * stringifying its region paths. This trio is a pure function of the atlas, its
- * object name, and the projection, yet every {@link MapPlat} mount pays it
- * afresh on the render path before the geography can paint — tens of
- * milliseconds on a US states atlas, more on a county one. Two plats drawing
- * one atlas (the docs' Route tab renders two; a dashboard's small multiples)
- * and a remount of the same map (a tab switch under `mount="active"`, a route
- * revisit) reuse the first mount's result instead of recomputing it, so the
- * geography paints on the first commit without re-paying the fit.
+ * The map's cross-instance memos, over results that are pure functions of an
+ * atlas and cost tens of milliseconds to rebuild.
+ *
+ * The mount-critical trio leads: decoding the geography, fitting the
+ * measurement-free canonical projection, and stringifying its region paths.
+ * Every {@link MapPlat} mount pays that trio afresh on the render path before
+ * the geography can paint — tens of milliseconds on a US states atlas, more on
+ * a county one. Two plats drawing one atlas (the docs' Route tab renders two; a
+ * dashboard's small multiples) and a remount of the same map (a tab switch
+ * under `mount="active"`, a route revisit) reuse the first mount's result
+ * instead of recomputing it, so the geography paints on the first commit
+ * without re-paying the fit.
+ *
+ * The rest are deliberately off that path and resolve on their first read: the
+ * decode alone, which the coverage hook wants without a fit; the region
+ * centroids, which only a keyboard cursor reads; and the chrome paths. Each
+ * says in its own doccomment why it is not paid at mount.
  *
  * The atlas keys a {@link WeakMap} by identity, so the cache never pins one in
  * memory and a freshly fetched atlas misses. Only named projections cache: a
@@ -50,6 +57,57 @@ export type StaticMapGeometry = {
 /** Nothing to draw — a plat with no geography yet reserves its frame and paints no marks. @internal */
 const EMPTY: StaticMapGeometry = { features: [], canonical: null, canonicalPaths: [] }
 
+// Atlas → object name → its decoded, rewound features. Held apart from the trio
+// below because two readers want it and only one of them wants the fit: the
+// geometry above draws the atlas, and the coverage hook filters it to the
+// regions a territory lands in. Decoding a county topology runs to tens of
+// milliseconds, so the two must not each pay it — and a map that draws the
+// filtered result never decodes the whole atlas twice.
+const decoded = new WeakMap<MapGeography, Map<string | undefined, MapFeature[]>>()
+
+/**
+ * An atlas object's features, decoded and rewound once per atlas and object
+ * name, and shared across instances and mounts.
+ *
+ * Rewound here rather than at each reader, because both readers need it and for
+ * the same reason: a raw-GeoJSON exterior wound opposite d3's spherical
+ * convention reads as the region's complement. That floods the frame when it is
+ * fit, and swallows the globe when a position is tested against it.
+ *
+ * Absent geography yields the shared empty list, as {@link staticMapGeometry}
+ * yields the empty geometry — so a caller waiting on a fetched atlas neither
+ * guards nor mints an empty array whose fresh identity would defeat the memo
+ * below it.
+ *
+ * Shared, so treat the result as read-only.
+ *
+ * @internal
+ */
+export function cachedGeographyFeatures(
+	geography: MapGeography | null | undefined,
+	objectName: string | undefined,
+): MapFeature[] {
+	if (geography == null) return EMPTY.features
+
+	let byName = decoded.get(geography)
+
+	if (byName === undefined) {
+		byName = new Map()
+
+		decoded.set(geography, byName)
+	}
+
+	let features = byName.get(objectName)
+
+	if (features === undefined) {
+		features = rewindFeatures(geographyFeatures(geography, objectName))
+
+		byName.set(objectName, features)
+	}
+
+	return features
+}
+
 // Atlas → (object name + named projection) → computed geometry. The atlas keys
 // a WeakMap so an entry is collected with the atlas it belongs to; the inner
 // Map's keys are the few (object, projection) pairs one atlas is drawn under.
@@ -67,10 +125,10 @@ export function computeStaticMapGeometry(
 	geographyObject: string | undefined,
 	projection: MapProjection,
 ): StaticMapGeometry {
-	// Rewind before fitting: a raw-GeoJSON exterior wound opposite d3's spherical
-	// convention would otherwise fit as the region's complement and flood the
-	// frame. This is the cached stage, so the pass is paid once per atlas.
-	const features = rewindFeatures(geographyFeatures(geography, geographyObject))
+	// Decoded and rewound through the shared memo above, so an atlas the coverage
+	// hook has already read costs nothing here — and the rewind, which the fit
+	// depends on, happens once per atlas either way.
+	const features = cachedGeographyFeatures(geography, geographyObject)
 
 	const canonical = canonicalFit(projection, features)
 

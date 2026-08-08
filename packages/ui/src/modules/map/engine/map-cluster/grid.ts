@@ -26,9 +26,14 @@ const CELL_STRIDE = 65_536
  * would allocate by the thousand across a set of hundreds. See
  * {@link CELL_STRIDE} for the range the packing holds.
  *
+ * Shared with the geometry engine's own grid (`map-geometry/locate`), which
+ * buckets in degrees rather than frame units. The packing reads no unit — it
+ * only needs both indices inside the stride, which a degree grid's ±180 and ±90
+ * are by a wide margin.
+ *
  * @internal
  */
-function cellKey(cx: number, cy: number): number {
+export function cellKey(cx: number, cy: number): number {
 	return cx * CELL_STRIDE + cy
 }
 

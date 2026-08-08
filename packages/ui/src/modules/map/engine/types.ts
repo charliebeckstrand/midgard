@@ -16,6 +16,20 @@ export type MapPoint2D = {
 	y: number
 }
 
+/**
+ * An area of several parts, nested polygon → ring → position, with each
+ * polygon's outer ring first and its holes after. GeoJSON `MultiPolygon`
+ * coordinates exactly, so a dissolved territory passes straight through.
+ *
+ * The module's third coordinate word, beside geographic {@link LngLat} and frame
+ * {@link MapPoint2D}. Named here rather than spelled inline because the nesting
+ * depth is the only thing that parts it from a single ring, and two public
+ * surfaces hand it to each other — `useMapCoverage` returns one and
+ * `MapGeofence` takes one — so a reader who counts the brackets wrong on either
+ * side type-checks and draws nothing.
+ */
+export type MapPolygons = LngLat[][][]
+
 /** A key of `T` naming the field the map reads from each datum. */
 export type DataKey<T> = keyof T & string
 
@@ -32,6 +46,20 @@ export type DataKey<T> = keyof T & string
  * @internal
  */
 export type MapSwatchShape = 'rect' | 'line' | 'dot'
+
+/**
+ * The identity fields a shape carries before it is decoded: a TopoJSON geometry
+ * object and a GeoJSON feature both hold an `id` and `properties`, which is what
+ * lets one reader name a shape in either form.
+ *
+ * `MapFeature` satisfies it, so a rule written against this reads a decoded
+ * atlas too.
+ */
+export type MapShape = {
+	type?: string
+	id?: string | number
+	properties?: Record<string, unknown> | null
+}
 
 /**
  * A GeoJSON feature, structurally: enough shape for region identity and
