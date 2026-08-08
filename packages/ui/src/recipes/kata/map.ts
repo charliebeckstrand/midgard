@@ -35,8 +35,8 @@ export const k = {
 	/**
 	 * Takes a mark's hit circle down to the fine-pointer target, over the coarse
 	 * radius its `r` attribute carries — 44px for a finger (WCAG 2.5.5's enhanced
-	 * target), 12px for a mouse — in the one form an SVG shape allows, since only
-	 * CSS can read the input modality.
+	 * target), 11px for a mouse, which is the drawn dot and no more — in the one
+	 * form an SVG shape allows, since only CSS can read the input modality.
 	 *
 	 * It is what lets a small area mark be pointed at: a `MapGeofence` drawn tight
 	 * around a `MapPoint` sits wholly inside a finger-sized circle, so without this
@@ -48,7 +48,7 @@ export const k = {
 	 * `POINT_HIT_RADIUS_FINE`, because Tailwind scans source for whole class
 	 * strings; `map-hit-target.test.tsx` pins the two together.
 	 */
-	hitFine: 'pointer-fine:[r:6px]',
+	hitFine: 'pointer-fine:[r:5.5px]',
 	/**
 	 * The standing pick's ink, on an overlay mark's halo — the same token the
 	 * region ring takes (`region.selected`), so one map never marks its geography

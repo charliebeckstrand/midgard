@@ -82,9 +82,10 @@ export const POINT_RADIUS = 5.5
 export const POINT_HIT_RADIUS = 22
 
 /**
- * The same target for a fine pointer: 12px, the drawn dot and a half-pixel rim.
- * A mouse aims at one pixel, so it needs no part of the reach a finger takes —
- * and that reach is what makes a dot swallow the marks around it. A
+ * The same target for a fine pointer: the drawn dot and nothing more —
+ * {@link POINT_RADIUS} exactly, an 11px target, and a quarter of the coarse
+ * reach. A mouse aims at one pixel, so it needs no part of the reach a finger
+ * takes — and that reach is what makes a dot swallow the marks around it. A
  * `MapGeofence` drawn small around a `MapPoint` sits entirely inside the coarse
  * circle, and a depot at a catchment's centre claimed the middle of its own zone
  * at 24px as well.
@@ -92,7 +93,11 @@ export const POINT_HIT_RADIUS = 22
  * Under WCAG 2.5.8's 24px minimum on purpose. A mark carries three other ways to
  * its datum — its legend row, the keyboard cursor's stop, and its `MapTable` row
  * — so the dot is never the only route to it. The zone under the dot has no such
- * second route, so the dot gives the pixels back.
+ * second route, so the dot keeps the pixels it paints and gives back the rest.
+ *
+ * Sitting on the drawn radius rather than over it is the whole extent of the
+ * target: the dot answers everywhere it paints and nowhere it does not, so it
+ * takes no ground from the mark beneath it.
  *
  * Applied through `kata/map`'s `hitFine` class rather than the `r` attribute,
  * since only CSS can answer the modality; the attribute carries the coarse
@@ -101,7 +106,7 @@ export const POINT_HIT_RADIUS = 22
  * `dotHitProps`.
  * @internal
  */
-export const POINT_HIT_RADIUS_FINE = 6
+export const POINT_HIT_RADIUS_FINE = 5.5
 
 /**
  * The clear space, in frame units, two point marks keep between their edges

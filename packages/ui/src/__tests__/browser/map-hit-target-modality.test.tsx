@@ -61,8 +61,14 @@ describe('dot hit target by pointer modality', () => {
 
 		const cy = box.top + box.height / 2
 
-		// The dot keeps the pixels it draws on.
-		expect(document.elementFromPoint(cx, cy)).toBe(dot)
+		// The dot keeps the pixels it draws on, out to its own rim. The target sits
+		// on the drawn radius with nothing to spare, so this is what says the dot has
+		// no dead ring inside the mark a reader can see.
+		for (const offset of [0, 4]) {
+			expect(document.elementFromPoint(cx + offset, cy)).toBe(dot)
+
+			expect(document.elementFromPoint(cx, cy + offset)).toBe(dot)
+		}
 
 		// And gives back the rest of the zone's middle. At the old 24px target every
 		// one of these probes answered the depot, so the catchment's own centre could

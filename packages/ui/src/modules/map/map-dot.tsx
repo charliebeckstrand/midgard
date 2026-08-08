@@ -153,8 +153,8 @@ export function MapDotCount({
  * dot-shaped mark — a point, a marker pin, one dot of a set. One rule for all of
  * them, because the target's size answers the input device rather than the mark:
  * the `r` attribute carries the coarse-pointer reach (WCAG 2.5.5's 44px) and
- * `k.hitFine` takes it to the fine-pointer target (12px), so a mouse gets
- * precision where a finger gets reach.
+ * `k.hitFine` takes it to the fine-pointer target (11px, the drawn dot and no
+ * more), so a mouse gets precision where a finger gets reach.
  *
  * That precision is what lets a small mark be aimed at through a dot standing in
  * it: a `MapGeofence` drawn tight around a `MapPoint` fits inside the finger
@@ -166,6 +166,10 @@ export function MapDotCount({
  * past the fine reach — the `CLUSTER_RADIUS_STEPS` grades — keeps the coarse
  * radius, the narrowest circle here that still holds all of it. The `TouchTarget`
  * primitive floors an interactive host the same way, at `max(100%, …)`.
+ *
+ * The comparison includes the fine reach, because a point and a marker pin draw
+ * at exactly it: excluding it would drop every singular mark back to the finger
+ * target and undo the precision the gate exists to protect.
  *
  * A props factory rather than a component, because a `MapPoints` draws one of
  * these per dot: a component's own fiber priced 200 of them at ~1 µs each, +14%
@@ -199,6 +203,6 @@ export function dotHitProps(
 		r: POINT_HIT_RADIUS * scale,
 		fill: 'transparent',
 		...hit,
-		className: cn(radius < POINT_HIT_RADIUS_FINE ? k.hitFine : undefined, hit.className),
+		className: cn(radius <= POINT_HIT_RADIUS_FINE ? k.hitFine : undefined, hit.className),
 	}
 }

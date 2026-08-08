@@ -43,10 +43,15 @@ describe('dot hit targets', () => {
 
 		// A mouse takes precision instead, under 2.5.8's 24px minimum on purpose:
 		// a `MapGeofence` drawn around a `MapPoint` is what the pixels go back to.
-		expect(POINT_HIT_RADIUS_FINE * 2).toBe(12)
+		expect(POINT_HIT_RADIUS_FINE * 2).toBe(11)
 
-		// Never inside the mark it covers, so the dot keeps no dead rim.
-		expect(POINT_HIT_RADIUS_FINE).toBeGreaterThan(POINT_RADIUS)
+		// The drawn dot exactly — no reach past what the mark paints, and no dead
+		// rim inside it. `dotHitProps` compares inclusively for this reason: a
+		// singular mark sits on the reach rather than under it.
+		expect(POINT_HIT_RADIUS_FINE).toBe(POINT_RADIUS)
+
+		// And a quarter of the coarse reach, which is the relation the two hold.
+		expect(POINT_HIT_RADIUS_FINE * 4).toBe(POINT_HIT_RADIUS)
 	})
 
 	it('applies one rule to every dot-shaped target the fine reach covers', () => {
