@@ -24,9 +24,9 @@ import { type BundleReport, readBundle, stableName } from './bundle-report'
 const ENTRY_CHUNK = stableName('index-00000000.js')
 
 /**
- * Measured 2026-08-01 at 1626 kB total gzip and 46 kB entry gzip, after the
- * vendor-chunk split. Headroom is ~20% on the total and ~40% on the entry, which
- * is where a stray eager import shows up first.
+ * Measured 2026-08-08 at 1691 kB total gzip and 46 kB entry gzip, after the
+ * world atlas joined the demo assets. Headroom is ~13% on the total and ~30% on
+ * the entry, which is where a stray eager import shows up first.
  */
 const BUDGETS = [
 	{ label: 'total gzip', budgetKb: 1950, of: (report: BundleReport) => report.totalGzip },

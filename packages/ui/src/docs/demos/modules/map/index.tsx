@@ -3,6 +3,7 @@ import { type GeoPermissibleObjects, geoBounds, geoContains } from 'd3-geo'
 import { type ComponentProps, useMemo, useState } from 'react'
 import { feature } from 'topojson-client'
 import statesUrl from 'us-atlas/states-10m.json?url'
+import countriesUrl from 'world-atlas/countries-110m.json?url'
 import { Flex } from '../../../../components/flex'
 import { Kbd } from '../../../../components/kbd'
 import { Select, SelectLabel, SelectOption } from '../../../../components/select'
@@ -22,6 +23,7 @@ import {
 	MapPoints,
 	MapRoute,
 	type MapRouteResult,
+	type MapTopology,
 } from '../../../../modules/map'
 import { Example as ExampleFrame } from '../../../engine'
 import {
@@ -110,6 +112,22 @@ function geographyQuery(url: string) {
 }
 
 /**
+ * The world-atlas countries, fetched once and cached (static, so it never
+ * restales). The world tab hands the plat this topology whole. Nothing there
+ * reads one country out of the atlas, so the plat decodes the object
+ * `geographyObject` names, behind its own cross-instance memo. That is the
+ * other form the `geography` prop takes — the states above decode because one
+ * demo frames a single state.
+ */
+function worldQuery(url: string) {
+	return {
+		queryKey: ['world-atlas', url] as const,
+		queryFn: async (): Promise<MapTopology> =>
+			(await fetch(url).then((response) => response.json())) as MapTopology,
+	}
+}
+
+/**
  * A road route between two coordinates from the OSRM demo server, cached per
  * pair. The public demo server is rate-limited and non-commercial; a real app
  * points `fetchOsrmRoute` at a self-hosted OSRM through its `baseUrl` option.
@@ -128,6 +146,11 @@ function routeQuery(start: LngLat, end: LngLat) {
 /** The atlas for the plats; `null` while it loads, so the frame holds its skeleton. */
 function useGeography(url: string): MapFeatureCollection | null {
 	return useQuery(geographyQuery(url)).data ?? null
+}
+
+/** The world topology for the plats; `null` while it loads, so the frame holds its skeleton. */
+function useWorld(url: string): MapTopology | null {
+	return useQuery(worldQuery(url)).data ?? null
 }
 
 /**
@@ -456,6 +479,63 @@ function TexasTriangle({ geography }: { geography: MapFeatureCollection | null }
 	)
 }
 
+/**
+ * The whole globe, under the two projections that draw one. `graticule` rules
+ * the meridians and parallels, and `sphere` outlines the globe's own edge — the
+ * frame a world map closes itself with, and the chrome `albers-usa` has no
+ * single edge to draw. Chrome names no place and carries no value, so it takes
+ * no legend row and answers no pointer. These two maps carry no rows and no
+ * marks, so they pass `tooltip={false}`. A map with nothing to name must not
+ * hold a tab stop that answers a key with silence.
+ *
+ * Each map frames at a ratio of its own, because the globe stands outside the
+ * box the fit maps onto the frame. Mercator takes 9/10, taller than the land's
+ * own 1.04. It cuts at 85°N, and the northernmost land is Greenland at 83.6°N,
+ * so the outline's top edge needs that margin. Equal Earth takes 5/2, wider
+ * than the land's own 2.03. No land reaches the antimeridian at the equator,
+ * where the globe is widest, so the land's own ratio cuts the outline between
+ * 16°S and 16°N.
+ *
+ * Equal Earth loses its north pole line at every ratio, by the 1.2px the pole
+ * stands above Greenland. The fit pins the land's box to the frame's edge, so a
+ * frame holds the sides or the poles and never both. A fit that reserved a
+ * margin would hold all of it — the mark-safe fit the module's backlog carries
+ * for the marks that overflow the same edge.
+ */
+function WorldMaps() {
+	const world = useWorld(countriesUrl)
+
+	return (
+		<Stack gap="xl">
+			<Example title="Equal Earth">
+				<MapPlat
+					aria-label="Countries of the world on Equal Earth"
+					geography={world}
+					geographyObject="countries"
+					projection="equal-earth"
+					aspectRatio="5/2"
+					graticule
+					sphere
+					tooltip={false}
+				/>
+			</Example>
+
+			<Example title="Mercator">
+				<MapPlat
+					aria-label="Countries of the world on Mercator"
+					geography={world}
+					geographyObject="countries"
+					projection="mercator"
+					aspectRatio="9/10"
+					graticule
+					sphere
+					tooltip={false}
+				/>
+			</Example>
+		</Stack>
+	)
+}
+
 function MapDemo() {
 	const states = useGeography(statesUrl)
 
@@ -491,6 +571,15 @@ function MapDemo() {
 						Route
 					</Tab>
 					<Tab value="geofence">Geofence</Tab>
+					{/* The world atlas is a second 108 kB fetch, and only this tab draws
+					    it, so it loads with the panel rather than with the demo — and
+					    warms on the hover before the click, like the routes above. */}
+					<Tab
+						value="world"
+						onPreload={() => void queryClient.prefetchQuery(worldQuery(countriesUrl))}
+					>
+						World
+					</Tab>
 				</TabList>
 
 				<TabContents fade={false}>
@@ -651,6 +740,10 @@ function MapDemo() {
 								<TexasTriangle geography={states} />
 							</Example>
 						</Stack>
+					</TabContent>
+
+					<TabContent value="world">
+						<WorldMaps />
 					</TabContent>
 				</TabContents>
 			</Stack>
