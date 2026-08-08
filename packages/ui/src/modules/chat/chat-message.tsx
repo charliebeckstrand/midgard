@@ -7,7 +7,7 @@ import { type ChatMessageVariants, k } from '../../recipes/kata/chat-message'
 export type ChatMessageProps = ChatMessageVariants & {
 	/** Wall-clock label shown below the bubble. */
 	timestamp?: ReactNode
-	/** Pulses the bubble content while a response streams in. */
+	/** Pulses the bubble content and shows the progress cursor over the bubble while a response streams in. */
 	streaming?: boolean
 	/** Action rail below the bubble (copy, retry, edit, …). */
 	actions?: ReactNode
@@ -38,6 +38,13 @@ export type ChatMessageProps = ChatMessageVariants & {
  * pulses (`animate-pulse`) to signal the response is still arriving, settling
  * to a steady bubble the moment streaming ends.
  *
+ * The pointer reports that same wait: the bubble takes `cursor-progress` while
+ * `streaming`, so a reader whose pointer rests on a reply sees it is still
+ * being written. `progress` rather than `wait`, because the rest of the page
+ * stays interactive — the composer still takes a draft, and `stop` still
+ * aborts. The cursor rides the bubble alone, so a control in the `actions` rail
+ * keeps its own.
+ *
  * Memoized on its (shallow-equal) props, so a transcript's settled bubbles skip
  * re-rendering — and re-lexing their Markdown — while only the streaming
  * bubble's `children` actually changes from chunk to chunk.
@@ -60,7 +67,7 @@ export const ChatMessage = memo(function ChatMessage({
 
 	return (
 		<div data-slot="chat-message" data-role={resolvedRole} className={cn(k({ role }), className)}>
-			<div data-slot="chat-message-bubble" className={cn(k.bubble({ role }))}>
+			<div data-slot="chat-message-bubble" className={cn(k.bubble({ role, streaming }))}>
 				<span data-slot="chat-message-author" className="sr-only">
 					{author}:{' '}
 				</span>

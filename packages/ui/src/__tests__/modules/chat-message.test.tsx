@@ -51,6 +51,21 @@ describe('ChatMessage', () => {
 		expect(markdown).toHaveTextContent('content')
 	})
 
+	it('shows the progress cursor on the bubble while streaming', () => {
+		const { container } = renderUI(<ChatMessage streaming>content</ChatMessage>)
+
+		// The pointer reports the same wait the pulse reports to the eye. It rides
+		// the bubble rather than the whole message, so an actions-rail control
+		// keeps its own cursor.
+		expect(bySlot(container, 'chat-message-bubble')).toHaveClass('cursor-progress')
+	})
+
+	it('leaves the settled bubble with no progress cursor', () => {
+		const { container } = renderUI(<ChatMessage>content</ChatMessage>)
+
+		expect(bySlot(container, 'chat-message-bubble')).not.toHaveClass('cursor-progress')
+	})
+
 	it('renders the actions slot when provided', () => {
 		const { container } = renderUI(
 			<ChatMessage actions={<button type="button">Copy</button>}>content</ChatMessage>,

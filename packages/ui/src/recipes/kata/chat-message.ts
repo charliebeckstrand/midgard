@@ -21,7 +21,14 @@ const bubble = defineRecipe({
 		],
 		system: [size.md, ...text.muted, 'bg-transparent px-0'],
 	},
-	defaults: { role: 'assistant' },
+	// The pointer reports the same wait the pulse reports to the eye: the reply
+	// is still arriving, and the bubble under the pointer is still changing.
+	// `progress` rather than `wait`, because the rest of the page stays live.
+	streaming: {
+		true: 'cursor-progress',
+		false: '',
+	},
+	defaults: { role: 'assistant', streaming: false },
 })
 
 export const k = defineRecipe(
@@ -43,5 +50,5 @@ export const k = defineRecipe(
 
 /** Recipe variant props for {@link ChatMessage} — the styling axes its kata exposes (`role`), for consumers composing custom slots. */
 export type ChatMessageVariants = VariantProps<typeof k>
-/** Recipe variant props for the {@link ChatMessage} bubble — its styling axes (`role`), for consumers composing custom slots. */
+/** Recipe variant props for the {@link ChatMessage} bubble — its styling axes (`role`, `streaming`), for consumers composing custom slots. */
 export type ChatMessageBubbleVariants = VariantProps<typeof bubble>
