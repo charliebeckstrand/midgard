@@ -10,8 +10,10 @@ import {
 	type MapGeography,
 	type MapLegendPlacement,
 	MapPlat,
+	type MapPlatProps,
 	type MapProjection,
 } from '../../map'
+import { numericRegionData } from '../../map/engine/map-region/data'
 import type { ChartContextMenuConfig } from '../engine/chart-context-menu'
 import { ChartContextMenu } from '../engine/chart-context-menu'
 import type { ChartRangeLegendConfig } from '../engine/chart-legend/range'
@@ -207,8 +209,11 @@ function choroplethReadout<T>(
 export function ChoroplethChart<T = never>(props: ChoroplethChartProps<T>) {
 	// `contextMenu`, `title`, and `className` are the frame's, not MapPlat's; peel
 	// them off the rest that spreads onto the map. `width` is peeled to size the
-	// rasterised wrapper, then handed back to MapPlat below.
-	const { series, formatValue, contextMenu, title, className, width, ...map } = props
+	// rasterised wrapper, then handed back to MapPlat below. `data` is peeled
+	// because it belongs to the region-data branch below, which decides whether
+	// the map carries rows at all — left in the rest it would survive the branch's
+	// spread and hand a data-less map its rows back.
+	const { series, formatValue, contextMenu, title, className, width, data, ...map } = props
 
 	// The right-clicked region, reported outward by the map (its hover state is provider-isolated, so the
 	// menu cannot read it). Set once per right-click — never per hover — so the map's render isolation
@@ -227,15 +232,19 @@ export function ChoroplethChart<T = never>(props: ChoroplethChartProps<T>) {
 	// Built from the input rows for the menu's CSV / copy actions; drops them when
 	// there is nothing to export. A cached thunk (`ChartReadoutSource`), so
 	// only a selected action materializes it.
-	const readout = once(() => choroplethReadout(props.data, primary, format))
+	const readout = once(() => choroplethReadout(data, primary, format))
 
 	// The rasterised root and right-click surface. MapPlat keeps its own root ref
 	// private, so wrap it in one sized like MapPlat's frame — full-width, or the
 	// fixed `width` — so an image export captures the map tightly, with no gutter.
 	const rootRef = useRef<HTMLDivElement>(null)
 
-	// Unwrap the (single) series onto MapPlat's numeric mode. The `AccessibleName`
-	// union makes a raw spread ambiguous, so assemble the props and assert.
+	// Unwrap the (single) series onto MapPlat's numeric mode. The fields go through
+	// `numericRegionData` rather than onto the literal one at a time: `series[0]`
+	// is possibly absent, so each field read off it widens by `undefined` and the
+	// assembled object matches no branch of the region-data union. The constructor
+	// tests the four required fields together and returns a branch, which is what
+	// lets these props be checked (`satisfies`) instead of asserted.
 	const mapProps = {
 		...map,
 		width,
@@ -246,15 +255,18 @@ export function ChoroplethChart<T = never>(props: ChoroplethChartProps<T>) {
 		// refitting when measured (see MapPlat's `deferPaint`).
 		aspectRatio: map.aspectRatio ?? '16/9',
 		deferPaint: true,
-		regionKey: primary?.idKey,
-		valueKey: primary?.colorKey,
-		colorRange: primary?.colorRange,
-		domain: primary?.colorDomain,
-		valueName: primary?.colorName,
-		bins: primary?.bins,
-		binning: primary?.binning,
-		valueFormat: formatValue,
-	} as Parameters<typeof MapPlat<T>>[0]
+		...numericRegionData<T>({
+			data,
+			regionKey: primary?.idKey,
+			valueKey: primary?.colorKey,
+			colorRange: primary?.colorRange,
+			domain: primary?.colorDomain,
+			valueName: primary?.colorName,
+			bins: primary?.bins,
+			binning: primary?.binning,
+			valueFormat: formatValue,
+		}),
+	} satisfies MapPlatProps<T>
 
 	return (
 		<ChartContextMenu
