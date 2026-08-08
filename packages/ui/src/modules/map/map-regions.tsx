@@ -4,6 +4,7 @@ import {
 	type CSSProperties,
 	memo,
 	type PointerEvent,
+	startTransition,
 	useCallback,
 	useEffect,
 	useMemo,
@@ -14,9 +15,11 @@ import { k } from '../../recipes/kata/map'
 import { useMapHoverSet, useMapPointedMark } from './context'
 import { REGION_SELECTED_STROKE_WIDTH, REGION_STROKE_WIDTH } from './engine/map-constants'
 import { regionIndexAt } from './engine/map-hover/anchor'
+import { REGION_WASH_SETTLE } from './engine/map-motion'
 import type { MapCategoryMeta } from './engine/map-region/category'
 import {
 	type MapRegionLayer,
+	type MapWash,
 	paintAt,
 	resolveRegionPaints,
 	washStyle,
@@ -121,7 +124,9 @@ type RegionProps = {
  *
  * Memoised on its resolved primitives: a legend toggle or the reveal flip
  * re-renders the categories whose paint changed and every other region holds
- * its last render.
+ * its last render. The wash styles are shared objects, so a region outside the
+ * change compares equal on its timing too — until the stagger retires, the one
+ * flip that re-keys every region's style and so re-renders the whole layer.
  *
  * @internal
  */
@@ -165,14 +170,14 @@ const Region = memo(function Region({
 })
 
 /** Props for {@link MapRegionsBase}: the layer's own inputs, none of the shared emphasis. @internal */
-type MapRegionsBaseProps = MapRegionLayer & { animate: boolean }
+type MapRegionsBaseProps = MapRegionLayer & { wash: MapWash }
 
 /**
  * Every region path, painted by category. Deliberately blind to the shared
  * emphasis — the pointed mark and the legend focus recede this layer from
  * outside ({@link MapRegions}) — so on a county atlas the three-thousand-path
  * tree never re-renders while the pointer travels or a legend chip is held;
- * only a toggle, the reveal flip, or new geometry re-maps it. The paint table
+ * only a toggle, the reveal's flips, or new geometry re-maps it. The paint table
  * arrives resolved from the parent, so the memo compares one stable reference
  * where it once compared the four inputs behind it.
  *
@@ -182,7 +187,7 @@ const MapRegionsBase = memo(function MapRegionsBase({
 	paths,
 	regionCategory,
 	paints,
-	animate,
+	wash,
 }: MapRegionsBaseProps) {
 	const set = useMapHoverSet()
 
@@ -214,7 +219,7 @@ const MapRegionsBase = memo(function MapRegionsBase({
 						index={index}
 						className={paint.className}
 						fillColor={paint.fillColor}
-						style={animate ? washStyle(index) : undefined}
+						style={washStyle(index, wash)}
 						onTrack={track}
 					/>
 				)
@@ -284,6 +289,33 @@ export const MapRegions = memo(function MapRegions({
 		if (animate && paths.length > 0) setRevealed(true)
 	}, [animate, paths.length])
 
+	// Whether the reveal has washed through, retiring its per-region stagger. The
+	// delay has to outlive the flip that starts the wash — a transition reads its
+	// timing from the style it lands in, so dropping the stagger in the same
+	// commit would drop the stagger itself — but no further: standing, it delays
+	// every later fill change, and a legend toggle on an atlas of any size pays
+	// the capped delay before its colour so much as begins to move. A one-way flag
+	// beside the reveal it retires, so a resize never re-arms it.
+	//
+	// Retiring re-keys every region's wash style, so it costs one pass over the
+	// layer — committed as a transition, the priority the plot's own refit rides,
+	// since nothing waits on it: the reveal it ends has already played, and until
+	// the pass lands the regions hold a delay that only a fill change would read.
+	const [settled, setSettled] = useState(!animate)
+
+	useEffect(() => {
+		if (!revealed || settled) return
+
+		const timer = setTimeout(
+			() => startTransition(() => setSettled(true)),
+			REGION_WASH_SETTLE * 1000,
+		)
+
+		return () => clearTimeout(timer)
+	}, [revealed, settled])
+
+	const wash: MapWash = animate ? (settled ? 'settled' : 'reveal') : 'none'
+
 	const clickable = onRegionClick !== undefined
 
 	// One paint table for both layers: the memo's identity holds across the
@@ -320,12 +352,7 @@ export const MapRegions = memo(function MapRegions({
 			onContextMenu={regionDelegate(onRegionContextMenu)}
 		>
 			<g data-slot="map-regions-recede" className={cn(k.group(receded))}>
-				<MapRegionsBase
-					paths={paths}
-					regionCategory={regionCategory}
-					paints={paints}
-					animate={animate}
-				/>
+				<MapRegionsBase paths={paths} regionCategory={regionCategory} paints={paints} wash={wash} />
 			</g>
 
 			{receded && (

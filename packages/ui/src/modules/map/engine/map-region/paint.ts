@@ -38,8 +38,35 @@ const STAGGERED_WASH_STYLES: CSSProperties[] = Array.from(
 	}),
 )
 
-/** The wash timing for a region: its own staggered delay below the cap, the shared capped style past it. @internal */
-export function washStyle(index: number): CSSProperties {
+// The wash past the reveal: the fade alone, with no delay. Every region shares
+// it, so a settled layer holds one style identity across the whole tree — and
+// the memoised Region compares the same reference it did before the stagger
+// retired.
+const SETTLED_WASH_STYLE: CSSProperties = { transitionDuration: WASH_DURATION }
+
+/**
+ * Which wash timing the region layer is on. The stagger belongs to the mount
+ * reveal alone: it washes the geography on region by region, and once that has
+ * played out a legend toggle must repaint at once. Left standing it delays every
+ * later fill change by the region's own reveal delay — up to the cap, which on
+ * an atlas of any size is where nearly every region sits.
+ *
+ * @internal
+ */
+export type MapWash = 'none' | 'reveal' | 'settled'
+
+/**
+ * The wash timing for a region: its own staggered delay below the cap (the
+ * shared capped style past it) while the reveal runs, the bare fade once that
+ * has settled, and nothing at all on a static map.
+ *
+ * @internal
+ */
+export function washStyle(index: number, wash: MapWash): CSSProperties | undefined {
+	if (wash === 'none') return undefined
+
+	if (wash === 'settled') return SETTLED_WASH_STYLE
+
 	return STAGGERED_WASH_STYLES[index] ?? CAPPED_WASH_STYLE
 }
 
