@@ -19,12 +19,13 @@ export type ChatTranscriptProps = {
  * Renders a chat transcript and auto-scrolls to the newest message.
  *
  * @remarks
- * Maps each message's `role` to the `ChatMessage` `type` (`agent` →
- * `assistant`). When `streaming`, only the last agent bubble pulses. Opens
- * already scrolled to the bottom (no animation), then smooth-scrolls there on
- * every subsequent `messages` change via {@link useChatScroll}, so streamed
- * chunks stay in view. Mount this fresh per conversation (e.g. `key`d on its
- * id) so switching chats doesn't animate from the old scroll position.
+ * Each message's `role` reaches {@link ChatMessage} unchanged, because the data
+ * and the component spell the speaker axis the same way. When `streaming`, only
+ * the last assistant bubble pulses. Opens already scrolled to the bottom (no
+ * animation), then smooth-scrolls there on every subsequent `messages` change
+ * via {@link useChatScroll}, so streamed chunks stay in view. Mount this fresh
+ * per conversation (e.g. `key`d on its id) so switching chats doesn't animate
+ * from the old scroll position.
  */
 export function ChatTranscript({ messages, streaming, className }: ChatTranscriptProps) {
 	const { ref } = useChatScroll(messages)
@@ -37,8 +38,10 @@ export function ChatTranscript({ messages, streaming, className }: ChatTranscrip
 						{messages.map((message, index) => (
 							<ChatMessage
 								key={message.id ?? index}
-								type={message.role === 'user' ? 'user' : 'assistant'}
-								streaming={streaming && message.role === 'agent' && index === messages.length - 1}
+								role={message.role}
+								streaming={
+									streaming && message.role === 'assistant' && index === messages.length - 1
+								}
 								timestamp={message.timestamp}
 							>
 								{message.content}

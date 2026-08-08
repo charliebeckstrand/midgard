@@ -17,11 +17,15 @@ export type ChatMessageProps = ChatMessageVariants & {
 }
 
 /**
- * Conversational message bubble sided and colored by `type` (`user`,
+ * Conversational message bubble sided and colored by `role` (`user`,
  * `assistant`, or `system`; defaults to `assistant`), with an optional
  * `timestamp`, `actions` rail, and a `streaming` pulse over its content.
  *
  * @remarks
+ * `role` is the module's one speaker axis: {@link ChatContent} spells it the
+ * same way, so a transcript passes the message's own `role` through and maps
+ * nothing.
+ *
  * Side and color alone convey the speaker visually, so a visually hidden author
  * label ("You said", "Assistant said", or "System") announces it to assistive
  * tech.
@@ -39,7 +43,7 @@ export type ChatMessageProps = ChatMessageVariants & {
  * bubble's `children` actually changes from chunk to chunk.
  */
 export const ChatMessage = memo(function ChatMessage({
-	type,
+	role,
 	timestamp,
 	streaming,
 	actions,
@@ -49,14 +53,14 @@ export const ChatMessage = memo(function ChatMessage({
 	// Bubble side/color alone convey the speaker visually; a visually hidden
 	// author label names it for assistive technology. System messages are status
 	// lines, not an utterance; they get a plain "System" attribution.
-	const resolvedType = type ?? 'assistant'
+	const resolvedRole = role ?? 'assistant'
 
 	const author =
-		resolvedType === 'user' ? 'You said' : resolvedType === 'system' ? 'System' : 'Assistant said'
+		resolvedRole === 'user' ? 'You said' : resolvedRole === 'system' ? 'System' : 'Assistant said'
 
 	return (
-		<div data-slot="chat-message" data-type={resolvedType} className={cn(k({ type }), className)}>
-			<div data-slot="chat-message-bubble" className={cn(k.bubble({ type }))}>
+		<div data-slot="chat-message" data-role={resolvedRole} className={cn(k({ role }), className)}>
+			<div data-slot="chat-message-bubble" className={cn(k.bubble({ role }))}>
 				<span data-slot="chat-message-author" className="sr-only">
 					{author}:{' '}
 				</span>

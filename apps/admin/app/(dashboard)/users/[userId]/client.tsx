@@ -8,13 +8,14 @@ import { Dialog, DialogBody, DialogFooter, DialogTitle } from 'ui/dialog'
 import { Flex } from 'ui/flex'
 import { Heading } from 'ui/heading'
 import { Icon } from 'ui/icon'
-import type { Chat, ChatContent } from 'ui/modules/chat'
+import type { ChatContent } from 'ui/modules/chat'
 import { ChatTranscript } from 'ui/modules/chat'
 import { Placeholder } from 'ui/placeholder'
 import { Sheet, SheetBody, SheetClose, SheetDescription, SheetTitle } from 'ui/sheet'
 import { Stack } from 'ui/stack'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from 'ui/table'
 import { Text } from 'ui/text'
+import type { Chat } from './types'
 
 type UserDetailsClientProps = {
 	details: User | null

@@ -13,7 +13,7 @@ import type { ChatContent } from '../../modules/chat/engine/types'
 
 const user = (id: string, content: string): ChatContent => ({ id, role: 'user', content })
 
-const agent = (id: string, content: string): ChatContent => ({ id, role: 'agent', content })
+const assistant = (id: string, content: string): ChatContent => ({ id, role: 'assistant', content })
 
 describe('appendUserMessage', () => {
 	it('appends the message under the id the caller supplies', () => {
@@ -21,7 +21,7 @@ describe('appendUserMessage', () => {
 	})
 
 	it('keeps the transcript before it', () => {
-		const messages = [user('u1', 'hi'), agent('r1', 'hello')]
+		const messages = [user('u1', 'hi'), assistant('r1', 'hello')]
 
 		expect(appendUserMessage(messages, 'u2', 'again')).toEqual([...messages, user('u2', 'again')])
 	})
@@ -36,8 +36,8 @@ describe('appendUserMessage', () => {
 })
 
 describe('openReply', () => {
-	it('appends an empty agent bubble under the id', () => {
-		expect(openReply([user('u1', 'hi')], 'r1')).toEqual([user('u1', 'hi'), agent('r1', '')])
+	it('appends an empty assistant bubble under the id', () => {
+		expect(openReply([user('u1', 'hi')], 'r1')).toEqual([user('u1', 'hi'), assistant('r1', '')])
 	})
 })
 
@@ -49,23 +49,28 @@ describe('applyReplySnapshot', () => {
 
 		expect(applyReplySnapshot(first, 'r1', 'Hello')).toEqual([
 			user('u1', 'hi'),
-			agent('r1', 'Hello'),
+			assistant('r1', 'Hello'),
 		])
 	})
 
 	it('leaves every other message alone', () => {
-		const messages = [user('u1', 'hi'), agent('r1', 'first'), user('u2', 'again'), agent('r2', '')]
+		const messages = [
+			user('u1', 'hi'),
+			assistant('r1', 'first'),
+			user('u2', 'again'),
+			assistant('r2', ''),
+		]
 
 		expect(applyReplySnapshot(messages, 'r2', 'second')).toEqual([
 			user('u1', 'hi'),
-			agent('r1', 'first'),
+			assistant('r1', 'first'),
 			user('u2', 'again'),
-			agent('r2', 'second'),
+			assistant('r2', 'second'),
 		])
 	})
 
 	it('changes nothing for an id that names no message', () => {
-		const messages = [user('u1', 'hi'), agent('r1', '')]
+		const messages = [user('u1', 'hi'), assistant('r1', '')]
 
 		expect(applyReplySnapshot(messages, 'absent', 'Hello')).toEqual(messages)
 	})
@@ -73,21 +78,28 @@ describe('applyReplySnapshot', () => {
 
 describe('dropEmptyReply', () => {
 	it('drops the reply the id names while it is empty', () => {
-		expect(dropEmptyReply([user('u1', 'hi'), agent('r1', '')], 'r1')).toEqual([user('u1', 'hi')])
+		expect(dropEmptyReply([user('u1', 'hi'), assistant('r1', '')], 'r1')).toEqual([
+			user('u1', 'hi'),
+		])
 	})
 
 	it('keeps a reply that received content', () => {
-		const messages = [user('u1', 'hi'), agent('r1', 'partial')]
+		const messages = [user('u1', 'hi'), assistant('r1', 'partial')]
 
 		expect(dropEmptyReply(messages, 'r1')).toEqual(messages)
 	})
 
 	it('keeps an empty bubble another send opened', () => {
-		const messages = [user('u1', 'hi'), agent('r1', ''), user('u2', 'again'), agent('r2', '')]
+		const messages = [
+			user('u1', 'hi'),
+			assistant('r1', ''),
+			user('u2', 'again'),
+			assistant('r2', ''),
+		]
 
 		expect(dropEmptyReply(messages, 'r2')).toEqual([
 			user('u1', 'hi'),
-			agent('r1', ''),
+			assistant('r1', ''),
 			user('u2', 'again'),
 		])
 	})
@@ -101,29 +113,39 @@ describe('dropEmptyReply', () => {
 
 describe('lastUserMessage', () => {
 	it('reads the last user message, past a later reply', () => {
-		const messages = [user('u1', 'hi'), agent('r1', 'first'), user('u2', 'again'), agent('r2', 'x')]
+		const messages = [
+			user('u1', 'hi'),
+			assistant('r1', 'first'),
+			user('u2', 'again'),
+			assistant('r2', 'x'),
+		]
 
 		expect(lastUserMessage(messages)).toEqual(user('u2', 'again'))
 	})
 
 	it('is undefined when the transcript holds no user message', () => {
-		expect(lastUserMessage([agent('r1', 'unprompted')])).toBeUndefined()
+		expect(lastUserMessage([assistant('r1', 'unprompted')])).toBeUndefined()
 	})
 })
 
 describe('truncateToLastUserMessage', () => {
 	it('keeps the last user message and drops its reply', () => {
-		const messages = [user('u1', 'hi'), agent('r1', 'first')]
+		const messages = [user('u1', 'hi'), assistant('r1', 'first')]
 
 		expect(truncateToLastUserMessage(messages)).toEqual([user('u1', 'hi')])
 	})
 
 	it('drops every turn after the last user message', () => {
-		const messages = [user('u1', 'hi'), agent('r1', 'first'), user('u2', 'again'), agent('r2', 'x')]
+		const messages = [
+			user('u1', 'hi'),
+			assistant('r1', 'first'),
+			user('u2', 'again'),
+			assistant('r2', 'x'),
+		]
 
 		expect(truncateToLastUserMessage(messages)).toEqual([
 			user('u1', 'hi'),
-			agent('r1', 'first'),
+			assistant('r1', 'first'),
 			user('u2', 'again'),
 		])
 	})
@@ -135,7 +157,7 @@ describe('truncateToLastUserMessage', () => {
 	})
 
 	it('changes nothing when the transcript holds no user message', () => {
-		const messages = [agent('r1', 'unprompted')]
+		const messages = [assistant('r1', 'unprompted')]
 
 		expect(truncateToLastUserMessage(messages)).toEqual(messages)
 	})
@@ -143,13 +165,13 @@ describe('truncateToLastUserMessage', () => {
 
 describe('userMessage', () => {
 	it('reads the user message the id names', () => {
-		const messages = [user('u1', 'hi'), agent('r1', 'first')]
+		const messages = [user('u1', 'hi'), assistant('r1', 'first')]
 
 		expect(userMessage(messages, 'u1')).toEqual(user('u1', 'hi'))
 	})
 
 	it('is undefined for a reply’s id, so only a user message is editable', () => {
-		expect(userMessage([user('u1', 'hi'), agent('r1', 'first')], 'r1')).toBeUndefined()
+		expect(userMessage([user('u1', 'hi'), assistant('r1', 'first')], 'r1')).toBeUndefined()
 	})
 
 	it('is undefined for an id the transcript does not hold', () => {
@@ -159,7 +181,12 @@ describe('userMessage', () => {
 
 describe('truncateToEditedMessage', () => {
 	it('replaces the message’s content and drops every turn after it', () => {
-		const messages = [user('u1', 'hi'), agent('r1', 'first'), user('u2', 'again'), agent('r2', 'x')]
+		const messages = [
+			user('u1', 'hi'),
+			assistant('r1', 'first'),
+			user('u2', 'again'),
+			assistant('r2', 'x'),
+		]
 
 		expect(truncateToEditedMessage(messages, 'u1', 'edited')).toEqual([user('u1', 'edited')])
 	})
@@ -167,7 +194,7 @@ describe('truncateToEditedMessage', () => {
 	it('keeps the message’s other fields', () => {
 		const messages: ChatContent[] = [
 			{ id: 'u1', role: 'user', content: 'hi', timestamp: '2026-08-08T00:00:00Z' },
-			agent('r1', 'first'),
+			assistant('r1', 'first'),
 		]
 
 		expect(truncateToEditedMessage(messages, 'u1', 'edited')).toEqual([
@@ -176,13 +203,13 @@ describe('truncateToEditedMessage', () => {
 	})
 
 	it('changes nothing for an id that names no message', () => {
-		const messages = [user('u1', 'hi'), agent('r1', 'first')]
+		const messages = [user('u1', 'hi'), assistant('r1', 'first')]
 
 		expect(truncateToEditedMessage(messages, 'absent', 'edited')).toEqual(messages)
 	})
 
 	it('returns a new list, leaving the transcript it read intact', () => {
-		const messages = [user('u1', 'hi'), agent('r1', 'first')]
+		const messages = [user('u1', 'hi'), assistant('r1', 'first')]
 
 		expect(truncateToEditedMessage(messages, 'u1', 'edited')).not.toBe(messages)
 

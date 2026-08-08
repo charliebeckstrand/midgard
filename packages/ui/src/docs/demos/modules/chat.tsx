@@ -32,7 +32,7 @@ const transcript: ChatContent[] = [
 	},
 	{
 		id: '2',
-		role: 'agent',
+		role: 'assistant',
 		content: "Of course! Who's attending, and what outcome do you need from it?",
 	},
 	{
@@ -42,7 +42,7 @@ const transcript: ChatContent[] = [
 	},
 	{
 		id: '4',
-		role: 'agent',
+		role: 'assistant',
 		content: 'Looking forward to it!',
 		timestamp: '11:12 AM',
 	},
@@ -128,33 +128,33 @@ export function Demo() {
 					<Stack gap="xl">
 						<Example title="Default">
 							<Stack gap="sm">
-								<ChatMessage type="assistant">Hi there! How can I help you today?</ChatMessage>
-								<ChatMessage type="user">Can you help me plan the project kickoff?</ChatMessage>
+								<ChatMessage role="assistant">Hi there! How can I help you today?</ChatMessage>
+								<ChatMessage role="user">Can you help me plan the project kickoff?</ChatMessage>
 							</Stack>
 						</Example>
 
 						<Example title="System">
-							<ChatMessage type="system">Conversation started</ChatMessage>
+							<ChatMessage role="system">Conversation started</ChatMessage>
 						</Example>
 
 						<Example title="Streaming">
-							<ChatMessage type="assistant" streaming>
+							<ChatMessage role="assistant" streaming>
 								Thinking through the problem
 							</ChatMessage>
 						</Example>
 
 						<Example title="Timestamped">
-							<ChatMessage type="assistant" timestamp="11:10 AM">
+							<ChatMessage role="assistant" timestamp="11:10 AM">
 								Heading out now, ETA 3pm.
 							</ChatMessage>
-							<ChatMessage type="user" timestamp="11:12 AM">
+							<ChatMessage role="user" timestamp="11:12 AM">
 								Got it — door code is 4421.
 							</ChatMessage>
 						</Example>
 
 						<Example title="With actions">
 							<ChatMessage
-								type="assistant"
+								role="assistant"
 								actions={
 									<>
 										<CopyButton size="sm" value="Heading out now, ETA 3pm." />

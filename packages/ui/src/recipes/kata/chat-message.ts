@@ -13,7 +13,7 @@ const bubble = defineRecipe({
 		'rounded-2xl',
 		'whitespace-pre-wrap break-words',
 	],
-	type: {
+	role: {
 		user: ['bg-blue-600 text-white', 'rounded-br-md'],
 		assistant: [
 			...mode('bg-zinc-200 text-zinc-950', 'dark:bg-white/10 dark:text-white'),
@@ -21,13 +21,13 @@ const bubble = defineRecipe({
 		],
 		system: [size.md, ...text.muted, 'bg-transparent px-0'],
 	},
-	defaults: { type: 'assistant' },
+	defaults: { role: 'assistant' },
 })
 
 export const k = defineRecipe(
 	{
 		base: flex.col,
-		type: {
+		role: {
 			user: 'items-end',
 			assistant: 'items-start',
 			system: 'items-center',
@@ -36,12 +36,12 @@ export const k = defineRecipe(
 			timestamp: [size.xs, 'mt-1', ...text.muted],
 			actions: ['mt-1', flex.row, 'gap-0.5'],
 		},
-		defaults: { type: 'assistant' },
+		defaults: { role: 'assistant' },
 	},
 	{ bubble },
 )
 
-/** Recipe variant props for {@link ChatMessage} — the styling axes its kata exposes (`type`), for consumers composing custom slots. */
+/** Recipe variant props for {@link ChatMessage} — the styling axes its kata exposes (`role`), for consumers composing custom slots. */
 export type ChatMessageVariants = VariantProps<typeof k>
-/** Recipe variant props for the {@link ChatMessage} bubble — its styling axes (`type`), for consumers composing custom slots. */
+/** Recipe variant props for the {@link ChatMessage} bubble — its styling axes (`role`), for consumers composing custom slots. */
 export type ChatMessageBubbleVariants = VariantProps<typeof bubble>
