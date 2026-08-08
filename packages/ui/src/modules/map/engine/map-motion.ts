@@ -20,10 +20,8 @@ export const REGION_STAGGER = 0.01
 export const REGION_STAGGER_MAX = 0.3
 
 /**
- * How long the mount reveal takes end to end: the last region's delay, plus the
- * fade it then runs. The stagger retires here — it belongs to the reveal, and a
- * legend toggle after it must repaint at once rather than wait out a delay meant
- * to wash the geography on. @internal
+ * How long the mount reveal takes end to end: the slowest region's delay, plus
+ * the fade it then runs. What the stagger retires after (`MapWash`). @internal
  */
 export const REGION_WASH_SETTLE = REGION_STAGGER_MAX + REGION_FADE.duration
 

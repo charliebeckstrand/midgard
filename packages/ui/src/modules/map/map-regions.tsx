@@ -252,6 +252,9 @@ const MapRegionsBase = memo(function MapRegionsBase({
  * colour transition on a plain `<path>` (not a motion fade), so the geometry
  * itself never fades, a many-region atlas never draws out the reveal, and the
  * region layer carries no motion runtime; `motion-reduce` drops the transition.
+ * The stagger is the reveal's alone and retires with it ({@link MapWash}), so a
+ * later legend toggle crossfades on the same tempo without a reveal delay in
+ * front of it.
  *
  * Memoised so it repaints only when its own geometry, category, or legend
  * state changes: an overlay child registering its legend entry re-renders the
@@ -289,22 +292,25 @@ export const MapRegions = memo(function MapRegions({
 		if (animate && paths.length > 0) setRevealed(true)
 	}, [animate, paths.length])
 
-	// Whether the reveal has washed through, retiring its per-region stagger. The
-	// delay has to outlive the flip that starts the wash — a transition reads its
-	// timing from the style it lands in, so dropping the stagger in the same
-	// commit would drop the stagger itself — but no further: standing, it delays
-	// every later fill change, and a legend toggle on an atlas of any size pays
-	// the capped delay before its colour so much as begins to move. A one-way flag
-	// beside the reveal it retires, so a resize never re-arms it.
+	// Whether the reveal has washed through, so its per-region stagger can retire
+	// ({@link MapWash} carries why it must). The delay has to outlive the flip that
+	// starts the wash — a transition reads its timing from the style it lands in,
+	// so dropping the stagger in the same commit would drop the stagger itself — so
+	// the clock runs from the flip. A one-way flag beside the reveal it retires, so
+	// a resize never re-arms it, and the effect reads neither flag it writes.
 	//
 	// Retiring re-keys every region's wash style, so it costs one pass over the
 	// layer — committed as a transition, the priority the plot's own refit rides,
 	// since nothing waits on it: the reveal it ends has already played, and until
 	// the pass lands the regions hold a delay that only a fill change would read.
+	// It runs for a reduced-motion reader too, where the stagger it retires was
+	// already inert (`motion-reduce` drops the transition the delay belongs to) —
+	// unlike the legend's own hold, which withholds a visible dim and so has to
+	// read the preference.
 	const [settled, setSettled] = useState(!animate)
 
 	useEffect(() => {
-		if (!revealed || settled) return
+		if (!animate || !revealed) return
 
 		const timer = setTimeout(
 			() => startTransition(() => setSettled(true)),
@@ -312,7 +318,7 @@ export const MapRegions = memo(function MapRegions({
 		)
 
 		return () => clearTimeout(timer)
-	}, [revealed, settled])
+	}, [animate, revealed])
 
 	const wash: MapWash = animate ? (settled ? 'settled' : 'reveal') : 'none'
 

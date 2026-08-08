@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useMediaQuery } from '../../hooks/use-media-query'
+import { toggleItem } from '../../utilities'
 import { REGION_FADE } from './engine/map-motion'
 
 /** The legend's switchboard state, keyed by legend id. @internal */
@@ -34,14 +35,18 @@ export type MapToggle = {
  * plays in the open. So the emphasis waits out one fade, and the entry arrives
  * before the map dims around it.
  *
- * The wait is the region wash's, which is the longest of them and the only one
- * an emphasis paints over — an overlay's marks unmount when hidden, so a
- * toggled-on overlay has no dimmed copy to cover. It is skipped where there is
- * no wash to protect: a static map, and a reduced-motion reader, whose
- * `motion-reduce` fallback drops the transition (so the colour is already there
- * and the wait would be dead time). That preference is read live rather than
- * sampled at mount, so turning it on mid-session takes effect on the next
- * toggle.
+ * The wait is the region wash's, because the region layer is the only thing an
+ * emphasis paints a copy over: an overlay's marks unmount when hidden, so a
+ * toggled-on overlay has nothing dimmed underneath to cover, and it rides the
+ * same wait only because one legend drives both. Held for the fade alone, not
+ * the reveal's fade-plus-stagger, since the stagger retires with the reveal that
+ * owns it ({@link MapWash}).
+ *
+ * It is skipped where there is no wash to protect: a static map, and a
+ * reduced-motion reader, whose `motion-reduce` fallback drops the transition, so
+ * the colour is already there and the wait would be dead time. That preference
+ * is read live rather than sampled at mount, so turning it on mid-session takes
+ * effect on the next toggle.
  *
  * @param animate - Whether the plat animates, so a toggle has a wash to wait for.
  * @internal
@@ -61,42 +66,29 @@ export function useMapToggle(animate: boolean): MapToggle {
 	// Re-armed per toggle rather than keyed off the flag, so toggling twice inside
 	// one fade holds for the second wash instead of clearing on the first one's
 	// timer. The wheel settle in `use-map-zoom` re-arms the same way.
-	const settle = useRef<ReturnType<typeof setTimeout> | null>(null)
+	const settle = useRef<ReturnType<typeof setTimeout>>(undefined)
 
-	useEffect(
-		() => () => {
-			if (settle.current !== null) clearTimeout(settle.current)
-		},
-		[],
-	)
+	useEffect(() => () => clearTimeout(settle.current), [])
 
 	const toggle = useCallback(
 		(id: string) => {
-			setHidden((current) => {
-				const next = new Set(current)
+			// Only the way back on has a wash to protect. Hiding an entry drops the
+			// emphasis on its own — a hidden entry can't hold one — so the hold could
+			// change nothing there, and arming it would spend a timer and the render
+			// that ends it for a beat no one can see.
+			const restoring = hidden.has(id)
 
-				if (next.has(id)) {
-					next.delete(id)
-				} else {
-					next.add(id)
-				}
+			setHidden((current) => toggleItem(current, id))
 
-				return next
-			})
-
-			if (!washes) return
+			if (!washes || !restoring) return
 
 			setWashing(true)
 
-			if (settle.current !== null) clearTimeout(settle.current)
+			clearTimeout(settle.current)
 
-			settle.current = setTimeout(() => {
-				settle.current = null
-
-				setWashing(false)
-			}, REGION_FADE.duration * 1000)
+			settle.current = setTimeout(() => setWashing(false), REGION_FADE.duration * 1000)
 		},
-		[washes],
+		[hidden, washes],
 	)
 
 	return {

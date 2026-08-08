@@ -388,28 +388,38 @@ describe('MapPlat', () => {
 		})
 	})
 
-	it('emphasises a toggled-on category at once with no wash to wait for', () => {
-		// A static map and a reduced-motion reader both paint the colour outright —
-		// `animate` never arms the transition, `motion-reduce` drops it — so the
-		// hold above would be dead time. Reduced motion is read live, so a session
-		// that turns it on mid-flight takes it on the next toggle.
+	/** Toggles a category off and straight back on with the pointer held on its chip. */
+	function roundTrip(container: HTMLElement) {
+		const [east] = allBySlot(container, 'map-legend-item')
+
+		fireEvent.pointerEnter(east as HTMLButtonElement)
+
+		fireEvent.click(east as HTMLButtonElement)
+
+		fireEvent.click(east as HTMLButtonElement)
+	}
+
+	it('emphasises a toggled-on category at once on a static map', () => {
+		// `animate` is what arms the transition, so a static map paints the colour
+		// outright and the hold above would be dead time.
+		const { container } = renderUI(plat())
+
+		roundTrip(container)
+
+		expect(bySlot(container, 'map-regions-lit')?.querySelectorAll('path')).toHaveLength(1)
+	})
+
+	it('emphasises a toggled-on category at once for a reduced-motion reader', () => {
+		// `motion-reduce` drops the transition, so an animated plat has no wash to
+		// protect either. The preference is read live, so a session that turns it on
+		// mid-flight takes it on the next toggle.
 		stubMatchMedia((query) => query === '(prefers-reduced-motion: reduce)')
 
-		for (const animate of [false, true]) {
-			const { container, unmount } = renderUI(plat({ animate }))
+		const { container } = renderUI(plat({ animate: true }))
 
-			const [east] = allBySlot(container, 'map-legend-item')
+		roundTrip(container)
 
-			fireEvent.pointerEnter(east as HTMLButtonElement)
-
-			fireEvent.click(east as HTMLButtonElement)
-
-			fireEvent.click(east as HTMLButtonElement)
-
-			expect(bySlot(container, 'map-regions-lit')?.querySelectorAll('path')).toHaveLength(1)
-
-			unmount()
-		}
+		expect(bySlot(container, 'map-regions-lit')?.querySelectorAll('path')).toHaveLength(1)
 	})
 
 	it('isolates the pointed region, dimming every other region', () => {
