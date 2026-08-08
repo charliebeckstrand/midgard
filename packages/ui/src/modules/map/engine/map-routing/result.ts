@@ -5,7 +5,7 @@
  */
 
 import type { LngLat } from '../types'
-import { type MapRouteFailure, routeFailure } from './failure'
+import { type MapRouteFailure, noRouteFailure, routeFailure } from './failure'
 import { decodePolyline } from './polyline'
 
 /**
@@ -74,9 +74,9 @@ function geometryPath(
  * @internal
  */
 function emptyPayloadFailure(json: OsrmPayload): MapRouteFailure {
-	if (json.code !== undefined && json.code !== 'Ok') return routeFailure('no-route', json.code)
+	if (json.code !== undefined && json.code !== 'Ok') return noRouteFailure(json.code)
 
-	return routeFailure(json.routes === undefined ? 'payload' : 'no-route')
+	return json.routes === undefined ? routeFailure('payload') : noRouteFailure()
 }
 
 /** The first route's geometry and totals, or why the payload holds none. @internal */

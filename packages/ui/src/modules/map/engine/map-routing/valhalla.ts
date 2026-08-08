@@ -31,15 +31,13 @@ export type FetchValhallaRouteOptions = {
 
 /**
  * Fetch a routed leg through Valhalla (OSRM-compatible response mode). Same
- * semantics as `fetchOsrmRoute` (`osrm.ts`), down to the failure taxonomy both
- * clients share.
+ * semantics as {@link fetchOsrmRoute} (`osrm.ts`), down to the failure taxonomy
+ * both clients share.
  *
- * @param waypoints - The stops in travel order; under two of them name no leg.
  * @param options - The server, profile, and abort bounds.
- * @returns `{ ok: true, route }` with the leg, or `{ ok: false, failure }`
- * naming what stopped it and whether asking again could answer differently.
  *
- * @see {@link MapRouteFailureKind} for the reasons a request fails.
+ * @see {@link fetchOsrmRoute} for the waypoints, the answer shape, and the
+ * reasons a request fails.
  */
 export async function fetchValhallaRoute(
 	waypoints: LngLat[],
