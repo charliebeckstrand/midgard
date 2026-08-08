@@ -64,7 +64,7 @@ Every kata exports exactly one runtime value, `k`, in one of three shapes ([`src
 
 - **Archetype** — `k = bridge.<archetype>(tokens, { … })`. The kata reads its token bundle from `kiso/<archetype>` and hands it to the bridge, which builds the surface.
 - **Recipe-shaped** — `k = defineRecipe(…)`, called as `k({ variant, size, … })`; slots and sub-recipes attach as properties (`k.title`, `k.thumb`).
-- **Object-literal** — `k = { … }`, a curated bag of slot fragments, sub-recipes, motion configs, and skeleton data when there's no top-level variants axis.
+- **Object-literal** — `k = { … }`, a curated bag of slot fragments, sub-recipes, motion configs, and skeleton data when there's no top-level variants axis. Class slots wrap in `defineSlots(…)`, which collapses them to strings the way `defineRecipe` collapses its own.
 
 Variant types derive from the concrete result — `export type FooVariants = VariantProps<typeof k>`.
 
@@ -77,6 +77,7 @@ The substrate the bridge and kata call, in [`src/core/recipe/`](../src/core/reci
 | `defineRecipe` | The recipe primitive. It builds a callable recipe from a `RecipeConfig`, applying `base` → `variants` → `compound` → `defaults` per call (clsx + tailwind-merge). `slots` pre-merge and attach as properties. `palette` expands into an implicit `color` axis, and `extras` attach arbitrary siblings (`motion`, sub-recipes). |
 | `definePalette` | Declares a recipe's colour × variant matrix (single or merged per-colour records, plus per-colour overlays); lives on `RecipeConfig.palette`, separate from the variant scaffold. The engine derives the `color` axis from the matrix's own keys. A kata that takes the wide `iro.spectrum` bundle gains the extended colours with no engine change. |
 | `applyRecipe` | Merge helper a bridge calls to fold a kata's per-call overlay over an archetype's standard config and extras. It preserves key-type inference, then hands the result to `defineRecipe`. |
+| `defineSlots` | Collapses an object-literal kata's slot tree once at module load: each class array folds to one merged string and the tree keeps its shape. It gives that kata shape the pre-merge `defineRecipe` already applies to its `slots`, so the per-element `cn` call hits the memo instead of merging again. The type takes classes only, so motion configs and skeleton data stay outside the tree. |
 | `mode` / `defineColors` | Fuse colocated light (`hiru`) and dark (`yoru`) values into the flat `string[]` the engine consumes. `mode` takes a scalar pair; `defineColors` works across a multi-key map. The dark class carries its own `dark:` prefix. |
 | `shades` | Builds a `Record<C, string[]>` from per-colour light/dark shade pairs; generic over the colour set, defaulting to `Color` and widening to the extended set in `iro/spectrum`. |
 | `RecipeConfig` *(type)* | The shape a kata declares: reserved fields (`base`, `palette`, `compound`, `slots`, `defaults`, `skeleton`) plus any number of variant axes. |

@@ -16,38 +16,32 @@
  * markers, and the structural rule/border colors are the kata's concern;
  * foreground color is the container's.
  *
- * Every slot is a string, never an array. `cn` memoises on its arguments, and
- * it can branch on a string only; an array takes the plain merge instead
- * (`core/cn.ts`). The renderer calls `cn` once for each element. An array slot
- * therefore pays a full `clsx` + `tailwind-merge` pass for every heading, link,
- * row, and cell in the document. The kiso tokens that arrive as arrays join
- * once here, at module load; new slots must stay strings.
+ * The slots collapse through `defineSlots`, so each one reaches the renderer as
+ * a single string. `cn` branches its memo on string arguments only, and the
+ * renderer calls `cn` once for each element — an uncollapsed array would pay a
+ * full merge for every heading, link, row, and cell in the document.
  */
+import { defineSlots } from '../../core/recipe'
 import { ji, sen } from '../kiso'
 
 const { size, weight } = ji
 
-// The line tones arrive as a light/dark pair; join each once, not per element.
-const borderDefault = sen.border.defaultColor.join(' ')
+const headingBase = [weight.semibold]
 
-const borderEmphasis = sen.border.emphasisColor.join(' ')
-
-const headingBase = weight.semibold
-
-export const k = {
+export const k = defineSlots({
 	// First/last-child margin collapse so the prose sits flush in its container
 	// (API-reference rows, Example previews). No color — inherits the container.
-	root: '[&>:first-child]:mt-0 [&>:last-child]:mb-0',
+	root: ['[&>:first-child]:mt-0', '[&>:last-child]:mb-0'],
 	// The `inline` prop: no block rhythm, and (like the rest) no color of its own.
-	inline: '',
+	inline: [],
 
 	heading: {
-		1: `${headingBase} ${size.xl} mt-6 mb-3`,
-		2: `${headingBase} ${size.lg} mt-6 mb-3`,
-		3: `${headingBase} ${size.md} mt-5 mb-2`,
-		4: `${headingBase} ${size.sm} mt-4 mb-2`,
-		5: `${headingBase} ${size.sm} mt-4 mb-2`,
-		6: `${headingBase} ${size.sm} mt-4 mb-2`,
+		1: [...headingBase, size.xl, 'mt-6 mb-3'],
+		2: [...headingBase, size.lg, 'mt-6 mb-3'],
+		3: [...headingBase, size.md, 'mt-5 mb-2'],
+		4: [...headingBase, size.sm, 'mt-4 mb-2'],
+		5: [...headingBase, size.sm, 'mt-4 mb-2'],
+		6: [...headingBase, size.sm, 'mt-4 mb-2'],
 	},
 
 	paragraph: 'my-3',
@@ -56,7 +50,7 @@ export const k = {
 	del: 'line-through',
 	// Underlined and medium-weight, not colored: it stays distinguishable from
 	// body text by underline alone (WCAG 1.4.1) and inherits the prose color.
-	link: `${weight.medium} underline underline-offset-2`,
+	link: [weight.medium, 'underline underline-offset-2'],
 
 	// A list item tightens any nested list and drops its marker for a task item.
 	ul: 'my-3 list-disc pl-5',
@@ -65,14 +59,14 @@ export const k = {
 	task: 'list-none',
 	checkbox: 'mr-2',
 
-	blockquote: 'my-4 border-l-2 border-zinc-300 pl-4 italic dark:border-zinc-700',
-	hr: `border-0 border-t ${borderDefault} my-6`,
+	blockquote: ['my-4 border-l-2 border-zinc-300 pl-4 italic dark:border-zinc-700'],
+	hr: ['border-0 border-t', ...sen.border.defaultColor, 'my-6'],
 
 	// Emphasis rule under the header, default rule under cells.
 	table: 'my-4 w-full text-left',
-	th: `${weight.semibold} border-b px-3 py-2 ${borderEmphasis}`,
-	td: `border-b px-3 py-2 ${borderDefault}`,
+	th: [weight.semibold, 'border-b px-3 py-2', ...sen.border.emphasisColor],
+	td: ['border-b px-3 py-2', ...sen.border.defaultColor],
 	align: { left: 'text-left', right: 'text-right', center: 'text-center' },
 
 	img: 'my-4 max-w-full rounded-lg',
-} as const
+})
