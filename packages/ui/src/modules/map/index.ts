@@ -1,7 +1,8 @@
 export type { MapSeriesColor } from '../../recipes/kata/map'
 export { binEmphasisId } from './engine/map-region/category'
+export type { MapRouteFailure, MapRouteFailureKind } from './engine/map-routing/failure'
 export { type FetchOsrmRouteOptions, fetchOsrmRoute } from './engine/map-routing/osrm'
-export type { MapRouteResult } from './engine/map-routing/result'
+export type { MapRouteAnswer, MapRouteResult } from './engine/map-routing/result'
 export { type FetchValhallaRouteOptions, fetchValhallaRoute } from './engine/map-routing/valhalla'
 export type { MapZipSelection } from './engine/map-zip/selection'
 export type {

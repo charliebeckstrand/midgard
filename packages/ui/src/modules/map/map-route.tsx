@@ -21,7 +21,7 @@ export type MapRouteProps = MapOverlayProps & {
 	/**
 	 * Street-following geometry that hugs the road instead of cutting straight
 	 * between waypoints — a {@link fetchOsrmRoute} / {@link fetchValhallaRoute}
-	 * result's `path`. Wins over `stops` when both are given and it has geometry;
+	 * answer's `route.path`. Wins over `stops` when both are given and it has geometry;
 	 * an empty `path` (a totals-only routed leg) falls back to `stops`.
 	 */
 	path?: LngLat[]
