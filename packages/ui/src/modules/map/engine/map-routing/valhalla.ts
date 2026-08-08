@@ -5,8 +5,9 @@
  */
 
 import type { LngLat } from '../types'
-import { type Profile, requestSignal } from './request'
-import { type MapRouteResult, type OsrmPayload, routeResult } from './result'
+import { routeFailure } from './failure'
+import { type Profile, requestSignal, routeFetch } from './request'
+import type { MapRouteAnswer } from './result'
 
 const DEFAULT_VALHALLA_URL = 'https://valhalla1.openstreetmap.de'
 
@@ -21,8 +22,8 @@ export type FetchValhallaRouteOptions = {
 	profile?: Profile
 	/**
 	 * Abort the request after this many milliseconds, combined with `signal`. A
-	 * timed-out request resolves to `null` like any other failure, so the overlay
-	 * falls back to a straight line. Omitted, only `signal` bounds it.
+	 * timed-out request fails as `'timeout'`, apart from the `'aborted'` a
+	 * caller's own signal ends it with. Omitted, only `signal` bounds it.
 	 */
 	timeoutMs?: number
 	signal?: AbortSignal
@@ -30,14 +31,19 @@ export type FetchValhallaRouteOptions = {
 
 /**
  * Fetch a routed leg through Valhalla (OSRM-compatible response mode). Same
- * semantics as `fetchOsrmRoute` (`osrm.ts`): `null` on fewer than 2 waypoints or
- * any error. A caller then falls back to straight-line segments.
+ * semantics as {@link fetchOsrmRoute} (`osrm.ts`), down to the failure taxonomy
+ * both clients share.
+ *
+ * @param options - The server, profile, and abort bounds.
+ *
+ * @see {@link fetchOsrmRoute} for the waypoints, the answer shape, and the
+ * reasons a request fails.
  */
 export async function fetchValhallaRoute(
 	waypoints: LngLat[],
 	options: FetchValhallaRouteOptions = {},
-): Promise<MapRouteResult | null> {
-	if (waypoints.length < 2) return null
+): Promise<MapRouteAnswer> {
+	if (waypoints.length < 2) return { ok: false, failure: routeFailure('waypoints') }
 
 	const { baseUrl = DEFAULT_VALHALLA_URL, profile = 'driving', timeoutMs, signal } = options
 
@@ -55,18 +61,10 @@ export async function fetchValhallaRoute(
 		directions_type: 'none',
 	})
 
-	try {
-		const res = await fetch(`${baseUrl}/route?format=osrm`, {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body,
-			signal: requestSignal(signal, timeoutMs),
-		})
-
-		if (!res.ok) return null
-
-		return routeResult((await res.json()) as OsrmPayload)
-	} catch {
-		return null
-	}
+	return routeFetch(`${baseUrl}/route?format=osrm`, {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body,
+		signal: requestSignal(signal, timeoutMs),
+	})
 }

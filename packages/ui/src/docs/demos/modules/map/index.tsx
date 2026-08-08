@@ -133,9 +133,14 @@ function useGeography(url: string): MapFeatureCollection | null {
 /**
  * The routed leg for an overlay; `null` while it loads or if routing fails, so
  * callers fall back to the straight line the overlay draws without a `path`.
+ * A failed answer names its own reason — a rate-limited demo server reads as a
+ * retryable `'http'` where an unroutable pair reads as `'no-route'` — which an
+ * app surfaces in its own way and this demo drops.
  */
 function useRoute(start: LngLat, end: LngLat): MapRouteResult | null {
-	return useQuery(routeQuery(start, end)).data ?? null
+	const answer = useQuery(routeQuery(start, end)).data
+
+	return answer?.ok ? answer.route : null
 }
 
 /** Formats a routed distance in whole miles. */

@@ -24,15 +24,33 @@ const PAYLOAD = {
 	],
 }
 
-function stubFetch(response: { ok: boolean; json?: unknown }) {
+function stubFetch(response: { ok: boolean; status?: number; json?: unknown }) {
 	const mock = vi.fn().mockResolvedValue({
 		ok: response.ok,
+		status: response.status ?? (response.ok ? 200 : 500),
 		json: () => Promise.resolve(response.json),
 	})
 
 	vi.stubGlobal('fetch', mock)
 
 	return mock
+}
+
+/** A response whose body reaches the reader and then fails to parse. */
+function stubUnparseableBody() {
+	vi.stubGlobal(
+		'fetch',
+		vi.fn().mockResolvedValue({
+			ok: true,
+			status: 200,
+			json: () => Promise.reject(new SyntaxError('Unexpected token < in JSON')),
+		}),
+	)
+}
+
+/** A request that throws rather than answering — an abort, a timeout, or a dead network. */
+function stubThrownRequest(error: unknown) {
+	vi.stubGlobal('fetch', vi.fn().mockRejectedValue(error))
 }
 
 afterEach(() => {
@@ -43,12 +61,15 @@ describe('fetchOsrmRoute', () => {
 	it('returns the geometry with its distance and duration', async () => {
 		const mock = stubFetch({ ok: true, json: PAYLOAD })
 
-		const result = await fetchOsrmRoute(WAYPOINTS)
+		const answer = await fetchOsrmRoute(WAYPOINTS)
 
-		expect(result).toEqual({
-			path: PAYLOAD.routes[0]?.geometry.coordinates,
-			distanceMeters: 3243000,
-			durationSeconds: 106200,
+		expect(answer).toEqual({
+			ok: true,
+			route: {
+				path: PAYLOAD.routes[0]?.geometry.coordinates,
+				distanceMeters: 3243000,
+				durationSeconds: 106200,
+			},
 		})
 
 		const url = String(mock.mock.calls[0]?.[0])
@@ -65,48 +86,130 @@ describe('fetchOsrmRoute', () => {
 		})
 
 		expect(await fetchOsrmRoute(WAYPOINTS)).toEqual({
-			path: WAYPOINTS,
-			distanceMeters: 0,
-			durationSeconds: 0,
+			ok: true,
+			route: { path: WAYPOINTS, distanceMeters: 0, durationSeconds: 0 },
 		})
 	})
 
-	it('is null under two waypoints, without calling the network', async () => {
+	it('fails as waypoints under two stops, without calling the network', async () => {
 		const mock = stubFetch({ ok: true, json: PAYLOAD })
 
-		expect(await fetchOsrmRoute([WAYPOINTS[0] as LngLat])).toBeNull()
+		expect(await fetchOsrmRoute([WAYPOINTS[0] as LngLat])).toEqual({
+			ok: false,
+			failure: { kind: 'waypoints', retryable: false },
+		})
 
 		expect(mock).not.toHaveBeenCalled()
 	})
 
-	it('is null on a failed response', async () => {
-		stubFetch({ ok: false })
-
-		expect(await fetchOsrmRoute(WAYPOINTS)).toBeNull()
-	})
-
-	it('is null on an empty leg carrying neither geometry nor totals', async () => {
-		stubFetch({ ok: true, json: { routes: [{}] } })
-
-		expect(await fetchOsrmRoute(WAYPOINTS)).toBeNull()
-	})
-
 	it('keeps the totals of a false-overview leg that carries no geometry', async () => {
 		// `overview: 'false'` answers with distance and duration and no line; the
-		// totals must survive as an empty-path result, not be dropped to null.
+		// totals must survive as an empty-path result, not be dropped to a failure.
 		stubFetch({ ok: true, json: { routes: [{ distance: 3243000, duration: 106200 }] } })
 
 		expect(await fetchOsrmRoute(WAYPOINTS, { overview: 'false' })).toEqual({
-			path: [],
-			distanceMeters: 3243000,
-			durationSeconds: 106200,
+			ok: true,
+			route: { path: [], distanceMeters: 3243000, durationSeconds: 106200 },
 		})
 	})
 
-	it('is null when the request throws', async () => {
-		vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('offline')))
+	it('carries a refused status, and retries only what can clear', async () => {
+		// The demo server's own answer under load: a 504 and a 429 are worth asking
+		// again, while a 400 is the same request refused the same way every time.
+		stubFetch({ ok: false, status: 504 })
 
-		expect(await fetchOsrmRoute(WAYPOINTS)).toBeNull()
+		expect(await fetchOsrmRoute(WAYPOINTS)).toEqual({
+			ok: false,
+			failure: { kind: 'http', status: 504, retryable: true },
+		})
+
+		stubFetch({ ok: false, status: 429 })
+
+		expect(await fetchOsrmRoute(WAYPOINTS)).toEqual({
+			ok: false,
+			failure: { kind: 'http', status: 429, retryable: true },
+		})
+
+		stubFetch({ ok: false, status: 400 })
+
+		expect(await fetchOsrmRoute(WAYPOINTS)).toEqual({
+			ok: false,
+			failure: { kind: 'http', status: 400, retryable: false },
+		})
+	})
+
+	it('tells a timeout from the caller`s own abort', async () => {
+		// Both arrive as a rejected fetch and only the reason's name separates them:
+		// a timeout can clear on another request, while the caller ended its own.
+		stubThrownRequest(new DOMException('The operation timed out', 'TimeoutError'))
+
+		expect(await fetchOsrmRoute(WAYPOINTS, { timeoutMs: 5000 })).toEqual({
+			ok: false,
+			failure: { kind: 'timeout', retryable: true },
+		})
+
+		stubThrownRequest(new DOMException('The operation was aborted', 'AbortError'))
+
+		expect(await fetchOsrmRoute(WAYPOINTS)).toEqual({
+			ok: false,
+			failure: { kind: 'aborted', retryable: false },
+		})
+	})
+
+	it('reads any other thrown request as a dead network', async () => {
+		stubThrownRequest(new TypeError('Failed to fetch'))
+
+		expect(await fetchOsrmRoute(WAYPOINTS)).toEqual({
+			ok: false,
+			failure: { kind: 'network', retryable: true },
+		})
+	})
+
+	it('reads a body that is no routing answer as a payload failure', async () => {
+		stubUnparseableBody()
+
+		expect(await fetchOsrmRoute(WAYPOINTS)).toEqual({
+			ok: false,
+			failure: { kind: 'payload', retryable: false },
+		})
+
+		// Parsed, and still not an answer: a body naming neither a leg nor a
+		// refusal, and a leg carrying neither geometry nor a total.
+		stubFetch({ ok: true, json: {} })
+
+		expect(await fetchOsrmRoute(WAYPOINTS)).toEqual({
+			ok: false,
+			failure: { kind: 'payload', retryable: false },
+		})
+
+		stubFetch({ ok: true, json: { routes: [{}] } })
+
+		expect(await fetchOsrmRoute(WAYPOINTS)).toEqual({
+			ok: false,
+			failure: { kind: 'payload', retryable: false },
+		})
+	})
+
+	it('reads the service`s own refusal as no-route, carrying its code', async () => {
+		// OSRM refuses a pair it cannot join under a 200, in its own code and with
+		// no `routes` at all — the dead end a retry can never clear.
+		stubFetch({
+			ok: true,
+			json: { code: 'NoRoute', message: 'Impossible route between points' },
+		})
+
+		expect(await fetchOsrmRoute(WAYPOINTS)).toEqual({
+			ok: false,
+			failure: { kind: 'no-route', retryable: false, code: 'NoRoute' },
+		})
+
+		// An empty `routes` array says the same thing without naming it.
+		stubFetch({ ok: true, json: { code: 'Ok', routes: [] } })
+
+		expect(await fetchOsrmRoute(WAYPOINTS)).toEqual({
+			ok: false,
+			failure: { kind: 'no-route', retryable: false },
+		})
 	})
 
 	it('honours a custom base URL and profile', async () => {
@@ -146,9 +249,9 @@ describe('fetchValhallaRoute', () => {
 	it('POSTs OSRM-format locations and parses the same payload shape', async () => {
 		const mock = stubFetch({ ok: true, json: PAYLOAD })
 
-		const result = await fetchValhallaRoute(WAYPOINTS)
+		const answer = await fetchValhallaRoute(WAYPOINTS)
 
-		expect(result?.distanceMeters).toBe(3243000)
+		expect(answer.ok && answer.route.distanceMeters).toBe(3243000)
 
 		const [url, init] = mock.mock.calls[0] as [string, RequestInit]
 
@@ -176,12 +279,15 @@ describe('fetchValhallaRoute', () => {
 		})
 
 		expect(await fetchValhallaRoute(WAYPOINTS)).toEqual({
-			path: [
-				[0, 0],
-				[2, 1],
-			],
-			distanceMeters: 250,
-			durationSeconds: 30,
+			ok: true,
+			route: {
+				path: [
+					[0, 0],
+					[2, 1],
+				],
+				distanceMeters: 250,
+				durationSeconds: 30,
+			},
 		})
 	})
 
@@ -195,9 +301,8 @@ describe('fetchValhallaRoute', () => {
 		})
 
 		expect(await fetchValhallaRoute(WAYPOINTS)).toEqual({
-			path: [[0, 0]],
-			distanceMeters: 250,
-			durationSeconds: 30,
+			ok: true,
+			route: { path: [[0, 0]], distanceMeters: 250, durationSeconds: 30 },
 		})
 	})
 
@@ -211,11 +316,17 @@ describe('fetchValhallaRoute', () => {
 		expect(JSON.parse(String(init.body)).costing).toBe('pedestrian')
 	})
 
-	it('is null under two waypoints and on failure', async () => {
-		stubFetch({ ok: false })
+	it('names its failures on the taxonomy both clients share', async () => {
+		stubFetch({ ok: false, status: 503 })
 
-		expect(await fetchValhallaRoute([])).toBeNull()
+		expect(await fetchValhallaRoute([])).toEqual({
+			ok: false,
+			failure: { kind: 'waypoints', retryable: false },
+		})
 
-		expect(await fetchValhallaRoute(WAYPOINTS)).toBeNull()
+		expect(await fetchValhallaRoute(WAYPOINTS)).toEqual({
+			ok: false,
+			failure: { kind: 'http', status: 503, retryable: true },
+		})
 	})
 })

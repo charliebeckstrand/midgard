@@ -4,8 +4,9 @@
  */
 
 import type { LngLat } from '../types'
-import { type Profile, requestSignal } from './request'
-import { type MapRouteResult, type OsrmPayload, routeResult } from './result'
+import { routeFailure } from './failure'
+import { type Profile, requestSignal, routeFetch } from './request'
+import type { MapRouteAnswer } from './result'
 
 const DEFAULT_OSRM_URL = 'https://router.project-osrm.org'
 
@@ -37,8 +38,8 @@ export type FetchOsrmRouteOptions = {
 	overview?: RouteOverview
 	/**
 	 * Abort the request after this many milliseconds, combined with `signal`. A
-	 * timed-out request resolves to `null` like any other failure, so the overlay
-	 * falls back to a straight line. Omitted, only `signal` bounds it.
+	 * timed-out request fails as `'timeout'`, apart from the `'aborted'` a
+	 * caller's own signal ends it with. Omitted, only `signal` bounds it.
 	 */
 	timeoutMs?: number
 	signal?: AbortSignal
@@ -46,15 +47,26 @@ export type FetchOsrmRouteOptions = {
 
 /**
  * Fetch a routed leg through OSRM: the street-following polyline plus its
- * distance and duration. Returns `null` if there are fewer than 2 waypoints
- * or the request fails. A caller then falls back to straight-line segments;
- * an overlay with no `path` already draws them.
+ * distance and duration.
+ *
+ * @param waypoints - The stops in travel order; under two of them name no leg.
+ * @param options - The server, profile, geometry detail, and abort bounds.
+ * @returns `{ ok: true, route }` with the leg, or `{ ok: false, failure }`
+ * naming what stopped it and whether asking again could answer differently.
+ *
+ * @remarks A caller that draws whatever it gets falls back to straight-line
+ * segments on any failure; an overlay with no `path` already draws them. Read
+ * the failure where the two ends differ: a `'timeout'` or a 504 from the demo
+ * server is worth another request, while `'no-route'` is the service's own
+ * answer that no road joins the stops.
+ *
+ * @see {@link MapRouteFailureKind} for the reasons a request fails.
  */
 export async function fetchOsrmRoute(
 	waypoints: LngLat[],
 	options: FetchOsrmRouteOptions = {},
-): Promise<MapRouteResult | null> {
-	if (waypoints.length < 2) return null
+): Promise<MapRouteAnswer> {
+	if (waypoints.length < 2) return { ok: false, failure: routeFailure('waypoints') }
 
 	const {
 		baseUrl = DEFAULT_OSRM_URL,
@@ -68,13 +80,5 @@ export async function fetchOsrmRoute(
 
 	const url = `${baseUrl}/route/v1/${profile}/${coords}?overview=${overview}&geometries=geojson`
 
-	try {
-		const res = await fetch(url, { signal: requestSignal(signal, timeoutMs) })
-
-		if (!res.ok) return null
-
-		return routeResult((await res.json()) as OsrmPayload)
-	} catch {
-		return null
-	}
+	return routeFetch(url, { signal: requestSignal(signal, timeoutMs) })
 }
