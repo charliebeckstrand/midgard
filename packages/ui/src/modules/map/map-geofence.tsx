@@ -10,7 +10,7 @@ import {
 	ROUTE_HIT_WIDTH,
 } from './engine/map-constants'
 import { circleRing } from './engine/map-geofence'
-import { ringAnchor, ringPath } from './engine/map-geometry/mark'
+import { areaAnchor, areaPath } from './engine/map-geometry/mark'
 import { GEOFENCE_WASH, ROUTE_DRAW } from './engine/map-motion'
 import type { LngLat } from './engine/types'
 import { MapHalo } from './map-halo'
@@ -30,6 +30,7 @@ type MapGeofenceCircle = {
 	 */
 	radius: number
 	boundary?: undefined
+	area?: undefined
 }
 
 /** A geofence along a ring of its own — a drawn zone, a district, a service area. @internal */
@@ -37,7 +38,8 @@ type MapGeofencePolygon = {
 	/**
 	 * The zone's outline, as one closed ring of lon/lat. A GeoJSON ring repeats
 	 * its first position at the end; either form draws, since the path closes
-	 * itself. One outer ring only — a zone with a hole in it is two marks.
+	 * itself. One outer ring only — pass `area` for a zone with a hole in it, or
+	 * one that falls in separate parts.
 	 *
 	 * Each edge draws straight in the frame, so a ring wider than a hemisphere —
 	 * one that would need the sphere's own resampling — is outside what this
@@ -51,19 +53,45 @@ type MapGeofencePolygon = {
 	boundary: LngLat[]
 	at?: undefined
 	radius?: undefined
+	area?: undefined
+}
+
+/** A geofence over a territory of several parts, each able to enclose a hole. @internal */
+type MapGeofenceArea = {
+	/**
+	 * The zone's rings, nested polygon → ring → position, with each polygon's
+	 * outer ring first and its holes after. GeoJSON `MultiPolygon` coordinates
+	 * exactly, so a dissolved territory passes straight through.
+	 *
+	 * This is `boundary`'s form for a zone that {@link MapGeofencePolygon} cannot
+	 * state: a coverage area in two separate parts, or one wrapped around ground
+	 * it does not cover. A hole reads as a hole whichever way its ring winds,
+	 * because the mark fills under the even-odd rule — so a merged topology's own
+	 * output needs no rewinding.
+	 *
+	 * Hold the array steady across renders, for the reason `boundary` names.
+	 */
+	area: LngLat[][][]
+	at?: undefined
+	radius?: undefined
+	boundary?: undefined
 }
 
 /**
- * Props for {@link MapGeofence}. The two geometries are mutually exclusive: a
- * circle takes its centre and its radius, a polygon takes its own ring.
+ * Props for {@link MapGeofence}. The three geometries are mutually exclusive: a
+ * circle takes its centre and its radius, a polygon takes its own ring, and an
+ * area takes the nested rings of a territory in several parts.
  */
-export type MapGeofenceProps = MapOverlayProps & (MapGeofenceCircle | MapGeofencePolygon)
+export type MapGeofenceProps = MapOverlayProps &
+	(MapGeofenceCircle | MapGeofencePolygon | MapGeofenceArea)
 
 /**
  * A zone drawn over the geography — a delivery area, a service radius, a
  * restricted district — as a washed area under its own boundary, registered in
  * the plat's legend as its own toggleable, focusable entry. Give it a centre and
- * a ground radius for a circle, or a ring of coordinates for any other shape.
+ * a ground radius for a circle, a ring of coordinates for a drawn outline, or
+ * `area` for a territory of several parts — a ZIP-code coverage area, a sales
+ * region — where any part can enclose ground it leaves out.
  * Hovering anywhere in the zone raises the tooltip with its name and detail and
  * isolates the zone — every other mark recedes, as under its legend entry's
  * focus. With `onClick` set, the zone answers a click and the keyboard cursor
@@ -87,35 +115,42 @@ export type MapGeofenceProps = MapOverlayProps & (MapGeofenceCircle | MapGeofenc
  * `animate` the outline draws itself in (`pathLength` 0 → 1) and the wash then
  * settles inside it, so the shape reads before the colour does.
  */
-export function MapGeofence({ at, radius, boundary, ...shared }: MapGeofenceProps) {
+export function MapGeofence({ at, radius, boundary, area, ...shared }: MapGeofenceProps) {
 	// Held on the centre's own numbers rather than on its identity: an inline
 	// `at={[lon, lat]}` is a fresh array every render, and this memo feeds the
 	// projection memo below — keyed on the array it would hold on neither, and a
 	// circle would rebuild its whole ring on every pointer move across the map.
 	const [lon, lat] = at ?? []
 
-	const ring = useMemo(() => {
-		if (boundary !== undefined) return boundary
+	// The three geometries meet here, in the widest one's shape. Everything below
+	// this line draws a territory of rings, so a circle and a lone boundary reach
+	// the path, the anchor, the wash, and the hit as the one-polygon, one-ring
+	// cases they are — and the mark holds one of each rather than three.
+	const polygons = useMemo(() => {
+		if (area !== undefined) return area
+
+		if (boundary !== undefined) return [[boundary]]
 
 		if (lon === undefined || lat === undefined) return []
 
-		return circleRing([lon, lat], radius)
-	}, [boundary, lon, lat, radius])
+		return [[circleRing([lon, lat], radius)]]
+	}, [area, boundary, lon, lat, radius])
 
 	const { slot, hidden, project, animate, dim, selected, onPointerLeave, hit } = useMapOverlay({
 		...shared,
 		kind: 'geofence',
 		swatch: 'rect',
 		// A circle knows its own centre, so it never pays a centroid pass to find
-		// one; a drawn ring resolves its middle from the vertices.
-		stops: () => (at === undefined ? ringAnchor(ring) : [at]),
+		// one; drawn rings resolve their middle from the vertices.
+		stops: () => (at === undefined ? areaAnchor(polygons) : [at]),
 	})
 
 	// Memoised so a hover-driven re-render (the plat's pointer state churns the
-	// hover context) doesn't re-project and re-stringify the whole ring;
-	// `project` identity holds until the measured refit, a circle's `ring` holds on
-	// the primitives above, and a `boundary` is the caller's own stable ref.
-	const d = useMemo(() => ringPath(ring, project), [ring, project])
+	// hover context) doesn't re-project and re-stringify the whole territory;
+	// `project` identity holds until the measured refit, a circle's rings hold on
+	// the primitives above, and a `boundary` or an `area` is the caller's own
+	// stable ref.
+	const d = useMemo(() => areaPath(polygons, project), [polygons, project])
 
 	if (slot === undefined || hidden || d === '') return null
 
@@ -125,6 +160,11 @@ export function MapGeofence({ at, radius, boundary, ...shared }: MapGeofenceProp
 		'data-slot': 'map-geofence-wash',
 		d,
 		stroke: 'none',
+		// Even-odd, so a ring inside another ring reads as a hole whichever way
+		// either one winds — which is what lets a dissolved territory draw in the
+		// winding its source gave it. A single-ring zone fills the same under both
+		// rules, so the circle and the lone boundary are unaffected.
+		fillRule: 'evenodd' as const,
 		fillOpacity: GEOFENCE_FILL_OPACITY,
 		// Off the pointer, as every other drawn shape in the module is
 		// (`MapDotCount`, the halo, the lit region copies): the hit shape below is
@@ -183,6 +223,10 @@ export function MapGeofence({ at, radius, boundary, ...shared }: MapGeofenceProp
 					data-slot="map-geofence-hit"
 					d={d}
 					fill="transparent"
+					// The wash's own rule, so the target is the ground the zone covers and
+					// not its bounding shape: a hole answers no pointer, and the region
+					// under it keeps its own hover.
+					fillRule="evenodd"
 					stroke="transparent"
 					strokeWidth={ROUTE_HIT_WIDTH}
 					// The band is a finger's width in device pixels, so it rides the same

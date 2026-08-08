@@ -12,7 +12,7 @@
  * cheap walk and the region layer keeps the exact one.
  */
 
-import { type GeoProjection, geoCentroid } from 'd3-geo'
+import { type GeoProjection, geoArea, geoCentroid } from 'd3-geo'
 import type { LngLat, MapPoint2D } from '../types'
 
 /**
@@ -175,6 +175,78 @@ export function ringAnchor(ring: LngLat[]): LngLat[] {
 
 	return Number.isFinite(lon) && Number.isFinite(lat) ? [[lon, lat]] : [first]
 }
+
+/**
+ * An area's SVG path: every ring of every polygon, each closed, in one string.
+ * {@link ringPath}'s contract for the shape that holds more than one ring — a
+ * territory of several separate parts, any of which can enclose a hole.
+ *
+ * The rings concatenate and nothing marks which is which, because nothing has
+ * to: the mark paints under the even-odd fill rule, where a ring inside another
+ * ring is a hole whichever way either one winds. That is what lets a dissolved
+ * shape draw exactly as it arrives — a merged topology hands back its rings in
+ * the winding its arcs held, and no pass has to sort outers from inners or
+ * rewind either.
+ *
+ * A ring the projection keeps fewer than three points of is dropped, as
+ * {@link ringPath} drops it, so an inset that clips half a territory away draws
+ * the half it kept.
+ *
+ * @internal
+ */
+export function areaPath(
+	polygons: LngLat[][][],
+	project: (position: LngLat) => MapPoint2D | null,
+): string {
+	let path = ''
+
+	for (const polygon of polygons) {
+		for (const ring of polygon) path += ringPath(ring, project)
+	}
+
+	return path
+}
+
+/**
+ * The middle of an area's largest polygon, as the stop list a multi-part mark
+ * registers. {@link ringAnchor}'s contract for the shape that holds more than
+ * one part.
+ *
+ * The largest part rather than the whole: a territory of two distant clusters
+ * has no middle that stands on it, and the cursor must land on the mark and not
+ * between its pieces. Size is read as the enclosed area of the outer ring, and
+ * read winding-blind — a backwards ring measures as the whole sphere less its
+ * own area, so the smaller of the two readings is the one the ring means, and a
+ * dissolved shape needs no rewinding pass to be measured.
+ *
+ * @internal
+ */
+export function areaAnchor(polygons: LngLat[][][]): LngLat[] {
+	let widest: LngLat[] | undefined
+
+	let widestArea = -1
+
+	for (const polygon of polygons) {
+		const outer = polygon[0]
+
+		if (outer === undefined || outer.length === 0) continue
+
+		const area = geoArea({ type: 'Polygon', coordinates: [outer] })
+
+		const enclosed = Math.min(area, WHOLE_SPHERE_STERADIANS - area)
+
+		if (enclosed > widestArea) {
+			widestArea = enclosed
+
+			widest = outer
+		}
+	}
+
+	return widest === undefined ? [] : ringAnchor(widest)
+}
+
+/** The sphere's whole area in steradians — what a backwards ring measures against. @internal */
+const WHOLE_SPHERE_STERADIANS = 4 * Math.PI
 
 /**
  * A dot's SVG path: a zero-length segment whose round cap paints the circle.

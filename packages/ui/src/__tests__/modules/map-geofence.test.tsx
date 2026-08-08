@@ -289,3 +289,80 @@ describe('MapGeofence', () => {
 		expect(bySlot(container, 'map-table')?.textContent).toContain('42 stops')
 	})
 })
+
+describe('MapGeofence area', () => {
+	/** The same zone as `ZONE`, stated in the nested form an `area` takes. */
+	const AS_AREA: LngLat[][][] = [[ZONE]]
+
+	/** A zone in two separate parts, each its own polygon. */
+	const SPLIT: LngLat[][][] = [
+		[ZONE],
+		[
+			[
+				[20, 2],
+				[20, 8],
+				[28, 8],
+				[28, 2],
+			],
+		],
+	]
+
+	/** One part with a hole cut out of the middle of it. */
+	const HOLED: LngLat[][][] = [
+		[
+			ZONE,
+			[
+				[5, 4],
+				[5, 6],
+				[9, 6],
+				[9, 4],
+			],
+		],
+	]
+
+	it('draws a one-ring area exactly as the same ring drawn as a boundary', () => {
+		const { container: asArea } = renderUI(plat(<MapGeofence label="Zone A" area={AS_AREA} />))
+
+		const { container: asRing } = renderUI(plat(<MapGeofence label="Zone A" boundary={ZONE} />))
+
+		expect(bySlot(asArea, 'map-geofence')?.getAttribute('d')).toBe(
+			bySlot(asRing, 'map-geofence')?.getAttribute('d'),
+		)
+	})
+
+	it('draws every part of a split territory under one mark', () => {
+		const { container } = renderUI(plat(<MapGeofence label="Coverage" area={SPLIT} />))
+
+		// Two parts, one mark: two closed subpaths in one `d`, and one edge, one
+		// wash, and one hit shape between them.
+		expect(bySlot(container, 'map-geofence')?.getAttribute('d')?.match(/Z/g)).toHaveLength(2)
+
+		expect(allBySlot(container, 'map-geofence')).toHaveLength(1)
+
+		expect(allBySlot(container, 'map-geofence-hit')).toHaveLength(1)
+	})
+
+	it('fills and hit-tests a hole under the even-odd rule, so it reads as ground', () => {
+		const { container } = renderUI(plat(<MapGeofence label="Coverage" area={HOLED} />))
+
+		expect(bySlot(container, 'map-geofence-wash')?.getAttribute('fill-rule')).toBe('evenodd')
+
+		// The hit shape takes the same rule as the wash: a hole answers no pointer,
+		// so the region beneath it keeps its own hover.
+		expect(bySlot(container, 'map-geofence-hit')?.getAttribute('fill-rule')).toBe('evenodd')
+	})
+
+	it('registers one legend entry for a territory however many parts it holds', () => {
+		const { container } = renderUI(plat(<MapGeofence label="Coverage" area={SPLIT} />))
+
+		expect(allBySlot(container, 'map-legend-item').map((item) => item.textContent)).toEqual([
+			'Coverage',
+		])
+	})
+
+	it('draws nothing where the territory holds no rings', () => {
+		const { container } = renderUI(plat(<MapGeofence label="Coverage" area={[]} />))
+
+		expect(bySlot(container, 'map-geofence')).toBeNull()
+	})
+})

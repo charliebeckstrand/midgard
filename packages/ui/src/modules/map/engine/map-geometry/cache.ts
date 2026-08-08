@@ -50,6 +50,50 @@ export type StaticMapGeometry = {
 /** Nothing to draw — a plat with no geography yet reserves its frame and paints no marks. @internal */
 const EMPTY: StaticMapGeometry = { features: [], canonical: null, canonicalPaths: [] }
 
+// Atlas → object name → its decoded, rewound features. Held apart from the trio
+// below because two readers want it and only one of them wants the fit: the
+// geometry above draws the atlas, and the coverage hook filters it to the
+// regions a territory lands in. Decoding a county topology runs to tens of
+// milliseconds, so the two must not each pay it — and a map that draws the
+// filtered result never decodes the whole atlas twice.
+const decoded = new WeakMap<MapGeography, Map<string | undefined, MapFeature[]>>()
+
+/**
+ * An atlas object's features, decoded and rewound once per atlas and object
+ * name, and shared across instances and mounts.
+ *
+ * Rewound here rather than at each reader, because both readers need it and for
+ * the same reason: a raw-GeoJSON exterior wound opposite d3's spherical
+ * convention reads as the region's complement. That floods the frame when it is
+ * fit, and swallows the globe when a position is tested against it.
+ *
+ * Shared, so treat the result as read-only.
+ *
+ * @internal
+ */
+export function cachedGeographyFeatures(
+	geography: MapGeography,
+	objectName: string | undefined,
+): MapFeature[] {
+	let byName = decoded.get(geography)
+
+	if (byName === undefined) {
+		byName = new Map()
+
+		decoded.set(geography, byName)
+	}
+
+	let features = byName.get(objectName)
+
+	if (features === undefined) {
+		features = rewindFeatures(geographyFeatures(geography, objectName))
+
+		byName.set(objectName, features)
+	}
+
+	return features
+}
+
 // Atlas → (object name + named projection) → computed geometry. The atlas keys
 // a WeakMap so an entry is collected with the atlas it belongs to; the inner
 // Map's keys are the few (object, projection) pairs one atlas is drawn under.
@@ -67,10 +111,10 @@ export function computeStaticMapGeometry(
 	geographyObject: string | undefined,
 	projection: MapProjection,
 ): StaticMapGeometry {
-	// Rewind before fitting: a raw-GeoJSON exterior wound opposite d3's spherical
-	// convention would otherwise fit as the region's complement and flood the
-	// frame. This is the cached stage, so the pass is paid once per atlas.
-	const features = rewindFeatures(geographyFeatures(geography, geographyObject))
+	// Decoded and rewound through the shared memo above, so an atlas the coverage
+	// hook has already read costs nothing here — and the rewind, which the fit
+	// depends on, happens once per atlas either way.
+	const features = cachedGeographyFeatures(geography, geographyObject)
 
 	const canonical = canonicalFit(projection, features)
 

@@ -1,6 +1,8 @@
 import { geoArea } from 'd3-geo'
 import { describe, expect, it } from 'vitest'
 import {
+	areaAnchor,
+	areaPath,
 	dotPath,
 	linePath,
 	projectPoint,
@@ -405,5 +407,104 @@ describe('ringAnchor', () => {
 				[180, 0],
 			]),
 		).toEqual([[0, 0]])
+	})
+})
+
+describe('areaPath', () => {
+	const projection = fitMapProjection('mercator', FIXTURE_GEOJSON.features, 300, 100)
+
+	const project = (position: [number, number]) => projectPoint(projection, position)
+
+	/** An outer ring with a hole inside it — one polygon, two rings. */
+	const DONUT: [number, number][][] = [
+		[
+			[2, 2],
+			[2, 8],
+			[28, 8],
+			[28, 2],
+		],
+		[
+			[10, 4],
+			[10, 6],
+			[20, 6],
+			[20, 4],
+		],
+	]
+
+	it('draws every ring of every polygon, each closed', () => {
+		const d = areaPath([DONUT], project)
+
+		expect(d.match(/Z/g)).toHaveLength(2)
+
+		expect(d.match(/M/g)).toHaveLength(2)
+	})
+
+	it('is the rings concatenated, so one ring draws exactly what ringPath draws', () => {
+		const [outer = []] = DONUT
+
+		expect(areaPath([[outer]], project)).toBe(ringPath(outer, project))
+	})
+
+	it('draws separate parts in one string, so a split territory is one mark', () => {
+		const [outer = [], hole = []] = DONUT
+
+		expect(areaPath([[outer], [hole]], project)).toBe(
+			ringPath(outer, project) + ringPath(hole, project),
+		)
+	})
+
+	it('drops a ring the projection keeps too little of, and keeps the rest', () => {
+		const [outer = []] = DONUT
+
+		// A projector that drops everything past the tenth meridian leaves the hole
+		// with one surviving point — too few for an area — and the outer ring whole.
+		const clipped = (position: [number, number]) => (position[0] > 10 ? null : project(position))
+
+		expect(areaPath([DONUT], clipped)).toBe(ringPath(outer, clipped))
+	})
+
+	it('draws nothing from no polygons', () => {
+		expect(areaPath([], project)).toBe('')
+	})
+})
+
+describe('areaAnchor', () => {
+	/** A small square around (0, 0) and a much wider one out at (100, 0). */
+	const SMALL: [number, number][] = [
+		[-1, -1],
+		[-1, 1],
+		[1, 1],
+		[1, -1],
+	]
+
+	const WIDE: [number, number][] = [
+		[90, -10],
+		[90, 10],
+		[110, 10],
+		[110, -10],
+	]
+
+	it('stands on the largest part, never between two of them', () => {
+		const [anchor] = areaAnchor([[SMALL], [WIDE]])
+
+		// The midpoint of the two parts is around the fiftieth meridian, which is
+		// ground the territory does not cover. The anchor sits on the wide part.
+		expect(anchor?.[0]).toBeCloseTo(100, 0)
+	})
+
+	it('reads size the same whichever way a ring winds', () => {
+		expect(areaAnchor([[SMALL], [WIDE]])).toEqual(
+			areaAnchor([[[...SMALL].reverse()], [[...WIDE].reverse()]]),
+		)
+	})
+
+	it('anchors on the outer ring and never inside a hole', () => {
+		expect(areaAnchor([[WIDE, SMALL]])).toEqual(areaAnchor([[WIDE]]))
+	})
+
+	it('offers no stop where there is nothing to stand on', () => {
+		expect(areaAnchor([])).toEqual([])
+
+		expect(areaAnchor([[]])).toEqual([])
 	})
 })

@@ -3,6 +3,7 @@ export { binEmphasisId } from './engine/map-region/category'
 export { type FetchOsrmRouteOptions, fetchOsrmRoute } from './engine/map-routing/osrm'
 export type { MapRouteResult } from './engine/map-routing/result'
 export { type FetchValhallaRouteOptions, fetchValhallaRoute } from './engine/map-routing/valhalla'
+export type { MapZipSelection } from './engine/map-zip/selection'
 export type {
 	DataKey,
 	LngLat,
@@ -24,3 +25,4 @@ export { MapPoint, type MapPointProps } from './map-point'
 export { type MapPointDatum, MapPoints, type MapPointsProps } from './map-points'
 export { MapRoute, type MapRouteProps } from './map-route'
 export { MapSkeleton, type MapSkeletonProps } from './map-skeleton'
+export { type MapCoverage, type MapCoverageOptions, useMapCoverage } from './use-map-coverage'
