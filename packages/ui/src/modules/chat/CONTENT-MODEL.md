@@ -62,9 +62,17 @@ The roadmap says every module holds the receiving half of a shared selection and
 
 ## Judgement so far
 
-Candidate A scored 22.5/40 across four lenses, with no fatal defect: dependency and migration 7, streaming 6, projection and a11y 5, simplicity and altitude 4.5. The altitude lens states the sharpest verdict: *survives as an architecture; fails as increment 3*. Its `id` on every part and its structural emptiness rule are forced rather than speculative; the purpose enum and the two-axis projection are not.
+Four lenses score each candidate out of 10: streaming, projection and a11y, dependency and migration, and simplicity and altitude. No lens has found a fatal defect in any candidate.
 
-Candidates B, C, and D are proposed but not yet judged.
+Candidate A scored 22.5/40 on all four lenses: dependency and migration 7, streaming 6, projection and a11y 5, simplicity and altitude 4.5. The altitude lens states the sharpest verdict: *survives as an architecture; fails as increment 3*. Its `id` on every part and its structural emptiness rule are forced rather than speculative; the purpose enum and the two-axis projection are not.
+
+Candidate B scored 17/30 on three lenses, and the dependency lens did not run. Streaming 8 is the highest single score any candidate holds: a byte-by-byte trace of 94 frames shows a paragraph before an open fence stays byte-identical in every frame, so a chart cannot discard the prose before it, and the rollback rule needs no change. Projection and a11y 5 found that the design's two readers had *already* drifted inside the proposal: the projection parses a directive with one regular expression and the renderer keys the same node with a different one, and the two disagree on three of four test info strings. Simplicity and altitude 4 states that B has no shippable increment 3 at all — its first landable unit rewrites the chat engine, adds a public prop to the shared `Markdown`, refactors `MarkdownRenderer` into a factory, and adds the registry, the hook, and a `ChatMessage` prop together.
+
+Candidate C scored 6.5 on streaming alone; three lenses did not run. Its id-keyed merge and its memo behaviour survived, but its completeness axis fails: `status` is declared in the type and never written by the shell, so an embed that finished streaming stays open and renders as a permanent skeleton.
+
+Candidate D is proposed but not judged. Its own author states the condition it needs is not met by the roadmap as written.
+
+Judgement stopped here by request. What is missing: the dependency lens on B, three lenses on C, all four on D, and the synthesis.
 
 ## What holds whichever candidate wins
 
