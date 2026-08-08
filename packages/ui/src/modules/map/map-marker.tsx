@@ -154,9 +154,15 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 					/>
 				)}
 
-				{from && <circle {...dotHitProps('map-marker-start-hit', from, hit(), unitsPerPixel)} />}
+				{from && (
+					<circle
+						{...dotHitProps('map-marker-start-hit', from, hit(), unitsPerPixel, PIN_RADIUS)}
+					/>
+				)}
 
-				{to && <circle {...dotHitProps('map-marker-end-hit', to, hit(), unitsPerPixel)} />}
+				{to && (
+					<circle {...dotHitProps('map-marker-end-hit', to, hit(), unitsPerPixel, PIN_RADIUS)} />
+				)}
 			</g>
 		</>
 	)

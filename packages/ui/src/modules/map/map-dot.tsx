@@ -3,7 +3,7 @@
 import { motion } from 'motion/react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
-import { POINT_HIT_RADIUS } from './engine/map-constants'
+import { POINT_HIT_RADIUS, POINT_HIT_RADIUS_FINE } from './engine/map-constants'
 import { dotPath } from './engine/map-geometry/mark'
 import { transformAttribute } from './engine/map-zoom/transform'
 import type { MapPoint2D } from './engine/types'
@@ -153,12 +153,19 @@ export function MapDotCount({
  * dot-shaped mark — a point, a marker pin, one dot of a set. One rule for all of
  * them, because the target's size answers the input device rather than the mark:
  * the `r` attribute carries the coarse-pointer reach (WCAG 2.5.5's 44px) and
- * `k.hitFine` takes it to the fine-pointer floor (2.5.8's 24px), so a mouse gets
+ * `k.hitFine` takes it to the fine-pointer target (12px), so a mouse gets
  * precision where a finger gets reach.
  *
  * That precision is what lets a small mark be aimed at through a dot standing in
  * it: a `MapGeofence` drawn tight around a `MapPoint` fits inside the finger
- * target, and would otherwise never answer a mouse.
+ * target, and a depot at a catchment's centre would otherwise claim the middle of
+ * its own zone.
+ *
+ * `radius` is the dot the target covers, and it gates that precision: a target
+ * narrower than its own mark leaves the mark a dead rim, so a summary dot grown
+ * past the fine reach — the `CLUSTER_RADIUS_STEPS` grades — keeps the coarse
+ * radius, the narrowest circle here that still holds all of it. The `TouchTarget`
+ * primitive floors an interactive host the same way, at `max(100%, …)`.
  *
  * A props factory rather than a component, because a `MapPoints` draws one of
  * these per dot: a component's own fiber priced 200 of them at ~1 µs each, +14%
@@ -178,7 +185,13 @@ export function MapDotCount({
  *
  * @internal
  */
-export function dotHitProps(slot: string, at: MapPoint2D, hit: MapOverlayHit, scale: number) {
+export function dotHitProps(
+	slot: string,
+	at: MapPoint2D,
+	hit: MapOverlayHit,
+	scale: number,
+	radius: number,
+) {
 	return {
 		'data-slot': slot,
 		cx: at.x,
@@ -186,6 +199,6 @@ export function dotHitProps(slot: string, at: MapPoint2D, hit: MapOverlayHit, sc
 		r: POINT_HIT_RADIUS * scale,
 		fill: 'transparent',
 		...hit,
-		className: cn(k.hitFine, hit.className),
+		className: cn(radius < POINT_HIT_RADIUS_FINE ? k.hitFine : undefined, hit.className),
 	}
 }

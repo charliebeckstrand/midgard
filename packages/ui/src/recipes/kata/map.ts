@@ -33,20 +33,22 @@ export const k = {
 	 */
 	clickable: CLICKABLE,
 	/**
-	 * Takes a mark's hit circle down to the fine-pointer target floor, over the
-	 * coarse radius its `r` attribute carries — the `TouchTarget` primitive's rule
-	 * (WCAG 2.5.8's 24px for a mouse, 2.5.5's 44px for a finger) in the one form an
-	 * SVG shape allows, since only CSS can read the input modality.
+	 * Takes a mark's hit circle down to the fine-pointer target, over the coarse
+	 * radius its `r` attribute carries — 44px for a finger (WCAG 2.5.5's enhanced
+	 * target), 12px for a mouse — in the one form an SVG shape allows, since only
+	 * CSS can read the input modality.
 	 *
 	 * It is what lets a small area mark be pointed at: a `MapGeofence` drawn tight
 	 * around a `MapPoint` sits wholly inside a finger-sized circle, so without this
-	 * the dot claims the zone's whole face and the two can never be told apart.
+	 * the dot claims the zone's whole face and the two can never be told apart. The
+	 * mouse figure sits under WCAG 2.5.8's 24px minimum deliberately, and
+	 * `POINT_HIT_RADIUS_FINE` states why.
 	 *
 	 * The radius is spelled out here rather than read from
 	 * `POINT_HIT_RADIUS_FINE`, because Tailwind scans source for whole class
 	 * strings; `map-hit-target.test.tsx` pins the two together.
 	 */
-	hitFine: 'pointer-fine:[r:12px]',
+	hitFine: 'pointer-fine:[r:6px]',
 	/**
 	 * The standing pick's ink, on an overlay mark's halo — the same token the
 	 * region ring takes (`region.selected`), so one map never marks its geography

@@ -71,7 +71,7 @@ export function MapPoint({ at, ...shared }: MapPointProps) {
 					transition={pointPop(order)}
 				/>
 
-				<circle {...dotHitProps('map-point-hit', position, hit(), unitsPerPixel)} />
+				<circle {...dotHitProps('map-point-hit', position, hit(), unitsPerPixel, POINT_RADIUS)} />
 			</g>
 		</>
 	)
